@@ -44,12 +44,12 @@ public class ZQuestTheBlackBook extends ZQuest {
     public ZBoard loadBoard() {
 
         String [][] map = {
-                { "z1:i:we",        "z2:green:de",  "z3:i:ws:ode",              "z3:i:red:we:ws",       "z4:sp",    "z5:i:ww:we:vd1",       "z6:v:vd1" },
-                { "z1:i:we",        "z7",           "z8",                       "z9",                   "z10",      "z5:i:ww:we:ods",       "z6:v"     },
-                { "z1:i:we:ods",        "z11:st",       "z12:i:wn:ww:blackbook:ods:ode",  "z12:i:wn:we:ods:vd2",  "z14","z5:i:ww:we:ods",       "z6:v:vd2" },
-                { "z1:i:grds:we:vd3", "z15",        "z12:i:ww:ws:vd4:ode",      "z12:i:ws:we",          "z13",      "z5:i:blds:we:ww",      "z16:wn:v:vd3" },
-                { "z17:sp",         "z18",          "z19",                      "z20",                  "z21",      "z22:sp:we",            "z16:v" },
-                { "z23:i:red:wn:de","z24",          "z25:i:dw:wn:ode",          "z25:i:red:wn:we",      "z26",      "z27:i:dw:red:wn:we",   "z16:v:vd4" }
+                { "z0:i:we",        "z1:green:de",  "z2:i:ws:ode",                  "z3:i:red:we:ws",       "z4:sp",    "z5:i:ww:we:vd1",       "z6:v:vd1" },
+                { "z0:i:we",        "z7",           "z8",                           "z9",                   "z10",      "z5:i:ww:we:ods",       "z6:v"     },
+                { "z0:i:we:ods",    "z11:st",       "z12:i:wn:ww:blackbook:ods:ode","z13:i:wn:we:ods:vd2",  "z14",      "z15:i:ww:we:ods",       "z6:v:vd2" },
+                { "z16:i:grds:we:vd3", "z17",        "z18:i:ww:ws:vd4:ode",          "z19:i:ws:we",          "z20",      "z21:i:blds:we:ww",      "z22:wn:v:vd3" },
+                { "z23:sp",         "z24",          "z25",                          "z26",                  "z27",      "z28:sp:we",            "z22:v" },
+                { "z29:i:red:wn:de","z30",          "z31:i:dw:wn:ode",              "z32:i:red:wn:we",      "z33",      "z34:i:dw:red:wn:we",   "z22:v:vd4" }
         };
         return load(map);
     }

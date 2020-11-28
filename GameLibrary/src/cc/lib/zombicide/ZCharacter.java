@@ -374,7 +374,9 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
                     if (isDualWeilding())
                         continue;
             }
-            info.addColumn(slot.name(), Arrays.asList(getSlotInfo(slot, game)));
+            Table slotInfo = getSlotInfo(slot, game);
+            if (slotInfo != null)
+                info.addColumn(slot.name().replace('_', ' '), Arrays.asList(slotInfo));
         }
 
         Table stats = new Table().setNoBorder().setPadding(0);
@@ -593,6 +595,8 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
                 }
                 return body.getCardInfo(this, game);
             case BACKPACK: {
+                if (backpack.size() == 0)
+                    return null;
                 Table table = new Table().setNoBorder();
                 for (ZEquipment e : backpack) {
                     table.addRow(e);

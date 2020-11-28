@@ -1288,64 +1288,11 @@ public class Utils {
         }
     }
 
-    /**
-     * @param <T>
-     * @param dest
-     * @param value
-     * @param start
-     * @param end
-     */
-    public static <T> void fillArray(T[] dest, T value, int start, int end) {
-        for (int i = start; i <= end; i++)
-            dest[i] = value;
-    }
-
-    /**
-     * @param <T>
-     * @param dest
-     * @param value
-     */
-    public static <T> void fillArray(T[] dest, T value) {
-        fillArray(dest, value, 0, dest.length - 1);
-    }
-
-    /**
-     * @param dest
-     * @param value
-     * @param start
-     * @param end
-     */
-    public static void fillArray(int[] dest, int value, int start, int end) {
-        for (int i = start; i <= end; i++)
-            dest[i] = value;
-    }
-
-    /**
-     * @param dest
-     * @param value
-     */
-    public static void fillArray(int[] dest, int value) {
-        fillArray(dest, value, 0, dest.length - 1);
-    }
-
-    /**
-     * @param
-     * @param dest
-     * @param value
-     * @param start
-     * @param end
-     */
-    public static void fillArray(boolean[] dest, boolean value, int start, int end) {
-        for (int i = start; i <= end; i++)
-            dest[i] = value;
-    }
-
-    /**
-     * @param dest
-     * @param value
-     */
-    public static void fillArray(boolean[] dest, boolean value) {
-        fillArray(dest, value, 0, dest.length - 1);
+    public static void fill(int [][] array, int value) {
+        for (int i=0; i<array.length; i++) {
+            for (int ii=0; ii<array[i].length; ii++)
+                array[i][ii] = value;
+        }
     }
 
     /**

@@ -210,6 +210,7 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
             case START:
                 game.reload();
                 boardComp.setOverlay(game.getQuest().getObjectivesOverlay(game));
+                charComp.clearMessages();
                 startGameThread();
                 break;
             case RESUME:
@@ -418,13 +419,13 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
         return waitForUser(Integer.class);
     }
 
-    public <T extends IButton> T pickMenu(String message, List<T> moves) {
+    public <T> T pickMenu(String message, Class expectedType, List<T> moves) {
         synchronized (boardComp) {
             boardComp.message = message;
             options = moves;
             uiMode = ZombicideApplet.UIMode.PICK_MENU;
         }
-        return (T) waitForUser(IButton.class);
+        return (T) waitForUser(expectedType);
     }
 
     public ZDoor pickDoor(String message, List<ZDoor> doors) {

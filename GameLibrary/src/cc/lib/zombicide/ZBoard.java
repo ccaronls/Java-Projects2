@@ -1,7 +1,6 @@
 package cc.lib.zombicide;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -163,6 +162,45 @@ public class ZBoard extends Reflector<ZBoard> {
 
         return true;
     }
+/*
+    @Omit
+    Map<Grid.Pos, List<ZDir> []> lookup = null;
+
+    void buildLookup() {
+        lookup = new HashMap<>();
+        int numCells = grid.getRows() * grid.getCols();
+        int [][] distance = new int[numCells][numCells];
+        int [][] path     = new int[numCells][numCells];
+        Utils.fill(distance, Integer.MAX_VALUE);
+        Utils.fill(path, -1);
+        for (int i=0; i<numCells; i++) {
+            Grid.Pos pos = Grid.Pos.fromIndex(i);
+            ZCell cell = getCell(pos);
+            if (cell.cellType == ZCellType.NONE)
+                continue;
+            for (ZDir dir : ZDir.getCompassValues()) {
+                if (cell.getWallFlag(dir).isOpen()) {
+                    Grid.Pos next = dir.getAdjacent(pos);
+                    distance[i][next.getIndex()] = 1;
+                }
+            }
+            distance[i][i] = 0;
+            path[i][i] = i;
+        }
+        for (int k=0; k<numCells; k++) {
+            for (int i=0; i<numCells; i++) {
+                for (int j=0; j<numCells; j++) {
+                    if (distance[i][j] > distance[i][k] + distance[k][j]) {
+                        distance[i][j] = distance[i][k] + distance[k][j];
+                        path[i][j] = path[i][k];
+                    }
+                }
+            }
+        }
+        // find all paths from each cellpos to each zome index
+        lookup = new HashMap<>();
+
+    }*/
 
     /**
      * Returns a list of directions the zombie can move
@@ -172,7 +210,7 @@ public class ZBoard extends Reflector<ZBoard> {
      * @param toZoneIndex
      * @return
      */
-    public Collection<ZDir> getShortestPathOptions(Grid.Pos fromPos, int toZoneIndex) {
+    public List<List<ZDir>> getShortestPathOptions(Grid.Pos fromPos, int toZoneIndex) {
         if (grid.get(fromPos).zoneIndex == toZoneIndex)
             return Collections.emptyList();
 
@@ -196,14 +234,17 @@ public class ZBoard extends Reflector<ZBoard> {
                 it.remove();
         }
 
-        Set<ZDir> dirs = new HashSet<>();
-        for (List<ZDir> p : allPaths) {
-            dirs.add(p.get(0));
-        }
-
-        return dirs;
+        return allPaths;
     }
-
+/*
+    public List<List<ZDir>> getShortestPathOptions(Grid.Pos fromCell, Grid.Pos toCell) {
+        int maxDist = (grid.getRows() + grid.getCols()) * 2;
+        Set<Grid.Pos> visited = new HashSet<>();
+        List<List<ZDir>> paths = new ArrayList<>();
+        searchPathsR(fromCell, toCell, new int[] { maxDist }, new LinkedList<>(), paths, visited);
+        return paths;
+    }
+*/
     private List<List<ZDir>> getShortestPathOptions(Grid.Pos fromCell, Grid.Pos toCell, Set<Grid.Pos> visited, int maxDist) {
         List<List<ZDir>> paths = new ArrayList<>();
         searchPathsR(fromCell, toCell, new int[] { maxDist }, new LinkedList<>(), paths, visited);
@@ -231,6 +272,9 @@ public class ZBoard extends Reflector<ZBoard> {
                 if (visited.contains(nextPos))
                     continue;
 
+                // is the cell full?
+                if (getCell(nextPos).isFull())
+                    continue;
                 curPath.addLast(dir);
                 searchPathsR(nextPos, toPos, maxDist, curPath, paths, visited);
                 curPath.removeLast();

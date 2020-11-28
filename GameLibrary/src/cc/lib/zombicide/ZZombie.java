@@ -44,7 +44,7 @@ public final class ZZombie extends ZActor<ZZombieType> {
         info.addRow("Experience", type.expProvided);
         info.addRow("Ignores Armor", type.ignoresArmor);
         info.addRow("Ranged Priority", type.rangedPriority);
-        Table outer = new Table();
+        Table outer = new Table().setNoBorder();
         outer.addColumn(name(), info);
         return outer.draw(g);//g.drawString(outer.toString(), 0, 0);
     }

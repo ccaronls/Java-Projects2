@@ -59,10 +59,15 @@ public final class Grid<T> extends Reflector<Grid<T>> {
 
         @Override
         public int hashCode() {
-            int result = 1;
-            result = 31 * result + row;
-            result = 31 * result + col;
-            return result;
+            return Utils.hashCode(row, col);
+        }
+
+        public int getIndex() {
+            return row << 16 | col;
+        }
+
+        public static Pos fromIndex(int index) {
+            return new Pos(index >>> 16, index & 0xffff);
         }
     }
 
@@ -325,4 +330,5 @@ public final class Grid<T> extends Reflector<Grid<T>> {
     public boolean isOnGrid(Pos pos) {
         return pos.getRow() >= 0 && pos.getRow() < getRows() && pos.getColumn() >= 0 && pos.getColumn() < getCols();
     }
+
 }

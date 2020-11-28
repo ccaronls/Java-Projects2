@@ -1,7 +1,6 @@
 package cc.applets.zombicide;
 
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.Rectangle;
 import java.util.LinkedList;
 
@@ -22,7 +21,7 @@ class CharacterComponent extends AWTComponent implements Scrollable {
         setAutoscrolls(true);
     }
 
-    LinkedList<String> messages = new LinkedList<>();
+    private LinkedList<String> messages = new LinkedList<>();
 
     ZGame getGame() {
         return ZombicideApplet.instance.game;
@@ -36,16 +35,19 @@ class CharacterComponent extends AWTComponent implements Scrollable {
         repaint();
     }
 
+    synchronized void clearMessages() {
+        messages.clear();
+    }
 
     @Override
     protected void init(AWTGraphics g) {
-        setMouseEnabled(true);
-        int minHeight = g.getTextHeight() * 12;
+        //setMouseEnabled(true);
+        int minHeight = g.getTextHeight() * 30;
         setPreferredSize(minHeight*2, minHeight);
         setMinimumSize(minHeight*2, minHeight);
+        g.setTextHeight(14);
     }
 
-    Font courier = null;
     ZActor actorInfo = null;
 
     @Override
@@ -53,21 +55,14 @@ class CharacterComponent extends AWTComponent implements Scrollable {
         g.clearScreen();
         if (getGame() == null)
             return;
-        if (courier == null) {
-            // this did not work
-            //((AWTGraphics2)g).getGraphics2D().setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
-            courier = new Font("Monospaced", Font.PLAIN, g.getTextHeight());
-        }
-        g.getGraphics().setFont(courier);//Font.decode(Font.MONOSPACED));//.deriveFont(Font.BOLD));
         GDimension info = null;
+        g.setColor(GColor.BLACK);
         if (ZombicideApplet.instance.boardComp.highlightedActor != null) {
             actorInfo = ZombicideApplet.instance.boardComp.highlightedActor;
-            g.setColor(GColor.BLACK);
             info = ZombicideApplet.instance.boardComp.highlightedActor.drawInfo(g, getGame(), getWidth(), getHeight());
         } else if (getGame().getCurrentCharacter() != null) {
-            info = getGame().getCurrentCharacter().getInfoTable(getGame()).draw(g);
+            info = getGame().getCurrentCharacter().drawInfo(g, getGame(), getWidth(), getHeight());
         } else if (actorInfo != null) {
-            g.setColor(GColor.BLACK);
             info = actorInfo.drawInfo(g, getGame(), getWidth(), getHeight());
         }
 

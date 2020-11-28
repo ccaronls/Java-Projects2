@@ -87,4 +87,10 @@ public class ZCell extends Reflector<ZCell> {
         return null;
     }
 
+    public boolean isFull() {
+        for (ZActor a : occupied)
+            if (a==null)
+                return false;
+        return true;
+    }
 }

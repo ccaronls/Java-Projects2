@@ -3,7 +3,6 @@ package cc.applets.zombicide;
 import java.awt.Font;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -180,8 +179,10 @@ class BoardComponent extends AWTComponent implements ZTiles {
                 AWTImage img = (AWTImage)g.getImage(a.getImageId());
                 if (img != null) {
                     GRectangle rect = cell.getQuadrant(i).fit(img).scaledBy(a.getScale());
-                    if (rect.contains(mx, my))
-                        picked = a;
+                    if (rect.contains(mx, my)) {
+                        if (picked == null || !(picked instanceof ZCharacter))
+                            picked = a;
+                    }
                     if (a.isInvisible()) {
                         g.setTransparentcyFilter(.5f);
                     }
@@ -298,9 +299,26 @@ class BoardComponent extends AWTComponent implements ZTiles {
                     g.setColor(GColor.MAGENTA);
                     selected.getRect().drawOutlined(g, 4);
                     ZCell highlighted = board.getCell(highlightedCell);
-                    Collection<ZDir> dirs = board.getShortestPathOptions(selectedCell, highlighted.getZoneIndex());
+                    //Collection<ZDir> dirs = board.getShortestPathOptions(selectedCell, highlighted.getZoneIndex());
+                    List<List<ZDir>> paths = board.getShortestPathOptions(selectedCell, highlighted.getZoneIndex());
+                    GColor [] colors = new GColor[] { GColor.CYAN, GColor.MAGENTA, GColor.PINK, GColor.ORANGE };
+                    int colorIndex = 0;
+                    for (List<ZDir> path : paths) {
+                        g.setColor(colors[colorIndex]);
+                        colorIndex = (colorIndex+1) & colors.length;
+                        Grid.Pos cur = selectedCell;
+                        g.begin();
+                        g.vertex(board.getCell(cur).getRect().getCenter());
+                        for (ZDir dir : path) {
+                            cur = dir.getAdjacent(cur);
+                            g.vertex(board.getCell(cur).getRect().getCenter());
+                        }
+                        g.drawLineStrip(3);
+                    }
+
+
                     g.setColor(GColor.CYAN);
-                    g.drawJustifiedStringOnBackground(mouseX, mouseY, Justify.CENTER, Justify.BOTTOM, dirs.toString(), GColor.TRANSLUSCENT_BLACK, 10, 10);
+//                    g.drawJustifiedStringOnBackground(mouseX, mouseY, Justify.CENTER, Justify.BOTTOM, dirs.toString(), GColor.TRANSLUSCENT_BLACK, 10, 10);
                 } else {
                     g.setColor(GColor.CYAN);
                     g.drawJustifiedStringOnBackground(mouseX, mouseY, Justify.CENTER, Justify.BOTTOM, cellPos.toString(), GColor.TRANSLUSCENT_BLACK, 10, 10);

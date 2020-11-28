@@ -88,32 +88,32 @@ public enum ZDir {
             // either north or south is primary
             if (dy < 0) {
                 dirs[0] = ZDir.NORTH;
-                dirs[2] = ZDir.SOUTH;
+                dirs[3] = ZDir.SOUTH;
             } else {
                 dirs[0] = ZDir.SOUTH;
-                dirs[2] = ZDir.NORTH;
+                dirs[3] = ZDir.NORTH;
             }
             if (dx < 0) {
                 dirs[1] = ZDir.WEST;
-                dirs[3] = ZDir.EAST;
+                dirs[2] = ZDir.EAST;
             } else {
                 dirs[1] = ZDir.EAST;
-                dirs[3] = ZDir.WEST;
+                dirs[2] = ZDir.WEST;
             }
         } else {
             if (dx < 0) {
                 dirs[0] = ZDir.WEST;
-                dirs[2] = ZDir.EAST;
+                dirs[3] = ZDir.EAST;
             } else {
                 dirs[0] = ZDir.EAST;
-                dirs[2] = ZDir.WEST;
+                dirs[3] = ZDir.WEST;
             }
             if (dy < 0) {
                 dirs[1] = ZDir.NORTH;
-                dirs[3] = ZDir.SOUTH;
+                dirs[2] = ZDir.SOUTH;
             } else {
                 dirs[1] = ZDir.SOUTH;
-                dirs[3] = ZDir.NORTH;
+                dirs[2] = ZDir.NORTH;
             }
         }
 
