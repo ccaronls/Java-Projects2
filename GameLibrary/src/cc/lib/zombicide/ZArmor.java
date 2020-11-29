@@ -72,9 +72,9 @@ public class ZArmor extends ZEquipment<ZArmorType> {
         for (ZZombieType type : Utils.asList(ZZombieType.Walker, ZZombieType.Fatty, ZZombieType.Runner, ZZombieType.Necromancer, ZZombieType.Abomination)) {
             ratings.addRow(type, getRating(type));
         }
-        Table main = new Table(type.name()).setNoBorder().addRow(ratings);
+        Table main = new Table(getLabel()).setNoBorder().addRow(ratings);
         if (type.specialAbilityDescription != null) {
-            main.addRow(Utils.wrapTextWithNewlines(type.specialAbilityDescription, 32));
+            main.addRow(Utils.wrapTextWithNewlines(type.specialAbilityDescription, 24));
         }
         return main;
     }

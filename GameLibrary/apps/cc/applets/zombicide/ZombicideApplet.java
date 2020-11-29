@@ -87,12 +87,13 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
             frame.centerToScreen(800, 600);
     }
 
+    final ZUser user = new ZAppletUser();
+
     public void onAllImagesLoaded() {
         game = new UIZGame();
-        ZUser user = new ZAppletUser();
         List<ZPlayerName> players = getEnumListProperty("players", ZPlayerName.class, Utils.toList(ZPlayerName.Baldric, ZPlayerName.Clovis));
         for (ZPlayerName pl : players) {
-            user.addCharacter(pl.create());
+            user.addCharacter(pl);
         }
         game.setUsers(user);
         try {
@@ -164,12 +165,12 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
                 boardComp.repaint();
                 while (gameRunning && !game.isGameOver()) {
                     game.runGame();
+                    charComp.repaint();
+                    boardComp.repaint();
                     if (gameRunning && gameFile != null) {
                         FileUtils.backupFile(gameFile, 20);
                         game.trySaveToFile(gameFile);
                     }
-                    charComp.repaint();
-                    boardComp.repaint();
 //                    if (gameRunning)
 //                        Thread.sleep(5000);
                 }
@@ -278,10 +279,10 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
                     });
                 }
                 menu.add(new AWTButton("KEEP", e1 -> {
-                    ZUser user = new ZAppletUser();
+                    user.clear();
                     for (Map.Entry<ZPlayerName, AWTToggleButton> entry : buttons.entrySet()) {
                         if (entry.getValue().isSelected())
-                            user.addCharacter(entry.getKey().create());
+                            user.addCharacter(entry.getKey());
                     }
                     game.setUsers(user);
                     game.reload();

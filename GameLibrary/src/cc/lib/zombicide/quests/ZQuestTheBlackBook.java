@@ -125,6 +125,7 @@ public class ZQuestTheBlackBook extends ZQuest {
             game.getCurrentUser().showMessage(c.name() + " has unlocked the Green Door. A New Spwn zone has appeared!");
             game.board.setDoor(greenDoor, ZWallFlag.CLOSED);
             game.board.setSpawnZone(greenSpawnZone, true);
+            game.spawnZombies(greenSpawnZone);
         }
     }
 

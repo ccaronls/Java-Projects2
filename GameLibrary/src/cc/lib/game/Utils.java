@@ -1270,7 +1270,7 @@ public class Utils {
      * @param dest
      * @param source
      */
-    public static <T> void copyElems(T[] dest, T ... source) {
+    public static void copyElems(int[] dest, int ... source) {
         int min = Math.min(source.length, dest.length);
         for (int i = 0; i < min; i++) {
             dest[i] = source[i];
@@ -1281,13 +1281,29 @@ public class Utils {
      * @param dest
      * @param source
      */
-    public static void copyElems(int[] dest, int[] source) {
+    public static void copyElems(float[] dest, float ... source) {
         int min = Math.min(source.length, dest.length);
         for (int i = 0; i < min; i++) {
             dest[i] = source[i];
         }
     }
 
+    /**
+     * @param dest
+     * @param source
+     */
+    public static <T> void copyElems(T[] dest, T ... source) {
+        int min = Math.min(source.length, dest.length);
+        for (int i = 0; i < min; i++) {
+            dest[i] = source[i];
+        }
+    }
+
+    /**
+     *
+     * @param array
+     * @param value
+     */
     public static void fill(int [][] array, int value) {
         for (int i=0; i<array.length; i++) {
             for (int ii=0; ii<array[i].length; ii++)

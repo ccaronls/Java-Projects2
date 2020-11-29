@@ -102,6 +102,7 @@ public class ZQuestTutorial extends ZQuest {
         } else if (move.integer == greenKeyZone) {
             game.board.setDoor(greenDoor, ZWallFlag.CLOSED);
             game.board.setSpawnZone(greenSpawnZone, true);
+            game.spawnZombies(greenSpawnZone);
             game.getCurrentUser().showMessage(c.name() + " has unlocked the GREEN door");
             game.getCurrentUser().showMessage(c.name() + " has created a new spawn zone!");
             greenKeyZone = -1;
@@ -169,7 +170,7 @@ public class ZQuestTutorial extends ZQuest {
                     .addRow("3.", String.format("Collect all Objectives for %d EXP Each", OBJECTIVE_EXP), String.format("%d of %d", numRedZones- objZones.size(), numRedZones))
                     .addRow("4.", "Get all players into the EXIT zone.", isQuestComplete(game) ? "yes" : "no")
                     .addRow("5.", "Exit zone must be cleared of zombies.")
-                    .addRow("5.", "All Players must survive.")
+                    .addRow("6.", "All Players must survive.")
                 );
     }
 

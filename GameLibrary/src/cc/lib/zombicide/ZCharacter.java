@@ -36,7 +36,6 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
 
     private final List<ZEquipment> backpack = new ArrayList<>();
     ZEquipment leftHand, rightHand, body;
-    int userIndex=0;
     int [] kills = new int[ZZombieType.values().length];
 
     void clear() {
@@ -72,10 +71,6 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
     protected synchronized void deserialize(BufferedReader _in) throws Exception {
         super.deserialize(_in);
         name.character = this;
-    }
-
-    void reset() {
-        name.reset(this);
     }
 
     Table getKillsTable() {
@@ -376,7 +371,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
             }
             Table slotInfo = getSlotInfo(slot, game);
             if (slotInfo != null)
-                info.addColumn(slot.name().replace('_', ' '), Arrays.asList(slotInfo));
+                info.addColumn(slot.getLabel(), Arrays.asList(slotInfo));
         }
 
         Table stats = new Table().setNoBorder().setPadding(0);
@@ -664,4 +659,8 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
         }
     }
 
+    @Override
+    long getMoveSpeed() {
+        return 750;
+    }
 }

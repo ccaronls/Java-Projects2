@@ -83,19 +83,17 @@ public abstract class APGraphics extends AGraphics {
         return r.untransform(screenX, screenY);
     }
 
+    float [] lastVertex = new float[2];
+
     @Override
     public final void vertex(float x, float y) {
+        Utils.copyElems(lastVertex, x, y);
         r.addVertex(x, y);
     }
 
     @Override
     public void moveTo(float dx, float dy) {
-        if (r.getNumVerts() > 0) {
-            Vector2D last = r.getVertex(r.getNumVerts() - 1);
-            vertex(last.getX() + dx, last.getY() + dy);
-        } else {
-            vertex(dx, dy);
-        }
+        vertex(lastVertex[0] + dx, lastVertex[1] + dy);
     }
 
     /**

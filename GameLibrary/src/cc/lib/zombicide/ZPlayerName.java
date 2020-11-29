@@ -14,7 +14,7 @@ public enum ZPlayerName implements IButton {
             Utils.toArray(ZSkill.Plus1_free_Magic_Action, ZSkill.Plus1_free_Melee_Action),
             Utils.toArray(ZSkill.Plus1_free_Combat_Action, ZSkill.Plus1_to_dice_roll_Combat, ZSkill.Roll_6_plus1_die_Combat)),
     Baldric("Magician",
-            Utils.toArray(ZWeaponType.MANA_BLAST),
+            Utils.toArray(ZWeaponType.MANA_BLAST, (ZEquipmentType)ZSpellType.SPEED),
             Utils.toArray(ZWeaponType.SWORD),
             Utils.toArray(ZSkill.Spellcaster),
             Utils.toArray(ZSkill.Plus1_Action),
@@ -122,16 +122,10 @@ public enum ZPlayerName implements IButton {
         ZCharacter c = new ZCharacter();
         c.name = this;
         character = c;
-        reset(c);
-        return c;
-    }
-
-    void reset(ZCharacter c) {
-        c.clear();
         for (ZEquipmentType e : startingEquipment)
             c.equip(e.create());
         c.allSkills.addAll(Arrays.asList(getSkillOptions(ZSkillLevel.BLUE)));
-
+        return c;
     }
 
     ZCharacter character;

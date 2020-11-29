@@ -1,6 +1,5 @@
 package cc.lib.zombicide;
 
-import java.io.BufferedReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -51,7 +50,6 @@ public class ZGame extends Reflector<ZGame>  {
 
     private final Stack<State> stateStack = new Stack<>();
     public ZBoard board=null;
-    @Omit
     ZUser [] users=null;
     ZQuest quest=null;
     int currentUser=0;
@@ -68,8 +66,6 @@ public class ZGame extends Reflector<ZGame>  {
 
     private void initGame() {
         initSearchables();
-        for (ZCharacter c : getAllCharacters())
-            c.reset();
         roundNum = 0;
         gameOverStatus = 0;
         spawnMultiplier = 1;
@@ -79,6 +75,7 @@ public class ZGame extends Reflector<ZGame>  {
         setState(ZState.BEGIN_ROUND, null);
     }
 
+    /*
     @Override
     protected synchronized void deserialize(BufferedReader _in) throws Exception {
         super.deserialize(_in);
@@ -90,7 +87,7 @@ public class ZGame extends Reflector<ZGame>  {
         }
         // TODO: Figure out better way to avoid this?
         setState(ZState.PLAYER_STAGE_CHOOSE_CHARACTER, null);
-    }
+    }*/
 
     public void setUsers(ZUser ... users) {
         this.users = users;
@@ -159,9 +156,12 @@ public class ZGame extends Reflector<ZGame>  {
             switch (cell.cellType) {
                 case START:
                     // position all the characters here
-                    for (ZCharacter c : getAllCharacters()) {
-                        c.occupiedZone = cell.zoneIndex;
-                        board.addActor(c, cell.zoneIndex);
+                    for (ZUser u : users) {
+                        for (ZPlayerName pl : u.characters) {
+                            ZCharacter c = pl.create();
+                            c.occupiedZone = cell.zoneIndex;
+                            board.addActor(c, cell.zoneIndex);
+                        }
                     }
                     break;
                 case WALKER:
@@ -343,8 +343,13 @@ public class ZGame extends Reflector<ZGame>  {
                 // perform all of their actions
                 List<ZCharacter> options = new ArrayList<>();
                 for (int i = 0; i<user.characters.size(); i++) {
-                    ZCharacter c = user.characters.get(i);
+                    ZCharacter c = user.characters.get(i).character;
                     if (!c.isDead() && c.getActionsLeftThisTurn() > 0) {
+                        if (c.getActionsLeftThisTurn() < c.getActionsPerTurn() && c.availableSkills.contains(ZSkill.Tactician)) {
+                            options.clear();
+                            options.add(c);
+                            break;
+                        }
                         options.add(c);
                     }
                 }
@@ -580,7 +585,7 @@ public class ZGame extends Reflector<ZGame>  {
                 } else {
                     Integer speedMove = getCurrentUser().chooseZoneToWalk(this, getCurrentCharacter(), new ArrayList<>(all));
                     if (speedMove != null) {
-                        moveActor(getCurrentCharacter(), speedMove);
+                        moveActor(getCurrentCharacter(), speedMove, 200);
                         stateStack.pop();
                     }
                 }
@@ -824,7 +829,7 @@ public class ZGame extends Reflector<ZGame>  {
             case WALK: {
                 Integer zone = user.chooseZoneToWalk(this, cur, move.list);
                 if (zone != null) {
-                    moveActor(cur, zone);
+                    moveActor(cur, zone, cur.getMoveSpeed());
                     cur.performAction(ZActionType.MOVE, this);
                 }
                 break;
@@ -1150,8 +1155,11 @@ public class ZGame extends Reflector<ZGame>  {
                 if (targetZone != null) {
                     // shove all zombies in this zone into target zone
                     for (ZZombie z : board.getZombiesInZone(cur.getOccupiedZone())) {
+                        GRectangle prev = z.rect;
                         board.removeActor(z);
                         board.addActor(z, targetZone);
+                        GRectangle next   = board.getCell(z.occupiedCell).getQuadrant(z.occupiedQuadrant);
+                        onActorMoved(z, prev, next, 300);
                     }
                     cur.performAction(ZActionType.SHOVE, this);
                 }
@@ -1240,8 +1248,8 @@ public class ZGame extends Reflector<ZGame>  {
     public ZSkillLevel getHighestSkillLevel() {
         int highestSkill = 0;
         for (ZUser u : users) {
-            for (ZCharacter c : u.characters) {
-                highestSkill = Math.max(highestSkill, c.getSkillLevel().ordinal());
+            for (ZPlayerName c : u.characters) {
+                highestSkill = Math.max(highestSkill, c.character.getSkillLevel().ordinal());
             }
         }
         return ZSkillLevel.values()[highestSkill];
@@ -1340,11 +1348,10 @@ public class ZGame extends Reflector<ZGame>  {
     }
 
     public List<ZCharacter> getAllCharacters() {
-        if (users.length == 1)
-            return new ArrayList<>(users[0].characters);
         List<ZCharacter> all = new ArrayList<>();
         for (ZUser user : users) {
-            all.addAll(user.characters);
+            for (ZPlayerName p : user.characters)
+               all.add(p.character);
         }
         return all;
     }
@@ -1496,9 +1503,12 @@ public class ZGame extends Reflector<ZGame>  {
         return player.character;
     }
 
-    void moveActor(ZActor actor, int toZone) {
+    void moveActor(ZActor actor, int toZone, long speed) {
+        GRectangle start = actor.rect;
         board.removeActor(actor);
         board.addActor(actor, toZone);
+        GRectangle end = board.getCell(actor.occupiedCell).getQuadrant(actor.occupiedQuadrant);
+        onActorMoved(actor, start, end, speed);
     }
 
     void moveActorInDirection(ZActor actor, ZDir dir) {
@@ -1510,14 +1520,14 @@ public class ZGame extends Reflector<ZGame>  {
         board.removeActor(actor);
         board.addActorToCell(actor, next);
         GRectangle end   = board.getCell(next).getQuadrant(actor.occupiedQuadrant);
-        onActorMoved(actor, start, end);
+        onActorMoved(actor, start, end, actor.getMoveSpeed());
         if (nxtZone != curZone) {
             actor.performAction(ZActionType.MOVE, this);
         }
     }
 
-    protected void onActorMoved(ZActor actor, GRectangle start, GRectangle end) {
-        actor.addAnimation(new ZAnimation(actor, actor.getMoveSpeed()) {
+    protected void onActorMoved(ZActor actor, GRectangle start, GRectangle end, long speed) {
+        actor.addAnimation(new ZAnimation(actor, speed) {
             @Override
             protected void draw(AGraphics g, float position, float dt) {
                 MutableVector2D dv = end.getCenter().sub(start.getCenter());

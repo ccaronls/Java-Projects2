@@ -16,6 +16,7 @@ import cc.lib.game.Justify;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
+import cc.lib.math.Vector2D;
 import cc.lib.swing.AWTComponent;
 import cc.lib.swing.AWTGraphics;
 import cc.lib.swing.AWTGraphics2;
@@ -170,7 +171,7 @@ class BoardComponent extends AWTComponent implements ZTiles {
         setPreferredSize(newWidth, newHeight);
     }
 
-    public ZActor drawActors(AWTGraphics2 g, ZBoard b, int mx, int my) {
+    public ZActor drawActors(AWTGraphics2 g, ZBoard b, float mx, float my) {
         ZActor picked = null;
         boolean animating = false;
         for (ZCell cell : b.getCells()) {
@@ -205,7 +206,7 @@ class BoardComponent extends AWTComponent implements ZTiles {
     }
 
     @Override
-    protected synchronized void paint(AWTGraphics g, int mouseX, int mouseY) {
+    protected synchronized void paint(AWTGraphics g, int _mouseX, int _mouseY) {
         if (getGame() == null || getGame().board == null)
             return;
         final ZBoard board = getGame().board;
@@ -215,18 +216,26 @@ class BoardComponent extends AWTComponent implements ZTiles {
         highlightedResult = null;
         highlightedDoor = null;
 
+        g.pushMatrix();
+        GDimension dim = board.getDimension();
+
+        g.translate(getWidth()/2 - dim.width/2, 0);
+
+        Vector2D mouse = g.screenToViewport(_mouseX, _mouseY);
+        log.debug("mouse %d,%d -> %s", _mouseX, _mouseY, mouse);
+
         final int OUTLINE = 2;
 
         final List options = ZombicideApplet.instance.options;
-        final Grid.Pos cellPos = board.drawDebug(g, getMouseX(), getMouseY());
+        final Grid.Pos cellPos = board.drawDebug(g, mouse.X(), mouse.Y());
 
         if (ZombicideApplet.instance.gameRunning) {
-            int highlightedZone = board.drawZones(g, getMouseX(), getMouseY());
+            int highlightedZone = board.drawZones(g, mouse.X(), mouse.Y());
             if (drawTiles) {
                 getGame().getQuest().drawTiles(g, board, this);
             }
             highlightedActor = //board.drawActors(g, getMouseX(), getMouseY());
-                    drawActors((AWTGraphics2)g, getGame().board, getMouseX(), getMouseY());
+                    drawActors((AWTGraphics2)g, getGame().board, mouse.X(), mouse.Y());
 
             if (getGame().getCurrentCharacter() != null) {
 //                if (highlightedActor == getGame().getCurrentCharacter())
@@ -272,7 +281,7 @@ class BoardComponent extends AWTComponent implements ZTiles {
                     break;
                 }
                 case PICK_DOOR: {
-                    highlightedResult = getGame().board.pickDoor(g, (List<ZDoor>)options, mouseX, mouseY);
+                    highlightedResult = getGame().board.pickDoor(g, (List<ZDoor>)options, mouse.X(), mouse.Y());
                     break;
                 }
             }
@@ -301,7 +310,7 @@ class BoardComponent extends AWTComponent implements ZTiles {
                 g.drawRect(cell.getRect());
 
                 List<ZDoor> doors = board.getZone(cell.getZoneIndex()).getDoors();
-                highlightedDoor = getGame().board.pickDoor(g, doors, mouseX, mouseY);
+                highlightedDoor = getGame().board.pickDoor(g, doors, mouse.X(), mouse.Y());
 
                 if (selectedCell != null) {
                     ZCell selected = board.getCell(selectedCell);
@@ -330,11 +339,13 @@ class BoardComponent extends AWTComponent implements ZTiles {
 //                    g.drawJustifiedStringOnBackground(mouseX, mouseY, Justify.CENTER, Justify.BOTTOM, dirs.toString(), GColor.TRANSLUSCENT_BLACK, 10, 10);
                 } else {
                     g.setColor(GColor.CYAN);
-                    g.drawJustifiedStringOnBackground(mouseX, mouseY, Justify.CENTER, Justify.BOTTOM, cellPos.toString(), GColor.TRANSLUSCENT_BLACK, 10, 10);
+                    g.drawJustifiedStringOnBackground(mouse.X(), mouse.Y(), Justify.CENTER, Justify.BOTTOM, cellPos.toString(), GColor.TRANSLUSCENT_BLACK, 10, 10);
                 }
             }
 
         }
+
+        g.popMatrix();
 
         if (getGame().isGameOver() && overlayToDraw == null) {
             setOverlay(getGame().getGameSummaryTable());
@@ -352,18 +363,13 @@ class BoardComponent extends AWTComponent implements ZTiles {
                     g.drawImage(id, rect);
                 }
             } else if (overlayToDraw instanceof Table) {
-                Font font = g.getFont();
-                Font fixedWidth = new Font("courier", Font.BOLD, 16);
-                g.setFont(fixedWidth);
                 g.setColor(GColor.YELLOW);
-                GDimension dim = ((Table)overlayToDraw).getDimension(g);
+                dim = ((Table)overlayToDraw).getDimension(g);
                 g.pushMatrix();
                 g.translate(getWidth()/2, getHeight()/2);
                 g.translate(-dim.width/2, -dim.height/2);
                 ((Table)overlayToDraw).draw(g);
                 g.popMatrix();
-                //g.drawJustifiedStringOnBackground(getWidth() / 2, getHeight() / 2, Justify.CENTER, Justify.CENTER, overlayToDraw.toString(), GColor.TRANSLUSCENT_BLACK, 10, 10);
-                g.setFont(font);
             }
         }
     }

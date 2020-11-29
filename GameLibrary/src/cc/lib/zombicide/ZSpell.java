@@ -41,7 +41,7 @@ public class ZSpell extends ZEquipment<ZSpellType> {
 
     @Override
     public Table getCardInfo(ZCharacter c, ZGame game) {
-        Table t = new Table(type.name()).setNoBorder();
+        Table t = new Table(getLabel()).setNoBorder();
         return t.addRow(Utils.wrapTextWithNewlines(type.description, 20));
     }
 

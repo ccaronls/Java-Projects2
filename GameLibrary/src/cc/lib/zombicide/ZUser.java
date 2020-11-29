@@ -3,13 +3,23 @@ package cc.lib.zombicide;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class ZUser {
+import cc.lib.utils.Reflector;
 
-    final List<ZCharacter> characters = new ArrayList<>();
+public abstract class ZUser extends Reflector<ZUser> {
+
+    static {
+        addAllFields(ZUser.class);
+    }
+
+    final List<ZPlayerName> characters = new ArrayList<>();
+
+    public void clear() {
+        characters.clear();
+    }
 
     public abstract void showMessage(String s);
 
-    public void addCharacter(ZCharacter c) {
+    public void addCharacter(ZPlayerName c) {
         characters.add(c);
     }
 

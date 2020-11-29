@@ -333,7 +333,7 @@ public class ZBoard extends Reflector<ZBoard> {
         return -1;
     }
 
-    public ZDoor pickDoor(AGraphics g, List<ZDoor> doors, int mouseX, int mouseY) {
+    public ZDoor pickDoor(AGraphics g, List<ZDoor> doors, float mouseX, float mouseY) {
         ZDoor picked = null;
         for (ZDoor door : doors) {
             GRectangle doorRect = door.getRect(this).grownBy(10);
@@ -387,7 +387,7 @@ public class ZBoard extends Reflector<ZBoard> {
      * @param mouseY
      * @return
      */
-    public int drawZones(AGraphics g, int mouseX, int mouseY) {
+    public int drawZones(AGraphics g, float mouseX, float mouseY) {
         loadCells(g);
         int result = -1;
         for (int i=0; i<zones.size(); i++) {
@@ -564,7 +564,7 @@ public class ZBoard extends Reflector<ZBoard> {
         }
     }
 
-    public Grid.Pos drawDebug(AGraphics g, int mouseX, int mouseY) {
+    public Grid.Pos drawDebug(AGraphics g, float mouseX, float mouseY) {
         loadCells(g);
         g.clearScreen(GColor.LIGHT_GRAY);
         Grid.Pos returnCell = null;
@@ -844,7 +844,25 @@ public class ZBoard extends Reflector<ZBoard> {
         }
     }
 
+    /**
+     *
+     * @param actor
+     * @param dir
+     * @return
+     */
     public boolean canMove(ZActor actor, ZDir dir) {
         return getCell(actor.occupiedCell).getWallFlag(dir).isOpen();
+    }
+
+    /**
+     *
+     * @return
+     */
+    public GDimension getDimension() {
+        if (grid == null || grid.getCols() == 0 || grid.getRows() == 0)
+            return new GDimension(0,0);
+
+        Vector2D br = grid.get(grid.getRows()-1, grid.getCols()-1).getRect().getBottomRight();
+        return new GDimension(br.getX(), br.getY());
     }
 }
