@@ -608,7 +608,7 @@ public class ZBoard extends Reflector<ZBoard> {
                 text += "\n2 Units away:\n" + accessible2;
             }
             g.setColor(GColor.CYAN);
-            for (ZActor a : cell.occupied) {
+            for (ZActor a : cell.getOccupied()) {
                 if (a != null) {
                     text += "\n" + a.name();
                 }
@@ -667,48 +667,37 @@ public class ZBoard extends Reflector<ZBoard> {
             System.err.println("Zone " + zoneIndex + " is full!");
 
             if (actor instanceof ZCharacter) {
-                // replace the lowest priority zombie withthe chararcter
-                List<ZZombie> zombies = getZombiesInZone(zoneIndex);
-                assert(zombies.size() > 0);
-                Collections.sort(zombies, (o1, o2) -> Integer.compare(o1.type.ordinal(), o2.type.ordinal()));
-                ZZombie removed = zombies.get(0);
-                removeActor(removed);
-                addActorToCell(actor, removed.occupiedCell);
+                for (Grid.Pos pos : zone.cells) {
+                     ZCell cell = getCell(pos);
+                     ZCellQuadrant q = cell.findLowestPriorityOccupant();
+                     if (q == null) {
+                         ZActor previous = cell.setQuadrant(actor, q);
+                         break;
+                     }
+                }
             }
         }
     }
 
     public void removeActor(ZActor actor) {
         ZCell cell = getCell(actor.occupiedCell);
-        cell.occupied[actor.occupiedQuadrant] = null;
+        cell.setQuadrant(null, actor.occupiedQuadrant);
         zones.get(cell.zoneIndex).noiseLevel -= actor.getNoise();
         //actor.occupiedZone = -1;
         //actor.occupiedQuadrant = -1;
         //actor.occupiedCell = null;
     }
 
-    /**
-     * To be called after load game - will make sure actors asyncronized with cell quadrants
-     * @param actors
-     */
-    void syncActors(List<ZActor> actors) {
-        for (ZActor actor : actors) {
-            ZZone zone = zones.get(actor.occupiedZone);
-            ZCell cell = getCell(actor.occupiedCell);
-            cell.occupied[actor.occupiedQuadrant] = actor;
-        }
-    }
-
     public ZActor drawActors(AGraphics g, int mx, int my) {
         ZActor picked = null;
         for (ZCell cell : getCells()) {
-            for (int i=0; i<cell.occupied.length; i++) {
-                ZActor a = cell.occupied[i];
+            for (ZCellQuadrant q : ZCellQuadrant.values()) {
+                ZActor a = cell.getOccupied(q);
                 if (a == null)
                     continue;
                 AImage img = g.getImage(a.getImageId());
                 if (img != null) {
-                    GRectangle rect = cell.getQuadrant(i).fit(img).scaledBy(a.getScale());
+                    GRectangle rect = cell.getQuadrant(q).fit(img).scaledBy(a.getScale());
                     if (rect.contains(mx, my))
                         picked = a;
                     g.drawImage(a.getImageId(), rect);
@@ -764,7 +753,7 @@ public class ZBoard extends Reflector<ZBoard> {
     public List<ZActor> getActorsInZone(int zoneIndex) {
         List<ZActor> actors = new ArrayList<>();
         for (Grid.Pos cellPos : zones.get(zoneIndex).cells) {
-            for (ZActor a : getCell(cellPos).occupied) {
+            for (ZActor a : getCell(cellPos).getOccupied()) {
                 if (a != null) {
                     actors.add(a);
                 }
@@ -776,7 +765,7 @@ public class ZBoard extends Reflector<ZBoard> {
     public List<ZActor> getAllActors() {
         List<ZActor> actors = new ArrayList<>();
         for (ZCell cell : grid.getCells()) {
-            for (ZActor a : cell.occupied) {
+            for (ZActor a : cell.getOccupied()) {
                 if (a != null)
                     actors.add(a);
             }
@@ -803,19 +792,28 @@ public class ZBoard extends Reflector<ZBoard> {
 */
     public boolean addActorToCell(ZActor actor, Grid.Pos pos) {
         ZCell cell = getCell(pos);
-        int qi = actor.occupiedQuadrant;
-        for (int i = 0; i < cell.occupied.length; i++) {
-            if (cell.occupied[qi] == null) {
-                cell.occupied[qi] = actor;
-                actor.occupiedZone = cell.zoneIndex;
-                actor.occupiedCell = pos;
-                actor.occupiedQuadrant = qi;
-                zones.get(cell.zoneIndex).noiseLevel += actor.getNoise();
-                return true;
-            }
-            qi = (qi+1)%cell.occupied.length;
+        if (cell.isFull())
+            return false;
+        ZCellQuadrant current = actor.occupiedQuadrant;
+        if (current == null) {
+            current = actor.getSpawnQuadrant();
         }
-        return false;
+        if (current == null) {
+            current = cell.findOpenQuadrant();
+        }
+        if (current == null)
+            return false;
+        while (cell.getOccupied(current) != null) {
+            int ordinal = current.ordinal();
+            ordinal = (ordinal+1) % ZCellQuadrant.values().length;
+            current = ZCellQuadrant.values()[ordinal];
+        }
+        cell.setQuadrant(actor, current);
+        actor.occupiedZone = cell.zoneIndex;
+        actor.occupiedCell = pos;
+        actor.occupiedQuadrant = current;
+        zones.get(cell.zoneIndex).noiseLevel += actor.getNoise();
+        return true;
     }
 
     public void getUndiscoveredIndoorZones(Grid.Pos startPos, Set<Integer> undiscovered) {
@@ -837,7 +835,7 @@ public class ZBoard extends Reflector<ZBoard> {
         for (ZZone zone : zones) {
             zone.noiseLevel = 0;
             for (Grid.Pos pos: zone.cells) {
-                for (ZActor a : getCell(pos).occupied) {
+                for (ZActor a : getCell(pos).getOccupied()) {
                     if (a != null && a instanceof ZCharacter) {
                         zone.noiseLevel ++;
                     }

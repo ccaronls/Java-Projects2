@@ -66,5 +66,23 @@ public final class ZZombie extends ZActor<ZZombieType> {
             imageId = type.imageOptions[Utils.rand() % type.imageOptions.length];
         return imageId;
     }
+
+    @Override
+    ZCellQuadrant getSpawnQuadrant() {
+        switch (type) {
+            case Abomination:
+                return ZCellQuadrant.CENTER;
+        }
+        return super.getSpawnQuadrant();
+    }
+
+    @Override
+    long getMoveSpeed() {
+        switch (type) {
+            case Runner:
+                return 500;
+        }
+        return super.getMoveSpeed();
+    }
 }
 

@@ -25,6 +25,7 @@ import cc.lib.utils.Table;
 import cc.lib.zombicide.ZActor;
 import cc.lib.zombicide.ZBoard;
 import cc.lib.zombicide.ZCell;
+import cc.lib.zombicide.ZCellQuadrant;
 import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZDir;
 import cc.lib.zombicide.ZDoor;
@@ -171,14 +172,18 @@ class BoardComponent extends AWTComponent implements ZTiles {
 
     public ZActor drawActors(AWTGraphics2 g, ZBoard b, int mx, int my) {
         ZActor picked = null;
+        boolean animating = false;
         for (ZCell cell : b.getCells()) {
-            for (int i=0; i<ZCell.NUM_QUADRANTS; i++) {
-                ZActor a = cell.getOccupied(i);
+            for (ZCellQuadrant q : ZCellQuadrant.values()) {
+                ZActor a = cell.getOccupied(q);
                 if (a == null)
+                    continue;
+                if (a.isAnimating() && overlayToDraw != null)
                     continue;
                 AWTImage img = (AWTImage)g.getImage(a.getImageId());
                 if (img != null) {
-                    GRectangle rect = cell.getQuadrant(i).fit(img).scaledBy(a.getScale());
+                    GRectangle rect = cell.getQuadrant(q).fit(img).scaledBy(a.getScale());
+                    a.setRect(rect);
                     if (rect.contains(mx, my)) {
                         if (picked == null || !(picked instanceof ZCharacter))
                             picked = a;
@@ -186,12 +191,16 @@ class BoardComponent extends AWTComponent implements ZTiles {
                     if (a.isInvisible()) {
                         g.setTransparentcyFilter(.5f);
                     }
-                    g.drawImage(a.getImageId(), rect);
+                    a.draw(g);
+                    if (a.isAnimating()) {
+                        animating = true;
+                    }
                     g.removeComposite();
-                    a.setRect(rect);
                 }
             }
         }
+        if (animating)
+            repaint();
         return picked;
     }
 

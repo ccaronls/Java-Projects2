@@ -18,9 +18,12 @@ public abstract class ZActor<E extends Enum<E>> extends Reflector<ZActor<E>> {
 
     int occupiedZone;
     Grid.Pos occupiedCell;
-    int occupiedQuadrant;
+    ZCellQuadrant occupiedQuadrant;
     private int actionsLeftThisTurn;
     GRectangle rect;
+
+    @Omit
+    ZAnimation animation = null;
 
     void onBeginRound() {
         actionsLeftThisTurn = getActionsPerTurn();
@@ -72,5 +75,39 @@ public abstract class ZActor<E extends Enum<E>> extends Reflector<ZActor<E>> {
 
     public void setRect(GRectangle rect) {
         this.rect = rect;
+    }
+
+    ZCellQuadrant getSpawnQuadrant() {
+        return null; // by default dont care where
+    }
+
+    void addAnimation(ZAnimation anim) {
+        if (animation == null) {
+            animation = anim;
+        } else {
+            animation.add(anim);
+        }
+    }
+
+    long getMoveSpeed() {
+        return 1000;
+    }
+
+    public boolean isAnimating() {
+        return animation != null;
+    }
+
+    public ZAnimation getAnimation() {
+        return animation;
+    }
+
+    public void draw(AGraphics g) {
+        if (animation != null) {
+            if (!animation.isStarted())
+                animation.start();
+            animation.update(g);
+        } else {
+            g.drawImage(getImageId(), rect);
+        }
     }
 }

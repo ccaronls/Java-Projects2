@@ -65,4 +65,16 @@ public class AWTGraphics2 extends AWTGraphics {
             old = null;
         }
     }
+/*
+    @Override
+    public void setClipRect(float x, float y, float w, float h) {
+        Rectangle rect = new Rectangle(Math.round(x), Math.round(y), Math.round(w), Math.round(h));
+        G2.setClip(rect);
+        G2.clip(rect);
+    }
+
+    @Override
+    public void clearClip() {
+        G2.clip(null);
+    }*/
 }

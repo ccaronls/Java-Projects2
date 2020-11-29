@@ -83,9 +83,9 @@ public abstract class AAnimation<T> {
      * Start the animation emmediately
      * @return
      */
-    public final AAnimation<T> start() {
+    public final <A extends AAnimation<T>> A start() {
     	start(0);
-    	return this;
+    	return (A)this;
     }
 
     /**

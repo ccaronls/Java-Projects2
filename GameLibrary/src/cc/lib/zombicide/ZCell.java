@@ -1,11 +1,11 @@
 package cc.lib.zombicide;
 
+import java.util.Arrays;
+
 import cc.lib.game.GRectangle;
 import cc.lib.utils.Reflector;
 
 public class ZCell extends Reflector<ZCell> {
-
-    public final static int NUM_QUADRANTS = 9;
 
     public final static int ENV_OUTDOORS=0;
     public final static int ENV_BUILDING=1;
@@ -23,10 +23,49 @@ public class ZCell extends Reflector<ZCell> {
     public ZCellType cellType = ZCellType.EMPTY;
     GRectangle rect;
     boolean discovered=false;
-    ZActor [] occupied = new ZActor[NUM_QUADRANTS];
+    private ZActor [] occupied = new ZActor[ZCellQuadrant.values().length];
 
-    public ZActor getOccupied(int index) {
-        return occupied[index];
+    public ZActor getOccupied(ZCellQuadrant quadrant) {
+        return occupied[quadrant.ordinal()];
+    }
+
+    ZActor setQuadrant(ZActor actor, ZCellQuadrant quadrant) {
+        ZActor previous = getOccupied(quadrant);
+        occupied[quadrant.ordinal()] = actor;
+        return previous;
+    }
+
+    Iterable<ZActor> getOccupied() {
+        return Arrays.asList(occupied);
+    }
+
+    ZCellQuadrant findOpenQuadrant() {
+        for (int i=0; i<occupied.length; i++) {
+            if (occupied[i] == null)
+                return ZCellQuadrant.values()[i];
+        }
+        return null;
+    }
+
+    ZCellQuadrant findLowestPriorityOccupant() {
+        ZCellQuadrant lowest = null;
+        int minPriority = 100;
+        for (int i=0; i<occupied.length; i++) {
+            if (occupied[i] == null)
+                return ZCellQuadrant.values()[i];
+            if (occupied[i] instanceof ZCharacter)
+                continue;
+            if (occupied[i] instanceof ZZombie) {
+                int priority =  ((ZZombie)occupied[i]).getType().ordinal();
+                if (priority < minPriority || lowest == null) {
+                    minPriority = priority;
+                    lowest = ZCellQuadrant.values()[i];
+                }
+            } else {
+                lowest = ZCellQuadrant.values()[i];
+            }
+        }
+        return lowest;
     }
 
     boolean isInside() {
@@ -63,25 +102,25 @@ public class ZCell extends Reflector<ZCell> {
         return zoneIndex;
     }
 
-    public GRectangle getQuadrant(int quadrant) {
+    public GRectangle getQuadrant(ZCellQuadrant quadrant) {
         switch (quadrant) {
-            case 8: // upperleft
+            case UPPERLEFT:
                 return new GRectangle(rect.getTopLeft(), rect.getCenter());
-            case 7: // lowerright
+            case LOWERRIGHT:
                 return new GRectangle(rect.getCenter(), rect.getBottomRight());
-            case 6: // upperright
+            case UPPERRIGHT:
                 return new GRectangle(rect.getCenter(), rect.getTopRight());
-            case 5: // lowerleft
+            case LOWERLEFT:
                 return new GRectangle(rect.getCenter(), rect.getBottomLeft());
-            case 4: // center
+            case CENTER:
                 return new GRectangle(rect.x+rect.w/4, rect.y+rect.h/4, rect.w/2, rect.h/2);
-            case 3: // top
+            case TOP:
                 return new GRectangle(rect.x+rect.w/4, rect.y, rect.w/2, rect.h/2);
-            case 2: // left
+            case LEFT:
                 return new GRectangle(rect.x, rect.y+rect.h/4, rect.w/2, rect.h/2);
-            case 1: // right
+            case RIGHT:
                 return new GRectangle(rect.x+rect.w/2, rect.y+rect.h/4, rect.w/2, rect.h/2);
-            case 0: // bottom
+            case BOTTOM:
                 return new GRectangle(rect.x+rect.w/4, rect.y+rect.h/2, rect.w/2, rect.h/2);
         }
         return null;

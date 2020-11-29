@@ -251,7 +251,13 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
                 menu.removeAll();
                 Map<ZPlayerName, AWTToggleButton> buttons = new HashMap<>();
                 for (ZPlayerName player : ZPlayerName.values()) {
-                    AWTToggleButton btn = new AWTToggleButton(player.name());
+                    AWTToggleButton btn = new AWTToggleButton(player.name()) {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            // override this since parent class has method that causes our layout to resize badly
+                            onToggle(isSelected());
+                        }
+                    };
                     buttons.put(player, btn);
                     menu.add(btn);
                     btn.addMouseListener(new MouseListener() {
@@ -319,7 +325,7 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
         add(charContainer, BorderLayout.SOUTH);
         menu.setLayout(new GridLayout(0, 1));
         menuContainer.setLayout(new GridBagLayout());
-        menuContainer.setPreferredSize(new Dimension(150, 300));
+        menuContainer.setPreferredSize(new Dimension(150, 400));
         menuContainer.add(menu);
         add(menuContainer, BorderLayout.LINE_START);
         add(boardComp = new BoardComponent(), BorderLayout.CENTER);

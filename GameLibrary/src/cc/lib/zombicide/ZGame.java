@@ -10,11 +10,14 @@ import java.util.List;
 import java.util.Set;
 import java.util.Stack;
 
+import cc.lib.game.AGraphics;
 import cc.lib.game.GColor;
 import cc.lib.game.GRectangle;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
+import cc.lib.math.MutableVector2D;
+import cc.lib.math.Vector2D;
 import cc.lib.utils.GException;
 import cc.lib.utils.Grid;
 import cc.lib.utils.Reflector;
@@ -209,7 +212,7 @@ public class ZGame extends Reflector<ZGame>  {
         count *= spawnMultiplier;
         spawnMultiplier = 1;
 
-        do {
+        while (true) {
             final ZZombieType _name = name;
             int numOnBoard = Utils.filter(board.getAllZombies(), object -> object.type == _name).size();
             log.debug("Num %s on board is %d and trying to spawn %d more", name, numOnBoard, count);
@@ -228,7 +231,8 @@ public class ZGame extends Reflector<ZGame>  {
                 }
             }
             spawnZombies(name, count, zone);
-        } while (false);
+            break;
+        }
     }
 
     private void spawnZombies(ZZombieType type, int count, int zone) {
@@ -244,7 +248,6 @@ public class ZGame extends Reflector<ZGame>  {
     }
 
     protected void onZombieSpawned(ZZombie zombie) {
-        log.info("A %s Zombie has Spawned at zone %d", zombie.type, zombie.occupiedZone);
     }
 
     public ZState getState() {
@@ -1063,7 +1066,10 @@ public class ZGame extends Reflector<ZGame>  {
             }
             case SEARCH: {
                 // draw from top of the deck
-                if (searchables.size() > 0) {
+                int numCardsDrawn = 1;
+                if (cur.isHolding(ZItemType.TORCH))
+                    numCardsDrawn = 2;
+                while (searchables.size() > 0 && numCardsDrawn-- > 0) {
                     ZEquipment equip = searchables.removeLast();
                     quest.onEquipmentFound(this, equip);
                     if (equip.getType() == ZItemType.AAHHHH) {
@@ -1511,7 +1517,14 @@ public class ZGame extends Reflector<ZGame>  {
     }
 
     protected void onActorMoved(ZActor actor, GRectangle start, GRectangle end) {
-
+        actor.addAnimation(new ZAnimation(actor, actor.getMoveSpeed()) {
+            @Override
+            protected void draw(AGraphics g, float position, float dt) {
+                MutableVector2D dv = end.getCenter().sub(start.getCenter());
+                Vector2D v = start.getCenter().add(dv.scaleEq(position));
+                g.drawImage(actor.getImageId(), v, actor.rect.getDimension());
+            }
+        });
     }
 
     public boolean canGoBack() {

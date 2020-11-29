@@ -1304,6 +1304,10 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
         drawQuad(rect.x, rect.y, rect.x+rect.w, rect.y+rect.h);
     }
 
+    public final void drawFilledRect(IVector2D center, IDimension dim) {
+        drawFilledRect(center.getX() - dim.getWidth()/2, center.getY()-dim.getHeight()/2, dim.getWidth(), dim.getHeight());
+    }
+
     private void drawFilledRectP(float x, float y, float w, float h) {
         vertex(x, y);
         vertex(x+w, y+h);

@@ -468,7 +468,7 @@ public class AWTGraphics extends APGraphics {
         Vector2D v0 = transform(x, y);
         Vector2D v1 = transform(x+w, y+h);
         GRectangle r = new GRectangle(v0, v1);
-        g.clipRect(Math.round(r.x), Math.round(r.y), Math.round(r.w), Math.round(r.h));
+        g.setClip(Math.round(r.x), Math.round(r.y), Math.round(r.w), Math.round(r.h));
     }
 
     @Override
