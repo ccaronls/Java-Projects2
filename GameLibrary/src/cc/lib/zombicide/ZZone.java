@@ -25,9 +25,11 @@ public class ZZone extends Reflector<ZZone> {
     public int noiseLevel;
     public boolean isSpawn;
     public boolean dragonBile;
-    public boolean rotten;
     public boolean objective;
     int nextCell = 0;
+
+    @Omit
+    ZAnimation animation = null;
 
     public ZZone() {
     }

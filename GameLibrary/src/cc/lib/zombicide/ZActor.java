@@ -57,6 +57,14 @@ public abstract class ZActor<E extends Enum<E>> extends Reflector<ZActor<E>> {
         return occupiedZone;
     }
 
+    public Grid.Pos getOccupiedCell() {
+        return occupiedCell;
+    }
+
+    public ZCellQuadrant getOccupiedQuadrant() {
+        return occupiedQuadrant;
+    }
+
     public int getNoise() {
         return 0;
     }
@@ -103,11 +111,19 @@ public abstract class ZActor<E extends Enum<E>> extends Reflector<ZActor<E>> {
 
     public void draw(AGraphics g) {
         if (animation != null) {
-            if (!animation.isStarted())
-                animation.start();
-            animation.update(g);
-        } else {
-            g.drawImage(getImageId(), rect);
+            if (animation.isDone()) {
+                animation = null;
+            } else {
+                if (!animation.isStarted())
+                    animation.start();
+                animation.update(g);
+                return;
+            }
         }
+        g.drawImage(getImageId(), rect);
+    }
+
+    int getPriority() {
+        return 0;
     }
 }

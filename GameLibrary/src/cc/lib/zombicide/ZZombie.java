@@ -84,5 +84,10 @@ public final class ZZombie extends ZActor<ZZombieType> {
         }
         return super.getMoveSpeed();
     }
+
+    @Override
+    int getPriority() {
+        return type.ordinal();
+    }
 }
 

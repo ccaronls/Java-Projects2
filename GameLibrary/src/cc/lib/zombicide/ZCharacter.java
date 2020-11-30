@@ -159,10 +159,10 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
     }
 
     public boolean canUnjamDoor() {
-        if (leftHand != null && leftHand.canOpenDoor())
-            return true;
-        if (rightHand != null && rightHand.canOpenDoor())
-            return true;
+        for (ZWeapon w : getWeapons()) {
+            if (w.canOpenDoor())
+                return true;
+        }
         return false;
     }
 
@@ -202,7 +202,18 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
                 }
                 return adjustedArmor;
             }
+        } else if (availableSkills.contains(ZSkill.Steel_hide)) {
+            if (armor.size() == 0) {
+                armor.add(new ZArmor(ZArmorType.STEEL_HIDE));
+            } else {
+                List<ZArmor> adjustedArmor = new ArrayList<>();
+                for (ZArmor ar : armor) {
+                    adjustedArmor.add(new ZArmor(ar.getType(), 1));
+                }
+                return adjustedArmor;
+            }
         }
+
         return armor;
     }
 
@@ -662,5 +673,10 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
     @Override
     long getMoveSpeed() {
         return 750;
+    }
+
+    @Override
+    int getPriority() {
+        return 100;
     }
 }

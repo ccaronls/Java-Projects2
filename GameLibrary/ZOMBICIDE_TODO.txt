@@ -53,3 +53,5 @@ Zone numbering could be automatic
 Rethink the 'once per turn' handling.
 - Equipment has a method 'oncePerTurn?' What about SEARCH?
         - Make search a Skill?
+Figure out way to not compute the actor rect every frame. Actor could have just a Dimension?
+   Dimension gets computed on moves?

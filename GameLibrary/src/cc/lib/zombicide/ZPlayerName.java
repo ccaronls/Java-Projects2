@@ -62,6 +62,21 @@ public enum ZPlayerName implements IButton {
             Utils.toArray(ZSkill.Plus1_Action),
             Utils.toArray(ZSkill.Plus1_die_Ranged, ZSkill.Plus1_max_Range),
             Utils.toArray(ZSkill.Plus1_Damage_Ranged, ZSkill.Point_blank, ZSkill.Sprint)),
+    Benson("Elite Guard",
+            Utils.toArray(ZWeaponType.SWORD),
+            Utils.toArray(ZWeaponType.SWORD),
+            Utils.toArray(ZSkill.Steel_hide),
+            Utils.toArray(ZSkill.Plus1_Action),
+            Utils.toArray(ZSkill.Plus1_free_Melee_Action, ZSkill.Born_leader),
+            Utils.toArray(ZSkill.Plus1_Damage_Melee, ZSkill.Lucky, ZSkill.Shove)),
+    /*
+    Leander("Elite Guard",
+            Utils.toArray(ZWeaponType.GREAT_SWORD, ZWeaponType.ORCISH_CROSSBOW, (ZEquipmentType)ZArmorType.PLATE),
+            Utils.toArray(ZWeaponType.GREAT_SWORD),
+            Utils.toArray(ZSkill.Steel_hide),
+            Utils.toArray(ZSkill.Plus1_Damage_Melee),
+            Utils.toArray(ZSkill.Plus1_to_dice_roll_Melee, ZSkill.Plus1_to_dice_roll_Ranged),
+            Utils.toArray(ZSkill.Plus1_die_Melee, ZSkill.Plus1_Damage_Ranged, ZSkill.Bloodlust)),
 
     /*
     Tyrion("Elitist",

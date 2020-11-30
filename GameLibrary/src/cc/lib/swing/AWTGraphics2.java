@@ -6,6 +6,8 @@ import java.awt.Component;
 import java.awt.Composite;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.geom.AffineTransform;
 
 /**
  * Created by chriscaron on 3/15/18.
@@ -53,19 +55,35 @@ public class AWTGraphics2 extends AWTGraphics {
 
     Composite old = null;
 
-    public void setTransparentcyFilter(float alpha) {
+    @Override
+    public void setTransparencyFilter(float alpha) {
         old = G2.getComposite();
         Composite comp = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha);
         G2.setComposite(comp);
     }
 
-    public void removeComposite() {
+    @Override
+    public void removeTransparencyFilter() {
         if (old != null) {
             G2.setComposite(old);
             old = null;
         }
     }
-/*
+
+    @Override
+    protected void drawImage(int imageKey, int x, int y, int w, int h) {
+        //super.drawImage(imageKey, x, y, w, h);
+        Image img = images.getImage(imageKey);
+        float xScale = (float)w/img.getWidth(comp);
+        float yScale = (float)h/img.getHeight(comp);
+        AffineTransform t = new AffineTransform();
+        t.translate(x, y);
+        t.scale(xScale, yScale);
+//        t.translate(-w/2, -h/2);
+        G2.drawImage(img, t, comp);
+    }
+
+    /*
     @Override
     public void setClipRect(float x, float y, float w, float h) {
         Rectangle rect = new Rectangle(Math.round(x), Math.round(y), Math.round(w), Math.round(h));

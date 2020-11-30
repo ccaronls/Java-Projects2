@@ -19,18 +19,16 @@ import cc.lib.logger.LoggerFactory;
 import cc.lib.math.Vector2D;
 import cc.lib.swing.AWTComponent;
 import cc.lib.swing.AWTGraphics;
-import cc.lib.swing.AWTGraphics2;
-import cc.lib.swing.AWTImage;
 import cc.lib.utils.Grid;
 import cc.lib.utils.Table;
 import cc.lib.zombicide.ZActor;
 import cc.lib.zombicide.ZBoard;
 import cc.lib.zombicide.ZCell;
-import cc.lib.zombicide.ZCellQuadrant;
 import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZDir;
 import cc.lib.zombicide.ZDoor;
 import cc.lib.zombicide.ZGame;
+import cc.lib.zombicide.ZIcon;
 import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZTiles;
@@ -171,33 +169,30 @@ class BoardComponent extends AWTComponent implements ZTiles {
         setPreferredSize(newWidth, newHeight);
     }
 
-    public ZActor drawActors(AWTGraphics2 g, ZBoard b, float mx, float my) {
+    boolean animating = false;
+
+    public ZActor drawActors(AGraphics g, ZBoard b, float mx, float my, boolean drawAnimating) {
         ZActor picked = null;
-        boolean animating = false;
-        for (ZCell cell : b.getCells()) {
-            for (ZCellQuadrant q : ZCellQuadrant.values()) {
-                ZActor a = cell.getOccupied(q);
-                if (a == null)
-                    continue;
-                if (a.isAnimating() && overlayToDraw != null)
-                    continue;
-                AWTImage img = (AWTImage)g.getImage(a.getImageId());
-                if (img != null) {
-                    GRectangle rect = cell.getQuadrant(q).fit(img).scaledBy(a.getScale());
-                    a.setRect(rect);
-                    if (rect.contains(mx, my)) {
-                        if (picked == null || !(picked instanceof ZCharacter))
-                            picked = a;
-                    }
-                    if (a.isInvisible()) {
-                        g.setTransparentcyFilter(.5f);
-                    }
-                    a.draw(g);
-                    if (a.isAnimating()) {
-                        animating = true;
-                    }
-                    g.removeComposite();
+        animating = false;
+        for (ZActor a : b.getAllRenderableActors()) {
+            if (a.isAnimating() && !drawAnimating)
+                continue;
+            AImage img = g.getImage(a.getImageId());
+            if (img != null) {
+                GRectangle rect = b.getCell(a.getOccupiedCell()).getQuadrant(a.getOccupiedQuadrant()).fit(img).scaledBy(a.getScale());
+                a.setRect(rect);
+                if (rect.contains(mx, my)) {
+                    if (picked == null || !(picked instanceof ZCharacter))
+                        picked = a;
                 }
+                if (a.isInvisible()) {
+                    g.setTransparencyFilter(.5f);
+                }
+                a.draw(g);
+                if (a.isAnimating()) {
+                    animating = true;
+                }
+                g.removeTransparencyFilter();
             }
         }
         if (animating)
@@ -222,20 +217,22 @@ class BoardComponent extends AWTComponent implements ZTiles {
         g.translate(getWidth()/2 - dim.width/2, 0);
 
         Vector2D mouse = g.screenToViewport(_mouseX, _mouseY);
-        log.debug("mouse %d,%d -> %s", _mouseX, _mouseY, mouse);
+        //log.debug("mouse %d,%d -> %s", _mouseX, _mouseY, mouse);
 
         final int OUTLINE = 2;
 
         final List options = ZombicideApplet.instance.options;
         final Grid.Pos cellPos = board.drawDebug(g, mouse.X(), mouse.Y());
 
-        if (ZombicideApplet.instance.gameRunning) {
+        if (ZombicideApplet.instance.gameRunning || getGame().isGameOver()) {
             int highlightedZone = board.drawZones(g, mouse.X(), mouse.Y());
             if (drawTiles) {
                 getGame().getQuest().drawTiles(g, board, this);
             }
+            boolean drawAnimating = getGame().isGameOver();
+
             highlightedActor = //board.drawActors(g, getMouseX(), getMouseY());
-                    drawActors((AWTGraphics2)g, getGame().board, mouse.X(), mouse.Y());
+                    drawActors(g, getGame().board, mouse.X(), mouse.Y(), drawAnimating || overlayToDraw == null);
 
             if (getGame().getCurrentCharacter() != null) {
 //                if (highlightedActor == getGame().getCurrentCharacter())
@@ -347,7 +344,7 @@ class BoardComponent extends AWTComponent implements ZTiles {
 
         g.popMatrix();
 
-        if (getGame().isGameOver() && overlayToDraw == null) {
+        if (getGame().isGameOver() && overlayToDraw == null && !animating) {
             setOverlay(getGame().getGameSummaryTable());
         }
 
@@ -424,6 +421,7 @@ class BoardComponent extends AWTComponent implements ZTiles {
             { ZPlayerName.Silas, "zchar_silas.gif" },
             { ZPlayerName.Tucker, "zchar_tucker.gif" },
             { ZPlayerName.Jain, "zchar_jain.gif" },
+            { ZPlayerName.Benson, "zchar_benson.gif" },
 
             { ZPlayerName.Ann.name(), "zcard_ann.gif" },
             { ZPlayerName.Baldric.name(), "zcard_baldric.gif" },
@@ -433,7 +431,9 @@ class BoardComponent extends AWTComponent implements ZTiles {
             { ZPlayerName.Silas.name(), "zcard_silas.gif" },
             { ZPlayerName.Tucker.name(), "zcard_tucker.gif" },
             { ZPlayerName.Jain.name(), "zcard_jain.gif" },
+            { ZPlayerName.Benson.name(), "zcard_benson.gif" },
 
+            { ZIcon.DRAGON_BILE, "zdragonbile_icon.gif" }
         };
 
         Map<Object, List<Integer>> objectToImageMap = new HashMap<>();
@@ -464,6 +464,16 @@ class BoardComponent extends AWTComponent implements ZTiles {
         for (ZPlayerName pl : ZPlayerName.values()) {
             pl.imageId = objectToImageMap.get(pl).get(0);
             cardImages.put(pl.name(), objectToImageMap.get(pl.name()).get(0));
+        }
+
+        for (ZIcon icon : ZIcon.values()) {
+            int [] ids = new int[8];
+            ids[0] = objectToImageMap.get(icon).get(0);
+            for (int i=1; i<ids.length; i++) {
+                int deg = 45*i;
+                ids[i] = g.createRotatedImage(ids[0], deg);
+            }
+            icon.imageIds = ids;
         }
 
         log.debug("Images: " + objectToImageMap);

@@ -2,6 +2,7 @@ package cc.lib.zombicide;
 
 import java.util.List;
 
+import cc.lib.game.Utils;
 import cc.lib.ui.IButton;
 
 public enum ZSkill implements IButton {
@@ -197,7 +198,14 @@ public enum ZSkill implements IButton {
     Bloodlust_Magic("Spend one Action with the Survivor: He Moves up to two Zones to a Zone containing at least one Zombie. He then gains one free Magic Action, to use immediately."),
     Bloodlust_Melee("Spend one Action with the Survivor: He Moves up to two Zones to a Zone containing at least one Zombie. He then gains one free Melee Action, to use immediately."),
     Bloodlust_Ranged("Spend one Action with the Survivor: He Moves up to two Zones to a Zone containing at least one Zombie. He then gains one free Ranged Action, to use immediately."),
-    Born_leader("During the Survivor’s Turn, he may give one free Action to another Survivor to use as he pleases. This Action must be used during the recipient’s next Turn or it is lost."),
+    Born_leader("During the Survivor’s Turn, he may give one free Action to another Survivor to use as he pleases. This Action must be used during the recipient’s next Turn or it is lost.") {
+        @Override
+        public void addSpecialMoves(ZGame game, ZCharacter character, List<ZMove> moves) {
+            List<ZCharacter> options = Utils.filter(game.getAllLivingCharacters(), object -> object != character);
+            if (options.size() > 0)
+                moves.add(ZMove.newBornLeaderMove(options));
+        }
+    },
     Break_in("In order to open doors, the Survivor rolls no dice, and needs no equipment (but still spends an Action to do so). He doesn’t make Noise while using this Skill. However, other prerequisites still apply (such as taking a designated Objective before a door can be opened). Moreover, the Survivor gains one extra free Action that can only be used to open doors.") {
         @Override
         public boolean modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
@@ -274,6 +282,7 @@ public enum ZSkill implements IButton {
     Ironclad_Fatty("The Survivor ignores all Wounds coming from Fatties"),
     Ironclad_Abomination("The Survivor ignores all Wounds coming from Abominations"),
     Iron_hide("The Survivor can make Armor rolls with a 5+ Armor value, even when he does not wear an armor on his Body slot. Wearing an armor, the Survivor adds 1 to the result of each die he rolls for Armor rolls. The maximum result is always 6."),
+    Steel_hide("The Survivor can make Armor rolls with a 4+ Armor value, even when he does not wear an armor on his Body slot. Wearing an armor, the Survivor adds 1 to the result of each die he rolls for Armor rolls. The maximum result is always 6."),
     Iron_rain("When resolving a Ranged Action, the Survivor may substitute the Dice number of the Ranged weapon(s) he uses with the number of Zombies standing in the targeted Zone. Skills affecting the dice value, like +1 die: Ranged, still apply. Is that all you’ve got? – You can use this Skill any time the Survivor is about to get Wounds. Discard one Equipment card in your Survivor’s inventory for each Wound he’s about to receive. Negate a Wound per discarded Equipment card."),
     Jump("The Survivor can use this Skill once during each Activation. The Survivor spends one Action: He moves two Zones into a Zone to which he has Line of Sight. Movement related Skills (like +1 Zone per Move Action or Slippery) are ignored, but Movement penalties (like having Zombies in the starting Zone) apply. Ignore everything in the intervening Zone."),
     Lifesaver("The Survivor can use this Skill, for free, once during each of his Turns. Select a Zone containing at least one Zombie at Range 1 from your Survivor. Choose Survivors in the selected Zone to be dragged to your Survivor’s Zone without penalty. This is not a Move Action. A Survivor can decline the rescue and stay in the selected Zone if his controller chooses. Both Zones need to share a clear path. A Survivor can’t cross closed doors or walls, and can’t be extracted into or out of a Vault."),

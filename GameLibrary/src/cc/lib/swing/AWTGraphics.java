@@ -10,8 +10,8 @@ import cc.lib.math.Vector2D;
 public class AWTGraphics extends APGraphics {
 
     private Graphics g;
-    private final static AWTImageMgr images = new AWTImageMgr();
-    private final Component comp;
+    protected final static AWTImageMgr images = new AWTImageMgr();
+    protected final Component comp;
     //private int textureId = -1;
     private float mLineThickness = 1;
     private float mPointSize = 1;
@@ -386,8 +386,18 @@ public class AWTGraphics extends APGraphics {
     }
 
     @Override
-    protected final void drawImage(int imageKey, int x, int y, int w, int h) {
+    protected void drawImage(int imageKey, int x, int y, int w, int h) {
         images.drawImage(g, comp, imageKey, x, y, w, h);
+    }
+
+    @Override
+    public void setTransparencyFilter(float alpha) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    @Override
+    public void removeTransparencyFilter() {
+        throw new RuntimeException("Not implemented");
     }
 
     public void drawImage(AWTImage image, int x, int y) {
@@ -482,6 +492,16 @@ public class AWTGraphics extends APGraphics {
         Vector2D v0 = screenToViewport(r.x, r.y);
         Vector2D v1 = screenToViewport(r.x+r.width, r.y+r.height);
         return new GRectangle(v0, v1);
+    }
+
+    /**
+     *
+     * @param id
+     * @param degrees
+     * @return
+     */
+    public int createRotatedImage(int id, int degrees) {
+        return images.newRotatedImage(id, degrees, comp);
     }
 
     @Override

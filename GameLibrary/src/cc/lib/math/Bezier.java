@@ -45,6 +45,17 @@ public final class Bezier {
         float fX = fA * ctrl[0].getX() + fB * ctrl[1].getX() + fC * ctrl[2].getX() + fD * ctrl[3].getX(); 
         float fY = fA * ctrl[0].getY() + fB * ctrl[1].getY() + fC * ctrl[2].getY() + fD * ctrl[3].getY();
         return new Vector2D(fX, fY);
-		
 	}
+
+	public static Bezier build(IVector2D r0, IVector2D r1) {
+
+	    Bezier curve = new Bezier();
+        curve.addPoint(r0);
+        float dx = r1.getX()-r0.getX();
+        float dy = -Math.abs(r1.getY()-r0.getY());
+        curve.addPoint(r0.getX() + dx/3, r0.getY() + dy*0.33f + dx/6);
+        curve.addPoint(r0.getX() + dx*2/3, r0.getY() + dy*0.66f + dx/6);
+        curve.addPoint(r1);
+        return curve;
+    }
 }

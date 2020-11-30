@@ -337,7 +337,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
 
     public abstract Table getObjectivesOverlay(ZGame game);
 
-    public void onEquipmentFound(ZGame zGame, ZEquipment equip) {
+    public void onEquipmentFound(ZGame game, ZEquipment equip) {
         //
     }
 }

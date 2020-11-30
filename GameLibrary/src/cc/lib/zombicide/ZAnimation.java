@@ -15,8 +15,8 @@ public abstract class ZAnimation extends AAnimation<AGraphics> {
 
     @Override
     protected void onDone() {
-        actor.animation = next;
         if (next != null) {
+            actor.animation = next;
             next.start();
         }
     }

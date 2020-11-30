@@ -25,17 +25,17 @@ public class ZCell extends Reflector<ZCell> {
     boolean discovered=false;
     private ZActor [] occupied = new ZActor[ZCellQuadrant.values().length];
 
-    public ZActor getOccupied(ZCellQuadrant quadrant) {
+    public ZActor getOccupant(ZCellQuadrant quadrant) {
         return occupied[quadrant.ordinal()];
     }
 
     ZActor setQuadrant(ZActor actor, ZCellQuadrant quadrant) {
-        ZActor previous = getOccupied(quadrant);
+        ZActor previous = getOccupant(quadrant);
         occupied[quadrant.ordinal()] = actor;
         return previous;
     }
 
-    Iterable<ZActor> getOccupied() {
+    Iterable<ZActor> getOccupant() {
         return Arrays.asList(occupied);
     }
 
@@ -53,15 +53,9 @@ public class ZCell extends Reflector<ZCell> {
         for (int i=0; i<occupied.length; i++) {
             if (occupied[i] == null)
                 return ZCellQuadrant.values()[i];
-            if (occupied[i] instanceof ZCharacter)
-                continue;
-            if (occupied[i] instanceof ZZombie) {
-                int priority =  ((ZZombie)occupied[i]).getType().ordinal();
-                if (priority < minPriority || lowest == null) {
-                    minPriority = priority;
-                    lowest = ZCellQuadrant.values()[i];
-                }
-            } else {
+            int pri = occupied[i].getPriority();
+            if (pri < minPriority || lowest == null) {
+                minPriority = pri;
                 lowest = ZCellQuadrant.values()[i];
             }
         }

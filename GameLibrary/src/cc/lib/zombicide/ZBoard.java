@@ -15,11 +15,15 @@ import cc.lib.game.GDimension;
 import cc.lib.game.GRectangle;
 import cc.lib.game.Justify;
 import cc.lib.game.Utils;
+import cc.lib.logger.Logger;
+import cc.lib.logger.LoggerFactory;
 import cc.lib.math.Vector2D;
 import cc.lib.utils.Grid;
 import cc.lib.utils.Reflector;
 
 public class ZBoard extends Reflector<ZBoard> {
+
+    private final static Logger log = LoggerFactory.getLogger(ZBoard.class);
 
     static {
         addAllFields(ZBoard.class);
@@ -608,7 +612,7 @@ public class ZBoard extends Reflector<ZBoard> {
                 text += "\n2 Units away:\n" + accessible2;
             }
             g.setColor(GColor.CYAN);
-            for (ZActor a : cell.getOccupied()) {
+            for (ZActor a : cell.getOccupant()) {
                 if (a != null) {
                     text += "\n" + a.name();
                 }
@@ -657,32 +661,52 @@ public class ZBoard extends Reflector<ZBoard> {
         for (int c=0;!added && c < zone.cells.size(); c++) {
             Grid.Pos cellPos = zone.cells.get(zone.nextCell);
             zone.nextCell = (zone.nextCell + 1) % zone.cells.size();
-            if (addActorToCell(actor, cellPos)) {
-                added = true;
-                break;
-            }
+            if (getCell(cellPos).isFull())
+                continue;
+            addActorToCell(actor, cellPos);
+            added = true;
+            break;
         }
-        if (!added) {
+        if (!added && actor.getPriority() > 2) {
             //throw new AssertionError("Failed to add Actor");
-            System.err.println("Zone " + zoneIndex + " is full!");
+            log.warn("Zone " + zoneIndex + " is full!");
 
-            if (actor instanceof ZCharacter) {
-                for (Grid.Pos pos : zone.cells) {
-                     ZCell cell = getCell(pos);
-                     ZCellQuadrant q = cell.findLowestPriorityOccupant();
-                     if (q == null) {
-                         ZActor previous = cell.setQuadrant(actor, q);
-                         break;
-                     }
+            int minPriority = 100;
+            Grid.Pos minPos = null;
+            for (Grid.Pos pos : zone.cells) {
+                ZCell cell = getCell(pos);
+                ZCellQuadrant q = cell.findLowestPriorityOccupant();
+                int priority = cell.getOccupant(q).getPriority();
+                if (priority < minPriority || minPos == null) {
+                    minPriority = priority;
+                    minPos = pos;
                 }
             }
+            addActorToCell(actor, minPos);
         }
+    }
+
+    public void moveActor(ZActor actor, int toZone) {
+        ZCell cell = getCell(actor.occupiedCell);
+        cell.setQuadrant(null, actor.occupiedQuadrant);
+        zones.get(cell.zoneIndex).noiseLevel -= actor.getNoise();
+        addActor(actor, toZone);
+    }
+
+    public void moveActor(ZActor actor, Grid.Pos cellPos) {
+        ZCell cell = getCell(actor.occupiedCell);
+        cell.setQuadrant(null, actor.occupiedQuadrant);
+        zones.get(cell.zoneIndex).noiseLevel -= actor.getNoise();
+        addActorToCell(actor, cellPos);
     }
 
     public void removeActor(ZActor actor) {
         ZCell cell = getCell(actor.occupiedCell);
         cell.setQuadrant(null, actor.occupiedQuadrant);
         zones.get(cell.zoneIndex).noiseLevel -= actor.getNoise();
+        synchronized (removedActors) {
+            removedActors.add(actor);
+        }
         //actor.occupiedZone = -1;
         //actor.occupiedQuadrant = -1;
         //actor.occupiedCell = null;
@@ -692,7 +716,7 @@ public class ZBoard extends Reflector<ZBoard> {
         ZActor picked = null;
         for (ZCell cell : getCells()) {
             for (ZCellQuadrant q : ZCellQuadrant.values()) {
-                ZActor a = cell.getOccupied(q);
+                ZActor a = cell.getOccupant(q);
                 if (a == null)
                     continue;
                 AImage img = g.getImage(a.getImageId());
@@ -753,7 +777,7 @@ public class ZBoard extends Reflector<ZBoard> {
     public List<ZActor> getActorsInZone(int zoneIndex) {
         List<ZActor> actors = new ArrayList<>();
         for (Grid.Pos cellPos : zones.get(zoneIndex).cells) {
-            for (ZActor a : getCell(cellPos).getOccupied()) {
+            for (ZActor a : getCell(cellPos).getOccupant()) {
                 if (a != null) {
                     actors.add(a);
                 }
@@ -762,10 +786,28 @@ public class ZBoard extends Reflector<ZBoard> {
         return actors;
     }
 
-    public List<ZActor> getAllActors() {
+    @Omit
+    private List<ZActor> removedActors = new ArrayList<>();
+
+    public List<ZActor> getAllRenderableActors() {
+        List<ZActor> actors = new ArrayList<>();
+        synchronized (removedActors) {
+            for (Iterator<ZActor> it = removedActors.iterator(); it.hasNext(); ) {
+                ZActor a = it.next();
+                if (a.isAnimating())
+                    actors.add(a);
+                else
+                    it.remove();
+            }
+        }
+        actors.addAll(getAllLiveActors());
+        return actors;
+    }
+
+    public List<ZActor> getAllLiveActors() {
         List<ZActor> actors = new ArrayList<>();
         for (ZCell cell : grid.getCells()) {
-            for (ZActor a : cell.getOccupied()) {
+            for (ZActor a : cell.getOccupant()) {
                 if (a != null)
                     actors.add(a);
             }
@@ -774,46 +816,30 @@ public class ZBoard extends Reflector<ZBoard> {
     }
 
     public List<ZZombie> getAllZombies() {
-        return Utils.filter((List)getAllActors(), (Utils.Filter<ZActor>) object -> object instanceof ZZombie);
+        return Utils.filter((List)getAllLiveActors(), (Utils.Filter<ZActor>) object -> object instanceof ZZombie);
     }
 
     public List<ZCharacter> getAllCharacters() {
-        return Utils.filter((List)getAllActors(), (Utils.Filter<ZActor>) object -> object instanceof ZCharacter);
+        return Utils.filter((List)getAllLiveActors(), (Utils.Filter<ZActor>) object -> object instanceof ZCharacter);
     }
-/*
-    public void moveActorInDirection(ZActor actor, ZDir direction) {
-        Grid.Pos pos = actor.occupiedCell;
-        Grid.Pos adj = direction.getAdjacent(pos);
-        if (adj != null) {
-            removeActor(actor);
-            addActorToCell(actor, adj);
-        }
-    }
-*/
-    public boolean addActorToCell(ZActor actor, Grid.Pos pos) {
+
+    public void addActorToCell(ZActor actor, Grid.Pos pos) {
         ZCell cell = getCell(pos);
-        if (cell.isFull())
-            return false;
         ZCellQuadrant current = actor.occupiedQuadrant;
         if (current == null) {
             current = actor.getSpawnQuadrant();
         }
-        if (current == null) {
-            current = cell.findOpenQuadrant();
+        if (current == null || cell.getOccupant(current) != null) {
+            current = cell.findLowestPriorityOccupant();
         }
-        if (current == null)
-            return false;
-        while (cell.getOccupied(current) != null) {
-            int ordinal = current.ordinal();
-            ordinal = (ordinal+1) % ZCellQuadrant.values().length;
-            current = ZCellQuadrant.values()[ordinal];
-        }
+        assert(current != null);
+        if (cell.getOccupant(current) != null && cell.getOccupant(current).getPriority() >= actor.getPriority())
+            return;
         cell.setQuadrant(actor, current);
         actor.occupiedZone = cell.zoneIndex;
         actor.occupiedCell = pos;
         actor.occupiedQuadrant = current;
         zones.get(cell.zoneIndex).noiseLevel += actor.getNoise();
-        return true;
     }
 
     public void getUndiscoveredIndoorZones(Grid.Pos startPos, Set<Integer> undiscovered) {
@@ -835,7 +861,7 @@ public class ZBoard extends Reflector<ZBoard> {
         for (ZZone zone : zones) {
             zone.noiseLevel = 0;
             for (Grid.Pos pos: zone.cells) {
-                for (ZActor a : getCell(pos).getOccupied()) {
+                for (ZActor a : getCell(pos).getOccupant()) {
                     if (a != null && a instanceof ZCharacter) {
                         zone.noiseLevel ++;
                     }

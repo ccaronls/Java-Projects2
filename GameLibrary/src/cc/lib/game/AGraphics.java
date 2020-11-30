@@ -1682,6 +1682,17 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
                         controlPts[2].getX(), controlPts[2].getY(), 
                         controlPts[3].getX(), controlPts[3].getY(), iterations);
     }
+
+    /**
+     *
+     * @param alpha
+     */
+    public abstract void setTransparencyFilter(float alpha);
+
+    /**
+     *
+     */
+    public abstract void removeTransparencyFilter();
     
     /**
      * Draw an image with pre-transformed rectangle. Not to be called directly.

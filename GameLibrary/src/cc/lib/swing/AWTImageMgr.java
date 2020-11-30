@@ -24,6 +24,7 @@ import java.util.List;
 
 import javax.swing.ImageIcon;
 
+import cc.lib.game.GRectangle;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
@@ -446,20 +447,12 @@ public final class AWTImageMgr {
 	        return sourceId;
 	    int srcWid = image.getWidth(comp);
 	    int srcHgt = image.getHeight(comp);
-	    int dstWid = srcWid;
-	    int dstHgt = srcHgt;
-	    switch (degrees) {
-	        case 0: 
-	            return sourceId;
-	        case 180:
-	            break;
-	        case 90: case 270: 
-	            dstWid = srcHgt; dstHgt = srcWid; 
-	            break;
-	        default:
-	            dstWid = dstHgt = Math.max(srcWid,  srcHgt);
-	            break; // make destination a square
-	    }
+
+        GRectangle r = new GRectangle(-srcWid/2, -srcHgt/2, srcWid, srcHgt);
+        GRectangle r2 = r.rotated(degrees);
+
+        int dstWid = (int)Math.ceil(r2.w);
+        int dstHgt = (int)Math.ceil(r2.h);
 
         //dstWid = dstHgt = Math.max(srcWid,  srcHgt);
 	    int [] pixels = new int[srcWid * srcHgt];

@@ -204,4 +204,14 @@ public class TestGraphics extends APGraphics {
     public void clearClip() {
 
     }
+
+    @Override
+    public void setTransparencyFilter(float alpha) {
+
+    }
+
+    @Override
+    public void removeTransparencyFilter() {
+
+    }
 }

@@ -7,7 +7,15 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.MissingFormatArgumentException;
+import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -15,7 +23,6 @@ import cc.lib.math.CMath;
 import cc.lib.math.Vector2D;
 import cc.lib.utils.FileUtils;
 import cc.lib.utils.GException;
-import cc.lib.utils.LRUCache;
 
 public class Utils {
 
@@ -928,33 +935,29 @@ public class Utils {
     }
 
     private static Pattern PRETTY_STRING_PATTERN = null;
-    private static Map<String, String> prettyCache = new LRUCache<>(100);
 
     /**
      * 1. Strip extension if any
      * 2. Replace [_]+ (underscores) with a space
      * 3. Make whole strings lowercase with first letter capitalized
      *
-     * @param _str
+     * @param str
      * @return
      */
-    public static String toPrettyString(final String _str) {
-        if (_str == null)
+    public static String toPrettyString(String str) {
+        if (str == null)
             return null;
-        String s = prettyCache.get(_str);
-        if (s != null)
-            return s;
-        String str = FileUtils.stripExtension(_str.replaceAll("[_]+", " ").trim());
+        str = FileUtils.stripExtension(str.replaceAll("[_]+", " ").trim());
         if (PRETTY_STRING_PATTERN == null)
             PRETTY_STRING_PATTERN = Pattern.compile("([A-Za-z][a-zA-Z]+)|([IiAa])");
         Matcher us = PRETTY_STRING_PATTERN.matcher(str);
         StringBuffer result = new StringBuffer();
         int begin = 0;
         while (us.find()) {
-            s = us.group().toLowerCase();
+            String s = us.group().toLowerCase();
             if (result.length() > 0 && result.charAt(result.length()-1) != ' ' && str.charAt(begin) != ' ' )
                 result.append(" ");
-            result.append(str, begin, us.start());
+            result.append(str.substring(begin, us.start()));
             begin = us.end();
             if (result.length() > 0 && result.charAt(result.length()-1) != ' ')
                 result.append(" ");
@@ -965,9 +968,7 @@ public class Utils {
                 result.append(" ");
             result.append(str.substring(begin));
         }
-        s = result.toString();
-        prettyCache.put(str, s);
-        return s;
+        return result.toString();
     }
 
     public enum EllipsisStyle {

@@ -205,5 +205,9 @@ public class ZMove implements IButton {
         return new ZMove(ZMoveType.ENCHANT, spells);
     }
 
+    public static ZMove newBornLeaderMove(List<ZCharacter> options) {
+        return new ZMove(ZMoveType.BORN_LEADER, options);
+    }
+
 
 }

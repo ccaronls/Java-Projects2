@@ -1,8 +1,7 @@
 package cc.lib.game;
 
-import java.util.Objects;
-
 import cc.lib.math.MutableVector2D;
+import cc.lib.math.Vector2D;
 import cc.lib.utils.Reflector;
 
 public final class GRectangle extends Reflector<GRectangle> {
@@ -12,6 +11,10 @@ public final class GRectangle extends Reflector<GRectangle> {
     }
 
     public GRectangle() {}
+
+    public GRectangle(GRectangle toCopy) {
+        this(toCopy.x, toCopy.y, toCopy.w, toCopy.h);
+    }
 
     public GRectangle(float x, float y, float w, float h) {
         this.x = x;
@@ -350,6 +353,21 @@ public final class GRectangle extends Reflector<GRectangle> {
 
     @Override
     public int hashCode() {
-        return Objects.hash(x, y, w, h);
+        return Utils.hashCode(x, y, w, h);
+    }
+
+    public GRectangle rotated(float degrees) {
+        Vector2D tl = (getTopLeft().sub(getCenter())).rotateEq(degrees);
+        Vector2D br = (getTopRight().sub(getCenter())).rotateEq(degrees);
+
+        float newWidth = Math.max(Math.abs(tl.getX()), Math.abs(br.getX()))*2;
+        float newHeight = Math.max(Math.abs(tl.getY()), Math.abs(br.getY()))*2;
+
+        return new GRectangle(getCenter(), new GDimension(newWidth, newHeight));
+    }
+
+    public void setCenter(IVector2D cntr) {
+        x=cntr.getX()-w/2;
+        y=cntr.getY()-h/2;
     }
 }

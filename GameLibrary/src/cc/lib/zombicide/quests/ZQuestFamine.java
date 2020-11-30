@@ -129,7 +129,7 @@ public class ZQuestFamine extends ZQuest {
     }
 
     @Override
-    public void onEquipmentFound(ZGame zGame, ZEquipment equip) {
+    public void onEquipmentFound(ZGame game, ZEquipment equip) {
         if (equip.getType() == ZItemType.APPLES) {
             numApplesFound++;
         } else if (equip.getType() == ZItemType.SALTED_MEAT) {

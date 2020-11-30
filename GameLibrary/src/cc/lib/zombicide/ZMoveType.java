@@ -27,5 +27,6 @@ public enum ZMoveType {
     SHOVE,
     REROLL,
     KEEP_ROLL,
-    ENCHANT
+    ENCHANT,
+    BORN_LEADER
 }

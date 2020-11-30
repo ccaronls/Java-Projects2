@@ -96,17 +96,22 @@ public class ZAppletUser extends ZUser {
     }
 
     @Override
-    public Integer chooseZoneToShove(ZGame zGame, ZCharacter cur, List<Integer> zones) {
+    public Integer chooseZoneToShove(ZGame game, ZCharacter cur, List<Integer> zones) {
         return ZombicideApplet.instance.pickZone("Choose Zone to shove zombies into", zones);
     }
 
     @Override
-    public ZSpell chooseSpell(ZGame zGame, ZCharacter cur, List<ZSpell> spells) {
+    public ZSpell chooseSpell(ZGame game, ZCharacter cur, List<ZSpell> spells) {
         return ZombicideApplet.instance.pickMenu("Choose Spell", ZSpell.class, spells);
     }
 
     @Override
-    public ZCharacter chooseCharacterForSpell(ZGame zGame, ZCharacter cur, ZSpell spell, List<ZCharacter> targets) {
+    public ZCharacter chooseCharacterForSpell(ZGame game, ZCharacter cur, ZSpell spell, List<ZCharacter> targets) {
         return ZombicideApplet.instance.pickCharacter("Choose character to enchant with " + spell.getType(), targets);
+    }
+
+    @Override
+    public ZCharacter chooseCharacterToBequeathMove(ZGame game, ZCharacter cur, List<ZCharacter> list) {
+        return null;
     }
 }
