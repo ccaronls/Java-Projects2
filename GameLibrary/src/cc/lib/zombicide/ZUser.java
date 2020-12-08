@@ -60,4 +60,6 @@ public abstract class ZUser extends Reflector<ZUser> {
     public abstract ZCharacter chooseCharacterForSpell(ZGame game, ZCharacter cur, ZSpell spell, List<ZCharacter> targets);
 
     public abstract ZCharacter chooseCharacterToBequeathMove(ZGame game, ZCharacter cur, List<ZCharacter> list);
+
+    public abstract Integer chooseZoneForBloodlust(ZGame zGame, ZCharacter cur, List<Integer> list);
 }

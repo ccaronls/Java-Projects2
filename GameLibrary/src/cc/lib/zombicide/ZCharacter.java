@@ -462,7 +462,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
 
     public List<ZWeapon> getRangedWeapons() {
         List<ZWeapon> slots = new ArrayList<>();
-        if (isDualWeilding() && leftHand.isRanged()) {
+        if (isDualWeilding() && leftHand.isRanged() && isLoaded(leftHand)) {
             slots.add((ZWeapon)leftHand);
         } else {
             if (leftHand != null && leftHand.isRanged() && isLoaded(leftHand))
@@ -476,11 +476,21 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
     }
 
     public List<ZWeapon> getMagicWeapons() {
-        List<ZWeapon> magic = Utils.filter(getWeapons(), object -> object.isMagic());
-        if (availableSkills.contains(ZSkill.Spellbook)) {
-            magic.addAll((List)Utils.filter(new ArrayList<>(backpack), object -> object.isMagic()));
+        List<ZWeapon> slots = new ArrayList<>();
+        if (isDualWeilding() && leftHand.isMagic()) {
+            slots.add((ZWeapon)leftHand);
+        } else {
+            if (leftHand != null && leftHand.isMagic())
+                slots.add((ZWeapon)leftHand);
+            if (rightHand != null && rightHand.isMagic())
+                slots.add((ZWeapon)rightHand);
         }
-        return magic;
+        if (body != null && body.isMagic())
+            slots.add((ZWeapon)body);
+        if (availableSkills.contains(ZSkill.Spellbook)) {
+            slots.addAll((List)Utils.filter(new ArrayList<>(backpack), object -> object.isMagic()));
+        }
+        return slots;
     }
 
     public List<ZItem> getThrowableItems() {

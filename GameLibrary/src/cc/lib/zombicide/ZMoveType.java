@@ -20,7 +20,7 @@ public enum ZMoveType {
     TAKE,
     DISPOSE,
     OBJECTIVE,
-    // drop or collect items form vault
+    // drop or collect items from vault
     DROP_ITEM,
     PICKUP_ITEM,
     MAKE_NOISE,
@@ -28,5 +28,8 @@ public enum ZMoveType {
     REROLL,
     KEEP_ROLL,
     ENCHANT,
-    BORN_LEADER
+    BORN_LEADER,
+    BLOODLUST_MELEE,
+    BLOODLUST_RANGED,
+    BLOODLUST_MAGIC
 }

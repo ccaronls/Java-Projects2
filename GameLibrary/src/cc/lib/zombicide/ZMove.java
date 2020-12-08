@@ -15,32 +15,37 @@ public class ZMove implements IButton {
     public final ZEquipSlot toSlot;
     public final List list;
     public final ZDir dir;
+    public final ZSkill skill;
 
     private ZMove(ZMoveType type) {
         this(type, 0);
     }
 
     private ZMove(ZMoveType type, ZDir dir) {
-        this(type, 0, null, null, null, null, null, dir);
+        this(type, 0, null, null, null, null, null, dir, null);
     }
 
     private ZMove(ZMoveType type, int num) {
-        this(type, num, null, null, null, null, null, null);
+        this(type, num, null, null, null, null, null, null, null);
     }
 
     private ZMove(ZMoveType type, List list) {
-        this(type, 0, null, null, null, null, list, null);
+        this(type, 0, null, null, null, null, list, null, null);
+    }
+
+    private ZMove(ZMoveType type, List list, ZSkill skill) {
+        this(type, 0, null, null, null, null, list, null, skill);
     }
 
     private ZMove(ZMoveType type, ZEquipment equip, ZEquipSlot fromSlot) {
-        this(type, 0, null, equip, fromSlot, null, null, null);
+        this(type, 0, null, equip, fromSlot, null, null, null, null);
     }
 
     private ZMove(ZMoveType type, int targetIndex, ZCharacter character, ZEquipment equip, ZEquipSlot fromSlot, ZEquipSlot toSlot, List list) {
-        this(type, targetIndex, character, equip, fromSlot, toSlot, list, null);
+        this(type, targetIndex, character, equip, fromSlot, toSlot, list, null, null);
     }
 
-    private ZMove(ZMoveType type, int targetIndex, ZCharacter character, ZEquipment equip, ZEquipSlot fromSlot, ZEquipSlot toSlot, List list, ZDir dir) {
+    private ZMove(ZMoveType type, int targetIndex, ZCharacter character, ZEquipment equip, ZEquipSlot fromSlot, ZEquipSlot toSlot, List list, ZDir dir, ZSkill skill) {
         this.type = type;
         this.integer = targetIndex;
         this.character = character;
@@ -49,6 +54,7 @@ public class ZMove implements IButton {
         this.toSlot = toSlot;
         this.list  = list;
         this.dir = dir;
+        this.skill = skill;
     }
 
     @Override
@@ -209,5 +215,16 @@ public class ZMove implements IButton {
         return new ZMove(ZMoveType.BORN_LEADER, options);
     }
 
+    public static ZMove newBloodlustMeleeMove(List<Integer> zones, ZSkill skill) {
+        return new ZMove(ZMoveType.BLOODLUST_MELEE, zones, skill);
+    }
+
+    public static ZMove newBloodlustRangedMove(List<Integer> zones, ZSkill skill) {
+        return new ZMove(ZMoveType.BLOODLUST_RANGED, zones, skill);
+    }
+
+    public static ZMove newBloodlustMagicMove(List<Integer> zones, ZSkill skill) {
+        return new ZMove(ZMoveType.BLOODLUST_MAGIC, zones, skill);
+    }
 
 }

@@ -1186,8 +1186,58 @@ public class ZGame extends Reflector<ZGame>  {
 
                 break;
             }
+            case BLOODLUST_MELEE:
+            case BLOODLUST_MAGIC:
+            case BLOODLUST_RANGED:
+                performBloodlust(cur, move);
+                break;
             default:
                 log.error("Unhandled move: %s", move.type);
+        }
+    }
+
+    private void performBloodlust(ZCharacter cur, ZMove move) {
+        List<ZWeapon> weapons;
+        ZActionType action = null;
+        switch (move.type) {
+            case BLOODLUST_MAGIC:
+                weapons = cur.getMagicWeapons();
+                action = ZActionType.MAGIC;
+                break;
+            case BLOODLUST_MELEE:
+                weapons = cur.getMeleeWeapons();
+                action = ZActionType.MELEE;
+                break;
+            case BLOODLUST_RANGED:
+                weapons = cur.getRangedWeapons();
+                break;
+            default:
+                return;
+        }
+
+        Integer zone;
+        if (move.list.size() == 1) {
+            zone = (Integer)move.list.get(0);
+        } else {
+            zone = getCurrentUser().chooseZoneForBloodlust(this, cur, move.list);
+        }
+        if (zone != null) {
+            ZWeapon slot = null;
+            if (weapons.size() > 1) {
+                slot = getCurrentUser().chooseWeaponSlot(this, cur, weapons);
+            } else if (weapons.size() == 1) {
+                slot = weapons.get(0);
+            }
+            if (slot != null) {
+                if (action == null) {
+                    action = slot.type.usesArrows ? ZActionType.RANGED_ARROWS : ZActionType.RANGED_BOLTS;
+                }
+                cur.addExtraAction();
+                moveActor(cur, zone, cur.getMoveSpeed()/2);
+                performAttack(slot, action);
+                cur.performAction(action, this);
+                cur.availableSkills.remove(move.skill);
+            }
         }
     }
 
@@ -1214,6 +1264,106 @@ public class ZGame extends Reflector<ZGame>  {
         }
         assert(false);
         return null;
+    }
+
+    private void performAttack(ZWeapon slot, ZActionType actionType) {
+        ZUser user = getCurrentUser();
+        ZCharacter cur = getCurrentCharacter();
+        switch (actionType) {
+            case MELEE: {
+                ZWeaponStat stat = cur.getWeaponStat(slot, ZActionType.MELEE, this);
+                List<ZZombie> zombies = board.getZombiesInZone(cur.occupiedZone);
+                if (zombies.size() > 1)
+                    Collections.sort(zombies, (o1, o2) -> Integer.compare(o2.type.minDamageToDestroy, o1.type.minDamageToDestroy));
+                while (zombies.size() > 0 && zombies.get(0).type.minDamageToDestroy > stat.damagePerHit) {
+                    zombies.remove(0);
+                }
+                int hits = resolveHits(cur, zombies.size(), ZActionType.MELEE, stat.numDice, stat.dieRollToHit, zombies.size() / 2 - 1, zombies.size() / 2 + 1);
+                onAttack(cur, slot, ZActionType.MELEE, stat.numDice, hits);
+
+                for (int i = 0; i < hits && zombies.size() > 0; i++) {
+                    ZZombie z = zombies.remove(0);
+                    addExperience(cur, z.type.expProvided);
+                    destroyZombie(z, cur);
+                }
+                if (slot.isAttackNoisy()) {
+                    addNoise(cur.occupiedZone, 1);
+                }
+                user.showMessage(getCurrentCharacter().name() + " Scored " + hits + " hits");
+                break;
+            }
+            case MAGIC:
+            case RANGED_ARROWS:
+            case RANGED_BOLTS: {
+
+                ZWeaponStat stat = cur.getWeaponStat(slot, actionType, this);
+                List<Integer> zones = new ArrayList<>();
+                for (int range = stat.minRange; range <=stat.maxRange; range++) {
+                    zones.addAll(board.getAccessableZones(cur.occupiedZone, range, actionType));
+                }
+                if (zones.size() > 0) {
+                    Integer zone = user.chooseZoneForAttack(this, cur, zones);
+                    if (zone != null) {
+                        // process a ranged attack
+                        if (!slot.isLoaded()) {
+                            getCurrentUser().showMessage("CLICK! Weapon not loaded!");
+                            onWeaponGoesClick(slot);
+                        } else {
+                            slot.fireWeapon();
+                            List<ZZombie> zombies = board.getZombiesInZone(zone);
+                            if (zombies.size() > 1)
+                                Collections.sort(zombies, (o1, o2) -> Integer.compare(o1.type.rangedPriority, o2.type.rangedPriority));
+                            // find the first zombie whom we cannot destory and remove that one and all after since ranged priority
+                            {
+                                int numHittable = 0;
+                                for (ZZombie z : zombies) {
+                                    if (z.type.minDamageToDestroy <= stat.damagePerHit)
+                                        numHittable++;
+                                }
+                                log.debug("There are %d hittable zombies", numHittable);
+                                while (zombies.size() > numHittable)
+                                    zombies.remove(zombies.size() - 1);
+                            }
+
+                            int hits = resolveHits(cur, zombies.size(), actionType, stat.numDice, stat.dieRollToHit, zombies.size()/2-1, zombies.size()/2+1);
+                            onAttack(cur, slot, actionType, stat.numDice, hits);
+                            for (int i=0; i<hits && zombies.size() > 0; i++) {
+                                ZZombie zombie = zombies.remove(0);
+                                if (zombie.type.minDamageToDestroy <= stat.damagePerHit) {
+                                    addExperience(cur, zombie.type.expProvided);
+                                    destroyZombie(zombie, cur);
+                                }
+                            }
+
+                            int misses = stat.numDice - hits;
+                            List<ZCharacter> friendlyFireOptions = Utils.filter(board.getCharactersInZone(zone), object -> object != cur);
+                            if (friendlyFireOptions.size() > 1) {
+                                // sort them in same way we would sort zombie attacks
+                                Collections.sort(friendlyFireOptions, (o1, o2) -> {
+                                    int v0 = o1.getArmorRating(ZZombieType.Walker) - o1.woundBar;
+                                    int v1 = o2.getArmorRating(ZZombieType.Walker) - o2.woundBar;
+                                    return Integer.compare(v1, v0);
+                                });
+                            }
+                            for (int i=0; i<misses && friendlyFireOptions.size() > 0; i++) {
+                                // friendy fire!
+                                ZCharacter victim = friendlyFireOptions.get(0);
+                                if (playerDefends(victim, ZZombieType.Walker)) {
+                                    getCurrentUser().showMessage(victim.name() + " defended themself from friendly fire!");
+                                } else {
+                                    playerWounded(victim, stat.damagePerHit, "Freindly Fire!");
+                                    if (victim.isDualWeilding())
+                                        friendlyFireOptions.remove(0);
+                                }
+                            }
+                            user.showMessage(getCurrentCharacter().name() + " Scored " + hits + " hits");
+                        }
+                    }
+                }
+                break;
+            }
+        }
+
     }
 
     private int resolveHits(ZCharacter cur, int maxHits, ZActionType actionType, int numDice, int dieRollToHit, int minHitsForAutoReroll, int maxHitsForAutoNoReroll) {

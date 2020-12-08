@@ -1,5 +1,6 @@
 package cc.lib.zombicide;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import cc.lib.game.Utils;
@@ -194,10 +195,79 @@ public enum ZSkill implements IButton {
         }
     },
     Blitz("Each time the Survivor kills the last Zombie in a Zone, he gets 1 free Move Action to use immediately."),
-    Bloodlust("Spend one Action with the Survivor: He Moves up to two Zones to a Zone containing at least one Zombie. He then gains one free Combat Action (Melee, Ranged or Magic)."),
-    Bloodlust_Magic("Spend one Action with the Survivor: He Moves up to two Zones to a Zone containing at least one Zombie. He then gains one free Magic Action, to use immediately."),
-    Bloodlust_Melee("Spend one Action with the Survivor: He Moves up to two Zones to a Zone containing at least one Zombie. He then gains one free Melee Action, to use immediately."),
-    Bloodlust_Ranged("Spend one Action with the Survivor: He Moves up to two Zones to a Zone containing at least one Zombie. He then gains one free Ranged Action, to use immediately."),
+    Bloodlust("Spend one Action with the Survivor: He Moves up to two Zones to a Zone containing at least one Zombie. He then gains one free Combat Action (Melee, Ranged or Magic).") {
+        @Override
+        public void addSpecialMoves(ZGame game, ZCharacter character, List<ZMove> moves) {
+            List<Integer> zones = new ArrayList<>();
+            for (int distance=1; distance<=2; distance++) {
+                zones.addAll(Utils.filter(game.board.getAccessableZones(character.getOccupiedZone(), distance, ZActionType.MOVE), new Utils.Filter<Integer>() {
+                    @Override
+                    public boolean keep(Integer object) {
+                        return game.board.getZombiesInZone(object).size() > 0;
+                    }
+                }));
+            }
+            if (zones.size() > 0) {
+                if (character.getMeleeWeapons().size() > 0)
+                    moves.add(ZMove.newBloodlustMeleeMove(zones, this));
+                if (character.getRangedWeapons().size() > 0)
+                    moves.add(ZMove.newBloodlustRangedMove(zones, this));
+                if (character.getMagicWeapons().size() > 0)
+                    moves.add(ZMove.newBloodlustMagicMove(zones, this));
+            }
+        }
+    },
+    Bloodlust_Magic("Spend one Action with the Survivor: He Moves up to two Zones to a Zone containing at least one Zombie. He then gains one free Magic Action, to use immediately.") {
+        @Override
+        public void addSpecialMoves(ZGame game, ZCharacter character, List<ZMove> moves) {
+            if (character.getMagicWeapons().size() > 0) {
+                List<Integer> zones = new ArrayList<>();
+                for (int distance=1; distance<=2; distance++) {
+                    zones.addAll(Utils.filter(game.board.getAccessableZones(character.getOccupiedZone(), distance, ZActionType.MOVE), new Utils.Filter<Integer>() {
+                        @Override
+                        public boolean keep(Integer object) {
+                            return game.board.getZombiesInZone(object).size() > 0;
+                        }
+                    }));
+                }
+                moves.add(ZMove.newBloodlustMagicMove(zones, this));
+            }
+        }
+    },
+    Bloodlust_Melee("Spend one Action with the Survivor: He Moves up to two Zones to a Zone containing at least one Zombie. He then gains one free Melee Action, to use immediately.") {
+        @Override
+        public void addSpecialMoves(ZGame game, ZCharacter character, List<ZMove> moves) {
+            if (character.getMeleeWeapons().size() > 0) {
+                List<Integer> zones = new ArrayList<>();
+                for (int distance=1; distance<=2; distance++) {
+                    zones.addAll(Utils.filter(game.board.getAccessableZones(character.getOccupiedZone(), distance, ZActionType.MOVE), new Utils.Filter<Integer>() {
+                        @Override
+                        public boolean keep(Integer object) {
+                            return game.board.getZombiesInZone(object).size() > 0;
+                        }
+                    }));
+                }
+                moves.add(ZMove.newBloodlustMeleeMove(zones, this));
+            }
+        }
+    },
+    Bloodlust_Ranged("Spend one Action with the Survivor: He Moves up to two Zones to a Zone containing at least one Zombie. He then gains one free Ranged Action, to use immediately.") {
+        @Override
+        public void addSpecialMoves(ZGame game, ZCharacter character, List<ZMove> moves) {
+            if (character.getRangedWeapons().size() > 0) {
+                List<Integer> zones = new ArrayList<>();
+                for (int distance=1; distance<=2; distance++) {
+                    zones.addAll(Utils.filter(game.board.getAccessableZones(character.getOccupiedZone(), distance, ZActionType.MOVE), new Utils.Filter<Integer>() {
+                        @Override
+                        public boolean keep(Integer object) {
+                            return game.board.getZombiesInZone(object).size() > 0;
+                        }
+                    }));
+                }
+                moves.add(ZMove.newBloodlustRangedMove(zones, this));
+            }
+        }
+    },
     Born_leader("During the Survivor’s Turn, he may give one free Action to another Survivor to use as he pleases. This Action must be used during the recipient’s next Turn or it is lost.") {
         @Override
         public void addSpecialMoves(ZGame game, ZCharacter character, List<ZMove> moves) {

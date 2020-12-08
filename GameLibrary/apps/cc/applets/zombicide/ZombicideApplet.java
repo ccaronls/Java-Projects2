@@ -323,7 +323,10 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
         JScrollPane charContainer = new JScrollPane();
         charContainer.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         charContainer.getViewport().add(charComp = new CharacterComponent());
+        charContainer.setPreferredSize(new Dimension(400, 200));
+        charContainer.setMaximumSize(new Dimension(10000, 200));
         add(charContainer, BorderLayout.SOUTH);
+
         menu.setLayout(new GridLayout(0, 1));
         menuContainer.setLayout(new GridBagLayout());
         menuContainer.setPreferredSize(new Dimension(150, 400));
