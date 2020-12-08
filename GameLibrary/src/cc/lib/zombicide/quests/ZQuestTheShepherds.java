@@ -55,7 +55,7 @@ public class ZQuestTheShepherds extends ZQuest {
         switch (cmd) {
             case "red":
                 objectives.add(cell.getZoneIndex());
-                cell.cellType = ZCellType.OBJECTIVE_RED;
+                cell.setCellType(ZCellType.OBJECTIVE_RED, true);
                 break;
             default:
                 super.loadCmd(grid, pos, cmd);
@@ -112,32 +112,32 @@ public class ZQuestTheShepherds extends ZQuest {
         if (tileIds.length == 0)
             return;
 
-        GRectangle quadrant1R = new GRectangle(
+        GRectangle quadrantTL = new GRectangle(
                 board.getCell(0, 0).getRect().getTopLeft(),
                 board.getCell(2, 2).getRect().getBottomRight());
-        GRectangle quadrant2V = new GRectangle(
+        GRectangle quadrantTM = new GRectangle(
                 board.getCell(0, 3).getRect().getTopLeft(),
                 board.getCell(2, 5).getRect().getBottomRight());
-        GRectangle quadrant9V = new GRectangle(
+        GRectangle quadrantTR = new GRectangle(
                 board.getCell(0, 6).getRect().getTopLeft(),
                 board.getCell(2, 8).getRect().getBottomRight());
 
-        GRectangle quadrant3V = new GRectangle(
+        GRectangle quadrantBL = new GRectangle(
                 board.getCell(3, 0).getRect().getTopLeft(),
                 board.getCell(5, 2).getRect().getBottomRight());
-        GRectangle quadrant4V = new GRectangle(
+        GRectangle quadrantBM = new GRectangle(
                 board.getCell(3, 3).getRect().getTopLeft(),
                 board.getCell(5, 5).getRect().getBottomRight());
-        GRectangle quadrant5R = new GRectangle(
+        GRectangle quadrantBR = new GRectangle(
                 board.getCell(3, 6).getRect().getTopLeft(),
                 board.getCell(5, 8).getRect().getBottomRight());
 
-        g.drawImage(tileIds[0], quadrant1R);
-        g.drawImage(tileIds[1], quadrant2V);
-        g.drawImage(tileIds[2], quadrant9V);
-        g.drawImage(tileIds[3], quadrant3V);
-        g.drawImage(tileIds[4], quadrant4V);
-        g.drawImage(tileIds[5], quadrant5R);
+        g.drawImage(tileIds[0], quadrantTL);
+        g.drawImage(tileIds[1], quadrantTM);
+        g.drawImage(tileIds[2], quadrantTR);
+        g.drawImage(tileIds[3], quadrantBL);
+        g.drawImage(tileIds[4], quadrantBM);
+        g.drawImage(tileIds[5], quadrantBR);
 
     }
 

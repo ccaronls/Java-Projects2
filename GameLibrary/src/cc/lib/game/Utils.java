@@ -2588,6 +2588,7 @@ public class Utils {
     }
 
     /**
+     * Modifies the input list to remove all elements not meeting filter criteria
      *
      * @param collection
      * @param filter

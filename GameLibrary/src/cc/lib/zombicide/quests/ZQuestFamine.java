@@ -63,7 +63,7 @@ public class ZQuestFamine extends ZQuest {
         switch (cmd) {
             case "red":
                 objectives.add(cell.getZoneIndex());
-                cell.cellType = ZCellType.OBJECTIVE_RED;
+                cell.setCellType(ZCellType.OBJECTIVE_RED, true);
                 break;
             case "lvd1":
             case "lvd2":

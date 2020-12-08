@@ -77,12 +77,12 @@ public class ZQuestBigGameHunting extends ZQuest {
         switch (cmd) {
             case "red":
                 allObjectives.add(cell.getZoneIndex());
-                cell.cellType = ZCellType.OBJECTIVE_RED;
+                cell.setCellType(ZCellType.OBJECTIVE_RED, true);
                 break;
 
             case "blue":
                 blueObjZone = cell.getZoneIndex();
-                cell.cellType = ZCellType.OBJECTIVE_BLUE;
+                cell.setCellType(ZCellType.OBJECTIVE_BLUE, true);
                 break;
 
             default:

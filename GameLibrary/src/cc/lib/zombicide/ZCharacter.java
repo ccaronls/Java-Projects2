@@ -232,9 +232,11 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
             return false;
         if (leftHand.canDualWield())
             return true;
-        for (ZSkill skill : this.availableSkills) {
-            if (skill.canTwoHand((ZWeapon)leftHand))
-                return true;
+        if (leftHand != null && leftHand instanceof ZWeapon) {
+            for (ZSkill skill : this.availableSkills) {
+                if (skill.canTwoHand((ZWeapon) leftHand))
+                    return true;
+            }
         }
         return false;
     }

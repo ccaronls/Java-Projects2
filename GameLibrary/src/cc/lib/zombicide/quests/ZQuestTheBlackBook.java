@@ -60,11 +60,11 @@ public class ZQuestTheBlackBook extends ZQuest {
         switch (cmd) {
             case "blackbook":
                 blackBookZone = cell.getZoneIndex();
-                cell.cellType = ZCellType.OBJECTIVE_BLACK;
+                cell.setCellType(ZCellType.OBJECTIVE_BLACK, true);
                 break;
             case "red":
                 allObjectives.add(cell.getZoneIndex());
-                cell.cellType = ZCellType.OBJECTIVE_RED;
+                cell.setCellType(ZCellType.OBJECTIVE_RED, true);
                 break;
 
             case "green":
@@ -186,9 +186,9 @@ public class ZQuestTheBlackBook extends ZQuest {
                 .addRow(new Table().setNoBorder()
                         .addRow("1.", "Unlock the GREEN Door. GREEN Key hidden among the RED objectives.", "", game.board.getDoor(greenDoor) != ZWallFlag.LOCKED)
                         .addRow("2.", "Unlock the BLUE Door. BLUE Key hidden among the RED objectives.", "", game.board.getDoor(blueDoor) != ZWallFlag.LOCKED)
-                        .addRow("3.", "Steal the Black Book in central building.", "", blackBookTaken ? "yes" : "no")
-                        .addRow("4.", "Claim all Vault artifacts.", String.format("%d of %d", numVaultItemsTaken, allVaultItems), numVaultItemsTaken == allVaultItems ? "yes" : "no")
-                        .addRow("5.", "Get to RED Danger level with at least one survivor.", lvl, lvl == ZSkillLevel.RED ? "yes" : "no")
+                        .addRow("3.", "Steal the Black Book in central building.", "", blackBookTaken)
+                        .addRow("4.", "Claim all Vault artifacts.", String.format("%d of %d", numVaultItemsTaken, allVaultItems), numVaultItemsTaken == allVaultItems)
+                        .addRow("5.", "Get to RED Danger level with at least one survivor.", lvl, lvl == ZSkillLevel.RED)
                 );
     }
 }

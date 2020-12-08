@@ -3,7 +3,6 @@ package cc.lib.zombicide;
 import cc.lib.game.GColor;
 
 public enum ZCellType {
-    EMPTY,
     NONE,
     VAULT_DOOR,
     OBJECTIVE_RED,

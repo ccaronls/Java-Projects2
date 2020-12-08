@@ -368,7 +368,7 @@ public class ZBoard extends Reflector<ZBoard> {
     public void setSpawnZone(int zoneIdx, boolean isSpawn) {
         ZZone zone = zones.get(zoneIdx);
         zone.isSpawn = isSpawn;
-        getCell(zone.cells.get(0)).cellType = ZCellType.SPAWN;
+        getCell(zone.cells.get(0)).setCellType(ZCellType.SPAWN, true);
     }
 
     public int getMaxNoiseLevel() {
@@ -410,7 +410,7 @@ public class ZBoard extends Reflector<ZBoard> {
             ZZone zone = zones.get(i);
             for (Grid.Pos pos : zone.cells) {
                 ZCell cell = getCell(pos);
-                if (cell.cellType == ZCellType.EMPTY)
+                if (cell.isCellTypeEmpty())
                     continue;
                 switch (zone.type) {
                     case VAULT:
@@ -431,27 +431,31 @@ public class ZBoard extends Reflector<ZBoard> {
                     g.drawFilledRect(cell.rect);
                 }
                 String text = "";
-                switch (cell.cellType) {
-                    case OBJECTIVE_BLACK:
-                    case OBJECTIVE_BLUE:
-                    case OBJECTIVE_GREEN:
-                    case OBJECTIVE_RED:
-                        if (zone.objective) {
-                            // draw a big red X om the center of the cell
-                            GRectangle redX = cell.rect.scaledBy(.25f, .25f);
-                            g.setColor(cell.cellType.getColor());
-                            g.drawLine(redX.getTopLeft(), redX.getBottomRight(), 10);
-                            g.drawLine(redX.getTopRight(), redX.getBottomLeft(), 10);
+                for (ZCellType type : ZCellType.values()) {
+                    if (cell.isCellType(type)) {
+                        switch (type) {
+                            case OBJECTIVE_BLACK:
+                            case OBJECTIVE_BLUE:
+                            case OBJECTIVE_GREEN:
+                            case OBJECTIVE_RED:
+                                if (zone.objective) {
+                                    // draw a big red X om the center of the cell
+                                    GRectangle redX = cell.rect.scaledBy(.25f, .25f);
+                                    g.setColor(type.getColor());
+                                    g.drawLine(redX.getTopLeft(), redX.getBottomRight(), 10);
+                                    g.drawLine(redX.getTopRight(), redX.getBottomLeft(), 10);
+                                }
+                                break;
+                            case EXIT:
+                                text += "EXIT";
+                                break;
+                            case SPAWN:
+                                if (zone.isSpawn) {
+                                    text += "SPAWN";
+                                }
+                                break;
                         }
-                        break;
-                    case EXIT:
-                        text += "EXIT";
-                        break;
-                    case SPAWN:
-                        if (zone.isSpawn) {
-                            text += "SPAWN";
-                        }
-                        break;
+                    }
                 }
                 if (zone.isDragonBile()) {
                     g.drawImage(ZIcon.SLIME.imageIds[0], cell.rect);
@@ -587,23 +591,8 @@ public class ZBoard extends Reflector<ZBoard> {
         Grid.Iterator<ZCell> it = grid.iterator();
         while (it.hasNext()) {
             ZCell cell = it.next();
-            if (cell.cellType == ZCellType.EMPTY)
+            if (cell.isCellTypeEmpty())
                 continue;
-            /*
-                            /*
-                switch (zone.type) {
-                    case VAULT:
-                        g.setColor(GColor.BROWN);
-                        break;
-                    case BUILDING:
-                        g.setColor(GColor.ORANGE);
-                        break;
-                    case OUTDOORS:
-                        g.setColor(GColor.LIGHT_GRAY);
-                        break;
-                }
-
-             */
             switch (cell.environment) {
                 case ZCell.ENV_BUILDING:
                     g.setColor(GColor.ORANGE); break;
@@ -614,7 +603,12 @@ public class ZBoard extends Reflector<ZBoard> {
             }
             g.drawFilledRect(cell.rect);
             drawCellWalls(g, it.getPos(), .97f);
-            String text = "Zone " + cell.zoneIndex + "\n" + cell.cellType;
+            String text = "Zone " + cell.zoneIndex;
+            for (ZCellType type : ZCellType.values()) {
+                if (cell.isCellType(type)) {
+                    text += "\n" + type;
+                }
+            }
             if (cell.rect.contains(mouseX, mouseY)) {
                 List<Integer> accessible = getAccessableZones(cell.zoneIndex, 1, ZActionType.MOVE);
                 text = "1 Unit away:\n" + accessible;

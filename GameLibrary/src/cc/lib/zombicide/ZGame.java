@@ -111,7 +111,7 @@ public class ZGame extends Reflector<ZGame>  {
         initGame();
         for (Grid.Iterator<ZCell> it = board.grid.iterator(); it.hasNext(); ) {
             ZCell cell=it.next();
-            if (cell.cellType == ZCellType.EMPTY)
+            if (cell.isCellTypeEmpty())
                 continue;
             ZZone zone = board.zones.get(cell.zoneIndex);
             switch (cell.environment) {
@@ -136,39 +136,43 @@ public class ZGame extends Reflector<ZGame>  {
                     }
                 }
             }
-            switch (cell.cellType) {
-                case START:
-                    // position all the characters here
-                    for (ZUser u : users) {
-                        for (ZPlayerName pl : u.characters) {
-                            ZCharacter c = pl.create();
-                            c.occupiedZone = cell.zoneIndex;
-                            board.addActor(c, cell.zoneIndex);
-                        }
-                    }
-                    break;
-                case SPAWN:
-                    zone.isSpawn = true;
-                    break;
-                case OBJECTIVE_BLACK:
-                case OBJECTIVE_RED:
-                case OBJECTIVE_BLUE:
-                case OBJECTIVE_GREEN:
-                    zone.objective = true;
-                    break;
-                case VAULT_DOOR: {
-                    // add a vault door leading to the cell specified by vaultFlag
-                    assert(cell.vaultFlag > 0);
-                    for (Grid.Iterator<ZCell> it2 = board.grid.iterator(); it2.hasNext(); ) {
-                        ZCell cell2 = it2.next();
-                        if (cell == cell2)
-                            continue;
-                        if (cell.vaultFlag == cell2.vaultFlag) {
-                            zone.doors.add(new ZDoor(it.getPos(), it2.getPos(), cell.environment == ZCell.ENV_VAULT ? ZDir.ASCEND : ZDir.DESCEND, GColor.RED));
+            for (ZCellType type : ZCellType.values()) {
+                if (cell.isCellType(type)) {
+                    switch (type) {
+                        case START:
+                            // position all the characters here
+                            for (ZUser u : users) {
+                                for (ZPlayerName pl : u.characters) {
+                                    ZCharacter c = pl.create();
+                                    c.occupiedZone = cell.zoneIndex;
+                                    board.addActor(c, cell.zoneIndex);
+                                }
+                            }
+                            break;
+                        case SPAWN:
+                            zone.isSpawn = true;
+                            break;
+                        case OBJECTIVE_BLACK:
+                        case OBJECTIVE_RED:
+                        case OBJECTIVE_BLUE:
+                        case OBJECTIVE_GREEN:
+                            zone.objective = true;
+                            break;
+                        case VAULT_DOOR: {
+                            // add a vault door leading to the cell specified by vaultFlag
+                            assert (cell.vaultFlag > 0);
+                            for (Grid.Iterator<ZCell> it2 = board.grid.iterator(); it2.hasNext(); ) {
+                                ZCell cell2 = it2.next();
+                                if (cell == cell2)
+                                    continue;
+                                if (cell.vaultFlag == cell2.vaultFlag) {
+                                    zone.doors.add(new ZDoor(it.getPos(), it2.getPos(), cell.environment == ZCell.ENV_VAULT ? ZDir.ASCEND : ZDir.DESCEND, GColor.RED));
+                                    break;
+                                }
+                            }
                             break;
                         }
                     }
-                    break;
                 }
             }
         }
@@ -281,22 +285,26 @@ public class ZGame extends Reflector<ZGame>  {
 
             case INIT: {
                 for (ZCell cell : board.getCells()) {
-                    switch (cell.cellType) {
-                        case WALKER:
-                            spawnZombies(1, ZZombieType.Walker, cell.zoneIndex);
-                            break;
-                        case RUNNER:
-                            spawnZombies(1, ZZombieType.Runner, cell.zoneIndex);
-                            break;
-                        case FATTY:
-                            spawnZombies(1, ZZombieType.Fatty, cell.zoneIndex);
-                            break;
-                        case NECRO:
-                            spawnZombies(1, ZZombieType.Necromancer, cell.zoneIndex);
-                            break;
-                        case ABOMINATION:
-                            spawnZombies(1, ZZombieType.Abomination, cell.zoneIndex);
-                            break;
+                    for (ZCellType type : ZCellType.values()) {
+                        if (cell.isCellType(type)) {
+                            switch (type) {
+                                case WALKER:
+                                    spawnZombies(1, ZZombieType.Walker, cell.zoneIndex);
+                                    break;
+                                case RUNNER:
+                                    spawnZombies(1, ZZombieType.Runner, cell.zoneIndex);
+                                    break;
+                                case FATTY:
+                                    spawnZombies(1, ZZombieType.Fatty, cell.zoneIndex);
+                                    break;
+                                case NECRO:
+                                    spawnZombies(1, ZZombieType.Necromancer, cell.zoneIndex);
+                                    break;
+                                case ABOMINATION:
+                                    spawnZombies(1, ZZombieType.Abomination, cell.zoneIndex);
+                                    break;
+                            }
+                        }
                     }
                 }
                 setState(ZState.BEGIN_ROUND, null);

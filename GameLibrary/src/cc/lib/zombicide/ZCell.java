@@ -20,10 +20,26 @@ public class ZCell extends Reflector<ZCell> {
     int environment=ENV_OUTDOORS; // 0 == outdoors, 1 == building, 2 == vault
     int zoneIndex;
     int vaultFlag;
-    public ZCellType cellType = ZCellType.EMPTY;
+    private int cellFlag = 0;
     GRectangle rect;
     boolean discovered=false;
     private ZActor [] occupied = new ZActor[ZCellQuadrant.values().length];
+
+    public boolean isCellType(ZCellType type) {
+        return (1 << type.ordinal() & cellFlag) != 0;
+    }
+
+    public boolean isCellTypeEmpty() {
+        return cellFlag == 0;
+    }
+
+    public void setCellType(ZCellType type, boolean enabled) {
+        if (enabled) {
+            cellFlag |= 1<<type.ordinal();
+        } else {
+            cellFlag &= ~(1<<type.ordinal());
+        }
+    }
 
     public ZActor getOccupant(ZCellQuadrant quadrant) {
         return occupied[quadrant.ordinal()];

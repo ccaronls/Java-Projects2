@@ -66,22 +66,22 @@ public abstract class ZQuest extends Reflector<ZQuest> {
                 cell.environment=ZCell.ENV_VAULT;
                 break;
             case "vd1":
-                cell.cellType = ZCellType.VAULT_DOOR;
+                cell.setCellType(ZCellType.VAULT_DOOR, true);
                 cell.vaultFlag = 1;
                 setCellWall(grid, pos, getDirectionForEnvironment(cell.environment), ZWallFlag.CLOSED);
                 break;
             case "vd2":
-                cell.cellType = ZCellType.VAULT_DOOR;
+                cell.setCellType(ZCellType.VAULT_DOOR, true);
                 cell.vaultFlag = 2;
                 setCellWall(grid, pos, getDirectionForEnvironment(cell.environment), ZWallFlag.CLOSED);
                 break;
             case "vd3":
-                cell.cellType = ZCellType.VAULT_DOOR;
+                cell.setCellType(ZCellType.VAULT_DOOR, true);
                 cell.vaultFlag = 3;
                 setCellWall(grid, pos, getDirectionForEnvironment(cell.environment), ZWallFlag.CLOSED);
                 break;
             case "vd4":
-                cell.cellType = ZCellType.VAULT_DOOR;
+                cell.setCellType(ZCellType.VAULT_DOOR, true);
                 cell.vaultFlag = 4;
                 setCellWall(grid, pos, getDirectionForEnvironment(cell.environment), ZWallFlag.CLOSED);
                 break;
@@ -122,30 +122,30 @@ public abstract class ZQuest extends Reflector<ZQuest> {
                 setCellWall(grid, pos, ZDir.WEST, ZWallFlag.OPEN);
                 break;
             case "sp":
-                cell.cellType = ZCellType.SPAWN;
+                cell.setCellType(ZCellType.SPAWN, true);
                 break;
             case "st":
             case "start":
-                cell.cellType = ZCellType.START;
+                cell.setCellType(ZCellType.START, true);
                 break;
             case "exit":
-                cell.cellType = ZCellType.EXIT;
+                cell.setCellType(ZCellType.EXIT, true);
                 break;
             case "walker":
-                cell.cellType = ZCellType.WALKER;
+                cell.setCellType(ZCellType.WALKER, true);
                 break;
             case "runner":
-                cell.cellType = ZCellType.RUNNER;
+                cell.setCellType(ZCellType.RUNNER, true);
                 break;
             case "fatty":
-                cell.cellType = ZCellType.FATTY;
+                cell.setCellType(ZCellType.FATTY, true);
                 break;
             case "necro":
-                cell.cellType = ZCellType.NECRO;
+                cell.setCellType(ZCellType.NECRO, true);
                 break;
             case "abom":
             case "abomination":
-                cell.cellType = ZCellType.ABOMINATION;
+                cell.setCellType(ZCellType.ABOMINATION, true);
                 break;
             default:
                 throw new RuntimeException("Invalid command '" + cmd + "'");
@@ -189,18 +189,15 @@ public abstract class ZQuest extends Reflector<ZQuest> {
                         }
                         zone.cells.add(new Grid.Pos(row, col));
                         cell.zoneIndex = index;
-                        cell.cellType = ZCellType.NONE;
+                        cell.setCellType(ZCellType.NONE, true);
                         continue;
                     }
                     assert(zone != null);
                     loadCmd(grid, pos, cmd);
                     // make sure outer perimeter has walls
                 }
-                switch (cell.cellType) {
-                    case EXIT:
-                        exitZone = cell.zoneIndex;
-                        break;
-                }
+                if (cell.isCellType(ZCellType.EXIT))
+                    exitZone = cell.zoneIndex;
                 if (row == 0) {
                     loadCmd(grid, pos, "wn");
                 } else if (row == map.length-1) {

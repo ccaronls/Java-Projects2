@@ -66,10 +66,10 @@ public class ZQuestTutorial extends ZQuest {
                 break;
             case "blue":
                 blueKeyZone = zoneIndex;
-                cell.cellType = ZCellType.OBJECTIVE_BLUE;
+                cell.setCellType(ZCellType.OBJECTIVE_BLUE, true);
                 break;
             case "red":
-                cell.cellType = ZCellType.OBJECTIVE_RED;
+                cell.setCellType(ZCellType.OBJECTIVE_RED, true);
                 objZones.add(zoneIndex);
                 break;
             case "bluedn":
