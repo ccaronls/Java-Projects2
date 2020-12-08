@@ -26,6 +26,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
     private Map<Integer, List<ZEquipment>> vaultMap = new HashMap<>();
     private List<ZEquipment> vaultItemsRemaining = null;
     private int numFoundVaultItems = 0;
+    protected List<Integer> redObjectives = new ArrayList<>();
 
     protected ZQuest(String name) {
         this.name = name;
@@ -147,6 +148,11 @@ public abstract class ZQuest extends Reflector<ZQuest> {
             case "abomination":
                 cell.setCellType(ZCellType.ABOMINATION, true);
                 break;
+            case "red":
+                redObjectives.add(cell.getZoneIndex());
+                cell.setCellType(ZCellType.OBJECTIVE_RED, true);
+                break;
+
             default:
                 throw new RuntimeException("Invalid command '" + cmd + "'");
         }
@@ -232,7 +238,12 @@ public abstract class ZQuest extends Reflector<ZQuest> {
      * @param cur
      * @param options
      */
-    public abstract void addMoves(ZGame game, ZCharacter cur, List<ZMove> options);
+    public final void addMoves(ZGame game, ZCharacter cur, List<ZMove> options) {
+        for (int red : redObjectives) {
+            if (cur.getOccupiedZone() == red)
+                options.add(ZMove.newObjectiveMove(red));
+        }
+    }
 
     /**
      *
@@ -240,7 +251,10 @@ public abstract class ZQuest extends Reflector<ZQuest> {
      * @param c
      * @param move
      */
-    public abstract void processObjective(ZGame game, ZCharacter c, ZMove move);
+    public void processObjective(ZGame game, ZCharacter c, ZMove move) {
+        game.addExperience(c, OBJECTIVE_EXP);
+        redObjectives.remove((Object)move.integer);
+    }
 
     /**
      *

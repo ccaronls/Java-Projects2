@@ -30,10 +30,11 @@ import cc.lib.zombicide.ZDoor;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZIcon;
 import cc.lib.zombicide.ZPlayerName;
+import cc.lib.zombicide.ZTiles;
 import cc.lib.zombicide.ZZombie;
 import cc.lib.zombicide.ZZone;
 
-public abstract class UIZombicide extends ZGame {
+public abstract class UIZombicide extends ZGame implements ZTiles {
 
     static Logger log = LoggerFactory.getLogger(UIZombicide.class);
 
@@ -430,13 +431,17 @@ public abstract class UIZombicide extends ZGame {
 
         final int OUTLINE = 2;
 
-        final Grid.Pos cellPos = board.drawDebug(g, mouse.X(), mouse.Y());
+        //final Grid.Pos cellPos = board.drawDebug(g, mouse.X(), mouse.Y());
 
         if (isGameRunning() || isGameOver()) {
-            int highlightedZone = board.drawZones(g, mouse.X(), mouse.Y());
+            Grid.Pos cellPos = null;
             if (drawTiles) {
-            //    getQuest().drawTiles(g, board, this);
+                getQuest().drawTiles(g, board, this);
+                cellPos = board.pickCell(g, mouse.X(), mouse.Y());
+            } else {
+                cellPos = board.drawDebug(g, mouse.X(), mouse.Y());
             }
+            int highlightedZone = board.drawZones(g, mouse.X(), mouse.Y());
             boolean drawAnimating = isGameOver();
 
             drawAnimations(preActor, g);
@@ -516,9 +521,11 @@ public abstract class UIZombicide extends ZGame {
             drawAnimations(overlayAnimations, g);
 
         } else {
-            //if (drawTiles) {
-            //    getGame().getQuest().drawTiles(g, board, this);
-            //}
+
+            Grid.Pos cellPos = board.drawDebug(g, mouse.X(), mouse.Y());
+            if (drawTiles) {
+                getQuest().drawTiles(g, board, this);
+            }
 
             if (cellPos != null) {
                 highlightedCell = cellPos;
@@ -547,7 +554,7 @@ public abstract class UIZombicide extends ZGame {
                         g.begin();
                         g.vertex(board.getCell(cur).getRect().getCenter());
                         for (ZDir dir : path) {
-                            cur = dir.getAdjacent(cur);
+                            cur = board.getAdjacent(cur, dir);///dir.getAdjacent(cur);
                             g.vertex(board.getCell(cur).getRect().getCenter());
                         }
                         g.drawLineStrip(3);
@@ -638,7 +645,6 @@ public abstract class UIZombicide extends ZGame {
     }
 
     public <T> T waitForUser(Class<T> expectedType) {
-        //initMenu();
         synchronized (monitor) {
             try {
                 monitor.wait();
@@ -657,7 +663,6 @@ public abstract class UIZombicide extends ZGame {
         synchronized (monitor) {
             monitor.notify();
         }
-        //boardComp.requestFocus();
     }
 
     public ZCharacter pickCharacter(String message, List<ZCharacter> characters) {

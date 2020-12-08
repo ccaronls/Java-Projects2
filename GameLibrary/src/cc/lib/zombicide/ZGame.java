@@ -698,16 +698,10 @@ public class ZGame extends Reflector<ZGame>  {
             List<List<ZDir>> paths =  board.getShortestPathOptions(zombie.occupiedCell, targetZone);
             if (paths.size() > 0) {
                 return Utils.randItem(paths);
-                //ZDir dir = Utils.randItem(paths); // TODO: Use Dir class instead of int
-                //log.debug("%s moving in direction %s", zombie.name(), dir);
-                //board.moveActorInDirection(zombie, dir);
-                //moveActorInDirection(zombie, dir);
-                //return;
             }
         }
 
         return Collections.emptyList();
-        //zombie.performAction(ZActionType.DO_NOTHING, this);
     }
 
     protected void onStartRound(int roundNum) {

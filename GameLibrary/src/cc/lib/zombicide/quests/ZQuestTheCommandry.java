@@ -1,34 +1,34 @@
 package cc.lib.zombicide.quests;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import cc.lib.game.AGraphics;
 import cc.lib.game.GColor;
 import cc.lib.game.Utils;
 import cc.lib.utils.Grid;
 import cc.lib.utils.Table;
 import cc.lib.zombicide.ZBoard;
 import cc.lib.zombicide.ZCell;
-import cc.lib.zombicide.ZCellType;
 import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZDir;
 import cc.lib.zombicide.ZDoor;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZMove;
-import cc.lib.zombicide.ZQuest;
-import cc.lib.zombicide.ZTiles;
 import cc.lib.zombicide.ZWallFlag;
 
-public class ZQuestTheCommandry extends ZQuest {
+public class ZQuestTheCommandry extends ZQuest9x6 {
+
+    static {
+        addAllFields(ZQuestTheCommandry.class);
+    }
 
     ZDoor blueDoor, greenDoor;
-    List<Integer> redObjectives = new ArrayList<>();
     int blueDoorKeyZone = -1;
     int greenDoorKeyZone = -1;
 
     public ZQuestTheCommandry() {
         super("The Commandry");
+    }
+
+    ZQuestTheCommandry(String title) {
+        super(title);
     }
 
     @Override
@@ -48,25 +48,19 @@ public class ZQuestTheCommandry extends ZQuest {
     }
 
     @Override
-    public void addMoves(ZGame game, ZCharacter cur, List<ZMove> options) {
-        for (int red : redObjectives) {
-            if (cur.getOccupiedZone() == red)
-                options.add(ZMove.newObjectiveMove(red));
-        }
-    }
-
-    @Override
     protected void loadCmd(Grid<ZCell> grid, Grid.Pos pos, String cmd) {
         switch (cmd) {
-            case "red":
-                redObjectives.add(grid.get(pos).getZoneIndex());
-                grid.get(pos).setCellType(ZCellType.OBJECTIVE_RED, true);
-                break;
             case "greends":
                 greenDoor = new ZDoor(pos, ZDir.SOUTH, GColor.GREEN);
                 break;
+            case "greende":
+                greenDoor = new ZDoor(pos, ZDir.EAST, GColor.GREEN);
+                break;
             case "bluedn":
                 blueDoor = new ZDoor(pos, ZDir.NORTH, GColor.BLUE);
+                break;
+            case "bluede":
+                blueDoor = new ZDoor(pos, ZDir.EAST, GColor.BLUE);
                 break;
             default:
                 super.loadCmd(grid, pos, cmd);
@@ -75,8 +69,7 @@ public class ZQuestTheCommandry extends ZQuest {
 
     @Override
     public void processObjective(ZGame game, ZCharacter c, ZMove move) {
-        game.addExperience(c, OBJECTIVE_EXP);
-        redObjectives.remove((Object)move.integer);
+        super.processObjective(game, c, move);
         if (move.integer == blueDoorKeyZone) {
             game.getCurrentUser().showMessage(c.name() + " has unlocked the Blue Door");
             game.board.setDoor(blueDoor, ZWallFlag.CLOSED);
@@ -99,8 +92,13 @@ public class ZQuestTheCommandry extends ZQuest {
     }
 
     @Override
-    public void drawTiles(AGraphics g, ZBoard board, ZTiles tiles) {
+    protected String[] getTileIds() {
+        return new String[] { "4R", "6R", "5R", "7R", "8R", "9R" };
+    }
 
+    @Override
+    protected int[] getTileRotations() {
+        return new int[] { 180, 270, 270, 90, 180, 180 };
     }
 
     @Override

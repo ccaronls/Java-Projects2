@@ -1,16 +1,10 @@
 package cc.lib.zombicide.quests;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import cc.lib.game.AGraphics;
-import cc.lib.game.GRectangle;
 import cc.lib.game.Utils;
 import cc.lib.utils.Grid;
 import cc.lib.utils.Table;
 import cc.lib.zombicide.ZBoard;
 import cc.lib.zombicide.ZCell;
-import cc.lib.zombicide.ZCellType;
 import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZDir;
 import cc.lib.zombicide.ZDoor;
@@ -18,13 +12,11 @@ import cc.lib.zombicide.ZEquipment;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZItemType;
 import cc.lib.zombicide.ZMove;
-import cc.lib.zombicide.ZQuest;
-import cc.lib.zombicide.ZTiles;
 import cc.lib.zombicide.ZWallFlag;
 import cc.lib.zombicide.ZZone;
 import cc.lib.zombicide.ZZoneType;
 
-public class ZQuestFamine extends ZQuest {
+public class ZQuestFamine extends ZQuest9x6 {
 
     static {
         addAllFields(ZQuestFamine.class);
@@ -34,8 +26,6 @@ public class ZQuestFamine extends ZQuest {
     int numSaltedMeatFound = 0;
     int numWaterFound = 0;
     int blueKeyZone = -1;
-
-    List<Integer> objectives = new ArrayList<>();
 
     public ZQuestFamine() {
         super("Famine");
@@ -61,10 +51,6 @@ public class ZQuestFamine extends ZQuest {
     protected void loadCmd(Grid<ZCell> grid, Grid.Pos pos, String cmd) {
         ZCell cell = grid.get(pos);
         switch (cmd) {
-            case "red":
-                objectives.add(cell.getZoneIndex());
-                cell.setCellType(ZCellType.OBJECTIVE_RED, true);
-                break;
             case "lvd1":
             case "lvd2":
                 super.loadCmd(grid, pos, cmd.substring(1));
@@ -76,18 +62,8 @@ public class ZQuestFamine extends ZQuest {
     }
 
     @Override
-    public void addMoves(ZGame game, ZCharacter cur, List<ZMove> options) {
-        for (int obj : objectives) {
-            if (cur.getOccupiedZone() == obj) {
-                options.add(ZMove.newObjectiveMove(obj));
-            }
-        }
-    }
-
-    @Override
     public void processObjective(ZGame game, ZCharacter c, ZMove move) {
-        game.addExperience(c, OBJECTIVE_EXP);
-        objectives.remove((Object)move.integer);
+        super.processObjective(game, c, move);
         if (move.integer == blueKeyZone) {
             game.getCurrentUser().showMessage("Blue key found. Vault unlocked");
             blueKeyZone = -1;
@@ -139,64 +115,30 @@ public class ZQuestFamine extends ZQuest {
         }
     }
 
-    @Omit
-    int [] tileIds = null;
+    @Override
+    protected String[] getTileIds() {
+        return new String[] { "3R", "2R", "1R", "8R", "6R", "5R" };
+    }
 
     @Override
-    public void drawTiles(AGraphics g, ZBoard board, ZTiles tiles) {
-
-        // 3R 2R 1R
-        // 8R 6R 5R
-
-        if (tileIds == null) {
-            tileIds = tiles.loadTiles(g, new String [] { "3R", "2R", "1R", "8R", "6R", "5R" }, new int [] { 270, 270, 180, 0, 270, 90 });
-        }
-
-        if (tileIds.length == 0)
-            return;
-
-        GRectangle quadrant3R = new GRectangle(
-                board.getCell(0, 0).getRect().getTopLeft(),
-                board.getCell(2, 2).getRect().getBottomRight());
-        GRectangle quadrant2R = new GRectangle(
-                board.getCell(0, 3).getRect().getTopLeft(),
-                board.getCell(2, 5).getRect().getBottomRight());
-        GRectangle quadrant1R = new GRectangle(
-                board.getCell(0, 6).getRect().getTopLeft(),
-                board.getCell(2, 8).getRect().getBottomRight());
-
-        GRectangle quadrant8R = new GRectangle(
-                board.getCell(3, 0).getRect().getTopLeft(),
-                board.getCell(5, 2).getRect().getBottomRight());
-        GRectangle quadrant6R = new GRectangle(
-                board.getCell(3, 3).getRect().getTopLeft(),
-                board.getCell(5, 5).getRect().getBottomRight());
-        GRectangle quadrant5R = new GRectangle(
-                board.getCell(3, 6).getRect().getTopLeft(),
-                board.getCell(5, 8).getRect().getBottomRight());
-
-        g.drawImage(tileIds[0], quadrant3R);
-        g.drawImage(tileIds[1], quadrant2R);
-        g.drawImage(tileIds[2], quadrant1R);
-        g.drawImage(tileIds[3], quadrant8R);
-        g.drawImage(tileIds[4], quadrant6R);
-        g.drawImage(tileIds[5], quadrant5R);
+    protected int[] getTileRotations() {
+        return new int[] { 270, 270, 180, 0, 270, 90 };
     }
 
     @Override
     public void init(ZGame game) {
-        blueKeyZone = Utils.randItem(objectives);
+        blueKeyZone = Utils.randItem(redObjectives);
     }
 
     @Override
     public Table getObjectivesOverlay(ZGame game) {
         return new Table(getName())
             .addRow(new Table().setNoBorder()
-                .addRow("1.", "Find BLUE key to unlock the Vault", blueKeyZone >= 0 ? "no" : "yes")
+                .addRow("1.", "Find BLUE key to unlock the Vault", blueKeyZone >= 0)
                 .addRow("2.", "Find 2 Apples", String.format("%d of %d", numApplesFound, 2))
                 .addRow("3.", "Find 2 Water", String.format("%d of %d", numWaterFound, 2))
                 .addRow("4.", "Find 2 Salted Meat", String.format("%d of %d", numSaltedMeatFound, 2))
-                .addRow("5.", "Lock youselves in the Vault with no zombies.", isAllLockedInVault(game) ? "yes" : "no")
+                .addRow("5.", "Lock youselves in the Vault with no zombies.", isAllLockedInVault(game))
             );
 
     }

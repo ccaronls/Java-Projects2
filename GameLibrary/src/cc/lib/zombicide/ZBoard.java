@@ -102,7 +102,7 @@ public class ZBoard extends Reflector<ZBoard> {
         return result;
     }
 
-    Grid.Pos getAdjacent(Grid.Pos from, ZDir dir) {
+    public Grid.Pos getAdjacent(Grid.Pos from, ZDir dir) {
         switch (dir) {
             case NORTH:
             case SOUTH:
@@ -359,6 +359,7 @@ public class ZBoard extends Reflector<ZBoard> {
         return null;
     }
 
+    // TODO: This is stoopid
     public synchronized void loadCells(AGraphics g) {
         if (!loaded)
             initCellRects(g, g.getViewportWidth(), g.getViewportHeight());
@@ -412,6 +413,7 @@ public class ZBoard extends Reflector<ZBoard> {
                 ZCell cell = getCell(pos);
                 if (cell.isCellTypeEmpty())
                     continue;
+                /*
                 switch (zone.type) {
                     case VAULT:
                         g.setColor(GColor.BROWN);
@@ -424,6 +426,8 @@ public class ZBoard extends Reflector<ZBoard> {
                         break;
                 }
                 g.drawFilledRect(cell.rect);
+
+                 */
                 drawCellWalls(g, pos, 1);
                 if (cell.rect.contains(mouseX, mouseY)) {
                     result = i;
@@ -583,6 +587,20 @@ public class ZBoard extends Reflector<ZBoard> {
         }
     }
 
+    public Grid.Pos pickCell(AGraphics g, float mouseX, float mouseY) {
+        Grid.Iterator<ZCell> it = grid.iterator();
+        while (it.hasNext()) {
+            ZCell cell = it.next();
+            if (cell.isCellTypeEmpty())
+                continue;
+            if (cell.rect.contains(mouseX, mouseY)) {
+                return it.getPos();
+            }
+        }
+        return null;
+    }
+
+
     public Grid.Pos drawDebug(AGraphics g, float mouseX, float mouseY) {
         loadCells(g);
         g.clearScreen(GColor.LIGHT_GRAY);
@@ -605,6 +623,8 @@ public class ZBoard extends Reflector<ZBoard> {
             drawCellWalls(g, it.getPos(), .97f);
             String text = "Zone " + cell.zoneIndex;
             for (ZCellType type : ZCellType.values()) {
+                if (type == ZCellType.NONE)
+                    continue;
                 if (cell.isCellType(type)) {
                     text += "\n" + type;
                 }

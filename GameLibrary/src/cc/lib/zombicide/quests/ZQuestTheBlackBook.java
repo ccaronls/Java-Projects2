@@ -1,8 +1,5 @@
 package cc.lib.zombicide.quests;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import cc.lib.game.AGraphics;
 import cc.lib.game.GColor;
 import cc.lib.game.GRectangle;
@@ -33,7 +30,6 @@ public class ZQuestTheBlackBook extends ZQuest {
     int blueObjZone=-1;
     int greenObjZone=-1;
     int greenSpawnZone=-1;
-    List<Integer> allObjectives =new ArrayList<>();
     ZDoor blueDoor, greenDoor;
 
     public ZQuestTheBlackBook() {
@@ -62,10 +58,6 @@ public class ZQuestTheBlackBook extends ZQuest {
                 blackBookZone = cell.getZoneIndex();
                 cell.setCellType(ZCellType.OBJECTIVE_BLACK, true);
                 break;
-            case "red":
-                allObjectives.add(cell.getZoneIndex());
-                cell.setCellType(ZCellType.OBJECTIVE_RED, true);
-                break;
 
             case "green":
                 greenSpawnZone = cell.getZoneIndex();
@@ -89,28 +81,18 @@ public class ZQuestTheBlackBook extends ZQuest {
     @Override
     public void init(ZGame game) {
         while (blueObjZone == greenObjZone) {
-            blueObjZone = Utils.randItem(allObjectives);
-            greenObjZone = Utils.randItem(allObjectives);
+            blueObjZone = Utils.randItem(redObjectives);
+            greenObjZone = Utils.randItem(redObjectives);
         }
         // do this after the above so it does not get mixed in with other objectives. Effect would be player could never access
-        allObjectives.add(blackBookZone);
+        redObjectives.add(blackBookZone);
         game.board.setDoorLocked(blueDoor);
         game.board.setDoorLocked(greenDoor);
     }
 
     @Override
-    public void addMoves(ZGame game, ZCharacter cur, List<ZMove> options) {
-        for (int red : allObjectives) {
-            if (cur.getOccupiedZone() == red)
-                options.add(ZMove.newObjectiveMove(red));
-        }
-
-    }
-
-    @Override
     public void processObjective(ZGame game, ZCharacter c, ZMove move) {
-        game.addExperience(c, OBJECTIVE_EXP);
-        allObjectives.remove((Object)move.integer);
+        super.processObjective(game, c, move);
         if (move.integer == blueObjZone) {
             game.getCurrentUser().showMessage(c.name() + " has unlocked the Blue Door");
             game.board.setDoor(blueDoor, ZWallFlag.CLOSED);

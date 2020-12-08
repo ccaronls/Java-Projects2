@@ -1,8 +1,5 @@
 package cc.lib.zombicide.quests;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import cc.lib.game.AGraphics;
 import cc.lib.game.GRectangle;
 import cc.lib.game.Utils;
@@ -35,7 +32,6 @@ public class ZQuestBigGameHunting extends ZQuest {
 
     };
 
-    List<Integer> allObjectives = new ArrayList<>();
     int blueObjZone = -1;
     int blueRevealZone = -1;
 
@@ -49,21 +45,12 @@ public class ZQuestBigGameHunting extends ZQuest {
     }
 
     @Override
-    public void addMoves(ZGame game, ZCharacter cur, List<ZMove> options) {
-        for (int red : allObjectives) {
-            if (cur.getOccupiedZone() == red)
-                options.add(ZMove.newObjectiveMove(red));
-        }
-    }
-
-    @Override
     public void processObjective(ZGame game, ZCharacter c, ZMove move) {
-        game.addExperience(c, OBJECTIVE_EXP);
+        super.processObjective(game, c, move);
         // check for necro / abom in special spawn places
         game.board.getZone(c.getOccupiedZone()).objective = false;
-        allObjectives.remove((Object)c.getOccupiedZone());
         if (move.integer == blueRevealZone) {
-            allObjectives.add(blueObjZone);
+            redObjectives.add(blueObjZone);
             game.getCurrentUser().showMessage("The Labratory objective is revealed!");
             game.board.getZone(blueObjZone).objective = true;
             game.spawnZombies(1, ZZombieType.Necromancer, blueObjZone);
@@ -75,11 +62,6 @@ public class ZQuestBigGameHunting extends ZQuest {
     protected void loadCmd(Grid<ZCell> grid, Grid.Pos pos, String cmd) {
         ZCell cell = grid.get(pos);
         switch (cmd) {
-            case "red":
-                allObjectives.add(cell.getZoneIndex());
-                cell.setCellType(ZCellType.OBJECTIVE_RED, true);
-                break;
-
             case "blue":
                 blueObjZone = cell.getZoneIndex();
                 cell.setCellType(ZCellType.OBJECTIVE_BLUE, true);
@@ -93,7 +75,7 @@ public class ZQuestBigGameHunting extends ZQuest {
 
     @Override
     public void init(ZGame game) {
-        blueRevealZone = Utils.randItem(allObjectives);
+        blueRevealZone = Utils.randItem(redObjectives);
         game.board.getZone(blueObjZone).objective = false; // this does not get revealed until the blueRevealZone found
     }
 
@@ -130,24 +112,24 @@ public class ZQuestBigGameHunting extends ZQuest {
 
     @Override
     public Table getObjectivesOverlay(ZGame game) {
-        boolean allObjCollected = allObjectives.size() == 0 && blueRevealZone < 0;
+        boolean allObjCollected = redObjectives.size() == 0 && blueRevealZone < 0;
         boolean exposeLaboratory = blueRevealZone < 0;
         boolean necroKilled = game.getNumKills(ZZombieType.Necromancer) > 0;
         boolean abimKilled = game.getNumKills(ZZombieType.Abomination) > 0;
 
         return new Table(getName())
                 .addRow(new Table().setNoBorder()
-                    .addRow("1.", "Collect all objectives. One of the objectives\nexposes the laboratory objective.", allObjCollected ? "yes" : "no")
-                    .addRow("2.", "Find the Laboratory Objective", exposeLaboratory ? "yes" : "no")
-                    .addRow("3.", "Kill at least 1 Necromancer.", necroKilled ? "yes" : "no")
-                    .addRow("4.", "Kill at least 1 Abomination.", abimKilled ? "yes" : "no")
+                    .addRow("1.", "Collect all objectives. One of the objectives\nexposes the laboratory objective.", allObjCollected)
+                    .addRow("2.", "Find the Laboratory Objective", exposeLaboratory)
+                    .addRow("3.", "Kill at least 1 Necromancer.", necroKilled)
+                    .addRow("4.", "Kill at least 1 Abomination.", abimKilled)
                     .addRow("5.", "Not all players need to survive.")
                 );
     }
 
     @Override
     public boolean isQuestComplete(ZGame game) {
-        return allObjectives.size() == 0 && blueRevealZone < 0 && game.getNumKills(ZZombieType.Abomination) > 0 && game.getNumKills(ZZombieType.Necromancer) > 0;
+        return redObjectives.size() == 0 && blueRevealZone < 0 && game.getNumKills(ZZombieType.Abomination) > 0 && game.getNumKills(ZZombieType.Necromancer) > 0;
     }
 
     @Override

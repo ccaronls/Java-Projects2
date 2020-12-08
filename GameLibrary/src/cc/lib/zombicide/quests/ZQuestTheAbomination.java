@@ -1,7 +1,5 @@
 package cc.lib.zombicide.quests;
 
-import java.util.List;
-
 import cc.lib.game.AGraphics;
 import cc.lib.utils.Table;
 import cc.lib.zombicide.ZBoard;
@@ -30,11 +28,6 @@ public class ZQuestTheAbomination extends ZQuest {
         };
 
         return load(map);
-    }
-
-    @Override
-    public void addMoves(ZGame game, ZCharacter cur, List<ZMove> options) {
-
     }
 
     @Override

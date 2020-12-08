@@ -1,23 +1,13 @@
 package cc.lib.zombicide.quests;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import cc.lib.game.AGraphics;
-import cc.lib.game.GRectangle;
 import cc.lib.game.Utils;
-import cc.lib.utils.Grid;
 import cc.lib.utils.Table;
 import cc.lib.zombicide.ZBoard;
-import cc.lib.zombicide.ZCell;
-import cc.lib.zombicide.ZCellType;
 import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZMove;
-import cc.lib.zombicide.ZQuest;
-import cc.lib.zombicide.ZTiles;
 
-public class ZQuestTheShepherds extends ZQuest {
+public class ZQuestTheShepherds extends ZQuest9x6 {
 
     static {
         addAllFields(ZQuestTheShepherds.class);
@@ -30,8 +20,6 @@ public class ZQuestTheShepherds extends ZQuest {
     int greenSpawnZone=-1;
     int blueSpawnZone=-1;
     int numTotal=0;
-
-    List<Integer> objectives = new ArrayList<>();
 
     @Override
     public ZBoard loadBoard() {
@@ -50,31 +38,8 @@ public class ZQuestTheShepherds extends ZQuest {
     }
 
     @Override
-    protected void loadCmd(Grid<ZCell> grid, Grid.Pos pos, String cmd) {
-        ZCell cell = grid.get(pos);
-        switch (cmd) {
-            case "red":
-                objectives.add(cell.getZoneIndex());
-                cell.setCellType(ZCellType.OBJECTIVE_RED, true);
-                break;
-            default:
-                super.loadCmd(grid, pos, cmd);
-        }
-    }
-
-    @Override
-    public void addMoves(ZGame game, ZCharacter cur, List<ZMove> options) {
-        for (int obj : objectives) {
-            if (cur.getOccupiedZone() == obj) {
-                options.add(ZMove.newObjectiveMove(obj));
-            }
-        }
-    }
-
-    @Override
     public void processObjective(ZGame game, ZCharacter c, ZMove move) {
-        game.addExperience(c, OBJECTIVE_EXP);
-        objectives.remove((Object)move.integer);
+        super.processObjective(game, c, move);
         if (move.integer == blueSpawnZone) {
             game.spawnZombies(blueSpawnZone);
 //            game.board.setSpawnZone(blueSpawnZone, true);
@@ -88,7 +53,7 @@ public class ZQuestTheShepherds extends ZQuest {
 
     @Override
     public boolean isQuestComplete(ZGame game) {
-        return objectives.size() == 0;
+        return redObjectives.size() == 0;
     }
 
     @Override
@@ -96,63 +61,28 @@ public class ZQuestTheShepherds extends ZQuest {
         return false;
     }
 
-    @Omit
-    int [] tileIds = null;
+    @Override
+    protected String[] getTileIds() {
+        return new String [] { "1R", "2R", "9V", "3V", "4V", "5R" };
+    }
 
     @Override
-    public void drawTiles(AGraphics g, ZBoard board, ZTiles tiles) {
-
-        // 1R 2R 9V
-        // 3V 4V 5R
-
-        if (tileIds == null) {
-            tileIds = tiles.loadTiles(g, new String [] { "1R", "2R", "9V", "3V", "4V", "5R" }, new int [] { 90, 180, 270, 0, 270, 180 });
-        }
-
-        if (tileIds.length == 0)
-            return;
-
-        GRectangle quadrantTL = new GRectangle(
-                board.getCell(0, 0).getRect().getTopLeft(),
-                board.getCell(2, 2).getRect().getBottomRight());
-        GRectangle quadrantTM = new GRectangle(
-                board.getCell(0, 3).getRect().getTopLeft(),
-                board.getCell(2, 5).getRect().getBottomRight());
-        GRectangle quadrantTR = new GRectangle(
-                board.getCell(0, 6).getRect().getTopLeft(),
-                board.getCell(2, 8).getRect().getBottomRight());
-
-        GRectangle quadrantBL = new GRectangle(
-                board.getCell(3, 0).getRect().getTopLeft(),
-                board.getCell(5, 2).getRect().getBottomRight());
-        GRectangle quadrantBM = new GRectangle(
-                board.getCell(3, 3).getRect().getTopLeft(),
-                board.getCell(5, 5).getRect().getBottomRight());
-        GRectangle quadrantBR = new GRectangle(
-                board.getCell(3, 6).getRect().getTopLeft(),
-                board.getCell(5, 8).getRect().getBottomRight());
-
-        g.drawImage(tileIds[0], quadrantTL);
-        g.drawImage(tileIds[1], quadrantTM);
-        g.drawImage(tileIds[2], quadrantTR);
-        g.drawImage(tileIds[3], quadrantBL);
-        g.drawImage(tileIds[4], quadrantBM);
-        g.drawImage(tileIds[5], quadrantBR);
-
+    protected int[] getTileRotations() {
+        return new int [] { 90, 180, 270, 0, 270, 180 };
     }
 
     @Override
     public void init(ZGame game) {
-        numTotal = objectives.size();
+        numTotal = redObjectives.size();
         while (blueSpawnZone == greenSpawnZone) {
-            blueSpawnZone = Utils.randItem(objectives);
-            greenSpawnZone = Utils.randItem(objectives);
+            blueSpawnZone = Utils.randItem(redObjectives);
+            greenSpawnZone = Utils.randItem(redObjectives);
         }
     }
 
     @Override
     public Table getObjectivesOverlay(ZGame game) {
-        int numTaken = numTotal - objectives.size();
+        int numTaken = numTotal - redObjectives.size();
         return new Table(getName()).addRow(
                 new Table().setNoBorder()
                     .addRow("Rescue the townsfolk.\nClaim all objectives.\nSome townsfolk are infected.", String.format("%d of %d", numTaken, numTotal))
