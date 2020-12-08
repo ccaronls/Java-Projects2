@@ -1,6 +1,5 @@
 package cc.applets.zombicide;
 
-import java.awt.Font;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,65 +7,37 @@ import java.util.List;
 import java.util.Map;
 
 import cc.lib.game.AGraphics;
-import cc.lib.game.AImage;
-import cc.lib.game.GColor;
 import cc.lib.game.GDimension;
-import cc.lib.game.GRectangle;
-import cc.lib.game.Justify;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
-import cc.lib.math.Vector2D;
 import cc.lib.swing.AWTComponent;
 import cc.lib.swing.AWTGraphics;
-import cc.lib.utils.Grid;
-import cc.lib.utils.Table;
-import cc.lib.zombicide.ZActor;
-import cc.lib.zombicide.ZBoard;
-import cc.lib.zombicide.ZCell;
 import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZDir;
-import cc.lib.zombicide.ZDoor;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZIcon;
 import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZTiles;
 import cc.lib.zombicide.ZZombieType;
+import cc.lib.zombicide.ui.UIZombicide;
 
 class BoardComponent extends AWTComponent implements ZTiles {
 
     final Logger log = LoggerFactory.getLogger(getClass());
 
-    String message = "";
-    Grid.Pos highlightedCell = null;
-    Object highlightedResult = null;
-    ZActor highlightedActor = null;
-    ZDoor highlightedDoor = null;
-    Grid.Pos selectedCell = null;
-    Font bigFont;
-    Font smallFont;
-    boolean drawTiles = false;
-    private Object overlayToDraw = null;
-    private Map<String, Integer> cardImages = new HashMap<>();
-
     BoardComponent() {
         setPreferredSize(250, 250);
     }
 
-    ZGame getGame() {
-        return ZombicideApplet.instance.game;
+    UIZombicide getGame() {
+        return UIZombicide.getInstance();
     }
 
     @Override
     protected void init(AWTGraphics g) {
-//        GDimension cellDim = getGame().board.initCellRects(g, g.getViewportWidth()-5, g.getViewportHeight()-5);
         setMouseEnabled(true);
-        //setMinimumSize(256, 256);
-//        setPreferredSize( (int)cellDim.width * getGame().board.getColumns(), (int)cellDim.height * getGame().board.getRows());
-        //setMaximumSize( (int)cellDim.width * getGame().board.getColumns(), (int)cellDim.height * getGame().board.getRows());
-        smallFont = g.getFont();
-        bigFont = g.getFont().deriveFont(24f).deriveFont(Font.BOLD).deriveFont(Font.ITALIC);
         new Thread() {
             @Override
             public void run() {
@@ -79,82 +50,6 @@ class BoardComponent extends AWTComponent implements ZTiles {
 
     int numImagesLoaded=0;
     int totalImagesToLoad=1000;
-    Map<GRectangle, List<ZMove>> rectMap = new HashMap<>();
-
-    void collectRects(List options) {
-        for (Object obj : options) {
-            if (obj instanceof ZMove) {
-
-            }
-        }
-    }
-
-    void collectMoveRects(ZMove move) {
-
-    }
-
-    void pickMove(AGraphics g, int mx, int my) {
-        for (Map.Entry<GRectangle, List<ZMove>> e : rectMap.entrySet()) {
-            if (e.getKey().contains(mx, my)) {
-                // show a context menu to the side of the rect with the move options
-
-            }
-        }
-    }
-
-    class ContextMenu {
-        final GRectangle sourceRect;
-        final List<ZMove> moves;
-
-        public ContextMenu(GRectangle sourceRect, List<ZMove> moves) {
-            this.sourceRect = sourceRect;
-            this.moves = moves;
-        }
-
-        ZMove pick(AGraphics g, int mx, int my) {
-            ZMove result = null;
-            String [] items = new String[moves.size()];
-            int index=0;
-            float maxWidth=0;
-            float border = 10;
-            for (ZMove m : moves) {
-                String label = m.getLabel();
-                items[index++] = label;
-                maxWidth = Math.max(maxWidth, g.getTextWidth(label));
-            }
-            // if there is space on the left of the sourceRect, then use that
-            float x=0;
-            float menuWidth = maxWidth + border*2;
-            if (menuWidth < sourceRect.x) {
-                x = sourceRect.x - menuWidth;
-            } else {
-                x = sourceRect.x + sourceRect.w;
-            }
-
-            float txtHeight = g.getTextHeight();
-            float menuHeight = txtHeight*items.length + border*2;
-            // try to top justify the menu
-            float y = sourceRect.y;
-            if (y + menuHeight > g.getViewportHeight()) {
-                y = g.getViewportHeight() - menuHeight;
-            }
-
-            g.setColor(GColor.TRANSLUSCENT_BLACK);
-            g.drawFilledRoundedRect(x, y, menuWidth, menuHeight, 10);
-            x += border;
-            y += border;
-            for (int i=0; i<items.length; i++) {
-                if (Utils.isPointInsideRect(mx, my, x, y, maxWidth, txtHeight)) {
-                    g.setColor(GColor.RED);
-                    result = moves.get(i);
-                } else {
-                    g.setColor(GColor.YELLOW);
-                }
-            }
-
-            return result;
-        }
-    }
 
     @Override
     protected float getInitProgress() {
@@ -169,237 +64,29 @@ class BoardComponent extends AWTComponent implements ZTiles {
         setPreferredSize(newWidth, newHeight);
     }
 
-    boolean animating = false;
-
-    public ZActor drawActors(AGraphics g, ZBoard b, float mx, float my, boolean drawAnimating) {
-        ZActor picked = null;
-        animating = false;
-        for (ZActor a : b.getAllRenderableActors()) {
-            if (a.isAnimating() && !drawAnimating)
-                continue;
-            AImage img = g.getImage(a.getImageId());
-            if (img != null) {
-                GRectangle rect = b.getCell(a.getOccupiedCell()).getQuadrant(a.getOccupiedQuadrant()).fit(img).scaledBy(a.getScale());
-                a.setRect(rect);
-                if (rect.contains(mx, my)) {
-                    if (picked == null || !(picked instanceof ZCharacter))
-                        picked = a;
-                }
-                if (a.isInvisible()) {
-                    g.setTransparencyFilter(.5f);
-                }
-                a.draw(g);
-                if (a.isAnimating()) {
-                    animating = true;
-                }
-                g.removeTransparencyFilter();
-            }
-        }
-        if (animating)
-            repaint();
-        return picked;
-    }
-
     @Override
-    protected synchronized void paint(AWTGraphics g, int _mouseX, int _mouseY) {
-        if (getGame() == null || getGame().board == null)
-            return;
-        final ZBoard board = getGame().board;
-        board.loadCells(g);
-        highlightedActor = null;
-        highlightedCell = null;
-        highlightedResult = null;
-        highlightedDoor = null;
-
-        g.pushMatrix();
-        GDimension dim = board.getDimension();
-
-        g.translate(getWidth()/2 - dim.width/2, 0);
-
-        Vector2D mouse = g.screenToViewport(_mouseX, _mouseY);
-        //log.debug("mouse %d,%d -> %s", _mouseX, _mouseY, mouse);
-
-        final int OUTLINE = 2;
-
-        final List options = ZombicideApplet.instance.options;
-        final Grid.Pos cellPos = board.drawDebug(g, mouse.X(), mouse.Y());
-
-        if (ZombicideApplet.instance.gameRunning || getGame().isGameOver()) {
-            int highlightedZone = board.drawZones(g, mouse.X(), mouse.Y());
-            if (drawTiles) {
-                getGame().getQuest().drawTiles(g, board, this);
-            }
-            boolean drawAnimating = getGame().isGameOver();
-
-            highlightedActor = //board.drawActors(g, getMouseX(), getMouseY());
-                    drawActors(g, getGame().board, mouse.X(), mouse.Y(), drawAnimating || overlayToDraw == null);
-
-            if (getGame().getCurrentCharacter() != null) {
-//                if (highlightedActor == getGame().getCurrentCharacter())
-  //                  highlightedActor = null; // prevent highlighting an already selected actor
-                g.setColor(GColor.GREEN);
-                g.drawRect(getGame().getCurrentCharacter().getRect().grownBy(4), OUTLINE);
-            }
-
-            g.setColor(GColor.BLACK);
-            if (getGame().getQuest()!=null) {
-                g.setFont(bigFont);
-                g.drawJustifiedString(10, getHeight()-10-g.getTextHeight(), Justify.LEFT, Justify.BOTTOM, getGame().getQuest().getName());
-            }
-            g.setFont(smallFont);
-            g.drawJustifiedString(10, getHeight()-10, Justify.LEFT, Justify.BOTTOM, message);
-            switch (ZombicideApplet.instance.uiMode) {
-                case PICK_ZOMBIE:
-                case PICK_CHARACTER: {
-                    g.setColor(GColor.YELLOW);
-                    for (ZActor a : (List<ZActor>)options) {
-                        a.getRect().drawOutlined(g, 1);
-                    }
-                    if (options.contains(highlightedActor)) {
-                        highlightedResult = highlightedActor;
-                    }
-                    break;
-                }
-                case PICK_ZONE: {
-                    if (highlightedZone >= 0 && options.contains(highlightedZone)) {
-                        highlightedResult = highlightedZone;
-                        g.setColor(GColor.YELLOW);
-                        board.drawZoneOutline(g, highlightedZone);
-                    } else if (cellPos != null) {
-                        ZCell cell = board.getCell(cellPos);
-                        for (int i = 0; i < options.size(); i++) {
-                            if (cell.getZoneIndex() == (Integer)options.get(i)) {
-                                highlightedCell = cellPos;
-                                highlightedResult = cell.getZoneIndex();
-                                break;
-                            }
-                        }
-                    }
-                    break;
-                }
-                case PICK_DOOR: {
-                    highlightedResult = getGame().board.pickDoor(g, (List<ZDoor>)options, mouse.X(), mouse.Y());
-                    break;
-                }
-            }
-            if (highlightedCell != null) {
-                ZCell cell = board.getCell(highlightedCell);
-                g.setColor(GColor.RED.withAlpha(32));
-                board.drawZoneOutline(g, cell.getZoneIndex());
-            }
-            if (highlightedActor != null) {
-                g.setColor(GColor.RED);
-                g.drawRect(highlightedActor.getRect().grownBy(2), OUTLINE);
-            }
-            ZombicideApplet.instance.charComp.repaint();
-
-        } else {
-            if (drawTiles) {
-                getGame().getQuest().drawTiles(g, board, this);
-            }
-
-            if (cellPos != null) {
-                highlightedCell = cellPos;
-                ZCell cell = board.getCell(cellPos);
-                g.setColor(GColor.RED.withAlpha(32));
-                board.drawZoneOutline(g, cell.getZoneIndex());
-                g.setColor(GColor.RED);
-                g.drawRect(cell.getRect());
-
-                List<ZDoor> doors = board.getZone(cell.getZoneIndex()).getDoors();
-                highlightedDoor = getGame().board.pickDoor(g, doors, mouse.X(), mouse.Y());
-
-                if (selectedCell != null) {
-                    ZCell selected = board.getCell(selectedCell);
-                    g.setColor(GColor.MAGENTA);
-                    selected.getRect().drawOutlined(g, 4);
-                    ZCell highlighted = board.getCell(highlightedCell);
-                    //Collection<ZDir> dirs = board.getShortestPathOptions(selectedCell, highlighted.getZoneIndex());
-                    List<List<ZDir>> paths = board.getShortestPathOptions(selectedCell, highlighted.getZoneIndex());
-                    GColor [] colors = new GColor[] { GColor.CYAN, GColor.MAGENTA, GColor.PINK, GColor.ORANGE };
-                    int colorIndex = 0;
-                    for (List<ZDir> path : paths) {
-                        g.setColor(colors[colorIndex]);
-                        colorIndex = (colorIndex+1) & colors.length;
-                        Grid.Pos cur = selectedCell;
-                        g.begin();
-                        g.vertex(board.getCell(cur).getRect().getCenter());
-                        for (ZDir dir : path) {
-                            cur = dir.getAdjacent(cur);
-                            g.vertex(board.getCell(cur).getRect().getCenter());
-                        }
-                        g.drawLineStrip(3);
-                    }
-
-
-                    g.setColor(GColor.CYAN);
-//                    g.drawJustifiedStringOnBackground(mouseX, mouseY, Justify.CENTER, Justify.BOTTOM, dirs.toString(), GColor.TRANSLUSCENT_BLACK, 10, 10);
-                } else {
-                    g.setColor(GColor.CYAN);
-                    g.drawJustifiedStringOnBackground(mouse.X(), mouse.Y(), Justify.CENTER, Justify.BOTTOM, cellPos.toString(), GColor.TRANSLUSCENT_BLACK, 10, 10);
-                }
-            }
-
-        }
-
-        g.popMatrix();
-
-        if (getGame().isGameOver() && overlayToDraw == null && !animating) {
-            setOverlay(getGame().getGameSummaryTable());
-        }
-
-        // overlay
-        if (overlayToDraw != null) {
-            if (overlayToDraw instanceof Integer) {
-                int id = ((Integer) overlayToDraw);
-                if (id >= 0) {
-                    AImage img = g.getImage(id);
-                    GRectangle rect = new GRectangle(0, 0, getWidth(), getHeight());
-                    rect.scale(.9f, .9f);
-                    rect = rect.fit(img, Justify.LEFT, Justify.CENTER);
-                    g.drawImage(id, rect);
-                }
-            } else if (overlayToDraw instanceof Table) {
-                g.setColor(GColor.YELLOW);
-                dim = ((Table)overlayToDraw).getDimension(g);
-                g.pushMatrix();
-                g.translate(getWidth()/2, getHeight()/2);
-                g.translate(-dim.width/2, -dim.height/2);
-                ((Table)overlayToDraw).draw(g);
-                g.popMatrix();
-            }
+    protected synchronized void paint(AWTGraphics g, int mouseX, int mouseY) {
+        UIZombicide game = getGame();
+        if (game != null) {
+            game.draw(g, mouseX, mouseY);
+            if (game.isAnimating())
+                repaint();
         }
     }
+
 
     @Override
     protected void onFocusGained() {
-        setOverlay(null);
+        getGame().setOverlay(null);
     }
 
     @Override
     protected void onMousePressed(int mouseX, int mouseY) {
-        if (ZombicideApplet.instance.gameRunning) {
-            ZombicideApplet.instance.setResult(highlightedResult);
-        } else {
-            if (highlightedDoor != null) {
-                highlightedDoor.toggle(getGame().board);
-            } else if (highlightedCell != null) {
-                if (highlightedCell.equals(selectedCell)) {
-                    selectedCell = null;
-                } else {
-                    selectedCell = highlightedCell;
-                }
-            }
-        }
+        getGame().onTap();
     }
 
-    boolean loaded = false;
-
     void loadImages(AWTGraphics g) {
-        if (loaded)
-            return;
 
-        //Map<Object, String> fileMap = new HashMap<>();
         Object [][] files = {
 
             { ZZombieType.Abomination, "zabomination.gif" },
@@ -433,7 +120,17 @@ class BoardComponent extends AWTComponent implements ZTiles {
             { ZPlayerName.Jain.name(), "zcard_jain.gif" },
             { ZPlayerName.Benson.name(), "zcard_benson.gif" },
 
-            { ZIcon.DRAGON_BILE, "zdragonbile_icon.gif" }
+            { ZIcon.DRAGON_BILE, "zdragonbile_icon.gif" },
+            { ZIcon.CLAWS, "zclaws1_icon.gif" },
+            { ZIcon.CLAWS, "zclaws2_icon.gif" },
+            { ZIcon.CLAWS, "zclaws3_icon.gif" },
+            { ZIcon.CLAWS, "zclaws4_icon.gif" },
+            { ZIcon.CLAWS, "zclaws5_icon.gif" },
+            { ZIcon.CLAWS, "zclaws6_icon.gif" },
+            { ZIcon.SHIELD, "zshield_icon.gif" },
+            { ZIcon.SLIME, "zslime_icon.gif" },
+            { ZIcon.TORCH, "ztorch_icon.gif" },
+            { ZIcon.ARROW, "zarrow_icon.gif" },
         };
 
         Map<Object, List<Integer>> objectToImageMap = new HashMap<>();
@@ -454,19 +151,23 @@ class BoardComponent extends AWTComponent implements ZTiles {
         }
 
         for (ZZombieType type : ZZombieType.values()) {
-            List<Integer> list = objectToImageMap.get(type);
-            int [] options = new int[list.size()];
-            for (int i=0; i<options.length; i++)
-                options[i] = list.get(i);
-            type.imageOptions = options;
+            type.imageOptions = Utils.toIntArray(objectToImageMap.get(type));
+            type.imageDims = new GDimension[type.imageOptions.length];
+            int idx=0;
+            for (int id : type.imageOptions) {
+                type.imageDims[idx] = new GDimension(g.getImage(type.imageOptions[idx]));
+                idx++;
+            }
         }
 
         for (ZPlayerName pl : ZPlayerName.values()) {
             pl.imageId = objectToImageMap.get(pl).get(0);
-            cardImages.put(pl.name(), objectToImageMap.get(pl.name()).get(0));
+            pl.imageDim = new GDimension(g.getImage(pl.imageId));
+            pl.cardImageId = objectToImageMap.get(pl.name()).get(0);
         }
 
-        for (ZIcon icon : ZIcon.values()) {
+        {
+            ZIcon icon = ZIcon.DRAGON_BILE;
             int [] ids = new int[8];
             ids[0] = objectToImageMap.get(icon).get(0);
             for (int i=1; i<ids.length; i++) {
@@ -476,11 +177,47 @@ class BoardComponent extends AWTComponent implements ZTiles {
             icon.imageIds = ids;
         }
 
+        {
+            ZIcon icon = ZIcon.TORCH;
+            int [] ids = new int[8];
+            ids[0] = objectToImageMap.get(icon).get(0);
+            for (int i=1; i<ids.length; i++) {
+                int deg = 45*i;
+                ids[i] = g.createRotatedImage(ids[0], deg);
+            }
+            icon.imageIds = ids;
+        }
+
+        {
+            ZIcon icon = ZIcon.ARROW;
+            int [] ids = new int[4];
+            int eastId = objectToImageMap.get(icon).get(0);
+            ids[ZDir.EAST.ordinal()] = eastId;
+            ids[ZDir.WEST.ordinal()] = g.createRotatedImage(eastId, 180);
+            ids[ZDir.NORTH.ordinal()] = g.createRotatedImage(eastId, 270);
+            ids[ZDir.SOUTH.ordinal()] = g.createRotatedImage(eastId, 90);
+            icon.imageIds = ids;
+        }
+
+        {
+            ZIcon.CLAWS.imageIds = Utils.toIntArray(objectToImageMap.get(ZIcon.CLAWS));
+            ZIcon.SHIELD.imageIds = Utils.toIntArray(objectToImageMap.get(ZIcon.SHIELD));
+            ZIcon.SLIME.imageIds = Utils.toIntArray(objectToImageMap.get(ZIcon.SLIME));
+        }
+
+        {
+            ZIcon icon = ZIcon.FIRE;
+            int [][] cells = {
+                    { 0,0, 56, 84 }, { 56, 0, 131-56, 84 }, { 131, 0, 196-131, 84 },
+                    { 0,84, 60, 152-84 }, { 60,84,122-60,152-84 }, { 122,84,196-122,152-84 }
+            };
+            icon.imageIds  = g.loadImageCells("zfire_icons.gif", cells);
+        }
+
         log.debug("Images: " + objectToImageMap);
         numImagesLoaded = totalImagesToLoad;
         ZombicideApplet.instance.onAllImagesLoaded();
         repaint();
-        loaded = true;
     }
 
     int [] tiles = new int[0];
@@ -508,22 +245,22 @@ class BoardComponent extends AWTComponent implements ZTiles {
             switch (e.getKeyCode()) {
                 case KeyEvent.VK_LEFT:
                     if (game.board.canMove(cur, ZDir.WEST)) {
-                        ZombicideApplet.instance.setResult(ZMove.newWalkDirMove(ZDir.WEST));
+                        UIZombicide.getInstance().setResult(ZMove.newWalkDirMove(ZDir.WEST));
                     }
                     break;
                 case KeyEvent.VK_RIGHT:
                     if (game.board.canMove(cur, ZDir.EAST)) {
-                        ZombicideApplet.instance.setResult(ZMove.newWalkDirMove(ZDir.EAST));
+                        UIZombicide.getInstance().setResult(ZMove.newWalkDirMove(ZDir.EAST));
                     }
                     break;
                 case KeyEvent.VK_UP:
                     if (game.board.canMove(cur, ZDir.NORTH)) {
-                        ZombicideApplet.instance.setResult(ZMove.newWalkDirMove(ZDir.NORTH));
+                        UIZombicide.getInstance().setResult(ZMove.newWalkDirMove(ZDir.NORTH));
                     }
                     break;
                 case KeyEvent.VK_DOWN:
                     if (game.board.canMove(cur, ZDir.SOUTH)) {
-                        ZombicideApplet.instance.setResult(ZMove.newWalkDirMove(ZDir.SOUTH));
+                        UIZombicide.getInstance().setResult(ZMove.newWalkDirMove(ZDir.SOUTH));
                     }
                     break;
             }
@@ -531,19 +268,8 @@ class BoardComponent extends AWTComponent implements ZTiles {
 
         switch (e.getKeyCode()) {
             case KeyEvent.VK_T:
-                drawTiles = !drawTiles;
+                getGame().toggleDrawTiles();
                 break;
-        }
-        repaint();
-    }
-
-    public void setOverlay(Object obj) {
-        if (obj == null) {
-            overlayToDraw = null;
-        } else if (obj instanceof Table) {
-            overlayToDraw = obj;
-        } else if (obj instanceof String){
-            overlayToDraw = cardImages.get((String)obj.toString());
         }
         repaint();
     }

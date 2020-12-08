@@ -20,10 +20,21 @@ public abstract class ZActor<E extends Enum<E>> extends Reflector<ZActor<E>> {
     Grid.Pos occupiedCell;
     ZCellQuadrant occupiedQuadrant;
     private int actionsLeftThisTurn;
-    GRectangle rect;
+    private GRectangle rect = new GRectangle();
 
     @Omit
-    ZAnimation animation = null;
+    ZActorAnimation animation = null;
+
+    public GRectangle getRect(ZBoard b) {
+        return rect = b.getCell(occupiedCell)
+                .getQuadrant(occupiedQuadrant)
+                .fit(getDimension())
+                .scaledBy(getScale());
+    }
+
+    public GRectangle getRect() {
+        return rect;
+    }
 
     void onBeginRound() {
         actionsLeftThisTurn = getActionsPerTurn();
@@ -42,13 +53,13 @@ public abstract class ZActor<E extends Enum<E>> extends Reflector<ZActor<E>> {
         return actionsLeftThisTurn;
     }
 
+    public void addExtraAction() {
+        actionsLeftThisTurn ++;
+    }
+
     void extraActivation() {
         assert (actionsLeftThisTurn>0);
         actionsLeftThisTurn++;
-    }
-
-    public final GRectangle getRect() {
-        return rect;
     }
 
     public abstract GDimension drawInfo(AGraphics g, ZGame game, int width, int height);
@@ -77,19 +88,17 @@ public abstract class ZActor<E extends Enum<E>> extends Reflector<ZActor<E>> {
 
     public abstract int getImageId();
 
+    public abstract GDimension getDimension();
+
     public boolean isInvisible() {
         return false;
-    }
-
-    public void setRect(GRectangle rect) {
-        this.rect = rect;
     }
 
     ZCellQuadrant getSpawnQuadrant() {
         return null; // by default dont care where
     }
 
-    void addAnimation(ZAnimation anim) {
+    public void addAnimation(ZActorAnimation anim) {
         if (animation == null) {
             animation = anim;
         } else {
@@ -120,7 +129,7 @@ public abstract class ZActor<E extends Enum<E>> extends Reflector<ZActor<E>> {
                 return;
             }
         }
-        g.drawImage(getImageId(), rect);
+        g.drawImage(getImageId(), getRect());
     }
 
     int getPriority() {

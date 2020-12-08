@@ -3,8 +3,8 @@ package cc.lib.zombicide;
 import java.util.ArrayList;
 import java.util.List;
 
-import cc.lib.game.IVector2D;
 import cc.lib.math.MutableVector2D;
+import cc.lib.math.Vector2D;
 import cc.lib.utils.Grid;
 import cc.lib.utils.Reflector;
 
@@ -24,12 +24,9 @@ public class ZZone extends Reflector<ZZone> {
     public ZZoneType type = ZZoneType.OUTDOORS;
     public int noiseLevel;
     public boolean isSpawn;
-    public boolean dragonBile;
+    private boolean dragonBile;
     public boolean objective;
     int nextCell = 0;
-
-    @Omit
-    ZAnimation animation = null;
 
     public ZZone() {
     }
@@ -38,7 +35,7 @@ public class ZZone extends Reflector<ZZone> {
         return type == ZZoneType.BUILDING;
     }
 
-    public IVector2D getCenter() {
+    public Vector2D getCenter() {
         return center;
     }
 
@@ -50,4 +47,15 @@ public class ZZone extends Reflector<ZZone> {
         return doors;
     }
 
+    boolean isDragonBile() {
+        return dragonBile;
+    }
+
+    public void setDragonBile(boolean dragonBile) {
+        this.dragonBile = dragonBile;
+    }
+
+    public Iterable<Grid.Pos> getCells() {
+        return cells;
+    }
 }

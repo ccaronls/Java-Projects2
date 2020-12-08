@@ -1,17 +1,14 @@
 package cc.lib.main;
 
-import java.awt.Graphics;
-
 import cc.lib.game.AGraphics;
 import cc.lib.game.Utils;
-import cc.lib.swing.AWTGraphics;
 import cc.lib.swing.AWTFrame;
 import cc.lib.swing.AWTKeyboardAnimationApplet;
 
 public class CollisionTest extends AWTKeyboardAnimationApplet {
 
     public static void main(String[] args) {
-        Utils.DEBUG_ENABLED = true;
+        Utils.setDebugEnabled();
         AWTFrame frame = new AWTFrame("Collision Test");
         AWTKeyboardAnimationApplet app = new CollisionTest();
         frame.add(app);

@@ -19,7 +19,7 @@ import cc.lib.utils.StopWatch;
 public class AnimationMaker extends AWTKeyboardAnimationApplet {
 
     public static void main(String[] args) {
-        Utils.DEBUG_ENABLED = true;
+        Utils.setDebugEnabled();
         final AnimationMaker app = new AnimationMaker();
         AWTFrame frame = new AWTFrame("Animation Maker") {
         	

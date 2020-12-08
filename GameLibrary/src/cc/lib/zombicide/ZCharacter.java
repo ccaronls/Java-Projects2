@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.List;
 
 import cc.lib.game.AGraphics;
@@ -25,6 +24,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
 
     public final static int MAX_BACKPACK_SIZE = 5;
     public final static int MAX_WOUNDS = 4;
+    public final static int MOVE_SPEED_MILIS = 750;
 
     ZPlayerName name;
     int woundBar;
@@ -59,10 +59,14 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
     }
 
     @Override
+    public GDimension getDimension() {
+        return name.imageDim;
+    }
+
+    @Override
     void onBeginRound() {
         super.onBeginRound();
         actionsDoneThisTurn.clear();
-        availableSkills.clear();
         availableSkills.addAll(allSkills);
         organizedThisTurn = false;
     }
@@ -663,16 +667,15 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
     }
 
     void onEndOfTurn(ZGame game) {
-        for (Iterator<ZSkill> it = availableSkills.iterator(); it.hasNext(); ) {
-            if (it.next().onEndOfTurn(game, this)) {
-                it.remove();
-            }
+        for (ZSkill skill : availableSkills) {
+            skill.onEndOfTurn(game, this);
         }
+        availableSkills.clear();
     }
 
     @Override
     long getMoveSpeed() {
-        return 750;
+        return MOVE_SPEED_MILIS;
     }
 
     @Override

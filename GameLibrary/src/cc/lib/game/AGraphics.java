@@ -1473,6 +1473,18 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      *
      * @param center
      * @param radius
+     * @param thickness
+     */
+    public final void drawCircle(IVector2D center, float radius, float thickness) {
+        float old = setLineWidth(thickness);
+        drawCircle(center.getX(), center.getY(), radius);
+        setLineWidth(old);
+    }
+
+    /**
+     *
+     * @param center
+     * @param radius
      */
     public final void drawCircle(IVector2D center, float radius) {
         drawCircle(center.getX(), center.getY(), radius);

@@ -70,13 +70,13 @@ public abstract class AAnimation<T> {
      * Start the animation after some delay
      * @param delayMSecs
      */
-    public final AAnimation<T> start(long delayMSecs) {
+    public final <A extends AAnimation<T>> A start(long delayMSecs) {
     	if (delayMSecs < 0)
     		delayMSecs = 0;
         lastTime = startTime = getCurrentTimeMSecs() + delayMSecs;
         position = 0;
         state = State.STARTED;
-        return this;
+        return (A)this;
     }
 
     /**
@@ -272,6 +272,10 @@ public abstract class AAnimation<T> {
 
     public final boolean isStarted() {
         return state == State.STARTED || state == State.RUNNING;
+    }
+
+    public final boolean isRunning() {
+        return state == State.RUNNING;
     }
 
 }

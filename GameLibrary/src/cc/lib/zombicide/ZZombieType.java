@@ -1,5 +1,7 @@
 package cc.lib.zombicide;
 
+import cc.lib.game.GDimension;
+
 public enum ZZombieType {
     // TODO: Dont break MVC. Here we make assumptions about assets for zombies.
     Walker(1, 1, 1, false, 1),
@@ -31,4 +33,5 @@ public enum ZZombieType {
     }
 
     public int [] imageOptions=null;
+    public GDimension [] imageDims=null;
 }

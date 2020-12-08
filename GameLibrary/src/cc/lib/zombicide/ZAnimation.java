@@ -5,26 +5,16 @@ import cc.lib.game.AGraphics;
 
 public abstract class ZAnimation extends AAnimation<AGraphics> {
 
-    final ZActor actor;
-    ZAnimation next;
-
-    public ZAnimation(ZActor actor, long duration) {
-        super(duration);
-        this.actor = actor;
+    public ZAnimation(long durationMSecs) {
+        super(durationMSecs);
     }
 
-    @Override
-    protected void onDone() {
-        if (next != null) {
-            actor.animation = next;
-            next.start();
-        }
+    public ZAnimation(long durationMSecs, int repeats) {
+        super(durationMSecs, repeats);
     }
 
-    void add(ZAnimation anim) {
-        if (next == null)
-            next = anim;
-        else
-            next.add(anim);
+    public ZAnimation(long durationMSecs, int repeats, boolean oscilateOnRepeat) {
+        super(durationMSecs, repeats, oscilateOnRepeat);
     }
+
 }

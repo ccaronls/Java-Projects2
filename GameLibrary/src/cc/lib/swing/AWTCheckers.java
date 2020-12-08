@@ -26,7 +26,7 @@ import static java.awt.event.KeyEvent.*;
 public class AWTCheckers extends AWTComponent {
 
     public static void main(String [] args) {
-        Utils.DEBUG_ENABLED = true;
+        Utils.setDebugEnabled();
         new AWTCheckers();
     }
 

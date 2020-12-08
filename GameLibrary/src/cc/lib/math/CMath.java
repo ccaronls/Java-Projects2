@@ -470,4 +470,38 @@ public class CMath {
         }
     }
 
+    /**
+     *
+     *  c = sqrt(a^2 + b^2 - 2ab cos(g))
+     *
+     *  For any triangle with sides of length a,b,c and angle g being the angle between a and b, the length of c is derived
+     *
+     * @return
+     */
+    public static float lawOfCosines(float a, float b, float gamma) {
+        return (float)Math.sqrt(a*a + b*b - 2*a*b * Math.cos(gamma));
+    }
+
+    /**
+     *
+     *  c = sqrt(a^2 + b^2 - 2ab cos(g))
+     *
+     *  For any triangle with sides of length a,b,c and angle g being the angle between a and b, the length of c is derived
+     *
+     * @return
+     */
+    public static float lawOfCosines2(float a, float b, float degrees) {
+        return (float)Math.sqrt(a*a + b*b - 2*a*b * Math.cos(DEG_TO_RAD * degrees));
+    }
+
+    /**
+     * a = b * sin (x) / sin(y)
+     *
+     * For any triangle with sides of length a, b and angles x, y to be those angles not between a and b then length of a is derived
+     *
+     * @return
+     */
+    public static float lawOfSines(float b, float xDegrees, float degrees) {
+        return (float)(b * Math.sin(DEG_TO_RAD * xDegrees) / Math.sin(DEG_TO_RAD * degrees));
+    }
 }

@@ -30,7 +30,7 @@ import static java.awt.event.KeyEvent.VK_RIGHT;
 public class AWTProbotLevelBuilder extends AWTComponent {
 
     public static void main(String [] args) throws Exception {
-        Utils.DEBUG_ENABLED=true;
+        Utils.setDebugEnabled();
         new AWTProbotLevelBuilder();
     }
 

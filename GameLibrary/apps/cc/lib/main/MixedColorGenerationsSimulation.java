@@ -14,7 +14,7 @@ import cc.lib.swing.AWTGraphics;
 public class MixedColorGenerationsSimulation extends AWTComponent {
 
     public static void main(String[] args) {
-        Utils.DEBUG_ENABLED = true;
+        Utils.setDebugEnabled();
 
         AWTFrame frame = new AWTFrame("Mixed Color Generations Simulation") {
 

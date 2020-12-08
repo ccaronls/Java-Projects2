@@ -331,6 +331,10 @@ public class AWTGraphics extends APGraphics {
         return images.loadImageCells(assetPath, w, h, numCellsX, numCells, bordered, AWTUtils.toColor(transparent));
     }
 
+    public final int [] loadImageCells(String assetPath, int [][] cells) {
+        return images.loadImageCells(assetPath, cells);
+    }
+
     @Override
 	public void deleteImage(int id) {
     	images.deleteImage(id);

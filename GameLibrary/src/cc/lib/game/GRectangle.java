@@ -27,6 +27,10 @@ public final class GRectangle extends Reflector<GRectangle> {
         this(x, y, dim.width, dim.height);
     }
 
+    public GRectangle(IVector2D cntr, float w, float h) {
+        this(cntr.getX()-w/2, cntr.getY()/h/2, w, h);
+    }
+
     public GRectangle(IVector2D v, GDimension d) {
         this(v.getX(), v.getY(), d);
     }
@@ -369,5 +373,13 @@ public final class GRectangle extends Reflector<GRectangle> {
     public void setCenter(IVector2D cntr) {
         x=cntr.getX()-w/2;
         y=cntr.getY()-h/2;
+    }
+
+    public GRectangle withCenter(IVector2D cntr) {
+        return new GRectangle(cntr.getX()-w/2, cntr.getY()-h/2, w, h);
+    }
+
+    public final float getRadius() {
+        return Math.min(w, h) / 2;
     }
 }

@@ -29,7 +29,13 @@ public final class ZZombie extends ZActor<ZZombieType> {
 
     final ZZombieType type;
     @Omit
-    private int imageId = -1;
+    private int imageIdx = -1;
+
+    private int getIdx() {
+        if (imageIdx < 0)
+            imageIdx = Utils.rand() % type.imageOptions.length;
+        return imageIdx;
+    }
 
     @Override
     public String name() {
@@ -62,9 +68,12 @@ public final class ZZombie extends ZActor<ZZombieType> {
 
     @Override
     public int getImageId() {
-        if (imageId < 0)
-            imageId = type.imageOptions[Utils.rand() % type.imageOptions.length];
-        return imageId;
+        return type.imageOptions[getIdx()];
+    }
+
+    @Override
+    public GDimension getDimension() {
+        return type.imageDims[getIdx()];
     }
 
     @Override

@@ -21,7 +21,8 @@ public enum ZActionType {
     PICKUP_ITEM,
     MAKE_NOISE,
     SHOVE,
-    DEFEND;
+    DEFEND,
+    BEQUEATH_MOVE;
 
     boolean oncePerTurn() {
         switch (this) {

@@ -31,21 +31,18 @@ public class Utils {
     /**
      * Set too true to get debugging console
      */
-    public static boolean DEBUG_ENABLED = false;
+    private static boolean DEBUG_ENABLED = false;
 
     // CONSTANTS
 
     // general working matricies, created once
     private final static float[] m_matrix_2x2 = new float[4];
     private final static float[] r_matrix_2x2 = new float[4];
-    private final static Random randGen;
+    private static Random randGen = new Random(System.currentTimeMillis());
 
-    static {
-        if (DEBUG_ENABLED) {
-            randGen = new Random(0);
-        } else {
-            randGen = new Random(System.currentTimeMillis());
-        }
+    public static void setDebugEnabled() {
+        DEBUG_ENABLED = true;
+        randGen = new Random(0);
     }
 
     // FUCNTIONS
@@ -594,6 +591,16 @@ public class Utils {
      */
     public static float randFloat(float scale) {
         return (float) (randGen.nextDouble() * scale);
+    }
+
+    /**
+     *
+     * @param min
+     * @param max
+     * @return
+     */
+    public static float randRangeFloat(float min, float max) {
+        return min + randFloat(max-min);
     }
 
     /**
@@ -1671,6 +1678,28 @@ public class Utils {
     }
 
     /**
+     *
+     * @param items
+     * @param offset
+     * @param len
+     * @return
+     */
+    public static int randItem(int[] items, int offset, int len) {
+        if (items == null || items.length == 0)
+            return 0;
+        return items[offset + rand() % len];
+    }
+
+    /**
+     *
+     * @param items
+     * @return
+     */
+    public static int randItem(int[] items) {
+        return randItem(items, 0, items.length);
+    }
+
+    /**
      * Populate result array from an array of strings.
      *
      * @param arr
@@ -1776,6 +1805,34 @@ public class Utils {
         int index=0;
         for (Object o : items) {
             result[index++] = o == null ? "null" : (pretty ? toPrettyString(o.toString()) : o.toString());
+        }
+        return result;
+    }
+
+    /**
+     *
+     * @param ints
+     * @return
+     */
+    public static int [] toIntArray(Collection<Integer> ints) {
+        int [] result = new int[ints.size()];
+        int index = 0;
+        for (Integer i : ints) {
+            result[index++] = i;
+        }
+        return result;
+    }
+
+    /**
+     *
+     * @param floats
+     * @return
+     */
+    public static float [] toFloatArray(Collection<Float> floats) {
+        float [] result = new float[floats.size()];
+        int index = 0;
+        for (Float i : floats) {
+            result[index++] = i;
         }
         return result;
     }

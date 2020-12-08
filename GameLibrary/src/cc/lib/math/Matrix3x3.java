@@ -76,6 +76,14 @@ public final class Matrix3x3 extends Reflector<Matrix3x3>  {
 		assign(B);
 	}
 
+	public double [][] get() {
+	    return new double [][] {
+                { a11, a12, a13 },
+                { a21, a22, a23 },
+                { a31, a32, a33 }
+        };
+    }
+
 	/**
 	 * assign the value of B to this Matrix
 	 * @param B

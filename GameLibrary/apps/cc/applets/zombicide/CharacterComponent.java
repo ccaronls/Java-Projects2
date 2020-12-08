@@ -13,6 +13,7 @@ import cc.lib.swing.AWTComponent;
 import cc.lib.swing.AWTGraphics;
 import cc.lib.zombicide.ZActor;
 import cc.lib.zombicide.ZGame;
+import cc.lib.zombicide.ui.UIZombicide;
 
 class CharacterComponent extends AWTComponent implements Scrollable {
 
@@ -24,7 +25,7 @@ class CharacterComponent extends AWTComponent implements Scrollable {
     private LinkedList<String> messages = new LinkedList<>();
 
     ZGame getGame() {
-        return ZombicideApplet.instance.game;
+        return UIZombicide.getInstance();
     }
 
     synchronized void addMessage(String msg) {
@@ -57,9 +58,9 @@ class CharacterComponent extends AWTComponent implements Scrollable {
             return;
         GDimension info = null;
         g.setColor(GColor.BLACK);
-        if (ZombicideApplet.instance.boardComp.highlightedActor != null) {
-            actorInfo = ZombicideApplet.instance.boardComp.highlightedActor;
-            info = ZombicideApplet.instance.boardComp.highlightedActor.drawInfo(g, getGame(), getWidth(), getHeight());
+        if (UIZombicide.getInstance().getHighlightedActor() != null) {
+            actorInfo = UIZombicide.getInstance().getHighlightedActor();
+            info = UIZombicide.getInstance().getHighlightedActor().drawInfo(g, getGame(), getWidth(), getHeight());
         } else if (getGame().getCurrentCharacter() != null) {
             info = getGame().getCurrentCharacter().drawInfo(g, getGame(), getWidth(), getHeight());
         } else if (actorInfo != null) {

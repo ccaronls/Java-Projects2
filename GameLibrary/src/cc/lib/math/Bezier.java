@@ -47,14 +47,18 @@ public final class Bezier {
         return new Vector2D(fX, fY);
 	}
 
-	public static Bezier build(IVector2D r0, IVector2D r1) {
+	public static Bezier build(Vector2D r0, Vector2D r1, float arc) {
 
 	    Bezier curve = new Bezier();
         curve.addPoint(r0);
-        float dx = r1.getX()-r0.getX();
-        float dy = -Math.abs(r1.getY()-r0.getY());
-        curve.addPoint(r0.getX() + dx/3, r0.getY() + dy*0.33f + dx/6);
-        curve.addPoint(r0.getX() + dx*2/3, r0.getY() + dy*0.66f + dx/6);
+        Vector2D dv = r1.sub(r0);
+        MutableVector2D N = dv.norm().scaledBy(arc);
+        if (N.getY() > 0) {
+            N.setY(-N.getY());
+        }
+        curve.addPoint(r0.add(dv.scaledBy(.33f)).add(N));
+        curve.addPoint(r0.add(dv.scaledBy(.66f)).add(N));
+
         curve.addPoint(r1);
         return curve;
     }

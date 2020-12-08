@@ -292,7 +292,7 @@ public class AWTProbot extends AWTComponent {
     };
 
     public static void main(String [] args) {
-        Utils.DEBUG_ENABLED=true;
+        Utils.setDebugEnabled();
         try {
             new AWTProbot();
         } catch (Throwable t) {

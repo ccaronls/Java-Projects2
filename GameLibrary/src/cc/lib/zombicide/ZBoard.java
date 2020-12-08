@@ -371,13 +371,25 @@ public class ZBoard extends Reflector<ZBoard> {
         getCell(zone.cells.get(0)).cellType = ZCellType.SPAWN;
     }
 
+    public int getMaxNoiseLevel() {
+        int maxNoise = 0;
+        for (ZZone z : zones) {
+            if (z.noiseLevel > maxNoise) {
+                maxNoise = z.noiseLevel;
+            }
+        }
+        return maxNoise;
+    }
+
     public ZZone getMaxNoiseLevelZone() {
         int maxNoise = 0;
         ZZone maxZone = null;
         for (ZZone z : zones) {
-            if (maxZone == null || z.noiseLevel > maxNoise) {
+            if (z.noiseLevel > maxNoise) {
                 maxZone = z;
                 maxNoise = z.noiseLevel;
+            } else if (z.noiseLevel == maxNoise) {
+                maxZone = null; // when multiple zones share same noise level, then neither are the max
             }
         }
         return maxZone;
@@ -441,9 +453,8 @@ public class ZBoard extends Reflector<ZBoard> {
                         }
                         break;
                 }
-                if (zone.dragonBile) {
-                    g.setColor(GColor.DARK_OLIVE.withAlpha(.3f));
-                    cell.getRect().drawFilled(g);
+                if (zone.isDragonBile()) {
+                    g.drawImage(ZIcon.SLIME.imageIds[0], cell.rect);
                 }
                 if (text.length() > 0) {
                     g.setColor(GColor.YELLOW);
@@ -704,9 +715,6 @@ public class ZBoard extends Reflector<ZBoard> {
         ZCell cell = getCell(actor.occupiedCell);
         cell.setQuadrant(null, actor.occupiedQuadrant);
         zones.get(cell.zoneIndex).noiseLevel -= actor.getNoise();
-        synchronized (removedActors) {
-            removedActors.add(actor);
-        }
         //actor.occupiedZone = -1;
         //actor.occupiedQuadrant = -1;
         //actor.occupiedCell = null;
@@ -725,7 +733,6 @@ public class ZBoard extends Reflector<ZBoard> {
                     if (rect.contains(mx, my))
                         picked = a;
                     g.drawImage(a.getImageId(), rect);
-                    a.rect = rect;
                 }
             }
         }
@@ -783,24 +790,6 @@ public class ZBoard extends Reflector<ZBoard> {
                 }
             }
         }
-        return actors;
-    }
-
-    @Omit
-    private List<ZActor> removedActors = new ArrayList<>();
-
-    public List<ZActor> getAllRenderableActors() {
-        List<ZActor> actors = new ArrayList<>();
-        synchronized (removedActors) {
-            for (Iterator<ZActor> it = removedActors.iterator(); it.hasNext(); ) {
-                ZActor a = it.next();
-                if (a.isAnimating())
-                    actors.add(a);
-                else
-                    it.remove();
-            }
-        }
-        actors.addAll(getAllLiveActors());
         return actors;
     }
 

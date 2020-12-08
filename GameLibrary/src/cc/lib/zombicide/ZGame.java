@@ -9,16 +9,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.Stack;
 
-import cc.lib.game.AGraphics;
-import cc.lib.game.AImage;
 import cc.lib.game.GColor;
 import cc.lib.game.GRectangle;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
-import cc.lib.math.Bezier;
-import cc.lib.math.MutableVector2D;
-import cc.lib.math.Vector2D;
 import cc.lib.utils.GException;
 import cc.lib.utils.Grid;
 import cc.lib.utils.Reflector;
@@ -74,22 +69,8 @@ public class ZGame extends Reflector<ZGame>  {
         for (int i=0; i<dice.length; i++) {
             dice[i] = Utils.randRange(1,6);
         }
-        setState(ZState.BEGIN_ROUND, null);
+        setState(ZState.INIT, null);
     }
-
-    /*
-    @Override
-    protected synchronized void deserialize(BufferedReader _in) throws Exception {
-        super.deserialize(_in);
-        for (ZUser user : users) {
-            user.characters.clear();
-        }
-        for (ZCharacter c : board.getAllCharacters()) {
-            users[c.userIndex].addCharacter(c);
-        }
-        // TODO: Figure out better way to avoid this?
-        setState(ZState.PLAYER_STAGE_CHOOSE_CHARACTER, null);
-    }*/
 
     public void setUsers(ZUser ... users) {
         this.users = users;
@@ -166,21 +147,6 @@ public class ZGame extends Reflector<ZGame>  {
                         }
                     }
                     break;
-                case WALKER:
-                    spawnZombies(1, ZZombieType.Walker, cell.zoneIndex);
-                    break;
-                case RUNNER:
-                    spawnZombies(1, ZZombieType.Runner, cell.zoneIndex);
-                    break;
-                case FATTY:
-                    spawnZombies(1, ZZombieType.Fatty, cell.zoneIndex);
-                    break;
-                case NECRO:
-                    spawnZombies(1, ZZombieType.Necromancer, cell.zoneIndex);
-                    break;
-                case ABOMINATION:
-                    spawnZombies(1, ZZombieType.Abomination, cell.zoneIndex);
-                    break;
                 case SPAWN:
                     zone.isSpawn = true;
                     break;
@@ -250,15 +216,6 @@ public class ZGame extends Reflector<ZGame>  {
     }
 
     protected void onZombieSpawned(ZZombie zombie) {
-        zombie.addAnimation(new ZAnimation(zombie, 1000) {
-            @Override
-            protected void draw(AGraphics g, float position, float dt) {
-                GRectangle dest = new GRectangle(zombie.rect);
-                dest.y += (dest.h) * (1f - position);
-                dest.h *= position;
-                g.drawImage(zombie.getImageId(), dest);
-            }
-        });
     }
 
     public ZState getState() {
@@ -321,6 +278,31 @@ public class ZGame extends Reflector<ZGame>  {
         final ZUser user = getCurrentUser();
 
         switch (getState()) {
+
+            case INIT: {
+                for (ZCell cell : board.getCells()) {
+                    switch (cell.cellType) {
+                        case WALKER:
+                            spawnZombies(1, ZZombieType.Walker, cell.zoneIndex);
+                            break;
+                        case RUNNER:
+                            spawnZombies(1, ZZombieType.Runner, cell.zoneIndex);
+                            break;
+                        case FATTY:
+                            spawnZombies(1, ZZombieType.Fatty, cell.zoneIndex);
+                            break;
+                        case NECRO:
+                            spawnZombies(1, ZZombieType.Necromancer, cell.zoneIndex);
+                            break;
+                        case ABOMINATION:
+                            spawnZombies(1, ZZombieType.Abomination, cell.zoneIndex);
+                            break;
+                    }
+                }
+                setState(ZState.BEGIN_ROUND, null);
+                break;
+            }
+
             case BEGIN_ROUND: {
                 if (roundNum > 0)
                     setState(ZState.SPAWN, null);
@@ -610,7 +592,6 @@ public class ZGame extends Reflector<ZGame>  {
     }
 
     protected void onCharacterDefends(ZCharacter cur, ZZombie zombie) {
-
     }
 
     private boolean playerDefends(ZCharacter cur, ZZombieType type) {
@@ -658,73 +639,16 @@ public class ZGame extends Reflector<ZGame>  {
 
 
     protected void onCharacterPerished(ZCharacter character) {
-        character.addAnimation(new DeathAnimation(character) {
-            @Override
-            protected void draw(AGraphics g, float position, float dt) {
-                super.draw(g, position, dt);
-                GRectangle rect = new GRectangle(actor.rect);
-                rect.y -= rect.h * 3 * position;
-                g.setTransparencyFilter(1f-position);
-                g.drawImage(actor.getImageId(), rect);
-                g.removeTransparencyFilter();
-            }
-        });
     }
 
     protected void onCharacterWounded(ZCharacter character) {
-        character.addAnimation(new ZAnimation(character, 1000) {
+    }
 
-            Vector2D start, end;
-
-            @Override
-            protected void draw(AGraphics g, float position, float dt) {
-                if (start == null) {
-                    GRectangle rect = actor.rect;
-                    start = rect.getTopLeft().add(rect.getBottomLeft().sub(rect.getTopLeft()).scaledBy(Utils.randFloat(1)));
-                    end   = rect.getTopRight().add(rect.getBottomRight().sub(rect.getTopRight()).scaledBy(Utils.randFloat(1)));
-                }
-
-                g.drawImage(actor.getImageId(), actor.rect);
-                g.setColor(GColor.RED.withAlpha(1f-position));
-                g.drawLine(start, end, 3);
-            }
-        });
+    protected void onTorchThrown(ZCharacter c, int zone) {
     }
 
     protected void onDragonBileThrown(ZCharacter c, int zone) {
         log.info("%s placed dragon bile in zone %d", c.name, zone);
-        if (c.getOccupiedZone() != zone) {
-            c.addAnimation(new ZAnimation(c, 1000) {
-
-                Bezier curve;
-                float angle = 0;
-
-                @Override
-                protected void draw(AGraphics g, float position, float dt) {
-                    if (curve == null) {
-                        curve = Bezier.build(c.rect.getCenter(), board.getZone(zone).getCenter());
-                    }
-                    int id = ZIcon.DRAGON_BILE.imageIds[((int)angle)%ZIcon.DRAGON_BILE.imageIds.length];
-                    angle += .1f;// = (angle+1) % ZIcon.DRAGON_BILE.imageIds.length;
-                    AImage img = g.getImage(id);
-                    GRectangle rect = c.rect.scaledBy(.5f).fit(img);
-                    rect.setCenter(curve.getPointAt(position));
-                    g.drawImage(id, rect);
-                    g.drawImage(actor.getImageId(), actor.rect);
-                }
-
-                @Override
-                protected void onDone() {
-                    super.onDone();
-/*                    board.getZone(zone).setAnimation(new ZAnimation() {
-                        @Override
-                        protected void draw(AGraphics g, float position, float dt) {
-
-                        }
-                    });*/
-                }
-            });
-        }
     }
 
     private void removeCharacter(ZCharacter character) {
@@ -924,6 +848,7 @@ public class ZGame extends Reflector<ZGame>  {
                         zombies.remove(0);
                     }
                     int hits = resolveHits(cur, zombies.size(), ZActionType.MELEE, stat.numDice, stat.dieRollToHit, zombies.size()/2-1, zombies.size()/2+1);
+                    onAttack(cur, slot, ZActionType.MELEE, stat.numDice, hits);
 
                     for (int i=0; i<hits && zombies.size() > 0; i++) {
                         ZZombie z = zombies.remove(0);
@@ -998,6 +923,7 @@ public class ZGame extends Reflector<ZGame>  {
                                 }
 
                                 int hits = resolveHits(cur, zombies.size(), actionType, stat.numDice, stat.dieRollToHit, zombies.size()/2-1, zombies.size()/2+1);
+                                onAttack(cur, slot, actionType, stat.numDice, hits);
                                 for (int i=0; i<hits && zombies.size() > 0; i++) {
                                     ZZombie zombie = zombies.remove(0);
                                     if (zombie.type.minDamageToDestroy <= stat.damagePerHit) {
@@ -1050,16 +976,17 @@ public class ZGame extends Reflector<ZGame>  {
                     if (zoneIdx != null) {
                         switch (slot.type) {
                             case DRAGON_BILE:
-                                board.getZone(zoneIdx).dragonBile = true;
                                 getCurrentUser().showMessage(cur.name() + " threw the drogon Bile!");
                                 onDragonBileThrown(cur, zoneIdx);
+                                board.getZone(zoneIdx).setDragonBile(true);
                                 break;
                             case TORCH: {
                                 ZZone zone = board.getZone(zoneIdx);
-                                if (!zone.dragonBile) {
+                                onTorchThrown(cur, zoneIdx);
+                                if (!zone.isDragonBile()) {
                                     getCurrentUser().showMessage("Throwing the Torch had no effect");
                                 } else {
-                                    zone.dragonBile = false;
+                                    zone.setDragonBile(false);
                                     int exp = 0;
                                     int num=0;
                                     getCurrentUser().showMessage(cur.name() + " threw the torch exploding the dragon bile!");
@@ -1155,8 +1082,8 @@ public class ZGame extends Reflector<ZGame>  {
                         user.showMessage(cur.name() + " Found a " + equip);
                         cur.equip(equip);
                     }
-                    cur.performAction(ZActionType.SEARCH, this);
                 }
+                cur.performAction(ZActionType.SEARCH, this);
                 break;
             }
             case EQUIP: {
@@ -1213,7 +1140,7 @@ public class ZGame extends Reflector<ZGame>  {
                 break;
             }
             case MAKE_NOISE: {
-                int maxNoise = board.getMaxNoiseLevelZone().noiseLevel;
+                int maxNoise = board.getMaxNoiseLevel();
                 addNoise(move.integer, maxNoise+1 - board.getZone(move.integer).noiseLevel);
                 getCurrentUser().showMessage(cur.name() + " made alot of noise to draw the zombies!");
                 cur.performAction(ZActionType.MAKE_NOISE, this);
@@ -1224,7 +1151,7 @@ public class ZGame extends Reflector<ZGame>  {
                 if (targetZone != null) {
                     // shove all zombies in this zone into target zone
                     for (ZZombie z : board.getZombiesInZone(cur.getOccupiedZone())) {
-                        GRectangle prev = z.rect;
+                        GRectangle prev = z.getRect(board);
                         board.moveActor(z, targetZone);
                         GRectangle next   = board.getCell(z.occupiedCell).getQuadrant(z.occupiedQuadrant);
                         onActorMoved(z, prev, next, 300);
@@ -1248,6 +1175,14 @@ public class ZGame extends Reflector<ZGame>  {
             }
             case BORN_LEADER: {
                 ZCharacter chosen = getCurrentUser().chooseCharacterToBequeathMove(this, cur, move.list);
+                if (chosen != null) {
+                    if (chosen.getActionsLeftThisTurn() > 0) {
+                        chosen.addExtraAction();
+                    } else {
+                        chosen.availableSkills.add(ZSkill.Plus1_Action);
+                    }
+                    cur.performAction(ZActionType.BEQUEATH_MOVE, this);
+                }
 
                 break;
             }
@@ -1315,6 +1250,10 @@ public class ZGame extends Reflector<ZGame>  {
     }
 
     protected void onDoorOpened(ZDoor door) {
+
+    }
+
+    protected void onAttack(ZCharacter attacker, ZWeapon weapon, ZActionType acitonType, int numDice, int numHits) {
 
     }
 
@@ -1416,27 +1355,8 @@ public class ZGame extends Reflector<ZGame>  {
         board.removeActor(zombie);
     }
 
-    static class DeathAnimation extends ZAnimation {
-
-        DeathAnimation(ZActor a) {
-            super(a, 1500);
-        }
-
-        @Override
-        protected void draw(AGraphics g, float position, float dt) {
-            GRectangle rect = new GRectangle(actor.rect);
-            rect.y += rect.h*position;
-            rect.h *= (1f-position);
-            float dx = rect.w*position;
-            rect.w += dx;
-            rect.x -= dx/2;
-            g.drawImage(actor.getImageId(), rect);
-        }
-    }
-
     protected void onZombieDestroyed(ZCharacter c, ZZombie zombie) {
         log.info("%s Zombie %s destroyed for %d experience", c.name(), zombie.type.name(), zombie.type.expProvided);
-        zombie.addAnimation(new DeathAnimation(zombie));
     }
 
     public List<ZCharacter> getAllCharacters() {
@@ -1456,7 +1376,7 @@ public class ZGame extends Reflector<ZGame>  {
         return board.getZombiesInZone(zoneIndex).size() == 0;
     }
 
-    protected void onDoubleSpawn() {
+    protected void onDoubleSpawn(int multiplier) {
     }
 
     private void extraActivation(ZZombieType name) {
@@ -1475,7 +1395,7 @@ public class ZGame extends Reflector<ZGame>  {
         if (Utils.rand() % (spawnMultiplier*10) == 0) {
             spawnMultiplier *= 2;
             getCurrentUser().showMessage("DOUBLE SPAWN!");
-            onDoubleSpawn();
+            onDoubleSpawn(spawnMultiplier);
             return;
         }
         do {
@@ -1598,7 +1518,7 @@ public class ZGame extends Reflector<ZGame>  {
     void moveActor(ZActor actor, int toZone, long speed) {
         int fromZone = actor.getOccupiedZone();
         Grid.Pos fromPos = actor.getOccupiedCell();
-        GRectangle fromRect = actor.rect;
+        GRectangle fromRect = actor.getRect(board);
         board.moveActor(actor, toZone);
         doMove(actor, fromZone, fromPos, fromRect, speed);
     }
@@ -1606,35 +1526,16 @@ public class ZGame extends Reflector<ZGame>  {
     void moveActorInDirection(ZActor actor, ZDir dir) {
         int fromZone = actor.getOccupiedZone();
         Grid.Pos fromPos = actor.getOccupiedCell();
-        GRectangle fromRect = actor.rect;
+        GRectangle fromRect = actor.getRect(board);
         Grid.Pos next = board.getAdjacent(fromPos, dir);
         board.moveActor(actor, next);
         doMove(actor, fromZone, fromPos, fromRect, actor.getMoveSpeed());
-        /*
-        if (board.getZone(curZone).type == ZZoneType.VAULT && board.getZone(nxtZone).type != ZZoneType.VAULT) {
-            // ascending the stairs
-            GRectangle curVaultRect = board.getCell(pos).getRect().scaledBy(.2f).fit(actor.rect.getDimension());
-            GRectangle nxtVaultRect = board.getCell(next).getRect().scaledBy(.5f);
-            onActorMoved(actor, start, curVaultRect, actor.getMoveSpeed()/2);
-            onActorMoved(actor, nxtVaultRect, end, actor.getMoveSpeed()/2);
-        } else if (board.getZone(curZone).type == ZZoneType.VAULT && board.getZone(nxtZone).type != ZZoneType.VAULT) {
-            // descending the stairs
-            GRectangle nxtVaultRect = board.getCell(pos).getRect().scaledBy(.2f).fit(actor.rect.getDimension());
-            GRectangle curVaultRect = board.getCell(next).getRect().scaledBy(.5f);
-            onActorMoved(actor, start, curVaultRect, actor.getMoveSpeed()/2);
-            onActorMoved(actor, nxtVaultRect, end, actor.getMoveSpeed()/2);
-        } else {
-            onActorMoved(actor, start, end, actor.getMoveSpeed());
-        }
-        if (nxtZone != curZone) {
-            actor.performAction(ZActionType.MOVE, this);
-        }*/
     }
 
     private void doMove(ZActor actor, int fromZone, Grid.Pos fromPos, GRectangle fromRect, long speed) {
         int toZone = actor.getOccupiedZone();
         Grid.Pos toPos = actor.getOccupiedCell();
-        GRectangle toRect = board.getCell(toPos).getQuadrant(actor.getOccupiedQuadrant()).fit(actor.rect.getDimension());
+        GRectangle toRect = actor.getRect(board);
 
         if (board.getZone(fromZone).type == ZZoneType.VAULT && board.getZone(toZone).type != ZZoneType.VAULT) {
             // ascending the stairs
@@ -1657,20 +1558,6 @@ public class ZGame extends Reflector<ZGame>  {
     }
 
     protected void onActorMoved(ZActor actor, GRectangle start, GRectangle end, long speed) {
-        actor.addAnimation(new ZAnimation(actor, speed) {
-            @Override
-            protected void draw(AGraphics g, float position, float dt) {
-                MutableVector2D dv0 = end.getTopLeft().sub(start.getTopLeft());
-                MutableVector2D dv1 = end.getBottomRight().sub(start.getBottomRight());
-
-                Vector2D topLeft = start.getTopLeft().add(dv0.scaledBy(position));
-                Vector2D bottomRight = start.getBottomRight().add(dv1.scaledBy(position));
-
-                GRectangle r = new GRectangle(topLeft, bottomRight);
-
-                g.drawImage(actor.getImageId(), r);
-            }
-        });
     }
 
     public boolean canGoBack() {
@@ -1705,7 +1592,7 @@ public class ZGame extends Reflector<ZGame>  {
         searchables.addAll(make(2, ZWeaponType.CROSSBOW));
         searchables.addAll(make(4, ZWeaponType.DAGGER));
         searchables.addAll(make(2, ZWeaponType.DEATH_STRIKE));
-        searchables.addAll(make(4, ZItemType.DRAGON_BILE));
+        searchables.addAll(make(10, ZItemType.DRAGON_BILE));
         searchables.addAll(make(4, ZWeaponType.FIREBALL));
         searchables.addAll(make(2, ZWeaponType.GREAT_SWORD));
         searchables.addAll(make(1, ZWeaponType.HAMMER));
@@ -1729,15 +1616,15 @@ public class ZGame extends Reflector<ZGame>  {
         searchables.addAll(make(1, ZWeaponType.SHORT_SWORD));
         searchables.addAll(make(1, ZSpellType.SPEED));
         searchables.addAll(make(2, ZWeaponType.SWORD));
-        searchables.addAll(make(4, ZItemType.TORCH));
+        searchables.addAll(make(10, ZItemType.TORCH));
         searchables.addAll(make(2, ZItemType.WATER));
         Utils.shuffle(searchables);
     }
 
     public void addNoise(int zoneIdx, int noise) {
+        onNoiseAdded(zoneIdx);
         board.getZone(zoneIdx).noiseLevel += noise;
 //        getCurrentUser().showMessage("Noise was made in zone " + zoneIdx);
-        onNoiseAdded(zoneIdx);
     }
 
     protected void onNoiseAdded(int zoneIndex) {

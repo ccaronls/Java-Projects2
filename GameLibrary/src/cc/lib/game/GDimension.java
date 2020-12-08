@@ -15,6 +15,10 @@ public class GDimension extends Reflector<GDimension> implements IDimension {
 	public GDimension() {
 		this(0,0);
 	}
+
+	public GDimension(IDimension dim) {
+	    this(dim.getWidth(), dim.getHeight());
+    }
 	
 	public GDimension(float w, float h) {
 		this.width = w;
@@ -49,4 +53,5 @@ public class GDimension extends Reflector<GDimension> implements IDimension {
     public float getAspect() {
 	    return width/height;
     }
+
 }

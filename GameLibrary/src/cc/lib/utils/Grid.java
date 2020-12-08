@@ -212,6 +212,8 @@ public final class Grid<T> extends Reflector<Grid<T>> {
      * @return
      */
     public T get(Pos pos) {
+        if (pos == null)
+            throw new NullPointerException();
         return grid.get(pos.row).get(pos.col);
     }
 

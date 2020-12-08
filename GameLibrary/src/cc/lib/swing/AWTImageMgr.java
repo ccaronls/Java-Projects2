@@ -3,14 +3,16 @@ package cc.lib.swing;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Toolkit;
+import java.awt.geom.AffineTransform;
+import java.awt.image.BufferedImage;
 import java.awt.image.CropImageFilter;
 import java.awt.image.FilteredImageSource;
 import java.awt.image.ImageFilter;
 import java.awt.image.ImageProducer;
 import java.awt.image.MemoryImageSource;
-import java.awt.image.PixelGrabber;
 import java.awt.image.ReplicateScaleFilter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -235,6 +237,27 @@ public final class AWTImageMgr {
 	public synchronized int [] loadImageCells(String file, int width, int height, int num_cells_x, int num_cells, boolean celled, Color transparentColor) {
 		return loadImageCells(loadImage(file, transparentColor), width, height, num_cells_x, num_cells, celled);
 	}
+
+	public synchronized int [] loadImageCells(String file, int [][] cells) {
+	    int srcId = loadImage(file);
+	    if (srcId < 0)
+	        return null;
+	    Image source = getSourceImage(srcId);
+	    int [] result = new int[cells.length];
+	    for (int i=0; i<result.length; i++) {
+	        int x = cells[i][0];
+	        int y = cells[i][1];
+	        int w = cells[i][2];
+	        int h = cells[i][3];
+
+	        result[i] = newSubImage(source, x, y, w, h);
+        }
+
+	    deleteImage(srcId);
+
+        return result;
+
+    }
 		
 
 	/**
@@ -448,49 +471,23 @@ public final class AWTImageMgr {
 	    int srcWid = image.getWidth(comp);
 	    int srcHgt = image.getHeight(comp);
 
-        GRectangle r = new GRectangle(-srcWid/2, -srcHgt/2, srcWid, srcHgt);
-        GRectangle r2 = r.rotated(degrees);
+        GRectangle srcRect = new GRectangle(0, 0, srcWid, srcHgt);
+        GRectangle dstRect = srcRect.rotated(degrees);
 
-        int dstWid = (int)Math.ceil(r2.w);
-        int dstHgt = (int)Math.ceil(r2.h);
+        int dstWid = (int)Math.ceil(dstRect.w);
+        int dstHgt = (int)Math.ceil(dstRect.h);
 
-        //dstWid = dstHgt = Math.max(srcWid,  srcHgt);
-	    int [] pixels = new int[srcWid * srcHgt];
-	    
-	    PixelGrabber grabber = new PixelGrabber(image, 0, 0, srcWid, srcHgt, pixels, 0, srcWid);
-	    try {
-	        grabber.grabPixels();
-	    } catch (Exception e) {
-	        throw new GException("Failed to grab pixels");
-	    }
+        BufferedImage rotated = new BufferedImage(dstWid, dstHgt, BufferedImage.TYPE_INT_ARGB);
 
-	    int [] rotated = new int[dstWid * dstHgt];
-	    
-	    final float x0 = srcWid / 2;
-	    final float y0 = srcHgt / 2;
-	    final float cosa = CMath.cosine(degrees);
-	    final float sina = CMath.sine(degrees);
-	    
-	    for (int x1=0; x1<srcWid; x1++) {
-	        for (int y1=0; y1<srcHgt; y1++) {
-	            // rotation
-	            // x2 = cos(a) * (x1-x0) - sin(a) * (y1-y0) + x0
-	            // y2 = sin(a) * (x1-x0) + cos(a) * (y1 - y0) + y0
-	            // where x0,y0 are center of rotation
-	            float x2 = cosa * (x1-x0) - sina * (y1-y0) + dstWid/2 - 1;
-	            float y2 = sina * (x1-x0) + cosa * (y1-y0) + dstHgt/2 ;
-	            
-                final int src = x1+y1*srcWid;
-	            final int dst = Math.round(x2 + y2*dstWid);
-	            if (dst >= 0 && dst < rotated.length)
-	                rotated[dst] = pixels[src];
-	        }
-	    }
-	    
-	    return newImage(rotated, dstWid, dstHgt);
-	    //BufferedImage newImage = new BufferedImage(dstWid, dstHgt, BufferedImage.TYPE_INT_ARGB);
-	    //Image rotated = transform(newImage, new AWTRotationImageFilter(pixels, degrees, srcWid, srcHgt, dstWid, dstHgt));
-	    //return addImage(rotated);
+        Graphics2D G = (Graphics2D)rotated.getGraphics();
+        AffineTransform T = new AffineTransform();
+        T.translate(dstWid/2, dstHgt/2);
+        T.rotate(CMath.DEG_TO_RAD * degrees);
+        T.translate(-srcWid/2, -srcHgt/2);
+
+        G.drawImage(image, T, null);
+
+	    return addImage(rotated);
 	}
 	
 	public synchronized int newImage(int [] pixels, int w, int h) {

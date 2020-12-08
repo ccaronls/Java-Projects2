@@ -13,7 +13,6 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,12 +34,11 @@ import cc.lib.swing.AWTPanel;
 import cc.lib.swing.AWTToggleButton;
 import cc.lib.ui.IButton;
 import cc.lib.utils.FileUtils;
-import cc.lib.zombicide.ZCharacter;
-import cc.lib.zombicide.ZDoor;
-import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZUser;
+import cc.lib.zombicide.ui.UIZUser;
+import cc.lib.zombicide.ui.UIZombicide;
 
 public class ZombicideApplet extends AWTApplet implements ActionListener {
 
@@ -48,13 +46,17 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
 
     static ZombicideApplet instance = null;
 
+    public ZombicideApplet() {
+        instance = this;
+    }
+
     @Override
     public URL getAbsoluteURL(String imagePath) throws MalformedURLException {
         return new URL("http://mac-book.local/~chriscaron/Zombicide/" + imagePath);
     }
 
     public static void main(String [] args) {
-        Utils.DEBUG_ENABLED = true;
+        Utils.setDebugEnabled();
         AWTFrame frame = new AWTFrame("Zombicide");
         ZombicideApplet app = new ZombicideApplet() {
             @Override
@@ -87,10 +89,58 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
             frame.centerToScreen(800, 600);
     }
 
-    final ZUser user = new ZAppletUser();
+    final ZUser user = new UIZUser();
 
     public void onAllImagesLoaded() {
-        game = new UIZGame();
+        game = new UIZombicide() {
+            @Override
+            protected void redraw() {
+                boardComp.repaint();
+            }
+
+            @Override
+            public void runGame() {
+                try {
+                    super.runGame();
+                    charComp.repaint();
+                    boardComp.repaint();
+                    if (isGameRunning() && gameFile != null) {
+                        FileUtils.backupFile(gameFile, 20);
+                        game.trySaveToFile(gameFile);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+            }
+
+            @Override
+            protected float getWidth() {
+                return boardComp.getWidth();
+            }
+
+            @Override
+            protected float getHeight() {
+                return boardComp.getHeight();
+            }
+
+            @Override
+            public void addPlayerComponentMessage(String message) {
+                charComp.addMessage(message);
+            }
+
+            @Override
+            public <T> T waitForUser(Class<T> expectedType) {
+                initMenu(getUiMode(), getOptions());
+                return super.waitForUser(expectedType);
+            }
+
+            @Override
+            public void setResult(Object result) {
+                super.setResult(result);
+                boardComp.requestFocus();
+            }
+        };
         List<ZPlayerName> players = getEnumListProperty("players", ZPlayerName.class, Utils.toList(ZPlayerName.Baldric, ZPlayerName.Clovis));
         for (ZPlayerName pl : players) {
             user.addCharacter(pl);
@@ -105,15 +155,6 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
         initHomeMenu();
     }
 
-    enum UIMode {
-        NONE,
-        PICK_CHARACTER,
-        PICK_ZONE,
-        PICK_DOOR,
-        PICK_MENU,
-        PICK_ZOMBIE
-    }
-
     enum MenuItem {
         START,
         RESUME,
@@ -124,7 +165,7 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
         SUMMARY,
         OBJECTIVES;
 
-        boolean isHomeButton() {
+        boolean isHomeButton(ZombicideApplet instance) {
             switch (this) {
                 case LOAD:
                 case START:
@@ -137,59 +178,17 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
         }
     }
 
-    public ZombicideApplet() {
-        instance = this;
-    }
-
-    ZGame game;
-    List options = Collections.emptyList();
+    UIZombicide game;
     Object monitor = new Object();
-    Object result = null;
-    UIMode uiMode = UIMode.NONE;
     AWTPanel menu = new AWTPanel();
     JPanel menuContainer = new JPanel();
 
     BoardComponent boardComp;
     CharacterComponent charComp;
-    boolean gameRunning = false;
     File gameFile = null;
 
-    synchronized void startGameThread() {
-        if (gameRunning)
-            return;
-
-        gameRunning = true;
-        new Thread(()-> {
-            try {
-                charComp.repaint();
-                boardComp.repaint();
-                while (gameRunning && !game.isGameOver()) {
-                    game.runGame();
-                    charComp.repaint();
-                    boardComp.repaint();
-                    if (gameRunning && gameFile != null) {
-                        FileUtils.backupFile(gameFile, 20);
-                        game.trySaveToFile(gameFile);
-                    }
-//                    if (gameRunning)
-//                        Thread.sleep(5000);
-                }
-            } catch (Exception e) {
-                log.error(e.getClass().getSimpleName() + " " + e.getMessage());
-                for (StackTraceElement st : e.getStackTrace()) {
-                    log.error(st.toString());
-                }
-                e.printStackTrace();
-            }
-            gameRunning = false;
-            log.debug("Game thread stopped");
-            initHomeMenu();
-
-        }).start();
-    }
-
     void initHomeMenu() {
-        List<MenuItem> items = Utils.filterItems(object -> object.isHomeButton(), MenuItem.values());
+        List<MenuItem> items = Utils.filterItems(object -> object.isHomeButton(this), MenuItem.values());
         setMenuItems(items);
     }
 
@@ -210,33 +209,34 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
         switch (MenuItem.valueOf(e.getActionCommand())) {
             case START:
                 game.reload();
-                boardComp.setOverlay(game.getQuest().getObjectivesOverlay(game));
+                game.setOverlay(game.getQuest().getObjectivesOverlay(game));
                 charComp.clearMessages();
-                startGameThread();
+                game.startGameThread();
                 break;
             case RESUME:
                 if(game.tryLoadFromFile(gameFile)) {
-                    startGameThread();
+                    game.startGameThread();
                 }
                 break;
             case QUIT:
-                gameRunning = false;
-                setResult(null);
+                game.stopGameThread();
+                game.setResult(null);
+                initHomeMenu();
                 break;
             case BACK:
-                if (gameRunning) {
+                if (game.isGameRunning()) {
                     game.goBack();
-                    setResult(null);
+                    game.setResult(null);
                 } else {
                     initHomeMenu();
                 }
                 break;
             case OBJECTIVES: {
-                boardComp.setOverlay(game.getQuest().getObjectivesOverlay(game));
+                game.setOverlay(game.getQuest().getObjectivesOverlay(game));
                 break;
             }
             case SUMMARY: {
-                boardComp.setOverlay(game.getGameSummaryTable());
+                game.setOverlay(game.getGameSummaryTable());
                 break;
             }
             case LOAD: {
@@ -270,11 +270,11 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
                         public void mouseReleased(MouseEvent e) {}
                         @Override
                         public void mouseEntered(MouseEvent e) {
-                            boardComp.setOverlay(player.name());
+                            game.setOverlay(player);
                         }
                         @Override
                         public void mouseExited(MouseEvent e) {
-                            boardComp.setOverlay(null);
+                            game.setOverlay(null);
                         }
                     });
                 }
@@ -332,21 +332,6 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
         add(boardComp = new BoardComponent(), BorderLayout.CENTER);
     }
 
-    <T> T waitForUser(Class<T> expectedType) {
-        initMenu();
-        synchronized (monitor) {
-            try {
-                monitor.wait();
-            } catch (Exception e) {
-
-            }
-        }
-        uiMode = UIMode.NONE;
-        if (result != null && expectedType.isAssignableFrom(result.getClass()))
-            return (T)result;
-        return null;
-    }
-
     class ZButton extends AWTButton {
         Object obj;
         ZButton(IButton obj) {
@@ -358,16 +343,16 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
         protected void onAction() {
             new Thread() {
                 public void run() {
-                    setResult(obj);
+                    game.setResult(obj);
                 }
             }.start();
         }
     }
 
 
-    void initMenu() {
+    void initMenu(UIZombicide.UIMode mode, List options) {
         menu.removeAll();
-        switch (uiMode) {
+        switch (mode) {
             case NONE:
                 break;
             case PICK_MENU: {
@@ -396,53 +381,6 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
         menu.add(new AWTButton(MenuItem.OBJECTIVES.name(), this));
         menu.add(new AWTButton(MenuItem.QUIT.name(), this));
         menuContainer.validate();
-    }
-
-    void setResult(Object result) {
-        this.result = result;
-        synchronized (monitor) {
-            monitor.notify();
-        }
-        boardComp.requestFocus();
-    }
-
-    public ZCharacter pickCharacter(String message, List<ZCharacter> characters) {
-        synchronized (boardComp) {
-            boardComp.message = message;
-            options = characters;
-            uiMode = ZombicideApplet.UIMode.PICK_CHARACTER;
-            boardComp.repaint();
-        }
-        return waitForUser(ZCharacter.class);
-    }
-
-    public Integer pickZone(String message, List<Integer> zones) {
-        synchronized (boardComp) {
-            boardComp.message = message;
-            options = zones;
-            uiMode = ZombicideApplet.UIMode.PICK_ZONE;
-            boardComp.repaint();
-        }
-        return waitForUser(Integer.class);
-    }
-
-    public <T> T pickMenu(String message, Class expectedType, List<T> moves) {
-        synchronized (boardComp) {
-            boardComp.message = message;
-            options = moves;
-            uiMode = ZombicideApplet.UIMode.PICK_MENU;
-        }
-        return (T) waitForUser(expectedType);
-    }
-
-    public ZDoor pickDoor(String message, List<ZDoor> doors) {
-        synchronized (boardComp) {
-            boardComp.message = message;
-            options = doors;
-            uiMode = ZombicideApplet.UIMode.PICK_DOOR;
-            boardComp.repaint();
-        }
-        return waitForUser(ZDoor.class);
     }
 
 }

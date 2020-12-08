@@ -2,6 +2,7 @@ package cc.lib.zombicide;
 
 import java.util.Arrays;
 
+import cc.lib.game.GDimension;
 import cc.lib.game.Utils;
 import cc.lib.ui.IButton;
 
@@ -28,7 +29,7 @@ public enum ZPlayerName implements IButton {
             Utils.toArray(ZSkill.Plus1_free_Melee_Action, ZSkill.Swordmaster),
             Utils.toArray(ZSkill.Plus1_free_Combat_Action, ZSkill.Plus1_to_dice_roll_Combat, ZSkill.Hit_and_run)),
     Samson("Dwarf",
-            Utils.toArray(ZWeaponType.AXE),
+            Utils.toArray(ZWeaponType.AXE, (ZEquipmentType)ZItemType.DRAGON_BILE, (ZEquipmentType)ZItemType.TORCH),
             Utils.toArray(ZArmorType.SHIELD),
             Utils.toArray(ZSkill.Iron_hide),
             Utils.toArray(ZSkill.Plus1_Action),
@@ -65,7 +66,7 @@ public enum ZPlayerName implements IButton {
     Benson("Elite Guard",
             Utils.toArray(ZWeaponType.SWORD),
             Utils.toArray(ZWeaponType.SWORD),
-            Utils.toArray(ZSkill.Steel_hide),
+            Utils.toArray(ZSkill.Steel_hide, ZSkill.Born_leader),
             Utils.toArray(ZSkill.Plus1_Action),
             Utils.toArray(ZSkill.Plus1_free_Melee_Action, ZSkill.Born_leader),
             Utils.toArray(ZSkill.Plus1_Damage_Melee, ZSkill.Lucky, ZSkill.Shove)),
@@ -132,6 +133,8 @@ public enum ZPlayerName implements IButton {
     private final ZSkill [][] skillOptions;
 
     public int imageId = -1;
+    public int cardImageId = -1;
+    public GDimension imageDim;
 
     public ZCharacter create() {
         ZCharacter c = new ZCharacter();
