@@ -4,7 +4,8 @@ import cc.lib.game.GColor;
 
 public enum ZCellType {
     NONE,
-    VAULT_DOOR,
+    VAULT_DOOR_VIOLET,
+    VAULT_DOOR_GOLD,
     OBJECTIVE_RED,
     OBJECTIVE_BLUE,
     OBJECTIVE_GREEN,

@@ -1,5 +1,9 @@
 package cc.lib.zombicide.quests;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import cc.lib.game.GColor;
 import cc.lib.game.Utils;
 import cc.lib.utils.Grid;
 import cc.lib.utils.Table;
@@ -26,6 +30,7 @@ public class ZQuestFamine extends ZQuest9x6 {
     int numSaltedMeatFound = 0;
     int numWaterFound = 0;
     int blueKeyZone = -1;
+    List<ZDoor> lockedVaults = new ArrayList<>();
 
     public ZQuestFamine() {
         super("Famine");
@@ -41,7 +46,7 @@ public class ZQuestFamine extends ZQuest9x6 {
                 { "z24:i:ws:we", "z25", "z26:i:ws:ww:de", "z27", "z28", "z29", "z30:i:dw:ws:we", "z31", "z32:i:dn:ww:" },
                 { "z33:sp", "z34", "z35", "z36", "z37:i:lvd2:wn:we:ws:dw", "z38", "z39", "z40", "z32:i:red:ods:ww" },
                 { "z41:i:wn:ws:ode", "z42:i:red:wn:ws", "z42:i:wn:ws:de", "z43:ws", "z44:st:ws", "z45:ws", "z46:i:wn:we:dw:ws", "z47:sp:ws", "z48:i:ww:ws" },
-                { "", "", "", "z49:v:vd1:ww", "z49:v", "z49:v:vd2:we", "", "", "" }
+                { "", "", "", "z49:v:gvd1:ww", "z49:v", "z49:v:gvd2:we", "", "", "" }
         };
 
         return load(map);
@@ -52,9 +57,14 @@ public class ZQuestFamine extends ZQuest9x6 {
         ZCell cell = grid.get(pos);
         switch (cmd) {
             case "lvd1":
-            case "lvd2":
-                super.loadCmd(grid, pos, cmd.substring(1));
+                super.loadCmd(grid, pos, "gvd1");
                 setCellWall(grid, pos, ZDir.DESCEND, ZWallFlag.LOCKED);
+                lockedVaults.add(new ZDoor(pos, ZDir.DESCEND, GColor.BLUE));
+                break;
+            case "lvd2":
+                super.loadCmd(grid, pos, "gvd2");
+                setCellWall(grid, pos, ZDir.DESCEND, ZWallFlag.LOCKED);
+                lockedVaults.add(new ZDoor(pos, ZDir.DESCEND, GColor.BLUE));
                 break;
             default:
                 super.loadCmd(grid, pos, cmd);
@@ -66,6 +76,9 @@ public class ZQuestFamine extends ZQuest9x6 {
         super.processObjective(game, c, move);
         if (move.integer == blueKeyZone) {
             game.getCurrentUser().showMessage("Blue key found. Vault unlocked");
+            for (ZDoor door : lockedVaults) {
+                game.board.setDoor(door, ZWallFlag.CLOSED);
+            }
             blueKeyZone = -1;
         }
     }

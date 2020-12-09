@@ -67,7 +67,7 @@ public final class ZDoor extends Reflector<ZDoor>  {
     }
 
     public void toggle(ZBoard board) {
-        ZDoor otherSide = getOtherSide(board);
+        ZDoor otherSide = getOtherSide();
         switch (board.getDoor(this)) {
             case OPEN:
                 board.setDoor(this, ZWallFlag.CLOSED);
@@ -82,7 +82,7 @@ public final class ZDoor extends Reflector<ZDoor>  {
         jammed = otherSide.jammed = false;
     }
 
-    public ZDoor getOtherSide(ZBoard board) {
+    public ZDoor getOtherSide() {
         return new ZDoor(cellPosEnd, cellPosStart, dir.getOpposite(), lockedColor);
     }
 

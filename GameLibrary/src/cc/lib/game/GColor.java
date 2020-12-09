@@ -33,6 +33,7 @@ public final class GColor extends Reflector<GColor> {
     public final static GColor TRANSLUSCENT_BLACK = BLACK.withAlpha(128);
     public final static GColor DARK_OLIVE   = new GColor(0xff808000);
     public final static GColor LIGHT_OLIVE  = new GColor(0xffcdcd00);
+    public final static GColor GOLD         = new GColor(0xFFFFD700);
 
     private int argb = 0;
 

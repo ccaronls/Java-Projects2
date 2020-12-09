@@ -158,25 +158,32 @@ public class ZGame extends Reflector<ZGame>  {
                         case OBJECTIVE_GREEN:
                             zone.objective = true;
                             break;
-                        case VAULT_DOOR: {
-                            // add a vault door leading to the cell specified by vaultFlag
-                            assert (cell.vaultFlag > 0);
-                            for (Grid.Iterator<ZCell> it2 = board.grid.iterator(); it2.hasNext(); ) {
-                                ZCell cell2 = it2.next();
-                                if (cell == cell2)
-                                    continue;
-                                if (cell.vaultFlag == cell2.vaultFlag) {
-                                    zone.doors.add(new ZDoor(it.getPos(), it2.getPos(), cell.environment == ZCell.ENV_VAULT ? ZDir.ASCEND : ZDir.DESCEND, GColor.RED));
-                                    break;
-                                }
-                            }
+                        case VAULT_DOOR_VIOLET:
+                            addVaultDoor(cell, zone, it.getPos(), GColor.MAGENTA);
                             break;
-                        }
+                        case VAULT_DOOR_GOLD:
+                            addVaultDoor(cell, zone, it.getPos(), GColor.GOLD);
+                            break;
                     }
                 }
             }
         }
         this.quest.init(this);
+    }
+
+    private void addVaultDoor(ZCell cell, ZZone zone, Grid.Pos pos, GColor color) {
+        // add a vault door leading to the cell specified by vaultFlag
+        assert (cell.vaultFlag > 0);
+        for (Grid.Iterator<ZCell> it2 = board.grid.iterator(); it2.hasNext(); ) {
+            ZCell cell2 = it2.next();
+            if (cell == cell2)
+                continue;
+            if (cell.vaultFlag == cell2.vaultFlag) {
+                zone.doors.add(new ZDoor(pos, it2.getPos(), cell.environment == ZCell.ENV_VAULT ? ZDir.ASCEND : ZDir.DESCEND, color));
+                break;
+            }
+        }
+
     }
 
     public void spawnZombies(int count, ZZombieType name, int zone) {
@@ -1047,7 +1054,7 @@ public class ZGame extends Reflector<ZGame>  {
                             //getCurrentUser().showMessage(currentCharacter.name() + " has opened a " + door.name());
                             onDoorOpened(door);
                             // spawn zombies in the newly exposed zone and any adjacent
-                            ZDoor otherSide = door.getOtherSide(board);
+                            ZDoor otherSide = door.getOtherSide();
                             if (board.getZone(board.getCell(otherSide.getCellPosStart()).zoneIndex).canSpawn()) {
                                 ZSkillLevel highest = getHighestSkillLevel();
                                 HashSet<Integer> spawnZones = new HashSet<>();

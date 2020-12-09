@@ -310,13 +310,15 @@ public class ZBoard extends Reflector<ZBoard> {
 
     public void setDoor(ZDoor door, ZWallFlag flag) {
         getCell(door.getCellPosStart()).setWallFlag(door.getMoveDirection(), flag);
-        door = door.getOtherSide(this);
-        getCell(door.getCellPosStart()).setWallFlag(door.getMoveDirection(), flag);
+        if (door.getCellPosEnd() != null) {
+            door = door.getOtherSide();
+            getCell(door.getCellPosStart()).setWallFlag(door.getMoveDirection(), flag);
+        }
     }
 
     public void setDoorLocked(ZDoor door) {
         addLockedDoor(door);
-        addLockedDoor(door.getOtherSide(this));
+        addLockedDoor(door.getOtherSide());
     }
 
     private void addLockedDoor(ZDoor door) {
@@ -345,18 +347,13 @@ public class ZBoard extends Reflector<ZBoard> {
                 g.setColor(GColor.RED);
                 picked = door;
                 // highlight the other side if this is a vault
-                g.drawRect(door.getOtherSide(this).getRect(this).grownBy(10), 2);
+                g.drawRect(door.getOtherSide().getRect(this).grownBy(10), 2);
             } else {
                 g.setColor(GColor.DARK_OLIVE);
             }
             g.drawRect(doorRect, 2);
         }
         return picked;
-    }
-
-
-    public ZActor pickActor(AGraphics g, int mouseX, int mouseY) {
-        return null;
     }
 
     // TODO: This is stoopid
@@ -542,18 +539,18 @@ public class ZBoard extends Reflector<ZBoard> {
                     vaultRect.drawFilled(g);
                     g.setColor(GColor.RED);
                     vaultRect.drawOutlined(g, 2);
-                    g.drawJustifiedString(vaultRect.getCenter(), Justify.CENTER, Justify.CENTER, "LOCKED");
+//                    g.drawJustifiedString(vaultRect.getCenter(), Justify.CENTER, Justify.CENTER, "LOCKED");
                     break;
                 }
                 case CLOSED: {
                     ZDoor door = findDoor(cellPos, dir);
                     g.setColor(GColor.BLACK);
                     GRectangle vaultRect = door.getRect(this);
-                    g.setColor(GColor.ORANGE);
+                    g.setColor(door.lockedColor);
                     vaultRect.drawFilled(g);
                     g.setColor(GColor.YELLOW);
                     vaultRect.drawOutlined(g, 2);
-                    g.drawJustifiedString(vaultRect.getCenter(), Justify.CENTER, Justify.CENTER, "VAULT");
+//                    g.drawJustifiedString(vaultRect.getCenter(), Justify.CENTER, Justify.CENTER, "VAULT");
                     break;
                 }
                 case OPEN: {
@@ -576,7 +573,7 @@ public class ZBoard extends Reflector<ZBoard> {
                         g.moveTo(dw, dh);
                         g.moveTo(vaultRect.w-dw*2, 0);
                     }
-                    g.setColor(GColor.ORANGE);
+                    g.setColor(door.lockedColor);
                     g.drawTriangleFan();
                     g.setColor(GColor.YELLOW);
                     g.end();

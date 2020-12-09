@@ -48,13 +48,16 @@ public abstract class ZQuest extends Reflector<ZQuest> {
 
     ZDir getDirectionForEnvironment(int env) {
         switch (env) {
-            case ZCell.ENV_BUILDING:
-                return ZDir.DESCEND;
             case ZCell.ENV_VAULT:
                 return ZDir.ASCEND;
         }
-        assert(false);
-        return null;
+        return ZDir.DESCEND;
+    }
+
+    private void setVaultDoor(ZCell cell, Grid<ZCell> grid, Grid.Pos pos, ZCellType type, int vaultFlag) {
+        cell.setCellType(type, true);
+        cell.vaultFlag = vaultFlag;
+        setCellWall(grid, pos, getDirectionForEnvironment(cell.environment), ZWallFlag.CLOSED);
     }
 
     protected void loadCmd(Grid<ZCell> grid, Grid.Pos pos, String cmd) {
@@ -67,24 +70,28 @@ public abstract class ZQuest extends Reflector<ZQuest> {
                 cell.environment=ZCell.ENV_VAULT;
                 break;
             case "vd1":
-                cell.setCellType(ZCellType.VAULT_DOOR, true);
-                cell.vaultFlag = 1;
-                setCellWall(grid, pos, getDirectionForEnvironment(cell.environment), ZWallFlag.CLOSED);
+                setVaultDoor(cell, grid, pos,  ZCellType.VAULT_DOOR_VIOLET, 1);
                 break;
             case "vd2":
-                cell.setCellType(ZCellType.VAULT_DOOR, true);
-                cell.vaultFlag = 2;
-                setCellWall(grid, pos, getDirectionForEnvironment(cell.environment), ZWallFlag.CLOSED);
+                setVaultDoor(cell, grid, pos,  ZCellType.VAULT_DOOR_VIOLET, 2);
                 break;
             case "vd3":
-                cell.setCellType(ZCellType.VAULT_DOOR, true);
-                cell.vaultFlag = 3;
-                setCellWall(grid, pos, getDirectionForEnvironment(cell.environment), ZWallFlag.CLOSED);
+                setVaultDoor(cell, grid, pos,  ZCellType.VAULT_DOOR_VIOLET, 3);
                 break;
             case "vd4":
-                cell.setCellType(ZCellType.VAULT_DOOR, true);
-                cell.vaultFlag = 4;
-                setCellWall(grid, pos, getDirectionForEnvironment(cell.environment), ZWallFlag.CLOSED);
+                setVaultDoor(cell, grid, pos,  ZCellType.VAULT_DOOR_VIOLET, 4);
+                break;
+            case "gvd1":
+                setVaultDoor(cell, grid, pos,  ZCellType.VAULT_DOOR_GOLD, 1);
+                break;
+            case "gvd2":
+                setVaultDoor(cell, grid, pos,  ZCellType.VAULT_DOOR_GOLD, 2);
+                break;
+            case "gvd3":
+                setVaultDoor(cell, grid, pos,  ZCellType.VAULT_DOOR_GOLD, 3);
+                break;
+            case "gvd4":
+                setVaultDoor(cell, grid, pos,  ZCellType.VAULT_DOOR_GOLD, 4);
                 break;
             case "wn":
                 setCellWall(grid, pos, ZDir.NORTH, ZWallFlag.WALL);
@@ -350,5 +357,9 @@ public abstract class ZQuest extends Reflector<ZQuest> {
 
     public void onEquipmentFound(ZGame game, ZEquipment equip) {
         //
+    }
+
+    protected boolean isAllPlayersInExit(ZGame game) {
+        return game.board.getZombiesInZone(exitZone).size() == 0 && !(Utils.filter(game.getAllCharacters(), object -> object.getOccupiedZone() != exitZone).size() > 0);
     }
 }

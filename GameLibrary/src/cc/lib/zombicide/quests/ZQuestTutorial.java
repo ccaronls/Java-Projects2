@@ -42,8 +42,8 @@ public class ZQuestTutorial extends ZQuest {
         final String [][] map = {
                 { "z0:i",                   "z0:i", "z1:dw:fatty", "z2:i:ws:we", "z3:green:greende:ww", "z4:i:ws:exit" },
                 { "z5:sp:wn:ws",            "z6:bluedn:we:walker", "z7:ds:we", "z8:red:wn:ws", "z9",               "z10:red:wn:ws" },
-                { "z11:blue:i:wn:ws:ode",   "z12:start:ws:odw:we", "z13:i:ws:dn:runner", "z13:i:wn:we:ws:vd1", "z14:ws:ww:de", "z15:i:dw:ws:we:wn:vd2" },
-                { "",                       "",                     "",                      "z16:v:wn:ww:vd1", "z16:v:wn", "z16:v:wn:vd2" },
+                { "z11:blue:i:wn:ws:ode",   "z12:start:ws:odw:we", "z13:i:ws:dn:runner", "z13:i:wn:we:ws:gvd1", "z14:ws:ww:de", "z15:i:dw:ws:we:wn:gvd2" },
+                { "",                       "",                     "",                      "z16:v:wn:ww:gvd1", "z16:v:wn", "z16:v:wn:gvd2" },
         };
 
         return load(map);
