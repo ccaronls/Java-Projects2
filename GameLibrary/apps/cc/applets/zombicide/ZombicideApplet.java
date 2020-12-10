@@ -93,7 +93,7 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
     final ZUser user = new UIZUser();
 
     public void onAllImagesLoaded() {
-        game = new UIZombicide() {
+        game = new UIZombicide(charComp) {
             @Override
             protected void redraw() {
                 boardComp.repaint();
@@ -112,7 +112,6 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-
             }
 
             @Override
@@ -123,11 +122,6 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
             @Override
             protected float getHeight() {
                 return boardComp.getHeight();
-            }
-
-            @Override
-            public void addPlayerComponentMessage(String message) {
-                charComp.addMessage(message);
             }
 
             @Override
@@ -216,7 +210,6 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
             case START:
                 game.reload();
                 game.setOverlay(game.getQuest().getObjectivesOverlay(game));
-                charComp.clearMessages();
                 game.startGameThread();
                 break;
             case RESUME:
@@ -248,7 +241,12 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
             case LOAD: {
                 menu.removeAll();
                 for (ZQuests q : ZQuests.values()) {
-                    menu.add(new AWTButton(q.name(), questLoader));
+                    menu.add(new AWTButton(q.name().replace('_', ' '), e12 -> {
+                        game.loadQuest(q);
+                        setStringProperty("quest", q.name());
+                        boardComp.repaint();
+                        initHomeMenu();
+                    }));
                 }
                 menu.add(new AWTButton(MenuItem.BACK.name(), this));
                 menuContainer.validate();
@@ -304,14 +302,6 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
                 log.error("Unhandled action: " + e.getActionCommand());
         }
     }
-
-    ActionListener questLoader = e -> {
-        ZQuests qu = ZQuests.valueOf(e.getActionCommand());
-        game.loadQuest(qu);
-        setStringProperty("quest", qu.name());
-        boardComp.repaint();
-        initHomeMenu();
-    };
 
     @Override
     protected void initApp() {

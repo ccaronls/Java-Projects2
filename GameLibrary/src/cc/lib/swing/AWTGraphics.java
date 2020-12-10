@@ -68,7 +68,7 @@ public class AWTGraphics extends APGraphics {
 
     @Override
     public void setColor(GColor color) {
-        g.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha()));
+        g.setColor(new Color(color.toARGB(), true));
     }
 
     @Override
@@ -77,6 +77,16 @@ public class AWTGraphics extends APGraphics {
         return new GColor(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
     }
 
+    @Override
+    public GColor getBackgroundColor() {
+        Color c = comp.getBackground();
+        return new GColor(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
+    }
+
+    @Override
+    public void setBackgroundColor(GColor color) {
+        comp.setBackground(new Color(color.toARGB(), true));
+    }
 
     private int currentFontHeight = -1;
 

@@ -7,7 +7,8 @@ public enum ZIcon {
     SLIME,
     TORCH,
     FIRE,
-    ARROW
+    ARROW,
+    SPAWN
     ;
 
     public int [] imageIds;

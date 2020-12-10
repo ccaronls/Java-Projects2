@@ -366,7 +366,7 @@ public class ZBoard extends Reflector<ZBoard> {
     public void setSpawnZone(int zoneIdx, boolean isSpawn) {
         ZZone zone = zones.get(zoneIdx);
         zone.isSpawn = isSpawn;
-        getCell(zone.cells.get(0)).setCellType(ZCellType.SPAWN, true);
+        getCell(zone.cells.get(0)).setCellType(ZCellType.SPAWN_NORTH, true);
     }
 
     public int getMaxNoiseLevel() {
@@ -410,21 +410,12 @@ public class ZBoard extends Reflector<ZBoard> {
                 ZCell cell = getCell(pos);
                 if (cell.isCellTypeEmpty())
                     continue;
-                /*
                 switch (zone.type) {
                     case VAULT:
                         g.setColor(GColor.BROWN);
-                        break;
-                    case BUILDING:
-                        g.setColor(GColor.ORANGE);
-                        break;
-                    case OUTDOORS:
-                        g.setColor(GColor.LIGHT_GRAY);
+                        g.drawFilledRect(cell.rect);
                         break;
                 }
-                g.drawFilledRect(cell.rect);
-
-                 */
                 drawCellWalls(g, pos, 1);
                 if (cell.rect.contains(mouseX, mouseY)) {
                     result = i;
@@ -450,9 +441,24 @@ public class ZBoard extends Reflector<ZBoard> {
                             case EXIT:
                                 text += "EXIT";
                                 break;
-                            case SPAWN:
+                            case SPAWN_NORTH:
                                 if (zone.isSpawn) {
-                                    text += "SPAWN";
+                                    drawSpawn(g, cell.getRect(), ZDir.NORTH);
+                                }
+                                break;
+                            case SPAWN_SOUTH:
+                                if (zone.isSpawn) {
+                                    drawSpawn(g, cell.getRect(), ZDir.SOUTH);
+                                }
+                                break;
+                            case SPAWN_EAST:
+                                if (zone.isSpawn) {
+                                    drawSpawn(g, cell.getRect(), ZDir.EAST);
+                                }
+                                break;
+                            case SPAWN_WEST:
+                                if (zone.isSpawn) {
+                                    drawSpawn(g, cell.getRect(), ZDir.WEST);
                                 }
                                 break;
                         }
@@ -485,6 +491,12 @@ public class ZBoard extends Reflector<ZBoard> {
             }
         }
         return result;
+    }
+
+    void drawSpawn(AGraphics g, GRectangle rect, ZDir dir) {
+        int id = ZIcon.SPAWN.imageIds[dir.ordinal()];
+        AImage img = g.getImage(id);
+        g.drawImage(id, rect.scaledBy(.8f).fit(img, dir.horz, dir.vert));
     }
 
     public void drawCellWalls(AGraphics g, Grid.Pos cellPos, float scale) {

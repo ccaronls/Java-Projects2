@@ -17,6 +17,7 @@ import cc.lib.logger.LoggerFactory;
 import cc.lib.math.Bezier;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
+import cc.lib.ui.UIComponent;
 import cc.lib.utils.Grid;
 import cc.lib.utils.Table;
 import cc.lib.zombicide.ZActor;
@@ -64,6 +65,7 @@ public abstract class UIZombicide extends ZGame implements ZTiles {
     Object monitor = new Object();
     Object result = null;
     boolean drawTiles = false;
+    final UIZCharacterRenderer characterRenderer;
 
     private static UIZombicide instance;
 
@@ -72,9 +74,10 @@ public abstract class UIZombicide extends ZGame implements ZTiles {
         return instance;
     }
 
-    public UIZombicide() {
+    public UIZombicide(UIComponent characterComponent) {
         assert(instance == null);
         instance = this;
+        characterRenderer = new UIZCharacterRenderer(characterComponent);
     }
 
     void addOverlay(ZAnimation a) {
@@ -386,10 +389,13 @@ public abstract class UIZombicide extends ZGame implements ZTiles {
 
     protected abstract float getHeight();
 
-    public abstract void addPlayerComponentMessage(String message);
+    public void addPlayerComponentMessage(String message) {
+        characterRenderer.addMessage(message);
+    }
 
     public ZActor drawActors(AGraphics g, ZBoard b, float mx, float my, boolean drawAnimating) {
         ZActor picked = null;
+        float distFromCenter = 0;
         actorsAnimating = false;
         for (ZActor a : b.getAllLiveActors()) {
             if (a.isAnimating() && !drawAnimating)
@@ -398,8 +404,11 @@ public abstract class UIZombicide extends ZGame implements ZTiles {
             if (img != null) {
                 GRectangle rect = a.getRect(b);
                 if (rect.contains(mx, my)) {
-                    if (picked == null || !(picked instanceof ZCharacter))
+                    float dist = rect.getCenter().sub(mx, my).magSquared();
+                    if (picked == null || !(picked instanceof ZCharacter) || dist < distFromCenter) {
                         picked = a;
+                        distFromCenter = dist;
+                    }
                 }
                 if (a.isInvisible()) {
                     g.setTransparencyFilter(.5f);
@@ -516,7 +525,7 @@ public abstract class UIZombicide extends ZGame implements ZTiles {
                 g.drawRect(highlightedActor.getRect(board).grownBy(2), OUTLINE);
             }
 
-            //ZombicideApplet.instance.charComp.repaint();
+            characterRenderer.redraw();
 
             drawAnimations(overlayAnimations, g);
 
@@ -613,6 +622,7 @@ public abstract class UIZombicide extends ZGame implements ZTiles {
         if (gameRunning)
             return;
 
+        characterRenderer.clearMessages();
         gameRunning = true;
         new Thread(()-> {
             try {

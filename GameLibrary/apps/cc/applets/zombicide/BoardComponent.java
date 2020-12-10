@@ -46,8 +46,6 @@ class BoardComponent extends AWTComponent implements ZTiles {
         }.start();
     }
 
-
-
     int numImagesLoaded=0;
     int totalImagesToLoad=1000;
 
@@ -131,6 +129,7 @@ class BoardComponent extends AWTComponent implements ZTiles {
             { ZIcon.SLIME, "zslime_icon.gif" },
             { ZIcon.TORCH, "ztorch_icon.gif" },
             { ZIcon.ARROW, "zarrow_icon.gif" },
+            { ZIcon.SPAWN, "zspawn.gif" },
         };
 
         Map<Object, List<Integer>> objectToImageMap = new HashMap<>();
@@ -196,6 +195,17 @@ class BoardComponent extends AWTComponent implements ZTiles {
             ids[ZDir.WEST.ordinal()] = g.createRotatedImage(eastId, 180);
             ids[ZDir.NORTH.ordinal()] = g.createRotatedImage(eastId, 270);
             ids[ZDir.SOUTH.ordinal()] = g.createRotatedImage(eastId, 90);
+            icon.imageIds = ids;
+        }
+
+        {
+            ZIcon icon = ZIcon.SPAWN;
+            int [] ids = new int[4];
+            int northId = objectToImageMap.get(icon).get(0);
+            ids[ZDir.NORTH.ordinal()] = northId;
+            ids[ZDir.WEST.ordinal()] = g.createRotatedImage(northId, 270);
+            ids[ZDir.EAST.ordinal()] = g.createRotatedImage(northId, 90);
+            ids[ZDir.SOUTH.ordinal()] = g.createRotatedImage(northId, 1800);
             icon.imageIds = ids;
         }
 

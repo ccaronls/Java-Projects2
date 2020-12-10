@@ -1,7 +1,6 @@
 package cc.lib.game;
 
 import cc.lib.math.MutableVector2D;
-import cc.lib.math.Vector2D;
 import cc.lib.utils.Reflector;
 
 public final class GRectangle extends Reflector<GRectangle> {
@@ -336,7 +335,7 @@ public final class GRectangle extends Reflector<GRectangle> {
                     tx = x;
                     break;
                 case RIGHT:
-                    tx = w + w - tw;
+                    tx = x + w - tw;
                     break;
             }
         }
@@ -358,16 +357,6 @@ public final class GRectangle extends Reflector<GRectangle> {
     @Override
     public int hashCode() {
         return Utils.hashCode(x, y, w, h);
-    }
-
-    public GRectangle rotated(float degrees) {
-        Vector2D tl = (getTopLeft().sub(getCenter())).rotateEq(degrees);
-        Vector2D br = (getTopRight().sub(getCenter())).rotateEq(degrees);
-
-        float newWidth = Math.max(Math.abs(tl.getX()), Math.abs(br.getX()))*2;
-        float newHeight = Math.max(Math.abs(tl.getY()), Math.abs(br.getY()))*2;
-
-        return new GRectangle(getCenter(), new GDimension(newWidth, newHeight));
     }
 
     public void setCenter(IVector2D cntr) {

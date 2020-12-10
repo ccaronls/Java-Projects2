@@ -38,7 +38,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param color
      */
     public abstract void setColor(GColor color);
-    
+
     /**
      * 
      * @param argb
@@ -54,7 +54,18 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @return
      */
     public abstract GColor getColor();
-    
+
+    /**
+     * Clearing
+     */
+    public abstract void setBackgroundColor(GColor color);
+
+    /**
+     * Clear color
+     * @return
+     */
+    public abstract GColor getBackgroundColor();
+
     /**
      * 
      */
@@ -1784,7 +1795,14 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param color
      */
     public abstract void clearScreen(GColor color);
-    
+
+    /**
+     *
+     */
+    public void clearScreen() {
+        clearScreen(getBackgroundColor());
+    }
+
     /**
      * 
      * @param left

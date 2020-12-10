@@ -149,7 +149,10 @@ public class ZGame extends Reflector<ZGame>  {
                                 }
                             }
                             break;
-                        case SPAWN:
+                        case SPAWN_NORTH:
+                        case SPAWN_SOUTH:
+                        case SPAWN_EAST:
+                        case SPAWN_WEST:
                             zone.isSpawn = true;
                             break;
                         case OBJECTIVE_BLACK:

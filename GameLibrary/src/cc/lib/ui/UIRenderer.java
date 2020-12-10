@@ -46,4 +46,19 @@ public abstract class UIRenderer {
         this.min = dim;
     }
 
+    public void setMinDimension(int w, int h) {
+        this.min = new GDimension(w, h);
+    }
+
+    public int getWidth() {
+        return component.getWidth();
+    }
+
+    public int getHeight() {
+        return component.getHeight();
+    }
+
+    public void redraw() {
+        component.redraw();
+    }
 }

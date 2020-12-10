@@ -130,7 +130,17 @@ public abstract class ZQuest extends Reflector<ZQuest> {
                 setCellWall(grid, pos, ZDir.WEST, ZWallFlag.OPEN);
                 break;
             case "sp":
-                cell.setCellType(ZCellType.SPAWN, true);
+            case "spn":
+                cell.setCellType(ZCellType.SPAWN_NORTH, true);
+                break;
+            case "sps":
+                cell.setCellType(ZCellType.SPAWN_SOUTH, true);
+                break;
+            case "spe":
+                cell.setCellType(ZCellType.SPAWN_EAST, true);
+                break;
+            case "spw":
+                cell.setCellType(ZCellType.SPAWN_WEST, true);
                 break;
             case "st":
             case "start":

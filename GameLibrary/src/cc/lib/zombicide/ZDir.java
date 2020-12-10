@@ -1,25 +1,29 @@
 package cc.lib.zombicide;
 
+import cc.lib.game.Justify;
 import cc.lib.game.Utils;
 import cc.lib.utils.Grid;
 
 public enum ZDir {
-    NORTH(0, -1, 0, 0),
-    SOUTH(0, 1, 0,180),
-    EAST(1, 0, 0,90),
-    WEST(-1, 0, 0,270),
-    ASCEND(0,0, 1,0),
-    DESCEND(0,0,-1,0)
+    NORTH(0, -1, 0, 0, Justify.CENTER, Justify.TOP),
+    SOUTH(0, 1, 0,180, Justify.CENTER, Justify.BOTTOM),
+    EAST(1, 0, 0,90, Justify.RIGHT, Justify.CENTER),
+    WEST(-1, 0, 0,270, Justify.LEFT, Justify.CENTER),
+    ASCEND(0,0, 1,0, Justify.CENTER, Justify.CENTER),
+    DESCEND(0,0,-1,0, Justify.CENTER, Justify.CENTER)
     ;
 
-    ZDir(int dx, int dy, int dz, int rotation) {
+    ZDir(int dx, int dy, int dz, int rotation, Justify horz, Justify vert) {
         this.dx = dx;
         this.dy = dy;
         this.dz = dz;
         this.rotation = rotation;
+        this.horz = horz;
+        this.vert = vert;
     }
 
     final int dx, dy, dz, rotation;
+    final Justify horz, vert;
 
     ZDir getOpposite() {
         switch (this) {

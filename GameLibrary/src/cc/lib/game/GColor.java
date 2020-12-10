@@ -157,7 +157,7 @@ public final class GColor extends Reflector<GColor> {
      * @return
      */
     public final int toARGB() {
-        return (((int)(getAlpha()*255))<<24) | (((int)(getRed()*255)) << 16) | (((int)(getGreen()*255))<<8) | (((int)(getBlue()*255)) << 0);
+        return argb;
     }
 
     /**
@@ -165,7 +165,19 @@ public final class GColor extends Reflector<GColor> {
      * @return
      */
     public final int toRGB() {
-        return (((int)getRed()*255) << 16) | (((int)getGreen()*255)<<8) | (((int)getBlue()*255) << 0);
+        return 0xff000000 | argb;
+    }
+
+    /**
+     * This function added for AWT but AWT color is NOT in RGBA format even though input parameter suggests it is.
+     * @see java.awt.Color(int,boolean)
+     *
+     * @return
+     */
+    @Deprecated
+    public final int toRGBA() {
+        int alpha = (argb >>> 24) & 0xff;
+        return (argb << 8) | alpha;
     }
 
     /**

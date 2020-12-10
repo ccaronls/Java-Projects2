@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -24,6 +25,7 @@ import cc.lib.game.Renderable;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
+import cc.lib.math.Vector2D;
 import cc.lib.utils.GException;
 
 
@@ -354,5 +356,14 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
 
     protected void onDimensionChanged(AWTGraphics g, int width, int height) {
         log.info("Dimension changed to %d x %d", width, height);
+    }
+
+    public void redraw() {
+        repaint();
+    }
+
+    public Vector2D getViewportLocation() {
+        Point pt = super.getLocationOnScreen();
+        return new Vector2D(pt.x, pt.y);
     }
 }

@@ -40,12 +40,12 @@ public class ZQuestFamine extends ZQuest9x6 {
     public ZBoard loadBoard() {
 
         String [][] map = {
-                { "z0:i:ws", "z0:i:ws:ode", "z1:i:red:ds:ode", "z2:i:ws:ode", "z3:i:ws:we", "z4", "z5", "z6:sp", "z7:i:ww:ods" },
-                { "z8:sp", "z9", "z10", "z11", "z12", "z13", "z14:i:ww:wn:we", "z15", "z16:i:dw:ws:red:" },
+                { "z0:i:ws", "z0:i:ws:ode", "z1:i:red:ds:ode", "z2:i:ws:ode", "z3:i:ws:we", "z4", "z5", "z6:spn", "z7:i:ww:ods" },
+                { "z8:spw", "z9", "z10", "z11", "z12", "z13", "z14:i:ww:wn:we", "z15", "z16:i:dw:ws:red:" },
                 { "z17:i:lvd1:wn:ode:ods", "z18:i:wn:ws", "z18:i:wn:de:ods", "z19", "z20:i:ww:wn:ws:ode", "z21:i:wn:ds:ode", "z14:i:de:ods", "z22", "z23" },
                 { "z24:i:ws:we", "z25", "z26:i:ws:ww:de", "z27", "z28", "z29", "z30:i:dw:ws:we", "z31", "z32:i:dn:ww:" },
-                { "z33:sp", "z34", "z35", "z36", "z37:i:lvd2:wn:we:ws:dw", "z38", "z39", "z40", "z32:i:red:ods:ww" },
-                { "z41:i:wn:ws:ode", "z42:i:red:wn:ws", "z42:i:wn:ws:de", "z43:ws", "z44:st:ws", "z45:ws", "z46:i:wn:we:dw:ws", "z47:sp:ws", "z48:i:ww:ws" },
+                { "z33:spw", "z34", "z35", "z36", "z37:i:lvd2:wn:we:ws:dw", "z38", "z39", "z40", "z32:i:red:ods:ww" },
+                { "z41:i:wn:ws:ode", "z42:i:red:wn:ws", "z42:i:wn:ws:de", "z43:ws", "z44:st:ws", "z45:ws", "z46:i:wn:we:dw:ws", "z47:spe:ws", "z48:i:ww:ws" },
                 { "", "", "", "z49:v:gvd1:ww", "z49:v", "z49:v:gvd2:we", "", "", "" }
         };
 

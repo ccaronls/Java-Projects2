@@ -26,7 +26,7 @@ import java.util.List;
 
 import javax.swing.ImageIcon;
 
-import cc.lib.game.GRectangle;
+import cc.lib.game.GDimension;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
@@ -471,11 +471,11 @@ public final class AWTImageMgr {
 	    int srcWid = image.getWidth(comp);
 	    int srcHgt = image.getHeight(comp);
 
-        GRectangle srcRect = new GRectangle(0, 0, srcWid, srcHgt);
-        GRectangle dstRect = srcRect.rotated(degrees);
+        GDimension srcDim = new GDimension(srcWid, srcHgt);
+        GDimension dstDim = srcDim.rotated(degrees);
 
-        int dstWid = (int)Math.ceil(dstRect.w);
-        int dstHgt = (int)Math.ceil(dstRect.h);
+        int dstWid = (int)Math.ceil(dstDim.width);
+        int dstHgt = (int)Math.ceil(dstDim.height);
 
         BufferedImage rotated = new BufferedImage(dstWid, dstHgt, BufferedImage.TYPE_INT_ARGB);
 

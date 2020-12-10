@@ -46,10 +46,10 @@ public class ZQuestDeadTrail extends ZQuest9x6 {
         String [][] map = {
                 { "z0:i:de:ods", "z1:violet_vd1", "z2:i:dw:ods:ode", "z3:i:red:ws:ode", "z4:i:de:ws", "z5", "z6:start", "z7", "z8:i:dw:ods" },
                 { "z9:i:ods", "z9:i:wn:ws", "z9:i:we:ods", "z10", "z11", "z12", "z13:i:wn:ww:we:ods", "z14", "z15:i:red:ww:ws" },
-                { "z16:i:we:ods", "z17", "z18:i:ww:ds:de", "z19", "z20:i:dw:wn:ws", "z20:i:wn:ode:ods", "z21:i:we:ods", "z22", "z23:sp" },
+                { "z16:i:we:ods", "z17", "z18:i:ww:ds:de", "z19", "z20:i:dw:wn:ws", "z20:i:wn:ode:ods", "z21:i:we:ods", "z22", "z23:spe" },
                 { "z24:i:we:ods", "z25", "z26", "z27", "z28:i:ww:ws:ode", "z29:i:gold_vd2:red:ws:ode", "z30:i:ds", "z30:i:wn:ws:ode", "z31:i:dn:ws" },
-                { "z32:i:ws:we:red", "z33", "z34:i:dn:ww:we:ods", "z35", "z36", "z37", "z38", "z39", "z40:violet_vd3:sp" },
-                { "z41:ws:exit", "z42:sp:ws", "z43:ww:i:ws:ode", "z44:i:red:wn:ws:ode", "z45:i:ws:de:wn", "z46:sp:ws", "z47:i:dw:wn:ws:ode", "z48:i:wn:ws", "z48:i:red:wn:ws" },
+                { "z32:i:ws:we:red", "z33", "z34:i:dn:ww:we:ods", "z35", "z36", "z37", "z38", "z39", "z40:violet_vd3:spe" },
+                { "z41:ws:exit", "z42:sps:ws", "z43:ww:i:ws:ode", "z44:i:red:wn:ws:ode", "z45:i:ws:de:wn", "z46:sps:ws", "z47:i:dw:wn:ws:ode", "z48:i:wn:ws", "z48:i:red:wn:ws" },
                 { "", "", "", "", "z49:v:vd1:ww", "z49:v", "z49:v:vd3:we", "z50:v:gvd2", "z50:v" }
         };
 
