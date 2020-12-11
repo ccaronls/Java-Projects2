@@ -475,7 +475,12 @@ public enum ZSkill implements IButton {
     //Starts_with_a("[Equipment] – The Survivor begins the game with the indicated Equipment; its card is automatically assigned to him during Setup."),
     //Starts_with_Healing("The Survivor begins the game with Healing Spell; its card is automatically assigned to him during Setup."),
     //Starts_with_GreatSword("The Survivor begins the game with Great Sword; its card is automatically assigned to him during Setup."),
-    Steady_hand("The Survivor can ignore other Survivors of his choosing when missing with a Magic or Ranged Action. The Skill does not apply to game effects killing everything in the targeted Zone (such as a Dragon Fire, for example)."),
+    Steady_hand("The Survivor can ignore other Survivors of his choosing when missing with a Magic or Ranged Action. The Skill does not apply to game effects killing everything in the targeted Zone (such as a Dragon Fire, for example).") {
+        @Override
+        boolean avoidsFriendlyFire() {
+            return true;
+        }
+    },
     Swordmaster("The Survivor treats all Melee weapons as if they had the Dual symbol.") {
         @Override
         public boolean canTwoHand(ZWeapon w) {
@@ -566,6 +571,10 @@ public enum ZSkill implements IButton {
      * @return
      */
     boolean onEndOfTurn(ZGame game, ZCharacter c) {
+        return false;
+    }
+
+    boolean avoidsFriendlyFire() {
         return false;
     }
 }

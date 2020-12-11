@@ -323,7 +323,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
      *
      * @return
      */
-    public List<ZEquipment> getVaultItems(int vaultZone) {
+    public final List<ZEquipment> getVaultItems(int vaultZone) {
         List<ZEquipment> list = vaultMap.get(vaultZone);
         if (list == null) {
             list = new ArrayList<>();
@@ -339,7 +339,25 @@ public abstract class ZQuest extends Reflector<ZQuest> {
         return list;
     }
 
-    private List<ZEquipment> getVaultItemsRemaining() {
+    /**
+     * By default inits a vault with 1 item from the remaining items list
+     *
+     * @param vaultZone
+     * @return
+     */
+    protected List<ZEquipment> getInitVaultItems(int vaultZone) {
+        List<ZEquipment> list = new ArrayList<>();
+        List<ZEquipment> remainingItems = getVaultItemsRemaining();
+        if (remainingItems.size() > 0) {
+            int item = Utils.rand() % remainingItems.size();
+            ZEquipment equip = remainingItems.remove(item);
+            equip.vaultItem = true;
+            list.add(equip);
+        }
+        return list;
+    }
+
+    protected List<ZEquipment> getVaultItemsRemaining() {
         if (vaultItemsRemaining == null) {
             vaultItemsRemaining = new ArrayList<>();
             for (ZEquipmentType et : getAllVaultOptions()) {
@@ -370,6 +388,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
     }
 
     protected boolean isAllPlayersInExit(ZGame game) {
+        assert(exitZone >= 0);
         return game.board.getZombiesInZone(exitZone).size() == 0 && !(Utils.filter(game.getAllCharacters(), object -> object.getOccupiedZone() != exitZone).size() > 0);
     }
 }

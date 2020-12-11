@@ -835,7 +835,7 @@ public class ZGame extends Reflector<ZGame>  {
                 Integer zone = user.chooseZoneToWalk(this, cur, move.list);
                 if (zone != null) {
                     moveActor(cur, zone, cur.getMoveSpeed());
-                    cur.performAction(ZActionType.MOVE, this);
+                    //cur.performAction(ZActionType.MOVE, this);
                 }
                 break;
             }
@@ -944,28 +944,30 @@ public class ZGame extends Reflector<ZGame>  {
                                     }
                                 }
 
-                                int misses = stat.numDice - hits;
-                                List<ZCharacter> friendlyFireOptions = Utils.filter(board.getCharactersInZone(zone), object -> object != cur);
-                                if (friendlyFireOptions.size() > 1) {
-                                    // sort them in same way we would sort zombie attacks
-                                    Collections.sort(friendlyFireOptions, (o1, o2) -> {
-                                        int v0 = o1.getArmorRating(ZZombieType.Walker) - o1.woundBar;
-                                        int v1 = o2.getArmorRating(ZZombieType.Walker) - o2.woundBar;
-                                        return Integer.compare(v1, v0);
-                                    });
-                                }
-                                for (int i=0; i<misses && friendlyFireOptions.size() > 0; i++) {
-                                    // friendy fire!
-                                    ZCharacter victim = friendlyFireOptions.get(0);
-                                    if (playerDefends(victim, ZZombieType.Walker)) {
-                                        getCurrentUser().showMessage(victim.name() + " defended themself from friendly fire!");
-                                    } else {
-                                        playerWounded(victim, stat.damagePerHit, "Freindly Fire!");
-                                        if (victim.isDualWeilding())
-                                            friendlyFireOptions.remove(0);
+                                if (cur.canFriendlyFire()) {
+                                    int misses = stat.numDice - hits;
+                                    List<ZCharacter> friendlyFireOptions = Utils.filter(board.getCharactersInZone(zone), object -> object != cur);
+                                    if (friendlyFireOptions.size() > 1) {
+                                        // sort them in same way we would sort zombie attacks
+                                        Collections.sort(friendlyFireOptions, (o1, o2) -> {
+                                            int v0 = o1.getArmorRating(ZZombieType.Walker) - o1.woundBar;
+                                            int v1 = o2.getArmorRating(ZZombieType.Walker) - o2.woundBar;
+                                            return Integer.compare(v1, v0);
+                                        });
                                     }
+                                    for (int i = 0; i < misses && friendlyFireOptions.size() > 0; i++) {
+                                        // friendy fire!
+                                        ZCharacter victim = friendlyFireOptions.get(0);
+                                        if (playerDefends(victim, ZZombieType.Walker)) {
+                                            getCurrentUser().showMessage(victim.name() + " defended themself from friendly fire!");
+                                        } else {
+                                            playerWounded(victim, stat.damagePerHit, "Freindly Fire!");
+                                            if (victim.isDualWeilding())
+                                                friendlyFireOptions.remove(0);
+                                        }
+                                    }
+                                    user.showMessage(getCurrentCharacter().name() + " Scored " + hits + " hits");
                                 }
-                                user.showMessage(getCurrentCharacter().name() + " Scored " + hits + " hits");
                             }
                             cur.performAction(actionType,this);
                         }
@@ -1544,7 +1546,7 @@ public class ZGame extends Reflector<ZGame>  {
     private void extraActivation(ZZombieType name) {
         getCurrentUser().showMessage("Extra Activation for " + name);
         for (ZZombie z : Utils.filter(board.getAllZombies(), object -> object.type == name)) {
-            z.extraActivation();
+            z.addExtraAction();
         }
     }
 

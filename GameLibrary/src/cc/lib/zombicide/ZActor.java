@@ -57,11 +57,6 @@ public abstract class ZActor<E extends Enum<E>> extends Reflector<ZActor<E>> {
         actionsLeftThisTurn ++;
     }
 
-    void extraActivation() {
-        assert (actionsLeftThisTurn>0);
-        actionsLeftThisTurn++;
-    }
-
     public abstract GDimension drawInfo(AGraphics g, ZGame game, int width, int height);
 
     public int getOccupiedZone() {

@@ -58,14 +58,18 @@ public class AWTGraphics2 extends AWTGraphics {
     Composite old = null;
 
     @Override
-    public void setTransparencyFilter(float alpha) {
-        old = G2.getComposite();
-        Composite comp = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha);
+    public void setAlphaCompisite(float alpha, int mode) {
+        if (old == null)
+            old = G2.getComposite();
+        Composite comp = AlphaComposite.getInstance(mode, alpha);
+        //G2.setPaint(G2.getColor());
+        //G2.setPaintMode();//XORMode(G2.getColor());
+        //G2.setXORMode(new Color(0,0,0,0));
         G2.setComposite(comp);
     }
 
     @Override
-    public void removeTransparencyFilter() {
+    public void removeFilter() {
         if (old != null) {
             G2.setComposite(old);
             old = null;

@@ -81,7 +81,9 @@ public abstract class UIZombicide extends ZGame implements ZTiles {
     }
 
     void addOverlay(ZAnimation a) {
-        overlayAnimations.add(a);
+        synchronized (overlayAnimations) {
+            overlayAnimations.add(a.start());
+        }
     }
 
     public UIMode getUiMode() {
@@ -267,7 +269,7 @@ public abstract class UIZombicide extends ZGame implements ZTiles {
                 GRectangle rect = cur.getRect().fit(img);
                 g.setTransparencyFilter(1f-position);
                 g.drawImage(id, rect);
-                g.removeTransparencyFilter();
+                g.removeFilter();
             }
         });
         redraw();
@@ -292,7 +294,7 @@ public abstract class UIZombicide extends ZGame implements ZTiles {
                 rect.y -= rect.h * 3 * position;
                 g.setTransparencyFilter(1f-position);
                 g.drawImage(actor.getImageId(), rect);
-                g.removeTransparencyFilter();
+                g.removeFilter();
             }
         });
         redraw();
@@ -315,7 +317,7 @@ public abstract class UIZombicide extends ZGame implements ZTiles {
                     return;
                 g.setTransparencyFilter(1f-position);
                 g.drawImage(claws, rect);
-                g.removeTransparencyFilter();
+                g.removeFilter();
             }
         });
         redraw();
@@ -417,7 +419,7 @@ public abstract class UIZombicide extends ZGame implements ZTiles {
                 if (a.isAnimating()) {
                     actorsAnimating = true;
                 }
-                g.removeTransparencyFilter();
+                g.removeFilter();
             }
         }
         return picked;

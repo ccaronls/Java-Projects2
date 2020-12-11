@@ -205,7 +205,7 @@ class BoardComponent extends AWTComponent implements ZTiles {
             ids[ZDir.NORTH.ordinal()] = northId;
             ids[ZDir.WEST.ordinal()] = g.createRotatedImage(northId, 270);
             ids[ZDir.EAST.ordinal()] = g.createRotatedImage(northId, 90);
-            ids[ZDir.SOUTH.ordinal()] = g.createRotatedImage(northId, 1800);
+            ids[ZDir.SOUTH.ordinal()] = northId;
             icon.imageIds = ids;
         }
 

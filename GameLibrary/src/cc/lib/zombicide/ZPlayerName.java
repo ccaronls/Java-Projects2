@@ -66,7 +66,7 @@ public enum ZPlayerName implements IButton {
     Benson("Elite Guard",
             Utils.toArray(ZWeaponType.SWORD),
             Utils.toArray(ZWeaponType.SWORD),
-            Utils.toArray(ZSkill.Steel_hide, ZSkill.Born_leader),
+            Utils.toArray(ZSkill.Steel_hide),
             Utils.toArray(ZSkill.Plus1_Action),
             Utils.toArray(ZSkill.Plus1_free_Melee_Action, ZSkill.Born_leader),
             Utils.toArray(ZSkill.Plus1_Damage_Melee, ZSkill.Lucky, ZSkill.Shove)),

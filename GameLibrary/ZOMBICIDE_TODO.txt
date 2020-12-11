@@ -34,24 +34,32 @@ Add draw() method to Table class
 (DONE NOT TESTED) implement spellbook
 beter job with the menu button
 - EQUIP (which hand)
-Animations!
-Enchantments!
+(IN PROGRES)Animations!
+(DONE)Enchantments!
 (DONE)Shove!
-More Characters!
+(DONE - IN PROGRESS) More Characters!
 (DONE)Spawning should spawn Abominations at times and extra activations
 (DONE?)Players should not be able to shoot through vaults
 (DONE)Make vault door that descend have open door that looks different than from 'below'
 Ability to zoom in and out of map for large maps
 Ability to assign startng weapons
 (DONE)Abomination should render larger than other zombs
-Enemies that have multiple turns should have those mapped out in one phase otherwise problems
+(DONE)Enemies that have multiple turns should have those mapped out in one phase otherwise problems
 (DONE) When dual weilding, no need to display RIGHT and LEFT hand in character component.
-Implement Rotten / Invisibility
+(DONE) Implement Rotten / Invisibility
 Repulse, similar to Shove but more complex
-Do we reallt need SpellType? A Spell is really just magic+skill right?
+Do we really need SpellType? A Spell is really just magic+skill right?
 Zone numbering could be automatic
 Rethink the 'once per turn' handling.
 - Equipment has a method 'oncePerTurn?' What about SEARCH?
         - Make search a Skill?
 Figure out way to not compute the actor rect every frame. Actor could have just a Dimension?
    Dimension gets computed on moves?
+   Board rectangles should be normalized to 1x1 squares and scaled based on the screen.
+Necromancer behavior:
+- Killing a necro means player can remove any one spawn loc form the board
+- Necros move toward their 'exit' which is nearest spawn point other than the one associated with itself.
+  Reaching the exit emmediatele end the game
+Implement Hard, Medium, Easy modes to control spawn rate
+Spawn rate needs tuning. To little for blue, to many for yellow
+Ability to view a players skills descriptions

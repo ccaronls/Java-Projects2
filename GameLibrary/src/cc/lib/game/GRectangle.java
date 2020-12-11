@@ -254,6 +254,10 @@ public final class GRectangle extends Reflector<GRectangle> {
         h = nh;
     }
 
+    public void scale(float s) {
+        scale(s,s);
+    }
+
     /**
      *
      * @param s

@@ -134,11 +134,9 @@ public class ZQuestTutorial extends ZQuest {
 
     }
 
-    // for tutorial we want all the options in the only vault for testing
-    private List<ZEquipment> vaultItems = null;
-
     @Override
-    public List<ZEquipment> getVaultItems(int vaultZone) {
+    public List<ZEquipment> getInitVaultItems(int vaultZone) {
+        List<ZEquipment> vaultItems = new ArrayList<>();
         if (vaultItems == null) {
             vaultItems = new ArrayList<>();
             for (ZEquipmentType et : getAllVaultOptions())

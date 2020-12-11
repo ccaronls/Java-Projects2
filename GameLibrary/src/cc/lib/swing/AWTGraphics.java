@@ -57,6 +57,13 @@ public class AWTGraphics extends APGraphics {
         return g;
     }
 
+    public void setXorMode(GColor color) {
+        if (color == null)
+            g.setPaintMode();
+        else
+            g.setXORMode(new Color(color.toARGB(), true));
+    }
+
     public void setGraphics(Graphics g) {
         g.setFont(this.g.getFont());
         this.g = g;
@@ -405,12 +412,16 @@ public class AWTGraphics extends APGraphics {
     }
 
     @Override
-    public void setTransparencyFilter(float alpha) {
+    public final void setTransparencyFilter(float alpha) {
+        setAlphaCompisite(alpha, AlphaComposite.SRC_OVER);
+    }
+
+    public void setAlphaCompisite(float alpha, int mode) {
         throw new RuntimeException("Not implemented");
     }
 
     @Override
-    public void removeTransparencyFilter() {
+    public void removeFilter() {
         throw new RuntimeException("Not implemented");
     }
 

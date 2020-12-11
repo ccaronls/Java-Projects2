@@ -632,19 +632,37 @@ public class ZBoard extends Reflector<ZBoard> {
             drawCellWalls(g, it.getPos(), .97f);
             String text = "Zone " + cell.zoneIndex;
             for (ZCellType type : ZCellType.values()) {
-                if (type == ZCellType.NONE)
-                    continue;
                 if (cell.isCellType(type)) {
-                    text += "\n" + type;
+                    switch (type) {
+                        case NONE:
+                        case VAULT_DOOR_VIOLET:
+                        case VAULT_DOOR_GOLD:
+                            break;
+                        case OBJECTIVE_RED:
+                        case OBJECTIVE_BLUE:
+                        case OBJECTIVE_GREEN:
+                        case OBJECTIVE_BLACK:
+                            text += "\n" + type.name().substring(10);
+                            break;
+                        case SPAWN_NORTH:
+                        case SPAWN_SOUTH:
+                        case SPAWN_EAST:
+                        case SPAWN_WEST:
+                            text += "\nSPAWN";
+                            break;
+                        default:
+                            text += "\n" + type;
+                    }
                 }
             }
+            /*
             if (cell.rect.contains(mouseX, mouseY)) {
                 List<Integer> accessible = getAccessableZones(cell.zoneIndex, 1, ZActionType.MOVE);
                 text = "1 Unit away:\n" + accessible;
                 returnCell = it.getPos();//new int[] { col, row };
                 List<Integer> accessible2 = getAccessableZones(cell.zoneIndex, 2, ZActionType.MAGIC);
                 text += "\n2 Units away:\n" + accessible2;
-            }
+            }*/
             g.setColor(GColor.CYAN);
             for (ZActor a : cell.getOccupant()) {
                 if (a != null) {

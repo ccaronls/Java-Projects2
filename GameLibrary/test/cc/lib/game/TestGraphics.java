@@ -211,7 +211,7 @@ public class TestGraphics extends APGraphics {
     }
 
     @Override
-    public void removeTransparencyFilter() {
+    public void removeFilter() {
 
     }
 }

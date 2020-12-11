@@ -1707,6 +1707,8 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     }
 
     /**
+     * Applies Porter-Duff SRC_OVER to drawImage calls.
+     * Result is image has incoming transparency applied.
      *
      * @param alpha
      */
@@ -1715,7 +1717,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     /**
      *
      */
-    public abstract void removeTransparencyFilter();
+    public abstract void removeFilter();
     
     /**
      * Draw an image with pre-transformed rectangle. Not to be called directly.

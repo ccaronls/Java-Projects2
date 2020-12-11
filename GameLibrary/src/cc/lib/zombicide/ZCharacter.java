@@ -65,10 +65,10 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
 
     @Override
     void onBeginRound() {
-        super.onBeginRound();
         actionsDoneThisTurn.clear();
         availableSkills.addAll(allSkills);
         organizedThisTurn = false;
+        super.onBeginRound();
     }
 
     @Override
@@ -157,8 +157,10 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
     @Override
     protected int getActionsPerTurn() {
         int actions = 3;
-        if (availableSkills.contains(ZSkill.Plus1_Action))
-            actions++;
+        for (ZSkill s : availableSkills) {
+            if (s == ZSkill.Plus1_Action)
+                actions++;
+        }
         return actions;
     }
 
@@ -693,5 +695,13 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
     @Override
     int getPriority() {
         return 100;
+    }
+
+    public boolean canFriendlyFire() {
+        for (ZSkill s : availableSkills) {
+            if (s.avoidsFriendlyFire())
+                return false;
+        }
+        return true;
     }
 }

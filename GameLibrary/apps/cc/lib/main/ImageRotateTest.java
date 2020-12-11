@@ -14,7 +14,7 @@ public class ImageRotateTest extends AWTComponent {
     public static void main(String[] args) {
         Utils.setDebugEnabled();
 
-        AWTFrame frame = new AWTFrame("Image Roatte Test") {
+        AWTFrame frame = new AWTFrame("Image Rotate Test") {
 
             @Override
             protected void onWindowClosing() {

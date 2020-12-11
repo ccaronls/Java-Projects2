@@ -17,11 +17,11 @@ public class UIZCharacterRenderer extends UIRenderer {
         super(component);
     }
 
-    ZActor actorInfo = null;
+    private ZActor actorInfo = null;
 
     private LinkedList<String> messages = new LinkedList<>();
 
-    ZGame getGame() {
+    private ZGame getGame() {
         return UIZombicide.getInstance();
     }
 
@@ -37,9 +37,8 @@ public class UIZCharacterRenderer extends UIRenderer {
         messages.clear();
     }
 
-
     @Override
-    public void draw(APGraphics g, int px, int py) {
+    public synchronized void draw(APGraphics g, int px, int py) {
         g.clearScreen();
         if (getGame() == null)
             return;
@@ -57,12 +56,10 @@ public class UIZCharacterRenderer extends UIRenderer {
         g.setColor(GColor.BLACK);
         int y = 0;
         float maxWidth = g.getViewportWidth() - (info == null ? 0 : info.width);
-        synchronized (messages) {
-            for (String msg : messages) {
-                GDimension d = g.drawWrapString(g.getViewportWidth(), y, maxWidth, Justify.RIGHT, Justify.TOP, msg);
-                g.setColor(GColor.TRANSLUSCENT_BLACK);
-                y += d.getHeight();
-            }
+        for (String msg : messages) {
+            GDimension d = g.drawWrapString(g.getViewportWidth(), y, maxWidth, Justify.RIGHT, Justify.TOP, msg);
+            g.setColor(GColor.TRANSLUSCENT_BLACK);
+            y += d.getHeight();
         }
         if (info != null) {
             setMinDimension(getWidth(), (int) Math.max(info.height, y));
