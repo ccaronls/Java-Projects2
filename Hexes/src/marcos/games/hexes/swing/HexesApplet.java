@@ -1,15 +1,11 @@
 package marcos.games.hexes.swing;
 
 import java.awt.BorderLayout;
-import java.awt.Frame;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.LinkedList;
-import java.util.Properties;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -19,29 +15,29 @@ import javax.swing.JPasswordField;
 import javax.swing.JProgressBar;
 import javax.swing.JTextField;
 
+import cc.lib.game.AGraphics;
 import cc.lib.game.GColor;
-import cc.lib.swing.AWTUtils;
+import cc.lib.game.Justify;
+import cc.lib.game.Utils;
+import cc.lib.swing.AWTButton;
+import cc.lib.swing.AWTFrame;
+import cc.lib.swing.AWTKeyboardAnimationApplet;
 import cc.lib.utils.FileUtils;
 import marcos.games.hexes.core.Board;
 import marcos.games.hexes.core.Hexes;
 import marcos.games.hexes.core.Piece;
 import marcos.games.hexes.core.Player;
 import marcos.games.hexes.core.Shape;
-import marcos.games.hexes.swing.MultiPlayerClient.*;
-import cc.lib.game.AGraphics;
-import cc.lib.game.Justify;
-import cc.lib.game.Utils;
-import cc.lib.swing.AWTGraphics;
-import cc.lib.swing.AWTButton;
-import cc.lib.swing.AWTFrame;
-import cc.lib.swing.AWTKeyboardAnimationApplet;
+import marcos.games.hexes.swing.MultiPlayerClient.Callback;
+import marcos.games.hexes.swing.MultiPlayerClient.ResultStatus;
+import marcos.games.hexes.swing.MultiPlayerClient.User;
 
 public class HexesApplet extends AWTKeyboardAnimationApplet implements MultiPlayerClient.Listener {
 
 	static HexesApplet instance = null;
 
 	public static void main(String [] args) {
-        Utils.DEBUG_ENABLED = true;
+        Utils.setDebugEnabled();
         Utils.setRandomSeed(0);
         AWTFrame frame = new AWTFrame("Hexes Debug Mode");
         AWTKeyboardAnimationApplet app = new HexesApplet(frame);

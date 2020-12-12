@@ -41,7 +41,7 @@ public class RobotronApplet extends AWTKeyboardAnimationApplet implements ILocal
     
     @Override
     protected void doInitialization() {
-        Utils.DEBUG_ENABLED = true;
+        Utils.setDebugEnabled();
         robotron = new Robotron(this);
     }
 
@@ -115,7 +115,7 @@ public class RobotronApplet extends AWTKeyboardAnimationApplet implements ILocal
                 
         }
 
-        if (Utils.DEBUG_ENABLED) {
+        if (Utils.isDebugEnabled()) {
             int index = evt.getKeyChar() - '0';
             if (index >= 0 && index < Robotron.Debug.values().length) {
                 boolean enabled = robotron.isDebugEnabled(Robotron.Debug.values()[index]);

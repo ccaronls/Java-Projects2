@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import cc.lib.game.AGraphics;
 import cc.lib.game.GColor;
 import cc.lib.game.Utils;
-import cc.lib.swing.AWTGraphics;
 import cc.lib.swing.AWTFrame;
 import cc.lib.swing.AWTKeyboardAnimationApplet;
 
@@ -17,7 +16,7 @@ import cc.lib.swing.AWTKeyboardAnimationApplet;
 public class SnakesOnAPlain extends AWTKeyboardAnimationApplet {
 
     public static void main(String [] args) {
-        Utils.DEBUG_ENABLED = true;
+        Utils.setDebugEnabled();
         AWTFrame frame = new AWTFrame("Snakes on a Plain?");
         AWTKeyboardAnimationApplet app = new SnakesOnAPlain();
         frame.add(app);

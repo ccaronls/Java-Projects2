@@ -1,16 +1,19 @@
 package cc.game.sudoku;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
+import java.awt.GridLayout;
+import java.awt.Menu;
+import java.awt.MenuBar;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.util.Random;
 
+import cc.lib.game.AGraphics;
 import cc.lib.game.GColor;
-import cc.lib.swing.AWTGraphics;
+import cc.lib.game.Utils;
 import cc.lib.swing.AWTButton;
 import cc.lib.swing.AWTFrame;
 import cc.lib.swing.AWTKeyboardAnimationApplet;
-import cc.lib.game.AGraphics;
-import cc.lib.game.Utils;
 
 public class Main extends AWTKeyboardAnimationApplet implements ActionListener {
 
@@ -229,7 +232,7 @@ public class Main extends AWTKeyboardAnimationApplet implements ActionListener {
 	}
 
 	public static void main(String [] args) {
-		Utils.DEBUG_ENABLED = true;
+		Utils.setDebugEnabled();
 		AWTFrame frame = new AWTFrame();
 		
 		Main main = new Main();

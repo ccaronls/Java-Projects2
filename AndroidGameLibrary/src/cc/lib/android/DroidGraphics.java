@@ -626,4 +626,13 @@ public class DroidGraphics extends APGraphics {
 
     }
 
+    @Override
+    public void setTransparencyFilter(float alpha) {
+        paint.setColorFilter(new PorterDuffColorFilter(GColor.WHITE.withAlpha(alpha).toARGB(), PorterDuff.Mode.SRC_IN));
+    }
+
+    @Override
+    public void removeFilter() {
+        paint.setColorFilter(null);
+    }
 }

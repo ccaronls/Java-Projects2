@@ -658,7 +658,7 @@ public abstract class JavaRoids
 	}
 	
 	void drawDebug(AGraphics g) {
-		if (!Utils.DEBUG_ENABLED)
+		if (!Utils.isDebugEnabled())
 			return;
 		
 		final int cx = getScreenWidth()/2;

@@ -1,6 +1,7 @@
 package cc.game.othello.core;
 
-import cc.lib.game.Utils;
+import java.util.Arrays;
+
 import cc.lib.utils.Reflector;
 
 public class OthelloBoard extends Reflector<OthelloBoard> {
@@ -33,7 +34,7 @@ public class OthelloBoard extends Reflector<OthelloBoard> {
 
 	public final void clear() {
 		for (int i=0; i<board.length; i++) {
-			Utils.fillArray(board[i], 0);
+			Arrays.fill(board[i], 0);
 		}
 	}
 	

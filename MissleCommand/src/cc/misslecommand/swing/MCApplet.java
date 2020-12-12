@@ -72,7 +72,7 @@ public class MCApplet extends AWTKeyboardAnimationApplet {
     // --------------------------------------------------------------
 
     public static void main(String [] args) {
-        Utils.DEBUG_ENABLED = true;
+        Utils.setDebugEnabled();
         AWTFrame frame = new AWTFrame("Missle Command DEBUG MODE");
         MCApplet applet = new MCApplet();
         frame.add(applet);

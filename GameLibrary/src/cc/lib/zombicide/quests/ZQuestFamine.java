@@ -77,7 +77,7 @@ public class ZQuestFamine extends ZQuest9x6 {
         if (move.integer == blueKeyZone) {
             game.getCurrentUser().showMessage("Blue key found. Vault unlocked");
             for (ZDoor door : lockedVaults) {
-                game.board.setDoor(door, ZWallFlag.CLOSED);
+                game.getBoard().setDoor(door, ZWallFlag.CLOSED);
             }
             blueKeyZone = -1;
         }
@@ -91,7 +91,7 @@ public class ZQuestFamine extends ZQuest9x6 {
     boolean isAllLockedInVault(ZGame game) {
         int vaultZone = -1;
         for (ZCharacter c : game.getAllLivingCharacters()) {
-            ZZone zone = game.board.getZone(c.getOccupiedZone());
+            ZZone zone = game.getBoard().getZone(c.getOccupiedZone());
             if (zone.type != ZZoneType.VAULT) {
                 return false;
             } else {
@@ -100,11 +100,11 @@ public class ZQuestFamine extends ZQuest9x6 {
         }
 
         if (vaultZone >= 0) {
-            if (game.board.getZombiesInZone(vaultZone).size() > 0)
+            if (game.getBoard().getZombiesInZone(vaultZone).size() > 0)
                 return false;
-            ZZone zone = game.board.getZone(vaultZone);
+            ZZone zone = game.getBoard().getZone(vaultZone);
             for (ZDoor door : zone.getDoors()) {
-                if (!door.isClosed(game.board))
+                if (!door.isClosed(game.getBoard()))
                     return false;
             }
         }

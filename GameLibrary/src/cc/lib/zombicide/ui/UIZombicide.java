@@ -10,6 +10,7 @@ import cc.lib.game.AImage;
 import cc.lib.game.GColor;
 import cc.lib.game.GDimension;
 import cc.lib.game.GRectangle;
+import cc.lib.game.IVector2D;
 import cc.lib.game.Justify;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
@@ -32,6 +33,7 @@ import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZIcon;
 import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZTiles;
+import cc.lib.zombicide.ZWeapon;
 import cc.lib.zombicide.ZZombie;
 import cc.lib.zombicide.ZZone;
 
@@ -80,12 +82,6 @@ public abstract class UIZombicide extends ZGame implements ZTiles {
         characterRenderer = new UIZCharacterRenderer(characterComponent);
     }
 
-    void addOverlay(ZAnimation a) {
-        synchronized (overlayAnimations) {
-            overlayAnimations.add(a.start());
-        }
-    }
-
     public UIMode getUiMode() {
         return uiMode;
     }
@@ -97,7 +93,7 @@ public abstract class UIZombicide extends ZGame implements ZTiles {
     static class DeathAnimation extends ZActorAnimation {
 
         DeathAnimation(ZActor a) {
-            super(a, 1500);
+            super(a, 2000);
         }
 
         @Override
@@ -112,6 +108,26 @@ public abstract class UIZombicide extends ZGame implements ZTiles {
         }
     }
 
+    static class HoverMessage extends ZAnimation {
+
+        private final String msg;
+        private final IVector2D center;
+
+        HoverMessage(String msg, IVector2D center) {
+            super(1500);
+            this.msg = msg;
+            this.center = center;
+        }
+
+        @Override
+        protected void draw(AGraphics g, float position, float dt) {
+            Vector2D v = new Vector2D(center);
+            v = v.sub(0, g.getTextHeight()*3f*position);
+            g.setColor(GColor.YELLOW.withAlpha(1f-position));
+            g.drawJustifiedString(v, Justify.LEFT, Justify.BOTTOM, msg);
+        }
+    }
+
     public boolean isAnimating() {
         return actorsAnimating || postActor.size() > 0 || preActor.size() > 0 || overlayAnimations.size() > 0;
     }
@@ -120,18 +136,21 @@ public abstract class UIZombicide extends ZGame implements ZTiles {
         synchronized (preActor) {
             preActor.add(a.start());
         }
+        redraw();
     }
 
     private void addPostActor(ZAnimation a) {
         synchronized (postActor) {
             postActor.add(a.start());
         }
+        redraw();
     }
 
-    private void addOverlayAnim(ZAnimation a) {
+    private void addOverlay(ZAnimation a) {
         synchronized (overlayAnimations) {
             overlayAnimations.add(a.start());
         }
+        redraw();
     }
 
     private synchronized void drawAnimations(List<ZAnimation> anims, AGraphics g) {
@@ -222,7 +241,6 @@ public abstract class UIZombicide extends ZGame implements ZTiles {
     protected void onZombieDestroyed(ZCharacter c, ZZombie zombie) {
         //zombie.addAnimation(new DeathAnimation(zombie));
         addPreActor(new DeathAnimation(zombie));
-        redraw();
     }
 
     @Override
@@ -325,16 +343,7 @@ public abstract class UIZombicide extends ZGame implements ZTiles {
 
     @Override
     protected void onCharacterGainedExperience(ZCharacter c, int points) {
-        addPostActor(new ZAnimation(1500) {
-            @Override
-            protected void draw(AGraphics g, float position, float dt) {
-                Vector2D v = c.getRect().getCenter();
-                v = v.sub(0, g.getTextHeight()*3f*position);
-                g.setColor(GColor.YELLOW.withAlpha(1f-position));
-                g.drawJustifiedString(v, Justify.LEFT, Justify.BOTTOM, String.format("+%d EXP", points));
-            }
-        });
-        redraw();
+        addPostActor(new HoverMessage(String.format("+%d EXP", points), c.getRect().getCenter()));
     }
 
     @Override
@@ -376,13 +385,18 @@ public abstract class UIZombicide extends ZGame implements ZTiles {
                     float radius = r2*RADIUS;
                     float delta = (r-radius)*steps / RADIUS;
                     float alpha = 1 - delta;
-                    log.debug("alpha = %d", Math.round(alpha*100));
+                    //log.debug("alpha = %d", Math.round(alpha*100));
                     g.setColor(GColor.BLACK.withAlpha(alpha));
                     g.drawCircle(rect.getCenter(), radius, 1);
                 }
             }
         });
         waitForAnimationToComplete(1000);
+    }
+
+    @Override
+    protected void onWeaponGoesClick(ZCharacter c, ZWeapon weapon) {
+        addPostActor(new HoverMessage("CLICK", c.getRect().getCenter()));
     }
 
     protected abstract void redraw();
@@ -529,7 +543,6 @@ public abstract class UIZombicide extends ZGame implements ZTiles {
 
             characterRenderer.redraw();
 
-            drawAnimations(overlayAnimations, g);
 
         } else {
 
@@ -583,6 +596,7 @@ public abstract class UIZombicide extends ZGame implements ZTiles {
         }
 
         g.popMatrix();
+        drawAnimations(overlayAnimations, g);
 
         if (isGameOver() && overlayToDraw == null && !isAnimating()) {
             setOverlay(getGameSummaryTable());

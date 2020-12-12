@@ -36,7 +36,7 @@ public class GolfSwing extends AWTKeyboardAnimationApplet {
 
     public static void main(String [] args) {
         AGraphics.DEBUG_ENABLED = true;
-        Utils.DEBUG_ENABLED = true;
+        Utils.setDebugEnabled();
         Golf.DEBUG_ENABLED = true;
         PlayerBot.DEBUG_ENABLED = true;
         AWTFrame frame = new AWTFrame("Golf Card Game");

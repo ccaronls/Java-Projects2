@@ -14,7 +14,7 @@ public abstract class BaseGLSurfaceView extends GLSurfaceView {
     
     private void initView() {
         setRenderer(renderer = newRenderer());
-        if (DroidUtils.DEBUG_ENABLED)
+        if (BuildConfig.DEBUG)
             setDebugFlags(DEBUG_CHECK_GL_ERROR);// | DEBUG_LOG_GL_CALLS);
         setRenderMode(RENDERMODE_WHEN_DIRTY);
         if (!(getContext() instanceof CCActivityBase))

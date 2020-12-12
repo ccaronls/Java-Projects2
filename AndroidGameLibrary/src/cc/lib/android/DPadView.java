@@ -8,7 +8,6 @@ import android.view.MotionEvent;
 import android.widget.ImageView;
 
 import cc.lib.game.GColor;
-import cc.lib.game.Utils;
 
 public class DPadView extends ImageView {
 
@@ -90,7 +89,7 @@ public class DPadView extends ImageView {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        if (Utils.DEBUG_ENABLED && touched) {
+        if (BuildConfig.DEBUG) {
             paint.setColor(GColor.GREEN.toARGB());
             paint.setStrokeWidth(4);
             canvas.drawCircle(cx + dx, cy + dy, 10, paint);

@@ -56,14 +56,15 @@ class BoardComponent extends AWTComponent implements ZTiles {
 
     @Override
     protected void onDimensionChanged(AWTGraphics g, int width, int height) {
-        GDimension cellDim = getGame().board.initCellRects(g, width-5, height-5);
-        int newWidth = (int)cellDim.width * getGame().board.getColumns();
-        int newHeight = (int)cellDim.height * getGame().board.getRows();
+        GDimension cellDim = getGame().getBoard().initCellRects(g, width-5, height-5);
+        int newWidth = (int)cellDim.width * getGame().getBoard().getColumns();
+        int newHeight = (int)cellDim.height * getGame().getBoard().getRows();
         setPreferredSize(newWidth, newHeight);
     }
 
     @Override
     protected synchronized void paint(AWTGraphics g, int mouseX, int mouseY) {
+        g.clearScreen();
         UIZombicide game = getGame();
         if (game != null) {
             game.draw(g, mouseX, mouseY);
@@ -254,22 +255,22 @@ class BoardComponent extends AWTComponent implements ZTiles {
         if (cur != null) {
             switch (e.getKeyCode()) {
                 case KeyEvent.VK_LEFT:
-                    if (game.board.canMove(cur, ZDir.WEST)) {
+                    if (game.getBoard().canMove(cur, ZDir.WEST)) {
                         UIZombicide.getInstance().setResult(ZMove.newWalkDirMove(ZDir.WEST));
                     }
                     break;
                 case KeyEvent.VK_RIGHT:
-                    if (game.board.canMove(cur, ZDir.EAST)) {
+                    if (game.getBoard().canMove(cur, ZDir.EAST)) {
                         UIZombicide.getInstance().setResult(ZMove.newWalkDirMove(ZDir.EAST));
                     }
                     break;
                 case KeyEvent.VK_UP:
-                    if (game.board.canMove(cur, ZDir.NORTH)) {
+                    if (game.getBoard().canMove(cur, ZDir.NORTH)) {
                         UIZombicide.getInstance().setResult(ZMove.newWalkDirMove(ZDir.NORTH));
                     }
                     break;
                 case KeyEvent.VK_DOWN:
-                    if (game.board.canMove(cur, ZDir.SOUTH)) {
+                    if (game.getBoard().canMove(cur, ZDir.SOUTH)) {
                         UIZombicide.getInstance().setResult(ZMove.newWalkDirMove(ZDir.SOUTH));
                     }
                     break;

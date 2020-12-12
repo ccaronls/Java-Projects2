@@ -81,8 +81,8 @@ public class ZQuestDeadTrail extends ZQuest9x6 {
         super.processObjective(game, c, move);
         if (move.integer == blueKeyZone) {
             game.getCurrentUser().showMessage(c.name() + " has found the BLUE key. Violet Vault doos UNLOCKED!");
-            game.board.setDoor(violetVault1, ZWallFlag.CLOSED);
-            game.board.setDoor(violetVault2, ZWallFlag.CLOSED);
+            game.getBoard().setDoor(violetVault1, ZWallFlag.CLOSED);
+            game.getBoard().setDoor(violetVault2, ZWallFlag.CLOSED);
             blueKeyZone = -1;
         } else if (move.integer == greenKeyZone) {
             game.getCurrentUser().showMessage(c.name() + " has found the GREEN key.");
@@ -90,7 +90,7 @@ public class ZQuestDeadTrail extends ZQuest9x6 {
         }
         if (blueKeyZone < 0 && greenKeyZone < 0) {
             game.getCurrentUser().showMessage("Gold Vault door UNLOCKED");
-            game.board.setDoor(goldVault, ZWallFlag.CLOSED);
+            game.getBoard().setDoor(goldVault, ZWallFlag.CLOSED);
         }
     }
 
@@ -111,9 +111,9 @@ public class ZQuestDeadTrail extends ZQuest9x6 {
             greenKeyZone = Utils.randItem(redObjectives);
             blueKeyZone = Utils.randItem(redObjectives);
         }
-        game.board.setDoor(violetVault1, ZWallFlag.LOCKED);
-        game.board.setDoor(violetVault2, ZWallFlag.LOCKED);
-        game.board.setDoor(goldVault, ZWallFlag.LOCKED);
+        game.getBoard().setDoor(violetVault1, ZWallFlag.LOCKED);
+        game.getBoard().setDoor(violetVault2, ZWallFlag.LOCKED);
+        game.getBoard().setDoor(goldVault, ZWallFlag.LOCKED);
     }
 
     @Override

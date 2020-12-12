@@ -1,14 +1,14 @@
 package cc.android.game.robots;
 
-import cc.lib.android.BaseRenderer;
-import cc.lib.android.GL10Graphics;
-import cc.lib.game.Utils;
 import android.content.Context;
 import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
+
+import cc.lib.android.BaseRenderer;
+import cc.lib.android.GL10Graphics;
 
 public class RoboView extends GLSurfaceView { 
 
@@ -28,7 +28,7 @@ public class RoboView extends GLSurfaceView {
     	if (!isInEditMode())
     		robotron = new Robotron();
         setRenderer(roboRenderer = new RoboRenderer());
-        if (Utils.DEBUG_ENABLED)
+        if (BuildConfig.DEBUG)
             setDebugFlags(DEBUG_CHECK_GL_ERROR);// | DEBUG_LOG_GL_CALLS);
         setRenderMode(RENDERMODE_WHEN_DIRTY);
         //this.setOnTouchListener(this);

@@ -178,7 +178,7 @@ public enum ZSkill implements IButton {
         public boolean modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
             switch (type) {
                 case MOVE:
-                    return game.board.getZombiesInZone(character.occupiedZone).size() == 0;
+                    return game.getBoard().getZombiesInZone(character.occupiedZone).size() == 0;
             }
             return false;
         }
@@ -189,7 +189,7 @@ public enum ZSkill implements IButton {
         @Override
         public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game) {
             if (actionType == ZActionType.MELEE) {
-                int num = game.board.getZombiesInZone(character.occupiedZone).size();
+                int num = game.getBoard().getZombiesInZone(character.occupiedZone).size();
                 stat.numDice = Math.max(num, stat.numDice);
             }
         }
@@ -200,10 +200,10 @@ public enum ZSkill implements IButton {
         public void addSpecialMoves(ZGame game, ZCharacter character, List<ZMove> moves) {
             List<Integer> zones = new ArrayList<>();
             for (int distance=1; distance<=2; distance++) {
-                zones.addAll(Utils.filter(game.board.getAccessableZones(character.getOccupiedZone(), distance, ZActionType.MOVE), new Utils.Filter<Integer>() {
+                zones.addAll(Utils.filter(game.getBoard().getAccessableZones(character.getOccupiedZone(), distance, ZActionType.MOVE), new Utils.Filter<Integer>() {
                     @Override
                     public boolean keep(Integer object) {
-                        return game.board.getZombiesInZone(object).size() > 0;
+                        return game.getBoard().getZombiesInZone(object).size() > 0;
                     }
                 }));
             }
@@ -223,10 +223,10 @@ public enum ZSkill implements IButton {
             if (character.getMagicWeapons().size() > 0) {
                 List<Integer> zones = new ArrayList<>();
                 for (int distance=1; distance<=2; distance++) {
-                    zones.addAll(Utils.filter(game.board.getAccessableZones(character.getOccupiedZone(), distance, ZActionType.MOVE), new Utils.Filter<Integer>() {
+                    zones.addAll(Utils.filter(game.getBoard().getAccessableZones(character.getOccupiedZone(), distance, ZActionType.MOVE), new Utils.Filter<Integer>() {
                         @Override
                         public boolean keep(Integer object) {
-                            return game.board.getZombiesInZone(object).size() > 0;
+                            return game.getBoard().getZombiesInZone(object).size() > 0;
                         }
                     }));
                 }
@@ -240,10 +240,10 @@ public enum ZSkill implements IButton {
             if (character.getMeleeWeapons().size() > 0) {
                 List<Integer> zones = new ArrayList<>();
                 for (int distance=1; distance<=2; distance++) {
-                    zones.addAll(Utils.filter(game.board.getAccessableZones(character.getOccupiedZone(), distance, ZActionType.MOVE), new Utils.Filter<Integer>() {
+                    zones.addAll(Utils.filter(game.getBoard().getAccessableZones(character.getOccupiedZone(), distance, ZActionType.MOVE), new Utils.Filter<Integer>() {
                         @Override
                         public boolean keep(Integer object) {
-                            return game.board.getZombiesInZone(object).size() > 0;
+                            return game.getBoard().getZombiesInZone(object).size() > 0;
                         }
                     }));
                 }
@@ -257,10 +257,10 @@ public enum ZSkill implements IButton {
             if (character.getRangedWeapons().size() > 0) {
                 List<Integer> zones = new ArrayList<>();
                 for (int distance=1; distance<=2; distance++) {
-                    zones.addAll(Utils.filter(game.board.getAccessableZones(character.getOccupiedZone(), distance, ZActionType.MOVE), new Utils.Filter<Integer>() {
+                    zones.addAll(Utils.filter(game.getBoard().getAccessableZones(character.getOccupiedZone(), distance, ZActionType.MOVE), new Utils.Filter<Integer>() {
                         @Override
                         public boolean keep(Integer object) {
-                            return game.board.getZombiesInZone(object).size() > 0;
+                            return game.getBoard().getZombiesInZone(object).size() > 0;
                         }
                     }));
                 }
@@ -422,7 +422,7 @@ public enum ZSkill implements IButton {
         @Override
         public void addSpecialMoves(ZGame game, ZCharacter character, List<ZMove> moves) {
             if (!moves.contains(ZMoveType.SEARCH)) {
-                if (game.board.getZombiesInZone(character.getOccupiedZone()).size() == 0) {
+                if (game.getBoard().getZombiesInZone(character.getOccupiedZone()).size() == 0) {
                     moves.add(ZMove.newSearchMove(character.getOccupiedZone()));
                 }
             }
@@ -433,8 +433,8 @@ public enum ZSkill implements IButton {
         @Override
         public void addSpecialMoves(ZGame game, ZCharacter character, List<ZMove> moves) {
             // if zombies stand in zone with character they can be shoved away
-            if (game.board.getZombiesInZone(character.getOccupiedZone()).size() > 0) {
-                List<Integer> shovable = game.board.getAccessableZones(character.getOccupiedZone(), 1, ZActionType.MOVE);
+            if (game.getBoard().getZombiesInZone(character.getOccupiedZone()).size() > 0) {
+                List<Integer> shovable = game.getBoard().getAccessableZones(character.getOccupiedZone(), 1, ZActionType.MOVE);
                 if (shovable.size() > 0) {
                     moves.add(ZMove.newShoveMove(shovable));
                 }

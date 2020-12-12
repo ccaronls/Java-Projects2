@@ -1,6 +1,5 @@
 package cc.android.pacboy;
 
-import cc.lib.game.Utils;
 import android.content.Context;
 import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
@@ -13,7 +12,7 @@ public class PacBoyView extends GLSurfaceView {
 	private void initView() {
 		if (!isInEditMode()) {
 			setRenderer(pb = new PacBoyRenderer(this));
-			if (Utils.DEBUG_ENABLED)
+			if (BuildConfig.DEBUG)
                 setDebugFlags(DEBUG_CHECK_GL_ERROR);// | DEBUG_LOG_GL_CALLS);
             setRenderMode(RENDERMODE_WHEN_DIRTY);
             setOnTouchListener(pb);

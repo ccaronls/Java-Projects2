@@ -1,11 +1,5 @@
 package cc.game.android.yahtzee;
 
-import java.util.List;
-
-import cc.game.yahtzee.core.YahtzeeRules;
-import cc.game.yahtzee.core.YahtzeeSlot;
-import cc.game.yahtzee.core.YahtzeeState;
-import cc.lib.game.Utils;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -18,6 +12,14 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import java.util.Arrays;
+import java.util.List;
+
+import cc.game.yahtzee.core.YahtzeeRules;
+import cc.game.yahtzee.core.YahtzeeSlot;
+import cc.game.yahtzee.core.YahtzeeState;
+import cc.lib.game.Utils;
 
 public class YahtzeeActivity extends Activity implements OnClickListener {
 
@@ -166,7 +168,7 @@ public class YahtzeeActivity extends Activity implements OnClickListener {
 	void chooseSlot(YahtzeeSlot slot) {
 		slotChoice = slot;
 		slotAdapter.notifyDataSetChanged();
-		Utils.fillArray(keepers, false);
+        Arrays.fill(keepers, false);
 	}
 
 	@Override

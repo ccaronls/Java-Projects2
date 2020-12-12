@@ -21,7 +21,6 @@ import cc.lib.game.AAnimation;
 import cc.lib.game.AGraphics;
 import cc.lib.game.GColor;
 import cc.lib.game.Utils;
-import cc.lib.swing.AWTGraphics;
 import cc.lib.swing.AWTFrame;
 import cc.lib.swing.AWTKeyboardAnimationApplet;
 import cc.lib.utils.FileUtils;
@@ -29,7 +28,7 @@ import cc.lib.utils.FileUtils;
 public class OthelloApplet extends AWTKeyboardAnimationApplet implements ActionListener {
 
     public static void main(String [] args) {
-        Utils.DEBUG_ENABLED = true;
+        Utils.setDebugEnabled();
         Utils.setRandomSeed(0);
         AWTFrame frame = new AWTFrame("JavaRoids Debug Mode");
         AWTKeyboardAnimationApplet app = new OthelloApplet(frame);

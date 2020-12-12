@@ -1,16 +1,11 @@
 package cc.game.roids.applet;
 
-import java.awt.event.FocusEvent;
-
-import javax.swing.Timer;
-
 import cc.game.roids.core.Roids;
 import cc.game.roids.core.Roids.DragMode;
 import cc.lib.game.AGraphics;
 import cc.lib.game.GColor;
 import cc.lib.game.Justify;
 import cc.lib.game.Utils;
-import cc.lib.swing.AWTGraphics;
 import cc.lib.swing.AWTFrame;
 import cc.lib.swing.AWTKeyboardAnimationApplet;
 import cc.lib.utils.StopWatch;
@@ -18,7 +13,7 @@ import cc.lib.utils.StopWatch;
 public class RoidsApplet extends AWTKeyboardAnimationApplet {
 
     public static void main(String [] args) {
-        Utils.DEBUG_ENABLED = true;
+        Utils.setDebugEnabled();
         Utils.setRandomSeed(0);
         AWTFrame frame = new AWTFrame("JavaRoids Debug Mode");
         AWTKeyboardAnimationApplet app = new RoidsApplet();

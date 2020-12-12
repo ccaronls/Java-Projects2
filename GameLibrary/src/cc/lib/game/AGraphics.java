@@ -56,17 +56,6 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     public abstract GColor getColor();
 
     /**
-     * Clearing
-     */
-    public abstract void setBackgroundColor(GColor color);
-
-    /**
-     * Clear color
-     * @return
-     */
-    public abstract GColor getBackgroundColor();
-
-    /**
      * 
      */
     public final int getViewportWidth() {
@@ -1797,13 +1786,6 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param color
      */
     public abstract void clearScreen(GColor color);
-
-    /**
-     *
-     */
-    public void clearScreen() {
-        clearScreen(getBackgroundColor());
-    }
 
     /**
      * 

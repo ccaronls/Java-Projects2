@@ -1,16 +1,18 @@
 package cc.android.game.robots;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-
 import android.os.SystemClock;
 import android.util.Log;
 
-//import android.view.MotionEvent;
+import java.util.ArrayList;
+import java.util.Arrays;
 
-import cc.lib.android.*;
-import cc.lib.game.*;
+import cc.lib.android.GL10Graphics;
+import cc.lib.game.GColor;
+import cc.lib.game.Justify;
+import cc.lib.game.Utils;
 import cc.lib.math.CMath;
+
+//import android.view.MotionEvent;
 
 // Undependent transferable 
 public class Robotron {
@@ -972,12 +974,12 @@ public class Robotron {
         
         Powerup p = null;
         if (num_powerups < MAX_POWERUPS) {
-            if (Utils.DEBUG_ENABLED)
+            if (BuildConfig.DEBUG)
                 Utils.println("addPowerup x[" + x + "] y[" + y + "] type [" + this.getPowerupTypeString(type) + "]");
             p = powerups[num_powerups++];
         } else {
             int index = Utils.rand() % MAX_POWERUPS;
-            if (Utils.DEBUG_ENABLED)
+            if (BuildConfig.DEBUG)
                 Utils.println("replace Powerup [" + index + "] with x[" + x + "] y[" + y + "] type [" + this.getPowerupTypeString(type) + "]");
             p = powerups[index];
         }
@@ -3948,7 +3950,7 @@ public class Robotron {
             for (int i=0; i<5; i++)
                 this.addParticle(player_x, player_y, PARTICLE_TYPE_PLAYER_STUN, Utils.randRange(10,20));
         }   
-        if (Utils.DEBUG_ENABLED) {
+        if (BuildConfig.DEBUG) {
             g.setColor(GColor.BLUE);
             g.drawRect(px-1, py-1,3,3);
         }
@@ -4507,7 +4509,7 @@ public class Robotron {
         Utils.computeBezierCurvePoints(bezier_pts_x, bezier_pts_y,x0,y0,x2,y2,x2,y2,x1,y1);
         
         g.drawLineStrip(bezier_pts_x, bezier_pts_y, thickness);
-        if (Utils.DEBUG_ENABLED) {
+        if (BuildConfig.DEBUG) {
             int x = Math.round(x2);
             int y = Math.round(y2);
             g.drawRect(x,y,1,1);
@@ -4538,7 +4540,7 @@ public class Robotron {
             Utils.computeBezierCurvePoints(bezier_pts_x, bezier_pts_y,x0,y0,x2,y2,x2,y2,x1,y1);
             
             g.drawLineStrip(bezier_pts_x, bezier_pts_y, thickness);
-            if (Utils.DEBUG_ENABLED) {
+            if (BuildConfig.DEBUG) {
                 int x = Math.round(x2);
                 int y = Math.round(y2);
                 g.drawRect(x,y,1,1);
@@ -5124,7 +5126,7 @@ public class Robotron {
             }
         }
         
-        //if (Utils.DEBUG_ENABLED)
+        //if (BuildConfig.DEBUG)
         //  Utils.println("vertex wall count : " + Utils.toString(vertex_wall_count));
         
         // now visit all the wall again and set the 'ending' flag for those walls
@@ -5922,7 +5924,7 @@ public class Robotron {
 
         //String debug = this.getParameter("debug");
         //if (debug != null && debug.equals("true"))
-            //Utils.DEBUG_ENABLED = true;
+            //BuildConfig.DEBUG = true;
 
         Utils.println(" INITIALIZATION ");
         
@@ -5932,7 +5934,7 @@ public class Robotron {
         initTables(5, 3);
         buildAndPopulateLevel();
         
-        //if (Utils.DEBUG_ENABLED)
+        //if (BuildConfig.DEBUG)
           //  Utils.setRandomSeed(0);
         
     }
@@ -6339,7 +6341,7 @@ public class Robotron {
             if (this.game_type != GAME_TYPE_CLASSIC)
                 drawEnd(g, end_x - screen_x, end_y - screen_y);
             drawPlayerInfo(g);
-            if (Utils.DEBUG_ENABLED) { 
+            if (BuildConfig.DEBUG) {
                 drawDebug(g);
                 drawDebugButtons(g);
             }
@@ -6515,7 +6517,7 @@ public class Robotron {
         if (evt.getKeyChar() == pswd.charAt(pswdIndex)) {
             pswdIndex++;
             if (pswdIndex >= pswd.length()) {
-                Utils.DEBUG_ENABLED = !Utils.DEBUG_ENABLED;
+                BuildConfig.DEBUG = !BuildConfig.DEBUG;
                 pswdIndex = 0;
             }
         } else {
@@ -6524,7 +6526,7 @@ public class Robotron {
                 pswdIndex = 1;
         }               
         
-        if (Utils.DEBUG_ENABLED) {
+        if (BuildConfig.DEBUG) {
             int index = evt.getKeyChar() - '0';
             if (index >= 0 && index < debug_enabled.length) {
                 debug_enabled[index] = !debug_enabled[index];
@@ -6765,7 +6767,7 @@ public class Robotron {
         if (evt.getKeyChar() == pswd.charAt(pswdIndex)) {
             pswdIndex++;
             if (pswdIndex >= pswd.length()) {
-                Utils.DEBUG_ENABLED = !Utils.DEBUG_ENABLED;
+                BuildConfig.DEBUG = !BuildConfig.DEBUG;
                 pswdIndex = 0;
             }
         } else {
@@ -6774,7 +6776,7 @@ public class Robotron {
                 pswdIndex = 1;
         }               
         
-        if (Utils.DEBUG_ENABLED) {
+        if (BuildConfig.DEBUG) {
             int index = evt.getKeyChar() - '0';
             if (index >= 0 && index < debug_enabled.length) {
                 debug_enabled[index] = !debug_enabled[index];
@@ -6849,7 +6851,7 @@ public class Robotron {
             player_score = 0;
             game_state = GAME_STATE_PLAY;
             
-            if (Utils.DEBUG_ENABLED)
+            if (BuildConfig.DEBUG)
                 Utils.setRandomSeed(0);
             
             buildAndPopulateLevel();
@@ -6989,7 +6991,7 @@ public class Robotron {
                                         player_score = 0;
                                         game_state = GAME_STATE_PLAY;
                                         
-                                        if (Utils.DEBUG_ENABLED)
+                                        if (BuildConfig.DEBUG)
                                             Utils.setRandomSeed(0);
                                         else
                                             Utils.setRandomSeed(System.currentTimeMillis());

@@ -48,11 +48,11 @@ public class ZQuestBigGameHunting extends ZQuest {
     public void processObjective(ZGame game, ZCharacter c, ZMove move) {
         super.processObjective(game, c, move);
         // check for necro / abom in special spawn places
-        game.board.getZone(c.getOccupiedZone()).objective = false;
+        game.getBoard().getZone(c.getOccupiedZone()).objective = false;
         if (move.integer == blueRevealZone) {
             redObjectives.add(blueObjZone);
             game.getCurrentUser().showMessage("The Labratory objective is revealed!");
-            game.board.getZone(blueObjZone).objective = true;
+            game.getBoard().getZone(blueObjZone).objective = true;
             game.spawnZombies(1, ZZombieType.Necromancer, blueObjZone);
             blueRevealZone = -1;
         }
@@ -76,7 +76,7 @@ public class ZQuestBigGameHunting extends ZQuest {
     @Override
     public void init(ZGame game) {
         blueRevealZone = Utils.randItem(redObjectives);
-        game.board.getZone(blueObjZone).objective = false; // this does not get revealed until the blueRevealZone found
+        game.getBoard().getZone(blueObjZone).objective = false; // this does not get revealed until the blueRevealZone found
     }
 
     @Omit

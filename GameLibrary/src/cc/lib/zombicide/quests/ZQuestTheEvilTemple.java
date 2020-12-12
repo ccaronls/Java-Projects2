@@ -110,8 +110,8 @@ public class ZQuestTheEvilTemple extends ZQuest9x6 {
             blueObjZone = Utils.randItem(redObjectives);
             greenObjZone = Utils.randItem(redObjectives);
         }
-        game.board.setDoor(goldVaultDoor, ZWallFlag.LOCKED);
-        game.board.setDoor(violetVaultDoor, ZWallFlag.LOCKED);
+        game.getBoard().setDoor(goldVaultDoor, ZWallFlag.LOCKED);
+        game.getBoard().setDoor(violetVaultDoor, ZWallFlag.LOCKED);
     }
 
     @Override

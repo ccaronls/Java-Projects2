@@ -84,13 +84,11 @@ public class AWTGraphics extends APGraphics {
         return new GColor(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
     }
 
-    @Override
     public GColor getBackgroundColor() {
         Color c = comp.getBackground();
         return new GColor(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
     }
 
-    @Override
     public void setBackgroundColor(GColor color) {
         comp.setBackground(new Color(color.toARGB(), true));
     }

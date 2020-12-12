@@ -74,7 +74,7 @@ public abstract class MissleCommand {
 			//initGameStateGetReady();
 			break;
 		}
-		if (Utils.DEBUG_ENABLED) {
+		if (Utils.isDebugEnabled()) {
 			g.setColor(this.getEnemyMissleColor());
 			fillCircle(g, getPointerX(), this.getLandHeight(width, getPointerX()), 3);
 		}

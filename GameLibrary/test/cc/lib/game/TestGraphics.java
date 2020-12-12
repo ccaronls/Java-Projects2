@@ -36,6 +36,16 @@ public class TestGraphics extends APGraphics {
     }
 
     @Override
+    public void setBackgroundColor(GColor color) {
+
+    }
+
+    @Override
+    public GColor getBackgroundColor() {
+        return null;
+    }
+
+    @Override
     public int getTextHeight() {
         return 0;
     }
@@ -214,4 +224,6 @@ public class TestGraphics extends APGraphics {
     public void removeFilter() {
 
     }
+
+
 }

@@ -1016,12 +1016,12 @@ public class Robotron {
         
         Powerup p = null;
         if (num_powerups < MAX_POWERUPS) {
-            if (Utils.DEBUG_ENABLED)
+            if (Utils.isDebugEnabled())
                 Utils.println("addPowerup x[" + x + "] y[" + y + "] type [" + this.getPowerupTypeString(type) + "]");
             p = powerups[num_powerups++];
         } else {
             int index = Utils.rand() % MAX_POWERUPS;
-            if (Utils.DEBUG_ENABLED)
+            if (Utils.isDebugEnabled())
                 Utils.println("replace Powerup [" + index + "] with x[" + x + "] y[" + y + "] type [" + this.getPowerupTypeString(type) + "]");
             p = powerups[index];
         }
@@ -4172,7 +4172,7 @@ public class Robotron {
             for (int i=0; i<5; i++)
                 this.addParticle(player.x, player.y, PARTICLE_TYPE_PLAYER_STUN, Utils.randRange(10,20), player);
         } */  
-        if (Utils.DEBUG_ENABLED) {
+        if (Utils.isDebugEnabled()) {
             g.setColor(GColor.BLUE);
             g.drawRect(px-1, py-1,3,3);
         }
@@ -4741,7 +4741,7 @@ public class Robotron {
         Utils.computeBezierCurvePoints(bezier_pts_x, bezier_pts_y,x0,y0,x2,y2,x2,y2,x1,y1);
         
         g.drawLineStrip(bezier_pts_x, bezier_pts_y, thickness);
-        if (Utils.DEBUG_ENABLED) {
+        if (Utils.isDebugEnabled()) {
             int x = Math.round(x2);
             int y = Math.round(y2);
             g.drawRect(x,y,1,1);
@@ -4772,7 +4772,7 @@ public class Robotron {
             Utils.computeBezierCurvePoints(bezier_pts_x, bezier_pts_y,x0,y0,x2,y2,x2,y2,x1,y1);
             
             g.drawLineStrip(bezier_pts_x, bezier_pts_y, thickness);
-            if (Utils.DEBUG_ENABLED) {
+            if (Utils.isDebugEnabled()) {
                 int x = Math.round(x2);
                 int y = Math.round(y2);
                 g.drawRect(x,y,1,1);
@@ -5417,7 +5417,7 @@ public class Robotron {
             }
         }
         
-        //if (Utils.DEBUG_ENABLED)
+        //if (Utils.isDebugEnabled())
         //  Utils.println("vertex wall count : " + Utils.toString(vertex_wall_count));
         
         // now visit all the wall again and set the 'ending' flag for those walls
@@ -6654,7 +6654,7 @@ public class Robotron {
             if (this.game_type != GAME_TYPE_CLASSIC)
                 drawEnd(g, end_x - screen_x, end_y - screen_y);
             drawPlayerInfo(players[0], g);
-            if (Utils.DEBUG_ENABLED) { 
+            if (Utils.isDebugEnabled()) {
                 drawDebug(g);
                 drawDebugButtons(g);
             }
@@ -6877,7 +6877,7 @@ public class Robotron {
                     for (int i=0; i<num_players; i++)
                         newPlayerGame(players[i]);
                     
-                    if (Utils.DEBUG_ENABLED)
+                    if (Utils.isDebugEnabled())
                         Utils.setRandomSeed(0);
                     else
                         Utils.setRandomSeed(getClock());

@@ -82,12 +82,12 @@ public class ZQuestTutorial extends ZQuest {
     public void processObjective(ZGame game, ZCharacter c, ZMove move) {
         super.processObjective(game, c, move);
         if (move.integer == blueKeyZone) {
-            game.board.setDoor(blueDoor, ZWallFlag.CLOSED);
+            game.getBoard().setDoor(blueDoor, ZWallFlag.CLOSED);
             game.getCurrentUser().showMessage(c.name() + " has unlocked the BLUE door");
             blueKeyZone = -1;
         } else if (move.integer == greenKeyZone) {
-            game.board.setDoor(greenDoor, ZWallFlag.CLOSED);
-            game.board.setSpawnZone(greenSpawnZone, true);
+            game.getBoard().setDoor(greenDoor, ZWallFlag.CLOSED);
+            game.getBoard().setSpawnZone(greenSpawnZone, true);
             game.spawnZombies(greenSpawnZone);
             game.getCurrentUser().showMessage(c.name() + " has unlocked the GREEN door");
             game.getCurrentUser().showMessage(c.name() + " has created a new spawn zone!");
@@ -122,8 +122,8 @@ public class ZQuestTutorial extends ZQuest {
     @Override
     public void init(ZGame game) {
         greenKeyZone = Utils.randItem(redObjectives);
-        game.board.setDoorLocked(blueDoor);
-        game.board.setDoorLocked(greenDoor);
+        game.getBoard().setDoorLocked(blueDoor);
+        game.getBoard().setDoorLocked(greenDoor);
         redObjectives.add(blueKeyZone); // call this after putting the greenKeyRandomly amongst the red objectives
         numRedZones = redObjectives.size();
     }
@@ -149,8 +149,8 @@ public class ZQuestTutorial extends ZQuest {
     public Table getObjectivesOverlay(ZGame game) {
         return new Table(getName())
                 .addRow(new Table().setNoBorder()
-                    .addRow("1.", "Unlock the BLUE Door.", game.board.getDoor(blueDoor) != ZWallFlag.LOCKED)
-                    .addRow("2.", "Unlock the GREEN Door.", game.board.getDoor(greenDoor) != ZWallFlag.LOCKED)
+                    .addRow("1.", "Unlock the BLUE Door.", game.getBoard().getDoor(blueDoor) != ZWallFlag.LOCKED)
+                    .addRow("2.", "Unlock the GREEN Door.", game.getBoard().getDoor(greenDoor) != ZWallFlag.LOCKED)
                     .addRow("3.", String.format("Collect all Objectives for %d EXP Each", OBJECTIVE_EXP), String.format("%d of %d", numRedZones- redObjectives.size(), numRedZones))
                     .addRow("4.", "Get all players into the EXIT zone.", isQuestComplete(game))
                     .addRow("5.", "Exit zone must be cleared of zombies.")
@@ -160,7 +160,7 @@ public class ZQuestTutorial extends ZQuest {
 
     @Override
     public boolean isQuestComplete(ZGame game) {
-        if (game.board.getZombiesInZone(exitZone).size() > 0)
+        if (game.getBoard().getZombiesInZone(exitZone).size() > 0)
             return false;
         for (ZCharacter c : game.getAllCharacters()) {
             if (c.getOccupiedZone() != exitZone)

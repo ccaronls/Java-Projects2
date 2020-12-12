@@ -1,17 +1,16 @@
 package cc.game.slot;
 
-import cc.lib.game.GColor;
-import cc.lib.swing.AWTGraphics;
-import cc.lib.swing.AWTFrame;
-import cc.lib.swing.AWTKeyboardAnimationApplet;
 import cc.lib.game.AGraphics;
+import cc.lib.game.GColor;
 import cc.lib.game.Justify;
 import cc.lib.game.Utils;
+import cc.lib.swing.AWTFrame;
+import cc.lib.swing.AWTKeyboardAnimationApplet;
 
 public class SlotMachine extends AWTKeyboardAnimationApplet {
 
     public static void main(String[] args) {
-        Utils.DEBUG_ENABLED = true;
+        Utils.setDebugEnabled();
         AWTKeyboardAnimationApplet app = new SlotMachine();
         AWTFrame frame = new AWTFrame("SlotMachine DEBUG");
         frame.add(app);
@@ -70,7 +69,7 @@ public class SlotMachine extends AWTKeyboardAnimationApplet {
 		int cx = maxX / 2;
 		int cy = maxY / 2;
 		
-		if (Utils.DEBUG_ENABLED && this.getKeyboard('q'))
+		if (Utils.isDebugEnabled() && this.getKeyboard('q'))
 			System.exit(0);
 		
 		switch (state) {

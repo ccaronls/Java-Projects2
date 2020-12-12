@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.swing.JComponent;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
@@ -35,6 +36,7 @@ import cc.lib.swing.AWTPanel;
 import cc.lib.swing.AWTToggleButton;
 import cc.lib.ui.IButton;
 import cc.lib.utils.FileUtils;
+import cc.lib.zombicide.ZDiffuculty;
 import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZUser;
@@ -152,6 +154,7 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
             e.printStackTrace();
             game.loadQuest(ZQuests.Tutorial);
         }
+        game.setDifficulty(ZDiffuculty.valueOf(getStringProperty("difficulty", ZDiffuculty.MEDIUM.name())));
         initHomeMenu();
     }
 
@@ -163,6 +166,7 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
         LOAD,
         ASSIGN,
         SUMMARY,
+        DIFFICULTY,
         OBJECTIVES;
 
         boolean isHomeButton(ZombicideApplet instance) {
@@ -170,12 +174,14 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
                 case LOAD:
                 case START:
                 case ASSIGN:
+                case DIFFICULTY:
                     return true;
                 case RESUME:
                     return instance.gameFile != null && instance.gameFile.exists();
             }
             return false;
         }
+
     }
 
     UIZombicide game;
@@ -206,7 +212,8 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        switch (MenuItem.valueOf(e.getActionCommand())) {
+        MenuItem item = MenuItem.valueOf(e.getActionCommand());
+        switch (item) {
             case START:
                 game.reload();
                 game.setOverlay(game.getQuest().getObjectivesOverlay(game));
@@ -298,6 +305,14 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
                 menuContainer.validate();
                 break;
             }
+            case DIFFICULTY:
+                ZDiffuculty difficulty = (ZDiffuculty) JOptionPane.showInputDialog(this, "Set Difficulty", "DIFFICULTY", JOptionPane.PLAIN_MESSAGE, null,
+                        ZDiffuculty.values(), game.getDifficulty());
+                if (difficulty != null) {
+                    game.setDifficulty(difficulty);
+                    setStringProperty("difficulty", difficulty.name());
+                }
+                break;
             default:
                 log.error("Unhandled action: " + e.getActionCommand());
         }
@@ -348,7 +363,6 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
         }
     }
 
-
     void initMenu(UIZombicide.UIMode mode, List options) {
         menu.removeAll();
         switch (mode) {
@@ -378,6 +392,7 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
         }
         menu.add(new AWTButton(MenuItem.SUMMARY.name(), this));
         menu.add(new AWTButton(MenuItem.OBJECTIVES.name(), this));
+        menu.add(new AWTButton(MenuItem.DIFFICULTY.name(), this));
         menu.add(new AWTButton(MenuItem.QUIT.name(), this));
         menuContainer.validate();
     }

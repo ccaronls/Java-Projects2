@@ -39,7 +39,6 @@ public class UIZCharacterRenderer extends UIRenderer {
 
     @Override
     public synchronized void draw(APGraphics g, int px, int py) {
-        g.clearScreen();
         if (getGame() == null)
             return;
         GDimension info = null;

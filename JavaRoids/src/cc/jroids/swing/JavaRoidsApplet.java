@@ -8,7 +8,6 @@ import cc.lib.game.AGraphics;
 import cc.lib.game.Utils;
 import cc.lib.swing.AWTFrame;
 import cc.lib.swing.AWTKeyboardAnimationApplet;
-import cc.lib.swing.AWTUtils;
 import cc.lib.utils.FileUtils;
 
 /**
@@ -35,7 +34,7 @@ public class JavaRoidsApplet extends AWTKeyboardAnimationApplet {
     };
 
     public static void main(String [] args) {
-        Utils.DEBUG_ENABLED = true;
+        Utils.setDebugEnabled();
         AWTFrame frame = new AWTFrame("JavaRoids Debug Mode");
         AWTKeyboardAnimationApplet app = new JavaRoidsApplet();
         frame.add(app);

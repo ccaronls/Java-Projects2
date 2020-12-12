@@ -1253,4 +1253,14 @@ for (int pix : pixels) {
     public GRectangle getClipRect() {
         throw new RuntimeException("not implemented: getClipRect");
     }
+
+    @Override
+    public void setTransparencyFilter(float alpha) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    @Override
+    public void removeFilter() {
+
+    }
 }

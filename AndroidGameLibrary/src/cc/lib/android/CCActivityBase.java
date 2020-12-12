@@ -47,7 +47,7 @@ public class CCActivityBase extends Activity {
 	@Override
 	protected void onCreate(Bundle bundle) {
         if (BuildConfig.DEBUG) {
-            Utils.DEBUG_ENABLED = true;
+            Utils.setDebugEnabled();
         }
 	    super.onCreate(bundle);
 	}

@@ -45,6 +45,10 @@ public class Utils {
         randGen = new Random(0);
     }
 
+    public static boolean isDebugEnabled() {
+        return DEBUG_ENABLED;
+    }
+
     // FUCNTIONS
 
     /**

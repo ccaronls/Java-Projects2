@@ -16,7 +16,7 @@ import cc.lib.swing.AWTKeyboardAnimationApplet;
 public class LevelBuilder extends AWTKeyboardAnimationApplet {
 
 	public static void main(String[] args) {
-        Utils.DEBUG_ENABLED = true;
+        Utils.setDebugEnabled();
         final LevelBuilder app = new LevelBuilder();
         AWTFrame frame = new AWTFrame("Animation Maker") {
         	

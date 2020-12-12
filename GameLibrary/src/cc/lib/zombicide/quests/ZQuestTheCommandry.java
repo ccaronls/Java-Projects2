@@ -72,12 +72,12 @@ public class ZQuestTheCommandry extends ZQuest9x6 {
         super.processObjective(game, c, move);
         if (move.integer == blueDoorKeyZone) {
             game.getCurrentUser().showMessage(c.name() + " has unlocked the Blue Door");
-            game.board.setDoor(blueDoor, ZWallFlag.CLOSED);
+            game.getBoard().setDoor(blueDoor, ZWallFlag.CLOSED);
         }
 
         if (move.integer == greenDoorKeyZone) {
             game.getCurrentUser().showMessage(c.name() + " has unlocked the Green Door");
-            game.board.setDoor(greenDoor, ZWallFlag.CLOSED);
+            game.getBoard().setDoor(greenDoor, ZWallFlag.CLOSED);
         }
     }
 
@@ -107,8 +107,8 @@ public class ZQuestTheCommandry extends ZQuest9x6 {
             greenDoorKeyZone = Utils.randItem(redObjectives);
             blueDoorKeyZone = Utils.randItem(redObjectives);
         }
-        game.board.setDoorLocked(blueDoor);
-        game.board.setDoorLocked(greenDoor);
+        game.getBoard().setDoorLocked(blueDoor);
+        game.getBoard().setDoorLocked(greenDoor);
     }
 
     @Override
@@ -116,8 +116,8 @@ public class ZQuestTheCommandry extends ZQuest9x6 {
         return new Table(getName())
                 .addRow(new Table().setNoBorder()
                     .addRow("1.", "Escape through the underpass.")
-                    .addRow("2.", "Unlock the Green Door", game.board.getDoor(greenDoor) != ZWallFlag.LOCKED)
-                    .addRow("3.", "Unlock the Blue Door", game.board.getDoor(blueDoor) != ZWallFlag.LOCKED)
+                    .addRow("2.", "Unlock the Green Door", game.getBoard().getDoor(greenDoor) != ZWallFlag.LOCKED)
+                    .addRow("3.", "Unlock the Blue Door", game.getBoard().getDoor(blueDoor) != ZWallFlag.LOCKED)
                 );
     }
 }
