@@ -10,6 +10,10 @@ import cc.lib.zombicide.ZZombieType;
 
 public class ZQuestTheAbomination extends ZQuest {
 
+    static {
+        addAllFields(ZQuestTheAbomination.class);
+    }
+
     public ZQuestTheAbomination() {
         super("The Abomination");
     }

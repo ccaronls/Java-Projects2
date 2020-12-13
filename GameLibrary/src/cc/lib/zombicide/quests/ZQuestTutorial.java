@@ -31,7 +31,6 @@ public class ZQuestTutorial extends ZQuest {
         addAllFields(ZQuestTutorial.class);
     }
 
-
     public ZQuestTutorial() {
         super("Tutorial");
     }

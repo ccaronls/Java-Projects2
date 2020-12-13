@@ -7,6 +7,10 @@ import cc.lib.zombicide.ZWallFlag;
 
 public class ZQuestInCaligineAbditus extends ZQuestTheCommandry {
 
+    static {
+        addAllFields(ZQuestInCaligineAbditus.class);
+    }
+
     public ZQuestInCaligineAbditus() {
         super("In Caligine Abditus");
     }
