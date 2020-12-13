@@ -41,20 +41,20 @@ public class ZQuestTheEvilTemple extends ZQuest9x6 {
 
     @Override
     protected int[] getTileRotations() {
-        return new int[] { 0,0,0,0,0,0 };
+        return new int[] { 180,180,270,180,90,90 };
     }
 
     @Override
     public ZBoard loadBoard() {
 
         String [][] map = {
-                { "z0:i:ds", "z0:i:ws:ode", "z1:i:red:ws:ode", "z2:i:ws", "z2:i:ws:de", "z3:spn", "z4:i:dw", "z4:i:lvvd2", "z4:i" },
-                { "z5:spw", "z6", "z7", "z8", "z9", "z10", "z4:i:ww:ws", "z4:i:ws", "z4:i:ws" },
-                { "z11:i:dn:lgvd1", "z12", "z13:i:wn:ww:ods:ode", "z14:i:wn:ws", "z14:i:wn:we:ws", "z15", "z16", "z17", "z18:st" },
-                { "z19:i:ww:ws:ode", "z20:i:red:ws", "z20:i:ws:ode", "z21:i:dn:ws:ode", "z22:i:dn:ws:ode", "z23:i:wn:ws:we", "z24" },
-                { "z25", "z26", "z27", "z28", "z29", "z30", "z31", "z32", "z33" },
-                { "z34:i:wn:ws:ode", "z35:i:dn:ws", "z35:i:wn:ws:ode", "z36:i:wn:ws:red:ode", "z37:i:wn:ws", "z38:i:wn:ws:de", "z39:sps:ws", "z40:i:ww:wn:ws:red:ode", "z41:i:dn:ws" },
-                { "", "", "", "", "", "z42:v:ww:gvd1", "z42:v:ww", "z43:v:vvd2", "z43:v" }
+                { "z0:i:ds",        "z0:i:ws:ode",  "z1:i:red:ws:ode",      "z2:i:ws",          "z2:i:ws:de",       "z3:spn",           "z4:i:dw",          "z4:i:lvd2",        "z4:i" },
+                { "z5:spw",         "z6",           "z7",                   "z8",               "z9",               "z10",              "z4:i:ww:ws",       "z4:i:ws",          "z4:i:ws" },
+                { "z11:i:dn:ods:lgvd1:we", "z12",   "z13:i:wn:ww:ods:ode",  "z14:i:wn:ws",      "z14:i:wn:we:ws",   "z15",              "z16",              "z17",              "z18:st" },
+                { "z19:i:ww:ws:we", "z44",          "z45:i:ww:ws:ode",      "z20:i:red:ws",     "z20:i:ws:ode",     "z21:i:dn:ws:ode",  "z22:i:dn:ws:ode",  "z23:i:wn:ws:we",   "z24" },
+                { "z25",            "z26",          "z27",                  "z28",              "z29",              "z30",              "z31",              "z32",              "z33" },
+                { "z34:i:wn:ws:ode", "z35:i:dn:ws", "z35:i:wn:ws:ode",      "z36:i:wn:ws:red:ode", "z37:i:wn:ws",   "z38:i:wn:ws:de",   "z39:sps:ws",       "z40:i:ww:wn:ws:red:ode", "z41:i:dn:ws" },
+                { "",                "",            "",                     "",                  "",                "z42:v:ww:gvd1",    "z42:v:we",         "z43:v:vd2",        "z43:v" }
         };
 
         return load(map);
@@ -63,10 +63,10 @@ public class ZQuestTheEvilTemple extends ZQuest9x6 {
     @Override
     protected void loadCmd(Grid<ZCell> grid, Grid.Pos pos, String cmd) {
         switch (cmd) {
-            case "lvvd2":
+            case "lvd2":
                 violetVaultZone = grid.get(pos).getZoneIndex();
                 violetVaultDoor = new ZDoor(pos, ZDir.DESCEND, GColor.MAGENTA);
-                super.loadCmd(grid, pos, "vvd2");
+                super.loadCmd(grid, pos, "vd2");
                 break;
             case "lgvd1":
                 goldVaultZone = grid.get(pos).getZoneIndex();

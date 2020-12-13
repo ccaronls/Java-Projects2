@@ -17,7 +17,7 @@ public class FileWatcherTest extends TestCase {
 	}
 
 	public void testWatchDir() throws Exception {
-		Utils.DEBUG_ENABLED = true;
+		Utils.setDebugEnabled();
 		File tmpFile = File.createTempFile("tmp", "txt", new File("/tmp"));
 		tmpFile.deleteOnExit();
         FileWatcher watcher = new FileWatcher(tmpFile) {
@@ -42,7 +42,7 @@ public class FileWatcherTest extends TestCase {
 	}
 
 	public void testWatchFile() throws Exception {
-		Utils.DEBUG_ENABLED = true;
+		Utils.setDebugEnabled();
 		FileWatcher watcher = new FileWatcher(new File("/Users/chriscaron/Documents/workspace2/MyStuff/Java/GameLibrary/added")) {
 			
 			@Override

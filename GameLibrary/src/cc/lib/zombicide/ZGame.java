@@ -75,6 +75,11 @@ public class ZGame extends Reflector<ZGame>  {
         roundNum = 0;
         gameOverStatus = 0;
         spawnMultiplier = 1;
+        initDice();
+        setState(ZState.INIT, null);
+    }
+
+    private void initDice() {
         int num=1;
         // make sure even distribution of 1-6 numbers otherwise we can ge alot of repeats
         for (int i=0; i<dice.length; i++) {
@@ -84,7 +89,6 @@ public class ZGame extends Reflector<ZGame>  {
                 num=1;
         }
         Utils.shuffle(dice);
-        setState(ZState.INIT, null);
     }
 
     public ZBoard getBoard() {
@@ -93,10 +97,6 @@ public class ZGame extends Reflector<ZGame>  {
 
     public void setUsers(ZUser ... users) {
         this.users = users;
-    }
-
-    public void setQuest(ZQuest quest) {
-        this.quest = quest;
     }
 
     public boolean isGameOver() {
@@ -375,16 +375,17 @@ public class ZGame extends Reflector<ZGame>  {
                 // for each user, they choose each of their characters in any order and have them
                 // perform all of their actions
                 List<ZCharacter> options = new ArrayList<>();
-                for (int i = 0; i<user.characters.size(); i++) {
-                    ZCharacter c = user.characters.get(i).character;
-                    if (!c.isDead() && c.getActionsLeftThisTurn() > 0) {
-                        if (c.getActionsLeftThisTurn() < c.getActionsPerTurn() && c.availableSkills.contains(ZSkill.Tactician)) {
-                            options.clear();
-                            options.add(c);
-                            break;
-                        }
+
+                // any player who has done a move and is not a tactician must continue to move
+                for (ZCharacter c : getAllLivingCharacters()) {
+                    if (c.getActionsLeftThisTurn() > 0 && c.getActionsLeftThisTurn() < c.getActionsPerTurn() && !c.availableSkills.contains(ZSkill.Tactician)) {
                         options.add(c);
+                        break;
                     }
+                }
+
+                if (options.size() == 0) {
+                    options.addAll(Utils.filter(getAllLivingCharacters(), object -> object.getActionsLeftThisTurn() > 0));
                 }
 
                 ZCharacter currentCharacter = null;
@@ -876,14 +877,15 @@ public class ZGame extends Reflector<ZGame>  {
             }
             case MELEE_ATTACK: {
                 List<ZWeapon> weapons = move.list;
-                ZWeapon slot = null;
+                ZWeapon weapon = null;
                 if (weapons.size() > 1) {
-                    slot = user.chooseWeaponSlot(this, cur, weapons);
+                    weapon = user.chooseWeaponSlot(this, cur, weapons);
                 } else {
-                    slot = weapons.get(0);
+                    weapon = weapons.get(0);
                 }
-                if (slot != null) {
-                    ZWeaponStat stat = cur.getWeaponStat(slot, ZActionType.MELEE, this);
+                if (weapon != null) {
+                    assert(weapon.slot != null);
+                    ZWeaponStat stat = cur.getWeaponStat(weapon, ZActionType.MELEE, this);
                     List<ZZombie> zombies = board.getZombiesInZone(cur.occupiedZone);
                     if (zombies.size() > 1)
                         Collections.sort(zombies, (o1, o2) -> Integer.compare(o2.type.minDamageToDestroy, o1.type.minDamageToDestroy));
@@ -891,14 +893,14 @@ public class ZGame extends Reflector<ZGame>  {
                         zombies.remove(0);
                     }
                     int hits = resolveHits(cur, zombies.size(), ZActionType.MELEE, stat.numDice, stat.dieRollToHit, zombies.size()/2-1, zombies.size()/2+1);
-                    onAttack(cur, slot, ZActionType.MELEE, stat.numDice, hits);
+                    onAttack(cur, weapon, ZActionType.MELEE, stat.numDice, hits);
 
                     for (int i=0; i<hits && zombies.size() > 0; i++) {
                         ZZombie z = zombies.remove(0);
                         addExperience(cur, z.type.expProvided);
                         destroyZombie(z, cur);
                     }
-                    if (slot.isAttackNoisy()) {
+                    if (weapon.isAttackNoisy()) {
                         addNoise(cur.occupiedZone, 1);
                     }
                     cur.performAction( ZActionType.MELEE,this);
@@ -1525,17 +1527,21 @@ public class ZGame extends Reflector<ZGame>  {
     }
 
     Integer [] rollDice(int num) {
+        if (dice == null) {
+            initDice();
+        }
         Integer [] result = new Integer[num];
         String dieStr = "| ";
+
         for (int i=0; i<num; i++) {
             result[i] = dice[i];
             dieStr += String.format("%d | ", result[i]);
         }
-        for (int i=0; i<dice.length-num-1; i++) {
+        for (int i = 0; i< dice.length-num; i++) {
             dice[i] = dice[i+num];
         }
-        for (int ii=0, i=dice.length-num; ii<num; i++) {
-            dice[i] = result[ii++];
+        for (int i = 0; i< num; i++) {
+            dice[i+ dice.length-num] = result[i];
         }
         getCurrentUser().showMessage("Rolled a " + dieStr);//new Table().addRow(result).toString());
         onRollDice(result);

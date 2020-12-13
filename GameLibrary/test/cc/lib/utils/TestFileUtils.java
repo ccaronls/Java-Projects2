@@ -1,15 +1,16 @@
 package cc.lib.utils;
 
+import junit.framework.TestCase;
+
 import java.io.File;
 
 import cc.lib.game.Utils;
-import junit.framework.TestCase;
 
 public class TestFileUtils extends TestCase {
 
 	@Override
 	public void setUp() {
-		Utils.DEBUG_ENABLED = true;
+		Utils.setDebugEnabled();
 	}
 	
 	public void testBackupRestoreWithExtension() throws Exception {

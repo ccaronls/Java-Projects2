@@ -2641,4 +2641,16 @@ public class Utils {
         return (a == b) || (a != null && a.equals(b));
     }
 
+    public final static <T> void rotate(T [] array, T [] result) {
+        int num = result.length;
+        for (int i=0; i<num; i++) {
+            result[i] = array[i];
+        }
+        for (int i = 0; i< array.length-num; i++) {
+            array[i] = array[i+num];
+        }
+        for (int i = 0; i< num; i++) {
+            array[i+ array.length-num] = result[i];
+        }
+    }
 }

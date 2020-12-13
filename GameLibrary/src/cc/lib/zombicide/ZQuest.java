@@ -194,6 +194,8 @@ public abstract class ZQuest extends Reflector<ZQuest> {
             }
         }
         for (int row=0; row<map.length; row++) {
+            if (map[0].length != map[row].length)
+                throw new IllegalArgumentException("Lenght of row " + row + " differs");
             for (int col = 0; col < map[row].length; col++) {
                 ZCell cell = grid.get(row, col);
                 String [] parts = map[row][col].split("[:]");

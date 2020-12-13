@@ -12,6 +12,7 @@ public abstract class ZEquipment<T extends Enum<T>> extends Reflector<ZEquipment
     }
 
     boolean vaultItem=false;
+    ZEquipSlot slot = ZEquipSlot.BACKPACK;
 
     public abstract ZEquipSlotType getSlotType();
 

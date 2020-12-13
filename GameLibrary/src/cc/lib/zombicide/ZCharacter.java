@@ -281,29 +281,30 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
     public ZEquipSlot equip(ZEquipment e) {
         if (body == null && Utils.linearSearch(name.alternateBodySlots, e.getType()) >= 0) {
             body = e;
+            e.slot = ZEquipSlot.BODY;
             return ZEquipSlot.BODY;
         }
         switch (e.getSlotType()) {
             case HAND:
                 if (leftHand == null) {
                     leftHand = e;
-                    return ZEquipSlot.LEFT_HAND;
+                    return e.slot = ZEquipSlot.LEFT_HAND;
                 }
                 if (rightHand == null) {
                     rightHand = e;
-                    return ZEquipSlot.RIGHT_HAND;
+                    return e.slot = ZEquipSlot.RIGHT_HAND;
                 }
                 break;
             case BODY:
                 if (body == null) {
                     body = e;
-                    return ZEquipSlot.BODY;
+                    return e.slot = ZEquipSlot.BODY;
                 }
                 break;
         }
         if (backpack.size() < MAX_BACKPACK_SIZE) {
             backpack.add(e);
-            return ZEquipSlot.BACKPACK;
+            return e.slot = ZEquipSlot.BACKPACK;
         }
 
         assert(false);
@@ -331,7 +332,11 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
                 removed = rightHand;
                 rightHand = null;
                 break;
+            default:
+                assert(false);
+                return null;
         }
+        removed.slot = null;
         return removed;
     }
     public ZEquipment attachEquipment(ZEquipment equipment) {
@@ -517,22 +522,6 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
         return true;
     }
 
-    public ZWeaponStat getWeaponStat(ZEquipSlot slot, ZActionType attackType, ZGame game) {
-        return getWeaponStat(getSlot(slot), attackType, game);
-    }
-
-    public <T extends ZEquipment> T getSlot(ZEquipSlot slot) {
-        switch (slot) {
-            case BODY:
-                return (T)body;
-            case RIGHT_HAND:
-                return (T)rightHand;
-            case LEFT_HAND:
-                return (T)leftHand;
-        }
-        return null;
-    }
-
     public ZWeaponStat getWeaponStat(ZWeapon weapon, ZActionType attackType, ZGame game) {
         ZWeaponStat stat = null;
         switch (attackType) {
@@ -566,10 +555,22 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
         for (ZSkill skill : availableSkills) {
             skill.modifyStat(stat, attackType, this, game);
         }
-        if (isDualWeilding()) {
+        if (weapon.slot != ZEquipSlot.BODY && isDualWeilding()) {
             stat.numDice*=2;
         }
         return stat;
+    }
+
+    public <T extends ZEquipment> T getSlot(ZEquipSlot slot) {
+        switch (slot) {
+            case BODY:
+                return (T)body;
+            case RIGHT_HAND:
+                return (T)rightHand;
+            case LEFT_HAND:
+                return (T)leftHand;
+        }
+        return null;
     }
 
     /**
@@ -638,17 +639,25 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
     }
 
     public void removeEquipment(ZEquipment equip) {
-        if (backpack.remove(equip))
-            return;
-        else if (leftHand == equip) {
-            leftHand = null;
-        } else if (rightHand == equip) {
-            rightHand = null;
-        } else if (body == equip) {
-            body = null;
-        } else {
-            log.error("Cannot remove item %s from equipment:", equip, getAllEquipment());
+        switch (equip.slot) {
+            case BACKPACK:
+                boolean success = backpack.remove(equip);
+                assert(success);
+                break;
+            case LEFT_HAND:
+                assert(leftHand == equip);
+                leftHand = null;
+                break;
+            case RIGHT_HAND:
+                assert(rightHand == equip);
+                rightHand = null;
+                break;
+            case BODY:
+                assert(body == equip);
+                body = null;
+                break;
         }
+        equip.slot = null;
     }
 
     boolean isHolding(ZEquipmentType type) {

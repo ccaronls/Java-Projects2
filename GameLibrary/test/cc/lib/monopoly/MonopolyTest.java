@@ -11,7 +11,7 @@ public class MonopolyTest extends TestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        Utils.DEBUG_ENABLED = true;
+        Utils.setDebugEnabled();
         Utils.setRandomSeed(0);
     }
 

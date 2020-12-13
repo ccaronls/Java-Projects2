@@ -2,7 +2,7 @@ package cc.lib.math;
 
 import junit.framework.TestCase;
 
-import cc.lib.game.GRectangle;
+import cc.lib.game.GDimension;
 
 public class CMathTest extends TestCase {
 
@@ -37,8 +37,8 @@ public class CMathTest extends TestCase {
 
     public void testRotate() {
 
-        GRectangle r = new GRectangle(-2, -4, 4, 8);
-        GRectangle r2 = r.rotated(10);
+        GDimension r = new GDimension(4, 8);
+        GDimension r2 = r.rotated(10);
 
         System.out.println("r=" + r + "\nr2=" + r2);
 

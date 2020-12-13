@@ -213,9 +213,12 @@ public final class Table {
             for (int c = 0; c < rows.get(r).size(); c++) {
                 Object o = rows.get(r).get(c);
                 if (o instanceof Table) {
-                    GDimension d2 = ((Table)o).getDimension(g);
+                    Table t= (Table)o;
+                    GDimension d2 = t.getDimension(g);
                     maxHeight[r] = Math.max(maxHeight[r], d2.height);
                     maxWidth[c] = Math.max(maxWidth[c], d2.width);
+                    if (t.borderWidth != 0)
+                        maxHeight[r] += cellPadding;
                 } else {
                     String entry = model.getStringValue(o);
                     if (entry.indexOf("\n") >= 0) {
@@ -244,7 +247,7 @@ public final class Table {
         float dimWidth = Utils.sum(maxWidth);
         float dimHeight = Utils.sum(maxHeight) + headrHeight;
         dimWidth += borderWidth*2;
-        dimHeight += borderWidth*2;
+        dimHeight += borderWidth*3;
 
         return new GDimension(dimWidth, dimHeight);
     }
@@ -297,13 +300,17 @@ public final class Table {
         }
 
         // draw the rows
+        g.translate(outerPadding, 0);
         for (int i=0; i<rows.size(); i++) {
             g.pushMatrix();
             for (int ii=0; ii<rows.get(i).size(); ii++) {
                 Object o = rows.get(i).get(ii);
                 if (o != null) {
                     if (o instanceof Table) {
-                        ((Table)o).draw(g);
+                        Table t = (Table)o;
+                        if (t.borderWidth > 0)
+                            g.translate(0, cellPadding);
+                        t.draw(g);
                     } else {
                         String txt = model.getStringValue(o);
                         Justify hJust = model.getTextAlignment(i, ii);

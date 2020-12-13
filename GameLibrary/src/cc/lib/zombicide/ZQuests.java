@@ -8,6 +8,7 @@ import cc.lib.zombicide.quests.ZQuestTheAbomination;
 import cc.lib.zombicide.quests.ZQuestTheBlackBook;
 import cc.lib.zombicide.quests.ZQuestTheCommandry;
 import cc.lib.zombicide.quests.ZQuestTheEvilTemple;
+import cc.lib.zombicide.quests.ZQuestTheHellHole;
 import cc.lib.zombicide.quests.ZQuestTheShepherds;
 import cc.lib.zombicide.quests.ZQuestTutorial;
 
@@ -22,6 +23,7 @@ public enum ZQuests {
     In_Caligine_Abditus,
     Dead_Trail,
     The_Evil_Temple,
+    The_Hell_Hole,
     ;
 
     final ZQuest load() {
@@ -46,6 +48,8 @@ public enum ZQuests {
                 return new ZQuestDeadTrail();
             case The_Evil_Temple:
                 return new ZQuestTheEvilTemple();
+            case The_Hell_Hole:
+                return new ZQuestTheHellHole();
         }
         assert(false);
         return null;

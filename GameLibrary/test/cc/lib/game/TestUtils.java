@@ -2,6 +2,8 @@ package cc.lib.game;
 
 import junit.framework.TestCase;
 
+import org.junit.Assert;
+
 import java.awt.Rectangle;
 import java.util.Arrays;
 import java.util.List;
@@ -79,5 +81,15 @@ public class TestUtils extends TestCase {
 
         for (int i=0; i<10000; i++)
             assertFalse(Utils.chooseRandomWeightedItem(items, weights).equals("B"));
+    }
+
+    public void testRotateArray() {
+
+        Integer [] array = { 1,1,1,3,3,3 };
+        Integer [] result = new Integer[3];
+        Utils.rotate(array, result);
+        Assert.assertTrue(Arrays.equals(result, new Integer[] { 1,1,1 }));
+        Assert.assertTrue(Arrays.equals(array, new Integer[] { 3,3,3,1,1,1 }));
+
     }
 }
