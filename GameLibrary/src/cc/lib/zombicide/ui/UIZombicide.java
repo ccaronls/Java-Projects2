@@ -10,6 +10,7 @@ import cc.lib.game.AImage;
 import cc.lib.game.GColor;
 import cc.lib.game.GDimension;
 import cc.lib.game.GRectangle;
+import cc.lib.game.IRectangle;
 import cc.lib.game.IVector2D;
 import cc.lib.game.Justify;
 import cc.lib.game.Utils;
@@ -122,7 +123,7 @@ public abstract class UIZombicide extends ZGame implements ZTiles {
         @Override
         protected void draw(AGraphics g, float position, float dt) {
             Vector2D v = new Vector2D(center);
-            v = v.sub(0, g.getTextHeight()*3f*position);
+            v = v.sub(0, position);
             g.setColor(GColor.YELLOW.withAlpha(1f-position));
             g.drawJustifiedString(v, Justify.LEFT, Justify.BOTTOM, msg);
         }
@@ -177,7 +178,7 @@ public abstract class UIZombicide extends ZGame implements ZTiles {
                 @Override
                 protected void draw(AGraphics g, float position, float dt) {
                     if (curve == null) {
-                        curve = Bezier.build(actor.getRect(board).getCenter(), board.getZone(zone).getCenter(), .5f);
+                        curve = Bezier.build(actor.getRect(board).getCenter(), board.getZone(zone).getCenter(board), .5f);
                     }
                     int idx = Math.round(position * (ZIcon.DRAGON_BILE.imageIds.length-1));
                     int id = ZIcon.DRAGON_BILE.imageIds[idx];//((int)angle)%ZIcon.DRAGON_BILE.imageIds.length];
@@ -204,7 +205,7 @@ public abstract class UIZombicide extends ZGame implements ZTiles {
                 @Override
                 protected void draw(AGraphics g, float position, float dt) {
                     if (curve == null) {
-                        curve = Bezier.build(actor.getRect(board).getCenter(), board.getZone(zone).getCenter(), .5f);
+                        curve = Bezier.build(actor.getRect(board).getCenter(), board.getZone(zone).getCenter(board), .5f);
                     }
                     int idx = Math.round(position * (ZIcon.TORCH.imageIds.length-1));
                     int id = ZIcon.TORCH.imageIds[idx];//((int)angle)%ZIcon.DRAGON_BILE.imageIds.length];
@@ -224,7 +225,7 @@ public abstract class UIZombicide extends ZGame implements ZTiles {
                         @Override
                         protected void draw(AGraphics g, float position, float dt) {
                             for (Grid.Pos pos : board.getZone(zone).getCells()) {
-                                GRectangle rect = board.getCell(pos).getRect();
+                                IRectangle rect = board.getCell(pos);
                                 int idx = ((int)index) % ZIcon.FIRE.imageIds.length;
                                 g.drawImage(ZIcon.FIRE.imageIds[idx], rect);
                                 index += .2f;
@@ -373,7 +374,7 @@ public abstract class UIZombicide extends ZGame implements ZTiles {
             @Override
             protected void draw(AGraphics g, float position, float dt) {
                 Grid.Pos pos = zone.getCells().iterator().next();
-                GRectangle rect = board.getCell(pos).getRect().withCenter(zone.getCenter());
+                GRectangle rect = new GRectangle(board.getCell(pos)).setCenter(zone.getCenter(board));
                 final float RADIUS = rect.getRadius();
                 final int numCircles = 3;
                 float r = RADIUS * position;
@@ -440,16 +441,17 @@ public abstract class UIZombicide extends ZGame implements ZTiles {
     }
 
     public void draw(AGraphics g, int _mouseX, int _mouseY) {
-        board.loadCells(g);
         highlightedActor = null;
         highlightedCell = null;
         highlightedResult = null;
         highlightedDoor = null;
 
         g.pushMatrix();
-        GDimension dim = board.getDimension();
+        g.translate(getWidth()/2,0);// - dim.width/2, 0);
 
-        g.translate(getWidth()/2 - dim.width/2, 0);
+        GDimension dim = board.getDimension();
+        g.scale(getHeight() / dim.height);
+        g.translate(-dim.width/2, 0);
 
         Vector2D mouse = g.screenToViewport(_mouseX, _mouseY);
         //log.debug("mouse %d,%d -> %s", _mouseX, _mouseY, mouse);
@@ -483,7 +485,7 @@ public abstract class UIZombicide extends ZGame implements ZTiles {
 //                if (highlightedActor == getGame().getCurrentCharacter())
                 //                  highlightedActor = null; // prevent highlighting an already selected actor
                 g.setColor(GColor.GREEN);
-                g.drawRect(getCurrentCharacter().getRect(board).grownBy(4), OUTLINE);
+                g.drawRect(getCurrentCharacter().getRect(board).scale(1.02f), OUTLINE);
             }
 
             g.setColor(GColor.BLACK);
@@ -538,7 +540,7 @@ public abstract class UIZombicide extends ZGame implements ZTiles {
             }
             if (highlightedActor != null) {
                 g.setColor(GColor.RED);
-                g.drawRect(highlightedActor.getRect(board).grownBy(2), OUTLINE);
+                g.drawRect(highlightedActor.getRect(board).scale(1.01f), OUTLINE);
             }
 
             characterRenderer.redraw();
@@ -557,7 +559,7 @@ public abstract class UIZombicide extends ZGame implements ZTiles {
                 g.setColor(GColor.RED.withAlpha(32));
                 board.drawZoneOutline(g, cell.getZoneIndex());
                 g.setColor(GColor.RED);
-                g.drawRect(cell.getRect());
+                g.drawRect(cell);
 
                 List<ZDoor> doors = board.getZone(cell.getZoneIndex()).getDoors();
                 highlightedDoor = board.pickDoor(g, doors, mouse.X(), mouse.Y());
@@ -565,7 +567,7 @@ public abstract class UIZombicide extends ZGame implements ZTiles {
                 if (selectedCell != null) {
                     ZCell selected = board.getCell(selectedCell);
                     g.setColor(GColor.MAGENTA);
-                    selected.getRect().drawOutlined(g, 4);
+                    selected.drawOutlined(g, 4);
                     ZCell highlighted = board.getCell(highlightedCell);
                     //Collection<ZDir> dirs = board.getShortestPathOptions(selectedCell, highlighted.getZoneIndex());
                     List<List<ZDir>> paths = board.getShortestPathOptions(selectedCell, highlighted.getZoneIndex());
@@ -576,10 +578,10 @@ public abstract class UIZombicide extends ZGame implements ZTiles {
                         colorIndex = (colorIndex+1) & colors.length;
                         Grid.Pos cur = selectedCell;
                         g.begin();
-                        g.vertex(board.getCell(cur).getRect().getCenter());
+                        g.vertex(board.getCell(cur).getCenter());
                         for (ZDir dir : path) {
                             cur = board.getAdjacent(cur, dir);///dir.getAdjacent(cur);
-                            g.vertex(board.getCell(cur).getRect().getCenter());
+                            g.vertex(board.getCell(cur).getCenter());
                         }
                         g.drawLineStrip(3);
                     }

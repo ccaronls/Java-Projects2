@@ -53,7 +53,7 @@ public class SnakesOnAPlain extends AWTKeyboardAnimationApplet {
                 continue;
             }
             i++;
-            g.drawDisk(food.x, food.y, 3);
+            g.drawFilledCircle(food.x, food.y, 3);
         }
         
         for (int i=0; i<snakes.size(); i++) {

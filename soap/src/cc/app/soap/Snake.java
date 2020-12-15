@@ -1,8 +1,5 @@
 package cc.app.soap;
 
-import java.awt.Color;
-import java.awt.Graphics;
-
 import cc.lib.game.AGraphics;
 import cc.lib.game.GColor;
 import cc.lib.game.Utils;
@@ -82,7 +79,7 @@ public class Snake {
                 thickness -= 0.2;
         }
         // draw the head
-        g.drawDisk(x, y, maxThickness+2);
+        g.drawFilledCircle(x, y, maxThickness+2);
     }
     
     void draw(AGraphics g) {

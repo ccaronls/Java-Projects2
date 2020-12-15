@@ -1,11 +1,13 @@
 package cc.android.pacboy;
 
-import java.util.*;
-
 import android.opengl.GLSurfaceView;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+
+import java.util.LinkedList;
+import java.util.List;
+
 import cc.lib.android.BaseRenderer;
 import cc.lib.android.GL10Graphics;
 import cc.lib.game.GColor;
@@ -249,7 +251,7 @@ class PacBoyRenderer extends BaseRenderer implements View.OnTouchListener {
     		float y = g.getViewportHeight()- 15;
     		
     		for (int i=0; i<lives; i++) {
-    			g.drawDisk(x, y, 10, 16);
+    			g.drawFilledCircle(x, y, 10);
     			x += 30;
     		}
 		}
@@ -300,17 +302,17 @@ class PacBoyRenderer extends BaseRenderer implements View.OnTouchListener {
 	void drawReady(GL10Graphics g) {
 		drawMaze(g);
 		g.setColor(GColor.GREEN);
-		g.drawDisk(ix, iy, 0.3f + 0.01f * pulse[frame%pulse.length], 32);
+		g.drawFilledCircle(ix, iy, 0.3f + 0.01f * pulse[frame%pulse.length]);
 		g.setColor(GColor.RED);
-		g.drawDisk(ex, ey, 0.3f, 32);
+		g.drawFilledCircle(ex, ey, 0.3f);
 	}
 	
 	void drawPlaying(GL10Graphics g) {
 		drawMaze(g);
 		g.setColor(GColor.GREEN);
-		g.drawDisk(ix, iy, 0.3f);
+		g.drawFilledCircle(ix, iy, 0.3f);
 		g.setColor(GColor.RED);
-		g.drawDisk(ex, ey, 0.3f + 0.01f * pulse[frame%pulse.length], 32);
+		g.drawFilledCircle(ex, ey, 0.3f + 0.01f * pulse[frame%pulse.length]);
 		drawDots(g, 8);
 		//drawPath(g, solution);
 	}
@@ -386,7 +388,7 @@ class PacBoyRenderer extends BaseRenderer implements View.OnTouchListener {
 	
 	private void drawFace(GL10Graphics g, float x, float y, float r, boolean tongue) {
 		g.setColor(GColor.BLACK);
-		g.drawDisk(x, y, r, 32);
+		g.drawFilledCircle(x, y, r);
 		g.setColor(GColor.YELLOW);
 		g.begin();
 		g.vertex(x-r/3, y-r/3);
@@ -397,7 +399,7 @@ class PacBoyRenderer extends BaseRenderer implements View.OnTouchListener {
 			// draw a tongue
 			g.setColor(GColor.RED);
 			g.drawFilledRect(x-r/6, y+r/4, r/3, r/3);
-			g.drawDisk(x, y+r/4+r/3, r/6);
+			g.drawFilledCircle(x, y+r/4+r/3, r/6);
 		} else {
     		g.begin();
     		g.vertex(x-r/3, y);
@@ -439,14 +441,14 @@ class PacBoyRenderer extends BaseRenderer implements View.OnTouchListener {
 	private void drawSolved(GL10Graphics g) {
 		drawPlaying(g);
 		g.setColor(GColor.RED);
-		g.drawDisk(ex, ey, 0.3f, 32);
+		g.drawFilledCircle(ex, ey, 0.3f);
 		g.setColor(GColor.ORANGE);
 		drawDots(g, 10);
 		float x = pb.pos.getX();
 		float y = pb.pos.getY();
 		float r = pb.radius;
 		g.setColor(GColor.BLACK);
-		g.drawDisk(x, y, r, 32);
+		g.drawFilledCircle(x, y, r);
 		g.setColor(GColor.YELLOW);
 		g.begin();
 		g.vertex(x-r/3, y-r/3);

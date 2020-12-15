@@ -109,10 +109,10 @@ public class ZQuestTutorial extends ZQuest {
         if (tileIds.length == 0)
             return;
 
-        GRectangle quadrant1 = new GRectangle(board.getCell(0, 0).getRect().getTopLeft(),
-                board.getCell(2, 2).getRect().getBottomRight());
-        GRectangle quadrant2 = new GRectangle(board.getCell(0, 3).getRect().getTopLeft(),
-                board.getCell(2, 5).getRect().getBottomRight());
+        GRectangle quadrant1 = new GRectangle(board.getCell(0, 0).getTopLeft(),
+                board.getCell(2, 2).getBottomRight());
+        GRectangle quadrant2 = new GRectangle(board.getCell(0, 3).getTopLeft(),
+                board.getCell(2, 5).getBottomRight());
         g.drawImage(tileIds[0], quadrant1);
         g.drawImage(tileIds[1], quadrant2);
     }

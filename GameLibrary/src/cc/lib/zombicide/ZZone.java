@@ -18,7 +18,6 @@ public class ZZone extends Reflector<ZZone> {
     }
 
     final List<Grid.Pos> cells = new ArrayList<>();
-    final MutableVector2D center = new MutableVector2D();
 
     final List<ZDoor> doors = new ArrayList<>();
     public ZZoneType type = ZZoneType.OUTDOORS;
@@ -35,8 +34,15 @@ public class ZZone extends Reflector<ZZone> {
         return type == ZZoneType.BUILDING;
     }
 
-    public Vector2D getCenter() {
-        return center;
+    public Vector2D getCenter(ZBoard b) {
+        if (cells.size() == 0)
+            return Vector2D.ZERO;
+        MutableVector2D v = new MutableVector2D();
+        for (Grid.Pos p : cells) {
+            v.addEq(b.getCell(p).getCenter());
+        }
+        v.scaleEq(1f / cells.size());
+        return v;
     }
 
     public boolean isSearchable() {

@@ -82,8 +82,8 @@ public class AnimationMaker extends AWTKeyboardAnimationApplet {
 			switch (part) {
 			case BODY: {
 				float x = length/2 - thickness/2;
-				g.drawDisk(0, -x, thickness/2);
-				g.drawDisk(0,  x, thickness/2);
+				g.drawFilledCircle(0, -x, thickness/2);
+				g.drawFilledCircle(0,  x, thickness/2);
 				g.begin();
 	        	g.vertex(-thickness/2, -x);
 	        	g.vertex(thickness/2, -x);
@@ -105,7 +105,7 @@ public class AnimationMaker extends AWTKeyboardAnimationApplet {
 			case LOWER_LEG:
 			case UPPER_ARM:
 			case UPPER_LEG:
-				g.drawDisk(0, 0, thickness/2);
+				g.drawFilledCircle(0, 0, thickness/2);
 				// fallthrough
 			case NECK:
 				g.begin();
@@ -117,7 +117,7 @@ public class AnimationMaker extends AWTKeyboardAnimationApplet {
 	        	break;
 			case HAND:
 			case HEAD:
-	        	g.drawDisk(0, 0, radius);
+	        	g.drawFilledCircle(0, 0, radius);
 				break;
 			}
 			

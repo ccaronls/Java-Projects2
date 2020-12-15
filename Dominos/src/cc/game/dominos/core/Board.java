@@ -563,7 +563,7 @@ public final class Board extends Reflector<Board> {
         drawDie(g, 1, 0, pips2);
         if (false && AGraphics.DEBUG_ENABLED) {
             g.setColor(GColor.RED);
-            g.drawDisk(0, 0, 4);
+            g.drawFilledCircle(0, 0, 4);
         }
         g.popMatrix();
     }

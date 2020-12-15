@@ -2,10 +2,11 @@ package cc.app.bspline;
 
 import java.awt.event.MouseEvent;
 
-import cc.lib.game.*;
+import cc.lib.game.AGraphics;
+import cc.lib.game.GColor;
+import cc.lib.game.Utils;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
-import cc.lib.swing.AWTGraphics;
 import cc.lib.swing.AWTFrame;
 import cc.lib.swing.AWTKeyboardAnimationApplet;
 
@@ -101,7 +102,7 @@ public class BSplineExample extends AWTKeyboardAnimationApplet {
     void drawBSpline(AGraphics g) {
         g.setColor(GColor.RED);
         for (int i=0; i<numPts; i++) {
-            g.drawDisk(xPoints[i], yPoints[i], 3);
+            g.drawFilledCircle(xPoints[i], yPoints[i], 3);
             g.drawString("" + i, xPoints[i], yPoints[i]);
         }
         
@@ -228,7 +229,7 @@ public class BSplineExample extends AWTKeyboardAnimationApplet {
                     pickedPoint = i;
                 }
             }
-            g.drawDisk(xPoints[i], yPoints[i], 4);
+            g.drawFilledCircle(xPoints[i], yPoints[i], 4);
         }
         
     }
@@ -277,7 +278,7 @@ public class BSplineExample extends AWTKeyboardAnimationApplet {
                     pickedPoint = i;
                 }
             }
-            g.drawDisk(xPoints[i], yPoints[i], 4);
+            g.drawFilledCircle(xPoints[i], yPoints[i], 4);
         }
     	
     	if (this.getKeyboardReset('c'))

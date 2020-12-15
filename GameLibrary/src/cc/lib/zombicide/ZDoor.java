@@ -47,7 +47,7 @@ public final class ZDoor extends Reflector<ZDoor>  {
     }
 
     public boolean isClosed(ZBoard board) {
-        return !board.grid.get(cellPosStart).getWallFlag(dir).isOpen();
+        return !board.getCell(cellPosStart).getWallFlag(dir).isOpen();
     }
 
     public Grid.Pos getCellPosStart() {
@@ -63,7 +63,7 @@ public final class ZDoor extends Reflector<ZDoor>  {
     }
 
     public GRectangle getRect(ZBoard board) {
-        return board.grid.get(cellPosStart).getWallRect(dir);
+        return board.getCell(cellPosStart).getWallRect(dir);
     }
 
     public void toggle(ZBoard board) {

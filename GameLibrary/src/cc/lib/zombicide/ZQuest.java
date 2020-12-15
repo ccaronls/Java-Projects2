@@ -190,7 +190,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
         int maxZone = 0;
         for (int row=0; row<map.length; row++) {
             for (int col = 0; col < map[row].length; col++) {
-                grid.set(row, col, new ZCell());
+                grid.set(row, col, new ZCell(col, row));
             }
         }
         for (int row=0; row<map.length; row++) {

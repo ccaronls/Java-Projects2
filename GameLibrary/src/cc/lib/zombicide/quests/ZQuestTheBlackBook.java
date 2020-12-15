@@ -139,17 +139,17 @@ public class ZQuestTheBlackBook extends ZQuest {
             return;
 
         GRectangle quadrant2R = new GRectangle(
-                board.getCell(0, 0).getRect().getTopLeft(),
-                board.getCell(2, 2).getRect().getBottomRight());
+                board.getCell(0, 0).getTopLeft(),
+                board.getCell(2, 2).getBottomRight());
         GRectangle quadrant8V = new GRectangle(
-                board.getCell(0, 3).getRect().getTopLeft(),
-                board.getCell(2, 5).getRect().getBottomRight());
+                board.getCell(0, 3).getTopLeft(),
+                board.getCell(2, 5).getBottomRight());
         GRectangle quadrant9V = new GRectangle(
-                board.getCell(3, 0).getRect().getTopLeft(),
-                board.getCell(5, 2).getRect().getBottomRight());
+                board.getCell(3, 0).getTopLeft(),
+                board.getCell(5, 2).getBottomRight());
         GRectangle quadrant1V = new GRectangle(
-                board.getCell(3, 3).getRect().getTopLeft(),
-                board.getCell(5, 5).getRect().getBottomRight());
+                board.getCell(3, 3).getTopLeft(),
+                board.getCell(5, 5).getBottomRight());
         g.drawImage(tileIds[0], quadrant2R);
         g.drawImage(tileIds[1], quadrant8V);
         g.drawImage(tileIds[2], quadrant9V);

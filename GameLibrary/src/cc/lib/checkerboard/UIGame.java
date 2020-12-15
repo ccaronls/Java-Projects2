@@ -494,7 +494,7 @@ public abstract class UIGame extends Game {
     public void drawPiece(AGraphics g, PieceType p, Color color, float w, float h, GColor outlineColor) {
         if (outlineColor != null) {
             g.setColor(outlineColor);
-            g.drawCircleWithThickness(0, 0, w/2, 3);
+            g.drawCircle(0, 0, w/2, 3);
         }
         int id = getPieceImageId(p, color);
         if (id >= 0) {

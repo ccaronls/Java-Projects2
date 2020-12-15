@@ -638,7 +638,7 @@ public abstract class JavaRoids
 			g.setColor(star_color[star_type[i]]);
 			float t = (float)star_type[i]/NUM_STAR_TYPES;
 			float radius = STAR_RADIUS_MIN + (STAR_RADIUS_MAX-STAR_RADIUS_MIN) * (1-t);
-			g.drawDisk(star_p[i].X(), star_p[i].Y(), radius);
+			g.drawFilledCircle(star_p[i].X(), star_p[i].Y(), radius);
 		}		
 	}
 	

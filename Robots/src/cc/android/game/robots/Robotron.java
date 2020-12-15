@@ -924,7 +924,7 @@ public class Robotron {
                     continue;
                 x = maze_verts_x[v] - screen_x;
                 y = maze_verts_y[v] - screen_y;
-                g.drawDisk(x, y, radius);
+                g.drawFilledCircle(x, y, radius);
                 radius = 5;
                 g.drawJustifiedString(x+15, y+15, String.valueOf(v));
             }
@@ -936,7 +936,7 @@ public class Robotron {
                     continue;
                 x = maze_verts_x[v] - screen_x;
                 y = maze_verts_y[v] - screen_y;
-                g.drawDisk(x,y,5);
+                g.drawFilledCircle(x,y,5);
             }
 
         }
@@ -4569,7 +4569,7 @@ public class Robotron {
         case DOOR_STATE_LOCKED:
             g.drawLine(x0, y0, x1, y1, this.DOOR_THICKNESS);
             g.setColor(GColor.RED);
-            g.drawDisk(mx, my, 10);
+            g.drawFilledCircle(mx, my, 10);
             return;
         case DOOR_STATE_OPEN:
             dx /= 4;

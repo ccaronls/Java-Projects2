@@ -249,17 +249,17 @@ public class IKFigure extends Reflector<IKFigure> {
     		g.setColor(GColor.YELLOW.darkened(0.5f));
     	else
     		g.setColor(GColor.YELLOW);
-    	g.drawDisk(0,0,radius);
+    	g.drawFilledCircle(0,0,radius);
     }
 
     protected void drawNeck(AGraphics g, float radius) {
     	g.setColor(GColor.YELLOW);
-    	g.drawDisk(0, 0, radius);
+    	g.drawFilledCircle(0, 0, radius);
     }
 
     protected void drawHead(AGraphics g, float radius) {
     	g.setColor(GColor.RED);
-    	g.drawDisk(0, 0, radius);
+    	g.drawFilledCircle(0, 0, radius);
     }
 
     protected void drawBody(AGraphics g, float length, float thickness) {

@@ -29,24 +29,24 @@ abstract class ZQuest9x6 extends ZQuest {
             return;
 
         GRectangle quadrantTL = new GRectangle(
-                board.getCell(0, 0).getRect().getTopLeft(),
-                board.getCell(2, 2).getRect().getBottomRight());
+                board.getCell(0, 0).getTopLeft(),
+                board.getCell(2, 2).getBottomRight());
         GRectangle quadrantTM = new GRectangle(
-                board.getCell(0, 3).getRect().getTopLeft(),
-                board.getCell(2, 5).getRect().getBottomRight());
+                board.getCell(0, 3).getTopLeft(),
+                board.getCell(2, 5).getBottomRight());
         GRectangle quadrantTR = new GRectangle(
-                board.getCell(0, 6).getRect().getTopLeft(),
-                board.getCell(2, 8).getRect().getBottomRight());
+                board.getCell(0, 6).getTopLeft(),
+                board.getCell(2, 8).getBottomRight());
 
         GRectangle quadrantBL = new GRectangle(
-                board.getCell(3, 0).getRect().getTopLeft(),
-                board.getCell(5, 2).getRect().getBottomRight());
+                board.getCell(3, 0).getTopLeft(),
+                board.getCell(5, 2).getBottomRight());
         GRectangle quadrantBM = new GRectangle(
-                board.getCell(3, 3).getRect().getTopLeft(),
-                board.getCell(5, 5).getRect().getBottomRight());
+                board.getCell(3, 3).getTopLeft(),
+                board.getCell(5, 5).getBottomRight());
         GRectangle quadrantBR = new GRectangle(
-                board.getCell(3, 6).getRect().getTopLeft(),
-                board.getCell(5, 8).getRect().getBottomRight());
+                board.getCell(3, 6).getTopLeft(),
+                board.getCell(5, 8).getBottomRight());
 
         g.drawImage(tileIds[0], quadrantTL);
         g.drawImage(tileIds[1], quadrantTM);

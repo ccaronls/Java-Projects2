@@ -190,7 +190,7 @@ public abstract class UIProbot extends Probot {
                 break;
         }
 
-        g.drawFilledArc(x, y, radius, angStart, sweepAng, 16);
+        g.drawWedge(x, y, radius, angStart, sweepAng);
         if (chompPosition <= 0) {
             g.setColor(GColor.BLACK);
             switch (dir) {

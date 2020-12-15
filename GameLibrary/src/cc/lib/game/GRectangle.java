@@ -3,7 +3,7 @@ package cc.lib.game;
 import cc.lib.math.MutableVector2D;
 import cc.lib.utils.Reflector;
 
-public final class GRectangle extends Reflector<GRectangle> {
+public final class GRectangle extends Reflector<GRectangle> implements IRectangle {
 
     static {
         addAllFields(GRectangle.class);
@@ -11,8 +11,8 @@ public final class GRectangle extends Reflector<GRectangle> {
 
     public GRectangle() {}
 
-    public GRectangle(GRectangle toCopy) {
-        this(toCopy.x, toCopy.y, toCopy.w, toCopy.h);
+    public GRectangle(IRectangle toCopy) {
+        this(toCopy.X(), toCopy.Y(), toCopy.W(), toCopy.H());
     }
 
     public GRectangle(float x, float y, float w, float h) {
@@ -39,6 +39,26 @@ public final class GRectangle extends Reflector<GRectangle> {
     }
 
     public float x, y, w, h;
+
+    @Override
+    public float X() {
+        return x;
+    }
+
+    @Override
+    public float Y() {
+        return y;
+    }
+
+    @Override
+    public float W() {
+        return w;
+    }
+
+    @Override
+    public float H() {
+        return h;
+    }
 
     /**
      * Create a rect that bounds 2 vectors
@@ -69,107 +89,6 @@ public final class GRectangle extends Reflector<GRectangle> {
 
     /**
      *
-     * @return
-     */
-    public final MutableVector2D getCenter() {
-        return new MutableVector2D(x+w/2, y+h/2);
-    }
-
-    /**
-     *
-     * @return
-     */
-    public final MutableVector2D getTopLeft() {
-        return new MutableVector2D(x, y);
-    }
-
-    /**
-     *
-     * @return
-     */
-    public final MutableVector2D getTopRight() {
-        return new MutableVector2D(x+w, y);
-    }
-
-    /**
-     *
-     * @return
-     */
-    public final MutableVector2D getBottomLeft() {
-        return new MutableVector2D(x, y+h);
-    }
-
-    /**
-     *
-     * @return
-     */
-    public final MutableVector2D getBottomRight() {
-        return new MutableVector2D(x+w, y+h);
-    }
-
-    /**
-     *
-     * @return
-     */
-    public final MutableVector2D getCenterLeft() {
-        return new MutableVector2D(x, y+h/2);
-    }
-
-    /**
-     *
-     * @return
-     */
-    public final MutableVector2D getCenterRight() {
-        return new MutableVector2D(x+w, y+h/2);
-    }
-
-    /**
-     *
-     * @return
-     */
-    public final MutableVector2D getCenterTop() {
-        return new MutableVector2D(x+w/2, y);
-    }
-
-    /**
-     *
-     * @return
-     */
-    public final MutableVector2D getCenterBottom() {
-        return new MutableVector2D(x+w/2, y+h);
-    }
-
-
-    /**
-     *
-     * @param other
-     * @return
-     */
-    public final boolean isIntersectingWidth(GRectangle other) {
-        return Utils.isBoxesOverlapping(x, y, w, h, other.x, other.y, other.w, other.h);
-    }
-
-    /**
-     *
-     * @param px
-     * @param py
-     * @return
-     */
-    public final boolean contains(float px, float py) {
-        return Utils.isPointInsideRect(px, py, x, y, w, h);
-    }
-
-    /**
-     *
-     * @param v
-     * @return
-     */
-    public final boolean contains(IVector2D v) {
-        return contains(v.getX(), v.getY());
-    }
-
-    /**
-     *
      * @param r
      * @param position
      * @return
@@ -189,14 +108,16 @@ public final class GRectangle extends Reflector<GRectangle> {
     }
 
     /**
+     * Adjust bounds by some number of pixels
      *
      * @param pixels
      */
-    public void grow(float pixels) {
+    public GRectangle grow(float pixels) {
         x-=pixels;
         y-=pixels;
         w+=pixels*2;
         h+=pixels*2;
+        return this;
     }
 
     /**
@@ -205,37 +126,7 @@ public final class GRectangle extends Reflector<GRectangle> {
      * @return
      */
     public GRectangle grownBy(int pixels) {
-        w += pixels;
-        h += pixels;
-        x -= pixels/2;
-        y -= pixels/2;
-        return this;
-    }
-
-    /**
-     *
-     * @param g
-     */
-    public void drawFilled(AGraphics g) {
-        g.drawFilledRect(x, y, w, h);
-    }
-
-    /**
-     *
-     * @param g
-     * @param radius
-     */
-    public void drawRounded(AGraphics g, float radius) {
-        g.drawFilledRoundedRect(x, y, w, h, radius);
-    }
-
-    /**
-     *
-     * @param g
-     * @param thickness
-     */
-    public void drawOutlined(AGraphics g, int thickness) {
-        g.drawRect(x, y, w, h, thickness);
+        return new GRectangle(x -pixels/2,y - pixels/2,w + pixels,h + pixels);
     }
 
     /**
@@ -243,7 +134,7 @@ public final class GRectangle extends Reflector<GRectangle> {
      * @param sx
      * @param sy
      */
-    public void scale(float sx, float sy) {
+    public GRectangle scale(float sx, float sy) {
         float nw = w * sx;
         float nh = h * sy;
         float dw = nw-w;
@@ -252,10 +143,11 @@ public final class GRectangle extends Reflector<GRectangle> {
         y -= dh/2;
         w = nw;
         h = nh;
+        return this;
     }
 
-    public void scale(float s) {
-        scale(s,s);
+    public GRectangle scale(float s) {
+        return scale(s,s);
     }
 
     /**
@@ -281,14 +173,6 @@ public final class GRectangle extends Reflector<GRectangle> {
         return new GRectangle(x-dw/2, y-dh/2, nw, nh);
     }
 
-    public GDimension getDimension() {
-        return new GDimension(w, h);
-    }
-
-    public final float getAspect() {
-        return w/h;
-    }
-
     /**
      * Return a rectangle of dimension not to exceed this dimension and
      * whose aspect ratio is that of rectToFit and is centered inside this.
@@ -301,8 +185,8 @@ public final class GRectangle extends Reflector<GRectangle> {
     }
 
     /**
-     * Return a rectangle of dimension not to exceed this dimension and
-     * whose aspect ratio is that of rectToFit and is centered inside this.
+     * Return a rectangle that fits inside this rect and with same aspect.
+     * How to position inside this determined by horz/vert justifys.
      *
      * @param rectToFit
      * @return
@@ -363,16 +247,13 @@ public final class GRectangle extends Reflector<GRectangle> {
         return Utils.hashCode(x, y, w, h);
     }
 
-    public void setCenter(IVector2D cntr) {
+    public GRectangle setCenter(IVector2D cntr) {
         x=cntr.getX()-w/2;
         y=cntr.getY()-h/2;
+        return this;
     }
 
     public GRectangle withCenter(IVector2D cntr) {
         return new GRectangle(cntr.getX()-w/2, cntr.getY()-h/2, w, h);
-    }
-
-    public final float getRadius() {
-        return Math.min(w, h) / 2;
     }
 }

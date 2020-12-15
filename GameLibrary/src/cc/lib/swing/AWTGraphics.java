@@ -5,6 +5,7 @@ import java.awt.image.RGBImageFilter;
 import java.util.Arrays;
 
 import cc.lib.game.*;
+import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 
 public class AWTGraphics extends APGraphics {
@@ -485,12 +486,6 @@ public class AWTGraphics extends APGraphics {
 		return g.getFont();
 	}
 
-	public void drawLineLoop(int thickness) {
-		float saveThickness = setLineWidth(thickness);
-        drawLineLoop();
-        setLineWidth(saveThickness);
-	}
-
 	public void fillPolygon() {
 		//r.fillPolygon(g);
         drawTriangleFan();
@@ -553,4 +548,70 @@ public class AWTGraphics extends APGraphics {
         return r.getStackSize();
     }
 
+    @Override
+    public void drawRoundedRect(float x, float y, float w, float h, float radius) {
+        MutableVector2D tl = new MutableVector2D(x, y);
+        MutableVector2D br = new MutableVector2D(x+w, y+h);
+        float W = br.Xi() - tl.Xi();
+        transform(tl);
+        transform(br);
+        int iRad = Math.round(radius * W / w);
+        g.drawRoundRect(tl.Xi(), tl.Yi(), br.Xi()-tl.Xi(), br.Yi()-tl.Yi(), iRad, iRad);
+    }
+
+    @Override
+    public void drawFilledRoundedRect(float x, float y, float w, float h, float radius) {
+        MutableVector2D tl = new MutableVector2D(x, y);
+        MutableVector2D br = new MutableVector2D(x+w, y+h);
+        float W = br.Xi() - tl.Xi();
+        transform(tl);
+        transform(br);
+        int iRad = Math.round(radius * W / w);
+        g.fillRoundRect(tl.Xi(), tl.Yi(), br.Xi()-tl.Xi(), br.Yi()-tl.Yi(), iRad, iRad);
+    }
+
+    @Override
+    public void drawWedge(float cx, float cy, float radius, float startDegrees, float sweepDegrees) {
+        MutableVector2D tl = new MutableVector2D(cx-radius, cy-radius);
+        MutableVector2D br = new MutableVector2D(cx+radius, cy+radius);
+        transform(tl);
+        transform(br);
+        g.fillArc(tl.Xi(), tl.Yi(), br.Xi()-tl.Xi(), br.Yi()-tl.Yi(), Math.round(startDegrees), Math.round(startDegrees+sweepDegrees));
+    }
+
+    @Override
+    public void drawArc(float cx, float cy, float radius, float startDegrees, float sweepDegrees) {
+        MutableVector2D tl = new MutableVector2D(cx-radius, cy-radius);
+        MutableVector2D br = new MutableVector2D(cx+radius, cy+radius);
+        transform(tl);
+        transform(br);
+        g.drawArc(tl.Xi(), tl.Yi(), br.Xi()-tl.Xi(), br.Yi()-tl.Yi(), Math.round(startDegrees), Math.round(startDegrees+sweepDegrees));
+    }
+
+    @Override
+    public void drawCircle(float cx, float cy, float radius) {
+        MutableVector2D tl = new MutableVector2D(cx-radius, cy-radius);
+        MutableVector2D br = new MutableVector2D(cx+radius, cy+radius);
+        transform(tl);
+        transform(br);
+        g.drawOval(tl.Xi(), tl.Yi(), br.Xi()-tl.Xi(), br.Yi()-tl.Yi());
+    }
+
+    @Override
+    public void drawOval(float x, float y, float w, float h) {
+        MutableVector2D tl = new MutableVector2D(x, y);
+        MutableVector2D br = new MutableVector2D(x+w, y+h);
+        transform(tl);
+        transform(br);
+        g.drawOval(tl.Xi(), tl.Yi(), br.Xi()-tl.Xi(), br.Yi()-tl.Yi());
+    }
+
+    @Override
+    public void drawFilledOval(float x, float y, float w, float h) {
+        MutableVector2D tl = new MutableVector2D(x, y);
+        MutableVector2D br = new MutableVector2D(x+w, y+h);
+        transform(tl);
+        transform(br);
+        g.fillOval(tl.Xi(), tl.Yi(), br.Xi()-tl.Xi(), br.Yi()-tl.Yi());
+    }
 }

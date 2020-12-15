@@ -56,10 +56,10 @@ class BoardComponent extends AWTComponent implements ZTiles {
 
     @Override
     protected void onDimensionChanged(AWTGraphics g, int width, int height) {
-        GDimension cellDim = getGame().getBoard().initCellRects(g, width-5, height-5);
-        int newWidth = (int)cellDim.width * getGame().getBoard().getColumns();
-        int newHeight = (int)cellDim.height * getGame().getBoard().getRows();
-        setPreferredSize(newWidth, newHeight);
+        //GDimension cellDim = getGame().getBoard().initCellRects(g, width-5, height-5);
+       // int newWidth = (int)cellDim.width * getGame().getBoard().getColumns();
+       // int newHeight = (int)cellDim.height * getGame().getBoard().getRows();
+       // setPreferredSize(newWidth, newHeight);
     }
 
     @Override

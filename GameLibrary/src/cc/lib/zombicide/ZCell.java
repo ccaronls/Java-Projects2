@@ -3,9 +3,10 @@ package cc.lib.zombicide;
 import java.util.Arrays;
 
 import cc.lib.game.GRectangle;
+import cc.lib.game.IRectangle;
 import cc.lib.utils.Reflector;
 
-public class ZCell extends Reflector<ZCell> {
+public class ZCell extends Reflector<ZCell> implements IRectangle {
 
     public final static int ENV_OUTDOORS=0;
     public final static int ENV_BUILDING=1;
@@ -20,10 +21,39 @@ public class ZCell extends Reflector<ZCell> {
     int environment=ENV_OUTDOORS; // 0 == outdoors, 1 == building, 2 == vault
     int zoneIndex;
     int vaultFlag;
+    private final float x, y;
     private int cellFlag = 0;
-    GRectangle rect;
     boolean discovered=false;
     private ZActor [] occupied = new ZActor[ZCellQuadrant.values().length];
+
+    public ZCell() {
+        this(-1,-1);
+    }
+
+    ZCell(float x, float y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    @Override
+    public float X() {
+        return x;
+    }
+
+    @Override
+    public float Y() {
+        return y;
+    }
+
+    @Override
+    public float W() {
+        return 1;
+    }
+
+    @Override
+    public float H() {
+        return 1;
+    }
 
     public boolean isCellType(ZCellType type) {
         return (1 << type.ordinal() & cellFlag) != 0;
@@ -82,10 +112,6 @@ public class ZCell extends Reflector<ZCell> {
         return environment==ENV_BUILDING;
     }
 
-    public GRectangle getRect() {
-        return rect;
-    }
-
     public ZWallFlag getWallFlag(ZDir dir) {
         return walls[dir.ordinal()];
     }
@@ -97,15 +123,15 @@ public class ZCell extends Reflector<ZCell> {
     public GRectangle getWallRect(ZDir dir) {
         switch (dir) {
             case NORTH:
-                return new GRectangle(rect.getTopLeft(), rect.getTopRight());
+                return new GRectangle(getTopLeft(), getTopRight());
             case SOUTH:
-                return new GRectangle(rect.getBottomLeft(), rect.getBottomRight());
+                return new GRectangle(getBottomLeft(), getBottomRight());
             case EAST:
-                return new GRectangle(rect.getTopRight(), rect.getBottomRight());
+                return new GRectangle(getTopRight(), getBottomRight());
             case WEST:
-                return new GRectangle(rect.getTopLeft(), rect.getBottomLeft());
+                return new GRectangle(getTopLeft(), getBottomLeft());
         }
-        return rect.scaledBy(.5f);
+        return new GRectangle(this).scaledBy(.5f);
     }
 
     public int getZoneIndex() {
@@ -115,23 +141,23 @@ public class ZCell extends Reflector<ZCell> {
     public GRectangle getQuadrant(ZCellQuadrant quadrant) {
         switch (quadrant) {
             case UPPERLEFT:
-                return new GRectangle(rect.getTopLeft(), rect.getCenter());
+                return new GRectangle(getTopLeft(), getCenter());
             case LOWERRIGHT:
-                return new GRectangle(rect.getCenter(), rect.getBottomRight());
+                return new GRectangle(getCenter(), getBottomRight());
             case UPPERRIGHT:
-                return new GRectangle(rect.getCenter(), rect.getTopRight());
+                return new GRectangle(getCenter(), getTopRight());
             case LOWERLEFT:
-                return new GRectangle(rect.getCenter(), rect.getBottomLeft());
+                return new GRectangle(getCenter(), getBottomLeft());
             case CENTER:
-                return new GRectangle(rect.x+rect.w/4, rect.y+rect.h/4, rect.w/2, rect.h/2);
+                return new GRectangle(X()+W()/4, Y()+H()/4, W()/2, H()/2);
             case TOP:
-                return new GRectangle(rect.x+rect.w/4, rect.y, rect.w/2, rect.h/2);
+                return new GRectangle(X()+W()/4, Y(), W()/2, H()/2);
             case LEFT:
-                return new GRectangle(rect.x, rect.y+rect.h/4, rect.w/2, rect.h/2);
+                return new GRectangle(X(), Y()+H()/4, W()/2, H()/2);
             case RIGHT:
-                return new GRectangle(rect.x+rect.w/2, rect.y+rect.h/4, rect.w/2, rect.h/2);
+                return new GRectangle(X()+W()/2, Y()+H()/4, W()/2, H()/2);
             case BOTTOM:
-                return new GRectangle(rect.x+rect.w/4, rect.y+rect.h/2, rect.w/2, rect.h/2);
+                return new GRectangle(X()+W()/4, Y()+H()/2, W()/2, H()/2);
         }
         return null;
     }

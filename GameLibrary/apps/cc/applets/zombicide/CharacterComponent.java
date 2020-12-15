@@ -35,7 +35,8 @@ class CharacterComponent extends AWTComponent implements Scrollable, UIComponent
 
     @Override
     protected void paint(AWTGraphics g, int mouseX, int mouseY) {
-        renderer.draw(g, mouseX, mouseY);
+        if (renderer != null)
+            renderer.draw(g, mouseX, mouseY);
     }
 
     @Override

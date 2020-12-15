@@ -306,7 +306,7 @@ public class AWTCheckers extends AWTComponent {
                     for (Move m : p.getMoves()) {
                         if (m.hasEnd()) {
                             g.setColor(GColor.GREEN);
-                            g.drawCircleWithThickness(m.getEnd()[1]*cellWidth + cellWidth / 2, m.getEnd()[0]*cellHeight + cellHeight / 2, Math.min(cellWidth, cellHeight) * 1 / 3 + 2, 5);
+                            g.drawCircle(m.getEnd()[1]*cellWidth + cellWidth / 2, m.getEnd()[0]*cellHeight + cellHeight / 2, Math.min(cellWidth, cellHeight) * 1 / 3 + 2, 5);
                             if (highlightedRank == m.getEnd()[0] && highlightedCol == m.getEnd()[1])
                                 selectedMove = m;
                             System.out.println("selected move = " + m);

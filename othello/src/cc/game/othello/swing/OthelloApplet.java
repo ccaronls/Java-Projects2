@@ -70,7 +70,7 @@ public class OthelloApplet extends AWTKeyboardAnimationApplet implements ActionL
 			g.pushMatrix();
 //			g.translate(p/2, 0);
 			g.scale(scale, 1);
-			g.drawDisk(0, 0, 1f);
+			g.drawFilledCircle(0, 0, 1f);
 			g.popMatrix();
 		}
 
@@ -242,7 +242,7 @@ public class OthelloApplet extends AWTKeyboardAnimationApplet implements ActionL
                     g.popMatrix();
                 } else {
                     g.setColor(b.get(r, c) == OthelloBoard.CELL_BLACK ? GColor.BLACK : GColor.WHITE);
-                    g.drawDisk(cx, cy, pcRad);
+                    g.drawFilledCircle(cx, cy, pcRad);
                 }
             }
         }

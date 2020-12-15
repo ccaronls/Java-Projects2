@@ -1,10 +1,11 @@
 package cc.lib.game;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import cc.lib.math.CMath;
 import cc.lib.math.Matrix3x3;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
@@ -44,8 +45,6 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param argb
      */
 	public abstract void setColorARGB(int argb);
-	
-	public abstract void setColorRGBA(int rgba);
 	
 	public abstract void setColor(int r, int g, int b, int a);
 	
@@ -202,7 +201,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param string
      * @return
      */
-    public GDimension getTextDimension(String string, float maxWidth) {
+    public final GDimension getTextDimension(String string, float maxWidth) {
         String [] lines = generateWrappedLines(string, maxWidth);
         float width = 0;
         int height = getTextHeight() * lines.length;
@@ -312,7 +311,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param text
      * @return the total height of the text. 
      */
-    public GDimension drawJustifiedString(float x, float y, Justify hJust, Justify vJust, String text) {
+    public final GDimension drawJustifiedString(float x, float y, Justify hJust, Justify vJust, String text) {
         if (text==null || text.length() == 0)
             return GDimension.EMPTY;
         MutableVector2D mv = transform(x, y);
@@ -351,7 +350,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
         return new GDimension(maxWidth, maxHeight);
     }
 
-    public GRectangle drawJustifiedStringR(float x, float y, Justify hJust, Justify vJust, String text) {
+    public final GRectangle drawJustifiedStringR(float x, float y, Justify hJust, Justify vJust, String text) {
         if (text==null || text.length() == 0)
             return new GRectangle();
         MutableVector2D mv = transform(x, y);
@@ -418,7 +417,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param border
      * @return
      */
-    public GDimension drawJustifiedStringOnBackground(float x, float y, Justify hJust, Justify vJust, String text, GColor bkColor, float border, float cornerRadius) {
+    public final GDimension drawJustifiedStringOnBackground(float x, float y, Justify hJust, Justify vJust, String text, GColor bkColor, float border, float cornerRadius) {
         GRectangle r = drawJustifiedStringR(x, y, hJust, vJust, text);
         pushMatrix();
         setIdentity();
@@ -446,7 +445,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param cornerRadius
      * @return
      */
-    public GDimension drawJustifiedStringOnBackground(IVector2D pos, Justify hJust, Justify vJust, String text, GColor bkColor, float border, float cornerRadius) {
+    public final GDimension drawJustifiedStringOnBackground(IVector2D pos, Justify hJust, Justify vJust, String text, GColor bkColor, float border, float cornerRadius) {
         return drawJustifiedStringOnBackground(pos.getX(), pos.getY(), hJust, vJust, text, bkColor, border, cornerRadius);
     }
 
@@ -461,7 +460,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param border
      * @return
      */
-    public GDimension drawJustifiedStringOnBackground(float x, float y, Justify hJust, Justify vJust, String text, GColor bkColor, float border) {
+    public final GDimension drawJustifiedStringOnBackground(float x, float y, Justify hJust, Justify vJust, String text, GColor bkColor, float border) {
         return drawJustifiedStringOnBackground(x, y, hJust, vJust, text, bkColor, border, 0);
     }
 
@@ -631,7 +630,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param text
      * @return the enclosing rect of the text
      */
-    public GDimension drawWrapString(float x, float y, float maxWidth, Justify hJust, Justify vJust, String text) {
+    public final GDimension drawWrapString(float x, float y, float maxWidth, Justify hJust, Justify vJust, String text) {
         String [] lines = generateWrappedLines(text, maxWidth);
         switch (vJust) {
             case TOP: break;
@@ -659,7 +658,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param border
      * @return
      */
-    public GDimension drawWrapStringOnBackground(float x, float y, float maxWidth, String text, GColor bkColor, float border) {
+    public final GDimension drawWrapStringOnBackground(float x, float y, float maxWidth, String text, GColor bkColor, float border) {
         List<String> lines = new ArrayList<>();
         GDimension dim = generateWrappedText(text, maxWidth, lines, null);
         MutableVector2D tv = transform(x, y);
@@ -1139,16 +1138,16 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param dim
      * @param thickness
      */
-    public final void drawRect(GDimension dim, float thickness) {
-        drawRect(0, 0, dim.width, dim.height, thickness);
+    public final void drawRect(IDimension dim, float thickness) {
+        drawRect(0, 0, dim.getWidth(), dim.getHeight(), thickness);
     }
 
     /**
      *
      * @param rect
      */
-    public final void drawRect(GRectangle rect) {
-        drawRect(rect.x, rect.y, rect.w, rect.h);
+    public final void drawRect(IRectangle rect) {
+        drawRect(rect.X(), rect.Y(), rect.X(), rect.H());
     }
 
     /**
@@ -1156,8 +1155,8 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param rect
      * @param thickness
      */
-    public final void drawRect(GRectangle rect, float thickness) {
-        drawRect(rect.x, rect.y, rect.w, rect.h, thickness);
+    public final void drawRect(IRectangle rect, float thickness) {
+        drawRect(rect.X(), rect.Y(), rect.W(), rect.H(), thickness);
     }
 
     /**
@@ -1180,23 +1179,23 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param y
      * @param w
      * @param h
+     * @param radius
+     */
+    public abstract void drawRoundedRect(float x, float y, float w, float h, float radius);
+
+    /**
+     *
+     * @param x
+     * @param y
+     * @param w
+     * @param h
      * @param thickness
      * @param radius
      */
-    public void drawRoundedRect(float x, float y, float w, float h, float thickness, float radius) {
-        if (radius < 1) {
-            drawRect(x, y, w, h, thickness);
-            return;
-        }
-
-    	drawArc(x+radius, y+radius, radius, thickness, 180f, 90f, 6);
-    	drawLine(x+radius, y, x+w-radius, y, thickness);
-    	drawArc(x+w-radius,y+radius,radius,thickness,270f,90f, 6);
-    	drawLine(x+w,y+radius,x+w,y+h-radius,thickness);
-    	drawArc(x+w-radius,y+h-radius,radius,thickness,0f,90f, 6);
-    	drawLine(x+radius,y+h,x+w-radius,y+h,thickness);
-    	drawArc(x+radius,y+h-radius,radius,thickness,90f,90f, 6);
-    	drawLine(x,y+radius,x,y+h-radius,thickness);
+    public final void drawRoundedRect(float x, float y, float w, float h, float thickness, float radius) {
+        float t = setLineWidth(thickness);
+        drawRoundedRect(x, y, w, h, radius);
+        setLineWidth(t);
     }
 
     /**
@@ -1205,8 +1204,8 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param thickness
      * @param radius
      */
-    public final void drawRoundedRect(GRectangle rect, float thickness, float radius) {
-        drawRoundedRect(rect.x, rect.y, rect.w, rect.h, thickness, radius);
+    public final void drawRoundedRect(IRectangle rect, float thickness, float radius) {
+        drawRoundedRect(rect.X(), rect.Y(), rect.W(), rect.H(), thickness, radius);
     }
 
     /**
@@ -1215,8 +1214,8 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param thickness
      * @param radius
      */
-    public final void drawRoundedRect(GDimension dim, float thickness, float radius) {
-        drawRoundedRect(0, 0, dim.width, dim.height, thickness, radius);
+    public final void drawRoundedRect(IDimension dim, float thickness, float radius) {
+        drawRoundedRect(0, 0, dim.getWidth(), dim.getHeight(), thickness, radius);
     }
 
     /**
@@ -1226,28 +1225,15 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param w
      * @param radius
      */
-    public void drawFilledRoundedRect(float x, float y, float w, float h, float radius) {
-        if (radius < 1) {
-            drawFilledRect(x, y, w, h);
-            return;
-        }
-    	float r2 = radius*2;
-    	drawFilledWedge(x+radius, y+radius, radius, 180f, 90f, 6);
-    	drawFilledRect(x+radius,y,w-r2,radius);
-    	drawFilledWedge(x+w-radius,y+radius,radius,270f,90f, 6);
-    	drawFilledRect(x,y+radius,w,h-r2);
-    	drawFilledWedge(x+w-radius,y+h-radius,radius,0,90, 6);
-    	drawFilledRect(x+radius,y+h-radius,w-r2,radius);
-    	drawFilledWedge(x+radius,y+h-radius,radius,90f,90f, 6);
-    }
+    public abstract void drawFilledRoundedRect(float x, float y, float w, float h, float radius);
 
     /**
      *
      * @param rect
      * @param radius
      */
-    public void drawFilledRoundedRect(GRectangle rect, float radius) {
-        drawFilledRoundedRect(rect.x, rect.y, rect.w, rect.h, radius);
+    public final void drawFilledRoundedRect(IRectangle rect, float radius) {
+        drawFilledRoundedRect(rect.X(), rect.Y(), rect.W(), rect.H(), radius);
     }
     
     /**
@@ -1300,126 +1286,37 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
         drawQuad(x, y, x+w, y+h);
     }
 
-    public final void drawFilledRect(GRectangle rect) {
-        drawQuad(rect.x, rect.y, rect.x+rect.w, rect.y+rect.h);
+    public final void drawFilledRect(IRectangle rect) {
+        drawQuad(rect.X(), rect.Y(), rect.X()+rect.W(), rect.Y()+rect.H());
     }
 
     public final void drawFilledRect(IVector2D center, IDimension dim) {
         drawFilledRect(center.getX() - dim.getWidth()/2, center.getY()-dim.getHeight()/2, dim.getWidth(), dim.getHeight());
     }
 
-    private void drawFilledRectP(float x, float y, float w, float h) {
-        vertex(x, y);
-        vertex(x+w, y+h);
-        drawFilledRects();
-    }
-
-    // return whether points added for quads or lines (true == quads)
-    private final void circlePoints(float radius, float startAngle, float sweep, int sections) {
-        final float step = sweep / sections;
-        float angle = startAngle;
-        final float endAngle = startAngle + sweep;
-        /*
-    	float radius = (innerRadius + outerRadius)/2;
-        //float sections = radius * sweep/180;
-        //if (sections > 32)
-        //    sections = 32;
-        //else if (sections < 8)
-        //    sections = 8;
-
-
-        
-        if (outerRadius-innerRadius>1) {
-	        for (int i=0; i<sections && angle < endAngle; i++) {
-	            float x = CMath.cosine(angle);
-	            float y = CMath.sine(angle);
-	            vertex(x*outerRadius, y*outerRadius);
-	            vertex(x*innerRadius, y*innerRadius);
-	            angle += step;
-	        }
-            float x = CMath.cosine(endAngle);
-            float y = CMath.sine(endAngle);
-            vertex(x*outerRadius, y*outerRadius);
-            vertex(x*innerRadius, y*outerRadius);
-        	return true;
-        } else*/
-         {
-	        for (int i=0; i<sections; i++) {
-	            float x = CMath.cosine(angle) * radius;
-	            float y = CMath.sine(angle) * radius;
-	            vertex(x, y);
-	            angle += step;
-	        }
-	        vertex(CMath.cosine(endAngle) * radius, CMath.sine(endAngle) * radius);
-	        //return false;
-        }
-    }
-    
     /**
-     * 
-     * @param x
-     * @param y
-     * @param radius
-     */
-    public final void drawDisk(float x, float y, float radius) {
-    	int sections = Utils.clamp(Math.round(radius * 4), 8, 32);
-        drawDisk(x, y, radius, sections);
-    }
-    
-    /**
-     * 
-     * @param x
-     * @param y
-     * @param radius
-     * @param sections
-     */
-    public final void drawDisk(float x, float y, float radius, int sections) {
-        pushMatrix();
-        translate(x, y);
-        begin();
-        vertex(0, 0);
-        circlePoints(radius, 0, 360, sections);
-        drawTriangleFan();
-        popMatrix();
-    }
-
-    /**
-     * 
+     * Draw a filled wedge
+     *
      * @param cx
      * @param cy
      * @param radius
      * @param startDegrees
      * @param sweepDegrees
      */
-    public final void drawFilledWedge(float cx, float cy, float radius, float startDegrees, float sweepDegrees, int sections) {
-        pushMatrix();
-        translate(cx, cy);
-        begin();
-        vertex(0, 0);
-        circlePoints(radius, startDegrees, sweepDegrees, sections);
-        drawTriangleFan();
-        popMatrix();
-    }
+    public abstract void drawWedge(float cx, float cy, float radius, float startDegrees, float sweepDegrees);
     
     /**
      * 
      * @param x
      * @param y
      * @param radius
+     * @param startDegrees
+     * @param sweepDegrees
      */
-    public final void drawCircle(float x, float y, float radius, float thickness, int sections) {
-        float saveThickness = setLineWidth(thickness);
-        pushMatrix();
-        translate(x, y);
-        begin();
-        circlePoints(radius, 0, 360, sections);
-      	drawLineLoop();
-        popMatrix();
-        setLineWidth(saveThickness);
-    }
+    public abstract void drawArc(float x, float y, float radius, float startDegrees, float sweepDegrees);
 
     /**
-     * 
+     *
      * @param x
      * @param y
      * @param radius
@@ -1427,34 +1324,10 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param startDegrees
      * @param sweepDegrees
      */
-    public final void drawArc(float x, float y, float radius, float thickness, float startDegrees, float sweepDegrees, int sections) {
-        float saveThickness = setLineWidth(thickness);
-        pushMatrix();
-        translate(x, y);
-        begin();
-        circlePoints(radius, startDegrees, sweepDegrees, sections);
-       	drawLineStrip();
-        popMatrix();
-        setLineWidth(saveThickness);
-    }
-
-    /**
-     *
-     * @param x
-     * @param y
-     * @param radius
-     * @param startDegrees
-     * @param sweepDegrees
-     * @param sections
-     */
-    public final void drawFilledArc(float x, float y, float radius, float startDegrees, float sweepDegrees, int sections) {
-        pushMatrix();
-        translate(x, y);
-        begin();
-        vertex(0, 0);
-        circlePoints(radius, startDegrees, sweepDegrees, sections);
-        drawTriangleFan();
-        popMatrix();
+    public final void drawArc(float x, float y, float radius, float thickness, float startDegrees, float sweepDegrees) {
+        float t = setLineWidth(thickness);
+        drawArc(x, y, radius, startDegrees, sweepDegrees);
+        setLineWidth(t);
     }
 
     /**
@@ -1463,10 +1336,8 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param y
      * @param radius
      */
-    public final void drawCircle(float x, float y, float radius) {
-    	int sections = Math.round(radius * 4);
-    	sections = Utils.clamp(sections,  8,  32);
-    	drawCircle(x, y, radius, sections);
+    public void drawCircle(float x, float y, float radius) {
+        drawOval(x-radius, y-radius, radius*2, radius*2);
     }
 
     /**
@@ -1491,27 +1362,16 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     }
 
     /**
-     * Convenience.  Thickness defaults to 1
-     * @param x
-     * @param y
-     * @param radius
-     * @param sections
-     */
-    public final void drawCircle(float x, float y, float radius, int sections) {
-        drawCircle(x, y, radius, 1, sections);
-    }
-
-    /**
      *
      * @param x
      * @param y
      * @param radius
      * @param thickness
      */
-    public final void drawCircleWithThickness(float x, float y, float radius, int thickness) {
-        int sections = Math.round(radius * 4);
-        sections = Utils.clamp(sections,  8,  32);
-        drawCircle(x, y, radius, thickness, sections);
+    public final void drawCircle(float x, float y, float radius, float thickness) {
+        float t = setLineWidth(thickness);
+        drawCircle(x, y, radius);
+        setLineWidth(t);
     }
 
     /**
@@ -1521,24 +1381,9 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param w
      * @param h
      */
-    public final void drawOval(float x, float y, float w, float h, float thickness, int sections) {
+    public final void drawOval(float x, float y, float w, float h, float thickness) {
         float saveThickness = setLineWidth(thickness);
-        pushMatrix();
-        float X = x + w/2;
-        float Y = y + h/2;
-        float radius = w;
-        translate(X, Y);
-        if (w < h) {
-            scale((h-w)/w, 1);
-            radius = h;
-        } else if (w > h) {
-            scale(1, (w-h)/h);
-            radius = w;
-        }
-        begin();
-        circlePoints(radius, 0, 360, sections);
-       	drawLineLoop();
-        popMatrix();
+        drawOval(x, y, w, h);
         setLineWidth(saveThickness);
     }
 
@@ -1549,27 +1394,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param w
      * @param h
      */
-    public final void drawOval(float x, float y, float w, float h) {
-    	float radius = Math.max(w/2, h/2);
-        int sections = Math.round(radius * 2);
-        if (sections > 32)
-            sections = 32;
-        else if (sections < 8)
-            sections = 8;
-    	drawOval(x, y, w, h, sections);
-    }
-    
-    /**
-     * Convenience.  thickness default to 1
-     * @param x
-     * @param y
-     * @param w
-     * @param h
-     * @param sections
-     */
-    public final void drawOval(float x, float y, float w, float h, int sections) {
-        drawOval(x, y, w, h, 1, sections);
-    }
+    public abstract void drawOval(float x, float y, float w, float h);
     
     /**
      * 
@@ -1578,33 +1403,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param w
      * @param h
      */
-    public void drawFilledOval(float x, float y, float w, float h) {
-        pushMatrix();
-        MutableVector2D mv0 = transform(x, y);
-        MutableVector2D mv2 = transform(x+w, y+h);
-        mv2.subEq(mv0);
-        float radius = Math.max(mv2.getX()/2, mv2.getY()/2);
-        float sections = radius * 2;
-        if (sections > 32)
-            sections = 32;
-        else if (sections < 8)
-            sections = 8;
-        float step = 360 / sections;
-        float angle = 0;
-        float endAngle = 360;
-        begin();
-        translate(x+w/2,y+h/2);
-        vertex(0, 0);
-        for (int i=0; i<sections; i++) {
-            float x0 = CMath.cosine(angle) * w/2;
-            float y0 = CMath.sine(angle) * h/2;
-            vertex(x0, y0);
-            angle += step;
-        }
-        vertex(CMath.cosine(endAngle) * w/2, CMath.sine(endAngle) * h/2);
-        drawTriangleFan();
-        popMatrix();
-    }
+    public abstract void drawFilledOval(float x, float y, float w, float h);
 
     /**
      * 
@@ -1755,8 +1554,8 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param imageKey
      * @param rect
      */
-    public final void drawImage(int imageKey, GRectangle rect) {
-        drawImage(imageKey, rect.x, rect.y, rect.w, rect.h);
+    public final void drawImage(int imageKey, IRectangle rect) {
+        drawImage(imageKey, rect.X(), rect.Y(), rect.W(), rect.H());
     }
 
     /**
@@ -1845,8 +1644,8 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      *
      * @param rect
      */
-	public final void setClipRect(GRectangle rect) {
-	    setClipRect(rect.x, rect.y, rect.w, rect.y);
+	public final void setClipRect(IRectangle rect) {
+	    setClipRect(rect.X(), rect.Y(), rect.W(), rect.Y());
     }
 
     /**

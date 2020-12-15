@@ -13,6 +13,7 @@ import cc.lib.game.AImage;
 import cc.lib.game.GColor;
 import cc.lib.game.GDimension;
 import cc.lib.game.GRectangle;
+import cc.lib.game.IRectangle;
 import cc.lib.game.Justify;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
@@ -29,10 +30,8 @@ public class ZBoard extends Reflector<ZBoard> {
         addAllFields(ZBoard.class);
     }
 
-    Grid<ZCell> grid; // TODO: Use Grid Container Type
-    List<ZZone> zones;
-    @Omit
-    boolean loaded = false;
+    private Grid<ZCell> grid;
+    private List<ZZone> zones;
 
     public ZBoard() {
 
@@ -55,6 +54,10 @@ public class ZBoard extends Reflector<ZBoard> {
         return zones.get(index);
     }
 
+    public int getNumZones() {
+        return zones.size();
+    }
+
     Iterable<ZZone> getZones() {
         return zones;
     }
@@ -72,14 +75,7 @@ public class ZBoard extends Reflector<ZBoard> {
 
         List<Integer> result = new ArrayList<>();
 
-        ZDir [] options = null;
-        switch (action) {
-            case MOVE:
-                options = ZDir.values();
-                break;
-            default:
-                options = ZDir.getCompassValues();
-        }
+        ZDir [] options = action == ZActionType.MOVE ? ZDir.values() : ZDir.getCompassValues();
 
         for (Grid.Pos cellPos : zones.get(zoneIndex).cells) {
             // fan out in all direction to given distance
@@ -124,7 +120,7 @@ public class ZBoard extends Reflector<ZBoard> {
                 return door;
             }
         }
-        assert(false);
+        //assert(false);
         return null;
     }
 
@@ -166,45 +162,6 @@ public class ZBoard extends Reflector<ZBoard> {
 
         return true;
     }
-/*
-    @Omit
-    Map<Grid.Pos, List<ZDir> []> lookup = null;
-
-    void buildLookup() {
-        lookup = new HashMap<>();
-        int numCells = grid.getRows() * grid.getCols();
-        int [][] distance = new int[numCells][numCells];
-        int [][] path     = new int[numCells][numCells];
-        Utils.fill(distance, Integer.MAX_VALUE);
-        Utils.fill(path, -1);
-        for (int i=0; i<numCells; i++) {
-            Grid.Pos pos = Grid.Pos.fromIndex(i);
-            ZCell cell = getCell(pos);
-            if (cell.cellType == ZCellType.NONE)
-                continue;
-            for (ZDir dir : ZDir.getCompassValues()) {
-                if (cell.getWallFlag(dir).isOpen()) {
-                    Grid.Pos next = dir.getAdjacent(pos);
-                    distance[i][next.getIndex()] = 1;
-                }
-            }
-            distance[i][i] = 0;
-            path[i][i] = i;
-        }
-        for (int k=0; k<numCells; k++) {
-            for (int i=0; i<numCells; i++) {
-                for (int j=0; j<numCells; j++) {
-                    if (distance[i][j] > distance[i][k] + distance[k][j]) {
-                        distance[i][j] = distance[i][k] + distance[k][j];
-                        path[i][j] = path[i][k];
-                    }
-                }
-            }
-        }
-        // find all paths from each cellpos to each zome index
-        lookup = new HashMap<>();
-
-    }*/
 
     /**
      * Returns a list of directions the zombie can move
@@ -240,15 +197,7 @@ public class ZBoard extends Reflector<ZBoard> {
 
         return allPaths;
     }
-/*
-    public List<List<ZDir>> getShortestPathOptions(Grid.Pos fromCell, Grid.Pos toCell) {
-        int maxDist = (grid.getRows() + grid.getCols()) * 2;
-        Set<Grid.Pos> visited = new HashSet<>();
-        List<List<ZDir>> paths = new ArrayList<>();
-        searchPathsR(fromCell, toCell, new int[] { maxDist }, new LinkedList<>(), paths, visited);
-        return paths;
-    }
-*/
+
     private List<List<ZDir>> getShortestPathOptions(Grid.Pos fromCell, Grid.Pos toCell, Set<Grid.Pos> visited, int maxDist) {
         List<List<ZDir>> paths = new ArrayList<>();
         searchPathsR(fromCell, toCell, new int[] { maxDist }, new LinkedList<>(), paths, visited);
@@ -332,7 +281,7 @@ public class ZBoard extends Reflector<ZBoard> {
 
     public int pickZone(AGraphics g, int mouseX, int mouseY) {
         for (ZCell cell : grid.getCells()) {
-            if (cell.getRect().contains(mouseX, mouseY)) {
+            if (cell.contains(mouseX, mouseY)) {
                 return cell.zoneIndex;
             }
         }
@@ -342,25 +291,18 @@ public class ZBoard extends Reflector<ZBoard> {
     public ZDoor pickDoor(AGraphics g, List<ZDoor> doors, float mouseX, float mouseY) {
         ZDoor picked = null;
         for (ZDoor door : doors) {
-            GRectangle doorRect = door.getRect(this).grownBy(10);
+            GRectangle doorRect = door.getRect(this).grow(.1f);
             if (doorRect.contains(mouseX, mouseY)) {
                 g.setColor(GColor.RED);
                 picked = door;
                 // highlight the other side if this is a vault
-                g.drawRect(door.getOtherSide().getRect(this).grownBy(10), 2);
+                g.drawRect(door.getOtherSide().getRect(this).grow(.1f), 2);
             } else {
                 g.setColor(GColor.DARK_OLIVE);
             }
             g.drawRect(doorRect, 2);
         }
         return picked;
-    }
-
-    // TODO: This is stoopid
-    public synchronized void loadCells(AGraphics g) {
-        if (!loaded)
-            initCellRects(g, g.getViewportWidth(), g.getViewportHeight());
-        loaded = true;
     }
 
     public void setSpawnZone(int zoneIdx, boolean isSpawn) {
@@ -402,7 +344,6 @@ public class ZBoard extends Reflector<ZBoard> {
      * @return
      */
     public int drawZones(AGraphics g, float mouseX, float mouseY) {
-        loadCells(g);
         int result = -1;
         for (int i=0; i<zones.size(); i++) {
             ZZone zone = zones.get(i);
@@ -413,14 +354,14 @@ public class ZBoard extends Reflector<ZBoard> {
                 switch (zone.type) {
                     case VAULT:
                         g.setColor(GColor.BROWN);
-                        g.drawFilledRect(cell.rect);
+                        g.drawFilledRect(cell);
                         break;
                 }
                 drawCellWalls(g, pos, 1);
-                if (cell.rect.contains(mouseX, mouseY)) {
+                if (cell.contains(mouseX, mouseY)) {
                     result = i;
                     g.setColor(GColor.RED.withAlpha(32));
-                    g.drawFilledRect(cell.rect);
+                    g.drawFilledRect(cell);
                 }
                 String text = "";
                 for (ZCellType type : ZCellType.values()) {
@@ -432,7 +373,7 @@ public class ZBoard extends Reflector<ZBoard> {
                             case OBJECTIVE_RED:
                                 if (zone.objective) {
                                     // draw a big red X om the center of the cell
-                                    GRectangle redX = cell.rect.scaledBy(.25f, .25f);
+                                    GRectangle redX = new GRectangle(cell).scaledBy(.25f, .25f);
                                     g.setColor(type.getColor());
                                     g.drawLine(redX.getTopLeft(), redX.getBottomRight(), 10);
                                     g.drawLine(redX.getTopRight(), redX.getBottomLeft(), 10);
@@ -443,49 +384,49 @@ public class ZBoard extends Reflector<ZBoard> {
                                 break;
                             case SPAWN_NORTH:
                                 if (zone.isSpawn) {
-                                    drawSpawn(g, cell.getRect(), ZDir.NORTH);
+                                    drawSpawn(g, cell, ZDir.NORTH);
                                 }
                                 break;
                             case SPAWN_SOUTH:
                                 if (zone.isSpawn) {
-                                    drawSpawn(g, cell.getRect(), ZDir.SOUTH);
+                                    drawSpawn(g, cell, ZDir.SOUTH);
                                 }
                                 break;
                             case SPAWN_EAST:
                                 if (zone.isSpawn) {
-                                    drawSpawn(g, cell.getRect(), ZDir.EAST);
+                                    drawSpawn(g, cell, ZDir.EAST);
                                 }
                                 break;
                             case SPAWN_WEST:
                                 if (zone.isSpawn) {
-                                    drawSpawn(g, cell.getRect(), ZDir.WEST);
+                                    drawSpawn(g, cell, ZDir.WEST);
                                 }
                                 break;
                         }
                     }
                 }
                 if (zone.isDragonBile()) {
-                    g.drawImage(ZIcon.SLIME.imageIds[0], cell.rect);
+                    g.drawImage(ZIcon.SLIME.imageIds[0], cell);
                 }
                 if (text.length() > 0) {
                     g.setColor(GColor.YELLOW);
-                    g.drawJustifiedStringOnBackground(cell.rect.getCenter(), Justify.CENTER, Justify.CENTER, text, GColor.TRANSLUSCENT_BLACK, 10, 2);
+                    g.drawJustifiedStringOnBackground(cell.getCenter(), Justify.CENTER, Justify.CENTER, text, GColor.TRANSLUSCENT_BLACK, 10, 2);
                 }
             }
             if (zone.noiseLevel > 0) {
                 g.setColor(GColor.BLACK);
-                g.drawJustifiedString(zone.center, Justify.CENTER, Justify.CENTER, String.valueOf(zone.noiseLevel));
+                g.drawJustifiedString(zone.getCenter(this), Justify.CENTER, Justify.CENTER, String.valueOf(zone.noiseLevel));
             }
         }
         ZZone maxNoise = getMaxNoiseLevelZone();
         if (maxNoise != null) {
             GColor color = new GColor(GColor.BLACK);
-            float radius = getCell(maxNoise.cells.get(0)).rect.w / 2;
+            float radius = getCell(maxNoise.cells.get(0)).W() / 2;
             float dr = radius / 5;
             radius = dr;
             for (int i=0; i<5; i++) {
                 g.setColor(color);
-                g.drawCircle(maxNoise.center, radius);
+                g.drawCircle(maxNoise.getCenter(this), radius);
                 color = color.lightened(.1f);
                 radius += dr;
             }
@@ -493,20 +434,19 @@ public class ZBoard extends Reflector<ZBoard> {
         return result;
     }
 
-    void drawSpawn(AGraphics g, GRectangle rect, ZDir dir) {
+    void drawSpawn(AGraphics g, IRectangle rect, ZDir dir) {
         int id = ZIcon.SPAWN.imageIds[dir.ordinal()];
         AImage img = g.getImage(id);
-        g.drawImage(id, rect.scaledBy(.8f).fit(img, dir.horz, dir.vert));
+        g.drawImage(id, new GRectangle(rect).scale(.8f).fit(img, dir.horz, dir.vert));
     }
 
     public void drawCellWalls(AGraphics g, Grid.Pos cellPos, float scale) {
-        loadCells(g);
         ZCell cell = getCell(cellPos);
         g.pushMatrix();
-        Vector2D center = cell.rect.getCenter();
+        Vector2D center = cell.getCenter();
         g.translate(center);
-        Vector2D v0 = cell.rect.getTopLeft().subEq(center);
-        Vector2D v1 = cell.rect.getTopRight().subEq(center);
+        Vector2D v0 = cell.getTopLeft().subEq(center);
+        Vector2D v1 = cell.getTopRight().subEq(center);
         g.scale(scale);
 
         for (ZDir dir : ZDir.getCompassValues()) {
@@ -602,7 +542,7 @@ public class ZBoard extends Reflector<ZBoard> {
             ZCell cell = it.next();
             if (cell.isCellTypeEmpty())
                 continue;
-            if (cell.rect.contains(mouseX, mouseY)) {
+            if (cell.contains(mouseX, mouseY)) {
                 return it.getPos();
             }
         }
@@ -611,7 +551,6 @@ public class ZBoard extends Reflector<ZBoard> {
 
 
     public Grid.Pos drawDebug(AGraphics g, float mouseX, float mouseY) {
-        loadCells(g);
         g.clearScreen(GColor.LIGHT_GRAY);
         Grid.Pos returnCell = null;
 
@@ -628,7 +567,7 @@ public class ZBoard extends Reflector<ZBoard> {
                 case ZCell.ENV_VAULT:
                     g.setColor(GColor.BROWN); break;
             }
-            g.drawFilledRect(cell.rect);
+            g.drawFilledRect(cell);
             drawCellWalls(g, it.getPos(), .97f);
             String text = "Zone " + cell.zoneIndex;
             for (ZCellType type : ZCellType.values()) {
@@ -672,34 +611,10 @@ public class ZBoard extends Reflector<ZBoard> {
             if (cell.vaultFlag > 0) {
                 text += "\nvaultFlag " + cell.vaultFlag;
             }
-            g.drawJustifiedStringOnBackground(cell.rect.getCenter(), Justify.CENTER, Justify.CENTER, text, GColor.TRANSLUSCENT_BLACK, 10, 3);
+            g.drawJustifiedStringOnBackground(cell.getCenter(), Justify.CENTER, Justify.CENTER, text, GColor.TRANSLUSCENT_BLACK, 10, 3);
 
         }
         return returnCell;
-    }
-
-    public GDimension initCellRects(AGraphics g, int width, int height) {
-        int rows = getRows();
-        int cols = getColumns();
-
-        int dim = Math.min(width/cols, height/rows);
-
-        for (Grid.Iterator<ZCell> it = grid.iterator(); it.hasNext(); ) {
-            ZCell cell = it.next();
-            cell.rect = new GRectangle(it.getPos().getColumn()*dim, it.getPos().getRow()*dim, dim, dim);
-        }
-
-        for (ZZone zone : zones) {
-            if (zone.cells.size() > 0) {
-                zone.center.zero();
-                for (Grid.Pos pos: zone.cells) {
-                    zone.center.addEq(getCell(pos).rect.getCenter());
-                }
-                zone.center.scaleEq(1.0f / zone.cells.size());
-            }
-        }
-
-        return new GDimension(dim, dim);
     }
 
     /**
@@ -763,14 +678,14 @@ public class ZBoard extends Reflector<ZBoard> {
 
     public ZActor drawActors(AGraphics g, int mx, int my) {
         ZActor picked = null;
-        for (ZCell cell : getCells()) {
+        for (ZCell cell : grid.getCells()) {
             for (ZCellQuadrant q : ZCellQuadrant.values()) {
                 ZActor a = cell.getOccupant(q);
                 if (a == null)
                     continue;
                 AImage img = g.getImage(a.getImageId());
                 if (img != null) {
-                    GRectangle rect = cell.getQuadrant(q).fit(img).scaledBy(a.getScale());
+                    GRectangle rect = cell.getQuadrant(q).fit(img).scale(a.getScale());
                     if (rect.contains(mx, my))
                         picked = a;
                     g.drawImage(a.getImageId(), rect);
@@ -803,6 +718,14 @@ public class ZBoard extends Reflector<ZBoard> {
      * Iterate over all cells
      * @return
      */
+    public Grid.Iterator<ZCell> getCellsIterator() {
+        return grid.iterator();
+    }
+
+    /**
+     * Iterate over all cells
+     * @return
+     */
     public Iterable<ZCell> getCells() {
         return grid.getCells();
     }
@@ -810,7 +733,7 @@ public class ZBoard extends Reflector<ZBoard> {
     public void drawZoneOutline(AGraphics g, int zoneIndex) {
         ZZone zone = getZone(zoneIndex);
         for (Grid.Pos cellPos : zone.cells) {
-            g.drawRect(getCell(cellPos).rect, 2);
+            g.drawRect(getCell(cellPos), 2);
         }
     }
 
@@ -918,7 +841,7 @@ public class ZBoard extends Reflector<ZBoard> {
         if (grid == null || grid.getCols() == 0 || grid.getRows() == 0)
             return new GDimension(0,0);
 
-        Vector2D br = grid.get(grid.getRows()-1, grid.getCols()-1).getRect().getBottomRight();
+        Vector2D br = grid.get(grid.getRows()-1, grid.getCols()-1).getBottomRight();
         return new GDimension(br.getX(), br.getY());
     }
 }

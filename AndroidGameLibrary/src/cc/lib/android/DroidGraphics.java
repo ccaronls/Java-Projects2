@@ -70,15 +70,6 @@ public class DroidGraphics extends APGraphics {
     }
 
     @Override
-    public final void setColorRGBA(int rgba) {
-        int r = (rgba >>> 24) & 0xff;
-        int g = (rgba >> 16) & 0xff;
-        int b = (rgba >> 8) & 0xff;
-        int a = (rgba >> 0) & 0xff;
-        paint.setColor(Color.argb(a, r, g, b));
-    }
-
-    @Override
     public final void setColor(int r, int g, int b, int a) {
         paint.setColor(Color.argb(a, r, g, b));
     }
@@ -532,11 +523,9 @@ public class DroidGraphics extends APGraphics {
     }
 
     @Override
-    public final void drawRoundedRect(float x, float y, float w, float h, float thickness, float radius) {
-        float oldT = setLineWidth(thickness);
+    public final void drawRoundedRect(float x, float y, float w, float h, float radius) {
         paint.setStyle(Paint.Style.STROKE);
         renderRoundRect(x, y, w, h, radius);
-        paint.setStrokeWidth(oldT);
     }
 
     @Override
@@ -547,10 +536,69 @@ public class DroidGraphics extends APGraphics {
         setLineWidth(oldWidth);
     }
 
-    private void renderRoundRect(float x, float y, float w, float h, float radius) {
+    private Matrix getCurrentTransform() {
         Matrix m = new Matrix();
         float [] arr = r.getCurrentTransform().transpose().toFloatArray();
         m.setValues(arr);
+        return m;
+    }
+/*
+    @Override
+    public void drawDisk(float cx, float cy, float radius) {
+        Matrix m = getCurrentTransform();
+        float t = setLineWidth(0);
+        paint.setStyle(Paint.Style.FILL_AND_STROKE);
+        canvas.save();
+        canvas.concat(m);
+        canvas.drawOval(cx-radius, cy-radius, cx+radius, cy+radius, paint);
+        canvas.restore();
+        setLineWidth(t);
+    }
+*/
+    @Override
+    public void drawArc(float x, float y, float radius, float startDegrees, float sweepDegrees) {
+        Matrix m = getCurrentTransform();
+        paint.setStyle(Paint.Style.STROKE);
+        canvas.save();
+        canvas.concat(m);
+        canvas.drawArc(x-radius, y-radius, x+radius, y+radius, startDegrees, sweepDegrees, false, paint);
+        canvas.restore();
+    }
+
+    @Override
+    public void drawWedge(float cx, float cy, float radius, float startDegrees, float sweepDegrees) {
+        Matrix m = getCurrentTransform();
+        float t = setLineWidth(0);
+        paint.setStyle(Paint.Style.FILL_AND_STROKE);
+        canvas.save();
+        canvas.concat(m);
+        canvas.drawArc(cx-radius, cy-radius, cx+radius, cy+radius, startDegrees, sweepDegrees, true, paint);
+        canvas.restore();
+        setLineWidth(t);
+    }
+
+    @Override
+    public void drawCircle(float x, float y, float radius) {
+        Matrix m = getCurrentTransform();
+        paint.setStyle(Paint.Style.STROKE);
+        canvas.save();
+        canvas.concat(m);
+        canvas.drawOval(x-radius, y-radius, x+radius, y+radius, paint);
+        canvas.restore();
+    }
+
+    @Override
+    public void drawOval(float x, float y, float w, float h) {
+        Matrix m = getCurrentTransform();
+        paint.setStyle(Paint.Style.STROKE);
+        canvas.save();
+        canvas.concat(m);
+        canvas.drawOval(x, y, x+w, y+h, paint);
+        canvas.restore();
+    }
+
+    private void renderRoundRect(float x, float y, float w, float h, float radius) {
+        Matrix m = getCurrentTransform();
         canvas.save();
         canvas.concat(m);
         canvas.drawRoundRect(x, y, x+w, y+h, radius, radius,paint);

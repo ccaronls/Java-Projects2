@@ -23,12 +23,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
 
-import javax.microedition.khronos.opengles.*;
+import javax.microedition.khronos.opengles.GL10;
+import javax.microedition.khronos.opengles.GL11;
 
 import cc.lib.game.AGraphics;
 import cc.lib.game.AImage;
 import cc.lib.game.GColor;
-import cc.lib.game.GDimension;
 import cc.lib.game.GRectangle;
 import cc.lib.game.IImageFilter;
 import cc.lib.game.Justify;
@@ -105,16 +105,7 @@ public class GL10Graphics extends AGraphics {
         setColor(GColor.WHITE);
     }
 
-    /**
-     * 
-     * @param x
-     * @param y
-     * @param maxWidth
-     * @param hJust
-     * @param vJust
-     * @param text
-     * @return
-     */
+    /*
     public final GDimension drawWrapString(float x, float y, float maxWidth, Justify hJust, Justify vJust, String text) {
         String [] lines = generateWrappedLines(text, maxWidth);
         float th = getTextHeight() * this.getViewportScaleY();
@@ -181,16 +172,7 @@ public class GL10Graphics extends AGraphics {
     }
     
     
-    /**
-     * Draw a justified block text.  '\n' is a delimiter for seperate lines
-     *
-     * @param x
-     * @param y
-     * @param hJust
-     * @param vJust
-     * @param text
-     * @return the total height of the text. 
-     */
+    /*
     public final GDimension drawJustifiedString(float x, float y, Justify hJust, Justify vJust, String text) {
         if (text==null || text.length() == 0)
             return GDimension.EMPTY;
@@ -1060,15 +1042,6 @@ for (int pix : pixels) {
 	}
 	
     @Override
-	public void setColorRGBA(int rgba) {
-    	int r = (rgba >> 24) & 0xff;
-		int g = (rgba >> 16) & 0xff;
-		int b = (rgba >>  8) & 0xff;
-		int a = (rgba >>  0) & 0xff;
-		sGl.glColor4x(r, g, b, a);
-	}
-	
-    @Override
 	public void setColor(int r, int g, int b, int a) {
     	sGl.glColor4x(r, g, b, a);
 	}
@@ -1262,5 +1235,40 @@ for (int pix : pixels) {
     @Override
     public void removeFilter() {
 
+    }
+
+    @Override
+    public void drawRoundedRect(float x, float y, float w, float h, float radius) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    @Override
+    public void drawFilledRoundedRect(float x, float y, float w, float h, float radius) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    @Override
+    public void drawWedge(float cx, float cy, float radius, float startDegrees, float sweepDegrees) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    @Override
+    public void drawArc(float x, float y, float radius, float startDegrees, float sweepDegrees) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    @Override
+    public void drawCircle(float x, float y, float radius) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    @Override
+    public void drawOval(float x, float y, float w, float h) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    @Override
+    public void drawFilledOval(float x, float y, float w, float h) {
+        throw new RuntimeException("Not implemented");
     }
 }

@@ -128,11 +128,11 @@ public class ZGame extends Reflector<ZGame>  {
         this.quest = quest.load();
         board = this.quest.loadBoard();
         initGame();
-        for (Grid.Iterator<ZCell> it = board.grid.iterator(); it.hasNext(); ) {
+        for (Grid.Iterator<ZCell> it = board.getCellsIterator(); it.hasNext(); ) {
             ZCell cell=it.next();
             if (cell.isCellTypeEmpty())
                 continue;
-            ZZone zone = board.zones.get(cell.zoneIndex);
+            ZZone zone = board.getZone(cell.zoneIndex);
             switch (cell.environment) {
                 case ZCell.ENV_OUTDOORS:
                     zone.type = ZZoneType.OUTDOORS;
@@ -196,7 +196,7 @@ public class ZGame extends Reflector<ZGame>  {
     private void addVaultDoor(ZCell cell, ZZone zone, Grid.Pos pos, GColor color) {
         // add a vault door leading to the cell specified by vaultFlag
         assert (cell.vaultFlag > 0);
-        for (Grid.Iterator<ZCell> it2 = board.grid.iterator(); it2.hasNext(); ) {
+        for (Grid.Iterator<ZCell> it2 = board.getCellsIterator(); it2.hasNext(); ) {
             ZCell cell2 = it2.next();
             if (cell == cell2)
                 continue;
@@ -270,7 +270,7 @@ public class ZGame extends Reflector<ZGame>  {
     }
 
     boolean isGameSetup() {
-        if(board == null || board.grid == null)
+        if(board == null)
             return false;
         if (users == null || users.length == 0 || getCurrentUser() == null)
             return false;
@@ -361,7 +361,7 @@ public class ZGame extends Reflector<ZGame>  {
                 // search cells and randomly decide on spawning depending on the
                 // highest skill level of any remaining players
                 ZSkillLevel highestSkill = getHighestSkillLevel();
-                for (int zIdx=0; zIdx<board.zones.size(); zIdx++) {
+                for (int zIdx=0; zIdx<board.getNumZones(); zIdx++) {
                     ZZone z = board.getZone(zIdx);
                     if (z.isSpawn) {
                         spawnZombies(zIdx, highestSkill);
@@ -442,7 +442,7 @@ public class ZGame extends Reflector<ZGame>  {
                     options.add(ZMove.newTradeMove(inZone));
                 }
 
-                ZZone zone = board.zones.get(cur.occupiedZone);
+                ZZone zone = board.getZone(cur.occupiedZone);
 
                 // check for search
                 if (zone.isSearchable() && cur.canSearch() && isClearedOfZombies(cur.occupiedZone)) {
@@ -557,7 +557,7 @@ public class ZGame extends Reflector<ZGame>  {
 
             case ZOMBIE_STAGE: {
                 // any existing zombies take their actions
-                for (int zoneIdx=0; zoneIdx < board.zones.size(); zoneIdx++) {
+                for (int zoneIdx=0; zoneIdx < board.getNumZones(); zoneIdx++) {
                     List<ZZombie> zombies = board.getZombiesInZone(zoneIdx);
                     for (ZZombie zombie : zombies) {
                         List<ZDir> path = null;
@@ -726,8 +726,8 @@ public class ZGame extends Reflector<ZGame>  {
             log.info("%s can see players with noise level %d in zone %d and walking toward it.", zombie.name(), maxNoise, targetZone);
         else {
             // move to noisiest zone
-            for (int zone=0; zone < board.zones.size(); zone++) {
-                int noiseLevel = board.zones.get(zone).noiseLevel;
+            for (int zone=0; zone < board.getNumZones(); zone++) {
+                int noiseLevel = board.getZone(zone).noiseLevel;
                 if (noiseLevel > maxNoise) {
                     maxNoise = noiseLevel;
                     targetZone = zone;
@@ -1840,14 +1840,14 @@ public class ZGame extends Reflector<ZGame>  {
 
         if (board.getZone(fromZone).type == ZZoneType.VAULT && board.getZone(toZone).type != ZZoneType.VAULT) {
             // ascending the stairs
-            GRectangle fromVaultRect = board.getCell(fromPos).getRect().scaledBy(.2f);//.fit(actor.rect.getDimension());
-            GRectangle toVaultRect = board.getCell(toPos).getRect().scaledBy(.5f);
+            GRectangle fromVaultRect = new GRectangle(board.getCell(fromPos)).scale(.2f);
+            GRectangle toVaultRect = new GRectangle(board.getCell(toPos)).scale(.5f);
             onActorMoved(actor, fromRect, fromVaultRect, speed/2);
             onActorMoved(actor, toVaultRect, toRect, speed/2);
         } else if (board.getZone(fromZone).type != ZZoneType.VAULT && board.getZone(toZone).type == ZZoneType.VAULT) {
             // descending the stairs
-            GRectangle fromVaultRect = board.getCell(fromPos).getRect().scaledBy(.2f);//.fit(actor.rect.getDimension());
-            GRectangle toVaultRect = board.getCell(toPos).getRect().scaledBy(.5f);
+            GRectangle fromVaultRect = new GRectangle(board.getCell(fromPos)).scale(.2f);//.fit(actor.rect.getDimension());
+            GRectangle toVaultRect = new GRectangle(board.getCell(toPos)).scale(.5f);
             onActorMoved(actor, fromRect, fromVaultRect, speed/2);
             onActorMoved(actor, toVaultRect, toRect, speed/2);
         } else {
