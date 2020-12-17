@@ -15,7 +15,7 @@ public final class ZDoor extends Reflector<ZDoor>  {
     private final Grid.Pos cellPosStart, cellPosEnd;
     private final ZDir dir;
     private boolean jammed;
-    GColor lockedColor;
+    public final GColor lockedColor;
 
     public ZDoor() {
         this(null, null, null, null);

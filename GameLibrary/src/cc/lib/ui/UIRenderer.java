@@ -32,7 +32,7 @@ public abstract class UIRenderer {
 
     public abstract void draw(APGraphics g, int px, int py);
 
-    public void doClick() {}
+    public void onClick() {}
 
     public void startDrag(float x, float y) {}
 

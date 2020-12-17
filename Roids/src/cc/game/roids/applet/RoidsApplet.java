@@ -64,8 +64,8 @@ public class RoidsApplet extends AWTKeyboardAnimationApplet {
             roids.drawAll(g);
 
             int ty = 5;
-            final int tx = getScreenWidth()-5;
-            final int th = g.getTextHeight() + 3;
+            final float tx = getScreenWidth()-5;
+            final float th = g.getTextHeight() + 3;
             if (drawFps > 0) {
                 g.setColor(GColor.WHITE);
                 g.drawJustifiedString(tx, ty, Justify.RIGHT, Justify.TOP, "FPS: " + drawFps);

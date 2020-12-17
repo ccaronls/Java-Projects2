@@ -279,7 +279,7 @@ public class GolfSwing extends AWTKeyboardAnimationApplet {
         
         final int buttonX = screenHeight + 10;
         int buttonY = 20;
-        final int buttonDY = g.getTextHeight() + 10;
+        final float buttonDY = g.getTextHeight() + 10;
         final int buttonWidth = (screenWidth - 20) - buttonX; 
 
         if (game.canResume()) {
@@ -393,7 +393,7 @@ public class GolfSwing extends AWTKeyboardAnimationApplet {
     }
     
     private int drawMessage(AGraphics g, int x, int y, int width, String msg) {
-        final int ty = g.getTextHeight();
+        final float ty = g.getTextHeight();
         y += ty;
         String [] lines = g.generateWrappedLines(msg, width);
         g.setColor(GColor.GRAY);
@@ -411,8 +411,8 @@ public class GolfSwing extends AWTKeyboardAnimationApplet {
         final int rx = screenWidth -  20;
         final int cx = (lx+rx) / 2;
         int y = 10;
-        final int ty = g.getTextHeight();
-        final int by = ty+10;//3;
+        final float ty = g.getTextHeight();
+        final float by = ty+10;//3;
         
         g.drawJustifiedString(cx, y, Justify.CENTER, Justify.TOP, "ROUND " + (game.getNumRounds()));
         y += ty;
@@ -822,7 +822,7 @@ public class GolfSwing extends AWTKeyboardAnimationApplet {
         int wid = Math.round(g.getTextWidth(text));
         if (wid < minWidth)
             wid = minWidth;
-        int hgt = g.getTextHeight();
+        float hgt = g.getTextHeight();
         GColor fontColor = GColor.WHITE;
         GColor rectColor = GColor.CYAN;
         boolean highlighted = false;

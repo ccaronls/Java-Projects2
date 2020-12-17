@@ -93,7 +93,7 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
                     if (progress >= 1) {
                         int matStack = G.getMatrixStackSize();
                         if (scrollAmount < 0)
-                            scrollAmount = G.getTextHeight();
+                            scrollAmount = (int)G.getTextHeight();
                         if (scrollStartY != 0) {
                             G.pushMatrix();
                             G.translate(0, scrollStartY);

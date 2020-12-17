@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -1712,11 +1713,25 @@ public class Utils {
      * @return
      */
     public static <T extends Enum<T>> T[] convertToEnumArray(String[] arr, Class<T> enumType, T[] result) {
-        int num = Math.min(arr.length, result.length);
-        for (int i = 0; i < num; i++) {
-            arr[i] = arr[i].trim();
-            if (arr[i].length() > 0)
-                result[i] = Enum.valueOf(enumType, arr[i]);
+        return convertToEnumArray(Arrays.asList(arr), enumType, result);
+    }
+
+    /**
+     *
+     * @param strings
+     * @param enumType
+     * @param result
+     * @param <T>
+     * @return
+     */
+    public static <T extends Enum<T>> T[] convertToEnumArray(Collection<String> strings, Class<T> enumType, T[] result) {
+        int index = 0;
+        for (String s : strings) {
+            s = s.trim();
+            if (s.length() > 0)
+                result[index++] = Enum.valueOf(enumType, s);
+            if (index == result.length)
+                break;
         }
         return result;
     }

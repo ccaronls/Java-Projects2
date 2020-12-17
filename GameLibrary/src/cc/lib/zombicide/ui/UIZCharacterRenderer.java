@@ -39,13 +39,13 @@ public class UIZCharacterRenderer extends UIRenderer {
 
     @Override
     public synchronized void draw(APGraphics g, int px, int py) {
-        if (getGame() == null)
+        if (getGame() == null || UIZombicide.getInstance().boardRenderer == null)
             return;
         GDimension info = null;
         g.setColor(GColor.BLACK);
-        if (UIZombicide.getInstance().getHighlightedActor() != null) {
-            actorInfo = UIZombicide.getInstance().getHighlightedActor();
-            info = UIZombicide.getInstance().getHighlightedActor().drawInfo(g, getGame(), getWidth(), getHeight());
+        if (UIZombicide.getInstance().boardRenderer.getHighlightedActor() != null) {
+            actorInfo = UIZombicide.getInstance().boardRenderer.getHighlightedActor();
+            info = UIZombicide.getInstance().boardRenderer.getHighlightedActor().drawInfo(g, getGame(), getWidth(), getHeight());
         } else if (getGame().getCurrentCharacter() != null) {
             info = getGame().getCurrentCharacter().drawInfo(g, getGame(), getWidth(), getHeight());
         } else if (actorInfo != null) {

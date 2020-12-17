@@ -181,13 +181,13 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * 
      * @return
      */
-    public abstract int getTextHeight();
+    public abstract float getTextHeight();
 
     /**
      *
      * @param height
      */
-    public abstract void  setTextHeight(float height);
+    public abstract void setTextHeight(float height);
 
     /**
      * 
@@ -204,7 +204,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     public final GDimension getTextDimension(String string, float maxWidth) {
         String [] lines = generateWrappedLines(string, maxWidth);
         float width = 0;
-        int height = getTextHeight() * lines.length;
+        float height = getTextHeight() * lines.length;
         for (String s : lines) {
             width = Math.max(width, getTextWidth(s));
         }

@@ -22,8 +22,8 @@ public enum ZDir {
         this.vert = vert;
     }
 
-    final int dx, dy, dz, rotation;
-    final Justify horz, vert;
+    public final int dx, dy, dz, rotation;
+    public final Justify horz, vert;
 
     ZDir getOpposite() {
         switch (this) {

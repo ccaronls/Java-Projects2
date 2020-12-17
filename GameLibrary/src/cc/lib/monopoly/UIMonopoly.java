@@ -386,7 +386,7 @@ public abstract class UIMonopoly extends Monopoly {
             drawPropertyCard(g, property, w, h);
             if (getElapsedTime() > 1000) {
                 g.setColor(GColor.RED);
-                int oldHgt = g.getTextHeight();
+                float oldHgt = g.getTextHeight();
                 g.setTextHeight(h/20);
                 g.drawJustifiedString(w/2, h-10, Justify.CENTER, Justify.BOTTOM, "SOLD TO " + getPlayerName(buyerNum));
                 g.setTextHeight(oldHgt);
@@ -1059,7 +1059,7 @@ public abstract class UIMonopoly extends Monopoly {
         g.drawFilledRect(0, 0, w, h);
         g.setColor(property.getColor());
         final float BANNER_HEIGHT = h/5;
-        int oldTextHeight = g.getTextHeight();
+        float oldTextHeight = g.getTextHeight();
         g.setTextHeight(BANNER_HEIGHT/3);
         g.drawFilledRect(0, 0, w, BANNER_HEIGHT);
         g.translate(padding, padding);

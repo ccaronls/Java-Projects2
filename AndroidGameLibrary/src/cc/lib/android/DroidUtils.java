@@ -15,8 +15,6 @@ import cc.lib.game.Utils;
 
 public class DroidUtils extends Utils {
 
-    public final static int ORANGE = 0xffffa500;
-
     /**
      *
      * @param red
@@ -95,7 +93,7 @@ public class DroidUtils extends Utils {
     public static GDimension computeTextDimension(AGraphics g, String txt) {
         String [] lines = txt.split("\n");
         int width = 0;
-        final int height = g.getTextHeight() * lines.length;
+        final float height = g.getTextHeight() * lines.length;
         for (int i=0; i<lines.length; i++) {
             int w = Math.round(g.getTextWidth(lines[i]));
             if (w > width)

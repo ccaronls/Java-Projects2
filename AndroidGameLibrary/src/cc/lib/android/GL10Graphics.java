@@ -128,11 +128,11 @@ public class GL10Graphics extends AGraphics {
      * 
      * @return
      */
-    public final int getTextHeight() {
+    public final float getTextHeight() {
         return textHeight;
     }
 
-    private int textHeight = 20;
+    private float textHeight = 20;
 
     @Override
     public final void setTextHeight(float height) {

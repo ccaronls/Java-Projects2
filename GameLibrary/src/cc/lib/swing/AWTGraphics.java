@@ -97,7 +97,7 @@ public class AWTGraphics extends APGraphics {
     private int currentFontHeight = -1;
 
     @Override
-    public final int getTextHeight() {
+    public final float getTextHeight() {
         if (currentFontHeight < 0) {
             currentFontHeight = g.getFontMetrics(g.getFont()).getHeight();
         }

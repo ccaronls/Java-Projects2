@@ -13,26 +13,24 @@ import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
 import cc.lib.swing.AWTComponent;
 import cc.lib.swing.AWTGraphics;
+import cc.lib.ui.UIComponent;
+import cc.lib.ui.UIRenderer;
 import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZDir;
-import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZIcon;
 import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZTiles;
 import cc.lib.zombicide.ZZombieType;
+import cc.lib.zombicide.ui.UIZBoardRenderer;
 import cc.lib.zombicide.ui.UIZombicide;
 
-class BoardComponent extends AWTComponent implements ZTiles {
+class BoardComponent extends AWTComponent implements ZTiles, UIComponent {
 
     final Logger log = LoggerFactory.getLogger(getClass());
 
     BoardComponent() {
         setPreferredSize(250, 250);
-    }
-
-    UIZombicide getGame() {
-        return UIZombicide.getInstance();
     }
 
     @Override
@@ -46,8 +44,14 @@ class BoardComponent extends AWTComponent implements ZTiles {
         }.start();
     }
 
+    @Override
+    public void setRenderer(UIRenderer r) {
+        renderer = (UIZBoardRenderer)r;
+    }
+
     int numImagesLoaded=0;
     int totalImagesToLoad=1000;
+    UIZBoardRenderer renderer = null;
 
     @Override
     protected float getInitProgress() {
@@ -65,23 +69,26 @@ class BoardComponent extends AWTComponent implements ZTiles {
     @Override
     protected synchronized void paint(AWTGraphics g, int mouseX, int mouseY) {
         g.clearScreen();
+        /*
         UIZombicide game = getGame();
         if (game != null) {
             game.draw(g, mouseX, mouseY);
             if (game.isAnimating())
                 repaint();
-        }
+        }*/
+        if (renderer != null)
+            renderer.draw(g, mouseX, mouseY);
     }
 
 
     @Override
     protected void onFocusGained() {
-        getGame().setOverlay(null);
+        renderer.setOverlay(null);
     }
 
     @Override
     protected void onMousePressed(int mouseX, int mouseY) {
-        getGame().onTap();
+        renderer.onClick();
     }
 
     void loadImages(AWTGraphics g) {
@@ -250,28 +257,28 @@ class BoardComponent extends AWTComponent implements ZTiles {
 
     @Override
     public void keyPressed(KeyEvent e) {
-        ZGame game = getGame();
+        UIZombicide game = UIZombicide.getInstance();
         ZCharacter cur = game.getCurrentCharacter();
         if (cur != null) {
             switch (e.getKeyCode()) {
                 case KeyEvent.VK_LEFT:
                     if (game.getBoard().canMove(cur, ZDir.WEST)) {
-                        UIZombicide.getInstance().setResult(ZMove.newWalkDirMove(ZDir.WEST));
+                        game.setResult(ZMove.newWalkDirMove(ZDir.WEST));
                     }
                     break;
                 case KeyEvent.VK_RIGHT:
                     if (game.getBoard().canMove(cur, ZDir.EAST)) {
-                        UIZombicide.getInstance().setResult(ZMove.newWalkDirMove(ZDir.EAST));
+                        game.setResult(ZMove.newWalkDirMove(ZDir.EAST));
                     }
                     break;
                 case KeyEvent.VK_UP:
                     if (game.getBoard().canMove(cur, ZDir.NORTH)) {
-                        UIZombicide.getInstance().setResult(ZMove.newWalkDirMove(ZDir.NORTH));
+                        game.setResult(ZMove.newWalkDirMove(ZDir.NORTH));
                     }
                     break;
                 case KeyEvent.VK_DOWN:
                     if (game.getBoard().canMove(cur, ZDir.SOUTH)) {
-                        UIZombicide.getInstance().setResult(ZMove.newWalkDirMove(ZDir.SOUTH));
+                        game.setResult(ZMove.newWalkDirMove(ZDir.SOUTH));
                     }
                     break;
             }
@@ -279,7 +286,7 @@ class BoardComponent extends AWTComponent implements ZTiles {
 
         switch (e.getKeyCode()) {
             case KeyEvent.VK_T:
-                getGame().toggleDrawTiles();
+                renderer.toggleDrawTiles();
                 break;
         }
         repaint();

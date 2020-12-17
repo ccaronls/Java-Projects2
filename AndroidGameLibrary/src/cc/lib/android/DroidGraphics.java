@@ -1,13 +1,32 @@
 package cc.lib.android;
 
 import android.content.Context;
-import android.graphics.*;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Matrix;
+import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffColorFilter;
+import android.graphics.Rect;
+import android.graphics.RectF;
+import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
+import android.util.Log;
+import android.util.TypedValue;
 
 import java.util.Vector;
 
-import cc.lib.game.*;
-import cc.lib.math.*;
+import cc.lib.game.AImage;
+import cc.lib.game.APGraphics;
+import cc.lib.game.GColor;
+import cc.lib.game.GRectangle;
+import cc.lib.game.IImageFilter;
+import cc.lib.game.Justify;
+import cc.lib.math.CMath;
+import cc.lib.math.Vector2D;
 
 /**
  * Created by chriscaron on 2/12/18.
@@ -19,10 +38,13 @@ public class DroidGraphics extends APGraphics {
 
     private final Context context;
     private Canvas canvas;
-    final Paint paint = new Paint();
-    final Path path = new Path();
-    final RectF rectf = new RectF();
-    final Rect rect = new Rect();
+    private final Paint paint = new Paint();
+    private final Path path = new Path();
+    private final RectF rectf = new RectF();
+    private final Rect rect = new Rect();
+    private Bitmap screenCapture = null;
+    private Canvas savedCanvas = null;
+    private final Vector<Bitmap> bitmaps = new Vector<>();
 
     public DroidGraphics(Context context, Canvas canvas, int width, int height) {
         super(width, height);
@@ -50,6 +72,14 @@ public class DroidGraphics extends APGraphics {
 
     public final Canvas getCanvas() {
         return canvas;
+    }
+
+    public float convertPixelsToDips(float pixels) {
+        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, pixels, context.getResources().getDisplayMetrics());
+    }
+
+    public float convertDipsToPixels(float dips) {
+        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_PX, dips, context.getResources().getDisplayMetrics());
     }
 
     /**
@@ -80,13 +110,13 @@ public class DroidGraphics extends APGraphics {
     }
 
     @Override
-    public final int getTextHeight() {
-        return Math.round(paint.getTextSize());
+    public final float getTextHeight() {
+        return convertPixelsToDips(paint.getTextSize());
     }
 
     @Override
     public final void setTextHeight(float height) {
-        paint.setTextSize(height);
+        paint.setTextSize(convertDipsToPixels(height));
     }
 
     @Override
@@ -315,8 +345,6 @@ public class DroidGraphics extends APGraphics {
 
     }
 
-    private final Vector<Bitmap> bitmaps = new Vector<>();
-
     private int addImage(Bitmap bm) {
         int id = bitmaps.size();
         bitmaps.add(bm);
@@ -365,9 +393,16 @@ public class DroidGraphics extends APGraphics {
 
     @Override
     public final int loadImage(String assetPath, final GColor transparent) {
-        Bitmap bm = BitmapFactory.decodeFile(assetPath);
-        if (bm == null)
+        Bitmap bm;
+        try {
+            bm = BitmapFactory.decodeStream(context.getAssets().open(assetPath));
+        } catch (Exception e) {
+            bm = BitmapFactory.decodeFile(assetPath);
+        }
+        if (bm == null) {
+            Log.e("DroidGraphics", "Failed to open '" + assetPath + "'");
             return -1;
+        }
         bm = transformImage(bm, -1, -1, new IImageFilter() {
             @Override
             public int filterRGBA(int x, int y, int argb) {
@@ -403,6 +438,40 @@ public class DroidGraphics extends APGraphics {
 
         deleteImage(source);
 
+        return result;
+    }
+
+    /**
+     *
+     * @param file
+     * @param cells
+     * @return
+     */
+    public synchronized int [] loadImageCells(String file, int [][] cells) {
+        int source = loadImage(file);
+        try {
+            return loadImageCells(source, cells);
+        } finally {
+            deleteImage(source);
+        }
+    }
+
+    /**
+     *
+     * @param source
+     * @param cells
+     * @return
+     */
+    public synchronized int [] loadImageCells(int source, int [][] cells) {
+        int [] result = new int[cells.length];
+        for (int i=0; i<result.length; i++) {
+            int x = cells[i][0];
+            int y = cells[i][1];
+            int w = cells[i][2];
+            int h = cells[i][3];
+
+            result[i] = newSubImage(source, x, y, w, h);
+        }
         return result;
     }
 
@@ -448,7 +517,7 @@ public class DroidGraphics extends APGraphics {
 
     @Override
     public final AImage getImage(int id) {
-        return new DroidImage(bitmaps.get(id));
+        return new DroidImage(getBitmap(id));
     }
 
     @Override
@@ -469,7 +538,7 @@ public class DroidGraphics extends APGraphics {
 
     @Override
     public final int newSubImage(int id, int x, int y, int w, int h) {
-        Bitmap bm = bitmaps.get(id);
+        Bitmap bm = getBitmap(id);
         Bitmap newBm = Bitmap.createBitmap(bm, x, y, w, h);
         return addImage(newBm);
     }
@@ -478,9 +547,15 @@ public class DroidGraphics extends APGraphics {
     public final int newRotatedImage(int id, int degrees) {
         Matrix m = new Matrix();
         m.setRotate(degrees);
-        Bitmap bm = bitmaps.get(id);
+        Bitmap bm = getBitmap(id);
         Bitmap newBm = Bitmap.createBitmap(bm, 0, 0, bm.getWidth(), bm.getHeight(), m, true);
         return addImage(newBm);
+    }
+
+    private Bitmap getBitmap(int id) {
+        if (id < bitmaps.size())
+            return bitmaps.get(id);
+        return BitmapFactory.decodeResource(context.getResources(),id);
     }
 
     @Override
@@ -542,19 +617,7 @@ public class DroidGraphics extends APGraphics {
         m.setValues(arr);
         return m;
     }
-/*
-    @Override
-    public void drawDisk(float cx, float cy, float radius) {
-        Matrix m = getCurrentTransform();
-        float t = setLineWidth(0);
-        paint.setStyle(Paint.Style.FILL_AND_STROKE);
-        canvas.save();
-        canvas.concat(m);
-        canvas.drawOval(cx-radius, cy-radius, cx+radius, cy+radius, paint);
-        canvas.restore();
-        setLineWidth(t);
-    }
-*/
+
     @Override
     public void drawArc(float x, float y, float radius, float startDegrees, float sweepDegrees) {
         Matrix m = getCurrentTransform();
@@ -645,9 +708,6 @@ public class DroidGraphics extends APGraphics {
     public final void setCaptureModeSupported(boolean supported) {
         this.captureModeSupported = supported;
     }
-
-    private Bitmap screenCapture = null;
-    private Canvas savedCanvas = null;
 
     @Override
     public void beginScreenCapture() {

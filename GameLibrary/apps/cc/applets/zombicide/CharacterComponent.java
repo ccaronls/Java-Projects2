@@ -20,7 +20,7 @@ class CharacterComponent extends AWTComponent implements Scrollable, UIComponent
     @Override
     protected void init(AWTGraphics g) {
         //setMouseEnabled(true);
-        int minHeight = g.getTextHeight() * 30;
+        int minHeight = (int)(g.getTextHeight() * 30);
         setPreferredSize(minHeight*2, minHeight);
         setMinimumSize(minHeight*2, minHeight);
         g.setTextHeight(14);

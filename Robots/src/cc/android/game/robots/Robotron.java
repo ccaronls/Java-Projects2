@@ -1609,7 +1609,7 @@ public class Robotron {
     // -----------------------------------------------------------------------------------------------
     // draw the score, high score, and number of remaining players
     private void drawPlayerInfo(GL10Graphics g) {
-        int text_height = g.getTextHeight();//10; // TODO : figure out how to get the current font height
+        float text_height = g.getTextHeight();//10; // TODO : figure out how to get the current font height
         /*
          * TODO: Revise this code so it does not change so much 
          * OR fix Utils to do more of a font like thing.*/

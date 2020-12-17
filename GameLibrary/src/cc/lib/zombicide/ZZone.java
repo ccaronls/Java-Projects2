@@ -53,7 +53,7 @@ public class ZZone extends Reflector<ZZone> {
         return doors;
     }
 
-    boolean isDragonBile() {
+    public boolean isDragonBile() {
         return dragonBile;
     }
 

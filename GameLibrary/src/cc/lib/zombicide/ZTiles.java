@@ -2,7 +2,7 @@ package cc.lib.zombicide;
 
 import cc.lib.game.AGraphics;
 
-public interface ZTiles {
+public interface ZTiles<T extends AGraphics> {
 
-    int [] loadTiles(AGraphics g, String [] names, int [] orientations);
+    int [] loadTiles(T g, String [] names, int [] orientations);
 }

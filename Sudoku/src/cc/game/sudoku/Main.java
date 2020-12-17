@@ -127,9 +127,9 @@ public class Main extends AWTKeyboardAnimationApplet implements ActionListener {
 	}
 	
 	void drawNumber(AGraphics g, int num, int x, int y, int w, int h) {
-		int size = g.getTextHeight();//g.getFont().getSize();
-		int tx = x + w/2 - size/2;
-		int ty = y + h/2 + size/2;
+		float size = g.getTextHeight();
+		float tx = x + w/2 - size/2;
+		float ty = y + h/2 + size/2;
 		g.drawString(String.valueOf(num), tx, ty);
 	}
 	

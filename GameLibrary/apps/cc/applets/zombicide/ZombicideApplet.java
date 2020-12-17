@@ -93,13 +93,17 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
     }
 
     final ZUser user = new UIZUser();
+    UIZombicide game;
+    AWTPanel menu = new AWTPanel();
+    JPanel menuContainer = new JPanel();
+
+    BoardComponent boardComp;
+    CharacterComponent charComp;
+    File gameFile = null;
+
 
     public void onAllImagesLoaded() {
-        game = new UIZombicide(charComp) {
-            @Override
-            protected void redraw() {
-                boardComp.repaint();
-            }
+        game = new UIZombicide(charComp, boardComp) {
 
             @Override
             public void runGame() {
@@ -114,16 +118,6 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-            }
-
-            @Override
-            protected float getWidth() {
-                return boardComp.getWidth();
-            }
-
-            @Override
-            protected float getHeight() {
-                return boardComp.getHeight();
             }
 
             @Override
@@ -184,15 +178,6 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
 
     }
 
-    UIZombicide game;
-    Object monitor = new Object();
-    AWTPanel menu = new AWTPanel();
-    JPanel menuContainer = new JPanel();
-
-    BoardComponent boardComp;
-    CharacterComponent charComp;
-    File gameFile = null;
-
     void initHomeMenu() {
         List<MenuItem> items = Utils.filterItems(object -> object.isHomeButton(this), MenuItem.values());
         setMenuItems(items);
@@ -216,7 +201,7 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
         switch (item) {
             case START:
                 game.reload();
-                game.setOverlay(game.getQuest().getObjectivesOverlay(game));
+                game.boardRenderer.setOverlay(game.getQuest().getObjectivesOverlay(game));
                 game.startGameThread();
                 break;
             case RESUME:
@@ -238,11 +223,11 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
                 }
                 break;
             case OBJECTIVES: {
-                game.setOverlay(game.getQuest().getObjectivesOverlay(game));
+                game.boardRenderer.setOverlay(game.getQuest().getObjectivesOverlay(game));
                 break;
             }
             case SUMMARY: {
-                game.setOverlay(game.getGameSummaryTable());
+                game.boardRenderer.setOverlay(game.getGameSummaryTable());
                 break;
             }
             case LOAD: {
@@ -281,11 +266,11 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
                         public void mouseReleased(MouseEvent e) {}
                         @Override
                         public void mouseEntered(MouseEvent e) {
-                            game.setOverlay(player);
+                            game.boardRenderer.setOverlay(player);
                         }
                         @Override
                         public void mouseExited(MouseEvent e) {
-                            game.setOverlay(null);
+                            game.boardRenderer.setOverlay(null);
                         }
                     });
                 }

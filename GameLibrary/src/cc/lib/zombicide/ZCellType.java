@@ -22,7 +22,7 @@ public enum ZCellType {
     NECRO,
     ABOMINATION;
 
-    GColor getColor() {
+    public GColor getColor() {
         switch (this) {
             case OBJECTIVE_BLACK:
                 return GColor.BLACK;

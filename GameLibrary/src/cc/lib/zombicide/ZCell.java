@@ -55,6 +55,14 @@ public class ZCell extends Reflector<ZCell> implements IRectangle {
         return 1;
     }
 
+    public int getEnvironment() {
+        return environment;
+    }
+
+    public int getVaultFlag() {
+        return vaultFlag;
+    }
+
     public boolean isCellType(ZCellType type) {
         return (1 << type.ordinal() & cellFlag) != 0;
     }
@@ -81,7 +89,7 @@ public class ZCell extends Reflector<ZCell> implements IRectangle {
         return previous;
     }
 
-    Iterable<ZActor> getOccupant() {
+    public Iterable<ZActor> getOccupant() {
         return Arrays.asList(occupied);
     }
 

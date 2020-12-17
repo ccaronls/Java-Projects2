@@ -1653,7 +1653,7 @@ public class Robotron {
     // -----------------------------------------------------------------------------------------------
     // draw the score, high score, and number of remaining players
     private void drawPlayerInfo(Player player, AGraphics g) {
-        int text_height = g.getTextHeight();
+        float text_height = g.getTextHeight();
         // draw the score
         int x = TEXT_PADDING;
         int y = TEXT_PADDING;

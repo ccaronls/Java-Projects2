@@ -228,7 +228,7 @@ public class Roids {
         g.ortho();
         g.setIdentity();
         g.setColor(GColor.WHITE);
-        final int vTextSpacing = g.getTextHeight() + 3;
+        final float vTextSpacing = g.getTextHeight() + 3;
         int ty = 5;
         g.drawJustifiedString(5, ty, Justify.LEFT, Justify.TOP, "System Energy: " + energy);
         ty += vTextSpacing;
