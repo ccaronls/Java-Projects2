@@ -1,5 +1,6 @@
 package cc.lib.zombicide;
 
+import java.util.Arrays;
 import java.util.List;
 
 import cc.lib.game.Utils;
@@ -8,7 +9,7 @@ import cc.lib.ui.IButton;
 public class ZMove implements IButton {
 
     public final ZMoveType type;
-    public final int integer;
+    public final Integer integer;
     public final ZCharacter character;
     public final ZEquipment equipment;
     public final ZEquipSlot fromSlot;
@@ -16,6 +17,22 @@ public class ZMove implements IButton {
     public final List list;
     public final ZDir dir;
     public final ZSkill skill;
+
+    public ZMove(ZMove copy, Object singleListElement) {
+        this(copy.type, copy.integer, copy.character, copy.equipment, copy.fromSlot, copy.toSlot, Arrays.asList(singleListElement), copy.dir, copy.skill);
+    }
+
+    public ZMove(ZMove copy, Object singleListElement, int integer) {
+        this(copy.type, integer, copy.character, copy.equipment, copy.fromSlot, copy.toSlot, Arrays.asList(singleListElement), copy.dir, copy.skill);
+    }
+
+    public ZMove(ZMove copy, Object singleListElement, ZCharacter character) {
+        this(copy.type, copy.integer, character, copy.equipment, copy.fromSlot, copy.toSlot, Arrays.asList(singleListElement), copy.dir, copy.skill);
+    }
+
+    public ZMove(ZMove copy, Object singleListElement, ZEquipment equipment) {
+        this(copy.type, copy.integer, copy.character, equipment, copy.fromSlot, copy.toSlot, Arrays.asList(singleListElement), copy.dir, copy.skill);
+    }
 
     private ZMove(ZMoveType type) {
         this(type, 0);
@@ -45,9 +62,9 @@ public class ZMove implements IButton {
         this(type, targetIndex, character, equip, fromSlot, toSlot, list, null, null);
     }
 
-    private ZMove(ZMoveType type, int targetIndex, ZCharacter character, ZEquipment equip, ZEquipSlot fromSlot, ZEquipSlot toSlot, List list, ZDir dir, ZSkill skill) {
+    private ZMove(ZMoveType type, int integer, ZCharacter character, ZEquipment equip, ZEquipSlot fromSlot, ZEquipSlot toSlot, List list, ZDir dir, ZSkill skill) {
         this.type = type;
-        this.integer = targetIndex;
+        this.integer = integer;
         this.character = character;
         this.equipment = equip;
         this.fromSlot = fromSlot;

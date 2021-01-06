@@ -104,7 +104,7 @@ public class ZBoard extends Reflector<ZBoard> {
             case DESCEND:
                 return findDoor(from, dir).getCellPosEnd();
         }
-        assert(false);
+        Utils.assertTrue(false);
         return null;
     }
 
@@ -114,7 +114,7 @@ public class ZBoard extends Reflector<ZBoard> {
                 return door;
             }
         }
-        //assert(false);
+        //Utils.assertTrue(false);
         return null;
     }
 
@@ -426,7 +426,7 @@ public class ZBoard extends Reflector<ZBoard> {
         if (current == null || cell.getOccupant(current) != null) {
             current = cell.findLowestPriorityOccupant();
         }
-        assert(current != null);
+        Utils.assertTrue(current != null);
         if (cell.getOccupant(current) != null && cell.getOccupant(current).getPriority() >= actor.getPriority())
             return;
         cell.setQuadrant(actor, current);

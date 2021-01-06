@@ -2,19 +2,17 @@ package cc.lib.game;
 
 import cc.lib.math.MutableVector2D;
 
-public interface IRectangle {
+public interface IRectangle extends IDimension, IShape {
 
     float X();
     float Y();
-    float W();
-    float H();
 
     /**
      *
      * @return
      */
     default MutableVector2D getCenter() {
-        return new MutableVector2D(X()+W()/2, Y()+H()/2);
+        return new MutableVector2D(X()+ getWidth()/2, Y()+ getHeight()/2);
     }
 
     /**
@@ -30,7 +28,7 @@ public interface IRectangle {
      * @return
      */
     default MutableVector2D getTopRight() {
-        return new MutableVector2D(X()+W(), Y());
+        return new MutableVector2D(X()+ getWidth(), Y());
     }
 
     /**
@@ -38,7 +36,7 @@ public interface IRectangle {
      * @return
      */
     default MutableVector2D getBottomLeft() {
-        return new MutableVector2D(X(), Y()+H());
+        return new MutableVector2D(X(), Y()+ getHeight());
     }
 
     /**
@@ -46,7 +44,7 @@ public interface IRectangle {
      * @return
      */
     default MutableVector2D getBottomRight() {
-        return new MutableVector2D(X()+W(), Y()+H());
+        return new MutableVector2D(X()+ getWidth(), Y()+ getHeight());
     }
 
     /**
@@ -54,7 +52,7 @@ public interface IRectangle {
      * @return
      */
     default MutableVector2D getCenterLeft() {
-        return new MutableVector2D(X(), Y()+H()/2);
+        return new MutableVector2D(X(), Y()+ getHeight()/2);
     }
 
     /**
@@ -62,7 +60,7 @@ public interface IRectangle {
      * @return
      */
     default MutableVector2D getCenterRight() {
-        return new MutableVector2D(X()+W(), Y()+H()/2);
+        return new MutableVector2D(X()+ getWidth(), Y()+ getHeight()/2);
     }
 
     /**
@@ -70,7 +68,7 @@ public interface IRectangle {
      * @return
      */
     default MutableVector2D getCenterTop() {
-        return new MutableVector2D(X()+W()/2, Y());
+        return new MutableVector2D(X()+ getWidth()/2, Y());
     }
 
     /**
@@ -78,7 +76,7 @@ public interface IRectangle {
      * @return
      */
     default MutableVector2D getCenterBottom() {
-        return new MutableVector2D(X()+W()/2, Y()+H());
+        return new MutableVector2D(X()+ getWidth()/2, Y()+ getHeight());
     }
 
 
@@ -88,7 +86,7 @@ public interface IRectangle {
      * @return
      */
     default boolean isIntersectingWidth(IRectangle other) {
-        return Utils.isBoxesOverlapping(X(), Y(), W(), H(), other.X(), other.Y(), other.W(), other.H());
+        return Utils.isBoxesOverlapping(X(), Y(), getWidth(), getHeight(), other.X(), other.Y(), other.getWidth(), other.getHeight());
     }
 
     /**
@@ -98,7 +96,7 @@ public interface IRectangle {
      * @return
      */
     default boolean contains(float px, float py) {
-        return Utils.isPointInsideRect(px, py, X(), Y(), W(), H());
+        return Utils.isPointInsideRect(px, py, X(), Y(), getWidth(), getHeight());
     }
 
     /**
@@ -115,7 +113,7 @@ public interface IRectangle {
      * @param g
      */
     default void drawFilled(AGraphics g) {
-        g.drawFilledRect(X(), Y(), W(), H());
+        g.drawFilledRect(X(), Y(), getWidth(), getHeight());
     }
 
     /**
@@ -124,7 +122,7 @@ public interface IRectangle {
      * @param radius
      */
     default void drawRounded(AGraphics g, float radius) {
-        g.drawFilledRoundedRect(X(), Y(), W(), H(), radius);
+        g.drawRoundedRect(X(), Y(), getWidth(), getHeight(), radius);
     }
 
     /**
@@ -133,15 +131,15 @@ public interface IRectangle {
      * @param thickness
      */
     default void drawOutlined(AGraphics g, int thickness) {
-        g.drawRect(X(), Y(), W(), H(), thickness);
+        g.drawRect(X(), Y(), getWidth(), getHeight(), thickness);
+    }
+
+    default void drawOutlined(AGraphics g) {
+        g.drawRect(X(), Y(), getWidth(), getHeight());
     }
 
     default GDimension getDimension() {
-        return new GDimension(W(), H());
-    }
-
-    default float getAspect() {
-        return W()/H();
+        return new GDimension(getWidth(), getHeight());
     }
 
     /**
@@ -149,7 +147,7 @@ public interface IRectangle {
      * @return
      */
     default float getRadius() {
-        return Math.min(W(), H()) / 2;
+        return Math.min(getWidth(), getHeight()) / 2;
     }
 
 }

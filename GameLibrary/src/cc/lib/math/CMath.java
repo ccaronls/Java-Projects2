@@ -215,7 +215,7 @@ public class CMath {
 	 */
 	public static int sum(final int [] items, int num)
     {
-        assert(num>0);
+        Utils.assertTrue(num>0);
         int sum=0;
         for (int i=0; i<num; i++)
             sum += items[i];
@@ -239,7 +239,7 @@ public class CMath {
 	 */
 	public static float sum(final float [] items, int num)
     {
-        assert(num>0);
+        Utils.assertTrue(num>0);
         int sum=0;
         for (int i=0; i<num; i++)
             sum += items[i];
@@ -263,7 +263,7 @@ public class CMath {
 	 */
 	public static double sum(final double [] items, int num)
     {
-        assert(num>0);
+        Utils.assertTrue(num>0);
         double sum=0;
         for (int i=0; i<num; i++)
             sum += items[i];
@@ -287,7 +287,7 @@ public class CMath {
 	 */
     public static double stdDev(final double [] items, int num)
     {
-        assert(num>1);
+        Utils.assertTrue(num>1);
         double ave=sum(items, num) * 1.0f/num;
         return stdDev(items, num, ave);
     }
@@ -301,7 +301,7 @@ public class CMath {
      */
     public static double stdDev(final double [] items, int num, double ave)
     {
-        assert(num>1);
+        Utils.assertTrue(num>1);
         double sum=0;
         for (int i=0; i<num; i++) {
             double ds = items[i]-ave;
@@ -340,7 +340,7 @@ public class CMath {
      */
     public static double stdDev(Collection<Double> values)
     {
-        assert(values.size() > 1);
+        Utils.assertTrue(values.size() > 1);
         double ave=sum(values) * 1.0f/values.size();
         return stdDev(values, ave);
     }
@@ -353,7 +353,7 @@ public class CMath {
      */
     public static double stdDev(Collection<Double> values, double ave)
     {
-        assert(values.size() > 0);
+        Utils.assertTrue(values.size() > 0);
         double sum=0;
         for (double d: values) {
             double ds = d-ave;

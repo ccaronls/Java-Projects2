@@ -43,7 +43,7 @@ public final class ZZombie extends ZActor<ZZombieType> {
     }
 
     @Override
-    public GDimension drawInfo(AGraphics g, ZGame game, int width, int height) {
+    public GDimension drawInfo(AGraphics g, ZGame game, float width, float height) {
         Table info = new Table().setNoBorder();
         info.addRow("Min Hits", type.minDamageToDestroy);
         info.addRow("Actions", type.actionsPerTurn);

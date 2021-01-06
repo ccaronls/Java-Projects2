@@ -2,13 +2,14 @@ package cc.lib.ui;
 
 import cc.lib.game.APGraphics;
 import cc.lib.game.GDimension;
+import cc.lib.game.IDimension;
 
 /**
  * Created by chriscaron on 2/27/18.
  *
  * Provides a generalized interface for application ui elements that render
  */
-public abstract class UIRenderer {
+public abstract class UIRenderer implements IDimension {
 
     private final UIComponent component;
 
@@ -46,15 +47,15 @@ public abstract class UIRenderer {
         this.min = dim;
     }
 
-    public void setMinDimension(int w, int h) {
+    public void setMinDimension(float w, float h) {
         this.min = new GDimension(w, h);
     }
 
-    public int getWidth() {
+    public float getWidth() {
         return component.getWidth();
     }
 
-    public int getHeight() {
+    public float getHeight() {
         return component.getHeight();
     }
 

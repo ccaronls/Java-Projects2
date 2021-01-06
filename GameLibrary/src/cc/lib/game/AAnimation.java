@@ -59,7 +59,7 @@ public abstract class AAnimation<T> {
      * @param oscilateOnRepeat when true, a loop will reverse from its current play direction on each repeat
      */
     public AAnimation(long durationMSecs, int repeats, boolean oscilateOnRepeat) {
-        assert(durationMSecs > 0);
+        Utils.assertTrue(durationMSecs > 0);
         this.duration = durationMSecs;
         this.maxRepeats = repeats;
         this.oscilateOnRepeat = oscilateOnRepeat;

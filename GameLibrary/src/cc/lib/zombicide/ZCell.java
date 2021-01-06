@@ -46,12 +46,12 @@ public class ZCell extends Reflector<ZCell> implements IRectangle {
     }
 
     @Override
-    public float W() {
+    public float getWidth() {
         return 1;
     }
 
     @Override
-    public float H() {
+    public float getHeight() {
         return 1;
     }
 
@@ -157,15 +157,15 @@ public class ZCell extends Reflector<ZCell> implements IRectangle {
             case LOWERLEFT:
                 return new GRectangle(getCenter(), getBottomLeft());
             case CENTER:
-                return new GRectangle(X()+W()/4, Y()+H()/4, W()/2, H()/2);
+                return new GRectangle(X()+ getWidth()/4, Y()+ getHeight()/4, getWidth()/2, getHeight()/2);
             case TOP:
-                return new GRectangle(X()+W()/4, Y(), W()/2, H()/2);
+                return new GRectangle(X()+ getWidth()/4, Y(), getWidth()/2, getHeight()/2);
             case LEFT:
-                return new GRectangle(X(), Y()+H()/4, W()/2, H()/2);
+                return new GRectangle(X(), Y()+ getHeight()/4, getWidth()/2, getHeight()/2);
             case RIGHT:
-                return new GRectangle(X()+W()/2, Y()+H()/4, W()/2, H()/2);
+                return new GRectangle(X()+ getWidth()/2, Y()+ getHeight()/4, getWidth()/2, getHeight()/2);
             case BOTTOM:
-                return new GRectangle(X()+W()/4, Y()+H()/2, W()/2, H()/2);
+                return new GRectangle(X()+ getWidth()/4, Y()+ getHeight()/2, getWidth()/2, getHeight()/2);
         }
         return null;
     }

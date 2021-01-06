@@ -802,7 +802,7 @@ public class AWTUtils {
      * @param thickness
      */
     public static void drawLineStrip(Graphics g, int [] x_pts, int [] y_pts, int thickness) {
-        assert(x_pts.length == y_pts.length);
+        Utils.assertTrue(x_pts.length == y_pts.length);
         for (int i=0; i<x_pts.length-1; i++) {
             drawLine(g, x_pts[i], y_pts[i], x_pts[i+1], y_pts[i+1], thickness);
         }

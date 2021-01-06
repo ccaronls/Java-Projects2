@@ -63,6 +63,7 @@ import cc.lib.game.GColor;
 import cc.lib.game.AGraphics;
 import cc.lib.game.Justify;
 import cc.lib.game.Renderable;
+import cc.lib.game.Utils;
 
 public abstract class AWTKeyboardAnimationApplet extends JApplet implements
 		KeyListener, FocusListener, MouseListener,
@@ -121,7 +122,7 @@ public abstract class AWTKeyboardAnimationApplet extends JApplet implements
 	@Override
 	public void keyPressed(KeyEvent evt) {
 		int c = evt.getKeyChar();
-		assert(c >= 0);
+		Utils.assertTrue(c >= 0);
 		if (c >= 0 && c < keyboard.length) {
     		if (keyboard[c] == 0 || this.keyRepeat)
     			keyboard[c] = 1;

@@ -417,7 +417,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param border
      * @return
      */
-    public final GDimension drawJustifiedStringOnBackground(float x, float y, Justify hJust, Justify vJust, String text, GColor bkColor, float border, float cornerRadius) {
+    public final GRectangle drawJustifiedStringOnBackground(float x, float y, Justify hJust, Justify vJust, String text, GColor bkColor, float border, float cornerRadius) {
         GRectangle r = drawJustifiedStringR(x, y, hJust, vJust, text);
         pushMatrix();
         setIdentity();
@@ -431,7 +431,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
         setColor(saveColor);
         popMatrix();
         drawJustifiedString(x, y, hJust, vJust, text);
-        return r.getDimension();
+        return r;
     }
 
     /**
@@ -445,7 +445,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param cornerRadius
      * @return
      */
-    public final GDimension drawJustifiedStringOnBackground(IVector2D pos, Justify hJust, Justify vJust, String text, GColor bkColor, float border, float cornerRadius) {
+    public final GRectangle drawJustifiedStringOnBackground(IVector2D pos, Justify hJust, Justify vJust, String text, GColor bkColor, float border, float cornerRadius) {
         return drawJustifiedStringOnBackground(pos.getX(), pos.getY(), hJust, vJust, text, bkColor, border, cornerRadius);
     }
 
@@ -460,7 +460,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param border
      * @return
      */
-    public final GDimension drawJustifiedStringOnBackground(float x, float y, Justify hJust, Justify vJust, String text, GColor bkColor, float border) {
+    public final GRectangle drawJustifiedStringOnBackground(float x, float y, Justify hJust, Justify vJust, String text, GColor bkColor, float border) {
         return drawJustifiedStringOnBackground(x, y, hJust, vJust, text, bkColor, border, 0);
     }
 
@@ -658,7 +658,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param border
      * @return
      */
-    public final GDimension drawWrapStringOnBackground(float x, float y, float maxWidth, String text, GColor bkColor, float border) {
+    public final GRectangle drawWrapStringOnBackground(float x, float y, float maxWidth, String text, GColor bkColor, float border) {
         List<String> lines = new ArrayList<>();
         GDimension dim = generateWrappedText(text, maxWidth, lines, null);
         MutableVector2D tv = transform(x, y);
@@ -682,7 +682,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
             tv.addEq(0, getTextHeight());
         }
         popMatrix();
-        return r.getDimension();
+        return r;
     }
 
     /**
@@ -1109,7 +1109,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param thickness
      */
     public final void drawLineStrip(int [] x_pts, int [] y_pts, int thickness) {
-        assert(x_pts.length == y_pts.length);
+        Utils.assertTrue(x_pts.length == y_pts.length);
         float oldWidth = setLineWidth(thickness);
         begin();
         for (int i=0; i<x_pts.length-1; i++) {
@@ -1147,7 +1147,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param rect
      */
     public final void drawRect(IRectangle rect) {
-        drawRect(rect.X(), rect.Y(), rect.X(), rect.H());
+        drawRect(rect.X(), rect.Y(), rect.X(), rect.getHeight());
     }
 
     /**
@@ -1156,7 +1156,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param thickness
      */
     public final void drawRect(IRectangle rect, float thickness) {
-        drawRect(rect.X(), rect.Y(), rect.W(), rect.H(), thickness);
+        drawRect(rect.X(), rect.Y(), rect.getWidth(), rect.getHeight(), thickness);
     }
 
     /**
@@ -1205,7 +1205,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param radius
      */
     public final void drawRoundedRect(IRectangle rect, float thickness, float radius) {
-        drawRoundedRect(rect.X(), rect.Y(), rect.W(), rect.H(), thickness, radius);
+        drawRoundedRect(rect.X(), rect.Y(), rect.getWidth(), rect.getHeight(), thickness, radius);
     }
 
     /**
@@ -1233,7 +1233,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param radius
      */
     public final void drawFilledRoundedRect(IRectangle rect, float radius) {
-        drawFilledRoundedRect(rect.X(), rect.Y(), rect.W(), rect.H(), radius);
+        drawFilledRoundedRect(rect.X(), rect.Y(), rect.getWidth(), rect.getHeight(), radius);
     }
     
     /**
@@ -1287,7 +1287,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     }
 
     public final void drawFilledRect(IRectangle rect) {
-        drawQuad(rect.X(), rect.Y(), rect.X()+rect.W(), rect.Y()+rect.H());
+        drawQuad(rect.X(), rect.Y(), rect.X()+rect.getWidth(), rect.Y()+rect.getHeight());
     }
 
     public final void drawFilledRect(IVector2D center, IDimension dim) {
@@ -1555,7 +1555,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param rect
      */
     public final void drawImage(int imageKey, IRectangle rect) {
-        drawImage(imageKey, rect.X(), rect.Y(), rect.W(), rect.H());
+        drawImage(imageKey, rect.X(), rect.Y(), rect.getWidth(), rect.getHeight());
     }
 
     /**
@@ -1645,7 +1645,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param rect
      */
 	public final void setClipRect(IRectangle rect) {
-	    setClipRect(rect.X(), rect.Y(), rect.W(), rect.Y());
+	    setClipRect(rect.X(), rect.Y(), rect.getWidth(), rect.Y());
     }
 
     /**

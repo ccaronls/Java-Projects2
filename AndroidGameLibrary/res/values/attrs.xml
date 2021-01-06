@@ -20,10 +20,10 @@
     
     <declare-styleable name="StatusMeterView">
         <attr name="direction" format="enum" description="direction to draw (default left-to-right)">
-            <enum name="left_to_right"     value="0"   description="display horizontally left to right"/>
-            <enum name="right_to_left"     value="1"   description="display horizontally right to left"/>
-            <enum name="top_to_bottom"     value="2"   description="display vertically top to bottom"/>
-            <enum name="bottom_to_top"     value="3"   description="display vertically bottom to top"/>
+            <enum name="left_to_right"     value="0"/>
+            <enum name="right_to_left"     value="1"/>
+            <enum name="top_to_bottom"     value="2"/>
+            <enum name="bottom_to_top"     value="3"/>
         </attr>
         <attr name="meterColor"         format="color|reference"    description="default bar color to render the bars when not part of the meter.  default black."/>
         <attr name="meterTotal"         format="integer"            description="total number of bars in the meter.  default 8"/>
@@ -39,18 +39,18 @@
         <attr name="drawable"           format="reference"          description="drawable to use for bars.  Overrides rounded.  default is none"/>
         <attr name="meterThickness"     format="dimension"          description="thickness of a single meter bar"/>
         <attr name="meterSpacing"       format="dimension"          description="Space inbetween bars"/>
-        <attr name="meterStyle"         format="enum">
-            <enum name="onecolor"       value="0"           description="All bars are rendered in the same color depending on meter value (default)"/>
-            <enum name="multicolor"     value="1"           description="Bar are rendered in their range color to support.  For instance sound meters."/>
+        <attr name="meterStyle"         format="enum"               description="All bars are rendered in the same color depending on meter value default (onecolor)">
+            <enum name="onecolor"       value="0"/>
+            <enum name="multicolor"     value="1"/>
         </attr>
         <attr name="animatePeaks"       format="boolean"            description="When true, peaks are animated, meaning they fall off gradually"/>
     </declare-styleable>
     
     <declare-styleable name="SquareLinearLayout">
         <attr name="dominantSide" format="enum" description="choose how to compute the square">
-            <enum name="height_matches_width"   value="0"   description="make the height conform to the width.  width computed in usual way"/>
-            <enum name="width_matches_height"   value="1"   description="make the width conform to the height.  height computed in usual way"/>
-            <enum name="fill_fit"               value="2"   description="Choose the min of width, height"/>
+            <enum name="height_matches_width"   value="0"/>
+            <enum name="width_matches_height"   value="1"/>
+            <enum name="fill_fit"               value="2"/>
         </attr>
     </declare-styleable>
     
@@ -60,5 +60,10 @@
 
     <declare-styleable name="CCNumberPicker">
         <attr name="wrap" format="boolean"/>
+    </declare-styleable>
+
+    <declare-styleable name="UIComponentView">
+        <attr name="borderColor" format="color"/>
+        <attr name="borderThickness" format="dimension"/>
     </declare-styleable>
 </resources>

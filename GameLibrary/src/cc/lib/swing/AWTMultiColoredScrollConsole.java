@@ -14,6 +14,8 @@ import javax.swing.UIManager;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 
+import cc.lib.game.Utils;
+
 /**
  * This class allows for a console swing component where each console line
  * can be highlighted in its own color by prepending the line with a color code ala bash.
@@ -67,13 +69,13 @@ public class AWTMultiColoredScrollConsole extends JList<AWTMultiColoredScrollCon
     
     	@Override
     	public void addListDataListener(ListDataListener l) {
-    		assert(listener == null);
+    		Utils.assertTrue(listener == null);
     		listener = l;
     	}
     
     	@Override
     	public void removeListDataListener(ListDataListener l) {
-    		assert(listener == l);
+    		Utils.assertTrue(listener == l);
     		listener = null;
     	}
 

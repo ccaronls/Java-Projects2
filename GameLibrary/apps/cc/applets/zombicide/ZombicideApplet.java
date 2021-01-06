@@ -40,6 +40,8 @@ import cc.lib.zombicide.ZDiffuculty;
 import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZUser;
+import cc.lib.zombicide.ui.UIZBoardRenderer;
+import cc.lib.zombicide.ui.UIZCharacterRenderer;
 import cc.lib.zombicide.ui.UIZUser;
 import cc.lib.zombicide.ui.UIZombicide;
 
@@ -103,7 +105,7 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
 
 
     public void onAllImagesLoaded() {
-        game = new UIZombicide(charComp, boardComp) {
+        game = new UIZombicide(new UIZCharacterRenderer(charComp), new UIZBoardRenderer(boardComp)) {
 
             @Override
             public void runGame() {

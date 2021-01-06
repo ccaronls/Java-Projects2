@@ -816,7 +816,7 @@ public class Utils {
                 break;
             }
         }
-        assert (weights[i] > 0);
+        Utils.assertTrue (weights[i] > 0);
         return i;
     }
 
@@ -1525,7 +1525,7 @@ public class Utils {
 
     @SafeVarargs
     public static <T extends Number> T max(T... args) {
-        assert(args.length>1);
+        Utils.assertTrue(args.length>1);
         T max = max2(args[0], args[1]);
         for (int i=2; i<args.length; i++) {
             max = max2(max, args[i]);
@@ -1535,7 +1535,7 @@ public class Utils {
 
     @SafeVarargs
     public static <T extends Number> T min(T... args) {
-        assert(args.length>1);
+        Utils.assertTrue(args.length>1);
         T min = min2(args[0], args[1]);
         for (int i=2; i<args.length; i++) {
             min = min2(min, args[i]);
@@ -1880,7 +1880,7 @@ public class Utils {
      * @param <S>
      */
     public static <T, S> void bubbleSort(T[] primary, S[] target, int length, Comparator<T> comp) {
-        assert (target.length >= length && primary.length >= length);
+        Utils.assertTrue (target.length >= length && primary.length >= length);
         boolean swapped = false;
         do {
             swapped = false;
@@ -1941,7 +1941,7 @@ public class Utils {
      * @param <S>
      */
     public static <T extends Comparable<T>, S> void bubbleSort(T[] primary, S[] target, int length, boolean descending) {
-        assert (target.length >= primary.length);
+        Utils.assertTrue (target.length >= primary.length);
         if (primary.length < 2)
             return; // already sorted
         boolean swapped;

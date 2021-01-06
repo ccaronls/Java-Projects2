@@ -1,8 +1,10 @@
 package cc.lib.zombicide.ui;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import cc.lib.game.AGraphics;
 import cc.lib.game.AImage;
@@ -11,12 +13,19 @@ import cc.lib.game.GColor;
 import cc.lib.game.GDimension;
 import cc.lib.game.GRectangle;
 import cc.lib.game.IRectangle;
+import cc.lib.game.IShape;
+import cc.lib.game.IVector2D;
 import cc.lib.game.Justify;
+import cc.lib.game.Utils;
+import cc.lib.logger.Logger;
+import cc.lib.logger.LoggerFactory;
+import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 import cc.lib.ui.UIComponent;
 import cc.lib.ui.UIRenderer;
 import cc.lib.utils.Grid;
 import cc.lib.utils.Table;
+import cc.lib.zombicide.ZActionType;
 import cc.lib.zombicide.ZActor;
 import cc.lib.zombicide.ZAnimation;
 import cc.lib.zombicide.ZBoard;
@@ -25,11 +34,19 @@ import cc.lib.zombicide.ZCellType;
 import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZDir;
 import cc.lib.zombicide.ZDoor;
+import cc.lib.zombicide.ZEquipment;
 import cc.lib.zombicide.ZIcon;
+import cc.lib.zombicide.ZItem;
+import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZPlayerName;
+import cc.lib.zombicide.ZSpell;
+import cc.lib.zombicide.ZWeapon;
+import cc.lib.zombicide.ZWeaponStat;
 import cc.lib.zombicide.ZZone;
 
 public class UIZBoardRenderer extends UIRenderer {
+
+    final static Logger log = LoggerFactory.getLogger(UIZBoardRenderer.class);
 
     List<ZAnimation> preActor = new ArrayList<>();
     List<ZAnimation> postActor = new ArrayList<>();
@@ -40,10 +57,12 @@ public class UIZBoardRenderer extends UIRenderer {
     ZActor highlightedActor = null;
     ZDoor highlightedDoor = null;
     Grid.Pos selectedCell = null;
+    IShape highlightedShape = null;
+    List<ZMove> highlightedMoves = null;
     boolean actorsAnimating = false;
     private Object overlayToDraw = null;
-
     boolean drawTiles = false;
+    int zoom = 0;
 
     public UIZBoardRenderer(UIComponent component) {
         super(component);
@@ -80,6 +99,149 @@ public class UIZBoardRenderer extends UIRenderer {
             overlayAnimations.add(a.start());
         }
         redraw();
+    }
+
+    final Map<IShape, List<ZMove>> clickables = new HashMap<>();
+
+    private void addClickable(IShape rect, ZMove move) {
+        List<ZMove> moves = clickables.get(rect);
+        if (moves == null) {
+            moves = new ArrayList<>();
+            clickables.put(rect, moves);
+        }
+        moves.add(move);
+    }
+
+    void processMoveOptions(ZCharacter cur, List<ZMove> options) {
+        clickables.clear();
+        for (ZMove move : options) {
+            switch (move.type) {
+                case DO_NOTHING:
+                    addClickable(cur.getRect(), move);
+                    break;
+                case ORGANNIZE:
+                    //addClickable(cur.getRect(), move);
+                    break;
+                case TRADE:
+                    for (ZCharacter c : (List<ZCharacter>)move.list)
+                        addClickable(c.getRect(), new ZMove(move, c));
+                    break;
+                case WALK:
+                    for (Integer zoneIdx : (List<Integer>)move.list)
+                        addClickable(getBoard().getZone(zoneIdx), new ZMove(move, zoneIdx, zoneIdx));
+                    break;
+                case WALK_DIR:
+                    break;
+                case MELEE_ATTACK:
+                case RANGED_ATTACK:
+                case MAGIC_ATTACK:
+                    for (ZWeapon w : (List<ZWeapon>)move.list) {
+                        ZActionType actionType = move.type.getActionType(w);
+                        ZWeaponStat stat = cur.getWeaponStat(w, actionType, getGame());
+                        if (stat.getMinRange() == 0) {
+                            addClickable(cur.getRect(), new ZMove(move, w, cur.getOccupiedZone()));
+                        }
+                        for (int i=1; i<stat.getMaxRange(); i++) {
+                            for (int zoneIdx : getBoard().getAccessableZones(cur.getOccupiedZone(), i, actionType)) {
+                                addClickable(getBoard().getZone(zoneIdx), new ZMove(move, w, zoneIdx));
+                            }
+                        }
+                    }
+                    break;
+                case THROW_ITEM: {
+                    List<Integer> zones = getBoard().getAccessableZones(cur.getOccupiedZone(), 1, ZActionType.THROW_ITEM);
+                    zones.add(cur.getOccupiedZone());
+                    for (ZItem item : (List<ZItem>) move.list) {
+                        for (Integer zoneIdx : zones) {
+                            addClickable(cur.getRect(), new ZMove(move, item, zoneIdx));
+                        }
+                    }
+                    break;
+                }
+                case RELOAD:
+                    addClickable(cur.getRect(), move);
+                    break;
+                case TOGGLE_DOOR:
+                    for (ZDoor door : (List<ZDoor>)move.list) {
+                        addClickable(door.getRect(getBoard()).grow(.1f), new ZMove(move, door));
+                    }
+                    break;
+                case SEARCH:
+                    addClickable(cur.getRect(), move);
+                    break;
+                case CONSUME:
+                    addClickable(cur.getRect(), move);
+                    break;
+                case EQUIP:
+                    break;
+                case UNEQUIP:
+                    break;
+                case GIVE:
+                    break;
+                case TAKE:
+                    break;
+                case DISPOSE:
+                    break;
+                case OBJECTIVE:
+                    addClickable(getBoard().getZone(cur.getOccupiedZone()), move);
+                    break;
+                case DROP_ITEM:
+                case PICKUP_ITEM:
+                    for (ZEquipment e : (List<ZEquipment>)move.list) {
+                        addClickable(cur.getRect(), new ZMove(move, e));
+                    }
+                    break;
+                case MAKE_NOISE:
+                    addClickable(cur.getRect(), move);
+                    break;
+                case SHOVE:
+                    for (int zoneIdx : (List<Integer>)move.list) {
+                        addClickable(getBoard().getZone(zoneIdx), new ZMove(move, zoneIdx));
+                    }
+                    break;
+                case REROLL:
+                    break;
+                case KEEP_ROLL:
+                    break;
+                case ENCHANT: {
+                    List<ZCharacter> targets = Utils.filter(getGame().getAllLivingCharacters(), object -> getBoard().canSee(cur.getOccupiedZone(), object.getOccupiedZone()));
+                    for (ZSpell spell : (List<ZSpell>)move.list) {
+                        for (ZCharacter c : targets) {
+                            addClickable(c.getRect(), new ZMove(move, spell, c));
+                        }
+                    }
+                    break;
+                }
+                case BORN_LEADER:
+                    for (ZCharacter c : (List<ZCharacter>)move.list) {
+                        addClickable(c.getRect(), new ZMove(move, c, c));
+                    }
+                    break;
+                case BLOODLUST_MELEE:
+                    for (ZWeapon w : cur.getMeleeWeapons()) {
+                        for (int zoneIdx : (List<Integer>)move.list) {
+                            addClickable(getBoard().getZone(zoneIdx), new ZMove(move, zoneIdx, w));
+                        }
+                    }
+                    break;
+                case BLOODLUST_RANGED:
+                    for (ZWeapon w : cur.getRangedWeapons()) {
+                        for (int zoneIdx : (List<Integer>)move.list) {
+                            addClickable(getBoard().getZone(zoneIdx), new ZMove(move, zoneIdx, w));
+                        }
+                    }
+                    break;
+                case BLOODLUST_MAGIC:
+                    for (ZWeapon w : cur.getMagicWeapons()) {
+                        for (int zoneIdx : (List<Integer>)move.list) {
+                            addClickable(getBoard().getZone(zoneIdx), new ZMove(move, zoneIdx, w));
+                        }
+                    }
+                    break;
+                default:
+                    log.warn("Unhandled case: %s", move.type);
+            }
+        }
     }
 
     synchronized void drawAnimations(List<ZAnimation> anims, AGraphics g) {
@@ -240,7 +402,7 @@ public class UIZBoardRenderer extends UIRenderer {
             }
             if (zone.noiseLevel > 0) {
                 g.setColor(GColor.BLACK);
-                g.drawJustifiedString(zone.getCenter(board), Justify.CENTER, Justify.CENTER, String.valueOf(zone.noiseLevel));
+                g.drawJustifiedString(zone.getCenter(), Justify.CENTER, Justify.CENTER, String.valueOf(zone.noiseLevel));
             }
         }
         ZZone maxNoise = board.getMaxNoiseLevelZone();
@@ -251,7 +413,7 @@ public class UIZBoardRenderer extends UIRenderer {
             radius = dr;
             for (int i=0; i<5; i++) {
                 g.setColor(color);
-                g.drawCircle(maxNoise.getCenter(board), radius, 0);
+                g.drawCircle(maxNoise.getCenter(), radius, 0);
                 color = color.lightened(.1f);
                 radius += dr;
             }
@@ -443,9 +605,71 @@ public class UIZBoardRenderer extends UIRenderer {
         return returnCell;
     }
 
+    ZMove pickButtons(AGraphics g, Vector2D pos, List<ZMove> moves, int mouseX, int mouseY) {
+        float height = moves.size() * g.getTextHeight() * 2;
+        MutableVector2D top = pos.sub(0, height/2);
+        if (top.Y() < 0) {
+            top.setY(0);
+        } else if (top.Y() + height > g.getViewportHeight()) {
+            top.setY(g.getViewportHeight() - height);
+        }
+        // draw buttons to the right is pos id on left side and to the left if user on the right side
+        ZMove move = null;
+        float buttonHeight = g.getTextHeight()*2;
+        float buttonWidth = 0;
+        float padding = g.getTextHeight()/2;
+        for (ZMove m : moves) {
+            buttonWidth = Math.max(0, g.getTextWidth(m.getLabel()));
+        }
+        buttonWidth += padding * 2;
+        GRectangle button = new GRectangle(top, buttonWidth, buttonHeight);
+        for (ZMove m : moves) {
+            if (button.contains(mouseX, mouseY)) {
+                g.setColor(GColor.RED);
+                move = m;
+            } else {
+                g.setColor(GColor.YELLOW);
+            }
+            button.drawRounded(g, buttonHeight/4);
+            g.drawJustifiedString(button.x+padding, button.y + buttonHeight/2, Justify.LEFT, Justify.CENTER, m.getLabel());
+            button.y += buttonHeight;
+        }
+        return move;
+    }
+
+    ZMove pickMove(APGraphics g, IVector2D mouse, int screenMouseX, int screenMouseY) {
+
+        ZMove picked = null;
+        for (Map.Entry<IShape, List<ZMove>> entry : clickables.entrySet()) {
+            IShape shape = entry.getKey();
+            if (shape.contains(mouse.getX(), mouse.getY())) {
+                highlightedShape = shape;
+                highlightedMoves = entry.getValue();
+            } else {
+                g.setColor(GColor.YELLOW.withAlpha(32));
+                entry.getKey().drawFilled(g);
+            }
+        }
+
+        if (highlightedShape != null) {
+            g.setColor(GColor.RED);
+            g.setLineWidth(2);
+            highlightedShape.drawOutlined(g);
+            MutableVector2D cntr = highlightedShape.getCenter();
+            g.transform(cntr);
+            g.pushMatrix();
+            g.setIdentity();
+            g.ortho();
+            picked = pickButtons(g, cntr, highlightedMoves, screenMouseX, screenMouseY);
+            g.popMatrix();
+        }
+
+
+        return picked;
+    }
 
     @Override
-    public void draw(APGraphics g, int _mouseX, int _mouseY) {
+    public void draw(APGraphics g, int mouseX, int mouseY) {
         highlightedActor = null;
         highlightedCell = null;
         highlightedResult = null;
@@ -459,10 +683,10 @@ public class UIZBoardRenderer extends UIRenderer {
         g.translate(getWidth()/2,0);// - dim.width/2, 0);
 
         GDimension dim = board.getDimension();
-        g.scale(getHeight() / dim.height);
+        g.scale(getHeight() / (dim.height-zoom));
         g.translate(-dim.width/2, 0);
 
-        Vector2D mouse = g.screenToViewport(_mouseX, _mouseY);
+        Vector2D mouse = g.screenToViewport(mouseX, mouseY);
         //log.debug("mouse %d,%d -> %s", _mouseX, _mouseY, mouse);
 
         final int OUTLINE = 2;
@@ -507,28 +731,28 @@ public class UIZBoardRenderer extends UIRenderer {
                 g.setTextStyles(AGraphics.TextStyle.NORMAL);
             }
             //g.setFont(smallFont);
-            g.drawJustifiedString(10, getHeight()-10, Justify.LEFT, Justify.BOTTOM, game.message);
-            switch (game.uiMode) {
+            g.drawJustifiedString(10, getHeight()-10, Justify.LEFT, Justify.BOTTOM, game.getMessage());
+            switch (game.getUiMode()) {
                 case PICK_ZOMBIE:
                 case PICK_CHARACTER: {
                     g.setColor(GColor.YELLOW);
-                    for (ZActor a : (List<ZActor>)game.options) {
+                    for (ZActor a : (List<ZActor>)game.getOptions()) {
                         a.getRect(board).drawOutlined(g, 1);
                     }
-                    if (game.options.contains(highlightedActor)) {
+                    if (game.getOptions().contains(highlightedActor)) {
                         highlightedResult = highlightedActor;
                     }
                     break;
                 }
                 case PICK_ZONE: {
-                    if (highlightedZone >= 0 && game.options.contains(highlightedZone)) {
+                    if (highlightedZone >= 0 && game.getOptions().contains(highlightedZone)) {
                         highlightedResult = highlightedZone;
                         g.setColor(GColor.YELLOW);
                         drawZoneOutline(g, board, highlightedZone);
                     } else if (cellPos != null) {
                         ZCell cell = board.getCell(cellPos);
-                        for (int i = 0; i < game.options.size(); i++) {
-                            if (cell.getZoneIndex() == (Integer)game.options.get(i)) {
+                        for (int i = 0; i < game.getOptions().size(); i++) {
+                            if (cell.getZoneIndex() == (Integer)game.getOptions().get(i)) {
                                 highlightedCell = cellPos;
                                 highlightedResult = cell.getZoneIndex();
                                 break;
@@ -538,7 +762,11 @@ public class UIZBoardRenderer extends UIRenderer {
                     break;
                 }
                 case PICK_DOOR: {
-                    highlightedResult = pickDoor(g, (List<ZDoor>)game.options, mouse.X(), mouse.Y());
+                    highlightedResult = pickDoor(g, (List<ZDoor>)game.getOptions(), mouse.X(), mouse.Y());
+                    break;
+                }
+                case PICK_MENU: {
+                    highlightedResult = pickMove(g, mouse, mouseX, mouseY);
                     break;
                 }
             }
@@ -680,4 +908,15 @@ public class UIZBoardRenderer extends UIRenderer {
         return highlightedActor;
     }
 
+    public void zoom(int amount) {
+        int z = zoom + amount;
+        if (z >= 0 && z < getMaxZoom()) {
+            zoom = z;
+            redraw();
+        }
+    }
+
+    int getMaxZoom() {
+        return Math.min(getBoard().getRows(), getBoard().getColumns());
+    }
 }

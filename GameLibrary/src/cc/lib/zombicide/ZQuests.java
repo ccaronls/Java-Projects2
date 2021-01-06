@@ -1,5 +1,6 @@
 package cc.lib.zombicide;
 
+import cc.lib.game.Utils;
 import cc.lib.zombicide.quests.ZQuestBigGameHunting;
 import cc.lib.zombicide.quests.ZQuestDeadTrail;
 import cc.lib.zombicide.quests.ZQuestFamine;
@@ -51,7 +52,7 @@ public enum ZQuests {
             case The_Hell_Hole:
                 return new ZQuestTheHellHole();
         }
-        assert(false);
+        Utils.assertTrue(false);
         return null;
     }
 }

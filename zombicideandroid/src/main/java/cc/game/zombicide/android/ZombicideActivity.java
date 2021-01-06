@@ -23,12 +23,15 @@ import java.util.Set;
 
 import cc.lib.android.CCActivityBase;
 import cc.lib.android.DroidGraphics;
+import cc.lib.game.AGraphics;
 import cc.lib.game.Utils;
 import cc.lib.ui.IButton;
 import cc.lib.zombicide.ZDiffuculty;
 import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZUser;
+import cc.lib.zombicide.ui.UIZBoardRenderer;
+import cc.lib.zombicide.ui.UIZCharacterRenderer;
 import cc.lib.zombicide.ui.UIZUser;
 import cc.lib.zombicide.ui.UIZombicide;
 
@@ -55,8 +58,10 @@ public class ZombicideActivity extends CCActivityBase {
         menu = (ListView)findViewById(R.id.list_menu);
         boardView = (ZBoardView)findViewById(R.id.board_view);
         consoleView = (ZCharacterView) findViewById(R.id.console_view);
+        UIZCharacterRenderer cr = new UIZCharacterRenderer(consoleView);
+        UIZBoardRenderer br = new UIZBoardRenderer(boardView);
 
-        game = new UIZombicide<DroidGraphics>(consoleView, boardView) {
+        game = new UIZombicide(cr, br) {
 
             @Override
             public void runGame() {
@@ -77,8 +82,8 @@ public class ZombicideActivity extends CCActivityBase {
             }
 
             @Override
-            public int[] loadTiles(DroidGraphics g, String[] names, int[] orientations) {
-                return boardView.loadTiles(g, names, orientations);
+            public int[] loadTiles(AGraphics g, String[] names, int[] orientations) {
+                return boardView.loadTiles((DroidGraphics)g, names, orientations);
             }
         };
 

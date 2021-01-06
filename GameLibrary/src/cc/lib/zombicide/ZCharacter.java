@@ -274,7 +274,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
                 }
                 break;
         }
-        assert(!isBackpackFull());
+        Utils.assertTrue(!isBackpackFull());
         return ZEquipSlot.BACKPACK;
     }
 
@@ -307,7 +307,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
             return e.slot = ZEquipSlot.BACKPACK;
         }
 
-        assert(false);
+        Utils.assertTrue(false);
         return null;
     }
 
@@ -320,7 +320,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
                 break;
             case BACKPACK: {
                 int idx = backpack.indexOf(type);
-                assert(idx >= 0);
+                Utils.assertTrue(idx >= 0);
                 removed = backpack.remove(idx);
                 break;
             }
@@ -333,7 +333,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
                 rightHand = null;
                 break;
             default:
-                assert(false);
+                Utils.assertTrue(false);
                 return null;
         }
         removed.slot = null;
@@ -344,7 +344,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
     }
 
     public ZEquipment attachEquipment(ZEquipment equipment, ZEquipSlot slot) {
-        assert(slot != null);
+        Utils.assertTrue(slot != null);
         ZEquipment prev = null;
         switch (slot) {
             case RIGHT_HAND:
@@ -426,7 +426,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
     }
 
     @Override
-    public GDimension drawInfo(AGraphics g, ZGame game, int width, int height) {
+    public GDimension drawInfo(AGraphics g, ZGame game, float width, float height) {
         return getInfoTable(game).draw(g);
     }
 
@@ -642,18 +642,18 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
         switch (equip.slot) {
             case BACKPACK:
                 boolean success = backpack.remove(equip);
-                assert(success);
+                Utils.assertTrue(success);
                 break;
             case LEFT_HAND:
-                assert(leftHand == equip);
+                Utils.assertTrue(leftHand == equip);
                 leftHand = null;
                 break;
             case RIGHT_HAND:
-                assert(rightHand == equip);
+                Utils.assertTrue(rightHand == equip);
                 rightHand = null;
                 break;
             case BODY:
-                assert(body == equip);
+                Utils.assertTrue(body == equip);
                 body = null;
                 break;
         }

@@ -40,7 +40,7 @@ public enum ZDir {
             case DESCEND:
                 return ASCEND;
         }
-        assert(false);
+        Utils.assertTrue(false);
         return null;
     }
 

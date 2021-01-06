@@ -217,7 +217,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
                         cell.setCellType(ZCellType.NONE, true);
                         continue;
                     }
-                    assert(zone != null);
+                    Utils.assertTrue(zone != null);
                     loadCmd(grid, pos, cmd);
                     // make sure outer perimeter has walls
                 }
@@ -390,7 +390,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
     }
 
     protected boolean isAllPlayersInExit(ZGame game) {
-        assert(exitZone >= 0);
+        Utils.assertTrue(exitZone >= 0);
         return game.getBoard().getZombiesInZone(exitZone).size() == 0 && !(Utils.filter(game.getAllCharacters(), object -> object.getOccupiedZone() != exitZone).size() > 0);
     }
 }

@@ -1,5 +1,7 @@
 package cc.lib.zombicide;
 
+import cc.lib.game.Utils;
+
 public enum ZMoveType {
     DO_NOTHING,
     ORGANNIZE, // equip things, drop things, etc.
@@ -31,5 +33,22 @@ public enum ZMoveType {
     BORN_LEADER,
     BLOODLUST_MELEE,
     BLOODLUST_RANGED,
-    BLOODLUST_MAGIC
+    BLOODLUST_MAGIC;
+
+    public ZActionType getActionType(ZWeapon slot) {
+        switch (this) {
+            case MAGIC_ATTACK:
+                return ZActionType.MAGIC;
+            case RANGED_ATTACK:
+                if (slot.type.usesArrows)
+                    return ZActionType.RANGED_ARROWS;
+                else if (slot.type.usesBolts)
+                    return ZActionType.RANGED_BOLTS;
+                break;
+            case MELEE_ATTACK:
+                return ZActionType.MELEE;
+        }
+        Utils.assertTrue(false);
+        return null;
+    }
 }

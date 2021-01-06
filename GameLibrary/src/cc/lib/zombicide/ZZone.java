@@ -3,6 +3,9 @@ package cc.lib.zombicide;
 import java.util.ArrayList;
 import java.util.List;
 
+import cc.lib.game.AGraphics;
+import cc.lib.game.IShape;
+import cc.lib.game.Utils;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 import cc.lib.utils.Grid;
@@ -11,7 +14,7 @@ import cc.lib.utils.Reflector;
 /**
  * Zones are sets of adjacent cells that comprise rooms or streets separated by doors and walls
  */
-public class ZZone extends Reflector<ZZone> {
+public class ZZone extends Reflector<ZZone> implements IShape {
 
     static {
         addAllFields(ZZone.class);
@@ -34,15 +37,30 @@ public class ZZone extends Reflector<ZZone> {
         return type == ZZoneType.BUILDING;
     }
 
-    public Vector2D getCenter(ZBoard b) {
+    @Override
+    public MutableVector2D getCenter() {
         if (cells.size() == 0)
-            return Vector2D.ZERO;
+            return new MutableVector2D(Vector2D.ZERO);
         MutableVector2D v = new MutableVector2D();
         for (Grid.Pos p : cells) {
-            v.addEq(b.getCell(p).getCenter());
+            v.addEq(.5f + p.getColumn(), .5f + p.getRow());
         }
         v.scaleEq(1f / cells.size());
         return v;
+    }
+
+    @Override
+    public void drawFilled(AGraphics g) {
+        for (Grid.Pos p : cells) {
+            g.drawFilledRect(p.getColumn(), p.getRow(), 1, 1);
+        }
+    }
+
+    @Override
+    public void drawOutlined(AGraphics g) {
+        for (Grid.Pos p : cells) {
+            g.drawRect(p.getColumn(), p.getRow(), 1, 1);
+        }
     }
 
     public boolean isSearchable() {
@@ -63,5 +81,14 @@ public class ZZone extends Reflector<ZZone> {
 
     public Iterable<Grid.Pos> getCells() {
         return cells;
+    }
+
+    @Override
+    public boolean contains(float x, float y) {
+        for (Grid.Pos pos : cells) {
+            if (Utils.isPointInsideRect(x, y, pos.getColumn(), pos.getRow(), 1, 1))
+                return true;
+        }
+        return false;
     }
 }

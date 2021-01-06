@@ -13,11 +13,6 @@ public class ZCharacterView extends UIComponentView {
     }
 
     @Override
-    protected void init(Context context, AttributeSet attrs) {
-
-    }
-
-    @Override
     protected void preDrawInit(DroidGraphics g) {
         super.preDrawInit(g);
         g.setTextHeight(18);

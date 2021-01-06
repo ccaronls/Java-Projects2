@@ -26,7 +26,27 @@ public class ZWeaponStat {
         return new ZWeaponStat(dieRollToOpenDoor, minRange, maxRange, numDice, dieRollToHit, damagePerHit);
     }
 
-    //public ZWeaponStat getDualWeildingStats() {
-    //    return new ZWeaponStat(dieRollToOpenDoor, minRange, maxRange, numDice*2, dieRollToHit, damagePerHit);
-   // }
+    public int getDamagePerHit() {
+        return damagePerHit;
+    }
+
+    public int getDieRollToOpenDoor() {
+        return dieRollToOpenDoor;
+    }
+
+    public int getMinRange() {
+        return minRange;
+    }
+
+    public int getMaxRange() {
+        return maxRange;
+    }
+
+    public int getNumDice() {
+        return numDice;
+    }
+
+    public int getDieRollToHit() {
+        return dieRollToHit;
+    }
 }

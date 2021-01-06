@@ -64,14 +64,14 @@ public class DroidGraphics extends APGraphics {
         bitmaps.clear();
     }
 
+    public final Canvas getCanvas() {
+        return canvas;
+    }
+
     public void setCanvas(Canvas c, int width, int height) {
         this.canvas = c;
         initViewport(width, height);
         r.setOrtho(0, width, 0, height);
-    }
-
-    public final Canvas getCanvas() {
-        return canvas;
     }
 
     public float convertPixelsToDips(float pixels) {

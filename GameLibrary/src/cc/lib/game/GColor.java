@@ -268,7 +268,7 @@ public final class GColor extends Reflector<GColor> {
     }
 
     /**
-     * Return a new color instance with RGB components of this but specified alpha
+     * Return a new color instance with RGB components of this and the specified alpha
      *
      * @param alpha
      * @return

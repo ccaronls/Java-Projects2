@@ -7,6 +7,7 @@ import java.io.ObjectStreamException;
 import java.io.Serializable;
 
 import cc.lib.game.IVector2D;
+import cc.lib.game.Utils;
 import cc.lib.utils.Reflector;
 
 /**
@@ -345,7 +346,7 @@ public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializ
      */
     public final float angleBetweenSigned(IVector2D v) {
         float ang = angleBetween(v);
-        assert(ang >= 0);
+        Utils.assertTrue(ang >= 0);
         if (cross(v) < 0) {
             return -ang;
         } else {

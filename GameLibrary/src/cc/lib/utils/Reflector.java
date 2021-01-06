@@ -242,7 +242,7 @@ public class Reflector<T> {
         }
 
         void pop() {
-            assert (currentIndent > 0);
+            Utils.assertTrue (currentIndent > 0);
             if (currentIndent > 0)
                 currentIndent--;
         }

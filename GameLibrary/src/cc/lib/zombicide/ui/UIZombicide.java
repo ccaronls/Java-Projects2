@@ -16,7 +16,6 @@ import cc.lib.logger.LoggerFactory;
 import cc.lib.math.Bezier;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
-import cc.lib.ui.UIComponent;
 import cc.lib.utils.Grid;
 import cc.lib.zombicide.ZActor;
 import cc.lib.zombicide.ZActorAnimation;
@@ -25,6 +24,7 @@ import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZDoor;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZIcon;
+import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZTiles;
 import cc.lib.zombicide.ZWeapon;
 import cc.lib.zombicide.ZZombie;
@@ -43,31 +43,35 @@ public abstract class UIZombicide extends ZGame implements ZTiles {
         PICK_ZOMBIE
     }
 
-    boolean gameRunning = false;
-    UIMode uiMode = UIMode.NONE;
-    String message;
-    List options = Collections.emptyList();
-    Object monitor = new Object();
-    Object result = null;
+    private boolean gameRunning = false;
+    private UIMode uiMode = UIMode.NONE;
+    private String message;
+    private List options = Collections.emptyList();
+    private Object monitor = new Object();
+    private Object result = null;
     public final UIZCharacterRenderer characterRenderer;
     public final UIZBoardRenderer boardRenderer;
 
     private static UIZombicide instance;
 
     public static UIZombicide getInstance() {
-        assert(instance != null);
+        Utils.assertTrue(instance != null);
         return instance;
     }
 
-    public UIZombicide(UIComponent characterComponent, UIComponent boardComponent) {
-        assert(instance == null);
+    public UIZombicide(UIZCharacterRenderer characterRenderer, UIZBoardRenderer boardRenderer) {
+        Utils.assertTrue(instance == null);
         instance = this;
-        characterRenderer = new UIZCharacterRenderer(characterComponent);
-        boardRenderer = new UIZBoardRenderer(boardComponent);
+        this.characterRenderer = characterRenderer;
+        this.boardRenderer = boardRenderer;
     }
 
     public UIMode getUiMode() {
         return uiMode;
+    }
+
+    public String getMessage() {
+        return message;
     }
 
     public List getOptions() {
@@ -125,7 +129,7 @@ public abstract class UIZombicide extends ZGame implements ZTiles {
                 @Override
                 protected void draw(AGraphics g, float position, float dt) {
                     if (curve == null) {
-                        curve = Bezier.build(actor.getRect(board).getCenter(), board.getZone(zone).getCenter(board), .5f);
+                        curve = Bezier.build(actor.getRect(board).getCenter(), board.getZone(zone).getCenter(), .5f);
                     }
                     int idx = Math.round(position * (ZIcon.DRAGON_BILE.imageIds.length-1));
                     int id = ZIcon.DRAGON_BILE.imageIds[idx];//((int)angle)%ZIcon.DRAGON_BILE.imageIds.length];
@@ -152,7 +156,7 @@ public abstract class UIZombicide extends ZGame implements ZTiles {
                 @Override
                 protected void draw(AGraphics g, float position, float dt) {
                     if (curve == null) {
-                        curve = Bezier.build(actor.getRect(board).getCenter(), board.getZone(zone).getCenter(board), .5f);
+                        curve = Bezier.build(actor.getRect(board).getCenter(), board.getZone(zone).getCenter(), .5f);
                     }
                     int idx = Math.round(position * (ZIcon.TORCH.imageIds.length-1));
                     int id = ZIcon.TORCH.imageIds[idx];//((int)angle)%ZIcon.DRAGON_BILE.imageIds.length];
@@ -320,7 +324,7 @@ public abstract class UIZombicide extends ZGame implements ZTiles {
             @Override
             protected void draw(AGraphics g, float position, float dt) {
                 Grid.Pos pos = zone.getCells().iterator().next();
-                GRectangle rect = new GRectangle(board.getCell(pos)).setCenter(zone.getCenter(board));
+                GRectangle rect = new GRectangle(board.getCell(pos)).setCenter(zone.getCenter());
                 final float RADIUS = rect.getRadius();
                 final int numCircles = 3;
                 float r = RADIUS * position;
@@ -429,6 +433,8 @@ public abstract class UIZombicide extends ZGame implements ZTiles {
             this.message = message;
             options = moves;
             uiMode = UIMode.PICK_MENU;
+            if (expectedType.equals(ZMove.class))
+                boardRenderer.processMoveOptions(getCurrentCharacter(), (List<ZMove>)moves);
         }
         return (T) waitForUser(expectedType);
     }

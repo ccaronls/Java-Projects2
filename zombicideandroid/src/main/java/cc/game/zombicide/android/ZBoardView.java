@@ -17,11 +17,6 @@ public class ZBoardView extends UIComponentView implements ZTiles<DroidGraphics>
         super(context, attrs);
     }
 
-    @Override
-    protected void init(Context context, AttributeSet attrs) {
-
-    }
-
     int progress = 0;
     int numImages = 100;
 

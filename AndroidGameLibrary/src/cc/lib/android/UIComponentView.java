@@ -1,7 +1,9 @@
 package cc.lib.android;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.os.SystemClock;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
@@ -18,9 +20,12 @@ import cc.lib.ui.UIRenderer;
 public abstract class UIComponentView<T extends UIRenderer> extends View implements UIComponent {
 
 
-    DroidGraphics g;
-    int tx = -1, ty = -1;
-    T renderer = null;
+    private DroidGraphics g;
+    private int tx = -1, ty = -1;
+    private T renderer = null;
+    private float borderThickness = 0;
+    private int borderColor = 0;
+    private Paint borderPaint = new Paint();
 
     private class DelayedTouchDown implements Runnable {
 
@@ -52,7 +57,15 @@ public abstract class UIComponentView<T extends UIRenderer> extends View impleme
         init(context, null);
     }
 
-    protected abstract void init(Context context, AttributeSet attrs);
+    protected final void init(Context context, AttributeSet attrs) {
+        TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.UIComponentView);
+        borderThickness = a.getDimension(R.styleable.UIComponentView_borderThickness, borderThickness);
+        borderColor = a.getColor(R.styleable.UIComponentView_borderColor, borderColor);
+        borderPaint.setStyle(Paint.Style.STROKE);
+        borderPaint.setStrokeWidth(borderThickness);
+        borderPaint.setColor(borderColor);
+        a.recycle();
+    }
 
     protected float getProgress() {
         return 1;
@@ -67,22 +80,29 @@ public abstract class UIComponentView<T extends UIRenderer> extends View impleme
     @Override
     protected void onDraw(Canvas canvas) {
         float progress = getProgress();
+        int width = Math.round(getWidth() - borderThickness*2);
+        int height = Math.round(getHeight() - borderThickness*2);
         if (g == null) {
-            g = new DroidGraphics(getContext(), canvas, getWidth(), getHeight());
+            g = new DroidGraphics(getContext(), canvas, width, height);
             g.setCaptureModeSupported(!isInEditMode());
             preDrawInit(g);
         } else {
-            g.setCanvas(canvas, getWidth(), getHeight());
+            g.setCanvas(canvas, width, height);
         }
+
+        if (borderThickness > 0) {
+            canvas.drawRect(0, 0, getWidth(), getHeight(), borderPaint);
+            g.translate(borderThickness, borderThickness);
+        }
+
         if (progress < 1) {
             if (loadAssetsRunnable == null) {
                 new Thread(loadAssetsRunnable = () -> loadAssets(g)).start();
             }
 
-            g.clearScreen(GColor.BLACK);
             g.setColor(GColor.CYAN);
             g.ortho();
-            GRectangle rect = new GRectangle(new Vector2D(getWidth()/2, getHeight()/2), new GDimension(getWidth()*3/4, getHeight()/4));
+            GRectangle rect = new GRectangle(0, 0, new GDimension(getWidth()*3/4, getHeight()/4)).withCenter(new Vector2D(getWidth()/2, getHeight()/2));
             g.drawRect(rect, 3);
             rect.w *= progress;
             g.drawFilledRect(rect);
@@ -98,6 +118,9 @@ public abstract class UIComponentView<T extends UIRenderer> extends View impleme
                 }
             }
         }
+
+        g.translate(-borderThickness, -borderThickness);
+
     }
 
     boolean isResizable() {
@@ -167,7 +190,7 @@ public abstract class UIComponentView<T extends UIRenderer> extends View impleme
         int wSpec = MeasureSpec.getMode(widthMeasureSpec);
         int hSpec = MeasureSpec.getMode(heightMeasureSpec);
 
-        GDimension dim = renderer.getMinDimension();
+        GDimension dim = renderer == null ? new GDimension(32, 32) : renderer.getMinDimension();
 
         switch (wSpec) {
             case MeasureSpec.AT_MOST:

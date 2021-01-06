@@ -12,7 +12,7 @@ public final class GRectangle extends Reflector<GRectangle> implements IRectangl
     public GRectangle() {}
 
     public GRectangle(IRectangle toCopy) {
-        this(toCopy.X(), toCopy.Y(), toCopy.W(), toCopy.H());
+        this(toCopy.X(), toCopy.Y(), toCopy.getWidth(), toCopy.getHeight());
     }
 
     public GRectangle(float x, float y, float w, float h) {
@@ -22,15 +22,15 @@ public final class GRectangle extends Reflector<GRectangle> implements IRectangl
         this.h = h;
     }
 
-    public GRectangle(float x, float y, GDimension dim) {
-        this(x, y, dim.width, dim.height);
+    public GRectangle(float x, float y, IDimension dim) {
+        this(x, y, dim.getWidth(), dim.getHeight());
     }
 
-    public GRectangle(IVector2D cntr, float w, float h) {
-        this(cntr.getX()-w/2, cntr.getY()/h/2, w, h);
+    public GRectangle(IVector2D topLeft, float w, float h) {
+        this(topLeft.getX(), topLeft.getY(), w, h);
     }
 
-    public GRectangle(IVector2D v, GDimension d) {
+    public GRectangle(IVector2D v, IDimension d) {
         this(v.getX(), v.getY(), d);
     }
 
@@ -51,12 +51,12 @@ public final class GRectangle extends Reflector<GRectangle> implements IRectangl
     }
 
     @Override
-    public float W() {
+    public float getWidth() {
         return w;
     }
 
     @Override
-    public float H() {
+    public float getHeight() {
         return h;
     }
 
