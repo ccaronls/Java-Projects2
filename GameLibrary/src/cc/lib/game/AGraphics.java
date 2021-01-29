@@ -1604,6 +1604,14 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     }
 
     /**
+     *
+     * @param rect
+     */
+    public final void ortho(GRectangle rect) {
+        ortho(rect.x, rect.x+rect.w, rect.y, rect.y+rect.h);
+    }
+
+    /**
      * Used internally to report errors.  default prints to stderr.
      * @param message
      */

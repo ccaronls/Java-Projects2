@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+    <android.support.constraint.Guideline
+        android:id="@+id/vert_guideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent=".5"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <TextView
+        android:id="@+id/tv_timeperiod"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Period"
+        android:textSize="@dimen/text"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="@id/vert_guideline"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_margin="@dimen/margin"
+        />
+
+    <NumberPicker
+        android:id="@+id/number_picker_period"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="@id/vert_guideline"
+        app:layout_constraintTop_toBottomOf="@id/tv_timeperiod"
+        android:layout_margin="@dimen/margin"/>
+
+    <TextView
+        android:id="@+id/tv_stations"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Stations"
+        android:textSize="@dimen/text"
+        app:layout_constraintStart_toStartOf="@id/vert_guideline"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_margin="@dimen/margin"
+        />
+
+    <NumberPicker
+        android:id="@+id/number_picker_stations"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="@id/vert_guideline"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_stations"
+        android:layout_margin="@dimen/margin"/>
+
+    <TextView
+        android:id="@+id/tv_currentstation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Press START to workout"
+        android:textSize="@dimen/text"
+        android:gravity="center"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/number_picker_stations"
+        android:layout_margin="@dimen/margin"/>
+
+    <TextView
+        android:id="@+id/tv_timer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Timer"
+        android:textSize="@dimen/text_large"
+        app:layout_constraintStart_toStartOf="@id/vert_guideline"
+        app:layout_constraintEnd_toEndOf="@id/vert_guideline"
+        app:layout_constraintBottom_toTopOf="@id/tb_random"
+        android:layout_margin="@dimen/margin"/>
+
+    <ToggleButton
+        android:id="@+id/tb_random"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textOn="Randomize"
+        android:textOff="User Order"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="@id/vert_guideline"
+        app:layout_constraintBottom_toTopOf="@id/b_start"
+        android:layout_margin="@dimen/margin"/>
+
+    <Button
+        android:id="@+id/b_stations"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Stations"
+        app:layout_constraintStart_toStartOf="@id/vert_guideline"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/b_start"
+        android:layout_margin="@dimen/margin"/>
+
+    <Button
+        android:id="@+id/b_start"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="START"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="@id/vert_guideline"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_margin="@dimen/margin"/>
+
+    <Button
+        android:id="@+id/b_pause"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="PAUSE"
+        app:layout_constraintStart_toStartOf="@id/vert_guideline"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_margin="@dimen/margin"/>
+
+
+</android.support.constraint.ConstraintLayout>

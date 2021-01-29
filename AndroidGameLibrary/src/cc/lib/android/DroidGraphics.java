@@ -145,6 +145,8 @@ public class DroidGraphics extends APGraphics {
 
     @Override
     public final float getTextWidth(String string) {
+        if (string.length() == 0)
+            return 0;
         float[] widths = new float[string.length()];
         paint.getTextWidths(string, widths);
         return CMath.sum(widths);

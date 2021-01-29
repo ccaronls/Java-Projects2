@@ -11,4 +11,5 @@ public interface IButton {
 
     String getLabel();
 
+    default int getZOrder() { return 0; }
 }

@@ -2,12 +2,12 @@ package cc.lib.utils;
 
 public class StopWatch {
 
-    long startTime = 0;
-    long pauseTime = 0;
-    long curTime = 0;
-    long deltaTime = 0;
-    long lastCaptureTime = 0;
-    boolean started = false;
+    protected long startTime = 0;
+    protected long pauseTime = 0;
+    protected long curTime = 0;
+    protected long deltaTime = 0;
+    protected long lastCaptureTime = 0;
+    protected boolean started = false;
     
     /**
      * Start the stopwatch.  MUST be the first call
@@ -17,9 +17,17 @@ public class StopWatch {
         started = true;
         unpause();
     }
+
+    public void stop() {
+        started = false;
+    }
     
     public boolean isPaused() {
         return pauseTime > 0;
+    }
+
+    public boolean isStarted() {
+        return started;
     }
     
     /**

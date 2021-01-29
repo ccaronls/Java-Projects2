@@ -9,7 +9,13 @@ public final class GRectangle extends Reflector<GRectangle> implements IRectangl
         addAllFields(GRectangle.class);
     }
 
+    public float x, y, w, h;
+
     public GRectangle() {}
+
+    public GRectangle(GDimension dim) {
+        this(0, 0, dim);
+    }
 
     public GRectangle(IRectangle toCopy) {
         this(toCopy.X(), toCopy.Y(), toCopy.getWidth(), toCopy.getHeight());
@@ -37,8 +43,6 @@ public final class GRectangle extends Reflector<GRectangle> implements IRectangl
     public GRectangle(IVector2D v0, IVector2D v1) {
         set(v0, v1);
     }
-
-    public float x, y, w, h;
 
     @Override
     public float X() {
@@ -73,6 +77,10 @@ public final class GRectangle extends Reflector<GRectangle> implements IRectangl
         h = Math.abs(v0.getY()-v1.getY());
     }
 
+    /**
+     * Useful for mouse dragging rectangular bounds
+     * @param v
+     */
     public void setEnd(IVector2D v) {
         x = Math.min(x, v.getX());
         y = Math.min(y, v.getY());
