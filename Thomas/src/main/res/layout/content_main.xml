@@ -75,15 +75,14 @@
         android:textSize="@dimen/text_large"
         app:layout_constraintStart_toStartOf="@id/vert_guideline"
         app:layout_constraintEnd_toEndOf="@id/vert_guideline"
-        app:layout_constraintBottom_toTopOf="@id/tb_random"
-        android:layout_margin="@dimen/margin"/>
+        app:layout_constraintBottom_toTopOf="@id/b_ordering"
+        android:layout_marginBottom="40dp"/>
 
-    <ToggleButton
-        android:id="@+id/tb_random"
+    <Button
+        android:id="@+id/b_ordering"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textOn="Randomize"
-        android:textOff="User Order"
+        android:text="Ordering"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="@id/vert_guideline"
         app:layout_constraintBottom_toTopOf="@id/b_start"

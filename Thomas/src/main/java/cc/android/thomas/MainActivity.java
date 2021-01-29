@@ -17,7 +17,6 @@ import android.widget.EditText;
 import android.widget.NumberPicker;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ToggleButton;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -35,11 +34,14 @@ public class MainActivity extends CCActivityBase implements NumberPicker.OnValue
     NumberPicker np_timer;
     NumberPicker np_stations;
     Button b_start, b_pause;
-    ToggleButton tb_randomize;
+    //ToggleButton tb_randomize;
     TextView tv_timer, tv_currentstation;
-    DroidStopWatch sw = new DroidStopWatch();
+    final DroidStopWatch sw = new DroidStopWatch();
     TextToSpeech tts = null;
     final String STATIONS_FILE = "stations.txt";
+    int workoutIndex = 0;
+    final List<String> sets = new ArrayList<>();
+
 
     enum StationType {
         Cardio,
@@ -154,8 +156,9 @@ public class MainActivity extends CCActivityBase implements NumberPicker.OnValue
         b_pause = findViewById(R.id.b_pause);
         b_pause.setOnClickListener(this);
         tv_timer = findViewById(R.id.tv_timer);
-        tb_randomize = findViewById(R.id.tb_random);
-        tb_randomize.setOnCheckedChangeListener(this);
+        //tb_randomize = findViewById(R.id.tb_random);
+        //tb_randomize.setOnCheckedChangeListener(this);
+        findViewById(R.id.b_ordering).setOnClickListener(this);
         np_stations = findViewById(R.id.number_picker_stations);
         np_stations.setMinValue(5);
         np_stations.setMaxValue(60);
@@ -196,7 +199,14 @@ public class MainActivity extends CCActivityBase implements NumberPicker.OnValue
             case R.id.b_stations:
                 showStationsPopup(getAllKnownStations());
                 break;
+            case R.id.b_ordering:
+                showOrderingPopup();
+                break;
         }
+    }
+
+    void showOrderingPopup() {
+        //newDialogBuilder().setTitle("Customize Ordering")
     }
 
     Station [] getAllKnownStations() {
@@ -287,9 +297,6 @@ public class MainActivity extends CCActivityBase implements NumberPicker.OnValue
 
     }
 
-    int workoutIndex = 0;
-    List<String> sets = new ArrayList<>();
-
     void initWorkout() {
         final List<Station> [] workout = new ArrayList[StationType.values().length];
         final int [] count = new int[StationType.values().length];
@@ -305,9 +312,13 @@ public class MainActivity extends CCActivityBase implements NumberPicker.OnValue
             Utils.shuffle(l);
         }
         sets.clear();
-        int index = 0;
+        //int index = 0;
+        // customize ordering here so, for example, we can do like 2 upper and 2 lower
+        StationType [] order = StationType.values();
+        int orderIndex = 0;
         while (sets.size() < np_stations.getValue()) {
-            int idx = (index++ % workout.length);
+            //int idx = (index++ % workout.length);
+            int idx = order[orderIndex++ % order.length].ordinal();
             List<Station> set = workout[idx];
             if (set.size() == 0) {
                 continue;
@@ -319,6 +330,8 @@ public class MainActivity extends CCActivityBase implements NumberPicker.OnValue
         }
 
         Log.d("SETS", "All sets: " + sets);
+        sayNow(sets.get(0));
+        workoutIndex = 0;
     }
 
     String getSet(int index) {
@@ -377,26 +390,35 @@ public class MainActivity extends CCActivityBase implements NumberPicker.OnValue
 
         int elapsedTimeSecs = (int)(sw.getTime()/1000);
         int stationPeriod = np_timer.getValue()*10 + 10;
+        final int numStations = np_stations.getValue()-1;
 
         int timeLeftSecs = stationPeriod - (elapsedTimeSecs % stationPeriod);
         if (timeLeftSecs == 1)
-            workoutIndex++;
+            workoutIndex = Math.min(++workoutIndex, numStations);
 
-        boolean lastSet = workoutIndex >= np_stations.getValue();
+        boolean lastSet = workoutIndex >= numStations;
 
-        int numStations = np_stations.getValue();
         String curSet = getSet(workoutIndex);
-        String nextSet = workoutIndex >= numStations-1 ? "Completed" : getSet(workoutIndex+1);
+        String nextSet = workoutIndex >= numStations ? "Completed" : getSet(workoutIndex+1);
 
-        switch (timeLeftSecs) {
-            case 4: case 3: case 2:
-                sayNow("" + (timeLeftSecs-1));
+        int secs = timeLeftSecs-1;
+        switch (secs) {
+            case 30: case 15:
+            case 3: case 2: case 1:
+                sayNow(secs < 10 ? String.valueOf(secs) : String.format("%d seconds", secs));
 
-            default:
-                tv_timer.setText("" + (timeLeftSecs-1));
+            default: {
+                if (secs <= 60) {
+                    tv_timer.setText(String.valueOf(secs));
+                } else {
+                    int mins = secs/60;
+                    secs -= mins*60;
+                    tv_timer.setText(String.format("%d:%02d", mins, secs));
+                }
                 break;
+            }
 
-            case 1:
+            case 0:
                 if (lastSet) {
                     sayNow("All Done");
                     tv_timer.setText("COMPLETED");
@@ -408,7 +430,7 @@ public class MainActivity extends CCActivityBase implements NumberPicker.OnValue
                 break;
         }
 
-        tv_currentstation.setText(String.format("%d of %d Stations\nNow Doing:%s\nNext Up:%s", (workoutIndex+1), numStations, curSet, nextSet));
+        tv_currentstation.setText(String.format("%d of %d Stations\n%s\nNext Up:%s", (workoutIndex+1), numStations+1, curSet, nextSet));
 
         if (sw.isStarted() && !sw.isPaused())
             tv_timer.postDelayed(this, 1000);
