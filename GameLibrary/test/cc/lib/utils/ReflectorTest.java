@@ -2,6 +2,8 @@ package cc.lib.utils;
 
 import junit.framework.TestCase;
 
+import org.junit.Assert;
+
 import java.io.BufferedReader;
 import java.io.PrintWriter;
 import java.io.StringReader;
@@ -775,4 +777,21 @@ public class ReflectorTest extends TestCase {
         }
     }
 
+    public void testArrayOrEnums() throws Exception {
+
+        SomeEnum [] e = {
+                SomeEnum.ENUM3,
+                SomeEnum.ENUM1
+        };
+
+        String s = Reflector.serializeObject(e);
+        System.out.println(s);
+
+        SomeEnum [] e2 = Reflector.deserializeFromString(s);
+
+        System.out.println(Arrays.toString(e2));
+
+        Assert.assertArrayEquals(e, e2);
+
+    }
 }

@@ -21,11 +21,6 @@ public class TestGraphics extends APGraphics {
     }
 
     @Override
-    public void setColorRGBA(int rgba) {
-
-    }
-
-    @Override
     public void setColor(int r, int g, int b, int a) {
 
     }
@@ -36,7 +31,7 @@ public class TestGraphics extends APGraphics {
     }
 
     @Override
-    public int getTextHeight() {
+    public float getTextHeight() {
         return 0;
     }
 
@@ -215,5 +210,33 @@ public class TestGraphics extends APGraphics {
 
     }
 
+    @Override
+    public void drawRoundedRect(float x, float y, float w, float h, float radius) {
 
+    }
+
+    @Override
+    public void drawFilledRoundedRect(float x, float y, float w, float h, float radius) {
+
+    }
+
+    @Override
+    public void drawWedge(float cx, float cy, float radius, float startDegrees, float sweepDegrees) {
+
+    }
+
+    @Override
+    public void drawArc(float x, float y, float radius, float startDegrees, float sweepDegrees) {
+
+    }
+
+    @Override
+    public void drawOval(float x, float y, float w, float h) {
+
+    }
+
+    @Override
+    public void drawFilledOval(float x, float y, float w, float h) {
+
+    }
 }
