@@ -1,5 +1,6 @@
 package cc.android.thomas;
 
+import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.os.Parcel;
@@ -10,10 +11,12 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.NumberPicker;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,6 +28,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import cc.lib.android.CCActivityBase;
+import cc.lib.android.DragAndDropAdapter;
 import cc.lib.android.DroidStopWatch;
 import cc.lib.game.Utils;
 import cc.lib.utils.Reflector;
@@ -33,17 +37,21 @@ public class MainActivity extends CCActivityBase implements NumberPicker.OnValue
 
     NumberPicker np_timer;
     NumberPicker np_stations;
-    Button b_start, b_pause;
+    Button b_start, b_pause, b_options;
     //ToggleButton tb_randomize;
     TextView tv_timer, tv_currentstation;
     final DroidStopWatch sw = new DroidStopWatch();
     TextToSpeech tts = null;
     final String STATIONS_FILE = "stations.txt";
+    final String ORDERING_FILE = "ordering.txt";
     int workoutIndex = 0;
     final List<String> sets = new ArrayList<>();
 
+    static {
+        Reflector.registerClass(StationType.class);
+    }
 
-    enum StationType {
+    public enum StationType {
         Cardio,
         Upper_Body,
         Core,
@@ -106,17 +114,24 @@ public class MainActivity extends CCActivityBase implements NumberPicker.OnValue
 
     final Station [] DEFAULT_STATIONS = {
             new Station("Jumping Jacks", StationType.Cardio),
+            new Station("Jump Rope", StationType.Cardio),
+            new Station("Burpies", StationType.Cardio),
+            new Station("High Knees", StationType.Cardio),
+
             new Station("Push Ups", StationType.Upper_Body),
             new Station("Plank", StationType.Upper_Body),
             new Station("Plank Up Downs", StationType.Upper_Body),
-            new Station("Leg Lifts", StationType.Lower_Body),
-            new Station("Sit Ups", StationType.Core),
-            new Station("Jump Rope", StationType.Cardio),
-            new Station("Boat", StationType.Core),
-            new Station("Chair Sit", StationType.Lower_Body),
             new Station("Curls", StationType.Upper_Body),
-            new Station("Burpies", StationType.Cardio),
-            new Station("Bicycles", StationType.Core)
+
+            new Station("Bicycles", StationType.Core),
+            new Station("Sit Ups", StationType.Core),
+            new Station("Boat", StationType.Core),
+            new Station("Leg Lifts", StationType.Core),
+            new Station("Bridge", StationType.Core),
+
+            new Station("Chair Sit", StationType.Lower_Body),
+            new Station("Lunges", StationType.Lower_Body),
+            new Station("Squats", StationType.Lower_Body),
     };
 
     @Override
@@ -155,15 +170,15 @@ public class MainActivity extends CCActivityBase implements NumberPicker.OnValue
         b_start.setOnClickListener(this);
         b_pause = findViewById(R.id.b_pause);
         b_pause.setOnClickListener(this);
+        b_options = findViewById(R.id.b_options);
+        b_options.setOnClickListener(this);
         tv_timer = findViewById(R.id.tv_timer);
         //tb_randomize = findViewById(R.id.tb_random);
         //tb_randomize.setOnCheckedChangeListener(this);
-        findViewById(R.id.b_ordering).setOnClickListener(this);
         np_stations = findViewById(R.id.number_picker_stations);
         np_stations.setMinValue(5);
         np_stations.setMaxValue(60);
         np_stations.setValue(getPrefs().getInt("stations", 20));
-        findViewById(R.id.b_stations).setOnClickListener(this);
         tv_currentstation = findViewById(R.id.tv_currentstation);
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -196,17 +211,108 @@ public class MainActivity extends CCActivityBase implements NumberPicker.OnValue
             case R.id.b_start:
                 toggleStart();
                 break;
-            case R.id.b_stations:
-                showStationsPopup(getAllKnownStations());
-                break;
-            case R.id.b_ordering:
-                showOrderingPopup();
+            case R.id.b_options:
+                //showStationsPopup(getAllKnownStations());
+                showOptionsPopup();
                 break;
         }
     }
 
+    void showOptionsPopup() {
+        newDialogBuilder().setTitle("OPTIONS")
+                .setItems(Utils.toArray("STATIONS", "ORDERING", "RESET"), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        switch (i) {
+                            case 0:
+                                showStationsPopup(getAllKnownStations());
+                                break;
+                            case 1:
+                                showOrderingPopup();
+                                break;
+                            case 2:
+                                newDialogBuilder().setTitle("CONFIRM").setMessage("This will reset ordering to default and remove all your added stations. Are you sure?")
+                                        .setNegativeButton("Cancel", null)
+                                        .setPositiveButton("Reset", new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialogInterface, int i) {
+                                                new File(getFilesDir(), STATIONS_FILE).delete();
+                                                new File(getFilesDir(), ORDERING_FILE).delete();
+                                            }
+                                        }).show();
+                        }
+                    }
+                }).setPositiveButton("OK", null).show();
+    }
+
     void showOrderingPopup() {
-        //newDialogBuilder().setTitle("Customize Ordering")
+        View v = View.inflate(this, R.layout.ordering_popup, null);
+        Button b_cardio = v.findViewById(R.id.b_cardio);
+        Button b_upper = v.findViewById(R.id.b_upperbody);
+        Button b_core = v.findViewById(R.id.b_core);
+        Button b_lower = v.findViewById(R.id.b_lowerbody);
+        ListView lv = v.findViewById(R.id.listview);
+        DragAndDropAdapter<StationType> adapter = new DragAndDropAdapter<StationType>(lv, getOrdering()) {
+            @Override
+            protected void populateItem(StationType cmd, ViewGroup container) {
+                TextView tv;
+                if (container.getChildCount() > 0) {
+                    tv = (TextView)container.getChildAt(0);
+                } else {
+                    tv = new TextView(MainActivity.this);
+                    container.addView(tv);
+                }
+                tv.setText(cmd.name());
+            }
+
+            @Override
+            protected String getItemName(StationType item) {
+                return item.name().replace('_', ' ');
+            }
+        };
+        lv.setAdapter(adapter);
+        adapter.addDraggable(b_cardio, StationType.Cardio);
+        adapter.addDraggable(b_upper, StationType.Upper_Body);
+        adapter.addDraggable(b_core, StationType.Core);
+        adapter.addDraggable(b_lower, StationType.Lower_Body);
+
+        Dialog d = newDialogBuilder().setTitle("Customize Ordering").setView(v)
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Save", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        if (adapter.getList().size() == 0) {
+                            Toast.makeText(MainActivity.this, "List cannot be empty", Toast.LENGTH_LONG).show();
+                            return;
+                        }
+
+                        try {
+                            Log.d("ORDERING", adapter.getList().toString());
+                            Reflector.serializeToFile(adapter.getList(), new File(getFilesDir(), ORDERING_FILE));
+                        } catch (Exception e) {
+                            Toast.makeText(MainActivity.this, "Failed to save: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                        }
+                    }
+                }).create();
+
+        WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
+        lp.copyFrom(d.getWindow().getAttributes());
+//        lp.width = WindowManager.LayoutParams.MATCH_PARENT;
+        lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
+        d.show();
+        //d.getWindow().setAttributes(lp);
+    }
+
+    List<StationType> getOrdering() {
+        try {
+            return Reflector.deserializeFromFile(new File(getFilesDir(), ORDERING_FILE));
+        } catch (FileNotFoundException e) {
+            // ignore
+        } catch (Exception e) {
+            Toast.makeText(this, "Error loading orderings", Toast.LENGTH_LONG).show();
+            e.printStackTrace();
+        }
+        return Arrays.asList(StationType.values());
     }
 
     Station [] getAllKnownStations() {
@@ -244,6 +350,15 @@ public class MainActivity extends CCActivityBase implements NumberPicker.OnValue
         }).setNeutralButton("Save", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
+                if (Utils.filterItems(new Utils.Filter<Station>() {
+                    @Override
+                    public boolean keep(Station object) {
+                        return object.enabled;
+                    }
+                }, all).size() == 0) {
+                    Toast.makeText(MainActivity.this, "Cannot save Empty list", Toast.LENGTH_LONG).show();
+                    return;
+                }
                 try {
                     Reflector.serializeToFile(all, new File(getFilesDir(), STATIONS_FILE));
                 } catch (Exception e) {
@@ -314,11 +429,11 @@ public class MainActivity extends CCActivityBase implements NumberPicker.OnValue
         sets.clear();
         //int index = 0;
         // customize ordering here so, for example, we can do like 2 upper and 2 lower
-        StationType [] order = StationType.values();
+        List<StationType> order = getOrdering();
         int orderIndex = 0;
         while (sets.size() < np_stations.getValue()) {
             //int idx = (index++ % workout.length);
-            int idx = order[orderIndex++ % order.length].ordinal();
+            int idx = order.get(orderIndex++ % order.size()).ordinal();
             List<Station> set = workout[idx];
             if (set.size() == 0) {
                 continue;
@@ -372,6 +487,7 @@ public class MainActivity extends CCActivityBase implements NumberPicker.OnValue
         b_start.setText("START");
         tv_timer.removeCallbacks(this);
         b_pause.setEnabled(false);
+        b_options.setEnabled(true);
     }
 
     void start() {
@@ -381,6 +497,7 @@ public class MainActivity extends CCActivityBase implements NumberPicker.OnValue
         tv_timer.post(this);
         b_start.setText("STOP");
         b_pause.setEnabled(true);
+        b_options.setEnabled(false);
     }
 
     @Override

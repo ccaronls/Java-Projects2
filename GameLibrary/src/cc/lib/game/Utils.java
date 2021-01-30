@@ -1338,6 +1338,8 @@ public class Utils {
     }
 
     public static <T> void shuffle(List<T> elems) {
+        if (elems == null || elems.size() == 0)
+            return;
         for (int i = 0; i < 1000; i++) {
             int a = Utils.rand() % elems.size();
             int b = Utils.rand() % elems.size();

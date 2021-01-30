@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                                             xmlns:tools="http://schemas.android.com/tools"
+                                             android:layout_width="match_parent"
+                                             xmlns:app="http://schemas.android.com/apk/res-auto"
+                                             android:id="@+id/grabLayout"
+                                             android:layout_height="@dimen/dnd_icon_dim_sm">
+    <ImageView
+        android:id="@+id/divider_top"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:src="@drawable/draganddrop_divider"
+        app:layout_constraintTop_toTopOf="parent"/>
+
+    <TextView
+        android:id="@+id/tvLineNum"
+        android:layout_width="40dp"
+        android:layout_height="match_parent"
+        android:gravity="right"
+        android:paddingRight="3dp"
+        android:text="88"
+        android:textSize="32dp"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+    <ImageButton
+        android:id="@+id/ibDelete"
+        android:layout_width="@dimen/dnd_icon_dim_sm"
+        android:layout_height="@dimen/dnd_icon_dim_sm"
+        android:src="@android:drawable/ic_delete"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <ImageView
+        android:id="@+id/divider_bottom"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:src="@drawable/draganddrop_divider"
+        app:layout_constraintBottom_toBottomOf="parent"
+        />
+
+    <FrameLayout
+        android:id="@+id/container"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        app:layout_constraintStart_toEndOf="@id/tvLineNum"
+        app:layout_constraintEnd_toStartOf="@id/ibDelete"/>
+</android.support.constraint.ConstraintLayout>

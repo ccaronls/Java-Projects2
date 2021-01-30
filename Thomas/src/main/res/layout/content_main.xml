@@ -75,9 +75,9 @@
         android:textSize="@dimen/text_large"
         app:layout_constraintStart_toStartOf="@id/vert_guideline"
         app:layout_constraintEnd_toEndOf="@id/vert_guideline"
-        app:layout_constraintBottom_toTopOf="@id/b_ordering"
+        app:layout_constraintBottom_toTopOf="@id/b_options"
         android:layout_marginBottom="40dp"/>
-
+<!--
     <Button
         android:id="@+id/b_ordering"
         android:layout_width="wrap_content"
@@ -97,7 +97,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toTopOf="@id/b_start"
         android:layout_margin="@dimen/margin"/>
-
+-->
     <Button
         android:id="@+id/b_start"
         android:layout_width="wrap_content"
@@ -105,6 +105,16 @@
         android:text="START"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="@id/vert_guideline"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_margin="@dimen/margin"/>
+
+    <Button
+        android:id="@+id/b_options"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="OPTIONS"
+        app:layout_constraintStart_toEndOf="@id/b_start"
+        app:layout_constraintEnd_toStartOf="@id/b_pause"
         app:layout_constraintBottom_toBottomOf="parent"
         android:layout_margin="@dimen/margin"/>
 
