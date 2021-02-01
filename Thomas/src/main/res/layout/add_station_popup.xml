@@ -9,7 +9,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:maxLength="32"
-        android:hint="Station Name"
+        android:hint="@string/et_hint_station_name"
         app:layout_constraintTop_toTopOf="parent"/>
 
     <NumberPicker

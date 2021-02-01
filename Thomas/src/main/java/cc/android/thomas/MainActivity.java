@@ -2,6 +2,7 @@ package cc.android.thomas;
 
 import android.app.Dialog;
 import android.content.DialogInterface;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -73,10 +74,16 @@ public class MainActivity extends CCActivityBase implements
 
     @Keep
     public enum StationType {
-        Cardio,
-        Upper_Body,
-        Core,
-        Lower_Body
+        Cardio(R.string.station_type_cardio),
+        Upper_Body(R.string.station_type_upper_body),
+        Core(R.string.station_type_core),
+        Lower_Body(R.string.station_type_lower_body);
+
+        StationType(int stringResId) {
+            this.stringResId = stringResId;
+        }
+
+        final int stringResId;
     };
 
     public static class Workout extends Reflector<Workout> {
@@ -134,8 +141,8 @@ public class MainActivity extends CCActivityBase implements
             parcel.writeByte((byte) (enabled ? 1 : 0));
         }
 
-        public String toString() {
-            return name + " - " + type.toString().replace('_', ' ');
+        public String getDisplayName(Resources r) {
+            return String.format("%s - %s", name, r.getString(type.stringResId));
         }
 
         @Override
@@ -167,7 +174,7 @@ public class MainActivity extends CCActivityBase implements
         }
 
         Workout workout = new Workout();
-        workout.name = "Thomas's Workout";
+        workout.name = getString(R.string.defaut_workout_name);
         workout.stations = getAllKnownStations();
 
         workout.ordering = StationType.values();
@@ -180,25 +187,25 @@ public class MainActivity extends CCActivityBase implements
 
     Station [] getDefaultStations() {
         return new Station[]{
-                new Station("Jumping Jacks", StationType.Cardio),
-                new Station("Jump Rope", StationType.Cardio),
-                new Station("Burpies", StationType.Cardio),
-                new Station("High Knees", StationType.Cardio),
+                new Station(getString(R.string.jumping_jacks), StationType.Cardio),
+                new Station(getString(R.string.jump_rope), StationType.Cardio),
+                new Station(getString(R.string.burpies), StationType.Cardio),
+                new Station(getString(R.string.high_knees), StationType.Cardio),
 
-                new Station("Push Ups", StationType.Upper_Body),
-                new Station("Plank", StationType.Upper_Body),
-                new Station("Plank Up Downs", StationType.Upper_Body),
-                new Station("Curls", StationType.Upper_Body),
+                new Station(getString(R.string.pushups), StationType.Upper_Body),
+                new Station(getString(R.string.plank), StationType.Upper_Body),
+                new Station(getString(R.string.plank_updowns), StationType.Upper_Body),
+                new Station(getString(R.string.curls), StationType.Upper_Body),
 
-                new Station("Bicycles", StationType.Core),
-                new Station("Sit Ups", StationType.Core),
-                new Station("Boat", StationType.Core),
-                new Station("Leg Lifts", StationType.Core),
-                new Station("Bridge", StationType.Core),
+                new Station(getString(R.string.bicycles), StationType.Core),
+                new Station(getString(R.string.situps), StationType.Core),
+                new Station(getString(R.string.boat), StationType.Core),
+                new Station(getString(R.string.leg_lifts), StationType.Core),
+                new Station(getString(R.string.bridge), StationType.Core),
 
-                new Station("Chair Sit", StationType.Lower_Body),
-                new Station("Lunges", StationType.Lower_Body),
-                new Station("Squats", StationType.Lower_Body),
+                new Station(getString(R.string.chair_sit), StationType.Lower_Body),
+                new Station(getString(R.string.lunges), StationType.Lower_Body),
+                new Station(getString(R.string.squats), StationType.Lower_Body),
         };
     }
 
@@ -226,9 +233,9 @@ public class MainActivity extends CCActivityBase implements
             int minutes = seconds/60;
             seconds -= minutes*60;
             if (minutes > 0) {
-                values[i] = String.format("%d:%02d", minutes, seconds);
+                values[i] = getString(R.string.time_format, minutes, seconds);
             } else {
-                values[i] = String.format("%d Seconds", seconds);
+                values[i] = getString(R.string.tts_n_seconds, seconds);
             }
         }
         currentWorkout = getPrefs().getInt("current_workout", 0);
@@ -292,8 +299,6 @@ public class MainActivity extends CCActivityBase implements
         pager_workouts.setCurrentItem(currentWorkout, false);
         pager_workouts.setOnPageChangeListener(this);
         stop();
-
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
     @Override
@@ -329,9 +334,11 @@ public class MainActivity extends CCActivityBase implements
     @Override
     public void onPageSelected(int i) {
         if (i >= 0 && i < workouts.size()) {
-            currentWorkout = i;
+            // save off the current values into the workout
             workouts.get(currentWorkout).timerIndex = np_timer.getValue();
             workouts.get(currentWorkout).numStations = np_stations.getValue();
+            // update the np pickers to reflect the newly selected workout
+            currentWorkout = i;
             Workout workout = workouts.get(i);
             Log.d(TAG, "Workout set to: " + workout.name);
             np_stations.setValue(workout.numStations);
@@ -361,8 +368,8 @@ public class MainActivity extends CCActivityBase implements
     }
 
     void showOptionsPopup() {
-        newDialogBuilder().setTitle("OPTIONS")
-                .setItems(Utils.toArray("STATIONS", "ORDERING", "SAVE WORKOUT", "RENAME WORKOUT", "RESET"), new DialogInterface.OnClickListener() {
+        newDialogBuilder().setTitle(R.string.popup_title_options)
+                .setItems(getResources().getStringArray(R.array.popup_options), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         switch (i) {
@@ -388,9 +395,9 @@ public class MainActivity extends CCActivityBase implements
                                 showSaveWorkoutPopup(false);
                                 break;
                             case 4:
-                                newDialogBuilder().setTitle("CONFIRM").setMessage("This will reset ordering to default and remove all your added stations. Are you sure?")
-                                        .setNegativeButton("Cancel", null)
-                                        .setPositiveButton("Reset", new DialogInterface.OnClickListener() {
+                                newDialogBuilder().setTitle(R.string.popup_title_confirm).setMessage(R.string.popup_msg_confirmreset)
+                                        .setNegativeButton(R.string.popup_button_cancel, null)
+                                        .setPositiveButton(R.string.popup_button_reset, new DialogInterface.OnClickListener() {
                                             @Override
                                             public void onClick(DialogInterface dialogInterface, int i) {
                                                 new File(getFilesDir(), STATIONS_FILE).delete();
@@ -401,20 +408,25 @@ public class MainActivity extends CCActivityBase implements
                                         }).show();
                         }
                     }
-                }).setPositiveButton("OK", null).show();
+                }).setPositiveButton(R.string.popup_button_ok, null).show();
     }
 
     void showSaveWorkoutPopup(boolean createNew) {
         EditText et = new EditText(this);
-        et.setHint("Workout Name");
-        newDialogBuilder().setTitle(createNew ? "Save Workout" : "Rename Workout").setView(et)
-                .setNegativeButton("Cancel", null)
-                .setPositiveButton("Save", new DialogInterface.OnClickListener() {
+        et.setHint(R.string.et_hint_workoutname);
+        Workout curWorkout = workouts.get(currentWorkout);
+        if (!createNew) {
+            et.setText(curWorkout.name, TextView.BufferType.EDITABLE);
+        }
+
+        newDialogBuilder().setTitle(createNew ? getString(R.string.popup_title_rename_workout, curWorkout.name) : getString(R.string.popup_title_copy_workout, workouts.get(currentWorkout).name)).setView(et)
+                .setNegativeButton(R.string.popup_button_cancel, null)
+                .setPositiveButton(R.string.popup_button_save, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         String name = et.getText().toString();
                         if (name.isEmpty()) {
-                            Toast.makeText(MainActivity.this, "Empty name not allowed", Toast.LENGTH_LONG).show();
+                            Toast.makeText(MainActivity.this, R.string.toast_err_empty_name, Toast.LENGTH_LONG).show();
                             return;
                         }
 
@@ -428,7 +440,7 @@ public class MainActivity extends CCActivityBase implements
                             Reflector.serializeToFile(workouts, new File(getFilesDir(), WORKOUTS_FILE));
                         } catch (Exception e) {
                             e.printStackTrace();
-                            Toast.makeText(MainActivity.this, "Error saving workouts", Toast.LENGTH_LONG).show();
+                            Toast.makeText(MainActivity.this, R.string.toast_err_save_workout, Toast.LENGTH_LONG).show();
                         }
                         pager_adapter.notifyDataSetChanged();
                     }
@@ -452,7 +464,7 @@ public class MainActivity extends CCActivityBase implements
                     tv = (TextView)View.inflate(MainActivity.this, R.layout.ordering_list_item, null);
                     container.addView(tv);
                 }
-                tv.setText(cmd.name().replace('_', ' '));
+                tv.setText(cmd.stringResId);
             }
 
             @Override
@@ -466,14 +478,14 @@ public class MainActivity extends CCActivityBase implements
         adapter.addDraggable(b_core, StationType.Core);
         adapter.addDraggable(b_lower, StationType.Lower_Body);
 
-        Dialog d = newDialogBuilder()//.setTitle("Customize Ordering")
+        Dialog d = newDialogBuilder()
                 .setView(v)
-                .setNegativeButton("Cancel", null)
-                .setPositiveButton("Save", new DialogInterface.OnClickListener() {
+                .setNegativeButton(R.string.popup_button_cancel, null)
+                .setPositiveButton(R.string.popup_button_save, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         if (adapter.getList().size() == 0) {
-                            Toast.makeText(MainActivity.this, "List cannot be empty", Toast.LENGTH_LONG).show();
+                            Toast.makeText(MainActivity.this, R.string.toast_err_emptylist, Toast.LENGTH_LONG).show();
                             return;
                         }
 
@@ -495,7 +507,7 @@ public class MainActivity extends CCActivityBase implements
         } catch (FileNotFoundException e) {
             // ignore
         } catch (Exception e) {
-            Toast.makeText(this, "Error loading stations", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, R.string.toast_err_load_stations, Toast.LENGTH_LONG).show();
             e.printStackTrace();
         }
         return getDefaultStations();
@@ -506,22 +518,22 @@ public class MainActivity extends CCActivityBase implements
         final boolean [] checked = new boolean[all.length];
 
         for (int i=0; i<all.length; i++) {
-            items[i] = all[i].toString();
+            items[i] = all[i].getDisplayName(getResources());
             checked[i] = all[i].enabled;
         }
 
-        newDialogBuilder().setTitle("Stations").setMultiChoiceItems(items, checked, new DialogInterface.OnMultiChoiceClickListener() {
+        newDialogBuilder().setTitle(R.string.popup_title_stations).setMultiChoiceItems(items, checked, new DialogInterface.OnMultiChoiceClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i, boolean b) {
                 all[i].enabled = b;
             }
-        }).setNegativeButton("Cancel", null)
-        .setPositiveButton("Add Station", new DialogInterface.OnClickListener() {
+        }).setNegativeButton(R.string.popup_button_cancel, null)
+        .setPositiveButton(R.string.popup_button_add_station, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 showAddStationPopup(all);
             }
-        }).setNeutralButton("Save", new DialogInterface.OnClickListener() {
+        }).setNeutralButton(R.string.popup_button_save, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 if (Utils.filterItems(new Utils.Filter<Station>() {
@@ -530,14 +542,14 @@ public class MainActivity extends CCActivityBase implements
                         return object.enabled;
                     }
                 }, all).size() == 0) {
-                    Toast.makeText(MainActivity.this, "Cannot save Empty list", Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.this, R.string.toast_err_emptylist, Toast.LENGTH_LONG).show();
                     return;
                 }
                 try {
                     workouts.get(currentWorkout).stations = all;
                     Reflector.serializeToFile(all, new File(getFilesDir(), STATIONS_FILE));
                 } catch (Exception e) {
-                    Toast.makeText(MainActivity.this, "Failed to save: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.this, getString(R.string.toast_err_savefailed, e.getMessage()), Toast.LENGTH_LONG).show();
                 }
             }
         }).show();
@@ -551,23 +563,23 @@ public class MainActivity extends CCActivityBase implements
         np_type.setMinValue(0);
         np_type.setMaxValue(StationType.values().length-1);
 
-        newDialogBuilder().setTitle("Add Station").setView(v).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+        newDialogBuilder().setTitle(R.string.popup_title_add_station).setView(v).setNegativeButton(R.string.popup_button_cancel, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 showStationsPopup(stations);
             }
-        }).setPositiveButton("Add", new DialogInterface.OnClickListener() {
+        }).setPositiveButton(R.string.popup_button_add, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 String name = et_name.getText().toString().trim();
                 if (name.isEmpty()) {
-                    Toast.makeText(MainActivity.this, "Empty Station Name", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, R.string.toast_err_emptyname, Toast.LENGTH_SHORT).show();
                     showStationsPopup(stations);
                     return;
                 }
                 for (Station s : stations) {
                     if (s.name.equalsIgnoreCase(name)) {
-                        Toast.makeText(MainActivity.this, "Duplicate Station Name", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(MainActivity.this, R.string.toast_err_duplicationname, Toast.LENGTH_SHORT).show();
                         showStationsPopup(stations);
                         return;
                     }
@@ -642,32 +654,36 @@ public class MainActivity extends CCActivityBase implements
 
     void pause() {
         sw.pause();
-        b_pause.setText("RESUME");
+        b_pause.setText(R.string.button_resume);
         tv_timer.removeCallbacks(this);
+        setKeepScreenOn(false);
     }
 
     void resume() {
         sw.unpause();
-        b_pause.setText("PAUSE");
+        b_pause.setText(R.string.button_pause);
         tv_timer.post(this);
+        setKeepScreenOn(true);
     }
 
     void stop() {
         sw.stop();
-        b_start.setText("START");
+        b_start.setText(R.string.button_start);
         tv_timer.removeCallbacks(this);
         b_pause.setEnabled(false);
         b_options.setEnabled(true);
+        setKeepScreenOn(false);
     }
 
     void start() {
         initWorkout();
         sw.start();
-        b_pause.setText("PAUSE");
+        b_pause.setText(R.string.button_pause);
         tv_timer.post(this);
-        b_start.setText("STOP");
+        b_start.setText(R.string.button_stop);
         b_pause.setEnabled(true);
         b_options.setEnabled(false);
+        setKeepScreenOn(true);
     }
 
     @Override
@@ -689,14 +705,14 @@ public class MainActivity extends CCActivityBase implements
         String curSet, nextSet;
 
         if (allDone) {
-            curSet = "Completed";
+            curSet = getString(R.string.tts_completed);
             nextSet = "";
         } else if (setIndex == numStations-1) {
             curSet = sets.get(setIndex);
-            nextSet = "Next : Completed";
+            nextSet = getString(R.string.tts_next_completed);
         } else {
             curSet = sets.get(setIndex);
-            nextSet = "Next : " + sets.get(setIndex+1);
+            nextSet = getString(R.string.tts_next_workout, sets.get(setIndex+1));
         }
 
         int secs = timeLeftSecs-1;
@@ -704,7 +720,7 @@ public class MainActivity extends CCActivityBase implements
             case 60: case 30: case 15:
             case 3: case 2: case 1:
                 if (stationPeriodSecs > secs)
-                    sayNow(secs < 10 ? String.valueOf(secs) : String.format("%d seconds", secs));
+                    sayNow(secs < 10 ? String.valueOf(secs) : getString(R.string.tts_n_seconds, secs));
 
             default: {
                 if (secs <= 60) {
@@ -712,24 +728,24 @@ public class MainActivity extends CCActivityBase implements
                 } else {
                     int mins = secs/60;
                     secs -= mins*60;
-                    tv_timer.setText(String.format("%d:%02d", mins, secs));
+                    tv_timer.setText(getString(R.string.time_format, mins, secs));
                 }
                 break;
             }
 
             case 0:
                 if (allDone) {
-                    sayNow("All Done");
-                    tv_timer.setText("COMPLETED");
+                    sayNow(getString(R.string.tts_alldone));
+                    tv_timer.setText(getString(R.string.tts_completed));
                     stop();
                 } else {
                     sayNow(curSet);
-                    tv_timer.setText("SWITCH");
+                    tv_timer.setText(R.string.text_switch);
                 }
                 break;
         }
 
-        tv_currentstation.setText(String.format("%d of %d Stations\n%s\n%s", (setIndex +1), numStations, curSet, nextSet));
+        tv_currentstation.setText(getString(R.string.text_n_of_n_stations, (setIndex +1), numStations, curSet, nextSet));
 
         if (sw.isStarted() && !sw.isPaused())
             tv_timer.postDelayed(this, 1000);
@@ -739,7 +755,7 @@ public class MainActivity extends CCActivityBase implements
     public void onInit(int status) {
         switch (status) {
             case TextToSpeech.SUCCESS:
-                sayNow("Welcome to Thomas's workout");
+                sayNow(getString(R.string.tts_welcome));
                 break;
 
             default:

@@ -1,4 +1,6 @@
-<resources>
+<resources
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="MissingTranslation">
     <string name="app_name">Thomas</string>
     <string name="action_settings">Settings</string>
     <!-- Strings used for fragments for navigation -->
@@ -10,19 +12,79 @@
     <string name="hello_first_fragment">Hello first fragment</string>
     <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
     <string name="ordering_popup_info">Drag and Drop from station types into the list or rearrange the list by dragging rows</string>
-
-    <string-array name="stations">
-        <item>Jumping Jacks</item>
-        <item>Push Ups</item>
-        <item>Plank</item>
-        <item>Plank Up Downs</item>
-        <item>Leg Lifts</item>
-        <item>Sit Ups</item>
-        <item>Jump Rope</item>
-        <item>Boat</item>
-        <item>Chair Sit</item>
-        <item>Curls</item>
-        <item>Burpies</item>
-        <item>Bicycles</item>
+    <string name="defaut_workout_name">Thomas\'s Workout</string>
+    <string name="jumping_jacks">Jumping Jacks</string>
+    <string name="jump_rope">Jump Rope</string>
+    <string name="burpies">Burpies</string>
+    <string name="high_knees">High Knees</string>
+    <string name="pushups">Push Ups</string>
+    <string name="plank">Plank</string>
+    <string name="plank_updowns">Plank Up Downs</string>
+    <string name="curls">Curls</string>
+    <string name="bicycles">Bicycles</string>
+    <string name="situps">Sit Ups</string>
+    <string name="boat">Boat</string>
+    <string name="leg_lifts">Leg Lifts</string>
+    <string name="bridge">Bridge</string>
+    <string name="chair_sit">Chair Sit</string>
+    <string name="lunges">Lunges</string>
+    <string name="squats">Squats</string>
+    <string name="popup_title_options">Options</string>
+    <string name="popup_title_confirm">Confirm</string>
+    <string name="popup_msg_confirmreset">This will reset ordering to default and remove all your added stations. Are you sure?</string>
+    <string name="popup_button_cancel">Cancel</string>
+    <string name="popup_button_reset">Reset</string>
+    <string name="popup_button_ok">OK</string>
+    <string name="et_hint_workoutname">Workout Name</string>
+    <string name="popup_button_save">Save</string>
+    <string name="popup_title_rename_workout">Rename Workout %s</string>
+    <string name="popup_title_copy_workout">Copy Workout %s</string>
+    <string name="toast_err_empty_name">Empty name not allowed</string>
+    <string name="toast_err_save_workout">Error saving workouts</string>
+    <string name="toast_err_emptylist">List cannot be empty</string>
+    <string name="toast_err_load_stations">Error loading stations</string>
+    <string name="popup_title_stations">Stations</string>
+    <string name="popup_button_add_station">Add Station</string>
+    <string name="toast_err_savefailed">Failed to save: %s</string>
+    <string name="popup_title_add_station">Add Station</string>
+    <string name="popup_button_add">Add</string>
+    <string name="toast_err_emptyname">Empty Station Name</string>
+    <string name="toast_err_duplicationname">Duplicate Station Name</string>
+    <string name="button_resume">RESUME</string>
+    <string name="button_pause">PAUSE</string>
+    <string name="button_start">START</string>
+    <string name="button_stop">STOP</string>
+    <string name="tts_completed">Completed</string>
+    <string name="tts_next_completed">Next : Completed</string>
+    <string name="tts_next_workout">Next : %s</string>
+    <string name="tts_n_seconds">%d Seconds</string>
+    <string name="tts_alldone">All Done</string>
+    <string name="text_switch">SWITCH</string>
+    <string name="text_n_of_n_stations">%1$d of %2$d Stations\n%3$s\n%4$s</string>
+    <string name="tts_welcome">Welcome to Thomas\'s workout</string>
+    <string name="station_type_cardio">Cardio</string>
+    <string name="station_type_upper_body">Upper Body</string>
+    <string name="station_type_core">Core</string>
+    <string name="station_type_lower_body">Lower Body</string>
+    <string name="time_format">%1$d:%2$02d</string>
+    <string name="et_hint_station_name">Station Name</string>
+    <string name="text_period">Period</string>
+    <string name="text_stations">Stations</string>
+    <string name="text_press_start_to_workout">Press START to workout</string>
+    <string name="text_timer">Timer</string>
+    <string name="button_options">OPTIONS</string>
+    <string name="button_cardio">CARDIO</string>
+    <string name="button_upper_body">UPPER BODY</string>
+    <string name="button_core">CORE</string>
+    <string name="button_lower_body">LOWER BODY</string>
+    <string name="text_circle_thomas_s">Thomas\'s</string>
+    <string name="text_circle_circuit_class">Circuit Class</string>
+    <string-array name="popup_options">
+        <item>STATIONS</item>
+        <item>ORDERING</item>
+        <item>COPY WORKOUT</item>
+        <item>RENAME WORKOUT</item>
+        <item>RESET</item>
     </string-array>
+
 </resources>
