@@ -16,7 +16,7 @@ public class YahtzeeConsole extends Yahtzee {
 
 	public static void main(String [] args) {
 
-		Utils.DEBUG_ENABLED = true;
+		Utils.setDebugEnabled();
 		final File restoreFile = new File(FileUtils.getOrCreateSettingsDirectory(YahtzeeConsole.class), "yahtzee.sav");
 		try {
 			

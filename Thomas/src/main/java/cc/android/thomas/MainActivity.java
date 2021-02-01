@@ -6,8 +6,11 @@ import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.speech.tts.TextToSpeech;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.view.PagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
@@ -25,15 +28,26 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 import cc.lib.android.CCActivityBase;
 import cc.lib.android.DragAndDropAdapter;
 import cc.lib.android.DroidStopWatch;
+import cc.lib.android.VerticalViewPager;
+import cc.lib.annotation.Keep;
 import cc.lib.game.Utils;
 import cc.lib.utils.Reflector;
 
-public class MainActivity extends CCActivityBase implements NumberPicker.OnValueChangeListener, View.OnClickListener, Runnable, CompoundButton.OnCheckedChangeListener, TextToSpeech.OnInitListener {
+public class MainActivity extends CCActivityBase implements
+        NumberPicker.OnValueChangeListener,
+        View.OnClickListener,
+        Runnable,
+        CompoundButton.OnCheckedChangeListener,
+        TextToSpeech.OnInitListener,
+        ViewPager.OnPageChangeListener {
+
+    final static String TAG = MainActivity.class.getSimpleName();
 
     NumberPicker np_timer;
     NumberPicker np_stations;
@@ -43,14 +57,21 @@ public class MainActivity extends CCActivityBase implements NumberPicker.OnValue
     final DroidStopWatch sw = new DroidStopWatch();
     TextToSpeech tts = null;
     final String STATIONS_FILE = "stations.txt";
-    final String ORDERING_FILE = "ordering.txt";
-    int workoutIndex = 0;
+    final String WORKOUTS_FILE = "workouts.txt";
+    int setIndex = 0;
     final List<String> sets = new ArrayList<>();
+    List<Workout> workouts;
+    int currentWorkout = 0;
+    VerticalViewPager pager_workouts;
+    PagerAdapter pager_adapter;
 
     static {
         Reflector.registerClass(StationType.class);
+        Reflector.addAllFields(Workout.class);
+        Reflector.addAllFields(Station.class);
     }
 
+    @Keep
     public enum StationType {
         Cardio,
         Upper_Body,
@@ -58,11 +79,17 @@ public class MainActivity extends CCActivityBase implements NumberPicker.OnValue
         Lower_Body
     };
 
-    public static class Station extends Reflector<Station> implements Parcelable {
+    public static class Workout extends Reflector<Workout> {
 
-        static {
-            addAllFields(Station.class);
-        }
+        String name;
+        Station [] stations;
+        StationType [] ordering;
+        int numStations;
+        int timerIndex;
+
+    }
+
+    public static class Station extends Reflector<Station> implements Parcelable {
 
         String name;
         StationType type;
@@ -110,29 +137,70 @@ public class MainActivity extends CCActivityBase implements NumberPicker.OnValue
         public String toString() {
             return name + " - " + type.toString().replace('_', ' ');
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Station station = (Station) o;
+            return name.equals(station.name) &&
+                    type == station.type;
+        }
+
+        @Override
+        public int hashCode() {
+            return Utils.hashCode(name, type);
+        }
     };
 
-    final Station [] DEFAULT_STATIONS = {
-            new Station("Jumping Jacks", StationType.Cardio),
-            new Station("Jump Rope", StationType.Cardio),
-            new Station("Burpies", StationType.Cardio),
-            new Station("High Knees", StationType.Cardio),
+    void loadWorkouts() {
+        File file = new File(getFilesDir(), WORKOUTS_FILE);
+        try {
+            workouts = Reflector.deserializeFromFile(file);
+            return;
+        } catch (FileNotFoundException e) {
+            // ignore
+            Log.w(TAG, "File not found: " + file);
+        } catch (Exception e) {
+            e.getMessage();
+            Log.e(TAG, "Failed to load " + WORKOUTS_FILE + " : " + e.getMessage());
+        }
 
-            new Station("Push Ups", StationType.Upper_Body),
-            new Station("Plank", StationType.Upper_Body),
-            new Station("Plank Up Downs", StationType.Upper_Body),
-            new Station("Curls", StationType.Upper_Body),
+        Workout workout = new Workout();
+        workout.name = "Thomas's Workout";
+        workout.stations = getAllKnownStations();
 
-            new Station("Bicycles", StationType.Core),
-            new Station("Sit Ups", StationType.Core),
-            new Station("Boat", StationType.Core),
-            new Station("Leg Lifts", StationType.Core),
-            new Station("Bridge", StationType.Core),
+        workout.ordering = StationType.values();
+        workout.numStations = 60;
+        workout.timerIndex = 5;
 
-            new Station("Chair Sit", StationType.Lower_Body),
-            new Station("Lunges", StationType.Lower_Body),
-            new Station("Squats", StationType.Lower_Body),
-    };
+        workouts = new ArrayList(Arrays.asList(workout));
+        currentWorkout = 0;
+    }
+
+    Station [] getDefaultStations() {
+        return new Station[]{
+                new Station("Jumping Jacks", StationType.Cardio),
+                new Station("Jump Rope", StationType.Cardio),
+                new Station("Burpies", StationType.Cardio),
+                new Station("High Knees", StationType.Cardio),
+
+                new Station("Push Ups", StationType.Upper_Body),
+                new Station("Plank", StationType.Upper_Body),
+                new Station("Plank Up Downs", StationType.Upper_Body),
+                new Station("Curls", StationType.Upper_Body),
+
+                new Station("Bicycles", StationType.Core),
+                new Station("Sit Ups", StationType.Core),
+                new Station("Boat", StationType.Core),
+                new Station("Leg Lifts", StationType.Core),
+                new Station("Bridge", StationType.Core),
+
+                new Station("Chair Sit", StationType.Lower_Body),
+                new Station("Lunges", StationType.Lower_Body),
+                new Station("Squats", StationType.Lower_Body),
+        };
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -149,7 +217,9 @@ public class MainActivity extends CCActivityBase implements NumberPicker.OnValue
             }
         });
 
-        np_timer = findViewById(R.id.number_picker_period);
+        loadWorkouts();
+
+        np_timer = findViewById(R.id.np_period);
         String [] values = new String[30];
         for (int i=0; i<30; i++) {
             int seconds = 10+i*10;
@@ -161,9 +231,12 @@ public class MainActivity extends CCActivityBase implements NumberPicker.OnValue
                 values[i] = String.format("%d Seconds", seconds);
             }
         }
+        currentWorkout = getPrefs().getInt("current_workout", 0);
+        if (currentWorkout >= workouts.size())
+            currentWorkout = 0;
         np_timer.setMinValue(0);
         np_timer.setMaxValue(29);
-        np_timer.setValue(getPrefs().getInt("period", 5));
+        np_timer.setValue(workouts.get(currentWorkout).timerIndex);
         np_timer.setDisplayedValues(values);
         np_timer.setOnValueChangedListener(this);
         b_start = findViewById(R.id.b_start);
@@ -175,31 +248,101 @@ public class MainActivity extends CCActivityBase implements NumberPicker.OnValue
         tv_timer = findViewById(R.id.tv_timer);
         //tb_randomize = findViewById(R.id.tb_random);
         //tb_randomize.setOnCheckedChangeListener(this);
-        np_stations = findViewById(R.id.number_picker_stations);
+        np_stations = findViewById(R.id.np_stations);
         np_stations.setMinValue(5);
         np_stations.setMaxValue(60);
-        np_stations.setValue(getPrefs().getInt("stations", 20));
+        np_stations.setValue(workouts.get(currentWorkout).numStations);
         tv_currentstation = findViewById(R.id.tv_currentstation);
+        pager_workouts = findViewById(R.id.pager_workouts);
+        pager_workouts.setOffscreenPageLimit(5);
+        pager_workouts.setPageMargin(-50);
+        pager_workouts.setPageTransformer(false, new DepthPageTransformer());
+        pager_workouts.setAdapter(pager_adapter = new PagerAdapter() {
+
+            @Override
+            public int getCount() {
+                return workouts.size();
+            }
+
+            @Override
+            public boolean isViewFromObject(@NonNull View view, @NonNull Object o) {
+                return view == o;
+            }
+
+            @NonNull
+            @Override
+            public Object instantiateItem(@NonNull ViewGroup container, int position) {
+                View item = View.inflate(MainActivity.this, R.layout.workout_list_item, null);
+                TextView tv = item.findViewById(R.id.text);
+                tv.setText(workouts.get(position).name);
+                container.addView(item);
+                return item;
+            }
+
+            @Override
+            public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
+                container.removeView((View)object);
+            }
+
+            @Override
+            public int getItemPosition(@NonNull Object object) {
+                return POSITION_NONE;
+            }
+        });
+        pager_workouts.setCurrentItem(currentWorkout, false);
+        pager_workouts.setOnPageChangeListener(this);
+        stop();
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        tts = new TextToSpeech(this, this);
-        tts.setLanguage(getResources().getConfiguration().locale);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        b_start.setText("Start");
+        tts = new TextToSpeech(this, this);
+        tts.setLanguage(getResources().getConfiguration().locale);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+        if (tts != null) {
+            tts.stop();
+            tts.shutdown();
+            tts = null;
+        }
         pause();
-        getPrefs().edit()
-                .putInt("stations", np_stations.getValue())
-                .putInt("period", np_timer.getValue())
-        .apply();
+        try {
+            workouts.get(currentWorkout).numStations = np_stations.getValue();
+            workouts.get(currentWorkout).timerIndex = np_timer.getValue();
+            Reflector.serializeToFile(workouts, new File(getFilesDir(), WORKOUTS_FILE));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onPageScrolled(int i, float v, int i1) {
+
+    }
+
+    @Override
+    public void onPageSelected(int i) {
+        if (i >= 0 && i < workouts.size()) {
+            currentWorkout = i;
+            workouts.get(currentWorkout).timerIndex = np_timer.getValue();
+            workouts.get(currentWorkout).numStations = np_stations.getValue();
+            Workout workout = workouts.get(i);
+            Log.d(TAG, "Workout set to: " + workout.name);
+            np_stations.setValue(workout.numStations);
+            np_timer.setValue(workout.timerIndex);
+            getPrefs().edit().putInt("current_workout", currentWorkout).apply();
+        }
+    }
+
+    @Override
+    public void onPageScrollStateChanged(int i) {
+
     }
 
     @Override
@@ -212,7 +355,6 @@ public class MainActivity extends CCActivityBase implements NumberPicker.OnValue
                 toggleStart();
                 break;
             case R.id.b_options:
-                //showStationsPopup(getAllKnownStations());
                 showOptionsPopup();
                 break;
         }
@@ -220,29 +362,77 @@ public class MainActivity extends CCActivityBase implements NumberPicker.OnValue
 
     void showOptionsPopup() {
         newDialogBuilder().setTitle("OPTIONS")
-                .setItems(Utils.toArray("STATIONS", "ORDERING", "RESET"), new DialogInterface.OnClickListener() {
+                .setItems(Utils.toArray("STATIONS", "ORDERING", "SAVE WORKOUT", "RENAME WORKOUT", "RESET"), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         switch (i) {
-                            case 0:
-                                showStationsPopup(getAllKnownStations());
+                            case 0: {
+                                Station [] stations = getAllKnownStations();
+                                for (Station s : stations) {
+                                    s.enabled = false;
+                                }
+                                LinkedHashSet<Station> all = new LinkedHashSet<>();
+                                Workout w = workouts.get(currentWorkout);
+                                all.addAll(Arrays.asList(w.stations));
+                                all.addAll(Arrays.asList(stations));
+                                showStationsPopup(all.toArray(new Station[all.size()]));
                                 break;
+                            }
                             case 1:
                                 showOrderingPopup();
                                 break;
                             case 2:
+                                showSaveWorkoutPopup(true);
+                                break;
+                            case 3:
+                                showSaveWorkoutPopup(false);
+                                break;
+                            case 4:
                                 newDialogBuilder().setTitle("CONFIRM").setMessage("This will reset ordering to default and remove all your added stations. Are you sure?")
                                         .setNegativeButton("Cancel", null)
                                         .setPositiveButton("Reset", new DialogInterface.OnClickListener() {
                                             @Override
                                             public void onClick(DialogInterface dialogInterface, int i) {
                                                 new File(getFilesDir(), STATIONS_FILE).delete();
-                                                new File(getFilesDir(), ORDERING_FILE).delete();
+                                                new File(getFilesDir(), WORKOUTS_FILE).delete();
+                                                loadWorkouts();
+                                                pager_adapter.notifyDataSetChanged();
                                             }
                                         }).show();
                         }
                     }
                 }).setPositiveButton("OK", null).show();
+    }
+
+    void showSaveWorkoutPopup(boolean createNew) {
+        EditText et = new EditText(this);
+        et.setHint("Workout Name");
+        newDialogBuilder().setTitle(createNew ? "Save Workout" : "Rename Workout").setView(et)
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Save", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        String name = et.getText().toString();
+                        if (name.isEmpty()) {
+                            Toast.makeText(MainActivity.this, "Empty name not allowed", Toast.LENGTH_LONG).show();
+                            return;
+                        }
+
+                        Workout w = workouts.get(currentWorkout);
+                        if (createNew) {
+                            Workout saved = w.deepCopy();
+                            workouts.add(saved);
+                        }
+                        w.name = et.getText().toString();
+                        try {
+                            Reflector.serializeToFile(workouts, new File(getFilesDir(), WORKOUTS_FILE));
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            Toast.makeText(MainActivity.this, "Error saving workouts", Toast.LENGTH_LONG).show();
+                        }
+                        pager_adapter.notifyDataSetChanged();
+                    }
+                }).show();
     }
 
     void showOrderingPopup() {
@@ -252,17 +442,17 @@ public class MainActivity extends CCActivityBase implements NumberPicker.OnValue
         Button b_core = v.findViewById(R.id.b_core);
         Button b_lower = v.findViewById(R.id.b_lowerbody);
         ListView lv = v.findViewById(R.id.listview);
-        DragAndDropAdapter<StationType> adapter = new DragAndDropAdapter<StationType>(lv, getOrdering()) {
+        DragAndDropAdapter<StationType> adapter = new DragAndDropAdapter<StationType>(lv, workouts.get(currentWorkout).ordering) {
             @Override
             protected void populateItem(StationType cmd, ViewGroup container) {
                 TextView tv;
                 if (container.getChildCount() > 0) {
                     tv = (TextView)container.getChildAt(0);
                 } else {
-                    tv = new TextView(MainActivity.this);
+                    tv = (TextView)View.inflate(MainActivity.this, R.layout.ordering_list_item, null);
                     container.addView(tv);
                 }
-                tv.setText(cmd.name());
+                tv.setText(cmd.name().replace('_', ' '));
             }
 
             @Override
@@ -276,7 +466,8 @@ public class MainActivity extends CCActivityBase implements NumberPicker.OnValue
         adapter.addDraggable(b_core, StationType.Core);
         adapter.addDraggable(b_lower, StationType.Lower_Body);
 
-        Dialog d = newDialogBuilder().setTitle("Customize Ordering").setView(v)
+        Dialog d = newDialogBuilder()//.setTitle("Customize Ordering")
+                .setView(v)
                 .setNegativeButton("Cancel", null)
                 .setPositiveButton("Save", new DialogInterface.OnClickListener() {
                     @Override
@@ -286,12 +477,7 @@ public class MainActivity extends CCActivityBase implements NumberPicker.OnValue
                             return;
                         }
 
-                        try {
-                            Log.d("ORDERING", adapter.getList().toString());
-                            Reflector.serializeToFile(adapter.getList(), new File(getFilesDir(), ORDERING_FILE));
-                        } catch (Exception e) {
-                            Toast.makeText(MainActivity.this, "Failed to save: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                        }
+                        workouts.get(currentWorkout).ordering = adapter.getList().toArray(new StationType[0]);
                     }
                 }).create();
 
@@ -303,18 +489,6 @@ public class MainActivity extends CCActivityBase implements NumberPicker.OnValue
         //d.getWindow().setAttributes(lp);
     }
 
-    List<StationType> getOrdering() {
-        try {
-            return Reflector.deserializeFromFile(new File(getFilesDir(), ORDERING_FILE));
-        } catch (FileNotFoundException e) {
-            // ignore
-        } catch (Exception e) {
-            Toast.makeText(this, "Error loading orderings", Toast.LENGTH_LONG).show();
-            e.printStackTrace();
-        }
-        return Arrays.asList(StationType.values());
-    }
-
     Station [] getAllKnownStations() {
         try {
             return Reflector.deserializeFromFile(new File(getFilesDir(), STATIONS_FILE));
@@ -324,7 +498,7 @@ public class MainActivity extends CCActivityBase implements NumberPicker.OnValue
             Toast.makeText(this, "Error loading stations", Toast.LENGTH_LONG).show();
             e.printStackTrace();
         }
-        return DEFAULT_STATIONS;
+        return getDefaultStations();
     }
 
     void showStationsPopup(final Station [] all) {
@@ -360,6 +534,7 @@ public class MainActivity extends CCActivityBase implements NumberPicker.OnValue
                     return;
                 }
                 try {
+                    workouts.get(currentWorkout).stations = all;
                     Reflector.serializeToFile(all, new File(getFilesDir(), STATIONS_FILE));
                 } catch (Exception e) {
                     Toast.makeText(MainActivity.this, "Failed to save: " + e.getMessage(), Toast.LENGTH_LONG).show();
@@ -415,7 +590,7 @@ public class MainActivity extends CCActivityBase implements NumberPicker.OnValue
     void initWorkout() {
         final List<Station> [] workout = new ArrayList[StationType.values().length];
         final int [] count = new int[StationType.values().length];
-        Station [] all = getAllKnownStations();
+        Station [] all = workouts.get(currentWorkout).stations;
         for (int i=0; i<workout.length; i++) {
             workout[i] = new ArrayList<>();
         }
@@ -429,11 +604,11 @@ public class MainActivity extends CCActivityBase implements NumberPicker.OnValue
         sets.clear();
         //int index = 0;
         // customize ordering here so, for example, we can do like 2 upper and 2 lower
-        List<StationType> order = getOrdering();
+        StationType [] order = workouts.get(currentWorkout).ordering;//getOrdering();
         int orderIndex = 0;
         while (sets.size() < np_stations.getValue()) {
             //int idx = (index++ % workout.length);
-            int idx = order.get(orderIndex++ % order.size()).ordinal();
+            int idx = order[orderIndex++ % order.length].ordinal();
             List<Station> set = workout[idx];
             if (set.size() == 0) {
                 continue;
@@ -446,12 +621,7 @@ public class MainActivity extends CCActivityBase implements NumberPicker.OnValue
 
         Log.d("SETS", "All sets: " + sets);
         sayNow(sets.get(0));
-        workoutIndex = 0;
-    }
-
-    String getSet(int index) {
-        index = index%sets.size();
-        return sets.get(index);
+        setIndex = 0;
     }
 
     void toggleStart() {
@@ -506,23 +676,35 @@ public class MainActivity extends CCActivityBase implements NumberPicker.OnValue
         sw.capture();
 
         int elapsedTimeSecs = (int)(sw.getTime()/1000);
-        int stationPeriod = np_timer.getValue()*10 + 10;
-        final int numStations = np_stations.getValue()-1;
+        int stationPeriodSecs = np_timer.getValue()*10 + 10;
+        final int numStations = np_stations.getValue();
 
-        int timeLeftSecs = stationPeriod - (elapsedTimeSecs % stationPeriod);
-        if (timeLeftSecs == 1)
-            workoutIndex = Math.min(++workoutIndex, numStations);
+        int timeLeftSecs = stationPeriodSecs - (elapsedTimeSecs % stationPeriodSecs);
+        if (timeLeftSecs == 1) {
+            ++setIndex;
+        }
 
-        boolean lastSet = workoutIndex >= numStations;
+        boolean allDone = setIndex >= numStations;
+        setIndex = Utils.clamp(setIndex, 0, numStations-1);
+        String curSet, nextSet;
 
-        String curSet = getSet(workoutIndex);
-        String nextSet = workoutIndex >= numStations ? "Completed" : getSet(workoutIndex+1);
+        if (allDone) {
+            curSet = "Completed";
+            nextSet = "";
+        } else if (setIndex == numStations-1) {
+            curSet = sets.get(setIndex);
+            nextSet = "Next : Completed";
+        } else {
+            curSet = sets.get(setIndex);
+            nextSet = "Next : " + sets.get(setIndex+1);
+        }
 
         int secs = timeLeftSecs-1;
         switch (secs) {
-            case 30: case 15:
+            case 60: case 30: case 15:
             case 3: case 2: case 1:
-                sayNow(secs < 10 ? String.valueOf(secs) : String.format("%d seconds", secs));
+                if (stationPeriodSecs > secs)
+                    sayNow(secs < 10 ? String.valueOf(secs) : String.format("%d seconds", secs));
 
             default: {
                 if (secs <= 60) {
@@ -536,7 +718,7 @@ public class MainActivity extends CCActivityBase implements NumberPicker.OnValue
             }
 
             case 0:
-                if (lastSet) {
+                if (allDone) {
                     sayNow("All Done");
                     tv_timer.setText("COMPLETED");
                     stop();
@@ -547,7 +729,7 @@ public class MainActivity extends CCActivityBase implements NumberPicker.OnValue
                 break;
         }
 
-        tv_currentstation.setText(String.format("%d of %d Stations\n%s\nNext Up:%s", (workoutIndex+1), numStations+1, curSet, nextSet));
+        tv_currentstation.setText(String.format("%d of %d Stations\n%s\n%s", (setIndex +1), numStations, curSet, nextSet));
 
         if (sw.isStarted() && !sw.isPaused())
             tv_timer.postDelayed(this, 1000);

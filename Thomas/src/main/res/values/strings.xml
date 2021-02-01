@@ -9,6 +9,7 @@
 
     <string name="hello_first_fragment">Hello first fragment</string>
     <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
+    <string name="ordering_popup_info">Drag and Drop from station types into the list or rearrange the list by dragging rows</string>
 
     <string-array name="stations">
         <item>Jumping Jacks</item>

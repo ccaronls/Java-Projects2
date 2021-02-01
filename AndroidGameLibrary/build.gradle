@@ -3,14 +3,14 @@ apply plugin: 'com.android.library'
 dependencies {
     implementation files('../DnsAndroid/mdnsjava-2.1.6-SNAPSHOT.jar', '../DnsAndroid/dnsjava-2.1.7.jar')
     implementation project (path: ':GameLibrary', configuration: 'androidLib')
-    implementation 'com.android.support.constraint:constraint-layout:2.0.4'
+    implementation project.supportv4
 }
 
 android {
 
     defaultConfig {
-        minSdkVersion 11
-        targetSdkVersion 23
+        minSdkVersion project.myMinSdkVersion
+        targetSdkVersion project.myTargetSdkVersion
     }
 
     compileOptions {

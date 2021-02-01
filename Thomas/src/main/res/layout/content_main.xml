@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.constraint.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -26,7 +27,7 @@
         />
 
     <NumberPicker
-        android:id="@+id/number_picker_period"
+        android:id="@+id/np_period"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:layout_constraintStart_toStartOf="parent"
@@ -47,13 +48,23 @@
         />
 
     <NumberPicker
-        android:id="@+id/number_picker_stations"
+        android:id="@+id/np_stations"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:layout_constraintStart_toStartOf="@id/vert_guideline"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tv_stations"
         android:layout_margin="@dimen/margin"/>
+
+    <cc.lib.android.VerticalViewPager
+        android:id="@+id/pager_workouts"
+        android:layout_width="0dp"
+        android:layout_height="100dp"
+        app:layout_constraintTop_toBottomOf="@id/np_period"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginRight="10dp"
+        android:layout_marginLeft="10dp"/>
 
     <TextView
         android:id="@+id/tv_currentstation"
@@ -64,7 +75,7 @@
         android:gravity="center"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/number_picker_stations"
+        app:layout_constraintTop_toBottomOf="@id/pager_workouts"
         android:layout_margin="@dimen/margin"/>
 
     <TextView

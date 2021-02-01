@@ -4,7 +4,7 @@ dependencies {
     implementation project(':AndroidGameLibrary')
     implementation project(path: ':GameLibrary', configuration: 'androidLib')
     implementation project(path: ':Dominos', configuration: 'androidLib')
-    implementation 'com.android.support:support-v4:23+'
+    implementation project.supportv4
 }
 
 android {

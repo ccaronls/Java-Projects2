@@ -268,7 +268,10 @@ public abstract class DragAndDropAdapter<T> extends BaseAdapter implements View.
             case DragEvent.ACTION_DRAG_ENDED:
                 if (!dropped) {
                     // put the item back in
-                    list.add(originatingLine, data);
+                    if (originatingLine >= 0)
+                        list.add(originatingLine, data);
+                    else
+                        list.add(data);
                     notifyDataSetChanged();
                     dropped = true;
                 }

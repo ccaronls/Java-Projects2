@@ -10,8 +10,8 @@ dependencies {
 android {
 
     defaultConfig {
-        minSdkVersion 11
-        targetSdkVersion 26
+        minSdkVersion project.myMinSdkVersion
+        targetSdkVersion project.myTargetSdkVersion
     }
 
     compileOptions {

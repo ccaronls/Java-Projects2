@@ -66,4 +66,9 @@
         <attr name="borderColor" format="color"/>
         <attr name="borderThickness" format="dimension"/>
     </declare-styleable>
+
+    <declare-styleable name="CircleTextView">
+        <attr name="textCenterAngle" format="integer" description="angle in degrees of the center of the text along the circle"/>
+        <attr name="textDirectionReverse" format="boolean" description="Render the text from RtoL"/>
+    </declare-styleable>
 </resources>

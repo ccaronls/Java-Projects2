@@ -6,8 +6,8 @@ android {
 
     defaultConfig {
         applicationId "cc.game.zombicide.android"
-        minSdkVersion 14
-        targetSdkVersion 26
+        minSdkVersion project.myMinSdkVersion
+        targetSdkVersion project.myTargetSdkVersion
         versionCode 1
         versionName "1.0"
 
@@ -37,7 +37,7 @@ dependencies {
     implementation project(':AndroidGameLibrary')
     implementation project(path: ':GameLibrary', configuration: 'androidLib')
     implementation fileTree(dir: "libs", include: ["*.jar"])
-    implementation 'com.android.support:support-v4:23+'
+    implementation project.supportv4
 //    implementation 'com.android.support:support-v4:28.0.0'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'

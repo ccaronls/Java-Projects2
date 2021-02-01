@@ -3,13 +3,14 @@ apply plugin: 'com.android.application'
 dependencies {
     implementation project(':AndroidGameLibrary')
     implementation project(path: ':GameLibrary', configuration: 'androidLib')
-    implementation 'com.android.support:support-v4:23+'
+    implementation project.supportv4
     implementation 'com.android.support.constraint:constraint-layout:1.1.2'
 }
 
 android {
     defaultConfig {
-        minSdkVersion 14
+        minSdkVersion project.myMinSdkVersion
+        targetSdkVersion project.myTargetSdkVersion
     }
 
     compileOptions {

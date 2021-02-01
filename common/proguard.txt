@@ -84,6 +84,9 @@
     @cc.lib.annotation.Keep <methods>;
 }
 
+-keep @cc.lib.annotation.Keep public class *
+-keep @cc.lib.annotation.Keep public enum *
+
 -keepclassmembers class org.xbill.DNS.** { *; }
 -keep class sun.net.spi.nameservice.NameService { *; }
 

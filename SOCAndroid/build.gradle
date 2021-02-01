@@ -4,15 +4,14 @@ dependencies {
     implementation project(':AndroidGameLibrary')
     implementation project(path: ':GameLibrary', configuration: 'androidLib')
     implementation project(path: ':SOC', configuration: 'androidLib')
-
-    implementation 'com.android.support:support-v4:23+'
+    implementation project.supportv4
 }
 
 android {
 
     defaultConfig {
-        minSdkVersion 13
-        targetSdkVersion 23
+        minSdkVersion project.myMinSdkVersion
+        targetSdkVersion project.myTargetSdkVersion
     }
 
     compileOptions {

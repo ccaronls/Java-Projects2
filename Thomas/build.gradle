@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 30
+    compileSdkVersion project.myCompileSdkVersion.toInteger()
     buildToolsVersion project.myBuildToolsVersion
 
     compileOptions {
@@ -11,18 +11,39 @@ android {
 
     defaultConfig {
         applicationId "cc.android.thomas"
-        minSdkVersion 17
-        targetSdkVersion 30
-        versionCode 1
+        minSdkVersion project.myMinSdkVersion
+        targetSdkVersion project.myTargetSdkVersion
+        versionCode 3
         versionName "1.0"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        general {
+            storeFile file(project.storeFile)
+            storePassword project.storePassword
+            keyAlias project.keyAlias
+            keyPassword project.keyPassword
+        }
+    }
+
     buildTypes {
         release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), '../common/proguard.txt'
+            signingConfig signingConfigs.general
+        }
+        debug {
+// Test minimizing
+//            minifyEnabled true
+//            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), '../common/proguard.txt'
+            signingConfig signingConfigs.general
+        }
+    }
+    applicationVariants.all {
+        variant -> variant.outputs.all {
+            outputFileName = "thomas-${variant.buildType.name}-${android.defaultConfig.versionName}.${android.defaultConfig.versionCode}.apk"
         }
     }
 }
