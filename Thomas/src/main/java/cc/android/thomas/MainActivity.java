@@ -1,18 +1,15 @@
 package cc.android.thomas;
 
 import android.app.Dialog;
-import android.content.DialogInterface;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,7 +20,6 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.NumberPicker;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -84,7 +80,7 @@ public class MainActivity extends CCActivityBase implements
         }
 
         final int stringResId;
-    };
+    }
 
     public static class Workout extends Reflector<Workout> {
 
@@ -213,6 +209,7 @@ public class MainActivity extends CCActivityBase implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        /*
         Toolbar toolbar = findViewById(R.id.toolbar);
 
         FloatingActionButton fab = findViewById(R.id.fab);
@@ -222,7 +219,7 @@ public class MainActivity extends CCActivityBase implements
                 Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
             }
-        });
+        });*/
 
         loadWorkouts();
 
@@ -369,44 +366,38 @@ public class MainActivity extends CCActivityBase implements
 
     void showOptionsPopup() {
         newDialogBuilder().setTitle(R.string.popup_title_options)
-                .setItems(getResources().getStringArray(R.array.popup_options), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        switch (i) {
-                            case 0: {
-                                Station [] stations = getAllKnownStations();
-                                for (Station s : stations) {
-                                    s.enabled = false;
-                                }
-                                LinkedHashSet<Station> all = new LinkedHashSet<>();
-                                Workout w = workouts.get(currentWorkout);
-                                all.addAll(Arrays.asList(w.stations));
-                                all.addAll(Arrays.asList(stations));
-                                showStationsPopup(all.toArray(new Station[all.size()]));
-                                break;
+                .setItems(getResources().getStringArray(R.array.popup_options), (dialogInterface, i) -> {
+                    switch (i) {
+                        case 0: {
+                            Station [] stations = getAllKnownStations();
+                            for (Station s : stations) {
+                                s.enabled = false;
                             }
-                            case 1:
-                                showOrderingPopup();
-                                break;
-                            case 2:
-                                showSaveWorkoutPopup(true);
-                                break;
-                            case 3:
-                                showSaveWorkoutPopup(false);
-                                break;
-                            case 4:
-                                newDialogBuilder().setTitle(R.string.popup_title_confirm).setMessage(R.string.popup_msg_confirmreset)
-                                        .setNegativeButton(R.string.popup_button_cancel, null)
-                                        .setPositiveButton(R.string.popup_button_reset, new DialogInterface.OnClickListener() {
-                                            @Override
-                                            public void onClick(DialogInterface dialogInterface, int i) {
-                                                new File(getFilesDir(), STATIONS_FILE).delete();
-                                                new File(getFilesDir(), WORKOUTS_FILE).delete();
-                                                loadWorkouts();
-                                                pager_adapter.notifyDataSetChanged();
-                                            }
-                                        }).show();
+                            LinkedHashSet<Station> all = new LinkedHashSet<>();
+                            Workout w = workouts.get(currentWorkout);
+                            all.addAll(Arrays.asList(w.stations));
+                            all.addAll(Arrays.asList(stations));
+                            showStationsPopup(all.toArray(new Station[all.size()]));
+                            break;
                         }
+                        case 1:
+                            showOrderingPopup();
+                            break;
+                        case 2:
+                            showSaveWorkoutPopup(true);
+                            break;
+                        case 3:
+                            showSaveWorkoutPopup(false);
+                            break;
+                        case 4:
+                            newDialogBuilder().setTitle(R.string.popup_title_confirm).setMessage(R.string.popup_msg_confirmreset)
+                                    .setNegativeButton(R.string.popup_button_cancel, null)
+                                    .setPositiveButton(R.string.popup_button_reset, (dialogInterface1, i1) -> {
+                                        new File(getFilesDir(), STATIONS_FILE).delete();
+                                        new File(getFilesDir(), WORKOUTS_FILE).delete();
+                                        loadWorkouts();
+                                        pager_adapter.notifyDataSetChanged();
+                                    }).show();
                     }
                 }).setPositiveButton(R.string.popup_button_ok, null).show();
     }
@@ -419,31 +410,28 @@ public class MainActivity extends CCActivityBase implements
             et.setText(curWorkout.name, TextView.BufferType.EDITABLE);
         }
 
-        newDialogBuilder().setTitle(createNew ? getString(R.string.popup_title_rename_workout, curWorkout.name) : getString(R.string.popup_title_copy_workout, workouts.get(currentWorkout).name)).setView(et)
+        newDialogBuilder().setTitle(createNew ? getString(R.string.popup_title_copy_workout, workouts.get(currentWorkout).name) : getString(R.string.popup_title_rename_workout, curWorkout.name)).setView(et)
                 .setNegativeButton(R.string.popup_button_cancel, null)
-                .setPositiveButton(R.string.popup_button_save, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        String name = et.getText().toString();
-                        if (name.isEmpty()) {
-                            Toast.makeText(MainActivity.this, R.string.toast_err_empty_name, Toast.LENGTH_LONG).show();
-                            return;
-                        }
-
-                        Workout w = workouts.get(currentWorkout);
-                        if (createNew) {
-                            Workout saved = w.deepCopy();
-                            workouts.add(saved);
-                        }
-                        w.name = et.getText().toString();
-                        try {
-                            Reflector.serializeToFile(workouts, new File(getFilesDir(), WORKOUTS_FILE));
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            Toast.makeText(MainActivity.this, R.string.toast_err_save_workout, Toast.LENGTH_LONG).show();
-                        }
-                        pager_adapter.notifyDataSetChanged();
+                .setPositiveButton(R.string.popup_button_save, (dialogInterface, i) -> {
+                    String name = et.getText().toString();
+                    if (name.isEmpty()) {
+                        Snackbar.make(tv_currentstation, R.string.toast_err_empty_name, Snackbar.LENGTH_LONG).show();
+                        return;
                     }
+
+                    Workout w = workouts.get(currentWorkout);
+                    if (createNew) {
+                        Workout saved = w.deepCopy();
+                        workouts.add(saved);
+                    }
+                    w.name = et.getText().toString();
+                    try {
+                        Reflector.serializeToFile(workouts, new File(getFilesDir(), WORKOUTS_FILE));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Snackbar.make(tv_currentstation, R.string.toast_err_save_workout, Snackbar.LENGTH_LONG).show();
+                    }
+                    pager_adapter.notifyDataSetChanged();
                 }).show();
     }
 
@@ -481,22 +469,21 @@ public class MainActivity extends CCActivityBase implements
         Dialog d = newDialogBuilder()
                 .setView(v)
                 .setNegativeButton(R.string.popup_button_cancel, null)
-                .setPositiveButton(R.string.popup_button_save, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        if (adapter.getList().size() == 0) {
-                            Toast.makeText(MainActivity.this, R.string.toast_err_emptylist, Toast.LENGTH_LONG).show();
-                            return;
-                        }
-
-                        workouts.get(currentWorkout).ordering = adapter.getList().toArray(new StationType[0]);
+                .setPositiveButton(R.string.popup_button_save, (dialogInterface, i) -> {
+                    if (adapter.getList().size() == 0) {
+                        Snackbar.make(tv_currentstation, R.string.toast_err_emptylist, Snackbar.LENGTH_LONG).show();
+                        return;
                     }
+
+                    workouts.get(currentWorkout).ordering = adapter.getList().toArray(new StationType[0]);
                 }).create();
 
         WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
-        lp.copyFrom(d.getWindow().getAttributes());
+        if (d.getWindow() != null) {
+            lp.copyFrom(d.getWindow().getAttributes());
 //        lp.width = WindowManager.LayoutParams.MATCH_PARENT;
-        lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
+            lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
+        }
         d.show();
         //d.getWindow().setAttributes(lp);
     }
@@ -507,7 +494,7 @@ public class MainActivity extends CCActivityBase implements
         } catch (FileNotFoundException e) {
             // ignore
         } catch (Exception e) {
-            Toast.makeText(this, R.string.toast_err_load_stations, Toast.LENGTH_LONG).show();
+            Snackbar.make(tv_currentstation, R.string.toast_err_load_stations, Snackbar.LENGTH_LONG).show();
             e.printStackTrace();
         }
         return getDefaultStations();
@@ -522,37 +509,21 @@ public class MainActivity extends CCActivityBase implements
             checked[i] = all[i].enabled;
         }
 
-        newDialogBuilder().setTitle(R.string.popup_title_stations).setMultiChoiceItems(items, checked, new DialogInterface.OnMultiChoiceClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i, boolean b) {
-                all[i].enabled = b;
-            }
-        }).setNegativeButton(R.string.popup_button_cancel, null)
-        .setPositiveButton(R.string.popup_button_add_station, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                showAddStationPopup(all);
-            }
-        }).setNeutralButton(R.string.popup_button_save, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                if (Utils.filterItems(new Utils.Filter<Station>() {
-                    @Override
-                    public boolean keep(Station object) {
-                        return object.enabled;
+        newDialogBuilder().setTitle(R.string.popup_title_stations)
+                .setMultiChoiceItems(items, checked, (dialogInterface, i, b) -> all[i].enabled = b)
+                .setNegativeButton(R.string.popup_button_cancel, null)
+                .setPositiveButton(R.string.popup_button_add_station, (dialogInterface, i) -> showAddStationPopup(all)).setNeutralButton(R.string.popup_button_save, (dialogInterface, i) -> {
+                    if (Utils.filterItems(object -> object.enabled, all).size() == 0) {
+                        Snackbar.make(tv_currentstation, R.string.toast_err_emptylist, Snackbar.LENGTH_LONG).show();
+                        return;
                     }
-                }, all).size() == 0) {
-                    Toast.makeText(MainActivity.this, R.string.toast_err_emptylist, Toast.LENGTH_LONG).show();
-                    return;
-                }
-                try {
-                    workouts.get(currentWorkout).stations = all;
-                    Reflector.serializeToFile(all, new File(getFilesDir(), STATIONS_FILE));
-                } catch (Exception e) {
-                    Toast.makeText(MainActivity.this, getString(R.string.toast_err_savefailed, e.getMessage()), Toast.LENGTH_LONG).show();
-                }
-            }
-        }).show();
+                    try {
+                        workouts.get(currentWorkout).stations = all;
+                        Reflector.serializeToFile(all, new File(getFilesDir(), STATIONS_FILE));
+                    } catch (Exception e) {
+                        Snackbar.make(tv_currentstation, getString(R.string.toast_err_savefailed, e.getMessage()), Snackbar.LENGTH_LONG).show();
+                    }
+                }).show();
     }
 
     void showAddStationPopup(final Station [] stations) {
@@ -563,34 +534,25 @@ public class MainActivity extends CCActivityBase implements
         np_type.setMinValue(0);
         np_type.setMaxValue(StationType.values().length-1);
 
-        newDialogBuilder().setTitle(R.string.popup_title_add_station).setView(v).setNegativeButton(R.string.popup_button_cancel, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
+        newDialogBuilder().setTitle(R.string.popup_title_add_station).setView(v).setNegativeButton(R.string.popup_button_cancel, (dialogInterface, i) -> showStationsPopup(stations)).setPositiveButton(R.string.popup_button_add, (dialogInterface, i) -> {
+            String name = et_name.getText().toString().trim();
+            if (name.isEmpty()) {
+                Snackbar.make(tv_currentstation, R.string.toast_err_emptyname, Snackbar.LENGTH_SHORT).show();
                 showStationsPopup(stations);
+                return;
             }
-        }).setPositiveButton(R.string.popup_button_add, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                String name = et_name.getText().toString().trim();
-                if (name.isEmpty()) {
-                    Toast.makeText(MainActivity.this, R.string.toast_err_emptyname, Toast.LENGTH_SHORT).show();
+            for (Station s : stations) {
+                if (s.name.equalsIgnoreCase(name)) {
+                    Snackbar.make(tv_currentstation, R.string.toast_err_duplicationname, Snackbar.LENGTH_SHORT).show();
                     showStationsPopup(stations);
                     return;
                 }
-                for (Station s : stations) {
-                    if (s.name.equalsIgnoreCase(name)) {
-                        Toast.makeText(MainActivity.this, R.string.toast_err_duplicationname, Toast.LENGTH_SHORT).show();
-                        showStationsPopup(stations);
-                        return;
-                    }
-                }
-                Station st = new Station(name, StationType.values()[np_type.getValue()]);
-                List<Station> l = new ArrayList<>();
-                l.addAll(Arrays.asList(stations));
-                l.add(st);
-                Station [] newArr = l.toArray(new Station[l.size()]);
-                showStationsPopup(newArr);
             }
+            Station st = new Station(name, StationType.values()[np_type.getValue()]);
+            List<Station> l = new ArrayList<>(Arrays.asList(stations));
+            l.add(st);
+            Station [] newArr = l.toArray(new Station[l.size()]);
+            showStationsPopup(newArr);
         }).show();
     }
 
@@ -610,7 +572,7 @@ public class MainActivity extends CCActivityBase implements
             if (s.enabled)
                 workout[s.type.ordinal()].add(s);
         }
-        for (List l : workout) {
+        for (List<Station> l : workout) {
             Utils.shuffle(l);
         }
         sets.clear();

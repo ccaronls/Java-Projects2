@@ -31,7 +31,7 @@
     <string name="squats">Squats</string>
     <string name="popup_title_options">Options</string>
     <string name="popup_title_confirm">Confirm</string>
-    <string name="popup_msg_confirmreset">This will reset ordering to default and remove all your added stations. Are you sure?</string>
+    <string name="popup_msg_confirmreset">This action will reset ordering, remove all your added stations and remove your saved workouts. Are you sure?</string>
     <string name="popup_button_cancel">Cancel</string>
     <string name="popup_button_reset">Reset</string>
     <string name="popup_button_ok">OK</string>
