@@ -81,10 +81,20 @@
     <string name="text_circle_circuit_class">Circuit Class</string>
     <string-array name="popup_options">
         <item>STATIONS</item>
+        <item>SUMMARY</item>
         <item>ORDERING</item>
         <item>COPY WORKOUT</item>
         <item>RENAME WORKOUT</item>
         <item>RESET</item>
     </string-array>
-
+    <string name="popup_title_summary">Summary for %s\nSwipe Left for More Summaries</string>
+    <string name="workout_column_station">Station</string>
+    <string-array name="workout_column_names">
+        <item>Today</item>
+        <item>This Week</item>
+        <item>This Month</item>
+        <item>All Time</item>
+    </string-array>
+    <string name="popup_button_clear">Clear</string>
+    <string name="popup_msg_confirm_clear">This will delete all of your tracking data for %s. Are you Sure?</string>
 </resources>

@@ -1,6 +1,7 @@
 package cc.android.thomas;
 
 import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.Parcel;
@@ -10,6 +11,9 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v7.widget.DividerItemDecoration;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,16 +25,19 @@ import android.widget.ListView;
 import android.widget.NumberPicker;
 import android.widget.TextView;
 
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.TimeZone;
 
 import cc.lib.android.CCActivityBase;
 import cc.lib.android.DragAndDropAdapter;
-import cc.lib.android.DroidStopWatch;
 import cc.lib.android.VerticalViewPager;
 import cc.lib.annotation.Keep;
 import cc.lib.game.Utils;
@@ -46,21 +53,26 @@ public class MainActivity extends CCActivityBase implements
 
     final static String TAG = MainActivity.class.getSimpleName();
 
+    final static int STATE_STOPPED = 0;
+    final static int STATE_PAUSED = 1;
+    final static int STATE_RUNNING = 2;
+
     NumberPicker np_timer;
     NumberPicker np_stations;
     Button b_start, b_pause, b_options;
     //ToggleButton tb_randomize;
     TextView tv_timer, tv_currentstation;
-    final DroidStopWatch sw = new DroidStopWatch();
     TextToSpeech tts = null;
     final String STATIONS_FILE = "stations.txt";
     final String WORKOUTS_FILE = "workouts.txt";
     int setIndex = 0;
-    final List<String> sets = new ArrayList<>();
+    final List<Station> sets = new ArrayList<>();
     List<Workout> workouts;
     int currentWorkout = 0;
     VerticalViewPager pager_workouts;
     PagerAdapter pager_adapter;
+    int timeLeftSecs = 0;
+    int state = STATE_STOPPED; // stopped, paused, running
 
     static {
         Reflector.registerClass(StationType.class);
@@ -90,6 +102,11 @@ public class MainActivity extends CCActivityBase implements
         int numStations;
         int timerIndex;
 
+        void clearCounts() {
+            for (Station st : stations) {
+                st.clearCounts();
+            }
+        }
     }
 
     public static class Station extends Reflector<Station> implements Parcelable {
@@ -97,6 +114,12 @@ public class MainActivity extends CCActivityBase implements
         String name;
         StationType type;
         boolean enabled = true;
+
+        long lastDoneLocalSecs;
+        long todaySecs;
+        long thisWeekSecs;
+        long thisMonthSecs;
+        long allTimeSecs;
 
         public Station() {
 
@@ -111,6 +134,17 @@ public class MainActivity extends CCActivityBase implements
             name = in.readString();
             type = StationType.values()[in.readInt()];
             enabled = in.readByte() != 0;
+        }
+
+        void addSeconds(int seconds) {
+            todaySecs += seconds;
+            thisWeekSecs += seconds;
+            thisMonthSecs += seconds;
+            allTimeSecs += seconds;
+        }
+
+        void clearCounts() {
+            lastDoneLocalSecs = todaySecs = thisWeekSecs = thisMonthSecs = allTimeSecs = 0;
         }
 
         public static final Creator<Station> CREATOR = new Creator<Station>() {
@@ -253,7 +287,7 @@ public class MainActivity extends CCActivityBase implements
         //tb_randomize = findViewById(R.id.tb_random);
         //tb_randomize.setOnCheckedChangeListener(this);
         np_stations = findViewById(R.id.np_stations);
-        np_stations.setMinValue(5);
+        np_stations.setMinValue(BuildConfig.DEBUG ? 2 : 5);
         np_stations.setMaxValue(60);
         np_stations.setValue(workouts.get(currentWorkout).numStations);
         tv_currentstation = findViewById(R.id.tv_currentstation);
@@ -381,15 +415,18 @@ public class MainActivity extends CCActivityBase implements
                             break;
                         }
                         case 1:
-                            showOrderingPopup();
+                            showSummaryPopup();
                             break;
                         case 2:
-                            showSaveWorkoutPopup(true);
+                            showOrderingPopup();
                             break;
                         case 3:
-                            showSaveWorkoutPopup(false);
+                            showSaveWorkoutPopup(true);
                             break;
                         case 4:
+                            showSaveWorkoutPopup(false);
+                            break;
+                        case 5:
                             newDialogBuilder().setTitle(R.string.popup_title_confirm).setMessage(R.string.popup_msg_confirmreset)
                                     .setNegativeButton(R.string.popup_button_cancel, null)
                                     .setPositiveButton(R.string.popup_button_reset, (dialogInterface1, i1) -> {
@@ -500,6 +537,78 @@ public class MainActivity extends CCActivityBase implements
         return getDefaultStations();
     }
 
+    void showSummaryPopup() {
+
+        Workout workout = workouts.get(currentWorkout);
+        ViewPager pager = new ViewPager(this);
+        pager.setAdapter(new PagerAdapter() {
+            @Override
+            public int getCount() {
+                return 4;
+            }
+
+            @Override
+            public boolean isViewFromObject(@NonNull View view, @NonNull Object o) {
+                return view == o;
+            }
+
+            @NonNull
+            @Override
+            public Object instantiateItem(@NonNull ViewGroup container, int position) {
+                RecyclerView rv = new RecyclerView(MainActivity.this);
+                rv.setLayoutManager(new LinearLayoutManager(MainActivity.this));
+                rv.setAdapter(new WorkoutSummaryAdapter(workout, position));
+                DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(MainActivity.this,
+                        LinearLayoutManager.VERTICAL);
+                rv.addItemDecoration(dividerItemDecoration);
+                container.addView(rv);
+                return rv;
+            }
+
+            @Override
+            public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
+                container.removeView((View)object);
+            }
+
+            @Override
+            public int getItemPosition(@NonNull Object object) {
+                return POSITION_NONE;
+            }
+
+        });
+
+        newDialogBuilder().setTitle(getString(R.string.popup_title_summary, workout.name))
+                .setView(pager).setPositiveButton(R.string.popup_button_ok, null)
+                .setNeutralButton(R.string.popup_button_clear, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        newDialogBuilder().setTitle(R.string.popup_title_confirm)
+                                .setMessage(getString(R.string.popup_msg_confirm_clear, workout.name))
+                                .setNeutralButton(R.string.popup_button_cancel, null)
+                                .setPositiveButton(R.string.popup_button_clear, new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                workout.clearCounts();
+                                            }
+                                        }).show();
+                    }
+                }).show();
+    }
+
+    static String getTimeString(long secs) {
+        if (secs <= 60) {
+            return String.format("%d Secs", secs);
+        } else if (secs < 60*60) {
+            return String.format("%d:%02d", secs/60, secs%60);
+        } else {
+            long mins = secs/60;
+            secs -= mins*60;
+            long hours = mins/60;
+            mins -= hours * 60;
+            return String.format("%d:%02d:%02d", hours, mins, secs);
+        }
+    }
+
     void showStationsPopup(final Station [] all) {
         final String [] items = new String[all.length];
         final boolean [] checked = new boolean[all.length];
@@ -564,24 +673,40 @@ public class MainActivity extends CCActivityBase implements
     void initWorkout() {
         final List<Station> [] workout = new ArrayList[StationType.values().length];
         final int [] count = new int[StationType.values().length];
-        Station [] all = workouts.get(currentWorkout).stations;
+        Workout w = workouts.get(currentWorkout);
+        Station [] all = w.stations;
         for (int i=0; i<workout.length; i++) {
             workout[i] = new ArrayList<>();
         }
+        DateTimeZone dtz = DateTimeZone.forTimeZone(TimeZone.getDefault());
+        DateTime today = DateTime.now(dtz).withTimeAtStartOfDay();
         for (Station s: all) {
-            if (s.enabled)
+            if (s.enabled) {
                 workout[s.type.ordinal()].add(s);
+                if (s.lastDoneLocalSecs > 0) {
+                    // see if we need to 0 out the day, week, month counters
+                    DateTime prev = new DateTime(s.lastDoneLocalSecs*1000, dtz).withTimeAtStartOfDay();
+                    if (prev.isBefore(today)) {
+                        s.todaySecs=0;
+                    }
+                    if (prev.isBefore(today.withDayOfWeek(1))) {
+                        s.thisWeekSecs=0;
+                    }
+                    if (prev.isBefore(today.withDayOfMonth(1))) {
+                        s.thisMonthSecs=0;
+                    }
+                }
+                s.lastDoneLocalSecs = today.getMillis()/1000;
+            }
         }
         for (List<Station> l : workout) {
             Utils.shuffle(l);
         }
         sets.clear();
-        //int index = 0;
         // customize ordering here so, for example, we can do like 2 upper and 2 lower
-        StationType [] order = workouts.get(currentWorkout).ordering;//getOrdering();
+        StationType [] order = workouts.get(currentWorkout).ordering;
         int orderIndex = 0;
         while (sets.size() < np_stations.getValue()) {
-            //int idx = (index++ % workout.length);
             int idx = order[orderIndex++ % order.length].ordinal();
             List<Station> set = workout[idx];
             if (set.size() == 0) {
@@ -590,16 +715,16 @@ public class MainActivity extends CCActivityBase implements
             int c = count[idx]++ % set.size();
             Station s = set.get(c);
             Log.d("SETS", "Added " + s.toString());
-            sets.add(s.name);
+            sets.add(s);
         }
 
         Log.d("SETS", "All sets: " + sets);
-        sayNow(sets.get(0));
+        sayNow(sets.get(0).name);
         setIndex = 0;
     }
 
     void toggleStart() {
-        if (sw.isStarted()) {
+        if (state != STATE_STOPPED) {
             stop();
         } else {
             start();
@@ -607,29 +732,36 @@ public class MainActivity extends CCActivityBase implements
     }
 
     void togglePause() {
-        if (sw.isPaused()) {
+        if (state == STATE_PAUSED) {
             resume();
-        } else {
+        } else if (state == STATE_RUNNING) {
             pause();
         }
     }
 
     void pause() {
-        sw.pause();
-        b_pause.setText(R.string.button_resume);
-        tv_timer.removeCallbacks(this);
-        setKeepScreenOn(false);
+        if (state == STATE_RUNNING) {
+            getPrefs().edit().putInt("timeLeftSecs", timeLeftSecs).apply();
+            state = STATE_PAUSED;
+            b_pause.setText(R.string.button_resume);
+            tv_timer.removeCallbacks(this);
+            setKeepScreenOn(false);
+        }
     }
 
     void resume() {
-        sw.unpause();
-        b_pause.setText(R.string.button_pause);
-        tv_timer.post(this);
-        setKeepScreenOn(true);
+        if (state == STATE_PAUSED) {
+            getPrefs().getInt("timeLeftSecs", 0);
+            state = STATE_RUNNING;
+            b_pause.setText(R.string.button_pause);
+            tv_timer.post(this);
+            setKeepScreenOn(true);
+        }
     }
 
     void stop() {
-        sw.stop();
+        timeLeftSecs = 0;
+        state = STATE_STOPPED;
         b_start.setText(R.string.button_start);
         tv_timer.removeCallbacks(this);
         b_pause.setEnabled(false);
@@ -639,7 +771,8 @@ public class MainActivity extends CCActivityBase implements
 
     void start() {
         initWorkout();
-        sw.start();
+        timeLeftSecs = 0;
+        state = STATE_RUNNING;
         b_pause.setText(R.string.button_pause);
         tv_timer.post(this);
         b_start.setText(R.string.button_stop);
@@ -651,33 +784,40 @@ public class MainActivity extends CCActivityBase implements
     @Override
     public void run() {
 
-        sw.capture();
-
-        int elapsedTimeSecs = (int)(sw.getTime()/1000);
         int stationPeriodSecs = np_timer.getValue()*10 + 10;
         final int numStations = np_stations.getValue();
 
-        int timeLeftSecs = stationPeriodSecs - (elapsedTimeSecs % stationPeriodSecs);
-        if (timeLeftSecs == 1) {
+        if (timeLeftSecs <= 0)
+            timeLeftSecs = stationPeriodSecs;
+        else
+            timeLeftSecs--;
+
+        if (timeLeftSecs > stationPeriodSecs) {
+            timeLeftSecs = stationPeriodSecs;
+        }
+
+        if (timeLeftSecs == 0) {
             ++setIndex;
         }
 
         boolean allDone = setIndex >= numStations;
         setIndex = Utils.clamp(setIndex, 0, numStations-1);
         String curSet, nextSet;
+        Station station = sets.get(setIndex);
+//        station.addSeconds(1);
 
         if (allDone) {
             curSet = getString(R.string.tts_completed);
             nextSet = "";
         } else if (setIndex == numStations-1) {
-            curSet = sets.get(setIndex);
+            curSet = station.name;
             nextSet = getString(R.string.tts_next_completed);
         } else {
-            curSet = sets.get(setIndex);
-            nextSet = getString(R.string.tts_next_workout, sets.get(setIndex+1));
+            curSet = station.name;
+            nextSet = getString(R.string.tts_next_workout, sets.get(setIndex+1).name);
         }
 
-        int secs = timeLeftSecs-1;
+        int secs = timeLeftSecs;
         switch (secs) {
             case 60: case 30: case 15:
             case 3: case 2: case 1:
@@ -696,10 +836,12 @@ public class MainActivity extends CCActivityBase implements
             }
 
             case 0:
+                station.addSeconds(stationPeriodSecs);
                 if (allDone) {
                     sayNow(getString(R.string.tts_alldone));
                     tv_timer.setText(getString(R.string.tts_completed));
                     stop();
+                    showSummaryPopup();
                 } else {
                     sayNow(curSet);
                     tv_timer.setText(R.string.text_switch);
@@ -709,7 +851,7 @@ public class MainActivity extends CCActivityBase implements
 
         tv_currentstation.setText(getString(R.string.text_n_of_n_stations, (setIndex +1), numStations, curSet, nextSet));
 
-        if (sw.isStarted() && !sw.isPaused())
+        if (state == STATE_RUNNING)
             tv_timer.postDelayed(this, 1000);
     }
 
@@ -717,7 +859,7 @@ public class MainActivity extends CCActivityBase implements
     public void onInit(int status) {
         switch (status) {
             case TextToSpeech.SUCCESS:
-                sayNow(getString(R.string.tts_welcome));
+                //sayNow(getString(R.string.tts_welcome));
                 break;
 
             default:
