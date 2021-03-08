@@ -1,6 +1,13 @@
 package cc.lib.crypt;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -199,5 +206,37 @@ public class HuffmanTest extends SimpleCypherTest {
         enc.printEncodingAsCode(System.out);
 
     }
-    
+
+    public void testJPG() throws Exception  {
+
+        File tmp1 = File.createTempFile("tmp", "jpg", new File("/tmp/"));
+        FileUtils.copy(getClass().getClassLoader().getResourceAsStream("librarybookszoom.jpg"), tmp1);
+
+        System.out.println("File size of tmp1: " + tmp1.length());
+
+        HuffmanEncoding enc = new HuffmanEncoding();
+        enc.importCounts(getClass().getClassLoader().getResourceAsStream("librarybookszoom.jpg"));
+        enc.generate();
+        byte [] buf = new byte[1024];
+
+        ByteArrayOutputStream encrypted = new ByteArrayOutputStream();
+        long bytesRead = 0;
+        try (InputStream in = getClass().getClassLoader().getResourceAsStream("librarybookszoom.jpg") ;
+             OutputStream out = new EncryptionOutputStream(encrypted, enc)) {
+            bytesRead = FileUtils.copy(in, out);
+        }
+
+        System.out.println("Bytes Read: " + bytesRead);
+        System.out.println("Compressed Size: " + encrypted.size());
+
+        File tmp2 = File.createTempFile("tmp", "jpg", new File("/tmp/"));
+        try (InputStream in = new EncryptionInputStream(new ByteArrayInputStream(encrypted.toByteArray()), enc) ;
+            OutputStream out = new FileOutputStream(tmp2)) {
+            FileUtils.copy(in, out);
+        }
+
+        System.out.println("File size of tmp2: " + tmp2.length());
+
+
+    }
 }

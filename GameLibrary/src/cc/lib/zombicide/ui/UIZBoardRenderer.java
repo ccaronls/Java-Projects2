@@ -21,6 +21,7 @@ import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
+import cc.lib.ui.IButton;
 import cc.lib.ui.UIComponent;
 import cc.lib.ui.UIRenderer;
 import cc.lib.utils.Grid;
@@ -35,6 +36,7 @@ import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZDir;
 import cc.lib.zombicide.ZDoor;
 import cc.lib.zombicide.ZEquipment;
+import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZIcon;
 import cc.lib.zombicide.ZItem;
 import cc.lib.zombicide.ZMove;
@@ -48,9 +50,10 @@ public class UIZBoardRenderer extends UIRenderer {
 
     final static Logger log = LoggerFactory.getLogger(UIZBoardRenderer.class);
 
-    List<ZAnimation> preActor = new ArrayList<>();
-    List<ZAnimation> postActor = new ArrayList<>();
-    List<ZAnimation> overlayAnimations = new ArrayList<>();
+    final List<ZAnimation> preActor = new ArrayList<>();
+    final List<ZAnimation> postActor = new ArrayList<>();
+    final List<ZAnimation> overlayAnimations = new ArrayList<>();
+    final Map<IShape, List<IButton>> clickables = new HashMap<>();
 
     Grid.Pos highlightedCell = null;
     Object highlightedResult = null;
@@ -58,11 +61,10 @@ public class UIZBoardRenderer extends UIRenderer {
     ZDoor highlightedDoor = null;
     Grid.Pos selectedCell = null;
     IShape highlightedShape = null;
-    List<ZMove> highlightedMoves = null;
+    List<IButton> highlightedMoves = null;
     boolean actorsAnimating = false;
     private Object overlayToDraw = null;
     boolean drawTiles = false;
-    int zoom = 0;
 
     public UIZBoardRenderer(UIComponent component) {
         super(component);
@@ -101,10 +103,8 @@ public class UIZBoardRenderer extends UIRenderer {
         redraw();
     }
 
-    final Map<IShape, List<ZMove>> clickables = new HashMap<>();
-
-    private void addClickable(IShape rect, ZMove move) {
-        List<ZMove> moves = clickables.get(rect);
+    private void addClickable(IShape rect, IButton move) {
+        List<IButton> moves = clickables.get(rect);
         if (moves == null) {
             moves = new ArrayList<>();
             clickables.put(rect, moves);
@@ -112,8 +112,17 @@ public class UIZBoardRenderer extends UIRenderer {
         moves.add(move);
     }
 
+    List<IButton> submenu = null;
+
+    void processSubMenu(ZCharacter cur, List<IButton> options) {
+//        submenu = options;
+  //      redraw();
+    }
+
     void processMoveOptions(ZCharacter cur, List<ZMove> options) {
         clickables.clear();
+        if (true)
+            return;
         for (ZMove move : options) {
             switch (move.type) {
                 case DO_NOTHING:
@@ -167,20 +176,13 @@ public class UIZBoardRenderer extends UIRenderer {
                     }
                     break;
                 case SEARCH:
-                    addClickable(cur.getRect(), move);
-                    break;
                 case CONSUME:
-                    addClickable(cur.getRect(), move);
-                    break;
                 case EQUIP:
-                    break;
                 case UNEQUIP:
-                    break;
                 case GIVE:
-                    break;
                 case TAKE:
-                    break;
                 case DISPOSE:
+                    addClickable(cur.getRect(), move);
                     break;
                 case OBJECTIVE:
                     addClickable(getBoard().getZone(cur.getOccupiedZone()), move);
@@ -605,7 +607,7 @@ public class UIZBoardRenderer extends UIRenderer {
         return returnCell;
     }
 
-    ZMove pickButtons(AGraphics g, Vector2D pos, List<ZMove> moves, int mouseX, int mouseY) {
+    IButton pickButtons(AGraphics g, Vector2D pos, List<IButton> moves, int mouseX, int mouseY) {
         float height = moves.size() * g.getTextHeight() * 2;
         MutableVector2D top = pos.sub(0, height/2);
         if (top.Y() < 0) {
@@ -614,16 +616,19 @@ public class UIZBoardRenderer extends UIRenderer {
             top.setY(g.getViewportHeight() - height);
         }
         // draw buttons to the right is pos id on left side and to the left if user on the right side
-        ZMove move = null;
+        IButton move = null;
         float buttonHeight = g.getTextHeight()*2;
         float buttonWidth = 0;
         float padding = g.getTextHeight()/2;
-        for (ZMove m : moves) {
+        for (IButton m : moves) {
             buttonWidth = Math.max(0, g.getTextWidth(m.getLabel()));
         }
         buttonWidth += padding * 2;
+        if (top.getX()+buttonWidth > g.getViewportWidth()) {
+            top.setX(g.getViewportWidth()-buttonWidth);
+        }
         GRectangle button = new GRectangle(top, buttonWidth, buttonHeight);
-        for (ZMove m : moves) {
+        for (IButton m : moves) {
             if (button.contains(mouseX, mouseY)) {
                 g.setColor(GColor.RED);
                 move = m;
@@ -637,17 +642,21 @@ public class UIZBoardRenderer extends UIRenderer {
         return move;
     }
 
-    ZMove pickMove(APGraphics g, IVector2D mouse, int screenMouseX, int screenMouseY) {
+    IButton pickMove(APGraphics g, IVector2D mouse, int screenMouseX, int screenMouseY) {
 
-        ZMove picked = null;
-        for (Map.Entry<IShape, List<ZMove>> entry : clickables.entrySet()) {
-            IShape shape = entry.getKey();
-            if (shape.contains(mouse.getX(), mouse.getY())) {
-                highlightedShape = shape;
-                highlightedMoves = entry.getValue();
-            } else {
-                g.setColor(GColor.YELLOW.withAlpha(32));
-                entry.getKey().drawFilled(g);
+        IButton picked = null;
+        if (submenu != null) {
+            highlightedMoves = submenu;
+        } else {
+            for (Map.Entry<IShape, List<IButton>> entry : clickables.entrySet()) {
+                IShape shape = entry.getKey();
+                if (shape.contains(mouse.getX(), mouse.getY())) {
+                    highlightedShape = shape;
+                    highlightedMoves = entry.getValue();
+                } else {
+                    g.setColor(GColor.YELLOW.withAlpha(32));
+                    entry.getKey().drawFilled(g);
+                }
             }
         }
 
@@ -668,6 +677,21 @@ public class UIZBoardRenderer extends UIRenderer {
         return picked;
     }
 
+    IVector2D getBoardCenter() {
+        ZGame game = getGame();
+        if (game.getCurrentCharacter() != null)
+            return game.getCurrentCharacter().getRect().getCenter();
+        MutableVector2D center = new MutableVector2D();
+        List<ZCharacter> chars = game.getAllLivingCharacters();
+        if (chars.size() == 0)
+            return Vector2D.ZERO;
+        for (ZCharacter c : chars) {
+            center.addEq(c.getRect().getCenter());
+        }
+        center.scaleEq(1f / chars.size());
+        return center;
+    }
+
     @Override
     public void draw(APGraphics g, int mouseX, int mouseY) {
         highlightedActor = null;
@@ -678,13 +702,16 @@ public class UIZBoardRenderer extends UIRenderer {
         UIZombicide game = getGame();
         ZBoard board = getBoard();
         g.setIdentity();
-        g.ortho();
-        g.pushMatrix();
-        g.translate(getWidth()/2,0);// - dim.width/2, 0);
 
-        GDimension dim = board.getDimension();
-        g.scale(getHeight() / (dim.height-zoom));
-        g.translate(-dim.width/2, 0);
+        g.ortho(board.getZoomedRectangle(getBoardCenter()));
+
+        //g.ortho();
+        //g.pushMatrix();
+        //g.translate(getWidth()/2,0);// - dim.width/2, 0);
+
+        //GDimension dim = board.getDimension();
+        //g.scale(getHeight() / dim.height);
+        //g.translate(-dim.width/2, 0);
 
         Vector2D mouse = g.screenToViewport(mouseX, mouseY);
         //log.debug("mouse %d,%d -> %s", _mouseX, _mouseY, mouse);
@@ -834,7 +861,7 @@ public class UIZBoardRenderer extends UIRenderer {
 
         }
 
-        g.popMatrix();
+        //g.popMatrix();
         drawAnimations(overlayAnimations, g);
 
         if (game.isGameOver() && overlayToDraw == null && !isAnimating()) {
@@ -854,7 +881,7 @@ public class UIZBoardRenderer extends UIRenderer {
                 }
             } else if (overlayToDraw instanceof Table) {
                 g.setColor(GColor.YELLOW);
-                dim = ((Table)overlayToDraw).getDimension(g);
+                GDimension dim = ((Table)overlayToDraw).getDimension(g);
                 g.pushMatrix();
                 g.translate(getWidth()/2, getHeight()/2);
                 g.translate(-dim.width/2, -dim.height/2);
@@ -882,6 +909,7 @@ public class UIZBoardRenderer extends UIRenderer {
     public void onClick() {
         if (getGame().isGameRunning()) {
             overlayToDraw = null;
+            submenu = null;
             getGame().setResult(highlightedResult);
         } else {
             if (highlightedDoor != null) {
@@ -908,15 +936,4 @@ public class UIZBoardRenderer extends UIRenderer {
         return highlightedActor;
     }
 
-    public void zoom(int amount) {
-        int z = zoom + amount;
-        if (z >= 0 && z < getMaxZoom()) {
-            zoom = z;
-            redraw();
-        }
-    }
-
-    int getMaxZoom() {
-        return Math.min(getBoard().getRows(), getBoard().getColumns());
-    }
 }

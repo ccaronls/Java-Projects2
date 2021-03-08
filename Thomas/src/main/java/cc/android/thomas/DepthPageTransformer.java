@@ -1,5 +1,6 @@
 package cc.android.thomas;
 
+import android.os.Build;
 import android.support.v4.view.ViewPager;
 import android.view.View;
 
@@ -25,7 +26,8 @@ public class DepthPageTransformer implements ViewPager.PageTransformer {
         // [0-1] -> [1-.75]
         float scale = 1f - Math.abs(position)*(1f- sizeScale);
 
-        view.setElevation(-Math.abs(position));
+        if (Build.VERSION.SDK_INT >= 21)
+            view.setElevation(-Math.abs(position));
 
         //if (position < -1 || position > 1) { // [-Infinity,-1)
             // This page is way off-screen to the left.

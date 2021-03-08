@@ -1,8 +1,10 @@
 package cc.lib.zombicide;
 
+import cc.lib.annotation.Keep;
 import cc.lib.game.Utils;
 import cc.lib.ui.IButton;
 
+@Keep
 public enum  ZSpellType implements ZEquipmentType<ZSpell>, IButton {
 
     // TODO: Do we really need spell type?

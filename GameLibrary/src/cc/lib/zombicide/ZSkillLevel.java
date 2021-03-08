@@ -1,5 +1,8 @@
 package cc.lib.zombicide;
 
+import cc.lib.annotation.Keep;
+
+@Keep
 public enum ZSkillLevel {
     BLUE(0, 7),
     YELLOW(8, 19),

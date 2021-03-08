@@ -5,8 +5,9 @@ import cc.lib.game.GDimension;
 import cc.lib.game.GRectangle;
 import cc.lib.utils.Grid;
 import cc.lib.utils.Reflector;
+import cc.lib.zombicide.ui.UIZButton;
 
-public abstract class ZActor<E extends Enum<E>> extends Reflector<ZActor<E>> {
+public abstract class ZActor<E extends Enum<E>> extends Reflector<ZActor<E>> implements UIZButton {
 
     static {
         addAllFields(ZActor.class);
@@ -129,5 +130,15 @@ public abstract class ZActor<E extends Enum<E>> extends Reflector<ZActor<E>> {
 
     int getPriority() {
         return 0;
+    }
+
+    @Override
+    public String getLabel() {
+        return name();
+    }
+
+    @Override
+    public String getTooltipText() {
+        return null;
     }
 }

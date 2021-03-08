@@ -1,7 +1,9 @@
 package cc.lib.zombicide;
 
+import cc.lib.annotation.Keep;
 import cc.lib.game.Utils;
 
+@Keep
 public enum ZMoveType {
     DO_NOTHING,
     ORGANNIZE, // equip things, drop things, etc.

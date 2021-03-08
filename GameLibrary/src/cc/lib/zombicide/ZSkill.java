@@ -3,9 +3,11 @@ package cc.lib.zombicide;
 import java.util.ArrayList;
 import java.util.List;
 
+import cc.lib.annotation.Keep;
 import cc.lib.game.Utils;
 import cc.lib.ui.IButton;
 
+@Keep
 public enum ZSkill implements IButton {
     Plus1_Action("The Survivor has an extra Action he may use as he pleases."),
     Plus1_Damage_Melee("The Survivor gets a +1 Damage bonus with Melee weapons.") {

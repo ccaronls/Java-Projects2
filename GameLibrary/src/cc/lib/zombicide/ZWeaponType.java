@@ -1,5 +1,8 @@
 package cc.lib.zombicide;
 
+import cc.lib.annotation.Keep;
+
+@Keep
 public enum ZWeaponType implements ZEquipmentType<ZWeapon> {
     // DAGGER get extra die roll when 2 handed with another weapon
 

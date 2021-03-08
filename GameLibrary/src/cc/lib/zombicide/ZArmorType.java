@@ -1,5 +1,8 @@
 package cc.lib.zombicide;
 
+import cc.lib.annotation.Keep;
+
+@Keep
 public enum ZArmorType implements ZEquipmentType<ZArmor> {
     LEATHER(ZEquipSlotType.BODY,5, ""),
     CHAINMAIL(ZEquipSlotType.BODY, 4, ""),

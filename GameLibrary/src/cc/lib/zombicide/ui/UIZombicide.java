@@ -16,6 +16,7 @@ import cc.lib.logger.LoggerFactory;
 import cc.lib.math.Bezier;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
+import cc.lib.ui.IButton;
 import cc.lib.utils.Grid;
 import cc.lib.zombicide.ZActor;
 import cc.lib.zombicide.ZActorAnimation;
@@ -435,6 +436,8 @@ public abstract class UIZombicide extends ZGame implements ZTiles {
             uiMode = UIMode.PICK_MENU;
             if (expectedType.equals(ZMove.class))
                 boardRenderer.processMoveOptions(getCurrentCharacter(), (List<ZMove>)moves);
+            else
+                boardRenderer.processSubMenu(getCurrentCharacter(), (List<IButton>)moves);
         }
         return (T) waitForUser(expectedType);
     }

@@ -1,7 +1,9 @@
 package cc.lib.zombicide;
 
+import cc.lib.annotation.Keep;
 import cc.lib.game.GColor;
 
+@Keep
 public enum ZCellType {
     NONE,
     VAULT_DOOR_VIOLET,

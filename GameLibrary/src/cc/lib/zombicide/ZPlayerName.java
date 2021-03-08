@@ -2,10 +2,12 @@ package cc.lib.zombicide;
 
 import java.util.Arrays;
 
+import cc.lib.annotation.Keep;
 import cc.lib.game.GDimension;
 import cc.lib.game.Utils;
 import cc.lib.ui.IButton;
 
+@Keep
 public enum ZPlayerName implements IButton {
     Ann("Angry Nun",
             Utils.toArray(ZWeaponType.DAGGER),

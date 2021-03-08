@@ -1,7 +1,9 @@
 package cc.lib.zombicide;
 
+import cc.lib.annotation.Keep;
 import cc.lib.game.GDimension;
 
+@Keep
 public enum ZZombieType {
     // TODO: Dont break MVC. Here we make assumptions about assets for zombies.
     Walker(1, 1, 1, false, 1),

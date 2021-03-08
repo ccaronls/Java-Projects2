@@ -1,5 +1,8 @@
 package cc.lib.zombicide;
 
+import cc.lib.annotation.Keep;
+
+@Keep
 public enum ZItemType implements ZEquipmentType<ZItem> {
     AAHHHH(false, null, "Stop Searching and place a zombie in the room being searched."),
     TORCH(false, ZEquipSlotType.HAND, "Draw 2 cards when searching. Spend an action, discard, and select a dragon bile at range 0-1 to ignite. Resolve dragon Fire."),

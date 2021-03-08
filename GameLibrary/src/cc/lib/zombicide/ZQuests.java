@@ -1,5 +1,6 @@
 package cc.lib.zombicide;
 
+import cc.lib.annotation.Keep;
 import cc.lib.game.Utils;
 import cc.lib.zombicide.quests.ZQuestBigGameHunting;
 import cc.lib.zombicide.quests.ZQuestDeadTrail;
@@ -13,6 +14,7 @@ import cc.lib.zombicide.quests.ZQuestTheHellHole;
 import cc.lib.zombicide.quests.ZQuestTheShepherds;
 import cc.lib.zombicide.quests.ZQuestTutorial;
 
+@Keep
 public enum ZQuests {
     Tutorial,
     Big_Game_Hunting,

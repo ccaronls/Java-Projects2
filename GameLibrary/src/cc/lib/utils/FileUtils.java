@@ -261,14 +261,17 @@ public class FileUtils {
        }
    }
 
-   public static void copy(InputStream in, OutputStream out) throws IOException {
+   public static long copy(InputStream in, OutputStream out) throws IOException {
+       long bytesCopied = 0;
 	   byte [] buffer = new byte[1024];
 	   while (true) {
 		   int len = in.read(buffer);
 		   if (len < 0)
 			   break;
+		   bytesCopied += len;
 		   out.write(buffer, 0, len);
 	   }
+	   return bytesCopied;
    }
    
     public static void copy(InputStream in, File outFile) throws IOException {

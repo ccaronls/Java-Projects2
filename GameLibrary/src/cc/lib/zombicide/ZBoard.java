@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Set;
 
 import cc.lib.game.GDimension;
+import cc.lib.game.GRectangle;
+import cc.lib.game.IVector2D;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
@@ -26,6 +28,7 @@ public class ZBoard extends Reflector<ZBoard> {
 
     private Grid<ZCell> grid;
     private List<ZZone> zones;
+    private int zoom = 0;
 
     public ZBoard() {
 
@@ -485,4 +488,26 @@ public class ZBoard extends Reflector<ZBoard> {
         Vector2D br = grid.get(grid.getRows()-1, grid.getCols()-1).getBottomRight();
         return new GDimension(br.getX(), br.getY());
     }
+
+    public GRectangle getZoomedRectangle(IVector2D center) {
+        GDimension dim = getDimension();
+        GDimension zoomed = new GDimension(dim.width-zoom, dim.height-zoom);
+
+        GRectangle rect = new GRectangle(zoomed).withCenter(center);
+        rect.x = Utils.clamp(rect.x, 0, dim.width-rect.w);
+        rect.y = Utils.clamp(rect.y, 0, dim.height-rect.h);
+        return rect;
+    }
+
+    public void zoom(int amount) {
+        int z = zoom + amount;
+        if (z >= 0 && z < getMaxZoom()) {
+            zoom = z;
+        }
+    }
+
+    int getMaxZoom() {
+        return Math.min(getRows(), getColumns());
+    }
+
 }

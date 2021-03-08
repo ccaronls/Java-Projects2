@@ -1,9 +1,11 @@
 package cc.lib.zombicide;
 
+import cc.lib.annotation.Keep;
 import cc.lib.game.Justify;
 import cc.lib.game.Utils;
 import cc.lib.utils.Grid;
 
+@Keep
 public enum ZDir {
     NORTH(0, -1, 0, 0, Justify.CENTER, Justify.TOP),
     SOUTH(0, 1, 0,180, Justify.CENTER, Justify.BOTTOM),

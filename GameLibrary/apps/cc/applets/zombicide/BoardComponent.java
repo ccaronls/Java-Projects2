@@ -284,12 +284,12 @@ class BoardComponent extends AWTComponent implements ZTiles, UIComponent {
                 case KeyEvent.VK_PLUS:
                 case KeyEvent.VK_EQUALS:
                     // zoom in
-                    game.boardRenderer.zoom(1);
+                    game.getBoard().zoom(1);
                     break;
                 case KeyEvent.VK_MINUS:
                 case KeyEvent.VK_UNDERSCORE:
                     // zoom out
-                    game.boardRenderer.zoom(-1);
+                    game.getBoard().zoom(-1);
                     break;
                 case KeyEvent.VK_TAB:
                     // toggle active player
