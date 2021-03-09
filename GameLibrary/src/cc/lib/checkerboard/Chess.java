@@ -20,7 +20,7 @@ public class Chess extends Rules {
         addAllFields(Chess.class);
     }
 
-    private int whiteSide = -1;
+    protected int whiteSide = -1;
     private long timerLength, timerFar, timerNear;
 
     @Omit
@@ -96,25 +96,22 @@ public class Chess extends Rules {
         int numPieces = 0;
         final boolean noMoves = game.getMoves().size() == 0;
         boolean inCheck = false;
-        for (int r = 0; r < game.getRanks(); r++) {
-            for (int c = 0; c < game.getColumns(); c++) {
-                Piece p;
-                switch ((p=game.getPiece(r, c)).getType()) {
-                    case CHECKED_KING:
-                    case CHECKED_KING_IDLE:
-                        if (p.getPlayerNum() == game.getTurn())
-                            inCheck = true;
-                        break;
-                    case BISHOP:
-                        numBishops++;
-                        break;
-                    case UNCHECKED_KING:
-                    case UNCHECKED_KING_IDLE:
-                    case EMPTY:
-                        break;
-                    default:
-                        numPieces++;
-                }
+        for (Piece p : game.getPieces()) {
+            switch (p.getType()) {
+                case CHECKED_KING:
+                case CHECKED_KING_IDLE:
+                    if (p.getPlayerNum() == game.getTurn())
+                        inCheck = true;
+                    break;
+                case BISHOP:
+                    numBishops++;
+                    break;
+                case UNCHECKED_KING:
+                case UNCHECKED_KING_IDLE:
+                case EMPTY:
+                    break;
+                default:
+                    numPieces++;
             }
         }
         if (noMoves && !inCheck)
@@ -129,14 +126,11 @@ public class Chess extends Rules {
     @Override
     int getWinner(Game game) {
         if (game.getMoves().size() == 0) {
-            for (int r = 0; r < game.getRanks(); r++) {
-                for (int c = 0; c < game.getColumns(); c++) {
-                    Piece p;
-                    switch ((p=game.getPiece(r, c)).getType()) {
-                        case CHECKED_KING:
-                        case CHECKED_KING_IDLE:
-                            return game.getOpponent(p.getPlayerNum());
-                    }
+            for (Piece p : game.getPieces()) {
+                switch (p.getType()) {
+                    case CHECKED_KING:
+                    case CHECKED_KING_IDLE:
+                        return game.getOpponent(p.getPlayerNum());
                 }
             }
         }
@@ -171,20 +165,20 @@ public class Chess extends Rules {
                 case CASTLE: {
                     game.movePiece(move);
                     p = game.getPiece(move.getCastleRookStart());
-                    Utils.assertTrue(p.getType() == ROOK_IDLE);
-                    game.setPiece(move.getCastleRookEnd(), move.getPlayerNum(), ROOK);
+                    Utils.assertTrue(p.getType() == ROOK_IDLE || p.getType() == DRAGON_IDLE);
+                    game.setPiece(move.getCastleRookEnd(), move.getPlayerNum(), p.getType() == DRAGON_IDLE ? DRAGON : ROOK);
                     game.clearPiece(move.getCastleRookStart());
                     break;
                 }
                 default:
-                    throw new AssertionError();
+                    throw new cc.lib.utils.GException();
             }
         } finally {
             game.getPiece(move.getOpponentKingPos()).setType(move.getOpponentKingTypeEnd());
         }
 
         if (p != null && timerLength > 0) {
-            throw new AssertionError("I dont understand this logic");
+            throw new cc.lib.utils.GException("I dont understand this logic");
             //game.getMovesInternal().add(new Move(MoveType.END, p.getPlayerNum()));
         }
 
@@ -207,6 +201,8 @@ public class Chess extends Rules {
      * @return
      */
     final boolean isSquareAttacked(Game game, int rank, int col, int playerNum) {
+
+        int [][][][] knightDeltas = getKnightDeltas(game);
 
         // search in the eight directions and knights whom can
         int [][] kd = knightDeltas[rank][col];
@@ -305,18 +301,18 @@ public class Chess extends Rules {
 
     final List<Move> computeMoves(Game game) {
         List<Move> moves = new ArrayList<>();
-        for (int rank = 0; rank < game.getRanks(); rank++) {
-            for (int col = 0; col < game.getColumns(); col++) {
-                int num = moves.size();
-                Piece p = game.getPiece(rank, col);
-                if (p.getPlayerNum() == game.getTurn()) {
-                    computeMovesForSquare(game, rank, col, null, moves);
-                }
+        for (Piece p : game.getPieces()) {
+            int num = moves.size();
+            if (p.getPlayerNum() == game.getTurn()) {
+                computeMovesForSquare(game, p.getRank(), p.getCol(), null, moves);
             }
         }
         return moves;
     }
 
+    protected int [] getRookCastleCols(Game game) {
+        return new int [] { 0, game.getColumns()-1 };
+    }
 
     private void computeMovesForSquare(Game game, int rank, int col, Move parent, List<Move> moves) {
         int startNumMoves = moves.size();
@@ -386,7 +382,7 @@ public class Chess extends Rules {
                 dc = DIAGONAL_DELTAS[1];
                 break;
             case KNIGHT: {
-                int [][] kd = knightDeltas[rank][col];
+                int [][] kd = getKnightDeltas(game)[rank][col];
                 dr = kd[0];
                 dc = kd[1];
                 d = 1;
@@ -399,9 +395,16 @@ public class Chess extends Rules {
                 dr = NSEW_DELTAS[0];
                 dc = NSEW_DELTAS[1];
                 break;
+            case DRAGON_IDLE:
+                nextType = DRAGON;
+            case DRAGON:
+                dr = NSEW_DIAG_DELTAS[0];
+                dc = NSEW_DIAG_DELTAS[1];
+                d = 3;
+                break;
             case UNCHECKED_KING_IDLE:
-                checkForCastle(game, rank, col, 0);
-                checkForCastle(game, rank, col, game.getColumns()-1);
+                for (int n : getRookCastleCols(game))
+                    checkForCastle(game, rank, col, n);
             case CHECKED_KING_IDLE:
             case UNCHECKED_KING:
             case CHECKED_KING:
@@ -412,7 +415,7 @@ public class Chess extends Rules {
                 dc = NSEW_DIAG_DELTAS[1];
                 break;
             default:
-                throw new AssertionError("Unknown pieceType " + p.getType());
+                throw new cc.lib.utils.GException("Unknown pieceType " + p.getType());
         }
 
         if (dr != null) {
@@ -482,7 +485,7 @@ public class Chess extends Rules {
                                 opponentKingEndType = CHECKED_KING_IDLE;
                             break;
                         default:
-                            throw new AssertionError("Unhandled case:" + opponentKingStartType);
+                            throw new cc.lib.utils.GException("Unhandled case:" + opponentKingStartType);
                     }
                     m.setOpponentKingType(opponentKing.getRank(), opponentKing.getCol(), opponentKingStartType, opponentKingEndType);
 
@@ -493,15 +496,12 @@ public class Chess extends Rules {
     }
 
     private Piece findKing(Game game, int playerNum) {
-        Piece p;
-        for (int rank=0; rank<game.getRanks(); rank++) {
-            for (int col =0; col<game.getColumns(); col++) {
-                if (((p=game.getPiece(rank, col)).getPlayerNum() == playerNum) && (p.getType().flag & FLAG_KING) != 0) {
-                    return p;
-                }
+        for (Piece p : game.getPieces()) {
+            if ((p.getPlayerNum() == playerNum) && (p.getType().flag & FLAG_KING) != 0) {
+                return p;
             }
         }
-        throw new AssertionError("Logic Error: Cannot find king for player " + playerNum);
+        throw new cc.lib.utils.GException("Logic Error: Cannot find king for player " + playerNum);
     }
 
     private final static int [][] DIAGONAL_DELTAS = {
@@ -512,18 +512,27 @@ public class Chess extends Rules {
     // precompute knight deltas for each square
 
     @Omit
-    private static final int[][][][] knightDeltas;
+    private int[][][][] _knightDeltas;
 
-    static {
-        knightDeltas = new int[8][8][][];
-        for (int i=0; i<8; i++) {
-            for (int ii=0; ii<8; ii++) {
-                knightDeltas[i][ii] = computeKnightDeltaFor(i, ii);
-            }
-        }
+    int [][][][] getKnightDeltas(Game game) {
+        if (_knightDeltas == null)
+            _knightDeltas = computeKnightDeltas(game);
+        return _knightDeltas;
     }
 
-    private static int [][] computeKnightDeltaFor(int rank, int col) {
+    int [][][][] computeKnightDeltas(Game game) {
+        int ranks = game.getRanks();
+        int cols = game.getColumns();
+        int[][][][] knightDeltas = new int[ranks][cols][][];
+        for (int i = 0; i < ranks; i++) {
+            for (int ii = 0; ii < cols; ii++) {
+                knightDeltas[i][ii] = computeKnightDeltaFor(game, i, ii);
+            }
+        }
+        return knightDeltas;
+    }
+
+    private int [][] computeKnightDeltaFor(Game game, int rank, int col) {
         int [][] ALL_KNIGHT_DELTAS = {
                 {-2, -2, -1, 1, 2,  2,  1, -1},
                 {-1,  1,  2, 2, 1, -1, -2, -2}
@@ -534,7 +543,7 @@ public class Chess extends Rules {
         for (int i=0; i<8; i++) {
             final int r = rank+ALL_KNIGHT_DELTAS[0][i];
             final int c = col+ALL_KNIGHT_DELTAS[1][i];
-            if (r < 0 || c < 0 || r >= 8 || c >= 8)
+            if (!game.isOnBoard(r, c))
                 continue;
 
             d[0][n] = ALL_KNIGHT_DELTAS[0][i];
@@ -596,63 +605,62 @@ public class Chess extends Rules {
                     //if (move.getStartType()==PieceType.UNCHECKED_KING)
                     //    value += 1;
             }
-            for (int r = 0; r < game.getRanks(); r++) {
-                for (int c = 0; c < game.getColumns(); c++) {
-                    Piece p = game.getPiece(r, c);
-                    int scale = p.getPlayerNum() == move.getPlayerNum() ? 1 : -1;
-                    //if (p.getType() == EMPTY)
-                    //    continue;
-                    //System.out.println("scale=" + scale);
-                    switch (p.getType()) {
-                        case EMPTY:
-                            break;
-                        case PAWN:
-                            value += 110 * scale;
-                            break;
-                        case PAWN_IDLE:
-                            value += 100 * scale;
-                            break;
-                        case PAWN_ENPASSANT:
-                            value += 120 * scale;
-                            break;
-                        case PAWN_TOSWAP:
-                            value += 5000 * scale;
-                            break;
-                        case BISHOP:
-                            value += 300 * scale;
-                            break;
-                        case KNIGHT:
-                            value += 310 * scale;
-                            break;
-                        case ROOK:
-                            value += 500 * scale;
-                            break;
-                        case ROOK_IDLE:
-                            value += 550 * scale;
-                            break;
-                        case QUEEN:
-                            value += 800 * scale;
-                            break;
-                        case CHECKED_KING:
-                            value -= 500 * scale;
-                            break;
-                        case CHECKED_KING_IDLE:
-                            value -= 300 * scale;
-                            break;
-                        case UNCHECKED_KING: // once lost idle state we want to chase the other king
-                            value -= 100 * scale;
-                            if (p.getPlayerNum() == move.getPlayerNum()) {
-                                int dist = Math.max(Math.abs(r-move.getOpponentKingPos()[0]), Math.abs(c-move.getOpponentKingPos()[1]));
-                                //System.out.println("dist:"+  dist);
-                                value -= (dist-2); // 2 units away is best
-                            }
-                            break;
-                        case UNCHECKED_KING_IDLE:
-                            value += 1000 * scale; // we want avoid moving this piece
-                            break;
-                        default:
-                            throw new AssertionError("Unhandled case '" + p.getType() + "'");
-                    }
+            for (Piece p : game.getPieces()) {
+                int scale = p.getPlayerNum() == move.getPlayerNum() ? 1 : -1;
+                //if (p.getType() == EMPTY)
+                //    continue;
+                //System.out.println("scale=" + scale);
+                switch (p.getType()) {
+                    case EMPTY:
+                        break;
+                    case PAWN:
+                        value += 110 * scale;
+                        break;
+                    case PAWN_IDLE:
+                        value += 100 * scale;
+                        break;
+                    case PAWN_ENPASSANT:
+                        value += 120 * scale;
+                        break;
+                    case PAWN_TOSWAP:
+                        value += 5000 * scale;
+                        break;
+                    case BISHOP:
+                        value += 300 * scale;
+                        break;
+                    case KNIGHT:
+                        value += 310 * scale;
+                        break;
+                    case DRAGON:
+                    case ROOK:
+                        value += 500 * scale;
+                        break;
+                    case DRAGON_IDLE:
+                    case ROOK_IDLE:
+                        value += 550 * scale;
+                        break;
+                    case QUEEN:
+                        value += 800 * scale;
+                        break;
+                    case CHECKED_KING:
+                        value -= 500 * scale;
+                        break;
+                    case CHECKED_KING_IDLE:
+                        value -= 300 * scale;
+                        break;
+                    case UNCHECKED_KING: // once lost idle state we want to chase the other king
+                        value -= 100 * scale;
+                        if (p.getPlayerNum() == move.getPlayerNum()) {
+                            int dist = Math.max(Math.abs(p.getRank()-move.getOpponentKingPos()[0]), Math.abs(p.getCol()-move.getOpponentKingPos()[1]));
+                            //System.out.println("dist:"+  dist);
+                            value -= (dist-2); // 2 units away is best
+                        }
+                        break;
+                    case UNCHECKED_KING_IDLE:
+                        value += 1000 * scale; // we want avoid moving this piece
+                        break;
+                    default:
+                        throw new cc.lib.utils.GException("Unhandled case '" + p.getType() + "'");
                 }
             }
             return value;
@@ -669,8 +677,8 @@ public class Chess extends Rules {
                 break;
             case CASTLE:
                 p = game.getPiece(m.getCastleRookEnd());
-                Utils.assertTrue(p.getType() == PieceType.ROOK, "Expected ROOK was " + p.getType());
-                game.setPiece(m.getCastleRookStart(), m.getPlayerNum(), PieceType.ROOK_IDLE);
+                Utils.assertTrue(p.getType() == ROOK || p.getType() == DRAGON, "Expected ROOK was " + p.getType());
+                game.setPiece(m.getCastleRookStart(), m.getPlayerNum(), p.getType() == DRAGON ? DRAGON_IDLE : ROOK_IDLE);
                 game.clearPiece(m.getCastleRookEnd());
                 // fallthrough
             case SLIDE:
@@ -678,7 +686,7 @@ public class Chess extends Rules {
                 game.clearPiece(m.getEnd());
                 if (m.hasCaptured()) {
                     if (m.getNumCaptured() != 1)
-                        throw new AssertionError("Logic Error: cannot have more than one captured piece in chess");
+                        throw new cc.lib.utils.GException("Logic Error: cannot have more than one captured piece in chess");
                     game.setPiece(m.getCaptured(0), game.getOpponent(m.getPlayerNum()), m.getCapturedType(0));
                 }
                 //fallthrough
@@ -686,7 +694,7 @@ public class Chess extends Rules {
                 game.setPiece(m.getStart(), m.getPlayerNum(), m.getStartType());
                 break;
             default:
-                throw new AssertionError("Unhandled Case " + m.getMoveType());
+                throw new cc.lib.utils.GException("Unhandled Case " + m.getMoveType());
         }
         game.setTurn(m.getPlayerNum());
     }

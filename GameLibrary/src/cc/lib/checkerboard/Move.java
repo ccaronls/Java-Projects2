@@ -82,7 +82,7 @@ public class Move extends Reflector<Move> implements IMove, Comparable<Move> {
 
     public Move setStart(int startRank, int startCol, PieceType type) {
         if (type == PieceType.EMPTY)
-            throw new AssertionError("start type cannot be empty");
+            throw new cc.lib.utils.GException("start type cannot be empty");
         start = new int[]{startRank, startCol};
         startType = type;
         compareValue += type.value;
@@ -92,7 +92,7 @@ public class Move extends Reflector<Move> implements IMove, Comparable<Move> {
     public Move setEnd(int endRank, int endCol, PieceType type) {
         end = new int [] { endRank, endCol };
         if (type == null)
-            throw new AssertionError("type cannot be null");
+            throw new cc.lib.utils.GException("type cannot be null");
         endType = type;
         return this;
     }

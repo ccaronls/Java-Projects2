@@ -77,7 +77,7 @@ public class Utils {
 
     public static void assertContains(Object o, Collection c) {
         if (DEBUG_ENABLED && !c.contains(o)) {
-            throw new AssertionError("Object '" + o + "' is not contained by: " + c);
+            throw new cc.lib.utils.GException("Object '" + o + "' is not contained by: " + c);
         }
     }
 
@@ -89,7 +89,7 @@ public class Utils {
     public static void assertTrue(boolean expr, String msg, Object... args) {
         if (!expr) {
             if (DEBUG_ENABLED)
-                throw new AssertionError("ASSERT FAILED " + String.format(msg, args));
+                throw new cc.lib.utils.GException("ASSERT FAILED " + String.format(msg, args));
             else
                 System.err.println(formatNoThrow(msg, args));
         }
@@ -2311,7 +2311,7 @@ public class Utils {
                         sb.append(new String(bytes, 0, byteIndex, "UTF-8"));
                     } catch (java.io.UnsupportedEncodingException e) {
                         sb.append("?");
-                        throw new AssertionError(e);
+                        throw new cc.lib.utils.GException(e);
                     }
 
                     byteIndex = 0;
@@ -2337,7 +2337,7 @@ public class Utils {
 
             } catch (java.io.UnsupportedEncodingException e) {
                 sb.append("?");
-                throw new AssertionError(e);
+                throw new cc.lib.utils.GException(e);
             }
             byteIndex = 0;
         }
@@ -2397,7 +2397,7 @@ public class Utils {
                 processStringResource(stringResource, table, resource);
             }
         } catch (Exception e) {
-            throw new AssertionError("Failed to process strings: " + e);
+            throw new cc.lib.utils.GException("Failed to process strings: " + e);
         }
         return table;
     }
@@ -2438,11 +2438,11 @@ public class Utils {
 
                 Matcher m = quoted.matcher(line);
                 if (!m.find())
-                    throw new AssertionError("Failed to find quoted string on line:\n" + line);
+                    throw new cc.lib.utils.GException("Failed to find quoted string on line:\n" + line);
                 String name = stripEnds(m.group());
                 m = xmlContent.matcher(line);
                 if (!m.find())
-                    throw new AssertionError("Failed to find xml content on line:\n" + line);
+                    throw new cc.lib.utils.GException("Failed to find xml content on line:\n" + line);
                 String content = stripEnds(m.group());
                 content = content.replace("\\n", "\n");
                 Field f = stringResource.getField(name);

@@ -52,6 +52,8 @@ public class CheckerboardActivity2 extends DroidActivity {
                         return R.drawable.wt_knight;
                 case ROOK:
                 case ROOK_IDLE:
+                case DRAGON: // TEMP until icon available
+                case DRAGON_IDLE:
                     if (color == Color.BLACK)
                         return R.drawable.bk_rook;
                     else

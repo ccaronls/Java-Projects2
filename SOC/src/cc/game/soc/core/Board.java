@@ -354,7 +354,7 @@ public class Board extends Reflector<Board> {
 					
 					@Override
 					public void remove() {
-						throw new AssertionError("Cannot remove");
+						throw new cc.lib.utils.GException("Cannot remove");
 					}
 					
 					@Override

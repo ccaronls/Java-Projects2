@@ -5,6 +5,7 @@ package cc.lib.checkerboard;
  */
 
 public enum PieceType {
+    BLOCKED("BL", 0, 0),
     EMPTY("EM", 0, 0),
     PAWN("Pn", 1, 2),
     PAWN_IDLE("PI", 1, 2), // this type of pawn has option to move forward 2 spaces
@@ -19,6 +20,8 @@ public enum PieceType {
     CHECKED_KING_IDLE("KC", 1, 1), // a king that has not moved
     UNCHECKED_KING("Ki", 9, 1), // chess only
     UNCHECKED_KING_IDLE("KI", 10, 1), // only an unchecked idle king can castle
+    DRAGON("Dr", 5, 4+8), // moves like queen but only 3 spaces
+    DRAGON_IDLE("DI", 5, 4+8), // moves like queen but only 3 spaces
 
     KING("Ck", 5, 0), // checkers king, not chess
     FLYING_KING("CK", 10, 0),
@@ -69,6 +72,10 @@ public enum PieceType {
             case ROOK:
             case ROOK_IDLE:
                 return ROOK;
+
+            case DRAGON:
+            case DRAGON_IDLE:
+                return DRAGON;
 
             case CHECKED_KING:
             case CHECKED_KING_IDLE:

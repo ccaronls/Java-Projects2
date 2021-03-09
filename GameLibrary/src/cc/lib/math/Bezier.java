@@ -36,7 +36,7 @@ public final class Bezier {
 	
 	public Vector2D getPointAt(float t) {
 		if (numCtrl < 4)
-			throw new AssertionError();
+			throw new cc.lib.utils.GException();
         float fW = 1 - t; 
         float fA = fW * fW * fW;
         float fB = 3 * t * fW * fW; 

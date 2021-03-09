@@ -363,7 +363,7 @@ public class AWTUtils {
     		case BOTTOM:
     			return priv_drawWrapJustifiedString(g, x, y-(lines.length*getFontHeight(g)), maxWidth, hJust, lines);
     		default:
-    			throw new AssertionError("Invalid vJust parameter '" + vJust + "'");
+    			throw new cc.lib.utils.GException("Invalid vJust parameter '" + vJust + "'");
     	}
     }
     
@@ -410,7 +410,7 @@ public class AWTUtils {
 				r = new Rectangle(x-tw, sy, tw, th);
 				break;
 			default:
-				throw new AssertionError("Invalid jJust parameter '" + hJust + "'");
+				throw new cc.lib.utils.GException("Invalid jJust parameter '" + hJust + "'");
         	
         }
 

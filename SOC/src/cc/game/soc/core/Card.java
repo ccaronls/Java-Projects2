@@ -46,7 +46,7 @@ public class Card extends Reflector<Card> implements Comparable <Card> {
 				typeOrdinal = SpecialVictoryType.valueOf(parts[2]).ordinal();
 				break;
 			default:
-				throw new AssertionError("Unhandled case");
+				throw new cc.lib.utils.GException("Unhandled case");
 			
 		}
 	}

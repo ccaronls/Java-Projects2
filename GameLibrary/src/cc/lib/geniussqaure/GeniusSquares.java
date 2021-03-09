@@ -259,7 +259,7 @@ public class GeniusSquares extends Reflector<GeniusSquares> { // GeniusSquare. 6
     synchronized void dropPiece(Piece p, int cellX, int cellY) {
         log.info("Dropping Piece");
         if (canDropPiece(p, cellX, cellY)) {
-            //throw new AssertionError("Logic Error: Cannot drop piece");
+            //throw new cc.lib.utils.GException("Logic Error: Cannot drop piece");
             final int[][] shape = p.getShape();
             for (int y=0; y<shape.length; y++) {
                 for (int x=0; x<shape[y].length; x++) {

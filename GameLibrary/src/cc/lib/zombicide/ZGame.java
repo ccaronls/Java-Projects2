@@ -635,7 +635,7 @@ public class ZGame extends Reflector<ZGame>  {
             }
 
             default:
-                throw new AssertionError("Unhandled state: " + getState());
+                throw new cc.lib.utils.GException("Unhandled state: " + getState());
         }
     }
 
@@ -1481,7 +1481,7 @@ public class ZGame extends Reflector<ZGame>  {
                 putBackInSearchables(item);
                 break;
             default:
-                throw new AssertionError("Unhandled case: " + item);
+                throw new cc.lib.utils.GException("Unhandled case: " + item);
         }
     }
 

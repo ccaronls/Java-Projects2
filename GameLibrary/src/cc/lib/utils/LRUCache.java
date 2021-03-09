@@ -104,7 +104,7 @@ public final class LRUCache<K, V> implements Map<K, V> {
     @Override
     public int size() {
 //        if (map.size() != listCount())
-//            throw new AssertionError();
+//            throw new cc.lib.utils.GException();
         return map.size();
     }
 
@@ -158,7 +158,7 @@ public final class LRUCache<K, V> implements Map<K, V> {
             e = new DList<>(key, value);
             if (map.size() == max) {
                 if (map.remove(last.key)==null)
-                    throw new AssertionError();
+                    throw new cc.lib.utils.GException();
                 listRemove(last);
             }
             map.put(key, e);

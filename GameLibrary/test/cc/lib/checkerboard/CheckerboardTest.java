@@ -322,4 +322,15 @@ public class CheckerboardTest extends TestCase {
 
         System.out.println(game);
     }
+
+    public void testGetPieces() {
+        Game gm = new Game();
+        gm.setRules(new DragonChess());
+        gm.setPlayer(0, new Player());
+        gm.setPlayer(1, new Player());
+        gm.getRules().init(gm);
+        for (Piece p : gm.getPieces()) {
+            System.out.println(p.getType());
+        }
+    }
 }

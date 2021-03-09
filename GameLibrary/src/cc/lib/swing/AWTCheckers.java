@@ -386,7 +386,7 @@ public class AWTCheckers extends AWTComponent {
             case 1:
                 return GColor.BLUE;
         }
-        throw new AssertionError("Unhandled Case");
+        throw new cc.lib.utils.GException("Unhandled Case");
     }
 
     void drawPiece(AGraphics g, Piece p, float x, float y, GColor outlineColor) {

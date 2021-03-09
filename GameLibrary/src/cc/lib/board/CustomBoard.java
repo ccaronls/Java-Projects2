@@ -435,13 +435,13 @@ public class CustomBoard extends Reflector<CustomBoard> {
             BCell c = cells.get(cIndex);
             mv.zero();
             if (c.adjVerts.size()<3)
-                throw new AssertionError("Invalid cell: " + c.adjVerts);
+                throw new cc.lib.utils.GException("Invalid cell: " + c.adjVerts);
             int p = c.adjVerts.get(c.adjVerts.size()-1);
             for (int vIndex : c.adjVerts) {
                 mv.addEq(verts.get(vIndex));
                 int eIndex = getEdgeIndex(vIndex, p);
                 if (eIndex < 0)
-                    throw new AssertionError("Cannot find edge " + vIndex + "->" + p);
+                    throw new cc.lib.utils.GException("Cannot find edge " + vIndex + "->" + p);
                 BEdge e = getEdge(eIndex);
                 e.adjacentCells[e.numAdjCells++] = cIndex;
                 p = vIndex;
@@ -801,7 +801,7 @@ public class CustomBoard extends Reflector<CustomBoard> {
             BCell c = cells.get(cIndex);
             mv.zero();
             if (c.adjVerts.size()<3)
-                throw new AssertionError("Invalid cell: " + c.adjVerts);
+                throw new cc.lib.utils.GException("Invalid cell: " + c.adjVerts);
             int p = c.adjVerts.get(c.adjVerts.size()-1);
             for (int vIndex : c.adjVerts) {
                 mv.addEq(verts.get(vIndex));

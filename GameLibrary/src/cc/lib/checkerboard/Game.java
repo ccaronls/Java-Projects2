@@ -2,6 +2,7 @@ package cc.lib.checkerboard;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Stack;
 
@@ -204,6 +205,42 @@ public class Game extends Reflector<Game> implements IGame<Move> {
         return board[rank][col];
     }
 
+    Iterable<Piece> getPieces() {
+        return new Iterable<Piece>() {
+            @Override
+            public Iterator<Piece> iterator() {
+                return new PieceIterator();
+            }
+        };
+    }
+
+    class PieceIterator implements Iterator<Piece> {
+
+        int rank=0;
+        int col=0;
+        Piece next = null;
+
+        @Override
+        public boolean hasNext() {
+            next = null;
+            for ( ; rank<getRanks(); rank++) {
+                for ( ; col < getColumns(); col++) {
+                    if (board[rank][col].getType() != PieceType.BLOCKED) {
+                        next = board[rank][col++];
+                        return true;
+                    }
+                }
+                col=0;
+            }
+            return false;
+        }
+
+        @Override
+        public Piece next() {
+            return next;
+        }
+    }
+
     /**
      *
      * @param turn
@@ -219,7 +256,9 @@ public class Game extends Reflector<Game> implements IGame<Move> {
      * @return
      */
     public final boolean isOnBoard(int rank, int col) {
-        return rank >= 0 && col >= 0 && rank < ranks && col < cols;
+        if (rank < 0 || col < 0 || rank >= ranks || col >= cols)
+            return false;
+        return board[rank][col].getType() != PieceType.BLOCKED;
     }
 
     private List<Piece> getMovablePieces() {
@@ -307,13 +346,12 @@ public class Game extends Reflector<Game> implements IGame<Move> {
                 , moves);
         if (rules instanceof Chess) {
             state.enpassants = new ArrayList<>();
-            for (int rank=0; rank<getRanks(); rank++) {
-                for (int col=0; col<getColumns(); col++) {
-                    if (move.getStart()[0] != rank && move.getStart()[1] != col) {
-                        Piece p = getPiece(rank, col);
-                        if (p.getPlayerNum() == getTurn() && p.getType() == PieceType.PAWN_ENPASSANT) {
-                            state.enpassants.add(new int[]{rank, col});
-                        }
+            for (Piece p : getPieces()) {
+                int rank = p.getRank();
+                int col = p.getCol();
+                if (move.getStart()[0] != rank && move.getStart()[1] != col) {
+                    if (p.getPlayerNum() == getTurn() && p.getType() == PieceType.PAWN_ENPASSANT) {
+                        state.enpassants.add(new int[]{rank, col});
                     }
                 }
             }

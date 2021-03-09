@@ -322,7 +322,7 @@ public class GameCommand {
                     command.arguments.put(key, arr);
                     break;
                 default:
-                    throw new AssertionError("Unhandled type " + itype);
+                    throw new cc.lib.utils.GException("Unhandled type " + itype);
             }
         }
         return command;

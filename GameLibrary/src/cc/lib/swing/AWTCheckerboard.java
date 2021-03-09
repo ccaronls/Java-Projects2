@@ -10,6 +10,7 @@ import cc.lib.checkerboard.Checkers;
 import cc.lib.checkerboard.Chess;
 import cc.lib.checkerboard.Color;
 import cc.lib.checkerboard.Dama;
+import cc.lib.checkerboard.DragonChess;
 import cc.lib.checkerboard.Draughts;
 import cc.lib.checkerboard.Game;
 import cc.lib.checkerboard.KingsCourt;
@@ -62,7 +63,7 @@ public class AWTCheckerboard extends AWTComponent {
         wt_knight   (Color.WHITE, PieceType.KNIGHT),
         wt_pawn     (Color.WHITE, PieceType.PAWN),
         wt_queen    (Color.WHITE, PieceType.QUEEN),
-        wt_rook     (Color.WHITE, PieceType.ROOK),
+        wt_rook     (Color.WHITE, PieceType.ROOK, PieceType.DRAGON),
         blk_checker (Color.BLACK, PieceType.CHECKER, PieceType.CHIP_4WAY),
         red_checker (Color.RED,   PieceType.CHECKER, PieceType.CHIP_4WAY),
         wt_checker  (Color.WHITE, PieceType.CHECKER);
@@ -86,9 +87,10 @@ public class AWTCheckerboard extends AWTComponent {
                     ids[i] = loadImage(g, "images/" + Images.values()[i].name() + ".png");
                     numImagesLoaded++;
                     repaint();
-                    yield();
                 }
+                game.startGameThread();
             }
+
         }.start();
     }
 
@@ -140,6 +142,9 @@ public class AWTCheckerboard extends AWTComponent {
                                 break;
                             case "Chess":
                                 game.setRules(new Chess());
+                                break;
+                            case "Dragon Chess":
+                                game.setRules(new DragonChess());
                                 break;
                             case "Ugolki":
                                 game.setRules(new Ugolki());
@@ -210,7 +215,7 @@ public class AWTCheckerboard extends AWTComponent {
         File settings = FileUtils.getOrCreateSettingsDirectory(getClass());
         saveFile = new File(settings, "game.save");
         frame.add(this);
-        String [] items = { "Checkers", "Suicide", "Draughts", "Canadian Draughts", "Dama", "Chess", "Ugolki", "Columns", "Kings Court" };
+        String [] items = { "Checkers", "Suicide", "Draughts", "Canadian Draughts", "Dama", "Chess", "Dragon Chess", "Ugolki", "Columns", "Kings Court" };
         frame.addMenuBarMenu("New Game", items);
         frame.addMenuBarMenu("Load Game", "From File");
         frame.addMenuBarMenu("Game", "Stop Thinking");
@@ -219,7 +224,6 @@ public class AWTCheckerboard extends AWTComponent {
             frame.centerToScreen(640, 640);
 
         game.init(saveFile);
-        game.startGameThread();
     }
 
     @Override

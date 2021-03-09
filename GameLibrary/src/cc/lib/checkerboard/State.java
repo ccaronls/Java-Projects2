@@ -22,7 +22,7 @@ public final class State extends Reflector<State> {
     public State(int index, List<Move> moves) {
         if (moves != null)
             if (index < 0 || index >= moves.size())
-                throw new AssertionError("Logic Error: index not in range [0-" + moves.size() + ")");
+                throw new cc.lib.utils.GException("Logic Error: index not in range [0-" + moves.size() + ")");
         this.index = index;
         this.moves = moves;
     }

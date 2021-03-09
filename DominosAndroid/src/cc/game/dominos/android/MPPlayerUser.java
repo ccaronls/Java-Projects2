@@ -52,10 +52,10 @@ public class MPPlayerUser extends PlayerUser implements GameClient.Listener {
         if (cmd.getType() == MPConstants.SVR_TO_CL_INIT_GAME) {
             int numPlayers = cmd.getInt("numPlayers");
             if (numPlayers < 2 || numPlayers > 4)
-                throw new AssertionError("invalid numPlayers: " + numPlayers);
+                throw new cc.lib.utils.GException("invalid numPlayers: " + numPlayers);
             int playerNum = cmd.getInt("playerNum");
             if (playerNum < 0 || playerNum >= numPlayers)
-                throw new AssertionError("invalid playerNum: " + playerNum);
+                throw new cc.lib.utils.GException("invalid playerNum: " + playerNum);
             Player[] players = new Player[numPlayers];
             int idx = 0;
             for (; idx < playerNum; idx++)

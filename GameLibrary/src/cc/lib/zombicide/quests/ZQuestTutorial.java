@@ -92,7 +92,7 @@ public class ZQuestTutorial extends ZQuest {
             game.getCurrentUser().showMessage(c.name() + " has created a new spawn zone!");
             greenKeyZone = -1;
         } else {
-            //throw new AssertionError("Invalid move for objective: " + move);
+            //throw new cc.lib.utils.GException("Invalid move for objective: " + move);
         }
     }
 

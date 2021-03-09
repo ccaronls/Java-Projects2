@@ -6,6 +6,7 @@ import java.util.List;
 
 import cc.lib.game.AGraphics;
 import cc.lib.game.GColor;
+import cc.lib.game.GDimension;
 import cc.lib.game.Justify;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
@@ -18,9 +19,15 @@ public abstract class UIGame extends Game {
 
     private File saveFile;
     private boolean gameRunning = false;
-    private boolean threadExitted = false;
     private final Object RUNGAME_MONITOR = new Object();
     private boolean clicked = false;
+
+    int highlightedRank, highlightedCol;
+    final List<Piece> pickablePieces = new ArrayList<>();
+    final List<Move>  pickableMoves  = new ArrayList<>();
+
+    float SQ_DIM, PIECE_RADIUS, BORDER_WIDTH;
+    GDimension SCREEN_DIM, BOARD_DIM;
 
     public UIGame() {
     }
@@ -56,14 +63,10 @@ public abstract class UIGame extends Game {
 
     public abstract void repaint();
 
-    @Omit
-    private final Object EXIT_THREAD_MONITOR = new Object();
-
     public synchronized void startGameThread() {
         if (gameRunning)
             return;
         gameRunning = true;
-        threadExitted = false;
         new Thread(() -> {
             Thread.currentThread().setName("runGame");
             while (gameRunning) {
@@ -79,41 +82,29 @@ public abstract class UIGame extends Game {
                 }
             }
             gameRunning = false;
-            threadExitted = true;
-            synchronized (EXIT_THREAD_MONITOR) {
-                EXIT_THREAD_MONITOR.notify();
-            }
             log.debug("game thread stopped");
         }).start();
     }
 
     public synchronized void stopGameThread() {
-        if (!threadExitted) {
+        if (gameRunning) {
             gameRunning = false;
             synchronized (RUNGAME_MONITOR) {
                 RUNGAME_MONITOR.notifyAll();
             }
-            for (int i=0; i<10 && !threadExitted; i++)
-                Utils.waitNoThrow(EXIT_THREAD_MONITOR, 1000);
         }
     }
-
-    int highlightedRank, highlightedCol;
-    final List<Piece> pickablePieces = new ArrayList<>();
-    final List<Move>  pickableMoves  = new ArrayList<>();
-
-    int WIDTH, HEIGHT;
-    float PIECE_RADIUS;
 
     public final void draw(AGraphics g, int mx, int my) {
         g.clearScreen(GColor.GRAY);
         if (!isInitialized())
             return;
 
-        WIDTH = g.getViewportWidth();
-        HEIGHT = g.getViewportHeight();
+        SCREEN_DIM = new GDimension(g.getViewportWidth(), g.getViewportHeight());
+        SQ_DIM = Math.min(SCREEN_DIM.getWidth(), SCREEN_DIM.getHeight()) / Math.min(getRanks(), getColumns());
+        BOARD_DIM = new GDimension(SQ_DIM * getColumns(), SQ_DIM * getRanks());
 
-        if (WIDTH > HEIGHT) {
+        if (false && SCREEN_DIM.getAspect() > 1) {
             // landscape draws board on the left and captured pieces on the right
             drawLandscape(g, mx, my);
         } else {
@@ -124,21 +115,29 @@ public abstract class UIGame extends Game {
 
     private void drawPortrait(AGraphics g, int mx, int my) {
         g.pushMatrix();
-        g.translate(0, HEIGHT/2-WIDTH/2);
-        drawBoard(g, WIDTH, mx, my);
-        g.popMatrix();
-        drawCapturedPieces(g, WIDTH, HEIGHT/2-WIDTH/2, FAR, getCapturedPieces(FAR));
-        g.translate(0, HEIGHT/2+WIDTH/2);
-        drawCapturedPieces(g, WIDTH, HEIGHT/2-WIDTH/2, NEAR, getCapturedPieces(NEAR));
+
+        final float infoHgt = SCREEN_DIM.getHeight()/2-BOARD_DIM.getHeight()/2;
+
+        GDimension infoDim = new GDimension(SCREEN_DIM.getWidth(), infoHgt);
+        drawCapturedPieces(g, infoDim, FAR, getCapturedPieces(FAR));
+        g.translate(0, infoHgt);
+        drawBoard(g, mx, my);
+        g.translate(0, BOARD_DIM.getHeight());
+        drawCapturedPieces(g, infoDim, NEAR, getCapturedPieces(NEAR));
         if (getWinner() != null) {
             g.setColor(getWinner().getColor().color);
-            g.drawJustifiedString(WIDTH - 10, 10, Justify.RIGHT, "Winner: " + getWinner().getColor());
+            g.drawJustifiedString(SCREEN_DIM.getWidth() - 10, 10, Justify.RIGHT, "Winner: " + getWinner().getColor());
         } else {
-            g.drawJustifiedString(WIDTH - 10, 10, Justify.RIGHT, "Turn: " + getPlayer(getTurn()).getColor());
+            g.drawJustifiedString(SCREEN_DIM.getWidth() - 10, 10, Justify.RIGHT, "Turn: " + getPlayer(getTurn()).getColor());
         }
+
+        g.popMatrix();
     }
 
     private void drawLandscape(AGraphics g, int mx, int my) {
+        /*
+        final float infoHgt = HEIGHT/2-boardDim.getHeight()/2;
+
         drawBoard(g, HEIGHT, mx, my);
         g.pushMatrix();
         g.translate(HEIGHT, 0);
@@ -151,14 +150,13 @@ public abstract class UIGame extends Game {
             g.drawJustifiedString(WIDTH - 10, 10, Justify.RIGHT, "Winner: " + getWinner().getColor());
         } else {
             g.drawJustifiedString(WIDTH - 10, 10, Justify.RIGHT, "Turn: " + getPlayer(getTurn()).getColor());
-        }
+        }*/
     }
 
-    final int BORDER = 5;
-
-    private void drawPlayer(UIPlayer player, AGraphics g, int width, int height) {
+    private void drawPlayer(UIPlayer player, AGraphics g, float width, float height) {
         if (player == null)
             return;
+        int BORDER = 5;
         g.pushMatrix();
         g.translate(BORDER, BORDER);
         width -= BORDER*2;
@@ -175,11 +173,11 @@ public abstract class UIGame extends Game {
         g.setColor(GColor.WHITE);
         float th = g.drawWrapString(0, 0, width, info).height;
         g.translate(0, th + BORDER);
-        drawCapturedPieces(g, width, height, getOpponent(player.getPlayerNum()), getCapturedPieces(player.getPlayerNum()));
+        //drawCapturedPieces(g, width, height, getOpponent(player.getPlayerNum()), getCapturedPieces(player.getPlayerNum()));
         g.popMatrix();
     }
 
-    private void drawCapturedPieces(AGraphics g, int width, int height, int playerNum, List<PieceType> pieces) {
+    private void drawCapturedPieces(AGraphics g, GDimension dim, int playerNum, List<PieceType> pieces) {
         if (pieces == null)
             return;
 //        g.setClipRect(0, 0, width, height);
@@ -191,7 +189,7 @@ public abstract class UIGame extends Game {
             drawPiece(g, p, color, PIECE_RADIUS*2, PIECE_RADIUS*2, null);
             g.popMatrix();
             x += PIECE_RADIUS * 2;
-            if (x >= width) {
+            if (x >= dim.getWidth()) {
                 x = PIECE_RADIUS;
                 y += PIECE_RADIUS*2;
             }
@@ -200,79 +198,83 @@ public abstract class UIGame extends Game {
 //        g.clearClip();
     }
 
-    private float drawCheckerboardImage(AGraphics g, int id, float boarddim, float [] cwh, float boardImageDim, float boardImageBorder) {
-        float ratio = boardImageBorder / boardImageDim;
-
-        g.drawImage(id, 0, 0, boarddim, boarddim);
-        float t = ratio * boarddim;
-        g.translate(t, t);
-        boarddim -= t*2;
-        cwh[0] = boarddim / getColumns();
-        cwh[1] = boarddim / getRanks();
-        return boarddim;
-
+    private void drawCheckerboardImage(AGraphics g, int id, float boardImageDim, float boardImageBorder) {
+        BORDER_WIDTH = boardImageBorder;
+        float boardWidth = BOARD_DIM.getWidth() - 2*boardImageBorder;
+        float boardHeight = BOARD_DIM.getHeight() - 2*boardImageBorder;
+        SQ_DIM = boardWidth / getColumns();
+        g.drawImage(id, 0, 0, BOARD_DIM.getWidth(), BOARD_DIM.getHeight());
+        g.translate(BORDER_WIDTH, BORDER_WIDTH);
     }
 
     protected abstract int getCheckerboardImageId();
 
-    private float drawCheckerboard8x8(AGraphics g, float boarddim, float [] cwh) {
-        return drawCheckerboardImage(g, getCheckerboardImageId(), boarddim, cwh, 545, 24);
+    private void drawCheckerboard8x8(AGraphics g) {
+        drawCheckerboardImage(g, getCheckerboardImageId(), 545, 24);
     }
 
-    private float drawSimpleBoard(AGraphics g, float boarddim, float [] cwh) {
-        g.setLineWidth(2);
-        g.setColor(GColor.BLACK);
-        float cw = cwh[0];
-        float ch = cwh[1];
-        for (int x=0; x<=getColumns(); x++) {
-            g.drawLine(x* cw, 0, x* cw, boarddim);
+    private void drawCheckboardBoard(AGraphics g, GColor dark, GColor light) {
+        GColor [] color = {
+                dark, light
+        };
+
+        int colorIdx = 0;
+
+        g.pushMatrix();
+        for (int i=0; i<getRanks(); i++) {
+            g.pushMatrix();
+            for (int ii=0; ii<getColumns(); ii++) {
+                g.setColor(color[colorIdx]);
+                colorIdx = (colorIdx+1) % 2;
+                if (isOnBoard(i, ii))
+                    g.drawFilledRect(0, 0, SQ_DIM, SQ_DIM);
+                g.translate(SQ_DIM, 0);
+            }
+            g.popMatrix();
+            g.translate(0, SQ_DIM);
+            colorIdx = (colorIdx+1) % 2;
         }
-        for (int y=0; y<=getRanks(); y++) {
-            g.drawLine(0, y* ch, boarddim, y* ch);
-        }
-        return boarddim;
+        g.popMatrix();
     }
 
     protected abstract int getKingsCourtBoardId();
 
-    private float drawKingsCourtBoard(AGraphics g, float boarddim, float [] cwh) {
-        return drawCheckerboardImage(g, getKingsCourtBoardId(), boarddim, cwh, 206, 8);
+    private void drawKingsCourtBoard(AGraphics g) {
+        drawCheckerboardImage(g, getKingsCourtBoardId(), 206, 16);
     }
 
     private final GColor DAMA_BACKGROUND_COLOR = new GColor(0xfffde9a9);
 
-    private float drawDamaBoard(AGraphics g, float boarddim, float [] cwh) {
+    private void drawDamaBoard(AGraphics g) {
         g.setColor(DAMA_BACKGROUND_COLOR);
-        g.drawFilledRect(0, 0, boarddim, boarddim);
+        g.drawFilledRect(0, 0, BOARD_DIM.getWidth(), BOARD_DIM.getHeight());
         g.setColor(GColor.BLACK);
         for (int i=0; i<=getRanks(); i++) {
-            g.drawLine(i*cwh[0], 0, i*cwh[0], boarddim, 3);
+            g.drawLine(i*SQ_DIM, 0, i*SQ_DIM, BOARD_DIM.getHeight(), 3);
         }
         for (int i=0; i<=getColumns(); i++) {
-            g.drawLine(0, i*cwh[1], boarddim, i*cwh[1], 3);
+            g.drawLine(0, i*SQ_DIM, BOARD_DIM.getWidth(), i*SQ_DIM, 3);
         }
-        return boarddim;
     }
 
-    private void drawBoard(AGraphics g, float boarddim, int _mx, int _my) {
+    private void drawBoard(AGraphics g, int _mx, int _my) {
 
         g.pushMatrix();
 
-        float [] cwh = { boarddim / getColumns(),  boarddim / getRanks() };
-
         if (getRules() instanceof KingsCourt) {
-            boarddim = drawKingsCourtBoard(g, boarddim, cwh);
+            drawKingsCourtBoard(g);
         } else if (getRules() instanceof Dama) {
-            boarddim = drawDamaBoard(g, boarddim, cwh);
-        }else if (getRanks() == 8 && getColumns() == 8) {
-            boarddim = drawCheckerboard8x8(g, boarddim, cwh);
+            drawDamaBoard(g);
+        } else if (getRanks() == 8 && getColumns() == 8) {
+            drawCheckerboard8x8(g);
         } else {
-            boarddim = drawSimpleBoard(g, boarddim, cwh);
+            drawCheckboardBoard(g, GColor.BLACK, GColor.LIGHT_GRAY);
         }
 
-        final float cw = cwh[0];
-        final float ch = cwh[1];
-        PIECE_RADIUS = Math.min(cw, ch)/3;
+        float cw = SQ_DIM;
+        float ch = SQ_DIM;
+
+        PIECE_RADIUS = SQ_DIM/3;
 
         highlightedRank = highlightedCol = -1;
         int [] _selectedPiece = null;
@@ -299,40 +301,39 @@ public abstract class UIGame extends Game {
         final float mx = mv.getX();
         final float my = mv.getY();
 
-        for (int r=0; r<getRanks(); r++) {
-            for (int c=0; c<getColumns(); c++) {
-                Piece p = getPiece(r, c);
-                float x = c * cw + cw / 2;
-                float y = r * ch + ch / 2;
-                if (isUser && Utils.isPointInsideRect(mx, my, c* cw, r* ch, cw, ch)) {
-                    g.setColor(GColor.CYAN);
-                    g.drawRect(c* cw +1, r* ch +1, cw -2, ch -2);
-                    highlightedRank = r;
-                    highlightedCol = c;
-                }
-
-                for (Piece pp : _pickablePieces) {
-                    if (pp.getRank() == r && pp.getCol() == c) {
-                        g.setColor(GColor.CYAN);
-                        g.drawFilledCircle(x, y, PIECE_RADIUS +5);
-                        break;
-                    }
-                }
-
-                for (Move m : _pickableMoves) {
-                    if (m.getEnd() != null && m.getEnd()[0] == r && m.getEnd()[1] == c) {
-                        g.setColor(GColor.CYAN);
-                        g.drawCircle(x, y, PIECE_RADIUS);
-                        break;
-                    }
-                }
-
-                g.pushMatrix();
-                g.translate(x, y);
-                if (p.getType() != PieceType.EMPTY && p.getPlayerNum() >= 0)
-                    drawPiece(g, p, PIECE_RADIUS *2, PIECE_RADIUS *2);
-                g.popMatrix();
+        for (Piece p : getPieces()) {
+            int r = p.getRank();
+            int c = p.getCol();
+            float x = c * cw + cw / 2;
+            float y = r * ch + ch / 2;
+            if (isUser && Utils.isPointInsideRect(mx, my, c* cw, r* ch, cw, ch)) {
+                g.setColor(GColor.CYAN);
+                g.drawRect(c* cw +1, r* ch +1, cw -2, ch -2);
+                highlightedRank = r;
+                highlightedCol = c;
             }
+
+            for (Piece pp : _pickablePieces) {
+                if (pp.getRank() == r && pp.getCol() == c) {
+                    g.setColor(GColor.CYAN);
+                    g.drawFilledCircle(x, y, PIECE_RADIUS +5);
+                    break;
+                }
+            }
+
+            for (Move m : _pickableMoves) {
+                if (m.getEnd() != null && m.getEnd()[0] == r && m.getEnd()[1] == c) {
+                    g.setColor(GColor.CYAN);
+                    g.drawCircle(x, y, PIECE_RADIUS);
+                    break;
+                }
+            }
+
+            g.pushMatrix();
+            g.translate(x, y);
+            if (p.getType() != PieceType.EMPTY && p.getPlayerNum() >= 0)
+                drawPiece(g, p, PIECE_RADIUS *2, PIECE_RADIUS *2);
+            g.popMatrix();
         }
 
         for (Move m : _pickableMoves) {
@@ -379,6 +380,8 @@ public abstract class UIGame extends Game {
     }
 
     Piece choosePieceToMove(List<Piece> pieces) {
+        if (!gameRunning)
+            return null;
         //Utils.println("choosePieceToMove: " + pieces);
         clicked = false;
         synchronized (this) {
@@ -453,6 +456,8 @@ public abstract class UIGame extends Game {
                 break;
             case ROOK:
             case ROOK_IDLE:
+            case DRAGON:
+            case DRAGON_IDLE:
                 drawPiece(g, PieceType.ROOK, color, w, h, null);
                 break;
             case CHECKED_KING:

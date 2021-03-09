@@ -55,7 +55,7 @@ public class Piece extends Reflector<Piece> {
 
     public Piece(int rank, int col, int playerNum, PieceType type) {
         if (type == null)
-            throw new AssertionError("type cannot be null");
+            throw new cc.lib.utils.GException("type cannot be null");
         this.playerNum = playerNum;
         this.type = type;
         this.rank = rank;
@@ -84,7 +84,7 @@ public class Piece extends Reflector<Piece> {
 
     public void setType(PieceType type) {
         if (type == null || type == PieceType.EMPTY)
-            throw new AssertionError("cannot set type to empty");
+            throw new cc.lib.utils.GException("cannot set type to empty");
         this.type = type;
     }
 

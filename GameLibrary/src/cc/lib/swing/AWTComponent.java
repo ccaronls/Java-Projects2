@@ -109,7 +109,7 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
                             }
                         }
                         if (G.getMatrixStackSize() != matStack) {
-                            throw new AssertionError("Matrix stack not zero");
+                            throw new cc.lib.utils.GException("Matrix stack not zero");
                         }
                     } else {
                         Font f = g.getFont();

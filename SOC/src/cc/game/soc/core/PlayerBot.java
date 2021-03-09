@@ -1612,7 +1612,7 @@ public class PlayerBot extends Player {
 				case UPGRADE_SHIP:
 				case OPPONENT_ROAD_TO_ATTACK:
 				case OPPONENT_SHIP_TO_ATTACK:
-					throw new AssertionError("unhandled case " + mode);
+					throw new cc.lib.utils.GException("unhandled case " + mode);
 			}
 			Tile t = checkDiscoveredTerritories(p, r, b);
 			onBoardChanged();

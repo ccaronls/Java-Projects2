@@ -19,7 +19,7 @@ public class BEdge extends Reflector<BEdge> implements Comparable<BEdge> {
 
     BEdge(int from, int to) {
         if (from == to)
-            throw new AssertionError("Edge cannot point to itself");
+            throw new cc.lib.utils.GException("Edge cannot point to itself");
         this.from = Math.min(from, to);
         this.to   = Math.max(from, to);
     }

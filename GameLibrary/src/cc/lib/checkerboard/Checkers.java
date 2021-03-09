@@ -52,7 +52,7 @@ public class Checkers extends Rules {
                 int num = moves.size();
                 Piece p = game.getPiece(rank, col);
                 if (p == null)
-                    throw new AssertionError("Null piece at [" + rank + "," + col + "]");
+                    throw new cc.lib.utils.GException("Null piece at [" + rank + "," + col + "]");
                 if (p.getPlayerNum() == game.getTurn())
                     numJumps += computeMovesForSquare(game, rank, col, null, moves);
             }
@@ -112,7 +112,7 @@ public class Checkers extends Rules {
     private final int computeMovesForSquare(Game game, int rank, int col, Move parent, List<Move> moves) {
         Piece p = game.getPiece(rank, col);
         if (p.getPlayerNum() != game.getTurn())
-            throw new AssertionError("Logic Error: Should not be able to move opponent piece");
+            throw new cc.lib.utils.GException("Logic Error: Should not be able to move opponent piece");
 
         int startSize = moves.size();
         int numJumps = 0;
@@ -157,7 +157,7 @@ public class Checkers extends Rules {
                     case CHIP_4WAY:
                         return false;
                     default:
-                        throw new AssertionError("Unhandled case: " + p.getType());
+                        throw new cc.lib.utils.GException("Unhandled case: " + p.getType());
                 }
             }
         }
@@ -264,7 +264,7 @@ public class Checkers extends Rules {
                 // t is piece one unit away in this direction
                 Piece t = game.getPiece(rdr, cdc);
                 if (t == null)
-                    throw new AssertionError("Null piece at [" + rdr + "," + cdc + "]");
+                    throw new cc.lib.utils.GException("Null piece at [" + rdr + "," + cdc + "]");
                 if (t.getType() == EMPTY) {
                     moves.add(new Move(MoveType.SLIDE, game.getTurn()).setStart(rank, col, p.getType()).setEnd(rdr, cdc, p.getType()));
                     //new Move(MoveType.SLIDE, rank, col, rdr, cdc, getTurn()));
@@ -299,7 +299,7 @@ public class Checkers extends Rules {
                 dc = PIECE_DELTAS_4WAY_C;
                 break;
             default:
-                throw new AssertionError("Unhandled case");
+                throw new cc.lib.utils.GException("Unhandled case");
         }
 
         for (int i=0; i<4; i++) {
@@ -388,7 +388,7 @@ public class Checkers extends Rules {
     @Override
     void executeMove(Game game, Move move) {
         if (move.getPlayerNum() != game.getTurn())
-            throw new AssertionError();
+            throw new cc.lib.utils.GException();
         boolean isKinged = false;
         boolean isDamaKing = false;
         Piece p = game.getPiece(move.getStart());
@@ -533,7 +533,7 @@ public class Checkers extends Rules {
                         break;
 
                     default:
-                        throw new AssertionError("Unhandled case '" + p.getType() + "'");
+                        throw new cc.lib.utils.GException("Unhandled case '" + p.getType() + "'");
                 }
             }
         }
@@ -554,7 +554,7 @@ public class Checkers extends Rules {
                     if (isStackingCaptures()) {
                         Piece captured = game.getPiece(m.getCaptured(0));
                         if (!p.isStacked())
-                            throw new AssertionError("Logic Error: Capture must result in stacked piece");
+                            throw new cc.lib.utils.GException("Logic Error: Capture must result in stacked piece");
                         if (captured.getType() != EMPTY) {
                             //captured.addStackFirst(captured.getPlayerNum());
                         } else {
@@ -581,7 +581,7 @@ public class Checkers extends Rules {
                 game.getPiece(m.getStart()).setType(m.getStartType());
                 break;
             default:
-                throw new AssertionError("Unhandled case '" + m.getMoveType() + "'");
+                throw new cc.lib.utils.GException("Unhandled case '" + m.getMoveType() + "'");
         }
         game.setTurn(m.getPlayerNum());
     }
