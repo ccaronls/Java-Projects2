@@ -4,11 +4,11 @@ import java.awt.event.KeyEvent;
 import java.io.File;
 
 import cc.lib.checkerboard.AIPlayer;
-import cc.lib.checkerboard.Columns;
 import cc.lib.checkerboard.CanadianDraughts;
 import cc.lib.checkerboard.Checkers;
 import cc.lib.checkerboard.Chess;
 import cc.lib.checkerboard.Color;
+import cc.lib.checkerboard.Columns;
 import cc.lib.checkerboard.Dama;
 import cc.lib.checkerboard.DragonChess;
 import cc.lib.checkerboard.Draughts;
@@ -25,7 +25,8 @@ import cc.lib.game.AGraphics;
 import cc.lib.game.Utils;
 import cc.lib.utils.FileUtils;
 
-import static java.awt.event.KeyEvent.*;
+import static java.awt.event.KeyEvent.VK_E;
+import static java.awt.event.KeyEvent.VK_U;
 
 public class AWTCheckerboard extends AWTComponent {
 
@@ -88,7 +89,6 @@ public class AWTCheckerboard extends AWTComponent {
                     numImagesLoaded++;
                     repaint();
                 }
-                game.startGameThread();
             }
 
         }.start();
@@ -181,16 +181,53 @@ public class AWTCheckerboard extends AWTComponent {
                                 if ((pl instanceof AIPlayer)) {
                                     ((AIPlayer) pl).cancel();
                                 }
+                                break;
                             }
+
+                            case "Resume":
+                                game.startGameThread();
+                                redraw();
+                                break;
+
+                            case "Stop":
+                                game.stopGameThread();
+                                redraw();
+                                break;
+
+                            case "One Player":
+                                game.stopGameThread();
+                                ((UIPlayer)game.getPlayer(Game.FAR)).setType(UIPlayer.Type.AI);
+                                redraw();
+                                break;
+                            case "Two Players":
+                                game.stopGameThread();
+                                ((UIPlayer)game.getPlayer(Game.FAR)).setType(UIPlayer.Type.USER);
+                                redraw();
+                                break;
                         }
+                        break;
 
                 }
             }
         };
+
         game = new UIGame() {
             @Override
-            public void repaint() {
-                AWTCheckerboard.this.repaint();
+            public void repaint(long delayMs) {
+                if (delayMs <= 0)
+                    AWTCheckerboard.this.repaint();
+                else {
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                Thread.sleep(delayMs);
+                            } catch (Exception e) {
+                            }
+                            AWTCheckerboard.this.repaint();
+                        }
+                    }).start();
+                }
             }
 
             @Override
@@ -218,7 +255,7 @@ public class AWTCheckerboard extends AWTComponent {
         String [] items = { "Checkers", "Suicide", "Draughts", "Canadian Draughts", "Dama", "Chess", "Dragon Chess", "Ugolki", "Columns", "Kings Court" };
         frame.addMenuBarMenu("New Game", items);
         frame.addMenuBarMenu("Load Game", "From File");
-        frame.addMenuBarMenu("Game", "Stop Thinking");
+        frame.addMenuBarMenu("Game", "Stop Thinking", "Resume", "Stop", "One Player", "Two Players");
         frame.setPropertiesFile(new File(settings, "gui.properties"));
         if (!frame.restoreFromProperties())
             frame.centerToScreen(640, 640);

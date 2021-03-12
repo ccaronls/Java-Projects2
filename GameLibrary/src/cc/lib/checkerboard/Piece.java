@@ -2,6 +2,7 @@ package cc.lib.checkerboard;
 
 import java.util.*;
 
+import cc.lib.utils.GException;
 import cc.lib.utils.Reflector;
 
 public class Piece extends Reflector<Piece> {
@@ -10,8 +11,8 @@ public class Piece extends Reflector<Piece> {
         addAllFields(Piece.class);
     }
 
-    private int playerNum;
-    private PieceType type;
+    int playerNum;
+    PieceType type;
     @Omit
     int numMoves = 0;
     private boolean captured = false;
@@ -157,5 +158,42 @@ public class Piece extends Reflector<Piece> {
     // 0 is the top of the stack (closest to top piece)
     public int getStackAt(int index) {
         return stack.get(index);
+    }
+
+    public void setChecked(boolean checked) {
+        switch (type) {
+            case CHECKED_KING:
+                if (!checked)
+                    type = PieceType.UNCHECKED_KING;
+                break;
+            case CHECKED_KING_IDLE:
+                if (!checked)
+                   type = PieceType.UNCHECKED_KING_IDLE;
+                break;
+            case UNCHECKED_KING:
+                if (checked)
+                    type = PieceType.CHECKED_KING;
+                break;
+            case UNCHECKED_KING_IDLE:
+                if (checked)
+                    type = PieceType.CHECKED_KING_IDLE;
+                break;
+            default:
+                throw new GException("Unhandled case: " + type);
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "Piece{" +
+                "PNUM=" + playerNum +
+                ", " + type +
+//                ", numMoves=" + numMoves +
+                ", pos= [" + rank +
+                ", ," + col +
+                ", ] captured=" + captured +
+                ", value=" + value +
+//                ", stack=" + stack +
+                '}';
     }
 }

@@ -7,9 +7,11 @@ import java.util.List;
 import java.util.Stack;
 
 import cc.lib.game.IGame;
+import cc.lib.game.Utils;
+import cc.lib.utils.GException;
 import cc.lib.utils.Reflector;
 
-public class Game extends Reflector<Game> implements IGame<Move> {
+public class Game extends Reflector<Game> implements IGame<Move>, Iterable<Piece> {
 
     static {
         addAllFields(Game.class);
@@ -31,7 +33,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
     public final static int FAR  = 1;
 
     private final Player [] players = new Player[2];
-    private Piece [][] board;
+    Piece [][] board;
     private int ranks, cols, turn;
     int [] selectedPiece = null;
     List<Move> moves = null;
@@ -116,7 +118,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
             return FAR;
         if (player == FAR)
             return NEAR;
-        throw new AssertionError();
+        throw new GException();
     }
 
     public void setRules(Rules rules) {
@@ -199,19 +201,18 @@ public class Game extends Reflector<Game> implements IGame<Move> {
      * @return
      */
     public final Piece getPiece(int rank, int col) {
-        if (!isOnBoard(rank, col)) {
-            throw new AssertionError("Not on board [" + rank + "," + col + "]");
-        }
+        //if (!isOnBoard(rank, col)) {
+        //    throw new AssertionError("Not on board [" + rank + "," + col + "]");
+       // }
         return board[rank][col];
     }
 
-    Iterable<Piece> getPieces() {
-        return new Iterable<Piece>() {
-            @Override
-            public Iterator<Piece> iterator() {
-                return new PieceIterator();
-            }
-        };
+    public Iterable<Piece> getPieces() {
+        return this;
+    }
+
+    public Iterator<Piece> iterator() {
+        return new PieceIterator();
     }
 
     class PieceIterator implements Iterator<Piece> {
@@ -220,12 +221,18 @@ public class Game extends Reflector<Game> implements IGame<Move> {
         int col=0;
         Piece next = null;
 
+        void reset() {
+            rank=0;
+            col=0;
+            next = null;
+        }
+
         @Override
         public boolean hasNext() {
             next = null;
             for ( ; rank<getRanks(); rank++) {
                 for ( ; col < getColumns(); col++) {
-                    if (board[rank][col].getType() != PieceType.BLOCKED) {
+                    if (board[rank][col].getType().flag != 0) {
                         next = board[rank][col++];
                         return true;
                     }
@@ -258,7 +265,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
     public final boolean isOnBoard(int rank, int col) {
         if (rank < 0 || col < 0 || rank >= ranks || col >= cols)
             return false;
-        return board[rank][col].getType() != PieceType.BLOCKED;
+        return board[rank][col].type != PieceType.BLOCKED;
     }
 
     private List<Piece> getMovablePieces() {
@@ -341,7 +348,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
     @Override
     public final synchronized void executeMove(Move move) {
         if (move.getPlayerNum() != getTurn())
-            throw new AssertionError("Invalid move to execute");
+            throw new GException("Invalid move to execute");
         State state = new State(moves.indexOf(move) // <-- TODO: Make this faster
                 , moves);
         if (rules instanceof Chess) {
@@ -356,6 +363,8 @@ public class Game extends Reflector<Game> implements IGame<Move> {
                 }
             }
         }
+        Utils.assertTrue(undoStack.size() < 1024);
+
         undoStack.push(state);
         //
         moves = null;
@@ -381,7 +390,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
             String gameAfter2 = toString();
             System.out.println("GAME STATE AFTER REFRESH:\n" + gameAfter2);
             if (!gameAfter.equals(gameAfter2))
-                throw new AssertionError("Logic Error: Game State changed after refresh");
+                throw new GException("Logic Error: Game State changed after refresh");
         }
     }
 
@@ -444,7 +453,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
                 for (int [] pos : state.enpassants) {
                     Piece p = getPiece(pos);
                     if (p.getType() != PieceType.PAWN)
-                        throw new AssertionError("Logic Error: Not a pawn: " + p);
+                        throw new GException("Logic Error: Not a pawn: " + p);
                     getPiece(pos).setType(PieceType.PAWN_ENPASSANT);
                 }
             }
@@ -510,7 +519,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
             case NEAR:
                 return ranks-1;
         }
-        throw new AssertionError("Logic Error: not a valid side: " + side);
+        throw new GException("Logic Error: not a valid side: " + side);
     }
 
     /**
@@ -536,15 +545,15 @@ public class Game extends Reflector<Game> implements IGame<Move> {
             case NEAR:
                 return -1;
         }
-        throw new AssertionError("Logic Error: not a valid side: " + side);
+        throw new GException("Logic Error: not a valid side: " + side);
     }
 
     public Piece movePiece(Move m) {
         Piece p;
         if ((p=getPiece(m.getStart())).getPlayerNum() != getTurn())
-            throw new AssertionError("Logic Error: Not player " + p.getPlayerNum() + "'s turn: " + getTurn() + "'s turn" );
+            throw new GException("Logic Error: Not player " + p.getPlayerNum() + "'s turn: " + getTurn() + "'s turn. For Piece:\n" + p);
         if (p.getType()==PieceType.EMPTY)
-            throw new AssertionError("Logic Error: Moving an empty piece");
+            throw new GException("Logic Error: Moving an empty piece. For Move:\n" + m);
         copyPiece(m.getStart(), m.getEnd());
         clearPiece(m.getStart());
         p = getPiece(m.getEnd());

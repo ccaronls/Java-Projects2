@@ -1,5 +1,6 @@
 package cc.lib.checkers;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -203,11 +204,9 @@ public class Chess extends ACheckboardGame {
 
     // Return true if p.getType() is on set of types and p.getPlayerNum() equals playerNum
     private boolean testPiece(Piece p, int playerNum, PieceType ... types) {
-        for (PieceType t : types) {
-            if (p.getPlayerNum() == playerNum && p.getType() == t)
-                return true;
-        }
-        return false;
+        if (p.getPlayerNum() != playerNum)
+            return false;
+        return Arrays.binarySearch(types, p.getType()) >= 0;
     }
 
     /**
@@ -237,9 +236,9 @@ public class Chess extends ACheckboardGame {
 
         final int adv = getAdvanceDir(getOpponent(playerNum));
         // look for pawns
-        if (testPiece(getPiece(rank +adv, col +1), playerNum, PAWN, PAWN_ENPASSANT, PAWN_IDLE))
+        if (testPiece(getPiece(rank +adv, col +1), playerNum, PAWN, PAWN_IDLE, PAWN_ENPASSANT))
             return true;
-        if (testPiece(getPiece(rank +adv, col -1), playerNum, PAWN, PAWN_ENPASSANT, PAWN_IDLE))
+        if (testPiece(getPiece(rank +adv, col -1), playerNum, PAWN, PAWN_IDLE, PAWN_ENPASSANT))
             return true;
 
         // fan out in all eight directions looking for a opponent king

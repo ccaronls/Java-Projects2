@@ -71,5 +71,8 @@ public class GDimension extends Reflector<GDimension> implements IDimension {
         return new GDimension(newWidth, newHeight);
     }
 
+    public GDimension adjustedBy(float dw, float dh) {
+        return new GDimension(width + dw, height + dh);
+    }
 
 }

@@ -16,15 +16,28 @@
         android:icon="@drawable/ic_launcher"
         android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" >
         <activity
+            android:name=".checkerboard.ChessTestActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:screenOrientation="sensorPortrait"
+            android:icon="@drawable/ic_launcher"
+            android:label="ChessTest">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
             android:name=".p2p.WifiTest"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:screenOrientation="sensorPortrait"
             android:icon="@drawable/ic_launcher"
             android:label="WifiTest">
+            <!--
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            -->
         </activity>
     </application>
 

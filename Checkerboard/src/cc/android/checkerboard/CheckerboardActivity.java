@@ -25,7 +25,7 @@ import java.util.List;
 import cc.lib.android.AndroidLogWriter;
 import cc.lib.android.CCActivityBase;
 import cc.lib.android.SwipeGestureListener;
-import cc.lib.checkerboard.*;
+import cc.lib.checkers.*;
 import cc.lib.game.MiniMaxTree;
 import cc.lib.game.Utils;
 import cc.lib.utils.FileUtils;
@@ -754,7 +754,7 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
             Piece lock = pbv.getGame().getLocked();
             if (lock != null) {
                 if (lock.getPlayerNum() != pbv.getGame().getTurn())
-                    throw new AssertionError();
+                    throw new cc.lib.utils.GException();
                 if (lock.getType() != PieceType.PAWN_TOSWAP) {
                     for (Move m : lock.getMoves()) {
                         switch (m.getMoveType()) {
@@ -832,7 +832,7 @@ public class CheckerboardActivity extends CCActivityBase implements View.OnClick
         } else if (v.getId() == R.id.buttonEndTurn) {
             Move move = (Move)v.getTag();
             if (move == null)
-                throw new AssertionError();
+                throw new cc.lib.utils.GException();
             pbv.getGame().executeMove(move);
         }
         updateButtons();

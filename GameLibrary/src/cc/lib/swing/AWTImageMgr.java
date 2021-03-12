@@ -11,6 +11,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.CropImageFilter;
 import java.awt.image.FilteredImageSource;
 import java.awt.image.ImageFilter;
+import java.awt.image.ImageObserver;
 import java.awt.image.ImageProducer;
 import java.awt.image.MemoryImageSource;
 import java.awt.image.ReplicateScaleFilter;
@@ -65,7 +66,34 @@ public final class AWTImageMgr {
         }
     }
 
-	private List<Meta> images = new ArrayList<>(); // loaded images
+	private List<Meta> images = new ArrayList<Meta>() {{
+	    add(new Meta(new Image() {
+            @Override
+            public int getWidth(ImageObserver observer) {
+                return 0;
+            }
+
+            @Override
+            public int getHeight(ImageObserver observer) {
+                return 0;
+            }
+
+            @Override
+            public ImageProducer getSource() {
+                return null;
+            }
+
+            @Override
+            public Graphics getGraphics() {
+                return null;
+            }
+
+            @Override
+            public Object getProperty(String name, ImageObserver observer) {
+                return null;
+            }
+        }, 0)); // make sure we start id 1 (not zero)
+    }}; // loaded images
 
 	/**
 	 * 
@@ -418,7 +446,7 @@ public final class AWTImageMgr {
      * @return
      */
 	public int addImage(Image image, int maxCopies) {
-		int id = 0;
+		int id = 1;
 		for ( ; id<images.size(); id++) {
 			if (images.get(id).source == null) {
 			    images.get(id).source = image;
@@ -441,7 +469,8 @@ public final class AWTImageMgr {
 	
 	
 	public void deleteAll() {
-	    images.clear();
+	    while (images.size() > 1)
+	        images.remove(images.size()-1);
 	}
 	
 

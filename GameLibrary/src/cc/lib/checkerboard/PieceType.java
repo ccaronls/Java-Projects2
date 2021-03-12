@@ -20,16 +20,16 @@ public enum PieceType {
     CHECKED_KING_IDLE("KC", 1, 1), // a king that has not moved
     UNCHECKED_KING("Ki", 9, 1), // chess only
     UNCHECKED_KING_IDLE("KI", 10, 1), // only an unchecked idle king can castle
-    DRAGON("Dr", 5, 4+8), // moves like queen but only 3 spaces
-    DRAGON_IDLE("DI", 5, 4+8), // moves like queen but only 3 spaces
+    DRAGON("Dr", 5, 32), // moves like queen but only 3 spaces
+    DRAGON_IDLE("DI", 5, 32), // moves like queen but only 3 spaces
 
-    KING("Ck", 5, 0), // checkers king, not chess
-    FLYING_KING("CK", 10, 0),
-    CHECKER("Cm", 1, 0), // checkers, king move along the diagonals
-    DAMA_MAN("Dm", 1, 0), // dama pieces move horz and vertically
-    DAMA_KING("Dk", 5, 0),
+    KING("Ck", 5, 64), // checkers king, not chess
+    FLYING_KING("CK", 10, 64),
+    CHECKER("Cm", 1, 64), // checkers, king move along the diagonals
+    DAMA_MAN("Dm", 1, 64), // dama pieces move horz and vertically
+    DAMA_KING("Dk", 5, 64),
 
-    CHIP_4WAY("C4", 1, 0), // used for KingsCourt - a piece that can move in all four directions
+    CHIP_4WAY("C4", 1, 64), // used for KingsCourt - a piece that can move in all four directions
     ;
 
     public final String abbrev;
@@ -100,5 +100,7 @@ public enum PieceType {
     public final static int FLAG_ROOK_OR_QUEEN = 4; // all piece types that move along horizonal or vertical
     public final static int FLAG_BISHOP_OR_QUEEN = 8; // all piece types that can move along the diagonals
     public final static int FLAG_KNIGHT = 16; // all piece types that move like a knight
+    public final static int FLAG_DRAGON = 32; // all piece types that move like a knight
+    public final static int FLAG_CHECKER = 64;
 
 }

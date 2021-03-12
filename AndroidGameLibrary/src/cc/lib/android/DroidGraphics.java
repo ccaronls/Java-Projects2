@@ -45,6 +45,7 @@ public class DroidGraphics extends APGraphics {
     private Bitmap screenCapture = null;
     private Canvas savedCanvas = null;
     private final Vector<Bitmap> bitmaps = new Vector<>();
+    private boolean textModePixels = false;
 
     public DroidGraphics(Context context, Canvas canvas, int width, int height) {
         super(width, height);
@@ -62,6 +63,10 @@ public class DroidGraphics extends APGraphics {
             }
         }
         bitmaps.clear();
+    }
+
+    public void setTextModePixels(boolean textModePixels) {
+        this.textModePixels = textModePixels;
     }
 
     public final Canvas getCanvas() {
@@ -111,11 +116,15 @@ public class DroidGraphics extends APGraphics {
 
     @Override
     public final float getTextHeight() {
+        if (textModePixels)
+            return paint.getTextSize();
         return convertPixelsToDips(paint.getTextSize());
     }
 
     @Override
     public final void setTextHeight(float height) {
+        if (textModePixels)
+            paint.setTextSize(height);
         paint.setTextSize(convertDipsToPixels(height));
     }
 

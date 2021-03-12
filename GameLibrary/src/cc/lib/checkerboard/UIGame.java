@@ -57,11 +57,11 @@ public abstract class UIGame extends Game {
             RUNGAME_MONITOR.notifyAll();
         }
         startGameThread();
-        repaint();
+        repaint(0);
         return m;
     }
 
-    public abstract void repaint();
+    public abstract void repaint(long delayMs);
 
     public synchronized void startGameThread() {
         if (gameRunning)
@@ -76,7 +76,7 @@ public abstract class UIGame extends Game {
                     if (isGameOver())
                         break;
                     trySaveToFile(saveFile);
-                    repaint();
+                    repaint(0);
                 } else {
                     log.debug("leaving");
                 }
@@ -88,6 +88,7 @@ public abstract class UIGame extends Game {
 
     public synchronized void stopGameThread() {
         if (gameRunning) {
+            AIPlayer.cancel();
             gameRunning = false;
             synchronized (RUNGAME_MONITOR) {
                 RUNGAME_MONITOR.notifyAll();
@@ -104,7 +105,7 @@ public abstract class UIGame extends Game {
         SQ_DIM = Math.min(SCREEN_DIM.getWidth(), SCREEN_DIM.getHeight()) / Math.min(getRanks(), getColumns());
         BOARD_DIM = new GDimension(SQ_DIM * getColumns(), SQ_DIM * getRanks());
 
-        if (false && SCREEN_DIM.getAspect() > 1) {
+        if (SCREEN_DIM.getAspect() > 1) {
             // landscape draws board on the left and captured pieces on the right
             drawLandscape(g, mx, my);
         } else {
@@ -119,61 +120,62 @@ public abstract class UIGame extends Game {
         final float infoHgt = SCREEN_DIM.getHeight()/2-BOARD_DIM.getHeight()/2;
 
         GDimension infoDim = new GDimension(SCREEN_DIM.getWidth(), infoHgt);
+        drawPlayer((UIPlayer)getPlayer(NEAR), g, infoDim);
         drawCapturedPieces(g, infoDim, FAR, getCapturedPieces(FAR));
         g.translate(0, infoHgt);
         drawBoard(g, mx, my);
         g.translate(0, BOARD_DIM.getHeight());
-        drawCapturedPieces(g, infoDim, NEAR, getCapturedPieces(NEAR));
-        if (getWinner() != null) {
-            g.setColor(getWinner().getColor().color);
-            g.drawJustifiedString(SCREEN_DIM.getWidth() - 10, 10, Justify.RIGHT, "Winner: " + getWinner().getColor());
-        } else {
-            g.drawJustifiedString(SCREEN_DIM.getWidth() - 10, 10, Justify.RIGHT, "Turn: " + getPlayer(getTurn()).getColor());
-        }
+        drawPlayer((UIPlayer)getPlayer(FAR), g, infoDim);
 
         g.popMatrix();
     }
 
     private void drawLandscape(AGraphics g, int mx, int my) {
-        /*
-        final float infoHgt = HEIGHT/2-boardDim.getHeight()/2;
 
-        drawBoard(g, HEIGHT, mx, my);
+        GDimension info = new GDimension(SCREEN_DIM.getWidth() - BOARD_DIM.getWidth(), SCREEN_DIM.getHeight()/2);
+
+        drawBoard(g, mx, my);
         g.pushMatrix();
-        g.translate(HEIGHT, 0);
-        drawPlayer((UIPlayer)getPlayer(FAR), g, WIDTH-HEIGHT, HEIGHT/2);
-        g.translate(0, HEIGHT/2);
-        drawPlayer((UIPlayer)getPlayer(NEAR), g, WIDTH-HEIGHT, HEIGHT/2);
+        g.translate(BOARD_DIM.getWidth(), 0);
+        drawPlayer((UIPlayer)getPlayer(FAR), g, info);
+        g.translate(0, info.getHeight());
+        drawPlayer((UIPlayer)getPlayer(NEAR), g, info);
         g.popMatrix();
         g.setColor(GColor.WHITE);
-        if (getWinner() != null) {
+/*        if (getWinner() != null) {
             g.drawJustifiedString(WIDTH - 10, 10, Justify.RIGHT, "Winner: " + getWinner().getColor());
         } else {
             g.drawJustifiedString(WIDTH - 10, 10, Justify.RIGHT, "Turn: " + getPlayer(getTurn()).getColor());
         }*/
     }
 
-    private void drawPlayer(UIPlayer player, AGraphics g, float width, float height) {
+    private void drawPlayer(UIPlayer player, AGraphics g, GDimension info) {
         if (player == null)
             return;
         int BORDER = 5;
+        if (player.getPlayerNum() == getTurn()) {
+            g.setColor(GColor.CYAN);
+            g.drawRect(info, 3);
+        }
+
         g.pushMatrix();
         g.translate(BORDER, BORDER);
-        width -= BORDER*2;
-        height -= BORDER*2;
+
+        info = info.adjustedBy(-BORDER*2, -BORDER*2);
+
+        drawCapturedPieces(g, info, getOpponent(player.getPlayerNum()), getCapturedPieces(player.getPlayerNum()));
 
         // draw player info
-        String info = player.getType().name();
+        String txt = player.getType().name();
         if (player.isThinking()) {
             int secs = player.getThinkingTimeSecs();
             int mins = secs / 60;
             secs -= mins * 60;
-            info += String.format(" Thinking %d:%0$2d", mins, secs);
+            txt += String.format("\nThinking %d:%02d", mins, secs);
+            repaint(1000);
         }
         g.setColor(GColor.WHITE);
-        float th = g.drawWrapString(0, 0, width, info).height;
-        g.translate(0, th + BORDER);
-        //drawCapturedPieces(g, width, height, getOpponent(player.getPlayerNum()), getCapturedPieces(player.getPlayerNum()));
+        g.drawJustifiedString(info.getWidth(), info.getHeight(), Justify.RIGHT, Justify.BOTTOM, txt);
         g.popMatrix();
     }
 
@@ -186,7 +188,7 @@ public abstract class UIGame extends Game {
             g.pushMatrix();
             g.translate(x, y);
             Color color = getPlayer(playerNum).getColor();
-            drawPiece(g, p, color, PIECE_RADIUS*2, PIECE_RADIUS*2, null);
+            drawPiece(g, p.getDisplayType(), color, PIECE_RADIUS*2, PIECE_RADIUS*2, null);
             g.popMatrix();
             x += PIECE_RADIUS * 2;
             if (x >= dim.getWidth()) {
@@ -210,7 +212,7 @@ public abstract class UIGame extends Game {
     protected abstract int getCheckerboardImageId();
 
     private void drawCheckerboard8x8(AGraphics g) {
-        drawCheckerboardImage(g, getCheckerboardImageId(), 545, 24);
+        drawCheckerboardImage(g, getCheckerboardImageId(), 545, 26);
     }
 
     private void drawCheckboardBoard(AGraphics g, GColor dark, GColor light) {
@@ -261,11 +263,11 @@ public abstract class UIGame extends Game {
 
         g.pushMatrix();
 
-        if (getRules() instanceof KingsCourt) {
+        if (getRules() instanceof KingsCourt && getKingsCourtBoardId() != 0) {
             drawKingsCourtBoard(g);
         } else if (getRules() instanceof Dama) {
             drawDamaBoard(g);
-        } else if (getRanks() == 8 && getColumns() == 8) {
+        } else if (getRanks() == 8 && getColumns() == 8 && getCheckerboardImageId() != 0) {
             drawCheckerboard8x8(g);
         } else {
             drawCheckboardBoard(g, GColor.BLACK, GColor.LIGHT_GRAY);
@@ -301,30 +303,32 @@ public abstract class UIGame extends Game {
         final float mx = mv.getX();
         final float my = mv.getY();
 
+        for (int r = 0; r <getRanks(); r++) {
+            for (int c = 0; c <getColumns(); c++) {
+                float x = c * cw + cw / 2;
+                float y = r * ch + ch / 2;
+                if (Utils.isPointInsideRect(mx, my, c* cw, r* ch, cw, ch)) {
+                    if (isUser) {
+                        g.setColor(GColor.CYAN);
+                        g.drawRect(c * cw + 1, r * ch + 1, cw - 2, ch - 2);
+                        highlightedRank = r;
+                        highlightedCol = c;
+                    }
+                    g.setColor(GColor.YELLOW);
+                    g.drawJustifiedStringOnBackground(mv, Justify.CENTER, Justify.CENTER, String.format("%d,%d", r, c), GColor.BLACK, 5, 0);
+                }
+            }
+        }
+
         for (Piece p : getPieces()) {
             int r = p.getRank();
             int c = p.getCol();
             float x = c * cw + cw / 2;
             float y = r * ch + ch / 2;
-            if (isUser && Utils.isPointInsideRect(mx, my, c* cw, r* ch, cw, ch)) {
-                g.setColor(GColor.CYAN);
-                g.drawRect(c* cw +1, r* ch +1, cw -2, ch -2);
-                highlightedRank = r;
-                highlightedCol = c;
-            }
-
             for (Piece pp : _pickablePieces) {
                 if (pp.getRank() == r && pp.getCol() == c) {
                     g.setColor(GColor.CYAN);
                     g.drawFilledCircle(x, y, PIECE_RADIUS +5);
-                    break;
-                }
-            }
-
-            for (Move m : _pickableMoves) {
-                if (m.getEnd() != null && m.getEnd()[0] == r && m.getEnd()[1] == c) {
-                    g.setColor(GColor.CYAN);
-                    g.drawCircle(x, y, PIECE_RADIUS);
                     break;
                 }
             }
@@ -347,6 +351,11 @@ public abstract class UIGame extends Game {
                 float y = _selectedPiece[0]* ch + ch /2;
                 g.setTextHeight(PIECE_RADIUS/2);
                 g.drawJustifiedString(x, y, Justify.CENTER, Justify.CENTER, "END");
+            } else if (m.getEnd() != null) {
+                g.setColor(GColor.CYAN);
+                float x = m.getEnd()[1] * cw + cw / 2;
+                float y = m.getEnd()[0] * ch + ch / 2;
+                g.drawCircle(x, y, PIECE_RADIUS);
             }
         }
 
@@ -364,6 +373,12 @@ public abstract class UIGame extends Game {
                 g.setColor(GColor.CYAN);
                 g.drawJustifiedStringOnBackground(x, y, Justify.CENTER, Justify.CENTER, txt, GColor.TRANSLUSCENT_BLACK, 3);
             }
+        } else if (!gameRunning) {
+            int x = g.getViewportWidth() / 2;
+            int y = g.getViewportHeight() / 2;
+            String txt = "P A U S E D";
+            g.setColor(GColor.CYAN);
+            g.drawJustifiedStringOnBackground(x, y, Justify.CENTER, Justify.CENTER, txt, GColor.TRANSLUSCENT_BLACK, 3);
         }
         g.popMatrix();
     }
@@ -389,7 +404,7 @@ public abstract class UIGame extends Game {
             pickablePieces.clear();
             pickablePieces.addAll(pieces);
         }
-        repaint();
+        repaint(0);
         Utils.waitNoThrow(RUNGAME_MONITOR, -1);
         if (clicked) {
             for (Piece p : pieces) {
@@ -407,7 +422,7 @@ public abstract class UIGame extends Game {
             pickablePieces.clear();
             pickableMoves.addAll(moves);
         }
-        repaint();
+        repaint(0);
         Utils.waitNoThrow(RUNGAME_MONITOR, -1);
         if (clicked) {
             for (Move m : moves) {
@@ -497,17 +512,19 @@ public abstract class UIGame extends Game {
     }
 
     public void drawPiece(AGraphics g, PieceType p, Color color, float w, float h, GColor outlineColor) {
+        int id = getPieceImageId(p, color);
+        if (id > 0) {
+            g.drawImage(id, -w/2, -h/2, w, h);
+        } else {
+            g.setColor(color.color);
+            g.drawFilledCircle(0, 0, w/2);
+            g.setTextHeight(SQ_DIM/2);
+            g.setColor(color.color.inverted());
+            g.drawJustifiedString(0, 0, Justify.CENTER, Justify.CENTER, p.abbrev);
+        }
         if (outlineColor != null) {
             g.setColor(outlineColor);
             g.drawCircle(0, 0, w/2, 3);
-        }
-        int id = getPieceImageId(p, color);
-        if (id >= 0) {
-            g.drawImage(id, -w/2, -h/2, w, h);
-        } else {
-            //g.drawJustifiedString(0, 0, Justify.CENTER, Justify.CENTER, color.name() + "\n" + p.abbrev);
-            g.setColor(color.color);
-            g.drawFilledCircle(0, 0, w/2);
         }
     }
 

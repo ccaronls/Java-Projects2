@@ -2,10 +2,13 @@ package cc.lib.checkerboard;
 
 import junit.framework.TestCase;
 
+import org.junit.Assert;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.HashSet;
 import java.util.List;
 
 import cc.lib.game.Utils;
@@ -329,8 +332,46 @@ public class CheckerboardTest extends TestCase {
         gm.setPlayer(0, new Player());
         gm.setPlayer(1, new Player());
         gm.getRules().init(gm);
+        int num = 0;
         for (Piece p : gm.getPieces()) {
             System.out.println(p.getType());
+            num++;
+        }
+        Assert.assertEquals(32, num);
+    }
+
+    public void testGetPieces2() {
+        Game gm = new Game();
+        gm.setRules(new Chess());
+        gm.setPlayer(0, new Player());
+        gm.setPlayer(1, new Player());
+        gm.getRules().init(gm);
+        int num = 0;
+        for (Piece p : gm.getPieces()) {
+            System.out.println(p.getType());
+            num++;
+        }
+        Assert.assertEquals(32, num);
+    }
+
+    public void testChess1() throws Exception {
+        Game game = new Game();
+        game.deserialize(FileUtils.openFileOrResource("chess1.save"));
+        //game.setPlayer(0, new Player());
+        //game.setPlayer(1, new Player());
+        System.out.println(game);
+
+        int num=1;
+        HashSet<Piece> set = new HashSet<>();
+        for (Piece p : game) {
+            Assert.assertFalse(set.contains(p));
+            set.add(p);
+            System.out.println(num++ + ":" + p);
+        }
+
+        List<Move> moves = game.getRules().computeMoves(game);
+        for (Move m : moves) {
+            System.out.println(m);
         }
     }
 }

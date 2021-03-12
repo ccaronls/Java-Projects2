@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import cc.lib.game.IMove;
+import cc.lib.game.Utils;
 import cc.lib.utils.Reflector;
 
 public class Move extends Reflector<Move> implements IMove, Comparable<Move> {
@@ -24,6 +25,9 @@ public class Move extends Reflector<Move> implements IMove, Comparable<Move> {
     private List<int []> captured = null;
 
     private PieceType startType, endType;
+
+    @Omit
+    Move parent = null;
 
     @Omit
     long bestValue = 0;
@@ -98,9 +102,11 @@ public class Move extends Reflector<Move> implements IMove, Comparable<Move> {
     }
 
     public Move addCaptured(int capturedRank, int capturedCol, PieceType type) {
+        Utils.assertTrue(0 == (type.flag & PieceType.FLAG_KING));
         if (captured == null) {
             captured = new ArrayList<>();
         }
+        Utils.assertTrue(captured.size() < 32);
         captured.add(new int[] { capturedRank, capturedCol, type.ordinal() });
         compareValue += 100;
         return this;
@@ -261,4 +267,16 @@ public class Move extends Reflector<Move> implements IMove, Comparable<Move> {
     }
 
 
+    public String getPathString() {
+        StringBuffer buf=new StringBuffer();
+        getPathStringR(buf, new String[] { "" });
+        return buf.toString();
+    }
+
+    private void getPathStringR(StringBuffer buf, String [] indent) {
+        if (parent != null)
+            parent.getPathStringR(buf, indent);
+        buf.append("\n").append(indent[0]).append(toString());
+        indent[0] += "  ";
+    }
 }

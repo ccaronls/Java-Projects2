@@ -1,6 +1,5 @@
 package cc.lib.checkerboard;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import cc.lib.utils.Reflector;
@@ -25,6 +24,11 @@ public final class State extends Reflector<State> {
                 throw new cc.lib.utils.GException("Logic Error: index not in range [0-" + moves.size() + ")");
         this.index = index;
         this.moves = moves;
+    }
+
+    @Override
+    public String toString() {
+        return "State{" + getMove() + "}";
     }
 
     Move getMove() {

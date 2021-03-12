@@ -17,7 +17,7 @@ public class UIPlayer extends AIPlayer {
         RANDOM, USER, AI
     }
 
-    private final Type type;
+    private Type type;
 
     public UIPlayer() {
         this(Type.USER);
@@ -65,5 +65,9 @@ public class UIPlayer extends AIPlayer {
 
     public final Type getType() {
         return type;
+    }
+
+    public void setType(Type type) {
+        this.type = type;
     }
 }

@@ -13,6 +13,7 @@ import java.util.List;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
+import cc.lib.utils.GException;
 
 public class AIPlayer extends Player {
 
@@ -90,6 +91,13 @@ public class AIPlayer extends Player {
         out.write(endTag+"\n");
     }
 
+    static class MoveException extends GException {
+        final Move move;
+        MoveException(Move move) {
+            this.move = move;
+        }
+    }
+
     void buildMovesList(Game _game) {
 
         if (moveList.size() > 0 && moveList.getFirst().getPlayerNum() == _game.getTurn())
@@ -122,6 +130,9 @@ public class AIPlayer extends Player {
                     root.bestValue = negamaxABR(game, root, 1, maxSearchDepth, 0, Long.MIN_VALUE, Long.MAX_VALUE);
                     break;
             }
+        } catch (MoveException e) {
+            e.printStackTrace();
+            log.error("Error executing moves: " + e.move.getPathString());
         } catch (Throwable e) {
             e.printStackTrace();
             if (false) {
@@ -135,7 +146,7 @@ public class AIPlayer extends Player {
                     e2.printStackTrace();
                 }
             }
-            System.out.println("Game state at error:\n" + game.toString());
+            log.error("Game state at error:%s\n", game.toString());
             game.trySaveToFile(new File("game_" + algorithm.name() + "_error.txt"));
         }
         float evalTimeMS = (int)(System.currentTimeMillis() - startTime);
@@ -254,9 +265,9 @@ public class AIPlayer extends Player {
         }
     }
 
-    static Comparator<Move> SORT_ASCENDING = (Move m0, Move m1) -> m0.getCompareValue()-m1.getCompareValue();
+    static Comparator<Move> SORT_ASCENDING = (Move m0, Move m1) -> Integer.compare(m0.getCompareValue(), m1.getCompareValue());
 
-    static Comparator<Move> SORT_DESCENDING = (Move m0, Move m1) -> m1.getCompareValue()-m0.getCompareValue();
+    static Comparator<Move> SORT_DESCENDING = (Move m0, Move m1) -> Integer.compare(m1.getCompareValue(), m0.getCompareValue());
 
     static long miniMaxABR(Game game, Move root, boolean maximizePlayer, int depth, int actualDepth, long alpha, long beta) {
         if (root == null || root.getPlayerNum() < 0)
@@ -285,7 +296,14 @@ public class AIPlayer extends Player {
         Move path = null;
         root.maximize = maximizePlayer ? 1 : -1;
         for (Move m : root.children) {
-            game.executeMove(m);
+            m.parent = root;
+            try {
+                //String gameBeforeMove = game.toString();
+                game.executeMove(m);
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new MoveException(m);
+            }
             boolean sameTurn = m.getPlayerNum() == game.getTurn(); // if turn has not changed
             long v;
             if (maximizePlayer) {
@@ -529,7 +547,7 @@ negamax(rootNode, depth, −∞, +∞, 1)
         return moveList.removeFirst();
     }
 
-    public void cancel() {
+    public static void cancel() {
         kill = true;
         Thread.yield();
     }
@@ -540,8 +558,8 @@ negamax(rootNode, depth, −∞, +∞, 1)
      * @param move
      */
     protected void onMoveEvaluated(Game game, Move move) {
-        //if (numNodes % 1000 == 0)
-        //    System.out.print('.');
+        if (evalCount % 1000 == 0)
+            log.debug("Eval Count: %d", evalCount);
     }
 
     protected void onMoveListGenerated(List<Move> moveList) {
