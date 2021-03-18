@@ -8,6 +8,7 @@ import static cc.lib.checkerboard.PieceType.BISHOP;
 import static cc.lib.checkerboard.PieceType.BLOCKED;
 import static cc.lib.checkerboard.PieceType.DRAGON_IDLE;
 import static cc.lib.checkerboard.PieceType.EMPTY;
+import static cc.lib.checkerboard.PieceType.FLAG_DRAGON;
 import static cc.lib.checkerboard.PieceType.KNIGHT;
 import static cc.lib.checkerboard.PieceType.PAWN_IDLE;
 
@@ -43,5 +44,23 @@ public class DragonChess extends Chess {
     @Override
     protected int[] getRookCastleCols(Game game) {
         return new int [] { 3, 3+7 };
+    }
+
+    @Override
+    protected boolean isSquareAttacked(Game game, int rank, int col, int attacker) {
+        if (super.isSquareAttacked(game, rank, col, attacker))
+            return true;
+
+        int [][] kd = pieceDeltas[DRAGON_IDLE.ordinal()][rank][col];
+        int [] dr = kd[0];
+        int [] dc = kd[1];
+        for (int i = 0; i < dr.length; i++) {
+            int rr = rank + dr[i];
+            int cc = col + dc[i];
+            if (testPiece(game, rr, cc, attacker, FLAG_DRAGON))
+                return true;
+        }
+
+        return false;
     }
 }

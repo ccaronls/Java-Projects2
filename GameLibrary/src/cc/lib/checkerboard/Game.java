@@ -11,7 +11,7 @@ import cc.lib.game.Utils;
 import cc.lib.utils.GException;
 import cc.lib.utils.Reflector;
 
-public class Game extends Reflector<Game> implements IGame<Move>, Iterable<Piece> {
+public class Game extends Reflector<Game> implements IGame<Move> {
 
     static {
         addAllFields(Game.class);
@@ -41,6 +41,7 @@ public class Game extends Reflector<Game> implements IGame<Move>, Iterable<Piece
     private Rules rules;
     private boolean initialized = false;
     private GameState gameState = GameState.PLAYING;
+    private int [] numPieces = null;
 
     void init(int ranks, int columns) {
         initialized = false;
@@ -60,6 +61,7 @@ public class Game extends Reflector<Game> implements IGame<Move>, Iterable<Piece
         selectedPiece = null;
         undoStack.clear();
         initialized = false;
+        numPieces = null;
     }
 
     /**
@@ -71,7 +73,7 @@ public class Game extends Reflector<Game> implements IGame<Move>, Iterable<Piece
     protected void initRank(int rank, int player, PieceType...pieces) {
         for (int i=0; i<pieces.length; i++) {
             Piece p = board[rank][i] = new Piece(rank, i, player, pieces[i]);
-            if (p.getType() == PieceType.EMPTY) {
+            if (p.getType().flag == 0) {
                 p.setPlayerNum(-1);
             }
         }
@@ -140,7 +142,22 @@ public class Game extends Reflector<Game> implements IGame<Move>, Iterable<Piece
             p.color = rules.getPlayerColor(p.playerNum);
             p.newGame();
         }
+        countPieces();
         refreshGameState();
+    }
+
+    void countPieces() {
+        numPieces = new int[2];
+        for (int i=0; i<ranks; i++) {
+            for (int ii=0; ii<cols; ii++) {
+                if (!isOnBoard(i, ii))
+                    continue;
+                Piece p = getPiece(i, ii);
+                if (p.playerNum >= 0) {
+                    numPieces[p.playerNum]++;
+                }
+            }
+        }
     }
 
     /**
@@ -207,33 +224,64 @@ public class Game extends Reflector<Game> implements IGame<Move>, Iterable<Piece
         return board[rank][col];
     }
 
-    public Iterable<Piece> getPieces() {
-        return this;
-    }
+    public Iterable<Piece> getPieces(final int playerNum) {
+        if (numPieces == null)
+            countPieces();
+        return new Iterable<Piece>() {
+            @Override
+            public Iterator<Piece> iterator() {
+                int num = 0;
+                int pNum = playerNum;
+                int startRank = 0;
+                int advDir = 1;
+                if  (pNum == NEAR) {
+                    num = numPieces[NEAR];
+                    pNum = FAR;
+                    startRank = getStartRank(playerNum);
+                    advDir = getAdvanceDir(playerNum);
+                } else if (playerNum == FAR) {
+                    num = numPieces[FAR];
+                    pNum = NEAR;
+                    startRank = getStartRank(playerNum);
+                    advDir = getAdvanceDir(playerNum);
+                } else {
+                    num = numPieces[NEAR] + numPieces[FAR];
+                }
 
-    public Iterator<Piece> iterator() {
-        return new PieceIterator();
+                return new PieceIterator(pNum, startRank, advDir, num);
+            }
+        };
     }
 
     class PieceIterator implements Iterator<Piece> {
 
         int rank=0;
         int col=0;
+        int advDir;
+        int notPlayerNum;
+        int ranks;
+        int num;
         Piece next = null;
 
-        void reset() {
-            rank=0;
-            col=0;
-            next = null;
+        PieceIterator(int notPlayerNum, int startRank, int advDir, int maxPieces) {
+            ranks = getRanks();
+            rank = startRank;
+            this.notPlayerNum = notPlayerNum;
+            this.advDir = advDir;
+            this.num = maxPieces;
         }
 
         @Override
         public boolean hasNext() {
+            if (num <= 0)
+                return false;
             next = null;
-            for ( ; rank<getRanks(); rank++) {
+            for ( ; rank >= 0 && rank<getRanks(); rank+=advDir) {
                 for ( ; col < getColumns(); col++) {
-                    if (board[rank][col].getType().flag != 0) {
+                    int p = board[rank][col].playerNum;
+                    if (p >= 0 && p != notPlayerNum) {
                         next = board[rank][col++];
+                        num--;
                         return true;
                     }
                 }
@@ -353,11 +401,11 @@ public class Game extends Reflector<Game> implements IGame<Move>, Iterable<Piece
                 , moves);
         if (rules instanceof Chess) {
             state.enpassants = new ArrayList<>();
-            for (Piece p : getPieces()) {
+            for (Piece p : getPieces(getTurn())) {
                 int rank = p.getRank();
                 int col = p.getCol();
                 if (move.getStart()[0] != rank && move.getStart()[1] != col) {
-                    if (p.getPlayerNum() == getTurn() && p.getType() == PieceType.PAWN_ENPASSANT) {
+                    if (p.getType() == PieceType.PAWN_ENPASSANT) {
                         state.enpassants.add(new int[]{rank, col});
                     }
                 }

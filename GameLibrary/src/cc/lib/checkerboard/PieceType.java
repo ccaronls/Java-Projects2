@@ -14,14 +14,14 @@ public enum PieceType {
     BISHOP("Bi", 3, 8),
     KNIGHT("Kn", 3, 16),
     ROOK("Ro", 5, 4),
-    ROOK_IDLE("RI", 5, 4), // only an idle rook can castle
+    ROOK_IDLE(true, "RI", 5, 4), // only an idle rook can castle
     QUEEN("Qu", 8, 4 + 8),
     CHECKED_KING("Kc", 0, 1), // chess only, flag the king as checked
     CHECKED_KING_IDLE("KC", 1, 1), // a king that has not moved
     UNCHECKED_KING("Ki", 9, 1), // chess only
     UNCHECKED_KING_IDLE("KI", 10, 1), // only an unchecked idle king can castle
     DRAGON("Dr", 5, 32), // moves like queen but only 3 spaces
-    DRAGON_IDLE("DI", 5, 32), // moves like queen but only 3 spaces
+    DRAGON_IDLE(true, "DI", 5, 32), // moves like queen but only 3 spaces
 
     KING("Ck", 5, 64), // checkers king, not chess
     FLYING_KING("CK", 10, 64),
@@ -35,6 +35,7 @@ public enum PieceType {
     public final String abbrev;
     final int value;
     final int flag;
+    final boolean castleWith;
 
     public boolean isFlying() {
         switch (this) {
@@ -45,12 +46,22 @@ public enum PieceType {
         return false;
     }
 
+    public boolean canCastleWith() {
+        return castleWith;
+    }
+
     PieceType(String abbrev, int value, int flag) {
+        this(false, abbrev, value, flag);
+    }
+
+    PieceType(boolean castleWith, String abbrev, int value, int flag) {
+
         if (abbrev.length() != 2)
             throw new AssertionError("Abbrev must be 2 chars");
         this.abbrev = abbrev;
         this.value = value;
         this.flag = flag;
+        this.castleWith = castleWith;
     }
 
     /**

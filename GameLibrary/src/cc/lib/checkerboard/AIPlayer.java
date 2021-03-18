@@ -272,8 +272,6 @@ public class AIPlayer extends Player {
     static long miniMaxABR(Game game, Move root, boolean maximizePlayer, int depth, int actualDepth, long alpha, long beta) {
         if (root == null || root.getPlayerNum() < 0)
             throw new AssertionError();
-        if (kill)
-            return 0;
         int winner;
         switch (winner=game.getWinnerNum()) {
             case Game.NEAR:
@@ -282,23 +280,23 @@ public class AIPlayer extends Player {
         }
         if (game.isDraw())
             return 0;
-        if (depth <= 0 || actualDepth > 30) {
+        if (kill || depth <= 0 || actualDepth > 30) {
             return evaluate(game, actualDepth);
         }
         root.children = new ArrayList<>(game.getMoves());
-        if (maximizePlayer) {
-            Collections.sort(root.children, SORT_DESCENDING);
-        } else {
-            Collections.sort(root.children, SORT_ASCENDING);
-        }
+        //if (maximizePlayer) {
+        //    Collections.sort(root.children, SORT_DESCENDING);
+        //} else {
+        //    Collections.sort(root.children, SORT_ASCENDING);
+       // }
 
         long value = maximizePlayer ? Long.MIN_VALUE : Long.MAX_VALUE;
         Move path = null;
         root.maximize = maximizePlayer ? 1 : -1;
         for (Move m : root.children) {
             m.parent = root;
+//            String gameBeforeMove = game.toString();
             try {
-                //String gameBeforeMove = game.toString();
                 game.executeMove(m);
             } catch (Exception e) {
                 e.printStackTrace();

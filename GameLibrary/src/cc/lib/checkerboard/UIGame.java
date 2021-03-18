@@ -69,18 +69,23 @@ public abstract class UIGame extends Game {
         gameRunning = true;
         new Thread(() -> {
             Thread.currentThread().setName("runGame");
-            while (gameRunning) {
-                log.debug("run game");
-                runGame();
-                if (gameRunning) {
-                    if (isGameOver())
-                        break;
-                    trySaveToFile(saveFile);
-                    repaint(0);
-                } else {
-                    log.debug("leaving");
+            try {
+                while (gameRunning) {
+                    log.debug("run game");
+                    runGame();
+                    if (gameRunning) {
+                        if (isGameOver())
+                            break;
+                        trySaveToFile(saveFile);
+                        repaint(0);
+                    } else {
+                        log.debug("leaving");
+                    }
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
+            repaint(0);
             gameRunning = false;
             log.debug("game thread stopped");
         }).start();
@@ -315,12 +320,12 @@ public abstract class UIGame extends Game {
                         highlightedCol = c;
                     }
                     g.setColor(GColor.YELLOW);
-                    g.drawJustifiedStringOnBackground(mv, Justify.CENTER, Justify.CENTER, String.format("%d,%d", r, c), GColor.BLACK, 5, 0);
+                    g.drawJustifiedStringOnBackground(mv, Justify.CENTER, Justify.CENTER, String.format("%d,%d\n%s", r, c, getPiece(r, c).getType()), GColor.BLACK, 5, 0);
                 }
             }
         }
 
-        for (Piece p : getPieces()) {
+        for (Piece p : getPieces(-1)) {
             int r = p.getRank();
             int c = p.getCol();
             float x = c * cw + cw / 2;

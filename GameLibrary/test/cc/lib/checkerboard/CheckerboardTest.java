@@ -333,8 +333,8 @@ public class CheckerboardTest extends TestCase {
         gm.setPlayer(1, new Player());
         gm.getRules().init(gm);
         int num = 0;
-        for (Piece p : gm.getPieces()) {
-            System.out.println(p.getType());
+        for (Piece p : gm.getPieces(-1)) {
+            System.out.println(p);
             num++;
         }
         Assert.assertEquals(32, num);
@@ -342,12 +342,40 @@ public class CheckerboardTest extends TestCase {
 
     public void testGetPieces2() {
         Game gm = new Game();
+        gm.setRules(new DragonChess());
+        gm.setPlayer(0, new Player());
+        gm.setPlayer(1, new Player());
+        gm.getRules().init(gm);
+        int num = 0;
+        for (Piece p : gm.getPieces(0)) {
+            System.out.println(p);
+            num++;
+        }
+        Assert.assertEquals(16, num);
+    }
+
+    public void testGetPieces3() {
+        Game gm = new Game();
+        gm.setRules(new DragonChess());
+        gm.setPlayer(0, new Player());
+        gm.setPlayer(1, new Player());
+        gm.getRules().init(gm);
+        int num = 0;
+        for (Piece p : gm.getPieces(1)) {
+            System.out.println(p);
+            num++;
+        }
+        Assert.assertEquals(16, num);
+    }
+
+    public void testGetPieces4() {
+        Game gm = new Game();
         gm.setRules(new Chess());
         gm.setPlayer(0, new Player());
         gm.setPlayer(1, new Player());
         gm.getRules().init(gm);
         int num = 0;
-        for (Piece p : gm.getPieces()) {
+        for (Piece p : gm.getPieces(-1)) {
             System.out.println(p.getType());
             num++;
         }
@@ -363,7 +391,7 @@ public class CheckerboardTest extends TestCase {
 
         int num=1;
         HashSet<Piece> set = new HashSet<>();
-        for (Piece p : game) {
+        for (Piece p : game.getPieces(-1)) {
             Assert.assertFalse(set.contains(p));
             set.add(p);
             System.out.println(num++ + ":" + p);
