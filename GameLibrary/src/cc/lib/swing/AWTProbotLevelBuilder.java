@@ -101,7 +101,7 @@ public class AWTProbotLevelBuilder extends AWTComponent {
                         break;
                     }
                     case "Open": {
-                        File toOpen = frame.showFileOpenChooser("Open Levels File", null);
+                        File toOpen = frame.showFileOpenChooser("Open Levels File", "Probot Levels", null);
                         if (toOpen != null) {
                             frame.log.info("Opening '%s'", toOpen);
                             try {
@@ -121,7 +121,7 @@ public class AWTProbotLevelBuilder extends AWTComponent {
                             String levelsStr  = frame.getProperties().getProperty(LEVEL_FILE);
                             frame.log.info("Saving to '%s'",levelsStr);
                             if (levelsStr  == null) {
-                                File levelsFile = frame.showFileSaveChooser("Choose File to save", null, null);
+                                File levelsFile = frame.showFileSaveChooser("Choose File to save", "Probot Levels", null, null);
                                 if (levelsFile != null) {
                                     Reflector.serializeToFile(levels, levelsFile);
                                     frame.setProperty(LEVEL_FILE, levelsFile.getAbsolutePath());
@@ -141,7 +141,7 @@ public class AWTProbotLevelBuilder extends AWTComponent {
                         if (str != null) {
                             levelsFile = new File(str);
                         }
-                        File newFile = frame.showFileSaveChooser("Choose File to save", null, levelsFile);
+                        File newFile = frame.showFileSaveChooser("Choose File to save", "Probot Levels", null, levelsFile);
                         if (newFile != null) {
                            frame.log.info("Saving to '%d'", newFile);
                             try {

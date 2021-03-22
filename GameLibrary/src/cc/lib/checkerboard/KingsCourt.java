@@ -4,6 +4,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import cc.lib.game.Utils;
+import cc.lib.utils.GException;
 
 import static cc.lib.checkerboard.Game.FAR;
 import static cc.lib.checkerboard.Game.NEAR;
@@ -79,7 +80,7 @@ public class KingsCourt extends Checkers {
                 }
             }
             if (moves.size() < 1)
-                throw new AssertionError("Bad state");
+                throw new GException("Bad state");
         }
         // visit moves and remove any that cause us to lose
         getWinner(game);
@@ -142,7 +143,7 @@ public class KingsCourt extends Checkers {
                         value += scale * (10 - distToCourtTable[r][c]);
                         break;
                     default:
-                        throw new AssertionError("Unhandled case '" + p.getType() + "'");
+                        throw new GException("Unhandled case '" + p.getType() + "'");
                 }
 
             }

@@ -195,8 +195,8 @@ public class Game extends Reflector<Game> implements IGame<Move> {
         } else {
             Move m = players[turn].chooseMoveForPiece(this, getMovesforPiece(selectedPiece));
             if (m != null) {
-                executeMove(m);
                 onMoveChosen(m);
+                executeMove(m);
             }
             selectedPiece = null;
         }
@@ -219,7 +219,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
      */
     public final Piece getPiece(int rank, int col) {
         //if (!isOnBoard(rank, col)) {
-        //    throw new AssertionError("Not on board [" + rank + "," + col + "]");
+        //    throw new GException("Not on board [" + rank + "," + col + "]");
        // }
         return board[rank][col];
     }
@@ -276,7 +276,8 @@ public class Game extends Reflector<Game> implements IGame<Move> {
             if (num <= 0)
                 return false;
             next = null;
-            for ( ; rank >= 0 && rank<getRanks(); rank+=advDir) {
+            final int end = advDir > 0 ? getRanks() : -1;
+            for ( ; rank != end; rank+=advDir) {
                 for ( ; col < getColumns(); col++) {
                     int p = board[rank][col].playerNum;
                     if (p >= 0 && p != notPlayerNum) {
@@ -399,32 +400,15 @@ public class Game extends Reflector<Game> implements IGame<Move> {
             throw new GException("Invalid move to execute");
         State state = new State(moves.indexOf(move) // <-- TODO: Make this faster
                 , moves);
-        if (rules instanceof Chess) {
-            state.enpassants = new ArrayList<>();
-            for (Piece p : getPieces(getTurn())) {
-                int rank = p.getRank();
-                int col = p.getCol();
-                if (move.getStart()[0] != rank && move.getStart()[1] != col) {
-                    if (p.getType() == PieceType.PAWN_ENPASSANT) {
-                        state.enpassants.add(new int[]{rank, col});
-                    }
-                }
-            }
-        }
         Utils.assertTrue(undoStack.size() < 1024);
 
-        undoStack.push(state);
         //
         moves = null;
         clearPieceMoves();
         if (DEBUG)
             System.out.println("COUNTER:" + (counter++) + "\nGAME BEFORE MOVE: " + move + "\n" + this);
         rules.executeMove(this, move);
-        if (state.enpassants != null) {
-            for (int [] pos : state.enpassants) {
-                getPiece(pos).setType(PieceType.PAWN);
-            }
-        }
+        undoStack.push(state);
         if (moves != null) {
             countPieceMoves();
         }
@@ -497,13 +481,11 @@ public class Game extends Reflector<Game> implements IGame<Move> {
             selectedPiece = null;
             //turn = moves.get(0).getPlayerNum();
             countPieceMoves();
-            if (state.enpassants != null) {
-                for (int [] pos : state.enpassants) {
-                    Piece p = getPiece(pos);
-                    if (p.getType() != PieceType.PAWN)
-                        throw new GException("Logic Error: Not a pawn: " + p);
-                    getPiece(pos).setType(PieceType.PAWN_ENPASSANT);
-                }
+            if (m.getEnpassant() != null) {
+                Piece p = getPiece(m.getEnpassant());
+                if (p.getPlayerNum() == m.getPlayerNum() && p.getType() == PieceType.PAWN)
+//                Utils.assertTrue(p.getType() == PieceType.PAWN);
+                  p.setType(PieceType.PAWN_ENPASSANT);
             }
             gameState = GameState.PLAYING;
             return m;
@@ -597,11 +579,9 @@ public class Game extends Reflector<Game> implements IGame<Move> {
     }
 
     public Piece movePiece(Move m) {
-        Piece p;
-        if ((p=getPiece(m.getStart())).getPlayerNum() != getTurn())
-            throw new GException("Logic Error: Not player " + p.getPlayerNum() + "'s turn: " + getTurn() + "'s turn. For Piece:\n" + p);
-        if (p.getType()==PieceType.EMPTY)
-            throw new GException("Logic Error: Moving an empty piece. For Move:\n" + m);
+        Piece p = getPiece(m.getStart());
+        Utils.assertTrue(p.getPlayerNum() == getTurn());//, "Logic Error: Not player " + p.getPlayerNum() + "'s turn: " + getTurn() + "'s turn. For Piece:\n" + p);
+        Utils.assertTrue(p.getType().flag != 0);//, "Logic Error: Moving an empty piece. For Move:\n" + m);
         copyPiece(m.getStart(), m.getEnd());
         clearPiece(m.getStart());
         p = getPiece(m.getEnd());
@@ -756,14 +736,6 @@ public class Game extends Reflector<Game> implements IGame<Move> {
                 break;
         }
         s.append("(").append(turn).append(") ").append(getTurnStr(turn));
-        if (undoStack.size() > 0) {
-            State state = undoStack.peek();
-            if (state.enpassants != null) {
-                for (int [] pos : state.enpassants) {
-                    s.append("[").append(pos[0]).append(",").append(pos[1]).append("] ");
-                }
-            }
-        }
         for (int ii=0; ii<2; ii++, turn = getOpponent(turn)) {
             Player pl = getPlayer(turn);
             s.append("\n");
@@ -849,5 +821,14 @@ public class Game extends Reflector<Game> implements IGame<Move> {
             }
         }
         return true;
+    }
+
+    Move getPreviousMove(int playerNum) {
+        for (int i=undoStack.size()-1; i>= 0; i--) {
+            Move m = undoStack.get(i).getMove();
+            if (m.getPlayerNum() == playerNum)
+                return m;
+        }
+        return null;
     }
 }

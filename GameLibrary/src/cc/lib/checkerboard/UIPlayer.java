@@ -6,6 +6,7 @@ import cc.lib.game.AGraphics;
 import cc.lib.game.GColor;
 import cc.lib.game.Justify;
 import cc.lib.game.Utils;
+import cc.lib.utils.GException;
 
 public class UIPlayer extends AIPlayer {
 
@@ -27,6 +28,11 @@ public class UIPlayer extends AIPlayer {
         this.type = type;
     }
 
+    public UIPlayer(Type type, int difficulty) {
+        super(difficulty);
+        this.type = type;
+    }
+
     @Override
     public Piece choosePieceToMove(Game game, List<Piece> pieces) {
         switch (type) {
@@ -37,7 +43,7 @@ public class UIPlayer extends AIPlayer {
             case AI:
                 return super.choosePieceToMove(game, pieces);
         }
-        throw new AssertionError("Unhandled case: " +type);
+        throw new GException("Unhandled case: " +type);
     }
 
     @Override
@@ -50,7 +56,7 @@ public class UIPlayer extends AIPlayer {
             case AI:
                 return super.chooseMoveForPiece(game, moves);
         }
-        throw new AssertionError("Unhandled case: " +type);
+        throw new GException("Unhandled case: " +type);
     }
 
     public void drawStatus(AGraphics g, float w, float h) {

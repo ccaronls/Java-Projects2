@@ -542,7 +542,7 @@ public class AWTFrame extends JFrame implements WindowListener, ComponentListene
         setProperty(property, Utils.trimEnclosure(items.toString()));
     }
 
-    static FileFilter getExtensionFilter(final String ext, final boolean acceptDirectories) {
+    static FileFilter getExtensionFilter(final String ext, final String description, final boolean acceptDirectories) {
 
         return new FileFilter() {
 
@@ -553,7 +553,7 @@ public class AWTFrame extends JFrame implements WindowListener, ComponentListene
             }
 
             public String getDescription() {
-                return "SOC Board Files";
+                return description;
             }
 
         };
@@ -587,7 +587,7 @@ public class AWTFrame extends JFrame implements WindowListener, ComponentListene
      * @param extension
      * @return
      */
-    public File showFileOpenChooser(String title, String extension) {
+    public File showFileOpenChooser(String title, String extension, String description) {
         JFileChooser chooser = new JFileChooser();
         chooser.setCurrentDirectory(getWorkingDir());
         chooser.setDialogTitle(title);
@@ -595,7 +595,7 @@ public class AWTFrame extends JFrame implements WindowListener, ComponentListene
         if (extension != null) {
             if (!extension.startsWith("."))
                 extension = "." + extension;
-            chooser.setFileFilter(getExtensionFilter(extension, true));
+            chooser.setFileFilter(getExtensionFilter(extension, description, true));
         }
         int result = chooser.showOpenDialog(this);
         if (result == JFileChooser.APPROVE_OPTION) {
@@ -616,7 +616,7 @@ public class AWTFrame extends JFrame implements WindowListener, ComponentListene
      * @param selectedFile
      * @return
      */
-    public File showFileSaveChooser(String title, String extension, File selectedFile) {
+    public File showFileSaveChooser(String title, String extension, String description, File selectedFile) {
         final JFileChooser chooser = new JFileChooser();
         chooser.setSelectedFile(selectedFile);
         chooser.setCurrentDirectory(getWorkingDir());
@@ -625,7 +625,7 @@ public class AWTFrame extends JFrame implements WindowListener, ComponentListene
         if (extension != null) {
             if (!extension.startsWith("."))
                 extension = "." + extension;
-            chooser.setFileFilter(getExtensionFilter(extension, true));
+            chooser.setFileFilter(getExtensionFilter(extension, description, true));
         }
         int result = chooser.showSaveDialog(this);
         if (result == JFileChooser.APPROVE_OPTION) {

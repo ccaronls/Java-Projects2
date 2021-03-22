@@ -25,8 +25,7 @@ import cc.lib.game.AGraphics;
 import cc.lib.game.Utils;
 import cc.lib.utils.FileUtils;
 
-import static java.awt.event.KeyEvent.VK_E;
-import static java.awt.event.KeyEvent.VK_U;
+import static java.awt.event.KeyEvent.*;
 
 public class AWTCheckerboard extends AWTComponent {
 
@@ -40,6 +39,7 @@ public class AWTCheckerboard extends AWTComponent {
     final AWTFrame frame;
     final UIGame game;
     final File saveFile;
+    int difficulty = 2;
 
     int loadImage(AGraphics g, String path) {
         int id = g.loadImage(path);
@@ -107,7 +107,7 @@ public class AWTCheckerboard extends AWTComponent {
             protected void onMenuItemSelected(String menu, String subMenu) {
                 switch (menu) {
                     case "Load Game": {
-                        File file = frame.showFileOpenChooser("Load Game", ".game");
+                        File file = frame.showFileOpenChooser("Load Game", ".save", "checkerboard games");
                         if (file != null) {
                             Game tmp = new Game();
                             if (tmp.tryLoadFromFile(file)) {
@@ -206,7 +206,20 @@ public class AWTCheckerboard extends AWTComponent {
                                 break;
                         }
                         break;
+                    case "Difficulty":
+                        switch (subMenu) {
+                            case "Easy":
+                                ((UIPlayer)game.getPlayer(Game.FAR)).setMaxSearchDepth(difficulty=1);
+                                break;
+                            case "Medium":
+                                ((UIPlayer)game.getPlayer(Game.FAR)).setMaxSearchDepth(difficulty=2);
+                                break;
+                            case "Hard":
+                                ((UIPlayer)game.getPlayer(Game.FAR)).setMaxSearchDepth(difficulty=3);
+                                break;
 
+                        }
+                        break;
                 }
             }
         };
@@ -256,6 +269,7 @@ public class AWTCheckerboard extends AWTComponent {
         frame.addMenuBarMenu("New Game", items);
         frame.addMenuBarMenu("Load Game", "From File");
         frame.addMenuBarMenu("Game", "Stop Thinking", "Resume", "Stop", "One Player", "Two Players");
+        frame.addMenuBarMenu("Difficulty", "Easy", "Medium", "Hard");
         frame.setPropertiesFile(new File(settings, "gui.properties"));
         if (!frame.restoreFromProperties())
             frame.centerToScreen(640, 640);
@@ -284,6 +298,10 @@ public class AWTCheckerboard extends AWTComponent {
                 long value = game.getRules().evaluate(game, m);
                 System.out.println("EVALUATION [" + value + "] for move:" + m);
                 ((UIPlayer)game.getCurrentPlayer()).forceRebuildMovesList(game);
+                break;
+            }
+            case VK_R: {
+                game.startGameThread();
                 break;
             }
         }

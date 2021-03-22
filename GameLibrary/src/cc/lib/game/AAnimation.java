@@ -94,19 +94,19 @@ public abstract class AAnimation<T> {
      * @param delayMSecs
      * @return
      */
-    public final AAnimation<T> startReverse(long delayMSecs) {
+    public final <A extends AAnimation<T>> A startReverse(long delayMSecs) {
         start(delayMSecs);
         position = 1;
         startDirectionReverse = reverse = true;
-        return this;
+        return (A)this;
     }
 
     /**
      * Emmediately start the animation in reverse direction
      * @return
      */
-    public final AAnimation<T> startReverse() {
-        return startReverse(0);
+    public final <A extends AAnimation<T>> A startReverse() {
+        return (A)startReverse(0);
     }
 
     /**
@@ -146,7 +146,11 @@ public abstract class AAnimation<T> {
             } else if (state == State.STARTED) {
                 state = State.RUNNING;
                 lastTime = t;
-                onStarted();
+                if (startDirectionReverse) {
+                    onStartedRevered();
+                } else {
+                    onStarted();
+                }
             }
 
             float delta = (t - startTime) % duration;
@@ -223,6 +227,8 @@ public abstract class AAnimation<T> {
      * If there is an initial delay then this will indicate the delay has expired.
      */
     protected void onStarted() {}
+
+    protected void onStartedRevered() {}
 
     public final boolean isStartDirectionReverse() {
         return startDirectionReverse;

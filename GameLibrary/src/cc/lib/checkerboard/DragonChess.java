@@ -51,14 +51,20 @@ public class DragonChess extends Chess {
         if (super.isSquareAttacked(game, rank, col, attacker))
             return true;
 
-        int [][] kd = pieceDeltas[DRAGON_IDLE.ordinal()][rank][col];
-        int [] dr = kd[0];
-        int [] dc = kd[1];
-        for (int i = 0; i < dr.length; i++) {
-            int rr = rank + dr[i];
-            int cc = col + dc[i];
-            if (testPiece(game, rr, cc, attacker, FLAG_DRAGON))
-                return true;
+        int kn=computeKDN(rank, col, DELTAS_N, DELTAS_S, DELTAS_E, DELTAS_W, DELTAS_NE, DELTAS_NW, DELTAS_SE, DELTAS_SW);
+        for (int k=0; k<kn; k++) {
+            int [][] kd = kdn[k];
+            int [] dr = kd[0];
+            int [] dc = kd[1];
+            int num = Math.min(3, dr.length);
+            for (int i = 0; i < num; i++) {
+                int rr = rank + dr[i];
+                int cc = col + dc[i];
+                if (testPiece(game, rr, cc, attacker, FLAG_DRAGON))
+                    return true;
+                if (game.getPiece(rr, cc).getType() != EMPTY)
+                    break;
+            }
         }
 
         return false;

@@ -366,7 +366,7 @@ public abstract class AWTBoardBuilder extends AWTComponent {
                 setBoardFile(null);
                 break;
             case "Load Board": {
-                File file = frame.showFileOpenChooser("Load Board", "board");
+                File file = frame.showFileOpenChooser("Load Board", "Generic Boards", "board");
                 if (file != null) {
                     try {
                         CustomBoard b = new CustomBoard();
@@ -380,7 +380,7 @@ public abstract class AWTBoardBuilder extends AWTComponent {
                 break;
             }
             case "Load Image": {
-                File file = frame.showFileOpenChooser("Load Image", null);
+                File file = frame.showFileOpenChooser("Load Image", "Generic Boards", null);
                 if (file != null) {
                     background = getAPGraphics().loadImage(file.getAbsolutePath());
                     if (background < 0) {
@@ -394,7 +394,7 @@ public abstract class AWTBoardBuilder extends AWTComponent {
                 break;
             }
             case "Save As...": {
-                File file = frame.showFileSaveChooser("Save Board", "board", null);
+                File file = frame.showFileSaveChooser("Save Board", "board", "Generic Boards", null);
                 if (file != null) {
                     try {
                         board.saveToFile(file);

@@ -54,6 +54,10 @@ public class Piece extends Reflector<Piece> {
         rank = col = -1;
     }
 
+    public Piece(int playerNum, PieceType type) {
+        this(-1, -1, playerNum, type);
+    }
+
     public Piece(int rank, int col, int playerNum, PieceType type) {
         if (type == null)
             throw new cc.lib.utils.GException("type cannot be null");

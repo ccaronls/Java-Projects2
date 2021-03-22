@@ -65,7 +65,7 @@ public class Utils {
      * @param expr
      */
     public static void assertTrue(boolean expr) {
-        assertTrue(expr, "Expression is false");
+        assertTrue(expr, null);
     }
 
     /**
@@ -88,8 +88,10 @@ public class Utils {
      */
     public static void assertTrue(boolean expr, String msg, Object... args) {
         if (!expr) {
+            if (msg==null)
+                msg = "Expresion Failed";
             if (DEBUG_ENABLED)
-                throw new cc.lib.utils.GException("ASSERT FAILED " + String.format(msg, args));
+                throw new GException("ASSERT FAILED " + String.format(msg, args));
             else
                 System.err.println(formatNoThrow(msg, args));
         }

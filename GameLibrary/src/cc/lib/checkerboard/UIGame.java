@@ -2,16 +2,22 @@ package cc.lib.checkerboard;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
+import cc.lib.game.AAnimation;
 import cc.lib.game.AGraphics;
 import cc.lib.game.GColor;
 import cc.lib.game.GDimension;
+import cc.lib.game.IVector2D;
 import cc.lib.game.Justify;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
+import cc.lib.math.Bezier;
 import cc.lib.math.Vector2D;
+import cc.lib.utils.Lock;
 
 public abstract class UIGame extends Game {
 
@@ -28,6 +34,8 @@ public abstract class UIGame extends Game {
 
     float SQ_DIM, PIECE_RADIUS, BORDER_WIDTH;
     GDimension SCREEN_DIM, BOARD_DIM;
+
+    final List<PieceAnim> animations = Collections.synchronizedList(new ArrayList<>());
 
     public UIGame() {
     }
@@ -110,7 +118,10 @@ public abstract class UIGame extends Game {
         SQ_DIM = Math.min(SCREEN_DIM.getWidth(), SCREEN_DIM.getHeight()) / Math.min(getRanks(), getColumns());
         BOARD_DIM = new GDimension(SQ_DIM * getColumns(), SQ_DIM * getRanks());
 
-        if (SCREEN_DIM.getAspect() > 1) {
+        if (getRules() instanceof DragonChess) {
+            // always landscape using the portion of the screen not used by the board
+            drawDragonChess(g, mx, my);
+        } else if (SCREEN_DIM.getAspect() > 1) {
             // landscape draws board on the left and captured pieces on the right
             drawLandscape(g, mx, my);
         } else {
@@ -125,14 +136,26 @@ public abstract class UIGame extends Game {
         final float infoHgt = SCREEN_DIM.getHeight()/2-BOARD_DIM.getHeight()/2;
 
         GDimension infoDim = new GDimension(SCREEN_DIM.getWidth(), infoHgt);
-        drawPlayer((UIPlayer)getPlayer(NEAR), g, infoDim);
-        drawCapturedPieces(g, infoDim, FAR, getCapturedPieces(FAR));
+        drawPlayer((UIPlayer)getPlayer(FAR), g, infoDim);
         g.translate(0, infoHgt);
         drawBoard(g, mx, my);
         g.translate(0, BOARD_DIM.getHeight());
-        drawPlayer((UIPlayer)getPlayer(FAR), g, infoDim);
+        drawPlayer((UIPlayer)getPlayer(NEAR), g, infoDim);
 
         g.popMatrix();
+    }
+
+    private void drawDragonChess(AGraphics g, int mx, int my) {
+        GDimension info = new GDimension(SQ_DIM * 3 + SCREEN_DIM.getWidth() - BOARD_DIM.getWidth(), SQ_DIM * 3);
+
+        drawBoard(g, mx, my);
+        g.pushMatrix();
+        g.translate(BOARD_DIM.getWidth() - SQ_DIM*3, 0);
+        drawPlayer((UIPlayer)getPlayer(FAR), g, info);
+        g.translate(0, info.getHeight() + SQ_DIM * 4);
+        drawPlayer((UIPlayer)getPlayer(NEAR), g, info);
+        g.popMatrix();
+
     }
 
     private void drawLandscape(AGraphics g, int mx, int my) {
@@ -146,12 +169,6 @@ public abstract class UIGame extends Game {
         g.translate(0, info.getHeight());
         drawPlayer((UIPlayer)getPlayer(NEAR), g, info);
         g.popMatrix();
-        g.setColor(GColor.WHITE);
-/*        if (getWinner() != null) {
-            g.drawJustifiedString(WIDTH - 10, 10, Justify.RIGHT, "Winner: " + getWinner().getColor());
-        } else {
-            g.drawJustifiedString(WIDTH - 10, 10, Justify.RIGHT, "Turn: " + getPlayer(getTurn()).getColor());
-        }*/
     }
 
     private void drawPlayer(UIPlayer player, AGraphics g, GDimension info) {
@@ -172,6 +189,21 @@ public abstract class UIGame extends Game {
 
         // draw player info
         String txt = player.getType().name();
+        if (player.getType() == UIPlayer.Type.AI) {
+            txt += " (";
+            switch (player.getMaxSearchDepth()) {
+                case 1:
+                    txt += "Easy"; break;
+                case 2:
+                    txt += "Medium"; break;
+                case 3:
+                    txt += "Hard"; break;
+                default:
+                    txt += "MaxDepth: " + player.getMaxSearchDepth();
+                    break;
+            }
+            txt += ")";
+        }
         if (player.isThinking()) {
             int secs = player.getThinkingTimeSecs();
             int mins = secs / 60;
@@ -364,6 +396,19 @@ public abstract class UIGame extends Game {
             }
         }
 
+        synchronized (animations) {
+            Iterator<PieceAnim> it = animations.iterator();
+            while (it.hasNext()) {
+                PieceAnim a = it.next();
+                if (a.isDone()) {
+                    it.remove();
+                } else {
+                    a.update(g);
+                    repaint(0);
+                }
+            }
+        }
+
         if (isGameOver()) {
             if (getWinner() != null) {
                 int x = g.getViewportWidth() / 2;
@@ -540,26 +585,73 @@ public abstract class UIGame extends Game {
 
     @Override
     protected void onMoveChosen(Move m) {
+        Piece pc = new Piece(m.getPlayerNum(), m.getStartType());
+        if (m.hasCaptured()) {
+
+        }
         switch (m.getMoveType()) {
 
             case END:
                 break;
             case SLIDE: {
-
+                animations.add(new SlideAnim(m.getStart(),m.getEnd(), pc).start());
                 break;
             }
             case FLYING_JUMP:
-                break;
             case JUMP:
+                animations.add(new JumpAnim(m.getStart(), m.getEnd(), pc).start());
+                break;
+            case STACK:
+                animations.add(new StackAnim(m.getStart(), pc).start());
+                break;
+            case SWAP:
+                break;
+            case CASTLE:
+                animations.add(new SlideAnim(m.getStart(),m.getEnd(), pc).start());
+                animations.add(new JumpAnim(m.getCastleRookStart(), m.getCastleRookEnd(), new Piece(m.getPlayerNum(), PieceType.ROOK_IDLE)).start());
+                break;
+
+        }
+
+        repaint(0);
+        animLock.block();
+    }
+/*
+    @Override
+    protected void onMoveReversed(Move m) {
+        Piece pc = new Piece(m.getPlayerNum(), m.getStartType());
+        if (m.hasCaptured()) {
+
+        }
+        switch (m.getMoveType()) {
+
+            case END:
+                break;
+            case SLIDE: {
+                animations.add(new SlideAnim(m.getEnd(),m.getStart(), pc).start());
+                break;
+            }
+            case FLYING_JUMP:
+            case JUMP:
+                animations.add(new JumpAnim(m.getEnd(), m.getStart(), pc).start());
                 break;
             case STACK:
                 break;
             case SWAP:
                 break;
             case CASTLE:
+                animations.add(new SlideAnim(m.getEnd(),m.getStart(), pc).start());
+                animations.add(new JumpAnim(m.getCastleRookEnd(), m.getCastleRookStart(), new Piece(m.getPlayerNum(), PieceType.ROOK_IDLE)).start());
                 break;
+
         }
-    }
+
+        repaint(0);
+        animLock.block();
+    }*/
+
+    @Omit
+    final Lock animLock = new Lock();
 
     @Override
     protected void onPieceSelected(Piece p) {
@@ -574,4 +666,112 @@ public abstract class UIGame extends Game {
      * @return
      */
     public abstract int getPieceImageId(PieceType p, Color color);
+
+    abstract class PieceAnim extends AAnimation<AGraphics> {
+
+        final float sx, sy, ex, ey;
+        Piece pc;
+        final int [] start;
+
+        public PieceAnim(int [] start, int [] end, Piece pc, long durationMSecs) {
+            this(start, SQ_DIM * end[1] + SQ_DIM / 2, SQ_DIM * end[0] + SQ_DIM / 2, pc, durationMSecs);
+        }
+
+        public PieceAnim(int [] start, float ex, float ey, Piece pc, long durationMSecs) {
+            super(durationMSecs);
+            this.start = start;
+            this.sx = SQ_DIM * start[1] + SQ_DIM / 2;
+            this.sy = SQ_DIM * start[0] + SQ_DIM / 2;
+            this.ex = ex;
+            this.ey = ey;
+            this.pc = new Piece(-1, -1, pc.getPlayerNum(), pc.getType());
+            animLock.aquire();
+        }
+
+        @Override
+        protected void onStarted() {
+            clearPiece(start);
+        }
+
+        @Override
+        protected void onDone() {
+            setPiece(start, pc.getPlayerNum(), pc.getType());
+            animLock.release();
+        }
+    }
+
+    class SlideAnim extends PieceAnim {
+        public SlideAnim(int[] start, int[] end, Piece pc) {
+            super(start, end, pc, 1000);
+        }
+
+        @Override
+        protected void draw(AGraphics g, float position, float dt) {
+            float x = sx + (ex-sx) * position;
+            float y = sy + (ey-sy) * position;
+            g.pushMatrix();
+            g.translate(x, y);
+            drawPiece(g, pc, PIECE_RADIUS*2, PIECE_RADIUS*2);
+            g.popMatrix();
+        }
+    }
+
+    class JumpAnim extends PieceAnim {
+
+        final Bezier curve;
+        boolean upsidedown;
+
+        private IVector2D[] computeJumpPoints(int playerNum) {
+
+            float midx1 = sx + ((ex-sx) / 3);
+            float midx2 = sx + ((ex-sx) * 2 / 3);
+            float midy1 = sy + ((ey-sy) / 3);
+            float midy2 = sy + ((ey-sy) * 2 / 3);
+            float dist = -SQ_DIM;//-1;//getDir(playerNum);
+            IVector2D [] v = {
+                    new Vector2D(sx, sy),
+                    new Vector2D(midx1, midy1+dist),
+                    new Vector2D(midx2, midy2+dist),
+                    new Vector2D(ex, ey),
+            };
+            return v;
+        }
+
+        public JumpAnim(int[] start, int[] end, Piece pc) {
+            super(start, end, pc, 1200);
+            curve = new Bezier(computeJumpPoints(pc.getPlayerNum()));
+        }
+
+        @Override
+        protected void draw(AGraphics g, float position, float dt) {
+            IVector2D v = curve.getPointAt(position);
+            g.pushMatrix();
+            g.translate(v);
+            drawPiece(g, pc, PIECE_RADIUS*2, PIECE_RADIUS*2);
+            g.popMatrix();
+
+        }
+    }
+
+    class StackAnim extends PieceAnim {
+
+        public StackAnim(int [] pos, Piece p) {
+            super(pos, SQ_DIM * pos[1] + SQ_DIM/2,
+                    pos[1] == 0 ? 0 : BOARD_DIM.getHeight(), p, 1200);
+        }
+
+        @Override
+        public void draw(AGraphics g, float position, float dt) {
+
+            float scale = 1 + (1-position);
+            int x = Math.round(sx + (ex-sx) * position);
+            int y = Math.round(sy + (ey-sy) * position);
+            g.pushMatrix();
+            g.translate(x, y);
+            g.scale(scale, scale);
+            drawPiece(g, pc, PIECE_RADIUS, PIECE_RADIUS);
+            g.popMatrix();
+        }
+
+    }
 }

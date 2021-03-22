@@ -1,10 +1,10 @@
 package cc.lib.checkerboard;
 
-import java.time.OffsetTime;
 import java.util.ArrayList;
 import java.util.List;
 
 import cc.lib.game.Utils;
+import cc.lib.utils.GException;
 
 import static cc.lib.checkerboard.Game.FAR;
 import static cc.lib.checkerboard.Game.NEAR;
@@ -36,7 +36,7 @@ public class Ugolki extends Checkers {
             }
         }
         if (index != OTHER_POSITIONS.length) {
-            throw new AssertionError();
+            throw new GException();
         }
     }
 
@@ -112,7 +112,7 @@ public class Ugolki extends Checkers {
                 break;
             }
             default:
-                throw new AssertionError("Unhandled case " + side);
+                throw new GException("Unhandled case " + side);
         }
         return true;
     }
@@ -144,8 +144,7 @@ public class Ugolki extends Checkers {
                 Piece p = game.getPiece(r, c);
                 if (p.getType() == EMPTY)
                     continue;
-                if (p.getType() != DAMA_MAN)
-                    throw new AssertionError("Invalid piece");
+                Utils.assertTrue(p.getType() == DAMA_MAN, "Invalid piece");
                 switch (p.getPlayerNum()) {
                     case NEAR:
                     case FAR:
@@ -158,7 +157,7 @@ public class Ugolki extends Checkers {
             if (p.getType() == EMPTY)
                 continue;
             if (p.getType() != DAMA_MAN)
-                throw new AssertionError("Invalid piece");
+                throw new GException("Invalid piece");
             switch (p.getPlayerNum()) {
                 case FAR:
                     numFarPiecesInPlace++;
@@ -174,7 +173,7 @@ public class Ugolki extends Checkers {
             if (p.getType() == EMPTY)
                 continue;
             if (p.getType() != DAMA_MAN)
-                throw new AssertionError("Invalid piece");
+                throw new GException("Invalid piece");
             switch (p.getPlayerNum()) {
                 case NEAR:
                     numNearPiecesInPlace++;
@@ -190,7 +189,7 @@ public class Ugolki extends Checkers {
             if (p.getType() == EMPTY)
                 continue;
             if (p.getType() != DAMA_MAN)
-                throw new AssertionError("Invalid piece");
+                throw new GException("Invalid piece");
             switch (p.getPlayerNum()) {
                 case NEAR:
                     nearPiecesNotInPlace.add(p);

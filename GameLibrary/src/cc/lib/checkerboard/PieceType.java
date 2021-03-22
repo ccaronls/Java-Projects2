@@ -1,5 +1,7 @@
 package cc.lib.checkerboard;
 
+import cc.lib.game.Utils;
+
 /**
  * Created by chriscaron on 10/10/17.
  */
@@ -12,6 +14,7 @@ public enum PieceType {
     PAWN_ENPASSANT("PE", 2, 2), // this pawn is available for en-passant capture for 1 turn
     PAWN_TOSWAP("PS", 100, 2), // This pawn is to be swapped for another piece
     BISHOP("Bi", 3, 8),
+    // Do right and left facing knights like (KNIGHT_R/L)
     KNIGHT("Kn", 3, 16),
     ROOK("Ro", 5, 4),
     ROOK_IDLE(true, "RI", 5, 4), // only an idle rook can castle
@@ -55,9 +58,7 @@ public enum PieceType {
     }
 
     PieceType(boolean castleWith, String abbrev, int value, int flag) {
-
-        if (abbrev.length() != 2)
-            throw new AssertionError("Abbrev must be 2 chars");
+        Utils.assertTrue(abbrev.length() == 2, "Abbrev must be 2 chars");
         this.abbrev = abbrev;
         this.value = value;
         this.flag = flag;
@@ -111,7 +112,7 @@ public enum PieceType {
     public final static int FLAG_ROOK_OR_QUEEN = 4; // all piece types that move along horizonal or vertical
     public final static int FLAG_BISHOP_OR_QUEEN = 8; // all piece types that can move along the diagonals
     public final static int FLAG_KNIGHT = 16; // all piece types that move like a knight
-    public final static int FLAG_DRAGON = 32; // all piece types that move like a knight
+    public final static int FLAG_DRAGON = 32; // dragon chess. Moves like Queen but only 3 spaces
     public final static int FLAG_CHECKER = 64;
 
 }

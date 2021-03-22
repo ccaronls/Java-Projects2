@@ -12,7 +12,6 @@ public final class State extends Reflector<State> {
 
     final int index;
     final List<Move> moves;
-    List<int []> enpassants;
 
     public State() {
         this(-1, null);

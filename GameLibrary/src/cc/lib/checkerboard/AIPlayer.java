@@ -22,7 +22,7 @@ public class AIPlayer extends Player {
     public static boolean movePathNodeToFront = true;
     public static boolean randomizeDuplicates = true;
 
-    private int maxSearchDepth = 3;
+    private int maxSearchDepth = 2;
 
     private final static Logger log = LoggerFactory.getLogger(AIPlayer.class);
 
@@ -66,6 +66,14 @@ public class AIPlayer extends Player {
         buildMovesList(game);
     }
 
+    public void setMaxSearchDepth(int maxSearchDepth) {
+        this.maxSearchDepth = maxSearchDepth;
+    }
+
+    public int getMaxSearchDepth() {
+        return maxSearchDepth;
+    }
+
     static void dumpTree(Writer out, Move root) throws IOException {
         dumpTreeR(out, root, "", null);
     }
@@ -93,7 +101,8 @@ public class AIPlayer extends Player {
 
     static class MoveException extends GException {
         final Move move;
-        MoveException(Move move) {
+        MoveException(String msg, Move move) {
+            super(msg);
             this.move = move;
         }
     }
@@ -132,7 +141,7 @@ public class AIPlayer extends Player {
             }
         } catch (MoveException e) {
             e.printStackTrace();
-            log.error("Error executing moves: " + e.move.getPathString());
+            log.error(e.getMessage() + " moves: " + e.move.getPathString());
         } catch (Throwable e) {
             e.printStackTrace();
             if (false) {
@@ -158,7 +167,7 @@ public class AIPlayer extends Player {
             // move the 'path' node to front so that it appears first in the xml
             if (movePathNodeToFront && root.children != null) {
                 if (!root.children.remove(m))
-                    throw new AssertionError();
+                    throw new GException();
                 root.children.add(0, m);
             }
             moveList.add(m);
@@ -212,7 +221,7 @@ public class AIPlayer extends Player {
      */
     static long miniMaxR(Game game, Move root, boolean maximizePlayer, int depth, int actualDepth) {
         if (root == null || root.getPlayerNum() < 0)
-            throw new AssertionError();
+            throw new GException();
         if (kill)
             return 0;
         int winner;
@@ -271,7 +280,7 @@ public class AIPlayer extends Player {
 
     static long miniMaxABR(Game game, Move root, boolean maximizePlayer, int depth, int actualDepth, long alpha, long beta) {
         if (root == null || root.getPlayerNum() < 0)
-            throw new AssertionError();
+            throw new GException();
         int winner;
         switch (winner=game.getWinnerNum()) {
             case Game.NEAR:
@@ -299,8 +308,7 @@ public class AIPlayer extends Player {
             try {
                 game.executeMove(m);
             } catch (Exception e) {
-                e.printStackTrace();
-                throw new MoveException(m);
+                throw new MoveException("Execute Move", m);
             }
             boolean sameTurn = m.getPlayerNum() == game.getTurn(); // if turn has not changed
             long v;
@@ -309,7 +317,11 @@ public class AIPlayer extends Player {
             } else {
                 v = miniMaxABR(game, m, !sameTurn, !sameTurn ? depth : depth-1, actualDepth+1, alpha, beta);
             }
-            game.undo();
+            try {
+                game.undo();
+            } catch (Exception e) {
+                throw new MoveException("Undo Move", m);
+            }
             m.bestValue = v;
             if (maximizePlayer) {
                 if (v > value) {
@@ -348,9 +360,9 @@ negamax(rootNode, depth, −1)
 
     private static long negamaxR(Game game, Move root, int color, int depth, int actualDepth) {
         if (color == 0)
-            throw new AssertionError();
+            throw new GException();
         if (root == null || root.getPlayerNum() < 0)
-            throw new AssertionError();
+            throw new GException();
         if (kill)
             return 0;
         int winner;
@@ -411,9 +423,9 @@ negamax(rootNode, depth, −∞, +∞, 1)
 
     long negamaxABR(Game game, Move root, final int color, int depth, int actualDepth, long alpha, long beta) {
         if (color == 0)
-            throw new AssertionError();
+            throw new GException();
         if (root == null || root.getPlayerNum() < 0)
-            throw new AssertionError();
+            throw new GException();
         if (kill)
             return 0;
         int winner;

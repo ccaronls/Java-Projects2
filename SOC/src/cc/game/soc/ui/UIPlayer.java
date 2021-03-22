@@ -33,7 +33,7 @@ public class UIPlayer extends PlayerBot implements ClientConnection.Listener {
 
     void connect(ClientConnection conn) {
         if (connection != null && connection.isConnected())
-            throw new AssertionError("Connection already assigned");
+            throw new GException("Connection already assigned");
         connection = conn;
         connection.addListener(this);
     }

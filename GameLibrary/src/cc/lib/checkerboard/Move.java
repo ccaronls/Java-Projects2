@@ -17,6 +17,7 @@ public class Move extends Reflector<Move> implements IMove, Comparable<Move> {
     private final MoveType moveType;
     private final int playerNum;
 
+    // consider optimization here for better memory usage (Piece objects instead of arrays)
     private int [] start;
     private int [] end;
     private int [] castleRookStart;
@@ -25,6 +26,7 @@ public class Move extends Reflector<Move> implements IMove, Comparable<Move> {
     private List<int []> captured = null;
 
     private PieceType startType, endType;
+    private int [] enpassant = null;
 
     @Omit
     Move parent = null;
@@ -183,13 +185,17 @@ public class Move extends Reflector<Move> implements IMove, Comparable<Move> {
     }
 
     static String toStr(int [] pos) {
-        String s = "{" + pos[0] + "," + pos[1];
-        if (pos.length > 2)
-            s += "," + PieceType.values()[pos[2]];
-        if (pos.length > 3)
-            s += "," + PieceType.values()[pos[3]];
-        s += "}";
-        return s;
+        switch (pos.length) {
+            case 2:
+                return String.format("{%d,%d}", pos[0], pos[1]);
+            case 3:
+                return String.format("{%d,%d,%s}", pos[0], pos[1], PieceType.values()[pos[2]]);
+            case 4:
+                return String.format("{%d,%d,%s,%s}", pos[0], pos[1], PieceType.values()[pos[2]], PieceType.values()[pos[3]]);
+            default:
+                Utils.assertTrue(false, "Unhandled case");
+        }
+        return Arrays.toString(pos);
     }
 
     @Override
@@ -217,6 +223,9 @@ public class Move extends Reflector<Move> implements IMove, Comparable<Move> {
         }
         if (opponentKing != null) { // && opponentKing[2] != opponentKing[3]) {
             str.append(" oppKing: ").append(toStr(opponentKing));
+        }
+        if (enpassant != null) {
+            str.append(" enpassant:").append(toStr(enpassant));
         }
         return str.toString();
     }
@@ -278,5 +287,13 @@ public class Move extends Reflector<Move> implements IMove, Comparable<Move> {
             parent.getPathStringR(buf, indent);
         buf.append("\n").append(indent[0]).append(toString());
         indent[0] += "  ";
+    }
+
+    void setEnpassant(int [] pos) {
+        this.enpassant = pos;
+    }
+
+    int [] getEnpassant() {
+        return enpassant;
     }
 }
