@@ -176,8 +176,8 @@ public class Chess extends Rules {
                 case CASTLE: {
                     game.movePiece(move);
                     p = game.getPiece(move.getCastleRookStart());
-                    Utils.assertTrue(p.getType() == ROOK_IDLE || p.getType() == DRAGON_IDLE);
-                    game.setPiece(move.getCastleRookEnd(), move.getPlayerNum(), p.getType() == DRAGON_IDLE ? DRAGON : ROOK);
+                    Utils.assertTrue(p.getType().canCastleWith());
+                    game.setPiece(move.getCastleRookEnd(), move.getPlayerNum(), p.getType().getNonIdled());
                     game.clearPiece(move.getCastleRookStart());
                     break;
                 }
@@ -436,9 +436,15 @@ public class Chess extends Rules {
             case ROOK:
                 kn = computeKDN(rank, col, DELTAS_N, DELTAS_S, DELTAS_E, DELTAS_W);
                 break;
-            case DRAGON_IDLE:
-                nextType = DRAGON;
-            case DRAGON:
+            case DRAGON_IDLE_L:
+                nextType = DRAGON_L;
+            case DRAGON_L:
+                kn = computeKDN(rank, col, DELTAS_NE, DELTAS_NW, DELTAS_SE, DELTAS_SW, DELTAS_N, DELTAS_S, DELTAS_E, DELTAS_W);
+                d = 3;
+                break;
+            case DRAGON_IDLE_R:
+                nextType = DRAGON_R;
+            case DRAGON_R:
                 kn = computeKDN(rank, col, DELTAS_NE, DELTAS_NW, DELTAS_SE, DELTAS_SW, DELTAS_N, DELTAS_S, DELTAS_E, DELTAS_W);
                 d = 3;
                 break;
@@ -782,11 +788,13 @@ public class Chess extends Rules {
                     case KNIGHT_L:
                         value += 310 * scale;
                         break;
-                    case DRAGON:
+                    case DRAGON_L:
+                    case DRAGON_R:
                     case ROOK:
                         value += 500 * scale;
                         break;
-                    case DRAGON_IDLE:
+                    case DRAGON_IDLE_L:
+                    case DRAGON_IDLE_R:
                     case ROOK_IDLE:
                         value += 550 * scale;
                         break;
@@ -829,7 +837,7 @@ public class Chess extends Rules {
             case CASTLE:
                 p = game.getPiece(m.getCastleRookEnd());
                 Utils.assertTrue(p.getType().canCastleWith());// == ROOK || p.getType() == DRAGON, "Expected ROOK was " + p.getType());
-                game.setPiece(m.getCastleRookStart(), m.getPlayerNum(), p.getType() == DRAGON ? DRAGON_IDLE : ROOK_IDLE);
+                game.setPiece(m.getCastleRookStart(), m.getPlayerNum(), p.getType().getIdled());
                 game.clearPiece(m.getCastleRookEnd());
                 // fallthrough
             case SLIDE:

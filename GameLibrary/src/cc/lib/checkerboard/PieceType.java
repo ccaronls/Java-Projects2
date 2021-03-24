@@ -24,8 +24,10 @@ public enum PieceType {
     CHECKED_KING_IDLE("KC", 1, 1), // a king that has not moved
     UNCHECKED_KING("Ki", 9, 1), // chess only
     UNCHECKED_KING_IDLE("KI", 10, 1), // only an unchecked idle king can castle
-    DRAGON("Dr", 5, 32), // moves like queen but only 3 spaces
-    DRAGON_IDLE(true, "DI", 5, 32), // moves like queen but only 3 spaces
+    DRAGON_R("Dr", 5, 32), // moves like queen but only 3 spaces
+    DRAGON_L("Dr", 5, 32), // moves like queen but only 3 spaces
+    DRAGON_IDLE_R(true, "DI", 5, 32), // moves like queen but only 3 spaces
+    DRAGON_IDLE_L(true, "DI", 5, 32), // moves like queen but only 3 spaces
 
     KING("Ck", 5, 64), // checkers king, not chess
     FLYING_KING("CK", 10, 64),
@@ -66,6 +68,16 @@ public enum PieceType {
         this.castleWith = castleWith;
     }
 
+    public boolean drawFlipped() {
+        switch (this) {
+            case KNIGHT_R:
+            case DRAGON_IDLE_L:
+            case DRAGON_L:
+                return true;
+        }
+        return false;
+    }
+
     /**
      * Returns the logic type from the subtypes. Like all PAWN Variations lead to PAWN.
      * All Rook variations lead to ROOK
@@ -86,9 +98,11 @@ public enum PieceType {
             case ROOK_IDLE:
                 return ROOK;
 
-            case DRAGON:
-            case DRAGON_IDLE:
-                return DRAGON;
+            case DRAGON_R:
+            case DRAGON_IDLE_R:
+            case DRAGON_L:
+            case DRAGON_IDLE_L:
+                return DRAGON_R;
 
             case CHECKED_KING:
             case CHECKED_KING_IDLE:
@@ -106,6 +120,42 @@ public enum PieceType {
 
         }
         return this;
+    }
+
+    public PieceType getNonIdled() {
+        switch (this) {
+            case PAWN_IDLE:
+                return PAWN;
+            case ROOK_IDLE:
+                return ROOK;
+            case CHECKED_KING_IDLE:
+                return CHECKED_KING;
+            case UNCHECKED_KING_IDLE:
+                return UNCHECKED_KING;
+            case DRAGON_IDLE_R:
+                return DRAGON_R;
+            case DRAGON_IDLE_L:
+                return DRAGON_L;
+        }
+        throw new AssertionError("Unhandled case " + this);
+    }
+
+    public PieceType getIdled() {
+        switch (this) {
+            case PAWN:
+                return PAWN_IDLE;
+            case ROOK:
+                return ROOK_IDLE;
+            case CHECKED_KING:
+                return CHECKED_KING_IDLE;
+            case UNCHECKED_KING:
+                return UNCHECKED_KING_IDLE;
+            case DRAGON_R:
+                return DRAGON_IDLE_R;
+            case DRAGON_L:
+                return DRAGON_IDLE_L;
+        }
+        throw new AssertionError("Unhandled case " + this);
     }
 
     public final static int FLAG_KING = 1; // all piece types that move like a king

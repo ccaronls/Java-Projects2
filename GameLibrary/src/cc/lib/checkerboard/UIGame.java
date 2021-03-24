@@ -117,17 +117,25 @@ public abstract class UIGame extends Game {
             return;
 
         SCREEN_DIM = new GDimension(g.getViewportWidth(), g.getViewportHeight());
-        SQ_DIM = Math.min(SCREEN_DIM.getWidth(), SCREEN_DIM.getHeight()) / Math.min(getRanks(), getColumns());
-        BOARD_DIM = new GDimension(SQ_DIM * getColumns(), SQ_DIM * getRanks());
 
         if (getRules() instanceof DragonChess) {
             // always landscape using the portion of the screen not used by the board
+            SQ_DIM = Math.min(SCREEN_DIM.getWidth(), SCREEN_DIM.getHeight()) / Math.min(getRanks()+1, getColumns());
+            BOARD_DIM = new GDimension(SQ_DIM * getColumns(), SQ_DIM * getRanks());
+
+            g.pushMatrix();
+            g.translate(0, SQ_DIM);
             drawDragonChess(g, mx, my);
+            g.popMatrix();
         } else if (SCREEN_DIM.getAspect() > 1) {
             // landscape draws board on the left and captured pieces on the right
+            SQ_DIM = Math.min(SCREEN_DIM.getWidth(), SCREEN_DIM.getHeight()) / Math.min(getRanks(), getColumns());
+            BOARD_DIM = new GDimension(SQ_DIM * getColumns(), SQ_DIM * getRanks());
             drawLandscape(g, mx, my);
         } else {
             // portrait draws board in center and captured pieces in front of each player
+            SQ_DIM = Math.min(SCREEN_DIM.getWidth(), SCREEN_DIM.getHeight()) / Math.min(getRanks(), getColumns());
+            BOARD_DIM = new GDimension(SQ_DIM * getColumns(), SQ_DIM * getRanks());
             drawPortrait(g, mx, my);
         }
     }
@@ -222,7 +230,7 @@ public abstract class UIGame extends Game {
         if (pieces == null)
             return;
 //        g.setClipRect(0, 0, width, height);
-        float x = PIECE_RADIUS, y = PIECE_RADIUS;
+        float x = PIECE_RADIUS, y = PIECE_RADIUS*2;
         for (PieceType p :pieces) {
             g.pushMatrix();
             g.translate(x, y);
@@ -373,7 +381,7 @@ public abstract class UIGame extends Game {
             }
 
             g.pushMatrix();
-            g.translate(x, y);
+            g.translate(x, y+PIECE_RADIUS);
             if (p.getType() != PieceType.EMPTY && p.getPlayerNum() >= 0)
                 drawPiece(g, p, PIECE_RADIUS *2, PIECE_RADIUS *2);
             g.popMatrix();
@@ -526,9 +534,11 @@ public abstract class UIGame extends Game {
             case ROOK_IDLE:
                 drawPiece(g, PieceType.ROOK, color, w, h, null);
                 break;
-            case DRAGON:
-            case DRAGON_IDLE:
-                drawPiece(g, PieceType.DRAGON, color, w, h, null);
+            case DRAGON_R:
+            case DRAGON_L:
+            case DRAGON_IDLE_R:
+            case DRAGON_IDLE_L:
+                drawPiece(g, pc.getType(), color, w, h, null);
                 break;
             case CHECKED_KING:
             case CHECKED_KING_IDLE:
@@ -574,14 +584,15 @@ public abstract class UIGame extends Game {
             AImage img = g.getImage(id);
             float a = w/h;
             float aa = img.getAspect();
-            w = w * aa / a;
+            //w = w * aa / a;
+            h = h * a / aa;
             float xScale = (float)w/img.getWidth();
             float yScale = (float)h/img.getHeight();
-            if (p == PieceType.KNIGHT_R) {
-                M.translate(w / 2, -h / 2);
+            if (p.drawFlipped()) {
+                M.translate(w / 2, -h);
                 M.scale(-xScale, yScale);
             } else {
-                M.translate(-w / 2, -h / 2);
+                M.translate(-w / 2, -h);
                 M.scale(xScale, yScale);
             }
             g.drawImage(id, M);//-w/2, -h/2, w, h);
