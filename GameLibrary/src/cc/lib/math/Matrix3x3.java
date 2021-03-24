@@ -427,7 +427,21 @@ public final class Matrix3x3 extends Reflector<Matrix3x3>  {
 		return multiply(T);
 	}
 
-	public final Matrix3x3 rotateEq(float degrees) {
+    public final Matrix3x3 translate(float x, float y) {
+        Matrix3x3 T = new Matrix3x3();
+        T.setTranslate(x, y);
+        assign(multiply(T));
+        return this;
+    }
+
+    public final Matrix3x3 scale(float sx, float sy) {
+        Matrix3x3 T = new Matrix3x3();
+        T.setScale(sx, sy);
+        assign(multiply(T));
+        return this;
+    }
+
+    public final Matrix3x3 rotateEq(float degrees) {
 		Matrix3x3 T = new Matrix3x3();
 		T.setRotation(degrees);
 		assign(multiply(T));

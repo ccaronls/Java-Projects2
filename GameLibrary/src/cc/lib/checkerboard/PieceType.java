@@ -15,7 +15,8 @@ public enum PieceType {
     PAWN_TOSWAP("PS", 100, 2), // This pawn is to be swapped for another piece
     BISHOP("Bi", 3, 8),
     // Do right and left facing knights like (KNIGHT_R/L)
-    KNIGHT("Kn", 3, 16),
+    KNIGHT_R("Kn", 3, 16),
+    KNIGHT_L("Kn", 3, 16),
     ROOK("Ro", 5, 4),
     ROOK_IDLE(true, "RI", 5, 4), // only an idle rook can castle
     QUEEN("Qu", 8, 4 + 8),

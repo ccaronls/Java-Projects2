@@ -8,6 +8,7 @@ import java.util.List;
 
 import cc.lib.game.AAnimation;
 import cc.lib.game.AGraphics;
+import cc.lib.game.AImage;
 import cc.lib.game.GColor;
 import cc.lib.game.GDimension;
 import cc.lib.game.IVector2D;
@@ -16,6 +17,7 @@ import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
 import cc.lib.math.Bezier;
+import cc.lib.math.Matrix3x3;
 import cc.lib.math.Vector2D;
 import cc.lib.utils.Lock;
 
@@ -515,15 +517,18 @@ public abstract class UIGame extends Game {
                 drawPiece(g, PieceType.PAWN, color, w, h, null);
                 break;
             case BISHOP:
-            case KNIGHT:
             case QUEEN:
+            case KNIGHT_L:
+            case KNIGHT_R:
                 drawPiece(g, pc.getType(), color, w, h, null);
                 break;
             case ROOK:
             case ROOK_IDLE:
+                drawPiece(g, PieceType.ROOK, color, w, h, null);
+                break;
             case DRAGON:
             case DRAGON_IDLE:
-                drawPiece(g, PieceType.ROOK, color, w, h, null);
+                drawPiece(g, PieceType.DRAGON, color, w, h, null);
                 break;
             case CHECKED_KING:
             case CHECKED_KING_IDLE:
@@ -564,13 +569,30 @@ public abstract class UIGame extends Game {
     public void drawPiece(AGraphics g, PieceType p, Color color, float w, float h, GColor outlineColor) {
         int id = getPieceImageId(p, color);
         if (id > 0) {
-            g.drawImage(id, -w/2, -h/2, w, h);
+            Matrix3x3 M = new Matrix3x3();
+            g.getTransform(M);
+            AImage img = g.getImage(id);
+            float a = w/h;
+            float aa = img.getAspect();
+            w = w * aa / a;
+            float xScale = (float)w/img.getWidth();
+            float yScale = (float)h/img.getHeight();
+            if (p == PieceType.KNIGHT_R) {
+                M.translate(w / 2, -h / 2);
+                M.scale(-xScale, yScale);
+            } else {
+                M.translate(-w / 2, -h / 2);
+                M.scale(xScale, yScale);
+            }
+            g.drawImage(id, M);//-w/2, -h/2, w, h);
         } else {
             g.setColor(color.color);
             g.drawFilledCircle(0, 0, w/2);
+            float curHeight = g.getTextHeight();
             g.setTextHeight(SQ_DIM/2);
             g.setColor(color.color.inverted());
             g.drawJustifiedString(0, 0, Justify.CENTER, Justify.CENTER, p.abbrev);
+            g.setTextHeight(curHeight);
         }
         if (outlineColor != null) {
             g.setColor(outlineColor);

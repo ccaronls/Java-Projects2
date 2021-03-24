@@ -89,6 +89,7 @@ public class AWTGraphics2 extends AWTGraphics {
         G2.drawImage(img, t, comp);
     }
 
+    @Override
     public void drawImage(int imageKey, Matrix3x3 transform) {
         double [][] M = transform.get();
         AffineTransform t = new AffineTransform(M[0][0], M[1][0]

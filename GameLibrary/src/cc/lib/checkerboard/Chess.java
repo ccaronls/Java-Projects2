@@ -77,14 +77,14 @@ public class Chess extends Rules {
         }
 
         game.init(8, 8);
-        game.initRank(0, FAR, ROOK_IDLE, KNIGHT, BISHOP, left, right, BISHOP, KNIGHT, ROOK_IDLE);
+        game.initRank(0, FAR, ROOK_IDLE, KNIGHT_R, BISHOP, left, right, BISHOP, KNIGHT_L, ROOK_IDLE);
         game.initRank(1, FAR, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE);
         game.initRank(2, -1  , EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY);
         game.initRank(3, -1  , EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY);
         game.initRank(4, -1  , EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY);
         game.initRank(5, -1  , EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY);
         game.initRank(6, NEAR, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE);
-        game.initRank(7, NEAR, ROOK_IDLE, KNIGHT, BISHOP, left, right, BISHOP, KNIGHT, ROOK_IDLE);
+        game.initRank(7, NEAR, ROOK_IDLE, KNIGHT_R, BISHOP, left, right, BISHOP, KNIGHT_L, ROOK_IDLE);
 
         game.setTurn(whiteSide);
     }
@@ -415,15 +415,18 @@ public class Chess extends Rules {
                 break;
             }
 
-            case PAWN_TOSWAP:
-                for (PieceType np : Arrays.asList(ROOK, KNIGHT, BISHOP, QUEEN)) { // TODO: Have option to only allow from pieces already captured
+            case PAWN_TOSWAP: {
+                // see if we have one of our knights?
+                for (PieceType np : Arrays.asList(ROOK, KNIGHT_R, KNIGHT_L, BISHOP, QUEEN)) { // TODO: Have option to only allow from pieces already captured
                     moves.add(new Move(MoveType.SWAP, p.getPlayerNum()).setStart(rank, col, p.getType()).setEnd(rank, col, np));
                 }
                 break;
+            }
             case BISHOP:
                 kn = computeKDN(rank, col, DELTAS_NE, DELTAS_NW, DELTAS_SE, DELTAS_SW);
                 break;
-            case KNIGHT: {
+            case KNIGHT_L:
+            case KNIGHT_R: {
                 kdn[kn++] = pieceDeltas[DELTAS_KNIGHT][rank][col];
                 mt = MoveType.JUMP;
                 break;
@@ -775,7 +778,8 @@ public class Chess extends Rules {
                     case BISHOP:
                         value += 300 * scale;
                         break;
-                    case KNIGHT:
+                    case KNIGHT_R:
+                    case KNIGHT_L:
                         value += 310 * scale;
                         break;
                     case DRAGON:
@@ -824,7 +828,7 @@ public class Chess extends Rules {
                 break;
             case CASTLE:
                 p = game.getPiece(m.getCastleRookEnd());
-                Utils.assertTrue(p.getType() == ROOK || p.getType() == DRAGON, "Expected ROOK was " + p.getType());
+                Utils.assertTrue(p.getType().canCastleWith());// == ROOK || p.getType() == DRAGON, "Expected ROOK was " + p.getType());
                 game.setPiece(m.getCastleRookStart(), m.getPlayerNum(), p.getType() == DRAGON ? DRAGON_IDLE : ROOK_IDLE);
                 game.clearPiece(m.getCastleRookEnd());
                 // fallthrough

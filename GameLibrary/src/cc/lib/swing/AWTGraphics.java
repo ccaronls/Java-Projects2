@@ -5,6 +5,7 @@ import java.awt.image.RGBImageFilter;
 import java.util.Arrays;
 
 import cc.lib.game.*;
+import cc.lib.math.Matrix3x3;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 
@@ -408,6 +409,11 @@ public class AWTGraphics extends APGraphics {
     @Override
     protected void drawImage(int imageKey, int x, int y, int w, int h) {
         images.drawImage(g, comp, imageKey, x, y, w, h);
+    }
+
+    @Override
+    public void drawImage(int imageKey, Matrix3x3 transform) {
+        throw new AssertionError("Not Implemented");
     }
 
     @Override

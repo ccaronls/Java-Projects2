@@ -9,7 +9,8 @@ import static cc.lib.checkerboard.PieceType.BLOCKED;
 import static cc.lib.checkerboard.PieceType.DRAGON_IDLE;
 import static cc.lib.checkerboard.PieceType.EMPTY;
 import static cc.lib.checkerboard.PieceType.FLAG_DRAGON;
-import static cc.lib.checkerboard.PieceType.KNIGHT;
+import static cc.lib.checkerboard.PieceType.KNIGHT_L;
+import static cc.lib.checkerboard.PieceType.KNIGHT_R;
 import static cc.lib.checkerboard.PieceType.PAWN_IDLE;
 
 public class DragonChess extends Chess {
@@ -26,7 +27,7 @@ public class DragonChess extends Chess {
         }
 
         game.init(10, 8+6);
-        game.initRank(0, FAR, BLOCKED, BLOCKED, BLOCKED, DRAGON_IDLE, KNIGHT, BISHOP, left, right, BISHOP, KNIGHT, DRAGON_IDLE, BLOCKED, BLOCKED, BLOCKED);
+        game.initRank(0, FAR, BLOCKED, BLOCKED, BLOCKED, DRAGON_IDLE, KNIGHT_R, BISHOP, left, right, BISHOP, KNIGHT_L, DRAGON_IDLE, BLOCKED, BLOCKED, BLOCKED);
         game.initRank(1, FAR, BLOCKED, BLOCKED, BLOCKED, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, BLOCKED, BLOCKED, BLOCKED);
         game.initRank(2, -1  , BLOCKED, BLOCKED, BLOCKED, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY,EMPTY, EMPTY, EMPTY, BLOCKED, BLOCKED, BLOCKED);
         game.initRank(3, -1  , EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY);
@@ -35,7 +36,7 @@ public class DragonChess extends Chess {
         game.initRank(6, -1  , EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY);
         game.initRank(7, -1  , BLOCKED, BLOCKED, BLOCKED, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, BLOCKED, BLOCKED, BLOCKED);
         game.initRank(8, NEAR, BLOCKED, BLOCKED, BLOCKED, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, PAWN_IDLE, BLOCKED, BLOCKED, BLOCKED);
-        game.initRank(9, NEAR, BLOCKED, BLOCKED, BLOCKED, DRAGON_IDLE, KNIGHT, BISHOP, left, right, BISHOP, KNIGHT, DRAGON_IDLE, BLOCKED, BLOCKED, BLOCKED);
+        game.initRank(9, NEAR, BLOCKED, BLOCKED, BLOCKED, DRAGON_IDLE, KNIGHT_R, BISHOP, left, right, BISHOP, KNIGHT_L, DRAGON_IDLE, BLOCKED, BLOCKED, BLOCKED);
 
         game.setTurn(whiteSide);
 
