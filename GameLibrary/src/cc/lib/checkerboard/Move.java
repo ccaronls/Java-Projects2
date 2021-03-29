@@ -110,7 +110,7 @@ public class Move extends Reflector<Move> implements IMove, Comparable<Move> {
         }
         Utils.assertTrue(captured.size() < 32);
         captured.add(new int[] { capturedRank, capturedCol, type.ordinal() });
-        compareValue += 100;
+        compareValue += 100 + type.value;
         return this;
     }
 

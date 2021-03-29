@@ -985,6 +985,26 @@ public class Utils {
         return result.toString();
     }
 
+    public static String formatTime(long l) {
+
+        if (l < 1000) {
+            return String.format("%d millis", l);
+        }
+
+        long secs = l/1000;
+        long mins = secs / 60;
+        secs -= mins*60;
+
+        long hrs = mins / 60;
+        mins -= hrs*60;
+
+        if (hrs == 0) {
+            return String.format("%d:%02d", mins, secs);
+        }
+
+        return String.format("%d:%02d:%02d", hrs, mins, secs);
+    }
+
     public enum EllipsisStyle {
         NONE,
         MIDDLE,

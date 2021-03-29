@@ -142,7 +142,8 @@ public class Chess extends Rules {
         Move previous = game.getPreviousMove(game.getTurn());
         executeMoveInternal(game, move);
         findKing(game, move.getPlayerNum()).setChecked(false);
-        game.nextTurn();
+        if (game.hasNoMoreMOves())
+            game.nextTurn();
         if (previous != null && previous.getEndType() == PAWN_ENPASSANT && game.getPiece(previous.getEnd()).getType() == PAWN_ENPASSANT) {
             game.getPiece(previous.getEnd()).setType(PAWN);
             move.setEnpassant(previous.getEnd());
@@ -378,9 +379,12 @@ public class Chess extends Rules {
                 // check in front of us 1 space
                 tr=rank + game.getAdvanceDir(p.getPlayerNum());
                 tc=col;
+                if (tr == game.getStartRank(game.getOpponent(p.getPlayerNum()))) {
+                    nextType = QUEEN; // For simplicity, just make the pawn a queen now. PAWN_TOSWAP;
+                }
+
                 if (game.isOnBoard(tr, col) && game.getPiece(tr, col).getType() == EMPTY) {
-                    boolean atEnd = tr == game.getStartRank(game.getOpponent(p.getPlayerNum()));
-                    moves.add(new Move(MoveType.SLIDE, p.getPlayerNum()).setStart(rank, col, p.getType()).setEnd(tr, tc, atEnd ? PAWN_TOSWAP : PAWN));
+                    moves.add(new Move(MoveType.SLIDE, p.getPlayerNum()).setStart(rank, col, p.getType()).setEnd(tr, tc, nextType));
                     if (p.getType() == PAWN_IDLE) {
                         int tr2 = rank + game.getAdvanceDir(p.getPlayerNum())*2;
                         // if we have not moved yet then we may be able move 2 squares
@@ -396,17 +400,17 @@ public class Chess extends Rules {
                     tp = game.getPiece(tr, tc);
                     if (tp.getPlayerNum() == opponent) {
                         // if this opponent is the king, then we will be 'checking' him
-                        moves.add(new Move(MoveType.SLIDE, p.getPlayerNum()).setStart(rank, col, p.getType()).addCaptured(tr, tc, tp.getType()).setEnd(tr, tc, PAWN));
+                        moves.add(new Move(MoveType.SLIDE, p.getPlayerNum()).setStart(rank, col, p.getType()).addCaptured(tr, tc, tp.getType()).setEnd(tr, tc, nextType));
                     } else if (rank == enpassantRank && (tp = game.getPiece(rank, tc)).getType() == PAWN_ENPASSANT) {
                         // check en passant
-                        moves.add(new Move(MoveType.SLIDE, p.getPlayerNum()).setStart(rank, col, p.getType()).addCaptured(rank, tc, tp.getType()).setEnd(tr, tc, PAWN));
+                        moves.add(new Move(MoveType.SLIDE, p.getPlayerNum()).setStart(rank, col, p.getType()).addCaptured(rank, tc, tp.getType()).setEnd(tr, tc, nextType));
                     }
                 }
                 // check if we can capture to upper left
                 if (game.isOnBoard(tr, tc=col-1)) {
                     tp = game.getPiece(tr, tc);
                     if (tp.getPlayerNum() == opponent) {
-                        moves.add(new Move(MoveType.SLIDE, p.getPlayerNum()).setStart(rank, col, p.getType()).addCaptured(tr, tc, tp.getType()).setEnd(tr, tc, PAWN));
+                        moves.add(new Move(MoveType.SLIDE, p.getPlayerNum()).setStart(rank, col, p.getType()).addCaptured(tr, tc, tp.getType()).setEnd(tr, tc, nextType));
                     } else if (rank == enpassantRank && (tp = game.getPiece(rank, tc)).getType() == PAWN_ENPASSANT) {
                         // check enpassant
                         moves.add(new Move(MoveType.SLIDE, p.getPlayerNum()).setStart(rank, col, p.getType()).addCaptured(rank, tc, tp.getType()).setEnd(tr, tc, PAWN));
@@ -420,7 +424,7 @@ public class Chess extends Rules {
                 for (PieceType np : Arrays.asList(ROOK, KNIGHT_R, KNIGHT_L, BISHOP, QUEEN)) { // TODO: Have option to only allow from pieces already captured
                     moves.add(new Move(MoveType.SWAP, p.getPlayerNum()).setStart(rank, col, p.getType()).setEnd(rank, col, np));
                 }
-                break;
+                return;
             }
             case BISHOP:
                 kn = computeKDN(rank, col, DELTAS_NE, DELTAS_NW, DELTAS_SE, DELTAS_SW);
@@ -751,7 +755,21 @@ public class Chess extends Rules {
 
     @Override
     public long evaluate(Game game, Move move) {
-        long value=0;
+        long value = 0;
+        for (Piece p : game.getPieces(move.getPlayerNum())) {
+            value += p.getType().value;
+        }
+        if (move.hasCaptured()) {
+            value += 100 + move.getLastCapturedType().points;
+        }
+        if (move.getOpponentKingTypeEnd() != null && move.getOpponentKingTypeEnd().isChecked()) {
+            value += 100;
+        }
+        return value;
+    }
+
+    long evaluate_old(Game game, Move move) {
+        long value = 0;
         try {
             if (game.isDraw())
                 return value=0;
@@ -836,7 +854,7 @@ public class Chess extends Rules {
                 break;
             case CASTLE:
                 p = game.getPiece(m.getCastleRookEnd());
-                Utils.assertTrue(p.getType().canCastleWith());// == ROOK || p.getType() == DRAGON, "Expected ROOK was " + p.getType());
+                Utils.assertTrue(p.getType().getIdled().canCastleWith());
                 game.setPiece(m.getCastleRookStart(), m.getPlayerNum(), p.getType().getIdled());
                 game.clearPiece(m.getCastleRookEnd());
                 // fallthrough

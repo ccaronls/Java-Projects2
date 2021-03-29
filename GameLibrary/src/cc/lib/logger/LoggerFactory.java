@@ -23,17 +23,23 @@ public abstract class LoggerFactory {
             return new Logger() {
                 @Override
                 public void error(String msg, Object... args) {
-                    System.err.println("E[" + name + "]:" + String.format(msg, args));
+                    if (args.length > 0)
+                        msg = String.format(msg, args);
+                    System.err.println("E[" + name + "]:" + msg);
                 }
 
                 @Override
                 public void debug(String msg, Object... args) {
-                    System.out.println("D[" + name + "]:" + String.format(msg, args));
+                    if (args.length > 0)
+                        msg = String.format(msg, args);
+                    System.out.println("D[" + name + "]:" + msg);
                 }
 
                 @Override
                 public void info(String msg, Object... args) {
-                    System.out.println("I[" + name + "]:" + String.format(msg, args));
+                    if (args.length > 0)
+                        msg = String.format(msg, args);
+                    System.out.println("I[" + name + "]:" + msg);
                 }
 
                 @Override
@@ -46,7 +52,9 @@ public abstract class LoggerFactory {
 
                 @Override
                 public void warn(String msg, Object... args) {
-                    System.err.println("W[" + name + "]:" + String.format(msg, args));
+                    if (args.length > 0)
+                        msg = String.format(msg, args);
+                    System.err.println("W[" + name + "]:" + msg);
                 }
             };
         }

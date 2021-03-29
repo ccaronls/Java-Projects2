@@ -151,15 +151,6 @@ public class Reflector<T> {
      */
     public static boolean THROW_ON_UNKNOWN = false;
 
-    /**
-     * Thrown when incoming version is incompatible with version of this reflector object
-     */
-    public static final class VersionTooOldException extends IOException {
-        private VersionTooOldException(int current, int min) {
-            super("Version of deserialized object is " + current + " which older than min specified " + min);
-        }
-    }
-
     private final static Map<Class<?>, Map<Field, Archiver>> classValues = new HashMap<>();
     private final static Map<String, Class<?>> classMap = new HashMap<>();
 
@@ -1352,9 +1343,6 @@ public class Reflector<T> {
         try {
             Map<Field, Archiver> values = getValues(getClass(), false);
             for (Field field : values.keySet()) {
-                if (getMinVersion() == 0 && field.getName().equals("__reflector_version")) {
-                    continue;
-                }
                 Archiver archiver = values.get(field);
                 field.setAccessible(true);
                 Object obj = field.get(Reflector.this);
@@ -1575,8 +1563,6 @@ public class Reflector<T> {
         MyBufferedReader reader = new MyBufferedReader(new InputStreamReader(in));
         try {
             deserialize(reader);
-        } catch (VersionTooOldException e) {
-            throw e;
         } catch (IOException e) {
             throw new IOException("Error on line " + reader.lineNum + ": " + e.getMessage(), e);
         } catch (Exception e) {
@@ -1662,9 +1648,6 @@ public class Reflector<T> {
                         readLineOrEOF(in);
                     }
                 }
-            }
-            if (__reflector_version < getMinVersion()) {
-                throw new VersionTooOldException(__reflector_version, getMinVersion());
             }
         } finally {
             if (Profiler.ENABLED) Profiler.pop("Reflector.deserialize");
@@ -2007,9 +1990,6 @@ public class Reflector<T> {
 
     private final void diff(Reflector<T> other, MyPrintWriter writer) throws Exception {
 
-        if (other.getMinVersion() < getMinVersion())
-            throw new VersionTooOldException(getMinVersion(), other.getMinVersion());
-
         Map<Field, Archiver> values = null;
         if (isSubclassOf(other.getClass(), getClass()))
             values = getValues(other.getClass(), false);
@@ -2162,21 +2142,8 @@ public class Reflector<T> {
 
     }
 
-    private int __reflector_version = getMinVersion();
-
     static {
         addField(Reflector.class, "__reflector_version");
-    }
-
-    /**
-     * Derived classes override this to provide a min loadable version.
-     * For instance, if the version loaded is '1' and this method returns 2, then an exception
-     * is thrown. default version is 0
-     *
-     * @return
-     */
-    protected int getMinVersion() {
-        return 0;
     }
 
     /**

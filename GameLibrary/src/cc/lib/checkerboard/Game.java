@@ -180,6 +180,15 @@ public class Game extends Reflector<Game> implements IGame<Move> {
             onGameOver(getWinner());
             return;
         }
+
+        if (moves.size() == 1) {
+            // only one move option. Just play it already
+            Move m = moves.get(0);
+            onMoveChosen(m);
+            executeMove(m);
+            return;
+        }
+
         if (selectedPiece == null) {
             List<Piece> movable = getMovablePieces();
             if (movable.size() == 1) {
@@ -191,6 +200,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
             if (p != null) {
                 selectedPiece = p.getRankCol();
                 onPieceSelected(p);
+                return; // we dont want to block twice in one 'runGame'
             }
         } else {
             Move m = players[turn].chooseMoveForPiece(this, getMovesforPiece(selectedPiece));
@@ -506,6 +516,10 @@ public class Game extends Reflector<Game> implements IGame<Move> {
         if (moves == null)
             moves = new ArrayList<>();
         return moves;
+    }
+
+    final boolean hasNoMoreMOves() {
+        return moves == null || moves.size() == 0;
     }
 
     @Override

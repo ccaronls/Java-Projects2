@@ -487,6 +487,7 @@ public abstract class UIGame extends Game {
         if (clicked) {
             for (Move m : moves) {
                 switch (m.getMoveType()) {
+                    case SWAP:
                     case END:
                         if (selectedPiece[0] == highlightedRank && selectedPiece[1] == highlightedCol) {
                             return m;
@@ -500,8 +501,6 @@ public abstract class UIGame extends Game {
                         if (m.getEnd()[0] == highlightedRank && m.getEnd()[1] == highlightedCol) {
                             return m;
                         }
-                        break;
-                    case SWAP:
                         break;
                 }
 
@@ -588,6 +587,7 @@ public abstract class UIGame extends Game {
             h = h * a / aa;
             float xScale = (float)w/img.getWidth();
             float yScale = (float)h/img.getHeight();
+            g.pushMatrix();
             if (p.drawFlipped()) {
                 M.translate(w / 2, -h);
                 M.scale(-xScale, yScale);
@@ -596,18 +596,19 @@ public abstract class UIGame extends Game {
                 M.scale(xScale, yScale);
             }
             g.drawImage(id, M);//-w/2, -h/2, w, h);
+            g.popMatrix();
         } else {
             g.setColor(color.color);
-            g.drawFilledCircle(0, 0, w/2);
+            g.drawFilledCircle(0, -h/2, w/2);
             float curHeight = g.getTextHeight();
             g.setTextHeight(SQ_DIM/2);
             g.setColor(color.color.inverted());
-            g.drawJustifiedString(0, 0, Justify.CENTER, Justify.CENTER, p.abbrev);
+            g.drawJustifiedString(0, -h/2, Justify.CENTER, Justify.CENTER, p.abbrev);
             g.setTextHeight(curHeight);
         }
         if (outlineColor != null) {
             g.setColor(outlineColor);
-            g.drawCircle(0, 0, w/2, 3);
+            g.drawCircle(0, -h/2, w/2, 3);
         }
     }
 

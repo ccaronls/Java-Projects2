@@ -2,7 +2,6 @@ package cc.lib.checkers;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Stack;
@@ -45,11 +44,6 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
         this.COLUMNS = columns;
         this.NUM_PLAYERS = numPlayers;
         board = new Piece[RANKS][COLUMNS];
-    }
-
-    @Override
-    public int getMinVersion() {
-        return 2;
     }
 
     private final static Piece OFF_BOARD = new Piece(-1, PieceType.UNAVAILABLE);

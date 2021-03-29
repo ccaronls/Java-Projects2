@@ -7,39 +7,40 @@ import cc.lib.game.Utils;
  */
 
 public enum PieceType {
-    BLOCKED("BL", 0, 0),
-    EMPTY("EM", 0, 0),
-    PAWN("Pn", 1, 2),
-    PAWN_IDLE("PI", 1, 2), // this type of pawn has option to move forward 2 spaces
-    PAWN_ENPASSANT("PE", 2, 2), // this pawn is available for en-passant capture for 1 turn
-    PAWN_TOSWAP("PS", 100, 2), // This pawn is to be swapped for another piece
-    BISHOP("Bi", 3, 8),
+    BLOCKED("BL", 0, 0, 0),
+    EMPTY("EM", 0, 0, 0),
+    PAWN("Pn", 1, 10, 2),
+    PAWN_IDLE("PI", 1, 9, 2), // this type of pawn has option to move forward 2 spaces
+    PAWN_ENPASSANT("PE", 2, 11, 2), // this pawn is available for en-passant capture for 1 turn
+    PAWN_TOSWAP("PS", 1, 10, 2), // This pawn is to be swapped for another piece
+    BISHOP("Bi", 3, 30, 8),
     // Do right and left facing knights like (KNIGHT_R/L)
-    KNIGHT_R("Kn", 3, 16),
-    KNIGHT_L("Kn", 3, 16),
-    ROOK("Ro", 5, 4),
-    ROOK_IDLE(true, "RI", 5, 4), // only an idle rook can castle
-    QUEEN("Qu", 8, 4 + 8),
-    CHECKED_KING("Kc", 0, 1), // chess only, flag the king as checked
-    CHECKED_KING_IDLE("KC", 1, 1), // a king that has not moved
-    UNCHECKED_KING("Ki", 9, 1), // chess only
-    UNCHECKED_KING_IDLE("KI", 10, 1), // only an unchecked idle king can castle
-    DRAGON_R("Dr", 5, 32), // moves like queen but only 3 spaces
-    DRAGON_L("Dr", 5, 32), // moves like queen but only 3 spaces
-    DRAGON_IDLE_R(true, "DI", 5, 32), // moves like queen but only 3 spaces
-    DRAGON_IDLE_L(true, "DI", 5, 32), // moves like queen but only 3 spaces
+    KNIGHT_R("Kn", 3, 31, 16),
+    KNIGHT_L("Kn", 3, 31, 16),
+    ROOK("Ro", 5, 50, 4),
+    ROOK_IDLE(true, "RI", 5, 51, 4), // only an idle rook can castle
+    QUEEN("Qu", 8, 80, 4 + 8),
+    CHECKED_KING("Kc", 0, 1, 1), // chess only, flag the king as checked
+    CHECKED_KING_IDLE("KC", 1, 2, 1), // a king that has not moved
+    UNCHECKED_KING("Ki", 9, 3, 1), // chess only
+    UNCHECKED_KING_IDLE("KI", 10, 4, 1), // only an unchecked idle king can castle
+    DRAGON_R("Dr", 5, 70, 32), // moves like queen but only 3 spaces
+    DRAGON_L("Dr", 5, 70, 32), // moves like queen but only 3 spaces
+    DRAGON_IDLE_R(true, "DI", 7, 69, 32), // moves like queen but only 3 spaces
+    DRAGON_IDLE_L(true, "DI", 7, 71, 32), // moves like queen but only 3 spaces
 
-    KING("Ck", 5, 64), // checkers king, not chess
-    FLYING_KING("CK", 10, 64),
-    CHECKER("Cm", 1, 64), // checkers, king move along the diagonals
-    DAMA_MAN("Dm", 1, 64), // dama pieces move horz and vertically
-    DAMA_KING("Dk", 5, 64),
+    KING("Ck", 5, 10, 64), // checkers king, not chess
+    FLYING_KING("CK", 10, 20, 64),
+    CHECKER("Cm", 1, 1, 64), // checkers, king move along the diagonals
+    DAMA_MAN("Dm", 1, 1, 64), // dama pieces move horz and vertically
+    DAMA_KING("Dk", 5, 5, 64),
 
-    CHIP_4WAY("C4", 1, 64), // used for KingsCourt - a piece that can move in all four directions
+    CHIP_4WAY("C4", 1, 1, 64), // used for KingsCourt - a piece that can move in all four directions
     ;
 
     public final String abbrev;
     final int value;
+    final int points;
     final int flag;
     final boolean castleWith;
 
@@ -56,14 +57,15 @@ public enum PieceType {
         return castleWith;
     }
 
-    PieceType(String abbrev, int value, int flag) {
-        this(false, abbrev, value, flag);
+    PieceType(String abbrev, int points, int value, int flag) {
+        this(false, abbrev, points, value, flag);
     }
 
-    PieceType(boolean castleWith, String abbrev, int value, int flag) {
+    PieceType(boolean castleWith, String abbrev, int points, int value, int flag) {
         Utils.assertTrue(abbrev.length() == 2, "Abbrev must be 2 chars");
         this.abbrev = abbrev;
         this.value = value;
+        this.points = points;
         this.flag = flag;
         this.castleWith = castleWith;
     }
@@ -156,6 +158,15 @@ public enum PieceType {
                 return DRAGON_IDLE_L;
         }
         throw new AssertionError("Unhandled case " + this);
+    }
+
+    public boolean isChecked() {
+        switch (this) {
+            case CHECKED_KING:
+            case CHECKED_KING_IDLE:
+                return true;
+        }
+        return false;
     }
 
     public final static int FLAG_KING = 1; // all piece types that move like a king

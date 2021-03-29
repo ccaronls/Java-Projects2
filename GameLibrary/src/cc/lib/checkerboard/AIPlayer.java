@@ -22,6 +22,8 @@ public class AIPlayer extends Player {
     public static boolean movePathNodeToFront = true;
     public static boolean randomizeDuplicates = true;
 
+    public static AIStats stats;
+
     private int maxSearchDepth = 2;
 
     private final static Logger log = LoggerFactory.getLogger(AIPlayer.class);
@@ -36,9 +38,6 @@ public class AIPlayer extends Player {
     private LinkedList<Move> moveList = new LinkedList<>();
 
     private static boolean kill = false;
-
-    static int evalCount = 0;
-    static long evalTimeTotalMSecs = 0;
 
     enum Algorithm {
         minimax,
@@ -111,8 +110,7 @@ public class AIPlayer extends Player {
 
         if (moveList.size() > 0 && moveList.getFirst().getPlayerNum() == _game.getTurn())
             return;
-        evalCount = 0;
-        evalTimeTotalMSecs = 0;
+        stats = new AIStats();
         kill = false;
         moveList.clear();
         Game game = new Game();
@@ -161,7 +159,7 @@ public class AIPlayer extends Player {
         float evalTimeMS = (int)(System.currentTimeMillis() - startTime);
         startTime = 0;
         log.debug(algorithm + " ran in %3.2f seconds with best value of %s", evalTimeMS/1000, root.bestValue);
-        log.debug("Time spent in eval %3.4f seconds", ((float)(evalTimeTotalMSecs))/1000);
+        log.debug("Time spent in eval %3.4f seconds", ((float)(stats.evalTimeTotalMSecs))/1000);
         Move m = root.path;
         while (m != null) {
             // move the 'path' node to front so that it appears first in the xml
@@ -180,7 +178,12 @@ public class AIPlayer extends Player {
 
     static long evaluate(Game game, int actualDepth) {
         final long startTime = System.currentTimeMillis();
-        long value = game.getRules().evaluate(game, game.getMostRecentMove());
+        Move move = game.getMostRecentMove();
+        long value = game.getRules().evaluate(game, move);
+        if (move.getStartType() != null && Math.abs(value) < Long.MAX_VALUE) {
+            stats.pieceTypeCount[move.getStartType().ordinal()]++;
+            stats.pieceTypeValue[move.getStartType().ordinal()]+=value;
+        }
         if (value > Long.MIN_VALUE) {
             value -= actualDepth; // shorter paths that lead to the same value are scored higher.
         }
@@ -193,8 +196,8 @@ public class AIPlayer extends Player {
                 value += Utils.randRange(0, 99);
             }
         }
-        evalTimeTotalMSecs += (System.currentTimeMillis() - startTime);
-        ++evalCount;
+        stats.evalTimeTotalMSecs += (System.currentTimeMillis() - startTime);
+        ++stats.evalCount;
         /*
         if (++evalCount % 200 == 0) {
             System.out.print('.');
@@ -294,9 +297,9 @@ public class AIPlayer extends Player {
         }
         root.children = new ArrayList<>(game.getMoves());
         //if (maximizePlayer) {
-        //    Collections.sort(root.children, SORT_DESCENDING);
+            Collections.sort(root.children, SORT_DESCENDING);
         //} else {
-        //    Collections.sort(root.children, SORT_ASCENDING);
+            //Collections.sort(root.children, SORT_ASCENDING);
        // }
 
         long value = maximizePlayer ? Long.MIN_VALUE : Long.MAX_VALUE;
@@ -308,6 +311,7 @@ public class AIPlayer extends Player {
             try {
                 game.executeMove(m);
             } catch (Exception e) {
+                e.printStackTrace();
                 throw new MoveException("Execute Move", m);
             }
             boolean sameTurn = m.getPlayerNum() == game.getTurn(); // if turn has not changed
@@ -320,6 +324,7 @@ public class AIPlayer extends Player {
             try {
                 game.undo();
             } catch (Exception e) {
+                e.printStackTrace();
                 throw new MoveException("Undo Move", m);
             }
             m.bestValue = v;
@@ -329,16 +334,20 @@ public class AIPlayer extends Player {
                     value = v;
                 }
                 alpha = Math.max(alpha, value);
-                if (alpha > beta)
+                if (alpha > beta) {
+                    stats.prunes++;
                     break;
+                }
             } else {
                 if (v < value) {
                     path = m;
                     value = v;
                 }
                 beta = Math.min(beta, value);
-                if (beta < alpha)
+                if (beta < alpha) {
+                    stats.prunes++;
                     break;
+                }
             }
         }
         root.path = path;
@@ -562,17 +571,7 @@ negamax(rootNode, depth, −∞, +∞, 1)
         Thread.yield();
     }
 
-    /**
-     *
-     * @param game
-     * @param move
-     */
-    protected void onMoveEvaluated(Game game, Move move) {
-        if (evalCount % 1000 == 0)
-            log.debug("Eval Count: %d", evalCount);
-    }
-
     protected void onMoveListGenerated(List<Move> moveList) {
-        log.debug("nodes evaluated = " + evalCount);
+        log.debug(stats.toString());
     }
 }
