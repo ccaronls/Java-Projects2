@@ -8,17 +8,29 @@ import java.util.Stack;
 
 import cc.lib.game.IGame;
 import cc.lib.game.Utils;
+import cc.lib.logger.Logger;
+import cc.lib.logger.LoggerFactory;
 import cc.lib.utils.GException;
 import cc.lib.utils.Reflector;
 
 public class Game extends Reflector<Game> implements IGame<Move> {
+
+    static final Logger log = LoggerFactory.getLogger(Game.class);
+
+    static int counter = 0;
+
+    final static boolean DEBUG = false;
+
 
     static {
         addAllFields(Game.class);
     }
 
     public enum GameState {
-        PLAYING(false, -1), NEAR_WINS(true, NEAR), FAR_WINS(true, FAR), DRAW(true, -1);
+        PLAYING(false, -1),
+        NEAR_WINS(true, NEAR),
+        FAR_WINS(true, FAR),
+        DRAW(true, -1);
 
         final boolean gameOver;
         final int playerNum;
@@ -147,6 +159,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
     }
 
     void countPieces() {
+        log.debug("Counting pieces");
         numPieces = new int[2];
         for (int i=0; i<ranks; i++) {
             for (int ii=0; ii<cols; ii++) {
@@ -178,14 +191,6 @@ public class Game extends Reflector<Game> implements IGame<Move> {
         List<Move> moves = getMoves();
         if (moves.size() == 0) {
             onGameOver(getWinner());
-            return;
-        }
-
-        if (moves.size() == 1) {
-            // only one move option. Just play it already
-            Move m = moves.get(0);
-            onMoveChosen(m);
-            executeMove(m);
             return;
         }
 
@@ -234,32 +239,58 @@ public class Game extends Reflector<Game> implements IGame<Move> {
         return board[rank][col];
     }
 
+    private void validatePiceCounts() {
+        int [] numPieces = new int[2];
+        for (int i=0; i<ranks; i++) {
+            for (int ii=0; ii<cols; ii++) {
+                if (!isOnBoard(i, ii))
+                    continue;
+                Piece p = getPiece(i, ii);
+                if (p.playerNum >= 0) {
+                    numPieces[p.playerNum]++;
+                }
+            }
+        }
+
+        if (this.numPieces[0] != numPieces[0]) {
+            log.error("Piece count wrong");
+
+        }
+        if (this.numPieces[1] != numPieces[1]) {
+            log.error("Piece count wrong");
+        }
+    }
+
     public Iterable<Piece> getPieces(final int playerNum) {
         if (numPieces == null)
             countPieces();
-        return new Iterable<Piece>() {
-            @Override
-            public Iterator<Piece> iterator() {
-                int num = 0;
-                int pNum = playerNum;
-                int startRank = 0;
-                int advDir = 1;
-                if  (pNum == NEAR) {
-                    num = numPieces[NEAR];
-                    pNum = FAR;
-                    startRank = getStartRank(playerNum);
-                    advDir = getAdvanceDir(playerNum);
-                } else if (playerNum == FAR) {
-                    num = numPieces[FAR];
-                    pNum = NEAR;
-                    startRank = getStartRank(playerNum);
-                    advDir = getAdvanceDir(playerNum);
-                } else {
-                    num = numPieces[NEAR] + numPieces[FAR];
-                }
+        else if (DEBUG) {
+            validatePiceCounts();
+        }
 
-                return new PieceIterator(pNum, startRank, advDir, num);
+        //log.debug("Piece count for player %d = %d", 0, numPieces[0]);
+        //log.debug("Piece count for player %d = %d", 1, numPieces[1]);
+
+        return () -> {
+            int num = 0;
+            int pNum = playerNum;
+            int startRank = 0;
+            int advDir = 1;
+            if  (pNum == NEAR) {
+                num = numPieces[NEAR];
+                pNum = FAR;
+                startRank = getStartRank(playerNum);
+                advDir = getAdvanceDir(playerNum);
+            } else if (playerNum == FAR) {
+                num = numPieces[FAR];
+                pNum = NEAR;
+                startRank = getStartRank(playerNum);
+                advDir = getAdvanceDir(playerNum);
+            } else {
+                num = numPieces[NEAR] + numPieces[FAR];
             }
+
+            return new PieceIterator(pNum, startRank, advDir, num);
         };
     }
 
@@ -298,6 +329,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
                 }
                 col=0;
             }
+            Utils.assertTrue(false, "Should not get here");
             return false;
         }
 
@@ -329,14 +361,11 @@ public class Game extends Reflector<Game> implements IGame<Move> {
 
     private List<Piece> getMovablePieces() {
         List<Piece> pieces = new ArrayList<>();
-        for (int i=0; i<board.length; i++) {
-            for (int ii=0; ii<board[0].length; ii++) {
-                Piece p = board[i][ii];
-                if (p.getNumMoves() > 0) {
-                    pieces.add(p);
-                }
-            }
+        for (Piece p : getPieces(getTurn())) {
+            if (p.getNumMoves() > 0)
+                pieces.add(p);
         }
+        Utils.assertTrue(pieces.size() > 0);
         return pieces;
     }
 
@@ -399,10 +428,6 @@ public class Game extends Reflector<Game> implements IGame<Move> {
      * @param winner draw game if null
      */
     protected void onGameOver(Player winner) {}
-
-    static int counter = 0;
-
-    final static boolean DEBUG = false;
 
     @Override
     public final synchronized void executeMove(Move move) {
@@ -494,8 +519,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
             if (m.getEnpassant() != null) {
                 Piece p = getPiece(m.getEnpassant());
                 if (p.getPlayerNum() == m.getPlayerNum() && p.getType() == PieceType.PAWN)
-//                Utils.assertTrue(p.getType() == PieceType.PAWN);
-                  p.setType(PieceType.PAWN_ENPASSANT);
+                    p.setType(PieceType.PAWN_ENPASSANT);
             }
             gameState = GameState.PLAYING;
             return m;
@@ -604,7 +628,9 @@ public class Game extends Reflector<Game> implements IGame<Move> {
     }
 
     final void clearPiece(int rank, int col) {
+        numPieces[board[rank][col].getPlayerNum()]--;
         board[rank][col].clear();
+
     }
 
     final void clearPiece(int [] pos ) {
@@ -614,6 +640,8 @@ public class Game extends Reflector<Game> implements IGame<Move> {
     final void setPiece(int rank, int col, int playerNum, PieceType p) {
         board[rank][col].setType(p);
         board[rank][col].setPlayerNum(playerNum);
+        if (numPieces != null)
+            numPieces[playerNum] ++;
     }
 
     final void setPiece(int [] pos, int playerNum, PieceType p) {
@@ -621,6 +649,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
     }
     final void copyPiece(Piece from, Piece to) {
         to.copyFrom(from);
+        numPieces[to.getPlayerNum()]++;
     }
 
     final void copyPiece(int [] fromPos, int [] toPos) {

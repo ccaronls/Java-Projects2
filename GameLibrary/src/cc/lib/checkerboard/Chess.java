@@ -177,7 +177,9 @@ public class Chess extends Rules {
                 case CASTLE: {
                     game.movePiece(move);
                     p = game.getPiece(move.getCastleRookStart());
-                    Utils.assertTrue(p.getType().canCastleWith());
+                    if (!p.getType().canCastleWith()) {
+                        throw new GException("Expected castleabel piece");
+                    }
                     game.setPiece(move.getCastleRookEnd(), move.getPlayerNum(), p.getType().getNonIdled());
                     game.clearPiece(move.getCastleRookStart());
                     break;
@@ -475,7 +477,8 @@ public class Chess extends Rules {
             kd = kdn[k];
             dr = kd[0];
             dc = kd[1];
-            Utils.assertTrue(dr.length == dc.length);
+            if (dr.length != dc.length)
+                throw new GException();
             int n = Math.min(d, dr.length);
             for (int i=0; i<n; i++) {
                 // search max d units in a specific direction

@@ -26,6 +26,7 @@ import cc.lib.game.GRectangle;
 import cc.lib.game.IImageFilter;
 import cc.lib.game.Justify;
 import cc.lib.math.CMath;
+import cc.lib.math.Matrix3x3;
 import cc.lib.math.Vector2D;
 
 /**
@@ -524,6 +525,17 @@ public class DroidGraphics extends APGraphics {
             Bitmap bm = bitmaps.get(imageKey);
             canvas.drawBitmap(bm, null, rectf, null);
         }
+    }
+
+    @Override
+    public void drawImage(int imageKey, Matrix3x3 transform) {
+        canvas.save();
+        Matrix M = new Matrix();
+        M.setValues(transform.toFloatArray());
+        canvas.concat(M);
+        Drawable d = context.getResources().getDrawable(imageKey);
+        d.draw(canvas);
+        canvas.restore();
     }
 
     @Override

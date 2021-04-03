@@ -34,6 +34,7 @@ import cc.lib.game.IImageFilter;
 import cc.lib.game.Justify;
 import cc.lib.math.Matrix3x3;
 import cc.lib.math.Vector2D;
+import cc.lib.utils.GException;
 
 public class GL10Graphics extends AGraphics {
 
@@ -915,7 +916,12 @@ for (int pix : pixels) {
         drawFilledRect(x, y, w, h);
         disableTexture();
     }
-    
+
+    @Override
+    public void drawImage(int imageKey, Matrix3x3 transform) {
+        throw new GException("Not Implemented");
+    }
+
     /**
      * 
      * @param source

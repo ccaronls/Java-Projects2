@@ -1,6 +1,7 @@
 package cc.lib.checkerboard;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import cc.lib.game.Utils;
@@ -124,12 +125,30 @@ public class Ugolki extends Checkers {
 
     @Override
     public long evaluate(Game game, Move move) {
-        int winner;
-        switch (winner=game.getWinnerNum()) {
-            case NEAR:
-            case FAR:
-                return (winner == move.getPlayerNum() ? Long.MAX_VALUE : Long.MIN_VALUE);
+
+        int playerNum = move.getPlayerNum();
+        List<int []> targetPositions = new ArrayList<>();
+        if (playerNum == NEAR)
+            targetPositions.addAll(Arrays.asList(FAR_POSITIONS));
+        else
+            targetPositions.addAll(Arrays.asList(NEAR_POSITIONS));
+
+        int totalD = 0;
+        for (Piece p : game.getPieces(playerNum)) {
+
+            int clIdx = getClosest(p.getPosition(), targetPositions);
+            int [] pos = targetPositions.remove(clIdx);
+
+            totalD += dist(pos, p.getPosition());
         }
+
+        Utils.assertTrue(totalD > 0);
+
+        return Integer.MAX_VALUE - totalD;
+    }
+
+    private long evaluate_old(Game game, Move move) {
+
         int numNearPiecesInPlace = 0;
         int numFarPiecesInPlace = 0;
         int [][] nearPositions = new int[NEAR_POSITIONS.length][];
@@ -221,9 +240,25 @@ public class Ugolki extends Checkers {
         int minD = Integer.MAX_VALUE;
         for (int i=0; i<num; i++) {
             int [] p1 = positions[i];
-            int d = Math.abs(p0[0] - p1[0]) + Math.abs(p1[0] - p1[1]);
+            int d = dist(p0, p1);
             minD = Math.min(minD, d);
         }
         return minD;
+    }
+
+    int getClosest(int [] p0, List<int []> positions) {
+        Utils.assertTrue(positions.size() > 0);
+        int [] cl = positions.get(0);
+        int minD = Math.abs(p0[0] - cl[0]) + Math.abs(p0[0] - cl[1]);
+        for (int i=0; i<positions.size(); i++) {
+            int [] p1 = positions.get(i);
+            int d = dist(p1, p1);
+            minD = Math.min(minD, d);
+        }
+        return minD;
+    }
+
+    int dist(int [] p0, int [] p1) {
+        return Math.abs(p0[0] - p1[0]) + Math.abs(p0[1] - p1[1]);
     }
 }

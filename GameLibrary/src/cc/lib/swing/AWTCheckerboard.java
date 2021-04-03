@@ -293,6 +293,7 @@ public class AWTCheckerboard extends AWTComponent {
     public void keyReleased(KeyEvent e) {
         switch (e.getKeyCode()) {
             case VK_U:
+                game.stopGameThread();
                 game.undoAndRefresh();
                 break;
             case VK_E: {

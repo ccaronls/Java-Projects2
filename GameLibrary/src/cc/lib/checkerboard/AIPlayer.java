@@ -160,6 +160,7 @@ public class AIPlayer extends Player {
         startTime = 0;
         log.debug(algorithm + " ran in %3.2f seconds with best value of %s", evalTimeMS/1000, root.bestValue);
         log.debug("Time spent in eval %3.4f seconds", ((float)(stats.evalTimeTotalMSecs))/1000);
+
         Move m = root.path;
         while (m != null) {
             // move the 'path' node to front so that it appears first in the xml
@@ -281,6 +282,18 @@ public class AIPlayer extends Player {
 
     static Comparator<Move> SORT_DESCENDING = (Move m0, Move m1) -> Integer.compare(m1.getCompareValue(), m0.getCompareValue());
 
+    static Comparator<Move> SORT_DESCENDING2 = new Comparator<Move>() {
+        @Override
+        public int compare(Move m0, Move m1) {
+            double d0 = m0.getCompareValue() + stats.pieceTypeValue[m0.getStartType().ordinal()];
+            double d1 = m1.getCompareValue() + stats.pieceTypeValue[m1.getStartType().ordinal()];
+
+            return Double.compare(d1, d0);
+        }
+    };//(Move m0, Move m1) -> Integer.compare(m1.getCompareValue(), m0.getCompareValue());
+
+
+
     static long miniMaxABR(Game game, Move root, boolean maximizePlayer, int depth, int actualDepth, long alpha, long beta) {
         if (root == null || root.getPlayerNum() < 0)
             throw new GException();
@@ -307,7 +320,8 @@ public class AIPlayer extends Player {
         root.maximize = maximizePlayer ? 1 : -1;
         for (Move m : root.children) {
             m.parent = root;
-//            String gameBeforeMove = game.toString();
+
+            //            String gameBeforeMove = game.toString();
             try {
                 game.executeMove(m);
             } catch (Exception e) {
@@ -449,13 +463,7 @@ negamax(rootNode, depth, −∞, +∞, 1)
             return evaluate(game, actualDepth) * color;
         }
         root.children = new ArrayList<>(game.getMoves());
-        Collections.sort(root.children, (Move o1, Move o2) -> {
-            if (o1.getCompareValue() < o2.getCompareValue())
-                return -color;
-            if (o1.getCompareValue() > o2.getCompareValue())
-                return color;
-            return 0;
-        });
+        Collections.sort(root.children, SORT_DESCENDING2);
         long value = Long.MIN_VALUE;
         Move path=null;
         root.maximize = color;
@@ -557,6 +565,8 @@ negamax(rootNode, depth, −∞, +∞, 1)
     @Override
     public Piece choosePieceToMove(Game game, List<Piece> pieces) {
         buildMovesList(game);
+        if (moveList.size() == 0)
+            throw new GException("Empty move list");
         return game.getPiece(moveList.getFirst().getStart());
     }
 
@@ -574,4 +584,5 @@ negamax(rootNode, depth, −∞, +∞, 1)
     protected void onMoveListGenerated(List<Move> moveList) {
         log.debug(stats.toString());
     }
+
 }

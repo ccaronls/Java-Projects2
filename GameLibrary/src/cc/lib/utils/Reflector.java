@@ -28,6 +28,7 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -104,6 +105,8 @@ import cc.lib.logger.LoggerFactory;
 public class Reflector<T> {
 
     public static boolean DISABLED = false;
+
+    public static int ARRAY_DIMENSION_VARIATIONS = 2;
 
     /**
      * Use this annotation to Omit field for usage by Reflector
@@ -909,11 +912,22 @@ public class Reflector<T> {
                 // now inherit any values in base classes that were added
                 inheritValues(clazz.getSuperclass(), values);
                 classValues.put(clazz, values);
-                classMap.put(getCanonicalName(clazz) + "[]", Array.newInstance(clazz, 0).getClass());
-                classMap.put(getCanonicalName(clazz) + "[][]", Array.newInstance(Array.newInstance(clazz, 0).getClass(), 0).getClass());
+
+                String arrName = getCanonicalName(clazz);
+                Class arrClass = clazz;
+                for (int i=0; i<ARRAY_DIMENSION_VARIATIONS; i++) {
+                    arrName += "[]";
+                    arrClass = Array.newInstance(arrClass, 0).getClass();
+                    classMap.put(arrName, arrClass);
+                }
+
+                //classMap.put(getCanonicalName(clazz) + "[]", Array.newInstance(clazz, 0).getClass());
+                //classMap.put(getCanonicalName(clazz) + "[][]", Array.newInstance(Array.newInstance(clazz, 0).getClass(), 0).getClass());
             } else if (clazz.getSuperclass() == null) {
-                throw new GException("Cannot find any fields to archive (did you add an addField(...) method in your class?)");
+                //log.warn("Cannot find any fields to archive (did you add an addField(...) method in your class?)");
+                values = Collections.emptyMap();
             } else {
+                //log.warn("No values for " + clazz.getName());
                 return getValues(clazz.getSuperclass(), createIfDNE);
             }
             return values;

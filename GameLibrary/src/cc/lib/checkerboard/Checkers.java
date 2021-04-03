@@ -6,6 +6,7 @@ import java.util.List;
 
 import cc.lib.game.Utils;
 import cc.lib.math.CMath;
+import cc.lib.utils.GException;
 
 import static cc.lib.checkerboard.Game.*;
 import static cc.lib.checkerboard.PieceType.*;
@@ -52,7 +53,7 @@ public class Checkers extends Rules {
                 int num = moves.size();
                 Piece p = game.getPiece(rank, col);
                 if (p == null)
-                    throw new cc.lib.utils.GException("Null piece at [" + rank + "," + col + "]");
+                    throw new GException("Null piece at [" + rank + "," + col + "]");
                 if (p.getPlayerNum() == game.getTurn())
                     numJumps += computeMovesForSquare(game, rank, col, null, moves);
             }
@@ -112,7 +113,7 @@ public class Checkers extends Rules {
     private final int computeMovesForSquare(Game game, int rank, int col, Move parent, List<Move> moves) {
         Piece p = game.getPiece(rank, col);
         if (p.getPlayerNum() != game.getTurn())
-            throw new cc.lib.utils.GException("Logic Error: Should not be able to move opponent piece");
+            throw new GException("Logic Error: Should not be able to move opponent piece");
 
         int startSize = moves.size();
         int numJumps = 0;
@@ -157,7 +158,7 @@ public class Checkers extends Rules {
                     case CHIP_4WAY:
                         return false;
                     default:
-                        throw new cc.lib.utils.GException("Unhandled case: " + p.getType());
+                        throw new GException("Unhandled case: " + p.getType());
                 }
             }
         }
@@ -264,7 +265,7 @@ public class Checkers extends Rules {
                 // t is piece one unit away in this direction
                 Piece t = game.getPiece(rdr, cdc);
                 if (t == null)
-                    throw new cc.lib.utils.GException("Null piece at [" + rdr + "," + cdc + "]");
+                    throw new GException("Null piece at [" + rdr + "," + cdc + "]");
                 if (t.getType() == EMPTY) {
                     moves.add(new Move(MoveType.SLIDE, game.getTurn()).setStart(rank, col, p.getType()).setEnd(rdr, cdc, p.getType()));
                     //new Move(MoveType.SLIDE, rank, col, rdr, cdc, getTurn()));
@@ -299,7 +300,7 @@ public class Checkers extends Rules {
                 dc = PIECE_DELTAS_4WAY_C;
                 break;
             default:
-                throw new cc.lib.utils.GException("Unhandled case");
+                throw new GException("Unhandled case");
         }
 
         for (int i=0; i<4; i++) {
@@ -388,7 +389,7 @@ public class Checkers extends Rules {
     @Override
     void executeMove(Game game, Move move) {
         if (move.getPlayerNum() != game.getTurn())
-            throw new cc.lib.utils.GException();
+            throw new GException();
         boolean isKinged = false;
         boolean isDamaKing = false;
         Piece p = game.getPiece(move.getStart());
@@ -533,7 +534,7 @@ public class Checkers extends Rules {
                         break;
 
                     default:
-                        throw new cc.lib.utils.GException("Unhandled case '" + p.getType() + "'");
+                        throw new GException("Unhandled case '" + p.getType() + "'");
                 }
             }
         }
@@ -554,7 +555,7 @@ public class Checkers extends Rules {
                     if (isStackingCaptures()) {
                         Piece captured = game.getPiece(m.getCaptured(0));
                         if (!p.isStacked())
-                            throw new cc.lib.utils.GException("Logic Error: Capture must result in stacked piece");
+                            throw new GException("Logic Error: Capture must result in stacked piece");
                         if (captured.getType() != EMPTY) {
                             //captured.addStackFirst(captured.getPlayerNum());
                         } else {
@@ -563,9 +564,10 @@ public class Checkers extends Rules {
 //                        captured.setPlayerNum(p.removeStackLast());
                     } else {
                         for (int i = 0; i < m.getNumCaptured(); i++) {
+                            game.setPiece(m.getCaptured(i), game.getOpponent(m.getPlayerNum()), m.getCapturedType(i));
                             Piece cp = game.getPiece(m.getCaptured(i));
-                            cp.setPlayerNum(game.getOpponent(m.getPlayerNum()));
-                            cp.setType(m.getCapturedType(i));
+                            //cp.setPlayerNum(game.getOpponent(m.getPlayerNum()));
+                            //cp.setType(m.getCapturedType(i));
                             cp.setCaptured(isCaptureAtEndEnabled());
 //                            game.setPiece(m.getCaptured(i), game.getOpponent(m.getPlayerNum()), m.getCapturedType(i));
                         }
@@ -581,7 +583,7 @@ public class Checkers extends Rules {
                 game.getPiece(m.getStart()).setType(m.getStartType());
                 break;
             default:
-                throw new cc.lib.utils.GException("Unhandled case '" + m.getMoveType() + "'");
+                throw new GException("Unhandled case '" + m.getMoveType() + "'");
         }
         game.setTurn(m.getPlayerNum());
     }

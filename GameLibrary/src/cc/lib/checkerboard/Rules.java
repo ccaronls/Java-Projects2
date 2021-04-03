@@ -2,17 +2,12 @@ package cc.lib.checkerboard;
 
 import java.util.List;
 
-import cc.lib.game.Utils;
 import cc.lib.utils.Reflector;
 
 /**
  * Base class for logical rules to govern a checkerboard style game.
  */
 public abstract class Rules extends Reflector<Rules> {
-
-    static {
-        addAllFields(Rules.class);
-    }
 
     /**
      * setup pieces and choose side.

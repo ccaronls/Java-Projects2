@@ -66,7 +66,6 @@ public abstract class UIGame extends Game {
         synchronized (RUNGAME_MONITOR) {
             RUNGAME_MONITOR.notifyAll();
         }
-        startGameThread();
         repaint(0);
         return m;
     }
@@ -383,7 +382,7 @@ public abstract class UIGame extends Game {
             g.pushMatrix();
             g.translate(x, y+PIECE_RADIUS);
             if (p.getType() != PieceType.EMPTY && p.getPlayerNum() >= 0)
-                drawPiece(g, p, PIECE_RADIUS *2, PIECE_RADIUS *2);
+                drawPiece(g, p);
             g.popMatrix();
         }
 
@@ -509,9 +508,10 @@ public abstract class UIGame extends Game {
         return null;
     }
 
-    private void drawPiece(AGraphics g, Piece pc, float w, float h) {
+    private void drawPiece(AGraphics g, Piece pc) {
         if (pc.getPlayerNum() < 0)
             return;
+        float d = PIECE_RADIUS * 2;
         Color color = getPlayer(pc.getPlayerNum()).getColor();
         g.pushMatrix();
         switch (pc.getType()) {
@@ -521,55 +521,55 @@ public abstract class UIGame extends Game {
             case PAWN_IDLE:
             case PAWN_ENPASSANT:
             case PAWN_TOSWAP:
-                drawPiece(g, PieceType.PAWN, color, w, h, null);
+                drawPiece(g, PieceType.PAWN, color, d, d, null);
                 break;
             case BISHOP:
             case QUEEN:
             case KNIGHT_L:
             case KNIGHT_R:
-                drawPiece(g, pc.getType(), color, w, h, null);
+                drawPiece(g, pc.getType(), color, d, d, null);
                 break;
             case ROOK:
             case ROOK_IDLE:
-                drawPiece(g, PieceType.ROOK, color, w, h, null);
+                drawPiece(g, PieceType.ROOK, color, d, d, null);
                 break;
             case DRAGON_R:
             case DRAGON_L:
             case DRAGON_IDLE_R:
             case DRAGON_IDLE_L:
-                drawPiece(g, pc.getType(), color, w, h, null);
+                drawPiece(g, pc.getType(), color, d, d, null);
                 break;
             case CHECKED_KING:
             case CHECKED_KING_IDLE:
-                drawPiece(g, PieceType.KING, color, w, h, GColor.RED);
+                drawPiece(g, PieceType.KING, color, d, d, GColor.RED);
                 break;
             case UNCHECKED_KING:
             case UNCHECKED_KING_IDLE:
-                drawPiece(g, PieceType.KING, color, w, h, null);
+                drawPiece(g, PieceType.KING, color, d, d, null);
                 break;
             case KING:
             case FLYING_KING:
             case DAMA_KING:
                 if (pc.isStacked()) {
                     for (int s=pc.getStackSize()-1; s>=0; s--) {
-                        drawPiece(g, PieceType.CHECKER, getPlayer(pc.getStackAt(s)).color, w, h, null);
-                        g.translate(0, -h/5);
+                        drawPiece(g, PieceType.CHECKER, getPlayer(pc.getStackAt(s)).color, d, d, null);
+                        g.translate(0, -d/5);
                     }
                 }
-                drawPiece(g, PieceType.CHECKER, color, w, h, null);
-                g.translate(0, -h/5);
-                drawPiece(g, PieceType.CHECKER, color, w, h, null);
+                drawPiece(g, PieceType.CHECKER, color, d, d, null);
+                g.translate(0, -d/5);
+                drawPiece(g, PieceType.CHECKER, color, d, d, null);
                 break;
             case CHIP_4WAY:
             case DAMA_MAN:
             case CHECKER:
                 if (pc.isStacked()) {
                     for (int s=pc.getStackSize()-1; s>=0; s--) {
-                        drawPiece(g, PieceType.CHECKER, getPlayer(pc.getStackAt(s)).color, w, h, null);
-                        g.translate(0, -h/5);
+                        drawPiece(g, PieceType.CHECKER, getPlayer(pc.getStackAt(s)).color, d, d, null);
+                        g.translate(0, -d/5);
                     }
                 }
-                drawPiece(g, PieceType.CHECKER, color, w, h, null);
+                drawPiece(g, PieceType.CHECKER, color, d, d, null);
                 break;
         }
         g.popMatrix();
@@ -703,7 +703,7 @@ public abstract class UIGame extends Game {
 
     abstract class PieceAnim extends AAnimation<AGraphics> {
 
-        final float sx, sy, ex, ey;
+        float sx, sy, ex, ey;
         Piece pc;
         final int [] start;
 
@@ -723,13 +723,7 @@ public abstract class UIGame extends Game {
         }
 
         @Override
-        protected void onStarted() {
-            clearPiece(start);
-        }
-
-        @Override
         protected void onDone() {
-            setPiece(start, pc.getPlayerNum(), pc.getType());
             animLock.release();
         }
     }
@@ -745,12 +739,23 @@ public abstract class UIGame extends Game {
             float y = sy + (ey-sy) * position;
             g.pushMatrix();
             g.translate(x, y);
-            drawPiece(g, pc, PIECE_RADIUS*2, PIECE_RADIUS*2);
+            drawPiece(g, pc);
             g.popMatrix();
+        }
+
+        @Override
+        protected void onStarted() {
+            clearPiece(start);
+        }
+
+        @Override
+        protected void onDone() {
+            setPiece(start, pc.getPlayerNum(), pc.getType());
+            super.onDone();
         }
     }
 
-    class JumpAnim extends PieceAnim {
+    class JumpAnim extends SlideAnim {
 
         final Bezier curve;
         boolean upsidedown;
@@ -772,7 +777,7 @@ public abstract class UIGame extends Game {
         }
 
         public JumpAnim(int[] start, int[] end, Piece pc) {
-            super(start, end, pc, 1200);
+            super(start, end, pc);
             curve = new Bezier(computeJumpPoints(pc.getPlayerNum()));
         }
 
@@ -781,7 +786,7 @@ public abstract class UIGame extends Game {
             IVector2D v = curve.getPointAt(position);
             g.pushMatrix();
             g.translate(v);
-            drawPiece(g, pc, PIECE_RADIUS*2, PIECE_RADIUS*2);
+            drawPiece(g, pc);
             g.popMatrix();
 
         }
@@ -790,20 +795,20 @@ public abstract class UIGame extends Game {
     class StackAnim extends PieceAnim {
 
         public StackAnim(int [] pos, Piece p) {
-            super(pos, SQ_DIM * pos[1] + SQ_DIM/2,
-                    pos[1] == 0 ? 0 : BOARD_DIM.getHeight(), p, 1200);
+            super(pos, pos, p, 1000);
+            sy = ey-SQ_DIM;
         }
 
         @Override
         public void draw(AGraphics g, float position, float dt) {
 
-            float scale = 1 + (1-position);
+            float scale = 1f + (1f-position);
             int x = Math.round(sx + (ex-sx) * position);
             int y = Math.round(sy + (ey-sy) * position);
             g.pushMatrix();
             g.translate(x, y);
             g.scale(scale, scale);
-            drawPiece(g, pc, PIECE_RADIUS, PIECE_RADIUS);
+            drawPiece(g, pc);
             g.popMatrix();
         }
 
