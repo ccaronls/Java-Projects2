@@ -161,12 +161,13 @@ public class Chess extends Rules {
                 case JUMP:
                 case SLIDE:
                     if (move.hasCaptured()) {
-                        game.clearPiece(move.getLastCaptured());
+                        game.clearPiece(move.getLastCaptured().getPosition());
                     }
                     p = game.movePiece(move);
                     // check for pawn advancing
                     if (p.getType() == PAWN_TOSWAP) {
-                        computeMovesForSquare(game, move.getEnd()[0], move.getEnd()[1], null, game.getMovesInternal());
+                        int pos = move.getEnd();
+                        computeMovesForSquare(game, pos>>8, pos&0xff, null, game.getMovesInternal());
                         return;
                     }
                     // see if this move result
@@ -188,7 +189,7 @@ public class Chess extends Rules {
                     throw new GException();
             }
         } finally {
-            if ((move.getOpponentKingPos() != null))
+            if (move.hasOpponentKing())
                 game.getPiece(move.getOpponentKingPos()).setType(move.getOpponentKingTypeEnd());
         }
 
@@ -220,7 +221,7 @@ public class Chess extends Rules {
             computePieceDeltas(game);
         }
 
-        int [][][][] knightDeltas = pieceDeltas[DELTAS_KNIGHT];
+        final int [][][][] knightDeltas = pieceDeltas[DELTAS_KNIGHT];
 
         // search in the eight directions and knights whom can
         int [][] kd = knightDeltas[rank][col];
@@ -763,7 +764,7 @@ public class Chess extends Rules {
             value += p.getType().value;
         }
         if (move.hasCaptured()) {
-            value += 100 + move.getLastCapturedType().points;
+            value += 100 + move.getLastCaptured().getType().points;
         }
         if (move.getOpponentKingTypeEnd() != null && move.getOpponentKingTypeEnd().isChecked()) {
             value += 100;
@@ -831,7 +832,10 @@ public class Chess extends Rules {
                     case UNCHECKED_KING: // once lost idle state we want to chase the other king
                         value -= 100 * scale;
                         if (p.getPlayerNum() == move.getPlayerNum()) {
-                            int dist = Math.max(Math.abs(p.getRank()-move.getOpponentKingPos()[0]), Math.abs(p.getCol()-move.getOpponentKingPos()[1]));
+                            final int pos = move.getOpponentKingPos();
+                            final int krank = pos >> 8;
+                            final int kcol = pos & 0xff;
+                            final int dist = Math.max(Math.abs(p.getRank()-krank), Math.abs(p.getCol()-kcol));
                             //System.out.println("dist:"+  dist);
                             value -= (dist-2); // 2 units away is best
                         }
@@ -867,7 +871,8 @@ public class Chess extends Rules {
                 if (m.hasCaptured()) {
                     if (m.getNumCaptured() != 1)
                         throw new GException("Logic Error: cannot have more than one captured piece in chess");
-                    game.setPiece(m.getCaptured(0), game.getOpponent(m.getPlayerNum()), m.getCapturedType(0));
+                    Move.CapturedPiece cap = m.getLastCaptured();
+                    game.setPiece(cap.getPosition(), game.getOpponent(m.getPlayerNum()), cap.getType());
                 }
                 //fallthrough
             case SWAP:
@@ -876,8 +881,13 @@ public class Chess extends Rules {
             default:
                 throw new GException("Unhandled Case " + m.getMoveType());
         }
-        if (m.getOpponentKingPos() != null)
+        if (m.hasOpponentKing())
             game.getPiece(m.getOpponentKingPos()).setType(m.getOpponentKingTypeStart());
         game.setTurn(m.getPlayerNum());
+    }
+
+    @Override
+    String getInstructions() {
+        return "Classic game of Chess";
     }
 }

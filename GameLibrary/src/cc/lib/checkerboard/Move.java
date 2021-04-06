@@ -1,7 +1,5 @@
 package cc.lib.checkerboard;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import cc.lib.game.IMove;
@@ -12,21 +10,57 @@ public class Move extends Reflector<Move> implements IMove, Comparable<Move> {
 
     static {
         addAllFields(Move.class);
+        addAllFields(CapturedPiece.class);
+    }
+
+    public static class CapturedPiece extends Reflector<CapturedPiece> {
+        final int pos;
+        final PieceType type;
+        final CapturedPiece next;
+
+        public CapturedPiece() {
+            this(-1, null, null);
+        }
+
+        public CapturedPiece(int pos, PieceType type, CapturedPiece next) {
+            this.pos = pos;
+            this.type = type;
+            this.next = next;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("[%s %s]", Move.toStr(pos), type);
+        }
+
+        public CapturedPiece getNext() {
+            return next;
+        }
+
+        public int getPosition() {
+            return pos;
+        }
+
+        public PieceType getType() {
+            return type;
+        }
     }
 
     private final MoveType moveType;
     private final int playerNum;
 
     // consider optimization here for better memory usage (Piece objects instead of arrays)
-    private int [] start;
-    private int [] end;
-    private int [] castleRookStart;
-    private int [] castleRookEnd;
-    private int [] opponentKing; // 4 elem array
-    private List<int []> captured = null;
-
+    private int start = -1;
+    private int end = -1;
+    private int castleRookStart = -1;
+    private int castleRookEnd = -1;
+    private int opponentKing = -1;
+    private PieceType opponentKingTypeStart = null;
+    private PieceType opponentKingTypeEnd = null;
     private PieceType startType, endType;
-    private int [] enpassant = null;
+    private int enpassant = -1;
+    private CapturedPiece captured;
+    private int jumped = -1;
 
     @Omit
     Move parent = null;
@@ -89,34 +123,40 @@ public class Move extends Reflector<Move> implements IMove, Comparable<Move> {
     public Move setStart(int startRank, int startCol, PieceType type) {
         if (type == PieceType.EMPTY)
             throw new cc.lib.utils.GException("start type cannot be empty");
-        start = new int[]{startRank, startCol};
+        start = startRank<<8 | startCol;
         startType = type;
         compareValue += type.value;
         return this;
     }
 
     public Move setEnd(int endRank, int endCol, PieceType type) {
-        end = new int [] { endRank, endCol };
+        end = endRank << 8 | endCol;
         if (type == null)
             throw new cc.lib.utils.GException("type cannot be null");
         endType = type;
         return this;
     }
 
+    public Move setJumped(int startRank, int startCol) {
+        jumped = (startRank << 8) | startCol;
+        return this;
+    }
+
+    public int getJumped() {
+        return jumped;
+    }
+
     public Move addCaptured(int capturedRank, int capturedCol, PieceType type) {
         Utils.assertTrue(0 == (type.flag & PieceType.FLAG_KING));
-        if (captured == null) {
-            captured = new ArrayList<>();
-        }
-        Utils.assertTrue(captured.size() < 32);
-        captured.add(new int[] { capturedRank, capturedCol, type.ordinal() });
+        CapturedPiece top = captured;
+        captured = new CapturedPiece((capturedRank << 8) | capturedCol, type, captured);
         compareValue += 100 + type.value;
         return this;
     }
 
     public Move setCastle(int castleRookStartRank, int castRookStartCol, int castleRookEndRank, int castleRookEndCol) {
-        castleRookStart = new int [] { castleRookStartRank, castRookStartCol };
-        castleRookEnd = new int   [] { castleRookEndRank, castleRookEndCol };
+        castleRookStart = castleRookStartRank<<8 | castRookStartCol;
+        castleRookEnd = castleRookEndRank<<8 | castleRookEndCol;
         return this;
     }
 
@@ -136,95 +176,75 @@ public class Move extends Reflector<Move> implements IMove, Comparable<Move> {
         return endType;
     }
 
-    public final int [] getStart() {
+    public final int getStart() {
         return start;
     }
 
-    public final int [] getEnd() {
+    public final int getEnd() {
         return end;
     }
 
     public final boolean hasEnd() {
-        return end != null && moveType != MoveType.STACK;
+        return end >= 0 && moveType != MoveType.STACK;
     }
 
     public final int getNumCaptured() {
-        return captured != null ? captured.size() : 0;
+        int num = 0;
+        for (CapturedPiece p=captured; p!=null; p=p.next)
+            num++;
+        return num;
     }
 
-    public final int [] getCaptured(int index) {
-        return captured.get(index);
-    }
-
-    public final PieceType getCapturedType(int index) {
-        return PieceType.values()[captured.get(index)[2]];
-    }
-
-    public final List<int[]> getCapturedList() {
+    public final CapturedPiece getLastCaptured() {
         return captured;
     }
 
-    public final int [] getLastCaptured() {
-        return captured.get(captured.size()-1);
-    }
-
-    public final PieceType getLastCapturedType() {
-        return PieceType.values()[captured.get(captured.size()-1)[2]];
-    }
-
     public final boolean hasCaptured() {
-        return captured != null && captured.size() > 0;
+        return captured != null;
     }
 
-    public final int [] getCastleRookStart() {
+    public final int getCastleRookStart() {
         return castleRookStart;
     }
 
-    public final int [] getCastleRookEnd() {
+    public final int getCastleRookEnd() {
         return castleRookEnd;
     }
 
-    static String toStr(int [] pos) {
-        switch (pos.length) {
-            case 2:
-                return String.format("{%d,%d}", pos[0], pos[1]);
-            case 3:
-                return String.format("{%d,%d,%s}", pos[0], pos[1], PieceType.values()[pos[2]]);
-            case 4:
-                return String.format("{%d,%d,%s,%s}", pos[0], pos[1], PieceType.values()[pos[2]], PieceType.values()[pos[3]]);
-            default:
-                Utils.assertTrue(false, "Unhandled case");
-        }
-        return Arrays.toString(pos);
+    static String toStr(int pos) {
+        int rnk = pos>>8;
+        int col = pos&0xff;
+
+        return String.format("%d,%d", rnk, col);
     }
 
     @Override
     public final String toString() {
         StringBuffer str = new StringBuffer(64);
         str.append(playerNum).append(":").append(moveType);
-        if (start != null) {
+        if (start >= 0) {
             str.append(" ").append(startType).append(hasEnd() ? " from:" : " at:").append(toStr(start));
         }
-        if (end != null) {
+        if (end >= 0) {
             str.append(" to:").append(toStr(end));
             if (endType != startType)
                 str.append(" becomes:").append(endType);
         }
         if (captured != null) {
             str.append(" cap:");
-            for (int i=0; i<captured.size(); i++) {
-                if (i > 0)
-                    str.append(",");
-                str.append(toStr(captured.get(i)));
+            String pcs = "";
+            for (CapturedPiece p=captured; p!=null; p=p.next) {
+                pcs = p.toString() + (pcs.length() > 0 ? ", " : " ");
             }
+            str.append(pcs);
         }
-        if (castleRookStart != null) {
+        if (castleRookStart >= 0) {
             str.append(" castle st: ").append(toStr(castleRookStart)).append(" end: ").append(toStr(castleRookEnd));
         }
-        if (opponentKing != null) { // && opponentKing[2] != opponentKing[3]) {
+        if (opponentKing >= 0) { // && opponentKing[2] != opponentKing[3]) {
             str.append(" oppKing: ").append(toStr(opponentKing));
         }
-        if (enpassant != null) {
+        if (enpassant >= 0) {
             str.append(" enpassant:").append(toStr(enpassant));
         }
         return str.toString();
@@ -236,24 +256,26 @@ public class Move extends Reflector<Move> implements IMove, Comparable<Move> {
     }
 
     public PieceType getOpponentKingTypeStart() {
-        return PieceType.values()[opponentKing[2]];
+        return opponentKingTypeStart;
     }
 
     public PieceType getOpponentKingTypeEnd() {
-        return PieceType.values()[opponentKing[3]];
+        return opponentKingTypeEnd;
     }
 
-    public int [] getOpponentKingPos() {
+    public int getOpponentKingPos() {
         return opponentKing;
     }
 
     void setOpponentKingType(int rank, int col, PieceType opponentKingTypeStart, PieceType opponentKingTypeEnd) {
-        this.opponentKing = new int[] { rank, col, opponentKingTypeStart.ordinal(), opponentKingTypeEnd.ordinal() };
+        opponentKing = rank << 8 | col;
+        this.opponentKingTypeStart = opponentKingTypeStart;
+        this.opponentKingTypeEnd = opponentKingTypeEnd;
         compareValue += opponentKingTypeEnd.value;
     }
 
     boolean hasOpponentKing() {
-        return opponentKing != null;
+        return opponentKing >= 0;
     }
 
     @Override
@@ -265,8 +287,8 @@ public class Move extends Reflector<Move> implements IMove, Comparable<Move> {
         Move mv = (Move)obj;
         return playerNum == mv.playerNum
                 && moveType == mv.moveType
-                && Arrays.equals(start, mv.start)
-                && Arrays.equals(end, mv.end)
+                && start == mv.start
+                && end == mv.end
                 && hasCaptured() == mv.hasCaptured()
                 && hasOpponentKing() == mv.hasOpponentKing();
     }
@@ -289,11 +311,11 @@ public class Move extends Reflector<Move> implements IMove, Comparable<Move> {
         indent[0] += "  ";
     }
 
-    void setEnpassant(int [] pos) {
+    void setEnpassant(int pos) {
         this.enpassant = pos;
     }
 
-    int [] getEnpassant() {
+    int getEnpassant() {
         return enpassant;
     }
 }

@@ -30,7 +30,7 @@ public abstract class UIGame extends Game {
     private final Object RUNGAME_MONITOR = new Object();
     private boolean clicked = false;
 
-    int highlightedRank, highlightedCol;
+    int highlightedPos = -1;
     final List<Piece> pickablePieces = new ArrayList<>();
     final List<Move>  pickableMoves  = new ArrayList<>();
 
@@ -60,7 +60,7 @@ public abstract class UIGame extends Game {
 
     public final Move undoAndRefresh() {
         Move m = super.undo();
-        selectedPiece = null;
+        selectedPiece = -1;
         pickablePieces.clear();
         pickableMoves.clear();
         synchronized (RUNGAME_MONITOR) {
@@ -324,8 +324,8 @@ public abstract class UIGame extends Game {
 
         PIECE_RADIUS = SQ_DIM/3;
 
-        highlightedRank = highlightedCol = -1;
-        int [] _selectedPiece = null;
+        highlightedPos = -1;
+        int _selectedPiece = -1;
         List<Piece> _pickablePieces = new ArrayList<>();
         List<Move> _pickableMoves = new ArrayList<>();
         final boolean isUser = isCurrentPlayerUser();
@@ -338,10 +338,10 @@ public abstract class UIGame extends Game {
             }
         }
 
-        if (_selectedPiece != null) {
+        if (_selectedPiece >= 0) {
             g.setColor(GColor.GREEN);
-            float x = _selectedPiece[1]* cw + cw /2;
-            float y = _selectedPiece[0]* ch + ch /2;
+            float x = (_selectedPiece & 0xff) * cw + cw /2;
+            float y = (_selectedPiece >> 8) * ch + ch /2;
             g.drawFilledCircle(x, y, PIECE_RADIUS +5);
         }
 
@@ -357,8 +357,7 @@ public abstract class UIGame extends Game {
                     if (isUser) {
                         g.setColor(GColor.CYAN);
                         g.drawRect(c * cw + 1, r * ch + 1, cw - 2, ch - 2);
-                        highlightedRank = r;
-                        highlightedCol = c;
+                        highlightedPos = r << 8 | c;
                     }
                     g.setColor(GColor.YELLOW);
                     g.drawJustifiedStringOnBackground(mv, Justify.CENTER, Justify.CENTER, String.format("%d,%d\n%s", r, c, getPiece(r, c).getType()), GColor.BLACK, 5, 0);
@@ -387,20 +386,20 @@ public abstract class UIGame extends Game {
         }
 
         for (Move m : _pickableMoves) {
-            if (m.getMoveType() == MoveType.END && _selectedPiece != null) {
-                if (highlightedCol == _selectedPiece[1] && highlightedRank == _selectedPiece[0]) {
+            if (m.getMoveType() == MoveType.END && _selectedPiece >= 0) {
+                if (highlightedPos == _selectedPiece) {
                     g.setColor(GColor.YELLOW);
                 } else {
                     g.setColor(GColor.GREEN);
                 }
-                float x = _selectedPiece[1]* cw + cw /2;
-                float y = _selectedPiece[0]* ch + ch /2;
+                float x = (_selectedPiece & 0xff) * cw + cw /2;
+                float y = (_selectedPiece >> 8) * ch + ch /2;
                 g.setTextHeight(PIECE_RADIUS/2);
                 g.drawJustifiedString(x, y, Justify.CENTER, Justify.CENTER, "END");
-            } else if (m.getEnd() != null) {
+            } else if (m.getEnd() >= 0) {
                 g.setColor(GColor.CYAN);
-                float x = m.getEnd()[1] * cw + cw / 2;
-                float y = m.getEnd()[0] * ch + ch / 2;
+                float x = (m.getEnd() & 0xff) * cw + cw / 2;
+                float y = (m.getEnd() >> 8) * ch + ch / 2;
                 g.drawCircle(x, y, PIECE_RADIUS);
             }
         }
@@ -435,7 +434,7 @@ public abstract class UIGame extends Game {
         } else if (!gameRunning) {
             int x = g.getViewportWidth() / 2;
             int y = g.getViewportHeight() / 2;
-            String txt = "P A U S E D";
+            String txt = getRules().getInstructions();//"P A U S E D";
             g.setColor(GColor.CYAN);
             g.drawJustifiedStringOnBackground(x, y, Justify.CENTER, Justify.CENTER, txt, GColor.TRANSLUSCENT_BLACK, 3);
         }
@@ -467,7 +466,7 @@ public abstract class UIGame extends Game {
         Utils.waitNoThrow(RUNGAME_MONITOR, -1);
         if (clicked) {
             for (Piece p : pieces) {
-                if (p.getRank() == highlightedRank && p.getCol() == highlightedCol) {
+                if (p.getPosition() == highlightedPos) {
                     return p;
                 }
             }
@@ -488,7 +487,7 @@ public abstract class UIGame extends Game {
                 switch (m.getMoveType()) {
                     case SWAP:
                     case END:
-                        if (selectedPiece[0] == highlightedRank && selectedPiece[1] == highlightedCol) {
+                        if (selectedPiece == highlightedPos) {
                             return m;
                         }
                         break;
@@ -497,7 +496,7 @@ public abstract class UIGame extends Game {
                     case JUMP:
                     case CASTLE:
                     case STACK:
-                        if (m.getEnd()[0] == highlightedRank && m.getEnd()[1] == highlightedCol) {
+                        if (m.getEnd() == highlightedPos) {
                             return m;
                         }
                         break;
@@ -650,39 +649,6 @@ public abstract class UIGame extends Game {
         repaint(0);
         animLock.block();
     }
-/*
-    @Override
-    protected void onMoveReversed(Move m) {
-        Piece pc = new Piece(m.getPlayerNum(), m.getStartType());
-        if (m.hasCaptured()) {
-
-        }
-        switch (m.getMoveType()) {
-
-            case END:
-                break;
-            case SLIDE: {
-                animations.add(new SlideAnim(m.getEnd(),m.getStart(), pc).start());
-                break;
-            }
-            case FLYING_JUMP:
-            case JUMP:
-                animations.add(new JumpAnim(m.getEnd(), m.getStart(), pc).start());
-                break;
-            case STACK:
-                break;
-            case SWAP:
-                break;
-            case CASTLE:
-                animations.add(new SlideAnim(m.getEnd(),m.getStart(), pc).start());
-                animations.add(new JumpAnim(m.getCastleRookEnd(), m.getCastleRookStart(), new Piece(m.getPlayerNum(), PieceType.ROOK_IDLE)).start());
-                break;
-
-        }
-
-        repaint(0);
-        animLock.block();
-    }*/
 
     @Omit
     final Lock animLock = new Lock();
@@ -705,17 +671,17 @@ public abstract class UIGame extends Game {
 
         float sx, sy, ex, ey;
         Piece pc;
-        final int [] start;
+        final int start;
 
-        public PieceAnim(int [] start, int [] end, Piece pc, long durationMSecs) {
-            this(start, SQ_DIM * end[1] + SQ_DIM / 2, SQ_DIM * end[0] + SQ_DIM / 2, pc, durationMSecs);
+        public PieceAnim(int start, int end, Piece pc, long durationMSecs) {
+            this(start, SQ_DIM * (end & 0xff) + SQ_DIM / 2, SQ_DIM * (end >> 8) + SQ_DIM / 2, pc, durationMSecs);
         }
 
-        public PieceAnim(int [] start, float ex, float ey, Piece pc, long durationMSecs) {
+        public PieceAnim(int start, float ex, float ey, Piece pc, long durationMSecs) {
             super(durationMSecs);
             this.start = start;
-            this.sx = SQ_DIM * start[1] + SQ_DIM / 2;
-            this.sy = SQ_DIM * start[0] + SQ_DIM / 2;
+            this.sx = SQ_DIM * (start & 0xff) + SQ_DIM / 2;
+            this.sy = SQ_DIM * (start >> 8) + SQ_DIM / 2;
             this.ex = ex;
             this.ey = ey;
             this.pc = new Piece(-1, -1, pc.getPlayerNum(), pc.getType());
@@ -729,7 +695,7 @@ public abstract class UIGame extends Game {
     }
 
     class SlideAnim extends PieceAnim {
-        public SlideAnim(int[] start, int[] end, Piece pc) {
+        public SlideAnim(int start, int end, Piece pc) {
             super(start, end, pc, 1000);
         }
 
@@ -776,7 +742,7 @@ public abstract class UIGame extends Game {
             return v;
         }
 
-        public JumpAnim(int[] start, int[] end, Piece pc) {
+        public JumpAnim(int start, int end, Piece pc) {
             super(start, end, pc);
             curve = new Bezier(computeJumpPoints(pc.getPlayerNum()));
         }
@@ -794,7 +760,7 @@ public abstract class UIGame extends Game {
 
     class StackAnim extends PieceAnim {
 
-        public StackAnim(int [] pos, Piece p) {
+        public StackAnim(int pos, Piece p) {
             super(pos, pos, p, 1000);
             sy = ey-SQ_DIM;
         }

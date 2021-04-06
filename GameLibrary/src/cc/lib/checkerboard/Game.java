@@ -47,7 +47,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
     private final Player [] players = new Player[2];
     Piece [][] board;
     private int ranks, cols, turn;
-    int [] selectedPiece = null;
+    int selectedPiece = -1;
     List<Move> moves = null;
     private Stack<State> undoStack = new Stack<>();
     private Rules rules;
@@ -70,7 +70,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
         }
         gameState = GameState.PLAYING;
         moves = null;
-        selectedPiece = null;
+        selectedPiece = -1;
         undoStack.clear();
         initialized = false;
         numPieces = null;
@@ -117,7 +117,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
      * @return
      */
     public Piece getSelectedPiece() {
-        if (selectedPiece == null)
+        if (selectedPiece < 0)
             return null;
         return getPiece(selectedPiece);
     }
@@ -145,7 +145,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
     public void newGame() {
         undoStack.clear();
         initialized = false;
-        selectedPiece = null;
+        selectedPiece = -1;
         moves = null;
         rules.init(this);
         int num = 0;
@@ -194,16 +194,16 @@ public class Game extends Reflector<Game> implements IGame<Move> {
             return;
         }
 
-        if (selectedPiece == null) {
+        if (selectedPiece < 0) {
             List<Piece> movable = getMovablePieces();
             if (movable.size() == 1) {
                 selectedPiece = movable.get(0).getPosition();
             }
         }
-        if (selectedPiece == null) {
+        if (selectedPiece < 0) {
             Piece p = players[turn].choosePieceToMove(this, getMovablePieces());
             if (p != null) {
-                selectedPiece = p.getRankCol();
+                selectedPiece = p.getPosition();
                 onPieceSelected(p);
                 return; // we dont want to block twice in one 'runGame'
             }
@@ -213,7 +213,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
                 onMoveChosen(m);
                 executeMove(m);
             }
-            selectedPiece = null;
+            selectedPiece = -1;
         }
     }
 
@@ -222,8 +222,8 @@ public class Game extends Reflector<Game> implements IGame<Move> {
      * @param pos
      * @return
      */
-    public final Piece getPiece(int [] pos) {
-        return board[pos[0]][pos[1]];
+    public final Piece getPiece(int pos) {
+        return board[pos>>8][pos&(0xff)];
     }
 
     /**
@@ -369,10 +369,10 @@ public class Game extends Reflector<Game> implements IGame<Move> {
         return pieces;
     }
 
-    private List<Move> getMovesforPiece(int [] pos) {
+    private List<Move> getMovesforPiece(int pos) {
         List<Move> pm = new ArrayList<>();
         for (Move m : moves) {
-            if (m.getStart() != null && m.getStart()[0] == pos[0] && m.getStart()[1] == pos[1]) {
+            if (m.getStart() == pos) {
                 pm.add(m);
             }
         }
@@ -497,7 +497,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
         if (moves != null) {
             clearPieceMoves();
             for (Move m : moves) {
-                if (m.getStart() != null) {
+                if (m.getStart() >= 0) {
                     getPiece(m.getStart()).numMoves++;
                     totalMoves++;
                 }
@@ -513,10 +513,10 @@ public class Game extends Reflector<Game> implements IGame<Move> {
             Move m = state.getMove();
             moves = state.moves;
             rules.reverseMove(this, m);
-            selectedPiece = null;
+            selectedPiece = -1;
             //turn = moves.get(0).getPlayerNum();
             countPieceMoves();
-            if (m.getEnpassant() != null) {
+            if (m.getEnpassant() >= 0) {
                 Piece p = getPiece(m.getEnpassant());
                 if (p.getPlayerNum() == m.getPlayerNum() && p.getType() == PieceType.PAWN)
                     p.setType(PieceType.PAWN_ENPASSANT);
@@ -633,8 +633,8 @@ public class Game extends Reflector<Game> implements IGame<Move> {
 
     }
 
-    final void clearPiece(int [] pos ) {
-        clearPiece(pos[0], pos[1]);
+    final void clearPiece(int pos ) {
+        clearPiece(pos>>8, pos&0xff);
     }
 
     final void setPiece(int rank, int col, int playerNum, PieceType p) {
@@ -644,15 +644,16 @@ public class Game extends Reflector<Game> implements IGame<Move> {
             numPieces[playerNum] ++;
     }
 
-    final void setPiece(int [] pos, int playerNum, PieceType p) {
-        setPiece(pos[0], pos[1], playerNum, p);
+    final void setPiece(int pos, int playerNum, PieceType p) {
+        setPiece(pos>>8, pos&(0xff), playerNum, p);
     }
+
     final void copyPiece(Piece from, Piece to) {
         to.copyFrom(from);
         numPieces[to.getPlayerNum()]++;
     }
 
-    final void copyPiece(int [] fromPos, int [] toPos) {
+    final void copyPiece(int fromPos, int toPos) {
         Piece from = getPiece(fromPos);
         Piece to   = getPiece(toPos);
         copyPiece(from, to);
@@ -755,7 +756,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
                 Move m = s.getMove();
                 if (m.hasCaptured() && m.getPlayerNum() == playerNum) {
                     for (int i=0; i<m.getNumCaptured(); i++) {
-                        captured.add(m.getCapturedType(i));
+                        captured.add(m.getLastCaptured().type);
                     }
                 }
             }

@@ -64,4 +64,10 @@ public abstract class Rules extends Reflector<Rules> {
      * @param m
      */
     abstract void reverseMove(Game game, Move m);
+
+    /**
+     * Some text to display to the user on how to play.
+     * @return
+     */
+    abstract String getInstructions();
 }

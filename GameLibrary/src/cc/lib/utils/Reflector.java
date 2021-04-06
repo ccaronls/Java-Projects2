@@ -2156,10 +2156,6 @@ public class Reflector<T> {
 
     }
 
-    static {
-        addField(Reflector.class, "__reflector_version");
-    }
-
     /**
      * Override this for some classes that should be considered immutable
      *

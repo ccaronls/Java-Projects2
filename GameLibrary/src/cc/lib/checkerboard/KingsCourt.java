@@ -63,6 +63,12 @@ public class KingsCourt extends Checkers {
         return Game.FAR;
     }
 
+    public static boolean isInCourt(int pos) {
+        final int r = pos >> 8;
+        final int c = pos & 0xff;
+        return r>=2 && c>=2 && r<=5 && c<=5;
+    }
+
     public static boolean isInCourt(int r, int c) {
         return r>=2 && c>=2 && r<=5 && c<=5;
     }
@@ -99,7 +105,7 @@ public class KingsCourt extends Checkers {
         Iterator<Move> it = moves.iterator();
         while (it.hasNext()) {
             Move m = it.next();
-            if (m.hasEnd() && !isInCourt(m.getEnd()[0], m.getEnd()[1])) {
+            if (m.hasEnd() && !isInCourt(m.getEnd())) {
                 it.remove();
             }
         }

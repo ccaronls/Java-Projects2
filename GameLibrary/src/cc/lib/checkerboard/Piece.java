@@ -60,19 +60,19 @@ public class Piece extends Reflector<Piece> {
 
     public Piece(int rank, int col, int playerNum, PieceType type) {
         if (type == null)
-            throw new cc.lib.utils.GException("type cannot be null");
+            throw new GException("type cannot be null");
         this.playerNum = playerNum;
         this.type = type;
         this.rank = rank;
         this.col = col;
     }
 
-    public Piece(int [] pos, int playerNum, PieceType type) {
-        this(pos[0], pos[1], playerNum, type);
+    public Piece(int pos, int playerNum, PieceType type) {
+        this(pos<<8, pos&0xff, playerNum, type);
     }
 
-    public int [] getPosition() {
-        return new int[] { rank, col };
+    public int getPosition() {
+        return (rank<<8) | col;
     }
 
     public int getPlayerNum() {
@@ -89,7 +89,7 @@ public class Piece extends Reflector<Piece> {
 
     public void setType(PieceType type) {
         if (type == null || type == PieceType.EMPTY)
-            throw new cc.lib.utils.GException("cannot set type to empty");
+            throw new GException("cannot set type to empty");
         this.type = type;
     }
 
@@ -99,10 +99,6 @@ public class Piece extends Reflector<Piece> {
 
     public int getCol() {
         return col;
-    }
-
-    public int [] getRankCol() {
-        return new int[] { rank, col };
     }
 
     public boolean isCaptured() {

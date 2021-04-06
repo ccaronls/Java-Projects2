@@ -71,4 +71,9 @@ public class DragonChess extends Chess {
 
         return false;
     }
+
+    @Override
+    String getInstructions() {
+        return "Chess Variation. Bigger board, non square and usins Dragons instead of rooks. Dragions mu=ove like a quenn but with a max of 3 squares.";
+    }
 }

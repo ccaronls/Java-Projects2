@@ -54,10 +54,12 @@ public class Ugolki extends Checkers {
         game.init(6, 6);
         game.clear();
         for (int [] pos : FAR_POSITIONS) {
-            game.setPiece(pos, FAR, DAMA_MAN);
+            int p = pos[0]<<8 | pos[1];
+            game.setPiece(p, FAR, DAMA_MAN);
         }
         for (int [] pos : NEAR_POSITIONS) {
-            game.setPiece(pos, NEAR, DAMA_MAN);
+            int p = pos[0]<<8 | pos[1];
+            game.setPiece(p, NEAR, DAMA_MAN);
         }
         game.setTurn(Utils.flipCoin() ? NEAR : FAR);
         game.setInitialized(true);
@@ -98,7 +100,7 @@ public class Ugolki extends Checkers {
         switch (side) {
             case FAR: {
                 for (int [] pos : NEAR_POSITIONS) {
-                    Piece p = game.getPiece(pos);
+                    Piece p = game.getPiece(pos[0]<<8 | pos[1]);
                     if (p.getPlayerNum() != side)
                         return false;
                 }
@@ -106,7 +108,7 @@ public class Ugolki extends Checkers {
             }
             case NEAR: {
                 for (int [] pos : FAR_POSITIONS) {
-                    Piece p = game.getPiece(pos);
+                    Piece p = game.getPiece(pos[0]<<8 | pos[1]);
                     if (p.getPlayerNum() != side)
                         return false;
                 }
@@ -172,7 +174,7 @@ public class Ugolki extends Checkers {
         }
 
         for (int [] pos : NEAR_POSITIONS) {
-            Piece p = game.getPiece(pos);
+            Piece p = game.getPiece(pos[0], pos[1]);
             if (p.getType() == EMPTY)
                 continue;
             if (p.getType() != DAMA_MAN)
@@ -188,7 +190,7 @@ public class Ugolki extends Checkers {
         }
 
         for (int [] pos : FAR_POSITIONS) {
-            Piece p = game.getPiece(pos);
+            Piece p = game.getPiece(pos[0], pos[1]);
             if (p.getType() == EMPTY)
                 continue;
             if (p.getType() != DAMA_MAN)
@@ -204,7 +206,7 @@ public class Ugolki extends Checkers {
         }
 
         for (int [] pos : OTHER_POSITIONS) {
-            Piece p = game.getPiece(pos);
+            Piece p = game.getPiece(pos[0], pos[1]);
             if (p.getType() == EMPTY)
                 continue;
             if (p.getType() != DAMA_MAN)
@@ -234,31 +236,35 @@ public class Ugolki extends Checkers {
         }
     }
 
-    int distBetween(int [] p0, int [][] positions, int num) {
+    int distBetween(int pos, int [][] positions, int num) {
         if (num == 0)
             return 0;
         int minD = Integer.MAX_VALUE;
         for (int i=0; i<num; i++) {
             int [] p1 = positions[i];
-            int d = dist(p0, p1);
+            int d = dist(p1, pos);
             minD = Math.min(minD, d);
         }
         return minD;
     }
 
-    int getClosest(int [] p0, List<int []> positions) {
+    int getClosest(int pos, List<int []> positions) {
         Utils.assertTrue(positions.size() > 0);
         int [] cl = positions.get(0);
-        int minD = Math.abs(p0[0] - cl[0]) + Math.abs(p0[0] - cl[1]);
+        int p0r = pos>>8;
+        int p0c = pos&0xff;
+        int minD = Math.abs(p0r - cl[0]) + Math.abs(p0c - cl[1]);
         for (int i=0; i<positions.size(); i++) {
             int [] p1 = positions.get(i);
-            int d = dist(p1, p1);
+            int d = dist(p1, pos);
             minD = Math.min(minD, d);
         }
         return minD;
     }
 
-    int dist(int [] p0, int [] p1) {
-        return Math.abs(p0[0] - p1[0]) + Math.abs(p0[1] - p1[1]);
+    int dist(int [] p0, int pos) {
+        final int posrank = pos>>8;
+        final int poscol  = pos & 0xff;
+        return Math.abs(p0[0] - posrank) + Math.abs(p0[1] - poscol);
     }
 }
