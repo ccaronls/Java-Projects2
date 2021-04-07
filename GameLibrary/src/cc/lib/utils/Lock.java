@@ -11,7 +11,7 @@ public final class Lock {
 
     private int holders = 0;
 
-    public synchronized void aquire() {
+    public synchronized void acquire() {
         holders++;
     }
 
@@ -24,6 +24,13 @@ public final class Lock {
             }
             holders = 0;
         }
+    }
+
+    public synchronized void acquireAndBlock() {
+        if (holders > 0)
+            throw new GException("Dead Lock");
+        holders++;
+        block();
     }
 
     public synchronized void release() {

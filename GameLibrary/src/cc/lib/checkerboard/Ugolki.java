@@ -267,4 +267,9 @@ public class Ugolki extends Checkers {
         final int poscol  = pos & 0xff;
         return Math.abs(p0[0] - posrank) + Math.abs(p0[1] - poscol);
     }
+
+    @Override
+    String getDescription() {
+        return "Objective: move all your pieces into opponents starting section";
+    }
 }

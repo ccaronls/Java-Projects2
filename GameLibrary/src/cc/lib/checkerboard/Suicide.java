@@ -25,4 +25,9 @@ public class Suicide extends Checkers {
     public boolean isJumpsMandatory() {
         return true;
     }
+
+    @Override
+    String getDescription() {
+        return "Objective: to LOSE all your pieces";
+    }
 }

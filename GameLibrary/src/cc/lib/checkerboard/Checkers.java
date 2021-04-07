@@ -655,7 +655,7 @@ public class Checkers extends Rules {
     }
 
     @Override
-    String getInstructions() {
+    Table getInstructions() {
         Table tab = new Table()
                 .addRow("Can Jump Self", canJumpSelf())
                 .addRow("Men Jump Backwards", canMenJumpBackwards())
@@ -665,7 +665,12 @@ public class Checkers extends Rules {
                 .addRow("Captures at the end", isCaptureAtEndEnabled())
                 .addRow("Can Capture", !isNoCaptures());
 
+        return new Table("Classic game of " + getClass().getSimpleName())
+            .addRow(getDescription())
+            .addRow(tab);
+    }
 
-        return String.format("Classic game of %s\n%s", getClass().getSimpleName(), tab.toString());
+    String getDescription() {
+        return "Objective to capture all other player's pieces or prevent them from bieing able to move.";
     }
 }

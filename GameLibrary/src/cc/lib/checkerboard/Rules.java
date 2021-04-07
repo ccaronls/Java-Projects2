@@ -3,6 +3,7 @@ package cc.lib.checkerboard;
 import java.util.List;
 
 import cc.lib.utils.Reflector;
+import cc.lib.utils.Table;
 
 /**
  * Base class for logical rules to govern a checkerboard style game.
@@ -69,5 +70,5 @@ public abstract class Rules extends Reflector<Rules> {
      * Some text to display to the user on how to play.
      * @return
      */
-    abstract String getInstructions();
+    abstract Table getInstructions();
 }

@@ -20,15 +20,18 @@ import cc.lib.math.Bezier;
 import cc.lib.math.Matrix3x3;
 import cc.lib.math.Vector2D;
 import cc.lib.utils.Lock;
+import cc.lib.utils.Table;
 
 public abstract class UIGame extends Game {
 
     static Logger log = LoggerFactory.getLogger(UIGame.class);
 
-    private File saveFile;
-    private boolean gameRunning = false;
-    private final Object RUNGAME_MONITOR = new Object();
-    private boolean clicked = false;
+    File saveFile;
+    boolean gameRunning = false;
+    final Lock runLock = new Lock();
+    final Lock animLock = new Lock();
+
+    boolean clicked = false;
 
     int highlightedPos = -1;
     final List<Piece> pickablePieces = new ArrayList<>();
@@ -37,6 +40,7 @@ public abstract class UIGame extends Game {
     float SQ_DIM, PIECE_RADIUS, BORDER_WIDTH;
     GDimension SCREEN_DIM, BOARD_DIM;
 
+    final GColor DAMA_BACKGROUND_COLOR = new GColor(0xfffde9a9);
     final List<PieceAnim> animations = Collections.synchronizedList(new ArrayList<>());
 
     public UIGame() {
@@ -63,9 +67,7 @@ public abstract class UIGame extends Game {
         selectedPiece = -1;
         pickablePieces.clear();
         pickableMoves.clear();
-        synchronized (RUNGAME_MONITOR) {
-            RUNGAME_MONITOR.notifyAll();
-        }
+        runLock.release();
         repaint(0);
         return m;
     }
@@ -104,9 +106,7 @@ public abstract class UIGame extends Game {
         if (gameRunning) {
             AIPlayer.cancel();
             gameRunning = false;
-            synchronized (RUNGAME_MONITOR) {
-                RUNGAME_MONITOR.notifyAll();
-            }
+            runLock.reset();
         }
     }
 
@@ -230,11 +230,11 @@ public abstract class UIGame extends Game {
             return;
 //        g.setClipRect(0, 0, width, height);
         float x = PIECE_RADIUS, y = PIECE_RADIUS*2;
-        for (PieceType p :pieces) {
+        for (PieceType pt :pieces) {
             g.pushMatrix();
             g.translate(x, y);
             Color color = getPlayer(playerNum).getColor();
-            drawPiece(g, p.getDisplayType(), color, PIECE_RADIUS*2, PIECE_RADIUS*2, null);
+            drawPiece(g, pt, playerNum);//.getDisplayType(), color, PIECE_RADIUS*2, PIECE_RADIUS*2, null);
             g.popMatrix();
             x += PIECE_RADIUS * 2;
             if (x >= dim.getWidth()) {
@@ -290,8 +290,6 @@ public abstract class UIGame extends Game {
     private void drawKingsCourtBoard(AGraphics g) {
         drawCheckerboardImage(g, getKingsCourtBoardId(), 206, 16);
     }
-
-    private final GColor DAMA_BACKGROUND_COLOR = new GColor(0xfffde9a9);
 
     private void drawDamaBoard(AGraphics g) {
         g.setColor(DAMA_BACKGROUND_COLOR);
@@ -380,8 +378,7 @@ public abstract class UIGame extends Game {
 
             g.pushMatrix();
             g.translate(x, y+PIECE_RADIUS);
-            if (p.getType() != PieceType.EMPTY && p.getPlayerNum() >= 0)
-                drawPiece(g, p);
+            drawPiece(g, p);
             g.popMatrix();
         }
 
@@ -432,20 +429,21 @@ public abstract class UIGame extends Game {
                 g.drawJustifiedStringOnBackground(x, y, Justify.CENTER, Justify.CENTER, txt, GColor.TRANSLUSCENT_BLACK, 3);
             }
         } else if (!gameRunning) {
-            int x = g.getViewportWidth() / 2;
-            int y = g.getViewportHeight() / 2;
-            String txt = getRules().getInstructions();//"P A U S E D";
-            g.setColor(GColor.CYAN);
-            g.drawJustifiedStringOnBackground(x, y, Justify.CENTER, Justify.CENTER, txt, GColor.TRANSLUSCENT_BLACK, 3);
+            //int x = g.getViewportWidth() / 2;
+            //int y = g.getViewportHeight() / 2;
+            g.setColor(GColor.YELLOW);
+            Table tab = getRules().getInstructions();
+            tab.draw(g, BOARD_DIM.getWidth()/2, BOARD_DIM.getHeight()/2, Justify.CENTER, Justify.CENTER);
+//            String txt = getRules().getInstructions();//"P A U S E D";
+//            g.setColor(GColor.CYAN);
+//            g.drawJustifiedStringOnBackground(x, y, Justify.CENTER, Justify.CENTER, txt, GColor.TRANSLUSCENT_BLACK, 3);
         }
         g.popMatrix();
     }
 
     public void doClick() {
         clicked = true;
-        synchronized (RUNGAME_MONITOR) {
-            RUNGAME_MONITOR.notifyAll();
-        }
+        runLock.release();
     }
 
     public boolean isCurrentPlayerUser() {
@@ -463,7 +461,7 @@ public abstract class UIGame extends Game {
             pickablePieces.addAll(pieces);
         }
         repaint(0);
-        Utils.waitNoThrow(RUNGAME_MONITOR, -1);
+        runLock.acquireAndBlock();
         if (clicked) {
             for (Piece p : pieces) {
                 if (p.getPosition() == highlightedPos) {
@@ -481,7 +479,7 @@ public abstract class UIGame extends Game {
             pickableMoves.addAll(moves);
         }
         repaint(0);
-        Utils.waitNoThrow(RUNGAME_MONITOR, -1);
+        runLock.acquireAndBlock();
         if (clicked) {
             for (Move m : moves) {
                 switch (m.getMoveType()) {
@@ -510,10 +508,23 @@ public abstract class UIGame extends Game {
     private void drawPiece(AGraphics g, Piece pc) {
         if (pc.getPlayerNum() < 0)
             return;
+
         float d = PIECE_RADIUS * 2;
-        Color color = getPlayer(pc.getPlayerNum()).getColor();
+        if (pc.isStacked()) {
+            for (int s=pc.getStackSize()-1; s>=0; s--) {
+                drawPiece(g, PieceType.CHECKER, getPlayer(pc.getStackAt(s)).color, d, d, null);
+                g.translate(0, -d/5);
+            }
+        } else {
+            drawPiece(g, pc.getType(), pc.getPlayerNum());
+        }
+    }
+
+    private void drawPiece(AGraphics g, PieceType pt, int playerNum) {
+        float d = PIECE_RADIUS * 2;
+        Color color = getPlayer(playerNum).getColor();
         g.pushMatrix();
-        switch (pc.getType()) {
+        switch (pt) {
             case EMPTY:
                 break;
             case PAWN:
@@ -526,7 +537,7 @@ public abstract class UIGame extends Game {
             case QUEEN:
             case KNIGHT_L:
             case KNIGHT_R:
-                drawPiece(g, pc.getType(), color, d, d, null);
+                drawPiece(g, pt, color, d, d, null);
                 break;
             case ROOK:
             case ROOK_IDLE:
@@ -536,7 +547,7 @@ public abstract class UIGame extends Game {
             case DRAGON_L:
             case DRAGON_IDLE_R:
             case DRAGON_IDLE_L:
-                drawPiece(g, pc.getType(), color, d, d, null);
+                drawPiece(g, pt, color, d, d, null);
                 break;
             case CHECKED_KING:
             case CHECKED_KING_IDLE:
@@ -549,12 +560,6 @@ public abstract class UIGame extends Game {
             case KING:
             case FLYING_KING:
             case DAMA_KING:
-                if (pc.isStacked()) {
-                    for (int s=pc.getStackSize()-1; s>=0; s--) {
-                        drawPiece(g, PieceType.CHECKER, getPlayer(pc.getStackAt(s)).color, d, d, null);
-                        g.translate(0, -d/5);
-                    }
-                }
                 drawPiece(g, PieceType.CHECKER, color, d, d, null);
                 g.translate(0, -d/5);
                 drawPiece(g, PieceType.CHECKER, color, d, d, null);
@@ -562,12 +567,6 @@ public abstract class UIGame extends Game {
             case CHIP_4WAY:
             case DAMA_MAN:
             case CHECKER:
-                if (pc.isStacked()) {
-                    for (int s=pc.getStackSize()-1; s>=0; s--) {
-                        drawPiece(g, PieceType.CHECKER, getPlayer(pc.getStackAt(s)).color, d, d, null);
-                        g.translate(0, -d/5);
-                    }
-                }
                 drawPiece(g, PieceType.CHECKER, color, d, d, null);
                 break;
         }
@@ -650,9 +649,6 @@ public abstract class UIGame extends Game {
         animLock.block();
     }
 
-    @Omit
-    final Lock animLock = new Lock();
-
     @Override
     protected void onPieceSelected(Piece p) {
         // TODO: Animation
@@ -685,7 +681,7 @@ public abstract class UIGame extends Game {
             this.ex = ex;
             this.ey = ey;
             this.pc = new Piece(-1, -1, pc.getPlayerNum(), pc.getType());
-            animLock.aquire();
+            animLock.acquire();
         }
 
         @Override

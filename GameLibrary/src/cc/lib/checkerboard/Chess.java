@@ -7,6 +7,7 @@ import java.util.List;
 
 import cc.lib.game.Utils;
 import cc.lib.utils.GException;
+import cc.lib.utils.Table;
 
 import static cc.lib.checkerboard.PieceType.*;
 import static cc.lib.checkerboard.Game.*;
@@ -887,7 +888,7 @@ public class Chess extends Rules {
     }
 
     @Override
-    String getInstructions() {
-        return "Classic game of Chess";
+    Table getInstructions() {
+        return new Table("Classic game of Chess");
     }
 }

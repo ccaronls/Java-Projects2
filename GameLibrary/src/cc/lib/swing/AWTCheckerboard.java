@@ -17,6 +17,7 @@ import cc.lib.checkerboard.KingsCourt;
 import cc.lib.checkerboard.Move;
 import cc.lib.checkerboard.PieceType;
 import cc.lib.checkerboard.Player;
+import cc.lib.checkerboard.Shashki;
 import cc.lib.checkerboard.Suicide;
 import cc.lib.checkerboard.UIGame;
 import cc.lib.checkerboard.UIPlayer;
@@ -157,6 +158,9 @@ public class AWTCheckerboard extends AWTComponent {
                             case "Kings Court":
                                 game.setRules(new KingsCourt());
                                 break;
+                            case "Shashki":
+                                game.setRules(new Shashki());
+                                break;
                         }
                         new Thread(() -> {
                             int num = frame.showItemChooserDialog("PLAYERS", "Choose Number of Players", "ONE PLAYER", "TWO PLAYERS");
@@ -267,7 +271,7 @@ public class AWTCheckerboard extends AWTComponent {
         File settings = FileUtils.getOrCreateSettingsDirectory(getClass());
         saveFile = new File(settings, "game.save");
         frame.add(this);
-        String [] items = { "Checkers", "Suicide", "Draughts", "Canadian Draughts", "Dama", "Chess", "Dragon Chess", "Ugolki", "Columns", "Kings Court" };
+        String [] items = { "Checkers", "Suicide", "Draughts", "Canadian Draughts", "Dama", "Chess", "Dragon Chess", "Ugolki", "Columns", "Kings Court", "Shashki" };
         frame.addMenuBarMenu("New Game", items);
         frame.addMenuBarMenu("Load Game", "From File");
         frame.addMenuBarMenu("Game", "Stop Thinking", "Resume", "Stop", "One Player", "Two Players");

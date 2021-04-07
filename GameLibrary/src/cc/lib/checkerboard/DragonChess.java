@@ -1,6 +1,7 @@
 package cc.lib.checkerboard;
 
 import cc.lib.game.Utils;
+import cc.lib.utils.Table;
 
 import static cc.lib.checkerboard.Game.FAR;
 import static cc.lib.checkerboard.Game.NEAR;
@@ -73,7 +74,7 @@ public class DragonChess extends Chess {
     }
 
     @Override
-    String getInstructions() {
-        return "Chess Variation. Bigger board, non square and usins Dragons instead of rooks. Dragions mu=ove like a quenn but with a max of 3 squares.";
+    Table getInstructions() {
+        return new Table("Chess Variation. Bigger board, non square\nand using Dragons instead of rooks.\nDragons move like a queen but with a max of\n3 squares.");
     }
 }

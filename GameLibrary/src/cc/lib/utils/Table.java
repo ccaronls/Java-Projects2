@@ -8,6 +8,7 @@ import java.util.Vector;
 import cc.lib.game.AGraphics;
 import cc.lib.game.GColor;
 import cc.lib.game.GDimension;
+import cc.lib.game.IVector2D;
 import cc.lib.game.Justify;
 import cc.lib.game.Utils;
 
@@ -252,6 +253,11 @@ public final class Table {
         return new GDimension(dimWidth, dimHeight);
     }
 
+    /**
+     * Draw with top/left corner at 0,0
+     * @param g
+     * @return
+     */
     public GDimension draw(AGraphics g) {
         GDimension dim = getDimension(g);
         if (dim == GDimension.EMPTY)
@@ -326,6 +332,40 @@ public final class Table {
 
         g.popMatrix();
         return dim;
+    }
+
+    public void draw(AGraphics g, IVector2D cntr, Justify horz, Justify vert) {
+        draw(g, cntr.getX(), cntr.getY(), horz, vert);
+    }
+
+    /**
+     *
+     * @param g
+     * @param horz
+     * @param vert
+     */
+    public void draw(AGraphics g, float x, float y, Justify horz, Justify vert) {
+        GDimension dim = getDimension(g);
+        g.pushMatrix();
+        g.translate(x,y);
+        switch (horz) {
+            case CENTER:
+                g.translate(-dim.getWidth()/2, 0);
+                break;
+            case RIGHT:
+                g.translate(-dim.getWidth(), 0);
+                break;
+        }
+        switch (vert) {
+            case CENTER:
+                g.translate(0, -dim.getHeight()/2);
+                break;
+            case BOTTOM:
+                g.translate(0, -dim.getHeight());
+                break;
+        }
+        draw(g);
+        g.popMatrix();
     }
 
     /**
