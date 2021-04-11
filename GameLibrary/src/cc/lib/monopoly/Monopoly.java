@@ -33,6 +33,11 @@ public class Monopoly extends Reflector<Monopoly> {
             this.state = state;
             this.data = data;
         }
+
+        @Override
+        public String toString() {
+            return state.name() + Arrays.toString(data);
+        }
     }
 
     public final static int NUM_SQUARES = Square.values().length;
@@ -97,6 +102,7 @@ public class Monopoly extends Reflector<Monopoly> {
     public void runGame() {
         if (state.isEmpty()) throw new AssertionError("runGame called with empty stack");
         //    pushState(State.INIT, null);
+        log.debug("runGame: states: " + state.toString());
         StackItem item = state.peek();
         switch (item.state) {
             case INIT: {

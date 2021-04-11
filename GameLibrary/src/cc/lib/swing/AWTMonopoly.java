@@ -55,7 +55,7 @@ public class AWTMonopoly extends AWTComponent {
 
         @Override
         public int getBoardImageId() {
-            return ids[Images.monopoly_board.ordinal()];
+            return Images.monopoly_board.imageId;
         }
 
         @Override
@@ -394,30 +394,31 @@ public class AWTMonopoly extends AWTComponent {
 
     enum Images {
         monopoly_board, car, dog, iron, ship, shoe, thimble, tophat, wheelbarrow;
+
+        int imageId;
     }
 
-    int [] ids = new int[Images.values().length];
     Map<Piece, Integer> pieceMap = new HashMap<>();
 
     @Override
     protected void init(AWTGraphics g) {
-        for (int i=0; i<ids.length; i++) {
-            ids[i] = g.loadImage("images/" + Images.values()[i].name() + ".png");
+        for (Images img : Images.values()) {
+            img.imageId = g.loadImage("images/" + img.name() + ".png");
             numImagesLoaded++;
         }
-        pieceMap.put(Piece.BOAT, Images.ship.ordinal());
-        pieceMap.put(Piece.CAR, Images.car.ordinal());
-        pieceMap.put(Piece.DOG, Images.dog.ordinal());
-        pieceMap.put(Piece.HAT, Images.tophat.ordinal());
-        pieceMap.put(Piece.IRON, Images.iron.ordinal());
-        pieceMap.put(Piece.SHOE, Images.shoe.ordinal());
-        pieceMap.put(Piece.THIMBLE, Images.thimble.ordinal());
-        pieceMap.put(Piece.WHEELBARROW, Images.wheelbarrow.ordinal());
+        pieceMap.put(Piece.BOAT, Images.ship.imageId);
+        pieceMap.put(Piece.CAR, Images.car.imageId);
+        pieceMap.put(Piece.DOG, Images.dog.imageId);
+        pieceMap.put(Piece.HAT, Images.tophat.imageId);
+        pieceMap.put(Piece.IRON, Images.iron.imageId);
+        pieceMap.put(Piece.SHOE, Images.shoe.imageId);
+        pieceMap.put(Piece.THIMBLE, Images.thimble.imageId);
+        pieceMap.put(Piece.WHEELBARROW, Images.wheelbarrow.imageId);
     }
 
     @Override
     protected float getInitProgress() {
-        return (float)numImagesLoaded / ids.length;
+        return (float)numImagesLoaded / Images.values().length;
     }
 
 
