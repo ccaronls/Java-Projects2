@@ -516,11 +516,6 @@ public class Game extends Reflector<Game> implements IGame<Move> {
             selectedPiece = -1;
             //turn = moves.get(0).getPlayerNum();
             countPieceMoves();
-            if (m.getEnpassant() >= 0) {
-                Piece p = getPiece(m.getEnpassant());
-                if (p.getPlayerNum() == m.getPlayerNum() && p.getType() == PieceType.PAWN)
-                    p.setType(PieceType.PAWN_ENPASSANT);
-            }
             gameState = GameState.PLAYING;
             return m;
         }

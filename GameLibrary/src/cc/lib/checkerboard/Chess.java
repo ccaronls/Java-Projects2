@@ -383,8 +383,10 @@ public class Chess extends Rules {
                 // check in front of us 1 space
                 tr=rank + game.getAdvanceDir(p.getPlayerNum());
                 tc=col;
-                if (tr == game.getStartRank(game.getOpponent(p.getPlayerNum()))) {
+                if (tr == game.getStartRank(opponent)) {
                     nextType = QUEEN; // For simplicity, just make the pawn a queen now. PAWN_TOSWAP;
+                } else {
+                    nextType = PAWN;
                 }
 
                 if (game.isOnBoard(tr, col) && game.getPiece(tr, col).getType() == EMPTY) {
@@ -884,6 +886,12 @@ public class Chess extends Rules {
         }
         if (m.hasOpponentKing())
             game.getPiece(m.getOpponentKingPos()).setType(m.getOpponentKingTypeStart());
+        if (m.getEnpassant() >= 0) {
+            p = game.getPiece(m.getEnpassant());
+            if (p.getPlayerNum() == m.getPlayerNum() && p.getType() == PieceType.PAWN)
+                p.setType(PieceType.PAWN_ENPASSANT);
+        }
+
         game.setTurn(m.getPlayerNum());
     }
 

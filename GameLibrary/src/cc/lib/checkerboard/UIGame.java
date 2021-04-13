@@ -231,7 +231,7 @@ public abstract class UIGame extends Game {
         if (pieces == null)
             return;
 //        g.setClipRect(0, 0, width, height);
-        float x = PIECE_RADIUS, y = PIECE_RADIUS*2;
+        float x = PIECE_RADIUS, y = PIECE_RADIUS*3;
         for (PieceType pt :pieces) {
             g.pushMatrix();
             g.translate(x, y);
