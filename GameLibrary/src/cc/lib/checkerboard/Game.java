@@ -166,8 +166,8 @@ public class Game extends Reflector<Game> implements IGame<Move> {
                 if (!isOnBoard(i, ii))
                     continue;
                 Piece p = getPiece(i, ii);
-                if (p.playerNum >= 0) {
-                    numPieces[p.playerNum]++;
+                if (p.getPlayerNum() >= 0) {
+                    numPieces[p.getPlayerNum()]++;
                 }
             }
         }
@@ -246,8 +246,8 @@ public class Game extends Reflector<Game> implements IGame<Move> {
                 if (!isOnBoard(i, ii))
                     continue;
                 Piece p = getPiece(i, ii);
-                if (p.playerNum >= 0) {
-                    numPieces[p.playerNum]++;
+                if (p.getPlayerNum() >= 0) {
+                    numPieces[p.getPlayerNum()]++;
                 }
             }
         }
@@ -320,7 +320,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
             final int end = advDir > 0 ? getRanks() : -1;
             for ( ; rank != end; rank+=advDir) {
                 for ( ; col < getColumns(); col++) {
-                    int p = board[rank][col].playerNum;
+                    int p = board[rank][col].getPlayerNum();
                     if (p >= 0 && p != notPlayerNum) {
                         next = board[rank][col++];
                         num--;
@@ -356,7 +356,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
     public final boolean isOnBoard(int rank, int col) {
         if (rank < 0 || col < 0 || rank >= ranks || col >= cols)
             return false;
-        return board[rank][col].type != PieceType.BLOCKED;
+        return board[rank][col].getType() != PieceType.BLOCKED;
     }
 
     private List<Piece> getMovablePieces() {
@@ -644,6 +644,16 @@ public class Game extends Reflector<Game> implements IGame<Move> {
             numPieces[playerNum] ++;
     }
 
+    final void setPiece(int pos, Piece pc) {
+        final int rank = pos >> 8;
+        final int col = pos & 0xff;
+        final int pnum = board[rank][col].getPlayerNum();
+        if (pnum >= 0)
+            throw new GException("Cannot assign to non-empty square");
+        board[rank][col].copyFrom(pc);
+        numPieces[pc.getPlayerNum()]++;
+    }
+
     final void setPiece(int pos, int playerNum, PieceType p) {
         setPiece(pos>>8, pos&(0xff), playerNum, p);
     }
@@ -835,6 +845,8 @@ public class Game extends Reflector<Game> implements IGame<Move> {
                     }
                     if (p.isCaptured()) {
                         s.append(p.getType().abbrev.charAt(0) + "*");
+                    } else if (p.getStackSize() > 1) {
+                        s.append(p.getType().abbrev.charAt(0) + String.valueOf(p.getStackSize()));
                     } else {
                         s.append(p.getType().abbrev);
                     }

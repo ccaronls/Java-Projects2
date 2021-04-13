@@ -15,7 +15,27 @@ import cc.lib.utils.GException;
 
 public abstract class LoggerFactory {
 
+    public enum LogLevel {
+        SILENT(false, false, false, false),
+        INFO(false, true, true, true),
+        DEBUG(true, true, true, true);
+
+        LogLevel(boolean showDebug, boolean showInfo, boolean showError, boolean showWarn) {
+            this.showDebug = showDebug;
+            this.showInfo = showInfo;
+            this.showError = showError;
+            this.showWarn = showWarn;
+        }
+
+        final boolean showDebug;
+        final boolean showInfo;
+        final boolean showError;
+        final boolean showWarn;
+    }
+
     public abstract Logger getLogger(String name);
+
+    public static LogLevel logLevel = LogLevel.DEBUG;
 
     public static LoggerFactory factory = new LoggerFactory() {
         @Override
@@ -23,6 +43,8 @@ public abstract class LoggerFactory {
             return new Logger() {
                 @Override
                 public void error(String msg, Object... args) {
+                    if (!logLevel.showError)
+                        return;
                     if (args.length > 0)
                         msg = String.format(msg, args);
                     System.err.println("E[" + name + "]:" + msg);
@@ -30,6 +52,8 @@ public abstract class LoggerFactory {
 
                 @Override
                 public void debug(String msg, Object... args) {
+                    if (!logLevel.showDebug)
+                        return;
                     if (args.length > 0)
                         msg = String.format(msg, args);
                     System.out.println("D[" + name + "]:" + msg);
@@ -37,6 +61,8 @@ public abstract class LoggerFactory {
 
                 @Override
                 public void info(String msg, Object... args) {
+                    if (!logLevel.showInfo)
+                        return;
                     if (args.length > 0)
                         msg = String.format(msg, args);
                     System.out.println("I[" + name + "]:" + msg);
@@ -44,6 +70,8 @@ public abstract class LoggerFactory {
 
                 @Override
                 public void error(Throwable e) {
+                    if (!logLevel.showError)
+                        return;
                     error("%s:%s", e.getClass().getSimpleName(), e.getMessage());
                     for (StackTraceElement s : e.getStackTrace()) {
                         error(s.toString());
@@ -52,6 +80,8 @@ public abstract class LoggerFactory {
 
                 @Override
                 public void warn(String msg, Object... args) {
+                    if (!logLevel.showWarn)
+                        return;
                     if (args.length > 0)
                         msg = String.format(msg, args);
                     System.err.println("W[" + name + "]:" + msg);

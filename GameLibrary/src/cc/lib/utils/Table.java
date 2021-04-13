@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Vector;
 
 import cc.lib.game.AGraphics;
+import cc.lib.game.AImage;
 import cc.lib.game.GColor;
 import cc.lib.game.GDimension;
 import cc.lib.game.IVector2D;
@@ -15,6 +16,7 @@ import cc.lib.game.Utils;
 /**
  * Usefull for printing out tables of data
  *
+ * TODO: Add AImage references
  */
 public final class Table {
 
@@ -57,6 +59,8 @@ public final class Table {
         default GColor getBackgroundColor() {
             return GColor.TRANSLUSCENT_BLACK;
         }
+
+        default int getMaxCharsPerLine() { return 64; }
     }
 
     private final List<String> header;
@@ -214,25 +218,21 @@ public final class Table {
             for (int c = 0; c < rows.get(r).size(); c++) {
                 Object o = rows.get(r).get(c);
                 if (o instanceof Table) {
-                    Table t= (Table)o;
+                    Table t = (Table) o;
                     GDimension d2 = t.getDimension(g);
                     maxHeight[r] = Math.max(maxHeight[r], d2.height);
                     maxWidth[c] = Math.max(maxWidth[c], d2.width);
                     if (t.borderWidth != 0)
                         maxHeight[r] += cellPadding;
+                } else if (o instanceof AImage) {
+                    // TODO: Implement this
                 } else {
                     String entry = model.getStringValue(o);
-                    if (entry.indexOf("\n") >= 0) {
-                        String[] parts = entry.split("[\n]+");
-                        for (String s : parts) {
-                            maxWidth[c] = Math.max(maxWidth[c], g.getTextWidth(s));
-                        }
-                        maxHeight[r] = Math.max(maxHeight[r], g.getTextHeight() * parts.length);
-                        // split up the string into lines for
-                    } else {
-                        maxWidth[c] = Math.max(maxWidth[c], g.getTextWidth(entry));
-                        maxHeight[r] = Math.max(maxHeight[r], g.getTextHeight());
+                    String [] parts = Utils.wrapText(entry, model.getMaxCharsPerLine());
+                    for (String s : parts) {
+                        maxWidth[c] = Math.max(maxWidth[c], g.getTextWidth(s));
                     }
+                    maxHeight[r] = Math.max(maxHeight[r], g.getTextHeight() * parts.length);
                 }
             }
         }
@@ -313,10 +313,12 @@ public final class Table {
                 Object o = rows.get(i).get(ii);
                 if (o != null) {
                     if (o instanceof Table) {
-                        Table t = (Table)o;
+                        Table t = (Table) o;
                         if (t.borderWidth > 0)
                             g.translate(0, cellPadding);
                         t.draw(g);
+                    } else if (o instanceof AImage) {
+                        // TODO:
                     } else {
                         String txt = model.getStringValue(o);
                         Justify hJust = model.getTextAlignment(i, ii);

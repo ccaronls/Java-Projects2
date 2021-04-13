@@ -1,7 +1,5 @@
 package cc.lib.checkerboard;
 
-import java.util.*;
-
 import cc.lib.utils.GException;
 import cc.lib.utils.Reflector;
 
@@ -11,20 +9,20 @@ public class Piece extends Reflector<Piece> {
         addAllFields(Piece.class);
     }
 
-    int playerNum;
-    PieceType type;
+    private PieceType type;
     @Omit
     int numMoves = 0;
     private boolean captured = false;
-    private final int rank, col;
+    private final int position;
     private int value = 0;
     // pos 0 is closest to the top.
-    private LinkedList<Integer> stack = null; // list of player nums (Bashki support)
+    private int stack, numStacks = 0;
 
     void clear() {
         setPlayerNum(-1);
         type = PieceType.EMPTY;
-        stack = null;
+        numStacks = 0;
+        stack = 0;
         captured = false;
         numMoves = 0;
     }
@@ -33,6 +31,7 @@ public class Piece extends Reflector<Piece> {
         setPlayerNum(from.getPlayerNum());
         setType(from.getType());
         stack = from.stack;
+        numStacks = from.numStacks;
     }
 
     @Override
@@ -42,16 +41,17 @@ public class Piece extends Reflector<Piece> {
         if (obj == this)
             return true;
         Piece p = (Piece)obj;
-        return playerNum == p.playerNum
-                && rank == p.rank
-                && col == p.col
+        return stack == p.stack
+                && numStacks == p.numStacks
+                && position == p.position
                 && type == p.type;
     }
 
     public Piece() {
-        playerNum = -1;
+        stack = 0;
+        numStacks = 0;
         type = PieceType.EMPTY;
-        rank = col = -1;
+        position = -1;
     }
 
     public Piece(int playerNum, PieceType type) {
@@ -61,10 +61,11 @@ public class Piece extends Reflector<Piece> {
     public Piece(int rank, int col, int playerNum, PieceType type) {
         if (type == null)
             throw new GException("type cannot be null");
-        this.playerNum = playerNum;
+        if (playerNum > 1)
+            throw new GException("Invaid player num");
         this.type = type;
-        this.rank = rank;
-        this.col = col;
+        this.position = (rank << 8) | col;
+        setPlayerNum(playerNum);
     }
 
     public Piece(int pos, int playerNum, PieceType type) {
@@ -72,15 +73,30 @@ public class Piece extends Reflector<Piece> {
     }
 
     public int getPosition() {
-        return (rank<<8) | col;
+        return position;
     }
 
     public int getPlayerNum() {
-        return playerNum;
+        if (numStacks == 0)
+            return -1;
+        //return 0 == (stack & (1 << (numStacks-1))) ? 0 : 1;
+        return stack & 1;
     }
 
     public void setPlayerNum(int playerNum) {
-        this.playerNum = playerNum;
+        if (playerNum > 1)
+            throw new GException("Invalid player num");
+        if (playerNum < 0) {
+            numStacks=0;
+            stack = 0;
+        } else if (numStacks <= 0) {
+            stack = playerNum;
+            numStacks = 1;
+        } else {
+            stack = stack & ~(1<<(numStacks-1));
+            if (playerNum > 0)
+                stack |= (1<<numStacks);
+        }
     }
 
     public PieceType getType() {
@@ -94,11 +110,11 @@ public class Piece extends Reflector<Piece> {
     }
 
     public int getRank() {
-        return rank;
+        return position >> 8;
     }
 
     public int getCol() {
-        return col;
+        return position & 0xff;
     }
 
     public boolean isCaptured() {
@@ -122,42 +138,49 @@ public class Piece extends Reflector<Piece> {
     }
 
     public boolean isStacked() {
-        return stack != null && stack.size() > 0;
+        return numStacks > 1;
     }
 
     public void addStackTop(int n) {
-        if (stack == null)
-            stack = new LinkedList<>();
-        stack.addFirst(n);
+        stack = (stack << 1) | n;
+        numStacks++;
     }
 
     public void addStackBottom(int n) {
-        if (stack == null)
-            stack = new LinkedList<>();
-        stack.addLast(n);
+        if (n < 0 || n > 1)
+            throw new GException("Invalid value for n: " + n);
+        if (numStacks >= 32)
+            throw new GException("Stack overflow");
+        if (n > 0)
+            stack |= (1<<numStacks);
+        numStacks++;
     }
 
     public int removeStackTop() {
-        int n = stack.removeFirst();
-        if (stack.size() == 0)
-            stack = null;
+        if (numStacks <= 0)
+            throw new GException("Empty stack");
+        int n = stack & 0x1;
+        stack >>= 1;
+        numStacks--;
         return n;
     }
 
     public int removeStackBottom() {
-        int n = stack.removeLast();
-        if (stack.size() == 0)
-            stack = null;
-        return n;
+        if (numStacks <= 0)
+            throw new GException("Empty stack");
+        int n = stack & (1<<--numStacks);
+        return n == 0 ? 0 : 1;
     }
 
     public int getStackSize() {
-        return stack.size();
+        return numStacks;
     }
 
     // 0 is the top of the stack (closest to top piece)
     public int getStackAt(int index) {
-        return stack.get(index);
+        if (index < 0 || index >= numStacks)
+            throw new GException("Index ofut of bounds: Value '" + index + "' out of range of [0-" + numStacks + ")");
+        return 0 == (stack & (1 << index)) ? 0 : 1;
     }
 
     public void setChecked(boolean checked) {
@@ -186,13 +209,14 @@ public class Piece extends Reflector<Piece> {
     @Override
     public String toString() {
         return "Piece{" +
-                "PNUM=" + playerNum +
+                "PNUM=" + getPlayerNum() +
                 ", " + type +
 //                ", numMoves=" + numMoves +
-                ", pos= [" + rank +
-                ", ," + col +
-                ", ] captured=" + captured +
+                ", pos= [" + getRank() +
+                ", " + getCol() +
+                "] captured=" + captured +
                 ", value=" + value +
+                (numStacks > 1 ? ", stacks=" + numStacks : "") +
 //                ", stack=" + stack +
                 '}';
     }

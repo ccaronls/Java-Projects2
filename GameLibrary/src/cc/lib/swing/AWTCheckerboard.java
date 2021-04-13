@@ -24,6 +24,7 @@ import cc.lib.checkerboard.UIPlayer;
 import cc.lib.checkerboard.Ugolki;
 import cc.lib.game.AGraphics;
 import cc.lib.game.Utils;
+import cc.lib.utils.EventQueue;
 import cc.lib.utils.FileUtils;
 
 import static java.awt.event.KeyEvent.*;
@@ -41,6 +42,7 @@ public class AWTCheckerboard extends AWTComponent {
     final UIGame game;
     final File saveFile;
     int difficulty = 2;
+    final EventQueue eq = new EventQueue();
 
     int loadImage(AGraphics g, String path) {
         int id = g.loadImage(path);
@@ -105,6 +107,7 @@ public class AWTCheckerboard extends AWTComponent {
     AWTCheckerboard() {
         setMouseEnabled(true);
         setPadding(5);
+        new Thread(eq).start();
         frame = new AWTFrame("Checkerboard") {
             @Override
             protected void onMenuItemSelected(String menu, String subMenu) {
@@ -116,8 +119,8 @@ public class AWTCheckerboard extends AWTComponent {
                             if (tmp.tryLoadFromFile(file)) {
                                 game.stopGameThread();
                                 game.tryLoadFromFile(file);
-                                game.setPlayer(Game.NEAR, new UIPlayer(UIPlayer.Type.USER));
-                                game.setPlayer(Game.FAR, new UIPlayer(UIPlayer.Type.USER));
+                                //game.setPlayer(Game.NEAR, new UIPlayer(UIPlayer.Type.USER));
+                                //game.setPlayer(Game.FAR, new UIPlayer(UIPlayer.Type.USER));
                                 game.startGameThread();
                             } else {
                                 System.err.println("Cannot load " + file);
@@ -167,12 +170,12 @@ public class AWTCheckerboard extends AWTComponent {
                             switch (num) {
                                 case 0:
                                     game.setPlayer(Game.NEAR, new UIPlayer(UIPlayer.Type.USER));
-                                    game.setPlayer(Game.FAR,  new UIPlayer(UIPlayer.Type.AI));
+                                    game.setPlayer(Game.FAR,  new UIPlayer(UIPlayer.Type.AI, difficulty));
                                     game.newGame();
                                     break;
                                 case 1:
                                     game.setPlayer(Game.NEAR, new UIPlayer(UIPlayer.Type.USER));
-                                    game.setPlayer(Game.FAR,  new UIPlayer(UIPlayer.Type.USER));
+                                    game.setPlayer(Game.FAR,  new UIPlayer(UIPlayer.Type.USER, difficulty));
                                     game.newGame();
                                     break;
                             }
@@ -225,6 +228,7 @@ public class AWTCheckerboard extends AWTComponent {
                                 break;
 
                         }
+                        frame.setProperty("difficulty", difficulty);
                         break;
                 }
             }
@@ -236,16 +240,7 @@ public class AWTCheckerboard extends AWTComponent {
                 if (delayMs <= 0)
                     AWTCheckerboard.this.repaint();
                 else {
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                Thread.sleep(delayMs);
-                            } catch (Exception e) {
-                            }
-                            AWTCheckerboard.this.repaint();
-                        }
-                    }).start();
+                    eq.enqueue(delayMs, ()-> AWTCheckerboard.this.repaint());
                 }
             }
 
@@ -281,6 +276,7 @@ public class AWTCheckerboard extends AWTComponent {
             frame.centerToScreen(640, 640);
 
         game.init(saveFile);
+        difficulty = frame.getIntProperty("difficulty", difficulty);
     }
 
     @Override

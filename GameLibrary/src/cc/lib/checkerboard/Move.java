@@ -4,6 +4,7 @@ import java.util.List;
 
 import cc.lib.game.IMove;
 import cc.lib.game.Utils;
+import cc.lib.utils.GException;
 import cc.lib.utils.Reflector;
 
 public class Move extends Reflector<Move> implements IMove, Comparable<Move> {
@@ -122,7 +123,7 @@ public class Move extends Reflector<Move> implements IMove, Comparable<Move> {
 
     public Move setStart(int startRank, int startCol, PieceType type) {
         if (type == PieceType.EMPTY)
-            throw new cc.lib.utils.GException("start type cannot be empty");
+            throw new GException("start type cannot be empty");
         start = startRank<<8 | startCol;
         startType = type;
         compareValue += type.value;
@@ -132,7 +133,7 @@ public class Move extends Reflector<Move> implements IMove, Comparable<Move> {
     public Move setEnd(int endRank, int endCol, PieceType type) {
         end = endRank << 8 | endCol;
         if (type == null)
-            throw new cc.lib.utils.GException("type cannot be null");
+            throw new GException("type cannot be null");
         endType = type;
         return this;
     }

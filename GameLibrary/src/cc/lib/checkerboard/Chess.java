@@ -206,7 +206,7 @@ public class Chess extends Rules {
         //if (!game.isOnBoard(rank, col))
         //    return false;
         Piece p = game.board[rank][col];//rank, col);
-        return p.playerNum == playerNum && (p.type.flag & flag) != 0;
+        return p.getPlayerNum() == playerNum && (p.getType().flag & flag) != 0;
     }
 
     /**
@@ -559,7 +559,7 @@ public class Chess extends Rules {
 
     private Piece findKing(Game game, int playerNum) {
         if (kingCache[playerNum] != null) {
-            if (0 != (kingCache[playerNum].type.flag & FLAG_KING))
+            if (0 != (kingCache[playerNum].getType().flag & FLAG_KING))
                 return kingCache[playerNum];
         }
 
@@ -714,7 +714,7 @@ public class Chess extends Rules {
         int[][][][] deltas = new int[ranks][cols][][];
         for (int i = 0; i < ranks; i++) {
             for (int ii = 0; ii < cols; ii++) {
-                if (game.getPiece(i, ii).type != BLOCKED)
+                if (game.getPiece(i, ii).getType() != BLOCKED)
                     deltas[i][ii] = computeDeltaFor(game, i, ii, ALL_KNIGHT_DELTAS, 1);
             }
         }

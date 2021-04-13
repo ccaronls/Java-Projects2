@@ -142,7 +142,7 @@ public class Checkers extends Rules {
 
     @Override
     boolean isDraw(Game game) {
-        // if down to onlyt 2 kings, one of each color, then game is a draw
+        // if down to only 2 kings, one of each color, then game is a draw
         int numNear=0;
         int numFar=0;
         for (int r = 0; r < game.getRanks(); r++) {
@@ -175,7 +175,10 @@ public class Checkers extends Rules {
     int computeMenKingMoves(Game game, Piece p, int rank, int col, Move parent, List<Move> moves) {
         int numJumps = 0;
         int [] jdr=null, jdc=null, dr=null, dc=null;
-        switch (p.getType()) {
+        PieceType pt = p.getType();
+        if (pt == CHECKER && p.isStacked())
+            pt = KING;
+        switch (pt) {
             case KING:
                 jdr = dr = PIECE_DELTAS_DIAGONALS_R;
                 jdc = dc = PIECE_DELTAS_DIAGONALS_C;
@@ -420,7 +423,7 @@ public class Checkers extends Rules {
         final int ecol = epos & 0xff;
         if (move.hasEnd()) {
             if (isKingPieces()) {
-                isKinged = (p.getType() == CHECKER && game.getStartRank(game.getOpponent()) == ernk);
+                isKinged = (!p.isStacked() && p.getType() == CHECKER && game.getStartRank(game.getOpponent()) == ernk);
                 isDamaKing = (p.getType() == DAMA_MAN && game.getStartRank(game.getOpponent()) == ernk);
             }
             p = game.movePiece(move);
@@ -443,38 +446,52 @@ public class Checkers extends Rules {
             case JUMP:
                 if (move.hasCaptured()) {
                     if (isStackingCaptures()) {
+                        Piece capturing = game.getPiece(move.getEnd());
                         Piece captured = game.getPiece(move.getLastCaptured().getPosition());
                         // capturing end stack becomes start stack
-                        //capturing.addStackLast(captured.getPlayerNum());
+                        capturing.addStackBottom(captured.getPlayerNum());
                         if (!captured.isStacked()) {
                             game.clearPiece(captured.getPosition());
+                        } else {
+                            captured.removeStackTop();
+                            game.countPieces();
                         }
+                        captured.setCaptured(false);
                     } else if (isCaptureAtEndEnabled()) {
                         game.getPiece(move.getLastCaptured().getPosition()).setCaptured(true);
                     } else {
                         game.clearPiece(move.getLastCaptured().getPosition());
                     }
-                    if ((isKinged || isDamaKing) && isJumpsMandatory()) {
-                        // we cannot king if we can still jump.
-                        computeMovesForSquare(game, ernk, ecol, move, game.getMovesInternal());
-                        Piece pp = game.getPiece(move.getEnd());
-                        if (pp.getNumMoves() > 0) {
-                            break;
-                        }
-                    }
                 }
                 if (isKinged) {
                     game.getMovesInternal().add(new Move(MoveType.STACK, move.getPlayerNum()).setStart(ernk, ecol, p.getType()).setEnd(ernk, ecol, isFlyingKings() ? PieceType.FLYING_KING : PieceType.KING));
-                }
-                if (isDamaKing) {
+                } else if (isDamaKing) {
                     game.getMovesInternal().add(new Move(MoveType.STACK, move.getPlayerNum()).setStart(ernk, ecol, p.getType()).setEnd(ernk, ecol, PieceType.DAMA_KING));
+                } else {
+                    computeMovesForSquare(game, ernk, ecol, move, game.getMovesInternal());
+                    p = game.getPiece(ernk, ecol);
+                    if (p.getNumMoves() == 0) {
+                        endTurnPrivate(game);
+                    } else if (!isJumpsMandatory()) {
+                        game.getMovesInternal().add(new Move(MoveType.END, move.getPlayerNum()).setStart(ernk, ecol, p.getType()));
+                    }
                 }
                 break;
             case STACK:
                 game.getPiece(move.getStart()).setType(move.getEndType());
+                if (game.getPreviousMove(move.getPlayerNum()).getMoveType().isJump) {
+                    // we cannot king if we can still jump.
+                    computeMovesForSquare(game, ernk, ecol, move, game.getMovesInternal());
+                    Piece pp = game.getPiece(move.getEnd());
+                    if (pp.getNumMoves() == 0) {
+                        endTurnPrivate(game);
+                    } else if (!isJumpsMandatory()) {
+                        game.getMovesInternal().add(new Move(MoveType.END, move.getPlayerNum()).setStart(ernk, ecol, p.getType()));
+                    }
+                }
                 break;
         }
-
+/*
         if (!isKinged && !isDamaKing) {
             // recursive compute next move if possible after a jump
             if (move.hasEnd())
@@ -484,7 +501,7 @@ public class Checkers extends Rules {
             } else if (!isJumpsMandatory()) {
                 game.getMovesInternal().add(new Move(MoveType.END, move.getPlayerNum()).setStart(ernk, ecol, p.getType()));
             }
-        }
+        }*/
     }
 
     void endTurnPrivate(Game game) {
@@ -576,12 +593,16 @@ public class Checkers extends Rules {
                         Piece captured = game.getPiece(m.getLastCaptured().pos);
                         if (!p.isStacked())
                             throw new GException("Logic Error: Capture must result in stacked piece");
-                        if (captured.getType() != EMPTY) {
-                            //captured.addStackFirst(captured.getPlayerNum());
+
+                        if (captured.getType() == EMPTY) {
+                            captured.setPlayerNum(p.removeStackBottom());
+                            captured.setType(CHECKER);
                         } else {
-                            captured.setType(m.getLastCaptured().type);
+                            captured.addStackTop(p.removeStackBottom());
                         }
-//                        captured.setPlayerNum(p.removeStackLast());
+                        captured.setCaptured(false);
+                        game.countPieces();
+
                     } else {
                         int oppNum = game.getOpponent(m.getPlayerNum());
                         for (Move.CapturedPiece cur = m.getLastCaptured(); cur != null; cur = cur.next) {

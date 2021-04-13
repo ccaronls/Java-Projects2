@@ -1,5 +1,7 @@
 package cc.lib.game;
 
+import cc.lib.math.Matrix3x3;
+
 /**
  * Created by chriscaron on 2/14/18.
  */
@@ -237,6 +239,11 @@ public class TestGraphics extends APGraphics {
 
     @Override
     public void drawFilledOval(float x, float y, float w, float h) {
+
+    }
+
+    @Override
+    public void drawImage(int imageKey, Matrix3x3 transform) {
 
     }
 }

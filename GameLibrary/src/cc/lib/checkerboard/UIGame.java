@@ -226,6 +226,8 @@ public abstract class UIGame extends Game {
     }
 
     private void drawCapturedPieces(AGraphics g, GDimension dim, int playerNum, List<PieceType> pieces) {
+        if (getRules() instanceof Columns)
+            return;
         if (pieces == null)
             return;
 //        g.setClipRect(0, 0, width, height);
@@ -617,7 +619,7 @@ public abstract class UIGame extends Game {
 
     @Override
     protected void onMoveChosen(Move m) {
-        Piece pc = new Piece(m.getPlayerNum(), m.getStartType());
+        Piece pc = getPiece(m.getStart()).deepCopy();//new Piece(m.getPlayerNum(), m.getStartType());
         if (m.hasCaptured()) {
 
         }
@@ -680,7 +682,7 @@ public abstract class UIGame extends Game {
             this.sy = SQ_DIM * (start >> 8) + SQ_DIM / 2;
             this.ex = ex;
             this.ey = ey;
-            this.pc = new Piece(-1, -1, pc.getPlayerNum(), pc.getType());
+            this.pc = pc.deepCopy();
             animLock.acquire();
         }
 
@@ -712,7 +714,7 @@ public abstract class UIGame extends Game {
 
         @Override
         protected void onDone() {
-            setPiece(start, pc.getPlayerNum(), pc.getType());
+            setPiece(start, pc);
             super.onDone();
         }
     }

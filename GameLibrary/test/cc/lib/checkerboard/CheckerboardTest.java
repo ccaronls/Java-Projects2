@@ -35,7 +35,7 @@ public class CheckerboardTest extends TestCase {
                 gm.trySaveToFile(new File("outputs/" + gm.getRules().getClass().getSimpleName() + "_" + i + ".txt"));
             }
             gm.runGame();
-            totalNodesEvaluated += AIPlayer.evalCount;
+            totalNodesEvaluated += AIPlayer.stats.evalCount;
             //gm.trySaveToFile(new File("minimaxtest_testcheckrs.game"));
             if (AIPlayer.lastSearchResult != null) {
                 try (Writer out = new FileWriter("outputs/" + AIPlayer.algorithm + "_tree." + i + ".xml")) {
