@@ -26,7 +26,6 @@ import cc.lib.game.GRectangle;
 import cc.lib.game.IImageFilter;
 import cc.lib.game.Justify;
 import cc.lib.math.CMath;
-import cc.lib.math.Matrix3x3;
 import cc.lib.math.Vector2D;
 
 /**
@@ -415,14 +414,16 @@ public class DroidGraphics extends APGraphics {
             Log.e("DroidGraphics", "Failed to open '" + assetPath + "'");
             return -1;
         }
-        bm = transformImage(bm, -1, -1, new IImageFilter() {
-            @Override
-            public int filterRGBA(int x, int y, int argb) {
-                int c0 = argb & 0x00ffffff;
-                int c1 = transparent.toRGB();
-                return c0 == c1 ? 0 : c0;
-            }
-        });
+        if (transparent != null) {
+            bm = transformImage(bm, -1, -1, new IImageFilter() {
+                @Override
+                public int filterRGBA(int x, int y, int argb) {
+                    int c0 = argb & 0x00ffffff;
+                    int c1 = transparent.toRGB();
+                    return c0 == c1 ? 0 : c0;
+                }
+            });
+        }
         return addImage(bm);
     }
 
@@ -528,13 +529,14 @@ public class DroidGraphics extends APGraphics {
     }
 
     @Override
-    public void drawImage(int imageKey, Matrix3x3 transform) {
+    public void drawImage(int imageKey) {
         canvas.save();
-        Matrix M = new Matrix();
-        M.setValues(transform.toFloatArray());
-        canvas.concat(M);
-        Drawable d = context.getResources().getDrawable(imageKey);
-        d.draw(canvas);
+        Matrix M = getCurrentTransform();
+//        Matrix I = new Matrix();
+  //      I.reset();
+    //    canvas.setMatrix(I);
+        Bitmap bm = getBitmap(imageKey);
+        canvas.drawBitmap(bm, M, paint);
         canvas.restore();
     }
 

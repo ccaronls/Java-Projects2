@@ -22,7 +22,8 @@ public class AIPlayer extends Player {
     public static boolean movePathNodeToFront = true;
     public static boolean randomizeDuplicates = true;
 
-    public static AIStats stats;
+    public static AIStats prevStats;
+    public static AIStats stats = new AIStats();
 
     private int maxSearchDepth = 2;
 
@@ -110,6 +111,7 @@ public class AIPlayer extends Player {
 
         if (moveList.size() > 0 && moveList.getFirst().getPlayerNum() == _game.getTurn())
             return;
+        prevStats = stats;
         stats = new AIStats();
         kill = false;
         moveList.clear();
@@ -285,8 +287,8 @@ public class AIPlayer extends Player {
     static Comparator<Move> SORT_DESCENDING2 = new Comparator<Move>() {
         @Override
         public int compare(Move m0, Move m1) {
-            double d0 = m0.getCompareValue() + stats.pieceTypeValue[m0.getStartType().ordinal()];
-            double d1 = m1.getCompareValue() + stats.pieceTypeValue[m1.getStartType().ordinal()];
+            double d0 = m0.getCompareValue();// + prevStats.pieceTypeValue[m0.getStartType().ordinal()];
+            double d1 = m1.getCompareValue();// + prevStats.pieceTypeValue[m1.getStartType().ordinal()];
 
             return Double.compare(d1, d0);
         }

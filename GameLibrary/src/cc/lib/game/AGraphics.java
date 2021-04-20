@@ -1529,7 +1529,11 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
         drawImage(imageKey, new Vector2D(x,y), new Vector2D(x+w, y+h));
     }
 
-    public abstract void drawImage(int imageKey, Matrix3x3 transform);
+    /**
+     * Draw image using the current transform
+     * @param imageKey
+     */
+    public abstract void drawImage(int imageKey);
 
     /**
      *

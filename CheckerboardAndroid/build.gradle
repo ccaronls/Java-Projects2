@@ -1,0 +1,68 @@
+apply plugin: 'com.android.application'
+
+android {
+
+    defaultConfig {
+        minSdkVersion project.myMinSdkVersion
+        targetSdkVersion project.myTargetSdkVersion
+    }
+
+    compileOptions {
+        sourceCompatibility project.sourceCompatibility
+        targetCompatibility project.targetCompatibility
+
+    }
+    /*
+    sourceSets {
+        main {
+            assets.srcDirs = ['../GameLibrary/images']
+        }
+    }*/
+
+    compileSdkVersion project.myCompileSdkVersion.toInteger()
+    buildToolsVersion project.myBuildToolsVersion
+
+
+    defaultConfig {
+        applicationId "cc.game.android.checkerboard"
+        minSdkVersion project.myMinSdkVersion
+        targetSdkVersion project.myTargetSdkVersion
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        general {
+            storeFile file(project.storeFile)
+            storePassword project.storePassword
+            keyAlias project.keyAlias
+            keyPassword project.keyPassword
+        }
+    }
+
+    buildTypes {
+        debug {
+            debuggable true
+            signingConfig signingConfigs.general
+        }
+
+        release {
+            minifyEnabled true // Enables code shrinking for the release build type.
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), '../common/proguard.txt'
+            signingConfig signingConfigs.general
+        }
+    }
+}
+
+dependencies {
+    implementation project(':AndroidGameLibrary')
+    implementation project(path: ':GameLibrary', configuration: 'androidLib')
+    implementation project.supportv4
+    implementation 'com.android.support.constraint:constraint-layout:1.1.2'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+
+}

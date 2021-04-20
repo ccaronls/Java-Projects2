@@ -918,7 +918,7 @@ for (int pix : pixels) {
     }
 
     @Override
-    public void drawImage(int imageKey, Matrix3x3 transform) {
+    public void drawImage(int imageKey) {
         throw new GException("Not Implemented");
     }
 

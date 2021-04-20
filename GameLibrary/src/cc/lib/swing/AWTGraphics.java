@@ -1,11 +1,21 @@
 package cc.lib.swing;
 
-import java.awt.*;
+import java.awt.AlphaComposite;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.Rectangle;
 import java.awt.image.RGBImageFilter;
 import java.util.Arrays;
 
-import cc.lib.game.*;
-import cc.lib.math.Matrix3x3;
+import cc.lib.game.AImage;
+import cc.lib.game.APGraphics;
+import cc.lib.game.GColor;
+import cc.lib.game.GRectangle;
+import cc.lib.game.IImageFilter;
+import cc.lib.game.Justify;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 
@@ -412,7 +422,7 @@ public class AWTGraphics extends APGraphics {
     }
 
     @Override
-    public void drawImage(int imageKey, Matrix3x3 transform) {
+    public void drawImage(int imageKey) {
         throw new AssertionError("Not Implemented");
     }
 

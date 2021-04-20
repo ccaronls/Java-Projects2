@@ -17,7 +17,6 @@ import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
 import cc.lib.math.Bezier;
-import cc.lib.math.Matrix3x3;
 import cc.lib.math.Vector2D;
 import cc.lib.utils.Lock;
 import cc.lib.utils.Table;
@@ -25,6 +24,8 @@ import cc.lib.utils.Table;
 public abstract class UIGame extends Game {
 
     static Logger log = LoggerFactory.getLogger(UIGame.class);
+
+    private final static boolean DEBUG = true;
 
     File saveFile;
     boolean gameRunning = false;
@@ -249,12 +250,19 @@ public abstract class UIGame extends Game {
     }
 
     private void drawCheckerboardImage(AGraphics g, int id, float boardImageDim, float boardImageBorder) {
-        BORDER_WIDTH = boardImageBorder;
-        float boardWidth = BOARD_DIM.getWidth() - 2*boardImageBorder;
-        float boardHeight = BOARD_DIM.getHeight() - 2*boardImageBorder;
+
+        BORDER_WIDTH = boardImageBorder * BOARD_DIM.getWidth() / boardImageDim;
+        float boardWidth = BOARD_DIM.getWidth() - 2*BORDER_WIDTH;
+        float boardHeight = BOARD_DIM.getHeight() - 2*BORDER_WIDTH;
         SQ_DIM = boardWidth / getColumns();
         g.drawImage(id, 0, 0, BOARD_DIM.getWidth(), BOARD_DIM.getHeight());
         g.translate(BORDER_WIDTH, BORDER_WIDTH);
+
+        if (DEBUG) {
+            g.setColor(GColor.RED);
+            g.drawRect(0, 0, boardWidth, boardHeight);
+        }
+
     }
 
     protected abstract int getCheckerboardImageId();
@@ -359,8 +367,10 @@ public abstract class UIGame extends Game {
                         g.drawRect(c * cw + 1, r * ch + 1, cw - 2, ch - 2);
                         highlightedPos = r << 8 | c;
                     }
-                    g.setColor(GColor.YELLOW);
-                    g.drawJustifiedStringOnBackground(mv, Justify.CENTER, Justify.CENTER, String.format("%d,%d\n%s", r, c, getPiece(r, c).getType()), GColor.BLACK, 5, 0);
+                    if (DEBUG) {
+                        g.setColor(GColor.YELLOW);
+                        g.drawJustifiedStringOnBackground(mv, Justify.CENTER, Justify.CENTER, String.format("%d,%d\n%s", r, c, getPiece(r, c).getType()), GColor.BLACK, 5, 0);
+                    }
                 }
             }
         }
@@ -578,24 +588,26 @@ public abstract class UIGame extends Game {
     public void drawPiece(AGraphics g, PieceType p, Color color, float w, float h, GColor outlineColor) {
         int id = getPieceImageId(p, color);
         if (id > 0) {
-            Matrix3x3 M = new Matrix3x3();
-            g.getTransform(M);
+            //Matrix3x3 M = new Matrix3x3();
+            //g.getTransform(M);
             AImage img = g.getImage(id);
             float a = w/h;
             float aa = img.getAspect();
             //w = w * aa / a;
             h = h * a / aa;
-            float xScale = (float)w/img.getWidth();
-            float yScale = (float)h/img.getHeight();
+            float imgWidth = img.getWidth();
+            float imgHeight = img.getHeight();
+            float xScale = w/imgWidth;
+            float yScale = h/imgHeight;
             g.pushMatrix();
             if (p.drawFlipped()) {
-                M.translate(w / 2, -h);
-                M.scale(-xScale, yScale);
+                g.translate(w / 2, -h);
+                g.scale(-xScale, yScale);
             } else {
-                M.translate(-w / 2, -h);
-                M.scale(xScale, yScale);
+                g.translate(-w / 2, -h);
+                g.scale(xScale, yScale);
             }
-            g.drawImage(id, M);//-w/2, -h/2, w, h);
+            g.drawImage(id);//-w/2, -h/2, w, h);
             g.popMatrix();
         } else {
             g.setColor(color.color);

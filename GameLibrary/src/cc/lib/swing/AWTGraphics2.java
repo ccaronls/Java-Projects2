@@ -9,8 +9,6 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.geom.AffineTransform;
 
-import cc.lib.math.Matrix3x3;
-
 /**
  * Created by chriscaron on 3/15/18.
  */
@@ -90,8 +88,8 @@ public class AWTGraphics2 extends AWTGraphics {
     }
 
     @Override
-    public void drawImage(int imageKey, Matrix3x3 transform) {
-        double [][] M = transform.get();
+    public void drawImage(int imageKey) {
+        double [][] M = r.getCurrentTransform().get();
         AffineTransform t = new AffineTransform(M[0][0], M[1][0]
                 ,M[0][1], M[1][1]
                 ,M[0][2], M[1][2]);

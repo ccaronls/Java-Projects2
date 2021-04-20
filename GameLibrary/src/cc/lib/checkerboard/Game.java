@@ -19,7 +19,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
 
     static int counter = 0;
 
-    final static boolean DEBUG = false;
+    private final static boolean DEBUG = false;
 
 
     static {

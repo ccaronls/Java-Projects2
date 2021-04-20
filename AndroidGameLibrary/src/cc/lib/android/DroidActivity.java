@@ -4,7 +4,6 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -24,6 +23,11 @@ public abstract class DroidActivity extends CCActivityBase {
     ViewGroup topBar = null;
 
     private int margin = 0;
+
+    /**
+     *
+     * @param margin
+     */
     public void setMargin(int margin) {
         this.margin = margin;
         content.postInvalidate();
