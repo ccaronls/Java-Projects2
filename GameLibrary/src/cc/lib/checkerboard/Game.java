@@ -631,12 +631,18 @@ public class Game extends Reflector<Game> implements IGame<Move> {
         clearPiece(pos>>8, pos&0xff);
     }
 
-    final Piece setPiece(int rank, int col, int playerNum, PieceType p) {
-        board[rank][col].setType(p);
-        board[rank][col].setPlayerNum(playerNum);
-        if (numPieces != null)
-            numPieces[playerNum] ++;
-        return board[rank][col];
+    final Piece setPiece(int rank, int col, int playerNum, PieceType pt) {
+        Piece p = board[rank][col];
+        p.setType(pt);
+        if (numPieces != null) {
+            numPieces[playerNum]++;
+            int pnum = p.getPlayerNum();
+            if (pnum >= 0) {
+                numPieces[pnum]--;
+            }
+        }
+        p.setPlayerNum(playerNum);
+        return p;
     }
 
     final void setPiece(int pos, Piece pc) {

@@ -617,9 +617,10 @@ public class Checkers extends Rules {
                             for (Move o : game.getMoveHistory()) {
                                 if (o.getPlayerNum() == oppNum)
                                     break;
-                                Utils.assertTrue(o.hasCaptured());
-                                game.setPiece(o.getCapturedPosition(), oppNum, o.getCapturedType())
-                                    .setCaptured(true);
+                                if (o.hasCaptured()) {
+                                    game.setPiece(o.getCapturedPosition(), oppNum, o.getCapturedType())
+                                            .setCaptured(true);
+                                }
                             }
                         } else {
                             game.setPiece(m.getCapturedPosition(), oppNum, m.getCapturedType());
