@@ -21,7 +21,6 @@ public class Game extends Reflector<Game> implements IGame<Move> {
 
     private final static boolean DEBUG = false;
 
-
     static {
         addAllFields(Game.class);
     }
@@ -632,11 +631,12 @@ public class Game extends Reflector<Game> implements IGame<Move> {
         clearPiece(pos>>8, pos&0xff);
     }
 
-    final void setPiece(int rank, int col, int playerNum, PieceType p) {
+    final Piece setPiece(int rank, int col, int playerNum, PieceType p) {
         board[rank][col].setType(p);
         board[rank][col].setPlayerNum(playerNum);
         if (numPieces != null)
             numPieces[playerNum] ++;
+        return board[rank][col];
     }
 
     final void setPiece(int pos, Piece pc) {
@@ -649,8 +649,8 @@ public class Game extends Reflector<Game> implements IGame<Move> {
         numPieces[pc.getPlayerNum()]++;
     }
 
-    final void setPiece(int pos, int playerNum, PieceType p) {
-        setPiece(pos>>8, pos&(0xff), playerNum, p);
+    final Piece setPiece(int pos, int playerNum, PieceType p) {
+        return setPiece(pos>>8, pos&(0xff), playerNum, p);
     }
 
     final void copyPiece(Piece from, Piece to) {
@@ -760,9 +760,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
             for (State s : undoStack) {
                 Move m = s.getMove();
                 if (m.hasCaptured() && m.getPlayerNum() == playerNum) {
-                    for (int i=0; i<m.getNumCaptured(); i++) {
-                        captured.add(m.getLastCaptured().type);
-                    }
+                    captured.add(m.getCapturedType());
                 }
             }
         }

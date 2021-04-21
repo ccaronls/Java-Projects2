@@ -91,11 +91,11 @@ public class EventQueue implements Runnable {
             }
 
             if (delay > 0) {
-                log.debug("Delay for " + delay + " millis");
+                log.verbose("Delay for " + delay + " millis");
                 synchronized (this) {
                     try {
                         wait(delay);
-                        log.debug("wakeup");
+                        log.verbose("wakeup");
                     } catch (Exception e) {
                         e.printStackTrace();
                     }

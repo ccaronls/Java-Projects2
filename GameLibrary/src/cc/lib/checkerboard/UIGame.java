@@ -25,7 +25,7 @@ public abstract class UIGame extends Game {
 
     static Logger log = LoggerFactory.getLogger(UIGame.class);
 
-    private final static boolean DEBUG = true;
+    private final static boolean DEBUG = false;
 
     File saveFile;
     boolean gameRunning = false;
@@ -74,6 +74,10 @@ public abstract class UIGame extends Game {
     }
 
     public abstract void repaint(long delayMs);
+
+    public boolean isGameRunning() {
+        return gameRunning;
+    }
 
     public synchronized void startGameThread() {
         if (gameRunning)
@@ -389,6 +393,10 @@ public abstract class UIGame extends Game {
             }
 
             g.pushMatrix();
+            if (p.isCaptured()) {
+                g.setColor(GColor.RED);
+                g.drawFilledCircle(x, y, PIECE_RADIUS +5);
+            }
             g.translate(x, y+PIECE_RADIUS);
             drawPiece(g, p);
             g.popMatrix();
@@ -440,7 +448,7 @@ public abstract class UIGame extends Game {
                 g.setColor(GColor.CYAN);
                 g.drawJustifiedStringOnBackground(x, y, Justify.CENTER, Justify.CENTER, txt, GColor.TRANSLUSCENT_BLACK, 3);
             }
-        } else if (!gameRunning) {
+        } else if (false && !gameRunning) {
             //int x = g.getViewportWidth() / 2;
             //int y = g.getViewportHeight() / 2;
             g.setColor(GColor.YELLOW);

@@ -96,7 +96,7 @@ public class Checkers extends Rules {
         if (m.getPlayerNum() != playerNum)
             return 0;
         game.movePiece(m);
-        game.clearPiece(m.getLastCaptured().getPosition());
+        game.clearPiece(m.getCapturedPosition());
         //executeMove(game, m);
         int max = 0;
         List<Move> moves = new ArrayList<>();
@@ -268,7 +268,7 @@ public class Checkers extends Rules {
                         .setEnd(rdr2, cdc2, p.getType())
                         .setJumped(rdr, cdc);
                 if (!isNoCaptures())
-                    mv.addCaptured(rdr, cdc, cap.getType());
+                    mv.setCaptured(rdr, cdc, cap.getType());
                 moves.add(mv);
                 numJumps++;
             }
@@ -388,7 +388,7 @@ public class Checkers extends Rules {
                     if (captured == null)
                         moves.add(new Move(mt, game.getTurn()).setStart(rank, col, p.getType()).setEnd(rdr, cdc, p.getType()));
                     else
-                        moves.add(new Move(mt, game.getTurn()).setStart(rank, col, p.getType()).setEnd(rdr, cdc, p.getType()).addCaptured(capturedRank, capturedCol, captured.getType()));
+                        moves.add(new Move(mt, game.getTurn()).setStart(rank, col, p.getType()).setEnd(rdr, cdc, p.getType()).setCaptured(capturedRank, capturedCol, captured.getType()));
                     if (mt == MoveType.FLYING_JUMP)
                         numJumps++;
                     continue;
@@ -447,7 +447,7 @@ public class Checkers extends Rules {
                 if (move.hasCaptured()) {
                     if (isStackingCaptures()) {
                         Piece capturing = game.getPiece(move.getEnd());
-                        Piece captured = game.getPiece(move.getLastCaptured().getPosition());
+                        Piece captured = game.getPiece(move.getCapturedPosition());
                         // capturing end stack becomes start stack
                         capturing.addStackBottom(captured.getPlayerNum());
                         if (!captured.isStacked()) {
@@ -458,9 +458,9 @@ public class Checkers extends Rules {
                         }
                         captured.setCaptured(false);
                     } else if (isCaptureAtEndEnabled()) {
-                        game.getPiece(move.getLastCaptured().getPosition()).setCaptured(true);
+                        game.getPiece(move.getCapturedPosition()).setCaptured(true);
                     } else {
-                        game.clearPiece(move.getLastCaptured().getPosition());
+                        game.clearPiece(move.getCapturedPosition());
                     }
                 }
                 if (isKinged) {
@@ -590,7 +590,7 @@ public class Checkers extends Rules {
                 p = game.getPiece(m.getEnd());
                 if (m.hasCaptured()) {
                     if (isStackingCaptures()) {
-                        Piece captured = game.getPiece(m.getLastCaptured().pos);
+                        Piece captured = game.getPiece(m.getCapturedPosition());
                         if (!p.isStacked())
                             throw new GException("Logic Error: Capture must result in stacked piece");
 
@@ -605,16 +605,24 @@ public class Checkers extends Rules {
 
                     } else {
                         int oppNum = game.getOpponent(m.getPlayerNum());
-                        for (Move.CapturedPiece cur = m.getLastCaptured(); cur != null; cur = cur.next) {
-                            game.setPiece(cur.getPosition(), oppNum, cur.getType());
-                            Piece cp = game.getPiece(cur.getPosition());
-                            //cp.setPlayerNum(game.getOpponent(m.getPlayerNum()));
-                            //cp.setType(m.getCapturedType(i));
-                            cp.setCaptured(isCaptureAtEndEnabled());
-//                            game.setPiece(m.getCaptured(i), game.getOpponent(m.getPlayerNum()), m.getCapturedType(i));
-                        }
                         if (isCaptureAtEndEnabled()) {
-                            game.getPiece(m.getLastCaptured().getPosition()).setCaptured(false);
+                            Piece pc = game.getPiece(m.getCapturedPosition());
+                            if (pc.getType().flag == 0)
+                                game.setPiece(m.getCapturedPosition(), oppNum, m.getCapturedType());
+                            else
+                                pc.setCaptured(false);
+                            //game.getPiece(m.getLastCaptured().getPosition()).setCaptured(false);
+                            // iterate backward through the move history and uncapture the pieces while
+                            // keeping their 'captured' flag true
+                            for (Move o : game.getMoveHistory()) {
+                                if (o.getPlayerNum() == oppNum)
+                                    break;
+                                Utils.assertTrue(o.hasCaptured());
+                                game.setPiece(o.getCapturedPosition(), oppNum, o.getCapturedType())
+                                    .setCaptured(true);
+                            }
+                        } else {
+                            game.setPiece(m.getCapturedPosition(), oppNum, m.getCapturedType());
                         }
                     }
                 }
@@ -683,8 +691,7 @@ public class Checkers extends Rules {
                 .addRow("Must Jump When Possible", isJumpsMandatory())
                 .addRow("Must make maximum Jumps", isMaxJumpsMandatory())
                 .addRow("Flying Kings", isFlyingKings())
-                .addRow("Captures at the end", isCaptureAtEndEnabled())
-                .addRow("Can Capture", !isNoCaptures());
+                .addRow("Captures at the end", isCaptureAtEndEnabled());
 
         return new Table("Classic game of " + getClass().getSimpleName())
             .addRow(getDescription())

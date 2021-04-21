@@ -11,40 +11,6 @@ public class Move extends Reflector<Move> implements IMove, Comparable<Move> {
 
     static {
         addAllFields(Move.class);
-        addAllFields(CapturedPiece.class);
-    }
-
-    public static class CapturedPiece extends Reflector<CapturedPiece> {
-        final int pos;
-        final PieceType type;
-        final CapturedPiece next;
-
-        public CapturedPiece() {
-            this(-1, null, null);
-        }
-
-        public CapturedPiece(int pos, PieceType type, CapturedPiece next) {
-            this.pos = pos;
-            this.type = type;
-            this.next = next;
-        }
-
-        @Override
-        public String toString() {
-            return String.format("[%s %s]", Move.toStr(pos), type);
-        }
-
-        public CapturedPiece getNext() {
-            return next;
-        }
-
-        public int getPosition() {
-            return pos;
-        }
-
-        public PieceType getType() {
-            return type;
-        }
     }
 
     private final MoveType moveType;
@@ -60,7 +26,8 @@ public class Move extends Reflector<Move> implements IMove, Comparable<Move> {
     private PieceType opponentKingTypeEnd = null;
     private PieceType startType, endType;
     private int enpassant = -1;
-    private CapturedPiece captured;
+    private int captured = -1;
+    private PieceType capturedType = null;
     private int jumped = -1;
 
     @Omit
@@ -147,10 +114,10 @@ public class Move extends Reflector<Move> implements IMove, Comparable<Move> {
         return jumped;
     }
 
-    public Move addCaptured(int capturedRank, int capturedCol, PieceType type) {
+    public Move setCaptured(int capturedRank, int capturedCol, PieceType type) {
         Utils.assertTrue(0 == (type.flag & PieceType.FLAG_KING));
-        CapturedPiece top = captured;
-        captured = new CapturedPiece((capturedRank << 8) | capturedCol, type, captured);
+        this.captured =capturedRank<<8 | capturedCol;
+        this.capturedType = type;
         compareValue += 100 + type.value;
         return this;
     }
@@ -189,19 +156,16 @@ public class Move extends Reflector<Move> implements IMove, Comparable<Move> {
         return end >= 0 && moveType != MoveType.STACK;
     }
 
-    public final int getNumCaptured() {
-        int num = 0;
-        for (CapturedPiece p=captured; p!=null; p=p.next)
-            num++;
-        return num;
-    }
-
-    public final CapturedPiece getLastCaptured() {
+    public final int getCapturedPosition() {
         return captured;
     }
 
+    public final PieceType getCapturedType() {
+        return capturedType;
+    }
+
     public final boolean hasCaptured() {
-        return captured != null;
+        return captured >= 0;
     }
 
     public final int getCastleRookStart() {
@@ -231,13 +195,8 @@ public class Move extends Reflector<Move> implements IMove, Comparable<Move> {
             if (endType != startType)
                 str.append(" becomes:").append(endType);
         }
-        if (captured != null) {
-            str.append(" cap:");
-            String pcs = "";
-            for (CapturedPiece p=captured; p!=null; p=p.next) {
-                pcs = p.toString() + (pcs.length() > 0 ? ", " : " ");
-            }
-            str.append(pcs);
+        if (hasCaptured()) {
+            str.append(" cap:").append(toStr(captured)).append(" ").append(capturedType);
         }
         if (castleRookStart >= 0) {
             str.append(" castle st: ").append(toStr(castleRookStart)).append(" end: ").append(toStr(castleRookEnd));

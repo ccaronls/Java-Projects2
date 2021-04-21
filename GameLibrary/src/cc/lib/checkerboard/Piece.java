@@ -28,10 +28,11 @@ public class Piece extends Reflector<Piece> {
     }
 
     void copyFrom(Piece from) {
-        setPlayerNum(from.getPlayerNum());
         setType(from.getType());
         stack = from.stack;
         numStacks = from.numStacks;
+        captured = from.captured;
+        value = from.value;
     }
 
     @Override
@@ -89,13 +90,13 @@ public class Piece extends Reflector<Piece> {
         if (playerNum < 0) {
             numStacks=0;
             stack = 0;
-        } else if (numStacks <= 0) {
+        } else if (numStacks <= 1) {
             stack = playerNum;
             numStacks = 1;
         } else {
             stack = stack & ~(1<<(numStacks-1));
             if (playerNum > 0)
-                stack |= (1<<numStacks);
+                stack |= (1<<(numStacks-1));
         }
     }
 

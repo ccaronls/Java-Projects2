@@ -16,21 +16,15 @@ import cc.lib.utils.GException;
 public abstract class LoggerFactory {
 
     public enum LogLevel {
-        SILENT(false, false, false, false),
-        INFO(false, true, true, true),
-        DEBUG(true, true, true, true);
+        SILENT,
+        ERROR,
+        INFO,
+        DEBUG,
+        VERBOSE;
 
-        LogLevel(boolean showDebug, boolean showInfo, boolean showError, boolean showWarn) {
-            this.showDebug = showDebug;
-            this.showInfo = showInfo;
-            this.showError = showError;
-            this.showWarn = showWarn;
+        boolean isSilent() {
+            return ordinal() > logLevel.ordinal();
         }
-
-        final boolean showDebug;
-        final boolean showInfo;
-        final boolean showError;
-        final boolean showWarn;
     }
 
     public abstract Logger getLogger(String name);
@@ -43,7 +37,7 @@ public abstract class LoggerFactory {
             return new Logger() {
                 @Override
                 public void error(String msg, Object... args) {
-                    if (!logLevel.showError)
+                    if (LogLevel.ERROR.isSilent())
                         return;
                     if (args.length > 0)
                         msg = String.format(msg, args);
@@ -52,7 +46,7 @@ public abstract class LoggerFactory {
 
                 @Override
                 public void debug(String msg, Object... args) {
-                    if (!logLevel.showDebug)
+                    if (LogLevel.DEBUG.isSilent())
                         return;
                     if (args.length > 0)
                         msg = String.format(msg, args);
@@ -61,7 +55,7 @@ public abstract class LoggerFactory {
 
                 @Override
                 public void info(String msg, Object... args) {
-                    if (!logLevel.showInfo)
+                    if (LogLevel.INFO.isSilent())
                         return;
                     if (args.length > 0)
                         msg = String.format(msg, args);
@@ -70,7 +64,7 @@ public abstract class LoggerFactory {
 
                 @Override
                 public void error(Throwable e) {
-                    if (!logLevel.showError)
+                    if (LogLevel.ERROR.isSilent())
                         return;
                     error("%s:%s", e.getClass().getSimpleName(), e.getMessage());
                     for (StackTraceElement s : e.getStackTrace()) {
@@ -80,12 +74,22 @@ public abstract class LoggerFactory {
 
                 @Override
                 public void warn(String msg, Object... args) {
-                    if (!logLevel.showWarn)
+                    if (LogLevel.INFO.isSilent())
                         return;
                     if (args.length > 0)
                         msg = String.format(msg, args);
                     System.err.println("W[" + name + "]:" + msg);
                 }
+
+                @Override
+                public void verbose(String msg, Object... args) {
+                    if (LogLevel.VERBOSE.isSilent())
+                        return;
+                    if (args.length > 0)
+                        msg = String.format(msg, args);
+                    System.err.println("V[" + name + "]:" + msg);
+                }
+
             };
         }
     };
@@ -174,6 +178,12 @@ public abstract class LoggerFactory {
                     public void warn(String msg, Object... args) {
                         write("W[" + name + "]:" + String.format(msg, args), System.err);
                     }
+
+                    @Override
+                    public void verbose(String msg, Object... args) {
+                        write("W[" + name + "]:" + String.format(msg, args), System.err);
+                    }
+
                 };
             }
         };

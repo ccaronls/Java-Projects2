@@ -556,7 +556,7 @@ negamax(rootNode, depth, −∞, +∞, 1)
                 if (m.hasEnd())
                     str.append(" ").append(Move.toStr(m.getEnd()));
                 if (m.hasCaptured())
-                    str.append(" cap:").append(Move.toStr(m.getLastCaptured().pos));
+                    str.append(" cap:").append(Move.toStr(m.getCapturedPosition()));
                 if (m.getEndType() != null && m.getEndType() != m.getStartType())
                     str.append(" becomes:").append(m.getEndType());
             }

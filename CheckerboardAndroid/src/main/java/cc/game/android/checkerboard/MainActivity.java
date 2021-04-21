@@ -2,6 +2,9 @@ package cc.game.android.checkerboard;
 
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.view.Menu;
+import android.view.MenuItem;
 
 import java.io.File;
 
@@ -23,8 +26,6 @@ import cc.lib.checkerboard.Suicide;
 import cc.lib.checkerboard.UIGame;
 import cc.lib.checkerboard.UIPlayer;
 import cc.lib.checkerboard.Ugolki;
-import cc.lib.game.AGraphics;
-import cc.lib.game.Utils;
 
 public class MainActivity extends DroidActivity {
 
@@ -36,21 +37,12 @@ public class MainActivity extends DroidActivity {
 
         @Override
         protected int getCheckerboardImageId() {
-            return R.drawable.wood_checkerboard_8x8;
+            return R.mipmap.wood_checkerboard_8x8;
         }
 
         @Override
         protected int getKingsCourtBoardId() {
-            return R.drawable.kings_court_board_8x8;
-        }
-
-
-        public int getPieceImageId2(PieceType p, Color color) {
-            for (Images i : Images.values()) {
-                if (i.color == color && Utils.linearSearch(i.pt, p) >= 0)
-                    return ids[i.ordinal()];
-            }
-            return -1;
+            return R.mipmap.kings_court_board_8x8;
         }
 
         public int getPieceImageId(PieceType p, Color color) {
@@ -59,35 +51,42 @@ public class MainActivity extends DroidActivity {
                 case PAWN_IDLE:
                 case PAWN_ENPASSANT:
                 case PAWN_TOSWAP:
-                    return color == Color.WHITE ? R.drawable.wt_pawn : R.drawable.bk_pawn;
+                    return color == Color.WHITE ? R.mipmap.wt_pawn : R.mipmap.bk_pawn;
                 case BISHOP:
-                    return color == Color.WHITE ? R.drawable.wt_bishop : R.drawable.bk_bishop;
+                    return color == Color.WHITE ? R.mipmap.wt_bishop : R.mipmap.bk_bishop;
                 case KNIGHT_R:
                 case KNIGHT_L:
-                    return color == Color.WHITE ? R.drawable.wt_knight : R.drawable.bk_knight;
+                    return color == Color.WHITE ? R.mipmap.wt_knight : R.mipmap.bk_knight;
                 case ROOK:
                 case ROOK_IDLE:
-                    return color == Color.WHITE ? R.drawable.wt_rook : R.drawable.bk_rook;
+                    return color == Color.WHITE ? R.mipmap.wt_rook : R.mipmap.bk_rook;
                 case QUEEN:
-                    return color == Color.WHITE ? R.drawable.wt_queen : R.drawable.bk_queen;
+                    return color == Color.WHITE ? R.mipmap.wt_queen : R.mipmap.bk_queen;
                 case CHECKED_KING:
                 case CHECKED_KING_IDLE:
                 case UNCHECKED_KING:
                 case UNCHECKED_KING_IDLE:
                 case KING:
-                    return color == Color.WHITE ? R.drawable.wt_king : R.drawable.bk_king;
+                    return color == Color.WHITE ? R.mipmap.wt_king : R.mipmap.bk_king;
                 case DRAGON_R:
                 case DRAGON_L:
                 case DRAGON_IDLE_R:
                 case DRAGON_IDLE_L:
-                    return color == Color.WHITE ? R.drawable.wt_dragon : R.drawable.bk_dragon;
+                    return color == Color.WHITE ? R.mipmap.wt_dragon : R.mipmap.bk_dragon;
                 case FLYING_KING:
                     break;
                 case CHECKER:
                 case DAMA_MAN:
                 case DAMA_KING:
                 case CHIP_4WAY:
-                    return color == Color.RED ? R.drawable.red_checker : R.drawable.blk_checker;
+                    switch (color) {
+                        case RED:
+                            return R.mipmap.red_checker;
+                        case WHITE:
+                            return R.mipmap.wt_checker;
+                        case BLACK:
+                            return R.mipmap.blk_checker;
+                    }
             }
             return 0;
         }
@@ -99,79 +98,33 @@ public class MainActivity extends DroidActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         saveFile = new File(getFilesDir(), "save.game");
+        if (!game.init(saveFile)) {
+            saveFile.delete();
+        }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         if (saveFile.exists()) {
-            newDialogBuilder().setMessage("Resume Previous Game?")
-                    .setNegativeButton("Quit", new DialogInterface.OnClickListener() {
+            newDialogBuilder().setTitle("Resume Previous " + game.getRules().getClass().getSimpleName() + " Game?")
+                    .setItems(new String[]{"Resume", "New Game"}, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            showNewGameDialog();
-                        }
-                    }).setPositiveButton("Resume", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            if (game.tryLoadFromFile(saveFile)) {
-                                startGame();
-                            } else {
-                                showNewGameDialog();
+                            switch (which) {
+                                case 0:
+                                    game.tryLoadFromFile(saveFile);
+                                    game.repaint(-1);
+                                    break;
+                                case 1:
+                                    showNewGameDialog();
+                                    break;
                             }
                         }
-            }).show();
-        } else {
-            showNewGameDialog();
+                    }).show();
+            return;
         }
-    }
-
-    int loadImage(AGraphics g, String path) {
-        int id = g.loadImage(path);
-        if (id < 0)
-            throw new RuntimeException("Failed to load image '" + path + "'");
-        return id;
-    }
-
-    int numImagesLoaded = 0;
-
-    enum Images {
-        //wood_checkerboard_8x8(null),
-        //kings_court_board_8x8(null),
-        bk_bishop   (Color.BLACK, PieceType.BISHOP),
-        bk_king     (Color.BLACK, PieceType.KING),
-        bk_knight   (Color.BLACK, PieceType.KNIGHT_R, PieceType.KNIGHT_L),
-        bk_pawn     (Color.BLACK, PieceType.PAWN),
-        bk_queen    (Color.BLACK, PieceType.QUEEN),
-        bk_rook     (Color.BLACK, PieceType.ROOK),
-        bk_dragon   (Color.BLACK, PieceType.DRAGON_L, PieceType.DRAGON_R, PieceType.DRAGON_IDLE_L, PieceType.DRAGON_IDLE_R),
-        wt_bishop   (Color.WHITE, PieceType.BISHOP),
-        wt_king     (Color.WHITE, PieceType.KING),
-        wt_knight   (Color.WHITE, PieceType.KNIGHT_R, PieceType.KNIGHT_L),
-        wt_pawn     (Color.WHITE, PieceType.PAWN),
-        wt_queen    (Color.WHITE, PieceType.QUEEN),
-        wt_rook     (Color.WHITE, PieceType.ROOK),
-        wt_dragon   (Color.WHITE, PieceType.DRAGON_L, PieceType.DRAGON_R, PieceType.DRAGON_IDLE_L, PieceType.DRAGON_IDLE_R),
-        blk_checker (Color.BLACK, PieceType.CHECKER, PieceType.CHIP_4WAY),
-        red_checker (Color.RED,   PieceType.CHECKER, PieceType.CHIP_4WAY),
-        wt_checker  (Color.WHITE, PieceType.CHECKER);
-
-        Images(Color color, PieceType ... pt) {
-            this.color = color;
-            this.pt = pt;
-        }
-
-        final Color color;
-        final PieceType [] pt;
-    }
-
-    int [] ids = null;
-
-    void loadAssets(DroidGraphics g) {
-        ids = new int[Images.values().length];
-        for (int i = 0; i < ids.length; i++) {
-            ids[i] = loadImage(g, Images.values()[i].name() + ".png");
-        }
+        showNewGameDialog();
     }
 
     void showNewGameDialog() {
@@ -221,50 +174,62 @@ public class MainActivity extends DroidActivity {
     }
 
     void showChoosePlayersDialog() {
-        newDialogBuilder().setMessage("How many players?")
-                .setNegativeButton("One", new DialogInterface.OnClickListener() {
+        newDialogBuilder().setTitle("How many players?")
+                .setItems(new String[]{"One", "Two"}, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        showChooseDifficultyDialog();
+                        switch (which) {
+                            case 0:
+                                showChooseDifficultyDialog((dialog1, which1) -> showChoosePlayersDialog());
+                                break;
+                            case 1:
+                                game.setPlayer(Game.NEAR, new UIPlayer(UIPlayer.Type.USER));
+                                game.setPlayer(Game.FAR,  new UIPlayer(UIPlayer.Type.USER));
+                                game.repaint(-1);
+                        }
                     }
-                }).setPositiveButton("Two", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        game.setPlayer(Game.NEAR, new UIPlayer(UIPlayer.Type.USER));
-                        game.setPlayer(Game.FAR,  new UIPlayer(UIPlayer.Type.USER));
-                        game.newGame();
-                        game.trySaveToFile(saveFile);
-                        game.startGameThread();
-                    }
-                }).show();
+                }).setNegativeButton("Back", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                showNewGameDialog();
+            }
+        }).show();
     }
 
-    void showChooseDifficultyDialog() {
-        newDialogBuilder().setTitle("Difficulty")
+    void showChooseDifficultyDialog(DialogInterface.OnClickListener onCancelAction) {
+        newDialogBuilder().setTitle("Difficulty set to " + getDifficultyString())
                 .setItems(new String[]{"Easy", "Medium", "Hard"}, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         getPrefs().edit().putInt("difficulty", which).apply();
                         game.setPlayer(Game.NEAR, new UIPlayer(UIPlayer.Type.USER));
-                        game.setPlayer(Game.FAR,  new UIPlayer(UIPlayer.Type.AI, which));
+                        game.setPlayer(Game.FAR,  new UIPlayer(UIPlayer.Type.AI, which+1));
                         startGame();
                     }
-                }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                showChoosePlayersDialog();
-            }
-        }).show();
+                }).setNegativeButton("Cancel", onCancelAction).show();
     }
 
     int getDifficulty() {
         return getPrefs().getInt("difficulty", 2);
     }
 
+    String getDifficultyString() {
+        int d;
+        switch (d=getDifficulty()) {
+            case 1:
+                return "Easy";
+            case 2:
+                return "Medium";
+            case 3:
+                return "Hard";
+        }
+        return String.valueOf(d);
+    }
+
     void startGame() {
         game.newGame();
         game.trySaveToFile(saveFile);
-        game.startGameThread();
+        game.repaint(-1);
     }
 
     @Override
@@ -277,9 +242,6 @@ public class MainActivity extends DroidActivity {
 
     @Override
     protected void onDraw(DroidGraphics g) {
-        //if (ids == null) {
-        //    loadAssets(g);
-       // }
         g.setIdentity();
         g.ortho();
         g.getPaint().setTextSize(getResources().getDimension(R.dimen.txt_size_normal));
@@ -294,10 +256,62 @@ public class MainActivity extends DroidActivity {
     boolean clicked = false;
 
     @Override
-    protected void onTap(float x, float y) {
+    protected void onTouchDown(float x, float y) {
         touchX = (int)x;
         touchY = (int)y;
         clicked = true;
-        game.repaint(-1);
+        if (!game.isGameRunning()) {
+            game.startGameThread();
+        } else {
+            game.repaint(-1);
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        game.stopGameThread();
+        menu.add("New Game");
+        menu.add("Rules");
+        menu.add("Difficulty");
+        menu.add("Players");
+        return true;
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getTitle().toString()) {
+            case "New Game":
+                game.stopGameThread();
+                showNewGameDialog();
+                break;
+            case "Rules":
+                game.stopGameThread();
+                break;
+            case "Difficulty":
+                game.stopGameThread();
+                showChooseDifficultyDialog(null);
+                break;
+            case "Players":
+                showChoosePlayersDialog();
+                break;
+            default:
+                return false;
+        }
+        return true;
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (game.canUndo()) {
+            game.stopGameThread();
+            game.undoAndRefresh();
+        } else {
+            super.onBackPressed();
+        }
     }
 }

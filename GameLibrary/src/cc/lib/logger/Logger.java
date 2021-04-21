@@ -10,5 +10,5 @@ public interface Logger {
     void error(String msg, Object... args);
     void error(Throwable e);
     void warn(String msg, Object... args);
-
+    void verbose(String msg, Object ... args);
 }

@@ -162,7 +162,7 @@ public class Chess extends Rules {
                 case JUMP:
                 case SLIDE:
                     if (move.hasCaptured()) {
-                        game.clearPiece(move.getLastCaptured().getPosition());
+                        game.clearPiece(move.getCapturedPosition());
                     }
                     p = game.movePiece(move);
                     // check for pawn advancing
@@ -406,20 +406,20 @@ public class Chess extends Rules {
                     tp = game.getPiece(tr, tc);
                     if (tp.getPlayerNum() == opponent) {
                         // if this opponent is the king, then we will be 'checking' him
-                        moves.add(new Move(MoveType.SLIDE, p.getPlayerNum()).setStart(rank, col, p.getType()).addCaptured(tr, tc, tp.getType()).setEnd(tr, tc, nextType));
+                        moves.add(new Move(MoveType.SLIDE, p.getPlayerNum()).setStart(rank, col, p.getType()).setCaptured(tr, tc, tp.getType()).setEnd(tr, tc, nextType));
                     } else if (rank == enpassantRank && (tp = game.getPiece(rank, tc)).getType() == PAWN_ENPASSANT) {
                         // check en passant
-                        moves.add(new Move(MoveType.SLIDE, p.getPlayerNum()).setStart(rank, col, p.getType()).addCaptured(rank, tc, tp.getType()).setEnd(tr, tc, nextType));
+                        moves.add(new Move(MoveType.SLIDE, p.getPlayerNum()).setStart(rank, col, p.getType()).setCaptured(rank, tc, tp.getType()).setEnd(tr, tc, nextType));
                     }
                 }
                 // check if we can capture to upper left
                 if (game.isOnBoard(tr, tc=col-1)) {
                     tp = game.getPiece(tr, tc);
                     if (tp.getPlayerNum() == opponent) {
-                        moves.add(new Move(MoveType.SLIDE, p.getPlayerNum()).setStart(rank, col, p.getType()).addCaptured(tr, tc, tp.getType()).setEnd(tr, tc, nextType));
+                        moves.add(new Move(MoveType.SLIDE, p.getPlayerNum()).setStart(rank, col, p.getType()).setCaptured(tr, tc, tp.getType()).setEnd(tr, tc, nextType));
                     } else if (rank == enpassantRank && (tp = game.getPiece(rank, tc)).getType() == PAWN_ENPASSANT) {
                         // check enpassant
-                        moves.add(new Move(MoveType.SLIDE, p.getPlayerNum()).setStart(rank, col, p.getType()).addCaptured(rank, tc, tp.getType()).setEnd(tr, tc, PAWN));
+                        moves.add(new Move(MoveType.SLIDE, p.getPlayerNum()).setStart(rank, col, p.getType()).setCaptured(rank, tc, tp.getType()).setEnd(tr, tc, PAWN));
                     }
                 }
                 break;
@@ -490,7 +490,7 @@ public class Chess extends Rules {
                 tc=col +dc[i];
                 tp = game.getPiece(tr, tc);
                 if (tp.getPlayerNum() == opponent) { // look for capture
-                    moves.add(new Move(mt, p.getPlayerNum()).setStart(rank, col, p.getType()).setEnd(tr, tc, nextType).addCaptured(tr, tc, tp.getType()));
+                    moves.add(new Move(mt, p.getPlayerNum()).setStart(rank, col, p.getType()).setEnd(tr, tc, nextType).setCaptured(tr, tc, tp.getType()));
 
                 } else if (tp.getType() == EMPTY) { // look for open
                     moves.add(new Move(mt, p.getPlayerNum()).setStart(rank, col, p.getType()).setEnd(tr, tc, nextType));
@@ -767,7 +767,7 @@ public class Chess extends Rules {
             value += p.getType().value;
         }
         if (move.hasCaptured()) {
-            value += 100 + move.getLastCaptured().getType().points;
+            value += 100 + move.getCapturedType().points;
         }
         if (move.getOpponentKingTypeEnd() != null && move.getOpponentKingTypeEnd().isChecked()) {
             value += 100;
@@ -872,10 +872,7 @@ public class Chess extends Rules {
             case JUMP:
                 game.clearPiece(m.getEnd());
                 if (m.hasCaptured()) {
-                    if (m.getNumCaptured() != 1)
-                        throw new GException("Logic Error: cannot have more than one captured piece in chess");
-                    Move.CapturedPiece cap = m.getLastCaptured();
-                    game.setPiece(cap.getPosition(), game.getOpponent(m.getPlayerNum()), cap.getType());
+                    game.setPiece(m.getCapturedPosition(), game.getOpponent(m.getPlayerNum()), m.getCapturedType());
                 }
                 //fallthrough
             case SWAP:
