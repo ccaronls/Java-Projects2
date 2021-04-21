@@ -85,6 +85,10 @@ public abstract class DroidActivity extends CCActivityBase {
 
     protected void onDrag(float x, float y) {}
 
+    protected void onDragStart(float x, float y) {}
+
+    protected void onDragStop(float x, float y) {}
+
     private AlertDialog currentDialog = null;
 
     protected int getDialogTheme() {

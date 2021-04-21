@@ -17,6 +17,11 @@ public class Suicide extends Checkers {
     }
 
     @Override
+    boolean isDraw(Game game) {
+        return super.isDraw(game);
+    }
+
+    @Override
     public long evaluate(Game game, Move move) {
         return -1L * super.evaluate(game, move);
     }

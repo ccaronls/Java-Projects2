@@ -188,7 +188,7 @@ public class Reflector<T> {
                 }
                 return line;
             } catch (IOException e) {
-                throw new IOException("Error on line: " + lineNum, e);
+                throw new IOException("Error on line: " + lineNum + " " + e.getMessage(), e);
             }
         }
 

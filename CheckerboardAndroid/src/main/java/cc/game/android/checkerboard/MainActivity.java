@@ -113,7 +113,8 @@ public class MainActivity extends DroidActivity {
                         public void onClick(DialogInterface dialog, int which) {
                             switch (which) {
                                 case 0:
-                                    game.tryLoadFromFile(saveFile);
+                                    setTitle(game.getRules().getClass().getSimpleName());
+                                    game.startGameThread();
                                     game.repaint(-1);
                                     break;
                                 case 1:
@@ -129,10 +130,10 @@ public class MainActivity extends DroidActivity {
 
     void showNewGameDialog() {
         String [] items = { "Checkers", "Suicide", "Draughts", "Canadian Draughts", "Dama", "Chess", "Dragon Chess", "Ugolki", "Columns", "Kings Court", "Shashki" };
+        game.stopGameThread();
         newDialogBuilder().setItems(items, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                game.stopGameThread();
                 switch (items[which]) {
                     case "Checkers":
                         game.setRules(new Checkers());
@@ -168,6 +169,7 @@ public class MainActivity extends DroidActivity {
                         game.setRules(new Shashki());
                         break;
                 }
+                setTitle(items[which]);
                 showChoosePlayersDialog();
             }
         }).show();
@@ -189,11 +191,11 @@ public class MainActivity extends DroidActivity {
                         }
                     }
                 }).setNegativeButton("Back", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                showNewGameDialog();
-            }
-        }).show();
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        showNewGameDialog();
+                    }
+                }).show();
     }
 
     void showChooseDifficultyDialog(DialogInterface.OnClickListener onCancelAction) {
@@ -201,7 +203,7 @@ public class MainActivity extends DroidActivity {
                 .setItems(new String[]{"Easy", "Medium", "Hard"}, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        getPrefs().edit().putInt("difficulty", which).apply();
+                        getPrefs().edit().putInt("difficulty", which+1).apply();
                         game.setPlayer(Game.NEAR, new UIPlayer(UIPlayer.Type.USER));
                         game.setPlayer(Game.FAR,  new UIPlayer(UIPlayer.Type.AI, which+1));
                         startGame();
@@ -257,13 +259,13 @@ public class MainActivity extends DroidActivity {
 
     @Override
     protected void onTouchDown(float x, float y) {
-        touchX = (int)x;
-        touchY = (int)y;
-        clicked = true;
         if (!game.isGameRunning()) {
             game.startGameThread();
-        } else {
             game.repaint(-1);
+        } else {
+            touchX = (int)x;
+            touchY = (int)y;
+            super.onTouchDown(x, y);
         }
     }
 
@@ -303,6 +305,34 @@ public class MainActivity extends DroidActivity {
                 return false;
         }
         return true;
+    }
+
+    @Override
+    protected void onTap(float x, float y) {
+        touchX = (int)x;
+        touchY = (int)y;
+        clicked = true;
+        game.doClick();
+    }
+
+    @Override
+    protected void onDragStart(float x, float y) {
+        touchX = (int)x;
+        touchY = (int)y;
+        game.startDrag();
+    }
+
+    @Override
+    protected void onDragStop(float x, float y) {
+        touchX = (int)x;
+        touchY = (int)y;
+        game.stopDrag();
+    }
+
+    @Override
+    protected void onDrag(float x, float y) {
+        touchX = (int)x;
+        touchY = (int)y;
     }
 
     @Override

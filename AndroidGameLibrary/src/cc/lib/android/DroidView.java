@@ -4,10 +4,13 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.os.SystemClock;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
 public class DroidView extends View {
+
+    final static String TAG = "DroidView";
 
     public DroidView(Context context, boolean touchEnabled) {
         super(context);
@@ -27,19 +30,6 @@ public class DroidView extends View {
     }
 
     private DroidGraphics g = null;
-
-    private class DelayedTouchDown implements Runnable {
-
-        final float x, y;
-        DelayedTouchDown(MotionEvent ev) {
-            this.x = ev.getX();
-            this.y = ev.getY();
-        }
-        public void run() {
-            onTouchDown(x, y);
-            touchDownRunnable = null;
-        }
-    }
 
     @Override
     protected void onDraw(Canvas canvas) {
@@ -61,26 +51,43 @@ public class DroidView extends View {
     float tx=-1, ty=-1;
     boolean dragging = false;
 
+    private void checkStartDrag() {
+        if (!dragging && downTime > 0) {
+            dragging = true;
+            Log.v(TAG, "startDrag " + tx + " x " + ty + " from checkStartDrag");
+            onDragStart(tx, ty);
+        }
+    }
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 downTime = SystemClock.uptimeMillis();
+                postDelayed(()->checkStartDrag(), CLICK_TIME);
                 tx = event.getX();
                 ty = event.getY();
+                Log.v(TAG, "onTouchDown " + tx + " x " + ty);
                 onTouchDown(event.getX(), event.getY());
-                //postDelayed(touchDownRunnable=new DelayedTouchDown(event), CLICK_TIME);
                 break;
             case MotionEvent.ACTION_UP:
+                Log.v(TAG, "onTouchUp");
                 if (!dragging && (SystemClock.uptimeMillis() - downTime < CLICK_TIME)) {
+                    Log.v(TAG, "onTap");
                     //removeCallbacks(touchDownRunnable);
                     //touchDownRunnable = null;
                     onTap(event.getX(), event.getY());
+
                 } else {
                     onTouchUp(event.getX(), event.getY());
                 }
+                if (dragging) {
+                    Log.v(TAG, "onDragStop");
+                    onDragStop(event.getX(), event.getY());
+                }
                 dragging = false;
+                downTime = 0;
                 tx = ty = -1;
                 break;
             case MotionEvent.ACTION_MOVE: {
@@ -88,21 +95,26 @@ public class DroidView extends View {
                 float dy = event.getY() - ty;
                 float d = dx*dx + dy*dy;
                 if (dragging || d > 100) {
+                    if (!dragging) {
+                        Log.v(TAG, "startDrag " + tx + " x " + ty + " from MOVE");
+                        onDragStart(tx, ty);
+                    } else {
+                        Log.v(TAG, "drag " + tx + " x " + ty);
+                        onDrag(event.getX(), event.getY());
+                    }
                     dragging = true;
-                    onDrag(event.getX(), event.getY());
                 }
                 break;
             }
         }
-
+        invalidate();
+//        postDelayed(()->invalidate(), 50);
         return true;
     }
 
     private final int CLICK_TIME = 700;
 
     private long downTime = 0;
-
-    private Runnable touchDownRunnable = null;
 
     private int margin = 0;
 
@@ -116,6 +128,10 @@ public class DroidView extends View {
     protected void onTouchDown(float x, float y) { ((DroidActivity)getContext()).onTouchDown(x, y); }
 
     protected void onTouchUp(float x, float y) { ((DroidActivity)getContext()).onTouchUp(x, y); }
+
+    protected void onDragStart(float x, float y) { ((DroidActivity)getContext()).onDragStart(x, y); }
+
+    protected void onDragStop(float x, float y) { ((DroidActivity)getContext()).onDragStop(x, y); }
 
     protected void onDrag(float x, float y) { ((DroidActivity)getContext()).onDrag(x, y); }
 

@@ -145,31 +145,25 @@ public class Checkers extends Rules {
         // if down to only 2 kings, one of each color, then game is a draw
         int numNear=0;
         int numFar=0;
-        for (int r = 0; r < game.getRanks(); r++) {
-            for (int c = 0; c < game.getColumns(); c++) {
-                Piece p;
-                switch ((p = game.getPiece(r, c)).getType()) {
-
-                    case EMPTY:
-                        break;
-                    case KING:
-                    case FLYING_KING:
-                    case DAMA_KING:
-                        if (p.getPlayerNum() == NEAR && ++numNear > 1)
-                            return false;
-                        else if (p.getPlayerNum() == FAR && ++numFar > 1)
-                            return false;
-                        break;
-                    case CHECKER:
-                    case DAMA_MAN:
-                    case CHIP_4WAY:
+        for (Piece p : game.getPieces(-1)) {
+            switch (p.getType()) {
+                case KING:
+                case FLYING_KING:
+                case DAMA_KING:
+                    if (p.getPlayerNum() == NEAR && ++numNear > 1)
                         return false;
-                    default:
-                        throw new GException("Unhandled case: " + p.getType());
-                }
+                    else if (p.getPlayerNum() == FAR && ++numFar > 1)
+                        return false;
+                    break;
+                case CHECKER:
+                case DAMA_MAN:
+                case CHIP_4WAY:
+                    return false;
+                default:
+                    throw new GException("Unhandled case: " + p.getType());
             }
         }
-        return true;
+        return numNear == 1 && numFar == 1;
     }
 
     int computeMenKingMoves(Game game, Piece p, int rank, int col, Move parent, List<Move> moves) {

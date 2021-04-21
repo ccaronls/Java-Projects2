@@ -13,6 +13,7 @@ import android.graphics.PorterDuffColorFilter;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Typeface;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.util.TypedValue;
@@ -580,6 +581,10 @@ public class DroidGraphics extends APGraphics {
     private Bitmap getBitmap(int id) {
         if (id < bitmaps.size())
             return bitmaps.get(id);
+        Drawable d = context.getDrawable(id);
+        if (d instanceof BitmapDrawable) {
+            return ((BitmapDrawable)d).getBitmap();
+        }
         return BitmapFactory.decodeResource(context.getResources(),id);
     }
 

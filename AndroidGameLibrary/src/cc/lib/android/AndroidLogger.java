@@ -93,4 +93,11 @@ public class AndroidLogger implements Logger {
         Log.w(name, str);
         writeFile("W", str);
     }
+
+    @Override
+    public void verbose(String msg, Object... args) {
+        String str = String.format(msg, args);
+        Log.v(name, str);
+        writeFile("v", str);
+    }
 }

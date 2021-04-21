@@ -2490,6 +2490,8 @@ public class Utils {
      */
     public static String formatNoThrow(String msg, Object ... args) {
         try {
+            if (args == null || args.length == 0)
+                return msg;
             return String.format(msg, args);
         } catch (MissingFormatArgumentException e) {
             return msg + " ERR: " + e.getMessage();

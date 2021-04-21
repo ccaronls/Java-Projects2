@@ -32,8 +32,12 @@ public abstract class UIGame extends Game {
     final Lock runLock = new Lock();
     final Lock animLock = new Lock();
 
-    boolean clicked = false;
+    final static int MODE_CLICK = 1;
+    final static int MODE_DRAG_START = 2;
+    final static int MODE_DRAG_STOP = 3;
 
+    int mode = 0;
+    int draggingPos = -1;
     int highlightedPos = -1;
     final List<Piece> pickablePieces = new ArrayList<>();
     final List<Move>  pickableMoves  = new ArrayList<>();
@@ -65,7 +69,6 @@ public abstract class UIGame extends Game {
 
     public final Move undoAndRefresh() {
         Move m = super.undo();
-        selectedPiece = -1;
         pickablePieces.clear();
         pickableMoves.clear();
         runLock.release();
@@ -317,8 +320,9 @@ public abstract class UIGame extends Game {
         }
     }
 
-    private void drawBoard(AGraphics g, int _mx, int _my) {
+    synchronized private void drawBoard(AGraphics g, int _mx, int _my) {
 
+        log.verbose("drawBoard " + _mx + " x " + _my + " highlighted=" + highlightedPos + " selected=" + getSelectedPiece());
         g.pushMatrix();
 
         if (getRules() instanceof KingsCourt && getKingsCourtBoardId() != 0) {
@@ -337,23 +341,23 @@ public abstract class UIGame extends Game {
         PIECE_RADIUS = SQ_DIM/3;
 
         highlightedPos = -1;
-        int _selectedPiece = -1;
+        Piece _selectedPiece = null;
         List<Piece> _pickablePieces = new ArrayList<>();
         List<Move> _pickableMoves = new ArrayList<>();
         final boolean isUser = isCurrentPlayerUser();
 
         if (isUser && !isGameOver()) {
             synchronized (this) {
-                _selectedPiece = selectedPiece;
+                _selectedPiece = getSelectedPiece();
                 _pickablePieces.addAll(pickablePieces);
                 _pickableMoves.addAll(pickableMoves);
             }
         }
 
-        if (_selectedPiece >= 0) {
+        if (_selectedPiece != null && mode == 0 && animations.size() == 0) {
             g.setColor(GColor.GREEN);
-            float x = (_selectedPiece & 0xff) * cw + cw /2;
-            float y = (_selectedPiece >> 8) * ch + ch /2;
+            float x = _selectedPiece.getCol() * cw + cw /2;
+            float y = _selectedPiece.getRank() * ch + ch /2;
             g.drawFilledCircle(x, y, PIECE_RADIUS +5);
         }
 
@@ -384,11 +388,13 @@ public abstract class UIGame extends Game {
             int c = p.getCol();
             float x = c * cw + cw / 2;
             float y = r * ch + ch / 2;
-            for (Piece pp : _pickablePieces) {
-                if (pp.getRank() == r && pp.getCol() == c) {
-                    g.setColor(GColor.CYAN);
-                    g.drawFilledCircle(x, y, PIECE_RADIUS +5);
-                    break;
+            if (mode == 0) {
+                for (Piece pp : _pickablePieces) {
+                    if (pp.getRank() == r && pp.getCol() == c) {
+                        g.setColor(GColor.CYAN);
+                        g.drawFilledCircle(x, y, PIECE_RADIUS + 5);
+                        break;
+                    }
                 }
             }
 
@@ -397,21 +403,25 @@ public abstract class UIGame extends Game {
                 g.setColor(GColor.RED);
                 g.drawFilledCircle(x, y, PIECE_RADIUS +5);
             }
-            g.translate(x, y+PIECE_RADIUS);
+            if (p.getPosition() == draggingPos) {
+                g.translate(mx, my+PIECE_RADIUS);
+            } else {
+                g.translate(x, y+PIECE_RADIUS);
+            }
             drawPiece(g, p);
             g.popMatrix();
         }
 
         for (Move m : _pickableMoves) {
-            if (m.getMoveType() == MoveType.END && _selectedPiece >= 0) {
-                if (highlightedPos == _selectedPiece) {
+            if (m.getMoveType() == MoveType.END && _selectedPiece != null) {
+                if (highlightedPos == _selectedPiece.getPosition()) {
                     g.setColor(GColor.YELLOW);
                 } else {
                     g.setColor(GColor.GREEN);
                 }
-                float x = (_selectedPiece & 0xff) * cw + cw /2;
-                float y = (_selectedPiece >> 8) * ch + ch /2;
-                g.setTextHeight(PIECE_RADIUS/2);
+                float x = _selectedPiece.getCol() * cw + cw / 2;
+                float y = _selectedPiece.getRank() * ch + ch / 2;
+                g.setTextHeight(PIECE_RADIUS / 2);
                 g.drawJustifiedString(x, y, Justify.CENTER, Justify.CENTER, "END");
             } else if (m.getEnd() >= 0) {
                 g.setColor(GColor.CYAN);
@@ -436,19 +446,19 @@ public abstract class UIGame extends Game {
 
         if (isGameOver()) {
             if (getWinner() != null) {
-                int x = g.getViewportWidth() / 2;
-                int y = g.getViewportHeight() / 2;
+                float x = BOARD_DIM.getWidth() / 2;
+                float y = BOARD_DIM.getHeight() / 2;
                 String txt = "G A M E   O V E R\n" + getWinner().getColor() + " Wins!";
                 g.setColor(GColor.CYAN);
-                g.drawJustifiedStringOnBackground(x, y, Justify.CENTER, Justify.CENTER, txt, GColor.TRANSLUSCENT_BLACK, 3);
+                g.drawJustifiedStringOnBackground(x, y, Justify.CENTER, Justify.CENTER, txt, GColor.TRANSLUSCENT_BLACK, 20);
             } else {
                 int x = g.getViewportWidth() / 2;
                 int y = g.getViewportHeight() / 2;
                 String txt = "D R A W   G A M E";
                 g.setColor(GColor.CYAN);
-                g.drawJustifiedStringOnBackground(x, y, Justify.CENTER, Justify.CENTER, txt, GColor.TRANSLUSCENT_BLACK, 3);
+                g.drawJustifiedStringOnBackground(x, y, Justify.CENTER, Justify.CENTER, txt, GColor.TRANSLUSCENT_BLACK, 20);
             }
-        } else if (false && !gameRunning) {
+        } else if (!gameRunning) {
             //int x = g.getViewportWidth() / 2;
             //int y = g.getViewportHeight() / 2;
             g.setColor(GColor.YELLOW);
@@ -462,7 +472,18 @@ public abstract class UIGame extends Game {
     }
 
     public void doClick() {
-        clicked = true;
+        mode = MODE_CLICK;
+        runLock.release();
+    }
+
+    public void startDrag() {
+        mode = MODE_DRAG_START;
+        runLock.release();
+    }
+
+    public void stopDrag() {
+        mode = MODE_DRAG_STOP;
+        draggingPos = -1;
         runLock.release();
     }
 
@@ -474,7 +495,7 @@ public abstract class UIGame extends Game {
         if (!gameRunning)
             return null;
         //Utils.println("choosePieceToMove: " + pieces);
-        clicked = false;
+        mode = 0;
         synchronized (this) {
             pickableMoves.clear();
             pickablePieces.clear();
@@ -482,17 +503,33 @@ public abstract class UIGame extends Game {
         }
         repaint(0);
         runLock.acquireAndBlock();
-        if (clicked) {
-            for (Piece p : pieces) {
-                if (p.getPosition() == highlightedPos) {
-                    return p;
+        switch (mode) {
+            case MODE_CLICK: {
+                mode = 0;
+                draggingPos = -1;
+                for (Piece p : pieces) {
+                    if (p.getPosition() == highlightedPos) {
+                        return p;
+                    }
                 }
+                break;
             }
+            case MODE_DRAG_START:
+            {
+                for (Piece p : pieces) {
+                    if (p.getPosition() == highlightedPos) {
+                        draggingPos = p.getPosition();
+                        return p;
+                    }
+                }
+                break;
+            }
+            case MODE_DRAG_STOP:
         }
         return null;
     }
 
-    Move chooseMoveForPiece(List<Move> moves) { clicked = false;
+    Move chooseMoveForPiece(List<Move> moves) {
         synchronized (this) {
             pickableMoves.clear();
             pickablePieces.clear();
@@ -500,26 +537,31 @@ public abstract class UIGame extends Game {
         }
         repaint(0);
         runLock.acquireAndBlock();
-        if (clicked) {
-            for (Move m : moves) {
-                switch (m.getMoveType()) {
-                    case SWAP:
-                    case END:
-                        if (selectedPiece == highlightedPos) {
-                            return m;
-                        }
-                        break;
-                    case SLIDE:
-                    case FLYING_JUMP:
-                    case JUMP:
-                    case CASTLE:
-                    case STACK:
-                        if (m.getEnd() == highlightedPos) {
-                            return m;
-                        }
-                        break;
-                }
+        switch (mode) {
+            case MODE_CLICK:
+                mode = 0;
+            case MODE_DRAG_STOP: {
+                for (Move m : moves) {
+                    switch (m.getMoveType()) {
+                        case SWAP:
+                        case END:
+                            if (getSelectedPiece() != null && getSelectedPiece().getPosition() == highlightedPos) {
+                                return m;
+                            }
+                            break;
+                        case SLIDE:
+                        case FLYING_JUMP:
+                        case JUMP:
+                        case CASTLE:
+                        case STACK:
+                            if (m.getEnd() == highlightedPos) {
+                                return m;
+                            }
+                            break;
+                    }
 
+                }
+                break;
             }
         }
         return null;
@@ -639,10 +681,11 @@ public abstract class UIGame extends Game {
 
     @Override
     protected void onMoveChosen(Move m) {
-        Piece pc = getPiece(m.getStart()).deepCopy();//new Piece(m.getPlayerNum(), m.getStartType());
-        if (m.hasCaptured()) {
-
+        if (mode == MODE_DRAG_STOP && m.getMoveType() != MoveType.STACK) {
+            mode = 0;
+            return; // no animations when drag-n-drop
         }
+        Piece pc = getPiece(m.getStart()).deepCopy();
         switch (m.getMoveType()) {
 
             case END:

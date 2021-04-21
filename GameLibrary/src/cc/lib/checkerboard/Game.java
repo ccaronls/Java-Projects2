@@ -46,7 +46,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
     private final Player [] players = new Player[2];
     Piece [][] board;
     private int ranks, cols, turn;
-    int selectedPiece = -1;
+    private int selectedPos = -1;
     List<Move> moves = null;
     private Stack<State> undoStack = new Stack<>();
     private Rules rules;
@@ -69,7 +69,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
         }
         gameState = GameState.PLAYING;
         moves = null;
-        selectedPiece = -1;
+        selectedPos = -1;
         undoStack.clear();
         initialized = false;
         numPieces = null;
@@ -116,9 +116,9 @@ public class Game extends Reflector<Game> implements IGame<Move> {
      * @return
      */
     public Piece getSelectedPiece() {
-        if (selectedPiece < 0)
+        if (selectedPos < 0)
             return null;
-        return getPiece(selectedPiece);
+        return getPiece(selectedPos);
     }
 
     /**
@@ -144,7 +144,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
     public void newGame() {
         undoStack.clear();
         initialized = false;
-        selectedPiece = -1;
+        selectedPos = -1;
         moves = null;
         rules.init(this);
         int num = 0;
@@ -193,26 +193,26 @@ public class Game extends Reflector<Game> implements IGame<Move> {
             return;
         }
 
-        if (selectedPiece < 0) {
+        if (selectedPos < 0) {
             List<Piece> movable = getMovablePieces();
             if (movable.size() == 1) {
-                selectedPiece = movable.get(0).getPosition();
+                selectedPos = movable.get(0).getPosition();
             }
         }
-        if (selectedPiece < 0) {
+        if (selectedPos < 0) {
             Piece p = players[turn].choosePieceToMove(this, getMovablePieces());
             if (p != null) {
-                selectedPiece = p.getPosition();
+                selectedPos = p.getPosition();
                 onPieceSelected(p);
                 return; // we dont want to block twice in one 'runGame'
             }
         } else {
-            Move m = players[turn].chooseMoveForPiece(this, getMovesforPiece(selectedPiece));
+            Move m = players[turn].chooseMoveForPiece(this, getMovesforPiece(selectedPos));
             if (m != null) {
                 onMoveChosen(m);
                 executeMove(m);
             }
-            selectedPiece = -1;
+            selectedPos = -1;
         }
     }
 
@@ -512,7 +512,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
             Move m = state.getMove();
             moves = state.moves;
             rules.reverseMove(this, m);
-            selectedPiece = -1;
+            selectedPos = -1;
             //turn = moves.get(0).getPlayerNum();
             countPieceMoves();
             gameState = GameState.PLAYING;
@@ -621,17 +621,16 @@ public class Game extends Reflector<Game> implements IGame<Move> {
         return p;
     }
 
-    final void clearPiece(int rank, int col) {
+    synchronized final void clearPiece(int rank, int col) {
         numPieces[board[rank][col].getPlayerNum()]--;
         board[rank][col].clear();
-
     }
 
-    final void clearPiece(int pos ) {
+    synchronized final void clearPiece(int pos ) {
         clearPiece(pos>>8, pos&0xff);
     }
 
-    final Piece setPiece(int rank, int col, int playerNum, PieceType pt) {
+    synchronized final Piece setPiece(int rank, int col, int playerNum, PieceType pt) {
         Piece p = board[rank][col];
         p.setType(pt);
         if (numPieces != null) {
@@ -645,7 +644,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
         return p;
     }
 
-    final void setPiece(int pos, Piece pc) {
+    synchronized final void setPiece(int pos, Piece pc) {
         final int rank = pos >> 8;
         final int col = pos & 0xff;
         final int pnum = board[rank][col].getPlayerNum();
@@ -659,7 +658,7 @@ public class Game extends Reflector<Game> implements IGame<Move> {
         return setPiece(pos>>8, pos&(0xff), playerNum, p);
     }
 
-    final void copyPiece(Piece from, Piece to) {
+    synchronized final void copyPiece(Piece from, Piece to) {
         to.copyFrom(from);
         numPieces[to.getPlayerNum()]++;
     }

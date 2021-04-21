@@ -285,6 +285,16 @@ public class AWTCheckerboard extends AWTComponent {
     }
 
     @Override
+    protected void onDragStarted(int x, int y) {
+        game.startDrag();
+    }
+
+    @Override
+    protected void onDragStopped() {
+        game.stopDrag();
+    }
+
+    @Override
     protected void paint(AWTGraphics g, int mouseX, int mouseY) {
         game.draw(g, mouseX, mouseY);
     }
