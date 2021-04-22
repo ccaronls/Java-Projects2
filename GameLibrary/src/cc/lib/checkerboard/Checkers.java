@@ -482,20 +482,11 @@ public class Checkers extends Rules {
                     } else if (!isJumpsMandatory()) {
                         game.getMovesInternal().add(new Move(MoveType.END, move.getPlayerNum()).setStart(ernk, ecol, p.getType()));
                     }
+                } else {
+                    endTurnPrivate(game);
                 }
                 break;
         }
-/*
-        if (!isKinged && !isDamaKing) {
-            // recursive compute next move if possible after a jump
-            if (move.hasEnd())
-                computeMovesForSquare(game, ernk, ecol, move, game.getMovesInternal());
-            if (p.getNumMoves() == 0) {
-                endTurnPrivate(game);
-            } else if (!isJumpsMandatory()) {
-                game.getMovesInternal().add(new Move(MoveType.END, move.getPlayerNum()).setStart(ernk, ecol, p.getType()));
-            }
-        }*/
     }
 
     void endTurnPrivate(Game game) {

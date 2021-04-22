@@ -302,8 +302,11 @@ public class AIPlayer extends Player {
         int winner;
         switch (winner=game.getWinnerNum()) {
             case Game.NEAR:
-            case Game.FAR:
-                return root.getPlayerNum()==winner ? Long.MAX_VALUE - actualDepth : Long.MIN_VALUE + actualDepth;
+            case Game.FAR: {
+                long v = root.getPlayerNum() == winner ? Long.MAX_VALUE - actualDepth : Long.MIN_VALUE + actualDepth;
+                // TODO: Investigate why need to return negative here
+                return maximizePlayer ? -v : v;
+            }
         }
         if (game.isDraw())
             return 0;

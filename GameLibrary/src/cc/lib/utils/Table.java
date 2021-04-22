@@ -295,7 +295,7 @@ public final class Table {
         float cellPadding = Math.max(4, padding*g.getTextHeight()/2);
         if (header != null && header.size() > 0) {
             g.setColor(model.getHeaderColor(g));
-            float x=outerPadding;
+            float x=0;
             for (int i=0; i<header.size(); i++) {
                 g.drawJustifiedString(x + maxWidth[i]/2, 0, Justify.CENTER, header.get(i));
                 x += maxWidth[i];

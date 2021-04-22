@@ -41,6 +41,7 @@ public abstract class UIGame extends Game {
     int highlightedPos = -1;
     final List<Piece> pickablePieces = new ArrayList<>();
     final List<Move>  pickableMoves  = new ArrayList<>();
+    boolean showInstructions = true;
 
     float SQ_DIM, PIECE_RADIUS, BORDER_WIDTH;
     GDimension SCREEN_DIM, BOARD_DIM;
@@ -65,6 +66,12 @@ public abstract class UIGame extends Game {
             newGame();
         }
         return false;
+    }
+
+    @Override
+    public void newGame() {
+        super.newGame();
+        showInstructions = true;
     }
 
     public final Move undoAndRefresh() {
@@ -305,7 +312,7 @@ public abstract class UIGame extends Game {
     protected abstract int getKingsCourtBoardId();
 
     private void drawKingsCourtBoard(AGraphics g) {
-        drawCheckerboardImage(g, getKingsCourtBoardId(), 206, 16);
+        drawCheckerboardImage(g, getKingsCourtBoardId(), 206, 7);
     }
 
     private void drawDamaBoard(AGraphics g) {
@@ -444,32 +451,45 @@ public abstract class UIGame extends Game {
             }
         }
 
+        float cx = BOARD_DIM.getWidth() / 2;
+        float cy = BOARD_DIM.getHeight() / 2;
         if (isGameOver()) {
             if (getWinner() != null) {
-                float x = BOARD_DIM.getWidth() / 2;
-                float y = BOARD_DIM.getHeight() / 2;
                 String txt = "G A M E   O V E R\n" + getWinner().getColor() + " Wins!";
                 g.setColor(GColor.CYAN);
-                g.drawJustifiedStringOnBackground(x, y, Justify.CENTER, Justify.CENTER, txt, GColor.TRANSLUSCENT_BLACK, 20);
+                g.drawJustifiedStringOnBackground(cx, cy, Justify.CENTER, Justify.CENTER, txt, GColor.TRANSLUSCENT_BLACK, 20);
             } else {
-                int x = g.getViewportWidth() / 2;
-                int y = g.getViewportHeight() / 2;
                 String txt = "D R A W   G A M E";
                 g.setColor(GColor.CYAN);
-                g.drawJustifiedStringOnBackground(x, y, Justify.CENTER, Justify.CENTER, txt, GColor.TRANSLUSCENT_BLACK, 20);
+                g.drawJustifiedStringOnBackground(cx, cy, Justify.CENTER, Justify.CENTER, txt, GColor.TRANSLUSCENT_BLACK, 20);
             }
         } else if (!gameRunning) {
-            //int x = g.getViewportWidth() / 2;
-            //int y = g.getViewportHeight() / 2;
             g.setColor(GColor.YELLOW);
-            Table tab = getRules().getInstructions();
-            tab.draw(g, BOARD_DIM.getWidth()/2, BOARD_DIM.getHeight()/2, Justify.CENTER, Justify.CENTER);
-//            String txt = getRules().getInstructions();//"P A U S E D";
-//            g.setColor(GColor.CYAN);
-//            g.drawJustifiedStringOnBackground(x, y, Justify.CENTER, Justify.CENTER, txt, GColor.TRANSLUSCENT_BLACK, 3);
+            if (showInstructions) {
+                Table tab = getRules().getInstructions();
+                tab.setModel(instructionsModel);
+                tab.draw(g, cx, cy, Justify.CENTER, Justify.CENTER);
+                showInstructions = false;
+            } else {
+                String txt = "P A U S E D";
+                g.setColor(GColor.CYAN);
+                g.drawJustifiedStringOnBackground(cx, cy, Justify.CENTER, Justify.CENTER, txt, GColor.TRANSLUSCENT_BLACK, 3);
+            }
         }
         g.popMatrix();
     }
+
+    final Table.Model instructionsModel = new Table.Model() {
+        @Override
+        public GColor getBorderColor(AGraphics g) {
+            return GColor.WHITE;
+        }
+
+        @Override
+        public GColor getBackgroundColor() {
+            return GColor.BLACK;
+        }
+    };
 
     public void doClick() {
         mode = MODE_CLICK;
@@ -485,6 +505,10 @@ public abstract class UIGame extends Game {
         mode = MODE_DRAG_STOP;
         draggingPos = -1;
         runLock.release();
+    }
+
+    public void setShowInstructions(boolean showInstructions) {
+        this.showInstructions = showInstructions;
     }
 
     public boolean isCurrentPlayerUser() {

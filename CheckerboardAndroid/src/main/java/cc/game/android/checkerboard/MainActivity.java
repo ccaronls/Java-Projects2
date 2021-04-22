@@ -1,6 +1,7 @@
 package cc.game.android.checkerboard;
 
 import android.content.DialogInterface;
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.view.Menu;
@@ -37,12 +38,12 @@ public class MainActivity extends DroidActivity {
 
         @Override
         protected int getCheckerboardImageId() {
-            return R.mipmap.wood_checkerboard_8x8;
+            return R.drawable.wood_checkerboard_8x8;
         }
 
         @Override
         protected int getKingsCourtBoardId() {
-            return R.mipmap.kings_court_board_8x8;
+            return R.drawable.kings_court_board_8x8;
         }
 
         public int getPieceImageId(PieceType p, Color color) {
@@ -51,28 +52,28 @@ public class MainActivity extends DroidActivity {
                 case PAWN_IDLE:
                 case PAWN_ENPASSANT:
                 case PAWN_TOSWAP:
-                    return color == Color.WHITE ? R.mipmap.wt_pawn : R.mipmap.bk_pawn;
+                    return color == Color.WHITE ? R.drawable.wt_pawn : R.drawable.bk_pawn;
                 case BISHOP:
-                    return color == Color.WHITE ? R.mipmap.wt_bishop : R.mipmap.bk_bishop;
+                    return color == Color.WHITE ? R.drawable.wt_bishop : R.drawable.bk_bishop;
                 case KNIGHT_R:
                 case KNIGHT_L:
-                    return color == Color.WHITE ? R.mipmap.wt_knight : R.mipmap.bk_knight;
+                    return color == Color.WHITE ? R.drawable.wt_knight : R.drawable.bk_knight;
                 case ROOK:
                 case ROOK_IDLE:
-                    return color == Color.WHITE ? R.mipmap.wt_rook : R.mipmap.bk_rook;
+                    return color == Color.WHITE ? R.drawable.wt_rook : R.drawable.bk_rook;
                 case QUEEN:
-                    return color == Color.WHITE ? R.mipmap.wt_queen : R.mipmap.bk_queen;
+                    return color == Color.WHITE ? R.drawable.wt_queen : R.drawable.bk_queen;
                 case CHECKED_KING:
                 case CHECKED_KING_IDLE:
                 case UNCHECKED_KING:
                 case UNCHECKED_KING_IDLE:
                 case KING:
-                    return color == Color.WHITE ? R.mipmap.wt_king : R.mipmap.bk_king;
+                    return color == Color.WHITE ? R.drawable.wt_king : R.drawable.bk_king;
                 case DRAGON_R:
                 case DRAGON_L:
                 case DRAGON_IDLE_R:
                 case DRAGON_IDLE_L:
-                    return color == Color.WHITE ? R.mipmap.wt_dragon : R.mipmap.bk_dragon;
+                    return color == Color.WHITE ? R.drawable.wt_dragon : R.drawable.bk_dragon;
                 case FLYING_KING:
                     break;
                 case CHECKER:
@@ -81,11 +82,11 @@ public class MainActivity extends DroidActivity {
                 case CHIP_4WAY:
                     switch (color) {
                         case RED:
-                            return R.mipmap.red_checker;
+                            return R.drawable.red_checker;
                         case WHITE:
-                            return R.mipmap.wt_checker;
+                            return R.drawable.wt_checker;
                         case BLACK:
-                            return R.mipmap.blk_checker;
+                            return R.drawable.blk_checker;
                     }
             }
             return 0;
@@ -98,6 +99,10 @@ public class MainActivity extends DroidActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         saveFile = new File(getFilesDir(), "save.game");
+        int orientation = getPrefs().getInt("orientation", -1);
+        if (orientation >= 0) {
+            setRequestedOrientation(orientation);
+        }
         if (!game.init(saveFile)) {
             saveFile.delete();
         }
@@ -187,7 +192,7 @@ public class MainActivity extends DroidActivity {
                             case 1:
                                 game.setPlayer(Game.NEAR, new UIPlayer(UIPlayer.Type.USER));
                                 game.setPlayer(Game.FAR,  new UIPlayer(UIPlayer.Type.USER));
-                                game.repaint(-1);
+                                startGame();
                         }
                     }
                 }).setNegativeButton("Back", new DialogInterface.OnClickListener() {
@@ -276,6 +281,8 @@ public class MainActivity extends DroidActivity {
         menu.add("Rules");
         menu.add("Difficulty");
         menu.add("Players");
+        menu.add("Instructions");
+        menu.add("Rotate Screen");
         return true;
     }
 
@@ -301,6 +308,21 @@ public class MainActivity extends DroidActivity {
             case "Players":
                 showChoosePlayersDialog();
                 break;
+            case "Rotate Screen": {
+                if (isPortrait()) {
+                    getPrefs().edit().putInt("orientation", ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE).apply();
+                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+                } else {
+                    getPrefs().edit().putInt("orientation", ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT).apply();
+                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT);
+                }
+                break;
+            }
+            case "Instructions":
+                game.setShowInstructions(true);
+                game.stopGameThread();
+                break;
+
             default:
                 return false;
         }

@@ -36,4 +36,8 @@ public class Dama extends Checkers {
         return false;
     }
 
+    @Override
+    public boolean isFlyingKings() {
+        return true;
+    }
 }

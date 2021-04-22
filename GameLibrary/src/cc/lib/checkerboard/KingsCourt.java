@@ -162,4 +162,8 @@ public class KingsCourt extends Checkers {
         return false;
     }
 
+    @Override
+    String getDescription() {
+        return "Objective is to have only your own pieces in the court (center region). On first move each play moves a piece onto the court and must keep at least one piece there or else they lose.";
+    }
 }
