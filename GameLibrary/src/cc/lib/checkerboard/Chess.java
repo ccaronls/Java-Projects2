@@ -894,6 +894,6 @@ public class Chess extends Rules {
 
     @Override
     Table getInstructions() {
-        return new Table("Classic game of Chess");
+        return new Table().addRow("Classic game of Chess");
     }
 }

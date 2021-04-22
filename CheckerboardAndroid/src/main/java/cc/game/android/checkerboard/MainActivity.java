@@ -334,7 +334,6 @@ public class MainActivity extends DroidActivity {
         touchX = (int)x;
         touchY = (int)y;
         clicked = true;
-        game.doClick();
     }
 
     @Override

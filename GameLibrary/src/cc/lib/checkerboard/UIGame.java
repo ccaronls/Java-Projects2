@@ -3,8 +3,10 @@ package cc.lib.checkerboard;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import cc.lib.game.AAnimation;
 import cc.lib.game.AGraphics;
@@ -47,7 +49,10 @@ public abstract class UIGame extends Game {
     GDimension SCREEN_DIM, BOARD_DIM;
 
     final GColor DAMA_BACKGROUND_COLOR = new GColor(0xfffde9a9);
-    final List<PieceAnim> animations = Collections.synchronizedList(new ArrayList<>());
+    final GColor BORDER_COLOR = new GColor(0xffd2b48c);
+
+    //final List<PieceAnim> animations = Collections.synchronizedList(new ArrayList<>());
+    final Map<Integer, PieceAnim> animations = Collections.synchronizedMap(new HashMap<>());
 
     public UIGame() {
     }
@@ -71,6 +76,12 @@ public abstract class UIGame extends Game {
     @Override
     public void newGame() {
         super.newGame();
+        pickablePieces.clear();
+        pickableMoves.clear();
+        animations.clear();
+        mode = 0;
+        draggingPos = -1;
+        highlightedPos = -1;
         showInstructions = true;
     }
 
@@ -291,7 +302,14 @@ public abstract class UIGame extends Game {
         };
 
         int colorIdx = 0;
+        BORDER_WIDTH = SQ_DIM/2;
+        float boardWidth = BOARD_DIM.getWidth() - 2*BORDER_WIDTH;
+        float boardHeight = BOARD_DIM.getHeight() - 2*BORDER_WIDTH;
+        SQ_DIM = boardWidth / getColumns();
 
+        g.setColor(BORDER_COLOR);
+        g.drawFilledRoundedRect(0, 0, BOARD_DIM.getWidth(), BOARD_DIM.getHeight(), BORDER_WIDTH/2);
+        g.translate(BORDER_WIDTH, BORDER_WIDTH);
         g.pushMatrix();
         for (int i=0; i<getRanks(); i++) {
             g.pushMatrix();
@@ -305,6 +323,11 @@ public abstract class UIGame extends Game {
             g.popMatrix();
             g.translate(0, SQ_DIM);
             colorIdx = (colorIdx+1) % 2;
+        }
+
+        if (DEBUG) {
+            g.setColor(GColor.RED);
+            g.drawRect(0, 0, boardWidth, boardHeight);
         }
         g.popMatrix();
     }
@@ -391,6 +414,8 @@ public abstract class UIGame extends Game {
         }
 
         for (Piece p : getPieces(-1)) {
+            if (animations.containsKey(p.getPosition()))
+                continue;
             int r = p.getRank();
             int c = p.getCol();
             float x = c * cw + cw / 2;
@@ -411,9 +436,9 @@ public abstract class UIGame extends Game {
                 g.drawFilledCircle(x, y, PIECE_RADIUS +5);
             }
             if (p.getPosition() == draggingPos) {
-                g.translate(mx, my+PIECE_RADIUS);
+                g.translate(mx, my);
             } else {
-                g.translate(x, y+PIECE_RADIUS);
+                g.translate(x, y);
             }
             drawPiece(g, p);
             g.popMatrix();
@@ -439,9 +464,9 @@ public abstract class UIGame extends Game {
         }
 
         synchronized (animations) {
-            Iterator<PieceAnim> it = animations.iterator();
+            Iterator<Map.Entry<Integer, PieceAnim>> it = animations.entrySet().iterator();
             while (it.hasNext()) {
-                PieceAnim a = it.next();
+                PieceAnim a = it.next().getValue();
                 if (a.isDone()) {
                     it.remove();
                 } else {
@@ -492,16 +517,19 @@ public abstract class UIGame extends Game {
     };
 
     public void doClick() {
+        log.verbose("do Click");
         mode = MODE_CLICK;
         runLock.release();
     }
 
     public void startDrag() {
+        log.verbose("start drag");
         mode = MODE_DRAG_START;
         runLock.release();
     }
 
     public void stopDrag() {
+        log.verbose("stop drag");
         mode = MODE_DRAG_STOP;
         draggingPos = -1;
         runLock.release();
@@ -595,6 +623,8 @@ public abstract class UIGame extends Game {
         if (pc.getPlayerNum() < 0)
             return;
 
+        g.pushMatrix();
+        g.translate(0, PIECE_RADIUS);
         float d = PIECE_RADIUS * 2;
         if (pc.isStacked()) {
             for (int s=pc.getStackSize()-1; s>=0; s--) {
@@ -604,6 +634,7 @@ public abstract class UIGame extends Game {
         } else {
             drawPiece(g, pc.getType(), pc.getPlayerNum());
         }
+        g.popMatrix();
     }
 
     private void drawPiece(AGraphics g, PieceType pt, int playerNum) {
@@ -709,27 +740,27 @@ public abstract class UIGame extends Game {
             mode = 0;
             return; // no animations when drag-n-drop
         }
-        Piece pc = getPiece(m.getStart()).deepCopy();
+        Piece pc = getPiece(m.getStart());
         switch (m.getMoveType()) {
 
             case END:
                 break;
             case SLIDE: {
-                animations.add(new SlideAnim(m.getStart(),m.getEnd(), pc).start());
+                animations.put(pc.getPosition(), new SlideAnim(m.getStart(),m.getEnd()).start());
                 break;
             }
             case FLYING_JUMP:
             case JUMP:
-                animations.add(new JumpAnim(m.getStart(), m.getEnd(), pc).start());
+                animations.put(pc.getPosition(), new JumpAnim(m.getStart(), m.getEnd()).start());
                 break;
             case STACK:
-                animations.add(new StackAnim(m.getStart(), pc).start());
+                animations.put(pc.getPosition(), new StackAnim(m.getStart()).start());
                 break;
             case SWAP:
                 break;
             case CASTLE:
-                animations.add(new SlideAnim(m.getStart(),m.getEnd(), pc).start());
-                animations.add(new JumpAnim(m.getCastleRookStart(), m.getCastleRookEnd(), new Piece(m.getPlayerNum(), PieceType.ROOK_IDLE)).start());
+                animations.put(pc.getPosition(), new SlideAnim(m.getStart(),m.getEnd()).start());
+                animations.put(pc.getPosition(), new JumpAnim(m.getCastleRookStart(), m.getCastleRookEnd()).start());
                 break;
 
         }
@@ -754,22 +785,20 @@ public abstract class UIGame extends Game {
 
     abstract class PieceAnim extends AAnimation<AGraphics> {
 
-        float sx, sy, ex, ey;
-        Piece pc;
+        final float sx, sy, ex, ey;
         final int start;
 
-        public PieceAnim(int start, int end, Piece pc, long durationMSecs) {
-            this(start, SQ_DIM * (end & 0xff) + SQ_DIM / 2, SQ_DIM * (end >> 8) + SQ_DIM / 2, pc, durationMSecs);
+        public PieceAnim(int start, int end, long durationMSecs) {
+            this(start, SQ_DIM * (end & 0xff) + SQ_DIM / 2, SQ_DIM * (end >> 8) + SQ_DIM / 2, durationMSecs);
         }
 
-        public PieceAnim(int start, float ex, float ey, Piece pc, long durationMSecs) {
+        public PieceAnim(int start, float ex, float ey, long durationMSecs) {
             super(durationMSecs);
             this.start = start;
             this.sx = SQ_DIM * (start & 0xff) + SQ_DIM / 2;
             this.sy = SQ_DIM * (start >> 8) + SQ_DIM / 2;
             this.ex = ex;
             this.ey = ey;
-            this.pc = pc.deepCopy();
             animLock.acquire();
         }
 
@@ -780,8 +809,8 @@ public abstract class UIGame extends Game {
     }
 
     class SlideAnim extends PieceAnim {
-        public SlideAnim(int start, int end, Piece pc) {
-            super(start, end, pc, 1000);
+        public SlideAnim(int start, int end) {
+            super(start, end,1000);
         }
 
         @Override
@@ -790,19 +819,8 @@ public abstract class UIGame extends Game {
             float y = sy + (ey-sy) * position;
             g.pushMatrix();
             g.translate(x, y);
-            drawPiece(g, pc);
+            drawPiece(g, getPiece(start));
             g.popMatrix();
-        }
-
-        @Override
-        protected void onStarted() {
-            clearPiece(start);
-        }
-
-        @Override
-        protected void onDone() {
-            setPiece(start, pc);
-            super.onDone();
         }
     }
 
@@ -827,9 +845,9 @@ public abstract class UIGame extends Game {
             return v;
         }
 
-        public JumpAnim(int start, int end, Piece pc) {
-            super(start, end, pc);
-            curve = new Bezier(computeJumpPoints(pc.getPlayerNum()));
+        public JumpAnim(int start, int end) {
+            super(start, end);
+            curve = new Bezier(computeJumpPoints(getPiece(start).getPlayerNum()));
         }
 
         @Override
@@ -837,7 +855,7 @@ public abstract class UIGame extends Game {
             IVector2D v = curve.getPointAt(position);
             g.pushMatrix();
             g.translate(v);
-            drawPiece(g, pc);
+            drawPiece(g, getPiece(start));
             g.popMatrix();
 
         }
@@ -845,21 +863,28 @@ public abstract class UIGame extends Game {
 
     class StackAnim extends PieceAnim {
 
-        public StackAnim(int pos, Piece p) {
-            super(pos, pos, p, 1000);
-            sy = ey-SQ_DIM;
+        final float ssy, eey;
+
+        public StackAnim(int pos) {
+            super(pos, pos,1000);
+            ssy = ey-SQ_DIM;
+            eey = ey-PIECE_RADIUS/2;
         }
 
         @Override
         public void draw(AGraphics g, float position, float dt) {
-
+            Piece p = getPiece(start);
+            g.pushMatrix();
+            g.translate(sx, sy);
+            drawPiece(g, p);
+            g.popMatrix();
             float scale = 1f + (1f-position);
-            int x = Math.round(sx + (ex-sx) * position);
-            int y = Math.round(sy + (ey-sy) * position);
+            float x = sx + (ex-sx) * position;
+            float y = ssy + (eey-ssy) * position;
             g.pushMatrix();
             g.translate(x, y);
             g.scale(scale, scale);
-            drawPiece(g, pc);
+            drawPiece(g, getPiece(start));
             g.popMatrix();
         }
 

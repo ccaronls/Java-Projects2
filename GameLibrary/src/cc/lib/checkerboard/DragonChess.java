@@ -75,6 +75,6 @@ public class DragonChess extends Chess {
 
     @Override
     Table getInstructions() {
-        return new Table("Chess Variation. Bigger board, non square\nand using Dragons instead of rooks.\nDragons move like a queen but with a max of\n3 squares.");
+        return new Table().addRow("Chess Variation. Bigger board, non square and using Dragons instead of rooks. Dragons move like a queen but with a max of 3 squares.");
     }
 }
