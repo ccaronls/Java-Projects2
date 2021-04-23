@@ -14,7 +14,50 @@
         app:layout_constraintWidth_percent=".2"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/console_view"
-        app:layout_constraintBottom_toBottomOf="parent"/>
+        app:layout_constraintBottom_toTopOf="@id/buttons_layout"/>
+
+    <GridLayout
+        android:id="@+id/buttons_layout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:rowCount="2"
+        android:columnCount="3"
+        app:layout_constraintTop_toBottomOf="@id/list_menu"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="@id/list_menu">
+        
+        <Button
+            android:id="@+id/b_zoomin"
+            android:layout_columnWeight="1"
+            android:text="+"/>
+
+        <Button
+            android:id="@+id/b_up"
+            android:layout_columnWeight="1"
+            android:text="^"/>
+
+        <Button
+            android:id="@+id/b_zoomout"
+            android:layout_columnWeight="1"
+            android:text="-"/>
+
+        <Button
+            android:id="@+id/b_left"
+            android:layout_columnWeight="1"
+            android:text="&lt;"/>
+
+        <Button
+            android:id="@+id/b_down"
+            android:layout_columnWeight="1"
+            android:text="v"/>
+
+        <Button
+            android:id="@+id/b_right"
+            android:layout_columnWeight="1"
+            android:text="&gt;"/>
+
+    </GridLayout>
 
     <cc.game.zombicide.android.ZCharacterView
         android:id="@+id/console_view"

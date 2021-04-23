@@ -47,7 +47,7 @@ public class ZMove implements IButton {
     }
 
     private ZMove(ZMoveType type, List list) {
-        this(type, 0, null, null, null, null, list, null, null);
+        this(type, null, null, null, null, null, list, null, null);
     }
 
     private ZMove(ZMoveType type, List list, ZSkill skill) {
@@ -62,7 +62,7 @@ public class ZMove implements IButton {
         this(type, targetIndex, character, equip, fromSlot, toSlot, list, null, null);
     }
 
-    private ZMove(ZMoveType type, int integer, ZCharacter character, ZEquipment equip, ZEquipSlot fromSlot, ZEquipSlot toSlot, List list, ZDir dir, ZSkill skill) {
+    private ZMove(ZMoveType type, Integer integer, ZCharacter character, ZEquipment equip, ZEquipSlot fromSlot, ZEquipSlot toSlot, List list, ZDir dir, ZSkill skill) {
         this.type = type;
         this.integer = integer;
         this.character = character;

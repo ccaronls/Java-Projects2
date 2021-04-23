@@ -27,6 +27,7 @@ import cc.lib.game.AGraphics;
 import cc.lib.game.Utils;
 import cc.lib.ui.IButton;
 import cc.lib.zombicide.ZDiffuculty;
+import cc.lib.zombicide.ZDir;
 import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZUser;
@@ -39,7 +40,7 @@ import cc.lib.zombicide.ui.UIZombicide;
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
  */
-public class ZombicideActivity extends CCActivityBase {
+public class ZombicideActivity extends CCActivityBase implements View.OnClickListener {
 
     private final static String TAG = ZombicideActivity.class.getSimpleName();
 
@@ -55,11 +56,18 @@ public class ZombicideActivity extends CCActivityBase {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_zombicide);
-        menu = (ListView)findViewById(R.id.list_menu);
-        boardView = (ZBoardView)findViewById(R.id.board_view);
-        consoleView = (ZCharacterView) findViewById(R.id.console_view);
+        menu = findViewById(R.id.list_menu);
+        boardView = findViewById(R.id.board_view);
+        consoleView = findViewById(R.id.console_view);
+        findViewById(R.id.b_zoomin).setOnClickListener(this);
+        findViewById(R.id.b_up).setOnClickListener(this);
+        findViewById(R.id.b_zoomout).setOnClickListener(this);
+        findViewById(R.id.b_left).setOnClickListener(this);
+        findViewById(R.id.b_down).setOnClickListener(this);
+        findViewById(R.id.b_right).setOnClickListener(this);
         UIZCharacterRenderer cr = new UIZCharacterRenderer(consoleView);
         UIZBoardRenderer br = new UIZBoardRenderer(boardView);
+        br.setDrawTiles(true);
 
         game = new UIZombicide(cr, br) {
 
@@ -98,7 +106,7 @@ public class ZombicideActivity extends CCActivityBase {
             e.printStackTrace();
             game.loadQuest(ZQuests.Tutorial);
         }
-        game.setDifficulty(ZDiffuculty.valueOf(getPrefs().getString("difficulty", ZDiffuculty.MEDIUM.name())));
+        game.setDifficulty(getSavedDifficulty());
 
         gameFile = new File(getFilesDir(), "game.save");
         initHomeMenu();
@@ -139,6 +147,36 @@ public class ZombicideActivity extends CCActivityBase {
             return true;
         }
 
+    }
+
+    ZDiffuculty getSavedDifficulty() {
+        return ZDiffuculty.valueOf(getPrefs().getString("difficulty", ZDiffuculty.MEDIUM.name()));
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.b_zoomin:
+                game.getBoard().zoom(1);
+                game.boardRenderer.redraw();
+                break;
+            case R.id.b_zoomout:
+                game.getBoard().zoom(-1);
+                game.boardRenderer.redraw();
+                break;
+            case R.id.b_up:
+                game.tryWalk(ZDir.NORTH);
+                break;
+            case R.id.b_left:
+                game.tryWalk(ZDir.WEST);
+                break;
+            case R.id.b_down:
+                game.tryWalk(ZDir.SOUTH);
+                break;
+            case R.id.b_right:
+                game.tryWalk(ZDir.EAST);
+                break;
+        }
     }
 
     View.OnClickListener optionClickListener = new View.OnClickListener() {
@@ -200,8 +238,8 @@ public class ZombicideActivity extends CCActivityBase {
                 case ASSIGN:
                     openAssignDislaog();
                     break;
-                case DIFFICULTY:
-                    newDialogBuilder().setTitle("DIFFICULTY")
+                case DIFFICULTY: {
+                    newDialogBuilder().setTitle("DIFFICULTY: " + getSavedDifficulty())
                             .setItems(Utils.toStringArray(ZDiffuculty.values()), new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
@@ -210,6 +248,7 @@ public class ZombicideActivity extends CCActivityBase {
                                     getPrefs().edit().putString("difficulty", difficulty.name()).apply();
                                 }
                             }).setNegativeButton("CANCEL", null).show();
+                }
             }
 
         }

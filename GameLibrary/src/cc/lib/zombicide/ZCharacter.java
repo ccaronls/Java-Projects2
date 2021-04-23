@@ -92,7 +92,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
 
     @Override
     public String name() {
-        return name.name();
+        return name.getLabel();
     }
 
     void onKilledZombie(ZZombie zombie) {

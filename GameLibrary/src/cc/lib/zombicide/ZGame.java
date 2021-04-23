@@ -546,6 +546,7 @@ public class ZGame extends Reflector<ZGame>  {
                 }
 
                 if (skill != null) {
+                    onNewSkillAquired(cur, skill);
                     cur.allSkills.add(skill);
                     cur.availableSkills.add(skill);
                     stateStack.pop();
@@ -641,6 +642,8 @@ public class ZGame extends Reflector<ZGame>  {
 
     protected void onCharacterDefends(ZCharacter cur, ZZombie zombie) {
     }
+
+    protected void onNewSkillAquired(ZCharacter c, ZSkill skill) {}
 
     private boolean playerDefends(ZCharacter cur, ZZombieType type) {
         for (ZArmor armor : cur.getArmorForDefense()) {
@@ -1957,4 +1960,5 @@ public class ZGame extends Reflector<ZGame>  {
     }
 
     public void toggleActivePlayer() {}
+
 }

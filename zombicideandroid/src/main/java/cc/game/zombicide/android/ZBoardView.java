@@ -28,6 +28,13 @@ public class ZBoardView extends UIComponentView implements ZTiles<DroidGraphics>
         }
     }
 
+    @Override
+    protected void preDrawInit(DroidGraphics g) {
+        g.setTextHeight(getResources().getDimension(R.dimen.board_text_size));
+        g.setLineThicknessModePixels(false);
+        super.preDrawInit(g);
+    }
+
     void initCharacter(DroidGraphics g, ZPlayerName pl, int cardImageId, int charImageId) {
         pl.imageId = charImageId;
         pl.cardImageId = cardImageId;
@@ -46,11 +53,14 @@ public class ZBoardView extends UIComponentView implements ZTiles<DroidGraphics>
 
     @Override
     public int[] loadTiles(DroidGraphics g, String[] names, int[] orientations) {
+        progress = 0;
+        numImages = names.length;
+
         deleteTiles(g);
         try {
             tiles = new int[names.length];
             for (int i=0; i<tiles.length; i++) {
-                int id = g.loadImage(names[i]);
+                int id = g.loadImage("ztile_" + names[i] + ".png");
                 if (id < 0)
                     throw new Exception("Failed to load " + names[i]);
                 tiles[i] = g.newRotatedImage(id, orientations[i]);

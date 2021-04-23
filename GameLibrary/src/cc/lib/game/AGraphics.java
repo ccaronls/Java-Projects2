@@ -316,7 +316,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
             return GDimension.EMPTY;
         MutableVector2D mv = transform(x, y);
         String [] lines = text.split("\n");
-        final float textHeight = (float)getTextHeight();
+        final float textHeight = getTextHeight();
         switch (vJust) {
         case TOP: 
             break;
@@ -1098,7 +1098,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param x1
      * @param y1
      */
-    public final void drawLine(float x0, float y0, float x1, float y1) {
+    public void drawLine(float x0, float y0, float x1, float y1) {
         drawLine(x0, y0, x1, y1, 1);
     }
     
@@ -1243,7 +1243,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param w
      * @param h
      */
-    public final void drawRect(float x, float y, float w, float h) {
+    public void drawRect(float x, float y, float w, float h) {
         drawRect(x, y, w, h, 1);
     }
     

@@ -10,7 +10,6 @@ import cc.lib.game.AGraphics;
 import cc.lib.game.AImage;
 import cc.lib.game.APGraphics;
 import cc.lib.game.GColor;
-import cc.lib.game.GDimension;
 import cc.lib.game.GRectangle;
 import cc.lib.game.IRectangle;
 import cc.lib.game.IShape;
@@ -758,7 +757,6 @@ public class UIZBoardRenderer extends UIRenderer {
                 g.setTextStyles(AGraphics.TextStyle.NORMAL);
             }
             //g.setFont(smallFont);
-            g.drawJustifiedString(10, getHeight()-10, Justify.LEFT, Justify.BOTTOM, game.getMessage());
             switch (game.getUiMode()) {
                 case PICK_ZOMBIE:
                 case PICK_CHARACTER: {
@@ -807,6 +805,12 @@ public class UIZBoardRenderer extends UIRenderer {
                 g.drawRect(highlightedActor.getRect(board).scale(1.01f), OUTLINE);
             }
 
+            g.pushMatrix();
+            g.setIdentity();
+            g.ortho();
+            g.setColor(GColor.WHITE);
+            g.drawJustifiedStringOnBackground(10, getHeight()-10, Justify.LEFT, Justify.BOTTOM, game.getMessage(), GColor.TRANSLUSCENT_BLACK, getBorderThickness());
+            g.popMatrix();
             game.characterRenderer.redraw();
 
 
@@ -880,18 +884,22 @@ public class UIZBoardRenderer extends UIRenderer {
                     g.drawImage(id, rect);
                 }
             } else if (overlayToDraw instanceof Table) {
-                g.setColor(GColor.YELLOW);
-                GDimension dim = ((Table)overlayToDraw).getDimension(g);
                 g.pushMatrix();
-                g.translate(getWidth()/2, getHeight()/2);
-                g.translate(-dim.width/2, -dim.height/2);
-                ((Table)overlayToDraw).draw(g);
+                g.setIdentity();
+                g.ortho();
+                g.setColor(GColor.YELLOW);
+                IVector2D cntr = new Vector2D(getWidth()/2, getHeight()/2);
+                ((Table)overlayToDraw).draw(g, cntr, Justify.CENTER, Justify.CENTER);
                 g.popMatrix();
             }
         }
 
         if (isAnimating())
             redraw();
+    }
+
+    public float getBorderThickness() {
+        return 5;
     }
 
     public void setOverlay(Object obj) {

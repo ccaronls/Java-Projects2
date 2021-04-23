@@ -22,10 +22,12 @@ import cc.lib.zombicide.ZActor;
 import cc.lib.zombicide.ZActorAnimation;
 import cc.lib.zombicide.ZAnimation;
 import cc.lib.zombicide.ZCharacter;
+import cc.lib.zombicide.ZDir;
 import cc.lib.zombicide.ZDoor;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZIcon;
 import cc.lib.zombicide.ZMove;
+import cc.lib.zombicide.ZSkill;
 import cc.lib.zombicide.ZTiles;
 import cc.lib.zombicide.ZWeapon;
 import cc.lib.zombicide.ZZombie;
@@ -319,6 +321,12 @@ public abstract class UIZombicide extends ZGame implements ZTiles {
     }
 
     @Override
+    protected void onNewSkillAquired(ZCharacter c, ZSkill skill) {
+        boardRenderer.addPostActor(new HoverMessage(String.format("%s Aquired", skill.getLabel()), c.getRect().getCenter()));
+        characterRenderer.addMessage(String.format("%s has aquired the %s skill", c.getLabel(), skill.getLabel()));
+    }
+
+    @Override
     protected void onNoiseAdded(int zoneIndex) {
         ZZone zone = board.getZone(zoneIndex);
         boardRenderer.addPreActor(new ZAnimation(1000) {
@@ -450,6 +458,15 @@ public abstract class UIZombicide extends ZGame implements ZTiles {
             boardRenderer.redraw();
         }
         return waitForUser(ZDoor.class);
+    }
+
+    public void tryWalk(ZDir dir) {
+        ZCharacter cur = getCurrentCharacter();
+        if (cur != null) {
+            if (getBoard().canMove(cur, dir)) {
+                setResult(ZMove.newWalkDirMove(dir));
+            }
+        }
     }
 
 }

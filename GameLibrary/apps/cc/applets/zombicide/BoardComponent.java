@@ -18,7 +18,6 @@ import cc.lib.ui.UIRenderer;
 import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZDir;
 import cc.lib.zombicide.ZIcon;
-import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZTiles;
 import cc.lib.zombicide.ZZombieType;
@@ -262,24 +261,16 @@ class BoardComponent extends AWTComponent implements ZTiles, UIComponent {
         if (cur != null) {
             switch (e.getKeyCode()) {
                 case KeyEvent.VK_LEFT:
-                    if (game.getBoard().canMove(cur, ZDir.WEST)) {
-                        game.setResult(ZMove.newWalkDirMove(ZDir.WEST));
-                    }
+                    game.tryWalk(ZDir.WEST);
                     break;
                 case KeyEvent.VK_RIGHT:
-                    if (game.getBoard().canMove(cur, ZDir.EAST)) {
-                        game.setResult(ZMove.newWalkDirMove(ZDir.EAST));
-                    }
+                    game.tryWalk(ZDir.EAST);
                     break;
                 case KeyEvent.VK_UP:
-                    if (game.getBoard().canMove(cur, ZDir.NORTH)) {
-                        game.setResult(ZMove.newWalkDirMove(ZDir.NORTH));
-                    }
+                    game.tryWalk(ZDir.NORTH);
                     break;
                 case KeyEvent.VK_DOWN:
-                    if (game.getBoard().canMove(cur, ZDir.SOUTH)) {
-                        game.setResult(ZMove.newWalkDirMove(ZDir.SOUTH));
-                    }
+                    game.tryWalk(ZDir.SOUTH);
                     break;
                 case KeyEvent.VK_PLUS:
                 case KeyEvent.VK_EQUALS:
