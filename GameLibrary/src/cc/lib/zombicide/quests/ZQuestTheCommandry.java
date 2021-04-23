@@ -11,9 +11,11 @@ import cc.lib.zombicide.ZDir;
 import cc.lib.zombicide.ZDoor;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZMove;
+import cc.lib.zombicide.ZQuest;
+import cc.lib.zombicide.ZTile;
 import cc.lib.zombicide.ZWallFlag;
 
-public class ZQuestTheCommandry extends ZQuest9x6 {
+public class ZQuestTheCommandry extends ZQuest {
 
     static {
         addAllFields(ZQuestTheCommandry.class);
@@ -92,13 +94,15 @@ public class ZQuestTheCommandry extends ZQuest9x6 {
     }
 
     @Override
-    protected String[] getTileIds() {
-        return new String[] { "4R", "6R", "5R", "7R", "8R", "9R" };
-    }
-
-    @Override
-    protected int[] getTileRotations() {
-        return new int[] { 180, 270, 270, 90, 180, 180 };
+    public ZTile[] getTiles(ZBoard board) {
+        return new ZTile[] {
+                new ZTile("4R", 180, ZTile.getQuadrant(0, 0, board)),
+                new ZTile("6R", 270, ZTile.getQuadrant(0, 3, board)),
+                new ZTile("5R", 270, ZTile.getQuadrant(0, 6, board)),
+                new ZTile("7R", 90, ZTile.getQuadrant(3, 0, board)),
+                new ZTile("8R", 180, ZTile.getQuadrant(3, 3, board)),
+                new ZTile("9R", 180, ZTile.getQuadrant(3, 6, board)),
+        };
     }
 
     @Override

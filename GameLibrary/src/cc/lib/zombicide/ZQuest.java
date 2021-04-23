@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
-import cc.lib.game.AGraphics;
 import cc.lib.game.Utils;
 import cc.lib.utils.Grid;
 import cc.lib.utils.Reflector;
@@ -291,9 +290,9 @@ public abstract class ZQuest extends Reflector<ZQuest> {
 
     /**
      *
-     * @param g
+     * @return
      */
-    public abstract void drawTiles(AGraphics g, ZBoard board, ZTiles tiles);
+    public abstract ZTile [] getTiles(ZBoard board);
 
     public Collection<Integer> getVaultZones() {
         return vaultMap.keySet();

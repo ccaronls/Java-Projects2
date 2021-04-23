@@ -16,11 +16,13 @@ import cc.lib.zombicide.ZEquipment;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZItemType;
 import cc.lib.zombicide.ZMove;
+import cc.lib.zombicide.ZQuest;
+import cc.lib.zombicide.ZTile;
 import cc.lib.zombicide.ZWallFlag;
 import cc.lib.zombicide.ZZone;
 import cc.lib.zombicide.ZZoneType;
 
-public class ZQuestFamine extends ZQuest9x6 {
+public class ZQuestFamine extends ZQuest {
 
     static {
         addAllFields(ZQuestFamine.class);
@@ -129,13 +131,15 @@ public class ZQuestFamine extends ZQuest9x6 {
     }
 
     @Override
-    protected String[] getTileIds() {
-        return new String[] { "3R", "2R", "1R", "8R", "6R", "5R" };
-    }
-
-    @Override
-    protected int[] getTileRotations() {
-        return new int[] { 270, 270, 180, 0, 270, 90 };
+    public ZTile[] getTiles(ZBoard board) {
+        return new ZTile[] {
+                new ZTile("3R", 270, ZTile.getQuadrant(0, 0, board)),
+                new ZTile("2R", 270, ZTile.getQuadrant(0, 3, board)),
+                new ZTile("1R", 180, ZTile.getQuadrant(0, 6, board)),
+                new ZTile("8R", 0, ZTile.getQuadrant(3, 0, board)),
+                new ZTile("6R", 270, ZTile.getQuadrant(3, 3, board)),
+                new ZTile("5R", 90, ZTile.getQuadrant(3, 6, board)),
+        };
     }
 
     @Override

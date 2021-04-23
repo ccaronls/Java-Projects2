@@ -8,10 +8,12 @@ import cc.lib.android.UIComponentView;
 import cc.lib.game.GDimension;
 import cc.lib.zombicide.ZIcon;
 import cc.lib.zombicide.ZPlayerName;
-import cc.lib.zombicide.ZTiles;
+import cc.lib.zombicide.ZTile;
 import cc.lib.zombicide.ZZombieType;
+import cc.lib.zombicide.ui.UIZBoardRenderer;
+import cc.lib.zombicide.ui.UIZComponent;
 
-public class ZBoardView extends UIComponentView implements ZTiles<DroidGraphics> {
+public class ZBoardView extends UIComponentView implements UIZComponent<DroidGraphics> {
 
     public ZBoardView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -41,37 +43,42 @@ public class ZBoardView extends UIComponentView implements ZTiles<DroidGraphics>
         pl.imageDim = new GDimension(g.getImage(charImageId));
     }
 
-    int [] tiles = new int[0];
+    int [] tileIds = new int[0];
 
     private void deleteTiles(DroidGraphics g) {
-        for (int t : tiles) {
+        for (int t : tileIds) {
             if (t > 0)
                 g.deleteImage(t);
         }
-        tiles = new int[0];
+        tileIds = new int[0];
     }
 
     @Override
-    public int[] loadTiles(DroidGraphics g, String[] names, int[] orientations) {
+    public void loadTiles(DroidGraphics g, ZTile[] tiles) {
         progress = 0;
-        numImages = names.length;
+        numImages = tiles.length;
 
         deleteTiles(g);
         try {
-            tiles = new int[names.length];
+            tileIds = new int[tiles.length];
             for (int i=0; i<tiles.length; i++) {
-                int id = g.loadImage("ztile_" + names[i] + ".png");
+                int id = g.loadImage("ztile_" + tiles[i].id + ".png");
                 if (id < 0)
-                    throw new Exception("Failed to load " + names[i]);
-                tiles[i] = g.newRotatedImage(id, orientations[i]);
+                    throw new Exception("Failed to load " + tiles[i].id);
+                if (tiles[i].orientation == 0) {
+                    tileIds[i] = id;
+                    continue;
+                }
+
+                tileIds[i] = g.newRotatedImage(id, tiles[i].orientation);
                 g.deleteImage(id);
             }
-            return tiles;
+            ((UIZBoardRenderer)getRenderer()).onTilesLoaded(tileIds);
+            redraw();
         } catch (Exception e) {
             deleteTiles(g);
             e.printStackTrace();
         }
-        return tiles;
     }
 
     @Override

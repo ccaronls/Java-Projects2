@@ -1,11 +1,10 @@
 package cc.lib.zombicide.quests;
 
-import cc.lib.game.AGraphics;
 import cc.lib.utils.Table;
 import cc.lib.zombicide.ZBoard;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZQuest;
-import cc.lib.zombicide.ZTiles;
+import cc.lib.zombicide.ZTile;
 import cc.lib.zombicide.ZZombieType;
 
 public class ZQuestTheAbomination extends ZQuest {
@@ -43,8 +42,8 @@ public class ZQuestTheAbomination extends ZQuest {
     }
 
     @Override
-    public void drawTiles(AGraphics g, ZBoard board, ZTiles tiles) {
-
+    public ZTile[] getTiles(ZBoard board) {
+        return new ZTile[0];
     }
 
     @Override

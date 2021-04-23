@@ -3,9 +3,7 @@ package cc.lib.zombicide.quests;
 import java.util.ArrayList;
 import java.util.List;
 
-import cc.lib.game.AGraphics;
 import cc.lib.game.GColor;
-import cc.lib.game.GRectangle;
 import cc.lib.game.Utils;
 import cc.lib.utils.Grid;
 import cc.lib.utils.Table;
@@ -21,7 +19,7 @@ import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZItemType;
 import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZQuest;
-import cc.lib.zombicide.ZTiles;
+import cc.lib.zombicide.ZTile;
 import cc.lib.zombicide.ZWallFlag;
 import cc.lib.zombicide.ZWeaponType;
 
@@ -96,27 +94,13 @@ public class ZQuestTutorial extends ZQuest {
         }
     }
 
-    @Omit
-    int [] tileIds = null;
-
     @Override
-    public void drawTiles(AGraphics g, ZBoard board, ZTiles tiles) {
-
-        if (tileIds == null) {
-            tileIds = tiles.loadTiles(g, new String [] { "4V", "9R" }, new int [] { 90, 90 });
-        }
-
-        if (tileIds.length == 0)
-            return;
-
-        GRectangle quadrant1 = new GRectangle(board.getCell(0, 0).getTopLeft(),
-                board.getCell(2, 2).getBottomRight());
-        GRectangle quadrant2 = new GRectangle(board.getCell(0, 3).getTopLeft(),
-                board.getCell(2, 5).getBottomRight());
-        g.drawImage(tileIds[0], quadrant1);
-        g.drawImage(tileIds[1], quadrant2);
+    public ZTile [] getTiles(ZBoard board) {
+        return new ZTile[] {
+                new ZTile("9R", 90, ZTile.getQuadrant(0, 0, board)),
+                new ZTile("4V", 90, ZTile.getQuadrant(0, 3, board))
+        };
     }
-
 
     @Override
     public void init(ZGame game) {

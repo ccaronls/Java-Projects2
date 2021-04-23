@@ -25,7 +25,6 @@ import javax.swing.JSeparator;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 
-import cc.lib.game.AGraphics;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
@@ -103,7 +102,6 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
     CharacterComponent charComp;
     File gameFile = null;
 
-
     public void onAllImagesLoaded() {
         game = new UIZombicide(new UIZCharacterRenderer(charComp), new UIZBoardRenderer(boardComp)) {
 
@@ -132,11 +130,6 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
             public void setResult(Object result) {
                 super.setResult(result);
                 boardComp.requestFocus();
-            }
-
-            @Override
-            public int[] loadTiles(AGraphics g, String[] names, int[] orientations) {
-                return boardComp.loadTiles(g, names, orientations);
             }
         };
         List<ZPlayerName> players = getEnumListProperty("players", ZPlayerName.class, Utils.toList(ZPlayerName.Baldric, ZPlayerName.Clovis));

@@ -2579,31 +2579,34 @@ public class Utils {
         if (txt == null)
             return null;
         List<String> lines = new ArrayList<>();
-        String str = new String(txt);
-        while (str.length() > maxChars) {
-            int endl = str.indexOf('\n');
-            if (endl >= 0 && endl <= maxChars) {
-                lines.add(str.substring(0, endl));
-                str = str.substring(endl+1);
-                continue;
-            }
-            int spc = str.indexOf(' ');
-            if (spc < 0 || spc > maxChars) {
-                lines.add(str.substring(0, maxChars));
-                str = str.substring(maxChars);
-            } else {
-                while (true) {
-                    int nxt = str.indexOf(' ', spc+1);
-                    if (nxt < 0 || nxt > maxChars) {
-                        break;
+        String [] parts = txt.split("[\n]");
+        for (String str : parts) {
+            while (str.length() > maxChars) {
+                /*
+                int endl = str.indexOf('\n');
+                if (endl >= 0 && endl <= maxChars) {
+                    lines.add(str.substring(0, endl));
+                    str = str.substring(endl + 1);
+                    continue;
+                }*/
+                int spc = str.indexOf(' ');
+                if (spc < 0 || spc > maxChars) {
+                    lines.add(str.substring(0, maxChars));
+                    str = str.substring(maxChars);
+                } else {
+                    while (true) {
+                        int nxt = str.indexOf(' ', spc + 1);
+                        if (nxt < 0 || nxt > maxChars) {
+                            break;
+                        }
+                        spc = nxt;
                     }
-                    spc = nxt;
+                    lines.add(str.substring(0, spc));
+                    str = str.substring(spc + 1);
                 }
-                lines.add(str.substring(0, spc));
-                str = str.substring(spc+1);
             }
+            lines.add(str);
         }
-        lines.add(str);
 
         return lines.toArray(new String[lines.size()]);
 

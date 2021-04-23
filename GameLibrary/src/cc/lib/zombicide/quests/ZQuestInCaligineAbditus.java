@@ -3,6 +3,7 @@ package cc.lib.zombicide.quests;
 import cc.lib.utils.Table;
 import cc.lib.zombicide.ZBoard;
 import cc.lib.zombicide.ZGame;
+import cc.lib.zombicide.ZTile;
 import cc.lib.zombicide.ZWallFlag;
 
 public class ZQuestInCaligineAbditus extends ZQuestTheCommandry {
@@ -29,16 +30,18 @@ public class ZQuestInCaligineAbditus extends ZQuestTheCommandry {
         return load(map);
     }
 
-
     @Override
-    protected String[] getTileIds() {
-        return new String[] { "2R", "3R", "5R", "9V", "6R", "8R" };
+    public ZTile[] getTiles(ZBoard board) {
+        return new ZTile[] {
+                new ZTile("2R", 270, ZTile.getQuadrant(0, 0, board)),
+                new ZTile("3R", 270, ZTile.getQuadrant(0, 3, board)),
+                new ZTile("5R", 90, ZTile.getQuadrant(0, 6, board)),
+                new ZTile("9V", 0, ZTile.getQuadrant(3, 0, board)),
+                new ZTile("6R", 270, ZTile.getQuadrant(3, 3, board)),
+                new ZTile("8R", 270, ZTile.getQuadrant(3, 6, board)),
+        };
     }
 
-    @Override
-    protected int[] getTileRotations() {
-        return new int[] { 270,270,90,0,270,270 };
-    }
     @Override
     public Table getObjectivesOverlay(ZGame game) {
         return new Table(getName())

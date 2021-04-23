@@ -27,13 +27,13 @@ import cc.lib.zombicide.ZDoor;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZIcon;
 import cc.lib.zombicide.ZMove;
+import cc.lib.zombicide.ZQuest;
 import cc.lib.zombicide.ZSkill;
-import cc.lib.zombicide.ZTiles;
 import cc.lib.zombicide.ZWeapon;
 import cc.lib.zombicide.ZZombie;
 import cc.lib.zombicide.ZZone;
 
-public abstract class UIZombicide extends ZGame implements ZTiles {
+public abstract class UIZombicide extends ZGame {
 
     static Logger log = LoggerFactory.getLogger(UIZombicide.class);
 
@@ -469,4 +469,8 @@ public abstract class UIZombicide extends ZGame implements ZTiles {
         }
     }
 
+    @Override
+    protected void initQuest(ZQuest quest) {
+        boardRenderer.clearTiles();
+    }
 }

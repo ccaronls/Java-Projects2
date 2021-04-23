@@ -123,10 +123,15 @@ public class ZGame extends Reflector<ZGame>  {
         return num;
     }
 
+    protected void initQuest(ZQuest quest) {}
+
     public void loadQuest(ZQuests quest) {
         this.currentQuest = quest;
+        ZQuest prevQuest = this.quest;
         this.quest = quest.load();
         board = this.quest.loadBoard();
+        if (prevQuest == null || !prevQuest.getName().equals(this.quest.getName()))
+            initQuest(this.quest);
         initGame();
         for (Grid.Iterator<ZCell> it = board.getCellsIterator(); it.hasNext(); ) {
             ZCell cell=it.next();

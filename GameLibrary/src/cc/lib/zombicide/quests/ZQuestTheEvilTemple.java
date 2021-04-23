@@ -16,10 +16,12 @@ import cc.lib.zombicide.ZEquipment;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZItemType;
 import cc.lib.zombicide.ZMove;
+import cc.lib.zombicide.ZQuest;
+import cc.lib.zombicide.ZTile;
 import cc.lib.zombicide.ZWallFlag;
 import cc.lib.zombicide.ZZombieType;
 
-public class ZQuestTheEvilTemple extends ZQuest9x6 {
+public class ZQuestTheEvilTemple extends ZQuest {
 
     static {
         addAllFields(ZQuestTheEvilTemple.class);
@@ -37,13 +39,15 @@ public class ZQuestTheEvilTemple extends ZQuest9x6 {
     }
 
     @Override
-    protected String[] getTileIds() {
-        return new String[] { "8R", "9V", "1V", "5R", "4R", "2R" };
-    }
-
-    @Override
-    protected int[] getTileRotations() {
-        return new int[] { 180,180,270,180,90,90 };
+    public ZTile[] getTiles(ZBoard board) {
+        return new ZTile[] {
+                new ZTile("8R", 180, ZTile.getQuadrant(0, 0, board)),
+                new ZTile("9V", 180, ZTile.getQuadrant(0, 3, board)),
+                new ZTile("1V", 270, ZTile.getQuadrant(0, 6, board)),
+                new ZTile("5V", 180, ZTile.getQuadrant(3, 0, board)),
+                new ZTile("4R", 90, ZTile.getQuadrant(3, 3, board)),
+                new ZTile("2R", 90, ZTile.getQuadrant(3, 6, board)),
+        };
     }
 
     @Override

@@ -6,25 +6,24 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import cc.lib.game.AGraphics;
 import cc.lib.game.GDimension;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
 import cc.lib.swing.AWTComponent;
 import cc.lib.swing.AWTGraphics;
-import cc.lib.ui.UIComponent;
 import cc.lib.ui.UIRenderer;
 import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZDir;
 import cc.lib.zombicide.ZIcon;
 import cc.lib.zombicide.ZPlayerName;
-import cc.lib.zombicide.ZTiles;
+import cc.lib.zombicide.ZTile;
 import cc.lib.zombicide.ZZombieType;
 import cc.lib.zombicide.ui.UIZBoardRenderer;
+import cc.lib.zombicide.ui.UIZComponent;
 import cc.lib.zombicide.ui.UIZombicide;
 
-class BoardComponent extends AWTComponent implements ZTiles, UIComponent {
+class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
 
     final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -54,7 +53,11 @@ class BoardComponent extends AWTComponent implements ZTiles, UIComponent {
 
     @Override
     protected float getInitProgress() {
-        return (float)numImagesLoaded / totalImagesToLoad;
+        float progress = (float)numImagesLoaded / totalImagesToLoad;
+        if (progress >= 1 && loadedTiles.length > 0) {
+            progress = (float)numTilesLoaded / (loadedTiles.length+1);
+        }
+        return progress;
     }
 
     @Override
@@ -141,7 +144,7 @@ class BoardComponent extends AWTComponent implements ZTiles, UIComponent {
 
         Map<Object, List<Integer>> objectToImageMap = new HashMap<>();
 
-        totalImagesToLoad = files.length;
+        totalImagesToLoad = files.length + 30;
         for (Object [] entry : files) {
             Object key = entry[0];
             String file = (String)entry[1];
@@ -179,6 +182,8 @@ class BoardComponent extends AWTComponent implements ZTiles, UIComponent {
             for (int i=1; i<ids.length; i++) {
                 int deg = 45*i;
                 ids[i] = g.createRotatedImage(ids[0], deg);
+                numImagesLoaded++;
+                repaint();
             }
             icon.imageIds = ids;
         }
@@ -190,6 +195,8 @@ class BoardComponent extends AWTComponent implements ZTiles, UIComponent {
             for (int i=1; i<ids.length; i++) {
                 int deg = 45*i;
                 ids[i] = g.createRotatedImage(ids[0], deg);
+                numImagesLoaded++;
+                repaint();
             }
             icon.imageIds = ids;
         }
@@ -200,8 +207,14 @@ class BoardComponent extends AWTComponent implements ZTiles, UIComponent {
             int eastId = objectToImageMap.get(icon).get(0);
             ids[ZDir.EAST.ordinal()] = eastId;
             ids[ZDir.WEST.ordinal()] = g.createRotatedImage(eastId, 180);
+            numImagesLoaded++;
+            repaint();
             ids[ZDir.NORTH.ordinal()] = g.createRotatedImage(eastId, 270);
+            numImagesLoaded++;
+            repaint();
             ids[ZDir.SOUTH.ordinal()] = g.createRotatedImage(eastId, 90);
+            numImagesLoaded++;
+            repaint();
             icon.imageIds = ids;
         }
 
@@ -211,7 +224,11 @@ class BoardComponent extends AWTComponent implements ZTiles, UIComponent {
             int northId = objectToImageMap.get(icon).get(0);
             ids[ZDir.NORTH.ordinal()] = northId;
             ids[ZDir.WEST.ordinal()] = g.createRotatedImage(northId, 270);
+            numImagesLoaded++;
+            repaint();
             ids[ZDir.EAST.ordinal()] = g.createRotatedImage(northId, 90);
+            numImagesLoaded++;
+            repaint();
             ids[ZDir.SOUTH.ordinal()] = northId;
             icon.imageIds = ids;
         }
@@ -229,6 +246,9 @@ class BoardComponent extends AWTComponent implements ZTiles, UIComponent {
                     { 0,84, 60, 152-84 }, { 60,84,122-60,152-84 }, { 122,84,196-122,152-84 }
             };
             icon.imageIds  = g.loadImageCells("zfire_icons.gif", cells);
+            numImagesLoaded++;
+            repaint();
+
         }
 
         log.debug("Images: " + objectToImageMap);
@@ -237,21 +257,30 @@ class BoardComponent extends AWTComponent implements ZTiles, UIComponent {
         repaint();
     }
 
-    int [] tiles = new int[0];
+    int [] loadedTiles = new int[0];
+    int numTilesLoaded = 0;
 
     @Override
-    public int[] loadTiles(AGraphics _g, String[] names, int[] orientations) {
-        AWTGraphics g = (AWTGraphics)_g;
-        for (int t : tiles) {
-            g.deleteImage(t);
-        }
-
-        tiles = new int[names.length];
-
-        for (int i=0; i<names.length; i++) {
-            tiles[i] = g.loadImage("ztile_" + names[i] + ".png", orientations[i]);
-        }
-        return tiles;
+    public void loadTiles(AWTGraphics g, ZTile[] tiles) {
+        numTilesLoaded = 0;
+        new Thread() {
+            public void run() {
+                for (int t : loadedTiles) {
+                    g.deleteImage(t);
+                }
+                loadedTiles = new int[tiles.length];
+                for (int i=0; i<loadedTiles.length; i++) {
+                    loadedTiles[i] = g.loadImage("ztile_" + tiles[i].id + ".png", tiles[i].orientation);
+                    numTilesLoaded ++;
+                    repaint();
+                    Utils.waitNoThrow(this, 500);
+                }
+                renderer.onTilesLoaded(loadedTiles);
+                numTilesLoaded++;
+                repaint();
+            }
+        }.start();
+        repaint();
     }
 
     @Override

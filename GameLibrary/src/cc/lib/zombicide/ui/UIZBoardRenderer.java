@@ -21,7 +21,6 @@ import cc.lib.logger.LoggerFactory;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 import cc.lib.ui.IButton;
-import cc.lib.ui.UIComponent;
 import cc.lib.ui.UIRenderer;
 import cc.lib.utils.Grid;
 import cc.lib.utils.Table;
@@ -41,6 +40,7 @@ import cc.lib.zombicide.ZItem;
 import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZSpell;
+import cc.lib.zombicide.ZTile;
 import cc.lib.zombicide.ZWeapon;
 import cc.lib.zombicide.ZWeaponStat;
 import cc.lib.zombicide.ZZone;
@@ -65,7 +65,7 @@ public class UIZBoardRenderer extends UIRenderer {
     private Object overlayToDraw = null;
     boolean drawTiles = false;
 
-    public UIZBoardRenderer(UIComponent component) {
+    public UIZBoardRenderer(UIZComponent component) {
         super(component);
     }
 
@@ -691,6 +691,35 @@ public class UIZBoardRenderer extends UIRenderer {
         return center;
     }
 
+    ZTile [] tiles = null;
+    int [] tileIds = new int[0];
+
+    public void clearTiles() {
+        tiles = null;
+        tileIds = new int[0];
+    }
+
+    public void onTilesLoaded(int [] ids) {
+        tileIds = ids;
+    }
+
+    boolean checkDrawTiles(AGraphics g) {
+        if (!drawTiles)
+            return false;
+        if (tiles == null) {
+            tiles = getGame().getQuest().getTiles(getBoard());
+            ((UIZComponent)getComponent()).loadTiles(g, tiles);
+            return false;
+        }
+        if (tiles.length == 0) {
+            return false;
+        }
+        for (int i=0; i<tileIds.length; i++) {
+            g.drawImage(tileIds[i], tiles[i].quadrant);
+        }
+        return true;
+    }
+
     @Override
     public void draw(APGraphics g, int mouseX, int mouseY) {
         highlightedActor = null;
@@ -721,8 +750,7 @@ public class UIZBoardRenderer extends UIRenderer {
 
         if (game.isGameRunning() || game.isGameOver()) {
             Grid.Pos cellPos = null;
-            if (drawTiles) {
-                game.getQuest().drawTiles(g, board, game);
+            if (checkDrawTiles(g)) {
                 cellPos = pickCell(g, mouse.X(), mouse.Y());
             } else {
                 cellPos = drawDebug(g, mouse.X(), mouse.Y());
@@ -817,9 +845,7 @@ public class UIZBoardRenderer extends UIRenderer {
         } else {
 
             Grid.Pos cellPos = drawDebug(g, mouse.X(), mouse.Y());
-            if (drawTiles) {
-                game.getQuest().drawTiles(g, board, game);
-            }
+            checkDrawTiles(g);
 
             if (cellPos != null) {
                 highlightedCell = cellPos;

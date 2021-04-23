@@ -1,7 +1,5 @@
 package cc.lib.zombicide.quests;
 
-import cc.lib.game.AGraphics;
-import cc.lib.game.GRectangle;
 import cc.lib.game.Utils;
 import cc.lib.utils.Grid;
 import cc.lib.utils.Table;
@@ -12,7 +10,7 @@ import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZQuest;
-import cc.lib.zombicide.ZTiles;
+import cc.lib.zombicide.ZTile;
 import cc.lib.zombicide.ZZombieType;
 
 public class ZQuestBigGameHunting extends ZQuest {
@@ -79,35 +77,14 @@ public class ZQuestBigGameHunting extends ZQuest {
         game.getBoard().getZone(blueObjZone).objective = false; // this does not get revealed until the blueRevealZone found
     }
 
-    @Omit
-    int [] tileIds = null;
-
     @Override
-    public void drawTiles(AGraphics g, ZBoard board, ZTiles tiles) {
-        if (tileIds == null) {
-            tileIds = tiles.loadTiles(g, new String [] { "2R", "8V", "9V", "1V"  }, new int [] { 90, 180, 90, 90 });
-        }
-
-        if (tileIds.length == 0)
-            return;
-
-        GRectangle quadrant2R = new GRectangle(
-                board.getCell(0, 0).getTopLeft(),
-                board.getCell(2, 2).getBottomRight());
-        GRectangle quadrant8V = new GRectangle(
-                board.getCell(0, 3).getTopLeft(),
-                board.getCell(2, 5).getBottomRight());
-        GRectangle quadrant9V = new GRectangle(
-                board.getCell(3, 0).getTopLeft(),
-                board.getCell(5, 2).getBottomRight());
-        GRectangle quadrant1V = new GRectangle(
-                board.getCell(3, 3).getTopLeft(),
-                board.getCell(5, 5).getBottomRight());
-        g.drawImage(tileIds[0], quadrant2R);
-        g.drawImage(tileIds[1], quadrant8V);
-        g.drawImage(tileIds[2], quadrant9V);
-        g.drawImage(tileIds[3], quadrant1V);
-
+    public ZTile[] getTiles(ZBoard board) {
+        return new ZTile[] {
+                new ZTile("2R", 90, ZTile.getQuadrant(0, 0, board)),
+                new ZTile("8V", 180, ZTile.getQuadrant(0, 3, board)),
+                new ZTile("9V", 90, ZTile.getQuadrant(3, 0, board)),
+                new ZTile("1V", 90, ZTile.getQuadrant(3, 3, board)),
+        };
     }
 
     @Override

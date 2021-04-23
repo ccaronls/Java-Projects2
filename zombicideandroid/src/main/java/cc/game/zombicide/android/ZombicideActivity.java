@@ -22,8 +22,6 @@ import java.util.List;
 import java.util.Set;
 
 import cc.lib.android.CCActivityBase;
-import cc.lib.android.DroidGraphics;
-import cc.lib.game.AGraphics;
 import cc.lib.game.Utils;
 import cc.lib.ui.IButton;
 import cc.lib.zombicide.ZDiffuculty;
@@ -87,11 +85,6 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
             public <T> T waitForUser(Class<T> expectedType) {
                 boardView.post(() -> initMenu(getUiMode(), getOptions()));
                 return super.waitForUser(expectedType);
-            }
-
-            @Override
-            public int[] loadTiles(AGraphics g, String[] names, int[] orientations) {
-                return boardView.loadTiles((DroidGraphics)g, names, orientations);
             }
         };
 
