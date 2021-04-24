@@ -510,4 +510,19 @@ public class ZBoard extends Reflector<ZBoard> {
         return Math.min(getRows(), getColumns());
     }
 
+    public ZDir getDirection(int fromZone, int toZone) {
+        ZZone start = getZone(fromZone);
+        ZZone end   = getZone(toZone);
+        Vector2D dv = end.getCenter().sub(start.getCenter());
+        if (dv.isZero())
+            return ZDir.EAST;
+        float angle = dv.angleOf();
+        if (angle >270-45 && angle <270+45)
+            return ZDir.NORTH;
+        if (angle >180-45 && angle <180+45)
+            return ZDir.WEST;
+        if (angle >90-45 && angle <90+45)
+            return ZDir.SOUTH;
+        return ZDir.EAST;
+    }
 }

@@ -75,6 +75,7 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                     super.runGame();
                     boardView.postInvalidate();
                     consoleView.postInvalidate();
+                    trySaveToFile(gameFile);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

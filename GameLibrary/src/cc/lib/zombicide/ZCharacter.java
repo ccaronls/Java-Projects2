@@ -345,6 +345,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
 
     public ZEquipment attachEquipment(ZEquipment equipment, ZEquipSlot slot) {
         Utils.assertTrue(slot != null);
+        equipment.slot = slot;
         ZEquipment prev = null;
         switch (slot) {
             case RIGHT_HAND:
@@ -407,13 +408,15 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
         stats.addRow("Next level", ptsToNxt);
         stats.addRow("Dual\nWielding", isDualWeilding());
 
-        info.addColumn("STATS", Arrays.asList(stats));
-        Table skills = new Table().setNoBorder().addColumnNoHeader(availableSkills);
-        info.addColumn("Skills", skills);
+        info.addColumn("Stats", Arrays.asList(stats));
+        if (availableSkills.size() > 0) {
+            Table skills = new Table().setNoBorder().addColumnNoHeader(Utils.toStringArray(availableSkills, true));
+            info.addColumn("Skills", skills);
+        }
 
         Table main = new Table().setNoBorder()
                 .addRow(String.format("%s (%s) moves: %d/%d Body:%s Actions:%s",
-                name.name(), name.characterClass,
+                name.getLabel(), name.characterClass,
                 getActionsLeftThisTurn(), getActionsPerTurn(),
                 Arrays.toString(name.alternateBodySlots),
                 actionsDoneThisTurn))

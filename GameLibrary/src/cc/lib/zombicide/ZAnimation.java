@@ -16,5 +16,4 @@ public abstract class ZAnimation extends AAnimation<AGraphics> {
     public ZAnimation(long durationMSecs, int repeats, boolean oscilateOnRepeat) {
         super(durationMSecs, repeats, oscilateOnRepeat);
     }
-
 }

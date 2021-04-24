@@ -1,7 +1,6 @@
 package cc.lib.zombicide;
 
 import cc.lib.annotation.Keep;
-import cc.lib.game.Utils;
 import cc.lib.ui.IButton;
 
 @Keep
@@ -40,11 +39,6 @@ public enum  ZSpellType implements ZEquipmentType<ZSpell>, IButton {
     @Override
     public String getTooltipText() {
         return description;
-    }
-
-    @Override
-    public String getLabel() {
-        return Utils.toPrettyString(name());
     }
 
     public void doEnchant(ZGame game, ZCharacter target) {

@@ -27,7 +27,7 @@ public enum ZActionType {
     DEFEND,
     BEQUEATH_MOVE;
 
-    boolean oncePerTurn() {
+    public boolean oncePerTurn() {
         switch (this) {
             case SEARCH:
             case SHOVE:
@@ -37,11 +37,11 @@ public enum ZActionType {
         return false;
     }
 
-    int costPerTurn() {
+    public int costPerTurn() {
         return 1;
     }
 
-    boolean breaksInvisibility() {
+    public boolean breaksInvisibility() {
         switch (this) {
             case MELEE:
             case RANGED_BOLTS:
@@ -51,6 +51,15 @@ public enum ZActionType {
             case OPEN_DOOR:
             case CLOSE_DOOR:
             case MAKE_NOISE:
+                return true;
+        }
+        return false;
+    }
+
+    public boolean isRanged() {
+        switch (this) {
+            case RANGED_ARROWS:
+            case RANGED_BOLTS:
                 return true;
         }
         return false;

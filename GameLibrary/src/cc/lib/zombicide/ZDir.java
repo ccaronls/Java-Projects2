@@ -3,6 +3,7 @@ package cc.lib.zombicide;
 import cc.lib.annotation.Keep;
 import cc.lib.game.Justify;
 import cc.lib.game.Utils;
+import cc.lib.math.Vector2D;
 import cc.lib.utils.Grid;
 
 @Keep
@@ -132,5 +133,19 @@ public enum ZDir {
 
     public static ZDir [] getElevationValues() {
         return Utils.toArray(ZDir.ASCEND, ZDir.DESCEND);
+    }
+
+    public static ZDir getFromVector(Vector2D dv) {
+        if (dv.isZero())
+            return ZDir.EAST;
+        float angle = dv.angleOf();
+        if (angle >270-45 && angle <270+45)
+            return ZDir.NORTH;
+        if (angle >180-45 && angle <180+45)
+            return ZDir.WEST;
+        if (angle >90-45 && angle <90+45)
+            return ZDir.SOUTH;
+        return ZDir.EAST;
+
     }
 }

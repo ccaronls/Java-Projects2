@@ -18,6 +18,8 @@ import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 import cc.lib.ui.IButton;
 import cc.lib.utils.Grid;
+import cc.lib.utils.Lock;
+import cc.lib.zombicide.ZActionType;
 import cc.lib.zombicide.ZActor;
 import cc.lib.zombicide.ZActorAnimation;
 import cc.lib.zombicide.ZAnimation;
@@ -135,7 +137,7 @@ public abstract class UIZombicide extends ZGame {
                         curve = Bezier.build(actor.getRect(board).getCenter(), board.getZone(zone).getCenter(), .5f);
                     }
                     int idx = Math.round(position * (ZIcon.DRAGON_BILE.imageIds.length-1));
-                    int id = ZIcon.DRAGON_BILE.imageIds[idx];//((int)angle)%ZIcon.DRAGON_BILE.imageIds.length];
+                    int id = ZIcon.DRAGON_BILE.imageIds[idx];
 
                     AImage img = g.getImage(id);
                     GRectangle rect = actor.getRect(board).scaledBy(.5f).fit(img);
@@ -298,6 +300,7 @@ public abstract class UIZombicide extends ZGame {
     @Override
     protected void onCharacterGainedExperience(ZCharacter c, int points) {
         boardRenderer.addPostActor(new HoverMessage(String.format("+%d EXP", points), c.getRect().getCenter()));
+        Utils.waitNoThrow(this, 500);
     }
 
     @Override
@@ -357,6 +360,45 @@ public abstract class UIZombicide extends ZGame {
     @Override
     protected void onWeaponGoesClick(ZCharacter c, ZWeapon weapon) {
         boardRenderer.addPostActor(new HoverMessage("CLICK", c.getRect().getCenter()));
+    }
+
+    @Override
+    protected void onAttack(ZCharacter attacker, ZWeapon weapon, ZActionType actionType, int numDice, int numHits, int targetZone) {
+
+        if (attacker.getOccupiedZone() != targetZone && actionType.isRanged()) {
+
+            //ZZone start = getBoard().getZone(attacker.getOccupiedZone());
+            ZZone end   = getBoard().getZone(targetZone);
+            Vector2D start = attacker.getRect().getCenter();
+            Vector2D dv = end.getCenter().sub(start);
+            ZDir dir = ZDir.getFromVector(dv);
+            Lock animLock = new Lock(numDice);
+
+            for (int i=0; i<numDice; i++) {
+
+                Vector2D path = end.getCenter().addEq(Utils.randFloatX(.3f), Utils.randFloatX(.3f)).sub(start);
+                long dur = Math.round(path.mag() * 500);
+                boardRenderer.addPostActor(new ZAnimation(dur) {
+
+                    @Override
+                    protected void draw(AGraphics g, float position, float dt) {
+                        int id = ZIcon.ARROW.imageIds[dir.ordinal()];
+                        AImage img = g.getImage(id);
+                        GRectangle rect = attacker.getRect(board).scaledBy(.5f).fit(img);
+                        Vector2D pos = start.add(path.scaledBy(position));
+                        rect.setCenter(pos);
+                        g.drawImage(id, rect);
+                    }
+
+                    @Override
+                    protected void onDone() {
+                        animLock.release();
+                    }
+                });
+                Utils.waitNoThrow(this, 200);
+            }
+            animLock.block();
+        }
     }
 
     public void addPlayerComponentMessage(String message) {

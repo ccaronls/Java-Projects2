@@ -901,7 +901,7 @@ public class ZGame extends Reflector<ZGame>  {
                         zombies.remove(0);
                     }
                     int hits = resolveHits(cur, zombies.size(), ZActionType.MELEE, stat.numDice, stat.dieRollToHit, zombies.size()/2-1, zombies.size()/2+1);
-                    onAttack(cur, weapon, ZActionType.MELEE, stat.numDice, hits);
+                    onAttack(cur, weapon, ZActionType.MELEE, stat.numDice, hits, cur.getOccupiedZone());
 
                     for (int i=0; i<hits && zombies.size() > 0; i++) {
                         ZZombie z = zombies.remove(0);
@@ -962,7 +962,7 @@ public class ZGame extends Reflector<ZGame>  {
                             }
 
                             int hits = resolveHits(cur, zombies.size(), actionType, stat.numDice, stat.dieRollToHit, zombies.size()/2-1, zombies.size()/2+1);
-                            onAttack(cur, slot, actionType, stat.numDice, hits);
+                            onAttack(cur, slot, actionType, stat.numDice, hits, zone);
                             for (int i=0; i<hits && zombies.size() > 0; i++) {
                                 ZZombie zombie = zombies.remove(0);
                                 if (zombie.type.minDamageToDestroy <= stat.damagePerHit) {
@@ -1339,7 +1339,7 @@ public class ZGame extends Reflector<ZGame>  {
                     zombies.remove(0);
                 }
                 int hits = resolveHits(cur, zombies.size(), ZActionType.MELEE, stat.numDice, stat.dieRollToHit, zombies.size() / 2 - 1, zombies.size() / 2 + 1);
-                onAttack(cur, slot, ZActionType.MELEE, stat.numDice, hits);
+                onAttack(cur, slot, ZActionType.MELEE, stat.numDice, hits, cur.getOccupiedZone());
 
                 for (int i = 0; i < hits && zombies.size() > 0; i++) {
                     ZZombie z = zombies.remove(0);
@@ -1386,7 +1386,7 @@ public class ZGame extends Reflector<ZGame>  {
                             }
 
                             int hits = resolveHits(cur, zombies.size(), actionType, stat.numDice, stat.dieRollToHit, zombies.size()/2-1, zombies.size()/2+1);
-                            onAttack(cur, slot, actionType, stat.numDice, hits);
+                            onAttack(cur, slot, actionType, stat.numDice, hits, zone);
                             for (int i=0; i<hits && zombies.size() > 0; i++) {
                                 ZZombie zombie = zombies.remove(0);
                                 if (zombie.type.minDamageToDestroy <= stat.damagePerHit) {
@@ -1455,15 +1455,11 @@ public class ZGame extends Reflector<ZGame>  {
         return hits;
     }
 
-    protected void onWeaponGoesClick(ZCharacter c, ZWeapon weapon) {
+    protected void onWeaponGoesClick(ZCharacter c, ZWeapon weapon) {}
 
-    }
+    protected void onDoorOpened(ZDoor door) {}
 
-    protected void onDoorOpened(ZDoor door) {
-
-    }
-
-    protected void onAttack(ZCharacter attacker, ZWeapon weapon, ZActionType acitonType, int numDice, int numHits) {
+    protected void onAttack(ZCharacter attacker, ZWeapon weapon, ZActionType actionType, int numDice, int numHits, int targetZone) {
 
     }
 

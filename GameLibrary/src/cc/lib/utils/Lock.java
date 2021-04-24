@@ -15,6 +15,12 @@ public final class Lock {
         holders++;
     }
 
+    public Lock() {}
+
+    public Lock(int holders) {
+        this.holders = holders;
+    }
+
     public synchronized void block() {
         if (holders > 0) {
             try {

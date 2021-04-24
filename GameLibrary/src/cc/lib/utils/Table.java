@@ -176,6 +176,10 @@ public final class Table {
         return this;
     }
 
+    public Table addColumnNoHeader(Object [] items) {
+        return addColumnNoHeader(Arrays.asList(items));
+    }
+
     public Table addColumnNoHeader(List column) {
         int col = Math.max(header.size(), rows.size() > 0 ? rows.get(0).size() : 0);
         for (int i=0; i<column.size(); i++) {

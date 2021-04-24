@@ -24,6 +24,7 @@ import cc.lib.math.CMath;
 import cc.lib.math.Vector2D;
 import cc.lib.utils.FileUtils;
 import cc.lib.utils.GException;
+import cc.lib.utils.LRUCache;
 
 public class Utils {
 
@@ -950,6 +951,8 @@ public class Utils {
 
     private static Pattern PRETTY_STRING_PATTERN = null;
 
+    private static LRUCache<String, String> PRETTY_CACHE = new LRUCache<>(256);
+
     /**
      * 1. Strip extension if any
      * 2. Replace [_]+ (underscores) with a space
@@ -958,31 +961,36 @@ public class Utils {
      * @param str
      * @return
      */
-    public static String toPrettyString(String str) {
+    public static String toPrettyString(final String str) {
         if (str == null)
             return null;
-        str = FileUtils.stripExtension(str.replaceAll("[_]+", " ").trim());
+        String cached = PRETTY_CACHE.get(str);
+        if (cached != null)
+            return cached;
+        String pretty = FileUtils.stripExtension(str.replaceAll("[_]+", " ").trim());
         if (PRETTY_STRING_PATTERN == null)
             PRETTY_STRING_PATTERN = Pattern.compile("([A-Za-z][a-zA-Z]+)|([IiAa])");
-        Matcher us = PRETTY_STRING_PATTERN.matcher(str);
+        Matcher us = PRETTY_STRING_PATTERN.matcher(pretty);
         StringBuffer result = new StringBuffer();
         int begin = 0;
         while (us.find()) {
             String s = us.group().toLowerCase();
-            if (result.length() > 0 && result.charAt(result.length()-1) != ' ' && str.charAt(begin) != ' ' )
+            if (result.length() > 0 && result.charAt(result.length()-1) != ' ' && pretty.charAt(begin) != ' ' )
                 result.append(" ");
-            result.append(str.substring(begin, us.start()));
+            result.append(pretty.substring(begin, us.start()));
             begin = us.end();
             if (result.length() > 0 && result.charAt(result.length()-1) != ' ')
                 result.append(" ");
             result.append(Character.toUpperCase(s.charAt(0))).append(s.substring(1));
         }
-        if (begin >= 0 && begin < str.length()) {
-            if (result.length() > 0 && result.charAt(result.length()-1) != ' ' && str.charAt(begin) != ' ')
+        if (begin >= 0 && begin < pretty.length()) {
+            if (result.length() > 0 && result.charAt(result.length()-1) != ' ' && pretty.charAt(begin) != ' ')
                 result.append(" ");
-            result.append(str.substring(begin));
+            result.append(pretty.substring(begin));
         }
-        return result.toString();
+        cached = result.toString();
+        PRETTY_CACHE.put(str, cached);
+        return cached;
     }
 
     public static String formatTime(long l) {
@@ -1845,6 +1853,15 @@ public class Utils {
 
     public static String [] toStringArray(Collection items, boolean pretty) {
         String [] result = new String[items.size()];
+        int index=0;
+        for (Object o : items) {
+            result[index++] = o == null ? "null" : (pretty ? toPrettyString(o.toString()) : o.toString());
+        }
+        return result;
+    }
+
+    public static <T> String [] toStringArray(T [] items, boolean pretty) {
+        String [] result = new String[items.length];
         int index=0;
         for (Object o : items) {
             result[index++] = o == null ? "null" : (pretty ? toPrettyString(o.toString()) : o.toString());

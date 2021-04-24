@@ -139,7 +139,7 @@ public class ZWeapon extends ZEquipment<ZWeaponType> {
             }
         }
 
-        Table card = new Table(new String [] { type.name() + (type.canTwoHand ? " (DW)" : "" ) },
+        Table card = new Table(new String [] { type.getLabel() + (type.canTwoHand ? " (DW)" : "" ) },
             new Object [][] {
 //                { cardUpper.toString() },
                 { cardLower }

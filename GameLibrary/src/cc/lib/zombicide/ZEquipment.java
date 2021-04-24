@@ -88,6 +88,6 @@ public abstract class ZEquipment<T extends Enum<T>> extends Reflector<ZEquipment
 
     @Override
     public String getLabel() {
-        return getType().name().replace('_', ' ');
+        return Utils.toPrettyString(getType().name());
     }
 }

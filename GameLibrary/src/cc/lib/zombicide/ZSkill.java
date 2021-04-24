@@ -512,7 +512,7 @@ public enum ZSkill implements IButton {
 
     @Override
     public String getLabel() {
-        return name().replace('_', ' ');
+        return Utils.toPrettyString(name());
     }
 
     /**
