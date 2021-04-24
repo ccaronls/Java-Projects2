@@ -101,7 +101,7 @@ public abstract class UIZombicide extends ZGame {
         }
     }
 
-    static class HoverMessage extends ZAnimation {
+    class HoverMessage extends ZAnimation {
 
         private final String msg;
         private final IVector2D center;
@@ -114,8 +114,9 @@ public abstract class UIZombicide extends ZGame {
 
         @Override
         protected void draw(AGraphics g, float position, float dt) {
+            float zoom = board.getZoom()+1;
             Vector2D v = new Vector2D(center);
-            v = v.sub(0, position);
+            v = v.sub(0, position/zoom);
             float t = g.getTextHeight();
             g.setTextHeight(20);
             g.setColor(GColor.YELLOW.withAlpha(1f-position));
@@ -365,7 +366,34 @@ public abstract class UIZombicide extends ZGame {
     @Override
     protected void onAttack(ZCharacter attacker, ZWeapon weapon, ZActionType actionType, int numDice, int numHits, int targetZone) {
 
-        if (attacker.getOccupiedZone() != targetZone && actionType.isRanged()) {
+        if (actionType == ZActionType.MELEE) {
+
+            Lock animLock = new Lock(numDice);
+
+            for (int i=0; i<numDice; i++) {
+                int id = Utils.randItem(ZIcon.SLASH.imageIds);
+                GRectangle rect = attacker.getRect(board).scaledBy(1.3f).movedBy(Utils.randFloatX(.1f), Utils.randFloatX(.1f));
+
+                boardRenderer.addPostActor(new ZAnimation(400) {
+                    @Override
+                    protected void draw(AGraphics g, float position, float dt) {
+                        AImage img = g.getImage(id);
+                        g.setTransparencyFilter(1f-position);
+                        g.drawImage(id, rect.fit(img));
+                        g.removeFilter();
+                    }
+
+                    @Override
+                    protected void onDone() {
+                        animLock.release();
+                    }
+                });
+                Utils.waitNoThrow(this, 100);
+            }
+
+
+
+        } else if (attacker.getOccupiedZone() != targetZone && actionType.isRanged()) {
 
             //ZZone start = getBoard().getZone(attacker.getOccupiedZone());
             ZZone end   = getBoard().getZone(targetZone);

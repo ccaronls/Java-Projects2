@@ -26,11 +26,11 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="@id/list_menu">
-        
+
         <Button
-            android:id="@+id/b_zoomin"
+            android:id="@+id/b_zoomout"
             android:layout_columnWeight="1"
-            android:text="+"/>
+            android:text="-"/>
 
         <Button
             android:id="@+id/b_up"
@@ -38,9 +38,9 @@
             android:text="^"/>
 
         <Button
-            android:id="@+id/b_zoomout"
+            android:id="@+id/b_zoomin"
             android:layout_columnWeight="1"
-            android:text="-"/>
+            android:text="+"/>
 
         <Button
             android:id="@+id/b_left"

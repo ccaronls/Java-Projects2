@@ -506,6 +506,10 @@ public class ZBoard extends Reflector<ZBoard> {
         }
     }
 
+    public int getZoom() {
+        return zoom;
+    }
+
     int getMaxZoom() {
         return Math.min(getRows(), getColumns());
     }

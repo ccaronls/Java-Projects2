@@ -264,4 +264,10 @@ public final class GRectangle extends Reflector<GRectangle> implements IRectangl
     public GRectangle withCenter(IVector2D cntr) {
         return new GRectangle(cntr.getX()-w/2, cntr.getY()-h/2, w, h);
     }
+
+    public GRectangle movedBy(float dx, float dy) {
+        x+=dx;
+        y+=dy;
+        return this;
+    }
 }

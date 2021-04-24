@@ -119,7 +119,9 @@ public class ZMove implements IButton {
     @Override
     public String getLabel() {
         String label = Utils.toPrettyString(type.name());
-        if (equipment != null)
+        if (toSlot != null)
+            label += " " + toSlot.getLabel();
+        else if (equipment != null)
             label += " " + equipment.getLabel();
         return label;
     }

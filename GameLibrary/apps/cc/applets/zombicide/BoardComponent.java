@@ -140,6 +140,11 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
             { ZIcon.TORCH, "ztorch_icon.gif" },
             { ZIcon.ARROW, "zarrow_icon.gif" },
             { ZIcon.SPAWN, "zspawn.gif" },
+            { ZIcon.SLASH, "zslash1.gif" },
+            { ZIcon.SLASH, "zslash2.gif" },
+            { ZIcon.SLASH, "zslash3.gif" },
+            { ZIcon.SLASH, "zslash4.gif" },
+            { ZIcon.SLASH, "zslash5.gif" },
         };
 
         Map<Object, List<Integer>> objectToImageMap = new HashMap<>();
@@ -237,6 +242,7 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
             ZIcon.CLAWS.imageIds = Utils.toIntArray(objectToImageMap.get(ZIcon.CLAWS));
             ZIcon.SHIELD.imageIds = Utils.toIntArray(objectToImageMap.get(ZIcon.SHIELD));
             ZIcon.SLIME.imageIds = Utils.toIntArray(objectToImageMap.get(ZIcon.SLIME));
+            ZIcon.SLASH.imageIds = Utils.toIntArray(objectToImageMap.get(ZIcon.SLASH));
         }
 
         {

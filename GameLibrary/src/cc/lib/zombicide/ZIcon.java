@@ -11,7 +11,8 @@ public enum ZIcon {
     TORCH,
     FIRE,
     ARROW,
-    SPAWN
+    SPAWN,
+    SLASH
     ;
 
     public int [] imageIds;

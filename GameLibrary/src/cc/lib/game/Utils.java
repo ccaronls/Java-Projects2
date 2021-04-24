@@ -1623,6 +1623,17 @@ public class Utils {
         return copy;
     }
 
+    public static <T> T[] copyOf(T [] arr) {
+        if (arr == null)
+            return null;
+        Class<? extends T[]> newType = (Class<? extends T[]>) arr.getClass();
+        T[] copy = ((Object)newType == (Object)Object[].class)
+                ? (T[]) new Object[arr.length]
+                : (T[]) Array.newInstance(newType.getComponentType(), arr.length);
+        System.arraycopy(arr, 0, copy, 0, arr.length);
+        return copy;
+    }
+
     public static <T> List<T> asList(T[] arr, int start, int num) {
         List<T> list = new ArrayList<T>();
         for (int i = 0; i < num; i++) {

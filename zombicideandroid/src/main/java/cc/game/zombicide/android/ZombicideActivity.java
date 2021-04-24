@@ -17,6 +17,8 @@ import android.widget.ListView;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -28,6 +30,7 @@ import cc.lib.zombicide.ZDiffuculty;
 import cc.lib.zombicide.ZDir;
 import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZQuests;
+import cc.lib.zombicide.ZSkill;
 import cc.lib.zombicide.ZUser;
 import cc.lib.zombicide.ui.UIZBoardRenderer;
 import cc.lib.zombicide.ui.UIZCharacterRenderer;
@@ -115,7 +118,8 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
         ASSIGN,
         SUMMARY,
         DIFFICULTY,
-        OBJECTIVES;
+        OBJECTIVES,
+        SKILLS;
 
         boolean isHomeButton(ZombicideActivity instance) {
             switch (this) {
@@ -123,6 +127,7 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                 case START:
                 case ASSIGN:
                 case DIFFICULTY:
+                case SKILLS:
                     return true;
                 case RESUME:
                     return instance.gameFile != null && instance.gameFile.exists();
@@ -218,7 +223,7 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                 }
                 case LOAD:
                     newDialogBuilder().setTitle("Load Quest")
-                            .setItems(Utils.toStringArray(ZQuests.values()), new DialogInterface.OnClickListener() {
+                            .setItems(Utils.toStringArray(ZQuests.values(), true), new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     ZQuests q = ZQuests.values()[which];
@@ -230,7 +235,7 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                             }).setNegativeButton("CANCEL", null).show();
                     break;
                 case ASSIGN:
-                    openAssignDislaog();
+                    openAssignDialog();
                     break;
                 case DIFFICULTY: {
                     newDialogBuilder().setTitle("DIFFICULTY: " + getSavedDifficulty())
@@ -243,10 +248,40 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                                 }
                             }).setNegativeButton("CANCEL", null).show();
                 }
+                case SKILLS: {
+                    showSkillsDialog();
+                }
             }
 
         }
     };
+
+    void showSkillsDialog() {
+        ZSkill [] sorted = Utils.copyOf(ZSkill.values());//, ZSkill.values().length);
+        Arrays.sort(sorted, new Comparator<ZSkill>() {
+            @Override
+            public int compare(ZSkill o1, ZSkill o2) {
+                return o1.name().compareTo(o2.name());
+            }
+        });
+        newDialogBuilder().setTitle("SKILLS")
+                .setItems(Utils.toStringArray(sorted, true), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        ZSkill skill = sorted[which];
+                        newDialogBuilder().setTitle(skill.getLabel())
+                                .setMessage(skill.description)
+                                .setNegativeButton("CANCEL", null)
+                                .setPositiveButton("BACK", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        showSkillsDialog();
+                                    }
+                                }).show();
+                    }
+                }).setNegativeButton("CANCEL", null).show();
+
+    }
 
     void initHomeMenu() {
         List<View> buttons = new ArrayList<>();
@@ -303,7 +338,7 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
     }
 
 
-    void openAssignDislaog() {
+    void openAssignDialog() {
         Set<String> selectedPlayers = new HashSet(getPrefs().getStringSet("players", getDefaultPlayers()));
 
         RecyclerView recyclerView = new RecyclerView(this);
