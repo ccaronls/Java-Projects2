@@ -7,13 +7,10 @@ import cc.lib.game.AGraphics;
 import cc.lib.game.AImage;
 import cc.lib.game.GColor;
 import cc.lib.game.GRectangle;
-import cc.lib.game.IRectangle;
-import cc.lib.game.IVector2D;
 import cc.lib.game.Justify;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
-import cc.lib.math.Bezier;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 import cc.lib.ui.IButton;
@@ -24,6 +21,7 @@ import cc.lib.zombicide.ZActor;
 import cc.lib.zombicide.ZActorAnimation;
 import cc.lib.zombicide.ZAnimation;
 import cc.lib.zombicide.ZCharacter;
+import cc.lib.zombicide.ZAttackType;
 import cc.lib.zombicide.ZDir;
 import cc.lib.zombicide.ZDoor;
 import cc.lib.zombicide.ZGame;
@@ -34,6 +32,19 @@ import cc.lib.zombicide.ZSkill;
 import cc.lib.zombicide.ZWeapon;
 import cc.lib.zombicide.ZZombie;
 import cc.lib.zombicide.ZZone;
+import cc.lib.zombicide.anims.AscendingAngelDeathAnimation;
+import cc.lib.zombicide.anims.DeathAnimation;
+import cc.lib.zombicide.anims.EarthquakeAnimation;
+import cc.lib.zombicide.anims.ElectrocutionAnimation;
+import cc.lib.zombicide.anims.FireballAnimation;
+import cc.lib.zombicide.anims.HoverMessage;
+import cc.lib.zombicide.anims.InfernoAnimation;
+import cc.lib.zombicide.anims.LightningAnimation;
+import cc.lib.zombicide.anims.MagicAnimation;
+import cc.lib.zombicide.anims.MeleeAnimation;
+import cc.lib.zombicide.anims.ShootAnimation;
+import cc.lib.zombicide.anims.SlashedAnimation;
+import cc.lib.zombicide.anims.ThrowAnimation;
 
 public abstract class UIZombicide extends ZGame {
 
@@ -82,6 +93,38 @@ public abstract class UIZombicide extends ZGame {
     public List getOptions() {
         return options;
     }
+/*
+    class ThrowAnimation extends ZActorAnimation {
+
+        final int zone;
+        final ZIcon icon;
+        Bezier curve=null;
+
+        ThrowAnimation(ZActor actor, int targetZone, ZIcon icon) {
+            super(actor, 1000);
+            this.zone = targetZone;
+            this.icon = icon;
+        }
+
+        @Override
+        protected void draw(AGraphics g, float position, float dt) {
+            if (curve == null) {
+                curve = Bezier.build(actor.getRect(board).getCenter(), board.getZone(zone).getCenter(), .5f);
+            }
+            int idx = Math.round(position * (icon.imageIds.length-1));
+            int id = icon.imageIds[idx];
+
+            AImage img = g.getImage(id);
+            GRectangle rect = actor.getRect(board).scaledBy(.5f).fit(img);
+            rect.setCenter(curve.getPointAt(position));
+            g.drawImage(id, rect);
+        }
+
+        @Override
+        protected boolean hidesActor() {
+            return false;
+        }
+    }
 
     static class DeathAnimation extends ZActorAnimation {
 
@@ -125,29 +168,257 @@ public abstract class UIZombicide extends ZGame {
         }
     }
 
+    class InfernoAnimation extends ZAnimation {
+
+        InfernoAnimation(int zoneIndex) {
+            super(2000);
+            this.zone = zoneIndex;
+        }
+
+        final int zone;
+        float index = 0;
+
+        @Override
+        protected void draw(AGraphics g, float position, float dt) {
+            for (Grid.Pos pos : board.getZone(zone).getCells()) {
+                IRectangle rect = board.getCell(pos);
+                int idx = ((int)index) % ZIcon.FIRE.imageIds.length;
+                g.drawImage(ZIcon.FIRE.imageIds[idx], rect);
+                index += .2f;
+            }
+        }
+    }
+
+    class FireballAnimation extends ZActorAnimation {
+
+        final Vector2D path;
+        final Vector2D start;
+        final GRectangle rect;
+
+        FireballAnimation(ZActor actor, Vector2D end) {
+            super(actor, 500);
+            this.rect = actor.getRect(board).scaledBy(.5f);
+            this.start = rect.getCenter();
+            path = end.sub(start);
+            setDuration(Math.round(path.mag()* 700));
+        }
+
+        @Override
+        protected void draw(AGraphics g, float position, float dt) {
+            int id = Utils.randItem(ZIcon.FIREBALL.imageIds);
+            AImage img = g.getImage(id);
+            //GRectangle rect = attacker.getRect(board).scaledBy(.5f).fit(img);
+            Vector2D pos = start.add(path.scaledBy(position));
+            GRectangle r = rect.fit(img).setCenter(pos);
+            g.drawImage(id, r);
+        }
+    }
+
+    class LightningAnimation extends ZActorAnimation {
+
+        Vector2D dv;
+        final float mag;
+        final Vector2D start, end;
+        final LinkedList<Vector2D>[] sections;// = new LinkedList<>();
+        final float sectionLen;
+        final int numSections;
+        int curRepeat = -1;
+
+        public LightningAnimation(ZActor actor, int targetZone, int strands) {
+            super(actor, 150, 3);
+            final int sections = 4;
+            start = actor.getRect(board).getCenter();
+            end = board.getZone(targetZone).getCenter().add(Vector2D.newRandom(.3f));
+            dv = end.sub(start);
+            mag = dv.mag();
+            dv = dv.scaledBy(1.0f / mag);
+            numSections = sections;
+            sectionLen = mag / (numSections+1);
+            this.sections = new LinkedList[strands];
+            for (int i=0; i<strands; i++) {
+                this.sections[i] = new LinkedList<>();
+            }
+        }
+
+        @Override
+        protected void draw(AGraphics g, float position, float dt) {
+            int r = getRepeat();
+            if (r != curRepeat) {
+                curRepeat = r;
+                for (List l : sections) {
+                    l.clear();
+                    l.add(start);
+                }
+            }
+
+            float randLenFactor = .8f;
+            float randAngFactor = 30;
+
+            if (position <= .52f) {
+
+                int sec = Utils.clamp(Math.round(position * 2 * (numSections + 1))+1, 1, numSections+1);
+
+                for (LinkedList<Vector2D> l : sections) {
+                    while (sec > l.size()) {
+                        float m = sectionLen * (l.size() + 1);
+                        MutableVector2D n = l.getFirst().add(dv.scaledBy(randLenFactor * m));
+                        //n.addEq(Vector2D.newRandom(sectionLen / (maxRandomFactor/sec)));
+                        n.addEq(dv.rotate(Utils.randFloatX(randAngFactor)).scaledBy((1f-randLenFactor) * m));
+                        l.add(n);
+                    }
+                }
+            } else {
+                for (LinkedList<Vector2D> l : sections) {
+                    int sec = (numSections + 1) - Math.round((position - .5f) * 2 * (numSections + 1));
+                    if (sec < 1)
+                        sec = 1;
+                    while (sec < l.size()) {
+                        l.removeFirst();
+                    }
+                }
+            }
+
+            g.setColor(GColor.WHITE);
+            g.setLineWidth(2);
+            for (LinkedList<Vector2D> l : sections) {
+                g.begin();
+                for (Vector2D v : l) {
+                    g.vertex(v);
+                }
+                g.drawLineStrip();
+                g.end();
+            }
+        }
+
+        @Override
+        protected boolean hidesActor() {
+            return false;
+        }
+    }
+
+    class MeleeAnimation extends ZActorAnimation {
+
+        final int id;
+        final GRectangle rect;
+
+        public MeleeAnimation(ZActor actor) {
+            super(actor, 400);
+            id = Utils.randItem(ZIcon.SLASH.imageIds);
+            rect = actor.getRect(board).scaledBy(1.3f).movedBy(Vector2D.newRandom(.1f));
+        }
+
+        @Override
+        protected void draw(AGraphics g, float position, float dt) {
+            AImage img = g.getImage(id);
+            g.setTransparencyFilter(1f - position);
+            g.drawImage(id, rect.fit(img));
+            g.removeFilter();
+        }
+
+        @Override
+        protected boolean hidesActor() {
+            return false;
+        }
+    }
+
+    class ShootAnimation extends ZActorAnimation {
+
+        final ZIcon icon;
+        final ZDir dir;
+        final GRectangle rect;
+        final Vector2D start, path;
+
+        public ShootAnimation(ZActor actor, long duration, int targetZone, ZIcon icon) {
+            super(actor, duration);
+            this.icon = icon;
+            ZZone end   = getBoard().getZone(targetZone);
+            rect = actor.getRect(board).scaledBy(.5f);
+            start = rect.getCenter();
+            Vector2D dv = end.getCenter().sub(start);
+            dir = ZDir.getFromVector(dv);
+            path = end.getCenter().addEq(Vector2D.newRandom(.3f)).sub(start);
+            setDuration(Math.round(path.mag() * duration));
+        }
+
+        @Override
+        protected void draw(AGraphics g, float position, float dt) {
+            int id = ZIcon.ARROW.imageIds[dir.ordinal()];
+            AImage img = g.getImage(id);
+            Vector2D pos = start.add(path.scaledBy(position));
+            g.drawImage(id, rect.fit(img).setCenter(pos));
+        }
+    }
+
+    class MagicAnimation extends ZActorAnimation {
+
+        Vector2D start, end, dv;
+        final int numArcs;
+        final float startAngle;
+        final float sweepAngle;
+        final float radius;
+
+        MagicAnimation(ZActor actor, int targetZone) {
+            this(actor, actor.getRect(board).getCenter(), board.getZone(targetZone).getCenter(), 5, 20);
+        }
+
+        MagicAnimation(ZActor actor, Vector2D start, Vector2D end, int numArcs, float sweepAngle) {
+            super(actor, 1000);
+            this.start = start;
+            this.end = end;
+            this.numArcs = numArcs;
+            this.sweepAngle = sweepAngle;
+            this.radius = end.sub(start).mag();
+            this.startAngle = end.sub(start).angleOf() - sweepAngle / 2;
+            this.dv = end.sub(start).scaledBy(1f / numArcs);
+        }
+
+        @Override
+        protected void draw(AGraphics g, float position, float dt) {
+            g.setColor(GColor.WHITE);
+            g.setLineWidth(3);
+            float radiusStep = radius / numArcs;
+            if (position <= .5f) {
+                // draw the arcs emitting from the start
+                int numArcsToDraw = Math.round(position * 2 * numArcs);
+                g.drawFilledCircle(start, 1);
+                float r = radiusStep;
+                for (int i=0; i<numArcsToDraw; i++) {
+                    g.drawArc(start, r, startAngle, sweepAngle);
+                    r += radiusStep;
+                }
+                g.drawArc(start, position*2*radius, startAngle, sweepAngle);
+            } else {
+                // draw the arcs backward from end
+                int numArcsToDraw = Math.round(2 * (1f - position) * numArcs);
+                float r = numArcs*radiusStep;
+                for (int i=0; i<numArcsToDraw; i++) {
+                    g.drawArc(start, r, startAngle, sweepAngle);
+                    r -= radiusStep;
+                }
+                g.drawArc(start, (position-.5f)*2*radius, startAngle, sweepAngle);
+            }
+        }
+    }
+
+    class EarthquakeAnimation extends ZActorAnimation {
+        public EarthquakeAnimation(ZActor actor) {
+            super(actor, 2000);
+        }
+
+        @Override
+        protected void draw(AGraphics g, float position, float dt) {
+            g.pushMatrix();
+            g.translate(Vector2D.newRandom(position/8));
+            g.drawImage(actor.getImageId(), actor.getRect());
+            g.popMatrix();
+        }
+
+    }*/
+
     @Override
     protected void onDragonBileThrown(ZCharacter actor, int zone) {
         if (actor.getOccupiedZone() != zone) {
-            actor.addAnimation(new ZActorAnimation(actor, 1000) {
-
-                Bezier curve;
-
-                @Override
-                protected void draw(AGraphics g, float position, float dt) {
-                    if (curve == null) {
-                        curve = Bezier.build(actor.getRect(board).getCenter(), board.getZone(zone).getCenter(), .5f);
-                    }
-                    int idx = Math.round(position * (ZIcon.DRAGON_BILE.imageIds.length-1));
-                    int id = ZIcon.DRAGON_BILE.imageIds[idx];
-
-                    AImage img = g.getImage(id);
-                    GRectangle rect = actor.getRect(board).scaledBy(.5f).fit(img);
-                    rect.setCenter(curve.getPointAt(position));
-                    g.drawImage(id, rect);
-                    g.drawImage(actor.getImageId(), actor.getRect(board));
-                }
-
-            });
+            actor.addAnimation(new ThrowAnimation(actor, board, zone, ZIcon.DRAGON_BILE));
             waitForAnimationToComplete(1000);
         }
     }
@@ -155,40 +426,12 @@ public abstract class UIZombicide extends ZGame {
     @Override
     protected void onTorchThrown(ZCharacter actor, int zone) {
         if (actor.getOccupiedZone() != zone) {
-            actor.addAnimation(new ZActorAnimation(actor, 1000) {
-
-                Bezier curve;
-
-                @Override
-                protected void draw(AGraphics g, float position, float dt) {
-                    if (curve == null) {
-                        curve = Bezier.build(actor.getRect(board).getCenter(), board.getZone(zone).getCenter(), .5f);
-                    }
-                    int idx = Math.round(position * (ZIcon.TORCH.imageIds.length-1));
-                    int id = ZIcon.TORCH.imageIds[idx];//((int)angle)%ZIcon.DRAGON_BILE.imageIds.length];
-
-                    AImage img = g.getImage(id);
-                    GRectangle rect = actor.getRect(board).scaledBy(.5f).fit(img);
-                    rect.setCenter(curve.getPointAt(position));
-                    g.drawImage(id, rect);
-                    g.drawImage(actor.getImageId(), actor.getRect(board));
-                }
+            actor.addAnimation(new ThrowAnimation(actor, board, zone, ZIcon.TORCH) {
 
                 @Override
                 protected void onDone() {
-                    boardRenderer.addPostActor(new ZAnimation(2000) {
-                        float index = 0;
-
-                        @Override
-                        protected void draw(AGraphics g, float position, float dt) {
-                            for (Grid.Pos pos : board.getZone(zone).getCells()) {
-                                IRectangle rect = board.getCell(pos);
-                                int idx = ((int)index) % ZIcon.FIRE.imageIds.length;
-                                g.drawImage(ZIcon.FIRE.imageIds[idx], rect);
-                                index += .2f;
-                            }
-                        }
-                    });
+                    super.onDone();
+                    boardRenderer.addPostActor(new InfernoAnimation(board, zone));
                 }
             });
             waitForAnimationToComplete(1000);
@@ -196,9 +439,31 @@ public abstract class UIZombicide extends ZGame {
     }
 
     @Override
-    protected void onZombieDestroyed(ZCharacter c, ZZombie zombie) {
-        //zombie.addAnimation(new DeathAnimation(zombie));
-        boardRenderer.addPreActor(new DeathAnimation(zombie));
+    protected void onZombieDestroyed(ZCharacter c, ZAttackType deathType, ZZombie zombie) {
+        Lock lock = new Lock();
+        switch (deathType) {
+
+            case ELECTROCUTION:
+                lock.acquire();
+                zombie.addAnimation(new ElectrocutionAnimation(zombie) {
+                    @Override
+                    protected void onDone() {
+                        super.onDone();
+                        lock.release();
+                    }
+                });
+                lock.block();
+            case FIRE:
+            case DISINTEGRATION:
+            case BLADE:
+            case CRUSH:
+            case ARROW:
+            case EARTHQUAKE:
+            case MENTAL_STRIKE:
+            case NORMAL:
+            default:
+                boardRenderer.addPreActor(new DeathAnimation(zombie));
+        }
     }
 
     @Override
@@ -260,47 +525,31 @@ public abstract class UIZombicide extends ZGame {
     }
 
     @Override
-    protected void onCharacterPerished(ZCharacter character) {
-        character.addAnimation(new DeathAnimation(character) {
-            @Override
-            protected void draw(AGraphics g, float position, float dt) {
-                super.draw(g, position, dt);
-                GRectangle rect = new GRectangle(actor.getRect(board));
-                rect.y -= rect.h * 3 * position;
-                g.setTransparencyFilter(1f-position);
-                g.drawImage(actor.getImageId(), rect);
-                g.removeFilter();
-            }
-        });
-        boardRenderer.redraw();
+    protected void onCharacterAttacked(ZCharacter character, ZAttackType attackType, boolean perished) {
+        switch (attackType) {
+            case ELECTROCUTION:
+                character.addAnimation(new ElectrocutionAnimation(character));
+                break;
+            case NORMAL:
+            case FIRE:
+            case DISINTEGRATION:
+            case BLADE:
+            case CRUSH:
+            case ARROW:
+            case EARTHQUAKE:
+            case MENTAL_STRIKE:
+            default:
+                character.addAnimation(new SlashedAnimation(character));
+        }
+        if (perished) {
+            character.addAnimation(new AscendingAngelDeathAnimation(character));
+        }
     }
 
-    @Override
-    protected void onCharacterWounded(ZCharacter character) {
-        boardRenderer.addPostActor(new ZAnimation(1000) {
-
-            int claws = Utils.randItem(ZIcon.CLAWS.imageIds);
-            GRectangle rect;
-
-            @Override
-            protected void draw(AGraphics g, float position, float dt) {
-                if (rect == null) {
-                    AImage img = g.getImage(claws);
-                    rect = character.getRect(board).fit(img);
-                }
-                if (!isRunning())
-                    return;
-                g.setTransparencyFilter(1f-position);
-                g.drawImage(claws, rect);
-                g.removeFilter();
-            }
-        });
-        boardRenderer.redraw();
-    }
 
     @Override
     protected void onCharacterGainedExperience(ZCharacter c, int points) {
-        boardRenderer.addPostActor(new HoverMessage(String.format("+%d EXP", points), c.getRect().getCenter()));
+        boardRenderer.addPostActor(new HoverMessage(board, String.format("+%d EXP", points), c.getRect().getCenter()));
         Utils.waitNoThrow(this, 500);
     }
 
@@ -326,7 +575,7 @@ public abstract class UIZombicide extends ZGame {
 
     @Override
     protected void onNewSkillAquired(ZCharacter c, ZSkill skill) {
-        boardRenderer.addPostActor(new HoverMessage(String.format("%s Aquired", skill.getLabel()), c.getRect().getCenter()));
+        boardRenderer.addPostActor(new HoverMessage(board, String.format("%s Aquired", skill.getLabel()), c.getRect().getCenter()));
         characterRenderer.addMessage(String.format("%s has aquired the %s skill", c.getLabel(), skill.getLabel()));
     }
 
@@ -360,7 +609,7 @@ public abstract class UIZombicide extends ZGame {
 
     @Override
     protected void onWeaponGoesClick(ZCharacter c, ZWeapon weapon) {
-        boardRenderer.addPostActor(new HoverMessage("CLICK", c.getRect().getCenter()));
+        boardRenderer.addPostActor(new HoverMessage(board, "CLICK", c.getRect().getCenter()));
     }
 
     @Override
@@ -369,63 +618,100 @@ public abstract class UIZombicide extends ZGame {
         if (actionType == ZActionType.MELEE) {
 
             Lock animLock = new Lock(numDice);
-
             for (int i=0; i<numDice; i++) {
-                int id = Utils.randItem(ZIcon.SLASH.imageIds);
-                GRectangle rect = attacker.getRect(board).scaledBy(1.3f).movedBy(Utils.randFloatX(.1f), Utils.randFloatX(.1f));
-
-                boardRenderer.addPostActor(new ZAnimation(400) {
-                    @Override
-                    protected void draw(AGraphics g, float position, float dt) {
-                        AImage img = g.getImage(id);
-                        g.setTransparencyFilter(1f-position);
-                        g.drawImage(id, rect.fit(img));
-                        g.removeFilter();
-                    }
-
+                attacker.addAnimation(new MeleeAnimation(attacker, board) {
                     @Override
                     protected void onDone() {
+                        super.onDone();
                         animLock.release();
                     }
                 });
                 Utils.waitNoThrow(this, 100);
             }
+            animLock.block();
 
+        } else if (actionType.isRanged()) {
 
-
-        } else if (attacker.getOccupiedZone() != targetZone && actionType.isRanged()) {
-
-            //ZZone start = getBoard().getZone(attacker.getOccupiedZone());
-            ZZone end   = getBoard().getZone(targetZone);
-            Vector2D start = attacker.getRect().getCenter();
-            Vector2D dv = end.getCenter().sub(start);
-            ZDir dir = ZDir.getFromVector(dv);
             Lock animLock = new Lock(numDice);
-
             for (int i=0; i<numDice; i++) {
-
-                Vector2D path = end.getCenter().addEq(Utils.randFloatX(.3f), Utils.randFloatX(.3f)).sub(start);
-                long dur = Math.round(path.mag() * 500);
-                boardRenderer.addPostActor(new ZAnimation(dur) {
-
-                    @Override
-                    protected void draw(AGraphics g, float position, float dt) {
-                        int id = ZIcon.ARROW.imageIds[dir.ordinal()];
-                        AImage img = g.getImage(id);
-                        GRectangle rect = attacker.getRect(board).scaledBy(.5f).fit(img);
-                        Vector2D pos = start.add(path.scaledBy(position));
-                        rect.setCenter(pos);
-                        g.drawImage(id, rect);
-                    }
+                attacker.addAnimation(new ShootAnimation(attacker, board,500, targetZone, ZIcon.ARROW) {
 
                     @Override
                     protected void onDone() {
+                        super.onDone();
                         animLock.release();
                     }
+
                 });
                 Utils.waitNoThrow(this, 200);
             }
             animLock.block();
+        } else if (weapon.isMagic()) {
+
+            switch (weapon.getType()) {
+                case DEATH_STRIKE:
+                case MANA_BLAST:
+                case DISINTEGRATE: {
+                    Lock animLock = new Lock(1);
+                    attacker.addAnimation(new MagicAnimation(attacker, board, targetZone) {
+                        @Override
+                        protected void onDone() {
+                            super.onDone();
+                            animLock.release();
+                        }
+                    });
+                    animLock.block();
+                    break;
+                }
+                case FIREBALL: {
+                    Lock animLock = new Lock(numDice);
+                    for (int i = 0; i < numDice; i++) {
+
+                        Vector2D end = board.getZone(targetZone).getCenter().add(Vector2D.newRandom(0.3f));
+                        attacker.addAnimation(new FireballAnimation(attacker, board, end) {
+                            @Override
+                            protected void onDone() {
+                                super.onDone();
+                                animLock.release();
+                            }
+                        });
+                        Utils.waitNoThrow(this, 200);
+                    }
+                    animLock.block();
+                    break;
+                }
+                case INFERNO: {
+                    boardRenderer.addPreActor(new InfernoAnimation(board, targetZone));
+                    waitForAnimationToComplete(1000);
+                    break;
+                }
+                case LIGHTNING_BOLT: {
+                    Lock animLock = new Lock(1);
+                    attacker.addAnimation(new LightningAnimation(attacker, board, targetZone, numDice) {
+                        @Override
+                        protected void onDone() {
+                            animLock.release();
+                        }
+                    });
+                    animLock.block();
+                    break;
+                }
+                case EARTHQUAKE: {
+                    Lock animLock = new Lock();
+                    for (ZZombie z : board.getZombiesInZone(targetZone)) {
+                        animLock.acquire();
+                        z.addAnimation(new EarthquakeAnimation(z) {
+                            @Override
+                            protected void onDone() {
+                                super.onDone();
+                                animLock.release();
+                            }
+                        });
+                    }
+                    animLock.block();
+                    break;
+                }
+            }
         }
     }
 

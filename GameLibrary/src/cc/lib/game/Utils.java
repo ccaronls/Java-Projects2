@@ -1361,7 +1361,7 @@ public class Utils {
      */
     public static void shuffle(Object[] elems, int start, int end) {
         for (int i = 0; i < 1000; i++) {
-            int a = Utils.randRange(start, end - 1);
+            int a = i%elems.length;//Utils.randRange(start, end - 1);
             int b = Utils.randRange(start, end - 1);
             Utils.swapElems(elems, a, b);
         }
@@ -1371,7 +1371,7 @@ public class Utils {
         if (elems == null || elems.size() == 0)
             return;
         for (int i = 0; i < 1000; i++) {
-            int a = Utils.rand() % elems.size();
+            int a = i%elems.size();//Utils.rand() % elems.size();
             int b = Utils.rand() % elems.size();
             Utils.swapElems(elems, a, b);
         }
@@ -1399,8 +1399,8 @@ public class Utils {
      */
     public static void shuffle(int[] elems, int start, int end) {
         for (int i = 0; i < 1000; i++) {
-            int a = Utils.randRange(start, end - 1);
-            int b = Utils.randRange(start, end - 1);
+            int a = i%elems.length;//Utils.randRange(start, end - 1);
+            int b = Utils.randRange(start, end-1);
             Utils.swapElems(elems, a, b);
         }
     }
@@ -1410,14 +1410,14 @@ public class Utils {
      * @param len
      */
     public static void shuffle(int[] elems, int len) {
-        shuffle(elems, 0, len - 1);
+        shuffle(elems, 0, len);
     }
 
     /**
      * @param elems
      */
     public static void shuffle(int[] elems) {
-        shuffle(elems, 0, elems.length - 1);
+        shuffle(elems, 0, elems.length);
     }
 
     /**
@@ -1427,8 +1427,8 @@ public class Utils {
      */
     public static void shuffle(float[] elems, int start, int end) {
         for (int i = 0; i < 1000; i++) {
-            int a = Utils.randRange(start, end);
-            int b = Utils.randRange(start, end);
+            int a = i%elems.length;//Utils.randRange(start, end);
+            int b = Utils.randRange(start, end-1);
             Utils.swapElems(elems, a, b);
         }
     }
@@ -1438,14 +1438,14 @@ public class Utils {
      * @param len
      */
     public static void shuffle(float[] elems, int len) {
-        shuffle(elems, 0, len - 1);
+        shuffle(elems, 0, len);
     }
 
     /**
      * @param elems
      */
     public static void shuffle(float[] elems) {
-        shuffle(elems, 0, elems.length - 1);
+        shuffle(elems, 0, elems.length);
     }
 
     /**

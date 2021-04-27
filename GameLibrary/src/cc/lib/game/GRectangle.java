@@ -1,6 +1,7 @@
 package cc.lib.game;
 
 import cc.lib.math.MutableVector2D;
+import cc.lib.math.Vector2D;
 import cc.lib.utils.Reflector;
 
 public final class GRectangle extends Reflector<GRectangle> implements IRectangle {
@@ -268,6 +269,38 @@ public final class GRectangle extends Reflector<GRectangle> implements IRectangl
     public GRectangle movedBy(float dx, float dy) {
         x+=dx;
         y+=dy;
+        return this;
+    }
+
+    public GRectangle movedBy(IVector2D dv) {
+        x+=dv.getX();
+        y+=dv.getY();
+        return this;
+    }
+
+    /**
+     * Add a rectangle to this such that the bound of this grow to contain all of input.
+     * This rect will never be reduces in size.
+     *
+     * @param x
+     * @param y
+     * @param w
+     * @param h
+     * @return
+     */
+    public GRectangle addEq(float x, float y, float w, float h) {
+        return addEq(new GRectangle(x, y, w, h));
+    }
+
+    /**
+     *
+     * @param g
+     * @return
+     */
+    public GRectangle addEq(GRectangle g) {
+        Vector2D tl = getTopLeft().minEq(g.getTopLeft());
+        Vector2D br = getBottomRight().maxEq(g.getBottomRight());
+        set(tl, br);
         return this;
     }
 }

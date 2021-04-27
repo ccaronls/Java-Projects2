@@ -148,6 +148,10 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
 
     protected abstract void paint(AWTGraphics g, int mouseX, int mouseY);
 
+    /**
+     * Called on first call from paint
+     * @param g
+     */
     protected void init(AWTGraphics g) {
     }
 

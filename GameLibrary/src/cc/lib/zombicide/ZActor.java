@@ -95,7 +95,7 @@ public abstract class ZActor<E extends Enum<E>> extends Reflector<ZActor<E>> imp
     }
 
     public void addAnimation(ZActorAnimation anim) {
-        if (animation == null) {
+        if (animation == null || animation.isDone()) {
             animation = anim;
         } else {
             animation.add(anim);
@@ -115,17 +115,20 @@ public abstract class ZActor<E extends Enum<E>> extends Reflector<ZActor<E>> imp
     }
 
     public void draw(AGraphics g) {
-        if (animation != null) {
+        if (animation != null && !animation.isDone()) {
             if (animation.isDone()) {
                 animation = null;
             } else {
+                if (!animation.hidesActor())
+                    g.drawImage(getImageId(), getRect());
+
                 if (!animation.isStarted())
                     animation.start();
                 animation.update(g);
-                return;
             }
+        } else {
+            g.drawImage(getImageId(), getRect());
         }
-        g.drawImage(getImageId(), getRect());
     }
 
     int getPriority() {

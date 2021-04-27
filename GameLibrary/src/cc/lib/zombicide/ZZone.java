@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cc.lib.game.AGraphics;
+import cc.lib.game.GRectangle;
 import cc.lib.game.IShape;
 import cc.lib.game.Utils;
 import cc.lib.math.MutableVector2D;
@@ -47,6 +48,18 @@ public class ZZone extends Reflector<ZZone> implements IShape {
         }
         v.scaleEq(1f / cells.size());
         return v;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public GRectangle getRectangle() {
+        GRectangle rect = new GRectangle();
+        for (Grid.Pos p : cells) {
+            rect.addEq(p.getRow(), p.getColumn(), 1, 1);
+        }
+        return rect;
     }
 
     @Override

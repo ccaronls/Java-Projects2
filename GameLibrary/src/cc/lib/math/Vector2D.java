@@ -489,4 +489,14 @@ public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializ
     protected boolean isImmutable() {
         return true;
     }
+
+    public static Vector2D newPolar(float degrees, float magnitude) {
+        float y = CMath.sine(degrees) * magnitude;
+        float x = CMath.cosine(degrees) * magnitude;
+        return new Vector2D(x, y);
+    }
+
+    public static Vector2D newRandom(float magnitude) {
+        return newPolar(Utils.randFloat(360), magnitude);
+    }
 }

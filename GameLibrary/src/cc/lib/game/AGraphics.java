@@ -1147,7 +1147,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param rect
      */
     public final void drawRect(IRectangle rect) {
-        drawRect(rect.X(), rect.Y(), rect.X(), rect.getHeight());
+        drawRect(rect.X(), rect.Y(), rect.getWidth(), rect.getHeight());
     }
 
     /**
@@ -1317,6 +1317,17 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
 
     /**
      *
+     * @param v
+     * @param radius
+     * @param startDegrees
+     * @param sweepDegrees
+     */
+    public void drawArc(IVector2D v, float radius, float startDegrees, float sweepDegrees) {
+        drawArc(v.getX(), v.getY(), radius, startDegrees, sweepDegrees);
+    }
+
+    /**
+     *
      * @param x
      * @param y
      * @param radius
@@ -1430,7 +1441,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param y
      * @param r
      */
-    public final void drawFilledCircle(float x, float y, float r) {
+    public void drawFilledCircle(float x, float y, float r) {
         drawFilledOval(x-r, y-r, r*2, r*2);
     }
 

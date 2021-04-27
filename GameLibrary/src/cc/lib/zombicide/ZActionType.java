@@ -64,4 +64,12 @@ public enum ZActionType {
         }
         return false;
     }
+
+    public boolean isMagic() {
+        switch (this) {
+            case MAGIC:
+                return true;
+        }
+        return false;
+    }
 }

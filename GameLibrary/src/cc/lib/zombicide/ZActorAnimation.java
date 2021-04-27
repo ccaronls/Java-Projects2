@@ -10,6 +10,11 @@ public abstract class ZActorAnimation extends ZAnimation {
         this.actor = actor;
     }
 
+    public ZActorAnimation(ZActor actor, long durationMSecs, int repeats) {
+        super(durationMSecs, repeats);
+        this.actor = actor;
+    }
+
     @Override
     protected void onDone() {
         if (next != null) {
@@ -25,5 +30,7 @@ public abstract class ZActorAnimation extends ZAnimation {
             next.add(anim);
     }
 
-
+    protected boolean hidesActor() {
+        return true;
+    }
 }

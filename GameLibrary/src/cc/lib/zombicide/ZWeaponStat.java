@@ -8,12 +8,14 @@ public class ZWeaponStat {
     int numDice;
     int dieRollToHit;
     int damagePerHit;
+    ZAttackType attackType;
 
     public ZWeaponStat() {
-        this(0, 0, 0, 0, 0, 0);
+        this(null, 0, 0, 0, 0, 0, 0);
     }
 
-    public ZWeaponStat(int dieRollToOpenDoor, int minRange, int maxRange, int numDice, int dieRollToHit, int damagePerHit) {
+    public ZWeaponStat(ZAttackType attackType, int dieRollToOpenDoor, int minRange, int maxRange, int numDice, int dieRollToHit, int damagePerHit) {
+        this.attackType = attackType;
         this.dieRollToOpenDoor = dieRollToOpenDoor;
         this.minRange = minRange;
         this.maxRange = maxRange;
@@ -23,7 +25,7 @@ public class ZWeaponStat {
     }
 
     ZWeaponStat copy() {
-        return new ZWeaponStat(dieRollToOpenDoor, minRange, maxRange, numDice, dieRollToHit, damagePerHit);
+        return new ZWeaponStat(attackType, dieRollToOpenDoor, minRange, maxRange, numDice, dieRollToHit, damagePerHit);
     }
 
     public int getDamagePerHit() {
@@ -48,5 +50,9 @@ public class ZWeaponStat {
 
     public int getDieRollToHit() {
         return dieRollToHit;
+    }
+
+    public ZAttackType getAttackType() {
+        return attackType;
     }
 }

@@ -601,7 +601,7 @@ public class AWTGraphics extends APGraphics {
         MutableVector2D br = new MutableVector2D(cx+radius, cy+radius);
         transform(tl);
         transform(br);
-        g.drawArc(tl.Xi(), tl.Yi(), br.Xi()-tl.Xi(), br.Yi()-tl.Yi(), Math.round(startDegrees), Math.round(startDegrees+sweepDegrees));
+        g.drawArc(tl.Xi(), tl.Yi(), br.Xi()-tl.Xi(), br.Yi()-tl.Yi(), 360-Math.round(startDegrees), Math.round(sweepDegrees));
     }
 
     @Override

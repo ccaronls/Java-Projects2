@@ -22,12 +22,13 @@ public abstract class AAnimation<T> {
     private boolean startDirectionReverse = false;
     private long startTime;
     private long lastTime;
-    private final long duration;
+    private long duration;
     private final int maxRepeats;
     private float position = 0;
     private State state = State.PRESTART;
     private boolean reverse = false; // 1 for forward, -1 for reversed
     private final boolean oscilateOnRepeat;
+    private int curRepeat = 0;
 
     enum State {
         PRESTART, STARTED, RUNNING, STOPPED, DONE
@@ -39,6 +40,11 @@ public abstract class AAnimation<T> {
      */
     public AAnimation(long durationMSecs) {
         this(durationMSecs, 0);
+    }
+
+    public void setDuration(long duration) {
+        Utils.assertTrue(state == State.PRESTART);
+        this.duration = duration;
     }
 
     /**
@@ -147,7 +153,7 @@ public abstract class AAnimation<T> {
                 state = State.RUNNING;
                 lastTime = t;
                 if (startDirectionReverse) {
-                    onStartedRevered();
+                    onStartedReversed();
                 } else {
                     onStarted();
                 }
@@ -174,6 +180,11 @@ public abstract class AAnimation<T> {
                 }
             }
             dt = (float)(t-lastTime)/duration;
+            int r;
+            if (curRepeat != (r=getRepeat())) {
+                onRepeat(r);
+                curRepeat = r;
+            }
             draw(g, position, dt);
         } else {
             draw(g, position, dt);
@@ -228,7 +239,9 @@ public abstract class AAnimation<T> {
      */
     protected void onStarted() {}
 
-    protected void onStartedRevered() {}
+    protected void onStartedReversed() {}
+
+    protected void onRepeat(int n) {}
 
     public final boolean isStartDirectionReverse() {
         return startDirectionReverse;
@@ -283,5 +296,7 @@ public abstract class AAnimation<T> {
     public final boolean isRunning() {
         return state == State.RUNNING;
     }
+
+
 
 }

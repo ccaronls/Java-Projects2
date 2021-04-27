@@ -714,6 +714,22 @@ public class DroidGraphics extends APGraphics {
     }
 
     @Override
+    public void drawFilledCircle(float x, float y, float radius) {
+        setRectF(x-radius, y-radius, x+radius, y+radius);
+        float width = rectf.width();
+        float height = rectf.height();
+        if (width < height) {
+            rectf.top = rectf.centerY() - width/2;
+            rectf.bottom = rectf.centerY() + width/2;
+        } else {
+            rectf.left = rectf.centerX() - height/2;
+            rectf.right = rectf.centerX() + height/2;
+        }
+        paint.setStyle(Paint.Style.FILL_AND_STROKE);
+        canvas.drawOval(rectf, paint);
+    }
+
+    @Override
     public void drawOval(float x, float y, float w, float h) {
         setRectF(x, y, x+w, y+h);
         paint.setStyle(Paint.Style.STROKE);

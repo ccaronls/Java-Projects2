@@ -80,13 +80,13 @@ public class ZGame extends Reflector<ZGame>  {
     }
 
     private void initDice() {
-        int num=1;
+        int num=6;
         // make sure even distribution of 1-6 numbers otherwise we can ge alot of repeats
         for (int i=0; i<dice.length; i++) {
             dice[i] = num;
-            num++;
-            if (num==7)
-                num=1;
+            num--;
+            if (num==0)
+                num=6;
         }
         Utils.shuffle(dice);
     }
@@ -581,7 +581,7 @@ public class ZGame extends Reflector<ZGame>  {
                                     getCurrentUser().showMessage(victim.name() + " defends against " + zombie.name());
                                     onCharacterDefends(victim, zombie);
                                 } else {
-                                    playerWounded(victim, 1, zombie.type.name());
+                                    playerWounded(victim, ZAttackType.NORMAL, 1, zombie.type.name());
                                 }
                             } else {
                                 if (path == null) {
@@ -680,24 +680,21 @@ public class ZGame extends Reflector<ZGame>  {
 
     }
 
-    void playerWounded(ZCharacter victim, int amount, String reason) {
+    void playerWounded(ZCharacter victim, ZAttackType attackType, int amount, String reason) {
         victim.woundBar += amount;
         if (victim.isDead()) {
             getCurrentUser().showMessage(victim.name() + " has been killed by a " + reason);
-            onCharacterPerished(victim);
+            onCharacterAttacked(victim, attackType, true);
             removeCharacter(victim);
         } else {
             getCurrentUser().showMessage(victim.name() + " has been wounded by a " + reason);
-            onCharacterWounded(victim);
+            onCharacterAttacked(victim, attackType, false);
         }
 
     }
 
 
-    protected void onCharacterPerished(ZCharacter character) {
-    }
-
-    protected void onCharacterWounded(ZCharacter character) {
+    protected void onCharacterAttacked(ZCharacter character, ZAttackType attackType, boolean characterPerished) {
     }
 
     protected void onTorchThrown(ZCharacter c, int zone) {
@@ -905,8 +902,8 @@ public class ZGame extends Reflector<ZGame>  {
 
                     for (int i=0; i<hits && zombies.size() > 0; i++) {
                         ZZombie z = zombies.remove(0);
+                        destroyZombie(z, stat.attackType, cur);
                         addExperience(cur, z.type.expProvided);
-                        destroyZombie(z, cur);
                     }
                     if (weapon.isAttackNoisy()) {
                         addNoise(cur.occupiedZone, 1);
@@ -966,8 +963,8 @@ public class ZGame extends Reflector<ZGame>  {
                             for (int i=0; i<hits && zombies.size() > 0; i++) {
                                 ZZombie zombie = zombies.remove(0);
                                 if (zombie.type.minDamageToDestroy <= stat.damagePerHit) {
+                                    destroyZombie(zombie, stat.attackType, cur);
                                     addExperience(cur, zombie.type.expProvided);
-                                    destroyZombie(zombie, cur);
                                 }
                             }
 
@@ -989,7 +986,7 @@ public class ZGame extends Reflector<ZGame>  {
                                     if (playerDefends(victim, ZZombieType.Walker)) {
                                         getCurrentUser().showMessage(victim.name() + " defended thyself from friendly fire!");
                                     } else {
-                                        playerWounded(victim, stat.damagePerHit, "Friendly Fire!");
+                                        playerWounded(victim, stat.getAttackType(), stat.damagePerHit, "Friendly Fire!");
                                         if (victim.isDualWeilding())
                                             friendlyFireOptions.remove(0);
                                     }
@@ -1039,12 +1036,12 @@ public class ZGame extends Reflector<ZGame>  {
                                         if (a instanceof ZZombie) {
                                             ZZombie z = (ZZombie)a;
                                             exp += z.type.expProvided;
-                                            destroyZombie(z, cur);
+                                            destroyZombie(z, ZAttackType.FIRE, cur);
                                             num++;
                                         } else if (a instanceof ZCharacter) {
                                             // characters caught in the zone get wounded
                                             ZCharacter c = (ZCharacter)a;
-                                            playerWounded(c, 4, "Exploding Dragon Bile");
+                                            playerWounded(c, ZAttackType.FIRE, 4, "Exploding Dragon Bile");
                                         }
                                     }
                                     addExperience(cur, exp);
@@ -1344,7 +1341,7 @@ public class ZGame extends Reflector<ZGame>  {
                 for (int i = 0; i < hits && zombies.size() > 0; i++) {
                     ZZombie z = zombies.remove(0);
                     addExperience(cur, z.type.expProvided);
-                    destroyZombie(z, cur);
+                    destroyZombie(z, stat.attackType, cur);
                 }
                 if (slot.isAttackNoisy()) {
                     addNoise(cur.occupiedZone, 1);
@@ -1391,7 +1388,7 @@ public class ZGame extends Reflector<ZGame>  {
                                 ZZombie zombie = zombies.remove(0);
                                 if (zombie.type.minDamageToDestroy <= stat.damagePerHit) {
                                     addExperience(cur, zombie.type.expProvided);
-                                    destroyZombie(zombie, cur);
+                                    destroyZombie(zombie, stat.attackType, cur);
                                 }
                             }
 
@@ -1411,7 +1408,7 @@ public class ZGame extends Reflector<ZGame>  {
                                 if (playerDefends(victim, ZZombieType.Walker)) {
                                     getCurrentUser().showMessage(victim.name() + " defended themself from friendly fire!");
                                 } else {
-                                    playerWounded(victim, stat.damagePerHit, "Freindly Fire!");
+                                    playerWounded(victim, stat.getAttackType(), stat.damagePerHit, "Freindly Fire!");
                                     if (victim.isDualWeilding())
                                         friendlyFireOptions.remove(0);
                                 }
@@ -1559,13 +1556,13 @@ public class ZGame extends Reflector<ZGame>  {
         log.info("Rolling dice result is: %s", Arrays.toString(roll));
     }
 
-    private void destroyZombie(ZZombie zombie, ZCharacter killer) {
+    private void destroyZombie(ZZombie zombie, ZAttackType deathType, ZCharacter killer) {
         killer.onKilledZombie(zombie);
-        onZombieDestroyed(killer, zombie);
+        onZombieDestroyed(killer, deathType, zombie);
         board.removeActor(zombie);
     }
 
-    protected void onZombieDestroyed(ZCharacter c, ZZombie zombie) {
+    protected void onZombieDestroyed(ZCharacter c, ZAttackType deathType, ZZombie zombie) {
         log.info("%s Zombie %s destroyed for %d experience", c.name(), zombie.type.name(), zombie.type.expProvided);
     }
 
