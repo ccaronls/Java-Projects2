@@ -157,6 +157,10 @@ public class ZBoardView extends UIComponentView implements UIZComponent<DroidGra
                 R.drawable.zslime_icon
         };
 
+        ZIcon.FIREBALL.imageIds = new int[] {
+                R.drawable.zfireball
+        };
+
         ids = ZIcon.ARROW.imageIds = new int[4];
         ids[ZDir.EAST.ordinal()] = R.drawable.zarrow_icon;
         ids[ZDir.WEST.ordinal()] = g.newRotatedImage(R.drawable.zarrow_icon, 180);

@@ -1,5 +1,7 @@
 package cc.lib.zombicide.quests;
 
+import java.util.List;
+
 import cc.lib.game.Utils;
 import cc.lib.utils.Grid;
 import cc.lib.utils.Table;
@@ -12,6 +14,7 @@ import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZQuest;
 import cc.lib.zombicide.ZTile;
 import cc.lib.zombicide.ZZombieType;
+import cc.lib.zombicide.ZZone;
 
 public class ZQuestBigGameHunting extends ZQuest {
 
@@ -21,9 +24,9 @@ public class ZQuestBigGameHunting extends ZQuest {
 
     @Omit
     String [][] map = {
-            { "z0:i:wn:ww:ds:gvd1",  "z29:i:wn:de:ws:red:odw", "z1:sp:wn:de",      "z2:i:wn:ode:ws",   "z3:i:red:wn:ode:ws",   "z9:i:vd2:wn:we",  "z28:v:wn:we:vd2" },
-            { "z5:ww",              "z6",                     "z7",                     "z8:we",            "z9:i:ods",           "z9:i:ods:we",     "z28:v:we" },
-            { "z10:ww:we:start",    "z11:i:ww:wn::ws:red:ode","z12:i:wn:ds:ode",        "z13:i:wn:red:ds:we","z14:i:ws:we:odn",   "z15:i:ds:we:odn", "z28:v:we:ws:vd3" },
+            { "z0:i:wn:ww:ds:gvd1",  "z29:i:wn:de:ws:red:odw", "z1:sp:wn:de",      "z2:i:wn:ode:ws",   "z3:i:wn:ode:ws",   "z9:i:vd2:wn:we",  "z28:v:wn:we:vd2" },
+            { "z5:ww",              "z6",                     "z7",                     "z8:we",            "z9:i:ods",           "z9:i:ods:we:red",     "z28:v:we" },
+            { "z10:ww:we:start",    "z11:i:ww:wn::ws:red:ode","z12:i:wn:ds:ode",        "z13:i:wn:red:ds:ode","z14:i:ws:we:odn",   "z15:i:ds:we:odn", "z28:v:we:ws:vd3" },
             { "z16:ww:ds",          "z17",                    "z18",                    "z19",              "z20",                "z21:we:spe:dn:ds", "z27:v:we:gvd1" },
             { "z22:i:ww:we:vd3",    "z23",                    "z24:i:wn:ww:we",         "z25:i:wn",         "z25:i:wn",           "z25:i:dn:we",     "z27:v:we" },
             { "z22:i:ww:red:ws:de", "z26:ws:sps:de",           "z24:i:red:ww:we:ws:dw",  "z25:i:ws",         "z25:i:blue:ws",      "z25:i:ws:gvd4:we", "z27:v:we:ws:gvd4" }
@@ -32,6 +35,7 @@ public class ZQuestBigGameHunting extends ZQuest {
 
     int blueObjZone = -1;
     int blueRevealZone = -1;
+    boolean skipKillAbomination=false;
 
     public ZQuestBigGameHunting() {
         super("Big Game Hunting");
@@ -46,13 +50,25 @@ public class ZQuestBigGameHunting extends ZQuest {
     public void processObjective(ZGame game, ZCharacter c, ZMove move) {
         super.processObjective(game, c, move);
         // check for necro / abom in special spawn places
-        game.getBoard().getZone(c.getOccupiedZone()).objective = false;
+        game.getBoard().getZone(c.getOccupiedZone()).setObjective(false);
         if (move.integer == blueRevealZone) {
             redObjectives.add(blueObjZone);
             game.getCurrentUser().showMessage("The Labratory objective is revealed!");
-            game.getBoard().getZone(blueObjZone).objective = true;
+            game.getBoard().getZone(blueObjZone).setObjective(true);
             game.spawnZombies(1, ZZombieType.Necromancer, blueObjZone);
             blueRevealZone = -1;
+        }
+        if (redObjectives.size() == 0 && game.getNumKills(ZZombieType.Abomination) == 0) {
+            if (Utils.filter(game.getBoard().getAllZombies(), object -> object.getType()==ZZombieType.Abomination).size() == 0) {
+                // spawn an abomination somewhere far form where all the characters are
+                List<ZZone> spawnZones = game.getBoard().getSpawnZones();
+                if (spawnZones.size() > 0) {
+                    ZZone zone = Utils.randItem(spawnZones);
+                    game.spawnZombies(1, ZZombieType.Abomination, zone.getZoneIndex());
+                } else {
+                    skipKillAbomination = true;
+                }
+            }
         }
     }
 
@@ -74,7 +90,7 @@ public class ZQuestBigGameHunting extends ZQuest {
     @Override
     public void init(ZGame game) {
         blueRevealZone = Utils.randItem(redObjectives);
-        game.getBoard().getZone(blueObjZone).objective = false; // this does not get revealed until the blueRevealZone found
+        game.getBoard().getZone(blueObjZone).setObjective(false); // this does not get revealed until the blueRevealZone found
     }
 
     @Override
@@ -92,21 +108,24 @@ public class ZQuestBigGameHunting extends ZQuest {
         boolean allObjCollected = redObjectives.size() == 0 && blueRevealZone < 0;
         boolean exposeLaboratory = blueRevealZone < 0;
         boolean necroKilled = game.getNumKills(ZZombieType.Necromancer) > 0;
-        boolean abimKilled = game.getNumKills(ZZombieType.Abomination) > 0;
+        boolean abomKilled = game.getNumKills(ZZombieType.Abomination) > 0;
 
         return new Table(getName())
                 .addRow(new Table().setNoBorder()
                     .addRow("1.", "Collect all objectives. One of the objectives\nexposes the laboratory objective.", allObjCollected)
                     .addRow("2.", "Find the Laboratory Objective", exposeLaboratory)
                     .addRow("3.", "Kill at least 1 Necromancer.", necroKilled)
-                    .addRow("4.", "Kill at least 1 Abomination.", abimKilled)
+                    .addRow("4.", "Kill at least 1 Abomination.", abomKilled)
                     .addRow("5.", "Not all players need to survive.")
                 );
     }
 
     @Override
     public boolean isQuestComplete(ZGame game) {
-        return redObjectives.size() == 0 && blueRevealZone < 0 && game.getNumKills(ZZombieType.Abomination) > 0 && game.getNumKills(ZZombieType.Necromancer) > 0;
+        return redObjectives.size() == 0
+                && blueRevealZone < 0
+                && (skipKillAbomination || game.getNumKills(ZZombieType.Abomination) > 0)
+                && game.getNumKills(ZZombieType.Necromancer) > 0;
     }
 
     @Override

@@ -114,21 +114,25 @@ public abstract class ZActor<E extends Enum<E>> extends Reflector<ZActor<E>> imp
         return animation;
     }
 
-    public void draw(AGraphics g) {
+    public void drawOrAnimate(AGraphics g) {
         if (animation != null && !animation.isDone()) {
             if (animation.isDone()) {
                 animation = null;
             } else {
                 if (!animation.hidesActor())
-                    g.drawImage(getImageId(), getRect());
+                    draw(g);
 
                 if (!animation.isStarted())
                     animation.start();
                 animation.update(g);
             }
         } else {
-            g.drawImage(getImageId(), getRect());
+            draw(g);
         }
+    }
+
+    public void draw(AGraphics g) {
+        g.drawImage(getImageId(), getRect());
     }
 
     int getPriority() {

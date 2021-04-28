@@ -25,13 +25,19 @@ public class ZZone extends Reflector<ZZone> implements IShape {
 
     final List<ZDoor> doors = new ArrayList<>();
     public ZZoneType type = ZZoneType.OUTDOORS;
-    public int noiseLevel;
-    public boolean isSpawn;
+    int noiseLevel;
+    boolean spawn;
     private boolean dragonBile;
-    public boolean objective;
+    boolean objective;
     int nextCell = 0;
+    final int zoneIndex;
 
     public ZZone() {
+        this(-1);
+    }
+
+    ZZone(int zoneIndex) {
+        this.zoneIndex = zoneIndex;
     }
 
     public boolean canSpawn() {
@@ -103,5 +109,29 @@ public class ZZone extends Reflector<ZZone> implements IShape {
                 return true;
         }
         return false;
+    }
+
+    public int getZoneIndex() {
+        return zoneIndex;
+    }
+
+    public ZZoneType getType() {
+        return type;
+    }
+
+    public int getNoiseLevel() {
+        return noiseLevel;
+    }
+
+    public void setObjective(boolean objective) {
+        this.objective = objective;
+    }
+
+    public boolean isObjective() {
+        return objective;
+    }
+
+    public boolean isSpawn() {
+        return spawn;
     }
 }

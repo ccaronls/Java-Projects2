@@ -33,4 +33,9 @@ public class FireballAnimation extends ZActorAnimation {
         GRectangle r = rect.fit(img).setCenter(pos);
         g.drawImage(id, r);
     }
+
+    @Override
+    protected boolean hidesActor() {
+        return false;
+    }
 }

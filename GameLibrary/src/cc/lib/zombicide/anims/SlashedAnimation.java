@@ -25,4 +25,9 @@ public class SlashedAnimation extends ZActorAnimation {
         g.drawImage(claws, rect.fit(img));
         g.removeFilter();
     }
+
+    @Override
+    protected boolean hidesActor() {
+        return false;
+    }
 }

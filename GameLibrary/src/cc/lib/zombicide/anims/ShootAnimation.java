@@ -37,4 +37,9 @@ public class ShootAnimation extends ZActorAnimation {
         Vector2D pos = start.add(path.scaledBy(position));
         g.drawImage(id, rect.fit(img).setCenter(pos));
     }
+
+    @Override
+    protected boolean hidesActor() {
+        return false;
+    }
 }

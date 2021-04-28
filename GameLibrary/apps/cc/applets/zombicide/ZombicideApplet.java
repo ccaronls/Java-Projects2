@@ -64,22 +64,22 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
         AWTFrame frame = new AWTFrame("Zombicide");
         ZombicideApplet app = new ZombicideApplet() {
             @Override
-            protected <T extends Enum<T>> List<T> getEnumListProperty(String property, Class className, List<T> defaultList) {
+            public <T extends Enum<T>> List<T> getEnumListProperty(String property, Class className, List<T> defaultList) {
                 return frame.getEnumListProperty(property, className, defaultList);
             }
 
             @Override
-            protected String getStringProperty(String property, String defaultValue) {
+            public String getStringProperty(String property, String defaultValue) {
                 return frame.getStringProperty(property, defaultValue);
             }
 
             @Override
-            protected void setStringProperty(String s, String v) {
+            public void setStringProperty(String s, String v) {
                 frame.setProperty(s, v);
             }
 
             @Override
-            protected <T extends Enum<T>> void setEnumListProperty(String s, Collection<T> l) {
+            public <T extends Enum<T>> void setEnumListProperty(String s, Collection<T> l) {
                 frame.setEnumListProperty(s, l);
             }
         };
@@ -117,6 +117,10 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
+                }
+
+                if (isGameOver()) {
+                    initHomeMenu();
                 }
             }
 

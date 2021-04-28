@@ -278,7 +278,7 @@ public class ZBoard extends Reflector<ZBoard> {
 
     public void setSpawnZone(int zoneIdx, boolean isSpawn) {
         ZZone zone = zones.get(zoneIdx);
-        zone.isSpawn = isSpawn;
+        zone.spawn = isSpawn;
         getCell(zone.cells.get(0)).setCellType(ZCellType.SPAWN_NORTH, true);
     }
 
@@ -311,7 +311,7 @@ public class ZBoard extends Reflector<ZBoard> {
      * @param actor
      * @param zoneIndex
      */
-    public void addActor(ZActor actor, int zoneIndex) {
+    public boolean addActor(ZActor actor, int zoneIndex) {
         ZZone zone = zones.get(zoneIndex);
         boolean added = false;
         for (int c=0;!added && c < zone.cells.size(); c++) {
@@ -338,8 +338,9 @@ public class ZBoard extends Reflector<ZBoard> {
                     minPos = pos;
                 }
             }
-            addActorToCell(actor, minPos);
+            return addActorToCell(actor, minPos);
         }
+        return added;
     }
 
     public void moveActor(ZActor actor, int toZone) {
@@ -420,7 +421,7 @@ public class ZBoard extends Reflector<ZBoard> {
         return Utils.filter((List)getAllLiveActors(), (Utils.Filter<ZActor>) object -> object instanceof ZCharacter);
     }
 
-    public void addActorToCell(ZActor actor, Grid.Pos pos) {
+    public boolean addActorToCell(ZActor actor, Grid.Pos pos) {
         ZCell cell = getCell(pos);
         ZCellQuadrant current = actor.occupiedQuadrant;
         if (current == null) {
@@ -431,12 +432,13 @@ public class ZBoard extends Reflector<ZBoard> {
         }
         Utils.assertTrue(current != null);
         if (cell.getOccupant(current) != null && cell.getOccupant(current).getPriority() >= actor.getPriority())
-            return;
+            return false;
         cell.setQuadrant(actor, current);
         actor.occupiedZone = cell.zoneIndex;
         actor.occupiedCell = pos;
         actor.occupiedQuadrant = current;
         zones.get(cell.zoneIndex).noiseLevel += actor.getNoise();
+        return true;
     }
 
     public void getUndiscoveredIndoorZones(Grid.Pos startPos, Set<Integer> undiscovered) {
@@ -529,4 +531,13 @@ public class ZBoard extends Reflector<ZBoard> {
             return ZDir.SOUTH;
         return ZDir.EAST;
     }
+
+    public List<ZZone> getZonesOfType(ZZoneType type) {
+        return Utils.filter(new ArrayList<>(zones), object -> object.type == type);
+    }
+
+    public List<ZZone> getSpawnZones() {
+        return Utils.filter(new ArrayList<>(zones), object -> object.isSpawn());
+    }
+
 }

@@ -262,6 +262,7 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
         log.debug("Images: " + objectToImageMap);
         numImagesLoaded = totalImagesToLoad;
         ZombicideApplet.instance.onAllImagesLoaded();
+        renderer.setDrawTiles(ZombicideApplet.instance.getStringProperty("tiles", "no").equals("yes"));
         repaint();
     }
 
@@ -331,6 +332,7 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
         switch (e.getKeyCode()) {
             case KeyEvent.VK_T:
                 renderer.toggleDrawTiles();
+                ZombicideApplet.instance.setStringProperty("tiles", renderer.isDrawTiles() ? "yes" : "no");
                 break;
         }
         repaint();

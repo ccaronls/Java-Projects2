@@ -208,7 +208,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
                         maxZone = Math.max(maxZone, index);
                         zone = zoneMap.get(index);
                         if (zone == null) {
-                            zone = new ZZone();
+                            zone = new ZZone(index);
                             zoneMap.put(index, zone);
                         }
                         zone.cells.add(new Grid.Pos(row, col));

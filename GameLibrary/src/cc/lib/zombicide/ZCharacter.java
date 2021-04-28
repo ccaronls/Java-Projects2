@@ -414,13 +414,19 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
             info.addColumn("Skills", skills);
         }
 
-        Table main = new Table().setNoBorder()
-                .addRow(String.format("%s (%s) moves: %d/%d Body:%s Actions:%s",
-                name.getLabel(), name.characterClass,
-                getActionsLeftThisTurn(), getActionsPerTurn(),
-                Arrays.toString(name.alternateBodySlots),
-                actionsDoneThisTurn))
-                .addRow(info);
+        Table main = new Table().setNoBorder();
+        if (isDead()) {
+                main.addRow(String.format("%s (%s) Killed in Action",
+                    name.getLabel(), name.characterClass));
+        } else {
+            main.addRow(String.format("%s (%s) moves: %d/%d Body:%s Actions:%s",
+                    name.getLabel(), name.characterClass,
+                    getActionsLeftThisTurn(), getActionsPerTurn(),
+                    Arrays.toString(name.alternateBodySlots),
+                    actionsDoneThisTurn));
+
+        }
+        main.addRow(info);
         return main;
     }
 
@@ -443,14 +449,35 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
 
     public List<ZEquipSlot> getEquipableSlots(ZEquipment equip) {
         List<ZEquipSlot> options = new ArrayList<>();
+        boolean alreadyInBackpack = false;
+        boolean canEquip = !isBackpackFull();
+        if (!canEquip) {
+            for (ZEquipment e : backpack) {
+                if (e == equip) {
+                    canEquip = true;
+                    break;
+                }
+            }
+        }
         switch (equip.getSlotType()) {
             case BODY:
-                return Arrays.asList(ZEquipSlot.BODY);
-            case HAND:
-                options.add(ZEquipSlot.LEFT_HAND);
-                options.add(ZEquipSlot.RIGHT_HAND);
-                if (Utils.linearSearch(name.alternateBodySlots, equip.getType()) >= 0) {
+                if (body == null || canEquip)
                     options.add(ZEquipSlot.BODY);
+                break;
+            case HAND:
+                if (leftHand == null || canEquip)
+                    options.add(ZEquipSlot.LEFT_HAND);
+                if (rightHand == null || canEquip)
+                    options.add(ZEquipSlot.RIGHT_HAND);
+                if (body == null || canEquip) {
+                    if (Utils.linearSearch(name.alternateBodySlots, equip.getType()) >= 0) {
+                        options.add(ZEquipSlot.BODY);
+                    }
+                }
+                break;
+            case BACKPACK:
+                if (!isBackpackFull()) {
+                    options.add(ZEquipSlot.BACKPACK);
                 }
                 break;
         }
@@ -663,12 +690,21 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
         equip.slot = null;
     }
 
-    boolean isHolding(ZEquipmentType type) {
+    /**
+     * Return true if a equip type is in any of the users slots or backpack
+     * @param type
+     * @return
+     */
+    boolean isInPossession(ZEquipmentType type) {
         for (ZEquipment e : getAllEquipment()) {
             if (e.getType().equals(type))
                 return true;
         }
         return false;
+    }
+
+    boolean isEquiped(ZEquipmentType type) {
+        return Utils.filterItems((ZEquipment e) -> e.getType() == type, leftHand, rightHand, body).size() > 0;
     }
 
     boolean canReroll(ZActionType action) {
@@ -677,9 +713,9 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
 
         switch (action) {
             case RANGED_ARROWS:
-                return isHolding(ZItemType.PLENTY_OF_ARROWS);
+                return isInPossession(ZItemType.PLENTY_OF_ARROWS);
             case RANGED_BOLTS:
-                return isHolding(ZItemType.PLENTY_OF_BOLTS);
+                return isInPossession(ZItemType.PLENTY_OF_BOLTS);
         }
         return false;
     }

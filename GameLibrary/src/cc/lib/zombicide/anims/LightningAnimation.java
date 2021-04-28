@@ -90,4 +90,9 @@ public class LightningAnimation extends ZActorAnimation {
             g.end();
         }
     }
+
+    @Override
+    protected boolean hidesActor() {
+        return false;
+    }
 }

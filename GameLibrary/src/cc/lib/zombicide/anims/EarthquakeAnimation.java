@@ -18,4 +18,8 @@ public class EarthquakeAnimation extends ZActorAnimation {
         g.popMatrix();
     }
 
+    @Override
+    protected boolean hidesActor() {
+        return false;
+    }
 }

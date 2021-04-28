@@ -279,7 +279,7 @@ public class UIZBoardRenderer extends UIRenderer {
                 if (a.isInvisible()) {
                     g.setTransparencyFilter(.5f);
                 }
-                a.draw(g);
+                a.drawOrAnimate(g);
                 if (a.isAnimating()) {
                     actorsAnimating = true;
                 }
@@ -359,7 +359,7 @@ public class UIZBoardRenderer extends UIRenderer {
                             case OBJECTIVE_BLUE:
                             case OBJECTIVE_GREEN:
                             case OBJECTIVE_RED:
-                                if (zone.objective) {
+                                if (zone.isObjective()) {
                                     // draw a big red X om the center of the cell
                                     GRectangle redX = new GRectangle(cell).scaledBy(.25f, .25f);
                                     g.setColor(type.getColor());
@@ -371,22 +371,22 @@ public class UIZBoardRenderer extends UIRenderer {
                                 text += "EXIT";
                                 break;
                             case SPAWN_NORTH:
-                                if (zone.isSpawn) {
+                                if (zone.isSpawn()) {
                                     drawSpawn(g, cell, ZDir.NORTH);
                                 }
                                 break;
                             case SPAWN_SOUTH:
-                                if (zone.isSpawn) {
+                                if (zone.isSpawn()) {
                                     drawSpawn(g, cell, ZDir.SOUTH);
                                 }
                                 break;
                             case SPAWN_EAST:
-                                if (zone.isSpawn) {
+                                if (zone.isSpawn()) {
                                     drawSpawn(g, cell, ZDir.EAST);
                                 }
                                 break;
                             case SPAWN_WEST:
-                                if (zone.isSpawn) {
+                                if (zone.isSpawn()) {
                                     drawSpawn(g, cell, ZDir.WEST);
                                 }
                                 break;
@@ -401,9 +401,9 @@ public class UIZBoardRenderer extends UIRenderer {
                     g.drawJustifiedStringOnBackground(cell.getCenter(), Justify.CENTER, Justify.CENTER, text, GColor.TRANSLUSCENT_BLACK, 10, 2);
                 }
             }
-            if (zone.noiseLevel > 0) {
+            if (zone.getNoiseLevel() > 0) {
                 g.setColor(GColor.BLACK);
-                g.drawJustifiedString(zone.getCenter(), Justify.CENTER, Justify.CENTER, String.valueOf(zone.noiseLevel));
+                g.drawJustifiedString(zone.getCenter(), Justify.CENTER, Justify.CENTER, String.valueOf(zone.getNoiseLevel()));
             }
         }
         ZZone maxNoise = board.getMaxNoiseLevelZone();
@@ -968,6 +968,10 @@ public class UIZBoardRenderer extends UIRenderer {
 
     public ZActor getHighlightedActor() {
         return highlightedActor;
+    }
+
+    public boolean isDrawTiles() {
+        return drawTiles;
     }
 
 }

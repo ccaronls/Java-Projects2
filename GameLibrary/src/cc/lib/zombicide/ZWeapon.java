@@ -24,7 +24,7 @@ public class ZWeapon extends ZEquipment<ZWeaponType> {
     int getOpenDoorValue() {
         if (!canOpenDoor())
             return 0;
-        return 7-type.meleeStats.dieRollToOpenDoor + (type.openDoorsIsNoisy ? 1 : 0);
+        return 7-type.meleeStats.dieRollToOpenDoor + (type.openDoorsIsNoisy ? 0 : 1);
     }
 
     @Override
