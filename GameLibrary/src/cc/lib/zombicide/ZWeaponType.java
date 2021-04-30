@@ -1,6 +1,9 @@
 package cc.lib.zombicide;
 
+import java.util.List;
+
 import cc.lib.annotation.Keep;
+import cc.lib.game.Utils;
 
 @Keep
 public enum ZWeaponType implements ZEquipmentType<ZWeapon> {
@@ -59,6 +62,16 @@ public enum ZWeaponType implements ZEquipmentType<ZWeapon> {
     final ZWeaponStat rangedStats;
     final ZWeaponStat magicStats;
 
+    List<ZWeaponStat> getStats() {
+        return Utils.filterItems(new Utils.Filter<ZWeaponStat>() {
+            @Override
+            public boolean keep(ZWeaponStat object) {
+                return object != null;
+            }
+        }, Utils.toArray(meleeStats, rangedStats, magicStats));
+    }
+
+    /*
     ZWeaponStat getStat(ZActionType type) {
         switch (type) {
             case MELEE:
@@ -70,7 +83,7 @@ public enum ZWeaponType implements ZEquipmentType<ZWeapon> {
                 return rangedStats;
         }
         return null;
-    }
+    }*/
 
     @Override
     public ZWeapon create() {

@@ -16,7 +16,7 @@ public interface ZEquipmentType<T extends ZEquipment> extends IButton {
 
     @Override
     default String getTooltipText() {
-        return Utils.toPrettyString(name());
+        return null;
     }
 
 

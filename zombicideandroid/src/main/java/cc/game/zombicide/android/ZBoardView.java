@@ -7,6 +7,7 @@ import android.util.Log;
 import cc.lib.android.DroidGraphics;
 import cc.lib.android.UIComponentView;
 import cc.lib.game.GDimension;
+import cc.lib.game.Utils;
 import cc.lib.zombicide.ZDir;
 import cc.lib.zombicide.ZIcon;
 import cc.lib.zombicide.ZPlayerName;
@@ -34,8 +35,10 @@ public class ZBoardView extends UIComponentView implements UIZComponent<DroidGra
 
     @Override
     protected void preDrawInit(DroidGraphics g) {
-        g.setTextHeight(getResources().getDimension(R.dimen.board_text_size));
+        g.setTextModePixels(true);
+        g.setTextHeight(getResources().getDimension(R.dimen.board_view_text_size));
         g.setLineThicknessModePixels(false);
+        //g.getPaint().setStrokeWidth(getResources().getDimension(R.dimen.default_line_width));
         super.preDrawInit(g);
     }
 
@@ -161,6 +164,10 @@ public class ZBoardView extends UIComponentView implements UIZComponent<DroidGra
                 R.drawable.zfireball
         };
 
+        ZIcon.GRAVESTONE.imageIds = new int[] {
+                R.drawable.zgravestone
+        };
+
         ids = ZIcon.ARROW.imageIds = new int[4];
         ids[ZDir.EAST.ordinal()] = R.drawable.zarrow_icon;
         ids[ZDir.WEST.ordinal()] = g.newRotatedImage(R.drawable.zarrow_icon, 180);
@@ -185,6 +192,7 @@ public class ZBoardView extends UIComponentView implements UIZComponent<DroidGra
     void publishProgress(int p) {
         progress = p;
         postInvalidate();
+        Utils.waitNoThrow(this, 100);
     }
 
     @Override

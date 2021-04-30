@@ -105,10 +105,8 @@ public class ZMove implements IButton {
     @Override
     public String getTooltipText() {
         if (equipment != null) {
-            if (toSlot != null) {
+            if (toSlot != null && fromSlot != null) {
                 return String.format("%s\nfrom: %s\nto: %s", equipment, fromSlot, toSlot);
-            } else if (fromSlot != null) {
-                return String.format("%s\nto: %s", equipment, toSlot);
             } else {
                 return equipment.getTooltipText();
             }

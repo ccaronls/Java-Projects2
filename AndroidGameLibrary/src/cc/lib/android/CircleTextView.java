@@ -40,7 +40,7 @@ public class CircleTextView extends TextView {
         if (path == null) {
             path = new Path();
             RectF rect = new RectF(getWidth()/2-radius, getHeight()/2-radius, getWidth()/2+radius, getHeight()/2+radius);
-            path.addArc(rect, (textCenterAngle+180)%360, 360 * direction);
+            path.addArc(rect, 0, 360 * direction);
             //path.addCircle(getWidth()/2, getHeight()/2, radius, Path.Direction.CW);
         }
 
@@ -49,7 +49,10 @@ public class CircleTextView extends TextView {
         float circum  = Math.round(Math.PI * 2 * radius);
         float hOffset = circum*.5f - textWidth/2;
 
+        canvas.save();
+        canvas.rotate((textCenterAngle+180)%360, getWidth()/2, getHeight()/2);
         canvas.drawTextOnPath(text, path, hOffset, textHeight * 0.5f, getPaint());
+        canvas.restore();
         if (isInEditMode()) {
             paint.setStrokeWidth(5);
             paint.setColor(Color.RED);

@@ -15,6 +15,7 @@ public class ZCharacterView extends UIComponentView {
     @Override
     protected void preDrawInit(DroidGraphics g) {
         super.preDrawInit(g);
-        g.setTextHeight(18);
+        g.setTextModePixels(true);
+        g.setTextHeight(getResources().getDimension(R.dimen.chars_view_text_size));
     }
 }

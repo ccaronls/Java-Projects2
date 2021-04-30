@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 import cc.lib.game.GColor;
 import cc.lib.game.GDimension;
 import cc.lib.game.GRectangle;
+import cc.lib.game.Justify;
 import cc.lib.math.Vector2D;
 import cc.lib.ui.UIComponent;
 import cc.lib.ui.UIRenderer;
@@ -26,20 +27,6 @@ public abstract class UIComponentView<T extends UIRenderer> extends View impleme
     private float borderThickness = 0;
     private int borderColor = 0;
     private Paint borderPaint = new Paint();
-
-    private class DelayedTouchDown implements Runnable {
-
-        final float x, y;
-        DelayedTouchDown(MotionEvent ev) {
-            this.x = ev.getX();
-            this.y = ev.getY();
-        }
-        public void run() {
-            //onTouchDown(x, y);
-            renderer.startDrag(Math.round(x), Math.round(y));
-            touchDownRunnable = null;
-        }
-    }
 
     private final int CLICK_TIME = 700;
 
@@ -106,6 +93,11 @@ public abstract class UIComponentView<T extends UIRenderer> extends View impleme
             g.drawRect(rect, 3);
             rect.w *= progress;
             g.drawFilledRect(rect);
+            float hgt = g.getTextHeight();
+            g.setTextHeight(rect.h*3/4);
+            g.setColor(GColor.WHITE);
+            g.drawJustifiedString(getWidth()/2,getHeight()/2, Justify.CENTER,Justify.CENTER,"LOADING");
+            g.setTextHeight(hgt);
 
         } else if (renderer != null) {
             loadAssetsRunnable = null;

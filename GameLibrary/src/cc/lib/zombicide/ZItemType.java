@@ -7,9 +7,9 @@ public enum ZItemType implements ZEquipmentType<ZItem> {
     AAHHHH(false, null, "Stop Searching and place a zombie in the room being searched."),
     TORCH(false, ZEquipSlotType.HAND, "Draw 2 cards when searching. Spend an action, discard, and select a dragon bile at range 0-1 to ignite. Resolve dragon Fire."),
     DRAGON_BILE(false, ZEquipSlotType.HAND, "Spend an action, discard and place a dragon bile token at range 0-1"),
-    WATER(true, ZEquipSlotType.BACKPACK, "Discard and gain 1 experience point"),
-    SALTED_MEAT(true, ZEquipSlotType.BACKPACK, "Discard and gain 1 experience point"),
-    APPLES(true, ZEquipSlotType.BACKPACK, "Discard and gain 1 experience point"),
+    WATER(true, ZEquipSlotType.BACKPACK, "Consume and gain 1 experience point"),
+    SALTED_MEAT(true, ZEquipSlotType.BACKPACK, "Consume and gain 2 experience point"),
+    APPLES(true, ZEquipSlotType.BACKPACK, "Consume and gain 3 experience point"),
     PLENTY_OF_ARROWS(false, ZEquipSlotType.BACKPACK, "You may re-roll all ranged attacked involving bows. The new result takes place of old."), // user can reroll ranged arrow attacks if they want
     PLENTY_OF_BOLTS(false, ZEquipSlotType.BACKPACK, "You may re-roll all ranged attacked involving bolts. The new result takes place of old."),
     ;
@@ -29,5 +29,18 @@ public enum ZItemType implements ZEquipmentType<ZItem> {
         return new ZItem(this);
     }
 
-    public int getExpWhenConsumed() { return 1; }
+    public int getExpWhenConsumed() {
+        switch (this) {
+            case SALTED_MEAT:
+                return 2;
+            case APPLES:
+                return 3;
+        }
+        return 1;
+    }
+
+    @Override
+    public String getTooltipText() {
+        return description;
+    }
 }

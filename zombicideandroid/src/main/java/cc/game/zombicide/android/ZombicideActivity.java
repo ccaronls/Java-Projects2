@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Set;
 
 import cc.lib.android.CCActivityBase;
+import cc.lib.game.GRectangle;
 import cc.lib.game.Utils;
 import cc.lib.ui.IButton;
 import cc.lib.zombicide.ZDiffuculty;
@@ -33,6 +34,7 @@ import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZSkill;
 import cc.lib.zombicide.ZUser;
 import cc.lib.zombicide.ui.UIZBoardRenderer;
+import cc.lib.zombicide.ui.UIZButton;
 import cc.lib.zombicide.ui.UIZCharacterRenderer;
 import cc.lib.zombicide.ui.UIZUser;
 import cc.lib.zombicide.ui.UIZombicide;
@@ -76,13 +78,12 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
             public void runGame() {
                 try {
                     super.runGame();
+                    trySaveToFile(gameFile);
                     boardView.postInvalidate();
                     consoleView.postInvalidate();
-                    trySaveToFile(gameFile);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                super.runGame();
             }
 
             @Override
@@ -109,7 +110,7 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
         initHomeMenu();
     }
 
-    enum MenuItem {
+    enum MenuItem implements UIZButton {
         START,
         RESUME,
         QUIT,
@@ -142,10 +143,27 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                 case ASSIGN:
                 case RESUME:
                     return false;
+                case BACK:
+                    return instance.game.canGoBack();
             }
             return true;
         }
 
+
+        @Override
+        public GRectangle getRect() {
+            return null;
+        }
+
+        @Override
+        public String getTooltipText() {
+            return null;
+        }
+
+        @Override
+        public String getLabel() {
+            return Utils.toPrettyString(name());
+        }
     }
 
     ZDiffuculty getSavedDifficulty() {
@@ -192,11 +210,11 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
             switch (item) {
                 case START:
                     game.reload();
-                    game.boardRenderer.setOverlay(game.getQuest().getObjectivesOverlay(game));
                     game.startGameThread();
                     break;
                 case RESUME:
                     if(game.tryLoadFromFile(gameFile)) {
+                        game.boardRenderer.setOverlay(game.getQuest().getObjectivesOverlay(game));
                         game.startGameThread();
                     }
                     break;
@@ -247,6 +265,7 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                                     getPrefs().edit().putString("difficulty", difficulty.name()).apply();
                                 }
                             }).setNegativeButton("CANCEL", null).show();
+                    break;
                 }
                 case SKILLS: {
                     showSkillsDialog();
@@ -256,6 +275,7 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
         }
     };
 
+    // TODO: Make this more organized. Should be able to order by character, danger level or all POSSIBLE
     void showSkillsDialog() {
         ZSkill [] sorted = Utils.copyOf(ZSkill.values());//, ZSkill.values().length);
         Arrays.sort(sorted, new Comparator<ZSkill>() {
@@ -286,7 +306,7 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
     void initHomeMenu() {
         List<View> buttons = new ArrayList<>();
         for (MenuItem i : Utils.filterItems(object -> object.isHomeButton(ZombicideActivity.this), MenuItem.values())) {
-            buttons.add(new ZButton(this, i, mainMenuClickListener));
+            buttons.add(ZButton.build(this, i, mainMenuClickListener));
         }
         initMenuItems(buttons);
     }
@@ -295,12 +315,12 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
         List<View> buttons = new ArrayList<>();
         if (mode == UIZombicide.UIMode.PICK_MENU) {
             for (IButton e : options) {
-                buttons.add(new ZButton(this, e.getLabel(), e, optionClickListener));
+                buttons.add(ZButton.build(this, e, optionClickListener));
             }
             buttons.add(new ListSeparator(this));
         }
         for (MenuItem i : Utils.filterItems(object -> object.isGameButton(ZombicideActivity.this), MenuItem.values())) {
-            buttons.add(new ZButton(this, i, mainMenuClickListener));
+            buttons.add(ZButton.build(this, i, mainMenuClickListener));
         }
         initMenuItems(buttons);
     }

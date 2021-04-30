@@ -1,3 +1,6 @@
-Add slashing anims for melee attacks
+(DONE)Add slashing anims for melee attacks
 Add ability to destroy spawns
-Add Menu to Show skills and their descriptions
+Add Menu to Show skills and their descriptions (In PRogress)
+Make so walking in and out of vaults uses the correct door during animations
+Killing a necro allways users to remove a spawn zone
+Necros supposed to move toward an escape or game is lost

@@ -92,5 +92,9 @@ public class MutableVector2D extends Vector2D {
     public final MutableVector2D reflectEq(Vector2D normalToWall) {
         return set(reflect(normalToWall));
     }
+
+    public final MutableVector2D normalizedEq() {
+        return normalized(this);
+    }
 }
 

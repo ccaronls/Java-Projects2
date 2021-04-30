@@ -491,6 +491,13 @@ public class ZBoard extends Reflector<ZBoard> {
         return new GDimension(br.getX(), br.getY());
     }
 
+    @Omit
+    private GRectangle zoomedRect = null;
+
+    public GRectangle getZoomedRectangle() {
+        return zoomedRect;
+    }
+
     public GRectangle getZoomedRectangle(IVector2D center) {
         GDimension dim = getDimension();
         GDimension zoomed = new GDimension(dim.width-zoom, dim.height-zoom);
@@ -498,7 +505,7 @@ public class ZBoard extends Reflector<ZBoard> {
         GRectangle rect = new GRectangle(zoomed).withCenter(center);
         rect.x = Utils.clamp(rect.x, 0, dim.width-rect.w);
         rect.y = Utils.clamp(rect.y, 0, dim.height-rect.h);
-        return rect;
+        return zoomedRect = rect;
     }
 
     public void zoom(int amount) {

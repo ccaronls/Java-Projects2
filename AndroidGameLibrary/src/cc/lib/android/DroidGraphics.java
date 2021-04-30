@@ -15,6 +15,7 @@ import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.text.TextPaint;
 import android.util.Log;
 import android.util.TypedValue;
 
@@ -40,6 +41,7 @@ public class DroidGraphics extends APGraphics {
     private final Context context;
     private Canvas canvas;
     private final Paint paint = new Paint();
+    private final TextPaint textPaint = new TextPaint();
     private final Path path = new Path();
     private final RectF rectf = new RectF();
     private final Rect rect = new Rect();
@@ -48,6 +50,7 @@ public class DroidGraphics extends APGraphics {
     private final Vector<Bitmap> bitmaps = new Vector<>();
     private boolean textModePixels = false;
     private boolean lineThicknessModePixels = true;
+    private float curStrokeWidth = 1;
 
     public DroidGraphics(Context context, Canvas canvas, int width, int height) {
         super(width, height);
@@ -55,7 +58,10 @@ public class DroidGraphics extends APGraphics {
         this.canvas = canvas;
         r.setOrtho(0, width, 0, height);
         paint.setStrokeWidth(1);
+        textPaint.setStrokeWidth(1);
+        curStrokeWidth = 1;
         paint.setAntiAlias(true);
+        textPaint.setAntiAlias(true);
     }
 
     public final void shutDown() {
@@ -86,11 +92,11 @@ public class DroidGraphics extends APGraphics {
     }
 
     public float convertPixelsToDips(float pixels) {
-        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, pixels, context.getResources().getDisplayMetrics());
+        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_PX, pixels, context.getResources().getDisplayMetrics());
     }
 
     public float convertDipsToPixels(float dips) {
-        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_PX, dips, context.getResources().getDisplayMetrics());
+        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dips, context.getResources().getDisplayMetrics());
     }
 
     /**
@@ -102,17 +108,22 @@ public class DroidGraphics extends APGraphics {
 
     @Override
     public final void setColor(GColor color) {
-        paint.setColor(color.toARGB());
+        int intColor = color.toARGB();
+        paint.setColor(intColor);
+        textPaint.setColor(intColor);
     }
 
     @Override
     public final void setColorARGB(int argb) {
         paint.setColor(argb);
+        textPaint.setColor(argb);
     }
 
     @Override
     public final void setColor(int r, int g, int b, int a) {
-        paint.setColor(Color.argb(a, r, g, b));
+        int intColor = Color.argb(a, r, g, b);
+        paint.setColor(intColor);
+        textPaint.setColor(intColor);
     }
 
     @Override
@@ -123,36 +134,37 @@ public class DroidGraphics extends APGraphics {
     @Override
     public final float getTextHeight() {
         if (textModePixels)
-            return paint.getTextSize();
-        return convertPixelsToDips(paint.getTextSize());
+            return textPaint.getTextSize();
+        return convertPixelsToDips(textPaint.getTextSize());
     }
 
     @Override
     public final void setTextHeight(float height) {
         if (textModePixels)
-            paint.setTextSize(height);
-        paint.setTextSize(convertDipsToPixels(height));
+            textPaint.setTextSize(height);
+        else
+            textPaint.setTextSize(convertDipsToPixels(height));
     }
 
     @Override
     public void setTextStyles(TextStyle... style) {
-        paint.setUnderlineText(false);
+        textPaint.setUnderlineText(false);
         for (TextStyle st : style) {
             switch (st) {
                 case NORMAL:
-                    paint.setTypeface(Typeface.create(paint.getTypeface(), Typeface.NORMAL));
+                    textPaint.setTypeface(Typeface.create(textPaint.getTypeface(), Typeface.NORMAL));
                     break;
                 case BOLD:
-                    paint.setTypeface(Typeface.DEFAULT_BOLD);//Typeface.create(paint.getTypeface(), Typeface.NORMAL));
+                    textPaint.setTypeface(Typeface.DEFAULT_BOLD);//Typeface.create(paint.getTypeface(), Typeface.NORMAL));
                     break;
                 case ITALIC:
-                    paint.setTypeface(Typeface.create(paint.getTypeface(), Typeface.ITALIC));
+                    textPaint.setTypeface(Typeface.create(textPaint.getTypeface(), Typeface.ITALIC));
                     break;
                 case MONOSPACE:
-                    paint.setTypeface(Typeface.MONOSPACE);//paint.getTypeface(), Typeface.NORMAL));
+                    textPaint.setTypeface(Typeface.MONOSPACE);//paint.getTypeface(), Typeface.NORMAL));
                     break;
                 case UNDERLINE:
-                    paint.setUnderlineText(true);
+                    textPaint.setUnderlineText(true);
                     break;
             }
         }
@@ -163,39 +175,43 @@ public class DroidGraphics extends APGraphics {
         if (string.length() == 0)
             return 0;
         float[] widths = new float[string.length()];
-        paint.getTextWidths(string, widths);
+        textPaint.getTextWidths(string, widths);
         return CMath.sum(widths);
     }
 
     @Override
     public final float drawStringLine(float x, float y, Justify hJust, String text) {
-        Paint.FontMetrics fm = paint.getFontMetrics();
+        Paint.FontMetrics fm = textPaint.getFontMetrics();
         y -= fm.ascent;
         switch (hJust) {
             case LEFT:
-                paint.setTextAlign(Paint.Align.LEFT);
+                textPaint.setTextAlign(Paint.Align.LEFT);
                 break;
             case RIGHT:
-                paint.setTextAlign(Paint.Align.RIGHT);
+                textPaint.setTextAlign(Paint.Align.RIGHT);
                 break;
             case CENTER:
-                paint.setTextAlign(Paint.Align.CENTER);
+                textPaint.setTextAlign(Paint.Align.CENTER);
                 break;
         }
-        paint.setStyle(Paint.Style.FILL_AND_STROKE);
-        canvas.drawText(text, x, y, paint);
+        textPaint.setStyle(Paint.Style.FILL_AND_STROKE);
+        canvas.drawText(text, x, y, textPaint);
         return getTextWidth(text);
     }
 
     @Override
     public final float setLineWidth(float newWidth) {
         if (lineThicknessModePixels) {
-            float curWidth = paint.getStrokeWidth();
+            float curWidth = curStrokeWidth;//paint.getStrokeWidth();
             paint.setStrokeWidth(newWidth);
+            curStrokeWidth = newWidth;
             return curWidth;
         } else {
-            float curWidth = convertPixelsToDips(paint.getStrokeWidth());
-            paint.setStrokeWidth(convertDipsToPixels(newWidth));
+            float strokeWidth = curStrokeWidth;//paint.getStrokeWidth();
+            float curWidth = convertPixelsToDips(strokeWidth);
+            float pixWidth = convertDipsToPixels(newWidth);
+            paint.setStrokeWidth(pixWidth);
+            curStrokeWidth = newWidth;
             return curWidth;
         }
     }
@@ -438,6 +454,8 @@ public class DroidGraphics extends APGraphics {
         return addImage(bm);
     }
 
+
+
     @Override
     public final int[] loadImageCells(String assetPath, int w, int h, int numCellsX, int numCells, boolean bordered, GColor transparent) {
         int source = loadImage(assetPath, transparent);
@@ -659,6 +677,13 @@ public class DroidGraphics extends APGraphics {
     }
 
     @Override
+    public void drawFilledRect(float x, float y, float w, float h) {
+        paint.setStyle(Paint.Style.FILL);
+        setRectF(x, y, x+w, y+h);
+        canvas.drawRect(rectf, paint);
+    }
+
+    @Override
     public void drawArc(float x, float y, float radius, float startDegrees, float sweepDegrees) {
         paint.setStyle(Paint.Style.STROKE);
         setRectF(x-radius, y-radius, x+radius, y+radius);
@@ -676,6 +701,7 @@ public class DroidGraphics extends APGraphics {
     public void drawLine(float x0, float y0, float x1, float y1) {
         setRectF(x0, y0, x1, y1);
         paint.setStyle(Paint.Style.STROKE);
+        float strokeWidth = paint.getStrokeWidth();
         canvas.drawLine(rectf.left, rectf.top, rectf.right, rectf.bottom, paint);
     }
 

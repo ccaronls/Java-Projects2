@@ -3,6 +3,7 @@ package cc.lib.zombicide;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -568,8 +569,26 @@ public class ZGame extends Reflector<ZGame>  {
             }
 
             case ZOMBIE_STAGE: {
-                // any existing zombies take their actions
-                for (int zoneIdx=0; zoneIdx < board.getNumZones(); zoneIdx++) {
+                // sort them such that filled zones have their actions performed first
+                Integer [] zoneArr = new Integer[board.getNumZones()];
+                for (int i=0; i<zoneArr.length; i++) {
+                    zoneArr[i] = i;
+                }
+                Arrays.sort(zoneArr, new Comparator<Integer>() {
+                    @Override
+                    public int compare(Integer o0, Integer o1) {
+                        ZZone z0 = board.getZone(o0);
+                        ZZone z1 = board.getZone(o1);
+                        int numZ0 = board.getActorsInZone(o0).size();
+                        int numZ1 = board.getActorsInZone(o1).size();
+                        int MAX_PER_CELL = ZCellQuadrant.values().length;
+                        int numEmptyZ0 = z0.cells.size() * MAX_PER_CELL - numZ0;
+                        int numEmptyZ1 = z1.cells.size() * MAX_PER_CELL - numZ1;
+                        // order such that zones with fewest empty slots have their zombies move first
+                        return Integer.compare(numEmptyZ0, numEmptyZ1);
+                    }
+                });
+                for (int zoneIdx : zoneArr) {
                     List<ZZombie> zombies = board.getZombiesInZone(zoneIdx);
                     for (ZZombie zombie : zombies) {
                         List<ZDir> path = null;
@@ -600,7 +619,12 @@ public class ZGame extends Reflector<ZGame>  {
                                         if (zones.isEmpty()) {
                                             path = Collections.emptyList();
                                         } else {
-                                            path = Utils.randItem(board.getShortestPathOptions(zombie.occupiedCell, Utils.randItem(zones)));
+                                            List<List<ZDir>> paths = board.getShortestPathOptions(zombie.occupiedCell, Utils.randItem(zones));
+                                            if (paths.isEmpty()) {
+                                                path = Collections.emptyList();
+                                            } else {
+                                                path = Utils.randItem(paths);
+                                            }
                                         }
                                     }
                                 }
@@ -648,10 +672,33 @@ public class ZGame extends Reflector<ZGame>  {
                 break;
             }
 
+            case PLAYER_STAGE_CHOOSE_ZONE_TO_REMOVE_SPAWN: {
+                List<Integer> zones = new ArrayList<>();
+                for (ZZone zone : board.getZones()) {
+                    if (zone.isSpawn()) {
+                        zones.add(zone.zoneIndex);
+                    }
+                }
+
+                if (zones.size() > 0) {
+                    ZCharacter cur = getCurrentCharacter();
+                    Integer zIdx = user.choosZoneToRemoveSpawn(this, cur, zones);
+                    if (zIdx != null) {
+                        board.getZone(zIdx).spawn = false;
+                        onCharacterDestroysSpawn(cur, zIdx);
+                        stateStack.pop();
+                    }
+                }
+
+                break;
+            }
+
             default:
                 throw new cc.lib.utils.GException("Unhandled state: " + getState());
         }
     }
+
+    protected void onCharacterDestroysSpawn(ZCharacter c, int zoneIdx) {}
 
     protected void onCharacterDefends(ZCharacter cur, ZZombie zombie) {
     }
@@ -788,10 +835,9 @@ public class ZGame extends Reflector<ZGame>  {
                     slots.add(ZEquipSlot.BACKPACK);
                 ZEquipSlot selectedSlot = getCurrentUser().chooseSlotToOrganize(this, cur, slots);
                 if (selectedSlot == null) {
-                    //stateStack.push(ZState.PLAYER_STAGE_ORGANIZE_CHOOSE_ITEM);
                     break;
                 }
-                // choose which equipment form the slot to organize
+                // choose which equipment from the slot to organize
                 ZEquipment selectedEquipment = null;
                 switch (selectedSlot) {
                     case BACKPACK:
@@ -1574,6 +1620,9 @@ public class ZGame extends Reflector<ZGame>  {
         killer.onKilledZombie(zombie);
         onZombieDestroyed(killer, deathType, zombie);
         board.removeActor(zombie);
+        if (zombie.getType() == ZZombieType.Necromancer) {
+            pushState(ZState.PLAYER_STAGE_CHOOSE_ZONE_TO_REMOVE_SPAWN, killer.name);
+        }
     }
 
     protected void onZombieDestroyed(ZCharacter c, ZAttackType deathType, ZZombie zombie) {
@@ -1676,7 +1725,17 @@ public class ZGame extends Reflector<ZGame>  {
                     spawnZombies(Utils.randRange(1,2), ZZombieType.Walker, zoneIdx);
                 break;
             case YELLOW:
-                spawnZombies(Utils.randRange(2,3), ZZombieType.Walker, zoneIdx);
+                switch(Utils.rand() % 6) {
+                    case 0:
+                        spawnZombies(Utils.randRange(1, 2), ZZombieType.Runner, zoneIdx);
+                        break;
+                    case 1:
+                        spawnZombies(1, ZZombieType.Necromancer, zoneIdx);
+                        break;
+                    default:
+                        spawnZombies(Utils.randRange(2, 3), ZZombieType.Walker, zoneIdx);
+                        break;
+                }
                 break;
             case ORANGE:
                 if (spawnMultiplier == 1 && Utils.randRange(0,4) == 0) {
@@ -1880,6 +1939,10 @@ public class ZGame extends Reflector<ZGame>  {
     }
 
     public boolean canGoBack() {
+        switch (getState()) {
+            case PLAYER_STAGE_CHOOSE_ZONE_TO_REMOVE_SPAWN:
+                return false;
+        }
         return stateStack.size() > 1;
     }
 
@@ -1955,7 +2018,7 @@ public class ZGame extends Reflector<ZGame>  {
             summary.addRow(c.name, c.getKillsTable(), c.isDead() ? "KIA" : "Alive", c.dangerBar);
         }
         return new Table(quest.getName())
-                .addRow("STATUS:" +( gameOverStatus == 1 ? "COMPLETED" : gameOverStatus == 2 ? "FAILED" : "IN PROGRESS"))
+                .addRow("STATUS : " +( gameOverStatus == 1 ? "COMPLETED" : gameOverStatus == 2 ? "FAILED" : "IN PROGRESS"))
                 .addRow(new Table("SUMMARY").addRow(summary));
     }
 

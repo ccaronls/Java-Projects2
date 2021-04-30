@@ -137,7 +137,7 @@ public abstract class AAnimation<T> {
      * @param g
      * returns true when isDone
      */
-    public synchronized final boolean update(T g) {
+    public synchronized boolean update(T g) {
         if (state == State.PRESTART) {
             System.err.println("Calling update on animation that has not been started!");
             return false;

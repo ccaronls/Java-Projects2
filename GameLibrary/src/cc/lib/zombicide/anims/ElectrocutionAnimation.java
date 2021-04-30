@@ -85,37 +85,6 @@ public class ElectrocutionAnimation extends ZActorAnimation {
         g.popMatrix();
     }
 
-    protected void draw2(AGraphics g, float position, float dt) {
-        int n = Utils.randRange(minStrands, maxStrands);
-        float t = 0;
-        final float h = rect.getHeight()/(n+1);
-        for (int i=0; i<n; i++) {
-            float y0 = t + Utils.randFloat(h);
-            float y1 = t + Utils.randFloat(h);
-            t += h;
-            float sec = Utils.randRange(minSections, maxSections);
-            MutableVector2D start = new MutableVector2D(0, y0);
-            Vector2D end   = new Vector2D(rect.getWidth(), y1);
-            MutableVector2D dv = end.sub(start);
-            float mag = dv.mag();
-            float secLen = mag / sec;
-            dv.scaleEq(secLen / mag);
-            g.setColor(GColor.WHITE.withAlpha(.5f + Utils.randFloat(.5f)));
-            g.setLineWidth(Utils.randRange(1,3));
-            g.pushMatrix();
-            g.translate(rect.getTopLeft());
-            g.begin();
-            g.vertex(start);
-            for (int ii=0; ii<sec-1; ii++) {
-                Vector2D v = start.addEq(dv.rotate(Utils.randFloatX(30)));
-                g.vertex(v);
-            }
-            g.vertex(end);
-            g.drawLineStrip();
-            g.popMatrix();
-        }
-    }
-
     @Override
     protected boolean hidesActor() {
         return false;

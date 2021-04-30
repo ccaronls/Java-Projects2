@@ -72,4 +72,9 @@ public class ZItem extends ZEquipment<ZItemType> {
         card.addColumn(getLabel(), Arrays.asList(Utils.wrapTextWithNewlines(type.description, 24)));
         return card;
     }
+
+    @Override
+    public String getTooltipText() {
+        return type.description;
+    }
 }

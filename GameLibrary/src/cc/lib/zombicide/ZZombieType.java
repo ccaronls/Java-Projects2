@@ -9,7 +9,7 @@ public enum ZZombieType {
     Walker(1, 1, 1, false, 1),
     Fatty(2, 1, 1, false, 2),
     Runner( 1, 1, 2, false, 3),
-    Abomination( 3, 1, 1, true, 2),
+    Abomination( 3, 5, 1, true, 2),
     Necromancer( 1, 1, 0, false, 4);
 
     ZZombieType(int minDamageToDestroy, int expProvided, int actionsPerTurn, boolean ignoresArmor, int rangedPriority) {

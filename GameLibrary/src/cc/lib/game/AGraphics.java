@@ -1277,17 +1277,17 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param y
      * @param w
      * @param h
-     */
-    public final void drawFilledRect(int x, int y, int w, int h) {
+     *
+    public void drawFilledRect(int x, int y, int w, int h) {
         drawQuad(x, y, x+w, y+h);
-    }
+    }*/
 
-    public final void drawFilledRect(float x, float y, float w, float h) {
+    public void drawFilledRect(float x, float y, float w, float h) {
         drawQuad(x, y, x+w, y+h);
     }
 
     public final void drawFilledRect(IRectangle rect) {
-        drawQuad(rect.X(), rect.Y(), rect.X()+rect.getWidth(), rect.Y()+rect.getHeight());
+        drawFilledRect(rect.X(), rect.Y(), rect.getWidth(), rect.getHeight());
     }
 
     public final void drawFilledRect(IVector2D center, IDimension dim) {

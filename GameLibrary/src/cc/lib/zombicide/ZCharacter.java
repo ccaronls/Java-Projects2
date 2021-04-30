@@ -79,8 +79,15 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
 
     Table getKillsTable() {
         Table tab = new Table().setNoBorder().setPadding(0);
+        boolean added = false;
         for (ZZombieType nm : ZZombieType.values()) {
-            tab.addRow(nm, "x", kills[nm.ordinal()]);
+            if (kills[nm.ordinal()] > 0) {
+                tab.addRow(nm + " x " + kills[nm.ordinal()]);
+                added = true;
+            }
+        }
+        if (!added) {
+            tab.addRow("None");
         }
         return tab;
     }
@@ -449,7 +456,6 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
 
     public List<ZEquipSlot> getEquipableSlots(ZEquipment equip) {
         List<ZEquipSlot> options = new ArrayList<>();
-        boolean alreadyInBackpack = false;
         boolean canEquip = !isBackpackFull();
         if (!canEquip) {
             for (ZEquipment e : backpack) {
@@ -751,5 +757,14 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
                 return false;
         }
         return true;
+    }
+
+    @Override
+    public void draw(AGraphics g) {
+        if (isDead()) {
+            g.drawImage(ZIcon.GRAVESTONE.imageIds[0], getRect());
+        } else {
+            super.draw(g);
+        }
     }
 }

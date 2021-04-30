@@ -119,4 +119,9 @@ public class UIZUser extends ZUser {
     public Integer chooseZoneForBloodlust(ZGame zGame, ZCharacter cur, List<Integer> list) {
         return UIZombicide.getInstance().pickZone("Choose Zone for Bloodlust", list);
     }
+
+    @Override
+    public Integer choosZoneToRemoveSpawn(ZGame game, ZCharacter cur, List<Integer> list) {
+        return UIZombicide.getInstance().pickZone("Choose Zone to Remove SPAWN", list);
+    }
 }

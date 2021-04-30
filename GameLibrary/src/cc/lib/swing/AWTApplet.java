@@ -22,17 +22,17 @@ public abstract class AWTApplet extends JApplet {
 
     protected abstract void initApp();
 
-    protected <T extends Enum<T>> List<T> getEnumListProperty(String property, Class enumClass, List<T> defaultList) {
+    public <T extends Enum<T>> List<T> getEnumListProperty(String property, Class enumClass, List<T> defaultList) {
         return defaultList;
     }
 
-    protected String getStringProperty(String property, String defaultValue) {
+    public String getStringProperty(String property, String defaultValue) {
         return defaultValue;
     }
 
-    protected void setStringProperty(String s, String v) {}
+    public void setStringProperty(String s, String v) {}
 
-    protected <T extends Enum<T>> void setEnumListProperty(String s, Collection<T> l) {}
+    public <T extends Enum<T>> void setEnumListProperty(String s, Collection<T> l) {}
 
 
 }

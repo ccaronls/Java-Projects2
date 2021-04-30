@@ -27,7 +27,7 @@ public class ZQuestTheShepherds extends ZQuest {
     public ZBoard loadBoard() {
 
         String [][] map = {
-                { "z0:i:gvd1:ws:ode", "z49:i:red:ws:de", "z1", "z2", "z3:spn", "z4:i:ww:ods:spn:ode", "z5:i:we", "z6", "z7:i:ww:vd2" },
+                { "z0:i:gvd1:ws:ode", "z49:i:red:ws:de", "z1", "z2", "z3:spn", "z4:i:ww:ods:red:ode", "z5:i:we", "z6", "z7:i:ww:vd2" },
                 { "z8", "z9", "z10", "z11:i:ww:wn:we:ods", "z12",           "z13:i:ww:ds:we", "z5:i:ods:we", "z14", "z7:i:ww:ds" },
                 { "z15", "z16:i:wn:ww:ws", "z16:i:wn:ode:ods", "z17:i:de:ods:red", "z18", "z19", "z20", "z21", "z22" },
                 { "z23", "z24:i:dw:ws:ode", "z25:i:ws:ode", "z26:i:ws:we", "z27", "z28:i:ww:ws:dn:ode", "z28:i:ws:we:dn:red", "z29", "z30:i:ww:ws:dn" },
