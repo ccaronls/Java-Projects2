@@ -1360,19 +1360,30 @@ public class Utils {
      * @param end
      */
     public static void shuffle(Object[] elems, int start, int end) {
-        for (int i = 0; i < 1000; i++) {
+        if (elems == null || elems.length < 2)
+            return;
+        int n = elems.length * 10;
+        for (int i = 0; i < n; i++) {
             int a = i%elems.length;//Utils.randRange(start, end - 1);
-            int b = Utils.randRange(start, end - 1);
+            int b = Utils.rand() % elems.length;
+            while (b == a) {
+                b = Utils.rand() % elems.length;
+            }
+
             Utils.swapElems(elems, a, b);
         }
     }
 
     public static <T> void shuffle(List<T> elems) {
-        if (elems == null || elems.size() == 0)
+        if (elems == null || elems.size() < 2)
             return;
-        for (int i = 0; i < 1000; i++) {
+        int n = elems.size() * 10;
+        for (int i = 0; i < n; i++) {
             int a = i%elems.size();//Utils.rand() % elems.size();
             int b = Utils.rand() % elems.size();
+            while (b == a) {
+                b = Utils.rand() % elems.size();
+            }
             Utils.swapElems(elems, a, b);
         }
     }

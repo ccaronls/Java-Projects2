@@ -107,7 +107,7 @@ public abstract class ZActor<E extends Enum<E>> extends Reflector<ZActor<E>> imp
     }
 
     public boolean isAnimating() {
-        return animation != null;
+        return animation != null;// && !animation.isDone();
     }
 
     public ZAnimation getAnimation() {
@@ -116,17 +116,14 @@ public abstract class ZActor<E extends Enum<E>> extends Reflector<ZActor<E>> imp
 
     public void drawOrAnimate(AGraphics g) {
         if (animation != null && !animation.isDone()) {
-            if (animation.isDone()) {
-                animation = null;
-            } else {
-                if (!animation.hidesActor())
-                    draw(g);
+            if (!animation.hidesActor())
+                draw(g);
 
-                if (!animation.isStarted())
-                    animation.start();
-                animation.update(g);
-            }
+            if (!animation.isStarted())
+                animation.start();
+            animation.update(g);
         } else {
+            animation = null;
             draw(g);
         }
     }

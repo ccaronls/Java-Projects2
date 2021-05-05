@@ -137,8 +137,8 @@ public class ZQuestTheEvilTemple extends ZQuest {
         return new Table(getName())
                 .addRow(new Table().setNoBorder()
                     .addRow("1.", "Collect all objectives.", String.format("%d of %d", numObjectives-redObjectives.size(), redObjectives.size()))
-                    .addRow("2.", "Unlock GOLD vault.", greenObjZone==-1)
-                    .addRow("3.", "Unlock VIOLET vault", blueObjZone==-1)
+                    .addRow("2.", "Unlock GOLD vault. Key hidden among RED objectives.", greenObjZone==-1)
+                    .addRow("3.", "Unlock VIOLET vault. Key hidden among RED objectives.", blueObjZone==-1)
                     .addRow("4.", "Kill the Abomination.", game.getNumKills(ZZombieType.Abomination) > 0)
                 );
     }

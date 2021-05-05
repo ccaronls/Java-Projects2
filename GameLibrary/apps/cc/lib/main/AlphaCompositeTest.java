@@ -172,11 +172,11 @@ public class AlphaCompositeTest extends AWTComponent implements ChangeListener {
                 //((Graphics2D)g.getGraphics()).setXORMode(Color.RED);
                 //g.setAlphaCompisite(0.01f * slider.getValue(), modes[mode]);
                 srcRect.drawFilled(g);
-                g.setAlphaCompisite(0.01f * slider.getValue(), modes[mode]);
+                g.setAlphaComposite(0.01f * slider.getValue(), modes[mode]);
                 g.drawImage(idx, srcRect);
 
                 //srcRect.drawFilled(g);
-                g.setAlphaCompisite(1, AlphaComposite.XOR);
+                g.setAlphaComposite(1, AlphaComposite.XOR);
                 //g.setXorMode(GColor.TRANSPARENT);
                 //g.drawImage(idx, srcRect);
                 srcRect.drawFilled(g);

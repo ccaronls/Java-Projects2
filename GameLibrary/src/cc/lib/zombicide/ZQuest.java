@@ -258,7 +258,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
      */
     public final void addMoves(ZGame game, ZCharacter cur, List<ZMove> options) {
         for (int red : redObjectives) {
-            if (cur.getOccupiedZone() == red)
+            if (cur.getOccupiedZone() == red && game.getBoard().getZombiesInZone(red).size() == 0)
                 options.add(ZMove.newObjectiveMove(red));
         }
     }

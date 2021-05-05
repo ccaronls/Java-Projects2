@@ -1,6 +1,13 @@
 package cc.game.zombicide.android;
 
 import android.content.DialogInterface;
+import android.graphics.BlurMaskFilter;
+import android.graphics.Canvas;
+import android.graphics.ColorFilter;
+import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffColorFilter;
+import android.graphics.RectF;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.GridLayoutManager;
@@ -10,6 +17,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
 import android.widget.ImageView;
@@ -19,14 +27,20 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import cc.lib.android.CCActivityBase;
+import cc.lib.android.DroidGraphics;
+import cc.lib.game.AImage;
+import cc.lib.game.GColor;
 import cc.lib.game.GRectangle;
 import cc.lib.game.Utils;
 import cc.lib.ui.IButton;
+import cc.lib.zombicide.ZActor;
 import cc.lib.zombicide.ZDiffuculty;
 import cc.lib.zombicide.ZDir;
 import cc.lib.zombicide.ZPlayerName;
@@ -43,7 +57,7 @@ import cc.lib.zombicide.ui.UIZombicide;
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
  */
-public class ZombicideActivity extends CCActivityBase implements View.OnClickListener {
+public class ZombicideActivity extends CCActivityBase implements View.OnClickListener, ListView.OnItemClickListener {
 
     private final static String TAG = ZombicideActivity.class.getSimpleName();
 
@@ -60,6 +74,7 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_zombicide);
         menu = findViewById(R.id.list_menu);
+        menu.setOnItemClickListener(this);
         boardView = findViewById(R.id.board_view);
         consoleView = findViewById(R.id.console_view);
         findViewById(R.id.b_zoomin).setOnClickListener(this);
@@ -69,7 +84,44 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
         findViewById(R.id.b_down).setOnClickListener(this);
         findViewById(R.id.b_right).setOnClickListener(this);
         UIZCharacterRenderer cr = new UIZCharacterRenderer(consoleView);
-        UIZBoardRenderer br = new UIZBoardRenderer(boardView);
+        UIZBoardRenderer br = new UIZBoardRenderer<DroidGraphics>(boardView) {
+
+            Map<GColor, Paint> outlinePaints = new HashMap<>();
+
+            Paint getPaint(GColor color) {
+                Paint p = outlinePaints.get(color);
+                if (p != null)
+                    return p;
+
+                ColorFilter filter = new PorterDuffColorFilter(color.toARGB(), PorterDuff.Mode.SRC_IN);
+                BlurMaskFilter blur = new BlurMaskFilter(15, BlurMaskFilter.Blur.INNER);
+                p = new Paint();
+                p.setColorFilter(filter);
+                p.setMaskFilter(blur);
+                p.setColor(color.toARGB());
+                outlinePaints.put(color, p);
+                return p;
+            }
+
+
+            @Override
+            protected void drawActor(DroidGraphics g, ZActor actor, GColor outline) {
+                if (outline == null)
+                    outline = GColor.WHITE;
+                Paint outlinePaint = getPaint(outline);
+                Paint cur = g.getPaint();
+                Canvas canvas = g.getCanvas();
+                AImage img = g.getImage(actor.getImageId());
+                RectF rect = g.setRectF(actor.getRect());
+                canvas.save();
+                float cx = rect.centerX();
+                float cy = rect.centerY();
+                canvas.scale(1.15f, 1.1f, cx, cy);
+                canvas.drawBitmap(g.getBitmap(actor.getImageId()), null, rect, outlinePaint);
+                canvas.restore();
+                actor.draw(g);
+            }
+        };
         br.setDrawTiles(true);
 
         game = new UIZombicide(cr, br) {
@@ -98,6 +150,11 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
             user.addCharacter(player);
         }
         game.setUsers(user);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
         try {
             game.loadQuest(ZQuests.valueOf(getPrefs().getString("quest", ZQuests.Tutorial.name())));
         } catch (Exception e) {
@@ -110,11 +167,17 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
         initHomeMenu();
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        game.stopGameThread();
+    }
+
     enum MenuItem implements UIZButton {
         START,
         RESUME,
         QUIT,
-        BACK,
+        CANCEL,
         LOAD,
         ASSIGN,
         SUMMARY,
@@ -143,7 +206,7 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                 case ASSIGN:
                 case RESUME:
                     return false;
-                case BACK:
+                case CANCEL:
                     return instance.game.canGoBack();
             }
             return true;
@@ -196,84 +259,81 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
         }
     }
 
-    View.OnClickListener optionClickListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            UIZombicide.getInstance().setResult(v.getTag());
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        if (view.getTag() instanceof MenuItem) {
+            processMainMenuItem((MenuItem)view.getTag());
+        } else {
+            UIZombicide.getInstance().setResult(view.getTag());
         }
-    };
+    }
 
-    View.OnClickListener mainMenuClickListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            MenuItem item = (MenuItem)v.getTag();
-            switch (item) {
-                case START:
-                    game.reload();
-                    game.startGameThread();
-                    break;
-                case RESUME:
-                    if(game.tryLoadFromFile(gameFile)) {
-                        game.boardRenderer.setOverlay(game.getQuest().getObjectivesOverlay(game));
-                        game.startGameThread();
-                    }
-                    break;
-                case QUIT:
-                    game.stopGameThread();
-                    game.setResult(null);
-                    initHomeMenu();
-                    break;
-                case BACK:
-                    if (game.isGameRunning()) {
-                        game.goBack();
-                        game.setResult(null);
-                    } else {
-                        initHomeMenu();
-                    }
-                    break;
-                case OBJECTIVES: {
+    void processMainMenuItem(MenuItem item) {
+        switch (item) {
+            case START:
+                game.reload();
+                game.startGameThread();
+                break;
+            case RESUME:
+                if (game.tryLoadFromFile(gameFile)) {
                     game.boardRenderer.setOverlay(game.getQuest().getObjectivesOverlay(game));
-                    break;
+                    game.startGameThread();
                 }
-                case SUMMARY: {
-                    game.boardRenderer.setOverlay(game.getGameSummaryTable());
-                    break;
+                break;
+            case QUIT:
+                game.stopGameThread();
+                game.setResult(null);
+                initHomeMenu();
+                break;
+            case CANCEL:
+                if (game.isGameRunning()) {
+                    game.goBack();
+                    game.setResult(null);
+                } else {
+                    initHomeMenu();
                 }
-                case LOAD:
-                    newDialogBuilder().setTitle("Load Quest")
-                            .setItems(Utils.toStringArray(ZQuests.values(), true), new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    ZQuests q = ZQuests.values()[which];
-                                    game.loadQuest(q);
-                                    getPrefs().edit().putString("quest", q.name()).apply();
-                                    boardView.postInvalidate();
-                                    initHomeMenu();
-                                }
-                            }).setNegativeButton("CANCEL", null).show();
-                    break;
-                case ASSIGN:
-                    openAssignDialog();
-                    break;
-                case DIFFICULTY: {
-                    newDialogBuilder().setTitle("DIFFICULTY: " + getSavedDifficulty())
-                            .setItems(Utils.toStringArray(ZDiffuculty.values()), new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    ZDiffuculty difficulty = ZDiffuculty.values()[which];
-                                    game.setDifficulty(difficulty);
-                                    getPrefs().edit().putString("difficulty", difficulty.name()).apply();
-                                }
-                            }).setNegativeButton("CANCEL", null).show();
-                    break;
-                }
-                case SKILLS: {
-                    showSkillsDialog();
-                }
+                break;
+            case OBJECTIVES: {
+                game.boardRenderer.setOverlay(game.getQuest().getObjectivesOverlay(game));
+                break;
             }
-
+            case SUMMARY: {
+                game.boardRenderer.setOverlay(game.getGameSummaryTable());
+                break;
+            }
+            case LOAD:
+                newDialogBuilder().setTitle("Load Quest")
+                        .setItems(Utils.toStringArray(ZQuests.values(), true), new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                ZQuests q = ZQuests.values()[which];
+                                game.loadQuest(q);
+                                getPrefs().edit().putString("quest", q.name()).apply();
+                                boardView.postInvalidate();
+                                initHomeMenu();
+                            }
+                        }).setNegativeButton("CANCEL", null).show();
+                break;
+            case ASSIGN:
+                openAssignDialog();
+                break;
+            case DIFFICULTY: {
+                newDialogBuilder().setTitle("DIFFICULTY: " + getSavedDifficulty())
+                        .setItems(Utils.toStringArray(ZDiffuculty.values()), new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                ZDiffuculty difficulty = ZDiffuculty.values()[which];
+                                game.setDifficulty(difficulty);
+                                getPrefs().edit().putString("difficulty", difficulty.name()).apply();
+                            }
+                        }).setNegativeButton("CANCEL", null).show();
+                break;
+            }
+            case SKILLS: {
+                showSkillsDialog();
+            }
         }
-    };
+    }
 
     // TODO: Make this more organized. Should be able to order by character, danger level or all POSSIBLE
     void showSkillsDialog() {
@@ -306,7 +366,7 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
     void initHomeMenu() {
         List<View> buttons = new ArrayList<>();
         for (MenuItem i : Utils.filterItems(object -> object.isHomeButton(ZombicideActivity.this), MenuItem.values())) {
-            buttons.add(ZButton.build(this, i, mainMenuClickListener));
+            buttons.add(ZButton.build(this, i));
         }
         initMenuItems(buttons);
     }
@@ -315,12 +375,12 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
         List<View> buttons = new ArrayList<>();
         if (mode == UIZombicide.UIMode.PICK_MENU) {
             for (IButton e : options) {
-                buttons.add(ZButton.build(this, e, optionClickListener));
+                buttons.add(ZButton.build(this, e));
             }
             buttons.add(new ListSeparator(this));
         }
         for (MenuItem i : Utils.filterItems(object -> object.isGameButton(ZombicideActivity.this), MenuItem.values())) {
-            buttons.add(ZButton.build(this, i, mainMenuClickListener));
+            buttons.add(ZButton.build(this, i));
         }
         initMenuItems(buttons);
     }

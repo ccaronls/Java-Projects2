@@ -53,4 +53,9 @@ public class GroupAnimation extends ZActorAnimation {
         }
         return group.isEmpty();
     }
+
+    @Override
+    protected boolean hidesActor() {
+        return false;
+    }
 }

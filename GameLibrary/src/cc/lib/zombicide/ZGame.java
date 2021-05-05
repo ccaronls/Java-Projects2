@@ -170,7 +170,7 @@ public class ZGame extends Reflector<ZGame>  {
                                 for (ZPlayerName pl : u.characters) {
                                     ZCharacter c = pl.create();
                                     c.occupiedZone = cell.zoneIndex;
-                                    board.addActor(c, cell.zoneIndex);
+                                    board.addActor(c, cell.zoneIndex, null);
                                 }
                             }
                             break;
@@ -252,7 +252,7 @@ public class ZGame extends Reflector<ZGame>  {
                 case Necromancer:
                     board.setSpawnZone(zone, true);
             }
-            if (board.addActor(zombie, zone))
+            if (board.addActor(zombie, zone, null))
                 onZombieSpawned(zombie);
         }
     }
@@ -808,14 +808,17 @@ public class ZGame extends Reflector<ZGame>  {
 
     }
 
+    protected void onDoNothing(ZCharacter c) {}
+
     private void performMove(ZCharacter cur, ZMove move) {
         log.debug("performMove:%s", move);
         ZUser user = getCurrentUser();
         switch (move.type) {
             case DO_NOTHING:
+                onDoNothing(cur);
                 cur.performAction(ZActionType.DO_NOTHING, this);
                 break;
-            case OBJECTIVE: {
+            case TAKE_OBJECTIVE: {
                 getCurrentUser().showMessage(cur.name() + " Found an OBJECTIVE");
                 quest.processObjective(this, cur, move);
                 cur.performAction(ZActionType.OBJECTIVE, this);
@@ -1128,7 +1131,7 @@ public class ZGame extends Reflector<ZGame>  {
                 cur.performAction(ZActionType.RELOAD, this);
                 break;
             }
-            case TOGGLE_DOOR: {
+            case OPERATE_DOOR: {
                 List<ZDoor> doors = move.list;
                 ZDoor door = null;
                 if (doors.size() > 1)
@@ -1639,7 +1642,7 @@ public class ZGame extends Reflector<ZGame>  {
     }
 
     public List<ZCharacter> getAllLivingCharacters() {
-        return Utils.filter(getAllCharacters(), object -> !object.isDead());
+        return Utils.filter(getAllCharacters(), object -> object.isAlive());
     }
 
     private boolean isClearedOfZombies(int zoneIndex) {
@@ -1923,7 +1926,7 @@ public class ZGame extends Reflector<ZGame>  {
             onActorMoved(actor, toVaultRect, toRect, speed/2);
         } else if (board.getZone(fromZone).type != ZZoneType.VAULT && board.getZone(toZone).type == ZZoneType.VAULT) {
             // descending the stairs
-            GRectangle fromVaultRect = new GRectangle(board.getCell(fromPos)).scale(.2f);//.fit(actor.rect.getDimension());
+            GRectangle fromVaultRect = new GRectangle(board.getCell(fromPos)).scale(.2f);
             GRectangle toVaultRect = new GRectangle(board.getCell(toPos)).scale(.5f);
             onActorMoved(actor, fromRect, fromVaultRect, speed/2);
             onActorMoved(actor, toVaultRect, toRect, speed/2);
@@ -1974,7 +1977,7 @@ public class ZGame extends Reflector<ZGame>  {
         searchables.addAll(make(2, ZWeaponType.CROSSBOW));
         searchables.addAll(make(4, ZWeaponType.DAGGER));
         searchables.addAll(make(2, ZWeaponType.DEATH_STRIKE));
-        searchables.addAll(make(10, ZItemType.DRAGON_BILE));
+        searchables.addAll(make(3, ZItemType.DRAGON_BILE));
         searchables.addAll(make(4, ZWeaponType.FIREBALL));
         searchables.addAll(make(2, ZWeaponType.GREAT_SWORD));
         searchables.addAll(make(1, ZWeaponType.HAMMER));
@@ -1998,7 +2001,7 @@ public class ZGame extends Reflector<ZGame>  {
         searchables.addAll(make(1, ZWeaponType.SHORT_SWORD));
         searchables.addAll(make(1, ZSpellType.SPEED));
         searchables.addAll(make(2, ZWeaponType.SWORD));
-        searchables.addAll(make(10, ZItemType.TORCH));
+        searchables.addAll(make(4, ZItemType.TORCH));
         searchables.addAll(make(2, ZItemType.WATER));
         Utils.shuffle(searchables);
     }
@@ -2031,9 +2034,14 @@ public class ZGame extends Reflector<ZGame>  {
     }
 
     public boolean canSwitchActivePlayer() {
+        ZCharacter cur = getCurrentCharacter();
+        if (cur == null)
+            return true;
+        if (cur.getActionsLeftThisTurn() == cur.getActionsPerTurn())
+            return true;
+        if (cur.availableSkills.contains(ZSkill.Tactician))
+            return true;
         return false;
     }
-
-    public void toggleActivePlayer() {}
 
 }

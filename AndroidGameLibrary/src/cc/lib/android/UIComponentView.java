@@ -87,9 +87,9 @@ public abstract class UIComponentView<T extends UIRenderer> extends View impleme
                 new Thread(loadAssetsRunnable = () -> loadAssets(g)).start();
             }
 
-            g.setColor(GColor.CYAN);
+            g.setColor(GColor.RED);
             g.ortho();
-            GRectangle rect = new GRectangle(0, 0, new GDimension(getWidth()*3/4, getHeight()/4)).withCenter(new Vector2D(getWidth()/2, getHeight()/2));
+            GRectangle rect = new GRectangle(0, 0, new GDimension(getWidth()*3/4, getHeight()/6)).withCenter(new Vector2D(getWidth()/2, getHeight()/2));
             g.drawRect(rect, 3);
             rect.w *= progress;
             g.drawFilledRect(rect);

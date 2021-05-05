@@ -117,6 +117,9 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
+                    stopGameThread();
+                    initHomeMenu();
+                    boardRenderer.setOverlay("Error: " + e.getMessage());
                 }
 
                 if (isGameOver()) {
@@ -155,7 +158,7 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
         START,
         RESUME,
         QUIT,
-        BACK,
+        CANCEL,
         LOAD,
         ASSIGN,
         SUMMARY,
@@ -213,7 +216,7 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
                 game.setResult(null);
                 initHomeMenu();
                 break;
-            case BACK:
+            case CANCEL:
                 if (game.isGameRunning()) {
                     game.goBack();
                     game.setResult(null);
@@ -239,7 +242,7 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
                         initHomeMenu();
                     }));
                 }
-                menu.add(new AWTButton(MenuItem.BACK.name(), this));
+                menu.add(new AWTButton(MenuItem.CANCEL.name(), this));
                 menuContainer.validate();
                 break;
             }
@@ -285,7 +288,7 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
                     initHomeMenu();
                     boardComp.repaint();
                 }));
-                menu.add(new AWTButton(MenuItem.BACK.name(), this));
+                menu.add(new AWTButton(MenuItem.CANCEL.name(), this));
                 menuContainer.validate();
                 break;
             }
@@ -372,7 +375,7 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
         sep.setPreferredSize(d);
         menu.add(sep);
         if (game.canGoBack()) {
-            menu.add(new AWTButton(MenuItem.BACK.name(), this));
+            menu.add(new AWTButton(MenuItem.CANCEL.name(), this));
         }
         menu.add(new AWTButton(MenuItem.SUMMARY.name(), this));
         menu.add(new AWTButton(MenuItem.OBJECTIVES.name(), this));

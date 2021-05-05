@@ -685,6 +685,51 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
         return r;
     }
 
+    public final GRectangle drawWrapStringOnBackground(float x, float y, float maxWidth, Justify horz, Justify vert, String text, GColor bkColor, float border) {
+        List<String> lines = new ArrayList<>();
+        GDimension dim = generateWrappedText(text, maxWidth, lines, null);
+        MutableVector2D tv = transform(x, y);
+
+        switch (horz) {
+            case CENTER:
+                tv.addEq(-dim.width/2, 0);
+                break;
+            case RIGHT:
+                tv.addEq(-dim.width, 0);
+        }
+
+        switch (vert) {
+            case CENTER:
+                tv.addEq(0, -dim.height/2);
+                break;
+            case BOTTOM:
+                tv.addEq(0, dim.height/2);
+                break;
+        }
+
+        if (tv.getX() + dim.width + border > getViewportWidth()) {
+            tv.setX(getViewportWidth() - dim.width - border);
+        }
+        if (tv.getY() + dim.height + border > getViewportHeight()) {
+            tv.setY(getViewportHeight() - dim.height - border);
+        }
+
+        pushMatrix();
+        setIdentity();
+        GColor textColor = getColor();
+        setColor(bkColor);
+        GRectangle r = new GRectangle(tv, dim);
+        r.grow(border);
+        r.drawFilled(this);
+        setColor(textColor);
+        for (String s : lines) {
+            drawStringLine(tv.X(), tv.Y(), Justify.LEFT, s);
+            tv.addEq(0, getTextHeight());
+        }
+        popMatrix();
+        return r;
+    }
+
     /**
      * Draw a single line of top justified text and return the width of the text
      * @param x position in screen coordinates

@@ -1,6 +1,5 @@
 package cc.lib.swing;
 
-import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Component;
 import java.awt.Composite;
@@ -56,13 +55,9 @@ public class AWTGraphics2 extends AWTGraphics {
     Composite old = null;
 
     @Override
-    public void setAlphaCompisite(float alpha, int mode) {
+    public void setComposite(Composite comp) {
         if (old == null)
             old = G2.getComposite();
-        Composite comp = AlphaComposite.getInstance(mode, alpha);
-        //G2.setPaint(G2.getColor());
-        //G2.setPaintMode();//XORMode(G2.getColor());
-        //G2.setXORMode(new Color(0,0,0,0));
         G2.setComposite(comp);
     }
 

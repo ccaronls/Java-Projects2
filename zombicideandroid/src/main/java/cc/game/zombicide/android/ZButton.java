@@ -10,11 +10,9 @@ import cc.lib.ui.IButton;
 
 public class ZButton extends ConstraintLayout implements View.OnClickListener, View.OnLongClickListener {
 
-    IButton b;
-
-    static ZButton build(Context context, IButton button, OnClickListener listener) {
+    static ZButton build(Context context, IButton button) {
         ZButton b = (ZButton)View.inflate(context, R.layout.zbutton_layout, null);
-        b.init(button, listener);
+        b.init(button);
         return b;
     }
 
@@ -26,19 +24,17 @@ public class ZButton extends ConstraintLayout implements View.OnClickListener, V
         super(context, attrs);
     }
 
-    private void init(IButton button, OnClickListener listener) {
+    private void init(IButton button) {
         TextView tv = findViewById(R.id.text);
         View arrow = findViewById(R.id.bInfo);
         tv.setText(button.getLabel());
         if (button.getTooltipText() == null) {
             arrow.setVisibility(View.GONE);
         } else {
-            b = button;
             arrow.setOnClickListener(this);
-            setOnLongClickListener(this);
         }
         setTag(button);
-        setOnClickListener(listener);
+        //setOnClickListener(listener);
     }
 
     @Override
@@ -47,11 +43,15 @@ public class ZButton extends ConstraintLayout implements View.OnClickListener, V
         return true;
     }
 
+    IButton getButton() {
+        return (IButton)getTag();
+    }
+
     @Override
     public void onClick(View v) {
         View popup = View.inflate(getContext(), R.layout.tooltippopup_layout, null);
-        ((TextView)popup.findViewById(R.id.header)).setText(b.getLabel());
-        ((TextView)popup.findViewById(R.id.text)).setText(b.getTooltipText());
+        ((TextView)popup.findViewById(R.id.header)).setText(getButton().getLabel());
+        ((TextView)popup.findViewById(R.id.text)).setText(getButton().getTooltipText());
         ((ZombicideActivity)v.getContext()).newDialogBuilder().setView(popup).setCancelable(true).show().setCanceledOnTouchOutside(true);
     }
 }

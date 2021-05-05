@@ -1,6 +1,40 @@
 (DONE)Add slashing anims for melee attacks
 Add ability to destroy spawns
 Add Menu to Show skills and their descriptions (In PRogress)
-Make so walking in and out of vaults uses the correct door during animations
-Killing a necro allways users to remove a spawn zone
+(Works when in correct cell) Make so walking in and out of vaults uses the correct door during animations
+(Done)Killing a necro allways users to remove a spawn zone
 Necros supposed to move toward an escape or game is lost
+(Done)Make splash animate a hand coming out of ground
+
+SEBI's GAME
+-------------
+First time launch mode / tutorial
+Tutorial game needs helper text to teach user
+Zoom in/out should be animated
+When searching or looting a vault, new items should have their cards shown on the screen for a few seconds
+Need to handle onResume / onPause
+Add description of the Zombies abilities to toolTipText
+(Done) Animation for doing nothing (Zzzzzz)
+(Done) Put direction button on top
+replace 'start' with new game->choose level->choose difficulty->choose chars
+Ability to reverse a move
+(Done) replace 'Back' button with 'Cancel'
+Ability to toggle through characters button as part of the direction arrows
+pinch zoom / pan
+Make so levels and chars are unlockable
+Less dragon bile / torches
+
++---------+----------+-----------+
+|         |          |           |
+|  ZOOM   |    UP    |  ZOOM     |
+|   IN    |          |   OUT     |
++---------+----------+-----------+
+|         |  Toggle  |           |
+|  LEFT   |   Char   |  RIGHT    |
+|         |          |           |
++---------+----------+-----------+
+|         |          |           |
+|         |  DOWN    |   IN/OUT  |
+|         |          |    VAULT  |
++---------+----------+-----------+
+

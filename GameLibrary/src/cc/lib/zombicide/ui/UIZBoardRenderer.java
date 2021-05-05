@@ -1,10 +1,13 @@
 package cc.lib.zombicide.ui;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import cc.lib.game.AGraphics;
 import cc.lib.game.AImage;
@@ -45,7 +48,7 @@ import cc.lib.zombicide.ZWeapon;
 import cc.lib.zombicide.ZWeaponStat;
 import cc.lib.zombicide.ZZone;
 
-public class UIZBoardRenderer extends UIRenderer {
+public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
 
     final static Logger log = LoggerFactory.getLogger(UIZBoardRenderer.class);
 
@@ -169,7 +172,7 @@ public class UIZBoardRenderer extends UIRenderer {
                 case RELOAD:
                     addClickable(cur.getRect(), move);
                     break;
-                case TOGGLE_DOOR:
+                case OPERATE_DOOR:
                     for (ZDoor door : (List<ZDoor>)move.list) {
                         addClickable(door.getRect(getBoard()).grow(.1f), new ZMove(move, door));
                     }
@@ -183,7 +186,7 @@ public class UIZBoardRenderer extends UIRenderer {
                 case DISPOSE:
                     addClickable(cur.getRect(), move);
                     break;
-                case OBJECTIVE:
+                case TAKE_OBJECTIVE:
                     addClickable(getBoard().getZone(cur.getOccupiedZone()), move);
                     break;
                 case DROP_ITEM:
@@ -259,10 +262,30 @@ public class UIZBoardRenderer extends UIRenderer {
         }
     }
 
-    public ZActor drawActors(AGraphics g, ZBoard b, float mx, float my, boolean drawAnimating) {
+    public ZActor drawActors(AGraphics g, UIZombicide game, float mx, float my, boolean drawAnimating) {
         ZActor picked = null;
         float distFromCenter = 0;
         actorsAnimating = false;
+        ZBoard b = game.getBoard();
+
+        Set<ZActor> options = Collections.emptySet();
+
+        switch (game.getUiMode()) {
+            case PICK_ZOMBIE:
+            case PICK_CHARACTER: {
+                options = new HashSet<>(game.getOptions());
+                /*
+                g.setColor(GColor.YELLOW);
+                for (ZActor a : (List<ZActor>) game.getOptions()) {
+                    a.getRect(game.getBoard()).drawOutlined(g, 1);
+                }
+                if (game.getOptions().contains(highlightedActor)) {
+                    highlightedResult = highlightedActor;
+                }*/
+                break;
+            }
+        }
+
         for (ZActor a : b.getAllLiveActors()) {
             if (a.isAnimating() && !drawAnimating)
                 continue;
@@ -279,14 +302,31 @@ public class UIZBoardRenderer extends UIRenderer {
                 if (a.isInvisible()) {
                     g.setTransparencyFilter(.5f);
                 }
-                a.drawOrAnimate(g);
                 if (a.isAnimating()) {
+                    a.drawOrAnimate(g);
                     actorsAnimating = true;
+                } else {
+                    GColor outline = null;
+                    if (game.getCurrentCharacter() != null && a == game.getCurrentCharacter()) {
+                        outline = GColor.GREEN;
+                    } else if (a == picked)
+                        outline = GColor.RED;
+                    else if (options.contains(a))
+                        outline = GColor.YELLOW;
+                    drawActor((T)g, a, outline);
                 }
                 g.removeFilter();
             }
         }
         return picked;
+    }
+
+    protected void drawActor(T g, ZActor actor, GColor outline) {
+        if (outline != null) {
+            g.setColor(outline);
+            g.drawRect(actor.getRect(), 1);
+        }
+        actor.draw(g);
     }
 
     public int pickZone(AGraphics g, int mouseX, int mouseY) {
@@ -455,15 +495,25 @@ public class UIZBoardRenderer extends UIRenderer {
                     g.drawLine(dv1, v1, 3);
                     break;
                 }
-                case LOCKED:
-                    g.drawLine(v0, v1, 3);
-                    g.setColor(getBoard().findDoor(cellPos, dir).getLockedColor());
-                    g.drawLine(dv0, dv1, 4);
+                case LOCKED: {
+                    if (dir == ZDir.SOUTH || dir == ZDir.WEST) {
+                        g.drawLine(v0, v1, 3);
+                        ZDoor door = getBoard().findDoor(cellPos, dir);
+                        g.setColor(door.getLockedColor());
+                        GRectangle padlock = new GRectangle(0, 0, .2f, .2f).withCenter(dv1.add(dv0).scaleEq(.5f));
+                        //GRectangle rect = door.getRect(board).withDimension()scale(.5f);
+                        AImage img = g.getImage(ZIcon.PADLOCK.imageIds[0]);
+                        g.drawImage(ZIcon.PADLOCK.imageIds[0], padlock.fit(img));
+                        g.drawLine(dv0, dv1, 4);
+                    }
                     break;
+                }
                 case CLOSED:
-                    g.drawLine(v0, v1, 3);
-                    g.setColor(GColor.YELLOW);
-                    g.drawLine(dv0, dv1, 4);
+                    if (dir == ZDir.SOUTH || dir == ZDir.WEST) {
+                        g.drawLine(v0, v1, 3);
+                        g.setColor(GColor.YELLOW);
+                        g.drawLine(dv0, dv1, 4);
+                    }
                     break;
             }
             g.popMatrix();
@@ -476,11 +526,14 @@ public class UIZBoardRenderer extends UIRenderer {
                     ZDoor door = board.findDoor(cellPos, dir);
                     g.setColor(GColor.BLACK);
                     GRectangle vaultRect = door.getRect(board);
-                    g.setColor(GColor.ORANGE);
+                    g.setColor(door.getLockedColor());
                     vaultRect.drawFilled(g);
                     g.setColor(GColor.RED);
                     vaultRect.drawOutlined(g, 2);
 //                    g.drawJustifiedString(vaultRect.getCenter(), Justify.CENTER, Justify.CENTER, "LOCKED");
+                    GRectangle rect = door.getRect(board).scale(.7f);
+                    AImage img = g.getImage(ZIcon.PADLOCK.imageIds[0]);
+                    g.drawImage(ZIcon.PADLOCK.imageIds[0], rect.fit(img));
                     break;
                 }
                 case CLOSED: {
@@ -539,7 +592,7 @@ public class UIZBoardRenderer extends UIRenderer {
     }
 
 
-    public Grid.Pos drawDebug(AGraphics g, float mouseX, float mouseY) {
+    public Grid.Pos drawNoTiles(AGraphics g, float mouseX, float mouseY, boolean debugText) {
         g.clearScreen(GColor.LIGHT_GRAY);
         Grid.Pos returnCell = null;
 
@@ -557,7 +610,7 @@ public class UIZBoardRenderer extends UIRenderer {
                     g.setColor(GColor.BROWN); break;
             }
             g.drawFilledRect(cell);
-            drawCellWalls(g, it.getPos(), .97f);
+            //drawCellWalls(g, it.getPos(), .97f);
             String text = "Zone " + cell.getZoneIndex();
             for (ZCellType type : ZCellType.values()) {
                 if (cell.isCellType(type)) {
@@ -600,7 +653,8 @@ public class UIZBoardRenderer extends UIRenderer {
             if (cell.getVaultFlag() > 0) {
                 text += "\nvaultFlag " + cell.getVaultFlag();
             }
-            g.drawJustifiedStringOnBackground(cell.getCenter(), Justify.CENTER, Justify.CENTER, text, GColor.TRANSLUSCENT_BLACK, 10, 3);
+            if (debugText)
+                g.drawJustifiedStringOnBackground(cell.getCenter(), Justify.CENTER, Justify.CENTER, text, GColor.TRANSLUSCENT_BLACK, 10, 3);
 
         }
         return returnCell;
@@ -748,12 +802,14 @@ public class UIZBoardRenderer extends UIRenderer {
 
         //final Grid.Pos cellPos = board.drawDebug(g, mouse.X(), mouse.Y());
 
-        if (game.isGameRunning() || game.isGameOver()) {
+        final boolean DRAW_DEBUG_WHEN_NOT_RUNNING = false;
+
+        if (!DRAW_DEBUG_WHEN_NOT_RUNNING || game.isGameRunning() || game.isGameOver()) {
             Grid.Pos cellPos = null;
             if (checkDrawTiles(g)) {
                 cellPos = pickCell(g, mouse.X(), mouse.Y());
             } else {
-                cellPos = drawDebug(g, mouse.X(), mouse.Y());
+                cellPos = drawNoTiles(g, mouse.X(), mouse.Y(), false);
             }
             int highlightedZone = drawZones(g, mouse.X(), mouse.Y());
             boolean drawAnimating = game.isGameOver();
@@ -761,19 +817,20 @@ public class UIZBoardRenderer extends UIRenderer {
             drawAnimations(preActor, g);
 
             highlightedActor = //board.drawActors(g, getMouseX(), getMouseY());
-                    drawActors(g, board, mouse.X(), mouse.Y(), drawAnimating || overlayToDraw == null);
+                    drawActors(g, game, mouse.X(), mouse.Y(), drawAnimating || overlayToDraw == null);
 
             drawAnimations(postActor, g);
 
             //if (drawZoneAnimations(g))
             //    repaint();
 
+            /* Move to drawActors
             if (game.getCurrentCharacter() != null) {
 //                if (highlightedActor == getGame().getCurrentCharacter())
                 //                  highlightedActor = null; // prevent highlighting an already selected actor
                 g.setColor(GColor.GREEN);
                 g.drawRect(game.getCurrentCharacter().getRect(board).scale(1.02f), OUTLINE);
-            }
+            }*/
 
             g.setColor(GColor.BLACK);
             if (game.getQuest()!=null) {
@@ -788,10 +845,10 @@ public class UIZBoardRenderer extends UIRenderer {
             switch (game.getUiMode()) {
                 case PICK_ZOMBIE:
                 case PICK_CHARACTER: {
-                    g.setColor(GColor.YELLOW);
-                    for (ZActor a : (List<ZActor>)game.getOptions()) {
-                        a.getRect(board).drawOutlined(g, 1);
-                    }
+                    //g.setColor(GColor.YELLOW);
+                    //for (ZActor a : (List<ZActor>)game.getOptions()) {
+                    //    a.getRect(board).drawOutlined(g, 1);
+                    //}
                     if (game.getOptions().contains(highlightedActor)) {
                         highlightedResult = highlightedActor;
                     }
@@ -828,10 +885,11 @@ public class UIZBoardRenderer extends UIRenderer {
                 g.setColor(GColor.RED.withAlpha(32));
                 drawZoneOutline(g, board, cell.getZoneIndex());
             }
+            /*
             if (highlightedActor != null) {
                 g.setColor(GColor.RED);
                 g.drawRect(highlightedActor.getRect(board).scale(1.01f), OUTLINE);
-            }
+            }*/
 
             g.pushMatrix();
             g.setIdentity();
@@ -844,7 +902,7 @@ public class UIZBoardRenderer extends UIRenderer {
 
         } else {
 
-            Grid.Pos cellPos = drawDebug(g, mouse.X(), mouse.Y());
+            Grid.Pos cellPos = drawNoTiles(g, mouse.X(), mouse.Y(), true);
             checkDrawTiles(g);
 
             if (cellPos != null) {
@@ -917,6 +975,13 @@ public class UIZBoardRenderer extends UIRenderer {
                 IVector2D cntr = new Vector2D(getWidth()/2, getHeight()/2);
                 ((Table)overlayToDraw).draw(g, cntr, Justify.CENTER, Justify.CENTER);
                 g.popMatrix();
+            } else if (overlayToDraw instanceof String) {
+                g.setColor(GColor.WHITE);
+                g.drawWrapStringOnBackground(getWidth()/2, getHeight()/2, getWidth()/2, Justify.CENTER, Justify.CENTER, (String)overlayToDraw, GColor.TRANSLUSCENT_BLACK, 10);
+            } else if (overlayToDraw instanceof ZAnimation) {
+
+            } else if (overlayToDraw instanceof AImage) {
+
             }
         }
 
@@ -935,6 +1000,12 @@ public class UIZBoardRenderer extends UIRenderer {
             overlayToDraw = obj;
         } else if (obj instanceof ZPlayerName){
             overlayToDraw = ((ZPlayerName)obj).cardImageId;
+        } else if (obj instanceof AImage) {
+            overlayToDraw = obj;
+        } else if (obj instanceof ZAnimation) {
+            overlayToDraw = obj;
+        } else {
+            overlayToDraw = obj.toString();
         }
         redraw();
     }

@@ -105,11 +105,13 @@ public class ZMove implements IButton {
     @Override
     public String getTooltipText() {
         if (equipment != null) {
-            if (toSlot != null && fromSlot != null) {
-                return String.format("%s\nfrom: %s\nto: %s", equipment, fromSlot, toSlot);
-            } else {
-                return equipment.getTooltipText();
-            }
+            return equipment.getTooltipText();
+        }
+        if (skill != null) {
+            return skill.getTooltipText();
+        }
+        if (this.character != null) {
+            return character.getTooltipText();
         }
         return null;
     }
@@ -133,7 +135,7 @@ public class ZMove implements IButton {
     }
 
     static ZMove newToggleDoor(List<ZDoor> doors) {
-        return new ZMove(ZMoveType.TOGGLE_DOOR, doors);
+        return new ZMove(ZMoveType.OPERATE_DOOR, doors);
     }
 
     public static ZMove newSearchMove(int zoneIndex) {
@@ -189,7 +191,7 @@ public class ZMove implements IButton {
     }
 
     public static ZMove newObjectiveMove(int zone) {
-        return new ZMove(ZMoveType.OBJECTIVE, zone);
+        return new ZMove(ZMoveType.TAKE_OBJECTIVE, zone);
     }
 
     public static ZMove newReloadMove(ZWeapon slot) {

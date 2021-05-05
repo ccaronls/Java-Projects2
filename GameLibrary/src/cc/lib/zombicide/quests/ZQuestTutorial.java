@@ -133,7 +133,7 @@ public class ZQuestTutorial extends ZQuest {
         return new Table(getName())
                 .addRow(new Table().setNoBorder()
                     .addRow("1.", "Unlock the BLUE Door.", game.getBoard().getDoor(blueDoor) != ZWallFlag.LOCKED)
-                    .addRow("2.", "Unlock the GREEN Door.", game.getBoard().getDoor(greenDoor) != ZWallFlag.LOCKED)
+                    .addRow("2.", "Unlock the GREEN Door. GREEN key hidden among RED objectives.", game.getBoard().getDoor(greenDoor) != ZWallFlag.LOCKED)
                     .addRow("3.", String.format("Collect all Objectives for %d EXP Each", OBJECTIVE_EXP), String.format("%d of %d", numRedZones- redObjectives.size(), numRedZones))
                     .addRow("4.", "Get all players into the EXIT zone.", isQuestComplete(game))
                     .addRow("5.", "Exit zone must be cleared of zombies.")

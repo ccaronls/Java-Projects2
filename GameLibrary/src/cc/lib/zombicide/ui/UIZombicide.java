@@ -118,6 +118,11 @@ public abstract class UIZombicide extends ZGame {
     }
 
     @Override
+    protected void onDoNothing(ZCharacter c) {
+        boardRenderer.addPostActor(new HoverMessage(board, "Zzzzz", c.getRect().getCenter()));
+        Utils.waitNoThrow(this, 500);    }
+
+    @Override
     protected void onZombieDestroyed(ZCharacter c, ZAttackType deathType, ZZombie zombie) {
         Lock lock = new Lock();
         switch (deathType) {
@@ -251,18 +256,20 @@ public abstract class UIZombicide extends ZGame {
 
         if (actionType == ZActionType.MELEE) {
 
-            GroupAnimation group = new GroupAnimation(attacker);
-            attacker.addAnimation(group);
+            //GroupAnimation group = new GroupAnimation(attacker);
+            //attacker.addAnimation(group);
             Lock animLock = new Lock(numDice);
             for (int i=0; i<numDice; i++) {
-                group.addAnimation(new MeleeAnimation(attacker, board) {
+                attacker.addAnimation(new MeleeAnimation(attacker, board) {
                     @Override
                     protected void onDone() {
+                        super.onDone();
                         animLock.release();
                     }
                 });
-                Utils.waitNoThrow(this, 100);
+                //Utils.waitNoThrow(this, 100);
             }
+            boardRenderer.redraw();
             animLock.block();
 
         } else if (actionType.isRanged()) {
@@ -281,6 +288,7 @@ public abstract class UIZombicide extends ZGame {
                 });
                 Utils.waitNoThrow(this, 100);
             }
+            boardRenderer.redraw();
             animLock.block();
         } else if (weapon.isMagic()) {
 
@@ -344,6 +352,7 @@ public abstract class UIZombicide extends ZGame {
                             }
                         });
                     }
+                    boardRenderer.redraw();
                     animLock.block();
                     break;
                 }
@@ -470,6 +479,30 @@ public abstract class UIZombicide extends ZGame {
     public void loadQuest(ZQuests quest) {
         super.loadQuest(quest);
         boardRenderer.setOverlay(getQuest().getObjectivesOverlay(this));
-
     }
+
+    /* WONT WORK - Need a MoveType to switch playerr better solution
+    public void toggleActivePlayer() {
+        LinkedList<ZCharacter> c = new LinkedList<>(getAllCharacters());
+        Set<ZPlayerName> userPlayers = new HashSet<>(getCurrentUser().getCharacters());
+        Iterator<ZCharacter> it = c.iterator();
+        while (it.hasNext()) {
+            ZCharacter character = it.next();
+            if (character.isDead() || !userPlayers.contains(character.getType())) {
+                it.remove();
+            }
+        }
+
+        if (userPlayers.size() == 0)
+            return;
+        if (getCurrentCharacter() == null || userPlayers.size() == 1) {
+            if (getState() == ZState.PLAYER_STAGE_CHOOSE_CHARACTER)
+                setResult(c.getFirst());
+            else {
+                setResult(null);
+            }
+        } else {
+            // cycle through the
+        }
+    }*/
 }

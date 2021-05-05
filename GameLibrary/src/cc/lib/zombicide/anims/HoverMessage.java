@@ -4,6 +4,7 @@ import cc.lib.game.AGraphics;
 import cc.lib.game.GColor;
 import cc.lib.game.IVector2D;
 import cc.lib.game.Justify;
+import cc.lib.game.Utils;
 import cc.lib.math.Vector2D;
 import cc.lib.zombicide.ZAnimation;
 import cc.lib.zombicide.ZBoard;
@@ -18,7 +19,9 @@ public class HoverMessage extends ZAnimation {
         super(3000);
         this.msg = msg;
         this.center = center;
-        dv = board.getZoomedRectangle().getCenter().subEq(center).normalizedEq().scaleEq(.5f);
+        dv = board.getZoomedRectangle().getCenter().subEq(center)
+                .rotateEq(Utils.randFloatX(30))
+                .normalizedEq().scaleEq(.5f);
     }
 
     @Override

@@ -13,6 +13,10 @@ public abstract class ZUser extends Reflector<ZUser> {
 
     final List<ZPlayerName> characters = new ArrayList<>();
 
+    public List<ZPlayerName> getCharacters() {
+        return new ArrayList<>(characters);
+    }
+
     public void clear() {
         characters.clear();
     }

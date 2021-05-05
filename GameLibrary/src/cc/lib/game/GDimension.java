@@ -75,4 +75,10 @@ public class GDimension extends Reflector<GDimension> implements IDimension {
         return new GDimension(width + dw, height + dh);
     }
 
+    public GDimension interpolateTo(GDimension other, float factor) {
+        float w = width + (other.width - width) * factor;
+        float h = height + (other.height - height) * factor;
+        return new GDimension(w, h);
+    }
+
 }

@@ -15,7 +15,7 @@ public enum ZMoveType {
     MAGIC_ATTACK,
     THROW_ITEM, // torch / dragon bile
     RELOAD,
-    TOGGLE_DOOR,
+    OPERATE_DOOR,
     SEARCH,
     CONSUME,
     EQUIP,
@@ -23,7 +23,7 @@ public enum ZMoveType {
     GIVE,
     TAKE,
     DISPOSE,
-    OBJECTIVE,
+    TAKE_OBJECTIVE,
     // drop or collect items from vault
     DROP_ITEM,
     PICKUP_ITEM,

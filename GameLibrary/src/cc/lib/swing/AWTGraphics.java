@@ -3,6 +3,7 @@ package cc.lib.swing;
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Composite;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Image;
@@ -344,6 +345,10 @@ public class AWTGraphics extends APGraphics {
         return images.newRotatedImage(id, degrees, comp);
     }
 
+    public final int addImage(Image img) {
+        return images.addImage(img);
+    }
+
     public final int loadImage(String assetPath, GColor transparent, int maxCopies) {
         return images.loadImage(assetPath, transparent == null ? null : AWTUtils.toColor(transparent), maxCopies);
     }
@@ -428,11 +433,20 @@ public class AWTGraphics extends APGraphics {
 
     @Override
     public final void setTransparencyFilter(float alpha) {
-        setAlphaCompisite(alpha, AlphaComposite.SRC_OVER);
+        Composite comp = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha);
+        setComposite(comp);
     }
 
-    public void setAlphaCompisite(float alpha, int mode) {
+    public final void setColorFilter() {
+        //setComposite();
+    }
+
+    public void setComposite(Composite comp) {
         throw new RuntimeException("Not implemented");
+    }
+
+    public void setAlphaComposite(float alpha, int mode) {
+        setComposite(AlphaComposite.getInstance(mode, alpha));
     }
 
     @Override

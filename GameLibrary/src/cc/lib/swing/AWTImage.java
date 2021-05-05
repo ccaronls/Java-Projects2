@@ -73,4 +73,8 @@ public class AWTImage extends AImage implements Icon {
         ImageProducer p = new FilteredImageSource(image.getSource(), filter);
         return new AWTImage(Toolkit.getDefaultToolkit().createImage(p), comp);
     }
+
+    public Image getImage() {
+        return image;
+    }
 }

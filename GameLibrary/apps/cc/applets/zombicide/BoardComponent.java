@@ -16,6 +16,7 @@ import cc.lib.ui.UIRenderer;
 import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZDir;
 import cc.lib.zombicide.ZIcon;
+import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZTile;
 import cc.lib.zombicide.ZZombieType;
@@ -147,6 +148,7 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
             { ZIcon.SLASH, "zslash5.gif" },
             { ZIcon.FIREBALL, "zfireball.gif" },
             { ZIcon.GRAVESTONE, "zgravestone.gif" },
+            { ZIcon.PADLOCK, "zpadlock2.gif" },
         };
 
         Map<Object, List<Integer>> objectToImageMap = new HashMap<>();
@@ -247,6 +249,7 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
             ZIcon.SLASH.imageIds = Utils.toIntArray(objectToImageMap.get(ZIcon.SLASH));
             ZIcon.FIREBALL.imageIds = Utils.toIntArray(objectToImageMap.get(ZIcon.FIREBALL));
             ZIcon.GRAVESTONE.imageIds = Utils.toIntArray(objectToImageMap.get(ZIcon.GRAVESTONE));
+            ZIcon.PADLOCK.imageIds = Utils.toIntArray(objectToImageMap.get(ZIcon.PADLOCK));
         }
 
         {
@@ -325,9 +328,18 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
                 case KeyEvent.VK_TAB:
                     // toggle active player
                     if (game.canSwitchActivePlayer()) {
-                        game.toggleActivePlayer();
+                        //game.toggleActivePlayer();
+                        // game.setResult(ZMove.newNextCharacterMove());
                     }
                     break;
+                case KeyEvent.VK_SLASH:
+                    if (game.getBoard().canMove(game.getCurrentCharacter(), ZDir.DESCEND)) {
+                        game.setResult(ZMove.newWalkDirMove(ZDir.DESCEND));
+                    } else if (game.getBoard().canMove(game.getCurrentCharacter(), ZDir.ASCEND)) {
+                        game.setResult(ZMove.newWalkDirMove(ZDir.ASCEND));
+                    }
+                    break;
+
             }
         }
 

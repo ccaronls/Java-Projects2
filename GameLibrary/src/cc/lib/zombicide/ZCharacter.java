@@ -626,8 +626,16 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
      *
      * @return
      */
-    public boolean isDead() {
+    public final boolean isDead() {
         return woundBar >= MAX_WOUNDS;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public final boolean isAlive() {
+        return woundBar < MAX_WOUNDS;
     }
 
     @Override

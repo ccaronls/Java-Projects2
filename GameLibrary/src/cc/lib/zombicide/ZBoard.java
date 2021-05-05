@@ -112,7 +112,8 @@ public class ZBoard extends Reflector<ZBoard> {
     }
 
     public ZDoor findDoor(Grid.Pos pos, ZDir dir) {
-        for (ZDoor door : zones.get(getCell(pos).zoneIndex).doors) {
+        ZZone zone = zones.get(getCell(pos).zoneIndex);
+        for (ZDoor door : zone.doors) {
             if (door.getCellPosStart().equals(pos) && door.getMoveDirection()==dir) {
                 return door;
             }
@@ -311,14 +312,18 @@ public class ZBoard extends Reflector<ZBoard> {
      * @param actor
      * @param zoneIndex
      */
-    public boolean addActor(ZActor actor, int zoneIndex) {
+    public boolean addActor(ZActor actor, int zoneIndex, Grid.Pos cellPos) {
         ZZone zone = zones.get(zoneIndex);
         boolean added = false;
         for (int c=0;!added && c < zone.cells.size(); c++) {
-            Grid.Pos cellPos = zone.cells.get(zone.nextCell);
-            zone.nextCell = (zone.nextCell + 1) % zone.cells.size();
-            if (getCell(cellPos).isFull())
+            if (cellPos == null) {
+                cellPos = zone.cells.get(zone.nextCell);
+                zone.nextCell = (zone.nextCell + 1) % zone.cells.size();
+            }
+            if (getCell(cellPos).isFull()) {
+                cellPos = null;
                 continue;
+            }
             addActorToCell(actor, cellPos);
             added = true;
             break;
@@ -343,11 +348,29 @@ public class ZBoard extends Reflector<ZBoard> {
         return added;
     }
 
-    public void moveActor(ZActor actor, int toZone) {
-        ZCell cell = getCell(actor.occupiedCell);
-        cell.setQuadrant(null, actor.occupiedQuadrant);
-        zones.get(cell.zoneIndex).noiseLevel -= actor.getNoise();
-        addActor(actor, toZone);
+    public void moveActor(ZActor actor, int toZoneIndex) {
+        Grid.Pos targetPos = null;
+        int fromZoneIndex = actor.occupiedZone;
+        ZZone fromZone = zones.get(actor.occupiedZone);
+        if (fromZoneIndex != toZoneIndex) {
+            ZZone toZone = zones.get(toZoneIndex);
+            if (toZone.getType() == ZZoneType.VAULT) {
+                // moving into a vault
+                ZDoor vault = findDoor(actor.getOccupiedCell(), ZDir.DESCEND);
+                if (vault != null)
+                    targetPos = vault.getCellPosEnd();
+            } else if (fromZone.getType() == ZZoneType.VAULT) {
+                // moving out of a vault
+                ZDoor vault = findDoor(actor.getOccupiedCell(), ZDir.ASCEND);
+                if (vault != null)
+                    targetPos = vault.getCellPosEnd();
+            }
+        }
+        ZCell fromCell = getCell(actor.occupiedCell);
+        fromCell.setQuadrant(null, actor.occupiedQuadrant);
+        fromZone.noiseLevel -= actor.getNoise();
+        // if we are moving in or out of a vault, make so the cellPos moving is the opposing door
+        addActor(actor, toZoneIndex, targetPos);
     }
 
     public void moveActor(ZActor actor, Grid.Pos cellPos) {
@@ -387,7 +410,7 @@ public class ZBoard extends Reflector<ZBoard> {
     }
 
     public List<ZCharacter> getCharactersInZone(int zoneIdx) {
-        return Utils.filter((List)getActorsInZone(zoneIdx), (Utils.Filter<ZActor>) object -> object instanceof ZCharacter);
+        return Utils.filter((List)getActorsInZone(zoneIdx), (Utils.Filter<ZActor>) object -> object instanceof ZCharacter && ((ZCharacter) object).isAlive());
     }
 
     public List<ZActor> getActorsInZone(int zoneIndex) {

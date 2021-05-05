@@ -66,7 +66,7 @@ public abstract class DroidActivity extends CCActivityBase {
     @Override
     protected void onDestroy() {
         if (g != null)
-            g.shutDown();
+            g.releaseBitmaps();
         super.onDestroy();
     }
 

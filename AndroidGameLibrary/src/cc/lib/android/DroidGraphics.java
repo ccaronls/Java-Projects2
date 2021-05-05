@@ -26,6 +26,8 @@ import cc.lib.game.APGraphics;
 import cc.lib.game.GColor;
 import cc.lib.game.GRectangle;
 import cc.lib.game.IImageFilter;
+import cc.lib.game.IRectangle;
+import cc.lib.game.IVector2D;
 import cc.lib.game.Justify;
 import cc.lib.math.CMath;
 import cc.lib.math.Vector2D;
@@ -62,15 +64,6 @@ public class DroidGraphics extends APGraphics {
         curStrokeWidth = 1;
         paint.setAntiAlias(true);
         textPaint.setAntiAlias(true);
-    }
-
-    public final void shutDown() {
-        for (Bitmap bm : bitmaps) {
-            if (bm != null) {
-                bm.recycle();
-            }
-        }
-        bitmaps.clear();
     }
 
     public void setTextModePixels(boolean textModePixels) {
@@ -606,7 +599,7 @@ public class DroidGraphics extends APGraphics {
         return addImage(newBm);
     }
 
-    private Bitmap getBitmap(int id) {
+    public Bitmap getBitmap(int id) {
         if (id < bitmaps.size())
             return bitmaps.get(id);
         Drawable d = context.getDrawable(id);
@@ -714,13 +707,20 @@ public class DroidGraphics extends APGraphics {
 
     final float [] T = { 0,0 };
 
-    void setRectF(float l, float t, float r, float b) {
+    public RectF setRectF(float l, float t, float r, float b) {
         transform(l, t, T);
         rectf.left = T[0];
         rectf.top = T[1];
         transform(r, b, T);
         rectf.right = T[0];
         rectf.bottom = T[1];
+        return rectf;
+    }
+
+    public RectF setRectF(IRectangle rect) {
+        IVector2D tl = rect.getTopLeft();
+        IVector2D br = rect.getBottomRight();
+        return setRectF(tl.getX(), tl.getY(), br.getX(), br.getY());
     }
 
     @Override

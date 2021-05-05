@@ -14,7 +14,7 @@ public final class GRectangle extends Reflector<GRectangle> implements IRectangl
 
     public GRectangle() {}
 
-    public GRectangle(GDimension dim) {
+    public GRectangle(IDimension dim) {
         this(0, 0, dim);
     }
 
@@ -264,6 +264,14 @@ public final class GRectangle extends Reflector<GRectangle> implements IRectangl
 
     public GRectangle withCenter(IVector2D cntr) {
         return new GRectangle(cntr.getX()-w/2, cntr.getY()-h/2, w, h);
+    }
+
+    public GRectangle withDimension(GDimension dim) {
+        return new GRectangle(x, y, dim.width, dim.height);
+    }
+
+    public GRectangle withDimension(float w, float h) {
+        return new GRectangle(x, y, w, h);
     }
 
     public GRectangle movedBy(float dx, float dy) {
