@@ -27,10 +27,9 @@
         app:layout_constraintEnd_toEndOf="@id/list_menu">
 
         <Button
-            android:id="@+id/b_zoomout"
+            android:id="@+id/b_useleft"
             android:layout_columnWeight="1"
-            android:src="@android:drawable/ic_menu_search"
-            android:text="-"/>
+            android:text="LH"/>
 
         <Button
             android:id="@+id/b_up"
@@ -39,10 +38,9 @@
             android:text="^"/>
 
         <Button
-            android:id="@+id/b_zoomin"
+            android:id="@+id/b_useright"
             android:layout_columnWeight="1"
-            android:src="@android:drawable/ic_menu_zoom"
-            android:text="+"/>
+            android:text="RH"/>
 
         <Button
             android:id="@+id/b_left"
@@ -50,15 +48,32 @@
             android:text="&lt;"/>
 
         <Button
-            android:id="@+id/b_down"
+            android:id="@+id/b_switch_character"
             android:layout_columnWeight="1"
-            android:src="@android:drawable/arrow_down_float"
-            android:text="v"/>
+            android:text="O"/>
 
         <Button
             android:id="@+id/b_right"
             android:layout_columnWeight="1"
             android:text="&gt;"/>
+
+        <Button
+            android:id="@+id/b_zoom"
+            android:layout_columnWeight="1"
+            android:text="ZM"/>
+
+        <Button
+            android:id="@+id/b_down"
+            android:layout_columnWeight="1"
+            android:src="@android:drawable/arrow_down_float"
+            android:text="v"/>
+
+        <ImageButton
+            android:id="@+id/b_vault"
+            android:layout_columnWeight="1"
+            android:src="@drawable/stairs_icon"
+            />
+
 
     </GridLayout>
 

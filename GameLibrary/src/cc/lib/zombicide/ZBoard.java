@@ -9,8 +9,6 @@ import java.util.List;
 import java.util.Set;
 
 import cc.lib.game.GDimension;
-import cc.lib.game.GRectangle;
-import cc.lib.game.IVector2D;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
@@ -28,7 +26,6 @@ public class ZBoard extends Reflector<ZBoard> {
 
     private Grid<ZCell> grid;
     private List<ZZone> zones;
-    private int zoom = 0;
 
     public ZBoard() {
 
@@ -279,15 +276,15 @@ public class ZBoard extends Reflector<ZBoard> {
 
     public void setSpawnZone(int zoneIdx, boolean isSpawn) {
         ZZone zone = zones.get(zoneIdx);
-        zone.spawn = isSpawn;
+        zone.setSpawn(isSpawn);
         getCell(zone.cells.get(0)).setCellType(ZCellType.SPAWN_NORTH, true);
     }
 
     public int getMaxNoiseLevel() {
         int maxNoise = 0;
         for (ZZone z : zones) {
-            if (z.noiseLevel > maxNoise) {
-                maxNoise = z.noiseLevel;
+            if (z.getNoiseLevel() > maxNoise) {
+                maxNoise = z.getNoiseLevel();
             }
         }
         return maxNoise;
@@ -297,10 +294,10 @@ public class ZBoard extends Reflector<ZBoard> {
         int maxNoise = 0;
         ZZone maxZone = null;
         for (ZZone z : zones) {
-            if (z.noiseLevel > maxNoise) {
+            if (z.getNoiseLevel() > maxNoise) {
                 maxZone = z;
-                maxNoise = z.noiseLevel;
-            } else if (z.noiseLevel == maxNoise) {
+                maxNoise = z.getNoiseLevel();
+            } else if (z.getNoiseLevel() == maxNoise) {
                 maxZone = null; // when multiple zones share same noise level, then neither are the max
             }
         }
@@ -317,8 +314,7 @@ public class ZBoard extends Reflector<ZBoard> {
         boolean added = false;
         for (int c=0;!added && c < zone.cells.size(); c++) {
             if (cellPos == null) {
-                cellPos = zone.cells.get(zone.nextCell);
-                zone.nextCell = (zone.nextCell + 1) % zone.cells.size();
+                cellPos = zone.cells.get(zone.getNextCellAndIncrement());
             }
             if (getCell(cellPos).isFull()) {
                 cellPos = null;
@@ -368,7 +364,7 @@ public class ZBoard extends Reflector<ZBoard> {
         }
         ZCell fromCell = getCell(actor.occupiedCell);
         fromCell.setQuadrant(null, actor.occupiedQuadrant);
-        fromZone.noiseLevel -= actor.getNoise();
+        fromZone.addNoise(-actor.getNoise());
         // if we are moving in or out of a vault, make so the cellPos moving is the opposing door
         addActor(actor, toZoneIndex, targetPos);
     }
@@ -376,14 +372,14 @@ public class ZBoard extends Reflector<ZBoard> {
     public void moveActor(ZActor actor, Grid.Pos cellPos) {
         ZCell cell = getCell(actor.occupiedCell);
         cell.setQuadrant(null, actor.occupiedQuadrant);
-        zones.get(cell.zoneIndex).noiseLevel -= actor.getNoise();
+        zones.get(cell.zoneIndex).addNoise(-actor.getNoise());
         addActorToCell(actor, cellPos);
     }
 
     public void removeActor(ZActor actor) {
         ZCell cell = getCell(actor.occupiedCell);
         cell.setQuadrant(null, actor.occupiedQuadrant);
-        zones.get(cell.zoneIndex).noiseLevel -= actor.getNoise();
+        zones.get(cell.zoneIndex).addNoise(-actor.getNoise());
         //actor.occupiedZone = -1;
         //actor.occupiedQuadrant = -1;
         //actor.occupiedCell = null;
@@ -460,7 +456,7 @@ public class ZBoard extends Reflector<ZBoard> {
         actor.occupiedZone = cell.zoneIndex;
         actor.occupiedCell = pos;
         actor.occupiedQuadrant = current;
-        zones.get(cell.zoneIndex).noiseLevel += actor.getNoise();
+        zones.get(cell.zoneIndex).addNoise(actor.getNoise());
         return true;
     }
 
@@ -481,11 +477,11 @@ public class ZBoard extends Reflector<ZBoard> {
 
     void resetNoise() {
         for (ZZone zone : zones) {
-            zone.noiseLevel = 0;
+            zone.setNoiseLevel(0);
             for (Grid.Pos pos: zone.cells) {
                 for (ZActor a : getCell(pos).getOccupant()) {
                     if (a != null && a instanceof ZCharacter) {
-                        zone.noiseLevel ++;
+                        zone.addNoise(1);
                     }
                 }
             }
@@ -513,7 +509,7 @@ public class ZBoard extends Reflector<ZBoard> {
         Vector2D br = grid.get(grid.getRows()-1, grid.getCols()-1).getBottomRight();
         return new GDimension(br.getX(), br.getY());
     }
-
+/*
     @Omit
     private GRectangle zoomedRect = null;
 
@@ -544,7 +540,7 @@ public class ZBoard extends Reflector<ZBoard> {
 
     int getMaxZoom() {
         return Math.min(getRows(), getColumns());
-    }
+    }*/
 
     public ZDir getDirection(int fromZone, int toZone) {
         ZZone start = getZone(fromZone);
@@ -563,7 +559,7 @@ public class ZBoard extends Reflector<ZBoard> {
     }
 
     public List<ZZone> getZonesOfType(ZZoneType type) {
-        return Utils.filter(new ArrayList<>(zones), object -> object.type == type);
+        return Utils.filter(new ArrayList<>(zones), object -> object.getType() == type);
     }
 
     public List<ZZone> getSpawnZones() {

@@ -13,6 +13,7 @@ import cc.lib.game.AGraphics;
 import cc.lib.game.AImage;
 import cc.lib.game.APGraphics;
 import cc.lib.game.GColor;
+import cc.lib.game.GDimension;
 import cc.lib.game.GRectangle;
 import cc.lib.game.IRectangle;
 import cc.lib.game.IShape;
@@ -55,6 +56,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
     final List<ZAnimation> preActor = new ArrayList<>();
     final List<ZAnimation> postActor = new ArrayList<>();
     final List<ZAnimation> overlayAnimations = new ArrayList<>();
+    ZAnimation zoomAnimation = null;
     final Map<IShape, List<IButton>> clickables = new HashMap<>();
 
     Grid.Pos highlightedCell = null;
@@ -81,7 +83,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
     }
 
     public boolean isAnimating() {
-        return actorsAnimating || postActor.size() > 0 || preActor.size() > 0 || overlayAnimations.size() > 0;
+        return actorsAnimating || postActor.size() > 0 || preActor.size() > 0 || overlayAnimations.size() > 0 || zoomAnimation != null;
     }
 
     void addPreActor(ZAnimation a) {
@@ -130,7 +132,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                 case DO_NOTHING:
                     addClickable(cur.getRect(), move);
                     break;
-                case ORGANNIZE:
+                case INVENTORY:
                     //addClickable(cur.getRect(), move);
                     break;
                 case TRADE:
@@ -379,7 +381,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                 ZCell cell = board.getCell(pos);
                 if (cell.isCellTypeEmpty())
                     continue;
-                switch (zone.type) {
+                switch (zone.getType()) {
                     case VAULT:
                         g.setColor(GColor.BROWN);
                         g.drawFilledRect(cell);
@@ -439,6 +441,10 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                 if (text.length() > 0) {
                     g.setColor(GColor.YELLOW);
                     g.drawJustifiedStringOnBackground(cell.getCenter(), Justify.CENTER, Justify.CENTER, text, GColor.TRANSLUSCENT_BLACK, 10, 2);
+                }
+                if (getGame().getUiMode() == UIZombicide.UIMode.PICK_ZONE && !getGame().getOptions().contains(i)) {
+                    g.setColor(GColor.TRANSLUSCENT_BLACK);
+                    g.drawFilledRect(cell);
                 }
             }
             if (zone.getNoiseLevel() > 0) {
@@ -730,7 +736,19 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
         return picked;
     }
 
-    IVector2D getBoardCenter() {
+    IVector2D boardCenter = null;
+
+    public IVector2D getBoardCenter() {
+        if (boardCenter == null)
+            return getDefaultBoardCenter();
+        return boardCenter;
+    }
+
+    public void setBoardCenter(IVector2D boardCenter) {
+        this.boardCenter = boardCenter;
+    }
+
+    IVector2D getDefaultBoardCenter() {
         ZGame game = getGame();
         if (game.getCurrentCharacter() != null)
             return game.getCurrentCharacter().getRect().getCenter();
@@ -774,6 +792,66 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
         return true;
     }
 
+    float zoomAmt = 0;
+
+    public float getZoomAmt() {
+        return zoomAmt;
+    }
+
+    public void setZoomAmt(float zoomAmt) {
+        this.zoomAmt = zoomAmt;
+    }
+
+    public void animateZoomTo(float targetZoom) {
+        if (zoomAnimation != null)
+            return;
+        targetZoom = Utils.clamp(targetZoom, 0, getMaxZoom());
+        float zoomDelta = targetZoom - zoomAmt;
+        animateZoomAmount(zoomDelta);
+    }
+
+    public void animateZoomAmount(float _amt) {
+        if (zoomAnimation != null)
+            return;
+        if (zoomAmt + _amt < 0) {
+            _amt = -zoomAmt;
+        } else if (zoomAmt + _amt > getMaxZoom()) {
+            _amt = getMaxZoom() - zoomAmt;
+        }
+
+        float amt = _amt;
+        float curZoom = zoomAmt;
+        zoomAnimation = new ZAnimation(500) {
+            @Override
+            protected void draw(AGraphics g, float position, float dt) {
+                zoomAmt = curZoom + amt *position;
+            }
+        }.start();
+        redraw();
+    }
+
+    public float getMaxZoom() {
+        float n = Math.min(getBoard().getRows(), getBoard().getColumns());
+        return n - 2;
+    }
+
+    private GRectangle zoomedRect = null;
+
+    public GRectangle getZoomedRect() {
+        return zoomedRect;
+    }
+
+    public GRectangle getZoomedRectangle(IVector2D center) {
+        GDimension dim = getBoard().getDimension();
+        float aspect = dim.getAspect();
+        GDimension zoomed = new GDimension(dim.width-zoomAmt*aspect, dim.height-zoomAmt);
+
+        GRectangle rect = new GRectangle(zoomed).withCenter(center);
+        rect.x = Utils.clamp(rect.x, 0, dim.width-rect.w);
+        rect.y = Utils.clamp(rect.y, 0, dim.height-rect.h);
+        return zoomedRect = rect;
+    }
+
     @Override
     public void draw(APGraphics g, int mouseX, int mouseY) {
         highlightedActor = null;
@@ -785,7 +863,8 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
         ZBoard board = getBoard();
         g.setIdentity();
 
-        g.ortho(board.getZoomedRectangle(getBoardCenter()));
+        IVector2D center = getBoardCenter();
+        g.ortho(getZoomedRectangle(center));
 
         //g.ortho();
         //g.pushMatrix();
@@ -982,6 +1061,14 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
 
             } else if (overlayToDraw instanceof AImage) {
 
+            }
+        }
+
+        if (zoomAnimation != null) {
+            if (zoomAnimation.isDone()) {
+                zoomAnimation = null;
+            } else {
+                zoomAnimation.update(g);
             }
         }
 

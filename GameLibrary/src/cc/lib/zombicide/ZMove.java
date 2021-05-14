@@ -134,6 +134,14 @@ public class ZMove implements IButton {
         return new ZMove(ZMoveType.WALK, zones);
     }
 
+    public static ZMove newUseLeftHand() {
+        return new ZMove(ZMoveType.USE_LEFT_HAND);
+    }
+
+    public static ZMove newUseRightHand() {
+        return new ZMove(ZMoveType.USE_RIGHT_HAND);
+    }
+
     static ZMove newToggleDoor(List<ZDoor> doors) {
         return new ZMove(ZMoveType.OPERATE_DOOR, doors);
     }
@@ -158,8 +166,8 @@ public class ZMove implements IButton {
         return new ZMove(ZMoveType.THROW_ITEM, slots);
     }
 
-    public static ZMove newOrganizeMove() {
-        return new ZMove(ZMoveType.ORGANNIZE);
+    public static ZMove newInventoryMove() {
+        return new ZMove(ZMoveType.INVENTORY);
     }
 
     public static ZMove newTradeMove(List<ZCharacter> tradeOptions) {
@@ -206,8 +214,12 @@ public class ZMove implements IButton {
         return new ZMove(ZMoveType.DROP_ITEM, items);
     }
 
-    public static Object newWalkDirMove(ZDir dir) {
+    public static ZMove newWalkDirMove(ZDir dir) {
         return new ZMove(ZMoveType.WALK_DIR, dir);
+    }
+
+    public static ZMove newSwitchActiveCharacter() {
+        return new ZMove(ZMoveType.SWITCH_ACTIVE_CHARACTER);
     }
 
     public static ZMove newMakeNoiseMove(int occupiedZone) {

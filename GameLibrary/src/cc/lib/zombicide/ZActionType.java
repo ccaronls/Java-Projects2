@@ -16,7 +16,7 @@ public enum ZActionType {
     THROW_ITEM,
     ENCHANTMENT,
     ACTIVATE,
-    ORGANIZE,
+    INVENTORY,
     CONSUME,
     OBJECTIVE,
     RELOAD,

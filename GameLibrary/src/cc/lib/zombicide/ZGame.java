@@ -141,13 +141,13 @@ public class ZGame extends Reflector<ZGame>  {
             ZZone zone = board.getZone(cell.zoneIndex);
             switch (cell.environment) {
                 case ZCell.ENV_OUTDOORS:
-                    zone.type = ZZoneType.OUTDOORS;
+                    zone.setType(ZZoneType.OUTDOORS);
                     break;
                 case ZCell.ENV_BUILDING:
-                    zone.type = ZZoneType.BUILDING;
+                    zone.setType(ZZoneType.BUILDING);
                     break;
                 case ZCell.ENV_VAULT:
-                    zone.type = ZZoneType.VAULT;
+                    zone.setType(ZZoneType.VAULT);
                     break;
             }
             // add doors for the zone
@@ -178,13 +178,13 @@ public class ZGame extends Reflector<ZGame>  {
                         case SPAWN_SOUTH:
                         case SPAWN_EAST:
                         case SPAWN_WEST:
-                            zone.spawn = true;
+                            zone.setSpawn(true);
                             break;
                         case OBJECTIVE_BLACK:
                         case OBJECTIVE_RED:
                         case OBJECTIVE_BLUE:
                         case OBJECTIVE_GREEN:
-                            zone.objective = true;
+                            zone.setObjective(true);
                             break;
                         case VAULT_DOOR_VIOLET:
                             addVaultDoor(cell, zone, it.getPos(), GColor.MAGENTA);
@@ -396,7 +396,7 @@ public class ZGame extends Reflector<ZGame>  {
 
                 if (options.size() > 0) {
                     // add characters who have organized and can do so again
-                    options.addAll(Utils.filter(getAllLivingCharacters(), object -> object.getActionsLeftThisTurn() == 0 && object.organizedThisTurn));
+                    options.addAll(Utils.filter(getAllLivingCharacters(), object -> object.getActionsLeftThisTurn() == 0 && object.inventoryThisTurn));
                 }
 
                 ZCharacter currentCharacter = null;
@@ -413,7 +413,7 @@ public class ZGame extends Reflector<ZGame>  {
                 }
                 if (currentCharacter != null) {
                     if (currentCharacter.getActionsLeftThisTurn() == 0)
-                        performMove(currentCharacter, ZMove.newOrganizeMove());
+                        performMove(currentCharacter, ZMove.newInventoryMove());
                     else
                         pushState(ZState.PLAYER_STAGE_CHOOSE_CHARACTER_ACTION, currentCharacter.name);
                 }
@@ -443,7 +443,7 @@ public class ZGame extends Reflector<ZGame>  {
 
                 // check for organize
                 if (cur.getAllEquipment().size() > 0)
-                    options.add(ZMove.newOrganizeMove());
+                    options.add(ZMove.newInventoryMove());
 
                 // check for trade with another character in the same zone
                 List<ZCharacter> inZone = Utils.filter(board.getCharactersInZone(cur.occupiedZone),
@@ -508,7 +508,7 @@ public class ZGame extends Reflector<ZGame>  {
                     options.add(ZMove.newEnchantMove(spells));
                 }
 
-                if (zone.type == ZZoneType.VAULT) {
+                if (zone.getType() == ZZoneType.VAULT) {
                     List<ZEquipment> takables = new ArrayList<>();
                     for (ZEquipment e : quest.getVaultItems(cur.occupiedZone)) {
                         if (cur.getEquipableSlots(e).size() > 0) {
@@ -676,7 +676,7 @@ public class ZGame extends Reflector<ZGame>  {
                 List<Integer> zones = new ArrayList<>();
                 for (ZZone zone : board.getZones()) {
                     if (zone.isSpawn()) {
-                        zones.add(zone.zoneIndex);
+                        zones.add(zone.getZoneIndex());
                     }
                 }
 
@@ -684,7 +684,7 @@ public class ZGame extends Reflector<ZGame>  {
                     ZCharacter cur = getCurrentCharacter();
                     Integer zIdx = user.choosZoneToRemoveSpawn(this, cur, zones);
                     if (zIdx != null) {
-                        board.getZone(zIdx).spawn = false;
+                        board.getZone(zIdx).setSpawn(false);
                         onCharacterDestroysSpawn(cur, zIdx);
                         stateStack.pop();
                     }
@@ -772,7 +772,7 @@ public class ZGame extends Reflector<ZGame>  {
         int targetZone = -1;
         for (ZCharacter c : Utils.filter(getAllLivingCharacters(), object -> !object.isInvisible())) {
             if (board.canSee(zombie.occupiedZone, c.occupiedZone)) {
-                int noiseLevel = board.getZone(c.occupiedZone).noiseLevel;
+                int noiseLevel = board.getZone(c.occupiedZone).getNoiseLevel();
                 if (maxNoise < noiseLevel) {
                     targetZone = c.occupiedZone;
                     maxNoise = noiseLevel;
@@ -785,7 +785,7 @@ public class ZGame extends Reflector<ZGame>  {
         else {
             // move to noisiest zone
             for (int zone=0; zone < board.getNumZones(); zone++) {
-                int noiseLevel = board.getZone(zone).noiseLevel;
+                int noiseLevel = board.getZone(zone).getNoiseLevel();
                 if (noiseLevel > maxNoise) {
                     maxNoise = noiseLevel;
                     targetZone = zone;
@@ -810,6 +810,18 @@ public class ZGame extends Reflector<ZGame>  {
 
     protected void onDoNothing(ZCharacter c) {}
 
+    private void useEquipment(ZCharacter c, ZEquipment e) {
+        if (e.isMagic()) {
+            performMove(c, ZMove.newMagicAttackMove(Utils.toList((ZWeapon)e)));
+        } else if (e.isMelee()) {
+            performMove(c, ZMove.newMeleeAttackMove(Utils.toList((ZWeapon)e)));
+        } else if (e.isRanged()) {
+            performMove(c, ZMove.newRangedAttackMove(Utils.toList((ZWeapon)e)));
+        } else if (e.isThrowable()) {
+            performMove(c, ZMove.newThrowItemMove(Utils.toList((ZItem)e)));
+        }
+    }
+
     private void performMove(ZCharacter cur, ZMove move) {
         log.debug("performMove:%s", move);
         ZUser user = getCurrentUser();
@@ -818,14 +830,34 @@ public class ZGame extends Reflector<ZGame>  {
                 onDoNothing(cur);
                 cur.performAction(ZActionType.DO_NOTHING, this);
                 break;
+            case SWITCH_ACTIVE_CHARACTER: {
+                if (canSwitchActivePlayer()) {
+                    int idx = 0;
+                    for (ZPlayerName nm : user.characters) {
+                        if (nm == cur.getType()) {
+                            break;
+                        }
+                        idx++;
+                    }
+                    for (int i=(idx+1) % user.characters.size(); i!=idx; i=(i+1)%user.characters.size()) {
+                        ZCharacter c = user.characters.get(i).character;
+                        if (c.getActionsLeftThisTurn() > 0 || c.inventoryThisTurn) {
+                            stateStack.pop();
+                            pushState(ZState.PLAYER_STAGE_CHOOSE_CHARACTER_ACTION, c.name);
+                            break;
+                        }
+                    }
+                }
+                break;
+            }
             case TAKE_OBJECTIVE: {
                 getCurrentUser().showMessage(cur.name() + " Found an OBJECTIVE");
                 quest.processObjective(this, cur, move);
                 cur.performAction(ZActionType.OBJECTIVE, this);
-                board.getZone(cur.occupiedZone).objective = false;
+                board.getZone(cur.occupiedZone).setObjective(false);
                 break;
             }
-            case ORGANNIZE: {
+            case INVENTORY: {
                 // give options of which slot to organize
                 List<ZEquipSlot> slots = new ArrayList<>();
                 if (cur.leftHand != null)
@@ -935,6 +967,20 @@ public class ZGame extends Reflector<ZGame>  {
             }
             case WALK_DIR: {
                 moveActorInDirection(cur, move.dir);
+                break;
+            }
+            case USE_LEFT_HAND: {
+                ZEquipment e;
+                if ((e=cur.getSlot(ZEquipSlot.LEFT_HAND)) != null) {
+                    useEquipment(cur, e);
+                }
+                break;
+            }
+            case USE_RIGHT_HAND: {
+                ZEquipment e;
+                if ((e=cur.getSlot(ZEquipSlot.RIGHT_HAND)) != null) {
+                    useEquipment(cur, e);
+                }
                 break;
             }
             case MELEE_ATTACK: {
@@ -1197,27 +1243,27 @@ public class ZGame extends Reflector<ZGame>  {
                 if (prev != null && !cur.isBackpackFull()) {
                     cur.attachEquipment(prev, ZEquipSlot.BACKPACK);
                 }
-                cur.performAction(ZActionType.ORGANIZE, this);
+                cur.performAction(ZActionType.INVENTORY, this);
                 break;
             }
             case UNEQUIP:
                 cur.removeEquipment(move.equipment, move.fromSlot);
                 cur.attachEquipment(move.equipment, ZEquipSlot.BACKPACK);
-                cur.performAction(ZActionType.ORGANIZE, this);
+                cur.performAction(ZActionType.INVENTORY, this);
                 break;
             case TAKE:
                 move.character.removeEquipment(move.equipment);
                 cur.attachEquipment(move.equipment);
-                cur.performAction(ZActionType.ORGANIZE, this);
+                cur.performAction(ZActionType.INVENTORY, this);
                 break;
             case GIVE:
                 cur.removeEquipment(move.equipment);
                 move.character.attachEquipment(move.equipment);
-                cur.performAction(ZActionType.ORGANIZE, this);
+                cur.performAction(ZActionType.INVENTORY, this);
                 break;
             case DISPOSE:
                 cur.removeEquipment(move.equipment, move.fromSlot);
-                cur.performAction(ZActionType.ORGANIZE, this);
+                cur.performAction(ZActionType.INVENTORY, this);
                 putBackInSearchables(move.equipment);
                 break;
             case CONSUME:
@@ -1244,7 +1290,7 @@ public class ZGame extends Reflector<ZGame>  {
             }
             case MAKE_NOISE: {
                 int maxNoise = board.getMaxNoiseLevel();
-                addNoise(move.integer, maxNoise+1 - board.getZone(move.integer).noiseLevel);
+                addNoise(move.integer, maxNoise+1 - board.getZone(move.integer).getNoiseLevel());
                 getCurrentUser().showMessage(cur.name() + " made alot of noise to draw the zombies!");
                 cur.performAction(ZActionType.MAKE_NOISE, this);
                 break;
@@ -1367,11 +1413,11 @@ public class ZGame extends Reflector<ZGame>  {
         ZZone fromZone = board.getZone(fromZoneIdx);
         ZZone toZone   = board.getZone(toZoneIdx);
 
-        if (fromZone.type == ZZoneType.VAULT) {
+        if (fromZone.getType() == ZZoneType.VAULT) {
             return ZDir.ASCEND;
         }
 
-        if (toZone.type == ZZoneType.VAULT) {
+        if (toZone.getType() == ZZoneType.VAULT) {
             return ZDir.DESCEND;
         }
 
@@ -1610,7 +1656,7 @@ public class ZGame extends Reflector<ZGame>  {
         for (int i = 0; i< num; i++) {
             dice[i+ dice.length-num] = result[i];
         }
-        getCurrentUser().showMessage("Rolled a " + dieStr);//new Table().addRow(result).toString());
+        //getCurrentUser().showMessage("Rolled a " + dieStr);//new Table().addRow(result).toString());
         onRollDice(result);
         return result;
     }
@@ -1918,13 +1964,13 @@ public class ZGame extends Reflector<ZGame>  {
         Grid.Pos toPos = actor.getOccupiedCell();
         GRectangle toRect = actor.getRect(board);
 
-        if (board.getZone(fromZone).type == ZZoneType.VAULT && board.getZone(toZone).type != ZZoneType.VAULT) {
+        if (board.getZone(fromZone).getType() == ZZoneType.VAULT && board.getZone(toZone).getType() != ZZoneType.VAULT) {
             // ascending the stairs
             GRectangle fromVaultRect = new GRectangle(board.getCell(fromPos)).scale(.2f);
             GRectangle toVaultRect = new GRectangle(board.getCell(toPos)).scale(.5f);
             onActorMoved(actor, fromRect, fromVaultRect, speed/2);
             onActorMoved(actor, toVaultRect, toRect, speed/2);
-        } else if (board.getZone(fromZone).type != ZZoneType.VAULT && board.getZone(toZone).type == ZZoneType.VAULT) {
+        } else if (board.getZone(fromZone).getType() != ZZoneType.VAULT && board.getZone(toZone).getType() == ZZoneType.VAULT) {
             // descending the stairs
             GRectangle fromVaultRect = new GRectangle(board.getCell(fromPos)).scale(.2f);
             GRectangle toVaultRect = new GRectangle(board.getCell(toPos)).scale(.5f);
@@ -2008,7 +2054,7 @@ public class ZGame extends Reflector<ZGame>  {
 
     public void addNoise(int zoneIdx, int noise) {
         onNoiseAdded(zoneIdx);
-        board.getZone(zoneIdx).noiseLevel += noise;
+        board.getZone(zoneIdx).addNoise(noise);
 //        getCurrentUser().showMessage("Noise was made in zone " + zoneIdx);
     }
 
@@ -2036,7 +2082,7 @@ public class ZGame extends Reflector<ZGame>  {
     public boolean canSwitchActivePlayer() {
         ZCharacter cur = getCurrentCharacter();
         if (cur == null)
-            return true;
+            return false;
         if (cur.getActionsLeftThisTurn() == cur.getActionsPerTurn())
             return true;
         if (cur.availableSkills.contains(ZSkill.Tactician))

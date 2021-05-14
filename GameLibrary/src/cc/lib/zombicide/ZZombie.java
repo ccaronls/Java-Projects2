@@ -44,14 +44,14 @@ public final class ZZombie extends ZActor<ZZombieType> {
 
     @Override
     public GDimension drawInfo(AGraphics g, ZGame game, float width, float height) {
-        Table info = new Table().setNoBorder();
+        Table info = new Table(getLabel()).setNoBorder();
         info.addRow("Min Hits", type.minDamageToDestroy);
         info.addRow("Actions", type.actionsPerTurn);
         info.addRow("Experience", type.expProvided);
         info.addRow("Ignores Armor", type.ignoresArmor);
         info.addRow("Ranged Priority", type.rangedPriority);
         Table outer = new Table().setNoBorder();
-        outer.addColumn(name(), info);
+        outer.addRow(info, type.description);
         return outer.draw(g);//g.drawString(outer.toString(), 0, 0);
     }
 
@@ -97,6 +97,10 @@ public final class ZZombie extends ZActor<ZZombieType> {
     @Override
     int getPriority() {
         return type.ordinal();
+    }
+
+    public String getDescription() {
+        return type.description;
     }
 }
 

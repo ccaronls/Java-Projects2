@@ -29,7 +29,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
     ZPlayerName name;
     int woundBar;
     int dangerBar;
-    boolean organizedThisTurn=false;
+    boolean inventoryThisTurn =false;
     private List<ZActionType> actionsDoneThisTurn = new ArrayList<>();
     final List<ZSkill> allSkills = new ArrayList<>();
     final List<ZSkill> availableSkills = new ArrayList<>();
@@ -44,7 +44,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
         backpack.clear();
         allSkills.clear();
         availableSkills.clear();
-        organizedThisTurn=false;
+        inventoryThisTurn =false;
         dangerBar=0;
         woundBar=0;
     }
@@ -67,7 +67,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
     void onBeginRound() {
         actionsDoneThisTurn.clear();
         availableSkills.addAll(allSkills);
-        organizedThisTurn = false;
+        inventoryThisTurn = false;
         super.onBeginRound();
     }
 
@@ -116,10 +116,10 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
             }
         }
         switch (action) {
-            case ORGANIZE:
-                if (organizedThisTurn)
+            case INVENTORY:
+                if (inventoryThisTurn)
                     return true;
-                organizedThisTurn = true;
+                inventoryThisTurn = true;
                 break;
         }
         if (action.oncePerTurn()) {
@@ -774,5 +774,9 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
         } else {
             super.draw(g);
         }
+    }
+
+    public boolean isInventoryThisTurn() {
+        return inventoryThisTurn;
     }
 }

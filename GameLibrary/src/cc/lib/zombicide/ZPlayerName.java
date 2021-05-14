@@ -149,6 +149,10 @@ public enum ZPlayerName implements IButton {
 
     ZCharacter character;
 
+    public ZCharacter getCharacter() {
+        return character;
+    }
+
     public ZSkill [] getSkillOptions(ZSkillLevel level) {
         return skillOptions[level.ordinal()];
     }

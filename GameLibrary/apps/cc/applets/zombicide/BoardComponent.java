@@ -318,19 +318,16 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
                 case KeyEvent.VK_PLUS:
                 case KeyEvent.VK_EQUALS:
                     // zoom in
-                    game.getBoard().zoom(1);
+                    renderer.animateZoomAmount(1);
                     break;
                 case KeyEvent.VK_MINUS:
                 case KeyEvent.VK_UNDERSCORE:
                     // zoom out
-                    game.getBoard().zoom(-1);
+                    renderer.animateZoomAmount(-1);
                     break;
                 case KeyEvent.VK_TAB:
                     // toggle active player
-                    if (game.canSwitchActivePlayer()) {
-                        //game.toggleActivePlayer();
-                        // game.setResult(ZMove.newNextCharacterMove());
-                    }
+                    game.trySwitchActivePlayer();
                     break;
                 case KeyEvent.VK_SLASH:
                     if (game.getBoard().canMove(game.getCurrentCharacter(), ZDir.DESCEND)) {

@@ -20,6 +20,7 @@ import cc.lib.zombicide.ZEquipment;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZIcon;
 import cc.lib.zombicide.ZMove;
+import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZQuest;
 import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZSkill;
@@ -45,6 +46,7 @@ import cc.lib.zombicide.anims.ShootAnimation;
 import cc.lib.zombicide.anims.SlashedAnimation;
 import cc.lib.zombicide.anims.SpawnAnimation;
 import cc.lib.zombicide.anims.ThrowAnimation;
+import cc.lib.zombicide.anims.ZoomAnimation;
 
 public abstract class UIZombicide extends ZGame {
 
@@ -102,6 +104,11 @@ public abstract class UIZombicide extends ZGame {
     }
 
     @Override
+    protected void onRollDice(Integer[] roll) {
+        characterRenderer.addWrappable(new ZDiceWrappable(roll));
+    }
+
+    @Override
     protected void onTorchThrown(ZCharacter actor, int zone) {
         if (actor.getOccupiedZone() != zone) {
             actor.addAnimation(new ThrowAnimation(actor, board, zone, ZIcon.TORCH) {
@@ -119,7 +126,7 @@ public abstract class UIZombicide extends ZGame {
 
     @Override
     protected void onDoNothing(ZCharacter c) {
-        boardRenderer.addPostActor(new HoverMessage(board, "Zzzzz", c.getRect().getCenter()));
+        boardRenderer.addPostActor(new HoverMessage(boardRenderer, "Zzzzz", c.getRect().getCenter()));
         Utils.waitNoThrow(this, 500);    }
 
     @Override
@@ -198,19 +205,19 @@ public abstract class UIZombicide extends ZGame {
 
     @Override
     protected void onAhhhhhh(ZCharacter c) {
-        boardRenderer.addPostActor(new HoverMessage(board, "AHHHHHH!", c.getRect().getCenter()));
+        boardRenderer.addPostActor(new HoverMessage(boardRenderer, "AHHHHHH!", c.getRect().getCenter()));
         Utils.waitNoThrow(this, 500);
     }
 
     @Override
     protected void onEquipmentFound(ZCharacter c, ZEquipment equipment) {
-        boardRenderer.addPostActor(new HoverMessage(board, "+" + equipment.getLabel(), c.getRect().getCenter()));
+        boardRenderer.addPostActor(new HoverMessage(boardRenderer, "+" + equipment.getLabel(), c.getRect().getCenter()));
         Utils.waitNoThrow(this, 500);
     }
 
     @Override
     protected void onCharacterGainedExperience(ZCharacter c, int points) {
-        boardRenderer.addPostActor(new HoverMessage(board, String.format("+%d EXP", points), c.getRect().getCenter()));
+        boardRenderer.addPostActor(new HoverMessage(boardRenderer, String.format("+%d EXP", points), c.getRect().getCenter()));
         Utils.waitNoThrow(this, 500);
     }
 
@@ -235,7 +242,7 @@ public abstract class UIZombicide extends ZGame {
 
     @Override
     protected void onNewSkillAquired(ZCharacter c, ZSkill skill) {
-        boardRenderer.addPostActor(new HoverMessage(board, String.format("%s Acquired", skill.getLabel()), c.getRect().getCenter()));
+        boardRenderer.addPostActor(new HoverMessage(boardRenderer, String.format("%s Acquired", skill.getLabel()), c.getRect().getCenter()));
         characterRenderer.addMessage(String.format("%s has aquired the %s skill", c.getLabel(), skill.getLabel()));
     }
 
@@ -248,7 +255,7 @@ public abstract class UIZombicide extends ZGame {
 
     @Override
     protected void onWeaponGoesClick(ZCharacter c, ZWeapon weapon) {
-        boardRenderer.addPostActor(new HoverMessage(board, "CLICK", c.getRect().getCenter()));
+        boardRenderer.addPostActor(new HoverMessage(boardRenderer, "CLICK", c.getRect().getCenter()));
     }
 
     @Override
@@ -259,6 +266,8 @@ public abstract class UIZombicide extends ZGame {
             //GroupAnimation group = new GroupAnimation(attacker);
             //attacker.addAnimation(group);
             Lock animLock = new Lock(numDice);
+            float currentZoom = boardRenderer.getZoomAmt();
+            attacker.addAnimation(ZoomAnimation.build(attacker, boardRenderer, board));
             for (int i=0; i<numDice; i++) {
                 attacker.addAnimation(new MeleeAnimation(attacker, board) {
                     @Override
@@ -271,7 +280,7 @@ public abstract class UIZombicide extends ZGame {
             }
             boardRenderer.redraw();
             animLock.block();
-
+            boardRenderer.animateZoomTo(currentZoom);
         } else if (actionType.isRanged()) {
 
             GroupAnimation group = new GroupAnimation(attacker);
@@ -470,6 +479,19 @@ public abstract class UIZombicide extends ZGame {
         }
     }
 
+    public void trySwitchActivePlayer() {
+        if (getCurrentCharacter() == null) {
+            for (ZPlayerName nm : getCurrentUser().getCharacters()) {
+                if (nm.getCharacter().getActionsLeftThisTurn() > 0 || nm.getCharacter().isInventoryThisTurn()) {
+                    setResult(nm.getCharacter());
+                    break;
+                }
+            }
+        } else if (canSwitchActivePlayer()) {
+            setResult(ZMove.newSwitchActiveCharacter());
+        }
+    }
+
     @Override
     protected void initQuest(ZQuest quest) {
         boardRenderer.clearTiles();
@@ -481,28 +503,4 @@ public abstract class UIZombicide extends ZGame {
         boardRenderer.setOverlay(getQuest().getObjectivesOverlay(this));
     }
 
-    /* WONT WORK - Need a MoveType to switch playerr better solution
-    public void toggleActivePlayer() {
-        LinkedList<ZCharacter> c = new LinkedList<>(getAllCharacters());
-        Set<ZPlayerName> userPlayers = new HashSet<>(getCurrentUser().getCharacters());
-        Iterator<ZCharacter> it = c.iterator();
-        while (it.hasNext()) {
-            ZCharacter character = it.next();
-            if (character.isDead() || !userPlayers.contains(character.getType())) {
-                it.remove();
-            }
-        }
-
-        if (userPlayers.size() == 0)
-            return;
-        if (getCurrentCharacter() == null || userPlayers.size() == 1) {
-            if (getState() == ZState.PLAYER_STAGE_CHOOSE_CHARACTER)
-                setResult(c.getFirst());
-            else {
-                setResult(null);
-            }
-        } else {
-            // cycle through the
-        }
-    }*/
 }

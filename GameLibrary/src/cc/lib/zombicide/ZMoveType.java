@@ -6,10 +6,13 @@ import cc.lib.game.Utils;
 @Keep
 public enum ZMoveType {
     DO_NOTHING,
-    ORGANNIZE, // equip things, drop things, etc.
+    INVENTORY, // equip things, drop things, etc.
     TRADE,
     WALK,
     WALK_DIR,
+    SWITCH_ACTIVE_CHARACTER,
+    USE_LEFT_HAND,
+    USE_RIGHT_HAND,
     MELEE_ATTACK,
     RANGED_ATTACK,
     MAGIC_ATTACK,

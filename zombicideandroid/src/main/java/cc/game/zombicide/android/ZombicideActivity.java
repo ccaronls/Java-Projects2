@@ -43,6 +43,7 @@ import cc.lib.ui.IButton;
 import cc.lib.zombicide.ZActor;
 import cc.lib.zombicide.ZDiffuculty;
 import cc.lib.zombicide.ZDir;
+import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZSkill;
@@ -77,9 +78,12 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
         menu.setOnItemClickListener(this);
         boardView = findViewById(R.id.board_view);
         consoleView = findViewById(R.id.console_view);
-        findViewById(R.id.b_zoomin).setOnClickListener(this);
+        findViewById(R.id.b_zoom).setOnClickListener(this);
         findViewById(R.id.b_up).setOnClickListener(this);
-        findViewById(R.id.b_zoomout).setOnClickListener(this);
+        findViewById(R.id.b_useleft).setOnClickListener(this);
+        findViewById(R.id.b_useright).setOnClickListener(this);
+        findViewById(R.id.b_switch_character).setOnClickListener(this);
+        findViewById(R.id.b_vault).setOnClickListener(this);
         findViewById(R.id.b_left).setOnClickListener(this);
         findViewById(R.id.b_down).setOnClickListener(this);
         findViewById(R.id.b_right).setOnClickListener(this);
@@ -236,13 +240,31 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.b_zoomin:
-                game.getBoard().zoom(1);
+            case R.id.b_zoom: {
+                float curZoom = game.boardRenderer.getZoomAmt();
+                if (curZoom >= game.boardRenderer.getMaxZoom()) {
+                    game.boardRenderer.animateZoomTo(0);
+                } else {
+                    game.boardRenderer.animateZoomAmount(1.5f);
+                }
                 game.boardRenderer.redraw();
                 break;
-            case R.id.b_zoomout:
-                game.getBoard().zoom(-1);
-                game.boardRenderer.redraw();
+            }
+            case R.id.b_useleft:
+                game.setResult(ZMove.newUseLeftHand());
+                break;
+            case R.id.b_useright:
+                game.setResult(ZMove.newUseRightHand());
+                break;
+            case R.id.b_switch_character:
+                game.trySwitchActivePlayer();
+                break;
+            case R.id.b_vault:
+                if (game.getBoard().canMove(game.getCurrentCharacter(), ZDir.DESCEND)) {
+                    game.setResult(ZMove.newWalkDirMove(ZDir.DESCEND));
+                } else if (game.getBoard().canMove(game.getCurrentCharacter(), ZDir.ASCEND)) {
+                    game.setResult(ZMove.newWalkDirMove(ZDir.ASCEND));
+                }
                 break;
             case R.id.b_up:
                 game.tryWalk(ZDir.NORTH);

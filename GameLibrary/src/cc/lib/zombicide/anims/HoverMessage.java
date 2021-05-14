@@ -7,7 +7,7 @@ import cc.lib.game.Justify;
 import cc.lib.game.Utils;
 import cc.lib.math.Vector2D;
 import cc.lib.zombicide.ZAnimation;
-import cc.lib.zombicide.ZBoard;
+import cc.lib.zombicide.ui.UIZBoardRenderer;
 
 public class HoverMessage extends ZAnimation {
 
@@ -15,11 +15,11 @@ public class HoverMessage extends ZAnimation {
     private final IVector2D center;
     private final Vector2D dv;
 
-    public HoverMessage(ZBoard board, String msg, IVector2D center) {
+    public HoverMessage(UIZBoardRenderer board, String msg, IVector2D center) {
         super(3000);
         this.msg = msg;
         this.center = center;
-        dv = board.getZoomedRectangle().getCenter().subEq(center)
+        dv = board.getZoomedRect().getCenter().subEq(center)
                 .rotateEq(Utils.randFloatX(30))
                 .normalizedEq().scaleEq(.5f);
     }

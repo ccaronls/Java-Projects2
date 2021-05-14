@@ -13,20 +13,46 @@ import cc.lib.zombicide.ZGame;
 
 public class UIZCharacterRenderer extends UIRenderer {
 
+    interface IWrappable {
+
+        GDimension drawWrapped(APGraphics g, float maxWidth);
+    }
+
+    static class StringLine implements IWrappable {
+
+        final String msg;
+        StringLine(String msg) {
+            this.msg = msg;
+        }
+
+        @Override
+        public GDimension drawWrapped(APGraphics g, float maxWidth) {
+            return g.drawWrapString(0, 0, maxWidth, Justify.RIGHT, Justify.TOP, msg);
+        }
+    }
+
     public UIZCharacterRenderer(UIComponent component) {
         super(component);
     }
 
     private ZActor actorInfo = null;
 
-    private LinkedList<String> messages = new LinkedList<>();
+    private LinkedList<IWrappable> messages = new LinkedList<>();
 
     private ZGame getGame() {
         return UIZombicide.getInstance();
     }
 
     synchronized void addMessage(String msg) {
-        messages.addFirst(msg);
+        messages.addFirst(new StringLine(msg));
+        while (messages.size() > 32) {
+            messages.removeLast();
+        }
+        redraw();
+    }
+
+    synchronized void addWrappable(IWrappable line) {
+        messages.addFirst(line);
         while (messages.size() > 32) {
             messages.removeLast();
         }
@@ -55,8 +81,12 @@ public class UIZCharacterRenderer extends UIRenderer {
         g.setColor(GColor.BLACK);
         int y = 0;
         float maxWidth = g.getViewportWidth() - (info == null ? 0 : info.width);
-        for (String msg : messages) {
-            GDimension d = g.drawWrapString(g.getViewportWidth(), y, maxWidth, Justify.RIGHT, Justify.TOP, msg);
+        for (IWrappable msg : messages) {
+            g.pushMatrix();
+            g.translate(g.getViewportWidth(), y);
+            GDimension d = msg.drawWrapped(g, maxWidth);
+            //GDimension d = g.drawWrapString(g.getViewportWidth(), y, maxWidth, Justify.RIGHT, Justify.TOP, msg);
+            g.popMatrix();
             g.setColor(GColor.TRANSLUSCENT_BLACK);
             y += d.getHeight();
         }

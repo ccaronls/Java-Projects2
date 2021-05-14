@@ -94,7 +94,7 @@ public class ZQuestFamine extends ZQuest {
         int vaultZone = -1;
         for (ZCharacter c : game.getAllLivingCharacters()) {
             ZZone zone = game.getBoard().getZone(c.getOccupiedZone());
-            if (zone.type != ZZoneType.VAULT) {
+            if (zone.getType() != ZZoneType.VAULT) {
                 return false;
             } else {
                 vaultZone = c.getOccupiedZone();

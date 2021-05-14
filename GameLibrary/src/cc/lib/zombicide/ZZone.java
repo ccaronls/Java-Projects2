@@ -22,15 +22,15 @@ public class ZZone extends Reflector<ZZone> implements IShape {
     }
 
     final List<Grid.Pos> cells = new ArrayList<>();
-
     final List<ZDoor> doors = new ArrayList<>();
-    public ZZoneType type = ZZoneType.OUTDOORS;
-    int noiseLevel;
-    boolean spawn;
+
+    private ZZoneType type = ZZoneType.OUTDOORS;
+    private int noiseLevel;
+    private boolean spawn;
     private boolean dragonBile;
-    boolean objective;
-    int nextCell = 0;
-    final int zoneIndex;
+    private boolean objective;
+    private int nextCell = 0;
+    private final int zoneIndex;
 
     public ZZone() {
         this(-1);
@@ -119,8 +119,20 @@ public class ZZone extends Reflector<ZZone> implements IShape {
         return type;
     }
 
+    public void setType(ZZoneType type) {
+        this.type = type;
+    }
+
     public int getNoiseLevel() {
         return noiseLevel;
+    }
+
+    public void setNoiseLevel(int noiseLevel) {
+        this.noiseLevel = noiseLevel;
+    }
+
+    public void addNoise(int amt) {
+        this.noiseLevel += amt;
     }
 
     public void setObjective(boolean objective) {
@@ -133,5 +145,15 @@ public class ZZone extends Reflector<ZZone> implements IShape {
 
     public boolean isSpawn() {
         return spawn;
+    }
+
+    public void setSpawn(boolean spawn) {
+        this.spawn = spawn;
+    }
+
+    public int getNextCellAndIncrement() {
+        int next = nextCell;
+        nextCell = (nextCell+1) % cells.size();
+        return next;
     }
 }
