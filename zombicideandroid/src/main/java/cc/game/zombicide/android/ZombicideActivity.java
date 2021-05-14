@@ -9,7 +9,10 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.RectF;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.view.PagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -22,11 +25,11 @@ import android.widget.BaseAdapter;
 import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -35,7 +38,6 @@ import java.util.Set;
 
 import cc.lib.android.CCActivityBase;
 import cc.lib.android.DroidGraphics;
-import cc.lib.game.AImage;
 import cc.lib.game.GColor;
 import cc.lib.game.GRectangle;
 import cc.lib.game.Utils;
@@ -113,9 +115,7 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                 if (outline == null)
                     outline = GColor.WHITE;
                 Paint outlinePaint = getPaint(outline);
-                Paint cur = g.getPaint();
                 Canvas canvas = g.getCanvas();
-                AImage img = g.getImage(actor.getImageId());
                 RectF rect = g.setRectF(actor.getRect());
                 canvas.save();
                 float cx = rect.centerX();
@@ -337,7 +337,7 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                         }).setNegativeButton("CANCEL", null).show();
                 break;
             case ASSIGN:
-                openAssignDialog();
+                showAssignDialog2();
                 break;
             case DIFFICULTY: {
                 newDialogBuilder().setTitle("DIFFICULTY: " + getSavedDifficulty())
@@ -359,13 +359,8 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
 
     // TODO: Make this more organized. Should be able to order by character, danger level or all POSSIBLE
     void showSkillsDialog() {
-        ZSkill [] sorted = Utils.copyOf(ZSkill.values());//, ZSkill.values().length);
-        Arrays.sort(sorted, new Comparator<ZSkill>() {
-            @Override
-            public int compare(ZSkill o1, ZSkill o2) {
-                return o1.name().compareTo(o2.name());
-            }
-        });
+        ZSkill [] sorted = Utils.copyOf(ZSkill.values());
+        Arrays.sort(sorted, (o1, o2) -> o1.name().compareTo(o2.name()));
         newDialogBuilder().setTitle("SKILLS")
                 .setItems(Utils.toStringArray(sorted, true), new DialogInterface.OnClickListener() {
                     @Override
@@ -439,8 +434,103 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
         return players;
     }
 
+    Set<String> getDefaultUnlockedPlayers() {
+        HashSet<String> players = new HashSet<>();
+        players.add(ZPlayerName.Baldric.name());
+        players.add(ZPlayerName.Clovis.name());
+        players.add(ZPlayerName.Silas.name());
+        players.add(ZPlayerName.Ann.name());
+        players.add(ZPlayerName.Nelly.name());
+        players.add(ZPlayerName.Samson.name());
+        return players;
+    }
 
-    void openAssignDialog() {
+    final int MAX_PLAYERS = 4; // max number of characters on screen at one time
+
+    void showAssignDialog2() {
+        Set<String> selectedPlayers = new HashSet(getPrefs().getStringSet("players", getDefaultPlayers()));
+        Set<String> unlockedPlayers = new HashSet(getPrefs().getStringSet("unlockedPlayers", getDefaultUnlockedPlayers()));
+        View view = View.inflate(this, R.layout.assign_dialog2, null);
+        ViewPager pager = view.findViewById(R.id.view_pager);
+        pager.setAdapter(new PagerAdapter() {
+            @Override
+            public int getCount() {
+                return ZPlayerName.values().length;
+            }
+
+            @Override
+            public boolean isViewFromObject(@NonNull View view, @NonNull Object o) {
+                return view == o;
+            }
+
+            @NonNull
+            @Override
+            public Object instantiateItem(@NonNull ViewGroup container, int position) {
+                View view = LayoutInflater.from(ZombicideActivity.this).inflate(R.layout.assign_dialog_item, null);
+                ImageView image = view.findViewById(R.id.image);
+                CheckBox checkbox = view.findViewById(R.id.checkbox);
+                ImageView lockedOverlay = view.findViewById(R.id.lockedOverlay);
+
+                ZPlayerName player = ZPlayerName.values()[position];
+                if (!unlockedPlayers.contains(player.name()) && !selectedPlayers.contains(player.name())) {
+                    lockedOverlay.setVisibility(View.VISIBLE);
+                    checkbox.setEnabled(false);
+                } else {
+                    lockedOverlay.setVisibility(View.INVISIBLE);
+                    checkbox.setEnabled(true);
+                    image.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            if (selectedPlayers.contains(player.name())) {
+                                selectedPlayers.remove(player.name());
+                                checkbox.setChecked(false);
+                            } else if (selectedPlayers.size() >= MAX_PLAYERS) {
+                                Toast.makeText(ZombicideActivity.this, "Can only have " + MAX_PLAYERS + " at a time", Toast.LENGTH_LONG).show();
+                            } else {
+                                selectedPlayers.add(player.name());
+                                checkbox.setChecked(true);
+                            }
+                        }
+                    });
+                }
+
+                if (selectedPlayers.contains(player.name())) {
+                    checkbox.setChecked(true);
+                } else {
+                    checkbox.setChecked(false);
+                }
+
+                image.setImageResource(player.cardImageId);
+
+
+                container.addView(view);
+                return view;
+            }
+
+            @Override
+            public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
+                container.removeView((View)object);
+            }
+        });
+        newDialogBuilder().setTitle("ASSIGN").setView(view).setNegativeButton("CANCEL", null)
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Log.d(TAG, "Selected players: " + selectedPlayers);
+                        getPrefs().edit().putStringSet("players", selectedPlayers).apply();
+                        user.clear();
+                        for (ZPlayerName pl : Utils.convertToEnumArray(selectedPlayers, ZPlayerName.class, new ZPlayerName[selectedPlayers.size()])) {
+                            user.addCharacter(pl);
+                        }
+                        game.setUsers(user);
+                        game.reload();
+                    }
+                }).show();
+    }
+
+
+
+    void showAssignDialog() {
         Set<String> selectedPlayers = new HashSet(getPrefs().getStringSet("players", getDefaultPlayers()));
 
         RecyclerView recyclerView = new RecyclerView(this);

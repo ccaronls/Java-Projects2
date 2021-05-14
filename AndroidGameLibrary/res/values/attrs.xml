@@ -71,4 +71,14 @@
         <attr name="textCenterAngle" format="integer" description="angle in degrees of the center of the text along the circle"/>
         <attr name="textDirectionReverse" format="boolean" description="Render the text from RtoL"/>
     </declare-styleable>
+
+    <declare-styleable name="PageIndicatorView">
+        <attr name="dotDimension"		format="dimension"	description="The width/height of a dot.  If not set then the dimension is computed based on layout constraints."/>
+        <attr name="pageCount"			format="integer"	description="Indicate the number of pages to represent" />
+        <attr name="pagePadding"		format="float"		description="Spacing as a fraction of the indicator dimension.  Defaults to 0.5 (one half of the indicator dimension)"/>
+        <attr name="pageColorOn"		format="color"		description="Color to use to draw indicator when on, or tint the drawable when present.  Default to white."/>
+        <attr name="pageColorOff"		format="color"		description="Color to use to draw indicator when off, or tint the drawable when present.  Default to %50 alpha of pageColorOn"/>
+        <attr name="viewPagerId"        format="reference"  description="Reference to the view pager to track (default empty - must be done in code)" />
+    </declare-styleable>
+
 </resources>

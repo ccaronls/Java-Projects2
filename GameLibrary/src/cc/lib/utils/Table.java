@@ -199,7 +199,11 @@ public final class Table {
         return Math.max(4, padding*g.getTextHeight()/2);
     }
 
+    private GDimension cachedDimension = null;
+
     public GDimension getDimension(AGraphics g) {
+        if (cachedDimension != null)
+            return cachedDimension;
         if (header.size() == 0 && rows.isEmpty())
             return GDimension.EMPTY;
 
@@ -254,7 +258,7 @@ public final class Table {
         dimWidth += borderWidth*2;
         dimHeight += borderWidth*3;
 
-        return new GDimension(dimWidth, dimHeight);
+        return cachedDimension=new GDimension(dimWidth, dimHeight);
     }
 
     /**
