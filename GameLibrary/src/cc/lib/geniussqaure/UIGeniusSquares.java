@@ -1,7 +1,5 @@
 package cc.lib.geniussqaure;
 
-import java.util.Arrays;
-
 import cc.lib.game.AAnimation;
 import cc.lib.game.AGraphics;
 import cc.lib.game.APGraphics;

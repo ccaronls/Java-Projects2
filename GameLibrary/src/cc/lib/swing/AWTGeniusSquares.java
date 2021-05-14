@@ -38,12 +38,18 @@ public class AWTGeniusSquares extends AWTComponent {
                     case "Reset Pieces":
                         game.resetPieces();
                         break;
+                    case "Toggle Autofit": {
+                        boolean autoFit = !game.isAutoFitPieces();
+                        game.setAutoFitPieces(autoFit);
+                        frame.setProperty("autofit", autoFit);
+                        break;
+                    }
                 }
 
                 repaint();
             }
         };
-        frame.addMenuBarMenu("GeniusSquares", "New Game", "Reset Pieces");
+        frame.addMenuBarMenu("GeniusSquares", "New Game", "Reset Pieces", "Toggle Autofit");
 
         game = new UIGeniusSquares() {
             @Override
@@ -52,6 +58,7 @@ public class AWTGeniusSquares extends AWTComponent {
 
             }
         };
+        game.setAutoFitPieces(frame.getBooleanProperty("autofit", game.isAutoFitPieces()));
         if (!game.tryLoadFromFile(saveFile))
             game.newGame();
         frame.add(this);

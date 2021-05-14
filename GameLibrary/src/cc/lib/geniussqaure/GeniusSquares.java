@@ -146,6 +146,7 @@ public class GeniusSquares extends Reflector<GeniusSquares> { // GeniusSquare. 6
 
     final List<Piece> pieces = new ArrayList<>();
     int [][] board = new int[BOARD_DIM_CELLS][BOARD_DIM_CELLS]; // row major
+    @Omit
     final StopWatch timer = new StopWatch();
     long bestTime = 0;
 
