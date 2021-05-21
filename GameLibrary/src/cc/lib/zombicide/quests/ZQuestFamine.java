@@ -17,6 +17,7 @@ import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZItemType;
 import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZQuest;
+import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZTile;
 import cc.lib.zombicide.ZWallFlag;
 import cc.lib.zombicide.ZZone;
@@ -35,7 +36,7 @@ public class ZQuestFamine extends ZQuest {
     List<ZDoor> lockedVaults = new ArrayList<>();
 
     public ZQuestFamine() {
-        super("Famine");
+        super(ZQuests.Famine);
     }
 
     @Override

@@ -132,7 +132,7 @@ public final class LRUCache<K, V> implements Map<K, V> {
     }
 
     @Override
-    public V get(Object key) {
+    public synchronized V get(Object key) {
         DList<K,V> e = map.get(key);
         if (e == null)
             return null;
@@ -145,7 +145,7 @@ public final class LRUCache<K, V> implements Map<K, V> {
     }
 
     @Override
-    public V put(K key, V value) {
+    public synchronized V put(K key, V value) {
 
         DList<K,V> e = map.get(key);
         if (e != null) {
@@ -168,7 +168,7 @@ public final class LRUCache<K, V> implements Map<K, V> {
     }
 
     @Override
-    public V remove(Object key) {
+    public synchronized V remove(Object key) {
         DList<K,V> e = map.remove(key);
         if (e == null)
             return null;
@@ -185,7 +185,7 @@ public final class LRUCache<K, V> implements Map<K, V> {
     }
 
     @Override
-    public void clear() {
+    public synchronized void clear() {
         map.clear();
         listClear();
     }
@@ -196,7 +196,7 @@ public final class LRUCache<K, V> implements Map<K, V> {
     }
 
     @Override
-    public Collection<V> values() {
+    public synchronized Collection<V> values() {
         List<V> values = new ArrayList<>(map.size());
         for (DList<K,V> e = first; e != null; e=e.next) {
             values.add(e.val);
@@ -205,7 +205,7 @@ public final class LRUCache<K, V> implements Map<K, V> {
     }
 
     @Override
-    public Set<Entry<K, V>> entrySet() {
+    public synchronized Set<Entry<K, V>> entrySet() {
         Map<K,V> tmp = new HashMap<>();
         for (Map.Entry<K, DList<K,V>> e : map.entrySet()) {
             tmp.put(e.getKey(), e.getValue().val);

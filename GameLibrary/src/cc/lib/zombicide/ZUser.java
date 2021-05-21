@@ -67,5 +67,5 @@ public abstract class ZUser extends Reflector<ZUser> {
 
     public abstract Integer chooseZoneForBloodlust(ZGame zGame, ZCharacter cur, List<Integer> list);
 
-    public abstract Integer choosZoneToRemoveSpawn(ZGame game, ZCharacter cur, List<Integer> list);
+    public abstract Integer chooseZoneToRemoveSpawn(ZGame game, ZCharacter cur, List<Integer> list);
 }

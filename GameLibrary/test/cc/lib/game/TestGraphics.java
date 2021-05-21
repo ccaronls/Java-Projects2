@@ -1,7 +1,5 @@
 package cc.lib.game;
 
-import cc.lib.math.Matrix3x3;
-
 /**
  * Created by chriscaron on 2/14/18.
  */
@@ -123,7 +121,7 @@ public class TestGraphics extends APGraphics {
     }
 
     @Override
-    public int[] loadImageCells(String assetPath, int w, int h, int numCellsX, int numCells, boolean bordeered, GColor transparent) {
+    public int[] loadImageCells(String assetPath, int w, int h, int numCellsX, int numCells, boolean bordered, GColor transparent) {
         return new int[0];
     }
 
@@ -243,7 +241,7 @@ public class TestGraphics extends APGraphics {
     }
 
     @Override
-    public void drawImage(int imageKey, Matrix3x3 transform) {
+    public void drawImage(int imageKey) {
 
     }
 }

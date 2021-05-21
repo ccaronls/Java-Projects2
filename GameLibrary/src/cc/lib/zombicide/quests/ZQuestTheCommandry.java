@@ -12,6 +12,7 @@ import cc.lib.zombicide.ZDoor;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZQuest;
+import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZTile;
 import cc.lib.zombicide.ZWallFlag;
 
@@ -26,11 +27,11 @@ public class ZQuestTheCommandry extends ZQuest {
     int greenDoorKeyZone = -1;
 
     public ZQuestTheCommandry() {
-        super("The Commandry");
+        super(ZQuests.The_Commandry);
     }
 
-    ZQuestTheCommandry(String title) {
-        super(title);
+    ZQuestTheCommandry(ZQuests q) {
+        super(q);
     }
 
     @Override

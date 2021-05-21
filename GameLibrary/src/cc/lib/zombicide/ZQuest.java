@@ -20,21 +20,25 @@ public abstract class ZQuest extends Reflector<ZQuest> {
         addAllFields(ZQuest.class);
     }
 
-    private final String name;
+    private final ZQuests quest;
     protected int exitZone = -1;
     private Map<Integer, List<ZEquipment>> vaultMap = new HashMap<>();
     private List<ZEquipment> vaultItemsRemaining = null;
     private int numFoundVaultItems = 0;
     protected List<Integer> redObjectives = new ArrayList<>();
 
-    protected ZQuest(String name) {
-        this.name = name;
+    protected ZQuest(ZQuests quest) {
+        this.quest = quest;
     }
 
     public abstract ZBoard loadBoard();
 
     public String getName() {
-        return name;
+        return quest.getDisplayName();
+    }
+
+    public ZQuests getQuest() {
+        return quest;
     }
 
     public List<ZEquipmentType> getAllVaultOptions() {
@@ -53,10 +57,14 @@ public abstract class ZQuest extends Reflector<ZQuest> {
         return ZDir.DESCEND;
     }
 
-    private void setVaultDoor(ZCell cell, Grid<ZCell> grid, Grid.Pos pos, ZCellType type, int vaultFlag) {
+    protected void setVaultDoor(ZCell cell, Grid<ZCell> grid, Grid.Pos pos, ZCellType type, int vaultFlag) {
+        setVaultDoor(cell, grid, pos, type, vaultFlag, ZWallFlag.CLOSED);
+    }
+
+    protected void setVaultDoor(ZCell cell, Grid<ZCell> grid, Grid.Pos pos, ZCellType type, int vaultFlag, ZWallFlag wallFlag) {
         cell.setCellType(type, true);
         cell.vaultFlag = vaultFlag;
-        setCellWall(grid, pos, getDirectionForEnvironment(cell.environment), ZWallFlag.CLOSED);
+        setCellWall(grid, pos, getDirectionForEnvironment(cell.environment), wallFlag);
     }
 
     protected void loadCmd(Grid<ZCell> grid, Grid.Pos pos, String cmd) {
@@ -256,7 +264,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
      * @param cur
      * @param options
      */
-    public final void addMoves(ZGame game, ZCharacter cur, List<ZMove> options) {
+    public void addMoves(ZGame game, ZCharacter cur, List<ZMove> options) {
         for (int red : redObjectives) {
             if (cur.getOccupiedZone() == red && game.getBoard().getZombiesInZone(red).size() == 0)
                 options.add(ZMove.newObjectiveMove(red));
@@ -270,8 +278,9 @@ public abstract class ZQuest extends Reflector<ZQuest> {
      * @param move
      */
     public void processObjective(ZGame game, ZCharacter c, ZMove move) {
-        game.addExperience(c, OBJECTIVE_EXP);
-        redObjectives.remove((Object)move.integer);
+        if (redObjectives.remove((Object)move.integer)) {
+            game.addExperience(c, OBJECTIVE_EXP);
+        }
     }
 
     /**
@@ -376,8 +385,9 @@ public abstract class ZQuest extends Reflector<ZQuest> {
     public int getMaxNumZombiesOfType(ZZombieType type) {
         switch (type) {
             case Abomination:
-            case Necromancer:
                 return 1;
+            case Necromancer:
+                return 2;
         }
         return Integer.MAX_VALUE;
     }
@@ -392,4 +402,6 @@ public abstract class ZQuest extends Reflector<ZQuest> {
         Utils.assertTrue(exitZone >= 0);
         return game.getBoard().getZombiesInZone(exitZone).size() == 0 && !(Utils.filter(game.getAllCharacters(), object -> object.getOccupiedZone() != exitZone).size() > 0);
     }
+
+    public void processSearchables(List<ZEquipment> items) {}
 }

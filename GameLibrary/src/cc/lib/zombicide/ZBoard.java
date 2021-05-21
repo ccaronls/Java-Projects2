@@ -244,6 +244,13 @@ public class ZBoard extends Reflector<ZBoard> {
         return grid.get(pos);
     }
 
+    public void setObjective(Grid.Pos pos, ZCellType type) {
+        ZCell cell = getCell(pos);
+        cell.setCellType(type, true);
+        getZone(cell.getZoneIndex()).setObjective(true);
+
+    }
+
     public ZCell getCell(int row, int col) {
         return grid.get(row, col);
     }

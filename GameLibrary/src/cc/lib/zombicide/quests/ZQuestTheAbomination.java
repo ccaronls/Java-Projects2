@@ -4,6 +4,7 @@ import cc.lib.utils.Table;
 import cc.lib.zombicide.ZBoard;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZQuest;
+import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZTile;
 import cc.lib.zombicide.ZZombieType;
 
@@ -14,7 +15,7 @@ public class ZQuestTheAbomination extends ZQuest {
     }
 
     public ZQuestTheAbomination() {
-        super("The Abomination");
+        super(ZQuests.The_Abomination);
     }
 
     @Override

@@ -476,6 +476,8 @@ public abstract class UIGame extends Game {
             }
         }
 
+        g.popMatrix();
+
         float cx = BOARD_DIM.getWidth() / 2;
         float cy = BOARD_DIM.getHeight() / 2;
         if (isGameOver()) {
@@ -501,7 +503,6 @@ public abstract class UIGame extends Game {
                 g.drawJustifiedStringOnBackground(cx, cy, Justify.CENTER, Justify.CENTER, txt, GColor.TRANSLUSCENT_BLACK, 3);
             }
         }
-        g.popMatrix();
     }
 
     final Table.Model instructionsModel = new Table.Model() {

@@ -13,7 +13,6 @@ import cc.lib.logger.LoggerFactory;
 import cc.lib.swing.AWTComponent;
 import cc.lib.swing.AWTGraphics;
 import cc.lib.ui.UIRenderer;
-import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZDir;
 import cc.lib.zombicide.ZIcon;
 import cc.lib.zombicide.ZMove;
@@ -41,6 +40,7 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
                 loadImages(g);
             }
         }.start();
+        UIZBoardRenderer.DEBUG_DRAW_ZONE_INFO = true;
     }
 
     @Override
@@ -79,8 +79,10 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
             if (game.isAnimating())
                 repaint();
         }*/
-        if (renderer != null)
+        if (renderer != null) {
             renderer.draw(g, mouseX, mouseY);
+            grabFocus();
+        }
     }
 
 
@@ -300,8 +302,8 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
     @Override
     public void keyPressed(KeyEvent e) {
         UIZombicide game = UIZombicide.getInstance();
-        ZCharacter cur = game.getCurrentCharacter();
-        if (cur != null) {
+        //ZCharacter cur = game.getCurrentCharacter();
+        //if (cur != null) {
             switch (e.getKeyCode()) {
                 case KeyEvent.VK_LEFT:
                     game.tryWalk(ZDir.WEST);
@@ -325,7 +327,7 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
                     // zoom out
                     renderer.animateZoomAmount(-1);
                     break;
-                case KeyEvent.VK_TAB:
+                case KeyEvent.VK_SPACE:
                     // toggle active player
                     game.trySwitchActivePlayer();
                     break;
@@ -337,7 +339,7 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
                     }
                     break;
 
-            }
+            //}
         }
 
         switch (e.getKeyCode()) {

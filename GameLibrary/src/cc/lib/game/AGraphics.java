@@ -303,7 +303,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     public abstract Vector2D screenToViewport(int screenX, int screenY);
     
     /**
-     * Draw a justified block text.  '\n' is a delimiter for seperate lines
+     * Draw a justified block text.  '\n' is a delimiter for separate lines
      * @param x
      * @param y
      * @param hJust
@@ -944,11 +944,11 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param h
      * @param numCellsX
      * @param numCells
-     * @param bordeered
+     * @param bordered
      * @param transparent
      * @return an array of length numCells with ids to the sub images or null if asset path does not produce an image
      */
-    public abstract int [] loadImageCells(String assetPath, int w, int h, int numCellsX, int numCells, boolean bordeered, GColor transparent);
+    public abstract int [] loadImageCells(String assetPath, int w, int h, int numCellsX, int numCells, boolean bordered, GColor transparent);
     
     /**
      * 

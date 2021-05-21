@@ -187,14 +187,16 @@ public class AIPlayer extends Player {
             stats.pieceTypeCount[move.getStartType().ordinal()]++;
             stats.pieceTypeValue[move.getStartType().ordinal()]+=value;
         }
-        if (value > Long.MIN_VALUE) {
-            value -= actualDepth; // shorter paths that lead to the same value are scored higher.
+        if (value < 0) {
+            value += actualDepth; // shorter paths that lead to the same value are scored higher.
+        } else if (value > 0) {
+            value -= actualDepth;
         }
-        if (randomizeDuplicates && value != 0 && value > Long.MIN_VALUE / 1000 && value < Long.MAX_VALUE / 1000) {
+        if (randomizeDuplicates && value != 0 && value > Long.MIN_VALUE / 2 && value < Long.MAX_VALUE / 2) {
             // add randomness to boards with same value
             value *= 100;
             if (value < 0) {
-                value += Utils.randRange(-99, 0);
+                value -= Utils.randRange(99, 0);
             } else if (value > 0) {
                 value += Utils.randRange(0, 99);
             }
@@ -314,11 +316,11 @@ public class AIPlayer extends Player {
             return evaluate(game, actualDepth);
         }
         root.children = new ArrayList<>(game.getMoves());
-        //if (maximizePlayer) {
+        if (maximizePlayer) {
             Collections.sort(root.children, SORT_DESCENDING);
-        //} else {
-            //Collections.sort(root.children, SORT_ASCENDING);
-       // }
+        } else {
+            Collections.sort(root.children, SORT_ASCENDING);
+        }
 
         long value = maximizePlayer ? Long.MIN_VALUE : Long.MAX_VALUE;
         Move path = null;

@@ -12,6 +12,7 @@ import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZQuest;
+import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZTile;
 import cc.lib.zombicide.ZZombieType;
 import cc.lib.zombicide.ZZone;
@@ -38,7 +39,7 @@ public class ZQuestBigGameHunting extends ZQuest {
     boolean skipKillAbomination=false;
 
     public ZQuestBigGameHunting() {
-        super("Big Game Hunting");
+        super(ZQuests.Big_Game_Hunting);
     }
 
     @Override

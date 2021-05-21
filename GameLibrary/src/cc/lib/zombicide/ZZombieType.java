@@ -5,7 +5,7 @@ import cc.lib.game.GDimension;
 
 @Keep
 public enum ZZombieType {
-    // TODO: Dont break MVC. Here we make assumptions about assets for zombies.
+    // TODO: Don't break MVC. Here we make assumptions about assets for zombies.
     Walker(1, 1, 1, false, 1,
             "Once peasants, craftsmen, merchants, or\n" +
             "townsfolk, these poor unfortunates were\n" +

@@ -31,14 +31,14 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
     int dangerBar;
     boolean inventoryThisTurn =false;
     private List<ZActionType> actionsDoneThisTurn = new ArrayList<>();
-    final List<ZSkill> allSkills = new ArrayList<>();
-    final List<ZSkill> availableSkills = new ArrayList<>();
+    private final List<ZSkill> allSkills = new ArrayList<>();
+    private final List<ZSkill> availableSkills = new ArrayList<>();
 
     private final List<ZEquipment> backpack = new ArrayList<>();
     ZEquipment leftHand, rightHand, body;
     int [] kills = new int[ZZombieType.values().length];
 
-    void clear() {
+    synchronized void clear() {
         Arrays.fill(kills, 0);
         leftHand = rightHand = body = null;
         backpack.clear();
@@ -64,7 +64,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
     }
 
     @Override
-    void onBeginRound() {
+    synchronized void onBeginRound() {
         actionsDoneThisTurn.clear();
         availableSkills.addAll(allSkills);
         inventoryThisTurn = false;
@@ -107,7 +107,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
     }
 
     @Override
-    protected boolean performAction(ZActionType action, ZGame game) {
+    protected synchronized boolean performAction(ZActionType action, ZGame game) {
         for (ZSkill skill : availableSkills) {
             if (skill.modifyActionsRemaining(this, action, game)) {
                 game.getCurrentUser().showMessage(name() + " used " + skill + " for a free action");
@@ -165,7 +165,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
     protected int getActionsPerTurn() {
         int actions = 3;
         for (ZSkill s : availableSkills) {
-            if (s == ZSkill.Plus1_Action)
+            if (s == ZSkill.Plus1_Action) // TODO: condider implementing modifyActionsRemaining for Plus1_Action
                 actions++;
         }
         return actions;
@@ -195,7 +195,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
         return (List)Utils.filterItems(object -> object instanceof ZArmor, leftHand, rightHand, body);
     }
 
-    public List<ZSpell> getSpells() {
+    public synchronized List<ZSpell> getSpells() {
         List<ZSpell> spells = (List)Utils.filterItems(object -> object instanceof ZSpell, leftHand, rightHand, body);
         if (availableSkills.contains(ZSkill.Spellbook)) {
             spells.addAll((List)Utils.filter(new ArrayList<>(backpack), object -> object.isEnchantment()));
@@ -203,7 +203,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
         return spells;
     }
 
-    public List<ZArmor> getArmorForDefense() {
+    public synchronized List<ZArmor> getArmorForDefense() {
         List<ZArmor> armor = getArmor();
         if (availableSkills.contains(ZSkill.Iron_hide)) {
             if (armor.size() == 0) {
@@ -234,7 +234,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
      *
      * @return
      */
-    public boolean isDualWeilding() {
+    public synchronized boolean isDualWeilding() {
         if (leftHand == null || rightHand == null)
             return false;
         if (!leftHand.getType().equals(rightHand.getType()))
@@ -378,7 +378,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
         return ZSkillLevel.getLevel(dangerBar);
     }
 
-    public Table getInfoTable(ZGame game) {
+    public synchronized Table getInfoTable(ZGame game) {
 
         /*
 
@@ -558,7 +558,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
         return true;
     }
 
-    public ZWeaponStat getWeaponStat(ZWeapon weapon, ZActionType attackType, ZGame game) {
+    public synchronized ZWeaponStat getWeaponStat(ZWeapon weapon, ZActionType attackType, ZGame game) {
         ZWeaponStat stat = null;
         switch (attackType) {
             case MELEE:
@@ -644,7 +644,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
     }
 
     @Override
-    public boolean isInvisible() {
+    public synchronized boolean isInvisible() {
         return availableSkills.contains(ZSkill.Invisible);
     }
 
@@ -721,7 +721,15 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
         return Utils.filterItems((ZEquipment e) -> e.getType() == type, leftHand, rightHand, body).size() > 0;
     }
 
-    boolean canReroll(ZActionType action) {
+    boolean isRoll6Plus1Die(ZActionType type) {
+        for (ZSkill skill : availableSkills) {
+            if (skill.isRoll6Plus1(type))
+                return true;
+        }
+        return false;
+    }
+
+    synchronized boolean canReroll(ZActionType action) {
         if (availableSkills.contains(ZSkill.Lucky))
             return true;
 
@@ -734,15 +742,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
         return false;
     }
 
-    boolean isRoll6Plus1Die(ZActionType type) {
-        for (ZSkill skill : availableSkills) {
-            if (skill.isRoll6Plus1(type))
-                return true;
-        }
-        return false;
-    }
-
-    void onEndOfTurn(ZGame game) {
+    synchronized void onEndOfTurn(ZGame game) {
         for (ZSkill skill : availableSkills) {
             skill.onEndOfTurn(game, this);
         }
@@ -759,7 +759,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
         return 100;
     }
 
-    public boolean canFriendlyFire() {
+    public synchronized boolean canFriendlyFire() {
         for (ZSkill s : availableSkills) {
             if (s.avoidsFriendlyFire())
                 return false;
@@ -778,5 +778,31 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
 
     public boolean isInventoryThisTurn() {
         return inventoryThisTurn;
+    }
+
+    public List<ZSkill> getAvailableSkills() {
+        return Collections.unmodifiableList(availableSkills);
+    }
+
+    public boolean hasAvailableSkill(ZSkill skill) {
+        return availableSkills.contains(skill);
+    }
+
+    public synchronized void addSkill(ZSkill skill) {
+        allSkills.add(skill);
+        availableSkills.add(skill);
+    }
+
+    public synchronized void addAvailableSkill(ZSkill skill) {
+        availableSkills.add(skill);
+    }
+
+    public synchronized void removeAvailableSkill(ZSkill skill) {
+        availableSkills.remove(skill);
+    }
+
+    public synchronized void initAllSkills(ZSkill ... skills) {
+
+        allSkills.addAll(Arrays.asList(skills));
     }
 }

@@ -473,7 +473,7 @@ public class Checkers extends Rules {
                 break;
             case STACK:
                 game.getPiece(move.getStart()).setType(move.getEndType());
-                if (game.getPreviousMove(move.getPlayerNum()).getMoveType().isJump) {
+                if (game.getPreviousMove(move.getPlayerNum()).hasCaptured()) {
                     // we cannot king if we can still jump.
                     computeMovesForSquare(game, ernk, ecol, move, game.getMovesInternal());
                     Piece pp = game.getPiece(move.getEnd());
@@ -522,42 +522,26 @@ public class Checkers extends Rules {
 
     @Override
     public long evaluate(Game game, Move move) {
-        if (game.isDraw())
-            return 0;
-        int winner;
-        switch (winner=game.getWinnerNum()) {
-            case NEAR:
-            case FAR:
-                return (winner == move.getPlayerNum() ? Long.MAX_VALUE : Long.MIN_VALUE);
-        }
-        long value = 0; // no its not game.getMoves().size(); // move options is good
-        //if (move.hasCaptured())
-        //    value += 1000;
-        for (int r = 0; r<game.getRanks(); r++) {
-            for (int c = 0; c<game.getColumns(); c++) {
-                Piece p = game.getPiece(r, c);
-                final int scale = p.getPlayerNum() == move.getPlayerNum() ? 1 : -1;
-                switch (p.getType()) {
+        long value = 0;
+        if (move.hasCaptured())
+            value += 2;
+        for (Piece p : game.getPieces(-1)) {
+            int scale = p.getPlayerNum() == move.getPlayerNum() ? 1 : -1;
+            switch (p.getType()) {
+                case CHECKER:
+                case DAMA_MAN:
+                    value += 2*scale;
+                    break;
+                case KING:
+                    value += 10*scale;
+                    break;
+                case FLYING_KING:
+                case DAMA_KING:
+                    value += 50*scale;
+                    break;
 
-                    case EMPTY:
-                        value += 1 * scale;
-                        break;
-                    case CHECKER:
-                    case DAMA_MAN:
-                        value += 2 * scale;
-                        break;
-
-                    case KING:
-                        value += 10 * scale;
-                        break;
-                    case FLYING_KING:
-                    case DAMA_KING:
-                        value += 50 * scale;
-                        break;
-
-                    default:
-                        throw new GException("Unhandled case '" + p.getType() + "'");
-                }
+                default:
+                    throw new GException("Unhandled case '" + p.getType() + "'");
             }
         }
         return value;

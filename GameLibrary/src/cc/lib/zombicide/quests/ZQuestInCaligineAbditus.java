@@ -3,6 +3,7 @@ package cc.lib.zombicide.quests;
 import cc.lib.utils.Table;
 import cc.lib.zombicide.ZBoard;
 import cc.lib.zombicide.ZGame;
+import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZTile;
 import cc.lib.zombicide.ZWallFlag;
 
@@ -13,7 +14,7 @@ public class ZQuestInCaligineAbditus extends ZQuestTheCommandry {
     }
 
     public ZQuestInCaligineAbditus() {
-        super("In Caligine Abditus");
+        super(ZQuests.In_Caligine_Abditus);
     }
 
     @Override

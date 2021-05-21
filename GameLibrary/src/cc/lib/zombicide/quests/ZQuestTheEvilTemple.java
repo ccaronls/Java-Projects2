@@ -17,6 +17,7 @@ import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZItemType;
 import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZQuest;
+import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZTile;
 import cc.lib.zombicide.ZWallFlag;
 import cc.lib.zombicide.ZZombieType;
@@ -35,7 +36,7 @@ public class ZQuestTheEvilTemple extends ZQuest {
     ZDoor goldVaultDoor, violetVaultDoor;
 
     public ZQuestTheEvilTemple() {
-        super("The Evil Temple");
+        super(ZQuests.The_Evil_Temple);
     }
 
     @Override

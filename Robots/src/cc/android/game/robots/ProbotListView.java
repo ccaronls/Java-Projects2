@@ -1,29 +1,54 @@
 package cc.android.game.robots;
 
-import android.content.ClipData;
 import android.content.Context;
-import android.graphics.Color;
 import android.util.AttributeSet;
-import android.util.Log;
-import android.view.DragEvent;
-import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
-import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.TextView;
 
-import cc.lib.game.Utils;
+import cc.lib.android.DragAndDropAdapter;
 import cc.lib.probot.Command;
-import cc.lib.probot.CommandType;
 import cc.lib.probot.Probot;
 
 /**
  * Created by chriscaron on 12/12/17.
  */
 
-public class ProbotListView extends ListView implements View.OnDragListener, View.OnClickListener, View.OnLongClickListener, Runnable {
+public class ProbotListView extends ListView {
 
+    Probot probot = null;
+    DragAndDropAdapter<Command> adapter;
+    int programLineNum = -1;
+    int failedLineNum = -1;
+
+    public void setProbot(Probot p) {
+        this.probot = p;
+        setAdapter(adapter);
+    }
+
+    public ProbotListView(Context context) {
+        super(context);
+        init(context, null);
+    }
+
+    public ProbotListView(Context context, AttributeSet attrs) {
+        super(context, attrs);
+        init(context, attrs);
+    }
+
+    private void init(Context c, AttributeSet a) {
+        adapter = new DragAndDropAdapter<Command>(this) {
+            @Override
+            protected void populateItem(Command data, ViewGroup container) {
+
+            }
+
+            @Override
+            protected String getItemName(Command item) {
+                return item.type.name();
+            }
+        };
+    }
+    /*
     BaseAdapter adapter = null;
     int programLineNum = -1;
     int failedLineNum = -1;
@@ -479,5 +504,5 @@ public class ProbotListView extends ListView implements View.OnDragListener, Vie
             }
             Log.d("ProbotListView", "insertPos=" + dragInsertPos + " dragMin=" + dragMinInsertPos + " dragMax=" + dragMaxInsertPos + " pos=" + position);
         }
-    }
+    }*/
 }

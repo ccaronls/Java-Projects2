@@ -32,6 +32,16 @@ public class ZGame extends Reflector<ZGame>  {
     final static int GAME_LOST = 2;
     final static int GAME_WON  = 1;
 
+    public boolean tryGiftEquipment(ZCharacter c, ZEquipment e) {
+        if (c.getEquipableSlots(e).size() == 0) {
+            return false;
+        }
+
+        c.equip(e);
+        onEquipmentFound(c, e);
+        return true;
+    }
+
     public static class State extends Reflector<State> {
         final ZState state;
         final ZPlayerName player;
@@ -219,8 +229,18 @@ public class ZGame extends Reflector<ZGame>  {
         if (count == 0)
             return;
 
-        count *= spawnMultiplier;
-        spawnMultiplier = 1;
+        do {
+            if (name == ZZombieType.Necromancer) {
+                // when spawning a necromancer, make sure we are spawning from not a spawn spot
+                if (getBoard().getZone(zone).isSpawn()) {
+                    name = Utils.flipCoin() ? ZZombieType.Fatty : ZZombieType.Runner;
+                } else {
+                    break;
+                }
+            }
+            count *= spawnMultiplier;
+            spawnMultiplier = 1;
+        } while (false);
 
         while (true) {
             final ZZombieType _name = name;
@@ -354,8 +374,9 @@ public class ZGame extends Reflector<ZGame>  {
                     setState(ZState.SPAWN, null);
                 else
                     setState(ZState.PLAYER_STAGE_CHOOSE_CHARACTER, null);
+                roundNum++;
                 getCurrentUser().showMessage("Begin Round " + roundNum);
-                onStartRound(roundNum++);
+                onStartRound(roundNum);
                 currentUser = 0;
                 for (ZActor a : board.getAllLiveActors())
                     a.onBeginRound();
@@ -384,7 +405,7 @@ public class ZGame extends Reflector<ZGame>  {
 
                 // any player who has done a move and is not a tactician must continue to move
                 for (ZCharacter c : getAllLivingCharacters()) {
-                    if (c.getActionsLeftThisTurn() > 0 && c.getActionsLeftThisTurn() < c.getActionsPerTurn() && !c.availableSkills.contains(ZSkill.Tactician)) {
+                    if (c.getActionsLeftThisTurn() > 0 && c.getActionsLeftThisTurn() < c.getActionsPerTurn() && !c.hasAvailableSkill(ZSkill.Tactician)) {
                         options.add(c);
                         break;
                     }
@@ -434,7 +455,7 @@ public class ZGame extends Reflector<ZGame>  {
                 options.add(ZMove.newDoNothing());
 
                 // determine players available moves
-                for (ZSkill skill : cur.availableSkills) {
+                for (ZSkill skill : cur.getAvailableSkills()) {
                     skill.addSpecialMoves(this, cur, options);
                 }
 
@@ -445,21 +466,25 @@ public class ZGame extends Reflector<ZGame>  {
                 if (cur.getAllEquipment().size() > 0)
                     options.add(ZMove.newInventoryMove());
 
-                // check for trade with another character in the same zone
-                List<ZCharacter> inZone = Utils.filter(board.getCharactersInZone(cur.occupiedZone),
-                        object -> {
-                            if (object == cur)
+                boolean zoneCleared = isClearedOfZombies(cur.occupiedZone);
+
+                // check for trade with another character in the same zone (even if they are dead)
+                if (zoneCleared && cur.canTrade()) {
+                    List<ZCharacter> inZone = Utils.filter((List)board.getActorsInZone(cur.occupiedZone),
+                            object -> {
+                                if (object instanceof ZCharacter && object != cur && ((ZCharacter)object).canTrade())
+                                    return true;
                                 return false;
-                            return (object.canTrade() && cur.canTrade());
-                        });
-                if (inZone.size() > 0) {
-                    options.add(ZMove.newTradeMove(inZone));
+                            });
+                    if (inZone.size() > 0) {
+                        options.add(ZMove.newTradeMove(inZone));
+                    }
                 }
 
                 ZZone zone = board.getZone(cur.occupiedZone);
 
                 // check for search
-                if (zone.isSearchable() && cur.canSearch() && isClearedOfZombies(cur.occupiedZone)) {
+                if (zone.isSearchable() && cur.canSearch() && zoneCleared) {
                     options.add(ZMove.newSearchMove(cur.occupiedZone));
                 }
 
@@ -561,8 +586,7 @@ public class ZGame extends Reflector<ZGame>  {
 
                 if (skill != null) {
                     onNewSkillAquired(cur, skill);
-                    cur.allSkills.add(skill);
-                    cur.availableSkills.add(skill);
+                    cur.addSkill(skill);
                     stateStack.pop();
                 }
                 break;
@@ -682,7 +706,7 @@ public class ZGame extends Reflector<ZGame>  {
 
                 if (zones.size() > 0) {
                     ZCharacter cur = getCurrentCharacter();
-                    Integer zIdx = user.choosZoneToRemoveSpawn(this, cur, zones);
+                    Integer zIdx = user.chooseZoneToRemoveSpawn(this, cur, zones);
                     if (zIdx != null) {
                         board.getZone(zIdx).setSpawn(false);
                         onCharacterDestroysSpawn(cur, zIdx);
@@ -851,10 +875,15 @@ public class ZGame extends Reflector<ZGame>  {
                 break;
             }
             case TAKE_OBJECTIVE: {
+                cur.performAction(ZActionType.OBJECTIVE, this);
+                ZZone zone = board.getZone(cur.occupiedZone);
+                zone.setObjective(false);
+                for (Grid.Pos pos : zone.cells) {
+                    for (ZCellType ct : Arrays.asList(ZCellType.OBJECTIVE_BLACK, ZCellType.OBJECTIVE_BLUE, ZCellType.OBJECTIVE_GREEN, ZCellType.OBJECTIVE_RED))
+                        board.getCell(pos).setCellType(ct, false);
+                }
                 getCurrentUser().showMessage(cur.name() + " Found an OBJECTIVE");
                 quest.processObjective(this, cur, move);
-                cur.performAction(ZActionType.OBJECTIVE, this);
-                board.getZone(cur.occupiedZone).setObjective(false);
                 break;
             }
             case INVENTORY: {
@@ -1339,7 +1368,7 @@ public class ZGame extends Reflector<ZGame>  {
                     if (chosen.getActionsLeftThisTurn() > 0) {
                         chosen.addExtraAction();
                     } else {
-                        chosen.availableSkills.add(ZSkill.Plus1_Action);
+                        chosen.addAvailableSkill(ZSkill.Plus1_Action);
                     }
                     cur.performAction(ZActionType.BEQUEATH_MOVE, this);
                 }
@@ -1398,7 +1427,7 @@ public class ZGame extends Reflector<ZGame>  {
                 moveActor(cur, zone, cur.getMoveSpeed()/2);
                 performAttack(slot, action);
                 cur.performAction(action, this);
-                cur.availableSkills.remove(move.skill);
+                cur.removeAvailableSkill(move.skill);
             }
         }
     }
@@ -1515,10 +1544,10 @@ public class ZGame extends Reflector<ZGame>  {
                                 // friendy fire!
                                 ZCharacter victim = friendlyFireOptions.get(0);
                                 if (playerDefends(victim, ZZombieType.Walker)) {
-                                    getCurrentUser().showMessage(victim.name() + " defended themself from friendly fire!");
+                                    getCurrentUser().showMessage(victim.name() + " defended thyself from friendly fire!");
                                 } else {
-                                    playerWounded(victim, stat.getAttackType(), stat.damagePerHit, "Freindly Fire!");
-                                    if (victim.isDualWeilding())
+                                    playerWounded(victim, stat.getAttackType(), stat.damagePerHit, "Friendly Fire!");
+                                    if (victim.isDualWeilding() || victim.isDead())
                                         friendlyFireOptions.remove(0);
                                 }
                             }
@@ -2049,6 +2078,8 @@ public class ZGame extends Reflector<ZGame>  {
         searchables.addAll(make(2, ZWeaponType.SWORD));
         searchables.addAll(make(4, ZItemType.TORCH));
         searchables.addAll(make(2, ZItemType.WATER));
+        quest.processSearchables(searchables);
+
         Utils.shuffle(searchables);
     }
 
@@ -2062,9 +2093,9 @@ public class ZGame extends Reflector<ZGame>  {
     }
 
     public Table getGameSummaryTable() {
-        Table summary = new Table("PLAYER", "KILLS", "STATUS", "EXP").setNoBorder();
+        Table summary = new Table("PLAYER", "KILLS", "STATUS", "EXP", "LEVEL").setNoBorder();
         for (ZCharacter c : getAllCharacters()) {
-            summary.addRow(c.name, c.getKillsTable(), c.isDead() ? "KIA" : "Alive", c.dangerBar);
+            summary.addRow(c.name, c.getKillsTable(), c.isDead() ? "KIA" : "Alive", c.dangerBar, c.getSkillLevel());
         }
         return new Table(quest.getName())
                 .addRow("STATUS : " +( gameOverStatus == 1 ? "COMPLETED" : gameOverStatus == 2 ? "FAILED" : "IN PROGRESS"))
@@ -2085,7 +2116,7 @@ public class ZGame extends Reflector<ZGame>  {
             return false;
         if (cur.getActionsLeftThisTurn() == cur.getActionsPerTurn())
             return true;
-        if (cur.availableSkills.contains(ZSkill.Tactician))
+        if (cur.hasAvailableSkill(ZSkill.Tactician))
             return true;
         return false;
     }

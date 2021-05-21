@@ -30,7 +30,7 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
     public final int NUM_PLAYERS;
 
     private int turn = -1;
-    private int computedMoves = -1; // optimization so that multiple calls to compute moves doesnt cause complete rescan unless neccessary
+    private int computedMoves = -1; // optimization so that multiple calls to compute moves doesnt cause complete rescan unless necessary
     protected Piece lock = null;
     protected final Stack<Move> undoStack = new Stack<>();
     private boolean forfeited = false;
@@ -100,7 +100,7 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
     }
 
     /**
-     * return 2 elem array containing the rank and column of the first occurance of t
+     * return 2 elem array containing the rank and column of the first occurrence of t
      * or null if not found
      * @param playerNum
      * @param types
@@ -370,7 +370,7 @@ public abstract class ACheckboardGame extends Reflector<ACheckboardGame> impleme
         };
     }
 
-    // TODO: Optimmize not doing full 64 square search. Keeping track of only movable pieces in separate collection.
+    // TODO: Optimize not doing full 64 square search. Keeping track of only movable pieces in separate collection.
     final public class PieceIterator implements Iterator<Piece> {
 
         int rank=0;

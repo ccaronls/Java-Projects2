@@ -1,5 +1,6 @@
 package cc.game.zombicide.android;
 
+import android.app.Dialog;
 import android.content.DialogInterface;
 import android.graphics.BlurMaskFilter;
 import android.graphics.Canvas;
@@ -25,6 +26,7 @@ import android.widget.BaseAdapter;
 import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
@@ -147,6 +149,12 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                 boardView.post(() -> initMenu(getUiMode(), getOptions()));
                 return super.waitForUser(expectedType);
             }
+
+            @Override
+            protected void onQuestComplete() {
+                super.onQuestComplete();
+                completeQuest(getQuest().getQuest());
+            }
         };
 
         Set<String> playersSet = getPrefs().getStringSet("players", getDefaultPlayers());
@@ -183,6 +191,7 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
         QUIT,
         CANCEL,
         LOAD,
+        NEW_GAME,
         ASSIGN,
         SUMMARY,
         DIFFICULTY,
@@ -192,8 +201,10 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
         boolean isHomeButton(ZombicideActivity instance) {
             switch (this) {
                 case LOAD:
-                case START:
                 case ASSIGN:
+                    return BuildConfig.DEBUG;
+                case START:
+                case NEW_GAME:
                 case DIFFICULTY:
                 case SKILLS:
                     return true;
@@ -323,6 +334,13 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                 game.boardRenderer.setOverlay(game.getGameSummaryTable());
                 break;
             }
+            case NEW_GAME: {
+                // choose level (if multiple available)
+                //   choose difficulty
+                //      assign players
+                showNewGameDialog();
+                break;
+            }
             case LOAD:
                 newDialogBuilder().setTitle("Load Quest")
                         .setItems(Utils.toStringArray(ZQuests.values(), true), new DialogInterface.OnClickListener() {
@@ -355,6 +373,192 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                 showSkillsDialog();
             }
         }
+    }
+
+    Set<String> getCompletedQuests() {
+        return getPrefs().getStringSet("completedQuests", new HashSet<>());
+    }
+
+    void completeQuest(ZQuests quest) {
+        Set<String> unlocked = getCompletedQuests();
+        unlocked.add(quest.name());
+        getPrefs().edit().putStringSet("completedQuests", unlocked).apply();
+    }
+
+    void showNewGameDialog() {
+        Set<String> playable = getCompletedQuests();
+        List<ZQuests> allQuests = ZQuests.valuesRelease();
+        int firstPage = 0;
+        for (ZQuests q: allQuests) {
+            if (!playable.contains(q.name())) {
+                playable.add(q.name());
+                break;
+            }
+            firstPage = Utils.clamp(firstPage+1, 0, allQuests.size()-1);
+        }
+        View view = View.inflate(this, R.layout.assign_dialog2, null);
+        ViewPager pager = view.findViewById(R.id.view_pager);
+        final Dialog [] dialog = new Dialog[1];
+        pager.setAdapter(new PagerAdapter() {
+            @Override
+            public int getCount() {
+                return allQuests.size();
+            }
+
+            @Override
+            public boolean isViewFromObject(@NonNull View view, @NonNull Object o) {
+                return view == o;
+            }
+
+            @NonNull
+            @Override
+            public Object instantiateItem(@NonNull ViewGroup container, int position) {
+                ZQuests q = allQuests.get(position);
+                View content = View.inflate(ZombicideActivity.this, R.layout.choose_quest_dialog_item, null);
+                TextView title = content.findViewById(R.id.tv_title);
+                TextView body  = content.findViewById(R.id.tv_body);
+                ImageView lockedOverlay = content.findViewById(R.id.lockedOverlay);
+
+                title.setText(q.getDisplayName());
+                body.setText(q.getDescription());
+
+                if (playable.contains(q.name())) {
+                    lockedOverlay.setVisibility(View.INVISIBLE);
+                    content.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            dialog[0].dismiss();
+                            showNewGameDailogChooseDifficulty(q);
+                        }
+                    });
+                } else {
+                    lockedOverlay.setVisibility(View.VISIBLE);
+                    content.setOnClickListener(null);
+                }
+                container.addView(content);
+                return content;
+            }
+
+            @Override
+            public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
+                container.removeView((View)object);
+            }
+        });
+        dialog[0] = newDialogBuilder().setTitle("Choose Quest")
+                .setView(view).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+
+            }
+        }).show();
+    }
+
+    void showNewGameDailogChooseDifficulty(ZQuests quest) {
+        newDialogBuilder().setTitle("Quest " + quest.ordinal() + " : " + quest.getDisplayName())
+                .setItems(Utils.toStringArray(ZDiffuculty.values()), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        ZDiffuculty difficulty = ZDiffuculty.values()[which];
+                        showNewGameDialogChoosePlayers(quest, difficulty);
+                    }
+                }).setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                showNewGameDialog();
+            }
+        }).show();
+
+    }
+
+    void showNewGameDialogChoosePlayers(ZQuests quest, ZDiffuculty difficulty) {
+
+        Set<String> selectedPlayers = new HashSet(getPrefs().getStringSet("players", getDefaultPlayers()));
+        Set<String> unlockedPlayers = new HashSet(getPrefs().getStringSet("unlockedPlayers", getDefaultUnlockedPlayers()));
+        View view = View.inflate(this, R.layout.assign_dialog2, null);
+        ViewPager pager = view.findViewById(R.id.view_pager);
+        pager.setAdapter(new PagerAdapter() {
+            @Override
+            public int getCount() {
+                return ZPlayerName.values().length;
+            }
+
+            @Override
+            public boolean isViewFromObject(@NonNull View view, @NonNull Object o) {
+                return view == o;
+            }
+
+            @NonNull
+            @Override
+            public Object instantiateItem(@NonNull ViewGroup container, int position) {
+                View view = LayoutInflater.from(ZombicideActivity.this).inflate(R.layout.assign_dialog_item, null);
+                ImageView image = view.findViewById(R.id.image);
+                CheckBox checkbox = view.findViewById(R.id.checkbox);
+                ImageView lockedOverlay = view.findViewById(R.id.lockedOverlay);
+
+                ZPlayerName player = ZPlayerName.values()[position];
+                if (!unlockedPlayers.contains(player.name()) && !selectedPlayers.contains(player.name())) {
+                    lockedOverlay.setVisibility(View.VISIBLE);
+                    checkbox.setEnabled(false);
+                } else {
+                    lockedOverlay.setVisibility(View.INVISIBLE);
+                    checkbox.setEnabled(true);
+                    image.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            if (selectedPlayers.contains(player.name())) {
+                                if (selectedPlayers.size() > 1) {
+                                    selectedPlayers.remove(player.name());
+                                    checkbox.setChecked(false);
+                                } else {
+                                    Toast.makeText(ZombicideActivity.this, "Must have at least one player", Toast.LENGTH_LONG).show();
+                                }
+                            } else if (selectedPlayers.size() >= MAX_PLAYERS) {
+                                Toast.makeText(ZombicideActivity.this, "Can only have " + MAX_PLAYERS + " at a time", Toast.LENGTH_LONG).show();
+                            } else {
+                                selectedPlayers.add(player.name());
+                                checkbox.setChecked(true);
+                            }
+                        }
+                    });
+                }
+
+                if (selectedPlayers.contains(player.name())) {
+                    checkbox.setChecked(true);
+                } else {
+                    checkbox.setChecked(false);
+                }
+
+                image.setImageResource(player.cardImageId);
+
+
+                container.addView(view);
+                return view;
+            }
+
+            @Override
+            public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
+                container.removeView((View)object);
+            }
+        });
+        newDialogBuilder().setTitle("Choose Players").setView(view).setNegativeButton("CANCEL", null)
+                .setPositiveButton("START", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Log.d(TAG, "Selected players: " + selectedPlayers);
+                        getPrefs().edit().putStringSet("players", selectedPlayers).apply();
+                        user.clear();
+                        for (ZPlayerName pl : Utils.convertToEnumArray(selectedPlayers, ZPlayerName.class, new ZPlayerName[selectedPlayers.size()])) {
+                            user.addCharacter(pl);
+                        }
+                        getPrefs().edit().putString("difficulty", difficulty.name()).apply();
+                        game.setUsers(user);
+                        game.loadQuest(quest);
+                        game.setDifficulty(difficulty);
+                        game.reload();
+                        game.startGameThread();
+                    }
+                }).show();
+
     }
 
     // TODO: Make this more organized. Should be able to order by character, danger level or all POSSIBLE
@@ -482,8 +686,12 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                         @Override
                         public void onClick(View v) {
                             if (selectedPlayers.contains(player.name())) {
-                                selectedPlayers.remove(player.name());
-                                checkbox.setChecked(false);
+                                if (selectedPlayers.size() > 1) {
+                                    selectedPlayers.remove(player.name());
+                                    checkbox.setChecked(false);
+                                } else {
+                                    Toast.makeText(ZombicideActivity.this, "Must have at least one player", Toast.LENGTH_LONG).show();
+                                }
                             } else if (selectedPlayers.size() >= MAX_PLAYERS) {
                                 Toast.makeText(ZombicideActivity.this, "Can only have " + MAX_PLAYERS + " at a time", Toast.LENGTH_LONG).show();
                             } else {
@@ -512,8 +720,8 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                 container.removeView((View)object);
             }
         });
-        newDialogBuilder().setTitle("ASSIGN").setView(view).setNegativeButton("CANCEL", null)
-                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+        newDialogBuilder().setTitle("Choose Players").setView(view).setNegativeButton("CANCEL", null)
+                .setPositiveButton("Assign", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         Log.d(TAG, "Selected players: " + selectedPlayers);

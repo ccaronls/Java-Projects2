@@ -13,6 +13,7 @@ import cc.lib.zombicide.ZDoor;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZQuest;
+import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZSkillLevel;
 import cc.lib.zombicide.ZTile;
 import cc.lib.zombicide.ZWallFlag;
@@ -31,7 +32,7 @@ public class ZQuestTheBlackBook extends ZQuest {
     ZDoor blueDoor, greenDoor;
 
     public ZQuestTheBlackBook() {
-        super("The Black Book");
+        super(ZQuests.The_Black_Book);
     }
 
     @Override

@@ -28,7 +28,7 @@ public enum ZWeaponType implements ZEquipmentType<ZWeapon> {
 
     // MAGIC
     DEATH_STRIKE(false, false, false, true, true, false, null, null, new ZWeaponStat(ZAttackType.MENTAL_STRIKE,0, 0, 1, 1, 4, 2)),
-    // TODO: +1 damagae on a die roll 6
+    // TODO: +1 damage on a die roll 6
     DISINTEGRATE(false, false, false, true, true, false, null, null, new ZWeaponStat(ZAttackType.DISINTEGRATION,0, 0, 1, 3, 5, 1)),
     EARTHQUAKE(false, false, false, true, true, false, null, null, new ZWeaponStat(ZAttackType.EARTHQUAKE,0, 0, 1, 3, 4, 1)),
     FIREBALL(false, false, false, true, true, false, null, null, new ZWeaponStat(ZAttackType.FIRE,0, 0, 1, 3, 4, 1)),
@@ -40,12 +40,12 @@ public enum ZWeaponType implements ZEquipmentType<ZWeapon> {
     BREAK_IN(false, false, false, false, false, false, new ZWeaponStat(null, 1, 0, 0, 0, 0, 0), null, null),
     ;
 
-    ZWeaponType(boolean usesBolts, boolean usesArrows, boolean needsReload, boolean canTwoHand, boolean attckIsNoisy, boolean openDoorsIsNoisy, ZWeaponStat meleeStats, ZWeaponStat rangedStats, ZWeaponStat magicStats) {
+    ZWeaponType(boolean usesBolts, boolean usesArrows, boolean needsReload, boolean canTwoHand, boolean attackIsNoisy, boolean openDoorsIsNoisy, ZWeaponStat meleeStats, ZWeaponStat rangedStats, ZWeaponStat magicStats) {
         this.usesBolts = usesBolts;
         this.usesArrows = usesArrows;
         this.needsReload = needsReload;
         this.canTwoHand = canTwoHand;
-        this.attckIsNoisy = attckIsNoisy;
+        this.attackIsNoisy = attackIsNoisy;
         this.openDoorsIsNoisy = openDoorsIsNoisy;
         this.meleeStats = meleeStats;
         this.rangedStats = rangedStats;
@@ -56,7 +56,7 @@ public enum ZWeaponType implements ZEquipmentType<ZWeapon> {
     final boolean usesArrows;
     final boolean needsReload;
     final boolean canTwoHand;
-    final boolean attckIsNoisy;
+    final boolean attackIsNoisy;
     final boolean openDoorsIsNoisy;
     final ZWeaponStat meleeStats;
     final ZWeaponStat rangedStats;

@@ -12,6 +12,7 @@ import cc.lib.zombicide.ZDoor;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZQuest;
+import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZTile;
 import cc.lib.zombicide.ZWallFlag;
 
@@ -29,7 +30,7 @@ public class ZQuestDeadTrail extends ZQuest {
     ZDoor violetVault1, violetVault2, goldVault;
 
     public ZQuestDeadTrail() {
-        super("Dead Trail");
+        super(ZQuests.Dead_Trail);
     }
 
     @Override
@@ -125,8 +126,8 @@ public class ZQuestDeadTrail extends ZQuest {
         return new Table(getName())
                 .addRow(new Table().setNoBorder()
                     .addRow("1.", "Take all Objectives", String.format("%d of %d", numObjectives-redObjectives.size(), numObjectives))
-                    .addRow("2.", "Find the BLUE key", blueKeyZone == -1)
-                    .addRow("3.", "Find the GREEN key", greenKeyZone == -1)
+                    .addRow("2.", "Key to Violet Vaults is hidden among the RED objectives", blueKeyZone == -1 ? "Found" : "Not Found")
+                    .addRow("3.", "Key to Gold Vault is hidden among the RED objectives", greenKeyZone == -1 ? "Found" : "Not Found")
                     .addRow("4.", "Take all vault artifacts", String.format("%d of %d", getNumFoundVaultItems(), NUM_VAULT_ITEMS))
                     .addRow("5.", "Get all survivors to the exit zone")
                 );

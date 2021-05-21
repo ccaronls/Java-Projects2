@@ -982,16 +982,16 @@ for (int pix : pixels) {
      * @param height
      * @param num_cells_x
      * @param num_cells
-     * @param celled
+     * @param bordered
      * @return
      */
-    public final int [] loadImageCells(String fileName, int width, int height, int num_cells_x, int num_cells, boolean celled, GColor transparentColor) {
+    public final int [] loadImageCells(String fileName, int width, int height, int num_cells_x, int num_cells, boolean bordered, GColor transparentColor) {
         InputStream in = null;
         try {
             in = sContext.getAssets().open(fileName);
             Bitmap bitmap = BitmapFactory.decodeStream(in);
             bitmap = setTransparency(bitmap, transparentColor);
-            return loadImageCells(bitmap, width, height, num_cells_x, num_cells, celled);
+            return loadImageCells(bitmap, width, height, num_cells_x, num_cells, bordered);
         } catch (Exception e) {
             e.printStackTrace();
             return new int[0];

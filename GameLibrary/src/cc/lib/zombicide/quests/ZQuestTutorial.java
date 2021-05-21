@@ -19,6 +19,7 @@ import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZItemType;
 import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZQuest;
+import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZTile;
 import cc.lib.zombicide.ZWallFlag;
 import cc.lib.zombicide.ZWeaponType;
@@ -30,7 +31,7 @@ public class ZQuestTutorial extends ZQuest {
     }
 
     public ZQuestTutorial() {
-        super("Tutorial");
+        super(ZQuests.Tutorial);
     }
 
     @Override

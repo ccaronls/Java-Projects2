@@ -9,6 +9,7 @@ import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZItemType;
 import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZQuest;
+import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZTile;
 
 public class ZQuestTheHellHole extends ZQuest {
@@ -20,7 +21,7 @@ public class ZQuestTheHellHole extends ZQuest {
     int hellHoleZone = -1;
 
     public ZQuestTheHellHole() {
-        super("The Hellhole");
+        super(ZQuests.The_Hell_Hole);
     }
 
     @Override

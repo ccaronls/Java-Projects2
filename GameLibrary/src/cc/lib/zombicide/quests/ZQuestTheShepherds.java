@@ -7,6 +7,7 @@ import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZQuest;
+import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZTile;
 
 public class ZQuestTheShepherds extends ZQuest {
@@ -16,7 +17,7 @@ public class ZQuestTheShepherds extends ZQuest {
     }
 
     public ZQuestTheShepherds() {
-        super("The Shepherds");
+        super(ZQuests.The_Shepherds);
     }
 
     int greenSpawnZone=-1;
@@ -87,7 +88,7 @@ public class ZQuestTheShepherds extends ZQuest {
         int numTaken = numTotal - redObjectives.size();
         return new Table(getName()).addRow(
                 new Table().setNoBorder()
-                    .addRow("Rescue the townsfolk.\nClaim all objectives.\nSome townsfolk are infected.", String.format("%d of %d", numTaken, numTotal))
+                    .addRow("Rescue the townsfolk by claiming\nall of the objectives.\nSome townsfolk are infected.", String.format("%d of %d", numTaken, numTotal))
         );
     }
 }

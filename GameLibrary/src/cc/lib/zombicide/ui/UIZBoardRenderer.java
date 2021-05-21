@@ -53,6 +53,8 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
 
     final static Logger log = LoggerFactory.getLogger(UIZBoardRenderer.class);
 
+    public static boolean DEBUG_DRAW_ZONE_INFO = false;
+
     final List<ZAnimation> preActor = new ArrayList<>();
     final List<ZAnimation> postActor = new ArrayList<>();
     final List<ZAnimation> overlayAnimations = new ArrayList<>();
@@ -888,7 +890,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
             if (checkDrawTiles(g)) {
                 cellPos = pickCell(g, mouse.X(), mouse.Y());
             } else {
-                cellPos = drawNoTiles(g, mouse.X(), mouse.Y(), false);
+                cellPos = drawNoTiles(g, mouse.X(), mouse.Y(), DEBUG_DRAW_ZONE_INFO);
             }
             int highlightedZone = drawZones(g, mouse.X(), mouse.Y());
             boolean drawAnimating = game.isGameOver();
@@ -1035,6 +1037,21 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
             setOverlay(game.getGameSummaryTable());
         }
 
+        drawOverlay(g);
+
+        if (zoomAnimation != null) {
+            if (zoomAnimation.isDone()) {
+                zoomAnimation = null;
+            } else {
+                zoomAnimation.update(g);
+            }
+        }
+
+        if (isAnimating())
+            redraw();
+    }
+
+    protected void drawOverlay(AGraphics g) {
         // overlay
         if (overlayToDraw != null) {
             if (overlayToDraw instanceof Integer) {
@@ -1051,9 +1068,17 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                 g.setIdentity();
                 g.ortho();
                 g.setColor(GColor.YELLOW);
-                IVector2D cntr = new Vector2D(getWidth()/2, getHeight()/2);
-                ((Table)overlayToDraw).draw(g, cntr, Justify.CENTER, Justify.CENTER);
+                IVector2D cntr = new Vector2D(getWidth()/2, getHeight()/3);
+                Table t = (Table)overlayToDraw;
+                GDimension d = t.getDimension(g);
+                t.draw(g, cntr, Justify.CENTER, Justify.CENTER);
                 g.popMatrix();
+                /*
+                g.setColor(GColor.RED);
+                GRectangle r = new GRectangle(d).withCenter(cntr);
+                g.drawRect(r);
+                g.drawRect(0, 0, g.getViewportWidth(), g.getViewportHeight());
+                */
             } else if (overlayToDraw instanceof String) {
                 g.setColor(GColor.WHITE);
                 g.drawWrapStringOnBackground(getWidth()/2, getHeight()/2, getWidth()/2, Justify.CENTER, Justify.CENTER, (String)overlayToDraw, GColor.TRANSLUSCENT_BLACK, 10);
@@ -1063,17 +1088,6 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
 
             }
         }
-
-        if (zoomAnimation != null) {
-            if (zoomAnimation.isDone()) {
-                zoomAnimation = null;
-            } else {
-                zoomAnimation.update(g);
-            }
-        }
-
-        if (isAnimating())
-            redraw();
     }
 
     public float getBorderThickness() {

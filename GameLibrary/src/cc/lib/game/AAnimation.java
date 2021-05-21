@@ -27,7 +27,7 @@ public abstract class AAnimation<T> {
     private float position = 0;
     private State state = State.PRESTART;
     private boolean reverse = false; // 1 for forward, -1 for reversed
-    private final boolean oscilateOnRepeat;
+    private final boolean oscillateOnRepeat;
     private int curRepeat = 0;
 
     enum State {
@@ -58,17 +58,17 @@ public abstract class AAnimation<T> {
     }
 
     /**
-     * Create a repeating animation with option to oscilate (play in reverse) on every other repeat
+     * Create a repeating animation with option to oscillate (play in reverse) on every other repeat
      *
      * @param durationMSecs duration of one loop, must be > 0
      * @param repeats repeats=0 means none. repeats<0 means infinite. repeats>0 means fixed number of repeats
-     * @param oscilateOnRepeat when true, a loop will reverse from its current play direction on each repeat
+     * @param oscillateOnRepeat when true, a loop will reverse from its current play direction on each repeat
      */
-    public AAnimation(long durationMSecs, int repeats, boolean oscilateOnRepeat) {
+    public AAnimation(long durationMSecs, int repeats, boolean oscillateOnRepeat) {
         Utils.assertTrue(durationMSecs > 0);
         this.duration = durationMSecs;
         this.maxRepeats = repeats;
-        this.oscilateOnRepeat = oscilateOnRepeat;
+        this.oscillateOnRepeat = oscillateOnRepeat;
         this.lastTime = getCurrentTimeMSecs();
     }
 
@@ -86,7 +86,7 @@ public abstract class AAnimation<T> {
     }
 
     /**
-     * Start the animation emmediately
+     * Start the animation immediately
      * @return
      */
     public final <A extends AAnimation<T>> A start() {
@@ -108,7 +108,7 @@ public abstract class AAnimation<T> {
     }
 
     /**
-     * Emmediately start the animation in reverse direction
+     * Immediately start the animation in reverse direction
      * @return
      */
     public final <A extends AAnimation<T>> A startReverse() {
@@ -166,7 +166,7 @@ public abstract class AAnimation<T> {
                 position = reverse ? 0 : 1;
                 stop();
             } else {
-                if (oscilateOnRepeat) {
+                if (oscillateOnRepeat) {
                     if (repeats % 2 == 1) {
                         reverse = !startDirectionReverse;
                     } else {
@@ -275,8 +275,8 @@ public abstract class AAnimation<T> {
         return reverse;
     }
 
-    public final boolean isOscilateOnRepeat() {
-        return oscilateOnRepeat;
+    public final boolean isOscillateOnRepeat() {
+        return oscillateOnRepeat;
     }
 
     public final long getElapsedTime() {

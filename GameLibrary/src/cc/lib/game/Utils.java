@@ -770,6 +770,8 @@ public class Utils {
     }
 
     /**
+     * Clamp a value between min and mac inclusive
+     *
      * @param value
      * @param min
      * @param max
@@ -784,6 +786,8 @@ public class Utils {
     }
 
     /**
+     * Clamp a value between min and mac inclusive
+     *
      * @param value
      * @param min
      * @param max

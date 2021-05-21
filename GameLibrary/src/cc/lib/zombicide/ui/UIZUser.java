@@ -121,7 +121,7 @@ public class UIZUser extends ZUser {
     }
 
     @Override
-    public Integer choosZoneToRemoveSpawn(ZGame game, ZCharacter cur, List<Integer> list) {
+    public Integer chooseZoneToRemoveSpawn(ZGame game, ZCharacter cur, List<Integer> list) {
         return UIZombicide.getInstance().pickZone("Choose Zone to Remove SPAWN", list);
     }
 }

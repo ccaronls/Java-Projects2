@@ -18,7 +18,7 @@ public class AIStats {
     @Override
     public String toString() {
 
-        String s = "Run Tiime: " + Utils.formatTime(System.currentTimeMillis()-startTime)
+        String s = "Run Time: " + Utils.formatTime(System.currentTimeMillis()-startTime)
                 + "\nprunes=" + prunes
                 + "\nPruned %" + (100f * prunes / evalCount)
                 + "\nevalCount=" + evalCount

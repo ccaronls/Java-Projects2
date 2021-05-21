@@ -3,6 +3,7 @@ package cc.lib.zombicide.ui;
 import java.util.Collections;
 import java.util.List;
 
+import cc.lib.game.AGraphics;
 import cc.lib.game.GRectangle;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
@@ -12,6 +13,7 @@ import cc.lib.ui.IButton;
 import cc.lib.utils.Lock;
 import cc.lib.zombicide.ZActionType;
 import cc.lib.zombicide.ZActor;
+import cc.lib.zombicide.ZActorAnimation;
 import cc.lib.zombicide.ZAttackType;
 import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZDir;
@@ -46,7 +48,6 @@ import cc.lib.zombicide.anims.ShootAnimation;
 import cc.lib.zombicide.anims.SlashedAnimation;
 import cc.lib.zombicide.anims.SpawnAnimation;
 import cc.lib.zombicide.anims.ThrowAnimation;
-import cc.lib.zombicide.anims.ZoomAnimation;
 
 public abstract class UIZombicide extends ZGame {
 
@@ -200,6 +201,17 @@ public abstract class UIZombicide extends ZGame {
         }
         if (perished) {
             character.addAnimation(new AscendingAngelDeathAnimation(character));
+            // at the end of the 'ascending angel' grow a tombstone
+            character.addAnimation(new ZActorAnimation(character, 2000) {
+                @Override
+                protected void draw(AGraphics g, float position, float dt) {
+                    GRectangle rect = new GRectangle(actor.getRect());
+                    rect.y += rect.h*(1f-position);
+                    rect.h *= position;
+                    g.drawImage(ZIcon.GRAVESTONE.imageIds[0], rect);
+                }
+            });
+
         }
     }
 
@@ -267,7 +279,7 @@ public abstract class UIZombicide extends ZGame {
             //attacker.addAnimation(group);
             Lock animLock = new Lock(numDice);
             float currentZoom = boardRenderer.getZoomAmt();
-            attacker.addAnimation(ZoomAnimation.build(attacker, boardRenderer, board));
+            //attacker.addAnimation(ZoomAnimation.build(attacker, boardRenderer, board));
             for (int i=0; i<numDice; i++) {
                 attacker.addAnimation(new MeleeAnimation(attacker, board) {
                     @Override
@@ -280,7 +292,7 @@ public abstract class UIZombicide extends ZGame {
             }
             boardRenderer.redraw();
             animLock.block();
-            boardRenderer.animateZoomTo(currentZoom);
+            //boardRenderer.animateZoomTo(currentZoom);
         } else if (actionType.isRanged()) {
 
             GroupAnimation group = new GroupAnimation(attacker);

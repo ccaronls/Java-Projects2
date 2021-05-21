@@ -96,7 +96,7 @@ public final class ZDoor extends Reflector<ZDoor>  {
             case ASCEND:
                 return true;
         }
-        for (ZSkill sk : c.availableSkills) {
+        for (ZSkill sk : c.getAvailableSkills()) {
             if (sk.canCloseDoors())
                 return true;
         }

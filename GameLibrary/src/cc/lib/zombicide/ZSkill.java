@@ -534,7 +534,7 @@ public enum ZSkill implements IButton {
      * @param game
      * @return
      */
-    public boolean  modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
+    public boolean modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
         return false;
     }
 

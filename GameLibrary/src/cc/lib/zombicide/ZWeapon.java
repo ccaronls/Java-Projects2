@@ -79,7 +79,7 @@ public class ZWeapon extends ZEquipment<ZWeaponType> {
 
     @Override
     public boolean isAttackNoisy() {
-        return type.attckIsNoisy;
+        return type.attackIsNoisy;
     }
 
     @Override
@@ -109,7 +109,7 @@ public class ZWeapon extends ZEquipment<ZWeaponType> {
 
         /*
         Table cardUpper = new Table(new Object[][] {
-                { "Doors", !canOpenDoor() ? "no" : (type.openDoorsIsNoisy ? "noisy" : "quiety") },
+                { "Doors", !canOpenDoor() ? "no" : (type.openDoorsIsNoisy ? "noisy" : "quietly") },
                 { "Open %", type.meleeStats == null ? "(/)" : String.format("%d%%", (7-type.meleeStats.dieRollToOpenDoor)*100/6) }
         }, Table.NO_BORDER);
 */
@@ -131,7 +131,7 @@ public class ZWeapon extends ZEquipment<ZWeaponType> {
                     doorInfo = "no";
                 }
                 cardLower.addColumnNoHeader(Arrays.asList(at.name(),
-                        String.format("%d %s", stats.damagePerHit, type.attckIsNoisy ? " loud" : " quiet"),
+                        String.format("%d %s", stats.damagePerHit, type.attackIsNoisy ? " loud" : " quiet"),
                         String.format("%d%% x %d", (7 - stats.dieRollToHit) * 100 / 6, stats.numDice),
                         stats.minRange == stats.maxRange ? String.valueOf(stats.minRange) : String.format("%d-%d", stats.minRange, stats.maxRange),
                         doorInfo,
@@ -170,7 +170,7 @@ public class ZWeapon extends ZEquipment<ZWeaponType> {
             }
             cardLower.addColumnNoHeader(Arrays.asList(Utils.toPrettyString(stats.attackType.name()),
                     type.canTwoHand ? "yes" : "no",
-                    String.format("%d %s", stats.damagePerHit, type.attckIsNoisy ? " loud" : " quiet"),
+                    String.format("%d %s", stats.damagePerHit, type.attackIsNoisy ? " loud" : " quiet"),
                     String.format("%d%% x %d", (7 - stats.dieRollToHit) * 100 / 6, stats.numDice),
                     stats.minRange == stats.maxRange ? String.valueOf(stats.minRange) : String.format("%d-%d", stats.minRange, stats.maxRange),
                     doorInfo,

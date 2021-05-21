@@ -1,7 +1,5 @@
 package cc.lib.zombicide;
 
-import java.util.Arrays;
-
 import cc.lib.annotation.Keep;
 import cc.lib.game.GDimension;
 import cc.lib.ui.IButton;
@@ -143,7 +141,7 @@ public enum ZPlayerName implements IButton {
         character = c;
         for (ZEquipmentType e : startingEquipment)
             c.equip(e.create());
-        c.allSkills.addAll(Arrays.asList(getSkillOptions(ZSkillLevel.BLUE)));
+        c.initAllSkills(getSkillOptions(ZSkillLevel.BLUE));
         return c;
     }
 
