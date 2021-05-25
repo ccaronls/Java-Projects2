@@ -27,7 +27,6 @@ public class MoveAnimation extends ZActorAnimation {
         Vector2D bottomRight = start.getBottomRight().add(dv1.scaledBy(position));
 
         GRectangle r = new GRectangle(topLeft, bottomRight);
-
         g.drawImage(actor.getImageId(), r);
     }
 }

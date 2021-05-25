@@ -69,6 +69,14 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     }
 
     /**
+     *
+     * @return
+     */
+    public final GDimension getViewport() {
+        return new GDimension(mViewportWidth, mViewportHeight);
+    }
+
+    /**
      * Convenience method to draw with LEFT/TOP Justification
      * @param x
      * @param y
@@ -1669,8 +1677,8 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      *
      * @param rect
      */
-    public final void ortho(GRectangle rect) {
-        ortho(rect.x, rect.x+rect.w, rect.y, rect.y+rect.h);
+    public final void ortho(IRectangle rect) {
+        ortho(rect.X(), rect.X()+rect.getWidth(), rect.Y(), rect.Y()+rect.getHeight());
     }
 
     /**

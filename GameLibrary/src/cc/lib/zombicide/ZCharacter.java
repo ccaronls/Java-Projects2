@@ -37,6 +37,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
     private final List<ZEquipment> backpack = new ArrayList<>();
     ZEquipment leftHand, rightHand, body;
     int [] kills = new int[ZZombieType.values().length];
+    private boolean fallen = false;
 
     synchronized void clear() {
         Arrays.fill(kills, 0);
@@ -769,7 +770,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
 
     @Override
     public void draw(AGraphics g) {
-        if (isDead()) {
+        if (fallen) {
             g.drawImage(ZIcon.GRAVESTONE.imageIds[0], getRect());
         } else {
             super.draw(g);
@@ -802,7 +803,10 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
     }
 
     public synchronized void initAllSkills(ZSkill ... skills) {
-
         allSkills.addAll(Arrays.asList(skills));
+    }
+
+    public void setFallen(boolean fallen) {
+        this.fallen = fallen;
     }
 }

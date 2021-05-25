@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Set;
 
 import cc.lib.game.GDimension;
+import cc.lib.game.IDimension;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
@@ -16,7 +17,7 @@ import cc.lib.math.Vector2D;
 import cc.lib.utils.Grid;
 import cc.lib.utils.Reflector;
 
-public class ZBoard extends Reflector<ZBoard> {
+public class ZBoard extends Reflector<ZBoard> implements IDimension {
 
     private final static Logger log = LoggerFactory.getLogger(ZBoard.class);
 
@@ -54,6 +55,16 @@ public class ZBoard extends Reflector<ZBoard> {
 
     Iterable<ZZone> getZones() {
         return zones;
+    }
+
+    @Override
+    public float getWidth() {
+        return getColumns();
+    }
+
+    @Override
+    public float getHeight() {
+        return getRows();
     }
 
     /**

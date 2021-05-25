@@ -28,11 +28,10 @@ public final class ZZombie extends ZActor<ZZombieType> {
     }
 
     final ZZombieType type;
-    @Omit
     private int imageIdx = -1;
 
     private int getIdx() {
-        if (imageIdx < 0)
+        if (imageIdx < 0 || imageIdx >= type.imageOptions.length)
             imageIdx = Utils.rand() % type.imageOptions.length;
         return imageIdx;
     }

@@ -139,14 +139,16 @@ public abstract class UIComponentView<T extends UIRenderer> extends View impleme
                     touchDownRunnable = null;
                     renderer.onClick();
                 } else {
-                    renderer.endDrag();
+                    renderer.onDragEnd();
                 }
                 break;
             case MotionEvent.ACTION_MOVE:
                 tx = Math.round(event.getX());
                 ty = Math.round(event.getY());
                 if (touchDownRunnable == null) {
-                    renderer.startDrag(event.getX(), event.getY());
+                    renderer.onDragStart(event.getX(), event.getY());
+                } else {
+                    renderer.onDragMove(event.getX(), event.getY());
                 }
                 break;
         }

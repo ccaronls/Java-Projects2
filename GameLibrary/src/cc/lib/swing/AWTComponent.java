@@ -240,6 +240,8 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
         if (!dragging) {
             onDragStarted(mouseX, mouseY);
             dragging = true;
+        } else {
+            onDrag(mouseX, mouseY);
         }
         //Utils.println("mouseDragged");
         repaint();
@@ -277,6 +279,8 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
     protected void onDragStarted(int x, int y) {}
 
     protected void onDragStopped() {}
+
+    protected void onDrag(int x, int y) {}
 
     protected void onClick() {}
 

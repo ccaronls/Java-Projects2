@@ -92,8 +92,23 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
     }
 
     @Override
-    protected void onMousePressed(int mouseX, int mouseY) {
+    protected void onClick() {
         renderer.onClick();
+    }
+
+    @Override
+    protected void onDragStarted(int x, int y) {
+        renderer.onDragStart(x, y);
+    }
+
+    @Override
+    protected void onDragStopped() {
+        renderer.onDragEnd();
+    }
+
+    @Override
+    protected void onDrag(int x, int y) {
+        renderer.onDragMove(x, y);
     }
 
     void loadImages(AWTGraphics g) {
@@ -320,12 +335,12 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
                 case KeyEvent.VK_PLUS:
                 case KeyEvent.VK_EQUALS:
                     // zoom in
-                    renderer.animateZoomAmount(1);
+                    renderer.animateZoomTo(renderer.getZoomPercent() + 0.25f);
                     break;
                 case KeyEvent.VK_MINUS:
                 case KeyEvent.VK_UNDERSCORE:
                     // zoom out
-                    renderer.animateZoomAmount(-1);
+                    renderer.animateZoomTo(renderer.getZoomPercent() - 0.25f);
                     break;
                 case KeyEvent.VK_SPACE:
                     // toggle active player

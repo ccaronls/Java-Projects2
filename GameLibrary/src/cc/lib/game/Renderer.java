@@ -15,6 +15,8 @@ import cc.lib.utils.GException;
  */
 public class Renderer {
 
+    public static boolean USE_PROJECTION_MATRIX = true;
+
 	public Renderer(Renderable window) {
 		this.window = window;		
 		pts = new MutableVector2D[MAX_VERTS];
@@ -145,12 +147,17 @@ public class Renderer {
         cur_mat.transform(v);
 		min.minEq(v);
 		max.maxEq(v);
-        
-        float W = this.window.getViewportWidth();
-        float H = this.window.getViewportHeight();
-        
-        v.setX((v.X() - left) * (W / (right - left)));
-        v.setY(H - ((v.Y() - bottom) * H / (top - bottom)));
+        float W = window.getViewportWidth();
+        float H = window.getViewportHeight();
+		if (USE_PROJECTION_MATRIX) {
+            proj_mat.transform(v);
+            v.addEq(1, 1).scaleEq(W / 2, H / 2);
+        } else {
+            v.setX((v.X() - left) * (W / (right - left)));
+            v.setY(H - ((v.Y() - bottom) * H / (top - bottom)));
+
+        }
+
     }
     
     /**
@@ -162,12 +169,22 @@ public class Renderer {
 	public Vector2D untransform(float screenX, float screenY) {
         float W = this.window.getViewportWidth();
         float H = this.window.getViewportHeight();
-		
-		float x = left + screenX / (W / (right-left));
-		float y = bottom + (H - screenY)/(H / (top-bottom));
-		
-		MutableVector2D v = new MutableVector2D(x, y);
-		cur_mat.inverse().transform(v);
+
+        if (USE_PROJECTION_MATRIX) {
+            float Xd = 2f * (screenX) / W - 1;
+            float Yd = 2f * (screenY) / H - 1;
+            MutableVector2D v = new MutableVector2D(Xd, Yd);
+            proj_mat.inverse().transform(v);
+            cur_mat.inverse().transform(v);
+            return v;
+        }
+
+        float x = left + screenX / (W / (right-left));
+        float y = bottom + (H - screenY)/(H / (top-bottom));
+
+        MutableVector2D v = new MutableVector2D(x, y);
+        cur_mat.inverse().transform(v);
+
 		return v;
 	}
 
@@ -210,6 +227,14 @@ public class Renderer {
      * @param bottom
      */
     public final void setOrtho(float left, float right, float top, float bottom) {
+        float xo = 2/(right-left);
+        float yo = 2/(bottom - top);
+        float tx = -(right + left) / (right -left);
+        float ty = -(top + bottom) / (bottom-top);
+        proj_mat.assign(xo, 0, tx,
+                0, yo, ty,
+                0, 0, 1);
+
         this.left = left;
         this.right = right;
         this.top = top;
@@ -397,6 +422,7 @@ public class Renderer {
 	private int			cur_name = 0;
 	private Matrix3x3 []	m_stack;
 	private Matrix3x3		cur_mat;
+	private Matrix3x3       proj_mat = Matrix3x3.newIdentity();
 	private int			m_stack_size;
 	private Exception []    m_stack_trace;
 	private Matrix3x3		s_mat; // working matrix

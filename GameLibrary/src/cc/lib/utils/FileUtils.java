@@ -128,6 +128,15 @@ public class FileUtils {
 		}
 		return false;
 	}
+
+    /**
+     * @see cc.lib.utils.FileUtils#restoreFile(String)
+     * @param file
+     * @return
+     */
+	public static boolean restoreFile(File file) {
+	    return restoreFile(file.getAbsolutePath());
+    }
 	
 	/**
 	 * Reverse operation of backupFile.  For filename of form root.ext, if there exists a file of form

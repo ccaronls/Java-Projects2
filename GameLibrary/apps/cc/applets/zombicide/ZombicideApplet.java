@@ -163,6 +163,7 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
         ASSIGN,
         SUMMARY,
         DIFFICULTY,
+        UNDO,
         OBJECTIVES;
 
         boolean isHomeButton(ZombicideApplet instance) {
@@ -171,6 +172,7 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
                 case START:
                 case ASSIGN:
                 case DIFFICULTY:
+                case UNDO:
                     return true;
                 case RESUME:
                     return instance.gameFile != null && instance.gameFile.exists();
@@ -298,6 +300,12 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
                 if (difficulty != null) {
                     game.setDifficulty(difficulty);
                     setStringProperty("difficulty", difficulty.name());
+                }
+                break;
+            case UNDO:
+                if (FileUtils.restoreFile(gameFile)) {
+                    game.tryLoadFromFile(gameFile);
+                    boardComp.repaint();
                 }
                 break;
             default:

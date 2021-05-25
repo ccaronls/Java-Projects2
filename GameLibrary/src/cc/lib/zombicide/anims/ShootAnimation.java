@@ -22,7 +22,7 @@ public class ShootAnimation extends ZActorAnimation {
         super(actor, duration);
         this.icon = icon;
         ZZone end   = board.getZone(targetZone);
-        rect = actor.getRect(board).scaledBy(.5f);
+        rect = actor.getRect().scaledBy(.5f);
         start = rect.getCenter();
         Vector2D dv = end.getCenter().sub(start);
         dir = ZDir.getFromVector(dv);

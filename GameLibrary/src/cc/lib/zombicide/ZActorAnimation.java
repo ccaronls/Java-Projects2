@@ -1,6 +1,6 @@
 package cc.lib.zombicide;
 
-public abstract class ZActorAnimation extends ZAnimation {
+public abstract class   ZActorAnimation extends ZAnimation {
 
     public final ZActor actor;
     ZActorAnimation next;
@@ -17,7 +17,7 @@ public abstract class ZActorAnimation extends ZAnimation {
 
     @Override
     protected void onDone() {
-        if (next != null) {
+        if (next != null && actor != null) {
             actor.animation = next;
             next.start();
         }

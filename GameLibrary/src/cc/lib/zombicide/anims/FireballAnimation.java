@@ -7,7 +7,6 @@ import cc.lib.game.Utils;
 import cc.lib.math.Vector2D;
 import cc.lib.zombicide.ZActor;
 import cc.lib.zombicide.ZActorAnimation;
-import cc.lib.zombicide.ZBoard;
 import cc.lib.zombicide.ZIcon;
 
 public class FireballAnimation extends ZActorAnimation {
@@ -16,9 +15,9 @@ public class FireballAnimation extends ZActorAnimation {
     final Vector2D start;
     final GRectangle rect;
 
-    public FireballAnimation(ZActor actor, ZBoard board, Vector2D end) {
+    public FireballAnimation(ZActor actor, Vector2D end) {
         super(actor, 500);
-        this.rect = actor.getRect(board).scaledBy(.5f);
+        this.rect = actor.getRect().scaledBy(.5f);
         this.start = rect.getCenter();
         path = end.sub(start);
         setDuration(Math.round(path.mag()* 700));

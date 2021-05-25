@@ -48,6 +48,7 @@ import cc.lib.zombicide.ZTile;
 import cc.lib.zombicide.ZWeapon;
 import cc.lib.zombicide.ZWeaponStat;
 import cc.lib.zombicide.ZZone;
+import cc.lib.zombicide.anims.ZoomAnimation;
 
 public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
 
@@ -71,6 +72,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
     boolean actorsAnimating = false;
     private Object overlayToDraw = null;
     boolean drawTiles = false;
+    Vector2D dragOffset = Vector2D.ZERO;
 
     public UIZBoardRenderer(UIZComponent component) {
         super(component);
@@ -738,24 +740,12 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
         return picked;
     }
 
-    IVector2D boardCenter = null;
-
     public IVector2D getBoardCenter() {
-        if (boardCenter == null)
-            return getDefaultBoardCenter();
-        return boardCenter;
-    }
-
-    public void setBoardCenter(IVector2D boardCenter) {
-        this.boardCenter = boardCenter;
-    }
-
-    IVector2D getDefaultBoardCenter() {
         ZGame game = getGame();
         if (game.getCurrentCharacter() != null)
-            return game.getCurrentCharacter().getRect().getCenter();
+            return game.getBoard().getZone(game.getCurrentCharacter().getOccupiedZone()).getCenter();
         MutableVector2D center = new MutableVector2D();
-        List<ZCharacter> chars = game.getAllLivingCharacters();
+        List<ZCharacter> chars = game.getAllCharacters();
         if (chars.size() == 0)
             return Vector2D.ZERO;
         for (ZCharacter c : chars) {
@@ -794,24 +784,24 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
         return true;
     }
 
-    float zoomAmt = 0;
+    float zoomPercent = 0;
 
-    public float getZoomAmt() {
-        return zoomAmt;
+    public float getZoomPercent() {
+        return zoomPercent;
     }
 
-    public void setZoomAmt(float zoomAmt) {
-        this.zoomAmt = zoomAmt;
+    public void setZoomPercent(float zoomPercent) {
+        this.zoomPercent = zoomPercent;
     }
 
-    public void animateZoomTo(float targetZoom) {
-        if (zoomAnimation != null)
-            return;
-        targetZoom = Utils.clamp(targetZoom, 0, getMaxZoom());
-        float zoomDelta = targetZoom - zoomAmt;
-        animateZoomAmount(zoomDelta);
+    public void animateZoomTo(float targetZoomPercent) {
+        targetZoomPercent = Utils.clamp(targetZoomPercent, 0, 1);
+        if (zoomPercent != targetZoomPercent) {
+            zoomAnimation = new ZoomAnimation(this, targetZoomPercent).start();
+            redraw();
+        }
     }
-
+/*
     public void animateZoomAmount(float _amt) {
         if (zoomAnimation != null)
             return;
@@ -830,12 +820,13 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
             }
         }.start();
         redraw();
-    }
+    }*/
 
+    /*
     public float getMaxZoom() {
         float n = Math.min(getBoard().getRows(), getBoard().getColumns());
         return n - 2;
-    }
+    }*/
 
     private GRectangle zoomedRect = null;
 
@@ -843,12 +834,39 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
         return zoomedRect;
     }
 
-    public GRectangle getZoomedRectangle(IVector2D center) {
+    public GRectangle getZoomedRectangle(AGraphics g, IVector2D center) {
         GDimension dim = getBoard().getDimension();
         float aspect = dim.getAspect();
-        GDimension zoomed = new GDimension(dim.width-zoomAmt*aspect, dim.height-zoomAmt);
+        GDimension zoomed;
+        GDimension viewport = g.getViewport();
+        // produce a value between 0-1 where
+        //   0 means zoomAmt is 0 and
+        //   1 is zoomAmt results in a rect with min side of 3
+
+        float zoomAmtMin = Math.min(dim.getWidth(), dim.getHeight());
+        float zoomAmtMax = 3;
+        float zoomAmt = (zoomAmtMin - zoomAmtMax) * zoomPercent / 2;
+        float newW = dim.width - zoomAmt*aspect;
+        float newH = dim.height - zoomAmt;
+        float vAspect = viewport.getAspect();
+        if (vAspect > aspect) {
+            zoomed=new GDimension(newW, newH * aspect / vAspect);
+        } else {
+            zoomed=new GDimension(newW * vAspect / aspect, newH);
+        }
 
         GRectangle rect = new GRectangle(zoomed).withCenter(center);
+        /*
+        if (rect.x >= 0) {
+            rect.x = 0;
+        } else if (rect.x + rect.w < dim.width) {
+            rect.x = dim.width - rect.w;
+        }
+        if (rect.y >= 0) {
+            rect.y = 0;
+        } else if (rect.y + rect.h < dim.height) {
+            rect.y = dim.height - rect.h;
+        }*/
         rect.x = Utils.clamp(rect.x, 0, dim.width-rect.w);
         rect.y = Utils.clamp(rect.y, 0, dim.height-rect.h);
         return zoomedRect = rect;
@@ -866,7 +884,17 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
         g.setIdentity();
 
         IVector2D center = getBoardCenter();
-        g.ortho(getZoomedRectangle(center));
+        GRectangle rect = getZoomedRectangle(g, center);
+        //GRectangle rect = new GRectangle(board);//.withCenter(center);
+
+        //GRectangle rect = new GRectangle(new GDimension(20, 20)).withCenter(new Vector2D(15, 15));
+
+        g.ortho(rect);
+        //g.translate(-center.getX(), -center.getY());
+        //g.translate(board.getColumns()/2, board.getRows()/2);
+        //g.ortho(5, 10, 0, 5);
+
+        g.translate(g.screenToViewport(dragOffset).sub(rect.getTopLeft()));
 
         //g.ortho();
         //g.pushMatrix();
@@ -1146,4 +1174,22 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
         return drawTiles;
     }
 
+    Vector2D dragStart = Vector2D.ZERO;
+
+    @Override
+    public void onDragStart(float x, float y) {
+        dragStart = new Vector2D(x, y);
+    }
+
+    @Override
+    public void onDragEnd() {
+        dragOffset = Vector2D.ZERO;
+        redraw();
+    }
+
+    @Override
+    public void onDragMove(float x, float y) {
+        dragOffset = new Vector2D(x, y).sub(dragStart);
+        redraw();
+    }
 }

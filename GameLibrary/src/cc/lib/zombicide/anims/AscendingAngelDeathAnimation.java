@@ -2,11 +2,11 @@ package cc.lib.zombicide.anims;
 
 import cc.lib.game.AGraphics;
 import cc.lib.game.GRectangle;
-import cc.lib.zombicide.ZActor;
+import cc.lib.zombicide.ZCharacter;
 
 public class AscendingAngelDeathAnimation extends DeathAnimation {
 
-    public AscendingAngelDeathAnimation(ZActor a) {
+    public AscendingAngelDeathAnimation(ZCharacter a) {
         super(a);
         setDuration(4000);
     }
@@ -21,4 +21,9 @@ public class AscendingAngelDeathAnimation extends DeathAnimation {
         g.removeFilter();
     }
 
+    @Override
+    protected void onDone() {
+        super.onDone();
+        ((ZCharacter)actor).setFallen(true);
+    }
 }

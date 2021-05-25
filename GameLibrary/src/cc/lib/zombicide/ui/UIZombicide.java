@@ -48,6 +48,7 @@ import cc.lib.zombicide.anims.ShootAnimation;
 import cc.lib.zombicide.anims.SlashedAnimation;
 import cc.lib.zombicide.anims.SpawnAnimation;
 import cc.lib.zombicide.anims.ThrowAnimation;
+import cc.lib.zombicide.anims.ZoomAnimation;
 
 public abstract class UIZombicide extends ZGame {
 
@@ -165,7 +166,7 @@ public abstract class UIZombicide extends ZGame {
 
     @Override
     protected void onZombieSpawned(ZZombie zombie) {
-        zombie.addAnimation(new SpawnAnimation(zombie, board));
+        zombie.addAnimation(new SpawnAnimation(zombie));
     }
 
     @Override
@@ -278,8 +279,9 @@ public abstract class UIZombicide extends ZGame {
             //GroupAnimation group = new GroupAnimation(attacker);
             //attacker.addAnimation(group);
             Lock animLock = new Lock(numDice);
-            float currentZoom = boardRenderer.getZoomAmt();
-            //attacker.addAnimation(ZoomAnimation.build(attacker, boardRenderer, board));
+            float currentZoom = boardRenderer.getZoomPercent();
+            if (currentZoom < 1)
+                attacker.addAnimation(ZoomAnimation.build(attacker, boardRenderer, board));
             for (int i=0; i<numDice; i++) {
                 attacker.addAnimation(new MeleeAnimation(attacker, board) {
                     @Override
@@ -292,7 +294,7 @@ public abstract class UIZombicide extends ZGame {
             }
             boardRenderer.redraw();
             animLock.block();
-            //boardRenderer.animateZoomTo(currentZoom);
+            boardRenderer.animateZoomTo(currentZoom);
         } else if (actionType.isRanged()) {
 
             GroupAnimation group = new GroupAnimation(attacker);
@@ -334,7 +336,7 @@ public abstract class UIZombicide extends ZGame {
                     Lock animLock = new Lock(numDice);
                     for (int i = 0; i < numDice; i++) {
                         Vector2D end = board.getZone(targetZone).getCenter().add(Vector2D.newRandom(0.3f));
-                        group.addAnimation(new FireballAnimation(attacker, board, end) {
+                        group.addAnimation(new FireballAnimation(attacker, end) {
                             @Override
                             protected void onDone() {
                                 animLock.release();

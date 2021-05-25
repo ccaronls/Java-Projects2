@@ -1329,7 +1329,7 @@ public class ZGame extends Reflector<ZGame>  {
                 if (targetZone != null) {
                     // shove all zombies in this zone into target zone
                     for (ZZombie z : board.getZombiesInZone(cur.getOccupiedZone())) {
-                        GRectangle prev = z.getRect(board);
+                        GRectangle prev = z.getRect();
                         board.moveActor(z, targetZone);
                         GRectangle next   = board.getCell(z.occupiedCell).getQuadrant(z.occupiedQuadrant);
                         onActorMoved(z, prev, next, 300);

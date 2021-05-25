@@ -35,9 +35,11 @@ public abstract class UIRenderer implements IDimension {
 
     public void onClick() {}
 
-    public void startDrag(float x, float y) {}
+    public void onDragStart(float x, float y) {}
 
-    public void endDrag() {}
+    public void onDragMove(float x, float y) {}
+
+    public void onDragEnd() {}
 
     public final GDimension getMinDimension() {
         return min;

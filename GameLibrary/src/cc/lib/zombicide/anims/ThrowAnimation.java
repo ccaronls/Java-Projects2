@@ -19,7 +19,7 @@ public class ThrowAnimation extends ZActorAnimation {
         super(actor, 1000);
         this.zone = targetZone;
         this.icon = icon;
-        curve = Bezier.build(actor.getRect(board).getCenter(), board.getZone(zone).getCenter(), .5f);
+        curve = Bezier.build(actor.getRect().getCenter(), board.getZone(zone).getCenter(), .5f);
     }
 
     @Override

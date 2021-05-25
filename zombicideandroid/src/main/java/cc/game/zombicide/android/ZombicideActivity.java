@@ -252,11 +252,11 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.b_zoom: {
-                float curZoom = game.boardRenderer.getZoomAmt();
-                if (curZoom >= game.boardRenderer.getMaxZoom()) {
-                    game.boardRenderer.animateZoomTo(0);
+                float curZoom = game.boardRenderer.getZoomPercent();
+                if (curZoom < 1) {
+                    game.boardRenderer.animateZoomTo(curZoom + .5f);
                 } else {
-                    game.boardRenderer.animateZoomAmount(1.5f);
+                    game.boardRenderer.animateZoomTo(0);
                 }
                 game.boardRenderer.redraw();
                 break;

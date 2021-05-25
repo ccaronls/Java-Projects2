@@ -22,7 +22,7 @@ public class LightningAnimation extends ZActorAnimation {
     final int numSections;
 
     public LightningAnimation(ZActor actor, ZBoard board, int targetZone, int strands) {
-        this(actor, actor.getRect(board).getCenter(), board.getZone(targetZone).getCenter().add(Vector2D.newRandom(.3f)), 4, strands);
+        this(actor, actor.getRect().getCenter(), board.getZone(targetZone).getCenter().add(Vector2D.newRandom(.3f)), 4, strands);
     }
 
     public LightningAnimation(ZActor actor, Vector2D start, Vector2D end, int sections, int strands) {

@@ -16,7 +16,7 @@ public class MagicAnimation extends ZActorAnimation {
     final float radius;
 
     public MagicAnimation(ZActor actor, ZBoard board, int targetZone) {
-        this(actor, actor.getRect(board).getCenter(), board.getZone(targetZone).getCenter(), 5, 20);
+        this(actor, actor.getRect().getCenter(), board.getZone(targetZone).getCenter(), 5, 20);
     }
 
     public MagicAnimation(ZActor actor, Vector2D start, Vector2D end, int numArcs, float sweepAngle) {
