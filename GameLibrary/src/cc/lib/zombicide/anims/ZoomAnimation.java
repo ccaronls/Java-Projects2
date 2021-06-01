@@ -1,14 +1,10 @@
 package cc.lib.zombicide.anims;
 
 import cc.lib.game.AGraphics;
-import cc.lib.game.GDimension;
-import cc.lib.game.GRectangle;
 import cc.lib.game.IVector2D;
 import cc.lib.math.Vector2D;
 import cc.lib.zombicide.ZActor;
 import cc.lib.zombicide.ZActorAnimation;
-import cc.lib.zombicide.ZBoard;
-import cc.lib.zombicide.ZZone;
 import cc.lib.zombicide.ui.UIZBoardRenderer;
 
 public class ZoomAnimation extends ZActorAnimation {
@@ -19,21 +15,6 @@ public class ZoomAnimation extends ZActorAnimation {
     final UIZBoardRenderer renderer;
     final Vector2D dv;
     final float dz;
-
-    /**
-     * This version zooms to the zone the actor is standing
-     * @param actor
-     * @param renderer
-     * @param board
-     */
-    public static ZoomAnimation build(ZActor actor, UIZBoardRenderer renderer, ZBoard board) {
-        ZZone zone = board.getZone(actor.getOccupiedZone());
-        GDimension boardDim = board.getDimension();
-        GRectangle rect = zone.getRectangle();
-        float targetZoom = Math.max(boardDim.getWidth(), boardDim.getHeight());//Math.max(rect.getWidth(), rect.getHeight());
-        IVector2D center = actor.getRect().getCenter();//rect.getCenter();
-        return new ZoomAnimation(actor, center, renderer, targetZoom);
-    }
 
     public ZoomAnimation(ZActor actor, UIZBoardRenderer renderer, float zoomPercent) {
         this(actor, actor.getRect().getCenter(), renderer, zoomPercent);

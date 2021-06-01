@@ -69,8 +69,8 @@ public class ZQuestTheHellHole extends ZQuest {
     }
 
     @Override
-    public boolean isQuestComplete(ZGame game) {
-        return false;
+    public int getPercentComplete(ZGame game) {
+        return 0;
     }
 
     @Override

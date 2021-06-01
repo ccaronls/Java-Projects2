@@ -114,7 +114,8 @@ public class ZWeapon extends ZEquipment<ZWeaponType> {
         }, Table.NO_BORDER);
 */
         Table cardLower = new Table().setNoBorder();
-        cardLower.addColumnNoHeader(Arrays.asList("",
+        cardLower.addColumnNoHeader(Arrays.asList(
+                "Type",
                 "Damage",
                 "Hit %",
                 "Range",
@@ -130,7 +131,7 @@ public class ZWeapon extends ZEquipment<ZWeaponType> {
                 } else {
                     doorInfo = "no";
                 }
-                cardLower.addColumnNoHeader(Arrays.asList(at.name(),
+                cardLower.addColumnNoHeader(Arrays.asList(at.getLabel(),
                         String.format("%d %s", stats.damagePerHit, type.attackIsNoisy ? " loud" : " quiet"),
                         String.format("%d%% x %d", (7 - stats.dieRollToHit) * 100 / 6, stats.numDice),
                         stats.minRange == stats.maxRange ? String.valueOf(stats.minRange) : String.format("%d-%d", stats.minRange, stats.maxRange),

@@ -10,6 +10,7 @@ import cc.lib.zombicide.ZActorAnimation;
 public class MoveAnimation extends ZActorAnimation {
 
     final GRectangle start, end;
+    GRectangle current = null;
 
     public MoveAnimation(ZActor actor, GRectangle start, GRectangle end, long speed) {
         super(actor, speed);
@@ -26,7 +27,12 @@ public class MoveAnimation extends ZActorAnimation {
         Vector2D topLeft = start.getTopLeft().add(dv0.scaledBy(position));
         Vector2D bottomRight = start.getBottomRight().add(dv1.scaledBy(position));
 
-        GRectangle r = new GRectangle(topLeft, bottomRight);
-        g.drawImage(actor.getImageId(), r);
+        current = new GRectangle(topLeft, bottomRight);
+        g.drawImage(actor.getImageId(), current);
+    }
+
+    @Override
+    protected GRectangle getRect() {
+        return current;
     }
 }

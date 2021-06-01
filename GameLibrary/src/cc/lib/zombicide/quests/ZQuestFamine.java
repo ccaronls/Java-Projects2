@@ -87,8 +87,15 @@ public class ZQuestFamine extends ZQuest {
     }
 
     @Override
-    public boolean isQuestComplete(ZGame game) {
-        return numSaltedMeatFound >= 2 && numWaterFound >= 2 && numApplesFound >= 2 && isAllLockedInVault(game);
+    public int getPercentComplete(ZGame game) {
+        int numTasks = 7;
+        int numCompleted = Math.min(numApplesFound, 2)
+                + Math.min(numSaltedMeatFound, 2)
+                + Math.min(numWaterFound, 2);
+        if (isAllLockedInVault(game)) {
+            numCompleted++;
+        }
+        return numTasks * 100 / numCompleted;
     }
 
     boolean isAllLockedInVault(ZGame game) {

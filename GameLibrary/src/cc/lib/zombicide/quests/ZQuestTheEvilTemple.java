@@ -86,8 +86,8 @@ public class ZQuestTheEvilTemple extends ZQuest {
     }
 
     @Override
-    public boolean isQuestComplete(ZGame game) {
-        return game.getNumKills(ZZombieType.Abomination) > 0;
+    public int getPercentComplete(ZGame game) {
+        return game.getNumKills(ZZombieType.Abomination) > 0 ? 100 : 0;
     }
 
     @Override

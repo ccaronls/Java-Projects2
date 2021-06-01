@@ -131,26 +131,34 @@ public class ZQuestTutorial extends ZQuest {
 
     @Override
     public Table getObjectivesOverlay(ZGame game) {
+        int totalChars = game.getAllCharacters().size();
+        int numInZone = Utils.filter(game.getAllCharacters(), new Utils.Filter<ZCharacter>() {
+            @Override
+            public boolean keep(ZCharacter object) {
+                return object.getOccupiedZone() == exitZone;
+            }
+        }).size();
         return new Table(getName())
                 .addRow(new Table().setNoBorder()
                     .addRow("1.", "Unlock the BLUE Door.", game.getBoard().getDoor(blueDoor) != ZWallFlag.LOCKED)
                     .addRow("2.", "Unlock the GREEN Door. GREEN key hidden among RED objectives.", game.getBoard().getDoor(greenDoor) != ZWallFlag.LOCKED)
                     .addRow("3.", String.format("Collect all Objectives for %d EXP Each", OBJECTIVE_EXP), String.format("%d of %d", numRedZones- redObjectives.size(), numRedZones))
-                    .addRow("4.", "Get all players into the EXIT zone.", isQuestComplete(game))
+                    .addRow("4.", "Get all players into the EXIT zone.", String.format("%d of %d", numInZone, totalChars))
                     .addRow("5.", "Exit zone must be cleared of zombies.")
                     .addRow("6.", "All Players must survive.")
                 );
     }
 
+
     @Override
-    public boolean isQuestComplete(ZGame game) {
+    public int getPercentComplete(ZGame game) {
         if (game.getBoard().getZombiesInZone(exitZone).size() > 0)
-            return false;
+            return 0;
         for (ZCharacter c : game.getAllCharacters()) {
             if (c.getOccupiedZone() != exitZone)
-                return false;
+                return 0;
         }
-        return true;
+        return 100;
     }
 
     @Override

@@ -106,7 +106,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
 
     void addOverlay(ZAnimation a) {
         synchronized (overlayAnimations) {
-            overlayAnimations.add(a.start());
+            overlayAnimations.add(a);
         }
         redraw();
     }
@@ -262,6 +262,8 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                 if (a.isDone()) {
                     it.remove();
                 } else {
+                    if (!a.isStarted())
+                        a.start();
                     a.update(g);
                 }
             }
@@ -488,6 +490,8 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
         Vector2D v1 = cell.getTopRight().subEq(center);
         g.scale(scale);
 
+        final GColor doorColor = GColor.BROWN;
+
         for (ZDir dir : ZDir.getCompassValues()) {
             Vector2D dv = v1.sub(v0).scaleEq(.33f);
             Vector2D dv0 = v0.add(dv);
@@ -503,6 +507,11 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                 case OPEN: {
                     g.drawLine(v0, dv0, 3);
                     g.drawLine(dv1, v1, 3);
+                    if (dir == ZDir.SOUTH || dir == ZDir.WEST) {
+                        g.setColor(doorColor);
+                        g.drawLine(dv0, (dv0.add(dv.scaledBy(.5f).rotate(145))), 4);
+                        g.drawLine(dv1, (dv1.sub(dv.scaledBy(.5f).rotate(-145))), 4);
+                    }
                     break;
                 }
                 case LOCKED: {
@@ -521,7 +530,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                 case CLOSED:
                     if (dir == ZDir.SOUTH || dir == ZDir.WEST) {
                         g.drawLine(v0, v1, 3);
-                        g.setColor(GColor.YELLOW);
+                        g.setColor(doorColor);
                         g.drawLine(dv0, dv1, 4);
                     }
                     break;
@@ -743,16 +752,18 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
     public IVector2D getBoardCenter() {
         ZGame game = getGame();
         if (game.getCurrentCharacter() != null)
-            return game.getBoard().getZone(game.getCurrentCharacter().getOccupiedZone()).getCenter();
-        MutableVector2D center = new MutableVector2D();
+            return game.getCurrentCharacter().getRect().getCenter();//game.getBoard().getZone(game.getCurrentCharacter().getOccupiedZone()).getCenter();
         List<ZCharacter> chars = game.getAllCharacters();
         if (chars.size() == 0)
-            return Vector2D.ZERO;
+            return new GRectangle(getBoard()).getCenter();
+        GRectangle rect = null;
         for (ZCharacter c : chars) {
-            center.addEq(c.getRect().getCenter());
+            if (rect == null)
+                rect = new GRectangle(c.getRect());
+            else
+                rect.addEq(c.getRect());
         }
-        center.scaleEq(1f / chars.size());
-        return center;
+        return rect.getCenter();
     }
 
     ZTile [] tiles = null;
@@ -776,7 +787,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
             return false;
         }
         if (tiles.length == 0) {
-            return false;
+            return true;
         }
         for (int i=0; i<tileIds.length; i++) {
             g.drawImage(tileIds[i], tiles[i].quadrant);
@@ -801,32 +812,6 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
             redraw();
         }
     }
-/*
-    public void animateZoomAmount(float _amt) {
-        if (zoomAnimation != null)
-            return;
-        if (zoomAmt + _amt < 0) {
-            _amt = -zoomAmt;
-        } else if (zoomAmt + _amt > getMaxZoom()) {
-            _amt = getMaxZoom() - zoomAmt;
-        }
-
-        float amt = _amt;
-        float curZoom = zoomAmt;
-        zoomAnimation = new ZAnimation(500) {
-            @Override
-            protected void draw(AGraphics g, float position, float dt) {
-                zoomAmt = curZoom + amt *position;
-            }
-        }.start();
-        redraw();
-    }*/
-
-    /*
-    public float getMaxZoom() {
-        float n = Math.min(getBoard().getRows(), getBoard().getColumns());
-        return n - 2;
-    }*/
 
     private GRectangle zoomedRect = null;
 
@@ -845,7 +830,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
 
         float zoomAmtMin = Math.min(dim.getWidth(), dim.getHeight());
         float zoomAmtMax = 3;
-        float zoomAmt = (zoomAmtMin - zoomAmtMax) * zoomPercent / 2;
+        float zoomAmt = (zoomAmtMin - zoomAmtMax) * zoomPercent;
         float newW = dim.width - zoomAmt*aspect;
         float newH = dim.height - zoomAmt;
         float vAspect = viewport.getAspect();
@@ -872,6 +857,18 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
         return zoomedRect = rect;
     }
 
+    void drawQuestLabel(AGraphics g) {
+        g.setColor(GColor.BLACK);
+        if (getGame().getQuest()!=null) {
+            float height = g.getTextHeight();
+            g.setTextHeight(24);//setFont(bigFont);
+            g.setTextStyles(AGraphics.TextStyle.BOLD, AGraphics.TextStyle.ITALIC);
+            g.drawJustifiedString(10, getHeight()-10-g.getTextHeight(), Justify.LEFT, Justify.BOTTOM, getGame().getQuest().getName());
+            g.setTextHeight(height);
+            g.setTextStyles(AGraphics.TextStyle.NORMAL);
+        }
+    }
+
     @Override
     public void draw(APGraphics g, int mouseX, int mouseY) {
         highlightedActor = null;
@@ -885,180 +882,88 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
 
         IVector2D center = getBoardCenter();
         GRectangle rect = getZoomedRectangle(g, center);
-        //GRectangle rect = new GRectangle(board);//.withCenter(center);
-
-        //GRectangle rect = new GRectangle(new GDimension(20, 20)).withCenter(new Vector2D(15, 15));
 
         g.ortho(rect);
-        //g.translate(-center.getX(), -center.getY());
-        //g.translate(board.getColumns()/2, board.getRows()/2);
-        //g.ortho(5, 10, 0, 5);
-
         g.translate(g.screenToViewport(dragOffset).sub(rect.getTopLeft()));
 
-        //g.ortho();
-        //g.pushMatrix();
-        //g.translate(getWidth()/2,0);// - dim.width/2, 0);
-
-        //GDimension dim = board.getDimension();
-        //g.scale(getHeight() / dim.height);
-        //g.translate(-dim.width/2, 0);
-
         Vector2D mouse = g.screenToViewport(mouseX, mouseY);
-        //log.debug("mouse %d,%d -> %s", _mouseX, _mouseY, mouse);
 
-        final int OUTLINE = 2;
-
-        //final Grid.Pos cellPos = board.drawDebug(g, mouse.X(), mouse.Y());
-
-        final boolean DRAW_DEBUG_WHEN_NOT_RUNNING = false;
-
-        if (!DRAW_DEBUG_WHEN_NOT_RUNNING || game.isGameRunning() || game.isGameOver()) {
-            Grid.Pos cellPos = null;
-            if (checkDrawTiles(g)) {
-                cellPos = pickCell(g, mouse.X(), mouse.Y());
-            } else {
-                cellPos = drawNoTiles(g, mouse.X(), mouse.Y(), DEBUG_DRAW_ZONE_INFO);
-            }
-            int highlightedZone = drawZones(g, mouse.X(), mouse.Y());
-            boolean drawAnimating = game.isGameOver();
-
-            drawAnimations(preActor, g);
-
-            highlightedActor = //board.drawActors(g, getMouseX(), getMouseY());
-                    drawActors(g, game, mouse.X(), mouse.Y(), drawAnimating || overlayToDraw == null);
-
-            drawAnimations(postActor, g);
-
-            //if (drawZoneAnimations(g))
-            //    repaint();
-
-            /* Move to drawActors
-            if (game.getCurrentCharacter() != null) {
-//                if (highlightedActor == getGame().getCurrentCharacter())
-                //                  highlightedActor = null; // prevent highlighting an already selected actor
-                g.setColor(GColor.GREEN);
-                g.drawRect(game.getCurrentCharacter().getRect(board).scale(1.02f), OUTLINE);
-            }*/
-
-            g.setColor(GColor.BLACK);
-            if (game.getQuest()!=null) {
-                float height = g.getTextHeight();
-                g.setTextHeight(24);//setFont(bigFont);
-                g.setTextStyles(AGraphics.TextStyle.BOLD, AGraphics.TextStyle.ITALIC);
-                g.drawJustifiedString(10, getHeight()-10-g.getTextHeight(), Justify.LEFT, Justify.BOTTOM, game.getQuest().getName());
-                g.setTextHeight(height);
-                g.setTextStyles(AGraphics.TextStyle.NORMAL);
-            }
-            //g.setFont(smallFont);
-            switch (game.getUiMode()) {
-                case PICK_ZOMBIE:
-                case PICK_CHARACTER: {
-                    //g.setColor(GColor.YELLOW);
-                    //for (ZActor a : (List<ZActor>)game.getOptions()) {
-                    //    a.getRect(board).drawOutlined(g, 1);
-                    //}
-                    if (game.getOptions().contains(highlightedActor)) {
-                        highlightedResult = highlightedActor;
-                    }
-                    break;
-                }
-                case PICK_ZONE: {
-                    if (highlightedZone >= 0 && game.getOptions().contains(highlightedZone)) {
-                        highlightedResult = highlightedZone;
-                        g.setColor(GColor.YELLOW);
-                        drawZoneOutline(g, board, highlightedZone);
-                    } else if (cellPos != null) {
-                        ZCell cell = board.getCell(cellPos);
-                        for (int i = 0; i < game.getOptions().size(); i++) {
-                            if (cell.getZoneIndex() == (Integer)game.getOptions().get(i)) {
-                                highlightedCell = cellPos;
-                                highlightedResult = cell.getZoneIndex();
-                                break;
-                            }
-                        }
-                    }
-                    break;
-                }
-                case PICK_DOOR: {
-                    highlightedResult = pickDoor(g, (List<ZDoor>)game.getOptions(), mouse.X(), mouse.Y());
-                    break;
-                }
-                case PICK_MENU: {
-                    highlightedResult = pickMove(g, mouse, mouseX, mouseY);
-                    break;
-                }
-            }
-            if (highlightedCell != null) {
-                ZCell cell = board.getCell(highlightedCell);
-                g.setColor(GColor.RED.withAlpha(32));
-                drawZoneOutline(g, board, cell.getZoneIndex());
-            }
-            /*
-            if (highlightedActor != null) {
-                g.setColor(GColor.RED);
-                g.drawRect(highlightedActor.getRect(board).scale(1.01f), OUTLINE);
-            }*/
-
-            g.pushMatrix();
-            g.setIdentity();
-            g.ortho();
-            g.setColor(GColor.WHITE);
-            g.drawJustifiedStringOnBackground(10, getHeight()-10, Justify.LEFT, Justify.BOTTOM, game.getMessage(), GColor.TRANSLUSCENT_BLACK, getBorderThickness());
-            g.popMatrix();
-            game.characterRenderer.redraw();
-
-
-        } else {
-
-            Grid.Pos cellPos = drawNoTiles(g, mouse.X(), mouse.Y(), true);
-            checkDrawTiles(g);
-
-            if (cellPos != null) {
-                highlightedCell = cellPos;
-                ZCell cell = board.getCell(cellPos);
-                g.setColor(GColor.RED.withAlpha(32));
-                drawZoneOutline(g, board, cell.getZoneIndex());
-                g.setColor(GColor.RED);
-                g.drawRect(cell);
-
-                List<ZDoor> doors = board.getZone(cell.getZoneIndex()).getDoors();
-                highlightedDoor = pickDoor(g, doors, mouse.X(), mouse.Y());
-
-                if (selectedCell != null) {
-                    ZCell selected = board.getCell(selectedCell);
-                    g.setColor(GColor.MAGENTA);
-                    selected.drawOutlined(g, 4);
-                    ZCell highlighted = board.getCell(highlightedCell);
-                    //Collection<ZDir> dirs = board.getShortestPathOptions(selectedCell, highlighted.getZoneIndex());
-                    List<List<ZDir>> paths = board.getShortestPathOptions(selectedCell, highlighted.getZoneIndex());
-                    GColor [] colors = new GColor[] { GColor.CYAN, GColor.MAGENTA, GColor.PINK, GColor.ORANGE };
-                    int colorIndex = 0;
-                    for (List<ZDir> path : paths) {
-                        g.setColor(colors[colorIndex]);
-                        colorIndex = (colorIndex+1) & colors.length;
-                        Grid.Pos cur = selectedCell;
-                        g.begin();
-                        g.vertex(board.getCell(cur).getCenter());
-                        for (ZDir dir : path) {
-                            cur = board.getAdjacent(cur, dir);///dir.getAdjacent(cur);
-                            g.vertex(board.getCell(cur).getCenter());
-                        }
-                        g.drawLineStrip(3);
-                    }
-
-
-                    g.setColor(GColor.CYAN);
-//                    g.drawJustifiedStringOnBackground(mouseX, mouseY, Justify.CENTER, Justify.BOTTOM, dirs.toString(), GColor.TRANSLUSCENT_BLACK, 10, 10);
-                } else {
-                    g.setColor(GColor.CYAN);
-                    g.drawJustifiedStringOnBackground(mouse.X(), mouse.Y(), Justify.CENTER, Justify.BOTTOM, cellPos.toString(), GColor.TRANSLUSCENT_BLACK, 10, 10);
-                }
-            }
-
+        if (drawTiles && tiles == null) {
+            tiles = getGame().getQuest().getTiles(getBoard());
+            ((UIZComponent)getComponent()).loadTiles(g, tiles);
+            return;
         }
 
-        //g.popMatrix();
+        Grid.Pos cellPos = drawNoTiles(g, mouseX, mouseY, DEBUG_DRAW_ZONE_INFO);
+        if (drawTiles) {
+            for (int i = 0; i < tileIds.length; i++) {
+                g.drawImage(tileIds[i], tiles[i].quadrant);
+            }
+        }
+
+        int highlightedZone = drawZones(g, mouse.X(), mouse.Y());
+        boolean drawAnimating = game.isGameOver();
+
+        drawAnimations(preActor, g);
+
+        highlightedActor = //board.drawActors(g, getMouseX(), getMouseY());
+                drawActors(g, game, mouse.X(), mouse.Y(), drawAnimating || overlayToDraw == null);
+
+        drawAnimations(postActor, g);
+
+        drawQuestLabel(g);
+
+        switch (game.getUiMode()) {
+            case PICK_ZOMBIE:
+            case PICK_CHARACTER: {
+                //g.setColor(GColor.YELLOW);
+                //for (ZActor a : (List<ZActor>)game.getOptions()) {
+                //    a.getRect(board).drawOutlined(g, 1);
+                //}
+                if (game.getOptions().contains(highlightedActor)) {
+                    highlightedResult = highlightedActor;
+                }
+                break;
+            }
+            case PICK_ZONE: {
+                if (highlightedZone >= 0 && game.getOptions().contains(highlightedZone)) {
+                    highlightedResult = highlightedZone;
+                    g.setColor(GColor.YELLOW);
+                    drawZoneOutline(g, board, highlightedZone);
+                } else if (cellPos != null) {
+                    ZCell cell = board.getCell(cellPos);
+                    for (int i = 0; i < game.getOptions().size(); i++) {
+                        if (cell.getZoneIndex() == (Integer)game.getOptions().get(i)) {
+                            highlightedCell = cellPos;
+                            highlightedResult = cell.getZoneIndex();
+                            break;
+                        }
+                    }
+                }
+                break;
+            }
+            case PICK_DOOR: {
+                highlightedResult = pickDoor(g, (List<ZDoor>)game.getOptions(), mouse.X(), mouse.Y());
+                break;
+            }
+            case PICK_MENU: {
+                highlightedResult = pickMove(g, mouse, mouseX, mouseY);
+                break;
+            }
+        }
+        if (highlightedCell != null) {
+            ZCell cell = board.getCell(highlightedCell);
+            g.setColor(GColor.RED.withAlpha(32));
+            drawZoneOutline(g, board, cell.getZoneIndex());
+        }
+
+        g.pushMatrix();
+        g.setIdentity();
+        g.ortho();
+        g.setColor(GColor.WHITE);
+        g.drawJustifiedStringOnBackground(10, getHeight()-10, Justify.LEFT, Justify.BOTTOM, game.getMessage(), GColor.TRANSLUSCENT_BLACK, getBorderThickness());
+        g.popMatrix();
+        game.characterRenderer.redraw();
         drawAnimations(overlayAnimations, g);
 
         if (game.isGameOver() && overlayToDraw == null && !isAnimating()) {

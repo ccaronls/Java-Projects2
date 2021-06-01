@@ -26,6 +26,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
     private List<ZEquipment> vaultItemsRemaining = null;
     private int numFoundVaultItems = 0;
     protected List<Integer> redObjectives = new ArrayList<>();
+    private int numStartRedObjectives = 0;
 
     protected ZQuest(ZQuests quest) {
         this.quest = quest;
@@ -189,7 +190,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
             grid.get(adj).setWallFlag(dir.getOpposite(), flag);
     }
 
-    public ZBoard load(String [][] map) {
+    public final ZBoard load(String [][] map) {
         int rows = map.length;
         int cols = map[0].length;
         Grid<ZCell> grid = new Grid<>(rows, cols);
@@ -254,6 +255,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
                 zones.set(i, new ZZone());
         }
 
+        numStartRedObjectives = redObjectives.size();
         return new ZBoard(grid, zones);
 
     }
@@ -284,11 +286,12 @@ public abstract class ZQuest extends Reflector<ZQuest> {
     }
 
     /**
+     * Return value between 0-100 for progress
      *
      * @param game
      * @return
      */
-    public abstract boolean isQuestComplete(ZGame game);
+    public abstract int getPercentComplete(ZGame game);
 
     /**
      *
@@ -404,4 +407,8 @@ public abstract class ZQuest extends Reflector<ZQuest> {
     }
 
     public void processSearchables(List<ZEquipment> items) {}
+
+    protected int getNumStartRedObjectives() {
+        return this.numStartRedObjectives;
+    }
 }

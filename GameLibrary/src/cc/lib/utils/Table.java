@@ -244,8 +244,8 @@ public final class Table {
                 }
             }
         }
-        maxWidth[0] += cellPadding/2;
-        maxWidth[maxWidth.length-1] += cellPadding/2;
+        maxWidth[0] += cellPadding;
+        //maxWidth[maxWidth.length-1] += cellPadding/2;
         for (int i=1; i<maxWidth.length-1; i++) {
             maxWidth[i] += cellPadding;
         }
@@ -305,7 +305,7 @@ public final class Table {
             g.setColor(model.getHeaderColor(g));
             float x=0;
             for (int i=0; i<header.size(); i++) {
-                g.drawJustifiedString(x + maxWidth[i]/2, 0, Justify.CENTER, header.get(i));
+                g.drawJustifiedString(x, 0, Justify.LEFT, header.get(i));
                 x += maxWidth[i];
             }
             g.translate(0, g.getTextHeight() + cellPadding);

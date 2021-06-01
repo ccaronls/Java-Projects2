@@ -34,6 +34,8 @@ public abstract class ZActor<E extends Enum<E>> extends Reflector<ZActor<E>> imp
     }
 
     public GRectangle getRect() {
+        if (animation != null && animation.getRect() != null)
+            return animation.getRect();
         return rect;
     }
 

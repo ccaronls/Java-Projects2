@@ -111,12 +111,13 @@ public class ZQuestTheBlackBook extends ZQuest {
     }
 
     @Override
-    public boolean isQuestComplete(ZGame game) {
-        boolean blackBookTaken = blackBookZone < 0;
-        int allVaultItems = getAllVaultOptions().size();
-        ZSkillLevel lvl = game.getHighestSkillLevel();
+    public int getPercentComplete(ZGame game) {
+        int numTasks = getAllVaultOptions().size() + 1 + ZSkillLevel.RED.ordinal();
+        int numCompleted = blackBookZone < 0 ? 1 : 0;
+        numCompleted += getNumFoundVaultItems();
+        numCompleted -= game.getHighestSkillLevel().ordinal();
 
-        return blackBookTaken && getNumFoundVaultItems() == allVaultItems && lvl == ZSkillLevel.RED;
+        return numTasks * 100 / numCompleted;
     }
 
     @Override

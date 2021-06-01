@@ -113,7 +113,7 @@ public class ZMove implements IButton {
         if (this.character != null) {
             return character.getTooltipText();
         }
-        return null;
+        return type.getTooltipText();
     }
 
     @Override

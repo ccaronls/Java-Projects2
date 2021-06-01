@@ -100,8 +100,13 @@ public class ZQuestDeadTrail extends ZQuest {
     }
 
     @Override
-    public boolean isQuestComplete(ZGame game) {
-        return redObjectives.size() == 0 && getNumFoundVaultItems() == NUM_VAULT_ITEMS && isAllPlayersInExit(game);
+    public int getPercentComplete(ZGame game) {
+        int numTasks = getNumStartRedObjectives() + NUM_VAULT_ITEMS + 1;
+        int numComplete = getNumStartRedObjectives() - redObjectives.size();
+        numComplete -= getNumFoundVaultItems();
+        if (isAllPlayersInExit(game))
+            numComplete ++;
+        return numTasks * 100 / numComplete;
     }
 
     @Override

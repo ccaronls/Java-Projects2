@@ -45,6 +45,7 @@ public class Splash extends DroidActivity {
                         float popupTime = 300;
                         if (getElapsedTime() < popupTime) {
                             position = (float)getElapsedTime() / popupTime;
+                            //g.clearScreen(GColor.WHITE.interpolateTo(GColor.BLACK, position));
                         } else {
                             position = 1;
                             g.setColor(GColor.WHITE);

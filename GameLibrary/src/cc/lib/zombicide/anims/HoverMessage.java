@@ -30,7 +30,7 @@ public class HoverMessage extends ZAnimation {
 //        float t = g.getTextHeight();
 //        g.setTextHeight(20);
         g.setColor(GColor.YELLOW.withAlpha(1f-position));
-        g.drawJustifiedString(v, Justify.LEFT, Justify.BOTTOM, msg);
+        g.drawJustifiedString(v, Justify.CENTER, Justify.CENTER, msg);
 //        g.setTextHeight(t);
     }
 }

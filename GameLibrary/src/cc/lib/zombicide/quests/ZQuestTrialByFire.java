@@ -62,8 +62,8 @@ public class ZQuestTrialByFire extends ZQuest {
     }
 
     @Override
-    public boolean isQuestComplete(ZGame game) {
-        return game.getNumKills(ZZombieType.Abomination) > 0;
+    public int getPercentComplete(ZGame game) {
+        return game.getNumKills(ZZombieType.Abomination) > 0 ? 100 : 0;
     }
 
     @Override
@@ -150,7 +150,7 @@ public class ZQuestTrialByFire extends ZQuest {
 
         return new Table(getName())
                 .addRow(new Table().setNoBorder()
-                        .addRow("1.", "Kill the Abomination.", isQuestComplete(game))
+                        .addRow("1.", "Kill the Abomination.", getPercentComplete(game) == 100)
                         .addRow("2.", "Blue objective hidden among the red objectives gives a random artifact", blueObjFound)
                         .addRow("3.", "All Dragon Bile hidden in the vault. Vault cannot be opened until all objectives taken.", String.format("%d of %d", numTaken, numTotal))
                 );

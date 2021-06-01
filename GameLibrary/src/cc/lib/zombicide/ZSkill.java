@@ -21,7 +21,7 @@ public enum ZSkill implements IButton {
     Plus1_Damage_Ranged("The Survivor gets a +1 Damage bonus with Ranged weapons.") {
         @Override
         public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game) {
-            if (actionType == ZActionType.RANGED_BOLTS || actionType == ZActionType.RANGED_ARROWS) {
+            if (actionType == ZActionType.BOLTS || actionType == ZActionType.ARROWS) {
                 stat.damagePerHit++;
             }
         }
@@ -60,7 +60,7 @@ public enum ZSkill implements IButton {
     Plus1_to_dice_roll_Ranged("The Survivor adds 1 to the result of each die he rolls in Ranged Actions. The maximum result is always 6.") {
         @Override
         public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game) {
-            if (actionType == ZActionType.RANGED_BOLTS || actionType == ZActionType.RANGED_ARROWS) {
+            if (actionType == ZActionType.BOLTS || actionType == ZActionType.ARROWS) {
                 stat.dieRollToHit--;
             }
         }
@@ -90,7 +90,7 @@ public enum ZSkill implements IButton {
     Plus1_die_Ranged("The Survivor’s Ranged weapons roll an extra die for Ranged Actions. Dual Ranged weapons gain a die each, for a total of +2 dice per Dual Ranged Action.") {
         @Override
         public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game) {
-            if (actionType == ZActionType.RANGED_BOLTS || actionType == ZActionType.RANGED_ARROWS) {
+            if (actionType == ZActionType.BOLTS || actionType == ZActionType.ARROWS) {
                 stat.numDice++;
             }
         }
@@ -100,8 +100,8 @@ public enum ZSkill implements IButton {
         public boolean modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
             switch (type) {
                 case MAGIC:
-                case RANGED_ARROWS:
-                case RANGED_BOLTS:
+                case ARROWS:
+                case BOLTS:
                 case MELEE:
                     return true;
             }
@@ -152,8 +152,8 @@ public enum ZSkill implements IButton {
         @Override
         public boolean modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
             switch (type) {
-                case RANGED_ARROWS:
-                case RANGED_BOLTS:
+                case ARROWS:
+                case BOLTS:
                     return true;
             }
             return false;
@@ -330,7 +330,7 @@ public enum ZSkill implements IButton {
     Frenzy_Ranged("Ranged weapons the Survivor carries gain +1 die per Wound the Survivor suffers. Dual Ranged weapons gain a die each, for a total of +2 dice per Wound and per Dual Ranged Action.") {
         @Override
         public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game) {
-            if (actionType == ZActionType.RANGED_BOLTS || actionType == ZActionType.RANGED_ARROWS) {
+            if (actionType == ZActionType.BOLTS || actionType == ZActionType.ARROWS) {
                 stat.numDice += character.woundBar;
             }
         }
@@ -381,8 +381,8 @@ public enum ZSkill implements IButton {
             switch (type) {
                 case MAGIC:
                 case MELEE:
-                case RANGED_BOLTS:
-                case RANGED_ARROWS:
+                case BOLTS:
+                case ARROWS:
                     return true;
             }
             return false;
@@ -412,8 +412,8 @@ public enum ZSkill implements IButton {
         @Override
         boolean isRoll6Plus1(ZActionType type) {
             switch (type) {
-                case RANGED_BOLTS:
-                case RANGED_ARROWS:
+                case BOLTS:
+                case ARROWS:
                     return true;
             }
             return false;

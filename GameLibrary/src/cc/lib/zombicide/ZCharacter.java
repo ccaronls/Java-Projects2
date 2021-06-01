@@ -567,14 +567,14 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
                     return null;
                 stat = weapon.type.meleeStats.copy();
                 break;
-            case RANGED_ARROWS:
+            case ARROWS:
                 if (!weapon.isRanged())
                     return null;
                 if (!weapon.type.usesArrows)
                     return null;
                 stat = weapon.type.rangedStats.copy();
                 break;
-            case RANGED_BOLTS:
+            case BOLTS:
                 if (!weapon.isRanged())
                     return null;
                 if (!weapon.type.usesBolts)
@@ -735,9 +735,9 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
             return true;
 
         switch (action) {
-            case RANGED_ARROWS:
+            case ARROWS:
                 return isInPossession(ZItemType.PLENTY_OF_ARROWS);
-            case RANGED_BOLTS:
+            case BOLTS:
                 return isInPossession(ZItemType.PLENTY_OF_BOLTS);
         }
         return false;
@@ -789,6 +789,10 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
         return availableSkills.contains(skill);
     }
 
+    public boolean hasSkill(ZSkill skill) {
+        return allSkills.contains(skill);
+    }
+
     public synchronized void addSkill(ZSkill skill) {
         allSkills.add(skill);
         availableSkills.add(skill);
@@ -808,5 +812,9 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
 
     public void setFallen(boolean fallen) {
         this.fallen = fallen;
+    }
+
+    public ZPlayerName getPlayerName() {
+        return name;
     }
 }

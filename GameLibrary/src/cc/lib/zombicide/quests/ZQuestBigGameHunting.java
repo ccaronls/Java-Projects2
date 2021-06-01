@@ -122,11 +122,14 @@ public class ZQuestBigGameHunting extends ZQuest {
     }
 
     @Override
-    public boolean isQuestComplete(ZGame game) {
-        return redObjectives.size() == 0
-                && blueRevealZone < 0
-                && (skipKillAbomination || game.getNumKills(ZZombieType.Abomination) > 0)
-                && game.getNumKills(ZZombieType.Necromancer) > 0;
+    public int getPercentComplete(ZGame game) {
+        int numTasks = getNumStartRedObjectives() + 2;
+        int numCompleted = getNumStartRedObjectives() - redObjectives.size();
+        if (skipKillAbomination || game.getNumKills(ZZombieType.Abomination) > 0)
+            numCompleted++;
+        if (game.getNumKills(ZZombieType.Necromancer) > 0)
+            numCompleted++;
+        return numTasks * 100 / numCompleted;
     }
 
     @Override

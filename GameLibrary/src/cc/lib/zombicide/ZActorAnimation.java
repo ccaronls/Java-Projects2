@@ -1,5 +1,7 @@
 package cc.lib.zombicide;
 
+import cc.lib.game.GRectangle;
+
 public abstract class   ZActorAnimation extends ZAnimation {
 
     public final ZActor actor;
@@ -28,6 +30,10 @@ public abstract class   ZActorAnimation extends ZAnimation {
             next = anim;
         else
             next.add(anim);
+    }
+
+    protected GRectangle getRect() {
+        return null;
     }
 
     protected boolean hidesActor() {

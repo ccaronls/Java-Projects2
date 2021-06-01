@@ -64,7 +64,7 @@ public class ZGame extends Reflector<ZGame>  {
     private LinkedList<ZEquipment> searchables = new LinkedList<>();
     private int spawnMultiplier=1;
     private int roundNum=0;
-    private int gameOverStatus=0; // 0 == in play, 1, == game won, 2 == game lost
+    private float gameOverStatus=0; // 0 == in play, 1, == game won, 2 == game lost
     private ZQuests currentQuest;
     private int [] dice = new int [60];
     private ZDiffuculty difficulty = ZDiffuculty.EASY;
@@ -332,7 +332,7 @@ public class ZGame extends Reflector<ZGame>  {
             return;
         }
 
-        if (quest.isQuestComplete(this)) {
+        if (quest.getPercentComplete(this) >= 100) {
             gameWon();
             return;
         }
@@ -433,10 +433,7 @@ public class ZGame extends Reflector<ZGame>  {
                     currentCharacter = getCurrentUser().chooseCharacter(options);
                 }
                 if (currentCharacter != null) {
-                    if (currentCharacter.getActionsLeftThisTurn() == 0)
-                        performMove(currentCharacter, ZMove.newInventoryMove());
-                    else
-                        pushState(ZState.PLAYER_STAGE_CHOOSE_CHARACTER_ACTION, currentCharacter.name);
+                    pushState(ZState.PLAYER_STAGE_CHOOSE_CHARACTER_ACTION, currentCharacter.name);
                 }
                 break;
             }
@@ -445,22 +442,29 @@ public class ZGame extends Reflector<ZGame>  {
 
                 final ZCharacter cur = getCurrentCharacter();
 
+                boolean invOnly = false;
                 if (getCurrentCharacter().getActionsLeftThisTurn() <= 0) {
-                    getCurrentCharacter().onEndOfTurn(this);
-                    setState(ZState.PLAYER_STAGE_CHOOSE_CHARACTER, null);
-                    return;
+                    if (getCurrentCharacter().inventoryThisTurn) {
+                        invOnly = true;
+                    } else {
+                        getCurrentCharacter().onEndOfTurn(this);
+                        setState(ZState.PLAYER_STAGE_CHOOSE_CHARACTER, null);
+                        return;
+                    }
                 }
 
                 List<ZMove> options = new ArrayList<>();
-                options.add(ZMove.newDoNothing());
+                if (!invOnly) {
+                    options.add(ZMove.newDoNothing());
 
-                // determine players available moves
-                for (ZSkill skill : cur.getAvailableSkills()) {
-                    skill.addSpecialMoves(this, cur, options);
+                    // determine players available moves
+                    for (ZSkill skill : cur.getAvailableSkills()) {
+                        skill.addSpecialMoves(this, cur, options);
+                    }
+
+                    // add any moves determined by the quest
+                    quest.addMoves(this, cur, options);
                 }
-
-                // add any moves determined by the quest
-                quest.addMoves(this, cur, options);
 
                 // check for organize
                 if (cur.getAllEquipment().size() > 0)
@@ -481,89 +485,91 @@ public class ZGame extends Reflector<ZGame>  {
                     }
                 }
 
-                ZZone zone = board.getZone(cur.occupiedZone);
+                if (!invOnly) {
+                    ZZone zone = board.getZone(cur.occupiedZone);
 
-                // check for search
-                if (zone.isSearchable() && cur.canSearch() && zoneCleared) {
-                    options.add(ZMove.newSearchMove(cur.occupiedZone));
-                }
-
-                options.add(ZMove.newMakeNoiseMove(cur.occupiedZone));
-
-                // check for move up, down, right, left
-                List<Integer> accessableZones = board.getAccessableZones(cur.occupiedZone, 1, ZActionType.MOVE);
-                if (accessableZones.size() > 0)
-                    options.add(ZMove.newWalkMove(accessableZones));
-
-                {
-                    List<ZWeapon> melee = cur.getMeleeWeapons();
-                    if (melee.size() > 0) {
-                        options.add(ZMove.newMeleeAttackMove(melee));
+                    // check for search
+                    if (zone.isSearchable() && cur.canSearch() && zoneCleared) {
+                        options.add(ZMove.newSearchMove(cur.occupiedZone));
                     }
-                }
 
-                {
-                    List<ZWeapon> ranged = cur.getRangedWeapons();
-                    if (ranged.size() > 0) {
-                        options.add(ZMove.newRangedAttackMove(ranged));
-                        for (ZWeapon slot : ranged) {
-                            if (!slot.isLoaded()) {
-                                options.add(ZMove.newReloadMove(slot));
+                    options.add(ZMove.newMakeNoiseMove(cur.occupiedZone));
+
+                    // check for move up, down, right, left
+                    List<Integer> accessableZones = board.getAccessableZones(cur.occupiedZone, 1, ZActionType.MOVE);
+                    if (accessableZones.size() > 0)
+                        options.add(ZMove.newWalkMove(accessableZones));
+
+                    {
+                        List<ZWeapon> melee = cur.getMeleeWeapons();
+                        if (melee.size() > 0) {
+                            options.add(ZMove.newMeleeAttackMove(melee));
+                        }
+                    }
+
+                    {
+                        List<ZWeapon> ranged = cur.getRangedWeapons();
+                        if (ranged.size() > 0) {
+                            options.add(ZMove.newRangedAttackMove(ranged));
+                            for (ZWeapon slot : ranged) {
+                                if (!slot.isLoaded()) {
+                                    options.add(ZMove.newReloadMove(slot));
+                                }
                             }
                         }
                     }
-                }
 
-                {
-                    List<ZWeapon> magic = cur.getMagicWeapons();
-                    if (magic.size() > 0) {
-                        options.add(ZMove.newMagicAttackMove(magic));
-                    }
-                }
-
-                {
-                    List<ZItem> items = cur.getThrowableItems();
-                    if (items.size() > 0) {
-                        options.add(ZMove.newThrowItemMove(items));
-                    }
-                }
-
-                List<ZSpell> spells = cur.getSpells();
-                if (spells.size() > 0) {
-                    options.add(ZMove.newEnchantMove(spells));
-                }
-
-                if (zone.getType() == ZZoneType.VAULT) {
-                    List<ZEquipment> takables = new ArrayList<>();
-                    for (ZEquipment e : quest.getVaultItems(cur.occupiedZone)) {
-                        if (cur.getEquipableSlots(e).size() > 0) {
-                            takables.add(e);
+                    {
+                        List<ZWeapon> magic = cur.getMagicWeapons();
+                        if (magic.size() > 0) {
+                            options.add(ZMove.newMagicAttackMove(magic));
                         }
                     }
-                    if (takables.size() > 0) {
-                        options.add(ZMove.newPickupItemMove(takables));
+
+                    {
+                        List<ZItem> items = cur.getThrowableItems();
+                        if (items.size() > 0) {
+                            options.add(ZMove.newThrowItemMove(items));
+                        }
                     }
 
-                    List<ZEquipment> items = cur.getAllEquipment();
-                    if (items.size() > 0) {
-                        options.add(ZMove.newDropItemMove(items));
+                    List<ZSpell> spells = cur.getSpells();
+                    if (spells.size() > 0) {
+                        options.add(ZMove.newEnchantMove(spells));
                     }
 
-                }
+                    if (zone.getType() == ZZoneType.VAULT) {
+                        List<ZEquipment> takables = new ArrayList<>();
+                        for (ZEquipment e : quest.getVaultItems(cur.occupiedZone)) {
+                            if (cur.getEquipableSlots(e).size() > 0) {
+                                takables.add(e);
+                            }
+                        }
+                        if (takables.size() > 0) {
+                            options.add(ZMove.newPickupItemMove(takables));
+                        }
 
-                List<ZDoor> doors = new ArrayList<>();
-                for (ZDoor door : zone.doors) {
-                    if (door.isJammed() && !cur.canUnjamDoor())
-                        continue;
-                    if (!door.isClosed(board) && !door.canBeClosed(cur))
-                        continue;
-                    if (door.isLocked(board))
-                        continue;
-                    doors.add(door);
-                }
+                        List<ZEquipment> items = cur.getAllEquipment();
+                        if (items.size() > 0) {
+                            options.add(ZMove.newDropItemMove(items));
+                        }
 
-                if (doors.size() > 0) {
-                    options.add(ZMove.newToggleDoor(doors));
+                    }
+
+                    List<ZDoor> doors = new ArrayList<>();
+                    for (ZDoor door : zone.doors) {
+                        if (door.isJammed() && !cur.canUnjamDoor())
+                            continue;
+                        if (!door.isClosed(board) && !door.canBeClosed(cur))
+                            continue;
+                        if (door.isLocked(board))
+                            continue;
+                        doors.add(door);
+                    }
+
+                    if (doors.size() > 0) {
+                        options.add(ZMove.newToggleDoor(doors));
+                    }
                 }
 
                 ZMove move = getCurrentUser().chooseMove(this, cur, options);
@@ -833,6 +839,17 @@ public class ZGame extends Reflector<ZGame>  {
     }
 
     protected void onDoNothing(ZCharacter c) {}
+
+    public boolean canUse(ZEquipSlot slot) {
+        ZCharacter c = getCurrentCharacter();
+        return c != null && c.getSlot(slot) != null;
+    }
+
+    public boolean canWalk(ZDir dir) {
+        ZCharacter c = getCurrentCharacter();
+        return c != null && getBoard().canMove(c, dir);
+    }
+
 
     private void useEquipment(ZCharacter c, ZEquipment e) {
         if (e.isMagic()) {
@@ -1421,7 +1438,7 @@ public class ZGame extends Reflector<ZGame>  {
             }
             if (slot != null) {
                 if (action == null) {
-                    action = slot.type.usesArrows ? ZActionType.RANGED_ARROWS : ZActionType.RANGED_BOLTS;
+                    action = slot.type.usesArrows ? ZActionType.ARROWS : ZActionType.BOLTS;
                 }
                 cur.addExtraAction();
                 moveActor(cur, zone, cur.getMoveSpeed()/2);
@@ -1488,8 +1505,8 @@ public class ZGame extends Reflector<ZGame>  {
                 break;
             }
             case MAGIC:
-            case RANGED_ARROWS:
-            case RANGED_BOLTS: {
+            case ARROWS:
+            case BOLTS: {
 
                 ZWeaponStat stat = cur.getWeaponStat(slot, actionType, this);
                 List<Integer> zones = new ArrayList<>();
@@ -2098,7 +2115,7 @@ public class ZGame extends Reflector<ZGame>  {
             summary.addRow(c.name, c.getKillsTable(), c.isDead() ? "KIA" : "Alive", c.dangerBar, c.getSkillLevel());
         }
         return new Table(quest.getName())
-                .addRow("STATUS : " +( gameOverStatus == 1 ? "COMPLETED" : gameOverStatus == 2 ? "FAILED" : "IN PROGRESS"))
+                .addRow("STATUS : " +( gameOverStatus == GAME_WON ? "COMPLETED" : gameOverStatus == GAME_LOST ? "FAILED" : String.format("%d%% COMPLETED", quest.getPercentComplete(this))))
                 .addRow(new Table("SUMMARY").addRow(summary));
     }
 
@@ -2114,11 +2131,14 @@ public class ZGame extends Reflector<ZGame>  {
         ZCharacter cur = getCurrentCharacter();
         if (cur == null)
             return false;
-        if (cur.getActionsLeftThisTurn() == cur.getActionsPerTurn())
+        if (cur.getActionsLeftThisTurn() == cur.getActionsPerTurn() || cur.getActionsLeftThisTurn() == 0)
             return true;
         if (cur.hasAvailableSkill(ZSkill.Tactician))
             return true;
         return false;
     }
 
+    public List<ZEquipment> getAllSearchables() {
+        return Collections.unmodifiableList(searchables);
+    }
 }

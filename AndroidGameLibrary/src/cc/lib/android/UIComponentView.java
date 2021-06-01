@@ -14,6 +14,7 @@ import cc.lib.game.GColor;
 import cc.lib.game.GDimension;
 import cc.lib.game.GRectangle;
 import cc.lib.game.Justify;
+import cc.lib.game.Utils;
 import cc.lib.math.Vector2D;
 import cc.lib.ui.UIComponent;
 import cc.lib.ui.UIRenderer;
@@ -27,12 +28,9 @@ public abstract class UIComponentView<T extends UIRenderer> extends View impleme
     private float borderThickness = 0;
     private int borderColor = 0;
     private Paint borderPaint = new Paint();
-
     private final int CLICK_TIME = 700;
-
     private long downTime = 0;
-
-    private Runnable touchDownRunnable = null;
+    private float touchDownX, touchDownY;
 
     public UIComponentView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -121,6 +119,8 @@ public abstract class UIComponentView<T extends UIRenderer> extends View impleme
         return lp.width == ViewGroup.LayoutParams.WRAP_CONTENT || lp.height == ViewGroup.LayoutParams.WRAP_CONTENT;
     }
 
+    boolean dragging = false;
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
 
@@ -129,24 +129,35 @@ public abstract class UIComponentView<T extends UIRenderer> extends View impleme
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 downTime = SystemClock.uptimeMillis();
-                tx = Math.round(event.getX());
-                ty = Math.round(event.getY());
+                tx = Math.round(touchDownX = event.getX());
+                ty = Math.round(touchDownY = event.getY());
+                postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (!dragging && touchDownX >= 0) {
+                            renderer.onDragStart(touchDownX, touchDownY);
+                            dragging = true;
+                        }
+                    }
+                }, CLICK_TIME);
                 break;
             case MotionEvent.ACTION_UP:
-                tx = ty = -1;
-                if (SystemClock.uptimeMillis() - downTime < CLICK_TIME) {
-                    removeCallbacks(touchDownRunnable);
-                    touchDownRunnable = null;
+                touchDownX = touchDownY = tx = ty = -1;
+                if (!dragging && SystemClock.uptimeMillis() - downTime < CLICK_TIME) {
                     renderer.onClick();
-                } else {
+                } else if (dragging) {
                     renderer.onDragEnd();
                 }
+                dragging = false;
                 break;
             case MotionEvent.ACTION_MOVE:
                 tx = Math.round(event.getX());
                 ty = Math.round(event.getY());
-                if (touchDownRunnable == null) {
-                    renderer.onDragStart(event.getX(), event.getY());
+                if (!dragging) {
+                    if (Utils.fastLen(event.getX() - touchDownX, event.getY() - touchDownY) > 10) {
+                        dragging = true;
+                        renderer.onDragStart(event.getX(), event.getY());
+                    }
                 } else {
                     renderer.onDragMove(event.getX(), event.getY());
                 }

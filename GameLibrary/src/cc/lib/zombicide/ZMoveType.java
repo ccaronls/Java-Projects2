@@ -2,43 +2,60 @@ package cc.lib.zombicide;
 
 import cc.lib.annotation.Keep;
 import cc.lib.game.Utils;
+import cc.lib.ui.IButton;
 
 @Keep
-public enum ZMoveType {
-    DO_NOTHING,
-    INVENTORY, // equip things, drop things, etc.
-    TRADE,
-    WALK,
-    WALK_DIR,
-    SWITCH_ACTIVE_CHARACTER,
-    USE_LEFT_HAND,
-    USE_RIGHT_HAND,
-    MELEE_ATTACK,
-    RANGED_ATTACK,
-    MAGIC_ATTACK,
-    THROW_ITEM, // torch / dragon bile
-    RELOAD,
-    OPERATE_DOOR,
-    SEARCH,
-    CONSUME,
-    EQUIP,
-    UNEQUIP,
-    GIVE,
-    TAKE,
-    DISPOSE,
-    TAKE_OBJECTIVE,
+public enum ZMoveType implements IButton {
+    DO_NOTHING("Expend 1 action"),
+    INVENTORY("View inventory. The first change of inventory cost an action. You can perfrom as many subsequent inventory actions for free for the rest of the round."), // equip things, drop things, etc.
+    TRADE("Like inventory the first trade costs an action and subsequent trades are free for the rest of the round. You can only trade with players in your zone and if the zone is free of zombies."),
+    WALK("Walk to a different zone at the cost of 1 action."),
+    WALK_DIR(null),
+    SWITCH_ACTIVE_CHARACTER(null),
+    USE_LEFT_HAND(null),
+    USE_RIGHT_HAND(null),
+    MELEE_ATTACK("Use an equiped melee weapon at cost of 1 action."),
+    RANGED_ATTACK("Use an equiped range weapon at cost pf 1 action."),
+    MAGIC_ATTACK("Use an equiped spell at cost of 1 action"),
+    THROW_ITEM("Throw an equiped item after choosing target zone."), // torch / dragon bile
+    RELOAD("Reload an equiped range weapon that requires it."),
+    OPERATE_DOOR("Spend an action to open a door. Your best option for opening a door will be chosen automatically."),
+    SEARCH("Spend an action to search area for loot."),
+    CONSUME("Spend an action to consume an item from you backpack."),
+    EQUIP(null),
+    UNEQUIP(null),
+    GIVE(null),
+    TAKE(null),
+    DISPOSE("After disposing an item it is returned to the searchables deck."),
+    TAKE_OBJECTIVE("Zones that contain an 'X' are objectives. Take an objective to claim its EXP and whatever else might be associated with it like keys ot special loot."),
     // drop or collect items from vault
-    DROP_ITEM,
-    PICKUP_ITEM,
-    MAKE_NOISE,
-    SHOVE,
-    REROLL,
-    KEEP_ROLL,
-    ENCHANT,
-    BORN_LEADER,
-    BLOODLUST_MELEE,
-    BLOODLUST_RANGED,
-    BLOODLUST_MAGIC;
+    DROP_ITEM("Dropping an item in the vault allows anyone to pick it up later."),
+    PICKUP_ITEM("Take an item from the vault into your inventory or open equipable slot."),
+    MAKE_NOISE("Spend an action to draw zombies toward you. Zombies that have line of sight to a different player will not be affected by make noise."),
+    SHOVE("Push all zombies in your zone to a neighboring zone."),
+    REROLL(null),
+    KEEP_ROLL(null),
+    ENCHANT("Spend n action to cast a spell on a coplayer who is line of sight to yourself."),
+    BORN_LEADER("You can give one of your own actions to another player of your choice."),
+    BLOODLUST_MELEE("Spend an action to move up to 2 zones and perform melee."),
+    BLOODLUST_RANGED("Spend an action to move up to 2 zones and perform ranged."),
+    BLOODLUST_MAGIC("Spend an action to move up to 2 spaces and perform magic.");
+
+    final String toolTipText;
+
+    ZMoveType(String toolTipText) {
+        this.toolTipText = toolTipText;
+    }
+
+    @Override
+    public String getLabel() {
+        return Utils.toPrettyString(name());
+    }
+
+    @Override
+    public String getTooltipText() {
+        return toolTipText;
+    }
 
     public ZActionType getActionType(ZWeapon slot) {
         switch (this) {
@@ -46,9 +63,9 @@ public enum ZMoveType {
                 return ZActionType.MAGIC;
             case RANGED_ATTACK:
                 if (slot.type.usesArrows)
-                    return ZActionType.RANGED_ARROWS;
+                    return ZActionType.ARROWS;
                 else if (slot.type.usesBolts)
-                    return ZActionType.RANGED_BOLTS;
+                    return ZActionType.BOLTS;
                 break;
             case MELEE_ATTACK:
                 return ZActionType.MELEE;

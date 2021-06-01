@@ -9,21 +9,30 @@ public class OverlayTextAnimation extends ZAnimation {
     final String text;
 
     public OverlayTextAnimation(String text) {
-        super(2000);
+        super(3000);
         this.text = text;
     }
     @Override
     protected void draw(AGraphics g, float position, float dt) {
-        int cx = g.getViewportWidth()/2;
-        int cy = g.getViewportHeight()/2;
+        float cx = g.getViewportWidth()/2;
+        float cy0 = g.getViewportHeight()/2;
+
+        float cy1 = g.getViewportHeight()/3;
 
         float minHeight = 32;
         float maxHeight = 48;
 
-        GColor color = GColor.GREEN.withAlpha(1f-position);
+        GColor color = GColor.GREEN;
+        if (position > .5f) {
+            float alpha = 1f - 2f * (position - .5f);
+            color = color.withAlpha(alpha);
+        }
+
+        g.setColor(color);
         float curHeight = g.getTextHeight();
         g.setTextHeight(minHeight + (maxHeight-minHeight)*position);
-        g.drawJustifiedString(cx, cy, Justify.CENTER, Justify.CENTER, text);
+        float cy = cy0 + (cy1-cy0) * position;
+        g.drawJustifiedString(cx, cy, Justify.CENTER, Justify.BOTTOM, text);
         g.setTextHeight(curHeight);
     }
 }

@@ -166,7 +166,7 @@ public abstract class UIZombicide extends ZGame {
 
     @Override
     protected void onZombieSpawned(ZZombie zombie) {
-        zombie.addAnimation(new SpawnAnimation(zombie));
+        zombie.addAnimation(new SpawnAnimation(zombie, board));
     }
 
     @Override
@@ -281,7 +281,7 @@ public abstract class UIZombicide extends ZGame {
             Lock animLock = new Lock(numDice);
             float currentZoom = boardRenderer.getZoomPercent();
             if (currentZoom < 1)
-                attacker.addAnimation(ZoomAnimation.build(attacker, boardRenderer, board));
+                attacker.addAnimation(new ZoomAnimation(attacker, boardRenderer, 1));
             for (int i=0; i<numDice; i++) {
                 attacker.addAnimation(new MeleeAnimation(attacker, board) {
                     @Override
@@ -514,7 +514,8 @@ public abstract class UIZombicide extends ZGame {
     @Override
     public void loadQuest(ZQuests quest) {
         super.loadQuest(quest);
-        boardRenderer.setOverlay(getQuest().getObjectivesOverlay(this));
+        //boardRenderer.setOverlay(getQuest().getObjectivesOverlay(this));
+        boardRenderer.addOverlay(new OverlayTextAnimation(quest.getDisplayName()));
     }
 
 }

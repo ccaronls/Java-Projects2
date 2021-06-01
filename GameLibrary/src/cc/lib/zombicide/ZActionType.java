@@ -1,6 +1,7 @@
 package cc.lib.zombicide;
 
 import cc.lib.annotation.Keep;
+import cc.lib.game.Utils;
 
 @Keep
 public enum ZActionType {
@@ -10,8 +11,8 @@ public enum ZActionType {
     OPEN_DOOR,
     CLOSE_DOOR,
     MELEE,
-    RANGED_BOLTS,
-    RANGED_ARROWS,
+    BOLTS,
+    ARROWS,
     MAGIC,
     THROW_ITEM,
     ENCHANTMENT,
@@ -44,8 +45,8 @@ public enum ZActionType {
     public boolean breaksInvisibility() {
         switch (this) {
             case MELEE:
-            case RANGED_BOLTS:
-            case RANGED_ARROWS:
+            case BOLTS:
+            case ARROWS:
             case MAGIC:
             case SHOVE:
             case OPEN_DOOR:
@@ -58,8 +59,8 @@ public enum ZActionType {
 
     public boolean isRanged() {
         switch (this) {
-            case RANGED_ARROWS:
-            case RANGED_BOLTS:
+            case ARROWS:
+            case BOLTS:
                 return true;
         }
         return false;
@@ -71,5 +72,9 @@ public enum ZActionType {
                 return true;
         }
         return false;
+    }
+
+    public String getLabel() {
+        return Utils.toPrettyString(name());
     }
 }

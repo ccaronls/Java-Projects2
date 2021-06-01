@@ -84,4 +84,8 @@ public enum ZZombieType {
 
     public int [] imageOptions=null;
     public GDimension [] imageDims=null;
+
+    public String getDescription() {
+        return description;
+    }
 }

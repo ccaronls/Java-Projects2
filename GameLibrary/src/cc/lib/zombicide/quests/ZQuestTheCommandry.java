@@ -85,8 +85,8 @@ public class ZQuestTheCommandry extends ZQuest {
     }
 
     @Override
-    public boolean isQuestComplete(ZGame game) {
-        return isAllPlayersInExit(game);
+    public int getPercentComplete(ZGame game) {
+        return isAllPlayersInExit(game) ? 100 : 0;
     }
 
     @Override
