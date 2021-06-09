@@ -115,14 +115,9 @@ public class ZQuestTheBlackBook extends ZQuest {
         int numTasks = getAllVaultOptions().size() + 1 + ZSkillLevel.RED.ordinal();
         int numCompleted = blackBookZone < 0 ? 1 : 0;
         numCompleted += getNumFoundVaultItems();
-        numCompleted -= game.getHighestSkillLevel().ordinal();
+        numCompleted += game.getHighestSkillLevel().ordinal();
 
-        return numTasks * 100 / numCompleted;
-    }
-
-    @Override
-    public boolean isQuestFailed(ZGame game) {
-        return false;
+        return numCompleted * 100 / numTasks;
     }
 
     @Override

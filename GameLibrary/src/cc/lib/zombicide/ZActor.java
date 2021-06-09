@@ -3,6 +3,7 @@ package cc.lib.zombicide;
 import cc.lib.game.AGraphics;
 import cc.lib.game.GDimension;
 import cc.lib.game.GRectangle;
+import cc.lib.game.Utils;
 import cc.lib.utils.Grid;
 import cc.lib.utils.Reflector;
 import cc.lib.zombicide.ui.UIZButton;
@@ -49,6 +50,7 @@ public abstract class ZActor<E extends Enum<E>> extends Reflector<ZActor<E>> imp
 
     protected boolean performAction(ZActionType action, ZGame game) {
         actionsLeftThisTurn-=action.costPerTurn();
+        Utils.assertTrue(actionsLeftThisTurn >= 0);
         return false;
     }
 

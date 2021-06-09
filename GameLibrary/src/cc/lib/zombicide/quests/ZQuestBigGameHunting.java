@@ -9,11 +9,14 @@ import cc.lib.zombicide.ZBoard;
 import cc.lib.zombicide.ZCell;
 import cc.lib.zombicide.ZCellType;
 import cc.lib.zombicide.ZCharacter;
+import cc.lib.zombicide.ZEquipmentType;
 import cc.lib.zombicide.ZGame;
+import cc.lib.zombicide.ZItemType;
 import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZQuest;
 import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZTile;
+import cc.lib.zombicide.ZWeaponType;
 import cc.lib.zombicide.ZZombieType;
 import cc.lib.zombicide.ZZone;
 
@@ -129,11 +132,11 @@ public class ZQuestBigGameHunting extends ZQuest {
             numCompleted++;
         if (game.getNumKills(ZZombieType.Necromancer) > 0)
             numCompleted++;
-        return numTasks * 100 / numCompleted;
+        return numCompleted * 100 / numTasks;
     }
 
     @Override
-    public boolean isQuestFailed(ZGame game) {
-        return game.getAllLivingCharacters().size() == 0;
+    public List<ZEquipmentType> getAllVaultOptions() {
+        return Utils.asList(ZWeaponType.INFERNO, ZWeaponType.ORCISH_CROSSBOW, ZItemType.DRAGON_BILE, ZItemType.DRAGON_BILE);
     }
 }

@@ -123,7 +123,7 @@ public class ZWeapon extends ZEquipment<ZWeaponType> {
                 "Reloads"));
 
         for (ZActionType at : ZActionType.values()) {
-            ZWeaponStat stats = c.getWeaponStat(this, at, game);
+            ZWeaponStat stats = c.getWeaponStat(this, at, game, -1);
             if (stats != null) {
                 String doorInfo = "";
                 if (stats.dieRollToOpenDoor > 0) {

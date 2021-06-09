@@ -1,5 +1,7 @@
 package cc.lib.utils;
 
+import cc.lib.game.Utils;
+
 /**
  * Counting lock. Allows for blocking a thread until some number of tasks are completed.
  *
@@ -45,6 +47,13 @@ public final class Lock {
         if (holders == 0) {
             notify();
         }
+    }
+
+    public void releaseDelayed(long ms) {
+        new Thread(() -> {
+            Utils.waitNoThrow(this, ms);
+            release();
+        }).start();
     }
 
     public int getHolders() {

@@ -5,7 +5,7 @@ import cc.lib.ui.IButton;
 import cc.lib.utils.Reflector;
 import cc.lib.utils.Table;
 
-public abstract class ZEquipment<T extends Enum<T>> extends Reflector<ZEquipment<T>> implements IButton {
+public abstract class ZEquipment<T extends Enum<T>> extends Reflector<ZEquipment<T>> implements IButton, Comparable<ZEquipment> {
 
     static {
         addAllFields(ZEquipment.class);
@@ -64,6 +64,11 @@ public abstract class ZEquipment<T extends Enum<T>> extends Reflector<ZEquipment
             return false;
         }
         return getType().equals(((ZEquipment)o).getType());
+    }
+
+    @Override
+    public int compareTo(ZEquipment o) {
+        return getLabel().compareTo(o.getLabel());
     }
 
     @Override

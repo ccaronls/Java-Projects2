@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
+import cc.lib.game.AGraphics;
 import cc.lib.game.Utils;
 import cc.lib.utils.Grid;
 import cc.lib.utils.Reflector;
@@ -295,10 +296,11 @@ public abstract class ZQuest extends Reflector<ZQuest> {
 
     /**
      *
-     * @param game
-     * @return
+     * @return null if game not failed, otherwise a failed reason
      */
-    public abstract boolean isQuestFailed(ZGame game);
+    public String getQuestFailedReason(ZGame game) {
+        return null;
+    }
 
     /**
      *
@@ -410,5 +412,13 @@ public abstract class ZQuest extends Reflector<ZQuest> {
 
     protected int getNumStartRedObjectives() {
         return this.numStartRedObjectives;
+    }
+
+    public void onDragonBileExploded(ZCharacter c, int zoneIdx) {}
+
+    public void drawQuest(ZGame game, AGraphics g) {}
+
+    public void onNecromancerEscaped(ZGame game, ZZombie z) {
+        game.gameLost("Necromancer Escaped");
     }
 }

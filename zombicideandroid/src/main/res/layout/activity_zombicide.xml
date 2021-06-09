@@ -98,7 +98,7 @@
             android:id="@+id/console_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:borderThickness="2dp"
+            app:borderThickness="0dp"
             app:borderColor="@color/black_overlay"/>
     </ScrollView>
 
@@ -110,5 +110,17 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/sv_console"
         app:layout_constraintBottom_toBottomOf="parent"/>
+
+    <ToggleButton
+        android:id="@+id/b_toggleConsole"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/expand_collapse_window"
+        android:button="@null"
+        android:textOn="@null"
+        android:textOff="@null"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
 
 </android.support.constraint.ConstraintLayout>

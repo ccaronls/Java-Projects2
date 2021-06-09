@@ -12,7 +12,7 @@ public enum ZSkill implements IButton {
     Plus1_Action("The Survivor has an extra Action he may use as he pleases."),
     Plus1_Damage_Melee("The Survivor gets a +1 Damage bonus with Melee weapons.") {
         @Override
-        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game) {
+        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game, int targetZone) {
             if (actionType == ZActionType.MELEE) {
                 stat.damagePerHit++;
             }
@@ -20,7 +20,7 @@ public enum ZSkill implements IButton {
     },
     Plus1_Damage_Ranged("The Survivor gets a +1 Damage bonus with Ranged weapons.") {
         @Override
-        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game) {
+        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game, int targetZone) {
             if (actionType == ZActionType.BOLTS || actionType == ZActionType.ARROWS) {
                 stat.damagePerHit++;
             }
@@ -28,7 +28,7 @@ public enum ZSkill implements IButton {
     },
     Plus1_Damage_Magic("The Survivor gets a +1 Damage bonus with Magic weapons.") {
         @Override
-        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game) {
+        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game, int targetZone) {
             if (actionType == ZActionType.MAGIC) {
                 stat.damagePerHit++;
             }
@@ -37,13 +37,13 @@ public enum ZSkill implements IButton {
     //Plus1_Damage_with("[Equipment] – The Survivor gets a +1 Damage bonus with the specified Equipment."),
     Plus1_to_dice_roll_Combat("The Survivor adds 1 to the result of each die he rolls on a Combat Action (Melee, Ranged or Magic). The maximum result is always 6.") {
         @Override
-        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game) {
+        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game, int targetZone) {
             stat.dieRollToHit--;
         }
     },
     Plus1_to_dice_roll_Magic("The Survivor adds 1 to the result of each die he rolls on a Magic Action. The maximum result is always 6.") {
         @Override
-        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game) {
+        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game, int targetZone) {
             if (actionType == ZActionType.MAGIC) {
                 stat.dieRollToHit--;
             }
@@ -51,7 +51,7 @@ public enum ZSkill implements IButton {
     },
     Plus1_to_dice_roll_Melee("The Survivor adds 1 to the result of each die he rolls in Melee Actions. The maximum result is always 6.") {
         @Override
-        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game) {
+        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game, int targetZone) {
             if (actionType == ZActionType.MELEE) {
                 stat.dieRollToHit--;
             }
@@ -59,7 +59,7 @@ public enum ZSkill implements IButton {
     },
     Plus1_to_dice_roll_Ranged("The Survivor adds 1 to the result of each die he rolls in Ranged Actions. The maximum result is always 6.") {
         @Override
-        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game) {
+        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game, int targetZone) {
             if (actionType == ZActionType.BOLTS || actionType == ZActionType.ARROWS) {
                 stat.dieRollToHit--;
             }
@@ -67,13 +67,13 @@ public enum ZSkill implements IButton {
     },
     Plus1_die_Combat("The Survivor’s weapons and Combat spells roll an extra die in Combat (Melee, Ranged or Magic). Dual weapons and spells gain a die each, for a total of +2 dice per Dual Combat Action.") {
         @Override
-        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game) {
+        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game, int targetZone) {
             stat.numDice++;
         }
     },
     Plus1_die_Magic("The Survivor’s Combat spells roll an extra die for Magic Actions. Dual Combat spells gain a die each, for a total of +2 dice per Dual Magic Action.") {
         @Override
-        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game) {
+        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game, int targetZone) {
             if (actionType == ZActionType.MAGIC) {
                 stat.numDice++;
             }
@@ -81,7 +81,7 @@ public enum ZSkill implements IButton {
     },
     Plus1_die_Melee("The Survivor’s Melee weapons roll an extra die for Melee Actions. Dual Melee weapons gain a die each, for a total of +2 dice per Dual Melee Action.") {
         @Override
-        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game) {
+        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game, int targetZone) {
             if (actionType == ZActionType.MELEE) {
                 stat.numDice++;
             }
@@ -89,7 +89,7 @@ public enum ZSkill implements IButton {
     },
     Plus1_die_Ranged("The Survivor’s Ranged weapons roll an extra die for Ranged Actions. Dual Ranged weapons gain a die each, for a total of +2 dice per Dual Ranged Action.") {
         @Override
-        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game) {
+        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game, int targetZone) {
             if (actionType == ZActionType.BOLTS || actionType == ZActionType.ARROWS) {
                 stat.numDice++;
             }
@@ -171,7 +171,7 @@ public enum ZSkill implements IButton {
     },
     Plus1_max_Range("The Survivor’s Ranged weapons and Combat spells’ maximum Range is increased by 1.") {
         @Override
-        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game) {
+        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game, int targetZone) {
             stat.maxRange++;
         }
     },
@@ -189,7 +189,7 @@ public enum ZSkill implements IButton {
     Ambidextrous("The Survivor treats all Combat spells, Melee and Ranged weapons as if they had the Dual symbol."),
     Barbarian("When resolving a Melee Action, the Survivor may substitute the Dice number of the Melee weapon(s) he uses with the number of Zombies standing in the targeted Zone. Skills affecting the dice value, like +1 die: Melee, still apply.") {
         @Override
-        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game) {
+        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game, int targetZone) {
             if (actionType == ZActionType.MELEE) {
                 int num = game.getBoard().getZombiesInZone(character.occupiedZone).size();
                 stat.numDice = Math.max(num, stat.numDice);
@@ -307,13 +307,13 @@ public enum ZSkill implements IButton {
     },
     Frenzy_Combat("All weapons and Combat spells the Survivor carries gain +1 die per Wound the Survivor suffers. Dual weapons gain a die each, for a total of +2 dice per Wound and per Dual Combat Action (Melee, Ranged or Magic).") {
         @Override
-        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game) {
+        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game, int targetZone) {
             stat.numDice += character.woundBar;
         }
     },
     Frenzy_Magic("Combat spells the Survivor carries gain +1 die per Wound the Survivor suffers. Dual Combat spells gain a die each, for a total of +2 dice per Wound and per Dual Magic Action.") {
         @Override
-        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game) {
+        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game, int targetZone) {
             if (actionType == ZActionType.MAGIC) {
                 stat.numDice += character.woundBar;
             }
@@ -321,7 +321,7 @@ public enum ZSkill implements IButton {
     },
     Frenzy_Melee("Melee weapons the Survivor carries gain +1 die per Wound the Survivor suffers. Dual Melee weapons gain a die each, for a total of +2 dice per Wound and per Dual Melee Action.") {
         @Override
-        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game) {
+        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game, int targetZone) {
             if (actionType == ZActionType.MELEE) {
                 stat.numDice += character.woundBar;
             }
@@ -329,7 +329,7 @@ public enum ZSkill implements IButton {
     },
     Frenzy_Ranged("Ranged weapons the Survivor carries gain +1 die per Wound the Survivor suffers. Dual Ranged weapons gain a die each, for a total of +2 dice per Wound and per Dual Ranged Action.") {
         @Override
-        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game) {
+        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game, int targetZone) {
             if (actionType == ZActionType.BOLTS || actionType == ZActionType.ARROWS) {
                 stat.numDice += character.woundBar;
             }
@@ -355,7 +355,23 @@ public enum ZSkill implements IButton {
     Ironclad_Abomination("The Survivor ignores all Wounds coming from Abominations"),
     Iron_hide("The Survivor can make Armor rolls with a 5+ Armor value, even when he does not wear an armor on his Body slot. Wearing an armor, the Survivor adds 1 to the result of each die he rolls for Armor rolls. The maximum result is always 6."),
     Steel_hide("The Survivor can make Armor rolls with a 4+ Armor value, even when he does not wear an armor on his Body slot. Wearing an armor, the Survivor adds 1 to the result of each die he rolls for Armor rolls. The maximum result is always 6."),
-    Iron_rain("When resolving a Ranged Action, the Survivor may substitute the Dice number of the Ranged weapon(s) he uses with the number of Zombies standing in the targeted Zone. Skills affecting the dice value, like +1 die: Ranged, still apply. Is that all you’ve got? – You can use this Skill any time the Survivor is about to get Wounds. Discard one Equipment card in your Survivor’s inventory for each Wound he’s about to receive. Negate a Wound per discarded Equipment card."),
+    Iron_rain("When resolving a Ranged Action, the Survivor may substitute the Dice number of the Ranged weapon(s) he uses with the number of Zombies standing in the targeted Zone. Skills affecting the dice value, like +1 die: Ranged, still apply. ") {
+        @Override
+        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game, int targetZone) {
+            switch (actionType) {
+                case ARROWS:
+                case BOLTS:
+                    int numInZone = game.getBoard().getZombiesInZone(targetZone).size();
+                    if (numInZone > stat.numDice) {
+                        game.getCurrentUser().showMessage(String.format("%s applied Iron Rain!", character.getLabel()));
+                        game.onIronRain(character, targetZone);
+                        stat.numDice = numInZone;
+                    }
+                    break;
+            }
+        }
+    },
+//    Is_that_all_you_got("You can use this Skill any time the Survivor is about to get Wounds. Discard one Equipment card in your Survivor’s inventory for each Wound he’s about to receive. Negate a Wound per discarded Equipment card."),
     Jump("The Survivor can use this Skill once during each Activation. The Survivor spends one Action: He moves two Zones into a Zone to which he has Line of Sight. Movement related Skills (like +1 Zone per Move Action or Slippery) are ignored, but Movement penalties (like having Zombies in the starting Zone) apply. Ignore everything in the intervening Zone."),
     Lifesaver("The Survivor can use this Skill, for free, once during each of his Turns. Select a Zone containing at least one Zombie at Range 1 from your Survivor. Choose Survivors in the selected Zone to be dragged to your Survivor’s Zone without penalty. This is not a Move Action. A Survivor can decline the rescue and stay in the selected Zone if his controller chooses. Both Zones need to share a clear path. A Survivor can’t cross closed doors or walls, and can’t be extracted into or out of a Vault."),
     Lock_it_down("At the cost of one Action, the Survivor can close an open door in his Zone. Opening or destroying it again later does not trigger a new Zombie Spawn.") {
@@ -468,7 +484,7 @@ public enum ZSkill implements IButton {
     Sprint("The Survivor can use this Skill once during each of his Turns. Spend one Move Action with the Survivor: He may move two or three Zones instead of one. Entering a Zone containing Zombies ends the Survivor’s Move Action."),
     Super_strength("Consider the Damage value of Melee weapons used by the Survivor to be 3.") {
         @Override
-        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game) {
+        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game, int targetZone) {
             if (actionType == ZActionType.MELEE) {
                 stat.damagePerHit = 3;
             }
@@ -523,7 +539,7 @@ public enum ZSkill implements IButton {
      * @param character
      * @param game
      */
-    public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game) {
+    public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game, int targetZone) {
 
     }
 

@@ -9,9 +9,9 @@
         android:configChanges="orientation|keyboardHidden|screenSize"
         android:roundIcon="@mipmap/zicon"
         android:supportsRtl="true"
-        android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen">
+        android:theme="@style/ZAppTheme">
         <activity android:name=".Splash"
-            android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
+            android:theme="@style/ZAppTheme"
             android:screenOrientation="sensorLandscape">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -23,7 +23,7 @@
             android:name=".ZombicideActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:screenOrientation="sensorLandscape"
-            android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen">
+            android:theme="@style/ZAppTheme">
             <!--
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

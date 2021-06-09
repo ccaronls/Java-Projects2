@@ -2,4 +2,5 @@
     <string name="app_name">Zombies! Hide!</string>
     <string name="dummy_button">Dummy Button</string>
     <string name="dummy_content">DUMMY\nCONTENT</string>
+    <string name="welcome_msg">Thank you for playing \'Zombies! Hide!\'\n\nAll code written by Chris Caron\n\nTo report bugs or send feedback please send email to ccaronsoftware@gmail.com</string>
 </resources>

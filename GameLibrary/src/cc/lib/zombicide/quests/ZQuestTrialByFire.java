@@ -67,11 +67,6 @@ public class ZQuestTrialByFire extends ZQuest {
     }
 
     @Override
-    public boolean isQuestFailed(ZGame game) {
-        return false;
-    }
-
-    @Override
     public ZTile[] getTiles(ZBoard board) {
         return new ZTile[] {
                 //9V

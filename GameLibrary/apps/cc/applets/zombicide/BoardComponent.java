@@ -304,7 +304,7 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
                     loadedTiles[i] = g.loadImage("ztile_" + tiles[i].id + ".png", tiles[i].orientation);
                     numTilesLoaded ++;
                     repaint();
-                    Utils.waitNoThrow(this, 500);
+//                    Utils.waitNoThrow(this, 500);
                 }
                 renderer.onTilesLoaded(loadedTiles);
                 numTilesLoaded++;

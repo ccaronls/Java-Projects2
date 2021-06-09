@@ -58,11 +58,6 @@ public class ZQuestTheShepherds extends ZQuest {
     }
 
     @Override
-    public boolean isQuestFailed(ZGame game) {
-        return false;
-    }
-
-    @Override
     public ZTile[] getTiles(ZBoard board) {
         return new ZTile[] {
                 new ZTile("1R", 90, ZTile.getQuadrant(0, 0, board)),

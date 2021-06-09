@@ -95,7 +95,7 @@ public class ZQuestFamine extends ZQuest {
         if (isAllLockedInVault(game)) {
             numCompleted++;
         }
-        return numTasks * 100 / numCompleted;
+        return numCompleted * 100 / numTasks;
     }
 
     boolean isAllLockedInVault(ZGame game) {
@@ -120,11 +120,6 @@ public class ZQuestFamine extends ZQuest {
         }
 
         return true;
-    }
-
-    @Override
-    public boolean isQuestFailed(ZGame game) {
-        return false;
     }
 
     @Override

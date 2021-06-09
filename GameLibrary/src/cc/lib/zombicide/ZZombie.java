@@ -5,7 +5,7 @@ import cc.lib.game.GDimension;
 import cc.lib.game.Utils;
 import cc.lib.utils.Table;
 
-public final class ZZombie extends ZActor<ZZombieType> {
+public final class ZZombie extends ZActor<ZZombieType> implements Comparable<ZZombie> {
 
     static {
         addAllFields(ZZombie.class);
@@ -100,6 +100,14 @@ public final class ZZombie extends ZActor<ZZombieType> {
 
     public String getDescription() {
         return type.description;
+    }
+
+    @Override
+    public int compareTo(ZZombie o) {
+        if (o.type.minDamageToDestroy == type.minDamageToDestroy) {
+            return Integer.compare(type.ordinal(), o.type.ordinal());
+        };
+        return Integer.compare(type.minDamageToDestroy, o.type.minDamageToDestroy);
     }
 }
 

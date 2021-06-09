@@ -44,7 +44,7 @@ public enum ZZombieType {
             "its Zone and ignite it with a Torch, creating a Dragon Fire.\n" +
             "Samson can also achieve this at Red Level, using a\n" +
             "Damage 2 Melee weapon in conjunction with his +1 Damage"),
-    Necromancer( 1, 1, 0, false, 4,
+    Necromancer( 1, 1, 1, false, 4,
     "Everyone’s heard the children’s\n" +
             "stories, of the necromancers that\n" +
             "live in the woods, that’ll steal little\n" +

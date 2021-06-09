@@ -47,6 +47,7 @@ import cc.lib.zombicide.ZSpell;
 import cc.lib.zombicide.ZTile;
 import cc.lib.zombicide.ZWeapon;
 import cc.lib.zombicide.ZWeaponStat;
+import cc.lib.zombicide.ZZombie;
 import cc.lib.zombicide.ZZone;
 import cc.lib.zombicide.anims.ZoomAnimation;
 
@@ -154,7 +155,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                 case MAGIC_ATTACK:
                     for (ZWeapon w : (List<ZWeapon>)move.list) {
                         ZActionType actionType = move.type.getActionType(w);
-                        ZWeaponStat stat = cur.getWeaponStat(w, actionType, getGame());
+                        ZWeaponStat stat = cur.getWeaponStat(w, actionType, getGame(), -1);
                         if (stat.getMinRange() == 0) {
                             addClickable(cur.getRect(), new ZMove(move, w, cur.getOccupiedZone()));
                         }
@@ -490,7 +491,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
         Vector2D v1 = cell.getTopRight().subEq(center);
         g.scale(scale);
 
-        final GColor doorColor = GColor.BROWN;
+        final GColor doorColor = GColor.ORANGE;
 
         for (ZDir dir : ZDir.getCompassValues()) {
             Vector2D dv = v1.sub(v0).scaleEq(.33f);
@@ -622,7 +623,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                 continue;
             switch (cell.getEnvironment()) {
                 case ZCell.ENV_BUILDING:
-                    g.setColor(GColor.ORANGE); break;
+                    g.setColor(GColor.DARK_GRAY); break;
                 case ZCell.ENV_OUTDOORS:
                     g.setColor(GColor.LIGHT_GRAY); break;
                 case ZCell.ENV_VAULT:
@@ -869,15 +870,32 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
         }
     }
 
+    private void drawNoBoard(AGraphics g) {
+        g.clearScreen(GColor.WHITE);
+        Vector2D cntr = new Vector2D(g.getViewportWidth()/2, g.getViewportHeight()/2);
+        GDimension minDim = new GDimension(g.getViewportWidth()/4, g.getViewportHeight()/4);
+        GDimension maxDim = new GDimension(g.getViewportWidth()/2, g.getViewportHeight()/2);
+        GRectangle rect = new GRectangle().withDimension(minDim.interpolateTo(maxDim, 1)).withCenter(cntr);
+        //g.setColor(GColor.RED);
+        //rect.drawOutlined(g, 5);
+        AImage img = g.getImage(ZIcon.GRAVESTONE.imageIds[0]);
+        g.drawImage(ZIcon.GRAVESTONE.imageIds[0], rect.fit(img));
+
+    }
+
     @Override
     public void draw(APGraphics g, int mouseX, int mouseY) {
+        UIZombicide game = getGame();
+        ZBoard board = getBoard();
+        if (board == null) {
+            drawNoBoard(g);
+            return;
+        }
         highlightedActor = null;
         highlightedCell = null;
         highlightedResult = null;
         highlightedDoor = null;
 
-        UIZombicide game = getGame();
-        ZBoard board = getBoard();
         g.setIdentity();
 
         IVector2D center = getBoardCenter();
@@ -901,6 +919,8 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
             }
         }
 
+        game.getQuest().drawQuest(game, g);
+
         int highlightedZone = drawZones(g, mouse.X(), mouse.Y());
         boolean drawAnimating = game.isGameOver();
 
@@ -908,6 +928,34 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
 
         highlightedActor = //board.drawActors(g, getMouseX(), getMouseY());
                 drawActors(g, game, mouse.X(), mouse.Y(), drawAnimating || overlayToDraw == null);
+
+        if (DEBUG_DRAW_ZONE_INFO) {
+            if (highlightedActor instanceof ZZombie) {
+                List<ZDir> path = null;
+                ZZombie z = (ZZombie)highlightedActor;
+                switch (z.getType()) {
+                    case Walker:
+                    case Fatty:
+                    case Runner:
+                    case Abomination:
+                        path = game.getZombiePathTowardVisibleCharactersOrLoudestZone(z);
+                        break;
+                    case Necromancer:
+                        path = game.getZombiePathTowardNearestSpawn(z);
+                        break;
+                }
+                g.begin();
+                g.setColor(GColor.YELLOW)   ;
+                final Vector2D start = z.getRect().getCenter();
+                g.vertex(start);
+                MutableVector2D next = new MutableVector2D(start);
+                for (ZDir dir : path) {
+                    next.addEq(dir.dx, dir.dy);
+                    g.vertex(next);
+                }
+                g.drawLineStrip(3);
+            }
+        }
 
         drawAnimations(postActor, g);
 
@@ -966,9 +1014,9 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
         game.characterRenderer.redraw();
         drawAnimations(overlayAnimations, g);
 
-        if (game.isGameOver() && overlayToDraw == null && !isAnimating()) {
-            setOverlay(game.getGameSummaryTable());
-        }
+        //if (game.isGameOver() && overlayToDraw == null && !isAnimating()) {
+        //    setOverlay(game.getGameSummaryTable());
+        //}
 
         drawOverlay(g);
 
@@ -1016,7 +1064,14 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                 g.setColor(GColor.WHITE);
                 g.drawWrapStringOnBackground(getWidth()/2, getHeight()/2, getWidth()/2, Justify.CENTER, Justify.CENTER, (String)overlayToDraw, GColor.TRANSLUSCENT_BLACK, 10);
             } else if (overlayToDraw instanceof ZAnimation) {
-
+                ZAnimation a = (ZAnimation)overlayToDraw;
+                if (!a.isStarted()) {
+                    a.start();
+                }
+                if (!a.isDone()) {
+                    a.update(g);
+                    redraw();
+                }
             } else if (overlayToDraw instanceof AImage) {
 
             }

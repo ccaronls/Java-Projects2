@@ -123,6 +123,7 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
                 }
 
                 if (isGameOver()) {
+                    stopGameThread();
                     initHomeMenu();
                 }
             }
@@ -150,6 +151,7 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
             e.printStackTrace();
             game.loadQuest(ZQuests.Tutorial);
         }
+        game.showObjectivesOverlay();
         game.setDifficulty(ZDiffuculty.valueOf(getStringProperty("difficulty", ZDiffuculty.MEDIUM.name())));
         initHomeMenu();
     }
@@ -239,6 +241,7 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
                 for (ZQuests q : ZQuests.values()) {
                     menu.add(new AWTButton(q.name().replace('_', ' '), e12 -> {
                         game.loadQuest(q);
+                        game.showObjectivesOverlay();
                         setStringProperty("quest", q.name());
                         boardComp.repaint();
                         initHomeMenu();

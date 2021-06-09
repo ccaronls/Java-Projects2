@@ -19,7 +19,7 @@ import cc.lib.math.Vector2D;
 import cc.lib.ui.UIComponent;
 import cc.lib.ui.UIRenderer;
 
-public abstract class UIComponentView<T extends UIRenderer> extends View implements UIComponent {
+public abstract class UIComponentView<T extends UIRenderer> extends View implements UIComponent, Runnable {
 
 
     private DroidGraphics g;
@@ -122,6 +122,14 @@ public abstract class UIComponentView<T extends UIRenderer> extends View impleme
     boolean dragging = false;
 
     @Override
+    public final void run() {
+        if (!dragging && touchDownX >= 0) {
+            renderer.onDragStart(touchDownX, touchDownY);
+            dragging = true;
+        }
+    }
+
+    @Override
     public boolean onTouchEvent(MotionEvent event) {
 
         if (renderer == null)
@@ -131,15 +139,7 @@ public abstract class UIComponentView<T extends UIRenderer> extends View impleme
                 downTime = SystemClock.uptimeMillis();
                 tx = Math.round(touchDownX = event.getX());
                 ty = Math.round(touchDownY = event.getY());
-                postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (!dragging && touchDownX >= 0) {
-                            renderer.onDragStart(touchDownX, touchDownY);
-                            dragging = true;
-                        }
-                    }
-                }, CLICK_TIME);
+                postDelayed(this, CLICK_TIME);
                 break;
             case MotionEvent.ACTION_UP:
                 touchDownX = touchDownY = tx = ty = -1;

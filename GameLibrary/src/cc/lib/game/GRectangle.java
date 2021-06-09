@@ -306,6 +306,10 @@ public final class GRectangle extends Reflector<GRectangle> implements IRectangl
      * @return
      */
     public GRectangle addEq(GRectangle g) {
+        if (w == 0 || h == 0) {
+            copyFrom(g);
+            return this;
+        }
         Vector2D tl = getTopLeft().minEq(g.getTopLeft());
         Vector2D br = getBottomRight().maxEq(g.getBottomRight());
         set(tl, br);

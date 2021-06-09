@@ -294,7 +294,7 @@ public class ZBoard extends Reflector<ZBoard> implements IDimension {
 
     public void setSpawnZone(int zoneIdx, boolean isSpawn) {
         ZZone zone = zones.get(zoneIdx);
-        zone.setSpawn(isSpawn);
+        zone.setSpawnType(isSpawn ? ZSpawnType.NECRO : ZSpawnType.NONE);
         getCell(zone.cells.get(0)).setCellType(ZCellType.SPAWN_NORTH, true);
     }
 
@@ -428,6 +428,8 @@ public class ZBoard extends Reflector<ZBoard> implements IDimension {
     }
 
     public List<ZActor> getActorsInZone(int zoneIndex) {
+        if (zoneIndex < 0)
+            return Collections.emptyList();
         List<ZActor> actors = new ArrayList<>();
         for (Grid.Pos cellPos : zones.get(zoneIndex).cells) {
             for (ZActor a : getCell(cellPos).getOccupant()) {

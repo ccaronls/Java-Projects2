@@ -25,8 +25,8 @@ public class ZZone extends Reflector<ZZone> implements IShape {
     final List<ZDoor> doors = new ArrayList<>();
 
     private ZZoneType type = ZZoneType.OUTDOORS;
-    private int noiseLevel;
-    private boolean spawn;
+    private int noiseLevel = 0;
+    private ZSpawnType spawnType = ZSpawnType.NONE;
     private boolean dragonBile;
     private boolean objective;
     private int nextCell = 0;
@@ -143,12 +143,21 @@ public class ZZone extends Reflector<ZZone> implements IShape {
         return objective;
     }
 
-    public boolean isSpawn() {
-        return spawn;
+    public ZSpawnType getSpawnType() {
+        return spawnType;
     }
 
-    public void setSpawn(boolean spawn) {
-        this.spawn = spawn;
+    public void setSpawnType(ZSpawnType spawnType) {
+        this.spawnType = spawnType;
+    }
+
+    public boolean isSpawn() {
+        switch (spawnType) {
+            case NECRO:
+            case NORMAL:
+                return true;
+        }
+        return false;
     }
 
     public int getNextCellAndIncrement() {

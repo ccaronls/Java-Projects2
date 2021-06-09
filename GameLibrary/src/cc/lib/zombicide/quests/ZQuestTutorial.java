@@ -152,17 +152,23 @@ public class ZQuestTutorial extends ZQuest {
 
     @Override
     public int getPercentComplete(ZGame game) {
-        if (game.getBoard().getZombiesInZone(exitZone).size() > 0)
-            return 0;
+        int numTasks = getNumStartRedObjectives() + game.getAllCharacters().size();
+        int numCompleted = getNumStartRedObjectives() - redObjectives.size();
         for (ZCharacter c : game.getAllCharacters()) {
-            if (c.getOccupiedZone() != exitZone)
-                return 0;
+            if (c.getOccupiedZone() == exitZone)
+                numCompleted++;
         }
-        return 100;
+        int percentCompleted = numCompleted*100 / numTasks;
+        if (game.getBoard().getZombiesInZone(exitZone).size() > 0)
+            percentCompleted --;
+        return percentCompleted;
     }
 
     @Override
-    public boolean isQuestFailed(ZGame game) {
-        return Utils.filter(game.getAllCharacters(), object -> object.isDead()).size() > 0;
+    public String getQuestFailedReason(ZGame game) {
+        if (Utils.filter(game.getAllCharacters(), object -> object.isDead()).size() > 0) {
+            return "Not all players survived.";
+        }
+        return super.getQuestFailedReason(game);
     }
 }

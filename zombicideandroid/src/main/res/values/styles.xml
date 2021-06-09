@@ -1,3 +1,11 @@
 <resources>
 
+    <style name="ZAppTheme" parent="@android:style/Theme.Black.NoTitleBar.Fullscreen">
+
+    </style>
+
+    <style name="ZDialogTheme" parent="@android:style/Theme.Dialog">
+        <item name="android:windowCloseOnTouchOutside">false</item>
+    </style>
+
 </resources>

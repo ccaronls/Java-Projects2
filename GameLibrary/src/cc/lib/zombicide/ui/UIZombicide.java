@@ -24,7 +24,6 @@ import cc.lib.zombicide.ZIcon;
 import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZQuest;
-import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZSkill;
 import cc.lib.zombicide.ZWeapon;
 import cc.lib.zombicide.ZZombie;
@@ -113,16 +112,23 @@ public abstract class UIZombicide extends ZGame {
     @Override
     protected void onTorchThrown(ZCharacter actor, int zone) {
         if (actor.getOccupiedZone() != zone) {
+            Lock animLock = new Lock(1);
             actor.addAnimation(new ThrowAnimation(actor, board, zone, ZIcon.TORCH) {
 
                 @Override
                 protected void onDone() {
                     super.onDone();
-                    if (board.getZone(zone).isDragonBile())
-                        boardRenderer.addPostActor(new InfernoAnimation(board, zone));
+                    if (board.getZone(zone).isDragonBile()) {
+                        boardRenderer.addPreActor(new InfernoAnimation(board, zone));
+                        animLock.releaseDelayed(1000);
+                    }
+                    else
+                        animLock.release();
                 }
             });
-            waitForAnimationToComplete(1000);
+            animLock.block();
+        } else if (board.getZone(zone).isDragonBile()) {
+            boardRenderer.addPreActor(new InfernoAnimation(board, zone).start());
         }
     }
 
@@ -236,16 +242,24 @@ public abstract class UIZombicide extends ZGame {
 
     @Override
     protected void onGameLost() {
-        boardRenderer.addOverlay(new OverlayTextAnimation("Y O U   L O S T"));
-        waitForAnimationToComplete(1000);
-        boardRenderer.setOverlay(getGameSummaryTable());
+        boardRenderer.setOverlay(new OverlayTextAnimation("Y O U   L O S T") {
+            @Override
+            protected void onDone() {
+                super.onDone();
+                boardRenderer.setOverlay(getGameSummaryTable());
+            }
+        });
     }
 
     @Override
     protected void onQuestComplete() {
-        boardRenderer.addOverlay(new OverlayTextAnimation("C O M P L E T E D"));
-        waitForAnimationToComplete(1000);
-        boardRenderer.setOverlay(getGameSummaryTable());
+        boardRenderer.setOverlay(new OverlayTextAnimation("C O M P L E T E D") {
+            @Override
+            protected void onDone() {
+                super.onDone();
+                boardRenderer.setOverlay(getGameSummaryTable());
+            }
+        });
     }
 
     @Override
@@ -486,7 +500,7 @@ public abstract class UIZombicide extends ZGame {
 
     public void tryWalk(ZDir dir) {
         ZCharacter cur = getCurrentCharacter();
-        if (cur != null) {
+        if (cur != null && cur.getActionsLeftThisTurn() > 0) {
             if (getBoard().canMove(cur, dir)) {
                 setResult(ZMove.newWalkDirMove(dir));
             }
@@ -496,7 +510,7 @@ public abstract class UIZombicide extends ZGame {
     public void trySwitchActivePlayer() {
         if (getCurrentCharacter() == null) {
             for (ZPlayerName nm : getCurrentUser().getCharacters()) {
-                if (nm.getCharacter().getActionsLeftThisTurn() > 0 || nm.getCharacter().isInventoryThisTurn()) {
+                if (nm.getCharacter().isAlive() && (nm.getCharacter().getActionsLeftThisTurn() > 0 || nm.getCharacter().isInventoryThisTurn())) {
                     setResult(nm.getCharacter());
                     break;
                 }
@@ -509,13 +523,63 @@ public abstract class UIZombicide extends ZGame {
     @Override
     protected void initQuest(ZQuest quest) {
         boardRenderer.clearTiles();
+        showQuestTitleOverlay();
     }
 
     @Override
-    public void loadQuest(ZQuests quest) {
-        super.loadQuest(quest);
-        //boardRenderer.setOverlay(getQuest().getObjectivesOverlay(this));
-        boardRenderer.addOverlay(new OverlayTextAnimation(quest.getDisplayName()));
+    protected void onZombiePath(ZZombie zombie, List<ZDir> path) {
+
+        /*
+        final Vector2D start = zombie.getRect().getCenter();
+        boardRenderer.addPostActor(new ZAnimation(1000) {
+
+            @Override
+            protected void draw(AGraphics g, float position, float dt) {
+                GColor pathColor = GColor.YELLOW.withAlpha(1f-position);
+                g.setColor(pathColor);
+                g.begin();
+                g.vertex(start);
+                MutableVector2D next = new MutableVector2D(start);
+                for (ZDir dir : path) {
+                    next.addEq(dir.dx, dir.dy);
+                    g.vertex(next);
+                }
+                g.drawLineStrip(3);
+            }
+        });*/
+
     }
 
+    @Override
+    protected void onCharacterOpenedDoor(ZCharacter cur, ZDoor door) {
+
+    }
+
+    @Override
+    protected void onCharacterOpenDoorFailed(ZCharacter cur, ZDoor door) {
+        boardRenderer.addPostActor(new HoverMessage(boardRenderer, "Open Failed", door.getRect(board).getCenter()));
+    }
+
+    public void showObjectivesOverlay() {
+        boardRenderer.setOverlay(getQuest().getObjectivesOverlay(this));
+    }
+
+    public void showQuestTitleOverlay() {
+        boardRenderer.setOverlay(new OverlayTextAnimation(getQuest().getName()) {
+            @Override
+            protected void onDone() {
+                super.onDone();
+                showObjectivesOverlay();
+            }
+        });
+    }
+
+    public void showSummaryOverlay() {
+        boardRenderer.setOverlay(getGameSummaryTable());
+    }
+
+    @Override
+    public void onIronRain(ZCharacter c, int targetZone) {
+        boardRenderer.addPostActor(new HoverMessage(boardRenderer, "LET IT RAIN!!", getBoard().getZone(targetZone).getCenter()));
+    }
 }

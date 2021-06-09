@@ -67,6 +67,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
     @Override
     synchronized void onBeginRound() {
         actionsDoneThisTurn.clear();
+        availableSkills.clear();
         availableSkills.addAll(allSkills);
         inventoryThisTurn = false;
         super.onBeginRound();
@@ -430,8 +431,8 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
             main.addRow(String.format("%s (%s) moves: %d/%d Body:%s Actions:%s",
                     name.getLabel(), name.characterClass,
                     getActionsLeftThisTurn(), getActionsPerTurn(),
-                    Arrays.toString(name.alternateBodySlots),
-                    actionsDoneThisTurn));
+                    Arrays.toString(Utils.toStringArray(name.alternateBodySlots, true)),
+                    Arrays.toString(Utils.toStringArray(actionsDoneThisTurn, true))));
 
         }
         main.addRow(info);
@@ -559,7 +560,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
         return true;
     }
 
-    public synchronized ZWeaponStat getWeaponStat(ZWeapon weapon, ZActionType attackType, ZGame game) {
+    public synchronized ZWeaponStat getWeaponStat(ZWeapon weapon, ZActionType attackType, ZGame game, int targetZone) {
         ZWeaponStat stat = null;
         switch (attackType) {
             case MELEE:
@@ -590,7 +591,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
                 return null;
         }
         for (ZSkill skill : availableSkills) {
-            skill.modifyStat(stat, attackType, this, game);
+            skill.modifyStat(stat, attackType, this, game, targetZone);
         }
         if (weapon.slot != ZEquipSlot.BODY && isDualWeilding()) {
             stat.numDice*=2;
@@ -807,6 +808,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
     }
 
     public synchronized void initAllSkills(ZSkill ... skills) {
+        allSkills.clear();
         allSkills.addAll(Arrays.asList(skills));
     }
 

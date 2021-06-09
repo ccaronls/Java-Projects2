@@ -13,6 +13,7 @@ import cc.lib.zombicide.quests.ZQuestTheBlackBook;
 import cc.lib.zombicide.quests.ZQuestTheCommandry;
 import cc.lib.zombicide.quests.ZQuestTheEvilTemple;
 import cc.lib.zombicide.quests.ZQuestTheHellHole;
+import cc.lib.zombicide.quests.ZQuestTheNecromancer;
 import cc.lib.zombicide.quests.ZQuestTheShepherds;
 import cc.lib.zombicide.quests.ZQuestTrialByFire;
 import cc.lib.zombicide.quests.ZQuestTutorial;
@@ -51,7 +52,8 @@ public enum ZQuests {
             "course, there are zombies on the way, familiar faces\n" +
             "turned to monsters...\n" +
             "Hey, that one owed me money!"),
-    The_Abomination("The Abomination", "Bonus Level!"),
+    The_Abomination(true, "The Abomination", "Test Abomination!"),
+    The_Necromancer(true, "The Necromancer", "Test Necromancer!"),
     The_Shepherds("The Shepherds", "Afew days have passed. These\n" +
             "zombies are, for the most part,\n" +
             "stupid as hell. But they never tire, or\n" +
@@ -156,10 +158,16 @@ public enum ZQuests {
     ;
 
     ZQuests(String displayName, String description) {
+        this(false, displayName, description);
+    }
+
+    ZQuests(boolean debug, String displayName, String description) {
+        this.debug = debug;
         this.displayName = displayName;
         this.description = description;
     }
 
+    final boolean debug;
     final String displayName;
     final String description;
 
@@ -173,6 +181,8 @@ public enum ZQuests {
                 return new ZQuestTheBlackBook();
             case The_Abomination:
                 return new ZQuestTheAbomination();
+            case The_Necromancer:
+                return new ZQuestTheNecromancer();
             case The_Shepherds:
                 return new ZQuestTheShepherds();
             case Famine:
@@ -206,7 +216,7 @@ public enum ZQuests {
         return Utils.filterItems(new Utils.Filter<ZQuests>() {
             @Override
             public boolean keep(ZQuests object) {
-                return object != The_Abomination;
+                return !object.debug;
             }
         }, values());
     }

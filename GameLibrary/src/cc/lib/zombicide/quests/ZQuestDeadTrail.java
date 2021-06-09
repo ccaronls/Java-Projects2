@@ -106,12 +106,15 @@ public class ZQuestDeadTrail extends ZQuest {
         numComplete -= getNumFoundVaultItems();
         if (isAllPlayersInExit(game))
             numComplete ++;
-        return numTasks * 100 / numComplete;
+        return numComplete * 100 / numTasks;
     }
 
     @Override
-    public boolean isQuestFailed(ZGame game) {
-        return Utils.filter(game.getAllCharacters(), object -> object.isDead()).size() > 0;
+    public String getQuestFailedReason(ZGame game) {
+        if (Utils.filter(game.getAllCharacters(), object -> object.isDead()).size() > 0) {
+            return "Not all players survived";
+        }
+        return null;
     }
 
     @Override

@@ -118,11 +118,6 @@ public class ZQuestTheEvilTemple extends ZQuest {
     }
 
     @Override
-    public boolean isQuestFailed(ZGame game) {
-        return false;
-    }
-
-    @Override
     public void init(ZGame game) {
         numObjectives = redObjectives.size();
         while (blueObjZone == greenObjZone) {
