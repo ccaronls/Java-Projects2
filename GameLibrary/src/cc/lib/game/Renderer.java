@@ -166,7 +166,7 @@ public class Renderer {
      * @param screenY
      * @return
      */
-	public Vector2D untransform(float screenX, float screenY) {
+	public MutableVector2D untransform(float screenX, float screenY) {
         float W = this.window.getViewportWidth();
         float H = this.window.getViewportHeight();
 

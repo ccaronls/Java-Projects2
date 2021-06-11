@@ -53,7 +53,7 @@
             android:text="&lt;"/>
 
         <Button
-            android:id="@+id/b_switch_character"
+            android:id="@+id/b_center"
             android:layout_columnWeight="1"
             android:layout_rowWeight="1"
             android:text="O"/>

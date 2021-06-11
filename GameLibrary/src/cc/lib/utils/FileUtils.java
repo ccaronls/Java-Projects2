@@ -3,6 +3,7 @@ package cc.lib.utils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -137,8 +138,51 @@ public class FileUtils {
 	public static boolean restoreFile(File file) {
 	    return restoreFile(file.getAbsolutePath());
     }
-	
-	/**
+
+    public static boolean hasBackupFile(File file) {
+	    return hasBackupFile(file.getAbsolutePath());
+    }
+
+    /**
+     *
+     * @param file
+     * @return
+     */
+    public static boolean deleteFileAndBackups(File file) {
+	    String fileName = file.getAbsolutePath();
+        String root = stripExtension(file.getName());
+        String ext = fileExtension(fileName);
+	    File dir = file.getParentFile();
+	    if (!dir.isDirectory())
+	        return false;
+	    File [] files = dir.listFiles(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+                return name.startsWith(root) && name.endsWith(ext);
+            }
+        });
+	    if (files.length == 0)
+	        return false;
+	    int numDeleted = 0;
+	    for (File f : files) {
+	        if (f.delete())
+	            numDeleted++;
+        }
+	    return numDeleted == files.length;
+    }
+
+    /**
+     *
+     * @param fileName
+     * @return
+     */
+    public static boolean hasBackupFile(String fileName) {
+        String root = stripExtension(fileName);
+        String ext = fileExtension(fileName);
+        return new File(root + ".0" + ext).exists();
+    }
+
+    /**
 	 * Reverse operation of backupFile.  For filename of form root.ext, if there exists a file of form
 	 * root.0.ext, then it will be renamed to fileName.  For all other files of form root.n.ext they will
 	 * be renamed too root.n-1.ext.
@@ -173,7 +217,8 @@ public class FileUtils {
 		}
 		return success;
 	}
-		
+
+
 	/**
 	 * Return the string extension from a file including the dot '.' or empty string when no extension exists
 	 * @param fileName
@@ -342,4 +387,5 @@ public class FileUtils {
         }
         return settingsDir;
     }
+
 }

@@ -315,4 +315,5 @@ public final class GRectangle extends Reflector<GRectangle> implements IRectangl
         set(tl, br);
         return this;
     }
+
 }

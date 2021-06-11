@@ -274,8 +274,9 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * 
      * @param v
      */
-    public final void transform(MutableVector2D v) {
+    public final MutableVector2D transform(MutableVector2D v) {
     	v.set(transform((IVector2D)v));
+    	return v;
     }
 
     /**

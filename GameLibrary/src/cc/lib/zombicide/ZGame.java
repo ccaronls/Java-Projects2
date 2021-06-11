@@ -328,31 +328,35 @@ public class ZGame extends Reflector<ZGame>  {
         return quest;
     }
 
-    public void runGame() {
+    /**
+     *
+     * @return true if something changed, false otherwise
+     */
+    public boolean runGame() {
         log.debug("runGame %s", getState());
         if (!isGameSetup()) {
             log.error("Invalid Game");
             Utils.assertTrue(false);
-            return;
+            return false;
         }
 
         if (isGameOver())
-            return;
+            return false;
 
         if (getAllLivingCharacters().size() == 0) {
             gameLost("All Players Killed");
-            return;
+            return true;
         }
 
         String failedReason;
         if (null != (failedReason=quest.getQuestFailedReason(this))) {
             gameLost(failedReason);
-            return;
+            return true;
         }
 
         if (quest.getPercentComplete(this) >= 100) {
             gameWon();
-            return;
+            return true;
         }
 
         final ZUser user = getCurrentUser();
@@ -384,7 +388,7 @@ public class ZGame extends Reflector<ZGame>  {
                     }
                 }
                 setState(ZState.BEGIN_ROUND, null);
-                break;
+                return true;
             }
 
             case BEGIN_ROUND: {
@@ -467,7 +471,7 @@ public class ZGame extends Reflector<ZGame>  {
                     } else {
                         getCurrentCharacter().onEndOfTurn(this);
                         setState(ZState.PLAYER_STAGE_CHOOSE_CHARACTER, null);
-                        return;
+                        return true;
                     }
                 }
 
@@ -593,9 +597,10 @@ public class ZGame extends Reflector<ZGame>  {
                 ZMove move = getCurrentUser().chooseMove(this, cur, options);
                 if (move != null) {
                     performMove(cur, move);
+                    return true;
                 }
 
-                break;
+                return false;
             }
 
             case PLAYER_STAGE_CHOOSE_NEW_SKILL: {
@@ -612,8 +617,9 @@ public class ZGame extends Reflector<ZGame>  {
                     onNewSkillAquired(cur, skill);
                     cur.addSkill(skill);
                     stateStack.pop();
+                    return true;
                 }
-                break;
+                return false;
             }
 
             case ZOMBIE_STAGE: {
@@ -704,7 +710,7 @@ public class ZGame extends Reflector<ZGame>  {
                     }
                 }
                 setState(ZState.BEGIN_ROUND, null);
-                break;
+                return true;
             }
 
             case PLAYER_ENCHANT_SPEED_MOVE: {
@@ -730,10 +736,11 @@ public class ZGame extends Reflector<ZGame>  {
                     if (speedMove != null) {
                         moveActor(getCurrentCharacter(), speedMove, 200);
                         stateStack.pop();
+                        return true;
                     }
                 }
 
-                break;
+                return false;
             }
 
             case PLAYER_STAGE_CHOOSE_ZONE_TO_REMOVE_SPAWN: {
@@ -751,15 +758,18 @@ public class ZGame extends Reflector<ZGame>  {
                         board.getZone(zIdx).setSpawnType(ZSpawnType.NONE);
                         onCharacterDestroysSpawn(cur, zIdx);
                         stateStack.pop();
+                        return true;
                     }
                 }
 
-                break;
+                return false;
             }
 
             default:
                 throw new cc.lib.utils.GException("Unhandled state: " + getState());
         }
+
+        return false;
     }
 
     protected void onCharacterDestroysSpawn(ZCharacter c, int zoneIdx) {}
@@ -904,26 +914,27 @@ public class ZGame extends Reflector<ZGame>  {
     }
 
 
-    private void useEquipment(ZCharacter c, ZEquipment e) {
+    private boolean useEquipment(ZCharacter c, ZEquipment e) {
         if (e.isMagic()) {
-            performMove(c, ZMove.newMagicAttackMove(Utils.toList((ZWeapon)e)));
+            return performMove(c, ZMove.newMagicAttackMove(Utils.toList((ZWeapon)e)));
         } else if (e.isMelee()) {
-            performMove(c, ZMove.newMeleeAttackMove(Utils.toList((ZWeapon)e)));
+            return performMove(c, ZMove.newMeleeAttackMove(Utils.toList((ZWeapon)e)));
         } else if (e.isRanged()) {
-            performMove(c, ZMove.newRangedAttackMove(Utils.toList((ZWeapon)e)));
+            return performMove(c, ZMove.newRangedAttackMove(Utils.toList((ZWeapon)e)));
         } else if (e.isThrowable()) {
-            performMove(c, ZMove.newThrowItemMove(Utils.toList((ZItem)e)));
+            return performMove(c, ZMove.newThrowItemMove(Utils.toList((ZItem)e)));
         }
+        return false;
     }
 
-    private void performMove(ZCharacter cur, ZMove move) {
+    private boolean performMove(ZCharacter cur, ZMove move) {
         log.debug("performMove:%s", move);
         ZUser user = getCurrentUser();
         switch (move.type) {
             case DO_NOTHING:
                 onDoNothing(cur);
                 cur.performAction(ZActionType.DO_NOTHING, this);
-                break;
+                return true;
             case SWITCH_ACTIVE_CHARACTER: {
                 if (canSwitchActivePlayer()) {
                     int idx = 0;
@@ -938,11 +949,11 @@ public class ZGame extends Reflector<ZGame>  {
                         if (c.isAlive() && c.getActionsLeftThisTurn() > 0 || c.inventoryThisTurn) {
                             stateStack.pop();
                             pushState(ZState.PLAYER_STAGE_CHOOSE_CHARACTER_ACTION, c.name);
-                            break;
+                            return true;
                         }
                     }
                 }
-                break;
+                return false;
             }
             case TAKE_OBJECTIVE: {
                 cur.performAction(ZActionType.OBJECTIVE, this);
@@ -954,7 +965,7 @@ public class ZGame extends Reflector<ZGame>  {
                 }
                 getCurrentUser().showMessage(cur.name() + " Found an OBJECTIVE");
                 quest.processObjective(this, cur, move);
-                break;
+                return true;
             }
             case INVENTORY: {
                 // give options of which slot to organize
@@ -969,7 +980,7 @@ public class ZGame extends Reflector<ZGame>  {
                     slots.add(ZEquipSlot.BACKPACK);
                 ZEquipSlot selectedSlot = getCurrentUser().chooseSlotToOrganize(this, cur, slots);
                 if (selectedSlot == null) {
-                    break;
+                    return false;
                 }
                 // choose which equipment from the slot to organize
                 ZEquipment selectedEquipment = null;
@@ -994,7 +1005,7 @@ public class ZGame extends Reflector<ZGame>  {
                 }
 
                 if (selectedEquipment == null)
-                    break;
+                    return false;
 
                 // we have a slot and an equipment from the slot to do something with
                 // we can:
@@ -1022,9 +1033,9 @@ public class ZGame extends Reflector<ZGame>  {
                 options.add(ZMove.newDisposeMove(selectedEquipment, selectedSlot));
                 move = user.chooseMove(this, cur, options);
                 if (move != null) {
-                    performMove(cur, move);
+                    return performMove(cur, move);
                 }
-                break;
+                return false;
             }
             case TRADE:
                 ZCharacter other;
@@ -1050,37 +1061,38 @@ public class ZGame extends Reflector<ZGame>  {
 
                     move = user.chooseMove(this, cur, options);
                     if (move != null) {
-                        performMove(cur, move);
+                        return performMove(cur, move);
                     }
                 }
-                break;
+                return false;
             case WALK: {
                 Integer zone = move.integer;
                 if (zone == null)
                     zone = user.chooseZoneToWalk(this, cur, move.list);
                 if (zone != null) {
                     moveActor(cur, zone, cur.getMoveSpeed());
+                    return true;
                     //cur.performAction(ZActionType.MOVE, this);
                 }
-                break;
+                return false;
             }
             case WALK_DIR: {
                 moveActorInDirection(cur, move.dir);
-                break;
+                return true;
             }
             case USE_LEFT_HAND: {
                 ZEquipment e;
                 if ((e=cur.getSlot(ZEquipSlot.LEFT_HAND)) != null) {
-                    useEquipment(cur, e);
+                    return useEquipment(cur, e);
                 }
-                break;
+                return false;
             }
             case USE_RIGHT_HAND: {
                 ZEquipment e;
                 if ((e=cur.getSlot(ZEquipSlot.RIGHT_HAND)) != null) {
-                    useEquipment(cur, e);
+                    return useEquipment(cur, e);
                 }
-                break;
+                return false;
             }
             case MELEE_ATTACK: {
                 List<ZWeapon> weapons = move.list;
@@ -1112,8 +1124,9 @@ public class ZGame extends Reflector<ZGame>  {
                     }
                     cur.performAction( ZActionType.MELEE,this);
                     user.showMessage(getCurrentCharacter().name() + " Scored " + hits + " hits");
+                    return true;
                 }
-                break;
+                return false;
             }
             case MAGIC_ATTACK:
             case RANGED_ATTACK: {
@@ -1197,9 +1210,10 @@ public class ZGame extends Reflector<ZGame>  {
                             }
                         }
                         cur.performAction(actionType,this);
+                        return true;
                     }
                 }
-                break;
+                return false;
             }
 
             case THROW_ITEM: {
@@ -1259,10 +1273,11 @@ public class ZGame extends Reflector<ZGame>  {
                         cur.removeEquipment(slot);
                         cur.performAction(ZActionType.THROW_ITEM, this);
                         putBackInSearchables(slot);
+                        return true;
                     }
 
                 }
-                break;
+                return false;
             }
 
             case RELOAD: {
@@ -1270,13 +1285,13 @@ public class ZGame extends Reflector<ZGame>  {
                 if (cur.isDualWeilding()) {
                     ((ZWeapon)cur.getSlot(ZEquipSlot.LEFT_HAND)).reload();
                     ((ZWeapon)cur.getSlot(ZEquipSlot.RIGHT_HAND)).reload();
-                    user.showMessage(getCurrentCharacter().name() + " Reloaded both their " + weapon.type + "s");
+                    user.showMessage(getCurrentCharacter().name() + " Reloaded both their " + weapon.getLabel() + "s");
                 } else {
                     weapon.reload();
-                    user.showMessage(getCurrentCharacter().name() + " Reloaded their " + weapon.type);
+                    user.showMessage(getCurrentCharacter().name() + " Reloaded their " + weapon.getLabel());
                 }
                 cur.performAction(ZActionType.RELOAD, this);
-                break;
+                return true;
             }
             case OPERATE_DOOR: {
                 List<ZDoor> doors = move.list;
@@ -1309,8 +1324,9 @@ public class ZGame extends Reflector<ZGame>  {
                         cur.performAction(ZActionType.CLOSE_DOOR, this);
                         door.toggle(board);
                     }
+                    return true;
                 }
-                break;
+                return false;
             }
             case SEARCH: {
                 // draw from top of the deck
@@ -1333,7 +1349,7 @@ public class ZGame extends Reflector<ZGame>  {
                     }
                 }
                 cur.performAction(ZActionType.SEARCH, this);
-                break;
+                return true;
             }
             case EQUIP: {
                 ZEquipment prev = cur.getSlot(move.toSlot);
@@ -1345,40 +1361,41 @@ public class ZGame extends Reflector<ZGame>  {
                     cur.attachEquipment(prev, ZEquipSlot.BACKPACK);
                 }
                 cur.performAction(ZActionType.INVENTORY, this);
-                break;
+                return true;
             }
             case UNEQUIP:
                 cur.removeEquipment(move.equipment, move.fromSlot);
                 cur.attachEquipment(move.equipment, ZEquipSlot.BACKPACK);
                 cur.performAction(ZActionType.INVENTORY, this);
-                break;
+                return true;
             case TAKE:
                 move.character.removeEquipment(move.equipment);
                 cur.attachEquipment(move.equipment);
                 cur.performAction(ZActionType.INVENTORY, this);
-                break;
+                return true;
             case GIVE:
                 cur.removeEquipment(move.equipment);
                 move.character.attachEquipment(move.equipment);
                 cur.performAction(ZActionType.INVENTORY, this);
-                break;
+                return true;
             case DISPOSE:
                 cur.removeEquipment(move.equipment, move.fromSlot);
                 cur.performAction(ZActionType.INVENTORY, this);
                 putBackInSearchables(move.equipment);
-                break;
+                return true;
             case CONSUME:
                 performConsume(cur, move);
                 cur.performAction(ZActionType.CONSUME, this);
-                break;
+                return true;
             case PICKUP_ITEM: {
                 ZEquipment equip = getCurrentUser().chooseItemToPickup(this, cur, move.list);
                 if (equip != null) {
                     quest.pickupItem(cur.occupiedZone, equip);
                     cur.equip(equip);
                     cur.performAction(ZActionType.PICKUP_ITEM, this);
+                    return true;
                 }
-                break;
+                return false;
             }
             case DROP_ITEM: {
                 ZEquipment equip = getCurrentUser().chooseItemToDrop(this, cur, move.list);
@@ -1386,15 +1403,16 @@ public class ZGame extends Reflector<ZGame>  {
                     quest.dropItem(cur.occupiedZone, equip);
                     cur.removeEquipment(equip);
                     cur.performAction(ZActionType.DROP_ITEM, this);
+                    return true;
                 }
-                break;
+                return false;
             }
             case MAKE_NOISE: {
                 int maxNoise = board.getMaxNoiseLevel();
                 addNoise(move.integer, maxNoise+1 - board.getZone(move.integer).getNoiseLevel());
                 getCurrentUser().showMessage(cur.name() + " made alot of noise to draw the zombies!");
                 cur.performAction(ZActionType.MAKE_NOISE, this);
-                break;
+                return true;
             }
             case SHOVE: {
                 Integer targetZone = getCurrentUser().chooseZoneToShove(this, cur, move.list);
@@ -1407,8 +1425,9 @@ public class ZGame extends Reflector<ZGame>  {
                         onActorMoved(z, prev, next, 300);
                     }
                     cur.performAction(ZActionType.SHOVE, this);
+                    return true;
                 }
-                break;
+                return false;
             }
             case ENCHANT: {
                 ZSpell spell = null;
@@ -1427,8 +1446,9 @@ public class ZGame extends Reflector<ZGame>  {
                 if (spell != null && target != null) {
                     spell.type.doEnchant(this, target);//target.availableSkills.add(spell.type.skill);
                     cur.performAction(ZActionType.ENCHANTMENT, this);
+                    return true;
                 }
-                break;
+                return false;
             }
             case BORN_LEADER: {
                 ZCharacter chosen = null;
@@ -1443,21 +1463,21 @@ public class ZGame extends Reflector<ZGame>  {
                         chosen.addAvailableSkill(ZSkill.Plus1_Action);
                     }
                     cur.performAction(ZActionType.BEQUEATH_MOVE, this);
+                    return true;
                 }
-
-                break;
+                return false;
             }
             case BLOODLUST_MELEE:
             case BLOODLUST_MAGIC:
             case BLOODLUST_RANGED:
-                performBloodlust(cur, move);
-                break;
+                return performBloodlust(cur, move);
             default:
                 log.error("Unhandled move: %s", move.type);
         }
+        return false;
     }
 
-    private void performBloodlust(ZCharacter cur, ZMove move) {
+    private boolean performBloodlust(ZCharacter cur, ZMove move) {
         List<ZWeapon> weapons;
         ZActionType action = null;
         switch (move.type) {
@@ -1473,7 +1493,7 @@ public class ZGame extends Reflector<ZGame>  {
                 weapons = cur.getRangedWeapons();
                 break;
             default:
-                return;
+                return false;
         }
 
         Integer zone;
@@ -1500,8 +1520,10 @@ public class ZGame extends Reflector<ZGame>  {
                 performAttack(slot, action);
                 cur.performAction(action, this);
                 cur.removeAvailableSkill(move.skill);
+                return true;
             }
         }
+        return false;
     }
 
     protected void onAhhhhhh(ZCharacter c) {}
@@ -1724,6 +1746,9 @@ public class ZGame extends Reflector<ZGame>  {
             if (d >= dieNumToHit)
                 hits++;
         }
+
+        getCurrentUser().showMessage(getCurrentCharacter().getLabel() + " Scored " + hits + " hits");
+        //onRollDice(dice);
 
         if (hits >= maxHitsForAutoNoReroll) {
             return dice;

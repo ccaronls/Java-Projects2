@@ -508,6 +508,7 @@ public abstract class UIZombicide extends ZGame {
     }
 
     public void trySwitchActivePlayer() {
+        boardRenderer.dragOffset.zero();
         if (getCurrentCharacter() == null) {
             for (ZPlayerName nm : getCurrentUser().getCharacters()) {
                 if (nm.getCharacter().isAlive() && (nm.getCharacter().getActionsLeftThisTurn() > 0 || nm.getCharacter().isInventoryThisTurn())) {
@@ -518,6 +519,7 @@ public abstract class UIZombicide extends ZGame {
         } else if (canSwitchActivePlayer()) {
             setResult(ZMove.newSwitchActiveCharacter());
         }
+        boardRenderer.redraw();
     }
 
     @Override

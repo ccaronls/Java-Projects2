@@ -38,6 +38,7 @@ import android.widget.Toast;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -82,11 +83,12 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
     ZCharacterView consoleView;
     File gameFile;
     ViewGroup buttonsGrid;
+    View consoleContainer;
 
     UIZombicide game;
     final ZUser user = new UIZUser();
 
-    View bLH, bUp, bRH, bLeft, bToggle, bRight, bZoom, bDown, bVault;
+    View bLH, bUp, bRH, bLeft, bCenter, bRight, bZoom, bDown, bVault;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -102,12 +104,13 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
         (bUp = findViewById(R.id.b_up)).setOnClickListener(this);
         (bLH = findViewById(R.id.b_useleft)).setOnClickListener(this);
         (bRH = findViewById(R.id.b_useright)).setOnClickListener(this);
-        (bToggle = findViewById(R.id.b_switch_character)).setOnClickListener(this);
+        (bCenter = findViewById(R.id.b_center)).setOnClickListener(this);
         (bVault = findViewById(R.id.b_vault)).setOnClickListener(this);
         (bLeft = findViewById(R.id.b_left)).setOnClickListener(this);
         (bDown = findViewById(R.id.b_down)).setOnClickListener(this);
         (bRight = findViewById(R.id.b_right)).setOnClickListener(this);
         ((CompoundButton)findViewById(R.id.b_toggleConsole)).setOnCheckedChangeListener(this);
+        consoleContainer = findViewById(R.id.sv_console);
 
         UIZCharacterRenderer cr = new UIZCharacterRenderer(consoleView);
         UIZBoardRenderer br = new UIZBoardRenderer<DroidGraphics>(boardView) {
@@ -151,17 +154,20 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
         game = new UIZombicide(cr, br) {
 
             @Override
-            public void runGame() {
+            public boolean runGame() {
+                boolean changed = false;
                 try {
-                    super.runGame();
-                    if (BuildConfig.DEBUG)
-                        FileUtils.backupFile(gameFile, 20);
+                    changed = super.runGame();
+                    log.debug("runGame changed=" + changed);
+                    if (changed)
+                        FileUtils.backupFile(gameFile, 32);
                     trySaveToFile(gameFile);
                     boardView.postInvalidate();
                     consoleView.postInvalidate();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+                return changed;
             }
 
             @Override
@@ -211,7 +217,7 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
 
     @Override
     public AlertDialog.Builder newDialogBuilder() {
-        return new AlertDialog.Builder(this, R.style.ZDialogTheme) {
+        AlertDialog.Builder b = new AlertDialog.Builder(this, R.style.ZDialogTheme) {
             @Override
             public AlertDialog show() {
                 AlertDialog d = super.show();
@@ -219,6 +225,9 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                 return d;
             }
         };
+        if (!BuildConfig.DEBUG)
+            b.setCancelable(false);
+        return b;
     }
 
     enum MenuItem implements UIZButton {
@@ -235,21 +244,21 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
         SKILLS,
         LEGEND,
         QUIT,
-        CLEAR_PLAYABLE,
-        VIEW_REMAINING;
+        CLEAR,
+        SEARCHABLES;
 
         boolean isHomeButton(ZombicideActivity instance) {
             switch (this) {
                 case LOAD:
                 case ASSIGN:
-                case UNDO:
-                case CLEAR_PLAYABLE:
+                case CLEAR:
                     return BuildConfig.DEBUG;
                 case START:
                 case NEW_GAME:
                 case DIFFICULTY:
                 case SKILLS:
                 case LEGEND:
+                case UNDO:
                     return true;
                 case RESUME:
                     return instance.gameFile != null && instance.gameFile.exists();
@@ -264,11 +273,11 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                 case ASSIGN:
                 case RESUME:
                 case NEW_GAME:
-                case CLEAR_PLAYABLE:
+                case CLEAR:
                     return false;
                 case CANCEL:
                     return instance.game.canGoBack();
-                case VIEW_REMAINING:
+                case SEARCHABLES:
                     return BuildConfig.DEBUG;
             }
             return true;
@@ -289,6 +298,14 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
         public String getLabel() {
             return Utils.toPrettyString(name());
         }
+
+        public boolean isEnabled(ZombicideActivity z) {
+            switch (this) {
+                case UNDO:
+                    return FileUtils.hasBackupFile(z.gameFile);
+            }
+            return true;
+        }
     }
 
     ZDiffuculty getSavedDifficulty() {
@@ -297,7 +314,7 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
 
     @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-        findViewById(R.id.sv_console).setVisibility(isChecked ? View.GONE : View.VISIBLE);
+        consoleContainer.setVisibility(isChecked ? View.GONE : View.VISIBLE);
     }
 
     @Override
@@ -319,7 +336,7 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
             case R.id.b_useright:
                 game.setResult(ZMove.newUseRightHand());
                 break;
-            case R.id.b_switch_character:
+            case R.id.b_center:
                 game.trySwitchActivePlayer();
                 break;
             case R.id.b_vault:
@@ -404,13 +421,16 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                 showNewGameDialog();
                 break;
             }
-            case CLEAR_PLAYABLE: {
+            case CLEAR: {
                 getPrefs().edit().remove("completedQuests").apply();
+                FileUtils.deleteFileAndBackups(gameFile);
+                initHomeMenu();
                 break;
             }
-            case VIEW_REMAINING: {
+            case SEARCHABLES: {
                 ListView lv = new ListView(this);
                 List<ZEquipment> searchables = new ArrayList(game.getAllSearchables());
+                Collections.reverse(searchables);
                 //Collections.sort(searchables);
 
                 lv.setAdapter(new BaseAdapter() {
@@ -450,6 +470,7 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                                 game.loadQuest(q);
                                 game.showObjectivesOverlay();
                                 game.trySaveToFile(gameFile);
+                                startGame();
                                 boardView.postInvalidate();
                                 initHomeMenu();
                             }
@@ -911,7 +932,7 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
     void initHomeMenu() {
         List<View> buttons = new ArrayList<>();
         for (MenuItem i : Utils.filterItems(object -> object.isHomeButton(ZombicideActivity.this), MenuItem.values())) {
-            buttons.add(ZButton.build(this, i));
+            buttons.add(ZButton.build(this, i, i.isEnabled(this)));
         }
         initMenuItems(buttons);
     }
@@ -920,16 +941,16 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
         List<View> buttons = new ArrayList<>();
         if (mode == UIZombicide.UIMode.PICK_MENU) {
             for (IButton e : options) {
-                buttons.add(ZButton.build(this, e));
+                buttons.add(ZButton.build(this, e, e.isEnabled()));
             }
             buttons.add(new ListSeparator(this));
         }
         for (MenuItem i : Utils.filterItems(object -> object.isGameButton(ZombicideActivity.this), MenuItem.values())) {
-            buttons.add(ZButton.build(this, i));
+            buttons.add(ZButton.build(this, i, i.isEnabled(this)));
         }
         initMenuItems(buttons);
 
-        bToggle.setVisibility((game.getCurrentCharacter() == null || game.canSwitchActivePlayer()) ? View.VISIBLE : View.INVISIBLE);
+        //bCenter.setVisibility((game.getCurrentCharacter() == null || game.canSwitchActivePlayer()) ? View.VISIBLE : View.INVISIBLE);
         bLH.setVisibility(game.canUse(ZEquipSlot.LEFT_HAND) ? View.VISIBLE : View.INVISIBLE);
         bRH.setVisibility(game.canUse(ZEquipSlot.RIGHT_HAND)  ? View.VISIBLE : View.INVISIBLE);
         bUp.setVisibility(game.canWalk(ZDir.NORTH)  ? View.VISIBLE : View.INVISIBLE);

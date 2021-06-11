@@ -28,7 +28,6 @@ public class ZQuestTheEvilTemple extends ZQuest {
         addAllFields(ZQuestTheEvilTemple.class);
     }
 
-    int numObjectives = 0;
     int blueObjZone = -1;
     int greenObjZone = -1;
     int violetVaultZone = -1;
@@ -96,9 +95,11 @@ public class ZQuestTheEvilTemple extends ZQuest {
         if (move.integer == greenObjZone) {
             game.getCurrentUser().showMessage(c.name() + " has found the GREEN objective and opened the GOLD vault");
             game.getBoard().setDoor(goldVaultDoor, ZWallFlag.CLOSED);
+            greenObjZone = -1;
         } else if (move.integer == blueObjZone) {
             game.getCurrentUser().showMessage(c.name() + " has found the BLUE objective and opened the VIOLET vault");
             game.getBoard().setDoor(violetVaultDoor, ZWallFlag.CLOSED);
+            blueObjZone = -1;
         }
     }
 
@@ -119,7 +120,6 @@ public class ZQuestTheEvilTemple extends ZQuest {
 
     @Override
     public void init(ZGame game) {
-        numObjectives = redObjectives.size();
         while (blueObjZone == greenObjZone) {
             blueObjZone = Utils.randItem(redObjectives);
             greenObjZone = Utils.randItem(redObjectives);
@@ -132,7 +132,7 @@ public class ZQuestTheEvilTemple extends ZQuest {
     public Table getObjectivesOverlay(ZGame game) {
         return new Table(getName())
                 .addRow(new Table().setNoBorder()
-                    .addRow("1.", "Collect all objectives.", String.format("%d of %d", numObjectives-redObjectives.size(), redObjectives.size()))
+                    .addRow("1.", "Collect all objectives.", String.format("%d of %d", getNumStartRedObjectives()-redObjectives.size(), getNumStartRedObjectives()))
                     .addRow("2.", "Unlock GOLD vault. Key hidden among RED objectives.", greenObjZone==-1)
                     .addRow("3.", "Unlock VIOLET vault. Key hidden among RED objectives.", blueObjZone==-1)
                     .addRow("4.", "Kill the Abomination.", game.getNumKills(ZZombieType.Abomination) > 0)

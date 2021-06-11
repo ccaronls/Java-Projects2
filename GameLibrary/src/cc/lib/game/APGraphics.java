@@ -3,6 +3,7 @@ package cc.lib.game;
 import java.util.List;
 
 import cc.lib.math.Matrix3x3;
+import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 
 /**
@@ -75,15 +76,15 @@ public abstract class APGraphics extends AGraphics {
     }
 
     @Override
-    public final Vector2D screenToViewport(int screenX, int screenY) {
+    public final MutableVector2D screenToViewport(int screenX, int screenY) {
         return r.untransform(screenX, screenY);
     }
 
-    public final Vector2D screenToViewport(float screenX, float screenY) {
+    public final MutableVector2D screenToViewport(float screenX, float screenY) {
         return r.untransform(screenX, screenY);
     }
 
-    public final Vector2D screenToViewport(IVector2D screen) {
+    public final MutableVector2D screenToViewport(IVector2D screen) {
         return r.untransform(screen.getX(), screen.getY());
     }
 

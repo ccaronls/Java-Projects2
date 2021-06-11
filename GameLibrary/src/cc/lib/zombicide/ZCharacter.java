@@ -14,7 +14,7 @@ import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
 import cc.lib.utils.Table;
 
-public final class ZCharacter extends ZActor<ZPlayerName> {
+public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model {
 
     static final Logger log = LoggerFactory.getLogger(ZCharacter.class);
 
@@ -79,8 +79,13 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
         name.character = this;
     }
 
+    @Override
+    public int getMaxCharsPerLine() {
+        return 256;
+    }
+
     Table getKillsTable() {
-        Table tab = new Table().setNoBorder().setPadding(0);
+        Table tab = new Table(this).setNoBorder().setPadding(0);
         boolean added = false;
         for (ZZombieType nm : ZZombieType.values()) {
             if (kills[nm.ordinal()] > 0) {
@@ -392,7 +397,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
 
          */
 
-        Table info = new Table().setNoBorder().setPadding(0);
+        Table info = new Table(this).setNoBorder().setPadding(0);
 
         for (ZEquipSlot slot : ZEquipSlot.values()) {
             switch (slot) {
@@ -408,7 +413,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
                 info.addColumn(slot.getLabel(), Arrays.asList(slotInfo));
         }
 
-        Table stats = new Table().setNoBorder().setPadding(0);
+        Table stats = new Table(this).setNoBorder().setPadding(0);
         stats.addRow("Wounds", woundBar);
         ZSkillLevel sl = getSkillLevel();
         int ptsToNxt = sl.getPtsToNextLevel(dangerBar);
@@ -419,11 +424,11 @@ public final class ZCharacter extends ZActor<ZPlayerName> {
 
         info.addColumn("Stats", Arrays.asList(stats));
         if (availableSkills.size() > 0) {
-            Table skills = new Table().setNoBorder().addColumnNoHeader(Utils.toStringArray(availableSkills, true));
+            Table skills = new Table(this).setNoBorder().addColumnNoHeader(Utils.toStringArray(availableSkills, true));
             info.addColumn("Skills", skills);
         }
 
-        Table main = new Table().setNoBorder();
+        Table main = new Table(this).setNoBorder();
         if (isDead()) {
                 main.addRow(String.format("%s (%s) Killed in Action",
                     name.getLabel(), name.characterClass));

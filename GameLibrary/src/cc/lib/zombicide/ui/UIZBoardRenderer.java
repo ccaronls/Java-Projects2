@@ -73,7 +73,8 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
     boolean actorsAnimating = false;
     private Object overlayToDraw = null;
     boolean drawTiles = false;
-    Vector2D dragOffset = Vector2D.ZERO;
+    MutableVector2D dragOffset = new MutableVector2D(Vector2D.ZERO);
+    Vector2D dragStart = Vector2D.ZERO;
 
     public UIZBoardRenderer(UIZComponent component) {
         super(component);
@@ -832,13 +833,14 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
         float zoomAmtMin = Math.min(dim.getWidth(), dim.getHeight());
         float zoomAmtMax = 3;
         float zoomAmt = (zoomAmtMin - zoomAmtMax) * zoomPercent;
-        float newW = dim.width - zoomAmt*aspect;
+        float newW = dim.width - zoomAmt * aspect;
         float newH = dim.height - zoomAmt;
         float vAspect = viewport.getAspect();
+
         if (vAspect > aspect) {
-            zoomed=new GDimension(newW, newH * aspect / vAspect);
+            zoomed = new GDimension(newW, newH * aspect / vAspect);
         } else {
-            zoomed=new GDimension(newW * vAspect / aspect, newH);
+            zoomed = new GDimension(newW * vAspect / aspect, newH);
         }
 
         GRectangle rect = new GRectangle(zoomed).withCenter(center);
@@ -902,6 +904,16 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
         GRectangle rect = getZoomedRectangle(g, center);
 
         g.ortho(rect);
+/*
+        MutableVector2D topL = dragOffset.subEq(g.transform(rect.getTopLeft()));
+        MutableVector2D bottomR = dragOffset.subEq(g.transform(rect.getBottomLeft()));
+
+        log.debug("topL = " + topL + "  bottomR = "+ bottomR);
+
+        MutableVector2D drag = g.screenToViewport(dragOffset).sub(rect.getTopLeft());
+        //log.debug("drag = " + drag);
+        g.translate(drag);
+*/
         g.translate(g.screenToViewport(dragOffset).sub(rect.getTopLeft()));
 
         Vector2D mouse = g.screenToViewport(mouseX, mouseY);
@@ -1134,8 +1146,6 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
         return drawTiles;
     }
 
-    Vector2D dragStart = Vector2D.ZERO;
-
     @Override
     public void onDragStart(float x, float y) {
         dragStart = new Vector2D(x, y);
@@ -1143,13 +1153,16 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
 
     @Override
     public void onDragEnd() {
-        dragOffset = Vector2D.ZERO;
+        //dragOffset = Vector2D.ZERO;
         redraw();
     }
 
     @Override
     public void onDragMove(float x, float y) {
-        dragOffset = new Vector2D(x, y).sub(dragStart);
+        Vector2D v = new Vector2D(x, y);
+        Vector2D dv = v.sub(dragStart);
+        dragOffset.addEq(dv);
+        dragStart = v;
         redraw();
     }
 }

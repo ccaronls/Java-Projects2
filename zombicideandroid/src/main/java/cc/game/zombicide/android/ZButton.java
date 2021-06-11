@@ -10,9 +10,9 @@ import cc.lib.ui.IButton;
 
 public class ZButton extends ConstraintLayout implements View.OnClickListener, View.OnLongClickListener {
 
-    static ZButton build(Context context, IButton button) {
+    static ZButton build(Context context, IButton button, boolean enabled) {
         ZButton b = (ZButton)View.inflate(context, R.layout.zbutton_layout, null);
-        b.init(button);
+        b.init(button, enabled);
         return b;
     }
 
@@ -24,7 +24,7 @@ public class ZButton extends ConstraintLayout implements View.OnClickListener, V
         super(context, attrs);
     }
 
-    private void init(IButton button) {
+    private void init(IButton button, boolean enabled) {
         TextView tv = findViewById(R.id.text);
         View arrow = findViewById(R.id.bInfo);
         tv.setText(button.getLabel());
@@ -34,6 +34,7 @@ public class ZButton extends ConstraintLayout implements View.OnClickListener, V
             arrow.setOnClickListener(this);
         }
         setTag(button);
+        setEnabled(enabled);
         //setOnClickListener(listener);
     }
 
