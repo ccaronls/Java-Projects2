@@ -8,7 +8,7 @@ import android.widget.TextView;
 
 import cc.lib.ui.IButton;
 
-public class ZButton extends ConstraintLayout implements View.OnClickListener, View.OnLongClickListener {
+public class ZButton extends ConstraintLayout {
 
     static ZButton build(Context context, IButton button, boolean enabled) {
         ZButton b = (ZButton)View.inflate(context, R.layout.zbutton_layout, null);
@@ -31,28 +31,11 @@ public class ZButton extends ConstraintLayout implements View.OnClickListener, V
         if (button.getTooltipText() == null) {
             arrow.setVisibility(View.GONE);
         } else {
-            arrow.setOnClickListener(this);
+            arrow.setVisibility(View.VISIBLE);
         }
         setTag(button);
         setEnabled(enabled);
         //setOnClickListener(listener);
     }
 
-    @Override
-    public boolean onLongClick(View v) {
-        onClick(v);
-        return true;
-    }
-
-    IButton getButton() {
-        return (IButton)getTag();
-    }
-
-    @Override
-    public void onClick(View v) {
-        View popup = View.inflate(getContext(), R.layout.tooltippopup_layout, null);
-        ((TextView)popup.findViewById(R.id.header)).setText(getButton().getLabel());
-        ((TextView)popup.findViewById(R.id.text)).setText(getButton().getTooltipText());
-        ((ZombicideActivity)v.getContext()).newDialogBuilder().setView(popup).setCancelable(true).show().setCanceledOnTouchOutside(true);
-    }
 }

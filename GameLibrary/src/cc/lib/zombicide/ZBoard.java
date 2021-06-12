@@ -270,7 +270,7 @@ public class ZBoard extends Reflector<ZBoard> implements IDimension {
         return getCell(door.getCellPosStart()).getWallFlag(door.getMoveDirection());
     }
 
-    public void setDoor(ZDoor door, ZWallFlag flag) {
+    void setDoor(ZDoor door, ZWallFlag flag) {
         getCell(door.getCellPosStart()).setWallFlag(door.getMoveDirection(), flag);
         if (door.getCellPosEnd() != null) {
             door = door.getOtherSide();

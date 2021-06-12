@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.drawable.ColorDrawable;
 import android.os.SystemClock;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
@@ -62,13 +63,29 @@ public abstract class UIComponentView<T extends UIRenderer> extends View impleme
 
     Runnable loadAssetsRunnable = null;
 
+    protected void onLoading() {}
+
+    protected void onLoaded() {}
+
     @Override
     protected void onDraw(Canvas canvas) {
         float progress = getProgress();
         int width = Math.round(getWidth() - borderThickness*2);
         int height = Math.round(getHeight() - borderThickness*2);
         if (g == null) {
-            g = new DroidGraphics(getContext(), canvas, width, height);
+            GColor BACK;
+            if (getBackground() instanceof ColorDrawable) {
+                BACK = new GColor(((ColorDrawable)getBackground()).getColor());
+            } else {
+                BACK = GColor.LIGHT_GRAY;
+            }
+
+            g = new DroidGraphics(getContext(), canvas, width, height) {
+                @Override
+                public GColor getBackgroundColor() {
+                    return BACK;
+                }
+            };
             g.setCaptureModeSupported(!isInEditMode());
             preDrawInit(g);
         } else {
@@ -82,7 +99,11 @@ public abstract class UIComponentView<T extends UIRenderer> extends View impleme
 
         if (progress < 1) {
             if (loadAssetsRunnable == null) {
-                new Thread(loadAssetsRunnable = () -> loadAssets(g)).start();
+                onLoading();
+                new Thread(loadAssetsRunnable = () -> {
+                    loadAssets(g);
+                    post(()->onLoaded());
+                }).start();
             }
 
             g.setColor(GColor.RED);

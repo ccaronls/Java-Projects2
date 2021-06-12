@@ -130,6 +130,10 @@ public class ZMove implements IButton {
         return new ZMove(ZMoveType.DO_NOTHING);
     }
 
+    public static ZMove newEndTurn() {
+        return new ZMove(ZMoveType.END_TURN);
+    }
+
     public static ZMove newWalkMove(List<Integer> zones) {
         return new ZMove(ZMoveType.WALK, zones);
     }

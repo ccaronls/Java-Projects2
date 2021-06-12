@@ -78,4 +78,17 @@ public class ZArmor extends ZEquipment<ZArmorType> {
         }
         return main;
     }
+
+    @Override
+    public String getTooltipText() {
+        Table ratings = new Table().setNoBorder();
+        for (ZZombieType type : Utils.asList(ZZombieType.Walker, ZZombieType.Fatty, ZZombieType.Runner, ZZombieType.Necromancer, ZZombieType.Abomination)) {
+            ratings.addRow(type, getRating(type));
+        }
+        Table main = new Table(getLabel()).setNoBorder().addRow(ratings);
+        if (type.specialAbilityDescription != null) {
+            main.addRow(Utils.wrapTextWithNewlines(type.specialAbilityDescription, 24));
+        }
+        return main.toString();
+    }
 }

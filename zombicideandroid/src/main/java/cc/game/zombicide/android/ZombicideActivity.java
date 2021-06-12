@@ -20,11 +20,15 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.SpannableString;
+import android.text.format.Formatter;
 import android.text.style.UnderlineSpan;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
@@ -44,9 +48,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
 
 import cc.lib.android.CCActivityBase;
 import cc.lib.android.DroidGraphics;
+import cc.lib.android.DroidUtils;
 import cc.lib.game.GColor;
 import cc.lib.game.GRectangle;
 import cc.lib.game.Utils;
@@ -74,7 +80,7 @@ import cc.lib.zombicide.ui.UIZombicide;
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
  */
-public class ZombicideActivity extends CCActivityBase implements View.OnClickListener, ListView.OnItemClickListener, RadioButton.OnCheckedChangeListener {
+public class ZombicideActivity extends CCActivityBase implements View.OnClickListener, ListView.OnItemClickListener, ListView.OnItemLongClickListener, RadioButton.OnCheckedChangeListener {
 
     private final static String TAG = ZombicideActivity.class.getSimpleName();
 
@@ -84,11 +90,14 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
     File gameFile;
     ViewGroup buttonsGrid;
     View consoleContainer;
+    CompoundButton buttonToggleHideContainer;
 
     UIZombicide game;
     final ZUser user = new UIZUser();
 
     View bLH, bUp, bRH, bLeft, bCenter, bRight, bZoom, bDown, bVault;
+
+    final ArrayBlockingQueue fileWriterQueue = new ArrayBlockingQueue(1);
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -96,6 +105,7 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
         setContentView(R.layout.activity_zombicide);
         menu = findViewById(R.id.list_menu);
         menu.setOnItemClickListener(this);
+        menu.setOnItemLongClickListener(this);
         boardView = findViewById(R.id.board_view);
         consoleView = findViewById(R.id.console_view);
         buttonsGrid = findViewById(R.id.buttons_layout);
@@ -109,7 +119,7 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
         (bLeft = findViewById(R.id.b_left)).setOnClickListener(this);
         (bDown = findViewById(R.id.b_down)).setOnClickListener(this);
         (bRight = findViewById(R.id.b_right)).setOnClickListener(this);
-        ((CompoundButton)findViewById(R.id.b_toggleConsole)).setOnCheckedChangeListener(this);
+        (buttonToggleHideContainer = findViewById(R.id.b_toggleConsole)).setOnCheckedChangeListener(this);
         consoleContainer = findViewById(R.id.sv_console);
 
         UIZCharacterRenderer cr = new UIZCharacterRenderer(consoleView);
@@ -148,6 +158,21 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                 canvas.restore();
                 actor.draw(g);
             }
+
+            @Override
+            public void onLoaded() {
+                menu.setVisibility(View.VISIBLE);
+                if (!buttonToggleHideContainer.isChecked()) {
+                    consoleContainer.setVisibility(View.VISIBLE);
+                }
+
+            }
+
+            @Override
+            public void onLoading() {
+                menu.setVisibility(View.GONE);
+                consoleContainer.setVisibility(View.GONE);
+            }
         };
         br.setDrawTiles(true);
 
@@ -159,9 +184,11 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                 try {
                     changed = super.runGame();
                     log.debug("runGame changed=" + changed);
-                    if (changed)
-                        FileUtils.backupFile(gameFile, 32);
-                    trySaveToFile(gameFile);
+                    if (changed) {
+                        //FileUtils.backupFile(gameFile, 32);
+                        //trySaveToFile(gameFile);
+                        fileWriterQueue.put(0);
+                    }
                     boardView.postInvalidate();
                     consoleView.postInvalidate();
                 } catch (Exception e) {
@@ -186,6 +213,11 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                 });
             }
 
+            @Override
+            public void setResult(Object result) {
+                game.boardRenderer.setOverlay(null);
+                super.setResult(result);
+            }
         };
 
         Set<String> playersSet = getPrefs().getStringSet("players", getDefaultPlayers());
@@ -193,6 +225,25 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
             user.addCharacter(player);
         }
         game.setUsers(user);
+    }
+
+    Thread startFileWriterThread() {
+        Thread t = new Thread(() -> {
+            log.debug("fileWriterThread ENTER");
+            while (game.isGameRunning()) {
+                try {
+                    fileWriterQueue.take();
+                } catch (InterruptedException e) {
+                    break;
+                }
+                log.debug("Backingup ... ");
+                FileUtils.backupFile(gameFile, 32);
+                game.trySaveToFile(gameFile);
+            }
+            log.debug("fileWriterThread EXIT");
+        });
+        t.start();
+        return t;
     }
 
     @Override
@@ -275,8 +326,8 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                 case NEW_GAME:
                 case CLEAR:
                     return false;
-                case CANCEL:
-                    return instance.game.canGoBack();
+                //case CANCEL:
+                  //  return instance.game.canGoBack();
                 case SEARCHABLES:
                     return BuildConfig.DEBUG;
             }
@@ -319,6 +370,7 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
 
     @Override
     public void onClick(View v) {
+        game.boardRenderer.setOverlay(null);
         switch (v.getId()) {
             case R.id.b_zoom: {
                 float curZoom = game.boardRenderer.getZoomPercent();
@@ -370,14 +422,51 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
         }
     }
 
+    @Override
+    public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+        if (view.getTag() != null && view.getTag() instanceof IButton) {
+            IButton button = (IButton)view.getTag();
+            showToolTipTextPopup(parent, button);
+            return true;
+        }
+        return false;
+    }
+
+    public void showToolTipTextPopup(View view, IButton button) {
+        String toolTipText = button.getTooltipText();
+        if (Utils.isEmpty(toolTipText))
+            return;
+        View popup = View.inflate(this, R.layout.tooltippopup_layout, null);
+        ((TextView)popup.findViewById(R.id.header)).setText(button.getLabel());
+        ((TextView)popup.findViewById(R.id.text)).setText(toolTipText);
+        Dialog d = new AlertDialog.Builder(this, R.style.ZTooltipDialogTheme)
+                .setView(popup).create();
+        Window window = d.getWindow();
+        int [] outPos = { 0,0 };
+        view.getLocationOnScreen(outPos);
+        WindowManager.LayoutParams lp = window.getAttributes();
+        lp.gravity = Gravity.TOP | Gravity.LEFT;
+        lp.x = outPos[0] + view.getWidth();//outRect.right;//Math.round(getX() + getWidth());
+        lp.y = outPos[1];//outRect.top;//Math.round(getY());
+        lp.width = DroidUtils.convertDipsToPixels(this, 200);
+        d.show();
+    }
+
+    Thread fileWriterThread = null;
+
     void startGame() {
         game.startGameThread();
         buttonsGrid.setVisibility(View.VISIBLE);
+        fileWriterThread = startFileWriterThread();
     }
 
     void stopGame() {
         game.stopGameThread();
         buttonsGrid.setVisibility(View.GONE);
+        if (fileWriterThread != null) {
+            fileWriterThread.interrupt();
+            fileWriterThread = null;
+        }
     }
 
     void processMainMenuItem(MenuItem item) {
@@ -400,7 +489,7 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                 break;
             case CANCEL:
                 if (game.isGameRunning()) {
-                    game.goBack();
+                    //game.goBack();
                     game.setResult(null);
                 } else {
                     initHomeMenu();
@@ -423,7 +512,8 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
             }
             case CLEAR: {
                 getPrefs().edit().remove("completedQuests").apply();
-                FileUtils.deleteFileAndBackups(gameFile);
+                long byteDeleted = FileUtils.deleteFileAndBackups(gameFile);
+                log.debug("deleted " + Formatter.formatFileSize(this, byteDeleted) + " of memory");
                 initHomeMenu();
                 break;
             }

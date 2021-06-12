@@ -148,13 +148,13 @@ public class FileUtils {
      * @param file
      * @return
      */
-    public static boolean deleteFileAndBackups(File file) {
+    public static long deleteFileAndBackups(File file) {
 	    String fileName = file.getAbsolutePath();
         String root = stripExtension(file.getName());
         String ext = fileExtension(fileName);
 	    File dir = file.getParentFile();
 	    if (!dir.isDirectory())
-	        return false;
+	        return -1;
 	    File [] files = dir.listFiles(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
@@ -162,13 +162,14 @@ public class FileUtils {
             }
         });
 	    if (files.length == 0)
-	        return false;
-	    int numDeleted = 0;
+	        return 0;
+	    long bytesDeleted = 0;
 	    for (File f : files) {
+	        long size = f.length();
 	        if (f.delete())
-	            numDeleted++;
+	            bytesDeleted+=size;
         }
-	    return numDeleted == files.length;
+	    return bytesDeleted;
     }
 
     /**

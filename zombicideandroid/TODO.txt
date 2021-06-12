@@ -1,40 +1,60 @@
+BUGS
+-----
+(DONE)Hitting Cancel/End should not make possible to choose a different character before all actions used
+Zoom level 0 should show entire screen
+Use Black background with white text (invert the color scheme)
+(DONE)Remove 'DO NOTHING' and add 'END TURN' and Use up remaining actions and end players turn
+(DONE)Cancel should not 'goBack'?
+(PARTIALLY DONE)Animate unlocking doors / vaults
+(DONE)Make save game state work in background thread
+(DONE)Pressing any button should clear the summary
+Mana Blast has too large DOT ontop of player when target is far away
+Sometimes pressing the 'tooltip' arrow on a button doesnt work
+Armor buttons dont have tooltip text
+Floating text should not get cut off by screen
+Hide panel buttons when in loading screen
+SOUND EFFECTS!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+
 (DONE)Add slashing anims for melee attacks
 (DONE)Add ability to destroy spawns
 (DONE)Add Menu to Show skills and their descriptions (In PRogress)
 (Works when in correct cell) Make so walking in and out of vaults uses the correct door during animations
 (Done)Killing a necro allways users to remove a spawn zone
-Necros supposed to move toward an escape or game is lost
+(DONE)Necros supposed to move toward an escape or game is lost
 (Done)Make splash animate a hand coming out of ground
 
 SEBI's GAME
 -------------
-First time launch mode / tutorial
-Tutorial game needs helper text to teach user
-Zoom in/out should be animated
+(DONE)First time launch mode / tutorial
+(DONE)Tutorial game needs helper text to teach user
+(DONE)Zoom in/out should be animated
 When searching or looting a vault, new items should have their cards shown on the screen for a few seconds
-Need to handle onResume / onPause
-Add description of the Zombies abilities to toolTipText
+(DONE)Need to handle onResume / onPause
+(DONE)Add description of the Zombies abilities to toolTipText
 (Done) Animation for doing nothing (Zzzzzz)
 (Done) Put direction button on top
-replace 'start' with new game->choose level->choose difficulty->choose chars
-Ability to reverse a move
+(DONE)replace 'start' with new game->choose level->choose difficulty->choose chars
+(DONE)Ability to reverse a move
 (Done) replace 'Back' button with 'Cancel'
-Ability to toggle through characters button as part of the direction arrows
+(DONE)Ability to toggle through characters button as part of the direction arrows
 pinch zoom / pan
-Make so levels and chars are unlockable
-Less dragon bile / torches
+(DONE)Make so levels and chars are unlockable
+(DONE)Less dragon bile / torches
 
 +---------+----------+-----------+
 |         |          |           |
-|  ZOOM   |    UP    |  ZOOM     |
-|   IN    |          |   OUT     |
+|   LEFT  |    UP    |  RIGHT    |
+|   HAND  |          |  HAND     |
 +---------+----------+-----------+
 |         |  Toggle  |           |
 |  LEFT   |   Char   |  RIGHT    |
 |         |          |           |
 +---------+----------+-----------+
 |         |          |           |
-|         |  DOWN    |   IN/OUT  |
+| ZM      |  DOWN    |   IN/OUT  |
 |         |          |    VAULT  |
 +---------+----------+-----------+
 

@@ -149,4 +149,8 @@ public abstract class ZActor<E extends Enum<E>> extends Reflector<ZActor<E>> imp
     public String getTooltipText() {
         return null;
     }
+
+    void clearActions() {
+        actionsLeftThisTurn = 0;
+    }
 }

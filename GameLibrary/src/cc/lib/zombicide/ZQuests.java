@@ -54,19 +54,17 @@ public enum ZQuests {
             "Hey, that one owed me money!"),
     The_Abomination(true, "The Abomination", "Test Abomination!"),
     The_Necromancer(true, "The Necromancer", "Test Necromancer!"),
-    The_Shepherds("The Shepherds", "Afew days have passed. These\n" +
-            "zombies are, for the most part,\n" +
-            "stupid as hell. But they never tire, or\n" +
-            "need food, or even sleep. Alas, we’re all\n" +
-            "too human. We need food and a secure\n" +
-            "shelter.\n" +
-            "There are many vaults beneath this\n" +
-            "town. Clever survivors could hole up\n" +
-            "and rest for a while. But, we still need\n" +
-            "to gather supplies to last a couple of days\n" +
-            "while we plan our next move. This war\n" +
-            "may last far longer than anyone - even\n" +
-            "the Necromancers - expected."),
+    The_Shepherds("The Shepherds", "Necromancers are everywhere. They’re\n" +
+            "spreading chaos and seizing power in the\n" +
+            "whole kingdom! Against a menace this big, there\n" +
+            "is almost nothing we could do. Almost. We know\n" +
+            "we’re good at survival as long as we stand together.\n" +
+            "Our plan is to reach out and find other survivors\n" +
+            "to create an army of our own. Four days we’ve spent,\n" +
+            "traveling to the next village, which\n" +
+            "is currently under attack, but not\n" +
+            "completely overrun. Let’s get in\n" +
+            "the fray and help these people!"),
     Famine("Famine", "Afew days have passed. These\n" +
             "zombies are, for the most part,\n" +
             "stupid as hell. But they never tire, or\n" +
@@ -213,11 +211,6 @@ public enum ZQuests {
     }
 
     public static List<ZQuests> valuesRelease() {
-        return Utils.filterItems(new Utils.Filter<ZQuests>() {
-            @Override
-            public boolean keep(ZQuests object) {
-                return !object.debug;
-            }
-        }, values());
+        return Utils.filterItems(object -> !object.debug, values());
     }
 }

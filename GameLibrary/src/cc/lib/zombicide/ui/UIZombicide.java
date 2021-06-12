@@ -511,7 +511,7 @@ public abstract class UIZombicide extends ZGame {
         boardRenderer.dragOffset.zero();
         if (getCurrentCharacter() == null) {
             for (ZPlayerName nm : getCurrentUser().getCharacters()) {
-                if (nm.getCharacter().isAlive() && (nm.getCharacter().getActionsLeftThisTurn() > 0 || nm.getCharacter().isInventoryThisTurn())) {
+                if (nm.getCharacter().isAlive() && nm.getCharacter().getActionsLeftThisTurn() > 0) {
                     setResult(nm.getCharacter());
                     break;
                 }
@@ -583,5 +583,10 @@ public abstract class UIZombicide extends ZGame {
     @Override
     public void onIronRain(ZCharacter c, int targetZone) {
         boardRenderer.addPostActor(new HoverMessage(boardRenderer, "LET IT RAIN!!", getBoard().getZone(targetZone).getCenter()));
+    }
+
+    @Override
+    protected void onDoorUnlocked(ZDoor door) {
+        boardRenderer.addPostActor(new HoverMessage(boardRenderer, "DOOR UNLOCKED", door.getRect(getBoard()).getCenter()));
     }
 }

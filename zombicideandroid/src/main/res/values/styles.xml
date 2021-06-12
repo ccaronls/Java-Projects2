@@ -8,4 +8,14 @@
         <item name="android:windowCloseOnTouchOutside">false</item>
     </style>
 
+    <style name="ZTooltipDialogTheme" parent="@android:style/Theme.Holo.Dialog">
+        <item name="android:windowCloseOnTouchOutside">false</item>
+        <item name="android:background">@android:color/transparent</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:colorBackgroundCacheHint">@null</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:backgroundDimEnabled">false</item>
+        <item name="android:maxWidth">200dp</item>
+    </style>
+
 </resources>

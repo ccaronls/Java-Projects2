@@ -1031,6 +1031,7 @@ for (int pix : pixels) {
     }
 
     private GColor curColor = GColor.BLACK;
+    private GColor backColor = GColor.BLACK;
     
     @Override
     public final void setColor(GColor color) {
@@ -1055,6 +1056,19 @@ for (int pix : pixels) {
     @Override
     public final GColor getColor() {
         return curColor;
+    }
+
+    @Override
+    public GColor getBackgroundColor() {
+        return backColor;
+    }
+
+    /**
+     *
+     * @param backColor
+     */
+    public void setBackgroundColor(GColor backColor) {
+        this.backColor = backColor;
     }
 
     @Override

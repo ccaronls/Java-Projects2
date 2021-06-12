@@ -1,11 +1,14 @@
 package cc.lib.zombicide.quests;
 
+import cc.lib.game.AGraphics;
 import cc.lib.game.GColor;
+import cc.lib.game.GRectangle;
 import cc.lib.game.Utils;
 import cc.lib.utils.Grid;
 import cc.lib.utils.Table;
 import cc.lib.zombicide.ZBoard;
 import cc.lib.zombicide.ZCell;
+import cc.lib.zombicide.ZCellType;
 import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZDir;
 import cc.lib.zombicide.ZDoor;
@@ -14,7 +17,8 @@ import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZQuest;
 import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZTile;
-import cc.lib.zombicide.ZWallFlag;
+import cc.lib.zombicide.ZZone;
+import cc.lib.zombicide.ui.UIZBoardRenderer;
 
 public class ZQuestDeadTrail extends ZQuest {
 
@@ -24,7 +28,6 @@ public class ZQuestDeadTrail extends ZQuest {
 
     final static int NUM_VAULT_ITEMS = 2;
 
-    int numObjectives = 0;
     int blueKeyZone = -1;
     int greenKeyZone = -1;
     ZDoor violetVault1, violetVault2, goldVault;
@@ -86,8 +89,8 @@ public class ZQuestDeadTrail extends ZQuest {
         super.processObjective(game, c, move);
         if (move.integer == blueKeyZone) {
             game.getCurrentUser().showMessage(c.name() + " has found the BLUE key. Violet Vault doos UNLOCKED!");
-            game.getBoard().setDoor(violetVault1, ZWallFlag.CLOSED);
-            game.getBoard().setDoor(violetVault2, ZWallFlag.CLOSED);
+            game.unlockDoor(violetVault1);
+            game.unlockDoor(violetVault2);
             blueKeyZone = -1;
         } else if (move.integer == greenKeyZone) {
             game.getCurrentUser().showMessage(c.name() + " has found the GREEN key.");
@@ -95,7 +98,7 @@ public class ZQuestDeadTrail extends ZQuest {
         }
         if (blueKeyZone < 0 && greenKeyZone < 0) {
             game.getCurrentUser().showMessage("Gold Vault door UNLOCKED");
-            game.getBoard().setDoor(goldVault, ZWallFlag.CLOSED);
+            game.unlockDoor(goldVault);
         }
     }
 
@@ -103,7 +106,7 @@ public class ZQuestDeadTrail extends ZQuest {
     public int getPercentComplete(ZGame game) {
         int numTasks = getNumStartRedObjectives() + NUM_VAULT_ITEMS + 1;
         int numComplete = getNumStartRedObjectives() - redObjectives.size();
-        numComplete -= getNumFoundVaultItems();
+        numComplete += getNumFoundVaultItems();
         if (isAllPlayersInExit(game))
             numComplete ++;
         return numComplete * 100 / numTasks;
@@ -119,25 +122,58 @@ public class ZQuestDeadTrail extends ZQuest {
 
     @Override
     public void init(ZGame game) {
-        numObjectives = redObjectives.size();
         while (greenKeyZone == blueKeyZone) {
             greenKeyZone = Utils.randItem(redObjectives);
             blueKeyZone = Utils.randItem(redObjectives);
         }
-        game.getBoard().setDoor(violetVault1, ZWallFlag.LOCKED);
-        game.getBoard().setDoor(violetVault2, ZWallFlag.LOCKED);
-        game.getBoard().setDoor(goldVault, ZWallFlag.LOCKED);
+        game.lockDoor(violetVault1);
+        game.lockDoor(violetVault2);
+        game.lockDoor(goldVault);
     }
 
     @Override
     public Table getObjectivesOverlay(ZGame game) {
         return new Table(getName())
                 .addRow(new Table().setNoBorder()
-                    .addRow("1.", "Take all Objectives", String.format("%d of %d", numObjectives-redObjectives.size(), numObjectives))
+                    .addRow("1.", "Take all Objectives", String.format("%d of %d", getNumStartRedObjectives()-redObjectives.size(), getNumStartRedObjectives()))
                     .addRow("2.", "Key to Violet Vaults is hidden among the RED objectives", blueKeyZone == -1 ? "Found" : "Not Found")
                     .addRow("3.", "Key to Gold Vault is hidden among the RED objectives", greenKeyZone == -1 ? "Found" : "Not Found")
                     .addRow("4.", "Take all vault artifacts", String.format("%d of %d", getNumFoundVaultItems(), NUM_VAULT_ITEMS))
                     .addRow("5.", "Get all survivors to the exit zone")
                 );
+    }
+
+    @Override
+    public void drawQuest(ZGame game, AGraphics g) {
+        if (!UIZBoardRenderer.DEBUG_DRAW_ZONE_INFO) {
+            return;
+        }
+
+        if (blueKeyZone >= 0) {
+            ZZone z = game.getBoard().getZone(blueKeyZone);
+            for (Grid.Pos p : z.getCells()) {
+                ZCell cell = game.getBoard().getCell(p);
+                if (cell.isCellType(ZCellType.OBJECTIVE_RED)) {
+                    GRectangle redX = new GRectangle(cell).scaledBy(.2f, .2f);
+                    g.setColor(GColor.BLUE);
+                    g.drawLine(redX.getTopLeft(), redX.getBottomRight(), 5);
+                    g.drawLine(redX.getTopRight(), redX.getBottomLeft(), 5);
+                }
+            }
+        }
+
+        if (greenKeyZone >= 0) {
+            ZZone z = game.getBoard().getZone(greenKeyZone);
+            for (Grid.Pos p : z.getCells()) {
+                ZCell cell = game.getBoard().getCell(p);
+                if (cell.isCellType(ZCellType.OBJECTIVE_RED)) {
+                    GRectangle redX = new GRectangle(cell).scaledBy(.2f, .2f);
+                    g.setColor(GColor.GREEN);
+                    g.drawLine(redX.getTopLeft(), redX.getBottomRight(), 5);
+                    g.drawLine(redX.getTopRight(), redX.getBottomLeft(), 5);
+                }
+            }
+        }
+
     }
 }

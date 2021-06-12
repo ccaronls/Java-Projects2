@@ -8,15 +8,19 @@ import cc.lib.game.GDimension;
 import cc.lib.game.Justify;
 import cc.lib.ui.UIComponent;
 import cc.lib.ui.UIRenderer;
+import cc.lib.utils.Table;
 import cc.lib.zombicide.ZActor;
 import cc.lib.zombicide.ZGame;
+import cc.lib.zombicide.ZQuest;
 
 public class UIZCharacterRenderer extends UIRenderer {
 
     interface IWrappable {
-
         GDimension drawWrapped(APGraphics g, float maxWidth);
     }
+
+    public static GColor TEXT_COLOR = GColor.BLACK;
+    public static GColor TEXT_COLOR_DIM = GColor.TRANSLUSCENT_BLACK;
 
     static class StringLine implements IWrappable {
 
@@ -68,7 +72,7 @@ public class UIZCharacterRenderer extends UIRenderer {
         if (getGame() == null || UIZombicide.getInstance().boardRenderer == null)
             return;
         GDimension info = null;
-        g.setColor(GColor.BLACK);
+        g.setColor(TEXT_COLOR);
         if (UIZombicide.getInstance().boardRenderer.getHighlightedActor() != null) {
             actorInfo = UIZombicide.getInstance().boardRenderer.getHighlightedActor();
             info = UIZombicide.getInstance().boardRenderer.getHighlightedActor().drawInfo(g, getGame(), getWidth(), getHeight());
@@ -76,9 +80,18 @@ public class UIZCharacterRenderer extends UIRenderer {
             info = getGame().getCurrentCharacter().drawInfo(g, getGame(), getWidth(), getHeight());
         } else if (actorInfo != null) {
             info = actorInfo.drawInfo(g, getGame(), getWidth(), getHeight());
+        } else if (getGame().getQuest() != null) {
+            ZQuest quest = getGame().getQuest();
+            Table table = new Table(new Table.Model() {
+                @Override
+                public int getMaxCharsPerLine() {
+                    return 128;
+                }
+            }).addColumn(quest.getName(), quest.getQuest().getDescription().replace('\n', ' '));
+            info = table.draw(g);
         }
 
-        g.setColor(GColor.BLACK);
+        g.setColor(TEXT_COLOR);
         int y = 0;
         float maxWidth = g.getViewportWidth() - (info == null ? 0 : info.width);
         for (IWrappable msg : messages) {
@@ -87,7 +100,7 @@ public class UIZCharacterRenderer extends UIRenderer {
             GDimension d = msg.drawWrapped(g, maxWidth);
             //GDimension d = g.drawWrapString(g.getViewportWidth(), y, maxWidth, Justify.RIGHT, Justify.TOP, msg);
             g.popMatrix();
-            g.setColor(GColor.TRANSLUSCENT_BLACK);
+            g.setColor(TEXT_COLOR_DIM);
             y += d.getHeight();
         }
         if (info != null) {

@@ -2,11 +2,14 @@ package cc.lib.android;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.drawable.ColorDrawable;
 import android.os.SystemClock;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+
+import cc.lib.game.GColor;
 
 public class DroidView extends View {
 
@@ -36,7 +39,18 @@ public class DroidView extends View {
         int width = canvas.getWidth()-margin*2;
         int height = canvas.getHeight()-margin*2;
         if (g == null) {
-            g = new DroidGraphics(getContext(), canvas, width, height);
+            GColor BACK;
+            if (getBackground() instanceof ColorDrawable) {
+                BACK = new GColor(((ColorDrawable)getBackground()).getColor());
+            } else {
+                BACK = GColor.LIGHT_GRAY;
+            }
+            g = new DroidGraphics(getContext(), canvas, width, height) {
+                @Override
+                public GColor getBackgroundColor() {
+                    return BACK;
+                }
+            };
         } else {
             g.setCanvas(canvas, width, height);
         }

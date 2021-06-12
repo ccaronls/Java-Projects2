@@ -17,7 +17,6 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.text.TextPaint;
 import android.util.Log;
-import android.util.TypedValue;
 
 import java.util.Vector;
 
@@ -38,7 +37,7 @@ import cc.lib.math.Vector2D;
  * Create a graphics interface based on Android Canvas
  */
 
-public class DroidGraphics extends APGraphics {
+public abstract class DroidGraphics extends APGraphics {
 
     private final Context context;
     private Canvas canvas;
@@ -85,11 +84,11 @@ public class DroidGraphics extends APGraphics {
     }
 
     public float convertPixelsToDips(float pixels) {
-        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_PX, pixels, context.getResources().getDisplayMetrics());
+        return DroidUtils.convertPixelsToDips(context, pixels);
     }
 
-    public float convertDipsToPixels(float dips) {
-        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dips, context.getResources().getDisplayMetrics());
+    public int convertDipsToPixels(float dips) {
+        return DroidUtils.convertDipsToPixels(context, dips);
     }
 
     /**
@@ -123,6 +122,8 @@ public class DroidGraphics extends APGraphics {
     public final GColor getColor() {
         return new GColor(paint.getColor());
     }
+
+
 
     @Override
     public final float getTextHeight() {

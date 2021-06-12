@@ -23,6 +23,10 @@ public class Splash extends DroidActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (BuildConfig.DEBUG) {
+            transition();
+            return;
+        }
         animation = new AAnimation<AGraphics>(3000) {
             @Override
             protected void draw(AGraphics g, float position, float dt) {

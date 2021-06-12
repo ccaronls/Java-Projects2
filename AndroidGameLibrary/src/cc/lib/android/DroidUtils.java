@@ -1,5 +1,6 @@
 package cc.lib.android;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BlurMaskFilter;
 import android.graphics.Canvas;
@@ -8,6 +9,7 @@ import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
+import android.util.TypedValue;
 
 import cc.lib.game.AGraphics;
 import cc.lib.game.GDimension;
@@ -161,5 +163,14 @@ public class DroidUtils extends Utils {
         mask.recycle();
         return ret;
     }
+
+    public static float convertPixelsToDips(Context context, float pixels) {
+        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_PX, pixels, context.getResources().getDisplayMetrics());
+    }
+
+    public static int convertDipsToPixels(Context context, float dips) {
+        return Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dips, context.getResources().getDisplayMetrics()));
+    }
+
 
 }

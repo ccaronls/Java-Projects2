@@ -358,7 +358,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                 // highlight the other side if this is a vault
                 g.drawRect(door.getOtherSide().getRect(getBoard()).grow(.1f), 2);
             } else {
-                g.setColor(GColor.DARK_OLIVE);
+                g.setColor(GColor.YELLOW);
             }
             g.drawRect(doorRect, 2);
         }
@@ -614,7 +614,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
 
 
     public Grid.Pos drawNoTiles(AGraphics g, float mouseX, float mouseY, boolean debugText) {
-        g.clearScreen(GColor.LIGHT_GRAY);
+        g.clearScreen();
         Grid.Pos returnCell = null;
 
         Grid.Iterator<ZCell> it = getBoard().getCellsIterator();
@@ -780,22 +780,9 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
         tileIds = ids;
     }
 
-    boolean checkDrawTiles(AGraphics g) {
-        if (!drawTiles)
-            return false;
-        if (tiles == null) {
-            tiles = getGame().getQuest().getTiles(getBoard());
-            ((UIZComponent)getComponent()).loadTiles(g, tiles);
-            return false;
-        }
-        if (tiles.length == 0) {
-            return true;
-        }
-        for (int i=0; i<tileIds.length; i++) {
-            g.drawImage(tileIds[i], tiles[i].quadrant);
-        }
-        return true;
-    }
+    public void onLoading() {}
+
+    public void onLoaded() {}
 
     float zoomPercent = 0;
 
@@ -920,6 +907,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
 
         if (drawTiles && tiles == null) {
             tiles = getGame().getQuest().getTiles(getBoard());
+            onLoading();
             ((UIZComponent)getComponent()).loadTiles(g, tiles);
             return;
         }
@@ -931,9 +919,8 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
             }
         }
 
-        game.getQuest().drawQuest(game, g);
-
         int highlightedZone = drawZones(g, mouse.X(), mouse.Y());
+        game.getQuest().drawQuest(game, g);
         boolean drawAnimating = game.isGameOver();
 
         drawAnimations(preActor, g);

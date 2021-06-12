@@ -80,18 +80,16 @@ public class ZQuestTutorial extends ZQuest {
     public void processObjective(ZGame game, ZCharacter c, ZMove move) {
         super.processObjective(game, c, move);
         if (move.integer == blueKeyZone) {
-            game.getBoard().setDoor(blueDoor, ZWallFlag.CLOSED);
+            game.unlockDoor(blueDoor);
             game.getCurrentUser().showMessage(c.name() + " has unlocked the BLUE door");
             blueKeyZone = -1;
         } else if (move.integer == greenKeyZone) {
-            game.getBoard().setDoor(greenDoor, ZWallFlag.CLOSED);
+            game.unlockDoor(greenDoor);
             game.getBoard().setSpawnZone(greenSpawnZone, true);
             game.spawnZombies(greenSpawnZone);
             game.getCurrentUser().showMessage(c.name() + " has unlocked the GREEN door");
             game.getCurrentUser().showMessage(c.name() + " has created a new spawn zone!");
             greenKeyZone = -1;
-        } else {
-            //throw new cc.lib.utils.GException("Invalid move for objective: " + move);
         }
     }
 

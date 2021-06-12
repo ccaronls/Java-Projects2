@@ -93,8 +93,7 @@ public class ZQuestTheBlackBook extends ZQuest {
     public void processObjective(ZGame game, ZCharacter c, ZMove move) {
         super.processObjective(game, c, move);
         if (move.integer == blueObjZone) {
-            game.getCurrentUser().showMessage(c.name() + " has unlocked the Blue Door");
-            game.getBoard().setDoor(blueDoor, ZWallFlag.CLOSED);
+            game.unlockDoor(blueDoor);
         }
 
         if (move.integer == blackBookZone) {
@@ -104,7 +103,7 @@ public class ZQuestTheBlackBook extends ZQuest {
 
         if (move.integer == greenObjZone) {
             game.getCurrentUser().showMessage(c.name() + " has unlocked the Green Door. A New Spwn zone has appeared!");
-            game.getBoard().setDoor(greenDoor, ZWallFlag.CLOSED);
+            game.unlockDoor(greenDoor);
             game.getBoard().setSpawnZone(greenSpawnZone, true);
             game.spawnZombies(greenSpawnZone);
         }

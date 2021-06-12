@@ -37,7 +37,8 @@
             android:id="@+id/b_up"
             android:layout_columnWeight="1"
             android:layout_rowWeight="1"
-            android:src="@android:drawable/arrow_up_float"/>
+            android:tint="@color/dpad_color"
+            android:src="@drawable/button_up"/>
 
         <Button
             android:id="@+id/b_useright"
@@ -49,21 +50,23 @@
             android:id="@+id/b_left"
             android:layout_columnWeight="1"
             android:layout_rowWeight="1"
-            android:src="@drawable/arrow_left"
-            android:text="&lt;"/>
+            android:tint="@color/dpad_color"
+            android:src="@drawable/button_left"/>
 
-        <Button
+        <ImageButton
             android:id="@+id/b_center"
             android:layout_columnWeight="1"
             android:layout_rowWeight="1"
-            android:text="O"/>
+            android:gravity="center"
+            android:tint="@color/dpad_color"
+            android:src="@drawable/button_center"/>
 
         <ImageButton
             android:id="@+id/b_right"
             android:layout_columnWeight="1"
             android:layout_rowWeight="1"
-            android:src="@drawable/arrow_right"
-            android:text="&gt;"/>
+            android:tint="@color/dpad_color"
+            android:src="@drawable/button_right"/>
 
         <Button
             android:id="@+id/b_zoom"
@@ -75,8 +78,8 @@
             android:id="@+id/b_down"
             android:layout_columnWeight="1"
             android:layout_rowWeight="1"
-            android:src="@android:drawable/arrow_down_float"
-            android:text="v"/>
+            android:tint="@color/dpad_color"
+            android:src="@drawable/button_down"/>
 
         <ImageButton
             android:id="@+id/b_vault"
@@ -106,6 +109,7 @@
         android:id="@+id/board_view"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:background="@color/background"
         app:layout_constraintStart_toEndOf="@id/list_menu"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/sv_console"

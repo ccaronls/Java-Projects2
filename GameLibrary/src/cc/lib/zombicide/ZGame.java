@@ -437,10 +437,10 @@ public class ZGame extends Reflector<ZGame>  {
                     options.addAll(Utils.filter(getAllLivingCharacters(), object -> object.getActionsLeftThisTurn() > 0));
                 }
 
-                if (options.size() > 0) {
+                //if (options.size() > 0) {
                     // add characters who have organized and can do so again
-                    options.addAll(Utils.filter(getAllLivingCharacters(), object -> object.getActionsLeftThisTurn() == 0 && object.inventoryThisTurn));
-                }
+                //    options.addAll(Utils.filter(getAllLivingCharacters(), object -> object.getActionsLeftThisTurn() == 0 && object.inventoryThisTurn));
+                //}
 
                 ZCharacter currentCharacter = null;
                 if (options.size() == 0) {
@@ -476,8 +476,9 @@ public class ZGame extends Reflector<ZGame>  {
                 }
 
                 List<ZMove> options = new ArrayList<>();
+                options.add(ZMove.newEndTurn());
                 if (!invOnly) {
-                    options.add(ZMove.newDoNothing());
+                    //options.add(ZMove.newDoNothing());
 
                     // determine players available moves
                     for (ZSkill skill : cur.getAvailableSkills()) {
@@ -596,8 +597,7 @@ public class ZGame extends Reflector<ZGame>  {
 
                 ZMove move = getCurrentUser().chooseMove(this, cur, options);
                 if (move != null) {
-                    performMove(cur, move);
-                    return true;
+                    return performMove(cur, move);
                 }
 
                 return false;
@@ -935,6 +935,10 @@ public class ZGame extends Reflector<ZGame>  {
                 onDoNothing(cur);
                 cur.performAction(ZActionType.DO_NOTHING, this);
                 return true;
+            case END_TURN:
+                cur.clearActions();
+                stateStack.pop();
+                break;
             case SWITCH_ACTIVE_CHARACTER: {
                 if (canSwitchActivePlayer()) {
                     int idx = 0;
@@ -946,7 +950,7 @@ public class ZGame extends Reflector<ZGame>  {
                     }
                     for (int i=(idx+1) % user.characters.size(); i!=idx; i=(i+1)%user.characters.size()) {
                         ZCharacter c = user.characters.get(i).character;
-                        if (c.isAlive() && c.getActionsLeftThisTurn() > 0 || c.inventoryThisTurn) {
+                        if (c.isAlive() && c.getActionsLeftThisTurn() > 0) {
                             stateStack.pop();
                             pushState(ZState.PLAYER_STAGE_CHOOSE_CHARACTER_ACTION, c.name);
                             return true;
@@ -2119,19 +2123,24 @@ public class ZGame extends Reflector<ZGame>  {
 
     protected void onActorMoved(ZActor actor, GRectangle start, GRectangle end, long speed) {
     }
-
+/*
     public boolean canGoBack() {
         switch (getState()) {
             case PLAYER_STAGE_CHOOSE_ZONE_TO_REMOVE_SPAWN:
+            case PLAYER_STAGE_CHOOSE_NEW_SKILL:
                 return false;
         }
         return stateStack.size() > 1;
     }
 
     public void goBack() {
-        stateStack.pop();
+        switch (getState()) {
+            case PLAYER_STAGE_CHOOSE_CHARACTER_ACTION:
+            case PLAYER_STAGE_CHOOSE_CHARACTER:
+                stateStack.pop();
+        }
     }
-
+*/
     List<ZEquipment> make(int count, Enum e) {
         List<ZEquipment> list = new ArrayList<>();
         if (e instanceof ZWeaponType) {
@@ -2227,7 +2236,7 @@ public class ZGame extends Reflector<ZGame>  {
         ZCharacter cur = getCurrentCharacter();
         if (cur == null)
             return false;
-        if (cur.getActionsLeftThisTurn() == cur.getActionsPerTurn() || cur.getActionsLeftThisTurn() == 0)
+        if (cur.getActionsLeftThisTurn() == cur.getActionsPerTurn())
             return true;
         if (cur.hasAvailableSkill(ZSkill.Tactician))
             return true;
@@ -2239,4 +2248,18 @@ public class ZGame extends Reflector<ZGame>  {
     }
 
     public void onIronRain(ZCharacter c, int targetZone) {}
+
+    protected void onDoorUnlocked(ZDoor door) {}
+
+    public void unlockDoor(ZDoor door) {
+        Utils.assertTrue(board.getDoor(door) == ZWallFlag.LOCKED);
+        board.setDoor(door, ZWallFlag.CLOSED);
+        onDoorUnlocked(door);
+    }
+
+    public void lockDoor(ZDoor door) {
+        Utils.assertTrue(board.getDoor(door) != ZWallFlag.LOCKED);
+        board.setDoor(door, ZWallFlag.LOCKED);
+    }
+
 }

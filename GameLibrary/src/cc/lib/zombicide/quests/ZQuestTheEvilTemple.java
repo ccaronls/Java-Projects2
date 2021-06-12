@@ -19,7 +19,6 @@ import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZQuest;
 import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZTile;
-import cc.lib.zombicide.ZWallFlag;
 import cc.lib.zombicide.ZZombieType;
 
 public class ZQuestTheEvilTemple extends ZQuest {
@@ -94,11 +93,11 @@ public class ZQuestTheEvilTemple extends ZQuest {
         super.processObjective(game, c, move);
         if (move.integer == greenObjZone) {
             game.getCurrentUser().showMessage(c.name() + " has found the GREEN objective and opened the GOLD vault");
-            game.getBoard().setDoor(goldVaultDoor, ZWallFlag.CLOSED);
+            game.unlockDoor(goldVaultDoor);
             greenObjZone = -1;
         } else if (move.integer == blueObjZone) {
             game.getCurrentUser().showMessage(c.name() + " has found the BLUE objective and opened the VIOLET vault");
-            game.getBoard().setDoor(violetVaultDoor, ZWallFlag.CLOSED);
+            game.unlockDoor(violetVaultDoor);
             blueObjZone = -1;
         }
     }
@@ -124,8 +123,8 @@ public class ZQuestTheEvilTemple extends ZQuest {
             blueObjZone = Utils.randItem(redObjectives);
             greenObjZone = Utils.randItem(redObjectives);
         }
-        game.getBoard().setDoor(goldVaultDoor, ZWallFlag.LOCKED);
-        game.getBoard().setDoor(violetVaultDoor, ZWallFlag.LOCKED);
+        game.lockDoor(goldVaultDoor);
+        game.lockDoor(violetVaultDoor);
     }
 
     @Override

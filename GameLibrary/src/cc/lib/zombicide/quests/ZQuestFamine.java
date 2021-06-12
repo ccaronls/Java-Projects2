@@ -80,7 +80,7 @@ public class ZQuestFamine extends ZQuest {
         if (move.integer == blueKeyZone) {
             game.getCurrentUser().showMessage("Blue key found. Vault unlocked");
             for (ZDoor door : lockedVaults) {
-                game.getBoard().setDoor(door, ZWallFlag.CLOSED);
+                game.unlockDoor(door);
             }
             blueKeyZone = -1;
         }
@@ -154,11 +154,11 @@ public class ZQuestFamine extends ZQuest {
     public Table getObjectivesOverlay(ZGame game) {
         return new Table(getName())
             .addRow(new Table().setNoBorder()
-                .addRow("1.", "Find BLUE key to unlock the Vault", blueKeyZone >= 0)
+                .addRow("1.", "Find BLUE key hidden among RED\nobjectives and unlocks the Vault", blueKeyZone < 0)
                 .addRow("2.", "Find 2 Apples", String.format("%d of %d", numApplesFound, 2))
                 .addRow("3.", "Find 2 Water", String.format("%d of %d", numWaterFound, 2))
                 .addRow("4.", "Find 2 Salted Meat", String.format("%d of %d", numSaltedMeatFound, 2))
-                .addRow("5.", "Lock youselves in the Vault with no zombies.", isAllLockedInVault(game))
+                .addRow("5.", "Lock yourselves in the Vault with no zombies.", isAllLockedInVault(game))
             );
 
     }

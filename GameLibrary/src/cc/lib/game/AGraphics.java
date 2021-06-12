@@ -1658,6 +1658,19 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     public abstract void clearScreen(GColor color);
 
     /**
+     *
+     */
+    public void clearScreen() {
+        clearScreen(getBackgroundColor());
+    }
+
+    /**
+     *
+     * @return
+     */
+    public abstract GColor getBackgroundColor();
+
+    /**
      * 
      * @param left
      * @param right

@@ -35,6 +35,7 @@ public class ZBoardView extends UIComponentView implements UIZComponent<DroidGra
 
     @Override
     protected void preDrawInit(DroidGraphics g) {
+        UIZBoardRenderer.DEBUG_DRAW_ZONE_INFO = BuildConfig.DEBUG;
         g.setTextModePixels(true);
         g.setTextHeight(getResources().getDimension(R.dimen.board_view_text_size));
         g.setLineThicknessModePixels(false);
@@ -62,7 +63,7 @@ public class ZBoardView extends UIComponentView implements UIZComponent<DroidGra
     public void loadTiles(DroidGraphics g, ZTile[] tiles) {
         progress = 0;
         numImages = tiles.length;
-
+        UIZBoardRenderer renderer = (UIZBoardRenderer)getRenderer();
         deleteTiles(g);
         try {
             tileIds = new int[tiles.length];
@@ -78,7 +79,8 @@ public class ZBoardView extends UIComponentView implements UIZComponent<DroidGra
                 tileIds[i] = g.newRotatedImage(id, tiles[i].orientation);
                 g.deleteImage(id);
             }
-            ((UIZBoardRenderer)getRenderer()).onTilesLoaded(tileIds);
+            renderer.onTilesLoaded(tileIds);
+            renderer.onLoaded();
             redraw();
         } catch (Exception e) {
             deleteTiles(g);
@@ -202,5 +204,15 @@ public class ZBoardView extends UIComponentView implements UIZComponent<DroidGra
     @Override
     protected float getProgress() {
         return (float)progress / numImages;
+    }
+
+    @Override
+    protected void onLoading() {
+        ((UIZBoardRenderer)getRenderer()).onLoading();
+    }
+
+    @Override
+    protected void onLoaded() {
+        ((UIZBoardRenderer)getRenderer()).onLoaded();
     }
 }
