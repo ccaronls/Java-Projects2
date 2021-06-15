@@ -4,7 +4,7 @@
 
     </style>
 
-    <style name="ZDialogTheme" parent="@android:style/Theme.Dialog">
+    <style name="ZDialogTheme" parent="@android:style/Theme.Holo.Dialog">
         <item name="android:windowCloseOnTouchOutside">false</item>
     </style>
 

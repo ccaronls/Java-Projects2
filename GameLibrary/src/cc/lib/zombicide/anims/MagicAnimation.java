@@ -38,7 +38,8 @@ public class MagicAnimation extends ZActorAnimation {
         if (position <= .5f) {
             // draw the arcs emanating from the start
             int numArcsToDraw = Math.round(position * 2 * numArcs);
-            g.drawFilledCircle(start, radius/10);
+            //g.drawFilledCircle(start, radius/10);
+            g.drawArc(start, radius/10, startAngle, sweepAngle);
             float r = radiusStep;
             for (int i=0; i<numArcsToDraw; i++) {
                 g.drawArc(start, r, startAngle, sweepAngle);

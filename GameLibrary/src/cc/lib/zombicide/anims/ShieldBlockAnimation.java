@@ -17,7 +17,7 @@ public class ShieldBlockAnimation extends ZActorAnimation {
     protected void draw(AGraphics g, float position, float dt) {
         int id = ZIcon.SHIELD.imageIds[0];
         AImage img = g.getImage(id);
-        GRectangle rect = actor.getRect().fit(img);
+        GRectangle rect = actor.getRect().fit(img).scaledBy(.5f);
         g.setTransparencyFilter(1f-position);
         g.drawImage(id, rect);
         g.removeFilter();

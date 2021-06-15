@@ -15,6 +15,7 @@ import cc.lib.game.APGraphics;
 import cc.lib.game.GColor;
 import cc.lib.game.GDimension;
 import cc.lib.game.GRectangle;
+import cc.lib.game.IDimension;
 import cc.lib.game.IRectangle;
 import cc.lib.game.IShape;
 import cc.lib.game.IVector2D;
@@ -874,6 +875,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
 
     @Override
     public void draw(APGraphics g, int mouseX, int mouseY) {
+        //log.debug("mouseX=" + mouseX + " mouseY=" + mouseY);
         UIZombicide game = getGame();
         ZBoard board = getBoard();
         if (board == null) {
@@ -889,19 +891,27 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
 
         IVector2D center = getBoardCenter();
         GRectangle rect = getZoomedRectangle(g, center);
+        MutableVector2D dragViewport = dragOffset.scaledBy(-rect.getWidth() / g.getViewportWidth(), -rect.getHeight() / g.getViewportHeight());
+
+        //log.debug("dragViewport = " + dragViewport);// + " topL = " + topL + "  bottomR = "+ bottomR);
+
+        IDimension boardRect = board.getDimension();
+        rect.moveBy(dragViewport);
+        if (rect.x < 0) {
+            rect.x = 0;
+        } else if (rect.x + rect.w > boardRect.getWidth()) {
+            rect.x = boardRect.getWidth() - rect.w;
+        }
+
+        if (rect.y < 0) {
+            rect.y = 0;
+        } else if (rect.y + rect.h > boardRect.getHeight()) {
+            rect.y = boardRect.getHeight() - rect.h;
+        }
+
+        //log.debug("Rect = " + rect);
 
         g.ortho(rect);
-/*
-        MutableVector2D topL = dragOffset.subEq(g.transform(rect.getTopLeft()));
-        MutableVector2D bottomR = dragOffset.subEq(g.transform(rect.getBottomLeft()));
-
-        log.debug("topL = " + topL + "  bottomR = "+ bottomR);
-
-        MutableVector2D drag = g.screenToViewport(dragOffset).sub(rect.getTopLeft());
-        //log.debug("drag = " + drag);
-        g.translate(drag);
-*/
-        g.translate(g.screenToViewport(dragOffset).sub(rect.getTopLeft()));
 
         Vector2D mouse = g.screenToViewport(mouseX, mouseY);
 

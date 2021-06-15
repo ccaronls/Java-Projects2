@@ -87,7 +87,7 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
     ListView menu;
     ZBoardView boardView;
     ZCharacterView consoleView;
-    File gameFile;
+    File gameFile, statsFile;
     ViewGroup buttonsGrid;
     View consoleContainer;
     CompoundButton buttonToggleHideContainer;
@@ -98,6 +98,35 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
     View bLH, bUp, bRH, bLeft, bCenter, bRight, bZoom, bDown, bVault;
 
     final ArrayBlockingQueue fileWriterQueue = new ArrayBlockingQueue(1);
+    final Stats stats = new Stats();
+
+    final CharLock [] charLocks = {
+            new CharLock(ZPlayerName.Ann, ""),
+            new CharLock(ZPlayerName.Baldric, ""),
+            new CharLock(ZPlayerName.Clovis, ""),
+            new CharLock(ZPlayerName.Samson, ""),
+            new CharLock(ZPlayerName.Nelly, ""),
+            new CharLock(ZPlayerName.Silas, ""),
+            new CharLock(ZPlayerName.Tucker, "Complete 'Big Game Hunting' in Medium difficulty.") {
+                @Override
+                boolean isUnlocked() {
+                    return stats.isQuestCompleted(ZQuests.Big_Game_Hunting, ZDiffuculty.MEDIUM);
+                }
+            },
+            new CharLock(ZPlayerName.Jain, "Complete 'The Black Book' in Hard difficulty") {
+                @Override
+                boolean isUnlocked() {
+                    return stats.isQuestCompleted(ZQuests.The_Black_Book, ZDiffuculty.HARD);
+                }
+            },
+            new CharLock(ZPlayerName.Benson, "Complete 'The Evil Temple' in Hard difficulty") {
+                @Override
+                boolean isUnlocked() {
+                    return stats.isQuestCompleted(ZQuests.The_Evil_Temple, ZDiffuculty.HARD);
+                }
+            },
+    };
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -251,10 +280,14 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
         super.onResume();
         game.setDifficulty(getSavedDifficulty());
         gameFile = new File(getFilesDir(), "game.save");
+        statsFile = new File(getFilesDir(), "stats.save");
         if (!gameFile.exists() || !game.tryLoadFromFile(gameFile)) {
             showWelcomeDialog(true);
         } else {
             game.showSummaryOverlay();
+        }
+        if (statsFile.exists()) {
+            stats.tryLoadFromFile(statsFile);
         }
 
         initHomeMenu();
@@ -514,6 +547,7 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
             case CLEAR: {
                 getPrefs().edit().remove("completedQuests").apply();
                 long byteDeleted = FileUtils.deleteFileAndBackups(gameFile);
+                statsFile.delete();
                 log.debug("deleted " + Formatter.formatFileSize(this, byteDeleted) + " of memory");
                 initHomeMenu();
                 break;
@@ -670,14 +704,9 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
         newDialogBuilder().setTitle("Legend").setView(lv).setNegativeButton("Close", null).show();
     }
 
-    Set<String> getCompletedQuests() {
-        return new HashSet(getPrefs().getStringSet("completedQuests", new HashSet<>()));
-    }
-
     void completeQuest(ZQuests quest) {
-        Set<String> unlocked = getCompletedQuests();
-        unlocked.add(quest.name());
-        getPrefs().edit().putStringSet("completedQuests", unlocked).apply();
+        stats.completeQuest(quest, getSavedDifficulty());
+        stats.trySaveToFile(statsFile);
     }
 
     void showWelcomeDialog(boolean showNewGame) {
@@ -696,13 +725,13 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
     }
 
     void showNewGameDialog() {
-        Set<String> playable = getCompletedQuests();
+        Set<ZQuests> playable = stats.getCompletedQuests();
         Log.d(TAG, "playable quests: " + playable);
         List<ZQuests> allQuests = ZQuests.valuesRelease();
         int firstPage = 0;
         for (ZQuests q: allQuests) {
-            if (!playable.contains(q.name())) {
-                playable.add(q.name());
+            if (!playable.contains(q)) {
+                playable.add(q);
                 break;
             }
             firstPage = Utils.clamp(firstPage+1, 0, allQuests.size()-1);
@@ -733,7 +762,7 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                 title.setText(q.getDisplayName());
                 body.setText(q.getDescription());
 
-                if (playable.contains(q.name())) {
+                if (playable.contains(q)) {
                     lockedOverlay.setVisibility(View.INVISIBLE);
                     content.setOnClickListener(new View.OnClickListener() {
                         @Override
@@ -761,7 +790,7 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 ZQuests q = allQuests.get(pager.getCurrentItem());
-                if (playable.contains(q.name())) {
+                if (playable.contains(q)) {
                     showNewGameDailogChooseDifficulty(q);
                 } else {
                     Toast.makeText(ZombicideActivity.this, "Quest Locked", Toast.LENGTH_LONG).show();
@@ -787,16 +816,27 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
 
     }
 
+    static class CharLock {
+        final String unlockMessage;
+        final ZPlayerName player;
+
+        public CharLock(ZPlayerName player, String unlockMessage) {
+            this.unlockMessage = unlockMessage;
+            this.player = player;
+        }
+
+        boolean isUnlocked() { return true; }
+    }
+
     void showNewGameDialogChoosePlayers(ZQuests quest, ZDiffuculty difficulty) {
 
         Set<String> selectedPlayers = new HashSet(getPrefs().getStringSet("players", getDefaultPlayers()));
-        Set<String> unlockedPlayers = new HashSet(getPrefs().getStringSet("unlockedPlayers", getDefaultUnlockedPlayers()));
         View view = View.inflate(this, R.layout.viewpager_dialog, null);
         ViewPager pager = view.findViewById(R.id.view_pager);
         pager.setAdapter(new PagerAdapter() {
             @Override
             public int getCount() {
-                return ZPlayerName.values().length;
+                return charLocks.length;
             }
 
             @Override
@@ -811,21 +851,26 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                 ImageView image = view.findViewById(R.id.image);
                 CheckBox checkbox = view.findViewById(R.id.checkbox);
                 ImageView lockedOverlay = view.findViewById(R.id.lockedOverlay);
+                TextView tvHowToUnlock = view.findViewById(R.id.tv_howtounlock);
 
-                ZPlayerName player = ZPlayerName.values()[position];
-                if (!unlockedPlayers.contains(player.name()) && !selectedPlayers.contains(player.name())) {
+                CharLock lock = charLocks[position];
+
+                if (!lock.isUnlocked() && !selectedPlayers.contains(lock.player.name())) {
                     lockedOverlay.setVisibility(View.VISIBLE);
+                    tvHowToUnlock.setVisibility(View.VISIBLE);
+                    tvHowToUnlock.setText(lock.unlockMessage);
                     checkbox.setEnabled(false);
                 } else {
                     lockedOverlay.setVisibility(View.INVISIBLE);
                     checkbox.setEnabled(true);
                     checkbox.setClickable(false);
+                    tvHowToUnlock.setVisibility(View.GONE);
                     image.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            if (selectedPlayers.contains(player.name())) {
+                            if (selectedPlayers.contains(lock.player.name())) {
                                 if (selectedPlayers.size() > 1) {
-                                    selectedPlayers.remove(player.name());
+                                    selectedPlayers.remove(lock.player.name());
                                     checkbox.setChecked(false);
                                 } else {
                                     Toast.makeText(ZombicideActivity.this, "Must have at least one player", Toast.LENGTH_LONG).show();
@@ -833,20 +878,20 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                             } else if (selectedPlayers.size() >= MAX_PLAYERS) {
                                 Toast.makeText(ZombicideActivity.this, "Can only have " + MAX_PLAYERS + " at a time", Toast.LENGTH_LONG).show();
                             } else {
-                                selectedPlayers.add(player.name());
+                                selectedPlayers.add(lock.player.name());
                                 checkbox.setChecked(true);
                             }
                         }
                     });
                 }
 
-                if (selectedPlayers.contains(player.name())) {
+                if (selectedPlayers.contains(lock.player.name())) {
                     checkbox.setChecked(true);
                 } else {
                     checkbox.setChecked(false);
                 }
 
-                image.setImageResource(player.cardImageId);
+                image.setImageResource(lock.player.cardImageId);
 
 
                 container.addView(view);
@@ -1095,7 +1140,7 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
         players.add(ZPlayerName.Silas.name());
         return players;
     }
-
+/*
     Set<String> getDefaultUnlockedPlayers() {
         HashSet<String> players = new HashSet<>();
         players.add(ZPlayerName.Baldric.name());
@@ -1106,95 +1151,8 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
         players.add(ZPlayerName.Samson.name());
         return players;
     }
-
+*/
     final int MAX_PLAYERS = 4; // max number of characters on screen at one time
-
-    void showAssignDialog2() {
-        Set<String> selectedPlayers = new HashSet(getPrefs().getStringSet("players", getDefaultPlayers()));
-        Set<String> unlockedPlayers = new HashSet(getPrefs().getStringSet("unlockedPlayers", getDefaultUnlockedPlayers()));
-        View view = View.inflate(this, R.layout.viewpager_dialog, null);
-        ViewPager pager = view.findViewById(R.id.view_pager);
-        pager.setAdapter(new PagerAdapter() {
-            @Override
-            public int getCount() {
-                return ZPlayerName.values().length;
-            }
-
-            @Override
-            public boolean isViewFromObject(@NonNull View view, @NonNull Object o) {
-                return view == o;
-            }
-
-            @NonNull
-            @Override
-            public Object instantiateItem(@NonNull ViewGroup container, int position) {
-                View view = LayoutInflater.from(ZombicideActivity.this).inflate(R.layout.assign_dialog_item, null);
-                ImageView image = view.findViewById(R.id.image);
-                CheckBox checkbox = view.findViewById(R.id.checkbox);
-                ImageView lockedOverlay = view.findViewById(R.id.lockedOverlay);
-
-                ZPlayerName player = ZPlayerName.values()[position];
-                if (!unlockedPlayers.contains(player.name()) && !selectedPlayers.contains(player.name())) {
-                    lockedOverlay.setVisibility(View.VISIBLE);
-                    checkbox.setEnabled(false);
-                } else {
-                    lockedOverlay.setVisibility(View.INVISIBLE);
-                    checkbox.setEnabled(true);
-                    image.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            if (selectedPlayers.contains(player.name())) {
-                                if (selectedPlayers.size() > 1) {
-                                    selectedPlayers.remove(player.name());
-                                    checkbox.setChecked(false);
-                                } else {
-                                    Toast.makeText(ZombicideActivity.this, "Must have at least one player", Toast.LENGTH_LONG).show();
-                                }
-                            } else if (selectedPlayers.size() >= MAX_PLAYERS) {
-                                Toast.makeText(ZombicideActivity.this, "Can only have " + MAX_PLAYERS + " at a time", Toast.LENGTH_LONG).show();
-                            } else {
-                                selectedPlayers.add(player.name());
-                                checkbox.setChecked(true);
-                            }
-                        }
-                    });
-                }
-
-                if (selectedPlayers.contains(player.name())) {
-                    checkbox.setChecked(true);
-                } else {
-                    checkbox.setChecked(false);
-                }
-
-                image.setImageResource(player.cardImageId);
-
-
-                container.addView(view);
-                return view;
-            }
-
-            @Override
-            public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
-                container.removeView((View)object);
-            }
-        });
-        newDialogBuilder().setTitle("Choose Players").setView(view).setNegativeButton("CANCEL", null)
-                .setPositiveButton("Assign", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        Log.d(TAG, "Selected players: " + selectedPlayers);
-                        getPrefs().edit().putStringSet("players", selectedPlayers).apply();
-                        user.clear();
-                        for (ZPlayerName pl : Utils.convertToEnumArray(selectedPlayers, ZPlayerName.class, new ZPlayerName[selectedPlayers.size()])) {
-                            user.addCharacter(pl);
-                        }
-                        game.setUsers(user);
-                        game.reload();
-                    }
-                }).show();
-    }
-
-
 
     void showAssignDialog() {
         Set<String> selectedPlayers = new HashSet(getPrefs().getStringSet("players", getDefaultPlayers()));

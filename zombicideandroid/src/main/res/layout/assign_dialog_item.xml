@@ -34,10 +34,26 @@
         android:scaleY="2"
         android:visibility="invisible"
         tools:visibility="visible"
+        android:tint="#fff"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:src="@drawable/zpadlock"/>
+
+    <TextView
+        android:id="@+id/tv_howtounlock"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:text="Locked Reason"
+        android:textSize="20dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        app:layout_constraintVertical_bias=".7"/>
+
 
 </android.support.constraint.ConstraintLayout>

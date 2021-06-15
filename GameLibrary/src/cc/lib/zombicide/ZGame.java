@@ -661,7 +661,7 @@ public class ZGame extends Reflector<ZGame>  {
                                 zombie.performAction(ZActionType.MELEE, this);
                                 if (playerDefends(victim, zombie.type)) {
                                     getCurrentUser().showMessage(victim.name() + " defends against " + zombie.name());
-                                    onCharacterDefends(victim, zombie);
+                                    onCharacterDefends(victim);
                                 } else {
                                     playerWounded(victim, ZAttackType.NORMAL, 1, zombie.type.name());
                                 }
@@ -775,7 +775,7 @@ public class ZGame extends Reflector<ZGame>  {
 
     protected void onCharacterDestroysSpawn(ZCharacter c, int zoneIdx) {}
 
-    protected void onCharacterDefends(ZCharacter cur, ZZombie zombie) {
+    protected void onCharacterDefends(ZCharacter cur) {
     }
 
     protected void onNewSkillAquired(ZCharacter c, ZSkill skill) {}
@@ -1180,18 +1180,20 @@ public class ZGame extends Reflector<ZGame>  {
                             }
 
                             int hits = resolveHits(cur, zombies.size(), actionType, stat.numDice, stat.dieRollToHit, zombies.size()/2-1, zombies.size()/2+1);
+                            int hitsMade = 0;
                             onAttack(cur, slot, actionType, stat.numDice, hits, zone);
                             for (int i=0; i<hits && zombies.size() > 0; i++) {
                                 ZZombie zombie = zombies.remove(0);
                                 if (zombie.type.minDamageToDestroy <= stat.damagePerHit) {
                                     destroyZombie(zombie, stat.attackType, cur);
                                     addExperience(cur, zombie.type.expProvided);
+                                    hitsMade++;
                                 }
                             }
 
                             user.showMessage(getCurrentCharacter().name() + " Scored " + hits + " hits");
                             if (cur.canFriendlyFire()) {
-                                int misses = stat.numDice - hits;
+                                int misses = stat.numDice - hitsMade;
                                 List<ZCharacter> friendlyFireOptions = Utils.filter(board.getCharactersInZone(zone), object -> object != cur);
                                 if (friendlyFireOptions.size() > 1) {
                                     // sort them in same way we would sort zombie attacks
@@ -1206,6 +1208,7 @@ public class ZGame extends Reflector<ZGame>  {
                                     ZCharacter victim = friendlyFireOptions.get(0);
                                     if (playerDefends(victim, ZZombieType.Walker)) {
                                         getCurrentUser().showMessage(victim.name() + " defended thyself from friendly fire!");
+                                        onCharacterDefends(victim);
                                     } else {
                                         playerWounded(victim, stat.getAttackType(), stat.damagePerHit, "Friendly Fire!");
                                         if (victim.isDualWeilding())

@@ -169,7 +169,7 @@ public abstract class UIZombicide extends ZGame {
     protected void onActorMoved(ZActor actor, GRectangle start, GRectangle end, long speed) {
         actor.addAnimation(new MoveAnimation(actor, start,end, speed));
         boardRenderer.redraw();
-        Utils.waitNoThrow(this, 500);
+//        Utils.waitNoThrow(this, 500);
     }
 
     @Override
@@ -178,7 +178,7 @@ public abstract class UIZombicide extends ZGame {
     }
 
     @Override
-    protected void onCharacterDefends(ZCharacter cur, ZZombie zombie) {
+    protected void onCharacterDefends(ZCharacter cur) {
         cur.addAnimation(new ShieldBlockAnimation(cur));
     }
 

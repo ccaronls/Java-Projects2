@@ -18,7 +18,7 @@ public class MeleeAnimation extends ZActorAnimation {
     public MeleeAnimation(ZActor actor, ZBoard board) {
         super(actor, 400);
         id = Utils.randItem(ZIcon.SLASH.imageIds);
-        rect = actor.getRect().scaledBy(1.3f).movedBy(Vector2D.newRandom(.1f));
+        rect = actor.getRect().scaledBy(1.3f).moveBy(Vector2D.newRandom(.1f));
     }
 
     @Override
