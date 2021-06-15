@@ -1,6 +1,54 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="MissingTranslation">
     <string name="app_name">Zombies! Hide!</string>
     <string name="dummy_button">Dummy Button</string>
     <string name="dummy_content">DUMMY\nCONTENT</string>
-    <string name="welcome_msg">Thank you for playing \'Zombies! Hide!\'\n\nAll code written by Chris Caron\n\nTo report bugs or send feedback please send email to ccaronsoftware@gmail.com</string>
+    <string name="welcome_msg">Thank you for playing \'Zombies! Hide!\'\n\nAll code written by Chris Caron\n\nTo report bugs or send feedback please send email to ccaronsoftware@gmail.com
+\n\nRULES
+\n\nZombies! Hide! is based on the board game Zombicide which is a cooperative board game
+where one or more players face hordes of Zombies controlled by the game itself.
+Each player controls one to four Survivors in a fantasy world
+invaded by Zombies. The goal is simply to complete the Quest
+objectives, survive, and kill as many Zombies as possible!
+Zombies are slow and predictable, but there are a lot of them.
+Watch out for their Abomination and Necromancer bosses, too!
+Survivors use whatever they can get their hands on to kill
+Zombies. The better the weapon, the higher the body count,
+and the more Zombies appear, attracted by the onslaught!
+Survivors can trade equipment, and players can share tactics.
+Only through cooperation can you achieve the Quest objectives
+and survive. Battling Zombies is fun, but you will also need
+to rescue other Survivors, find food and weapons, uncover the
+Necromancers’ secrets, and much more. The phases of the game are described below.
+\n\nPLAYERS’ PHASE\n
+On the player\'s turn they activate their Survivors one at a time, in the order of his choice.
+Each Survivor can initially perform three Actions per Turn,
+though Skills may allow him to perform extra Actions as the
+game progresses. The Survivor uses his Actions to kill Zombies, move around the board, and performs other tasks to
+accomplish the various Quest objectives. Some Actions make
+noise, and noise attracts Zombies!
+Once a player has activated all his Survivors, the player to
+his left takes his Turn, activating his Survivors in the same
+manner.
+When all the players have completed their Turns, the Players’
+Phase ends.
+\n\nZOMBIES’ PHASE\n
+All Zombies on the board activate and spend one Action either
+attacking a Survivor next to them or, if they have nobody to
+attack, moving toward the Survivors or noisy Zones. Some
+Zombies, called Runners, get two Actions, so they can attack
+twice, attack and move, move and attack, or move twice.
+Once all Zombies have performed their Actions, new Zombies appear in all active Spawn Zones on the board
+\n\nEND PHASE\n
+At the end of the round all noise markers are reset and the next round begins.
+\n\nWINNING AND LOSING\n
+The game is lost when all Survivors have been eliminated or
+if too many Necromancers escape. Some Missions can be lost
+when certain conditions are met (losing a single Survivor, for
+example).
+The game is won immediately when all of the Quest objectives have been accomplished. Zombicide: Black Plague is a
+cooperative game, so all players win if the Quest objectives
+are fulfilled.
+
+    </string>
 </resources>

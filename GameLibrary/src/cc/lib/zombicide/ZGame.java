@@ -41,6 +41,7 @@ public class ZGame extends Reflector<ZGame>  {
 
         c.equip(e);
         onEquipmentFound(c, e);
+        quest.onEquipmentFound(this, e);
         return true;
     }
 
@@ -1309,7 +1310,6 @@ public class ZGame extends Reflector<ZGame>  {
                         if (tryOpenDoor(cur, door)) {
                             door.toggle(board);
                             //getCurrentUser().showMessage(currentCharacter.name() + " has opened a " + door.name());
-                            onCharacterOpenedDoor(cur, door);
                             // spawn zombies in the newly exposed zone and any adjacent
                             ZDoor otherSide = door.getOtherSide();
                             if (board.getZone(board.getCell(otherSide.getCellPosStart()).zoneIndex).canSpawn()) {
@@ -1339,7 +1339,6 @@ public class ZGame extends Reflector<ZGame>  {
                     numCardsDrawn = 2;
                 while (searchables.size() > 0 && numCardsDrawn-- > 0 && cur.canSearch()) {
                     ZEquipment equip = searchables.removeLast();
-                    quest.onEquipmentFound(this, equip);
                     if (equip.getType() == ZItemType.AAHHHH) {
                         getCurrentUser().showMessage("Aaaahhhh!!!");
                         onAhhhhhh(cur);
@@ -1348,6 +1347,7 @@ public class ZGame extends Reflector<ZGame>  {
                         putBackInSearchables(equip);
                     } else {
                         onEquipmentFound(cur, equip);
+                        quest.onEquipmentFound(this, equip);
                         user.showMessage(cur.name() + " Found a " + equip);
                         cur.equip(equip);
                     }
@@ -2079,7 +2079,7 @@ public class ZGame extends Reflector<ZGame>  {
         return player.character;
     }
 
-    void moveActor(ZActor actor, int toZone, long speed) {
+    private void moveActor(ZActor actor, int toZone, long speed) {
         int fromZone = actor.getOccupiedZone();
         Grid.Pos fromPos = actor.getOccupiedCell();
         GRectangle fromRect = actor.getRect(board);
@@ -2087,7 +2087,7 @@ public class ZGame extends Reflector<ZGame>  {
         doMove(actor, fromZone, fromPos, fromRect, speed);
     }
 
-    void moveActorInDirection(ZActor actor, ZDir dir) {
+    private void moveActorInDirection(ZActor actor, ZDir dir) {
         int fromZone = actor.getOccupiedZone();
         Grid.Pos fromPos = actor.getOccupiedCell();
         GRectangle fromRect = actor.getRect(board);

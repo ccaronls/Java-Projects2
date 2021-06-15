@@ -106,12 +106,13 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
         game = new UIZombicide(new UIZCharacterRenderer(charComp), new UIZBoardRenderer(boardComp)) {
 
             @Override
-            public void runGame() {
+            public boolean runGame() {
+                boolean changed = false;
                 try {
-                    super.runGame();
+                    changed = super.runGame();
                     charComp.repaint();
                     boardComp.repaint();
-                    if (isGameRunning() && gameFile != null) {
+                    if (isGameRunning() && changed && gameFile != null) {
                         FileUtils.backupFile(gameFile, 20);
                         game.trySaveToFile(gameFile);
                     }
@@ -126,6 +127,8 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
                     stopGameThread();
                     initHomeMenu();
                 }
+
+                return changed;
             }
 
             @Override
@@ -222,7 +225,6 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
                 break;
             case CANCEL:
                 if (game.isGameRunning()) {
-                    game.goBack();
                     game.setResult(null);
                 } else {
                     initHomeMenu();
@@ -385,9 +387,7 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
         d.height = 32;
         sep.setPreferredSize(d);
         menu.add(sep);
-        if (game.canGoBack()) {
-            menu.add(new AWTButton(MenuItem.CANCEL.name(), this));
-        }
+        menu.add(new AWTButton(MenuItem.CANCEL.name(), this));
         menu.add(new AWTButton(MenuItem.SUMMARY.name(), this));
         menu.add(new AWTButton(MenuItem.OBJECTIVES.name(), this));
         menu.add(new AWTButton(MenuItem.DIFFICULTY.name(), this));

@@ -14,16 +14,38 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        general {
+            storeFile file(project.storeFile)
+            storePassword project.storePassword
+            keyAlias project.keyAlias
+            keyPassword project.keyPassword
+        }
+    }
+
     compileOptions {
         sourceCompatibility project.sourceCompatibility
         targetCompatibility project.targetCompatibility
     }
 
     buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), '../common/proguard.txt'
+        //release {
+        //    minifyEnabled false
+        //    proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), '../common/proguard.txt'
+       // }
+
+        debug {
+            debuggable true
+            signingConfig signingConfigs.general
         }
+
+        release {
+            minifyEnabled true // Enables code shrinking for the release build type.
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), '../common/proguard.txt'
+            signingConfig signingConfigs.general
+        }
+
+
     }
 
     sourceSets {
@@ -31,6 +53,10 @@ android {
             assets.srcDirs = [ 'assets' ]
         }
     }
+
+    aaptOptions { cruncherEnabled = false }
+
+
 }
 
 dependencies {

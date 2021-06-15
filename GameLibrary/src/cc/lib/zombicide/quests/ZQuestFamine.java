@@ -1,6 +1,7 @@
 package cc.lib.zombicide.quests;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import cc.lib.game.GColor;
@@ -28,6 +29,8 @@ public class ZQuestFamine extends ZQuest {
     static {
         addAllFields(ZQuestFamine.class);
     }
+
+    final static int NUM_OF_EACH_QUEST_ITEM = 2;
 
     int numApplesFound = 0;
     int numSaltedMeatFound = 0;
@@ -84,14 +87,33 @@ public class ZQuestFamine extends ZQuest {
             }
             blueKeyZone = -1;
         }
+        // give a random quest object
+        List<ZEquipment> remaining = getRemainingQuestItems();
+        if (remaining.size() > 0) {
+            game.tryGiftEquipment(c, Utils.randItem(remaining));
+        }
+    }
+
+    List<ZEquipment> getRemainingQuestItems() {
+        List<ZEquipment> l = new ArrayList<>();
+        for (int i=numApplesFound; i<NUM_OF_EACH_QUEST_ITEM; i++) {
+            l.add(ZItemType.APPLES.create());
+        }
+        for (int i=numSaltedMeatFound; i<NUM_OF_EACH_QUEST_ITEM; i++) {
+            l.add(ZItemType.SALTED_MEAT.create());
+        }
+        for (int i=numWaterFound; i<NUM_OF_EACH_QUEST_ITEM; i++) {
+            l.add(ZItemType.WATER.create());
+        }
+        return l;
     }
 
     @Override
     public int getPercentComplete(ZGame game) {
         int numTasks = 7;
-        int numCompleted = Math.min(numApplesFound, 2)
-                + Math.min(numSaltedMeatFound, 2)
-                + Math.min(numWaterFound, 2);
+        int numCompleted = Math.min(numApplesFound, NUM_OF_EACH_QUEST_ITEM)
+                + Math.min(numSaltedMeatFound, NUM_OF_EACH_QUEST_ITEM)
+                + Math.min(numWaterFound, NUM_OF_EACH_QUEST_ITEM);
         if (isAllLockedInVault(game)) {
             numCompleted++;
         }
@@ -155,11 +177,24 @@ public class ZQuestFamine extends ZQuest {
         return new Table(getName())
             .addRow(new Table().setNoBorder()
                 .addRow("1.", "Find BLUE key hidden among RED\nobjectives and unlocks the Vault", blueKeyZone < 0)
-                .addRow("2.", "Find 2 Apples", String.format("%d of %d", numApplesFound, 2))
-                .addRow("3.", "Find 2 Water", String.format("%d of %d", numWaterFound, 2))
-                .addRow("4.", "Find 2 Salted Meat", String.format("%d of %d", numSaltedMeatFound, 2))
+                .addRow("2.", "Find 2 Apples", String.format("%d of %d", numApplesFound, NUM_OF_EACH_QUEST_ITEM))
+                .addRow("3.", "Find 2 Water", String.format("%d of %d", numWaterFound, NUM_OF_EACH_QUEST_ITEM))
+                .addRow("4.", "Find 2 Salted Meat", String.format("%d of %d", numSaltedMeatFound, NUM_OF_EACH_QUEST_ITEM))
                 .addRow("5.", "Lock yourselves in the Vault with no zombies.", isAllLockedInVault(game))
             );
 
+    }
+
+    @Override
+    public void processSearchables(List<ZEquipment> items) {
+        // bump up number of quest specific items
+        items.addAll(Arrays.asList(
+                ZItemType.APPLES.create(),
+                ZItemType.APPLES.create(),
+                ZItemType.WATER.create(),
+                ZItemType.WATER.create(),
+                ZItemType.SALTED_MEAT.create(),
+                ZItemType.SALTED_MEAT.create()
+        ));
     }
 }

@@ -26,7 +26,7 @@ public class ZButton extends ConstraintLayout {
 
     private void init(IButton button, boolean enabled) {
         TextView tv = findViewById(R.id.text);
-        View arrow = findViewById(R.id.bInfo);
+        View arrow = findViewById(R.id.ivInfo);
         tv.setText(button.getLabel());
         if (button.getTooltipText() == null) {
             arrow.setVisibility(View.GONE);

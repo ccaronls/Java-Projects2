@@ -408,6 +408,10 @@ public abstract class ZQuest extends Reflector<ZQuest> {
         return game.getBoard().getZombiesInZone(exitZone).size() == 0 && !(Utils.filter(game.getAllCharacters(), object -> object.getOccupiedZone() != exitZone).size() > 0);
     }
 
+    /**
+     * Perform any processing to the searchable. Called once on quest init
+     * @param items
+     */
     public void processSearchables(List<ZEquipment> items) {}
 
     protected int getNumStartRedObjectives() {

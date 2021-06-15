@@ -12,9 +12,10 @@ import cc.lib.game.GDimension;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
+import cc.lib.ui.IButton;
 import cc.lib.utils.Table;
 
-public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model {
+public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model, IButton {
 
     static final Logger log = LoggerFactory.getLogger(ZCharacter.class);
 

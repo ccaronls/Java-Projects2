@@ -97,6 +97,7 @@ public class AWTGraphics extends APGraphics {
         return new GColor(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
     }
 
+    @Override
     public GColor getBackgroundColor() {
         Color c = comp.getBackground();
         return new GColor(c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
@@ -472,9 +473,7 @@ public class AWTGraphics extends APGraphics {
         g.setColor(c);
     }
 
-    /**
-     * clears screen with whatever the background color of this component is
-     */
+    @Override
     public final void clearScreen() {
         if (comp != null) {
             g.setColor(comp.getBackground());

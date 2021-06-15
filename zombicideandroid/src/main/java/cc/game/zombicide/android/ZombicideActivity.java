@@ -252,7 +252,7 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
         game.setDifficulty(getSavedDifficulty());
         gameFile = new File(getFilesDir(), "game.save");
         if (!gameFile.exists() || !game.tryLoadFromFile(gameFile)) {
-            showWelcomeDialog();
+            showWelcomeDialog(true);
         } else {
             game.showSummaryOverlay();
         }
@@ -296,7 +296,8 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
         LEGEND,
         QUIT,
         CLEAR,
-        SEARCHABLES;
+        SEARCHABLES,
+        RULES;
 
         boolean isHomeButton(ZombicideActivity instance) {
             switch (this) {
@@ -310,6 +311,7 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                 case SKILLS:
                 case LEGEND:
                 case UNDO:
+                case RULES:
                     return true;
                 case RESUME:
                     return instance.gameFile != null && instance.gameFile.exists();
@@ -326,8 +328,6 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                 case NEW_GAME:
                 case CLEAR:
                     return false;
-                //case CANCEL:
-                  //  return instance.game.canGoBack();
                 case SEARCHABLES:
                     return BuildConfig.DEBUG;
             }
@@ -472,6 +472,7 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
     void processMainMenuItem(MenuItem item) {
         switch (item) {
             case START:
+                FileUtils.deleteFileAndBackups(gameFile);
                 game.reload();
                 startGame();
                 break;
@@ -601,6 +602,10 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                 showLegendDialog();
                 break;
             }
+            case RULES: {
+                showWelcomeDialog(false);
+                break;
+            }
         }
     }
 
@@ -675,13 +680,19 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
         getPrefs().edit().putStringSet("completedQuests", unlocked).apply();
     }
 
-    void showWelcomeDialog() {
-        newDialogBuilder().setTitle("Welcome").setMessage(R.string.welcome_msg).setPositiveButton("New Game", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                showNewGameDialog();
-            }
-        }).show();
+    void showWelcomeDialog(boolean showNewGame) {
+        AlertDialog.Builder b = newDialogBuilder().setTitle("Welcome").setMessage(R.string.welcome_msg);
+        if (showNewGame) {
+            b.setPositiveButton("New Game", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    showNewGameDialog();
+                }
+            });
+        } else {
+            b.setPositiveButton("Close", null);
+        }
+        b.show();
     }
 
     void showNewGameDialog() {
@@ -1029,11 +1040,14 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
 
     void initMenu(UIZombicide.UIMode mode, List<IButton> options) {
         List<View> buttons = new ArrayList<>();
-        if (mode == UIZombicide.UIMode.PICK_MENU) {
-            for (IButton e : options) {
-                buttons.add(ZButton.build(this, e, e.isEnabled()));
-            }
-            buttons.add(new ListSeparator(this));
+        switch (mode) {
+            case PICK_CHARACTER:
+            case PICK_MENU:
+                for (IButton e : (List<IButton>)options) {
+                    buttons.add(ZButton.build(this, e, e.isEnabled()));
+                }
+                buttons.add(new ListSeparator(this));
+                break;
         }
         for (MenuItem i : Utils.filterItems(object -> object.isGameButton(ZombicideActivity.this), MenuItem.values())) {
             buttons.add(ZButton.build(this, i, i.isEnabled(this)));

@@ -9,13 +9,25 @@ Use Black background with white text (invert the color scheme)
 (DONE)Make save game state work in background thread
 (DONE)Pressing any button should clear the summary
 Mana Blast has too large DOT ontop of player when target is far away
-Sometimes pressing the 'tooltip' arrow on a button doesnt work
-Armor buttons dont have tooltip text
-Floating text should not get cut off by screen
-Hide panel buttons when in loading screen
+(DONE)Sometimes pressing the 'tooltip' arrow on a button doesnt work
+(DONE)Armor buttons dont have tooltip text
+(DONE)Floating text should not get cut off by screen
+(DONE)Hide panel buttons when in loading screen
 SOUND EFFECTS!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+(DONE)in pick char mode add buttons to the menu for the pickable players
 
-
+SEBI NOTES
+-----------
+Easy mode- No Ahhhh - friendlier die rolls
+Samson should be able to start with either hammer or Axe
+Found bug where Baldric was on screen twice after moving
+Traps
+Need way to unlock higher class heros
+Abomination killable by great sword?
+- happened in big game hunting in a vault
+cell 0,0 highlighted when it shouldn't be
+Put Legend, Rules and Searchables into HELP menu
+Make lightning attack better
 
 
 (DONE)Add slashing anims for melee attacks
