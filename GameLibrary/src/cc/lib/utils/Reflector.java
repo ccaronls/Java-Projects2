@@ -1517,6 +1517,7 @@ public class Reflector<T> {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static void deserializeMap(Map c, MyBufferedReader in) throws Exception {
+        int startDepth = in.depth;
         while (true) {
             String line = readLineOrEOF(in);
             if (line == null || line.equals("null"))
@@ -1525,6 +1526,11 @@ public class Reflector<T> {
             Object key = parse(null, clazz, in);
             if (key == null)
                 throw new Exception("null key in map");
+            if (in.depth > startDepth) {
+                line = readLineOrEOF(in);
+                if (line != null)
+                    throw new Exception("Expected closing }");
+            }
             line = readLineOrEOF(in);
             if (line == null)
                 throw new Exception("Missing value from key/value pair in map");

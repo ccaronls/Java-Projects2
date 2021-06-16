@@ -719,6 +719,7 @@ public class ReflectorTest extends TestCase {
 
         static {
             addAllFields(SimpleObject.class);
+            registerClass(MyEnum.class);
         }
 
         int myInt = 10;
@@ -737,6 +738,8 @@ public class ReflectorTest extends TestCase {
         Vector<SimpleObject> myObjList = null;
         List<GColor> myColorList = null;
         Map<String, String> myStrStrMap = null;
+
+        Map<MyEnum, MyEnum> myEnumMap = null;
     }
 
     public void testMaps() throws Exception {
@@ -793,5 +796,37 @@ public class ReflectorTest extends TestCase {
 
         Assert.assertArrayEquals(e, e2);
 
+    }
+
+    public void testEnumList() throws Exception {
+
+        List<SimpleObject.MyEnum> l = new ArrayList<>();
+        l.add(SimpleObject.MyEnum.A);
+        l.add(SimpleObject.MyEnum.A);
+
+        Reflector.registerClass(SimpleObject.MyEnum.class);
+        String result = Reflector.serializeObject(l);
+
+        System.out.println("result = "+ l);
+
+        List<SimpleObject.MyEnum> ll = Reflector.deserializeFromString(result);
+
+        System.out.println("ll = " + ll);
+    }
+
+    public void testEnumMap() throws Exception {
+
+        Reflector.registerClass(SimpleObject.MyEnum.class);
+
+        Map<SimpleObject.MyEnum, SimpleObject.MyEnum> m = new HashMap<>();
+
+        m.put(SimpleObject.MyEnum.A, SimpleObject.MyEnum.B);
+        String result = Reflector.serializeObject(m);
+
+        System.out.println(result);
+
+        Map mm = Reflector.deserializeFromString(result);
+
+        System.out.println(mm);
     }
 }

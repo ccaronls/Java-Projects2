@@ -244,4 +244,9 @@ public class TestGraphics extends APGraphics {
     public void drawImage(int imageKey) {
 
     }
+
+    @Override
+    public GColor getBackgroundColor() {
+        return null;
+    }
 }
