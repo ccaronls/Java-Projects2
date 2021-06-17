@@ -860,8 +860,13 @@ public class Reflector<T> {
      *
      * @param clazz
      */
-    public static void registerClass(Class<?> clazz) {
+    public static void registerClass(Class<?> clazz, String ... alternateNames) {
         String sClazz = getCanonicalName(clazz);
+        int lastDot = sClazz.lastIndexOf(".");
+        for (String alt : alternateNames) {
+            String altName = sClazz.substring(0, lastDot+1)+alt;
+            classMap.put(altName, clazz);
+        }
         addArrayTypes(clazz);
         classMap.put(sClazz, clazz);
     }
@@ -1315,8 +1320,12 @@ public class Reflector<T> {
                 out.println(getCanonicalName(o.getClass()) + " {");
                 serializeObject(o, out, true);
                 o = entry.getValue();
-                out.println(getCanonicalName(o.getClass()) + " {");
-                serializeObject(o, out, true);
+                if (o == null) {
+                     out.println("null");
+                } else {
+                    out.println(getCanonicalName(o.getClass()) + " {");
+                    serializeObject(o, out, true);
+                }
             }
             out.pop();
             out.println("}");

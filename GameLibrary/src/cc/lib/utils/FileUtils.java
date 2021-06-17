@@ -195,7 +195,7 @@ public class FileUtils {
 	}
 	
 	private static boolean restoreFileR(String fileName, String root, String ext) {
-		log.debug("restore file " + fileName);
+		log.verbose("restore file " + fileName);
 		File file = new File(fileName);
 		int index = root.lastIndexOf('.');
 		int num = 0;
@@ -213,7 +213,7 @@ public class FileUtils {
 		if (copiedFile.exists()) {
 			file.delete();
 			success = copiedFile.renameTo(file);
-			log.debug("Renaming " + copiedFile + " too " + fileName + " returns " + success);
+			log.verbose("Renaming " + copiedFile + " too " + fileName + " returns " + success);
 			restoreFileR(copiedName, fileNamePrefix + "." + num, ext);
 		}
 		return success;
@@ -265,7 +265,7 @@ public class FileUtils {
 			if (f.isDirectory()) {
 				deleteDirContents(f, pattern);
 			} else if (pattern.matcher(f.getName()).matches()) {
-			    log.debug("Deleting '" + f.getAbsolutePath() + "'");
+			    log.verbose("Deleting '" + f.getAbsolutePath() + "'");
     			if (!f.delete())
     				throw new IOException("Failed to delete file '" + f.getAbsolutePath() + "'");
 			}

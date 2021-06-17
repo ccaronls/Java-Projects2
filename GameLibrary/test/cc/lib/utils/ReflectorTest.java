@@ -822,11 +822,16 @@ public class ReflectorTest extends TestCase {
 
         m.put(SimpleObject.MyEnum.A, SimpleObject.MyEnum.B);
         m.put(SimpleObject.MyEnum.B, SimpleObject.MyEnum.A);
+        m.put(SimpleObject.MyEnum.C, null);
         String result = Reflector.serializeObject(m);
 
         System.out.println(result);
 
         Map mm = Reflector.deserializeFromString(result);
+
+        assertEquals(mm.get(SimpleObject.MyEnum.A), SimpleObject.MyEnum.B);
+        assertEquals(mm.get(SimpleObject.MyEnum.B), SimpleObject.MyEnum.A);
+        assertNull(mm.get(SimpleObject.MyEnum.C));
 
         System.out.println(mm);
     }
