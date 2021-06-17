@@ -821,6 +821,7 @@ public class ReflectorTest extends TestCase {
         Map<SimpleObject.MyEnum, SimpleObject.MyEnum> m = new HashMap<>();
 
         m.put(SimpleObject.MyEnum.A, SimpleObject.MyEnum.B);
+        m.put(SimpleObject.MyEnum.B, SimpleObject.MyEnum.A);
         String result = Reflector.serializeObject(m);
 
         System.out.println(result);

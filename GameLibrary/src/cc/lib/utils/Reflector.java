@@ -1538,9 +1538,11 @@ public class Reflector<T> {
             if (line != null && !line.equals("null")) {
                 clazz = getClassForName(line);
                 value = parse(null, clazz, in);
-                //line = readLineOrEOF(in);
-                //if (line != null)
-                //  throw new Exception("Expected '}' to end the value");
+                if (in.depth > startDepth) {
+                    line = readLineOrEOF(in);
+                    if (line != null)
+                        throw new Exception("Expected closing }");
+                }
             }
             c.put(key, value);
         }

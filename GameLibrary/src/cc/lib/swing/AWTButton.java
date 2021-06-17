@@ -30,7 +30,7 @@ public class AWTButton extends JButton implements ActionListener {
     }
 
     public AWTButton(IButton source) {
-        super(source.getLabel());
+        super("<html>" + source.getLabel() + "</html>");
         addActionListener(this);
         String ttt = source.getTooltipText();
         if (ttt != null) {
