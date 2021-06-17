@@ -152,7 +152,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
             }
         });
         for (ZWeapon w : weapons) {
-            if (w.canOpenDoor()) {
+            if (w.isOpenDoorCapable()) {
                 if (w.type.openDoorsIsNoisy)
                     game.addNoise(occupiedZone, 1);
                 if (w.type.meleeStats.dieRollToOpenDoor>1) {
@@ -181,7 +181,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
 
     public boolean canUnjamDoor() {
         for (ZWeapon w : getWeapons()) {
-            if (w.canOpenDoor())
+            if (w.isOpenDoorCapable())
                 return true;
         }
         return false;
@@ -220,7 +220,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
             return false;
         if (!leftHand.getType().equals(rightHand.getType()))
             return false;
-        if (leftHand.canDualWield())
+        if (leftHand.isDualWieldCapable())
             return true;
         if (leftHand != null && leftHand instanceof ZWeapon) {
             for (ZSkill skill : this.availableSkills) {
@@ -765,7 +765,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
         return false;
     }
 
-    boolean isEquiped(ZEquipmentType type) {
+    boolean isEquipped(ZEquipmentType type) {
         return Utils.filterItems((ZEquipment e) -> e.getType() == type, leftHand, rightHand, body).size() > 0;
     }
 

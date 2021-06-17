@@ -14,7 +14,7 @@ Should designate some part of board for Messages and Text (Lower left hand corne
 (DONE) Add colors to objectives and doors
 (DONE) Get dragon puke and torch working
 dagger and short sword are exactly the same stats? Maybe dagger should have slighly lower open door %?
-- When equiped in a body slot gives +1 damage to melee?
+- When equipped in a body slot gives +1 damage to melee?
 Make sure plenty of arrows / bolts work
 Ability to view contents of backpack with details
 When hover over zombie show where they will walk to (player they can see or loudest noise)

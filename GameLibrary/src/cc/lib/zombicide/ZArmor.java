@@ -25,7 +25,7 @@ public class ZArmor extends ZEquipment<ZArmorType> {
     }
 
     @Override
-    public boolean canEquip() {
+    public boolean isEquippable() {
         return true;
     }
 

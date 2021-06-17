@@ -190,6 +190,10 @@ public class ZMove implements IButton {
         return new ZMove(ZMoveType.EQUIP, 0, null, equip, fromSlot, toSlot, null);
     }
 
+    public static ZMove newKeepMove(ZEquipment equip) {
+        return new ZMove(ZMoveType.KEEP, equip, null);
+    }
+
     public static ZMove newUnequipMove(ZEquipment equip, ZEquipSlot slot) {
         return new ZMove(ZMoveType.UNEQUIP, equip, slot);
     }
@@ -264,10 +268,6 @@ public class ZMove implements IButton {
 
     public static ZMove newBloodlustMagicMove(List<Integer> zones, ZSkill skill) {
         return new ZMove(ZMoveType.BLOODLUST_MAGIC, zones, skill);
-    }
-
-    public static ZMove newAcceptEquipmentMove(ZEquipment e) {
-        return new ZMove(ZMoveType.CONSUME, e, null);
     }
 
     public static ZMove newDisposeEquipmentMove(ZEquipment e) {

@@ -25,7 +25,7 @@ public class ZSpell extends ZEquipment<ZSpellType> {
     }
 
     @Override
-    public boolean canEquip() {
+    public boolean isEquippable() {
         return true;
     }
 

@@ -27,7 +27,7 @@ public enum ZZombieType {
     "Runners are fast. Faster than anything on\n" +
             "two legs should be. I’ve seen ‘em outrun a\n" +
             "galloping horse, though only barely. But still, the\n" +
-            "poor cavalryman didn’t stand a chance.\n" +
+            "poor cavalryman didn't stand a chance.\n" +
             "Special Rule: Each runner has 2 Actions per Activation"),
     Abomination( 3, 5, 1, true, 2,
     "Haven’t seen an Abomination yet?\n" +

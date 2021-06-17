@@ -16,15 +16,15 @@ public abstract class ZEquipment<T extends Enum<T>> extends Reflector<ZEquipment
 
     public abstract ZEquipSlotType getSlotType();
 
-    public boolean canOpenDoor() {
+    public boolean isOpenDoorCapable() {
         return false;
     }
 
-    public boolean canConsume() {
+    public boolean isConsumable() {
         return false;
     }
 
-    public abstract boolean canEquip();
+    public abstract boolean isEquippable();
 
     public boolean isMelee() {
         return false;
@@ -48,7 +48,7 @@ public abstract class ZEquipment<T extends Enum<T>> extends Reflector<ZEquipment
 
     public boolean isThrowable() { return false; }
 
-    public boolean canDualWield() { return false; }
+    public boolean isDualWieldCapable() { return false; }
 
     public boolean isAttackNoisy() { return false; }
 

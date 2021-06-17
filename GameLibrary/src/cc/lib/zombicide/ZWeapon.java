@@ -23,13 +23,13 @@ public class ZWeapon extends ZEquipment<ZWeaponType> {
     }
 
     int getOpenDoorValue() {
-        if (!canOpenDoor())
+        if (!isOpenDoorCapable())
             return 0;
         return 7-type.meleeStats.dieRollToOpenDoor + (type.openDoorsIsNoisy ? 0 : 1);
     }
 
     @Override
-    public boolean canOpenDoor() {
+    public boolean isOpenDoorCapable() {
         return type.meleeStats != null && type.meleeStats.dieRollToOpenDoor > 0;
     }
 
@@ -54,7 +54,7 @@ public class ZWeapon extends ZEquipment<ZWeaponType> {
     }
 
     @Override
-    public boolean canEquip() {
+    public boolean isEquippable() {
         return true;
     }
 
@@ -73,7 +73,7 @@ public class ZWeapon extends ZEquipment<ZWeaponType> {
     }
 
     @Override
-    public boolean canDualWield() {
+    public boolean isDualWieldCapable() {
         return type.canTwoHand;
     }
 

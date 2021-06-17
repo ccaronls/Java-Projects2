@@ -91,7 +91,7 @@ public class UIZUser extends ZUser {
     }
 
     @Override
-    public Integer chooseZonetoThrowItem(ZGame game, ZCharacter cur, ZItem toThrow, List<Integer> zones) {
+    public Integer chooseZoneToThrowItem(ZGame game, ZCharacter cur, ZItem toThrow, List<Integer> zones) {
         return UIZombicide.getInstance().pickZone("Choose Zone to throw the " + toThrow, zones);
     }
 

@@ -59,11 +59,11 @@ When searching or looting a vault, new items should have their cards shown on th
 pinch zoom / pan
 (DONE)Make so levels and chars are unlockable
 (DONE)Less dragon bile / torches
-Show option to consume item just found
-Show Wounds n or MAX
-Make sure a double level up
-Any Fire should ignite dragon bile
-Use KEEP instead of EQUIP for
+(DONE)Show option to consume item just found
+(DONE)Show Wounds n or MAX
+(DONE)Make sure a double level up
+(DONE)Any Fire should ignite dragon bile
+(DONE)Use KEEP instead of EQUIP for
 
 +---------+----------+-----------+
 |         |          |           |

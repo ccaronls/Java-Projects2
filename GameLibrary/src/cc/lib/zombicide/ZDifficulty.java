@@ -3,6 +3,6 @@ package cc.lib.zombicide;
 import cc.lib.annotation.Keep;
 
 @Keep
-public enum ZDiffuculty {
+public enum ZDifficulty {
     EASY, MEDIUM, HARD
 }

@@ -35,7 +35,7 @@ import cc.lib.swing.AWTPanel;
 import cc.lib.swing.AWTToggleButton;
 import cc.lib.ui.IButton;
 import cc.lib.utils.FileUtils;
-import cc.lib.zombicide.ZDiffuculty;
+import cc.lib.zombicide.ZDifficulty;
 import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZUser;
@@ -155,7 +155,7 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
             game.loadQuest(ZQuests.Tutorial);
         }
         game.showObjectivesOverlay();
-        game.setDifficulty(ZDiffuculty.valueOf(getStringProperty("difficulty", ZDiffuculty.MEDIUM.name())));
+        game.setDifficulty(ZDifficulty.valueOf(getStringProperty("difficulty", ZDifficulty.MEDIUM.name())));
         initHomeMenu();
     }
 
@@ -300,8 +300,8 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
                 break;
             }
             case DIFFICULTY:
-                ZDiffuculty difficulty = (ZDiffuculty) JOptionPane.showInputDialog(this, "Set Difficulty", "DIFFICULTY", JOptionPane.PLAIN_MESSAGE, null,
-                        ZDiffuculty.values(), game.getDifficulty());
+                ZDifficulty difficulty = (ZDifficulty) JOptionPane.showInputDialog(this, "Set Difficulty", "DIFFICULTY", JOptionPane.PLAIN_MESSAGE, null,
+                        ZDifficulty.values(), game.getDifficulty());
                 if (difficulty != null) {
                     game.setDifficulty(difficulty);
                     setStringProperty("difficulty", difficulty.name());

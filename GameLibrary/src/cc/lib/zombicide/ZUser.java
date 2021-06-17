@@ -55,7 +55,7 @@ public abstract class ZUser extends Reflector<ZUser> {
 
     public abstract ZItem chooseItemToThrow(ZGame game, ZCharacter cur, List<ZItem> slots);
 
-    public abstract Integer chooseZonetoThrowItem(ZGame game, ZCharacter cur, ZItem toThrow, List<Integer> zones);
+    public abstract Integer chooseZoneToThrowItem(ZGame game, ZCharacter cur, ZItem toThrow, List<Integer> zones);
 
     public abstract Integer chooseZoneToShove(ZGame game, ZCharacter cur, List<Integer> list);
 

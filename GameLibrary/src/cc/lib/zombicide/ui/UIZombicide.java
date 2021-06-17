@@ -111,25 +111,21 @@ public abstract class UIZombicide extends ZGame {
 
     @Override
     protected void onTorchThrown(ZCharacter actor, int zone) {
-        if (actor.getOccupiedZone() != zone) {
-            Lock animLock = new Lock(1);
-            actor.addAnimation(new ThrowAnimation(actor, board, zone, ZIcon.TORCH) {
+        Lock animLock = new Lock(1);
+        actor.addAnimation(new ThrowAnimation(actor, board, zone, ZIcon.TORCH) {
+            @Override
+            protected void onDone() {
+                super.onDone();
+                animLock.release();
+            }
+        });
+        animLock.block();
+    }
 
-                @Override
-                protected void onDone() {
-                    super.onDone();
-                    if (board.getZone(zone).isDragonBile()) {
-                        boardRenderer.addPreActor(new InfernoAnimation(board, zone));
-                        animLock.releaseDelayed(1000);
-                    }
-                    else
-                        animLock.release();
-                }
-            });
-            animLock.block();
-        } else if (board.getZone(zone).isDragonBile()) {
-            boardRenderer.addPreActor(new InfernoAnimation(board, zone).start());
-        }
+    @Override
+    protected void onDragonBileExploded(int zone) {
+        boardRenderer.addPreActor(new InfernoAnimation(board, zone).start());
+        Utils.waitNoThrow(this, 1000);
     }
 
     @Override

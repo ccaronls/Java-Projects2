@@ -27,12 +27,12 @@ public class ZItem extends ZEquipment<ZItemType> {
     }
 
     @Override
-    public boolean canConsume() {
+    public boolean isConsumable() {
         return type.canConsume;
     }
 
     @Override
-    public boolean canEquip() {
+    public boolean isEquippable() {
         return type.slot.canEquip();
     }
 

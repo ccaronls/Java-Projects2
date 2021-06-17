@@ -71,23 +71,18 @@ public enum ZWeaponType implements ZEquipmentType<ZWeapon> {
         }, Utils.toArray(meleeStats, rangedStats, magicStats));
     }
 
-    /*
-    ZWeaponStat getStat(ZActionType type) {
-        switch (type) {
-            case MELEE:
-                return meleeStats;
-            case MAGIC:
-                return magicStats;
-            case RANGED_BOLTS:
-            case RANGED_ARROWS:
-                return rangedStats;
-        }
-        return null;
-    }*/
-
     @Override
     public ZWeapon create() {
         return new ZWeapon(this);
+    }
+
+    public boolean isFire() {
+        switch (this) {
+            case INFERNO:
+            case FIREBALL:
+                return true;
+        }
+        return false;
     }
 
 }

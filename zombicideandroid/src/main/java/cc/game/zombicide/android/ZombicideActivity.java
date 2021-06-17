@@ -60,7 +60,7 @@ import cc.lib.game.Utils;
 import cc.lib.ui.IButton;
 import cc.lib.utils.FileUtils;
 import cc.lib.zombicide.ZActor;
-import cc.lib.zombicide.ZDiffuculty;
+import cc.lib.zombicide.ZDifficulty;
 import cc.lib.zombicide.ZDir;
 import cc.lib.zombicide.ZEquipSlot;
 import cc.lib.zombicide.ZEquipment;
@@ -111,19 +111,19 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
             new CharLock(ZPlayerName.Tucker, "Complete 'Big Game Hunting' in Medium difficulty.") {
                 @Override
                 boolean isUnlocked() {
-                    return stats.isQuestCompleted(ZQuests.Big_Game_Hunting, ZDiffuculty.MEDIUM);
+                    return stats.isQuestCompleted(ZQuests.Big_Game_Hunting, ZDifficulty.MEDIUM);
                 }
             },
             new CharLock(ZPlayerName.Jain, "Complete 'The Black Book' in Hard difficulty") {
                 @Override
                 boolean isUnlocked() {
-                    return stats.isQuestCompleted(ZQuests.The_Black_Book, ZDiffuculty.HARD);
+                    return stats.isQuestCompleted(ZQuests.The_Black_Book, ZDifficulty.HARD);
                 }
             },
             new CharLock(ZPlayerName.Benson, "Complete 'The Evil Temple' in Hard difficulty") {
                 @Override
                 boolean isUnlocked() {
-                    return stats.isQuestCompleted(ZQuests.The_Evil_Temple, ZDiffuculty.HARD);
+                    return stats.isQuestCompleted(ZQuests.The_Evil_Temple, ZDifficulty.HARD);
                 }
             },
     };
@@ -399,8 +399,8 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
         }
     }
 
-    ZDiffuculty getSavedDifficulty() {
-        return ZDiffuculty.valueOf(getPrefs().getString("difficulty", ZDiffuculty.MEDIUM.name()));
+    ZDifficulty getSavedDifficulty() {
+        return ZDifficulty.valueOf(getPrefs().getString("difficulty", ZDifficulty.MEDIUM.name()));
     }
 
     @Override
@@ -613,10 +613,10 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                 break;
             case DIFFICULTY: {
                 newDialogBuilder().setTitle("DIFFICULTY: " + getSavedDifficulty())
-                        .setItems(Utils.toStringArray(ZDiffuculty.values()), new DialogInterface.OnClickListener() {
+                        .setItems(Utils.toStringArray(ZDifficulty.values()), new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                ZDiffuculty difficulty = ZDiffuculty.values()[which];
+                                ZDifficulty difficulty = ZDifficulty.values()[which];
                                 game.setDifficulty(difficulty);
                                 getPrefs().edit().putString("difficulty", difficulty.name()).apply();
                             }
@@ -808,10 +808,10 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
 
     void showNewGameDailogChooseDifficulty(ZQuests quest) {
         newDialogBuilder().setTitle("Quest " + quest.ordinal() + " : " + quest.getDisplayName())
-                .setItems(Utils.toStringArray(ZDiffuculty.values()), new DialogInterface.OnClickListener() {
+                .setItems(Utils.toStringArray(ZDifficulty.values()), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        ZDiffuculty difficulty = ZDiffuculty.values()[which];
+                        ZDifficulty difficulty = ZDifficulty.values()[which];
                         showNewGameDialogChoosePlayers(quest, difficulty);
                     }
                 }).setNegativeButton("Back", new DialogInterface.OnClickListener() {
@@ -835,7 +835,7 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
         boolean isUnlocked() { return true; }
     }
 
-    void showNewGameDialogChoosePlayers(ZQuests quest, ZDiffuculty difficulty) {
+    void showNewGameDialogChoosePlayers(ZQuests quest, ZDifficulty difficulty) {
 
         Set<String> selectedPlayers = new HashSet(getPrefs().getStringSet("players", getDefaultPlayers()));
         View view = View.inflate(this, R.layout.viewpager_dialog, null);
