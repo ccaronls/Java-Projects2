@@ -119,10 +119,14 @@ public class ZMove implements IButton {
     @Override
     public String getLabel() {
         String label = Utils.toPrettyString(type.name());
-        if (toSlot != null)
-            label += " " + toSlot.getLabel();
-        else if (equipment != null)
+        if (equipment != null)
             label += " " + equipment.getLabel();
+        if (fromSlot != null) {
+            label += " from " + fromSlot.getLabel();
+        }
+        if (toSlot != null)
+            label += " to " + toSlot.getLabel();
+
         return label;
     }
 
@@ -260,6 +264,14 @@ public class ZMove implements IButton {
 
     public static ZMove newBloodlustMagicMove(List<Integer> zones, ZSkill skill) {
         return new ZMove(ZMoveType.BLOODLUST_MAGIC, zones, skill);
+    }
+
+    public static ZMove newAcceptEquipmentMove(ZEquipment e) {
+        return new ZMove(ZMoveType.CONSUME, e, null);
+    }
+
+    public static ZMove newDisposeEquipmentMove(ZEquipment e) {
+        return new ZMove(ZMoveType.DISPOSE, e, null);
     }
 
 }

@@ -83,7 +83,7 @@ public class ZQuestTheHellHole extends ZQuest {
     @Override
     public void processObjective(ZGame game, ZCharacter c, ZMove move) {
         super.processObjective(game, c, move);
-        game.tryGiftEquipment(c, ZItemType.DRAGON_BILE.create());
+        game.giftEquipment(c, ZItemType.DRAGON_BILE.create());
     }
 
     @Override

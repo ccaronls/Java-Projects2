@@ -153,4 +153,8 @@ public abstract class ZActor<E extends Enum<E>> extends Reflector<ZActor<E>> imp
     void clearActions() {
         actionsLeftThisTurn = 0;
     }
+
+    public boolean isAlive() {
+        return true;
+    }
 }

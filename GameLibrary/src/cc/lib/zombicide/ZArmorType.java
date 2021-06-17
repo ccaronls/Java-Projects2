@@ -4,17 +4,16 @@ import cc.lib.annotation.Keep;
 
 @Keep
 public enum ZArmorType implements ZEquipmentType<ZArmor> {
-    LEATHER(ZEquipSlotType.BODY,5, ""),
-    CHAINMAIL(ZEquipSlotType.BODY, 4, ""),
-    PLATE(ZEquipSlotType.BODY, 3, ""),
-    SHIELD(ZEquipSlotType.HAND, 3, ""),
-    DWARVEN_SHIELD(ZEquipSlotType.HAND, 4, "TODO: Protects against abomination"),
-    SHIELD_OF_AGES(ZEquipSlotType.HAND, 4, "TODO: Gain the shove skill"),
-    IRON_HIDE(null, 5, ""),
-    STEEL_HIDE(null, 4, ""),
+    LEATHER(false, ZEquipSlotType.BODY,5, ""),
+    CHAINMAIL(false, ZEquipSlotType.BODY, 4, ""),
+    PLATE(false, ZEquipSlotType.BODY, 3, ""),
+    SHIELD(true, ZEquipSlotType.HAND, 4, ""),
+    DWARVEN_SHIELD(true, ZEquipSlotType.HAND, 4, "TODO: Protects against abomination"),
+    SHIELD_OF_AGES(true, ZEquipSlotType.HAND, 4, "TODO: Gain the shove skill"),
     ;
 
-    ZArmorType(ZEquipSlotType slotType, int dieRollToBlock, String specialAbilityDescription) {
+    ZArmorType(boolean isShield, ZEquipSlotType slotType, int dieRollToBlock, String specialAbilityDescription) {
+        this.shield = isShield;
         this.slotType = slotType;
         this.dieRollToBlock = dieRollToBlock;
         this.specialAbilityDescription = specialAbilityDescription;
@@ -23,6 +22,7 @@ public enum ZArmorType implements ZEquipmentType<ZArmor> {
     final int dieRollToBlock;
     final ZEquipSlotType slotType;
     final String specialAbilityDescription;
+    final boolean shield;
 
     int getRating(ZZombieType type) {
         switch (this) {
@@ -31,7 +31,7 @@ public enum ZArmorType implements ZEquipmentType<ZArmor> {
                     return 0;
             case DWARVEN_SHIELD:
         }
-        return 6-dieRollToBlock;
+        return dieRollToBlock;
     }
 
     @Override

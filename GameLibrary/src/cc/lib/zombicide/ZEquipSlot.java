@@ -24,4 +24,8 @@ public enum ZEquipSlot implements IButton {
     public String getLabel() {
         return Utils.toPrettyString(name());
     }
+
+    public static ZEquipSlot [] wearableValues() {
+        return Utils.toArray(LEFT_HAND, BODY, RIGHT_HAND);
+    }
 }

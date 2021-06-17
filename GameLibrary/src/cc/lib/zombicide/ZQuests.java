@@ -142,7 +142,7 @@ public enum ZQuests {
             "vomiting zombies. We have no choice but to fight them\n" +
             "and destroy this forsaken place once and for all.\n" +
             "Hey, do I see the Duke? Nothing personal, Your Grace!"),
-    Trial_by_Fire("Trail by fire", "We’re in the heart of the city, the place where\n" +
+    Trial_by_Fire("Trial by fire", "We’re in the heart of the city, the place where\n" +
             "all zombies converged. It seems we’re not\n" +
             "the first ones to get here. Heroes or mercenaries\n" +
             "of some sort tried to clean the place before us, and\n" +

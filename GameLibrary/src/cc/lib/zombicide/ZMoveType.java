@@ -36,7 +36,7 @@ public enum ZMoveType implements IButton {
     SHOVE("Push all zombies in your zone to a neighboring zone."),
     REROLL(null),
     KEEP_ROLL(null),
-    ENCHANT("Spend n action to cast a spell on a coplayer who is line of sight to yourself."),
+    ENCHANT("Spend an action to cast a spell on a coplayer who is line of sight to yourself."),
     BORN_LEADER("You can give one of your own actions to another player of your choice."),
     BLOODLUST_MELEE("Spend an action to move up to 2 zones and perform melee."),
     BLOODLUST_RANGED("Spend an action to move up to 2 zones and perform ranged."),

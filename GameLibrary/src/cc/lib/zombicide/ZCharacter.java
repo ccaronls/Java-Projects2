@@ -118,7 +118,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
     protected synchronized boolean performAction(ZActionType action, ZGame game) {
         for (ZSkill skill : availableSkills) {
             if (skill.modifyActionsRemaining(this, action, game)) {
-                game.getCurrentUser().showMessage(name() + " used " + skill + " for a free action");
+                game.getCurrentUser().showMessage(name() + " used " + skill.getLabel() + " for a free action");
                 availableSkills.remove(skill);
                 return true;
             }
@@ -211,33 +211,6 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
         return spells;
     }
 
-    public synchronized List<ZArmor> getArmorForDefense() {
-        List<ZArmor> armor = getArmor();
-        if (availableSkills.contains(ZSkill.Iron_hide)) {
-            if (armor.size() == 0) {
-                armor.add(new ZArmor(ZArmorType.IRON_HIDE));
-            } else {
-                List<ZArmor> adjustedArmor = new ArrayList<>();
-                for (ZArmor ar : armor) {
-                    adjustedArmor.add(new ZArmor(ar.getType(), 1));
-                }
-                return adjustedArmor;
-            }
-        } else if (availableSkills.contains(ZSkill.Steel_hide)) {
-            if (armor.size() == 0) {
-                armor.add(new ZArmor(ZArmorType.STEEL_HIDE));
-            } else {
-                List<ZArmor> adjustedArmor = new ArrayList<>();
-                for (ZArmor ar : armor) {
-                    adjustedArmor.add(new ZArmor(ar.getType(), 1));
-                }
-                return adjustedArmor;
-            }
-        }
-
-        return armor;
-    }
-
     /**
      *
      * @return
@@ -271,7 +244,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
     }
 
     public ZEquipSlot getEmptyEquipSlotFor(ZEquipment e) {
-        if (body == null && Utils.linearSearch(name.alternateBodySlots, e.getType()) >= 0) {
+        if (body == null && canEquipBody(e)) {
             return ZEquipSlot.BODY;
         }
         switch (e.getSlotType()) {
@@ -293,8 +266,32 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
         return ZEquipSlot.BACKPACK;
     }
 
+    public ZEquipSlot getEmptyEquipSlotForOrNull(ZEquipment e) {
+        if (body == null && canEquipBody(e)) {
+            return ZEquipSlot.BODY;
+        }
+        switch (e.getSlotType()) {
+            case HAND:
+                if (leftHand == null) {
+                    return ZEquipSlot.LEFT_HAND;
+                }
+                if (rightHand == null) {
+                    return ZEquipSlot.RIGHT_HAND;
+                }
+                break;
+            case BODY:
+                if (body == null) {
+                    return ZEquipSlot.BODY;
+                }
+                break;
+        }
+        if (isBackpackFull())
+            return null;
+        return ZEquipSlot.BACKPACK;
+    }
+
     public ZEquipSlot equip(ZEquipment e) {
-        if (body == null && Utils.linearSearch(name.alternateBodySlots, e.getType()) >= 0) {
+        if (body == null && canEquipBody(e)) {
             body = e;
             e.slot = ZEquipSlot.BODY;
             return ZEquipSlot.BODY;
@@ -415,7 +412,16 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
         }
 
         Table stats = new Table(this).setNoBorder().setPadding(0);
-        stats.addRow("Wounds", woundBar);
+        String armorRating = "none";
+        List<Integer> ratings = getArmorRatings(ZZombieType.Walker);
+        if (ratings.size() > 0) {
+            armorRating = "" + ratings.get(0) + "+";
+            for (int i=1; i<ratings.size(); i++) {
+                armorRating += "/" + ratings.get(i) + "+";
+            }
+        }
+        stats.addRow("Wounds", String.format("%d of %d", woundBar, MAX_WOUNDS));
+        stats.addRow("Armor Rolls", armorRating);
         ZSkillLevel sl = getSkillLevel();
         int ptsToNxt = sl.getPtsToNextLevel(dangerBar);
         stats.addRow("Skill", sl);
@@ -459,7 +465,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
     }
 
     public boolean canSearch() {
-        return !isBackpackFull() && !actionsDoneThisTurn.contains(ZActionType.SEARCH);
+        return !actionsDoneThisTurn.contains(ZActionType.SEARCH);
     }
 
     public List<ZEquipSlot> getEquipableSlots(ZEquipment equip) {
@@ -484,7 +490,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
                 if (rightHand == null || canEquip)
                     options.add(ZEquipSlot.RIGHT_HAND);
                 if (body == null || canEquip) {
-                    if (Utils.linearSearch(name.alternateBodySlots, equip.getType()) >= 0) {
+                    if (canEquipBody(equip)) {
                         options.add(ZEquipSlot.BODY);
                     }
                 }
@@ -496,6 +502,10 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
                 break;
         }
         return options;
+    }
+
+    public boolean canEquipBody(ZEquipment equip) {
+        return Utils.linearSearch(name.alternateBodySlots, equip.getType()) >= 0;
     }
 
     public List<ZWeapon> getMeleeWeapons() {
@@ -617,6 +627,35 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
         return null;
     }
 
+    public synchronized List<Integer> getArmorRatings(ZZombieType type) {
+        List<Integer> ratings = new ArrayList<>();
+        int skillRating = 0;
+        for (ZSkill skill : availableSkills) {
+            skillRating = Math.max(skillRating, skill.getArmorRating(type));
+        }
+        for (ZEquipSlot slot : ZEquipSlot.wearableValues()) {
+            ZEquipment e = getSlot(slot);
+            if (e != null && e.isArmor()) {
+                ZArmor armor = getSlot(slot);
+                int rating = armor.getRating(type);
+                if (rating > 0) {
+                    if (armor.getType().shield) {
+                        ratings.add(rating);
+                    } else {
+                        if (skillRating > 0)
+                            rating -= 1;
+                        ratings.add(rating);
+                        skillRating = 0;
+                    }
+                }
+            }
+        }
+        if (skillRating > 0) {
+            ratings.add(skillRating);
+        }
+        return ratings;
+    }
+
     /**
      *
      * @param type
@@ -624,8 +663,8 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
      */
     public int getArmorRating(ZZombieType type) {
         int rating = 0;
-        for (ZArmor armor : getArmor()) {
-            rating += armor.getRating(type);
+        for (int i : getArmorRatings(type)) {
+            rating +=i;
         }
         return rating;
     }
@@ -642,6 +681,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
      *
      * @return
      */
+    @Override
     public final boolean isAlive() {
         return woundBar < MAX_WOUNDS;
     }

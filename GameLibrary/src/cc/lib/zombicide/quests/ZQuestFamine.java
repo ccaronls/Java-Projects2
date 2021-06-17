@@ -90,7 +90,7 @@ public class ZQuestFamine extends ZQuest {
         // give a random quest object
         List<ZEquipment> remaining = getRemainingQuestItems();
         if (remaining.size() > 0) {
-            game.tryGiftEquipment(c, Utils.randItem(remaining));
+            game.giftEquipment(c, Utils.randItem(remaining));
         }
     }
 

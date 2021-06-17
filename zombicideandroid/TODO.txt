@@ -2,13 +2,13 @@ BUGS
 -----
 (DONE)Hitting Cancel/End should not make possible to choose a different character before all actions used
 Zoom level 0 should show entire screen
-Use Black background with white text (invert the color scheme)
+(DONE)Use Black background with white text (invert the color scheme)
 (DONE)Remove 'DO NOTHING' and add 'END TURN' and Use up remaining actions and end players turn
 (DONE)Cancel should not 'goBack'?
 (PARTIALLY DONE)Animate unlocking doors / vaults
 (DONE)Make save game state work in background thread
 (DONE)Pressing any button should clear the summary
-Mana Blast has too large DOT ontop of player when target is far away
+(DONE)Mana Blast has too large DOT ontop of player when target is far away
 (DONE)Sometimes pressing the 'tooltip' arrow on a button doesnt work
 (DONE)Armor buttons dont have tooltip text
 (DONE)Floating text should not get cut off by screen
@@ -22,13 +22,17 @@ Easy mode- No Ahhhh - friendlier die rolls
 Samson should be able to start with either hammer or Axe
 Found bug where Baldric was on screen twice after moving
 Traps
-Need way to unlock higher class heros
+(DONE)Need way to unlock higher class heros
 Abomination killable by great sword?
 - happened in big game hunting in a vault
 cell 0,0 highlighted when it shouldn't be
 Put Legend, Rules and Searchables into HELP menu
 Make lightning attack better
-
+Show when backpack full (and cannot trade or search)
+Describe how armor rolls work.
+Shield should add +1 to existing defense (show in char info)
+Search should work such that user has option to discard the found object or make room for it if they want
+Trade should also work in such a way that
 
 (DONE)Add slashing anims for melee attacks
 (DONE)Add ability to destroy spawns
@@ -55,6 +59,11 @@ When searching or looting a vault, new items should have their cards shown on th
 pinch zoom / pan
 (DONE)Make so levels and chars are unlockable
 (DONE)Less dragon bile / torches
+Show option to consume item just found
+Show Wounds n or MAX
+Make sure a double level up
+Any Fire should ignite dragon bile
+Use KEEP instead of EQUIP for
 
 +---------+----------+-----------+
 |         |          |           |

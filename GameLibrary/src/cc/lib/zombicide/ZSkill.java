@@ -353,8 +353,18 @@ public enum ZSkill implements IButton {
     Ironclad_Runner("The Survivor ignores all Wounds coming from Runners"),
     Ironclad_Fatty("The Survivor ignores all Wounds coming from Fatties"),
     Ironclad_Abomination("The Survivor ignores all Wounds coming from Abominations"),
-    Iron_hide("The Survivor can make Armor rolls with a 5+ Armor value, even when he does not wear an armor on his Body slot. Wearing an armor, the Survivor adds 1 to the result of each die he rolls for Armor rolls. The maximum result is always 6."),
-    Steel_hide("The Survivor can make Armor rolls with a 4+ Armor value, even when he does not wear an armor on his Body slot. Wearing an armor, the Survivor adds 1 to the result of each die he rolls for Armor rolls. The maximum result is always 6."),
+    Iron_hide("The Survivor can make Armor rolls with a 5+ Armor value, even when he does not wear an armor on his Body slot. Wearing an armor, the Survivor adds 1 to the result of each die he rolls for Armor rolls. The maximum result is always 6.") {
+        @Override
+        public int getArmorRating(ZZombieType type) {
+            return 5;
+        }
+    },
+    Steel_hide("The Survivor can make Armor rolls with a 4+ Armor value, even when he does not wear an armor on his Body slot. Wearing an armor, the Survivor adds 1 to the result of each die he rolls for Armor rolls. The maximum result is always 6.") {
+        @Override
+        public int getArmorRating(ZZombieType type) {
+            return 4;
+        }
+    },
     Iron_rain("When resolving a Ranged Action, the Survivor may substitute the Dice number of the Ranged weapon(s) he uses with the number of Zombies standing in the targeted Zone. Skills affecting the dice value, like +1 die: Ranged, still apply. ") {
         @Override
         public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game, int targetZone) {
@@ -595,5 +605,9 @@ public enum ZSkill implements IButton {
 
     boolean avoidsFriendlyFire() {
         return false;
+    }
+
+    public int getArmorRating(ZZombieType type) {
+        return 0;
     }
 }

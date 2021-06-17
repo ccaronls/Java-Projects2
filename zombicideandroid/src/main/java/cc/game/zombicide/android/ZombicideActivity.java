@@ -40,6 +40,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -176,15 +177,17 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
             protected void drawActor(DroidGraphics g, ZActor actor, GColor outline) {
                 if (outline == null)
                     outline = GColor.WHITE;
-                Paint outlinePaint = getPaint(outline);
-                Canvas canvas = g.getCanvas();
-                RectF rect = g.setRectF(actor.getRect());
-                canvas.save();
-                float cx = rect.centerX();
-                float cy = rect.centerY();
-                canvas.scale(1.15f, 1.1f, cx, cy);
-                canvas.drawBitmap(g.getBitmap(actor.getImageId()), null, rect, outlinePaint);
-                canvas.restore();
+                if (actor.isAlive()) {
+                    Paint outlinePaint = getPaint(outline);
+                    Canvas canvas = g.getCanvas();
+                    RectF rect = g.setRectF(actor.getRect());
+                    canvas.save();
+                    float cx = rect.centerX();
+                    float cy = rect.centerY();
+                    canvas.scale(1.15f, 1.1f, cx, cy);
+                    canvas.drawBitmap(g.getBitmap(actor.getImageId()), null, rect, outlinePaint);
+                    canvas.restore();
+                }
                 actor.draw(g);
             }
 
@@ -287,6 +290,11 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
             game.showSummaryOverlay();
         }
         if (statsFile.exists()) {
+            try {
+                log.debug(FileUtils.fileToString(statsFile));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             stats.tryLoadFromFile(statsFile);
         }
 
@@ -344,7 +352,6 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                 case SKILLS:
                 case LEGEND:
                 case UNDO:
-                case RULES:
                     return true;
                 case RESUME:
                     return instance.gameFile != null && instance.gameFile.exists();
@@ -705,7 +712,7 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
     }
 
     void completeQuest(ZQuests quest) {
-        stats.completeQuest(quest, getSavedDifficulty());
+        stats.completeQuest(quest, game.getDifficulty());
         stats.trySaveToFile(statsFile);
     }
 

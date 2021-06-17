@@ -36,7 +36,7 @@ public enum ZPlayerName implements IButton {
             toArray(ZSkill.Plus1_Damage_Melee, ZSkill.Plus1_free_Combat_Action, ZSkill.Barbarian)),
     Nelly("Rogue",
             toArray(ZWeaponType.SHORT_SWORD),
-            toArray(ZWeaponType.DAGGER),
+            toArray(ZWeaponType.SHORT_BOW),
             toArray(ZSkill.Plus1_free_Move_Action),
             toArray(ZSkill.Plus1_Action),
             toArray(ZSkill.Bloodlust_Melee, ZSkill.Slippery),

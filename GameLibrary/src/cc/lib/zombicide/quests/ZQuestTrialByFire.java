@@ -115,13 +115,7 @@ public class ZQuestTrialByFire extends ZQuest {
             if (blueObjTreasure == null)
                 blueObjTreasure = Utils.randItem(Arrays.asList(ZWeaponType.ORCISH_CROSSBOW, ZWeaponType.INFERNO)).create();
 
-            if (game.tryGiftEquipment(c, blueObjTreasure)) {
-                blueObjZone = -1;
-            } else {
-                // if the character is too full to accept the gift then set a temp objective to hold
-                // the gift until they or some other character can accept it. The new objective will not give exp.
-                game.getBoard().setObjective(c.getOccupiedCell(), ZCellType.OBJECTIVE_BLUE);
-            }
+            game.giftEquipment(c, blueObjTreasure);
         }
         super.processObjective(game, c, move);
         if (redObjectives.size() == 0 && game.getBoard().getDoor(lockedVault) == ZWallFlag.LOCKED) {

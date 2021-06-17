@@ -14,16 +14,10 @@ public class ZArmor extends ZEquipment<ZArmorType> {
     }
 
     ZArmor(ZArmorType type) {
-        this(type, 0);
-    }
-
-    ZArmor(ZArmorType type, int adjustment) {
         this.type = type;
-        this.adjustment = adjustment;
     }
 
     private final ZArmorType type;
-    private final int adjustment;
 
     @Override
     public ZEquipSlotType getSlotType() {
@@ -41,7 +35,7 @@ public class ZArmor extends ZEquipment<ZArmorType> {
     }
 
     int getRating(ZZombieType type) {
-        return this.type.getRating(type) + adjustment;
+        return this.type.getRating(type);
     }
 
     @Override
@@ -55,15 +49,15 @@ public class ZArmor extends ZEquipment<ZArmorType> {
         /*
 
         SHIELD
-        specialInfo
-        ---------------
-        RATING
-        Walker      | 0
-        Fatty       | 5
-        Runner      | 5
-        Necromancer | 5
-        Abomination | 5
-        Special
+        specialInfo    |
+        ---------------| How armor works text
+        RATING         |
+        Walker      | 0|
+        Fatty       | 5|
+        Runner      | 5|
+        Necromancer | 5|
+        Abomination | 5|
+        Special        |
          */
 
 
