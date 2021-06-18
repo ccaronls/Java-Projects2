@@ -2,6 +2,8 @@ package cc.game.zombicide.android;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.BlurMaskFilter;
@@ -11,6 +13,7 @@ import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.RectF;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -20,6 +23,7 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.SpannableString;
+import android.text.format.DateFormat;
 import android.text.format.Formatter;
 import android.text.style.UnderlineSpan;
 import android.util.Log;
@@ -33,6 +37,7 @@ import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RadioButton;
@@ -44,6 +49,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -54,6 +60,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import cc.lib.android.CCActivityBase;
 import cc.lib.android.DroidGraphics;
 import cc.lib.android.DroidUtils;
+import cc.lib.android.EmailHelper;
 import cc.lib.game.GColor;
 import cc.lib.game.GRectangle;
 import cc.lib.game.Utils;
@@ -338,20 +345,22 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
         QUIT,
         CLEAR,
         SEARCHABLES,
-        RULES;
+        RULES,
+        EMAIL_REPORT;
 
         boolean isHomeButton(ZombicideActivity instance) {
             switch (this) {
                 case LOAD:
                 case ASSIGN:
                 case CLEAR:
+                case UNDO:
+                case DIFFICULTY:
                     return BuildConfig.DEBUG;
                 case START:
                 case NEW_GAME:
-                case DIFFICULTY:
                 case SKILLS:
                 case LEGEND:
-                case UNDO:
+                case EMAIL_REPORT:
                     return true;
                 case RESUME:
                     return instance.gameFile != null && instance.gameFile.exists();
@@ -368,6 +377,7 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                 case NEW_GAME:
                 case CLEAR:
                     return false;
+                case UNDO:
                 case SEARCHABLES:
                     return BuildConfig.DEBUG;
             }
@@ -645,6 +655,10 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
             }
             case RULES: {
                 showWelcomeDialog(false);
+                break;
+            }
+            case EMAIL_REPORT: {
+                showEmailReportDialog();
                 break;
             }
         }
@@ -1226,4 +1240,66 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
         }
     }
 
+    public void showEmailReportDialog() {
+        EditText message = new EditText(this);
+        message.setMinLines(5);
+        newDialogBuilder().setTitle("Email a report to the Author")
+                .setView(message)
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Send", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        new EmailTask(ZombicideActivity.this, message.getEditableText().toString()).execute(gameFile);
+                    }
+                }).show();
+    }
+
+    static class EmailTask extends AsyncTask<File, Void, Exception> {
+
+        final Context context;
+        Dialog progress;
+        final String message;
+
+        EmailTask(Context context, String message) {
+            this.context = context;
+            this.message = message;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            progress = ProgressDialog.show(context, null, "Sending report");
+        }
+
+        @Override
+        protected Exception doInBackground(File... inFile) {
+
+            try {
+                String date = DateFormat.format("MMddyyyy", new Date()).toString();
+                File zipFile = new File(context.getFilesDir(), "zh_" + date + ".zip");
+                List<File> files = FileUtils.getFileAndBackups(inFile[0]);
+                FileUtils.zipFiles(zipFile, files);
+                String fileSize = DroidUtils.getHumanReadableFileSize(context, zipFile);
+                Log.d(TAG, "Zipped file size: " + fileSize);
+                EmailHelper.sendEmail(context, zipFile, "ccaronsoftware@gmail.com", "Zombies Hide Report", message);
+
+                return null;
+            } catch (Exception e) {
+                e.printStackTrace();
+                return e;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(Exception e) {
+            progress.dismiss();
+            if (e != null) {
+                ((ZombicideActivity)context).newDialogBuilder().setTitle("Error")
+                        .setMessage("An error occurred trying to send report:\n" + e.getClass().getSimpleName() + " " + e.getMessage())
+                        .setNegativeButton("Ok", null).show();
+            } else {
+                ((ZombicideActivity)context).newDialogBuilder().setTitle("Success")
+                        .setMessage("Report Sent Successfully").setNegativeButton("Ok", null).show();
+            }
+        }
+    }
 }

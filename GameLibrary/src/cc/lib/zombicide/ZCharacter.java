@@ -290,7 +290,12 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
         return ZEquipSlot.BACKPACK;
     }
 
-    public ZEquipSlot equip(ZEquipment e) {
+    /**
+     * If user can equip the item the result slot equipped too. null otherwise
+     * @param e
+     * @return
+     */
+    public ZEquipSlot tryEquip(ZEquipment e) {
         if (body == null && canEquipBody(e)) {
             body = e;
             e.slot = ZEquipSlot.BODY;
@@ -318,8 +323,6 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
             backpack.add(e);
             return e.slot = ZEquipSlot.BACKPACK;
         }
-
-        Utils.assertTrue(false);
         return null;
     }
 

@@ -169,4 +169,5 @@ public class ZQuestTutorial extends ZQuest {
         }
         return super.getQuestFailedReason(game);
     }
+
 }

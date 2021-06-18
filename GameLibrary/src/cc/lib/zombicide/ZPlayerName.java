@@ -14,7 +14,7 @@ public enum ZPlayerName implements IButton {
             toArray(ZSkill.Plus1_free_Magic_Action, ZSkill.Plus1_free_Melee_Action),
             toArray(ZSkill.Plus1_free_Combat_Action, ZSkill.Plus1_to_dice_roll_Combat, ZSkill.Roll_6_plus1_die_Combat)),
     Baldric("Magician",
-            toArray(ZWeaponType.MANA_BLAST, ZWeaponType.INFERNO, ZWeaponType.FIREBALL, ZWeaponType.EARTHQUAKE), //, (ZEquipmentType)ZSpellType.SPEED),
+            toArray(ZWeaponType.MANA_BLAST), //, ZWeaponType.INFERNO, ZWeaponType.FIREBALL, ZWeaponType.EARTHQUAKE), //, (ZEquipmentType)ZSpellType.SPEED),
             toArray(ZWeaponType.SWORD),
             toArray(ZSkill.Spellcaster),
             toArray(ZSkill.Plus1_Action),
@@ -28,7 +28,7 @@ public enum ZPlayerName implements IButton {
             toArray(ZSkill.Plus1_free_Melee_Action, ZSkill.Swordmaster),
             toArray(ZSkill.Plus1_free_Combat_Action, ZSkill.Plus1_to_dice_roll_Combat, ZSkill.Hit_and_run)),
     Samson("Dwarf",
-            toArray(ZWeaponType.AXE, ZItemType.DRAGON_BILE, ZItemType.TORCH),
+            toArray(ZWeaponType.AXE), //, ZItemType.DRAGON_BILE, ZItemType.TORCH),
             toArray(ZArmorType.SHIELD),
             toArray(ZSkill.Iron_hide),
             toArray(ZSkill.Plus1_Action),
@@ -140,7 +140,7 @@ public enum ZPlayerName implements IButton {
         c.name = this;
         character = c;
         for (ZEquipmentType e : startingEquipment)
-            c.equip(e.create());
+            c.tryEquip(e.create());
         c.initAllSkills(getSkillOptions(ZSkillLevel.BLUE));
         return c;
     }

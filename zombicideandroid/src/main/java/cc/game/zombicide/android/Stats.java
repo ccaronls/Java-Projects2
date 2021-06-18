@@ -13,7 +13,6 @@ public class Stats extends Reflector<Stats> {
 
     static {
         addAllFields(Stats.class);
-        registerClass(ZDifficulty.class, "ZDiffuculty");
     }
 
     private final Map<ZQuests, ZDifficulty> completedQuests = new HashMap<>();

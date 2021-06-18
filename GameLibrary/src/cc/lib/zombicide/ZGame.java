@@ -581,12 +581,7 @@ public class ZGame extends Reflector<ZGame>  {
                     }
 
                     if (zone.getType() == ZZoneType.VAULT) {
-                        List<ZEquipment> takables = new ArrayList<>();
-                        for (ZEquipment e : quest.getVaultItems(cur.occupiedZone)) {
-                            if (cur.getEquipableSlots(e).size() > 0) {
-                                takables.add(e);
-                            }
-                        }
+                        List<ZEquipment> takables = quest.getVaultItems(cur.occupiedZone);
                         if (takables.size() > 0) {
                             options.add(ZMove.newPickupItemMove(takables));
                         }
@@ -595,7 +590,6 @@ public class ZGame extends Reflector<ZGame>  {
                         if (items.size() > 0) {
                             options.add(ZMove.newDropItemMove(items));
                         }
-
                     }
 
                     List<ZDoor> doors = new ArrayList<>();
@@ -1468,8 +1462,12 @@ public class ZGame extends Reflector<ZGame>  {
             case PICKUP_ITEM: {
                 ZEquipment equip = getCurrentUser().chooseItemToPickup(this, cur, move.list);
                 if (equip != null) {
+                    if (cur.tryEquip(equip) == null) {
+                        ZMove keep = ZMove.newKeepMove(equip);
+                        if (!performMove(cur, keep))
+                            return false;
+                    }
                     quest.pickupItem(cur.occupiedZone, equip);
-                    cur.equip(equip);
                     cur.performAction(ZActionType.PICKUP_ITEM, this);
                     return true;
                 }

@@ -9,7 +9,10 @@ import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
+import android.text.format.Formatter;
 import android.util.TypedValue;
+
+import java.io.File;
 
 import cc.lib.game.AGraphics;
 import cc.lib.game.GDimension;
@@ -172,5 +175,7 @@ public class DroidUtils extends Utils {
         return Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dips, context.getResources().getDisplayMetrics()));
     }
 
-
+    public static String getHumanReadableFileSize(Context context, File file) {
+        return Formatter.formatFileSize(context, file.length());
+    }
 }

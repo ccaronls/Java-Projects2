@@ -7,7 +7,10 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -389,4 +392,19 @@ public class FileUtils {
         return settingsDir;
     }
 
+    public static List<File> getFileAndBackups(File file) {
+        String fileName = file.getAbsolutePath();
+        String root = stripExtension(file.getName());
+        String ext = fileExtension(fileName);
+        File dir = file.getParentFile();
+        if (!dir.isDirectory())
+            return Collections.emptyList();
+        File [] files = dir.listFiles(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+                return name.startsWith(root) && name.endsWith(ext);
+            }
+        });
+        return Arrays.asList(files);
+    }
 }

@@ -2,7 +2,7 @@
 
     <string name="app_name">AndroidGameLibrary</string>
 
-    <string name="cached_file_provider_authority">cc.android.applications</string>
+    <string name="cached_file_provider_authority">you need to override this value</string>
 
     <string name="url_marketplace_pdfviewer">market://details?id=com.adobe.reader</string>
 
