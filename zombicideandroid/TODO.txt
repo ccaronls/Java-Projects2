@@ -64,6 +64,12 @@ pinch zoom / pan
 (DONE)Make sure a double level up
 (DONE)Any Fire should ignite dragon bile
 (DONE)Use KEEP instead of EQUIP for
+Add confirm dialog to START button if round > 0
+Move End Turn button down
+Show when backpack is full
+Show backpack cards in charview when player doing inventory
+Revisit UNDO to remove states that dont really need ot be saved
+Encrypt game files
 
 +---------+----------+-----------+
 |         |          |           |
@@ -78,4 +84,23 @@ pinch zoom / pan
 | ZM      |  DOWN    |   IN/OUT  |
 |         |          |    VAULT  |
 +---------+----------+-----------+
+
+Equipment Scenarios:
+
+Search:
+Is there equipable slot open (LH/RH/BO)?
+(y)-> offer the slot (and backpack)
+(n)-> offer to swap out the slot or backpack
+  Put in backpack?
+  (y)-> Is backpack full?
+        (y)-> Offer to dispose existing backpack item
+        (n)-> assign to backpack (done)
+  (n)-> dispose (put back in deck)
+
+
+Pickup From Vault:
+
+Trade Take:
+
+Trade Give: (only if open slot)
 

@@ -586,6 +586,17 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
                 if (!weapon.isMelee())
                     return null;
                 stat = weapon.type.meleeStats.copy();
+                if (weapon.getType() == ZWeaponType.DAGGER) {
+                    // if another melee weapon equipped then +1 die
+                    if (Utils.filter(getWeapons(), new Utils.Filter<ZWeapon>() {
+                        @Override
+                        public boolean keep(ZWeapon object) {
+                            return object.isMelee();
+                        }
+                    }).size() > 1) {
+                        stat.numDice++;
+                    }
+                }
                 break;
             case ARROWS:
                 if (!weapon.isRanged())
@@ -721,6 +732,9 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
                 for (ZEquipment e : backpack) {
                     table.addRow(e);
                 }
+                if (isBackpackFull()) {
+                    table.addRow("(full)");
+                }
                 return table;
             }
         }
@@ -798,6 +812,11 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
             skill.onEndOfTurn(game, this);
         }
         availableSkills.clear();
+        for (ZEquipment e : Arrays.asList(leftHand, rightHand, body)) {
+            if (e != null) {
+                e.onEndOfRound(game);
+            }
+        }
     }
 
     @Override

@@ -72,13 +72,6 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
     @Override
     protected synchronized void paint(AWTGraphics g, int mouseX, int mouseY) {
         g.clearScreen();
-        /*
-        UIZombicide game = getGame();
-        if (game != null) {
-            game.draw(g, mouseX, mouseY);
-            if (game.isAnimating())
-                repaint();
-        }*/
         if (renderer != null) {
             renderer.draw(g, mouseX, mouseY);
             grabFocus();
@@ -88,7 +81,7 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
 
     @Override
     protected void onFocusGained() {
-        renderer.setOverlay(null);
+        //renderer.setOverlay(null);
     }
 
     @Override
@@ -317,44 +310,40 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
     @Override
     public void keyPressed(KeyEvent e) {
         UIZombicide game = UIZombicide.getInstance();
-        //ZCharacter cur = game.getCurrentCharacter();
-        //if (cur != null) {
-            switch (e.getKeyCode()) {
-                case KeyEvent.VK_LEFT:
-                    game.tryWalk(ZDir.WEST);
-                    break;
-                case KeyEvent.VK_RIGHT:
-                    game.tryWalk(ZDir.EAST);
-                    break;
-                case KeyEvent.VK_UP:
-                    game.tryWalk(ZDir.NORTH);
-                    break;
-                case KeyEvent.VK_DOWN:
-                    game.tryWalk(ZDir.SOUTH);
-                    break;
-                case KeyEvent.VK_PLUS:
-                case KeyEvent.VK_EQUALS:
-                    // zoom in
-                    renderer.animateZoomTo(renderer.getZoomPercent() + 0.25f);
-                    break;
-                case KeyEvent.VK_MINUS:
-                case KeyEvent.VK_UNDERSCORE:
-                    // zoom out
-                    renderer.animateZoomTo(renderer.getZoomPercent() - 0.25f);
-                    break;
-                case KeyEvent.VK_SPACE:
-                    // toggle active player
-                    game.trySwitchActivePlayer();
-                    break;
-                case KeyEvent.VK_SLASH:
-                    if (game.getBoard().canMove(game.getCurrentCharacter(), ZDir.DESCEND)) {
-                        game.setResult(ZMove.newWalkDirMove(ZDir.DESCEND));
-                    } else if (game.getBoard().canMove(game.getCurrentCharacter(), ZDir.ASCEND)) {
-                        game.setResult(ZMove.newWalkDirMove(ZDir.ASCEND));
-                    }
-                    break;
-
-            //}
+        switch (e.getKeyCode()) {
+            case KeyEvent.VK_LEFT:
+                game.tryWalk(ZDir.WEST);
+                break;
+            case KeyEvent.VK_RIGHT:
+                game.tryWalk(ZDir.EAST);
+                break;
+            case KeyEvent.VK_UP:
+                game.tryWalk(ZDir.NORTH);
+                break;
+            case KeyEvent.VK_DOWN:
+                game.tryWalk(ZDir.SOUTH);
+                break;
+            case KeyEvent.VK_PLUS:
+            case KeyEvent.VK_EQUALS:
+                // zoom in
+                renderer.animateZoomTo(renderer.getZoomPercent() + 0.25f);
+                break;
+            case KeyEvent.VK_MINUS:
+            case KeyEvent.VK_UNDERSCORE:
+                // zoom out
+                renderer.animateZoomTo(renderer.getZoomPercent() - 0.25f);
+                break;
+            case KeyEvent.VK_SPACE:
+                // toggle active player
+                game.trySwitchActivePlayer();
+                break;
+            case KeyEvent.VK_SLASH:
+                if (game.getBoard().canMove(game.getCurrentCharacter(), ZDir.DESCEND)) {
+                    game.setResult(ZMove.newWalkDirMove(ZDir.DESCEND));
+                } else if (game.getBoard().canMove(game.getCurrentCharacter(), ZDir.ASCEND)) {
+                    game.setResult(ZMove.newWalkDirMove(ZDir.ASCEND));
+                }
+                break;
         }
 
         switch (e.getKeyCode()) {

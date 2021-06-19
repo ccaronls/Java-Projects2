@@ -67,9 +67,13 @@ public class ZWeapon extends ZEquipment<ZWeaponType> {
         return type;
     }
 
-    public void fireWeapon() {
+    public void fireWeapon(ZGame game, ZCharacter cur) {
         if (type.needsReload)
             isEmpty = true;
+        if (type == ZWeaponType.DAGGER) {
+            cur.removeEquipment(this);
+            game.putBackInSearchables(this);
+        }
     }
 
     @Override
@@ -141,12 +145,11 @@ public class ZWeapon extends ZEquipment<ZWeaponType> {
             }
         }
 
-        Table card = new Table(new String [] { type.getLabel() + (type.canTwoHand ? " (DW)" : "" ) },
-            new Object [][] {
-//                { cardUpper.toString() },
-                { cardLower }
-            }).setNoBorder();
-
+        Table card = new Table(type.getLabel() + (type.canTwoHand ? " (DW)" : "" ))
+                .addRow(cardLower).setNoBorder();
+        if (type.specialInfo != null) {
+            card.addRow(Utils.wrapTextWithNewlines("*" + type.specialInfo, 32));
+        }
         return card;
     }
 
@@ -180,5 +183,17 @@ public class ZWeapon extends ZEquipment<ZWeaponType> {
         }
 
         return cardLower.toString();
+    }
+
+    @Override
+    public void onEndOfRound(ZGame game) {
+        switch (type) {
+            case HAND_CROSSBOW:
+                if (!isLoaded()) {
+                    game.getCurrentUser().showMessage(getLabel() + " auto reloaded");
+                    reload();
+                }
+                break;
+        }
     }
 }

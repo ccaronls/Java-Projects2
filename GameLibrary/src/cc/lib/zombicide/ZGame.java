@@ -964,6 +964,7 @@ public class ZGame extends Reflector<ZGame>  {
                 return true;
             case END_TURN:
                 cur.clearActions();
+                cur.onEndOfTurn(this);
                 stateStack.pop();
                 break;
             case SWITCH_ACTIVE_CHARACTER: {
@@ -1189,7 +1190,7 @@ public class ZGame extends Reflector<ZGame>  {
                             getCurrentUser().showMessage("CLICK! Weapon not loaded!");
                             onWeaponGoesClick(cur, weapon);
                         } else {
-                            weapon.fireWeapon();
+                            weapon.fireWeapon(this, cur);
                             ZZone zone = board.getZone(zoneIdx);
                             if (weapon.getType().isFire() && zone.isDragonBile()) {
                                 performDragonBile(cur, zone);
@@ -1652,7 +1653,7 @@ public class ZGame extends Reflector<ZGame>  {
                             getCurrentUser().showMessage("CLICK! Weapon not loaded!");
                             onWeaponGoesClick(cur, weapon);
                         } else {
-                            weapon.fireWeapon();
+                            weapon.fireWeapon(this, cur);
                             ZZone zone = board.getZone(zoneIdx);
                             if (weapon.getType().isFire() && zone.isDragonBile()) {
                                 performDragonBile(cur, zone);
@@ -2250,7 +2251,7 @@ public class ZGame extends Reflector<ZGame>  {
                 .addRow(new Table("SUMMARY").addRow(summary));
     }
 
-    private void putBackInSearchables(ZEquipment e) {
+    void putBackInSearchables(ZEquipment e) {
         searchables.addFirst(e);
     }
 

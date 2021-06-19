@@ -95,4 +95,6 @@ public abstract class ZEquipment<T extends Enum<T>> extends Reflector<ZEquipment
     public String getLabel() {
         return Utils.toPrettyString(getType().name());
     }
+
+    public void onEndOfRound(ZGame game) {}
 }

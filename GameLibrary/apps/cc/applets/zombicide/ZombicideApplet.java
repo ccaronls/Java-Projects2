@@ -125,6 +125,7 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
 
                 if (isGameOver()) {
                     stopGameThread();
+                    showSummaryOverlay();
                     initHomeMenu();
                 }
 

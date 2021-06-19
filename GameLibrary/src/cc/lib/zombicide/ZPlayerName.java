@@ -7,7 +7,7 @@ import cc.lib.ui.IButton;
 @Keep
 public enum ZPlayerName implements IButton {
     Ann("Angry Nun",
-            toArray(ZWeaponType.DAGGER),
+            toArray(ZWeaponType.DAGGER, ZWeaponType.HAND_CROSSBOW),
             toArray(ZWeaponType.DAGGER),
             toArray(ZSkill.Bloodlust),
             toArray(ZSkill.Plus1_Action),
@@ -21,7 +21,7 @@ public enum ZPlayerName implements IButton {
             toArray(ZSkill.Plus1_free_Magic_Action, ZSkill.Spellbook),
             toArray(ZSkill.Plus1_die_Magic, ZSkill.Plus1_free_Combat_Action, ZSkill.Plus1_to_dice_roll_Melee)),
     Clovis("Warrior",
-            toArray(ZWeaponType.SHORT_SWORD, ZItemType.TORCH, ZItemType.DRAGON_BILE),
+            toArray(ZWeaponType.SHORT_SWORD),//, ZItemType.TORCH, ZItemType.DRAGON_BILE),
             toArray(ZArmorType.SHIELD),
             toArray(ZSkill.Plus1_die_Melee),
             toArray(ZSkill.Plus1_Action),
