@@ -7,7 +7,7 @@ public enum ZAttackType {
     DISINTEGRATION,
     BLADE,
     CRUSH,
-    ARROW,
+    RANGED,
     EARTHQUAKE,
     MENTAL_STRIKE,
 }

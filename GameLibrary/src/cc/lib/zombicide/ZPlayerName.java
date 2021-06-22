@@ -28,7 +28,7 @@ public enum ZPlayerName implements IButton {
             toArray(ZSkill.Plus1_free_Melee_Action, ZSkill.Swordmaster),
             toArray(ZSkill.Plus1_free_Combat_Action, ZSkill.Plus1_to_dice_roll_Combat, ZSkill.Hit_and_run)),
     Samson("Dwarf",
-            toArray(ZWeaponType.AXE), //, ZItemType.DRAGON_BILE, ZItemType.TORCH),
+            toArray(ZWeaponType.AXE),
             toArray(ZArmorType.SHIELD),
             toArray(ZSkill.Iron_hide),
             toArray(ZSkill.Plus1_Action),
@@ -139,8 +139,11 @@ public enum ZPlayerName implements IButton {
         ZCharacter c = new ZCharacter();
         c.name = this;
         character = c;
-        for (ZEquipmentType e : startingEquipment)
+        for (ZEquipmentType e : startingEquipment) {
             c.tryEquip(e.create());
+            if (ZGame.DEBUG)
+                break;
+        }
         c.initAllSkills(getSkillOptions(ZSkillLevel.BLUE));
         return c;
     }

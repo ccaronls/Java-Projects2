@@ -24,6 +24,8 @@ import cc.lib.utils.Table;
 
 public class ZGame extends Reflector<ZGame>  {
 
+    public static boolean DEBUG = false;
+
     static {
         addAllFields(ZGame.class);
         addAllFields(State.class);
@@ -138,6 +140,10 @@ public class ZGame extends Reflector<ZGame>  {
 
     public boolean isGameOver() {
         return gameOverStatus != 0;
+    }
+
+    public int getRoundNum() {
+        return roundNum;
     }
 
     public boolean isGameWon() {
@@ -364,18 +370,18 @@ public class ZGame extends Reflector<ZGame>  {
 
         if (getAllLivingCharacters().size() == 0) {
             gameLost("All Players Killed");
-            return true;
+            return false;
         }
 
         String failedReason;
         if (null != (failedReason=quest.getQuestFailedReason(this))) {
             gameLost(failedReason);
-            return true;
+            return false;
         }
 
         if (quest.getPercentComplete(this) >= 100) {
             gameWon();
-            return true;
+            return false;
         }
 
         final ZUser user = getCurrentUser();
@@ -490,7 +496,7 @@ public class ZGame extends Reflector<ZGame>  {
                     } else {
                         getCurrentCharacter().onEndOfTurn(this);
                         setState(ZState.PLAYER_STAGE_CHOOSE_CHARACTER, null);
-                        return true;
+                        return false;
                     }
                 }
 

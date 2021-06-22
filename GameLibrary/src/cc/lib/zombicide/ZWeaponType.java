@@ -10,21 +10,21 @@ public enum ZWeaponType implements ZEquipmentType<ZWeapon> {
     // DAGGER get extra die roll when 2 handed with another melee weapon
 
     // MELEE
-    DAGGER(false, true,false, true, false, true, new ZWeaponStat(ZAttackType.BLADE, 5, 0, 0, 1, 4, 1), new ZWeaponStat(ZAttackType.ARROW, 0, 1, 1, 1, 3, 2), null,  "Gain +1 die with another equipped melee weapon"),
+    DAGGER(false, true,false, true, false, true, new ZWeaponStat(ZAttackType.BLADE, 5, 0, 0, 1, 4, 1), new ZWeaponStat(ZAttackType.RANGED, 0, 1, 1, 1, 3, 2), null,  "Gain +1 die with another equipped melee weapon"),
     AXE(false, false,false, true, false, true, new ZWeaponStat(ZAttackType.BLADE,1, 0, 0, 1, 4, 1), null, null, null),
     HAMMER(false, false,false, false, false, true, new ZWeaponStat(ZAttackType.CRUSH,4, 0, 0, 1, 3, 2), null, null, null),
     SHORT_SWORD(false, false,false, true, false, true, new ZWeaponStat(ZAttackType.BLADE,4, 0, 0, 1, 4, 1), null, null, null),
     SWORD(false, false,false, true, false, true, new ZWeaponStat(ZAttackType.BLADE,4, 0, 0, 2, 4, 1), null, null, null),
     GREAT_SWORD(false, false,false, false, false, true, new ZWeaponStat(ZAttackType.BLADE,5, 0, 0, 5, 5, 1), null, null, null),
     // BOWS
-    SHORT_BOW(false, true,false, false, false, false, null, new ZWeaponStat(ZAttackType.ARROW,0, 0, 1, 1, 3, 1), null, null),
-    LONG_BOW(false, true, false, false, false, false, null, new ZWeaponStat(ZAttackType.ARROW,0, 1, 3, 1, 3, 1), null, null),
+    SHORT_BOW(false, true,false, false, false, false, null, new ZWeaponStat(ZAttackType.RANGED,0, 0, 1, 1, 3, 1), null, null),
+    LONG_BOW(false, true, false, false, false, false, null, new ZWeaponStat(ZAttackType.RANGED,0, 1, 3, 1, 3, 1), null, null),
     // CROSSBOWS
-    CROSSBOW(true, false, true, false, false, false, null, new ZWeaponStat(ZAttackType.ARROW,0, 1, 2, 2, 4,2), null, null),
-    REPEATING_CROSSBOW(true, false, true, true, false, false, null, new ZWeaponStat(ZAttackType.ARROW,0, 0, 1, 3, 5, 1), null, null),
-    HAND_CROSSBOW(true, false, true, true, false, false, null, new ZWeaponStat(ZAttackType.ARROW,0, 0, 3, 2, 3, 1), null, "Auto reload at end of turn"),
-    ORCISH_CROSSBOW(true, false, true, false, false, false, new ZWeaponStat(ZAttackType.CRUSH,0, 0, 0, 2, 3, 2), new ZWeaponStat(ZAttackType.ARROW,0, 1, 2, 2, 3, 2), null, null),
-    HEAVY_CROSSBOW(true, false, true, false, false, false, null, new ZWeaponStat(ZAttackType.ARROW,0, 1, 2, 2, 4, 3), null, null),
+    CROSSBOW(true, false, true, false, false, false, null, new ZWeaponStat(ZAttackType.RANGED,0, 1, 2, 2, 4,2), null, null),
+    REPEATING_CROSSBOW(true, false, true, true, false, false, null, new ZWeaponStat(ZAttackType.RANGED,0, 0, 1, 3, 5, 1), null, null),
+    HAND_CROSSBOW(true, false, true, true, false, false, null, new ZWeaponStat(ZAttackType.RANGED,0, 0, 3, 2, 3, 1), null, "Auto reload at end of turn"),
+    ORCISH_CROSSBOW(true, false, true, false, false, false, new ZWeaponStat(ZAttackType.CRUSH,0, 0, 0, 2, 3, 2), new ZWeaponStat(ZAttackType.RANGED,0, 1, 2, 2, 3, 2), null, null),
+    HEAVY_CROSSBOW(true, false, true, false, false, false, null, new ZWeaponStat(ZAttackType.RANGED,0, 1, 2, 2, 4, 3), null, null),
 
     // MAGIC
     DEATH_STRIKE(false, false, false, true, true, false, null, null, new ZWeaponStat(ZAttackType.MENTAL_STRIKE,0, 0, 1, 1, 4, 2), null),

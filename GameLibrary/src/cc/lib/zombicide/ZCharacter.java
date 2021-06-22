@@ -173,7 +173,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
     protected int getActionsPerTurn() {
         int actions = 3;
         for (ZSkill s : availableSkills) {
-            if (s == ZSkill.Plus1_Action) // TODO: condider implementing modifyActionsRemaining for Plus1_Action
+            if (s == ZSkill.Plus1_Action) // TODO: consider implementing modifyActionsRemaining for Plus1_Action
                 actions++;
         }
         return actions;
@@ -400,19 +400,17 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
 
         Table info = new Table(this).setNoBorder().setPadding(0);
 
-        for (ZEquipSlot slot : ZEquipSlot.values()) {
-            switch (slot) {
-                case LEFT_HAND:
-                    if (isDualWeilding())
-                        info.addColumn("DUAL WIELDING",Arrays.asList(getSlotInfo(slot, game)));
-                case RIGHT_HAND:
-                    if (isDualWeilding())
-                        continue;
-            }
-            Table slotInfo = getSlotInfo(slot, game);
-            if (slotInfo != null)
-                info.addColumn(slot.getLabel(), Arrays.asList(slotInfo));
+        if (isDualWeilding()) {
+            info.addColumn("HANDS(DW)", Arrays.asList(getSlotInfo(ZEquipSlot.LEFT_HAND, game)));
+            info.addColumn(ZEquipSlot.BODY.getLabel(),Arrays.asList(getSlotInfo(ZEquipSlot.BODY, game)));
+        } else {
+            info.addColumn(ZEquipSlot.LEFT_HAND.getLabel(),Arrays.asList(getSlotInfo(ZEquipSlot.LEFT_HAND, game)));
+            info.addColumn(ZEquipSlot.BODY.getLabel(),Arrays.asList(getSlotInfo(ZEquipSlot.BODY, game)));
+            info.addColumn(ZEquipSlot.RIGHT_HAND.getLabel(),Arrays.asList(getSlotInfo(ZEquipSlot.RIGHT_HAND, game)));
         }
+
+        Table slotInfo = getSlotInfo(ZEquipSlot.BACKPACK, game);
+        info.addColumn(ZEquipSlot.BACKPACK.getLabel() + (isBackpackFull() ? " (full)" : ""), Arrays.asList(slotInfo));
 
         Table stats = new Table(this).setNoBorder().setPadding(0);
         String armorRating = "none";
@@ -423,6 +421,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
                 armorRating += "/" + ratings.get(i) + "+";
             }
         }
+        stats.addRow("Moves", String.format("%d of %d", getActionsLeftThisTurn(), getActionsPerTurn()));
         stats.addRow("Wounds", String.format("%d of %d", woundBar, MAX_WOUNDS));
         stats.addRow("Armor Rolls", armorRating);
         ZSkillLevel sl = getSkillLevel();
@@ -443,11 +442,10 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
                 main.addRow(String.format("%s (%s) Killed in Action",
                     name.getLabel(), name.characterClass));
         } else {
-            main.addRow(String.format("%s (%s) moves: %d/%d Body:%s Actions:%s",
+            main.addRow(String.format("%s (%s) Body:%s",
                     name.getLabel(), name.characterClass,
-                    getActionsLeftThisTurn(), getActionsPerTurn(),
-                    Arrays.toString(Utils.toStringArray(name.alternateBodySlots, true)),
-                    Arrays.toString(Utils.toStringArray(actionsDoneThisTurn, true))));
+                    Arrays.toString(Utils.toStringArray(name.alternateBodySlots, true))
+            ));
 
         }
         main.addRow(info);
@@ -731,9 +729,6 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
                 Table table = new Table().setNoBorder();
                 for (ZEquipment e : backpack) {
                     table.addRow(e);
-                }
-                if (isBackpackFull()) {
-                    table.addRow("(full)");
                 }
                 return table;
             }

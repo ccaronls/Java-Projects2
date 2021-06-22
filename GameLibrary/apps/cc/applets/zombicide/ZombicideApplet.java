@@ -36,6 +36,7 @@ import cc.lib.swing.AWTToggleButton;
 import cc.lib.ui.IButton;
 import cc.lib.utils.FileUtils;
 import cc.lib.zombicide.ZDifficulty;
+import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZUser;
@@ -61,6 +62,7 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
 
     public static void main(String [] args) {
         Utils.setDebugEnabled();
+        ZGame.DEBUG = true;
         AWTFrame frame = new AWTFrame("Zombicide");
         ZombicideApplet app = new ZombicideApplet() {
             @Override

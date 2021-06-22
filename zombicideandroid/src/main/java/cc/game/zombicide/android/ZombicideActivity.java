@@ -71,6 +71,7 @@ import cc.lib.zombicide.ZDifficulty;
 import cc.lib.zombicide.ZDir;
 import cc.lib.zombicide.ZEquipSlot;
 import cc.lib.zombicide.ZEquipment;
+import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZQuests;
@@ -139,6 +140,7 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ZGame.DEBUG = BuildConfig.DEBUG;
         setContentView(R.layout.activity_zombicide);
         menu = findViewById(R.id.list_menu);
         menu.setOnItemClickListener(this);
@@ -522,9 +524,22 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
     void processMainMenuItem(MenuItem item) {
         switch (item) {
             case START:
-                FileUtils.deleteFileAndBackups(gameFile);
-                game.reload();
-                startGame();
+                if (game.getRoundNum() > 0) {
+                    newDialogBuilder().setTitle("Confirm").setMessage("Are you sure you want to start a new game?")
+                            .setNegativeButton("Cancel", null)
+                            .setPositiveButton("New Game", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    FileUtils.deleteFileAndBackups(gameFile);
+                                    game.reload();
+                                    startGame();
+                                }
+                            }).show();
+                } else {
+                    FileUtils.deleteFileAndBackups(gameFile);
+                    game.reload();
+                    startGame();
+                }
                 break;
             case RESUME:
                 if (game.tryLoadFromFile(gameFile)) {

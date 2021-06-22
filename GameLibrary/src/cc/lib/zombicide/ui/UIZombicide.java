@@ -152,7 +152,7 @@ public abstract class UIZombicide extends ZGame {
             case DISINTEGRATION:
             case BLADE:
             case CRUSH:
-            case ARROW:
+            case RANGED:
             case EARTHQUAKE:
             case MENTAL_STRIKE:
             case NORMAL:
@@ -198,7 +198,7 @@ public abstract class UIZombicide extends ZGame {
             case DISINTEGRATION:
             case BLADE:
             case CRUSH:
-            case ARROW:
+            case RANGED:
             case EARTHQUAKE:
             case MENTAL_STRIKE:
             default:
