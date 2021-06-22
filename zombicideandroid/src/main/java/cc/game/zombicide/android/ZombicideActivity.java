@@ -3,7 +3,6 @@ package cc.game.zombicide.android;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.BlurMaskFilter;
@@ -1264,18 +1263,24 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                 .setPositiveButton("Send", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        new EmailTask(ZombicideActivity.this, message.getEditableText().toString()).execute(gameFile);
+                        //char [] pw = { 'z', '0', 'm', 'b', '1', '3', '$', '4', 'e', 'v', 'a' };
+                        new EmailTask(ZombicideActivity.this,
+                                message.getEditableText().toString()
+                                //, new String(pw)
+                                ).execute(gameFile);
                     }
                 }).show();
     }
 
     static class EmailTask extends AsyncTask<File, Void, Exception> {
 
-        final Context context;
-        Dialog progress;
-        final String message;
+        final static String TAG = "EmailTask";
 
-        EmailTask(Context context, String message) {
+        private final CCActivityBase context;
+        private Dialog progress;
+        private final String message;
+
+        public EmailTask(CCActivityBase context, String message) {
             this.context = context;
             this.message = message;
         }
@@ -1308,12 +1313,9 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
         protected void onPostExecute(Exception e) {
             progress.dismiss();
             if (e != null) {
-                ((ZombicideActivity)context).newDialogBuilder().setTitle("Error")
+                context.newDialogBuilder().setTitle("Error")
                         .setMessage("An error occurred trying to send report:\n" + e.getClass().getSimpleName() + " " + e.getMessage())
                         .setNegativeButton("Ok", null).show();
-            } else {
-                ((ZombicideActivity)context).newDialogBuilder().setTitle("Success")
-                        .setMessage("Report Sent Successfully").setNegativeButton("Ok", null).show();
             }
         }
     }

@@ -2,7 +2,6 @@
 <resources>
 
     <string name="app_name">Senators</string>
-    <string name="cached_file_provider_authority">cc.game.soc.android</string>
 
     <!-- VERTEX TYPES -->
     <string name="vertex_type_open">Open</string>

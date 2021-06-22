@@ -51,6 +51,5 @@ cooperative game, so all players win if the Quest objectives
 are fulfilled.
 
     </string>
-    <string name="cached_file_provider_authority">cc.game.zombicide.android</string>
 
 </resources>

@@ -12,7 +12,7 @@
     <application>
     <!--  Ridiculous way to hack around gmail not sending attachments that are not on the SDCard -->
         <provider android:name="cc.lib.android.EmailHelper"
-            android:authorities="@string/cached_file_provider_authority"
+            android:authorities="${applicationId}.provider"
             android:exported="true"
             android:grantUriPermissions="true">
             <meta-data

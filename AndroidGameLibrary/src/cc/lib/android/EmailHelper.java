@@ -50,11 +50,7 @@ public class EmailHelper extends ContentProvider {
     }
 
     public static String getAuthority(Context context) {
-    	String value = context.getResources().getString(R.string.cached_file_provider_authority);
-    	if (value.contains(" ")) {
-    	    throw new RuntimeException("You need to override the 'cached_file_provider_authority' in your app in order to send email");
-        }
-    	return value;
+        return context.getApplicationContext().getPackageName() + ".provider";
     }
     
     private File getFile(Uri uri) throws FileNotFoundException {
