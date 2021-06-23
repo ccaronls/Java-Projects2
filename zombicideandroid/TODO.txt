@@ -16,6 +16,17 @@ Zoom level 0 should show entire screen
 SOUND EFFECTS!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 (DONE)in pick char mode add buttons to the menu for the pickable players
 
+Wulfsburg
+------------------
+Ultra-Red mode - Exp level starts over when players can choose from the remaining skills on the subsequent go arounds
+Wulfs - Have 3 actions per turn (can only attack once)
+Towers provide ability to fire ranged and magic weapons over 'ramparts' but cannot be breached,
+4 new heros
+- Theo, Morrigan, Karl, Ariane
+8 new weapons
+Let players choose start weapon
+
+
 SEBI NOTES
 -----------
 Easy mode- No Ahhhh - friendlier die rolls

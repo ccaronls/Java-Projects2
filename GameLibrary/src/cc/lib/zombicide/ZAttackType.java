@@ -10,4 +10,5 @@ public enum ZAttackType {
     RANGED,
     EARTHQUAKE,
     MENTAL_STRIKE,
+    DRAGON_FIRE,
 }

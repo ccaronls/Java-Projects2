@@ -17,6 +17,7 @@ import cc.lib.zombicide.quests.ZQuestTheNecromancer;
 import cc.lib.zombicide.quests.ZQuestTheShepherds;
 import cc.lib.zombicide.quests.ZQuestTrialByFire;
 import cc.lib.zombicide.quests.ZQuestTutorial;
+import cc.lib.zombicide.quests.ZQuestWelcomeToWulfsburg;
 
 @Keep
 public enum ZQuests {
@@ -153,6 +154,21 @@ public enum ZQuests {
             "lures every zombie around like a beacon.\n" +
             "And the Necromancers are still nowhere\n" +
             "to be seen."),
+    // Wulfsburg
+    Welcome_to_Wulfsberg("Welcome to Wulfsburg", "The prosperous city of Wulfsburg earned its\n" +
+            "name due to the many wolf packs roaming\n" +
+            "the surrounding forests and mountains. Nobles and\n" +
+            "merchants built tall towers here, the better to view\n" +
+            "the scenic valley (and display their wealth and status).\n" +
+            "With the plague’s coming, the wolf packs attacked\n" +
+            "wandering zombies, and fell victim to the infection\n" +
+            "themselves. Now hungry for living flesh, the wolfz’\n" +
+            "made the city their new hunting ground.\n" +
+            "Wulfsburg has become a Necromancer outpost,\n" +
+            "populated with hidden, terrified survivors. We’re on\n" +
+            "our way to liberate the city. Breaching the inner\n" +
+            "city will take time, however, and we’ll need supplies.\n" +
+            "Fresh food is scarce, but still to be had.")
     ;
 
     ZQuests(String displayName, String description) {
@@ -197,6 +213,8 @@ public enum ZQuests {
                 return new ZQuestTheHellHole();
             case Trial_by_Fire:
                 return new ZQuestTrialByFire();
+            case Welcome_to_Wulfsberg:
+                return new ZQuestWelcomeToWulfsburg();
         }
         Utils.assertTrue(false);
         return null;
