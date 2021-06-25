@@ -25,15 +25,15 @@ public class ZQuestWelcomeToWulfsburg extends ZQuest {
     public ZBoard loadBoard() {
 
         final String [][] map = {
-                { "z0:exit:i:de:ws", "z1:spn", "z2:i:ww:ws:ode", "z3:i:ode:ds", "z4:i:ode:ods", "z5:i:ods" },
-                { "z6",              "z7",     "z8",             "z9",          "z10:i:ww:ods", "z10:i:ods" },
-                { "z11:i:wn:ode:ws", "z12:i:wn:ws", "z12:i:wn:ods:de", "z13:i:wn:ode", "z14:i:we", "z15:i:odn" },
-                { "z16:i",           "z16:i",  "z16:i:we",       "z17:rn:re", "z18:rn", "z18:rn" },
-                { "z16:i:ds",        "z16:i",  "z16:i:we",       "z19:re",    "z18:rs", "z18:rs" },
-                { "z20:spw",         "z21",    "z22",            "z23",       "z24",    "z25:spe" },
-                { "z26",             "z27:i:ww:wn:ws:ode", "z28:i:red:dn:de:ws", "z29", "z30:i:dw:red:wn:ws:ode", "z31:i:dn:ws" },
-                { "z32",             "z33", "z34", "z35:st", "z36", "z37" },
-                { "z38:i:wn:ode",    "z39:i:dn:red:we", "z40:sps", "z41:i:dw:wn:red", "z42:i:wn:we", "z43" }
+                { "z0:exit:i:de:ws", "z1:spn",          "z2:i:ww:ws:ode",       "z3:i:ode:ds",      "z4:i:ode:ods",     "z5:i:ods" },
+                { "z6",              "z7",              "z8",                   "z9",               "z10:i:ww:ods",     "z10:i:ods" },
+                { "z11:i:wn:ode:ws", "z12:i:wn:ws",     "z12:i:wn:ods:de",      "z13:i:wn:ode",     "z14:i:we",         "z15:i:odn" },
+                { "z16:i",           "z16:i",           "z16:i:we",             "z17:t:rn",         "z18:t:rn",         "z18:t:rn" },
+                { "z16:i:ds",        "z16:i:ws",        "z16:i:we:ws",          "z19:t:re",         "z18:t:rs",         "z18:t:rs" },
+                { "z20:spw",         "z21",             "z22",                  "z23",              "z24",              "z25:spe" },
+                { "z26",             "z27:i:ww:wn:ws:ode", "z28:i:red:dn:de:ws", "z29",             "z30:i:dw:red:wn:ws:ode", "z31:i:dn:ws" },
+                { "z32",             "z33",             "z34",                  "z35:st",           "z36",              "z37" },
+                { "z38:i:wn:ode",    "z39:i:dn:red:we", "z40:sps",              "z41:i:dw:wn:red",  "z42:i:wn:we",      "z43" }
         };
 
         return load(map);
@@ -42,14 +42,14 @@ public class ZQuestWelcomeToWulfsburg extends ZQuest {
     @Override
     public ZTile[] getTiles(ZBoard board) {
         return new ZTile[] {
-                new ZTile("5R", 0, ZTile.getQuadrant(0, 0, board)),
-                new ZTile("8V", 0, ZTile.getQuadrant(0, 3, board)),
+                new ZTile("5R", 180, ZTile.getQuadrant(0, 0, board)),
+                new ZTile("8V", 180, ZTile.getQuadrant(0, 3, board)),
 
-                new ZTile("1V", 0, ZTile.getQuadrant(3, 0, board)),
-                new ZTile("10V", 0, ZTile.getQuadrant(3, 3, board)),
+                new ZTile("1V", 90, ZTile.getQuadrant(3, 0, board)),
+                new ZTile("10V", 180, ZTile.getQuadrant(3, 3, board)),
 
                 new ZTile("6V", 0, ZTile.getQuadrant(6, 0, board)),
-                new ZTile("3V", 0, ZTile.getQuadrant(6, 3, board))
+                new ZTile("3V", 180, ZTile.getQuadrant(6, 3, board))
 
 
         };
@@ -105,6 +105,8 @@ public class ZQuestWelcomeToWulfsburg extends ZQuest {
         return super.getQuestFailedReason(game);
     }
 
-
-
+    @Override
+    public boolean isWulfburg() {
+        return true;
+    }
 }

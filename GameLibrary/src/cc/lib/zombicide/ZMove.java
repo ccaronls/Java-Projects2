@@ -142,6 +142,10 @@ public class ZMove implements IButton {
         return new ZMove(ZMoveType.WALK, zones);
     }
 
+    public static ZMove newSprintMove(List<Integer> zones) {
+        return new ZMove(ZMoveType.SPRINT, zones);
+    }
+
     public static ZMove newUseLeftHand() {
         return new ZMove(ZMoveType.USE_LEFT_HAND);
     }

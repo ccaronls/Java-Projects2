@@ -40,7 +40,7 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
                 loadImages(g);
             }
         }.start();
-        UIZBoardRenderer.DEBUG_DRAW_ZONE_INFO = true;
+        UIZBoardRenderer.DEBUG = true;
     }
 
     @Override
@@ -119,6 +119,10 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
                 { ZZombieType.Runner, "zrunner1.gif" },
                 { ZZombieType.Fatty, "zfatty1.gif" },
                 { ZZombieType.Fatty, "zfatty2.gif" },
+                { ZZombieType.Wolfz, "zwulf1.gif" },
+                { ZZombieType.Wolfz, "zwulf2.gif" },
+                { ZZombieType.Abomiwolf, "zwolfabom.gif" },
+
                 { ZPlayerName.Clovis, "zchar_clovis.gif" },
                 { ZPlayerName.Baldric, "zchar_baldric.gif" },
                 { ZPlayerName.Ann, "zchar_ann.gif" },

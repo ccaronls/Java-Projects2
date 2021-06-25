@@ -23,10 +23,10 @@ public class ZQuestTheAbomination extends ZQuest {
 
         String [][] map = {
                 { "z0:i:de:ds", "z1",       "z2:spn", "z3", "z4:i:dw:ds" },
-                { "z5",         "z6",       "z7", "z8", "z9" },
-                { "z10:spw",     "z11",      "z12:abom", "z13", "z14:spe" },
-                { "z15",        "z16",      "z17", "z18", "z19" },
-                { "z20:i:dn:de","z21",      "z22:st:sps", "z23", "z24:i:dn:dw" }
+                { "z5",         "z6",       "z7:abom:i:ws:wn", "z8", "z9" },
+                { "z10:spw",     "z11",      "z12:st", "z13", "z14:spe" },
+                { "z15:i:ode:wn",        "z16",      "z17:t:st:rn:re:rw", "z18:i:wn:ode:ods", "z19" },
+                { "z20:i:dn:ode","z21:i:wn:ode",      "z22", "z23", "z24:i:dn:dw" }
         };
 
         return load(map);

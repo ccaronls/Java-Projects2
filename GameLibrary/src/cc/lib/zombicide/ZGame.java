@@ -9,7 +9,6 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Stack;
 
 import cc.lib.game.GColor;
@@ -176,6 +175,7 @@ public class ZGame extends Reflector<ZGame>  {
         if (prevQuest == null || !prevQuest.getName().equals(this.quest.getName()))
             initQuest(this.quest);
         initGame();
+        List<ZCell> startCells = new ArrayList<>();
         for (Grid.Iterator<ZCell> it = board.getCellsIterator(); it.hasNext(); ) {
             ZCell cell=it.next();
             if (cell.isCellTypeEmpty())
@@ -190,6 +190,9 @@ public class ZGame extends Reflector<ZGame>  {
                     break;
                 case ZCell.ENV_VAULT:
                     zone.setType(ZZoneType.VAULT);
+                    break;
+                case ZCell.ENV_TOWER:
+                    zone.setType(ZZoneType.TOWER);
                     break;
             }
             // add doors for the zone
@@ -207,14 +210,7 @@ public class ZGame extends Reflector<ZGame>  {
                 if (cell.isCellType(type)) {
                     switch (type) {
                         case START:
-                            // position all the characters here
-                            for (ZUser u : users) {
-                                for (ZPlayerName pl : u.characters) {
-                                    ZCharacter c = pl.create();
-                                    c.occupiedZone = cell.zoneIndex;
-                                    board.addActor(c, cell.zoneIndex, null);
-                                }
-                            }
+                            startCells.add(cell);
                             break;
                         case SPAWN_NORTH:
                         case SPAWN_SOUTH:
@@ -238,6 +234,18 @@ public class ZGame extends Reflector<ZGame>  {
                 }
             }
         }
+        // position all the characters here
+        int curCellIndex = 0;
+        for (ZUser u : users) {
+            for (ZPlayerName pl : u.characters) {
+                ZCharacter c = pl.create();
+                ZCell cell = startCells.get(curCellIndex);
+                curCellIndex = (curCellIndex+1) % startCells.size();
+                c.occupiedZone = cell.zoneIndex;
+                board.addActor(c, cell.zoneIndex, null);
+            }
+        }
+
         this.quest.init(this);
     }
 
@@ -544,7 +552,7 @@ public class ZGame extends Reflector<ZGame>  {
                     options.add(ZMove.newMakeNoiseMove(cur.occupiedZone));
 
                     // check for move up, down, right, left
-                    List<Integer> accessableZones = board.getAccessableZones(cur.occupiedZone, 1, ZActionType.MOVE);
+                    List<Integer> accessableZones = board.getAccessableZones(cur.occupiedZone, 1, 1, ZActionType.MOVE);
                     if (accessableZones.size() > 0)
                         options.add(ZMove.newWalkMove(accessableZones));
 
@@ -716,7 +724,7 @@ public class ZGame extends Reflector<ZGame>  {
                                         path = getZombiePathTowardVisibleCharactersOrLoudestZone(zombie);
                                     if (path.isEmpty()) {
                                         // make zombies move around randomly
-                                        List<Integer> zones = board.getAccessableZones(zombie.occupiedZone, zombie.getActionsPerTurn(), ZActionType.MOVE);
+                                        List<Integer> zones = board.getAccessableZones(zombie.occupiedZone, 1, zombie.getActionsPerTurn(), ZActionType.MOVE);
                                         if (zones.isEmpty()) {
                                             path = Collections.emptyList();
                                         } else {
@@ -749,26 +757,13 @@ public class ZGame extends Reflector<ZGame>  {
 
             case PLAYER_ENCHANT_SPEED_MOVE: {
                 // compute all empty of zombie zones 1 or 2 units away form current position
-                List<Integer> zones = board.getAccessableZones(getCurrentCharacter().getOccupiedZone(), 1, ZActionType.MOVE);
-                Set<Integer> all = new HashSet<>();
-                for (int zoneIdx : zones) {
-                    if (board.getZombiesInZone(zoneIdx).size() > 0)
-                        continue;
-                    all.add(zoneIdx);
-                    List<Integer> next = board.getAccessableZones(zoneIdx, 1, ZActionType.MOVE);
-                    for (int zoneIdx2 : next) {
-                        if (board.getZombiesInZone(zoneIdx).size() > 0)
-                            continue;
-                        all.add(zoneIdx2);
-                    }
-                }
-                all.remove(getCurrentCharacter().getOccupiedZone());
-                if (all.size() == 0) {
+                List<Integer> zones = board.getAccessableZones(getCurrentCharacter().getOccupiedZone(), 1, 2, ZActionType.MOVE);
+                if (zones.size() == 0) {
                     stateStack.pop();
                 } else {
-                    Integer speedMove = getCurrentUser().chooseZoneToWalk(this, getCurrentCharacter(), new ArrayList<>(all));
+                    Integer speedMove = getCurrentUser().chooseZoneToWalk(this, getCurrentCharacter(), zones);
                     if (speedMove != null) {
-                        moveActor(getCurrentCharacter(), speedMove, 200);
+                        moveActor(getCurrentCharacter(), speedMove, 200, null);
                         stateStack.pop();
                         return true;
                     }
@@ -1108,7 +1103,19 @@ public class ZGame extends Reflector<ZGame>  {
                 if (zone == null)
                     zone = user.chooseZoneToWalk(this, cur, move.list);
                 if (zone != null) {
-                    moveActor(cur, zone, cur.getMoveSpeed());
+                    moveActor(cur, zone, cur.getMoveSpeed(), ZActionType.MOVE);
+                    return true;
+                    //cur.performAction(ZActionType.MOVE, this);
+                }
+                return false;
+            }
+            case SPRINT: {
+                Integer zone = move.integer;
+                if (zone == null)
+                    zone = user.chooseZoneToWalk(this, cur, move.list);
+                if (zone != null) {
+                    moveActor(cur, zone, cur.getMoveSpeed()/2, null);
+                    cur.removeAvailableSkill(ZSkill.Sprint);
                     return true;
                     //cur.performAction(ZActionType.MOVE, this);
                 }
@@ -1181,10 +1188,7 @@ public class ZGame extends Reflector<ZGame>  {
                     ZActionType actionType = move.type.getActionType(weapon);
                     ZWeaponStat stat = cur.getWeaponStat(weapon, actionType, this, -1);
                     if (zoneIdx == null) {
-                        List<Integer> zones = new ArrayList<>();
-                        for (int range = stat.minRange; range <= stat.maxRange; range++) {
-                            zones.addAll(board.getAccessableZones(cur.occupiedZone, range, actionType));
-                        }
+                        List<Integer> zones = board.getAccessableZones(cur.occupiedZone, stat.minRange, stat.maxRange, actionType);
                         if (zones.size() > 0) {
                             zoneIdx = user.chooseZoneForAttack(this, cur, zones);
                         }
@@ -1274,7 +1278,7 @@ public class ZGame extends Reflector<ZGame>  {
                     if (move.integer != null) {
                         zoneIdx = move.integer;
                     } else {
-                        List<Integer> zones = board.getAccessableZones(cur.occupiedZone, 1, ZActionType.THROW_ITEM);
+                        List<Integer> zones = board.getAccessableZones(cur.occupiedZone, 1, 1, ZActionType.THROW_ITEM);
                         zones.add(cur.occupiedZone);
                         zoneIdx = getCurrentUser().chooseZoneToThrowItem(this, cur, slot, zones);
                     }
@@ -1599,7 +1603,7 @@ public class ZGame extends Reflector<ZGame>  {
                     action = slot.type.usesArrows ? ZActionType.ARROWS : ZActionType.BOLTS;
                 }
                 cur.addExtraAction();
-                moveActor(cur, zone, cur.getMoveSpeed()/2);
+                moveActor(cur, zone, cur.getMoveSpeed()/2, ZActionType.MOVE);
                 performAttack(slot, action);
                 cur.performAction(action, this);
                 cur.removeAvailableSkill(move.skill);
@@ -1646,10 +1650,7 @@ public class ZGame extends Reflector<ZGame>  {
             case BOLTS: {
 
                 ZWeaponStat stat = cur.getWeaponStat(weapon, actionType, this, -1);
-                List<Integer> zones = new ArrayList<>();
-                for (int range = stat.minRange; range <=stat.maxRange; range++) {
-                    zones.addAll(board.getAccessableZones(cur.occupiedZone, range, actionType));
-                }
+                List<Integer> zones = board.getAccessableZones(cur.occupiedZone, stat.minRange, stat.maxRange, actionType);
                 if (zones.size() > 0) {
                     Integer zoneIdx = user.chooseZoneForAttack(this, cur, zones);
                     if (zoneIdx != null) {
@@ -2125,12 +2126,12 @@ public class ZGame extends Reflector<ZGame>  {
         return player.character;
     }
 
-    private void moveActor(ZActor actor, int toZone, long speed) {
+    private void moveActor(ZActor actor, int toZone, long speed, ZActionType actionType) {
         int fromZone = actor.getOccupiedZone();
         Grid.Pos fromPos = actor.getOccupiedCell();
         GRectangle fromRect = actor.getRect(board);
         board.moveActor(actor, toZone);
-        doMove(actor, fromZone, fromPos, fromRect, speed);
+        doMove(actor, fromZone, fromPos, fromRect, speed, actionType);
     }
 
     private void moveActorInDirection(ZActor actor, ZDir dir) {
@@ -2139,10 +2140,10 @@ public class ZGame extends Reflector<ZGame>  {
         GRectangle fromRect = actor.getRect(board);
         Grid.Pos next = board.getAdjacent(fromPos, dir);
         board.moveActor(actor, next);
-        doMove(actor, fromZone, fromPos, fromRect, actor.getMoveSpeed());
+        doMove(actor, fromZone, fromPos, fromRect, actor.getMoveSpeed(), ZActionType.MOVE);
     }
 
-    private void doMove(ZActor actor, int fromZone, Grid.Pos fromPos, GRectangle fromRect, long speed) {
+    private void doMove(ZActor actor, int fromZone, Grid.Pos fromPos, GRectangle fromRect, long speed, ZActionType actionType) {
         int toZone = actor.getOccupiedZone();
         Grid.Pos toPos = actor.getOccupiedCell();
         GRectangle toRect = actor.getRect(board);
@@ -2162,7 +2163,7 @@ public class ZGame extends Reflector<ZGame>  {
         } else {
             onActorMoved(actor, fromRect, toRect, speed);
         }
-        if (toZone != fromZone) {
+        if (toZone != fromZone && actionType != null) {
             actor.performAction(ZActionType.MOVE, this);
         }
     }

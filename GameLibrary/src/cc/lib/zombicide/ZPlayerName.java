@@ -71,28 +71,28 @@ public enum ZPlayerName implements IButton {
             toArray(ZSkill.Plus1_Damage_Melee, ZSkill.Lucky, ZSkill.Shove)),
     // Wulfsburg
     Theo("Ranger",
-            toArray(ZWeaponType.SWORD),
+            toArray(ZWeaponType.SWORD, ZWeaponType.EARTHQUAKE_HAMMER),
             toArray(ZWeaponType.SWORD),
             toArray(ZSkill.Sprint),
             toArray(ZSkill.Plus1_Action),
             toArray(ZSkill.Plus1_die_Melee, ZSkill.Plus1_to_dice_roll_Ranged),
             toArray(ZSkill.Plus1_free_Combat_Action, ZSkill.Charge, ZSkill.Marksman)),
     Morrigan("Witcher",
-            toArray(ZWeaponType.DAGGER),
+            toArray(ZWeaponType.DAGGER, ZWeaponType.CHAOS_LONGBOW),
             toArray(ZWeaponType.DAGGER),
             toArray(ZSkill.Reaper_Combat),
             toArray(ZSkill.Plus1_Action),
             toArray(ZSkill.Plus1_free_Melee_Action, ZSkill.Spellcaster),
             toArray(ZSkill.Plus1_Damage_Melee, ZSkill.Plus1_die_Magic, ZSkill.Bloodlust)),
     Karl("Monk",
-            toArray(ZWeaponType.SWORD),
+            toArray(ZWeaponType.SWORD, ZWeaponType.LIGHTNING_BOLT),
             toArray(ZWeaponType.FIREBALL),
             toArray(ZSkill.Plus1_die_Magic),
             toArray(ZSkill.Plus1_Action),
             toArray(ZSkill.Plus1_free_Combat_Action, ZSkill.Spellcaster),
             toArray(ZSkill.Plus1_free_Combat_Action, ZSkill.Plus1_max_Range, ZSkill.Marksman)),
     Ariane("Thief",
-            toArray(ZWeaponType.CROSSBOW),
+            toArray(ZWeaponType.CROSSBOW, ZWeaponType.VAMPIRE_CROSSBOW),
             toArray(ZWeaponType.CROSSBOW),
             toArray(ZSkill.Jump),
             toArray(ZSkill.Plus1_Action),
@@ -170,7 +170,7 @@ public enum ZPlayerName implements IButton {
         character = c;
         for (ZEquipmentType e : startingEquipment) {
             c.tryEquip(e.create());
-            if (ZGame.DEBUG)
+            if (!ZGame.DEBUG)
                 break;
         }
         c.initAllSkills(getSkillOptions(ZSkillLevel.BLUE));

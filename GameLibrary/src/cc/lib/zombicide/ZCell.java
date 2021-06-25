@@ -11,6 +11,7 @@ public class ZCell extends Reflector<ZCell> implements IRectangle {
     public final static int ENV_OUTDOORS=0;
     public final static int ENV_BUILDING=1;
     public final static int ENV_VAULT=2;
+    public final static int ENV_TOWER=3;
 
     static {
         addAllFields(ZCell.class);

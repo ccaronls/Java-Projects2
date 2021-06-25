@@ -1,6 +1,5 @@
 package cc.lib.zombicide;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import cc.lib.annotation.Keep;
@@ -200,15 +199,12 @@ public enum ZSkill implements IButton {
     Bloodlust("Spend one Action with the Survivor: He Moves up to two Zones to a Zone containing at least one Zombie. He then gains one free Combat Action (Melee, Ranged or Magic).") {
         @Override
         public void addSpecialMoves(ZGame game, ZCharacter character, List<ZMove> moves) {
-            List<Integer> zones = new ArrayList<>();
-            for (int distance=1; distance<=2; distance++) {
-                zones.addAll(Utils.filter(game.getBoard().getAccessableZones(character.getOccupiedZone(), distance, ZActionType.MOVE), new Utils.Filter<Integer>() {
-                    @Override
-                    public boolean keep(Integer object) {
-                        return game.getBoard().getZombiesInZone(object).size() > 0;
-                    }
-                }));
-            }
+            List<Integer> zones = Utils.filter(game.getBoard().getAccessableZones(character.getOccupiedZone(), 1, 2, ZActionType.MOVE), new Utils.Filter<Integer>() {
+                @Override
+                public boolean keep(Integer object) {
+                    return game.getBoard().getZombiesInZone(object).size() > 0;
+                }
+            });
             if (zones.size() > 0) {
                 if (character.getMeleeWeapons().size() > 0)
                     moves.add(ZMove.newBloodlustMeleeMove(zones, this));
@@ -223,15 +219,12 @@ public enum ZSkill implements IButton {
         @Override
         public void addSpecialMoves(ZGame game, ZCharacter character, List<ZMove> moves) {
             if (character.getMagicWeapons().size() > 0) {
-                List<Integer> zones = new ArrayList<>();
-                for (int distance=1; distance<=2; distance++) {
-                    zones.addAll(Utils.filter(game.getBoard().getAccessableZones(character.getOccupiedZone(), distance, ZActionType.MOVE), new Utils.Filter<Integer>() {
-                        @Override
-                        public boolean keep(Integer object) {
-                            return game.getBoard().getZombiesInZone(object).size() > 0;
-                        }
-                    }));
-                }
+                List<Integer> zones = Utils.filter(game.getBoard().getAccessableZones(character.getOccupiedZone(), 1, 2, ZActionType.MOVE), new Utils.Filter<Integer>() {
+                    @Override
+                    public boolean keep(Integer object) {
+                        return game.getBoard().getZombiesInZone(object).size() > 0;
+                    }
+                });
                 moves.add(ZMove.newBloodlustMagicMove(zones, this));
             }
         }
@@ -240,15 +233,12 @@ public enum ZSkill implements IButton {
         @Override
         public void addSpecialMoves(ZGame game, ZCharacter character, List<ZMove> moves) {
             if (character.getMeleeWeapons().size() > 0) {
-                List<Integer> zones = new ArrayList<>();
-                for (int distance=1; distance<=2; distance++) {
-                    zones.addAll(Utils.filter(game.getBoard().getAccessableZones(character.getOccupiedZone(), distance, ZActionType.MOVE), new Utils.Filter<Integer>() {
-                        @Override
-                        public boolean keep(Integer object) {
-                            return game.getBoard().getZombiesInZone(object).size() > 0;
-                        }
-                    }));
-                }
+                List<Integer> zones = Utils.filter(game.getBoard().getAccessableZones(character.getOccupiedZone(), 1, 2, ZActionType.MOVE), new Utils.Filter<Integer>() {
+                    @Override
+                    public boolean keep(Integer object) {
+                        return game.getBoard().getZombiesInZone(object).size() > 0;
+                    }
+                });
                 moves.add(ZMove.newBloodlustMeleeMove(zones, this));
             }
         }
@@ -257,15 +247,12 @@ public enum ZSkill implements IButton {
         @Override
         public void addSpecialMoves(ZGame game, ZCharacter character, List<ZMove> moves) {
             if (character.getRangedWeapons().size() > 0) {
-                List<Integer> zones = new ArrayList<>();
-                for (int distance=1; distance<=2; distance++) {
-                    zones.addAll(Utils.filter(game.getBoard().getAccessableZones(character.getOccupiedZone(), distance, ZActionType.MOVE), new Utils.Filter<Integer>() {
-                        @Override
-                        public boolean keep(Integer object) {
-                            return game.getBoard().getZombiesInZone(object).size() > 0;
-                        }
-                    }));
-                }
+                List<Integer> zones = Utils.filter(game.getBoard().getAccessableZones(character.getOccupiedZone(), 1, 2, ZActionType.MOVE), new Utils.Filter<Integer>() {
+                    @Override
+                    public boolean keep(Integer object) {
+                        return game.getBoard().getZombiesInZone(object).size() > 0;
+                    }
+                });
                 moves.add(ZMove.newBloodlustRangedMove(zones, this));
             }
         }
@@ -462,7 +449,7 @@ public enum ZSkill implements IButton {
         public void addSpecialMoves(ZGame game, ZCharacter character, List<ZMove> moves) {
             // if zombies stand in zone with character they can be shoved away
             if (game.getBoard().getZombiesInZone(character.getOccupiedZone()).size() > 0) {
-                List<Integer> shovable = game.getBoard().getAccessableZones(character.getOccupiedZone(), 1, ZActionType.MOVE);
+                List<Integer> shovable = game.getBoard().getAccessableZones(character.getOccupiedZone(), 1, 1, ZActionType.MOVE);
                 if (shovable.size() > 0) {
                     moves.add(ZMove.newShoveMove(shovable));
                 }
@@ -491,7 +478,13 @@ public enum ZSkill implements IButton {
         }
     },
     Speed("Can move up to 2 unoccupied by zombie zones for free."),
-    Sprint("The Survivor can use this Skill once during each of his Turns. Spend one Move Action with the Survivor: He may move two or three Zones instead of one. Entering a Zone containing Zombies ends the Survivor’s Move Action."),
+    Sprint("The Survivor can use this Skill once during each of his Turns. Spend one Move Action with the Survivor: He may move two or three Zones instead of one. Entering a Zone containing Zombies ends the Survivor’s Move Action.") {
+        @Override
+        public void addSpecialMoves(ZGame game, ZCharacter character, List<ZMove> moves) {
+            List<Integer> sprintZones = game.getBoard().getAccessableZones(character.getOccupiedZone(), 2, 3, ZActionType.MOVE);
+            moves.add(ZMove.newSprintMove(sprintZones));
+        }
+    },
     Super_strength("Consider the Damage value of Melee weapons used by the Survivor to be 3.") {
         @Override
         public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game, int targetZone) {
@@ -522,7 +515,11 @@ public enum ZSkill implements IButton {
     Tough("The Survivor ignores the first Wound he receives from a single Zombie every Zombies’ Phase."),
     Trick_shot("When the Survivor is equipped with Dual Combat spells or Ranged weapons, he can aim at different Zones with each spell/weapon in the same Action."),
     Zombie_link("The Survivor plays an extra Turn each time an Extra Activation card is drawn from the Zombie pile. He plays before the extra-activated Zombies. If several Survivors benefit from this Skill at the same time, choose their Turn order."),
-    
+
+    Roll_6_Plus1_Damage("If any one of the die rolled is a 6 then add 1 to the damage. Addidional sixes to not increase beyond 1."),
+    Hit_Heals("A successful hit results in healing of a single wound."),
+    Hit_4_Dragon_Fire("If an attack results in 4 successful hits then dragon fire in the target zone"),
+    Ignite_Dragon_Fire("Can ignite dragon fire without torch at range 0-1"),
     ;
     
     ZSkill(String description) {

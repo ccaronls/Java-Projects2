@@ -25,6 +25,7 @@ Towers provide ability to fire ranged and magic weapons over 'ramparts' but cann
 - Theo, Morrigan, Karl, Ariane
 8 new weapons
 Let players choose start weapon
+Directional zombies - zombies should face the direction (right or left) they are moving
 
 
 SEBI NOTES

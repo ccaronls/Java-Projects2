@@ -56,7 +56,19 @@ public enum ZZombieType {
             "except themselves. They’re immune to the plague\n" +
             "somehow, but that figures since they control the\n" +
             "hordes. Kill them on sight, and burn the corpses.\n" +
-            "It’s the only way to be sure.");
+            "It’s the only way to be sure."),
+    Wolfz(1, 1, 3, false, 1,
+  "We now believe the wolves were the first\n" +
+             "signs of the coming horde. They hunt, certainly,\n" +
+             "but nothing will draw them like a fresh kill.\n" +
+             "Scavenging is smart, and numerous wolves can run any\n" +
+             "lone mountain lion off their kill. When they first\n" +
+             "encountered the shambling hordes, straggling in like\n" +
+             "the zombies do, we’re sure the wolves couldn’t resist\n" +
+             "such easy prey. But, eating that infected meat… well.\n" +
+             "It changed them."),
+    Abomiwolf(3, 5, 3, true, 2,
+            "The Big Bad Wolf exists, and it is a bloodthirsty nightmare. We don’t know yet how the Wolfbominations are created, if they are just alpha males turned zombies or the result of hideous experiments, but there is one thing for sure: if you see one, keep away from it for as long as you can. And save dragon bile for them, whatever comes for you first.");
 
     ZZombieType(int minDamageToDestroy, int expProvided, int actionsPerTurn, boolean ignoresArmor, int rangedPriority, String description) {
         this.minDamageToDestroy = minDamageToDestroy;

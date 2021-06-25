@@ -1146,6 +1146,28 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     }
 
     /**
+     *
+     * @param v0
+     * @param v1
+     * @param thickness
+     * @param dashLength
+     */
+    public final void drawDashedLine(IVector2D v0, IVector2D v1, float thickness, float dashLength) {
+        drawDashedLine(v0.getX(), v0.getY(), v1.getX(), v1.getY(), thickness, dashLength);
+    }
+
+    /**
+     *
+     * @param x0
+     * @param y0
+     * @param x1
+     * @param y1
+     * @param thickness
+     * @param dashLength
+     */
+    public abstract void drawDashedLine(float x0, float y0, float x1, float y1, float thickness, float dashLength);
+
+    /**
      * Convenience.  Thickness defaults to 1
      * @param x0
      * @param y0

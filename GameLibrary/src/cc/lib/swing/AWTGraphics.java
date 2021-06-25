@@ -19,6 +19,7 @@ import cc.lib.game.IImageFilter;
 import cc.lib.game.Justify;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
+import cc.lib.utils.GException;
 
 public class AWTGraphics extends APGraphics {
 
@@ -642,5 +643,10 @@ public class AWTGraphics extends APGraphics {
         transform(tl);
         transform(br);
         g.fillOval(tl.Xi(), tl.Yi(), br.Xi()-tl.Xi(), br.Yi()-tl.Yi());
+    }
+
+    @Override
+    public void drawDashedLine(float x0, float y0, float x1, float y1, float thickness, float dashLength) {
+        throw new RuntimeException("Not implemented");
     }
 }

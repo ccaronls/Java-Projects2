@@ -131,7 +131,7 @@ public class ZWeapon extends ZEquipment<ZWeaponType> {
             if (stats != null) {
                 String doorInfo = "";
                 if (stats.dieRollToOpenDoor > 0) {
-                    doorInfo = String.format("%s %d%%", type.openDoorsIsNoisy ? "noisy" : "quiet", (7-type.meleeStats.dieRollToOpenDoor)*100/6);
+                    doorInfo = String.format("%s %d%%", type.openDoorsIsNoisy ? "noisy" : "quiet", (7-stats.dieRollToOpenDoor)*100/6);
                 } else {
                     doorInfo = "no";
                 }

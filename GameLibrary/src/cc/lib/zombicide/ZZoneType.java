@@ -6,5 +6,6 @@ import cc.lib.annotation.Keep;
 public enum ZZoneType {
     OUTDOORS,
     BUILDING,
-    VAULT
+    VAULT,
+    TOWER
 }

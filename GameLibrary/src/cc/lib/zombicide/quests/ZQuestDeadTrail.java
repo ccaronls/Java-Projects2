@@ -145,7 +145,7 @@ public class ZQuestDeadTrail extends ZQuest {
 
     @Override
     public void drawQuest(ZGame game, AGraphics g) {
-        if (!UIZBoardRenderer.DEBUG_DRAW_ZONE_INFO) {
+        if (!UIZBoardRenderer.DEBUG) {
             return;
         }
 

@@ -56,7 +56,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
 
     final static Logger log = LoggerFactory.getLogger(UIZBoardRenderer.class);
 
-    public static boolean DEBUG_DRAW_ZONE_INFO = false;
+    public static boolean DEBUG = false;
 
     final List<ZAnimation> preActor = new ArrayList<>();
     final List<ZAnimation> postActor = new ArrayList<>();
@@ -158,19 +158,13 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                     for (ZWeapon w : (List<ZWeapon>)move.list) {
                         ZActionType actionType = move.type.getActionType(w);
                         ZWeaponStat stat = cur.getWeaponStat(w, actionType, getGame(), -1);
-                        if (stat.getMinRange() == 0) {
-                            addClickable(cur.getRect(), new ZMove(move, w, cur.getOccupiedZone()));
-                        }
-                        for (int i=1; i<stat.getMaxRange(); i++) {
-                            for (int zoneIdx : getBoard().getAccessableZones(cur.getOccupiedZone(), i, actionType)) {
-                                addClickable(getBoard().getZone(zoneIdx), new ZMove(move, w, zoneIdx));
-                            }
+                        for (int zoneIdx : getBoard().getAccessableZones(cur.getOccupiedZone(), stat.getMinRange(), stat.getMaxRange(), actionType)) {
+                            addClickable(getBoard().getZone(zoneIdx), new ZMove(move, w, zoneIdx));
                         }
                     }
                     break;
                 case THROW_ITEM: {
-                    List<Integer> zones = getBoard().getAccessableZones(cur.getOccupiedZone(), 1, ZActionType.THROW_ITEM);
-                    zones.add(cur.getOccupiedZone());
+                    List<Integer> zones = getBoard().getAccessableZones(cur.getOccupiedZone(), 0, 1, ZActionType.THROW_ITEM);
                     for (ZItem item : (List<ZItem>) move.list) {
                         for (Integer zoneIdx : zones) {
                             addClickable(cur.getRect(), new ZMove(move, item, zoneIdx));
@@ -395,6 +389,10 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                         g.setColor(GColor.BROWN);
                         g.drawFilledRect(cell);
                         break;
+                    case TOWER:
+                        g.setColor(GColor.GREEN.withAlpha(.25f));
+                        g.drawFilledRect(cell);
+                        break;
                 }
                 drawCellWalls(g, pos, 1);
                 if (cell.contains(mouseX, mouseY)) {
@@ -506,6 +504,9 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
             switch (cell.getWallFlag(dir)) {
                 case WALL:
                     g.drawLine(v0, v1, 3);
+                    break;
+                case RAMPART:
+                    g.drawDashedLine(v0, v1, 3, 5);
                     break;
                 case OPEN: {
                     g.drawLine(v0, dv0, 3);
@@ -922,7 +923,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
             return;
         }
 
-        Grid.Pos cellPos = drawNoTiles(g, mouseX, mouseY, DEBUG_DRAW_ZONE_INFO);
+        Grid.Pos cellPos = drawNoTiles(g, mouseX, mouseY, DEBUG);
         if (drawTiles) {
             for (int i = 0; i < tileIds.length; i++) {
                 g.drawImage(tileIds[i], tiles[i].quadrant);
@@ -938,7 +939,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
         highlightedActor = //board.drawActors(g, getMouseX(), getMouseY());
                 drawActors(g, game, mouse.X(), mouse.Y(), drawAnimating || overlayToDraw == null);
 
-        if (DEBUG_DRAW_ZONE_INFO) {
+        if (DEBUG) {
             if (highlightedActor instanceof ZZombie) {
                 List<ZDir> path = null;
                 ZZombie z = (ZZombie)highlightedActor;
@@ -963,6 +964,13 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                     g.vertex(next);
                 }
                 g.drawLineStrip(3);
+            } else if (highlightedActor instanceof ZCharacter) {
+                List<Integer> visibleZones = getBoard().getAccessableZones(highlightedActor.getOccupiedZone(), 0, 4, ZActionType.THROW_ITEM);
+                for (int zoneIdx : visibleZones) {
+                    ZZone zone = board.getZone(zoneIdx);
+                    g.setColor(GColor.YELLOW);
+                    zone.getRectangle().drawOutlined(g, 2);
+                }
             }
         }
 

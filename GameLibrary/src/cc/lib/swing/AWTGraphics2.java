@@ -6,6 +6,7 @@ import java.awt.Composite;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.Stroke;
 import java.awt.geom.AffineTransform;
 
 /**
@@ -15,6 +16,7 @@ import java.awt.geom.AffineTransform;
 public class AWTGraphics2 extends AWTGraphics {
 
     private BasicStroke stroke = new BasicStroke(2f);
+    private BasicStroke dashedStroke = null;
     private Graphics2D G2;
 
     public AWTGraphics2(Graphics2D g, Component comp) {
@@ -104,4 +106,28 @@ public class AWTGraphics2 extends AWTGraphics {
     public void clearClip() {
         G2.clip(null);
     }*/
+
+    @Override
+    public void drawDashedLine(float x0, float y0, float x1, float y1, float thickness, float dashLength) {
+        if (dashLength < 1)
+            throw new IllegalArgumentException("Invalid dashLength: " + dashLength);
+        if (dashedStroke == null || dashedStroke.getDashArray()[0] != dashLength || dashedStroke.getLineWidth() != thickness) {
+            dashedStroke = new BasicStroke(thickness, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL,
+                    0, new float[]{dashLength, dashLength*2}, 0);
+        }
+        Stroke prev = G2.getStroke();
+        G2.setStroke(dashedStroke);
+        try {
+            float [] v = { 0,0 };
+            transform(x0, y0, v);
+            int xi0 = Math.round(v[0]);
+            int yi0 = Math.round(v[1]);
+            transform(x1, y1, v);
+            int xi1 = Math.round(v[0]);
+            int yi1 = Math.round(v[1]);
+            G2.drawLine(xi0, yi0, xi1, yi1);
+        } finally {
+            G2.setStroke(prev);
+        }
+    }
 }

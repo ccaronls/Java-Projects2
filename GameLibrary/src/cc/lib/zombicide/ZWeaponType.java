@@ -42,7 +42,7 @@ public enum ZWeaponType implements ZEquipmentType<ZWeapon> {
     // WULFSBURG
     FLAMING_GREAT_SWORD(false, false, false, false, false, true, new ZWeaponStat(ZAttackType.BLADE, 5, 0, 0, 5, 5, 2), null, null, "Can ignite Dragon Fire at range 0-1"),
     VAMPIRE_CROSSBOW(true, false, true, false, false, true, null, new ZWeaponStat(ZAttackType.RANGED, 4, 1, 2, 2, 4, 3), null, "Heal 1 wound each time you kill a zombie."),
-    AXE_OF_CARNAGE(false, false, false, false, false, true, new ZWeaponStat(ZAttackType.BLADE, 1, 0, 0, 4, 4, 2), null, null, "Add an additional success with each melee action reslved.??"), // TODO: Wha???
+    AXE_OF_CARNAGE(false, false, false, false, false, true, new ZWeaponStat(ZAttackType.BLADE, 1, 0, 0, 4, 4, 2), null, null, "Add an additional success with each melee action resolved.??"), // TODO: Wha???
     DRAGON_FIRE_BLADE(false, false, false, false, false, true, new ZWeaponStat(ZAttackType.BLADE, 3, 0, 0, 2, 3,2), null, new ZWeaponStat(ZAttackType.DRAGON_FIRE, 0, 0, 1, 1, 1, 3), "Throw (Discard) at range 0-1 to create a dragon fire."),
     CHAOS_LONGBOW(false, true, false, false, false, false, null, new ZWeaponStat(ZAttackType.RANGED, 0, 0, 3, 4, 4, 2), null, "4 or more hits on a ranged action causes dragon fire in the targeted zone."),
     BASTARD_SWORD(false, false, false, false, false, true, new ZWeaponStat(ZAttackType.BLADE, 4, 0, 0, 2, 4, 2), null, null, null),
@@ -96,4 +96,12 @@ public enum ZWeaponType implements ZEquipmentType<ZWeapon> {
         return false;
     }
 
+    public ZSkill [] getSkills() {
+        switch (this) {
+            case VAMPIRE_CROSSBOW:
+                return Utils.toArray(ZSkill.Roll_6_plus1_die_Combat, ZSkill.Roll_6_Plus1_Damage);
+        }
+
+        return null;
+    }
 }

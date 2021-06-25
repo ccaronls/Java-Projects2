@@ -78,6 +78,9 @@ public abstract class ZQuest extends Reflector<ZQuest> {
             case "v":
                 cell.environment=ZCell.ENV_VAULT;
                 break;
+            case "t":
+                cell.environment=ZCell.ENV_TOWER;
+                break;
             case "vd1":
                 setVaultDoor(cell, grid, pos,  ZCellType.VAULT_DOOR_VIOLET, 1);
                 break;
@@ -178,7 +181,19 @@ public abstract class ZQuest extends Reflector<ZQuest> {
                 redObjectives.add(cell.getZoneIndex());
                 cell.setCellType(ZCellType.OBJECTIVE_RED, true);
                 break;
-
+                // ramparts (wulfsburg) cannot be walked past but can be seen through for ranhed attacks
+            case "rn":
+                setCellWall(grid, pos, ZDir.NORTH, ZWallFlag.RAMPART);
+                break;
+            case "rs":
+                setCellWall(grid, pos, ZDir.SOUTH, ZWallFlag.RAMPART);
+                break;
+            case "re":
+                setCellWall(grid, pos, ZDir.EAST, ZWallFlag.RAMPART);
+                break;
+            case "rw":
+                setCellWall(grid, pos, ZDir.WEST, ZWallFlag.RAMPART);
+                break;
             default:
                 throw new RuntimeException("Invalid command '" + cmd + "'");
         }
@@ -424,5 +439,9 @@ public abstract class ZQuest extends Reflector<ZQuest> {
 
     public void onNecromancerEscaped(ZGame game, ZZombie z) {
         game.gameLost("Necromancer Escaped");
+    }
+
+    public boolean isWulfburg() {
+        return false;
     }
 }
