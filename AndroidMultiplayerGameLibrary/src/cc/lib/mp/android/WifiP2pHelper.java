@@ -1,5 +1,6 @@
-package cc.lib.android;
+package cc.lib.mp.android;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
@@ -35,7 +36,7 @@ import cc.lib.logger.LoggerFactory;
 /**
  * Created by chriscaron on 2/16/18.
  */
-
+@SuppressLint("MissingPermission")
 public class WifiP2pHelper implements
         WifiP2pManager.ChannelListener,
         WifiP2pManager.PeerListListener,
@@ -46,7 +47,7 @@ public class WifiP2pHelper implements
         WifiP2pManager.ConnectionInfoListener {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-    
+
     private Handler handler = new Handler(Looper.getMainLooper());
     private WifiP2pDevice connection = null;
 
@@ -123,7 +124,7 @@ public class WifiP2pHelper implements
         }
     };
 
-    final Activity ctxt;
+    final Context ctxt;
     final WifiP2pManager p2p;
     WifiP2pManager.Channel channel;
     final IntentFilter p2pFilter;
@@ -137,9 +138,9 @@ public class WifiP2pHelper implements
 
     private State state = State.READY;
 
-    public WifiP2pHelper(Activity ctxt) {
+    public WifiP2pHelper(Context ctxt) {
         this.ctxt = ctxt;
-        p2p = (WifiP2pManager)ctxt.getSystemService(Context.WIFI_P2P_SERVICE);
+        p2p = (WifiP2pManager) ctxt.getSystemService(Context.WIFI_P2P_SERVICE);
         p2pFilter = new IntentFilter();
         p2pFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
         //p2pFilter.addAction(WifiP2pManager.WIFI_P2P_DISCOVERY_CHANGED_ACTION);
@@ -165,7 +166,7 @@ public class WifiP2pHelper implements
         if (state != State.READY) {
             log.debug("channel disconnected");
             destroy();
-            ctxt.runOnUiThread(new Runnable() {
+            tryRunOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     newDialog().setTitle(R.string.wifi_popup_title_channel_disconnected)
@@ -179,6 +180,12 @@ public class WifiP2pHelper implements
                             }).show();
                 }
             });
+        }
+    }
+
+    void tryRunOnUiThread(Runnable r) {
+        if (ctxt instanceof Activity) {
+            ((Activity) ctxt).runOnUiThread(r);
         }
     }
 
@@ -216,7 +223,7 @@ public class WifiP2pHelper implements
             }
             if (reason != WifiP2pManager.BUSY) {
                 // Ignore BUSY, it appears to be benign.
-                ctxt.runOnUiThread(new Runnable() {
+                tryRunOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         //Toast.makeText(ctxt, "Failed: " + getFailureReasonString(reason), Toast.LENGTH_LONG).show();
@@ -277,7 +284,7 @@ public class WifiP2pHelper implements
     }
 
     private void discoverServices(final WifiP2pServiceRequest serviceRequest) {
-        log.debug("discover services state="+state);
+        log.debug("discover services state=" + state);
 
         switch (state) {
             case PEERS:
@@ -342,7 +349,7 @@ public class WifiP2pHelper implements
      *
      */
     public final void stopDiscoverServices() {
-        log.debug("stop discover services state="+state);
+        log.debug("stop discover services state=" + state);
         p2p.clearLocalServices(channel, new MyActionListener("clearLocalServices") {
             @Override
             protected void onDone() {
@@ -398,7 +405,7 @@ public class WifiP2pHelper implements
      *
      */
     public final synchronized void discoverPeers() {
-        log.debug("discover peers state="+state);
+        log.debug("discover peers state=" + state);
         switch (state) {
             case SERVICES:
                 stopDiscoverServices();
@@ -561,6 +568,7 @@ public class WifiP2pHelper implements
         }
     }
 
+    @SuppressLint("MissingPermission")
     private void requestPeers() {
         log.debug("request peers state="+state);
         p2p.requestPeers(channel, this);

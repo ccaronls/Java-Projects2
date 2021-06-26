@@ -1,4 +1,4 @@
-package cc.lib.android;
+package cc.lib.mp.android;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -24,6 +24,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import cc.lib.android.BonjourThread;
+import cc.lib.android.CCActivityBase;
+import cc.lib.android.SpinnerTask;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
 import cc.lib.net.ClientConnection;
@@ -122,7 +125,7 @@ public abstract class MPGameManager implements Application.ActivityLifecycleCall
                                 +"\nTYPE      :"+Build.TYPE
                                 +"\nVERSION   :"+Build.VERSION.CODENAME;
                 log.debug("Device info=%s", build);
-                helper.setDeviceName(server.getName() + "-" + activity.getString(R.string.app_name));
+                helper.setDeviceName(server.getName() + "-" + activity.getString(cc.lib.android.R.string.app_name));
                 helper.startGroup(); // make sure we are the group owner
             }
 
@@ -133,7 +136,7 @@ public abstract class MPGameManager implements Application.ActivityLifecycleCall
 
             @Override
             protected void onError(Exception e) {
-                activity.newDialogBuilder().setTitle(R.string.popup_title_error).setMessage("Failed to start server: " + e.getLocalizedMessage()).setNegativeButton(R.string.popup_button_ok, new DialogInterface.OnClickListener() {
+                activity.newDialogBuilder().setTitle(cc.lib.android.R.string.popup_title_error).setMessage("Failed to start server: " + e.getLocalizedMessage()).setNegativeButton(cc.lib.android.R.string.popup_button_ok, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         new SpinnerTask(activity) {
@@ -190,9 +193,9 @@ public abstract class MPGameManager implements Application.ActivityLifecycleCall
             }
         };
         lvPlayers.setAdapter(playersAdapter);
-        final Dialog d = activity.newDialogBuilder().setTitle(R.string.popup_title_waiting_for_players)
+        final Dialog d = activity.newDialogBuilder().setTitle(cc.lib.android.R.string.popup_title_waiting_for_players)
                 .setView(lvPlayers)
-                .setNegativeButton(R.string.popup_button_cancel, new DialogInterface.OnClickListener() {
+                .setNegativeButton(cc.lib.android.R.string.popup_button_cancel, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         new SpinnerTask(activity) {
@@ -291,13 +294,13 @@ public abstract class MPGameManager implements Application.ActivityLifecycleCall
             @Override
             public View getView(int position, View v, ViewGroup parent) {
                 if (v == null) {
-                    v = View.inflate(activity, R.layout.list_item_peer, null);
+                    v = View.inflate(activity, cc.lib.android.R.layout.list_item_peer, null);
                 }
 
                 synchronized (devices) {
                     Object d = devices.get(position);
                     v.setTag(d);
-                    TextView tvPeer = (TextView)v.findViewById(R.id.tvPeer);
+                    TextView tvPeer = (TextView)v.findViewById(cc.lib.android.R.id.tvPeer);
                     if (d instanceof WifiP2pDevice) {
                         WifiP2pDevice device = (WifiP2pDevice)d;
                         tvPeer.setText(device.deviceName + " " + WifiP2pHelper.statusToString(device.status, activity));
@@ -373,9 +376,9 @@ public abstract class MPGameManager implements Application.ActivityLifecycleCall
                     @Override
                     protected void onError(Exception e) {
                         connecting = false;
-                        activity.newDialogBuilder().setTitle(R.string.popup_title_error)
+                        activity.newDialogBuilder().setTitle(cc.lib.android.R.string.popup_title_error)
                                 .setMessage("Failed to connect to server " + e.getMessage())
-                                .setNegativeButton(R.string.popup_button_ok, new DialogInterface.OnClickListener() {
+                                .setNegativeButton(cc.lib.android.R.string.popup_button_ok, new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
                                         new SpinnerTask(activity) {
@@ -476,14 +479,14 @@ public abstract class MPGameManager implements Application.ActivityLifecycleCall
                     protected void onSuccess() {
                         if (client.isConnected()) {
                             //showWaitingForPlayersDialogClient(canceleble);
-                            Toast.makeText(activity, R.string.toast_connect_success, Toast.LENGTH_LONG).show();
+                            Toast.makeText(activity, cc.lib.android.R.string.toast_connect_success, Toast.LENGTH_LONG).show();
                             //helper.destroy();
                             //helper = null;
                             onAllClientsJoined();
                         } else if (!isCancelled()) {
-                            activity.newDialogBuilder().setTitle(R.string.popup_title_error)
-                                    .setMessage(R.string.popup_msg_failed_connect_host)
-                                    .setNegativeButton(R.string.popup_button_ok, new DialogInterface.OnClickListener() {
+                            activity.newDialogBuilder().setTitle(cc.lib.android.R.string.popup_title_error)
+                                    .setMessage(cc.lib.android.R.string.popup_msg_failed_connect_host)
+                                    .setNegativeButton(cc.lib.android.R.string.popup_button_ok, new DialogInterface.OnClickListener() {
                                         @Override
                                         public void onClick(DialogInterface dialog, int which) {
                                             killMPGame();
@@ -508,7 +511,7 @@ public abstract class MPGameManager implements Application.ActivityLifecycleCall
                 if (!client.isConnected()) {
                     clientDialog = activity.newDialogBuilder().setTitle("Hosts")
                             .setView(lvHost)
-                            .setNegativeButton(R.string.popup_button_cancel, new DialogInterface.OnClickListener() {
+                            .setNegativeButton(cc.lib.android.R.string.popup_button_cancel, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     killMPGame();
@@ -522,9 +525,9 @@ public abstract class MPGameManager implements Application.ActivityLifecycleCall
     }
 
     void showWaitingForPlayersDialogClient(final boolean cancelable) {
-        final AlertDialog d = activity.newDialogBuilder().setTitle(R.string.popup_title_waiting)
-                .setMessage(R.string.popup_msg_waiting_for_players)
-                .setNegativeButton(R.string.popup_button_cancel, new DialogInterface.OnClickListener() {
+        final AlertDialog d = activity.newDialogBuilder().setTitle(cc.lib.android.R.string.popup_title_waiting)
+                .setMessage(cc.lib.android.R.string.popup_msg_waiting_for_players)
+                .setNegativeButton(cc.lib.android.R.string.popup_button_cancel, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         client.disconnect();

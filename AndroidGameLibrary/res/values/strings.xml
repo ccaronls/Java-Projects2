@@ -78,23 +78,6 @@
 
     <string name="generate_page_error_msg">Failed to generate the report.  You may not have enough memory to perform this action.  If you think this is a bug, please screenshot this error and include in an bug report email through send feedback channel.</string>
 
-    <string name="wifi_conn_status_available">Available</string>
-    <string name="wifi_conn_status_connected">Connected</string>
-    <string name="wifi_conn_status_failed">Failed</string>
-    <string name="wifi_conn_status_invited">Invited</string>
-    <string name="wifi_conn_status_unavailable">Unavailable</string>
-    <string name="wifi_conn_status_unknown">Unknown</string>
-
-    <string name="wifi_failure_reason_error">Error. Is WiFi On?</string>
-    <string name="wifi_failure_reason_busy">Busy</string>
-    <string name="wifi_failure_reason_p2p_unsupported">Peer 2 Peer connections unsupported</string>
-    <string name="wifi_failure_reason_unknown">Unknown</string>
-
-    <string name="wifi_popup_title_channel_disconnected">Channel Disconnected</string>
-    <string name="wifi_popup_msg_channel_auto_reconnect">Attempt ot re-connect?</string>
-    <string name="wifi_popup_button_yes">Yes</string>
-    <string name="wifi_popup_button_no">No</string>
-
     <string name="popup_title_choose_game_type">Choose Game Type</string>
     <string name="popup_title_clients">Clients</string>
     <string name="popup_title_client_name">Client %s</string>

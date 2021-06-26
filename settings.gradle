@@ -19,6 +19,7 @@ include 'services:webservice'
 
 // Android
 include ':AndroidGameLibrary'
+include ':AndroidMultiplayerGameLibrary'
 include ':Yahtzee'
 include ':YahtzeeAndroid'
 include ':SuperRobotron'
