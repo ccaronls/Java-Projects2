@@ -1,5 +1,6 @@
 package cc.lib.game;
 
+import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 import cc.lib.utils.Reflector;
 
@@ -81,4 +82,7 @@ public class GDimension extends Reflector<GDimension> implements IDimension {
         return new GDimension(w, h);
     }
 
+    public MutableVector2D getCenter() {
+        return new MutableVector2D(width/2, height/2);
+    }
 }

@@ -249,4 +249,9 @@ public class TestGraphics extends APGraphics {
     public GColor getBackgroundColor() {
         return null;
     }
+
+    @Override
+    public void drawDashedLine(float x0, float y0, float x1, float y1, float thickness, float dashLength) {
+
+    }
 }

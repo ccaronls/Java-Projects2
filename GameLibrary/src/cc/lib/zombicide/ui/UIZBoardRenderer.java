@@ -136,8 +136,8 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
             return;
         for (ZMove move : options) {
             switch (move.type) {
-                case DO_NOTHING:
-                    addClickable(cur.getRect(), move);
+                case END_TURN:
+                    //addClickable(cur.getRect(), move);
                     break;
                 case INVENTORY:
                     //addClickable(cur.getRect(), move);

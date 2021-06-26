@@ -31,7 +31,7 @@ public abstract class ZActor<E extends Enum<E>> extends Reflector<ZActor<E>> imp
         return rect = b.getCell(occupiedCell)
                 .getQuadrant(occupiedQuadrant)
                 .fit(getDimension())
-                .scaledBy(getScale());
+                .scaledBy(getScale() * b.getCell(getOccupiedCell()).getScale());
     }
 
     public GRectangle getRect() {

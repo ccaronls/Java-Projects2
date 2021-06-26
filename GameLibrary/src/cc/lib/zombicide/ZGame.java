@@ -629,7 +629,12 @@ public class ZGame extends Reflector<ZGame>  {
             case PLAYER_STAGE_CHOOSE_NEW_SKILL: {
                 final ZCharacter cur = getCurrentCharacter();
                 ZSkill skill;
-                List<ZSkill> options = Arrays.asList(getCurrentCharacter().name.getSkillOptions(stateStack.peek().skillLevel));
+                List<ZSkill> options = getCurrentCharacter().getRemainingSkillsForLevel(stateStack.peek().skillLevel.getColor().ordinal());
+                log.debug("Skill options for " + stateStack.peek().skillLevel + " : " + options);
+                if (options.size() == 0) {
+                    stateStack.pop();
+                    return false;
+                }
                 if (options.size() == 1) {
                     skill = options.get(0);
                 } else {
@@ -637,8 +642,10 @@ public class ZGame extends Reflector<ZGame>  {
                 }
 
                 if (skill != null) {
+                    log.debug("New Skill Chosen: " + skill);
                     onNewSkillAquired(cur, skill);
                     cur.addSkill(skill);
+                    options.remove(skill);
                     stateStack.pop();
                     return true;
                 }
@@ -927,8 +934,6 @@ public class ZGame extends Reflector<ZGame>  {
 
     }
 
-    protected void onDoNothing(ZCharacter c) {}
-
     public boolean canUse(ZEquipSlot slot) {
         ZCharacter c = getCurrentCharacter();
         return c != null && c.getSlot(slot) != null;
@@ -959,10 +964,6 @@ public class ZGame extends Reflector<ZGame>  {
         log.debug("performMove:%s", move);
         ZUser user = getCurrentUser();
         switch (move.type) {
-            case DO_NOTHING:
-                onDoNothing(cur);
-                cur.performAction(ZActionType.DO_NOTHING, this);
-                return true;
             case END_TURN:
                 cur.clearActions();
                 cur.onEndOfTurn(this);
@@ -1760,13 +1761,16 @@ public class ZGame extends Reflector<ZGame>  {
     protected void onAttack(ZCharacter attacker, ZWeapon weapon, ZActionType actionType, int numDice, int numHits, int targetZone) {}
 
     public ZSkillLevel getHighestSkillLevel() {
-        int highestSkill = 0;
+        ZSkillLevel best = null;
         for (ZUser u : users) {
             for (ZPlayerName c : u.characters) {
-                highestSkill = Math.max(highestSkill, c.character.getSkillLevel().ordinal());
+                ZSkillLevel lvl = c.character.getSkillLevel();
+                if (best == null || best.compareTo(lvl) > 0) {
+                    best = lvl;
+                }
             }
         }
-        return ZSkillLevel.values()[highestSkill];
+        return best;
     }
 
     public void addExperience(ZCharacter c, int pts) {
@@ -1775,13 +1779,17 @@ public class ZGame extends Reflector<ZGame>  {
         ZSkillLevel sl = c.getSkillLevel();
         c.dangerBar += pts;
         onCharacterGainedExperience(c, pts);
-        // make so a user can level up multiple times in a single levelup
+        // make so a user can level up multiple times in a single level up
         // need to push state in reverse order so that the lowest new level choices are first
-        while (sl != c.getSkillLevel()) {
-            getCurrentUser().showMessage(c.name() + " has gained the " + c.getSkillLevel() + " skill level");
-            sl = Utils.incrementValue(sl, ZSkillLevel.values());
-            stateStack.push(new State(ZState.PLAYER_STAGE_CHOOSE_NEW_SKILL, getCurrentCharacter().name, sl));
+        List<State> states = new ArrayList<>();
+        while (!sl.equals(c.getSkillLevel())) {
+            sl = sl.nextLevel();
+            getCurrentUser().showMessage(c.name() + " has gained the " + sl.toString() + " skill level");
+            states.add(new State(ZState.PLAYER_STAGE_CHOOSE_NEW_SKILL, getCurrentCharacter().name, sl));
         }
+        Collections.reverse(states);
+        for (State s: states)
+            stateStack.push(s);
     }
 
     protected void onCharacterGainedExperience(ZCharacter c, int points) {
@@ -1914,7 +1922,7 @@ public class ZGame extends Reflector<ZGame>  {
     }
 
     private void spawnZombiesEasy(int zoneIdx, ZSkillLevel level) {
-        switch (level) {
+        switch (level.getDifficultyColor()) {
             case BLUE:
                 if (Utils.rand() % 3 > 1)
                     spawnZombies(1, ZZombieType.Walker, zoneIdx);
@@ -1952,7 +1960,7 @@ public class ZGame extends Reflector<ZGame>  {
     }
 
     private void spawnZombiesMedium(int zoneIdx, ZSkillLevel level) {
-        switch (level) {
+        switch (level.getDifficultyColor()) {
             case BLUE:
                 if (Utils.rand() % 3 > 0)
                     spawnZombies(Utils.randRange(1,2), ZZombieType.Walker, zoneIdx);
@@ -2012,7 +2020,7 @@ public class ZGame extends Reflector<ZGame>  {
         do {
             switch (Utils.chooseRandomFromSet(2, 1, 1, 4, 3, 2)) {
                 case 0: // extra activation walker
-                    switch (level) {
+                    switch (level.getDifficultyColor()) {
                         case BLUE:
                             break; // do nothing
                         default:
@@ -2023,7 +2031,7 @@ public class ZGame extends Reflector<ZGame>  {
                     }
                     break;
                 case 1: // extra activation runner
-                    switch (level) {
+                    switch (level.getDifficultyColor()) {
                         case BLUE:
                             break; // do nothing
                         default: // Extra Activation Runner x 1 (Except Blue)
@@ -2033,7 +2041,7 @@ public class ZGame extends Reflector<ZGame>  {
                     }
                     break;
                 case 2: // extra activation fatty
-                    switch (level) {
+                    switch (level.getDifficultyColor()) {
                         case BLUE:
                             break; // do nothing
                         default: // Extra Activation Fatty x 1 (Except Blue)
@@ -2050,7 +2058,7 @@ public class ZGame extends Reflector<ZGame>  {
                   Yellow - Walker x 3
                   Blue - Walker x 1
                      */
-                    switch (level) {
+                    switch (level.getDifficultyColor()) {
                         case RED:
                             spawnZombies(1, ZZombieType.Abomination, zoneIdx);
                             break;
@@ -2073,7 +2081,7 @@ public class ZGame extends Reflector<ZGame>  {
                   Yellow - Runner x 2
                   Blue - Nothing
                      */
-                    switch (level) {
+                    switch (level.getDifficultyColor()) {
                         case RED:
                             spawnZombies(2, ZZombieType.Fatty, zoneIdx);
                             break;
@@ -2094,7 +2102,7 @@ public class ZGame extends Reflector<ZGame>  {
                   Yellow - Fatty x 1
                   Blue - Walker x 2
                      */
-                    switch (level) {
+                    switch (level.getDifficultyColor()) {
                         case RED:
                             spawnZombies(6, ZZombieType.Walker, zoneIdx);
                             break;

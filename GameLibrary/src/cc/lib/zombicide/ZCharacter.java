@@ -34,6 +34,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
     private List<ZActionType> actionsDoneThisTurn = new ArrayList<>();
     private final List<ZSkill> allSkills = new ArrayList<>();
     private final List<ZSkill> availableSkills = new ArrayList<>();
+    private final List<ZSkill> skillsRemaining[] = new List[ZSkillLevel.NUM_LEVELS];
 
     private final List<ZEquipment> backpack = new ArrayList<>();
     ZEquipment leftHand, rightHand, body;
@@ -425,6 +426,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
         stats.addRow("Wounds", String.format("%d of %d", woundBar, MAX_WOUNDS));
         stats.addRow("Armor Rolls", armorRating);
         ZSkillLevel sl = getSkillLevel();
+
         int ptsToNxt = sl.getPtsToNextLevel(dangerBar);
         stats.addRow("Skill", sl);
         stats.addRow("Exp", dangerBar);
@@ -870,9 +872,18 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
         availableSkills.remove(skill);
     }
 
-    public synchronized void initAllSkills(ZSkill ... skills) {
-        allSkills.clear();
-        allSkills.addAll(Arrays.asList(skills));
+    synchronized void initAllSkills(ZSkill [][] skills) {
+        for (int i=0; i<ZSkillLevel.NUM_LEVELS; i++) {
+            skillsRemaining[i] = new ArrayList<>();
+            skillsRemaining[i].addAll(Arrays.asList(skills[i]));
+        }
+        List<ZSkill> blueSkills = getRemainingSkillsForLevel(0);
+        availableSkills.addAll(blueSkills);
+        blueSkills.clear();
+    }
+
+    public List<ZSkill> getRemainingSkillsForLevel(int level) {
+        return skillsRemaining[level];
     }
 
     public void setFallen(boolean fallen) {

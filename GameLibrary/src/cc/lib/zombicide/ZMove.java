@@ -130,10 +130,6 @@ public class ZMove implements IButton {
         return label;
     }
 
-    public static ZMove newDoNothing() {
-        return new ZMove(ZMoveType.DO_NOTHING);
-    }
-
     public static ZMove newEndTurn() {
         return new ZMove(ZMoveType.END_TURN);
     }

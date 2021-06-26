@@ -111,10 +111,10 @@ public class ZQuestTheBlackBook extends ZQuest {
 
     @Override
     public int getPercentComplete(ZGame game) {
-        int numTasks = getAllVaultOptions().size() + 1 + ZSkillLevel.RED.ordinal();
+        int numTasks = getAllVaultOptions().size() + 1 + ZSkillLevel.Color.RED.ordinal();
         int numCompleted = blackBookZone < 0 ? 1 : 0;
         numCompleted += getNumFoundVaultItems();
-        numCompleted += game.getHighestSkillLevel().ordinal();
+        numCompleted += game.getHighestSkillLevel().getDifficultyColor().ordinal();
 
         return numCompleted * 100 / numTasks;
     }
@@ -142,7 +142,7 @@ public class ZQuestTheBlackBook extends ZQuest {
                         .addRow("2.", "Unlock the BLUE Door. BLUE Key hidden among the RED objectives.", "", game.getBoard().getDoor(blueDoor) != ZWallFlag.LOCKED)
                         .addRow("3.", "Steal the Black Book in central building.", "", blackBookTaken)
                         .addRow("4.", "Claim all Vault artifacts.", String.format("%d of %d", numVaultItemsTaken, allVaultItems), numVaultItemsTaken == allVaultItems)
-                        .addRow("5.", "Get to RED Danger level with at least one survivor.", lvl, lvl == ZSkillLevel.RED)
+                        .addRow("5.", "Get to RED Danger level with at least one survivor.", lvl, lvl.getDifficultyColor() == ZSkillLevel.Color.RED)
                 );
     }
 }

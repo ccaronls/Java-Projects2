@@ -173,7 +173,7 @@ public enum ZPlayerName implements IButton {
             if (!ZGame.DEBUG)
                 break;
         }
-        c.initAllSkills(getSkillOptions(ZSkillLevel.BLUE));
+        c.initAllSkills(skillOptions);
         return c;
     }
 
@@ -181,10 +181,6 @@ public enum ZPlayerName implements IButton {
 
     public ZCharacter getCharacter() {
         return character;
-    }
-
-    public ZSkill [] getSkillOptions(ZSkillLevel level) {
-        return skillOptions[level.ordinal()];
     }
 
     @Override

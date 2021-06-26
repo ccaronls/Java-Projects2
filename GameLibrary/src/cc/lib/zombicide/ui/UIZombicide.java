@@ -129,11 +129,6 @@ public abstract class UIZombicide extends ZGame {
     }
 
     @Override
-    protected void onDoNothing(ZCharacter c) {
-        boardRenderer.addPostActor(new HoverMessage(boardRenderer, "Zzzzz", c.getRect().getCenter()));
-        Utils.waitNoThrow(this, 500);    }
-
-    @Override
     protected void onZombieDestroyed(ZCharacter c, ZAttackType deathType, ZZombie zombie) {
         Lock lock = new Lock();
         switch (deathType) {

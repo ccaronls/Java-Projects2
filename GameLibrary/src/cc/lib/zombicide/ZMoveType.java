@@ -6,7 +6,6 @@ import cc.lib.ui.IButton;
 
 @Keep
 public enum ZMoveType implements IButton {
-    DO_NOTHING("Expend 1 action"),
     END_TURN("Expend all remaining actions and end turn"),
     INVENTORY("View inventory. The first change of inventory cost an action. You can perform as many subsequent inventory actions for free for the rest of the round."), // equip things, drop things, etc.
     TRADE("Like inventory the first trade costs an action and subsequent trades are free for the rest of the round. You can only trade with players in your zone and if the zone is free of zombies."),

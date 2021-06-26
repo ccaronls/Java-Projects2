@@ -9,6 +9,7 @@ import java.util.Vector;
 
 import cc.lib.game.AGraphics;
 import cc.lib.game.Utils;
+import cc.lib.utils.GException;
 import cc.lib.utils.Grid;
 import cc.lib.utils.Reflector;
 import cc.lib.utils.Table;
@@ -78,7 +79,22 @@ public abstract class ZQuest extends Reflector<ZQuest> {
             case "v":
                 cell.environment=ZCell.ENV_VAULT;
                 break;
-            case "t":
+            case "t1":
+            case "t2":
+            case "t3":
+                switch (Integer.parseInt(cmd.substring(1))) {
+                    case 1:
+                        cell.scale = 1.05f;
+                        break;
+                    case 2:
+                        cell.scale = 1.1f;
+                        break;
+                    case 3:
+                        cell.scale = 1.15f;
+                        break;
+                    default:
+                        throw new GException("Unhandled case");
+                }
                 cell.environment=ZCell.ENV_TOWER;
                 break;
             case "vd1":
