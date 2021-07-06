@@ -6,7 +6,7 @@ import cc.lib.game.Utils;
 @Keep
 public enum ZActionType {
     DO_NOTHING,
-    MOVE,
+    MOVE, // action used when moving between zones
     SEARCH,
     OPEN_DOOR,
     CLOSE_DOOR,
@@ -83,6 +83,10 @@ public enum ZActionType {
                 return true;
         }
         return false;
+    }
+
+    public boolean isMelee() {
+        return this == MELEE;
     }
 
     public boolean isMovement() {

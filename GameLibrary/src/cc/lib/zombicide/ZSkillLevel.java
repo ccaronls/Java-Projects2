@@ -1,7 +1,6 @@
 package cc.lib.zombicide;
 
 import cc.lib.annotation.Keep;
-import cc.lib.game.GColor;
 import cc.lib.game.Utils;
 import cc.lib.utils.Reflector;
 
@@ -14,44 +13,27 @@ public class ZSkillLevel extends Reflector<ZSkillLevel> implements Comparable<ZS
 
     public static boolean ULTRA_RED_MODE = true;
 
-    public enum Color {
-        BLUE(0, 7, GColor.BLUE),
-        YELLOW(8, 19, GColor.YELLOW),
-        ORANGE(20, 42, GColor.ORANGE),
-        RED(43, 43, GColor.RED);
+    public final static int NUM_LEVELS = ZColor.values().length;
 
-        Color(int dangerPts, int maxPts, GColor color) {
-            this.dangerPts = dangerPts;
-            this.maxPts = maxPts;
-            this.color = color;
-        }
-
-        public final int dangerPts;
-        public final int maxPts;
-        public final GColor color;
-    }
-
-    public final static int NUM_LEVELS = Color.values().length;
-
-    private final Color color;
+    private final ZColor color;
     private final int ultra;
 
     public ZSkillLevel() {
         this(null, -1);
     }
 
-    private ZSkillLevel(Color lvl, int ultra) {
+    private ZSkillLevel(ZColor lvl, int ultra) {
         this.color = lvl;
         this.ultra = ultra;
     }
 
-    public Color getColor() {
+    public ZColor getColor() {
         return color;
     }
 
-    public Color getDifficultyColor() {
+    public ZColor getDifficultyColor() {
         if (ultra > 0)
-            return Color.RED;
+            return ZColor.RED;
         return color;
     }
 
@@ -69,23 +51,23 @@ public class ZSkillLevel extends Reflector<ZSkillLevel> implements Comparable<ZS
     public ZSkillLevel nextLevel() {
         switch (color) {
             case BLUE:
-                return new ZSkillLevel(Color.YELLOW, ultra);
+                return new ZSkillLevel(ZColor.YELLOW, ultra);
             case YELLOW:
-                return new ZSkillLevel(Color.ORANGE, ultra);
+                return new ZSkillLevel(ZColor.ORANGE, ultra);
             case ORANGE:
-                return new ZSkillLevel(Color.RED, ultra);
+                return new ZSkillLevel(ZColor.RED, ultra);
         }
-        return new ZSkillLevel(Color.BLUE, ultra+1);
+        return new ZSkillLevel(ZColor.BLUE, ultra+1);
     }
 
     public static ZSkillLevel getLevel(int expPts) {
         int ultra = 0;
-        Color lvl = Color.RED;
+        ZColor lvl = ZColor.RED;
         if (ULTRA_RED_MODE) {
-            ultra = expPts / Color.RED.maxPts;
-            expPts = expPts % Color.RED.maxPts;
+            ultra = expPts / ZColor.RED.maxPts;
+            expPts = expPts % ZColor.RED.maxPts;
         }
-        for (Color sl : Color.values()) {
+        for (ZColor sl : ZColor.values()) {
             if (expPts <= sl.maxPts) {
                 lvl = sl;
                 break;
@@ -98,9 +80,9 @@ public class ZSkillLevel extends Reflector<ZSkillLevel> implements Comparable<ZS
         if (ULTRA_RED_MODE) {
 
         }
-        if (color == Color.RED)
+        if (color == ZColor.RED)
             return 0;
-        return Color.values()[color.ordinal()+1].dangerPts - curPts;
+        return ZColor.values()[color.ordinal()+1].dangerPts - curPts;
     }
 
     public int getDangerPts() {

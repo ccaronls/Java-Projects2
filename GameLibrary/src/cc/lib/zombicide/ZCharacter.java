@@ -27,19 +27,20 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
     public final static int MAX_WOUNDS = 4;
     public final static int MOVE_SPEED_MILIS = 750;
 
-    ZPlayerName name;
-    int woundBar;
-    int dangerBar;
-    boolean inventoryThisTurn =false;
+    private final ZPlayerName name;
+    private int woundBar;
+    private int dangerBar;
+    private boolean inventoryThisTurn =false;
     private List<ZActionType> actionsDoneThisTurn = new ArrayList<>();
     private final List<ZSkill> allSkills = new ArrayList<>();
     private final List<ZSkill> availableSkills = new ArrayList<>();
     private final List<ZSkill> skillsRemaining[] = new List[ZSkillLevel.NUM_LEVELS];
 
     private final List<ZEquipment> backpack = new ArrayList<>();
-    ZEquipment leftHand, rightHand, body;
-    int [] kills = new int[ZZombieType.values().length];
+    private ZEquipment leftHand, rightHand, body;
+    private int [] kills = new int[ZZombieType.values().length];
     private boolean fallen = false;
+    private int zonesMoved = 0;
 
     synchronized void clear() {
         Arrays.fill(kills, 0);
@@ -52,8 +53,13 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
         woundBar=0;
     }
 
-    public ZCharacter() {
+    ZCharacter(ZPlayerName name) {
         super(-1);
+        this.name = name;
+    }
+
+    public ZCharacter() {
+        this(null);
     }
 
     @Override
@@ -72,6 +78,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
         availableSkills.clear();
         availableSkills.addAll(allSkills);
         inventoryThisTurn = false;
+        zonesMoved = 0;
         super.onBeginRound();
     }
 
@@ -117,11 +124,16 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
 
     @Override
     protected synchronized boolean performAction(ZActionType action, ZGame game) {
+        if (action == ZActionType.MOVE) {
+            zonesMoved++;
+        }
         for (ZSkill skill : availableSkills) {
-            if (skill.modifyActionsRemaining(this, action, game)) {
-                game.getCurrentUser().showMessage(name() + " used " + skill.getLabel() + " for a free action");
-                availableSkills.remove(skill);
-                return true;
+            switch (skill.modifyActionsRemaining(this, action, game)) {
+                case 1:
+                    availableSkills.remove(skill);
+                case -1:
+                    game.getCurrentUser().showMessage(name() + " used " + skill.getLabel() + " for a free action");
+                    return true;
             }
         }
         switch (action) {
@@ -601,14 +613,14 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
             case ARROWS:
                 if (!weapon.isRanged())
                     return null;
-                if (!weapon.type.usesArrows)
+                if (weapon.type.rangedStats.getAttackType() != ZAttackType.RANGED_ARROWS)
                     return null;
                 stat = weapon.type.rangedStats.copy();
                 break;
             case BOLTS:
                 if (!weapon.isRanged())
                     return null;
-                if (!weapon.type.usesBolts)
+                if (weapon.type.rangedStats.getAttackType() != ZAttackType.RANGED_BOLTS)
                     return null;
                 stat = weapon.type.rangedStats.copy();
                 break;
@@ -869,16 +881,18 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
     }
 
     public synchronized void removeAvailableSkill(ZSkill skill) {
-        availableSkills.remove(skill);
+        boolean removed = availableSkills.remove(skill);
+        Utils.assertTrue(removed);
     }
 
     synchronized void initAllSkills(ZSkill [][] skills) {
+        allSkills.clear();
         for (int i=0; i<ZSkillLevel.NUM_LEVELS; i++) {
             skillsRemaining[i] = new ArrayList<>();
             skillsRemaining[i].addAll(Arrays.asList(skills[i]));
         }
         List<ZSkill> blueSkills = getRemainingSkillsForLevel(0);
-        availableSkills.addAll(blueSkills);
+        allSkills.addAll(blueSkills);
         blueSkills.clear();
     }
 
@@ -892,5 +906,50 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
 
     public ZPlayerName getPlayerName() {
         return name;
+    }
+
+    public int getDangerBar() {
+        return dangerBar;
+    }
+
+    public boolean heal(ZGame game, int amt) {
+        if (woundBar > 0) {
+            game.getCurrentUser().showMessage(name() + " has a wound healed.");
+            woundBar = Math.max(0, woundBar - amt);
+            return true;
+        }
+        return false;
+    }
+
+    public void wound(int amt) {
+        woundBar += amt;
+    }
+
+    public int getKills(ZZombieType type) {
+        return kills[type.ordinal()];
+    }
+
+    public int getWoundBar() {
+        return woundBar;
+    }
+
+    public ZEquipment getLeftHand() {
+        return leftHand;
+    }
+
+    public ZEquipment getRightHand() {
+        return rightHand;
+    }
+
+    public ZEquipment getBody() {
+        return body;
+    }
+
+    public void addExperience(int pts) {
+        dangerBar += pts;
+    }
+
+    public int getZonesMoved() {
+        return zonesMoved;
     }
 }

@@ -96,76 +96,76 @@ public enum ZSkill implements IButton {
     },
     Plus1_free_Combat_Action("The Survivor has one extra free Combat Action. This Action may only be used for Melee, Ranged or Magic Actions.") {
         @Override
-        public boolean modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
+        public int modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
             switch (type) {
                 case MAGIC:
                 case ARROWS:
                 case BOLTS:
                 case MELEE:
-                    return true;
+                    return 1;
             }
-            return false;
+            return super.modifyActionsRemaining(character, type, game);
         }
     },
     Plus1_free_Enchantment_Action("The Survivor has one extra free Enchantment Action. This Action may only be used for Enchantment Actions.") {
         @Override
-        public boolean modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
+        public int modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
             switch (type) {
                 case ENCHANTMENT:
-                    return true;
+                    return 1;
             }
-            return false;
+            return super.modifyActionsRemaining(character, type, game);
         }
     },
     Plus1_free_Magic_Action("The Survivor has one extra free Magic Action. This Action may only be used for Magic Actions.") {
         @Override
-        public boolean modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
+        public int modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
             switch (type) {
                 case MAGIC:
-                    return true;
+                    return 1;
             }
-            return false;
+            return super.modifyActionsRemaining(character, type, game);
         }
     },
     Plus1_free_Melee_Action("The Survivor has one extra free Melee Action. This Action may only be used for a Melee Action.") {
         @Override
-        public boolean modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
+        public int modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
             switch (type) {
                 case MELEE:
-                    return true;
+                    return 1;
             }
-            return false;
+            return super.modifyActionsRemaining(character, type, game);
         }
     },
     Plus1_free_Move_Action("The Survivor has one extra free Move Action. This Action may only be used as a Move Action.") {
         @Override
-        public boolean modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
+        public int modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
             switch (type) {
                 case MOVE:
-                    return true;
+                    return 1;
             }
-            return false;
+            return super.modifyActionsRemaining(character, type, game);
         }
     },
     Plus1_free_Ranged_Action("The Survivor has one extra free Ranged Action. This Action may only be used as a Ranged Action.") {
         @Override
-        public boolean modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
+        public int modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
             switch (type) {
                 case ARROWS:
                 case BOLTS:
-                    return true;
+                    return 1;
             }
-            return false;
+            return super.modifyActionsRemaining(character, type, game);
         }
     },
     Plus1_free_Search_Action("The Survivor has one extra free Search Action. This Action may only be used to Search, and the Survivor can still only Search once per Turn.") {
         @Override
-        public boolean modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
+        public int modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
             switch (type) {
                 case SEARCH:
-                    return true;
+                    return 1;
             }
-            return false;
+            return super.modifyActionsRemaining(character, type, game);
         }
     },
     Plus1_max_Range("The Survivor’s Ranged weapons and Combat spells’ maximum Range is increased by 1.") {
@@ -176,12 +176,15 @@ public enum ZSkill implements IButton {
     },
     Plus1_Zone_per_Move("The Survivor can move through one extra Zone each time he performs a Move Action. This Skill stacks with other effects benefiting Move Actions. Entering a Zone containing Zombies ends the Survivor’s Move Action.") {
         @Override
-        public boolean modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
+        public int modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
             switch (type) {
                 case MOVE:
-                    return game.getBoard().getZombiesInZone(character.occupiedZone).size() == 0;
+                    if (game.getBoard().getZombiesInZone(character.occupiedZone).size() == 0) {
+                        return character.getZonesMoved() % 2 == 0 ? 1 : -1;
+                    }
+                    return 1;
             }
-            return false;
+            return super.modifyActionsRemaining(character, type, game);
         }
     },
     Two_Zones_per_Move_Action("When the Survivor spends one Action to Move, he can move one or two Zones instead of one. Entering a Zone containing Zombies ends the Survivor’s Move Action."),
@@ -267,14 +270,27 @@ public enum ZSkill implements IButton {
     },
     Break_in("In order to open doors, the Survivor rolls no dice, and needs no equipment (but still spends an Action to do so). He doesn’t make Noise while using this Skill. However, other prerequisites still apply (such as taking a designated Objective before a door can be opened). Moreover, the Survivor gains one extra free Action that can only be used to open doors.") {
         @Override
-        public boolean modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
+        public int modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
             if (type == ZActionType.OPEN_DOOR) {
-                return true;
+                return 1;
             }
             return super.modifyActionsRemaining(character, type, game);
         }
     },
-    Charge("The Survivor can use this Skill for free, as often as he pleases, during each of his Turns: He moves up to two Zones to a Zone containing at least one Zombie. Normal Movement rules still apply. Entering a Zone containing Zombies ends the Survivor’s Move Action."),
+    Charge("The Survivor can use this Skill for free, as often as he pleases, during each of his Turns: He moves up to two Zones to a Zone containing at least one Zombie. Normal Movement rules still apply. Entering a Zone containing Zombies ends the Survivor’s Move Action.") {
+        @Override
+        public void addSpecialMoves(ZGame game, ZCharacter character, List<ZMove> moves) {
+        List<Integer> zones = game.getBoard().getAccessableZones(character.getOccupiedZone(), 1, 2, ZActionType.MOVE);
+        zones = Utils.filter(zones, new Utils.Filter<Integer>() {
+            @Override
+            public boolean keep(Integer zone) {
+                return game.getBoard().getZombiesInZone(zone).size() > 0;
+            }
+        });
+        if (zones.size() > 0)
+            moves.add(ZMove.newChargeMove(zones));
+        }
+    },
     Collector("The Survivor gains double the experience each time he kills a Zombie of any type."),
     Collector_Walker("The Survivor gains double the experience each time he kills a Walker."),
     Collector_Runner("The Survivor gains double the experience each time he kills a Runner."),
@@ -287,7 +303,9 @@ public enum ZSkill implements IButton {
         @Override
         public void addSpecialMoves(ZGame game, ZCharacter character, List<ZMove> moves) {
             for (ZWeapon w : character.getWeapons()) {
-                w.reload();
+                if (w.reload()) {
+                    game.onWeaponReloaded(character, w);
+                }
             }
             super.addSpecialMoves(game, character, moves);
         }
@@ -295,14 +313,14 @@ public enum ZSkill implements IButton {
     Frenzy_Combat("All weapons and Combat spells the Survivor carries gain +1 die per Wound the Survivor suffers. Dual weapons gain a die each, for a total of +2 dice per Wound and per Dual Combat Action (Melee, Ranged or Magic).") {
         @Override
         public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game, int targetZone) {
-            stat.numDice += character.woundBar;
+            stat.numDice += character.getWoundBar();
         }
     },
     Frenzy_Magic("Combat spells the Survivor carries gain +1 die per Wound the Survivor suffers. Dual Combat spells gain a die each, for a total of +2 dice per Wound and per Dual Magic Action.") {
         @Override
         public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game, int targetZone) {
             if (actionType == ZActionType.MAGIC) {
-                stat.numDice += character.woundBar;
+                stat.numDice += character.getWoundBar();
             }
         }
     },
@@ -310,7 +328,7 @@ public enum ZSkill implements IButton {
         @Override
         public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game, int targetZone) {
             if (actionType == ZActionType.MELEE) {
-                stat.numDice += character.woundBar;
+                stat.numDice += character.getWoundBar();
             }
         }
     },
@@ -318,16 +336,15 @@ public enum ZSkill implements IButton {
         @Override
         public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game, int targetZone) {
             if (actionType == ZActionType.BOLTS || actionType == ZActionType.ARROWS) {
-                stat.numDice += character.woundBar;
+                stat.numDice += character.getWoundBar();
             }
         }
     },
     Healing("At end of turn you have a wound healed.") {
         @Override
         boolean onEndOfTurn(ZGame game, ZCharacter c) {
-            if (c.woundBar > 0) {
-                game.getCurrentUser().showMessage(c.name() + " has a wound healed.");
-                c.woundBar--;
+            if (c.heal(game,1)) {
+                game.onCharacterHealed(c, 1);
                 return true;
             }
             return false;
@@ -369,7 +386,14 @@ public enum ZSkill implements IButton {
         }
     },
 //    Is_that_all_you_got("You can use this Skill any time the Survivor is about to get Wounds. Discard one Equipment card in your Survivor’s inventory for each Wound he’s about to receive. Negate a Wound per discarded Equipment card."),
-    Jump("The Survivor can use this Skill once during each Activation. The Survivor spends one Action: He moves two Zones into a Zone to which he has Line of Sight. Movement related Skills (like +1 Zone per Move Action or Slippery) are ignored, but Movement penalties (like having Zombies in the starting Zone) apply. Ignore everything in the intervening Zone."),
+    Jump("The Survivor can use this Skill once during each Activation. The Survivor spends one Action: He moves two Zones into a Zone to which he has Line of Sight. Movement related Skills (like +1 Zone per Move Action or Slippery) are ignored, but Movement penalties (like having Zombies in the starting Zone) apply. Ignore everything in the intervening Zone.") {
+        @Override
+        public void addSpecialMoves(ZGame game, ZCharacter character, List<ZMove> moves) {
+            List<Integer> zones = game.getBoard().getAccessableZones(character.getOccupiedZone(), 2, 2, ZActionType.MOVE);
+            if (zones.size() > 0)
+                moves.add(ZMove.newJumpMove(zones));
+        }
+    },
     Lifesaver("The Survivor can use this Skill, for free, once during each of his Turns. Select a Zone containing at least one Zombie at Range 1 from your Survivor. Choose Survivors in the selected Zone to be dragged to your Survivor’s Zone without penalty. This is not a Move Action. A Survivor can decline the rescue and stay in the selected Zone if his controller chooses. Both Zones need to share a clear path. A Survivor can’t cross closed doors or walls, and can’t be extracted into or out of a Vault."),
     Lock_it_down("At the cost of one Action, the Survivor can close an open door in his Zone. Opening or destroying it again later does not trigger a new Zombie Spawn.") {
         @Override
@@ -381,7 +405,13 @@ public enum ZSkill implements IButton {
     Low_profile("The Survivor can’t get hit by Survivors’ Magic and Ranged Actions. Ignore him when casting a Combat spell or shooting in the Zone he stands in. Game effects that kill everything in the targeted Zone, like Dragon Fire, still kill him, though."),
     Lucky("The Survivor can re-roll once all the dice for each Action (or Armor roll) he takes. The new result takes the place of the previous one. This Skill stacks with the effects of other Skills and Equipment that allows re-rolls."),
     Mana_rain("When resolving a Magic Action, the Survivor may substitute the Dice number of the Combat spell(s) he uses with the number of Zombies standing in the targeted Zone. Skills affecting the dice value, like +1 die: Magic, still apply."),
-    Marksman("The Survivor may freely choose the targets of all his Magic and Ranged Actions. Misses don’t hit Survivors. Matching set! – When a Survivor performs a Search Action and draws an Equipment card with the Dual symbol, he can immediately take a second card of the same type from the Equipment deck. Shuffle the deck afterward."),
+    Marksman("The Survivor may freely choose the targets of all his Magic and Ranged Actions. Misses don’t hit Survivors.") {
+        @Override
+        boolean avoidsFriendlyFire() {
+            return true;
+        }
+    },
+    Matching_set("When a Survivor performs a Search Action and draws an Equipment card with the Dual symbol, he can immediately take a second card of the same type from the Equipment deck. Shuffle the deck afterward."),
     Point_blank("The Survivor can resolve Ranged and Magic Actions in his own Zone, no matter the minimum Range. When resolving a Magic or Ranged Action at Range 0, the Survivor freely chooses the targets and can kill any type of Zombies. His Combat spells and Ranged weapons still need to inflict enough Damage to kill his targets. Misses don’t hit Survivors."),
     Reaper_Combat("Use this Skill when assigning hits while resolving a Combat Action (Melee, Ranged or Magic). One of these hits can freely kill an additional identical Zombie in the same Zone. Only a single additional Zombie can be killed per Action when using this Skill. The Survivor gains the experience for the additional Zombie."),
     Reaper_Magic("Use this Skill when assigning hits while resolving a Magic Action. One of these hits can freely kill an additional identical Zombie in the same Zone. Only a single additional Zombie can be killed per Action when using this Skill. The Survivor gains the experience for the additional Zombie."),
@@ -457,9 +487,9 @@ public enum ZSkill implements IButton {
         }
 
         @Override
-        public boolean modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
+        public int modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
             if (type ==  ZActionType.SHOVE) {
-                return true;
+                return 1;
             }
             return super.modifyActionsRemaining(character, type, game);
         }
@@ -468,21 +498,37 @@ public enum ZSkill implements IButton {
     Spellbook("All Combat spells and Enchantments in the Survivor’s Inventory are considered equipped in Hand. With this Skill, a Survivor could effectively be considered as having several Combat spells and Enchantments cards equipped in Hand. For obvious reasons, he can only use two identical dual Combat Spells at any given time. Choose any combination of two before resolving Actions or rolls involving the Survivor."),
     Spellcaster("The Survivor has one extra free Action. This Action may only be used for a Magic Action or an Enchantment Action.") {
         @Override
-        public boolean modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
+        public int modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
             switch (type) {
                 case MAGIC:
                 case ENCHANTMENT:
-                    return true;
+                    return 1;
             }
             return super.modifyActionsRemaining(character, type, game);
         }
     },
-    Speed("Can move up to 2 unoccupied by zombie zones for free."),
-    Sprint("The Survivor can use this Skill once during each of his Turns. Spend one Move Action with the Survivor: He may move two or three Zones instead of one. Entering a Zone containing Zombies ends the Survivor’s Move Action.") {
+    Speed("Can move up to 2 unoccupied by zombie zones for free.") {
         @Override
-        public void addSpecialMoves(ZGame game, ZCharacter character, List<ZMove> moves) {
-            List<Integer> sprintZones = game.getBoard().getAccessableZones(character.getOccupiedZone(), 2, 3, ZActionType.MOVE);
-            moves.add(ZMove.newSprintMove(sprintZones));
+        public int modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
+            switch (type) {
+                case MOVE:
+                    if (game.getBoard().getZombiesInZone(character.getOccupiedZone()).size() > 0)
+                        return super.modifyActionsRemaining(character, type, game);
+                    return character.getZonesMoved() > 1 ? 1 : -1;
+            }
+            return super.modifyActionsRemaining(character, type, game);
+        }
+    },
+    Sprint("The first 3 moves are free unless a zone with zombies is entered.") {
+        @Override
+        public int modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
+            switch (type) {
+                case MOVE:
+                    if (game.getBoard().getZombiesInZone(character.getOccupiedZone()).size() == 0) {
+                        return character.getZonesMoved() > 2 ? 1 : -1;
+                    }
+            }
+            return super.modifyActionsRemaining(character, type, game);
         }
     },
     Super_strength("Consider the Damage value of Melee weapons used by the Survivor to be 3.") {
@@ -555,10 +601,10 @@ public enum ZSkill implements IButton {
      * @param character
      * @param type
      * @param game
-     * @return
+     * @return returns 0 when noting changed. 1 when action used and should be removed, -1 when used but should not be removed
      */
-    public boolean modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
-        return false;
+    public int modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
+        return 0;
     }
 
     /**

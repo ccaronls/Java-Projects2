@@ -15,6 +15,7 @@ Zoom level 0 should show entire screen
 (DONE)Hide panel buttons when in loading screen
 SOUND EFFECTS!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 (DONE)in pick char mode add buttons to the menu for the pickable players
+Necromancer spawns should cause extra activation for any other necromancers on the board
 
 Wulfsburg
 ------------------
@@ -26,6 +27,7 @@ Towers provide ability to fire ranged and magic weapons over 'ramparts' but cann
 8 new weapons
 Let players choose start weapon
 Directional zombies - zombies should face the direction (right or left) they are moving
+New wolfberg weapons have a min danger level to wield requirement
 
 
 SEBI NOTES
@@ -44,7 +46,9 @@ Show when backpack full (and cannot trade or search)
 Describe how armor rolls work.
 Shield should add +1 to existing defense (show in char info)
 Search should work such that user has option to discard the found object or make room for it if they want
-Trade should also work in such a way that
+
+
+
 
 (DONE)Add slashing anims for melee attacks
 (DONE)Add ability to destroy spawns

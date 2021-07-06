@@ -45,6 +45,9 @@ public abstract class ZQuest extends Reflector<ZQuest> {
     }
 
     public List<ZEquipmentType> getAllVaultOptions() {
+        if (isWolfBurg()) {
+            return Utils.toList(ZWeaponType.CHAOS_LONGBOW, ZWeaponType.VAMPIRE_CROSSBOW);
+        }
         return Utils.asList(ZWeaponType.INFERNO, ZWeaponType.ORCISH_CROSSBOW);
     }
 
@@ -413,6 +416,17 @@ public abstract class ZQuest extends Reflector<ZQuest> {
         return vaultItemsRemaining;
     }
 
+    protected ZEquipment getRandomVaultArtifact() {
+        List<ZEquipment> remaining = getVaultItemsRemaining();
+        if (remaining.size() > 0) {
+            ZEquipment e = Utils.randItem(remaining);
+            remaining.remove(e);
+            return e;
+        }
+        Utils.assertTrue(false);
+        return null;
+    }
+
     /**
      * Called once during INIT stage of game
      */
@@ -421,9 +435,17 @@ public abstract class ZQuest extends Reflector<ZQuest> {
     public int getMaxNumZombiesOfType(ZZombieType type) {
         switch (type) {
             case Abomination:
+            case Wolfbomination:
                 return 1;
             case Necromancer:
                 return 2;
+            case Wolfz:
+                return 22;
+            case Walker:
+                return 35;
+            case Fatty:
+            case Runner:
+                return 14;
         }
         return Integer.MAX_VALUE;
     }
@@ -457,7 +479,8 @@ public abstract class ZQuest extends Reflector<ZQuest> {
         game.gameLost("Necromancer Escaped");
     }
 
-    public boolean isWulfburg() {
-        return false;
+    public boolean isWolfBurg() {
+        return quest.isWolfburg();
     }
+
 }

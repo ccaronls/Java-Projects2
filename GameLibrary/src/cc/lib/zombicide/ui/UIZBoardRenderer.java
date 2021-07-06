@@ -156,10 +156,10 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                 case RANGED_ATTACK:
                 case MAGIC_ATTACK:
                     for (ZWeapon w : (List<ZWeapon>)move.list) {
-                        ZActionType actionType = move.type.getActionType(w);
-                        ZWeaponStat stat = cur.getWeaponStat(w, actionType, getGame(), -1);
-                        for (int zoneIdx : getBoard().getAccessableZones(cur.getOccupiedZone(), stat.getMinRange(), stat.getMaxRange(), actionType)) {
-                            addClickable(getBoard().getZone(zoneIdx), new ZMove(move, w, zoneIdx));
+                        for (ZWeaponStat stat : w.getType().getStats()) {
+                            for (int zoneIdx : getBoard().getAccessableZones(cur.getOccupiedZone(), stat.getMinRange(), stat.getMaxRange(), stat.getAttackType().getActionType())) {
+                                addClickable(getBoard().getZone(zoneIdx), new ZMove(move, w, zoneIdx));
+                            }
                         }
                     }
                     break;
@@ -944,15 +944,12 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                 List<ZDir> path = null;
                 ZZombie z = (ZZombie)highlightedActor;
                 switch (z.getType()) {
-                    case Walker:
-                    case Fatty:
-                    case Runner:
-                    case Abomination:
-                        path = game.getZombiePathTowardVisibleCharactersOrLoudestZone(z);
-                        break;
                     case Necromancer:
                         path = game.getZombiePathTowardNearestSpawn(z);
                         break;
+                    default:
+                        path = game.getZombiePathTowardVisibleCharactersOrLoudestZone(z);
+
                 }
                 g.begin();
                 g.setColor(GColor.YELLOW)   ;
@@ -965,7 +962,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                 }
                 g.drawLineStrip(3);
             } else if (highlightedActor instanceof ZCharacter) {
-                List<Integer> visibleZones = getBoard().getAccessableZones(highlightedActor.getOccupiedZone(), 0, 4, ZActionType.THROW_ITEM);
+                List<Integer> visibleZones = getBoard().getAccessableZones(highlightedActor.getOccupiedZone(), 0, 4, ZActionType.BOLTS);
                 for (int zoneIdx : visibleZones) {
                     ZZone zone = board.getZone(zoneIdx);
                     g.setColor(GColor.YELLOW);

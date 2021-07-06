@@ -144,7 +144,7 @@ public class ZBoard extends Reflector<ZBoard> implements IDimension {
                     }
 
                     if (!open)
-                        break;
+                        continue;
 
                     result.add(grid.get(pos).zoneIndex);
                     for (; dist < maxDist; dist++) {

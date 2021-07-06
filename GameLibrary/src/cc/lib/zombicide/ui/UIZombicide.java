@@ -27,6 +27,7 @@ import cc.lib.zombicide.ZQuest;
 import cc.lib.zombicide.ZSkill;
 import cc.lib.zombicide.ZWeapon;
 import cc.lib.zombicide.ZZombie;
+import cc.lib.zombicide.ZZombieCategory;
 import cc.lib.zombicide.ZZone;
 import cc.lib.zombicide.anims.AscendingAngelDeathAnimation;
 import cc.lib.zombicide.anims.DeathAnimation;
@@ -147,7 +148,9 @@ public abstract class UIZombicide extends ZGame {
             case DISINTEGRATION:
             case BLADE:
             case CRUSH:
-            case RANGED:
+            case RANGED_ARROWS:
+            case RANGED_BOLTS:
+            case RANGED_THROW:
             case EARTHQUAKE:
             case MENTAL_STRIKE:
             case NORMAL:
@@ -193,7 +196,9 @@ public abstract class UIZombicide extends ZGame {
             case DISINTEGRATION:
             case BLADE:
             case CRUSH:
-            case RANGED:
+            case RANGED_ARROWS:
+            case RANGED_BOLTS:
+            case RANGED_THROW:
             case EARTHQUAKE:
             case MENTAL_STRIKE:
             default:
@@ -261,9 +266,24 @@ public abstract class UIZombicide extends ZGame {
     }
 
     @Override
-    protected void onNewSkillAquired(ZCharacter c, ZSkill skill) {
+    protected void onExtraActivation(ZZombieCategory category) {
+        boardRenderer.addOverlay(new OverlayTextAnimation(String.format("EXTRA ACTIVATION %s", category)));
+    }
+
+    @Override
+    protected void onReaperKill(ZCharacter c, ZZombie z, ZWeapon w, ZActionType at) {
+        boardRenderer.addPostActor(new HoverMessage(boardRenderer, "Reaper Kill!!", z.getRect().getCenter()));
+    }
+
+    @Override
+    protected void onNewSkillAcquired(ZCharacter c, ZSkill skill) {
         boardRenderer.addPostActor(new HoverMessage(boardRenderer, String.format("%s Acquired", skill.getLabel()), c.getRect().getCenter()));
-        characterRenderer.addMessage(String.format("%s has aquired the %s skill", c.getLabel(), skill.getLabel()));
+        characterRenderer.addMessage(String.format("%s has acquired the %s skill", c.getLabel(), skill.getLabel()));
+    }
+
+    @Override
+    protected void onWeaponReloaded(ZCharacter c, ZWeapon w) {
+        boardRenderer.addPostActor(new HoverMessage(boardRenderer, String.format("%s Reloaded", w.getLabel()), c.getRect().getCenter()));
     }
 
     @Override

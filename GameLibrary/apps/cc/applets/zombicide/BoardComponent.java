@@ -121,7 +121,7 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
                 { ZZombieType.Fatty, "zfatty2.gif" },
                 { ZZombieType.Wolfz, "zwulf1.gif" },
                 { ZZombieType.Wolfz, "zwulf2.gif" },
-                { ZZombieType.Abomiwolf, "zwolfabom.gif" },
+                { ZZombieType.Wolfbomination, "zwolfabom.gif" },
 
                 { ZPlayerName.Clovis, "zchar_clovis.gif" },
                 { ZPlayerName.Baldric, "zchar_baldric.gif" },

@@ -32,7 +32,7 @@ public class ZItem extends ZEquipment<ZItemType> {
     }
 
     @Override
-    public boolean isEquippable() {
+    public boolean isEquippable(ZCharacter c) {
         return type.slot.canEquip();
     }
 

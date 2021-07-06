@@ -4,6 +4,7 @@ import java.util.List;
 
 import cc.lib.annotation.Keep;
 import cc.lib.game.Utils;
+import cc.lib.zombicide.quests.WolfQuestKnowYourEnemy;
 import cc.lib.zombicide.quests.ZQuestBigGameHunting;
 import cc.lib.zombicide.quests.ZQuestDeadTrail;
 import cc.lib.zombicide.quests.ZQuestFamine;
@@ -17,7 +18,7 @@ import cc.lib.zombicide.quests.ZQuestTheNecromancer;
 import cc.lib.zombicide.quests.ZQuestTheShepherds;
 import cc.lib.zombicide.quests.ZQuestTrialByFire;
 import cc.lib.zombicide.quests.ZQuestTutorial;
-import cc.lib.zombicide.quests.ZQuestWelcomeToWulfsburg;
+import cc.lib.zombicide.quests.WolfQuestWelcomeToWulfsburg;
 
 @Keep
 public enum ZQuests {
@@ -53,8 +54,8 @@ public enum ZQuests {
             "course, there are zombies on the way, familiar faces\n" +
             "turned to monsters...\n" +
             "Hey, that one owed me money!"),
-    The_Abomination(true, "The Abomination", "Test Abomination!"),
-    The_Necromancer(true, "The Necromancer", "Test Necromancer!"),
+    The_Abomination(1, "The Abomination", "Test Abomination!"),
+    The_Necromancer(1, "The Necromancer", "Test Necromancer!"),
     The_Shepherds("The Shepherds", "Necromancers are everywhere. They’re\n" +
             "spreading chaos and seizing power in the\n" +
             "whole kingdom! Against a menace this big, there\n" +
@@ -155,7 +156,7 @@ public enum ZQuests {
             "And the Necromancers are still nowhere\n" +
             "to be seen."),
     // Wulfsburg
-    Welcome_to_Wulfsberg("Welcome to Wulfsburg", "The prosperous city of Wulfsburg earned its\n" +
+    Welcome_to_Wulfsberg(2, "Welcome to Wulfsburg", "The prosperous city of Wulfsburg earned its\n" +
             "name due to the many wolf packs roaming\n" +
             "the surrounding forests and mountains. Nobles and\n" +
             "merchants built tall towers here, the better to view\n" +
@@ -168,20 +169,24 @@ public enum ZQuests {
             "populated with hidden, terrified survivors. We’re on\n" +
             "our way to liberate the city. Breaching the inner\n" +
             "city will take time, however, and we’ll need supplies.\n" +
-            "Fresh food is scarce, but still to be had.")
+            "Fresh food is scarce, but still to be had."),
+    Know_Your_Enemy(2, "Know your Enemy", "")
     ;
 
+    static int FLAG_DEBUG = 1;
+    static int FLAG_WOLFBURG = 2;
+
     ZQuests(String displayName, String description) {
-        this(false, displayName, description);
+        this(0, displayName, description);
     }
 
-    ZQuests(boolean debug, String displayName, String description) {
-        this.debug = debug;
+    ZQuests(int flag, String displayName, String description) {
+        this.flag = flag;
         this.displayName = displayName;
         this.description = description;
     }
 
-    final boolean debug;
+    final int flag;
     final String displayName;
     final String description;
 
@@ -214,7 +219,9 @@ public enum ZQuests {
             case Trial_by_Fire:
                 return new ZQuestTrialByFire();
             case Welcome_to_Wulfsberg:
-                return new ZQuestWelcomeToWulfsburg();
+                return new WolfQuestWelcomeToWulfsburg();
+            case Know_Your_Enemy:
+                return new WolfQuestKnowYourEnemy();
         }
         Utils.assertTrue(false);
         return null;
@@ -229,6 +236,10 @@ public enum ZQuests {
     }
 
     public static List<ZQuests> valuesRelease() {
-        return Utils.filterItems(object -> !object.debug, values());
+        return Utils.filterItems(object -> 0 != (object.flag & FLAG_DEBUG), values());
+    }
+
+    boolean isWolfburg() {
+        return 0 != (flag & FLAG_WOLFBURG);
     }
 }
