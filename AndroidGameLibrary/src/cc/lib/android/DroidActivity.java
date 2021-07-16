@@ -54,11 +54,6 @@ public abstract class DroidActivity extends CCActivityBase {
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-    }
-
-    @Override
     protected void onPause() {
         super.onPause();
     }

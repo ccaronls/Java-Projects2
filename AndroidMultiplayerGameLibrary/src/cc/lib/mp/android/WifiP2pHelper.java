@@ -9,6 +9,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.NetworkInfo;
+import android.net.wifi.WpsInfo;
 import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
@@ -21,6 +22,7 @@ import android.net.wifi.p2p.nsd.WifiP2pServiceRequest;
 import android.net.wifi.p2p.nsd.WifiP2pUpnpServiceRequest;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.widget.Toast;
 
 import java.lang.reflect.Method;
@@ -28,6 +30,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
@@ -171,8 +174,8 @@ public class WifiP2pHelper implements
                 public void run() {
                     newDialog().setTitle(R.string.wifi_popup_title_channel_disconnected)
                             .setMessage(R.string.wifi_popup_msg_channel_auto_reconnect)
-                            .setNegativeButton(R.string.wifi_popup_button_no, null)
-                            .setPositiveButton(R.string.wifi_popup_button_yes, new DialogInterface.OnClickListener() {
+                            .setNegativeButton(R.string.popup_button_no, null)
+                            .setPositiveButton(R.string.popup_button_yes, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     p2pInitialize();
@@ -635,7 +638,7 @@ public class WifiP2pHelper implements
     }
 
     public void removeGroup() {
-        p2p.removeGroup(channel, new MyActionListener("removeGrouop") {
+        p2p.removeGroup(channel, new MyActionListener("removeGroup") {
             @Override
             protected void onDone() {
                 log.info("Group removed SUCCESS");
@@ -652,7 +655,7 @@ public class WifiP2pHelper implements
                     + "\n   passphrase: " + group.getPassphrase()
                     + "\n   owner: " + group.getOwner().deviceName
                     + "\n   clients: " + group.getClientList().size());
-            onGroupInfo(group);
+            //onGroupInfo(group);
         }
     }
 
@@ -671,7 +674,9 @@ public class WifiP2pHelper implements
     public final void connect(final WifiP2pDevice another) {
         final WifiP2pConfig config = new WifiP2pConfig();
         config.deviceAddress = another.deviceAddress;
-        config.groupOwnerIntent = 0; // TODO: ????? - for now we want to force the owner, in this case the owner is the device we are connecting too
+        config.wps.setup = WpsInfo.PBC;
+        Random r = new Random(SystemClock.uptimeMillis());
+        config.groupOwnerIntent = r.nextInt(14);
 
         p2p.connect(channel, config, new MyActionListener("connect") {
             @Override
@@ -693,8 +698,24 @@ public class WifiP2pHelper implements
     }
 
     public void disconnect() {
-        removeGroup();
+        deletePersistentGroups();
         connection = null;
+    }
+
+    private void deletePersistentGroups(){
+        try {
+            Method[] methods = WifiP2pManager.class.getMethods();
+            for (int i = 0; i < methods.length; i++) {
+                if (methods[i].getName().equals("deletePersistentGroup")) {
+                    // Delete any persistent group
+                    for (int netid = 0; netid < 32; netid++) {
+                        methods[i].invoke(p2p, channel, netid, null);
+                    }
+                }
+            }
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -717,17 +738,20 @@ public class WifiP2pHelper implements
 
     public void setDeviceName(String name) {
         try {
-            Method m = p2p.getClass().getMethod(
+            final Method m = p2p.getClass().getMethod(
                     "setDeviceName",
                     new Class[] { WifiP2pManager.Channel.class, String.class,
                             WifiP2pManager.ActionListener.class });
 
-            m.invoke(p2p, channel, name, new MyActionListener("setDeviceName") {
-                @Override
-                protected void onDone() {
-                    log.info("Device name changes success");
+            new Thread() {
+                public void run() {
+                    try {
+                        m.invoke(p2p, channel, name, null);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
-            });
+            }.start();
         } catch (Exception e) {
 
             e.printStackTrace();

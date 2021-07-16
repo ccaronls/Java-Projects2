@@ -7,6 +7,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Arrays;
@@ -32,7 +33,7 @@ import cc.lib.utils.Reflector;
  */
 public class GameClient {
 
-    protected final static Logger log = LoggerFactory.getLogger(GameClient.class);
+    protected final static Logger log = LoggerFactory.getLogger("xxxCCGAMExxx", GameClient.class);
 
     private enum State {
         READY, // connect not called
@@ -168,9 +169,11 @@ public class GameClient {
         switch (state) {
             case READY:
             case DISCONNECTED:
-                socket = new Socket(address, port);
-                socket.setSoTimeout(0);
-                socket.setKeepAlive(true);
+                socket = new Socket();
+                socket.bind(null);
+                socket.connect(new InetSocketAddress(address, port), 5000);
+                //socket.setSoTimeout(5000);
+                //socket.setKeepAlive(true);
                 log.debug("New Socket connect:"
                                 +"\n   remote address=%s"
                                 +"\n   local address=%s"

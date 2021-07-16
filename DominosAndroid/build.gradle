@@ -14,6 +14,11 @@ android {
         targetCompatibility project.targetCompatibility
     }
 
+    defaultConfig {
+        minSdkVersion project.myMinSdkVersion
+        targetSdkVersion project.myTargetSdkVersion
+    }
+
     compileSdkVersion project.myCompileSdkVersion.toInteger()
     buildToolsVersion project.myBuildToolsVersion
 

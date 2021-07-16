@@ -193,7 +193,7 @@ public abstract class MPGameManager implements Application.ActivityLifecycleCall
             }
         };
         lvPlayers.setAdapter(playersAdapter);
-        final Dialog d = activity.newDialogBuilder().setTitle(cc.lib.android.R.string.popup_title_waiting_for_players)
+        final Dialog d = activity.newDialogBuilder().setTitle(R.string.popup_title_waiting_for_players)
                 .setView(lvPlayers)
                 .setNegativeButton(cc.lib.android.R.string.popup_button_cancel, new DialogInterface.OnClickListener() {
                     @Override
@@ -255,6 +255,11 @@ public abstract class MPGameManager implements Application.ActivityLifecycleCall
                         playersAdapter.notifyDataSetChanged();
                     }
                 });
+
+            }
+
+            @Override
+            public void onCommand(ClientConnection conn, GameCommand cmd) {
 
             }
         });
@@ -479,13 +484,13 @@ public abstract class MPGameManager implements Application.ActivityLifecycleCall
                     protected void onSuccess() {
                         if (client.isConnected()) {
                             //showWaitingForPlayersDialogClient(canceleble);
-                            Toast.makeText(activity, cc.lib.android.R.string.toast_connect_success, Toast.LENGTH_LONG).show();
+                            Toast.makeText(activity, R.string.toast_connect_success, Toast.LENGTH_LONG).show();
                             //helper.destroy();
                             //helper = null;
                             onAllClientsJoined();
                         } else if (!isCancelled()) {
                             activity.newDialogBuilder().setTitle(cc.lib.android.R.string.popup_title_error)
-                                    .setMessage(cc.lib.android.R.string.popup_msg_failed_connect_host)
+                                    .setMessage(R.string.popup_msg_failed_connect_host)
                                     .setNegativeButton(cc.lib.android.R.string.popup_button_ok, new DialogInterface.OnClickListener() {
                                         @Override
                                         public void onClick(DialogInterface dialog, int which) {
@@ -525,8 +530,8 @@ public abstract class MPGameManager implements Application.ActivityLifecycleCall
     }
 
     void showWaitingForPlayersDialogClient(final boolean cancelable) {
-        final AlertDialog d = activity.newDialogBuilder().setTitle(cc.lib.android.R.string.popup_title_waiting)
-                .setMessage(cc.lib.android.R.string.popup_msg_waiting_for_players)
+        final AlertDialog d = activity.newDialogBuilder().setTitle(R.string.popup_title_waiting)
+                .setMessage(R.string.popup_msg_waiting_for_players)
                 .setNegativeButton(cc.lib.android.R.string.popup_button_cancel, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {

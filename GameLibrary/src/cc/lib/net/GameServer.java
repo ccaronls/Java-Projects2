@@ -1,6 +1,7 @@
 package cc.lib.net;
 
 import java.io.*;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
@@ -34,7 +35,7 @@ import cc.lib.logger.LoggerFactory;
  */
 public class GameServer {
 
-    private final Logger log = LoggerFactory.getLogger(GameServer.class);
+    private final Logger log = LoggerFactory.getLogger("xxxCCGAMExxx", GameServer.class);
     
     /**
      *
@@ -51,10 +52,17 @@ public class GameServer {
          * @param conn
          */
         void onReconnection(ClientConnection conn);
-        /*
 
+        /*
          */
         void onClientDisconnected(ClientConnection conn);
+
+        /**
+         *
+         * @param conn
+         * @param cmd
+         */
+        void onCommand(ClientConnection conn, GameCommand cmd);
     }
     
     // keep sorted by alphabetical order 
@@ -133,6 +141,15 @@ public class GameServer {
      */
     public void listen() throws IOException {
         ServerSocket socket = new ServerSocket(port);
+        new Thread(socketListener = new SocketListener(socket)).start();
+    }
+
+    /**
+     * Start listening for connections
+     * @throws IOException
+     */
+    public void listen(InetAddress addr) throws IOException {
+        ServerSocket socket = new ServerSocket(port, 50, addr);
         new Thread(socketListener = new SocketListener(socket)).start();
     }
 

@@ -320,7 +320,7 @@ public class ClientConnection implements Runnable {
             try {
                 reader.queue(GameCommand.parse(in));
             } catch (Exception e) {
-                //e.printStackTrace();
+                e.printStackTrace();
                 if (isConnected()) {
                     log.error("ClientConnection: Connection with client '" + name + "' dropped: " + e.getClass().getSimpleName() + " " + e.getMessage());
                     if (listeners.size() > 0) {
@@ -371,8 +371,15 @@ public class ClientConnection implements Runnable {
         } else if (cmd.getType() == GameCommandType.CL_HANDLE) {
             this.handle = cmd.getName();
         } else {
+            for (GameServer.Listener l : server.getListeners()) {
+                l.onCommand(this, cmd);
+            }
+
             if (listeners.size() > 0) {
-                Listener [] arr = listeners.toArray(new Listener[listeners.size()]);
+                Listener [] arr;
+                synchronized (this) {
+                    arr = listeners.toArray(new Listener[listeners.size()]);
+                }
                 for (Listener l : arr) {
                     if (l != null)
                         l.onCommand(this, cmd);
