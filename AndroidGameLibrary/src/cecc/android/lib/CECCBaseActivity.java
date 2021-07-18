@@ -167,7 +167,8 @@ public abstract class CECCBaseActivity extends BillingActivity {
 	}
 
     @Override
-    protected void onResumeWithPermissions() {
+	public void onResume() {
+		super.onResume();
 		if (ambientSensor != null) {
     		ambientSensor.registerListener(ambientListener, temp, SensorManager.SENSOR_DELAY_NORMAL);
 		}		 

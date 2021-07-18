@@ -35,10 +35,21 @@
         android:layout_weight="1"
         android:layout_height="wrap_content"
         android:background="#fff"/>
-    
-    <EditText
-        android:id="@+id/edittext"
+
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="100dp"/>
+        android:layout_height="100dp">
+        <EditText
+            android:id="@+id/edittext"
+            android:layout_width="0dp"
+            android:layout_weight="5"
+            android:layout_height="match_parent"/>
+        <Button
+            android:id="@+id/bSend"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="Send"/>
+    </LinearLayout>
 
 </LinearLayout>

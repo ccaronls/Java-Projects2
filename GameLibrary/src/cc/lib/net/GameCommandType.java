@@ -95,9 +95,6 @@ public final class GameCommandType implements Comparable<GameCommandType> {
     static final GameCommandType CL_REMOTE_RETURNS = new GameCommandType("CL_REMOTE_RETURNS");
     // additional info is name and version
     static final GameCommandType CL_CONNECT = new GameCommandType("CL_CONNECT");
-    // additional info is name and version
-    @Deprecated
-    static final GameCommandType CL_RECONNECT = new GameCommandType("CL_RECONNECT");
     // no additional info
     static final GameCommandType CL_KEEPALIVE = new GameCommandType("CL_KEEPALIVE");
     // report an error that occured on the client

@@ -451,7 +451,7 @@ public class GameServer {
 
 
                 ClientConnection conn = null;
-                
+                boolean reconnection = false;
                 synchronized (clients) {
                     if (cmd.getType() == GameCommandType.CL_CONNECT) {
                         conn = null;
@@ -461,6 +461,7 @@ public class GameServer {
                                 //new GameCommand(GameCommandType.SVR_MESSAGE).setMessage("ERROR: A client with the name '" + name + "' is already connected").write(out);
                                 throw new ProtocolException("client with name already exists");
                             }
+                            reconnection = true;
                         }
                         if (conn == null) {
                             if (clients.size() >= maxConnections) {
@@ -470,21 +471,6 @@ public class GameServer {
                         }
                         conn.connect(socket, in, out);
                         clients.put(name, conn);
-                    } else if (cmd.getType() == GameCommandType.CL_RECONNECT) {
-                        if (!clients.containsKey(name)) {
-                            //new GameCommand(GameCommandType.SVR_MESSAGE).setMessage("ERROR: No record of client with the name '" + name + "' was found").write(out);
-                            throw new ProtocolException("Unknown client connection '" + name + "'");
-                        } 
-    
-                        conn = clients.get(name);
-                        if (conn.isConnected()) {
-                            //new GameCommand(GameCommandType.SVR_MESSAGE).setMessage("ERROR: A client with the name '" + name + "' is already connected").write(out);
-                            throw new ProtocolException("Client '"  + name + "' is already connected");
-                        }
-                        conn.connect(socket, in , out);
-                        //new GameCommand(GameCommandType.SVR_CONNECTED).setArg("keepAlive", clientReadTimeout).write(out);
-                        //log.debug("GameServer: Client " + name + " connected");
-                        //serverListener.onReconnection(conn);
                     } else {
                         throw new ProtocolException("Handshake failed: Invalid client command: " + cmd);
                     }
@@ -500,11 +486,12 @@ public class GameServer {
                 List<Listener> list = new ArrayList<>(listeners);
 
                 if (cmd.getType() == GameCommandType.CL_CONNECT) {
-                    for (Listener l : list)
-                        l.onConnected(conn);
-                } else {
-                    for (Listener l : list)
-                        l.onReconnection(conn);
+                    for (Listener l : list) {
+                        if (reconnection)
+                            l.onReconnection(conn);
+                        else
+                            l.onConnected(conn);
+                    }
                 }
 
                 // process other listeners

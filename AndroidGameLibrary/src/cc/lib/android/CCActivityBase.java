@@ -56,12 +56,14 @@ public class CCActivityBase extends Activity {
         }
 	    super.onCreate(bundle);
 	}
-	
-	@Override
-	protected final void onResume() {
-	    super.onResume();
-	    String [] permissions;
-        if (Build.VERSION.SDK_INT >= 23 && (permissions=getRequiredPermissions()).length > 0) {
+
+    /**
+     * DO NOT CALL FROM onResume!!!!
+     *
+     * @param permissions
+     */
+    public void checkPermissions(String [] permissions) {
+        if (Build.VERSION.SDK_INT >= 23 && permissions.length > 0) {
             List<String> permissionsToRequest = new ArrayList<>();
             for (String p : permissions) {
                 if (checkCallingOrSelfPermission(p) != PackageManager.PERMISSION_GRANTED) {
@@ -75,12 +77,12 @@ public class CCActivityBase extends Activity {
                 return;
             }
         }
-        onResumeWithPermissions();
+        onAllPermissionsGranted();
 	}
 
-	protected void onResumeWithPermissions() {}
+	protected void onAllPermissionsGranted() {}
 
-	protected void onResumeWithoutPermissions(List<String> permissionsNotGranted) {
+	protected void onPermissionLimited(List<String> permissionsNotGranted) {
         newDialogBuilder().setTitle("Cannot Launch")
                 .setMessage("The following permissions are not granted and app cannot run;\n" + permissionsNotGranted)
                 .setNegativeButton("Ok", new DialogInterface.OnClickListener() {
@@ -201,11 +203,6 @@ public class CCActivityBase extends Activity {
 	    return new AlertDialog.Builder(this);
     }
 
-    protected String [] getRequiredPermissions() {
-        return new String[0];
-    }
-
-
     @Override
     public final void onRequestPermissionsResult(int requestCode, String permissions[], final int[] grantResults) {
         switch (requestCode) {
@@ -217,9 +214,9 @@ public class CCActivityBase extends Activity {
                     }
                 }
                 if (permissionsNotGranted.size() > 0) {
-                    onResumeWithoutPermissions(permissionsNotGranted);
+                    onPermissionLimited(permissionsNotGranted);
                 } else {
-                    onResumeWithPermissions();
+                    onAllPermissionsGranted();
                 }
                 break;
             }

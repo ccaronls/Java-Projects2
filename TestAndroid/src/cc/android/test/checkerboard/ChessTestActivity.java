@@ -42,7 +42,8 @@ public class ChessTestActivity extends DroidActivity {
     }
 
     @Override
-    protected void onResumeWithPermissions() {
+    protected void onResume() {
+        super.onResume();
         game.setRules(new Chess());
         game.setPlayer(0, new UIPlayer(UIPlayer.Type.AI, 3));
         game.setPlayer(1, new UIPlayer(UIPlayer.Type.AI, 3));

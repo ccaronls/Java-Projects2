@@ -153,7 +153,7 @@ public class P2PJoinGameDialog extends BaseAdapter
                 helper.connect(d);
                 synchronized (helper) {
                     try {
-                        helper.wait(10000);
+                        helper.wait(30000);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -190,7 +190,7 @@ public class P2PJoinGameDialog extends BaseAdapter
 
     public void showError(String msg) {
         Log.e(P2PHelper.TAG, msg);
-        Toast.makeText(context, msg, Toast.LENGTH_LONG).show();
+        context.runOnUiThread(() -> Toast.makeText(context, msg, Toast.LENGTH_LONG).show());
     }
 
 }

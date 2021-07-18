@@ -171,7 +171,7 @@ public class GameClient {
             case DISCONNECTED:
                 socket = new Socket();
                 socket.bind(null);
-                socket.connect(new InetSocketAddress(address, port), 5000);
+                socket.connect(new InetSocketAddress(address, port), 30000);
                 //socket.setSoTimeout(5000);
                 //socket.setKeepAlive(true);
                 log.debug("New Socket connect:"
