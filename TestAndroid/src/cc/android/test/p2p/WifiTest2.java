@@ -139,7 +139,7 @@ public class WifiTest2 extends CCActivityBase implements
         if (text.length() > 0) {
             addListEntry(text, Color.BLACK, true);
             if (client != null) {
-                client.sendCommand(getMessageCommand(text, Color.RED, null));
+                client.sendCommand(getMessageCommand(text, myColor, null));
             } else if (server != null) {
                 server.broadcastCommand(getMessageCommand(text, Color.RED, getClientName()));
             }
@@ -224,7 +224,6 @@ public class WifiTest2 extends CCActivityBase implements
             Color.CYAN,
             Color.MAGENTA,
             GColor.ORANGE.toARGB(),
-            Color.RED,
             Color.GREEN,
             Color.DKGRAY,
             Color.GRAY,
@@ -258,10 +257,11 @@ public class WifiTest2 extends CCActivityBase implements
             int color = cmd.getInt("color");
             addListEntry(conn.getDisplayName() + ":" + cmd.getMessage(), color, false);
 
+            cmd.setName(conn.getDisplayName());
             for (ClientConnection c : server.getConnectionValues()) {
                 if (c == conn)
                     continue;
-                c.sendCommand(cmd.setName(conn.getDisplayName()));
+                c.sendCommand(cmd);
             }
 
         }
@@ -275,12 +275,12 @@ public class WifiTest2 extends CCActivityBase implements
     public void onCommand(GameCommand cmd) {
         if (cmd.getType() == TEXT_MSG) {
             int color = cmd.getInt("color");
-            addListEntry(cmd.getMessage(), color, false);
+            addListEntry(cmd.getName() + ":" + cmd.getMessage(), color, false);
         } else if (cmd.getType() == ASSIGN_COLOR) {
             myColor = cmd.getInt("color");
             addListEntry("Color Assigned", myColor, true);
         } else {
-            addListEntry(cmd.getType().name() + ":" + cmd.getMessage(), Color.RED, false);
+            addListEntry(cmd.getType().name() + ":" + cmd.getMessage(), Color.RED, true);
         }
     }
 
