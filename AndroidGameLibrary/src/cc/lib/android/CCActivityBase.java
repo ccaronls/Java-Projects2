@@ -10,10 +10,12 @@ import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.text.InputFilter;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -243,4 +245,23 @@ public class CCActivityBase extends Activity {
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         }
     }
+
+    public void showEditTextInputPopup(String title, String defaultValue, String hint, int maxChars, Utils.Callback<String> callabck) {
+        EditText et = new EditText(this);
+        et.setHint(hint);
+        et.setText(defaultValue);
+        et.setFilters(new InputFilter[] { new InputFilter.LengthFilter(maxChars) });
+        newDialogBuilder().setTitle(title)
+                .setView(et)
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton(R.string.popup_button_ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String txt = et.getText().toString();
+                        callabck.onDone(txt);
+                    }
+                }).show();
+
+    }
+
 }

@@ -7,18 +7,18 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
         <Button
-            android:id="@+id/bSearchHosts"
+            android:id="@+id/bStart"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Search Hosts"/>
+            android:text="Start"/>
 
         <Button
-            android:id="@+id/bBecomeHosts"
+            android:id="@+id/bClients"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Become Hosts"/>
+            android:text="Show Clients"/>
 
         <Button
             android:id="@+id/bDisconnect"

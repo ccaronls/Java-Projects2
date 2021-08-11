@@ -34,6 +34,7 @@ import cc.lib.net.GameClient;
 import cc.lib.net.GameCommand;
 import cc.lib.net.GameServer;
 
+@Deprecated
 public abstract class MPGameManager implements Application.ActivityLifecycleCallbacks {
 
     private static Logger log = LoggerFactory.getLogger(MPGameManager.class);
@@ -101,7 +102,7 @@ public abstract class MPGameManager implements Application.ActivityLifecycleCall
      *
      */
     public void startHostMultiplayer() {
-        new SpinnerTask(activity) {
+        new SpinnerTask<String>(activity) {
             @Override
             protected void doIt(String ... args) throws Exception {
                 server.listen();
@@ -139,7 +140,7 @@ public abstract class MPGameManager implements Application.ActivityLifecycleCall
                 activity.newDialogBuilder().setTitle(cc.lib.android.R.string.popup_title_error).setMessage("Failed to start server: " + e.getLocalizedMessage()).setNegativeButton(cc.lib.android.R.string.popup_button_ok, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        new SpinnerTask(activity) {
+                        new SpinnerTask<String>(activity) {
                             @Override
                             protected void doIt(String ... args) throws Exception {
                                 killMPGame();
@@ -193,12 +194,12 @@ public abstract class MPGameManager implements Application.ActivityLifecycleCall
             }
         };
         lvPlayers.setAdapter(playersAdapter);
-        final Dialog d = activity.newDialogBuilder().setTitle(R.string.popup_title_waiting_for_players)
+        final Dialog d = activity.newDialogBuilder().setTitle(R.string.popup_title_connected_clients)
                 .setView(lvPlayers)
                 .setNegativeButton(cc.lib.android.R.string.popup_button_cancel, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        new SpinnerTask(activity) {
+                        new SpinnerTask<String>(activity) {
                             @Override
                             protected void doIt(String ... args) throws Exception {
                                 killMPGame();
@@ -360,11 +361,11 @@ public abstract class MPGameManager implements Application.ActivityLifecycleCall
                     clientDialog.dismiss();
                     clientDialog = null;
                 }
-                new SpinnerTask(activity) {
+                new SpinnerTask<String>(activity) {
                     @Override
                     protected void doIt(String ... args) throws Exception {
                         stopPeerDiscovery();
-                        client.connect(info.groupOwnerAddress, port);
+                        client.connectBlocking(info.groupOwnerAddress, port);
                     }
 
                     @Override
@@ -386,7 +387,7 @@ public abstract class MPGameManager implements Application.ActivityLifecycleCall
                                 .setNegativeButton(cc.lib.android.R.string.popup_button_ok, new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
-                                        new SpinnerTask(activity) {
+                                        new SpinnerTask<String>(activity) {
                                             @Override
                                             protected void doIt(String ... args) throws Exception {
                                                 killMPGame();
@@ -441,7 +442,7 @@ public abstract class MPGameManager implements Application.ActivityLifecycleCall
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 final WifiP2pDevice d = (WifiP2pDevice)view.getTag();
-                new SpinnerTask(activity) {
+                new SpinnerTask<String>(activity) {
 
                     @Override
                     protected String getProgressMessage() {
@@ -451,7 +452,7 @@ public abstract class MPGameManager implements Application.ActivityLifecycleCall
                     @Override
                     protected void onCancelled() {
                         super.onCancelled();
-                        new SpinnerTask(activity) {
+                        new SpinnerTask<String>(activity) {
                             @Override
                             protected void doIt(String ... args) throws Exception {
                                 helper.cancelConnect();
@@ -504,7 +505,7 @@ public abstract class MPGameManager implements Application.ActivityLifecycleCall
             }
         });
 
-        new SpinnerTask(activity) {
+        new SpinnerTask<String>(activity) {
             @Override
             protected void doIt(String ... args) {
                 helper.p2pInitialize();
@@ -563,7 +564,7 @@ public abstract class MPGameManager implements Application.ActivityLifecycleCall
             }
 
             @Override
-            public void onDisconnected(String reason) {
+            public void onDisconnected(String reason, boolean serverInitiated) {
 
             }
 

@@ -1,8 +1,7 @@
 package cc.android.test.p2p;
 
-import android.Manifest;
+import android.content.DialogInterface;
 import android.graphics.Color;
-import android.os.Build;
 import android.os.Bundle;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -16,41 +15,52 @@ import android.widget.TextView;
 import java.util.LinkedList;
 
 import cc.android.test.R;
-import cc.lib.android.CCActivityBase;
-import cc.lib.android.SpinnerTask;
 import cc.lib.game.GColor;
+import cc.lib.mp.android.P2PActivity;
 import cc.lib.net.ClientConnection;
 import cc.lib.net.GameClient;
 import cc.lib.net.GameCommand;
 import cc.lib.net.GameCommandType;
 import cc.lib.net.GameServer;
 
-public class WifiTest2 extends CCActivityBase implements
+public class WifiTest2 extends P2PActivity implements
         View.OnClickListener,
-        GameServer.Listener,
         GameClient.Listener,
+        GameServer.Listener,
         Runnable {
 
-    static final String TAG = WifiTest2.class.getSimpleName();
-
-    GameServer server;
-    GameClient client;
     ListView listView;
     EditText editText;
-    View bSearchHosts, bBecomeHost, bDisconnect;
+    View bStart, bShowClients, bDisconnect;
     final LinkedList<ListItem> items = new LinkedList<>();
     final MyAdapter adapter = new MyAdapter();
+    P2PServer serverController = null;
 
-    final int PORT = 31313;
-    final String VERSION = "1.0";
-    final int MAX_CONNECTIONS = 10;
-    int maxClients = 2;
+//    final int PORT = 31313;
+//    final String VERSION = "1.0";
+//    final int MAX_CONNECTIONS = 10;
+//    int maxClients = 2;
+
+
+    @Override
+    protected int getConnectPort() {
+        return 31313;
+    }
+
+    @Override
+    protected String getVersion() {
+        return "1.0";
+    }
+
+    @Override
+    protected int getMaxConnections() {
+        return 2;
+    }
 
     enum State {
         DISCONNECTED,
         HOSTING,
-        CLIENT_SEARCHING,
-        CLIENT_CONNECTED
+        CLIENT
     }
 
     static class ListItem {
@@ -90,7 +100,6 @@ public class WifiTest2 extends CCActivityBase implements
             }
 
             TextView tv = (TextView)view;
-            //tv.setTextSize(DroidUtils.convertDipsToPixels(WifiTest2.this, 18));
             tv.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 24);
             ListItem item = items.get(i);
 
@@ -106,8 +115,8 @@ public class WifiTest2 extends CCActivityBase implements
     protected void onCreate(Bundle bundle) {
         super.onCreate(bundle);
         setContentView(R.layout.wifi2_activity);
-        (bBecomeHost = findViewById(R.id.bBecomeHosts)).setOnClickListener(this);
-        (bSearchHosts = findViewById(R.id.bSearchHosts)).setOnClickListener(this);
+        (bStart = findViewById(R.id.bStart)).setOnClickListener(this);
+        (bShowClients = findViewById(R.id.bClients)).setOnClickListener(this);
         (bDisconnect = findViewById(R.id.bDisconnect)).setOnClickListener(this);
         findViewById(R.id.bSend).setOnClickListener(this);
         listView = findViewById(R.id.listview);
@@ -119,29 +128,67 @@ public class WifiTest2 extends CCActivityBase implements
     @Override
     protected void onStart() {
         super.onStart();
-        checkPermissions(getRequiredPermissions());
+        p2pInit();
     }
 
     @Override
-    protected void onAllPermissionsGranted() {
+    protected void onResume() {
+        super.onResume();
         hideKeyboard();
     }
 
-    GameCommandType TEXT_MSG = new GameCommandType("TEXT_MSG");
-    GameCommandType ASSIGN_COLOR = new GameCommandType("ASSIGN_COLOR");
+    static GameCommandType TEXT_MSG = new GameCommandType("TEXT_MSG");
+    static GameCommandType ASSIGN_COLOR = new GameCommandType("ASSIGN_COLOR");
 
     GameCommand getMessageCommand(String msg, int color, String source) {
         return new GameCommand(TEXT_MSG).setArg("color", color).setName(source).setMessage(msg);
+    }
+
+    @Override
+    protected void onP2PReady() {
+        String handle = getPrefs().getString("handle", null);
+        EditText et = new EditText(this);
+        et.setHint("Handle");
+        et.setText(handle);
+
+        newDialogBuilder().setTitle("Set Handle")
+                .setView(et)
+                .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        getPrefs().edit().putString("handle", et.getText().toString()).apply();
+                    }
+                }).show();
+
+
+
+
+        // do nothing
+    }
+
+    @Override
+    protected void onP2PClient(P2PClient p2pClient) {
+        p2pClient.getClient().addListener(this);
+        p2pClient.getClient().setDisplayName(getPrefs().getString("handle", "Unknown"));
+        runOnUiThread(new UpdateButtonsRunnable(State.CLIENT));
+    }
+
+    @Override
+    protected void onP2PServer(P2PServer p2pServer) {
+        p2pServer.openConnections();
+        p2pServer.getServer().addListener(this);
+        this.serverController = p2pServer;
+        runOnUiThread(new UpdateButtonsRunnable(State.HOSTING));
     }
 
     private void sendText() {
         String text = editText.getText().toString();
         if (text.length() > 0) {
             addListEntry(text, Color.BLACK, true);
-            if (client != null) {
-                client.sendCommand(getMessageCommand(text, myColor, null));
-            } else if (server != null) {
-                server.broadcastCommand(getMessageCommand(text, Color.RED, getClientName()));
+            if (getClient() != null) {
+                getClient().sendCommand(getMessageCommand(text, myColor, null));
+            } else if (getServer() != null) {
+                getServer().broadcastCommand(getMessageCommand(text, Color.RED, getDeviceName()));
             }
         }
         editText.getText().clear();
@@ -156,19 +203,14 @@ public class WifiTest2 extends CCActivityBase implements
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
-            case R.id.bBecomeHosts:
-                server = new GameServer(getClientName(), PORT, 20000, VERSION, null, MAX_CONNECTIONS);
-                server.addListener(this);
-                new P2PServerWaitingDialog(this, server, getClientName(), PORT);                initButtons(State.HOSTING);
+            case R.id.bStart:
+                p2pStart();
                 break;
-            case R.id.bSearchHosts:
-                client = new GameClient(getClientName(), VERSION, null);
-                client.addListener(this);
-                new P2PJoinGameDialog(this, client, getClientName(), PORT);
-                initButtons(State.CLIENT_SEARCHING);
+            case R.id.bClients:
+                serverController.openConnections();
                 break;
             case R.id.bDisconnect:
-                killMPGame();
+                p2pShutdown();
                 initButtons(State.DISCONNECTED);
                 break;
             case R.id.bSend:
@@ -190,33 +232,20 @@ public class WifiTest2 extends CCActivityBase implements
         switch (state) {
             case DISCONNECTED:
                 bDisconnect.setEnabled(false);
-                bSearchHosts.setEnabled(true);
-                bBecomeHost.setEnabled(true);
+                bShowClients.setEnabled(false);
+                bStart.setEnabled(true);
                 break;
             case HOSTING:
-            case CLIENT_CONNECTED:
-            case CLIENT_SEARCHING:
                 bDisconnect.setEnabled(true);
-                bSearchHosts.setEnabled(false);
-                bBecomeHost.setEnabled(false);
+                bShowClients.setEnabled(true);
+                bStart.setEnabled(false);
+                break;
+            case CLIENT:
+                bDisconnect.setEnabled(true);
+                bShowClients.setEnabled(false);
+                bStart.setEnabled(false);
                 break;
         }
-    }
-
-    String[] getRequiredPermissions() {
-        return new String[]{
-                    Manifest.permission.ACCESS_WIFI_STATE,
-                    Manifest.permission.CHANGE_WIFI_STATE,
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION,
-                    Manifest.permission.ACCESS_NETWORK_STATE,
-                    Manifest.permission.CHANGE_NETWORK_STATE,
-                    Manifest.permission.INTERNET
-            };
-    }
-
-    String getClientName() {
-        return String.format("%s-%s-%s WifiTest2-%s", Build.MANUFACTURER ,Build.PRODUCT, Build.VERSION.SDK_INT, VERSION);
     }
 
     int [] colors = {
@@ -243,7 +272,7 @@ public class WifiTest2 extends CCActivityBase implements
 
     @Override
     public void onReconnection(ClientConnection conn) {
-        addListEntry("Client Reconnected: " + conn.getDisplayName(), Color.YELLOW, false);
+        addListEntry("Client Reconnected: " + conn.getDisplayName(), GColor.ORANGE.toARGB(), false);
     }
 
     @Override
@@ -258,13 +287,18 @@ public class WifiTest2 extends CCActivityBase implements
             addListEntry(conn.getDisplayName() + ":" + cmd.getMessage(), color, false);
 
             cmd.setName(conn.getDisplayName());
-            for (ClientConnection c : server.getConnectionValues()) {
+            for (ClientConnection c : getServer().getConnectionValues()) {
                 if (c == conn)
                     continue;
                 c.sendCommand(cmd);
             }
 
         }
+    }
+
+    @Override
+    public void onServerStopped() {
+        runOnUiThread(new UpdateButtonsRunnable(State.DISCONNECTED));
     }
 
     // GameClient callbacks
@@ -290,32 +324,26 @@ public class WifiTest2 extends CCActivityBase implements
     }
 
     @Override
-    public void onDisconnected(String reason) {
+    public void onDisconnected(String reason, boolean serverInitiated) {
         addListEntry("Disconnected: " + reason, Color.RED, true);
+        runOnUiThread(new UpdateButtonsRunnable(State.DISCONNECTED));
     }
 
     @Override
     public void onConnected() {
         addListEntry("Connected", Color.GREEN, true);
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                initButtons(State.CLIENT_CONNECTED);
-            }
-        });
+        runOnUiThread(new UpdateButtonsRunnable(State.CLIENT));
     }
 
-    public void killMPGame() {
-        if (server != null) {
-            new SpinnerTask(this) {
-                @Override
-                protected void doIt(String... args) throws Exception {
-                    server.stop();
-                }
-            }.execute();
+    class UpdateButtonsRunnable implements Runnable {
+        final State state;
+
+        public UpdateButtonsRunnable(State state) {
+            this.state = state;
         }
-        if (client != null) {
-            client.disconnect();
+
+        public void run() {
+            initButtons(state);
         }
     }
 }

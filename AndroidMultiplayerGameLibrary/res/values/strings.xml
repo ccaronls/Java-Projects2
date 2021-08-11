@@ -21,7 +21,7 @@
     <string name="popup_title_confirm">Confirm</string>
     <string name="popup_title_client_session">Client Session</string>
     <string name="popup_title_notice">Notice</string>
-    <string name="popup_title_waiting_for_players">Waiting for players</string>
+    <string name="popup_title_connected_clients">Connected Clients</string>
     <string name="popup_title_connecting">Connecting</string>
     <string name="popup_title_hosts">Hosts</string>
     <string name="popup_title_waiting">Waiting</string>
@@ -31,10 +31,12 @@
     <string name="popup_title_game_over">Game Over</string>
 
     <string name="popup_button_kick">Kick</string>
+    <string name="popup_button_unkick">Unkick</string>
     <string name="popup_button_start">Start</string>
     <string name="popup_button_forfiet">Forfiet</string>
     <string name="popup_button_continue_without">Continue Without</string>
     <string name="popup_button_proceed">Proceed anyway</string>
+    <string name="popup_button_disconnect">Disconnect</string>
 
     <string name="list_item_player_status_connected">%s connected</string>
     <string name="list_item_player_status_disconnected">%s disconnected</string>
@@ -68,6 +70,25 @@
     <string name="server_broadcast_starting_new_game">Starting a new game</string>
 
     <string name="client_disconnected_reason_kicked_out">Kicked out</string>
-    <string name="client_disconnected_reason_droppped">Dropped</string>
+    <string name="client_disconnected_reason_dropped">Dropped</string>
+
+    <string name="p2p_popup_title_unsupported">Unsupported</string>
+    <string name="p2p_popup_message_unsupported">P2P Not Supported on this device</string>
+    <string name="p2p_popup_title_missing_permissions">Missing Permissions</string>
+    <string name="p2p_popup_message_missing_permissions">
+        P2P Not available unless following permissions granted:
+        %s
+        Go to Settings to enable these permissions.
+    </string>
+    <string name="p2p_popup_title_choose_mode">Choose P2P Mode</string>
+    <string-array name="p2p_popup_choose_mode_items">
+        <item>Search Hosts</item>
+        <item>Start as Host</item>
+    </string-array>
+    <string name="p2p_progress_message_disconnecting">Disconnecting...</string>
+    <string name="popup_title_join_game">Join Game</string>
+    <string name="popup_progress_msg_pleasewait_for_invite">Please wait for your invite to be accepted</string>
+    <string name="popup_error_msg_failed_to_connect">Failed to client connect</string>
+    <string name="join_game_dialog_client_label">%1$s %2$s</string>
 
 </resources>

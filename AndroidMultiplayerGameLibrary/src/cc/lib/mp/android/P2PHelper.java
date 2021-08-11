@@ -1,4 +1,4 @@
-package cc.android.test.p2p;
+package cc.lib.mp.android;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -49,25 +49,35 @@ abstract class P2PHelper extends BroadcastReceiver implements
     private GameServer server;
     private GameClient client;
 
-    public P2PHelper(CCActivityBase activity) {
-        this.activity =activity;
-        if (!activity.getPackageManager().hasSystemFeature(PackageManager.FEATURE_WIFI_DIRECT)) {
+    public static boolean isP2PAvailable(Context context) {
+        if (!context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_WIFI_DIRECT)) {
             Log.e(TAG, "Wi-Fi Direct is not supported by this device.");
-            throw new RuntimeException("Wifi P2P Not available");
+            return false;
         }
-        p2pMgr = (WifiP2pManager) activity.getSystemService(Context.WIFI_P2P_SERVICE);
+        WifiP2pManager p2pMgr = (WifiP2pManager) context.getSystemService(Context.WIFI_P2P_SERVICE);
+        if (p2pMgr == null) {
+            return false;
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            WifiManager wifiManager = (WifiManager) activity.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+            WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
             if (!wifiManager.isP2pSupported()) {
-                throw new RuntimeException("Wifi P2P Not available");
+                return false;
             }
         }
+        return true;
+    }
+
+    public P2PHelper(CCActivityBase activity) {
+        if (!isP2PAvailable(activity))
+            throw new IllegalArgumentException("P2P Not supported");
+        this.activity =activity;
         p2pFilter = new IntentFilter();
         p2pFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
         //p2pFilter.addAction(WifiP2pManager.WIFI_P2P_DISCOVERY_CHANGED_ACTION);
         p2pFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
         p2pFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
         p2pFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
+        p2pMgr = (WifiP2pManager) activity.getSystemService(Context.WIFI_P2P_SERVICE);
         channel = p2pMgr.initialize(activity, activity.getMainLooper(), null);
     }
 
@@ -133,7 +143,7 @@ abstract class P2PHelper extends BroadcastReceiver implements
 
     protected abstract void onThisDeviceUpdated(WifiP2pDevice device);
 
-    public void start(GameServer server) {
+    public final void start(GameServer server) {
         if (client != null || this.server != null)
             throw new IllegalArgumentException("Already started");
         this.server = server;
@@ -153,7 +163,7 @@ abstract class P2PHelper extends BroadcastReceiver implements
         }
     }
 
-    public void start(GameClient client) {
+    public final void start(GameClient client) {
         if (this.client != null || server != null)
             throw new IllegalArgumentException("Already started");
         this.client = client;
@@ -162,7 +172,7 @@ abstract class P2PHelper extends BroadcastReceiver implements
         p2pMgr.discoverPeers(channel, new MyActionListener("start(client)"));
     }
 
-    public void stop() {
+    public final void stop() {
         if (server != null) {
             p2pMgr.removeGroup(channel, new MyActionListener("removeGroup"));
         }
@@ -227,7 +237,7 @@ abstract class P2PHelper extends BroadcastReceiver implements
         }
     }
 
-    public void connect(WifiP2pDevice device) throws Exception {
+    public final void connect(WifiP2pDevice device) throws Exception {
 
         try {
             WifiP2pConfig config = new WifiP2pConfig();
@@ -247,7 +257,7 @@ abstract class P2PHelper extends BroadcastReceiver implements
         }
     }
 
-    public void setDeviceName(String name) {
+    public final void setDeviceName(String name) {
         try {
             final Method m = p2pMgr.getClass().getMethod(
                     "setDeviceName",

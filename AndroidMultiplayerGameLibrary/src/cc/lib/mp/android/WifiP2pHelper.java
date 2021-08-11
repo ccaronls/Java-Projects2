@@ -39,6 +39,7 @@ import cc.lib.logger.LoggerFactory;
 /**
  * Created by chriscaron on 2/16/18.
  */
+@Deprecated
 @SuppressLint("MissingPermission")
 public class WifiP2pHelper implements
         WifiP2pManager.ChannelListener,

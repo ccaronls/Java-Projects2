@@ -1,4 +1,4 @@
-package cc.android.test.p2p;
+package cc.lib.mp.android;
 
 import android.app.Dialog;
 import android.content.DialogInterface;
@@ -17,10 +17,8 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 
-import cc.android.test.R;
 import cc.lib.android.CCActivityBase;
 import cc.lib.android.SpinnerTask;
-import cc.lib.mp.android.WifiP2pHelper;
 import cc.lib.net.GameClient;
 import cc.lib.net.GameCommand;
 
@@ -68,27 +66,21 @@ public class P2PJoinGameDialog extends BaseAdapter
             @Override
             protected void onGroupFormed(InetAddress addr, String ipAddress) {
                 Log.d(TAG, "onGroupFormedAsClient: " + ipAddress);
-                new Thread() {
-                    public void run() {
-                        try {
-                            client.connect(addr, connectPort);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            Log.e(TAG, e.getClass().getSimpleName() + " " + e.getMessage());
-                            showError("Failed to client connect to " + ipAddress + ":" + connectPort);
-                        }
-                        synchronized (helper) {
-                            helper.notify();
-                        }
+                client.connectAsync(addr, connectPort, (success)-> {
+                    if (!success) {
+                        showError(context.getString(R.string.popup_error_msg_failed_to_connect));
                     }
-                }.start();
+                    synchronized (helper) {
+                        helper.notify();
+                    }
+                });
             }
         };
         client.addListener(this);
         helper.setDeviceName(clientName);
         helper.start(client);
-        dialog = context.newDialogBuilder().setTitle("Join Game").setView(lvHost)
-                .setNegativeButton("Cancel", this).show();
+        dialog = context.newDialogBuilder().setTitle(R.string.popup_title_join_game).setView(lvHost)
+                .setNegativeButton(R.string.popup_button_cancel, this).show();
     }
 
     @Override
@@ -123,8 +115,8 @@ public class P2PJoinGameDialog extends BaseAdapter
         }
 
         v.setTag(device);
-        TextView tvPeer = (TextView)v.findViewById(R.id.tvPeer);
-        tvPeer.setText(device.deviceName + " " + WifiP2pHelper.statusToString(device.status, context));
+        TextView tvPeer = v.findViewById(R.id.tvPeer);
+        tvPeer.setText(context.getString(R.string.join_game_dialog_client_label, device.deviceName, P2PHelper.statusToString(device.status, context)));
         tvPeer.setBackgroundColor(position % 2 == 0 ? Color.BLACK : Color.DKGRAY);
 
         return v;
@@ -141,15 +133,15 @@ public class P2PJoinGameDialog extends BaseAdapter
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         final WifiP2pDevice d = (WifiP2pDevice)view.getTag();
-        new SpinnerTask(context) {
+        new SpinnerTask<Void>(context) {
 
             @Override
             protected String getProgressMessage() {
-                return "Please wait for all players to connect";
+                return context.getString(R.string.popup_progress_msg_pleasewait_for_invite);
             }
 
             @Override
-            protected void doIt(String ... args) throws Exception {
+            protected void doIt(Void ... args) throws Exception {
                 helper.connect(d);
                 synchronized (helper) {
                     try {
@@ -177,7 +169,7 @@ public class P2PJoinGameDialog extends BaseAdapter
     }
 
     @Override
-    public void onDisconnected(String reason) {
+    public void onDisconnected(String reason, boolean serverInitiated) {
 
     }
 
