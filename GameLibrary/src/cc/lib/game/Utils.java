@@ -8,7 +8,6 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -1763,38 +1762,6 @@ public class Utils {
     }
 
     /**
-     * Populate result array from an array of strings.
-     *
-     * @param arr
-     * @param enumType
-     * @param result
-     * @return
-     */
-    public static <T extends Enum<T>> T[] convertToEnumArray(String[] arr, Class<T> enumType, T[] result) {
-        return convertToEnumArray(Arrays.asList(arr), enumType, result);
-    }
-
-    /**
-     *
-     * @param strings
-     * @param enumType
-     * @param result
-     * @param <T>
-     * @return
-     */
-    public static <T extends Enum<T>> T[] convertToEnumArray(Collection<String> strings, Class<T> enumType, T[] result) {
-        int index = 0;
-        for (String s : strings) {
-            s = s.trim();
-            if (s.length() > 0)
-                result[index++] = Enum.valueOf(enumType, s);
-            if (index == result.length)
-                break;
-        }
-        return result;
-    }
-
-    /**
      * Return string value of a number and its sign (+ / -)
      *
      * @param n
@@ -2740,4 +2707,37 @@ public class Utils {
             array[i+ array.length-num] = result[i];
         }
     }
+
+    public interface Callback<T> {
+        void onDone(T result);
+    }
+
+    public interface Mapper<IN,OUT> {
+        OUT map(IN in);
+    }
+
+    public static <IN,OUT> List<OUT> map(Collection<IN> inList, Mapper<IN,OUT> mapper) {
+        List<OUT> outList = new ArrayList<>();
+        for (IN in : inList) {
+            outList.add(mapper.map(in));
+        }
+        return outList;
+    }
+
+    public static <IN,OUT> List<OUT> map(IN [] inArr, Mapper<IN,OUT> mapper) {
+        List<OUT> outList = new ArrayList<>();
+        for (IN in : inArr) {
+            outList.add(mapper.map(in));
+        }
+        return outList;
+    }
+
+    public static <IN,OUT> OUT [] map(IN [] inArr, OUT [] outArr, Mapper<IN,OUT> mapper) {
+        int idx = 0;
+        for (IN in : inArr) {
+            outArr[idx++] = mapper.map(in);
+        }
+        return outArr;
+    }
+
 }

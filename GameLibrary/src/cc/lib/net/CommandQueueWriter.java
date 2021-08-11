@@ -124,7 +124,7 @@ class CommandQueueWriter {
      * @throws Exception
      */
     void add(GameCommand cmd) {
-//        log.debug("add command: " + cmd, 256, 32);
+        log.debug("add command: " + cmd);
         if (!running)
             throw new GException("commandQueue is not running");
         synchronized (queue) {

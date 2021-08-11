@@ -12,18 +12,18 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import cc.lib.crypt.Cypher;
 import cc.lib.crypt.EncryptionInputStream;
 import cc.lib.crypt.EncryptionOutputStream;
+import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
 import cc.lib.utils.GException;
 import cc.lib.utils.Reflector;
+import cc.lib.utils.WeakHashSet;
 
 /**
  * Base class for clients that want to connect to a GameServer
@@ -44,27 +44,28 @@ public class GameClient {
     }
 
     public interface Listener {
-        void onCommand(GameCommand cmd);
+        default void onCommand(GameCommand cmd) {}
 
-        void onMessage(String msg);
+        default void onMessage(String msg) {}
 
-        void onDisconnected(String reason);
+        default void onDisconnected(String reason, boolean serverInitiated) {}
 
-        void onConnected();
+        default void onConnected() {}
     }
     
     private Socket socket;
     private DataInputStream in;
     private DataOutputStream out;
-    private final String userName;
     private State state = State.READY;
     private final String version;
     private final Cypher cypher;
-    private final Set<Listener> listeners = new HashSet<>();
+    private final WeakHashSet<Listener> listeners = new WeakHashSet<>();
     private String serverName = null;
     private Map<String, Object> executorObjects = new HashMap<>();
     private String passPhrase = null;
-
+    private String displayName;
+    private InetAddress connectAddress;
+    private int connectPort;
 
     // giving package access for JUnit tests ONLY!
     CommandQueueWriter outQueue = new CommandQueueWriter() {
@@ -87,12 +88,14 @@ public class GameClient {
      * Create a client that will connect to a given server using a given login name.  
      * The userName must be unique to the server for successful connect.
      * 
-     * @param userName
+     * @param displayName
      * @param version
      * @param cypher
      */
-    public GameClient(String userName, String version, Cypher cypher) {
-        this.userName = userName;
+    public GameClient(String displayName, String version, Cypher cypher) {
+        if (Utils.isEmpty(displayName))
+            throw new IllegalArgumentException("Display name cannot be empty");
+        this.displayName = displayName;
         this.version = version;
         this.cypher = cypher;
     }
@@ -111,8 +114,8 @@ public class GameClient {
      * 
      * @return
      */
-    public final String getName() {
-        return userName;
+    public final String getDisplayName() {
+        return displayName;
     }
 
     /**
@@ -125,16 +128,6 @@ public class GameClient {
 
     private boolean isIdle() {
         return state == State.READY || state == State.DISCONNECTED;
-    }
-
-    /**
-     *
-     * @param host
-     * @param port
-     * @throws IOException
-     */
-    public final void connect(String host, int port) throws IOException {
-        connect(InetAddress.getByName(host), port);
     }
 
     /**
@@ -158,13 +151,34 @@ public class GameClient {
     }
 
     /**
-     * Asynchronous Connect to the server.  onConnected called when handshake completed.  
+     * Spawn a thread and try to connect.  called on success
+     * @param address
+     * @param port
+     * @param connectCallback called with success or failure when connection complete
+     */
+    public final void connectAsync(InetAddress address, int port, Utils.Callback<Boolean> connectCallback) {
+        new Thread(() -> {
+            try {
+                connectBlocking(address, port);
+                if (connectCallback != null)
+                    connectCallback.onDone(true);
+            } catch (IOException e) {
+                e.printStackTrace();
+                if (connectCallback != null)
+                    connectCallback.onDone(false);
+            }
+        }).start();
+    }
+
+    /**
+     * Asynchronous Connect to the server. Listeners.onConnected called when handshake completed.
+     * Exception thrown otherwise
      * 
      * @throws IOException 
      * @throws UnknownHostException 
      * @throws Exception
      */
-    public final void connect(InetAddress address, int port) throws IOException {
+    public final void connectBlocking(InetAddress address, int port) throws IOException {
         log.debug("Connecting ...");
         switch (state) {
             case READY:
@@ -207,11 +221,11 @@ public class GameClient {
                 out.writeLong(87263450972L); // write out the magic number the servers are expecting
                 out.flush();
                 outQueue.start(out);
-                GameCommandType type = //state == State.READY ?
-                        GameCommandType.CL_CONNECT; // : GameCommandType.CL_RECONNECT;
-                outQueue.add(new GameCommand(type).setName(userName).setVersion(version));
+                outQueue.add(new GameCommand(GameCommandType.CL_CONNECT).setName(displayName).setVersion(version));
                 new Thread(new SocketReader()).start();
                 log.debug("Connection SUCCESS");
+                connectAddress = address;
+                connectPort = port;
                 break;
             case CONNECTED:
             case CONNECTING:
@@ -221,6 +235,16 @@ public class GameClient {
                 throw new IOException("Cannot connect while in state: " + state);
         }
         
+    }
+
+    /**
+     *
+     */
+    public void reconnectAsync() {
+        if (state != State.DISCONNECTED) {
+            throw new IllegalArgumentException("Cannot call reconnect when not in the DISCONNECTED state");
+        }
+        connectAsync(connectAddress, connectPort, null);
     }
     
     /**
@@ -242,7 +266,7 @@ public class GameClient {
     public final void disconnect(String reason) {
         if (state == State.CONNECTED || state == State.CONNECTING) {
             state = State.DISCONNECTING;
-            log.debug("GameClient: client '" + this.getName() + "' disconnecitng ...");
+            log.debug("GameClient: client '" + this.getDisplayName() + "' disconnecitng ...");
             try {
                 outQueue.clear();
                 outQueue.add(new GameCommand(GameCommandType.DISCONNECT).setArg("reason", "player left session"));
@@ -257,7 +281,7 @@ public class GameClient {
             if (listeners.size() > 0) {
                 Listener[] arr = listeners.toArray(new Listener[listeners.size()]);
                 for (Listener l : arr) {
-                    l.onDisconnected(reason);
+                    l.onDisconnected(reason, false);
                 }
             }
             close();
@@ -365,7 +389,7 @@ public class GameClient {
             close();
             if (disconnectedReason != null) {
                 for (Listener l : larray)
-                    l.onDisconnected(disconnectedReason);
+                    l.onDisconnected(disconnectedReason, true);
             }
             log.debug("GameClient: Client Listener Thread exiting");
         }
@@ -426,7 +450,8 @@ public class GameClient {
      *
      * @param displayName
      */
-    public void setHandle(String displayName) {
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
         sendCommand(new GameCommand(GameCommandType.CL_HANDLE).setName(displayName));
     }
 

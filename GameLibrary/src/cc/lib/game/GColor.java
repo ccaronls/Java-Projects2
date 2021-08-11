@@ -55,6 +55,10 @@ public final class GColor extends Reflector<GColor> {
         return new GColor(0xff000000 | rgb);
     }
 
+    public static GColor fromARGB(int argb) {
+        return new GColor(argb);
+    }
+
     public GColor(GColor toCopy) {
         this(toCopy.argb);
     }

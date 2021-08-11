@@ -1471,6 +1471,14 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     public abstract void drawFilledOval(float x, float y, float w, float h);
 
     /**
+     *
+     * @param rect
+     */
+    public final void drawFilledOval(GRectangle rect) {
+        drawFilledOval(rect.x, rect.y, rect.w, rect.h);
+    }
+
+    /**
      * 
      * @param x
      * @param y

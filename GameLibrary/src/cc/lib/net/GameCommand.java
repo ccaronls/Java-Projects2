@@ -4,14 +4,17 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.EOFException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import cc.lib.logger.Logger;
+import cc.lib.logger.LoggerFactory;
 import cc.lib.utils.NoDupesMap;
 import cc.lib.utils.Reflector;
 
@@ -61,8 +64,10 @@ import cc.lib.utils.Reflector;
  */
 public class GameCommand {
 
+    private final static Logger log = LoggerFactory.getLogger(GameCommand.class);
+
     private final GameCommandType type;
-    private final Map<String, Object> arguments = new NoDupesMap<>(new HashMap<String,Object>());
+    private final Map<String, Object> arguments = new NoDupesMap<>(new LinkedHashMap());
 
     /**
      * 
@@ -118,21 +123,24 @@ public class GameCommand {
         return (Double)arguments.get(key);
     }
 
-    public final <T extends Reflector> T parseReflector(String key, T r) {
-        boolean oldKeep = Reflector.KEEP_INSTANCES;
+    public final <T extends Reflector> T parseReflector(String key, T object) throws Exception {
+        boolean save = Reflector.KEEP_INSTANCES;
         try (InputStream in = new ByteArrayInputStream((byte[]) arguments.get(key))) {
-            Reflector.KEEP_INSTANCES = true;
-            r.deserialize(in);
-        } catch (Exception e) {
-            e.printStackTrace();
+            object.deserialize(in);
+            return object;
         } finally {
-            Reflector.KEEP_INSTANCES = oldKeep;
+            Reflector.KEEP_INSTANCES = save;
         }
-        return r;
+    }
+
+    public final <T extends Reflector> T parseReflector(String key) throws Exception {
+        try (InputStream in = new ByteArrayInputStream((byte[]) arguments.get(key))) {
+            return Reflector.deserializeFromInputStream(in);
+        }
     }
 
     /**
-     * 
+     *
      * @return
      */
     String getVersion() {
@@ -287,7 +295,7 @@ public class GameCommand {
         return list;
     }
 
-    static GameCommand parse(DataInputStream din) throws Exception {
+    public static GameCommand parse(DataInputStream din) throws Exception {
         String cmd = din.readUTF();
         GameCommandType type = GameCommandType.valueOf(cmd);
         GameCommand command = new GameCommand(type);
@@ -316,11 +324,21 @@ public class GameCommand {
                 case TYPE_STRING:
                     command.arguments.put(key, din.readUTF());
                     break;
-                case TYPE_BYTE_ARRAY:
-                    byte [] arr = new byte[din.readInt()];
-                    din.read(arr);
+                case TYPE_BYTE_ARRAY: {
+                    int len = din.readInt();
+                    log.debug("Reading %d byes", len);
+                    byte[] arr = new byte[len];
+                    int read = din.read(arr);
+                    while (read < len) {
+                        int r = din.read(arr, read, len-read);
+                        if (r < 0)
+                            throw new EOFException();
+                        read += r;
+                    }
+                    log.debug("Read %d byes", len);
                     command.arguments.put(key, arr);
                     break;
+                }
                 default:
                     throw new cc.lib.utils.GException("Unhandled type " + itype);
             }
@@ -333,7 +351,7 @@ public class GameCommand {
      * @param dout
      * @throws Exception
      */
-    final void write(DataOutputStream dout) throws Exception {
+    public final void write(DataOutputStream dout) throws Exception {
         dout.writeUTF(type.name());
         dout.writeInt(arguments.size());
         for (String key : arguments.keySet()) {
@@ -364,7 +382,9 @@ public class GameCommand {
                     ((Reflector) o).serialize(out);
                     dout.writeByte(TYPE_BYTE_ARRAY);
                     dout.writeInt(out.size());
+                    log.debug("Writing %d bytes", out.size());
                     dout.write(out.toByteArray());
+                    dout.flush();
                 }
             } else {
                 dout.writeByte(TYPE_STRING);
