@@ -835,4 +835,11 @@ public class ReflectorTest extends TestCase {
 
         System.out.println(mm);
     }
+
+    public void testEnumAsField() throws Exception {
+
+        SmallReflector r = new SmallReflector();
+        System.out.println(r.toStringNumbered());
+
+    }
 }

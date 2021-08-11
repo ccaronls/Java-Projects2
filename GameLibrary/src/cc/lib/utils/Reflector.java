@@ -209,7 +209,9 @@ public class Reflector<T> {
 
     public static class MyPrintWriter extends PrintWriter {
 
+        final boolean numbered;
         static String[] indents;
+        int lineNum = 0;
 
         static {
             indents = new String[32];
@@ -220,12 +222,22 @@ public class Reflector<T> {
             }
         }
 
-        public MyPrintWriter(Writer out) {
+        public MyPrintWriter(Writer out, boolean numbered) {
             super(out, true);
+            this.numbered = numbered;
+        }
+
+        public MyPrintWriter(Writer out) {
+            this(out, false);
+        }
+
+        public MyPrintWriter(OutputStream out, boolean numbered) {
+            super(out, true);
+            this.numbered = numbered;
         }
 
         public MyPrintWriter(OutputStream out) {
-            super(out, true);
+            this(out, false);
         }
 
         private int currentIndent = 0;
@@ -243,12 +255,18 @@ public class Reflector<T> {
 
         @Override
         public void println(Object obj) {
+            if (numbered) {
+                super.print(String.format("%-5d:", lineNum ++ ));
+            }
             super.print(indents[currentIndent]);
             super.println(obj);
         }
 
         @Override
         public void println(String obj) {
+            if (numbered) {
+                super.print(String.format("%-5d:", lineNum ++ ));
+            }
             super.print(indents[currentIndent]);
             super.println(obj);
         }
@@ -570,8 +588,10 @@ public class Reflector<T> {
             for (int i = 0; i < len; i++) {
                 int depth = in.depth;
                 String line = readLineOrEOF(in);
-                if (line.equals("null"))
+                if (line.equals("null")) {
+                    Array.set(arr, i, null);
                     continue;
+                }
                 Object o = Array.get(arr, i);
                 Reflector<?> a;
                 if (!KEEP_INSTANCES || o == null || !(o instanceof Reflector) || ((Reflector) o).isImmutable()) {
@@ -1403,9 +1423,20 @@ public class Reflector<T> {
         return value;
     }
 
-    private static Object parse(Object current, Class<?> clazz, MyBufferedReader in) throws Exception {
+    private static Class<?> isEnum(Class<?> clazz) {
         if (clazz.isEnum())
-            return findEnumEntry(clazz, readLineOrEOF(in));
+            return clazz;
+        clazz = clazz.getSuperclass();
+        if (clazz != null && clazz.isEnum()) {
+            return clazz;
+        }
+        return null;
+    }
+
+    private static Object parse(Object current, Class<?> clazz, MyBufferedReader in) throws Exception {
+        Class<?> enumClazz = isEnum(clazz);
+        if (enumClazz != null)
+            return findEnumEntry(enumClazz, readLineOrEOF(in));
         if (clazz.isArray()) {
             throw new Exception("This method not to be called for array types");
         }
@@ -1442,7 +1473,9 @@ public class Reflector<T> {
             return map;
         }
         if (isSubclassOf(clazz, Collection.class)) {
-            Collection c = (Collection) clazz.newInstance();
+            Collection c = (Collection)current;
+            if (!KEEP_INSTANCES || current == null)
+                c = (Collection) clazz.newInstance();
             deserializeCollection(c, in);
             return c;
         }
@@ -1777,6 +1810,16 @@ public class Reflector<T> {
         StringWriter buf = new StringWriter();
         try {
             serialize(new MyPrintWriter(buf));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return buf.toString();
+    }
+
+    public String toStringNumbered() {
+        StringWriter buf = new StringWriter();
+        try {
+            serialize(new MyPrintWriter(buf, true));
         } catch (Exception e) {
             e.printStackTrace();
         }

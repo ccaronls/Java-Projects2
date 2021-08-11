@@ -8,5 +8,6 @@ public class SmallReflector extends Reflector<SmallReflector> {
 	
 	String a = "hello";
 	String b = "goodbye";
+	SomeEnum e = SomeEnum.ENUM1;
 	
 }
