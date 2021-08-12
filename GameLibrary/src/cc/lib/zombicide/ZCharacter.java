@@ -8,7 +8,9 @@ import java.util.Comparator;
 import java.util.List;
 
 import cc.lib.game.AGraphics;
+import cc.lib.game.GColor;
 import cc.lib.game.GDimension;
+import cc.lib.game.GRectangle;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
@@ -34,11 +36,13 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
     private List<ZActionType> actionsDoneThisTurn = new ArrayList<>();
     private final List<ZSkill> allSkills = new ArrayList<>();
     private final List<ZSkill> availableSkills = new ArrayList<>();
+    private final List<ZSkill> activeSkills = new ArrayList<>();
 
     private final List<ZEquipment> backpack = new ArrayList<>();
     ZEquipment leftHand, rightHand, body;
     int [] kills = new int[ZZombieType.values().length];
     private boolean fallen = false;
+    GColor color = GColor.WHITE;
 
     synchronized void clear() {
         Arrays.fill(kills, 0);
@@ -65,6 +69,22 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
         return name.imageDim;
     }
 
+    public GColor getColor() {
+        return color;
+    }
+
+    public void setColor(GColor color) {
+        this.color = color;
+    }
+
+    public void addExp(int exp) {
+        dangerBar += exp;
+    }
+
+    public int getExp() {
+        return dangerBar;
+    }
+
     @Override
     synchronized void onBeginRound() {
         actionsDoneThisTurn.clear();
@@ -75,8 +95,8 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
     }
 
     @Override
-    protected synchronized void deserialize(BufferedReader _in) throws Exception {
-        super.deserialize(_in);
+    protected synchronized void deserialize(BufferedReader in, boolean keepInstances) throws Exception {
+        super.deserialize(in, keepInstances);
         name.character = this;
     }
 
@@ -118,7 +138,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
     protected synchronized boolean performAction(ZActionType action, ZGame game) {
         for (ZSkill skill : availableSkills) {
             if (skill.modifyActionsRemaining(this, action, game)) {
-                game.getCurrentUser().showMessage(name() + " used " + skill.getLabel() + " for a free action");
+                game.addLogMessage(name() + " used " + skill.getLabel() + " for a free action");
                 availableSkills.remove(skill);
                 return true;
             }
@@ -134,7 +154,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
             actionsDoneThisTurn.add(action);
         }
         if (isInvisible() && action.breaksInvisibility()) {
-            availableSkills.remove(ZSkill.Invisible);
+            activeSkills.remove(ZSkill.Invisible);
         }
         return super.performAction(action, game);
     }
@@ -158,11 +178,11 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
                 if (w.type.meleeStats.dieRollToOpenDoor>1) {
                     Integer [] die = game.rollDice(1);
                     if (die[0] < w.type.meleeStats.dieRollToOpenDoor) {
-                        game.getCurrentUser().showMessage(name() + " Failed to open the door with their " + w);
+                        game.addLogMessage(name() + " Failed to open the door with their " + w);
                         return false;
                     }
                 }
-                game.getCurrentUser().showMessage(name() + " Used their " + w + " to break open the door");
+                game.addLogMessage(name() + " Used their " + w + " to break open the door");
                 return true;
             }
         }
@@ -705,7 +725,11 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
 
     @Override
     public synchronized boolean isInvisible() {
-        return availableSkills.contains(ZSkill.Invisible);
+        return activeSkills.contains(ZSkill.Invisible);
+    }
+
+    public void setInvisible() {
+        activeSkills.add(ZSkill.Invisible);
     }
 
     Table getSlotInfo(ZEquipSlot slot, ZGame game) {
@@ -837,9 +861,24 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
         if (fallen) {
             g.drawImage(ZIcon.GRAVESTONE.imageIds[0], getRect());
         } else {
+            drawPedistal(g);
             super.draw(g);
         }
     }
+
+    protected void drawPedistal(AGraphics g) {
+        float hgt = 0.08f;
+        GRectangle rect = getRect();
+        if (color != null) {
+            g.setColor(color.darkened(.5f));
+            g.drawFilledRect(rect.x, rect.y + rect.h - hgt / 4, rect.w, hgt);
+            g.drawFilledOval(rect.x, rect.y + rect.h + hgt / 4, rect.w, hgt);
+            g.setColor(color);
+            g.drawFilledOval(rect.x, rect.y + rect.h - hgt / 2, rect.w, hgt);
+        }
+
+    }
+
 
     public boolean isInventoryThisTurn() {
         return inventoryThisTurn;

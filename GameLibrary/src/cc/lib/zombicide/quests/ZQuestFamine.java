@@ -81,7 +81,7 @@ public class ZQuestFamine extends ZQuest {
     public void processObjective(ZGame game, ZCharacter c, ZMove move) {
         super.processObjective(game, c, move);
         if (move.integer == blueKeyZone) {
-            game.getCurrentUser().showMessage("Blue key found. Vault unlocked");
+            game.addLogMessage("Blue key found. Vault unlocked");
             for (ZDoor door : lockedVaults) {
                 game.unlockDoor(door);
             }
@@ -122,7 +122,9 @@ public class ZQuestFamine extends ZQuest {
 
     boolean isAllLockedInVault(ZGame game) {
         int vaultZone = -1;
-        for (ZCharacter c : game.getAllLivingCharacters()) {
+        for (ZCharacter c : game.getBoard().getAllCharacters()) {
+            if (!c.isAlive())
+                continue;
             ZZone zone = game.getBoard().getZone(c.getOccupiedZone());
             if (zone.getType() != ZZoneType.VAULT) {
                 return false;

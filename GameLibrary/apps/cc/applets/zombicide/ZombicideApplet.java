@@ -287,7 +287,7 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
                     });
                 }
                 menu.add(new AWTButton("KEEP", e1 -> {
-                    user.clear();
+                    user.clearCharacters();
                     for (Map.Entry<ZPlayerName, AWTToggleButton> entry : buttons.entrySet()) {
                         if (entry.getValue().isSelected())
                             user.addCharacter(entry.getKey());

@@ -81,14 +81,14 @@ public class ZQuestTutorial extends ZQuest {
         super.processObjective(game, c, move);
         if (move.integer == blueKeyZone) {
             game.unlockDoor(blueDoor);
-            game.getCurrentUser().showMessage(c.name() + " has unlocked the BLUE door");
+            game.addLogMessage(c.name() + " has unlocked the BLUE door");
             blueKeyZone = -1;
         } else if (move.integer == greenKeyZone) {
             game.unlockDoor(greenDoor);
             game.getBoard().setSpawnZone(greenSpawnZone, true);
             game.spawnZombies(greenSpawnZone);
-            game.getCurrentUser().showMessage(c.name() + " has unlocked the GREEN door");
-            game.getCurrentUser().showMessage(c.name() + " has created a new spawn zone!");
+            game.addLogMessage(c.name() + " has unlocked the GREEN door");
+            game.addLogMessage(c.name() + " has created a new spawn zone!");
             greenKeyZone = -1;
         }
     }
@@ -130,7 +130,7 @@ public class ZQuestTutorial extends ZQuest {
     @Override
     public Table getObjectivesOverlay(ZGame game) {
         int totalChars = game.getAllCharacters().size();
-        int numInZone = Utils.filter(game.getAllCharacters(), new Utils.Filter<ZCharacter>() {
+        int numInZone = Utils.filter(game.getBoard().getAllCharacters(), new Utils.Filter<ZCharacter>() {
             @Override
             public boolean keep(ZCharacter object) {
                 return object.getOccupiedZone() == exitZone;
@@ -152,7 +152,7 @@ public class ZQuestTutorial extends ZQuest {
     public int getPercentComplete(ZGame game) {
         int numTasks = getNumStartRedObjectives() + game.getAllCharacters().size();
         int numCompleted = getNumStartRedObjectives() - redObjectives.size();
-        for (ZCharacter c : game.getAllCharacters()) {
+        for (ZCharacter c : game.getBoard().getAllCharacters()) {
             if (c.getOccupiedZone() == exitZone)
                 numCompleted++;
         }
@@ -164,7 +164,7 @@ public class ZQuestTutorial extends ZQuest {
 
     @Override
     public String getQuestFailedReason(ZGame game) {
-        if (Utils.filter(game.getAllCharacters(), object -> object.isDead()).size() > 0) {
+        if (Utils.filter(game.getBoard().getAllCharacters(), object -> object.isDead()).size() > 0) {
             return "Not all players survived.";
         }
         return super.getQuestFailedReason(game);

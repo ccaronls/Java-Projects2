@@ -21,10 +21,8 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.SpannableString;
 import android.text.format.DateFormat;
 import android.text.format.Formatter;
-import android.text.style.UnderlineSpan;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -47,6 +45,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -63,6 +62,7 @@ import cc.lib.android.EmailHelper;
 import cc.lib.game.GColor;
 import cc.lib.game.GRectangle;
 import cc.lib.game.Utils;
+import cc.lib.mp.android.P2PActivity;
 import cc.lib.ui.IButton;
 import cc.lib.utils.FileUtils;
 import cc.lib.zombicide.ZActor;
@@ -75,7 +75,6 @@ import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZSkill;
-import cc.lib.zombicide.ZSkillLevel;
 import cc.lib.zombicide.ZUser;
 import cc.lib.zombicide.ZZombieType;
 import cc.lib.zombicide.ui.UIZBoardRenderer;
@@ -87,8 +86,10 @@ import cc.lib.zombicide.ui.UIZombicide;
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
+ *
+ *
  */
-public class ZombicideActivity extends CCActivityBase implements View.OnClickListener, ListView.OnItemClickListener, ListView.OnItemLongClickListener, RadioButton.OnCheckedChangeListener {
+public class ZombicideActivity extends P2PActivity implements View.OnClickListener, ListView.OnItemClickListener, ListView.OnItemLongClickListener, RadioButton.OnCheckedChangeListener {
 
     private final static String TAG = ZombicideActivity.class.getSimpleName();
 
@@ -103,12 +104,15 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
     UIZombicide game;
     final ZUser user = new UIZUser();
 
+    ZClientMgr clientMgr = null;
+    ZServerMgr serverMgr = null;
+
     View bLH, bUp, bRH, bLeft, bCenter, bRight, bZoom, bDown, bVault;
 
     final ArrayBlockingQueue fileWriterQueue = new ArrayBlockingQueue(1);
     final Stats stats = new Stats();
 
-    final CharLock [] charLocks = {
+    final CharLock[] charLocks = {
             new CharLock(ZPlayerName.Ann, ""),
             new CharLock(ZPlayerName.Baldric, ""),
             new CharLock(ZPlayerName.Clovis, ""),
@@ -135,6 +139,20 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
             },
     };
 
+    @Override
+    protected int getConnectPort() {
+        return ZMPCommon.CONNECT_PORT;
+    }
+
+    @Override
+    protected String getVersion() {
+        return ZMPCommon.VERSION;
+    }
+
+    @Override
+    protected int getMaxConnections() {
+        return 2;
+    }
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -258,14 +276,29 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                 game.boardRenderer.setOverlay(null);
                 super.setResult(result);
             }
+
+            @Override
+            public boolean isGameRunning() {
+                return super.isGameRunning() || clientMgr != null;
+            }
         };
 
-        Set<String> playersSet = getPrefs().getStringSet("players", getDefaultPlayers());
-        for (ZPlayerName player : Utils.convertToEnumArray(playersSet, ZPlayerName.class, new ZPlayerName[playersSet.size()])) {
+        int colorIdx = getPrefs().getInt("userColorIndex", 0);
+        user.setColor(ZUser.USER_COLORS[colorIdx]);
+        game.addUser(user);
+    }
+
+    void loadCharacters(Collection<String> playersSet) {
+        game.clearCharacters();
+        user.clearCharacters();
+
+        List<ZPlayerName> players = Utils.map(playersSet, (in) -> ZPlayerName.valueOf(in));
+        for (ZPlayerName player : players) {
+            game.addCharacter(player);
             user.addCharacter(player);
         }
-        game.setUsers(user);
     }
+
 
     Thread startFileWriterThread() {
         Thread t = new Thread(() -> {
@@ -276,9 +309,13 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                 } catch (InterruptedException e) {
                     break;
                 }
-                log.debug("Backingup ... ");
-                FileUtils.backupFile(gameFile, 32);
-                game.trySaveToFile(gameFile);
+                if (getServer() != null) {
+                    getServer().broadcastCommand(serverMgr.newUpdateGameCommand(game));
+                } else {
+                    log.debug("Backingup ... ");
+                    FileUtils.backupFile(gameFile, 32);
+                    game.trySaveToFile(gameFile);
+                }
             }
             log.debug("fileWriterThread EXIT");
         });
@@ -287,15 +324,18 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
+    protected void onStart() {
+        super.onStart();
         game.setDifficulty(getSavedDifficulty());
         gameFile = new File(getFilesDir(), "game.save");
         statsFile = new File(getFilesDir(), "stats.save");
-        if (!gameFile.exists() || !game.tryLoadFromFile(gameFile)) {
-            showWelcomeDialog(true);
-        } else {
+        //if (!gameFile.exists() || !game.tryLoadFromFile(gameFile)) {
+        //    showWelcomeDialog(true);
+        //} else
+        if (gameFile.exists() && game.tryLoadFromFile(gameFile)) {
             game.showSummaryOverlay();
+        } else {
+            game.loadQuest(ZQuests.Tutorial);
         }
         if (statsFile.exists()) {
             try {
@@ -310,8 +350,8 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
     }
 
     @Override
-    protected void onPause() {
-        super.onPause();
+    protected void onStop() {
+        super.onStop();
         stopGame();
     }
 
@@ -334,7 +374,10 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
         RESUME,
         CANCEL,
         LOAD,
-        NEW_GAME,
+        SINGLE_PLAYER_GAME,
+        MULTI_PLAYER_GAME,
+        DISCONNECT,
+        CONNECTIONS,
         START,
         ASSIGN,
         SUMMARY,
@@ -347,6 +390,7 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
         CLEAR,
         SEARCHABLES,
         RULES,
+        CHOOSE_COLOR,
         EMAIL_REPORT;
 
         boolean isHomeButton(ZombicideActivity instance) {
@@ -356,13 +400,19 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                 case CLEAR:
                 case UNDO:
                 case DIFFICULTY:
+                case CHOOSE_COLOR:
                     return BuildConfig.DEBUG;
                 case START:
-                case NEW_GAME:
+                case SINGLE_PLAYER_GAME:
+                case MULTI_PLAYER_GAME:
                 case SKILLS:
                 case LEGEND:
                 case EMAIL_REPORT:
                     return true;
+                case DISCONNECT:
+                    return instance.clientControl != null || instance.serverControl != null;
+                case CONNECTIONS:
+                    return instance.serverControl != null;
                 case RESUME:
                     return instance.gameFile != null && instance.gameFile.exists();
             }
@@ -375,11 +425,17 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                 case START:
                 case ASSIGN:
                 case RESUME:
-                case NEW_GAME:
+                case SINGLE_PLAYER_GAME:
+                case MULTI_PLAYER_GAME:
                 case CLEAR:
                     return false;
+                case DISCONNECT:
+                    return instance.clientControl != null || instance.serverControl != null;
+                case CONNECTIONS:
+                    return instance.serverControl != null;
                 case UNDO:
                 case SEARCHABLES:
+                case CHOOSE_COLOR:
                     return BuildConfig.DEBUG;
             }
             return true;
@@ -443,9 +499,9 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                 game.trySwitchActivePlayer();
                 break;
             case R.id.b_vault:
-                if (game.getBoard().canMove(game.getCurrentCharacter(), ZDir.DESCEND)) {
+                if (game.getBoard().canMove(game.getCurrentCharacter().getCharacter(), ZDir.DESCEND)) {
                     game.setResult(ZMove.newWalkDirMove(ZDir.DESCEND));
-                } else if (game.getBoard().canMove(game.getCurrentCharacter(), ZDir.ASCEND)) {
+                } else if (game.getBoard().canMove(game.getCurrentCharacter().getCharacter(), ZDir.ASCEND)) {
                     game.setResult(ZMove.newWalkDirMove(ZDir.ASCEND));
                 }
                 break;
@@ -467,7 +523,7 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         if (view.getTag() instanceof MenuItem) {
-            processMainMenuItem((MenuItem)view.getTag());
+            processMainMenuItem((MenuItem) view.getTag());
         } else {
             UIZombicide.getInstance().setResult(view.getTag());
         }
@@ -476,7 +532,7 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
     @Override
     public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
         if (view.getTag() != null && view.getTag() instanceof IButton) {
-            IButton button = (IButton)view.getTag();
+            IButton button = (IButton) view.getTag();
             showToolTipTextPopup(parent, button);
             return true;
         }
@@ -488,12 +544,12 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
         if (Utils.isEmpty(toolTipText))
             return;
         View popup = View.inflate(this, R.layout.tooltippopup_layout, null);
-        ((TextView)popup.findViewById(R.id.header)).setText(button.getLabel());
-        ((TextView)popup.findViewById(R.id.text)).setText(toolTipText);
+        ((TextView) popup.findViewById(R.id.header)).setText(button.getLabel());
+        ((TextView) popup.findViewById(R.id.text)).setText(toolTipText);
         Dialog d = new AlertDialog.Builder(this, R.style.ZTooltipDialogTheme)
                 .setView(popup).create();
         Window window = d.getWindow();
-        int [] outPos = { 0,0 };
+        int[] outPos = {0, 0};
         view.getLocationOnScreen(outPos);
         WindowManager.LayoutParams lp = window.getAttributes();
         lp.gravity = Gravity.TOP | Gravity.LEFT;
@@ -505,19 +561,25 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
 
     Thread fileWriterThread = null;
 
-    void startGame() {
+    public void startGame() {
         game.startGameThread();
-        buttonsGrid.setVisibility(View.VISIBLE);
         fileWriterThread = startFileWriterThread();
+        initGameMenu();
+        boardView.redraw();
     }
 
-    void stopGame() {
+    public void stopGame() {
         game.stopGameThread();
-        buttonsGrid.setVisibility(View.GONE);
         if (fileWriterThread != null) {
             fileWriterThread.interrupt();
             fileWriterThread = null;
         }
+        game.setResult(null);
+        initHomeMenu();
+    }
+
+    Collection<String> getStoredCharacters() {
+        return getPrefs().getStringSet("players", getDefaultPlayers());
     }
 
     void processMainMenuItem(MenuItem item) {
@@ -531,6 +593,7 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                                 public void onClick(DialogInterface dialogInterface, int i) {
                                     FileUtils.deleteFileAndBackups(gameFile);
                                     game.reload();
+                                    loadCharacters(getStoredCharacters());
                                     startGame();
                                 }
                             }).show();
@@ -542,15 +605,14 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                 break;
             case RESUME:
                 if (game.tryLoadFromFile(gameFile)) {
+                    user.setCharacters(game.getAllCharacters());
                     game.boardRenderer.setOverlay(game.getQuest().getObjectivesOverlay(game));
                     startGame();
-                    boardView.redraw();
                 }
                 break;
             case QUIT:
                 stopGame();
                 game.setResult(null);
-                initHomeMenu();
                 break;
             case CANCEL:
                 if (game.isGameRunning()) {
@@ -568,13 +630,34 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                 game.showSummaryOverlay();
                 break;
             }
-            case NEW_GAME: {
+            case SINGLE_PLAYER_GAME: {
                 // choose level (if multiple available)
                 //   choose difficulty
                 //      assign players
                 showNewGameDialog();
                 break;
             }
+            case MULTI_PLAYER_GAME:
+                p2pInit();
+                break;
+            case CONNECTIONS:
+                serverControl.openConnections();
+                break;
+            case DISCONNECT:
+                newDialogBuilder().setTitle("Confirm")
+                        .setMessage("Are you sure you want to Disconnect?")
+                        .setNegativeButton(R.string.popup_button_cancel, null)
+                        .setPositiveButton(R.string.popup_button_yes, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                p2pShutdown();
+                                clientControl = null;
+                                serverControl = null;
+                                clientMgr = null;
+                                serverMgr = null;
+                            }
+                        }).show();
+                break;
             case CLEAR: {
                 getPrefs().edit().remove("completedQuests").apply();
                 long byteDeleted = FileUtils.deleteFileAndBackups(gameFile);
@@ -610,7 +693,7 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                         if (convertView == null) {
                             convertView = new TextView(ZombicideActivity.this);
                         }
-                        ((TextView)convertView).setText(searchables.get(position).getLabel());
+                        ((TextView) convertView).setText(searchables.get(position).getLabel());
                         return convertView;
                     }
                 });
@@ -625,6 +708,7 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                                 ZQuests q = ZQuests.values()[which];
                                 game.loadQuest(q);
                                 game.showObjectivesOverlay();
+                                loadCharacters(getStoredCharacters());
                                 game.trySaveToFile(gameFile);
                                 startGame();
                                 boardView.postInvalidate();
@@ -654,8 +738,6 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
 
             case UNDO: {
                 stopGame();
-                game.setResult(null);
-                initHomeMenu();
                 if (FileUtils.restoreFile(gameFile)) {
                     game.tryLoadFromFile(gameFile);
                     boardView.redraw();
@@ -675,20 +757,107 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                 showEmailReportDialog();
                 break;
             }
+            case CHOOSE_COLOR: {
+                showChooseColorDialog();
+                break;
+            }
         }
     }
 
+    void showChooseColorDialog() {
+        newDialogBuilder().setTitle("Choose Color")
+                .setItems(ZUser.USER_COLOR_NAMES, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        getPrefs().edit().putInt("userColorIndex", which).apply();
+                        user.setColor(ZUser.USER_COLORS[which]);
+                        game.boardRenderer.redraw();
+                    }
+                }).setNegativeButton(R.string.popup_button_cancel, null).show();
+    }
+
+    public String getDisplayName() {
+        return getPrefs().getString("p2pname", "Unnamed");
+    }
+
+    @Override
+    protected void onP2PReady() {
+        String p2pName = getPrefs().getString("p2pname", null);
+        if (p2pName == null) {
+            showEditTextInputPopup("Set P2P Name", p2pName, "Display Name", 32, (String txt) -> {
+                if (Utils.isEmpty(txt)) {
+                    newDialogBuilder().setMessage("Please set non empty name for display")
+                            .setNegativeButton("Cancel Mulitplayer", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    hideKeyboard();
+                                    p2pShutdown();
+                                }
+                            }).setPositiveButton(R.string.popup_button_ok, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    hideKeyboard();
+                                    onP2PReady();
+                                }
+                    }).show();
+                } else {
+                    getPrefs().edit().putString("p2pname", txt).apply();
+                    p2pStart();
+                }
+            });
+        } else {
+            p2pStart();
+        }
+    }
+
+    @Override
+    public void p2pStart() {
+        user.clearCharacters();
+        game.clearCharacters();
+        game.reload();
+        game.boardRenderer.redraw();
+        super.p2pStart();
+    }
+
+    P2PClient clientControl;
+
+
+    @Override
+    protected void onP2PClient(P2PClient p2pClient) {
+        clientControl = p2pClient;
+        clientMgr = new ZClientMgr(this, game, clientControl.getClient(), user);
+    }
+
+    P2PServer serverControl;
+
+    @Override
+    protected void onP2PServer(P2PServer p2pServer) {
+        serverControl = p2pServer;
+        serverMgr = new ZServerMgr(this, game, 2, p2pServer.getServer());
+    }
+
+    @Override
+    protected void onP2PShutdown() {
+        clientMgr = null;
+        clientControl = null;
+        serverMgr = null;
+        serverControl = null;
+        game.setServer(null);
+        game.setClient(null);
+        initHomeMenu();
+    }
+
     void showLegendDialog() {
-        Object [][] legend = {
-                { R.drawable.legend_chars, "CHARACTERS\nChoose your characters. Some are unlockable. Players can operate in any order but must execute all of their actions before switching to another player." },
-                { R.drawable.legend_gamepad, "GAMEPAD\nUse gamepad to perform common actions.\nLH / RH - Use Item in Left/Right hand.\nO - Toggle active player.\nZM - Zoom in/out."},
-                { R.drawable.legend_obj, "OBJECTIVES\nObjectives give player EXP, unlock doors, reveal special items and other things related to the Quest."},
-                { R.drawable.legend_vault, "VAULTS\nVaults are very handy. You can find special loot or drop loot to be pickup up later. You can also close zombies in or out of the vault. Also they can sometimes be shortcuts across the map. The only limitation is you cannot fire ranged weapons or magic into the vault from the outside or fire outside of vault from inside of it." },
-                { R.drawable.zwalker1, "WALKER\n" + ZZombieType.Walker.getDescription() },
-                { R.drawable.zfatty1, "FATTY\n" + ZZombieType.Fatty.getDescription() },
-                { R.drawable.zrunner1, "RUNNER\n" + ZZombieType.Runner.getDescription() },
-                { R.drawable.znecro, "NECROMANCER\n" + ZZombieType.Necromancer.getDescription() },
-                { R.drawable.zabomination, "ABOMINATION\n" + ZZombieType.Abomination.getDescription() },
+        Object[][] legend = {
+                {R.drawable.legend_chars, "CHARACTERS\nChoose your characters. Some are unlockable. Players can operate in any order but must execute all of their actions before switching to another player."},
+                {R.drawable.legend_gamepad, "GAMEPAD\nUse gamepad to perform common actions.\nLH / RH - Use Item in Left/Right hand.\nO - Toggle active player.\nZM - Zoom in/out."},
+                {R.drawable.legend_obj, "OBJECTIVES\nObjectives give player EXP, unlock doors, reveal special items and other things related to the Quest."},
+                {R.drawable.legend_vault, "VAULTS\nVaults are very handy. You can find special loot or drop loot to be pickup up later. You can also close zombies in or out of the vault. Also they can sometimes be shortcuts across the map. The only limitation is you cannot fire ranged weapons or magic into the vault from the outside or fire outside of vault from inside of it."},
+                {R.drawable.zwalker1, "WALKER\n" + ZZombieType.Walker.getDescription()},
+                {R.drawable.zfatty1, "FATTY\n" + ZZombieType.Fatty.getDescription()},
+                {R.drawable.zrunner1, "RUNNER\n" + ZZombieType.Runner.getDescription()},
+                {R.drawable.znecro, "NECROMANCER\n" + ZZombieType.Necromancer.getDescription()},
+                {R.drawable.zabomination, "ABOMINATION\n" + ZZombieType.Abomination.getDescription()},
 
         };
 
@@ -716,20 +885,20 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                 }
 
                 ImageView iv_image = convertView.findViewById(R.id.iv_image);
-                TextView  tv_desc  = convertView.findViewById(R.id.tv_description);
+                TextView tv_desc = convertView.findViewById(R.id.tv_description);
 
-                Object [] item = legend[position];
+                Object[] item = legend[position];
 
                 if (item[0] instanceof Integer) {
-                    iv_image.setImageResource((Integer)item[0]);
+                    iv_image.setImageResource((Integer) item[0]);
                 } else if (item[0] instanceof Bitmap) {
-                    iv_image.setImageBitmap((Bitmap)item[0]);
+                    iv_image.setImageBitmap((Bitmap) item[0]);
                 }
 
                 if (item[1] instanceof Integer) {
-                    tv_desc.setText((Integer)item[1]);
+                    tv_desc.setText((Integer) item[1]);
                 } else if (item[1] instanceof String) {
-                    tv_desc.setText((String)item[1]);
+                    tv_desc.setText((String) item[1]);
                 }
 
                 return convertView;
@@ -764,16 +933,16 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
         Log.d(TAG, "playable quests: " + playable);
         List<ZQuests> allQuests = ZQuests.valuesRelease();
         int firstPage = 0;
-        for (ZQuests q: allQuests) {
+        for (ZQuests q : allQuests) {
             if (!playable.contains(q)) {
                 playable.add(q);
                 break;
             }
-            firstPage = Utils.clamp(firstPage+1, 0, allQuests.size()-1);
+            firstPage = Utils.clamp(firstPage + 1, 0, allQuests.size() - 1);
         }
         View view = View.inflate(this, R.layout.viewpager_dialog, null);
         ViewPager pager = view.findViewById(R.id.view_pager);
-        final Dialog [] dialog = new Dialog[1];
+        final Dialog[] dialog = new Dialog[1];
         pager.setAdapter(new PagerAdapter() {
             @Override
             public int getCount() {
@@ -791,7 +960,7 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                 ZQuests q = allQuests.get(position);
                 View content = View.inflate(ZombicideActivity.this, R.layout.choose_quest_dialog_item, null);
                 TextView title = content.findViewById(R.id.tv_title);
-                TextView body  = content.findViewById(R.id.tv_body);
+                TextView body = content.findViewById(R.id.tv_body);
                 ImageView lockedOverlay = content.findViewById(R.id.lockedOverlay);
 
                 title.setText(q.getDisplayName());
@@ -816,22 +985,22 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
 
             @Override
             public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
-                container.removeView((View)object);
+                container.removeView((View) object);
             }
         });
         pager.setCurrentItem(firstPage);
         dialog[0] = newDialogBuilder().setTitle("Choose Quest")
                 .setView(view).setPositiveButton("Start", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                ZQuests q = allQuests.get(pager.getCurrentItem());
-                if (playable.contains(q)) {
-                    showNewGameDailogChooseDifficulty(q);
-                } else {
-                    Toast.makeText(ZombicideActivity.this, "Quest Locked", Toast.LENGTH_LONG).show();
-                }
-            }
-        }).show();
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        ZQuests q = allQuests.get(pager.getCurrentItem());
+                        if (playable.contains(q)) {
+                            showNewGameDailogChooseDifficulty(q);
+                        } else {
+                            Toast.makeText(ZombicideActivity.this, "Quest Locked", Toast.LENGTH_LONG).show();
+                        }
+                    }
+                }).show();
     }
 
     void showNewGameDailogChooseDifficulty(ZQuests quest) {
@@ -860,12 +1029,15 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
             this.player = player;
         }
 
-        boolean isUnlocked() { return true; }
+        boolean isUnlocked() {
+            return true;
+        }
     }
 
     void showNewGameDialogChoosePlayers(ZQuests quest, ZDifficulty difficulty) {
 
-        Set<String> selectedPlayers = new HashSet(getPrefs().getStringSet("players", getDefaultPlayers()));
+
+        Set<String> selectedPlayers = new HashSet(getStoredCharacters());
         View view = View.inflate(this, R.layout.viewpager_dialog, null);
         ViewPager pager = view.findViewById(R.id.view_pager);
         pager.setAdapter(new PagerAdapter() {
@@ -885,8 +1057,8 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                 View view = LayoutInflater.from(ZombicideActivity.this).inflate(R.layout.assign_dialog_item, null);
                 ImageView image = view.findViewById(R.id.image);
                 CheckBox checkbox = view.findViewById(R.id.checkbox);
-                ImageView lockedOverlay = view.findViewById(R.id.lockedOverlay);
-                TextView tvHowToUnlock = view.findViewById(R.id.tv_howtounlock);
+                ViewGroup lockedOverlay = view.findViewById(R.id.lockedOverlay);
+                TextView tvHowToUnlock = view.findViewById(R.id.tvLockedReason);
 
                 CharLock lock = charLocks[position];
 
@@ -935,7 +1107,7 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
 
             @Override
             public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
-                container.removeView((View)object);
+                container.removeView((View) object);
             }
         });
         newDialogBuilder().setTitle("Choose Players").setView(view).setNegativeButton("CANCEL", null)
@@ -944,152 +1116,25 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                     public void onClick(DialogInterface dialog, int which) {
                         Log.d(TAG, "Selected players: " + selectedPlayers);
                         getPrefs().edit().putStringSet("players", selectedPlayers).apply();
-                        user.clear();
-                        for (ZPlayerName pl : Utils.convertToEnumArray(selectedPlayers, ZPlayerName.class, new ZPlayerName[selectedPlayers.size()])) {
-                            user.addCharacter(pl);
-                        }
-                        getPrefs().edit().putString("difficulty", difficulty.name()).apply();
-                        game.setUsers(user);
                         game.loadQuest(quest);
+                        loadCharacters(getStoredCharacters());
+                        getPrefs().edit().putString("difficulty", difficulty.name()).apply();
                         game.trySaveToFile(gameFile);
                         game.showQuestTitleOverlay();
                         game.setDifficulty(difficulty);
-                        game.reload();
                         startGame();
                     }
                 }).show();
 
     }
 
-    class SkillAdapter extends BaseAdapter {
-
-        class Item {
-            final String name;
-            final String description;
-            final GColor color;
-            final boolean owned;
-
-            public Item(String name, String description, GColor color, boolean owned) {
-                this.name = name;
-                this.description = description;
-                this.color = color;
-                this.owned = owned;
-            }
-        }
-
-        final List<Item> items = new ArrayList<>();
-
-        SkillAdapter(ZPlayerName pl, ZSkill [][] skills) {
-            for (ZSkillLevel lvl : ZSkillLevel.values()) {
-                items.add(new Item(lvl.name() + " " + lvl.getDangerPts() + " Danger Points", null, lvl.getColor(), false));
-                for (ZSkill skill : skills[lvl.ordinal()]) {
-                    boolean owned = pl.getCharacter() != null && pl.getCharacter().hasSkill(skill);
-                    items.add(new Item(skill.getLabel(), skill.description, null, owned));
-                }
-            }
-        }
-
-        @Override
-        public int getCount() {
-            return items.size();
-        }
-
-        @Override
-        public Object getItem(int position) {
-            return null;
-        }
-
-        @Override
-        public long getItemId(int position) {
-            return 0;
-        }
-
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            if (convertView == null) {
-                convertView = View.inflate(ZombicideActivity.this, R.layout.skill_list_item, null);
-            }
-            TextView name = convertView.findViewById(R.id.tv_label);
-            TextView desc = convertView.findViewById(R.id.tv_description);
-
-            Item item = items.get(position);
-            if (item.color == null) {
-                name.setTextColor(GColor.WHITE.toARGB());
-                desc.setVisibility(View.VISIBLE);
-                desc.setText(item.description);
-                if (item.owned) {
-                    SpannableString content = new SpannableString(item.name);
-                    content.setSpan(new UnderlineSpan(), 0, content.length(), 0);
-                    name.setText(content);
-                } else {
-                    name.setText(item.name);
-                }
-            } else {
-                name.setText(item.name);
-                name.setTextColor(item.color.toARGB());
-                desc.setVisibility(View.GONE);
-            }
-
-            return convertView;
-        }
-    }
-
     void showSkillsDialog2() {
-        // series of TABS, one for each character and then one for ALL
-        ZSkill [][][] skills = new ZSkill[ZPlayerName.values().length][][];
-        String [] labels = new String[skills.length];
-        int idx = 0;
-        for (ZPlayerName pl : ZPlayerName.values()) {
-            skills[idx] = new ZSkill[ZSkillLevel.values().length][];
-            labels[idx] = pl.getLabel();
-            for (ZSkillLevel lvl : ZSkillLevel.values()) {
-                skills[idx][lvl.ordinal()] = pl.getSkillOptions(lvl);
-            }
-            idx++;
-        }
-
-        View view = View.inflate(this, R.layout.viewpager_dialog, null);
-        ViewPager pager = view.findViewById(R.id.view_pager);
-        //pager.setAdapter(new Page
-        pager.setAdapter(new PagerAdapter() {
-            @Override
-            public int getCount() {
-                return skills.length;
-            }
-
-            @Override
-            public boolean isViewFromObject(@NonNull View view, @NonNull Object o) {
-                return view == o;
-            }
-
-            @NonNull
-            @Override
-            public Object instantiateItem(@NonNull ViewGroup container, int position) {
-                View page = View.inflate(ZombicideActivity.this, R.layout.skills_page, null);
-                TextView title = page.findViewById(R.id.tv_title);
-                title.setText(labels[position]);
-                ListView lv = page.findViewById(R.id.lv_list);
-                lv.setAdapter(new SkillAdapter(ZPlayerName.values()[position], skills[position]));
-                container.addView(page);
-                return page;
-            }
-
-            @Override
-            public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
-                container.removeView((View)object);
-            }
-        });
-
-        if (game.getCurrentCharacter() != null) {
-            pager.setCurrentItem(game.getCurrentCharacter().getPlayerName().ordinal());
-        }
-
-        newDialogBuilder().setTitle("Skills").setView(view).setNegativeButton("Close", null).show();
+        new SkillsDialog(this);
     }
 
     // TODO: Make this more organized. Should be able to order by character, danger level or all POSSIBLE
     void showSkillsDialog() {
-        ZSkill [] sorted = Utils.copyOf(ZSkill.values());
+        ZSkill[] sorted = Utils.copyOf(ZSkill.values());
         Arrays.sort(sorted, (o1, o2) -> o1.name().compareTo(o2.name()));
         newDialogBuilder().setTitle("SKILLS")
                 .setItems(Utils.toStringArray(sorted, true), new DialogInterface.OnClickListener() {
@@ -1110,7 +1155,8 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
 
     }
 
-    void initHomeMenu() {
+    public void initHomeMenu() {
+        buttonsGrid.setVisibility(View.GONE);
         List<View> buttons = new ArrayList<>();
         for (MenuItem i : Utils.filterItems(object -> object.isHomeButton(ZombicideActivity.this), MenuItem.values())) {
             buttons.add(ZButton.build(this, i, i.isEnabled(this)));
@@ -1118,12 +1164,21 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
         initMenuItems(buttons);
     }
 
+    public void initGameMenu() {
+        buttonsGrid.setVisibility(View.VISIBLE);
+        initMenu(UIZombicide.UIMode.NONE, null);
+    }
+
+    boolean isMyTurn() {
+        return user.getCharacters().contains(game.getCurrentCharacter());
+    }
+
     void initMenu(UIZombicide.UIMode mode, List<IButton> options) {
         List<View> buttons = new ArrayList<>();
         switch (mode) {
             case PICK_CHARACTER:
             case PICK_MENU:
-                for (IButton e : (List<IButton>)options) {
+                for (IButton e : options) {
                     buttons.add(ZButton.build(this, e, e.isEnabled()));
                 }
                 buttons.add(new ListSeparator(this));
@@ -1134,14 +1189,19 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
         }
         initMenuItems(buttons);
 
-        //bCenter.setVisibility((game.getCurrentCharacter() == null || game.canSwitchActivePlayer()) ? View.VISIBLE : View.INVISIBLE);
-        bLH.setVisibility(game.canUse(ZEquipSlot.LEFT_HAND) ? View.VISIBLE : View.INVISIBLE);
-        bRH.setVisibility(game.canUse(ZEquipSlot.RIGHT_HAND)  ? View.VISIBLE : View.INVISIBLE);
-        bUp.setVisibility(game.canWalk(ZDir.NORTH)  ? View.VISIBLE : View.INVISIBLE);
-        bDown.setVisibility(game.canWalk(ZDir.SOUTH)  ? View.VISIBLE : View.INVISIBLE);
-        bLeft.setVisibility(game.canWalk(ZDir.WEST)  ? View.VISIBLE : View.INVISIBLE);
-        bRight.setVisibility(game.canWalk(ZDir.EAST)  ? View.VISIBLE : View.INVISIBLE);
-        bVault.setVisibility(game.canWalk(ZDir.ASCEND) || game.canWalk(ZDir.DESCEND)  ? View.VISIBLE : View.INVISIBLE);
+        if (isMyTurn()) {
+            buttonsGrid.setVisibility(View.VISIBLE);
+            //bCenter.setVisibility((game.getCurrentCharacter() == null || game.canSwitchActivePlayer()) ? View.VISIBLE : View.INVISIBLE);
+            bLH.setVisibility(game.canUse(ZEquipSlot.LEFT_HAND) ? View.VISIBLE : View.INVISIBLE);
+            bRH.setVisibility(game.canUse(ZEquipSlot.RIGHT_HAND) ? View.VISIBLE : View.INVISIBLE);
+            bUp.setVisibility(game.canWalk(ZDir.NORTH) ? View.VISIBLE : View.INVISIBLE);
+            bDown.setVisibility(game.canWalk(ZDir.SOUTH) ? View.VISIBLE : View.INVISIBLE);
+            bLeft.setVisibility(game.canWalk(ZDir.WEST) ? View.VISIBLE : View.INVISIBLE);
+            bRight.setVisibility(game.canWalk(ZDir.EAST) ? View.VISIBLE : View.INVISIBLE);
+            bVault.setVisibility(game.canWalk(ZDir.ASCEND) || game.canWalk(ZDir.DESCEND) ? View.VISIBLE : View.INVISIBLE);
+        } else {
+            buttonsGrid.setVisibility(View.INVISIBLE);
+        }
     }
 
     void initMenuItems(List<View> buttons) {
@@ -1175,28 +1235,30 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
         players.add(ZPlayerName.Silas.name());
         return players;
     }
-/*
-    Set<String> getDefaultUnlockedPlayers() {
-        HashSet<String> players = new HashSet<>();
-        players.add(ZPlayerName.Baldric.name());
-        players.add(ZPlayerName.Clovis.name());
-        players.add(ZPlayerName.Silas.name());
-        players.add(ZPlayerName.Ann.name());
-        players.add(ZPlayerName.Nelly.name());
-        players.add(ZPlayerName.Samson.name());
-        return players;
-    }
-*/
+
+    /*
+        Set<String> getDefaultUnlockedPlayers() {
+            HashSet<String> players = new HashSet<>();
+            players.add(ZPlayerName.Baldric.name());
+            players.add(ZPlayerName.Clovis.name());
+            players.add(ZPlayerName.Silas.name());
+            players.add(ZPlayerName.Ann.name());
+            players.add(ZPlayerName.Nelly.name());
+            players.add(ZPlayerName.Samson.name());
+            return players;
+        }
+    */
     final int MAX_PLAYERS = 4; // max number of characters on screen at one time
 
     void showAssignDialog() {
-        Set<String> selectedPlayers = new HashSet(getPrefs().getStringSet("players", getDefaultPlayers()));
+        Set<String> selectedPlayers = new HashSet(getStoredCharacters());
 
         RecyclerView recyclerView = new RecyclerView(this);
         recyclerView.setLayoutManager(new GridLayoutManager(this, 2, LinearLayoutManager.VERTICAL, false));
         recyclerView.setAdapter(new RecyclerView.Adapter<Holder>() {
             @Override
             public Holder onCreateViewHolder(ViewGroup parent, int viewType) {
+
                 return new Holder(LayoutInflater.from(ZombicideActivity.this).inflate(R.layout.assign_dialog_item, parent, false));
             }
 
@@ -1232,11 +1294,7 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                     public void onClick(DialogInterface dialog, int which) {
                         Log.d(TAG, "Selected players: " + selectedPlayers);
                         getPrefs().edit().putStringSet("players", selectedPlayers).apply();
-                        user.clear();
-                        for (ZPlayerName pl : Utils.convertToEnumArray(selectedPlayers, ZPlayerName.class, new ZPlayerName[selectedPlayers.size()])) {
-                            user.addCharacter(pl);
-                        }
-                        game.setUsers(user);
+                        loadCharacters(selectedPlayers);
                         game.reload();
                     }
                 }).show();
@@ -1249,8 +1307,8 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
 
         public Holder(View itemView) {
             super(itemView);
-            image = (ImageView)itemView.findViewById(R.id.image);
-            checkbox = (CheckBox)itemView.findViewById(R.id.checkbox);
+            image = (ImageView) itemView.findViewById(R.id.image);
+            checkbox = (CheckBox) itemView.findViewById(R.id.checkbox);
         }
     }
 
@@ -1267,7 +1325,7 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
                         new EmailTask(ZombicideActivity.this,
                                 message.getEditableText().toString()
                                 //, new String(pw)
-                                ).execute(gameFile);
+                        ).execute(gameFile);
                     }
                 }).show();
     }
@@ -1315,8 +1373,10 @@ public class ZombicideActivity extends CCActivityBase implements View.OnClickLis
             if (e != null) {
                 context.newDialogBuilder().setTitle("Error")
                         .setMessage("An error occurred trying to send report:\n" + e.getClass().getSimpleName() + " " + e.getMessage())
-                        .setNegativeButton("Ok", null).show();
+                        .setNegativeButton(R.string.popup_button_ok, null).show();
             }
         }
     }
+
 }
+

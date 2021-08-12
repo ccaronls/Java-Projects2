@@ -5,18 +5,27 @@ import java.util.List;
 
 import cc.lib.game.Utils;
 import cc.lib.ui.IButton;
+import cc.lib.utils.Reflector;
 
-public class ZMove implements IButton {
+public class ZMove extends Reflector<ZMove> implements IButton {
+
+    static {
+        addAllFields(ZMove.class);
+    }
 
     public final ZMoveType type;
     public final Integer integer;
-    public final ZCharacter character;
+    public final ZPlayerName character;
     public final ZEquipment equipment;
     public final ZEquipSlot fromSlot;
     public final ZEquipSlot toSlot;
     public final List list;
     public final ZDir dir;
     public final ZSkill skill;
+
+    public ZMove() {
+        this(null);
+    }
 
     public ZMove(ZMove copy, Object singleListElement) {
         this(copy.type, copy.integer, copy.character, copy.equipment, copy.fromSlot, copy.toSlot, Arrays.asList(singleListElement), copy.dir, copy.skill);
@@ -26,7 +35,7 @@ public class ZMove implements IButton {
         this(copy.type, integer, copy.character, copy.equipment, copy.fromSlot, copy.toSlot, Arrays.asList(singleListElement), copy.dir, copy.skill);
     }
 
-    public ZMove(ZMove copy, Object singleListElement, ZCharacter character) {
+    public ZMove(ZMove copy, Object singleListElement, ZPlayerName character) {
         this(copy.type, copy.integer, character, copy.equipment, copy.fromSlot, copy.toSlot, Arrays.asList(singleListElement), copy.dir, copy.skill);
     }
 
@@ -58,11 +67,11 @@ public class ZMove implements IButton {
         this(type, null, null, equip, fromSlot, null, null, null, null);
     }
 
-    private ZMove(ZMoveType type, int targetIndex, ZCharacter character, ZEquipment equip, ZEquipSlot fromSlot, ZEquipSlot toSlot, List list) {
+    private ZMove(ZMoveType type, int targetIndex, ZPlayerName character, ZEquipment equip, ZEquipSlot fromSlot, ZEquipSlot toSlot, List list) {
         this(type, targetIndex, character, equip, fromSlot, toSlot, list, null, null);
     }
 
-    private ZMove(ZMoveType type, Integer integer, ZCharacter character, ZEquipment equip, ZEquipSlot fromSlot, ZEquipSlot toSlot, List list, ZDir dir, ZSkill skill) {
+    private ZMove(ZMoveType type, Integer integer, ZPlayerName character, ZEquipment equip, ZEquipSlot fromSlot, ZEquipSlot toSlot, List list, ZDir dir, ZSkill skill) {
         this.type = type;
         this.integer = integer;
         this.character = character;
@@ -178,7 +187,7 @@ public class ZMove implements IButton {
         return new ZMove(ZMoveType.INVENTORY);
     }
 
-    public static ZMove newTradeMove(List<ZCharacter> tradeOptions) {
+    public static ZMove newTradeMove(List<ZPlayerName> tradeOptions) {
         return new ZMove(ZMoveType.TRADE, tradeOptions);
     }
 
@@ -202,11 +211,11 @@ public class ZMove implements IButton {
         return new ZMove(ZMoveType.DISPOSE, equip, slot);
     }
 
-    public static ZMove newGiveMove(ZCharacter taker, ZEquipment toGive) {
+    public static ZMove newGiveMove(ZPlayerName taker, ZEquipment toGive) {
         return new ZMove(ZMoveType.GIVE, 0, taker, toGive, null, null, null);
     }
 
-    public static ZMove newTakeMove(ZCharacter giver, ZEquipment toTake) {
+    public static ZMove newTakeMove(ZPlayerName giver, ZEquipment toTake) {
         return new ZMove(ZMoveType.TAKE, 0, giver, toTake, null, null, null);
     }
 
@@ -254,7 +263,7 @@ public class ZMove implements IButton {
         return new ZMove(ZMoveType.ENCHANT, spells);
     }
 
-    public static ZMove newBornLeaderMove(List<ZCharacter> options) {
+    public static ZMove newBornLeaderMove(List<ZPlayerName> options) {
         return new ZMove(ZMoveType.BORN_LEADER, options);
     }
 

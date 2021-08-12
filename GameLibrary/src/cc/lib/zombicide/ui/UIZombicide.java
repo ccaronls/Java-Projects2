@@ -19,7 +19,6 @@ import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZDir;
 import cc.lib.zombicide.ZDoor;
 import cc.lib.zombicide.ZEquipment;
-import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZIcon;
 import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZPlayerName;
@@ -48,8 +47,9 @@ import cc.lib.zombicide.anims.SlashedAnimation;
 import cc.lib.zombicide.anims.SpawnAnimation;
 import cc.lib.zombicide.anims.ThrowAnimation;
 import cc.lib.zombicide.anims.ZoomAnimation;
+import cc.lib.zombicide.p2p.ZGameMP;
 
-public abstract class UIZombicide extends ZGame {
+public abstract class UIZombicide extends ZGameMP {
 
     static Logger log = LoggerFactory.getLogger(UIZombicide.class);
 
@@ -64,7 +64,7 @@ public abstract class UIZombicide extends ZGame {
 
     private boolean gameRunning = false;
     private UIMode uiMode = UIMode.NONE;
-    private String message;
+    private String boardMessage;
     private List options = Collections.emptyList();
     private Object monitor = new Object();
     private Object result = null;
@@ -88,311 +88,12 @@ public abstract class UIZombicide extends ZGame {
         return uiMode;
     }
 
-    public String getMessage() {
-        return message;
+    public String getBoardMessage() {
+        return boardMessage;
     }
 
     public List getOptions() {
         return options;
-    }
-
-    @Override
-    protected void onDragonBileThrown(ZCharacter actor, int zone) {
-        if (actor.getOccupiedZone() != zone) {
-            actor.addAnimation(new ThrowAnimation(actor, board, zone, ZIcon.DRAGON_BILE));
-            waitForAnimationToComplete(1000);
-        }
-    }
-
-    @Override
-    protected void onRollDice(Integer[] roll) {
-        characterRenderer.addWrappable(new ZDiceWrappable(roll));
-    }
-
-    @Override
-    protected void onTorchThrown(ZCharacter actor, int zone) {
-        Lock animLock = new Lock(1);
-        actor.addAnimation(new ThrowAnimation(actor, board, zone, ZIcon.TORCH) {
-            @Override
-            protected void onDone() {
-                super.onDone();
-                animLock.release();
-            }
-        });
-        animLock.block();
-    }
-
-    @Override
-    protected void onDragonBileExploded(int zone) {
-        boardRenderer.addPreActor(new InfernoAnimation(board, zone).start());
-        Utils.waitNoThrow(this, 1000);
-    }
-
-    @Override
-    protected void onDoNothing(ZCharacter c) {
-        boardRenderer.addPostActor(new HoverMessage(boardRenderer, "Zzzzz", c.getRect().getCenter()));
-        Utils.waitNoThrow(this, 500);    }
-
-    @Override
-    protected void onZombieDestroyed(ZCharacter c, ZAttackType deathType, ZZombie zombie) {
-        Lock lock = new Lock();
-        switch (deathType) {
-
-            case ELECTROCUTION:
-                lock.acquire();
-                zombie.addAnimation(new ElectrocutionAnimation(zombie) {
-                    @Override
-                    protected void onDone() {
-                        super.onDone();
-                        lock.release();
-                    }
-                });
-                lock.block();
-            case FIRE:
-            case DISINTEGRATION:
-            case BLADE:
-            case CRUSH:
-            case RANGED:
-            case EARTHQUAKE:
-            case MENTAL_STRIKE:
-            case NORMAL:
-            default:
-                boardRenderer.addPreActor(new DeathAnimation(zombie));
-        }
-    }
-
-    @Override
-    protected void onActorMoved(ZActor actor, GRectangle start, GRectangle end, long speed) {
-        actor.addAnimation(new MoveAnimation(actor, start,end, speed));
-        boardRenderer.redraw();
-//        Utils.waitNoThrow(this, 500);
-    }
-
-    @Override
-    protected void onZombieSpawned(ZZombie zombie) {
-        zombie.addAnimation(new SpawnAnimation(zombie, board));
-    }
-
-    @Override
-    protected void onCharacterDefends(ZCharacter cur) {
-        cur.addAnimation(new ShieldBlockAnimation(cur));
-    }
-
-    private void waitForAnimationToComplete(long duration) {
-        boardRenderer.redraw();
-        synchronized (this) {
-            try {
-                wait(duration);
-            } catch (Exception e) {}
-        }
-    }
-
-    @Override
-    protected void onCharacterAttacked(ZCharacter character, ZAttackType attackType, boolean perished) {
-        switch (attackType) {
-            case ELECTROCUTION:
-                character.addAnimation(new ElectrocutionAnimation(character));
-                break;
-            case NORMAL:
-            case FIRE:
-            case DISINTEGRATION:
-            case BLADE:
-            case CRUSH:
-            case RANGED:
-            case EARTHQUAKE:
-            case MENTAL_STRIKE:
-            default:
-                character.addAnimation(new SlashedAnimation(character));
-        }
-        if (perished) {
-            character.addAnimation(new AscendingAngelDeathAnimation(character));
-            // at the end of the 'ascending angel' grow a tombstone
-            character.addAnimation(new ZActorAnimation(character, 2000) {
-                @Override
-                protected void draw(AGraphics g, float position, float dt) {
-                    GRectangle rect = new GRectangle(actor.getRect());
-                    rect.y += rect.h*(1f-position);
-                    rect.h *= position;
-                    g.drawImage(ZIcon.GRAVESTONE.imageIds[0], rect);
-                }
-            });
-
-        }
-    }
-
-    @Override
-    protected void onAhhhhhh(ZCharacter c) {
-        boardRenderer.addPostActor(new HoverMessage(boardRenderer, "AHHHHHH!", c.getRect().getCenter()));
-        Utils.waitNoThrow(this, 500);
-    }
-
-    @Override
-    protected void onEquipmentFound(ZCharacter c, ZEquipment equipment) {
-        boardRenderer.addPostActor(new HoverMessage(boardRenderer, "+" + equipment.getLabel(), c.getRect().getCenter()));
-        Utils.waitNoThrow(this, 500);
-    }
-
-    @Override
-    protected void onCharacterGainedExperience(ZCharacter c, int points) {
-        boardRenderer.addPostActor(new HoverMessage(boardRenderer, String.format("+%d EXP", points), c.getRect().getCenter()));
-        Utils.waitNoThrow(this, 500);
-    }
-
-    @Override
-    protected void onGameLost() {
-        boardRenderer.setOverlay(new OverlayTextAnimation("Y O U   L O S T") {
-            @Override
-            protected void onDone() {
-                super.onDone();
-                boardRenderer.setOverlay(getGameSummaryTable());
-            }
-        });
-    }
-
-    @Override
-    protected void onQuestComplete() {
-        boardRenderer.setOverlay(new OverlayTextAnimation("C O M P L E T E D") {
-            @Override
-            protected void onDone() {
-                super.onDone();
-                boardRenderer.setOverlay(getGameSummaryTable());
-            }
-        });
-    }
-
-    @Override
-    protected void onDoubleSpawn(int multiplier) {
-        boardRenderer.addOverlay(new OverlayTextAnimation(String.format("DOUBLE SPAWN X %d", multiplier)));
-    }
-
-    @Override
-    protected void onNewSkillAquired(ZCharacter c, ZSkill skill) {
-        boardRenderer.addPostActor(new HoverMessage(boardRenderer, String.format("%s Acquired", skill.getLabel()), c.getRect().getCenter()));
-        characterRenderer.addMessage(String.format("%s has aquired the %s skill", c.getLabel(), skill.getLabel()));
-    }
-
-    @Override
-    protected void onNoiseAdded(int zoneIndex) {
-        ZZone zone = board.getZone(zoneIndex);
-        boardRenderer.addPreActor(new MakeNoiseAnimation(zone.getCenter()));
-        waitForAnimationToComplete(1000);
-    }
-
-    @Override
-    protected void onWeaponGoesClick(ZCharacter c, ZWeapon weapon) {
-        boardRenderer.addPostActor(new HoverMessage(boardRenderer, "CLICK", c.getRect().getCenter()));
-    }
-
-    @Override
-    protected void onAttack(ZCharacter attacker, ZWeapon weapon, ZActionType actionType, int numDice, int numHits, int targetZone) {
-
-        if (actionType == ZActionType.MELEE) {
-
-            //GroupAnimation group = new GroupAnimation(attacker);
-            //attacker.addAnimation(group);
-            Lock animLock = new Lock(numDice);
-            float currentZoom = boardRenderer.getZoomPercent();
-            if (currentZoom < 1)
-                attacker.addAnimation(new ZoomAnimation(attacker, boardRenderer, 1));
-            for (int i=0; i<numDice; i++) {
-                attacker.addAnimation(new MeleeAnimation(attacker, board) {
-                    @Override
-                    protected void onDone() {
-                        super.onDone();
-                        animLock.release();
-                    }
-                });
-                //Utils.waitNoThrow(this, 100);
-            }
-            boardRenderer.redraw();
-            animLock.block();
-            boardRenderer.animateZoomTo(currentZoom);
-        } else if (actionType.isRanged()) {
-
-            GroupAnimation group = new GroupAnimation(attacker);
-            attacker.addAnimation(group);
-            Lock animLock = new Lock(numDice);
-            for (int i=0; i<numDice; i++) {
-                group.addAnimation(new ShootAnimation(attacker, board,300, targetZone, ZIcon.ARROW) {
-
-                    @Override
-                    protected void onDone() {
-                        animLock.release();
-                    }
-
-                });
-                Utils.waitNoThrow(this, 100);
-            }
-            boardRenderer.redraw();
-            animLock.block();
-        } else if (weapon.isMagic()) {
-
-            switch (weapon.getType()) {
-                case DEATH_STRIKE:
-                case MANA_BLAST:
-                case DISINTEGRATE: {
-                    Lock animLock = new Lock(1);
-                    attacker.addAnimation(new MagicAnimation(attacker, board, targetZone) {
-                        @Override
-                        protected void onDone() {
-                            super.onDone();
-                            animLock.release();
-                        }
-                    });
-                    animLock.block();
-                    break;
-                }
-                case FIREBALL: {
-                    GroupAnimation group = new GroupAnimation(attacker);
-                    attacker.addAnimation(group);
-                    Lock animLock = new Lock(numDice);
-                    for (int i = 0; i < numDice; i++) {
-                        Vector2D end = board.getZone(targetZone).getCenter().add(Vector2D.newRandom(0.3f));
-                        group.addAnimation(new FireballAnimation(attacker, end) {
-                            @Override
-                            protected void onDone() {
-                                animLock.release();
-                            }
-                        });
-                        Utils.waitNoThrow(this, 150);
-                    }
-                    animLock.block();
-                    break;
-                }
-                case INFERNO: {
-                    boardRenderer.addPreActor(new InfernoAnimation(board, targetZone));
-                    waitForAnimationToComplete(1000);
-                    break;
-                }
-                case LIGHTNING_BOLT: {
-                    Lock animLock = new Lock(1);
-                    attacker.addAnimation(new LightningAnimation(attacker, board, targetZone, numDice) {
-                        @Override
-                        protected void onDone() {
-                            animLock.release();
-                        }
-                    });
-                    animLock.block();
-                    break;
-                }
-                case EARTHQUAKE: {
-                    Lock animLock = new Lock();
-                    for (ZZombie z : board.getZombiesInZone(targetZone)) {
-                        animLock.acquire();
-                        z.addAnimation(new EarthquakeAnimation(z) {
-                            @Override
-                            protected void onDone() {
-                                super.onDone();
-                                animLock.release();
-                            }
-                        });
-                    }
-                    boardRenderer.redraw();
-                    animLock.block();
-                    break;
-                }
-            }
-        }
     }
 
     public void addPlayerComponentMessage(String message) {
@@ -453,56 +154,72 @@ public abstract class UIZombicide extends ZGame {
         }
     }
 
-    public ZCharacter pickCharacter(String message, List<ZCharacter> characters) {
+    @Override
+    protected void setBoardMessage(String msg) {
+        super.setBoardMessage(msg);
+        this.boardMessage = msg;
+        boardRenderer.redraw();
+    }
+
+    public ZPlayerName pickCharacter(String message, List<ZPlayerName> characters) {
         synchronized (this) {
-            this.message = message;
-            options = characters;
+            options = Utils.map(characters, (in)-> in.getCharacter());
             uiMode = UIMode.PICK_CHARACTER;
-            boardRenderer.redraw();
+            setBoardMessage(message);
         }
-        return waitForUser(ZCharacter.class);
+        ZCharacter ch = waitForUser(ZCharacter.class);
+        if (ch != null) {
+            return ch.getPlayerName();
+        }
+        return null;
     }
 
     public Integer pickZone(String message, List<Integer> zones) {
         synchronized (this) {
-            this.message = message;
             options = zones;
             uiMode = UIMode.PICK_ZONE;
             boardRenderer.redraw();
+            setBoardMessage(message);
         }
         return waitForUser(Integer.class);
     }
 
-    public <T> T pickMenu(String message, Class expectedType, List<T> moves) {
+    public <T> T pickMenu(ZPlayerName name, String message, Class expectedType, List<T> moves) {
         synchronized (this) {
-            this.message = message;
             options = moves;
             uiMode = UIMode.PICK_MENU;
             if (expectedType.equals(ZMove.class))
-                boardRenderer.processMoveOptions(getCurrentCharacter(), (List<ZMove>)moves);
+                boardRenderer.processMoveOptions(name.getCharacter(), (List<ZMove>)moves);
             else
-                boardRenderer.processSubMenu(getCurrentCharacter(), (List<IButton>)moves);
+                boardRenderer.processSubMenu(name.getCharacter(), (List<IButton>)moves);
+            setBoardMessage(message);
         }
         return (T) waitForUser(expectedType);
     }
 
     public ZDoor pickDoor(String message, List<ZDoor> doors) {
         synchronized (this) {
-            this.message = message;
             options = doors;
             uiMode = UIMode.PICK_DOOR;
             boardRenderer.redraw();
+            setBoardMessage(message);
         }
         return waitForUser(ZDoor.class);
     }
 
     public void tryWalk(ZDir dir) {
-        ZCharacter cur = getCurrentCharacter();
+        ZCharacter cur = getCurrentCharacter().getCharacter();
         if (cur != null && cur.getActionsLeftThisTurn() > 0) {
             if (getBoard().canMove(cur, dir)) {
                 setResult(ZMove.newWalkDirMove(dir));
             }
         }
+    }
+
+    @Override
+    public void addLogMessage(String msg) {
+        super.addLogMessage(msg);
+        addPlayerComponentMessage(msg);
     }
 
     public void trySwitchActivePlayer() {
@@ -520,15 +237,354 @@ public abstract class UIZombicide extends ZGame {
         boardRenderer.redraw();
     }
 
+    public void showObjectivesOverlay() {
+        boardRenderer.setOverlay(getQuest().getObjectivesOverlay(this));
+    }
+
+    public void showQuestTitleOverlay() {
+        boardRenderer.setOverlay(new OverlayTextAnimation(getQuest().getName()) {
+            @Override
+            protected void onDone() {
+                super.onDone();
+                showObjectivesOverlay();
+            }
+        });
+    }
+
+    public void showSummaryOverlay() {
+        boardRenderer.setOverlay(getGameSummaryTable());
+    }
+
     @Override
     protected void initQuest(ZQuest quest) {
         boardRenderer.clearTiles();
         showQuestTitleOverlay();
     }
 
+
+    @Override
+    protected void onDragonBileThrown(ZPlayerName actor, int zone) {
+        super.onDragonBileThrown(actor, zone);
+        if (actor.getCharacter().getOccupiedZone() != zone) {
+            actor.getCharacter().addAnimation(new ThrowAnimation(actor.getCharacter(), board, zone, ZIcon.DRAGON_BILE));
+            waitForAnimationToComplete(1000);
+        }
+    }
+
+    @Override
+    protected void onRollDice(Integer[] roll) {
+        super.onRollDice(roll);
+        characterRenderer.addWrappable(new ZDiceWrappable(roll));
+    }
+
+    @Override
+    protected void onTorchThrown(ZPlayerName actor, int zone) {
+        super.onTorchThrown(actor, zone);
+        Lock animLock = new Lock(1);
+        actor.getCharacter().addAnimation(new ThrowAnimation(actor.getCharacter(), board, zone, ZIcon.TORCH) {
+            @Override
+            protected void onDone() {
+                super.onDone();
+                animLock.release();
+            }
+        });
+        animLock.block();
+    }
+
+    @Override
+    protected void onDragonBileExploded(int zone) {
+        super.onDragonBileExploded(zone);
+        boardRenderer.addPreActor(new InfernoAnimation(board, zone).start());
+        Utils.waitNoThrow(this, 1000);
+    }
+
+    @Override
+    protected void onDoNothing(ZPlayerName c) {
+        super.onDoNothing(c);
+        boardRenderer.addPostActor(new HoverMessage(boardRenderer, "Zzzzz", c.getCharacter().getRect().getCenter()));
+        Utils.waitNoThrow(this, 500);    }
+
+    @Override
+    protected void onZombieDestroyed(ZPlayerName c, ZAttackType deathType, ZZombie zombie) {
+        super.onZombieDestroyed(c, deathType, zombie);
+        Lock lock = new Lock();
+        switch (deathType) {
+
+            case ELECTROCUTION:
+                lock.acquire();
+                zombie.addAnimation(new ElectrocutionAnimation(zombie) {
+                    @Override
+                    protected void onDone() {
+                        super.onDone();
+                        lock.release();
+                    }
+                });
+                lock.block();
+            case FIRE:
+            case DISINTEGRATION:
+            case BLADE:
+            case CRUSH:
+            case RANGED:
+            case EARTHQUAKE:
+            case MENTAL_STRIKE:
+            case NORMAL:
+            default:
+                boardRenderer.addPreActor(new DeathAnimation(zombie));
+        }
+    }
+
+    @Override
+    protected void onActorMoved(ZActor actor, GRectangle start, GRectangle end, long speed) {
+        super.onActorMoved(actor, start, end, speed);
+        actor.addAnimation(new MoveAnimation(actor, start,end, speed));
+        boardRenderer.redraw();
+    }
+
+    @Override
+    protected void onZombieSpawned(ZZombie zombie) {
+        super.onZombieSpawned(zombie);
+        zombie.addAnimation(new SpawnAnimation(zombie, board));
+    }
+
+    @Override
+    protected void onCharacterDefends(ZPlayerName cur) {
+        super.onCharacterDefends(cur);
+        cur.getCharacter().addAnimation(new ShieldBlockAnimation(cur.getCharacter()));
+    }
+
+    private void waitForAnimationToComplete(long duration) {
+        boardRenderer.redraw();
+        synchronized (this) {
+            try {
+                wait(duration);
+            } catch (Exception e) {}
+        }
+    }
+
+    @Override
+    protected void onCharacterAttacked(ZPlayerName character, ZAttackType attackType, boolean perished) {
+        super.onCharacterAttacked(character, attackType, perished);
+        switch (attackType) {
+            case ELECTROCUTION:
+                character.getCharacter().addAnimation(new ElectrocutionAnimation(character.getCharacter()));
+                break;
+            case NORMAL:
+            case FIRE:
+            case DISINTEGRATION:
+            case BLADE:
+            case CRUSH:
+            case RANGED:
+            case EARTHQUAKE:
+            case MENTAL_STRIKE:
+            default:
+                character.getCharacter().addAnimation(new SlashedAnimation(character.getCharacter()));
+        }
+        if (perished) {
+            character.getCharacter().addAnimation(new AscendingAngelDeathAnimation(character.getCharacter()));
+            // at the end of the 'ascending angel' grow a tombstone
+            character.getCharacter().addAnimation(new ZActorAnimation(character.getCharacter(), 2000) {
+                @Override
+                protected void draw(AGraphics g, float position, float dt) {
+                    GRectangle rect = new GRectangle(actor.getRect());
+                    rect.y += rect.h*(1f-position);
+                    rect.h *= position;
+                    g.drawImage(ZIcon.GRAVESTONE.imageIds[0], rect);
+                }
+            });
+
+        }
+    }
+
+    @Override
+    protected void onAhhhhhh(ZPlayerName c) {
+        super.onAhhhhhh(c);
+        boardRenderer.addPostActor(new HoverMessage(boardRenderer, "AHHHHHH!", c.getCharacter().getRect().getCenter()));
+        Utils.waitNoThrow(this, 500);
+    }
+
+    @Override
+    protected void onEquipmentFound(ZPlayerName c, ZEquipment equipment) {
+        super.onEquipmentFound(c, equipment);
+        boardRenderer.addPostActor(new HoverMessage(boardRenderer, "+" + equipment.getLabel(), c.getCharacter().getRect().getCenter()));
+        Utils.waitNoThrow(this, 500);
+    }
+
+    @Override
+    protected void onCharacterGainedExperience(ZPlayerName c, int points) {
+        super.onCharacterGainedExperience(c, points);
+        boardRenderer.addPostActor(new HoverMessage(boardRenderer, String.format("+%d EXP", points), c.getCharacter().getRect().getCenter()));
+        Utils.waitNoThrow(this, 500);
+    }
+
+    @Override
+    protected void onGameLost() {
+        super.onGameLost();
+        boardRenderer.setOverlay(new OverlayTextAnimation("Y O U   L O S T") {
+            @Override
+            protected void onDone() {
+                super.onDone();
+                boardRenderer.setOverlay(getGameSummaryTable());
+            }
+        });
+    }
+
+    @Override
+    protected void onQuestComplete() {
+        super.onQuestComplete();
+        boardRenderer.setOverlay(new OverlayTextAnimation("C O M P L E T E D") {
+            @Override
+            protected void onDone() {
+                super.onDone();
+                boardRenderer.setOverlay(getGameSummaryTable());
+            }
+        });
+    }
+
+    @Override
+    protected void onDoubleSpawn(int multiplier) {
+        super.onDoubleSpawn(multiplier);
+        boardRenderer.addOverlay(new OverlayTextAnimation(String.format("DOUBLE SPAWN X %d", multiplier)));
+    }
+
+    @Override
+    protected void onNewSkillAquired(ZPlayerName c, ZSkill skill) {
+        super.onNewSkillAquired(c, skill);
+        boardRenderer.addPostActor(new HoverMessage(boardRenderer, String.format("%s Acquired", skill.getLabel()), c.getCharacter().getRect().getCenter()));
+        characterRenderer.addMessage(String.format("%s has aquired the %s skill", c.getLabel(), skill.getLabel()));
+    }
+
+    @Override
+    protected void onNoiseAdded(int zoneIndex) {
+        super.onNoiseAdded(zoneIndex);
+        ZZone zone = board.getZone(zoneIndex);
+        boardRenderer.addPreActor(new MakeNoiseAnimation(zone.getCenter()));
+        waitForAnimationToComplete(1000);
+    }
+
+    @Override
+    protected void onWeaponGoesClick(ZPlayerName c, ZWeapon weapon) {
+        super.onWeaponGoesClick(c, weapon);
+        boardRenderer.addPostActor(new HoverMessage(boardRenderer, "CLICK", c.getCharacter().getRect().getCenter()));
+    }
+
+    @Override
+    protected void onAttack(ZPlayerName attacker, ZWeapon weapon, ZActionType actionType, int numDice, int numHits, int targetZone) {
+        super.onAttack(attacker, weapon, actionType, numDice, numHits, targetZone);
+        if (actionType == ZActionType.MELEE) {
+
+            //GroupAnimation group = new GroupAnimation(attacker);
+            //attacker.addAnimation(group);
+            Lock animLock = new Lock(numDice);
+            float currentZoom = boardRenderer.getZoomPercent();
+            if (currentZoom < 1)
+                attacker.getCharacter().addAnimation(new ZoomAnimation(attacker.getCharacter(), boardRenderer, 1));
+            for (int i=0; i<numDice; i++) {
+                attacker.getCharacter().addAnimation(new MeleeAnimation(attacker.getCharacter(), board) {
+                    @Override
+                    protected void onDone() {
+                        super.onDone();
+                        animLock.release();
+                    }
+                });
+                //Utils.waitNoThrow(this, 100);
+            }
+            boardRenderer.redraw();
+            animLock.block();
+            boardRenderer.animateZoomTo(currentZoom);
+        } else if (actionType.isRanged()) {
+
+            GroupAnimation group = new GroupAnimation(attacker.getCharacter());
+            attacker.getCharacter().addAnimation(group);
+            Lock animLock = new Lock(numDice);
+            for (int i=0; i<numDice; i++) {
+                group.addAnimation(new ShootAnimation(attacker.getCharacter(), board,300, targetZone, ZIcon.ARROW) {
+
+                    @Override
+                    protected void onDone() {
+                        animLock.release();
+                    }
+
+                });
+                Utils.waitNoThrow(this, 100);
+            }
+            boardRenderer.redraw();
+            animLock.block();
+        } else if (weapon.isMagic()) {
+
+            switch (weapon.getType()) {
+                case DEATH_STRIKE:
+                case MANA_BLAST:
+                case DISINTEGRATE: {
+                    Lock animLock = new Lock(1);
+                    attacker.getCharacter().addAnimation(new MagicAnimation(attacker.getCharacter(), board, targetZone) {
+                        @Override
+                        protected void onDone() {
+                            super.onDone();
+                            animLock.release();
+                        }
+                    });
+                    boardRenderer.redraw();
+                    animLock.block();
+                    break;
+                }
+                case FIREBALL: {
+                    GroupAnimation group = new GroupAnimation(attacker.getCharacter());
+                    attacker.getCharacter().addAnimation(group);
+                    Lock animLock = new Lock(numDice);
+                    for (int i = 0; i < numDice; i++) {
+                        Vector2D end = board.getZone(targetZone).getCenter().add(Vector2D.newRandom(0.3f));
+                        group.addAnimation(new FireballAnimation(attacker.getCharacter(), end) {
+                            @Override
+                            protected void onDone() {
+                                animLock.release();
+                            }
+                        });
+                        Utils.waitNoThrow(this, 150);
+                    }
+                    boardRenderer.redraw();
+                    animLock.block();
+                    break;
+                }
+                case INFERNO: {
+                    boardRenderer.addPreActor(new InfernoAnimation(board, targetZone));
+                    waitForAnimationToComplete(1000);
+                    break;
+                }
+                case LIGHTNING_BOLT: {
+                    Lock animLock = new Lock(1);
+                    attacker.getCharacter().addAnimation(new LightningAnimation(attacker.getCharacter(), board, targetZone, numDice) {
+                        @Override
+                        protected void onDone() {
+                            animLock.release();
+                        }
+                    });
+                    boardRenderer.redraw();
+                    animLock.block();
+                    break;
+                }
+                case EARTHQUAKE: {
+                    Lock animLock = new Lock();
+                    for (ZZombie z : board.getZombiesInZone(targetZone)) {
+                        animLock.acquire();
+                        z.addAnimation(new EarthquakeAnimation(z) {
+                            @Override
+                            protected void onDone() {
+                                super.onDone();
+                                animLock.release();
+                            }
+                        });
+                    }
+                    boardRenderer.redraw();
+                    animLock.block();
+                    break;
+                }
+            }
+        }
+    }
+
     @Override
     protected void onZombiePath(ZZombie zombie, List<ZDir> path) {
-
+        super.onZombiePath(zombie, path);
         /*
         final Vector2D start = zombie.getRect().getCenter();
         boardRenderer.addPostActor(new ZAnimation(1000) {
@@ -551,40 +607,24 @@ public abstract class UIZombicide extends ZGame {
     }
 
     @Override
-    protected void onCharacterOpenedDoor(ZCharacter cur, ZDoor door) {
-
+    protected void onCharacterOpenedDoor(ZPlayerName cur, ZDoor door) {
+        super.onCharacterOpenedDoor(cur, door);
     }
 
     @Override
-    protected void onCharacterOpenDoorFailed(ZCharacter cur, ZDoor door) {
+    protected void onCharacterOpenDoorFailed(ZPlayerName cur, ZDoor door) {
+        super.onCharacterOpenDoorFailed(cur, door);
         boardRenderer.addPostActor(new HoverMessage(boardRenderer, "Open Failed", door.getRect(board).getCenter()));
     }
 
-    public void showObjectivesOverlay() {
-        boardRenderer.setOverlay(getQuest().getObjectivesOverlay(this));
-    }
-
-    public void showQuestTitleOverlay() {
-        boardRenderer.setOverlay(new OverlayTextAnimation(getQuest().getName()) {
-            @Override
-            protected void onDone() {
-                super.onDone();
-                showObjectivesOverlay();
-            }
-        });
-    }
-
-    public void showSummaryOverlay() {
-        boardRenderer.setOverlay(getGameSummaryTable());
-    }
-
     @Override
-    public void onIronRain(ZCharacter c, int targetZone) {
+    public void onIronRain(ZPlayerName c, int targetZone) {
         boardRenderer.addPostActor(new HoverMessage(boardRenderer, "LET IT RAIN!!", getBoard().getZone(targetZone).getCenter()));
     }
 
     @Override
     protected void onDoorUnlocked(ZDoor door) {
+        super.onDoorUnlocked(door);
         boardRenderer.addPostActor(new HoverMessage(boardRenderer, "DOOR UNLOCKED", door.getRect(getBoard()).getCenter()));
     }
 }

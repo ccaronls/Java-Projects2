@@ -394,6 +394,10 @@ public class ZBoard extends Reflector<ZBoard> implements IDimension {
         addActorToCell(actor, cellPos);
     }
 
+    /**
+     *
+     * @param actor
+     */
     public void removeActor(ZActor actor) {
         ZCell cell = getCell(actor.occupiedCell);
         cell.setQuadrant(null, actor.occupiedQuadrant);
@@ -401,6 +405,15 @@ public class ZBoard extends Reflector<ZBoard> implements IDimension {
         //actor.occupiedZone = -1;
         //actor.occupiedQuadrant = -1;
         //actor.occupiedCell = null;
+    }
+
+    /**
+     *
+     */
+    public void removeCharacters() {
+        for (ZCharacter c : getAllCharacters()) {
+            removeActor(c);
+        }
     }
 
     /**
@@ -493,6 +506,16 @@ public class ZBoard extends Reflector<ZBoard> implements IDimension {
             if (cell.getWallFlag(dir).isOpen())
                 getUndiscoveredIndoorZones(getAdjacent(startPos, dir), undiscovered);
         }
+    }
+
+    public List<ZCell> getCellsOfType(ZCellType type) {
+        List<ZCell> start = new ArrayList<>();
+        for (ZCell cell : getCells()) {
+            if (cell.isCellType(type)) {
+                start.add(cell);
+            }
+        }
+        return start;
     }
 
     void resetNoise() {

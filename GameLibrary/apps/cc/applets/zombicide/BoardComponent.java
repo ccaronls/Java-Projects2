@@ -338,9 +338,9 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
                 game.trySwitchActivePlayer();
                 break;
             case KeyEvent.VK_SLASH:
-                if (game.getBoard().canMove(game.getCurrentCharacter(), ZDir.DESCEND)) {
+                if (game.getBoard().canMove(game.getCurrentCharacter().getCharacter(), ZDir.DESCEND)) {
                     game.setResult(ZMove.newWalkDirMove(ZDir.DESCEND));
-                } else if (game.getBoard().canMove(game.getCurrentCharacter(), ZDir.ASCEND)) {
+                } else if (game.getBoard().canMove(game.getCurrentCharacter().getCharacter(), ZDir.ASCEND)) {
                     game.setResult(ZMove.newWalkDirMove(ZDir.ASCEND));
                 }
                 break;

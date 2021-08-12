@@ -2,7 +2,7 @@ package cc.lib.zombicide;
 
 import cc.lib.game.GRectangle;
 
-public abstract class   ZActorAnimation extends ZAnimation {
+public abstract class ZActorAnimation extends ZAnimation {
 
     public final ZActor actor;
     ZActorAnimation next;

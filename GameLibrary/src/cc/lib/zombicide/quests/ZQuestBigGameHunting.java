@@ -57,7 +57,7 @@ public class ZQuestBigGameHunting extends ZQuest {
         game.getBoard().getZone(c.getOccupiedZone()).setObjective(false);
         if (move.integer == blueRevealZone) {
             redObjectives.add(blueObjZone);
-            game.getCurrentUser().showMessage("The Labratory objective is revealed!");
+            game.addLogMessage("The Labratory objective is revealed!");
             game.getBoard().getZone(blueObjZone).setObjective(true);
             game.spawnZombies(1, ZZombieType.Necromancer, blueObjZone);
             blueRevealZone = -1;

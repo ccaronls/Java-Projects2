@@ -217,17 +217,17 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                 case KEEP_ROLL:
                     break;
                 case ENCHANT: {
-                    List<ZCharacter> targets = Utils.filter(getGame().getAllLivingCharacters(), object -> getBoard().canSee(cur.getOccupiedZone(), object.getOccupiedZone()));
+                    List<ZCharacter> targets = Utils.filter(getGame().getBoard().getAllCharacters(), object -> object.isAlive() && getBoard().canSee(cur.getOccupiedZone(), object.getOccupiedZone()));
                     for (ZSpell spell : (List<ZSpell>)move.list) {
                         for (ZCharacter c : targets) {
-                            addClickable(c.getRect(), new ZMove(move, spell, c));
+                            addClickable(c.getRect(), new ZMove(move, spell, c.getPlayerName()));
                         }
                     }
                     break;
                 }
                 case BORN_LEADER:
                     for (ZCharacter c : (List<ZCharacter>)move.list) {
-                        addClickable(c.getRect(), new ZMove(move, c, c));
+                        addClickable(c.getRect(), new ZMove(move, c.getPlayerName(), c.getPlayerName()));
                     }
                     break;
                 case BLOODLUST_MELEE:
@@ -303,6 +303,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
             AImage img = g.getImage(a.getImageId());
             if (img != null) {
                 GRectangle rect = a.getRect(b);
+                // draw box under character of the color of the user who is owner
                 if (rect.contains(mx, my)) {
                     float dist = rect.getCenter().sub(mx, my).magSquared();
                     if (picked == null || !(picked instanceof ZCharacter) || dist < distFromCenter) {
@@ -318,12 +319,12 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                     actorsAnimating = true;
                 } else {
                     GColor outline = null;
-                    if (game.getCurrentCharacter() != null && a == game.getCurrentCharacter()) {
+                    if (game.getCurrentCharacter() != null && a == game.getCurrentCharacter().getCharacter()) {
                         outline = GColor.GREEN;
                     } else if (a == picked)
-                        outline = GColor.RED;
+                        outline = GColor.CYAN;
                     else if (options.contains(a))
-                        outline = GColor.YELLOW;
+                        outline = GColor.WHITE;
                     drawActor((T)g, a, outline);
                 }
                 g.removeFilter();
@@ -755,8 +756,8 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
     public IVector2D getBoardCenter() {
         ZGame game = getGame();
         if (game.getCurrentCharacter() != null)
-            return game.getCurrentCharacter().getRect().getCenter();//game.getBoard().getZone(game.getCurrentCharacter().getOccupiedZone()).getCenter();
-        List<ZCharacter> chars = game.getAllCharacters();
+            return game.getCurrentCharacter().getCharacter().getRect().getCenter();//game.getBoard().getZone(game.getCurrentCharacter().getOccupiedZone()).getCenter();
+        List<ZCharacter> chars = game.getBoard().getAllCharacters();
         if (chars.size() == 0)
             return new GRectangle(getBoard()).getCenter();
         GRectangle rect = null;
@@ -1018,7 +1019,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
         g.setIdentity();
         g.ortho();
         g.setColor(GColor.WHITE);
-        g.drawJustifiedStringOnBackground(10, getHeight()-10, Justify.LEFT, Justify.BOTTOM, game.getMessage(), GColor.TRANSLUSCENT_BLACK, getBorderThickness());
+        g.drawJustifiedStringOnBackground(10, getHeight()-10, Justify.LEFT, Justify.BOTTOM, game.getBoardMessage(), GColor.TRANSLUSCENT_BLACK, getBorderThickness());
         g.popMatrix();
         game.characterRenderer.redraw();
         drawAnimations(overlayAnimations, g);
@@ -1161,5 +1162,11 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
         dragOffset.addEq(dv);
         dragStart = v;
         redraw();
+    }
+
+    @Override
+    public void redraw() {
+        log.debug("!!!!!Redraw!!!!!");
+        super.redraw();
     }
 }

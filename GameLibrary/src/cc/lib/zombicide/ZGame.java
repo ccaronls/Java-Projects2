@@ -36,22 +36,6 @@ public class ZGame extends Reflector<ZGame>  {
     final static int GAME_LOST = 2;
     final static int GAME_WON  = 1;
 
-    public void giftEquipment(ZCharacter c, ZEquipment e) {
-        stateStack.push(new State(ZState.PLAYER_STAGE_CHOOSE_KEEP_EQUIPMENT, c.name, e));
-    }
-
-    private boolean tryOpenDoor(ZCharacter cur, ZDoor door) {
-        if (!door.isJammed())
-            return true;
-
-        if (cur.tryOpenDoor(this)) {
-            onCharacterOpenedDoor(cur, door);
-            return true;
-        }
-        onCharacterOpenDoorFailed(cur, door);
-        return false;
-    }
-
     public static class State extends Reflector<State> {
         final ZState state;
         final ZPlayerName player;
@@ -59,19 +43,7 @@ public class ZGame extends Reflector<ZGame>  {
         final ZSkillLevel skillLevel;
 
         public  State() {
-            this(null, null);
-        }
-
-        State(ZState state, ZPlayerName player) {
-            this(state, player, null, null);
-        }
-
-        State(ZState state, ZPlayerName player, ZEquipment e) {
-            this(state, player, e, null);
-        }
-
-        State(ZState state, ZPlayerName player, ZSkillLevel sk) {
-            this(state, player, null, sk);
+            this(null, null, null, null);
         }
 
         State(ZState state, ZPlayerName player, ZEquipment e, ZSkillLevel sk) {
@@ -84,8 +56,9 @@ public class ZGame extends Reflector<ZGame>  {
     }
 
     private final Stack<State> stateStack = new Stack<>();
-    protected ZBoard board=null;
-    private ZUser [] users=null;
+    protected ZBoard board=new ZBoard();
+    @Omit
+    private final List<ZUser> users = new ArrayList<>();
     private ZQuest quest=null;
     private int currentUser=0;
     private LinkedList<ZEquipment> searchables = new LinkedList<>();
@@ -98,8 +71,20 @@ public class ZGame extends Reflector<ZGame>  {
     private ZDifficulty difficulty = ZDifficulty.EASY;
 
     void pushState(ZState state, ZPlayerName player) {
-        stateStack.push(new State(state, player));
+        pushState(state, player, null);
     }
+
+    void pushState(ZState state, ZPlayerName player, ZEquipment e) {
+        pushState(state, player, e, null);
+    }
+
+    void pushState(ZState state, ZPlayerName player, ZEquipment e, ZSkillLevel skill) {
+        if (player != getCurrentCharacter())
+            onCurrentCharacterUpdated(player);
+        stateStack.push(new State(state, player, e, skill));
+    }
+
+    protected void onCurrentCharacterUpdated(ZPlayerName player) {}
 
     public void setDifficulty(ZDifficulty difficulty) {
         this.difficulty = difficulty;
@@ -130,12 +115,21 @@ public class ZGame extends Reflector<ZGame>  {
         Utils.shuffle(dice);
     }
 
+    public void clearCharacters() {
+        for (ZUser u : users)
+            u.clearCharacters();
+        if (board != null) {
+            board.removeCharacters();
+        }
+    }
+
     public ZBoard getBoard() {
         return board;
     }
 
     public void setUsers(ZUser ... users) {
-        this.users = users;
+        this.users.clear();
+        this.users.addAll(Arrays.asList(users));
     }
 
     public boolean isGameOver() {
@@ -155,18 +149,41 @@ public class ZGame extends Reflector<ZGame>  {
     }
 
     public void reload() {
-        loadQuest(currentQuest);
+        if (currentQuest != null)
+            loadQuest(currentQuest);
     }
 
     public int getNumKills(ZZombieType type) {
         int num=0;
-        for (ZCharacter c : getAllCharacters()) {
+        for (ZCharacter c : board.getAllCharacters()) {
             num += c.kills[type.ordinal()];
         }
         return num;
     }
 
+    public void addUser(ZUser user) {
+        users.add(user);
+    }
+
+    public void removeUser(ZUser user) {
+        users.remove(user);
+        if (currentUser >= users.size())
+            currentUser = 0;
+    }
+
     protected void initQuest(ZQuest quest) {}
+
+    public ZCharacter addCharacter(ZPlayerName pl) {
+        ZCell cell = Utils.randItem(board.getCellsOfType(ZCellType.START));
+        ZCharacter c = pl.create();
+        c.occupiedZone = cell.zoneIndex;
+        board.addActor(c, cell.zoneIndex, null);
+        return c;
+    }
+
+    public void removeCharacter(ZPlayerName nm) {
+        board.removeActor(nm.character);
+    }
 
     public void loadQuest(ZQuests quest) {
         this.currentQuest = quest;
@@ -209,7 +226,7 @@ public class ZGame extends Reflector<ZGame>  {
                         case START:
                             // position all the characters here
                             for (ZUser u : users) {
-                                for (ZPlayerName pl : u.characters) {
+                                for (ZPlayerName pl : u.getCharacters()) {
                                     ZCharacter c = pl.create();
                                     c.occupiedZone = cell.zoneIndex;
                                     board.addActor(c, cell.zoneIndex, null);
@@ -316,7 +333,7 @@ public class ZGame extends Reflector<ZGame>  {
 
     public ZState getState() {
         if (stateStack.empty())
-            stateStack.push(new State(ZState.BEGIN_ROUND, null));
+            pushState(ZState.BEGIN_ROUND, null);
         return stateStack.peek().state;
     }
 
@@ -330,17 +347,17 @@ public class ZGame extends Reflector<ZGame>  {
 
     private void setState(ZState state, ZPlayerName c) {
         stateStack.clear();
-        stateStack.push(new State(state, c));
+        pushState(state, c);
     }
 
     protected void onQuestComplete() {
-        getCurrentUser().showMessage("Quest Complete");
+        addLogMessage("Quest Complete");
     }
 
     boolean isGameSetup() {
         if(board == null)
             return false;
-        if (users == null || users.length == 0 || getCurrentUser() == null)
+        if (users.size() == 0 || getCurrentUser() == null)
             return false;
         if (getAllCharacters().size() == 0)
             return false;
@@ -422,7 +439,7 @@ public class ZGame extends Reflector<ZGame>  {
                 else
                     setState(ZState.PLAYER_STAGE_CHOOSE_CHARACTER, null);
                 roundNum++;
-                getCurrentUser().showMessage("Begin Round " + roundNum);
+                addLogMessage("Begin Round " + roundNum);
                 onStartRound(roundNum);
                 currentUser = 0;
                 for (ZActor a : board.getAllLiveActors())
@@ -448,18 +465,19 @@ public class ZGame extends Reflector<ZGame>  {
             case  PLAYER_STAGE_CHOOSE_CHARACTER: {
                 // for each user, they choose each of their characters in any order and have them
                 // perform all of their actions
-                List<ZCharacter> options = new ArrayList<>();
+                List<ZPlayerName> options = new ArrayList<>();
 
                 // any player who has done a move and is not a tactician must continue to move
-                for (ZCharacter c : getAllLivingCharacters()) {
+                for (ZPlayerName nm : getCurrentUserCharacters()) {
+                    ZCharacter c = nm.getCharacter();
                     if (c.getActionsLeftThisTurn() > 0 && c.getActionsLeftThisTurn() < c.getActionsPerTurn() && !c.hasAvailableSkill(ZSkill.Tactician)) {
-                        options.add(c);
+                        options.add(nm);
                         break;
                     }
                 }
 
                 if (options.size() == 0) {
-                    options.addAll(Utils.filter(getAllLivingCharacters(), object -> object.getActionsLeftThisTurn() > 0));
+                    options.addAll(Utils.filter(getCurrentUserCharacters(), object -> object.character.getActionsLeftThisTurn() > 0));
                 }
 
                 //if (options.size() > 0) {
@@ -467,9 +485,9 @@ public class ZGame extends Reflector<ZGame>  {
                 //    options.addAll(Utils.filter(getAllLivingCharacters(), object -> object.getActionsLeftThisTurn() == 0 && object.inventoryThisTurn));
                 //}
 
-                ZCharacter currentCharacter = null;
+                ZPlayerName currentCharacter = null;
                 if (options.size() == 0) {
-                    if (++currentUser >= users.length) {
+                    if (++currentUser >= users.size()) {
                         currentUser = 0;
                         setState(ZState.ZOMBIE_STAGE, null);
                     }
@@ -480,21 +498,22 @@ public class ZGame extends Reflector<ZGame>  {
                     currentCharacter = getCurrentUser().chooseCharacter(options);
                 }
                 if (currentCharacter != null) {
-                    stateStack.push(new State(ZState.PLAYER_STAGE_CHOOSE_CHARACTER_ACTION, currentCharacter.name));
+                    pushState(ZState.PLAYER_STAGE_CHOOSE_CHARACTER_ACTION, currentCharacter);
                 }
                 break;
             }
 
             case PLAYER_STAGE_CHOOSE_CHARACTER_ACTION: {
 
-                final ZCharacter cur = getCurrentCharacter();
+                final ZPlayerName cur = getCurrentCharacter();
+                final ZCharacter ch = cur.getCharacter();
 
                 boolean invOnly = false;
-                if (getCurrentCharacter().getActionsLeftThisTurn() <= 0) {
-                    if (getCurrentCharacter().inventoryThisTurn) {
+                if (ch.getActionsLeftThisTurn() <= 0) {
+                    if (ch.inventoryThisTurn) {
                         invOnly = true;
                     } else {
-                        getCurrentCharacter().onEndOfTurn(this);
+                        ch.onEndOfTurn(this);
                         setState(ZState.PLAYER_STAGE_CHOOSE_CHARACTER, null);
                         return false;
                     }
@@ -506,57 +525,60 @@ public class ZGame extends Reflector<ZGame>  {
                     //options.add(ZMove.newDoNothing());
 
                     // determine players available moves
-                    for (ZSkill skill : cur.getAvailableSkills()) {
-                        skill.addSpecialMoves(this, cur, options);
+                    for (ZSkill skill : ch.getAvailableSkills()) {
+                        skill.addSpecialMoves(this, ch, options);
                     }
 
                     // add any moves determined by the quest
-                    quest.addMoves(this, cur, options);
+                    quest.addMoves(this, ch, options);
                 }
 
                 // check for organize
-                if (cur.getAllEquipment().size() > 0)
+                if (ch.getAllEquipment().size() > 0)
                     options.add(ZMove.newInventoryMove());
 
-                boolean zoneCleared = isClearedOfZombies(cur.occupiedZone);
+                boolean zoneCleared = isClearedOfZombies(ch.occupiedZone);
 
                 // check for trade with another character in the same zone (even if they are dead)
-                if (zoneCleared && cur.canTrade()) {
-                    List<ZCharacter> inZone = Utils.filter((List)board.getActorsInZone(cur.occupiedZone),
+                if (zoneCleared && ch.canTrade()) {
+                    List<ZCharacter> inZone = Utils.filter((List)board.getActorsInZone(ch.occupiedZone),
                             object -> {
-                                if (object instanceof ZCharacter && object != cur && ((ZCharacter)object).canTrade())
+                                if (object instanceof ZCharacter && ((ZCharacter) object).name != cur && ((ZCharacter)object).canTrade())
                                     return true;
                                 return false;
                             });
                     if (inZone.size() > 0) {
-                        options.add(ZMove.newTradeMove(inZone));
+                        List<ZPlayerName> pl = new ArrayList<>();
+                        for (ZCharacter c : inZone)
+                            pl.add(c.name);
+                        options.add(ZMove.newTradeMove(pl));
                     }
                 }
 
                 if (!invOnly) {
-                    ZZone zone = board.getZone(cur.occupiedZone);
+                    ZZone zone = board.getZone(ch.occupiedZone);
 
                     // check for search
-                    if (zone.isSearchable() && cur.canSearch() && zoneCleared) {
-                        options.add(ZMove.newSearchMove(cur.occupiedZone));
+                    if (zone.isSearchable() && ch.canSearch() && zoneCleared) {
+                        options.add(ZMove.newSearchMove(ch.occupiedZone));
                     }
 
-                    options.add(ZMove.newMakeNoiseMove(cur.occupiedZone));
+                    options.add(ZMove.newMakeNoiseMove(ch.occupiedZone));
 
                     // check for move up, down, right, left
-                    List<Integer> accessableZones = board.getAccessableZones(cur.occupiedZone, 1, ZActionType.MOVE);
+                    List<Integer> accessableZones = board.getAccessableZones(ch.occupiedZone, 1, ZActionType.MOVE);
                     if (accessableZones.size() > 0)
                         options.add(ZMove.newWalkMove(accessableZones));
 
                     {
-                        List<ZWeapon> melee = cur.getMeleeWeapons();
+                        List<ZWeapon> melee = ch.getMeleeWeapons();
                         if (melee.size() > 0) {
                             options.add(ZMove.newMeleeAttackMove(melee));
                         }
                     }
 
                     {
-                        List<ZWeapon> ranged = cur.getRangedWeapons();
+                        List<ZWeapon> ranged = ch.getRangedWeapons();
                         if (ranged.size() > 0) {
                             options.add(ZMove.newRangedAttackMove(ranged));
                             for (ZWeapon slot : ranged) {
@@ -568,31 +590,31 @@ public class ZGame extends Reflector<ZGame>  {
                     }
 
                     {
-                        List<ZWeapon> magic = cur.getMagicWeapons();
+                        List<ZWeapon> magic = ch.getMagicWeapons();
                         if (magic.size() > 0) {
                             options.add(ZMove.newMagicAttackMove(magic));
                         }
                     }
 
                     {
-                        List<ZItem> items = cur.getThrowableItems();
+                        List<ZItem> items = ch.getThrowableItems();
                         if (items.size() > 0) {
                             options.add(ZMove.newThrowItemMove(items));
                         }
                     }
 
-                    List<ZSpell> spells = cur.getSpells();
+                    List<ZSpell> spells = ch.getSpells();
                     if (spells.size() > 0) {
                         options.add(ZMove.newEnchantMove(spells));
                     }
 
                     if (zone.getType() == ZZoneType.VAULT) {
-                        List<ZEquipment> takables = quest.getVaultItems(cur.occupiedZone);
+                        List<ZEquipment> takables = quest.getVaultItems(ch.occupiedZone);
                         if (takables.size() > 0) {
                             options.add(ZMove.newPickupItemMove(takables));
                         }
 
-                        List<ZEquipment> items = cur.getAllEquipment();
+                        List<ZEquipment> items = ch.getAllEquipment();
                         if (items.size() > 0) {
                             options.add(ZMove.newDropItemMove(items));
                         }
@@ -600,9 +622,9 @@ public class ZGame extends Reflector<ZGame>  {
 
                     List<ZDoor> doors = new ArrayList<>();
                     for (ZDoor door : zone.doors) {
-                        if (door.isJammed() && !cur.canUnjamDoor())
+                        if (door.isJammed() && !ch.canUnjamDoor())
                             continue;
-                        if (!door.isClosed(board) && !door.canBeClosed(cur))
+                        if (!door.isClosed(board) && !door.canBeClosed(ch))
                             continue;
                         if (door.isLocked(board))
                             continue;
@@ -614,23 +636,24 @@ public class ZGame extends Reflector<ZGame>  {
                     }
                 }
 
-                ZMove move = getCurrentUser().chooseMove(this, cur, options);
-                return performMove(cur, move);
+                ZMove move = getCurrentUser().chooseMove(cur, options);
+                return performMove(ch, move);
             }
 
             case PLAYER_STAGE_CHOOSE_NEW_SKILL: {
-                final ZCharacter cur = getCurrentCharacter();
+                final ZPlayerName cur = getCurrentCharacter();
+                final ZCharacter ch = cur.getCharacter();
                 ZSkill skill;
-                List<ZSkill> options = Arrays.asList(getCurrentCharacter().name.getSkillOptions(stateStack.peek().skillLevel));
+                List<ZSkill> options = Arrays.asList(cur.getSkillOptions(stateStack.peek().skillLevel));
                 if (options.size() == 1) {
                     skill = options.get(0);
                 } else {
-                    skill = getCurrentUser().chooseNewSkill(this, cur, options);
+                    skill = getCurrentUser().chooseNewSkill(cur, options);
                 }
 
                 if (skill != null) {
                     onNewSkillAquired(cur, skill);
-                    cur.addSkill(skill);
+                    ch.addSkill(skill);
                     stateStack.pop();
                     return true;
                 }
@@ -638,18 +661,18 @@ public class ZGame extends Reflector<ZGame>  {
             }
 
             case PLAYER_STAGE_CHOOSE_KEEP_EQUIPMENT: {
-                final ZCharacter cur = getCurrentCharacter();
+                final ZPlayerName cur = getCurrentCharacter();
                 final ZEquipment equip = getStateEquipment();
                 List<ZMove> options = new ArrayList<ZMove>() {{
                    add(ZMove.newKeepMove(equip));
                    add(ZMove.newDisposeEquipmentMove(equip));
                 }};
 
-                if (cur.getActionsLeftThisTurn() > 0 && equip.isConsumable()) {
+                if (cur.getCharacter().getActionsLeftThisTurn() > 0 && equip.isConsumable()) {
                     options.add(ZMove.newConsumeMove(equip, null));
                 }
-                ZMove move = getCurrentUser().chooseMove(this, cur, options);
-                if (!performMove(cur, move)) {
+                ZMove move = getCurrentUser().chooseMove(cur, options);
+                if (!performMove(cur.getCharacter(), move)) {
                     return false;
                 }
                 stateStack.pop();
@@ -693,8 +716,8 @@ public class ZGame extends Reflector<ZGame>  {
                                 ZCharacter victim = victims.get(0);
                                 zombie.performAction(ZActionType.MELEE, this);
                                 if (playerDefends(victim, zombie.type)) {
-                                    getCurrentUser().showMessage(victim.name() + " defends against " + zombie.name());
-                                    onCharacterDefends(victim);
+                                    addLogMessage(victim.name() + " defends against " + zombie.name());
+                                    onCharacterDefends(victim.name);
                                 } else {
                                     playerWounded(victim, ZAttackType.NORMAL, 1, zombie.type.name());
                                 }
@@ -749,7 +772,7 @@ public class ZGame extends Reflector<ZGame>  {
 
             case PLAYER_ENCHANT_SPEED_MOVE: {
                 // compute all empty of zombie zones 1 or 2 units away form current position
-                List<Integer> zones = board.getAccessableZones(getCurrentCharacter().getOccupiedZone(), 1, ZActionType.MOVE);
+                List<Integer> zones = board.getAccessableZones(getCurrentCharacter().character.getOccupiedZone(), 1, ZActionType.MOVE);
                 Set<Integer> all = new HashSet<>();
                 for (int zoneIdx : zones) {
                     if (board.getZombiesInZone(zoneIdx).size() > 0)
@@ -762,13 +785,13 @@ public class ZGame extends Reflector<ZGame>  {
                         all.add(zoneIdx2);
                     }
                 }
-                all.remove(getCurrentCharacter().getOccupiedZone());
+                all.remove(getCurrentCharacter().character.getOccupiedZone());
                 if (all.size() == 0) {
                     stateStack.pop();
                 } else {
-                    Integer speedMove = getCurrentUser().chooseZoneToWalk(this, getCurrentCharacter(), new ArrayList<>(all));
+                    Integer speedMove = getCurrentUser().chooseZoneToWalk(getCurrentCharacter(), new ArrayList<>(all));
                     if (speedMove != null) {
-                        moveActor(getCurrentCharacter(), speedMove, 200);
+                        moveActor(getCurrentCharacter().character, speedMove, 200);
                         stateStack.pop();
                         return true;
                     }
@@ -786,8 +809,8 @@ public class ZGame extends Reflector<ZGame>  {
                 }
 
                 if (zones.size() > 0) {
-                    ZCharacter cur = getCurrentCharacter();
-                    Integer zIdx = user.chooseZoneToRemoveSpawn(this, cur, zones);
+                    ZPlayerName cur = getCurrentCharacter();
+                    Integer zIdx = user.chooseZoneToRemoveSpawn(cur, zones);
                     if (zIdx != null) {
                         board.getZone(zIdx).setSpawnType(ZSpawnType.NONE);
                         onCharacterDestroysSpawn(cur, zIdx);
@@ -806,16 +829,16 @@ public class ZGame extends Reflector<ZGame>  {
         return false;
     }
 
-    protected void onCharacterDestroysSpawn(ZCharacter c, int zoneIdx) {}
+    protected void onCharacterDestroysSpawn(ZPlayerName c, int zoneIdx) {}
 
-    protected void onCharacterDefends(ZCharacter cur) {
+    protected void onCharacterDefends(ZPlayerName cur) {
     }
 
-    protected void onNewSkillAquired(ZCharacter c, ZSkill skill) {}
+    protected void onNewSkillAquired(ZPlayerName c, ZSkill skill) {}
 
     private boolean playerDefends(ZCharacter cur, ZZombieType type) {
         for (int rating : cur.getArmorRatings(type)) {
-            getCurrentUser().showMessage("Defensive roll");
+            addLogMessage("Defensive roll");
             Integer [] dice = rollDice(1);
             if (dice[0] >= rating)
                 return true;
@@ -825,13 +848,13 @@ public class ZGame extends Reflector<ZGame>  {
 
     void gameLost(String msg) {
         gameOverStatus = GAME_LOST;
-        getCurrentUser().showMessage(("Game Lost " + msg).trim());
+        addLogMessage(("Game Lost " + msg).trim());
         onGameLost();
     }
 
     void gameWon() {
         gameOverStatus = GAME_WON;
-        getCurrentUser().showMessage("Game Won!!!");
+        addLogMessage("Game Won!!!");
         onQuestComplete();
     }
 
@@ -843,32 +866,25 @@ public class ZGame extends Reflector<ZGame>  {
         victim.woundBar += amount;
         if (victim.isDead()) {
             victim.clearActions();
-            getCurrentUser().showMessage(victim.name() + " has been killed by a " + reason);
-            onCharacterAttacked(victim, attackType, true);
+            addLogMessage(victim.name() + " has been killed by a " + reason);
+            onCharacterAttacked(victim.name, attackType, true);
             //removeCharacter(victim);
         } else {
-            getCurrentUser().showMessage(victim.name() + " has been wounded by a " + reason);
-            onCharacterAttacked(victim, attackType, false);
+            addLogMessage(victim.name() + " has been wounded by a " + reason);
+            onCharacterAttacked(victim.name, attackType, false);
         }
 
     }
 
 
-    protected void onCharacterAttacked(ZCharacter character, ZAttackType attackType, boolean characterPerished) {
+    protected void onCharacterAttacked(ZPlayerName character, ZAttackType attackType, boolean characterPerished) {
     }
 
-    protected void onTorchThrown(ZCharacter c, int zone) {
+    protected void onTorchThrown(ZPlayerName c, int zone) {
     }
 
-    protected void onDragonBileThrown(ZCharacter c, int zone) {
-        log.info("%s placed dragon bile in zone %d", c.name, zone);
-    }
-
-    private void removeCharacter(ZCharacter character) {
-        for (ZUser user : users) {
-            user.characters.remove(character);
-        }
-        board.removeActor(character);
+    protected void onDragonBileThrown(ZPlayerName c, int zone) {
+        log.info("%s placed dragon bile in zone %d", c, zone);
     }
 
     public List<ZDir> getZombiePathTowardNearestSpawn(ZZombie zombie) {
@@ -894,7 +910,7 @@ public class ZGame extends Reflector<ZGame>  {
         // zombie will move toward players it can see first and then noisy areas second
         int maxNoise = 0;
         int targetZone = -1;
-        for (ZCharacter c : Utils.filter(getAllLivingCharacters(), object -> !object.isInvisible())) {
+        for (ZCharacter c : Utils.filter(board.getAllCharacters(), object -> !object.isInvisible() && object.isAlive())) {
             if (board.canSee(zombie.occupiedZone, c.occupiedZone)) {
                 int noiseLevel = board.getZone(c.occupiedZone).getNoiseLevel();
                 if (maxNoise < noiseLevel) {
@@ -932,16 +948,16 @@ public class ZGame extends Reflector<ZGame>  {
 
     }
 
-    protected void onDoNothing(ZCharacter c) {}
+    protected void onDoNothing(ZPlayerName c) {}
 
     public boolean canUse(ZEquipSlot slot) {
-        ZCharacter c = getCurrentCharacter();
-        return c != null && c.getSlot(slot) != null;
+        ZPlayerName c = getCurrentCharacter();
+        return c != null && c.character.getSlot(slot) != null;
     }
 
     public boolean canWalk(ZDir dir) {
-        ZCharacter c = getCurrentCharacter();
-        return c != null && c.getActionsLeftThisTurn() > 0 && getBoard().canMove(c, dir);
+        ZPlayerName c = getCurrentCharacter();
+        return c != null && c.character.getActionsLeftThisTurn() > 0 && getBoard().canMove(c.character, dir);
     }
 
 
@@ -965,7 +981,7 @@ public class ZGame extends Reflector<ZGame>  {
         ZUser user = getCurrentUser();
         switch (move.type) {
             case DO_NOTHING:
-                onDoNothing(cur);
+                onDoNothing(cur.name);
                 cur.performAction(ZActionType.DO_NOTHING, this);
                 return true;
             case END_TURN:
@@ -976,17 +992,17 @@ public class ZGame extends Reflector<ZGame>  {
             case SWITCH_ACTIVE_CHARACTER: {
                 if (canSwitchActivePlayer()) {
                     int idx = 0;
-                    for (ZPlayerName nm : user.characters) {
+                    for (ZPlayerName nm : user.getCharacters()) {
                         if (nm == cur.getType()) {
                             break;
                         }
                         idx++;
                     }
-                    for (int i=(idx+1) % user.characters.size(); i!=idx; i=(i+1)%user.characters.size()) {
-                        ZCharacter c = user.characters.get(i).character;
+                    for (int i=(idx+1) % user.getCharacters().size(); i!=idx; i=(i+1)%user.getCharacters().size()) {
+                        ZCharacter c = user.getCharacters().get(i).character;
                         if (c.isAlive() && c.getActionsLeftThisTurn() > 0) {
                             stateStack.pop();
-                            stateStack.push(new State(ZState.PLAYER_STAGE_CHOOSE_CHARACTER_ACTION, c.name));
+                            pushState(ZState.PLAYER_STAGE_CHOOSE_CHARACTER_ACTION, c.name);
                             return true;
                         }
                     }
@@ -1001,7 +1017,7 @@ public class ZGame extends Reflector<ZGame>  {
                     for (ZCellType ct : Arrays.asList(ZCellType.OBJECTIVE_BLACK, ZCellType.OBJECTIVE_BLUE, ZCellType.OBJECTIVE_GREEN, ZCellType.OBJECTIVE_RED))
                         board.getCell(pos).setCellType(ct, false);
                 }
-                getCurrentUser().showMessage(cur.name() + " Found an OBJECTIVE");
+                addLogMessage(cur.name() + " Found an OBJECTIVE");
                 quest.processObjective(this, cur, move);
                 return true;
             }
@@ -1016,7 +1032,7 @@ public class ZGame extends Reflector<ZGame>  {
                     slots.add(ZEquipSlot.BODY);
                 if (cur.getNumBackpackItems() > 0)
                     slots.add(ZEquipSlot.BACKPACK);
-                ZEquipSlot selectedSlot = getCurrentUser().chooseSlotToOrganize(this, cur, slots);
+                ZEquipSlot selectedSlot = getCurrentUser().chooseSlotToOrganize(cur.name, slots);
                 if (selectedSlot == null) {
                     return false;
                 }
@@ -1026,7 +1042,7 @@ public class ZGame extends Reflector<ZGame>  {
                     case BACKPACK:
                         if (cur.getNumBackpackItems() > 1) {
                             // add
-                            selectedEquipment = getCurrentUser().chooseEquipment(this, cur, cur.getBackpack());
+                            selectedEquipment = getCurrentUser().chooseEquipment(cur.name, cur.getBackpack());
                         } else {
                             selectedEquipment = cur.getBackpackItem(0);
                         }
@@ -1069,35 +1085,35 @@ public class ZGame extends Reflector<ZGame>  {
                     }
                 }
                 options.add(ZMove.newDisposeMove(selectedEquipment, selectedSlot));
-                move = user.chooseMove(this, cur, options);
+                move = user.chooseMove(cur.name, options);
                 if (move != null) {
                     return performMove(cur, move);
                 }
                 return false;
             }
             case TRADE:
-                ZCharacter other;
+                ZPlayerName other;
                 if (move.list.size() == 1) {
-                    other = (ZCharacter)move.list.get(0);
+                    other = (ZPlayerName) move.list.get(0);
                 } else {
-                    other = user.chooseTradeCharacter(this, cur, move.list);
+                    other = user.chooseTradeCharacter(cur.name, move.list);
                 }
                 if (other != null) {
                     List<ZMove> options = new ArrayList<>();
                     // we can take if our backpack is not full or give if their backpack is not full
                     for (ZEquipment eq : cur.getAllEquipment()) {
-                        if (other.getEquipableSlots(eq).size() > 0) {
+                        if (other.character.getEquipableSlots(eq).size() > 0) {
                             options.add(ZMove.newGiveMove(other, eq));
                         }
                     }
 
-                    for (ZEquipment eq : other.getAllEquipment()) {
+                    for (ZEquipment eq : other.character.getAllEquipment()) {
                         if (cur.getEquipableSlots(eq).size() > 0) {
                             options.add(ZMove.newTakeMove(other, eq));
                         }
                     }
 
-                    move = user.chooseMove(this, cur, options);
+                    move = user.chooseMove(cur.name, options);
                     if (move != null) {
                         return performMove(cur, move);
                     }
@@ -1106,7 +1122,7 @@ public class ZGame extends Reflector<ZGame>  {
             case WALK: {
                 Integer zone = move.integer;
                 if (zone == null)
-                    zone = user.chooseZoneToWalk(this, cur, move.list);
+                    zone = user.chooseZoneToWalk(cur.name, move.list);
                 if (zone != null) {
                     moveActor(cur, zone, cur.getMoveSpeed());
                     return true;
@@ -1136,7 +1152,7 @@ public class ZGame extends Reflector<ZGame>  {
                 List<ZWeapon> weapons = move.list;
                 ZWeapon weapon = null;
                 if (weapons.size() > 1) {
-                    weapon = user.chooseWeaponSlot(this, cur, weapons);
+                    weapon = user.chooseWeaponSlot(cur.name, weapons);
                 } else {
                     weapon = weapons.get(0);
                 }
@@ -1150,7 +1166,7 @@ public class ZGame extends Reflector<ZGame>  {
                         zombies.remove(0);
                     }
                     int hits = resolveHits(cur, zombies.size(), ZActionType.MELEE, stat.numDice, stat.dieRollToHit, zombies.size()/2-1, zombies.size()/2+1);
-                    onAttack(cur, weapon, ZActionType.MELEE, stat.numDice, hits, cur.getOccupiedZone());
+                    onAttack(cur.name, weapon, ZActionType.MELEE, stat.numDice, hits, cur.getOccupiedZone());
 
                     for (int i=0; i<hits && zombies.size() > 0; i++) {
                         ZZombie z = zombies.remove(0);
@@ -1161,7 +1177,7 @@ public class ZGame extends Reflector<ZGame>  {
                         addNoise(cur.occupiedZone, 1);
                     }
                     cur.performAction( ZActionType.MELEE,this);
-                    user.showMessage(getCurrentCharacter().name() + " Scored " + hits + " hits");
+                    addLogMessage(getCurrentCharacter().name() + " Scored " + hits + " hits");
                     return true;
                 }
                 return false;
@@ -1172,7 +1188,7 @@ public class ZGame extends Reflector<ZGame>  {
                 List<ZWeapon> weapons = move.list;
                 ZWeapon weapon = null;
                 if (weapons.size() > 1) {
-                    weapon = user.chooseWeaponSlot(this, cur, weapons);
+                    weapon = user.chooseWeaponSlot(cur.name, weapons);
                 } else {
                     weapon = weapons.get(0);
                 }
@@ -1186,15 +1202,15 @@ public class ZGame extends Reflector<ZGame>  {
                             zones.addAll(board.getAccessableZones(cur.occupiedZone, range, actionType));
                         }
                         if (zones.size() > 0) {
-                            zoneIdx = user.chooseZoneForAttack(this, cur, zones);
+                            zoneIdx = user.chooseZoneForAttack(cur.name, zones);
                         }
                     }
                     if (zoneIdx != null) {
                         stat = cur.getWeaponStat(weapon, actionType, this, zoneIdx);
                         // process a ranged attack
                         if (!weapon.isLoaded()) {
-                            getCurrentUser().showMessage("CLICK! Weapon not loaded!");
-                            onWeaponGoesClick(cur, weapon);
+                            addLogMessage("CLICK! Weapon not loaded!");
+                            onWeaponGoesClick(cur.name, weapon);
                         } else {
                             weapon.fireWeapon(this, cur);
                             ZZone zone = board.getZone(zoneIdx);
@@ -1218,7 +1234,7 @@ public class ZGame extends Reflector<ZGame>  {
 
                                 int hits = resolveHits(cur, zombies.size(), actionType, stat.numDice, stat.dieRollToHit, zombies.size() / 2 - 1, zombies.size() / 2 + 1);
                                 int hitsMade = 0;
-                                onAttack(cur, weapon, actionType, stat.numDice, hits, zoneIdx);
+                                onAttack(cur.name, weapon, actionType, stat.numDice, hits, zoneIdx);
                                 for (int i = 0; i < hits && zombies.size() > 0; i++) {
                                     ZZombie zombie = zombies.remove(0);
                                     if (zombie.type.minDamageToDestroy <= stat.damagePerHit) {
@@ -1228,7 +1244,7 @@ public class ZGame extends Reflector<ZGame>  {
                                     }
                                 }
 
-                                user.showMessage(getCurrentCharacter().name() + " Scored " + hits + " hits");
+                                addLogMessage(getCurrentCharacter().name() + " Scored " + hits + " hits");
                                 if (cur.canFriendlyFire()) {
                                     int misses = stat.numDice - hitsMade;
                                     List<ZCharacter> friendlyFireOptions = Utils.filter(board.getCharactersInZone(zoneIdx), object -> object != cur);
@@ -1244,8 +1260,8 @@ public class ZGame extends Reflector<ZGame>  {
                                         // friendly fire!
                                         ZCharacter victim = friendlyFireOptions.get(0);
                                         if (playerDefends(victim, ZZombieType.Walker)) {
-                                            getCurrentUser().showMessage(victim.name() + " defended thyself from friendly fire!");
-                                            onCharacterDefends(victim);
+                                            addLogMessage(victim.name() + " defended thyself from friendly fire!");
+                                            onCharacterDefends(victim.name);
                                         } else {
                                             playerWounded(victim, stat.getAttackType(), stat.damagePerHit, "Friendly Fire!");
                                             if (victim.isDualWeilding())
@@ -1268,7 +1284,7 @@ public class ZGame extends Reflector<ZGame>  {
                 if (slots.size() == 1)
                     slot = slots.get(0);
                 else
-                    slot = getCurrentUser().chooseItemToThrow(this, cur, slots);
+                    slot = getCurrentUser().chooseItemToThrow(cur.name, slots);
                 if (slot != null) {
                     Integer zoneIdx = null;
                     if (move.integer != null) {
@@ -1276,20 +1292,20 @@ public class ZGame extends Reflector<ZGame>  {
                     } else {
                         List<Integer> zones = board.getAccessableZones(cur.occupiedZone, 1, ZActionType.THROW_ITEM);
                         zones.add(cur.occupiedZone);
-                        zoneIdx = getCurrentUser().chooseZoneToThrowItem(this, cur, slot, zones);
+                        zoneIdx = getCurrentUser().chooseZoneToThrowItem(cur.name, slot, zones);
                     }
                     if (zoneIdx != null) {
                         switch (slot.type) {
                             case DRAGON_BILE:
-                                getCurrentUser().showMessage(cur.name() + " threw the dragon Bile!");
-                                onDragonBileThrown(cur, zoneIdx);
+                                addLogMessage(cur.name() + " threw the dragon Bile!");
+                                onDragonBileThrown(cur.name, zoneIdx);
                                 board.getZone(zoneIdx).setDragonBile(true);
                                 break;
                             case TORCH: {
                                 ZZone zone = board.getZone(zoneIdx);
-                                onTorchThrown(cur, zoneIdx);
+                                onTorchThrown(cur.name, zoneIdx);
                                 if (!zone.isDragonBile()) {
-                                    getCurrentUser().showMessage("Throwing the Torch had no effect");
+                                    addLogMessage("Throwing the Torch had no effect");
                                 } else {
                                     performDragonBile(cur, zone);
                                 }
@@ -1313,10 +1329,10 @@ public class ZGame extends Reflector<ZGame>  {
                 if (cur.isDualWeilding()) {
                     ((ZWeapon)cur.getSlot(ZEquipSlot.LEFT_HAND)).reload();
                     ((ZWeapon)cur.getSlot(ZEquipSlot.RIGHT_HAND)).reload();
-                    user.showMessage(getCurrentCharacter().name() + " Reloaded both their " + weapon.getLabel() + "s");
+                    addLogMessage(getCurrentCharacter().name() + " Reloaded both their " + weapon.getLabel() + "s");
                 } else {
                     weapon.reload();
-                    user.showMessage(getCurrentCharacter().name() + " Reloaded their " + weapon.getLabel());
+                    addLogMessage(getCurrentCharacter().name() + " Reloaded their " + weapon.getLabel());
                 }
                 cur.performAction(ZActionType.RELOAD, this);
                 return true;
@@ -1325,14 +1341,14 @@ public class ZGame extends Reflector<ZGame>  {
                 List<ZDoor> doors = move.list;
                 ZDoor door = null;
                 if (doors.size() > 1)
-                    door = user.chooseDoorToToggle(this, cur, doors);
+                    door = user.chooseDoorToToggle(cur.name, doors);
                 else
                     door = doors.get(0);
                 if (door != null) {
                     if (door.isClosed(board)) {
                         if (tryOpenDoor(cur, door)) {
                             door.toggle(board);
-                            //getCurrentUser().showMessage(currentCharacter.name() + " has opened a " + door.name());
+                            //showMessage(currentCharacter.name() + " has opened a " + door.name());
                             // spawn zombies in the newly exposed zone and any adjacent
                             ZDoor otherSide = door.getOtherSide();
                             if (board.getZone(board.getCell(otherSide.getCellPosStart()).zoneIndex).canSpawn()) {
@@ -1363,15 +1379,15 @@ public class ZGame extends Reflector<ZGame>  {
                 while (searchables.size() > 0 && numCardsDrawn-- > 0) {
                     ZEquipment equip = searchables.removeLast();
                     if (equip.getType() == ZItemType.AAHHHH) {
-                        getCurrentUser().showMessage("Aaaahhhh!!!");
-                        onAhhhhhh(cur);
+                        addLogMessage("Aaaahhhh!!!");
+                        onAhhhhhh(cur.name);
                         // spawn zombie right here right now
                         spawnZombies(1, ZZombieType.Walker, cur.occupiedZone);
                         putBackInSearchables(equip);
                     } else {
-                        onEquipmentFound(cur, equip);
+                        onEquipmentFound(cur.name, equip);
                         quest.onEquipmentFound(this, equip);
-                        stateStack.push(new State(ZState.PLAYER_STAGE_CHOOSE_KEEP_EQUIPMENT, cur.name, equip));
+                        pushState(ZState.PLAYER_STAGE_CHOOSE_KEEP_EQUIPMENT, cur.name, equip);
                         //user.showMessage(cur.name() + " Found a " + equip);
                         //cur.equip(equip);
                     }
@@ -1397,13 +1413,13 @@ public class ZGame extends Reflector<ZGame>  {
                 cur.performAction(ZActionType.INVENTORY, this);
                 return true;
             case TAKE:
-                move.character.removeEquipment(move.equipment);
+                move.character.character.removeEquipment(move.equipment);
                 cur.attachEquipment(move.equipment);
                 cur.performAction(ZActionType.INVENTORY, this);
                 return true;
             case GIVE:
                 cur.removeEquipment(move.equipment);
-                move.character.attachEquipment(move.equipment);
+                move.character.character.attachEquipment(move.equipment);
                 cur.performAction(ZActionType.INVENTORY, this);
                 return true;
             case DISPOSE:
@@ -1436,7 +1452,7 @@ public class ZGame extends Reflector<ZGame>  {
                             break;
                     }
 
-                    move = getCurrentUser().chooseMove(this, cur, options);
+                    move = getCurrentUser().chooseMove(cur.name, options);
                     if (move == null)
                         return false;
 
@@ -1467,7 +1483,7 @@ public class ZGame extends Reflector<ZGame>  {
                 return true;
             }
             case PICKUP_ITEM: {
-                ZEquipment equip = getCurrentUser().chooseItemToPickup(this, cur, move.list);
+                ZEquipment equip = getCurrentUser().chooseItemToPickup(cur.name, move.list);
                 if (equip != null) {
                     if (cur.tryEquip(equip) == null) {
                         ZMove keep = ZMove.newKeepMove(equip);
@@ -1481,7 +1497,7 @@ public class ZGame extends Reflector<ZGame>  {
                 return false;
             }
             case DROP_ITEM: {
-                ZEquipment equip = getCurrentUser().chooseItemToDrop(this, cur, move.list);
+                ZEquipment equip = getCurrentUser().chooseItemToDrop(cur.name, move.list);
                 if (equip != null) {
                     quest.dropItem(cur.occupiedZone, equip);
                     cur.removeEquipment(equip);
@@ -1493,12 +1509,12 @@ public class ZGame extends Reflector<ZGame>  {
             case MAKE_NOISE: {
                 int maxNoise = board.getMaxNoiseLevel();
                 addNoise(move.integer, maxNoise+1 - board.getZone(move.integer).getNoiseLevel());
-                getCurrentUser().showMessage(cur.name() + " made alot of noise to draw the zombies!");
+                addLogMessage(cur.name() + " made alot of noise to draw the zombies!");
                 cur.performAction(ZActionType.MAKE_NOISE, this);
                 return true;
             }
             case SHOVE: {
-                Integer targetZone = getCurrentUser().chooseZoneToShove(this, cur, move.list);
+                Integer targetZone = getCurrentUser().chooseZoneToShove(cur.name, move.list);
                 if (targetZone != null) {
                     // shove all zombies in this zone into target zone
                     for (ZZombie z : board.getZombiesInZone(cur.getOccupiedZone())) {
@@ -1514,36 +1530,36 @@ public class ZGame extends Reflector<ZGame>  {
             }
             case ENCHANT: {
                 ZSpell spell = null;
-                ZCharacter target = null;
+                ZPlayerName target = null;
                 if (move.list.size() == 1 && move.character != null) {
                     spell = (ZSpell)move.list.get(0);
                     target = move.character;
                 } else {
                     List<ZSpell> spells = cur.getSpells();
-                    spell = getCurrentUser().chooseSpell(this, cur, spells);
+                    spell = getCurrentUser().chooseSpell(cur.name, spells);
                     if (spell != null) {
-                        List<ZCharacter> targets = Utils.filter(getAllLivingCharacters(), object -> board.canSee(cur.getOccupiedZone(), object.getOccupiedZone()));
-                        target = getCurrentUser().chooseCharacterForSpell(this, cur, spell, targets);
+                        List<ZPlayerName> targets = Utils.filter(getAllLivingCharacters(), object -> board.canSee(cur.getOccupiedZone(), object.character.getOccupiedZone()));
+                        target = getCurrentUser().chooseCharacterForSpell(cur.name, spell, targets);
                     }
                 }
                 if (spell != null && target != null) {
-                    spell.type.doEnchant(this, target);//target.availableSkills.add(spell.type.skill);
+                    spell.type.doEnchant(this, target.character);//target.availableSkills.add(spell.type.skill);
                     cur.performAction(ZActionType.ENCHANTMENT, this);
                     return true;
                 }
                 return false;
             }
             case BORN_LEADER: {
-                ZCharacter chosen = null;
+                ZPlayerName chosen = null;
                 if (move.character != null)
                     chosen = move.character;
                 else
-                    chosen = getCurrentUser().chooseCharacterToBequeathMove(this, cur, move.list);
+                    chosen = getCurrentUser().chooseCharacterToBequeathMove(cur.name, move.list);
                 if (chosen != null) {
-                    if (chosen.getActionsLeftThisTurn() > 0) {
-                        chosen.addExtraAction();
+                    if (chosen.character.getActionsLeftThisTurn() > 0) {
+                        chosen.character.addExtraAction();
                     } else {
-                        chosen.addAvailableSkill(ZSkill.Plus1_Action);
+                        chosen.character.addAvailableSkill(ZSkill.Plus1_Action);
                     }
                     cur.performAction(ZActionType.BEQUEATH_MOVE, this);
                     return true;
@@ -1583,14 +1599,14 @@ public class ZGame extends Reflector<ZGame>  {
         if (move.list.size() == 1) {
             zone = (Integer)move.list.get(0);
         } else {
-            zone = getCurrentUser().chooseZoneForBloodlust(this, cur, move.list);
+            zone = getCurrentUser().chooseZoneForBloodlust(cur.name, move.list);
         }
         if (zone != null) {
             ZWeapon slot = null;
             if (move.equipment != null) {
                 slot = (ZWeapon)move.equipment;
             } else if (weapons.size() > 1) {
-                slot = getCurrentUser().chooseWeaponSlot(this, cur, weapons);
+                slot = getCurrentUser().chooseWeaponSlot(cur.name, weapons);
             } else if (weapons.size() == 1) {
                 slot = weapons.get(0);
             }
@@ -1609,15 +1625,15 @@ public class ZGame extends Reflector<ZGame>  {
         return false;
     }
 
-    protected void onAhhhhhh(ZCharacter c) {}
+    protected void onAhhhhhh(ZPlayerName c) {}
 
     protected void onNecromancerEscaped(ZZombie necro) {}
 
-    protected void onEquipmentFound(ZCharacter c, ZEquipment equipment) {}
+    protected void onEquipmentFound(ZPlayerName c, ZEquipment equipment) {}
 
     private void performAttack(ZWeapon weapon, ZActionType actionType) {
         ZUser user = getCurrentUser();
-        ZCharacter cur = getCurrentCharacter();
+        ZCharacter cur = getCurrentCharacter().getCharacter();
         switch (actionType) {
             case MELEE: {
                 ZWeaponStat stat = cur.getWeaponStat(weapon, ZActionType.MELEE, this, cur.getOccupiedZone());
@@ -1628,7 +1644,7 @@ public class ZGame extends Reflector<ZGame>  {
                     zombies.remove(0);
                 }
                 int hits = resolveHits(cur, zombies.size(), ZActionType.MELEE, stat.numDice, stat.dieRollToHit, zombies.size() / 2 - 1, zombies.size() / 2 + 1);
-                onAttack(cur, weapon, ZActionType.MELEE, stat.numDice, hits, cur.getOccupiedZone());
+                onAttack(cur.name, weapon, ZActionType.MELEE, stat.numDice, hits, cur.getOccupiedZone());
 
                 for (int i = 0; i < hits && zombies.size() > 0; i++) {
                     ZZombie z = zombies.remove(0);
@@ -1638,7 +1654,7 @@ public class ZGame extends Reflector<ZGame>  {
                 if (weapon.isAttackNoisy()) {
                     addNoise(cur.occupiedZone, 1);
                 }
-                user.showMessage(getCurrentCharacter().name() + " Scored " + hits + " hits");
+                addLogMessage(getCurrentCharacter().name() + " Scored " + hits + " hits");
                 break;
             }
             case MAGIC:
@@ -1651,13 +1667,13 @@ public class ZGame extends Reflector<ZGame>  {
                     zones.addAll(board.getAccessableZones(cur.occupiedZone, range, actionType));
                 }
                 if (zones.size() > 0) {
-                    Integer zoneIdx = user.chooseZoneForAttack(this, cur, zones);
+                    Integer zoneIdx = user.chooseZoneForAttack(cur.name, zones);
                     if (zoneIdx != null) {
                         stat = cur.getWeaponStat(weapon, actionType, this, zoneIdx);
                         // process a ranged attack
                         if (!weapon.isLoaded()) {
-                            getCurrentUser().showMessage("CLICK! Weapon not loaded!");
-                            onWeaponGoesClick(cur, weapon);
+                            addLogMessage("CLICK! Weapon not loaded!");
+                            onWeaponGoesClick(cur.name, weapon);
                         } else {
                             weapon.fireWeapon(this, cur);
                             ZZone zone = board.getZone(zoneIdx);
@@ -1680,7 +1696,7 @@ public class ZGame extends Reflector<ZGame>  {
                                 }
 
                                 int hits = resolveHits(cur, zombies.size(), actionType, stat.numDice, stat.dieRollToHit, zombies.size() / 2 - 1, zombies.size() / 2 + 1);
-                                onAttack(cur, weapon, actionType, stat.numDice, hits, zoneIdx);
+                                onAttack(cur.name, weapon, actionType, stat.numDice, hits, zoneIdx);
                                 for (int i = 0; i < hits && zombies.size() > 0; i++) {
                                     ZZombie zombie = zombies.remove(0);
                                     if (zombie.type.minDamageToDestroy <= stat.damagePerHit) {
@@ -1703,14 +1719,14 @@ public class ZGame extends Reflector<ZGame>  {
                                     // friendy fire!
                                     ZCharacter victim = friendlyFireOptions.get(0);
                                     if (playerDefends(victim, ZZombieType.Walker)) {
-                                        getCurrentUser().showMessage(victim.name() + " defended thyself from friendly fire!");
+                                        addLogMessage(victim.name() + " defended thyself from friendly fire!");
                                     } else {
                                         playerWounded(victim, stat.getAttackType(), stat.damagePerHit, "Friendly Fire!");
                                         if (victim.isDualWeilding() || victim.isDead())
                                             friendlyFireOptions.remove(0);
                                     }
                                 }
-                                user.showMessage(getCurrentCharacter().name() + " Scored " + hits + " hits");
+                                addLogMessage(getCurrentCharacter().name() + " Scored " + hits + " hits");
                             }
                         }
                     }
@@ -1741,7 +1757,7 @@ public class ZGame extends Reflector<ZGame>  {
                 break;
             int numSixes = Utils.filterItems(object -> object == 6, result).size();
             if (numSixes > 0) {
-                getCurrentUser().showMessage("Rolled " + numSixes + " 6s + 1Die roll each!");
+                addLogMessage("Rolled " + numSixes + " 6s + 1Die roll each!");
                 result = rollDice(numSixes);
             } else {
                 break;
@@ -1750,18 +1766,18 @@ public class ZGame extends Reflector<ZGame>  {
         return hits;
     }
 
-    protected void onWeaponGoesClick(ZCharacter c, ZWeapon weapon) {}
+    protected void onWeaponGoesClick(ZPlayerName c, ZWeapon weapon) {}
 
-    protected void onCharacterOpenedDoor(ZCharacter cur, ZDoor door) {}
+    protected void onCharacterOpenedDoor(ZPlayerName cur, ZDoor door) {}
 
-    protected void onCharacterOpenDoorFailed(ZCharacter cur, ZDoor door) {}
+    protected void onCharacterOpenDoorFailed(ZPlayerName cur, ZDoor door) {}
 
-    protected void onAttack(ZCharacter attacker, ZWeapon weapon, ZActionType actionType, int numDice, int numHits, int targetZone) {}
+    protected void onAttack(ZPlayerName attacker, ZWeapon weapon, ZActionType actionType, int numDice, int numHits, int targetZone) {}
 
     public ZSkillLevel getHighestSkillLevel() {
         int highestSkill = 0;
         for (ZUser u : users) {
-            for (ZPlayerName c : u.characters) {
+            for (ZPlayerName c : u.getCharacters()) {
                 highestSkill = Math.max(highestSkill, c.character.getSkillLevel().ordinal());
             }
         }
@@ -1773,18 +1789,18 @@ public class ZGame extends Reflector<ZGame>  {
             return;
         ZSkillLevel sl = c.getSkillLevel();
         c.dangerBar += pts;
-        onCharacterGainedExperience(c, pts);
+        onCharacterGainedExperience(c.name, pts);
         // make so a user can level up multiple times in a single levelup
         // need to push state in reverse order so that the lowest new level choices are first
         while (sl != c.getSkillLevel()) {
-            getCurrentUser().showMessage(c.name() + " has gained the " + c.getSkillLevel() + " skill level");
+            addLogMessage(c.name() + " has gained the " + c.getSkillLevel() + " skill level");
             sl = Utils.incrementValue(sl, ZSkillLevel.values());
-            stateStack.push(new State(ZState.PLAYER_STAGE_CHOOSE_NEW_SKILL, getCurrentCharacter().name, sl));
+            pushState(ZState.PLAYER_STAGE_CHOOSE_NEW_SKILL, c.name, null, sl);
         }
     }
 
-    protected void onCharacterGainedExperience(ZCharacter c, int points) {
-        log.info("%s gained %d experence!", c.name, points);
+    protected void onCharacterGainedExperience(ZPlayerName c, int points) {
+        log.info("%s gained %d experence!", c, points);
     }
 
     Integer [] rollDiceWithRerollOption(int numDice, int dieNumToHit, int minHitsForAutoReroll, int maxHitsForAutoNoReroll) {
@@ -1797,7 +1813,7 @@ public class ZGame extends Reflector<ZGame>  {
                 hits++;
         }
 
-        getCurrentUser().showMessage(getCurrentCharacter().getLabel() + " Scored " + hits + " hits");
+        addLogMessage(getCurrentCharacter().getLabel() + " Scored " + hits + " hits");
         //onRollDice(dice);
 
         if (hits >= maxHitsForAutoNoReroll) {
@@ -1805,7 +1821,7 @@ public class ZGame extends Reflector<ZGame>  {
         }
 
         if (hits > minHitsForAutoReroll) {
-            ZMove plentyOMove = getCurrentUser().chooseMove(this, getCurrentCharacter(),
+            ZMove plentyOMove = getCurrentUser().chooseMove(getCurrentCharacter(),
                     Arrays.asList(ZMove.newReRollMove(), ZMove.newKeepRollMove()));
 
             if (plentyOMove != null) {
@@ -1814,7 +1830,7 @@ public class ZGame extends Reflector<ZGame>  {
             }
         }
 
-        getCurrentUser().showMessage("Bonus roll dice!");
+        addLogMessage("Bonus roll dice!");
         return rollDice(numDice);
     }
 
@@ -1835,7 +1851,7 @@ public class ZGame extends Reflector<ZGame>  {
         for (int i = 0; i< num; i++) {
             dice[i+ dice.length-num] = result[i];
         }
-        //getCurrentUser().showMessage("Rolled a " + dieStr);//new Table().addRow(result).toString());
+        //showMessage("Rolled a " + dieStr);//new Table().addRow(result).toString());
         onRollDice(result);
         return result;
     }
@@ -1846,28 +1862,32 @@ public class ZGame extends Reflector<ZGame>  {
 
     private void destroyZombie(ZZombie zombie, ZAttackType deathType, ZCharacter killer) {
         killer.onKilledZombie(zombie);
-        onZombieDestroyed(killer, deathType, zombie);
+        onZombieDestroyed(killer.name, deathType, zombie);
         board.removeActor(zombie);
         if (zombie.getType() == ZZombieType.Necromancer) {
-            stateStack.push(new State(ZState.PLAYER_STAGE_CHOOSE_ZONE_TO_REMOVE_SPAWN, killer.name));
+            pushState(ZState.PLAYER_STAGE_CHOOSE_ZONE_TO_REMOVE_SPAWN, killer.name);
         }
     }
 
-    protected void onZombieDestroyed(ZCharacter c, ZAttackType deathType, ZZombie zombie) {
+    protected void onZombieDestroyed(ZPlayerName c, ZAttackType deathType, ZZombie zombie) {
         log.info("%s Zombie %s destroyed for %d experience", c.name(), zombie.type.name(), zombie.type.expProvided);
     }
 
-    public List<ZCharacter> getAllCharacters() {
-        List<ZCharacter> all = new ArrayList<>();
-        for (ZUser user : users) {
-            for (ZPlayerName p : user.characters)
-               all.add(p.character);
-        }
-        return all;
+    public List<ZPlayerName> getAllCharacters() {
+        return Utils.map(board.getAllCharacters(), (in)-> in.name);
     }
 
-    public List<ZCharacter> getAllLivingCharacters() {
-        return Utils.filter(getAllCharacters(), object -> object.isAlive());
+    public List<ZPlayerName> getAllLivingCharacters() {
+        return Utils.filter(getAllCharacters(), object -> object.character.isAlive());
+    }
+
+    public List<ZPlayerName> getCurrentUserCharacters() {
+        List<ZPlayerName> list = new ArrayList<>();
+        for (ZPlayerName nm : getCurrentUser().getCharacters()) {
+            if (nm.character.isAlive())
+                list.add(nm);
+        }
+        return list;
     }
 
     private boolean isClearedOfZombies(int zoneIndex) {
@@ -1879,7 +1899,7 @@ public class ZGame extends Reflector<ZGame>  {
 
     private void doubleSpawn() {
         spawnMultiplier *= 2;
-        getCurrentUser().showMessage("DOUBLE SPAWN!");
+        addLogMessage("DOUBLE SPAWN!");
         onDoubleSpawn(spawnMultiplier);
     }
 
@@ -1888,7 +1908,7 @@ public class ZGame extends Reflector<ZGame>  {
     }
 
     private void extraActivation(ZZombieType name) {
-        getCurrentUser().showMessage("Extra Activation for " + name);
+        addLogMessage("Extra Activation for " + name);
         for (ZZombie z : Utils.filter(board.getAllZombies(), object -> object.type == name)) {
             z.addExtraAction();
         }
@@ -2113,19 +2133,16 @@ public class ZGame extends Reflector<ZGame>  {
     }
 
     public ZUser getCurrentUser() {
-        return users[currentUser];
+        return users.get(currentUser);
     }
 
-    public ZCharacter getCurrentCharacter() {
+    public ZPlayerName getCurrentCharacter() {
         if (stateStack.isEmpty())
             return null;
-        ZPlayerName player = stateStack.peek().player;
-        if (player == null)
-            return null;
-        return player.character;
+        return stateStack.peek().player;
     }
 
-    private void moveActor(ZActor actor, int toZone, long speed) {
+    protected void moveActor(ZActor actor, int toZone, long speed) {
         int fromZone = actor.getOccupiedZone();
         Grid.Pos fromPos = actor.getOccupiedCell();
         GRectangle fromRect = actor.getRect(board);
@@ -2133,13 +2150,22 @@ public class ZGame extends Reflector<ZGame>  {
         doMove(actor, fromZone, fromPos, fromRect, speed);
     }
 
-    private void moveActorInDirection(ZActor actor, ZDir dir) {
+    protected void moveActorInDirection(ZActor actor, ZDir dir) {
         int fromZone = actor.getOccupiedZone();
         Grid.Pos fromPos = actor.getOccupiedCell();
         GRectangle fromRect = actor.getRect(board);
         Grid.Pos next = board.getAdjacent(fromPos, dir);
         board.moveActor(actor, next);
         doMove(actor, fromZone, fromPos, fromRect, actor.getMoveSpeed());
+    }
+
+    public void moveActorInDirectionDebug(ZActor actor, ZDir dir) {
+        int fromZone = actor.getOccupiedZone();
+        Grid.Pos fromPos = actor.getOccupiedCell();
+        //GRectangle fromRect = actor.getRect(board);
+        Grid.Pos next = board.getAdjacent(fromPos, dir);
+        board.moveActor(actor, next);
+        //doMove(actor, fromZone, fromPos, fromRect, actor.getMoveSpeed());
     }
 
     private void doMove(ZActor actor, int fromZone, Grid.Pos fromPos, GRectangle fromRect, long speed) {
@@ -2228,7 +2254,7 @@ public class ZGame extends Reflector<ZGame>  {
     public void addNoise(int zoneIdx, int noise) {
         onNoiseAdded(zoneIdx);
         board.getZone(zoneIdx).addNoise(noise);
-//        getCurrentUser().showMessage("Noise was made in zone " + zoneIdx);
+//        showMessage("Noise was made in zone " + zoneIdx);
     }
 
     protected void onNoiseAdded(int zoneIndex) {
@@ -2238,7 +2264,7 @@ public class ZGame extends Reflector<ZGame>  {
 
     public Table getGameSummaryTable() {
         Table summary = new Table("PLAYER", "KILLS", "STATUS", "EXP", "LEVEL").setNoBorder();
-        for (ZCharacter c : getAllCharacters()) {
+        for (ZCharacter c : board.getAllCharacters()) {
             summary.addRow(c.name, c.getKillsTable(), c.isDead() ? "KIA" : "Alive", c.dangerBar, c.getSkillLevel());
         }
         String gameStatus;
@@ -2250,7 +2276,7 @@ public class ZGame extends Reflector<ZGame>  {
                 gameStatus = String.format("Completed");
                 break;
             default:
-                gameStatus = String.format("In Progress: %d%% Completed", quest.getPercentComplete(this));
+                gameStatus = String.format("In Progress: %d%% Completed", Utils.clamp(quest.getPercentComplete(this), 0, 100));
         }
         return new Table(quest.getName())
                 .addRow("STATUS: " + gameStatus)
@@ -2262,12 +2288,12 @@ public class ZGame extends Reflector<ZGame>  {
     }
 
     public boolean canSwitchActivePlayer() {
-        ZCharacter cur = getCurrentCharacter();
+        ZPlayerName cur = getCurrentCharacter();
         if (cur == null)
             return false;
-        if (cur.getActionsLeftThisTurn() == cur.getActionsPerTurn())
+        if (cur.character.getActionsLeftThisTurn() == cur.character.getActionsPerTurn())
             return true;
-        if (cur.hasAvailableSkill(ZSkill.Tactician))
+        if (cur.character.hasAvailableSkill(ZSkill.Tactician))
             return true;
         return false;
     }
@@ -2276,7 +2302,7 @@ public class ZGame extends Reflector<ZGame>  {
         return Collections.unmodifiableList(searchables);
     }
 
-    public void onIronRain(ZCharacter c, int targetZone) {}
+    public void onIronRain(ZPlayerName c, int targetZone) {}
 
     protected void onDoorUnlocked(ZDoor door) {}
 
@@ -2290,6 +2316,10 @@ public class ZGame extends Reflector<ZGame>  {
         Utils.assertTrue(board.getDoor(door) != ZWallFlag.LOCKED);
         board.setDoor(door, ZWallFlag.LOCKED);
     }
+    
+    public void addLogMessage(String msg) {
+        log.info(msg);
+    }
 
     private void performDragonBile(ZCharacter cur, ZZone zone) {
         int zoneIdx = zone.getZoneIndex();
@@ -2297,7 +2327,7 @@ public class ZGame extends Reflector<ZGame>  {
         zone.setDragonBile(false);
         int exp = 0;
         int num=0;
-        getCurrentUser().showMessage(cur.name() + " ignited the dragon bile!");
+        addLogMessage(cur.name() + " ignited the dragon bile!");
         for (ZActor a : board.getActorsInZone(zoneIdx)) {
             if (a instanceof ZZombie) {
                 ZZombie z = (ZZombie)a;
@@ -2312,12 +2342,28 @@ public class ZGame extends Reflector<ZGame>  {
         }
         if (cur.isAlive()) {
             addExperience(cur, exp);
-            getCurrentUser().showMessage(String.format("%s Destroyed %d zombies for %d total experience pts!", cur.name(), num, exp));
+            addLogMessage(String.format("%s Destroyed %d zombies for %d total experience pts!", cur.name(), num, exp));
         } else {
-            getCurrentUser().showMessage(String.format("%s Destroyed %d zombies and themselves in the process!", cur.name(), num));
+            addLogMessage(String.format("%s Destroyed %d zombies and themselves in the process!", cur.name(), num));
         }
         quest.onDragonBileExploded(cur, zoneIdx);
 
+    }
+
+    public void giftEquipment(ZCharacter c, ZEquipment e) {
+        pushState(ZState.PLAYER_STAGE_CHOOSE_KEEP_EQUIPMENT, c.name, e);
+    }
+
+    private boolean tryOpenDoor(ZCharacter cur, ZDoor door) {
+        if (!door.isJammed())
+            return true;
+
+        if (cur.tryOpenDoor(this)) {
+            onCharacterOpenedDoor(cur.name, door);
+            return true;
+        }
+        onCharacterOpenDoorFailed(cur.name, door);
+        return false;
     }
 
     protected void onDragonBileExploded(int zoneIdx) {}

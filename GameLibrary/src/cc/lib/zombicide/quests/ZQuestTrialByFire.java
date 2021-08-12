@@ -119,7 +119,7 @@ public class ZQuestTrialByFire extends ZQuest {
         }
         super.processObjective(game, c, move);
         if (redObjectives.size() == 0 && game.getBoard().getDoor(lockedVault) == ZWallFlag.LOCKED) {
-            game.getCurrentUser().showMessage(c.name() + " has unlocked the Violet Door");
+            game.addLogMessage(c.name() + " has unlocked the Violet Door");
             game.unlockDoor(lockedVault);
         }
     }

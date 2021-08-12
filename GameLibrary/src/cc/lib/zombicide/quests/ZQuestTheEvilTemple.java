@@ -92,11 +92,11 @@ public class ZQuestTheEvilTemple extends ZQuest {
     public void processObjective(ZGame game, ZCharacter c, ZMove move) {
         super.processObjective(game, c, move);
         if (move.integer == greenObjZone) {
-            game.getCurrentUser().showMessage(c.name() + " has found the GREEN objective and opened the GOLD vault");
+            game.addLogMessage(c.name() + " has found the GREEN objective and opened the GOLD vault");
             game.unlockDoor(goldVaultDoor);
             greenObjZone = -1;
         } else if (move.integer == blueObjZone) {
-            game.getCurrentUser().showMessage(c.name() + " has found the BLUE objective and opened the VIOLET vault");
+            game.addLogMessage(c.name() + " has found the BLUE objective and opened the VIOLET vault");
             game.unlockDoor(violetVaultDoor);
             blueObjZone = -1;
         }

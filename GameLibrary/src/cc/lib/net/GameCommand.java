@@ -124,12 +124,9 @@ public class GameCommand {
     }
 
     public final <T extends Reflector> T parseReflector(String key, T object) throws Exception {
-        boolean save = Reflector.KEEP_INSTANCES;
         try (InputStream in = new ByteArrayInputStream((byte[]) arguments.get(key))) {
-            object.deserialize(in);
+            object.deserialize(in, true);
             return object;
-        } finally {
-            Reflector.KEEP_INSTANCES = save;
         }
     }
 

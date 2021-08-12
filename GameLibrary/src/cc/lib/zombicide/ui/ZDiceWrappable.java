@@ -7,14 +7,15 @@ import cc.lib.game.GDimension;
 
 public class ZDiceWrappable implements UIZCharacterRenderer.IWrappable {
 
-
     final Integer [] dieNums;
     public ZDiceWrappable(Integer [] dieNums) {
         this.dieNums = dieNums;
     }
 
+    final GColor WHITE_DIMMED = GColor.WHITE.withAlpha(.5f);
+
     @Override
-    public GDimension drawWrapped(APGraphics g, float maxWidth) {
+    public GDimension drawWrapped(APGraphics g, float maxWidth, boolean dimmed) {
 
         float dim = g.getTextHeight()*2;
         float padding = dim/8;
@@ -38,7 +39,7 @@ public class ZDiceWrappable implements UIZCharacterRenderer.IWrappable {
                 g.pushMatrix();
                 w = maxWidth;
             }
-            drawDie(g, dim, GColor.WHITE, GColor.BLACK, dieNums[dieNumIdx++]);
+            drawDie(g, dim, dimmed ? WHITE_DIMMED : GColor.WHITE, GColor.BLACK, dieNums[dieNumIdx++]);
             g.translate(-(dim + padding), 0);
         }
         g.popMatrix();

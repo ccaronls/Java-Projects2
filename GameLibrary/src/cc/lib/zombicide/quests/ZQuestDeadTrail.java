@@ -88,16 +88,16 @@ public class ZQuestDeadTrail extends ZQuest {
     public void processObjective(ZGame game, ZCharacter c, ZMove move) {
         super.processObjective(game, c, move);
         if (move.integer == blueKeyZone) {
-            game.getCurrentUser().showMessage(c.name() + " has found the BLUE key. Violet Vault doos UNLOCKED!");
+            game.addLogMessage(c.name() + " has found the BLUE key. Violet Vault doos UNLOCKED!");
             game.unlockDoor(violetVault1);
             game.unlockDoor(violetVault2);
             blueKeyZone = -1;
         } else if (move.integer == greenKeyZone) {
-            game.getCurrentUser().showMessage(c.name() + " has found the GREEN key.");
+            game.addLogMessage(c.name() + " has found the GREEN key.");
             greenKeyZone = -1;
         }
         if (blueKeyZone < 0 && greenKeyZone < 0) {
-            game.getCurrentUser().showMessage("Gold Vault door UNLOCKED");
+            game.addLogMessage("Gold Vault door UNLOCKED");
             game.unlockDoor(goldVault);
         }
     }
@@ -114,7 +114,7 @@ public class ZQuestDeadTrail extends ZQuest {
 
     @Override
     public String getQuestFailedReason(ZGame game) {
-        if (Utils.filter(game.getAllCharacters(), object -> object.isDead()).size() > 0) {
+        if (Utils.filter(game.getBoard().getAllCharacters(), object -> object.isDead()).size() > 0) {
             return "Not all players survived";
         }
         return null;

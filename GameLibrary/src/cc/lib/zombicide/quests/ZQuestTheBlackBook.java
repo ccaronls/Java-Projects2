@@ -97,12 +97,12 @@ public class ZQuestTheBlackBook extends ZQuest {
         }
 
         if (move.integer == blackBookZone) {
-            game.getCurrentUser().showMessage(c.name() + " has found the Black Book");
+            game.addLogMessage(c.name() + " has found the Black Book");
             blackBookZone = -1;
         }
 
         if (move.integer == greenObjZone) {
-            game.getCurrentUser().showMessage(c.name() + " has unlocked the Green Door. A New Spwn zone has appeared!");
+            game.addLogMessage(c.name() + " has unlocked the Green Door. A New Spwn zone has appeared!");
             game.unlockDoor(greenDoor);
             game.getBoard().setSpawnZone(greenSpawnZone, true);
             game.spawnZombies(greenSpawnZone);

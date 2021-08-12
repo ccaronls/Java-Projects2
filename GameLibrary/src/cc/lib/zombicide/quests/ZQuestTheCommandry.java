@@ -73,13 +73,13 @@ public class ZQuestTheCommandry extends ZQuest {
     public void processObjective(ZGame game, ZCharacter c, ZMove move) {
         super.processObjective(game, c, move);
         if (move.integer == blueDoorKeyZone) {
-            game.getCurrentUser().showMessage(c.name() + " has unlocked the Blue Door");
+            game.addLogMessage(c.name() + " has unlocked the Blue Door");
             game.unlockDoor(blueDoor);
             blueDoorKeyZone = -1;
         }
 
         if (move.integer == greenDoorKeyZone) {
-            game.getCurrentUser().showMessage(c.name() + " has unlocked the Green Door");
+            game.addLogMessage(c.name() + " has unlocked the Green Door");
             game.unlockDoor(greenDoor);
             greenDoorKeyZone = -1;
         }
@@ -92,7 +92,7 @@ public class ZQuestTheCommandry extends ZQuest {
 
     @Override
     public String getQuestFailedReason(ZGame game) {
-        if (Utils.filter(game.getAllCharacters(), object -> object.isDead()).size() > 0) {
+        if (Utils.filter(game.getBoard().getAllCharacters(), object -> object.isDead()).size() > 0) {
             return "Not all players survived.";
         }
         return super.getQuestFailedReason(game);

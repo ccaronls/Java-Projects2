@@ -27,7 +27,6 @@ public class ReflectorTest extends TestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        Reflector.KEEP_INSTANCES = false;
         System.out.println("Start Test: " + getName());
         System.out.println("--------------------------------------------------------");        
     }
@@ -312,14 +311,13 @@ public class ReflectorTest extends TestCase {
 
     public void testDerivedReflectors() throws Exception {
 
-        Reflector.KEEP_INSTANCES = true;
         MyArchivable a = new MyArchivable();
 
         a.myArchivable = new MyArchivableX();
 
         String txt = a.toString();
 
-        a.deserialize(txt);
+        a.deserialize(txt, true);
 
         a.myArchivableArray = new MyArchivable[] {
                 new MyArchivableX(),
@@ -329,7 +327,7 @@ public class ReflectorTest extends TestCase {
 
         txt = a.toString();
 
-        a. deserialize(txt);
+        a. deserialize(txt, true);
 
         a.my2DArchivableArray = new MyArchivable[][] {
                 { new MyArchivableX(), new MyArchivableX() },
@@ -338,14 +336,14 @@ public class ReflectorTest extends TestCase {
 
         txt = a.toString();
 
-        a. deserialize(txt);
+        a. deserialize(txt, true);
 
         a.myCollection = new ArrayList();
         a.myCollection.add(new MyArchivableX());
         a.myCollection.add(new MyArchivableX());
 
         txt = a.toString();
-        a. deserialize(txt);
+        a. deserialize(txt, true);
 
         a.collectionArray = new Collection[] {
             new ArrayList(),
@@ -358,7 +356,7 @@ public class ReflectorTest extends TestCase {
         a.collectionArray[1].add(new MyArchivableX());
 
         txt = a.toString();
-        a. deserialize(txt);
+        a. deserialize(txt, true);
 
     }
     
@@ -637,8 +635,7 @@ public class ReflectorTest extends TestCase {
         sb.myObjList.get(1).myEnumArray = SomeEnum.values();
         diff = sa.diff(sb);
         System.out.println("diff:\n" + diff);
-        Reflector.KEEP_INSTANCES = true;
-        sa.deserialize(diff);
+        sa.deserialize(diff, true);
         System.out.println("sa:\n" + sa);
         System.out.println("sb:\n" + sb);
         assertEquals(sa.toString(), sb.toString());

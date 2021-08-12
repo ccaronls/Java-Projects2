@@ -190,7 +190,7 @@ public class ZWeapon extends ZEquipment<ZWeaponType> {
         switch (type) {
             case HAND_CROSSBOW:
                 if (!isLoaded()) {
-                    game.getCurrentUser().showMessage(getLabel() + " auto reloaded");
+                    game.addLogMessage(getLabel() + " auto reloaded");
                     reload();
                 }
                 break;

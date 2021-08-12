@@ -273,9 +273,13 @@ public enum ZSkill implements IButton {
     Born_leader("During the Survivor’s Turn, he may give one free Action to another Survivor to use as he pleases. This Action must be used during the recipient’s next Turn or it is lost.") {
         @Override
         public void addSpecialMoves(ZGame game, ZCharacter character, List<ZMove> moves) {
-            List<ZCharacter> options = Utils.filter(game.getAllLivingCharacters(), object -> object != character);
-            if (options.size() > 0)
-                moves.add(ZMove.newBornLeaderMove(options));
+            List<ZCharacter> options = Utils.filter(game.board.getAllCharacters(), object -> object != character && object.isAlive());
+            if (options.size() > 0) {
+                List<ZPlayerName> map = new ArrayList<>();
+                for (ZCharacter c : options)
+                    map.add(c.name);
+                moves.add(ZMove.newBornLeaderMove(map));
+            }
         }
     },
     Break_in("In order to open doors, the Survivor rolls no dice, and needs no equipment (but still spends an Action to do so). He doesn’t make Noise while using this Skill. However, other prerequisites still apply (such as taking a designated Objective before a door can be opened). Moreover, the Survivor gains one extra free Action that can only be used to open doors.") {
@@ -339,7 +343,7 @@ public enum ZSkill implements IButton {
         @Override
         boolean onEndOfTurn(ZGame game, ZCharacter c) {
             if (c.woundBar > 0) {
-                game.getCurrentUser().showMessage(c.name() + " has a wound healed.");
+                game.addLogMessage(c.name() + " has a wound healed.");
                 c.woundBar--;
                 return true;
             }
@@ -373,8 +377,8 @@ public enum ZSkill implements IButton {
                 case BOLTS:
                     int numInZone = game.getBoard().getZombiesInZone(targetZone).size();
                     if (numInZone > stat.numDice) {
-                        game.getCurrentUser().showMessage(String.format("%s applied Iron Rain!", character.getLabel()));
-                        game.onIronRain(character, targetZone);
+                        game.addLogMessage(String.format("%s applied Iron Rain!", character.getLabel()));
+                        game.onIronRain(character.name, targetZone);
                         stat.numDice = numInZone;
                     }
                     break;

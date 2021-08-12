@@ -62,11 +62,15 @@ android {
     }
 
     aaptOptions { cruncherEnabled = false }
-    
+
+    buildFeatures {
+        dataBinding true
+    }
 }
 
 dependencies {
     implementation project(':AndroidGameLibrary')
+    implementation project(':AndroidMultiplayerGameLibrary')
     implementation project(path: ':GameLibrary', configuration: 'androidLib')
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation project.supportv4

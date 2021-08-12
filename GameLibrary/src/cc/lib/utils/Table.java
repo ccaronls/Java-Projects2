@@ -231,7 +231,7 @@ public final class Table {
                     maxHeight[r] = Math.max(maxHeight[r], d2.height);
                     maxWidth[c] = Math.max(maxWidth[c], d2.width);
                     if (t.borderWidth != 0)
-                        maxHeight[r] += cellPadding;
+                        maxHeight[r] += 2*cellPadding;
                 } else if (o instanceof AImage) {
                     // TODO: Implement this
                 } else {
