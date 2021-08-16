@@ -32,6 +32,7 @@ class ZMPCommon {
 
     // commands that originate from client are marked CL
     private static GameCommandType CL_CHOOSE_CHARACTER = new GameCommandType("CL_CHOOSE_CHARACTER");
+    private static GameCommandType CL_START_PRESSED = new GameCommandType("CL_START_PRESSED");
 
     ZMPCommon(ZombicideActivity activity, UIZombicide game) {
         this.activity = activity;
@@ -49,8 +50,12 @@ class ZMPCommon {
 
         void onGameUpdated(ZGame game);
 
-        default GameCommand newCLAssignCharacter(ZPlayerName name, boolean checked) {
+        default GameCommand newAssignCharacter(ZPlayerName name, boolean checked) {
             return new GameCommand(CL_CHOOSE_CHARACTER).setArg("name", name.name()).setArg("checked", checked);
+        }
+
+        default GameCommand newStartPressed() {
+            return new GameCommand(CL_START_PRESSED);
         }
 
         default void parseSVRCommand(GameCommand cmd) {
@@ -83,6 +88,8 @@ class ZMPCommon {
     interface SVR {
         void onChooseCharacter(ClientConnection conn, ZPlayerName name, boolean checked);
 
+        void onStartPressed(ClientConnection conn);
+
         void onError(Exception e);
 
         default GameCommand newInit(ZQuests quest, GColor clientColor, int maxCharacters, List<Assignee> plaerAssignments) {
@@ -114,6 +121,8 @@ class ZMPCommon {
             try {
                 if (cmd.getType() == CL_CHOOSE_CHARACTER) {
                     onChooseCharacter(conn, ZPlayerName.valueOf(cmd.getString("name")), cmd.getBoolean("checked", false));
+                } else if (cmd.getType() == CL_START_PRESSED) {
+                    onStartPressed(conn);
                 } else {
                     //throw new Exception("Unhandled cmd: " + cmd);
                     Log.w("ZMPCommon", "Unhandled command: " + cmd);

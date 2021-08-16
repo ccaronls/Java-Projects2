@@ -49,6 +49,8 @@ class ZClientMgr extends ZMPCommon implements GameClient.Listener, ZMPCommon.CL 
     public void onInit(ZQuests quest, GColor color, int maxCharacters, List<Assignee> playerAssignments) {
         game.loadQuest(quest);
         user.setColor(color);
+        game.clearCharacters();
+        user.clearCharacters();
         List<Assignee> assignees = new ArrayList<>();
         for (ZombicideActivity.CharLock c : activity.charLocks) {
             Assignee a = new Assignee(c);
@@ -56,9 +58,14 @@ class ZClientMgr extends ZMPCommon implements GameClient.Listener, ZMPCommon.CL 
             if (idx >= 0) {
                 Assignee aa = playerAssignments.get(idx);
                 a.copyFrom(aa);
+                if (color.equals(a.color))
+                    a.isAssingedToMe = true;
             }
             assignees.add(a);
             if (a.checked) {
+                if (a.isAssingedToMe) {
+                    user.addCharacter(a.name);
+                }
                 game.addCharacter(a.name);
             }
         }
@@ -74,6 +81,7 @@ class ZClientMgr extends ZMPCommon implements GameClient.Listener, ZMPCommon.CL 
                     @Override
                     protected void onStart() {
                         game.setClient(client);
+                        client.sendCommand(newStartPressed());
                         activity.initGameMenu();
                     }
                 };

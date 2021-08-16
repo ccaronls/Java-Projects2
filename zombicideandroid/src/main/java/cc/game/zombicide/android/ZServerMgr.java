@@ -99,6 +99,10 @@ class ZServerMgr extends ZMPCommon implements GameServer.Listener, ZMPCommon.SVR
     public void onReconnection(ClientConnection conn) {
         ZUser user = clientToUserMap.get(conn);
         if (user != null) {
+            game.addUser(user);
+            conn.sendCommand(newInit(game.getQuest().getQuest(), user.getColor(), maxCharacters, new ArrayList<>(playerAssignments.values())));
+            game.characterRenderer.addMessage(conn.getDisplayName() + " has rejoined", user.getColor());
+            /*
             if (user.getCharacters().size() == 0) {
                 conn.sendCommand(newInit(game.getQuest().getQuest(), user.getColor(), maxCharacters, new ArrayList<>(playerAssignments.values())));
             } else {
@@ -108,7 +112,7 @@ class ZServerMgr extends ZMPCommon implements GameServer.Listener, ZMPCommon.SVR
                     game.addCharacter(nm);
                 }
                 game.characterRenderer.addMessage(conn.getDisplayName() + " has rejoined", user.getColor());
-            }
+            }*/
         }
     }
 
@@ -118,7 +122,8 @@ class ZServerMgr extends ZMPCommon implements GameServer.Listener, ZMPCommon.SVR
         ZUser user = clientToUserMap.get(conn);
         if (user != null) {
             for (ZPlayerName c : user.getCharacters()) {
-                game.removeCharacter(c);
+                //game.removeCharacter(c);
+                c.getCharacter().setInvisible(true);
             }
             game.removeUser(user);
             game.characterRenderer.addMessage(conn.getDisplayName() + " has disconnected", user.getColor());
@@ -157,8 +162,9 @@ class ZServerMgr extends ZMPCommon implements GameServer.Listener, ZMPCommon.SVR
         }
     }
 
-    void updateAssignment(Assignee a) {
-
+    @Override
+    public void onStartPressed(ClientConnection conn) {
+        conn.sendCommand(newUpdateGameCommand(game));
     }
 
     @Override

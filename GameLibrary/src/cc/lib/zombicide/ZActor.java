@@ -88,6 +88,8 @@ public abstract class ZActor<E extends Enum<E>> extends Reflector<ZActor<E>> imp
 
     public abstract int getImageId();
 
+    public abstract int getOutlineImageId();
+
     public abstract GDimension getDimension();
 
     public boolean isInvisible() {

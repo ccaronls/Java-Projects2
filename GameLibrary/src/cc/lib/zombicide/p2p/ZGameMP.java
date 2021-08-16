@@ -25,6 +25,7 @@ public class ZGameMP extends ZGame {
     GameClient client;
 
     private ZPlayerName currentCharacter = null;
+    private String currentPlayerName = "";
 
     public static final String GAME_ID = "ZGame";
 
@@ -70,6 +71,8 @@ public class ZGameMP extends ZGame {
     protected void onZombieSpawned(ZZombie zombie) {
         if (server != null) {
             server.broadcastExecuteOnRemote(GAME_ID, zombie);
+        } else if (client != null) {
+            board.addActor(zombie);
         }
     }
 

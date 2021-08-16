@@ -335,8 +335,16 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
 
     protected void drawActor(T g, ZActor actor, GColor outline) {
         if (outline != null) {
-            g.setColor(outline);
-            g.drawRect(actor.getRect(), 1);
+            if (actor.getOutlineImageId() > 0) {
+                g.pushMatrix();
+                g.setTint(GColor.WHITE, outline);
+                g.drawImage(actor.getOutlineImageId(), actor.getRect());
+                g.removeTint();
+                g.popMatrix();
+            } else {
+                g.setColor(outline);
+                g.drawRect(actor.getRect(), 1);
+            }
         }
         actor.draw(g);
     }

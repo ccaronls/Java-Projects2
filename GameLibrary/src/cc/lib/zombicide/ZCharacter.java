@@ -65,6 +65,11 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
     }
 
     @Override
+    public int getOutlineImageId() {
+        return name.outlineImageId;
+    }
+
+    @Override
     public GDimension getDimension() {
         return name.imageDim;
     }
@@ -728,8 +733,11 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
         return activeSkills.contains(ZSkill.Invisible);
     }
 
-    public void setInvisible() {
-        activeSkills.add(ZSkill.Invisible);
+    public void setInvisible(boolean enable) {
+        if (enable)
+            activeSkills.add(ZSkill.Invisible);
+        else
+            activeSkills.remove(ZSkill.Invisible);
     }
 
     Table getSlotInfo(ZEquipSlot slot, ZGame game) {

@@ -203,6 +203,10 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
             protected void drawActor(DroidGraphics g, ZActor actor, GColor outline) {
                 if (outline == null)
                     outline = GColor.WHITE;
+                if (actor.getOutlineImageId() > 0) {
+                    super.drawActor(g, actor, outline);
+                    return;
+                }
                 if (actor.isAlive()) {
                     Paint outlinePaint = getPaint(outline);
                     Canvas canvas = g.getCanvas();
@@ -1200,6 +1204,7 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
             bRight.setVisibility(game.canWalk(ZDir.EAST) ? View.VISIBLE : View.INVISIBLE);
             bVault.setVisibility(game.canWalk(ZDir.ASCEND) || game.canWalk(ZDir.DESCEND) ? View.VISIBLE : View.INVISIBLE);
         } else {
+            // TODO: Show whose turn it is
             buttonsGrid.setVisibility(View.INVISIBLE);
         }
     }

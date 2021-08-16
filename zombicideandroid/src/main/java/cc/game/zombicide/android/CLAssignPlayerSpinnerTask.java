@@ -20,7 +20,7 @@ class CLAssignPlayerSpinnerTask extends SpinnerTask<Assignee> implements GameCom
 
     @Override
     protected void doIt(Assignee... args) throws Exception {
-        GameCommand cmd = ((ZombicideActivity) getContext()).clientMgr.newCLAssignCharacter(args[0].name,
+        GameCommand cmd = ((ZombicideActivity) getContext()).clientMgr.newAssignCharacter(args[0].name,
                 args[0].checked);
         client.sendCommand(cmd);
         Utils.waitNoThrow(this, 5000);

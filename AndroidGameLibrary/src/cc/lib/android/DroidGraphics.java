@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.ColorFilter;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
@@ -543,11 +544,12 @@ public abstract class DroidGraphics extends APGraphics {
             Drawable d = context.getResources().getDrawable(imageKey);
             rect.set(x, y, x+w, y+h);
             d.setBounds(rect);
+            d.setColorFilter(tint);
             d.draw(canvas);
         } else {
             rectf.set(x, y, x+w, y+h);
             Bitmap bm = bitmaps.get(imageKey);
-            canvas.drawBitmap(bm, null, rectf, null);
+            canvas.drawBitmap(bm, null, rectf, paint);
         }
     }
 
@@ -824,14 +826,12 @@ public abstract class DroidGraphics extends APGraphics {
 
     @Override
     public int captureScreen(int x, int y, int w, int h) {
-
         Bitmap subBM = Bitmap.createBitmap(screenCapture, x, y, w, h);
         screenCapture.recycle();
         screenCapture = null;
         int id = addImage(subBM);
         canvas = savedCanvas;
         return id;
-
     }
 
     @Override
@@ -842,5 +842,17 @@ public abstract class DroidGraphics extends APGraphics {
     @Override
     public void removeFilter() {
         paint.setColorFilter(null);
+    }
+
+    ColorFilter tint = null;
+
+    @Override
+    public void setTint(GColor inColor, GColor outColor) {
+        paint.setColorFilter(tint = new PorterDuffColorFilter(outColor.toARGB(), PorterDuff.Mode.SRC_IN));
+    }
+
+    @Override
+    public void removeTint() {
+        paint.setColorFilter(tint = null);
     }
 }

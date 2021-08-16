@@ -90,7 +90,6 @@ public class P2PClientConnectionsDialog extends BaseAdapter implements
     @Override
     public final void onDismiss(DialogInterface dialog) {
         this.dialog = null;
-        server.removeListener(this);
     }
 
     @Override
@@ -111,6 +110,12 @@ public class P2PClientConnectionsDialog extends BaseAdapter implements
     }
 
     @Override
+    public void onServerStopped() {
+        helper.stop();
+        server.removeListener(this);
+    }
+
+    @Override
     public final void run() {
         notifyDataSetChanged();
     }
@@ -122,7 +127,6 @@ public class P2PClientConnectionsDialog extends BaseAdapter implements
             protected void doIt(Void... args) throws Exception {
                 helper.stop();
                 server.stop();
-
             }
         }.execute();
     }

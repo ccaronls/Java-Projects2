@@ -204,6 +204,7 @@ public final class AWTImageMgr {
             }
         } catch (FileNotFoundException e) {
 		    log.error("File '" + fileOrResourceName + "' Not found on file paths or resources");
+            throw new GException("Fiel not found '" + fileOrResourceName + "'");
         } catch (Exception e) {
 		    log.error(e.getClass().getSimpleName() + ":" + e.getMessage());
             throw new GException("Cannot load image '" + fileOrResourceName + "'");

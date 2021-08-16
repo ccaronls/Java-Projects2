@@ -643,4 +643,21 @@ public class AWTGraphics extends APGraphics {
         transform(br);
         g.fillOval(tl.Xi(), tl.Yi(), br.Xi()-tl.Xi(), br.Yi()-tl.Yi());
     }
+
+    GColor tintSave = null;
+
+    @Override
+    public void setTint(GColor inColor, GColor outColor) {
+        tintSave = getColor();
+        setColor(inColor);
+        g.setXORMode(new Color(outColor.toRGB()));
+    }
+
+    @Override
+    public void removeTint() {
+        if (tintSave != null) {
+            setColor(tintSave);
+            g.setPaintMode();
+        }
+    }
 }

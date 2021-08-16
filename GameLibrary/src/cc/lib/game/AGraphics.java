@@ -1768,4 +1768,17 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @return
      */
     public abstract GRectangle getClipRect();
+
+    /**
+     * Tint will replace incoming color (usually white) with the out going color on the next render
+     *
+     * @param inColor
+     * @param outColor
+     */
+    public abstract void setTint(GColor inColor, GColor outColor);
+
+    /**
+     * Undo tinting
+     */
+    public abstract void removeTint();
 }

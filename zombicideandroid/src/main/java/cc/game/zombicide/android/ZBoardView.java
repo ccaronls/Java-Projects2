@@ -43,10 +43,11 @@ public class ZBoardView extends UIComponentView implements UIZComponent<DroidGra
         super.preDrawInit(g);
     }
 
-    void initCharacter(DroidGraphics g, ZPlayerName pl, int cardImageId, int charImageId) {
+    void initCharacter(DroidGraphics g, ZPlayerName pl, int cardImageId, int charImageId, int outlineImageId) {
         pl.imageId = charImageId;
         pl.cardImageId = cardImageId;
         pl.imageDim = new GDimension(g.getImage(charImageId));
+        pl.outlineImageId = outlineImageId;
     }
 
     int [] tileIds = new int[0];
@@ -91,15 +92,15 @@ public class ZBoardView extends UIComponentView implements UIZComponent<DroidGra
     @Override
     protected void loadAssets(DroidGraphics g) {
 
-        initCharacter(g, ZPlayerName.Baldric, R.drawable.zcard_baldric, R.drawable.zchar_baldric);
-        initCharacter(g, ZPlayerName.Benson, R.drawable.zcard_benson, R.drawable.zchar_benson);
-        initCharacter(g, ZPlayerName.Jain, R.drawable.zcard_jain, R.drawable.zchar_jain);
-        initCharacter(g, ZPlayerName.Tucker, R.drawable.zcard_tucker, R.drawable.zchar_tucker);
-        initCharacter(g, ZPlayerName.Silas, R.drawable.zcard_silas, R.drawable.zchar_silas);
-        initCharacter(g, ZPlayerName.Samson, R.drawable.zcard_samson, R.drawable.zchar_samson);
-        initCharacter(g, ZPlayerName.Nelly, R.drawable.zcard_nelly, R.drawable.zchar_nelly);
-        initCharacter(g, ZPlayerName.Ann, R.drawable.zcard_ann, R.drawable.zchar_ann);
-        initCharacter(g, ZPlayerName.Clovis, R.drawable.zcard_clovis, R.drawable.zchar_clovis);
+        initCharacter(g, ZPlayerName.Baldric, R.drawable.zcard_baldric, R.drawable.zchar_baldric, R.drawable.zchar_baldric_outline);
+        initCharacter(g, ZPlayerName.Benson, R.drawable.zcard_benson, R.drawable.zchar_benson, R.drawable.zchar_benson_outline);
+        initCharacter(g, ZPlayerName.Jain, R.drawable.zcard_jain, R.drawable.zchar_jain, R.drawable.zchar_jain_outline);
+        initCharacter(g, ZPlayerName.Tucker, R.drawable.zcard_tucker, R.drawable.zchar_tucker, R.drawable.zchar_tucker_outline);
+        initCharacter(g, ZPlayerName.Silas, R.drawable.zcard_silas, R.drawable.zchar_silas, R.drawable.zchar_silas_outline);
+        initCharacter(g, ZPlayerName.Samson, R.drawable.zcard_samson, R.drawable.zchar_samson, R.drawable.zchar_samson_outline);
+        initCharacter(g, ZPlayerName.Nelly, R.drawable.zcard_nelly, R.drawable.zchar_nelly, R.drawable.zchar_nelly_outline);
+        initCharacter(g, ZPlayerName.Ann, R.drawable.zcard_ann, R.drawable.zchar_ann, R.drawable.zchar_ann_outline);
+        initCharacter(g, ZPlayerName.Clovis, R.drawable.zcard_clovis, R.drawable.zchar_clovis, R.drawable.zchar_clovis_outline);
 
         initZombieImages(g, ZZombieType.Walker,
                 R.drawable.zwalker1,

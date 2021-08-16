@@ -89,7 +89,7 @@ public class ZMPCommonTest {
             }
         };
 
-        svr.parseCLCommand(null, transfer(cl.newCLAssignCharacter(ZPlayerName.Ann, true)));
+        svr.parseCLCommand(null, transfer(cl.newAssignCharacter(ZPlayerName.Ann, true)));
         cl.parseSVRCommand(transfer(svr.newInit(ZQuests.Big_Game_Hunting, GColor.ORANGE, 2, new ArrayList<>())));
         cl.parseSVRCommand(transfer(svr.newAssignPlayer(new Assignee(ZPlayerName.Baldric, "Chris", GColor.BLUE, true))));
         game2.loadQuest(ZQuests.The_Black_Book);

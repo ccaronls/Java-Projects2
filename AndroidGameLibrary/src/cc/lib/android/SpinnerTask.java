@@ -17,10 +17,10 @@ import java.lang.ref.WeakReference;
 public abstract class SpinnerTask<T> extends AsyncTask<T, Integer, Object> implements DialogInterface.OnCancelListener, Application.ActivityLifecycleCallbacks, DialogInterface.OnDismissListener {
 
     private Dialog dialog = null;
-    private final WeakReference<Context> context;
+    private final WeakReference<Activity> context;
     private Object result = null;
 
-    public SpinnerTask(Context context) {
+    public SpinnerTask(Activity context) {
         this.context = new WeakReference<>(context);
         if (context instanceof Activity) {
             // we want to handle the activity pausing so we can cancel ourself
@@ -34,12 +34,14 @@ public abstract class SpinnerTask<T> extends AsyncTask<T, Integer, Object> imple
 
     @Override
     protected void onCancelled() {
-        dialog.dismiss();
+        if (dialog != null)
+            dialog.dismiss();
     }
 
     @Override
     protected final void onPostExecute(Object o) {
-        dialog.dismiss();
+        if (dialog != null)
+            dialog.dismiss();
         if (!isCancelled()) {
             if (o != null && o instanceof Exception) {
                 Exception e = (Exception) o;
@@ -58,8 +60,10 @@ public abstract class SpinnerTask<T> extends AsyncTask<T, Integer, Object> imple
 
     @Override
     protected void onPreExecute() {
-        dialog = ProgressDialog.show(context.get(), getProgressMessage(), null, true, isCancellable(), this);
-        dialog.setOnDismissListener(this);
+        if (!context.get().isFinishing() && !context.get().isDestroyed()) {
+            dialog = ProgressDialog.show(context.get(), getProgressMessage(), null, true, isCancellable(), this);
+            dialog.setOnDismissListener(this);
+        }
     }
 
     protected String getProgressMessage() {

@@ -25,6 +25,7 @@ import javax.swing.JSeparator;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 
+import cc.lib.game.GColor;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
@@ -146,17 +147,19 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
                 boardComp.requestFocus();
             }
         };
-        List<ZPlayerName> players = getEnumListProperty("players", ZPlayerName.class, Utils.toList(ZPlayerName.Baldric, ZPlayerName.Clovis));
-        for (ZPlayerName pl : players) {
-            user.addCharacter(pl);
-        }
-        game.setUsers(user);
         try {
             game.loadQuest(ZQuests.valueOf(getStringProperty("quest", ZQuests.Tutorial.name())));
         } catch (Exception e) {
             e.printStackTrace();
             game.loadQuest(ZQuests.Tutorial);
         }
+        user.setColor(GColor.YELLOW);
+        List<ZPlayerName> players = getEnumListProperty("players", ZPlayerName.class, Utils.toList(ZPlayerName.Baldric, ZPlayerName.Clovis));
+        for (ZPlayerName pl : players) {
+            game.addCharacter(pl);
+            user.addCharacter(pl);
+        }
+        game.setUsers(user);
         game.showObjectivesOverlay();
         game.setDifficulty(ZDifficulty.valueOf(getStringProperty("difficulty", ZDifficulty.MEDIUM.name())));
         initHomeMenu();
@@ -288,9 +291,12 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
                 }
                 menu.add(new AWTButton("KEEP", e1 -> {
                     user.clearCharacters();
+                    game.clearCharacters();
                     for (Map.Entry<ZPlayerName, AWTToggleButton> entry : buttons.entrySet()) {
-                        if (entry.getValue().isSelected())
+                        if (entry.getValue().isSelected()) {
+                            game.addCharacter(entry.getKey());
                             user.addCharacter(entry.getKey());
+                        }
                     }
                     game.setUsers(user);
                     game.reload();

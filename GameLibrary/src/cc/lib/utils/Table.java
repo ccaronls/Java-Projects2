@@ -275,7 +275,7 @@ public final class Table {
         float outerPadding = 0;
         if (borderWidth > 0) {
             outerPadding = getCellPadding(g) / 2;
-            // if there is a border, then there is padding arounf between border and text
+            // if there is a border, then there is padding around between border and text
             GColor cur = g.getColor();
             g.setColor(model.getBackgroundColor());
             float radius = model.getCornerRadius();
@@ -303,7 +303,7 @@ public final class Table {
         float cellPadding = Math.max(4, padding*g.getTextHeight()/2);
         if (header != null && header.size() > 0) {
             g.setColor(model.getHeaderColor(g));
-            float x=0;
+            float x=outerPadding;
             for (int i=0; i<header.size(); i++) {
                 g.drawJustifiedString(x, 0, Justify.LEFT, header.get(i));
                 x += maxWidth[i];

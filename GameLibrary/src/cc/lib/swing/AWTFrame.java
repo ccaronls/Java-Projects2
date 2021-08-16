@@ -533,7 +533,11 @@ public class AWTFrame extends JFrame implements WindowListener, ComponentListene
             s = s.trim();
             if (s.isEmpty())
                 continue;
-            list.add((T)Enum.valueOf(enumClass, s));
+            try {
+                list.add((T) Enum.valueOf(enumClass, s));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         return list;
     }

@@ -393,7 +393,7 @@ public class ClientConnection implements Runnable {
             System.err.println("ERROR From client '" + getName() + "'\n" + cmd.getString("msg") + "\n" + cmd.getString("stack"));
         } else if (cmd.getType() == GameCommandType.CL_HANDLE) {
             this.handle = cmd.getName();
-        } else {
+        } else if (cmd.getType() != GameCommandType.CL_REMOTE_RETURNS) {
             for (GameServer.Listener l : server.getListeners()) {
                 l.onCommand(this, cmd);
             }
@@ -401,6 +401,8 @@ public class ClientConnection implements Runnable {
             for (Listener l : listeners) {
                 l.onCommand(this, cmd);
             }
+        } else {
+            log.error("!!! UNHANDLED COMMAND %s !!!", cmd.getType());
         }
         return true;
     }

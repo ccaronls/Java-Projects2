@@ -119,6 +119,7 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
             { ZZombieType.Runner, "zrunner1.gif" },
             { ZZombieType.Fatty, "zfatty1.gif" },
             { ZZombieType.Fatty, "zfatty2.gif" },
+
             { ZPlayerName.Clovis, "zchar_clovis.gif" },
             { ZPlayerName.Baldric, "zchar_baldric.gif" },
             { ZPlayerName.Ann, "zchar_ann.gif" },
@@ -128,6 +129,16 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
             { ZPlayerName.Tucker, "zchar_tucker.gif" },
             { ZPlayerName.Jain, "zchar_jain.gif" },
             { ZPlayerName.Benson, "zchar_benson.gif" },
+
+            { ZPlayerName.Clovis, "zchar_clovis_outline.gif" },
+            { ZPlayerName.Baldric, "zchar_baldric_outline.gif" },
+            { ZPlayerName.Ann, "zchar_ann_outline.gif" },
+            { ZPlayerName.Nelly, "zchar_nelly_outline.gif" },
+            { ZPlayerName.Samson, "zchar_samson_outline.gif" },
+            { ZPlayerName.Silas, "zchar_silas_outline.gif" },
+            { ZPlayerName.Tucker, "zchar_tucker_outline.gif" },
+            { ZPlayerName.Jain, "zchar_jain_outline.gif" },
+            { ZPlayerName.Benson, "zchar_benson_outline.gif" },
 
             { ZPlayerName.Ann.name(), "zcard_ann.gif" },
             { ZPlayerName.Baldric.name(), "zcard_baldric.gif" },
@@ -190,6 +201,7 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
 
         for (ZPlayerName pl : ZPlayerName.values()) {
             pl.imageId = objectToImageMap.get(pl).get(0);
+            pl.outlineImageId = objectToImageMap.get(pl).get(1);
             pl.imageDim = new GDimension(g.getImage(pl.imageId));
             pl.cardImageId = objectToImageMap.get(pl.name()).get(0);
         }

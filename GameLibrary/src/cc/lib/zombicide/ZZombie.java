@@ -71,6 +71,11 @@ public final class ZZombie extends ZActor<ZZombieType> implements Comparable<ZZo
     }
 
     @Override
+    public int getOutlineImageId() {
+        return 0;
+    }
+
+    @Override
     public GDimension getDimension() {
         return type.imageDims[getIdx()];
     }

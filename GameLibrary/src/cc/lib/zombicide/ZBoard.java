@@ -493,6 +493,11 @@ public class ZBoard extends Reflector<ZBoard> implements IDimension {
         return true;
     }
 
+    public void addActor(ZActor actor) {
+        if (actor.occupiedCell != null && actor.occupiedQuadrant != null)
+            getCell(actor.occupiedCell).setQuadrant(actor, actor.occupiedQuadrant);
+    }
+
     public void getUndiscoveredIndoorZones(Grid.Pos startPos, Set<Integer> undiscovered) {
         ZCell cell = getCell(startPos);
         if (cell.discovered)

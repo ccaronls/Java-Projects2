@@ -1291,4 +1291,14 @@ for (int pix : pixels) {
     public void drawFilledOval(float x, float y, float w, float h) {
         throw new RuntimeException("Not implemented");
     }
+
+    @Override
+    public void setTint(GColor inColor, GColor outColor) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    @Override
+    public void removeTint() {
+        throw new RuntimeException("Not implemented");
+    }
 }

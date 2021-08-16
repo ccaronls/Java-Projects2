@@ -133,6 +133,7 @@ public enum ZPlayerName implements IButton {
 
     public int imageId = -1;
     public int cardImageId = -1;
+    public int outlineImageId = -1;
     public GDimension imageDim;
 
     public ZCharacter create() {
