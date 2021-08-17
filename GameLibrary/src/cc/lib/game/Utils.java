@@ -24,6 +24,7 @@ import cc.lib.math.Vector2D;
 import cc.lib.utils.FileUtils;
 import cc.lib.utils.GException;
 import cc.lib.utils.LRUCache;
+import cc.lib.utils.Pair;
 
 public class Utils {
 
@@ -2740,4 +2741,11 @@ public class Utils {
         return outArr;
     }
 
+    public static <FIRST,SECOND> List<Pair<FIRST,SECOND>> toList(Map<FIRST,SECOND> map) {
+        List<Pair<FIRST,SECOND>> list = new ArrayList<>();
+        for (Map.Entry e : map.entrySet()) {
+            list.add(new Pair(e.getKey(), e.getValue()));
+        }
+        return list;
+    }
 }

@@ -159,7 +159,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
             actionsDoneThisTurn.add(action);
         }
         if (isInvisible() && action.breaksInvisibility()) {
-            activeSkills.remove(ZSkill.Invisible);
+            availableSkills.remove(ZSkill.Invisible);
         }
         return super.performAction(action, game);
     }
@@ -730,14 +730,17 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
 
     @Override
     public synchronized boolean isInvisible() {
-        return activeSkills.contains(ZSkill.Invisible);
+        return availableSkills.contains(ZSkill.Invisible);
     }
 
     public void setInvisible(boolean enable) {
-        if (enable)
-            activeSkills.add(ZSkill.Invisible);
-        else
-            activeSkills.remove(ZSkill.Invisible);
+        if (enable) {
+            allSkills.add(ZSkill.Invisible);
+            availableSkills.add(ZSkill.Invisible);
+        } else {
+            allSkills.remove(ZSkill.Invisible);
+            availableSkills.remove(ZSkill.Invisible);
+        }
     }
 
     Table getSlotInfo(ZEquipSlot slot, ZGame game) {
@@ -929,4 +932,5 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
     public ZPlayerName getPlayerName() {
         return name;
     }
+
 }

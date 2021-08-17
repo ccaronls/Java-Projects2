@@ -33,7 +33,7 @@ import cc.lib.utils.WeakHashSet;
  */
 public class GameClient {
 
-    protected final static Logger log = LoggerFactory.getLogger("xxxCCGAMExxx", GameClient.class);
+    protected final static Logger log = LoggerFactory.getLogger("P2PGame", GameClient.class);
 
     private enum State {
         READY, // connect not called

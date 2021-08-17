@@ -133,6 +133,8 @@ class ZClientMgr extends ZMPCommon implements GameClient.Listener, ZMPCommon.CL 
     @Override
     public void onDisconnected(String reason, boolean serverInitiated) {
         if (serverInitiated) {
+            if (playerChooser != null)
+                playerChooser.dialog.dismiss();
             activity.runOnUiThread(new Runnable() {
                 public void run() {
                     activity.newDialogBuilder().setTitle("Disconnected from Server")

@@ -60,7 +60,8 @@ public class P2PJoinGameDialog extends BaseAdapter
                     p2pDevices.clear();
                     p2pDevices.addAll(peers);
                 }
-                lvHost.post(P2PJoinGameDialog.this); // notify dataset changed
+                if (lvHost != null)
+                    lvHost.post(P2PJoinGameDialog.this); // notify dataset changed
             }
 
             @Override

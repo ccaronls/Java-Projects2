@@ -16,7 +16,7 @@ public enum ZPlayerName implements IButton {
     Baldric("Magician",
             toArray(ZWeaponType.MANA_BLAST), //, ZWeaponType.INFERNO, ZWeaponType.FIREBALL, ZWeaponType.EARTHQUAKE), //, (ZEquipmentType)ZSpellType.SPEED),
             toArray(ZWeaponType.SWORD),
-            toArray(ZSkill.Spellcaster),
+            toArray(ZSkill.Spellcaster, ZSkill.Invisible),
             toArray(ZSkill.Plus1_Action),
             toArray(ZSkill.Plus1_free_Magic_Action, ZSkill.Spellbook),
             toArray(ZSkill.Plus1_die_Magic, ZSkill.Plus1_free_Combat_Action, ZSkill.Plus1_to_dice_roll_Melee)),

@@ -61,6 +61,7 @@ public class ZGame extends Reflector<ZGame>  {
     private final List<ZUser> users = new ArrayList<>();
     private ZQuest quest=null;
     private int currentUser=0;
+    private int startUser=0;
     private LinkedList<ZEquipment> searchables = new LinkedList<>();
     private int spawnMultiplier=1;
     private int roundNum=0;
@@ -162,13 +163,16 @@ public class ZGame extends Reflector<ZGame>  {
     }
 
     public void addUser(ZUser user) {
-        users.add(user);
+        if (!users.contains(user))
+            users.add(user);
     }
 
     public void removeUser(ZUser user) {
         users.remove(user);
         if (currentUser >= users.size())
             currentUser = 0;
+        if (startUser >= users.size())
+            startUser = 0;
     }
 
     protected void initQuest(ZQuest quest) {}
@@ -441,7 +445,7 @@ public class ZGame extends Reflector<ZGame>  {
                 roundNum++;
                 addLogMessage("Begin Round " + roundNum);
                 onStartRound(roundNum);
-                currentUser = 0;
+                currentUser = startUser;
                 for (ZActor a : board.getAllLiveActors())
                     a.onBeginRound();
                 board.resetNoise();
@@ -487,8 +491,9 @@ public class ZGame extends Reflector<ZGame>  {
 
                 ZPlayerName currentCharacter = null;
                 if (options.size() == 0) {
-                    if (++currentUser >= users.size()) {
-                        currentUser = 0;
+                    currentUser = (currentUser+1) % users.size();
+                    if (currentUser == startUser) {
+                        startUser = (startUser + 1) % users.size();
                         setState(ZState.ZOMBIE_STAGE, null);
                     }
                     break;

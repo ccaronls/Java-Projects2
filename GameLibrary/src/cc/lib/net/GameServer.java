@@ -46,7 +46,7 @@ public class GameServer {
 
     public final static int TIMEOUT = 10000;
 
-    private final Logger log = LoggerFactory.getLogger("xxxCCGAMExxx", GameServer.class);
+    private final Logger log = LoggerFactory.getLogger("P2PGame", GameServer.class);
     
     /**
      *

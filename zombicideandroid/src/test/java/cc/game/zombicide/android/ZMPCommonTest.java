@@ -18,6 +18,8 @@ import cc.lib.zombicide.ZDir;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZQuests;
+import cc.lib.zombicide.ZUser;
+import cc.lib.zombicide.p2p.ZUserMP;
 
 /**
  * Example local unit test, which will execute on the development machine (host).
@@ -37,6 +39,11 @@ public class ZMPCommonTest {
             public void onChooseCharacter(ClientConnection conn, ZPlayerName name, boolean checked) {
                 Assert.assertEquals(name, ZPlayerName.Ann);
                 Assert.assertEquals(checked, true);
+            }
+
+            @Override
+            public void onStartPressed(ClientConnection conn) {
+
             }
 
             @Override
@@ -118,5 +125,21 @@ public class ZMPCommonTest {
         return GameCommand.parse(in);
     }
 
+    @Test
+    public void testDeserializeGameKeepInstances() throws Exception {
+
+        ZGame game = new ZGame();
+        game.loadQuest(ZQuests.The_Black_Book);
+        ZUser user = new ZUserMP(null);
+        game.addUser(user);
+        game.addCharacter(ZPlayerName.Nelly);
+        user.addCharacter(ZPlayerName.Nelly);
+        Assert.assertTrue(game.runGame());
+
+        ZGame copy = new ZGame();
+        copy.loadQuest(ZQuests.The_Abomination);
+        copy.deserialize(game.toString(), true);
+
+    }
 
 }

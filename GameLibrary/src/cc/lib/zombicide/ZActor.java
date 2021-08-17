@@ -135,7 +135,11 @@ public abstract class ZActor<E extends Enum<E>> extends Reflector<ZActor<E>> imp
     }
 
     public void draw(AGraphics g) {
+        if (isInvisible()) {
+            g.setTransparencyFilter(.5f);
+        }
         g.drawImage(getImageId(), getRect());
+        g.removeFilter();
     }
 
     int getPriority() {

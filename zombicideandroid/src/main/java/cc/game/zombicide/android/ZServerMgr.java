@@ -90,7 +90,6 @@ class ZServerMgr extends ZMPCommon implements GameServer.Listener, ZMPCommon.SVR
         GColor color = nextColor();
         user.setColor(color);
         clientToUserMap.put(conn, user);
-        game.addUser(user);
         conn.sendCommand(newInit(game.getQuest().getQuest(), color, maxCharacters, new ArrayList<>(playerAssignments.values())));
         game.characterRenderer.addMessage(conn.getDisplayName() + " has joined", color);
     }
@@ -164,7 +163,11 @@ class ZServerMgr extends ZMPCommon implements GameServer.Listener, ZMPCommon.SVR
 
     @Override
     public void onStartPressed(ClientConnection conn) {
-        conn.sendCommand(newUpdateGameCommand(game));
+        ZUser user = clientToUserMap.get(conn);
+        if (user != null) {
+            game.addUser(user);
+            conn.sendCommand(newUpdateGameCommand(game));
+        }
     }
 
     @Override

@@ -73,7 +73,7 @@ dependencies {
     implementation project(':AndroidMultiplayerGameLibrary')
     implementation project(path: ':GameLibrary', configuration: 'androidLib')
     implementation fileTree(dir: "libs", include: ["*.jar"])
-    implementation project.supportv4
+    implementation project.android_support
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'

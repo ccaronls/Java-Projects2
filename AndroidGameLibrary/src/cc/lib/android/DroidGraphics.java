@@ -544,7 +544,7 @@ public abstract class DroidGraphics extends APGraphics {
             Drawable d = context.getResources().getDrawable(imageKey);
             rect.set(x, y, x+w, y+h);
             d.setBounds(rect);
-            d.setColorFilter(tint);
+            d.setColorFilter(colorFilter);
             d.draw(canvas);
         } else {
             rectf.set(x, y, x+w, y+h);
@@ -834,25 +834,25 @@ public abstract class DroidGraphics extends APGraphics {
         return id;
     }
 
+    ColorFilter colorFilter = null;
+
     @Override
     public void setTransparencyFilter(float alpha) {
-        paint.setColorFilter(new PorterDuffColorFilter(GColor.WHITE.withAlpha(alpha).toARGB(), PorterDuff.Mode.SRC_IN));
+        paint.setColorFilter(colorFilter = new PorterDuffColorFilter(GColor.WHITE.withAlpha(alpha).toARGB(), PorterDuff.Mode.MULTIPLY));
     }
 
     @Override
     public void removeFilter() {
-        paint.setColorFilter(null);
+        paint.setColorFilter(colorFilter = null);
     }
-
-    ColorFilter tint = null;
 
     @Override
     public void setTint(GColor inColor, GColor outColor) {
-        paint.setColorFilter(tint = new PorterDuffColorFilter(outColor.toARGB(), PorterDuff.Mode.SRC_IN));
+        paint.setColorFilter(colorFilter = new PorterDuffColorFilter(outColor.toARGB(), PorterDuff.Mode.SRC_IN));
     }
 
     @Override
     public void removeTint() {
-        paint.setColorFilter(tint = null);
+        paint.setColorFilter(colorFilter = null);
     }
 }

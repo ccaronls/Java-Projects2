@@ -104,3 +104,5 @@ Trade Take:
 
 Trade Give: (only if open slot)
 
+Trade Only show 'Keep' menu if no empty hand/body slot for item
+- Make 'keep item' a game state to avoid throwing it away?

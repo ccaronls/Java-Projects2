@@ -26,6 +26,7 @@ import cc.lib.zombicide.ZQuest;
 import cc.lib.zombicide.ZSkill;
 import cc.lib.zombicide.ZWeapon;
 import cc.lib.zombicide.ZZombie;
+import cc.lib.zombicide.ZZombieType;
 import cc.lib.zombicide.ZZone;
 import cc.lib.zombicide.anims.AscendingAngelDeathAnimation;
 import cc.lib.zombicide.anims.DeathAnimation;
@@ -288,6 +289,7 @@ public abstract class UIZombicide extends ZGameMP {
                 animLock.release();
             }
         });
+        boardRenderer.redraw();
         animLock.block();
     }
 
@@ -319,6 +321,7 @@ public abstract class UIZombicide extends ZGameMP {
                         lock.release();
                     }
                 });
+                boardRenderer.redraw();
                 lock.block();
             case FIRE:
             case DISINTEGRATION:
@@ -344,12 +347,17 @@ public abstract class UIZombicide extends ZGameMP {
     protected void onZombieSpawned(ZZombie zombie) {
         super.onZombieSpawned(zombie);
         zombie.addAnimation(new SpawnAnimation(zombie, board));
+        if (zombie.getType() == ZZombieType.Abomination) {
+            boardRenderer.addOverlay(new OverlayTextAnimation("A B O M I N A T I O N ! !"));
+        }
+        boardRenderer.redraw();
     }
 
     @Override
     protected void onCharacterDefends(ZPlayerName cur) {
         super.onCharacterDefends(cur);
         cur.getCharacter().addAnimation(new ShieldBlockAnimation(cur.getCharacter()));
+        boardRenderer.redraw();
     }
 
     private void waitForAnimationToComplete(long duration) {
@@ -393,6 +401,7 @@ public abstract class UIZombicide extends ZGameMP {
             });
 
         }
+        boardRenderer.redraw();
     }
 
     @Override
@@ -419,7 +428,7 @@ public abstract class UIZombicide extends ZGameMP {
     @Override
     protected void onGameLost() {
         super.onGameLost();
-        boardRenderer.setOverlay(new OverlayTextAnimation("Y O U   L O S T") {
+        boardRenderer.addOverlay(new OverlayTextAnimation("Y O U   L O S T") {
             @Override
             protected void onDone() {
                 super.onDone();
@@ -431,7 +440,7 @@ public abstract class UIZombicide extends ZGameMP {
     @Override
     protected void onQuestComplete() {
         super.onQuestComplete();
-        boardRenderer.setOverlay(new OverlayTextAnimation("C O M P L E T E D") {
+        boardRenderer.addOverlay(new OverlayTextAnimation("C O M P L E T E D") {
             @Override
             protected void onDone() {
                 super.onDone();
@@ -627,4 +636,5 @@ public abstract class UIZombicide extends ZGameMP {
         super.onDoorUnlocked(door);
         boardRenderer.addPostActor(new HoverMessage(boardRenderer, "DOOR UNLOCKED", door.getRect(getBoard()).getCenter()));
     }
+
 }

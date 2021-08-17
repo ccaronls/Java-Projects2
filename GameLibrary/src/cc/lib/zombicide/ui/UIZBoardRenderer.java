@@ -1110,7 +1110,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
         } else if (obj instanceof AImage) {
             overlayToDraw = obj;
         } else if (obj instanceof ZAnimation) {
-            overlayToDraw = obj;
+            addOverlay((ZAnimation)obj);
         } else {
             overlayToDraw = obj.toString();
         }
@@ -1172,9 +1172,4 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
         redraw();
     }
 
-    @Override
-    public void redraw() {
-        log.debug("!!!!!Redraw!!!!!");
-        super.redraw();
-    }
 }

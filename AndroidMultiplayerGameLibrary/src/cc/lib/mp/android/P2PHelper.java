@@ -39,7 +39,7 @@ abstract class P2PHelper extends BroadcastReceiver implements
         Application.ActivityLifecycleCallbacks
 {
 
-    static final String TAG = "xxxCCGAMExxx" + P2PHelper.class.getSimpleName();
+    static final String TAG = "P2PGame" + P2PHelper.class.getSimpleName();
 
     private final CCActivityBase activity;
     private final WifiP2pManager p2pMgr;
