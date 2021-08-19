@@ -170,6 +170,7 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
             { ZIcon.FIREBALL, "zfireball.gif" },
             { ZIcon.GRAVESTONE, "zgravestone.gif" },
             { ZIcon.PADLOCK, "zpadlock2.gif" },
+            { ZIcon.SKULL, "zskull.gif"},
         };
 
         Map<Object, List<Integer>> objectToImageMap = new HashMap<>();
@@ -272,6 +273,7 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
             ZIcon.FIREBALL.imageIds = Utils.toIntArray(objectToImageMap.get(ZIcon.FIREBALL));
             ZIcon.GRAVESTONE.imageIds = Utils.toIntArray(objectToImageMap.get(ZIcon.GRAVESTONE));
             ZIcon.PADLOCK.imageIds = Utils.toIntArray(objectToImageMap.get(ZIcon.PADLOCK));
+            ZIcon.SKULL.imageIds = Utils.toIntArray(objectToImageMap.get(ZIcon.SKULL));
         }
 
         {

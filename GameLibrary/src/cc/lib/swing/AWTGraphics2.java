@@ -63,6 +63,7 @@ public class AWTGraphics2 extends AWTGraphics {
 
     @Override
     public void removeFilter() {
+        super.removeFilter();
         if (old != null) {
             G2.setComposite(old);
             old = null;

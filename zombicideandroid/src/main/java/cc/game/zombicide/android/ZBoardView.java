@@ -174,6 +174,9 @@ public class ZBoardView extends UIComponentView implements UIZComponent<DroidGra
         ZIcon.PADLOCK.imageIds = new int[] {
                 R.drawable.zpadlock3
         };
+        ZIcon.SKULL.imageIds = new int[] {
+                R.drawable.zskull
+        };
 
         ids = ZIcon.ARROW.imageIds = new int[4];
         ids[ZDir.EAST.ordinal()] = R.drawable.zarrow_icon;

@@ -249,4 +249,14 @@ public class TestGraphics extends APGraphics {
     public GColor getBackgroundColor() {
         return null;
     }
+
+    @Override
+    public void setTintFilter(GColor inColor, GColor outColor) {
+
+    }
+
+    @Override
+    public void removeTint() {
+
+    }
 }

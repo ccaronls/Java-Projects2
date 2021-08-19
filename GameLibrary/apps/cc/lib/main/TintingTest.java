@@ -134,10 +134,10 @@ public class TintingTest extends AWTComponent implements ChangeListener {
                 //g.drawImage(image, srcRect);
                 //
                 //g.setColor(GColor.RED.withAlpha(0));
-                g.setTint(GColor.WHITE, GColor.RED);
+                g.setTintFilter(GColor.WHITE, GColor.RED);
                 //g.setComposite(BlendComposite.Multiply);
                 g.drawImage(outline, srcRect);
-                g.removeTint();
+                g.removeFilter();
                 //g.drawFilledRect(srcRect);
 
                 g.removeFilter();

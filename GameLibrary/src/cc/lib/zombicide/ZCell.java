@@ -1,6 +1,7 @@
 package cc.lib.zombicide;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
 import cc.lib.game.GRectangle;
 import cc.lib.game.IRectangle;
@@ -79,26 +80,22 @@ public class ZCell extends Reflector<ZCell> implements IRectangle {
         }
     }
 
-    public ZActor getOccupant(ZCellQuadrant quadrant) {
+    public ZActor getOccupants(ZCellQuadrant quadrant) {
         return occupied[quadrant.ordinal()];
     }
 
     ZActor setQuadrant(ZActor actor, ZCellQuadrant quadrant) {
-        ZActor previous = getOccupant(quadrant);
+        ZActor previous = getOccupants(quadrant);
         occupied[quadrant.ordinal()] = actor;
         return previous;
     }
 
-    public Iterable<ZActor> getOccupant() {
-        return Arrays.asList(occupied);
-    }
-
-    ZCellQuadrant findOpenQuadrant() {
-        for (int i=0; i<occupied.length; i++) {
-            if (occupied[i] == null)
-                return ZCellQuadrant.values()[i];
+    public Iterable<ZActor> getOccupants() {
+        List<ZActor> occupants = new ArrayList<>();
+        for (ZCellQuadrant q : ZCellQuadrant.valuesForRender()) {
+            occupants.add(occupied[q.ordinal()]);
         }
-        return null;
+        return occupants;
     }
 
     ZCellQuadrant findLowestPriorityOccupant() {

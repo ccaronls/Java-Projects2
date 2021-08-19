@@ -72,6 +72,7 @@ class ZMPCommon {
                 } else if (cmd.getType() == SVR_UPDATE_GAME) {
                     ZGame game = getGameForUpdate();
                     cmd.parseReflector("board", game.getBoard());
+                    cmd.parseReflector("quest", game.getQuest());
                     onGameUpdated(game);
                 } else {
                     throw new Exception("Unhandled cmd: " + cmd);
@@ -113,6 +114,7 @@ class ZMPCommon {
             //ZPlayerName currentChar = game.getCurrentCharacter();
             return new GameCommand(SVR_UPDATE_GAME)
                     .setArg("board", game.getBoard())
+                    .setArg("quest", game.getQuest())
                     //.setArg("currentCharacter", currentChar == null ? null : currentChar.name())
                     ;
         }

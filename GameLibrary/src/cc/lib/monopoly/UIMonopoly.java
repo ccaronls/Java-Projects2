@@ -306,7 +306,7 @@ public abstract class UIMonopoly extends Monopoly {
 
             @Override
             protected void draw(Sprite s, float position, float dt) {
-                s.M.setTranslate(curve.getPointAt(position));
+                s.M.setTranslate(curve.getAtPosition(position));
             }
 
             @Override
@@ -875,7 +875,7 @@ public abstract class UIMonopoly extends Monopoly {
 
         @Override
         protected void draw(Sprite sp, float position, float dt) {
-            sp.M.setTranslate(curve.getPointAt(position));
+            sp.M.setTranslate(curve.getAtPosition(position));
         }
 
         @Override

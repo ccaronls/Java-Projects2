@@ -30,14 +30,15 @@ import cc.lib.zombicide.ZZombieType;
 import cc.lib.zombicide.ZZone;
 import cc.lib.zombicide.anims.AscendingAngelDeathAnimation;
 import cc.lib.zombicide.anims.DeathAnimation;
+import cc.lib.zombicide.anims.DeathStrikeAnimation;
 import cc.lib.zombicide.anims.EarthquakeAnimation;
 import cc.lib.zombicide.anims.ElectrocutionAnimation;
 import cc.lib.zombicide.anims.FireballAnimation;
 import cc.lib.zombicide.anims.GroupAnimation;
 import cc.lib.zombicide.anims.HoverMessage;
 import cc.lib.zombicide.anims.InfernoAnimation;
-import cc.lib.zombicide.anims.LightningAnimation;
-import cc.lib.zombicide.anims.MagicAnimation;
+import cc.lib.zombicide.anims.LightningAnimation2;
+import cc.lib.zombicide.anims.MagicOrbAnimation;
 import cc.lib.zombicide.anims.MakeNoiseAnimation;
 import cc.lib.zombicide.anims.MeleeAnimation;
 import cc.lib.zombicide.anims.MoveAnimation;
@@ -521,11 +522,28 @@ public abstract class UIZombicide extends ZGameMP {
         } else if (weapon.isMagic()) {
 
             switch (weapon.getType()) {
-                case DEATH_STRIKE:
+                case DEATH_STRIKE: {
+                    Lock animLock = new Lock(numDice);
+                    for (int i=0; i<numDice; i++) {
+                        GRectangle zoneRect = board.getZone(targetZone).getRectangle();
+                        GRectangle targetRect = zoneRect.withDimension(attacker.getCharacter().getRect())
+                                .setPosition(zoneRect.getRandomPointInside());
+                        attacker.getCharacter().addAnimation(new DeathStrikeAnimation(attacker.getCharacter(), targetRect) {
+                            @Override
+                            protected void onDone() {
+                                super.onDone();
+                                animLock.release();
+                            }
+                        });
+                    }
+                    boardRenderer.redraw();
+                    animLock.block();
+                    break;
+                }
                 case MANA_BLAST:
                 case DISINTEGRATE: {
                     Lock animLock = new Lock(1);
-                    attacker.getCharacter().addAnimation(new MagicAnimation(attacker.getCharacter(), board, targetZone) {
+                    attacker.getCharacter().addAnimation(new MagicOrbAnimation(attacker.getCharacter(), board.getZone(targetZone).getCenter()) {
                         @Override
                         protected void onDone() {
                             super.onDone();
@@ -561,7 +579,7 @@ public abstract class UIZombicide extends ZGameMP {
                 }
                 case LIGHTNING_BOLT: {
                     Lock animLock = new Lock(1);
-                    attacker.getCharacter().addAnimation(new LightningAnimation(attacker.getCharacter(), board, targetZone, numDice) {
+                    attacker.getCharacter().addAnimation(new LightningAnimation2(attacker.getCharacter(), board.getZone(targetZone).getRectangle().scaledBy(.5f), numDice) {
                         @Override
                         protected void onDone() {
                             animLock.release();

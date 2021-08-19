@@ -7,7 +7,10 @@ import cc.lib.zombicide.ZActor;
 import cc.lib.zombicide.ZActorAnimation;
 import cc.lib.zombicide.ZBoard;
 
-public class MagicAnimation extends ZActorAnimation {
+/**
+ * Animate concentric arcs that have a start and end point
+ */
+public class SonarAnimation extends ZActorAnimation {
 
     Vector2D start, end, dv;
     final int numArcs;
@@ -15,11 +18,11 @@ public class MagicAnimation extends ZActorAnimation {
     final float sweepAngle;
     final float radius;
 
-    public MagicAnimation(ZActor actor, ZBoard board, int targetZone) {
+    public SonarAnimation(ZActor actor, ZBoard board, int targetZone) {
         this(actor, actor.getRect().getCenter(), board.getZone(targetZone).getCenter(), 5, 20);
     }
 
-    public MagicAnimation(ZActor actor, Vector2D start, Vector2D end, int numArcs, float sweepAngle) {
+    public SonarAnimation(ZActor actor, Vector2D start, Vector2D end, int numArcs, float sweepAngle) {
         super(actor, 2000);
         this.start = start;
         this.end = end;

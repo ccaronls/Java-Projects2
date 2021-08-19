@@ -382,7 +382,7 @@ public abstract class UIProbot extends Probot {
                         break;
                 }
             }
-            Vector2D v = b.getPointAt(position*advanceAmt);
+            Vector2D v = b.getAtPosition(position*advanceAmt);
             g.setColor(guy.color);
             x = v.getX();
             y = v.getY();

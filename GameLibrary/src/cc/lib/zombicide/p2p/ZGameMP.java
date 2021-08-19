@@ -25,7 +25,6 @@ public class ZGameMP extends ZGame {
     GameClient client;
 
     private ZPlayerName currentCharacter = null;
-    private String currentPlayerName = "";
 
     public static final String GAME_ID = "ZGame";
 

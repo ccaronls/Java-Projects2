@@ -337,9 +337,9 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
         if (outline != null) {
             if (actor.getOutlineImageId() > 0) {
                 g.pushMatrix();
-                g.setTint(GColor.WHITE, outline);
+                g.setTintFilter(GColor.WHITE, outline);
                 g.drawImage(actor.getOutlineImageId(), actor.getRect());
-                g.removeTint();
+                g.removeFilter();
                 g.popMatrix();
             } else {
                 g.setColor(outline);
@@ -676,7 +676,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                 text += "\n2 Units away:\n" + accessible2;
             }*/
             g.setColor(GColor.CYAN);
-            for (ZActor a : cell.getOccupant()) {
+            for (ZActor a : cell.getOccupants()) {
                 if (a != null) {
                     text += "\n" + a.name();
                 }

@@ -1,14 +1,15 @@
 package cc.lib.zombicide;
 
 import cc.lib.game.GRectangle;
+import cc.lib.game.Utils;
 
 public abstract class ZActorAnimation extends ZAnimation {
 
     public final ZActor actor;
     ZActorAnimation next;
 
-    public ZActorAnimation(ZActor actor, long duration) {
-        super(duration);
+    public ZActorAnimation(ZActor actor, long ... durations) {
+        super(Utils.toLongArray(durations));
         this.actor = actor;
     }
 

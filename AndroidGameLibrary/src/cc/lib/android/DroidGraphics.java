@@ -847,12 +847,8 @@ public abstract class DroidGraphics extends APGraphics {
     }
 
     @Override
-    public void setTint(GColor inColor, GColor outColor) {
+    public void setTintFilter(GColor inColor, GColor outColor) {
         paint.setColorFilter(colorFilter = new PorterDuffColorFilter(outColor.toARGB(), PorterDuff.Mode.SRC_IN));
     }
 
-    @Override
-    public void removeTint() {
-        paint.setColorFilter(colorFilter = null);
-    }
 }

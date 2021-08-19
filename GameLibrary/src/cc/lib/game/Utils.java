@@ -598,6 +598,8 @@ public class Utils {
      * @return
      */
     public static float randFloat(float scale) {
+        if (scale == 0)
+            return 0;
         return (float) (randGen.nextDouble() * scale);
     }
 
@@ -870,8 +872,27 @@ public class Utils {
      * @param elems
      * @return
      */
+    public static long sum(long[] elems) {
+        return sum(elems, 0, elems.length);
+    }
+
+    /**
+     * @param elems
+     * @return
+     */
     public static int sum(int[] elems, int offset, int len) {
         int sum = 0;
+        for (int i = offset; i < len; i++)
+            sum += elems[i];
+        return sum;
+    }
+
+    /**
+     * @param elems
+     * @return
+     */
+    public static long sum(long[] elems, int offset, int len) {
+        long sum = 0;
         for (int i = offset; i < len; i++)
             sum += elems[i];
         return sum;
@@ -2171,6 +2192,22 @@ public class Utils {
      */
     @SafeVarargs
     public static <T> T[] toArray(T... arr) {
+        return arr;
+    }
+
+    public static int [] toIntArray(int... arr) {
+        return arr;
+    }
+
+    public static float [] toFloatArray(float... arr) {
+        return arr;
+    }
+
+    public static long [] toLongArray(long... arr) {
+        return arr;
+    }
+
+    public static double [] toDoubleArray(double... arr) {
         return arr;
     }
 

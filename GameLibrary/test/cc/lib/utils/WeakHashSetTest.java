@@ -108,4 +108,15 @@ public class WeakHashSetTest extends TestCase {
         assertEquals(2, arr2.length);
     }
 
+    public void testIteratorRemove() {
+        WeakHashSet<String> w = new WeakHashSet<>();
+        String [] s = {
+                "Hello", "Goodbye", "So long"
+        };
+
+        for (Iterator<String> it = w.iterator(); it.hasNext(); ) {
+            it.next();
+            it.remove();
+        }
+    }
 }

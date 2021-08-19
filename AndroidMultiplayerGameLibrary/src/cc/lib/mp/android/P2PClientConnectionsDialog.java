@@ -112,7 +112,6 @@ public class P2PClientConnectionsDialog extends BaseAdapter implements
     @Override
     public void onServerStopped() {
         helper.stop();
-        server.removeListener(this);
     }
 
     @Override

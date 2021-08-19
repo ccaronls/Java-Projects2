@@ -85,6 +85,14 @@ public class ZGame extends Reflector<ZGame>  {
         stateStack.push(new State(state, player, e, skill));
     }
 
+    void popState() {
+        ZPlayerName curPlayer = getCurrentCharacter();
+        stateStack.pop();
+        if (curPlayer != getCurrentCharacter())
+            onCurrentCharacterUpdated(getCurrentCharacter());
+
+    }
+
     protected void onCurrentCharacterUpdated(ZPlayerName player) {}
 
     public void setDifficulty(ZDifficulty difficulty) {
@@ -659,7 +667,7 @@ public class ZGame extends Reflector<ZGame>  {
                 if (skill != null) {
                     onNewSkillAquired(cur, skill);
                     ch.addSkill(skill);
-                    stateStack.pop();
+                    popState();
                     return true;
                 }
                 return false;
@@ -680,7 +688,7 @@ public class ZGame extends Reflector<ZGame>  {
                 if (!performMove(cur.getCharacter(), move)) {
                     return false;
                 }
-                stateStack.pop();
+                popState();
                 return true;
             }
 
@@ -709,7 +717,7 @@ public class ZGame extends Reflector<ZGame>  {
                     for (ZZombie zombie : zombies) {
                         List<ZDir> path = null;
                         while (zombie.getActionsLeftThisTurn() > 0) {
-                            List<ZCharacter> victims = board.getCharactersInZone(zombie.occupiedZone);
+                            List<ZCharacter> victims = Utils.filter(board.getCharactersInZone(zombie.occupiedZone), object -> !object.isInvisible());
                             if (victims.size() > 1) {
                                 Collections.sort(victims, (o1, o2) -> {
                                     int v0 = o1.getArmorRating(zombie.type) - o1.woundBar;
@@ -792,12 +800,12 @@ public class ZGame extends Reflector<ZGame>  {
                 }
                 all.remove(getCurrentCharacter().character.getOccupiedZone());
                 if (all.size() == 0) {
-                    stateStack.pop();
+                    popState();
                 } else {
                     Integer speedMove = getCurrentUser().chooseZoneToWalk(getCurrentCharacter(), new ArrayList<>(all));
                     if (speedMove != null) {
                         moveActor(getCurrentCharacter().character, speedMove, 200);
-                        stateStack.pop();
+                        popState();
                         return true;
                     }
                 }
@@ -819,7 +827,7 @@ public class ZGame extends Reflector<ZGame>  {
                     if (zIdx != null) {
                         board.getZone(zIdx).setSpawnType(ZSpawnType.NONE);
                         onCharacterDestroysSpawn(cur, zIdx);
-                        stateStack.pop();
+                        popState();
                         return true;
                     }
                 }
@@ -992,7 +1000,7 @@ public class ZGame extends Reflector<ZGame>  {
             case END_TURN:
                 cur.clearActions();
                 cur.onEndOfTurn(this);
-                stateStack.pop();
+                popState();
                 break;
             case SWITCH_ACTIVE_CHARACTER: {
                 if (canSwitchActivePlayer()) {
@@ -1006,7 +1014,7 @@ public class ZGame extends Reflector<ZGame>  {
                     for (int i=(idx+1) % user.getCharacters().size(); i!=idx; i=(i+1)%user.getCharacters().size()) {
                         ZCharacter c = user.getCharacters().get(i).character;
                         if (c.isAlive() && c.getActionsLeftThisTurn() > 0) {
-                            stateStack.pop();
+                            popState();
                             pushState(ZState.PLAYER_STAGE_CHOOSE_CHARACTER_ACTION, c.name);
                             return true;
                         }

@@ -3,7 +3,9 @@ package cc.lib.zombicide.anims;
 import cc.lib.game.AGraphics;
 import cc.lib.game.AImage;
 import cc.lib.game.GRectangle;
+import cc.lib.game.IInterpolator;
 import cc.lib.math.Bezier;
+import cc.lib.math.Vector2D;
 import cc.lib.zombicide.ZActor;
 import cc.lib.zombicide.ZActorAnimation;
 import cc.lib.zombicide.ZBoard;
@@ -13,7 +15,7 @@ public class ThrowAnimation extends ZActorAnimation {
 
     final int zone;
     final ZIcon icon;
-    final Bezier curve;
+    final IInterpolator<Vector2D> curve;
 
     public ThrowAnimation(ZActor actor, ZBoard board, int targetZone, ZIcon icon) {
         super(actor, 1000);
@@ -29,7 +31,7 @@ public class ThrowAnimation extends ZActorAnimation {
 
         AImage img = g.getImage(id);
         GRectangle rect = actor.getRect().scaledBy(.5f).fit(img);
-        rect.setCenter(curve.getPointAt(position));
+        rect.setCenter(curve.getAtPosition(position));
         g.drawImage(id, rect);
     }
 

@@ -853,7 +853,7 @@ public abstract class UIGame extends Game {
 
         @Override
         protected void draw(AGraphics g, float position, float dt) {
-            IVector2D v = curve.getPointAt(position);
+            IVector2D v = curve.getAtPosition(position);
             g.pushMatrix();
             g.translate(v);
             drawPiece(g, getPiece(start));

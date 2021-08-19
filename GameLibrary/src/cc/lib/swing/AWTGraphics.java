@@ -17,6 +17,7 @@ import cc.lib.game.GColor;
 import cc.lib.game.GRectangle;
 import cc.lib.game.IImageFilter;
 import cc.lib.game.Justify;
+import cc.lib.game.Utils;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 
@@ -434,12 +435,17 @@ public class AWTGraphics extends APGraphics {
 
     @Override
     public final void setTransparencyFilter(float alpha) {
-        Composite comp = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha);
+        Composite comp = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, Utils.clamp(alpha, 0, 1));
         setComposite(comp);
     }
 
-    public final void setColorFilter() {
-        //setComposite();
+    GColor tintSave = null;
+
+    @Override
+    public void setTintFilter(GColor inColor, GColor outColor) {
+        tintSave = getColor();
+        setColor(inColor);
+        g.setXORMode(new Color(outColor.toRGB()));
     }
 
     public void setComposite(Composite comp) {
@@ -452,7 +458,10 @@ public class AWTGraphics extends APGraphics {
 
     @Override
     public void removeFilter() {
-        throw new RuntimeException("Not implemented");
+        if (tintSave != null) {
+            setColor(tintSave);
+            g.setPaintMode();
+        }
     }
 
     public void drawImage(AWTImage image, int x, int y) {
@@ -644,20 +653,5 @@ public class AWTGraphics extends APGraphics {
         g.fillOval(tl.Xi(), tl.Yi(), br.Xi()-tl.Xi(), br.Yi()-tl.Yi());
     }
 
-    GColor tintSave = null;
 
-    @Override
-    public void setTint(GColor inColor, GColor outColor) {
-        tintSave = getColor();
-        setColor(inColor);
-        g.setXORMode(new Color(outColor.toRGB()));
-    }
-
-    @Override
-    public void removeTint() {
-        if (tintSave != null) {
-            setColor(tintSave);
-            g.setPaintMode();
-        }
-    }
 }

@@ -1,6 +1,7 @@
 package cc.lib.zombicide;
 
 import cc.lib.annotation.Keep;
+import cc.lib.game.Utils;
 
 @Keep
 public enum ZCellQuadrant {
@@ -12,5 +13,18 @@ public enum ZCellQuadrant {
     LEFT,
     RIGHT,
     BOTTOM,
-    CENTER,
+    CENTER;
+
+    public static ZCellQuadrant [] valuesForRender() {
+        return Utils.toArray(UPPERLEFT,
+                TOP,
+                UPPERRIGHT,
+                LEFT,
+                CENTER,
+                RIGHT,
+                LOWERLEFT,
+                BOTTOM,
+                LOWERRIGHT
+                );
+    }
 }

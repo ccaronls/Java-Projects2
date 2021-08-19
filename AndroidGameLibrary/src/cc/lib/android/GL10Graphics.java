@@ -1293,12 +1293,8 @@ for (int pix : pixels) {
     }
 
     @Override
-    public void setTint(GColor inColor, GColor outColor) {
+    public void setTintFilter(GColor inColor, GColor outColor) {
         throw new RuntimeException("Not implemented");
     }
 
-    @Override
-    public void removeTint() {
-        throw new RuntimeException("Not implemented");
-    }
 }

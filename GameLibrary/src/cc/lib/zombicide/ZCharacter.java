@@ -42,6 +42,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
     ZEquipment leftHand, rightHand, body;
     int [] kills = new int[ZZombieType.values().length];
     private boolean fallen = false;
+    private boolean forceInvisible = false;
     GColor color = GColor.WHITE;
 
     synchronized void clear() {
@@ -730,17 +731,11 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
 
     @Override
     public synchronized boolean isInvisible() {
-        return availableSkills.contains(ZSkill.Invisible);
+        return forceInvisible || availableSkills.contains(ZSkill.Invisible);
     }
 
     public void setInvisible(boolean enable) {
-        if (enable) {
-            allSkills.add(ZSkill.Invisible);
-            availableSkills.add(ZSkill.Invisible);
-        } else {
-            allSkills.remove(ZSkill.Invisible);
-            availableSkills.remove(ZSkill.Invisible);
-        }
+        forceInvisible = enable;
     }
 
     Table getSlotInfo(ZEquipSlot slot, ZGame game) {

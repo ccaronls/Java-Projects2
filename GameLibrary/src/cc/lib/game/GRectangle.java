@@ -116,6 +116,15 @@ public final class GRectangle extends Reflector<GRectangle> implements IRectangl
         return new GRectangle(v0, v1);
     }
 
+    public static IInterpolator<GRectangle> getInterpolator(GRectangle start, GRectangle end) {
+        return new IInterpolator<GRectangle>() {
+            @Override
+            public GRectangle getAtPosition(float position) {
+                return start.getInterpolationTo(end, position);
+            }
+        };
+    }
+
     /**
      * Adjust bounds by some number of pixels
      *
@@ -262,12 +271,28 @@ public final class GRectangle extends Reflector<GRectangle> implements IRectangl
         return this;
     }
 
+    public GRectangle setPosition(IVector2D topLeft) {
+        x=topLeft.getX();
+        y=topLeft.getY();
+        return this;
+    }
+
+    public GRectangle setDimension(IDimension dim) {
+        w = dim.getWidth();
+        h = dim.getHeight();
+        return this;
+    }
+
     public GRectangle withCenter(IVector2D cntr) {
         return new GRectangle(cntr.getX()-w/2, cntr.getY()-h/2, w, h);
     }
 
-    public GRectangle withDimension(GDimension dim) {
-        return new GRectangle(x, y, dim.width, dim.height);
+    public GRectangle withPosition(IVector2D topLeft) {
+        return new GRectangle(topLeft, this);
+    }
+
+    public GRectangle withDimension(IDimension dim) {
+        return new GRectangle(x, y, dim.getWidth(), dim.getHeight());
     }
 
     public GRectangle withDimension(float w, float h) {
@@ -314,6 +339,39 @@ public final class GRectangle extends Reflector<GRectangle> implements IRectangl
         Vector2D br = getBottomRight().maxEq(g.getBottomRight());
         set(tl, br);
         return this;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public Vector2D getRandomPointInside() {
+        return new Vector2D(x+Utils.randFloat(w), y+Utils.randFloat(h));
+    }
+
+    /**
+     *
+     * @return
+     */
+    public IInterpolator<Vector2D> getRandomInterpolator() {
+        return new IInterpolator<Vector2D>() {
+            @Override
+            public Vector2D getAtPosition(float position) {
+                return getRandomPointInside();
+            }
+        };
+    }
+
+    public GRectangle shaked(float factor) {
+        float nx = x + w*Utils.randFloatX(factor);
+        float ny = y + h*Utils.randFloatX(factor);
+        return new GRectangle(nx, ny, w, h);
+    }
+
+    public GRectangle shaked(float xfactor, float yfactor) {
+        float nx = x + w*Utils.randFloatX(xfactor);
+        float ny = y + h*Utils.randFloatX(yfactor);
+        return new GRectangle(nx, ny, w, h);
     }
 
 }
