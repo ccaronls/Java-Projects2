@@ -2364,6 +2364,8 @@ public class ZGame extends Reflector<ZGame>  {
     }
 
     public void giftEquipment(ZCharacter c, ZEquipment e) {
+        onEquipmentFound(c.getPlayerName(), e);
+        quest.onEquipmentFound(this, e);
         pushState(ZState.PLAYER_STAGE_CHOOSE_KEEP_EQUIPMENT, c.name, e);
     }
 

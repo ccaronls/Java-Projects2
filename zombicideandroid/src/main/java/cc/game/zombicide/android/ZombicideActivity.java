@@ -646,7 +646,6 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
                 break;
             case CANCEL:
                 if (game.isGameRunning()) {
-                    //game.goBack();
                     game.setResult(null);
                 } else {
                     initHomeMenu();

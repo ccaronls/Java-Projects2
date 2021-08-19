@@ -2,10 +2,10 @@ package cc.game.zombicide.android;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import cc.lib.game.GColor;
 import cc.lib.logger.Logger;
@@ -31,7 +31,7 @@ class ZServerMgr extends ZMPCommon implements GameServer.Listener, ZMPCommon.SVR
     final int maxCharacters; // max chars each player can be assigned
 
     Map<ZPlayerName, Assignee> playerAssignments = new LinkedHashMap<>();
-    Map<ClientConnection, ZUser> clientToUserMap = new HashMap<>();
+    Map<ClientConnection, ZUser> clientToUserMap = new ConcurrentHashMap<>();
     final CharacterChooserDialog playerChooser;
 
     ZServerMgr(ZombicideActivity activity, UIZombicide game, int maxCharacters, GameServer server) {
@@ -86,6 +86,21 @@ class ZServerMgr extends ZMPCommon implements GameServer.Listener, ZMPCommon.SVR
 
     @Override
     public void onConnected(ClientConnection conn) {
+        // see if there is an existing user we can reuse
+        for (ClientConnection c : clientToUserMap.keySet()) {
+            if (!c.isConnected()) {
+                ZUser user = clientToUserMap.get(c);
+                if (user != null && user.getCharacters().size() > 0) {
+                    // reuse
+                    clientToUserMap.remove(c);
+                    clientToUserMap.put(conn, user);
+                    game.addUser(user);
+                    conn.sendCommand(newInit(game.getQuest().getQuest(), user.getColor(), maxCharacters, new ArrayList<>(playerAssignments.values())));
+                    game.characterRenderer.addMessage(conn.getDisplayName() + " has joined", user.getColor());
+                    return;
+                }
+            }
+        }
         ZUser user = new ZUserMP(conn);
         GColor color = nextColor();
         user.setColor(color);
@@ -101,17 +116,6 @@ class ZServerMgr extends ZMPCommon implements GameServer.Listener, ZMPCommon.SVR
             game.addUser(user);
             conn.sendCommand(newInit(game.getQuest().getQuest(), user.getColor(), maxCharacters, new ArrayList<>(playerAssignments.values())));
             game.characterRenderer.addMessage(conn.getDisplayName() + " has rejoined", user.getColor());
-            /*
-            if (user.getCharacters().size() == 0) {
-                conn.sendCommand(newInit(game.getQuest().getQuest(), user.getColor(), maxCharacters, new ArrayList<>(playerAssignments.values())));
-            } else {
-                conn.sendCommand(newUpdateGameCommand(game));
-                game.addUser(user);
-                for (ZPlayerName nm : user.getCharacters()) {
-                    game.addCharacter(nm);
-                }
-                game.characterRenderer.addMessage(conn.getDisplayName() + " has rejoined", user.getColor());
-            }*/
         }
     }
 

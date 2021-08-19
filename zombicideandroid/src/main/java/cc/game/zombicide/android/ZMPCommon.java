@@ -127,7 +127,7 @@ class ZMPCommon {
                     onStartPressed(conn);
                 } else {
                     //throw new Exception("Unhandled cmd: " + cmd);
-                    Log.w("ZMPCommon", "Unhandled command: " + cmd);
+                    Log.w("ZMPCommon", "parseCLCommand:Unhandled command: " + cmd);
                 }
             } catch (Exception e) {
                 e.printStackTrace();

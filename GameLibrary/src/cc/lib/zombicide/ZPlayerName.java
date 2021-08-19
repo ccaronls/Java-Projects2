@@ -2,10 +2,11 @@ package cc.lib.zombicide;
 
 import cc.lib.annotation.Keep;
 import cc.lib.game.GDimension;
+import cc.lib.game.IDimension;
 import cc.lib.ui.IButton;
 
 @Keep
-public enum ZPlayerName implements IButton {
+public enum ZPlayerName implements IButton, IDimension {
     Ann("Angry Nun",
             toArray(ZWeaponType.DAGGER, ZWeaponType.HAND_CROSSBOW),
             toArray(ZWeaponType.DAGGER),
@@ -14,9 +15,9 @@ public enum ZPlayerName implements IButton {
             toArray(ZSkill.Plus1_free_Magic_Action, ZSkill.Plus1_free_Melee_Action),
             toArray(ZSkill.Plus1_free_Combat_Action, ZSkill.Plus1_to_dice_roll_Combat, ZSkill.Roll_6_plus1_die_Combat)),
     Baldric("Magician",
-            toArray(ZWeaponType.MANA_BLAST), //, ZWeaponType.INFERNO, ZWeaponType.FIREBALL, ZWeaponType.EARTHQUAKE), //, (ZEquipmentType)ZSpellType.SPEED),
+            toArray(ZWeaponType.MANA_BLAST, ZWeaponType.LIGHTNING_BOLT),
             toArray(ZWeaponType.SWORD),
-            toArray(ZSkill.Spellcaster, ZSkill.Invisible),
+            toArray(ZSkill.Spellcaster),
             toArray(ZSkill.Plus1_Action),
             toArray(ZSkill.Plus1_free_Magic_Action, ZSkill.Spellbook),
             toArray(ZSkill.Plus1_die_Magic, ZSkill.Plus1_free_Combat_Action, ZSkill.Plus1_to_dice_roll_Melee)),
@@ -142,7 +143,7 @@ public enum ZPlayerName implements IButton {
         character = c;
         for (ZEquipmentType e : startingEquipment) {
             c.tryEquip(e.create());
-            if (ZGame.DEBUG)
+            if (!ZGame.DEBUG)
                 break;
         }
         c.initAllSkills(getSkillOptions(ZSkillLevel.BLUE));
@@ -169,6 +170,7 @@ public enum ZPlayerName implements IButton {
         return name();
     }
 
+
     static ZEquipmentType [] toArray(ZEquipmentType ... e) {
         return e;
     }
@@ -177,4 +179,13 @@ public enum ZPlayerName implements IButton {
         return e;
     }
 
+    @Override
+    public float getWidth() {
+        return imageDim.getWidth();
+    }
+
+    @Override
+    public float getHeight() {
+        return imageDim.getHeight();
+    }
 }

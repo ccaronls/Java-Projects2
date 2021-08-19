@@ -502,8 +502,9 @@ public class GameClient {
             final Method m = findMethod(method, obj, paramsTypes, params);
             final String responseId = cmd.getString("responseId");
             if (responseId != null) {
+                log.debug("responseId=%s waiting for result...", responseId);
                 Object result = m.invoke(obj, params);
-                log.debug("responseId=%s", responseId);
+                log.debug("responseId=%s cancelled=" + cancelled + " result=" + result);
                 GameCommand resp = new GameCommand(GameCommandType.CL_REMOTE_RETURNS);
                 resp.setArg("target", responseId);
                 if (result != null)
