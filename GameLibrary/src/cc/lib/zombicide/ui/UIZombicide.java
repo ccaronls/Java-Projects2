@@ -211,7 +211,7 @@ public abstract class UIZombicide extends ZGameMP {
 
     public void tryWalk(ZDir dir) {
         ZCharacter cur = getCurrentCharacter().getCharacter();
-        if (cur != null && cur.getActionsLeftThisTurn() > 0) {
+        if (cur != null) {
             if (getBoard().canMove(cur, dir)) {
                 setResult(ZMove.newWalkDirMove(dir));
             }
@@ -235,6 +235,8 @@ public abstract class UIZombicide extends ZGameMP {
             }
         } else if (canSwitchActivePlayer()) {
             setResult(ZMove.newSwitchActiveCharacter());
+        } else {
+            boardRenderer.animateZoomTo(0);
         }
         boardRenderer.redraw();
     }
@@ -300,12 +302,6 @@ public abstract class UIZombicide extends ZGameMP {
         boardRenderer.addPreActor(new InfernoAnimation(board, zone).start());
         Utils.waitNoThrow(this, 1000);
     }
-
-    @Override
-    protected void onDoNothing(ZPlayerName c) {
-        super.onDoNothing(c);
-        boardRenderer.addPostActor(new HoverMessage(boardRenderer, "Zzzzz", c.getCharacter().getRect().getCenter()));
-        Utils.waitNoThrow(this, 500);    }
 
     @Override
     protected void onZombieDestroyed(ZPlayerName c, ZAttackType deathType, ZZombie zombie) {
@@ -526,8 +522,7 @@ public abstract class UIZombicide extends ZGameMP {
                     Lock animLock = new Lock(numDice);
                     for (int i=0; i<numDice; i++) {
                         GRectangle zoneRect = board.getZone(targetZone).getRectangle();
-                        GRectangle targetRect = zoneRect.withDimension(attacker.getCharacter().getRect())
-                                .setPosition(zoneRect.getRandomPointInside());
+                        GRectangle targetRect = zoneRect.scaledBy(.5f);//.moveBy(0, -1);
                         attacker.getCharacter().addAnimation(new DeathStrikeAnimation(attacker.getCharacter(), targetRect) {
                             @Override
                             protected void onDone() {
@@ -655,4 +650,9 @@ public abstract class UIZombicide extends ZGameMP {
         boardRenderer.addPostActor(new HoverMessage(boardRenderer, "DOOR UNLOCKED", door.getRect(getBoard()).getCenter()));
     }
 
+    @Override
+    protected void onBonusAction(ZPlayerName pl, ZSkill action) {
+        super.onBonusAction(pl, action);
+        boardRenderer.addPostActor(new HoverMessage(boardRenderer, "BONUS ACTION " + action.getLabel(), pl.getCharacter().getRect().getCenter()));
+    }
 }

@@ -136,9 +136,6 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
             return;
         for (ZMove move : options) {
             switch (move.type) {
-                case DO_NOTHING:
-                    addClickable(cur.getRect(), move);
-                    break;
                 case INVENTORY:
                     //addClickable(cur.getRect(), move);
                     break;
@@ -804,6 +801,10 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
         this.zoomPercent = zoomPercent;
     }
 
+    /**
+     *
+     * @param targetZoomPercent 0 is fully zoomed out and 1 is fully zoomed in
+     */
     public void animateZoomTo(float targetZoomPercent) {
         targetZoomPercent = Utils.clamp(targetZoomPercent, 0, 1);
         if (zoomPercent != targetZoomPercent) {

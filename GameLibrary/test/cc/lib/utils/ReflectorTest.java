@@ -11,6 +11,7 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -838,5 +839,19 @@ public class ReflectorTest extends TestCase {
         SmallReflector r = new SmallReflector();
         System.out.println(r.toStringNumbered());
 
+    }
+
+
+    public void testSerializeSyncList() throws Exception {
+        //Reflector.registerClass(Collections.synchronizedList(new ArrayList()).getClass(), "java.util.Collections.SynchronizedRandomAccessList");
+        //Reflector.registerConstructor("java.util.Collections.SynchronizedRandomAccessList", () -> Collections.synchronizedList(new ArrayList()));
+
+        List<String> list = Collections.synchronizedList(new ArrayList<>());
+        list.addAll(Utils.toList("Hello", "Goodbye"));
+        String s= Reflector.serializeObject(list);
+        System.out.println(s);
+
+        List<String> list2 = Reflector.deserializeFromString(s);
+        System.out.println("list2=" + list2);
     }
 }

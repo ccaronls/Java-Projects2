@@ -39,6 +39,11 @@ public enum ZArmorType implements ZEquipmentType<ZArmor> {
         return new ZArmor(this);
     }
 
+    @Override
+    public ZActionType getActionType() {
+        return ZActionType.NOTHING;
+    }
+
     public ZSkill extraSkill() {
         switch (this) {
             case SHIELD_OF_AGES:

@@ -68,6 +68,7 @@ import cc.lib.mp.android.P2PActivity;
 import cc.lib.ui.IButton;
 import cc.lib.utils.FileUtils;
 import cc.lib.utils.Reflector;
+import cc.lib.zombicide.ZActionType;
 import cc.lib.zombicide.ZActor;
 import cc.lib.zombicide.ZDifficulty;
 import cc.lib.zombicide.ZDir;
@@ -75,6 +76,7 @@ import cc.lib.zombicide.ZEquipSlot;
 import cc.lib.zombicide.ZEquipment;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZMove;
+import cc.lib.zombicide.ZMoveType;
 import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZSkill;
@@ -733,23 +735,10 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
                 break;
             }
             case LOAD:
-                newDialogBuilder().setTitle("Load Quest")
-                        .setItems(Utils.toStringArray(ZQuests.values(), true), new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                ZQuests q = ZQuests.values()[which];
-                                game.loadQuest(q);
-                                game.showObjectivesOverlay();
-                                loadCharacters(getStoredCharacters());
-                                game.trySaveToFile(gameFile);
-                                startGame();
-                                boardView.postInvalidate();
-                                initHomeMenu();
-                            }
-                        }).setNegativeButton("CANCEL", null).show();
+                showLoadSavedGameDialog();
                 break;
             case SAVE:
-                openSaveGameDialog();
+                showSaveGameDialog();
                 break;
             case ASSIGN:
                 showAssignDialog();
@@ -799,8 +788,45 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
         }
     }
 
-    void openSaveGameDialog() {
+    void showLoadQuestDialog() {
+        newDialogBuilder().setTitle("Load Quest")
+                .setItems(Utils.toStringArray(ZQuests.values(), true), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        ZQuests q = ZQuests.values()[which];
+                        game.loadQuest(q);
+                        game.showObjectivesOverlay();
+                        loadCharacters(getStoredCharacters());
+                        game.trySaveToFile(gameFile);
+                        startGame();
+                        boardView.postInvalidate();
+                        initHomeMenu();
+                    }
+                }).setNegativeButton(R.string.popup_button_cancel, null).show();
+    }
+
+    void showSaveGameDialog() {
         new SaveGameDialog(this, MAX_SAVES);
+    }
+
+    void showLoadSavedGameDialog() {
+        Map<String,String> saves = getSaves();
+        if (saves.size() > 0) {
+            String [] items = new String[saves.size()];
+            newDialogBuilder().setTitle("Loaded saved")
+                    .setItems(saves.values().toArray(items), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            String fileName = saves.get(items[which]);
+                            File file = new File(getFilesDir(), fileName);
+                            if (game.tryLoadFromFile(file)) {
+                                user.setCharacters(game.getAllCharacters());
+                                game.boardRenderer.setOverlay(game.getQuest().getObjectivesOverlay(game));
+                                startGame();
+                            }
+                        }
+                    }).setNegativeButton(R.string.popup_button_cancel, null).show();
+        }
     }
 
     void deleteSave(String key) {
@@ -1273,10 +1299,39 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
     public void initGameMenu() {
         buttonsGrid.setVisibility(View.VISIBLE);
         initMenu(UIZombicide.UIMode.NONE, null);
+        boardView.redraw();
     }
 
     boolean isMyTurn() {
         return user.getCharacters().contains(game.getCurrentCharacter());
+    }
+
+    boolean isHandMoveAvailable(ZEquipSlot slot, List<ZMoveType> types) {
+        ZActionType lhAC = game.getSlotActionType(slot);
+        switch (lhAC) {
+            case THROW_ITEM:
+                if (types.contains(ZMoveType.THROW_ITEM))
+                    return true;
+                break;
+            case ARROWS:
+            case BOLTS:
+                if (types.contains(ZMoveType.RANGED_ATTACK))
+                    return true;
+                break;
+            case MELEE:
+                if (types.contains(ZMoveType.MELEE_ATTACK))
+                    return true;
+                break;
+            case MAGIC:
+                if (types.contains(ZMoveType.MAGIC_ATTACK))
+                    return true;
+                break;
+            case ENCHANTMENT:
+                if (types.contains(ZMoveType.ENCHANT))
+                    return true;
+                break;
+        }
+        return false;
     }
 
     void initMenu(UIZombicide.UIMode mode, List<IButton> options) {
@@ -1296,18 +1351,24 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
         initMenuItems(buttons);
 
         if (isMyTurn()) {
-            buttonsGrid.setVisibility(View.VISIBLE);
-            //bCenter.setVisibility((game.getCurrentCharacter() == null || game.canSwitchActivePlayer()) ? View.VISIBLE : View.INVISIBLE);
-            bLH.setVisibility(game.canUse(ZEquipSlot.LEFT_HAND) ? View.VISIBLE : View.INVISIBLE);
-            bRH.setVisibility(game.canUse(ZEquipSlot.RIGHT_HAND) ? View.VISIBLE : View.INVISIBLE);
-            bUp.setVisibility(game.canWalk(ZDir.NORTH) ? View.VISIBLE : View.INVISIBLE);
-            bDown.setVisibility(game.canWalk(ZDir.SOUTH) ? View.VISIBLE : View.INVISIBLE);
-            bLeft.setVisibility(game.canWalk(ZDir.WEST) ? View.VISIBLE : View.INVISIBLE);
-            bRight.setVisibility(game.canWalk(ZDir.EAST) ? View.VISIBLE : View.INVISIBLE);
-            bVault.setVisibility(game.canWalk(ZDir.ASCEND) || game.canWalk(ZDir.DESCEND) ? View.VISIBLE : View.INVISIBLE);
+            List<ZMove> moves = options == null ? Collections.emptyList() : (List)Utils.filter(new ArrayList(options), option -> option instanceof ZMove);
+            List<ZMoveType> types = Utils.map(moves, option->option.type);
+
+            bLH.setVisibility(isHandMoveAvailable(ZEquipSlot.LEFT_HAND, types) ? View.VISIBLE : View.INVISIBLE);
+            bRH.setVisibility(isHandMoveAvailable(ZEquipSlot.RIGHT_HAND, types) ? View.VISIBLE : View.INVISIBLE);
+            bUp.setVisibility(types.contains(ZMoveType.WALK) && game.canWalk(ZDir.NORTH) ? View.VISIBLE : View.INVISIBLE);
+            bDown.setVisibility(types.contains(ZMoveType.WALK) && game.canWalk(ZDir.SOUTH) ? View.VISIBLE : View.INVISIBLE);
+            bLeft.setVisibility(types.contains(ZMoveType.WALK) && game.canWalk(ZDir.WEST) ? View.VISIBLE : View.INVISIBLE);
+            bRight.setVisibility(types.contains(ZMoveType.WALK) && game.canWalk(ZDir.EAST) ? View.VISIBLE : View.INVISIBLE);
+            bVault.setVisibility(types.contains(ZMoveType.WALK) && game.canWalk(ZDir.ASCEND) || game.canWalk(ZDir.DESCEND) ? View.VISIBLE : View.INVISIBLE);
         } else {
-            // TODO: Show whose turn it is
-            buttonsGrid.setVisibility(View.INVISIBLE);
+            bLH.setVisibility(View.INVISIBLE);
+            bRH.setVisibility(View.INVISIBLE);
+            bUp.setVisibility(View.INVISIBLE);
+            bDown.setVisibility(View.INVISIBLE);
+            bLeft.setVisibility(View.INVISIBLE);
+            bRight.setVisibility(View.INVISIBLE);
+            bVault.setVisibility(View.INVISIBLE);
         }
     }
 

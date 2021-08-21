@@ -139,13 +139,6 @@ public class ZGameMP extends ZGame {
     }
 
     @Override
-    protected void onDoNothing(ZPlayerName c) {
-        if (server != null) {
-            server.broadcastExecuteOnRemote(GAME_ID, c);
-        }
-    }
-
-    @Override
     protected void onAhhhhhh(ZPlayerName c) {
         if (server != null) {
             server.broadcastExecuteOnRemote(GAME_ID, c);
@@ -270,6 +263,13 @@ public class ZGameMP extends ZGame {
     protected void onDragonBileExploded(int zoneIdx) {
         if (server != null) {
             server.broadcastExecuteOnRemote(GAME_ID, zoneIdx);
+        }
+    }
+
+    @Override
+    protected void onBonusAction(ZPlayerName pl, ZSkill action) {
+        if (server != null) {
+            server.broadcastExecuteOnRemote(GAME_ID, pl, action);
         }
     }
 }

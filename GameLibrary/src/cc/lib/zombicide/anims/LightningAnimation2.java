@@ -18,7 +18,7 @@ public class LightningAnimation2 extends ZActorAnimation {
     final LightningStrand [] shots;
 
     final float minArc = 0f;
-    final float maxArc = .4f;
+    final float maxArc = .5f;
 
     public LightningAnimation2(ZActor actor, GRectangle target, int numDice) {
         super(actor, 700L, 1000L);
@@ -32,10 +32,12 @@ public class LightningAnimation2 extends ZActorAnimation {
 
         shots = new LightningStrand[numDice*2];
         Vector2D dv = start1.sub(start0).normEq().scaleEq(-maxArc);
-        Vector2D start = (start0.add(start1)).scaleEq(.5f).addEq(dv);
-        for (int i=0; i<shots.length; i++) {
+        //Vector2D start = (start0.add(start1)).scaleEq(.5f).addEq(dv);
+        for (int i=0; i<shots.length; i+=2) {
             IInterpolator<Vector2D> endInt = Vector2D.getLinearInterpolator(target.getRandomPointInside(), target.getRandomPointInside());
-            shots[i] = new LightningStrand(start, endInt, 10, 15, .4f);
+            shots[i] = new LightningStrand(start0, endInt, 10, 15, .4f);
+            endInt = Vector2D.getLinearInterpolator(target.getRandomPointInside(), target.getRandomPointInside());
+            shots[i+1] = new LightningStrand(start1, endInt, 10, 15, .4f);
         }
     }
 
@@ -52,9 +54,9 @@ public class LightningAnimation2 extends ZActorAnimation {
 
             case 1: {
                 // draw the arc build up
-                for (LightningStrand l : arcs) {
-                    l.draw(g, 1);
-                }
+                //for (LightningStrand l : arcs) {
+                 //   l.draw(g, 1);
+                //}
                 for (LightningStrand l : shots) {
                     l.draw(g, position);
                 }

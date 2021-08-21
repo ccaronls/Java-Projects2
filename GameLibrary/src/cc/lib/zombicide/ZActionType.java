@@ -5,7 +5,7 @@ import cc.lib.game.Utils;
 
 @Keep
 public enum ZActionType {
-    DO_NOTHING,
+    NOTHING,
     MOVE,
     SEARCH,
     OPEN_DOOR,

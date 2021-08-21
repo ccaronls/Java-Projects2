@@ -18,4 +18,6 @@ public interface ZEquipmentType<T extends ZEquipment> extends IButton {
     default String getTooltipText() {
         return null;
     }
+
+    ZActionType getActionType();
 }

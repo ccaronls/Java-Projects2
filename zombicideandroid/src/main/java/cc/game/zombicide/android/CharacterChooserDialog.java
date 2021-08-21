@@ -38,6 +38,7 @@ public abstract class CharacterChooserDialog extends RecyclerView.Adapter<Charac
         recyclerView.setAdapter(this);
 //        recyclerView.setLayoutManager(new GridLayoutManager(activity, 2, LinearLayoutManager.VERTICAL, false));
 
+        updateSelected();
         dialog = activity.newDialogBuilder().setTitle("ASSIGN")
                 .setView(view).show();
     }
@@ -118,12 +119,16 @@ public abstract class CharacterChooserDialog extends RecyclerView.Adapter<Charac
             c.copyFrom(a);
             c.isAssingedToMe = a.isAssingedToMe;
         }
+        updateSelected();
+        activity.runOnUiThread(this);
+    }
+
+    private void updateSelected() {
         numSelected = 0;
         for (Assignee aa : selectedPlayers) {
             if (aa.isAssingedToMe)
                 numSelected++;
         }
-        activity.runOnUiThread(this);
     }
 
     public static class Holder extends RecyclerView.ViewHolder {

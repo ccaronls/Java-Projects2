@@ -28,7 +28,7 @@ public class ZItem extends ZEquipment<ZItemType> {
 
     @Override
     public boolean isConsumable() {
-        return type.canConsume;
+        return type.getActionType() == ZActionType.CONSUME;
     }
 
     @Override

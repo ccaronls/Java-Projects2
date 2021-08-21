@@ -5,7 +5,7 @@ import cc.lib.ui.IButton;
 import cc.lib.utils.Reflector;
 import cc.lib.utils.Table;
 
-public abstract class ZEquipment<T extends Enum<T>> extends Reflector<ZEquipment<T>> implements IButton, Comparable<ZEquipment> {
+public abstract class ZEquipment<T extends ZEquipmentType> extends Reflector<ZEquipment<T>> implements IButton, Comparable<ZEquipment> {
 
     static {
         addAllFields(ZEquipment.class);
@@ -54,7 +54,7 @@ public abstract class ZEquipment<T extends Enum<T>> extends Reflector<ZEquipment
 
     public boolean isOpenDoorsNoisy() { return false; }
 
-    public abstract Enum<T> getType();
+    public abstract T getType();
 
     @Override
     public boolean equals(Object o) {
@@ -73,7 +73,7 @@ public abstract class ZEquipment<T extends Enum<T>> extends Reflector<ZEquipment
 
     @Override
     public int hashCode() {
-        return getType().ordinal();
+        return getType().hashCode();
     }
 
     public abstract Table getCardInfo(ZCharacter c, ZGame game);

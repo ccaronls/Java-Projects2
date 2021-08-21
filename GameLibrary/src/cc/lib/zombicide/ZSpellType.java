@@ -37,6 +37,11 @@ public enum  ZSpellType implements ZEquipmentType<ZSpell>, IButton {
     }
 
     @Override
+    public ZActionType getActionType() {
+        return ZActionType.ENCHANTMENT;
+    }
+
+    @Override
     public String getTooltipText() {
         return description;
     }

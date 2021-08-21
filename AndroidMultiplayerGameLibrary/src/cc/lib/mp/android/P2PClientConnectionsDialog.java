@@ -90,6 +90,7 @@ public class P2PClientConnectionsDialog extends BaseAdapter implements
     @Override
     public final void onDismiss(DialogInterface dialog) {
         this.dialog = null;
+        this.lvPlayers = null;
     }
 
     @Override
@@ -100,7 +101,8 @@ public class P2PClientConnectionsDialog extends BaseAdapter implements
 
     @Override
     public final void onReconnection(ClientConnection conn) {
-        lvPlayers.post(this);
+        if (lvPlayers != null)
+            lvPlayers.post(this);
     }
 
     @Override

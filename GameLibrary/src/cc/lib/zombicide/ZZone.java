@@ -63,7 +63,7 @@ public class ZZone extends Reflector<ZZone> implements IShape {
     public GRectangle getRectangle() {
         GRectangle rect = new GRectangle();
         for (Grid.Pos p : cells) {
-            rect.addEq(p.getRow(), p.getColumn(), 1, 1);
+            rect.addEq(p.getColumn(), p.getRow(), 1, 1);
         }
         return rect;
     }

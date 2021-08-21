@@ -254,9 +254,4 @@ public class TestGraphics extends APGraphics {
     public void setTintFilter(GColor inColor, GColor outColor) {
 
     }
-
-    @Override
-    public void removeTint() {
-
-    }
 }

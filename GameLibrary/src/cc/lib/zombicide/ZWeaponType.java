@@ -10,39 +10,38 @@ public enum ZWeaponType implements ZEquipmentType<ZWeapon> {
     // DAGGER get extra die roll when 2 handed with another melee weapon
 
     // MELEE
-    DAGGER(false, true,false, true, false, true, new ZWeaponStat(ZAttackType.BLADE, 5, 0, 0, 1, 4, 1), new ZWeaponStat(ZAttackType.RANGED, 0, 1, 1, 1, 3, 2), null,  "Gain +1 die with another equipped melee weapon"),
-    AXE(false, false,false, true, false, true, new ZWeaponStat(ZAttackType.BLADE,1, 0, 0, 1, 4, 1), null, null, null),
-    HAMMER(false, false,false, false, false, true, new ZWeaponStat(ZAttackType.CRUSH,4, 0, 0, 1, 3, 2), null, null, null),
-    SHORT_SWORD(false, false,false, true, false, true, new ZWeaponStat(ZAttackType.BLADE,4, 0, 0, 1, 4, 1), null, null, null),
-    SWORD(false, false,false, true, false, true, new ZWeaponStat(ZAttackType.BLADE,4, 0, 0, 2, 4, 1), null, null, null),
-    GREAT_SWORD(false, false,false, false, false, true, new ZWeaponStat(ZAttackType.BLADE,5, 0, 0, 5, 5, 1), null, null, null),
+    DAGGER(ZActionType.MELEE,false, true, false, true, new ZWeaponStat(ZAttackType.BLADE, 5, 0, 0, 1, 4, 1), new ZWeaponStat(ZAttackType.RANGED, 0, 1, 1, 1, 3, 2), null,  "Gain +1 die with another equipped melee weapon"),
+    AXE(ZActionType.MELEE,false, true, false, true, new ZWeaponStat(ZAttackType.BLADE,1, 0, 0, 1, 4, 1), null, null, null),
+    HAMMER(ZActionType.MELEE,false, false, false, true, new ZWeaponStat(ZAttackType.CRUSH,4, 0, 0, 1, 3, 2), null, null, null),
+    SHORT_SWORD(ZActionType.MELEE,false, true, false, true, new ZWeaponStat(ZAttackType.BLADE,4, 0, 0, 1, 4, 1), null, null, null),
+    SWORD(ZActionType.MELEE,false, true, false, true, new ZWeaponStat(ZAttackType.BLADE,4, 0, 0, 2, 4, 1), null, null, null),
+    GREAT_SWORD(ZActionType.MELEE,false, false, false, true, new ZWeaponStat(ZAttackType.BLADE,5, 0, 0, 5, 5, 1), null, null, null),
     // BOWS
-    SHORT_BOW(false, true,false, false, false, false, null, new ZWeaponStat(ZAttackType.RANGED,0, 0, 1, 1, 3, 1), null, null),
-    LONG_BOW(false, true, false, false, false, false, null, new ZWeaponStat(ZAttackType.RANGED,0, 1, 3, 1, 3, 1), null, null),
+    SHORT_BOW(ZActionType.ARROWS,false, false, false, false, null, new ZWeaponStat(ZAttackType.RANGED,0, 0, 1, 1, 3, 1), null, null),
+    LONG_BOW(ZActionType.ARROWS, false, false, false, false, null, new ZWeaponStat(ZAttackType.RANGED,0, 1, 3, 1, 3, 1), null, null),
     // CROSSBOWS
-    CROSSBOW(true, false, true, false, false, false, null, new ZWeaponStat(ZAttackType.RANGED,0, 1, 2, 2, 4,2), null, null),
-    REPEATING_CROSSBOW(true, false, true, true, false, false, null, new ZWeaponStat(ZAttackType.RANGED,0, 0, 1, 3, 5, 1), null, null),
-    HAND_CROSSBOW(true, false, true, true, false, false, null, new ZWeaponStat(ZAttackType.RANGED,0, 0, 3, 2, 3, 1), null, "Auto reload at end of turn"),
-    ORCISH_CROSSBOW(true, false, true, false, false, false, new ZWeaponStat(ZAttackType.CRUSH,0, 0, 0, 2, 3, 2), new ZWeaponStat(ZAttackType.RANGED,0, 1, 2, 2, 3, 2), null, null),
-    HEAVY_CROSSBOW(true, false, true, false, false, false, null, new ZWeaponStat(ZAttackType.RANGED,0, 1, 2, 2, 4, 3), null, null),
+    CROSSBOW(ZActionType.BOLTS, true, false, false, false, null, new ZWeaponStat(ZAttackType.RANGED,0, 1, 2, 2, 4,2), null, null),
+    REPEATING_CROSSBOW(ZActionType.BOLTS, true, true, false, false, null, new ZWeaponStat(ZAttackType.RANGED,0, 0, 1, 3, 5, 1), null, null),
+    HAND_CROSSBOW(ZActionType.BOLTS, true, true, false, false, null, new ZWeaponStat(ZAttackType.RANGED,0, 0, 3, 2, 3, 1), null, "Auto reload at end of turn"),
+    ORCISH_CROSSBOW(ZActionType.BOLTS, true, false, false, false, new ZWeaponStat(ZAttackType.CRUSH,0, 0, 0, 2, 3, 2), new ZWeaponStat(ZAttackType.RANGED,0, 1, 2, 2, 3, 2), null, null),
+    HEAVY_CROSSBOW(ZActionType.BOLTS, true, false, false, false, null, new ZWeaponStat(ZAttackType.RANGED,0, 1, 2, 2, 4, 3), null, null),
 
     // MAGIC
-    DEATH_STRIKE(false, false, false, true, true, false, null, null, new ZWeaponStat(ZAttackType.MENTAL_STRIKE,0, 0, 1, 1, 4, 2), null),
+    DEATH_STRIKE(ZActionType.MAGIC, false, true, true, false, null, null, new ZWeaponStat(ZAttackType.MENTAL_STRIKE,0, 0, 1, 1, 4, 2), null),
     // TODO: +1 damage on a die roll 6
-    DISINTEGRATE(false, false, false, true, true, false, null, null, new ZWeaponStat(ZAttackType.DISINTEGRATION,0, 0, 1, 3, 5, 1), null),
-    EARTHQUAKE(false, false, false, true, true, false, null, null, new ZWeaponStat(ZAttackType.EARTHQUAKE,0, 0, 1, 3, 4, 1), null),
-    FIREBALL(false, false, false, true, true, false, null, null, new ZWeaponStat(ZAttackType.FIRE,0, 0, 1, 3, 4, 1), null),
-    MANA_BLAST(false, false, false, true, true, false, null, null, new ZWeaponStat(ZAttackType.MENTAL_STRIKE,0, 0, 2, 1, 4, 1), null),
-    INFERNO(false, false, false, true, true, false, null, null, new ZWeaponStat(ZAttackType.FIRE,0 ,0 ,1, 4, 4, 2), null),
-    LIGHTNING_BOLT(false, false, false, true, true, false, null, null, new ZWeaponStat(ZAttackType.ELECTROCUTION,0 ,0 ,3, 1, 4, 1), null),
+    DISINTEGRATE(ZActionType.MAGIC, false, true, true, false, null, null, new ZWeaponStat(ZAttackType.DISINTEGRATION,0, 0, 1, 3, 5, 1), null),
+    EARTHQUAKE(ZActionType.MAGIC, false, true, true, false, null, null, new ZWeaponStat(ZAttackType.EARTHQUAKE,0, 0, 1, 3, 4, 1), null),
+    FIREBALL(ZActionType.MAGIC, false, true, true, false, null, null, new ZWeaponStat(ZAttackType.FIRE,0, 0, 1, 3, 4, 1), null),
+    MANA_BLAST(ZActionType.MAGIC, false, true, true, false, null, null, new ZWeaponStat(ZAttackType.MENTAL_STRIKE,0, 0, 2, 1, 4, 1), null),
+    INFERNO(ZActionType.MAGIC, false, true, true, false, null, null, new ZWeaponStat(ZAttackType.FIRE,0 ,0 ,1, 4, 4, 2), null),
+    LIGHTNING_BOLT(ZActionType.MAGIC, false, true, true, false, null, null, new ZWeaponStat(ZAttackType.ELECTROCUTION,0 ,0 ,3, 1, 4, 1), null),
 
     // SPECIAL
-    BREAK_IN(false, false, false, false, false, false, new ZWeaponStat(null, 1, 0, 0, 0, 0, 0), null, null, null),
+    BREAK_IN(ZActionType.OPEN_DOOR, false, false, false, false, new ZWeaponStat(null, 1, 0, 0, 0, 0, 0), null, null, null),
     ;
 
-    ZWeaponType(boolean usesBolts, boolean usesArrows, boolean needsReload, boolean canTwoHand, boolean attackIsNoisy, boolean openDoorsIsNoisy, ZWeaponStat meleeStats, ZWeaponStat rangedStats, ZWeaponStat magicStats, String specialInfo) {
-        this.usesBolts = usesBolts;
-        this.usesArrows = usesArrows;
+    ZWeaponType(ZActionType actionType, boolean needsReload, boolean canTwoHand, boolean attackIsNoisy, boolean openDoorsIsNoisy, ZWeaponStat meleeStats, ZWeaponStat rangedStats, ZWeaponStat magicStats, String specialInfo) {
+        this.actionType = actionType;
         this.needsReload = needsReload;
         this.canTwoHand = canTwoHand;
         this.attackIsNoisy = attackIsNoisy;
@@ -53,8 +52,7 @@ public enum ZWeaponType implements ZEquipmentType<ZWeapon> {
         this.specialInfo = specialInfo;
     }
 
-    final boolean usesBolts;
-    final boolean usesArrows;
+    final ZActionType actionType;
     final boolean needsReload;
     final boolean canTwoHand;
     final boolean attackIsNoisy;
@@ -76,6 +74,11 @@ public enum ZWeaponType implements ZEquipmentType<ZWeapon> {
     @Override
     public ZWeapon create() {
         return new ZWeapon(this);
+    }
+
+    @Override
+    public ZActionType getActionType() {
+        return actionType;
     }
 
     public boolean isFire() {

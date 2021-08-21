@@ -382,6 +382,17 @@ public class ZGame extends Reflector<ZGame>  {
         return quest;
     }
 
+    void addTradeOptions(ZCharacter ch, List<ZMove> options) {
+        if (ch.canTrade()) {
+            // check for trade with another character in the same zone (even if they are dead)
+            if (isClearedOfZombies(ch.occupiedZone)) {
+                options.add(ZMove.newTradeMove(Utils.map(Utils.filter(board.getCharactersInZone(ch.occupiedZone),
+                        object -> object != ch && object.canTrade()), (zChar) -> zChar.getPlayerName())));
+
+            }
+        }
+    }
+
     /**
      *
      * @return true if something changed, false otherwise
@@ -521,58 +532,34 @@ public class ZGame extends Reflector<ZGame>  {
                 final ZPlayerName cur = getCurrentCharacter();
                 final ZCharacter ch = cur.getCharacter();
 
-                boolean invOnly = false;
-                if (ch.getActionsLeftThisTurn() <= 0) {
-                    if (ch.inventoryThisTurn) {
-                        invOnly = true;
-                    } else {
-                        ch.onEndOfTurn(this);
-                        setState(ZState.PLAYER_STAGE_CHOOSE_CHARACTER, null);
-                        return false;
-                    }
+                int actionsLeft = ch.getActionsLeftThisTurn();
+                LinkedList<ZMove> options = new LinkedList<>();
+
+                // determine players available moves
+                for (ZSkill skill : ch.getAvailableSkills()) {
+                    skill.addSpecialMoves(this, ch, options);
                 }
 
-                List<ZMove> options = new ArrayList<>();
-                options.add(ZMove.newEndTurn());
-                if (!invOnly) {
-                    //options.add(ZMove.newDoNothing());
+                if (actionsLeft > 0) {
 
-                    // determine players available moves
-                    for (ZSkill skill : ch.getAvailableSkills()) {
-                        skill.addSpecialMoves(this, ch, options);
+                    // check for organize
+                    if (ch.getAllEquipment().size() > 0)
+                        options.add(ZMove.newInventoryMove());
+
+                    boolean zoneCleared = isClearedOfZombies(ch.occupiedZone);
+
+                    // check for trade with another character in the same zone (even if they are dead)
+                    if (zoneCleared && ch.canTrade()) {
+                        addTradeOptions(ch, options);
                     }
 
                     // add any moves determined by the quest
                     quest.addMoves(this, ch, options);
-                }
 
-                // check for organize
-                if (ch.getAllEquipment().size() > 0)
-                    options.add(ZMove.newInventoryMove());
-
-                boolean zoneCleared = isClearedOfZombies(ch.occupiedZone);
-
-                // check for trade with another character in the same zone (even if they are dead)
-                if (zoneCleared && ch.canTrade()) {
-                    List<ZCharacter> inZone = Utils.filter((List)board.getActorsInZone(ch.occupiedZone),
-                            object -> {
-                                if (object instanceof ZCharacter && ((ZCharacter) object).name != cur && ((ZCharacter)object).canTrade())
-                                    return true;
-                                return false;
-                            });
-                    if (inZone.size() > 0) {
-                        List<ZPlayerName> pl = new ArrayList<>();
-                        for (ZCharacter c : inZone)
-                            pl.add(c.name);
-                        options.add(ZMove.newTradeMove(pl));
-                    }
-                }
-
-                if (!invOnly) {
                     ZZone zone = board.getZone(ch.occupiedZone);
 
                     // check for search
-                    if (zone.isSearchable() && ch.canSearch() && zoneCleared) {
+                    if (zoneCleared && ch.canSearch(zone)) {
                         options.add(ZMove.newSearchMove(ch.occupiedZone));
                     }
 
@@ -649,6 +636,13 @@ public class ZGame extends Reflector<ZGame>  {
                     }
                 }
 
+                if (options.size() == 0) {
+                    ch.onEndOfTurn(this);
+                    setState(ZState.PLAYER_STAGE_CHOOSE_CHARACTER, null);
+                    return false;
+                }
+
+                options.addFirst(ZMove.newEndTurn());
                 ZMove move = getCurrentUser().chooseMove(cur, options);
                 return performMove(ch, move);
             }
@@ -770,7 +764,7 @@ public class ZGame extends Reflector<ZGame>  {
                                 }
 
                                 if (path.isEmpty()) {
-                                    zombie.performAction(ZActionType.DO_NOTHING, this);
+                                    zombie.performAction(ZActionType.NOTHING, this);
                                 } else {
                                     ZDir dir = path.remove(0);
                                     moveActorInDirection(zombie, dir);
@@ -961,16 +955,18 @@ public class ZGame extends Reflector<ZGame>  {
 
     }
 
-    protected void onDoNothing(ZPlayerName c) {}
-
-    public boolean canUse(ZEquipSlot slot) {
+    public ZActionType getSlotActionType(ZEquipSlot slot) {
         ZPlayerName c = getCurrentCharacter();
-        return c != null && c.character.getSlot(slot) != null;
+        ZEquipment e = c == null ? null : c.character.getSlot(slot);
+        if (e != null) {
+            return e.getType().getActionType();
+        }
+        return ZActionType.NOTHING;
     }
 
     public boolean canWalk(ZDir dir) {
         ZPlayerName c = getCurrentCharacter();
-        return c != null && c.character.getActionsLeftThisTurn() > 0 && getBoard().canMove(c.character, dir);
+        return c != null && getBoard().canMove(c.character, dir);
     }
 
 
@@ -993,10 +989,6 @@ public class ZGame extends Reflector<ZGame>  {
         log.debug("performMove:%s", move);
         ZUser user = getCurrentUser();
         switch (move.type) {
-            case DO_NOTHING:
-                onDoNothing(cur.name);
-                cur.performAction(ZActionType.DO_NOTHING, this);
-                return true;
             case END_TURN:
                 cur.clearActions();
                 cur.onEndOfTurn(this);
@@ -1191,6 +1183,8 @@ public class ZGame extends Reflector<ZGame>  {
                     }
                     cur.performAction( ZActionType.MELEE,this);
                     addLogMessage(getCurrentCharacter().name() + " Scored " + hits + " hits");
+                    if (hits > 0)
+                        checkForHitAndRun(cur);
                     return true;
                 }
                 return false;
@@ -1257,27 +1251,30 @@ public class ZGame extends Reflector<ZGame>  {
                                     }
                                 }
 
+                                if (hitsMade > 0)
+                                    checkForHitAndRun(cur);
+
                                 addLogMessage(getCurrentCharacter().name() + " Scored " + hits + " hits");
                                 if (cur.canFriendlyFire()) {
                                     int misses = stat.numDice - hitsMade;
-                                    List<ZCharacter> friendlyFireOptions = Utils.filter(board.getCharactersInZone(zoneIdx), object -> object != cur);
-                                    if (friendlyFireOptions.size() > 1) {
-                                        // sort them in same way we would sort zombie attacks
-                                        Collections.sort(friendlyFireOptions, (o1, o2) -> {
-                                            int v0 = o1.getArmorRating(ZZombieType.Walker) - o1.woundBar;
-                                            int v1 = o2.getArmorRating(ZZombieType.Walker) - o2.woundBar;
-                                            return Integer.compare(v1, v0);
-                                        });
-                                    }
+                                    List<ZCharacter> friendlyFireOptions = Utils.filter(board.getCharactersInZone(zoneIdx), object -> object != cur && object.canReceiveFriendlyFire());
                                     for (int i = 0; i < misses && friendlyFireOptions.size() > 0; i++) {
                                         // friendly fire!
+                                        if (friendlyFireOptions.size() > 1) {
+                                            // sort them in same way we would sort zombie attacks
+                                            Collections.sort(friendlyFireOptions, (o1, o2) -> {
+                                                int v0 = o1.getArmorRating(ZZombieType.Walker) - o1.woundBar;
+                                                int v1 = o2.getArmorRating(ZZombieType.Walker) - o2.woundBar;
+                                                return Integer.compare(v1, v0);
+                                            });
+                                        }
                                         ZCharacter victim = friendlyFireOptions.get(0);
                                         if (playerDefends(victim, ZZombieType.Walker)) {
                                             addLogMessage(victim.name() + " defended thyself from friendly fire!");
                                             onCharacterDefends(victim.name);
                                         } else {
                                             playerWounded(victim, stat.getAttackType(), stat.damagePerHit, "Friendly Fire!");
-                                            if (victim.isDualWeilding())
+                                            if (victim.isDead())
                                                 friendlyFireOptions.remove(0);
                                         }
                                     }
@@ -1339,7 +1336,7 @@ public class ZGame extends Reflector<ZGame>  {
 
             case RELOAD: {
                 ZWeapon weapon = (ZWeapon)move.equipment;
-                if (cur.isDualWeilding()) {
+                if (cur.isDualWielding()) {
                     ((ZWeapon)cur.getSlot(ZEquipSlot.LEFT_HAND)).reload();
                     ((ZWeapon)cur.getSlot(ZEquipSlot.RIGHT_HAND)).reload();
                     addLogMessage(getCurrentCharacter().name() + " Reloaded both their " + weapon.getLabel() + "s");
@@ -1625,7 +1622,7 @@ public class ZGame extends Reflector<ZGame>  {
             }
             if (slot != null) {
                 if (action == null) {
-                    action = slot.type.usesArrows ? ZActionType.ARROWS : ZActionType.BOLTS;
+                    action = slot.type.actionType;
                 }
                 cur.addExtraAction();
                 moveActor(cur, zone, cur.getMoveSpeed()/2);
@@ -1668,6 +1665,9 @@ public class ZGame extends Reflector<ZGame>  {
                     addNoise(cur.occupiedZone, 1);
                 }
                 addLogMessage(getCurrentCharacter().name() + " Scored " + hits + " hits");
+                if (hits > 0)
+                    checkForHitAndRun(cur);
+
                 break;
             }
             case MAGIC:
@@ -1719,27 +1719,32 @@ public class ZGame extends Reflector<ZGame>  {
                                 }
 
                                 int misses = stat.numDice - hits;
-                                List<ZCharacter> friendlyFireOptions = Utils.filter(board.getCharactersInZone(zoneIdx), object -> object != cur);
-                                if (friendlyFireOptions.size() > 1) {
-                                    // sort them in same way we would sort zombie attacks
-                                    Collections.sort(friendlyFireOptions, (o1, o2) -> {
-                                        int v0 = o1.getArmorRating(ZZombieType.Walker) - o1.woundBar;
-                                        int v1 = o2.getArmorRating(ZZombieType.Walker) - o2.woundBar;
-                                        return Integer.compare(v1, v0);
-                                    });
-                                }
-                                for (int i = 0; i < misses && friendlyFireOptions.size() > 0; i++) {
-                                    // friendy fire!
-                                    ZCharacter victim = friendlyFireOptions.get(0);
-                                    if (playerDefends(victim, ZZombieType.Walker)) {
-                                        addLogMessage(victim.name() + " defended thyself from friendly fire!");
-                                    } else {
-                                        playerWounded(victim, stat.getAttackType(), stat.damagePerHit, "Friendly Fire!");
-                                        if (victim.isDualWeilding() || victim.isDead())
-                                            friendlyFireOptions.remove(0);
+                                if (cur.canFriendlyFire()) {
+                                    List<ZCharacter> friendlyFireOptions = Utils.filter(board.getCharactersInZone(zoneIdx), object -> object != cur && object.canReceiveFriendlyFire());
+                                    for (int i = 0; i < misses && friendlyFireOptions.size() > 0; i++) {
+                                        // friendy fire!
+                                        if (friendlyFireOptions.size() > 1) {
+                                            // sort them in same way we would sort zombie attacks
+                                            Collections.sort(friendlyFireOptions, (o1, o2) -> {
+                                                int v0 = o1.getArmorRating(ZZombieType.Walker) - o1.woundBar;
+                                                int v1 = o2.getArmorRating(ZZombieType.Walker) - o2.woundBar;
+                                                return Integer.compare(v1, v0);
+                                            });
+                                        }
+                                        ZCharacter victim = friendlyFireOptions.get(0);
+                                        if (playerDefends(victim, ZZombieType.Walker)) {
+                                            addLogMessage(victim.name() + " defended thyself from friendly fire!");
+                                        } else {
+                                            playerWounded(victim, stat.getAttackType(), stat.damagePerHit, "Friendly Fire!");
+                                            if (victim.isDead())
+                                                friendlyFireOptions.remove(0);
+                                        }
                                     }
                                 }
                                 addLogMessage(getCurrentCharacter().name() + " Scored " + hits + " hits");
+                                if (hits > 0)
+                                    checkForHitAndRun(cur);
+
                             }
                         }
                     }
@@ -1786,6 +1791,16 @@ public class ZGame extends Reflector<ZGame>  {
     protected void onCharacterOpenDoorFailed(ZPlayerName cur, ZDoor door) {}
 
     protected void onAttack(ZPlayerName attacker, ZWeapon weapon, ZActionType actionType, int numDice, int numHits, int targetZone) {}
+
+    protected void onBonusAction(ZPlayerName pl, ZSkill action) {}
+
+    private void checkForHitAndRun(ZCharacter cur) {
+        if (cur.hasAvailableSkill(ZSkill.Hit_and_run) && board.getZombiesInZone(cur.getOccupiedZone()).size() == 0) {
+            cur.addAvailableSkill(ZSkill.Plus1_free_Move_Action);
+            addLogMessage(cur.getLabel() + " used Hit and Run for a free move action");
+            onBonusAction(cur.getPlayerName(), ZSkill.Plus1_free_Move_Action);
+        }
+    }
 
     public ZSkillLevel getHighestSkillLevel() {
         int highestSkill = 0;
