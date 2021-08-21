@@ -48,7 +48,7 @@ public final class ZZombie extends ZActor<ZZombieType> implements Comparable<ZZo
         info.addRow("Actions", type.actionsPerTurn);
         info.addRow("Experience", type.expProvided);
         info.addRow("Ignores Armor", type.ignoresArmor);
-        info.addRow("Ranged Priority", type.rangedPriority);
+        info.addRow("Ranged Priority", type.attackPriority);
         Table outer = new Table().setNoBorder();
         outer.addRow(info, type.description);
         return outer.draw(g);//g.drawString(outer.toString(), 0, 0);
@@ -110,9 +110,10 @@ public final class ZZombie extends ZActor<ZZombieType> implements Comparable<ZZo
     @Override
     public int compareTo(ZZombie o) {
         if (o.type.minDamageToDestroy == type.minDamageToDestroy) {
-            return Integer.compare(type.ordinal(), o.type.ordinal());
+            return Integer.compare(type.attackPriority, o.type.attackPriority);
         };
-        return Integer.compare(type.minDamageToDestroy, o.type.minDamageToDestroy);
+        return Integer.compare(o.type.minDamageToDestroy, type.minDamageToDestroy);
     }
+
 }
 

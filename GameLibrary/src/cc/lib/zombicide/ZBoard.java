@@ -71,36 +71,104 @@ public class ZBoard extends Reflector<ZBoard> implements IDimension {
      * Get list of accessable zones
      *
      * @param zoneIndex
-     * @param distance
+     * @param minDist
+     * @param maxDist
      * @return
      */
-    public List<Integer> getAccessableZones(int zoneIndex, int distance, ZActionType action) {
-        if (distance == 0)
+    public List<Integer> getAccessableZones(int zoneIndex, int minDist, int maxDist, ZActionType action) {
+        if (maxDist == 0)
             return Collections.singletonList(zoneIndex);
 
-        List<Integer> result = new ArrayList<>();
+        Set<Integer> result = new HashSet<>();
 
         ZDir [] options = action == ZActionType.MOVE ? ZDir.values() : ZDir.getCompassValues();
 
-        for (Grid.Pos cellPos : zones.get(zoneIndex).cells) {
-            // fan out in all direction to given distance
-            //for (int dir = 0; dir <4; dir++) {
-            for (ZDir dir : options) {
-                Grid.Pos pos = cellPos;
-                boolean open = true;
-                for (int dist = 0; dist <distance; dist++) {
-                    if (!grid.get(pos).getWallFlag(dir).isOpen()) {
-                        open = false;
-                        break;
+        if (getZone(zoneIndex).getType() == ZZoneType.TOWER && action.isProjectile()) {
+            // special case here
+            // buildings do not block from being able to see beyond
+            // can see into buildings with open door but only for a single zone
+            for (final Grid.Pos cellPos : zones.get(zoneIndex).cells) {
+                for (ZDir dir : ZDir.getCompassValues()) {
+                    Grid.Pos pos = cellPos;
+                    int lastIndoorZone = -1;
+                    if (grid.get(pos).getWallFlag(dir).openForProjectile) {
+                        for (int i=0; i<minDist; i++) {
+                            pos = getAdjacent(pos, dir);
+                            if (!grid.isOnGrid(pos)) {
+                                break;
+                            }
+                        }
+
+                        for (int i = minDist; i <= maxDist; i++) {
+                            if (!grid.isOnGrid(pos))
+                                break;
+                            ZCell cell = grid.get(pos);
+                            ZZone zone = getZone(cell.zoneIndex);
+                            switch (zone.getType()) {
+                                case TOWER:
+                                case OUTDOORS:
+                                    lastIndoorZone = -1;
+                                    result.add(cell.zoneIndex);
+                                    break;
+                                case BUILDING:
+                                    if (lastIndoorZone < 0) {
+                                        lastIndoorZone = cell.zoneIndex;
+                                        if (cell.getWallFlag(dir.getOpposite()).opened) {
+                                            result.add(cell.zoneIndex);
+                                        }
+                                    }
+                                    break;
+                            }
+                            pos = getAdjacent(pos, dir);
+                        }
                     }
-                    pos = getAdjacent(pos, dir);
                 }
-                if (open && grid.get(pos).zoneIndex != zoneIndex) {
+            }
+        } else {
+
+            for (Grid.Pos cellPos : zones.get(zoneIndex).cells) {
+                // fan out in all direction to given distance
+                //for (int dir = 0; dir <4; dir++) {
+                for (ZDir dir : options) {
+                    Grid.Pos pos = cellPos;
+                    boolean open = true;
+                    int dist = 0;
+                    int buildingZoneIdx = -1;
+                    for (; dist < minDist; dist++) {
+                        ZCell cell = grid.get(pos);
+                        if (!cell.getWallFlag(dir).opened) {
+                            open = false;
+                            break;
+                        }
+                        pos = getAdjacent(pos, dir);
+                    }
+
+                    if (!open)
+                        continue;
+
                     result.add(grid.get(pos).zoneIndex);
+                    for (; dist < maxDist; dist++) {
+                        ZCell cell = grid.get(pos);
+                        if (!cell.getWallFlag(dir).opened) {
+                            break;
+                        }
+                        pos = getAdjacent(pos, dir);
+                        cell = grid.get(pos);
+                        if (cell.isInside()) {
+                            if (buildingZoneIdx < 0)
+                                buildingZoneIdx = cell.zoneIndex;
+                            else if (cell.zoneIndex != buildingZoneIdx)
+                                break;
+                        }
+                        result.add(cell.zoneIndex);
+                        if (action.isMovement() && getZombiesInZone(cell.zoneIndex).size() > 0) {
+                            break;
+                        }
+                    }
                 }
             }
         }
-        return result;
+        return new ArrayList<>(result);
     }
 
     public Grid.Pos getAdjacent(Grid.Pos from, ZDir dir) {
@@ -159,7 +227,7 @@ public class ZBoard extends Reflector<ZBoard> implements IDimension {
                 curZoneId = cell.zoneIndex;
             }
 
-            if (!cell.getWallFlag(dir).isOpen()) {
+            if (!cell.getWallFlag(dir).opened) {
                 return false;
             }
 
@@ -226,7 +294,7 @@ public class ZBoard extends Reflector<ZBoard> implements IDimension {
         ZCell fromCell = grid.get(fromPos);
 
         for (ZDir dir : ZDir.valuesSorted(fromPos, toPos)) {
-            if (fromCell.getWallFlag(dir).isOpen()) {
+            if (fromCell.getWallFlag(dir).opened) {
                 Grid.Pos nextPos = getAdjacent(fromPos, dir);
                 if (visited.contains(nextPos))
                     continue;
@@ -508,7 +576,7 @@ public class ZBoard extends Reflector<ZBoard> implements IDimension {
             return;
         undiscovered.add(cell.zoneIndex);
         for (ZDir dir : ZDir.values()) {
-            if (cell.getWallFlag(dir).isOpen())
+            if (cell.getWallFlag(dir).opened)
                 getUndiscoveredIndoorZones(getAdjacent(startPos, dir), undiscovered);
         }
     }
@@ -543,7 +611,7 @@ public class ZBoard extends Reflector<ZBoard> implements IDimension {
      * @return
      */
     public boolean canMove(ZActor actor, ZDir dir) {
-        return getCell(actor.occupiedCell).getWallFlag(dir).isOpen();
+        return getCell(actor.occupiedCell).getWallFlag(dir).opened;
     }
 
     /**

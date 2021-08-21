@@ -24,7 +24,7 @@ public abstract class ZEquipment<T extends ZEquipmentType> extends Reflector<ZEq
         return false;
     }
 
-    public abstract boolean isEquippable();
+    public abstract boolean isEquippable(ZCharacter c);
 
     public boolean isMelee() {
         return false;

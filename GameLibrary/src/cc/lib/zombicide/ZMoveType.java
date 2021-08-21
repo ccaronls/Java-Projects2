@@ -10,6 +10,8 @@ public enum ZMoveType implements IButton {
     INVENTORY("View inventory. The first change of inventory cost an action. You can perform as many subsequent inventory actions for free for the rest of the round."), // equip things, drop things, etc.
     TRADE("Like inventory the first trade costs an action and subsequent trades are free for the rest of the round. You can only trade with players in your zone and if the zone is free of zombies."),
     WALK("Walk to a different zone at the cost of 1 action."),
+    JUMP("Jump to 2 zones line of sight from current position for free"),
+    CHARGE("Move up to 2 zones to a zone occupied by at least one zombie for free as often as you like."),
     WALK_DIR(null),
     SWITCH_ACTIVE_CHARACTER(null),
     USE_LEFT_HAND(null),

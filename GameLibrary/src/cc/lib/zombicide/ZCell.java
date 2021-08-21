@@ -12,6 +12,7 @@ public class ZCell extends Reflector<ZCell> implements IRectangle {
     public final static int ENV_OUTDOORS=0;
     public final static int ENV_BUILDING=1;
     public final static int ENV_VAULT=2;
+    public final static int ENV_TOWER=3;
 
     static {
         addAllFields(ZCell.class);
@@ -25,6 +26,7 @@ public class ZCell extends Reflector<ZCell> implements IRectangle {
     private final float x, y;
     private int cellFlag = 0;
     boolean discovered=false;
+    float scale = 1;
     private ZActor [] occupied = new ZActor[ZCellQuadrant.values().length];
 
     public ZCell() {
@@ -70,6 +72,10 @@ public class ZCell extends Reflector<ZCell> implements IRectangle {
 
     public boolean isCellTypeEmpty() {
         return cellFlag == 0;
+    }
+
+    public float getScale() {
+        return scale;
     }
 
     public void setCellType(ZCellType type, boolean enabled) {

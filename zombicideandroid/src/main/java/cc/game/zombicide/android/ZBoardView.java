@@ -35,7 +35,7 @@ public class ZBoardView extends UIComponentView implements UIZComponent<DroidGra
 
     @Override
     protected void preDrawInit(DroidGraphics g) {
-        UIZBoardRenderer.DEBUG_DRAW_ZONE_INFO = BuildConfig.DEBUG;
+        UIZBoardRenderer.DEBUG = BuildConfig.DEBUG;
         g.setTextModePixels(true);
         g.setTextHeight(getResources().getDimension(R.dimen.board_view_text_size));
         g.setLineThicknessModePixels(false);

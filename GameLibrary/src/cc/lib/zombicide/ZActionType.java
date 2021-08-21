@@ -74,6 +74,25 @@ public enum ZActionType {
         return false;
     }
 
+    public boolean isProjectile() {
+        switch (this) {
+            case ARROWS:
+            case BOLTS:
+            case MAGIC:
+            case THROW_ITEM:
+                return true;
+        }
+        return false;
+    }
+
+    public boolean isMelee() {
+        return this == MELEE;
+    }
+
+    public boolean isMovement() {
+        return this == MOVE;
+    }
+
     public String getLabel() {
         return Utils.toPrettyString(name());
     }

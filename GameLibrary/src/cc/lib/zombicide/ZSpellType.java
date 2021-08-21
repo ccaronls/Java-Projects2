@@ -15,7 +15,7 @@ public enum  ZSpellType implements ZEquipmentType<ZSpell>, IButton {
     SPEED(ZSkill.Speed, "Once per turn select a survivor in a zone without zombies. He may immediately perform a free move action up to 2 zones.") {
         @Override
         public void doEnchant(ZGame game, ZCharacter target) {
-            game.pushState(ZState.PLAYER_ENCHANT_SPEED_MOVE, target.name);
+            game.pushState(ZState.PLAYER_ENCHANT_SPEED_MOVE, target.getPlayerName());
         }
     },
     //TRANSMUTATION("Once per turn the survivor discards an equipment of their choice from inventory. Draw an equipment card. He can re-organize inventory for free. Not a search action. Ahhhh! card played as usual"),

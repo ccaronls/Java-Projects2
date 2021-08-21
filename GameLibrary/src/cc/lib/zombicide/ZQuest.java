@@ -9,6 +9,7 @@ import java.util.Vector;
 
 import cc.lib.game.AGraphics;
 import cc.lib.game.Utils;
+import cc.lib.utils.GException;
 import cc.lib.utils.Grid;
 import cc.lib.utils.Reflector;
 import cc.lib.utils.Table;
@@ -44,6 +45,9 @@ public abstract class ZQuest extends Reflector<ZQuest> {
     }
 
     public List<ZEquipmentType> getAllVaultOptions() {
+        if (isWolfBurg()) {
+            return Utils.toList(ZWeaponType.CHAOS_LONGBOW, ZWeaponType.VAMPIRE_CROSSBOW);
+        }
         return Utils.asList(ZWeaponType.INFERNO, ZWeaponType.ORCISH_CROSSBOW);
     }
 
@@ -77,6 +81,24 @@ public abstract class ZQuest extends Reflector<ZQuest> {
                 break;
             case "v":
                 cell.environment=ZCell.ENV_VAULT;
+                break;
+            case "t1":
+            case "t2":
+            case "t3":
+                switch (Integer.parseInt(cmd.substring(1))) {
+                    case 1:
+                        cell.scale = 1.05f;
+                        break;
+                    case 2:
+                        cell.scale = 1.1f;
+                        break;
+                    case 3:
+                        cell.scale = 1.15f;
+                        break;
+                    default:
+                        throw new GException("Unhandled case");
+                }
+                cell.environment=ZCell.ENV_TOWER;
                 break;
             case "vd1":
                 setVaultDoor(cell, grid, pos,  ZCellType.VAULT_DOOR_VIOLET, 1);
@@ -178,7 +200,19 @@ public abstract class ZQuest extends Reflector<ZQuest> {
                 redObjectives.add(cell.getZoneIndex());
                 cell.setCellType(ZCellType.OBJECTIVE_RED, true);
                 break;
-
+                // ramparts (wulfsburg) cannot be walked past but can be seen through for ranhed attacks
+            case "rn":
+                setCellWall(grid, pos, ZDir.NORTH, ZWallFlag.RAMPART);
+                break;
+            case "rs":
+                setCellWall(grid, pos, ZDir.SOUTH, ZWallFlag.RAMPART);
+                break;
+            case "re":
+                setCellWall(grid, pos, ZDir.EAST, ZWallFlag.RAMPART);
+                break;
+            case "rw":
+                setCellWall(grid, pos, ZDir.WEST, ZWallFlag.RAMPART);
+                break;
             default:
                 throw new RuntimeException("Invalid command '" + cmd + "'");
         }
@@ -382,6 +416,17 @@ public abstract class ZQuest extends Reflector<ZQuest> {
         return vaultItemsRemaining;
     }
 
+    protected ZEquipment getRandomVaultArtifact() {
+        List<ZEquipment> remaining = getVaultItemsRemaining();
+        if (remaining.size() > 0) {
+            ZEquipment e = Utils.randItem(remaining);
+            remaining.remove(e);
+            return e;
+        }
+        Utils.assertTrue(false);
+        return null;
+    }
+
     /**
      * Called once during INIT stage of game
      */
@@ -390,9 +435,17 @@ public abstract class ZQuest extends Reflector<ZQuest> {
     public int getMaxNumZombiesOfType(ZZombieType type) {
         switch (type) {
             case Abomination:
+            case Wolfbomination:
                 return 1;
             case Necromancer:
                 return 2;
+            case Wolfz:
+                return 22;
+            case Walker:
+                return 35;
+            case Fatty:
+            case Runner:
+                return 14;
         }
         return Integer.MAX_VALUE;
     }
@@ -425,4 +478,9 @@ public abstract class ZQuest extends Reflector<ZQuest> {
     public void onNecromancerEscaped(ZGame game, ZZombie z) {
         game.gameLost("Necromancer Escaped");
     }
+
+    public boolean isWolfBurg() {
+        return quest.isWolfburg();
+    }
+
 }

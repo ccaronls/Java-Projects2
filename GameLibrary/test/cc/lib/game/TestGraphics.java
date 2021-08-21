@@ -251,6 +251,11 @@ public class TestGraphics extends APGraphics {
     }
 
     @Override
+    public void drawDashedLine(float x0, float y0, float x1, float y1, float thickness, float dashLength) {
+
+    }
+
+    @Override
     public void setTintFilter(GColor inColor, GColor outColor) {
 
     }

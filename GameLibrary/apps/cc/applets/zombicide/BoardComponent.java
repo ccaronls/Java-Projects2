@@ -40,7 +40,7 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
                 loadImages(g);
             }
         }.start();
-        UIZBoardRenderer.DEBUG_DRAW_ZONE_INFO = true;
+        UIZBoardRenderer.DEBUG = true;
     }
 
     @Override
@@ -119,6 +119,9 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
             { ZZombieType.Runner, "zrunner1.gif" },
             { ZZombieType.Fatty, "zfatty1.gif" },
             { ZZombieType.Fatty, "zfatty2.gif" },
+            { ZZombieType.Wolfz, "zwulf1.gif" },
+            { ZZombieType.Wolfz, "zwulf2.gif" },
+            { ZZombieType.Wolfbomination, "zwolfabom.gif" },
 
             { ZPlayerName.Clovis, "zchar_clovis.gif" },
             { ZPlayerName.Baldric, "zchar_baldric.gif" },
@@ -129,6 +132,10 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
             { ZPlayerName.Tucker, "zchar_tucker.gif" },
             { ZPlayerName.Jain, "zchar_jain.gif" },
             { ZPlayerName.Benson, "zchar_benson.gif" },
+            { ZPlayerName.Theo, "zchar_theo.gif" },
+            { ZPlayerName.Morrigan, "zchar_morrigan.gif" },
+            { ZPlayerName.Karl, "zchar_karl.gif" },
+            { ZPlayerName.Ariane, "zchar_ariane.gif" },
 
             { ZPlayerName.Clovis, "zchar_clovis_outline.gif" },
             { ZPlayerName.Baldric, "zchar_baldric_outline.gif" },
@@ -149,6 +156,10 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
             { ZPlayerName.Tucker.name(), "zcard_tucker.gif" },
             { ZPlayerName.Jain.name(), "zcard_jain.gif" },
             { ZPlayerName.Benson.name(), "zcard_benson.gif" },
+            { ZPlayerName.Theo.name(), "zcard_theo.gif" },
+            { ZPlayerName.Morrigan.name(), "zcard_morrigan.gif" },
+            { ZPlayerName.Karl.name(), "zcard_karl.gif" },
+            { ZPlayerName.Ariane.name(), "zcard_ariane.gif" },
 
             { ZIcon.DRAGON_BILE, "zdragonbile_icon.gif" },
             { ZIcon.CLAWS, "zclaws1_icon.gif" },
