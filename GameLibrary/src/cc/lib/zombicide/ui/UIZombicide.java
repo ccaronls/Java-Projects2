@@ -539,24 +539,23 @@ public abstract class UIZombicide extends ZGameMP {
 
             switch (weapon.getType()) {
                 case DEATH_STRIKE: {
-                    Lock animLock = new Lock(numDice);
-                    for (int i=0; i<numDice; i++) {
-                        GRectangle zoneRect = board.getZone(targetZone).getRectangle();
-                        GRectangle targetRect = zoneRect.scaledBy(.5f);//.moveBy(0, -1);
-                        attacker.getCharacter().addAnimation(new DeathStrikeAnimation(attacker.getCharacter(), targetRect) {
-                            @Override
-                            protected void onDone() {
-                                super.onDone();
-                                animLock.release();
-                            }
-                        });
-                    }
+                    Lock animLock = new Lock(1);
+                    GRectangle zoneRect = board.getZone(targetZone).getRectangle();
+                    GRectangle targetRect = zoneRect.scaledBy(.5f);//.moveBy(0, -1);
+                    attacker.getCharacter().addAnimation(new DeathStrikeAnimation(attacker.getCharacter(), targetRect, numDice) {
+                        @Override
+                        protected void onDone() {
+                            super.onDone();
+                            animLock.release();
+                        }
+                    });
                     boardRenderer.redraw();
                     animLock.block();
                     break;
                 }
                 case MANA_BLAST:
                 case DISINTEGRATE: {
+                    // TODO: Disintegrate should look meaner than mana blast
                     Lock animLock = new Lock(1);
                     attacker.getCharacter().addAnimation(new MagicOrbAnimation(attacker.getCharacter(), board.getZone(targetZone).getCenter()) {
                         @Override

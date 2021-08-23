@@ -222,6 +222,7 @@ public class ZGameMP extends ZGame {
         if (server != null) {
             server.broadcastExecuteOnRemote(GAME_ID, actor, toZone, speed, actionType);
         }
+        super.moveActor(actor, toZone, speed, actionType);
     }
 
     @Override

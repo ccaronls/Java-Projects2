@@ -447,8 +447,10 @@ public class ZGame extends Reflector<ZGame>  {
         if (ch.canTrade()) {
             // check for trade with another character in the same zone (even if they are dead)
             if (isClearedOfZombies(ch.occupiedZone)) {
-                options.add(ZMove.newTradeMove(Utils.map(Utils.filter(board.getCharactersInZone(ch.occupiedZone),
-                        object -> object != ch && object.canTrade()), (zChar) -> zChar.getPlayerName())));
+                List<ZPlayerName> tradablePlayers = Utils.map(Utils.filter(board.getCharactersInZone(ch.occupiedZone),
+                        object -> object != ch && object.canTrade()), (zChar) -> zChar.getPlayerName());
+                if (tradablePlayers.size() > 0)
+                    options.add(ZMove.newTradeMove(tradablePlayers));
 
             }
         }

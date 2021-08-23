@@ -1,11 +1,13 @@
 package cc.lib.game;
 
+import java.util.List;
+
 /**
  * Created by Chris Caron on 8/18/21.
  */
 public abstract class AMultiPhaseAnimation<T> extends AAnimation<T> {
 
-    private final long [] durations;
+    private long [] durations;
 
     protected AMultiPhaseAnimation(long [] durations) {
         super(Utils.sum(durations));
@@ -54,5 +56,17 @@ public abstract class AMultiPhaseAnimation<T> extends AAnimation<T> {
     public void setDuration(int phase, long duration) {
         durations[phase] = duration;
         super.setDuration(Utils.sum(durations));
+    }
+
+    public void setDurations(long ... durations) {
+        this.durations = durations;
+        setDuration(Utils.sum(durations));
+    }
+
+    public void setDurations(List<Long> durations) {
+        long [] ldurs = new long[durations.size()];
+        for (int i=0; i<durations.size(); i++)
+            ldurs[i] = durations.get(i);
+        setDurations(ldurs);
     }
 }

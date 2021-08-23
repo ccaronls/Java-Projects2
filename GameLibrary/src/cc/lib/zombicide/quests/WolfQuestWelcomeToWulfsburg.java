@@ -77,6 +77,7 @@ public class WolfQuestWelcomeToWulfsburg extends ZQuest {
         }).size();
         return new Table(getName())
                 .addRow(new Table().setNoBorder()
+                        .addRow("", "Use the Towers for cover for ranged attacks on enemies")
                         .addRow("1.", "Collect all Objectives", String.format("%d of %d", getNumStartRedObjectives()-redObjectives.size(), getNumStartRedObjectives()))
                         .addRow("2.", "Find the BLUE objective hidden among RED objectives for a random vault item.", blueKeyZone < 0)
                         .addRow("3.", "Find the GREEN objective hidden among RED objectives for a random vault item.", greenKeyZone < 0)

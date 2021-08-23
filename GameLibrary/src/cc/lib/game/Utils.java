@@ -880,6 +880,14 @@ public class Utils {
      * @param elems
      * @return
      */
+    public static long sum(Long[] elems) {
+        return sum(elems, 0, elems.length);
+    }
+
+    /**
+     * @param elems
+     * @return
+     */
     public static int sum(int[] elems, int offset, int len) {
         int sum = 0;
         for (int i = offset; i < len; i++)
@@ -892,6 +900,17 @@ public class Utils {
      * @return
      */
     public static long sum(long[] elems, int offset, int len) {
+        long sum = 0;
+        for (int i = offset; i < len; i++)
+            sum += elems[i];
+        return sum;
+    }
+
+    /**
+     * @param elems
+     * @return
+     */
+    public static long sum(Long[] elems, int offset, int len) {
         long sum = 0;
         for (int i = offset; i < len; i++)
             sum += elems[i];

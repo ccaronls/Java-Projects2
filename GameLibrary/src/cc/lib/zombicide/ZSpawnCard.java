@@ -123,10 +123,10 @@ public class ZSpawnCard {
                     new Action(ActionType.SPAWN, 1, ZZombieType.Wolfbomination),
                     new Action(ActionType.SPAWN, 1, ZZombieType.Wolfbomination)),
             new ZSpawnCard("Zombie Wolfz Invasion", true, 4, 6, 10,
-                    new Action(ActionType.SPAWN, 5, ZZombieType.Wolfz),
-                    new Action(ActionType.SPAWN, 4, ZZombieType.Wolfz),
+                    new Action(ActionType.SPAWN, 2, ZZombieType.Wolfz),
                     new Action(ActionType.SPAWN, 3, ZZombieType.Wolfz),
-                    new Action(ActionType.SPAWN, 2, ZZombieType.Wolfz)),
+                    new Action(ActionType.SPAWN, 4, ZZombieType.Wolfz),
+                    new Action(ActionType.SPAWN, 5, ZZombieType.Wolfz)),
     };
 
     public static ZSpawnCard drawSpawnCard(boolean wolfzburg, boolean spawnZone, ZDifficulty difficulty) {

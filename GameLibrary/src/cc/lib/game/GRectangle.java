@@ -305,10 +305,18 @@ public final class GRectangle extends Reflector<GRectangle> implements IRectangl
         return this;
     }
 
+    public GRectangle movedBy(float dx, float dy) {
+        return new GRectangle(x+dx, y+dy, w, h);
+    }
+
     public GRectangle moveBy(IVector2D dv) {
         x+=dv.getX();
         y+=dv.getY();
         return this;
+    }
+
+    public GRectangle movedBy(IVector2D dv) {
+        return movedBy(dv.getX(), dv.getY());
     }
 
     /**
