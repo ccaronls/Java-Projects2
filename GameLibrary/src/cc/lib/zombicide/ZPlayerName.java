@@ -212,4 +212,8 @@ public enum ZPlayerName implements IButton, IDimension {
     public float getHeight() {
         return imageDim.getHeight();
     }
+
+    public ZSkill [] getSkillOptions(ZColor color) {
+        return skillOptions[color.ordinal()];
+    }
 }

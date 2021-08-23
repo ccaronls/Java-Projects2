@@ -1,6 +1,5 @@
 package cc.lib.zombicide;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import cc.lib.annotation.Keep;
@@ -188,7 +187,7 @@ public enum ZSkill implements IButton {
         @Override
         public void addSpecialMoves(ZGame game, ZCharacter character, List<ZMove> moves) {
             if (character.getActionsLeftThisTurn() == 0) {
-                List<Integer> accessableZones = game.board.getAccessableZones(character.occupiedZone, 1, ZActionType.MOVE);
+                List<Integer> accessableZones = game.board.getAccessableZones(character.occupiedZone, 1, 1, ZActionType.MOVE);
                 if (accessableZones.size() > 0)
                     moves.add(ZMove.newWalkMove(accessableZones));
             }
@@ -324,12 +323,11 @@ public enum ZSkill implements IButton {
         @Override
         public void addSpecialMoves(ZGame game, ZCharacter character, List<ZMove> moves) {
             if (character.getActionsLeftThisTurn() > 0) {
-                List<ZCharacter> options = Utils.filter(game.board.getAllCharacters(), object -> object != character && object.isAlive());
+                List<ZPlayerName> options = Utils.map(
+                        Utils.filter(game.board.getAllCharacters(), object -> object != character && object.isAlive()),
+                        c -> c.getPlayerName());
                 if (options.size() > 0) {
-                    List<ZPlayerName> map = new ArrayList<>();
-                    for (ZCharacter c : options)
-                        map.add(c.name);
-                    moves.add(ZMove.newBornLeaderMove(map));
+                    moves.add(ZMove.newBornLeaderMove(options));
                 }
             }
         }
@@ -372,6 +370,15 @@ public enum ZSkill implements IButton {
                 moves.add(ZMove.newInventoryMove());
                 game.addTradeOptions(character, moves);
             }
+        }
+
+        @Override
+        public int modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
+            switch (type) {
+                case INVENTORY:
+                    return -1;
+            }
+            return super.modifyActionsRemaining(character, type, game);
         }
     },
     Free_reload("The Survivor reloads reloadable weapons (Hand Crossbows, Orcish Crossbow, etc.) for free. ") {
@@ -420,7 +427,7 @@ public enum ZSkill implements IButton {
         boolean onEndOfTurn(ZGame game, ZCharacter c) {
             if (c.heal(game,1)) {
                 game.addLogMessage(c.name() + " has a wound healed.");
-                game.onCharacterHealed(c, 1);
+                game.onCharacterHealed(c.getPlayerName(), 1);
                 return true;
             }
             return false;
@@ -454,7 +461,7 @@ public enum ZSkill implements IButton {
                     int numInZone = game.getBoard().getZombiesInZone(targetZone).size();
                     if (numInZone > stat.numDice) {
                         game.addLogMessage(String.format("%s applied Iron Rain!", character.getLabel()));
-                        game.onIronRain(character.name, targetZone);
+                        game.onIronRain(character.getPlayerName(), targetZone);
                         stat.numDice = numInZone;
                     }
                     break;
@@ -486,7 +493,7 @@ public enum ZSkill implements IButton {
     },
     Lucky("The Survivor can re-roll once all the dice for each Action (or Armor roll) he takes. The new result takes the place of the previous one. This Skill stacks with the effects of other Skills and Equipment that allows re-rolls."),
     Mana_rain("When resolving a Magic Action, the Survivor may substitute the Dice number of the Combat spell(s) he uses with the number of Zombies standing in the targeted Zone. Skills affecting the dice value, like +1 die: Magic, still apply."),
-    Marksman("The Survivor may freely choose the targets of all his Magic and Ranged Actions. Misses don’t hit Survivors. Matching set! – When a Survivor performs a Search Action and draws an Equipment card with the Dual symbol, he can immediately take a second card of the same type from the Equipment deck. Shuffle the deck afterward.") {
+    Marksman("The Survivor may freely choose the targets of all his Magic and Ranged Actions. Misses don’t hit Survivors.") {
         @Override
         boolean avoidsInflictingFriendlyFire() {
             return true;

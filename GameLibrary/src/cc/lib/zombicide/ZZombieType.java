@@ -99,6 +99,7 @@ public enum ZZombieType {
     }
 
     public int [] imageOptions=null;
+    public int [] imageOutlineOptions=null;
     public GDimension [] imageDims=null;
 
     public String getDescription() {

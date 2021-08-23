@@ -15,9 +15,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cc.lib.game.GColor;
+import cc.lib.zombicide.ZColor;
 import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZSkill;
-import cc.lib.zombicide.ZSkillLevel;
 
 /**
  * Created by Chris Caron on 8/9/21.
@@ -34,9 +34,9 @@ class SkillsDialog extends PagerAdapter {
 
         int idx = 0;
         for (ZPlayerName pl : ZPlayerName.values()) {
-            skills[idx] = new ZSkill[ZSkillLevel.values().length][];
+            skills[idx] = new ZSkill[ZColor.values().length][];
             labels[idx] = pl.getLabel();
-            for (ZSkillLevel lvl : ZSkillLevel.values()) {
+            for (ZColor lvl : ZColor.values()) {
                 skills[idx][lvl.ordinal()] = pl.getSkillOptions(lvl);
             }
             idx++;
@@ -100,8 +100,8 @@ class SkillsDialog extends PagerAdapter {
         final List<Item> items = new ArrayList<>();
 
         SkillAdapter(ZPlayerName pl, ZSkill[][] skills) {
-            for (ZSkillLevel lvl : ZSkillLevel.values()) {
-                items.add(new Item(lvl.name() + " " + lvl.getDangerPts() + " Danger Points", null, lvl.getColor(), false));
+            for (ZColor lvl : ZColor.values()) {
+                items.add(new Item(lvl.name() + " " + lvl.dangerPts + " Danger Points", null, lvl.color, false));
                 for (ZSkill skill : skills[lvl.ordinal()]) {
                     boolean owned = pl.getCharacter() != null && pl.getCharacter().hasSkill(skill);
                     items.add(new Item(skill.getLabel(), skill.description, null, owned));

@@ -15,17 +15,17 @@ public class DroidView extends View {
 
     final static String TAG = "DroidView";
 
-    private boolean touchable = false;
+    private boolean isParentDroidActivity = false;
 
     public DroidView(Context context, boolean touchEnabled) {
         super(context);
         setClickable(touchEnabled);
-        touchable = context instanceof DroidActivity;
+        isParentDroidActivity = context instanceof DroidActivity;
     }
 
     public DroidView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        touchable = context instanceof DroidActivity;
+        isParentDroidActivity = context instanceof DroidActivity;
     }
 
     public DroidView(Context context, AttributeSet attrs, int defStyleAttr) {
@@ -79,6 +79,9 @@ public class DroidView extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+
+        if (!isParentDroidActivity)
+            return super.onTouchEvent(event);
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
@@ -141,20 +144,20 @@ public class DroidView extends View {
         postInvalidate();
     }
 
-    protected void onTap(float x, float y) { if (touchable) ((DroidActivity)getContext()).onTap(x, y); }
+    protected void onTap(float x, float y) { ((DroidActivity)getContext()).onTap(x, y); }
 
-    protected void onTouchDown(float x, float y) { if (touchable)((DroidActivity)getContext()).onTouchDown(x, y); }
+    protected void onTouchDown(float x, float y) { ((DroidActivity)getContext()).onTouchDown(x, y); }
 
-    protected void onTouchUp(float x, float y) { if (touchable)((DroidActivity)getContext()).onTouchUp(x, y); }
+    protected void onTouchUp(float x, float y) { ((DroidActivity)getContext()).onTouchUp(x, y); }
 
-    protected void onDragStart(float x, float y) { if (touchable)((DroidActivity)getContext()).onDragStart(x, y); }
+    protected void onDragStart(float x, float y) { ((DroidActivity)getContext()).onDragStart(x, y); }
 
-    protected void onDragStop(float x, float y) { if (touchable)((DroidActivity)getContext()).onDragStop(x, y); }
+    protected void onDragStop(float x, float y) { ((DroidActivity)getContext()).onDragStop(x, y); }
 
-    protected void onDrag(float x, float y) { if (touchable)((DroidActivity)getContext()).onDrag(x, y); }
+    protected void onDrag(float x, float y) { ((DroidActivity)getContext()).onDrag(x, y); }
 
     protected void onPaint(DroidGraphics g) {
-        if (touchable) ((DroidActivity)getContext()).onDraw(g);
+        if (isParentDroidActivity) ((DroidActivity)getContext()).onDraw(g);
     }
 
 

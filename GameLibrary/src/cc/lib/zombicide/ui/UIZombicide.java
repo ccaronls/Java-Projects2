@@ -325,7 +325,9 @@ public abstract class UIZombicide extends ZGameMP {
             case DISINTEGRATION:
             case BLADE:
             case CRUSH:
-            case RANGED:
+            case RANGED_ARROWS:
+            case RANGED_BOLTS:
+            case RANGED_THROW:
             case EARTHQUAKE:
             case MENTAL_STRIKE:
             case NORMAL:
@@ -473,8 +475,8 @@ public abstract class UIZombicide extends ZGameMP {
     }
 
     @Override
-    protected void onWeaponReloaded(ZCharacter c, ZWeapon w) {
-        boardRenderer.addPostActor(new HoverMessage(boardRenderer, String.format("%s Reloaded", w.getLabel()), c.getRect().getCenter()));
+    protected void onWeaponReloaded(ZPlayerName c, ZWeapon w) {
+        boardRenderer.addPostActor(new HoverMessage(boardRenderer, String.format("%s Reloaded", w.getLabel()), c.getCharacter().getRect().getCenter()));
     }
 
     @Override

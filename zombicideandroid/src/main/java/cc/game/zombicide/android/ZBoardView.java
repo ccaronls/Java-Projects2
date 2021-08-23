@@ -26,10 +26,16 @@ public class ZBoardView extends UIComponentView implements UIZComponent<DroidGra
     int numImages = 21;
 
     void initZombieImages(DroidGraphics g, ZZombieType t, int ... ids) {
-        t.imageOptions = ids;
-        t.imageDims = new GDimension[ids.length];
-        for (int i=0; i<ids.length; i++) {
-            t.imageDims[i] = new GDimension(g.getImage(ids[i]));
+        t.imageOptions = new int[ids.length/2];
+        t.imageOutlineOptions = new int[ids.length/2];
+        for (int i=0, ii=0; i<ids.length; i+=2, ii++) {
+            t.imageOptions[ii] = ids[i];
+            t.imageOutlineOptions[ii] = ids[i+1];
+        }
+
+        t.imageDims = new GDimension[ids.length/2];
+        for (int i=0; i<t.imageDims.length; i++) {
+            t.imageDims[i] = new GDimension(g.getImage(ids[i*2]));
         }
     }
 
@@ -101,18 +107,25 @@ public class ZBoardView extends UIComponentView implements UIZComponent<DroidGra
         initCharacter(g, ZPlayerName.Nelly, R.drawable.zcard_nelly, R.drawable.zchar_nelly, R.drawable.zchar_nelly_outline);
         initCharacter(g, ZPlayerName.Ann, R.drawable.zcard_ann, R.drawable.zchar_ann, R.drawable.zchar_ann_outline);
         initCharacter(g, ZPlayerName.Clovis, R.drawable.zcard_clovis, R.drawable.zchar_clovis, R.drawable.zchar_clovis_outline);
+        initCharacter(g, ZPlayerName.Karl, R.drawable.zcard_karl, R.drawable.zchar_karl, R.drawable.zchar_karl_outline);
+        initCharacter(g, ZPlayerName.Ariane, R.drawable.zcard_ariane, R.drawable.zchar_ariane, R.drawable.zchar_ariane_outline);
+        initCharacter(g, ZPlayerName.Morrigan, R.drawable.zcard_morrigan, R.drawable.zchar_morrigan, R.drawable.zchar_morrigan_outline);
+        initCharacter(g, ZPlayerName.Theo, R.drawable.zcard_theo, R.drawable.zchar_theo, R.drawable.zchar_theo_outline);
 
         initZombieImages(g, ZZombieType.Walker,
-                R.drawable.zwalker1,
-                R.drawable.zwalker2,
-                R.drawable.zwalker3,
-                R.drawable.zwalker4,
-                R.drawable.zwalker5);
+                R.drawable.zwalker1, R.drawable.zwalker1_outline,
+                R.drawable.zwalker2, R.drawable.zwalker2_outline,
+                R.drawable.zwalker3, R.drawable.zwalker3_outline,
+                R.drawable.zwalker4, R.drawable.zwalker4_outline,
+                R.drawable.zwalker5, R.drawable.zwalker5_outline);
 
-        initZombieImages(g, ZZombieType.Abomination, R.drawable.zabomination);
-        initZombieImages(g, ZZombieType.Necromancer, R.drawable.znecro);
-        initZombieImages(g, ZZombieType.Runner, R.drawable.zrunner1,R.drawable.zrunner2);
-        initZombieImages(g, ZZombieType.Fatty, R.drawable.zfatty1,R.drawable.zfatty2);
+        initZombieImages(g, ZZombieType.Abomination, R.drawable.zabomination, R.drawable.zabomination_outline);
+        initZombieImages(g, ZZombieType.Necromancer, R.drawable.znecro, R.drawable.znecro_outline);
+        initZombieImages(g, ZZombieType.Runner, R.drawable.zrunner1, R.drawable.zrunner1_outline, R.drawable.zrunner2, R.drawable.zrunner2_outline);
+        initZombieImages(g, ZZombieType.Fatty, R.drawable.zfatty1, R.drawable.zfatty1_outline, R.drawable.zfatty2, R.drawable.zfatty2_outline);
+        initZombieImages(g, ZZombieType.Wolfz, R.drawable.zwulf1, R.drawable.zwulf1_outline, R.drawable.zwulf2, R.drawable.zwulf2_outline);
+        initZombieImages(g, ZZombieType.Wolfbomination, R.drawable.zwolfabom, R.drawable.zwolfabom_outline);
+        initZombieImages(g, ZZombieType.Wolfz, R.drawable.zwulf1, R.drawable.zwulf1_outline, R.drawable.zwulf2, R.drawable.zwulf2_outline);
 
         int [][] cells = {
                 { 0,0, 56, 84 }, { 56, 0, 131-56, 84 }, { 131, 0, 196-131, 84 },

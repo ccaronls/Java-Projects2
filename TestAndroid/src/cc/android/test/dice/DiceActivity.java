@@ -7,6 +7,9 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import cc.android.test.R;
 
 /**
@@ -15,12 +18,23 @@ import cc.android.test.R;
 public class DiceActivity extends Activity implements View.OnClickListener {
 
     ListView lv;
-    int numDice = 1;
+
+    static class DiceEntry {
+        int curColor = 0;
+        int dieNum = 6;
+        int maxDieNums = 0;
+        long delay = 0;
+        boolean rolling = false;
+    }
+
+    List<DiceEntry> entries = new ArrayList() {{
+        add(new DiceEntry());
+    }};
 
     class Adapter extends BaseAdapter {
         @Override
         public int getCount() {
-            return numDice;
+            return entries.size();
         }
 
         @Override
@@ -38,19 +52,13 @@ public class DiceActivity extends Activity implements View.OnClickListener {
             View view = convertView == null ? View.inflate(DiceActivity.this, R.layout.dice_list_item, null) : convertView;
 
             DiceView dv = view.findViewById(R.id.diceView);
-            view.findViewById(R.id.bRoll).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    dv.rollDice();
-                }
-            });
+            dv.setEntry(entries.get(position));
 
-            view.findViewById(R.id.bColor).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    dv.toggleColor();
-                }
-            });
+            view.findViewById(R.id.bColor).setOnClickListener(v -> dv.toggleColor());
+
+            view.findViewById(R.id.bPipsAdd).setOnClickListener(v -> dv.addPips());
+
+            view.findViewById(R.id.bPipsMinus).setOnClickListener(v -> dv.removePips());
 
             return view;
         }
@@ -72,14 +80,14 @@ public class DiceActivity extends Activity implements View.OnClickListener {
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.bAddDice:
-                if (numDice < 20) {
-                    numDice++;
+                if (entries.size() < 20) {
+                    entries.add(new DiceEntry());
                     adapter.notifyDataSetChanged();
                 }
                 break;
             case R.id.bRemoveDice:
-                if (numDice > 1) {
-                    numDice--;
+                if (entries.size() > 1) {
+                    entries.remove(entries.size()-1);
                     adapter.notifyDataSetChanged();
                 }
                 break;

@@ -2,6 +2,7 @@ package cc.lib.zombicide.p2p;
 
 import java.util.List;
 
+import cc.lib.game.GRectangle;
 import cc.lib.net.GameClient;
 import cc.lib.net.GameServer;
 import cc.lib.zombicide.ZActionType;
@@ -15,6 +16,7 @@ import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZSkill;
 import cc.lib.zombicide.ZWeapon;
 import cc.lib.zombicide.ZZombie;
+import cc.lib.zombicide.ZZombieCategory;
 
 /**
  * Created by Chris Caron on 7/17/21.
@@ -216,11 +218,10 @@ public class ZGameMP extends ZGame {
     }
 
     @Override
-    protected void moveActor(ZActor actor, int toZone, long speed) {
+    protected void moveActor(ZActor actor, int toZone, long speed, ZActionType actionType) {
         if (server != null) {
-            server.broadcastExecuteOnRemote(GAME_ID, actor, toZone, speed);
+            server.broadcastExecuteOnRemote(GAME_ID, actor, toZone, speed, actionType);
         }
-        super.moveActor(actor, toZone, speed);
     }
 
     @Override
@@ -270,6 +271,41 @@ public class ZGameMP extends ZGame {
     protected void onBonusAction(ZPlayerName pl, ZSkill action) {
         if (server != null) {
             server.broadcastExecuteOnRemote(GAME_ID, pl, action);
+        }
+    }
+
+    @Override
+    protected void onExtraActivation(ZZombieCategory category) {
+        if (server != null) {
+            server.broadcastExecuteOnRemote(GAME_ID, category);
+        }
+    }
+
+    @Override
+    protected void onActorMoved(ZActor actor, GRectangle start, GRectangle end, long speed) {
+        if (server != null) {
+            server.broadcastExecuteOnRemote(GAME_ID, actor, start, end, speed);
+        }
+    }
+
+    @Override
+    protected void onCharacterHealed(ZPlayerName c, int amt) {
+        if (server != null) {
+            server.broadcastExecuteOnRemote(GAME_ID, c, amt);
+        }
+    }
+
+    @Override
+    protected void onReaperKill(ZPlayerName c, ZZombie z, ZWeapon w, ZActionType at) {
+        if (server != null) {
+            server.broadcastExecuteOnRemote(GAME_ID, c, z, w, at);
+        }
+    }
+
+    @Override
+    protected void onWeaponReloaded(ZPlayerName c, ZWeapon w) {
+        if (server != null) {
+            server.broadcastExecuteOnRemote(GAME_ID, c, w);
         }
     }
 }

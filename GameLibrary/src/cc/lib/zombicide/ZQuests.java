@@ -19,10 +19,11 @@ import cc.lib.zombicide.quests.ZQuestTheShepherds;
 import cc.lib.zombicide.quests.ZQuestTrialByFire;
 import cc.lib.zombicide.quests.ZQuestTutorial;
 import cc.lib.zombicide.quests.WolfQuestWelcomeToWulfsburg;
+import static cc.lib.zombicide.ZQuestFlags.*;
 
 @Keep
 public enum ZQuests {
-    Tutorial("TUTORIAL:DANSE MACABRE", "War is nothing new for us. Our counts\n" +
+    Tutorial(FLAG_BLACK_PLAGUE,"TUTORIAL:DANSE MACABRE", "War is nothing new for us. Our counts\n" +
             "and dukes are always fighting amongst\n" +
             "themselves. For the peasantry, it usually just\n" +
             "involves a change in taxes and rents, assuming you\n" +
@@ -34,7 +35,9 @@ public enum ZQuests {
             "macabre together. There’s no time for social\n" +
             "snobbery when the hordes are at your door. We\n" +
             "stand together, and throw death back in their teeth. "),
-    Big_Game_Hunting("Big Game Hunting","We quickly discovered the starting point\n" +
+    The_Abomination(FLAG_DEBUG, "The Abomination", "Test Abomination!"),
+    The_Necromancer(FLAG_DEBUG, "The Necromancer", "Test Necromancer!"),
+    Big_Game_Hunting(FLAG_BLACK_PLAGUE,"Big Game Hunting","We quickly discovered the starting point\n" +
             "of the zombie invasion. Other survivors\n" +
             "spotted a huge zombie wandering the streets, and some\n" +
             "kind of sick wizard directing the horde to engulf us.\n" +
@@ -44,7 +47,7 @@ public enum ZQuests {
             "Necromancer’s laboratory and take them both out\n" +
             "with a secret brew of our own: Dragon Fire.\n" +
             "Let the hunt begin!"),
-    The_Black_Book("The Black Book", "Now we know. It’s not just our village. The\n" +
+    The_Black_Book(FLAG_BLACK_PLAGUE,"The Black Book", "Now we know. It’s not just our village. The\n" +
             "zombie plague has spread across the land.\n" +
             "What’s going on? The Necromancer we killed held\n" +
             "notes in his laboratory, most of them referring to a\n" +
@@ -54,9 +57,7 @@ public enum ZQuests {
             "course, there are zombies on the way, familiar faces\n" +
             "turned to monsters...\n" +
             "Hey, that one owed me money!"),
-    The_Abomination(1, "The Abomination", "Test Abomination!"),
-    The_Necromancer(1, "The Necromancer", "Test Necromancer!"),
-    The_Shepherds("The Shepherds", "Necromancers are everywhere. They’re\n" +
+    The_Shepherds(FLAG_BLACK_PLAGUE,"The Shepherds", "Necromancers are everywhere. They’re\n" +
             "spreading chaos and seizing power in the\n" +
             "whole kingdom! Against a menace this big, there\n" +
             "is almost nothing we could do. Almost. We know\n" +
@@ -67,7 +68,7 @@ public enum ZQuests {
             "is currently under attack, but not\n" +
             "completely overrun. Let’s get in\n" +
             "the fray and help these people!"),
-    Famine("Famine", "Afew days have passed. These\n" +
+    Famine(FLAG_BLACK_PLAGUE, "Famine", "Afew days have passed. These\n" +
             "zombies are, for the most part,\n" +
             "stupid as hell. But they never tire, or\n" +
             "need food, or even sleep. Alas, we’re all\n" +
@@ -80,7 +81,7 @@ public enum ZQuests {
             "while we plan our next move. This war\n" +
             "may last far longer than anyone - even\n" +
             "the Necromancers - expected."),
-    The_Commandry("The Commandry", "This capital has been taken. People died\n" +
+    The_Commandry(FLAG_BLACK_PLAGUE, "The Commandry", "This capital has been taken. People died\n" +
             "by the thousands, but some areas are\n" +
             "still unharmed. The Necromancers seem content\n" +
             "to battle the nobility in the castle, and leave the\n" +
@@ -98,7 +99,7 @@ public enum ZQuests {
             "the Necromancers are aware of it. If\n" +
             "we can dispatch the guardians, we can\n" +
             "get inside, and get our plan in motion."),
-    In_Caligine_Abditus("In Caligine Abdicus", "We’re now in the city, but not as close to\n" +
+    In_Caligine_Abditus(FLAG_BLACK_PLAGUE, "In Caligine Abdicus", "We’re now in the city, but not as close to\n" +
             "the Necromancers as we would like. The\n" +
             "area is eerily quiet, and there’s desolation as far as\n" +
             "we can see. That won’t last. As soon as they hear\n" +
@@ -113,7 +114,7 @@ public enum ZQuests {
             "on sight, not to mention being able to\n" +
             "write it. It’s probably a Necromancer!\n" +
             "Wait. Clovis knows how to read?"),
-    Dead_Trail("Dead Trail", "There is no way we can get any further\n" +
+    Dead_Trail(FLAG_BLACK_PLAGUE, "Dead Trail", "There is no way we can get any further\n" +
             "unnoticed. That’s good, for my fingers are\n" +
             "itching for some zombie bashing, and I was getting\n" +
             "tired of walking on tiptoe.\n" +
@@ -125,7 +126,7 @@ public enum ZQuests {
             "Fortunately, this is the foundry\n" +
             "district. These Orc weaponsmiths seem\n" +
             "to know their job pretty well. New toys!"),
-    The_Evil_Temple("The Evil Temple", "This is the center of necromantic\n" +
+    The_Evil_Temple(FLAG_BLACK_PLAGUE, "The Evil Temple", "This is the center of necromantic\n" +
             "power.Cursed idols are everywhere, and\n" +
             "a huge Abomination is locked up in the temple.\n" +
             "Plus, it seems the Necromancers have figured out\n" +
@@ -135,7 +136,7 @@ public enum ZQuests {
             "Killing that beast could draw the Necromancers to\n" +
             "us. There may be thousands of zombies, but there\n" +
             "can’t be too many more Necromancers. … Right?"),
-    The_Hell_Hole("The Hell Hole", "I think we stumbled upon the place our Duke made\n" +
+    The_Hell_Hole(FLAG_BLACK_PLAGUE,"The Hell Hole", "I think we stumbled upon the place our Duke made\n" +
             "his last stand before the town fell. All who sought\n" +
             "his protection gathered in the temple, under the protection\n" +
             "of the gods, the remaining soldiers and the Duke himself.\n" +
@@ -144,7 +145,7 @@ public enum ZQuests {
             "vomiting zombies. We have no choice but to fight them\n" +
             "and destroy this forsaken place once and for all.\n" +
             "Hey, do I see the Duke? Nothing personal, Your Grace!"),
-    Trial_by_Fire("Trial by fire", "We’re in the heart of the city, the place where\n" +
+    Trial_by_Fire(FLAG_BLACK_PLAGUE, "Trial by fire", "We’re in the heart of the city, the place where\n" +
             "all zombies converged. It seems we’re not\n" +
             "the first ones to get here. Heroes or mercenaries\n" +
             "of some sort tried to clean the place before us, and\n" +
@@ -156,7 +157,7 @@ public enum ZQuests {
             "And the Necromancers are still nowhere\n" +
             "to be seen."),
     // Wulfsburg
-    Welcome_to_Wulfsberg(2, "Welcome to Wulfsburg", "The prosperous city of Wulfsburg earned its\n" +
+    Welcome_to_Wulfsberg(FLAG_WOLFBURG, "Welcome to Wulfsburg", "The prosperous city of Wulfsburg earned its\n" +
             "name due to the many wolf packs roaming\n" +
             "the surrounding forests and mountains. Nobles and\n" +
             "merchants built tall towers here, the better to view\n" +
@@ -170,15 +171,8 @@ public enum ZQuests {
             "our way to liberate the city. Breaching the inner\n" +
             "city will take time, however, and we’ll need supplies.\n" +
             "Fresh food is scarce, but still to be had."),
-    Know_Your_Enemy(2, "Know your Enemy", "")
+    Know_Your_Enemy(FLAG_WOLFBURG, "Know your Enemy", "")
     ;
-
-    static int FLAG_DEBUG = 1;
-    static int FLAG_WOLFBURG = 2;
-
-    ZQuests(String displayName, String description) {
-        this(0, displayName, description);
-    }
 
     ZQuests(int flag, String displayName, String description) {
         this.flag = flag;
@@ -235,8 +229,12 @@ public enum ZQuests {
         return description;
     }
 
-    public static List<ZQuests> valuesRelease() {
-        return Utils.filterItems(object -> 0 != (object.flag & FLAG_DEBUG), values());
+    public static List<ZQuests> questsBlackPlague() {
+        return Utils.filterItems(quest -> 0 != (quest.flag & FLAG_BLACK_PLAGUE), values());
+    }
+
+    public static List<ZQuests> questsWolfsburg() {
+        return Utils.filterItems(quest -> 0 != (quest.flag & FLAG_WOLFBURG), values());
     }
 
     boolean isWolfburg() {

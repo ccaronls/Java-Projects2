@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ColorFilter;
+import android.graphics.DashPathEffect;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
@@ -189,8 +190,11 @@ public abstract class DroidGraphics extends APGraphics {
                 textPaint.setTextAlign(Paint.Align.CENTER);
                 break;
         }
+        float lw = paint.getStrokeWidth();
+        paint.setStrokeWidth(0);
         textPaint.setStyle(Paint.Style.FILL_AND_STROKE);
         canvas.drawText(text, x, y, textPaint);
+        paint.setStrokeWidth(lw);
         return getTextWidth(text);
     }
 
@@ -222,11 +226,14 @@ public abstract class DroidGraphics extends APGraphics {
 
     @Override
     public final void drawPoints() {
+        float lw = paint.getStrokeWidth();
+        paint.setStrokeWidth(0);
         paint.setStyle(Paint.Style.FILL_AND_STROKE);
         for (int i = 0; i < r.getNumVerts(); i++) {
             Vector2D v = r.getVertex(i);
             canvas.drawCircle(v.getX(), v.getY(), pointSize / 2, paint);
         }
+        paint.setStrokeWidth(lw);
     }
 
     @Override
@@ -282,6 +289,8 @@ public abstract class DroidGraphics extends APGraphics {
 
     @Override
     public final void drawTriangles() {
+        float lw = paint.getStrokeWidth();
+        paint.setStrokeWidth(0);
         paint.setStyle(Paint.Style.FILL_AND_STROKE);
         int num = r.getNumVerts();
         for (int i = 0; i <= num - 3; i += 3) {
@@ -290,10 +299,13 @@ public abstract class DroidGraphics extends APGraphics {
             Vector2D v2 = r.getVertex(i + 2);
             drawPolygon(v0, v1, v2);
         }
+        paint.setStrokeWidth(lw);
     }
 
     @Override
     public final void drawTriangleFan() {
+        float lw = paint.getStrokeWidth();
+        paint.setStrokeWidth(0);
         paint.setStyle(Paint.Style.FILL_AND_STROKE);
         int num = r.getNumVerts();
         if (num < 3)
@@ -305,10 +317,13 @@ public abstract class DroidGraphics extends APGraphics {
             drawPolygon(ctr, v0, v1);
             v0 = v1;
         }
+        paint.setStrokeWidth(lw);
     }
 
     @Override
     public final void drawTriangleStrip() {
+        float lw = paint.getStrokeWidth();
+        paint.setStrokeWidth(0);
         paint.setStyle(Paint.Style.FILL_AND_STROKE);
         int num = r.getNumVerts();
         if (num < 3)
@@ -321,6 +336,7 @@ public abstract class DroidGraphics extends APGraphics {
             v0 = v1;
             v1 = v2;
         }
+        paint.setStrokeWidth(lw);
     }
 
     @Override
@@ -639,6 +655,8 @@ public abstract class DroidGraphics extends APGraphics {
 
     @Override
     public final void clearScreen(GColor color) {
+        float lw = paint.getStrokeWidth();
+        paint.setStrokeWidth(0);
         paint.setStyle(Paint.Style.FILL_AND_STROKE);
         int savecolor = paint.getColor();
         paint.setColor(color.toARGB());
@@ -649,6 +667,7 @@ public abstract class DroidGraphics extends APGraphics {
         canvas.drawRect(0, 0, canvas.getWidth(), canvas.getHeight(), paint);
         canvas.restore();
         paint.setColor(savecolor);
+        paint.setStrokeWidth(lw);
     }
 
     @Override
@@ -688,9 +707,12 @@ public abstract class DroidGraphics extends APGraphics {
 
     @Override
     public void drawWedge(float x, float y, float radius, float startDegrees, float sweepDegrees) {
+        float lw = paint.getStrokeWidth();
+        paint.setStrokeWidth(0);
         paint.setStyle(Paint.Style.FILL_AND_STROKE);
         setRectF(x-radius, y-radius, x+radius, y+radius);
         canvas.drawArc(rectf, startDegrees, sweepDegrees, false, paint);
+        paint.setStrokeWidth(lw);
     }
 
     @Override
@@ -754,8 +776,11 @@ public abstract class DroidGraphics extends APGraphics {
             rectf.left = rectf.centerX() - height/2;
             rectf.right = rectf.centerX() + height/2;
         }
+        float lw = paint.getStrokeWidth();
+        paint.setStrokeWidth(0);
         paint.setStyle(Paint.Style.FILL_AND_STROKE);
         canvas.drawOval(rectf, paint);
+        paint.setStrokeWidth(lw);
     }
 
     @Override
@@ -851,4 +876,15 @@ public abstract class DroidGraphics extends APGraphics {
         paint.setColorFilter(colorFilter = new PorterDuffColorFilter(outColor.toARGB(), PorterDuff.Mode.SRC_IN));
     }
 
+    @Override
+    public void drawDashedLine(float x0, float y0, float x1, float y1, float thickness, float dashLength) {
+        DashPathEffect effect = new DashPathEffect(new float[] { dashLength, dashLength }, dashLength/2);
+        float curWidth = paint.getStrokeWidth();
+        paint.setStrokeWidth(thickness);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setPathEffect(effect);
+        drawLine(x0, y0, x1, y1);
+        paint.setStrokeWidth(curWidth);
+        paint.setPathEffect(null);
+    }
 }

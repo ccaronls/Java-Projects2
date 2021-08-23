@@ -31,7 +31,7 @@ public abstract class ZUser {
     public void setColor(GColor color) {
         this.color = color;
         for (ZPlayerName nm : characters) {
-            nm.character.color = color;
+            nm.character.setColor(color);
         }
     }
 
@@ -46,11 +46,11 @@ public abstract class ZUser {
     public void addCharacter(ZPlayerName c) {
         Utils.assertFalse(characters.contains(c));
         characters.add(c);
-        c.character.color = color;
+        c.character.setColor(color);
     }
 
     public void removeCharacter(ZPlayerName name) {
-        name.character.color = null;
+        name.character.setColor(null);
         characters.remove(name);
     }
 

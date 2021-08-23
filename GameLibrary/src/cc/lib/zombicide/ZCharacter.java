@@ -119,7 +119,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
         Table tab = new Table(this).setNoBorder().setPadding(0);
         boolean added = false;
         for (ZZombieType nm : ZZombieType.values()) {
-            if (kills[nm.ordinal()] > 0) {
+            if (kills.length > nm.ordinal() && kills[nm.ordinal()] > 0) {
                 tab.addRow(nm + " x " + kills[nm.ordinal()]);
                 added = true;
             }
@@ -155,7 +155,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
                     availableSkills.remove(skill);
                 case -1:
                     game.addLogMessage(name() + " used " + skill.getLabel());
-                    game.getCurrentUser().showMessage(name() + " used " + skill.getLabel() + " for a free action");
+                    game.addLogMessage(name() + " used " + skill.getLabel() + " for a free action");
                     return true;
             }
         }
@@ -980,7 +980,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
 
     public boolean heal(ZGame game, int amt) {
         if (woundBar > 0) {
-            game.getCurrentUser().showMessage(name() + " has a wound healed.");
+            game.addLogMessage(name() + " has a wound healed.");
             woundBar = Math.max(0, woundBar - amt);
             return true;
         }

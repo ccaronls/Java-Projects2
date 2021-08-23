@@ -7,6 +7,7 @@ import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZEquipment;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZMove;
+import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZQuest;
 import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZTile;
@@ -68,7 +69,7 @@ public class WolfQuestWelcomeToWulfsburg extends ZQuest {
     @Override
     public Table getObjectivesOverlay(ZGame game) {
         int totalChars = game.getAllCharacters().size();
-        int numInZone = Utils.filter(game.getAllCharacters(), new Utils.Filter<ZCharacter>() {
+        int numInZone = Utils.filter(game.getBoard().getAllCharacters(), new Utils.Filter<ZCharacter>() {
             @Override
             public boolean keep(ZCharacter object) {
                 return object.getOccupiedZone() == exitZone;
@@ -90,12 +91,12 @@ public class WolfQuestWelcomeToWulfsburg extends ZQuest {
         super.processObjective(game, c, move);
         if (move.integer == blueKeyZone) {
             ZEquipment e = getRandomVaultArtifact();
-            game.getCurrentUser().showMessage(c.getLabel() + " has found the BLUE key and also a " + e.getLabel());
+            game.addLogMessage(c.getLabel() + " has found the BLUE key and also a " + e.getLabel());
             game.giftEquipment(c, e);
             blueKeyZone = -1;
         } else if (move.integer == greenKeyZone) {
             ZEquipment e = getRandomVaultArtifact();
-            game.getCurrentUser().showMessage(c.getLabel() + " has found the GREEN key and also a " + e.getLabel());
+            game.addLogMessage(c.getLabel() + " has found the GREEN key and also a " + e.getLabel());
             game.giftEquipment(c, e);
             greenKeyZone = -1;
         }
@@ -105,8 +106,8 @@ public class WolfQuestWelcomeToWulfsburg extends ZQuest {
     public int getPercentComplete(ZGame game) {
         int numTasks = getNumStartRedObjectives() + game.getAllCharacters().size();
         int numCompleted = getNumStartRedObjectives() - redObjectives.size();
-        for (ZCharacter c : game.getAllCharacters()) {
-            if (c.getOccupiedZone() == exitZone)
+        for (ZPlayerName c : game.getAllCharacters()) {
+            if (c.getCharacter().getOccupiedZone() == exitZone)
                 numCompleted++;
         }
         int percentCompleted = numCompleted*100 / numTasks;
@@ -117,7 +118,7 @@ public class WolfQuestWelcomeToWulfsburg extends ZQuest {
 
     @Override
     public String getQuestFailedReason(ZGame game) {
-        if (Utils.filter(game.getAllCharacters(), object -> object.isDead()).size() > 0) {
+        if (Utils.filter(game.getAllCharacters(), object -> object.getCharacter().isDead()).size() > 0) {
             return "Not all players survived.";
         }
         return super.getQuestFailedReason(game);

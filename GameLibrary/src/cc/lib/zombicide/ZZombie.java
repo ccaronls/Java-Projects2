@@ -72,7 +72,7 @@ public final class ZZombie extends ZActor<ZZombieType> implements Comparable<ZZo
 
     @Override
     public int getOutlineImageId() {
-        return 0;
+        return type.imageOutlineOptions[getIdx()];
     }
 
     @Override

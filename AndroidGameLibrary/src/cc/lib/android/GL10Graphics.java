@@ -1297,4 +1297,8 @@ for (int pix : pixels) {
         throw new RuntimeException("Not implemented");
     }
 
+    @Override
+    public void drawDashedLine(float x0, float y0, float x1, float y1, float thickness, float dashLength) {
+        throw new RuntimeException("Not implemented");
+    }
 }

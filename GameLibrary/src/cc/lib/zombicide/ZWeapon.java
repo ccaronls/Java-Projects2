@@ -205,7 +205,7 @@ public class ZWeapon extends ZEquipment<ZWeaponType> {
         switch (type) {
             case VAMPIRE_CROSSBOW:
                 if (c.heal(g,1)) {
-                    g.onCharacterHealed(c, 1);
+                    g.onCharacterHealed(c.getPlayerName(), 1);
                 }
                 break;
         }

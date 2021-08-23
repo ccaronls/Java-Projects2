@@ -120,6 +120,12 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
     final ArrayBlockingQueue fileWriterQueue = new ArrayBlockingQueue(1);
     final Stats stats = new Stats();
 
+    boolean isWolfburgUnlocked() {
+        if (BuildConfig.DEBUG)
+            return true;
+        return stats.isQuestCompleted(ZQuests.Trial_by_Fire, ZDifficulty.MEDIUM);
+    }
+
     final CharLock[] charLocks = {
             new CharLock(ZPlayerName.Ann, ""),
             new CharLock(ZPlayerName.Baldric, ""),
@@ -143,6 +149,30 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
                 @Override
                 boolean isUnlocked() {
                     return stats.isQuestCompleted(ZQuests.The_Evil_Temple, ZDifficulty.HARD);
+                }
+            },
+            new CharLock(ZPlayerName.Karl, "Unlock Wolfzburg") {
+                @Override
+                boolean isUnlocked() {
+                    return isWolfburgUnlocked();
+                }
+            },
+            new CharLock(ZPlayerName.Morrigan, "Unlock Wolfzburg") {
+                @Override
+                boolean isUnlocked() {
+                    return isWolfburgUnlocked();
+                }
+            },
+            new CharLock(ZPlayerName.Ariane, "Unlock Wolfzburg") {
+                @Override
+                boolean isUnlocked() {
+                    return isWolfburgUnlocked();
+                }
+            },
+            new CharLock(ZPlayerName.Theo, "Unlock Wolfzburg") {
+                @Override
+                boolean isUnlocked() {
+                    return isWolfburgUnlocked();
                 }
             },
     };
@@ -814,7 +844,7 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
         if (saves.size() > 0) {
             String [] items = new String[saves.size()];
             newDialogBuilder().setTitle("Loaded saved")
-                    .setItems(saves.values().toArray(items), new DialogInterface.OnClickListener() {
+                    .setItems(saves.keySet().toArray(items), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             String fileName = saves.get(items[which]);
@@ -1061,9 +1091,56 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
     }
 
     void showNewGameDialog() {
+        String [] items = null;
+        if (BuildConfig.DEBUG) {
+            items = new String[] {
+                    "Black Plague", "Wolfsburg", "All (DEBUG)"
+            };
+        } else {
+            items = new String[] {
+                    "Black Plague", "Wolfsburg"
+            };
+        }
+
+        newDialogBuilder().setTitle("Choose Version")
+                .setItems(items, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        switch (which) {
+                            case 0: // Black Plague
+                                showNewGameChooseQuestDialog(ZQuests.questsBlackPlague());
+                                break;
+
+                            case 1:
+                                if (isWolfburgUnlocked())
+                                    showNewGameChooseQuestDialog(ZQuests.questsWolfsburg());
+                                else
+                                    newDialogBuilder().setTitle("Wolfburg Locked")
+                                        .setMessage("Finish last level of Black Plague at Medium difficulty to unlock")
+                                        .setPositiveButton(R.string.popup_button_ok, new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                showNewGameDialog();
+                                            }
+                                        }).show();
+                                break;
+
+                            case 2:
+                                showNewGameChooseQuestDialog(Arrays.asList(ZQuests.values()));
+                                break;
+
+                        }
+                    }
+                }).setNegativeButton(R.string.popup_button_cancel, null).show();
+
+    }
+
+    void showNewGameChooseQuestDialog(List<ZQuests> allQuests) {
+        new NewGameChooseQuestDialog(this, allQuests);
+        /*
         Set<ZQuests> playable = stats.getCompletedQuests();
         Log.d(TAG, "playable quests: " + playable);
-        List<ZQuests> allQuests = ZQuests.valuesRelease();
+        //List<ZQuests> allQuests = ZQuests.valuesRelease();
         int firstPage = 0;
         for (ZQuests q : allQuests) {
             if (!playable.contains(q)) {
@@ -1133,6 +1210,8 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
                         }
                     }
                 }).show();
+
+         */
     }
 
     void showNewGameDailogChooseDifficulty(ZQuests quest) {
@@ -1149,7 +1228,6 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
                 showNewGameDialog();
             }
         }).show();
-
     }
 
     static class CharLock {
