@@ -3,6 +3,7 @@ package cc.lib.zombicide.quests;
 import java.util.ArrayList;
 import java.util.List;
 
+import cc.lib.game.AGraphics;
 import cc.lib.game.Utils;
 import cc.lib.utils.Grid;
 import cc.lib.utils.Table;
@@ -126,6 +127,14 @@ public class WolfQuestTheAmbush extends ZQuest {
                 return 3;
         }
         return super.getMaxNumZombiesOfType(type);
+    }
+
+    @Override
+    public void drawQuest(ZGame game, AGraphics g) {
+        super.drawQuest(game, g);
+        for (int zone : occupyZones) {
+
+        }
     }
 
     @Override

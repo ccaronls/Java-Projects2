@@ -6,26 +6,36 @@ import java.util.List;
 
 import cc.lib.game.AGraphics;
 import cc.lib.game.Utils;
+import cc.lib.utils.Pair;
 import cc.lib.zombicide.ZActor;
 import cc.lib.zombicide.ZActorAnimation;
 import cc.lib.zombicide.ZAnimation;
 
+/**
+ * Allow for running multiple animations with some delay inbetween each starting position
+ *
+ */
 public class GroupAnimation extends ZActorAnimation {
 
-    private final List<ZAnimation> group = new ArrayList<>();
+    private final List<Pair<ZAnimation, Integer>> group = new ArrayList<>();
 
     public GroupAnimation(ZActor actor) {
         super(actor, 1);
     }
 
-    public synchronized void addAnimation(ZAnimation animation) {
-        group.add(animation.start());
+    /**
+     * IMPORTANT!: Make sure to have all animations added before starting!
+     * @param animation
+     */
+    public synchronized void addAnimation(int delay, ZAnimation animation) {
+        Utils.assertTrue(!isStarted());
+        group.add(new Pair(animation, delay));
     }
 
     @Override
     public boolean isDone() {
-        for (ZAnimation a : group) {
-            if (!a.isDone())
+        for (Pair<ZAnimation, Integer> a : group) {
+            if (!a.first.isDone())
                 return false;
         }
         return true;
@@ -43,13 +53,20 @@ public class GroupAnimation extends ZActorAnimation {
 
     @Override
     public synchronized boolean update(AGraphics g) {
-        Iterator<ZAnimation> it = group.iterator();
+        Iterator<Pair<ZAnimation,Integer>> it = group.iterator();
         while (it.hasNext()) {
-            ZAnimation a = it.next();
-            if (a.isDone())
+            Pair<ZAnimation, Integer> p = it.next();
+            if (p.first.isDone())
                 it.remove();
-            else
-                a.update(g);
+            else if (!p.first.isStarted()) {
+                //a.start();
+                if (getCurrentTimeMSecs()-getStartTime() >= p.second) {
+                    p.first.start();
+                }
+            }
+            else {
+                p.first.update(g);
+            }
         }
         return group.isEmpty();
     }

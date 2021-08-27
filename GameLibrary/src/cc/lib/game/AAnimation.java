@@ -116,7 +116,7 @@ public abstract class AAnimation<T> {
     }
 
     /**
-     *
+     * This function must be gauranteed to be called once after one of 'start' methods is called
      * @return
      */
     public boolean isDone() {
@@ -140,6 +140,7 @@ public abstract class AAnimation<T> {
     public synchronized boolean update(T g) {
         if (state == State.PRESTART) {
             System.err.println("Calling update on animation that has not been started!");
+            Utils.assertTrue(false);
             return false;
         }
 

@@ -173,7 +173,8 @@ public enum ZQuests {
             "our way to liberate the city. Breaching the inner\n" +
             "city will take time, however, and we’ll need supplies.\n" +
             "Fresh food is scarce, but still to be had."),
-    Know_Your_Enemy(FLAG_WOLFBURG, "Know your Enemy", "Wulfsburg sustained some unusual damage,\n" +
+    Know_Your_Enemy(FLAG_WOLFBURG, "Know your Enemy",
+            "Wulfsburg sustained some unusual damage,\n" +
             "as if a civil war had raged inside. In\n" +
             "some place, people were not killed by zombies but by\n" +
             "soldiers. We don’t know yet if survivor groups are\n" +
@@ -184,9 +185,53 @@ public enum ZQuests {
             "Come to think of it, Wulfsburg\n" +
             "was known for its elven beer. That\n" +
             "would be a rare treat!"),
-    The_Evil_Twins(FLAG_WOLFBURG, "The Evil Twins", ""),
-    The_Ambush(FLAG_WOLFBURG, "The Ambush", ""),
-    Immortal(FLAG_WOLFBURG, "Immortal", ""),
+    The_Evil_Twins(FLAG_WOLFBURG, "The Evil Twins",
+            "We found a soldier’s journal among the\n" +
+                    "bloodstained houses. It seems a foreign\n" +
+                    "prince had come to Wulfsburg shortly after the\n" +
+                    "invasion began with his private army. Even its\n" +
+                    "fallen state, the city retains its wealth. Zombies\n" +
+                    "aren’t interested in treasure, so he thought it’d be\n" +
+                    "an easy conquest.\n" +
+                    "The blood-spattered journal ends with an entry\n" +
+                    "about a pair of abominations stalking the final few\n" +
+                    "survivors from the prince’s retinue. The ‘Evil\n" +
+                    "Twins’ they were called, and they seem to haunt\n" +
+                    "the Usurer’s Ward, a block away.\n" +
+                    "They’ve surely caught our scent now as well, and\n" +
+                    "could attack at any time. So, we’ll attack first.\n" +
+                    "The best defense is sometimes all-out offense,\n" +
+                    "right?"),
+    The_Ambush(FLAG_WOLFBURG, "The Ambush",
+            "We were returning to our haven as night\n" +
+            "began to fall, when the wizard spotted some\n" +
+            "esoteric writing on the walls. Before our eyes they\n" +
+            "flared to brilliance, and we heard shuffling footsteps!\n" +
+            "An ambush! Someone placed zombie lures all around,\n" +
+            "and the infected are hot on our trail! We must resist\n" +
+            "long enough to destroy the lures and secure our escape.\n" +
+            "The Necromancers know we’re here, and consider\n" +
+            "us a threat. I don’t know what to think about this\n" +
+            "flattering change."),
+    Immortal(FLAG_WOLFBURG, "Immortal",
+            "Night has fallen, and the\n" +
+                    "zombies are still dogging our\n" +
+                    "footsteps by the dozen. To make\n" +
+                    "matters worse, we seem to have killed\n" +
+                    "the same Necromancer at least four\n" +
+                    "times. He keeps coming back, over\n" +
+                    "and over. He’s rallying his hordes and\n" +
+                    "summoning more. We’re experienced\n" +
+                    "survivors, but we’re still just mortals.\n" +
+                    "We either figure out how to kill him\n" +
+                    "permanently, or die from exhaustion.\n" +
+                    "The wizards say he likely has some\n" +
+                    "kind of magical anchors binding him\n" +
+                    "to this area. If we destroy them, we\n" +
+                    "can probably kill him for good and take\n" +
+                    "a rest. (And then I can enjoy some\n" +
+                    "of that Elven brew I found before.\n" +
+                    "Don’t tell anyone!)"),
     Zombie_Court(FLAG_WOLFBURG, "Zombie Court", ""),
     Blood_Red(FLAG_WOLFBURG, "Blood Red", ""),
     The_Ghost_Door(FLAG_WOLFBURG, "The Ghost Door", ""),

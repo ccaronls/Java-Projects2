@@ -21,6 +21,7 @@ import cc.lib.zombicide.ZDoor;
 import cc.lib.zombicide.ZEquipment;
 import cc.lib.zombicide.ZIcon;
 import cc.lib.zombicide.ZMove;
+import cc.lib.zombicide.ZMoveType;
 import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZQuest;
 import cc.lib.zombicide.ZSkill;
@@ -225,10 +226,14 @@ public abstract class UIZombicide extends ZGameMP {
     }
 
     public void tryWalk(ZDir dir) {
-        ZCharacter cur = getCurrentCharacter().getCharacter();
-        if (cur != null) {
-            if (getBoard().canMove(cur, dir)) {
-                setResult(ZMove.newWalkDirMove(dir));
+        List<ZMove> moves = options == null ? Collections.emptyList() : (List)Utils.filter(options, option -> option instanceof ZMove);
+        List<ZMoveType> types = Utils.map(moves, option->option.type);
+        if (types.contains(ZMoveType.WALK) && canWalk(dir)) {
+            ZCharacter cur = getCurrentCharacter().getCharacter();
+            if (cur != null) {
+                if (getBoard().canMove(cur, dir)) {
+                    setResult(ZMove.newWalkDirMove(dir));
+                }
             }
         }
     }
@@ -540,10 +545,10 @@ public abstract class UIZombicide extends ZGameMP {
         } else if (actionType.isRanged()) {
 
             GroupAnimation group = new GroupAnimation(attacker.getCharacter());
-            attacker.getCharacter().addAnimation(group);
             Lock animLock = new Lock(numDice);
+            int delay = 100;
             for (int i=0; i<numDice; i++) {
-                group.addAnimation(new ShootAnimation(attacker.getCharacter(), board,300, targetZone, ZIcon.ARROW) {
+                group.addAnimation(delay, new ShootAnimation(attacker.getCharacter(), board,300, targetZone, ZIcon.ARROW) {
 
                     @Override
                     protected void onDone() {
@@ -551,8 +556,9 @@ public abstract class UIZombicide extends ZGameMP {
                     }
 
                 });
-                Utils.waitNoThrow(this, 100);
+                delay += 100;
             }
+            attacker.getCharacter().addAnimation(group);
             boardRenderer.redraw();
             animLock.block();
         } else if (weapon.isMagic()) {
@@ -590,18 +596,19 @@ public abstract class UIZombicide extends ZGameMP {
                 }
                 case FIREBALL: {
                     GroupAnimation group = new GroupAnimation(attacker.getCharacter());
-                    attacker.getCharacter().addAnimation(group);
                     Lock animLock = new Lock(numDice);
+                    int delay = 0;
                     for (int i = 0; i < numDice; i++) {
                         Vector2D end = board.getZone(targetZone).getCenter().add(Vector2D.newRandom(0.3f));
-                        group.addAnimation(new FireballAnimation(attacker.getCharacter(), end) {
+                        group.addAnimation(delay, new FireballAnimation(attacker.getCharacter(), end) {
                             @Override
                             protected void onDone() {
                                 animLock.release();
                             }
                         });
-                        Utils.waitNoThrow(this, 150);
+                        delay+=150;
                     }
+                    attacker.getCharacter().addAnimation(group);
                     boardRenderer.redraw();
                     animLock.block();
                     break;

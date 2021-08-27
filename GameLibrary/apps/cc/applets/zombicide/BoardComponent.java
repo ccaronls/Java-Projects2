@@ -244,21 +244,8 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
             pl.cardImageId = objectToImageMap.get(pl.name()).get(0);
         }
 
-        {
-            ZIcon icon = ZIcon.DRAGON_BILE;
-            int [] ids = new int[8];
-            ids[0] = objectToImageMap.get(icon).get(0);
-            for (int i=1; i<ids.length; i++) {
-                int deg = 45*i;
-                ids[i] = g.createRotatedImage(ids[0], deg);
-                numImagesLoaded++;
-                repaint();
-            }
-            icon.imageIds = ids;
-        }
-
-        {
-            ZIcon icon = ZIcon.TORCH;
+        // Icons that 'spin'
+        for (ZIcon icon : Utils.toArray(ZIcon.DRAGON_BILE, ZIcon.TORCH)) {
             int [] ids = new int[8];
             ids[0] = objectToImageMap.get(icon).get(0);
             for (int i=1; i<ids.length; i++) {
@@ -296,29 +283,9 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
             repaint();
         }
 
-        {
-            ZIcon.CLAWS.imageIds = Utils.toIntArray(objectToImageMap.get(ZIcon.CLAWS));
-            numImagesLoaded++;
-            repaint();
-            ZIcon.SHIELD.imageIds = Utils.toIntArray(objectToImageMap.get(ZIcon.SHIELD));
-            numImagesLoaded++;
-            repaint();
-            ZIcon.SLIME.imageIds = Utils.toIntArray(objectToImageMap.get(ZIcon.SLIME));
-            numImagesLoaded++;
-            repaint();
-            ZIcon.SLASH.imageIds = Utils.toIntArray(objectToImageMap.get(ZIcon.SLASH));
-            numImagesLoaded++;
-            repaint();
-            ZIcon.FIREBALL.imageIds = Utils.toIntArray(objectToImageMap.get(ZIcon.FIREBALL));
-            numImagesLoaded++;
-            repaint();
-            ZIcon.GRAVESTONE.imageIds = Utils.toIntArray(objectToImageMap.get(ZIcon.GRAVESTONE));
-            numImagesLoaded++;
-            repaint();
-            ZIcon.PADLOCK.imageIds = Utils.toIntArray(objectToImageMap.get(ZIcon.PADLOCK));
-            numImagesLoaded++;
-            repaint();
-            ZIcon.SKULL.imageIds = Utils.toIntArray(objectToImageMap.get(ZIcon.SKULL));
+        // Icons that have a single id variation
+        for (ZIcon icon : Utils.toArray(ZIcon.CLAWS, ZIcon.SHIELD, ZIcon.SLIME, ZIcon.SLASH, ZIcon.FIREBALL, ZIcon.GRAVESTONE, ZIcon.PADLOCK, ZIcon.SKULL)) {
+            icon.imageIds = Utils.toIntArray(objectToImageMap.get(icon));
             numImagesLoaded++;
             repaint();
         }
@@ -332,7 +299,6 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
             icon.imageIds  = g.loadImageCells("zfire_icons.png", cells);
             numImagesLoaded++;
             repaint();
-
         }
 
         log.debug("Images: " + objectToImageMap);

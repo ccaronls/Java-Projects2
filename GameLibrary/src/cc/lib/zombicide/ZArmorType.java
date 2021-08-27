@@ -27,7 +27,7 @@ public enum ZArmorType implements ZEquipmentType<ZArmor> {
     int getRating(ZZombieType type) {
         switch (this) {
             default:
-                if (type == ZZombieType.Abomination)
+                if (type.ignoresArmor)
                     return 0;
             case DWARVEN_SHIELD:
         }

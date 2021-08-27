@@ -24,14 +24,14 @@ public final class Lock {
     }
 
     public synchronized void block() {
-        if (holders > 0) {
-            try {
+        try {
+            synchronized (this) {
                 wait();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
             }
-            holders = 0;
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
+        holders = 0;
     }
 
     public synchronized void acquireAndBlock() {
