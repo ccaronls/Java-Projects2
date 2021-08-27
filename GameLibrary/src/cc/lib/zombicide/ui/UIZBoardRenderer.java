@@ -44,12 +44,14 @@ import cc.lib.zombicide.ZIcon;
 import cc.lib.zombicide.ZItem;
 import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZPlayerName;
+import cc.lib.zombicide.ZSpawnArea;
 import cc.lib.zombicide.ZSpell;
 import cc.lib.zombicide.ZTile;
 import cc.lib.zombicide.ZWeapon;
 import cc.lib.zombicide.ZWeaponStat;
 import cc.lib.zombicide.ZZombie;
 import cc.lib.zombicide.ZZone;
+import cc.lib.zombicide.anims.OverlayTextAnimation;
 import cc.lib.zombicide.anims.ZoomAnimation;
 
 public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
@@ -74,6 +76,8 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
     boolean actorsAnimating = false;
     private Object overlayToDraw = null;
     boolean drawTiles = false;
+    boolean drawDebugText = false;
+    boolean drawRangedAccessibility = false;
     MutableVector2D dragOffset = new MutableVector2D(Vector2D.ZERO);
     Vector2D dragStart = Vector2D.ZERO;
 
@@ -318,7 +322,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                     } else if (a == picked)
                         outline = GColor.CYAN;
                     else if (options.contains(a))
-                        outline = GColor.WHITE;
+                        outline = GColor.YELLOW;
                     drawActor((T)g, a, outline);
                 }
                 g.removeFilter();
@@ -369,10 +373,32 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
         return picked;
     }
 
+    public ZSpawnArea pickSpawn(AGraphics g, List<ZSpawnArea> areas, float mouseX, float mouseY) {
+        ZSpawnArea picked = null;
+        for (ZSpawnArea area : areas) {
+            GRectangle areaRect = area.getRect().grownBy(.1f);
+            if (areaRect.contains(mouseX, mouseY)) {
+                g.setColor(GColor.RED);
+                picked = area;
+            } else {
+                g.setColor(GColor.YELLOW);
+            }
+            g.drawRect(areaRect, 2);
+        }
+        return picked;
+    }
+
     public void drawZoneOutline(AGraphics g, ZBoard board, int zoneIndex) {
         ZZone zone = board.getZone(zoneIndex);
         for (Grid.Pos cellPos : zone.getCells()) {
             g.drawRect(board.getCell(cellPos), 2);
+        }
+    }
+
+    public void drawZoneFilled(AGraphics g, ZBoard board, int zoneIndex) {
+        ZZone zone = board.getZone(zoneIndex);
+        for (Grid.Pos cellPos : zone.getCells()) {
+            g.drawFilledRect(board.getCell(cellPos));
         }
     }
 
@@ -394,13 +420,11 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                 if (cell.isCellTypeEmpty())
                     continue;
                 switch (zone.getType()) {
-                    case VAULT:
-                        g.setColor(GColor.BROWN);
-                        g.drawFilledRect(cell);
-                        break;
                     case TOWER:
-                        g.setColor(GColor.GREEN.withAlpha(.25f));
-                        g.drawFilledRect(cell);
+                        if (DEBUG) {
+                            g.setColor(GColor.GREEN.withAlpha((cell.getScale()-1)*3));
+                            g.drawFilledRect(cell);
+                        }
                         break;
                 }
                 drawCellWalls(g, pos, 1);
@@ -428,28 +452,11 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                             case EXIT:
                                 text += "EXIT";
                                 break;
-                            case SPAWN_NORTH:
-                                if (zone.isSpawn()) {
-                                    drawSpawn(g, cell, ZDir.NORTH);
-                                }
-                                break;
-                            case SPAWN_SOUTH:
-                                if (zone.isSpawn()) {
-                                    drawSpawn(g, cell, ZDir.SOUTH);
-                                }
-                                break;
-                            case SPAWN_EAST:
-                                if (zone.isSpawn()) {
-                                    drawSpawn(g, cell, ZDir.EAST);
-                                }
-                                break;
-                            case SPAWN_WEST:
-                                if (zone.isSpawn()) {
-                                    drawSpawn(g, cell, ZDir.WEST);
-                                }
-                                break;
                         }
                     }
+                }
+                for (ZSpawnArea area : cell.getSpawnAreas()) {
+                    drawSpawn(g, cell, area);
                 }
                 if (zone.isDragonBile()) {
                     g.drawImage(ZIcon.SLIME.imageIds[0], cell);
@@ -484,10 +491,21 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
         return result;
     }
 
-    void drawSpawn(AGraphics g, IRectangle rect, ZDir dir) {
-        int id = ZIcon.SPAWN.imageIds[dir.ordinal()];
-        AImage img = g.getImage(id);
-        g.drawImage(id, new GRectangle(rect).scale(.8f).fit(img, dir.horz, dir.vert));
+    void drawSpawn(AGraphics g, IRectangle rect, ZSpawnArea area) {
+        ZDir dir = area.getDir();
+        int id = area.getIcon().imageIds[dir.ordinal()];
+        if (area.getRect() == null) {
+            AImage img = g.getImage(id);
+            area.setRect(new GRectangle(rect).scale(.8f).fit(img, dir.horz, dir.vert));
+        }
+        g.drawImage(id, area.getRect());
+        if (drawDebugText) {
+            String txt = String.format("spawnsNecros:%s\nEscapable:%s\nRemovable:%s\n", area.isCanSpawnNecromancers(), area.isEscapableForNecromancers(), area.isCanBeRemovedFromBoard());
+            g.setColor(GColor.YELLOW);
+            float oldHeight = g.setTextHeight(10);
+            g.drawString(txt, area.getRect().getTopLeft());
+            g.setTextHeight(oldHeight);
+        }
     }
 
     public void drawCellWalls(AGraphics g, Grid.Pos cellPos, float scale) {
@@ -623,26 +641,12 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
         return null;
     }
 
-
-    public Grid.Pos drawNoTiles(AGraphics g, float mouseX, float mouseY, boolean debugText) {
-        g.clearScreen();
-        Grid.Pos returnCell = null;
-
+    public void drawDebugText(AGraphics g, float mouseX, float mouseY) {
         Grid.Iterator<ZCell> it = getBoard().getCellsIterator();
         while (it.hasNext()) {
             ZCell cell = it.next();
             if (cell.isCellTypeEmpty())
                 continue;
-            switch (cell.getEnvironment()) {
-                case ZCell.ENV_BUILDING:
-                    g.setColor(GColor.DARK_GRAY); break;
-                case ZCell.ENV_OUTDOORS:
-                    g.setColor(GColor.LIGHT_GRAY); break;
-                case ZCell.ENV_VAULT:
-                    g.setColor(GColor.BROWN); break;
-            }
-            g.drawFilledRect(cell);
-            //drawCellWalls(g, it.getPos(), .97f);
             String text = "Zone " + cell.getZoneIndex();
             for (ZCellType type : ZCellType.values()) {
                 if (cell.isCellType(type)) {
@@ -657,23 +661,17 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                         case OBJECTIVE_BLACK:
                             text += "\n" + type.name().substring(10);
                             break;
-                        case SPAWN_NORTH:
-                        case SPAWN_SOUTH:
-                        case SPAWN_EAST:
-                        case SPAWN_WEST:
-                            text += "\nSPAWN";
-                            break;
                         default:
                             text += "\n" + type;
                     }
                 }
             }
             /*
-            if (cell.rect.contains(mouseX, mouseY)) {
-                List<Integer> accessible = getAccessableZones(cell.zoneIndex, 1, ZActionType.MOVE);
+            if (cell.contains(mouseX, mouseY)) {
+                List<Integer> accessible = getBoard().getAccessableZones(cell.getZoneIndex(), 1, 5, ZActionType.MOVE);
                 text = "1 Unit away:\n" + accessible;
-                returnCell = it.getPos();//new int[] { col, row };
-                List<Integer> accessible2 = getAccessableZones(cell.zoneIndex, 2, ZActionType.MAGIC);
+                //returnCell = it.getPos();//new int[] { col, row };
+                List<Integer> accessible2 = getBoard().getAccessableZones(cell.getZoneIndex(), 2, 5, ZActionType.MAGIC);
                 text += "\n2 Units away:\n" + accessible2;
             }*/
             g.setColor(GColor.CYAN);
@@ -685,9 +683,31 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
             if (cell.getVaultFlag() > 0) {
                 text += "\nvaultFlag " + cell.getVaultFlag();
             }
-            if (debugText)
-                g.drawJustifiedStringOnBackground(cell.getCenter(), Justify.CENTER, Justify.CENTER, text, GColor.TRANSLUSCENT_BLACK, 10, 3);
+            g.drawJustifiedStringOnBackground(cell.getCenter(), Justify.CENTER, Justify.CENTER, text, GColor.TRANSLUSCENT_BLACK, 10, 3);
 
+        }
+
+    }
+
+    public Grid.Pos drawNoTiles(AGraphics g, float mouseX, float mouseY) {
+        g.clearScreen();
+        Grid.Pos returnCell = null;
+
+        Grid.Iterator<ZCell> it = getBoard().getCellsIterator();
+        while (it.hasNext()) {
+            ZCell cell = it.next();
+            if (cell.isCellTypeEmpty())
+                continue;
+            switch (cell.getEnvironment()) {
+                case ZCell.ENV_BUILDING:
+                    g.setColor(GColor.DARK_GRAY); break;
+                case ZCell.ENV_OUTDOORS:
+                case ZCell.ENV_TOWER:
+                    g.setColor(GColor.LIGHT_GRAY); break;
+                case ZCell.ENV_VAULT:
+                    g.setColor(GColor.BROWN); break;
+            }
+            g.drawFilledRect(cell);
         }
         return returnCell;
     }
@@ -891,11 +911,13 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
     public void draw(APGraphics g, int mouseX, int mouseY) {
         //log.debug("mouseX=" + mouseX + " mouseY=" + mouseY);
         UIZombicide game = getGame();
-        ZBoard board = getBoard();
-        if (board == null) {
+        if (game == null || game.getBoard() == null) {
             drawNoBoard(g);
             return;
         }
+
+        ZBoard board = getBoard();
+
         highlightedActor = null;
         highlightedCell = null;
         highlightedResult = null;
@@ -936,7 +958,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
             return;
         }
 
-        Grid.Pos cellPos = drawNoTiles(g, mouseX, mouseY, DEBUG);
+        Grid.Pos cellPos = drawNoTiles(g, mouseX, mouseY);
         if (drawTiles) {
             for (int i = 0; i < tileIds.length; i++) {
                 g.drawImage(tileIds[i], tiles[i].quadrant);
@@ -947,6 +969,8 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
         game.getQuest().drawQuest(game, g);
         boolean drawAnimating = game.isGameOver();
 
+        if (drawDebugText)
+            drawDebugText(g, mouseX, mouseY);
         drawAnimations(preActor, g);
 
         highlightedActor = //board.drawActors(g, getMouseX(), getMouseY());
@@ -981,6 +1005,14 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                     g.setColor(GColor.YELLOW);
                     zone.getRectangle().drawOutlined(g, 2);
                 }
+            }
+
+        }
+
+        if (drawRangedAccessibility && highlightedZone >= 0) {
+            g.setColor(GColor.BLUE.withAlpha(.5f));
+            for (int zIndex : board.getAccessableZones(highlightedZone, 1, 5, ZActionType.ARROWS)) {
+                drawZoneFilled(g, board, zIndex);
             }
         }
 
@@ -1023,6 +1055,10 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
             }
             case PICK_MENU: {
                 highlightedResult = pickMove(g, mouse, mouseX, mouseY);
+                break;
+            }
+            case PICK_SPAWN: {
+                highlightedResult = pickSpawn(g, (List<ZSpawnArea>)game.getOptions(), mouse.X(), mouse.Y());
                 break;
             }
         }
@@ -1076,7 +1112,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                 g.setIdentity();
                 g.ortho();
                 g.setColor(GColor.YELLOW);
-                IVector2D cntr = new Vector2D(getWidth()/2, getHeight()/3);
+                IVector2D cntr = new Vector2D(getWidth()/2, .6f*getHeight());
                 Table t = (Table)overlayToDraw;
                 GDimension d = t.getDimension(g);
                 t.draw(g, cntr, Justify.CENTER, Justify.CENTER);
@@ -1149,8 +1185,16 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
         this.drawTiles = draw;
     }
 
+    public void setDrawDebugText(boolean drawDebugText) {
+        this.drawDebugText = drawDebugText;
+    }
+
     public void toggleDrawTiles() {
         this.drawTiles = !this.drawTiles;
+    }
+
+    public void toggleDrawDebugText() {
+        this.drawDebugText = !drawDebugText;
     }
 
     public ZActor getHighlightedActor() {
@@ -1159,6 +1203,22 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
 
     public boolean isDrawTiles() {
         return drawTiles;
+    }
+
+    public boolean isDrawDebugText() {
+        return drawDebugText;
+    }
+
+    public void setDrawRangedAccessibility(boolean drawRangedAccessibility) {
+        this.drawRangedAccessibility = drawRangedAccessibility;
+    }
+
+    public boolean isDrawRangedAccessibility() {
+        return drawRangedAccessibility;
+    }
+
+    public void toggleDrawRangedAccessibility() {
+        drawRangedAccessibility = !drawRangedAccessibility;
     }
 
     @Override
@@ -1181,4 +1241,12 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
         redraw();
     }
 
+    public void scroll(float dx, float dy) {
+        dragOffset.addEq(dx, dy);
+        redraw();
+    }
+
+    public int getNumOverlayTextAnimations() {
+        return Utils.filter(overlayAnimations, a -> a instanceof OverlayTextAnimation).size();
+    }
 }

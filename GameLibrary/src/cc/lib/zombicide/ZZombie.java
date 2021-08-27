@@ -115,5 +115,13 @@ public final class ZZombie extends ZActor<ZZombieType> implements Comparable<ZZo
         return Integer.compare(o.type.minDamageToDestroy, type.minDamageToDestroy);
     }
 
+    @Override
+    protected boolean performAction(ZActionType action, ZGame game) {
+        if (action == ZActionType.MELEE) {
+            actionsLeftThisTurn = 0;
+            return false; // zombies are done once they attack
+        }
+        return super.performAction(action, game);
+    }
 }
 

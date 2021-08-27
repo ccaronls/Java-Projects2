@@ -9,6 +9,7 @@ import cc.lib.zombicide.ZEquipment;
 import cc.lib.zombicide.ZItem;
 import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZSkill;
+import cc.lib.zombicide.ZSpawnArea;
 import cc.lib.zombicide.ZSpell;
 import cc.lib.zombicide.ZUser;
 import cc.lib.zombicide.ZWeapon;
@@ -116,7 +117,8 @@ public class UIZUser extends ZUser {
     }
 
     @Override
-    public Integer chooseZoneToRemoveSpawn(ZPlayerName cur, List<Integer> list) {
-        return UIZombicide.getInstance().pickZone("Choose Zone to Remove SPAWN", list);
+    public Integer chooseSpawnAreaToRemove(ZPlayerName cur, List<ZSpawnArea> list) {
+        return UIZombicide.getInstance().pickSpawn("Choose SPAWN Area to Remove", list);
     }
+
 }

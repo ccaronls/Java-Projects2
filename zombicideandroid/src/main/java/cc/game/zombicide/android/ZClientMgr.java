@@ -63,10 +63,10 @@ class ZClientMgr extends ZMPCommon implements GameClient.Listener, ZMPCommon.CL 
             }
             assignees.add(a);
             if (a.checked) {
+                game.addCharacter(a.name);
                 if (a.isAssingedToMe) {
                     user.addCharacter(a.name);
                 }
-                game.addCharacter(a.name);
             }
         }
         activity.runOnUiThread(new Runnable() {

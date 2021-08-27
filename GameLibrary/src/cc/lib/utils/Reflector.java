@@ -1779,6 +1779,8 @@ public class Reflector<T> {
             return true;
         if (a == null || b == null)
             return false;
+        if (!a.getClass().equals(b.getClass()))
+            return false;
         if (a instanceof Reflector && b instanceof Reflector) {
             return ((Reflector) a).deepEquals((Reflector) b);
         }

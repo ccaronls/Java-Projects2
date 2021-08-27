@@ -24,6 +24,7 @@ import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZQuest;
 import cc.lib.zombicide.ZSkill;
+import cc.lib.zombicide.ZSpawnArea;
 import cc.lib.zombicide.ZWeapon;
 import cc.lib.zombicide.ZZombie;
 import cc.lib.zombicide.ZZombieType;
@@ -60,6 +61,7 @@ public abstract class UIZombicide extends ZGameMP {
         NONE,
         PICK_CHARACTER,
         PICK_ZONE,
+        PICK_SPAWN,
         PICK_DOOR,
         PICK_MENU,
         PICK_ZOMBIE
@@ -77,7 +79,6 @@ public abstract class UIZombicide extends ZGameMP {
     private static UIZombicide instance;
 
     public static UIZombicide getInstance() {
-        Utils.assertTrue(instance != null);
         return instance;
     }
 
@@ -187,6 +188,19 @@ public abstract class UIZombicide extends ZGameMP {
         return waitForUser(Integer.class);
     }
 
+    public Integer pickSpawn(String message, List<ZSpawnArea> areas) {
+        synchronized (this) {
+            options = areas;
+            uiMode = UIMode.PICK_SPAWN;
+            boardRenderer.redraw();
+            setBoardMessage(message);
+        }
+        ZSpawnArea area = waitForUser(ZSpawnArea.class);
+        if (area == null)
+            return null;
+        return areas.indexOf(area);
+    }
+
     public <T> T pickMenu(ZPlayerName name, String message, Class expectedType, List<T> moves) {
         synchronized (this) {
             options = moves;
@@ -247,7 +261,7 @@ public abstract class UIZombicide extends ZGameMP {
     }
 
     public void showQuestTitleOverlay() {
-        boardRenderer.setOverlay(new OverlayTextAnimation(getQuest().getName()) {
+        boardRenderer.setOverlay(new OverlayTextAnimation(getQuest().getName(), boardRenderer.getNumOverlayTextAnimations()) {
             @Override
             protected void onDone() {
                 super.onDone();
@@ -348,7 +362,8 @@ public abstract class UIZombicide extends ZGameMP {
         super.onZombieSpawned(zombie);
         zombie.addAnimation(new SpawnAnimation(zombie, board));
         if (zombie.getType() == ZZombieType.Abomination) {
-            boardRenderer.addOverlay(new OverlayTextAnimation("A B O M I N A T I O N ! !"));
+            boardRenderer.addOverlay(new OverlayTextAnimation("A B O M I N A T I O N ! !", boardRenderer.getNumOverlayTextAnimations()));
+            Utils.waitNoThrow(this, 500);
         }
         boardRenderer.redraw();
     }
@@ -430,7 +445,7 @@ public abstract class UIZombicide extends ZGameMP {
     @Override
     protected void onGameLost() {
         super.onGameLost();
-        boardRenderer.addOverlay(new OverlayTextAnimation("Y O U   L O S T") {
+        boardRenderer.addOverlay(new OverlayTextAnimation("Y O U   L O S T", boardRenderer.getNumOverlayTextAnimations()) {
             @Override
             protected void onDone() {
                 super.onDone();
@@ -442,7 +457,7 @@ public abstract class UIZombicide extends ZGameMP {
     @Override
     protected void onQuestComplete() {
         super.onQuestComplete();
-        boardRenderer.addOverlay(new OverlayTextAnimation("C O M P L E T E D") {
+        boardRenderer.addOverlay(new OverlayTextAnimation("C O M P L E T E D", 0) {
             @Override
             protected void onDone() {
                 super.onDone();
@@ -454,7 +469,8 @@ public abstract class UIZombicide extends ZGameMP {
     @Override
     protected void onDoubleSpawn(int multiplier) {
         super.onDoubleSpawn(multiplier);
-        boardRenderer.addOverlay(new OverlayTextAnimation(String.format("DOUBLE SPAWN X %d", multiplier)));
+        boardRenderer.addOverlay(new OverlayTextAnimation(String.format("DOUBLE SPAWN X %d", multiplier), boardRenderer.getNumOverlayTextAnimations()));
+        Utils.waitNoThrow(this, 500);
     }
 
     @Override
@@ -466,16 +482,20 @@ public abstract class UIZombicide extends ZGameMP {
 
     @Override
     protected void onExtraActivation(ZZombieCategory category) {
-        boardRenderer.addOverlay(new OverlayTextAnimation(String.format("EXTRA ACTIVATION %s", category)));
+        super.onExtraActivation(category);
+        boardRenderer.addOverlay(new OverlayTextAnimation(String.format("EXTRA ACTIVATION %s", category), boardRenderer.getNumOverlayTextAnimations()));
+        Utils.waitNoThrow(this, 500);
     }
 
     @Override
     protected void onReaperKill(ZPlayerName c, ZZombie z, ZWeapon w, ZActionType at) {
+        super.onReaperKill(c, z, w, at);
         boardRenderer.addPostActor(new HoverMessage(boardRenderer, "Reaper Kill!!", z.getRect().getCenter()));
     }
 
     @Override
     protected void onWeaponReloaded(ZPlayerName c, ZWeapon w) {
+        super.onWeaponReloaded(c, w);
         boardRenderer.addPostActor(new HoverMessage(boardRenderer, String.format("%s Reloaded", w.getLabel()), c.getCharacter().getRect().getCenter()));
     }
 
@@ -660,6 +680,7 @@ public abstract class UIZombicide extends ZGameMP {
 
     @Override
     public void onIronRain(ZPlayerName c, int targetZone) {
+        super.onIronRain(c, targetZone);
         boardRenderer.addPostActor(new HoverMessage(boardRenderer, "LET IT RAIN!!", getBoard().getZone(targetZone).getCenter()));
     }
 

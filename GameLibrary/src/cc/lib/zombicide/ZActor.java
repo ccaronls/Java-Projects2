@@ -21,7 +21,7 @@ public abstract class ZActor<E extends Enum<E>> extends Reflector<ZActor<E>> imp
     int occupiedZone;
     Grid.Pos occupiedCell;
     ZCellQuadrant occupiedQuadrant;
-    private int actionsLeftThisTurn;
+    int actionsLeftThisTurn;
     private GRectangle rect = new GRectangle();
 
     @Omit

@@ -60,9 +60,9 @@ public class WolfQuestWelcomeToWulfsburg extends ZQuest {
 
     @Override
     public void init(ZGame game) {
-        blueKeyZone = Utils.randItem(redObjectives);
+        blueKeyZone = Utils.randItem(getRedObjectives());
         do {
-            greenKeyZone = Utils.randItem(redObjectives);
+            greenKeyZone = Utils.randItem(getRedObjectives());
         } while (greenKeyZone == blueKeyZone);
     }
 
@@ -72,13 +72,13 @@ public class WolfQuestWelcomeToWulfsburg extends ZQuest {
         int numInZone = Utils.filter(game.getBoard().getAllCharacters(), new Utils.Filter<ZCharacter>() {
             @Override
             public boolean keep(ZCharacter object) {
-                return object.getOccupiedZone() == exitZone;
+                return object.getOccupiedZone() == getExitZone();
             }
         }).size();
         return new Table(getName())
                 .addRow(new Table().setNoBorder()
-                        .addRow("", "Use the Towers for cover for ranged attacks on enemies")
-                        .addRow("1.", "Collect all Objectives", String.format("%d of %d", getNumStartRedObjectives()-redObjectives.size(), getNumStartRedObjectives()))
+                        .addRow("", "Use the Towers for cover to execute ranged attacks on enemies")
+                        .addRow("1.", "Collect all Objectives", String.format("%d of %d", getNumFoundObjectives(), getNumStartRedObjectives()))
                         .addRow("2.", "Find the BLUE objective hidden among RED objectives for a random vault item.", blueKeyZone < 0)
                         .addRow("3.", "Find the GREEN objective hidden among RED objectives for a random vault item.", greenKeyZone < 0)
                         .addRow("4.", "Get all players into the EXIT zone.", String.format("%d of %d", numInZone, totalChars))
@@ -106,13 +106,13 @@ public class WolfQuestWelcomeToWulfsburg extends ZQuest {
     @Override
     public int getPercentComplete(ZGame game) {
         int numTasks = getNumStartRedObjectives() + game.getAllCharacters().size();
-        int numCompleted = getNumStartRedObjectives() - redObjectives.size();
+        int numCompleted = getNumFoundObjectives();
         for (ZPlayerName c : game.getAllCharacters()) {
-            if (c.getCharacter().getOccupiedZone() == exitZone)
+            if (c.getCharacter().getOccupiedZone() == getExitZone())
                 numCompleted++;
         }
         int percentCompleted = numCompleted*100 / numTasks;
-        if (game.getBoard().getZombiesInZone(exitZone).size() > 0)
+        if (game.getBoard().getZombiesInZone(getExitZone()).size() > 0)
             percentCompleted --;
         return percentCompleted;
     }

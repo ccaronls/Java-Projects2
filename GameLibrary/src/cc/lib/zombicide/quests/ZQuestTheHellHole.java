@@ -106,7 +106,7 @@ public class ZQuestTheHellHole extends ZQuest {
                 .addRow(new Table().setNoBorder()
                         .addRow("1.", "Destroy all spawn zones OUTSIDE the HELLHOLE (Red area). This requires waiting for Necromancers to spawn, killing them, then removing the spawns outside of the hellhole.", String.format("%d of %d", numStartObjSpawns-objSpawns.size(), numStartObjSpawns))
                         .addRow("2.", "Set the Hellhole ablaze using dragon bile AFTER the spawn objectives completed.", hellholeBurnt)
-                        .addRow("3.", "The RED Objectives give EXP and a Dragon Bile to the player that takes it.", String.format("%d Left", redObjectives.size()))
+                        .addRow("3.", "The RED Objectives give EXP and a Dragon Bile to the player that takes it.", String.format("%d Left", getRedObjectives().size()))
                 );
     }
 

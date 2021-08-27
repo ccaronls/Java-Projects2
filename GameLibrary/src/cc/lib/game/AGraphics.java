@@ -134,6 +134,16 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     /**
      *
      * @param text
+     * @param pos
+     * @return
+     */
+    public final GDimension drawString(String text, IVector2D pos) {
+        return drawJustifiedString(pos.getX(), pos.getY(), Justify.LEFT, Justify.TOP, text);
+    }
+
+    /**
+     *
+     * @param text
      * @param x
      * @param y
      * @return
@@ -142,7 +152,17 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
         return drawAnnotatedString(text, x,y, Justify.LEFT);
     }
 
-   /**
+    /**
+     *
+     * @param text
+     * @param pos
+     * @return
+     */
+    public final GDimension drawAnnotatedString(String text, IVector2D pos) {
+        return drawAnnotatedString(text, pos.getX(), pos.getY(), Justify.LEFT);
+    }
+
+    /**
     * Annotated string can have annotations in the string (ala html) to control color, underline etc.
     *
     * annotated color pattern:
@@ -195,7 +215,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      *
      * @param height
      */
-    public abstract void setTextHeight(float height);
+    public abstract float setTextHeight(float height);
 
     /**
      * 

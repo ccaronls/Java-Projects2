@@ -26,7 +26,6 @@ public class ZZone extends Reflector<ZZone> implements IShape {
 
     private ZZoneType type = ZZoneType.OUTDOORS;
     private int noiseLevel = 0;
-    private ZSpawnType spawnType = ZSpawnType.NONE;
     private boolean dragonBile;
     private boolean objective;
     private int nextCell = 0;
@@ -143,26 +142,10 @@ public class ZZone extends Reflector<ZZone> implements IShape {
         return objective;
     }
 
-    public ZSpawnType getSpawnType() {
-        return spawnType;
-    }
-
-    public void setSpawnType(ZSpawnType spawnType) {
-        this.spawnType = spawnType;
-    }
-
-    public boolean isSpawn() {
-        switch (spawnType) {
-            case NECRO:
-            case NORMAL:
-                return true;
-        }
-        return false;
-    }
-
     public int getNextCellAndIncrement() {
         int next = nextCell;
         nextCell = (nextCell+1) % cells.size();
         return next;
     }
+
 }

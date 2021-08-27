@@ -23,11 +23,11 @@ public abstract class ZQuest extends Reflector<ZQuest> {
     }
 
     private final ZQuests quest;
-    protected int exitZone = -1;
+    private int exitZone = -1;
     private Map<Integer, List<ZEquipment>> vaultMap = new HashMap<>();
     private List<ZEquipment> vaultItemsRemaining = null;
     private int numFoundVaultItems = 0;
-    protected List<Integer> redObjectives = new ArrayList<>();
+    private List<Integer> redObjectives = new ArrayList<>();
     private int numStartRedObjectives = 0;
 
     protected ZQuest(ZQuests quest) {
@@ -42,6 +42,22 @@ public abstract class ZQuest extends Reflector<ZQuest> {
 
     public ZQuests getQuest() {
         return quest;
+    }
+
+    public int getExitZone() {
+        return exitZone;
+    }
+
+    public int getNumUnfoundObjectives() {
+        return redObjectives.size();
+    }
+
+    public int getNumFoundObjectives() {
+        return getNumStartRedObjectives() - redObjectives.size();
+    }
+
+    public List<Integer> getRedObjectives() {
+        return redObjectives;
     }
 
     public List<ZEquipmentType> getAllVaultOptions() {
@@ -71,6 +87,11 @@ public abstract class ZQuest extends Reflector<ZQuest> {
         cell.setCellType(type, true);
         cell.vaultFlag = vaultFlag;
         setCellWall(grid, pos, getDirectionForEnvironment(cell.environment), wallFlag);
+    }
+
+    protected void setSpawnArea(ZCell cell, ZSpawnArea area) {
+        Utils.assertTrue(cell.numSpawns == 0);
+        cell.spawns[cell.numSpawns++] = area;
     }
 
     protected void loadCmd(Grid<ZCell> grid, Grid.Pos pos, String cmd) {
@@ -162,16 +183,16 @@ public abstract class ZQuest extends Reflector<ZQuest> {
                 break;
             case "sp":
             case "spn":
-                cell.setCellType(ZCellType.SPAWN_NORTH, true);
+                setSpawnArea(cell, new ZSpawnArea(pos, ZDir.NORTH));
                 break;
             case "sps":
-                cell.setCellType(ZCellType.SPAWN_SOUTH, true);
+                setSpawnArea(cell, new ZSpawnArea(pos, ZDir.SOUTH));
                 break;
             case "spe":
-                cell.setCellType(ZCellType.SPAWN_EAST, true);
+                setSpawnArea(cell, new ZSpawnArea(pos, ZDir.EAST));
                 break;
             case "spw":
-                cell.setCellType(ZCellType.SPAWN_WEST, true);
+                setSpawnArea(cell, new ZSpawnArea(pos, ZDir.WEST));
                 break;
             case "st":
             case "start":
@@ -264,9 +285,10 @@ public abstract class ZQuest extends Reflector<ZQuest> {
                     loadCmd(grid, pos, cmd);
                     // make sure outer perimeter has walls
                 }
-                if (cell.isCellType(ZCellType.EXIT))
+                if (cell.isCellType(ZCellType.EXIT)) {
+                    Utils.assertTrue(exitZone < 0, "Multiple EXIT zones not supported");
                     exitZone = cell.zoneIndex;
-                if (row == 0) {
+                } if (row == 0) {
                     loadCmd(grid, pos, "wn");
                 } else if (row == map.length-1) {
                     loadCmd(grid, pos, "ws");
@@ -412,6 +434,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
             for (ZEquipmentType et : getAllVaultOptions()) {
                 vaultItemsRemaining.add(et.create());
             }
+            Utils.shuffle(vaultItemsRemaining);
         }
         return vaultItemsRemaining;
     }
@@ -479,7 +502,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
         game.gameLost("Necromancer Escaped");
     }
 
-    public boolean isWolfBurg() {
+    public final boolean isWolfBurg() {
         return quest.isWolfburg();
     }
 

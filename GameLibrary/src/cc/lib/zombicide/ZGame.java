@@ -279,20 +279,6 @@ public class ZGame extends Reflector<ZGame>  {
                     switch (type) {
                         case START:
                             startCells.add(cell);
-                            // position all the characters here
-                            for (ZUser u : users) {
-                                for (ZPlayerName pl : u.getCharacters()) {
-                                    ZCharacter c = pl.create();
-                                    c.occupiedZone = cell.zoneIndex;
-                                    board.addActor(c, cell.zoneIndex, null);
-                                }
-                            }
-                            break;
-                        case SPAWN_NORTH:
-                        case SPAWN_SOUTH:
-                        case SPAWN_EAST:
-                        case SPAWN_WEST:
-                            zone.setSpawnType(ZSpawnType.NORMAL);
                             break;
                         case OBJECTIVE_BLACK:
                         case OBJECTIVE_RED:
@@ -311,10 +297,12 @@ public class ZGame extends Reflector<ZGame>  {
             }
         }
         // position all the characters here
+        board.removeCharacters();
         int curCellIndex = 0;
         for (ZUser u : users) {
             for (ZPlayerName pl : u.getCharacters()) {
                 ZCharacter c = pl.create();
+                c.setColor(u.getColor());
                 ZCell cell = startCells.get(curCellIndex);
                 curCellIndex = (curCellIndex+1) % startCells.size();
                 c.occupiedZone = cell.zoneIndex;
@@ -356,10 +344,12 @@ public class ZGame extends Reflector<ZGame>  {
                         continue;
                     case Abomination:
                         name = ZZombieType.Fatty;
+                        count *= 2;
                         continue;
                     case Fatty:
                     case Runner:
                         name = ZZombieType.Walker;
+                        count *= 2;
                         continue;
                 }
             }
@@ -372,15 +362,11 @@ public class ZGame extends Reflector<ZGame>  {
         log.debug("spawn zombies %s X %d in zone %d", type, count, zone);
         if (count > 0 && type.canDoubleSpawn && spawnMultiplier > 1) {
             log.debug("**** Spawn multiplier applied %d", spawnMultiplier);
+            addLogMessage("Spawn Multiplier X " + spawnMultiplier + " Applied");
             count *= spawnMultiplier;
             spawnMultiplier = 1;
         }
-        int numCurrent = Utils.filter(board.getAllZombies(), new Utils.Filter<ZZombie>() {
-            @Override
-            public boolean keep(ZZombie object) {
-                return object.type == type;
-            }
-        }).size();
+        int numCurrent = Utils.filter(board.getAllZombies(), object -> object.type == type).size();
         int max = quest.getMaxNumZombiesOfType(type);
 
         log.debug("Num current %ss = %d with a max of %d", type, numCurrent, max);
@@ -392,7 +378,7 @@ public class ZGame extends Reflector<ZGame>  {
             ZZombie zombie = new ZZombie(type, zone);
             switch (zombie.type) {
                 case Necromancer: {
-                    board.setSpawnZone(zone, true);
+                    board.setSpawnZone(zone, ZIcon.SPAWN_GREEN, false, false, true);
                     spawnZombies(zone);
                 }
             }
@@ -539,8 +525,7 @@ public class ZGame extends Reflector<ZGame>  {
                 // highest skill level of any remaining players
                 ZSkillLevel highestSkill = getHighestSkillLevel();
                 for (int zIdx=0; zIdx<board.getNumZones(); zIdx++) {
-                    ZZone z = board.getZone(zIdx);
-                    if (z.isSpawn()) {
+                    if (board.isZoneSpawnable(zIdx)) {
                         spawnZombies(zIdx, highestSkill);
                     }
                 }
@@ -799,8 +784,7 @@ public class ZGame extends Reflector<ZGame>  {
                             } else {
                                 if (path == null) {
                                     if (zombie.getType() == ZZombieType.Necromancer) {
-                                        ZZone z = board.getZone(zombie.getOccupiedZone());
-                                        if (z.getSpawnType() == ZSpawnType.NORMAL) {
+                                        if (isZoneEscapableForNecromancers(zombie.getOccupiedZone())) {
                                             // necromancer is escaping!
                                             zombie.performAction(ZActionType.MOVE, this);
                                             onNecromancerEscaped(zombie);
@@ -862,23 +846,23 @@ public class ZGame extends Reflector<ZGame>  {
                 return false;
             }
 
-            case PLAYER_STAGE_CHOOSE_ZONE_TO_REMOVE_SPAWN: {
-                List<Integer> zones = new ArrayList<>();
-                for (ZZone zone : board.getZones()) {
-                    if (zone.isSpawn()) {
-                        zones.add(zone.getZoneIndex());
-                    }
+            case PLAYER_STAGE_CHOOSE_SPAWN_AREA_TO_REMOVE: {
+                List<ZSpawnArea> areas = new ArrayList<>();
+                for (ZCell cell : board.getCells()) {
+                    areas.addAll(Utils.filter(cell.getSpawnAreas(), a -> a.getRect() != null && a.isCanBeRemovedFromBoard()));
                 }
 
-                if (zones.size() > 0) {
+                if (areas.size() > 0) {
                     ZPlayerName cur = getCurrentCharacter();
-                    Integer zIdx = user.chooseZoneToRemoveSpawn(cur, zones);
+                    Integer zIdx = user.chooseSpawnAreaToRemove(cur, areas);
                     if (zIdx != null) {
-                        board.getZone(zIdx).setSpawnType(ZSpawnType.NONE);
+                        board.removeSpawn(areas.get(zIdx));
                         onCharacterDestroysSpawn(cur, zIdx);
                         popState();
                         return true;
                     }
+                } else {
+                    popState();
                 }
 
                 return false;
@@ -949,17 +933,37 @@ public class ZGame extends Reflector<ZGame>  {
         log.info("%s placed dragon bile in zone %d", c, zone);
     }
 
+    boolean isZoneEscapableForNecromancers(int zoneIdx) {
+        ZZone zone = board.getZone(zoneIdx);
+        for (Grid.Pos pos : zone.getCells()) {
+            for (ZSpawnArea area : board.getCell(pos).getSpawnAreas()) {
+                if (area.isEscapableForNecromancers())
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    boolean canZoneSpawnNecromancers(int zoneIdx) {
+        ZZone zone = board.getZone(zoneIdx);
+        for (Grid.Pos pos : zone.getCells()) {
+            for (ZSpawnArea area : board.getCell(pos).getSpawnAreas()) {
+                if (area.isCanSpawnNecromancers())
+                    return true;
+            }
+        }
+        return false;
+    }
+
     public List<ZDir> getZombiePathTowardNearestSpawn(ZZombie zombie) {
         Map<Integer, List<ZDir>> pathsMap = new HashMap<>();
         Integer shortestPath = null;
-        for (ZZone zone : board.getZones()) {
-            if (zone.getSpawnType() == ZSpawnType.NORMAL) {
-                List<List<ZDir>> paths = board.getShortestPathOptions(zombie.occupiedCell, zone.getZoneIndex());
-                if (paths.size() > 0) {
-                    pathsMap.put(zone.getZoneIndex(), paths.get(0));
-                    if (shortestPath == null || paths.size() < pathsMap.get(shortestPath).size()) {
-                        shortestPath = zone.getZoneIndex();
-                    }
+        for (ZZone zone : Utils.filter(board.getZones(), z -> isZoneEscapableForNecromancers(z.getZoneIndex()))) {
+            List<List<ZDir>> paths = board.getShortestPathOptions(zombie.occupiedCell, zone.getZoneIndex());
+            if (paths.size() > 0) {
+                pathsMap.put(zone.getZoneIndex(), paths.get(0));
+                if (shortestPath == null || paths.size() < pathsMap.get(shortestPath).size()) {
+                    shortestPath = zone.getZoneIndex();
                 }
             }
         }
@@ -982,9 +986,7 @@ public class ZGame extends Reflector<ZGame>  {
             }
         }
 
-        if (targetZone >= 0)
-            log.info("%s can see players with noise level %d in zone %d and walking toward it.", zombie.name(), maxNoise, targetZone);
-        else {
+        if (targetZone < 0) {
             // move to noisiest zone
             for (int zone=0; zone < board.getNumZones(); zone++) {
                 int noiseLevel = board.getZone(zone).getNoiseLevel();
@@ -993,7 +995,6 @@ public class ZGame extends Reflector<ZGame>  {
                     targetZone = zone;
                 }
             }
-            log.info("%s cannot see any players so moving toward loudest sound %d in zone %d.", zombie.name(), maxNoise, targetZone);
         }
 
         if (targetZone >= 0) {
@@ -1877,7 +1878,7 @@ public class ZGame extends Reflector<ZGame>  {
         for (ZUser u : users) {
             for (ZPlayerName c : u.getCharacters()) {
                 ZSkillLevel lvl = c.character.getSkillLevel();
-                if (best == null || best.compareTo(lvl) > 0) {
+                if (best == null || best.compareTo(lvl) < 0) {
                     best = lvl;
                 }
             }
@@ -1974,7 +1975,7 @@ public class ZGame extends Reflector<ZGame>  {
         onZombieDestroyed(killer.getPlayerName(), deathType, zombie);
         board.removeActor(zombie);
         if (zombie.getType() == ZZombieType.Necromancer) {
-            pushState(ZState.PLAYER_STAGE_CHOOSE_ZONE_TO_REMOVE_SPAWN, killer.getPlayerName());
+            pushState(ZState.PLAYER_STAGE_CHOOSE_SPAWN_AREA_TO_REMOVE, killer.getPlayerName());
         }
     }
 
@@ -2028,10 +2029,10 @@ public class ZGame extends Reflector<ZGame>  {
     }
 
     private void spawnZombies(int zoneIdx, ZSkillLevel level) {
-        boolean isSpawnZone = board.getZone(zoneIdx).isSpawn();
-        ZSpawnCard card = ZSpawnCard.drawSpawnCard(quest.isWolfBurg(), isSpawnZone, difficulty);
+        //ZSpawnArea spawnType = quest.getSpawnType(this, board.getZone(zoneIdx));
+        ZSpawnCard card = ZSpawnCard.drawSpawnCard(quest.isWolfBurg(), canZoneSpawnNecromancers(zoneIdx), difficulty);
         log.debug("Draw spawn card: " + card);
-        ZSpawnCard.Action action = card.getAction(level.getColor());
+        ZSpawnCard.Action action = card.getAction(level.getDifficultyColor());
         switch (action.action) {
             case NOTHING_IN_SIGHT:
                 break;

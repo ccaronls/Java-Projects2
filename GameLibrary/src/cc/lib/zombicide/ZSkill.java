@@ -228,7 +228,12 @@ public enum ZSkill implements IButton {
     Plus1_max_Range("The Survivor’s Ranged weapons and Combat spells’ maximum Range is increased by 1.") {
         @Override
         public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game, int targetZone) {
-            stat.maxRange++;
+            switch (actionType) {
+                case BOLTS:
+                case ARROWS:
+                case MAGIC:
+                    stat.maxRange++;
+            }
         }
     },
     Plus1_Zone_per_Move("The Survivor can move through one extra Zone each time he performs a Move Action. This Skill stacks with other effects benefiting Move Actions. Entering a Zone containing Zombies ends the Survivor’s Move Action.") {

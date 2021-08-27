@@ -105,7 +105,7 @@ public class ZQuestDeadTrail extends ZQuest {
     @Override
     public int getPercentComplete(ZGame game) {
         int numTasks = getNumStartRedObjectives() + NUM_VAULT_ITEMS + 1;
-        int numComplete = getNumStartRedObjectives() - redObjectives.size();
+        int numComplete = getNumFoundObjectives();
         numComplete += getNumFoundVaultItems();
         if (isAllPlayersInExit(game))
             numComplete ++;
@@ -123,8 +123,8 @@ public class ZQuestDeadTrail extends ZQuest {
     @Override
     public void init(ZGame game) {
         while (greenKeyZone == blueKeyZone) {
-            greenKeyZone = Utils.randItem(redObjectives);
-            blueKeyZone = Utils.randItem(redObjectives);
+            greenKeyZone = Utils.randItem(getRedObjectives());
+            blueKeyZone = Utils.randItem(getRedObjectives());
         }
         game.lockDoor(violetVault1);
         game.lockDoor(violetVault2);
@@ -135,7 +135,7 @@ public class ZQuestDeadTrail extends ZQuest {
     public Table getObjectivesOverlay(ZGame game) {
         return new Table(getName())
                 .addRow(new Table().setNoBorder()
-                    .addRow("1.", "Take all Objectives", String.format("%d of %d", getNumStartRedObjectives()-redObjectives.size(), getNumStartRedObjectives()))
+                    .addRow("1.", "Take all Objectives", String.format("%d of %d", getNumFoundObjectives(), getNumStartRedObjectives()))
                     .addRow("2.", "Key to Violet Vaults is hidden among the RED objectives", blueKeyZone == -1 ? "Found" : "Not Found")
                     .addRow("3.", "Key to Gold Vault is hidden among the RED objectives", greenKeyZone == -1 ? "Found" : "Not Found")
                     .addRow("4.", "Take all vault artifacts", String.format("%d of %d", getNumFoundVaultItems(), NUM_VAULT_ITEMS))

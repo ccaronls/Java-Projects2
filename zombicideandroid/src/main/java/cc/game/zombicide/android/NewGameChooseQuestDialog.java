@@ -30,10 +30,10 @@ class NewGameChooseQuestDialog extends PagerAdapter {
     int firstPage = 0;
     final Dialog dialog;
 
-    NewGameChooseQuestDialog(ZombicideActivity activity, List<ZQuests> quests) {
+    NewGameChooseQuestDialog(ZombicideActivity activity, List<ZQuests> quests, Set<ZQuests> playable) {
         this.activity = activity;
         this.allQuests = quests;
-        this.playable = activity.stats.getCompletedQuests();
+        this.playable = playable;
         for (ZQuests q : allQuests) {
             if (!playable.contains(q)) {
                 playable.add(q);

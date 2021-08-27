@@ -22,7 +22,7 @@ public class ZSkillLevel extends Reflector<ZSkillLevel> implements Comparable<ZS
         this(null, -1);
     }
 
-    private ZSkillLevel(ZColor lvl, int ultra) {
+    ZSkillLevel(ZColor lvl, int ultra) {
         this.color = lvl;
         this.ultra = ultra;
     }
@@ -43,7 +43,7 @@ public class ZSkillLevel extends Reflector<ZSkillLevel> implements Comparable<ZS
 
     @Override
     public int compareTo(ZSkillLevel o) {
-        if (ultra > o.ultra)
+        if (ultra != o.ultra)
             return Integer.compare(ultra, o.ultra);
         return color.compareTo(o.color);
     }
@@ -57,7 +57,9 @@ public class ZSkillLevel extends Reflector<ZSkillLevel> implements Comparable<ZS
             case ORANGE:
                 return new ZSkillLevel(ZColor.RED, ultra);
         }
-        return new ZSkillLevel(ZColor.BLUE, ultra+1);
+        if (ULTRA_RED_MODE)
+            return new ZSkillLevel(ZColor.YELLOW, ultra+1);
+        return new ZSkillLevel(ZColor.RED, ultra);
     }
 
     public static ZSkillLevel getLevel(int expPts) {
@@ -73,16 +75,20 @@ public class ZSkillLevel extends Reflector<ZSkillLevel> implements Comparable<ZS
                 break;
             }
         }
+        if (lvl == ZColor.BLUE && ultra > 0)
+            return new ZSkillLevel(ZColor.RED, ultra-1);
         return new ZSkillLevel(lvl, ultra);
     }
 
     public int getPtsToNextLevel(int curPts) {
         if (ULTRA_RED_MODE) {
-
-        }
-        if (color == ZColor.RED)
+            curPts = curPts % ZColor.RED.dangerPts;
+        } else if (color == ZColor.RED)
             return 0;
-        return ZColor.values()[color.ordinal()+1].dangerPts - curPts;
+        int idx = (color.ordinal()+1)%NUM_LEVELS;
+        if (idx==0)
+            idx++;
+        return ZColor.values()[idx].dangerPts - curPts;
     }
 
     public int getDangerPts() {

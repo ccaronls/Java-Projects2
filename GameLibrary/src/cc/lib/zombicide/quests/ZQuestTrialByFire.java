@@ -34,7 +34,6 @@ public class ZQuestTrialByFire extends ZQuest {
         addAllFields(ZQuestTrialByFire.class);
     }
 
-    int numTotal = 0;
     int blueObjZone = 0;
     ZWeapon blueObjTreasure;
     ZDoor lockedVault;
@@ -100,8 +99,7 @@ public class ZQuestTrialByFire extends ZQuest {
 
     @Override
     public void init(ZGame game) {
-        numTotal = redObjectives.size();
-        blueObjZone = Utils.randItem(redObjectives);
+        blueObjZone = Utils.randItem(getRedObjectives());
     }
 
     @Override
@@ -118,7 +116,7 @@ public class ZQuestTrialByFire extends ZQuest {
             game.giftEquipment(c, blueObjTreasure);
         }
         super.processObjective(game, c, move);
-        if (redObjectives.size() == 0 && game.getBoard().getDoor(lockedVault) == ZWallFlag.LOCKED) {
+        if (getRedObjectives().size() == 0 && game.getBoard().getDoor(lockedVault) == ZWallFlag.LOCKED) {
             game.addLogMessage(c.name() + " has unlocked the Violet Door");
             game.unlockDoor(lockedVault);
         }
@@ -127,7 +125,7 @@ public class ZQuestTrialByFire extends ZQuest {
     @Override
     public void addMoves(ZGame game, ZCharacter cur, List<ZMove> options) {
         super.addMoves(game, cur, options);
-        if (cur.getOccupiedZone() == blueObjZone && !redObjectives.contains(blueObjZone)) {
+        if (cur.getOccupiedZone() == blueObjZone && !getRedObjectives().contains(blueObjZone)) {
             options.add(ZMove.newObjectiveMove(cur.getOccupiedZone()));
         }
     }
@@ -135,13 +133,13 @@ public class ZQuestTrialByFire extends ZQuest {
     @Override
     public Table getObjectivesOverlay(ZGame game) {
         boolean blueObjFound = blueObjZone < 0;
-        int numTaken = numTotal - redObjectives.size();
+        int numTaken = getNumFoundObjectives();
 
         return new Table(getName())
                 .addRow(new Table().setNoBorder()
                         .addRow("1.", "Kill the Abomination.", getPercentComplete(game) == 100)
                         .addRow("2.", "Blue objective hidden among the red objectives gives a random artifact", blueObjFound)
-                        .addRow("3.", "All Dragon Bile hidden in the vault. Vault cannot be opened until all objectives taken.", String.format("%d of %d", numTaken, numTotal))
+                        .addRow("3.", "All Dragon Bile hidden in the vault. Vault cannot be opened until all objectives taken.", String.format("%d of %d", numTaken, getNumStartRedObjectives()))
                 );
     }
 

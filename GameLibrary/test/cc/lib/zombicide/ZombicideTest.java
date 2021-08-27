@@ -42,7 +42,7 @@ public class ZombicideTest extends TestCase {
         ZCharacter ann = null;
         while (ann == null) {
             game.runGame();
-            ann = game.getCurrentCharacter();
+            ann = game.getCurrentCharacter().character;
         }
 
         ZSkillLevel.ULTRA_RED_MODE = true;
@@ -127,5 +127,18 @@ public class ZombicideTest extends TestCase {
         game.loadQuest(ZQuests.Welcome_to_Wulfsberg);
         assertTrue(game.getQuest().isWolfBurg());
         ZSpawnCard.drawSpawnCard(game.getQuest().isWolfBurg(), true, ZDifficulty.HARD);
+    }
+
+    public void testUltraExp() {
+        ZSkillLevel skill = new ZSkillLevel(ZColor.BLUE, 0);
+        int pts = 0;
+        for (int i=0; i<10; i++) {
+            int nextLvl = skill.getPtsToNextLevel(pts);
+            assertTrue(nextLvl > 0);
+            System.out.println("Cur level=" + skill);
+            System.out.println("Next Level=" + nextLvl);
+            pts += nextLvl;
+            skill = skill.nextLevel();
+        }
     }
 }

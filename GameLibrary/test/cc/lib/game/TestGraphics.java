@@ -36,8 +36,8 @@ public class TestGraphics extends APGraphics {
     }
 
     @Override
-    public void setTextHeight(float height) {
-
+    public float setTextHeight(float height) {
+        return 0;
     }
 
     @Override

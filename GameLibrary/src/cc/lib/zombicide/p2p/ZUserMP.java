@@ -10,6 +10,7 @@ import cc.lib.zombicide.ZEquipment;
 import cc.lib.zombicide.ZItem;
 import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZSkill;
+import cc.lib.zombicide.ZSpawnArea;
 import cc.lib.zombicide.ZSpell;
 import cc.lib.zombicide.ZUser;
 import cc.lib.zombicide.ZWeapon;
@@ -195,11 +196,12 @@ public class ZUserMP extends ZUser {
     }
 
     @Override
-    public Integer chooseZoneToRemoveSpawn(ZPlayerName cur, List<Integer> list) {
+    public Integer chooseSpawnAreaToRemove(ZPlayerName cur, List<ZSpawnArea> list) {
         if (connection != null) {
             return connection.executeDerivedOnRemote(USER_ID, true, cur, list);
         }
 
         return null;
     }
+
 }

@@ -1006,7 +1006,6 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
     }
 
     void showSetupPlayersDialog() {
-
     }
 
     void showLegendDialog() {
@@ -1108,12 +1107,12 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
                     public void onClick(DialogInterface dialog, int which) {
                         switch (which) {
                             case 0: // Black Plague
-                                showNewGameChooseQuestDialog(ZQuests.questsBlackPlague());
+                                showNewGameChooseQuestDialog(ZQuests.questsBlackPlague(), stats.getCompletedQuests());
                                 break;
 
                             case 1:
                                 if (isWolfburgUnlocked())
-                                    showNewGameChooseQuestDialog(ZQuests.questsWolfsburg());
+                                    showNewGameChooseQuestDialog(ZQuests.questsWolfsburg(), stats.getCompletedQuests());
                                 else
                                     newDialogBuilder().setTitle("Wolfburg Locked")
                                         .setMessage("Finish last level of Black Plague at Medium difficulty to unlock")
@@ -1126,7 +1125,7 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
                                 break;
 
                             case 2:
-                                showNewGameChooseQuestDialog(Arrays.asList(ZQuests.values()));
+                                showNewGameChooseQuestDialog(Arrays.asList(ZQuests.values()), new HashSet(Arrays.asList(ZQuests.values())));
                                 break;
 
                         }
@@ -1135,83 +1134,8 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
 
     }
 
-    void showNewGameChooseQuestDialog(List<ZQuests> allQuests) {
-        new NewGameChooseQuestDialog(this, allQuests);
-        /*
-        Set<ZQuests> playable = stats.getCompletedQuests();
-        Log.d(TAG, "playable quests: " + playable);
-        //List<ZQuests> allQuests = ZQuests.valuesRelease();
-        int firstPage = 0;
-        for (ZQuests q : allQuests) {
-            if (!playable.contains(q)) {
-                playable.add(q);
-                break;
-            }
-            firstPage = Utils.clamp(firstPage + 1, 0, allQuests.size() - 1);
-        }
-        View view = View.inflate(this, R.layout.viewpager_dialog, null);
-        ViewPager pager = view.findViewById(R.id.view_pager);
-        final Dialog[] dialog = new Dialog[1];
-        pager.setAdapter(new PagerAdapter() {
-            @Override
-            public int getCount() {
-                return allQuests.size();
-            }
-
-            @Override
-            public boolean isViewFromObject(@NonNull View view, @NonNull Object o) {
-                return view == o;
-            }
-
-            @NonNull
-            @Override
-            public Object instantiateItem(@NonNull ViewGroup container, int position) {
-                ZQuests q = allQuests.get(position);
-                View content = View.inflate(ZombicideActivity.this, R.layout.choose_quest_dialog_item, null);
-                TextView title = content.findViewById(R.id.tv_title);
-                TextView body = content.findViewById(R.id.tv_body);
-                ImageView lockedOverlay = content.findViewById(R.id.lockedOverlay);
-
-                title.setText(q.getDisplayName());
-                body.setText(q.getDescription());
-
-                if (playable.contains(q)) {
-                    lockedOverlay.setVisibility(View.INVISIBLE);
-                    content.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            dialog[0].dismiss();
-                            showNewGameDailogChooseDifficulty(q);
-                        }
-                    });
-                } else {
-                    lockedOverlay.setVisibility(View.VISIBLE);
-                    content.setOnClickListener(null);
-                }
-                container.addView(content);
-                return content;
-            }
-
-            @Override
-            public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
-                container.removeView((View) object);
-            }
-        });
-        pager.setCurrentItem(firstPage);
-        dialog[0] = newDialogBuilder().setTitle("Choose Quest")
-                .setView(view).setPositiveButton("Start", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        ZQuests q = allQuests.get(pager.getCurrentItem());
-                        if (playable.contains(q)) {
-                            showNewGameDailogChooseDifficulty(q);
-                        } else {
-                            Toast.makeText(ZombicideActivity.this, "Quest Locked", Toast.LENGTH_LONG).show();
-                        }
-                    }
-                }).show();
-
-         */
+    void showNewGameChooseQuestDialog(List<ZQuests> allQuests, Set<ZQuests> playable) {
+        new NewGameChooseQuestDialog(this, allQuests, playable);
     }
 
     void showNewGameDailogChooseDifficulty(ZQuests quest) {
@@ -1429,7 +1353,7 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
         initMenuItems(buttons);
 
         if (isMyTurn()) {
-            List<ZMove> moves = options == null ? Collections.emptyList() : (List)Utils.filter(new ArrayList(options), option -> option instanceof ZMove);
+            List<ZMove> moves = options == null ? Collections.emptyList() : (List)Utils.filter(options, option -> option instanceof ZMove);
             List<ZMoveType> types = Utils.map(moves, option->option.type);
 
             bLH.setVisibility(isHandMoveAvailable(ZEquipSlot.LEFT_HAND, types) ? View.VISIBLE : View.INVISIBLE);

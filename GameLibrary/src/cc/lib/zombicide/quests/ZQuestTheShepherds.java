@@ -22,7 +22,6 @@ public class ZQuestTheShepherds extends ZQuest {
 
     int greenSpawnZone=-1;
     int blueSpawnZone=-1;
-    int numTotal=0;
 
     @Override
     public ZBoard loadBoard() {
@@ -54,7 +53,7 @@ public class ZQuestTheShepherds extends ZQuest {
 
     @Override
     public int getPercentComplete(ZGame game) {
-        return (getNumStartRedObjectives() - redObjectives.size()) * 100 / getNumStartRedObjectives();
+        return getNumFoundObjectives() * 100 / getNumStartRedObjectives();
     }
 
     @Override
@@ -71,19 +70,17 @@ public class ZQuestTheShepherds extends ZQuest {
 
     @Override
     public void init(ZGame game) {
-        numTotal = redObjectives.size();
         while (blueSpawnZone == greenSpawnZone) {
-            blueSpawnZone = Utils.randItem(redObjectives);
-            greenSpawnZone = Utils.randItem(redObjectives);
+            blueSpawnZone = Utils.randItem(getRedObjectives());
+            greenSpawnZone = Utils.randItem(getRedObjectives());
         }
     }
 
     @Override
     public Table getObjectivesOverlay(ZGame game) {
-        int numTaken = numTotal - redObjectives.size();
         return new Table(getName()).addRow(
                 new Table().setNoBorder()
-                    .addRow("Rescue the townsfolk by claiming\nall of the objectives.\nSome townsfolk are infected.", String.format("%d of %d", numTaken, numTotal))
+                    .addRow("Rescue the townsfolk by claiming\nall of the objectives.\nSome townsfolk are infected.", String.format("%d of %d", getNumFoundObjectives(), getNumStartRedObjectives()))
         );
     }
 }

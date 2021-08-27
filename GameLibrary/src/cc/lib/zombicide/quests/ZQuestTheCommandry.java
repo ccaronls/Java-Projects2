@@ -113,8 +113,8 @@ public class ZQuestTheCommandry extends ZQuest {
     @Override
     public void init(ZGame game) {
         while (greenDoorKeyZone == blueDoorKeyZone) {
-            greenDoorKeyZone = Utils.randItem(redObjectives);
-            blueDoorKeyZone = Utils.randItem(redObjectives);
+            greenDoorKeyZone = Utils.randItem(getRedObjectives());
+            blueDoorKeyZone = Utils.randItem(getRedObjectives());
         }
         game.getBoard().setDoorLocked(blueDoor);
         game.getBoard().setDoorLocked(greenDoor);

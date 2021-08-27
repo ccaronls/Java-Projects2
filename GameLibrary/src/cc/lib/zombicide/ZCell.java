@@ -5,6 +5,7 @@ import java.util.List;
 
 import cc.lib.game.GRectangle;
 import cc.lib.game.IRectangle;
+import cc.lib.game.Utils;
 import cc.lib.utils.Reflector;
 
 public class ZCell extends Reflector<ZCell> implements IRectangle {
@@ -16,6 +17,8 @@ public class ZCell extends Reflector<ZCell> implements IRectangle {
 
     static {
         addAllFields(ZCell.class);
+
+        Utils.assertTrue(ZCellType.values().length < 32, "Bit flag can only handle 32 values");
     }
 
     private ZWallFlag[] walls = { ZWallFlag.NONE, ZWallFlag.NONE, ZWallFlag.NONE, ZWallFlag.NONE, ZWallFlag.WALL, ZWallFlag.WALL };
@@ -28,6 +31,8 @@ public class ZCell extends Reflector<ZCell> implements IRectangle {
     boolean discovered=false;
     float scale = 1;
     private ZActor [] occupied = new ZActor[ZCellQuadrant.values().length];
+    ZSpawnArea [] spawns = new ZSpawnArea[2];
+    int numSpawns = 0;
 
     public ZCell() {
         this(-1,-1);
@@ -66,8 +71,12 @@ public class ZCell extends Reflector<ZCell> implements IRectangle {
         return vaultFlag;
     }
 
-    public boolean isCellType(ZCellType type) {
-        return (1 << type.ordinal() & cellFlag) != 0;
+    public boolean isCellType(ZCellType ... types) {
+        for (ZCellType t : types) {
+            if ((1 << t.ordinal() & cellFlag) != 0)
+                return true;
+        }
+        return false;
     }
 
     public boolean isCellTypeEmpty() {
@@ -83,6 +92,12 @@ public class ZCell extends Reflector<ZCell> implements IRectangle {
             cellFlag |= 1<<type.ordinal();
         } else {
             cellFlag &= ~(1<<type.ordinal());
+        }
+    }
+
+    public void clearCellTypes(ZCellType ... types) {
+        for (ZCellType t : types) {
+            cellFlag &= ~(1 << t.ordinal());
         }
     }
 
@@ -180,5 +195,22 @@ public class ZCell extends Reflector<ZCell> implements IRectangle {
         return true;
     }
 
+    public int getNumSpawns() {
+        return numSpawns;
+    }
 
+    public final List<ZSpawnArea> getSpawnAreas() {
+        return Utils.toList(0, numSpawns, spawns);
+    }
+
+    void removeSpawn(ZDir dir) {
+        Utils.assertTrue(numSpawns > 0);
+        if (spawns[0].getDir() == dir) {
+            spawns[0] = spawns[--numSpawns];
+        } else {
+            Utils.assertTrue(numSpawns > 1);
+            Utils.assertTrue(spawns[1].getDir() == dir);
+            spawns[--numSpawns] = null;
+        }
+    }
 }

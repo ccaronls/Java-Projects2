@@ -135,11 +135,14 @@ public abstract class DroidGraphics extends APGraphics {
     }
 
     @Override
-    public final void setTextHeight(float height) {
-        if (textModePixels)
+    public final float setTextHeight(float height) {
+        float curHeight = textPaint.getTextSize();
+        if (textModePixels) {
             textPaint.setTextSize(height);
-        else
-            textPaint.setTextSize(convertDipsToPixels(height));
+            return curHeight;
+        }
+        textPaint.setTextSize(convertDipsToPixels(height));
+        return convertPixelsToDips(curHeight);
     }
 
     @Override
@@ -589,7 +592,6 @@ public abstract class DroidGraphics extends APGraphics {
     @Override
     public final AImage getImage(int id, int width, int height) {
         throw new RuntimeException("Not Implemented");
-
     }
 
     @Override

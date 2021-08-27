@@ -242,7 +242,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
     public List<ZSpell> getSpells() {
         List<ZSpell> spells = (List)Utils.filterItems(object -> object instanceof ZSpell, leftHand, rightHand, body);
         if (availableSkills.contains(ZSkill.Spellbook)) {
-            spells.addAll((List)Utils.filter(new ArrayList<>(backpack), object -> object.isEnchantment()));
+            spells.addAll((List)Utils.filter(backpack, object -> object.isEnchantment()));
         }
         return spells;
     }
@@ -609,7 +609,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
         if (body != null && body.isMagic())
             slots.add((ZWeapon)body);
         if (availableSkills.contains(ZSkill.Spellbook)) {
-            slots.addAll((List)Utils.filter(new ArrayList<>(backpack), object -> object.isMagic()));
+            slots.addAll((List)Utils.filter(backpack, object -> object.isMagic()));
         }
         return slots;
     }
@@ -634,9 +634,9 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
         return true;
     }
 
-    public ZWeaponStat getWeaponStat(ZWeapon weapon, ZActionType attackType, ZGame game, int targetZone) {
+    public ZWeaponStat getWeaponStat(ZWeapon weapon, ZActionType actionType, ZGame game, int targetZone) {
         ZWeaponStat stat = null;
-        switch (attackType) {
+        switch (actionType) {
             case MELEE:
                 if (!weapon.isMelee())
                     return null;
@@ -656,9 +656,14 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
             case ARROWS:
                 if (!weapon.isRanged())
                     return null;
-                if (weapon.type.getActionType() != ZActionType.ARROWS)
-                    return null;
-                stat = weapon.type.rangedStats.copy();
+                switch (weapon.type.rangedStats.attackType) {
+                    case RANGED_ARROWS:
+                    case RANGED_THROW:
+                        stat = weapon.type.rangedStats.copy();
+                        break;
+                    default:
+                        return null;
+                }
                 break;
             case BOLTS:
                 if (!weapon.isRanged())
@@ -676,7 +681,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
                 return null;
         }
         for (ZSkill skill : availableSkills) {
-            skill.modifyStat(stat, attackType, this, game, targetZone);
+            skill.modifyStat(stat, actionType, this, game, targetZone);
         }
         if (weapon.slot != ZEquipSlot.BODY && isDualWielding(weapon)) {
             stat.numDice*=2;
@@ -913,14 +918,16 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
     }
 
     protected void drawPedistal(AGraphics g) {
-        float hgt = 0.08f;
+        float hgt = 0.04f;
         GRectangle rect = getRect();
         if (color != null) {
             g.setColor(color.darkened(.5f));
-            g.drawFilledRect(rect.x, rect.y + rect.h - hgt / 4, rect.w, hgt);
-            g.drawFilledOval(rect.x, rect.y + rect.h + hgt / 4, rect.w, hgt);
+            float x = rect.x + 0.02f;
+            float w = rect.w - 0.04f;
+            g.drawFilledRect(x, rect.y + rect.h - hgt / 4, w, hgt);
+            g.drawFilledOval(x, rect.y + rect.h + hgt / 4, w, hgt);
             g.setColor(color);
-            g.drawFilledOval(rect.x, rect.y + rect.h - hgt / 2, rect.w, hgt);
+            g.drawFilledOval(x, rect.y + rect.h - hgt / 2, w, hgt);
         }
 
     }

@@ -20,7 +20,6 @@ import cc.lib.game.Justify;
 import cc.lib.game.Utils;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
-import cc.lib.utils.GException;
 
 public class AWTGraphics extends APGraphics {
 
@@ -120,10 +119,12 @@ public class AWTGraphics extends APGraphics {
     }
 
     @Override
-    public final void setTextHeight(float height) {
+    public final float setTextHeight(float height) {
+        float oldHeight = currentFontHeight;
         Font newFont = g.getFont().deriveFont(height);
         g.setFont(newFont);
         currentFontHeight = Math.round(height);
+        return oldHeight;
     }
 
     private TextStyle [] existingStyle = new TextStyle[0];
@@ -462,6 +463,7 @@ public class AWTGraphics extends APGraphics {
         if (tintSave != null) {
             setColor(tintSave);
             g.setPaintMode();
+            tintSave = null;
         }
     }
 

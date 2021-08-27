@@ -46,7 +46,7 @@ public class ZSpawnCard {
     public static Action NECROMANCER = new Action(ActionType.SPAWN, 1, ZZombieType.Necromancer);
 
     private final String name;
-    private final boolean wolfzburf;
+    private final boolean wolfburg;
     private final int easyCount;
     private final int mediumCount;
     private final int hardCount;
@@ -54,7 +54,7 @@ public class ZSpawnCard {
 
     private ZSpawnCard(String name, boolean wolfzburf, int easyCount, int mediumCount, int hardCount, Action...actions) {
         this.name = name;
-        this.wolfzburf = wolfzburf;
+        this.wolfburg = wolfzburf;
         this.easyCount = easyCount;
         this.mediumCount = mediumCount;
         this.hardCount = hardCount;
@@ -114,10 +114,10 @@ public class ZSpawnCard {
             new ZSpawnCard("Double Spawn!", false, 0, 1, 2,
                     DOUBLE_SPAWN, DOUBLE_SPAWN, DOUBLE_SPAWN, DOUBLE_SPAWN),
 
-            new ZSpawnCard("Extra Activation!", false, 0, 1, 2,
+            new ZSpawnCard("Extra Activation!", false, 0, 3, 6,
                     NOTHING_IN_SIGHT, EXTRA_ACTIVATION, EXTRA_ACTIVATION, EXTRA_ACTIVATION),
 
-            new ZSpawnCard("Zombie Wolfz Invasion", true, 1, 3, 5,
+            new ZSpawnCard("Zombie Wolfz Invasion", true, 1, 2, 3,
                     NOTHING_IN_SIGHT,
                     new Action(ActionType.SPAWN, 1, ZZombieType.Wolfbomination),
                     new Action(ActionType.SPAWN, 1, ZZombieType.Wolfbomination),
@@ -129,14 +129,14 @@ public class ZSpawnCard {
                     new Action(ActionType.SPAWN, 5, ZZombieType.Wolfz)),
     };
 
-    public static ZSpawnCard drawSpawnCard(boolean wolfzburg, boolean spawnZone, ZDifficulty difficulty) {
+    public static ZSpawnCard drawSpawnCard(boolean wolfburg, boolean canSpawnNecromancers, ZDifficulty difficulty) {
         int [] weights = new int[cards.length];
 
         for (int i=0; i<cards.length; i++) {
             ZSpawnCard card = cards[i];
-            if (!wolfzburg && card.wolfzburf)
+            if (!wolfburg && card.wolfburg)
                 continue;
-            if (spawnZone && cards[i].actions[0] == NECROMANCER)
+            if (cards[i].actions[0] == NECROMANCER && !canSpawnNecromancers)
                 continue; // dont spawn necromancers in spawn zones, only in buildings
             switch (difficulty) {
                 case EASY:
@@ -173,7 +173,7 @@ public class ZSpawnCard {
     public String toString() {
         return "ZSpawnCard{" +
                 "name='" + name + '\'' +
-                ", wolfzburf=" + wolfzburf +
+                ", wolfzburf=" + wolfburg +
                 ", easyCount=" + easyCount +
                 ", mediumCount=" + mediumCount +
                 ", hardCount=" + hardCount +

@@ -22,6 +22,7 @@ public enum ZAttackType {
 
     public ZActionType getActionType() {
         switch (this) {
+            case RANGED_THROW:
             case RANGED_ARROWS:
                 return ZActionType.ARROWS;
             case RANGED_BOLTS:

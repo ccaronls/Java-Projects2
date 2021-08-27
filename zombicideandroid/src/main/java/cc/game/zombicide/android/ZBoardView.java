@@ -132,6 +132,7 @@ public class ZBoardView extends UIComponentView implements UIZComponent<DroidGra
                 { 0,84, 60, 152-84 }, { 60,84,122-60,152-84 }, { 122,84,196-122,152-84 }
         };
 
+        numImages = ZIcon.values().length;
         ZIcon.FIRE.imageIds = g.loadImageCells(R.drawable.zfire_icons, cells);
         publishProgress(++progress);
 
@@ -143,6 +144,7 @@ public class ZBoardView extends UIComponentView implements UIZComponent<DroidGra
                 R.drawable.zclaws5_icon,
                 R.drawable.zclaws6_icon
         };
+        publishProgress(++progress);
 
         ZIcon.SLASH.imageIds = new int[] {
                 R.drawable.zslash1,
@@ -151,61 +153,80 @@ public class ZBoardView extends UIComponentView implements UIZComponent<DroidGra
                 R.drawable.zslash4,
                 R.drawable.zslash5
         };
+        publishProgress(++progress);
 
         int [] ids = ZIcon.DRAGON_BILE.imageIds = new int[8];
         ids[0] = R.drawable.zdragonbile_icon;
         for (int i=1; i<ids.length; i++) {
             int deg = 45*i;
             ids[i] = g.newRotatedImage(ids[0], deg);
-            publishProgress(++progress);
         }
+        publishProgress(++progress);
 
         ids = ZIcon.TORCH.imageIds = new int[8];
         ids[0] = R.drawable.ztorch_icon;
         for (int i=1; i<ids.length; i++) {
             int deg = 45*i;
             ids[i] = g.newRotatedImage(ids[0], deg);
-            publishProgress(++progress);
         }
+        publishProgress(++progress);
 
         ZIcon.SHIELD.imageIds = new int[] {
                 R.drawable.zshield_icon
         };
+        publishProgress(++progress);
 
         ZIcon.SLIME.imageIds = new int[] {
                 R.drawable.zslime_icon
         };
+        publishProgress(++progress);
 
         ZIcon.FIREBALL.imageIds = new int[] {
                 R.drawable.zfireball
         };
+        publishProgress(++progress);
 
         ZIcon.GRAVESTONE.imageIds = new int[] {
                 R.drawable.zgravestone
         };
+        publishProgress(++progress);
 
         ZIcon.PADLOCK.imageIds = new int[] {
                 R.drawable.zpadlock3
         };
+        publishProgress(++progress);
+
         ZIcon.SKULL.imageIds = new int[] {
                 R.drawable.zskull
         };
+        publishProgress(++progress);
 
         ids = ZIcon.ARROW.imageIds = new int[4];
         ids[ZDir.EAST.ordinal()] = R.drawable.zarrow_icon;
         ids[ZDir.WEST.ordinal()] = g.newRotatedImage(R.drawable.zarrow_icon, 180);
-        publishProgress(++progress);
         ids[ZDir.NORTH.ordinal()] = g.newRotatedImage(R.drawable.zarrow_icon, 270);
-        publishProgress(++progress);
         ids[ZDir.SOUTH.ordinal()] = g.newRotatedImage(R.drawable.zarrow_icon, 90);
         publishProgress(++progress);
 
-        ids = ZIcon.SPAWN.imageIds = new int[4];
+        ids = ZIcon.SPAWN_RED.imageIds = new int[4];
         ids[ZDir.NORTH.ordinal()] = R.drawable.zspawn;
         ids[ZDir.SOUTH.ordinal()] = R.drawable.zspawn;
         ids[ZDir.WEST.ordinal()] = g.newRotatedImage(R.drawable.zspawn, 270);
-        publishProgress(++progress);
         ids[ZDir.EAST.ordinal()] = g.newRotatedImage(R.drawable.zspawn, 90);
+        publishProgress(++progress);
+
+        ids = ZIcon.SPAWN_BLUE.imageIds = new int[4];
+        ids[ZDir.NORTH.ordinal()] = R.drawable.zspawn_blue;
+        ids[ZDir.SOUTH.ordinal()] = R.drawable.zspawn_blue;
+        ids[ZDir.WEST.ordinal()] = g.newRotatedImage(R.drawable.zspawn_blue, 270);
+        ids[ZDir.EAST.ordinal()] = g.newRotatedImage(R.drawable.zspawn_blue, 90);
+        publishProgress(++progress);
+
+        ids = ZIcon.SPAWN_GREEN.imageIds = new int[4];
+        ids[ZDir.NORTH.ordinal()] = R.drawable.zspawn_green;
+        ids[ZDir.SOUTH.ordinal()] = R.drawable.zspawn_green;
+        ids[ZDir.WEST.ordinal()] = g.newRotatedImage(R.drawable.zspawn_green, 270);
+        ids[ZDir.EAST.ordinal()] = g.newRotatedImage(R.drawable.zspawn_green, 90);
         publishProgress(++progress);
 
         Log.i("IMAGES", "Loaded total of " + progress);

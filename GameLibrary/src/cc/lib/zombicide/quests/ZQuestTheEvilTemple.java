@@ -120,8 +120,8 @@ public class ZQuestTheEvilTemple extends ZQuest {
     @Override
     public void init(ZGame game) {
         while (blueObjZone == greenObjZone) {
-            blueObjZone = Utils.randItem(redObjectives);
-            greenObjZone = Utils.randItem(redObjectives);
+            blueObjZone = Utils.randItem(getRedObjectives());
+            greenObjZone = Utils.randItem(getRedObjectives());
         }
         game.lockDoor(goldVaultDoor);
         game.lockDoor(violetVaultDoor);
@@ -131,7 +131,7 @@ public class ZQuestTheEvilTemple extends ZQuest {
     public Table getObjectivesOverlay(ZGame game) {
         return new Table(getName())
                 .addRow(new Table().setNoBorder()
-                    .addRow("1.", "Collect all objectives.", String.format("%d of %d", getNumStartRedObjectives()-redObjectives.size(), getNumStartRedObjectives()))
+                    .addRow("1.", "Collect all objectives.", String.format("%d of %d", getNumFoundObjectives(), getNumStartRedObjectives()))
                     .addRow("2.", "Unlock GOLD vault. Key hidden among RED objectives.", greenObjZone==-1)
                     .addRow("3.", "Unlock VIOLET vault. Key hidden among RED objectives.", blueObjZone==-1)
                     .addRow("4.", "Kill the Abomination.", game.getNumKills(ZZombieType.Abomination) > 0)

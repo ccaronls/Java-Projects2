@@ -12,6 +12,7 @@ import cc.lib.zombicide.ZColor;
 import cc.lib.zombicide.ZDir;
 import cc.lib.zombicide.ZDoor;
 import cc.lib.zombicide.ZGame;
+import cc.lib.zombicide.ZIcon;
 import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZQuest;
 import cc.lib.zombicide.ZQuests;
@@ -81,11 +82,11 @@ public class ZQuestTheBlackBook extends ZQuest {
     @Override
     public void init(ZGame game) {
         while (blueObjZone == greenObjZone) {
-            blueObjZone = Utils.randItem(redObjectives);
-            greenObjZone = Utils.randItem(redObjectives);
+            blueObjZone = Utils.randItem(getRedObjectives());
+            greenObjZone = Utils.randItem(getRedObjectives());
         }
         // do this after the above so it does not get mixed in with other objectives. Effect would be player could never access
-        redObjectives.add(blackBookZone);
+        getRedObjectives().add(blackBookZone);
         game.getBoard().setDoorLocked(blueDoor);
         game.getBoard().setDoorLocked(greenDoor);
     }
@@ -103,9 +104,9 @@ public class ZQuestTheBlackBook extends ZQuest {
         }
 
         if (move.integer == greenObjZone) {
-            game.addLogMessage(c.name() + " has unlocked the Green Door. A New Spwn zone has appeared!");
+            game.addLogMessage(c.name() + " has unlocked the Green Door. A New Spawn zone has appeared!");
             game.unlockDoor(greenDoor);
-            game.getBoard().setSpawnZone(greenSpawnZone, true);
+            game.getBoard().setSpawnZone(greenSpawnZone, ZIcon.SPAWN_GREEN, false, false, true);
             game.spawnZombies(greenSpawnZone);
         }
     }

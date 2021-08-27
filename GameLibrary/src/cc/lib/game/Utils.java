@@ -2711,13 +2711,13 @@ public class Utils {
      * @param <O>
      * @return
      */
-    public static <T extends Collection<O>, O> T filter(T collection, Filter<O> filter) {
-        Iterator<O> it = collection.iterator();
-        while (it.hasNext()) {
-            if (!filter.keep(it.next()))
-                it.remove();
+    public static <O> List<O> filter(Collection<O> collection, Filter<O> filter) {
+        List<O> result = new ArrayList<>();
+        for (O o : collection) {
+            if (filter.keep(o))
+                result.add(o);
         }
-        return collection;
+        return result;
     }
 
     /**

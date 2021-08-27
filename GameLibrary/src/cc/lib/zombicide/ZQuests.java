@@ -5,6 +5,8 @@ import java.util.List;
 import cc.lib.annotation.Keep;
 import cc.lib.game.Utils;
 import cc.lib.zombicide.quests.WolfQuestKnowYourEnemy;
+import cc.lib.zombicide.quests.WolfQuestTheAmbush;
+import cc.lib.zombicide.quests.WolfQuestTheEvilTwins;
 import cc.lib.zombicide.quests.ZQuestBigGameHunting;
 import cc.lib.zombicide.quests.ZQuestDeadTrail;
 import cc.lib.zombicide.quests.ZQuestFamine;
@@ -171,7 +173,26 @@ public enum ZQuests {
             "our way to liberate the city. Breaching the inner\n" +
             "city will take time, however, and we’ll need supplies.\n" +
             "Fresh food is scarce, but still to be had."),
-    Know_Your_Enemy(FLAG_WOLFBURG, "Know your Enemy", "")
+    Know_Your_Enemy(FLAG_WOLFBURG, "Know your Enemy", "Wulfsburg sustained some unusual damage,\n" +
+            "as if a civil war had raged inside. In\n" +
+            "some place, people were not killed by zombies but by\n" +
+            "soldiers. We don’t know yet if survivor groups are\n" +
+            "prone to fighting one another here, or if someone\n" +
+            "tried to invade the infested city, killing any\n" +
+            "survivors they ran across in the process. Exploring\n" +
+            "the area could give us a clue.\n" +
+            "Come to think of it, Wulfsburg\n" +
+            "was known for its elven beer. That\n" +
+            "would be a rare treat!"),
+    The_Evil_Twins(FLAG_WOLFBURG, "The Evil Twins", ""),
+    The_Ambush(FLAG_WOLFBURG, "The Ambush", ""),
+    Immortal(FLAG_WOLFBURG, "Immortal", ""),
+    Zombie_Court(FLAG_WOLFBURG, "Zombie Court", ""),
+    Blood_Red(FLAG_WOLFBURG, "Blood Red", ""),
+    The_Ghost_Door(FLAG_WOLFBURG, "The Ghost Door", ""),
+    The_Zombie_Army(FLAG_WOLFBURG, "The Zombie Army", ""),
+    A_Coin_For_The_Ferryman(FLAG_WOLFBURG, "A Coin for the Ferryman", ""),
+
     ;
 
     ZQuests(int flag, String displayName, String description) {
@@ -216,6 +237,22 @@ public enum ZQuests {
                 return new WolfQuestWelcomeToWulfsburg();
             case Know_Your_Enemy:
                 return new WolfQuestKnowYourEnemy();
+            case The_Evil_Twins:
+                return new WolfQuestTheEvilTwins();
+            case The_Ambush:
+                return new WolfQuestTheAmbush();
+            case Immortal:
+                break;
+            case Zombie_Court:
+                break;
+            case Blood_Red:
+                break;
+            case The_Ghost_Door:
+                break;
+            case The_Zombie_Army:
+                break;
+            case A_Coin_For_The_Ferryman:
+                break;
         }
         Utils.assertTrue(false);
         return null;

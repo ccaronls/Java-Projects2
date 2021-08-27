@@ -109,19 +109,33 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
         Object [][] files = {
 
             { ZZombieType.Abomination, "zabomination.png" },
+                { ZZombieType.Abomination, "zabomination_outline.png" },
             { ZZombieType.Necromancer, "znecro.png" },
+                { ZZombieType.Necromancer, "znecro_outline.png" },
             { ZZombieType.Walker, "zwalker1.png" },
+                { ZZombieType.Walker, "zwalker1_outline.png" },
             { ZZombieType.Walker, "zwalker2.png" },
+                { ZZombieType.Walker, "zwalker2_outline.png" },
             { ZZombieType.Walker, "zwalker3.png" },
+                { ZZombieType.Walker, "zwalker3_outline.png" },
             { ZZombieType.Walker, "zwalker4.png" },
+                { ZZombieType.Walker, "zwalker4_outline.png" },
             { ZZombieType.Walker, "zwalker5.png" },
+                { ZZombieType.Walker, "zwalker5_outline.png" },
             { ZZombieType.Runner, "zrunner1.png" },
-            { ZZombieType.Runner, "zrunner1.png" },
+                { ZZombieType.Runner, "zrunner1_outline.png" },
+            { ZZombieType.Runner, "zrunner2.png" },
+                { ZZombieType.Runner, "zrunner2_outline.png" },
             { ZZombieType.Fatty, "zfatty1.png" },
+                { ZZombieType.Fatty, "zfatty1_outline.png" },
             { ZZombieType.Fatty, "zfatty2.png" },
+                { ZZombieType.Fatty, "zfatty2_outline.png" },
             { ZZombieType.Wolfz, "zwulf1.png" },
+                { ZZombieType.Wolfz, "zwulf1_outline.png" },
             { ZZombieType.Wolfz, "zwulf2.png" },
+                { ZZombieType.Wolfz, "zwulf2_outline.png" },
             { ZZombieType.Wolfbomination, "zwolfabom.png" },
+                { ZZombieType.Wolfbomination, "zwolfabom_outline.png" },
 
             { ZPlayerName.Clovis, "zchar_clovis.png" },
             { ZPlayerName.Baldric, "zchar_baldric.png" },
@@ -176,7 +190,9 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
             { ZIcon.SLIME, "zslime_icon.png" },
             { ZIcon.TORCH, "ztorch_icon.png" },
             { ZIcon.ARROW, "zarrow_icon.png" },
-            { ZIcon.SPAWN, "zspawn.png" },
+            { ZIcon.SPAWN_RED, "zspawn.png" },
+            { ZIcon.SPAWN_BLUE, "zspawn_blue.png" },
+            { ZIcon.SPAWN_GREEN, "zspawn_green.png" },
             { ZIcon.SLASH, "zslash1.png" },
             { ZIcon.SLASH, "zslash2.png" },
             { ZIcon.SLASH, "zslash3.png" },
@@ -190,7 +206,7 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
 
         Map<Object, List<Integer>> objectToImageMap = new HashMap<>();
 
-        totalImagesToLoad = files.length + 30;
+        totalImagesToLoad = files.length + ZIcon.values().length;
         for (Object [] entry : files) {
             Object key = entry[0];
             String file = (String)entry[1];
@@ -206,10 +222,16 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
         }
 
         for (ZZombieType type : ZZombieType.values()) {
-            type.imageOptions = Utils.toIntArray(objectToImageMap.get(type));
+//            type.imageOptions = Utils.toIntArray(objectToImageMap.get(type));
+  //          type.imageDims = new GDimension[type.imageOptions.length];
+            List<Integer> ids = objectToImageMap.get(type);
+            type.imageOptions = new int[ids.size()/2];
+            type.imageOutlineOptions = new int[type.imageOptions.length];
             type.imageDims = new GDimension[type.imageOptions.length];
             int idx=0;
-            for (int id : type.imageOptions) {
+            for (int i=0; i<ids.size(); i+=2) {
+                type.imageOptions[idx] = ids.get(i);
+                type.imageOutlineOptions[idx] = ids.get(i+1);
                 type.imageDims[idx] = new GDimension(g.getImage(type.imageOptions[idx]));
                 idx++;
             }
@@ -254,41 +276,51 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
             int eastId = objectToImageMap.get(icon).get(0);
             ids[ZDir.EAST.ordinal()] = eastId;
             ids[ZDir.WEST.ordinal()] = g.createRotatedImage(eastId, 180);
-            numImagesLoaded++;
-            repaint();
             ids[ZDir.NORTH.ordinal()] = g.createRotatedImage(eastId, 270);
-            numImagesLoaded++;
-            repaint();
             ids[ZDir.SOUTH.ordinal()] = g.createRotatedImage(eastId, 90);
+            icon.imageIds = ids;
             numImagesLoaded++;
             repaint();
-            icon.imageIds = ids;
         }
 
+        for (ZIcon icon : Utils.toArray(ZIcon.SPAWN_RED, ZIcon.SPAWN_GREEN, ZIcon.SPAWN_BLUE))
         {
-            ZIcon icon = ZIcon.SPAWN;
             int [] ids = new int[4];
             int northId = objectToImageMap.get(icon).get(0);
             ids[ZDir.NORTH.ordinal()] = northId;
             ids[ZDir.WEST.ordinal()] = g.createRotatedImage(northId, 270);
-            numImagesLoaded++;
-            repaint();
             ids[ZDir.EAST.ordinal()] = g.createRotatedImage(northId, 90);
-            numImagesLoaded++;
-            repaint();
             ids[ZDir.SOUTH.ordinal()] = northId;
             icon.imageIds = ids;
+            numImagesLoaded++;
+            repaint();
         }
 
         {
             ZIcon.CLAWS.imageIds = Utils.toIntArray(objectToImageMap.get(ZIcon.CLAWS));
+            numImagesLoaded++;
+            repaint();
             ZIcon.SHIELD.imageIds = Utils.toIntArray(objectToImageMap.get(ZIcon.SHIELD));
+            numImagesLoaded++;
+            repaint();
             ZIcon.SLIME.imageIds = Utils.toIntArray(objectToImageMap.get(ZIcon.SLIME));
+            numImagesLoaded++;
+            repaint();
             ZIcon.SLASH.imageIds = Utils.toIntArray(objectToImageMap.get(ZIcon.SLASH));
+            numImagesLoaded++;
+            repaint();
             ZIcon.FIREBALL.imageIds = Utils.toIntArray(objectToImageMap.get(ZIcon.FIREBALL));
+            numImagesLoaded++;
+            repaint();
             ZIcon.GRAVESTONE.imageIds = Utils.toIntArray(objectToImageMap.get(ZIcon.GRAVESTONE));
+            numImagesLoaded++;
+            repaint();
             ZIcon.PADLOCK.imageIds = Utils.toIntArray(objectToImageMap.get(ZIcon.PADLOCK));
+            numImagesLoaded++;
+            repaint();
             ZIcon.SKULL.imageIds = Utils.toIntArray(objectToImageMap.get(ZIcon.SKULL));
+            numImagesLoaded++;
+            repaint();
         }
 
         {
@@ -307,6 +339,8 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
         numImagesLoaded = totalImagesToLoad;
         ZombicideApplet.instance.onAllImagesLoaded();
         renderer.setDrawTiles(ZombicideApplet.instance.getStringProperty("tiles", "no").equals("yes"));
+        renderer.setDrawDebugText(ZombicideApplet.instance.getStringProperty("debugText", "no").equals("yes"));
+        renderer.setDrawRangedAccessibility(ZombicideApplet.instance.getStringProperty("rangedAccessibility", "no").equals("yes"));
         repaint();
     }
 
@@ -380,7 +414,22 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
                 renderer.toggleDrawTiles();
                 ZombicideApplet.instance.setStringProperty("tiles", renderer.isDrawTiles() ? "yes" : "no");
                 break;
+
+            case KeyEvent.VK_D:
+                renderer.toggleDrawDebugText();
+                ZombicideApplet.instance.setStringProperty("debugText", renderer.isDrawDebugText() ? "yes" : "no");
+                break;
+
+            case KeyEvent.VK_R:
+                renderer.toggleDrawRangedAccessibility();
+                ZombicideApplet.instance.setStringProperty("rangedAccessibility", renderer.isDrawRangedAccessibility() ? "yes" : "no");
+                break;
         }
         repaint();
+    }
+
+    @Override
+    protected void onMouseWheel(int rotation) {
+        renderer.scroll(0, -5f * rotation);
     }
 }

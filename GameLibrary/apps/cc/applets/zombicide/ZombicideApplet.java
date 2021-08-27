@@ -25,6 +25,7 @@ import javax.swing.JSeparator;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 
+import cc.lib.game.AGraphics;
 import cc.lib.game.GColor;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
@@ -36,6 +37,7 @@ import cc.lib.swing.AWTPanel;
 import cc.lib.swing.AWTToggleButton;
 import cc.lib.ui.IButton;
 import cc.lib.utils.FileUtils;
+import cc.lib.zombicide.ZActor;
 import cc.lib.zombicide.ZDifficulty;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZPlayerName;
@@ -106,7 +108,18 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
     File gameFile = null;
 
     public void onAllImagesLoaded() {
-        game = new UIZombicide(new UIZCharacterRenderer(charComp), new UIZBoardRenderer(boardComp)) {
+        UIZBoardRenderer renderer = new UIZBoardRenderer(boardComp) {
+            @Override
+            protected void drawActor(AGraphics g, ZActor actor, GColor outline) {
+                if (actor.getOutlineImageId() > 0) {
+                    // for AWT to need to render the outline in white fist otherwise the tinting looks messed up
+                    g.drawImage(actor.getOutlineImageId(), actor.getRect());
+                }
+                super.drawActor(g, actor, outline);
+            }
+        };
+
+        game = new UIZombicide(new UIZCharacterRenderer(charComp), renderer) {
 
             @Override
             public boolean runGame() {
@@ -290,7 +303,6 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
                     });
                 }
                 menu.add(new AWTButton("KEEP", e1 -> {
-                    user.clearCharacters();
                     game.clearCharacters();
                     for (Map.Entry<ZPlayerName, AWTToggleButton> entry : buttons.entrySet()) {
                         if (entry.getValue().isSelected()) {
@@ -298,7 +310,6 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
                             user.addCharacter(entry.getKey());
                         }
                     }
-                    game.setUsers(user);
                     game.reload();
                     setEnumListProperty("players", Utils.filter(buttons.keySet(), object -> buttons.get(object).isSelected()));
                     initHomeMenu();
@@ -377,8 +388,8 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
         switch (mode) {
             case NONE:
                 break;
+            case PICK_CHARACTER:
             case PICK_MENU: {
-
                 for (Object o : options) {
                     menu.add(new ZButton((IButton)o));
                 }
@@ -386,9 +397,10 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
                 break;
             }
             case PICK_ZONE:
+            case PICK_SPAWN:
             case PICK_ZOMBIE:
-            case PICK_CHARACTER:
             case PICK_DOOR:
+                break;
         }
 
         JComponent sep = new JSeparator();

@@ -13,112 +13,108 @@ class TestUser extends ZUser {
     }
 
     @Override
-    public void showMessage(String s) {
-        System.out.println(s);
-    }
-
-    @Override
-    public ZCharacter chooseCharacter(List<ZCharacter> options) {
+    public ZPlayerName chooseCharacter(List<ZPlayerName> options) {
         return Utils.randItem(options);
     }
 
     @Override
-    public ZMove chooseMove(ZGame game, ZCharacter cur, List<ZMove> options) {
+    public ZMove chooseMove(ZPlayerName cur, List<ZMove> options) {
         return Utils.randItem(options);
     }
 
     @Override
-    public ZSkill chooseNewSkill(ZGame game, ZCharacter character, List<ZSkill> skillOptions) {
+    public ZSkill chooseNewSkill(ZPlayerName character, List<ZSkill> skillOptions) {
         return Utils.randItem(skillOptions);
     }
 
     @Override
-    public ZEquipSlot chooseSlotToOrganize(ZGame game, ZCharacter cur, List<ZEquipSlot> slots) {
+    public ZEquipSlot chooseSlotToOrganize(ZPlayerName cur, List<ZEquipSlot> slots) {
         return Utils.randItem(slots);
     }
 
     @Override
-    public ZEquipment chooseEquipment(ZGame game, ZCharacter cur, List<ZEquipment> equipOptions) {
+    public ZEquipment chooseEquipment(ZPlayerName cur, List<ZEquipment> equipOptions) {
         return Utils.randItem(equipOptions);
     }
 
     @Override
-    public ZEquipSlot chooseSlotForEquip(ZGame game, ZCharacter cur, List<ZEquipSlot> equipableSlots) {
+    public ZEquipSlot chooseSlotForEquip(ZPlayerName cur, List<ZEquipSlot> equipableSlots) {
         return Utils.randItem(equipableSlots);
     }
 
     @Override
-    public Integer chooseZoneToWalk(ZGame game, ZCharacter cur, List<Integer> zones) {
+    public Integer chooseZoneToWalk(ZPlayerName cur, List<Integer> zones) {
         return Utils.randItem(zones);
     }
 
     @Override
-    public ZDoor chooseDoorToToggle(ZGame game, ZCharacter cur, List<ZDoor> doors) {
+    public ZDoor chooseDoorToToggle(ZPlayerName cur, List<ZDoor> doors) {
         return Utils.randItem(doors);
     }
 
     @Override
-    public ZWeapon chooseWeaponSlot(ZGame game, ZCharacter c, List<ZWeapon> weapons) {
+    public ZWeapon chooseWeaponSlot(ZPlayerName c, List<ZWeapon> weapons) {
         return Utils.randItem(weapons);
     }
 
     @Override
-    public ZCharacter chooseTradeCharacter(ZGame game, ZCharacter c, List<ZCharacter> list) {
+    public ZPlayerName chooseTradeCharacter(ZPlayerName c, List<ZPlayerName> list) {
         return Utils.randItem(list);
     }
 
     @Override
-    public Integer chooseZoneForAttack(ZGame game, ZCharacter c, List<Integer> zones) {
+    public Integer chooseZoneForAttack(ZPlayerName c, List<Integer> zones) {
         return Utils.randItem(zones);
     }
 
     @Override
-    public ZEquipment chooseItemToPickup(ZGame game, ZCharacter cur, List<ZEquipment> list) {
+    public ZEquipment chooseItemToPickup(ZPlayerName cur, List<ZEquipment> list) {
         return Utils.randItem(list);
     }
 
     @Override
-    public ZEquipment chooseItemToDrop(ZGame game, ZCharacter cur, List<ZEquipment> list) {
+    public ZEquipment chooseItemToDrop(ZPlayerName cur, List<ZEquipment> list) {
         return Utils.randItem(list);
     }
 
     @Override
-    public ZItem chooseItemToThrow(ZGame game, ZCharacter cur, List<ZItem> slots) {
+    public ZItem chooseItemToThrow(ZPlayerName cur, List<ZItem> slots) {
         return Utils.randItem(slots);
     }
 
     @Override
-    public Integer chooseZoneToThrowItem(ZGame game, ZCharacter cur, ZItem toThrow, List<Integer> zones) {
+    public Integer chooseZoneToThrowItem(ZPlayerName cur, ZItem toThrow, List<Integer> zones) {
         return Utils.randItem(zones);
     }
 
     @Override
-    public Integer chooseZoneToShove(ZGame game, ZCharacter cur, List<Integer> list) {
+    public Integer chooseZoneToShove(ZPlayerName cur, List<Integer> list) {
         return Utils.randItem(list);
     }
 
     @Override
-    public ZSpell chooseSpell(ZGame game, ZCharacter cur, List<ZSpell> spells) {
+    public ZSpell chooseSpell(ZPlayerName cur, List<ZSpell> spells) {
         return Utils.randItem(spells);
     }
 
     @Override
-    public ZCharacter chooseCharacterForSpell(ZGame game, ZCharacter cur, ZSpell spell, List<ZCharacter> targets) {
+    public ZPlayerName chooseCharacterForSpell(ZPlayerName cur, ZSpell spell, List<ZPlayerName> targets) {
         return Utils.randItem(targets);
     }
 
     @Override
-    public ZCharacter chooseCharacterToBequeathMove(ZGame game, ZCharacter cur, List<ZCharacter> list) {
+    public ZPlayerName chooseCharacterToBequeathMove(ZPlayerName cur, List<ZPlayerName> list) {
         return Utils.randItem(list);
     }
 
     @Override
-    public Integer chooseZoneForBloodlust(ZGame zGame, ZCharacter cur, List<Integer> list) {
+    public Integer chooseZoneForBloodlust(ZPlayerName cur, List<Integer> list) {
         return Utils.randItem(list);
     }
 
     @Override
-    public Integer chooseZoneToRemoveSpawn(ZGame game, ZCharacter cur, List<Integer> list) {
-        return Utils.randItem(list);
+    public Integer chooseSpawnAreaToRemove(ZPlayerName cur, List<ZSpawnArea> list) {
+        int idx = Utils.rand() % list.size();
+        return idx;
     }
 }

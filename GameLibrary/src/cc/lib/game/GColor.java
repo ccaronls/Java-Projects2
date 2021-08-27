@@ -195,13 +195,17 @@ public final class GColor extends Reflector<GColor> {
      */
     public static GColor fromString(String str) throws NumberFormatException {
         try {
-            if (str.startsWith("[") && str.endsWith("]")) {
-                String[] parts = str.substring(1, str.length() - 1).split("[,]");
-                if (parts.length == 3) {
-                    return new GColor(Integer.parseInt(parts[0]), Integer.parseInt(parts[1]), Integer.parseInt(parts[2]));
-                } else if (parts.length == 4) {
-                    return new GColor(Integer.parseInt(parts[1]), Integer.parseInt(parts[2]), Integer.parseInt(parts[3]), Integer.parseInt(parts[0]));
-                }
+            String [] parts;
+            if (str.startsWith("ARGB[") && str.endsWith("]")) {
+                parts = str.substring(5, str.length() - 1).split("[,]");
+            } else if (str.startsWith("[") && str.endsWith("]")) {
+                parts = str.substring(1, str.length() - 1).split("[,]");
+            } else
+                throw new Exception("string '" + str + "' not in form '[(a,)?r,g,b]'");
+            if (parts.length == 3) {
+                return new GColor(Integer.parseInt(parts[0]), Integer.parseInt(parts[1]), Integer.parseInt(parts[2]));
+            } else if (parts.length == 4) {
+                return new GColor(Integer.parseInt(parts[1]), Integer.parseInt(parts[2]), Integer.parseInt(parts[3]), Integer.parseInt(parts[0]));
             }
             throw new Exception("string '" + str + "' not in form '[(a,)?r,g,b]'");
         } catch (NumberFormatException e) {
@@ -213,7 +217,7 @@ public final class GColor extends Reflector<GColor> {
 
     @Override
     public final String toString() {
-        return "[" + alpha() + "," + red() + "," + green() + "," + blue() + "]";
+        return String.format("ARGB[%d,%d,%d,%d]", alpha(), red(), green(), blue());
     }
 
     @Override

@@ -12,10 +12,6 @@ public enum ZCellType {
     OBJECTIVE_BLUE,
     OBJECTIVE_GREEN,
     OBJECTIVE_BLACK,
-    SPAWN_NORTH,
-    SPAWN_SOUTH,
-    SPAWN_EAST,
-    SPAWN_WEST,
     START,
     EXIT,
     WALKER,
@@ -37,4 +33,5 @@ public enum ZCellType {
         }
         return GColor.YELLOW;
     }
+
 }

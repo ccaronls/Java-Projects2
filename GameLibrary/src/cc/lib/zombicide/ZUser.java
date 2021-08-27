@@ -101,5 +101,5 @@ public abstract class ZUser {
 
     public abstract Integer chooseZoneForBloodlust(ZPlayerName cur, List<Integer> list);
 
-    public abstract Integer chooseZoneToRemoveSpawn(ZPlayerName cur, List<Integer> list);
+    public abstract Integer chooseSpawnAreaToRemove(ZPlayerName cur, List<ZSpawnArea> list);
 }

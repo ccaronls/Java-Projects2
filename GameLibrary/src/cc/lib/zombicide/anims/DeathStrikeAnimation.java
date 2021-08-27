@@ -16,7 +16,7 @@ public class DeathStrikeAnimation extends ZActorAnimation {
     static long phaseFadeInDur = 800; // 0
     static long phaseDropDur = 200; // 1
     static long phaseShakeDur = 200; // 2
-    static long phaseRiseDur = 200; // 3
+    static long phaseRiseDur = 300; // 3
     static long phaseFadeOutDur = 400; // 4
 
     static class Phase {

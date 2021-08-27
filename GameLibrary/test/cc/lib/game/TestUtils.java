@@ -92,4 +92,11 @@ public class TestUtils extends TestCase {
         Assert.assertTrue(Arrays.equals(array, new Integer[] { 3,3,3,1,1,1 }));
 
     }
+
+    public void testColorParsing() throws Exception {
+
+        assertEquals(GColor.fromString("[255,0,0,0]"), GColor.BLACK);
+        assertEquals(GColor.fromString("ARGB[255,255,255,255]"), GColor.WHITE);
+
+    }
 }

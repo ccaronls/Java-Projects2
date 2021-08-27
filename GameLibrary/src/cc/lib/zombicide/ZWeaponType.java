@@ -29,7 +29,7 @@ public enum ZWeaponType implements ZEquipmentType<ZWeapon> {
     // MAGIC
     DEATH_STRIKE(ZColor.BLUE, ZActionType.MAGIC, false,true, true, false, null, null, new ZWeaponStat(ZAttackType.MENTAL_STRIKE,0, 0, 1, 1, 4, 2), null),
     // TODO: +1 damage on a die roll 6
-    DISINTEGRATE(ZColor.BLUE, ZActionType.MAGIC, false, true, true, false, null, null, new ZWeaponStat(ZAttackType.DISINTEGRATION,0, 0, 1, 3, 5, 1), null),
+    DISINTEGRATE(ZColor.BLUE, ZActionType.MAGIC, false, true, true, false, null, null, new ZWeaponStat(ZAttackType.DISINTEGRATION,0, 0, 1, 3, 5, 2), null),
     EARTHQUAKE(ZColor.BLUE, ZActionType.MAGIC, false, true, true, false, null, null, new ZWeaponStat(ZAttackType.EARTHQUAKE,0, 0, 1, 3, 4, 1), null),
     FIREBALL(ZColor.BLUE, ZActionType.MAGIC, false, true, true, false, null, null, new ZWeaponStat(ZAttackType.FIRE,0, 0, 1, 3, 4, 1), null),
     MANA_BLAST(ZColor.BLUE, ZActionType.MAGIC, false, true, true, false, null, null, new ZWeaponStat(ZAttackType.MENTAL_STRIKE,0, 0, 2, 1, 4, 1), null),

@@ -4,11 +4,18 @@ import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 import cc.lib.utils.Reflector;
 
-public final class GRectangle extends Reflector<GRectangle> implements IRectangle {
+public class GRectangle extends Reflector<GRectangle> implements IRectangle {
 
     static {
         addAllFields(GRectangle.class);
     }
+
+    public final static GRectangle EMPTY = new GRectangle() {
+        @Override
+        protected boolean isImmutable() {
+            return true;
+        }
+    };
 
     public float x, y, w, h;
 
@@ -143,7 +150,7 @@ public final class GRectangle extends Reflector<GRectangle> implements IRectangl
      * @param pixels
      * @return
      */
-    public GRectangle grownBy(int pixels) {
+    public GRectangle grownBy(float pixels) {
         return new GRectangle(x -pixels/2,y - pixels/2,w + pixels,h + pixels);
     }
 

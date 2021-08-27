@@ -56,13 +56,13 @@ public class ZQuestBigGameHunting extends ZQuest {
         // check for necro / abom in special spawn places
         game.getBoard().getZone(c.getOccupiedZone()).setObjective(false);
         if (move.integer == blueRevealZone) {
-            redObjectives.add(blueObjZone);
+            getRedObjectives().add(blueObjZone);
             game.addLogMessage("The Labratory objective is revealed!");
             game.getBoard().getZone(blueObjZone).setObjective(true);
             game.spawnZombies(1, ZZombieType.Necromancer, blueObjZone);
             blueRevealZone = -1;
         }
-        if (redObjectives.size() == 0 && game.getNumKills(ZZombieType.Abomination) == 0) {
+        if (getRedObjectives().size() == 0 && game.getNumKills(ZZombieType.Abomination) == 0) {
             if (Utils.filter(game.getBoard().getAllZombies(), object -> object.getType()==ZZombieType.Abomination).size() == 0) {
                 // spawn an abomination somewhere far form where all the characters are
                 List<ZZone> spawnZones = game.getBoard().getSpawnZones();
@@ -93,7 +93,7 @@ public class ZQuestBigGameHunting extends ZQuest {
 
     @Override
     public void init(ZGame game) {
-        blueRevealZone = Utils.randItem(redObjectives);
+        blueRevealZone = Utils.randItem(getRedObjectives());
         game.getBoard().getZone(blueObjZone).setObjective(false); // this does not get revealed until the blueRevealZone found
     }
 
@@ -109,7 +109,7 @@ public class ZQuestBigGameHunting extends ZQuest {
 
     @Override
     public Table getObjectivesOverlay(ZGame game) {
-        boolean allObjCollected = redObjectives.size() == 0 && blueRevealZone < 0;
+        boolean allObjCollected = getRedObjectives().size() == 0 && blueRevealZone < 0;
         boolean exposeLaboratory = blueRevealZone < 0;
         boolean necroKilled = game.getNumKills(ZZombieType.Necromancer) > 0;
         boolean abomKilled = game.getNumKills(ZZombieType.Abomination) > 0;
@@ -127,7 +127,7 @@ public class ZQuestBigGameHunting extends ZQuest {
     @Override
     public int getPercentComplete(ZGame game) {
         int numTasks = getNumStartRedObjectives() + 2;
-        int numCompleted = getNumStartRedObjectives() - redObjectives.size();
+        int numCompleted = getNumFoundObjectives();
         if (skipKillAbomination || game.getNumKills(ZZombieType.Abomination) > 0)
             numCompleted++;
         if (game.getNumKills(ZZombieType.Necromancer) > 0)

@@ -93,6 +93,7 @@ public enum ZZombieType {
     public float getScale() {
         switch (this) {
             case Abomination:
+            case Wolfbomination:
                 return 1.8f;
         }
         return 1;

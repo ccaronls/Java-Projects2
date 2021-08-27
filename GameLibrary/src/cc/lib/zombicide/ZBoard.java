@@ -53,7 +53,7 @@ public class ZBoard extends Reflector<ZBoard> implements IDimension {
         return zones.size();
     }
 
-    Iterable<ZZone> getZones() {
+    List<ZZone> getZones() {
         return zones;
     }
 
@@ -360,10 +360,27 @@ public class ZBoard extends Reflector<ZBoard> implements IDimension {
         zone.doors.add(door);
     }
 
-    public void setSpawnZone(int zoneIdx, boolean isSpawn) {
+    public void setSpawnZone(int zoneIdx, ZIcon icon, final boolean canSpawnNecromancers, boolean isEscapableForNecromancers, boolean canBeRemovedFromBoard) {
         ZZone zone = zones.get(zoneIdx);
-        zone.setSpawnType(isSpawn ? ZSpawnType.NECRO : ZSpawnType.NONE);
-        getCell(zone.cells.get(0)).setCellType(ZCellType.SPAWN_NORTH, true);
+        // find a cell in the zone without a spawn
+        for (Grid.Pos pos : zone.getCells()) {
+            ZCell cell = getCell(pos);
+            if (cell.numSpawns == 0) {
+                cell.spawns[cell.numSpawns++] = new ZSpawnArea(pos, icon, ZDir.NORTH, canSpawnNecromancers, isEscapableForNecromancers, canBeRemovedFromBoard);
+                return;
+            }
+        }
+
+        // we are adding a spawn to a cell that already has one 'GAH!' don't allow more than 2 in one cell and they
+        // should be located across from each other
+        for (Grid.Pos pos : zone.getCells()) {
+            ZCell cell = getCell(pos);
+            if (cell.numSpawns < 2) {
+                ZDir newDir = cell.spawns[0].getDir().getOpposite();
+                cell.spawns[cell.numSpawns++] = new ZSpawnArea(pos, icon, newDir, canSpawnNecromancers, isEscapableForNecromancers, canBeRemovedFromBoard);;
+                break;
+            }
+        }
     }
 
     public int getMaxNoiseLevel() {
@@ -675,11 +692,25 @@ public class ZBoard extends Reflector<ZBoard> implements IDimension {
     }
 
     public List<ZZone> getZonesOfType(ZZoneType type) {
-        return Utils.filter(new ArrayList<>(zones), object -> object.getType() == type);
+        return Utils.filter(zones, object -> object.getType() == type);
     }
 
     public List<ZZone> getSpawnZones() {
-        return Utils.filter(new ArrayList<>(zones), object -> object.isSpawn());
+        return Utils.filter(zones, object -> isZoneSpawnable(object.getZoneIndex()));
     }
 
+    public boolean isZoneSpawnable(int zoneIndex) {
+        ZZone zone = getZone(zoneIndex);
+        for (Grid.Pos pos : zone.getCells()) {
+            ZCell cell = getCell(pos);
+            if (cell.numSpawns > 0)
+                return true;
+        }
+        return false;
+    }
+
+    void removeSpawn(ZSpawnArea spawn) {
+        ZCell cell = getCell(spawn.getCellPos());
+        cell.removeSpawn(spawn.getDir());
+    }
 }

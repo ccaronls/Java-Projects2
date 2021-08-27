@@ -16,6 +16,7 @@ import cc.lib.zombicide.ZDoor;
 import cc.lib.zombicide.ZEquipment;
 import cc.lib.zombicide.ZEquipmentType;
 import cc.lib.zombicide.ZGame;
+import cc.lib.zombicide.ZIcon;
 import cc.lib.zombicide.ZItemType;
 import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZQuest;
@@ -48,7 +49,6 @@ public class ZQuestTutorial extends ZQuest {
     }
 
     ZDoor blueDoor=null, greenDoor=null;
-    int numRedZones = 0;
     int greenSpawnZone=-1;
     int blueKeyZone=-1;
     int greenKeyZone=-1;
@@ -85,7 +85,7 @@ public class ZQuestTutorial extends ZQuest {
             blueKeyZone = -1;
         } else if (move.integer == greenKeyZone) {
             game.unlockDoor(greenDoor);
-            game.getBoard().setSpawnZone(greenSpawnZone, true);
+            game.getBoard().setSpawnZone(greenSpawnZone, ZIcon.SPAWN_GREEN, false, true, true);
             game.spawnZombies(greenSpawnZone);
             game.addLogMessage(c.name() + " has unlocked the GREEN door");
             game.addLogMessage(c.name() + " has created a new spawn zone!");
@@ -103,11 +103,10 @@ public class ZQuestTutorial extends ZQuest {
 
     @Override
     public void init(ZGame game) {
-        greenKeyZone = Utils.randItem(redObjectives);
+        greenKeyZone = Utils.randItem(getRedObjectives());
         game.getBoard().setDoorLocked(blueDoor);
         game.getBoard().setDoorLocked(greenDoor);
-        redObjectives.add(blueKeyZone); // call this after putting the greenKeyRandomly amongst the red objectives
-        numRedZones = redObjectives.size();
+        getRedObjectives().add(blueKeyZone); // call this after putting the greenKeyRandomly amongst the red objectives
     }
 
     @Override
@@ -130,17 +129,12 @@ public class ZQuestTutorial extends ZQuest {
     @Override
     public Table getObjectivesOverlay(ZGame game) {
         int totalChars = game.getAllCharacters().size();
-        int numInZone = Utils.filter(game.getBoard().getAllCharacters(), new Utils.Filter<ZCharacter>() {
-            @Override
-            public boolean keep(ZCharacter object) {
-                return object.getOccupiedZone() == exitZone;
-            }
-        }).size();
+        int numInZone = Utils.filter(game.getBoard().getAllCharacters(), object -> object.getOccupiedZone() == getExitZone()).size();
         return new Table(getName())
                 .addRow(new Table().setNoBorder()
                     .addRow("1.", "Unlock the BLUE Door.", game.getBoard().getDoor(blueDoor) != ZWallFlag.LOCKED)
                     .addRow("2.", "Unlock the GREEN Door. GREEN key hidden among RED objectives.", game.getBoard().getDoor(greenDoor) != ZWallFlag.LOCKED)
-                    .addRow("3.", String.format("Collect all Objectives for %d EXP Each", OBJECTIVE_EXP), String.format("%d of %d", numRedZones- redObjectives.size(), numRedZones))
+                    .addRow("3.", String.format("Collect all Objectives for %d EXP Each", OBJECTIVE_EXP), String.format("%d of %d", getNumFoundObjectives(), getNumStartRedObjectives()))
                     .addRow("4.", "Get all players into the EXIT zone.", String.format("%d of %d", numInZone, totalChars))
                     .addRow("5.", "Exit zone must be cleared of zombies.")
                     .addRow("6.", "All Players must survive.")
@@ -151,13 +145,13 @@ public class ZQuestTutorial extends ZQuest {
     @Override
     public int getPercentComplete(ZGame game) {
         int numTasks = getNumStartRedObjectives() + game.getAllCharacters().size();
-        int numCompleted = getNumStartRedObjectives() - redObjectives.size();
+        int numCompleted = getNumFoundObjectives();
         for (ZCharacter c : game.getBoard().getAllCharacters()) {
-            if (c.getOccupiedZone() == exitZone)
+            if (c.getOccupiedZone() == getExitZone())
                 numCompleted++;
         }
         int percentCompleted = numCompleted*100 / numTasks;
-        if (game.getBoard().getZombiesInZone(exitZone).size() > 0)
+        if (game.getBoard().getZombiesInZone(getExitZone()).size() > 0)
             percentCompleted --;
         return percentCompleted;
     }

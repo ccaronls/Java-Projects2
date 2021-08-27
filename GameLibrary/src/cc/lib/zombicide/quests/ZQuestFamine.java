@@ -171,7 +171,7 @@ public class ZQuestFamine extends ZQuest {
 
     @Override
     public void init(ZGame game) {
-        blueKeyZone = Utils.randItem(redObjectives);
+        blueKeyZone = Utils.randItem(getRedObjectives());
     }
 
     @Override
