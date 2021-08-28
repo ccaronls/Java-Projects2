@@ -69,6 +69,15 @@ public final class Grid<T> extends Reflector<Grid<T>> {
         public static Pos fromIndex(int index) {
             return new Pos(index >>> 16, index & 0xffff);
         }
+
+        public boolean isAdjacentTo(Pos pos) {
+            if (row == pos.getRow()) {
+                return Math.abs(col-pos.getColumn()) == 1;
+            } else if (col == pos.getColumn()) {
+                return Math.abs(row - pos.getRow()) == 1;
+            }
+            return false;
+        }
     }
 
     public static class Iterator<T> implements java.util.Iterator<T> {

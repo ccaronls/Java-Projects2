@@ -376,12 +376,15 @@ public class ZGame extends Reflector<ZGame>  {
                 break;
             numCurrent++;
             ZZombie zombie = new ZZombie(type, zone);
+            quest.onZombieSpawned(this, zombie, zone);
+            /*
+            // This part moved to quest since we want custom logic
             switch (zombie.type) {
                 case Necromancer: {
                     board.setSpawnZone(zone, ZIcon.SPAWN_GREEN, false, false, true);
                     spawnZombies(zone);
                 }
-            }
+            }*/
             if (board.addActor(zombie, zone, null))
                 onZombieSpawned(zombie);
         }

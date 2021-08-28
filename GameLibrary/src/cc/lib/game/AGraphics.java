@@ -1495,6 +1495,15 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     }
 
     /**
+     *
+     * @param r
+     * @param thickness
+     */
+    public void drawOval(IRectangle r, float thickness) {
+        drawOval(r.X(), r.Y(), r.getWidth(), r.getHeight(), thickness);
+    }
+
+    /**
      * 
      * @param x
      * @param y

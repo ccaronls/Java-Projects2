@@ -147,7 +147,9 @@ public interface IRectangle extends IDimension, IShape {
      * @return
      */
     default float getRadius() {
-        return Math.min(getWidth(), getHeight()) / 2;
+        double w = getWidth();
+        double h = getHeight();
+        return (float)Math.sqrt(w*w + h*h)/2;
     }
 
 }

@@ -10,11 +10,11 @@ public class ZSpawnArea extends Reflector<ZSpawnArea> {
         addAllFields(ZSpawnArea.class);
     }
 
-    private final ZIcon icon;
+    private ZIcon icon;
     private final ZDir dir;
-    private final boolean canSpawnNecromancers;
-    private final boolean isEscapableForNecromancers;
-    private final boolean canBeRemovedFromBoard;
+    private boolean canSpawnNecromancers;
+    private boolean isEscapableForNecromancers;
+    private boolean canBeRemovedFromBoard;
     private GRectangle rect = null;
     private final Grid.Pos cellPos;
 
@@ -56,7 +56,7 @@ public class ZSpawnArea extends Reflector<ZSpawnArea> {
         this.rect = rect;
     }
 
-    Grid.Pos getCellPos() {
+    public Grid.Pos getCellPos() {
         return cellPos;
     }
 
@@ -70,5 +70,21 @@ public class ZSpawnArea extends Reflector<ZSpawnArea> {
 
     public boolean isCanBeRemovedFromBoard() {
         return canBeRemovedFromBoard;
+    }
+
+    public void setIcon(ZIcon icon) {
+        this.icon = icon;
+    }
+
+    public void setCanSpawnNecromancers(boolean canSpawnNecromancers) {
+        this.canSpawnNecromancers = canSpawnNecromancers;
+    }
+
+    public void setEscapableForNecromancers(boolean escapableForNecromancers) {
+        isEscapableForNecromancers = escapableForNecromancers;
+    }
+
+    public void setCanBeRemovedFromBoard(boolean canBeRemovedFromBoard) {
+        this.canBeRemovedFromBoard = canBeRemovedFromBoard;
     }
 }

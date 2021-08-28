@@ -25,8 +25,8 @@ public class ZBoard extends Reflector<ZBoard> implements IDimension {
         addAllFields(ZBoard.class);
     }
 
-    private Grid<ZCell> grid;
-    private List<ZZone> zones;
+    private Grid<ZCell> grid = new Grid<>();
+    private List<ZZone> zones = Collections.emptyList();
 
     public ZBoard() {
 

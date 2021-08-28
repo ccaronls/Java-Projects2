@@ -4,6 +4,7 @@ import java.util.List;
 
 import cc.lib.annotation.Keep;
 import cc.lib.game.Utils;
+import cc.lib.zombicide.quests.WolfQuestImmortal;
 import cc.lib.zombicide.quests.WolfQuestKnowYourEnemy;
 import cc.lib.zombicide.quests.WolfQuestTheAmbush;
 import cc.lib.zombicide.quests.WolfQuestTheEvilTwins;
@@ -287,7 +288,7 @@ public enum ZQuests {
             case The_Ambush:
                 return new WolfQuestTheAmbush();
             case Immortal:
-                break;
+                return new WolfQuestImmortal();
             case Zombie_Court:
                 break;
             case Blood_Red:

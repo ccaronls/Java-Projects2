@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cc.lib.game.AGraphics;
+import cc.lib.game.GColor;
+import cc.lib.game.GRectangle;
 import cc.lib.game.Utils;
 import cc.lib.utils.Grid;
 import cc.lib.utils.Table;
@@ -21,6 +23,7 @@ import cc.lib.zombicide.ZSpawnArea;
 import cc.lib.zombicide.ZTile;
 import cc.lib.zombicide.ZWeaponType;
 import cc.lib.zombicide.ZZombieType;
+import cc.lib.zombicide.ZZone;
 
 /**
  * Created by Chris Caron on 8/24/21.
@@ -132,8 +135,15 @@ public class WolfQuestTheAmbush extends ZQuest {
     @Override
     public void drawQuest(ZGame game, AGraphics g) {
         super.drawQuest(game, g);
-        for (int zone : occupyZones) {
-
+        for (int zIdx : occupyZones) {
+            ZZone zone = game.getBoard().getZone(zIdx);
+            GRectangle rect = zone.getRectangle().scaledBy(.25f, .25f);
+            g.setColor(GColor.GREEN);//.withAlpha(.5f));
+            g.drawLine(rect.getTopLeft(), rect.getBottomRight(), 10);
+            g.drawLine(rect.getTopRight(), rect.getBottomLeft(), 10);
+            if (Utils.filter(game.getBoard().getActorsInZone(zIdx), a -> a instanceof ZCharacter).size() > 0) {
+                g.drawCircle(rect.getCenter(), rect.getRadius(), 10);
+            }
         }
     }
 
