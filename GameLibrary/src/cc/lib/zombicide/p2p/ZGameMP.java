@@ -7,11 +7,13 @@ import cc.lib.net.GameClient;
 import cc.lib.net.GameServer;
 import cc.lib.zombicide.ZActionType;
 import cc.lib.zombicide.ZActor;
+import cc.lib.zombicide.ZActorPosition;
 import cc.lib.zombicide.ZAttackType;
 import cc.lib.zombicide.ZDir;
 import cc.lib.zombicide.ZDoor;
 import cc.lib.zombicide.ZEquipment;
 import cc.lib.zombicide.ZGame;
+import cc.lib.zombicide.ZIcon;
 import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZSkill;
 import cc.lib.zombicide.ZWeapon;
@@ -92,9 +94,9 @@ public class ZGameMP extends ZGame {
     }
 
     @Override
-    protected void onCharacterDefends(ZPlayerName cur) {
+    protected void onCharacterDefends(ZPlayerName cur, ZActorPosition position) {
         if (server != null) {
-            server.broadcastExecuteOnRemote(GAME_ID, cur);
+            server.broadcastExecuteOnRemote(GAME_ID, cur, position);
         }
     }
 
@@ -113,23 +115,16 @@ public class ZGameMP extends ZGame {
     }
 
     @Override
-    protected void onCharacterAttacked(ZPlayerName character, ZAttackType attackType, boolean characterPerished) {
+    protected void onCharacterAttacked(ZPlayerName character, ZActorPosition attackerPosition, ZAttackType attackType, boolean characterPerished) {
         if (server != null) {
-            server.broadcastExecuteOnRemote(GAME_ID, character, attackType, characterPerished);
+            server.broadcastExecuteOnRemote(GAME_ID, character, attackerPosition, attackType, characterPerished);
         }
     }
 
     @Override
-    protected void onTorchThrown(ZPlayerName c, int zone) {
+    protected void onEquipmentThrown(ZPlayerName c, ZIcon icon, int zone) {
         if (server != null) {
-            server.broadcastExecuteOnRemote(GAME_ID, c, zone);
-        }
-    }
-
-    @Override
-    protected void onDragonBileThrown(ZPlayerName c, int zone) {
-        if (server != null) {
-            server.broadcastExecuteOnRemote(GAME_ID, c, zone);
+            server.broadcastExecuteOnRemote(GAME_ID, c, icon, zone);
         }
     }
 
@@ -297,9 +292,16 @@ public class ZGameMP extends ZGame {
     }
 
     @Override
-    protected void onReaperKill(ZPlayerName c, ZZombie z, ZWeapon w, ZActionType at) {
+    protected void onSkillKill(ZPlayerName c, ZSkill skill, ZZombie z, ZAttackType attackType) {
         if (server != null) {
-            server.broadcastExecuteOnRemote(GAME_ID, c, z, w, at);
+            server.broadcastExecuteOnRemote(GAME_ID, c, skill, z, attackType);
+        }
+    }
+
+    @Override
+    protected void onRollSixApplied(ZPlayerName c, ZSkill skill) {
+        if (server != null) {
+            server.broadcastExecuteOnRemote(GAME_ID, c, skill);
         }
     }
 

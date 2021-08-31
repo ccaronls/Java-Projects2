@@ -101,17 +101,17 @@ public class ZCell extends Reflector<ZCell> implements IRectangle {
         }
     }
 
-    public ZActor getOccupants(ZCellQuadrant quadrant) {
+    public ZActor getOccupant(ZCellQuadrant quadrant) {
         return occupied[quadrant.ordinal()];
     }
 
     ZActor setQuadrant(ZActor actor, ZCellQuadrant quadrant) {
-        ZActor previous = getOccupants(quadrant);
+        ZActor previous = getOccupant(quadrant);
         occupied[quadrant.ordinal()] = actor;
         return previous;
     }
 
-    public Iterable<ZActor> getOccupants() {
+    public Iterable<ZActor> getOccupant() {
         List<ZActor> occupants = new ArrayList<>();
         for (ZCellQuadrant q : ZCellQuadrant.valuesForRender()) {
             occupants.add(occupied[q.ordinal()]);

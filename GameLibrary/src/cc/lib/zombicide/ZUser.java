@@ -87,9 +87,9 @@ public abstract class ZUser {
 
     public abstract ZEquipment chooseItemToDrop(ZPlayerName cur, List<ZEquipment> list);
 
-    public abstract ZItem chooseItemToThrow(ZPlayerName cur, List<ZItem> slots);
+    public abstract ZEquipment chooseEquipmentToThrow(ZPlayerName cur, List<ZEquipment> slots);
 
-    public abstract Integer chooseZoneToThrowItem(ZPlayerName cur, ZItem toThrow, List<Integer> zones);
+    public abstract Integer chooseZoneToThrowEquipment(ZPlayerName cur, ZEquipment toThrow, List<Integer> zones);
 
     public abstract Integer chooseZoneToShove(ZPlayerName cur, List<Integer> list);
 
@@ -102,4 +102,6 @@ public abstract class ZUser {
     public abstract Integer chooseZoneForBloodlust(ZPlayerName cur, List<Integer> list);
 
     public abstract Integer chooseSpawnAreaToRemove(ZPlayerName cur, List<ZSpawnArea> list);
+
+    public abstract Integer chooseZoneToIgnite(ZPlayerName playerName, List<Integer> ignitableZones);
 }

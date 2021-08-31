@@ -1,7 +1,8 @@
 package cc.lib.zombicide;
 
-import cc.lib.game.Utils;
+import cc.lib.annotation.Keep;
 
+@Keep
 public enum ZAttackType {
     NORMAL,
     FIRE,
@@ -18,23 +19,5 @@ public enum ZAttackType {
 
     public boolean needsReload() {
         return this == RANGED_BOLTS;
-    }
-
-    public ZActionType getActionType() {
-        switch (this) {
-            case RANGED_THROW:
-            case RANGED_ARROWS:
-                return ZActionType.ARROWS;
-            case RANGED_BOLTS:
-                return ZActionType.BOLTS;
-            case BLADE:
-            case CRUSH:
-                return ZActionType.MELEE;
-            case EARTHQUAKE:
-            case MENTAL_STRIKE:
-                return ZActionType.MAGIC;
-        }
-        Utils.unhandledCase(this);
-        return null;
     }
 }

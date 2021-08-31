@@ -1,7 +1,9 @@
 package cc.lib.zombicide;
 
 import cc.lib.game.AGraphics;
+import cc.lib.game.GColor;
 import cc.lib.game.GDimension;
+import cc.lib.game.Justify;
 import cc.lib.game.Utils;
 import cc.lib.utils.Table;
 
@@ -122,6 +124,17 @@ public final class ZZombie extends ZActor<ZZombieType> implements Comparable<ZZo
             return false; // zombies are done once they attack
         }
         return super.performAction(action, game);
+    }
+
+    @Override
+    public void draw(AGraphics g) {
+        super.draw(g);
+        if (actionsLeftThisTurn > 1) {
+            g.setColor(GColor.WHITE);
+            float oldHgt = g.setTextHeight(10);
+            g.drawJustifiedString(getRect().getCenterBottom(), Justify.CENTER, Justify.BOTTOM, String.valueOf(actionsLeftThisTurn));
+            g.setTextHeight(oldHgt);
+        }
     }
 }
 

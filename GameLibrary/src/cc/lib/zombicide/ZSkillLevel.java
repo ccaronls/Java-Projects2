@@ -1,10 +1,8 @@
 package cc.lib.zombicide;
 
-import cc.lib.annotation.Keep;
 import cc.lib.game.Utils;
 import cc.lib.utils.Reflector;
 
-@Keep
 public class ZSkillLevel extends Reflector<ZSkillLevel> implements Comparable<ZSkillLevel> {
 
     static {

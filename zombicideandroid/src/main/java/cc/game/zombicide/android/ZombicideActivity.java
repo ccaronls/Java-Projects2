@@ -70,6 +70,7 @@ import cc.lib.utils.FileUtils;
 import cc.lib.utils.Reflector;
 import cc.lib.zombicide.ZActionType;
 import cc.lib.zombicide.ZActor;
+import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZDifficulty;
 import cc.lib.zombicide.ZDir;
 import cc.lib.zombicide.ZEquipSlot;
@@ -1292,7 +1293,7 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
     public void initHomeMenu() {
         buttonsGrid.setVisibility(View.GONE);
         List<View> buttons = new ArrayList<>();
-        for (MenuItem i : Utils.filterItems(object -> object.isHomeButton(ZombicideActivity.this), MenuItem.values())) {
+        for (MenuItem i : Utils.filter(MenuItem.values(), object -> object.isHomeButton(ZombicideActivity.this))) {
             buttons.add(ZButton.build(this, i, i.isEnabled(this)));
         }
         initMenuItems(buttons);
@@ -1309,29 +1310,36 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
     }
 
     boolean isHandMoveAvailable(ZEquipSlot slot, List<ZMoveType> types) {
-        ZActionType lhAC = game.getSlotActionType(slot);
-        switch (lhAC) {
-            case THROW_ITEM:
-                if (types.contains(ZMoveType.THROW_ITEM))
-                    return true;
-                break;
-            case ARROWS:
-            case BOLTS:
-                if (types.contains(ZMoveType.RANGED_ATTACK))
-                    return true;
-                break;
-            case MELEE:
-                if (types.contains(ZMoveType.MELEE_ATTACK))
-                    return true;
-                break;
-            case MAGIC:
-                if (types.contains(ZMoveType.MAGIC_ATTACK))
-                    return true;
-                break;
-            case ENCHANTMENT:
-                if (types.contains(ZMoveType.ENCHANT))
-                    return true;
-                break;
+        if (game.getCurrentCharacter() == null)
+            return false;
+
+        ZCharacter ch = game.getCurrentCharacter().getCharacter();
+
+        for (ZActionType ac : Utils.toArray(ZActionType.THROW_ITEM, ZActionType.RANGED, ZActionType.MELEE, ZActionType.MAGIC, ZActionType.ENCHANTMENT)) {
+            if (ch.getSlot(slot).getType().isActionType(ac)) {
+                switch (ac) {
+                    case THROW_ITEM:
+                        if (types.contains(ZMoveType.THROW_ITEM))
+                            return true;
+                        break;
+                    case RANGED:
+                        if (types.contains(ZMoveType.RANGED_ATTACK))
+                            return true;
+                        break;
+                    case MELEE:
+                        if (types.contains(ZMoveType.MELEE_ATTACK))
+                            return true;
+                        break;
+                    case MAGIC:
+                        if (types.contains(ZMoveType.MAGIC_ATTACK))
+                            return true;
+                        break;
+                    case ENCHANTMENT:
+                        if (types.contains(ZMoveType.ENCHANT))
+                            return true;
+                        break;
+                }
+            }
         }
         return false;
     }
@@ -1347,7 +1355,7 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
                 buttons.add(new ListSeparator(this));
                 break;
         }
-        for (MenuItem i : Utils.filterItems(object -> object.isGameButton(ZombicideActivity.this), MenuItem.values())) {
+        for (MenuItem i : Utils.filter(MenuItem.values(), object -> object.isGameButton(ZombicideActivity.this))) {
             buttons.add(ZButton.build(this, i, i.isEnabled(this)));
         }
         initMenuItems(buttons);

@@ -18,7 +18,8 @@ public enum ZIcon {
     FIREBALL,
     GRAVESTONE,
     PADLOCK,
-    SKULL
+    SKULL,
+    DAGGER
     ;
 
     public int [] imageIds;

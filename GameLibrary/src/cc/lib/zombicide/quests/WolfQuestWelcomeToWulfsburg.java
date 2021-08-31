@@ -69,12 +69,7 @@ public class WolfQuestWelcomeToWulfsburg extends ZQuest {
     @Override
     public Table getObjectivesOverlay(ZGame game) {
         int totalChars = game.getAllCharacters().size();
-        int numInZone = Utils.filter(game.getBoard().getAllCharacters(), new Utils.Filter<ZCharacter>() {
-            @Override
-            public boolean keep(ZCharacter object) {
-                return object.getOccupiedZone() == getExitZone();
-            }
-        }).size();
+        int numInZone = Utils.count(game.getBoard().getAllCharacters(), object -> object.getOccupiedZone() == getExitZone());
         return new Table(getName())
                 .addRow(new Table().setNoBorder()
                         .addRow("", "Use the Towers for cover to execute ranged attacks on enemies")
@@ -119,7 +114,7 @@ public class WolfQuestWelcomeToWulfsburg extends ZQuest {
 
     @Override
     public String getQuestFailedReason(ZGame game) {
-        if (Utils.filter(game.getAllCharacters(), object -> object.getCharacter().isDead()).size() > 0) {
+        if (Utils.count(game.getAllCharacters(), object -> object.getCharacter().isDead()) > 0) {
             return "Not all players survived.";
         }
         return super.getQuestFailedReason(game);

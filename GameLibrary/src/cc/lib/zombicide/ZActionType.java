@@ -11,8 +11,7 @@ public enum ZActionType {
     OPEN_DOOR,
     CLOSE_DOOR,
     MELEE,
-    BOLTS,
-    ARROWS,
+    RANGED,
     MAGIC,
     THROW_ITEM,
     ENCHANTMENT,
@@ -45,8 +44,7 @@ public enum ZActionType {
     public boolean breaksInvisibility() {
         switch (this) {
             case MELEE:
-            case BOLTS:
-            case ARROWS:
+            case RANGED:
             case MAGIC:
             case SHOVE:
             case OPEN_DOOR:
@@ -59,8 +57,7 @@ public enum ZActionType {
 
     public boolean isRanged() {
         switch (this) {
-            case ARROWS:
-            case BOLTS:
+            case RANGED:
                 return true;
         }
         return false;
@@ -76,8 +73,7 @@ public enum ZActionType {
 
     public boolean isProjectile() {
         switch (this) {
-            case ARROWS:
-            case BOLTS:
+            case RANGED:
             case MAGIC:
             case THROW_ITEM:
                 return true;

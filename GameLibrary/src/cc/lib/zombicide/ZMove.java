@@ -130,7 +130,7 @@ public class ZMove extends Reflector<ZMove> implements IButton {
         String label = Utils.toPrettyString(type.name());
         if (equipment != null)
             label += " " + equipment.getLabel();
-        if (fromSlot != null) {
+        if (toSlot == null && fromSlot != null) {
             label += " from " + fromSlot.getLabel();
         }
         if (toSlot != null)
@@ -183,7 +183,7 @@ public class ZMove extends Reflector<ZMove> implements IButton {
         return new ZMove(ZMoveType.MAGIC_ATTACK, weapons);
     }
 
-    public static ZMove newThrowItemMove(List<ZItem> slots) {
+    public static ZMove newThrowEquipmentMove(List<ZEquipment> slots) {
         return new ZMove(ZMoveType.THROW_ITEM, slots);
     }
 
@@ -287,4 +287,7 @@ public class ZMove extends Reflector<ZMove> implements IButton {
         return new ZMove(ZMoveType.DISPOSE, e, null);
     }
 
+    public static ZMove newIgniteMove(List<Integer> ignitableZones) {
+        return new ZMove(ZMoveType.IGNITE, ignitableZones);
+    }
 }

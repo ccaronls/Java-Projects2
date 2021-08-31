@@ -113,7 +113,7 @@ public class WolfQuestTheEvilTwins extends ZQuest {
     public Table getObjectivesOverlay(ZGame game) {
         List<ZCharacter> chars = Utils.map(game.getAllCharacters(), c -> c.getCharacter());
         int totalChars = chars.size();
-        int numInExit = Utils.filter(chars, object -> object.getOccupiedZone() == getExitZone()).size();
+        int numInExit = Utils.count(chars, object -> object.getOccupiedZone() == getExitZone());
         int numAbominationsKilled = game.getNumKills(ZZombieType.Abomination);
         return new Table(getName())
                 .addRow(new Table().setNoBorder()

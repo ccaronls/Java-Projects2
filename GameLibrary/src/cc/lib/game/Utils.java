@@ -9,6 +9,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -2707,7 +2708,6 @@ public class Utils {
      *
      * @param collection
      * @param filter
-     * @param <T>
      * @param <O>
      * @return
      */
@@ -2721,19 +2721,48 @@ public class Utils {
     }
 
     /**
+     * Returns number of items in collection after filtering
+     * @param collection
+     * @param filter
+     * @param <O>
+     * @return
+     */
+    public static <O> int count(Collection<O> collection, Filter<O> filter) {
+        int count = 0;
+        for (O o : collection) {
+            if (filter.keep(o))
+                count++;
+        }
+        return count;
+    }
+
+    public static <O> O getFirstOrNull(List<O> list) {
+        return list.isEmpty() ? null : list.get(0);
+    }
+
+    /**
      *
      * @param filter
      * @param items
      * @param <T>
      * @return
      */
-    public static <T> List<T> filterItems(Filter<T> filter, T ... items) {
+    public static <T> List<T> filter(T [] items, Filter<T> filter) {
         List list = new ArrayList();
         for (T item : items) {
             if (item != null && filter.keep(item))
                 list.add(item);
         }
         return list;
+    }
+
+    public static <T> int count(T [] items, Filter<T> filter) {
+        int count = 0;
+        for (T item : items) {
+            if (item != null && filter.keep(item))
+                count++;
+        }
+        return count;
     }
 
     public static int hashCode(Object ... a) {
@@ -2803,5 +2832,15 @@ public class Utils {
             list.add(new Pair(e.getKey(), e.getValue()));
         }
         return list;
+    }
+
+    public static <T> List<T> mergeLists(List<T> ... lists) {
+        if (lists == null || lists.length == 0)
+            return Collections.emptyList();
+        List<T> merged = new ArrayList<>();
+        for (List l : lists) {
+            merged.addAll(l);
+        }
+        return merged;
     }
 }

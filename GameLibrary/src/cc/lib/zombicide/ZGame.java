@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -335,7 +336,7 @@ public class ZGame extends Reflector<ZGame>  {
 
         while (true) {
             final ZZombieType _name = name;
-            int numOnBoard = Utils.filter(board.getAllZombies(), object -> object.type == _name).size();
+            int numOnBoard = Utils.count(board.getAllZombies(), object -> object.type == _name);
             log.debug("Num %s on board is %d and trying to spawn %d more", name, numOnBoard, count);
             if (numOnBoard + count > quest.getMaxNumZombiesOfType(name)) {
                 switch (name) {
@@ -366,7 +367,7 @@ public class ZGame extends Reflector<ZGame>  {
             count *= spawnMultiplier;
             spawnMultiplier = 1;
         }
-        int numCurrent = Utils.filter(board.getAllZombies(), object -> object.type == type).size();
+        int numCurrent = Utils.count(board.getAllZombies(), object -> object.type == type);
         int max = quest.getMaxNumZombiesOfType(type);
 
         log.debug("Num current %ss = %d with a max of %d", type, numCurrent, max);
@@ -648,9 +649,9 @@ public class ZGame extends Reflector<ZGame>  {
                     }
 
                     {
-                        List<ZItem> items = ch.getThrowableItems();
+                        List<ZEquipment> items = ch.getThrowableEquipment();
                         if (items.size() > 0) {
-                            options.add(ZMove.newThrowItemMove(items));
+                            options.add(ZMove.newThrowEquipmentMove(items));
                         }
                     }
 
@@ -771,7 +772,7 @@ public class ZGame extends Reflector<ZGame>  {
                     for (ZZombie zombie : zombies) {
                         List<ZDir> path = null;
                         while (zombie.getActionsLeftThisTurn() > 0) {
-                            List<ZCharacter> victims = Utils.filter(board.getCharactersInZone(zombie.occupiedZone), object -> !object.isInvisible());
+                            List<ZCharacter> victims = Utils.filter(board.getCharactersInZone(zombie.occupiedZone), object -> !object.isInvisible() && object.isAlive());
                             if (victims.size() > 1) {
                                 Collections.sort(victims, new WoundingComparator(zombie.type));
                             }
@@ -780,9 +781,9 @@ public class ZGame extends Reflector<ZGame>  {
                                 zombie.performAction(ZActionType.MELEE, this);
                                 if (playerDefends(victim, zombie.type)) {
                                     addLogMessage(victim.name() + " defends against " + zombie.name());
-                                    onCharacterDefends(victim.getPlayerName());
+                                    onCharacterDefends(victim.getPlayerName(), zombie.getPosition());
                                 } else {
-                                    playerWounded(victim, ZAttackType.NORMAL, 1, zombie.type.name());
+                                    playerWounded(victim, zombie, ZAttackType.NORMAL, 1, zombie.type.name());
                                 }
                             } else {
                                 if (path == null) {
@@ -880,7 +881,7 @@ public class ZGame extends Reflector<ZGame>  {
 
     protected void onCharacterDestroysSpawn(ZPlayerName c, int zoneIdx) {}
 
-    protected void onCharacterDefends(ZPlayerName cur) {
+    protected void onCharacterDefends(ZPlayerName cur, ZActorPosition attackerPosition) {
     }
 
     protected void onNewSkillAquired(ZPlayerName c, ZSkill skill) {}
@@ -911,29 +912,25 @@ public class ZGame extends Reflector<ZGame>  {
 
     }
 
-    void playerWounded(ZCharacter victim, ZAttackType attackType, int amount, String reason) {
+    void playerWounded(ZCharacter victim, ZActor attacker, ZAttackType attackType, int amount, String reason) {
         victim.wound(amount);
         if (victim.isDead()) {
             victim.clearActions();
             addLogMessage(victim.name() + " has been killed by a " + reason);
-            onCharacterAttacked(victim.getPlayerName(), attackType, true);
+            onCharacterAttacked(victim.getPlayerName(), attacker.getPosition(), attackType, true);
             //removeCharacter(victim);
         } else {
             addLogMessage(victim.name() + " has been wounded by a " + reason);
-            onCharacterAttacked(victim.getPlayerName(), attackType, false);
+            onCharacterAttacked(victim.getPlayerName(), attacker.getPosition(), attackType, false);
         }
 
     }
 
 
-    protected void onCharacterAttacked(ZPlayerName character, ZAttackType attackType, boolean characterPerished) {
+    protected void onCharacterAttacked(ZPlayerName character, ZActorPosition attackerPosition, ZAttackType attackType, boolean characterPerished) {
     }
 
-    protected void onTorchThrown(ZPlayerName c, int zone) {
-    }
-
-    protected void onDragonBileThrown(ZPlayerName c, int zone) {
-        log.info("%s placed dragon bile in zone %d", c, zone);
+    protected void onEquipmentThrown(ZPlayerName c, ZIcon icon, int zone) {
     }
 
     boolean isZoneEscapableForNecromancers(int zoneIdx) {
@@ -1014,25 +1011,10 @@ public class ZGame extends Reflector<ZGame>  {
 
     }
 
-    public ZActionType getSlotActionType(ZEquipSlot slot) {
-        ZPlayerName c = getCurrentCharacter();
-        ZEquipment e = c == null ? null : c.character.getSlot(slot);
-        if (e != null) {
-            return e.getType().getActionType();
-        }
-        return ZActionType.NOTHING;
-    }
-
-    public boolean canUse(ZEquipSlot slot) {
-        ZPlayerName c = getCurrentCharacter();
-        return c != null && c.getCharacter().getSlot(slot) != null;
-    }
-
     public boolean canWalk(ZDir dir) {
         ZPlayerName c = getCurrentCharacter();
         return c != null && getBoard().canMove(c.character, dir);
     }
-
 
     private boolean useEquipment(ZCharacter c, ZEquipment e) {
         if (e.isMagic()) {
@@ -1042,7 +1024,7 @@ public class ZGame extends Reflector<ZGame>  {
         } else if (e.isRanged()) {
             return performMove(c, ZMove.newRangedAttackMove(Utils.toList((ZWeapon)e)));
         } else if (e.isThrowable()) {
-            return performMove(c, ZMove.newThrowItemMove(Utils.toList((ZItem)e)));
+            return performMove(c, ZMove.newThrowEquipmentMove(Utils.toList((ZItem)e)));
         }
         return false;
     }
@@ -1211,6 +1193,23 @@ public class ZGame extends Reflector<ZGame>  {
                 }
                 return false;
             }
+            case IGNITE: {
+                Integer zoneToIgnite = move.integer;
+                if (zoneToIgnite == null) {
+                    List<Integer> ignitableZones = move.list;
+                    if (ignitableZones.size() == 1) {
+                        zoneToIgnite = ignitableZones.get(0);
+                    }
+                }
+                if (zoneToIgnite == null) {
+                    zoneToIgnite = user.chooseZoneToIgnite(cur.getPlayerName(), move.list);
+                }
+                if (zoneToIgnite != null) {
+                    performDragonFire(cur, zoneToIgnite);
+                    return true;
+                }
+                return false;
+            }
             case WALK_DIR: {
                 moveActorInDirection(cur, move.dir);
                 return true;
@@ -1238,7 +1237,8 @@ public class ZGame extends Reflector<ZGame>  {
                     weapon = weapons.get(0);
                 }
                 if (weapon != null) {
-                    if (performAttack(weapon, ZActionType.MELEE, null)) {
+                    ZWeaponStat stat = cur.getWeaponStat(weapon, ZActionType.MELEE, this, cur.getOccupiedZone());
+                    if (performAttack(weapon, stat, cur.getOccupiedZone())) {
                         cur.performAction( ZActionType.MELEE,this);
                         return true;
                     }
@@ -1246,61 +1246,32 @@ public class ZGame extends Reflector<ZGame>  {
                 return false;
             }
             case MAGIC_ATTACK: {
-                // rules same for both kinda
-                List<ZWeapon> weapons = move.list;
-                ZWeapon weapon = null;
-                if (weapons.size() > 1) {
-                    weapon = user.chooseWeaponSlot(cur.getPlayerName(), weapons);
-                } else {
-                    weapon = weapons.get(0);
-                }
-                Integer zoneIdx = move.integer;
-                if (weapon != null) {
-                    ZActionType at = ZActionType.MAGIC;
-                    if (performAttack(weapon, at, zoneIdx)) {
-                        cur.performAction(at,this);
-                        return true;
-                    }
-                }
-                return false;
+                return performRangedOrMagicAttack(cur, move.list, move.integer, ZActionType.MAGIC);
             }
+
             case RANGED_ATTACK: {
-                // rules same for both kinda
-                List<ZWeapon> weapons = move.list;
-                ZWeapon weapon = null;
-                if (weapons.size() > 1) {
-                    weapon = user.chooseWeaponSlot(cur.getPlayerName(), weapons);
-                } else {
-                    weapon = weapons.get(0);
-                }
-                Integer zoneIdx = move.integer;
-                if (weapon != null) {
-                    ZActionType at = weapon.type.rangedStats.getAttackType().getActionType();
-                    if (performAttack(weapon, at, zoneIdx)) {
-                        cur.performAction(at,this);
-                        return true;
-                    }
-                }
-                return false;
+                return performRangedOrMagicAttack(cur, move.list, move.integer, ZActionType.RANGED);
             }
 
             case THROW_ITEM: {
-                ZItem slot = null;
-                List<ZItem> slots = move.list;
+                ZEquipment slot = null;
+                List<ZEquipment> slots = move.list;
                 if (slots.size() == 1)
                     slot = slots.get(0);
                 else
-                    slot = getCurrentUser().chooseItemToThrow(cur.getPlayerName(), slots);
+                    slot = getCurrentUser().chooseEquipmentToThrow(cur.getPlayerName(), slots);
                 if (slot != null) {
                     Integer zoneIdx = null;
                     if (move.integer != null) {
                         zoneIdx = move.integer;
                     } else {
-                        List<Integer> zones = board.getAccessableZones(cur.occupiedZone, 1, 1, ZActionType.THROW_ITEM);
+                        List<Integer> zones = board.getAccessableZones(cur.occupiedZone, slot.getType().getThrowMinRange(), slot.getType().getThrowMaxRange(), ZActionType.THROW_ITEM);
                         zones.add(cur.occupiedZone);
-                        zoneIdx = getCurrentUser().chooseZoneToThrowItem(cur.getPlayerName(), slot, zones);
+                        zoneIdx = getCurrentUser().chooseZoneToThrowEquipment(cur.getPlayerName(), slot, zones);
                     }
                     if (zoneIdx != null) {
+                        slot.getType().onThrown(this, cur, zoneIdx);
+                        /*
                         switch (slot.type) {
                             case DRAGON_BILE:
                                 addLogMessage(cur.name() + " threw the dragon Bile!");
@@ -1313,13 +1284,13 @@ public class ZGame extends Reflector<ZGame>  {
                                 if (!zone.isDragonBile()) {
                                     addLogMessage("Throwing the Torch had no effect");
                                 } else {
-                                    performDragonBile(cur, zone);
+                                    performDragonFire(cur, zone.getZoneIndex());
                                 }
                                 break;
                             }
                             default:
                                 throw new GException("Unhandled case: " + slot.type);
-                        }
+                        }*/
                         cur.removeEquipment(slot);
                         cur.performAction(ZActionType.THROW_ITEM, this);
                         putBackInSearchables(slot);
@@ -1599,6 +1570,7 @@ public class ZGame extends Reflector<ZGame>  {
                 break;
             case BLOODLUST_RANGED:
                 weapons = cur.getRangedWeapons();
+                action = ZActionType.RANGED;
                 break;
             default:
                 return false;
@@ -1620,12 +1592,9 @@ public class ZGame extends Reflector<ZGame>  {
                 weapon = weapons.get(0);
             }
             if (weapon != null) {
-                if (action == null) {
-                    action = weapon.type.actionType;
-                }
                 cur.addExtraAction();
                 moveActor(cur, zone, cur.getMoveSpeed()/2, ZActionType.MOVE);
-                performAttack(weapon, action, move.integer);
+                performAttack(weapon, weapon.getStatForAction(action), move.integer);
                 cur.performAction(action, this);
                 cur.removeAvailableSkill(move.skill);
                 return true;
@@ -1642,41 +1611,11 @@ public class ZGame extends Reflector<ZGame>  {
 
     protected void onCharacterHealed(ZPlayerName c, int amt) {}
 
-    protected void onReaperKill(ZPlayerName c, ZZombie z, ZWeapon w, ZActionType at) {}
+    protected void onSkillKill(ZPlayerName c, ZSkill skill, ZZombie z, ZAttackType attackType) {}
+
+    protected void onRollSixApplied(ZPlayerName c, ZSkill skill) {}
 
     protected void onWeaponReloaded(ZPlayerName c, ZWeapon w) {}
-
-    private void checkForReaper(ZCharacter cur, ZActionType actionType, List<ZZombie> zombies, ZZombieType type, ZWeapon weapon, ZAttackType at) {
-        for (ZSkill skill : cur.getAvailableSkills()) {
-            switch (skill) {
-                case Reaper_Melee:
-                    if (!actionType.isMelee())
-                        continue;
-                    break;
-                case Reaper_Magic:
-                    if (!actionType.isMagic())
-                        continue;
-                    break;
-                case Reaper_Ranged:
-                    if (!actionType.isRanged())
-                        continue;
-                    break;
-                case Reaper_Combat:
-                    break;
-                default:
-                    continue;
-            }
-            for (ZZombie z2 : zombies) {
-                if (z2.type == type) {
-                    zombies.remove(z2);
-                    onReaperKill(cur.getPlayerName(), z2, weapon, ZActionType.MELEE);
-                    addExperience(cur, z2.type.expProvided);
-                    destroyZombie(z2, at, cur, weapon);
-                    return;
-                }
-            }
-        }
-    }
 
     static List<ZZombie> filterZombiesForMelee(List<ZZombie> list, int weaponDamage) {
         List<ZZombie> zombies = Utils.filter(list, object -> object.type.minDamageToDestroy <= weaponDamage);
@@ -1707,112 +1646,147 @@ public class ZGame extends Reflector<ZGame>  {
         return zombies;
     }
 
-    private boolean performAttack(ZWeapon weapon, ZActionType actionType, Integer zoneIdx) {
+    private boolean performRangedOrMagicAttack(ZCharacter cur, List<ZWeapon> weapons, Integer zoneIdx, ZActionType actionType) {
+        // rules same for both kinda
+        ZUser user = getCurrentUser();
+        ZWeapon weapon = null;
+        if (weapons.size() > 1) {
+            weapon = user.chooseWeaponSlot(cur.getPlayerName(), weapons);
+        } else {
+            weapon = weapons.get(0);
+        }
+        if (weapon != null) {
+            if (zoneIdx == null) {
+                ZWeaponStat stat = cur.getWeaponStat(weapon, actionType, this, -1);
+                List<Integer> zones = board.getAccessableZones(cur.occupiedZone, stat.minRange, stat.maxRange, actionType);
+                if (zones.size() == 0)
+                    return false;
+                zoneIdx = user.chooseZoneForAttack(cur.getPlayerName(), zones);
+            }
+            if (zoneIdx != null) {
+                ZWeaponStat stat = cur.getWeaponStat(weapon, actionType, this, zoneIdx);
+                if (performAttack(weapon, stat, zoneIdx)) {
+                    cur.performAction(actionType, this);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean performAttack(ZWeapon weapon, ZWeaponStat stat, int zoneIdx) {
+        Utils.assertTrue(stat != null);
         ZUser user = getCurrentUser();
         ZCharacter cur = getCurrentCharacter().getCharacter();
+        ZActionType actionType = stat.actionType;
         switch (actionType) {
             case MELEE: {
-                ZWeaponStat stat = cur.getWeaponStat(weapon, actionType, this, cur.getOccupiedZone());
-                List<ZZombie> zombies = filterZombiesForMelee(board.getZombiesInZone(cur.occupiedZone), stat.damagePerHit);
-                int hits = resolveHits(cur, zombies.size(), actionType, stat.numDice, stat.dieRollToHit, zombies.size() / 2 - 1, zombies.size() / 2 + 1);
+//                ZWeaponStat stat = cur.getWeaponStat(weapon, actionType, this, cur.getOccupiedZone());
+                List<ZZombie> zombies = board.getZombiesInZone(cur.occupiedZone);
+                int hits = resolveHits(cur, zombies.size(), weapon.type, stat, zombies.size() / 2 - 1, zombies.size() / 2 + 1);
                 onAttack(cur.getPlayerName(), weapon, actionType, stat.numDice, hits, cur.getOccupiedZone());
-
-                for (int i = 0; i < hits && zombies.size() > 0; i++) {
-                    ZZombie z = zombies.remove(0);
-                    addExperience(cur, z.type.expProvided);
-                    destroyZombie(z, stat.attackType, cur, weapon);
-                    // apply reaper skill if available
-                    checkForReaper(cur, actionType, zombies, z.type, weapon, stat.attackType);
-                    weapon.onEnemyDestroyed(this, cur, z);
+                List<ZZombie> zombiesDestroyed = new ArrayList<>();
+                Iterator<ZZombie> it = zombies.iterator();
+                while (it.hasNext()) {
+                    if (hits <= 0)
+                        break;
+                    ZZombie z = it.next();
+                    if (z.getType().minDamageToDestroy <= stat.damagePerHit) {
+                        zombiesDestroyed.add(z);
+                        it.remove();
+                        addExperience(cur, z.type.expProvided);
+                        destroyZombie(z, stat.attackType, cur);
+                        hits--;
+                    }
                 }
                 if (weapon.isAttackNoisy()) {
                     addNoise(cur.occupiedZone, 1);
                 }
                 addLogMessage(getCurrentCharacter().name() + " Scored " + hits + " hits");
+                for (ZSkill skill : Utils.mergeLists(cur.getAvailableSkills(), weapon.getType().getSkillsWhenUsed())) {
+                    skill.onAttack(this, cur, actionType, stat, cur.getOccupiedZone(), hits, zombiesDestroyed);
+                }
                 if (hits > 0)
                     checkForHitAndRun(cur);
                 return true;
             }
             case MAGIC:
-            case ARROWS:
-            case BOLTS: {
-
-                if (zoneIdx == null) {
-                    ZWeaponStat stat = cur.getWeaponStat(weapon, actionType, this, -1);
-                    List<Integer> zones = board.getAccessableZones(cur.occupiedZone, stat.minRange, stat.maxRange, actionType);
-                    if (zones.size() == 0)
-                        return false;
-                    zoneIdx = user.chooseZoneForAttack(cur.getPlayerName(), zones);
-                }
-                if (zoneIdx != null) {
-                    ZWeaponStat stat = cur.getWeaponStat(weapon, actionType, this, zoneIdx);
-                    // process a ranged attack
-                    if (!weapon.isLoaded()) {
-                        addLogMessage("CLICK! Weapon not loaded!");
-                        onWeaponGoesClick(cur.getPlayerName(), weapon);
+            case RANGED: {
+                //ZWeaponStat stat = cur.getWeaponStat(weapon, actionType, this, zoneIdx);
+                // process a ranged attack
+                if (!weapon.isLoaded()) {
+                    addLogMessage("CLICK! Weapon not loaded!");
+                    onWeaponGoesClick(cur.getPlayerName(), weapon);
+                } else {
+                    weapon.fireWeapon(this, cur, stat);
+                    ZZone zone = board.getZone(zoneIdx);
+                    if (weapon.getType().isFire() && zone.isDragonBile()) {
+                        performDragonFire(cur, zone.getZoneIndex());
                     } else {
-                        weapon.fireWeapon(this, cur, stat);
-                        ZZone zone = board.getZone(zoneIdx);
-                        if (weapon.getType().isFire() && zone.isDragonBile()) {
-                            performDragonBile(cur, zone);
-                        } else {
-                            List<ZZombie> zombies = board.getZombiesInZone(zoneIdx);
-                            switch (actionType) {
-                                case ARROWS:
-                                case BOLTS:
-                                    if (cur.hasAvailableSkill(ZSkill.Marksman)) {
-                                        // marksman zombie sorting works differently
-                                        zombies = filterZombiesForMarksman(zombies, stat.damagePerHit);
-                                        break;
-                                    }
-                                default:
-                                    zombies = filterZombiesForRanged(zombies, stat.damagePerHit);
-                            }
-
-                            int hits = resolveHits(cur, zombies.size(), actionType, stat.numDice, stat.dieRollToHit, zombies.size() / 2 - 1, zombies.size() / 2 + 1);
-                            int hitsMade = 0;
-                            onAttack(cur.getPlayerName(), weapon, actionType, stat.numDice, hits, zoneIdx);
-                            for (int i = 0; i < hits && zombies.size() > 0; i++) {
-                                ZZombie zombie = zombies.remove(0);
-                                if (zombie.type.minDamageToDestroy <= stat.damagePerHit) {
-                                    destroyZombie(zombie, stat.attackType, cur, weapon);
-                                    addExperience(cur, zombie.type.expProvided);
-                                    hitsMade++;
-                                    checkForReaper(cur, actionType, zombies, zombie.type, weapon, stat.attackType);
-                                    weapon.onEnemyDestroyed(this, cur, zombie);
+                        List<ZZombie> zombies = board.getZombiesInZone(zoneIdx);
+                        switch (actionType) {
+                            case RANGED:
+                                if (cur.hasAvailableSkill(ZSkill.Marksman)) {
+                                    // marksman zombie sorting works differently
+                                    zombies = filterZombiesForMarksman(zombies, stat.damagePerHit);
+                                    break;
                                 }
-                            }
-                            if (cur.canFriendlyFire()) {
-                                int misses = stat.numDice - hitsMade;
-                                List<ZCharacter> friendlyFireOptions = Utils.filter(board.getCharactersInZone(zoneIdx), object -> object != cur && object.canReceiveFriendlyFire());
-                                for (int i = 0; i < misses && friendlyFireOptions.size() > 0; i++) {
-                                    if (friendlyFireOptions.size() > 1) {
-                                        // sort them in same way we would sort zombie attacks
-                                        Collections.sort(friendlyFireOptions, new WoundingComparator(ZZombieType.Walker));
-                                    }
-                                    // friendy fire!
-                                    ZCharacter victim = friendlyFireOptions.get(0);
-                                    if (playerDefends(victim, ZZombieType.Walker)) {
-                                        addLogMessage(victim.name() + " defended thyself from friendly fire!");
-                                        onCharacterDefends(victim.getPlayerName());
-                                    } else {
-                                        playerWounded(victim, stat.getAttackType(), stat.damagePerHit, "Friendly Fire!");
-                                        if (victim.isDead())
-                                            friendlyFireOptions.remove(0);
-                                    }
-                                }
-                            }
-                            addLogMessage(getCurrentCharacter().name() + " Scored " + hits + " hits");
-                            if (hits > 0)
-                                checkForHitAndRun(cur);
-                            return true;
+                            default:
+                                zombies = filterZombiesForRanged(zombies, stat.damagePerHit);
                         }
+
+                        int hits = resolveHits(cur, zombies.size(), weapon.type, stat, zombies.size() / 2 - 1, zombies.size() / 2 + 1);
+                        int hitsMade = 0;
+                        onAttack(cur.getPlayerName(), weapon, actionType, stat.numDice, hits, zoneIdx);
+                        List<ZZombie> zombiesDestroyed = new ArrayList<>();
+                        for (int i = 0; i < hits && zombies.size() > 0; i++) {
+                            ZZombie zombie = zombies.remove(0);
+                            if (zombie.type.minDamageToDestroy <= stat.damagePerHit) {
+                                zombiesDestroyed.add(zombie);
+                                destroyZombie(zombie, stat.attackType, cur);
+                                addExperience(cur, zombie.type.expProvided);
+                                hitsMade++;
+                            }
+                        }
+                        for (ZSkill skill : Utils.mergeLists(cur.getAvailableSkills(), weapon.getType().getSkillsWhenUsed())) {
+                            skill.onAttack(this, cur, actionType, stat, zoneIdx, hits, zombiesDestroyed);
+                        }
+                        if (cur.canFriendlyFire()) {
+                            int misses = stat.numDice - hitsMade;
+                            List<ZCharacter> friendlyFireOptions = Utils.filter(board.getCharactersInZone(zoneIdx), object -> object != cur && object.canReceiveFriendlyFire());
+                            for (int i = 0; i < misses && friendlyFireOptions.size() > 0; i++) {
+                                if (friendlyFireOptions.size() > 1) {
+                                    // sort them in same way we would sort zombie attacks
+                                    Collections.sort(friendlyFireOptions, new WoundingComparator(ZZombieType.Walker));
+                                }
+                                // friendy fire!
+                                ZCharacter victim = friendlyFireOptions.get(0);
+                                if (playerDefends(victim, ZZombieType.Walker)) {
+                                    addLogMessage(victim.name() + " defended thyself from friendly fire!");
+                                    onCharacterDefends(victim.getPlayerName(), cur.getPosition());
+                                } else {
+                                    playerWounded(victim, cur, stat.getAttackType(), stat.damagePerHit, "Friendly Fire!");
+                                    if (victim.isDead())
+                                        friendlyFireOptions.remove(0);
+                                }
+                            }
+                        }
+                        addLogMessage(getCurrentCharacter().name() + " Scored " + hits + " hits");
+                        if (hits > 0)
+                            checkForHitAndRun(cur);
+                        return true;
                     }
                 }
                 break;
             }
         }
         return false;
+    }
+
+    void performSkillKill(ZCharacter c, ZSkill skill, ZZombie z, ZAttackType at) {
+        onSkillKill(c.getPlayerName(), skill, z, at);
+        addExperience(c, z.type.expProvided);
+        destroyZombie(z, at, c);
     }
 
     static class WoundingComparator implements Comparator<ZCharacter> {
@@ -1829,32 +1803,38 @@ public class ZGame extends Reflector<ZGame>  {
         }
     }
 
-    private int resolveHits(ZCharacter cur, int maxHits, ZActionType actionType, int numDice, int dieRollToHit, int minHitsForAutoReroll, int maxHitsForAutoNoReroll) {
+    private int resolveHits(ZCharacter cur, int maxHits, ZWeaponType type, ZWeaponStat stat, int minHitsForAutoReroll, int maxHitsForAutoNoReroll) {
         Integer [] result;
-        if (cur.canReroll(actionType)) {
-            result = rollDiceWithRerollOption(numDice, dieRollToHit, minHitsForAutoReroll, maxHitsForAutoNoReroll);
+        if (cur.canReroll(stat.attackType)) {
+            result = rollDiceWithRerollOption(stat.numDice, stat.dieRollToHit, minHitsForAutoReroll, maxHitsForAutoNoReroll);
         } else {
-            result = rollDice(numDice);
+            result = rollDice(stat.numDice);
         }
         int hits = 0;
-        boolean isRoll6Plus1Die = cur.isRoll6Plus1Die(actionType);
+        //boolean isRoll6Plus1Die = cur.isRoll6Plus1Die(type, stat.actionType);
+        boolean keepGoing;
         do {
+            keepGoing = false;
             for (int i=0; i<result.length; i++) {
-                if (result[i] >= dieRollToHit) {
+                if (result[i] >= stat.dieRollToHit) {
                     hits ++;
                 }
             }
-            // look for Roll6Plus1
-            if (!isRoll6Plus1Die || hits >= maxHits)
-                break;
-            int numSixes = Utils.filterItems(object -> object == 6, result).size();
+            int numSixes = Utils.count(result, object -> object == 6);
             if (numSixes > 0) {
-                addLogMessage("Rolled " + numSixes + " 6s + 1Die roll each!");
-                result = rollDice(numSixes);
+                for (ZSkill skill : Utils.mergeLists(cur.getAvailableSkills(), type.getSkillsWhenUsed())) {
+                    if (skill.onSixRolled(this, cur, stat) && hits < maxHits) {
+                        result = rollDice(numSixes);
+                        keepGoing = true;
+                    }
+                }
             } else {
                 break;
             }
-        } while (true);
+            if (keepGoing) {
+                addLogMessage("Rolled " + numSixes + " 6s + 1Die roll each!");
+            }
+        } while (keepGoing);
         return hits;
     }
 
@@ -1973,7 +1953,7 @@ public class ZGame extends Reflector<ZGame>  {
         log.info("Rolling dice result is: %s", Arrays.toString(roll));
     }
 
-    private void destroyZombie(ZZombie zombie, ZAttackType deathType, ZCharacter killer, ZWeapon weapon) {
+    void destroyZombie(ZZombie zombie, ZAttackType deathType, ZCharacter killer) {
         killer.onKilledZombie(zombie);
         onZombieDestroyed(killer.getPlayerName(), deathType, zombie);
         board.removeActor(zombie);
@@ -2246,23 +2226,22 @@ public class ZGame extends Reflector<ZGame>  {
         log.info(msg);
     }
 
-    private void performDragonBile(ZCharacter cur, ZZone zone) {
-        int zoneIdx = zone.getZoneIndex();
+    void performDragonFire(ZCharacter cur, int zoneIdx) {
         onDragonBileExploded(zoneIdx);
-        zone.setDragonBile(false);
+        board.getZone(zoneIdx).setDragonBile(false);
         int exp = 0;
         int num=0;
         addLogMessage(cur.name() + " ignited the dragon bile!");
-        for (ZActor a : board.getActorsInZone(zoneIdx)) {
+        for (ZActor a : Utils.filter(board.getActorsInZone(zoneIdx), a -> a.isAlive())) {
             if (a instanceof ZZombie) {
                 ZZombie z = (ZZombie)a;
                 exp += z.type.expProvided;
-                destroyZombie(z, ZAttackType.FIRE, cur, null);
+                destroyZombie(z, ZAttackType.FIRE, cur);
                 num++;
             } else if (a instanceof ZCharacter) {
                 // characters caught in the zone get wounded
                 ZCharacter c = (ZCharacter)a;
-                playerWounded(c, ZAttackType.FIRE, 4, "Exploding Dragon Bile");
+                playerWounded(c, cur, ZAttackType.FIRE, 4, "Exploding Dragon Bile");
             }
         }
         if (cur.isAlive()) {

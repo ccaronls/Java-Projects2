@@ -53,7 +53,7 @@ public class ZBoard extends Reflector<ZBoard> implements IDimension {
         return zones.size();
     }
 
-    List<ZZone> getZones() {
+    public List<ZZone> getZones() {
         return zones;
     }
 
@@ -436,7 +436,7 @@ public class ZBoard extends Reflector<ZBoard> implements IDimension {
             for (Grid.Pos pos : zone.cells) {
                 ZCell cell = getCell(pos);
                 ZCellQuadrant q = cell.findLowestPriorityOccupant();
-                int priority = cell.getOccupants(q).getPriority();
+                int priority = cell.getOccupant(q).getPriority();
                 if (priority < minPriority || minPos == null) {
                     minPriority = priority;
                     minPos = pos;
@@ -522,7 +522,7 @@ public class ZBoard extends Reflector<ZBoard> implements IDimension {
     }
 
     public List<ZCharacter> getCharactersInZone(int zoneIdx) {
-        return Utils.filter((List)getActorsInZone(zoneIdx), (Utils.Filter<ZActor>) object -> object instanceof ZCharacter && ((ZCharacter) object).isAlive());
+        return Utils.filter((List)getActorsInZone(zoneIdx), (Utils.Filter<ZActor>) object -> object instanceof ZCharacter);
     }
 
     public List<ZActor> getActorsInZone(int zoneIndex) {
@@ -530,7 +530,7 @@ public class ZBoard extends Reflector<ZBoard> implements IDimension {
             return Collections.emptyList();
         List<ZActor> actors = new ArrayList<>();
         for (Grid.Pos cellPos : zones.get(zoneIndex).cells) {
-            for (ZActor a : getCell(cellPos).getOccupants()) {
+            for (ZActor a : getCell(cellPos).getOccupant()) {
                 if (a != null) {
                     actors.add(a);
                 }
@@ -542,7 +542,7 @@ public class ZBoard extends Reflector<ZBoard> implements IDimension {
     public List<ZActor> getAllLiveActors() {
         List<ZActor> actors = new ArrayList<>();
         for (ZCell cell : grid.getCells()) {
-            for (ZActor a : cell.getOccupants()) {
+            for (ZActor a : cell.getOccupant()) {
                 if (a != null)
                     actors.add(a);
             }
@@ -564,11 +564,11 @@ public class ZBoard extends Reflector<ZBoard> implements IDimension {
         if (current == null) {
             current = actor.getSpawnQuadrant();
         }
-        if (current == null || cell.getOccupants(current) != null) {
+        if (current == null || cell.getOccupant(current) != null) {
             current = cell.findLowestPriorityOccupant();
         }
         Utils.assertTrue(current != null);
-        if (cell.getOccupants(current) != null && cell.getOccupants(current).getPriority() >= actor.getPriority())
+        if (cell.getOccupant(current) != null && cell.getOccupant(current).getPriority() >= actor.getPriority())
             return false;
         cell.setQuadrant(actor, current);
         actor.occupiedZone = cell.zoneIndex;
@@ -612,8 +612,8 @@ public class ZBoard extends Reflector<ZBoard> implements IDimension {
         for (ZZone zone : zones) {
             zone.setNoiseLevel(0);
             for (Grid.Pos pos: zone.cells) {
-                for (ZActor a : getCell(pos).getOccupants()) {
-                    if (a != null && a instanceof ZCharacter) {
+                for (ZActor a : getCell(pos).getOccupant()) {
+                    if (a != null && a.isNoisy()) {
                         zone.addNoise(1);
                     }
                 }
@@ -712,5 +712,9 @@ public class ZBoard extends Reflector<ZBoard> implements IDimension {
     void removeSpawn(ZSpawnArea spawn) {
         ZCell cell = getCell(spawn.getCellPos());
         cell.removeSpawn(spawn.getDir());
+    }
+
+    public <T extends ZActor> T getActor(ZActorPosition position) {
+        return (T)grid.get(position.pos).getOccupant(position.quadrant);
     }
 }

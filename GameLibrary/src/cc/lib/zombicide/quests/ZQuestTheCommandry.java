@@ -92,7 +92,7 @@ public class ZQuestTheCommandry extends ZQuest {
 
     @Override
     public String getQuestFailedReason(ZGame game) {
-        if (Utils.filter(game.getBoard().getAllCharacters(), object -> object.isDead()).size() > 0) {
+        if (Utils.count(game.getBoard().getAllCharacters(), object -> object.isDead()) > 0) {
             return "Not all players survived.";
         }
         return super.getQuestFailedReason(game);

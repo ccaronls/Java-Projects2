@@ -3,12 +3,14 @@ package cc.lib.zombicide;
 import cc.lib.game.AGraphics;
 import cc.lib.game.GDimension;
 import cc.lib.game.GRectangle;
+import cc.lib.game.IRectangle;
+import cc.lib.game.IVector2D;
 import cc.lib.game.Utils;
 import cc.lib.utils.Grid;
 import cc.lib.utils.Reflector;
 import cc.lib.zombicide.ui.UIZButton;
 
-public abstract class ZActor<E extends Enum<E>> extends Reflector<ZActor<E>> implements UIZButton {
+public abstract class ZActor<E extends Enum<E>> extends Reflector<ZActor<E>> implements UIZButton, IRectangle, IVector2D {
 
     static {
         addAllFields(ZActor.class);
@@ -49,8 +51,10 @@ public abstract class ZActor<E extends Enum<E>> extends Reflector<ZActor<E>> imp
     public abstract String name();
 
     protected boolean performAction(ZActionType action, ZGame game) {
-        actionsLeftThisTurn-=action.costPerTurn();
-        Utils.assertTrue(actionsLeftThisTurn >= 0);
+        if (isAlive()) {
+            actionsLeftThisTurn -= action.costPerTurn();
+            Utils.assertTrue(actionsLeftThisTurn >= 0);
+        }
         return false;
     }
 
@@ -162,5 +166,47 @@ public abstract class ZActor<E extends Enum<E>> extends Reflector<ZActor<E>> imp
 
     public boolean isAlive() {
         return true;
+    }
+
+    @Override
+    public float X() {
+        return rect.x;
+    }
+
+    @Override
+    public float Y() {
+        return rect.y;
+    }
+
+    @Override
+    public float getWidth() {
+        return rect.w;
+    }
+
+    @Override
+    public float getHeight() {
+        return rect.h;
+    }
+
+    @Override
+    public float getX() {
+        return rect.getCenter().X();
+    }
+
+    @Override
+    public float getY() {
+        return rect.getCenter().Y();
+    }
+
+    ZActorPosition getPosition() {
+        return new ZActorPosition(occupiedCell, occupiedQuadrant);
+    }
+
+    public boolean isDead() {
+        return false;
+    }
+
+    boolean isNoisy() {
+        return false;
     }
 }

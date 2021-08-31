@@ -3,6 +3,7 @@ package cc.game.zombicide.android;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.util.Pair;
 
 import cc.lib.android.DroidGraphics;
 import cc.lib.android.UIComponentView;
@@ -127,16 +128,17 @@ public class ZBoardView extends UIComponentView implements UIZComponent<DroidGra
         initZombieImages(g, ZZombieType.Wolfbomination, R.drawable.zwolfabom, R.drawable.zwolfabom_outline);
         initZombieImages(g, ZZombieType.Wolfz, R.drawable.zwulf1, R.drawable.zwulf1_outline, R.drawable.zwulf2, R.drawable.zwulf2_outline);
 
-        int [][] cells = {
-                { 0,0, 56, 84 }, { 56, 0, 131-56, 84 }, { 131, 0, 196-131, 84 },
-                { 0,84, 60, 152-84 }, { 60,84,122-60,152-84 }, { 122,84,196-122,152-84 }
+        // Fire images are extracted from larger main image
+        int[][] cells = {
+                {0, 0, 56, 84}, {56, 0, 131 - 56, 84}, {131, 0, 196 - 131, 84},
+                {0, 84, 60, 152 - 84}, {60, 84, 122 - 60, 152 - 84}, {122, 84, 196 - 122, 152 - 84}
         };
 
         numImages = ZIcon.values().length;
         ZIcon.FIRE.imageIds = g.loadImageCells(R.drawable.zfire_icons, cells);
         publishProgress(++progress);
 
-        ZIcon.CLAWS.imageIds = new int[] {
+        ZIcon.CLAWS.imageIds = new int[]{
                 R.drawable.zclaws1_icon,
                 R.drawable.zclaws2_icon,
                 R.drawable.zclaws3_icon,
@@ -146,7 +148,7 @@ public class ZBoardView extends UIComponentView implements UIZComponent<DroidGra
         };
         publishProgress(++progress);
 
-        ZIcon.SLASH.imageIds = new int[] {
+        ZIcon.SLASH.imageIds = new int[]{
                 R.drawable.zslash1,
                 R.drawable.zslash2,
                 R.drawable.zslash3,
@@ -155,79 +157,56 @@ public class ZBoardView extends UIComponentView implements UIZComponent<DroidGra
         };
         publishProgress(++progress);
 
-        int [] ids = ZIcon.DRAGON_BILE.imageIds = new int[8];
-        ids[0] = R.drawable.zdragonbile_icon;
-        for (int i=1; i<ids.length; i++) {
-            int deg = 45*i;
-            ids[i] = g.newRotatedImage(ids[0], deg);
+        // Icons that spin around
+        for (Pair<ZIcon, Integer> pair : Utils.toArray(
+                new Pair(ZIcon.DRAGON_BILE, R.drawable.zdragonbile_icon),
+                new Pair(ZIcon.TORCH, R.drawable.ztorch_icon),
+                new Pair(ZIcon.DAGGER, R.drawable.zdagger_icon))) {
+            int[] ids = pair.first.imageIds = new int[8];
+            ids[0] = pair.second;
+            for (int i = 1; i < ids.length; i++) {
+                int deg = 45 * i;
+                ids[i] = g.newRotatedImage(ids[0], deg);
+            }
+            publishProgress(++progress);
         }
-        publishProgress(++progress);
 
-        ids = ZIcon.TORCH.imageIds = new int[8];
-        ids[0] = R.drawable.ztorch_icon;
-        for (int i=1; i<ids.length; i++) {
-            int deg = 45*i;
-            ids[i] = g.newRotatedImage(ids[0], deg);
+        // Icons that only have a single image
+        for (Pair<ZIcon, Integer> pair : Utils.toArray(
+                new Pair(ZIcon.SHIELD, R.drawable.zshield_icon),
+                new Pair(ZIcon.SLIME, R.drawable.zslime_icon),
+                new Pair(ZIcon.FIREBALL, R.drawable.zfireball),
+                new Pair(ZIcon.GRAVESTONE, R.drawable.zgravestone),
+                new Pair(ZIcon.PADLOCK, R.drawable.zpadlock3),
+                new Pair(ZIcon.SKULL, R.drawable.zskull)
+        )) {
+            pair.first.imageIds = new int[]{pair.second};
+            publishProgress(++progress);
         }
-        publishProgress(++progress);
 
-        ZIcon.SHIELD.imageIds = new int[] {
-                R.drawable.zshield_icon
-        };
-        publishProgress(++progress);
+        // Directional, like projectiles
+        for (Pair<ZIcon, Integer> pair : Utils.toArray(
+                new Pair(ZIcon.ARROW, R.drawable.zarrow_icon)
+        )) {
+            int[] ids =pair.first.imageIds = new int[4];
+            ids[ZDir.NORTH.ordinal()] = g.newRotatedImage(pair.second, 270);
+            ids[ZDir.SOUTH.ordinal()] = g.newRotatedImage(pair.second, 90);
+            ids[ZDir.EAST.ordinal()] = pair.second;
+            ids[ZDir.WEST.ordinal()] = g.newRotatedImage(pair.second, 180);
+            publishProgress(++progress);
+        }
 
-        ZIcon.SLIME.imageIds = new int[] {
-                R.drawable.zslime_icon
-        };
-        publishProgress(++progress);
-
-        ZIcon.FIREBALL.imageIds = new int[] {
-                R.drawable.zfireball
-        };
-        publishProgress(++progress);
-
-        ZIcon.GRAVESTONE.imageIds = new int[] {
-                R.drawable.zgravestone
-        };
-        publishProgress(++progress);
-
-        ZIcon.PADLOCK.imageIds = new int[] {
-                R.drawable.zpadlock3
-        };
-        publishProgress(++progress);
-
-        ZIcon.SKULL.imageIds = new int[] {
-                R.drawable.zskull
-        };
-        publishProgress(++progress);
-
-        ids = ZIcon.ARROW.imageIds = new int[4];
-        ids[ZDir.EAST.ordinal()] = R.drawable.zarrow_icon;
-        ids[ZDir.WEST.ordinal()] = g.newRotatedImage(R.drawable.zarrow_icon, 180);
-        ids[ZDir.NORTH.ordinal()] = g.newRotatedImage(R.drawable.zarrow_icon, 270);
-        ids[ZDir.SOUTH.ordinal()] = g.newRotatedImage(R.drawable.zarrow_icon, 90);
-        publishProgress(++progress);
-
-        ids = ZIcon.SPAWN_RED.imageIds = new int[4];
-        ids[ZDir.NORTH.ordinal()] = R.drawable.zspawn;
-        ids[ZDir.SOUTH.ordinal()] = R.drawable.zspawn;
-        ids[ZDir.WEST.ordinal()] = g.newRotatedImage(R.drawable.zspawn, 270);
-        ids[ZDir.EAST.ordinal()] = g.newRotatedImage(R.drawable.zspawn, 90);
-        publishProgress(++progress);
-
-        ids = ZIcon.SPAWN_BLUE.imageIds = new int[4];
-        ids[ZDir.NORTH.ordinal()] = R.drawable.zspawn_blue;
-        ids[ZDir.SOUTH.ordinal()] = R.drawable.zspawn_blue;
-        ids[ZDir.WEST.ordinal()] = g.newRotatedImage(R.drawable.zspawn_blue, 270);
-        ids[ZDir.EAST.ordinal()] = g.newRotatedImage(R.drawable.zspawn_blue, 90);
-        publishProgress(++progress);
-
-        ids = ZIcon.SPAWN_GREEN.imageIds = new int[4];
-        ids[ZDir.NORTH.ordinal()] = R.drawable.zspawn_green;
-        ids[ZDir.SOUTH.ordinal()] = R.drawable.zspawn_green;
-        ids[ZDir.WEST.ordinal()] = g.newRotatedImage(R.drawable.zspawn_green, 270);
-        ids[ZDir.EAST.ordinal()] = g.newRotatedImage(R.drawable.zspawn_green, 90);
-        publishProgress(++progress);
+        for (Pair<ZIcon, Integer> pair : Utils.toArray(
+                new Pair(ZIcon.SPAWN_RED, R.drawable.zspawn_red),
+                new Pair(ZIcon.SPAWN_BLUE, R.drawable.zspawn_blue),
+                new Pair(ZIcon.SPAWN_GREEN, R.drawable.zspawn_green))) {
+            int [] ids = pair.first.imageIds = new int[4];
+            ids[ZDir.NORTH.ordinal()] = pair.second;
+            ids[ZDir.SOUTH.ordinal()] = pair.second;
+            ids[ZDir.WEST.ordinal()] = g.newRotatedImage(pair.second, 270);
+            ids[ZDir.EAST.ordinal()] = g.newRotatedImage(pair.second, 90);
+            publishProgress(++progress);
+        }
 
         Log.i("IMAGES", "Loaded total of " + progress);
         publishProgress(numImages);

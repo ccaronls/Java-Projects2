@@ -38,7 +38,7 @@ public class GroupAnimation extends ZActorAnimation {
             if (!a.first.isDone())
                 return false;
         }
-        return true;
+        return super.isDone();
     }
 
     @Override
@@ -68,7 +68,12 @@ public class GroupAnimation extends ZActorAnimation {
                 p.first.update(g);
             }
         }
-        return group.isEmpty();
+        if (group.isEmpty()) {
+            kill();
+            onDone();
+            return true;
+        }
+        return false;
     }
 
     @Override

@@ -26,6 +26,13 @@ public abstract class ZActorAnimation extends ZAnimation {
         }
     }
 
+    @Override
+    public boolean isDone() {
+        if (next == null || actor ==  null)
+            return super.isDone();
+        return false;
+    }
+
     void add(ZActorAnimation anim) {
         if (next == null)
             next = anim;

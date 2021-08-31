@@ -34,10 +34,6 @@ public class ZArmor extends ZEquipment<ZArmorType> {
         return true;
     }
 
-    int getRating(ZZombieType type) {
-        return this.type.getRating(type);
-    }
-
     @Override
     public ZArmorType getType() {
         return type;
@@ -64,7 +60,7 @@ public class ZArmor extends ZEquipment<ZArmorType> {
 
         Table ratings = new Table().setNoBorder();
         for (ZZombieType type : Utils.asList(ZZombieType.Walker, ZZombieType.Fatty, ZZombieType.Runner, ZZombieType.Necromancer, ZZombieType.Abomination)) {
-            ratings.addRow(type, getRating(type));
+            ratings.addRow(type, this.type.getDieRollToBlock(type));
         }
         Table main = new Table(getLabel()).setNoBorder().addRow(ratings);
         if (type.specialAbilityDescription != null) {
@@ -77,7 +73,7 @@ public class ZArmor extends ZEquipment<ZArmorType> {
     public String getTooltipText() {
         Table ratings = new Table().setNoBorder();
         for (ZZombieType type : Utils.asList(ZZombieType.Walker, ZZombieType.Fatty, ZZombieType.Runner, ZZombieType.Necromancer, ZZombieType.Abomination)) {
-            ratings.addRow(type, getRating(type));
+            ratings.addRow(type, this.type.getDieRollToBlock(type));
         }
         if (type.specialAbilityDescription != null) {
             ratings.addRow(Utils.wrapTextWithNewlines(type.specialAbilityDescription, 24));

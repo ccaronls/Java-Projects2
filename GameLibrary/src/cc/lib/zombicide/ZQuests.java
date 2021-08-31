@@ -313,11 +313,11 @@ public enum ZQuests {
     }
 
     public static List<ZQuests> questsBlackPlague() {
-        return Utils.filterItems(quest -> 0 != (quest.flag & FLAG_BLACK_PLAGUE), values());
+        return Utils.filter(values(), quest -> 0 != (quest.flag & FLAG_BLACK_PLAGUE));
     }
 
     public static List<ZQuests> questsWolfsburg() {
-        return Utils.filterItems(quest -> 0 != (quest.flag & FLAG_WOLFBURG), values());
+        return Utils.filter(values(), quest -> 0 != (quest.flag & FLAG_WOLFBURG));
     }
 
     boolean isWolfburg() {

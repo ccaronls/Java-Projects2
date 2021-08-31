@@ -47,7 +47,7 @@ public class WolfQuestTheAmbush extends ZQuest {
         String [][] map = {
                 { "z0:red:i:ds:we", "z1:spn", "z2:i:ww:ws:ode",      "z3:i:red:ds", "z3:i:ws:ode", "z4:i:ws:de",        "z5:spn", "z6:i:ww:ds:ode", "z7:i:red:ws" },
                 { "z8","z9","z10",                              "z11","z12:st","z13",                                   "z14","z15","z16:spe" },
-                { "z17:i:wn", "z18:i:dn","z18:i:wn:ode",        "z19:i:red:wn:we:ods","z20","z21:i:red:wn:ww:ode",      "z21:i:wn:ode", "z22:i:dn:we", "z23" },
+                { "z17:i:wn:ode", "z18:i:dn","z18:i:wn:ode",        "z19:i:red:wn:we:ods","z20","z21:i:red:wn:ww:ode",      "z21:i:wn:ode", "z22:i:dn:we", "z23" },
 
                 { "z24:t2:rn","z25:t3:rn:occupy","z25:t3:rn:re",    "z26:i:we","z27","z28:i:ww:odn",                    "z29:t2:rn:rw","z29:t2:rn:re","z30" },
                 { "z31:t1:re","z25:t3:rs","z25:t3:rs:re",       "z32:i:ds:we","z33","z28:i:dw:ws",                      "z34:t1:rw:re","z35:t3:occupy","z35:t3:rn" },
@@ -141,10 +141,17 @@ public class WolfQuestTheAmbush extends ZQuest {
             g.setColor(GColor.GREEN);//.withAlpha(.5f));
             g.drawLine(rect.getTopLeft(), rect.getBottomRight(), 10);
             g.drawLine(rect.getTopRight(), rect.getBottomLeft(), 10);
-            if (Utils.filter(game.getBoard().getActorsInZone(zIdx), a -> a instanceof ZCharacter).size() > 0) {
+            if (Utils.count(game.getBoard().getActorsInZone(zIdx), a -> a instanceof ZCharacter) > 0) {
                 g.drawCircle(rect.getCenter(), rect.getRadius(), 10);
             }
         }
+    }
+
+    @Override
+    public String getQuestFailedReason(ZGame game) {
+        if (game.getAllLivingCharacters().size() < 2)
+            return "Not enough players alive to complete quest";
+        return null;
     }
 
     @Override

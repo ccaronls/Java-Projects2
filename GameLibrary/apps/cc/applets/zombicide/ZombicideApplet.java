@@ -111,7 +111,7 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
         UIZBoardRenderer renderer = new UIZBoardRenderer(boardComp) {
             @Override
             protected void drawActor(AGraphics g, ZActor actor, GColor outline) {
-                if (actor.getOutlineImageId() > 0) {
+                if (!actor.isDead() && actor.getOutlineImageId() > 0) {
                     // for AWT to need to render the outline in white fist otherwise the tinting looks messed up
                     g.drawImage(actor.getOutlineImageId(), actor.getRect());
                 }
@@ -207,7 +207,7 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
     }
 
     void initHomeMenu() {
-        List<MenuItem> items = Utils.filterItems(object -> object.isHomeButton(this), MenuItem.values());
+        List<MenuItem> items = Utils.filter(MenuItem.values(), object -> object.isHomeButton(this));
         setMenuItems(items);
     }
 
@@ -352,7 +352,9 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
 
         setLayout(new BorderLayout());
         JScrollPane charContainer = new JScrollPane();
+        JScrollPane menuScrollContainer = new JScrollPane();
         charContainer.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        menuScrollContainer.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         charContainer.getViewport().add(charComp = new CharacterComponent());
         charContainer.setPreferredSize(new Dimension(400, 200));
         charContainer.setMaximumSize(new Dimension(10000, 200));
@@ -362,7 +364,8 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
         menuContainer.setLayout(new GridBagLayout());
         menuContainer.setPreferredSize(new Dimension(150, 400));
         menuContainer.add(menu);
-        add(menuContainer, BorderLayout.LINE_START);
+        menuScrollContainer.getViewport().add(menuContainer);
+        add(menuScrollContainer, BorderLayout.LINE_START);
         add(boardComp = new BoardComponent(), BorderLayout.CENTER);
     }
 

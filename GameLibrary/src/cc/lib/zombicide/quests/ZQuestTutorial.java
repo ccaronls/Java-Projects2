@@ -129,7 +129,7 @@ public class ZQuestTutorial extends ZQuest {
     @Override
     public Table getObjectivesOverlay(ZGame game) {
         int totalChars = game.getAllCharacters().size();
-        int numInZone = Utils.filter(game.getBoard().getAllCharacters(), object -> object.getOccupiedZone() == getExitZone()).size();
+        int numInZone = Utils.count(game.getBoard().getAllCharacters(), object -> object.getOccupiedZone() == getExitZone());
         return new Table(getName())
                 .addRow(new Table().setNoBorder()
                     .addRow("1.", "Unlock the BLUE Door.", game.getBoard().getDoor(blueDoor) != ZWallFlag.LOCKED)
@@ -158,7 +158,7 @@ public class ZQuestTutorial extends ZQuest {
 
     @Override
     public String getQuestFailedReason(ZGame game) {
-        if (Utils.filter(game.getBoard().getAllCharacters(), object -> object.isDead()).size() > 0) {
+        if (Utils.count(game.getBoard().getAllCharacters(), object -> object.isDead()) > 0) {
             return "Not all players survived.";
         }
         return super.getQuestFailedReason(game);

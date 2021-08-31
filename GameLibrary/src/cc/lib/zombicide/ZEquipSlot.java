@@ -1,8 +1,10 @@
 package cc.lib.zombicide;
 
+import cc.lib.annotation.Keep;
 import cc.lib.game.Utils;
 import cc.lib.ui.IButton;
 
+@Keep
 public enum ZEquipSlot implements IButton {
     LEFT_HAND("LH"),
     BODY("Bo"),

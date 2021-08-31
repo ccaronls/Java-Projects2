@@ -527,7 +527,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
 
     protected boolean isAllPlayersInExit(ZGame game) {
         Utils.assertTrue(exitZone >= 0);
-        return game.getBoard().getZombiesInZone(exitZone).size() == 0 && !(Utils.filter(game.board.getAllCharacters(), object -> object.getOccupiedZone() != exitZone).size() > 0);
+        return game.getBoard().getZombiesInZone(exitZone).size() == 0 && !(Utils.count(game.board.getAllCharacters(), object -> object.getOccupiedZone() != exitZone) > 0);
     }
 
     /**

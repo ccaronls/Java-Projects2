@@ -3,7 +3,6 @@ package cc.lib.zombicide.quests;
 import cc.lib.game.Utils;
 import cc.lib.utils.Table;
 import cc.lib.zombicide.ZBoard;
-import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZQuest;
@@ -74,12 +73,7 @@ public class WolfQuestKnowYourEnemy extends ZQuest {
     @Override
     public Table getObjectivesOverlay(ZGame game) {
         int totalChars = game.getAllCharacters().size();
-        int numInZone = Utils.filter(game.getBoard().getAllCharacters(), new Utils.Filter<ZCharacter>() {
-            @Override
-            public boolean keep(ZCharacter object) {
-                return object.getOccupiedZone() == getExitZone();
-            }
-        }).size();
+        int numInZone = Utils.count(game.getBoard().getAllCharacters(), object -> object.getOccupiedZone() == getExitZone());
         return new Table(getName())
                 .addRow(new Table().setNoBorder()
                         .addRow("", "Use the Towers for cover to execute ranged attacks on enemies")

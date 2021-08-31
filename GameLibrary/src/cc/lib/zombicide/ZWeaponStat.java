@@ -1,6 +1,12 @@
 package cc.lib.zombicide;
 
-public class ZWeaponStat {
+import cc.lib.utils.Reflector;
+
+public class ZWeaponStat extends Reflector<ZWeaponStat> {
+
+    static {
+        addAllFields(ZWeaponStat.class);
+    }
 
     int dieRollToOpenDoor; // 0 means cannot open. 1 means can open without dice
     int minRange;
@@ -9,12 +15,14 @@ public class ZWeaponStat {
     int dieRollToHit;
     int damagePerHit;
     ZAttackType attackType;
+    ZActionType actionType;
 
     public ZWeaponStat() {
-        this(null, 0, 0, 0, 0, 0, 0);
+        this(null, null, 0, 0, 0, 0, 0, 0);
     }
 
-    public ZWeaponStat(ZAttackType attackType, int dieRollToOpenDoor, int minRange, int maxRange, int numDice, int dieRollToHit, int damagePerHit) {
+    public ZWeaponStat(ZActionType actionType, ZAttackType attackType, int dieRollToOpenDoor, int minRange, int maxRange, int numDice, int dieRollToHit, int damagePerHit) {
+        this.actionType = actionType;
         this.attackType = attackType;
         this.dieRollToOpenDoor = dieRollToOpenDoor;
         this.minRange = minRange;
@@ -25,7 +33,7 @@ public class ZWeaponStat {
     }
 
     ZWeaponStat copy() {
-        return new ZWeaponStat(attackType, dieRollToOpenDoor, minRange, maxRange, numDice, dieRollToHit, damagePerHit);
+        return new ZWeaponStat(actionType, attackType, dieRollToOpenDoor, minRange, maxRange, numDice, dieRollToHit, damagePerHit);
     }
 
     public int getDamagePerHit() {
@@ -55,4 +63,6 @@ public class ZWeaponStat {
     public ZAttackType getAttackType() {
         return attackType;
     }
+
+    public ZActionType getActionType() { return actionType; }
 }

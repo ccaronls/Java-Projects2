@@ -1,5 +1,6 @@
 package cc.lib.zombicide;
 
+import java.util.Iterator;
 import java.util.List;
 
 import cc.lib.annotation.Keep;
@@ -20,7 +21,7 @@ public enum ZSkill implements IButton {
     Plus1_Damage_Ranged("The Survivor gets a +1 Damage bonus with Ranged weapons.") {
         @Override
         public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game, int targetZone) {
-            if (actionType == ZActionType.BOLTS || actionType == ZActionType.ARROWS) {
+            if (actionType == ZActionType.RANGED) {
                 stat.damagePerHit++;
             }
         }
@@ -59,7 +60,7 @@ public enum ZSkill implements IButton {
     Plus1_to_dice_roll_Ranged("The Survivor adds 1 to the result of each die he rolls in Ranged Actions. The maximum result is always 6.") {
         @Override
         public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game, int targetZone) {
-            if (actionType == ZActionType.BOLTS || actionType == ZActionType.ARROWS) {
+            if (actionType == ZActionType.RANGED) {
                 stat.dieRollToHit--;
             }
         }
@@ -89,7 +90,7 @@ public enum ZSkill implements IButton {
     Plus1_die_Ranged("The Survivor’s Ranged weapons roll an extra die for Ranged Actions. Dual Ranged weapons gain a die each, for a total of +2 dice per Dual Ranged Action.") {
         @Override
         public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game, int targetZone) {
-            if (actionType == ZActionType.BOLTS || actionType == ZActionType.ARROWS) {
+            if (actionType == ZActionType.RANGED) {
                 stat.numDice++;
             }
         }
@@ -99,8 +100,7 @@ public enum ZSkill implements IButton {
         public int modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
             switch (type) {
                 case MAGIC:
-                case ARROWS:
-                case BOLTS:
+                case RANGED:
                 case MELEE:
                     return 1;
             }
@@ -197,8 +197,7 @@ public enum ZSkill implements IButton {
         @Override
         public int modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
             switch (type) {
-                case ARROWS:
-                case BOLTS:
+                case RANGED:
                     return 1;
             }
             return super.modifyActionsRemaining(character, type, game);
@@ -229,8 +228,7 @@ public enum ZSkill implements IButton {
         @Override
         public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game, int targetZone) {
             switch (actionType) {
-                case BOLTS:
-                case ARROWS:
+                case RANGED:
                 case MAGIC:
                     stat.maxRange++;
             }
@@ -247,6 +245,15 @@ public enum ZSkill implements IButton {
                     return 1;
             }
             return super.modifyActionsRemaining(character, type, game);
+        }
+    },
+    Plus1_die_Melee_Weapon("Gain +1 die with another equipped melee weapon") {
+        @Override
+        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game, int targetZone) {
+            // if another melee weapon equipped then +1 die
+            if (Utils.count(character.getWeapons(), object -> object.isMelee()) > 1) {
+                stat.numDice++;
+            }
         }
     },
     Two_Zones_per_Move_Action("When the Survivor spends one Action to Move, he can move one or two Zones instead of one. Entering a Zone containing Zombies ends the Survivor’s Move Action."),
@@ -422,7 +429,7 @@ public enum ZSkill implements IButton {
     Frenzy_Ranged("Ranged weapons the Survivor carries gain +1 die per Wound the Survivor suffers. Dual Ranged weapons gain a die each, for a total of +2 dice per Wound and per Dual Ranged Action.") {
         @Override
         public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game, int targetZone) {
-            if (actionType == ZActionType.BOLTS || actionType == ZActionType.ARROWS) {
+            if (actionType == ZActionType.RANGED) {
                 stat.numDice += character.getWoundBar();
             }
         }
@@ -461,8 +468,7 @@ public enum ZSkill implements IButton {
         @Override
         public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game, int targetZone) {
             switch (actionType) {
-                case ARROWS:
-                case BOLTS:
+                case RANGED:
                     int numInZone = game.getBoard().getZombiesInZone(targetZone).size();
                     if (numInZone > stat.numDice) {
                         game.addLogMessage(String.format("%s applied Iron Rain!", character.getLabel()));
@@ -514,26 +520,92 @@ public enum ZSkill implements IButton {
         @Override
         public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game, int targetZone) {
             switch (actionType) {
-                case BOLTS:
-                case ARROWS:
+                case RANGED:
                 case MAGIC:
                     stat.minRange = 0;
             }
         }
     },
-    Reaper_Combat("Use this Skill when assigning hits while resolving a Combat Action (Melee, Ranged or Magic). One of these hits can freely kill an additional identical Zombie in the same Zone. Only a single additional Zombie can be killed per Action when using this Skill. The Survivor gains the experience for the additional Zombie."),
-    Reaper_Magic("Use this Skill when assigning hits while resolving a Magic Action. One of these hits can freely kill an additional identical Zombie in the same Zone. Only a single additional Zombie can be killed per Action when using this Skill. The Survivor gains the experience for the additional Zombie."),
-    Reaper_Melee("Use this Skill when assigning hits while resolving a Melee Action. One of these hits can freely kill an additional identical Zombie in the same Zone. Only a single additional Zombie can be killed per Action when using this Skill. The Survivor gains the experience for the additional Zombie."),
-    Reaper_Ranged("Use this Skill when assigning hits while resolving a Ranged Action. One of these hits can freely kill an additional identical Zombie in the same Zone. Only a single additional Zombie can be killed per Action when using this Skill. The Survivor gains the experience for the additional Zombie."),
+    Reaper_Combat("Use this Skill when assigning hits while resolving a Combat Action (Melee, Ranged or Magic). One of these hits can freely kill an additional identical Zombie in the same Zone. Only a single additional Zombie can be killed per Action when using this Skill. The Survivor gains the experience for the additional Zombie.") {
+        @Override
+        void onAttack(ZGame game, ZCharacter c, ZActionType actionType, ZWeaponStat weapon, int targetZone, int hits, List<ZZombie> destroyedZombies) {
+            List<ZZombie> zombiesLeftInZone = game.getBoard().getZombiesInZone(targetZone);
+            for (ZZombie zombieKilled : destroyedZombies) {
+                for (Iterator<ZZombie> it = zombiesLeftInZone.iterator() ; it.hasNext(); ) {
+                    ZZombie z = it.next();
+                    if (z.type == zombieKilled.type) {
+                        game.performSkillKill(c, this, z, weapon.attackType);
+                        it.remove();
+                        break;
+                    }
+                }
+            }
+        }
+    },
+    Reaper_Magic("Use this Skill when assigning hits while resolving a Magic Action. One of these hits can freely kill an additional identical Zombie in the same Zone. Only a single additional Zombie can be killed per Action when using this Skill. The Survivor gains the experience for the additional Zombie.") {
+        @Override
+        void onAttack(ZGame game, ZCharacter c, ZActionType actionType, ZWeaponStat weapon, int targetZone, int hits, List<ZZombie> destroyedZombies) {
+            if (actionType != ZActionType.MAGIC)
+                return;
+            List<ZZombie> zombiesLeftInZone = game.getBoard().getZombiesInZone(targetZone);
+            for (ZZombie zombieKilled : destroyedZombies) {
+                for (Iterator<ZZombie> it = zombiesLeftInZone.iterator() ; it.hasNext(); ) {
+                    ZZombie z = it.next();
+                    if (z.type == zombieKilled.type) {
+                        game.performSkillKill(c, this, z, weapon.attackType);
+                        it.remove();
+                        break;
+                    }
+                }
+            }
+        }
+    },
+    Reaper_Melee("Use this Skill when assigning hits while resolving a Melee Action. One of these hits can freely kill an additional identical Zombie in the same Zone. Only a single additional Zombie can be killed per Action when using this Skill. The Survivor gains the experience for the additional Zombie.") {
+        @Override
+        void onAttack(ZGame game, ZCharacter c, ZActionType actionType, ZWeaponStat weapon, int targetZone, int hits, List<ZZombie> destroyedZombies) {
+            if (actionType != ZActionType.MELEE)
+                return;
+            List<ZZombie> zombiesLeftInZone = game.getBoard().getZombiesInZone(targetZone);
+            for (ZZombie zombieKilled : destroyedZombies) {
+                for (Iterator<ZZombie> it = zombiesLeftInZone.iterator() ; it.hasNext(); ) {
+                    ZZombie z = it.next();
+                    if (z.type == zombieKilled.type) {
+                        game.performSkillKill(c, this, z, weapon.attackType);
+                        it.remove();
+                        break;
+                    }
+                }
+            }
+        }
+    },
+    Reaper_Ranged("Use this Skill when assigning hits while resolving a Ranged Action. One of these hits can freely kill an additional identical Zombie in the same Zone. Only a single additional Zombie can be killed per Action when using this Skill. The Survivor gains the experience for the additional Zombie.") {
+        @Override
+        void onAttack(ZGame game, ZCharacter c, ZActionType actionType, ZWeaponStat weapon, int targetZone, int hits, List<ZZombie> destroyedZombies) {
+            if (actionType != ZActionType.RANGED)
+                return;
+            List<ZZombie> zombiesLeftInZone = game.getBoard().getZombiesInZone(targetZone);
+            for (ZZombie zombieKilled : destroyedZombies) {
+                for (Iterator<ZZombie> it = zombiesLeftInZone.iterator() ; it.hasNext(); ) {
+                    ZZombie z = it.next();
+                    if (z.type == zombieKilled.type) {
+                        game.performSkillKill(c, this, z, weapon.attackType);
+                        it.remove();
+                        break;
+                    }
+                }
+            }
+        }
+
+    },
     Regeneration("At the end of each Game Round, remove all Wounds the Survivor received. Regeneration doesn’t work if the Survivor has been eliminated."),
     Roll_6_plus1_die_Combat("You may roll an additional die for each '6' rolled on any Combat Action (Melee, Ranged or Magic). Keep on rolling additional dice as long as you keep getting '6'. Game effects that allow re-rolls (the Plenty Of Arrows Equipment card, for example) must be used before rolling any additional dice for this Skill.") {
         @Override
-        boolean isRoll6Plus1(ZActionType type) {
-            switch (type) {
+        boolean onSixRolled(ZGame game, ZCharacter c, ZWeaponStat stat) {
+            switch (stat.getActionType()) {
                 case MAGIC:
                 case MELEE:
-                case BOLTS:
-                case ARROWS:
+                case RANGED:
+                    game.onRollSixApplied(c.getPlayerName(),this);
                     return true;
             }
             return false;
@@ -541,9 +613,10 @@ public enum ZSkill implements IButton {
     },
     Roll_6_plus1_die_Magic("You may roll an additional die for each '6' rolled on a Magic Action. Keep on rolling additional dice as long as you keep getting '6'. Game effects that allow rerolls must be used before rolling any additional dice for this Skill.") {
         @Override
-        boolean isRoll6Plus1(ZActionType type) {
-            switch (type) {
+        boolean onSixRolled(ZGame game, ZCharacter c, ZWeaponStat stat) {
+            switch (stat.getActionType()) {
                 case MAGIC:
+                    game.onRollSixApplied(c.getPlayerName(),this);
                     return true;
             }
             return false;
@@ -551,9 +624,10 @@ public enum ZSkill implements IButton {
     },
     Roll_6_plus1_die_Melee("You may roll an additional die for each '6' rolled on a Melee Action. Keep on rolling additional dice as long as you keep getting '6'. Game effects that allow rerolls must be used before rolling any additional dice for this Skill.") {
         @Override
-        boolean isRoll6Plus1(ZActionType type) {
-            switch (type) {
+        boolean onSixRolled(ZGame game, ZCharacter c, ZWeaponStat stat) {
+            switch (stat.getActionType()) {
                 case MELEE:
+                    game.onRollSixApplied(c.getPlayerName(),this);
                     return true;
             }
             return false;
@@ -561,10 +635,10 @@ public enum ZSkill implements IButton {
     },
     Roll_6_plus1_die_Ranged("You may roll an additional die for each '6' rolled on a Ranged Action. Keep on rolling additional dice as long as you keep getting '6'. Game effects that allow re-rolls (the Plenty Of Arrows Equipment card, for example) must be used before rolling any additional dice for this Skill.") {
         @Override
-        boolean isRoll6Plus1(ZActionType type) {
-            switch (type) {
-                case BOLTS:
-                case ARROWS:
+        boolean onSixRolled(ZGame game, ZCharacter c, ZWeaponStat stat) {
+            switch (stat.getActionType()) {
+                case RANGED:
+                    game.onRollSixApplied(c.getPlayerName(),this);
                     return true;
             }
             return false;
@@ -629,6 +703,15 @@ public enum ZSkill implements IButton {
             }
             return super.modifyActionsRemaining(character, type, game);
         }
+
+        @Override
+        public void addSpecialMoves(ZGame game, ZCharacter character, List<ZMove> moves) {
+            if (character.getActionsLeftThisTurn() == 0 && character.getZonesMoved() < 3 && game.getBoard().getZombiesInZone(character.getOccupiedZone()).size()==0) {
+                List<Integer> accessableZones = game.board.getAccessableZones(character.occupiedZone, 1, 1, ZActionType.MOVE);
+                if (accessableZones.size() > 0)
+                    moves.add(ZMove.newWalkMove(accessableZones));
+            }
+        }
     },
     Super_strength("Consider the Damage value of Melee weapons used by the Survivor to be 3.") {
         @Override
@@ -661,10 +744,58 @@ public enum ZSkill implements IButton {
     Trick_shot("When the Survivor is equipped with Dual Combat spells or Ranged weapons, he can aim at different Zones with each spell/weapon in the same Action."),
     Zombie_link("The Survivor plays an extra Turn each time an Extra Activation card is drawn from the Zombie pile. He plays before the extra-activated Zombies. If several Survivors benefit from this Skill at the same time, choose their Turn order."),
 
-    Roll_6_Plus1_Damage("If any one of the die rolled is a 6 then add 1 to the damage. Addidional sixes to not increase beyond 1."),
-    Hit_Heals("A successful hit results in healing of a single wound."),
-    Hit_4_Dragon_Fire("If an attack results in 4 successful hits then dragon fire in the target zone"),
-    Ignite_Dragon_Fire("Can ignite dragon fire without torch at range 0-1"),
+    Roll_6_Plus1_Damage("If any one of the die rolled is a 6 then add 1 to the damage. Addidional sixes to not increase beyond 1.") {
+        @Override
+        boolean onSixRolled(ZGame game, ZCharacter c, ZWeaponStat stat) {
+            if (stat.damagePerHit < 3) {
+                game.addLogMessage("+1 Damage Applied!");
+                game.onRollSixApplied(c.getPlayerName(), this);
+                stat.damagePerHit++;
+            }
+            return false;
+        }
+    },
+    Hit_Heals("A successful hit results in healing of a single wound.") {
+        @Override
+        void onAttack(ZGame game, ZCharacter c, ZActionType actionType, ZWeaponStat weapon, int targetZone, int hits, List<ZZombie> destroyedZombies) {
+            c.heal(game, destroyedZombies.size());
+        }
+    },
+    Hit_4_Dragon_Fire("If an attack results in 4 successful hits then dragon fire in the target zone") {
+        @Override
+        void onAttack(ZGame game, ZCharacter c, ZActionType actionType, ZWeaponStat weapon, int targetZone, int hits, List<ZZombie> destroyedZombies) {
+            if (hits >= 4) {
+                game.performDragonFire(c, targetZone);
+            }
+        }
+    },
+    Ignite_Dragon_Fire("Can ignite dragon fire without torch at range 0-1") {
+        @Override
+        public void addSpecialMoves(ZGame game, ZCharacter character, List<ZMove> moves) {
+            List<Integer> ignitableZones = Utils.filter(
+                    game.getBoard().getAccessableZones(character.getOccupiedZone(), 1, 1, ZActionType.THROW_ITEM),
+                    zIdx -> game.getBoard().getZone(zIdx).isDragonBile());
+            if (ignitableZones.size() > 0) {
+                moves.add(ZMove.newIgniteMove(ignitableZones));
+            }
+        }
+    },
+    Auto_Reload("Auto reloads a ranged weapon at the end of turn") {
+        @Override
+        boolean onEndOfTurn(ZGame game, ZCharacter c) {
+            return super.onEndOfTurn(game, c);
+        }
+    },
+    Two_For_One_Melee("Each Successful hit generates two hits in the target zone. Similar to reaper but without the condition the zombie type must be the same") {
+        @Override
+        void onAttack(ZGame game, ZCharacter c, ZActionType actionType, ZWeaponStat weapon, int targetZone, int hits, List<ZZombie> destroyedZombies) {
+            List<ZZombie> zombiesLeftInZone = Utils.filter(game.getBoard().getZombiesInZone(targetZone), z -> z.getType().minDamageToDestroy <= weapon.damagePerHit);
+            while (zombiesLeftInZone.size() > 0 && hits-- >0) {
+                ZZombie z = zombiesLeftInZone.remove(0);
+                game.performSkillKill(c, this, z, weapon.attackType);
+            }
+        }
+    },
     ;
     
     ZSkill(String description) {
@@ -729,11 +860,6 @@ public enum ZSkill implements IButton {
      */
     public void addSpecialMoves(ZGame game, ZCharacter character, List<ZMove> moves) {}
 
-
-    boolean isRoll6Plus1(ZActionType type) {
-        return false;
-    }
-
     /**
      * Return true if skill was applied
      *
@@ -756,4 +882,14 @@ public enum ZSkill implements IButton {
     public int getArmorRating(ZZombieType type) {
         return 0;
     }
+
+    void onAttack(ZGame game, ZCharacter c, ZActionType actionType, ZWeaponStat weapon, int targetZone, int hits, List<ZZombie> destroyedZombies) {}
+
+    /**
+     * Return true to re-roll
+     * Modify stat does not require returning true
+     * @param stat
+     * @return
+     */
+    boolean onSixRolled(ZGame game, ZCharacter c, ZWeaponStat stat) { return false; }
 }

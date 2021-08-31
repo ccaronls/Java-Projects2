@@ -2,12 +2,11 @@ package cc.lib.zombicide.ui;
 
 import java.util.List;
 
-import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZDoor;
 import cc.lib.zombicide.ZEquipSlot;
 import cc.lib.zombicide.ZEquipment;
-import cc.lib.zombicide.ZItem;
 import cc.lib.zombicide.ZMove;
+import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZSkill;
 import cc.lib.zombicide.ZSpawnArea;
 import cc.lib.zombicide.ZSpell;
@@ -82,12 +81,12 @@ public class UIZUser extends ZUser {
     }
 
     @Override
-    public ZItem chooseItemToThrow(ZPlayerName cur, List<ZItem> slots) {
-        return UIZombicide.getInstance().pickMenu(cur,  "Choose Item to Throw", ZItem.class, slots);
+    public ZEquipment chooseEquipmentToThrow(ZPlayerName cur, List<ZEquipment> slots) {
+        return UIZombicide.getInstance().pickMenu(cur,  "Choose Item to Throw", ZEquipment.class, slots);
     }
 
     @Override
-    public Integer chooseZoneToThrowItem(ZPlayerName cur, ZItem toThrow, List<Integer> zones) {
+    public Integer chooseZoneToThrowEquipment(ZPlayerName cur, ZEquipment toThrow, List<Integer> zones) {
         return UIZombicide.getInstance().pickZone("Choose Zone to throw the " + toThrow, zones);
     }
 
@@ -121,4 +120,8 @@ public class UIZUser extends ZUser {
         return UIZombicide.getInstance().pickSpawn("Choose SPAWN Area to Remove", list);
     }
 
+    @Override
+    public Integer chooseZoneToIgnite(ZPlayerName playerName, List<Integer> ignitableZones) {
+        return UIZombicide.getInstance().pickZone("Choose Zone to Ignite", ignitableZones);
+    }
 }

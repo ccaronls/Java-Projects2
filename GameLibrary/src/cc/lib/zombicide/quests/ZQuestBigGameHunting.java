@@ -63,7 +63,7 @@ public class ZQuestBigGameHunting extends ZQuest {
             blueRevealZone = -1;
         }
         if (getRedObjectives().size() == 0 && game.getNumKills(ZZombieType.Abomination) == 0) {
-            if (Utils.filter(game.getBoard().getAllZombies(), object -> object.getType()==ZZombieType.Abomination).size() == 0) {
+            if (Utils.count(game.getBoard().getAllZombies(), object -> object.getType()==ZZombieType.Abomination) == 0) {
                 // spawn an abomination somewhere far form where all the characters are
                 List<ZZone> spawnZones = game.getBoard().getSpawnZones();
                 if (spawnZones.size() > 0) {

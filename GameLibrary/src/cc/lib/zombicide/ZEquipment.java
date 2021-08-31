@@ -46,7 +46,7 @@ public abstract class ZEquipment<T extends ZEquipmentType> extends Reflector<ZEq
         return false;
     }
 
-    public boolean isThrowable() { return false; }
+        public final boolean isThrowable() { return getType().isActionType(ZActionType.THROW_ITEM); }
 
     public boolean isDualWieldCapable() { return false; }
 

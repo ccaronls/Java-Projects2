@@ -110,7 +110,7 @@ public class WolfQuestImmortal extends ZQuest {
     }
 
     int getNumNecrosOnBoard(ZGame game) {
-        return Utils.filter(game.getBoard().getAllZombies(), z -> z.getType() == ZZombieType.Necromancer).size();
+        return Utils.count(game.getBoard().getAllZombies(), z -> z.getType() == ZZombieType.Necromancer);
     }
 
     @Override

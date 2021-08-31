@@ -190,7 +190,7 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
             { ZIcon.SLIME, "zslime_icon.png" },
             { ZIcon.TORCH, "ztorch_icon.png" },
             { ZIcon.ARROW, "zarrow_icon.png" },
-            { ZIcon.SPAWN_RED, "zspawn.png" },
+            { ZIcon.SPAWN_RED, "zspawn_red.png" },
             { ZIcon.SPAWN_BLUE, "zspawn_blue.png" },
             { ZIcon.SPAWN_GREEN, "zspawn_green.png" },
             { ZIcon.SLASH, "zslash1.png" },
@@ -202,6 +202,7 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
             { ZIcon.GRAVESTONE, "zgravestone.png" },
             { ZIcon.PADLOCK, "zpadlock2.png" },
             { ZIcon.SKULL, "zskull.png"},
+            { ZIcon.DAGGER, "zdagger_icon.png" },
         };
 
         Map<Object, List<Integer>> objectToImageMap = new HashMap<>();
@@ -245,7 +246,7 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
         }
 
         // Icons that 'spin'
-        for (ZIcon icon : Utils.toArray(ZIcon.DRAGON_BILE, ZIcon.TORCH)) {
+        for (ZIcon icon : Utils.toArray(ZIcon.DRAGON_BILE, ZIcon.TORCH, ZIcon.DAGGER)) {
             int [] ids = new int[8];
             ids[0] = objectToImageMap.get(icon).get(0);
             for (int i=1; i<ids.length; i++) {

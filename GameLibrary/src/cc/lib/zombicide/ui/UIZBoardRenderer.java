@@ -41,7 +41,6 @@ import cc.lib.zombicide.ZDoor;
 import cc.lib.zombicide.ZEquipment;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZIcon;
-import cc.lib.zombicide.ZItem;
 import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZSpawnArea;
@@ -161,7 +160,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                 case MAGIC_ATTACK:
                     for (ZWeapon w : (List<ZWeapon>)move.list) {
                         for (ZWeaponStat stat : w.getType().getStats()) {
-                            for (int zoneIdx : getBoard().getAccessableZones(cur.getOccupiedZone(), stat.getMinRange(), stat.getMaxRange(), stat.getAttackType().getActionType())) {
+                            for (int zoneIdx : getBoard().getAccessableZones(cur.getOccupiedZone(), stat.getMinRange(), stat.getMaxRange(), stat.getActionType())) {
                                 addClickable(getBoard().getZone(zoneIdx), new ZMove(move, w, zoneIdx));
                             }
                         }
@@ -169,7 +168,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                     break;
                 case THROW_ITEM: {
                     List<Integer> zones = getBoard().getAccessableZones(cur.getOccupiedZone(), 0, 1, ZActionType.THROW_ITEM);
-                    for (ZItem item : (List<ZItem>) move.list) {
+                    for (ZEquipment item : (List<ZEquipment>) move.list) {
                         for (Integer zoneIdx : zones) {
                             addClickable(cur.getRect(), new ZMove(move, item, zoneIdx));
                         }
@@ -271,7 +270,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
         }
     }
 
-    public ZActor drawActors(AGraphics g, UIZombicide game, float mx, float my, boolean drawAnimating) {
+    public ZActor drawActors(AGraphics g, UIZombicide game, float mx, float my) {
         ZActor picked = null;
         float distFromCenter = 0;
         actorsAnimating = false;
@@ -295,9 +294,10 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
             }
         }
 
-        for (ZActor a : b.getAllLiveActors()) {
-            if (a.isAnimating() && !drawAnimating)
-                continue;
+        List<ZActor> actors = b.getAllLiveActors();
+        Collections.sort(actors, (a0,a1) -> Integer.compare(a0.isAnimating() ? 1 : 0, a1.isAnimating() ? 1 : 0));
+
+        for (ZActor a : actors) {
             AImage img = g.getImage(a.getImageId());
             if (img != null) {
                 GRectangle rect = a.getRect(b);
@@ -317,7 +317,8 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                     actorsAnimating = true;
                 } else {
                     GColor outline = null;
-                    if (game.getCurrentCharacter() != null && a == game.getCurrentCharacter().getCharacter()) {
+                    ZPlayerName currentCharacter = game.getCurrentCharacter();
+                    if (a instanceof ZCharacter && (((ZCharacter) a).getPlayerName() == currentCharacter)) {
                         outline = GColor.GREEN;
                     } else if (a == picked)
                         outline = GColor.CYAN;
@@ -402,6 +403,29 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
         }
     }
 
+    public void drawNoise(AGraphics g) {
+        g.setColor(GColor.BLACK);
+        for (ZZone zone : getBoard().getZones()) {
+            if (zone.getNoiseLevel() > 0) {
+                g.setColor(GColor.BLACK);
+                g.drawJustifiedString(zone.getCenter(), Justify.CENTER, Justify.CENTER, String.valueOf(zone.getNoiseLevel()));
+            }
+        }
+        ZZone maxNoise = getBoard().getMaxNoiseLevelZone();
+        if (maxNoise != null) {
+            GColor color = new GColor(GColor.BLACK);
+            float radius = 0.5f;
+            float dr = radius / 5;
+            radius = dr;
+            for (int i=0; i<5; i++) {
+                g.setColor(color);
+                g.drawCircle(maxNoise.getCenter(), radius, 0);
+                color = color.lightened(.1f);
+                radius += dr;
+            }
+        }
+    }
+
     /**
      * return zone highlighted by mouseX, mouseY
      *
@@ -469,23 +493,6 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                     g.setColor(GColor.TRANSLUSCENT_BLACK);
                     g.drawFilledRect(cell);
                 }
-            }
-            if (zone.getNoiseLevel() > 0) {
-                g.setColor(GColor.BLACK);
-                g.drawJustifiedString(zone.getCenter(), Justify.CENTER, Justify.CENTER, String.valueOf(zone.getNoiseLevel()));
-            }
-        }
-        ZZone maxNoise = board.getMaxNoiseLevelZone();
-        if (maxNoise != null) {
-            GColor color = new GColor(GColor.BLACK);
-            float radius = 0.5f;
-            float dr = radius / 5;
-            radius = dr;
-            for (int i=0; i<5; i++) {
-                g.setColor(color);
-                g.drawCircle(maxNoise.getCenter(), radius, 0);
-                color = color.lightened(.1f);
-                radius += dr;
             }
         }
         return result;
@@ -675,7 +682,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                 text += "\n2 Units away:\n" + accessible2;
             }*/
             g.setColor(GColor.CYAN);
-            for (ZActor a : cell.getOccupants()) {
+            for (ZActor a : cell.getOccupant()) {
                 if (a != null) {
                     text += "\n" + a.name();
                 }
@@ -967,14 +974,13 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
 
         int highlightedZone = drawZones(g, mouse.X(), mouse.Y());
         game.getQuest().drawQuest(game, g);
-        boolean drawAnimating = game.isGameOver();
+        drawNoise(g);
 
         if (drawDebugText)
             drawDebugText(g, mouseX, mouseY);
         drawAnimations(preActor, g);
 
-        highlightedActor = //board.drawActors(g, getMouseX(), getMouseY());
-                drawActors(g, game, mouse.X(), mouse.Y(), drawAnimating || overlayToDraw == null);
+        highlightedActor = drawActors(g, game, mouse.X(), mouse.Y());
 
         if (DEBUG) {
             if (highlightedActor instanceof ZZombie) {
@@ -999,7 +1005,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                 }
                 g.drawLineStrip(3);
             } else if (highlightedActor instanceof ZCharacter) {
-                List<Integer> visibleZones = getBoard().getAccessableZones(highlightedActor.getOccupiedZone(), 0, 4, ZActionType.BOLTS);
+                List<Integer> visibleZones = getBoard().getAccessableZones(highlightedActor.getOccupiedZone(), 0, 4, ZActionType.RANGED);
                 for (int zoneIdx : visibleZones) {
                     ZZone zone = board.getZone(zoneIdx);
                     g.setColor(GColor.YELLOW);
@@ -1011,7 +1017,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
 
         if (drawRangedAccessibility && highlightedZone >= 0) {
             g.setColor(GColor.BLUE.withAlpha(.5f));
-            for (int zIndex : board.getAccessableZones(highlightedZone, 1, 5, ZActionType.ARROWS)) {
+            for (int zIndex : board.getAccessableZones(highlightedZone, 1, 5, ZActionType.RANGED)) {
                 drawZoneFilled(g, board, zIndex);
             }
         }
@@ -1081,6 +1087,9 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
         //    setOverlay(game.getGameSummaryTable());
         //}
 
+        if (actorsAnimating && !game.isGameOver()) {
+            overlayToDraw = null;
+        }
         drawOverlay(g);
 
         if (zoomAnimation != null) {
@@ -1164,9 +1173,9 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
 
     @Override
     public void onClick() {
+        overlayToDraw = null;
+        submenu = null;
         if (getGame().isGameRunning()) {
-            overlayToDraw = null;
-            submenu = null;
             getGame().setResult(highlightedResult);
         } else {
             if (highlightedDoor != null) {
@@ -1179,6 +1188,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                 }
             }
         }
+        redraw();
     }
 
     public void setDrawTiles(boolean draw) {
@@ -1247,6 +1257,6 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
     }
 
     public int getNumOverlayTextAnimations() {
-        return Utils.filter(overlayAnimations, a -> a instanceof OverlayTextAnimation).size();
+        return Utils.count(overlayAnimations, a -> a instanceof OverlayTextAnimation);
     }
 }

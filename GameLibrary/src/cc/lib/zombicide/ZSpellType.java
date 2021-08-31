@@ -37,8 +37,8 @@ public enum  ZSpellType implements ZEquipmentType<ZSpell>, IButton {
     }
 
     @Override
-    public ZActionType getActionType() {
-        return ZActionType.ENCHANTMENT;
+    public boolean isActionType(ZActionType type) {
+        return type == ZActionType.ENCHANTMENT;
     }
 
     @Override

@@ -3,12 +3,11 @@ package cc.lib.zombicide.p2p;
 import java.util.List;
 
 import cc.lib.net.ClientConnection;
-import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZDoor;
 import cc.lib.zombicide.ZEquipSlot;
 import cc.lib.zombicide.ZEquipment;
-import cc.lib.zombicide.ZItem;
 import cc.lib.zombicide.ZMove;
+import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZSkill;
 import cc.lib.zombicide.ZSpawnArea;
 import cc.lib.zombicide.ZSpell;
@@ -136,7 +135,7 @@ public class ZUserMP extends ZUser {
     }
 
     @Override
-    public ZItem chooseItemToThrow(ZPlayerName cur, List<ZItem> slots) {
+    public ZEquipment chooseEquipmentToThrow(ZPlayerName cur, List<ZEquipment> slots) {
         if (connection != null) {
             return connection.executeDerivedOnRemote(USER_ID, true, cur, slots);
         }
@@ -145,7 +144,7 @@ public class ZUserMP extends ZUser {
     }
 
     @Override
-    public Integer chooseZoneToThrowItem(ZPlayerName cur, ZItem toThrow, List<Integer> zones) {
+    public Integer chooseZoneToThrowEquipment(ZPlayerName cur, ZEquipment toThrow, List<Integer> zones) {
         if (connection != null) {
             return connection.executeDerivedOnRemote(USER_ID, true, cur, toThrow, zones);
         }
@@ -204,4 +203,11 @@ public class ZUserMP extends ZUser {
         return null;
     }
 
+    @Override
+    public Integer chooseZoneToIgnite(ZPlayerName playerName, List<Integer> ignitableZones) {
+        if (connection != null) {
+            return connection.executeDerivedOnRemote(USER_ID, true, playerName, ignitableZones);
+        }
+        return null;
+    }
 }

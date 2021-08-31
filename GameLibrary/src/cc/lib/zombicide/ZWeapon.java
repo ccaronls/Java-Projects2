@@ -1,6 +1,7 @@
 package cc.lib.zombicide;
 
 import java.util.Arrays;
+import java.util.List;
 
 import cc.lib.game.Utils;
 import cc.lib.utils.Table;
@@ -23,14 +24,27 @@ public class ZWeapon extends ZEquipment<ZWeaponType> {
     }
 
     int getOpenDoorValue() {
-        if (!isOpenDoorCapable())
+        ZWeaponStat doorStat = getOpenDoorStat();
+        if (doorStat == null)
             return 0;
-        return 7-type.meleeStats.dieRollToOpenDoor + (type.openDoorsIsNoisy ? 0 : 1);
+        return 7-doorStat.dieRollToOpenDoor + (type.openDoorsIsNoisy ? 0 : 1);
     }
 
     @Override
     public boolean isOpenDoorCapable() {
-        return type.meleeStats != null && type.meleeStats.dieRollToOpenDoor > 0;
+        return getOpenDoorStat() != null;
+    }
+
+    ZWeaponStat getOpenDoorStat() {
+        for (ZWeaponStat stat : type.weaponStats) {
+            if (stat.dieRollToOpenDoor > 0)
+                return stat;
+        }
+        return null;
+    }
+
+    ZWeaponStat getStatForAction(ZActionType actionType) {
+        return Utils.getFirstOrNull(Utils.filter(type.getStats(), stat -> stat.actionType == actionType));
     }
 
     @Override
@@ -40,17 +54,21 @@ public class ZWeapon extends ZEquipment<ZWeaponType> {
 
     @Override
     public boolean isMelee() {
-        return type.meleeStats != null;
+        return countStatsType(ZActionType.MELEE) > 0;
     }
 
     @Override
     public boolean isRanged() {
-        return type.rangedStats != null;
+        return countStatsType(ZActionType.RANGED) > 0;
     }
 
     @Override
     public boolean isMagic() {
-        return type.magicStats != null;
+        return countStatsType(ZActionType.MAGIC) > 0;
+    }
+
+    private int countStatsType(ZActionType actionType) {
+        return Utils.count(type.getStats(), stat -> stat.actionType==actionType);
     }
 
     @Override
@@ -153,6 +171,11 @@ public class ZWeapon extends ZEquipment<ZWeaponType> {
                 .addRow(cardLower).setNoBorder();
         if (type.specialInfo != null) {
             card.addRow(Utils.wrapTextWithNewlines("*" + type.specialInfo, 32));
+        } else {
+            List<ZSkill> skills = type.getSkillsWhileEquipped();
+            if (skills.size() > 0) {
+                card.addRow("Equipped", skills);
+            }
         }
         return card;
     }
@@ -186,6 +209,11 @@ public class ZWeapon extends ZEquipment<ZWeaponType> {
             ));
         }
 
+        List<ZSkill> skills = type.getSkillsWhileEquipped();
+        if (skills.size() > 0) {
+            cardLower.addRow("Equipped:", skills);
+        }
+
         return cardLower.toString();
     }
 
@@ -196,16 +224,6 @@ public class ZWeapon extends ZEquipment<ZWeaponType> {
                 if (!isLoaded()) {
                     game.addLogMessage(getLabel() + " auto reloaded");
                     reload();
-                }
-                break;
-        }
-    }
-
-    public void onEnemyDestroyed(ZGame g, ZCharacter c, ZZombie z) {
-        switch (type) {
-            case VAMPIRE_CROSSBOW:
-                if (c.heal(g,1)) {
-                    g.onCharacterHealed(c.getPlayerName(), 1);
                 }
                 break;
         }

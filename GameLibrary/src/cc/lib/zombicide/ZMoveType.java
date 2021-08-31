@@ -42,7 +42,9 @@ public enum ZMoveType implements IButton {
     BORN_LEADER("You can give one of your own actions to another player of your choice."),
     BLOODLUST_MELEE("Spend an action to move up to 2 zones and perform melee."),
     BLOODLUST_RANGED("Spend an action to move up to 2 zones and perform ranged."),
-    BLOODLUST_MAGIC("Spend an action to move up to 2 spaces and perform magic.");
+    BLOODLUST_MAGIC("Spend an action to move up to 2 spaces and perform magic."),
+    IGNITE("Ignite a Dragon Bile within range")
+    ;
 
     final String toolTipText;
 
@@ -58,9 +60,5 @@ public enum ZMoveType implements IButton {
     @Override
     public String getTooltipText() {
         return toolTipText;
-    }
-
-    public ZActionType getActionType(ZWeapon slot) {
-        return slot.type.getActionType();
     }
 }

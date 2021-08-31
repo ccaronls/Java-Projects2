@@ -5,8 +5,27 @@ import cc.lib.annotation.Keep;
 @Keep
 public enum ZItemType implements ZEquipmentType<ZItem> {
     AAHHHH(ZActionType.NOTHING, null, "Stop Searching and place a zombie in the room being searched."),
-    TORCH(ZActionType.THROW_ITEM, ZEquipSlotType.HAND, "Draw 2 cards when searching. Spend an action, discard, and select a dragon bile at range 0-1 to ignite. Resolve dragon Fire."),
-    DRAGON_BILE(ZActionType.THROW_ITEM, ZEquipSlotType.HAND, "Spend an action, discard and place a dragon bile token at range 0-1"),
+    TORCH(ZActionType.THROW_ITEM, ZEquipSlotType.HAND, "Draw 2 cards when searching. Spend an action, discard, and select a dragon bile at range 0-1 to ignite. Resolve dragon Fire.") {
+        @Override
+        public void onThrown(ZGame game, ZCharacter thrower, int targetZoneIdx) {
+            ZZone zone = game.getBoard().getZone(targetZoneIdx);
+            game.onEquipmentThrown(thrower.getPlayerName(), ZIcon.TORCH, targetZoneIdx);
+            if (!zone.isDragonBile()) {
+                game.addLogMessage("Throwing the Torch had no effect");
+            } else {
+                game.performDragonFire(thrower, zone.getZoneIndex());
+            }
+        }
+    },
+
+    DRAGON_BILE(ZActionType.THROW_ITEM, ZEquipSlotType.HAND, "Spend an action, discard and place a dragon bile token at range 0-1") {
+        @Override
+        public void onThrown(ZGame game, ZCharacter thrower, int targetZoneIdx) {
+            game.addLogMessage(thrower.name() + " threw the dragon Bile!");
+            game.onEquipmentThrown(thrower.getPlayerName(), ZIcon.DRAGON_BILE, targetZoneIdx);
+            game.getBoard().getZone(targetZoneIdx).setDragonBile(true);
+        }
+    },
     WATER(ZActionType.CONSUME, ZEquipSlotType.BACKPACK, "Consume and gain 1 experience point"),
     SALTED_MEAT(ZActionType.CONSUME, ZEquipSlotType.BACKPACK, "Consume and gain 2 experience point"),
     APPLES(ZActionType.CONSUME, ZEquipSlotType.BACKPACK, "Consume and gain 3 experience point"),
@@ -30,8 +49,8 @@ public enum ZItemType implements ZEquipmentType<ZItem> {
     }
 
     @Override
-    public ZActionType getActionType() {
-        return actionType;
+    public boolean isActionType(ZActionType type) {
+        return type == actionType;
     }
 
     public int getExpWhenConsumed() {
