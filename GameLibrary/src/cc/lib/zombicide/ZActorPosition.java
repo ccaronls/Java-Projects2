@@ -15,6 +15,8 @@ public class ZActorPosition extends Reflector<ZActorPosition> {
     final Grid.Pos pos;
     final ZCellQuadrant quadrant;
 
+    private int data = 0;
+
     public ZActorPosition() {
         this(null, null);
     }
@@ -22,5 +24,14 @@ public class ZActorPosition extends Reflector<ZActorPosition> {
     ZActorPosition(Grid.Pos pos, ZCellQuadrant quadrant) {
         this.pos = pos;
         this.quadrant = quadrant;
+    }
+
+    ZActorPosition setData(int data) {
+        this.data = data;
+        return this;
+    }
+
+    public int getData() {
+        return data;
     }
 }

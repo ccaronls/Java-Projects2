@@ -122,3 +122,7 @@ Trade Give: (only if open slot)
 
 Trade Only show 'Keep' menu if no empty hand/body slot for item
 - Make 'keep item' a game state to avoid throwing it away?
+
+NEW BUGS
+-------------
+Holding 2 of same weapon always returns first one. If crossbow then when empty is a problem. Show if empty on the button label

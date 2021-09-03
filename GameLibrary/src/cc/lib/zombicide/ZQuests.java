@@ -4,10 +4,15 @@ import java.util.List;
 
 import cc.lib.annotation.Keep;
 import cc.lib.game.Utils;
+import cc.lib.zombicide.quests.WolfACoinForTheFerryman;
+import cc.lib.zombicide.quests.WolfBloodRed;
 import cc.lib.zombicide.quests.WolfQuestImmortal;
 import cc.lib.zombicide.quests.WolfQuestKnowYourEnemy;
 import cc.lib.zombicide.quests.WolfQuestTheAmbush;
 import cc.lib.zombicide.quests.WolfQuestTheEvilTwins;
+import cc.lib.zombicide.quests.WolfTheGhostDoor;
+import cc.lib.zombicide.quests.WolfTheZombieArmy;
+import cc.lib.zombicide.quests.WolfZombieCourt;
 import cc.lib.zombicide.quests.ZQuestBigGameHunting;
 import cc.lib.zombicide.quests.ZQuestDeadTrail;
 import cc.lib.zombicide.quests.ZQuestFamine;
@@ -187,22 +192,22 @@ public enum ZQuests {
             "was known for its elven beer. That\n" +
             "would be a rare treat!"),
     The_Evil_Twins(FLAG_WOLFBURG, "The Evil Twins",
-            "We found a soldier’s journal among the\n" +
-                    "bloodstained houses. It seems a foreign\n" +
-                    "prince had come to Wulfsburg shortly after the\n" +
-                    "invasion began with his private army. Even its\n" +
-                    "fallen state, the city retains its wealth. Zombies\n" +
-                    "aren’t interested in treasure, so he thought it’d be\n" +
-                    "an easy conquest.\n" +
-                    "The blood-spattered journal ends with an entry\n" +
-                    "about a pair of abominations stalking the final few\n" +
-                    "survivors from the prince’s retinue. The ‘Evil\n" +
-                    "Twins’ they were called, and they seem to haunt\n" +
-                    "the Usurer’s Ward, a block away.\n" +
-                    "They’ve surely caught our scent now as well, and\n" +
-                    "could attack at any time. So, we’ll attack first.\n" +
-                    "The best defense is sometimes all-out offense,\n" +
-                    "right?"),
+    "We found a soldier’s journal among the\n" +
+            "bloodstained houses. It seems a foreign\n" +
+            "prince had come to Wulfsburg shortly after the\n" +
+            "invasion began with his private army. Even its\n" +
+            "fallen state, the city retains its wealth. Zombies\n" +
+            "aren’t interested in treasure, so he thought it’d be\n" +
+            "an easy conquest.\n" +
+            "The blood-spattered journal ends with an entry\n" +
+            "about a pair of abominations stalking the final few\n" +
+            "survivors from the prince’s retinue. The ‘Evil\n" +
+            "Twins’ they were called, and they seem to haunt\n" +
+            "the Usurer’s Ward, a block away.\n" +
+            "They’ve surely caught our scent now as well, and\n" +
+            "could attack at any time. So, we’ll attack first.\n" +
+            "The best defense is sometimes all-out offense,\n" +
+            "right?"),
     The_Ambush(FLAG_WOLFBURG, "The Ambush",
             "We were returning to our haven as night\n" +
             "began to fall, when the wizard spotted some\n" +
@@ -215,30 +220,74 @@ public enum ZQuests {
             "us a threat. I don’t know what to think about this\n" +
             "flattering change."),
     Immortal(FLAG_WOLFBURG, "Immortal",
-            "Night has fallen, and the\n" +
-                    "zombies are still dogging our\n" +
-                    "footsteps by the dozen. To make\n" +
-                    "matters worse, we seem to have killed\n" +
-                    "the same Necromancer at least four\n" +
-                    "times. He keeps coming back, over\n" +
-                    "and over. He’s rallying his hordes and\n" +
-                    "summoning more. We’re experienced\n" +
-                    "survivors, but we’re still just mortals.\n" +
-                    "We either figure out how to kill him\n" +
-                    "permanently, or die from exhaustion.\n" +
-                    "The wizards say he likely has some\n" +
-                    "kind of magical anchors binding him\n" +
-                    "to this area. If we destroy them, we\n" +
-                    "can probably kill him for good and take\n" +
-                    "a rest. (And then I can enjoy some\n" +
-                    "of that Elven brew I found before.\n" +
-                    "Don’t tell anyone!)"),
-    Zombie_Court(FLAG_WOLFBURG, "Zombie Court", ""),
-    Blood_Red(FLAG_WOLFBURG, "Blood Red", ""),
-    The_Ghost_Door(FLAG_WOLFBURG, "The Ghost Door", ""),
-    The_Zombie_Army(FLAG_WOLFBURG, "The Zombie Army", ""),
-    A_Coin_For_The_Ferryman(FLAG_WOLFBURG, "A Coin for the Ferryman", ""),
-
+    "Night has fallen, and the\n" +
+            "zombies are still dogging our\n" +
+            "footsteps by the dozen. To make\n" +
+            "matters worse, we seem to have killed\n" +
+            "the same Necromancer at least four\n" +
+            "times. He keeps coming back, over\n" +
+            "and over. He’s rallying his hordes and\n" +
+            "summoning more. We’re experienced\n" +
+            "survivors, but we’re still just mortals.\n" +
+            "We either figure out how to kill him\n" +
+            "permanently, or die from exhaustion.\n" +
+            "The wizards say he likely has some\n" +
+            "kind of magical anchors binding him\n" +
+            "to this area. If we destroy them, we\n" +
+            "can probably kill him for good and take\n" +
+            "a rest. (And then I can enjoy some\n" +
+            "of that Elven brew I found before.\n" +
+            "Don’t tell anyone!)"),
+    Zombie_Court(FLAG_WOLFBURG, "Zombie Court",
+    "We finally discovered the fate of that\n" +
+            "invading prince and his retinue. They\n" +
+            "were hunted, encircled, and butchered by a giant\n" +
+            "zombie wolfz pack. Fresh cadavers are everywhere.\n" +
+            "Wait.\n" +
+            "Make that: fresh zombies are everywhere. Well,\n" +
+            "let’s call this morning training, eh?\n" +
+            "While we’re here, let’s find the prince’s royal\n" +
+            "implements; a crown or scepter for example. It\n" +
+            "would be nice to return them to the king, and a good\n" +
+            "reminder that the land belongs to free people now!"),
+    Blood_Red(FLAG_WOLFBURG, "Blood Red",
+    "We’ve discovered a district just packed with\n" +
+            "zombies. The Necromancers use the wolfz\n" +
+            "to round them up and herd them here. We don’t know\n" +
+            "why, but packing such large numbers of infected into\n" +
+            "such close quarters is a target too tempting to ignore!\n" +
+            "Let’s show them why it’s called zombicide!"),
+    The_Ghost_Door(FLAG_WOLFBURG, "The Ghost Door",
+    "Being reliably sturdy and easy to defend,\n" +
+            "towers are havens of choice for any\n" +
+            "survivor group, and for Necromancers as well. The\n" +
+            "wealthy Wulfsburg is home to many towers built\n" +
+            "by merchants and nobles as headquarters for their\n" +
+            "guilds and testimonies to their wealth.\n" +
+            "One of these towers bears the mark of the ‘immortal’\n" +
+            "Necromancer that we killed yesterday. Taking\n" +
+            "a peek at his stuff could give us a clue about the\n" +
+            "Necromancers’ master plan (if there even is such a\n" +
+            "thing). He had plenty of guards, but we’re betting\n" +
+            "on some nice artifacts too!"),
+    The_Zombie_Army(FLAG_WOLFBURG, "The Zombie Army",
+    "We found another Necromancer’s lair!\n" +
+            "The good news is: it’s filled with\n" +
+            "treasure! The bad news is: the Necromancers have\n" +
+            "spotted us. Even now, their hordes encircle us. But\n" +
+            "by now, we’re all experienced survivors. We’ve faced\n" +
+            "worse than just this petty army, right? Zombicide!"),
+    A_Coin_For_The_Ferryman(FLAG_WOLFBURG, "A Coin for the Ferryman",
+    "Turns out the Necromancers are human\n" +
+            "after all. They’ve been using the towers\n" +
+            "to boost their egos and pile up plundered treasure,\n" +
+            "just like their former owners did. But, the\n" +
+            "Necromancers have also opened magical gates\n" +
+            "leading to some hidden place! The next step in their\n" +
+            "invasion, perhaps? Who knows? Finding these\n" +
+            "towers and sealing the gates will trap them here\n" +
+            "in Wulfsburg with us. Then we finish it, once and\n" +
+            "for all!"),
     ;
 
     ZQuests(int flag, String displayName, String description) {
@@ -290,15 +339,15 @@ public enum ZQuests {
             case Immortal:
                 return new WolfQuestImmortal();
             case Zombie_Court:
-                break;
+                return new WolfZombieCourt();
             case Blood_Red:
-                break;
+                return new WolfBloodRed();
             case The_Ghost_Door:
-                break;
+                return new WolfTheGhostDoor();
             case The_Zombie_Army:
-                break;
+                return new WolfTheZombieArmy();
             case A_Coin_For_The_Ferryman:
-                break;
+                return new WolfACoinForTheFerryman();
         }
         Utils.assertTrue(false);
         return null;

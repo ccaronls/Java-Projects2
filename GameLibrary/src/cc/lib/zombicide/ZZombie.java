@@ -7,11 +7,15 @@ import cc.lib.game.Justify;
 import cc.lib.game.Utils;
 import cc.lib.utils.Table;
 
-public final class ZZombie extends ZActor<ZZombieType> implements Comparable<ZZombie> {
+public final class ZZombie extends ZActor<ZZombieType> {
 
     static {
         addAllFields(ZZombie.class);
     }
+
+    final ZZombieType type;
+    private int imageIdx = -1;
+    boolean destroyed = false;
 
     @Override
     protected int getActionsPerTurn() {
@@ -28,9 +32,6 @@ public final class ZZombie extends ZActor<ZZombieType> implements Comparable<ZZo
         this.type = type;
         onBeginRound();
     }
-
-    final ZZombieType type;
-    private int imageIdx = -1;
 
     private int getIdx() {
         if (imageIdx < 0 || imageIdx >= type.imageOptions.length)
@@ -86,6 +87,7 @@ public final class ZZombie extends ZActor<ZZombieType> implements Comparable<ZZo
     ZCellQuadrant getSpawnQuadrant() {
         switch (type) {
             case Abomination:
+            case Wolfbomination:
                 return ZCellQuadrant.CENTER;
         }
         return super.getSpawnQuadrant();
@@ -110,14 +112,6 @@ public final class ZZombie extends ZActor<ZZombieType> implements Comparable<ZZo
     }
 
     @Override
-    public int compareTo(ZZombie o) {
-        if (o.type.minDamageToDestroy == type.minDamageToDestroy) {
-            return Integer.compare(type.attackPriority, o.type.attackPriority);
-        };
-        return Integer.compare(o.type.minDamageToDestroy, type.minDamageToDestroy);
-    }
-
-    @Override
     protected boolean performAction(ZActionType action, ZGame game) {
         if (action == ZActionType.MELEE) {
             actionsLeftThisTurn = 0;
@@ -128,13 +122,20 @@ public final class ZZombie extends ZActor<ZZombieType> implements Comparable<ZZo
 
     @Override
     public void draw(AGraphics g) {
-        super.draw(g);
-        if (actionsLeftThisTurn > 1) {
-            g.setColor(GColor.WHITE);
-            float oldHgt = g.setTextHeight(10);
-            g.drawJustifiedString(getRect().getCenterBottom(), Justify.CENTER, Justify.BOTTOM, String.valueOf(actionsLeftThisTurn));
-            g.setTextHeight(oldHgt);
+        if (isAlive() || isAnimating()) {
+            super.draw(g);
+            if (actionsLeftThisTurn > 1) {
+                g.setColor(GColor.WHITE);
+                float oldHgt = g.setTextHeight(10);
+                g.drawJustifiedString(getRect().getCenterBottom(), Justify.CENTER, Justify.BOTTOM, String.valueOf(actionsLeftThisTurn));
+                g.setTextHeight(oldHgt);
+            }
         }
+    }
+
+    @Override
+    public boolean isAlive() {
+        return !destroyed;
     }
 }
 

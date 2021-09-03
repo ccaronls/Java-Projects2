@@ -4,9 +4,9 @@ import java.util.List;
 
 import cc.lib.game.Utils;
 
-class TestUser extends ZUser {
+public class ZTestUser extends ZUser {
 
-    TestUser(ZPlayerName...names) {
+    public ZTestUser(ZPlayerName...names) {
         for (ZPlayerName nm : names) {
             addCharacter(nm);
         }
@@ -18,8 +18,8 @@ class TestUser extends ZUser {
     }
 
     @Override
-    public ZMove chooseMove(ZPlayerName cur, List<ZMove> options) {
-        return Utils.randItem(options);
+    public Integer chooseMove(ZPlayerName cur, List<ZMove> options) {
+        return Utils.rand() % options.size();
     }
 
     @Override
@@ -33,8 +33,8 @@ class TestUser extends ZUser {
     }
 
     @Override
-    public ZEquipment chooseEquipment(ZPlayerName cur, List<ZEquipment> equipOptions) {
-        return Utils.randItem(equipOptions);
+    public Integer chooseEquipment(ZPlayerName cur, List<ZEquipment> equipOptions) {
+        return Utils.rand() % equipOptions.size();
     }
 
     @Override
@@ -48,13 +48,13 @@ class TestUser extends ZUser {
     }
 
     @Override
-    public ZDoor chooseDoorToToggle(ZPlayerName cur, List<ZDoor> doors) {
-        return Utils.randItem(doors);
+    public Integer chooseDoorToToggle(ZPlayerName cur, List<ZDoor> doors) {
+        return Utils.rand() % doors.size();
     }
 
     @Override
-    public ZWeapon chooseWeaponSlot(ZPlayerName c, List<ZWeapon> weapons) {
-        return Utils.randItem(weapons);
+    public Integer chooseWeaponSlot(ZPlayerName c, List<ZWeapon> weapons) {
+        return Utils.rand() % weapons.size();
     }
 
     @Override
@@ -68,23 +68,13 @@ class TestUser extends ZUser {
     }
 
     @Override
-    public ZEquipment chooseItemToPickup(ZPlayerName cur, List<ZEquipment> list) {
-        return Utils.randItem(list);
+    public Integer chooseItemToPickup(ZPlayerName cur, List<ZEquipment> list) {
+        return Utils.rand() % list.size();
     }
 
     @Override
-    public ZEquipment chooseItemToDrop(ZPlayerName cur, List<ZEquipment> list) {
-        return Utils.randItem(list);
-    }
-
-    @Override
-    public ZItem chooseItemToThrow(ZPlayerName cur, List<ZItem> slots) {
-        return Utils.randItem(slots);
-    }
-
-    @Override
-    public Integer chooseZoneToThrowItem(ZPlayerName cur, ZItem toThrow, List<Integer> zones) {
-        return Utils.randItem(zones);
+    public Integer chooseItemToDrop(ZPlayerName cur, List<ZEquipment> list) {
+        return Utils.rand() % list.size();
     }
 
     @Override
@@ -116,5 +106,20 @@ class TestUser extends ZUser {
     public Integer chooseSpawnAreaToRemove(ZPlayerName cur, List<ZSpawnArea> list) {
         int idx = Utils.rand() % list.size();
         return idx;
+    }
+
+    @Override
+    public Integer chooseEquipmentToThrow(ZPlayerName cur, List<ZEquipment> slots) {
+        return Utils.rand() % slots.size();
+    }
+
+    @Override
+    public Integer chooseZoneToThrowEquipment(ZPlayerName cur, ZEquipment toThrow, List<Integer> zones) {
+        return Utils.randItem(zones);
+    }
+
+    @Override
+    public Integer chooseZoneToIgnite(ZPlayerName playerName, List<Integer> ignitableZones) {
+        return Utils.randItem(ignitableZones);
     }
 }

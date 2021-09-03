@@ -8,6 +8,7 @@ import java.util.List;
 public abstract class AMultiPhaseAnimation<T> extends AAnimation<T> {
 
     private long [] durations;
+    private int lastPhase = -1;
 
     protected AMultiPhaseAnimation(long [] durations) {
         super(Utils.sum(durations));
@@ -40,12 +41,15 @@ public abstract class AMultiPhaseAnimation<T> extends AAnimation<T> {
 
     @Override
     protected void draw(T g, float position, float dt) {
-        // phase 1: make skull fade in over the actor
         long dur=0;
         for (int i=0; i<durations.length; i++) {
             long d = durations[i]+dur;
             if (getElapsedTime() < d) {
                 float pos = (getElapsedTime()-dur) / (float)durations[i];
+                if (i != lastPhase) {
+                    lastPhase = i;
+                    onPhaseStarted(g, i);
+                }
                 drawPhase(g, pos, i);
                 break;
             }
@@ -69,4 +73,6 @@ public abstract class AMultiPhaseAnimation<T> extends AAnimation<T> {
             ldurs[i] = durations.get(i);
         setDurations(ldurs);
     }
+
+    protected void onPhaseStarted(T g, int phase) {}
 }

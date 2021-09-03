@@ -68,6 +68,7 @@ public abstract class ZEquipment<T extends ZEquipmentType> extends Reflector<ZEq
 
     @Override
     public int compareTo(ZEquipment o) {
+        // Consider not using this. Causes a problem when multiple of same equipment for user to choose from
         return getLabel().compareTo(o.getLabel());
     }
 
@@ -97,4 +98,9 @@ public abstract class ZEquipment<T extends ZEquipmentType> extends Reflector<ZEq
     }
 
     public void onEndOfRound(ZGame game) {}
+
+    @Override
+    protected boolean isImmutable() {
+        return true;
+    }
 }

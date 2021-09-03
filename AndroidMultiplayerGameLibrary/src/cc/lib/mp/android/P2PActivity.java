@@ -181,6 +181,10 @@ public abstract class P2PActivity extends CCActivityBase
         }
     }
 
+    public boolean isP2PConnected() {
+        return client != null || server != null;
+    }
+
     protected void onP2PShutdown() {}
 
     public String getDeviceName() {

@@ -101,14 +101,17 @@ public class ZMove extends Reflector<ZMove> implements IButton {
         if (this == o) return true;
         if (o == null)
             return false;
-        if (o instanceof ZMoveType) {
-            if (type == (ZMoveType)o)
-                return true;
-        }
         if (!(o instanceof ZMove))
             return false;
         ZMove zMove = (ZMove) o;
-        return type == zMove.type;
+        return type == zMove.type
+                && dir == zMove.dir
+                && Utils.isEquals(equipment, zMove.equipment)
+                && Utils.isEquals(integer, zMove.integer)
+                && character == zMove.character
+                && fromSlot == zMove.fromSlot
+                && toSlot == zMove.toSlot
+                && skill == zMove.skill;
     }
 
     @Override
@@ -139,27 +142,27 @@ public class ZMove extends Reflector<ZMove> implements IButton {
         return label;
     }
 
-    public static ZMove newEndTurn() {
+    static ZMove newEndTurn() {
         return new ZMove(ZMoveType.END_TURN);
     }
 
-    public static ZMove newWalkMove(List<Integer> zones) {
+    static ZMove newWalkMove(List<Integer> zones) {
         return new ZMove(ZMoveType.WALK, zones);
     }
 
-    public static ZMove newJumpMove(List<Integer> zones) {
+    static ZMove newJumpMove(List<Integer> zones) {
         return new ZMove(ZMoveType.JUMP, zones);
     }
 
-    public static ZMove newChargeMove(List<Integer> zones) {
+    static ZMove newChargeMove(List<Integer> zones) {
         return new ZMove(ZMoveType.CHARGE, zones);
     }
 
-    public static ZMove newUseLeftHand() {
+    static ZMove newUseLeftHand() {
         return new ZMove(ZMoveType.USE_LEFT_HAND);
     }
 
-    public static ZMove newUseRightHand() {
+    static ZMove newUseRightHand() {
         return new ZMove(ZMoveType.USE_RIGHT_HAND);
     }
 
@@ -167,59 +170,59 @@ public class ZMove extends Reflector<ZMove> implements IButton {
         return new ZMove(ZMoveType.OPERATE_DOOR, doors);
     }
 
-    public static ZMove newSearchMove(int zoneIndex) {
+    static ZMove newSearchMove(int zoneIndex) {
         return new ZMove(ZMoveType.SEARCH, zoneIndex);
     }
 
-    public static ZMove newMeleeAttackMove(List<ZWeapon> weapons) {
+    static ZMove newMeleeAttackMove(List<ZWeapon> weapons) {
         return new ZMove(ZMoveType.MELEE_ATTACK, weapons);
     }
 
-    public static ZMove newRangedAttackMove(List<ZWeapon> weapons) {
+    static ZMove newRangedAttackMove(List<ZWeapon> weapons) {
         return new ZMove(ZMoveType.RANGED_ATTACK, weapons);
     }
 
-    public static ZMove newMagicAttackMove(List<ZWeapon> weapons) {
+    static ZMove newMagicAttackMove(List<ZWeapon> weapons) {
         return new ZMove(ZMoveType.MAGIC_ATTACK, weapons);
     }
 
-    public static ZMove newThrowEquipmentMove(List<ZEquipment> slots) {
+    static ZMove newThrowEquipmentMove(List<ZEquipment> slots) {
         return new ZMove(ZMoveType.THROW_ITEM, slots);
     }
 
-    public static ZMove newInventoryMove() {
+    static ZMove newInventoryMove() {
         return new ZMove(ZMoveType.INVENTORY);
     }
 
-    public static ZMove newTradeMove(List<ZPlayerName> tradeOptions) {
+    static ZMove newTradeMove(List<ZPlayerName> tradeOptions) {
         return new ZMove(ZMoveType.TRADE, tradeOptions);
     }
 
-    public static ZMove newConsumeMove(ZEquipment equip, ZEquipSlot slot) {
+    static ZMove newConsumeMove(ZEquipment equip, ZEquipSlot slot) {
         return new ZMove(ZMoveType.CONSUME, equip, slot);
     }
 
-    public static ZMove newEquipMove(ZEquipment equip, ZEquipSlot fromSlot, ZEquipSlot toSlot) {
+    static ZMove newEquipMove(ZEquipment equip, ZEquipSlot fromSlot, ZEquipSlot toSlot) {
         return new ZMove(ZMoveType.EQUIP, 0, null, equip, fromSlot, toSlot, null);
     }
 
-    public static ZMove newKeepMove(ZEquipment equip) {
+    static ZMove newKeepMove(ZEquipment equip) {
         return new ZMove(ZMoveType.KEEP, equip, null);
     }
 
-    public static ZMove newUnequipMove(ZEquipment equip, ZEquipSlot slot) {
+    static ZMove newUnequipMove(ZEquipment equip, ZEquipSlot slot) {
         return new ZMove(ZMoveType.UNEQUIP, equip, slot);
     }
 
-    public static ZMove newDisposeMove(ZEquipment equip, ZEquipSlot slot) {
+    static ZMove newDisposeMove(ZEquipment equip, ZEquipSlot slot) {
         return new ZMove(ZMoveType.DISPOSE, equip, slot);
     }
 
-    public static ZMove newGiveMove(ZPlayerName taker, ZEquipment toGive) {
+    static ZMove newGiveMove(ZPlayerName taker, ZEquipment toGive) {
         return new ZMove(ZMoveType.GIVE, 0, taker, toGive, null, null, null);
     }
 
-    public static ZMove newTakeMove(ZPlayerName giver, ZEquipment toTake) {
+    static ZMove newTakeMove(ZPlayerName giver, ZEquipment toTake) {
         return new ZMove(ZMoveType.TAKE, 0, giver, toTake, null, null, null);
     }
 
@@ -227,67 +230,67 @@ public class ZMove extends Reflector<ZMove> implements IButton {
         return new ZMove(ZMoveType.TAKE_OBJECTIVE, zone);
     }
 
-    public static ZMove newReloadMove(ZWeapon slot) {
+    static ZMove newReloadMove(ZWeapon slot) {
         return new ZMove(ZMoveType.RELOAD, slot, null);
     }
 
-    public static ZMove newPickupItemMove(List<ZEquipment> takables) {
+    static ZMove newPickupItemMove(List<ZEquipment> takables) {
         return new ZMove(ZMoveType.PICKUP_ITEM, takables);
     }
 
-    public static ZMove newDropItemMove(List<ZEquipment> items) {
+    static ZMove newDropItemMove(List<ZEquipment> items) {
         return new ZMove(ZMoveType.DROP_ITEM, items);
     }
 
-    public static ZMove newWalkDirMove(ZDir dir) {
+    static ZMove newWalkDirMove(ZDir dir) {
         return new ZMove(ZMoveType.WALK_DIR, dir);
     }
 
-    public static ZMove newSwitchActiveCharacter() {
+    static ZMove newSwitchActiveCharacter() {
         return new ZMove(ZMoveType.SWITCH_ACTIVE_CHARACTER);
     }
 
-    public static ZMove newMakeNoiseMove(int occupiedZone) {
+    static ZMove newMakeNoiseMove(int occupiedZone) {
         return new ZMove(ZMoveType.MAKE_NOISE, occupiedZone);
     }
 
-    public static ZMove newShoveMove(List<Integer> toZones) {
+    static ZMove newShoveMove(List<Integer> toZones) {
         return new ZMove(ZMoveType.SHOVE, toZones);
     }
 
-    public static ZMove newReRollMove() {
+    static ZMove newReRollMove() {
         return new ZMove(ZMoveType.REROLL);
     }
 
-    public static ZMove newKeepRollMove() {
+    static ZMove newKeepRollMove() {
         return new ZMove(ZMoveType.KEEP_ROLL);
     }
 
-    public static ZMove newEnchantMove(List<ZSpell> spells) {
+    static ZMove newEnchantMove(List<ZSpell> spells) {
         return new ZMove(ZMoveType.ENCHANT, spells);
     }
 
-    public static ZMove newBornLeaderMove(List<ZPlayerName> options) {
+    static ZMove newBornLeaderMove(List<ZPlayerName> options) {
         return new ZMove(ZMoveType.BORN_LEADER, options);
     }
 
-    public static ZMove newBloodlustMeleeMove(List<Integer> zones, ZSkill skill) {
+    static ZMove newBloodlustMeleeMove(List<Integer> zones, ZSkill skill) {
         return new ZMove(ZMoveType.BLOODLUST_MELEE, zones, skill);
     }
 
-    public static ZMove newBloodlustRangedMove(List<Integer> zones, ZSkill skill) {
+    static ZMove newBloodlustRangedMove(List<Integer> zones, ZSkill skill) {
         return new ZMove(ZMoveType.BLOODLUST_RANGED, zones, skill);
     }
 
-    public static ZMove newBloodlustMagicMove(List<Integer> zones, ZSkill skill) {
+    static ZMove newBloodlustMagicMove(List<Integer> zones, ZSkill skill) {
         return new ZMove(ZMoveType.BLOODLUST_MAGIC, zones, skill);
     }
 
-    public static ZMove newDisposeEquipmentMove(ZEquipment e) {
+    static ZMove newDisposeEquipmentMove(ZEquipment e) {
         return new ZMove(ZMoveType.DISPOSE, e, null);
     }
 
-    public static ZMove newIgniteMove(List<Integer> ignitableZones) {
+    static ZMove newIgniteMove(List<Integer> ignitableZones) {
         return new ZMove(ZMoveType.IGNITE, ignitableZones);
     }
 }

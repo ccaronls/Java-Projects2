@@ -64,38 +64,33 @@ public class GameClient {
     private Map<String, Object> executorObjects = new HashMap<>();
     private String passPhrase = null;
     private String displayName;
+    private final String deviceName;
     private InetAddress connectAddress;
     private int connectPort;
 
     // giving package access for JUnit tests ONLY!
-    CommandQueueWriter outQueue = new CommandQueueWriter() {
-
+    final CommandQueueWriter outQueue = new CommandQueueWriter() {
         @Override
-        protected void onTimeout() {
+        protected void onTimeout() throws IOException {
             if (isConnected()) {
-                try {
-                    new GameCommand(GameCommandType.CL_KEEPALIVE).write(out);
-                } catch (Exception e) {
-                    log.error(e.getClass() + " " + e.getMessage());
-                    e.printStackTrace();
-                }
+                new GameCommand(GameCommandType.CL_KEEPALIVE).write(out);
             }
         }
-        
+
     };
     
     /**
      * Create a client that will connect to a given server using a given login name.  
      * The userName must be unique to the server for successful connect.
      * 
-     * @param displayName
+     * @param deviceName
      * @param version
      * @param cypher
      */
-    public GameClient(String displayName, String version, Cypher cypher) {
-        if (Utils.isEmpty(displayName))
-            throw new IllegalArgumentException("Display name cannot be empty");
-        this.displayName = displayName;
+    public GameClient(String deviceName, String version, Cypher cypher) {
+        if (Utils.isEmpty(deviceName))
+            throw new IllegalArgumentException("Device name cannot be empty");
+        this.deviceName = this.displayName = deviceName;
         this.version = version;
         this.cypher = cypher;
     }
@@ -221,7 +216,7 @@ public class GameClient {
                 out.writeLong(87263450972L); // write out the magic number the servers are expecting
                 out.flush();
                 outQueue.start(out);
-                outQueue.add(new GameCommand(GameCommandType.CL_CONNECT).setName(displayName).setVersion(version));
+                outQueue.add(new GameCommand(GameCommandType.CL_CONNECT).setName(deviceName).setVersion(version));
                 new Thread(new SocketReader()).start();
                 log.debug("Connection SUCCESS");
                 connectAddress = address;
@@ -286,12 +281,13 @@ public class GameClient {
             }
             close();
         }
-        reset();
+//        reset(); // we want to be in the 'disconnected state'
     }
     
     // making this package access so JUnit can test a client timeout
     void close() {
         state = State.DISCONNECTING;
+        outQueue.clear();
         outQueue.stop();
         try {
             in.close();
@@ -491,6 +487,8 @@ public class GameClient {
             if (o != null) {
                 paramsTypes[i] = o.getClass();
                 params[i] = o;
+            } else {
+                paramsTypes[i] = Object.class;
             }
         }
         String id = cmd.getString("target");
@@ -559,6 +557,8 @@ public class GameClient {
                     continue;
                 boolean matchFound = true;
                 for (int i = 0; i < paramTypes.length; i++) {
+                    if (params[i] == null)
+                        continue;
                     if (!isCompatiblePrimitives(paramTypes[i], types[i]) && !Reflector.isSubclassOf(types[i], paramTypes[i])) {
                         matchFound = false;
                         break;

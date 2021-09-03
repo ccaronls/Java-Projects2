@@ -21,18 +21,32 @@ public abstract class ZUser {
             "YELLOW", "RED", "GREEN", "ORANGE", "BLUE", "MAGENTA"
     };
 
-    private GColor color = GColor.YELLOW;
+    private int color = 0;
+    private String name = null;
     private final List<ZPlayerName> characters = new ArrayList<>();
 
     public GColor getColor() {
+        return USER_COLORS[color];
+    }
+
+    public int getColorId() {
         return color;
     }
 
-    public void setColor(GColor color) {
+    public void setColor(int color) {
+        Utils.assertTrue(color >= 0 && color < USER_COLORS.length);
         this.color = color;
         for (ZPlayerName nm : characters) {
-            nm.character.setColor(color);
+            nm.character.setColor(USER_COLORS[color]);
         }
+    }
+
+    public String getName() {
+        return name == null ? USER_COLOR_NAMES[color] : name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public List<ZPlayerName> getCharacters() {
@@ -44,9 +58,9 @@ public abstract class ZUser {
     }
 
     public void addCharacter(ZPlayerName c) {
-        Utils.assertFalse(characters.contains(c));
+        characters.remove(c);
         characters.add(c);
-        c.character.setColor(color);
+        c.character.setColor(USER_COLORS[color]);
     }
 
     public void removeCharacter(ZPlayerName name) {
@@ -61,33 +75,74 @@ public abstract class ZUser {
         }
     }
 
+    public void setCharactersHidden(boolean hidden) {
+        for (ZPlayerName nm : characters) {
+            if (nm.getCharacter() != null)
+                nm.getCharacter().setInvisible(hidden);
+        }
+    }
+
     public abstract ZPlayerName chooseCharacter(List<ZPlayerName> options);
 
-    public abstract ZMove chooseMove(ZPlayerName cur, List<ZMove> options);
+    public abstract Integer chooseMove(ZPlayerName cur, List<ZMove> options);
+
+    <T> T elemOrNull(Integer idx, List options) {
+        if (idx == null)
+            return null;
+        return (T)options.get(idx);
+    }
+
+    final ZMove chooseMoveInternal(ZPlayerName cur, List<ZMove> options) {
+        return elemOrNull(chooseMove(cur, options), options);
+    }
 
     public abstract ZSkill chooseNewSkill(ZPlayerName character, List<ZSkill> skillOptions);
 
     public abstract ZEquipSlot chooseSlotToOrganize(ZPlayerName cur, List<ZEquipSlot> slots);
 
-    public abstract ZEquipment chooseEquipment(ZPlayerName cur, List<ZEquipment> equipOptions);
+    public abstract Integer chooseEquipment(ZPlayerName cur, List<ZEquipment> equipOptions);
+
+    final ZEquipment chooseEquipmentInternal(ZPlayerName cur, List<ZEquipment> equipOptions) {
+        return elemOrNull(chooseEquipment(cur, equipOptions), equipOptions);
+    }
 
     public abstract ZEquipSlot chooseSlotForEquip(ZPlayerName cur, List<ZEquipSlot> equipableSlots);
 
     public abstract Integer chooseZoneToWalk(ZPlayerName cur, List<Integer> zones);
 
-    public abstract ZDoor chooseDoorToToggle(ZPlayerName cur, List<ZDoor> doors);
+    public abstract Integer chooseDoorToToggle(ZPlayerName cur, List<ZDoor> doors);
 
-    public abstract ZWeapon chooseWeaponSlot(ZPlayerName c, List<ZWeapon> weapons);
+    final ZDoor chooseDoorToToggleInternal(ZPlayerName cur, List<ZDoor> doors) {
+        return elemOrNull(chooseDoorToToggle(cur, doors), doors);
+    }
+
+    public abstract Integer chooseWeaponSlot(ZPlayerName c, List<ZWeapon> weapons);
+
+    final ZWeapon chooseWeaponSlotInternal(ZPlayerName c, List<ZWeapon> weapons) {
+        return elemOrNull(chooseWeaponSlot(c, weapons), weapons);
+    }
 
     public abstract ZPlayerName chooseTradeCharacter(ZPlayerName c, List<ZPlayerName> list);
 
     public abstract Integer chooseZoneForAttack(ZPlayerName c, List<Integer> zones);
 
-    public abstract ZEquipment chooseItemToPickup(ZPlayerName cur, List<ZEquipment> list);
+    public abstract Integer chooseItemToPickup(ZPlayerName cur, List<ZEquipment> list);
 
-    public abstract ZEquipment chooseItemToDrop(ZPlayerName cur, List<ZEquipment> list);
+    final ZEquipment chooseItemToPickupInternal(ZPlayerName cur, List<ZEquipment> list) {
+        return elemOrNull(chooseItemToPickup(cur, list), list);
+    }
 
-    public abstract ZEquipment chooseEquipmentToThrow(ZPlayerName cur, List<ZEquipment> slots);
+    public abstract Integer chooseItemToDrop(ZPlayerName cur, List<ZEquipment> list);
+
+    final ZEquipment chooseItemToDropInternal(ZPlayerName cur, List<ZEquipment> list) {
+        return elemOrNull(chooseItemToDrop(cur, list), list);
+    }
+
+    public abstract Integer chooseEquipmentToThrow(ZPlayerName cur, List<ZEquipment> slots);
+
+    final ZEquipment chooseEquipmentToThrowInternal(ZPlayerName cur, List<ZEquipment> slots) {
+        return elemOrNull(chooseEquipmentToThrow(cur, slots), slots);
+    }
 
     public abstract Integer chooseZoneToThrowEquipment(ZPlayerName cur, ZEquipment toThrow, List<Integer> zones);
 

@@ -3,6 +3,7 @@ package cc.lib.zombicide;
 import junit.framework.TestCase;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import cc.lib.game.Utils;
@@ -13,6 +14,14 @@ public class ZombicideTest extends TestCase {
     protected void setUp() throws Exception {
         super.setUp();
         Utils.setDebugEnabled();
+    }
+
+    public void testQuests() throws Exception {
+        ZGame game = new ZGame();
+        for (ZQuests q : ZQuests.values()) {
+            game.loadQuest(q);
+            game.getQuest().getPercentComplete(game);
+        }
     }
 
     public void testLevels() {
@@ -36,7 +45,7 @@ public class ZombicideTest extends TestCase {
 
     public void testUltraRed() {
         ZGame game = new ZGame();
-        game.setUsers(new TestUser(ZPlayerName.Ann));
+        game.setUsers(new ZTestUser(ZPlayerName.Ann));
         game.loadQuest(ZQuests.The_Abomination);
 
         ZCharacter ann = null;
@@ -82,7 +91,8 @@ public class ZombicideTest extends TestCase {
         System.out.println("----------------------------------------------------");
 
         for (int i=1; i<=3; i++) {
-            List<ZZombie> meleeList = ZGame.filterZombiesForMelee(new ArrayList<>(zombies), i);
+            List<ZZombie> meleeList = new ArrayList<>(zombies);
+            Collections.sort(meleeList, new ZGame.MarksmanComparator(1));
             System.out.println("MELEE SORTING " + i);
             System.out.println("----------------------------------------------------");
             for (ZZombie z : meleeList) {
@@ -93,7 +103,8 @@ public class ZombicideTest extends TestCase {
         System.out.println("----------------------------------------------------");
 
         for (int i=1; i<=3; i++) {
-            List<ZZombie> rangedList = ZGame.filterZombiesForRanged(new ArrayList<>(zombies), i);
+            List<ZZombie> rangedList = new ArrayList<>(zombies);
+            Collections.sort(rangedList, new ZGame.RangedComparator());
             System.out.println("RANGED SORTING " + i);
             System.out.println("----------------------------------------------------");
             for (ZZombie z : rangedList) {
@@ -102,7 +113,8 @@ public class ZombicideTest extends TestCase {
         }
 
         for (int i=1; i<=3; i++) {
-            List<ZZombie> marksmanList = ZGame.filterZombiesForMarksman(new ArrayList<>(zombies), i);
+            List<ZZombie> marksmanList = new ArrayList<>(zombies);
+            Collections.sort(marksmanList, new ZGame.MarksmanComparator(1));
             System.out.println("MARKSMAN SORTING " + i);
             System.out.println("----------------------------------------------------");
             for (ZZombie z : marksmanList) {
@@ -123,7 +135,7 @@ public class ZombicideTest extends TestCase {
 
     public void testWolfsberg() {
         ZGame game = new ZGame();
-        game.setUsers(new TestUser(ZPlayerName.Ann));
+        game.setUsers(new ZTestUser(ZPlayerName.Ann));
         game.loadQuest(ZQuests.Welcome_to_Wulfsberg);
         assertTrue(game.getQuest().isWolfBurg());
         ZSpawnCard.drawSpawnCard(game.getQuest().isWolfBurg(), true, ZDifficulty.HARD);

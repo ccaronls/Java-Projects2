@@ -187,9 +187,7 @@ public enum ZSkill implements IButton {
         @Override
         public void addSpecialMoves(ZGame game, ZCharacter character, List<ZMove> moves) {
             if (character.getActionsLeftThisTurn() == 0) {
-                List<Integer> accessableZones = game.board.getAccessableZones(character.occupiedZone, 1, 1, ZActionType.MOVE);
-                if (accessableZones.size() > 0)
-                    moves.add(ZMove.newWalkMove(accessableZones));
+                game.addWalkOptions(character, moves);
             }
         }
     },
@@ -239,7 +237,7 @@ public enum ZSkill implements IButton {
         public int modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
             switch (type) {
                 case MOVE:
-                    if (game.getBoard().getZombiesInZone(character.occupiedZone).size() == 0) {
+                    if (game.getBoard().getNumZombiesInZone(character.occupiedZone) == 0) {
                         return character.getZonesMoved() % 2 == 0 ? 1 : -1;
                     }
                     return 1;
@@ -251,7 +249,7 @@ public enum ZSkill implements IButton {
         @Override
         public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game, int targetZone) {
             // if another melee weapon equipped then +1 die
-            if (Utils.count(character.getWeapons(), object -> object.isMelee()) > 1) {
+            if (actionType == ZActionType.MELEE && Utils.count(character.getWeapons(), object -> object.isMelee()) > 1) {
                 stat.numDice++;
             }
         }
@@ -262,7 +260,7 @@ public enum ZSkill implements IButton {
         @Override
         public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game, int targetZone) {
             if (actionType == ZActionType.MELEE) {
-                int num = game.getBoard().getZombiesInZone(character.occupiedZone).size();
+                int num = game.getBoard().getNumZombiesInZone(character.occupiedZone);
                 stat.numDice = Math.max(num, stat.numDice);
             }
         }
@@ -275,7 +273,7 @@ public enum ZSkill implements IButton {
                 List<Integer> zones = Utils.filter(game.getBoard().getAccessableZones(character.getOccupiedZone(), 1, 2, ZActionType.MOVE), new Utils.Filter<Integer>() {
                     @Override
                     public boolean keep(Integer object) {
-                        return game.getBoard().getZombiesInZone(object).size() > 0;
+                        return game.getBoard().getNumZombiesInZone(object) > 0;
                     }
                 });
                 if (zones.size() > 0) {
@@ -296,7 +294,7 @@ public enum ZSkill implements IButton {
                 List<Integer> zones = Utils.filter(game.getBoard().getAccessableZones(character.getOccupiedZone(), 1, 2, ZActionType.MOVE), new Utils.Filter<Integer>() {
                     @Override
                     public boolean keep(Integer object) {
-                        return game.getBoard().getZombiesInZone(object).size() > 0;
+                        return game.getBoard().getNumZombiesInZone(object) > 0;
                     }
                 });
                 moves.add(ZMove.newBloodlustMagicMove(zones, this));
@@ -310,7 +308,7 @@ public enum ZSkill implements IButton {
                 List<Integer> zones = Utils.filter(game.getBoard().getAccessableZones(character.getOccupiedZone(), 1, 2, ZActionType.MOVE), new Utils.Filter<Integer>() {
                     @Override
                     public boolean keep(Integer object) {
-                        return game.getBoard().getZombiesInZone(object).size() > 0;
+                        return game.getBoard().getNumZombiesInZone(object) > 0;
                     }
                 });
                 moves.add(ZMove.newBloodlustMeleeMove(zones, this));
@@ -324,7 +322,7 @@ public enum ZSkill implements IButton {
                 List<Integer> zones = Utils.filter(game.getBoard().getAccessableZones(character.getOccupiedZone(), 1, 2, ZActionType.MOVE), new Utils.Filter<Integer>() {
                     @Override
                     public boolean keep(Integer object) {
-                        return game.getBoard().getZombiesInZone(object).size() > 0;
+                        return game.getBoard().getNumZombiesInZone(object) > 0;
                     }
                 });
                 moves.add(ZMove.newBloodlustRangedMove(zones, this));
@@ -360,7 +358,7 @@ public enum ZSkill implements IButton {
         zones = Utils.filter(zones, new Utils.Filter<Integer>() {
             @Override
             public boolean keep(Integer zone) {
-                return game.getBoard().getZombiesInZone(zone).size() > 0;
+                return game.getBoard().getNumZombiesInZone(zone) > 0;
             }
         });
         if (zones.size() > 0)
@@ -469,7 +467,7 @@ public enum ZSkill implements IButton {
         public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game, int targetZone) {
             switch (actionType) {
                 case RANGED:
-                    int numInZone = game.getBoard().getZombiesInZone(targetZone).size();
+                    int numInZone = game.getBoard().getNumZombiesInZone(targetZone);
                     if (numInZone > stat.numDice) {
                         game.addLogMessage(String.format("%s applied Iron Rain!", character.getLabel()));
                         game.onIronRain(character.getPlayerName(), targetZone);
@@ -651,7 +649,7 @@ public enum ZSkill implements IButton {
         @Override
         public void addSpecialMoves(ZGame game, ZCharacter character, List<ZMove> moves) {
             // if zombies stand in zone with character they can be shoved away
-            if (game.getBoard().getZombiesInZone(character.getOccupiedZone()).size() > 0) {
+            if (game.getBoard().getNumZombiesInZone(character.getOccupiedZone()) > 0) {
                 List<Integer> shovable = game.getBoard().getAccessableZones(character.getOccupiedZone(), 1, 1, ZActionType.MOVE);
                 if (shovable.size() > 0) {
                     moves.add(ZMove.newShoveMove(shovable));
@@ -667,7 +665,15 @@ public enum ZSkill implements IButton {
             return super.modifyActionsRemaining(character, type, game);
         }
     },
-    Slippery("The Survivor does not spend extra Actions when he performs a Move Action out of a Zone containing Zombies. Entering a Zone containing Zombies ends the Survivor’s Move Action."),
+    Slippery("The Survivor does not spend extra Actions when he performs a Move Action out of a Zone containing Zombies. Entering a Zone containing Zombies ends the Survivor’s Move Action.") {
+        @Override
+        public int modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
+            if (type == ZActionType.MOVE && game.getBoard().getNumZombiesInZone(character.getPriorZone()) > 0) {
+                return -1;
+            }
+            return super.modifyActionsRemaining(character, type, game);
+        }
+    },
     Spellbook("All Combat spells and Enchantments in the Survivor’s Inventory are considered equipped in Hand. With this Skill, a Survivor could effectively be considered as having several Combat spells and Enchantments cards equipped in Hand. For obvious reasons, he can only use two identical dual Combat Spells at any given time. Choose any combination of two before resolving Actions or rolls involving the Survivor."),
     Spellcaster("The Survivor has one extra free Action. This Action may only be used for a Magic Action or an Enchantment Action.") {
         @Override
@@ -679,13 +685,27 @@ public enum ZSkill implements IButton {
             }
             return super.modifyActionsRemaining(character, type, game);
         }
+
+        @Override
+        public void addSpecialMoves(ZGame game, ZCharacter character, List<ZMove> moves) {
+            if (character.getActionsLeftThisTurn() == 0) {
+                List<ZSpell> spells = character.getSpells();
+                if (spells.size() > 0) {
+                    moves.add(ZMove.newEnchantMove(spells));
+                }
+                List<ZWeapon> weapons = character.getMagicWeapons();
+                if (weapons.size() > 0) {
+                    moves.add(ZMove.newMagicAttackMove(weapons));
+                }
+            }
+        }
     },
     Speed("Can move up to 2 unoccupied by zombie zones for free.") {
         @Override
         public int modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
             switch (type) {
                 case MOVE:
-                    if (game.getBoard().getZombiesInZone(character.getOccupiedZone()).size() > 0)
+                    if (game.getBoard().getNumZombiesInZone(character.getOccupiedZone()) > 0)
                         return super.modifyActionsRemaining(character, type, game);
                     return character.getZonesMoved() > 1 ? 1 : -1;
             }
@@ -697,7 +717,7 @@ public enum ZSkill implements IButton {
         public int modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
             switch (type) {
                 case MOVE:
-                    if (game.getBoard().getZombiesInZone(character.getOccupiedZone()).size() == 0) {
+                    if (game.getBoard().getNumZombiesInZone(character.getOccupiedZone()) == 0) {
                         return character.getZonesMoved() > 2 ? 1 : -1;
                     }
             }
@@ -706,10 +726,8 @@ public enum ZSkill implements IButton {
 
         @Override
         public void addSpecialMoves(ZGame game, ZCharacter character, List<ZMove> moves) {
-            if (character.getActionsLeftThisTurn() == 0 && character.getZonesMoved() < 3 && game.getBoard().getZombiesInZone(character.getOccupiedZone()).size()==0) {
-                List<Integer> accessableZones = game.board.getAccessableZones(character.occupiedZone, 1, 1, ZActionType.MOVE);
-                if (accessableZones.size() > 0)
-                    moves.add(ZMove.newWalkMove(accessableZones));
+            if (character.getActionsLeftThisTurn() == 0 && character.getZonesMoved() < 3 && game.getBoard().getNumZombiesInZone(character.getOccupiedZone())==0) {
+                game.addWalkOptions(character, moves);
             }
         }
     },

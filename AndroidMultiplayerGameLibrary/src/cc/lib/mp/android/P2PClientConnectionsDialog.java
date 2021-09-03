@@ -169,7 +169,6 @@ public class P2PClientConnectionsDialog extends BaseAdapter implements
         tv.setTextColor(conn.isConnected() ? Color.GREEN : Color.RED);
         tv.setBackgroundColor(position % 2 == 0 ? Color.BLACK : Color.DKGRAY);
 
-        notifyDataSetChanged();
         return v;
     }
 
@@ -181,6 +180,7 @@ public class P2PClientConnectionsDialog extends BaseAdapter implements
         } else {
             conn.kick();
         }
+        notifyDataSetChanged();
     }
 
     public void onError(String msg) {

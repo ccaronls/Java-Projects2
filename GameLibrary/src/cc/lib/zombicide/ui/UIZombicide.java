@@ -1,11 +1,15 @@
 package cc.lib.zombicide.ui;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import cc.lib.game.AGraphics;
 import cc.lib.game.AImage;
 import cc.lib.game.GRectangle;
+import cc.lib.game.IInterpolator;
+import cc.lib.game.IRectangle;
+import cc.lib.game.IVector2D;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
@@ -21,9 +25,9 @@ import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZDir;
 import cc.lib.zombicide.ZDoor;
 import cc.lib.zombicide.ZEquipment;
+import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZIcon;
 import cc.lib.zombicide.ZMove;
-import cc.lib.zombicide.ZMoveType;
 import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZQuest;
 import cc.lib.zombicide.ZSkill;
@@ -36,6 +40,7 @@ import cc.lib.zombicide.ZZone;
 import cc.lib.zombicide.anims.AscendingAngelDeathAnimation;
 import cc.lib.zombicide.anims.DeathAnimation;
 import cc.lib.zombicide.anims.DeathStrikeAnimation;
+import cc.lib.zombicide.anims.DeflectionAnimation;
 import cc.lib.zombicide.anims.EarthquakeAnimation;
 import cc.lib.zombicide.anims.ElectrocutionAnimation;
 import cc.lib.zombicide.anims.EmptyAnimation;
@@ -53,6 +58,7 @@ import cc.lib.zombicide.anims.ShieldBlockAnimation;
 import cc.lib.zombicide.anims.ShootAnimation;
 import cc.lib.zombicide.anims.SlashedAnimation;
 import cc.lib.zombicide.anims.SpawnAnimation;
+import cc.lib.zombicide.anims.StaticAnimation;
 import cc.lib.zombicide.anims.ThrowAnimation;
 import cc.lib.zombicide.anims.ZoomAnimation;
 import cc.lib.zombicide.p2p.ZGameMP;
@@ -90,6 +96,11 @@ public abstract class UIZombicide extends ZGameMP {
         instance = this;
         this.characterRenderer = characterRenderer;
         this.boardRenderer = boardRenderer;
+    }
+
+    public void refresh() {
+        boardRenderer.redraw();
+        characterRenderer.redraw();
     }
 
     public UIMode getUiMode() {
@@ -141,6 +152,8 @@ public abstract class UIZombicide extends ZGameMP {
         }).start();
     }
 
+    public void undo() {}
+
     public <T> T waitForUser(Class<T> expectedType) {
         synchronized (monitor) {
             try {
@@ -163,8 +176,12 @@ public abstract class UIZombicide extends ZGameMP {
     }
 
     @Override
+    public void setCurrentUser(String name) {
+        super.setCurrentUser(name);
+        setBoardMessage(name + "'s Turn");
+    }
+
     protected void setBoardMessage(String msg) {
-        super.setBoardMessage(msg);
         this.boardMessage = msg;
         boardRenderer.redraw();
     }
@@ -228,40 +245,10 @@ public abstract class UIZombicide extends ZGameMP {
         return waitForUser(ZDoor.class);
     }
 
-    public void tryWalk(ZDir dir) {
-        List<ZMove> moves = options == null ? Collections.emptyList() : (List)Utils.filter(options, option -> option instanceof ZMove);
-        List<ZMoveType> types = Utils.map(moves, option->option.type);
-        if (types.contains(ZMoveType.WALK) && canWalk(dir)) {
-            ZCharacter cur = getCurrentCharacter().getCharacter();
-            if (cur != null) {
-                if (getBoard().canMove(cur, dir)) {
-                    setResult(ZMove.newWalkDirMove(dir));
-                }
-            }
-        }
-    }
-
     @Override
     public void addLogMessage(String msg) {
         super.addLogMessage(msg);
         addPlayerComponentMessage(msg);
-    }
-
-    public void trySwitchActivePlayer() {
-        boardRenderer.dragOffset.zero();
-        if (getCurrentCharacter() == null) {
-            for (ZPlayerName nm : getCurrentUser().getCharacters()) {
-                if (nm.getCharacter().isAlive() && nm.getCharacter().getActionsLeftThisTurn() > 0) {
-                    setResult(nm.getCharacter());
-                    break;
-                }
-            }
-        } else if (canSwitchActivePlayer()) {
-            setResult(ZMove.newSwitchActiveCharacter());
-        } else {
-            boardRenderer.animateZoomTo(0);
-        }
-        boardRenderer.redraw();
     }
 
     public void showObjectivesOverlay() {
@@ -294,7 +281,7 @@ public abstract class UIZombicide extends ZGameMP {
         super.onEquipmentThrown(actor, icon, zone);
         Lock animLock = new Lock(1);
         if (actor.getCharacter().getOccupiedZone() != zone) {
-            actor.getCharacter().addAnimation(new ThrowAnimation(actor.getCharacter(), board, zone, icon) {
+            actor.getCharacter().addAnimation(new ThrowAnimation(actor.getCharacter(), board.getZone(zone).getCenter(), icon) {
                 @Override
                 protected void onDone() {
                     super.onDone();
@@ -315,13 +302,15 @@ public abstract class UIZombicide extends ZGameMP {
     @Override
     protected void onDragonBileExploded(int zone) {
         super.onDragonBileExploded(zone);
-        boardRenderer.addPreActor(new InfernoAnimation(board, zone).start());
+        List<IRectangle> rects = Utils.map(board.getZone(zone).getCells(), pos -> board.getCell(pos));
+        boardRenderer.addPreActor(new InfernoAnimation(rects).start());
         Utils.waitNoThrow(this, 1000);
     }
 
     @Override
-    protected void onZombieDestroyed(ZPlayerName c, ZAttackType deathType, ZZombie zombie) {
-        super.onZombieDestroyed(c, deathType, zombie);
+    protected void onZombieDestroyed(ZPlayerName c, ZAttackType deathType, ZActorPosition pos) {
+        super.onZombieDestroyed(c, deathType, pos);
+        ZZombie zombie = board.getActor(pos);
         Lock lock = new Lock();
         switch (deathType) {
 
@@ -347,7 +336,7 @@ public abstract class UIZombicide extends ZGameMP {
             case MENTAL_STRIKE:
             case NORMAL:
             default:
-                boardRenderer.addPreActor(new DeathAnimation(zombie));
+                zombie.addAnimation(new DeathAnimation(zombie));
         }
     }
 
@@ -381,6 +370,24 @@ public abstract class UIZombicide extends ZGameMP {
             }
         });
         boardRenderer.redraw();
+    }
+
+    @Override
+    protected void onCurrentCharacterUpdated(ZPlayerName priorPlayer, ZPlayerName player) {
+        super.onCurrentCharacterUpdated(priorPlayer, player);
+        if (priorPlayer != null) {
+            Lock animLock = new Lock(1);
+            // Add an animation to end of any existing animations to block until all are completed
+            priorPlayer.getCharacter().addAnimation(new EmptyAnimation(priorPlayer.getCharacter()) {
+                @Override
+                protected void onDone() {
+                    super.onDone();
+                    animLock.release();
+                }
+            });
+            boardRenderer.redraw();
+            animLock.block();
+        }
     }
 
     @Override
@@ -541,34 +548,38 @@ public abstract class UIZombicide extends ZGameMP {
     }
 
     @Override
-    protected void onAttack(ZPlayerName attacker, ZWeapon weapon, ZActionType actionType, int numDice, int numHits, int targetZone) {
-        super.onAttack(attacker, weapon, actionType, numDice, numHits, targetZone);
+    protected void onAttack(ZPlayerName _attacker, ZWeapon weapon, ZActionType actionType, int numDice, List<ZActorPosition> hits, int targetZone) {
+        super.onAttack(_attacker, weapon, actionType, numDice, hits, targetZone);
+        ZCharacter attacker = _attacker.getCharacter();
         if (actionType.isMelee()) {
             switch (weapon.getType()) {
                 case EARTHQUAKE_HAMMER: {
                     Lock animLock = new Lock(numDice);
                     float currentZoom = boardRenderer.getZoomPercent();
-                    List<ZZombie> inZone = board.getZombiesInZone(targetZone);
                     if (currentZoom < 1)
-                        attacker.getCharacter().addAnimation(new ZoomAnimation(attacker.getCharacter(), boardRenderer, 1));
-                    for (int i=0; i<numDice; i++) {
-                        attacker.getCharacter().addAnimation(new MeleeAnimation(attacker.getCharacter(), board) {
+                        attacker.addAnimation(new ZoomAnimation(attacker, boardRenderer, 1));
+                    for (int i = 0; i < numDice; i++) {
+                        attacker.addAnimation(new MeleeAnimation(attacker, board) {
                             @Override
                             protected void onDone() {
                                 super.onDone();
                                 animLock.release();
                             }
                         });
-                        GroupAnimation g = new GroupAnimation(attacker.getCharacter()) {
+                        GroupAnimation g = new GroupAnimation(attacker) {
                             @Override
                             protected void onDone() {
                                 super.onDone();
                             }
                         };
-                        for (ZZombie z : inZone) {
-                            g.addAnimation(0, new EarthquakeAnimation(z, attacker.getCharacter(), 300));
+                        for (ZActorPosition pos : hits) {
+                            ZActor z = board.getActor(pos);
+                            if (pos.getData() == ZGame.ACTOR_POS_DATA_DAMAGED)
+                                g.addAnimation(0, new EarthquakeAnimation(z, attacker, 300));
+                            else
+                                g.addAnimation(0, new ShieldBlockAnimation(z));
                         }
-                        attacker.getCharacter().addAnimation(g);
+                        attacker.addAnimation(g);
                     }
                     boardRenderer.redraw();
                     animLock.block();
@@ -580,15 +591,34 @@ public abstract class UIZombicide extends ZGameMP {
                     Lock animLock = new Lock(numDice);
                     float currentZoom = boardRenderer.getZoomPercent();
                     if (currentZoom < 1)
-                        attacker.getCharacter().addAnimation(new ZoomAnimation(attacker.getCharacter(), boardRenderer, 1));
-                    for (int i=0; i<numDice; i++) {
-                        attacker.getCharacter().addAnimation(new MeleeAnimation(attacker.getCharacter(), board) {
-                            @Override
-                            protected void onDone() {
-                                super.onDone();
-                                animLock.release();
-                            }
-                        });
+                        attacker.addAnimation(new ZoomAnimation(attacker, boardRenderer, 1));
+                    for (int i = 0; i < numDice; i++) {
+                        if (i < hits.size()) {
+                            ZActorPosition pos = hits.get(i);
+                            ZActor victim = board.getActor(pos);
+                            Utils.assertTrue(victim != attacker);
+                            attacker.addAnimation(new MeleeAnimation(attacker, board) {
+                                @Override
+                                protected void onDone() {
+                                    super.onDone();
+                                    if (pos.getData() == ZGame.ACTOR_POS_DATA_DEFENDED) {
+                                        victim.addAnimation(new ShieldBlockAnimation(victim));
+                                    } else {
+                                        victim.addAnimation(new SlashedAnimation(victim));
+                                    }
+                                    animLock.release();
+                                }
+                            });
+                        } else {
+                            attacker.addAnimation(new MeleeAnimation(attacker, board) {
+                                @Override
+                                protected void onDone() {
+                                    super.onDone();
+                                    animLock.release();
+                                    boardRenderer.addPostActor(new HoverMessage(boardRenderer, "MISS!!", attacker));
+                                }
+                            });
+                        }
                     }
                     boardRenderer.redraw();
                     animLock.block();
@@ -597,23 +627,96 @@ public abstract class UIZombicide extends ZGameMP {
             }
         } else if (actionType.isRanged()) {
 
-            GroupAnimation group = new GroupAnimation(attacker.getCharacter());
-            Lock animLock = new Lock(numDice);
-            int delay = 100;
-            for (int i=0; i<numDice; i++) {
-                group.addAnimation(delay, new ShootAnimation(attacker.getCharacter(), board,300, targetZone, ZIcon.ARROW) {
+            switch (weapon.getType()) {
+                case DAGGER: {
+                    GroupAnimation group = new GroupAnimation(attacker);
+                    Lock animLock = new Lock(numDice);
+                    int delay = 200;
+                    for (int i = 0; i < numDice; i++) {
+                        if (i < hits.size()) {
+                            ZActorPosition pos = hits.get(i);
+                            ZActor victim = board.getActor(pos);
+                            group.addAnimation(delay, new ThrowAnimation(attacker, victim, ZIcon.DAGGER, .1f, 400) {
 
-                    @Override
-                    protected void onDone() {
-                        animLock.release();
+                                @Override
+                                protected void onDone() {
+                                    if (pos.getData() == ZGame.ACTOR_POS_DATA_DEFENDED) {
+                                        victim.addAnimation(new GroupAnimation(victim)
+                                                .addAnimation(new ShieldBlockAnimation(victim))
+                                                .addAnimation(new DeflectionAnimation(victim, Utils.randItem(ZIcon.DAGGER.imageIds), getRect(), getDir().getOpposite()))
+                                        );
+                                    } else {
+                                        victim.addAnimation(new SlashedAnimation(victim));
+                                    }
+                                    animLock.release();
+                                }
+
+                            });
+                        } else {
+                            IVector2D center = board.getZone(targetZone).getRectangle().getRandomPointInside();
+                            group.addAnimation(delay, new ThrowAnimation(attacker, center, ZIcon.DAGGER, .1f, 400) {
+
+                                @Override
+                                protected void onDone() {
+                                    boardRenderer.addPostActor(new HoverMessage(boardRenderer, "MISS!!", attacker));
+                                    animLock.release();
+                                }
+
+                            });
+
+                        }
+                        delay += 200;
                     }
+                    attacker.addAnimation(group);
+                    boardRenderer.redraw();
+                    animLock.block();
+                    break;
+                }
+                default: {
+                    GroupAnimation group = new GroupAnimation(attacker);
+                    Lock animLock = new Lock(numDice);
+                    int delay = 0;
+                    for (int i = 0; i < numDice; i++) {
+                        if (i < hits.size()) {
+                            ZActorPosition pos = hits.get(i);
+                            ZActor victim = board.getActor(pos);
+                            group.addAnimation(delay, new ShootAnimation(attacker, 300, victim, ZIcon.ARROW) {
 
-                });
-                delay += 100;
+                                @Override
+                                protected void onDone() {
+                                    int arrowId = ZIcon.ARROW.imageIds[getDir().ordinal()];
+                                    if (pos.getData() == ZGame.ACTOR_POS_DATA_DEFENDED) {
+                                        victim.addAnimation(new GroupAnimation(victim)
+                                                .addAnimation(new ShieldBlockAnimation(victim))
+                                                .addAnimation(new DeflectionAnimation(victim, arrowId, getRect(), getDir().getOpposite()))
+                                        );
+                                    } else {
+                                        victim.addAnimation(new StaticAnimation(victim, 800, arrowId, getRect(), true));
+                                    }
+                                    animLock.release();
+                                }
+
+                            });
+                        } else {
+                            IVector2D center = board.getZone(targetZone).getRectangle().getRandomPointInside();
+                            group.addAnimation(delay, new ShootAnimation(attacker, 300, center, ZIcon.ARROW) {
+
+                                @Override
+                                protected void onDone() {
+                                    boardRenderer.addPostActor(new HoverMessage(boardRenderer, "MISS!!", attacker));
+                                    animLock.release();
+                                }
+
+                            });
+                        }
+                        delay += 100;
+                    }
+                    attacker.addAnimation(group);
+                    boardRenderer.redraw();
+                    animLock.block();
+                }
             }
-            attacker.getCharacter().addAnimation(group);
-            boardRenderer.redraw();
-            animLock.block();
+
         } else if (weapon.isMagic()) {
 
             switch (weapon.getType()) {
@@ -621,7 +724,7 @@ public abstract class UIZombicide extends ZGameMP {
                     Lock animLock = new Lock(1);
                     GRectangle zoneRect = board.getZone(targetZone).getRectangle();
                     GRectangle targetRect = zoneRect.scaledBy(.5f);//.moveBy(0, -1);
-                    attacker.getCharacter().addAnimation(new DeathStrikeAnimation(attacker.getCharacter(), targetRect, numDice) {
+                    attacker.addAnimation(new DeathStrikeAnimation(attacker, targetRect, numDice) {
                         @Override
                         protected void onDone() {
                             super.onDone();
@@ -636,7 +739,7 @@ public abstract class UIZombicide extends ZGameMP {
                 case DISINTEGRATE: {
                     // TODO: Disintegrate should look meaner than mana blast
                     Lock animLock = new Lock(1);
-                    attacker.getCharacter().addAnimation(new MagicOrbAnimation(attacker.getCharacter(), board.getZone(targetZone).getCenter()) {
+                    attacker.addAnimation(new MagicOrbAnimation(attacker, board.getZone(targetZone).getCenter()) {
                         @Override
                         protected void onDone() {
                             super.onDone();
@@ -648,27 +751,45 @@ public abstract class UIZombicide extends ZGameMP {
                     break;
                 }
                 case FIREBALL: {
-                    GroupAnimation group = new GroupAnimation(attacker.getCharacter());
+                    GroupAnimation group = new GroupAnimation(attacker);
                     Lock animLock = new Lock(numDice);
                     int delay = 0;
                     for (int i = 0; i < numDice; i++) {
-                        Vector2D end = board.getZone(targetZone).getCenter().add(Vector2D.newRandom(0.3f));
-                        group.addAnimation(delay, new FireballAnimation(attacker.getCharacter(), end) {
-                            @Override
-                            protected void onDone() {
-                                animLock.release();
-                            }
-                        });
+                        if (hits.size() > 0) {
+                            ZActorPosition pos = hits.remove(0);
+                            ZActor victim = board.getActor(pos);
+                            group.addAnimation(delay, new FireballAnimation(attacker, victim) {
+                                @Override
+                                protected void onDone() {
+                                    if (pos.getData() == ZGame.ACTOR_POS_DATA_DEFENDED) {
+                                        victim.addAnimation(new ShieldBlockAnimation(victim));
+                                    } else {
+                                        boardRenderer.addPostActor(new InfernoAnimation(victim.getRect()));
+                                    }
+                                    animLock.release();
+                                }
+                            });
+                        } else {
+                            Vector2D end = board.getZone(targetZone).getCenter().add(Vector2D.newRandom(0.3f));
+                            group.addAnimation(delay, new FireballAnimation(attacker, end) {
+                                @Override
+                                protected void onDone() {
+                                    boardRenderer.addPostActor(new HoverMessage(boardRenderer, "MISS!!", attacker));
+                                    animLock.release();
+                                }
+                            });
+                        }
                         delay+=150;
                     }
-                    attacker.getCharacter().addAnimation(group);
+                    attacker.addAnimation(group);
                     boardRenderer.redraw();
                     animLock.block();
                     break;
                 }
                 case INFERNO: {
                     Lock lock = new Lock(1);
-                    boardRenderer.addPreActor(new InfernoAnimation(board, targetZone) {
+                    List<IRectangle> rects = Utils.map(board.getZone(targetZone).getCells(), pos -> board.getCell(pos));
+                    boardRenderer.addPreActor(new InfernoAnimation(rects) {
                         @Override
                         protected void onDone() {
                             super.onDone();
@@ -681,7 +802,16 @@ public abstract class UIZombicide extends ZGameMP {
                 }
                 case LIGHTNING_BOLT: {
                     Lock animLock = new Lock(1);
-                    attacker.getCharacter().addAnimation(new LightningAnimation2(attacker.getCharacter(), board.getZone(targetZone).getRectangle().scaledBy(.5f), numDice) {
+                    List<IInterpolator<Vector2D>> targets = new ArrayList<>();
+                    for (int i=0; i<numDice*2; i++) {
+                        if (i < hits.size()) {
+                            targets.add(board.getActor(hits.get(i)));
+                        } else {
+                            GRectangle rect = board.getZone(targetZone).getRectangle().scaledBy(.5f);
+                            targets.add(Vector2D.getLinearInterpolator(rect.getRandomPointInside(), rect.getRandomPointInside()));
+                        }
+                    }
+                    attacker.addAnimation(new LightningAnimation2(attacker, targets) {
                         @Override
                         protected void onDone() {
                             animLock.release();

@@ -294,7 +294,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
             }
         }
 
-        List<ZActor> actors = b.getAllLiveActors();
+        List<ZActor> actors = b.getAllActors();
         Collections.sort(actors, (a0,a1) -> Integer.compare(a0.isAnimating() ? 1 : 0, a1.isAnimating() ? 1 : 0));
 
         for (ZActor a : actors) {
@@ -324,6 +324,8 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                         outline = GColor.CYAN;
                     else if (options.contains(a))
                         outline = GColor.YELLOW;
+                    else if (a.isAlive())
+                        outline = GColor.WHITE;
                     drawActor((T)g, a, outline);
                 }
                 g.removeFilter();
@@ -540,7 +542,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                     g.drawLine(v0, v1, 3);
                     break;
                 case RAMPART:
-                    g.drawDashedLine(v0, v1, 3, 5);
+                    g.drawDashedLine(v0, v1, 3, 20);
                     break;
                 case OPEN: {
                     g.drawLine(v0, dv0, 3);
@@ -837,6 +839,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
      * @param targetZoomPercent 0 is fully zoomed out and 1 is fully zoomed in
      */
     public void animateZoomTo(float targetZoomPercent) {
+        clearDragOffset();
         targetZoomPercent = Utils.clamp(targetZoomPercent, 0, 1);
         if (zoomPercent != targetZoomPercent) {
             zoomAnimation = new ZoomAnimation(this, targetZoomPercent).start();
@@ -1083,13 +1086,6 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
         game.characterRenderer.redraw();
         drawAnimations(overlayAnimations, g);
 
-        //if (game.isGameOver() && overlayToDraw == null && !isAnimating()) {
-        //    setOverlay(game.getGameSummaryTable());
-        //}
-
-        if (actorsAnimating && !game.isGameOver()) {
-            overlayToDraw = null;
-        }
         drawOverlay(g);
 
         if (zoomAnimation != null) {
@@ -1258,5 +1254,9 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
 
     public int getNumOverlayTextAnimations() {
         return Utils.count(overlayAnimations, a -> a instanceof OverlayTextAnimation);
+    }
+
+    public void clearDragOffset() {
+        dragOffset.zero();
     }
 }

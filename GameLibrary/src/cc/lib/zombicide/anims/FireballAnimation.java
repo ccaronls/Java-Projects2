@@ -3,6 +3,7 @@ package cc.lib.zombicide.anims;
 import cc.lib.game.AGraphics;
 import cc.lib.game.AImage;
 import cc.lib.game.GRectangle;
+import cc.lib.game.IVector2D;
 import cc.lib.game.Utils;
 import cc.lib.math.Vector2D;
 import cc.lib.zombicide.ZActor;
@@ -15,11 +16,11 @@ public class FireballAnimation extends ZActorAnimation {
     final Vector2D start;
     final GRectangle rect;
 
-    public FireballAnimation(ZActor actor, Vector2D end) {
+    public FireballAnimation(ZActor actor, IVector2D end) {
         super(actor, 500);
         this.rect = actor.getRect().scaledBy(.5f);
         this.start = rect.getCenter();
-        path = end.sub(start);
+        path = new Vector2D(end).sub(start);
         setDuration(Math.round(path.mag()* 700));
     }
 

@@ -15,14 +15,18 @@ import cc.lib.zombicide.ZWeapon;
 
 public class UIZUser extends ZUser {
 
+    <T> Integer indexOrNull(T item, List<T> options) {
+        return item == null ? null : options.indexOf(item);
+    }
+
     @Override
     public ZPlayerName chooseCharacter(List<ZPlayerName> characters) {
         return UIZombicide.getInstance().pickCharacter("Pick character to play", characters);
     }
 
     @Override
-    public ZMove chooseMove(ZPlayerName cur, List<ZMove> moves) {
-        return UIZombicide.getInstance().pickMenu(cur,cur.name() + " Choose Move", ZMove.class, moves);
+    public Integer chooseMove(ZPlayerName cur, List<ZMove> moves) {
+        return indexOrNull(UIZombicide.getInstance().pickMenu(cur,cur.name() + " Choose Move", ZMove.class, moves), moves);
     }
 
     @Override
@@ -36,8 +40,8 @@ public class UIZUser extends ZUser {
     }
 
     @Override
-    public ZEquipment chooseEquipment(ZPlayerName cur, List<ZEquipment> equipOptions) {
-        return UIZombicide.getInstance().pickMenu(cur,cur.name() + " Choose Equipment to Organize", ZEquipment.class, equipOptions);
+    public Integer chooseEquipment(ZPlayerName cur, List<ZEquipment> equipOptions) {
+        return indexOrNull(UIZombicide.getInstance().pickMenu(cur,cur.name() + " Choose Equipment to Organize", ZEquipment.class, equipOptions), equipOptions);
     }
 
     @Override
@@ -51,13 +55,13 @@ public class UIZUser extends ZUser {
     }
 
     @Override
-    public ZDoor chooseDoorToToggle(ZPlayerName cur, List<ZDoor> doors) {
-        return UIZombicide.getInstance().pickDoor(cur.name() + " Choose door to open or close", doors);
+    public Integer chooseDoorToToggle(ZPlayerName cur, List<ZDoor> doors) {
+        return indexOrNull(UIZombicide.getInstance().pickDoor(cur.name() + " Choose door to open or close", doors), doors);
     }
 
     @Override
-    public ZWeapon chooseWeaponSlot(ZPlayerName cur, List<ZWeapon> weapons) {
-        return UIZombicide.getInstance().pickMenu(cur, cur.name() + " Choose weapon from slot", ZWeapon.class, weapons);
+    public Integer chooseWeaponSlot(ZPlayerName cur, List<ZWeapon> weapons) {
+        return indexOrNull(UIZombicide.getInstance().pickMenu(cur, cur.name() + " Choose weapon from slot", ZWeapon.class, weapons), weapons);
     }
 
     @Override
@@ -71,18 +75,18 @@ public class UIZUser extends ZUser {
     }
 
     @Override
-    public ZEquipment chooseItemToPickup(ZPlayerName cur, List<ZEquipment> list) {
-        return UIZombicide.getInstance().pickMenu(cur, "Choose Menu to Pickup", ZEquipment.class, list);
+    public Integer chooseItemToPickup(ZPlayerName cur, List<ZEquipment> list) {
+        return indexOrNull(UIZombicide.getInstance().pickMenu(cur, "Choose Menu to Pickup", ZEquipment.class, list), list);
     }
 
     @Override
-    public ZEquipment chooseItemToDrop(ZPlayerName cur, List<ZEquipment> list) {
-        return UIZombicide.getInstance().pickMenu(cur, "Choose Menu to Drop", ZEquipment.class, list);
+    public Integer chooseItemToDrop(ZPlayerName cur, List<ZEquipment> list) {
+        return indexOrNull(UIZombicide.getInstance().pickMenu(cur, "Choose Menu to Drop", ZEquipment.class, list), list);
     }
 
     @Override
-    public ZEquipment chooseEquipmentToThrow(ZPlayerName cur, List<ZEquipment> slots) {
-        return UIZombicide.getInstance().pickMenu(cur,  "Choose Item to Throw", ZEquipment.class, slots);
+    public Integer chooseEquipmentToThrow(ZPlayerName cur, List<ZEquipment> slots) {
+        return indexOrNull(UIZombicide.getInstance().pickMenu(cur,  "Choose Item to Throw", ZEquipment.class, slots), slots);
     }
 
     @Override

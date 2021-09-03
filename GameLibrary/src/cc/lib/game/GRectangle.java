@@ -184,6 +184,31 @@ public class GRectangle extends Reflector<GRectangle> implements IRectangle {
         return scaledBy(s, s);
     }
 
+    public GRectangle scaledBy(float s, Justify horz, Justify vert) {
+        float newWidth = w * s;
+        float newHeight = h * s;
+        float newX = x;
+        float newY = y;
+        switch (horz) {
+            case LEFT:
+                newX += (w-newWidth); break;
+            case RIGHT:
+                break;
+            case CENTER:
+                newX += (w-newWidth)/2; break;
+        }
+
+        switch (vert) {
+            case TOP:
+                break;
+            case BOTTOM:
+                newY += (h-newHeight); break;
+            case CENTER:
+                newY += (h-newHeight)/2; break;
+        }
+        return new GRectangle(newX, newY, newWidth, newHeight);
+    }
+
     /**
      *
      * @param sx

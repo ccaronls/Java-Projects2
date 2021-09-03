@@ -2802,7 +2802,7 @@ public class Utils {
         OUT map(IN in);
     }
 
-    public static <IN,OUT> List<OUT> map(Collection<IN> inList, Mapper<IN,OUT> mapper) {
+    public static <IN,OUT> List<OUT> map(Iterable<IN> inList, Mapper<IN,OUT> mapper) {
         List<OUT> outList = new ArrayList<>();
         for (IN in : inList) {
             outList.add(mapper.map(in));
@@ -2819,9 +2819,9 @@ public class Utils {
     }
 
     public static <IN,OUT> OUT [] map(IN [] inArr, OUT [] outArr, Mapper<IN,OUT> mapper) {
-        int idx = 0;
-        for (IN in : inArr) {
-            outArr[idx++] = mapper.map(in);
+        int n = Math.min(inArr.length, outArr.length);
+        for (int idx=0; idx<n; idx++) {
+            outArr[idx] = mapper.map(inArr[idx]);
         }
         return outArr;
     }
@@ -2843,4 +2843,53 @@ public class Utils {
         }
         return merged;
     }
+
+    /**
+     * Sum the mapped values from a collection
+     *
+     * @param in
+     * @param mapper
+     * @param <T>
+     * @return
+     */
+    public static <T> long sum(Collection<T> in, Mapper<T, Long> mapper) {
+        long total = 0;
+        for (T t : in) {
+            total += mapper.map(t);
+        }
+        return total;
+    }
+
+    /**
+     * Return the min value from the collection or Long.MAX_VALUE
+     *
+     * @param in
+     * @param mapper
+     * @param <T>
+     * @return
+     */
+    public static <T> long min(Collection<T> in, Mapper<T, Long> mapper) {
+        long min = Long.MAX_VALUE;
+        for (T t : in) {
+            min = Math.min(min, mapper.map(t));
+        }
+        return min;
+    }
+
+    /**
+     * Return the max value from the collection or Long.MIN_VALUE
+     *
+     * @param in
+     * @param mapper
+     * @param <T>
+     * @return
+     */
+    public static <T> long max(Collection<T> in, Mapper<T, Long> mapper) {
+        long max = Long.MIN_VALUE;
+        for (T t : in) {
+            max = Math.max(max, mapper.map(t));
+        }
+        return max;
+    }
+
 }

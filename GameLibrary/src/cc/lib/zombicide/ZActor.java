@@ -3,14 +3,17 @@ package cc.lib.zombicide;
 import cc.lib.game.AGraphics;
 import cc.lib.game.GDimension;
 import cc.lib.game.GRectangle;
+import cc.lib.game.IInterpolator;
 import cc.lib.game.IRectangle;
 import cc.lib.game.IVector2D;
+import cc.lib.game.Justify;
 import cc.lib.game.Utils;
+import cc.lib.math.Vector2D;
 import cc.lib.utils.Grid;
 import cc.lib.utils.Reflector;
 import cc.lib.zombicide.ui.UIZButton;
 
-public abstract class ZActor<E extends Enum<E>> extends Reflector<ZActor<E>> implements UIZButton, IRectangle, IVector2D {
+public abstract class ZActor<E extends Enum<E>> extends Reflector<ZActor<E>> implements UIZButton, IRectangle, IVector2D, IInterpolator<Vector2D> {
 
     static {
         addAllFields(ZActor.class);
@@ -20,7 +23,8 @@ public abstract class ZActor<E extends Enum<E>> extends Reflector<ZActor<E>> imp
         this.occupiedZone = zone;
     }
 
-    int occupiedZone;
+    int occupiedZone = -1;
+    int priorZone;
     Grid.Pos occupiedCell;
     ZCellQuadrant occupiedQuadrant;
     int actionsLeftThisTurn;
@@ -33,7 +37,7 @@ public abstract class ZActor<E extends Enum<E>> extends Reflector<ZActor<E>> imp
         return rect = b.getCell(occupiedCell)
                 .getQuadrant(occupiedQuadrant)
                 .fit(getDimension())
-                .scaledBy(getScale() * b.getCell(getOccupiedCell()).getScale());
+                .scaledBy(getScale() * b.getCell(getOccupiedCell()).getScale(), Justify.CENTER, Justify.BOTTOM);
     }
 
     public GRectangle getRect() {
@@ -70,6 +74,10 @@ public abstract class ZActor<E extends Enum<E>> extends Reflector<ZActor<E>> imp
 
     public int getOccupiedZone() {
         return occupiedZone;
+    }
+
+    public int getPriorZone() {
+        return priorZone < 0 ? occupiedZone : priorZone;
     }
 
     public Grid.Pos getOccupiedCell() {
@@ -147,7 +155,7 @@ public abstract class ZActor<E extends Enum<E>> extends Reflector<ZActor<E>> imp
     }
 
     int getPriority() {
-        return 0;
+        return isAlive() ? 0 : -1;
     }
 
     @Override
@@ -198,12 +206,13 @@ public abstract class ZActor<E extends Enum<E>> extends Reflector<ZActor<E>> imp
         return rect.getCenter().Y();
     }
 
-    ZActorPosition getPosition() {
-        return new ZActorPosition(occupiedCell, occupiedQuadrant);
+    @Override
+    public Vector2D getAtPosition(float position) {
+        return rect.getCenter();
     }
 
-    public boolean isDead() {
-        return false;
+    ZActorPosition getPosition() {
+        return new ZActorPosition(occupiedCell, occupiedQuadrant);
     }
 
     boolean isNoisy() {

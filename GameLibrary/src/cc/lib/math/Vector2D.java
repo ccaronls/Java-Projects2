@@ -514,13 +514,7 @@ public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializ
     }
 
     public static IInterpolator<Vector2D> getLinearInterpolator(Vector2D start, Vector2D end) {
-        return new IInterpolator<Vector2D>() {
-
-            @Override
-            public Vector2D getAtPosition(float position) {
-                return start.add(end.sub(start).scaleEq(position));
-            }
-        };
+        return position -> start.add(end.sub(start).scaleEq(position));
     }
 
     /**

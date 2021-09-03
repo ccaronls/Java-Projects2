@@ -1,7 +1,8 @@
 package cc.lib.zombicide.anims;
 
+import java.util.List;
+
 import cc.lib.game.AGraphics;
-import cc.lib.game.GRectangle;
 import cc.lib.game.IInterpolator;
 import cc.lib.game.InterpolatorUtils;
 import cc.lib.game.LightningStrand;
@@ -20,7 +21,7 @@ public class LightningAnimation2 extends ZActorAnimation {
     final float minArc = 0f;
     final float maxArc = .5f;
 
-    public LightningAnimation2(ZActor actor, GRectangle target, int numDice) {
+    public LightningAnimation2(ZActor actor, List<IInterpolator<Vector2D>> targets) {
         super(actor, 700L, 1000L);
         start0 = actor.getRect().getTopLeft();
         start1 = actor.getRect().getTopRight();
@@ -30,14 +31,15 @@ public class LightningAnimation2 extends ZActorAnimation {
             arcs[i] = new LightningStrand(start0, start1, InterpolatorUtils.linear(minArc, maxArc), 4, 7, .5f);
         }
 
-        shots = new LightningStrand[numDice*2];
+        shots = new LightningStrand[targets.size()];
         Vector2D dv = start1.sub(start0).normEq().scaleEq(-maxArc);
         //Vector2D start = (start0.add(start1)).scaleEq(.5f).addEq(dv);
-        for (int i=0; i<shots.length; i+=2) {
-            IInterpolator<Vector2D> endInt = Vector2D.getLinearInterpolator(target.getRandomPointInside(), target.getRandomPointInside());
-            shots[i] = new LightningStrand(start0, endInt, 10, 15, .4f);
-            endInt = Vector2D.getLinearInterpolator(target.getRandomPointInside(), target.getRandomPointInside());
-            shots[i+1] = new LightningStrand(start1, endInt, 10, 15, .4f);
+        int idx=0;
+        for (IInterpolator<Vector2D> i : targets) {
+            //IInterpolator<Vector2D> endInt = Vector2D.getLinearInterpolator(target.getRandomPointInside(), target.getRandomPointInside());
+            shots[idx++] = new LightningStrand(start0, i, 10, 15, .4f);
+            //endInt = Vector2D.getLinearInterpolator(target.getRandomPointInside(), target.getRandomPointInside());
+            //shots[i+1] = new LightningStrand(start1, endInt, 10, 15, .4f);
         }
     }
 
@@ -53,10 +55,7 @@ public class LightningAnimation2 extends ZActorAnimation {
             }
 
             case 1: {
-                // draw the arc build up
-                //for (LightningStrand l : arcs) {
-                 //   l.draw(g, 1);
-                //}
+                // draw the discharge
                 for (LightningStrand l : shots) {
                     l.draw(g, position);
                 }
@@ -69,4 +68,13 @@ public class LightningAnimation2 extends ZActorAnimation {
     protected boolean hidesActor() {
         return false;
     }
+
+    @Override
+    protected final void onPhaseStarted(AGraphics g, int phase) {
+        if (phase == 1) {
+            onShotPhaseStarted(g);
+        }
+    }
+
+    protected void onShotPhaseStarted(AGraphics g) {}
 }

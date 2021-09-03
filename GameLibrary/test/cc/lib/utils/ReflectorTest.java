@@ -22,6 +22,9 @@ import java.util.Vector;
 
 import cc.lib.game.GColor;
 import cc.lib.game.Utils;
+import cc.lib.zombicide.ZEquipment;
+import cc.lib.zombicide.ZItemType;
+import cc.lib.zombicide.ZWeaponType;
 
 public class ReflectorTest extends TestCase {
 
@@ -842,16 +845,45 @@ public class ReflectorTest extends TestCase {
     }
 
 
-    public void testSerializeSyncList() throws Exception {
+    public void testSerializeCollectionsList() throws Exception {
         //Reflector.registerClass(Collections.synchronizedList(new ArrayList()).getClass(), "java.util.Collections.SynchronizedRandomAccessList");
         //Reflector.registerConstructor("java.util.Collections.SynchronizedRandomAccessList", () -> Collections.synchronizedList(new ArrayList()));
 
-        List<String> list = Collections.synchronizedList(new ArrayList<>());
-        list.addAll(Utils.toList("Hello", "Goodbye"));
-        String s= Reflector.serializeObject(list);
-        System.out.println(s);
+        List<String> list = Collections.unmodifiableList(Utils.toList("Hello", "Goodbye"));
 
-        List<String> list2 = Reflector.deserializeFromString(s);
-        System.out.println("list2=" + list2);
+        String str = Reflector.serializeObject(list);
+        System.out.println("str="+str);
+
+        list = Reflector.deserializeFromString(str);
+    }
+
+    static class Hand extends Reflector<Hand> {
+        ZEquipment e;
+    }
+
+
+    public void testDeserializeEnums() throws Exception {
+
+        Reflector.addAllFields(Hand.class);
+
+        Hand a, b;
+
+        a = new Hand();
+        b = new Hand();
+
+        a.e = ZItemType.DRAGON_BILE.create();
+        b.e = ZWeaponType.DAGGER.create();
+
+//        System.out.println("a=" + a.toStringNumbered());
+//        System.out.println("b=" + b.toStringNumbered());
+
+        StringWriter str = new StringWriter();
+        try (PrintWriter out = new PrintWriter(str)) {
+            a.serialize(out);
+        }
+        System.out.println("str=" + str.toString());
+        b.deserialize(str.toString(), true);
+
+        System.out.println(b.toString());
     }
 }

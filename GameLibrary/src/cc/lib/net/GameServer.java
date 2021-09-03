@@ -44,7 +44,8 @@ import cc.lib.utils.WeakHashSet;
  */
 public class GameServer {
 
-    public final static int TIMEOUT = 10000;
+    public final static int TIMEOUT = 30000;
+    public final static int PING_FREQ = 10000;
 
     private final Logger log = LoggerFactory.getLogger("P2PGame", GameServer.class);
     
@@ -79,6 +80,13 @@ public class GameServer {
          *
          */
         default void onServerStopped() {}
+
+        /**
+         *
+         * @param conn
+         * @param newHandle
+         */
+        default void onClientHandleChanged(ClientConnection conn, String newHandle) {}
     }
     
     // keep sorted by alphabetical order 
@@ -503,7 +511,7 @@ public class GameServer {
                 
                 new GameCommand(GameCommandType.SVR_CONNECTED)
                         .setName(mServerName)
-                        .setArg("keepAlive", TIMEOUT).write(out);
+                        .setArg("keepAlive", PING_FREQ).write(out);
 
                 // TODO: Add a password feature when server prompts for password before conn.connect is called.
 

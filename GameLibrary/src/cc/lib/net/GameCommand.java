@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -348,7 +349,7 @@ public class GameCommand {
      * @param dout
      * @throws Exception
      */
-    public final void write(DataOutputStream dout) throws Exception {
+    public final void write(DataOutputStream dout) throws IOException {
         dout.writeUTF(type.name());
         dout.writeInt(arguments.size());
         for (String key : arguments.keySet()) {

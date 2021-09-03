@@ -23,7 +23,7 @@ public class MagicOrbAnimation extends ZActorAnimation {
     final float startAlpha = .9f;
     final float endAlpha = .3f;
     final float startRadius = .05f;
-    final float endRadius = .3f;
+    final float endRadius = .25f;
     final float padding = .02f; // padding between the lightning strands and the outer edge of orb
 
     public MagicOrbAnimation(ZActor actor, Vector2D end) {

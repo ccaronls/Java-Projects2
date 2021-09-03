@@ -28,7 +28,7 @@ public class ZQuestBigGameHunting extends ZQuest {
 
     @Omit
     String [][] map = {
-            { "z0:i:wn:ww:ds:gvd1",  "z29:i:wn:de:ws:red:odw", "z1:sp:wn:de",      "z2:i:wn:ode:ws",   "z3:i:wn:ode:ws",   "z9:i:vd2:wn:we",  "z28:v:wn:we:vd2" },
+            { "z0:i:wn:ww:ds:gvd1",  "z29:i:wn:de:ws:red:odw", "z1:sp:wn:de",           "z2:i:wn:ode:ws",   "z3:i:wn:ode:ws",   "z9:i:vd2:wn:we",  "z28:v:wn:we:vd2" },
             { "z5:ww",              "z6",                     "z7",                     "z8:we",            "z9:i:ods",           "z9:i:ods:we:red",     "z28:v:we" },
             { "z10:ww:we:start",    "z11:i:ww:wn::ws:red:ode","z12:i:wn:ds:ode",        "z13:i:wn:red:ds:ode","z14:i:ws:we:odn",   "z15:i:ds:we:odn", "z28:v:we:ws:vd3" },
             { "z16:ww:ds",          "z17",                    "z18",                    "z19",              "z20",                "z21:we:spe:dn:ds", "z27:v:we:gvd1" },

@@ -8,11 +8,11 @@
     <android.support.v7.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
-        android:layout_height="400dp"
+        android:layout_height="wrap_content"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toTopOf="@id/vg_buttons"
         app:layoutManager="android.support.v7.widget.GridLayoutManager"
-        app:spanCount="2"
+        app:spanCount="3"
         tools:listitem="@layout/assign_dialog_item"/>
 
     <LinearLayout

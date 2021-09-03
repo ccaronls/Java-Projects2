@@ -1,6 +1,7 @@
 package cc.game.zombicide.android;
 
 import android.content.Context;
+import android.graphics.Canvas;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.Pair;
@@ -161,7 +162,8 @@ public class ZBoardView extends UIComponentView implements UIZComponent<DroidGra
         for (Pair<ZIcon, Integer> pair : Utils.toArray(
                 new Pair(ZIcon.DRAGON_BILE, R.drawable.zdragonbile_icon),
                 new Pair(ZIcon.TORCH, R.drawable.ztorch_icon),
-                new Pair(ZIcon.DAGGER, R.drawable.zdagger_icon))) {
+                new Pair(ZIcon.DAGGER, R.drawable.zdagger_icon),
+                new Pair(ZIcon.SWORD, R.drawable.zsword_icon))) {
             int[] ids = pair.first.imageIds = new int[8];
             ids[0] = pair.second;
             for (int i = 1; i < ids.length; i++) {
@@ -231,5 +233,13 @@ public class ZBoardView extends UIComponentView implements UIZComponent<DroidGra
     @Override
     protected void onLoaded() {
         ((UIZBoardRenderer)getRenderer()).onLoaded();
+    }
+
+    @Override
+    protected void onDraw(Canvas canvas) {
+        super.onDraw(canvas);
+/*        synchronized (this) {
+            notify(); // notify activity we have rendered a frame
+        }*/
     }
 }

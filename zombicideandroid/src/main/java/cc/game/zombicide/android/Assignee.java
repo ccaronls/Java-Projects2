@@ -1,6 +1,5 @@
 package cc.game.zombicide.android;
 
-import cc.lib.game.GColor;
 import cc.lib.utils.Reflector;
 import cc.lib.zombicide.ZPlayerName;
 
@@ -10,7 +9,7 @@ public class Assignee extends Reflector<Assignee> implements Comparable<Assignee
     }
     final ZPlayerName name;
     String userName = "";
-    GColor color;
+    int color = -1;
     boolean checked;
     @Omit
     boolean isAssingedToMe;
@@ -23,7 +22,7 @@ public class Assignee extends Reflector<Assignee> implements Comparable<Assignee
         lock = null;
     }
 
-    public Assignee(ZPlayerName name, String userName, GColor color, boolean checked) {
+    public Assignee(ZPlayerName name, String userName, int color, boolean checked) {
         this.name = name;
         this.userName = userName;
         this.color = color;
@@ -42,7 +41,7 @@ public class Assignee extends Reflector<Assignee> implements Comparable<Assignee
     }
 
     boolean isUnlocked() {
-        return (color == null || isAssingedToMe) && lock.isUnlocked();
+        return (color < 0 || isAssingedToMe) && lock.isUnlocked();
     }
 
     @Override

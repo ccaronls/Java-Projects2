@@ -161,7 +161,7 @@ public class ZBoard extends Reflector<ZBoard> implements IDimension {
                                 break;
                         }
                         result.add(cell.zoneIndex);
-                        if (action.isMovement() && getZombiesInZone(cell.zoneIndex).size() > 0) {
+                        if (action.isMovement() && getNumZombiesInZone(cell.zoneIndex) > 0) {
                             break;
                         }
                     }
@@ -518,7 +518,11 @@ public class ZBoard extends Reflector<ZBoard> implements IDimension {
     }
 
     public List<ZZombie> getZombiesInZone(int zoneIdx) {
-        return Utils.filter((List)getActorsInZone(zoneIdx), (Utils.Filter<ZActor>) object -> object instanceof ZZombie);
+        return Utils.filter((List)getActorsInZone(zoneIdx), (Utils.Filter<ZActor>) object -> object instanceof ZZombie && object.isAlive());
+    }
+
+    public int getNumZombiesInZone(int zoneIdx) {
+        return Utils.count(getActorsInZone(zoneIdx), object -> object instanceof ZZombie && object.isAlive());
     }
 
     public List<ZCharacter> getCharactersInZone(int zoneIdx) {
@@ -539,7 +543,7 @@ public class ZBoard extends Reflector<ZBoard> implements IDimension {
         return actors;
     }
 
-    public List<ZActor> getAllLiveActors() {
+    public List<ZActor> getAllActors() {
         List<ZActor> actors = new ArrayList<>();
         for (ZCell cell : grid.getCells()) {
             for (ZActor a : cell.getOccupant()) {
@@ -551,11 +555,11 @@ public class ZBoard extends Reflector<ZBoard> implements IDimension {
     }
 
     public List<ZZombie> getAllZombies() {
-        return Utils.filter((List)getAllLiveActors(), (Utils.Filter<ZActor>) object -> object instanceof ZZombie);
+        return Utils.filter((List) getAllActors(), (Utils.Filter<ZActor>) object -> object instanceof ZZombie && object.isAlive());
     }
 
     public List<ZCharacter> getAllCharacters() {
-        return Utils.filter((List)getAllLiveActors(), (Utils.Filter<ZActor>) object -> object instanceof ZCharacter);
+        return Utils.filter((List) getAllActors(), (Utils.Filter<ZActor>) object -> object instanceof ZCharacter);
     }
 
     public boolean addActorToCell(ZActor actor, Grid.Pos pos) {
@@ -571,6 +575,8 @@ public class ZBoard extends Reflector<ZBoard> implements IDimension {
         if (cell.getOccupant(current) != null && cell.getOccupant(current).getPriority() >= actor.getPriority())
             return false;
         cell.setQuadrant(actor, current);
+        if (actor.occupiedZone != cell.zoneIndex)
+            actor.priorZone = actor.occupiedZone;
         actor.occupiedZone = cell.zoneIndex;
         actor.occupiedCell = pos;
         actor.occupiedQuadrant = current;

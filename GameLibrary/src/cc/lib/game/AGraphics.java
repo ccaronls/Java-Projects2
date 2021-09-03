@@ -493,7 +493,6 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
         return drawJustifiedStringOnBackground(x, y, hJust, vJust, text, bkColor, border, 0);
     }
 
-    
     /**
      * 
      * @param str
@@ -1828,5 +1827,13 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      */
     public abstract GRectangle getClipRect();
 
-
+    /**
+     * Return a string that can be rendered in the supplied color using @see drawAnnotatedString
+     * @param color
+     * @param string
+     * @return
+     */
+    public static String getAnnotatedString(GColor color, String string) {
+        return String.format("%s%s", color.toString(), string);
+    }
 }

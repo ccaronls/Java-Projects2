@@ -44,6 +44,7 @@ public abstract class AAnimation<T> {
 
     public void setDuration(long duration) {
         Utils.assertTrue(state == State.PRESTART);
+        Utils.assertTrue(duration > 0);
         this.duration = duration;
     }
 

@@ -36,7 +36,7 @@ public class OverlayTextAnimation extends ZAnimation {
         float minHeight = 32;
         float maxHeight = 48;
 
-        GColor color = GColor.GREEN;
+        GColor color = GColor.RED;
         if (position > .5f) {
             float alpha = 1f - 2f * (position - .5f);
             color = color.withAlpha(alpha);

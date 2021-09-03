@@ -20,7 +20,11 @@ public class ZSkillLevel extends Reflector<ZSkillLevel> implements Comparable<ZS
         this(null, -1);
     }
 
-    ZSkillLevel(ZColor lvl, int ultra) {
+    public ZSkillLevel(ZColor lvl) {
+        this(lvl, 0);
+    }
+
+    public ZSkillLevel(ZColor lvl, int ultra) {
         this.color = lvl;
         this.ultra = ultra;
     }

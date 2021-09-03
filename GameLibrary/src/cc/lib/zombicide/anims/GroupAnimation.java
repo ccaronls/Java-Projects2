@@ -23,13 +23,18 @@ public class GroupAnimation extends ZActorAnimation {
         super(actor, 1);
     }
 
+    public synchronized GroupAnimation addAnimation(ZAnimation animation) {
+        return addAnimation(0, animation);
+    }
+
     /**
      * IMPORTANT!: Make sure to have all animations added before starting!
      * @param animation
      */
-    public synchronized void addAnimation(int delay, ZAnimation animation) {
+    public synchronized GroupAnimation addAnimation(int delay, ZAnimation animation) {
         Utils.assertTrue(!isStarted());
         group.add(new Pair(animation, delay));
+        return this;
     }
 
     @Override

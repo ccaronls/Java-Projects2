@@ -26,7 +26,31 @@ public class ZUserMP extends ZUser {
     public ZUserMP(ClientConnection conn) {
         this.connection = conn;
     }
+/*
+    @Override
+    public void clearCharacters() {
+        super.clearCharacters();
+        if (connection != null) {
+            connection.executeDerivedOnRemote(USER_ID, false);
+        }
+    }
 
+    @Override
+    public void addCharacter(ZPlayerName c) {
+        super.addCharacter(c);
+        if (connection != null) {
+            connection.executeDerivedOnRemote(USER_ID, false, c);
+        }
+    }
+
+    @Override
+    public void removeCharacter(ZPlayerName name) {
+        super.removeCharacter(name);
+        if (connection != null) {
+            connection.executeDerivedOnRemote(USER_ID, false, name);
+        }
+    }
+*/
     @Override
     public ZPlayerName chooseCharacter(List<ZPlayerName> options) {
         if (connection != null) {
@@ -36,7 +60,7 @@ public class ZUserMP extends ZUser {
     }
 
     @Override
-    public ZMove chooseMove(ZPlayerName cur, List<ZMove> options) {
+    public Integer chooseMove(ZPlayerName cur, List<ZMove> options) {
         if (connection != null) {
             return connection.executeDerivedOnRemote(USER_ID, true, cur, options);
         }
@@ -60,7 +84,7 @@ public class ZUserMP extends ZUser {
     }
 
     @Override
-    public ZEquipment chooseEquipment(ZPlayerName cur, List<ZEquipment> equipOptions) {
+    public Integer chooseEquipment(ZPlayerName cur, List<ZEquipment> equipOptions) {
         if (connection != null) {
             return connection.executeDerivedOnRemote(USER_ID, true, cur, equipOptions);
         }
@@ -85,7 +109,7 @@ public class ZUserMP extends ZUser {
     }
 
     @Override
-    public ZDoor chooseDoorToToggle(ZPlayerName cur, List<ZDoor> doors) {
+    public Integer chooseDoorToToggle(ZPlayerName cur, List<ZDoor> doors) {
         if (connection != null) {
             return connection.executeDerivedOnRemote(USER_ID, true, cur, doors);
         }
@@ -94,7 +118,7 @@ public class ZUserMP extends ZUser {
     }
 
     @Override
-    public ZWeapon chooseWeaponSlot(ZPlayerName c, List<ZWeapon> weapons) {
+    public Integer chooseWeaponSlot(ZPlayerName c, List<ZWeapon> weapons) {
         if (connection != null) {
             return connection.executeDerivedOnRemote(USER_ID, true, c, weapons);
         }
@@ -118,7 +142,7 @@ public class ZUserMP extends ZUser {
     }
 
     @Override
-    public ZEquipment chooseItemToPickup(ZPlayerName cur, List<ZEquipment> list) {
+    public Integer chooseItemToPickup(ZPlayerName cur, List<ZEquipment> list) {
         if (connection != null) {
             return connection.executeDerivedOnRemote(USER_ID, true, cur, list);
         }
@@ -127,7 +151,7 @@ public class ZUserMP extends ZUser {
     }
 
     @Override
-    public ZEquipment chooseItemToDrop(ZPlayerName cur, List<ZEquipment> list) {
+    public Integer chooseItemToDrop(ZPlayerName cur, List<ZEquipment> list) {
         if (connection != null) {
             return connection.executeDerivedOnRemote(USER_ID, true, cur, list);
         }
@@ -135,7 +159,7 @@ public class ZUserMP extends ZUser {
     }
 
     @Override
-    public ZEquipment chooseEquipmentToThrow(ZPlayerName cur, List<ZEquipment> slots) {
+    public Integer chooseEquipmentToThrow(ZPlayerName cur, List<ZEquipment> slots) {
         if (connection != null) {
             return connection.executeDerivedOnRemote(USER_ID, true, cur, slots);
         }

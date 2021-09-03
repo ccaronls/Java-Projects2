@@ -16,6 +16,7 @@ import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZIcon;
 import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZSkill;
+import cc.lib.zombicide.ZUser;
 import cc.lib.zombicide.ZWeapon;
 import cc.lib.zombicide.ZZombie;
 import cc.lib.zombicide.ZZombieCategory;
@@ -47,16 +48,23 @@ public class ZGameMP extends ZGame {
         }
     }
 
-    protected void setBoardMessage(String msg) {
+    @Override
+    protected void onCurrentUserUpdated(ZUser user) {
+        setCurrentUser(user.getName());
+    }
+
+    protected void setCurrentUser(String name) {
         if (server != null) {
-            server.broadcastExecuteOnRemote(GAME_ID, msg);
+            server.broadcastExecuteOnRemote(GAME_ID, name);
+        } else if (client != null) {
+            currentCharacter = null;
         }
     }
 
     @Override
-    protected void onCurrentCharacterUpdated(ZPlayerName player) {
+    protected void onCurrentCharacterUpdated(ZPlayerName priorPlayer, ZPlayerName player) {
         if (server != null) {
-            server.broadcastExecuteOnRemote(GAME_ID, player);
+            server.broadcastExecuteOnRemote(GAME_ID, priorPlayer, player);
         } else if (client != null) {
             currentCharacter = player;
         }
@@ -178,9 +186,9 @@ public class ZGameMP extends ZGame {
     }
 
     @Override
-    protected void onAttack(ZPlayerName attacker, ZWeapon weapon, ZActionType actionType, int numDice, int numHits, int targetZone) {
+    protected void onAttack(ZPlayerName attacker, ZWeapon weapon, ZActionType actionType, int numDice, List<ZActorPosition> hits, int targetZone) {
         if (server != null) {
-            server.broadcastExecuteOnRemote(GAME_ID, attacker, weapon, actionType, numDice, numHits, targetZone);
+            server.broadcastExecuteOnRemote(GAME_ID, attacker, weapon, actionType, numDice, hits, targetZone);
         }
     }
 
@@ -199,9 +207,9 @@ public class ZGameMP extends ZGame {
     }
 
     @Override
-    protected void onZombieDestroyed(ZPlayerName c, ZAttackType deathType, ZZombie zombie) {
+    protected void onZombieDestroyed(ZPlayerName c, ZAttackType deathType, ZActorPosition pos) {
         if (server != null) {
-            server.broadcastExecuteOnRemote(GAME_ID, c, deathType, zombie);
+            server.broadcastExecuteOnRemote(GAME_ID, c, deathType, pos);
         }
     }
 
@@ -211,7 +219,7 @@ public class ZGameMP extends ZGame {
             server.broadcastExecuteOnRemote(GAME_ID, multiplier);
         }
     }
-
+/*
     @Override
     protected void moveActor(ZActor actor, int toZone, long speed, ZActionType actionType) {
         if (server != null) {
@@ -219,7 +227,7 @@ public class ZGameMP extends ZGame {
         }
         super.moveActor(actor, toZone, speed, actionType);
     }
-
+*/
     @Override
     protected void moveActorInDirection(ZActor actor, ZDir dir) {
         if (server != null) {

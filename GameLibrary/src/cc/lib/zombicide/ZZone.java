@@ -9,6 +9,7 @@ import cc.lib.game.IShape;
 import cc.lib.game.Utils;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
+import cc.lib.utils.GException;
 import cc.lib.utils.Grid;
 import cc.lib.utils.Reflector;
 
@@ -148,4 +149,16 @@ public class ZZone extends Reflector<ZZone> implements IShape {
         return next;
     }
 
+    void checkSanity() {
+        if (cells.size() > 1) {
+            for (int i = 0; i < cells.size() - 1; i++) {
+                for (int ii = i + 1; ii < cells.size(); ii++) {
+                    if (cells.get(i).isAdjacentTo(cells.get(ii))) {
+                        return; // zone is sane
+                    }
+                }
+            }
+            throw new GException("Zone " + zoneIndex + " is INSANE!! Not all positions are adjacent:" + cells);
+        }
+    }
 }

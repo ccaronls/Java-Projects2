@@ -12,6 +12,7 @@ import java.awt.event.MouseListener;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -111,7 +112,7 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
         UIZBoardRenderer renderer = new UIZBoardRenderer(boardComp) {
             @Override
             protected void drawActor(AGraphics g, ZActor actor, GColor outline) {
-                if (!actor.isDead() && actor.getOutlineImageId() > 0) {
+                if (actor.isAlive() && actor.getOutlineImageId() > 0) {
                     // for AWT to need to render the outline in white fist otherwise the tinting looks messed up
                     g.drawImage(actor.getOutlineImageId(), actor.getRect());
                 }
@@ -166,7 +167,7 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
             e.printStackTrace();
             game.loadQuest(ZQuests.Tutorial);
         }
-        user.setColor(GColor.YELLOW);
+        user.setColor(0);
         List<ZPlayerName> players = getEnumListProperty("players", ZPlayerName.class, Utils.toList(ZPlayerName.Baldric, ZPlayerName.Clovis));
         for (ZPlayerName pl : players) {
             game.addCharacter(pl);
@@ -304,6 +305,7 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
                 }
                 menu.add(new AWTButton("KEEP", e1 -> {
                     game.clearCharacters();
+                    game.clearUsersCharacters();
                     for (Map.Entry<ZPlayerName, AWTToggleButton> entry : buttons.entrySet()) {
                         if (entry.getValue().isSelected()) {
                             game.addCharacter(entry.getKey());
@@ -386,8 +388,10 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
         }
     }
 
-    void initMenu(UIZombicide.UIMode mode, List options) {
+    void initMenu(UIZombicide.UIMode mode, List _options) {
         menu.removeAll();
+        List options = new ArrayList(_options);
+        boardComp.initKeysPresses(options);
         switch (mode) {
             case NONE:
                 break;

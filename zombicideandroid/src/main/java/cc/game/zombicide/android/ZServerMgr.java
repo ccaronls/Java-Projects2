@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import cc.lib.game.GColor;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
 import cc.lib.net.ClientConnection;
@@ -53,13 +52,13 @@ class ZServerMgr extends ZMPCommon implements GameServer.Listener, ZMPCommon.SVR
                 synchronized (playerAssignments) {
                     if (assignee.checked) {
                         assignee.userName = activity.getDisplayName();
-                        assignee.color = activity.user.getColor();
+                        assignee.color = activity.user.getColorId();
                         assignee.isAssingedToMe = true;
                         game.addCharacter(assignee.name);
                         activity.user.addCharacter(assignee.name);
                     } else {
                         assignee.userName = null;
-                        assignee.color = null;
+                        assignee.color = -1;
                         assignee.isAssingedToMe = false;
                         activity.user.removeCharacter(assignee.name);
                         game.removeCharacter(assignee.name);
@@ -78,8 +77,8 @@ class ZServerMgr extends ZMPCommon implements GameServer.Listener, ZMPCommon.SVR
         };
     }
 
-    GColor nextColor() {
-        GColor color = ZUser.USER_COLORS[colorAssigner];
+    int nextColor() {
+        int color = colorAssigner;
         colorAssigner = (colorAssigner + 1) % ZUser.USER_COLORS.length;
         return color;
     }
@@ -95,18 +94,23 @@ class ZServerMgr extends ZMPCommon implements GameServer.Listener, ZMPCommon.SVR
                     clientToUserMap.remove(c);
                     clientToUserMap.put(conn, user);
                     game.addUser(user);
-                    conn.sendCommand(newInit(game.getQuest().getQuest(), user.getColor(), maxCharacters, new ArrayList<>(playerAssignments.values())));
+                    user.setName(conn.getDisplayName());
+                    conn.sendCommand(newLoadQuest(game.getQuest().getQuest()));
+                    conn.sendCommand(newInit(user.getColorId(), maxCharacters, new ArrayList<>(playerAssignments.values())));
                     game.characterRenderer.addMessage(conn.getDisplayName() + " has joined", user.getColor());
+                    user.setCharactersHidden(false);
+                    game.boardRenderer.redraw();
                     return;
                 }
             }
         }
         ZUser user = new ZUserMP(conn);
-        GColor color = nextColor();
+        int color = nextColor();
         user.setColor(color);
         clientToUserMap.put(conn, user);
-        conn.sendCommand(newInit(game.getQuest().getQuest(), color, maxCharacters, new ArrayList<>(playerAssignments.values())));
-        game.characterRenderer.addMessage(conn.getDisplayName() + " has joined", color);
+        conn.sendCommand(newLoadQuest(game.getQuest().getQuest()));
+        conn.sendCommand(newInit(color, maxCharacters, new ArrayList<>(playerAssignments.values())));
+        game.characterRenderer.addMessage(conn.getDisplayName() + " has joined", user.getColor());
     }
 
     @Override
@@ -114,8 +118,11 @@ class ZServerMgr extends ZMPCommon implements GameServer.Listener, ZMPCommon.SVR
         ZUser user = clientToUserMap.get(conn);
         if (user != null) {
             game.addUser(user);
-            conn.sendCommand(newInit(game.getQuest().getQuest(), user.getColor(), maxCharacters, new ArrayList<>(playerAssignments.values())));
+            conn.sendCommand(newLoadQuest(game.getQuest().getQuest()));
+            conn.sendCommand(newInit(user.getColorId(), maxCharacters, new ArrayList<>(playerAssignments.values())));
             game.characterRenderer.addMessage(conn.getDisplayName() + " has rejoined", user.getColor());
+            user.setCharactersHidden(false);
+            game.boardRenderer.redraw();
         }
     }
 
@@ -124,10 +131,7 @@ class ZServerMgr extends ZMPCommon implements GameServer.Listener, ZMPCommon.SVR
         // TODO: Put up a dialog waiting for client to reconnect otherwise set their charaters to invisible and to stop moving
         ZUser user = clientToUserMap.get(conn);
         if (user != null) {
-            for (ZPlayerName c : user.getCharacters()) {
-                //game.removeCharacter(c);
-                c.getCharacter().setInvisible(true);
-            }
+            user.setCharactersHidden(true);
             game.removeUser(user);
             game.characterRenderer.addMessage(conn.getDisplayName() + " has disconnected", user.getColor());
             game.boardRenderer.redraw();
@@ -149,11 +153,11 @@ class ZServerMgr extends ZMPCommon implements GameServer.Listener, ZMPCommon.SVR
                 a.isAssingedToMe = false;
                 if (checked) {
                     a.userName = conn.getDisplayName();
-                    a.color = user.getColor();
+                    a.color = user.getColorId();
                     game.addCharacter(name);
                     user.addCharacter(name);
                 } else {
-                    a.color = null;
+                    a.color = -1;
                     a.userName = null;
                     game.removeCharacter(name);
                     user.removeCharacter(name);
@@ -175,9 +179,22 @@ class ZServerMgr extends ZMPCommon implements GameServer.Listener, ZMPCommon.SVR
     }
 
     @Override
+    public void onUndoPressed(ClientConnection conn) {
+        activity.runOnUiThread(() -> game.undo());
+    }
+
+    @Override
     public void onError(Exception e) {
         log.error(e);
         game.addPlayerComponentMessage("Error:" + e.getClass().getSimpleName() + ":" + e.getMessage());
+    }
+
+    @Override
+    public void onClientHandleChanged(ClientConnection conn, String newHandle) {
+        ZUser user = clientToUserMap.get(conn);
+        if (user != null) {
+            user.setName(newHandle);
+        }
     }
 }
 

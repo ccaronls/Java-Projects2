@@ -15,9 +15,14 @@ import android.widget.Toast;
 
 import java.util.List;
 
+import cc.lib.zombicide.ZUser;
+
 /**
  * Created by Chris Caron on 7/26/21.
+ *
+ * Use CharacterChooserDialog
  */
+@Deprecated
 abstract class PlayerChooserDialog extends PagerAdapter implements View.OnClickListener, Runnable {
 
     final List<Assignee> selectedPlayers;
@@ -72,8 +77,8 @@ abstract class PlayerChooserDialog extends PagerAdapter implements View.OnClickL
         TextView tvP2PName = view.findViewById(R.id.tvP2PName);
 
         tvP2PName.setText(a.userName);
-        if (a.color != null) {
-            tvP2PName.setTextColor(a.color.toARGB());
+        if (a.color >= 0) {
+            tvP2PName.setTextColor(ZUser.USER_COLORS[a.color].toARGB());
             tvP2PName.setText(a.userName);
         } else {
             tvP2PName.setTextColor(Color.WHITE);

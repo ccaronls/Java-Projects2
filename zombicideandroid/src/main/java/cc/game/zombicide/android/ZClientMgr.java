@@ -6,7 +6,6 @@ import android.util.Log;
 import java.util.ArrayList;
 import java.util.List;
 
-import cc.lib.game.GColor;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
 import cc.lib.net.GameClient;
@@ -46,11 +45,17 @@ class ZClientMgr extends ZMPCommon implements GameClient.Listener, ZMPCommon.CL 
     }
 
     @Override
-    public void onInit(ZQuests quest, GColor color, int maxCharacters, List<Assignee> playerAssignments) {
+    public void onLoadQuest(ZQuests quest) {
         game.loadQuest(quest);
+        game.boardRenderer.redraw();
+    }
+
+    @Override
+    public void onInit(int color, int maxCharacters, List<Assignee> playerAssignments) {
         user.setColor(color);
         game.clearCharacters();
-        user.clearCharacters();
+        game.clearUsersCharacters();
+
         List<Assignee> assignees = new ArrayList<>();
         for (ZombicideActivity.CharLock c : activity.charLocks) {
             Assignee a = new Assignee(c);
@@ -58,7 +63,7 @@ class ZClientMgr extends ZMPCommon implements GameClient.Listener, ZMPCommon.CL 
             if (idx >= 0) {
                 Assignee aa = playerAssignments.get(idx);
                 a.copyFrom(aa);
-                if (color.equals(a.color))
+                if (color == a.color)
                     a.isAssingedToMe = true;
             }
             assignees.add(a);
@@ -93,7 +98,7 @@ class ZClientMgr extends ZMPCommon implements GameClient.Listener, ZMPCommon.CL 
     @Override
     public void onAssignPlayer(Assignee assignee) {
         Log.d("ZClientMgr", "onAssignPlayer: " + assignee);
-        if (user.getColor().equals(assignee.color))
+        if (user.getColorId() == assignee.color)
             assignee.isAssingedToMe = true;
         if (assignee.checked) {
             game.addCharacter(assignee.name);
@@ -133,6 +138,7 @@ class ZClientMgr extends ZMPCommon implements GameClient.Listener, ZMPCommon.CL 
     @Override
     public void onDisconnected(String reason, boolean serverInitiated) {
         if (serverInitiated) {
+            activity.game.setResult(null);
             if (playerChooser != null)
                 playerChooser.dialog.dismiss();
             activity.runOnUiThread(new Runnable() {
@@ -161,5 +167,4 @@ class ZClientMgr extends ZMPCommon implements GameClient.Listener, ZMPCommon.CL 
         client.register(ZGameMP.GAME_ID, game);
         client.setDisplayName(activity.getDisplayName());
     }
-
 }

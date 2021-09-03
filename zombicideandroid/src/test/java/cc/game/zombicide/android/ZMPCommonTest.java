@@ -10,7 +10,6 @@ import java.io.DataOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import cc.lib.game.GColor;
 import cc.lib.net.ClientConnection;
 import cc.lib.net.GameCommand;
 import cc.lib.zombicide.ZCharacter;
@@ -18,6 +17,7 @@ import cc.lib.zombicide.ZDir;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZQuests;
+import cc.lib.zombicide.ZTestUser;
 import cc.lib.zombicide.ZUser;
 import cc.lib.zombicide.p2p.ZUserMP;
 
@@ -55,10 +55,10 @@ public class ZMPCommonTest {
 
         ZMPCommon.CL cl = new ZMPCommon.CL() {
             @Override
-            public void onInit(ZQuests quest, GColor color, int maxCharacters, List<Assignee> playerAssignments) {
+            public void onInit(ZQuests quest, int color, int maxCharacters, List<Assignee> playerAssignments) {
                 Assert.assertEquals(quest, ZQuests.Big_Game_Hunting);
                 Assert.assertEquals(maxCharacters, 2);
-                Assert.assertEquals(color, GColor.ORANGE);
+                Assert.assertEquals(color, 2);
                 Assert.assertNotNull(playerAssignments);
             }
 
@@ -67,7 +67,7 @@ public class ZMPCommonTest {
                 Assert.assertNotNull(assignee);
                 Assert.assertEquals(assignee.name, ZPlayerName.Baldric);
                 Assert.assertEquals(assignee.userName, "Chris");
-                Assert.assertEquals(assignee.color, GColor.BLUE);
+                Assert.assertEquals(assignee.color, 2);
                 Assert.assertEquals(assignee.checked, true);
             }
 
@@ -82,9 +82,9 @@ public class ZMPCommonTest {
             }
 
             @Override
-            public void onGameUpdated(ZGame game) {
+            public void onGameUpdated(ZGame game, String currentUser) {
                 Assert.assertNotNull(game.getBoard());
-
+                Assert.assertEquals(currentUser, "Chris");
                 System.out.println(game.toStringNumbered());
 
                 Assert.assertEquals(game.getAllCharacters().size(), 2);
@@ -97,8 +97,8 @@ public class ZMPCommonTest {
         };
 
         svr.parseCLCommand(null, transfer(cl.newAssignCharacter(ZPlayerName.Ann, true)));
-        cl.parseSVRCommand(transfer(svr.newInit(ZQuests.Big_Game_Hunting, GColor.ORANGE, 2, new ArrayList<>())));
-        cl.parseSVRCommand(transfer(svr.newAssignPlayer(new Assignee(ZPlayerName.Baldric, "Chris", GColor.BLUE, true))));
+        cl.parseSVRCommand(transfer(svr.newInit(ZQuests.Big_Game_Hunting, 2, 2, new ArrayList<>())));
+        cl.parseSVRCommand(transfer(svr.newAssignPlayer(new Assignee(ZPlayerName.Baldric, "Chris", 2, true))));
         game2.loadQuest(ZQuests.The_Black_Book);
         game2.addCharacter(ZPlayerName.Baldric);
         game2.addCharacter(ZPlayerName.Nelly);
@@ -108,7 +108,7 @@ public class ZMPCommonTest {
         Assert.assertEquals(game.getQuest().getQuest(), ZQuests.The_Black_Book);
         ZPlayerName.Baldric.getCharacter().addExp(5);
         game2.moveActorInDirectionDebug(ZPlayerName.Baldric.getCharacter(), ZDir.WEST);
-
+        game2.addUser(new ZTestUser());
         cl.parseSVRCommand(transfer(svr.newUpdateGameCommand(game2)));
     }
 

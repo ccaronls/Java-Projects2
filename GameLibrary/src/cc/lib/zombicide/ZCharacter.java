@@ -161,7 +161,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
                     removeAvailableSkill(skill);
                 case -1:
                     game.addLogMessage(name() + " used " + skill.getLabel());
-                    game.addLogMessage(name() + " used " + skill.getLabel() + " for a free action");
+                    //game.addLogMessage(name() + " used " + skill.getLabel() + " for a free action");
                     return true;
             }
         }
@@ -299,8 +299,8 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
         return backpack.get(index);
     }
 
-    public List<ZEquipment> getBackpack() {
-        return Collections.unmodifiableList(backpack);
+    List<ZEquipment> getBackpack() {
+        return backpack;
     }
 
     public ZEquipSlot getEmptyEquipSlotFor(ZEquipment e) {
@@ -777,8 +777,9 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
     }
 
     public List<ZEquipment> getAllEquipment() {
-        List<ZEquipment> all = Utils.filter(Utils.toArray(leftHand, body, rightHand), object -> true);
+        List<ZEquipment> all = new ArrayList<>();
         all.addAll(backpack);
+        all.addAll(Utils.filter(Utils.toArray(leftHand, body, rightHand), object -> true));
         return all;
     }
 
@@ -914,7 +915,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
 
     }
 
-    public List<ZSkill> getAvailableSkills() {
+    List<ZSkill> getAvailableSkills() {
         if (cachedSkills == null) {
             cachedSkills = new ArrayList<>();
             cachedSkills.addAll(availableSkills);
@@ -924,7 +925,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
                 }
             }
         }
-        return Collections.unmodifiableList(cachedSkills);
+        return cachedSkills;
     }
 
     public boolean hasAvailableSkill(ZSkill skill) {
@@ -1022,5 +1023,16 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
     @Override
     boolean isNoisy() {
         return isAlive() && !isInvisible();
+    }
+
+    @Override
+    public float getScale() {
+        switch (name) {
+            case Nelly:
+                return 1.4f;
+            case Baldric:
+                return 1.2f;
+        }
+        return super.getScale();
     }
 }

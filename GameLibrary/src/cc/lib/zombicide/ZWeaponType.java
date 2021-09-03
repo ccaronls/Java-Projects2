@@ -13,7 +13,7 @@ public enum ZWeaponType implements ZEquipmentType<ZWeapon> {
     // BLUE WEAPONS
 
     // MELEE
-    DAGGER(ZEquipmentClass.DAGGER, ZColor.BLUE,false, true, false, true, Utils.toArray(new ZWeaponStat(ZActionType.MELEE, ZAttackType.BLADE, 4, 0, 0, 1, 4, 1), new ZWeaponStat(ZActionType.RANGED, ZAttackType.RANGED_THROW, 0, 1, 1, 1, 3, 2)),  "Gain +1 die with another equipped melee weapon") {
+    DAGGER(ZEquipmentClass.DAGGER, ZColor.BLUE,false, true, false, true, Utils.toArray(new ZWeaponStat(ZActionType.MELEE, ZAttackType.BLADE, 4, 0, 0, 1, 4, 1), new ZWeaponStat(ZActionType.RANGED, ZAttackType.RANGED_THROW, 0, 0, 1, 1, 3, 2)),  "Gain +1 die with another equipped melee weapon") {
         @Override
         public List<ZSkill> getSkillsWhenUsed() {
             return Utils.toList(ZSkill.Plus1_die_Melee_Weapon);
@@ -96,7 +96,7 @@ public enum ZWeaponType implements ZEquipmentType<ZWeapon> {
     DRAGON_FIRE_BLADE(ZEquipmentClass.SWORD, ZColor.ORANGE, false, false, false, true, Utils.toArray(new ZWeaponStat(ZActionType.MELEE, ZAttackType.BLADE, 3, 0, 0, 2, 3,2), new ZWeaponStat(ZActionType.THROW_ITEM, ZAttackType.DRAGON_FIRE, 0, 0, 1, 1, 1, 3)), "Throw (Discard) at range 0-1 to create a dragon fire.") {
         @Override
         public void onThrown(ZGame game, ZCharacter thrower, int targetZoneIdx) {
-            game.onEquipmentThrown(thrower.getPlayerName(), ZIcon.DAGGER, targetZoneIdx);
+            game.onEquipmentThrown(thrower.getPlayerName(), ZIcon.SWORD, targetZoneIdx);
             game.performDragonFire(thrower, targetZoneIdx);
         }
     },

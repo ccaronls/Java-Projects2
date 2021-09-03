@@ -108,6 +108,7 @@ public class ClientConnection implements Runnable {
     private Map<String, Object> attributes = new TreeMap<>();
     private boolean connected = false;
     private boolean kicked = false;
+    private boolean disconnecting = false;
     private final Set<Listener> listeners = new WeakHashSet<>();
     
     public final void addListener(Listener listener) {
@@ -169,25 +170,19 @@ public class ClientConnection implements Runnable {
                 //    wait(500); // do we need this?
                 //}
                 outQueue.stop(); // <-- blocks until network flushed
-                reader.stop(); // does not block, not completely stopped until onStopped called
+                disconnecting = true;
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        
-        try {
-            synchronized (this) {
-                wait(5000);
-            }
-        } catch (Exception e) {}
-        
-        close();
     }
     
     private void close() {
         log.debug("ClientConnection: close() ...");
         connected = false;
+        disconnecting = false;
         outQueue.stop();
+        reader.stop();
         log.debug("ClientConnection: outQueue stopped ...");
         try {
             in.close();
@@ -386,6 +381,7 @@ public class ClientConnection implements Runnable {
                 }
             }
             server.removeClient(this);
+            close();
         } else if (cmd.getType() == GameCommandType.CL_KEEPALIVE) {
             // client should do this at regular intervals to prevent getting dropped
             log.debug("ClientConnection: KeepAlive from client: " + getName());
@@ -393,7 +389,10 @@ public class ClientConnection implements Runnable {
             System.err.println("ERROR From client '" + getName() + "'\n" + cmd.getString("msg") + "\n" + cmd.getString("stack"));
         } else if (cmd.getType() == GameCommandType.CL_HANDLE) {
             this.handle = cmd.getName();
-        } else if (cmd.getType() != GameCommandType.CL_REMOTE_RETURNS) {
+            for (GameServer.Listener l : server.getListeners()) {
+                l.onClientHandleChanged(this, handle);
+            }
+        } else if (!disconnecting && cmd.getType() != GameCommandType.CL_REMOTE_RETURNS) {
             for (GameServer.Listener l : server.getListeners()) {
                 l.onCommand(this, cmd);
             }

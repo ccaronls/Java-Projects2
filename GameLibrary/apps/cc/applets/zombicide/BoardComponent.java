@@ -3,6 +3,7 @@ package cc.applets.zombicide;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -203,6 +204,7 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
             { ZIcon.PADLOCK, "zpadlock2.png" },
             { ZIcon.SKULL, "zskull.png"},
             { ZIcon.DAGGER, "zdagger_icon.png" },
+            { ZIcon.SWORD, "zsword_icon.png" },
         };
 
         Map<Object, List<Integer>> objectToImageMap = new HashMap<>();
@@ -246,7 +248,7 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
         }
 
         // Icons that 'spin'
-        for (ZIcon icon : Utils.toArray(ZIcon.DRAGON_BILE, ZIcon.TORCH, ZIcon.DAGGER)) {
+        for (ZIcon icon : Utils.toArray(ZIcon.DRAGON_BILE, ZIcon.TORCH, ZIcon.SWORD, ZIcon.DAGGER)) {
             int [] ids = new int[8];
             ids[0] = objectToImageMap.get(icon).get(0);
             for (int i=1; i<ids.length; i++) {
@@ -258,8 +260,8 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
             icon.imageIds = ids;
         }
 
-        {
-            ZIcon icon = ZIcon.ARROW;
+        // Icons that shoot
+        for (ZIcon icon : Utils.toArray(ZIcon.ARROW)) {
             int [] ids = new int[4];
             int eastId = objectToImageMap.get(icon).get(0);
             ids[ZDir.EAST.ordinal()] = eastId;
@@ -337,22 +339,63 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
         repaint();
     }
 
+    void initKeysPresses(List options) {
+        keyMap.clear();
+        for (Iterator it = options.iterator(); it.hasNext(); ) {
+            Object obj = it.next();
+            if (!(obj instanceof ZMove))
+                continue;
+            ZMove move = (ZMove)obj;
+            switch (move.type) {
+                case WALK_DIR: {
+                    switch (move.dir) {
+                        case NORTH:
+                            keyMap.put(KeyEvent.VK_UP, move);
+                            break;
+                        case SOUTH:
+                            keyMap.put(KeyEvent.VK_DOWN, move);
+                            break;
+                        case EAST:
+                            keyMap.put(KeyEvent.VK_RIGHT, move);
+                            break;
+                        case WEST:
+                            keyMap.put(KeyEvent.VK_LEFT, move);
+                            break;
+                        case DESCEND:
+                        case ASCEND:
+                            keyMap.put(KeyEvent.VK_SLASH, move);
+                            break;
+                    }
+                    it.remove();
+                    break;
+                }
+
+                case SWITCH_ACTIVE_CHARACTER:
+                    keyMap.put(KeyEvent.VK_SPACE, move);
+                    it.remove();
+                    break;
+            }
+        }
+    }
+
+    Map<Integer, ZMove> keyMap = new HashMap<>();
+
     @Override
     public void keyPressed(KeyEvent e) {
         UIZombicide game = UIZombicide.getInstance();
         switch (e.getKeyCode()) {
             case KeyEvent.VK_LEFT:
-                game.tryWalk(ZDir.WEST);
-                break;
             case KeyEvent.VK_RIGHT:
-                game.tryWalk(ZDir.EAST);
-                break;
             case KeyEvent.VK_UP:
-                game.tryWalk(ZDir.NORTH);
-                break;
             case KeyEvent.VK_DOWN:
-                game.tryWalk(ZDir.SOUTH);
+            case KeyEvent.VK_SPACE:
+            case KeyEvent.VK_SLASH: {
+                ZMove move = keyMap.get(e.getKeyCode());
+                if (move != null) {
+                    game.setResult(move);
+                }
                 break;
+            }
             case KeyEvent.VK_PLUS:
             case KeyEvent.VK_EQUALS:
                 // zoom in
@@ -362,17 +405,6 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
             case KeyEvent.VK_UNDERSCORE:
                 // zoom out
                 renderer.animateZoomTo(renderer.getZoomPercent() - 0.25f);
-                break;
-            case KeyEvent.VK_SPACE:
-                // toggle active player
-                game.trySwitchActivePlayer();
-                break;
-            case KeyEvent.VK_SLASH:
-                if (game.getBoard().canMove(game.getCurrentCharacter().getCharacter(), ZDir.DESCEND)) {
-                    game.setResult(ZMove.newWalkDirMove(ZDir.DESCEND));
-                } else if (game.getBoard().canMove(game.getCurrentCharacter().getCharacter(), ZDir.ASCEND)) {
-                    game.setResult(ZMove.newWalkDirMove(ZDir.ASCEND));
-                }
                 break;
         }
 
@@ -392,6 +424,7 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
                 ZombicideApplet.instance.setStringProperty("rangedAccessibility", renderer.isDrawRangedAccessibility() ? "yes" : "no");
                 break;
         }
+        keyMap.clear();
         repaint();
     }
 

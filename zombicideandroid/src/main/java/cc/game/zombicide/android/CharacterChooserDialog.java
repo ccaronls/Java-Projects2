@@ -14,10 +14,12 @@ import android.widget.Toast;
 
 import java.util.List;
 
+import cc.lib.zombicide.ZUser;
+
 /**
  * Created by Chris Caron on 7/21/21.
  */
-public abstract class CharacterChooserDialog extends RecyclerView.Adapter<CharacterChooserDialog.Holder> implements View.OnClickListener, Runnable {
+public abstract class CharacterChooserDialog extends RecyclerView.Adapter<CharacterChooserDialog.Holder> implements View.OnClickListener, View.OnLongClickListener, Runnable {
 
     final static String TAG = CharacterChooserDialog.class.getSimpleName();
 
@@ -82,15 +84,19 @@ public abstract class CharacterChooserDialog extends RecyclerView.Adapter<Charac
                 return;
             }
             case R.id.bDisconnect: {
-                activity.newDialogBuilder().setTitle("Confirm")
-                        .setMessage("Are you sure you want to cancel P2P game?")
-                        .setNegativeButton(R.string.popup_button_no, null)
-                        .setPositiveButton(R.string.popup_button_yes, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                onDisconnect();
-                            }
-                        }).show();
+                if (activity.isP2PConnected()) {
+                    activity.newDialogBuilder().setTitle("Confirm")
+                            .setMessage("Are you sure you want to cancel P2P game?")
+                            .setNegativeButton(R.string.popup_button_no, null)
+                            .setPositiveButton(R.string.popup_button_yes, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    onDisconnect();
+                                }
+                            }).show();
+                } else {
+                    dialog.dismiss();
+                }
                 return;
             }
         }
@@ -106,6 +112,20 @@ public abstract class CharacterChooserDialog extends RecyclerView.Adapter<Charac
 
         a.checked = !a.checked;
         onAssigneeChecked(a);
+        updateSelected();
+        notifyDataSetChanged();
+    }
+
+    @Override
+    public boolean onLongClick(View v) {
+        if (v.getTag() != null && v.getTag() instanceof Assignee) {
+            Assignee a = (Assignee)v.getTag();
+            ImageView iv = new ImageView(activity);
+            iv.setImageResource(a.name.cardImageId);
+            activity.newDialogBuilder().setTitle(a.name.getLabel())
+                    .setView(iv).setNegativeButton(R.string.popup_button_cancel, null).show();
+        }
+        return true;
     }
 
     public void run() {
@@ -119,7 +139,6 @@ public abstract class CharacterChooserDialog extends RecyclerView.Adapter<Charac
             c.copyFrom(a);
             c.isAssingedToMe = a.isAssingedToMe;
         }
-        updateSelected();
         activity.runOnUiThread(this);
     }
 
@@ -140,12 +159,12 @@ public abstract class CharacterChooserDialog extends RecyclerView.Adapter<Charac
         final TextView lockedReason;
         final TextView assignedPlayer; // MP Only
 
-        void bind(Assignee a, View.OnClickListener cl) {
+        void bind(Assignee a, CharacterChooserDialog cl) {
             this.assignee = a;
 
             assignedPlayer.setText(a.userName);
-            if (a.color != null) {
-                assignedPlayer.setTextColor(a.color.toARGB());
+            if (a.color >= 0) {
+                assignedPlayer.setTextColor(ZUser.USER_COLORS[a.color].toARGB());
                 assignedPlayer.setText(a.userName);
             } else {
                 assignedPlayer.setTextColor(Color.WHITE);
@@ -153,6 +172,7 @@ public abstract class CharacterChooserDialog extends RecyclerView.Adapter<Charac
             }
             checkbox.setChecked(a.checked);
             checkbox.setClickable(false);
+            image.setOnLongClickListener(cl);
             if (!a.isUnlocked()) {
                 lockedOverlay.setVisibility(View.VISIBLE);
                 lockedReason.setVisibility(View.VISIBLE);

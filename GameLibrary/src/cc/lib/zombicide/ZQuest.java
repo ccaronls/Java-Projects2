@@ -15,8 +15,6 @@ import cc.lib.utils.Table;
 
 public abstract class ZQuest extends Reflector<ZQuest> {
 
-    public final static int OBJECTIVE_EXP = 5;
-
     static {
         addAllFields(ZQuest.class);
     }
@@ -26,6 +24,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
     private Map<Integer, List<ZEquipment>> vaultMap = new HashMap<>();
     private List<ZEquipment> vaultItemsRemaining = null;
     private int numFoundVaultItems = 0;
+    // TODO: Make this just 'objectives' and capture blue objective from Tutorial
     private List<Integer> redObjectives = new ArrayList<>();
     private int numStartRedObjectives = 0;
 
@@ -308,6 +307,12 @@ public abstract class ZQuest extends Reflector<ZQuest> {
     public final ZBoard load(String [][] map) {
         int rows = map.length;
         int cols = map[0].length;
+        // make sure all cols the same length
+        for (int i=1; i<rows; i++) {
+            if (map[i].length != cols) {
+                throw new IllegalArgumentException("Row " +i + " is not same length as rest: " + cols);
+            }
+        }
         Grid<ZCell> grid = new Grid<>(rows, cols);
         Map<Integer, ZZone> zoneMap = new HashMap<>();
         int maxZone = 0;
@@ -334,25 +339,15 @@ public abstract class ZQuest extends Reflector<ZQuest> {
                         if (zone == null) {
                             zone = new ZZone(index);
                             zoneMap.put(index, zone);
-                        } else {
-                            // sanity check - make sure we are adjacent to existing cell in the zone
-                            boolean zoneIsSane = false;
-                            for (Grid.Pos zPos : zone.getCells()) {
-                                if (zPos.isAdjacentTo(pos)) {
-                                    zoneIsSane = true;
-                                    break;
-                                }
-                            }
-                            if (!zoneIsSane) {
-                                throw new IllegalArgumentException("Zone " + index + " at pos: " + pos + " is not adjacent to any positions in the zone: " + zone.getCells());
-                            }
                         }
                         zone.cells.add(new Grid.Pos(row, col));
                         cell.zoneIndex = index;
                         cell.setCellType(ZCellType.NONE, true);
                         continue;
                     }
-                    Utils.assertTrue(zone != null);
+                    if (zone == null) {
+                        throw new GException("Problem with cmd: " + map[row][col]);
+                    }
                     loadCmd(grid, pos, cmd);
                     // make sure outer perimeter has walls
                 }
@@ -372,6 +367,8 @@ public abstract class ZQuest extends Reflector<ZQuest> {
 
             }
         }
+
+        // do another pass ans make sure all the zone cells are adjacent
         Vector<ZZone> zones = new Vector<>();
         zones.setSize(maxZone+1);
         for (Map.Entry<Integer, ZZone> e : zoneMap.entrySet()) {
@@ -381,6 +378,9 @@ public abstract class ZQuest extends Reflector<ZQuest> {
         for (int i=0; i<zones.size(); i++) {
             if (zones.get(i) == null)
                 zones.set(i, new ZZone());
+            else {
+                zones.get(i).checkSanity();
+            }
         }
 
         numStartRedObjectives = redObjectives.size();
@@ -396,7 +396,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
      */
     public void addMoves(ZGame game, ZCharacter cur, List<ZMove> options) {
         for (int red : redObjectives) {
-            if (cur.getOccupiedZone() == red && game.getBoard().getZombiesInZone(red).size() == 0)
+            if (cur.getOccupiedZone() == red && game.getBoard().getNumZombiesInZone(red) == 0)
                 options.add(ZMove.newObjectiveMove(red));
         }
     }
@@ -409,8 +409,12 @@ public abstract class ZQuest extends Reflector<ZQuest> {
      */
     public void processObjective(ZGame game, ZCharacter c, ZMove move) {
         if (redObjectives.remove((Object)move.integer)) {
-            game.addExperience(c, OBJECTIVE_EXP);
+            game.addExperience(c, getObjectiveExperience(c.getOccupiedZone(), getNumFoundObjectives()));
         }
+    }
+
+    protected int getObjectiveExperience(int zoneIdx, int nthFound) {
+        return 5;
     }
 
     /**
@@ -527,7 +531,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
 
     protected boolean isAllPlayersInExit(ZGame game) {
         Utils.assertTrue(exitZone >= 0);
-        return game.getBoard().getZombiesInZone(exitZone).size() == 0 && !(Utils.count(game.board.getAllCharacters(), object -> object.getOccupiedZone() != exitZone) > 0);
+        return game.getBoard().getNumZombiesInZone(exitZone) == 0 && !(Utils.count(game.board.getAllCharacters(), object -> object.getOccupiedZone() != exitZone) > 0);
     }
 
     /**
