@@ -13,7 +13,6 @@ import cc.lib.zombicide.ZDir;
 import cc.lib.zombicide.ZDoor;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZIcon;
-import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZQuest;
 import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZSkillLevel;
@@ -92,18 +91,18 @@ public class ZQuestTheBlackBook extends ZQuest {
     }
 
     @Override
-    public void processObjective(ZGame game, ZCharacter c, ZMove move) {
-        super.processObjective(game, c, move);
-        if (move.integer == blueObjZone) {
+    public void processObjective(ZGame game, ZCharacter c) {
+        super.processObjective(game, c);
+        if (c.getOccupiedZone() == blueObjZone) {
             game.unlockDoor(blueDoor);
         }
 
-        if (move.integer == blackBookZone) {
+        if (c.getOccupiedZone() == blackBookZone) {
             game.addLogMessage(c.name() + " has found the Black Book");
             blackBookZone = -1;
         }
 
-        if (move.integer == greenObjZone) {
+        if (c.getOccupiedZone() == greenObjZone) {
             game.addLogMessage(c.name() + " has unlocked the Green Door. A New Spawn zone has appeared!");
             game.unlockDoor(greenDoor);
             game.getBoard().setSpawnZone(greenSpawnZone, ZIcon.SPAWN_GREEN, false, false, true);

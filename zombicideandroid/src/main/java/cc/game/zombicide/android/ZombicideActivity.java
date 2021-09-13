@@ -321,7 +321,7 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
 
             @Override
             public void undo() {
-                ZombicideActivity.this.tryUndo();
+                tryUndo();
             }
         };
 
@@ -792,7 +792,13 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
 
             case UNDO: {
                 if (getClient() != null) {
-                    getClient().sendCommand(clientMgr.newUndoPressed());
+                    new CLSendCommandSpinnerTask(this, ZMPCommon.SVR_UPDATE_GAME) {
+                        @Override
+                        protected void onSuccess() {
+                            boardView.postInvalidate();
+                        }
+                    }.execute(clientMgr.newUndoPressed());
+                    //getClient().sendCommand(clientMgr.newUndoPressed());
                     game.setResult(null);
                 } else {
                     tryUndo();
@@ -1055,7 +1061,8 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
 
         new CharacterChooserDialog(this, assignments, 6) {
             @Override
-            protected void onAssigneeChecked(Assignee a) {
+            protected void onAssigneeChecked(Assignee a, boolean checked) {
+                a.checked = checked;
                 if (a.checked) {
                     a.color = user.getColorId();
                     a.userName = user.getName();

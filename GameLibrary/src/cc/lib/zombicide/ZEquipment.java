@@ -69,7 +69,11 @@ public abstract class ZEquipment<T extends ZEquipmentType> extends Reflector<ZEq
     @Override
     public int compareTo(ZEquipment o) {
         // Consider not using this. Causes a problem when multiple of same equipment for user to choose from
-        return getLabel().compareTo(o.getLabel());
+        int comp = getLabel().compareTo(o.getLabel());
+        if (comp != 0) {
+            return comp;
+        }
+        return slot.compareTo(o.slot);
     }
 
     @Override

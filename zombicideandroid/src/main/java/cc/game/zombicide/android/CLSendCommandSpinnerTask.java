@@ -6,24 +6,24 @@ import cc.lib.net.GameClient;
 import cc.lib.net.GameCommand;
 import cc.lib.net.GameCommandType;
 
-class CLAssignPlayerSpinnerTask extends SpinnerTask<Assignee> implements GameCommandType.Listener {
+class CLSendCommandSpinnerTask extends SpinnerTask<GameCommand> implements GameCommandType.Listener {
 
     final GameClient client;
     final ZClientMgr mgr;
+    final GameCommandType responseType;
 
-    public CLAssignPlayerSpinnerTask(ZombicideActivity context) {
+    public CLSendCommandSpinnerTask(ZombicideActivity context, GameCommandType responseType) {
         super(context);
         client = context.getClient();
         mgr = context.clientMgr;
-        ZMPCommon.SVR_ASSIGN_PLAYER.addListener(this);
+        this.responseType = responseType;
+        responseType.addListener(this);
     }
 
     @Override
-    protected void doIt(Assignee... args) throws Exception {
-        GameCommand cmd = ((ZombicideActivity) getContext()).clientMgr.newAssignCharacter(args[0].name,
-                args[0].checked);
-        client.sendCommand(cmd);
-        Utils.waitNoThrow(this, 5000);
+    protected void doIt(GameCommand... args) throws Exception {
+        client.sendCommand(args[0]);
+        Utils.waitNoThrow(this, 20000);
     }
 
     @Override
@@ -35,6 +35,6 @@ class CLAssignPlayerSpinnerTask extends SpinnerTask<Assignee> implements GameCom
 
     @Override
     protected void onCompleted() {
-        ZMPCommon.SVR_ASSIGN_PLAYER.removeListener(this);
+        responseType.removeListener(this);
     }
 }

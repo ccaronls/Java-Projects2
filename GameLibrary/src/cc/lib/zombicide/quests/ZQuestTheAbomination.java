@@ -9,7 +9,6 @@ import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZEquipmentType;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZItemType;
-import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZQuest;
 import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZTile;
@@ -61,8 +60,8 @@ public class ZQuestTheAbomination extends ZQuest {
     }
 
     @Override
-    public void processObjective(ZGame game, ZCharacter c, ZMove move) {
-        super.processObjective(game, c, move);
+    public void processObjective(ZGame game, ZCharacter c) {
+        super.processObjective(game, c);
         if (getVaultItemsRemaining().size() > 0) {
             game.giftEquipment(c, getVaultItemsRemaining().remove(0));
         }

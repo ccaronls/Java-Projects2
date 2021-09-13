@@ -159,4 +159,6 @@ public abstract class ZUser {
     public abstract Integer chooseSpawnAreaToRemove(ZPlayerName cur, List<ZSpawnArea> list);
 
     public abstract Integer chooseZoneToIgnite(ZPlayerName playerName, List<Integer> ignitableZones);
+
+    public abstract ZEquipmentClass chooseEquipmentClass(ZPlayerName playerName, List<ZEquipmentClass> classes);
 }

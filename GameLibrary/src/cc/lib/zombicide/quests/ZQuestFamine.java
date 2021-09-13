@@ -16,7 +16,6 @@ import cc.lib.zombicide.ZDoor;
 import cc.lib.zombicide.ZEquipment;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZItemType;
-import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZQuest;
 import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZTile;
@@ -78,9 +77,9 @@ public class ZQuestFamine extends ZQuest {
     }
 
     @Override
-    public void processObjective(ZGame game, ZCharacter c, ZMove move) {
-        super.processObjective(game, c, move);
-        if (move.integer == blueKeyZone) {
+    public void processObjective(ZGame game, ZCharacter c) {
+        super.processObjective(game, c);
+        if (c.getOccupiedZone() == blueKeyZone) {
             game.addLogMessage("Blue key found. Vault unlocked");
             for (ZDoor door : lockedVaults) {
                 game.unlockDoor(door);

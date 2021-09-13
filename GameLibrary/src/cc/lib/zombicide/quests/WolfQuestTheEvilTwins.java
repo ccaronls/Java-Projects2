@@ -7,7 +7,6 @@ import cc.lib.utils.Table;
 import cc.lib.zombicide.ZBoard;
 import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZGame;
-import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZQuest;
 import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZTile;
@@ -35,7 +34,7 @@ public class WolfQuestTheEvilTwins extends ZQuest {
     public ZBoard loadBoard() {
 
         String [][] map = {
-                { "z0:i:gvd1", "z0:i:ode:ws", "z1:i:ws:ode",            "z2:i:ws:de", "z3:sp", "z4:i:dw:ws:ode",                "z5:i:ws:ode", "z6:i:vd1:ws:we", "z7" },
+                { "z0:i:gvd1", "z0:i:ode:ws", "z1:i:ws:ode",            "z2:i:ws:de", "z3:spn", "z4:i:dw:ws:ode",                "z5:i:ws:ode", "z6:i:vd1:ws:we", "z7" },
                 { "z0:i:we:ods", "z8", "z9",                            "z10", "z11", "z12",                                    "z13","z14", "z15" },
                 { "z16:i:red:we:ods", "z17", "z18:i:wn:ww:ds:ode",      "z19:i:red:wn:we:ods", "z20", "z21:i:wn:ww:de:ods",     "z22", "z23:i:wn:ws:dw:ode", "z24:i:wn" },
 
@@ -89,12 +88,12 @@ public class WolfQuestTheEvilTwins extends ZQuest {
     }
 
     @Override
-    public void processObjective(ZGame game, ZCharacter c, ZMove move) {
-        super.processObjective(game, c, move);
-        if (move.integer == blueObjective) {
+    public void processObjective(ZGame game, ZCharacter c) {
+        super.processObjective(game, c);
+        if (c.getOccupiedZone() == blueObjective) {
             game.spawnZombies(blueObjective, ZZombieType.Abomination, 1);
             blueObjective = -1;
-        } else if (move.integer == greenObjective) {
+        } else if (c.getOccupiedZone() == greenObjective) {
             game.spawnZombies(greenObjective, ZZombieType.Abomination, 1);
             greenObjective = -1;
         }

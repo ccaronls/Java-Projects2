@@ -41,7 +41,6 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
                 loadImages(g);
             }
         }.start();
-        UIZBoardRenderer.DEBUG = true;
     }
 
     @Override
@@ -201,7 +200,7 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
             { ZIcon.SLASH, "zslash5.png" },
             { ZIcon.FIREBALL, "zfireball.png" },
             { ZIcon.GRAVESTONE, "zgravestone.png" },
-            { ZIcon.PADLOCK, "zpadlock2.png" },
+            { ZIcon.PADLOCK, "zpadlock3.png" },
             { ZIcon.SKULL, "zskull.png"},
             { ZIcon.DAGGER, "zdagger_icon.png" },
             { ZIcon.SWORD, "zsword_icon.png" },
@@ -310,6 +309,8 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
         renderer.setDrawTiles(ZombicideApplet.instance.getStringProperty("tiles", "no").equals("yes"));
         renderer.setDrawDebugText(ZombicideApplet.instance.getStringProperty("debugText", "no").equals("yes"));
         renderer.setDrawRangedAccessibility(ZombicideApplet.instance.getStringProperty("rangedAccessibility", "no").equals("yes"));
+        renderer.setDrawTowersHighlighted(ZombicideApplet.instance.getStringProperty("drawTowersHighlighted", "no").equals("yes"));
+        renderer.setDrawZombiePaths(ZombicideApplet.instance.getStringProperty("drawZombiePaths", "no").equals("yes"));
         repaint();
     }
 
@@ -339,7 +340,7 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
         repaint();
     }
 
-    void initKeysPresses(List options) {
+    synchronized void initKeysPresses(List options) {
         keyMap.clear();
         for (Iterator it = options.iterator(); it.hasNext(); ) {
             Object obj = it.next();
@@ -381,7 +382,7 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
     Map<Integer, ZMove> keyMap = new HashMap<>();
 
     @Override
-    public void keyPressed(KeyEvent e) {
+    public synchronized void keyPressed(KeyEvent e) {
         UIZombicide game = UIZombicide.getInstance();
         switch (e.getKeyCode()) {
             case KeyEvent.VK_LEFT:
@@ -410,18 +411,23 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
 
         switch (e.getKeyCode()) {
             case KeyEvent.VK_T:
-                renderer.toggleDrawTiles();
-                ZombicideApplet.instance.setStringProperty("tiles", renderer.isDrawTiles() ? "yes" : "no");
+                ZombicideApplet.instance.setStringProperty("tiles", renderer.toggleDrawTiles() ? "yes" : "no");
                 break;
 
             case KeyEvent.VK_D:
-                renderer.toggleDrawDebugText();
-                ZombicideApplet.instance.setStringProperty("debugText", renderer.isDrawDebugText() ? "yes" : "no");
+                ZombicideApplet.instance.setStringProperty("debugText", renderer.toggleDrawDebugText() ? "yes" : "no");
                 break;
 
             case KeyEvent.VK_R:
-                renderer.toggleDrawRangedAccessibility();
-                ZombicideApplet.instance.setStringProperty("rangedAccessibility", renderer.isDrawRangedAccessibility() ? "yes" : "no");
+                ZombicideApplet.instance.setStringProperty("rangedAccessibility", renderer.toggleDrawRangedAccessibility() ? "yes" : "no");
+                break;
+
+            case KeyEvent.VK_P:
+                ZombicideApplet.instance.setStringProperty("drawZombiePaths", renderer.toggleDrawZoombiePaths() ? "yes" : "no");
+                break;
+
+            case KeyEvent.VK_H:
+                ZombicideApplet.instance.setStringProperty("drawTowersHighlighted", renderer.toggleDrawTowersHighlighted() ? "yes" : "no");
                 break;
         }
         keyMap.clear();

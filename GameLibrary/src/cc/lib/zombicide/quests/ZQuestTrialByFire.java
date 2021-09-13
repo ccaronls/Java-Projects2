@@ -46,7 +46,7 @@ public class ZQuestTrialByFire extends ZQuest {
     public ZBoard loadBoard() {
 
         final String [][] map = {
-            { "z0:i:red:we:ods", "z1:i:ods:ode", "z2:i:ws:ode", "z3:i:ws", "z3:i:ws:ode", "z4:i:ds:ode", "z5:i:ws:we", "z6:sp", "z7:v:vd1:ww:ws" },
+            { "z0:i:red:we:ods", "z1:i:ods:ode", "z2:i:ws:ode", "z3:i:ws", "z3:i:ws:ode", "z4:i:ds:ode", "z5:i:ws:we", "z6:spn", "z7:v:vd1:ww:ws" },
             { "z8:i:ods",        "z8:i:ws:we",   "z9:ws",       "z10:ws",  "z11:ws",      "z12:ws",      "z13:ws",     "z14",   "z15:ws" },
             { "z16:i:ode:ods", "z17:i:ws:ode",   "z18:i:ods:ode", "z19:i:ode:ds", "z20:i:ws", "z20:i:ds:ode", "z21:i:we:ods", "z22", "z23:i:ww:ods" },
             { "z24:i",         "z24:i:ode:ws",   "z68:i:de:ws",   "z25",     "z26",     "z27",    "z28:i:dw:ws:we",    "z29",    "z30:i:red:ww" },
@@ -108,14 +108,14 @@ public class ZQuestTrialByFire extends ZQuest {
     }
 
     @Override
-    public void processObjective(ZGame game, ZCharacter c, ZMove move) {
+    public void processObjective(ZGame game, ZCharacter c) {
         if (c.getOccupiedZone() == blueObjZone) {
             if (blueObjTreasure == null)
                 blueObjTreasure = Utils.randItem(Arrays.asList(ZWeaponType.ORCISH_CROSSBOW, ZWeaponType.INFERNO)).create();
 
             game.giftEquipment(c, blueObjTreasure);
         }
-        super.processObjective(game, c, move);
+        super.processObjective(game, c);
         if (getRedObjectives().size() == 0 && game.getBoard().getDoor(lockedVault) == ZWallFlag.LOCKED) {
             game.addLogMessage(c.name() + " has unlocked the Violet Door");
             game.unlockDoor(lockedVault);

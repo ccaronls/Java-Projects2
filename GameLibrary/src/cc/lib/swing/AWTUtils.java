@@ -11,6 +11,7 @@ import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.font.GlyphVector;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import cc.lib.game.GColor;
@@ -620,7 +621,18 @@ public class AWTUtils {
     public static String [] getAllFontFamilyNames() {
         return GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
     }
-    
+
+    /**
+     *
+     */
+    public static void dumpAllFonts() {
+        Font[] fonts = GraphicsEnvironment.getLocalGraphicsEnvironment().getAllFonts();
+        for (Font f : fonts) {
+            System.out.println(String.format("Font: %s:%s", f.getName(), f.getAttributes()));
+        }
+        System.out.println("Fonts=" + Arrays.toString(fonts));
+    }
+
     /**
      * 
      * @param g

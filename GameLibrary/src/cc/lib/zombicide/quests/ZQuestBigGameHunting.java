@@ -12,7 +12,6 @@ import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZEquipmentType;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZItemType;
-import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZQuest;
 import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZTile;
@@ -28,7 +27,7 @@ public class ZQuestBigGameHunting extends ZQuest {
 
     @Omit
     String [][] map = {
-            { "z0:i:wn:ww:ds:gvd1",  "z29:i:wn:de:ws:red:odw", "z1:sp:wn:de",           "z2:i:wn:ode:ws",   "z3:i:wn:ode:ws",   "z9:i:vd2:wn:we",  "z28:v:wn:we:vd2" },
+            { "z0:i:wn:ww:ds:gvd1",  "z29:i:wn:de:ws:red:odw", "z1:spn:wn:de",           "z2:i:wn:ode:ws",   "z3:i:wn:ode:ws",   "z9:i:vd2:wn:we",  "z28:v:wn:we:vd2" },
             { "z5:ww",              "z6",                     "z7",                     "z8:we",            "z9:i:ods",           "z9:i:ods:we:red",     "z28:v:we" },
             { "z10:ww:we:start",    "z11:i:ww:wn::ws:red:ode","z12:i:wn:ds:ode",        "z13:i:wn:red:ds:ode","z14:i:ws:we:odn",   "z15:i:ds:we:odn", "z28:v:we:ws:vd3" },
             { "z16:ww:ds",          "z17",                    "z18",                    "z19",              "z20",                "z21:we:spe:dn:ds", "z27:v:we:gvd1" },
@@ -51,11 +50,11 @@ public class ZQuestBigGameHunting extends ZQuest {
     }
 
     @Override
-    public void processObjective(ZGame game, ZCharacter c, ZMove move) {
-        super.processObjective(game, c, move);
+    public void processObjective(ZGame game, ZCharacter c) {
+        super.processObjective(game, c);
         // check for necro / abom in special spawn places
         game.getBoard().getZone(c.getOccupiedZone()).setObjective(false);
-        if (move.integer == blueRevealZone) {
+        if (c.getOccupiedZone() == blueRevealZone) {
             getRedObjectives().add(blueObjZone);
             game.addLogMessage("The Labratory objective is revealed!");
             game.getBoard().getZone(blueObjZone).setObjective(true);

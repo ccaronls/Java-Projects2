@@ -5,7 +5,6 @@ import cc.lib.utils.Table;
 import cc.lib.zombicide.ZBoard;
 import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZGame;
-import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZQuest;
 import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZTile;
@@ -29,13 +28,13 @@ public class WolfZombieCourt extends ZQuest {
     @Override
     public ZBoard loadBoard() {
         String [][] map = {
-                { "z0:i","z1:t3:ww","z1:t3:re:gvd1",                "z10:sp","z11:i:ww:ws:ode","z12:i:ds:de:red",           "z20","z21:i:ds:ode","z22:i:red:ws"   },
-                { "z2:t2","z1:t3:rs","z1:t3:rs:re",                 "z13","z14","z15",                                      "z23","z24","z25:sp"   },
+                { "z0:i:we:ws","z1:t3","z1:t3:re:gvd1",                "z10:spn","z11:i:ww:ws:ode","z12:i:ds:de:red",           "z20","z21:i:ds:ode:ww","z22:i:red:ws"   },
+                { "z2:t2","z1:t3:rs","z1:t3:rs:re",                 "z13","z14","z15",                                      "z23","z24","z25:spe"   },
                 { "z3:t2:rs","z4:t1:rs","z5",                       "z16:i:dn:dw:ode:ods","z17:i:wn:de:ws","z18",           "z26:i:dw:wn:ode","z27:i:wn:we:red","z28"     },
 
-                { "z30:i:vd1:ds:ode","z31:i:red:we:ws","z32",       "z40:i:dw:ws:red","z40:i:ws:ww","z41",                  "z50:t3:rn:rw:vd2","z50:t3:rn:re","z51" },
-                { "z33","z34","z35:st",                             "z42","z43","z44",                                      "z50:t3:rw","z50:rs:re","z52"     },
-                { "z36:sp:ws","z37:i:ww:wn:red:ws","z37:i:wn:ode:ws",        "z45:i:gvd2:dn","z45:i:wn:we","z46:sp",        "z53:t2:rw","z54:t1","z55:red"    },
+                { "z30:i:vd1:ds:ode","z31:i:red:we:ws","z32",       "z40:i:dw:ws:red","z40:i:ws:we","z41",                  "z50:t3:rn:rw:vd2","z50:t3:rn:re","z51" },
+                { "z33","z34","z35:st",                             "z42","z43","z44",                                      "z50:t3:rw","z50:t3:rs:re","z52"     },
+                { "z36:spw:ws","z37:i:ww:wn:red:ws","z37:i:wn:ode:ws",        "z45:i:gvd2:dn","z45:i:wn:we","z46:sps",        "z53:t2:rw","z54:t1","z55:red"    },
 
                 { "","","",                                         "z60:v:gvd1:ww:wn","z60:v:wn","z60:v:gvd2:ww:wn",       "z61:v:vd1:wn","z61:v:wn","z61:v:vd2:wn" }
         };
@@ -65,16 +64,16 @@ public class WolfZombieCourt extends ZQuest {
     }
 
     @Override
-    public void processObjective(ZGame game, ZCharacter c, ZMove move) {
-        super.processObjective(game, c, move);
-        if (move.integer == greenObjZone) {
+    public void processObjective(ZGame game, ZCharacter c) {
+        super.processObjective(game, c);
+        if (c.getOccupiedZone() == greenObjZone) {
             game.addLogMessage(c.name() + " has found the PENDANT");
             greenObjZone = -1;
-        } else if (move.integer == blueObjZone) {
+        } else if (c.getOccupiedZone() == blueObjZone) {
             game.addLogMessage(c.name() + " has found the CROWN");
             blueObjZone = -1;
         } else {
-            game.spawnZombies(move.integer);
+            game.spawnZombies(c.getOccupiedZone());
         }
     }
 

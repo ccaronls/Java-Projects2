@@ -209,9 +209,12 @@ public class ZWeapon extends ZEquipment<ZWeaponType> {
             ));
         }
 
-        List<ZSkill> skills = type.getSkillsWhileEquipped();
-        if (skills.size() > 0) {
-            cardLower.addRow("Equipped:", skills);
+        if (type.minColorToEquip.ordinal() > 0) {
+            cardLower.addRow(type.minColorToEquip + " Required");
+        }
+        List<ZSkill> skills = Utils.mergeLists(type.getSkillsWhileEquipped(), type.getSkillsWhenUsed());
+        for (ZSkill skill : skills) {
+            cardLower.addRow(skill.getLabel());
         }
 
         return cardLower.toString();

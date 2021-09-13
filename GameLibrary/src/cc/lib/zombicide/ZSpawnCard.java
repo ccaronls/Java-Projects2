@@ -5,10 +5,16 @@ import java.util.Arrays;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
+import cc.lib.utils.Reflector;
 
-public class ZSpawnCard {
+public class ZSpawnCard extends Reflector<ZSpawnCard> {
 
     static Logger log = LoggerFactory.getLogger(ZSpawnCard.class);
+
+    static {
+        addAllFields(ZSpawnCard.class);
+        addAllFields(Action.class);
+    }
 
     public enum ActionType {
         NOTHING_IN_SIGHT,
@@ -19,11 +25,15 @@ public class ZSpawnCard {
         EXTRA_ACTIVATION_WOLFSBURG
     }
 
-    public static class Action {
+    public static class Action extends Reflector<Action> {
 
         public final ActionType action;
         public final int count;
         public final ZZombieType type;
+
+        public Action() {
+            this(null, 0, null);
+        }
 
         public Action(ActionType action, int count, ZZombieType type) {
             this.action = action;
@@ -51,6 +61,10 @@ public class ZSpawnCard {
     private final int mediumCount;
     private final int hardCount;
     private final Action [] actions;
+
+    public ZSpawnCard() {
+        this(null, false, 0, 0, 0);
+    }
 
     private ZSpawnCard(String name, boolean wolfzburf, int easyCount, int mediumCount, int hardCount, Action...actions) {
         this.name = name;

@@ -78,9 +78,16 @@ class ZClientMgr extends ZMPCommon implements GameClient.Listener, ZMPCommon.CL 
             public void run() {
                 playerChooser = new CharacterChooserDialog(activity, assignees, maxCharacters) {
                     @Override
-                    protected void onAssigneeChecked(Assignee assignee) {
+                    protected void onAssigneeChecked(Assignee assignee, boolean checked) {
                         Log.d(TAG, "onAssigneeChecked: " + assignee);
-                        new CLAssignPlayerSpinnerTask(activity).execute(assignee);
+                        GameCommand cmd = activity.clientMgr.newAssignCharacter(assignee.name,checked);
+                        new CLSendCommandSpinnerTask(activity, ZMPCommon.SVR_ASSIGN_PLAYER) {
+                            @Override
+                            protected void onSuccess() {
+                                assignee.checked = checked;
+                                postNotifyUpdateAssignee(assignee);
+                            }
+                        }.execute(cmd);
                     }
 
                     @Override

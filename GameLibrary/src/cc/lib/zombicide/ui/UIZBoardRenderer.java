@@ -57,8 +57,6 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
 
     final static Logger log = LoggerFactory.getLogger(UIZBoardRenderer.class);
 
-    public static boolean DEBUG = false;
-
     final List<ZAnimation> preActor = new ArrayList<>();
     final List<ZAnimation> postActor = new ArrayList<>();
     final List<ZAnimation> overlayAnimations = new ArrayList<>();
@@ -77,6 +75,8 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
     boolean drawTiles = false;
     boolean drawDebugText = false;
     boolean drawRangedAccessibility = false;
+    boolean drawTowersHighlighted = false;
+    boolean drawZombiePaths = false;
     MutableVector2D dragOffset = new MutableVector2D(Vector2D.ZERO);
     Vector2D dragStart = Vector2D.ZERO;
 
@@ -447,7 +447,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                     continue;
                 switch (zone.getType()) {
                     case TOWER:
-                        if (DEBUG) {
+                        if (drawTowersHighlighted) {
                             g.setColor(GColor.GREEN.withAlpha((cell.getScale()-1)*3));
                             g.drawFilledRect(cell);
                         }
@@ -561,9 +561,9 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                         g.setColor(door.getLockedColor());
                         GRectangle padlock = new GRectangle(0, 0, .2f, .2f).withCenter(dv1.add(dv0).scaleEq(.5f));
                         //GRectangle rect = door.getRect(board).withDimension()scale(.5f);
+                        g.drawLine(dv0, dv1, 4);
                         AImage img = g.getImage(ZIcon.PADLOCK.imageIds[0]);
                         g.drawImage(ZIcon.PADLOCK.imageIds[0], padlock.fit(img));
-                        g.drawLine(dv0, dv1, 4);
                     }
                     break;
                 }
@@ -985,7 +985,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
 
         highlightedActor = drawActors(g, game, mouse.X(), mouse.Y());
 
-        if (DEBUG) {
+        if (drawZombiePaths) {
             if (highlightedActor instanceof ZZombie) {
                 List<ZDir> path = null;
                 ZZombie z = (ZZombie)highlightedActor;
@@ -1195,36 +1195,36 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
         this.drawDebugText = drawDebugText;
     }
 
-    public void toggleDrawTiles() {
-        this.drawTiles = !this.drawTiles;
+    public void setDrawTowersHighlighted(boolean drawTowersHighlighted) {
+        this.drawTowersHighlighted = drawTowersHighlighted;
     }
 
-    public void toggleDrawDebugText() {
-        this.drawDebugText = !drawDebugText;
-    }
-
-    public ZActor getHighlightedActor() {
-        return highlightedActor;
-    }
-
-    public boolean isDrawTiles() {
-        return drawTiles;
-    }
-
-    public boolean isDrawDebugText() {
-        return drawDebugText;
+    public void setDrawZombiePaths(boolean drawZombiePaths) {
+        this.drawZombiePaths = drawZombiePaths;
     }
 
     public void setDrawRangedAccessibility(boolean drawRangedAccessibility) {
         this.drawRangedAccessibility = drawRangedAccessibility;
     }
 
-    public boolean isDrawRangedAccessibility() {
-        return drawRangedAccessibility;
+    public boolean toggleDrawTiles() {
+        return this.drawTiles = !this.drawTiles;
     }
 
-    public void toggleDrawRangedAccessibility() {
-        drawRangedAccessibility = !drawRangedAccessibility;
+    public boolean toggleDrawDebugText() {
+        return this.drawDebugText = !drawDebugText;
+    }
+
+    public boolean toggleDrawTowersHighlighted() { return this.drawTowersHighlighted = !drawTowersHighlighted; }
+
+    public boolean toggleDrawZoombiePaths() { return this.drawZombiePaths = !drawZombiePaths; }
+
+    public boolean toggleDrawRangedAccessibility() {
+        return drawRangedAccessibility = !drawRangedAccessibility;
+    }
+
+    public ZActor getHighlightedActor() {
+        return highlightedActor;
     }
 
     @Override

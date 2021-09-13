@@ -36,7 +36,7 @@ public interface ZEquipmentType<T extends ZEquipment> extends IButton {
      */
     default List<ZSkill> getSkillsWhenUsed() { return Collections.emptyList(); }
 
-    default ZEquipmentClass getEquipmentClass() { return ZEquipmentClass.NONE; }
+    ZEquipmentClass getEquipmentClass();
 
     /**
      * Items have can potentially support multiple actions

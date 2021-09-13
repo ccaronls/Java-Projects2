@@ -16,7 +16,6 @@ import cc.lib.zombicide.ZDir;
 import cc.lib.zombicide.ZEquipmentType;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZIcon;
-import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZQuest;
 import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZSpawnArea;
@@ -24,6 +23,7 @@ import cc.lib.zombicide.ZTile;
 import cc.lib.zombicide.ZWeaponType;
 import cc.lib.zombicide.ZZombieType;
 import cc.lib.zombicide.ZZone;
+import cc.lib.zombicide.ui.UIZombicide;
 
 /**
  * Created by Chris Caron on 8/24/21.
@@ -111,8 +111,8 @@ public class WolfQuestTheAmbush extends ZQuest {
     }
 
     @Override
-    public void processObjective(ZGame game, ZCharacter c, ZMove move) {
-        super.processObjective(game, c, move);
+    public void processObjective(ZGame game, ZCharacter c) {
+        super.processObjective(game, c);
         if (getVaultItemsRemaining().size() > 0) {
             game.giftEquipment(c, getVaultItemsRemaining().remove(0));
         }
@@ -133,8 +133,7 @@ public class WolfQuestTheAmbush extends ZQuest {
     }
 
     @Override
-    public void drawQuest(ZGame game, AGraphics g) {
-        super.drawQuest(game, g);
+    public void drawQuest(UIZombicide game, AGraphics g) {
         for (int zIdx : occupyZones) {
             ZZone zone = game.getBoard().getZone(zIdx);
             GRectangle rect = zone.getRectangle().scaledBy(.25f, .25f);

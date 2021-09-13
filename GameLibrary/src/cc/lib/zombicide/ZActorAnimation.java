@@ -1,5 +1,6 @@
 package cc.lib.zombicide;
 
+import cc.lib.annotation.CallSuper;
 import cc.lib.game.GRectangle;
 import cc.lib.game.Utils;
 
@@ -19,6 +20,7 @@ public abstract class ZActorAnimation extends ZAnimation {
     }
 
     @Override
+    @CallSuper
     protected void onDone() {
         if (next != null && actor != null) {
             actor.animation = next;

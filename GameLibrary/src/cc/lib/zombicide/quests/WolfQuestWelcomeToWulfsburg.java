@@ -6,7 +6,6 @@ import cc.lib.zombicide.ZBoard;
 import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZEquipment;
 import cc.lib.zombicide.ZGame;
-import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZQuest;
 import cc.lib.zombicide.ZQuests;
@@ -83,14 +82,14 @@ public class WolfQuestWelcomeToWulfsburg extends ZQuest {
     }
 
     @Override
-    public void processObjective(ZGame game, ZCharacter c, ZMove move) {
-        super.processObjective(game, c, move);
-        if (move.integer == blueKeyZone) {
+    public void processObjective(ZGame game, ZCharacter c) {
+        super.processObjective(game, c);
+        if (c.getOccupiedZone() == blueKeyZone) {
             ZEquipment e = getRandomVaultArtifact();
             game.addLogMessage(c.getLabel() + " has found the BLUE key and also a " + e.getLabel());
             game.giftEquipment(c, e);
             blueKeyZone = -1;
-        } else if (move.integer == greenKeyZone) {
+        } else if (c.getOccupiedZone() == greenKeyZone) {
             ZEquipment e = getRandomVaultArtifact();
             game.addLogMessage(c.getLabel() + " has found the GREEN key and also a " + e.getLabel());
             game.giftEquipment(c, e);

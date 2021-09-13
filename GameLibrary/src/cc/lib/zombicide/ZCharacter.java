@@ -5,7 +5,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import cc.lib.game.AGraphics;
 import cc.lib.game.GColor;
@@ -34,7 +36,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
     private int dangerBar;
     private List<ZActionType> actionsDoneThisTurn = new ArrayList<>();
     private final List<ZSkill> allSkills = new ArrayList<>(); // all skills based on the characters level and choices
-    private final List<ZSkill> availableSkills = new ArrayList<>(); // skills from all skills minus ones used that are once per turn
+    private final Set<ZSkill> availableSkills = new HashSet<>(); // skills from all skills minus ones used that are once per turn
     @Omit
     private List<ZSkill> cachedSkills = null; // cached from getAvailableSkills() - includes skills given by weapons or armor
     private final List<ZSkill> skillsRemaining[] = new List[ZSkillLevel.NUM_LEVELS];

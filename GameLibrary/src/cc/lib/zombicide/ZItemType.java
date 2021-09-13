@@ -4,8 +4,8 @@ import cc.lib.annotation.Keep;
 
 @Keep
 public enum ZItemType implements ZEquipmentType<ZItem> {
-    AAHHHH(ZActionType.NOTHING, null, "Stop Searching and place a zombie in the room being searched."),
-    TORCH(ZActionType.THROW_ITEM, ZEquipSlotType.HAND, "Draw 2 cards when searching. Spend an action, discard, and select a dragon bile at range 0-1 to ignite. Resolve dragon Fire.") {
+    AAHHHH(null, ZActionType.NOTHING, null, "Stop Searching and place a zombie in the room being searched."),
+    TORCH(ZEquipmentClass.THROWABLE, ZActionType.THROW_ITEM, ZEquipSlotType.HAND, "Draw 2 cards when searching. Spend an action, discard, and select a dragon bile at range 0-1 to ignite. Resolve dragon Fire.") {
         @Override
         public void onThrown(ZGame game, ZCharacter thrower, int targetZoneIdx) {
             ZZone zone = game.getBoard().getZone(targetZoneIdx);
@@ -18,7 +18,7 @@ public enum ZItemType implements ZEquipmentType<ZItem> {
         }
     },
 
-    DRAGON_BILE(ZActionType.THROW_ITEM, ZEquipSlotType.HAND, "Spend an action, discard and place a dragon bile token at range 0-1") {
+    DRAGON_BILE(ZEquipmentClass.THROWABLE, ZActionType.THROW_ITEM, ZEquipSlotType.HAND, "Spend an action, discard and place a dragon bile token at range 0-1") {
         @Override
         public void onThrown(ZGame game, ZCharacter thrower, int targetZoneIdx) {
             game.addLogMessage(thrower.name() + " threw the dragon Bile!");
@@ -26,19 +26,21 @@ public enum ZItemType implements ZEquipmentType<ZItem> {
             game.getBoard().getZone(targetZoneIdx).setDragonBile(true);
         }
     },
-    WATER(ZActionType.CONSUME, ZEquipSlotType.BACKPACK, "Consume and gain 1 experience point"),
-    SALTED_MEAT(ZActionType.CONSUME, ZEquipSlotType.BACKPACK, "Consume and gain 2 experience point"),
-    APPLES(ZActionType.CONSUME, ZEquipSlotType.BACKPACK, "Consume and gain 3 experience point"),
-    PLENTY_OF_ARROWS(ZActionType.NOTHING, ZEquipSlotType.BACKPACK, "You may re-roll all ranged attacked involving bows. The new result takes place of old."), // user can reroll ranged arrow attacks if they want
-    PLENTY_OF_BOLTS(ZActionType.NOTHING, ZEquipSlotType.BACKPACK, "You may re-roll all ranged attacked involving bolts. The new result takes place of old."),
+    WATER(ZEquipmentClass.CONSUMABLE, ZActionType.CONSUME, ZEquipSlotType.BACKPACK, "Consume and gain 1 experience point"),
+    SALTED_MEAT(ZEquipmentClass.CONSUMABLE, ZActionType.CONSUME, ZEquipSlotType.BACKPACK, "Consume and gain 2 experience point"),
+    APPLES(ZEquipmentClass.CONSUMABLE, ZActionType.CONSUME, ZEquipSlotType.BACKPACK, "Consume and gain 3 experience point"),
+    PLENTY_OF_ARROWS(ZEquipmentClass.BOW, ZActionType.NOTHING, ZEquipSlotType.BACKPACK, "You may re-roll all ranged attacked involving bows. The new result takes place of old."), // user can reroll ranged arrow attacks if they want
+    PLENTY_OF_BOLTS(ZEquipmentClass.CROSSBOW, ZActionType.NOTHING, ZEquipSlotType.BACKPACK, "You may re-roll all ranged attacked involving bolts. The new result takes place of old."),
     ;
 
-    ZItemType(ZActionType actionType, ZEquipSlotType slot, String description) {
+    ZItemType(ZEquipmentClass clazz, ZActionType actionType, ZEquipSlotType slot, String description) {
+        this.equipClass = clazz;
         this.actionType = actionType;
         this.slot = slot;
         this.description = description;
     }
 
+    final ZEquipmentClass equipClass;
     final ZEquipSlotType slot;
     final ZActionType actionType;
     final String description;
@@ -66,5 +68,10 @@ public enum ZItemType implements ZEquipmentType<ZItem> {
     @Override
     public String getTooltipText() {
         return description;
+    }
+
+    @Override
+    public ZEquipmentClass getEquipmentClass() {
+        return equipClass;
     }
 }

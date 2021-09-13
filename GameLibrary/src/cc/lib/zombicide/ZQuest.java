@@ -12,6 +12,7 @@ import cc.lib.utils.GException;
 import cc.lib.utils.Grid;
 import cc.lib.utils.Reflector;
 import cc.lib.utils.Table;
+import cc.lib.zombicide.ui.UIZombicide;
 
 public abstract class ZQuest extends Reflector<ZQuest> {
 
@@ -239,7 +240,6 @@ public abstract class ZQuest extends Reflector<ZQuest> {
             case "odw":
                 setCellWall(grid, pos, ZDir.WEST, ZWallFlag.OPEN);
                 break;
-            case "sp":
             case "spn":
                 setSpawnArea(cell, new ZSpawnArea(pos, ZDir.NORTH));
                 break;
@@ -405,10 +405,9 @@ public abstract class ZQuest extends Reflector<ZQuest> {
      *
      * @param game
      * @param c
-     * @param move
      */
-    public void processObjective(ZGame game, ZCharacter c, ZMove move) {
-        if (redObjectives.remove((Object)move.integer)) {
+    public void processObjective(ZGame game, ZCharacter c) {
+        if (redObjectives.remove((Object)c.getOccupiedZone())) {
             game.addExperience(c, getObjectiveExperience(c.getOccupiedZone(), getNumFoundObjectives()));
         }
     }
@@ -546,7 +545,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
 
     public void onDragonBileExploded(ZCharacter c, int zoneIdx) {}
 
-    public void drawQuest(ZGame game, AGraphics g) {}
+    public void drawQuest(UIZombicide game, AGraphics g) {}
 
     public void onNecromancerEscaped(ZGame game, ZZombie z) {
         game.gameLost("Necromancer Escaped");
@@ -564,5 +563,17 @@ public abstract class ZQuest extends Reflector<ZQuest> {
                 break;
             }
         }
+    }
+
+    /**
+     * Return a spawn card or null if none left. Default behavior is infinite spawn cards
+     *
+     * @param game
+     * @param targetZone
+     * @param dangerLevel
+     * @return
+     */
+    public ZSpawnCard drawSpawnCard(ZGame game, int targetZone, ZSkillLevel dangerLevel) {
+        return ZSpawnCard.drawSpawnCard(isWolfBurg(), game.canZoneSpawnNecromancers(targetZone), game.getDifficulty());
     }
 }

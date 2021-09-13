@@ -2727,7 +2727,7 @@ public class Utils {
      * @param <O>
      * @return
      */
-    public static <O> int count(Collection<O> collection, Filter<O> filter) {
+    public static <O> int count(Iterable<O> collection, Filter<O> filter) {
         int count = 0;
         for (O o : collection) {
             if (filter.keep(o))
@@ -2852,7 +2852,7 @@ public class Utils {
      * @param <T>
      * @return
      */
-    public static <T> long sum(Collection<T> in, Mapper<T, Long> mapper) {
+    public static <T> long sum(Iterable<T> in, Mapper<T, Long> mapper) {
         long total = 0;
         for (T t : in) {
             total += mapper.map(t);

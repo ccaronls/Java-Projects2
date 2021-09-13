@@ -48,9 +48,10 @@ class ZServerMgr extends ZMPCommon implements GameServer.Listener, ZMPCommon.SVR
         Collections.sort(assignments);
         playerChooser = new CharacterChooserDialog(activity, assignments, maxCharacters) {
             @Override
-            protected void onAssigneeChecked(Assignee assignee) {
+            protected void onAssigneeChecked(Assignee assignee, boolean checked) {
                 synchronized (playerAssignments) {
-                    if (assignee.checked) {
+                    assignee.checked = checked;
+                    if (checked) {
                         assignee.userName = activity.getDisplayName();
                         assignee.color = activity.user.getColorId();
                         assignee.isAssingedToMe = true;

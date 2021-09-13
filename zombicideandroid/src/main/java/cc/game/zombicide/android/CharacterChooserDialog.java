@@ -45,7 +45,7 @@ public abstract class CharacterChooserDialog extends RecyclerView.Adapter<Charac
                 .setView(view).show();
     }
 
-    protected abstract void onAssigneeChecked(Assignee a);
+    protected abstract void onAssigneeChecked(Assignee a, boolean checked);
 
     protected abstract void onStart();
 
@@ -110,8 +110,7 @@ public abstract class CharacterChooserDialog extends RecyclerView.Adapter<Charac
             return;
         }
 
-        a.checked = !a.checked;
-        onAssigneeChecked(a);
+        onAssigneeChecked(a, !a.checked);
         updateSelected();
         notifyDataSetChanged();
     }

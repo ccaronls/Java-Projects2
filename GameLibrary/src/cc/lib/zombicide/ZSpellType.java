@@ -49,4 +49,9 @@ public enum  ZSpellType implements ZEquipmentType<ZSpell>, IButton {
     public void doEnchant(ZGame game, ZCharacter target) {
         target.addAvailableSkill(skill);
     }
+
+    @Override
+    public ZEquipmentClass getEquipmentClass() {
+        return ZEquipmentClass.ENCHANTMENT;
+    }
 }

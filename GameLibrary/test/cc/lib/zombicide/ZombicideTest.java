@@ -19,7 +19,9 @@ public class ZombicideTest extends TestCase {
     public void testQuests() throws Exception {
         ZGame game = new ZGame();
         for (ZQuests q : ZQuests.values()) {
+            System.out.println("Testing Quest: " + q);
             game.loadQuest(q);
+            assertEquals(q, game.getQuest().getQuest());
             game.getQuest().getPercentComplete(game);
         }
     }

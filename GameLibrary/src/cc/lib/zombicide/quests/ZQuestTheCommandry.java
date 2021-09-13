@@ -10,7 +10,6 @@ import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZDir;
 import cc.lib.zombicide.ZDoor;
 import cc.lib.zombicide.ZGame;
-import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZQuest;
 import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZTile;
@@ -70,15 +69,15 @@ public class ZQuestTheCommandry extends ZQuest {
     }
 
     @Override
-    public void processObjective(ZGame game, ZCharacter c, ZMove move) {
-        super.processObjective(game, c, move);
-        if (move.integer == blueDoorKeyZone) {
+    public void processObjective(ZGame game, ZCharacter c) {
+        super.processObjective(game, c);
+        if (c.getOccupiedZone() == blueDoorKeyZone) {
             game.addLogMessage(c.name() + " has unlocked the Blue Door");
             game.unlockDoor(blueDoor);
             blueDoorKeyZone = -1;
         }
 
-        if (move.integer == greenDoorKeyZone) {
+        if (c.getOccupiedZone() == greenDoorKeyZone) {
             game.addLogMessage(c.name() + " has unlocked the Green Door");
             game.unlockDoor(greenDoor);
             greenDoorKeyZone = -1;

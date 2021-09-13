@@ -6,9 +6,9 @@ import cc.lib.zombicide.ZBoard;
 import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZColor;
 import cc.lib.zombicide.ZGame;
-import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZQuest;
 import cc.lib.zombicide.ZQuests;
+import cc.lib.zombicide.ZSkill;
 import cc.lib.zombicide.ZTile;
 
 /**
@@ -17,7 +17,7 @@ import cc.lib.zombicide.ZTile;
 public class WolfTheGhostDoor extends ZQuest {
 
     public WolfTheGhostDoor() {
-        super(ZQuests.Zombie_Court);
+        super(ZQuests.The_Ghost_Door);
     }
 
     @Override
@@ -32,10 +32,8 @@ public class WolfTheGhostDoor extends ZQuest {
                 { "z36","z37:i:wn:ww:ode:ws","z38:i:wn:ods","z40:t3:rw:rs","z40:t3:rs","z40:t3:rs:re",      "z53:i:we:ods","z56","z57:i:wn:ww:ods:red"  },
 
                 { "z60","z61:i:ww:ws:ode","z62:i:ds:de",    "z70:i:ws","z70:i:ws:ode","z71:i:ode:ws",       "z80:i:ws:we","z81","z82:ww:ds"             },
-                { "z63","z64","z65",                        "z72","z73","z74",                              "z83","z84","z85"                           },
+                { "z63","z64","z65",                        "z72:st","z73","z74",                           "z83","z84","z85"                           },
                 { "z66:i:wn:ode:red","z67:i:dn:ww","z68:sps","z75:i:dw:vd2:wn:we","z76:sps","z77:i:ww:dn:ode","z86:i:wn:we:red","z87","z88:i:dn:ww:red" }
-
-
 
         };
 
@@ -67,8 +65,10 @@ public class WolfTheGhostDoor extends ZQuest {
     }
 
     @Override
-    public void processObjective(ZGame game, ZCharacter c, ZMove move) {
-        super.processObjective(game, c, move);
+    public void processObjective(ZGame game, ZCharacter c) {
+        super.processObjective(game, c);
+        c.addAvailableSkill(ZSkill.Inventory);
+        game.chooseEquipmentFromSearchables();
     }
 
     @Override

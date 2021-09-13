@@ -18,7 +18,6 @@ import cc.lib.zombicide.ZEquipmentType;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZIcon;
 import cc.lib.zombicide.ZItemType;
-import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZQuest;
 import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZTile;
@@ -77,13 +76,13 @@ public class ZQuestTutorial extends ZQuest {
     }
 
     @Override
-    public void processObjective(ZGame game, ZCharacter c, ZMove move) {
-        super.processObjective(game, c, move);
-        if (move.integer == blueKeyZone) {
+    public void processObjective(ZGame game, ZCharacter c) {
+        super.processObjective(game, c);
+        if (c.getOccupiedZone() == blueKeyZone) {
             game.unlockDoor(blueDoor);
             game.addLogMessage(c.name() + " has unlocked the BLUE door");
             blueKeyZone = -1;
-        } else if (move.integer == greenKeyZone) {
+        } else if (c.getOccupiedZone() == greenKeyZone) {
             game.unlockDoor(greenDoor);
             game.getBoard().setSpawnZone(greenSpawnZone, ZIcon.SPAWN_GREEN, false, true, true);
             game.spawnZombies(greenSpawnZone);

@@ -187,7 +187,7 @@ public class ZBoard extends Reflector<ZBoard> implements IDimension {
         return null;
     }
 
-    public ZDoor findDoor(Grid.Pos pos, ZDir dir) {
+    public synchronized ZDoor findDoor(Grid.Pos pos, ZDir dir) {
         ZZone zone = zones.get(getCell(pos).zoneIndex);
         for (ZDoor door : zone.doors) {
             if (door.getCellPosStart().equals(pos) && door.getMoveDirection()==dir) {

@@ -5,7 +5,6 @@ import cc.lib.utils.Table;
 import cc.lib.zombicide.ZBoard;
 import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZGame;
-import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZQuest;
 import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZTile;
@@ -40,12 +39,12 @@ public class ZQuestTheShepherds extends ZQuest {
     }
 
     @Override
-    public void processObjective(ZGame game, ZCharacter c, ZMove move) {
-        super.processObjective(game, c, move);
-        if (move.integer == blueSpawnZone) {
+    public void processObjective(ZGame game, ZCharacter c) {
+        super.processObjective(game, c);
+        if (c.getOccupiedZone() == blueSpawnZone) {
             game.spawnZombies(blueSpawnZone);
             blueSpawnZone = -1;
-        } else if (move.integer == greenSpawnZone) {
+        } else if (c.getOccupiedZone() == greenSpawnZone) {
             game.spawnZombies(greenSpawnZone);
             greenSpawnZone = -1;
         }

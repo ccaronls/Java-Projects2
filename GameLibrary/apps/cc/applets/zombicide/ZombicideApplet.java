@@ -3,6 +3,7 @@ package cc.applets.zombicide;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.EventQueue;
+import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
@@ -18,6 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.Box;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -142,7 +144,6 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
 
                 if (isGameOver()) {
                     stopGameThread();
-                    showSummaryOverlay();
                     initHomeMenu();
                 }
 
@@ -174,7 +175,6 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
             user.addCharacter(pl);
         }
         game.setUsers(user);
-        game.showObjectivesOverlay();
         game.setDifficulty(ZDifficulty.valueOf(getStringProperty("difficulty", ZDifficulty.MEDIUM.name())));
         initHomeMenu();
     }
@@ -263,7 +263,6 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
                 for (ZQuests q : ZQuests.values()) {
                     menu.add(new AWTButton(q.name().replace('_', ' '), e12 -> {
                         game.loadQuest(q);
-                        game.showObjectivesOverlay();
                         setStringProperty("quest", q.name());
                         boardComp.repaint();
                         initHomeMenu();
@@ -344,12 +343,6 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
     protected void initApp() {
         ToolTipManager.sharedInstance().setDismissDelay(30*1000);
         ToolTipManager.sharedInstance().setInitialDelay(0);
-//        Font[] fonts = GraphicsEnvironment.getLocalGraphicsEnvironment().getAllFonts();
-//        for (Font f : fonts) {
-//            log.debug("Font: %s:%s", f.getName(), f.getAttributes());
-//        }
-        //log.info("Fonts=" + Arrays.toString(fonts));
-
         // For applets:all fonts are: [Arial, Dialog, DialogInput, Monospaced, SansSerif, Serif]
 
         setLayout(new BorderLayout());
@@ -365,7 +358,22 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
         menu.setLayout(new GridLayout(0, 1));
         menuContainer.setLayout(new GridBagLayout());
         menuContainer.setPreferredSize(new Dimension(150, 400));
-        menuContainer.add(menu);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        menuContainer.add(menu, gbc);
+        // add a vertical filler as last component to "push" the buttons up
+        gbc = new GridBagConstraints();
+        Box.Filler verticalFiller = new Box.Filler(
+                new java.awt.Dimension(0, 0),
+                new java.awt.Dimension(0, 0),
+                new java.awt.Dimension(0, Integer.MAX_VALUE));
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.fill = java.awt.GridBagConstraints.VERTICAL;
+        gbc.weighty = 1.0;
+        menuScrollContainer.add(verticalFiller, gbc);
+
         menuScrollContainer.getViewport().add(menuContainer);
         add(menuScrollContainer, BorderLayout.LINE_START);
         add(boardComp = new BoardComponent(), BorderLayout.CENTER);

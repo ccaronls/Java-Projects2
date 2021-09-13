@@ -91,7 +91,7 @@ public class ZGame extends Reflector<ZGame>  {
 
     void popState() {
         ZPlayerName curPlayer = getCurrentCharacter();
-        stateStack.pop();
+            stateStack.pop();
         if (curPlayer != getCurrentCharacter())
             onCurrentCharacterUpdated(curPlayer, getCurrentCharacter());
 
@@ -253,77 +253,83 @@ public class ZGame extends Reflector<ZGame>  {
         board = this.quest.loadBoard();
         if (board == null)
             throw new NullPointerException("Null board loaded for quest: " + quest);
-        if (prevQuest == null || !prevQuest.getName().equals(this.quest.getName()))
-            initQuest(this.quest);
-        initGame();
-        List<ZCell> startCells = new ArrayList<>();
-        for (Grid.Iterator<ZCell> it = board.getCellsIterator(); it.hasNext(); ) {
-            ZCell cell=it.next();
-            if (cell.isCellTypeEmpty())
-                continue;
-            ZZone zone = board.getZone(cell.zoneIndex);
-            switch (cell.environment) {
-                case ZCell.ENV_OUTDOORS:
-                    zone.setType(ZZoneType.OUTDOORS);
-                    break;
-                case ZCell.ENV_BUILDING:
-                    zone.setType(ZZoneType.BUILDING);
-                    break;
-                case ZCell.ENV_VAULT:
-                    zone.setType(ZZoneType.VAULT);
-                    break;
-                case ZCell.ENV_TOWER:
-                    zone.setType(ZZoneType.TOWER);
-                    break;
-            }
-            // add doors for the zone
-            for (ZDir dir : ZDir.getCompassValues()) {
-                switch (cell.getWallFlag(dir)) {
-                    case CLOSED:
-                    case OPEN: {
-                        Grid.Pos pos = it.getPos();
-                        Grid.Pos next = board.getAdjacent(pos, dir);
-                        zone.doors.add(new ZDoor(pos, next, dir, GColor.RED));
+        synchronized (board) {
+            if (prevQuest == null || !prevQuest.getName().equals(this.quest.getName()))
+                initQuest(this.quest);
+            initGame();
+            List<ZCell> startCells = new ArrayList<>();
+            for (Grid.Iterator<ZCell> it = board.getCellsIterator(); it.hasNext(); ) {
+                ZCell cell = it.next();
+                if (cell.isCellTypeEmpty())
+                    continue;
+                ZZone zone = board.getZone(cell.zoneIndex);
+                switch (cell.environment) {
+                    case ZCell.ENV_OUTDOORS:
+                        zone.setType(ZZoneType.OUTDOORS);
+                        break;
+                    case ZCell.ENV_BUILDING:
+                        zone.setType(ZZoneType.BUILDING);
+                        break;
+                    case ZCell.ENV_VAULT:
+                        zone.setType(ZZoneType.VAULT);
+                        break;
+                    case ZCell.ENV_TOWER:
+                        zone.setType(ZZoneType.TOWER);
+                        break;
+                }
+                // add doors for the zone
+                for (ZDir dir : ZDir.getCompassValues()) {
+                    switch (cell.getWallFlag(dir)) {
+                        case CLOSED:
+                        case OPEN: {
+                            Grid.Pos pos = it.getPos();
+                            Grid.Pos next = board.getAdjacent(pos, dir);
+                            zone.doors.add(new ZDoor(pos, next, dir, GColor.RED));
+                        }
+                    }
+                }
+                for (ZCellType type : ZCellType.values()) {
+                    if (cell.isCellType(type)) {
+                        switch (type) {
+                            case START:
+                                startCells.add(cell);
+                                break;
+                            case OBJECTIVE_BLACK:
+                            case OBJECTIVE_RED:
+                            case OBJECTIVE_BLUE:
+                            case OBJECTIVE_GREEN:
+                                zone.setObjective(true);
+                                break;
+                            case VAULT_DOOR_VIOLET:
+                                addVaultDoor(cell, zone, it.getPos(), GColor.MAGENTA);
+                                break;
+                            case VAULT_DOOR_GOLD:
+                                addVaultDoor(cell, zone, it.getPos(), GColor.GOLD);
+                                break;
+                        }
                     }
                 }
             }
-            for (ZCellType type : ZCellType.values()) {
-                if (cell.isCellType(type)) {
-                    switch (type) {
-                        case START:
-                            startCells.add(cell);
-                            break;
-                        case OBJECTIVE_BLACK:
-                        case OBJECTIVE_RED:
-                        case OBJECTIVE_BLUE:
-                        case OBJECTIVE_GREEN:
-                            zone.setObjective(true);
-                            break;
-                        case VAULT_DOOR_VIOLET:
-                            addVaultDoor(cell, zone, it.getPos(), GColor.MAGENTA);
-                            break;
-                        case VAULT_DOOR_GOLD:
-                            addVaultDoor(cell, zone, it.getPos(), GColor.GOLD);
-                            break;
-                    }
-                }
+            if (startCells.size() == 0) {
+                throw new IllegalArgumentException("No start cells specified");
             }
-        }
-        // position all the characters here
-        board.removeCharacters();
-        int curCellIndex = 0;
-        for (ZUser u : users) {
-            for (ZPlayerName pl : u.getCharacters()) {
-                ZCharacter c = pl.create();
-                c.setColor(u.getColor());
-                ZCell cell = startCells.get(curCellIndex);
-                curCellIndex = (curCellIndex+1) % startCells.size();
-                c.occupiedZone = cell.zoneIndex;
-                board.addActor(c, cell.zoneIndex, null);
-            }
-        }
 
-        this.quest.init(this);
+            // position all the characters here
+            board.removeCharacters();
+            int curCellIndex = 0;
+            for (ZUser u : users) {
+                for (ZPlayerName pl : u.getCharacters()) {
+                    ZCharacter c = pl.create();
+                    c.setColor(u.getColor());
+                    ZCell cell = startCells.get(curCellIndex);
+                    curCellIndex = (curCellIndex + 1) % startCells.size();
+                    c.occupiedZone = cell.zoneIndex;
+                    board.addActor(c, cell.zoneIndex, null);
+                }
+            }
+
+            this.quest.init(this);
+        }
     }
 
     private void addVaultDoor(ZCell cell, ZZone zone, Grid.Pos pos, GColor color) {
@@ -962,6 +968,37 @@ public class ZGame extends Reflector<ZGame>  {
                 return false;
             }
 
+            case PLAYER_STAGE_CHOOSE_WEAPON_FROM_DECK: {
+                ZEquipmentClass clazz = user.chooseEquipmentClass(getCurrentCharacter(), Utils.toList(ZEquipmentClass.values()));
+                if (clazz != null) {
+                    List<ZEquipment> choices = Utils.filter(getAllSearchables(), e -> e.getType().getEquipmentClass()==clazz);
+                    ZEquipment equip = user.chooseEquipmentInternal(getCurrentCharacter(), choices);
+                    if (equip != null) {
+                        popState();
+                        searchables.remove(equip);
+                        giftEquipment(getCurrentCharacter().getCharacter(), equip);
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            case PLAYER_STAGE_CHOOSE_VAULT_ITEM: {
+                List<ZEquipment> items = quest.getVaultItemsRemaining();
+                if (items.size() <= 0) {
+                    popState();
+                } else {
+                    ZEquipment item = user.chooseEquipmentInternal(getCurrentCharacter(), items);
+                    if (item != null) {
+                        popState();
+                        quest.getVaultItemsRemaining().remove(item);
+                        giftEquipment(getCurrentCharacter().getCharacter(), item);
+                        return true;
+                    }
+                }
+                return false;
+            }
+
             default:
                 throw new cc.lib.utils.GException("Unhandled state: " + getState());
         }
@@ -1154,7 +1191,7 @@ public class ZGame extends Reflector<ZGame>  {
                         board.getCell(pos).setCellType(ct, false);
                 }
                 addLogMessage(cur.name() + " Found an OBJECTIVE");
-                quest.processObjective(this, cur, move);
+                quest.processObjective(this, cur);
                 return true;
             }
             case INVENTORY: {
@@ -2185,8 +2222,11 @@ public class ZGame extends Reflector<ZGame>  {
 
     private void spawnZombies(int zoneIdx, ZSkillLevel level) {
         //ZSpawnArea spawnType = quest.getSpawnType(this, board.getZone(zoneIdx));
-        ZSpawnCard card = ZSpawnCard.drawSpawnCard(quest.isWolfBurg(), canZoneSpawnNecromancers(zoneIdx), difficulty);
+        ZSpawnCard card = quest.drawSpawnCard(this, zoneIdx, level);
         log.debug("Draw spawn card: " + card);
+        if (card == null) {
+            return;
+        }
         ZSpawnCard.Action action = card.getAction(level.getDifficultyColor());
         switch (action.action) {
             case NOTHING_IN_SIGHT:
@@ -2323,6 +2363,10 @@ public class ZGame extends Reflector<ZGame>  {
         searchables.addAll(make(2, ZWeaponType.SWORD));
         searchables.addAll(make(4, ZItemType.TORCH));
         searchables.addAll(make(2, ZItemType.WATER));
+        searchables.addAll(make(1, ZSpellType.HEALING));
+        searchables.addAll(make(1, ZSpellType.INVISIBILITY));
+        searchables.addAll(make(1, ZSpellType.SPEED));
+        searchables.addAll(make(1, ZSpellType.HELL_GOAT));
         quest.processSearchables(searchables);
 
         Utils.shuffle(searchables);
@@ -2394,6 +2438,10 @@ public class ZGame extends Reflector<ZGame>  {
         board.setDoor(door, ZWallFlag.LOCKED);
     }
 
+    public boolean isDoorLocked(ZDoor door) {
+        return door.isLocked(board);
+    }
+
     public void addLogMessage(String msg) {
         log.info(msg);
     }
@@ -2429,7 +2477,12 @@ public class ZGame extends Reflector<ZGame>  {
     public void giftEquipment(ZCharacter c, ZEquipment e) {
         onEquipmentFound(c.getPlayerName(), e);
         quest.onEquipmentFound(this, e);
-        pushState(ZState.PLAYER_STAGE_CHOOSE_KEEP_EQUIPMENT, c.getPlayerName(), e);
+        ZEquipSlot slot = c.getEmptyEquipSlotForOrNull(e);
+        if (slot != null) {
+            c.attachEquipment(e, slot);
+        } else {
+            pushState(ZState.PLAYER_STAGE_CHOOSE_KEEP_EQUIPMENT, c.getPlayerName(), e);
+        }
     }
 
     private boolean tryOpenDoor(ZCharacter cur, ZDoor door) {
@@ -2444,7 +2497,13 @@ public class ZGame extends Reflector<ZGame>  {
         return false;
     }
 
-
-
     protected void onDragonBileExploded(int zoneIdx) {}
+
+    public void chooseEquipmentFromSearchables() {
+        pushState(ZState.PLAYER_STAGE_CHOOSE_WEAPON_FROM_DECK, getCurrentCharacter());
+    }
+
+    public void chooseVaultItem() {
+        pushState(ZState.PLAYER_STAGE_CHOOSE_VAULT_ITEM, getCurrentCharacter());
+    }
 }

@@ -5,6 +5,7 @@ import java.util.List;
 import cc.lib.zombicide.ZDoor;
 import cc.lib.zombicide.ZEquipSlot;
 import cc.lib.zombicide.ZEquipment;
+import cc.lib.zombicide.ZEquipmentClass;
 import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZSkill;
@@ -127,5 +128,10 @@ public class UIZUser extends ZUser {
     @Override
     public Integer chooseZoneToIgnite(ZPlayerName playerName, List<Integer> ignitableZones) {
         return UIZombicide.getInstance().pickZone("Choose Zone to Ignite", ignitableZones);
+    }
+
+    @Override
+    public ZEquipmentClass chooseEquipmentClass(ZPlayerName playerName, List<ZEquipmentClass> classes) {
+        return UIZombicide.getInstance().pickMenu(playerName, "Choose Equipment Class", ZEquipmentClass.class, classes);
     }
 }

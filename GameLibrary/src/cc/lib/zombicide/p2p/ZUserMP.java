@@ -6,6 +6,7 @@ import cc.lib.net.ClientConnection;
 import cc.lib.zombicide.ZDoor;
 import cc.lib.zombicide.ZEquipSlot;
 import cc.lib.zombicide.ZEquipment;
+import cc.lib.zombicide.ZEquipmentClass;
 import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZSkill;
@@ -231,6 +232,14 @@ public class ZUserMP extends ZUser {
     public Integer chooseZoneToIgnite(ZPlayerName playerName, List<Integer> ignitableZones) {
         if (connection != null) {
             return connection.executeDerivedOnRemote(USER_ID, true, playerName, ignitableZones);
+        }
+        return null;
+    }
+
+    @Override
+    public ZEquipmentClass chooseEquipmentClass(ZPlayerName playerName, List<ZEquipmentClass> classes) {
+        if (connection != null) {
+            return connection.executeDerivedOnRemote(USER_ID, true, playerName, classes);
         }
         return null;
     }

@@ -122,4 +122,9 @@ public class ZTestUser extends ZUser {
     public Integer chooseZoneToIgnite(ZPlayerName playerName, List<Integer> ignitableZones) {
         return Utils.randItem(ignitableZones);
     }
+
+    @Override
+    public ZEquipmentClass chooseEquipmentClass(ZPlayerName playerName, List<ZEquipmentClass> classes) {
+        return Utils.randItem(classes);
+    }
 }
