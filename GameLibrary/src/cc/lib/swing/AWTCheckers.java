@@ -139,7 +139,7 @@ public class AWTCheckers extends AWTComponent {
     synchronized void onFileMenu(String item) {
         switch (item) {
             case "New Game":
-                int index = frame.showItemChooserDialog("New Game", "Choose Game Type", Utils.toStringArray(GameType.values(), true));
+                int index = frame.showItemChooserDialog("New Game", "Choose Game Type", null, Utils.toStringArray(GameType.values(), true));
                 if (index >= 0) {
                     int num = frame.showItemChooserDialog("New Game", "Choose Single or Multipllayer", "Single", "Multi");
                     if (num < 0)

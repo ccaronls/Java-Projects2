@@ -2,20 +2,19 @@ package cc.lib.swing;
 
 import java.util.List;
 
-import cc.lib.board.CustomBoard;
 import cc.lib.dungeondice.CellType;
 import cc.lib.dungeondice.DBoard;
 import cc.lib.dungeondice.DCell;
 import cc.lib.game.Utils;
 
-public class AWTDungeonBuilder extends AWTBoardBuilder {
+public class AWTDungeonBuilder extends AWTBoardBuilder<DBoard> {
 
     public static void main(String [] args) {
         new AWTDungeonBuilder();
     }
 
     @Override
-    protected CustomBoard newBoard() {
+    protected DBoard newBoard() {
         return new DBoard();
     }
 

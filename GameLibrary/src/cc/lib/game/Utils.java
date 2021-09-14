@@ -1003,12 +1003,13 @@ public class Utils {
      * 2. Replace [_]+ (underscores) with a space
      * 3. Make whole strings lowercase with first letter capitalized
      *
-     * @param str
+     * @param obj
      * @return
      */
-    public static String toPrettyString(final String str) {
-        if (str == null)
+    public static String toPrettyString(final Object obj) {
+        if (obj == null)
             return null;
+        String str = obj.toString();
         String cached = PRETTY_CACHE.get(str);
         if (cached != null)
             return cached;
@@ -2711,7 +2712,7 @@ public class Utils {
      * @param <O>
      * @return
      */
-    public static <O> List<O> filter(Collection<O> collection, Filter<O> filter) {
+    public static <O> List<O> filter(Iterable<O> collection, Filter<O> filter) {
         List<O> result = new ArrayList<>();
         for (O o : collection) {
             if (filter.keep(o))
@@ -2890,6 +2891,76 @@ public class Utils {
             max = Math.max(max, mapper.map(t));
         }
         return max;
+    }
+
+    /**
+     *
+     * @param list
+     * @param <K>
+     * @param <V>
+     * @return
+     */
+    public static <K,V> Map<K,List<V>> toMap(List<Pair<K,V>> list) {
+        Map<K,List<V>> map = new HashMap<>();
+        for (Pair<K,V> p : list) {
+            List<V> l = map.get(p.first);
+            if (l == null) {
+                l = new ArrayList<>();
+                map.put(p.first, l);
+            }
+            l.add(p.second);
+        }
+        return map;
+    }
+
+    public static Iterable<Integer> getRangeIterator(int start, int end) {
+        return new Iterable<Integer>() {
+            @Override
+            public Iterator<Integer> iterator() {
+                return new RangeIter(start, end);
+            }
+        };
+    }
+
+    public static class RangeIter implements Iterator<Integer> {
+        final int start, end, step;
+        int current;
+
+        public RangeIter(int end) {
+            this(0, end, 1);
+        }
+
+        public RangeIter(int start, int end) {
+            this(start, end, 1);
+        }
+
+        public RangeIter(int start, int end, int step) {
+            this.start = start;
+            this.end = end;
+            this.step = step;
+            current = start-step;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return current+step <= end;
+        }
+
+        @Override
+        public Integer next() {
+            current += step;
+            return current;
+        }
+    }
+
+    public static void reverse(int[] input) {
+        int last = input.length - 1;
+        int middle = input.length / 2;
+        for (int i = 0; i < middle; i++) {
+            int temp = input[i];
+            input[i] = input[last - i];
+            input[last - i] = temp;
+        }
     }
 
 }

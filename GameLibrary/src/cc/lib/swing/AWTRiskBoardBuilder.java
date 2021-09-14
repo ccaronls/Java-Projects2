@@ -1,0 +1,112 @@
+package cc.lib.swing;
+
+import java.awt.event.KeyEvent;
+
+import cc.lib.game.APGraphics;
+import cc.lib.game.GColor;
+import cc.lib.game.Justify;
+import cc.lib.game.Utils;
+import cc.lib.risk.Region;
+import cc.lib.risk.RiskBoard;
+import cc.lib.risk.RiskCell;
+
+/**
+ * Created by Chris Caron on 9/13/21.
+ */
+public class AWTRiskBoardBuilder extends AWTBoardBuilder<RiskBoard> {
+
+    public static void main(String [] args) {
+        new AWTRiskBoardBuilder();
+    }
+
+    @Override
+    protected RiskBoard newBoard() {
+        return new RiskBoard();
+    }
+
+    @Override
+    protected String getPropertiesFileName() {
+        return "risk_builder.properties";
+    }
+
+    @Override
+    protected String getDefaultBoardFileName() {
+        return "risk.backup.board";
+    }
+
+    @Override
+    protected void drawCellMode(APGraphics g, int mouseX, int mouseY) {
+        super.drawCellMode(g, mouseX, mouseY);
+        if (highlightedIndex >= 0) {
+            g.setColor(GColor.CYAN);
+            RiskCell cell = board.getCell(highlightedIndex);
+            g.begin();
+            for (Integer adj : board.getConnectedCells(cell)) {
+                g.vertex(cell);
+                g.vertex(board.getRiskCell(adj));
+            }
+            g.drawLines(4);
+            g.setColor(GColor.BLACK);
+            g.drawJustifiedStringOnBackground(cell, Justify.CENTER, Justify.CENTER, Utils.toPrettyString(cell.getRegion()), GColor.TRANSLUSCENT_BLACK, 2, 2);
+        }
+    }
+
+    @Override
+    protected void pickCell() {
+        if (pickMode == PickMode.CELL_MULTISELECT) {
+            super.pickCell();
+            return;
+        }
+        int current = getSelectedIndex();
+        super.pickCell();
+        int selectedIndex = getSelectedIndex();
+        if (current >= 0 && selectedIndex >= 0 && current != selectedIndex) {
+            // create a connection between the cells
+            RiskCell r0 = board.getCell(current);
+            if (r0.getConnectedCells().contains(selectedIndex)) {
+                r0.getConnectedCells().remove((Object)selectedIndex);
+            } else {
+                r0.getConnectedCells().add(selectedIndex);
+            }
+            RiskCell r1 = board.getCell(selectedIndex);
+            if (r1.getConnectedCells().contains(current)) {
+                r1.getConnectedCells().remove((Object)current);
+            } else {
+                r1.getConnectedCells().add(current);
+            }
+        }
+    }
+
+    @Override
+    public synchronized void keyTyped(KeyEvent evt) {
+        switch (evt.getExtendedKeyCode()) {
+            case KeyEvent.VK_L:
+                if (pickMode == PickMode.CELL_MULTISELECT) {
+                    String currentRegion = null;
+                    for (int idx : selected) {
+                        RiskCell cell = board.getCell(idx);
+                        if (cell.getRegion() == null)
+                            continue;
+                        if (currentRegion == null) {
+                            currentRegion = cell.getRegion().name();
+                        } else if (!cell.getRegion().name().equals(currentRegion)) {
+                            currentRegion = null;
+                            break;
+                        }
+                    }
+
+                    int idx = frame.showItemChooserDialog("Set Region", null, currentRegion, Utils.toStringArray(Region.values()));
+                    if (idx >= 0) {
+                        for (int cellIdx : selected) {
+                            ((RiskCell)board.getCell(cellIdx)).setRegion(Region.values()[idx]);
+                        }
+                    }
+                    break;
+                }
+
+            default:
+                super.keyTyped(evt);
+        }
+        redraw();
+    }
+}

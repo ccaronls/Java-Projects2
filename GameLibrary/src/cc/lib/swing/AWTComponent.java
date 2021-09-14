@@ -253,7 +253,12 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
         //Utils.println("mouseMoved");
         mouseX = e.getX()-padding;
         mouseY = e.getY()-padding;
+        onMouseMoved(mouseX, mouseY);
         repaint();
+    }
+
+    protected void onMouseMoved(int mouseX, int mouseY) {
+
     }
 
     @Override

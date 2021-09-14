@@ -14,6 +14,7 @@ import cc.lib.board.BVertex;
 import cc.lib.board.CustomBoard;
 import cc.lib.game.APGraphics;
 import cc.lib.game.GColor;
+import cc.lib.game.GRectangle;
 import cc.lib.game.Justify;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
@@ -24,7 +25,7 @@ import cc.lib.utils.FileUtils;
 
 import static java.awt.event.KeyEvent.*;
 
-public abstract class AWTBoardBuilder extends AWTComponent {
+public abstract class AWTBoardBuilder<T extends CustomBoard> extends AWTComponent {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -65,16 +66,18 @@ public abstract class AWTBoardBuilder extends AWTComponent {
 
     final File DEFAULT_FILE;
 
-    final CustomBoard board;
+    final T board;
     int background = -1;
-    int selectedIndex = -1;
     int highlightedIndex = -1;
     File boardFile;
     final LinkedList<Action> undoList = new LinkedList<>();
     PickMode pickMode = PickMode.VERTEX;
+    boolean showNumbers = true;
+    GRectangle rect = null;
+    List<Integer> selected = new ArrayList<>();
 
     enum PickMode {
-        VERTEX, EDGE, CELL
+        VERTEX, EDGE, CELL, CELL_MULTISELECT
     }
 
     AWTBoardBuilder() {
@@ -91,7 +94,7 @@ public abstract class AWTBoardBuilder extends AWTComponent {
 
     float progress = 0;
 
-    protected abstract CustomBoard newBoard();
+    protected abstract T newBoard();
 
     protected abstract String getPropertiesFileName();
 
@@ -152,9 +155,17 @@ public abstract class AWTBoardBuilder extends AWTComponent {
     }
 
     @Override
+    protected void onDimensionChanged(AWTGraphics g, int width, int height) {
+        rect = new GRectangle(0, 0, width, height);
+    }
+
+    @Override
     protected synchronized void paint(AWTGraphics g, int mouseX, int mouseY) {
+        if (rect == null) {
+            rect = new GRectangle(0, 0, g.getViewportWidth(), g.getViewportHeight());
+        }
         g.setIdentity();
-        g.ortho();//0, 1, 1, 0);
+        g.ortho(rect);
         if (background >= 0) {
             g.drawImage(background, 0, 0, getWidth(), getHeight());
         } else {
@@ -179,6 +190,7 @@ public abstract class AWTBoardBuilder extends AWTComponent {
                 break;
 
             case CELL:
+            case CELL_MULTISELECT:
                 drawCellMode(g, mouseX, mouseY);
                 break;
         }
@@ -198,12 +210,22 @@ public abstract class AWTBoardBuilder extends AWTComponent {
         lines.add(pickMode.name());
     }
 
+    public int getSelectedIndex() {
+        return selected.size() > 0 ? selected.get(0) : -1;
+    }
+
+    public void setSelectedIndex(int idx) {
+        selected.clear();
+        if (idx >= 0)
+            selected.add(idx);
+    }
+
     protected void drawVertexMode(APGraphics g, int mouseX, int mouseY) {
 
-        if (selectedIndex >= 0) {
+        if (getSelectedIndex() >= 0) {
             g.setColor(GColor.RED);
             g.begin();
-            g.vertex(board.getVertex(selectedIndex));
+            g.vertex(board.getVertex(getSelectedIndex()));
             g.drawPoints(8);
         }
         highlightedIndex = board.pickVertex(g, mouseX, mouseY);
@@ -223,21 +245,22 @@ public abstract class AWTBoardBuilder extends AWTComponent {
         }
 
         g.setColor(GColor.BLACK);
-        board.drawVertsNumbered(g);
+        if (showNumbers)
+            board.drawVertsNumbered(g);
 
-        if (selectedIndex >= 0 && selectedIndex != highlightedIndex) {
+        if (getSelectedIndex() >= 0 && getSelectedIndex() != highlightedIndex) {
             g.setColor(GColor.RED);
             g.begin();
-            g.vertex(board.getVertex(selectedIndex));
+            g.vertex(board.getVertex(getSelectedIndex()));
             g.drawPoints(8);
         }
     }
 
     protected void drawEdgeMode(APGraphics g, int mouseX, int mouseY) {
-        if (selectedIndex >= 0) {
+        if (getSelectedIndex() >= 0) {
             g.setColor(GColor.RED);
             g.begin();
-            BEdge e = board.getEdge(selectedIndex);
+            BEdge e = board.getEdge(getSelectedIndex());
             board.renderEdge(e, g);
             g.drawLines();
         }
@@ -258,17 +281,18 @@ public abstract class AWTBoardBuilder extends AWTComponent {
         }
 
         g.setColor(GColor.BLACK);
-        board.drawEdgesNumbered(g);
+        if (showNumbers)
+            board.drawEdgesNumbered(g);
     }
 
     protected void drawCellMode(APGraphics g, int mouseX, int mouseY) {
-        if (selectedIndex >= 0) {
+        for (int idx : selected) {
             g.setColor(GColor.RED);
             g.begin();
-            BCell c = board.getCell(selectedIndex);
+            BCell c = board.getCell(idx);
             board.renderCell(c, g, 0.9f);
             g.setLineWidth(4);
-            g.drawLines();
+            g.drawLineLoop();
         }
 
         highlightedIndex = board.pickCell(g, mouseX, mouseY);
@@ -288,11 +312,8 @@ public abstract class AWTBoardBuilder extends AWTComponent {
         }
 
         g.setColor(GColor.BLACK);
-        board.drawCellsNumbered(g);
-    }
-
-    public final int getSelectedIndex() {
-        return selectedIndex;
+        if (showNumbers)
+            board.drawCellsNumbered(g);
     }
 
     void setBoardFile(File file) {
@@ -309,7 +330,7 @@ public abstract class AWTBoardBuilder extends AWTComponent {
 
     void onModeMenu(PickMode mode) {
         pickMode = mode;
-        selectedIndex = -1;
+        selected.clear();
         frame.setProperty("pickMode", mode.name());
     }
 
@@ -327,6 +348,7 @@ public abstract class AWTBoardBuilder extends AWTComponent {
 
             case "Clear":
                 board.clear();
+                selected.clear();
                 break;
 
             case "Generate Grid": {
@@ -362,7 +384,7 @@ public abstract class AWTBoardBuilder extends AWTComponent {
         switch (item) {
             case "New Board":
                 board.clear();
-                selectedIndex = -1;
+                selected.clear();
                 setBoardFile(null);
                 break;
             case "Load Board": {
@@ -380,7 +402,7 @@ public abstract class AWTBoardBuilder extends AWTComponent {
                 break;
             }
             case "Load Image": {
-                File file = frame.showFileOpenChooser("Load Image", "Generic Boards", null);
+                File file = frame.showFileOpenChooser("Load Image", "png", null);
                 if (file != null) {
                     background = getAPGraphics().loadImage(file.getAbsolutePath());
                     if (background < 0) {
@@ -439,6 +461,8 @@ public abstract class AWTBoardBuilder extends AWTComponent {
                 break;
 
             case CELL:
+                selected.clear();
+            case CELL_MULTISELECT:
                 pickCell();
                 break;
         }
@@ -450,33 +474,33 @@ public abstract class AWTBoardBuilder extends AWTComponent {
         Action a = null;
         if (picked < 0) {
             final int v = board.addVertex(getMousePos());
-            final int s = selectedIndex;
+            final int s = getSelectedIndex();
             a = new Action() {
                 @Override
                 public void undo() {
                     board.removeVertex(v);
-                    selectedIndex = s;
+                    setSelectedIndex(s);
                 }
             };
             picked = v;
         }
-        if (selectedIndex >= 0 && selectedIndex != picked) {
+        if (getSelectedIndex() >= 0 && getSelectedIndex() != picked) {
             final int p = picked;
-            final int s = selectedIndex;
-            board.addEdge(selectedIndex, picked);
+            final int s = getSelectedIndex();
+            board.addEdge(getSelectedIndex(), picked);
             a = new Action() {
                 @Override
                 public void undo() {
                     board.removeEdge(s, p);
                     board.removeVertex(p);
-                    selectedIndex = s;
+                    setSelectedIndex(s);
                 }
             };
         }
         if (a != null) {
             pushUndoAction(a);
         }
-        selectedIndex = picked;
+        setSelectedIndex(picked);
         repaint();
     }
 
@@ -497,7 +521,10 @@ public abstract class AWTBoardBuilder extends AWTComponent {
     }
 
     protected void pickCell() {
-        selectedIndex = board.pickCell(getAPGraphics(), getMouseX(), getMouseY());
+        int idx = board.pickCell(getAPGraphics(), getMouseX(), getMouseY());
+        if (idx >= 0) {
+            selected.add(idx);
+        }
     }
 
     protected void pushUndoAction(Action a) {
@@ -508,10 +535,10 @@ public abstract class AWTBoardBuilder extends AWTComponent {
 
     @Override
     protected void onDragStarted(int x, int y) {
-        if (selectedIndex < 0) {
-            selectedIndex = board.pickVertex(getAPGraphics(), x, y);
+        if (getSelectedIndex() < 0) {
+            setSelectedIndex(board.pickVertex(getAPGraphics(), x, y));
         } else {
-            BVertex v = board.getVertex(selectedIndex);
+            BVertex v = board.getVertex(getSelectedIndex());
             v.set(getMousePos(x, y));
         }
         repaint();
@@ -519,35 +546,67 @@ public abstract class AWTBoardBuilder extends AWTComponent {
 
     @Override
     protected void onDragStopped() {
-        selectedIndex = -1;
+        selected.clear();
         repaint();
     }
 
     @Override
     public synchronized void keyTyped(KeyEvent evt) {
-        switch (evt.getKeyCode()) {
+        switch (evt.getExtendedKeyCode()) {
             case VK_ESCAPE:
-                selectedIndex = -1;
+                selected.clear();
                 break;
 
             case VK_V:
                 pickMode = PickMode.VERTEX;
-                selectedIndex = -1;
+                selected.clear();
                 break;
 
             case VK_E:
                 pickMode = PickMode.EDGE;
-                selectedIndex = -1;
+                selected.clear();
                 break;
 
             case VK_C:
                 pickMode = PickMode.CELL;
-                selectedIndex = -1;
+                selected.clear();
+                break;
+
+            case VK_M:
+                pickMode = PickMode.CELL_MULTISELECT;
+                selected.clear();
+                break;
+
+            case VK_DELETE:
+                if (getSelectedIndex() >= 0) {
+                    switch (pickMode) {
+                        case CELL:
+                            break;
+                        case EDGE:
+                            board.removeEdge(getSelectedIndex());
+                            break;
+                        case VERTEX:
+                            board.removeVertex(getSelectedIndex());
+                            break;
+                    }
+                    selected.clear();
+                }
                 break;
 
             case VK_TAB:
                 pickMode = Utils.incrementValue(pickMode, PickMode.values());
-                selectedIndex = -1;
+                selected.clear();
+                break;
+
+            case VK_N:
+                showNumbers = !showNumbers;
+                break;
+            case VK_PLUS:
+                rect.scale(.5f);
+                break;
+            // zoom
+            case VK_MINUS:
+                rect.scale(2);
                 break;
 
         }
@@ -559,32 +618,32 @@ public abstract class AWTBoardBuilder extends AWTComponent {
     public synchronized void keyPressed(KeyEvent evt) {
         switch (evt.getKeyCode()) {
             case VK_UP:
-                if (pickMode == PickMode.VERTEX && selectedIndex >= 0) {
-                    BVertex bv = board.getVertex(selectedIndex);
+                if (pickMode == PickMode.VERTEX && getSelectedIndex() >= 0) {
+                    BVertex bv = board.getVertex(getSelectedIndex());
                     MutableVector2D v = new MutableVector2D(bv);
                     v.setY(v.getY() - 1);
                     bv.set(v);
                 }
                 break;
             case VK_DOWN:
-                if (pickMode == PickMode.VERTEX && selectedIndex >= 0) {
-                    BVertex bv = board.getVertex(selectedIndex);
+                if (pickMode == PickMode.VERTEX && getSelectedIndex() >= 0) {
+                    BVertex bv = board.getVertex(getSelectedIndex());
                     MutableVector2D v = new MutableVector2D(bv);
                     v.setY(v.getY() + 1);
                     bv.set(v);
                 }
                 break;
             case VK_RIGHT:
-                if (pickMode == PickMode.VERTEX && selectedIndex >= 0) {
-                    BVertex bv = board.getVertex(selectedIndex);
+                if (pickMode == PickMode.VERTEX && getSelectedIndex() >= 0) {
+                    BVertex bv = board.getVertex(getSelectedIndex());
                     MutableVector2D v = new MutableVector2D(bv);
                     v.setX(v.getX() + 1);
                     bv.set(v);
                 }
                 break;
             case VK_LEFT:
-                if (pickMode == PickMode.VERTEX && selectedIndex >= 0) {
-                    BVertex bv = board.getVertex(selectedIndex);
+                if (pickMode == PickMode.VERTEX && getSelectedIndex() >= 0) {
+                    BVertex bv = board.getVertex(getSelectedIndex());
                     MutableVector2D v = new MutableVector2D(bv);
                     v.setX(v.getX() - 1);
                     bv.set(v);
@@ -593,5 +652,30 @@ public abstract class AWTBoardBuilder extends AWTComponent {
 
         }
         repaint();
+    }
+
+    @Override
+    protected void onMouseMoved(int mouseX, int mouseY) {
+        int width = getAPGraphics().getViewportWidth();
+        int height = getAPGraphics().getViewportHeight();
+        int margin = 5;
+
+        if (mouseX < margin) {
+            if (rect.x > 0) {
+                rect.x--;
+            }
+        } else if (mouseX > width - margin) {
+            if (rect.x + rect.w < width) {
+                rect.x++;
+            }
+        }
+
+        if (mouseY < margin) {
+            if (rect.y > 0) {
+                rect.y--;
+            } else if (rect.y + rect.h < height) {
+                rect.y++;
+            }
+        }
     }
 }

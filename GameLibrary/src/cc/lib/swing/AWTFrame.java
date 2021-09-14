@@ -711,8 +711,8 @@ public class AWTFrame extends JFrame implements WindowListener, ComponentListene
      * @param items
      * @return index of the chosen item or -1 if cancelled
      */
-    public int showItemChooserDialog(String title, String message, String ... items) {
-        return JOptionPane.showOptionDialog(null, message, title, JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, items, items[0]);
+    public int showItemChooserDialog(String title, String message, String selectedItem, String ... items) {
+        return JOptionPane.showOptionDialog(null, message, title, JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, items, selectedItem == null ? items[0] : selectedItem);
     }
 
     /**

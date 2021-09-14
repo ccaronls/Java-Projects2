@@ -3,9 +3,11 @@ package cc.lib.board;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.Set;
 import java.util.Vector;
 
 import cc.lib.game.AGraphics;
@@ -140,7 +142,7 @@ public class CustomBoard extends Reflector<CustomBoard> {
             IVector2D v0 = verts.get(p);
             IVector2D v3 = verts.get(v);
             Vector2D  e  = Vector2D.sub(v3, v0);
-            Vector2D ue = e.scaledBy(0.2f);
+            Vector2D ue = e.normalized();//.scaledBy(0.2f);
             IVector2D v1 = Vector2D.sub(v3, ue);
             ue = ue.norm();
             IVector2D v2 = Vector2D.add(v1, ue);
@@ -415,18 +417,25 @@ public class CustomBoard extends Reflector<CustomBoard> {
         }
 
         // dfs search to compute the cells
+        Set<Integer> unvisited = new LinkedHashSet<>();
+        for (int i=0; i<verts.size(); i++) {
+            unvisited.add(i);
+        }
         cells.clear();
-        int [][] lookup = new int[verts.size()][verts.size()];
-        Queue<int[]> queue = new LinkedList<>();
-        dfsCellSearch(queue, 0, "", 0, lookup, new LinkedList<Integer>());
-        while (queue.size() > 0) {
-            int [] e = queue.remove();
-            int v = e[0];
-            int vv = e[1];
-            LinkedList<Integer> cell = new LinkedList<>();
-            lookup[v][vv] = 1;
-            cell.add(v);
-            dfsCellSearch(queue, 0, "", vv, lookup, cell);
+        while (unvisited.size() > 0) {
+            int v = unvisited.iterator().next();
+            int[][] lookup = new int[verts.size()][verts.size()];
+            Queue<int[]> queue = new LinkedList<>();
+            dfsCellSearch(queue, 0, "", v, lookup, new LinkedList<Integer>(), unvisited);
+            while (queue.size() > 0) {
+                int[] e = queue.remove();
+                int v0 = e[0];
+                int v1 = e[1];
+                LinkedList<Integer> cell = new LinkedList<>();
+                lookup[v0][v1] = 1;
+                cell.add(v0);
+                dfsCellSearch(queue, 0, "", v1, lookup, cell, unvisited);
+            }
         }
 
         // now compute the center of each cell and assign adjCells to edges.
@@ -488,9 +497,10 @@ public class CustomBoard extends Reflector<CustomBoard> {
         return new BCell(pts);
     }
 
-    private void dfsCellSearch(Queue<int[]> q, int d, String indent, int v, int [][] visited, LinkedList<Integer> cell) {
+    private void dfsCellSearch(Queue<int[]> q, int d, String indent, int v, int [][] visited, LinkedList<Integer> cell, Set<Integer> unvisited) {
         log.debug("%sDFS %d %s", indent, v, cell);
         BVertex bv = verts.get(v);
+        unvisited.remove((Object)v);
 
         if (cell.size() > 2 && cell.contains(v)) {
             while (cell.getFirst() != v) {
@@ -539,7 +549,7 @@ public class CustomBoard extends Reflector<CustomBoard> {
                     int first = adjacent.remove(0);
                     visited[v][first] = 1;
                     cell.add(v);
-                    dfsCellSearch(q, d + 1, indent + " ", first, visited, cell);
+                    dfsCellSearch(q, d + 1, indent + " ", first, visited, cell, unvisited);
                 }
             }
         }
@@ -841,5 +851,8 @@ public class CustomBoard extends Reflector<CustomBoard> {
         }
     }
 
+    public Iterable<? extends BCell> getCells() {
+        return cells;
+    }
 
 }
