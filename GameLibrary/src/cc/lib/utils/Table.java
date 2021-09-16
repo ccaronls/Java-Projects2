@@ -91,6 +91,11 @@ public final class Table {
         this(header, new Model() {});
     }
 
+    public Table(List<String> header) {
+        this.header = header;
+        this.model = new Model() {};
+    }
+
     public Table(String [] header, Model model) {
         this.header = new ArrayList<>(Arrays.asList(header));
         this.model = model;
@@ -144,6 +149,13 @@ public final class Table {
 
     public Table addRow(Object ... row) {
         rows.add(new Vector(Arrays.asList(row)));
+        return this;
+    }
+
+    public Table addRowList(List row) {
+        Vector v = new Vector();
+        v.addAll(row);
+        rows.add(v);
         return this;
     }
 
@@ -346,6 +358,16 @@ public final class Table {
 
     public void draw(AGraphics g, IVector2D cntr, Justify horz, Justify vert) {
         draw(g, cntr.getX(), cntr.getY(), horz, vert);
+    }
+
+    /**
+     * Draw table centered at a point
+     *
+     * @param g
+     * @param cntr
+     */
+    public void draw(AGraphics g, IVector2D cntr) {
+        draw(g, cntr.getX(), cntr.getY(), Justify.CENTER, Justify.CENTER);
     }
 
     /**

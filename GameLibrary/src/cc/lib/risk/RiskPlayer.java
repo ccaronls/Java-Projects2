@@ -15,7 +15,8 @@ public class RiskPlayer extends Reflector<RiskPlayer> {
     }
 
     Army army;
-    int armiesToPlace;
+    private int armiesToPlace;
+    private int initialArmiesToPlace;
 
     public RiskPlayer() {}
 
@@ -23,17 +24,34 @@ public class RiskPlayer extends Reflector<RiskPlayer> {
         this.army = army;
     }
 
+    public Army getArmy() {
+        return army;
+    }
+
+    public int getArmiesToPlace() {
+        return armiesToPlace;
+    }
+
+    public void setArmiestoPlace(int armies) {
+        armiesToPlace = initialArmiesToPlace = armies;
+    }
+
+    public int getInitialArmiesToPlace() {
+        return initialArmiesToPlace;
+    }
+
+    void decrementArmy() {
+        armiesToPlace--;
+    }
+
     public Integer pickTerritory(List<Integer> options, String msg) {
         return Utils.randItem(options);
     }
 
-    public Action pickAction(List<Action> actions) {
+    public Action pickAction(List<Action> actions, String msg) {
         if (actions.get(0) == Action.ATTACK)
             return Action.ATTACK;
         return Action.END;
     }
 
-    public Integer pickNumberToAttack(List<Integer> options) {
-        return options.get(options.size()-1);
-    }
 }

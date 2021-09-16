@@ -88,6 +88,10 @@ public abstract class APGraphics extends AGraphics {
         return r.untransform(screen.getX(), screen.getY());
     }
 
+    public final void screenToViewport(MutableVector2D mouse) {
+        mouse.set(r.untransform(mouse.getX(), mouse.getY()));
+    }
+
     float [] lastVertex = new float[2];
 
     @Override
@@ -115,6 +119,23 @@ public abstract class APGraphics extends AGraphics {
             int dx = x - Math.round(r.getX(i));
             int dy = y - Math.round(r.getY(i));
             int d = Utils.fastLen(dx, dy);
+            if (d <= size) {
+                if (picked < 0 || d < bestD) {
+                    picked = r.getName(i);
+                    bestD = d;
+                }
+            }
+        }
+        return picked;
+    }
+
+    public final int pickPoints(IVector2D m, int size) {
+        int picked = -1;
+        float bestD = Float.MAX_VALUE;
+        for (int i=0; i<r.getNumVerts(); i++) {
+            float dx = m.getX() - r.getX(i);
+            float dy = m.getY() - r.getY(i);
+            float d = Utils.fastLen(dx, dy);
             if (d <= size) {
                 if (picked < 0 || d < bestD) {
                     picked = r.getName(i);
@@ -159,6 +180,34 @@ public abstract class APGraphics extends AGraphics {
         return picked;
     }
 
+    public final int pickLines(IVector2D m, int thickness) {
+        int picked = -1;
+        for (int i=0; i<r.getNumVerts(); i+=2) {
+
+            float mx = m.getX();
+            float my = m.getY();
+            float x0 = r.getX(i);
+            float y0 = r.getY(i);
+            float x1 = r.getX(i+1);
+            float y1 = r.getY(i+1);
+
+            float d0 = Utils.distSqPointLine(mx, my, x0, y0, x1, y1);
+            if (d0 > thickness)
+                continue;
+
+            float dx = x1 - x0;
+            float dy = y1 - y0;
+
+            float dot_p_d1 = (mx-x0)*dx + (my-y0)*dy;
+            float dot_p_d2 = (mx-x1)*-dx + (my-y1)*-dy;
+
+            if (dot_p_d1 < 0 || dot_p_d2 < 0)
+                continue;
+
+            picked = r.getName(i);
+        }
+        return picked;
+    }
     /**
      *
      * @param x
@@ -262,6 +311,25 @@ public abstract class APGraphics extends AGraphics {
     @Override
     public void getTransform(Matrix3x3 result) {
         result.assign(r.getCurrentTransform());
+    }
+
+    public final GRectangle drawJustifiedStringOnBackground(float x, float y, Justify hJust, Justify vJust, String text, GColor bkColor, float border, float cornerRadius) {
+        MutableVector2D v = new MutableVector2D(x, y);
+        transform(v);
+        r.pushMatrixProj();
+        ortho();
+        GRectangle rect = drawJustifiedStringR(v.getX(), v.getY(), hJust, vJust, text);
+        rect.grow(border);
+        GColor saveColor = getColor();
+        setColor(bkColor);
+        if (cornerRadius > 0)
+            drawFilledRoundedRect(rect, cornerRadius);
+        else
+            rect.drawFilled(this);
+        setColor(saveColor);
+        r.popMatrixProj();
+        drawJustifiedString(x, y, hJust, vJust, text);
+        return rect;
     }
 
 }

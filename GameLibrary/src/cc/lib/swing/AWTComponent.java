@@ -363,6 +363,7 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
         Rectangle rect = getBounds();
         super.setBounds(x, y, width, height);
         if (G != null && (rect.width != width || rect.height != height)) {
+            log.info("Dimension changed to %d x %d", width, height);
             onDimensionChanged(G, width, height);
         }
     }
@@ -378,5 +379,9 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
     public Vector2D getViewportLocation() {
         Point pt = super.getLocationOnScreen();
         return new Vector2D(pt.x, pt.y);
+    }
+
+    public boolean isFocused() {
+        return focused;
     }
 }

@@ -13,6 +13,7 @@ import java.util.Vector;
 import cc.lib.game.AGraphics;
 import cc.lib.game.APGraphics;
 import cc.lib.game.GColor;
+import cc.lib.game.GDimension;
 import cc.lib.game.GRectangle;
 import cc.lib.game.IVector2D;
 import cc.lib.game.Justify;
@@ -24,7 +25,7 @@ import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 import cc.lib.utils.Reflector;
 
-public class CustomBoard extends Reflector<CustomBoard> {
+public class CustomBoard<V extends BVertex, E extends BEdge, C extends BCell> extends Reflector<CustomBoard> {
 
     static Logger log = LoggerFactory.getLogger(CustomBoard.class);
 
@@ -32,9 +33,10 @@ public class CustomBoard extends Reflector<CustomBoard> {
         addAllFields(CustomBoard.class);
     }
 
-    private final Vector<BVertex> verts = new Vector<>();
-    private final Vector<BEdge> edges = new Vector<>();
-    private final Vector<BCell> cells = new Vector<>();
+    private final Vector<V> verts = new Vector<>();
+    private final Vector<E> edges = new Vector<>();
+    private final Vector<C> cells = new Vector<>();
+    private GDimension dimension =  new GDimension();
 
     /**
      *
@@ -43,8 +45,8 @@ public class CustomBoard extends Reflector<CustomBoard> {
     public void drawEdges(AGraphics g) {
         g.begin();
         for (BEdge e : edges) {
-            g.vertex(verts.get(e.from));
-            g.vertex(verts.get(e.to));
+            g.vertex(verts.get(e.getFrom()));
+            g.vertex(verts.get(e.getTo()));
         }
         g.drawLines();
     }
@@ -137,8 +139,8 @@ public class CustomBoard extends Reflector<CustomBoard> {
         g.translate(b);
         g.scale(0.9f);
         g.translate(-b.getX(), -b.getY());
-        int p = b.adjVerts.get(b.adjVerts.size()-1);
-        for (int v : b.adjVerts) {
+        int p = b.getAdjVertex(b.getNumAdjVerts()-1);
+        for (int v : b.getAdjVerts()) {
             IVector2D v0 = verts.get(p);
             IVector2D v3 = verts.get(v);
             Vector2D  e  = Vector2D.sub(v3, v0);
@@ -164,7 +166,11 @@ public class CustomBoard extends Reflector<CustomBoard> {
      * @return
      */
     public final Vector2D getMidpoint(BEdge e) {
-        return Vector2D.add(verts.get(e.from), verts.get(e.to)).scaledBy(0.5f);
+        return Vector2D.add(verts.get(e.getFrom()), verts.get(e.getTo())).scaledBy(0.5f);
+    }
+
+    public void renderCell(BCell b, AGraphics g) {
+        renderCell(b, g, 1);
     }
 
     /**
@@ -179,7 +185,7 @@ public class CustomBoard extends Reflector<CustomBoard> {
         g.scale(scale);
         g.translate(-b.getX(), -b.getY());
         g.begin();
-        for (int v : b.adjVerts) {
+        for (int v : b.getAdjVerts()) {
             g.vertex(verts.get(v));
         }
         g.popMatrix();
@@ -204,11 +210,10 @@ public class CustomBoard extends Reflector<CustomBoard> {
     /**
      *
      * @param g
-     * @param mx
-     * @param my
+     * @param mouse
      * @return
      */
-    public int pickVertex(APGraphics g, int mx, int my) {
+    public int pickVertex(APGraphics g, Vector2D mouse) {
         g.begin();
         int index = 0;
         for (BVertex v : verts) {
@@ -217,7 +222,7 @@ public class CustomBoard extends Reflector<CustomBoard> {
                 g.vertex(v);
             }
         }
-        return g.pickPoints(mx, my, 5);
+        return g.pickPoints(mouse, 5);
     }
 
     /**
@@ -242,8 +247,8 @@ public class CustomBoard extends Reflector<CustomBoard> {
      * @param v
      * @return
      */
-    protected BVertex newVertex(IVector2D v) {
-        return new BVertex(v);
+    protected V newVertex(IVector2D v) {
+        return (V)new BVertex(v);
     }
 
     /**
@@ -262,15 +267,19 @@ public class CustomBoard extends Reflector<CustomBoard> {
      * @param to
      */
     public void addEdge(int from, int to) {
-        int index = edges.size();
-        edges.add(newEdge(from, to));
+        E edge = newEdge(from, to);
+        int idx = Collections.binarySearch(edges, edge);
+        if (idx < 0) {
+            idx = (-idx)-1;
+            edges.insertElementAt(edge, idx);
+        }
     }
 
     /**
      *
      * @param e
      */
-    public void addEdge(BEdge e) {
+    public void addEdge(E e) {
         edges.add(e);
     }
 
@@ -291,6 +300,16 @@ public class CustomBoard extends Reflector<CustomBoard> {
         return g.pickLines(mx, my, 5);
     }
 
+    public int pickEdge(APGraphics g, IVector2D mouse) {
+        g.begin();
+        int index = 0;
+        for (BEdge e : edges) {
+            g.setName(index++);
+            renderEdge(e, g);
+        }
+        return g.pickLines(mouse, 5);
+    }
+
     /**
      * Add a cell and return its idex in the array
      *
@@ -306,16 +325,14 @@ public class CustomBoard extends Reflector<CustomBoard> {
     /**
      *
      * @param g
-     * @param mx
-     * @param my
+     * @param mouse
      * @return
      */
-    public int pickCell(APGraphics g, int mx, int my) {
+    public int pickCell(APGraphics g, IVector2D mouse) {
         g.begin();
         int index = 0;
-        Vector2D mv = new Vector2D(mx, my);
         for (BCell c : cells) {
-            if (isPointInsideCell(mv, index))
+            if (isPointInsideCell(mouse, index))
                 return index;
             index++;
         }
@@ -328,8 +345,12 @@ public class CustomBoard extends Reflector<CustomBoard> {
      * @param g
      */
     public final void renderEdge(BEdge e, AGraphics g) {
-        g.vertex(verts.get(e.from));
-        g.vertex(verts.get(e.to));
+        g.vertex(verts.get(e.getFrom()));
+        g.vertex(verts.get(e.getTo()));
+    }
+
+    public final V getVertex(int idx) {
+        return verts.get(idx);
     }
 
     /**
@@ -338,52 +359,39 @@ public class CustomBoard extends Reflector<CustomBoard> {
      * @param to
      * @return
      */
-    protected BEdge newEdge(int from, int to) {
-        return new BEdge(from, to);
+    protected E newEdge(int from, int to) {
+        return (E)new BEdge(from, to);
     }
 
     /**
      *
      * @param index
-     * @param <V>
      * @return
      */
-    public <V extends BVertex> V getVertex(int index) {
-        return (V)verts.get(index);
-    }
-
-    /**
-     *
-     * @param index
-     * @param <E>
-     * @return
-     */
-    public <E extends BEdge> E getEdge(int index) {
-        return (E)edges.get(index);
+    public E getEdge(int index) {
+        return edges.get(index);
     }
 
     /**
      *
      * @param from
      * @param to
-     * @param <E>
      * @return
      */
-    public <E extends BEdge> E getEdge(int from, int to) {
+    public E getEdge(int from, int to) {
         int index = Collections.binarySearch(edges, new BEdge(from, to));
         if (index < 0)
             return null;
-        return (E)getEdge(index);
+        return getEdge(index);
     }
 
     /**
      *
      * @param index
-     * @param <T>
      * @return
      */
-    public <T extends BCell> T getCell(int index) {
-        return (T)cells.get(index);
+    public C getCell(int index) {
+        return cells.get(index);
     }
 
     /**
@@ -411,9 +419,9 @@ public class CustomBoard extends Reflector<CustomBoard> {
 
         // compute verts adjacent to each other
         for (BEdge e : edges) {
-            e.numAdjCells=0;
-            verts.get(e.from).addAdjacentVertex(e.to);
-            verts.get(e.to).addAdjacentVertex(e.from);
+            e.reset();
+            verts.get(e.getFrom()).addAdjacentVertex(e.getTo());
+            verts.get(e.getTo()).addAdjacentVertex(e.getFrom());
         }
 
         // dfs search to compute the cells
@@ -426,7 +434,7 @@ public class CustomBoard extends Reflector<CustomBoard> {
             int v = unvisited.iterator().next();
             int[][] lookup = new int[verts.size()][verts.size()];
             Queue<int[]> queue = new LinkedList<>();
-            dfsCellSearch(queue, 0, "", v, lookup, new LinkedList<Integer>(), unvisited);
+            dfsCellSearch(queue, 0, "", v, lookup, new LinkedList(), unvisited);
             while (queue.size() > 0) {
                 int[] e = queue.remove();
                 int v0 = e[0];
@@ -443,26 +451,26 @@ public class CustomBoard extends Reflector<CustomBoard> {
         for (int cIndex=0; cIndex<cells.size(); cIndex++) {
             BCell c = cells.get(cIndex);
             mv.zero();
-            if (c.adjVerts.size()<3)
-                throw new cc.lib.utils.GException("Invalid cell: " + c.adjVerts);
-            int p = c.adjVerts.get(c.adjVerts.size()-1);
-            for (int vIndex : c.adjVerts) {
+            if (c.getNumAdjVerts()<3)
+                throw new cc.lib.utils.GException("Invalid cell: " + cIndex);
+            int p = c.getAdjVertex(c.getNumAdjVerts()-1);
+            for (int vIndex : c.getAdjVerts()) {
                 mv.addEq(verts.get(vIndex));
                 int eIndex = getEdgeIndex(vIndex, p);
                 if (eIndex < 0)
                     throw new cc.lib.utils.GException("Cannot find edge " + vIndex + "->" + p);
                 BEdge e = getEdge(eIndex);
-                e.adjacentCells[e.numAdjCells++] = cIndex;
+                e.addAdjCell(cIndex);
                 p = vIndex;
                 BVertex v = verts.get(vIndex);
                 v.addAdjacentCell(cIndex);
             }
-            mv.scaleEq(1.0f / c.adjVerts.size());
+            mv.scaleEq(1.0f / c.getNumAdjVerts());
             c.cx = mv.getX();
             c.cy = mv.getY();
             // now compute the radius
             float magSquared = 0;
-            for (int vIndex : c.adjVerts) {
+            for (int vIndex : c.getAdjVerts()) {
                 Vector2D dv = Vector2D.sub(verts.get(vIndex), c);
                 float m = dv.magSquared();
                 if (m > magSquared)
@@ -472,15 +480,15 @@ public class CustomBoard extends Reflector<CustomBoard> {
         }
 
         // now iterate over the edges and create the cell adjacencies
-        Iterator<BEdge> it = edges.iterator();
+        Iterator<E> it = edges.iterator();
         while (it.hasNext()) {
             BEdge e = it.next();
-            if (e.numAdjCells == 2) {
-                BCell c0 = cells.get(e.adjacentCells[0]);
-                BCell c1 = cells.get(e.adjacentCells[1]);
-                c0.adjCells.add(e.adjacentCells[1]);
-                c1.adjCells.add(e.adjacentCells[0]);
-            } else if (e.numAdjCells == 0) {
+            if (e.getNumAdjCells() == 2) {
+                BCell c0 = cells.get(e.getAdjCell(0));
+                BCell c1 = cells.get(e.getAdjCell(1));
+                c0.addAdjCell(e.getAdjCell(1));
+                c1.addAdjCell(e.getAdjCell(0));
+            } else if (e.getNumAdjCells() == 0) {
                 //it.remove();
             }
         }
@@ -493,8 +501,8 @@ public class CustomBoard extends Reflector<CustomBoard> {
      * @param pts
      * @return
      */
-    protected BCell newCell(List<Integer> pts) {
-        return new BCell(pts);
+    protected C newCell(List<Integer> pts) {
+        return (C)new BCell(pts);
     }
 
     private void dfsCellSearch(Queue<int[]> q, int d, String indent, int v, int [][] visited, LinkedList<Integer> cell, Set<Integer> unvisited) {
@@ -608,26 +616,58 @@ public class CustomBoard extends Reflector<CustomBoard> {
      * @param vIndex
      */
     public final void removeVertex(int vIndex) {
+        // remove adjacency references to vIndex in other verts
+        int lastV = verts.size()-1;
+        for (int i=0; i<verts.size(); i++) {
+            if (i == vIndex)
+                continue;
+            BVertex v = verts.get(i);
+            v.removeAndRenameAdjacentVertex(vIndex, lastV);
+        }
+
+
         // remove all edges associated with this vertex
-        Iterator<BEdge> it = edges.iterator();
+        Iterator<E> it = edges.iterator();
         while (it.hasNext()) {
             BEdge e = it.next();
-            if (e.from == vIndex || e.to == vIndex) {
+            if (e.getFrom() == vIndex || e.getTo() == vIndex) {
                 it.remove();
+            } else if (e.getFrom() == lastV) {
+                e.setFrom(vIndex);
+            } else if (e.getTo() == lastV) {
+                e.setTo(vIndex);
             }
         }
         // remove this index from any cells we are adjacent too
-        for (BCell c : getAdjacentCells(verts.get(vIndex))) {
-            c.adjVerts.remove((Object)vIndex);
+        // remove the cell if it becomes invalid
+        for (int i=0; i<cells.size(); i++) {
+            BCell cell = cells.get(i);
+            cell.removeAndRenameAdjVertex(vIndex,lastV);
+            if (cell.getNumAdjVerts() < 3) {
+                removeCell(i);
+            }
         }
-        if (vIndex == verts.size()-1) {
-            verts.remove(vIndex);
-        } else {
-            verts.set(vIndex, NULL_VERTEX);
-        }
+
+        // finally remove the vertex YAY!
+        verts.set(vIndex, verts.get(lastV));
+        verts.remove(lastV);
     }
 
-    public final static BVertex NULL_VERTEX = new BVertex();
+    public void removeCell(int idx) {
+        // remove occurrances of ourself from vertices, edges and other cells
+        int lastC = cells.size()-1;
+        for (BVertex v : verts) {
+            v.removeAndRenameAdjacentCell(idx, lastC);
+        }
+        for (BEdge e : edges) {
+            e.removeAndReplaceAdjacentCell(idx, lastC);
+        }
+        for (int adj : cells.get(idx).getAdjCells()) {
+            cells.get(adj).removeAndRenameAdjCell(idx, lastC);
+        }
+        cells.set(idx, cells.get(cells.size()-1));
+        cells.remove(cells.size()-1);
+    }
 
     /**
      *
@@ -655,11 +695,7 @@ public class CustomBoard extends Reflector<CustomBoard> {
      * @return
      */
     public final List<BCell> getAdjacentCells(BCell cell) {
-        BCell [] cells = new BCell[cell.adjCells.size()];
-        for (int i=0; i<cells.length; i++) {
-            cells[i] = getCell(cell.adjCells.get(i));
-            }
-        return Arrays.asList(cells);
+        return Utils.map(cell.getAdjCells(), idx -> getCell(idx));
     }
 
     /**
@@ -668,21 +704,16 @@ public class CustomBoard extends Reflector<CustomBoard> {
      * @return
      */
     public final Iterable<BCell> getAdjacentCells(final BEdge edge) {
-        return new Iterable<BCell>() {
+        return () -> new Iterator<BCell>() {
+            int index = 0;
             @Override
-            public Iterator<BCell> iterator() {
-                return new Iterator<BCell>() {
-                    int index = 0;
-                    @Override
-                    public boolean hasNext() {
-                        return index < edge.numAdjCells;
-                    }
+            public boolean hasNext() {
+                return index < edge.getNumAdjCells();
+            }
 
-                    @Override
-                    public BCell next() {
-                        return cells.get(edge.adjacentCells[index++]);
-                    }
-                };
+            @Override
+            public BCell next() {
+                return cells.get(edge.getAdjCell(index++));
             }
         };
     }
@@ -700,12 +731,12 @@ public class CustomBoard extends Reflector<CustomBoard> {
                     int index = 0;
                     @Override
                     public boolean hasNext() {
-                        return index < vertex.numAdjCells;
+                        return index < vertex.getNumAdjCells();
                     }
 
                     @Override
                     public BCell next() {
-                        return cells.get(vertex.adjacentCells[index++]);
+                        return cells.get(vertex.getAdjCell(index++));
                     }
                 };
             }
@@ -721,7 +752,7 @@ public class CustomBoard extends Reflector<CustomBoard> {
         BCell cell = getCell(cellIndex);
         MutableVector2D min = new MutableVector2D(cell);
         MutableVector2D max = new MutableVector2D(cell);
-        for (int vIndex : cell.adjVerts) {
+        for (int vIndex : cell.getAdjVerts()) {
             BVertex v = getVertex(vIndex);
             min.minEq(v);
             max.maxEq(v);
@@ -748,7 +779,7 @@ public class CustomBoard extends Reflector<CustomBoard> {
         int sign = 0;
         for (int i=0; i<c.getNumAdjVerts(); i++) {
             IVector2D pv = verts.get(c.getAdjVertex(p));
-            Vector2D side = Vector2D.sub(verts.get(c.adjVerts.get(i)), pv).normEq();
+            Vector2D side = Vector2D.sub(verts.get(c.getAdjVertex(i)), pv).normEq();
             Vector2D dv = Vector2D.sub(vertex, pv);
             int s = CMath.signOf(side.dot(dv));
             if (sign == 0) {
@@ -810,18 +841,18 @@ public class CustomBoard extends Reflector<CustomBoard> {
         for (int cIndex=0; cIndex<cells.size(); cIndex++) {
             BCell c = cells.get(cIndex);
             mv.zero();
-            if (c.adjVerts.size()<3)
-                throw new cc.lib.utils.GException("Invalid cell: " + c.adjVerts);
-            int p = c.adjVerts.get(c.adjVerts.size()-1);
-            for (int vIndex : c.adjVerts) {
+            if (c.getNumAdjVerts()<3)
+                throw new cc.lib.utils.GException("Invalid cell: " + cIndex);
+            int p = c.getAdjVertex(c.getNumAdjVerts()-1);
+            for (int vIndex : c.getAdjVerts()) {
                 mv.addEq(verts.get(vIndex));
             }
-            mv.scaleEq(1.0f / c.adjVerts.size());
+            mv.scaleEq(1.0f / c.getNumAdjVerts());
             c.cx = mv.getX();
             c.cy = mv.getY();
             // now compute the radius
             float magSquared = 0;
-            for (int vIndex : c.adjVerts) {
+            for (int vIndex : c.getAdjVerts()) {
                 Vector2D dv = Vector2D.sub(verts.get(vIndex), c);
                 float m = dv.magSquared();
                 if (m > magSquared)
@@ -851,8 +882,20 @@ public class CustomBoard extends Reflector<CustomBoard> {
         }
     }
 
-    public Iterable<? extends BCell> getCells() {
+    public Iterable<C> getCells() {
         return cells;
+    }
+
+    public GDimension getDimension() {
+        return dimension;
+    }
+
+    public void setDimension(GDimension dimension) {
+        this.dimension = dimension;
+    }
+
+    public void setDimension(float width, float height) {
+        this.dimension = new GDimension(width, height);
     }
 
 }

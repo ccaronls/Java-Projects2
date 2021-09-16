@@ -129,4 +129,12 @@ public class TestUtils extends TestCase {
         assertFalse(iter.hasNext());
 
     }
+
+    public void testRomanNumeral() {
+        RomanNumeral roman = new RomanNumeral();
+        for (int i=0; i<=200; i++) {
+            System.out.println(String.format("%-10d = %s", i, roman.toRoman(i)));
+        }
+    }
+
 }

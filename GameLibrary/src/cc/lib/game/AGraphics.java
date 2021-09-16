@@ -446,7 +446,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param border
      * @return
      */
-    public final GRectangle drawJustifiedStringOnBackground(float x, float y, Justify hJust, Justify vJust, String text, GColor bkColor, float border, float cornerRadius) {
+    public GRectangle drawJustifiedStringOnBackground(float x, float y, Justify hJust, Justify vJust, String text, GColor bkColor, float border, float cornerRadius) {
         GRectangle r = drawJustifiedStringR(x, y, hJust, vJust, text);
         pushMatrix();
         setIdentity();

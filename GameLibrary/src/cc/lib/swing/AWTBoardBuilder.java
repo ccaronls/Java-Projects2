@@ -4,14 +4,18 @@ import java.awt.BorderLayout;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import cc.lib.board.BCell;
 import cc.lib.board.BEdge;
 import cc.lib.board.BVertex;
 import cc.lib.board.CustomBoard;
+import cc.lib.game.AGraphics;
 import cc.lib.game.APGraphics;
 import cc.lib.game.GColor;
 import cc.lib.game.GRectangle;
@@ -22,10 +26,27 @@ import cc.lib.logger.LoggerFactory;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 import cc.lib.utils.FileUtils;
+import cc.lib.utils.Table;
 
-import static java.awt.event.KeyEvent.*;
+import static java.awt.event.KeyEvent.VK_BACK_SPACE;
+import static java.awt.event.KeyEvent.VK_C;
+import static java.awt.event.KeyEvent.VK_DELETE;
+import static java.awt.event.KeyEvent.VK_DOWN;
+import static java.awt.event.KeyEvent.VK_E;
+import static java.awt.event.KeyEvent.VK_EQUALS;
+import static java.awt.event.KeyEvent.VK_ESCAPE;
+import static java.awt.event.KeyEvent.VK_H;
+import static java.awt.event.KeyEvent.VK_LEFT;
+import static java.awt.event.KeyEvent.VK_M;
+import static java.awt.event.KeyEvent.VK_MINUS;
+import static java.awt.event.KeyEvent.VK_N;
+import static java.awt.event.KeyEvent.VK_PLUS;
+import static java.awt.event.KeyEvent.VK_RIGHT;
+import static java.awt.event.KeyEvent.VK_TAB;
+import static java.awt.event.KeyEvent.VK_UP;
+import static java.awt.event.KeyEvent.VK_V;
 
-public abstract class AWTBoardBuilder<T extends CustomBoard> extends AWTComponent {
+public abstract class AWTBoardBuilder<V extends BVertex, E extends BEdge, C extends BCell, T extends CustomBoard<V,E,C>> extends AWTComponent {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -64,7 +85,31 @@ public abstract class AWTBoardBuilder<T extends CustomBoard> extends AWTComponen
         void undo();
     }
 
-    final File DEFAULT_FILE;
+    static class KeyAction implements Comparable<KeyAction> {
+        final String key;
+        final String description;
+        final Runnable action;
+
+        public KeyAction(String key, String description, Runnable action) {
+            this.key = key;
+            this.description = description;
+            this.action = action;
+        }
+
+        int getCompareKey() {
+            char c = key.charAt(0);
+            if (Character.isUpperCase(c))
+                return 256 + c;
+            return c;
+        }
+
+        @Override
+        public int compareTo(KeyAction o) {
+            return Integer.compare(getCompareKey(), o.getCompareKey());
+        }
+    }
+
+    File DEFAULT_FILE = new File("AWTBoardBuilder.default");
 
     final T board;
     int background = -1;
@@ -73,8 +118,11 @@ public abstract class AWTBoardBuilder<T extends CustomBoard> extends AWTComponen
     final LinkedList<Action> undoList = new LinkedList<>();
     PickMode pickMode = PickMode.VERTEX;
     boolean showNumbers = true;
+    boolean showHelp = false;
     GRectangle rect = null;
     List<Integer> selected = new ArrayList<>();
+    final MutableVector2D mouse = new MutableVector2D();
+    final Map<Integer, KeyAction> actions = new HashMap<>();
 
     enum PickMode {
         VERTEX, EDGE, CELL, CELL_MULTISELECT
@@ -86,10 +134,18 @@ public abstract class AWTBoardBuilder<T extends CustomBoard> extends AWTComponen
         setPadding(10);
         initFrame(frame);
         frame.add(this);
-        File settings = FileUtils.getOrCreateSettingsDirectory(getClass());
-        if (!frame.loadFromFile(new File(settings, getPropertiesFileName())))
+        try {
+            File settings = FileUtils.getOrCreateSettingsDirectory(getClass());
+            if (!frame.loadFromFile(new File(settings, getPropertiesFileName())))
+                frame.centerToScreen(640, 480);
+            DEFAULT_FILE = new File(settings, getDefaultBoardFileName());
+        } catch (Exception e) {
+            e.printStackTrace();
             frame.centerToScreen(640, 480);
-        DEFAULT_FILE = new File(settings, getDefaultBoardFileName());
+        }
+        board.setDimension(getWidth(), getHeight());
+        initActions();
+        setFocusTraversalKeysEnabled(false);
     }
 
     float progress = 0;
@@ -156,20 +212,22 @@ public abstract class AWTBoardBuilder<T extends CustomBoard> extends AWTComponen
 
     @Override
     protected void onDimensionChanged(AWTGraphics g, int width, int height) {
-        rect = new GRectangle(0, 0, width, height);
+        rect = null;
     }
 
     @Override
     protected synchronized void paint(AWTGraphics g, int mouseX, int mouseY) {
         if (rect == null) {
             rect = new GRectangle(0, 0, g.getViewportWidth(), g.getViewportHeight());
+            board.setDimension(rect.getDimension());
         }
         g.setIdentity();
         g.ortho(rect);
+        mouse.set(mouseX, mouseY);
         if (background >= 0) {
-            g.drawImage(background, 0, 0, getWidth(), getHeight());
+            g.drawImage(background, new GRectangle(0, 0, getWidth(), getHeight()));
         } else {
-            g.clearScreen(GColor.GREEN);
+            g.clearScreen(GColor.DARK_GRAY);
         }
         g.setColor(GColor.YELLOW);
         g.setLineWidth(3);
@@ -182,7 +240,7 @@ public abstract class AWTBoardBuilder<T extends CustomBoard> extends AWTComponen
 
         switch (pickMode) {
             case VERTEX:
-                drawVertexMode(g, mouseX, mouseY);
+                drawVertexMode(g, mouse);
                 break;
 
             case EDGE:
@@ -191,23 +249,86 @@ public abstract class AWTBoardBuilder<T extends CustomBoard> extends AWTComponen
 
             case CELL:
             case CELL_MULTISELECT:
+                g.screenToViewport(mouse);
                 drawCellMode(g, mouseX, mouseY);
                 break;
         }
 
+        g.ortho();
         g.setColor(GColor.RED);
         List<String> lines = new ArrayList<>();
         getDisplayData(lines);
-        int y = 10;
-        for (String line : lines) {
-            g.drawJustifiedString(getWidth() - 10, y, Justify.RIGHT, Justify.TOP, line);
-            y += g.getTextHeight();
+        StringBuffer buf = new StringBuffer();
+        for (String s : lines) {
+            if (buf.length() > 0)
+                buf.append("\n");
+            buf.append(s);
+        }
+        g.setColor(GColor.YELLOW);
+        g.drawWrapStringOnBackground(getWidth()-10, 10,getWidth()/4, Justify.RIGHT, Justify.TOP, buf.toString(), GColor.TRANSLUSCENT_BLACK, 3);
+        if (showHelp) {
+            drawHelp(g);
+        }
+        checkScrolling();
+    }
+
+    void drawHelp(AGraphics g) {
+        g.setColor(GColor.YELLOW);
+        Table table = new Table();
+        List<KeyAction> list = new ArrayList(actions.values());
+        Collections.sort(list);
+        Utils.unique(list);
+        for (KeyAction action: list) {
+            table.addRow(action.key, action.description);
+        }
+        table.draw(g, g.getViewport().getCenter());
+    }
+
+    void checkScrolling() {
+        int width = getAPGraphics().getViewportWidth();
+        int height = getAPGraphics().getViewportHeight();
+        int margin = Math.min(width, height) / 10;
+
+        int mouseX = getMouseX();
+        int mouseY = getMouseY();
+
+        int scrollSpeed=3;
+
+        boolean refresh = false;
+        if (mouseX > 0 && mouseX < margin) {
+            if (rect.x > 0) {
+                rect.x-=scrollSpeed;
+                refresh = true;
+            }
+        } else if (mouseX < width && mouseX > width - margin) {
+            if (rect.x + rect.w < width) {
+                rect.x+=scrollSpeed;
+                refresh = true;
+            }
+        }
+
+        if (mouseY > 0 && mouseY < margin) {
+            if (rect.y > 0) {
+                rect.y-=scrollSpeed;
+                refresh = true;
+            }
+        } else if (mouseY < height && mouseY > height - margin) {
+            if(rect.y + rect.h < height) {
+                rect.y+=scrollSpeed;
+                refresh = true;
+            }
+        }
+
+        if (refresh && isFocused()) {
+            Utils.waitNoThrow(this, 30);
+            redraw();
         }
     }
 
     protected void getDisplayData(List<String> lines) {
         lines.add(boardFile.getName());
         lines.add(pickMode.name());
+        lines.add(String.format("V:%d E:%d C:%d", board.getNumVerts(), board.getNumEdges(), board.getNumCells()));
     }
 
     public int getSelectedIndex() {
@@ -220,7 +341,7 @@ public abstract class AWTBoardBuilder<T extends CustomBoard> extends AWTComponen
             selected.add(idx);
     }
 
-    protected void drawVertexMode(APGraphics g, int mouseX, int mouseY) {
+    protected void drawVertexMode(APGraphics g, Vector2D mouse) {
 
         if (getSelectedIndex() >= 0) {
             g.setColor(GColor.RED);
@@ -228,11 +349,10 @@ public abstract class AWTBoardBuilder<T extends CustomBoard> extends AWTComponen
             g.vertex(board.getVertex(getSelectedIndex()));
             g.drawPoints(8);
         }
-        highlightedIndex = board.pickVertex(g, mouseX, mouseY);
+        highlightedIndex = board.pickVertex(g, mouse);
         if (highlightedIndex >= 0) {
-            g.setColor(GColor.MAGENTA);
-            g.begin();
             BVertex v = board.getVertex(highlightedIndex);
+            g.begin();
             g.vertex(v);
             g.drawPoints(8);
             // draw lines from vertex to its adjacent cells
@@ -241,6 +361,17 @@ public abstract class AWTBoardBuilder<T extends CustomBoard> extends AWTComponen
                 g.vertex(v);
                 g.vertex(c);
             }
+            g.setColor(GColor.MAGENTA);
+            g.drawLines();
+
+            // draw lines to adjacent verts
+            g.begin();
+            for (int vIdx : v.getAdjVerts()) {
+                BVertex vv = board.getVertex(vIdx);
+                g.vertex(v);
+                g.vertex(vv);
+            }
+            g.setColor(GColor.CYAN);
             g.drawLines();
         }
 
@@ -273,7 +404,8 @@ public abstract class AWTBoardBuilder<T extends CustomBoard> extends AWTComponen
             board.renderEdge(e, g);
             Vector2D mp = board.getMidpoint(e);
             // draw the lines from midpt of edge to the cntr of its adjacent cells
-            for (BCell c : board.getAdjacentCells(e)) {
+            for (Object _c : board.getAdjacentCells(e)) {
+                BCell c = (BCell)_c;
                 g.vertex(mp);
                 g.vertex(c);
             }
@@ -295,7 +427,7 @@ public abstract class AWTBoardBuilder<T extends CustomBoard> extends AWTComponen
             g.drawLineLoop();
         }
 
-        highlightedIndex = board.pickCell(g, mouseX, mouseY);
+        highlightedIndex = board.pickCell(g, mouse);
         if (highlightedIndex >= 0) {
             g.setColor(GColor.MAGENTA);
             g.begin();
@@ -309,6 +441,14 @@ public abstract class AWTBoardBuilder<T extends CustomBoard> extends AWTComponen
             g.drawPoints(3);
             g.begin();
             g.drawRect(board.getCellBoundingRect(highlightedIndex));
+            g.begin();
+            for (int idx : cell.getAdjCells()) {
+                BCell cell2 = board.getCell(idx);
+                g.vertex(cell);
+                g.vertex(cell2);
+            }
+            g.setColor(GColor.CYAN);
+            g.drawLines();
         }
 
         g.setColor(GColor.BLACK);
@@ -380,6 +520,10 @@ public abstract class AWTBoardBuilder<T extends CustomBoard> extends AWTComponen
         repaint();
     }
 
+    protected String getBoardFileExtension() {
+        return null;
+    }
+
     synchronized void onFileMenu(String item) {
         switch (item) {
             case "New Board":
@@ -388,7 +532,7 @@ public abstract class AWTBoardBuilder<T extends CustomBoard> extends AWTComponen
                 setBoardFile(null);
                 break;
             case "Load Board": {
-                File file = frame.showFileOpenChooser("Load Board", "Generic Boards", "board");
+                File file = frame.showFileOpenChooser("Load Board", getBoardFileExtension(), "board");
                 if (file != null) {
                     try {
                         CustomBoard b = new CustomBoard();
@@ -461,16 +605,17 @@ public abstract class AWTBoardBuilder<T extends CustomBoard> extends AWTComponen
                 break;
 
             case CELL:
-                selected.clear();
+                pickCellSingleSelect();
+                break;
             case CELL_MULTISELECT:
-                pickCell();
+                pickCellMultiselect();
                 break;
         }
     }
 
     protected void pickVertex() {
 
-        int picked = board.pickVertex(getAPGraphics(), getMouseX(), getMouseY());
+        int picked = highlightedIndex;//board.pickVertex(getAPGraphics(), mouse);
         Action a = null;
         if (picked < 0) {
             final int v = board.addVertex(getMousePos());
@@ -505,26 +650,21 @@ public abstract class AWTBoardBuilder<T extends CustomBoard> extends AWTComponen
     }
 
     protected void pickEdge() {
-        int picked = board.pickEdge(getAPGraphics(), getMouseX(), getMouseY());
-        Action a = null;
-        if (picked >= 0) {
-            final BEdge e = board.getEdge(picked);
-            board.removeEdge(picked);
-            pushUndoAction(new Action() {
-                @Override
-                public void undo() {
-                    board.addEdge(e);
-                }
-            });
-        }
+        setSelectedIndex(highlightedIndex);
         repaint();
     }
 
-    protected void pickCell() {
-        int idx = board.pickCell(getAPGraphics(), getMouseX(), getMouseY());
+    protected void pickCellSingleSelect() {
+        setSelectedIndex(highlightedIndex);
+        repaint();
+    }
+
+    protected void pickCellMultiselect() {
+        int idx = board.pickCell(getAPGraphics(), mouse);
         if (idx >= 0) {
             selected.add(idx);
         }
+        redraw();
     }
 
     protected void pushUndoAction(Action a) {
@@ -536,7 +676,7 @@ public abstract class AWTBoardBuilder<T extends CustomBoard> extends AWTComponen
     @Override
     protected void onDragStarted(int x, int y) {
         if (getSelectedIndex() < 0) {
-            setSelectedIndex(board.pickVertex(getAPGraphics(), x, y));
+            setSelectedIndex(board.pickVertex(getAPGraphics(), mouse));
         } else {
             BVertex v = board.getVertex(getSelectedIndex());
             v.set(getMousePos(x, y));
@@ -550,132 +690,190 @@ public abstract class AWTBoardBuilder<T extends CustomBoard> extends AWTComponen
         repaint();
     }
 
-    @Override
-    public synchronized void keyTyped(KeyEvent evt) {
-        switch (evt.getExtendedKeyCode()) {
-            case VK_ESCAPE:
-                selected.clear();
-                break;
+    protected void initActions() {
+        addAction(VK_ESCAPE, "ESC", "Clear Selected", () -> selected.clear());
+        addAction(VK_V, "V", "Set PickMode to VERTEX", ()->{ pickMode = PickMode.VERTEX; selected.clear(); });
+        addAction(VK_E, "E", "Set PickMode EDGE", ()->{pickMode=PickMode.EDGE; selected.clear();});
+        addAction(VK_C, "C", "Set PickMOde CELL", ()->{pickMode=PickMode.CELL; selected.clear();});
+        addAction(VK_M, "M", "Set PickMode CELL_MULTISELECT", ()->{pickMode=PickMode.CELL_MULTISELECT; selected.clear();});
+        addAction(VK_H, "H", "Toggle Show Help", ()->showHelp=!showHelp);
+        addAction(Utils.toIntArray(VK_DELETE, VK_BACK_SPACE), "DELETE", "Remove Selected Item", ()->deleteSelected());
+        addAction(VK_TAB, "TAB", "Toggle Pick Modes", ()-> {pickMode = Utils.incrementValue(pickMode, PickMode.values()); selected.clear();});
+        addAction(VK_N, "N", "Toggle Show Numbers", ()->showNumbers = !showNumbers);
+        addAction(Utils.toIntArray(VK_PLUS, VK_EQUALS), "+", "Zoom in", ()->zoomIn());
+        addAction(VK_MINUS, "-", "Zoom out", ()->zoomOut());
+        addAction(VK_LEFT, "<", "Adjust Vertex Left", ()->moveVertex(-1, 0));
+        addAction(VK_RIGHT, ">", "Adjust Vertex Right", ()->moveVertex(1, 0));
+        addAction(VK_UP, "^", "Adjust Vertex Up", ()->moveVertex(0, -1));
+        addAction(VK_DOWN, "v", "Adjust Vertex Down", ()->moveVertex(0, 1));
+    }
 
-            case VK_V:
-                pickMode = PickMode.VERTEX;
-                selected.clear();
-                break;
+    void zoomIn() {
+        rect.scale(.5f);
+        frame.setProperty("rect", rect);
+    }
 
-            case VK_E:
-                pickMode = PickMode.EDGE;
-                selected.clear();
-                break;
+    void zoomOut() {
+        rect.scale(2);
+        rect.x=0;
+        rect.y=0;
+        rect.w = Math.min(rect.w, getViewportWidth());
+        rect.h=Math.min(rect.h, getViewportHeight());
+        frame.setProperty("rect", rect);
+    }
 
-            case VK_C:
-                pickMode = PickMode.CELL;
-                selected.clear();
-                break;
+    protected void addAction(int code, String key, String description, Runnable action) {
+        actions.put(code, new KeyAction(key, description, action));
+    }
 
-            case VK_M:
-                pickMode = PickMode.CELL_MULTISELECT;
-                selected.clear();
-                break;
+    protected void addAction(int [] codes, String key, String description, Runnable action) {
+        KeyAction a = new KeyAction(key, description, action);
+        for (int code : codes) {
+            actions.put(code, a);
+        }
+    }
 
-            case VK_DELETE:
-                if (getSelectedIndex() >= 0) {
-                    switch (pickMode) {
-                        case CELL:
-                            break;
-                        case EDGE:
-                            board.removeEdge(getSelectedIndex());
-                            break;
-                        case VERTEX:
-                            board.removeVertex(getSelectedIndex());
-                            break;
+    private void deleteSelected() {
+        if (getSelectedIndex() >= 0) {
+            switch (pickMode) {
+                case CELL:
+                    board.removeCell(getSelectedIndex());
+                    break;
+                case EDGE: {
+                    //board.removeEdge(getSelectedIndex());
+                    Action a = null;
+                    if (getSelectedIndex() >= 0) {
+                        final E e = board.getEdge(getSelectedIndex());
+                        board.removeEdge(getSelectedIndex());
+                        pushUndoAction(new Action() {
+                            @Override
+                            public void undo() {
+                                board.addEdge(e);
+                            }
+                        });
                     }
-                    selected.clear();
+
+                    break;
                 }
-                break;
+                case VERTEX:
+                    board.removeVertex(getSelectedIndex());
+                    break;
+            }
+            selected.clear();
+        }
+    }
 
-            case VK_TAB:
-                pickMode = Utils.incrementValue(pickMode, PickMode.values());
-                selected.clear();
-                break;
+    @Override
+    public final synchronized void keyTyped(KeyEvent evt) {
+    }
 
-            case VK_N:
-                showNumbers = !showNumbers;
-                break;
-            case VK_PLUS:
-                rect.scale(.5f);
-                break;
-            // zoom
-            case VK_MINUS:
-                rect.scale(2);
-                break;
+    void moveVertex(float dx, float dy) {
+        if (pickMode == PickMode.VERTEX && getSelectedIndex() >= 0) {
+            BVertex bv = board.getVertex(getSelectedIndex());
+            MutableVector2D v = new MutableVector2D(bv);
+            v.addEq(dx, dy);
+            bv.set(v);
+        }
+    }
 
+    @Override
+    public final synchronized void keyPressed(KeyEvent evt) {
+        if (actions.containsKey(evt.getKeyCode())) {
+            actions.get(evt.getKeyCode()).action.run();
+            evt.consume();
+        } else if (actions.containsKey(evt.getExtendedKeyCode())) {
+            actions.get(evt.getExtendedKeyCode()).action.run();
+            evt.consume();
+        } else {
+            System.err.println("Unhandled key type:" + evt.getKeyChar());
         }
         frame.setProperty("pickMode", pickMode.name());
         repaint();
     }
 
-    @Override
-    public synchronized void keyPressed(KeyEvent evt) {
-        switch (evt.getKeyCode()) {
-            case VK_UP:
-                if (pickMode == PickMode.VERTEX && getSelectedIndex() >= 0) {
-                    BVertex bv = board.getVertex(getSelectedIndex());
-                    MutableVector2D v = new MutableVector2D(bv);
-                    v.setY(v.getY() - 1);
-                    bv.set(v);
-                }
-                break;
-            case VK_DOWN:
-                if (pickMode == PickMode.VERTEX && getSelectedIndex() >= 0) {
-                    BVertex bv = board.getVertex(getSelectedIndex());
-                    MutableVector2D v = new MutableVector2D(bv);
-                    v.setY(v.getY() + 1);
-                    bv.set(v);
-                }
-                break;
-            case VK_RIGHT:
-                if (pickMode == PickMode.VERTEX && getSelectedIndex() >= 0) {
-                    BVertex bv = board.getVertex(getSelectedIndex());
-                    MutableVector2D v = new MutableVector2D(bv);
-                    v.setX(v.getX() + 1);
-                    bv.set(v);
-                }
-                break;
-            case VK_LEFT:
-                if (pickMode == PickMode.VERTEX && getSelectedIndex() >= 0) {
-                    BVertex bv = board.getVertex(getSelectedIndex());
-                    MutableVector2D v = new MutableVector2D(bv);
-                    v.setX(v.getX() - 1);
-                    bv.set(v);
-                }
-                break;
+    /*
+     * Internal.  Center, compute radius and find the bounding polygon.
+     *
+    private void giftwrapSelectedVerts() {
+
+        if (selected.size() < 3)
+            return; // need at least 3
+
+        List<Integer> vlist = new ArrayList<>();
+        for (int s : selected) {
 
         }
-        repaint();
-    }
 
-    @Override
-    protected void onMouseMoved(int mouseX, int mouseY) {
-        int width = getAPGraphics().getViewportWidth();
-        int height = getAPGraphics().getViewportHeight();
-        int margin = 5;
 
-        if (mouseX < margin) {
-            if (rect.x > 0) {
-                rect.x--;
-            }
-        } else if (mouseX > width - margin) {
-            if (rect.x + rect.w < width) {
-                rect.x++;
+
+        final int numVerts = verts.length;
+
+        // center the polygon
+        MutableVector2D cntr = Vector2D.newTemp();
+
+        for (int i=0; i<numVerts; i++) {
+            cntr.addEq(verts[i]);
+        }
+
+        cntr.scaleEq(1.0f / numVerts);
+
+        radius = 0;
+        primary = -1;
+        for (int i=0; i<numVerts; i++) {
+            verts[i].subEq(cntr);
+
+            float r = verts[i].magSquared();
+            if (r > radius) {
+                radius = r;
+                primary = i;
             }
         }
 
-        if (mouseY < margin) {
-            if (rect.y > 0) {
-                rect.y--;
-            } else if (rect.y + rect.h < height) {
-                rect.y++;
-            }
+        radius = (float)Math.sqrt(radius);
+
+        // compute the bounding polygon using giftwrap algorithm
+
+        // start at the primary (longest) vertex from the center since this must be on the bounding rect
+        List<MutableVector2D> newV = new ArrayList<MutableVector2D>(32);
+
+        newV.add(new MutableVector2D(verts[primary]));
+
+        int start = primary;//(primary+1) % numVerts;
+
+        MutableVector2D dv = Vector2D.newTemp();
+        MutableVector2D vv = Vector2D.newTemp();
+        try {
+            do {
+                verts[start].scale(-1, dv);
+                float best = 0;
+                int next = -1;
+                for (int i=(start+1)%numVerts; i!=start; i = (i+1)%numVerts) {
+                    verts[i].sub(verts[start], vv);
+                    float angle = vv.angleBetween(dv);
+                    if (angle > best) {
+                        best = angle;
+                        next = i;
+                    } else {
+                        break;
+                    }
+                }
+                Utils.assertTrue(next >= 0);
+                if (next != primary) {
+                    newV.add(new MutableVector2D(verts[next]));
+                }
+                //Utils.assertTrue(xv.size() <= numVerts);
+                start = next;
+            } while (start != primary && newV.size() < numVerts);
+        } catch (Throwable e) {
+            e.printStackTrace();
         }
-    }
+        // the bounding verts are a subset of the verts
+        this.boundingVerts = new MutableVector2D[newV.size()];
+
+        for (int i=0; i<newV.size(); i++) {
+            boundingVerts[i] = newV.get(i);
+        }
+        computeArea();
+    }*/
+
 }

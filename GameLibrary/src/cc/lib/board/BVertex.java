@@ -15,11 +15,11 @@ public class BVertex extends Reflector<BVertex> implements IVector2D {
     }
 
     float x, y;
-    final int [] adjacentVerts = new int[8];
-    int numAdjVerts;
+    private final int [] adjacentVerts = new int[8];
+    private int numAdjVerts;
 
-    final int [] adjacentCells = new int[8];
-    int numAdjCells;
+    private final int [] adjacentCells = new int[8];
+    private int numAdjCells;
 
     public BVertex() {}
 
@@ -48,6 +48,28 @@ public class BVertex extends Reflector<BVertex> implements IVector2D {
     }
 
     void addAdjacentCell(int c) { adjacentCells[numAdjCells++] = c; }
+
+    void removeAndRenameAdjacentCell(int cellToRemove, int cellToRename) {
+        for (int i=0; i<numAdjCells; i++) {
+            if (adjacentCells[i] == cellToRemove) {
+                adjacentCells[i] = adjacentCells[--numAdjCells];
+            }
+            if (adjacentCells[i] == cellToRename) {
+                adjacentCells[i] = cellToRemove;
+            }
+        }
+    }
+
+    void removeAndRenameAdjacentVertex(int vtxToRemove, int vtxToRename) {
+        for (int i=0; i<numAdjVerts; i++) {
+            if (adjacentVerts[i] == vtxToRemove) {
+                adjacentVerts[i] = adjacentVerts[--numAdjVerts];
+            }
+            if (adjacentVerts[i] == vtxToRename) {
+                adjacentVerts[i] = vtxToRemove;
+            }
+        }
+    }
 
     public final List<Integer> getAdjVerts() {
         List<Integer> adj = new ArrayList<>();
@@ -78,4 +100,25 @@ public class BVertex extends Reflector<BVertex> implements IVector2D {
         }
         return false;
     }
+
+    public final int getNumAdjCells() {
+        return numAdjCells;
+    }
+
+    public final int getNumAdjVerts() {
+        return numAdjVerts;
+    }
+
+    public final int getAdjCell(int idx) {
+        if (idx >= numAdjCells)
+            throw new IndexOutOfBoundsException("Idx of " + idx + " is out of range of [0-" + numAdjCells);
+        return adjacentCells[idx];
+    }
+
+    public final int getAdjVertex(int idx) {
+        if (idx >= numAdjVerts)
+            throw new IndexOutOfBoundsException("Idx of " + idx + " is out of range of [0-" + numAdjVerts);
+        return adjacentVerts[idx];
+    }
+
 }

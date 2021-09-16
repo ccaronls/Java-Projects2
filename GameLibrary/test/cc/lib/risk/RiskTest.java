@@ -20,10 +20,11 @@ public class RiskTest extends TestCase {
         try (InputStream is = FileUtils.openFileOrResource("risk.board")) {
             game.getBoard().deserialize(is);
         }
-        for (int i=0; i<500 && !game.isGameOver(); i++) {
+        for (int i=0; i<1000 && !game.isGameOver(); i++) {
             game.runGame();
         }
         System.out.println(game.getSummary());
+        System.out.println("Winner: " + game.getWinner());
     }
 
 

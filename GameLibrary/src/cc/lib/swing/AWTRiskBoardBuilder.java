@@ -2,6 +2,8 @@ package cc.lib.swing;
 
 import java.awt.event.KeyEvent;
 
+import cc.lib.board.BEdge;
+import cc.lib.board.BVertex;
 import cc.lib.game.APGraphics;
 import cc.lib.game.GColor;
 import cc.lib.game.Justify;
@@ -13,7 +15,7 @@ import cc.lib.risk.RiskCell;
 /**
  * Created by Chris Caron on 9/13/21.
  */
-public class AWTRiskBoardBuilder extends AWTBoardBuilder<RiskBoard> {
+public class AWTRiskBoardBuilder extends AWTBoardBuilder<BVertex, BEdge, RiskCell, RiskBoard> {
 
     public static void main(String [] args) {
         new AWTRiskBoardBuilder();
@@ -35,6 +37,11 @@ public class AWTRiskBoardBuilder extends AWTBoardBuilder<RiskBoard> {
     }
 
     @Override
+    protected String getBoardFileExtension() {
+        return "board";
+    }
+
+    @Override
     protected void drawCellMode(APGraphics g, int mouseX, int mouseY) {
         super.drawCellMode(g, mouseX, mouseY);
         if (highlightedIndex >= 0) {
@@ -43,7 +50,7 @@ public class AWTRiskBoardBuilder extends AWTBoardBuilder<RiskBoard> {
             g.begin();
             for (Integer adj : board.getConnectedCells(cell)) {
                 g.vertex(cell);
-                g.vertex(board.getRiskCell(adj));
+                g.vertex(board.getCell(adj));
             }
             g.drawLines(4);
             g.setColor(GColor.BLACK);
@@ -52,13 +59,9 @@ public class AWTRiskBoardBuilder extends AWTBoardBuilder<RiskBoard> {
     }
 
     @Override
-    protected void pickCell() {
-        if (pickMode == PickMode.CELL_MULTISELECT) {
-            super.pickCell();
-            return;
-        }
+    protected void pickCellSingleSelect() {
         int current = getSelectedIndex();
-        super.pickCell();
+        super.pickCellSingleSelect();
         int selectedIndex = getSelectedIndex();
         if (current >= 0 && selectedIndex >= 0 && current != selectedIndex) {
             // create a connection between the cells
@@ -78,35 +81,32 @@ public class AWTRiskBoardBuilder extends AWTBoardBuilder<RiskBoard> {
     }
 
     @Override
-    public synchronized void keyTyped(KeyEvent evt) {
-        switch (evt.getExtendedKeyCode()) {
-            case KeyEvent.VK_L:
-                if (pickMode == PickMode.CELL_MULTISELECT) {
-                    String currentRegion = null;
-                    for (int idx : selected) {
-                        RiskCell cell = board.getCell(idx);
-                        if (cell.getRegion() == null)
-                            continue;
-                        if (currentRegion == null) {
-                            currentRegion = cell.getRegion().name();
-                        } else if (!cell.getRegion().name().equals(currentRegion)) {
-                            currentRegion = null;
-                            break;
-                        }
-                    }
+    protected void initActions() {
+        super.initActions();
+        addAction(KeyEvent.VK_L, "L", "Assign selected cells to a Continent", ()->assignToRegion());
+    }
 
-                    int idx = frame.showItemChooserDialog("Set Region", null, currentRegion, Utils.toStringArray(Region.values()));
-                    if (idx >= 0) {
-                        for (int cellIdx : selected) {
-                            ((RiskCell)board.getCell(cellIdx)).setRegion(Region.values()[idx]);
-                        }
-                    }
+    private void assignToRegion() {
+        if (pickMode == PickMode.CELL_MULTISELECT) {
+            String currentRegion = null;
+            for (int idx : selected) {
+                RiskCell cell = board.getCell(idx);
+                if (cell.getRegion() == null)
+                    continue;
+                if (currentRegion == null) {
+                    currentRegion = cell.getRegion().name();
+                } else if (!cell.getRegion().name().equals(currentRegion)) {
+                    currentRegion = null;
                     break;
                 }
+            }
 
-            default:
-                super.keyTyped(evt);
+            int idx = frame.showItemChooserDialog("Set Region", null, currentRegion, Utils.toStringArray(Region.values()));
+            if (idx >= 0) {
+                for (int cellIdx : selected) {
+                    ((RiskCell)board.getCell(cellIdx)).setRegion(Region.values()[idx]);
+                }
+            }
         }
-        redraw();
     }
 }

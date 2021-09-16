@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <GridLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:rowCount="4"
+        android:columnCount="3"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/tv_attacker"
+            android:text="Attacker"
+            android:textSize="@dimen/text_height"/>
+
+        <TextView
+            android:textSize="@dimen/text_height"/>
+
+        <TextView
+            android:id="@+id/tv_defender"
+            android:text="Defender"
+            android:textSize="@dimen/text_height"/>
+
+        <cc.game.android.risk.DiceView
+            style="@style/dice_red"
+            android:id="@+id/red1"/>
+
+        <View style="@style/dice"/>
+
+        <cc.game.android.risk.DiceView
+            style="@style/dice"
+            android:id="@+id/white1"/>
+
+        <cc.game.android.risk.DiceView
+            style="@style/dice_red"
+            android:id="@+id/red2"/>
+
+        <View style="@style/dice"/>
+
+        <cc.game.android.risk.DiceView
+            style="@style/dice"
+            android:id="@+id/white2"/>
+
+        <cc.game.android.risk.DiceView
+            style="@style/dice_red"
+            android:id="@+id/red3"/>
+    </GridLayout>
+
+</android.support.constraint.ConstraintLayout>

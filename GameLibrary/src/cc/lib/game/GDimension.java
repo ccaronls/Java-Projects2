@@ -4,7 +4,7 @@ import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 import cc.lib.utils.Reflector;
 
-public class GDimension extends Reflector<GDimension> implements IDimension {
+public final class GDimension extends Reflector<GDimension> implements IDimension, IRectangle {
 
     public final static GDimension EMPTY = new GDimension();
 
@@ -84,5 +84,23 @@ public class GDimension extends Reflector<GDimension> implements IDimension {
 
     public MutableVector2D getCenter() {
         return new MutableVector2D(width/2, height/2);
+    }
+
+    @Override
+    public float X() {
+        return 0;
+    }
+
+    @Override
+    public float Y() {
+        return 0;
+    }
+
+    @Override
+    public String toString() {
+        return "GDimension{" +
+                "width=" + width +
+                ", height=" + height +
+                '}';
     }
 }

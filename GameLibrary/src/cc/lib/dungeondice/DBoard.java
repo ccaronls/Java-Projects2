@@ -5,13 +5,14 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
-import cc.lib.board.BCell;
+import cc.lib.board.BEdge;
+import cc.lib.board.BVertex;
 import cc.lib.board.CustomBoard;
 import cc.lib.game.AGraphics;
 import cc.lib.game.GColor;
 import cc.lib.game.GRectangle;
 
-public class DBoard extends CustomBoard {
+public class DBoard extends CustomBoard<BVertex, BEdge, DCell> {
 
     /**
      * Find all cells player can move to given the die roll
@@ -51,7 +52,7 @@ public class DBoard extends CustomBoard {
     }
 
     @Override
-    protected BCell newCell(List<Integer> pts) {
+    protected DCell newCell(List<Integer> pts) {
         return new DCell(pts, CellType.EMPTY);
     }
 

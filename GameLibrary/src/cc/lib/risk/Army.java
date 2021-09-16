@@ -18,4 +18,8 @@ public enum Army {
     }
 
     final GColor color;
+
+    public GColor getColor() {
+        return color;
+    }
 }

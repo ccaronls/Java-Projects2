@@ -30,6 +30,12 @@ public class Renderer {
 		}
 		m_stack_size = 1;
 		cur_mat = m_stack[0];
+		m_stack_proj = new Matrix3x3[2];
+		for (int i=0; i<m_stack_proj.length; i++) {
+		    m_stack_proj[i] = new Matrix3x3();
+        }
+		m_stack_size_proj = 1;
+		proj_mat = m_stack_proj[0];
 		s_mat = new Matrix3x3();
 		t_mat = new Matrix3x3();
 		makeIdentity();
@@ -171,8 +177,8 @@ public class Renderer {
         float H = this.window.getViewportHeight();
 
         if (USE_PROJECTION_MATRIX) {
-            float Xd = 2f * (screenX) / W - 1;
-            float Yd = 2f * (screenY) / H - 1;
+            float Xd = (2f * screenX) / W - 1;
+            float Yd = (2f * screenY) / H - 1;
             MutableVector2D v = new MutableVector2D(Xd, Yd);
             proj_mat.inverse().transform(v);
             cur_mat.inverse().transform(v);
@@ -290,8 +296,18 @@ public class Renderer {
 			cur_mat = m_stack[m_stack_size];
 			m_stack_size++;
 		} else
-			throw new cc.lib.utils.GException("Fixed stack size of [" + m_stack.length + "] for pushMatrix()");
+			throw new GException("Fixed stack size of [" + m_stack.length + "] for pushMatrix()");
 	}
+
+	public final void pushMatrixProj() {
+        if (m_stack_size_proj < m_stack_proj.length)
+        {
+            m_stack_proj[m_stack_size_proj].copy(m_stack_proj[m_stack_size_proj-1]);
+            proj_mat = m_stack_proj[m_stack_size_proj];
+            m_stack_size_proj++;
+        } else
+            throw new GException("Fixed stack size of [" + m_stack_proj.length + "] for pushMatrixProj()");
+    }
 	
 	/**
 	 * pop off the matrix stack
@@ -305,7 +321,19 @@ public class Renderer {
 			throw new GException("too many pops");
 	}
 
-	/**
+    /**
+     * pop off the matrix stack
+     */
+    public final void popMatrixProj() {
+        if (m_stack_size_proj > 1) {
+            m_stack_size_proj -= 1;
+            proj_mat = m_stack_proj[m_stack_size_proj-1];
+        }
+        else
+            throw new GException("too many pops");
+    }
+
+    /**
 	 * 
 	 * @param name
 	 */
@@ -422,8 +450,10 @@ public class Renderer {
 	private int			cur_name = 0;
 	private Matrix3x3 []	m_stack;
 	private Matrix3x3		cur_mat;
-	private Matrix3x3       proj_mat = Matrix3x3.newIdentity();
-	private int			m_stack_size;
+    private int			    m_stack_size;
+	private Matrix3x3 []    m_stack_proj;
+	private Matrix3x3       proj_mat;
+	private int             m_stack_size_proj;
 	private Exception []    m_stack_trace;
 	private Matrix3x3		s_mat; // working matrix
 	private Matrix3x3		t_mat; // working matrix

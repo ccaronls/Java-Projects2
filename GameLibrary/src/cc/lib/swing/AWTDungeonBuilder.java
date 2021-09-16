@@ -2,12 +2,14 @@ package cc.lib.swing;
 
 import java.util.List;
 
+import cc.lib.board.BEdge;
+import cc.lib.board.BVertex;
 import cc.lib.dungeondice.CellType;
 import cc.lib.dungeondice.DBoard;
 import cc.lib.dungeondice.DCell;
 import cc.lib.game.Utils;
 
-public class AWTDungeonBuilder extends AWTBoardBuilder<DBoard> {
+public class AWTDungeonBuilder extends AWTBoardBuilder<BVertex, BEdge, DCell, DBoard> {
 
     public static void main(String [] args) {
         new AWTDungeonBuilder();
@@ -52,8 +54,8 @@ public class AWTDungeonBuilder extends AWTBoardBuilder<DBoard> {
     }
 
     @Override
-    protected void pickCell() {
-        super.pickCell();
+    protected void pickCellSingleSelect() {
+        super.pickCellSingleSelect();
         if (getSelectedIndex() >= 0) {
             DCell cell = board.getCell(getSelectedIndex());
             cell.setType(cellType);

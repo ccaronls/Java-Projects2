@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cc.lib.board.BCell;
+import cc.lib.game.Utils;
 
 /**
  * Created by Chris Caron on 9/13/21.
@@ -18,6 +19,11 @@ public class RiskCell extends BCell {
     Region region;
     Army occupier;
     int numArmies = 0;
+
+    void reset() {
+        occupier = null;
+        numArmies = 0;
+    }
 
     public RiskCell() {}
 
@@ -51,5 +57,9 @@ public class RiskCell extends BCell {
 
     public void setNumArmies(int numArmies) {
         this.numArmies = numArmies;
+    }
+
+    public List<Integer> getAllConnectedCells() {
+        return Utils.mergeLists(connectedCells, Utils.map(getAdjCells(), c -> c));
     }
 }

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="cell_width">1dp</dimen>
+    <dimen name="text_height">18dp</dimen>
+    <dimen name="roman_number_thickness">4dp</dimen>
+</resources>

@@ -7,15 +7,22 @@ import android.os.SystemClock;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
 import android.view.View;
 
 import cc.lib.game.GColor;
+import cc.lib.game.Utils;
 
-public class DroidView extends View {
+public class DroidView extends View implements ScaleGestureDetector.OnScaleGestureListener {
 
     final static String TAG = "DroidView";
 
     private boolean isParentDroidActivity = false;
+    private ScaleGestureDetector scaleDetector;
+    private float gestureScale = 1;
+    private float minScale=0.1f, maxScale = 5;
+    private float pinchCenterX=0, pinchCenterY=0;
+    private boolean scaling = false;
 
     public DroidView(Context context, boolean touchEnabled) {
         super(context);
@@ -28,12 +35,39 @@ public class DroidView extends View {
         isParentDroidActivity = context instanceof DroidActivity;
     }
 
-    public DroidView(Context context, AttributeSet attrs, int defStyleAttr) {
-        super(context, attrs, defStyleAttr);
+    public void setPinchZoomEnabled(boolean enabled) {
+        if (enabled) {
+            scaleDetector = new ScaleGestureDetector(getContext(), this);
+            scaleDetector.setQuickScaleEnabled(true);
+        } else {
+            scaleDetector = null;
+            gestureScale = 1;
+        }
     }
 
-    public DroidView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
-        super(context, attrs, defStyleAttr, defStyleRes);
+    public void setZoomScaleBound(float minScale, float maxScale) {
+        this.minScale = minScale;
+        this.maxScale = maxScale;
+    }
+
+    @Override
+    public boolean onScale(ScaleGestureDetector detector) {
+        pinchCenterX = detector.getFocusX();
+        pinchCenterY = detector.getFocusY();
+        gestureScale = Utils.clamp(gestureScale * detector.getScaleFactor(), minScale, maxScale);
+        invalidate();
+        return true;
+    }
+
+    @Override
+    public boolean onScaleBegin(ScaleGestureDetector detector) {
+        scaling = true;
+        return true;
+    }
+
+    @Override
+    public void onScaleEnd(ScaleGestureDetector detector) {
+        scaling = false;
     }
 
     private DroidGraphics g = null;
@@ -59,6 +93,7 @@ public class DroidView extends View {
             g.setCanvas(canvas, width, height);
         }
         canvas.save();
+        canvas.scale(gestureScale, gestureScale,pinchCenterX,pinchCenterY);
         canvas.translate(margin, margin);
         canvas.save();
         onPaint(g);
@@ -79,6 +114,12 @@ public class DroidView extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+
+        if (scaleDetector != null) {
+            scaleDetector.onTouchEvent(event);
+            if (scaling)
+                return true;
+        }
 
         if (!isParentDroidActivity)
             return super.onTouchEvent(event);
