@@ -1,12 +1,11 @@
 package cc.lib.risk;
 
-import cc.lib.utils.GException;
-
 /**
  * Created by Chris Caron on 9/13/21.
  */
 public enum Action {
 
+    CANCEL,
     ATTACK,
     MOVE,
     END,
@@ -24,6 +23,6 @@ public enum Action {
             case THREE_ARMIES:
                 return 3;
         }
-        throw new GException("Unhandled case for getArmies: " + this);
+        return 0;
     }
 }

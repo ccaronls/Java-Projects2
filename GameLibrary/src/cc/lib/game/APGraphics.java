@@ -313,23 +313,4 @@ public abstract class APGraphics extends AGraphics {
         result.assign(r.getCurrentTransform());
     }
 
-    public final GRectangle drawJustifiedStringOnBackground(float x, float y, Justify hJust, Justify vJust, String text, GColor bkColor, float border, float cornerRadius) {
-        MutableVector2D v = new MutableVector2D(x, y);
-        transform(v);
-        r.pushMatrixProj();
-        ortho();
-        GRectangle rect = drawJustifiedStringR(v.getX(), v.getY(), hJust, vJust, text);
-        rect.grow(border);
-        GColor saveColor = getColor();
-        setColor(bkColor);
-        if (cornerRadius > 0)
-            drawFilledRoundedRect(rect, cornerRadius);
-        else
-            rect.drawFilled(this);
-        setColor(saveColor);
-        r.popMatrixProj();
-        drawJustifiedString(x, y, hJust, vJust, text);
-        return rect;
-    }
-
 }

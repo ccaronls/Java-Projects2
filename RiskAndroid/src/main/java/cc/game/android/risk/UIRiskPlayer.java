@@ -4,6 +4,7 @@ import java.util.List;
 
 import cc.lib.risk.Action;
 import cc.lib.risk.Army;
+import cc.lib.risk.RiskGame;
 import cc.lib.risk.RiskPlayer;
 
 /**
@@ -18,13 +19,13 @@ public class UIRiskPlayer extends RiskPlayer {
     }
 
     @Override
-    public Integer pickTerritory(List<Integer> options, String msg) {
-        return MainActivity.instance.pickTerritory(options, msg);
+    public Integer pickTerritory(RiskGame game, List<Integer> options, String msg) {
+        return RiskActivity.instance.pickTerritory(options, msg);
     }
 
     @Override
-    public Action pickAction(List<Action> actions, String msg) {
-        return MainActivity.instance.pickAction(actions, msg);
+    public Action pickAction(RiskGame game, List<Action> actions, String msg) {
+        return RiskActivity.instance.pickAction(actions, msg);
     }
 
 }

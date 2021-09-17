@@ -32,7 +32,7 @@ public class RiskPlayer extends Reflector<RiskPlayer> {
         return armiesToPlace;
     }
 
-    public void setArmiestoPlace(int armies) {
+    public void setArmiesToPlace(int armies) {
         armiesToPlace = initialArmiesToPlace = armies;
     }
 
@@ -44,14 +44,12 @@ public class RiskPlayer extends Reflector<RiskPlayer> {
         armiesToPlace--;
     }
 
-    public Integer pickTerritory(List<Integer> options, String msg) {
+    public Integer pickTerritory(RiskGame game, List<Integer> options, String msg) {
         return Utils.randItem(options);
     }
 
-    public Action pickAction(List<Action> actions, String msg) {
-        if (actions.get(0) == Action.ATTACK)
-            return Action.ATTACK;
-        return Action.END;
+    public Action pickAction(RiskGame game, List<Action> actions, String msg) {
+        return Utils.randItem(actions);
     }
 
 }

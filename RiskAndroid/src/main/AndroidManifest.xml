@@ -9,7 +9,7 @@
         android:roundIcon="@drawable/risk_icon"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen">
-        <activity android:name=".MainActivity"
+        <activity android:name=".RiskActivity"
             android:screenOrientation="sensorLandscape">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

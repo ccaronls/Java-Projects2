@@ -19,6 +19,7 @@ public class RiskCell extends BCell {
     Region region;
     Army occupier;
     int numArmies = 0;
+    int movableTroops=0;
 
     void reset() {
         occupier = null;

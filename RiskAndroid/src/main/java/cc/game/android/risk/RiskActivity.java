@@ -1,9 +1,7 @@
 package cc.game.android.risk;
 
-import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -14,15 +12,18 @@ import android.widget.TextView;
 import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
 
 import cc.lib.android.DroidActivity;
 import cc.lib.android.DroidGraphics;
+import cc.lib.game.AGraphics;
 import cc.lib.game.APGraphics;
 import cc.lib.game.GColor;
-import cc.lib.game.GDimension;
 import cc.lib.game.GRectangle;
+import cc.lib.game.IVector2D;
 import cc.lib.game.Justify;
 import cc.lib.game.RomanNumeral;
 import cc.lib.game.Utils;
@@ -35,49 +36,24 @@ import cc.lib.risk.RiskCell;
 import cc.lib.risk.RiskGame;
 import cc.lib.utils.Lock;
 
-public class MainActivity extends DroidActivity implements ListView.OnItemClickListener {
+public class RiskActivity extends DroidActivity implements ListView.OnItemClickListener {
 
     File saveGame = null;
     RiskGame game = new RiskGame() {
         @Override
         protected void onDiceRolled(Army attacker, int[] attackingDice, Army defender, int[] defendingDice, boolean[] result) {
             super.onDiceRolled(attacker, attackingDice, defender, defendingDice, result);
-            View view = View.inflate(MainActivity.this, R.layout.dice_dialog, null);
             Lock lock = new Lock();
-            Dialog [] dialog = new Dialog[1];
+            DiceDialog [] dialog = new DiceDialog[1];
             runOnUiThread(() -> {
-                dialog[0] = newDialogBuilder().setTitle(attacker.name() + " Attacks " + defender.name())
-                        .setView(view)
-                        .show();
-                DiceView [] red = {
-                        view.findViewById(R.id.red1),
-                        view.findViewById(R.id.red2),
-                        view.findViewById(R.id.red3)
-                };
-
-                DiceView [] white = {
-                        view.findViewById(R.id.white1),
-                        view.findViewById(R.id.white2)
-                };
-
-                for (int i=0; i<red.length; i++) {
-                    if (i >= attackingDice.length) {
-                        red[i].setVisibility(View.INVISIBLE);
-                    } else {
-                        red[i].rollDice(attackingDice[i], lock);
-                    }
-                }
-
-                for (int i=0; i<white.length; i++) {
-                    if (i >= defendingDice.length)
-                        white[i].setVisibility(View.INVISIBLE);
-                    else
-                        white[i].rollDice(defendingDice[i], lock);
-                }
+                dialog[0] = new DiceDialog(lock, RiskActivity.this, attacker, defender, attackingDice, defendingDice, result);
             });
 
             Utils.waitNoThrow(this, 2000);
             lock.block();
+            runOnUiThread(() -> {
+                dialog[0].showResult();
+            });
             Utils.waitNoThrow(this, 5000);
             runOnUiThread(() -> dialog[0].dismiss());
         }
@@ -88,8 +64,10 @@ public class MainActivity extends DroidActivity implements ListView.OnItemClickL
     private ListView listView;
     private List<Integer> pickableTerritories = new ArrayList<>();
     private RomanNumeral roman = new RomanNumeral();
+    private final ArrayBlockingQueue fileWriterQueue = new ArrayBlockingQueue(1);
+    private Thread fileWriterThread = null;
 
-    static MainActivity instance;
+    static RiskActivity instance;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -206,7 +184,7 @@ public class MainActivity extends DroidActivity implements ListView.OnItemClickL
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
                 if (convertView == null) {
-                    convertView = View.inflate(MainActivity.this, R.layout.list_item, null);
+                    convertView = View.inflate(RiskActivity.this, R.layout.list_item, null);
                 }
 
                 TextView b = convertView.findViewById(R.id.text_view);
@@ -219,7 +197,7 @@ public class MainActivity extends DroidActivity implements ListView.OnItemClickL
 
     @Override
     protected void onDraw(DroidGraphics g) {
-        g.setTextHeight(18);
+        g.setTextModePixels(true);
         GRectangle imageRect = new GRectangle(game.getBoard().getDimension());
         RiskBoard board = game.getBoard();
         g.ortho(imageRect);
@@ -228,14 +206,14 @@ public class MainActivity extends DroidActivity implements ListView.OnItemClickL
             while (dragDelta.getX() > imageRect.w) {
                 dragDelta.subEq(imageRect.w, 0);
             }
-            while (dragDelta.getX() < -imageRect.w) {
+            while (dragDelta.getX() < 0) {
                 dragDelta.addEq(imageRect.w, 0);
             }
             g.translate(dragDelta.getX(), 0);
             g.pushMatrix();
             {
                 g.translate(-imageRect.w, 0);
-                for (int i = 0; i < 3; i++) {
+                for (int i = 0; i < 2; i++) {
                     g.drawImage(R.drawable.risk_board, imageRect);
                     g.translate(imageRect.w, 0);
                 }
@@ -244,7 +222,7 @@ public class MainActivity extends DroidActivity implements ListView.OnItemClickL
             g.pushMatrix();
             {
                 g.translate(-imageRect.w, 0);
-                for (int i = 0; i < 3; i++) {
+                for (int i = 0; i < 2; i++) {
                     drawCells(g, board);
                     pickCell(g, board);
                     g.translate(imageRect.w, 0);
@@ -255,11 +233,21 @@ public class MainActivity extends DroidActivity implements ListView.OnItemClickL
         g.popMatrix();
         g.ortho();
         g.setColor(GColor.CYAN);
+        g.setTextHeight(getResources().getDimension(R.dimen.text_height_info));
         if (game.getNumPlayers() > 0)
             game.getSummary().draw(g, 10, g.getViewportHeight()-10, Justify.LEFT, Justify.BOTTOM);
         if (message != null) {
-            g.drawJustifiedStringOnBackground(g.getViewportWidth()-10, g.getViewportHeight()-10, Justify.RIGHT, Justify.BOTTOM, message, GColor.TRANSLUSCENT_BLACK, 10, 5);
+            g.drawJustifiedStringOnBackground(g.getViewportWidth()-20, 20, Justify.RIGHT, Justify.TOP, message, GColor.TRANSLUSCENT_BLACK, 10, 5);
         }
+    }
+
+    void drawRomanNumeral(APGraphics g, IVector2D cell, String numerals) {
+        float thickness = getResources().getDimension(R.dimen.roman_number_thickness);
+        AGraphics.Border [] borders = {
+                new AGraphics.Border(AGraphics.BORDER_FLAG_NORTH, thickness, thickness, 0, -thickness/2, thickness*2/3),
+                new AGraphics.Border(AGraphics.BORDER_FLAG_SOUTH, thickness, thickness, 0, -thickness/2, 0),
+        };
+        g.drawJustifiedStringBordered(cell, Justify.CENTER, Justify.CENTER, numerals, borders);
     }
 
     void drawCells(DroidGraphics g, RiskBoard board) {
@@ -267,15 +255,16 @@ public class MainActivity extends DroidActivity implements ListView.OnItemClickL
         float boardWidth = board.getDimension().width;
         for (RiskCell cell : board.getCells()) {
             if (cell.getOccupier() != null) {
+                String numerals = roman.toRoman(cell.getNumArmies());
+                g.setColor(GColor.BLACK);
+                float th = getResources().getDimension(R.dimen.text_height_roman);
+                g.setTextHeight(th + 4);
+                g.setTextStyles(AGraphics.TextStyle.BOLD);
+                drawRomanNumeral(g, cell, numerals);
+                g.setTextHeight(th);
+                g.setTextStyles(AGraphics.TextStyle.NORMAL);
                 g.setColor(cell.getOccupier().getColor());
-                GDimension dim = g.drawJustifiedString(cell, Justify.CENTER, Justify.CENTER, roman.toRoman(cell.getNumArmies()));
-                GRectangle rect = new GRectangle(dim).withCenter(cell).scaledBy(1, .4f);
-                g.begin();
-                g.vertex(rect.getTopLeft());
-                g.vertex(rect.getTopRight());
-                g.vertex(rect.getBottomLeft());
-                g.vertex(rect.getBottomRight());
-                g.drawLines();
+                drawRomanNumeral(g, cell, numerals);
             }
 
             /*
@@ -305,13 +294,13 @@ public class MainActivity extends DroidActivity implements ListView.OnItemClickL
     }
 
     void pickCell(APGraphics g, RiskBoard board) {
-        Log.d("TAP", "Viewport: " + g.getViewport());
-        Log.d("TAP", "BoardDim: " + board.getDimension());
-        Log.d("TAP", "tap Befone: " + tapPos);
-        Log.d("TAP", "DragDelta: " + dragDelta);
+        //Log.d("TAP", "Viewport: " + g.getViewport());
+        //Log.d("TAP", "BoardDim: " + board.getDimension());
+        //Log.d("TAP", "tap Befone: " + tapPos);
+        //Log.d("TAP", "DragDelta: " + dragDelta);
         MutableVector2D tap = new MutableVector2D(tapPos);
         g.screenToViewport(tap);
-        Log.d("TAP", "Tap Viewport: " + tap);
+        //Log.d("TAP", "Tap Viewport: " + tap);
         g.setColor(GColor.WHITE);
         for (int idx : pickableTerritories) {
             RiskCell cell = board.getCell(idx);
@@ -320,7 +309,6 @@ public class MainActivity extends DroidActivity implements ListView.OnItemClickL
             if (board.isPointInsideCell(tap, idx)) {
                 tapPos.zero();
                 setGameResult(idx);
-                pickableTerritories.clear();
                 break;
             }
         }
@@ -359,6 +347,10 @@ public class MainActivity extends DroidActivity implements ListView.OnItemClickL
 
     void stopGameThread() {
         running = false;
+        if (fileWriterThread != null) {
+            fileWriterThread.interrupt();
+            fileWriterThread = null;
+        }
         setGameResult(null);
     }
 
@@ -366,6 +358,7 @@ public class MainActivity extends DroidActivity implements ListView.OnItemClickL
         if (running)
             return;
         initMenu(Collections.emptyList());
+        fileWriterThread = startFileWriterThread();
         running = true;
         new Thread() {
             @Override
@@ -373,7 +366,7 @@ public class MainActivity extends DroidActivity implements ListView.OnItemClickL
                 while (running) {
                     try {
                         game.runGame();
-                        getContent().invalidate();
+                        getContent().postInvalidate();
                     } catch (Exception e) {
                         e.printStackTrace();
                         break;
@@ -405,16 +398,41 @@ public class MainActivity extends DroidActivity implements ListView.OnItemClickL
         runOnUiThread(() -> {initMenu(Collections.emptyList());});
         message = null;
         pickableTerritories.clear();
-        game.trySaveToFile(saveGame);
+        //game.trySaveToFile(saveGame);
+        try {
+            fileWriterQueue.put(0);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         synchronized (monitor) {
             monitor.notify();
         }
+    }
+
+    Thread startFileWriterThread() {
+        Thread t = new Thread(() -> {
+            log.debug("fileWriterThread ENTER");
+            while (running) {
+                try {
+                    fileWriterQueue.take();
+                } catch (InterruptedException e) {
+                    break;
+                }
+                log.debug("Backingup ... ");
+                //FileUtils.backupFile(gameFile, 32);
+                game.trySaveToFile(saveGame);
+            }
+            log.debug("fileWriterThread EXIT");
+        });
+        t.start();
+        return t;
     }
 
     Integer pickTerritory(List<Integer> options, String msg) {
         message = msg;
         pickableTerritories.clear();
         pickableTerritories.addAll(options);
+        runOnUiThread(()->initMenu(Arrays.asList(Action.CANCEL)));
         return waitForUser(Integer.class);
     }
 

@@ -17,6 +17,8 @@ public class Renderer {
 
     public static boolean USE_PROJECTION_MATRIX = true;
 
+    final int MATRIX_STACK_SIZE = 16;
+
 	public Renderer(Renderable window) {
 		this.window = window;		
 		pts = new MutableVector2D[MAX_VERTS];
@@ -24,17 +26,16 @@ public class Renderer {
 		for (int i=0; i<MAX_VERTS; i++) {
 			pts[i] = new MutableVector2D();
 		}
-		m_stack = new Matrix3x3[16];
+		m_stack = new Matrix3x3[MATRIX_STACK_SIZE];
 		for (int i=0; i<m_stack.length; i++) {
 			m_stack[i] = new Matrix3x3();
 		}
 		m_stack_size = 1;
 		cur_mat = m_stack[0];
-		m_stack_proj = new Matrix3x3[2];
+		m_stack_proj = new Matrix3x3[MATRIX_STACK_SIZE];
 		for (int i=0; i<m_stack_proj.length; i++) {
 		    m_stack_proj[i] = new Matrix3x3();
         }
-		m_stack_size_proj = 1;
 		proj_mat = m_stack_proj[0];
 		s_mat = new Matrix3x3();
 		t_mat = new Matrix3x3();
@@ -293,22 +294,14 @@ public class Renderer {
 		if (m_stack_size < m_stack.length)
 		{
 			m_stack[m_stack_size].copy(m_stack[m_stack_size-1]);
+			m_stack_proj[m_stack_size].copy(m_stack_proj[m_stack_size-1]);
 			cur_mat = m_stack[m_stack_size];
+			proj_mat = m_stack_proj[m_stack_size];
 			m_stack_size++;
 		} else
 			throw new GException("Fixed stack size of [" + m_stack.length + "] for pushMatrix()");
 	}
 
-	public final void pushMatrixProj() {
-        if (m_stack_size_proj < m_stack_proj.length)
-        {
-            m_stack_proj[m_stack_size_proj].copy(m_stack_proj[m_stack_size_proj-1]);
-            proj_mat = m_stack_proj[m_stack_size_proj];
-            m_stack_size_proj++;
-        } else
-            throw new GException("Fixed stack size of [" + m_stack_proj.length + "] for pushMatrixProj()");
-    }
-	
 	/**
 	 * pop off the matrix stack
 	 */
@@ -316,22 +309,11 @@ public class Renderer {
 		if (m_stack_size > 1) {
 		    m_stack_size -= 1;
             cur_mat = m_stack[m_stack_size-1];
+            proj_mat = m_stack_proj[m_stack_size-1];
 		}
 		else
 			throw new GException("too many pops");
 	}
-
-    /**
-     * pop off the matrix stack
-     */
-    public final void popMatrixProj() {
-        if (m_stack_size_proj > 1) {
-            m_stack_size_proj -= 1;
-            proj_mat = m_stack_proj[m_stack_size_proj-1];
-        }
-        else
-            throw new GException("too many pops");
-    }
 
     /**
 	 * 
@@ -453,7 +435,6 @@ public class Renderer {
     private int			    m_stack_size;
 	private Matrix3x3 []    m_stack_proj;
 	private Matrix3x3       proj_mat;
-	private int             m_stack_size_proj;
 	private Exception []    m_stack_trace;
 	private Matrix3x3		s_mat; // working matrix
 	private Matrix3x3		t_mat; // working matrix

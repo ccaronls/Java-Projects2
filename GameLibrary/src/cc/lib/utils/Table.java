@@ -72,6 +72,7 @@ public final class Table {
     private int borderWidth = 2;
     private float[] maxWidth;
     private float[] maxHeight;
+    private int headerHeightLines = 0;
 
     public Table() {
         this(new Model() {});
@@ -227,13 +228,18 @@ public final class Table {
         maxHeight = new float[rows.size()];
         float cellPadding = getCellPadding(g);
 
-        float headrHeight = 0;
+        headerHeightLines = 0;
         if (header != null && header.size() > 0) {
             for (int i = 0; i < columns && i < header.size(); i++) {
-                maxWidth[i] = Math.max(maxWidth[i], g.getTextWidth(header.get(i)));
+                String [] parts = header.get(i).split("\n");
+                int lines = parts.length;
+                for (String part : parts) {
+                    maxWidth[i] = Math.max(maxWidth[i], g.getTextWidth(part) + cellPadding);
+                }
+                headerHeightLines = Math.max(headerHeightLines, lines);
             }
-            headrHeight += g.getTextHeight() + cellPadding*2;
         }
+        float headerHeight = headerHeightLines * g.getTextHeight() + cellPadding*2;
         for (int r = 0; r < rows.size(); r++) {
             for (int c = 0; c < rows.get(r).size(); c++) {
                 Object o = rows.get(r).get(c);
@@ -266,7 +272,7 @@ public final class Table {
             maxWidth[maxWidth.length-1] += cellPadding/2;
         }
         float dimWidth = Utils.sum(maxWidth);
-        float dimHeight = Utils.sum(maxHeight) + headrHeight;
+        float dimHeight = Utils.sum(maxHeight) + headerHeight;
         dimWidth += borderWidth*2;
         dimHeight += borderWidth*3;
 
@@ -320,7 +326,7 @@ public final class Table {
                 g.drawJustifiedString(x, 0, Justify.LEFT, header.get(i));
                 x += maxWidth[i];
             }
-            g.translate(0, g.getTextHeight() + cellPadding);
+            g.translate(0, g.getTextHeight()*headerHeightLines + cellPadding);
             g.drawLine(0, 0, dim.width-borderWidth, 0, borderWidth);
             g.translate(0, cellPadding);
         }
@@ -414,9 +420,15 @@ public final class Table {
             return "";
         final int [] maxWidth = new int [columns];
         final int [] maxHeight = new int[rows.size()];
+        headerHeightLines = 0;
         for (int i=0; i<columns && i<header.size(); i++) {
-            maxWidth[i] = Math.max(maxWidth[i], header.get(i).length());
+            String [] parts = header.get(i).split("\n");
+            for (int ii=0; ii<parts.length; ii++) {
+                maxWidth[i] = Math.max(maxWidth[i], parts[ii].length());
+            }
+            headerHeightLines = Math.max(headerHeightLines, parts.length);
         }
+
         for (int r=0; r<rows.size(); r++) {
             for (int c=0; c<rows.get(r).size(); c++) {
                 String entry =  model.getStringValue(rows.get(r).get(c));
@@ -462,20 +474,31 @@ public final class Table {
         String delim = "";
         if (header.size() > 0) {
             // Header
-            buf.append(indentStr).append(borderStrFront);
-            for (int i = 0; i < columns - 1; i++) {
-                if (i < header.size())
-                    buf.append(getJustifiedString(header.get(i), Justify.CENTER, maxWidth[i]));
-                else
-                    buf.append(Utils.getRepeatingChars(' ', maxWidth[i]));
-                buf.append(divider);
+            for (int ii=0; ii<headerHeightLines; ii++) {
+                buf.append(indentStr).append(borderStrFront);
+                for (int i = 0; i < columns - 1; i++) {
+                    if (i < header.size()) {
+                        String[] parts = header.get(i).split("\n");
+                        if (ii < parts.length)
+                            buf.append(getJustifiedString(parts[ii], Justify.CENTER, maxWidth[i]));
+                        else
+                            buf.append(Utils.getRepeatingChars(' ', maxWidth[i]));
+                    } else {
+                        buf.append(Utils.getRepeatingChars(' ', maxWidth[i]));
+                    }
+                    buf.append(divider);
+                }
+                if (last < header.size()) {
+                    String[] parts = header.get(last).split("\n");
+                    if (ii < parts.length)
+                        buf.append(getJustifiedString(parts[ii], Justify.CENTER, maxWidth[last]));
+                    else
+                        buf.append(Utils.getRepeatingChars(' ', maxWidth[last]));
+                } else {
+                    buf.append(Utils.getRepeatingChars(' ', maxWidth[last]));
+                }
+                buf.append(borderStrEnd).append("\n");
             }
-            if (last < header.size()) {
-                buf.append(getJustifiedString(header.get(last), Justify.CENTER, maxWidth[last]));
-            } else {
-                buf.append(Utils.getRepeatingChars(' ', maxWidth[last]));
-            }
-            buf.append(borderStrEnd).append("\n");
 
             buf.append(horzDivider);
             delim = "\n";

@@ -379,7 +379,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
         return new GDimension(maxWidth, maxHeight);
     }
 
-    public final GRectangle drawJustifiedStringR(float x, float y, Justify hJust, Justify vJust, String text) {
+    public GRectangle drawJustifiedStringR(float x, float y, Justify hJust, Justify vJust, String text) {
         if (text==null || text.length() == 0)
             return new GRectangle();
         MutableVector2D mv = transform(x, y);
@@ -446,15 +446,16 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param border
      * @return
      */
-    public GRectangle drawJustifiedStringOnBackground(float x, float y, Justify hJust, Justify vJust, String text, GColor bkColor, float border, float cornerRadius) {
+    public final GRectangle drawJustifiedStringOnBackground(float x, float y, Justify hJust, Justify vJust, String text, GColor bkColor, float border, float cornerRadius) {
         GRectangle r = drawJustifiedStringR(x, y, hJust, vJust, text);
         pushMatrix();
         setIdentity();
+        ortho();
         r.grow(border);
         GColor saveColor = getColor();
         setColor(bkColor);
         if (cornerRadius > 0)
-            r.drawRounded(this, cornerRadius);
+            drawFilledRoundedRect(r, cornerRadius);
         else
             r.drawFilled(this);
         setColor(saveColor);
@@ -491,6 +492,96 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      */
     public final GRectangle drawJustifiedStringOnBackground(float x, float y, Justify hJust, Justify vJust, String text, GColor bkColor, float border) {
         return drawJustifiedStringOnBackground(x, y, hJust, vJust, text, bkColor, border, 0);
+    }
+
+    public final static int BORDER_FLAG_NORTH = 1<<0;
+    public final static int BORDER_FLAG_SOUTH = 1<<1;
+    public final static int BORDER_FLAG_EAST  = 1<<2;
+    public final static int BORDER_FLAG_WEST  = 1<<3;
+
+    public final static class Border {
+        final float thickness;
+        final int flag;
+        final Vector2D sizeAdjust;
+        final Vector2D positionAdjust;
+
+        public Border(int flag, float thickness, float dw, float dh, float dx, float dy) {
+            this.flag = flag;
+            this.thickness = thickness;
+            this.sizeAdjust = new Vector2D(dw, dh);
+            this.positionAdjust = new Vector2D(dx, dy);
+        }
+    }
+
+    /**
+     *
+     * @param x
+     * @param y
+     * @param hJust
+     * @param vJust
+     * @param text
+     * @param borders
+     * @return
+     */
+    public GRectangle drawJustifiedStringBordered(float x, float y, Justify hJust, Justify vJust, String text, Border ... borders) {
+        GRectangle r = drawJustifiedStringR(x, y, hJust, vJust, text);
+        pushMatrix();
+        setIdentity();
+        ortho();
+        /*
+        r.grow(borderPadding);
+        if (0 != (borderFlag & BORDER_FLAG_NORTH)) {
+            drawLine(r.getTopLeft(), r.getTopRight(), borderThickness);
+        }
+        if (0 != (borderFlag & BORDER_FLAG_SOUTH)) {
+            drawLine(r.getBottomLeft(), r.getBottomRight(), borderThickness);
+        }
+        if (0 != (borderFlag & BORDER_FLAG_EAST)) {
+            drawLine(r.getTopLeft(), r.getBottomLeft(), borderThickness);
+        }
+        if (0 != (borderFlag & BORDER_FLAG_WEST)) {
+            drawLine(r.getTopRight(), r.getBottomRight(), borderThickness);
+        }*/
+        for (Border b : borders) {
+            MutableVector2D v0=null, v1=null;
+            switch (b.flag) {
+                case BORDER_FLAG_NORTH:
+                    v0=r.getTopLeft();
+                    v1=r.getTopRight();
+                    break;
+                case BORDER_FLAG_SOUTH:
+                    v0=r.getBottomLeft();
+                    v1=r.getBottomRight();
+                    break;
+                case BORDER_FLAG_EAST:
+                    v0=r.getTopRight();
+                    v1=r.getBottomRight();
+                    break;
+                case BORDER_FLAG_WEST:
+                    v0=r.getTopLeft();
+                    v1=r.getBottomLeft();
+                    break;
+                default:
+                    throw new GException("Unhandled case: " + b.flag);
+            }
+            drawLine(v0.addEq(b.positionAdjust), v1.addEq(b.positionAdjust).addEq(b.sizeAdjust), b.thickness);
+        }
+        popMatrix();
+        drawJustifiedString(x, y, hJust, vJust, text);
+        return r;
+    }
+
+    /**
+     *
+     * @param v
+     * @param hJust
+     * @param vJust
+     * @param text
+     * @param border
+     * @return
+     */
+    public GRectangle drawJustifiedStringBordered(IVector2D v, Justify hJust, Justify vJust, String text, Border ... border) {
+        return drawJustifiedStringBordered(v.getX(), v.getY(), hJust, vJust, text, border);
     }
 
     /**
@@ -1836,4 +1927,5 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     public static String getAnnotatedString(GColor color, String string) {
         return String.format("%s%s", color.toString(), string);
     }
+
 }

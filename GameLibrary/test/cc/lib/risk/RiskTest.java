@@ -17,10 +17,12 @@ public class RiskTest extends TestCase {
         RiskGame game = new RiskGame();
         game.addPlayer(new RiskPlayer(Army.BLUE));
         game.addPlayer(new RiskPlayer(Army.GREEN));
+        game.addPlayer(new RiskPlayer(Army.ORANGE));
+
         try (InputStream is = FileUtils.openFileOrResource("risk.board")) {
             game.getBoard().deserialize(is);
         }
-        for (int i=0; i<1000 && !game.isGameOver(); i++) {
+        for (int i=0; i<5000 && !game.isGameOver(); i++) {
             game.runGame();
         }
         System.out.println(game.getSummary());

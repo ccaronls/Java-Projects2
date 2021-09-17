@@ -43,9 +43,9 @@ public class DiceView extends DroidView implements Runnable, View.OnClickListene
         if (rolling)
             drawDie(g, getHeight(), dieNum);
         else {
+            drawDie(g, getHeight(), finalNum);
             g.setColor(GColor.CYAN);
             g.drawRoundedRect(0, 0, getWidth(), getHeight(), getWidth()/4);
-            drawDie(g, getHeight(), finalNum);
         }
     }
 

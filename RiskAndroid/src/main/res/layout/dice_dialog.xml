@@ -1,34 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <GridLayout
+    <LinearLayout
         android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            style="@style/dice_header"
+            android:id="@+id/tv_attacker"
+            android:gravity="center_vertical|left"
+            android:text="Attacker"/>
+
+        <TextView
+            style="@style/dice_header"
+            android:id="@+id/tv_defender"
+            android:gravity="center_vertical|right"
+            android:text="Defender"/>
+
+
+
+    </LinearLayout>
+
+    <GridLayout
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:rowCount="4"
         android:columnCount="3"
         app:layout_constraintTop_toTopOf="parent">
 
-        <TextView
-            android:id="@+id/tv_attacker"
-            android:text="Attacker"
-            android:textSize="@dimen/text_height"/>
-
-        <TextView
-            android:textSize="@dimen/text_height"/>
-
-        <TextView
-            android:id="@+id/tv_defender"
-            android:text="Defender"
-            android:textSize="@dimen/text_height"/>
-
         <cc.game.android.risk.DiceView
             style="@style/dice_red"
             android:id="@+id/red1"/>
 
-        <View style="@style/dice"/>
+        <TextView style="@style/dice_text"
+            android:id="@+id/text1"
+            tools:text="@string/arrow_left"
+            />
 
         <cc.game.android.risk.DiceView
             style="@style/dice"
@@ -38,7 +51,9 @@
             style="@style/dice_red"
             android:id="@+id/red2"/>
 
-        <View style="@style/dice"/>
+        <TextView style="@style/dice_text"
+            tools:text="@string/arrow_right"
+            android:id="@+id/text2"/>
 
         <cc.game.android.risk.DiceView
             style="@style/dice"
@@ -49,4 +64,4 @@
             android:id="@+id/red3"/>
     </GridLayout>
 
-</android.support.constraint.ConstraintLayout>
+</LinearLayout>

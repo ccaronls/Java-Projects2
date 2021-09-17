@@ -9,7 +9,6 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -1748,6 +1747,12 @@ public class Utils {
         DEBUG_ENABLED = enable;
     }
 
+    /**
+     *
+     * @param items
+     * @param <T>
+     * @return
+     */
     public static <T> T randItem(Collection<T> items) {
         int which = rand() % items.size();
         if (items instanceof List)
@@ -2216,18 +2221,38 @@ public class Utils {
         return arr;
     }
 
+    /**
+     *
+     * @param arr
+     * @return
+     */
     public static int [] toIntArray(int... arr) {
         return arr;
     }
 
+    /**
+     *
+     * @param arr
+     * @return
+     */
     public static float [] toFloatArray(float... arr) {
         return arr;
     }
 
+    /**
+     *
+     * @param arr
+     * @return
+     */
     public static long [] toLongArray(long... arr) {
         return arr;
     }
 
+    /**
+     *
+     * @param arr
+     * @return
+     */
     public static double [] toDoubleArray(double... arr) {
         return arr;
     }
@@ -2598,6 +2623,12 @@ public class Utils {
         }
     }
 
+    /**
+     *
+     * @param array
+     * @param <T>
+     * @return
+     */
     public static <T> List<T> toList(T ... array) {
         return toList(0, array.length, array);
     }
@@ -2737,6 +2768,43 @@ public class Utils {
         return count;
     }
 
+    /**
+     * Return true if any element meets filter criteria, false otherwise
+     *
+     * @param collection
+     * @param filter
+     * @param <O>
+     * @return
+     */
+    public static <O> boolean any(Iterable<O> collection, Filter<O> filter) {
+        for (O o : collection) {
+            if (filter.keep(o))
+                return true;
+        }
+        return false;
+    }
+
+    /**
+     * Return true if all elements meet filter criteria, false otherwise
+     * @param collection
+     * @param filter
+     * @param <O>
+     * @return
+     */
+    public static <O> boolean all(Iterable<O> collection, Filter<O> filter) {
+        for (O o : collection) {
+            if (!filter.keep(o))
+                return false;
+        }
+        return true;
+    }
+
+    /**
+     *
+     * @param list
+     * @param <O>
+     * @return
+     */
     public static <O> O getFirstOrNull(List<O> list) {
         return list.isEmpty() ? null : list.get(0);
     }
@@ -2757,6 +2825,13 @@ public class Utils {
         return list;
     }
 
+    /**
+     *
+     * @param items
+     * @param filter
+     * @param <T>
+     * @return
+     */
     public static <T> int count(T [] items, Filter<T> filter) {
         int count = 0;
         for (T item : items) {
@@ -2782,6 +2857,12 @@ public class Utils {
         return (a == b) || (a != null && a.equals(b));
     }
 
+    /**
+     *
+     * @param array
+     * @param result
+     * @param <T>
+     */
     public final static <T> void rotate(T [] array, T [] result) {
         int num = result.length;
         for (int i=0; i<num; i++) {
@@ -2803,6 +2884,15 @@ public class Utils {
         OUT map(IN in);
     }
 
+    /**
+     * Return a list of new types based on the input list using a mapping lambda
+     *
+     * @param inList
+     * @param mapper
+     * @param <IN>
+     * @param <OUT>
+     * @return
+     */
     public static <IN,OUT> List<OUT> map(Iterable<IN> inList, Mapper<IN,OUT> mapper) {
         List<OUT> outList = new ArrayList<>();
         for (IN in : inList) {
@@ -2811,6 +2901,15 @@ public class Utils {
         return outList;
     }
 
+    /**
+     * Return a list of new types based on the input array using a mapping lambda
+     *
+     * @param inArr
+     * @param mapper
+     * @param <IN>
+     * @param <OUT>
+     * @return
+     */
     public static <IN,OUT> List<OUT> map(IN [] inArr, Mapper<IN,OUT> mapper) {
         List<OUT> outList = new ArrayList<>();
         for (IN in : inArr) {
@@ -2819,6 +2918,16 @@ public class Utils {
         return outList;
     }
 
+    /**
+     * Fill an array using input array and mapping lambda
+     *
+     * @param inArr
+     * @param outArr
+     * @param mapper
+     * @param <IN>
+     * @param <OUT>
+     * @return
+     */
     public static <IN,OUT> OUT [] map(IN [] inArr, OUT [] outArr, Mapper<IN,OUT> mapper) {
         int n = Math.min(inArr.length, outArr.length);
         for (int idx=0; idx<n; idx++) {
@@ -2827,6 +2936,14 @@ public class Utils {
         return outArr;
     }
 
+    /**
+     * Convert a map to a list of pairs
+     *
+     * @param map
+     * @param <FIRST>
+     * @param <SECOND>
+     * @return
+     */
     public static <FIRST,SECOND> List<Pair<FIRST,SECOND>> toList(Map<FIRST,SECOND> map) {
         List<Pair<FIRST,SECOND>> list = new ArrayList<>();
         for (Map.Entry e : map.entrySet()) {
@@ -2835,9 +2952,13 @@ public class Utils {
         return list;
     }
 
+    /**
+     * Merge multiple lists into a single list
+     * @param lists
+     * @param <T>
+     * @return
+     */
     public static <T> List<T> mergeLists(List<T> ... lists) {
-        if (lists == null || lists.length == 0)
-            return Collections.emptyList();
         List<T> merged = new ArrayList<>();
         for (List l : lists) {
             merged.addAll(l);
@@ -2913,13 +3034,26 @@ public class Utils {
         return map;
     }
 
+    /**
+     * Return an interator that will return numbers [start-end] inclusive incremented using provided step value
+     *
+     * @param start
+     * @param end
+     * @return
+     */
+    public static Iterable<Integer> getRangeIterator(int start, int end, int step) {
+        return () -> new RangeIter(start, end, step);
+    }
+
+    /**
+     * Convenience method with default step of 1
+     *
+     * @param start
+     * @param end
+     * @return
+     */
     public static Iterable<Integer> getRangeIterator(int start, int end) {
-        return new Iterable<Integer>() {
-            @Override
-            public Iterator<Integer> iterator() {
-                return new RangeIter(start, end);
-            }
-        };
+        return () -> new RangeIter(start, end, 1);
     }
 
     public static class RangeIter implements Iterator<Integer> {
@@ -2953,6 +3087,11 @@ public class Utils {
         }
     }
 
+    /**
+     * Reverese elements in an array inplace
+     *
+     * @param input
+     */
     public static void reverse(int[] input) {
         int last = input.length - 1;
         int middle = input.length / 2;
@@ -2962,4 +3101,65 @@ public class Utils {
             input[last - i] = temp;
         }
     }
+
+    /**
+     * Reverese elements in an array inplace
+     *
+     * @param input
+     */
+    public static void reverse(float[] input) {
+        int last = input.length - 1;
+        int middle = input.length / 2;
+        for (int i = 0; i < middle; i++) {
+            float temp = input[i];
+            input[i] = input[last - i];
+            input[last - i] = temp;
+        }
+    }
+
+    /**
+     * Reverese elements in an array inplace
+     *
+     * @param input
+     */
+    public static void reverse(double[] input) {
+        int last = input.length - 1;
+        int middle = input.length / 2;
+        for (int i = 0; i < middle; i++) {
+            double temp = input[i];
+            input[i] = input[last - i];
+            input[last - i] = temp;
+        }
+    }
+
+    /**
+     * Reverese elements in an array inplace
+     *
+     * @param input
+     */
+    public static void reverse(long[] input) {
+        int last = input.length - 1;
+        int middle = input.length / 2;
+        for (int i = 0; i < middle; i++) {
+            long temp = input[i];
+            input[i] = input[last - i];
+            input[last - i] = temp;
+        }
+    }
+
+    /**
+     * Reverese elements in an array inplace
+     *
+     * @param input
+     */
+    public static <T> void reverse(T [] input) {
+        int last = input.length - 1;
+        int middle = input.length / 2;
+        for (int i = 0; i < middle; i++) {
+            T temp = input[i];
+            input[i] = input[last - i];
+            input[last - i] = temp;
+        }
+    }
+
 }
