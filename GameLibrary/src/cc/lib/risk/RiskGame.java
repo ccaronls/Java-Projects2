@@ -25,6 +25,8 @@ public class RiskGame extends Reflector<RiskGame> {
 
     static final Logger log = LoggerFactory.getLogger(RiskGame.class);
 
+    public final static int MIN_TROOPS_PER_TURN = 3;
+
     List<RiskPlayer> players = new ArrayList<>();
     RiskBoard board = new RiskBoard();
     int currentPlayer = 0;
@@ -55,8 +57,8 @@ public class RiskGame extends Reflector<RiskGame> {
         switch (state) {
             case INIT: {
                 // collect the territories
-                if (board.getNumCells() != 42)
-                    throw new GException("Expecting 42 territories but found " + board.getNumCells());
+//                if (board.getNumCells() != 42)
+  //                  throw new GException("Expecting 42 territories but found " + board.getNumCells());
                 LinkedList<RiskCell> terr = new LinkedList<>();
                 for (RiskCell cell : board.getCells()) {
                     if (cell.getRegion() == null)
@@ -68,27 +70,11 @@ public class RiskGame extends Reflector<RiskGame> {
                 Utils.shuffle(terr);
                 int numEach = terr.size() / players.size();
                 int infantryEach = 0;
-                switch (players.size()) {
-                    case 2:
-                        numEach = terr.size() / 3;
-                        infantryEach = 40;
-                        break;
-                    case 3:
-                        infantryEach = 35;
-                        break;
-                    case 4:
-                        infantryEach = 30;
-                        break;
-                    case 5:
-                        infantryEach = 25;
-                        break;
-                    case 6:
-                        infantryEach = 20;
-                        break;
-                    default:
-                        throw new GException("Invalid number of players: " + players.size());
-
+                if (players.size() == 2) {
+                    // special case where we have a neutral player
+                    numEach = terr.size()/3;
                 }
+                infantryEach = ((board.getNumCells()+10)/10) * 10 - 5 * players.size();
                 for (RiskPlayer pl : players) {
                     pl.setArmiesToPlace(infantryEach);
                 }
@@ -123,8 +109,9 @@ public class RiskGame extends Reflector<RiskGame> {
                 if (unclaimed.size() == 0) {
                     state = State.PLACE_ARMY;
                 } else {
-                    Integer picked = cur.pickTerritory(this, unclaimed, cur.army + " Pick a territory to claim");
+                    Integer picked = cur.pickTerritoryToClaim(this, unclaimed);
                     if (picked != null) {
+                        Utils.assertTrue(unclaimed.contains(picked));
                         RiskCell cell = board.getCell(picked);
                         Utils.assertTrue(cell.occupier == null);
                         cell.setOccupier(cur.army);
@@ -144,11 +131,11 @@ public class RiskGame extends Reflector<RiskGame> {
                 if (cur.getArmiesToPlace() > 0) {
                     int startArmiesToPlace = cur.getInitialArmiesToPlace();
                     int remainingArmiesToPlace = startArmiesToPlace - cur.getArmiesToPlace();
-                    Integer picked = cur.pickTerritory(this, territories,
-                            String.format("%s Pick territory to place an %d of %d armies", cur.army, remainingArmiesToPlace, startArmiesToPlace));
+                    Integer picked = cur.pickTerritoryForArmy(this, territories, remainingArmiesToPlace, startArmiesToPlace);
                     if (picked != null) {
+                        Utils.assertTrue(territories.contains(picked));
+                        onPlaceArmy(cur.getArmy(), picked);
                         RiskCell cell = board.getCell(picked);
-                        log.debug("%s placing an army on %s", cur.army, cell.region);
                         cell.numArmies++;
                         cur.decrementArmy();
                         switch (state) {
@@ -181,10 +168,11 @@ public class RiskGame extends Reflector<RiskGame> {
 
             case PLACE_NEUTRAL: {
                 territories = board.getTerritories(Army.NEUTRAL);
-                Integer picked = cur.pickTerritory(this, territories, cur.army + " Pick territory to place a Neutral Army");
+                Integer picked = cur.pickTerritoryForNeutralArmy(this, territories);
                 if (picked != null) {
+                    Utils.assertTrue(territories.contains(picked));
                     RiskCell cell = board.getCell(picked);
-                    log.debug("%s placing a neutral army on %s", cur.army, cell.region);
+                    onPlaceArmy(Army.NEUTRAL, picked);
                     cell.numArmies++;
                     state = State.PLACE_ARMY1;
                     nextPlayer();
@@ -193,9 +181,14 @@ public class RiskGame extends Reflector<RiskGame> {
             }
 
             case BEGIN_TURN: {
-                int numArmies = computeTroopsPerTurn(cur.army);
-                cur.setArmiesToPlace(numArmies);
-                state = State.BEGIN_TURN_PLACE_ARMY;
+                if (territories.size() == 0) {
+                    nextPlayer();
+                } else {
+                    onBeginTurn(currentPlayer);
+                    int numArmies = computeTroopsPerTurn(cur.army);
+                    cur.setArmiesToPlace(numArmies);
+                    state = State.BEGIN_TURN_PLACE_ARMY;
+                }
                 break;
             }
 
@@ -226,17 +219,7 @@ public class RiskGame extends Reflector<RiskGame> {
             case CHOOSE_MOVE_NO_ATTACK:
 
                 // See which territories can move into an adjacent
-                List<Integer> moveable = Utils.filter(territories, idx -> {
-                    RiskCell cell = board.getCell(idx);
-                    if (cell.movableTroops < 1)
-                        return false;
-                    for (int adj : board.getConnectedCells(cell)) {
-                        if (board.getCell(adj).getOccupier() == cur.army) {
-                            return true;
-                        }
-                    }
-                    return false;
-                });
+                List<Integer> moveable = getMoveSourceOptions(territories, cur.getArmy());
                 if (moveable.size() > 0) {
                     actions.add(Action.MOVE);
                 }
@@ -248,29 +231,37 @@ public class RiskGame extends Reflector<RiskGame> {
                     nextPlayer();
                     break;
                 }
+                onBeginMove();
                 Action action = cur.pickAction(this, actions, cur.army + " Choose your Move");
                 if (action != null) {
+                    Utils.assertTrue(actions.contains(action));
                     switch (action) {
                         case ATTACK: {
                             Utils.assertTrue(stageable!=null);
-                            Integer start = cur.pickTerritory(this, stageable, cur.army + " Pick territory from which to stage an attack");
+                            Integer start = cur.pickTerritoryToAttackFrom(this, stageable);
                             if (start != null) {
+                                Utils.assertTrue(stageable.contains(start));
+                                onStartAttackTerritoryChosen(start);
                                 RiskCell cell = board.getCell(start);
                                 List<Integer> options = Utils.filter(board.getConnectedCells(cell), idx ->
                                     board.getCell(idx).getOccupier() != cur.army
                                 );
                                 if (options.size() == 0)
                                     throw new GException("Invalid stagable");
-                                Integer end = cur.pickTerritory(this, options, cur.army + " Pick Territory to Attack");
+                                Integer end = cur.pickTerritoryToAttack(this, start, options);
                                 if (end != null) {
+                                    Utils.assertTrue(options.contains(end));
+                                    onEndAttackTerritoryChosen(start, end);
                                     performAttack(start, end);
                                 }
                             }
                             break;
                         }
                         case MOVE: {
-                            Integer start = cur.pickTerritory(this, moveable, cur.army + " Pick territory from which to move a armys");
+                            Integer start = cur.pickTerritoryToMoveFrom(this, moveable);
                             if (start != null) {
+                                Utils.assertTrue(moveable.contains(start));
+                                onStartMoveTerritoryChosen(start);
                                 RiskCell cell = board.getCell(start);
                                 List<Integer> options = Utils.filter(board.getConnectedCells(cell), idx ->
                                         board.getCell(idx).getOccupier() == cur.army
@@ -278,10 +269,12 @@ public class RiskGame extends Reflector<RiskGame> {
                                 if (options.size() == 0)
                                     throw new GException("Invalid movable");
                                 while (cell.movableTroops > 0) {
-                                    Integer end = cur.pickTerritory(this, options, cur.army + " Pick Territory to Move an Army to");
+                                    Integer end = cur.pickTerritoryToMoveTo(this, start, options);
                                     if (end == null) {
                                         break;
                                     }
+                                    Utils.assertTrue(options.contains(end));
+                                    onMoveTroops(start, end, 1);
                                     performMove(start, end);
                                     state = State.CHOOSE_MOVE_NO_ATTACK;
                                 }
@@ -297,42 +290,94 @@ public class RiskGame extends Reflector<RiskGame> {
                 }
 
             break;
+
+            case GAME_OVER:
+                onGameOver(getWinner());
+                state = State.DONE;
+                break;
+
+            case DONE:
+                break;
         }
+
     }
 
-    int computeTroopsPerTurn(Army army) {
-        int numTerritoriesOccupied = board.getTerritories(getCurrentPlayer().army).size();
-        //onMessage(army, "Occupies " + numTerritoriesOccupied + " territories");
-        int numArmies = board.getTerritories(army).size() / 3;
-        // add any extras for holding complete continents
-        log.debug("%s gets %d armies to position on the board", army, numArmies);
-        for (Region r : Region.values()) {
-            List<Integer> cells = board.getTerritories(r);
-            List<Pair<Integer, Army>> map = Utils.map(cells, cell -> new Pair(cell, board.getCell(cell).getOccupier()));
-            if (map.size() == 1) {
-                Army army2 = map.iterator().next().second;
-                if (army2 == army) {
-                    numArmies += r.extraArmies;
-                    onMessage(army, "Gets " + r.extraArmies + " extra armies for holding " + r.name());
+    protected void onPlaceArmy(Army army, int cellIdx) {
+        log.debug("%s placing an army on %s", army, getBoard().getCell(cellIdx).getRegion());
+    }
+
+    protected void onGameOver(Army winner) {}
+
+    protected void onBeginMove() {}
+
+    protected void onBeginTurn(int playerNum) {}
+
+    protected void onChooseMove(int playerNum) {}
+
+    protected void onStartAttackTerritoryChosen(int cellIdx) {}
+
+    protected void onEndAttackTerritoryChosen(int startIdx, int endIdx) {}
+
+    protected void onStartMoveTerritoryChosen(int cellIdx) {}
+
+    protected void onMoveTroops(int startIdx, int endIdx, int numTroops) {}
+
+    List<Integer> getMoveSourceOptions(List<Integer> territories, Army army) {
+        return Utils.filter(territories, idx -> {
+            RiskCell cell = board.getCell(idx);
+            if (cell.movableTroops < 1)
+                return false;
+            for (int adj : board.getConnectedCells(cell)) {
+                if (board.getCell(adj).getOccupier() == army) {
+                    return true;
+                }
+            }
+            return false;
+        });
+    }
+
+    List<Pair<Integer,Integer>> getMovePairOptions(List<Integer> territories, Army army) {
+        List<Pair<Integer, Integer>> pairs = new ArrayList<>();
+        for (int idx : territories) {
+            RiskCell cell = getBoard().getCell(idx);
+            if (cell.movableTroops > 0) {
+                for (int adjIdx : board.getConnectedCells(cell)) {
+                    RiskCell adj = board.getCell(adjIdx);
+                    if (adj.getOccupier() == cell.getOccupier()) {
+                        pairs.add(new Pair(idx, adjIdx));
+                    }
                 }
             }
         }
-        return numArmies;
+        return pairs;
+    }
+
+    int computeTroopsPerTurn(Army army) {
+        //int numTerritoriesOccupied = board.getTerritories(getCurrentPlayer().army).size();
+        //onMessage(army, "Occupies " + numTerritoriesOccupied + " territories");
+        int numArmies = board.getTerritories(army).size() / 3;
+        // add any extras for holding complete continents
+        //log.debug("%s gets %d armies to position on the board", army, numArmies);
+        for (Region r : Region.values()) {
+            List<Integer> cells = board.getTerritories(r);
+            if (Utils.all(cells, c -> board.getCell(c).getOccupier() == army)) {
+                numArmies += r.extraArmies;
+                onMessage(army, "Gets " + r.extraArmies + " extra armies for holding " + r.name());
+            }
+        }
+        return Math.max(MIN_TROOPS_PER_TURN, numArmies);
     }
 
     private void performMove(int startIdx, int endIdx) {
         RiskCell start = board.getCell(startIdx);
         RiskCell end   = board.getCell(endIdx);
-        if (start.movableTroops <= 0)
-            throw new GException("Invalid number of movable troops: " + start.movableTroops);
         start.movableTroops--;
-        onMoveArmy(getCurrentPlayer().army, startIdx, endIdx);
+        Utils.assertTrue(start.movableTroops >= 0);
         start.numArmies--;
+        Utils.assertTrue(start.numArmies > 0);
         end.numArmies++;
 
     }
-
-    protected void onMoveArmy(Army army, int formIdx, int toIdx) {}
 
     private void performAttack(int startIdx, int endIdx) {
         RiskCell start = board.getCell(startIdx);
@@ -367,26 +412,43 @@ public class RiskGame extends Reflector<RiskGame> {
             int numToOccupy = attackingDice.length;
             for (int i=0; i<result.length; i++) {
                 if (attackingDice[i] > defendingDice[i]) {
-                    onDefenderLostArmy(end.occupier, endIdx);
-                    end.numArmies--;
                     result[i] = true;
                 } else {
-                    onAttackerLostArmy(start.occupier, startIdx);
-                    start.numArmies--;
                     numToOccupy--;
                 }
             }
             onDiceRolled(start.getOccupier(), attackingDice, end.getOccupier(), defendingDice, result);
+            int numStartArmiesLost=0;
+            int numEndArmiesLost=0;
+            for (int i=0; i<result.length; i++) {
+                if (result[i]) {
+                    numEndArmiesLost++;
+                } else {
+                    numStartArmiesLost++;
+                }
+            }
+            start.numArmies -= numStartArmiesLost;
+            end.numArmies -= numEndArmiesLost;
+
+            Utils.assertTrue(start.numArmies > 0);
+            Utils.assertTrue(end.numArmies >= 0);
+
+            if (numStartArmiesLost > 0) {
+                onArmiesDestroyed(start.occupier, startIdx, numStartArmiesLost);
+            }
+            if (numEndArmiesLost > 0) {
+                onArmiesDestroyed(end.occupier, endIdx, numEndArmiesLost);
+            }
+
             if (end.numArmies < 0)
                 throw new GException("Cannot have negative armies");
             if (end.numArmies == 0) {
+                Utils.assertTrue(numToOccupy > 0);
+                onMoveTroops(startIdx, endIdx, numToOccupy);
                 end.setOccupier(start.getOccupier());
-                if (numToOccupy < 1)
-                    throw new GException("Cannot occupy with less than 1 armies");
                 end.setNumArmies(numToOccupy);
-                if (start.getNumArmies() <= numToOccupy)
-                    throw new GException("Must have at least one army left behind");
                 start.setNumArmies(start.getNumArmies() - numToOccupy);
+                Utils.assertTrue(start.getNumArmies() > 0);
                 onAtatckerGainedTerritory(end.occupier, endIdx);
             }
         }
@@ -410,12 +472,8 @@ public class RiskGame extends Reflector<RiskGame> {
         log.info("Result From Dice Roll\n" + table);
     }
 
-    protected void onDefenderLostArmy(Army defender, int cellIdx) {
+    protected void onArmiesDestroyed(Army defender, int cellIdx, int numArmiesLost) {
         log.info("%s Lost an Army from %s", defender, board.getCell(cellIdx).region);
-    }
-
-    protected void onAttackerLostArmy(Army attacker, int cellIdx) {
-        log.info("%s: Lost an Army from %s", attacker, board.getCell(cellIdx).region);
     }
 
     protected void onAtatckerGainedTerritory(Army attacker, int cellIdx) {
@@ -444,20 +502,23 @@ public class RiskGame extends Reflector<RiskGame> {
         return null;
     }
 
+    public RiskPlayer getPlayer(int playerNum) {
+        return players.get(playerNum);
+    }
 
-    RiskPlayer getWinner() {
+    public Army getWinner() {
         List<Pair<Army,Integer>> counts = Utils.map(Utils.getRangeIterator(0, board.getNumCells()-1), idx -> new Pair(board.getCell(idx).getOccupier(), idx));
         if (Utils.any(counts, p -> p.first == null))
             return null; // all territories should be populated
         Map<Army, ?> map = Utils.toMap(counts);
         map.remove(Army.NEUTRAL);
         if (map.size() == 1) {
-            return getPlayer(map.keySet().iterator().next());
+            return map.keySet().iterator().next();
         }
         return null;
     }
 
-    RiskPlayer getPlayerOrNull(Army army) {
+    public RiskPlayer getPlayerOrNull(Army army) {
         for (RiskPlayer rp : players) {
             if (rp.army == army)
                 return rp;
@@ -488,8 +549,8 @@ public class RiskGame extends Reflector<RiskGame> {
         players.add(player);
     }
 
-    public boolean isGameOver() {
-        return state == State.GAME_OVER;
+    public boolean isDone() {
+        return state == State.DONE;
     }
 
     public Table getSummary() {
@@ -500,17 +561,18 @@ public class RiskGame extends Reflector<RiskGame> {
             header.add(Utils.toPrettyString(r.name()).replace(' ', '\n') + " +" + r.extraArmies);
         }
         Table table = new Table(header);
-        for (Army army: Army.values()) {
+        for (RiskPlayer pl : players) {
+            Army army = pl.getArmy();
             List<Integer> l = board.getTerritories(army);
-            if (l.size() == 0)
-                continue;
             List<String> row = new ArrayList<>();
             row.add(army.name());
-            long troops = Utils.sum(board.getAllTerritories(), t -> t.getOccupier() == army ? t.getNumArmies() : 0L);
+            int troops = Utils.sumInt(board.getAllTerritories(), t -> t.getOccupier() == army ? t.getNumArmies() : 0);
             if (army == Army.NEUTRAL)
                 row.add(String.valueOf(troops));
-            else
+            else if (l.size() > 0)
                 row.add(String.format("%d +%d", troops, computeTroopsPerTurn(army)));
+            else
+                row.add("-----");
             for (Region r : Region.values()) {
                 List<Integer> l2 = board.getTerritories(r);
                 int numOwned = Utils.count(l2, idx -> l.contains(idx));

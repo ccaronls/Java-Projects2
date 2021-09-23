@@ -76,20 +76,8 @@ public abstract class APGraphics extends AGraphics {
     }
 
     @Override
-    public final MutableVector2D screenToViewport(int screenX, int screenY) {
-        return r.untransform(screenX, screenY);
-    }
-
-    public final MutableVector2D screenToViewport(float screenX, float screenY) {
-        return r.untransform(screenX, screenY);
-    }
-
-    public final MutableVector2D screenToViewport(IVector2D screen) {
-        return r.untransform(screen.getX(), screen.getY());
-    }
-
-    public final void screenToViewport(MutableVector2D mouse) {
-        mouse.set(r.untransform(mouse.getX(), mouse.getY()));
+    protected MutableVector2D untransform(float x, float y) {
+        return r.untransform(x, y);
     }
 
     float [] lastVertex = new float[2];

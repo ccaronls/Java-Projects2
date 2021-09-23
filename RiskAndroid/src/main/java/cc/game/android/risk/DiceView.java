@@ -79,8 +79,8 @@ public class DiceView extends DroidView implements Runnable, View.OnClickListene
     public synchronized void run() {
         if (rolling) {
             dieNum = Utils.rand() % dieNums[maxDieNums] + 1;
-            if (delay < 500) {
-                delay += 20;
+            if (delay < 400) {
+                delay += 25;
                 postDelayed(this, delay);
             } else {
                 rolling = false;

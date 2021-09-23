@@ -96,5 +96,22 @@ public class MutableVector2D extends Vector2D {
     public final MutableVector2D normalizedEq() {
         return normalized(this);
     }
+
+    public final MutableVector2D wrap(IVector2D min, IVector2D max) {
+        Vector2D delta = sub(max, min);
+        while (getX() < min.getX()) {
+            setX(getX() + delta.getX());
+        }
+        while (getX() > max.getX()) {
+            setX(getX() - delta.getX());
+        }
+        while (getY() < min.getY()) {
+            setY(getY() + delta.getY());
+        }
+        while (getY() > max.getY()) {
+            setY(getY() - delta.getY());
+        }
+        return this;
+    }
 }
 

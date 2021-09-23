@@ -140,7 +140,7 @@ public class WolfTheZombieArmy extends ZQuest {
     }
 
     int getNumSpawnZones(ZGame game) {
-        return (int) Utils.sum(game.getBoard().getCells(), c -> (long)c.getSpawnAreas().size());
+        return Utils.sumInt(game.getBoard().getCells(), c -> c.getSpawnAreas().size());
     }
 
     @Override

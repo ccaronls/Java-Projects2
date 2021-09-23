@@ -329,8 +329,24 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param screenY
      * @return
      */
-    public abstract Vector2D screenToViewport(int screenX, int screenY);
-    
+    public final Vector2D screenToViewport(int screenX, int screenY) {
+        return untransform(screenX, screenY);
+    }
+
+    public final MutableVector2D screenToViewport(float screenX, float screenY) {
+        return untransform(screenX, screenY);
+    }
+
+    public final MutableVector2D screenToViewport(IVector2D screen) {
+        return untransform(screen.getX(), screen.getY());
+    }
+
+    public final void screenToViewport(MutableVector2D mouse) {
+        mouse.set(untransform(mouse.getX(), mouse.getY()));
+    }
+
+    protected abstract MutableVector2D untransform(float x, float y);
+
     /**
      * Draw a justified block text.  '\n' is a delimiter for separate lines
      * @param x
@@ -528,20 +544,6 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
         pushMatrix();
         setIdentity();
         ortho();
-        /*
-        r.grow(borderPadding);
-        if (0 != (borderFlag & BORDER_FLAG_NORTH)) {
-            drawLine(r.getTopLeft(), r.getTopRight(), borderThickness);
-        }
-        if (0 != (borderFlag & BORDER_FLAG_SOUTH)) {
-            drawLine(r.getBottomLeft(), r.getBottomRight(), borderThickness);
-        }
-        if (0 != (borderFlag & BORDER_FLAG_EAST)) {
-            drawLine(r.getTopLeft(), r.getBottomLeft(), borderThickness);
-        }
-        if (0 != (borderFlag & BORDER_FLAG_WEST)) {
-            drawLine(r.getTopRight(), r.getBottomRight(), borderThickness);
-        }*/
         for (Border b : borders) {
             MutableVector2D v0=null, v1=null;
             switch (b.flag) {
@@ -1805,6 +1807,35 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
         AImage img = getImage(imageKey);
         if (img != null) {
             drawImage(imageKey, center.getX()-img.getWidth()/2, center.getY()-img.getHeight()/2, img.getWidth(), img.getHeight());
+        }
+    }
+
+    /**
+     * Draw image aligned to some point
+     * @param imageKey
+     * @param pos
+     * @param hJust
+     * @param vJust
+     */
+    public final void drawImage(int imageKey, IVector2D pos, Justify hJust, Justify vJust, float scale) {
+        AImage img = getImage(imageKey);
+        if (img != null) {
+            float hgt = scale * img.getHeight();
+            float wid = scale * img.getWidth();
+            float x=pos.getX(),y=pos.getY();
+            switch (hJust) {
+                case CENTER:
+                    x-=wid/2; break;
+                case RIGHT:
+                    x-=wid; break;
+            }
+            switch (vJust) {
+                case CENTER:
+                    y-=hgt/2; break;
+                case BOTTOM:
+                    y-=hgt; break;
+            }
+            drawImage(imageKey, x, y, wid, hgt);
         }
     }
 

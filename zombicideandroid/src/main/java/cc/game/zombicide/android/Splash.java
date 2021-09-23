@@ -85,7 +85,7 @@ public class Splash extends DroidActivity {
     protected void onDraw(DroidGraphics g) {
         g.setTextModePixels(true);
         animation.update(g);
-        getContent().postInvalidate();
+        redraw();
     }
 
     public void transition() {

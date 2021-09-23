@@ -694,8 +694,17 @@ public class CustomBoard<V extends BVertex, E extends BEdge, C extends BCell> ex
      * @param cell
      * @return
      */
-    public final List<BCell> getAdjacentCells(BCell cell) {
+    public final List<C> getAdjacentCells(BCell cell) {
         return Utils.map(cell.getAdjCells(), idx -> getCell(idx));
+    }
+
+    /**
+     *
+     * @param cellIdx
+     * @return
+     */
+    public final List<C> getAdjacentCell(int cellIdx) {
+        return getAdjacentCells(getCell(cellIdx));
     }
 
     /**
@@ -703,8 +712,8 @@ public class CustomBoard<V extends BVertex, E extends BEdge, C extends BCell> ex
      * @param edge
      * @return
      */
-    public final Iterable<BCell> getAdjacentCells(final BEdge edge) {
-        return () -> new Iterator<BCell>() {
+    public final Iterable<C> getAdjacentCells(final BEdge edge) {
+        return () -> new Iterator<C>() {
             int index = 0;
             @Override
             public boolean hasNext() {
@@ -712,7 +721,7 @@ public class CustomBoard<V extends BVertex, E extends BEdge, C extends BCell> ex
             }
 
             @Override
-            public BCell next() {
+            public C next() {
                 return cells.get(edge.getAdjCell(index++));
             }
         };
@@ -723,22 +732,17 @@ public class CustomBoard<V extends BVertex, E extends BEdge, C extends BCell> ex
      * @param vertex
      * @return
      */
-    public final Iterable<BCell> getAdjacentCells(final BVertex vertex) {
-        return new Iterable<BCell>() {
+    public final Iterable<C> getAdjacentCells(final BVertex vertex) {
+        return () -> new Iterator<C>() {
+            int index = 0;
             @Override
-            public Iterator<BCell> iterator() {
-                return new Iterator<BCell>() {
-                    int index = 0;
-                    @Override
-                    public boolean hasNext() {
-                        return index < vertex.getNumAdjCells();
-                    }
+            public boolean hasNext() {
+                return index < vertex.getNumAdjCells();
+            }
 
-                    @Override
-                    public BCell next() {
-                        return cells.get(vertex.getAdjCell(index++));
-                    }
-                };
+            @Override
+            public C next() {
+                return cells.get(vertex.getAdjCell(index++));
             }
         };
     }

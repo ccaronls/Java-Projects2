@@ -49,6 +49,11 @@ public final class Lock {
         }
     }
 
+    public synchronized void releaseAll() {
+        holders = 0;
+        notify();
+    }
+
     public void releaseDelayed(long ms) {
         new Thread(() -> {
             Utils.waitNoThrow(this, ms);
@@ -60,7 +65,4 @@ public final class Lock {
         return holders;
     }
 
-    public synchronized void reset() {
-        notify();
-    }
 }

@@ -15,6 +15,7 @@ public enum State {
     BEGIN_TURN_PLACE_ARMY,
     CHOOSE_MOVE,
     CHOOSE_MOVE_NO_ATTACK,
-    GAME_OVER
+    GAME_OVER,
+    DONE
 
 }

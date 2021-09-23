@@ -314,4 +314,8 @@ public final class GColor extends Reflector<GColor> {
     public final GColor inverted() {
 	    return new GColor(1f-getRed(), 1f-getGreen(), 1f-getBlue(), getAlpha());
     }
+
+    public final IInterpolator<GColor> getInterpolator(GColor target) {
+        return position -> interpolateTo(target, position);
+    }
 }

@@ -2974,8 +2974,24 @@ public class Utils {
      * @param <T>
      * @return
      */
-    public static <T> long sum(Iterable<T> in, Mapper<T, Long> mapper) {
+    public static <T> long sumLong(Iterable<T> in, Mapper<T, Long> mapper) {
         long total = 0;
+        for (T t : in) {
+            total += mapper.map(t);
+        }
+        return total;
+    }
+
+    public static <T> int sumInt(Iterable<T> in, Mapper<T, Integer> mapper) {
+        int total = 0;
+        for (T t : in) {
+            total += mapper.map(t);
+        }
+        return total;
+    }
+
+    public static <T> float sumFloat(Iterable<T> in, Mapper<T, Float> mapper) {
+        float total = 0;
         for (T t : in) {
             total += mapper.map(t);
         }
@@ -3162,4 +3178,63 @@ public class Utils {
         }
     }
 
+    /**
+     * Linear search the highest value item in a list based on mapping
+     * @param c
+     * @param valueMapper
+     * @param <T>
+     * @return
+     */
+    public static <T> T search(Iterable<T> c, Mapper<T, Number> valueMapper) {
+        double bestValue = Double.MIN_VALUE;
+        T best = null;
+        for (T i : c) {
+            double value = valueMapper.map(i).doubleValue();
+            if (best == null || value > bestValue) {
+                bestValue = value;
+                best = i;
+            }
+        }
+        return best;
+    }
+
+    /**
+     * Find the first element in a set such that its mapped value 'equals' some value
+     * @param c
+     * @param b
+     * @param mapper
+     * @param <A>
+     * @param <B>
+     * @return
+     */
+    public static <A,B> A findFirst(Collection<A> c, B b, Mapper<A,B> mapper) {
+        for (A a : c) {
+            if (mapper.map(a).equals(b))
+                return a;
+        }
+        return null;
+    }
+
+    /**
+     * Get the proper suffix (st, nd, rd, th) for a number
+     *
+     * ie. 1st, 2nd, 3rd, 4th, etc.
+     *
+     * @param number
+     * @return
+     */
+    public static String getSuffix(int number) {
+        int j = number % 10;;
+        int k = number % 100;
+        if (j == 1 && k != 11) {
+            return "st";
+        }
+        if (j == 2 && k != 12) {
+            return "nd";
+        }
+        if (j == 3 && k != 13) {
+            return "rd";
+        }
+        return "th";
+    }
 }

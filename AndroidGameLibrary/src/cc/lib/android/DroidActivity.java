@@ -133,4 +133,8 @@ public abstract class DroidActivity extends CCActivityBase {
     public boolean isCurrentDialogShowing() {
         return currentDialog != null && currentDialog.isShowing();
     }
+
+    public void redraw() {
+        getContent().postInvalidate();
+    }
 }

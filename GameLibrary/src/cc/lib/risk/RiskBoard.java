@@ -33,7 +33,7 @@ public class RiskBoard extends CustomBoard<BVertex, BEdge, RiskCell> {
     }
 
     public List<RiskCell> getAllTerritories() {
-        return Utils.map(getCells(), cell -> (RiskCell)cell);
+        return Utils.map(getCells(), cell -> cell);
     }
 
     public List<Integer> getTerritories(Army army) {
@@ -42,5 +42,15 @@ public class RiskBoard extends CustomBoard<BVertex, BEdge, RiskCell> {
 
     public List<Integer> getTerritories(Region region) {
         return Utils.filter(Utils.getRangeIterator(0, getNumCells()-1), idx->getCell(idx).getRegion()==region);
+
+    }
+
+    public void moveArmies(int fromCellIdx, int toCellIdx, int numArmies) {
+        RiskCell from = getCell(fromCellIdx);
+        Utils.assertTrue(from.numArmies > numArmies);
+        RiskCell to = getCell(toCellIdx);
+        Utils.assertTrue(to.numArmies > 0);
+        from.numArmies -= numArmies;
+        to.numArmies += numArmies;
     }
 }

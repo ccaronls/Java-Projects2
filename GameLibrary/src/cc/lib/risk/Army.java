@@ -8,9 +8,9 @@ import cc.lib.game.GColor;
 public enum Army {
     BLUE(new GColor(.3f, .3f, 1f, 1f)),
     RED(GColor.RED),
-    BLACK(GColor.BLACK),
+    WHITE(GColor.WHITE),
     GREEN(new GColor(.3f, 1f, .3f, 1f)),
-    ORANGE(GColor.ORANGE),
+    MAGENTA(GColor.MAGENTA),
     NEUTRAL(GColor.LIGHT_GRAY);
 
     Army(GColor color) {

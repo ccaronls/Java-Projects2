@@ -6,4 +6,6 @@
     <dimen name="text_height_header">24dp</dimen>
     <dimen name="text_height_huge">64dp</dimen>
     <dimen name="roman_number_thickness">4dp</dimen>
+    <dimen name="text_height_overlay_sm">24dp</dimen>
+    <dimen name="text_height_overlay_lg">48dp</dimen>
 </resources>

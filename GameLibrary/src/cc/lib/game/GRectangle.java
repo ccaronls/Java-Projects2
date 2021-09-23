@@ -414,4 +414,16 @@ public class GRectangle extends Reflector<GRectangle> implements IRectangle {
         return new GRectangle(nx, ny, w, h);
     }
 
+    public final void setAspect(float aspect) {
+        float a = getAspect();
+        Vector2D cntr = getCenter();
+        if (a > aspect) {
+            // grow the height to meet the target aspect
+            h = w / aspect;
+        } else {
+            // grow the width to meet the target aspect
+            w = h * aspect;
+        }
+        setCenter(cntr);
+    }
 }

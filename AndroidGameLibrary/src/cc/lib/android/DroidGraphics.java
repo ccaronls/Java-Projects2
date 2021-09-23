@@ -32,6 +32,7 @@ import cc.lib.game.IVector2D;
 import cc.lib.game.Justify;
 import cc.lib.math.CMath;
 import cc.lib.math.Vector2D;
+import cc.lib.utils.GException;
 
 /**
  * Created by chriscaron on 2/12/18.
@@ -168,6 +169,61 @@ public abstract class DroidGraphics extends APGraphics {
             }
         }
     }
+/*
+    @Override
+    public GRectangle drawJustifiedString2(final float x, final float y, Justify hJust, Justify vJust, String text) {
+        if (text==null || text.length() == 0)
+            return new GRectangle();
+        MutableVector2D mv = transform(x, y);
+        pushMatrix();
+        ortho();
+        setIdentity();
+        String [] lines = text.split("\n");
+        if (lines.length == 0)
+            return new GRectangle();
+        Paint.FontMetrics metrics = paint.getFontMetrics();
+        float th = getTextHeight();
+        final float textHeight = th + (metrics.top-metrics.ascent) + metrics.descent;
+        final float spacing = metrics.bottom;
+        final float lineHeight = textHeight + spacing;
+        switch (vJust) {
+            case TOP:
+                mv.addEq(0, (lines.length-2) * lineHeight + textHeight);
+                break;
+            case CENTER:
+                //mv.addEq(0, 0.5f * (((lines.length-1) * (lineHeight)) - textHeight));
+                break;
+            case BOTTOM:
+                mv.subEq(0, (lines.length-2) * lineHeight + textHeight);
+                break;
+            default:
+                throw new GException("Unhandled case: " + vJust);
+        }
+        final float top = mv.getY()-textHeight;
+        mv.addEq(0, metrics.top);
+        float maxWidth = 0;
+        for (int i=0; i<lines.length; i++) {
+            maxWidth = Math.max(drawStringLineR(mv.X(), mv.Y(), hJust, lines[i]), maxWidth);
+            mv.addEq(0, textHeight);
+        }
+        MutableVector2D tl;
+        switch (hJust) {
+            case CENTER:
+                tl = new MutableVector2D(mv.getX() - maxWidth/2, top);
+                break;
+            case RIGHT:
+                tl = new MutableVector2D(mv.getX() - maxWidth, top);
+                break;
+            default:
+                tl = new MutableVector2D(mv.getX(), top);
+        }
+        popMatrix();
+        float maxHeight = (textHeight * lines.length) - spacing;// * lines.length-1);
+        MutableVector2D lb = tl.add(maxWidth, maxHeight);
+        screenToViewport(lb);
+        screenToViewport(tl);
+        return new GRectangle(tl, lb);
+    }*/
 
     @Override
     public final float getTextWidth(String string) {
@@ -181,6 +237,7 @@ public abstract class DroidGraphics extends APGraphics {
     @Override
     public final float drawStringLine(float x, float y, Justify hJust, String text) {
         Paint.FontMetrics fm = textPaint.getFontMetrics();
+        // the true height of a line of text minus spacing is ascent+descent
         y -= fm.ascent;
         switch (hJust) {
             case LEFT:
@@ -525,8 +582,11 @@ public abstract class DroidGraphics extends APGraphics {
             int y = cells[i][1];
             int w = cells[i][2];
             int h = cells[i][3];
-
-            result[i] = newSubImage(source, x, y, w, h);
+            try {
+                result[i] = newSubImage(source, x, y, w, h);
+            } catch (Throwable e) {
+                throw new GException("Problem loading image cell " + i, e);
+            }
         }
         return result;
     }

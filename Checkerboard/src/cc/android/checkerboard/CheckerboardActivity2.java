@@ -15,7 +15,7 @@ public class CheckerboardActivity2 extends DroidActivity {
     private final UIGame game = new UIGame() {
         @Override
         public void repaint() {
-            getContent().postInvalidate();
+            redraw();
         }
 
         @Override
@@ -98,7 +98,7 @@ public class CheckerboardActivity2 extends DroidActivity {
     protected void onTouchDown(float x, float y) {
         tx = Math.round(x);
         ty = Math.round(y);
-        getContent().postInvalidate();
+        redraw();
     }
 
     @Override
@@ -109,7 +109,7 @@ public class CheckerboardActivity2 extends DroidActivity {
         }
         tx = -1;//Math.round(x);
         ty = -1;//Math.round(y);
-        getContent().postInvalidate();
+        redraw();
     }
 
     @Override
@@ -120,7 +120,7 @@ public class CheckerboardActivity2 extends DroidActivity {
         }
         tx = Math.round(x);
         ty = Math.round(y);
-        getContent().postInvalidate();
+        redraw();
     }
 
     @Override
@@ -128,7 +128,7 @@ public class CheckerboardActivity2 extends DroidActivity {
         tx = Math.round(x);
         ty = Math.round(y);
         /*
-        getContent().postInvalidate();
+        redraw();
         getContent().postDelayed(new Runnable() {
             public void run() {
                 tx = ty = -1;

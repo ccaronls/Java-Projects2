@@ -26,6 +26,7 @@ cells=java.util.Vector {
       }
       cx=81.25
       cy=86.75
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=78.59788
@@ -70,6 +71,7 @@ cells=java.util.Vector {
       }
       cx=226.16667
       cy=78.5
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=124.79963
@@ -105,6 +107,7 @@ cells=java.util.Vector {
       }
       cx=163.75
       cy=128.0
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=71.07435
@@ -149,6 +152,7 @@ cells=java.util.Vector {
       }
       cx=252.6
       cy=133.2
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=53.784763
@@ -184,6 +188,7 @@ cells=java.util.Vector {
       }
       cx=142.75002
       cy=196.5
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=73.73134
@@ -225,6 +230,7 @@ cells=java.util.Vector {
       }
       cx=251.6
       cy=200.40001
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=99.19235
@@ -266,6 +272,7 @@ cells=java.util.Vector {
       }
       cx=198.5
       cy=295.1667
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=124.41171
@@ -304,6 +311,7 @@ cells=java.util.Vector {
       }
       cx=322.6
       cy=140.2
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=64.47948
@@ -342,6 +350,7 @@ cells=java.util.Vector {
       }
       cx=272.4
       cy=440.2
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=115.002625
@@ -377,6 +386,7 @@ cells=java.util.Vector {
       }
       cx=289.0
       cy=372.5
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=75.015
@@ -418,6 +428,7 @@ cells=java.util.Vector {
       }
       cx=364.4
       cy=449.4
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=95.80664
@@ -453,6 +464,7 @@ cells=java.util.Vector {
       }
       cx=333.6
       cy=568.2
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=108.14156
@@ -488,6 +500,7 @@ cells=java.util.Vector {
       }
       cx=469.33334
       cy=50.000008
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=109.41561
@@ -523,6 +536,7 @@ cells=java.util.Vector {
       }
       cx=538.25
       cy=86.25
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=26.222605
@@ -555,9 +569,13 @@ cells=java.util.Vector {
          java.lang.Integer {
             13
          }
+         java.lang.Integer {
+            16
+         }
       }
       cx=577.75
       cy=133.5
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=31.667215
@@ -605,6 +623,7 @@ cells=java.util.Vector {
       }
       cx=589.7143
       cy=176.7143
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=49.556812
@@ -640,9 +659,16 @@ cells=java.util.Vector {
          }
       }
       connectedCells=java.util.ArrayList {
+         java.lang.Integer {
+            14
+         }
+         java.lang.Integer {
+            38
+         }
       }
       cx=647.0
       cy=148.25
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=42.326855
@@ -684,6 +710,7 @@ cells=java.util.Vector {
       }
       cx=633.60004
       cy=102.8
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=77.63116
@@ -740,6 +767,7 @@ cells=java.util.Vector {
       }
       cx=603.25
       cy=285.25
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=102.60423
@@ -787,6 +815,7 @@ cells=java.util.Vector {
       }
       cx=662.0
       cy=183.5
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=48.746796
@@ -843,6 +872,7 @@ cells=java.util.Vector {
       }
       cx=742.125
       cy=139.25
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=93.354614
@@ -878,6 +908,7 @@ cells=java.util.Vector {
       }
       cx=670.25
       cy=396.75
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=65.662964
@@ -931,6 +962,7 @@ cells=java.util.Vector {
       }
       cx=743.28577
       cy=356.14288
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=98.44845
@@ -969,6 +1001,7 @@ cells=java.util.Vector {
       }
       cx=695.0
       cy=253.0
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=59.933304
@@ -1022,6 +1055,7 @@ cells=java.util.Vector {
       }
       cx=789.125
       cy=251.0
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=93.346214
@@ -1066,6 +1100,7 @@ cells=java.util.Vector {
       }
       cx=856.8
       cy=185.0
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=71.9739
@@ -1101,6 +1136,7 @@ cells=java.util.Vector {
       }
       cx=848.0
       cy=102.75
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=97.1574
@@ -1136,6 +1172,7 @@ cells=java.util.Vector {
       }
       cx=917.25
       cy=80.25
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=82.116516
@@ -1174,6 +1211,7 @@ cells=java.util.Vector {
       }
       cx=703.60004
       cy=486.80002
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=85.64579
@@ -1218,6 +1256,7 @@ cells=java.util.Vector {
       }
       cx=921.3334
       cy=263.6667
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=87.94068
@@ -1262,6 +1301,7 @@ cells=java.util.Vector {
       }
       cx=1017.3334
       cy=229.16667
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=118.42635
@@ -1303,6 +1343,7 @@ cells=java.util.Vector {
       }
       cx=1072.8
       cy=190.2
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=150.46625
@@ -1341,6 +1382,7 @@ cells=java.util.Vector {
       }
       cx=1012.25
       cy=126.5
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=94.1956
@@ -1376,6 +1418,7 @@ cells=java.util.Vector {
       }
       cx=1021.25
       cy=70.5
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=105.99439
@@ -1423,6 +1466,7 @@ cells=java.util.Vector {
       }
       cx=1140.8334
       cy=123.333336
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=102.72194
@@ -1458,6 +1502,7 @@ cells=java.util.Vector {
       }
       cx=1028.75
       cy=297.25
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=74.45888
@@ -1496,6 +1541,7 @@ cells=java.util.Vector {
       }
       cx=1091.0
       cy=373.0
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=93.26307
@@ -1531,6 +1577,7 @@ cells=java.util.Vector {
       }
       cx=1187.25
       cy=416.5
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=112.340164
@@ -1560,9 +1607,13 @@ cells=java.util.Vector {
          }
       }
       connectedCells=java.util.ArrayList {
+         java.lang.Integer {
+            16
+         }
       }
       cx=1172.5
       cy=204.0
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=48.541218
@@ -1601,6 +1652,7 @@ cells=java.util.Vector {
       }
       cx=1117.4
       cy=504.0
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=88.828804
@@ -1633,6 +1685,7 @@ cells=java.util.Vector {
       }
       cx=1214.0
       cy=506.25
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=115.53381
@@ -1665,6 +1718,7 @@ cells=java.util.Vector {
       }
       cx=797.25006
       cy=484.0
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=45.432

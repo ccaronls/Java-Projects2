@@ -136,7 +136,7 @@ public class DominosActivity extends DroidActivity {
         dominos = new Dominos() {
             @Override
             public void redraw() {
-                getContent().postInvalidate();
+                redraw();
             }
 
             @Override
@@ -434,7 +434,7 @@ public class DominosActivity extends DroidActivity {
     protected void onTouchDown(float x, float y) {
         tx = Math.round(x);
         ty = Math.round(y);
-        getContent().postInvalidate();
+        redraw();
     }
 
     @Override
@@ -445,7 +445,7 @@ public class DominosActivity extends DroidActivity {
         }
         tx = -1;//Math.round(x);
         ty = -1;//Math.round(y);
-        getContent().postInvalidate();
+        redraw();
     }
 
     @Override
@@ -456,14 +456,14 @@ public class DominosActivity extends DroidActivity {
         }
         tx = Math.round(x);
         ty = Math.round(y);
-        getContent().postInvalidate();
+        redraw();
     }
 
     @Override
     protected void onTap(float x, float y) {
         tx = Math.round(x);
         ty = Math.round(y);
-        getContent().postInvalidate();
+        redraw();
         getContent().postDelayed(new Runnable() {
             public void run() {
                 tx = ty = -1;

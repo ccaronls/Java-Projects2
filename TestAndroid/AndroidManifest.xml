@@ -68,15 +68,29 @@
             -->
         </activity>
         <activity
-            android:name=".dice.DiceActivity"
+            android:name=".strbounds.StringBoundsActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:icon="@drawable/ic_launcher"
-            android:screenOrientation="sensorPortrait"
+            android:screenOrientation="sensorLandscape"
             android:label="Dice">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".dice.DiceActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:icon="@drawable/ic_launcher"
+            android:screenOrientation="sensorPortrait"
+            android:label="Dice">
+            <!--
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            -->
         </activity>
     </application>
 

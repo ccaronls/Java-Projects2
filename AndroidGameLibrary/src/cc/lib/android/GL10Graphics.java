@@ -33,6 +33,7 @@ import cc.lib.game.GRectangle;
 import cc.lib.game.IImageFilter;
 import cc.lib.game.Justify;
 import cc.lib.math.Matrix3x3;
+import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 import cc.lib.utils.GException;
 
@@ -174,32 +175,8 @@ public class GL10Graphics extends AGraphics {
         return textWidth;
     }
     
-    
-    /*
-    public final GDimension drawJustifiedString(float x, float y, Justify hJust, Justify vJust, String text) {
-        if (text==null || text.length() == 0)
-            return GDimension.EMPTY;
-        String [] lines = text.split("\n");
-        final float textHeight = (float)getTextHeight()*getViewportScaleY();
-        switch (vJust) {
-        case TOP: 
-            break;
-        case CENTER: 
-            y -= (lines.length * (textHeight)) / 2; 
-            break;
-        case BOTTOM: 
-            y -= lines.length * textHeight; 
-            break;
-        default:
-            DroidUtils.unhandledCase(vJust);
-            break;
-        }
-        float mw = 0;
-        for (int i=0; i<lines.length; i++) {
-            mw = Math.max(mw, priv_drawJustifiedString(sGl, x, y, hJust, lines[i]));
-            y += textHeight;
-        }
-        return new GDimension(mw, textHeight * lines.length);
+    public final GRectangle drawJustifiedString2(float x, float y, Justify hJust, Justify vJust, String text) {
+        throw new RuntimeException("Not implemented");
     }
     
     /**
@@ -1214,12 +1191,12 @@ for (int pix : pixels) {
         }
     }
 
-	@Override
-	public Vector2D screenToViewport(int screenX, int screenY) {
-		throw new RuntimeException("not implemented: screenToViewport");
-	}
+    @Override
+    protected MutableVector2D untransform(float x, float y) {
+        throw new RuntimeException("not implemented: getMinBoundingRect");
+    }
 
-	@Override
+    @Override
 	public void clearMinMax() {
 		throw new RuntimeException("not implemented: clearMinMax");
 	}

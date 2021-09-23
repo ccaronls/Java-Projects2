@@ -1,12 +1,13 @@
 package cc.lib.android;
 
-import javax.microedition.khronos.opengles.*;
+import android.content.Context;
+import android.opengl.GLU;
+
+import javax.microedition.khronos.opengles.GL11;
 
 import cc.lib.math.Matrix3x3;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
-import android.content.Context;
-import android.opengl.GLU;
 
 public final class GL11Graphics extends GL10Graphics {
 
@@ -17,9 +18,9 @@ public final class GL11Graphics extends GL10Graphics {
 	public final GL11 getGl11() {
 		return (GL11)getGl10();
 	}
-	
-	@Override
-	public final Vector2D screenToViewport(int screenX, int screenY) {
+
+    @Override
+    protected MutableVector2D untransform(float x, float y) {
 		float [] model = new float[16];
 		getGl11().glGetFloatv(GL11.GL_MODELVIEW_MATRIX, model, 0);
 		float [] project = new float[16];
@@ -27,8 +28,8 @@ public final class GL11Graphics extends GL10Graphics {
 		int [] view = new int[4];
 		getGl11().glGetIntegerv(GL11.GL_VIEWPORT, view, 0);
 		float [] obj = new float[3];
-		GLU.gluUnProject(screenX, screenY, 0, model, 0, project, 0, view, 0, obj, 0);
-		return new Vector2D(obj[0], obj[1]);
+		GLU.gluUnProject(x, y, 0, model, 0, project, 0, view, 0, obj, 0);
+		return new MutableVector2D(obj[0], obj[1]);
 	}
 
 	private float [] t_modelViewMatrix = new float[16];

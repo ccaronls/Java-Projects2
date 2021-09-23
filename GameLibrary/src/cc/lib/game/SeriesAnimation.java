@@ -17,18 +17,18 @@ public class SeriesAnimation<T> extends AAnimation<T> {
 
     public final SeriesAnimation<T> addAnimation(AAnimation<T> a) {
         series.add(a);
-        setDuration(Utils.sum(series, s -> s.getDuration()));
+        setDuration(Utils.sumLong(series, s -> s.getDuration()));
         return this;
     }
 
     @Override
     protected final void onStarted() {
-        setDuration(Utils.sum(series, s -> s.getDuration()));
+        setDuration(Utils.sumLong(series, s -> s.getDuration()));
     }
 
     @Override
     protected final void onStartedReversed() {
-        setDuration(Utils.sum(series, s -> s.getDuration()));
+        setDuration(Utils.sumLong(series, s -> s.getDuration()));
     }
 
     @Override

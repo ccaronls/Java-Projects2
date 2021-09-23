@@ -132,7 +132,7 @@ public abstract class UIGame extends Game {
         if (gameRunning) {
             AIPlayer.cancel();
             gameRunning = false;
-            runLock.reset();
+            runLock.releaseAll();
         }
     }
 
