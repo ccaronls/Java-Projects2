@@ -26,6 +26,7 @@ cells=java.util.Vector {
       }
       cx=81.25
       cy=86.75
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=78.59788
@@ -70,6 +71,7 @@ cells=java.util.Vector {
       }
       cx=226.16667
       cy=78.5
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=124.79963
@@ -105,6 +107,7 @@ cells=java.util.Vector {
       }
       cx=163.75
       cy=128.0
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=71.07435
@@ -149,6 +152,7 @@ cells=java.util.Vector {
       }
       cx=252.6
       cy=133.2
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=53.784763
@@ -184,6 +188,7 @@ cells=java.util.Vector {
       }
       cx=142.75002
       cy=196.5
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=73.73134
@@ -225,6 +230,7 @@ cells=java.util.Vector {
       }
       cx=251.6
       cy=200.40001
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=99.19235
@@ -266,6 +272,7 @@ cells=java.util.Vector {
       }
       cx=198.5
       cy=295.1667
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=124.41171
@@ -304,6 +311,7 @@ cells=java.util.Vector {
       }
       cx=322.6
       cy=140.2
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=64.47948
@@ -342,6 +350,7 @@ cells=java.util.Vector {
       }
       cx=272.4
       cy=440.2
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=115.002625
@@ -377,6 +386,7 @@ cells=java.util.Vector {
       }
       cx=289.0
       cy=372.5
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=75.015
@@ -418,6 +428,7 @@ cells=java.util.Vector {
       }
       cx=364.4
       cy=449.4
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=95.80664
@@ -453,6 +464,7 @@ cells=java.util.Vector {
       }
       cx=333.6
       cy=568.2
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=108.14156
@@ -488,6 +500,7 @@ cells=java.util.Vector {
       }
       cx=469.33334
       cy=50.000008
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=109.41561
@@ -523,6 +536,7 @@ cells=java.util.Vector {
       }
       cx=538.25
       cy=86.25
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=26.222605
@@ -555,9 +569,13 @@ cells=java.util.Vector {
          java.lang.Integer {
             13
          }
+         java.lang.Integer {
+            16
+         }
       }
       cx=577.75
       cy=133.5
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=31.667215
@@ -605,6 +623,7 @@ cells=java.util.Vector {
       }
       cx=589.7143
       cy=176.7143
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=49.556812
@@ -640,9 +659,13 @@ cells=java.util.Vector {
          }
       }
       connectedCells=java.util.ArrayList {
+         java.lang.Integer {
+            14
+         }
       }
       cx=647.0
       cy=148.25
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=42.326855
@@ -684,6 +707,7 @@ cells=java.util.Vector {
       }
       cx=633.60004
       cy=102.8
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=77.63116
@@ -740,6 +764,7 @@ cells=java.util.Vector {
       }
       cx=603.25
       cy=285.25
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=102.60423
@@ -787,6 +812,7 @@ cells=java.util.Vector {
       }
       cx=662.0
       cy=183.5
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=48.746796
@@ -843,6 +869,7 @@ cells=java.util.Vector {
       }
       cx=742.125
       cy=139.25
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=93.354614
@@ -878,6 +905,7 @@ cells=java.util.Vector {
       }
       cx=670.25
       cy=396.75
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=65.662964
@@ -931,6 +959,7 @@ cells=java.util.Vector {
       }
       cx=743.28577
       cy=356.14288
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=98.44845
@@ -969,6 +998,7 @@ cells=java.util.Vector {
       }
       cx=695.0
       cy=253.0
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=59.933304
@@ -1022,6 +1052,7 @@ cells=java.util.Vector {
       }
       cx=789.125
       cy=251.0
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=93.346214
@@ -1066,6 +1097,7 @@ cells=java.util.Vector {
       }
       cx=856.8
       cy=185.0
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=71.9739
@@ -1101,6 +1133,7 @@ cells=java.util.Vector {
       }
       cx=848.0
       cy=102.75
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=97.1574
@@ -1136,6 +1169,7 @@ cells=java.util.Vector {
       }
       cx=917.25
       cy=80.25
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=82.116516
@@ -1174,6 +1208,7 @@ cells=java.util.Vector {
       }
       cx=703.60004
       cy=486.80002
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=85.64579
@@ -1218,6 +1253,7 @@ cells=java.util.Vector {
       }
       cx=921.3334
       cy=263.6667
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=87.94068
@@ -1262,6 +1298,7 @@ cells=java.util.Vector {
       }
       cx=1017.3334
       cy=229.16667
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=118.42635
@@ -1303,6 +1340,7 @@ cells=java.util.Vector {
       }
       cx=1072.8
       cy=190.2
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=150.46625
@@ -1341,6 +1379,7 @@ cells=java.util.Vector {
       }
       cx=1012.25
       cy=126.5
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=94.1956
@@ -1376,6 +1415,7 @@ cells=java.util.Vector {
       }
       cx=1021.25
       cy=70.5
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=105.99439
@@ -1423,6 +1463,7 @@ cells=java.util.Vector {
       }
       cx=1140.8334
       cy=123.333336
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=102.72194
@@ -1435,9 +1476,6 @@ cells=java.util.Vector {
          }
          java.lang.Integer {
             30
-         }
-         java.lang.Integer {
-            36
          }
       }
       adjVerts=java.util.ArrayList {
@@ -1458,6 +1496,7 @@ cells=java.util.Vector {
       }
       cx=1028.75
       cy=297.25
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=74.45888
@@ -1465,47 +1504,39 @@ cells=java.util.Vector {
    }
    cc.lib.risk.RiskCell {
       adjCells=java.util.ArrayList {
-         java.lang.Integer {
-            35
-         }
-         java.lang.Integer {
-            37
-         }
       }
       adjVerts=java.util.ArrayList {
          java.lang.Integer {
-            63
+            111
          }
          java.lang.Integer {
-            74
+            112
          }
          java.lang.Integer {
-            75
+            113
          }
          java.lang.Integer {
             76
          }
-         java.lang.Integer {
-            59
-         }
       }
       connectedCells=java.util.ArrayList {
          java.lang.Integer {
-            39
+            22
+         }
+         java.lang.Integer {
+            28
          }
       }
-      cx=1091.0
-      cy=373.0
+      cx=797.25006
+      cy=484.0
+      movableTroops=0
       numArmies=0
       occupier=null
-      radius=93.26307
-      region=AUSTRALIA
+      radius=45.432
+      region=AFRICA
    }
    cc.lib.risk.RiskCell {
       adjCells=java.util.ArrayList {
-         java.lang.Integer {
-            36
-         }
          java.lang.Integer {
             39
          }
@@ -1531,6 +1562,7 @@ cells=java.util.Vector {
       }
       cx=1187.25
       cy=416.5
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=112.340164
@@ -1563,6 +1595,7 @@ cells=java.util.Vector {
       }
       cx=1172.5
       cy=204.0
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=48.541218
@@ -1601,6 +1634,7 @@ cells=java.util.Vector {
       }
       cx=1117.4
       cy=504.0
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=88.828804
@@ -1633,42 +1667,11 @@ cells=java.util.Vector {
       }
       cx=1214.0
       cy=506.25
+      movableTroops=0
       numArmies=0
       occupier=null
       radius=115.53381
       region=AUSTRALIA
-   }
-   cc.lib.risk.RiskCell {
-      adjCells=java.util.ArrayList {
-      }
-      adjVerts=java.util.ArrayList {
-         java.lang.Integer {
-            111
-         }
-         java.lang.Integer {
-            112
-         }
-         java.lang.Integer {
-            113
-         }
-         java.lang.Integer {
-            114
-         }
-      }
-      connectedCells=java.util.ArrayList {
-         java.lang.Integer {
-            22
-         }
-         java.lang.Integer {
-            28
-         }
-      }
-      cx=797.25006
-      cy=484.0
-      numArmies=0
-      occupier=null
-      radius=45.432
-      region=AFRICA
    }
 }
 dimension=cc.lib.game.GDimension {
@@ -2321,16 +2324,8 @@ edges=java.util.Vector {
          35 36 
       }
       from=59
-      numAdjCells=2
-      to=63
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         36 0 
-      }
-      from=59
       numAdjCells=1
-      to=76
+      to=63
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
@@ -2355,14 +2350,6 @@ edges=java.util.Vector {
       from=62
       numAdjCells=1
       to=63
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         36 0 
-      }
-      from=63
-      numAdjCells=1
-      to=74
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
@@ -2462,10 +2449,10 @@ edges=java.util.Vector {
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         36 37 
+         37 37 
       }
       from=74
-      numAdjCells=2
+      numAdjCells=1
       to=75
    }
    cc.lib.board.BEdge {
@@ -2478,11 +2465,11 @@ edges=java.util.Vector {
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         36 0 
+         0 0 
       }
-      from=75
-      numAdjCells=1
-      to=76
+      from=74
+      numAdjCells=0
+      to=115
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
@@ -2531,6 +2518,14 @@ edges=java.util.Vector {
       from=79
       numAdjCells=1
       to=80
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         0 0 
+      }
+      from=79
+      numAdjCells=0
+      to=114
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
@@ -2814,7 +2809,7 @@ edges=java.util.Vector {
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         41 0 
+         36 0 
       }
       from=111
       numAdjCells=1
@@ -2822,15 +2817,15 @@ edges=java.util.Vector {
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         41 0 
+         36 0 
       }
-      from=111
+      from=76
       numAdjCells=1
-      to=114
+      to=111
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         41 0 
+         36 0 
       }
       from=112
       numAdjCells=1
@@ -2838,11 +2833,19 @@ edges=java.util.Vector {
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         41 0 
+         36 0 
       }
-      from=113
+      from=76
       numAdjCells=1
-      to=114
+      to=113
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         0 0 
+      }
+      from=114
+      numAdjCells=0
+      to=115
    }
 }
 verts=java.util.Vector {
@@ -3561,8 +3564,8 @@ verts=java.util.Vector {
       adjacentVerts=int 8 {
          57 63 76 0 0 0 0 0 
       }
-      numAdjCells=2
-      numAdjVerts=3
+      numAdjCells=1
+      numAdjVerts=2
       x=1039.0
       y=371.0
    }
@@ -3609,7 +3612,7 @@ verts=java.util.Vector {
       adjacentVerts=int 8 {
          58 59 62 74 0 0 0 0 
       }
-      numAdjCells=3
+      numAdjCells=2
       numAdjVerts=4
       x=1084.0
       y=280.0
@@ -3736,25 +3739,25 @@ verts=java.util.Vector {
    }
    cc.lib.board.BVertex {
       adjacentCells=int 8 {
-         36 37 0 0 0 0 0 0 
+         37 37 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
          63 75 77 0 0 0 0 0 
       }
-      numAdjCells=2
+      numAdjCells=1
       numAdjVerts=3
       x=1174.0
       y=341.0
    }
    cc.lib.board.BVertex {
       adjacentCells=int 8 {
-         36 37 39 0 0 0 0 0 
+         39 37 39 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         74 76 78 79 0 0 0 0 
+         74 79 78 79 0 0 0 0 
       }
-      numAdjCells=3
-      numAdjVerts=4
+      numAdjCells=2
+      numAdjVerts=3
       x=1117.0
       y=443.0
    }
@@ -3763,12 +3766,12 @@ verts=java.util.Vector {
          36 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         59 75 0 0 0 0 0 0 
+         111 113 0 0 0 0 0 0 
       }
       numAdjCells=1
       numAdjVerts=2
-      x=1041.0
-      y=430.0
+      x=765.0
+      y=516.0
    }
    cc.lib.board.BVertex {
       adjacentCells=int 8 {
@@ -4180,10 +4183,10 @@ verts=java.util.Vector {
    }
    cc.lib.board.BVertex {
       adjacentCells=int 8 {
-         41 0 0 0 0 0 0 0 
+         36 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         112 114 0 0 0 0 0 0 
+         112 76 0 0 0 0 0 0 
       }
       numAdjCells=1
       numAdjVerts=2
@@ -4192,7 +4195,7 @@ verts=java.util.Vector {
    }
    cc.lib.board.BVertex {
       adjacentCells=int 8 {
-         41 0 0 0 0 0 0 0 
+         36 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
          111 113 0 0 0 0 0 0 
@@ -4204,10 +4207,10 @@ verts=java.util.Vector {
    }
    cc.lib.board.BVertex {
       adjacentCells=int 8 {
-         41 0 0 0 0 0 0 0 
+         36 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         112 114 0 0 0 0 0 0 
+         112 76 0 0 0 0 0 0 
       }
       numAdjCells=1
       numAdjVerts=2
@@ -4216,14 +4219,26 @@ verts=java.util.Vector {
    }
    cc.lib.board.BVertex {
       adjacentCells=int 8 {
-         41 0 0 0 0 0 0 0 
+         0 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         111 113 0 0 0 0 0 0 
+         0 0 0 0 0 0 0 0 
       }
-      numAdjCells=1
-      numAdjVerts=2
-      x=765.0
-      y=516.0
+      numAdjCells=0
+      numAdjVerts=0
+      x=994.0
+      y=366.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         0 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         0 0 0 0 0 0 0 0 
+      }
+      numAdjCells=0
+      numAdjVerts=0
+      x=1129.0
+      y=294.0
    }
 }

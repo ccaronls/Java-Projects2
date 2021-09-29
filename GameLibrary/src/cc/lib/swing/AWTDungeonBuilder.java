@@ -24,8 +24,8 @@ public class AWTDungeonBuilder extends AWTBoardBuilder<BVertex, BEdge, DCell, DB
     CellType cellType = CellType.EMPTY;
 
     @Override
-    protected void initFrame(AWTFrame frame) {
-        super.initFrame(frame);
+    protected void registerTools() {
+        super.registerTools();
         frame.addMenuBarMenu("CELL", Utils.toStringArray(CellType.values()));
     }
 
@@ -52,7 +52,7 @@ public class AWTDungeonBuilder extends AWTBoardBuilder<BVertex, BEdge, DCell, DB
         frame.setProperty("cellType", cellType.name());
         repaint();
     }
-
+/*
     @Override
     protected void pickCellSingleSelect() {
         super.pickCellSingleSelect();
@@ -61,7 +61,7 @@ public class AWTDungeonBuilder extends AWTBoardBuilder<BVertex, BEdge, DCell, DB
             cell.setType(cellType);
         }
     }
-
+*/
     @Override
     protected String getPropertiesFileName() {
         return "ddbuilder.properties";

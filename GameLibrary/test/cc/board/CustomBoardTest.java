@@ -2,8 +2,6 @@ package cc.board;
 
 import junit.framework.TestCase;
 
-import java.io.File;
-
 import cc.lib.board.CustomBoard;
 
 public class CustomBoardTest extends TestCase {
@@ -22,10 +20,10 @@ public class CustomBoardTest extends TestCase {
         b.addVertex(20, 20);
         b.addVertex(10,  20);
 
-        b.addEdge(0, 1);
-        b.addEdge(1, 2);
-        b.addEdge(2, 3);
-        b.addEdge(0, 3);
+        b.getOrAddEdge(0, 1);
+        b.getOrAddEdge(1, 2);
+        b.getOrAddEdge(2, 3);
+        b.getOrAddEdge(0, 3);
 
         b.compute();
 
@@ -44,13 +42,13 @@ public class CustomBoardTest extends TestCase {
         b.addVertex(20, 30);
         b.addVertex(10, 30);
 
-        b.addEdge(0, 1);
-        b.addEdge(1, 2);
-        b.addEdge(2, 3);
-        b.addEdge(0, 3);
-        b.addEdge(2, 4);
-        b.addEdge(4, 5);
-        b.addEdge(5, 3);
+        b.getOrAddEdge(0, 1);
+        b.getOrAddEdge(1, 2);
+        b.getOrAddEdge(2, 3);
+        b.getOrAddEdge(0, 3);
+        b.getOrAddEdge(2, 4);
+        b.getOrAddEdge(4, 5);
+        b.getOrAddEdge(5, 3);
 
         b.compute();
 
@@ -71,15 +69,15 @@ public class CustomBoardTest extends TestCase {
         b.addVertex(35, 30);
         b.addVertex(40, 10);
 
-        b.addEdge(0, 1);
-        b.addEdge(1, 2);
-        b.addEdge(2, 3);
-        b.addEdge(0, 4);
-        b.addEdge(0, 3);
-        b.addEdge(3, 4);
-        b.addEdge(3, 5);
-        b.addEdge(5, 6);
-        b.addEdge(2, 6);
+        b.getOrAddEdge(0, 1);
+        b.getOrAddEdge(1, 2);
+        b.getOrAddEdge(2, 3);
+        b.getOrAddEdge(0, 4);
+        b.getOrAddEdge(0, 3);
+        b.getOrAddEdge(3, 4);
+        b.getOrAddEdge(3, 5);
+        b.getOrAddEdge(5, 6);
+        b.getOrAddEdge(2, 6);
 
         b.compute();
         assertEquals(3, b.getNumCells());

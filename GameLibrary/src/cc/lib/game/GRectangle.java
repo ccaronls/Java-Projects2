@@ -426,4 +426,19 @@ public class GRectangle extends Reflector<GRectangle> implements IRectangle {
         }
         setCenter(cntr);
     }
+
+    public GRectangle [] subDivide(int rows, int cols) {
+        GRectangle [] divisions = new GRectangle[rows*cols];
+        float wid = w/cols;
+        float hgt = h/rows;
+        int idx = 0;
+        for (int i=0; i<cols; i++) {
+            MutableVector2D tl = getTopLeft().addEq(wid*i, 0);
+            for (int ii=0; ii<rows; ii++) {
+                divisions[idx++] = new GRectangle(tl, wid, hgt);
+                tl.addEq(0, hgt);
+            }
+        }
+        return divisions;
+    }
 }

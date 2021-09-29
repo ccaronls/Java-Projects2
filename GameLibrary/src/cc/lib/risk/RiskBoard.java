@@ -15,6 +15,8 @@ import cc.lib.game.Utils;
  */
 public class RiskBoard extends CustomBoard<BVertex, BEdge, RiskCell> {
 
+    int [][] distMatrix = null;
+
     @Override
     protected RiskCell newCell(List<Integer> pts) {
         return new RiskCell(pts);
@@ -52,5 +54,41 @@ public class RiskBoard extends CustomBoard<BVertex, BEdge, RiskCell> {
         Utils.assertTrue(to.numArmies > 0);
         from.numArmies -= numArmies;
         to.numArmies += numArmies;
+    }
+
+    private int [][] computeFloydWarshallDistanceMatrix() {
+        final int numV = getNumCells();
+        final int INF = Integer.MAX_VALUE/2 - 1;
+        int [][] dist = new int[numV][numV];
+        for (int i=0; i<numV; i++) {
+            for (int ii=0; ii<numV; ii++) {
+                dist[i][ii] = INF;
+            }
+            dist[i][i] = 0;
+        }
+
+        for (int cellIdx = 0; cellIdx<getNumCells(); cellIdx++) {
+            RiskCell cell = getCell(cellIdx);
+            for (int adjIdx : cell.getAllConnectedCells()) {
+                dist[cellIdx][adjIdx] = dist[adjIdx][cellIdx] = 1;
+            }
+        }
+
+        for (int k=0; k<numV; k++) {
+            for (int i=0; i<numV; i++) {
+                for (int j=0; j<numV; j++) {
+                    dist[i][j] = Math.min(dist[i][k] + dist[k][j], dist[i][j]);
+                }
+            }
+        }
+        return dist;
+    }
+
+
+    public int getDistance(int fromCellIdx, int toCellIdx) {
+        if (distMatrix == null) {
+            distMatrix = computeFloydWarshallDistanceMatrix();
+        }
+        return distMatrix[fromCellIdx][toCellIdx];
     }
 }

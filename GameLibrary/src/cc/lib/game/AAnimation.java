@@ -203,9 +203,9 @@ public abstract class AAnimation<T> {
                     position = delta / duration;
                 }
             }
-            dt = (float)(t-lastTime)/duration;
+            dt = (float) (t - lastTime) / duration;
             int r;
-            if (curRepeat != (r=getRepeat())) {
+            if (curRepeat != (r = getRepeat())) {
                 onRepeat(r);
                 curRepeat = r;
             }
@@ -314,7 +314,7 @@ public abstract class AAnimation<T> {
     public final int getRepeat() { return (int)((System.currentTimeMillis() - startTime) / duration); }
 
     public final boolean isStarted() {
-        return state == State.STARTED || state == State.RUNNING;
+        return state != State.PRESTART;
     }
 
     public final boolean isRunning() {

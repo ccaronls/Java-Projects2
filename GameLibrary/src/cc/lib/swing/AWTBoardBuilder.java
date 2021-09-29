@@ -26,6 +26,7 @@ import cc.lib.logger.LoggerFactory;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 import cc.lib.utils.FileUtils;
+import cc.lib.utils.GException;
 import cc.lib.utils.Table;
 
 import static java.awt.event.KeyEvent.VK_BACK_SPACE;
@@ -109,8 +110,124 @@ public abstract class AWTBoardBuilder<V extends BVertex, E extends BEdge, C exte
         }
     }
 
-    File DEFAULT_FILE = new File("AWTBoardBuilder.default");
+    enum PickMode {
+        VERTEX, EDGE, CELL
+    }
 
+    public abstract class Tool {
+        final String name;
+        public Tool(String name) {
+            this.name = name;
+        }
+
+        public final String toString() {
+            return name;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            String s = o.toString();
+            return Utils.equals(name, s);
+        }
+
+        public void onPick() {
+            switch (pickMode) {
+                case VERTEX:
+                    // add a new vertex if we are not highlighting an existing one
+                    int picked = highlightedIndex;
+                    if (picked < 0) {
+                        final int v = board.addVertex(getMousePos());
+                        final int s = getSelectedIndex();
+                        pushUndoAction(new Action() {
+                            @Override
+                            public void undo() {
+                                board.removeVertex(v);
+                                setSelectedIndex(s);
+                            }
+                        });
+                        highlightedIndex = v;
+                    }
+                default:
+                    if (multiSelect) {
+                        if (highlightedIndex >= 0 && !selected.contains(highlightedIndex))
+                            selected.add(highlightedIndex);
+                        else
+                            selected.remove((Object)highlightedIndex);
+                    } else {
+                        setSelectedIndex(highlightedIndex);
+                    }
+            }
+        }
+        public void onDraw(AWTGraphics g) {}
+    }
+
+    List<Tool> tools = new ArrayList<Tool>() {{
+        add(new Tool("NONE") {
+        });
+        add(new Tool("EDGE BUILDER") {
+            @Override
+            public void onPick() {
+                if (pickMode == PickMode.VERTEX && !multiSelect) {
+                    int sel = getSelectedIndex();
+                    if (highlightedIndex < 0) {
+                        super.onPick();
+                    }
+                    if (highlightedIndex >= 0 && sel >= 0 && highlightedIndex != sel) {
+                        int h = highlightedIndex;
+                        board.getOrAddEdge(sel, h);
+                        pushUndoAction(new Action() {
+                            @Override
+                            public void undo() {
+                                board.removeEdge(sel, h);
+                            }
+                        });
+                    }
+                    setSelectedIndex(highlightedIndex);
+                } else {
+                    super.onPick();
+                }
+            }
+        });
+        add(new Tool("CELL BUILDER") {
+            final List<Integer> wrappedIndices = new ArrayList<>();
+            boolean inside = false;
+
+            @Override
+            public void onPick() {
+                if (inside) {
+                    //board.addCell(wrappedIndices);
+                }
+                super.onPick();
+            }
+
+            @Override
+            public void onDraw(AWTGraphics g) {
+                Map<BVertex, Integer> vmap = new HashMap<>();
+                for (int idx : selected) {
+                    vmap.put(board.getVertex(idx), idx);
+                }
+                List<BVertex> wrapped = Utils.computeGiftWrapVertices(vmap.keySet());
+                wrappedIndices.clear();
+                for (BVertex v : wrapped) {
+                    wrappedIndices.add(vmap.get(v));
+                }
+
+                if (inside = Utils.isPointInsidePolygon(mouse, wrapped)) {
+                    g.setColor(GColor.RED);
+                } else {
+                    g.setColor(GColor.ORANGE);
+                }
+                g.begin();
+                for (BVertex v : wrapped) {
+                    g.vertex(v);
+                }
+                g.drawLineLoop(4);
+            }
+        });
+    }};
+
+    File DEFAULT_FILE = new File("AWTBoardBuilder.default");
     final T board;
     int background = -1;
     int highlightedIndex = -1;
@@ -120,13 +237,11 @@ public abstract class AWTBoardBuilder<V extends BVertex, E extends BEdge, C exte
     boolean showNumbers = true;
     boolean showHelp = false;
     GRectangle rect = null;
+    boolean multiSelect = false;
     List<Integer> selected = new ArrayList<>();
     final MutableVector2D mouse = new MutableVector2D();
     final Map<Integer, KeyAction> actions = new HashMap<>();
-
-    enum PickMode {
-        VERTEX, EDGE, CELL, CELL_MULTISELECT
-    }
+    Tool tool = tools.get(0);
 
     AWTBoardBuilder() {
         board = newBoard();
@@ -160,10 +275,21 @@ public abstract class AWTBoardBuilder<V extends BVertex, E extends BEdge, C exte
      * This is a good place to add top bar menus
      * @param frame
      */
-    protected void initFrame(AWTFrame frame) {
+    private void initFrame(AWTFrame frame) {
+        registerTools();
         frame.addMenuBarMenu("File", "New Board", "Load Board", "Load Image", "Clear Image", "Save As...", "Save");
+        frame.addMenuBarMenu("Select", "All", "None");
         frame.addMenuBarMenu("Mode", Utils.toStringArray(PickMode.values(), false));
+        frame.addMenuBarMenu("Tool", Utils.toStringArray(tools));
         frame.addMenuBarMenu("Action", "Compute", "Clear", "Undo", "Generate Grid");
+    }
+
+    /**
+     * Override this method to add your tools.
+     * Be sure to @CallSuper
+     */
+    protected void registerTools() {
+
     }
 
     /**
@@ -178,12 +304,20 @@ public abstract class AWTBoardBuilder<V extends BVertex, E extends BEdge, C exte
                 onFileMenu(subMenu);
                 break;
 
+            case "Select":
+                onSelectMenu(subMenu);
+                break;
+
             case "Mode":
                 onModeMenu(PickMode.valueOf(subMenu));
                 break;
 
             case "Action":
                 onActionMenu(subMenu);
+                break;
+
+            case "Tool":
+                setTool(subMenu);
                 break;
 
             default:
@@ -196,6 +330,7 @@ public abstract class AWTBoardBuilder<V extends BVertex, E extends BEdge, C exte
         Properties p = frame.getProperties();
         boardFile = new File(p.getProperty("boardFile", DEFAULT_FILE.getPath()));
         pickMode = PickMode.valueOf(p.getProperty("pickMode", pickMode.name()));
+        multiSelect = Boolean.valueOf(p.getProperty("multiSelect", "false"));
         progress += 0.1f;
         String image = p.getProperty("image");
         if (image != null)
@@ -203,6 +338,12 @@ public abstract class AWTBoardBuilder<V extends BVertex, E extends BEdge, C exte
         progress = 0.75f;
         board.tryLoadFromFile(boardFile);
         progress = 1;
+        setTool(p.getProperty("tool", tool.name));
+    }
+
+    private void setTool(String name) {
+        tool = Utils.requireNotNull(Utils.findFirst(tools, name, t -> t.name));
+        frame.setProperty("tool", name);
     }
 
     @Override
@@ -248,11 +389,11 @@ public abstract class AWTBoardBuilder<V extends BVertex, E extends BEdge, C exte
                 break;
 
             case CELL:
-            case CELL_MULTISELECT:
                 g.screenToViewport(mouse);
                 drawCellMode(g, mouseX, mouseY);
                 break;
         }
+        tool.onDraw(g);
 
         g.ortho();
         g.setColor(GColor.RED);
@@ -326,8 +467,13 @@ public abstract class AWTBoardBuilder<V extends BVertex, E extends BEdge, C exte
     }
 
     protected void getDisplayData(List<String> lines) {
-        lines.add(boardFile.getName());
-        lines.add(pickMode.name());
+        String path = boardFile.getName();
+        File parent = boardFile.getParentFile();
+        if (parent != null) {
+            path = parent.getName() + "/" + path;
+        }
+        lines.add(path);
+        lines.add(pickMode.name() + ":" + (multiSelect?"MULTI:":"")+ tool.toString());
         lines.add(String.format("V:%d E:%d C:%d", board.getNumVerts(), board.getNumEdges(), board.getNumCells()));
     }
 
@@ -336,25 +482,39 @@ public abstract class AWTBoardBuilder<V extends BVertex, E extends BEdge, C exte
     }
 
     public void setSelectedIndex(int idx) {
+        if (multiSelect) {
+            if (selected.contains(idx)) {
+                selected.remove((Object)idx);
+            } else if (idx >=0) {
+                selected.add(idx);
+            }
+        } else {
+            selected.clear();
+            if (idx >= 0)
+                selected.add(idx);
+        }
+        frame.setProperty("selected", selected);
+    }
+
+    public void clearSelected() {
         selected.clear();
-        if (idx >= 0)
-            selected.add(idx);
+        frame.setProperty("selected", selected);
     }
 
     protected void drawVertexMode(APGraphics g, Vector2D mouse) {
 
-        if (getSelectedIndex() >= 0) {
-            g.setColor(GColor.RED);
-            g.begin();
-            g.vertex(board.getVertex(getSelectedIndex()));
-            g.drawPoints(8);
+        g.setColor(GColor.RED);
+        g.begin();
+        for (int idx : selected) {
+            g.vertex(board.getVertex(idx));
         }
+        g.drawPoints(8);
         highlightedIndex = board.pickVertex(g, mouse);
         if (highlightedIndex >= 0) {
             BVertex v = board.getVertex(highlightedIndex);
             g.begin();
             g.vertex(v);
-            g.drawPoints(8);
+            g.drawPoints(10);
             // draw lines from vertex to its adjacent cells
             g.begin();
             for (BCell c : board.getAdjacentCells(v)) {
@@ -379,12 +539,6 @@ public abstract class AWTBoardBuilder<V extends BVertex, E extends BEdge, C exte
         if (showNumbers)
             board.drawVertsNumbered(g);
 
-        if (getSelectedIndex() >= 0 && getSelectedIndex() != highlightedIndex) {
-            g.setColor(GColor.RED);
-            g.begin();
-            g.vertex(board.getVertex(getSelectedIndex()));
-            g.drawPoints(8);
-        }
     }
 
     protected void drawEdgeMode(APGraphics g, int mouseX, int mouseY) {
@@ -470,7 +624,7 @@ public abstract class AWTBoardBuilder<V extends BVertex, E extends BEdge, C exte
 
     void onModeMenu(PickMode mode) {
         pickMode = mode;
-        selected.clear();
+        clearSelected();
         frame.setProperty("pickMode", mode.name());
     }
 
@@ -488,7 +642,7 @@ public abstract class AWTBoardBuilder<V extends BVertex, E extends BEdge, C exte
 
             case "Clear":
                 board.clear();
-                selected.clear();
+                clearSelected();
                 break;
 
             case "Generate Grid": {
@@ -528,7 +682,7 @@ public abstract class AWTBoardBuilder<V extends BVertex, E extends BEdge, C exte
         switch (item) {
             case "New Board":
                 board.clear();
-                selected.clear();
+                clearSelected();
                 setBoardFile(null);
                 break;
             case "Load Board": {
@@ -593,59 +747,84 @@ public abstract class AWTBoardBuilder<V extends BVertex, E extends BEdge, C exte
         repaint();
     }
 
+    private void onSelectMenu(String subMenu) {
+        switch (subMenu) {
+            case "All":
+                setMultiselect(true);
+                switch (pickMode) {
+                    case VERTEX:
+                        selected.clear();
+                        selected.addAll(Utils.map(Utils.getRangeIterator(0, board.getNumVerts()-1), i->i));
+                        break;
+                    case EDGE:
+                        selected.clear();
+                        selected.addAll(Utils.map(Utils.getRangeIterator(0, board.getNumEdges()-1), i->i));
+                        break;
+                    case CELL:
+                        selected.clear();
+                        selected.addAll(Utils.map(Utils.getRangeIterator(0, board.getNumCells()-1), i->i));
+                        break;
+                }
+                frame.setProperty("selected", selected);
+                break;
+
+            case "Invert": {
+                setMultiselect(true);
+                List<Integer> newSel;
+                switch (pickMode) {
+                    case VERTEX:
+                        newSel = Utils.filter(Utils.getRangeIterator(0, board.getNumVerts()-1), i->!selected.contains(i));
+                        selected.clear();
+                        selected.addAll(newSel);
+                        break;
+                    case EDGE:
+                        newSel = Utils.filter(Utils.getRangeIterator(0, board.getNumEdges()-1), i->!selected.contains(i));
+                        selected.clear();
+                        selected.addAll(newSel);
+                        break;
+                    case CELL:
+                        newSel = Utils.filter(Utils.getRangeIterator(0, board.getNumCells()-1), i->!selected.contains(i));
+                        selected.clear();
+                        selected.addAll(newSel);
+                        break;
+                }
+                frame.setProperty("selected", selected);
+            }
+        }
+        redraw();
+    }
+
     @Override
     protected final void onClick() {
-        switch (pickMode) {
-            case VERTEX:
-                pickVertex();
-                break;
-
-            case EDGE:
-                pickEdge();
-                break;
-
-            case CELL:
-                pickCellSingleSelect();
-                break;
-            case CELL_MULTISELECT:
-                pickCellMultiselect();
-                break;
+        tool.onPick();
+        repaint();
+    }
+/*
+    protected void pickVertexMultiSelect() {
+        if (highlightedIndex >= 0) {
+            if (selected.contains(highlightedIndex)) {
+                selected.remove((Object)highlightedIndex);
+            } else {
+                selected.add(highlightedIndex);
+            }
         }
     }
 
-    protected void pickVertex() {
+    protected void pickVertexSingleSelect() {
 
-        int picked = highlightedIndex;//board.pickVertex(getAPGraphics(), mouse);
-        Action a = null;
+        int picked = highlightedIndex;
         if (picked < 0) {
             final int v = board.addVertex(getMousePos());
             final int s = getSelectedIndex();
-            a = new Action() {
+            pushUndoAction(new Action() {
                 @Override
                 public void undo() {
                     board.removeVertex(v);
                     setSelectedIndex(s);
                 }
-            };
-            picked = v;
+            });
+            highlightedIndex = v;
         }
-        if (getSelectedIndex() >= 0 && getSelectedIndex() != picked) {
-            final int p = picked;
-            final int s = getSelectedIndex();
-            board.addEdge(getSelectedIndex(), picked);
-            a = new Action() {
-                @Override
-                public void undo() {
-                    board.removeEdge(s, p);
-                    board.removeVertex(p);
-                    setSelectedIndex(s);
-                }
-            };
-        }
-        if (a != null) {
-            pushUndoAction(a);
-        }
-        setSelectedIndex(picked);
         repaint();
     }
 
@@ -665,7 +844,7 @@ public abstract class AWTBoardBuilder<V extends BVertex, E extends BEdge, C exte
             selected.add(idx);
         }
         redraw();
-    }
+    }*/
 
     protected void pushUndoAction(Action a) {
         undoList.add(a);
@@ -679,7 +858,7 @@ public abstract class AWTBoardBuilder<V extends BVertex, E extends BEdge, C exte
             setSelectedIndex(board.pickVertex(getAPGraphics(), mouse));
         } else {
             BVertex v = board.getVertex(getSelectedIndex());
-            v.set(getMousePos(x, y));
+            board.moveVertex(getSelectedIndex(), getMousePos(x, y));
         }
         repaint();
     }
@@ -692,13 +871,13 @@ public abstract class AWTBoardBuilder<V extends BVertex, E extends BEdge, C exte
 
     protected void initActions() {
         addAction(VK_ESCAPE, "ESC", "Clear Selected", () -> selected.clear());
-        addAction(VK_V, "V", "Set PickMode to VERTEX", ()->{ pickMode = PickMode.VERTEX; selected.clear(); });
-        addAction(VK_E, "E", "Set PickMode EDGE", ()->{pickMode=PickMode.EDGE; selected.clear();});
-        addAction(VK_C, "C", "Set PickMOde CELL", ()->{pickMode=PickMode.CELL; selected.clear();});
-        addAction(VK_M, "M", "Set PickMode CELL_MULTISELECT", ()->{pickMode=PickMode.CELL_MULTISELECT; selected.clear();});
+        addAction(VK_V, "V", "Set PickMode to VERTEX", ()->setPickMode(PickMode.VERTEX));
+        addAction(VK_E, "E", "Set PickMode EDGE", ()->setPickMode(PickMode.EDGE));
+        addAction(VK_C, "C", "Set PickMOde CELL", ()->setPickMode(PickMode.CELL));
+        addAction(VK_M, "M", "Set toggle MULTI-SELECT", ()->setMultiselect(!multiSelect));
         addAction(VK_H, "H", "Toggle Show Help", ()->showHelp=!showHelp);
         addAction(Utils.toIntArray(VK_DELETE, VK_BACK_SPACE), "DELETE", "Remove Selected Item", ()->deleteSelected());
-        addAction(VK_TAB, "TAB", "Toggle Pick Modes", ()-> {pickMode = Utils.incrementValue(pickMode, PickMode.values()); selected.clear();});
+        addAction(VK_TAB, "TAB", "Toggle Pick Modes", ()-> setPickMode(Utils.incrementValue(pickMode, PickMode.values())));
         addAction(VK_N, "N", "Toggle Show Numbers", ()->showNumbers = !showNumbers);
         addAction(Utils.toIntArray(VK_PLUS, VK_EQUALS), "+", "Zoom in", ()->zoomIn());
         addAction(VK_MINUS, "-", "Zoom out", ()->zoomOut());
@@ -734,45 +913,39 @@ public abstract class AWTBoardBuilder<V extends BVertex, E extends BEdge, C exte
     }
 
     private void deleteSelected() {
-        if (getSelectedIndex() >= 0) {
-            switch (pickMode) {
-                case CELL:
-                    board.removeCell(getSelectedIndex());
-                    break;
-                case EDGE: {
-                    //board.removeEdge(getSelectedIndex());
-                    Action a = null;
-                    if (getSelectedIndex() >= 0) {
-                        final E e = board.getEdge(getSelectedIndex());
-                        board.removeEdge(getSelectedIndex());
-                        pushUndoAction(new Action() {
-                            @Override
-                            public void undo() {
-                                board.addEdge(e);
-                            }
-                        });
-                    }
-
-                    break;
+        Collections.sort(selected);
+        Collections.reverse(selected);
+        switch (pickMode) {
+            case CELL:
+                for (int idx : selected)
+                    board.removeCell(idx);
+                break;
+            case EDGE: {
+                //board.removeEdge(getSelectedIndex());
+                Action a = null;
+                if (getSelectedIndex() >= 0) {
+                    final E e = board.getEdge(getSelectedIndex());
+                    board.removeEdge(getSelectedIndex());
+                    pushUndoAction(() -> board.addEdge(e));
                 }
-                case VERTEX:
-                    board.removeVertex(getSelectedIndex());
-                    break;
+
+                break;
             }
-            selected.clear();
+            case VERTEX:
+                for (int idx : selected)
+                    board.removeVertex(idx);
+                break;
         }
+        selected.clear();
     }
 
     @Override
     public final synchronized void keyTyped(KeyEvent evt) {
     }
 
-    void moveVertex(float dx, float dy) {
+    protected void moveVertex(float dx, float dy) {
         if (pickMode == PickMode.VERTEX && getSelectedIndex() >= 0) {
-            BVertex bv = board.getVertex(getSelectedIndex());
-            MutableVector2D v = new MutableVector2D(bv);
-            v.addEq(dx, dy);
-            bv.set(v);
+            board.moveVertex(getSelectedIndex(), new Vector2D(dx, dy));
         }
     }
 
@@ -787,93 +960,29 @@ public abstract class AWTBoardBuilder<V extends BVertex, E extends BEdge, C exte
         } else {
             System.err.println("Unhandled key type:" + evt.getKeyChar());
         }
-        frame.setProperty("pickMode", pickMode.name());
         repaint();
     }
 
-    /*
-     * Internal.  Center, compute radius and find the bounding polygon.
+    void setPickMode(PickMode mode) {
+        pickMode = mode;
+        frame.setProperty("pickMode", pickMode.name());
+        selected.clear();
+    }
+
+    void setMultiselect(boolean m) {
+        multiSelect = m;
+        frame.setProperty("multiSelect", multiSelect);
+        selected.clear();
+    }
+
+    /**
+     * to use, override the initFrame method and make calls to this method from there
      *
-    private void giftwrapSelectedVerts() {
-
-        if (selected.size() < 3)
-            return; // need at least 3
-
-        List<Integer> vlist = new ArrayList<>();
-        for (int s : selected) {
-
-        }
-
-
-
-        final int numVerts = verts.length;
-
-        // center the polygon
-        MutableVector2D cntr = Vector2D.newTemp();
-
-        for (int i=0; i<numVerts; i++) {
-            cntr.addEq(verts[i]);
-        }
-
-        cntr.scaleEq(1.0f / numVerts);
-
-        radius = 0;
-        primary = -1;
-        for (int i=0; i<numVerts; i++) {
-            verts[i].subEq(cntr);
-
-            float r = verts[i].magSquared();
-            if (r > radius) {
-                radius = r;
-                primary = i;
-            }
-        }
-
-        radius = (float)Math.sqrt(radius);
-
-        // compute the bounding polygon using giftwrap algorithm
-
-        // start at the primary (longest) vertex from the center since this must be on the bounding rect
-        List<MutableVector2D> newV = new ArrayList<MutableVector2D>(32);
-
-        newV.add(new MutableVector2D(verts[primary]));
-
-        int start = primary;//(primary+1) % numVerts;
-
-        MutableVector2D dv = Vector2D.newTemp();
-        MutableVector2D vv = Vector2D.newTemp();
-        try {
-            do {
-                verts[start].scale(-1, dv);
-                float best = 0;
-                int next = -1;
-                for (int i=(start+1)%numVerts; i!=start; i = (i+1)%numVerts) {
-                    verts[i].sub(verts[start], vv);
-                    float angle = vv.angleBetween(dv);
-                    if (angle > best) {
-                        best = angle;
-                        next = i;
-                    } else {
-                        break;
-                    }
-                }
-                Utils.assertTrue(next >= 0);
-                if (next != primary) {
-                    newV.add(new MutableVector2D(verts[next]));
-                }
-                //Utils.assertTrue(xv.size() <= numVerts);
-                start = next;
-            } while (start != primary && newV.size() < numVerts);
-        } catch (Throwable e) {
-            e.printStackTrace();
-        }
-        // the bounding verts are a subset of the verts
-        this.boundingVerts = new MutableVector2D[newV.size()];
-
-        for (int i=0; i<newV.size(); i++) {
-            boundingVerts[i] = newV.get(i);
-        }
-        computeArea();
-    }*/
-
+     * @param tool
+     */
+    public final void registerTool(Tool tool) {
+        if (tools.contains(tool.name))
+            throw new GException("A tool with name " + tool.name + " already exists");
+        tools.add(tool);
+    }
 }

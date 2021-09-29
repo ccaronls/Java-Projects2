@@ -53,31 +53,43 @@ public class AWTRiskBoardBuilder extends AWTBoardBuilder<BVertex, BEdge, RiskCel
                 g.vertex(board.getCell(adj));
             }
             g.drawLines(4);
-            g.setColor(GColor.BLACK);
-            g.drawJustifiedStringOnBackground(cell, Justify.CENTER, Justify.CENTER, Utils.toPrettyString(cell.getRegion()), GColor.TRANSLUSCENT_BLACK, 2, 2);
+            g.setColor(GColor.WHITE);
+            String str = Utils.toPrettyString(cell.getRegion());
+            if (getSelectedIndex() >= 0) {
+                str += "\nDIST TO " + getSelectedIndex() + "=" + board.getDistance(getSelectedIndex(), highlightedIndex);
+            }
+            g.drawJustifiedStringOnBackground(cell, Justify.CENTER, Justify.CENTER, str, GColor.TRANSLUSCENT_BLACK, 2, 2);
         }
     }
 
     @Override
-    protected void pickCellSingleSelect() {
-        int current = getSelectedIndex();
-        super.pickCellSingleSelect();
-        int selectedIndex = getSelectedIndex();
-        if (current >= 0 && selectedIndex >= 0 && current != selectedIndex) {
-            // create a connection between the cells
-            RiskCell r0 = board.getCell(current);
-            if (r0.getConnectedCells().contains(selectedIndex)) {
-                r0.getConnectedCells().remove((Object)selectedIndex);
-            } else {
-                r0.getConnectedCells().add(selectedIndex);
+    protected void registerTools() {
+        super.registerTools();
+        registerTool(new Tool("CONNECT CELLS") {
+            @Override
+            public void onPick() {
+                int current = getSelectedIndex();
+                super.onPick();
+                if (pickMode == PickMode.CELL && !multiSelect) {
+                    int selectedIndex = getSelectedIndex();
+                    if (current >= 0 && selectedIndex >= 0 && current != selectedIndex) {
+                        // create a connection between the cells
+                        RiskCell r0 = board.getCell(current);
+                        if (r0.getConnectedCells().contains(selectedIndex)) {
+                            r0.getConnectedCells().remove((Object)selectedIndex);
+                        } else {
+                            r0.getConnectedCells().add(selectedIndex);
+                        }
+                        RiskCell r1 = board.getCell(selectedIndex);
+                        if (r1.getConnectedCells().contains(current)) {
+                            r1.getConnectedCells().remove((Object)current);
+                        } else {
+                            r1.getConnectedCells().add(current);
+                        }
+                    }
+                }
             }
-            RiskCell r1 = board.getCell(selectedIndex);
-            if (r1.getConnectedCells().contains(current)) {
-                r1.getConnectedCells().remove((Object)current);
-            } else {
-                r1.getConnectedCells().add(current);
-            }
-        }
+        });
     }
 
     @Override
@@ -87,7 +99,7 @@ public class AWTRiskBoardBuilder extends AWTBoardBuilder<BVertex, BEdge, RiskCel
     }
 
     private void assignToRegion() {
-        if (pickMode == PickMode.CELL_MULTISELECT) {
+        if (pickMode == PickMode.CELL && multiSelect == true) {
             String currentRegion = null;
             for (int idx : selected) {
                 RiskCell cell = board.getCell(idx);

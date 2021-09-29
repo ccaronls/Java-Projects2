@@ -508,11 +508,11 @@ public final class Table {
             for (int h=0; h<maxHeight[r]; h++) {
                 buf.append(delim).append(indentStr).append(borderStrFront);
                 delim = "\n";
-                for (int c = 0; c < rows.get(r).size()-1; c++) {
+                for (int c = 0; c < columns-1; c++) {
                     buf.append(getJustifiedCellString(r, c, h, maxWidth[c]));
                     buf.append(divider);
                 }
-                int col = rows.get(r).size()-1;
+                int col = columns-1;
                 buf.append(getJustifiedCellString(r, col, h, maxWidth[col]))
                     .append(borderStrEnd);
             }
@@ -559,16 +559,18 @@ public final class Table {
     }
 
     private String getCellString(int r, int c, int h) {
-        Object o = rows.get(r).get(c);
-        String s = model.getStringValue(o);
-        if (s.indexOf('\n') < 0) {
-            if (h == 0)
-                return s;
-            return "";
+        if (r >= 0 && r < rows.size() && c >= 0 && c < rows.get(r).size()) {
+            Object o = rows.get(r).get(c);
+            String s = model.getStringValue(o);
+            if (s.indexOf('\n') < 0) {
+                if (h == 0)
+                    return s;
+                return "";
+            }
+            String[] parts = s.split("[\n]+");
+            if (parts.length > h)
+                return parts[h];
         }
-        String [] parts = s.split("[\n]+");
-        if (parts.length > h)
-            return parts[h];
         return "";
     }
 

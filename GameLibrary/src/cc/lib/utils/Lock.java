@@ -13,6 +13,8 @@ public final class Lock {
 
     private int holders = 0;
 
+    private final Object monitor = new Object();
+
     public synchronized void acquire() {
         holders++;
     }
@@ -23,10 +25,10 @@ public final class Lock {
         this.holders = holders;
     }
 
-    public synchronized void block() {
+    public void block() {
         try {
-            synchronized (this) {
-                wait();
+            synchronized (monitor) {
+                monitor.wait();
             }
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -45,13 +47,17 @@ public final class Lock {
         if (holders > 0)
             holders --;
         if (holders == 0) {
-            notify();
+            synchronized (monitor) {
+                monitor.notify();
+            }
         }
     }
 
     public synchronized void releaseAll() {
         holders = 0;
-        notify();
+        synchronized (monitor) {
+            monitor.notify();
+        }
     }
 
     public void releaseDelayed(long ms) {

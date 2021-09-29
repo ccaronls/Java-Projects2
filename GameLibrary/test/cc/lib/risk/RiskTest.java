@@ -23,7 +23,7 @@ public class RiskTest extends TestCase {
         try (InputStream is = FileUtils.openFileOrResource("risk.board")) {
             game.getBoard().deserialize(is);
         }
-        for (int i=0; i<10000 && !game.isGameOver(); i++) {
+        for (int i=0; i<10000 && !game.isDone(); i++) {
             try {
                 game.runGame();
             } catch (Exception e) {

@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
@@ -39,7 +38,8 @@ public class RiskGame extends Reflector<RiskGame> {
         state = State.INIT;
     }
 
-    public void runGame() {
+    public final synchronized void runGame() {
+        log.debug("runGame ENTER");
 
         log.verbose("Run game state: %s", state);
 
@@ -184,7 +184,7 @@ public class RiskGame extends Reflector<RiskGame> {
                 if (territories.size() == 0) {
                     nextPlayer();
                 } else {
-                    onBeginTurn(currentPlayer);
+                    onBeginTurn(cur.army);
                     int numArmies = computeTroopsPerTurn(cur.army);
                     cur.setArmiesToPlace(numArmies);
                     state = State.BEGIN_TURN_PLACE_ARMY;
@@ -300,6 +300,8 @@ public class RiskGame extends Reflector<RiskGame> {
                 break;
         }
 
+        log.debug("runGame EXIT");
+
     }
 
     protected void onPlaceArmy(Army army, int cellIdx) {
@@ -310,9 +312,9 @@ public class RiskGame extends Reflector<RiskGame> {
 
     protected void onBeginMove() {}
 
-    protected void onBeginTurn(int playerNum) {}
+    protected void onBeginTurn(Army army) {}
 
-    protected void onChooseMove(int playerNum) {}
+    protected void onChooseMove(Army army) {}
 
     protected void onStartAttackTerritoryChosen(int cellIdx) {}
 
@@ -362,7 +364,7 @@ public class RiskGame extends Reflector<RiskGame> {
             List<Integer> cells = board.getTerritories(r);
             if (Utils.all(cells, c -> board.getCell(c).getOccupier() == army)) {
                 numArmies += r.extraArmies;
-                onMessage(army, "Gets " + r.extraArmies + " extra armies for holding " + r.name());
+//                onMessage(army, "Gets " + r.extraArmies + " extra armies for holding " + r.name());
             }
         }
         return Math.max(MIN_TROOPS_PER_TURN, numArmies);
@@ -433,23 +435,21 @@ public class RiskGame extends Reflector<RiskGame> {
             Utils.assertTrue(start.numArmies > 0);
             Utils.assertTrue(end.numArmies >= 0);
 
-            if (numStartArmiesLost > 0) {
-                onArmiesDestroyed(start.occupier, startIdx, numStartArmiesLost);
-            }
-            if (numEndArmiesLost > 0) {
-                onArmiesDestroyed(end.occupier, endIdx, numEndArmiesLost);
-            }
+            onArmiesDestroyed(startIdx, numStartArmiesLost, endIdx, numEndArmiesLost);
 
             if (end.numArmies < 0)
                 throw new GException("Cannot have negative armies");
             if (end.numArmies == 0) {
                 Utils.assertTrue(numToOccupy > 0);
+                start.setNumArmies(start.getNumArmies() - numToOccupy);
+                Utils.assertTrue(start.getNumArmies() > 0);
                 onMoveTroops(startIdx, endIdx, numToOccupy);
                 end.setOccupier(start.getOccupier());
                 end.setNumArmies(numToOccupy);
-                start.setNumArmies(start.getNumArmies() - numToOccupy);
-                Utils.assertTrue(start.getNumArmies() > 0);
                 onAtatckerGainedTerritory(end.occupier, endIdx);
+                if (getWinner() == null && Utils.all(board.getTerritories(end.region), idx -> board.getCell(idx).occupier == start.occupier)) {
+                    onAttackerGainedRegion(end.occupier, end.region);
+                }
             }
         }
     }
@@ -463,7 +463,7 @@ public class RiskGame extends Reflector<RiskGame> {
             dDice.add(d);
         List<String> bResult = new ArrayList<>();
         for (boolean b : result)
-            bResult.add(b ? "<" : ">");
+            bResult.add(b ? "<--" : "-->");
 
         Table table = new Table()
                 .addColumn(attacker.name(), aDice)
@@ -472,12 +472,18 @@ public class RiskGame extends Reflector<RiskGame> {
         log.info("Result From Dice Roll\n" + table);
     }
 
-    protected void onArmiesDestroyed(Army defender, int cellIdx, int numArmiesLost) {
-        log.info("%s Lost an Army from %s", defender, board.getCell(cellIdx).region);
+    protected void onArmiesDestroyed(int attackerIdx, int attackersLost, int defenderIdx, int defendersLost) {
+        RiskCell attacker = getBoard().getCell(attackerIdx);
+        RiskCell defender = getBoard().getCell(defenderIdx);
+        log.info("%s has lost %d armies and %s has lost %d armies", attacker.occupier, attackersLost, defender.occupier, defendersLost);
     }
 
     protected void onAtatckerGainedTerritory(Army attacker, int cellIdx) {
         log.info("%s: Gained Territory for %s", attacker, board.getCell(cellIdx).region);
+    }
+
+    protected void onAttackerGainedRegion(Army attacker, Region region) {
+        log.info("%s: Gained Region %s for +%d troops", attacker, region, region.extraArmies);
     }
 
     private void rollDice(int [] dice) {
@@ -507,13 +513,12 @@ public class RiskGame extends Reflector<RiskGame> {
     }
 
     public Army getWinner() {
-        List<Pair<Army,Integer>> counts = Utils.map(Utils.getRangeIterator(0, board.getNumCells()-1), idx -> new Pair(board.getCell(idx).getOccupier(), idx));
-        if (Utils.any(counts, p -> p.first == null))
-            return null; // all territories should be populated
-        Map<Army, ?> map = Utils.toMap(counts);
-        map.remove(Army.NEUTRAL);
-        if (map.size() == 1) {
-            return map.keySet().iterator().next();
+        Army army = getBoard().getCell(0).getOccupier();
+        if (army != null && Utils.all(Utils.getRangeIterator(1, getBoard().getNumCells()-1), idx -> {
+            RiskCell cell = getBoard().getCell(idx);
+            return cell.occupier == army || cell.occupier == Army.NEUTRAL;
+        })) {
+            return army;
         }
         return null;
     }
@@ -561,8 +566,10 @@ public class RiskGame extends Reflector<RiskGame> {
             header.add(Utils.toPrettyString(r.name()).replace(' ', '\n') + " +" + r.extraArmies);
         }
         Table table = new Table(header);
-        for (RiskPlayer pl : players) {
-            Army army = pl.getArmy();
+        List<Army> armies = Utils.map(players, p -> p.army);
+        if (armies.size() < 3)
+            armies.add(Army.NEUTRAL);
+        for (Army army : armies) {
             List<Integer> l = board.getTerritories(army);
             List<String> row = new ArrayList<>();
             row.add(army.name());

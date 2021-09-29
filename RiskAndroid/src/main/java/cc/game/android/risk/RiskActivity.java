@@ -16,11 +16,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.ArrayBlockingQueue;
 
 import cc.lib.android.DroidActivity;
 import cc.lib.android.DroidGraphics;
-import cc.lib.game.AAnimation;
 import cc.lib.game.AGraphics;
 import cc.lib.game.AImage;
 import cc.lib.game.GColor;
@@ -35,6 +33,7 @@ import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 import cc.lib.risk.Action;
 import cc.lib.risk.Army;
+import cc.lib.risk.Region;
 import cc.lib.risk.RiskBoard;
 import cc.lib.risk.RiskCell;
 import cc.lib.risk.RiskGame;
@@ -44,8 +43,12 @@ import cc.lib.utils.Pair;
 
 public class RiskActivity extends DroidActivity implements ListView.OnItemClickListener {
 
+    final static int ZORDER_GAME = 0;
+    final static int ZORDER_OVERLAY = 5;
+
     File saveGame = null;
     RiskGame game = new RiskGame() {
+
         @Override
         protected void onDiceRolled(Army attacker, int[] attackingDice, Army defender, int[] defendingDice, boolean[] result) {
             super.onDiceRolled(attacker, attackingDice, defender, defendingDice, result);
@@ -56,6 +59,9 @@ public class RiskActivity extends DroidActivity implements ListView.OnItemClickL
 
         @Override
         protected void onPlaceArmy(Army army, int cellIdx) {
+            if (!running)
+                return;
+
             RiskCell cell = getBoard().getCell(cellIdx);
             GRectangle rect = new GRectangle(getBoard().getDimension());
             Vector2D start = Utils.randItem(Utils.toArray(
@@ -64,7 +70,7 @@ public class RiskActivity extends DroidActivity implements ListView.OnItemClickL
             ));
             IInterpolator<Vector2D> interp = Bezier.build(
                     new Vector2D(start), new Vector2D(cell), .4f);
-            addAnimation(new AAnimation<AGraphics>(1000) {
+            addAnimation(new RiskAnim(1000) {
                 @Override
                 protected void draw(AGraphics g, float position, float dt) {
                     g.setColor(army.getColor());
@@ -72,10 +78,14 @@ public class RiskActivity extends DroidActivity implements ListView.OnItemClickL
                     drawArmy(g, interp.getAtPosition(position), army, 1);
                 }
             });
+            Utils.waitNoThrow(500);
         }
 
         @Override
         protected void onMoveTroops(int startIdx, int endIdx, int numTroops) {
+            if (!running)
+                return;
+
             RiskCell start = getBoard().getCell(startIdx);
             Army army = start.getOccupier();
             MutableVector2D endV = new MutableVector2D(getBoard().getCell(endIdx));
@@ -92,7 +102,7 @@ public class RiskActivity extends DroidActivity implements ListView.OnItemClickL
             }
             IInterpolator<Vector2D> interp = Bezier.build(
                     new Vector2D(start), new Vector2D(start).add(delta), .4f);
-            addAnimation(new AAnimation<AGraphics>(1000) {
+            addAnimation(new RiskAnim(1000) {
                 @Override
                 protected void draw(AGraphics g, float position, float dt) {
                     g.setColor(army.getColor());
@@ -100,11 +110,14 @@ public class RiskActivity extends DroidActivity implements ListView.OnItemClickL
                     drawArmy(g, interp.getAtPosition(position), army, numTroops);
                 }
             });
-            Utils.waitNoThrow(this, 1000);
+            Utils.waitNoThrow(500);
         }
 
         @Override
         protected void onStartAttackTerritoryChosen(int cellIdx) {
+            if (!running)
+                return;
+
             RiskCell start = getBoard().getCell(cellIdx);
             GRectangle zoom = getBoard().getCellBoundingRect(cellIdx);
             GRectangle startRect = new GRectangle(getBoard().getDimension());
@@ -128,8 +141,7 @@ public class RiskActivity extends DroidActivity implements ListView.OnItemClickL
             GRectangle endRect = new GRectangle(zoom);
             IInterpolator<GRectangle> rectInterp = GRectangle.getInterpolator(startRect, endRect);
             IInterpolator<Vector2D> dragDeltaInterp = Vector2D.getLinearInterpolator(dragDelta, Vector2D.ZERO);
-
-            addAnimation(new AAnimation<AGraphics>(1000) {
+            addAnimation(new RiskAnim(1000) {
 
                 @Override
                 protected void draw(AGraphics g, float position, float dt) {
@@ -138,7 +150,7 @@ public class RiskActivity extends DroidActivity implements ListView.OnItemClickL
                 }
             });
             highlightedCells.add(new Pair(cellIdx, GColor.RED));
-            Utils.waitNoThrow(this, 1000);
+            Utils.waitNoThrow(1000);
         }
 
         @Override
@@ -148,13 +160,14 @@ public class RiskActivity extends DroidActivity implements ListView.OnItemClickL
         }
 
         @Override
-        protected void onBeginTurn(int playerNum) {
+        protected void onBeginTurn(Army army) {
+            if (!running)
+                return;
+
             zoomRect = null;
             highlightedCells.clear();
-            RiskPlayer pl = getPlayer(playerNum);
-            GColor color = pl.getArmy().getColor();
-            addOverlayAnimation(new ExpandingTextOverlayAnimation(pl.getArmy() + " 's Turn", color));
-            Utils.waitNoThrow(this, 1000);
+            addOverlayAnimation(new ExpandingTextOverlayAnimation(army + "'s Turn", army.getColor()));
+            Utils.waitNoThrow(1000);
         }
 
         @Override
@@ -165,17 +178,29 @@ public class RiskActivity extends DroidActivity implements ListView.OnItemClickL
 
         @Override
         protected void onStartMoveTerritoryChosen(int cellIdx) {
+            if (!running)
+                return;
+
             highlightedCells.add(new Pair(cellIdx, GColor.CYAN));
         }
 
         @Override
-        protected void onArmiesDestroyed(Army defender, int cellIdx, int numArmiesLost) {
-            Lock lock = new Lock(numArmiesLost);
-            RiskCell cell = getBoard().getCell(cellIdx);
-            GRectangle rect = getBoard().getCellBoundingRect(cellIdx).scaledBy(.3f);
-            for (int i=0; i<numArmiesLost; i++) {
-                Vector2D exploLoc = rect.getRandomPointInside();
-                addAnimation(new AAnimation<AGraphics>(2000) {
+        protected void onArmiesDestroyed(int attackerIdx, int attackersLost, int defenderIdx, int defendersLost) {
+            if (!running)
+                return;
+            Lock lock = new Lock();
+            destroyArmies(lock, attackerIdx, attackersLost);
+            destroyArmies(lock, defenderIdx, defendersLost);
+            lock.block();
+        }
+
+        private void destroyArmies(Lock lock, int cellIdx, int num) {
+            GRectangle rects [] = getBoard().getCellBoundingRect(cellIdx).scaledBy(.6f).subDivide(2,2);
+            Utils.shuffle(rects);
+            for (int i=0; i<num; i++) {
+                lock.acquire();
+                Vector2D exploLoc = rects[i].scaledBy(.5f).getRandomPointInside();
+                addAnimation(new RiskAnim(2000) {
                     @Override
                     protected void draw(AGraphics g, float position, float dt) {
                         float step = 1f/exploAnim.length;
@@ -187,44 +212,51 @@ public class RiskActivity extends DroidActivity implements ListView.OnItemClickL
                     @Override
                     protected void onDone() {
                         super.onDone();
+                        Log.d("Destroy Armies", "Release Lock");
                         lock.release();
                     }
                 });
-                Utils.waitNoThrow(this, 500);
+                Utils.waitNoThrow(500);
             }
-            lock.block();
+        }
+
+        @Override
+        protected void onAttackerGainedRegion(Army attacker, Region region) {
+            if (!running)
+                return;
+            super.onAttackerGainedRegion(attacker, region);
+            addOverlayAnimation(new ExpandingTextOverlayAnimation(attacker.name() + " CONTROLS " + region.name(), attacker.getColor()));
+            Utils.waitNoThrow(1000);
         }
 
         @Override
         protected void onGameOver(Army winner) {
             super.onGameOver(winner);
             addOverlayAnimation(new ExpandingTextOverlayAnimation(winner.name() + " WINS!!!", GColor.BLUE)
-            .setOscillating(true)
-            .setRepeats(-1));
+                .setOscillating(true)
+                .setRepeats(-1)
+            );
         }
     };
 
-    boolean running = false;
-    private Object monitor = new Object();
+    private final Object monitor = new Object();
+    private final RomanNumeral roman = new RomanNumeral();
+    private final List<RiskAnim> animations = new ArrayList<>();
+    private final List<Pair<Integer, GColor>> highlightedCells = new ArrayList<>();
+    private final List<Integer> pickableTerritories = new ArrayList<>();
+
+    private boolean running = false;
     private Object result = null;
     private ListView listView;
-    private List<Integer> pickableTerritories = new ArrayList<>();
-    private RomanNumeral roman = new RomanNumeral();
-    private final ArrayBlockingQueue fileWriterQueue = new ArrayBlockingQueue(1);
-    private Thread fileWriterThread = null;
-    private final List<AAnimation<AGraphics>> animations = new ArrayList<>();
-    private final List<AAnimation<AGraphics>> overlayAnimations = new ArrayList<>();
     private GRectangle zoomRect = null;
-    private final List<Pair<Integer, GColor>> highlightedCells = new ArrayList<>();
 
     static RiskActivity instance;
 
     void clearAnimations() {
         synchronized (animations) {
-            animations.clear();
-        }
-        synchronized (overlayAnimations) {
-            animations.clear();
+            for (RiskAnim a : animations) {
+                a.stop();
+            }
         }
     }
 
@@ -232,6 +264,9 @@ public class RiskActivity extends DroidActivity implements ListView.OnItemClickL
         clearAnimations();
         highlightedCells.clear();
         zoomRect = null;
+        message = null;
+        pickableTerritories.clear();
+        result = null;
     }
 
     @Override
@@ -287,9 +322,6 @@ public class RiskActivity extends DroidActivity implements ListView.OnItemClickL
     }
 
     void initHomeMenu() {
-        clearAnimations();
-        zoomRect = null;
-        highlightedCells.clear();
         if (saveGame.exists()) {
             initMenu(Utils.toList(Buttons.values()));
         } else {
@@ -390,7 +422,6 @@ public class RiskActivity extends DroidActivity implements ListView.OnItemClickL
         {
             dragDelta.wrap(Vector2D.ZERO, new Vector2D(imageRect.w, imageRect.h));
             g.translate(dragDelta);
-            int culled = 0;
             g.pushMatrix();
             {
                 g.translate(0, -imageRect.h);
@@ -409,20 +440,19 @@ public class RiskActivity extends DroidActivity implements ListView.OnItemClickL
                             tl.getY() >= g.getViewportHeight() ||
                             br.getX() <= 0 ||
                             br.getY() <= 0) {
-                            culled++;
+                            // dont render - offscreen
                         } else {
                             g.drawImage(R.drawable.risk_board, imageRect);
                             pickCell(g, board);
                             drawCells(g, board);
                             drawHighlightedCells(g, board);
                         }
-                        drawAnimations(animations, g);
+                        drawAnimations(g, ZORDER_GAME);
                         g.translate(imageRect.w, 0);
                     }
                     g.popMatrix();
                     g.translate(0, imageRect.h);
                 }
-                Log.d("CULL", "Culled: " + culled);
             }
             g.popMatrix();
         }
@@ -436,7 +466,7 @@ public class RiskActivity extends DroidActivity implements ListView.OnItemClickL
             g.drawJustifiedStringOnBackground(g.getViewportWidth()-20, 20, Justify.RIGHT, Justify.TOP, message, GColor.TRANSLUSCENT_BLACK, 10, 5);
         }
 
-        drawAnimations(overlayAnimations, g);
+        drawAnimations(g, ZORDER_OVERLAY);
     }
 
     void drawHighlightedCells(AGraphics g, RiskBoard board) {
@@ -448,29 +478,31 @@ public class RiskActivity extends DroidActivity implements ListView.OnItemClickL
         }
     }
 
-    synchronized void addAnimation(AAnimation<AGraphics> a) {
-        animations.add(a);
+    synchronized void addAnimation(RiskAnim a) {
+        if (running) {
+            animations.add(a.start());
+            redraw();
+        }
+    }
+
+    synchronized void addOverlayAnimation(RiskAnim a) {
+        animations.add(a.setZOrder(5).start());
         redraw();
     }
 
-    synchronized void addOverlayAnimation(AAnimation<AGraphics> a) {
-        overlayAnimations.add(a);
-        redraw();
-    }
-
-    synchronized void drawAnimations(List<AAnimation<AGraphics>> list, AGraphics g) {
-        Iterator<AAnimation<AGraphics>> it = list.iterator();
+    synchronized void drawAnimations(AGraphics g, int zOrder) {
+        Iterator<RiskAnim> it = animations.iterator();
         while (it.hasNext()) {
-            AAnimation<AGraphics> a = it.next();
+            RiskAnim a = it.next();
+            if (a.getZOrder() != zOrder)
+                continue;
             if (a.isDone()) {
                 it.remove();
-            } else if (!a.isStarted()) {
-                a.start();
-            } else {
-                a.update(g);
+                continue;
             }
+            a.update(g);
         }
-        if (list.size() > 0) {
+        if (animations.size() > 0) {
             redraw();
         }
     }
@@ -602,7 +634,6 @@ public class RiskActivity extends DroidActivity implements ListView.OnItemClickL
     public void onBackPressed() {
         if (running) {
             stopGameThread();
-            initHomeMenu();
         } else {
             super.onBackPressed();
         }
@@ -610,13 +641,6 @@ public class RiskActivity extends DroidActivity implements ListView.OnItemClickL
 
     void stopGameThread() {
         running = false;
-        if (fileWriterThread != null) {
-            try {
-                fileWriterQueue.put(0);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-;        }
         setGameResult(null);
         if (!isFinishing()) {
             runOnUiThread(() -> initHomeMenu());
@@ -626,9 +650,9 @@ public class RiskActivity extends DroidActivity implements ListView.OnItemClickL
     synchronized void startGameThread() {
         if (running)
             return;
+        init();
         clearAnimations();
         initMenu(Collections.emptyList());
-        fileWriterThread = startFileWriterThread();
         running = true;
         new Thread() {
             @Override
@@ -637,6 +661,9 @@ public class RiskActivity extends DroidActivity implements ListView.OnItemClickL
                     try {
                         game.runGame();
                         redraw();
+                        if (result != null)
+                            game.trySaveToFile(saveGame);
+                        result = null;
                     } catch (Exception e) {
                         e.printStackTrace();
                         break;
@@ -644,6 +671,7 @@ public class RiskActivity extends DroidActivity implements ListView.OnItemClickL
                 }
                 running = false;
                 runOnUiThread(()->initHomeMenu());
+                log.debug("game thread EXIT");
             }
         }.start();
     }
@@ -651,6 +679,7 @@ public class RiskActivity extends DroidActivity implements ListView.OnItemClickL
     String message = "";
 
     public <T> T waitForUser(Class<T> expectedType) {
+        result = null;
         redraw();
         synchronized (monitor) {
             try {
@@ -669,35 +698,9 @@ public class RiskActivity extends DroidActivity implements ListView.OnItemClickL
         runOnUiThread(() -> {initMenu(Collections.emptyList());});
         message = null;
         pickableTerritories.clear();
-        //game.trySaveToFile(saveGame);
-        try {
-            fileWriterQueue.put(0);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
         synchronized (monitor) {
             monitor.notify();
         }
-    }
-
-    Thread startFileWriterThread() {
-        Thread t = new Thread(() -> {
-            log.debug("fileWriterThread ENTER");
-            while (running) {
-                try {
-                    fileWriterQueue.take();
-                } catch (InterruptedException e) {
-                    break;
-                }
-                log.debug("Backing up ... ");
-                //FileUtils.backupFile(gameFile, 32);
-                game.trySaveToFile(saveGame);
-            }
-            log.debug("fileWriterThread EXIT");
-            fileWriterThread = null;
-        });
-        t.start();
-        return t;
     }
 
     Integer pickTerritory(List<Integer> options, String msg) {
@@ -717,6 +720,7 @@ public class RiskActivity extends DroidActivity implements ListView.OnItemClickL
     void startGame(List<RiskPlayer> players) {
         init();
         game.clear();
+        Utils.shuffle(players);
         for (RiskPlayer pl : players)
             game.addPlayer(pl);
         startGameThread();

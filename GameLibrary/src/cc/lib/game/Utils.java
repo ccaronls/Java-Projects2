@@ -9,6 +9,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -20,6 +21,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import cc.lib.math.CMath;
+import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 import cc.lib.utils.FileUtils;
 import cc.lib.utils.GException;
@@ -470,42 +472,13 @@ public class Utils {
      * @return
      */
     public static boolean isPointInsidePolygon(float px, float py, IVector2D[] pts, int numPts) {
-
-        int orient = 0;
-
-        for (int i = 0; i < numPts; i++) {
-            float dx = px - pts[i].getX();
-            float dy = py - pts[i].getY();
-
-            int ii = (i + 1) % numPts;
-            float dx2 = pts[ii].getX() - pts[i].getX();
-            float dy2 = pts[ii].getY() - pts[i].getY();
-
-            float nx = -dy2;
-            float ny = dx2;
-
-            float dot = nx * dx + ny * dy;
-
-            if (Math.abs(dot) < CMath.EPSILON) {
-                // ignore since this is 'on' the segment
-            } else if (dot < 0) {
-                // return false if orientation changes
-                if (orient > 0)
-                    return false;
-                    // capture orientation if we dont have it yet
-                else if (orient == 0)
-                    orient = -1;
-            } else {
-                // return false if orientation changes
-                if (orient < 0)
-                    return false;
-                    // capture orientation if we dont have it yet
-                else if (orient == 0)
-                    orient = 1;
-            }
+        if (numPts < 3)
+            return false;
+        List<IVector2D> l = new ArrayList<>();
+        for (int i=0; i<numPts; i++) {
+            l.add(pts[i]);
         }
-
-        return true;
+        return isPointInsidePolygon(new Vector2D(px, py), l);
     }
 
     /**
@@ -1880,6 +1853,11 @@ public class Utils {
         return toStringArray(values, false);
     }
 
+    public static <T> String [] toStringArray(Collection<T> values, Mapper<T, String> mapper) {
+        String [] result = new String[values.size()];
+        return map(values, result, mapper);
+    }
+
     public static <T extends Enum<T>> String[] toStringArray(T[] values, boolean pretty) {
         String[] result = new String[values.length];
         for (int i = 0; i < values.length; i++) {
@@ -2364,6 +2342,14 @@ public class Utils {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     *
+     * @param msecs
+     */
+    public static void waitNoThrow(long msecs) {
+        waitNoThrow(new Object(), msecs);
     }
 
     /**
@@ -2937,6 +2923,23 @@ public class Utils {
     }
 
     /**
+     *
+     * @param in
+     * @param outArr
+     * @param mapper
+     * @param <IN>
+     * @param <OUT>
+     * @return
+     */
+    public static <IN,OUT> OUT [] map(Collection<IN> in, OUT [] outArr, Mapper<IN,OUT> mapper) {
+        int idx=0;
+        for (IN i : in) {
+            outArr[idx++] = mapper.map(i);
+        }
+        return outArr;
+    }
+
+    /**
      * Convert a map to a list of pairs
      *
      * @param map
@@ -3199,6 +3202,28 @@ public class Utils {
     }
 
     /**
+     * Linear search the highest value item in a list based on mapping
+     * @param c
+     * @param valueMapper
+     * @param <T>
+     * @return
+     */
+    public static <T> int searchIndex(Iterable<T> c, Mapper<T, Number> valueMapper) {
+        double bestValue = Double.MIN_VALUE;
+        int bestIndex = -1;
+        int index = 0;
+        for (T i : c) {
+            double value = valueMapper.map(i).doubleValue();
+            if (bestIndex < 0 || value > bestValue) {
+                bestValue = value;
+                bestIndex = index;
+            }
+            index++;
+        }
+        return bestIndex;
+    }
+
+    /**
      * Find the first element in a set such that its mapped value 'equals' some value
      * @param c
      * @param b
@@ -3209,7 +3234,8 @@ public class Utils {
      */
     public static <A,B> A findFirst(Collection<A> c, B b, Mapper<A,B> mapper) {
         for (A a : c) {
-            if (mapper.map(a).equals(b))
+            B ab = mapper.map(a);
+            if (ab.equals(b))
                 return a;
         }
         return null;
@@ -3236,5 +3262,142 @@ public class Utils {
             return "rd";
         }
         return "th";
+    }
+
+    /**
+     * Return a list of vertices that represents the outermost polygon of the input
+     *
+     * For input size < 3 result is empty list.
+     * For input size == 3 result is the input list
+     *
+     * Requires that input vertices contains no duplicates.
+     * Output list will be populated with same instances from input upon result
+     *
+     * CPU: O(n^2)
+     * MEM: O(2n)
+     *
+     * @param input
+     * @return
+     */
+    public static <V extends IVector2D> List<V> computeGiftWrapVertices(Collection<V> input) {
+        if (input.size() < 3)
+            return Collections.emptyList();
+        if (input.size() == 3)
+            return input instanceof List ? (List)input : new ArrayList<>(input);
+
+        MutableVector2D cntr = new MutableVector2D();
+        for (IVector2D v : input) {
+            cntr.addEq(v);
+        }
+
+        cntr.scaleEq(1f / input.size());
+
+        List<Pair<MutableVector2D, V>> working = Utils.map(input, v -> new Pair(new MutableVector2D(v).subEq(cntr), v));
+        int primary = Utils.searchIndex(working, p -> p.first.magSquared());
+
+        // compute the bounding polygon using giftwrap algorithm
+
+        // start at the primary (longest) vertex from the center since this must be on the bounding rect
+        List<MutableVector2D> newV = new ArrayList<>(working.size()/2);
+
+        newV.add(working.get(primary).first);
+
+        int start = primary;//(primary+1) % numVerts;
+        final int numVerts = working.size();
+
+        MutableVector2D dv = new MutableVector2D();
+        MutableVector2D vv = new MutableVector2D();
+        try {
+            do {
+                working.get(start).first.scale(-1, dv);
+                float best = 0;
+                int next = -1;
+                for (int i=(start+1)%numVerts; i!=start; i = (i+1)%numVerts) {
+                    working.get(i).first.sub(working.get(start).first, vv);
+                    float angle = vv.angleBetweenSigned(dv);
+                    if (angle > best) {
+                        best = angle;
+                        next = i;
+                    }
+                }
+                Utils.assertTrue(next >= 0);
+                if (next != primary) {
+                    newV.add(working.get(next).first);
+                }
+                start = next;
+            } while (start != primary && newV.size() < numVerts);
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+
+        Map<MutableVector2D, List<V>> map = Utils.toMap(working);
+        return Utils.map(newV, v -> map.get(v).get(0));
+    }
+
+    /**
+     * Return whether pos is contained by the convex polygon represented by the list.
+     * List must be convex and ordered. A Result from computeGiftwrapVertices is compatible.
+     *
+     * @param pos
+     * @param polygon
+     * @return
+     */
+    public static <V extends IVector2D> boolean isPointInsidePolygon(IVector2D pos, List<V> polygon) {
+        if (polygon.size() < 3)
+            return false;
+
+        MutableVector2D side = Vector2D.sub(polygon.get(0), polygon.get(polygon.size()-1)).normEq();
+        MutableVector2D dv = Vector2D.sub(pos, polygon.get(polygon.size()-1));
+
+        int sign = CMath.signOf(side.dot(dv));
+        for (int i=1; i<polygon.size(); i++) {
+            side.set(polygon.get(i)).subEq(polygon.get(i-1)).normEq();
+            dv.set(pos).subEq(polygon.get(i-1));
+            if (sign != CMath.signOf(side.dot(dv))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     *
+     * @param in
+     * @param delimiter
+     * @param mapper
+     * @param <T>
+     * @return
+     */
+    public static <T> String toString(Iterable<T> in, String delimiter, Mapper<T, String> mapper) {
+        StringBuffer buf = new StringBuffer();
+        for (T i : in) {
+            if (buf.length() > 0)
+                buf.append(delimiter);
+            buf.append(mapper.map(i));
+        }
+        return buf.toString();
+    }
+
+    /**
+     *
+     * @param in
+     * @param <T>
+     * @return
+     */
+    public static <T> T requireNotNull(T in) {
+        if (in == null)
+            throw new NullPointerException();
+        return in;
+    }
+
+    /**
+     *
+     * @param in
+     * @param otherwise
+     * @param <T>
+     * @return
+     */
+    public static <T> T requireNotNull(T in, T otherwise) {
+        return in == null ? otherwise : in;
     }
 }

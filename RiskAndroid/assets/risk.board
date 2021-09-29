@@ -23,6 +23,9 @@ cells=java.util.Vector {
          java.lang.Integer {
             34
          }
+         java.lang.Integer {
+            12
+         }
       }
       cx=81.25
       cy=86.75
@@ -496,6 +499,9 @@ cells=java.util.Vector {
          }
          java.lang.Integer {
             13
+         }
+         java.lang.Integer {
+            0
          }
       }
       cx=469.33334

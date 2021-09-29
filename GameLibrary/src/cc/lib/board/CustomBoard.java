@@ -266,13 +266,14 @@ public class CustomBoard<V extends BVertex, E extends BEdge, C extends BCell> ex
      * @param from
      * @param to
      */
-    public void addEdge(int from, int to) {
+    public int getOrAddEdge(int from, int to) {
         E edge = newEdge(from, to);
         int idx = Collections.binarySearch(edges, edge);
         if (idx < 0) {
             idx = (-idx)-1;
             edges.insertElementAt(edge, idx);
         }
+        return idx;
     }
 
     /**
@@ -494,6 +495,25 @@ public class CustomBoard<V extends BVertex, E extends BEdge, C extends BCell> ex
         }
 
         log.debug("COMPUTE END\n   numV:%d\n   numE:%d\n   numC:%d", verts.size(), edges.size(), cells.size());
+    }
+
+    void computeCell(int cellIdx) {
+        BCell cell = getCell(cellIdx);
+        if (cell.getNumAdjVerts() == 0) {
+            log.warn("Cell has no adjacent vertices: " + cellIdx);
+            return;
+        }
+        MutableVector2D mv = new MutableVector2D();
+        cell.radius = 0;
+        for (int adjIdx : cell.getAdjVerts()) {
+            mv.addEq(getVertex(adjIdx));
+        }
+        mv.scaleEq(1f / cell.getNumAdjVerts());
+        cell.cx = mv.getX();
+        cell.cy = mv.getY();
+        for (int adjIdx : cell.getAdjVerts()) {
+            cell.radius = Math.max(cell.radius, mv.sub(getVertex(adjIdx)).mag());
+        }
     }
 
     /**
@@ -874,10 +894,10 @@ public class CustomBoard<V extends BVertex, E extends BEdge, C extends BCell> ex
             for (int ii=0; ii<=cols; ii++) {
                 int index = addVertex(dx * ii, dy * i);
                 if (ii > 0) {
-                    addEdge(index-1, index);
+                    getOrAddEdge(index-1, index);
                 }
                 if (i > 0) {
-                    addEdge(index-cols-1, index);
+                    getOrAddEdge(index-cols-1, index);
                 }
                 if (i > 0 && ii > 0) {
                     addCell(index-cols-2, index-cols-1, index, index-1);
@@ -902,4 +922,13 @@ public class CustomBoard<V extends BVertex, E extends BEdge, C extends BCell> ex
         this.dimension = new GDimension(width, height);
     }
 
+    public void moveVertex(int idx, IVector2D dv) {
+        BVertex bv = getVertex(idx);
+        MutableVector2D v = new MutableVector2D(bv);
+        v.addEq(dv);
+        bv.set(v);
+        for (int cellIdx : bv.getAdjCells()) {
+            computeCell(cellIdx);
+        }
+    }
 }

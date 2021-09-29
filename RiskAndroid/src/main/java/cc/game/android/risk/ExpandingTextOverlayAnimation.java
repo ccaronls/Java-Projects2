@@ -1,7 +1,7 @@
 package cc.game.android.risk;
 
-import cc.lib.game.AAnimation;
 import cc.lib.game.AGraphics;
+import cc.lib.game.ChainInterpolator;
 import cc.lib.game.GColor;
 import cc.lib.game.IInterpolator;
 import cc.lib.game.InterpolatorUtils;
@@ -10,16 +10,18 @@ import cc.lib.game.Justify;
 /**
  * Created by Chris Caron on 9/22/21.
  */
-class ExpandingTextOverlayAnimation extends AAnimation<AGraphics> {
+class ExpandingTextOverlayAnimation extends RiskAnim {
 
     final String text;
     final IInterpolator<GColor> colorInterp;
     final IInterpolator<Float> textSizeInterp;
 
     public ExpandingTextOverlayAnimation(String text, GColor color) {
-        super(1000);
+        super(2000);
         this.text = text;
-        colorInterp = color.getInterpolator(color.withAlpha(0));
+        GColor color2 = color.withAlpha(0);
+        colorInterp = new ChainInterpolator<>(color2.getInterpolator(color),
+                color.getInterpolator(color2));
         textSizeInterp = InterpolatorUtils.linear(
                 RiskActivity.instance.getResources().getDimension(R.dimen.text_height_overlay_sm),
                 RiskActivity.instance.getResources().getDimension(R.dimen.text_height_overlay_lg));

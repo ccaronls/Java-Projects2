@@ -38,7 +38,7 @@ public class BVertex extends Reflector<BVertex> implements IVector2D {
         return y;
     }
 
-    public final void set(IVector2D v) {
+    final void set(IVector2D v) {
         x = v.getX();
         y = v.getY();
     }

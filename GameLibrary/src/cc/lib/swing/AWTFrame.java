@@ -393,7 +393,7 @@ public class AWTFrame extends JFrame implements WindowListener, ComponentListene
     }
 
     protected void onMenuItemSelected(String menu, String subMenu) {
-        log.warn("Unhandled onMneuItemSelected: menu=" + menu + " item=" + subMenu);
+        log.warn("Unhandled onMenuItemSelected: menu=" + menu + " item=" + subMenu);
     }
 
     public final void add(AWTComponent comp) {
