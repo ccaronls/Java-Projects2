@@ -329,7 +329,6 @@ public class MainActivity extends CCActivityBase implements
         });
         pager_workouts.setCurrentItem(currentWorkout, false);
         pager_workouts.setOnPageChangeListener(this);
-        stop();
     }
 
     @Override
@@ -337,11 +336,14 @@ public class MainActivity extends CCActivityBase implements
         super.onResume();
         tts = new TextToSpeech(this, this);
         tts.setLanguage(getResources().getConfiguration().locale);
+        restoreState();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+        getPrefs().edit().putInt("state", state).commit();
+        pause();
         if (tts != null) {
             tts.stop();
             tts.shutdown();
@@ -354,6 +356,32 @@ public class MainActivity extends CCActivityBase implements
             Reflector.serializeToFile(workouts, new File(getFilesDir(), WORKOUTS_FILE));
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    private void restoreState() {
+        int st = getPrefs().getInt("state", STATE_STOPPED);
+        switch (st) {
+            case STATE_STOPPED:
+                stop();
+                break;
+            case STATE_PAUSED:
+            case STATE_RUNNING:
+                initWorkout();
+                timeLeftSecs = timeLeftSecs = getPrefs().getInt("timeLeftSecs", 0);
+                state = STATE_PAUSED;
+                b_pause.setText(R.string.button_resume);
+//                tv_timer.post(this);
+                run();
+                b_start.setText(R.string.button_stop);
+                b_pause.setEnabled(true);
+                b_options.setEnabled(false);
+//                setKeepScreenOn(true);
+                pause();
+                break;
+            default:
+                stop();
+                break;
         }
     }
 
@@ -750,10 +778,11 @@ public class MainActivity extends CCActivityBase implements
     }
 
     void resume() {
-        if (state == STATE_PAUSED) {
-            getPrefs().getInt("timeLeftSecs", 0);
+        if (state != STATE_RUNNING) {
+            timeLeftSecs = getPrefs().getInt("timeLeftSecs", 0);
             state = STATE_RUNNING;
             b_pause.setText(R.string.button_pause);
+            b_start.setText(R.string.button_stop);
             tv_timer.post(this);
             setKeepScreenOn(true);
         }
