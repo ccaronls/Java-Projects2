@@ -342,7 +342,10 @@ public class MainActivity extends CCActivityBase implements
     @Override
     protected void onPause() {
         super.onPause();
-        getPrefs().edit().putInt("state", state).commit();
+        getPrefs().edit()
+                .putInt("state", state)
+                .putInt("setIndex", setIndex).commit();
+
         pause();
         if (tts != null) {
             tts.stop();
@@ -368,7 +371,8 @@ public class MainActivity extends CCActivityBase implements
             case STATE_PAUSED:
             case STATE_RUNNING:
                 initWorkout();
-                timeLeftSecs = timeLeftSecs = getPrefs().getInt("timeLeftSecs", 0);
+                timeLeftSecs = getPrefs().getInt("timeLeftSecs", 0);
+                setIndex = getPrefs().getInt("setIndex", 0);
                 state = STATE_PAUSED;
                 b_pause.setText(R.string.button_resume);
 //                tv_timer.post(this);
@@ -463,6 +467,10 @@ public class MainActivity extends CCActivityBase implements
                                         loadWorkouts();
                                         pager_adapter.notifyDataSetChanged();
                                     }).show();
+                            break;
+                        case 6:
+                            newDialogBuilder().setTitle(R.string.popup_title_about).setMessage(R.string.popup_about_body).setPositiveButton(R.string.popup_button_ok, null).show();
+                            break;
                     }
                 }).setPositiveButton(R.string.popup_button_ok, null).show();
     }

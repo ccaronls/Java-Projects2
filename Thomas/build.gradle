@@ -13,7 +13,7 @@ android {
         applicationId "cc.android.thomas"
         minSdkVersion project.myMinSdkVersion
         targetSdkVersion project.myTargetSdkVersion
-        versionCode 6
+        versionCode 7
         versionName "1.1"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
