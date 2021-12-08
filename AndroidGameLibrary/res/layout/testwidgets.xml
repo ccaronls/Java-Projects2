@@ -1,6 +1,6 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent" 
+    android:layout_height="fill_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <cc.lib.android.SpringSlider
@@ -14,5 +14,5 @@
         app:buttonRadius="25dp"
         app:buttonThickness="10dp"
         app:horizontal="true" />
-    
+
 </RelativeLayout>

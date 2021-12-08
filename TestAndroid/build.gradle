@@ -2,6 +2,7 @@ apply plugin: 'com.android.application'
 
 dependencies {
     implementation project(':AndroidGameLibrary')
+    implementation project(':AndroidMultiplayerGameLibrary')
     //implementation 'cc.lib:gamelib-android:1.0'
     implementation project(path: ':GameLibrary', configuration: 'androidLib')
 }
@@ -68,6 +69,15 @@ android {
             minifyEnabled true // Enables code shrinking for the release build type.
             proguardFiles getDefaultProguardFile('proguard-android.txt'), '../common/proguard.txt'
             signingConfig signingConfigs.release
+        }
+    }
+
+    task runIt {
+        doLast {
+            exec {
+                workingDir '.'
+                commandLine 'bash', 'adb', 'shell', 'am', 'start', '-n', 'cc.lib.android.p2p.WifiTest2'
+            }
         }
     }
 }

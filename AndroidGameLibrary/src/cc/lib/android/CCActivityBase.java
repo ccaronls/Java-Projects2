@@ -3,15 +3,19 @@ package cc.lib.android;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.text.InputFilter;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -45,18 +49,52 @@ public class CCActivityBase extends Activity {
 
     public final Logger log = new AndroidLogger(getClass().toString());
 
-	@Override
+    private final int PERMISSION_REQUEST_CODE = 1001;
+
+    @Override
 	protected void onCreate(Bundle bundle) {
         if (BuildConfig.DEBUG) {
             Utils.setDebugEnabled();
         }
 	    super.onCreate(bundle);
 	}
-	
-	@Override
-	protected void onResume() {
-		super.onResume();
+
+    /**
+     * DO NOT CALL FROM onResume!!!!
+     *
+     * @param permissions
+     */
+    public void checkPermissions(String [] permissions) {
+        if (Build.VERSION.SDK_INT >= 23 && permissions.length > 0) {
+            List<String> permissionsToRequest = new ArrayList<>();
+            for (String p : permissions) {
+                if (checkCallingOrSelfPermission(p) != PackageManager.PERMISSION_GRANTED) {
+                    permissionsToRequest.add(p);
+                }
+            }
+
+            if (permissionsToRequest.size() > 0) {
+                permissions = permissionsToRequest.toArray(new String[permissionsToRequest.size()]);
+                requestPermissions(permissions, PERMISSION_REQUEST_CODE);
+                return;
+            }
+        }
+        onAllPermissionsGranted();
 	}
+
+	protected void onAllPermissionsGranted() {}
+
+	protected void onPermissionLimited(List<String> permissionsNotGranted) {
+        newDialogBuilder().setTitle("Cannot Launch")
+                .setMessage("The following permissions are not granted and app cannot run;\n" + permissionsNotGranted)
+                .setNegativeButton("Ok", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        finish();
+                    }
+                }).show().setCanceledOnTouchOutside(false);
+        Toast.makeText(this, "The following permissions are not granted: " + permissionsNotGranted, Toast.LENGTH_LONG).show();
+    }
 	
 	@Override
 	protected void onPause() {
@@ -167,33 +205,8 @@ public class CCActivityBase extends Activity {
 	    return new AlertDialog.Builder(this);
     }
 
-    private Runnable grantedRunnable;
-
-    public synchronized void checkPermissionAndThen(Runnable ifGrantedRunOnUiThread, String ... permissions) {
-        if (BuildConfig.VERSION_CODE >= 23) {
-            List<String> permissionsNotGranted = new ArrayList<>();
-            for (String p : permissions) {
-                if (PackageManager.PERMISSION_GRANTED != checkSelfPermission(p)) {
-                    permissionsNotGranted.add(p);
-                }
-            }
-
-            if (permissionsNotGranted.size() == 0) {
-                runOnUiThread(ifGrantedRunOnUiThread);
-            } else {
-                grantedRunnable = ifGrantedRunOnUiThread;
-                requestPermissions(permissionsNotGranted.toArray(new String[permissionsNotGranted.size()]), PERMISSION_REQUEST_CODE);
-            }
-        } else {
-            ifGrantedRunOnUiThread.run();
-        }
-    }
-
-
-    private final int PERMISSION_REQUEST_CODE = 1001;
-
     @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], final int[] grantResults) {
+    public final void onRequestPermissionsResult(int requestCode, String permissions[], final int[] grantResults) {
         switch (requestCode) {
             case PERMISSION_REQUEST_CODE: {
                 final List<String> permissionsNotGranted = new ArrayList<>();
@@ -202,28 +215,14 @@ public class CCActivityBase extends Activity {
                         permissionsNotGranted.add(permissions[i]);
                     }
                 }
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (permissionsNotGranted.size() > 0) {
-                            onPermissionNotGranted(permissionsNotGranted.toArray(new String[permissionsNotGranted.size()]));
-                        } else {
-                            try {
-                                grantedRunnable.run();
-                                grantedRunnable = null;
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-                });
+                if (permissionsNotGranted.size() > 0) {
+                    onPermissionLimited(permissionsNotGranted);
+                } else {
+                    onAllPermissionsGranted();
+                }
                 break;
             }
         }
-    }
-
-    protected void onPermissionNotGranted(String ... permissions) {
-        Toast.makeText(this, "The following permissions are not granted: " + Arrays.toString(permissions), Toast.LENGTH_LONG).show();
     }
 
     public String getAppVersionFromManifest() {
@@ -246,4 +245,30 @@ public class CCActivityBase extends Activity {
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         }
     }
+
+    public void showEditTextInputPopup(String title, String defaultValue, String hint, int maxChars, Utils.Callback<String> callabck) {
+        EditText et = new EditText(this);
+        et.setHint(hint);
+        et.setText(defaultValue);
+        et.setFilters(new InputFilter[] { new InputFilter.LengthFilter(maxChars) });
+        newDialogBuilder().setTitle(title)
+                .setView(et)
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton(R.string.popup_button_ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String txt = et.getText().toString();
+                        callabck.onDone(txt);
+                    }
+                }).show();
+
+    }
+
+    public void hideNavigationBar() {
+        View decorView = getWindow().getDecorView();
+        int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                | View.SYSTEM_UI_FLAG_FULLSCREEN;
+        decorView.setSystemUiVisibility(uiOptions);
+    }
+
 }

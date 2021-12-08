@@ -92,4 +92,49 @@ public class TestUtils extends TestCase {
         Assert.assertTrue(Arrays.equals(array, new Integer[] { 3,3,3,1,1,1 }));
 
     }
+
+    public void testColorParsing() throws Exception {
+
+        assertEquals(GColor.fromString("[255,0,0,0]"), GColor.BLACK);
+        assertEquals(GColor.fromString("ARGB[255,255,255,255]"), GColor.WHITE);
+
+    }
+
+    public void testRangeIter() {
+        Utils.RangeIter iter = new Utils.RangeIter(0, 10);
+        int idx = 0;
+        while (iter.hasNext()) {
+            int nxt = iter.next();
+            assertEquals(nxt, idx++);
+            System.out.print(" " + nxt);
+        }
+        assertTrue(idx == 11);
+
+        System.out.println();
+        idx = 10;
+        iter = new Utils.RangeIter(10, 20, 2);
+        while (iter.hasNext()) {
+            int nxt = iter.next();
+            assertEquals(nxt, idx);
+            idx+=2;
+            System.out.print(" " + nxt);
+        }
+        assertTrue(idx == 22);
+
+        iter = new Utils.RangeIter(0, 0);
+        assertTrue(iter.hasNext());
+        assertEquals(new Integer(0), iter.next());
+
+        iter = new Utils.RangeIter(0, -1);
+        assertFalse(iter.hasNext());
+
+    }
+
+    public void testRomanNumeral() {
+        RomanNumeral roman = new RomanNumeral();
+        for (int i=0; i<=200; i++) {
+            System.out.println(String.format("%-10d = %s", i, roman.toRoman(i)));
+        }
+    }
+
 }

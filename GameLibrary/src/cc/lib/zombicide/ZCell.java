@@ -1,9 +1,11 @@
 package cc.lib.zombicide;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
 import cc.lib.game.GRectangle;
 import cc.lib.game.IRectangle;
+import cc.lib.game.Utils;
 import cc.lib.utils.Reflector;
 
 public class ZCell extends Reflector<ZCell> implements IRectangle {
@@ -11,9 +13,12 @@ public class ZCell extends Reflector<ZCell> implements IRectangle {
     public final static int ENV_OUTDOORS=0;
     public final static int ENV_BUILDING=1;
     public final static int ENV_VAULT=2;
+    public final static int ENV_TOWER=3;
 
     static {
         addAllFields(ZCell.class);
+
+        Utils.assertTrue(ZCellType.values().length < 32, "Bit flag can only handle 32 values");
     }
 
     private ZWallFlag[] walls = { ZWallFlag.NONE, ZWallFlag.NONE, ZWallFlag.NONE, ZWallFlag.NONE, ZWallFlag.WALL, ZWallFlag.WALL };
@@ -24,7 +29,10 @@ public class ZCell extends Reflector<ZCell> implements IRectangle {
     private final float x, y;
     private int cellFlag = 0;
     boolean discovered=false;
+    float scale = 1;
     private ZActor [] occupied = new ZActor[ZCellQuadrant.values().length];
+    ZSpawnArea [] spawns = new ZSpawnArea[2];
+    int numSpawns = 0;
 
     public ZCell() {
         this(-1,-1);
@@ -63,12 +71,20 @@ public class ZCell extends Reflector<ZCell> implements IRectangle {
         return vaultFlag;
     }
 
-    public boolean isCellType(ZCellType type) {
-        return (1 << type.ordinal() & cellFlag) != 0;
+    public boolean isCellType(ZCellType ... types) {
+        for (ZCellType t : types) {
+            if ((1 << t.ordinal() & cellFlag) != 0)
+                return true;
+        }
+        return false;
     }
 
     public boolean isCellTypeEmpty() {
         return cellFlag == 0;
+    }
+
+    public float getScale() {
+        return scale;
     }
 
     public void setCellType(ZCellType type, boolean enabled) {
@@ -76,6 +92,12 @@ public class ZCell extends Reflector<ZCell> implements IRectangle {
             cellFlag |= 1<<type.ordinal();
         } else {
             cellFlag &= ~(1<<type.ordinal());
+        }
+    }
+
+    public void clearCellTypes(ZCellType ... types) {
+        for (ZCellType t : types) {
+            cellFlag &= ~(1 << t.ordinal());
         }
     }
 
@@ -90,15 +112,11 @@ public class ZCell extends Reflector<ZCell> implements IRectangle {
     }
 
     public Iterable<ZActor> getOccupant() {
-        return Arrays.asList(occupied);
-    }
-
-    ZCellQuadrant findOpenQuadrant() {
-        for (int i=0; i<occupied.length; i++) {
-            if (occupied[i] == null)
-                return ZCellQuadrant.values()[i];
+        List<ZActor> occupants = new ArrayList<>();
+        for (ZCellQuadrant q : ZCellQuadrant.valuesForRender()) {
+            occupants.add(occupied[q.ordinal()]);
         }
-        return null;
+        return occupants;
     }
 
     ZCellQuadrant findLowestPriorityOccupant() {
@@ -177,5 +195,22 @@ public class ZCell extends Reflector<ZCell> implements IRectangle {
         return true;
     }
 
+    public int getNumSpawns() {
+        return numSpawns;
+    }
 
+    public final List<ZSpawnArea> getSpawnAreas() {
+        return Utils.toList(0, numSpawns, spawns);
+    }
+
+    void removeSpawn(ZDir dir) {
+        Utils.assertTrue(numSpawns > 0);
+        if (spawns[0].getDir() == dir) {
+            spawns[0] = spawns[--numSpawns];
+        } else {
+            Utils.assertTrue(numSpawns > 1);
+            Utils.assertTrue(spawns[1].getDir() == dir);
+            spawns[--numSpawns] = null;
+        }
+    }
 }

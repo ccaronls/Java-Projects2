@@ -21,10 +21,12 @@
             android:screenOrientation="sensorLandscape"
             android:icon="@drawable/ic_launcher"
             android:label="LightningTest">
+            <!--
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            -->
         </activity>
 
         <activity
@@ -53,11 +55,36 @@
             -->
         </activity>
         <activity
-            android:name=".p2p.WifiTest"
+            android:name=".p2p.WifiTest2"
             android:configChanges="orientation|keyboardHidden|screenSize"
-            android:screenOrientation="sensorPortrait"
             android:icon="@drawable/ic_launcher"
+            android:screenOrientation="sensor"
             android:label="WifiTest">
+            <!--
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            -->
+        </activity>
+        <activity
+            android:name=".strbounds.StringBoundsActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:icon="@drawable/ic_launcher"
+            android:screenOrientation="sensorLandscape"
+            android:label="Dice">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".dice.DiceActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:icon="@drawable/ic_launcher"
+            android:screenOrientation="sensorPortrait"
+            android:label="Dice">
             <!--
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -134,6 +134,16 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     /**
      *
      * @param text
+     * @param pos
+     * @return
+     */
+    public final GDimension drawString(String text, IVector2D pos) {
+        return drawJustifiedString(pos.getX(), pos.getY(), Justify.LEFT, Justify.TOP, text);
+    }
+
+    /**
+     *
+     * @param text
      * @param x
      * @param y
      * @return
@@ -142,7 +152,17 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
         return drawAnnotatedString(text, x,y, Justify.LEFT);
     }
 
-   /**
+    /**
+     *
+     * @param text
+     * @param pos
+     * @return
+     */
+    public final GDimension drawAnnotatedString(String text, IVector2D pos) {
+        return drawAnnotatedString(text, pos.getX(), pos.getY(), Justify.LEFT);
+    }
+
+    /**
     * Annotated string can have annotations in the string (ala html) to control color, underline etc.
     *
     * annotated color pattern:
@@ -195,7 +215,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      *
      * @param height
      */
-    public abstract void setTextHeight(float height);
+    public abstract float setTextHeight(float height);
 
     /**
      * 
@@ -309,8 +329,24 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param screenY
      * @return
      */
-    public abstract Vector2D screenToViewport(int screenX, int screenY);
-    
+    public final Vector2D screenToViewport(int screenX, int screenY) {
+        return untransform(screenX, screenY);
+    }
+
+    public final MutableVector2D screenToViewport(float screenX, float screenY) {
+        return untransform(screenX, screenY);
+    }
+
+    public final MutableVector2D screenToViewport(IVector2D screen) {
+        return untransform(screen.getX(), screen.getY());
+    }
+
+    public final void screenToViewport(MutableVector2D mouse) {
+        mouse.set(untransform(mouse.getX(), mouse.getY()));
+    }
+
+    protected abstract MutableVector2D untransform(float x, float y);
+
     /**
      * Draw a justified block text.  '\n' is a delimiter for separate lines
      * @param x
@@ -359,7 +395,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
         return new GDimension(maxWidth, maxHeight);
     }
 
-    public final GRectangle drawJustifiedStringR(float x, float y, Justify hJust, Justify vJust, String text) {
+    public GRectangle drawJustifiedStringR(float x, float y, Justify hJust, Justify vJust, String text) {
         if (text==null || text.length() == 0)
             return new GRectangle();
         MutableVector2D mv = transform(x, y);
@@ -430,11 +466,12 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
         GRectangle r = drawJustifiedStringR(x, y, hJust, vJust, text);
         pushMatrix();
         setIdentity();
+        ortho();
         r.grow(border);
         GColor saveColor = getColor();
         setColor(bkColor);
         if (cornerRadius > 0)
-            r.drawRounded(this, cornerRadius);
+            drawFilledRoundedRect(r, cornerRadius);
         else
             r.drawFilled(this);
         setColor(saveColor);
@@ -473,7 +510,82 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
         return drawJustifiedStringOnBackground(x, y, hJust, vJust, text, bkColor, border, 0);
     }
 
-    
+    public final static int BORDER_FLAG_NORTH = 1<<0;
+    public final static int BORDER_FLAG_SOUTH = 1<<1;
+    public final static int BORDER_FLAG_EAST  = 1<<2;
+    public final static int BORDER_FLAG_WEST  = 1<<3;
+
+    public final static class Border {
+        final float thickness;
+        final int flag;
+        final Vector2D sizeAdjust;
+        final Vector2D positionAdjust;
+
+        public Border(int flag, float thickness, float dw, float dh, float dx, float dy) {
+            this.flag = flag;
+            this.thickness = thickness;
+            this.sizeAdjust = new Vector2D(dw, dh);
+            this.positionAdjust = new Vector2D(dx, dy);
+        }
+    }
+
+    /**
+     *
+     * @param x
+     * @param y
+     * @param hJust
+     * @param vJust
+     * @param text
+     * @param borders
+     * @return
+     */
+    public GRectangle drawJustifiedStringBordered(float x, float y, Justify hJust, Justify vJust, String text, Border ... borders) {
+        GRectangle r = drawJustifiedStringR(x, y, hJust, vJust, text);
+        pushMatrix();
+        setIdentity();
+        ortho();
+        for (Border b : borders) {
+            MutableVector2D v0=null, v1=null;
+            switch (b.flag) {
+                case BORDER_FLAG_NORTH:
+                    v0=r.getTopLeft();
+                    v1=r.getTopRight();
+                    break;
+                case BORDER_FLAG_SOUTH:
+                    v0=r.getBottomLeft();
+                    v1=r.getBottomRight();
+                    break;
+                case BORDER_FLAG_EAST:
+                    v0=r.getTopRight();
+                    v1=r.getBottomRight();
+                    break;
+                case BORDER_FLAG_WEST:
+                    v0=r.getTopLeft();
+                    v1=r.getBottomLeft();
+                    break;
+                default:
+                    throw new GException("Unhandled case: " + b.flag);
+            }
+            drawLine(v0.addEq(b.positionAdjust), v1.addEq(b.positionAdjust).addEq(b.sizeAdjust), b.thickness);
+        }
+        popMatrix();
+        drawJustifiedString(x, y, hJust, vJust, text);
+        return r;
+    }
+
+    /**
+     *
+     * @param v
+     * @param hJust
+     * @param vJust
+     * @param text
+     * @param border
+     * @return
+     */
+    public GRectangle drawJustifiedStringBordered(IVector2D v, Justify hJust, Justify vJust, String text, Border ... border) {
+        return drawJustifiedStringBordered(v.getX(), v.getY(), hJust, vJust, text, border);
+    }
+
     /**
      * 
      * @param str
@@ -1146,6 +1258,28 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     }
 
     /**
+     *
+     * @param v0
+     * @param v1
+     * @param thickness
+     * @param dashLength
+     */
+    public final void drawDashedLine(IVector2D v0, IVector2D v1, float thickness, float dashLength) {
+        drawDashedLine(v0.getX(), v0.getY(), v1.getX(), v1.getY(), thickness, dashLength);
+    }
+
+    /**
+     *
+     * @param x0
+     * @param y0
+     * @param x1
+     * @param y1
+     * @param thickness
+     * @param dashLength
+     */
+    public abstract void drawDashedLine(float x0, float y0, float x1, float y1, float thickness, float dashLength);
+
+    /**
      * Convenience.  Thickness defaults to 1
      * @param x0
      * @param y0
@@ -1453,6 +1587,15 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     }
 
     /**
+     *
+     * @param r
+     * @param thickness
+     */
+    public void drawOval(IRectangle r, float thickness) {
+        drawOval(r.X(), r.Y(), r.getWidth(), r.getHeight(), thickness);
+    }
+
+    /**
      * 
      * @param x
      * @param y
@@ -1469,6 +1612,14 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param h
      */
     public abstract void drawFilledOval(float x, float y, float w, float h);
+
+    /**
+     *
+     * @param rect
+     */
+    public final void drawFilledOval(GRectangle rect) {
+        drawFilledOval(rect.x, rect.y, rect.w, rect.h);
+    }
 
     /**
      * 
@@ -1568,6 +1719,14 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     public abstract void setTransparencyFilter(float alpha);
 
     /**
+     * Tint will replace incoming color (usually white) with the out going color on the next render
+     *
+     * @param inColor
+     * @param outColor
+     */
+    public abstract void setTintFilter(GColor inColor, GColor outColor);
+
+    /**
      *
      */
     public abstract void removeFilter();
@@ -1648,6 +1807,35 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
         AImage img = getImage(imageKey);
         if (img != null) {
             drawImage(imageKey, center.getX()-img.getWidth()/2, center.getY()-img.getHeight()/2, img.getWidth(), img.getHeight());
+        }
+    }
+
+    /**
+     * Draw image aligned to some point
+     * @param imageKey
+     * @param pos
+     * @param hJust
+     * @param vJust
+     */
+    public final void drawImage(int imageKey, IVector2D pos, Justify hJust, Justify vJust, float scale) {
+        AImage img = getImage(imageKey);
+        if (img != null) {
+            float hgt = scale * img.getHeight();
+            float wid = scale * img.getWidth();
+            float x=pos.getX(),y=pos.getY();
+            switch (hJust) {
+                case CENTER:
+                    x-=wid/2; break;
+                case RIGHT:
+                    x-=wid; break;
+            }
+            switch (vJust) {
+                case CENTER:
+                    y-=hgt/2; break;
+                case BOTTOM:
+                    y-=hgt; break;
+            }
+            drawImage(imageKey, x, y, wid, hgt);
         }
     }
 
@@ -1760,4 +1948,15 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @return
      */
     public abstract GRectangle getClipRect();
+
+    /**
+     * Return a string that can be rendered in the supplied color using @see drawAnnotatedString
+     * @param color
+     * @param string
+     * @return
+     */
+    public static String getAnnotatedString(GColor color, String string) {
+        return String.format("%s%s", color.toString(), string);
+    }
+
 }

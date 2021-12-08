@@ -14,7 +14,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHeight_percent=".5"
         app:layout_constraintDimensionRatio="1"
-        android:src="@mipmap/zicon"/>
+        android:src="@drawable/zicon"/>
 
     <cc.lib.android.CircleTextView
         android:layout_width="0dp"

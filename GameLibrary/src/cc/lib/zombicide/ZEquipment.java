@@ -5,7 +5,7 @@ import cc.lib.ui.IButton;
 import cc.lib.utils.Reflector;
 import cc.lib.utils.Table;
 
-public abstract class ZEquipment<T extends Enum<T>> extends Reflector<ZEquipment<T>> implements IButton, Comparable<ZEquipment> {
+public abstract class ZEquipment<T extends ZEquipmentType> extends Reflector<ZEquipment<T>> implements IButton, Comparable<ZEquipment> {
 
     static {
         addAllFields(ZEquipment.class);
@@ -24,7 +24,7 @@ public abstract class ZEquipment<T extends Enum<T>> extends Reflector<ZEquipment
         return false;
     }
 
-    public abstract boolean isEquippable();
+    public abstract boolean isEquippable(ZCharacter c);
 
     public boolean isMelee() {
         return false;
@@ -46,7 +46,7 @@ public abstract class ZEquipment<T extends Enum<T>> extends Reflector<ZEquipment
         return false;
     }
 
-    public boolean isThrowable() { return false; }
+        public final boolean isThrowable() { return getType().isActionType(ZActionType.THROW_ITEM); }
 
     public boolean isDualWieldCapable() { return false; }
 
@@ -54,7 +54,7 @@ public abstract class ZEquipment<T extends Enum<T>> extends Reflector<ZEquipment
 
     public boolean isOpenDoorsNoisy() { return false; }
 
-    public abstract Enum<T> getType();
+    public abstract T getType();
 
     @Override
     public boolean equals(Object o) {
@@ -68,12 +68,17 @@ public abstract class ZEquipment<T extends Enum<T>> extends Reflector<ZEquipment
 
     @Override
     public int compareTo(ZEquipment o) {
-        return getLabel().compareTo(o.getLabel());
+        // Consider not using this. Causes a problem when multiple of same equipment for user to choose from
+        int comp = getLabel().compareTo(o.getLabel());
+        if (comp != 0) {
+            return comp;
+        }
+        return slot.compareTo(o.slot);
     }
 
     @Override
     public int hashCode() {
-        return getType().ordinal();
+        return getType().hashCode();
     }
 
     public abstract Table getCardInfo(ZCharacter c, ZGame game);
@@ -97,4 +102,9 @@ public abstract class ZEquipment<T extends Enum<T>> extends Reflector<ZEquipment
     }
 
     public void onEndOfRound(ZGame game) {}
+
+    @Override
+    protected boolean isImmutable() {
+        return true;
+    }
 }

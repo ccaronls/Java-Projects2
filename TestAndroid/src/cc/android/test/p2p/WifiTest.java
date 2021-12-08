@@ -20,7 +20,7 @@ import java.util.Map;
 
 import cc.android.test.R;
 import cc.lib.android.BonjourThread;
-import cc.lib.android.WifiP2pHelper;
+import cc.lib.mp.android.WifiP2pHelper;
 
 /**
  * Created by chriscaron on 3/5/18.

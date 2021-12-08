@@ -1,5 +1,8 @@
 package cc.lib.zombicide;
 
+import cc.lib.annotation.Keep;
+
+@Keep
 public enum ZAttackType {
     NORMAL,
     FIRE,
@@ -7,7 +10,14 @@ public enum ZAttackType {
     DISINTEGRATION,
     BLADE,
     CRUSH,
-    RANGED,
+    RANGED_ARROWS,
+    RANGED_BOLTS,
+    RANGED_THROW,
     EARTHQUAKE,
     MENTAL_STRIKE,
+    DRAGON_FIRE;
+
+    public boolean needsReload() {
+        return this == RANGED_BOLTS;
+    }
 }

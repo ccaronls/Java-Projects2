@@ -1,7 +1,6 @@
 package cc.lib.zombicide;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -9,24 +8,25 @@ import java.util.Vector;
 
 import cc.lib.game.AGraphics;
 import cc.lib.game.Utils;
+import cc.lib.utils.GException;
 import cc.lib.utils.Grid;
 import cc.lib.utils.Reflector;
 import cc.lib.utils.Table;
+import cc.lib.zombicide.ui.UIZombicide;
 
 public abstract class ZQuest extends Reflector<ZQuest> {
-
-    public final static int OBJECTIVE_EXP = 5;
 
     static {
         addAllFields(ZQuest.class);
     }
 
     private final ZQuests quest;
-    protected int exitZone = -1;
+    private int exitZone = -1;
     private Map<Integer, List<ZEquipment>> vaultMap = new HashMap<>();
     private List<ZEquipment> vaultItemsRemaining = null;
     private int numFoundVaultItems = 0;
-    protected List<Integer> redObjectives = new ArrayList<>();
+    // TODO: Make this just 'objectives' and capture blue objective from Tutorial
+    private List<Integer> redObjectives = new ArrayList<>();
     private int numStartRedObjectives = 0;
 
     protected ZQuest(ZQuests quest) {
@@ -35,18 +35,97 @@ public abstract class ZQuest extends Reflector<ZQuest> {
 
     public abstract ZBoard loadBoard();
 
+    /**
+     *
+     * @return
+     */
+    public abstract ZTile [] getTiles(ZBoard board);
+
+    /**
+     * Called once during INIT stage of game
+     */
+    public abstract void init(ZGame game);
+
+    /**
+     * Return value between 0-100 for progress
+     * 100 is assumed to be a game over win
+     *
+     * @param game
+     * @return
+     */
+    public abstract int getPercentComplete(ZGame game);
+
+    /**
+     * Return a table to be displayed when used want to view the objectives
+     *
+     * @param game
+     * @return
+     */
+    public abstract Table getObjectivesOverlay(ZGame game);
+
+    /**
+     *
+     * @return
+     */
     public String getName() {
         return quest.getDisplayName();
     }
 
+    /**
+     *
+     * @return
+     */
     public ZQuests getQuest() {
         return quest;
     }
 
+    /**
+     *
+     * @return
+     */
+    public int getExitZone() {
+        return exitZone;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public int getNumUnfoundObjectives() {
+        return redObjectives.size();
+    }
+
+    /**
+     *
+     * @return
+     */
+    public int getNumFoundObjectives() {
+        return getNumStartRedObjectives() - redObjectives.size();
+    }
+
+    /**
+     *
+     * @return
+     */
+    public List<Integer> getRedObjectives() {
+        return redObjectives;
+    }
+
+    /**
+     *
+     * @return
+     */
     public List<ZEquipmentType> getAllVaultOptions() {
+        if (isWolfBurg()) {
+            return Utils.toList(ZWeaponType.CHAOS_LONGBOW, ZWeaponType.VAMPIRE_CROSSBOW);
+        }
         return Utils.asList(ZWeaponType.INFERNO, ZWeaponType.ORCISH_CROSSBOW);
     }
 
+    /**
+     *
+     * @return
+     */
     public int getNumFoundVaultItems() {
         return numFoundVaultItems;
     }
@@ -69,6 +148,11 @@ public abstract class ZQuest extends Reflector<ZQuest> {
         setCellWall(grid, pos, getDirectionForEnvironment(cell.environment), wallFlag);
     }
 
+    protected void setSpawnArea(ZCell cell, ZSpawnArea area) {
+        Utils.assertTrue(cell.numSpawns == 0);
+        cell.spawns[cell.numSpawns++] = area;
+    }
+
     protected void loadCmd(Grid<ZCell> grid, Grid.Pos pos, String cmd) {
         ZCell cell = grid.get(pos);
         switch (cmd) {
@@ -77,6 +161,24 @@ public abstract class ZQuest extends Reflector<ZQuest> {
                 break;
             case "v":
                 cell.environment=ZCell.ENV_VAULT;
+                break;
+            case "t1":
+            case "t2":
+            case "t3":
+                switch (Integer.parseInt(cmd.substring(1))) {
+                    case 1:
+                        cell.scale = 1.05f;
+                        break;
+                    case 2:
+                        cell.scale = 1.1f;
+                        break;
+                    case 3:
+                        cell.scale = 1.15f;
+                        break;
+                    default:
+                        throw new GException("Unhandled case");
+                }
+                cell.environment=ZCell.ENV_TOWER;
                 break;
             case "vd1":
                 setVaultDoor(cell, grid, pos,  ZCellType.VAULT_DOOR_VIOLET, 1);
@@ -138,18 +240,17 @@ public abstract class ZQuest extends Reflector<ZQuest> {
             case "odw":
                 setCellWall(grid, pos, ZDir.WEST, ZWallFlag.OPEN);
                 break;
-            case "sp":
             case "spn":
-                cell.setCellType(ZCellType.SPAWN_NORTH, true);
+                setSpawnArea(cell, new ZSpawnArea(pos, ZDir.NORTH));
                 break;
             case "sps":
-                cell.setCellType(ZCellType.SPAWN_SOUTH, true);
+                setSpawnArea(cell, new ZSpawnArea(pos, ZDir.SOUTH));
                 break;
             case "spe":
-                cell.setCellType(ZCellType.SPAWN_EAST, true);
+                setSpawnArea(cell, new ZSpawnArea(pos, ZDir.EAST));
                 break;
             case "spw":
-                cell.setCellType(ZCellType.SPAWN_WEST, true);
+                setSpawnArea(cell, new ZSpawnArea(pos, ZDir.WEST));
                 break;
             case "st":
             case "start":
@@ -178,7 +279,19 @@ public abstract class ZQuest extends Reflector<ZQuest> {
                 redObjectives.add(cell.getZoneIndex());
                 cell.setCellType(ZCellType.OBJECTIVE_RED, true);
                 break;
-
+                // ramparts (wulfsburg) cannot be walked past but can be seen through for ranhed attacks
+            case "rn":
+                setCellWall(grid, pos, ZDir.NORTH, ZWallFlag.RAMPART);
+                break;
+            case "rs":
+                setCellWall(grid, pos, ZDir.SOUTH, ZWallFlag.RAMPART);
+                break;
+            case "re":
+                setCellWall(grid, pos, ZDir.EAST, ZWallFlag.RAMPART);
+                break;
+            case "rw":
+                setCellWall(grid, pos, ZDir.WEST, ZWallFlag.RAMPART);
+                break;
             default:
                 throw new RuntimeException("Invalid command '" + cmd + "'");
         }
@@ -194,6 +307,12 @@ public abstract class ZQuest extends Reflector<ZQuest> {
     public final ZBoard load(String [][] map) {
         int rows = map.length;
         int cols = map[0].length;
+        // make sure all cols the same length
+        for (int i=1; i<rows; i++) {
+            if (map[i].length != cols) {
+                throw new IllegalArgumentException("Row " +i + " is not same length as rest: " + cols);
+            }
+        }
         Grid<ZCell> grid = new Grid<>(rows, cols);
         Map<Integer, ZZone> zoneMap = new HashMap<>();
         int maxZone = 0;
@@ -204,7 +323,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
         }
         for (int row=0; row<map.length; row++) {
             if (map[0].length != map[row].length)
-                throw new IllegalArgumentException("Lenght of row " + row + " differs");
+                throw new IllegalArgumentException("Length of row " + row + " differs");
             for (int col = 0; col < map[row].length; col++) {
                 ZCell cell = grid.get(row, col);
                 String [] parts = map[row][col].split("[:]");
@@ -226,13 +345,16 @@ public abstract class ZQuest extends Reflector<ZQuest> {
                         cell.setCellType(ZCellType.NONE, true);
                         continue;
                     }
-                    Utils.assertTrue(zone != null);
+                    if (zone == null) {
+                        throw new GException("Problem with cmd: " + map[row][col]);
+                    }
                     loadCmd(grid, pos, cmd);
                     // make sure outer perimeter has walls
                 }
-                if (cell.isCellType(ZCellType.EXIT))
+                if (cell.isCellType(ZCellType.EXIT)) {
+                    Utils.assertTrue(exitZone < 0, "Multiple EXIT zones not supported");
                     exitZone = cell.zoneIndex;
-                if (row == 0) {
+                } if (row == 0) {
                     loadCmd(grid, pos, "wn");
                 } else if (row == map.length-1) {
                     loadCmd(grid, pos, "ws");
@@ -245,6 +367,8 @@ public abstract class ZQuest extends Reflector<ZQuest> {
 
             }
         }
+
+        // do another pass ans make sure all the zone cells are adjacent
         Vector<ZZone> zones = new Vector<>();
         zones.setSize(maxZone+1);
         for (Map.Entry<Integer, ZZone> e : zoneMap.entrySet()) {
@@ -254,6 +378,9 @@ public abstract class ZQuest extends Reflector<ZQuest> {
         for (int i=0; i<zones.size(); i++) {
             if (zones.get(i) == null)
                 zones.set(i, new ZZone());
+            else {
+                zones.get(i).checkSanity();
+            }
         }
 
         numStartRedObjectives = redObjectives.size();
@@ -269,7 +396,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
      */
     public void addMoves(ZGame game, ZCharacter cur, List<ZMove> options) {
         for (int red : redObjectives) {
-            if (cur.getOccupiedZone() == red && game.getBoard().getZombiesInZone(red).size() == 0)
+            if (cur.getOccupiedZone() == red && game.getBoard().getNumZombiesInZone(red) == 0)
                 options.add(ZMove.newObjectiveMove(red));
         }
     }
@@ -278,21 +405,16 @@ public abstract class ZQuest extends Reflector<ZQuest> {
      *
      * @param game
      * @param c
-     * @param move
      */
-    public void processObjective(ZGame game, ZCharacter c, ZMove move) {
-        if (redObjectives.remove((Object)move.integer)) {
-            game.addExperience(c, OBJECTIVE_EXP);
+    public void processObjective(ZGame game, ZCharacter c) {
+        if (redObjectives.remove((Object)c.getOccupiedZone())) {
+            game.addExperience(c, getObjectiveExperience(c.getOccupiedZone(), getNumFoundObjectives()));
         }
     }
 
-    /**
-     * Return value between 0-100 for progress
-     *
-     * @param game
-     * @return
-     */
-    public abstract int getPercentComplete(ZGame game);
+    protected int getObjectiveExperience(int zoneIdx, int nthFound) {
+        return 5;
+    }
 
     /**
      *
@@ -300,16 +422,6 @@ public abstract class ZQuest extends Reflector<ZQuest> {
      */
     public String getQuestFailedReason(ZGame game) {
         return null;
-    }
-
-    /**
-     *
-     * @return
-     */
-    public abstract ZTile [] getTiles(ZBoard board);
-
-    public Collection<Integer> getVaultZones() {
-        return vaultMap.keySet();
     }
 
     /**
@@ -378,26 +490,39 @@ public abstract class ZQuest extends Reflector<ZQuest> {
             for (ZEquipmentType et : getAllVaultOptions()) {
                 vaultItemsRemaining.add(et.create());
             }
+            Utils.shuffle(vaultItemsRemaining);
         }
         return vaultItemsRemaining;
     }
 
-    /**
-     * Called once during INIT stage of game
-     */
-    public abstract void init(ZGame game);
+    protected ZEquipment getRandomVaultArtifact() {
+        List<ZEquipment> remaining = getVaultItemsRemaining();
+        if (remaining.size() > 0) {
+            ZEquipment e = Utils.randItem(remaining);
+            remaining.remove(e);
+            return e;
+        }
+        Utils.assertTrue(false);
+        return null;
+    }
 
     public int getMaxNumZombiesOfType(ZZombieType type) {
         switch (type) {
             case Abomination:
+            case Wolfbomination:
                 return 1;
             case Necromancer:
                 return 2;
+            case Wolfz:
+                return 22;
+            case Walker:
+                return 35;
+            case Fatty:
+            case Runner:
+                return 14;
         }
         return Integer.MAX_VALUE;
     }
-
-    public abstract Table getObjectivesOverlay(ZGame game);
 
     public void onEquipmentFound(ZGame game, ZEquipment equip) {
         //
@@ -405,7 +530,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
 
     protected boolean isAllPlayersInExit(ZGame game) {
         Utils.assertTrue(exitZone >= 0);
-        return game.getBoard().getZombiesInZone(exitZone).size() == 0 && !(Utils.filter(game.getAllCharacters(), object -> object.getOccupiedZone() != exitZone).size() > 0);
+        return game.getBoard().getNumZombiesInZone(exitZone) == 0 && !(Utils.count(game.board.getAllCharacters(), object -> object.getOccupiedZone() != exitZone) > 0);
     }
 
     /**
@@ -420,9 +545,35 @@ public abstract class ZQuest extends Reflector<ZQuest> {
 
     public void onDragonBileExploded(ZCharacter c, int zoneIdx) {}
 
-    public void drawQuest(ZGame game, AGraphics g) {}
+    public void drawQuest(UIZombicide game, AGraphics g) {}
 
     public void onNecromancerEscaped(ZGame game, ZZombie z) {
         game.gameLost("Necromancer Escaped");
+    }
+
+    public final boolean isWolfBurg() {
+        return quest.isWolfburg();
+    }
+
+    public void onZombieSpawned(ZGame game, ZZombie zombie, int zone) {
+        switch (zombie.type) {
+            case Necromancer: {
+                game.getBoard().setSpawnZone(zone, ZIcon.SPAWN_GREEN, false, false, true);
+                game.spawnZombies(zone);
+                break;
+            }
+        }
+    }
+
+    /**
+     * Return a spawn card or null if none left. Default behavior is infinite spawn cards
+     *
+     * @param game
+     * @param targetZone
+     * @param dangerLevel
+     * @return
+     */
+    public ZSpawnCard drawSpawnCard(ZGame game, int targetZone, ZSkillLevel dangerLevel) {
+        return ZSpawnCard.drawSpawnCard(isWolfBurg(), game.canZoneSpawnNecromancers(targetZone), game.getDifficulty());
     }
 }

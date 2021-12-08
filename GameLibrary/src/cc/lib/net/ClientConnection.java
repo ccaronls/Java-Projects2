@@ -1,14 +1,21 @@
 package cc.lib.net;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.Socket;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
 import cc.lib.utils.GException;
 import cc.lib.utils.Reflector;
+import cc.lib.utils.WeakHashSet;
 
 /**
  * Created by chriscaron on 3/12/18.
@@ -85,10 +92,10 @@ public class ClientConnection implements Runnable {
     };
     
     public interface Listener {
-        void onCommand(ClientConnection c, GameCommand cmd);
-        void onDisconnected(ClientConnection c, String reason);
-        void onConnected(ClientConnection c);
-        void onCancelled(ClientConnection c, String id);
+        default void onCommand(ClientConnection c, GameCommand cmd) {}
+        default void onDisconnected(ClientConnection c, String reason) {}
+        default void onConnected(ClientConnection c) {}
+        default void onCancelled(ClientConnection c, String id) {}
     };
 
     private Socket socket;
@@ -100,7 +107,9 @@ public class ClientConnection implements Runnable {
     private CommandQueueWriter outQueue = new CommandQueueWriter();
     private Map<String, Object> attributes = new TreeMap<>();
     private boolean connected = false;
-    private final Set<Listener> listeners = Collections.synchronizedSet(new HashSet<Listener>());
+    private boolean kicked = false;
+    private boolean disconnecting = false;
+    private final Set<Listener> listeners = new WeakHashSet<>();
     
     public final void addListener(Listener listener) {
         listeners.add(listener);
@@ -130,6 +139,19 @@ public class ClientConnection implements Runnable {
         this.server = server;
     }
 
+    public void kick() {
+        kicked = true;
+        disconnect("Kicked");
+    }
+
+    public boolean isKicked() {
+        return kicked;
+    }
+
+    public void unkick() {
+        kicked = false;
+    }
+
     /**
      * Send a disconnected message to the client and shutdown the connection. 
      * @param reason
@@ -144,29 +166,23 @@ public class ClientConnection implements Runnable {
                     outQueue.clear();
                     outQueue.add(new GameCommand(GameCommandType.DISCONNECT).setMessage(reason));
                 }
-                synchronized (this) {
-                    wait(500);
-                }
+                //synchronized (this) {
+                //    wait(500); // do we need this?
+                //}
                 outQueue.stop(); // <-- blocks until network flushed
-                reader.stop(); // does not block, not completely stopped until onStopped called
+                disconnecting = true;
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        
-        try {
-            synchronized (this) {
-                wait(5000);
-            }
-        } catch (Exception e) {}
-        
-        close();
     }
     
     private void close() {
         log.debug("ClientConnection: close() ...");
         connected = false;
+        disconnecting = false;
         outQueue.stop();
+        reader.stop();
         log.debug("ClientConnection: outQueue stopped ...");
         try {
             in.close();
@@ -320,28 +336,30 @@ public class ClientConnection implements Runnable {
             try {
                 reader.queue(GameCommand.parse(in));
             } catch (Exception e) {
-                //e.printStackTrace();
+                e.printStackTrace();
                 if (isConnected()) {
                     log.error("ClientConnection: Connection with client '" + name + "' dropped: " + e.getClass().getSimpleName() + " " + e.getMessage());
-                    if (listeners.size() > 0) {
-                        Listener [] arr = listeners.toArray(new Listener[listeners.size()]);
-                        for (Listener l : arr) {
-                            l.onDisconnected(this, e.getClass().getSimpleName() + " " + e.getMessage());
-                        }
-                    }
-                    Iterator<GameServer.Listener> it = server.getListeners().iterator();
-                    while (it.hasNext()) {
-                        try {
-                            it.next().onClientDisconnected(this);
-                        } catch (Exception ee) {
-                            e.printStackTrace();
-                            it.remove();
-                        }
+                }
+                if (listeners.size() > 0) {
+                    Listener [] arr = listeners.toArray(new Listener[listeners.size()]);
+                    for (Listener l : arr) {
+                        l.onDisconnected(this, e.getClass().getSimpleName() + " " + e.getMessage());
                     }
                 }
                 break;
             }
         }
+
+        Iterator<GameServer.Listener> it = server.getListeners().iterator();
+        while (it.hasNext()) {
+            try {
+                it.next().onClientDisconnected(this);
+            } catch (Exception ee) {
+                ee.printStackTrace();
+                it.remove();
+            }
+        }
+
         log.debug("ClientConnection: ClientThread " + Thread.currentThread().getId() + " exiting");
         close();
     }
@@ -363,6 +381,7 @@ public class ClientConnection implements Runnable {
                 }
             }
             server.removeClient(this);
+            close();
         } else if (cmd.getType() == GameCommandType.CL_KEEPALIVE) {
             // client should do this at regular intervals to prevent getting dropped
             log.debug("ClientConnection: KeepAlive from client: " + getName());
@@ -370,14 +389,19 @@ public class ClientConnection implements Runnable {
             System.err.println("ERROR From client '" + getName() + "'\n" + cmd.getString("msg") + "\n" + cmd.getString("stack"));
         } else if (cmd.getType() == GameCommandType.CL_HANDLE) {
             this.handle = cmd.getName();
-        } else {
-            if (listeners.size() > 0) {
-                Listener [] arr = listeners.toArray(new Listener[listeners.size()]);
-                for (Listener l : arr) {
-                    if (l != null)
-                        l.onCommand(this, cmd);
-                }
+            for (GameServer.Listener l : server.getListeners()) {
+                l.onClientHandleChanged(this, handle);
             }
+        } else if (!disconnecting && cmd.getType() != GameCommandType.CL_REMOTE_RETURNS) {
+            for (GameServer.Listener l : server.getListeners()) {
+                l.onCommand(this, cmd);
+            }
+
+            for (Listener l : listeners) {
+                l.onCommand(this, cmd);
+            }
+        } else {
+            log.error("!!! UNHANDLED COMMAND %s !!!", cmd.getType());
         }
         return true;
     }
@@ -404,14 +428,17 @@ public class ClientConnection implements Runnable {
         public void onCommand(GameCommand cmd) {
             if (id.equals(cmd.getString("target"))) {
                 try {
-                    if (cmd.getBoolean("cancelled", false))
+                    if (cmd.getBoolean("cancelled", false)) {
                         cancelled = true;
+                        setResponse(null);
+                    }
                     else {
                         T resp = Reflector.deserializeFromString(cmd.getString("returns"));
                         setResponse(resp);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
+                    setResponse(null);
                 }
             }
         }
@@ -422,15 +449,6 @@ public class ClientConnection implements Runnable {
                 waitLock.notify();
             }
         }
-
-        @Override
-        public void onConnected(ClientConnection c) {}
-
-        @Override
-        public void onCommand(ClientConnection c, GameCommand cmd) {}
-
-        @Override
-        public void onCancelled(ClientConnection c, String id) {}
     };
 
     /**
@@ -441,6 +459,10 @@ public class ClientConnection implements Runnable {
      * @return
      */
     public final <T> T executeDerivedOnRemote(String objId, boolean returnsResult, Object ... params) {
+        if (!isConnected()) {
+            log.warn("Not Connected");
+            return null;
+        }
         StackTraceElement elem = new Exception().getStackTrace()[1];
         return executeMethodOnRemote(objId, returnsResult, elem.getMethodName(), params);
     }
@@ -454,11 +476,13 @@ public class ClientConnection implements Runnable {
      * @return
      */
     public final <T> T executeMethodOnRemote(String targetId, boolean returnsResult, String method, Object ... params) { // <-- need [] array to disambiguate from above method
+        log.debug("executueMethodOnRemote: %s(%s, %s)", method, targetId, Arrays.toString(params));
+        if (!isConnected()) {
+            log.warn("Not Connected");
+            return null;
+        }
         if (Utils.isEmpty(targetId) || Utils.isEmpty(method))
             throw new NullPointerException();
-
-        if (!isConnected())
-            return null;
 
         GameCommand cmd = new GameCommand(GameCommandType.SVR_EXECUTE_REMOTE);
         cmd.setArg("method", method);
@@ -470,15 +494,17 @@ public class ClientConnection implements Runnable {
             }
             if (returnsResult) {
                 Object lock = new Object();
-                String id = Utils.genRandomString(64);
+                String id = method + "_" + targetId + "_" + Utils.genRandomString(32);
                 cmd.setArg("responseId", id);
                 ResponseListener<T> listener = new ResponseListener<>(id, lock);
                 addListener(listener);
                 GameCommandType.CL_REMOTE_RETURNS.addListener(listener);
                 sendCommand(cmd);
+                log.debug("Waiting for response");
                 synchronized (lock) {
                     lock.wait();
                 }
+                log.debug("Response: %s", listener.response);
                 GameCommandType.CL_REMOTE_RETURNS.removeListener(listener);
                 removeListener(listener);
                 if (listener.cancelled)
@@ -494,8 +520,15 @@ public class ClientConnection implements Runnable {
     }
 
     protected void onCancelled(String id) {
-        for (Listener l : listeners)
-            l.onCancelled(this, id);
+        // TODO: Dont think this is neccessary since WeakSet
+        for (Iterator<Listener> it = listeners.iterator(); it.hasNext() ;) {
+            Listener l = it.next();
+            if (l == null) {
+                it.remove();
+            } else {
+                l.onCancelled(this, id);
+            }
+        }
     }
 
 }

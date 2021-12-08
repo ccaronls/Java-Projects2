@@ -4,11 +4,18 @@ import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 import cc.lib.utils.Reflector;
 
-public final class GRectangle extends Reflector<GRectangle> implements IRectangle {
+public class GRectangle extends Reflector<GRectangle> implements IRectangle {
 
     static {
         addAllFields(GRectangle.class);
     }
+
+    public final static GRectangle EMPTY = new GRectangle() {
+        @Override
+        protected boolean isImmutable() {
+            return true;
+        }
+    };
 
     public float x, y, w, h;
 
@@ -116,6 +123,15 @@ public final class GRectangle extends Reflector<GRectangle> implements IRectangl
         return new GRectangle(v0, v1);
     }
 
+    public static IInterpolator<GRectangle> getInterpolator(GRectangle start, GRectangle end) {
+        return new IInterpolator<GRectangle>() {
+            @Override
+            public GRectangle getAtPosition(float position) {
+                return start.getInterpolationTo(end, position);
+            }
+        };
+    }
+
     /**
      * Adjust bounds by some number of pixels
      *
@@ -134,7 +150,7 @@ public final class GRectangle extends Reflector<GRectangle> implements IRectangl
      * @param pixels
      * @return
      */
-    public GRectangle grownBy(int pixels) {
+    public GRectangle grownBy(float pixels) {
         return new GRectangle(x -pixels/2,y - pixels/2,w + pixels,h + pixels);
     }
 
@@ -166,6 +182,31 @@ public final class GRectangle extends Reflector<GRectangle> implements IRectangl
      */
     public GRectangle scaledBy(float s) {
         return scaledBy(s, s);
+    }
+
+    public GRectangle scaledBy(float s, Justify horz, Justify vert) {
+        float newWidth = w * s;
+        float newHeight = h * s;
+        float newX = x;
+        float newY = y;
+        switch (horz) {
+            case LEFT:
+                newX += (w-newWidth); break;
+            case RIGHT:
+                break;
+            case CENTER:
+                newX += (w-newWidth)/2; break;
+        }
+
+        switch (vert) {
+            case TOP:
+                break;
+            case BOTTOM:
+                newY += (h-newHeight); break;
+            case CENTER:
+                newY += (h-newHeight)/2; break;
+        }
+        return new GRectangle(newX, newY, newWidth, newHeight);
     }
 
     /**
@@ -262,12 +303,28 @@ public final class GRectangle extends Reflector<GRectangle> implements IRectangl
         return this;
     }
 
+    public GRectangle setPosition(IVector2D topLeft) {
+        x=topLeft.getX();
+        y=topLeft.getY();
+        return this;
+    }
+
+    public GRectangle setDimension(IDimension dim) {
+        w = dim.getWidth();
+        h = dim.getHeight();
+        return this;
+    }
+
     public GRectangle withCenter(IVector2D cntr) {
         return new GRectangle(cntr.getX()-w/2, cntr.getY()-h/2, w, h);
     }
 
-    public GRectangle withDimension(GDimension dim) {
-        return new GRectangle(x, y, dim.width, dim.height);
+    public GRectangle withPosition(IVector2D topLeft) {
+        return new GRectangle(topLeft, this);
+    }
+
+    public GRectangle withDimension(IDimension dim) {
+        return new GRectangle(x, y, dim.getWidth(), dim.getHeight());
     }
 
     public GRectangle withDimension(float w, float h) {
@@ -280,10 +337,18 @@ public final class GRectangle extends Reflector<GRectangle> implements IRectangl
         return this;
     }
 
+    public GRectangle movedBy(float dx, float dy) {
+        return new GRectangle(x+dx, y+dy, w, h);
+    }
+
     public GRectangle moveBy(IVector2D dv) {
         x+=dv.getX();
         y+=dv.getY();
         return this;
+    }
+
+    public GRectangle movedBy(IVector2D dv) {
+        return movedBy(dv.getX(), dv.getY());
     }
 
     /**
@@ -316,4 +381,64 @@ public final class GRectangle extends Reflector<GRectangle> implements IRectangl
         return this;
     }
 
+    /**
+     *
+     * @return
+     */
+    public Vector2D getRandomPointInside() {
+        return new Vector2D(x+Utils.randFloat(w), y+Utils.randFloat(h));
+    }
+
+    /**
+     *
+     * @return
+     */
+    public IInterpolator<Vector2D> getRandomInterpolator() {
+        return new IInterpolator<Vector2D>() {
+            @Override
+            public Vector2D getAtPosition(float position) {
+                return getRandomPointInside();
+            }
+        };
+    }
+
+    public GRectangle shaked(float factor) {
+        float nx = x + w*Utils.randFloatX(factor);
+        float ny = y + h*Utils.randFloatX(factor);
+        return new GRectangle(nx, ny, w, h);
+    }
+
+    public GRectangle shaked(float xfactor, float yfactor) {
+        float nx = x + w*Utils.randFloatX(xfactor);
+        float ny = y + h*Utils.randFloatX(yfactor);
+        return new GRectangle(nx, ny, w, h);
+    }
+
+    public final void setAspect(float aspect) {
+        float a = getAspect();
+        Vector2D cntr = getCenter();
+        if (a > aspect) {
+            // grow the height to meet the target aspect
+            h = w / aspect;
+        } else {
+            // grow the width to meet the target aspect
+            w = h * aspect;
+        }
+        setCenter(cntr);
+    }
+
+    public GRectangle [] subDivide(int rows, int cols) {
+        GRectangle [] divisions = new GRectangle[rows*cols];
+        float wid = w/cols;
+        float hgt = h/rows;
+        int idx = 0;
+        for (int i=0; i<cols; i++) {
+            MutableVector2D tl = getTopLeft().addEq(wid*i, 0);
+            for (int ii=0; ii<rows; ii++) {
+                divisions[idx++] = new GRectangle(tl, wid, hgt);
+                tl.addEq(0, hgt);
+            }
+        }
+        return divisions;
+    }
 }

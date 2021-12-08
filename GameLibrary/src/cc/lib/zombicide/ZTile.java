@@ -17,4 +17,10 @@ public class ZTile {
         return new GRectangle(b.getCell(row, col).getTopLeft(),
                 b.getCell(row+2, col+2).getBottomRight());
     }
+
+    public static GRectangle getQuadrant(int row, int col, int colsWidth, int rowsHeight, ZBoard b) {
+        return new GRectangle(b.getCell(row, col).getTopLeft(),
+                b.getCell(row+rowsHeight, col+colsWidth).getBottomRight());
+    }
+
 }

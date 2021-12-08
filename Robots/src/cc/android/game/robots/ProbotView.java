@@ -567,7 +567,7 @@ public class ProbotView extends View {
                         angStart+=270;
                         break;
                 }
-                Vector2D v = b.getPointAt(position);
+                Vector2D v = b.getAtPosition(position);
                 int x = v.Xi();
                 int y = v.Yi();
                 canvas.save();

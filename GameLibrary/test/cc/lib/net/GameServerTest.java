@@ -28,7 +28,6 @@ public class GameServerTest extends TestCase {
 
     final static int PORT = 10001;
     final static String VERSION = "GameServerTest";
-    final static int TIMEOUT = 5000;
 
     Throwable result = null;
 
@@ -53,7 +52,7 @@ public class GameServerTest extends TestCase {
         result = null;
         listener1 = new MyServerListener();
         listener2 = new MyClientConnectionListener();
-        server = new GameServer("Test", PORT, TIMEOUT, VERSION, cypher, 2);
+        server = new GameServer("Test", PORT, VERSION, cypher, 2);
         server.addListener(listener1);
         server.listen();
         Utils.waitNoThrow(this, 100);
@@ -101,7 +100,7 @@ public class GameServerTest extends TestCase {
         assertEquals(c.getFloat("float"), 2f);
         assertEquals(c.getLong("long"), 3L);
         assertEquals(c.getDouble("double"), 4.0);
-        assertEquals(c.parseReflector("color", new GColor()), GColor.RED);
+        assertEquals(c.parseReflector("color"), GColor.RED);
 
     }
 
@@ -116,7 +115,7 @@ public class GameServerTest extends TestCase {
 
                     Thread.sleep(1000);
                     MyGameClient cl = new MyGameClient();
-                    cl.connect(InetAddress.getLocalHost(), PORT);
+                    cl.connectBlocking(InetAddress.getLocalHost(), PORT);
                     Thread.sleep(1000);
                     assertTrue(listener1.connected);
                     assertTrue(cl.connected);
@@ -146,7 +145,7 @@ public class GameServerTest extends TestCase {
 
                     Thread.sleep(1000);
                     MyGameClient cl = new MyGameClient("XX");
-                    cl.connect(InetAddress.getLocalHost(), PORT);
+                    cl.connectBlocking(InetAddress.getLocalHost(), PORT);
                     Thread.sleep(1000);
                     assertTrue(listener1.connected);
                     assertTrue(cl.connected);
@@ -221,7 +220,7 @@ public class GameServerTest extends TestCase {
                     
                     Thread.sleep(1000);
                     MyGameClient cl = new MyGameClient("A", "BadVersion");
-                    cl.connect(InetAddress.getLocalHost(), PORT);
+                    cl.connectBlocking(InetAddress.getLocalHost(), PORT);
                     Thread.sleep(1000);
                     assertFalse(listener1.connected);
                     assertFalse(cl.connected);
@@ -255,11 +254,11 @@ public class GameServerTest extends TestCase {
                     
                     Thread.sleep(1000);
                     MyGameClient cl = new MyGameClient("A", VERSION);
-                    cl.connect(InetAddress.getLocalHost(), PORT);
+                    cl.connectBlocking(InetAddress.getLocalHost(), PORT);
                     Thread.sleep(1000);
                     assertTrue(cl.isConnected());
                     MyGameClient cl2 = new MyGameClient("A", VERSION);
-                    cl2.connect(InetAddress.getLocalHost(), PORT);
+                    cl2.connectBlocking(InetAddress.getLocalHost(), PORT);
                     Thread.sleep(1000);
                     assertFalse(cl2.isConnected());
                     //cl.disconnect();
@@ -292,13 +291,13 @@ public class GameServerTest extends TestCase {
                     
                     Thread.sleep(1000);
                     GameClient cl = new MyGameClient();
-                    cl.connect(InetAddress.getLocalHost(), PORT);
+                    cl.connectBlocking(InetAddress.getLocalHost(), PORT);
                     Thread.sleep(1000);
                     assertTrue(listener1.connected);
                     cl.disconnect();
                     Thread.sleep(1000);
                     assertTrue(listener1.disconnected);
-                    cl.connect(InetAddress.getLocalHost(), PORT);
+                    cl.connectBlocking(InetAddress.getLocalHost(), PORT);
                     Thread.sleep(1000);
                     assertTrue(listener1.reconnected);
                     cl.disconnect();
@@ -328,7 +327,7 @@ public class GameServerTest extends TestCase {
                     
                     Thread.sleep(1000);
                     MyGameClient cl = new MyGameClient("XxX");
-                    cl.connect(InetAddress.getLocalHost(), PORT);
+                    cl.connectBlocking(InetAddress.getLocalHost(), PORT);
                     Thread.sleep(1000);
                     assertTrue(listener1.connected);
                     assertTrue(cl.connected);
@@ -366,7 +365,7 @@ public class GameServerTest extends TestCase {
                     
                     Thread.sleep(1000);
                     MyGameClient cl = new MyGameClient();
-                    cl.connect(InetAddress.getLocalHost(), PORT);
+                    cl.connectBlocking(InetAddress.getLocalHost(), PORT);
                     Thread.sleep(1000);
                     assertTrue(listener1.connected);
                     server.stop();
@@ -399,7 +398,7 @@ public class GameServerTest extends TestCase {
                     
                     Thread.sleep(1000);
                     MyGameClient cl = new MyGameClient("ABC");
-                    cl.connect(InetAddress.getLocalHost(), PORT);
+                    cl.connectBlocking(InetAddress.getLocalHost(), PORT);
                     Thread.sleep(1000);
                     ClientConnection conn = server.getClientConnection("ABC");
                     conn.addListener(listener2);
@@ -446,7 +445,7 @@ public class GameServerTest extends TestCase {
                     
                     Thread.sleep(1000);
                     MyGameClient cl = new MyGameClient("ABC");
-                    cl.connect(InetAddress.getLocalHost(), PORT);
+                    cl.connectBlocking(InetAddress.getLocalHost(), PORT);
                     Thread.sleep(1000);
                     ClientConnection conn = server.getClientConnection("ABC");
                     conn.addListener(listener2);
@@ -494,11 +493,11 @@ public class GameServerTest extends TestCase {
                     
                     Thread.sleep(1000);
                     MyGameClient cl = new MyGameClient();
-                    cl.connect(InetAddress.getLocalHost(), PORT);
+                    cl.connectBlocking(InetAddress.getLocalHost(), PORT);
                     Thread.sleep(1000);
                     assertTrue(listener1.connected);
                     cl.close();//.disconnect();
-                    Thread.sleep(1000 + TIMEOUT + 5000);
+                    Thread.sleep(1000 + GameServer.TIMEOUT + 5000);
                     assertTrue(listener1.disconnected);
                     
                 } catch (Throwable e) {
@@ -525,12 +524,12 @@ public class GameServerTest extends TestCase {
                     
                     Thread.sleep(1000);
                     MyGameClient cl = new MyGameClient();
-                    cl.connect(InetAddress.getLocalHost(), PORT);
+                    cl.connectBlocking(InetAddress.getLocalHost(), PORT);
                     Thread.sleep(1000);
                     assertTrue(listener1.connected);
                     //cl.close();//.disconnect();
                     cl.outQueue.setTimeout(100000);
-                    Thread.sleep(1000 + TIMEOUT + 5000);
+                    Thread.sleep(1000 + GameServer.TIMEOUT + 5000);
                     assertTrue(listener1.disconnected);
                     assertTrue(cl.disconnected);
                     assertFalse(cl.isConnected());
@@ -584,7 +583,11 @@ public class GameServerTest extends TestCase {
             this.disconnected = false;
             this.disconnected = true;
         }
-        
+
+        @Override
+        public void onCommand(ClientConnection conn, GameCommand cmd) {
+            System.out.println("onCommand: " + conn + ": " + cmd);
+        }
     };
 
     class MyClientConnectionListener implements ClientConnection.Listener {
@@ -630,11 +633,11 @@ public class GameServerTest extends TestCase {
 
         @Override
         public void onMessage(String message) {
-            log.debug("client " + this.getName() + " onMessage: " + message);
+            log.debug("client " + this.getDisplayName() + " onMessage: " + message);
         }
 
         @Override
-        public void onDisconnected(String reason) {
+        public void onDisconnected(String reason, boolean serverInitiated) {
             connected = false;
             disconnected = true;
             unregister(CLIENT_ID);

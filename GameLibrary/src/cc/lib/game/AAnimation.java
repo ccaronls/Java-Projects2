@@ -23,11 +23,11 @@ public abstract class AAnimation<T> {
     private long startTime;
     private long lastTime;
     private long duration;
-    private final int maxRepeats;
+    private int maxRepeats;
     private float position = 0;
     private State state = State.PRESTART;
     private boolean reverse = false; // 1 for forward, -1 for reversed
-    private final boolean oscillateOnRepeat;
+    private boolean oscillateOnRepeat;
     private int curRepeat = 0;
 
     enum State {
@@ -44,6 +44,7 @@ public abstract class AAnimation<T> {
 
     public void setDuration(long duration) {
         Utils.assertTrue(state == State.PRESTART);
+        Utils.assertTrue(duration > 0);
         this.duration = duration;
     }
 
@@ -108,6 +109,28 @@ public abstract class AAnimation<T> {
     }
 
     /**
+     *
+     * @param oscillating
+     * @param <A>
+     * @return
+     */
+    public final <A extends AAnimation<T>> A setOscillating(boolean oscillating) {
+        this.oscillateOnRepeat = oscillating;
+        return (A)this;
+    }
+
+    /**
+     *
+     * @param repeats
+     * @param <A>
+     * @return
+     */
+    public final <A extends AAnimation<T>> A setRepeats(int repeats) {
+        this.maxRepeats = repeats;
+        return (A)this;
+    }
+
+    /**
      * Immediately start the animation in reverse direction
      * @return
      */
@@ -116,7 +139,7 @@ public abstract class AAnimation<T> {
     }
 
     /**
-     *
+     * This function must be gauranteed to be called once after one of 'start' methods is called
      * @return
      */
     public boolean isDone() {
@@ -140,6 +163,7 @@ public abstract class AAnimation<T> {
     public synchronized boolean update(T g) {
         if (state == State.PRESTART) {
             System.err.println("Calling update on animation that has not been started!");
+            Utils.assertTrue(false);
             return false;
         }
 
@@ -179,9 +203,9 @@ public abstract class AAnimation<T> {
                     position = delta / duration;
                 }
             }
-            dt = (float)(t-lastTime)/duration;
+            dt = (float) (t - lastTime) / duration;
             int r;
-            if (curRepeat != (r=getRepeat())) {
+            if (curRepeat != (r = getRepeat())) {
                 onRepeat(r);
                 curRepeat = r;
             }
@@ -290,13 +314,12 @@ public abstract class AAnimation<T> {
     public final int getRepeat() { return (int)((System.currentTimeMillis() - startTime) / duration); }
 
     public final boolean isStarted() {
-        return state == State.STARTED || state == State.RUNNING;
+        return state != State.PRESTART;
     }
 
     public final boolean isRunning() {
         return state == State.RUNNING;
     }
-
 
 
 }

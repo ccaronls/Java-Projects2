@@ -1,0 +1,212 @@
+package cc.lib.mp.android;
+
+import android.Manifest;
+import android.os.Build;
+
+import java.util.List;
+
+import cc.lib.android.CCActivityBase;
+import cc.lib.android.SpinnerTask;
+import cc.lib.crypt.Cypher;
+import cc.lib.net.GameClient;
+import cc.lib.net.GameServer;
+
+/**
+ * Created by Chris Caron on 7/17/21.
+ *
+ * Usage:
+ *
+ * p2pInit() - Does permissions / availability checks. onP2PReady called when ready or error popup.
+ * p2pStart() - Shows a start as server or client dialog. onP2PClient / onP2PServer called when user chooses
+ */
+public abstract class P2PActivity extends CCActivityBase
+{
+
+    private GameServer server = null;
+    private GameClient client = null;
+
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        p2pShutdown();
+    }
+
+    public final void p2pInit() {
+        client = null;
+        server = null;
+        if (!P2PHelper.isP2PAvailable(this)) {
+            newDialogBuilder().setTitle(R.string.p2p_popup_title_unsupported)
+                    .setMessage(R.string.p2p_popup_message_unsupported)
+                    .setNegativeButton(R.string.popup_button_ok, null).show();
+        } else {
+            checkPermissions(getRequiredPermissions());
+        }
+    }
+
+    String[] getRequiredPermissions() {
+        return new String[]{
+                Manifest.permission.ACCESS_WIFI_STATE,
+                Manifest.permission.CHANGE_WIFI_STATE,
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.ACCESS_NETWORK_STATE,
+                Manifest.permission.CHANGE_NETWORK_STATE,
+                Manifest.permission.INTERNET
+        };
+    }
+
+    @Override
+    protected final void onPermissionLimited(List<String> permissionsNotGranted) {
+        newDialogBuilder().setTitle(R.string.p2p_popup_title_missing_permissions)
+                .setMessage(getString(R.string.p2p_popup_message_missing_permissions, permissionsNotGranted.toString()))
+                .setNegativeButton(R.string.popup_button_ok, null).show();
+    }
+
+    @Override
+    protected final void onAllPermissionsGranted() {
+        onP2PReady();
+    }
+
+    /**
+     * Called when p2pInit has completed successfully. Default is to just call p2pStart
+     */
+    protected void onP2PReady() {
+        p2pStart();
+    }
+
+    /**
+     * Override this to use your own method for choosing to start as host or client. If not overridden then
+     * the default behavior is a dialog to choose mode. Choosing client mode executes: p2pInitAsClient and choosing
+     * server mode executes p2pInitAsHost. Those methods bring up their own respective dialogs to guide user through
+     * connection process.
+     */
+    public void p2pStart() {
+        newDialogBuilder().setTitle(R.string.p2p_popup_title_choose_mode)
+                .setItems(getResources().getStringArray(R.array.p2p_popup_choose_mode_items), (dialog, which) -> {
+                    switch (which) {
+                        case 0:
+                            p2pInitAsClient();
+                            break;
+                        case 1:
+                            p2pInitAsServer();
+                            break;
+                    }
+
+                }).setNegativeButton(R.string.popup_button_cancel, null).show();
+    }
+
+    /**
+     * Interface to functions available only when in host mode
+     */
+    public interface P2PServer {
+        GameServer getServer();
+
+        void openConnections();
+    }
+
+    /**
+     * Interface to methods available only when in client mode
+     */
+    public interface P2PClient {
+        GameClient getClient();
+    }
+
+    public final void p2pInitAsClient() {
+        if (server != null || client != null) {
+            throw new IllegalArgumentException("P2P Mode already in progress. Call p2pShutdown first.");
+        }
+        server = null;
+        client = new GameClient(getDeviceName(), getVersion(), getCypher());
+        new P2PJoinGameDialog(this, client, getDeviceName(), getConnectPort());
+        onP2PClient(new P2PClient() {
+            @Override
+            public GameClient getClient() {
+                return client;
+            }
+        });
+    }
+
+    protected abstract void onP2PClient(P2PClient p2pClient);
+
+    public final void p2pInitAsServer() {
+        if (server != null || client != null) {
+            throw new IllegalArgumentException("P2P Mode already in progress. Call p2pShutdown first.");
+        }
+
+
+        client = null;
+        server = new GameServer(getDeviceName(), getConnectPort(), getVersion(), getCypher(), getMaxConnections());
+        P2PClientConnectionsDialog d = new P2PClientConnectionsDialog(this, server, getDeviceName());
+        onP2PServer(new P2PServer() {
+            @Override
+            public GameServer getServer() {
+                return server;
+            }
+
+            @Override
+            public void openConnections() {
+                d.show();
+            }
+        });
+    }
+
+    protected abstract void onP2PServer(P2PServer p2pServer);
+
+    public final void p2pShutdown() {
+        if (server != null) {
+            new SpinnerTask<Void>(this) {
+
+                @Override
+                protected String getProgressMessage() {
+                    return getString(R.string.p2p_progress_message_disconnecting);
+                }
+
+                @Override
+                protected void doIt(Void... args) {
+                    server.stop();
+                }
+
+                @Override
+                protected void onCompleted() {
+                    server = null;
+                    onP2PShutdown();
+                }
+            }.execute();
+        }
+        if (client != null) {
+            client.disconnect();
+            client = null;
+            onP2PShutdown();
+        }
+    }
+
+    public boolean isP2PConnected() {
+        return client != null || server != null;
+    }
+
+    protected void onP2PShutdown() {}
+
+    public String getDeviceName() {
+        String name = getString(R.string.app_name);
+        return String.format("%s-%s-%s %s-%s", Build.BRAND ,Build.MODEL, Build.VERSION.SDK_INT, name, getVersion());
+    }
+
+    protected abstract int getConnectPort();
+
+    protected abstract String getVersion();
+
+    protected abstract int getMaxConnections();
+
+    protected Cypher getCypher() {
+        return null;
+    }
+
+    public final GameClient getClient() {
+        return client;
+    }
+
+    public final GameServer getServer() {
+        return server;
+    }
+}

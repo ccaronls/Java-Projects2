@@ -1,0 +1,4244 @@
+cells=java.util.Vector {
+   cc.lib.risk.RiskCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            1
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            0
+         }
+         java.lang.Integer {
+            1
+         }
+         java.lang.Integer {
+            2
+         }
+         java.lang.Integer {
+            3
+         }
+      }
+      connectedCells=java.util.ArrayList {
+         java.lang.Integer {
+            34
+         }
+      }
+      cx=81.25
+      cy=86.75
+      movableTroops=0
+      numArmies=0
+      occupier=null
+      radius=78.59788
+      region=NORTH_AMERICA
+   }
+   cc.lib.risk.RiskCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            0
+         }
+         java.lang.Integer {
+            2
+         }
+         java.lang.Integer {
+            3
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            0
+         }
+         java.lang.Integer {
+            3
+         }
+         java.lang.Integer {
+            7
+         }
+         java.lang.Integer {
+            6
+         }
+         java.lang.Integer {
+            9
+         }
+         java.lang.Integer {
+            8
+         }
+      }
+      connectedCells=java.util.ArrayList {
+         java.lang.Integer {
+            12
+         }
+      }
+      cx=226.16667
+      cy=78.5
+      movableTroops=0
+      numArmies=0
+      occupier=null
+      radius=124.79963
+      region=NORTH_AMERICA
+   }
+   cc.lib.risk.RiskCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            1
+         }
+         java.lang.Integer {
+            3
+         }
+         java.lang.Integer {
+            4
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            0
+         }
+         java.lang.Integer {
+            8
+         }
+         java.lang.Integer {
+            10
+         }
+         java.lang.Integer {
+            11
+         }
+      }
+      connectedCells=java.util.ArrayList {
+      }
+      cx=163.75
+      cy=128.0
+      movableTroops=0
+      numArmies=0
+      occupier=null
+      radius=71.07435
+      region=NORTH_AMERICA
+   }
+   cc.lib.risk.RiskCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            1
+         }
+         java.lang.Integer {
+            2
+         }
+         java.lang.Integer {
+            5
+         }
+         java.lang.Integer {
+            7
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            9
+         }
+         java.lang.Integer {
+            23
+         }
+         java.lang.Integer {
+            22
+         }
+         java.lang.Integer {
+            10
+         }
+         java.lang.Integer {
+            8
+         }
+      }
+      connectedCells=java.util.ArrayList {
+         java.lang.Integer {
+            12
+         }
+      }
+      cx=252.6
+      cy=133.2
+      movableTroops=0
+      numArmies=0
+      occupier=null
+      radius=53.784763
+      region=NORTH_AMERICA
+   }
+   cc.lib.risk.RiskCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            2
+         }
+         java.lang.Integer {
+            5
+         }
+         java.lang.Integer {
+            6
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            10
+         }
+         java.lang.Integer {
+            13
+         }
+         java.lang.Integer {
+            14
+         }
+         java.lang.Integer {
+            11
+         }
+      }
+      connectedCells=java.util.ArrayList {
+      }
+      cx=142.75002
+      cy=196.5
+      movableTroops=0
+      numArmies=0
+      occupier=null
+      radius=73.73134
+      region=NORTH_AMERICA
+   }
+   cc.lib.risk.RiskCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            4
+         }
+         java.lang.Integer {
+            3
+         }
+         java.lang.Integer {
+            6
+         }
+         java.lang.Integer {
+            7
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            10
+         }
+         java.lang.Integer {
+            22
+         }
+         java.lang.Integer {
+            21
+         }
+         java.lang.Integer {
+            18
+         }
+         java.lang.Integer {
+            13
+         }
+      }
+      connectedCells=java.util.ArrayList {
+      }
+      cx=251.6
+      cy=200.40001
+      movableTroops=0
+      numArmies=0
+      occupier=null
+      radius=99.19235
+      region=NORTH_AMERICA
+   }
+   cc.lib.risk.RiskCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            4
+         }
+         java.lang.Integer {
+            5
+         }
+         java.lang.Integer {
+            9
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            14
+         }
+         java.lang.Integer {
+            13
+         }
+         java.lang.Integer {
+            18
+         }
+         java.lang.Integer {
+            103
+         }
+         java.lang.Integer {
+            100
+         }
+         java.lang.Integer {
+            15
+         }
+      }
+      connectedCells=java.util.ArrayList {
+      }
+      cx=198.5
+      cy=295.1667
+      movableTroops=0
+      numArmies=0
+      occupier=null
+      radius=124.41171
+      region=NORTH_AMERICA
+   }
+   cc.lib.risk.RiskCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            5
+         }
+         java.lang.Integer {
+            3
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            23
+         }
+         java.lang.Integer {
+            20
+         }
+         java.lang.Integer {
+            19
+         }
+         java.lang.Integer {
+            21
+         }
+         java.lang.Integer {
+            22
+         }
+      }
+      connectedCells=java.util.ArrayList {
+         java.lang.Integer {
+            12
+         }
+      }
+      cx=322.6
+      cy=140.2
+      movableTroops=0
+      numArmies=0
+      occupier=null
+      radius=64.47948
+      region=NORTH_AMERICA
+   }
+   cc.lib.risk.RiskCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            9
+         }
+         java.lang.Integer {
+            10
+         }
+         java.lang.Integer {
+            11
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            100
+         }
+         java.lang.Integer {
+            101
+         }
+         java.lang.Integer {
+            106
+         }
+         java.lang.Integer {
+            105
+         }
+         java.lang.Integer {
+            104
+         }
+      }
+      connectedCells=java.util.ArrayList {
+      }
+      cx=272.4
+      cy=440.2
+      movableTroops=0
+      numArmies=0
+      occupier=null
+      radius=115.002625
+      region=SOUTH_AMERICA
+   }
+   cc.lib.risk.RiskCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            8
+         }
+         java.lang.Integer {
+            6
+         }
+         java.lang.Integer {
+            10
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            103
+         }
+         java.lang.Integer {
+            102
+         }
+         java.lang.Integer {
+            101
+         }
+         java.lang.Integer {
+            100
+         }
+      }
+      connectedCells=java.util.ArrayList {
+      }
+      cx=289.0
+      cy=372.5
+      movableTroops=0
+      numArmies=0
+      occupier=null
+      radius=75.015
+      region=SOUTH_AMERICA
+   }
+   cc.lib.risk.RiskCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            9
+         }
+         java.lang.Integer {
+            8
+         }
+         java.lang.Integer {
+            11
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            102
+         }
+         java.lang.Integer {
+            107
+         }
+         java.lang.Integer {
+            108
+         }
+         java.lang.Integer {
+            106
+         }
+         java.lang.Integer {
+            101
+         }
+      }
+      connectedCells=java.util.ArrayList {
+         java.lang.Integer {
+            18
+         }
+      }
+      cx=364.4
+      cy=449.4
+      movableTroops=0
+      numArmies=0
+      occupier=null
+      radius=95.80664
+      region=SOUTH_AMERICA
+   }
+   cc.lib.risk.RiskCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            8
+         }
+         java.lang.Integer {
+            10
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            106
+         }
+         java.lang.Integer {
+            108
+         }
+         java.lang.Integer {
+            110
+         }
+         java.lang.Integer {
+            109
+         }
+         java.lang.Integer {
+            105
+         }
+      }
+      connectedCells=java.util.ArrayList {
+      }
+      cx=333.6
+      cy=568.2
+      movableTroops=0
+      numArmies=0
+      occupier=null
+      radius=108.14156
+      region=SOUTH_AMERICA
+   }
+   cc.lib.risk.RiskCell {
+      adjCells=java.util.ArrayList {
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            24
+         }
+         java.lang.Integer {
+            26
+         }
+         java.lang.Integer {
+            25
+         }
+      }
+      connectedCells=java.util.ArrayList {
+         java.lang.Integer {
+            7
+         }
+         java.lang.Integer {
+            3
+         }
+         java.lang.Integer {
+            1
+         }
+         java.lang.Integer {
+            13
+         }
+      }
+      cx=469.33334
+      cy=50.000008
+      movableTroops=0
+      numArmies=0
+      occupier=null
+      radius=109.41561
+      region=NORTH_AMERICA
+   }
+   cc.lib.risk.RiskCell {
+      adjCells=java.util.ArrayList {
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            27
+         }
+         java.lang.Integer {
+            28
+         }
+         java.lang.Integer {
+            29
+         }
+         java.lang.Integer {
+            30
+         }
+      }
+      connectedCells=java.util.ArrayList {
+         java.lang.Integer {
+            17
+         }
+         java.lang.Integer {
+            14
+         }
+         java.lang.Integer {
+            12
+         }
+      }
+      cx=538.25
+      cy=86.25
+      movableTroops=0
+      numArmies=0
+      occupier=null
+      radius=26.222605
+      region=EUROPE
+   }
+   cc.lib.risk.RiskCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            17
+         }
+         java.lang.Integer {
+            15
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            31
+         }
+         java.lang.Integer {
+            32
+         }
+         java.lang.Integer {
+            33
+         }
+         java.lang.Integer {
+            34
+         }
+      }
+      connectedCells=java.util.ArrayList {
+         java.lang.Integer {
+            13
+         }
+         java.lang.Integer {
+            16
+         }
+      }
+      cx=577.75
+      cy=133.5
+      movableTroops=0
+      numArmies=0
+      occupier=null
+      radius=31.667215
+      region=EUROPE
+   }
+   cc.lib.risk.RiskCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            14
+         }
+         java.lang.Integer {
+            16
+         }
+         java.lang.Integer {
+            18
+         }
+         java.lang.Integer {
+            19
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            33
+         }
+         java.lang.Integer {
+            39
+         }
+         java.lang.Integer {
+            38
+         }
+         java.lang.Integer {
+            37
+         }
+         java.lang.Integer {
+            36
+         }
+         java.lang.Integer {
+            35
+         }
+         java.lang.Integer {
+            34
+         }
+      }
+      connectedCells=java.util.ArrayList {
+      }
+      cx=589.7143
+      cy=176.7143
+      movableTroops=0
+      numArmies=0
+      occupier=null
+      radius=49.556812
+      region=EUROPE
+   }
+   cc.lib.risk.RiskCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            15
+         }
+         java.lang.Integer {
+            17
+         }
+         java.lang.Integer {
+            19
+         }
+         java.lang.Integer {
+            20
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            33
+         }
+         java.lang.Integer {
+            44
+         }
+         java.lang.Integer {
+            43
+         }
+         java.lang.Integer {
+            39
+         }
+      }
+      connectedCells=java.util.ArrayList {
+         java.lang.Integer {
+            14
+         }
+      }
+      cx=647.0
+      cy=148.25
+      movableTroops=0
+      numArmies=0
+      occupier=null
+      radius=42.326855
+      region=EUROPE
+   }
+   cc.lib.risk.RiskCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            14
+         }
+         java.lang.Integer {
+            16
+         }
+         java.lang.Integer {
+            20
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            32
+         }
+         java.lang.Integer {
+            50
+         }
+         java.lang.Integer {
+            49
+         }
+         java.lang.Integer {
+            44
+         }
+         java.lang.Integer {
+            33
+         }
+      }
+      connectedCells=java.util.ArrayList {
+         java.lang.Integer {
+            13
+         }
+      }
+      cx=633.60004
+      cy=102.8
+      movableTroops=0
+      numArmies=0
+      occupier=null
+      radius=77.63116
+      region=EUROPE
+   }
+   cc.lib.risk.RiskCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            15
+         }
+         java.lang.Integer {
+            22
+         }
+         java.lang.Integer {
+            23
+         }
+         java.lang.Integer {
+            21
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            37
+         }
+         java.lang.Integer {
+            99
+         }
+         java.lang.Integer {
+            88
+         }
+         java.lang.Integer {
+            89
+         }
+         java.lang.Integer {
+            96
+         }
+         java.lang.Integer {
+            97
+         }
+         java.lang.Integer {
+            98
+         }
+         java.lang.Integer {
+            36
+         }
+      }
+      connectedCells=java.util.ArrayList {
+         java.lang.Integer {
+            10
+         }
+         java.lang.Integer {
+            19
+         }
+      }
+      cx=603.25
+      cy=285.25
+      movableTroops=0
+      numArmies=0
+      occupier=null
+      radius=102.60423
+      region=AFRICA
+   }
+   cc.lib.risk.RiskCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            15
+         }
+         java.lang.Integer {
+            16
+         }
+         java.lang.Integer {
+            20
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            39
+         }
+         java.lang.Integer {
+            43
+         }
+         java.lang.Integer {
+            42
+         }
+         java.lang.Integer {
+            41
+         }
+         java.lang.Integer {
+            40
+         }
+         java.lang.Integer {
+            38
+         }
+      }
+      connectedCells=java.util.ArrayList {
+         java.lang.Integer {
+            18
+         }
+         java.lang.Integer {
+            23
+         }
+      }
+      cx=662.0
+      cy=183.5
+      movableTroops=0
+      numArmies=0
+      occupier=null
+      radius=48.746796
+      region=EUROPE
+   }
+   cc.lib.risk.RiskCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            19
+         }
+         java.lang.Integer {
+            16
+         }
+         java.lang.Integer {
+            17
+         }
+         java.lang.Integer {
+            24
+         }
+         java.lang.Integer {
+            25
+         }
+         java.lang.Integer {
+            26
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            44
+         }
+         java.lang.Integer {
+            49
+         }
+         java.lang.Integer {
+            48
+         }
+         java.lang.Integer {
+            47
+         }
+         java.lang.Integer {
+            46
+         }
+         java.lang.Integer {
+            45
+         }
+         java.lang.Integer {
+            42
+         }
+         java.lang.Integer {
+            43
+         }
+      }
+      connectedCells=java.util.ArrayList {
+      }
+      cx=742.125
+      cy=139.25
+      movableTroops=0
+      numArmies=0
+      occupier=null
+      radius=93.354614
+      region=EUROPE
+   }
+   cc.lib.risk.RiskCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            22
+         }
+         java.lang.Integer {
+            18
+         }
+         java.lang.Integer {
+            28
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            89
+         }
+         java.lang.Integer {
+            90
+         }
+         java.lang.Integer {
+            93
+         }
+         java.lang.Integer {
+            96
+         }
+      }
+      connectedCells=java.util.ArrayList {
+      }
+      cx=670.25
+      cy=396.75
+      movableTroops=0
+      numArmies=0
+      occupier=null
+      radius=65.662964
+      region=AFRICA
+   }
+   cc.lib.risk.RiskCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            24
+         }
+         java.lang.Integer {
+            23
+         }
+         java.lang.Integer {
+            18
+         }
+         java.lang.Integer {
+            21
+         }
+         java.lang.Integer {
+            28
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            88
+         }
+         java.lang.Integer {
+            87
+         }
+         java.lang.Integer {
+            86
+         }
+         java.lang.Integer {
+            92
+         }
+         java.lang.Integer {
+            91
+         }
+         java.lang.Integer {
+            90
+         }
+         java.lang.Integer {
+            89
+         }
+      }
+      connectedCells=java.util.ArrayList {
+         java.lang.Integer {
+            41
+         }
+      }
+      cx=743.28577
+      cy=356.14288
+      movableTroops=0
+      numArmies=0
+      occupier=null
+      radius=98.44845
+      region=AFRICA
+   }
+   cc.lib.risk.RiskCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            24
+         }
+         java.lang.Integer {
+            22
+         }
+         java.lang.Integer {
+            18
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            99
+         }
+         java.lang.Integer {
+            85
+         }
+         java.lang.Integer {
+            87
+         }
+         java.lang.Integer {
+            88
+         }
+      }
+      connectedCells=java.util.ArrayList {
+         java.lang.Integer {
+            19
+         }
+      }
+      cx=695.0
+      cy=253.0
+      movableTroops=0
+      numArmies=0
+      occupier=null
+      radius=59.933304
+      region=AFRICA
+   }
+   cc.lib.risk.RiskCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            20
+         }
+         java.lang.Integer {
+            25
+         }
+         java.lang.Integer {
+            29
+         }
+         java.lang.Integer {
+            23
+         }
+         java.lang.Integer {
+            22
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            46
+         }
+         java.lang.Integer {
+            53
+         }
+         java.lang.Integer {
+            55
+         }
+         java.lang.Integer {
+            83
+         }
+         java.lang.Integer {
+            86
+         }
+         java.lang.Integer {
+            87
+         }
+         java.lang.Integer {
+            85
+         }
+         java.lang.Integer {
+            45
+         }
+      }
+      connectedCells=java.util.ArrayList {
+      }
+      cx=789.125
+      cy=251.0
+      movableTroops=0
+      numArmies=0
+      occupier=null
+      radius=93.346214
+      region=ASIA
+   }
+   cc.lib.risk.RiskCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            20
+         }
+         java.lang.Integer {
+            24
+         }
+         java.lang.Integer {
+            26
+         }
+         java.lang.Integer {
+            30
+         }
+         java.lang.Integer {
+            29
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            47
+         }
+         java.lang.Integer {
+            52
+         }
+         java.lang.Integer {
+            54
+         }
+         java.lang.Integer {
+            53
+         }
+         java.lang.Integer {
+            46
+         }
+      }
+      connectedCells=java.util.ArrayList {
+      }
+      cx=856.8
+      cy=185.0
+      movableTroops=0
+      numArmies=0
+      occupier=null
+      radius=71.9739
+      region=ASIA
+   }
+   cc.lib.risk.RiskCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            20
+         }
+         java.lang.Integer {
+            25
+         }
+         java.lang.Integer {
+            27
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            48
+         }
+         java.lang.Integer {
+            51
+         }
+         java.lang.Integer {
+            52
+         }
+         java.lang.Integer {
+            47
+         }
+      }
+      connectedCells=java.util.ArrayList {
+      }
+      cx=848.0
+      cy=102.75
+      movableTroops=0
+      numArmies=0
+      occupier=null
+      radius=97.1574
+      region=ASIA
+   }
+   cc.lib.risk.RiskCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            26
+         }
+         java.lang.Integer {
+            32
+         }
+         java.lang.Integer {
+            33
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            51
+         }
+         java.lang.Integer {
+            71
+         }
+         java.lang.Integer {
+            70
+         }
+         java.lang.Integer {
+            52
+         }
+      }
+      connectedCells=java.util.ArrayList {
+      }
+      cx=917.25
+      cy=80.25
+      movableTroops=0
+      numArmies=0
+      occupier=null
+      radius=82.116516
+      region=ASIA
+   }
+   cc.lib.risk.RiskCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            22
+         }
+         java.lang.Integer {
+            21
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            93
+         }
+         java.lang.Integer {
+            90
+         }
+         java.lang.Integer {
+            91
+         }
+         java.lang.Integer {
+            95
+         }
+         java.lang.Integer {
+            94
+         }
+      }
+      connectedCells=java.util.ArrayList {
+         java.lang.Integer {
+            41
+         }
+      }
+      cx=703.60004
+      cy=486.80002
+      movableTroops=0
+      numArmies=0
+      occupier=null
+      radius=85.64579
+      region=AFRICA
+   }
+   cc.lib.risk.RiskCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            25
+         }
+         java.lang.Integer {
+            24
+         }
+         java.lang.Integer {
+            30
+         }
+         java.lang.Integer {
+            35
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            53
+         }
+         java.lang.Integer {
+            54
+         }
+         java.lang.Integer {
+            58
+         }
+         java.lang.Integer {
+            57
+         }
+         java.lang.Integer {
+            56
+         }
+         java.lang.Integer {
+            55
+         }
+      }
+      connectedCells=java.util.ArrayList {
+      }
+      cx=921.3334
+      cy=263.6667
+      movableTroops=0
+      numArmies=0
+      occupier=null
+      radius=87.94068
+      region=ASIA
+   }
+   cc.lib.risk.RiskCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            25
+         }
+         java.lang.Integer {
+            31
+         }
+         java.lang.Integer {
+            29
+         }
+         java.lang.Integer {
+            35
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            52
+         }
+         java.lang.Integer {
+            61
+         }
+         java.lang.Integer {
+            62
+         }
+         java.lang.Integer {
+            63
+         }
+         java.lang.Integer {
+            58
+         }
+         java.lang.Integer {
+            54
+         }
+      }
+      connectedCells=java.util.ArrayList {
+      }
+      cx=1017.3334
+      cy=229.16667
+      movableTroops=0
+      numArmies=0
+      occupier=null
+      radius=118.42635
+      region=ASIA
+   }
+   cc.lib.risk.RiskCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            30
+         }
+         java.lang.Integer {
+            32
+         }
+         java.lang.Integer {
+            34
+         }
+         java.lang.Integer {
+            38
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            52
+         }
+         java.lang.Integer {
+            69
+         }
+         java.lang.Integer {
+            64
+         }
+         java.lang.Integer {
+            72
+         }
+         java.lang.Integer {
+            61
+         }
+      }
+      connectedCells=java.util.ArrayList {
+      }
+      cx=1072.8
+      cy=190.2
+      movableTroops=0
+      numArmies=0
+      occupier=null
+      radius=150.46625
+      region=ASIA
+   }
+   cc.lib.risk.RiskCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            31
+         }
+         java.lang.Integer {
+            27
+         }
+         java.lang.Integer {
+            34
+         }
+         java.lang.Integer {
+            33
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            52
+         }
+         java.lang.Integer {
+            70
+         }
+         java.lang.Integer {
+            68
+         }
+         java.lang.Integer {
+            69
+         }
+      }
+      connectedCells=java.util.ArrayList {
+      }
+      cx=1012.25
+      cy=126.5
+      movableTroops=0
+      numArmies=0
+      occupier=null
+      radius=94.1956
+      region=ASIA
+   }
+   cc.lib.risk.RiskCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            34
+         }
+         java.lang.Integer {
+            32
+         }
+         java.lang.Integer {
+            27
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            71
+         }
+         java.lang.Integer {
+            67
+         }
+         java.lang.Integer {
+            68
+         }
+         java.lang.Integer {
+            70
+         }
+      }
+      connectedCells=java.util.ArrayList {
+      }
+      cx=1021.25
+      cy=70.5
+      movableTroops=0
+      numArmies=0
+      occupier=null
+      radius=105.99439
+      region=ASIA
+   }
+   cc.lib.risk.RiskCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            38
+         }
+         java.lang.Integer {
+            31
+         }
+         java.lang.Integer {
+            33
+         }
+         java.lang.Integer {
+            32
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            67
+         }
+         java.lang.Integer {
+            66
+         }
+         java.lang.Integer {
+            65
+         }
+         java.lang.Integer {
+            64
+         }
+         java.lang.Integer {
+            69
+         }
+         java.lang.Integer {
+            68
+         }
+      }
+      connectedCells=java.util.ArrayList {
+         java.lang.Integer {
+            0
+         }
+      }
+      cx=1140.8334
+      cy=123.333336
+      movableTroops=0
+      numArmies=0
+      occupier=null
+      radius=102.72194
+      region=ASIA
+   }
+   cc.lib.risk.RiskCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            29
+         }
+         java.lang.Integer {
+            30
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            58
+         }
+         java.lang.Integer {
+            63
+         }
+         java.lang.Integer {
+            59
+         }
+         java.lang.Integer {
+            57
+         }
+      }
+      connectedCells=java.util.ArrayList {
+      }
+      cx=1028.75
+      cy=297.25
+      movableTroops=0
+      numArmies=0
+      occupier=null
+      radius=74.45888
+      region=ASIA
+   }
+   cc.lib.risk.RiskCell {
+      adjCells=java.util.ArrayList {
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            111
+         }
+         java.lang.Integer {
+            112
+         }
+         java.lang.Integer {
+            113
+         }
+         java.lang.Integer {
+            76
+         }
+      }
+      connectedCells=java.util.ArrayList {
+         java.lang.Integer {
+            22
+         }
+         java.lang.Integer {
+            28
+         }
+      }
+      cx=797.25006
+      cy=484.0
+      movableTroops=0
+      numArmies=0
+      occupier=null
+      radius=45.432
+      region=AFRICA
+   }
+   cc.lib.risk.RiskCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            39
+         }
+         java.lang.Integer {
+            40
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            74
+         }
+         java.lang.Integer {
+            77
+         }
+         java.lang.Integer {
+            78
+         }
+         java.lang.Integer {
+            75
+         }
+      }
+      connectedCells=java.util.ArrayList {
+      }
+      cx=1187.25
+      cy=416.5
+      movableTroops=0
+      numArmies=0
+      occupier=null
+      radius=112.340164
+      region=AUSTRALIA
+   }
+   cc.lib.risk.RiskCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            34
+         }
+         java.lang.Integer {
+            31
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            64
+         }
+         java.lang.Integer {
+            65
+         }
+         java.lang.Integer {
+            73
+         }
+         java.lang.Integer {
+            72
+         }
+      }
+      connectedCells=java.util.ArrayList {
+      }
+      cx=1172.5
+      cy=204.0
+      movableTroops=0
+      numArmies=0
+      occupier=null
+      radius=48.541218
+      region=ASIA
+   }
+   cc.lib.risk.RiskCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            37
+         }
+         java.lang.Integer {
+            40
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            75
+         }
+         java.lang.Integer {
+            78
+         }
+         java.lang.Integer {
+            81
+         }
+         java.lang.Integer {
+            80
+         }
+         java.lang.Integer {
+            79
+         }
+      }
+      connectedCells=java.util.ArrayList {
+         java.lang.Integer {
+            36
+         }
+      }
+      cx=1117.4
+      cy=504.0
+      movableTroops=0
+      numArmies=0
+      occupier=null
+      radius=88.828804
+      region=AUSTRALIA
+   }
+   cc.lib.risk.RiskCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            37
+         }
+         java.lang.Integer {
+            39
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            77
+         }
+         java.lang.Integer {
+            82
+         }
+         java.lang.Integer {
+            81
+         }
+         java.lang.Integer {
+            78
+         }
+      }
+      connectedCells=java.util.ArrayList {
+      }
+      cx=1214.0
+      cy=506.25
+      movableTroops=0
+      numArmies=0
+      occupier=null
+      radius=115.53381
+      region=AUSTRALIA
+   }
+}
+dimension=cc.lib.game.GDimension {
+   height=678.0
+   width=1304.0
+}
+edges=java.util.Vector {
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         0 0 
+      }
+      from=0
+      numAdjCells=1
+      to=1
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         0 1 
+      }
+      from=0
+      numAdjCells=2
+      to=3
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         1 2 
+      }
+      from=0
+      numAdjCells=2
+      to=8
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         2 0 
+      }
+      from=0
+      numAdjCells=1
+      to=11
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         0 0 
+      }
+      from=1
+      numAdjCells=1
+      to=2
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         0 0 
+      }
+      from=2
+      numAdjCells=1
+      to=3
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         1 0 
+      }
+      from=3
+      numAdjCells=1
+      to=7
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         1 0 
+      }
+      from=6
+      numAdjCells=1
+      to=7
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         1 0 
+      }
+      from=6
+      numAdjCells=1
+      to=9
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         1 3 
+      }
+      from=8
+      numAdjCells=2
+      to=9
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         2 3 
+      }
+      from=8
+      numAdjCells=2
+      to=10
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         3 0 
+      }
+      from=9
+      numAdjCells=1
+      to=23
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         2 4 
+      }
+      from=10
+      numAdjCells=2
+      to=11
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         4 5 
+      }
+      from=10
+      numAdjCells=2
+      to=13
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         3 5 
+      }
+      from=10
+      numAdjCells=2
+      to=22
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         4 0 
+      }
+      from=11
+      numAdjCells=1
+      to=14
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         4 6 
+      }
+      from=13
+      numAdjCells=2
+      to=14
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         5 6 
+      }
+      from=13
+      numAdjCells=2
+      to=18
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         6 0 
+      }
+      from=14
+      numAdjCells=1
+      to=15
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         6 0 
+      }
+      from=15
+      numAdjCells=1
+      to=100
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         5 0 
+      }
+      from=18
+      numAdjCells=1
+      to=21
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         6 0 
+      }
+      from=18
+      numAdjCells=1
+      to=103
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         7 0 
+      }
+      from=19
+      numAdjCells=1
+      to=20
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         7 0 
+      }
+      from=19
+      numAdjCells=1
+      to=21
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         7 0 
+      }
+      from=20
+      numAdjCells=1
+      to=23
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         5 7 
+      }
+      from=21
+      numAdjCells=2
+      to=22
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         3 7 
+      }
+      from=22
+      numAdjCells=2
+      to=23
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         12 0 
+      }
+      from=24
+      numAdjCells=1
+      to=25
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         12 0 
+      }
+      from=24
+      numAdjCells=1
+      to=26
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         12 0 
+      }
+      from=25
+      numAdjCells=1
+      to=26
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         13 0 
+      }
+      from=27
+      numAdjCells=1
+      to=28
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         13 0 
+      }
+      from=27
+      numAdjCells=1
+      to=30
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         13 0 
+      }
+      from=28
+      numAdjCells=1
+      to=29
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         13 0 
+      }
+      from=29
+      numAdjCells=1
+      to=30
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         14 0 
+      }
+      from=31
+      numAdjCells=1
+      to=32
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         14 0 
+      }
+      from=31
+      numAdjCells=1
+      to=34
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         14 17 
+      }
+      from=32
+      numAdjCells=2
+      to=33
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         17 0 
+      }
+      from=32
+      numAdjCells=1
+      to=50
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         14 15 
+      }
+      from=33
+      numAdjCells=2
+      to=34
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         15 16 
+      }
+      from=33
+      numAdjCells=2
+      to=39
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         16 17 
+      }
+      from=33
+      numAdjCells=2
+      to=44
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         15 0 
+      }
+      from=34
+      numAdjCells=1
+      to=35
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         15 0 
+      }
+      from=35
+      numAdjCells=1
+      to=36
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         15 18 
+      }
+      from=36
+      numAdjCells=2
+      to=37
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         18 0 
+      }
+      from=36
+      numAdjCells=1
+      to=98
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         15 0 
+      }
+      from=37
+      numAdjCells=1
+      to=38
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         18 0 
+      }
+      from=37
+      numAdjCells=1
+      to=99
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         15 19 
+      }
+      from=38
+      numAdjCells=2
+      to=39
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         19 0 
+      }
+      from=38
+      numAdjCells=1
+      to=40
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         16 19 
+      }
+      from=39
+      numAdjCells=2
+      to=43
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         19 0 
+      }
+      from=40
+      numAdjCells=1
+      to=41
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         19 0 
+      }
+      from=41
+      numAdjCells=1
+      to=42
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         19 20 
+      }
+      from=42
+      numAdjCells=2
+      to=43
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         20 0 
+      }
+      from=42
+      numAdjCells=1
+      to=45
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         16 20 
+      }
+      from=43
+      numAdjCells=2
+      to=44
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         17 20 
+      }
+      from=44
+      numAdjCells=2
+      to=49
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         20 24 
+      }
+      from=45
+      numAdjCells=2
+      to=46
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         24 0 
+      }
+      from=45
+      numAdjCells=1
+      to=85
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         20 25 
+      }
+      from=46
+      numAdjCells=2
+      to=47
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         24 25 
+      }
+      from=46
+      numAdjCells=2
+      to=53
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         20 26 
+      }
+      from=47
+      numAdjCells=2
+      to=48
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         25 26 
+      }
+      from=47
+      numAdjCells=2
+      to=52
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         20 0 
+      }
+      from=48
+      numAdjCells=1
+      to=49
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         26 0 
+      }
+      from=48
+      numAdjCells=1
+      to=51
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         17 0 
+      }
+      from=49
+      numAdjCells=1
+      to=50
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         26 27 
+      }
+      from=51
+      numAdjCells=2
+      to=52
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         27 0 
+      }
+      from=51
+      numAdjCells=1
+      to=71
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         25 30 
+      }
+      from=52
+      numAdjCells=2
+      to=54
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         30 31 
+      }
+      from=52
+      numAdjCells=2
+      to=61
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         31 32 
+      }
+      from=52
+      numAdjCells=2
+      to=69
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         27 32 
+      }
+      from=52
+      numAdjCells=2
+      to=70
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         25 29 
+      }
+      from=53
+      numAdjCells=2
+      to=54
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         24 29 
+      }
+      from=53
+      numAdjCells=2
+      to=55
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         29 30 
+      }
+      from=54
+      numAdjCells=2
+      to=58
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         29 0 
+      }
+      from=55
+      numAdjCells=1
+      to=56
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         24 0 
+      }
+      from=55
+      numAdjCells=1
+      to=83
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         29 0 
+      }
+      from=56
+      numAdjCells=1
+      to=57
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         29 35 
+      }
+      from=57
+      numAdjCells=2
+      to=58
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         35 0 
+      }
+      from=57
+      numAdjCells=1
+      to=59
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         30 35 
+      }
+      from=58
+      numAdjCells=2
+      to=63
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         35 36 
+      }
+      from=59
+      numAdjCells=1
+      to=63
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         30 0 
+      }
+      from=61
+      numAdjCells=1
+      to=62
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         31 0 
+      }
+      from=61
+      numAdjCells=1
+      to=72
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         30 0 
+      }
+      from=62
+      numAdjCells=1
+      to=63
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         34 38 
+      }
+      from=64
+      numAdjCells=2
+      to=65
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         31 34 
+      }
+      from=64
+      numAdjCells=2
+      to=69
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         31 38 
+      }
+      from=64
+      numAdjCells=2
+      to=72
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         34 0 
+      }
+      from=65
+      numAdjCells=1
+      to=66
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         38 0 
+      }
+      from=65
+      numAdjCells=1
+      to=73
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         34 0 
+      }
+      from=66
+      numAdjCells=1
+      to=67
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         33 34 
+      }
+      from=67
+      numAdjCells=2
+      to=68
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         33 0 
+      }
+      from=67
+      numAdjCells=1
+      to=71
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         32 34 
+      }
+      from=68
+      numAdjCells=2
+      to=69
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         32 33 
+      }
+      from=68
+      numAdjCells=2
+      to=70
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         27 33 
+      }
+      from=70
+      numAdjCells=2
+      to=71
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         38 0 
+      }
+      from=72
+      numAdjCells=1
+      to=73
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         37 37 
+      }
+      from=74
+      numAdjCells=1
+      to=75
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         37 0 
+      }
+      from=74
+      numAdjCells=1
+      to=77
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         0 0 
+      }
+      from=74
+      numAdjCells=0
+      to=115
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         37 39 
+      }
+      from=75
+      numAdjCells=2
+      to=78
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         39 0 
+      }
+      from=75
+      numAdjCells=1
+      to=79
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         37 40 
+      }
+      from=77
+      numAdjCells=2
+      to=78
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         40 0 
+      }
+      from=77
+      numAdjCells=1
+      to=82
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         39 40 
+      }
+      from=78
+      numAdjCells=2
+      to=81
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         39 0 
+      }
+      from=79
+      numAdjCells=1
+      to=80
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         0 0 
+      }
+      from=79
+      numAdjCells=0
+      to=114
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         39 0 
+      }
+      from=80
+      numAdjCells=1
+      to=81
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         40 0 
+      }
+      from=81
+      numAdjCells=1
+      to=82
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         24 0 
+      }
+      from=83
+      numAdjCells=1
+      to=86
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         23 24 
+      }
+      from=85
+      numAdjCells=2
+      to=87
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         23 0 
+      }
+      from=85
+      numAdjCells=1
+      to=99
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         22 24 
+      }
+      from=86
+      numAdjCells=2
+      to=87
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         22 0 
+      }
+      from=86
+      numAdjCells=1
+      to=92
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         22 23 
+      }
+      from=87
+      numAdjCells=2
+      to=88
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         18 22 
+      }
+      from=88
+      numAdjCells=2
+      to=89
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         18 23 
+      }
+      from=88
+      numAdjCells=2
+      to=99
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         21 22 
+      }
+      from=89
+      numAdjCells=2
+      to=90
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         18 21 
+      }
+      from=89
+      numAdjCells=2
+      to=96
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         22 28 
+      }
+      from=90
+      numAdjCells=2
+      to=91
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         21 28 
+      }
+      from=90
+      numAdjCells=2
+      to=93
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         22 0 
+      }
+      from=91
+      numAdjCells=1
+      to=92
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         28 0 
+      }
+      from=91
+      numAdjCells=1
+      to=95
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         28 0 
+      }
+      from=93
+      numAdjCells=1
+      to=94
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         21 0 
+      }
+      from=93
+      numAdjCells=1
+      to=96
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         28 0 
+      }
+      from=94
+      numAdjCells=1
+      to=95
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         18 0 
+      }
+      from=96
+      numAdjCells=1
+      to=97
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         18 0 
+      }
+      from=97
+      numAdjCells=1
+      to=98
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         8 9 
+      }
+      from=100
+      numAdjCells=2
+      to=101
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         6 9 
+      }
+      from=100
+      numAdjCells=2
+      to=103
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         8 0 
+      }
+      from=100
+      numAdjCells=1
+      to=104
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         9 10 
+      }
+      from=101
+      numAdjCells=2
+      to=102
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         8 10 
+      }
+      from=101
+      numAdjCells=2
+      to=106
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         9 0 
+      }
+      from=102
+      numAdjCells=1
+      to=103
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         10 0 
+      }
+      from=102
+      numAdjCells=1
+      to=107
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         8 0 
+      }
+      from=104
+      numAdjCells=1
+      to=105
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         8 11 
+      }
+      from=105
+      numAdjCells=2
+      to=106
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         11 0 
+      }
+      from=105
+      numAdjCells=1
+      to=109
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         10 11 
+      }
+      from=106
+      numAdjCells=2
+      to=108
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         10 0 
+      }
+      from=107
+      numAdjCells=1
+      to=108
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         11 0 
+      }
+      from=108
+      numAdjCells=1
+      to=110
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         11 0 
+      }
+      from=109
+      numAdjCells=1
+      to=110
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         36 0 
+      }
+      from=111
+      numAdjCells=1
+      to=112
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         36 0 
+      }
+      from=76
+      numAdjCells=1
+      to=111
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         36 0 
+      }
+      from=112
+      numAdjCells=1
+      to=113
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         36 0 
+      }
+      from=76
+      numAdjCells=1
+      to=113
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         0 0 
+      }
+      from=114
+      numAdjCells=0
+      to=115
+   }
+}
+verts=java.util.Vector {
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         0 1 2 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         1 3 8 11 0 0 0 0 
+      }
+      numAdjCells=3
+      numAdjVerts=4
+      x=103.99999
+      y=103.99999
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         0 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         0 2 0 0 0 0 0 0 
+      }
+      numAdjCells=1
+      numAdjVerts=2
+      x=10.999993
+      y=122.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         0 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         1 3 0 0 0 0 0 0 
+      }
+      numAdjCells=1
+      numAdjVerts=2
+      x=61.00002
+      y=64.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         0 1 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         0 2 7 0 0 0 0 0 
+      }
+      numAdjCells=2
+      numAdjVerts=3
+      x=149.0
+      y=57.000004
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         0 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         0 0 0 0 0 0 0 0 
+      }
+      numAdjCells=0
+      numAdjVerts=0
+      x=0.0
+      y=0.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         0 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         0 0 0 0 0 0 0 0 
+      }
+      numAdjCells=0
+      numAdjVerts=0
+      x=0.0
+      y=0.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         1 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         7 9 0 0 0 0 0 0 
+      }
+      numAdjCells=1
+      numAdjVerts=2
+      x=338.0
+      y=63.000008
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         1 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         3 6 0 0 0 0 0 0 
+      }
+      numAdjCells=1
+      numAdjVerts=2
+      x=275.00003
+      y=37.000008
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         1 2 3 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         0 9 10 0 0 0 0 0 
+      }
+      numAdjCells=3
+      numAdjVerts=3
+      x=231.0
+      y=105.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         1 3 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         6 8 23 0 0 0 0 0 
+      }
+      numAdjCells=2
+      numAdjVerts=3
+      x=260.0
+      y=105.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         2 3 4 5 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         8 11 13 22 0 0 0 0 
+      }
+      numAdjCells=4
+      numAdjVerts=4
+      x=203.0
+      y=154.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         2 4 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         0 10 14 0 0 0 0 0 
+      }
+      numAdjCells=2
+      numAdjVerts=3
+      x=117.00002
+      y=148.99998
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         0 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         0 0 0 0 0 0 0 0 
+      }
+      numAdjCells=0
+      numAdjVerts=0
+      x=0.0
+      y=0.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         4 5 6 8 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         10 14 18 18 0 0 0 0 
+      }
+      numAdjCells=3
+      numAdjVerts=3
+      x=162.99998
+      y=245.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         4 6 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         11 13 15 0 0 0 0 0 
+      }
+      numAdjCells=2
+      numAdjVerts=3
+      x=88.00002
+      y=238.00002
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         6 8 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         14 100 100 0 0 0 0 0 
+      }
+      numAdjCells=1
+      numAdjVerts=2
+      x=140.00002
+      y=312.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         0 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         0 0 0 0 0 0 0 0 
+      }
+      numAdjCells=0
+      numAdjVerts=0
+      x=0.0
+      y=0.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         0 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         0 0 0 0 0 0 0 0 
+      }
+      numAdjCells=0
+      numAdjVerts=0
+      x=0.0
+      y=0.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         5 6 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         13 21 103 0 0 0 0 0 
+      }
+      numAdjCells=2
+      numAdjVerts=3
+      x=286.00003
+      y=268.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         7 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         20 21 0 0 0 0 0 0 
+      }
+      numAdjCells=1
+      numAdjVerts=2
+      x=387.00003
+      y=137.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         7 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         19 23 0 0 0 0 0 0 
+      }
+      numAdjCells=1
+      numAdjVerts=2
+      x=331.00003
+      y=88.00001
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         5 7 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         18 19 22 0 0 0 0 0 
+      }
+      numAdjCells=2
+      numAdjVerts=3
+      x=326.0
+      y=174.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         3 5 7 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         10 21 23 0 0 0 0 0 
+      }
+      numAdjCells=3
+      numAdjVerts=3
+      x=280.00003
+      y=161.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         3 7 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         9 20 22 0 0 0 0 0 
+      }
+      numAdjCells=2
+      numAdjVerts=3
+      x=288.99997
+      y=141.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         12 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         25 26 0 0 0 0 0 0 
+      }
+      numAdjCells=1
+      numAdjVerts=2
+      x=393.0
+      y=28.000006
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         12 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         24 26 0 0 0 0 0 0 
+      }
+      numAdjCells=1
+      numAdjVerts=2
+      x=442.0
+      y=107.00001
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         12 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         24 25 0 0 0 0 0 0 
+      }
+      numAdjCells=1
+      numAdjVerts=2
+      x=573.0
+      y=15.000007
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         13 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         28 30 0 0 0 0 0 0 
+      }
+      numAdjCells=1
+      numAdjVerts=2
+      x=517.0
+      y=79.00001
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         13 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         27 29 0 0 0 0 0 0 
+      }
+      numAdjCells=1
+      numAdjVerts=2
+      x=555.0
+      y=67.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         13 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         28 30 0 0 0 0 0 0 
+      }
+      numAdjCells=1
+      numAdjVerts=2
+      x=560.0
+      y=93.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         13 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         27 29 0 0 0 0 0 0 
+      }
+      numAdjCells=1
+      numAdjVerts=2
+      x=521.0
+      y=106.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         14 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         32 34 0 0 0 0 0 0 
+      }
+      numAdjCells=1
+      numAdjVerts=2
+      x=547.0
+      y=131.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         14 17 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         31 33 50 0 0 0 0 0 
+      }
+      numAdjCells=2
+      numAdjVerts=3
+      x=581.0
+      y=102.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         14 15 16 17 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         32 34 39 44 0 0 0 0 
+      }
+      numAdjCells=4
+      numAdjVerts=4
+      x=605.0
+      y=142.99998
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         14 15 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         31 33 35 0 0 0 0 0 
+      }
+      numAdjCells=2
+      numAdjVerts=3
+      x=578.0
+      y=158.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         15 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         34 36 0 0 0 0 0 0 
+      }
+      numAdjCells=1
+      numAdjVerts=2
+      x=556.0
+      y=176.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         15 18 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         35 37 98 0 0 0 0 0 
+      }
+      numAdjCells=2
+      numAdjVerts=3
+      x=553.0
+      y=210.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         15 18 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         36 38 99 0 0 0 0 0 
+      }
+      numAdjCells=2
+      numAdjVerts=3
+      x=591.0
+      y=210.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         15 19 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         37 39 40 0 0 0 0 0 
+      }
+      numAdjCells=2
+      numAdjVerts=3
+      x=622.0
+      y=179.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         15 16 19 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         33 38 43 0 0 0 0 0 
+      }
+      numAdjCells=3
+      numAdjVerts=3
+      x=623.0
+      y=161.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         19 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         38 41 0 0 0 0 0 0 
+      }
+      numAdjCells=1
+      numAdjVerts=2
+      x=645.00006
+      y=211.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         19 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         40 42 0 0 0 0 0 0 
+      }
+      numAdjCells=1
+      numAdjVerts=2
+      x=687.00006
+      y=212.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         19 20 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         41 43 45 0 0 0 0 0 
+      }
+      numAdjCells=2
+      numAdjVerts=3
+      x=710.0
+      y=175.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         16 19 20 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         39 42 44 0 0 0 0 0 
+      }
+      numAdjCells=3
+      numAdjVerts=3
+      x=685.00006
+      y=163.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         16 17 20 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         33 43 49 50 0 0 0 0 
+      }
+      numAdjCells=3
+      numAdjVerts=3
+      x=675.0
+      y=126.000015
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         20 24 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         42 46 85 0 0 0 0 0 
+      }
+      numAdjCells=2
+      numAdjVerts=3
+      x=757.0
+      y=190.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         20 24 25 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         45 47 53 0 0 0 0 0 
+      }
+      numAdjCells=3
+      numAdjVerts=3
+      x=793.00006
+      y=196.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         20 25 26 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         46 48 52 0 0 0 0 0 
+      }
+      numAdjCells=3
+      numAdjVerts=3
+      x=820.00006
+      y=140.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         20 26 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         47 49 51 0 0 0 0 0 
+      }
+      numAdjCells=2
+      numAdjVerts=3
+      x=800.00006
+      y=66.00001
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         17 20 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         44 48 50 0 0 0 0 0 
+      }
+      numAdjCells=2
+      numAdjVerts=3
+      x=697.0
+      y=57.999996
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         17 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         32 49 0 0 0 0 0 0 
+      }
+      numAdjCells=1
+      numAdjVerts=2
+      x=610.0
+      y=84.99999
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         26 27 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         48 52 71 0 0 0 0 0 
+      }
+      numAdjCells=2
+      numAdjVerts=3
+      x=847.00006
+      y=43.00001
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         25 26 27 30 31 32 0 0 
+      }
+      adjacentVerts=int 8 {
+         47 51 54 61 69 70 0 0 
+      }
+      numAdjCells=6
+      numAdjVerts=6
+      x=925.0
+      y=161.99998
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         24 25 29 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         46 54 55 0 0 0 0 0 
+      }
+      numAdjCells=3
+      numAdjVerts=3
+      x=845.0
+      y=220.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         25 29 30 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         52 53 58 0 0 0 0 0 
+      }
+      numAdjCells=3
+      numAdjVerts=3
+      x=901.00006
+      y=207.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         24 29 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         53 56 83 0 0 0 0 0 
+      }
+      numAdjCells=2
+      numAdjVerts=3
+      x=855.00006
+      y=268.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         29 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         55 57 0 0 0 0 0 0 
+      }
+      numAdjCells=1
+      numAdjVerts=2
+      x=935.00006
+      y=375.00003
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         29 35 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         56 58 59 0 0 0 0 0 
+      }
+      numAdjCells=2
+      numAdjVerts=3
+      x=987.00006
+      y=285.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         29 30 35 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         54 57 63 0 0 0 0 0 
+      }
+      numAdjCells=3
+      numAdjVerts=3
+      x=1005.0
+      y=253.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         35 36 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         57 63 76 0 0 0 0 0 
+      }
+      numAdjCells=1
+      numAdjVerts=2
+      x=1039.0
+      y=371.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         0 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         0 0 0 0 0 0 0 0 
+      }
+      numAdjCells=0
+      numAdjVerts=0
+      x=0.0
+      y=0.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         30 31 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         52 62 72 0 0 0 0 0 
+      }
+      numAdjCells=2
+      numAdjVerts=3
+      x=1071.0
+      y=219.00002
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         30 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         61 63 0 0 0 0 0 0 
+      }
+      numAdjCells=1
+      numAdjVerts=2
+      x=1118.0
+      y=254.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         30 35 36 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         58 59 62 74 0 0 0 0 
+      }
+      numAdjCells=2
+      numAdjVerts=4
+      x=1084.0
+      y=280.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         31 34 38 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         65 69 72 72 0 0 0 0 
+      }
+      numAdjCells=3
+      numAdjVerts=3
+      x=1137.0
+      y=185.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         34 38 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         64 66 73 0 0 0 0 0 
+      }
+      numAdjCells=2
+      numAdjVerts=3
+      x=1202.0
+      y=172.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         34 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         65 67 0 0 0 0 0 0 
+      }
+      numAdjCells=1
+      numAdjVerts=2
+      x=1232.0
+      y=76.00001
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         33 34 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         66 68 71 0 0 0 0 0 
+      }
+      numAdjCells=2
+      numAdjVerts=3
+      x=1121.0
+      y=54.999996
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         32 33 34 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         67 69 70 0 0 0 0 0 
+      }
+      numAdjCells=3
+      numAdjVerts=3
+      x=1067.0
+      y=110.999985
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         31 32 34 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         52 64 68 0 0 0 0 0 
+      }
+      numAdjCells=3
+      numAdjVerts=3
+      x=1086.0
+      y=140.99998
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         27 32 33 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         52 68 71 0 0 0 0 0 
+      }
+      numAdjCells=3
+      numAdjVerts=3
+      x=971.0
+      y=92.00001
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         27 33 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         51 67 70 0 0 0 0 0 
+      }
+      numAdjCells=2
+      numAdjVerts=3
+      x=926.0
+      y=24.00001
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         31 38 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         61 64 73 0 0 0 0 0 
+      }
+      numAdjCells=2
+      numAdjVerts=3
+      x=1145.0
+      y=244.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         38 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         65 72 0 0 0 0 0 0 
+      }
+      numAdjCells=1
+      numAdjVerts=2
+      x=1206.0
+      y=215.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         37 37 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         63 75 77 0 0 0 0 0 
+      }
+      numAdjCells=1
+      numAdjVerts=3
+      x=1174.0
+      y=341.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         39 37 39 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         74 79 78 79 0 0 0 0 
+      }
+      numAdjCells=2
+      numAdjVerts=3
+      x=1117.0
+      y=443.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         36 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         111 113 0 0 0 0 0 0 
+      }
+      numAdjCells=1
+      numAdjVerts=2
+      x=765.0
+      y=516.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         37 40 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         74 78 82 0 0 0 0 0 
+      }
+      numAdjCells=2
+      numAdjVerts=3
+      x=1299.0
+      y=428.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         37 39 40 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         75 77 81 0 0 0 0 0 
+      }
+      numAdjCells=3
+      numAdjVerts=3
+      x=1159.0
+      y=454.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         39 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         75 80 0 0 0 0 0 0 
+      }
+      numAdjCells=1
+      numAdjVerts=2
+      x=1070.0
+      y=496.00003
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         39 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         79 81 0 0 0 0 0 0 
+      }
+      numAdjCells=1
+      numAdjVerts=2
+      x=1062.0
+      y=559.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         39 40 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         78 80 82 0 0 0 0 0 
+      }
+      numAdjCells=2
+      numAdjVerts=3
+      x=1179.0
+      y=568.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         40 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         77 81 0 0 0 0 0 0 
+      }
+      numAdjCells=1
+      numAdjVerts=2
+      x=1219.0
+      y=575.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         24 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         55 86 0 0 0 0 0 0 
+      }
+      numAdjCells=1
+      numAdjVerts=2
+      x=826.00006
+      y=313.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         0 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         0 0 0 0 0 0 0 0 
+      }
+      numAdjCells=0
+      numAdjVerts=0
+      x=0.0
+      y=0.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         23 24 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         45 87 99 0 0 0 0 0 
+      }
+      numAdjCells=2
+      numAdjVerts=3
+      x=703.0
+      y=215.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         22 24 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         83 87 92 0 0 0 0 0 
+      }
+      numAdjCells=2
+      numAdjVerts=3
+      x=787.0
+      y=330.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         22 23 24 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         85 86 88 0 0 0 0 0 
+      }
+      numAdjCells=3
+      numAdjVerts=3
+      x=747.00006
+      y=276.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         18 22 23 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         87 89 99 0 0 0 0 0 
+      }
+      numAdjCells=3
+      numAdjVerts=3
+      x=689.0
+      y=294.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         18 21 22 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         88 90 96 0 0 0 0 0 
+      }
+      numAdjCells=3
+      numAdjVerts=3
+      x=683.00006
+      y=338.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         21 22 28 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         89 91 93 0 0 0 0 0 
+      }
+      numAdjCells=3
+      numAdjVerts=3
+      x=725.0
+      y=433.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         22 28 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         90 92 95 0 0 0 0 0 
+      }
+      numAdjCells=2
+      numAdjVerts=3
+      x=773.00006
+      y=450.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         22 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         86 91 0 0 0 0 0 0 
+      }
+      numAdjCells=1
+      numAdjVerts=2
+      x=799.00006
+      y=372.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         21 28 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         90 94 96 0 0 0 0 0 
+      }
+      numAdjCells=2
+      numAdjVerts=3
+      x=648.0
+      y=437.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         28 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         93 95 0 0 0 0 0 0 
+      }
+      numAdjCells=1
+      numAdjVerts=2
+      x=656.0
+      y=558.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         28 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         91 94 0 0 0 0 0 0 
+      }
+      numAdjCells=1
+      numAdjVerts=2
+      x=716.00006
+      y=556.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         18 21 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         89 93 97 0 0 0 0 0 
+      }
+      numAdjCells=2
+      numAdjVerts=3
+      x=625.0
+      y=379.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         18 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         96 98 0 0 0 0 0 0 
+      }
+      numAdjCells=1
+      numAdjVerts=2
+      x=528.0
+      y=355.00003
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         18 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         36 97 0 0 0 0 0 0 
+      }
+      numAdjCells=1
+      numAdjVerts=2
+      x=516.0
+      y=269.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         18 23 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         37 85 88 0 0 0 0 0 
+      }
+      numAdjCells=2
+      numAdjVerts=3
+      x=641.0
+      y=226.99998
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         6 8 9 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         15 101 103 104 0 0 0 0 
+      }
+      numAdjCells=3
+      numAdjVerts=4
+      x=236.99998
+      y=379.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         8 9 10 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         100 102 106 0 0 0 0 0 
+      }
+      numAdjCells=3
+      numAdjVerts=3
+      x=278.00003
+      y=408.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         9 10 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         101 103 107 0 0 0 0 0 
+      }
+      numAdjCells=2
+      numAdjVerts=3
+      x=364.0
+      y=373.99997
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         6 9 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         18 100 102 0 0 0 0 0 
+      }
+      numAdjCells=2
+      numAdjVerts=3
+      x=277.00003
+      y=329.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         8 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         100 105 0 0 0 0 0 0 
+      }
+      numAdjCells=1
+      numAdjVerts=2
+      x=222.00002
+      y=414.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         8 11 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         104 106 109 0 0 0 0 0 
+      }
+      numAdjCells=2
+      numAdjVerts=3
+      x=267.0
+      y=483.00003
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         8 10 11 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         101 105 108 0 0 0 0 0 
+      }
+      numAdjCells=3
+      numAdjVerts=3
+      x=358.00003
+      y=517.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         10 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         102 108 0 0 0 0 0 0 
+      }
+      numAdjCells=1
+      numAdjVerts=2
+      x=439.00003
+      y=421.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         10 11 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         106 107 110 0 0 0 0 0 
+      }
+      numAdjCells=2
+      numAdjVerts=3
+      x=383.00003
+      y=527.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         11 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         105 110 0 0 0 0 0 0 
+      }
+      numAdjCells=1
+      numAdjVerts=2
+      x=308.00003
+      y=655.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         11 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         108 109 0 0 0 0 0 0 
+      }
+      numAdjCells=1
+      numAdjVerts=2
+      x=352.0
+      y=659.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         36 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         112 76 0 0 0 0 0 0 
+      }
+      numAdjCells=1
+      numAdjVerts=2
+      x=797.00006
+      y=443.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         36 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         111 113 0 0 0 0 0 0 
+      }
+      numAdjCells=1
+      numAdjVerts=2
+      x=826.00006
+      y=455.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         36 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         112 76 0 0 0 0 0 0 
+      }
+      numAdjCells=1
+      numAdjVerts=2
+      x=801.00006
+      y=522.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         0 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         0 0 0 0 0 0 0 0 
+      }
+      numAdjCells=0
+      numAdjVerts=0
+      x=994.0
+      y=366.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         0 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         0 0 0 0 0 0 0 0 
+      }
+      numAdjCells=0
+      numAdjVerts=0
+      x=1129.0
+      y=294.0
+   }
+}

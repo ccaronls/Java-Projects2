@@ -28,12 +28,9 @@ public class HoverMessage extends ZAnimation {
     @Override
     protected void draw(AGraphics g, float position, float dt) {
         Vector2D v = new Vector2D(center).add(dv.scaledBy(position));
-//        float t = g.getTextHeight();
-//        g.setTextHeight(20);
         g.setColor(GColor.YELLOW.withAlpha(1f-position));
         Vector2D tv = g.transform(center);
         float width = g.getTextWidth(msg)/2;
-        Justify vJust = Justify.CENTER;
         if (hJust == null) {
             if (tv.X() + width > g.getViewportWidth()) {
                 hJust = Justify.RIGHT;
@@ -44,6 +41,5 @@ public class HoverMessage extends ZAnimation {
             }
         }
         g.drawJustifiedString(v, hJust, Justify.CENTER, msg);
-//        g.setTextHeight(t);
     }
 }

@@ -8,8 +8,8 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -21,10 +21,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import cc.lib.math.CMath;
+import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 import cc.lib.utils.FileUtils;
 import cc.lib.utils.GException;
 import cc.lib.utils.LRUCache;
+import cc.lib.utils.Pair;
 
 public class Utils {
 
@@ -470,42 +472,13 @@ public class Utils {
      * @return
      */
     public static boolean isPointInsidePolygon(float px, float py, IVector2D[] pts, int numPts) {
-
-        int orient = 0;
-
-        for (int i = 0; i < numPts; i++) {
-            float dx = px - pts[i].getX();
-            float dy = py - pts[i].getY();
-
-            int ii = (i + 1) % numPts;
-            float dx2 = pts[ii].getX() - pts[i].getX();
-            float dy2 = pts[ii].getY() - pts[i].getY();
-
-            float nx = -dy2;
-            float ny = dx2;
-
-            float dot = nx * dx + ny * dy;
-
-            if (Math.abs(dot) < CMath.EPSILON) {
-                // ignore since this is 'on' the segment
-            } else if (dot < 0) {
-                // return false if orientation changes
-                if (orient > 0)
-                    return false;
-                    // capture orientation if we dont have it yet
-                else if (orient == 0)
-                    orient = -1;
-            } else {
-                // return false if orientation changes
-                if (orient < 0)
-                    return false;
-                    // capture orientation if we dont have it yet
-                else if (orient == 0)
-                    orient = 1;
-            }
+        if (numPts < 3)
+            return false;
+        List<IVector2D> l = new ArrayList<>();
+        for (int i=0; i<numPts; i++) {
+            l.add(pts[i]);
         }
-
-        return true;
+        return isPointInsidePolygon(new Vector2D(px, py), l);
     }
 
     /**
@@ -598,6 +571,8 @@ public class Utils {
      * @return
      */
     public static float randFloat(float scale) {
+        if (scale == 0)
+            return 0;
         return (float) (randGen.nextDouble() * scale);
     }
 
@@ -870,8 +845,46 @@ public class Utils {
      * @param elems
      * @return
      */
+    public static long sum(long[] elems) {
+        return sum(elems, 0, elems.length);
+    }
+
+    /**
+     * @param elems
+     * @return
+     */
+    public static long sum(Long[] elems) {
+        return sum(elems, 0, elems.length);
+    }
+
+    /**
+     * @param elems
+     * @return
+     */
     public static int sum(int[] elems, int offset, int len) {
         int sum = 0;
+        for (int i = offset; i < len; i++)
+            sum += elems[i];
+        return sum;
+    }
+
+    /**
+     * @param elems
+     * @return
+     */
+    public static long sum(long[] elems, int offset, int len) {
+        long sum = 0;
+        for (int i = offset; i < len; i++)
+            sum += elems[i];
+        return sum;
+    }
+
+    /**
+     * @param elems
+     * @return
+     */
+    public static long sum(Long[] elems, int offset, int len) {
+        long sum = 0;
         for (int i = offset; i < len; i++)
             sum += elems[i];
         return sum;
@@ -962,12 +975,13 @@ public class Utils {
      * 2. Replace [_]+ (underscores) with a space
      * 3. Make whole strings lowercase with first letter capitalized
      *
-     * @param str
+     * @param obj
      * @return
      */
-    public static String toPrettyString(final String str) {
-        if (str == null)
+    public static String toPrettyString(final Object obj) {
+        if (obj == null)
             return null;
+        String str = obj.toString();
         String cached = PRETTY_CACHE.get(str);
         if (cached != null)
             return cached;
@@ -1706,6 +1720,12 @@ public class Utils {
         DEBUG_ENABLED = enable;
     }
 
+    /**
+     *
+     * @param items
+     * @param <T>
+     * @return
+     */
     public static <T> T randItem(Collection<T> items) {
         int which = rand() % items.size();
         if (items instanceof List)
@@ -1760,38 +1780,6 @@ public class Utils {
      */
     public static int randItem(int[] items) {
         return randItem(items, 0, items.length);
-    }
-
-    /**
-     * Populate result array from an array of strings.
-     *
-     * @param arr
-     * @param enumType
-     * @param result
-     * @return
-     */
-    public static <T extends Enum<T>> T[] convertToEnumArray(String[] arr, Class<T> enumType, T[] result) {
-        return convertToEnumArray(Arrays.asList(arr), enumType, result);
-    }
-
-    /**
-     *
-     * @param strings
-     * @param enumType
-     * @param result
-     * @param <T>
-     * @return
-     */
-    public static <T extends Enum<T>> T[] convertToEnumArray(Collection<String> strings, Class<T> enumType, T[] result) {
-        int index = 0;
-        for (String s : strings) {
-            s = s.trim();
-            if (s.length() > 0)
-                result[index++] = Enum.valueOf(enumType, s);
-            if (index == result.length)
-                break;
-        }
-        return result;
     }
 
     /**
@@ -1863,6 +1851,11 @@ public class Utils {
      */
     public static <T extends Enum<T>> String[] toStringArray(T[] values) {
         return toStringArray(values, false);
+    }
+
+    public static <T> String [] toStringArray(Collection<T> values, Mapper<T, String> mapper) {
+        String [] result = new String[values.size()];
+        return map(values, result, mapper);
     }
 
     public static <T extends Enum<T>> String[] toStringArray(T[] values, boolean pretty) {
@@ -2207,6 +2200,42 @@ public class Utils {
     }
 
     /**
+     *
+     * @param arr
+     * @return
+     */
+    public static int [] toIntArray(int... arr) {
+        return arr;
+    }
+
+    /**
+     *
+     * @param arr
+     * @return
+     */
+    public static float [] toFloatArray(float... arr) {
+        return arr;
+    }
+
+    /**
+     *
+     * @param arr
+     * @return
+     */
+    public static long [] toLongArray(long... arr) {
+        return arr;
+    }
+
+    /**
+     *
+     * @param arr
+     * @return
+     */
+    public static double [] toDoubleArray(double... arr) {
+        return arr;
+    }
+
+    /**
      * Returns true if object is null or 'empty'.
      * If o is a string, then empty means at least 1 non whitespace char.
      * If o is a collection then empty means sie() == 0
@@ -2313,6 +2342,14 @@ public class Utils {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     *
+     * @param msecs
+     */
+    public static void waitNoThrow(long msecs) {
+        waitNoThrow(new Object(), msecs);
     }
 
     /**
@@ -2572,6 +2609,12 @@ public class Utils {
         }
     }
 
+    /**
+     *
+     * @param array
+     * @param <T>
+     * @return
+     */
     public static <T> List<T> toList(T ... array) {
         return toList(0, array.length, array);
     }
@@ -2683,17 +2726,73 @@ public class Utils {
      *
      * @param collection
      * @param filter
-     * @param <T>
      * @param <O>
      * @return
      */
-    public static <T extends Collection<O>, O> T filter(T collection, Filter<O> filter) {
-        Iterator<O> it = collection.iterator();
-        while (it.hasNext()) {
-            if (!filter.keep(it.next()))
-                it.remove();
+    public static <O> List<O> filter(Iterable<O> collection, Filter<O> filter) {
+        List<O> result = new ArrayList<>();
+        for (O o : collection) {
+            if (filter.keep(o))
+                result.add(o);
         }
-        return collection;
+        return result;
+    }
+
+    /**
+     * Returns number of items in collection after filtering
+     * @param collection
+     * @param filter
+     * @param <O>
+     * @return
+     */
+    public static <O> int count(Iterable<O> collection, Filter<O> filter) {
+        int count = 0;
+        for (O o : collection) {
+            if (filter.keep(o))
+                count++;
+        }
+        return count;
+    }
+
+    /**
+     * Return true if any element meets filter criteria, false otherwise
+     *
+     * @param collection
+     * @param filter
+     * @param <O>
+     * @return
+     */
+    public static <O> boolean any(Iterable<O> collection, Filter<O> filter) {
+        for (O o : collection) {
+            if (filter.keep(o))
+                return true;
+        }
+        return false;
+    }
+
+    /**
+     * Return true if all elements meet filter criteria, false otherwise
+     * @param collection
+     * @param filter
+     * @param <O>
+     * @return
+     */
+    public static <O> boolean all(Iterable<O> collection, Filter<O> filter) {
+        for (O o : collection) {
+            if (!filter.keep(o))
+                return false;
+        }
+        return true;
+    }
+
+    /**
+     *
+     * @param list
+     * @param <O>
+     * @return
+     */
+    public static <O> O getFirstOrNull(List<O> list) {
+        return list.isEmpty() ? null : list.get(0);
     }
 
     /**
@@ -2703,13 +2802,29 @@ public class Utils {
      * @param <T>
      * @return
      */
-    public static <T> List<T> filterItems(Filter<T> filter, T ... items) {
+    public static <T> List<T> filter(T [] items, Filter<T> filter) {
         List list = new ArrayList();
         for (T item : items) {
             if (item != null && filter.keep(item))
                 list.add(item);
         }
         return list;
+    }
+
+    /**
+     *
+     * @param items
+     * @param filter
+     * @param <T>
+     * @return
+     */
+    public static <T> int count(T [] items, Filter<T> filter) {
+        int count = 0;
+        for (T item : items) {
+            if (item != null && filter.keep(item))
+                count++;
+        }
+        return count;
     }
 
     public static int hashCode(Object ... a) {
@@ -2728,6 +2843,12 @@ public class Utils {
         return (a == b) || (a != null && a.equals(b));
     }
 
+    /**
+     *
+     * @param array
+     * @param result
+     * @param <T>
+     */
     public final static <T> void rotate(T [] array, T [] result) {
         int num = result.length;
         for (int i=0; i<num; i++) {
@@ -2739,5 +2860,544 @@ public class Utils {
         for (int i = 0; i< num; i++) {
             array[i+ array.length-num] = result[i];
         }
+    }
+
+    public interface Callback<T> {
+        void onDone(T result);
+    }
+
+    public interface Mapper<IN,OUT> {
+        OUT map(IN in);
+    }
+
+    /**
+     * Return a list of new types based on the input list using a mapping lambda
+     *
+     * @param inList
+     * @param mapper
+     * @param <IN>
+     * @param <OUT>
+     * @return
+     */
+    public static <IN,OUT> List<OUT> map(Iterable<IN> inList, Mapper<IN,OUT> mapper) {
+        List<OUT> outList = new ArrayList<>();
+        for (IN in : inList) {
+            outList.add(mapper.map(in));
+        }
+        return outList;
+    }
+
+    /**
+     * Return a list of new types based on the input array using a mapping lambda
+     *
+     * @param inArr
+     * @param mapper
+     * @param <IN>
+     * @param <OUT>
+     * @return
+     */
+    public static <IN,OUT> List<OUT> map(IN [] inArr, Mapper<IN,OUT> mapper) {
+        List<OUT> outList = new ArrayList<>();
+        for (IN in : inArr) {
+            outList.add(mapper.map(in));
+        }
+        return outList;
+    }
+
+    /**
+     * Fill an array using input array and mapping lambda
+     *
+     * @param inArr
+     * @param outArr
+     * @param mapper
+     * @param <IN>
+     * @param <OUT>
+     * @return
+     */
+    public static <IN,OUT> OUT [] map(IN [] inArr, OUT [] outArr, Mapper<IN,OUT> mapper) {
+        int n = Math.min(inArr.length, outArr.length);
+        for (int idx=0; idx<n; idx++) {
+            outArr[idx] = mapper.map(inArr[idx]);
+        }
+        return outArr;
+    }
+
+    /**
+     *
+     * @param in
+     * @param outArr
+     * @param mapper
+     * @param <IN>
+     * @param <OUT>
+     * @return
+     */
+    public static <IN,OUT> OUT [] map(Collection<IN> in, OUT [] outArr, Mapper<IN,OUT> mapper) {
+        int idx=0;
+        for (IN i : in) {
+            outArr[idx++] = mapper.map(i);
+        }
+        return outArr;
+    }
+
+    /**
+     * Convert a map to a list of pairs
+     *
+     * @param map
+     * @param <FIRST>
+     * @param <SECOND>
+     * @return
+     */
+    public static <FIRST,SECOND> List<Pair<FIRST,SECOND>> toList(Map<FIRST,SECOND> map) {
+        List<Pair<FIRST,SECOND>> list = new ArrayList<>();
+        for (Map.Entry e : map.entrySet()) {
+            list.add(new Pair(e.getKey(), e.getValue()));
+        }
+        return list;
+    }
+
+    /**
+     * Merge multiple lists into a single list
+     * @param lists
+     * @param <T>
+     * @return
+     */
+    public static <T> List<T> mergeLists(List<T> ... lists) {
+        List<T> merged = new ArrayList<>();
+        for (List l : lists) {
+            merged.addAll(l);
+        }
+        return merged;
+    }
+
+    /**
+     * Sum the mapped values from a collection
+     *
+     * @param in
+     * @param mapper
+     * @param <T>
+     * @return
+     */
+    public static <T> long sumLong(Iterable<T> in, Mapper<T, Long> mapper) {
+        long total = 0;
+        for (T t : in) {
+            total += mapper.map(t);
+        }
+        return total;
+    }
+
+    public static <T> int sumInt(Iterable<T> in, Mapper<T, Integer> mapper) {
+        int total = 0;
+        for (T t : in) {
+            total += mapper.map(t);
+        }
+        return total;
+    }
+
+    public static <T> float sumFloat(Iterable<T> in, Mapper<T, Float> mapper) {
+        float total = 0;
+        for (T t : in) {
+            total += mapper.map(t);
+        }
+        return total;
+    }
+
+    /**
+     * Return the min value from the collection or Long.MAX_VALUE
+     *
+     * @param in
+     * @param mapper
+     * @param <T>
+     * @return
+     */
+    public static <T> long min(Collection<T> in, Mapper<T, Long> mapper) {
+        long min = Long.MAX_VALUE;
+        for (T t : in) {
+            min = Math.min(min, mapper.map(t));
+        }
+        return min;
+    }
+
+    /**
+     * Return the max value from the collection or Long.MIN_VALUE
+     *
+     * @param in
+     * @param mapper
+     * @param <T>
+     * @return
+     */
+    public static <T> long max(Collection<T> in, Mapper<T, Long> mapper) {
+        long max = Long.MIN_VALUE;
+        for (T t : in) {
+            max = Math.max(max, mapper.map(t));
+        }
+        return max;
+    }
+
+    /**
+     *
+     * @param list
+     * @param <K>
+     * @param <V>
+     * @return
+     */
+    public static <K,V> Map<K,List<V>> toMap(List<Pair<K,V>> list) {
+        Map<K,List<V>> map = new HashMap<>();
+        for (Pair<K,V> p : list) {
+            List<V> l = map.get(p.first);
+            if (l == null) {
+                l = new ArrayList<>();
+                map.put(p.first, l);
+            }
+            l.add(p.second);
+        }
+        return map;
+    }
+
+    /**
+     * Return an interator that will return numbers [start-end] inclusive incremented using provided step value
+     *
+     * @param start
+     * @param end
+     * @return
+     */
+    public static Iterable<Integer> getRangeIterator(int start, int end, int step) {
+        return () -> new RangeIter(start, end, step);
+    }
+
+    /**
+     * Convenience method with default step of 1
+     *
+     * @param start
+     * @param end
+     * @return
+     */
+    public static Iterable<Integer> getRangeIterator(int start, int end) {
+        return () -> new RangeIter(start, end, 1);
+    }
+
+    public static class RangeIter implements Iterator<Integer> {
+        final int start, end, step;
+        int current;
+
+        public RangeIter(int end) {
+            this(0, end, 1);
+        }
+
+        public RangeIter(int start, int end) {
+            this(start, end, 1);
+        }
+
+        public RangeIter(int start, int end, int step) {
+            this.start = start;
+            this.end = end;
+            this.step = step;
+            current = start-step;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return current+step <= end;
+        }
+
+        @Override
+        public Integer next() {
+            current += step;
+            return current;
+        }
+    }
+
+    /**
+     * Reverese elements in an array inplace
+     *
+     * @param input
+     */
+    public static void reverse(int[] input) {
+        int last = input.length - 1;
+        int middle = input.length / 2;
+        for (int i = 0; i < middle; i++) {
+            int temp = input[i];
+            input[i] = input[last - i];
+            input[last - i] = temp;
+        }
+    }
+
+    /**
+     * Reverese elements in an array inplace
+     *
+     * @param input
+     */
+    public static void reverse(float[] input) {
+        int last = input.length - 1;
+        int middle = input.length / 2;
+        for (int i = 0; i < middle; i++) {
+            float temp = input[i];
+            input[i] = input[last - i];
+            input[last - i] = temp;
+        }
+    }
+
+    /**
+     * Reverese elements in an array inplace
+     *
+     * @param input
+     */
+    public static void reverse(double[] input) {
+        int last = input.length - 1;
+        int middle = input.length / 2;
+        for (int i = 0; i < middle; i++) {
+            double temp = input[i];
+            input[i] = input[last - i];
+            input[last - i] = temp;
+        }
+    }
+
+    /**
+     * Reverese elements in an array inplace
+     *
+     * @param input
+     */
+    public static void reverse(long[] input) {
+        int last = input.length - 1;
+        int middle = input.length / 2;
+        for (int i = 0; i < middle; i++) {
+            long temp = input[i];
+            input[i] = input[last - i];
+            input[last - i] = temp;
+        }
+    }
+
+    /**
+     * Reverese elements in an array inplace
+     *
+     * @param input
+     */
+    public static <T> void reverse(T [] input) {
+        int last = input.length - 1;
+        int middle = input.length / 2;
+        for (int i = 0; i < middle; i++) {
+            T temp = input[i];
+            input[i] = input[last - i];
+            input[last - i] = temp;
+        }
+    }
+
+    /**
+     * Linear search the highest value item in a list based on mapping
+     * @param c
+     * @param valueMapper
+     * @param <T>
+     * @return
+     */
+    public static <T> T search(Iterable<T> c, Mapper<T, Number> valueMapper) {
+        double bestValue = Double.MIN_VALUE;
+        T best = null;
+        for (T i : c) {
+            double value = valueMapper.map(i).doubleValue();
+            if (best == null || value > bestValue) {
+                bestValue = value;
+                best = i;
+            }
+        }
+        return best;
+    }
+
+    /**
+     * Linear search the highest value item in a list based on mapping
+     * @param c
+     * @param valueMapper
+     * @param <T>
+     * @return
+     */
+    public static <T> int searchIndex(Iterable<T> c, Mapper<T, Number> valueMapper) {
+        double bestValue = Double.MIN_VALUE;
+        int bestIndex = -1;
+        int index = 0;
+        for (T i : c) {
+            double value = valueMapper.map(i).doubleValue();
+            if (bestIndex < 0 || value > bestValue) {
+                bestValue = value;
+                bestIndex = index;
+            }
+            index++;
+        }
+        return bestIndex;
+    }
+
+    /**
+     * Find the first element in a set such that its mapped value 'equals' some value
+     * @param c
+     * @param b
+     * @param mapper
+     * @param <A>
+     * @param <B>
+     * @return
+     */
+    public static <A,B> A findFirst(Collection<A> c, B b, Mapper<A,B> mapper) {
+        for (A a : c) {
+            B ab = mapper.map(a);
+            if (ab.equals(b))
+                return a;
+        }
+        return null;
+    }
+
+    /**
+     * Get the proper suffix (st, nd, rd, th) for a number
+     *
+     * ie. 1st, 2nd, 3rd, 4th, etc.
+     *
+     * @param number
+     * @return
+     */
+    public static String getSuffix(int number) {
+        int j = number % 10;;
+        int k = number % 100;
+        if (j == 1 && k != 11) {
+            return "st";
+        }
+        if (j == 2 && k != 12) {
+            return "nd";
+        }
+        if (j == 3 && k != 13) {
+            return "rd";
+        }
+        return "th";
+    }
+
+    /**
+     * Return a list of vertices that represents the outermost polygon of the input
+     *
+     * For input size < 3 result is empty list.
+     * For input size == 3 result is the input list
+     *
+     * Requires that input vertices contains no duplicates.
+     * Output list will be populated with same instances from input upon result
+     *
+     * CPU: O(n^2)
+     * MEM: O(2n)
+     *
+     * @param input
+     * @return
+     */
+    public static <V extends IVector2D> List<V> computeGiftWrapVertices(Collection<V> input) {
+        if (input.size() < 3)
+            return Collections.emptyList();
+        if (input.size() == 3)
+            return input instanceof List ? (List)input : new ArrayList<>(input);
+
+        MutableVector2D cntr = new MutableVector2D();
+        for (IVector2D v : input) {
+            cntr.addEq(v);
+        }
+
+        cntr.scaleEq(1f / input.size());
+
+        List<Pair<MutableVector2D, V>> working = Utils.map(input, v -> new Pair(new MutableVector2D(v).subEq(cntr), v));
+        int primary = Utils.searchIndex(working, p -> p.first.magSquared());
+
+        // compute the bounding polygon using giftwrap algorithm
+
+        // start at the primary (longest) vertex from the center since this must be on the bounding rect
+        List<MutableVector2D> newV = new ArrayList<>(working.size()/2);
+
+        newV.add(working.get(primary).first);
+
+        int start = primary;//(primary+1) % numVerts;
+        final int numVerts = working.size();
+
+        MutableVector2D dv = new MutableVector2D();
+        MutableVector2D vv = new MutableVector2D();
+        try {
+            do {
+                working.get(start).first.scale(-1, dv);
+                float best = 0;
+                int next = -1;
+                for (int i=(start+1)%numVerts; i!=start; i = (i+1)%numVerts) {
+                    working.get(i).first.sub(working.get(start).first, vv);
+                    float angle = vv.angleBetweenSigned(dv);
+                    if (angle > best) {
+                        best = angle;
+                        next = i;
+                    }
+                }
+                Utils.assertTrue(next >= 0);
+                if (next != primary) {
+                    newV.add(working.get(next).first);
+                }
+                start = next;
+            } while (start != primary && newV.size() < numVerts);
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+
+        Map<MutableVector2D, List<V>> map = Utils.toMap(working);
+        return Utils.map(newV, v -> map.get(v).get(0));
+    }
+
+    /**
+     * Return whether pos is contained by the convex polygon represented by the list.
+     * List must be convex and ordered. A Result from computeGiftwrapVertices is compatible.
+     *
+     * @param pos
+     * @param polygon
+     * @return
+     */
+    public static <V extends IVector2D> boolean isPointInsidePolygon(IVector2D pos, List<V> polygon) {
+        if (polygon.size() < 3)
+            return false;
+
+        MutableVector2D side = Vector2D.sub(polygon.get(0), polygon.get(polygon.size()-1)).normEq();
+        MutableVector2D dv = Vector2D.sub(pos, polygon.get(polygon.size()-1));
+
+        int sign = CMath.signOf(side.dot(dv));
+        for (int i=1; i<polygon.size(); i++) {
+            side.set(polygon.get(i)).subEq(polygon.get(i-1)).normEq();
+            dv.set(pos).subEq(polygon.get(i-1));
+            if (sign != CMath.signOf(side.dot(dv))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     *
+     * @param in
+     * @param delimiter
+     * @param mapper
+     * @param <T>
+     * @return
+     */
+    public static <T> String toString(Iterable<T> in, String delimiter, Mapper<T, String> mapper) {
+        StringBuffer buf = new StringBuffer();
+        for (T i : in) {
+            if (buf.length() > 0)
+                buf.append(delimiter);
+            buf.append(mapper.map(i));
+        }
+        return buf.toString();
+    }
+
+    /**
+     *
+     * @param in
+     * @param <T>
+     * @return
+     */
+    public static <T> T requireNotNull(T in) {
+        if (in == null)
+            throw new NullPointerException();
+        return in;
+    }
+
+    /**
+     *
+     * @param in
+     * @param otherwise
+     * @param <T>
+     * @return
+     */
+    public static <T> T requireNotNull(T in, T otherwise) {
+        return in == null ? otherwise : in;
     }
 }

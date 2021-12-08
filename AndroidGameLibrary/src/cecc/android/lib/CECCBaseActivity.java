@@ -165,9 +165,8 @@ public abstract class CECCBaseActivity extends BillingActivity {
 			ambientSensor.unregisterListener(ambientListener);
 		}
 	}
-	
-	
-	@Override
+
+    @Override
 	public void onResume() {
 		super.onResume();
 		if (ambientSensor != null) {

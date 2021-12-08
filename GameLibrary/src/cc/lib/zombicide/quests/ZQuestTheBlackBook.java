@@ -8,10 +8,11 @@ import cc.lib.zombicide.ZBoard;
 import cc.lib.zombicide.ZCell;
 import cc.lib.zombicide.ZCellType;
 import cc.lib.zombicide.ZCharacter;
+import cc.lib.zombicide.ZColor;
 import cc.lib.zombicide.ZDir;
 import cc.lib.zombicide.ZDoor;
 import cc.lib.zombicide.ZGame;
-import cc.lib.zombicide.ZMove;
+import cc.lib.zombicide.ZIcon;
 import cc.lib.zombicide.ZQuest;
 import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZSkillLevel;
@@ -80,41 +81,41 @@ public class ZQuestTheBlackBook extends ZQuest {
     @Override
     public void init(ZGame game) {
         while (blueObjZone == greenObjZone) {
-            blueObjZone = Utils.randItem(redObjectives);
-            greenObjZone = Utils.randItem(redObjectives);
+            blueObjZone = Utils.randItem(getRedObjectives());
+            greenObjZone = Utils.randItem(getRedObjectives());
         }
         // do this after the above so it does not get mixed in with other objectives. Effect would be player could never access
-        redObjectives.add(blackBookZone);
+        getRedObjectives().add(blackBookZone);
         game.getBoard().setDoorLocked(blueDoor);
         game.getBoard().setDoorLocked(greenDoor);
     }
 
     @Override
-    public void processObjective(ZGame game, ZCharacter c, ZMove move) {
-        super.processObjective(game, c, move);
-        if (move.integer == blueObjZone) {
+    public void processObjective(ZGame game, ZCharacter c) {
+        super.processObjective(game, c);
+        if (c.getOccupiedZone() == blueObjZone) {
             game.unlockDoor(blueDoor);
         }
 
-        if (move.integer == blackBookZone) {
-            game.getCurrentUser().showMessage(c.name() + " has found the Black Book");
+        if (c.getOccupiedZone() == blackBookZone) {
+            game.addLogMessage(c.name() + " has found the Black Book");
             blackBookZone = -1;
         }
 
-        if (move.integer == greenObjZone) {
-            game.getCurrentUser().showMessage(c.name() + " has unlocked the Green Door. A New Spwn zone has appeared!");
+        if (c.getOccupiedZone() == greenObjZone) {
+            game.addLogMessage(c.name() + " has unlocked the Green Door. A New Spawn zone has appeared!");
             game.unlockDoor(greenDoor);
-            game.getBoard().setSpawnZone(greenSpawnZone, true);
+            game.getBoard().setSpawnZone(greenSpawnZone, ZIcon.SPAWN_GREEN, false, false, true);
             game.spawnZombies(greenSpawnZone);
         }
     }
 
     @Override
     public int getPercentComplete(ZGame game) {
-        int numTasks = getAllVaultOptions().size() + 1 + ZSkillLevel.RED.ordinal();
+        int numTasks = getAllVaultOptions().size() + 1 + ZColor.RED.ordinal();
         int numCompleted = blackBookZone < 0 ? 1 : 0;
         numCompleted += getNumFoundVaultItems();
-        numCompleted += game.getHighestSkillLevel().ordinal();
+        numCompleted += game.getHighestSkillLevel().getDifficultyColor().ordinal();
 
         return numCompleted * 100 / numTasks;
     }
@@ -142,7 +143,7 @@ public class ZQuestTheBlackBook extends ZQuest {
                         .addRow("2.", "Unlock the BLUE Door. BLUE Key hidden among the RED objectives.", "", game.getBoard().getDoor(blueDoor) != ZWallFlag.LOCKED)
                         .addRow("3.", "Steal the Black Book in central building.", "", blackBookTaken)
                         .addRow("4.", "Claim all Vault artifacts.", String.format("%d of %d", numVaultItemsTaken, allVaultItems), numVaultItemsTaken == allVaultItems)
-                        .addRow("5.", "Get to RED Danger level with at least one survivor.", lvl, lvl == ZSkillLevel.RED)
+                        .addRow("5.", "Get to RED Danger level with at least one survivor.", lvl, lvl.getDifficultyColor() == ZColor.RED)
                 );
     }
 }

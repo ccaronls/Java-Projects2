@@ -6,11 +6,12 @@ import cc.lib.ui.IButton;
 
 @Keep
 public enum ZMoveType implements IButton {
-    DO_NOTHING("Expend 1 action"),
     END_TURN("Expend all remaining actions and end turn"),
     INVENTORY("View inventory. The first change of inventory cost an action. You can perform as many subsequent inventory actions for free for the rest of the round."), // equip things, drop things, etc.
     TRADE("Like inventory the first trade costs an action and subsequent trades are free for the rest of the round. You can only trade with players in your zone and if the zone is free of zombies."),
     WALK("Walk to a different zone at the cost of 1 action."),
+    JUMP("Jump to 2 zones line of sight from current position for free"),
+    CHARGE("Move up to 2 zones to a zone occupied by at least one zombie for free as often as you like."),
     WALK_DIR(null),
     SWITCH_ACTIVE_CHARACTER(null),
     USE_LEFT_HAND(null),
@@ -41,7 +42,9 @@ public enum ZMoveType implements IButton {
     BORN_LEADER("You can give one of your own actions to another player of your choice."),
     BLOODLUST_MELEE("Spend an action to move up to 2 zones and perform melee."),
     BLOODLUST_RANGED("Spend an action to move up to 2 zones and perform ranged."),
-    BLOODLUST_MAGIC("Spend an action to move up to 2 spaces and perform magic.");
+    BLOODLUST_MAGIC("Spend an action to move up to 2 spaces and perform magic."),
+    IGNITE("Ignite a Dragon Bile within range")
+    ;
 
     final String toolTipText;
 
@@ -57,22 +60,5 @@ public enum ZMoveType implements IButton {
     @Override
     public String getTooltipText() {
         return toolTipText;
-    }
-
-    public ZActionType getActionType(ZWeapon slot) {
-        switch (this) {
-            case MAGIC_ATTACK:
-                return ZActionType.MAGIC;
-            case RANGED_ATTACK:
-                if (slot.type.usesArrows)
-                    return ZActionType.ARROWS;
-                else if (slot.type.usesBolts)
-                    return ZActionType.BOLTS;
-                break;
-            case MELEE_ATTACK:
-                return ZActionType.MELEE;
-        }
-        Utils.assertTrue(false);
-        return null;
     }
 }

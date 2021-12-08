@@ -1,6 +1,7 @@
 package cc.lib.zombicide;
 
 import java.util.Arrays;
+import java.util.List;
 
 import cc.lib.game.Utils;
 import cc.lib.utils.Table;
@@ -23,14 +24,27 @@ public class ZWeapon extends ZEquipment<ZWeaponType> {
     }
 
     int getOpenDoorValue() {
-        if (!isOpenDoorCapable())
+        ZWeaponStat doorStat = getOpenDoorStat();
+        if (doorStat == null)
             return 0;
-        return 7-type.meleeStats.dieRollToOpenDoor + (type.openDoorsIsNoisy ? 0 : 1);
+        return 7-doorStat.dieRollToOpenDoor + (type.openDoorsIsNoisy ? 0 : 1);
     }
 
     @Override
     public boolean isOpenDoorCapable() {
-        return type.meleeStats != null && type.meleeStats.dieRollToOpenDoor > 0;
+        return getOpenDoorStat() != null;
+    }
+
+    ZWeaponStat getOpenDoorStat() {
+        for (ZWeaponStat stat : type.weaponStats) {
+            if (stat.dieRollToOpenDoor > 0)
+                return stat;
+        }
+        return null;
+    }
+
+    ZWeaponStat getStatForAction(ZActionType actionType) {
+        return Utils.getFirstOrNull(Utils.filter(type.getStats(), stat -> stat.actionType == actionType));
     }
 
     @Override
@@ -40,22 +54,26 @@ public class ZWeapon extends ZEquipment<ZWeaponType> {
 
     @Override
     public boolean isMelee() {
-        return type.meleeStats != null;
+        return countStatsType(ZActionType.MELEE) > 0;
     }
 
     @Override
     public boolean isRanged() {
-        return type.rangedStats != null;
+        return countStatsType(ZActionType.RANGED) > 0;
     }
 
     @Override
     public boolean isMagic() {
-        return type.magicStats != null;
+        return countStatsType(ZActionType.MAGIC) > 0;
+    }
+
+    private int countStatsType(ZActionType actionType) {
+        return Utils.count(type.getStats(), stat -> stat.actionType==actionType);
     }
 
     @Override
-    public boolean isEquippable() {
-        return true;
+    public boolean isEquippable(ZCharacter c) {
+        return c.getSkillLevel().getDifficultyColor().ordinal() >= type.minColorToEquip.ordinal();
     }
 
     public boolean isLoaded() {
@@ -67,8 +85,8 @@ public class ZWeapon extends ZEquipment<ZWeaponType> {
         return type;
     }
 
-    public void fireWeapon(ZGame game, ZCharacter cur) {
-        if (type.needsReload)
+    public void fireWeapon(ZGame game, ZCharacter cur, ZWeaponStat stat) {
+        if (stat.getAttackType().needsReload())
             isEmpty = true;
         if (type == ZWeaponType.DAGGER) {
             cur.removeEquipment(this);
@@ -91,8 +109,12 @@ public class ZWeapon extends ZEquipment<ZWeaponType> {
         return type.openDoorsIsNoisy;
     }
 
-    public void reload() {
-        isEmpty = false;
+    public boolean reload() {
+        if (isEmpty) {
+            isEmpty = false;
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -131,7 +153,7 @@ public class ZWeapon extends ZEquipment<ZWeaponType> {
             if (stats != null) {
                 String doorInfo = "";
                 if (stats.dieRollToOpenDoor > 0) {
-                    doorInfo = String.format("%s %d%%", type.openDoorsIsNoisy ? "noisy" : "quiet", (7-type.meleeStats.dieRollToOpenDoor)*100/6);
+                    doorInfo = String.format("%s %d%%", type.openDoorsIsNoisy ? "noisy" : "quiet", (7-stats.dieRollToOpenDoor)*100/6);
                 } else {
                     doorInfo = "no";
                 }
@@ -140,15 +162,20 @@ public class ZWeapon extends ZEquipment<ZWeaponType> {
                         String.format("%d%% x %d", (7 - stats.dieRollToHit) * 100 / 6, stats.numDice),
                         stats.minRange == stats.maxRange ? String.valueOf(stats.minRange) : String.format("%d-%d", stats.minRange, stats.maxRange),
                         doorInfo,
-                        type.needsReload ? String.format("yes (%s)", isEmpty ? "empty" : "loaded") : "no"
+                        stats.getAttackType().needsReload() ? String.format("yes (%s)", isEmpty ? "empty" : "loaded") : "no"
                 ));
             }
         }
 
-        Table card = new Table(type.getLabel() + (type.canTwoHand ? " (DW)" : "" ))
+        Table card = new Table(String.format("%s%s %s", type.getLabel(), type.canTwoHand ? " (DW)" : "", type.minColorToEquip))
                 .addRow(cardLower).setNoBorder();
         if (type.specialInfo != null) {
             card.addRow(Utils.wrapTextWithNewlines("*" + type.specialInfo, 32));
+        } else {
+            List<ZSkill> skills = type.getSkillsWhileEquipped();
+            if (skills.size() > 0) {
+                card.addRow("Equipped", skills);
+            }
         }
         return card;
     }
@@ -168,7 +195,7 @@ public class ZWeapon extends ZEquipment<ZWeaponType> {
         for (ZWeaponStat stats : type.getStats()) {
             String doorInfo = "";
             if (stats.dieRollToOpenDoor > 0) {
-                doorInfo = String.format("%s %d%%", type.openDoorsIsNoisy ? "noisy" : "quiet", (7-type.meleeStats.dieRollToOpenDoor)*100/6);
+                doorInfo = String.format("%s %d%%", type.openDoorsIsNoisy ? "noisy" : "quiet", (7-stats.dieRollToOpenDoor)*100/6);
             } else {
                 doorInfo = "no";
             }
@@ -178,8 +205,16 @@ public class ZWeapon extends ZEquipment<ZWeaponType> {
                     String.format("%d%% x %d", (7 - stats.dieRollToHit) * 100 / 6, stats.numDice),
                     stats.minRange == stats.maxRange ? String.valueOf(stats.minRange) : String.format("%d-%d", stats.minRange, stats.maxRange),
                     doorInfo,
-                    type.needsReload ? String.format("yes (%s)", isEmpty ? "empty" : "loaded") : "no"
+                    stats.getAttackType().needsReload() ? String.format("yes (%s)", isEmpty ? "empty" : "loaded") : "no"
             ));
+        }
+
+        if (type.minColorToEquip.ordinal() > 0) {
+            cardLower.addRow(type.minColorToEquip + " Required");
+        }
+        List<ZSkill> skills = Utils.mergeLists(type.getSkillsWhileEquipped(), type.getSkillsWhenUsed());
+        for (ZSkill skill : skills) {
+            cardLower.addRow(skill.getLabel());
         }
 
         return cardLower.toString();
@@ -190,10 +225,11 @@ public class ZWeapon extends ZEquipment<ZWeaponType> {
         switch (type) {
             case HAND_CROSSBOW:
                 if (!isLoaded()) {
-                    game.getCurrentUser().showMessage(getLabel() + " auto reloaded");
+                    game.addLogMessage(getLabel() + " auto reloaded");
                     reload();
                 }
                 break;
         }
     }
+
 }

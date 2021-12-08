@@ -9,6 +9,7 @@ import cc.lib.game.IShape;
 import cc.lib.game.Utils;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
+import cc.lib.utils.GException;
 import cc.lib.utils.Grid;
 import cc.lib.utils.Reflector;
 
@@ -26,7 +27,6 @@ public class ZZone extends Reflector<ZZone> implements IShape {
 
     private ZZoneType type = ZZoneType.OUTDOORS;
     private int noiseLevel = 0;
-    private ZSpawnType spawnType = ZSpawnType.NONE;
     private boolean dragonBile;
     private boolean objective;
     private int nextCell = 0;
@@ -63,7 +63,7 @@ public class ZZone extends Reflector<ZZone> implements IShape {
     public GRectangle getRectangle() {
         GRectangle rect = new GRectangle();
         for (Grid.Pos p : cells) {
-            rect.addEq(p.getRow(), p.getColumn(), 1, 1);
+            rect.addEq(p.getColumn(), p.getRow(), 1, 1);
         }
         return rect;
     }
@@ -143,26 +143,22 @@ public class ZZone extends Reflector<ZZone> implements IShape {
         return objective;
     }
 
-    public ZSpawnType getSpawnType() {
-        return spawnType;
-    }
-
-    public void setSpawnType(ZSpawnType spawnType) {
-        this.spawnType = spawnType;
-    }
-
-    public boolean isSpawn() {
-        switch (spawnType) {
-            case NECRO:
-            case NORMAL:
-                return true;
-        }
-        return false;
-    }
-
     public int getNextCellAndIncrement() {
         int next = nextCell;
         nextCell = (nextCell+1) % cells.size();
         return next;
+    }
+
+    void checkSanity() {
+        if (cells.size() > 1) {
+            for (int i = 0; i < cells.size() - 1; i++) {
+                for (int ii = i + 1; ii < cells.size(); ii++) {
+                    if (cells.get(i).isAdjacentTo(cells.get(ii))) {
+                        return; // zone is sane
+                    }
+                }
+            }
+            throw new GException("Zone " + zoneIndex + " is INSANE!! Not all positions are adjacent:" + cells);
+        }
     }
 }

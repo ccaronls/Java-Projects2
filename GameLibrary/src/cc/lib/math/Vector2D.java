@@ -6,16 +6,20 @@ import java.io.ObjectOutputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 
+import cc.lib.game.IInterpolator;
 import cc.lib.game.IVector2D;
 import cc.lib.game.Utils;
 import cc.lib.utils.Reflector;
 
 /**
  * Immutable.  Use MutableVector2D for mutator operations.
+ *
+ * Can be used as an interpolator that returns a fixed position
+ *
  * @author chriscaron
  *
  */
-public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializable {
+public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializable, IInterpolator<Vector2D> {
 
 	public static boolean USE_TEMPS = false;
 	
@@ -92,6 +96,10 @@ public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializ
 
     public final MutableVector2D add(float x, float y) {
         return new MutableVector2D(this.x + x, this.y + y);
+    }
+
+    public final MutableVector2D add(float x, float y, MutableVector2D out) {
+        return out.set(this.x + x, this.y + y);
     }
 
     public final MutableVector2D sub(IVector2D v, MutableVector2D out) {
@@ -490,6 +498,11 @@ public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializ
         return true;
     }
 
+    @Override
+    public Vector2D getAtPosition(float position) {
+        return this;
+    }
+
     public static Vector2D newPolar(float degrees, float magnitude) {
         float y = CMath.sine(degrees) * magnitude;
         float x = CMath.cosine(degrees) * magnitude;
@@ -498,5 +511,38 @@ public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializ
 
     public static Vector2D newRandom(float magnitude) {
         return newPolar(Utils.randFloat(360), magnitude);
+    }
+
+    public static IInterpolator<Vector2D> getLinearInterpolator(Vector2D start, Vector2D end) {
+        return position -> start.add(end.sub(start).scaleEq(position));
+    }
+
+    /**
+     * Return interpolator where point travels along an arc
+     * @param center
+     * @param startRadius
+     * @param endRadius
+     * @param startDegrees
+     * @param endDegrees
+     * @return
+     */
+    public static IInterpolator<Vector2D> getPolarInterpolator(Vector2D center, float startRadius, float endRadius, float startDegrees, float endDegrees) {
+        return new IInterpolator<Vector2D>() {
+
+            MutableVector2D tmp0 = new MutableVector2D();
+
+            @Override
+            public Vector2D getAtPosition(float position) {
+
+                float degrees = startDegrees + (endDegrees-startDegrees)*position;
+                float radius = startRadius + (endRadius-startRadius)*position;
+                tmp0.set(0, radius).rotateEq(degrees);
+                return center.add(tmp0);
+            }
+        };
+    }
+
+    public MutableVector2D wrapped(IVector2D min, IVector2D max) {
+        return new MutableVector2D(this).wrap(min, max);
     }
 }

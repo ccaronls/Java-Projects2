@@ -30,9 +30,9 @@ public abstract class BillingActivity extends CCActivityBase {
 
 	private IInAppBillingService mBillingService;
 
-	@Override
-	protected void onResume() {
-		super.onResume();
+    @Override
+    protected void onResume() {
+        super.onResume();
 		isAutoClockEnabled(true);
 	}
 	

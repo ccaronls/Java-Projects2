@@ -11,6 +11,7 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -21,13 +22,15 @@ import java.util.Vector;
 
 import cc.lib.game.GColor;
 import cc.lib.game.Utils;
+import cc.lib.zombicide.ZEquipment;
+import cc.lib.zombicide.ZItemType;
+import cc.lib.zombicide.ZWeaponType;
 
 public class ReflectorTest extends TestCase {
 
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        Reflector.KEEP_INSTANCES = false;
         System.out.println("Start Test: " + getName());
         System.out.println("--------------------------------------------------------");        
     }
@@ -312,14 +315,13 @@ public class ReflectorTest extends TestCase {
 
     public void testDerivedReflectors() throws Exception {
 
-        Reflector.KEEP_INSTANCES = true;
         MyArchivable a = new MyArchivable();
 
         a.myArchivable = new MyArchivableX();
 
         String txt = a.toString();
 
-        a.deserialize(txt);
+        a.deserialize(txt, true);
 
         a.myArchivableArray = new MyArchivable[] {
                 new MyArchivableX(),
@@ -329,7 +331,7 @@ public class ReflectorTest extends TestCase {
 
         txt = a.toString();
 
-        a. deserialize(txt);
+        a. deserialize(txt, true);
 
         a.my2DArchivableArray = new MyArchivable[][] {
                 { new MyArchivableX(), new MyArchivableX() },
@@ -338,14 +340,14 @@ public class ReflectorTest extends TestCase {
 
         txt = a.toString();
 
-        a. deserialize(txt);
+        a. deserialize(txt, true);
 
         a.myCollection = new ArrayList();
         a.myCollection.add(new MyArchivableX());
         a.myCollection.add(new MyArchivableX());
 
         txt = a.toString();
-        a. deserialize(txt);
+        a. deserialize(txt, true);
 
         a.collectionArray = new Collection[] {
             new ArrayList(),
@@ -358,7 +360,7 @@ public class ReflectorTest extends TestCase {
         a.collectionArray[1].add(new MyArchivableX());
 
         txt = a.toString();
-        a. deserialize(txt);
+        a. deserialize(txt, true);
 
     }
     
@@ -637,8 +639,7 @@ public class ReflectorTest extends TestCase {
         sb.myObjList.get(1).myEnumArray = SomeEnum.values();
         diff = sa.diff(sb);
         System.out.println("diff:\n" + diff);
-        Reflector.KEEP_INSTANCES = true;
-        sa.deserialize(diff);
+        sa.deserialize(diff, true);
         System.out.println("sa:\n" + sa);
         System.out.println("sb:\n" + sb);
         assertEquals(sa.toString(), sb.toString());
@@ -834,5 +835,55 @@ public class ReflectorTest extends TestCase {
         assertNull(mm.get(SimpleObject.MyEnum.C));
 
         System.out.println(mm);
+    }
+
+    public void testEnumAsField() throws Exception {
+
+        SmallReflector r = new SmallReflector();
+        System.out.println(r.toStringNumbered());
+
+    }
+
+
+    public void testSerializeCollectionsList() throws Exception {
+        //Reflector.registerClass(Collections.synchronizedList(new ArrayList()).getClass(), "java.util.Collections.SynchronizedRandomAccessList");
+        //Reflector.registerConstructor("java.util.Collections.SynchronizedRandomAccessList", () -> Collections.synchronizedList(new ArrayList()));
+
+        List<String> list = Collections.unmodifiableList(Utils.toList("Hello", "Goodbye"));
+
+        String str = Reflector.serializeObject(list);
+        System.out.println("str="+str);
+
+        list = Reflector.deserializeFromString(str);
+    }
+
+    static class Hand extends Reflector<Hand> {
+        ZEquipment e;
+    }
+
+
+    public void testDeserializeEnums() throws Exception {
+
+        Reflector.addAllFields(Hand.class);
+
+        Hand a, b;
+
+        a = new Hand();
+        b = new Hand();
+
+        a.e = ZItemType.DRAGON_BILE.create();
+        b.e = ZWeaponType.DAGGER.create();
+
+//        System.out.println("a=" + a.toStringNumbered());
+//        System.out.println("b=" + b.toStringNumbered());
+
+        StringWriter str = new StringWriter();
+        try (PrintWriter out = new PrintWriter(str)) {
+            a.serialize(out);
+        }
+        System.out.println("str=" + str.toString());
+        b.deserialize(str.toString(), true);
+
+        System.out.println(b.toString());
     }
 }

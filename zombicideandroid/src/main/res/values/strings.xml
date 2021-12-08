@@ -51,5 +51,7 @@ cooperative game, so all players win if the Quest objectives
 are fulfilled.
 
     </string>
+    <string name="email_">An error occurred trying to send report:\n%s</string>
+    <string name="p2p_name_unassigned">Unassigned</string>
 
 </resources>

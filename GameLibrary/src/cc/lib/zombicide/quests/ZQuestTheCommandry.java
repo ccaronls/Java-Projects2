@@ -10,7 +10,6 @@ import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZDir;
 import cc.lib.zombicide.ZDoor;
 import cc.lib.zombicide.ZGame;
-import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZQuest;
 import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZTile;
@@ -70,16 +69,16 @@ public class ZQuestTheCommandry extends ZQuest {
     }
 
     @Override
-    public void processObjective(ZGame game, ZCharacter c, ZMove move) {
-        super.processObjective(game, c, move);
-        if (move.integer == blueDoorKeyZone) {
-            game.getCurrentUser().showMessage(c.name() + " has unlocked the Blue Door");
+    public void processObjective(ZGame game, ZCharacter c) {
+        super.processObjective(game, c);
+        if (c.getOccupiedZone() == blueDoorKeyZone) {
+            game.addLogMessage(c.name() + " has unlocked the Blue Door");
             game.unlockDoor(blueDoor);
             blueDoorKeyZone = -1;
         }
 
-        if (move.integer == greenDoorKeyZone) {
-            game.getCurrentUser().showMessage(c.name() + " has unlocked the Green Door");
+        if (c.getOccupiedZone() == greenDoorKeyZone) {
+            game.addLogMessage(c.name() + " has unlocked the Green Door");
             game.unlockDoor(greenDoor);
             greenDoorKeyZone = -1;
         }
@@ -92,7 +91,7 @@ public class ZQuestTheCommandry extends ZQuest {
 
     @Override
     public String getQuestFailedReason(ZGame game) {
-        if (Utils.filter(game.getAllCharacters(), object -> object.isDead()).size() > 0) {
+        if (Utils.count(game.getBoard().getAllCharacters(), object -> object.isDead()) > 0) {
             return "Not all players survived.";
         }
         return super.getQuestFailedReason(game);
@@ -113,8 +112,8 @@ public class ZQuestTheCommandry extends ZQuest {
     @Override
     public void init(ZGame game) {
         while (greenDoorKeyZone == blueDoorKeyZone) {
-            greenDoorKeyZone = Utils.randItem(redObjectives);
-            blueDoorKeyZone = Utils.randItem(redObjectives);
+            greenDoorKeyZone = Utils.randItem(getRedObjectives());
+            blueDoorKeyZone = Utils.randItem(getRedObjectives());
         }
         game.getBoard().setDoorLocked(blueDoor);
         game.getBoard().setDoorLocked(greenDoor);

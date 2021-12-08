@@ -5,6 +5,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.ColorFilter;
+import android.graphics.DashPathEffect;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
@@ -30,6 +32,7 @@ import cc.lib.game.IVector2D;
 import cc.lib.game.Justify;
 import cc.lib.math.CMath;
 import cc.lib.math.Vector2D;
+import cc.lib.utils.GException;
 
 /**
  * Created by chriscaron on 2/12/18.
@@ -133,11 +136,14 @@ public abstract class DroidGraphics extends APGraphics {
     }
 
     @Override
-    public final void setTextHeight(float height) {
-        if (textModePixels)
+    public final float setTextHeight(float height) {
+        float curHeight = textPaint.getTextSize();
+        if (textModePixels) {
             textPaint.setTextSize(height);
-        else
-            textPaint.setTextSize(convertDipsToPixels(height));
+            return curHeight;
+        }
+        textPaint.setTextSize(convertDipsToPixels(height));
+        return convertPixelsToDips(curHeight);
     }
 
     @Override
@@ -163,6 +169,61 @@ public abstract class DroidGraphics extends APGraphics {
             }
         }
     }
+/*
+    @Override
+    public GRectangle drawJustifiedString2(final float x, final float y, Justify hJust, Justify vJust, String text) {
+        if (text==null || text.length() == 0)
+            return new GRectangle();
+        MutableVector2D mv = transform(x, y);
+        pushMatrix();
+        ortho();
+        setIdentity();
+        String [] lines = text.split("\n");
+        if (lines.length == 0)
+            return new GRectangle();
+        Paint.FontMetrics metrics = paint.getFontMetrics();
+        float th = getTextHeight();
+        final float textHeight = th + (metrics.top-metrics.ascent) + metrics.descent;
+        final float spacing = metrics.bottom;
+        final float lineHeight = textHeight + spacing;
+        switch (vJust) {
+            case TOP:
+                mv.addEq(0, (lines.length-2) * lineHeight + textHeight);
+                break;
+            case CENTER:
+                //mv.addEq(0, 0.5f * (((lines.length-1) * (lineHeight)) - textHeight));
+                break;
+            case BOTTOM:
+                mv.subEq(0, (lines.length-2) * lineHeight + textHeight);
+                break;
+            default:
+                throw new GException("Unhandled case: " + vJust);
+        }
+        final float top = mv.getY()-textHeight;
+        mv.addEq(0, metrics.top);
+        float maxWidth = 0;
+        for (int i=0; i<lines.length; i++) {
+            maxWidth = Math.max(drawStringLineR(mv.X(), mv.Y(), hJust, lines[i]), maxWidth);
+            mv.addEq(0, textHeight);
+        }
+        MutableVector2D tl;
+        switch (hJust) {
+            case CENTER:
+                tl = new MutableVector2D(mv.getX() - maxWidth/2, top);
+                break;
+            case RIGHT:
+                tl = new MutableVector2D(mv.getX() - maxWidth, top);
+                break;
+            default:
+                tl = new MutableVector2D(mv.getX(), top);
+        }
+        popMatrix();
+        float maxHeight = (textHeight * lines.length) - spacing;// * lines.length-1);
+        MutableVector2D lb = tl.add(maxWidth, maxHeight);
+        screenToViewport(lb);
+        screenToViewport(tl);
+        return new GRectangle(tl, lb);
+    }*/
 
     @Override
     public final float getTextWidth(String string) {
@@ -176,6 +237,7 @@ public abstract class DroidGraphics extends APGraphics {
     @Override
     public final float drawStringLine(float x, float y, Justify hJust, String text) {
         Paint.FontMetrics fm = textPaint.getFontMetrics();
+        // the true height of a line of text minus spacing is ascent+descent
         y -= fm.ascent;
         switch (hJust) {
             case LEFT:
@@ -188,8 +250,11 @@ public abstract class DroidGraphics extends APGraphics {
                 textPaint.setTextAlign(Paint.Align.CENTER);
                 break;
         }
+        float lw = paint.getStrokeWidth();
+        paint.setStrokeWidth(0);
         textPaint.setStyle(Paint.Style.FILL_AND_STROKE);
         canvas.drawText(text, x, y, textPaint);
+        paint.setStrokeWidth(lw);
         return getTextWidth(text);
     }
 
@@ -221,11 +286,14 @@ public abstract class DroidGraphics extends APGraphics {
 
     @Override
     public final void drawPoints() {
+        float lw = paint.getStrokeWidth();
+        paint.setStrokeWidth(0);
         paint.setStyle(Paint.Style.FILL_AND_STROKE);
         for (int i = 0; i < r.getNumVerts(); i++) {
             Vector2D v = r.getVertex(i);
             canvas.drawCircle(v.getX(), v.getY(), pointSize / 2, paint);
         }
+        paint.setStrokeWidth(lw);
     }
 
     @Override
@@ -281,6 +349,8 @@ public abstract class DroidGraphics extends APGraphics {
 
     @Override
     public final void drawTriangles() {
+        float lw = paint.getStrokeWidth();
+        paint.setStrokeWidth(0);
         paint.setStyle(Paint.Style.FILL_AND_STROKE);
         int num = r.getNumVerts();
         for (int i = 0; i <= num - 3; i += 3) {
@@ -289,10 +359,13 @@ public abstract class DroidGraphics extends APGraphics {
             Vector2D v2 = r.getVertex(i + 2);
             drawPolygon(v0, v1, v2);
         }
+        paint.setStrokeWidth(lw);
     }
 
     @Override
     public final void drawTriangleFan() {
+        float lw = paint.getStrokeWidth();
+        paint.setStrokeWidth(0);
         paint.setStyle(Paint.Style.FILL_AND_STROKE);
         int num = r.getNumVerts();
         if (num < 3)
@@ -304,10 +377,13 @@ public abstract class DroidGraphics extends APGraphics {
             drawPolygon(ctr, v0, v1);
             v0 = v1;
         }
+        paint.setStrokeWidth(lw);
     }
 
     @Override
     public final void drawTriangleStrip() {
+        float lw = paint.getStrokeWidth();
+        paint.setStrokeWidth(0);
         paint.setStyle(Paint.Style.FILL_AND_STROKE);
         int num = r.getNumVerts();
         if (num < 3)
@@ -320,6 +396,7 @@ public abstract class DroidGraphics extends APGraphics {
             v0 = v1;
             v1 = v2;
         }
+        paint.setStrokeWidth(lw);
     }
 
     @Override
@@ -505,8 +582,11 @@ public abstract class DroidGraphics extends APGraphics {
             int y = cells[i][1];
             int w = cells[i][2];
             int h = cells[i][3];
-
-            result[i] = newSubImage(source, x, y, w, h);
+            try {
+                result[i] = newSubImage(source, x, y, w, h);
+            } catch (Throwable e) {
+                throw new GException("Problem loading image cell " + i, e);
+            }
         }
         return result;
     }
@@ -543,11 +623,12 @@ public abstract class DroidGraphics extends APGraphics {
             Drawable d = context.getResources().getDrawable(imageKey);
             rect.set(x, y, x+w, y+h);
             d.setBounds(rect);
+            d.setColorFilter(colorFilter);
             d.draw(canvas);
         } else {
             rectf.set(x, y, x+w, y+h);
             Bitmap bm = bitmaps.get(imageKey);
-            canvas.drawBitmap(bm, null, rectf, null);
+            canvas.drawBitmap(bm, null, rectf, paint);
         }
     }
 
@@ -571,7 +652,6 @@ public abstract class DroidGraphics extends APGraphics {
     @Override
     public final AImage getImage(int id, int width, int height) {
         throw new RuntimeException("Not Implemented");
-
     }
 
     @Override
@@ -637,6 +717,8 @@ public abstract class DroidGraphics extends APGraphics {
 
     @Override
     public final void clearScreen(GColor color) {
+        float lw = paint.getStrokeWidth();
+        paint.setStrokeWidth(0);
         paint.setStyle(Paint.Style.FILL_AND_STROKE);
         int savecolor = paint.getColor();
         paint.setColor(color.toARGB());
@@ -647,6 +729,7 @@ public abstract class DroidGraphics extends APGraphics {
         canvas.drawRect(0, 0, canvas.getWidth(), canvas.getHeight(), paint);
         canvas.restore();
         paint.setColor(savecolor);
+        paint.setStrokeWidth(lw);
     }
 
     @Override
@@ -686,9 +769,12 @@ public abstract class DroidGraphics extends APGraphics {
 
     @Override
     public void drawWedge(float x, float y, float radius, float startDegrees, float sweepDegrees) {
+        float lw = paint.getStrokeWidth();
+        paint.setStrokeWidth(0);
         paint.setStyle(Paint.Style.FILL_AND_STROKE);
         setRectF(x-radius, y-radius, x+radius, y+radius);
         canvas.drawArc(rectf, startDegrees, sweepDegrees, false, paint);
+        paint.setStrokeWidth(lw);
     }
 
     @Override
@@ -752,8 +838,11 @@ public abstract class DroidGraphics extends APGraphics {
             rectf.left = rectf.centerX() - height/2;
             rectf.right = rectf.centerX() + height/2;
         }
+        float lw = paint.getStrokeWidth();
+        paint.setStrokeWidth(0);
         paint.setStyle(Paint.Style.FILL_AND_STROKE);
         canvas.drawOval(rectf, paint);
+        paint.setStrokeWidth(lw);
     }
 
     @Override
@@ -824,23 +913,40 @@ public abstract class DroidGraphics extends APGraphics {
 
     @Override
     public int captureScreen(int x, int y, int w, int h) {
-
         Bitmap subBM = Bitmap.createBitmap(screenCapture, x, y, w, h);
         screenCapture.recycle();
         screenCapture = null;
         int id = addImage(subBM);
         canvas = savedCanvas;
         return id;
-
     }
+
+    ColorFilter colorFilter = null;
 
     @Override
     public void setTransparencyFilter(float alpha) {
-        paint.setColorFilter(new PorterDuffColorFilter(GColor.WHITE.withAlpha(alpha).toARGB(), PorterDuff.Mode.SRC_IN));
+        paint.setColorFilter(colorFilter = new PorterDuffColorFilter(GColor.WHITE.withAlpha(alpha).toARGB(), PorterDuff.Mode.MULTIPLY));
     }
 
     @Override
     public void removeFilter() {
-        paint.setColorFilter(null);
+        paint.setColorFilter(colorFilter = null);
+    }
+
+    @Override
+    public void setTintFilter(GColor inColor, GColor outColor) {
+        paint.setColorFilter(colorFilter = new PorterDuffColorFilter(outColor.toARGB(), PorterDuff.Mode.SRC_IN));
+    }
+
+    @Override
+    public void drawDashedLine(float x0, float y0, float x1, float y1, float thickness, float dashLength) {
+        DashPathEffect effect = new DashPathEffect(new float[] { dashLength, dashLength }, dashLength/2);
+        float curWidth = paint.getStrokeWidth();
+        paint.setStrokeWidth(thickness);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setPathEffect(effect);
+        drawLine(x0, y0, x1, y1);
+        paint.setStrokeWidth(curWidth);
+        paint.setPathEffect(null);
     }
 }

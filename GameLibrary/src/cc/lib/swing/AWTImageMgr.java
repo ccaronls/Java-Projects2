@@ -11,7 +11,6 @@ import java.awt.image.BufferedImage;
 import java.awt.image.CropImageFilter;
 import java.awt.image.FilteredImageSource;
 import java.awt.image.ImageFilter;
-import java.awt.image.ImageObserver;
 import java.awt.image.ImageProducer;
 import java.awt.image.MemoryImageSource;
 import java.awt.image.ReplicateScaleFilter;
@@ -66,33 +65,24 @@ public final class AWTImageMgr {
         }
     }
 
+    private Image createMissingAssetImage() {
+        int dim = 64;
+        BufferedImage img = new BufferedImage(dim, dim, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = img.createGraphics();
+        g.setColor(Color.LIGHT_GRAY);
+        g.fillRect(0, 0, 64, 64);
+        g.setColor(Color.BLUE);
+        g.drawRect(1, 1, dim-2, dim-2);
+//        g.setFont(Font.getFont(Font.MONOSPACED));
+        g.setFont(g.getFont().deriveFont(16));
+        g.drawString("MISSING", 5, 18);
+        g.drawString("ASSET", 5, 34);
+        return img;
+    }
+
 	private List<Meta> images = new ArrayList<Meta>() {{
-	    add(new Meta(new Image() {
-            @Override
-            public int getWidth(ImageObserver observer) {
-                return 0;
-            }
-
-            @Override
-            public int getHeight(ImageObserver observer) {
-                return 0;
-            }
-
-            @Override
-            public ImageProducer getSource() {
-                return null;
-            }
-
-            @Override
-            public Graphics getGraphics() {
-                return null;
-            }
-
-            @Override
-            public Object getProperty(String name, ImageObserver observer) {
-                return null;
-            }
-        }, 0)); // make sure we start id 1 (not zero)
+	    // id==0 should always be the 'missing asset' image
+	    add(new Meta(createMissingAssetImage(), 1)); // make sure we start id 1 (not zero)
     }}; // loaded images
 
 	/**
@@ -204,6 +194,7 @@ public final class AWTImageMgr {
             }
         } catch (FileNotFoundException e) {
 		    log.error("File '" + fileOrResourceName + "' Not found on file paths or resources");
+            throw new GException("Fiel not found '" + fileOrResourceName + "'");
         } catch (Exception e) {
 		    log.error(e.getClass().getSimpleName() + ":" + e.getMessage());
             throw new GException("Cannot load image '" + fileOrResourceName + "'");

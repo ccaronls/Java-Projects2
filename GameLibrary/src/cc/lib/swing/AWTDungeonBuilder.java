@@ -2,20 +2,21 @@ package cc.lib.swing;
 
 import java.util.List;
 
-import cc.lib.board.CustomBoard;
+import cc.lib.board.BEdge;
+import cc.lib.board.BVertex;
 import cc.lib.dungeondice.CellType;
 import cc.lib.dungeondice.DBoard;
 import cc.lib.dungeondice.DCell;
 import cc.lib.game.Utils;
 
-public class AWTDungeonBuilder extends AWTBoardBuilder {
+public class AWTDungeonBuilder extends AWTBoardBuilder<BVertex, BEdge, DCell, DBoard> {
 
     public static void main(String [] args) {
         new AWTDungeonBuilder();
     }
 
     @Override
-    protected CustomBoard newBoard() {
+    protected DBoard newBoard() {
         return new DBoard();
     }
 
@@ -23,8 +24,8 @@ public class AWTDungeonBuilder extends AWTBoardBuilder {
     CellType cellType = CellType.EMPTY;
 
     @Override
-    protected void initFrame(AWTFrame frame) {
-        super.initFrame(frame);
+    protected void registerTools() {
+        super.registerTools();
         frame.addMenuBarMenu("CELL", Utils.toStringArray(CellType.values()));
     }
 
@@ -51,16 +52,16 @@ public class AWTDungeonBuilder extends AWTBoardBuilder {
         frame.setProperty("cellType", cellType.name());
         repaint();
     }
-
+/*
     @Override
-    protected void pickCell() {
-        super.pickCell();
+    protected void pickCellSingleSelect() {
+        super.pickCellSingleSelect();
         if (getSelectedIndex() >= 0) {
             DCell cell = board.getCell(getSelectedIndex());
             cell.setType(cellType);
         }
     }
-
+*/
     @Override
     protected String getPropertiesFileName() {
         return "ddbuilder.properties";

@@ -1,19 +1,27 @@
 package cc.lib.zombicide;
 
+import java.util.List;
+
 import cc.lib.annotation.Keep;
+import cc.lib.game.Utils;
 
 @Keep
 public enum ZArmorType implements ZEquipmentType<ZArmor> {
-    LEATHER(false, ZEquipSlotType.BODY,5, ""),
-    CHAINMAIL(false, ZEquipSlotType.BODY, 4, ""),
-    PLATE(false, ZEquipSlotType.BODY, 3, ""),
-    SHIELD(true, ZEquipSlotType.HAND, 4, ""),
-    DWARVEN_SHIELD(true, ZEquipSlotType.HAND, 4, "TODO: Protects against abomination"),
-    SHIELD_OF_AGES(true, ZEquipSlotType.HAND, 4, "TODO: Gain the shove skill"),
+    LEATHER(ZEquipmentClass.ARMOR, ZEquipSlotType.BODY,5, ""),
+    CHAINMAIL(ZEquipmentClass.ARMOR, ZEquipSlotType.BODY, 4, ""),
+    PLATE(ZEquipmentClass.ARMOR, ZEquipSlotType.BODY, 3, ""),
+    SHIELD(ZEquipmentClass.SHIELD, ZEquipSlotType.HAND, 4, ""),
+    DWARVEN_SHIELD(ZEquipmentClass.SHIELD, ZEquipSlotType.HAND, 4, "TODO: Protects against abomination"),
+    SHIELD_OF_AGES(ZEquipmentClass.SHIELD, ZEquipSlotType.HAND, 4, "TODO: Gain the shove skill") {
+        @Override
+        public List<ZSkill> getSkillsWhileEquipped() {
+            return Utils.toList(ZSkill.Shove);
+        }
+    },
     ;
 
-    ZArmorType(boolean isShield, ZEquipSlotType slotType, int dieRollToBlock, String specialAbilityDescription) {
-        this.shield = isShield;
+    ZArmorType(ZEquipmentClass equipClass, ZEquipSlotType slotType, int dieRollToBlock, String specialAbilityDescription) {
+        this.equipClass = equipClass;
         this.slotType = slotType;
         this.dieRollToBlock = dieRollToBlock;
         this.specialAbilityDescription = specialAbilityDescription;
@@ -22,12 +30,12 @@ public enum ZArmorType implements ZEquipmentType<ZArmor> {
     final int dieRollToBlock;
     final ZEquipSlotType slotType;
     final String specialAbilityDescription;
-    final boolean shield;
+    final ZEquipmentClass equipClass;
 
-    int getRating(ZZombieType type) {
+    public int getDieRollToBlock(ZZombieType type) {
         switch (this) {
             default:
-                if (type == ZZombieType.Abomination)
+                if (type.ignoresArmor)
                     return 0;
             case DWARVEN_SHIELD:
         }
@@ -39,13 +47,18 @@ public enum ZArmorType implements ZEquipmentType<ZArmor> {
         return new ZArmor(this);
     }
 
-    public ZSkill extraSkill() {
-        switch (this) {
-            case SHIELD_OF_AGES:
-                return ZSkill.Shove;
-        }
-        return null;
+    @Override
+    public boolean isActionType(ZActionType type) {
+        return false;
     }
 
+    @Override
+    public ZEquipmentClass getEquipmentClass() {
+        return equipClass;
+    }
 
+    @Override
+    public boolean isShield() {
+        return equipClass == ZEquipmentClass.SHIELD;
+    }
 }

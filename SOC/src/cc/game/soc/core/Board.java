@@ -2639,6 +2639,7 @@ public class Board extends Reflector<Board> {
 		for (int k=0; k<numV; k++) {
 			for (int i=0; i<numV; i++) {
 				for (int j=0; j<numV; j++) {
+				    // this is wrong!
 					int sum = Math.max(IDistances.DISTANCE_INFINITY, distLand[i][k] + distLand[k][j]);
 					if (sum < distLand[i][j]) {
 						distLand[i][j] = (byte)sum;

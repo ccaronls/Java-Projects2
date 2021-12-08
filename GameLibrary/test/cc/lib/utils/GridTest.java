@@ -17,4 +17,16 @@ public class GridTest extends TestCase {
 
     }
 
+    public void testEnsureCapacity() {
+
+        Grid<String> grid = new Grid(2, 2);
+        System.out.println(grid.toStringNumbered());
+
+        grid.fill("hello");
+        System.out.println(grid.toStringNumbered());
+
+        grid.ensureCapacity(3, 3, "Goodbye");
+        System.out.println(grid.toStringNumbered());
+
+    }
 }

@@ -4,7 +4,6 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.view.View;
 import android.view.ViewGroup;
 
 /**
@@ -18,10 +17,9 @@ import android.view.ViewGroup;
 
 public abstract class DroidActivity extends CCActivityBase {
 
-    DroidGraphics g = null;
-    DroidView content = null;
-    ViewGroup topBar = null;
-
+    private DroidGraphics g = null;
+    private DroidView content = null;
+    private ViewGroup topBar = null;
     private int margin = 0;
 
     /**
@@ -36,9 +34,13 @@ public abstract class DroidActivity extends CCActivityBase {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.droid_activity);
-        DroidView dv = content = (DroidView)findViewById(R.id.droid_view);
+        setContentView(getContentViewId());
+        content = (DroidView)findViewById(R.id.droid_view);
         topBar = (ViewGroup)findViewById(R.id.top_bar_layout);
+    }
+
+    protected int getContentViewId() {
+        return R.layout.droid_activity;
     }
 
     /**
@@ -49,13 +51,8 @@ public abstract class DroidActivity extends CCActivityBase {
         return topBar;
     }
 
-    public View getContent() {
+    public DroidView getContent() {
         return content;
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
     }
 
     @Override
@@ -135,5 +132,9 @@ public abstract class DroidActivity extends CCActivityBase {
 
     public boolean isCurrentDialogShowing() {
         return currentDialog != null && currentDialog.isShowing();
+    }
+
+    public void redraw() {
+        getContent().postInvalidate();
     }
 }

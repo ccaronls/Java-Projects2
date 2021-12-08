@@ -13,12 +13,11 @@ import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZDir;
 import cc.lib.zombicide.ZDoor;
 import cc.lib.zombicide.ZGame;
-import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZQuest;
 import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZTile;
 import cc.lib.zombicide.ZZone;
-import cc.lib.zombicide.ui.UIZBoardRenderer;
+import cc.lib.zombicide.ui.UIZombicide;
 
 public class ZQuestDeadTrail extends ZQuest {
 
@@ -85,19 +84,19 @@ public class ZQuestDeadTrail extends ZQuest {
     }
 
     @Override
-    public void processObjective(ZGame game, ZCharacter c, ZMove move) {
-        super.processObjective(game, c, move);
-        if (move.integer == blueKeyZone) {
-            game.getCurrentUser().showMessage(c.name() + " has found the BLUE key. Violet Vault doos UNLOCKED!");
+    public void processObjective(ZGame game, ZCharacter c) {
+        super.processObjective(game, c);
+        if (c.getOccupiedZone() == blueKeyZone) {
+            game.addLogMessage(c.name() + " has found the BLUE key. Violet Vault doos UNLOCKED!");
             game.unlockDoor(violetVault1);
             game.unlockDoor(violetVault2);
             blueKeyZone = -1;
-        } else if (move.integer == greenKeyZone) {
-            game.getCurrentUser().showMessage(c.name() + " has found the GREEN key.");
+        } else if (c.getOccupiedZone() == greenKeyZone) {
+            game.addLogMessage(c.name() + " has found the GREEN key.");
             greenKeyZone = -1;
         }
-        if (blueKeyZone < 0 && greenKeyZone < 0) {
-            game.getCurrentUser().showMessage("Gold Vault door UNLOCKED");
+        if (game.isDoorLocked(goldVault) && blueKeyZone < 0 && greenKeyZone < 0) {
+            game.addLogMessage("Gold Vault door UNLOCKED");
             game.unlockDoor(goldVault);
         }
     }
@@ -105,7 +104,7 @@ public class ZQuestDeadTrail extends ZQuest {
     @Override
     public int getPercentComplete(ZGame game) {
         int numTasks = getNumStartRedObjectives() + NUM_VAULT_ITEMS + 1;
-        int numComplete = getNumStartRedObjectives() - redObjectives.size();
+        int numComplete = getNumFoundObjectives();
         numComplete += getNumFoundVaultItems();
         if (isAllPlayersInExit(game))
             numComplete ++;
@@ -114,7 +113,7 @@ public class ZQuestDeadTrail extends ZQuest {
 
     @Override
     public String getQuestFailedReason(ZGame game) {
-        if (Utils.filter(game.getAllCharacters(), object -> object.isDead()).size() > 0) {
+        if (Utils.count(game.getBoard().getAllCharacters(), object -> object.isDead()) > 0) {
             return "Not all players survived";
         }
         return null;
@@ -123,8 +122,8 @@ public class ZQuestDeadTrail extends ZQuest {
     @Override
     public void init(ZGame game) {
         while (greenKeyZone == blueKeyZone) {
-            greenKeyZone = Utils.randItem(redObjectives);
-            blueKeyZone = Utils.randItem(redObjectives);
+            greenKeyZone = Utils.randItem(getRedObjectives());
+            blueKeyZone = Utils.randItem(getRedObjectives());
         }
         game.lockDoor(violetVault1);
         game.lockDoor(violetVault2);
@@ -135,8 +134,8 @@ public class ZQuestDeadTrail extends ZQuest {
     public Table getObjectivesOverlay(ZGame game) {
         return new Table(getName())
                 .addRow(new Table().setNoBorder()
-                    .addRow("1.", "Take all Objectives", String.format("%d of %d", getNumStartRedObjectives()-redObjectives.size(), getNumStartRedObjectives()))
-                    .addRow("2.", "Key to Violet Vaults is hidden among the RED objectives", blueKeyZone == -1 ? "Found" : "Not Found")
+                    .addRow("1.", "Take all Objectives", String.format("%d of %d", getNumFoundObjectives(), getNumStartRedObjectives()))
+                    .addRow("2.", "Key to Violet Vault is hidden among the RED objectives", blueKeyZone == -1 ? "Found" : "Not Found")
                     .addRow("3.", "Key to Gold Vault is hidden among the RED objectives", greenKeyZone == -1 ? "Found" : "Not Found")
                     .addRow("4.", "Take all vault artifacts", String.format("%d of %d", getNumFoundVaultItems(), NUM_VAULT_ITEMS))
                     .addRow("5.", "Get all survivors to the exit zone")
@@ -144,8 +143,8 @@ public class ZQuestDeadTrail extends ZQuest {
     }
 
     @Override
-    public void drawQuest(ZGame game, AGraphics g) {
-        if (!UIZBoardRenderer.DEBUG_DRAW_ZONE_INFO) {
+    public void drawQuest(UIZombicide game, AGraphics g) {
+        if (true) {
             return;
         }
 

@@ -121,7 +121,11 @@ public abstract class UIComponentView<T extends UIRenderer> extends View impleme
         } else if (renderer != null) {
             loadAssetsRunnable = null;
             GDimension prev = renderer.getMinDimension();
-            renderer.draw(g, tx, ty);
+            try {
+                renderer.draw(g, tx, ty);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             GDimension next = renderer.getMinDimension();
             if (!next.equals(prev)) {
                 if (isResizable()) {

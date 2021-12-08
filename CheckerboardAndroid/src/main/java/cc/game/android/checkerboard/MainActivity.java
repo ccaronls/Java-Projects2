@@ -33,7 +33,7 @@ public class MainActivity extends DroidActivity {
     private UIGame game = new UIGame() {
         @Override
         public void repaint(long delayMs) {
-            getContent().postInvalidate();
+            redraw();
         }
 
         @Override

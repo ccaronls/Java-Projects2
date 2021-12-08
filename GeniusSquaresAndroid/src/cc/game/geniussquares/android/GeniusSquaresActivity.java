@@ -5,8 +5,6 @@ import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 
 import java.io.File;
@@ -26,7 +24,7 @@ public class GeniusSquaresActivity extends DroidActivity {
     final UIGeniusSquares gs = new UIGeniusSquares() {
         @Override
         public void repaint() {
-            getContent().postInvalidate();
+            redraw();
         }
     };
 
@@ -88,7 +86,7 @@ public class GeniusSquaresActivity extends DroidActivity {
         Log.i(TAG, "onTouchDown");
         tx = Math.round(x);
         ty = Math.round(y);
-        getContent().postInvalidate();
+        redraw();
     }
 
     @Override
@@ -100,7 +98,7 @@ public class GeniusSquaresActivity extends DroidActivity {
         }
         tx = -1;//Math.round(x);
         ty = -1;//Math.round(y);
-        getContent().postInvalidate();
+        redraw();
     }
 
     @Override
@@ -112,7 +110,7 @@ public class GeniusSquaresActivity extends DroidActivity {
         }
         tx = Math.round(x);
         ty = Math.round(y);
-        getContent().postInvalidate();
+        redraw();
     }
 
     @Override

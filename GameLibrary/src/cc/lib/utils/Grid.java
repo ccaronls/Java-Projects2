@@ -69,6 +69,15 @@ public final class Grid<T> extends Reflector<Grid<T>> {
         public static Pos fromIndex(int index) {
             return new Pos(index >>> 16, index & 0xffff);
         }
+
+        public boolean isAdjacentTo(Pos pos) {
+            if (row == pos.getRow()) {
+                return Math.abs(col-pos.getColumn()) == 1;
+            } else if (col == pos.getColumn()) {
+                return Math.abs(row - pos.getRow()) == 1;
+            }
+            return false;
+        }
     }
 
     public static class Iterator<T> implements java.util.Iterator<T> {
@@ -118,7 +127,11 @@ public final class Grid<T> extends Reflector<Grid<T>> {
      * @param cols
      */
     public Grid(int rows, int cols) {
-        this.grid = build(rows, cols);
+        this(rows, cols, null);
+    }
+
+    public Grid(int rows, int cols, T fillValue) {
+        this.grid = build(rows, cols, fillValue);
     }
 
     /**
@@ -167,7 +180,7 @@ public final class Grid<T> extends Reflector<Grid<T>> {
         if (getRows() >= rows && getCols() >= cols)
             return;
 
-        List<List<T>> newGrid = build(Math.max(getRows(), rows), Math.max(getCols(), cols));
+        List<List<T>> newGrid = build(Math.max(getRows(), rows), Math.max(getCols(), cols), fillValue);
         for (int i=0; i<getRows(); i++) {
             for (int ii=0; ii<getCols(); ii++) {
                 newGrid.get(i).set(ii, get(i, ii));
@@ -176,7 +189,7 @@ public final class Grid<T> extends Reflector<Grid<T>> {
         grid = newGrid;
     }
 
-    private static <T> void fill(List<List<T>> grid, T fillValue) {
+    public void fill(T fillValue) {
         for (List<T> l : grid) {
             for (int i=0; i<l.size(); i++) {
                 l.set(i, fillValue);
@@ -184,12 +197,12 @@ public final class Grid<T> extends Reflector<Grid<T>> {
         }
     }
 
-    private static <T> List<List<T>> build(int rows, int cols) {
+    private static <T> List<List<T>> build(int rows, int cols, T fillValue) {
         List<List<T>> grid = new ArrayList<>(rows);
         for (int i=0; i<rows; i++) {
             List l = new Vector(cols);
             for (int ii=0; ii<cols; ii++) {
-                l.add(null);
+                l.add(fillValue);
             }
             grid.add(l);
         }
@@ -280,7 +293,7 @@ public final class Grid<T> extends Reflector<Grid<T>> {
         if (minRow == 0 && minCol == 0 && maxRow == getRows() && maxCol == getCols())
             return; // nothing to do
 
-        List<List<T>> newGrid = build(maxRow-minRow, maxCol-minCol);
+        List<List<T>> newGrid = build(maxRow-minRow, maxCol-minCol, null);
         for (int i=minRow; i<maxRow; i++) {
             for (int ii=minCol; ii<maxCol; ii++) {
                 newGrid.get(i-minRow).set(ii-minCol, get(i, ii));
@@ -297,7 +310,7 @@ public final class Grid<T> extends Reflector<Grid<T>> {
         if (grid != null && (grid.length == 0 || grid[0].length == 0)) {
             throw new IllegalArgumentException("Supplied grid has 0 length rows or columns");
         }
-        this.grid = build(grid.length, grid[0].length);
+        this.grid = build(grid.length, grid[0].length, null);
         for (int i=0; i<grid.length; i++) {
             for (int ii=0; ii<grid[0].length; ii++) {
                 set(i, ii, grid[i][ii]);
@@ -320,8 +333,7 @@ public final class Grid<T> extends Reflector<Grid<T>> {
      * @param filler
      */
     public void init(int rows, int cols, T filler) {
-        grid = build(rows, cols);
-        fill(grid, filler);
+        grid = build(rows, cols, filler);
     }
 
     /**

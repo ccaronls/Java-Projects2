@@ -28,7 +28,7 @@ public enum ZDir {
     public final int dx, dy, dz, rotation;
     public final Justify horz, vert;
 
-    ZDir getOpposite() {
+    public ZDir getOpposite() {
         switch (this) {
             case NORTH:
                 return SOUTH;
@@ -58,7 +58,7 @@ public enum ZDir {
         return null;
     }
 
-    static ZDir getDirFrom(Grid.Pos from, Grid.Pos to) {
+    public static ZDir getDirFrom(Grid.Pos from, Grid.Pos to) {
         if (from.getColumn() != to.getColumn() && from.getRow() != to.getRow())
             return null;
 

@@ -15,7 +15,6 @@ import cc.lib.zombicide.ZDoor;
 import cc.lib.zombicide.ZEquipment;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZItemType;
-import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZQuest;
 import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZTile;
@@ -89,14 +88,14 @@ public class ZQuestTheEvilTemple extends ZQuest {
     }
 
     @Override
-    public void processObjective(ZGame game, ZCharacter c, ZMove move) {
-        super.processObjective(game, c, move);
-        if (move.integer == greenObjZone) {
-            game.getCurrentUser().showMessage(c.name() + " has found the GREEN objective and opened the GOLD vault");
+    public void processObjective(ZGame game, ZCharacter c) {
+        super.processObjective(game, c);
+        if (c.getOccupiedZone() == greenObjZone) {
+            game.addLogMessage(c.name() + " has found the GREEN objective and opened the GOLD vault");
             game.unlockDoor(goldVaultDoor);
             greenObjZone = -1;
-        } else if (move.integer == blueObjZone) {
-            game.getCurrentUser().showMessage(c.name() + " has found the BLUE objective and opened the VIOLET vault");
+        } else if (c.getOccupiedZone() == blueObjZone) {
+            game.addLogMessage(c.name() + " has found the BLUE objective and opened the VIOLET vault");
             game.unlockDoor(violetVaultDoor);
             blueObjZone = -1;
         }
@@ -120,8 +119,8 @@ public class ZQuestTheEvilTemple extends ZQuest {
     @Override
     public void init(ZGame game) {
         while (blueObjZone == greenObjZone) {
-            blueObjZone = Utils.randItem(redObjectives);
-            greenObjZone = Utils.randItem(redObjectives);
+            blueObjZone = Utils.randItem(getRedObjectives());
+            greenObjZone = Utils.randItem(getRedObjectives());
         }
         game.lockDoor(goldVaultDoor);
         game.lockDoor(violetVaultDoor);
@@ -131,7 +130,7 @@ public class ZQuestTheEvilTemple extends ZQuest {
     public Table getObjectivesOverlay(ZGame game) {
         return new Table(getName())
                 .addRow(new Table().setNoBorder()
-                    .addRow("1.", "Collect all objectives.", String.format("%d of %d", getNumStartRedObjectives()-redObjectives.size(), getNumStartRedObjectives()))
+                    .addRow("1.", "Collect all objectives.", String.format("%d of %d", getNumFoundObjectives(), getNumStartRedObjectives()))
                     .addRow("2.", "Unlock GOLD vault. Key hidden among RED objectives.", greenObjZone==-1)
                     .addRow("3.", "Unlock VIOLET vault. Key hidden among RED objectives.", blueObjZone==-1)
                     .addRow("4.", "Kill the Abomination.", game.getNumKills(ZZombieType.Abomination) > 0)

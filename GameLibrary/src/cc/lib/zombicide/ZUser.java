@@ -3,69 +3,162 @@ package cc.lib.zombicide;
 import java.util.ArrayList;
 import java.util.List;
 
-import cc.lib.utils.Reflector;
+import cc.lib.game.GColor;
+import cc.lib.game.Utils;
 
-public abstract class ZUser extends Reflector<ZUser> {
+public abstract class ZUser {
 
-    static {
-        addAllFields(ZUser.class);
+    public final static GColor [] USER_COLORS = {
+            GColor.YELLOW,
+            GColor.RED,
+            GColor.GREEN,
+            GColor.ORANGE,
+            GColor.BLUE,
+            GColor.MAGENTA
+    };
+
+    public final static String [] USER_COLOR_NAMES = {
+            "YELLOW", "RED", "GREEN", "ORANGE", "BLUE", "MAGENTA"
+    };
+
+    private int color = 0;
+    private String name = null;
+    private final List<ZPlayerName> characters = new ArrayList<>();
+
+    public GColor getColor() {
+        return USER_COLORS[color];
     }
 
-    final List<ZPlayerName> characters = new ArrayList<>();
+    public int getColorId() {
+        return color;
+    }
+
+    public void setColor(int color) {
+        Utils.assertTrue(color >= 0 && color < USER_COLORS.length);
+        this.color = color;
+        for (ZPlayerName nm : characters) {
+            nm.character.setColor(USER_COLORS[color]);
+        }
+    }
+
+    public String getName() {
+        return name == null ? USER_COLOR_NAMES[color] : name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
 
     public List<ZPlayerName> getCharacters() {
         return new ArrayList<>(characters);
     }
 
-    public void clear() {
+    public void clearCharacters() {
         characters.clear();
     }
 
-    public abstract void showMessage(String s);
-
     public void addCharacter(ZPlayerName c) {
+        characters.remove(c);
         characters.add(c);
+        c.character.setColor(USER_COLORS[color]);
     }
 
-    public abstract ZCharacter chooseCharacter(List<ZCharacter> options);
+    public void removeCharacter(ZPlayerName name) {
+        name.character.setColor(null);
+        characters.remove(name);
+    }
 
-    public abstract ZMove chooseMove(ZGame game, ZCharacter cur, List<ZMove> options);
+    public void setCharacters(List<ZPlayerName> chars) {
+        characters.clear();
+        for (ZPlayerName nm : chars) {
+            addCharacter(nm);
+        }
+    }
 
-    public abstract ZSkill chooseNewSkill(ZGame game, ZCharacter character, List<ZSkill> skillOptions);
+    public void setCharactersHidden(boolean hidden) {
+        for (ZPlayerName nm : characters) {
+            if (nm.getCharacter() != null)
+                nm.getCharacter().setInvisible(hidden);
+        }
+    }
 
-    public abstract ZEquipSlot chooseSlotToOrganize(ZGame game, ZCharacter cur, List<ZEquipSlot> slots);
+    public abstract ZPlayerName chooseCharacter(List<ZPlayerName> options);
 
-    public abstract ZEquipment chooseEquipment(ZGame game, ZCharacter cur, List<ZEquipment> equipOptions);
+    public abstract Integer chooseMove(ZPlayerName cur, List<ZMove> options);
 
-    public abstract ZEquipSlot chooseSlotForEquip(ZGame game, ZCharacter cur, List<ZEquipSlot> equipableSlots);
+    <T> T elemOrNull(Integer idx, List options) {
+        if (idx == null)
+            return null;
+        return (T)options.get(idx);
+    }
 
-    public abstract Integer chooseZoneToWalk(ZGame game, ZCharacter cur, List<Integer> zones);
+    final ZMove chooseMoveInternal(ZPlayerName cur, List<ZMove> options) {
+        return elemOrNull(chooseMove(cur, options), options);
+    }
 
-    public abstract ZDoor chooseDoorToToggle(ZGame game, ZCharacter cur, List<ZDoor> doors);
+    public abstract ZSkill chooseNewSkill(ZPlayerName character, List<ZSkill> skillOptions);
 
-    public abstract ZWeapon chooseWeaponSlot(ZGame game, ZCharacter c, List<ZWeapon> weapons);
+    public abstract ZEquipSlot chooseSlotToOrganize(ZPlayerName cur, List<ZEquipSlot> slots);
 
-    public abstract ZCharacter chooseTradeCharacter(ZGame game, ZCharacter c, List<ZCharacter> list);
+    public abstract Integer chooseEquipment(ZPlayerName cur, List<ZEquipment> equipOptions);
 
-    public abstract Integer chooseZoneForAttack(ZGame game, ZCharacter c, List<Integer> zones);
+    final ZEquipment chooseEquipmentInternal(ZPlayerName cur, List<ZEquipment> equipOptions) {
+        return elemOrNull(chooseEquipment(cur, equipOptions), equipOptions);
+    }
 
-    public abstract ZEquipment chooseItemToPickup(ZGame game, ZCharacter cur, List<ZEquipment> list);
+    public abstract ZEquipSlot chooseSlotForEquip(ZPlayerName cur, List<ZEquipSlot> equipableSlots);
 
-    public abstract ZEquipment chooseItemToDrop(ZGame game, ZCharacter cur, List<ZEquipment> list);
+    public abstract Integer chooseZoneToWalk(ZPlayerName cur, List<Integer> zones);
 
-    public abstract ZItem chooseItemToThrow(ZGame game, ZCharacter cur, List<ZItem> slots);
+    public abstract Integer chooseDoorToToggle(ZPlayerName cur, List<ZDoor> doors);
 
-    public abstract Integer chooseZoneToThrowItem(ZGame game, ZCharacter cur, ZItem toThrow, List<Integer> zones);
+    final ZDoor chooseDoorToToggleInternal(ZPlayerName cur, List<ZDoor> doors) {
+        return elemOrNull(chooseDoorToToggle(cur, doors), doors);
+    }
 
-    public abstract Integer chooseZoneToShove(ZGame game, ZCharacter cur, List<Integer> list);
+    public abstract Integer chooseWeaponSlot(ZPlayerName c, List<ZWeapon> weapons);
 
-    public abstract ZSpell chooseSpell(ZGame game, ZCharacter cur, List<ZSpell> spells);
+    final ZWeapon chooseWeaponSlotInternal(ZPlayerName c, List<ZWeapon> weapons) {
+        return elemOrNull(chooseWeaponSlot(c, weapons), weapons);
+    }
 
-    public abstract ZCharacter chooseCharacterForSpell(ZGame game, ZCharacter cur, ZSpell spell, List<ZCharacter> targets);
+    public abstract ZPlayerName chooseTradeCharacter(ZPlayerName c, List<ZPlayerName> list);
 
-    public abstract ZCharacter chooseCharacterToBequeathMove(ZGame game, ZCharacter cur, List<ZCharacter> list);
+    public abstract Integer chooseZoneForAttack(ZPlayerName c, List<Integer> zones);
 
-    public abstract Integer chooseZoneForBloodlust(ZGame zGame, ZCharacter cur, List<Integer> list);
+    public abstract Integer chooseItemToPickup(ZPlayerName cur, List<ZEquipment> list);
 
-    public abstract Integer chooseZoneToRemoveSpawn(ZGame game, ZCharacter cur, List<Integer> list);
+    final ZEquipment chooseItemToPickupInternal(ZPlayerName cur, List<ZEquipment> list) {
+        return elemOrNull(chooseItemToPickup(cur, list), list);
+    }
+
+    public abstract Integer chooseItemToDrop(ZPlayerName cur, List<ZEquipment> list);
+
+    final ZEquipment chooseItemToDropInternal(ZPlayerName cur, List<ZEquipment> list) {
+        return elemOrNull(chooseItemToDrop(cur, list), list);
+    }
+
+    public abstract Integer chooseEquipmentToThrow(ZPlayerName cur, List<ZEquipment> slots);
+
+    final ZEquipment chooseEquipmentToThrowInternal(ZPlayerName cur, List<ZEquipment> slots) {
+        return elemOrNull(chooseEquipmentToThrow(cur, slots), slots);
+    }
+
+    public abstract Integer chooseZoneToThrowEquipment(ZPlayerName cur, ZEquipment toThrow, List<Integer> zones);
+
+    public abstract Integer chooseZoneToShove(ZPlayerName cur, List<Integer> list);
+
+    public abstract ZSpell chooseSpell(ZPlayerName cur, List<ZSpell> spells);
+
+    public abstract ZPlayerName chooseCharacterForSpell(ZPlayerName cur, ZSpell spell, List<ZPlayerName> targets);
+
+    public abstract ZPlayerName chooseCharacterToBequeathMove(ZPlayerName cur, List<ZPlayerName> list);
+
+    public abstract Integer chooseZoneForBloodlust(ZPlayerName cur, List<Integer> list);
+
+    public abstract Integer chooseSpawnAreaToRemove(ZPlayerName cur, List<ZSpawnArea> list);
+
+    public abstract Integer chooseZoneToIgnite(ZPlayerName playerName, List<Integer> ignitableZones);
+
+    public abstract ZEquipmentClass chooseEquipmentClass(ZPlayerName playerName, List<ZEquipmentClass> classes);
 }

@@ -3,6 +3,7 @@ package cc.applets.zombicide;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.EventQueue;
+import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
@@ -12,11 +13,13 @@ import java.awt.event.MouseListener;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.Box;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -25,6 +28,8 @@ import javax.swing.JSeparator;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 
+import cc.lib.game.AGraphics;
+import cc.lib.game.GColor;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
@@ -35,6 +40,7 @@ import cc.lib.swing.AWTPanel;
 import cc.lib.swing.AWTToggleButton;
 import cc.lib.ui.IButton;
 import cc.lib.utils.FileUtils;
+import cc.lib.zombicide.ZActor;
 import cc.lib.zombicide.ZDifficulty;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZPlayerName;
@@ -105,7 +111,18 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
     File gameFile = null;
 
     public void onAllImagesLoaded() {
-        game = new UIZombicide(new UIZCharacterRenderer(charComp), new UIZBoardRenderer(boardComp)) {
+        UIZBoardRenderer renderer = new UIZBoardRenderer(boardComp) {
+            @Override
+            protected void drawActor(AGraphics g, ZActor actor, GColor outline) {
+                if (actor.isAlive() && actor.getOutlineImageId() > 0) {
+                    // for AWT to need to render the outline in white fist otherwise the tinting looks messed up
+                    g.drawImage(actor.getOutlineImageId(), actor.getRect());
+                }
+                super.drawActor(g, actor, outline);
+            }
+        };
+
+        game = new UIZombicide(new UIZCharacterRenderer(charComp), renderer) {
 
             @Override
             public boolean runGame() {
@@ -127,7 +144,6 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
 
                 if (isGameOver()) {
                     stopGameThread();
-                    showSummaryOverlay();
                     initHomeMenu();
                 }
 
@@ -146,18 +162,19 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
                 boardComp.requestFocus();
             }
         };
-        List<ZPlayerName> players = getEnumListProperty("players", ZPlayerName.class, Utils.toList(ZPlayerName.Baldric, ZPlayerName.Clovis));
-        for (ZPlayerName pl : players) {
-            user.addCharacter(pl);
-        }
-        game.setUsers(user);
         try {
             game.loadQuest(ZQuests.valueOf(getStringProperty("quest", ZQuests.Tutorial.name())));
         } catch (Exception e) {
             e.printStackTrace();
             game.loadQuest(ZQuests.Tutorial);
         }
-        game.showObjectivesOverlay();
+        user.setColor(0);
+        List<ZPlayerName> players = getEnumListProperty("players", ZPlayerName.class, Utils.toList(ZPlayerName.Baldric, ZPlayerName.Clovis));
+        for (ZPlayerName pl : players) {
+            game.addCharacter(pl);
+            user.addCharacter(pl);
+        }
+        game.setUsers(user);
         game.setDifficulty(ZDifficulty.valueOf(getStringProperty("difficulty", ZDifficulty.MEDIUM.name())));
         initHomeMenu();
     }
@@ -191,7 +208,7 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
     }
 
     void initHomeMenu() {
-        List<MenuItem> items = Utils.filterItems(object -> object.isHomeButton(this), MenuItem.values());
+        List<MenuItem> items = Utils.filter(MenuItem.values(), object -> object.isHomeButton(this));
         setMenuItems(items);
     }
 
@@ -246,7 +263,6 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
                 for (ZQuests q : ZQuests.values()) {
                     menu.add(new AWTButton(q.name().replace('_', ' '), e12 -> {
                         game.loadQuest(q);
-                        game.showObjectivesOverlay();
                         setStringProperty("quest", q.name());
                         boardComp.repaint();
                         initHomeMenu();
@@ -287,12 +303,14 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
                     });
                 }
                 menu.add(new AWTButton("KEEP", e1 -> {
-                    user.clear();
+                    game.clearCharacters();
+                    game.clearUsersCharacters();
                     for (Map.Entry<ZPlayerName, AWTToggleButton> entry : buttons.entrySet()) {
-                        if (entry.getValue().isSelected())
+                        if (entry.getValue().isSelected()) {
+                            game.addCharacter(entry.getKey());
                             user.addCharacter(entry.getKey());
+                        }
                     }
-                    game.setUsers(user);
                     game.reload();
                     setEnumListProperty("players", Utils.filter(buttons.keySet(), object -> buttons.get(object).isSelected()));
                     initHomeMenu();
@@ -325,17 +343,13 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
     protected void initApp() {
         ToolTipManager.sharedInstance().setDismissDelay(30*1000);
         ToolTipManager.sharedInstance().setInitialDelay(0);
-//        Font[] fonts = GraphicsEnvironment.getLocalGraphicsEnvironment().getAllFonts();
-//        for (Font f : fonts) {
-//            log.debug("Font: %s:%s", f.getName(), f.getAttributes());
-//        }
-        //log.info("Fonts=" + Arrays.toString(fonts));
-
         // For applets:all fonts are: [Arial, Dialog, DialogInput, Monospaced, SansSerif, Serif]
 
         setLayout(new BorderLayout());
         JScrollPane charContainer = new JScrollPane();
+        JScrollPane menuScrollContainer = new JScrollPane();
         charContainer.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        menuScrollContainer.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         charContainer.getViewport().add(charComp = new CharacterComponent());
         charContainer.setPreferredSize(new Dimension(400, 200));
         charContainer.setMaximumSize(new Dimension(10000, 200));
@@ -344,8 +358,24 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
         menu.setLayout(new GridLayout(0, 1));
         menuContainer.setLayout(new GridBagLayout());
         menuContainer.setPreferredSize(new Dimension(150, 400));
-        menuContainer.add(menu);
-        add(menuContainer, BorderLayout.LINE_START);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        menuContainer.add(menu, gbc);
+        // add a vertical filler as last component to "push" the buttons up
+        gbc = new GridBagConstraints();
+        Box.Filler verticalFiller = new Box.Filler(
+                new java.awt.Dimension(0, 0),
+                new java.awt.Dimension(0, 0),
+                new java.awt.Dimension(0, Integer.MAX_VALUE));
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.fill = java.awt.GridBagConstraints.VERTICAL;
+        gbc.weighty = 1.0;
+        menuScrollContainer.add(verticalFiller, gbc);
+
+        menuScrollContainer.getViewport().add(menuContainer);
+        add(menuScrollContainer, BorderLayout.LINE_START);
         add(boardComp = new BoardComponent(), BorderLayout.CENTER);
     }
 
@@ -366,13 +396,15 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
         }
     }
 
-    void initMenu(UIZombicide.UIMode mode, List options) {
+    void initMenu(UIZombicide.UIMode mode, List _options) {
         menu.removeAll();
+        List options = new ArrayList(_options);
+        boardComp.initKeysPresses(options);
         switch (mode) {
             case NONE:
                 break;
+            case PICK_CHARACTER:
             case PICK_MENU: {
-
                 for (Object o : options) {
                     menu.add(new ZButton((IButton)o));
                 }
@@ -380,9 +412,10 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
                 break;
             }
             case PICK_ZONE:
+            case PICK_SPAWN:
             case PICK_ZOMBIE:
-            case PICK_CHARACTER:
             case PICK_DOOR:
+                break;
         }
 
         JComponent sep = new JSeparator();

@@ -15,6 +15,20 @@ Zoom level 0 should show entire screen
 (DONE)Hide panel buttons when in loading screen
 SOUND EFFECTS!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 (DONE)in pick char mode add buttons to the menu for the pickable players
+Necromancer spawns should cause extra activation for any other necromancers on the board
+
+Wulfsburg
+------------------
+Ultra-Red mode - Exp level starts over when players can choose from the remaining skills on the subsequent go arounds
+Wulfs - Have 3 actions per turn (can only attack once)
+Towers provide ability to fire ranged and magic weapons over 'ramparts' but cannot be breached,
+4 new heros
+- Theo, Morrigan, Karl, Ariane
+8 new weapons
+Let players choose start weapon
+Directional zombies - zombies should face the direction (right or left) they are moving
+New wolfberg weapons have a min danger level to wield requirement
+
 
 SEBI NOTES
 -----------
@@ -32,7 +46,9 @@ Show when backpack full (and cannot trade or search)
 Describe how armor rolls work.
 Shield should add +1 to existing defense (show in char info)
 Search should work such that user has option to discard the found object or make room for it if they want
-Trade should also work in such a way that
+
+
+
 
 (DONE)Add slashing anims for melee attacks
 (DONE)Add ability to destroy spawns
@@ -104,3 +120,9 @@ Trade Take:
 
 Trade Give: (only if open slot)
 
+Trade Only show 'Keep' menu if no empty hand/body slot for item
+- Make 'keep item' a game state to avoid throwing it away?
+
+NEW BUGS
+-------------
+Holding 2 of same weapon always returns first one. If crossbow then when empty is a problem. Show if empty on the button label

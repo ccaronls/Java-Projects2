@@ -16,7 +16,6 @@ import cc.lib.zombicide.ZDoor;
 import cc.lib.zombicide.ZEquipment;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZItemType;
-import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZQuest;
 import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZTile;
@@ -78,10 +77,10 @@ public class ZQuestFamine extends ZQuest {
     }
 
     @Override
-    public void processObjective(ZGame game, ZCharacter c, ZMove move) {
-        super.processObjective(game, c, move);
-        if (move.integer == blueKeyZone) {
-            game.getCurrentUser().showMessage("Blue key found. Vault unlocked");
+    public void processObjective(ZGame game, ZCharacter c) {
+        super.processObjective(game, c);
+        if (c.getOccupiedZone() == blueKeyZone) {
+            game.addLogMessage("Blue key found. Vault unlocked");
             for (ZDoor door : lockedVaults) {
                 game.unlockDoor(door);
             }
@@ -122,7 +121,9 @@ public class ZQuestFamine extends ZQuest {
 
     boolean isAllLockedInVault(ZGame game) {
         int vaultZone = -1;
-        for (ZCharacter c : game.getAllLivingCharacters()) {
+        for (ZCharacter c : game.getBoard().getAllCharacters()) {
+            if (!c.isAlive())
+                continue;
             ZZone zone = game.getBoard().getZone(c.getOccupiedZone());
             if (zone.getType() != ZZoneType.VAULT) {
                 return false;
@@ -169,7 +170,7 @@ public class ZQuestFamine extends ZQuest {
 
     @Override
     public void init(ZGame game) {
-        blueKeyZone = Utils.randItem(redObjectives);
+        blueKeyZone = Utils.randItem(getRedObjectives());
     }
 
     @Override

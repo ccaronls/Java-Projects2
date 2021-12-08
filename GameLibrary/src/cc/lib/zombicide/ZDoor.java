@@ -47,7 +47,7 @@ public final class ZDoor extends Reflector<ZDoor>  {
     }
 
     public boolean isClosed(ZBoard board) {
-        return !board.getCell(cellPosStart).getWallFlag(dir).isOpen();
+        return !board.getCell(cellPosStart).getWallFlag(dir).opened;
     }
 
     public Grid.Pos getCellPosStart() {

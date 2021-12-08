@@ -12,12 +12,12 @@ import cc.lib.zombicide.ZCell;
 import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZItemType;
-import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZQuest;
 import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZTile;
 import cc.lib.zombicide.ZZombieType;
 import cc.lib.zombicide.ZZone;
+import cc.lib.zombicide.ui.UIZombicide;
 
 public class ZQuestTheHellHole extends ZQuest {
 
@@ -81,8 +81,8 @@ public class ZQuestTheHellHole extends ZQuest {
     }
 
     @Override
-    public void processObjective(ZGame game, ZCharacter c, ZMove move) {
-        super.processObjective(game, c, move);
+    public void processObjective(ZGame game, ZCharacter c) {
+        super.processObjective(game, c);
         game.giftEquipment(c, ZItemType.DRAGON_BILE.create());
     }
 
@@ -106,7 +106,7 @@ public class ZQuestTheHellHole extends ZQuest {
                 .addRow(new Table().setNoBorder()
                         .addRow("1.", "Destroy all spawn zones OUTSIDE the HELLHOLE (Red area). This requires waiting for Necromancers to spawn, killing them, then removing the spawns outside of the hellhole.", String.format("%d of %d", numStartObjSpawns-objSpawns.size(), numStartObjSpawns))
                         .addRow("2.", "Set the Hellhole ablaze using dragon bile AFTER the spawn objectives completed.", hellholeBurnt)
-                        .addRow("3.", "The RED Objectives give EXP and a Dragon Bile to the player that takes it.", String.format("%d Left", redObjectives.size()))
+                        .addRow("3.", "The RED Objectives give EXP and a Dragon Bile to the player that takes it.", String.format("%d Left", getRedObjectives().size()))
                 );
     }
 
@@ -118,7 +118,7 @@ public class ZQuestTheHellHole extends ZQuest {
     }
 
     @Override
-    public void drawQuest(ZGame game, AGraphics g) {
+    public void drawQuest(UIZombicide game, AGraphics g) {
         ZZone hellhole = game.getBoard().getZone(hellHoleZone);
         g.setColor(GColor.RED.withAlpha(.2f));
         hellhole.drawFilled(g);

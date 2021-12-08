@@ -8,7 +8,7 @@ import cc.lib.android.UIComponentView;
 import cc.lib.game.GColor;
 import cc.lib.zombicide.ui.UIZCharacterRenderer;
 
-public class ZCharacterView extends UIComponentView {
+public class ZCharacterView extends UIComponentView<UIZCharacterRenderer> {
 
     public ZCharacterView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -19,7 +19,7 @@ public class ZCharacterView extends UIComponentView {
         super.preDrawInit(g);
         g.setTextModePixels(true);
         g.setTextHeight(getResources().getDimension(R.dimen.chars_view_text_size));
-        UIZCharacterRenderer.TEXT_COLOR = new GColor(getResources().getColor(R.color.text_color));
-        UIZCharacterRenderer.TEXT_COLOR_DIM = new GColor(getResources().getColor(R.color.text_color_dim));
+        getRenderer().setTextColor(new GColor(getResources().getColor(R.color.text_color)));
+//        UIZCharacterRenderer.TEXT_COLOR_DIM = new GColor(getResources().getColor(R.color.text_color_dim));
     }
 }

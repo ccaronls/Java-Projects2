@@ -65,10 +65,10 @@ public class Splash extends DroidActivity {
                         handRect.y += handRect.h;
                         AImage img = g.getImage(R.drawable.zgravestone);
                         g.drawImage(R.drawable.zgravestone, rect.fit(img));
-                        img = g.getImage(R.mipmap.zicon);
+                        img = g.getImage(R.drawable.zicon);
                         handRect.y += handRect.h * (1f-position);
                         handRect.h *= position;
-                        g.drawImage(R.mipmap.zicon, handRect.fit(img));
+                        g.drawImage(R.drawable.zicon, handRect.fit(img));
 
                     }
 
@@ -85,7 +85,7 @@ public class Splash extends DroidActivity {
     protected void onDraw(DroidGraphics g) {
         g.setTextModePixels(true);
         animation.update(g);
-        getContent().postInvalidate();
+        redraw();
     }
 
     public void transition() {

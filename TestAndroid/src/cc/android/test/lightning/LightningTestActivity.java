@@ -42,7 +42,7 @@ public class LightningTestActivity extends DroidActivity {
 
         if (a != null) {
             a.update(g);
-            getContent().postInvalidate();
+            redraw();
             if (a.isDone()) {
                 a = null;
                 rect = null;

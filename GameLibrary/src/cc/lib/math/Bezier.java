@@ -1,5 +1,6 @@
 package cc.lib.math;
 
+import cc.lib.game.IInterpolator;
 import cc.lib.game.IVector2D;
 
 /**
@@ -8,7 +9,7 @@ import cc.lib.game.IVector2D;
  * @author chriscaron
  *
  */
-public final class Bezier {
+public final class Bezier implements IInterpolator<Vector2D> {
 	
 	private final IVector2D [] ctrl;
     private int numCtrl = 0;
@@ -33,8 +34,9 @@ public final class Bezier {
     public void reset() {
         numCtrl = 0;
     }
-	
-	public Vector2D getPointAt(float t) {
+
+    @Override
+	public Vector2D getAtPosition(float t) {
 		if (numCtrl < 4)
 			throw new cc.lib.utils.GException();
         float fW = 1 - t; 
@@ -47,7 +49,10 @@ public final class Bezier {
         return new Vector2D(fX, fY);
 	}
 
-	public static Bezier build(Vector2D r0, Vector2D r1, float arc) {
+	public static IInterpolator<Vector2D> build(Vector2D r0, Vector2D r1, float arc) {
+
+	    if (Math.abs(arc) < 0.001)
+	        return Vector2D.getLinearInterpolator(r0, r1);
 
 	    Bezier curve = new Bezier();
         curve.addPoint(r0);

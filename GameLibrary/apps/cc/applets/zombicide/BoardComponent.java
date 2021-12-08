@@ -3,6 +3,7 @@ package cc.applets.zombicide;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -40,7 +41,6 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
                 loadImages(g);
             }
         }.start();
-        UIZBoardRenderer.DEBUG_DRAW_ZONE_INFO = true;
     }
 
     @Override
@@ -108,62 +108,107 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
 
         Object [][] files = {
 
-            { ZZombieType.Abomination, "zabomination.gif" },
-            { ZZombieType.Necromancer, "znecro.gif" },
-            { ZZombieType.Walker, "zwalker1.gif" },
-            { ZZombieType.Walker, "zwalker2.gif" },
-            { ZZombieType.Walker, "zwalker3.gif" },
-            { ZZombieType.Walker, "zwalker4.gif" },
-            { ZZombieType.Walker, "zwalker5.gif" },
-            { ZZombieType.Runner, "zrunner1.gif" },
-            { ZZombieType.Runner, "zrunner1.gif" },
-            { ZZombieType.Fatty, "zfatty1.gif" },
-            { ZZombieType.Fatty, "zfatty2.gif" },
-            { ZPlayerName.Clovis, "zchar_clovis.gif" },
-            { ZPlayerName.Baldric, "zchar_baldric.gif" },
-            { ZPlayerName.Ann, "zchar_ann.gif" },
-            { ZPlayerName.Nelly, "zchar_nelly.gif" },
-            { ZPlayerName.Samson, "zchar_samson.gif" },
-            { ZPlayerName.Silas, "zchar_silas.gif" },
-            { ZPlayerName.Tucker, "zchar_tucker.gif" },
-            { ZPlayerName.Jain, "zchar_jain.gif" },
-            { ZPlayerName.Benson, "zchar_benson.gif" },
+            { ZZombieType.Abomination, "zabomination.png" },
+                { ZZombieType.Abomination, "zabomination_outline.png" },
+            { ZZombieType.Necromancer, "znecro.png" },
+                { ZZombieType.Necromancer, "znecro_outline.png" },
+            { ZZombieType.Walker, "zwalker1.png" },
+                { ZZombieType.Walker, "zwalker1_outline.png" },
+            { ZZombieType.Walker, "zwalker2.png" },
+                { ZZombieType.Walker, "zwalker2_outline.png" },
+            { ZZombieType.Walker, "zwalker3.png" },
+                { ZZombieType.Walker, "zwalker3_outline.png" },
+            { ZZombieType.Walker, "zwalker4.png" },
+                { ZZombieType.Walker, "zwalker4_outline.png" },
+            { ZZombieType.Walker, "zwalker5.png" },
+                { ZZombieType.Walker, "zwalker5_outline.png" },
+            { ZZombieType.Runner, "zrunner1.png" },
+                { ZZombieType.Runner, "zrunner1_outline.png" },
+            { ZZombieType.Runner, "zrunner2.png" },
+                { ZZombieType.Runner, "zrunner2_outline.png" },
+            { ZZombieType.Fatty, "zfatty1.png" },
+                { ZZombieType.Fatty, "zfatty1_outline.png" },
+            { ZZombieType.Fatty, "zfatty2.png" },
+                { ZZombieType.Fatty, "zfatty2_outline.png" },
+            { ZZombieType.Wolfz, "zwulf1.png" },
+                { ZZombieType.Wolfz, "zwulf1_outline.png" },
+            { ZZombieType.Wolfz, "zwulf2.png" },
+                { ZZombieType.Wolfz, "zwulf2_outline.png" },
+            { ZZombieType.Wolfbomination, "zwolfabom.png" },
+                { ZZombieType.Wolfbomination, "zwolfabom_outline.png" },
 
-            { ZPlayerName.Ann.name(), "zcard_ann.gif" },
-            { ZPlayerName.Baldric.name(), "zcard_baldric.gif" },
-            { ZPlayerName.Clovis.name(), "zcard_clovis.gif" },
-            { ZPlayerName.Nelly.name(), "zcard_nelly.gif" },
-            { ZPlayerName.Samson.name(), "zcard_samson.gif" },
-            { ZPlayerName.Silas.name(), "zcard_silas.gif" },
-            { ZPlayerName.Tucker.name(), "zcard_tucker.gif" },
-            { ZPlayerName.Jain.name(), "zcard_jain.gif" },
-            { ZPlayerName.Benson.name(), "zcard_benson.gif" },
+            { ZPlayerName.Clovis, "zchar_clovis.png" },
+            { ZPlayerName.Baldric, "zchar_baldric.png" },
+            { ZPlayerName.Ann, "zchar_ann.png" },
+            { ZPlayerName.Nelly, "zchar_nelly.png" },
+            { ZPlayerName.Samson, "zchar_samson.png" },
+            { ZPlayerName.Silas, "zchar_silas.png" },
+            { ZPlayerName.Tucker, "zchar_tucker.png" },
+            { ZPlayerName.Jain, "zchar_jain.png" },
+            { ZPlayerName.Benson, "zchar_benson.png" },
+            { ZPlayerName.Theo, "zchar_theo.png" },
+            { ZPlayerName.Morrigan, "zchar_morrigan.png" },
+            { ZPlayerName.Karl, "zchar_karl.png" },
+            { ZPlayerName.Ariane, "zchar_ariane.png" },
 
-            { ZIcon.DRAGON_BILE, "zdragonbile_icon.gif" },
-            { ZIcon.CLAWS, "zclaws1_icon.gif" },
-            { ZIcon.CLAWS, "zclaws2_icon.gif" },
-            { ZIcon.CLAWS, "zclaws3_icon.gif" },
-            { ZIcon.CLAWS, "zclaws4_icon.gif" },
-            { ZIcon.CLAWS, "zclaws5_icon.gif" },
-            { ZIcon.CLAWS, "zclaws6_icon.gif" },
-            { ZIcon.SHIELD, "zshield_icon.gif" },
-            { ZIcon.SLIME, "zslime_icon.gif" },
-            { ZIcon.TORCH, "ztorch_icon.gif" },
-            { ZIcon.ARROW, "zarrow_icon.gif" },
-            { ZIcon.SPAWN, "zspawn.gif" },
-            { ZIcon.SLASH, "zslash1.gif" },
-            { ZIcon.SLASH, "zslash2.gif" },
-            { ZIcon.SLASH, "zslash3.gif" },
-            { ZIcon.SLASH, "zslash4.gif" },
-            { ZIcon.SLASH, "zslash5.gif" },
-            { ZIcon.FIREBALL, "zfireball.gif" },
-            { ZIcon.GRAVESTONE, "zgravestone.gif" },
-            { ZIcon.PADLOCK, "zpadlock2.gif" },
+            { ZPlayerName.Clovis, "zchar_clovis_outline.png" },
+            { ZPlayerName.Baldric, "zchar_baldric_outline.png" },
+            { ZPlayerName.Ann, "zchar_ann_outline.png" },
+            { ZPlayerName.Nelly, "zchar_nelly_outline.png" },
+            { ZPlayerName.Samson, "zchar_samson_outline.png" },
+            { ZPlayerName.Silas, "zchar_silas_outline.png" },
+            { ZPlayerName.Tucker, "zchar_tucker_outline.png" },
+            { ZPlayerName.Jain, "zchar_jain_outline.png" },
+            { ZPlayerName.Benson, "zchar_benson_outline.png" },
+            { ZPlayerName.Theo, "zchar_theo_outline.png" },
+            { ZPlayerName.Morrigan, "zchar_morrigan_outline.png" },
+            { ZPlayerName.Karl, "zchar_karl_outline.png" },
+            { ZPlayerName.Ariane, "zchar_ariane_outline.png" },
+
+            { ZPlayerName.Ann.name(), "zcard_ann.png" },
+            { ZPlayerName.Baldric.name(), "zcard_baldric.png" },
+            { ZPlayerName.Clovis.name(), "zcard_clovis.png" },
+            { ZPlayerName.Nelly.name(), "zcard_nelly.png" },
+            { ZPlayerName.Samson.name(), "zcard_samson.png" },
+            { ZPlayerName.Silas.name(), "zcard_silas.png" },
+            { ZPlayerName.Tucker.name(), "zcard_tucker.png" },
+            { ZPlayerName.Jain.name(), "zcard_jain.png" },
+            { ZPlayerName.Benson.name(), "zcard_benson.png" },
+            { ZPlayerName.Theo.name(), "zcard_theo.png" },
+            { ZPlayerName.Morrigan.name(), "zcard_morrigan.png" },
+            { ZPlayerName.Karl.name(), "zcard_karl.png" },
+            { ZPlayerName.Ariane.name(), "zcard_ariane.png" },
+
+            { ZIcon.DRAGON_BILE, "zdragonbile_icon.png" },
+            { ZIcon.CLAWS, "zclaws1_icon.png" },
+            { ZIcon.CLAWS, "zclaws2_icon.png" },
+            { ZIcon.CLAWS, "zclaws3_icon.png" },
+            { ZIcon.CLAWS, "zclaws4_icon.png" },
+            { ZIcon.CLAWS, "zclaws5_icon.png" },
+            { ZIcon.CLAWS, "zclaws6_icon.png" },
+            { ZIcon.SHIELD, "zshield_icon.png" },
+            { ZIcon.SLIME, "zslime_icon.png" },
+            { ZIcon.TORCH, "ztorch_icon.png" },
+            { ZIcon.ARROW, "zarrow_icon.png" },
+            { ZIcon.SPAWN_RED, "zspawn_red.png" },
+            { ZIcon.SPAWN_BLUE, "zspawn_blue.png" },
+            { ZIcon.SPAWN_GREEN, "zspawn_green.png" },
+            { ZIcon.SLASH, "zslash1.png" },
+            { ZIcon.SLASH, "zslash2.png" },
+            { ZIcon.SLASH, "zslash3.png" },
+            { ZIcon.SLASH, "zslash4.png" },
+            { ZIcon.SLASH, "zslash5.png" },
+            { ZIcon.FIREBALL, "zfireball.png" },
+            { ZIcon.GRAVESTONE, "zgravestone.png" },
+            { ZIcon.PADLOCK, "zpadlock3.png" },
+            { ZIcon.SKULL, "zskull.png"},
+            { ZIcon.DAGGER, "zdagger_icon.png" },
+            { ZIcon.SWORD, "zsword_icon.png" },
         };
 
         Map<Object, List<Integer>> objectToImageMap = new HashMap<>();
 
-        totalImagesToLoad = files.length + 30;
+        totalImagesToLoad = files.length + ZIcon.values().length;
         for (Object [] entry : files) {
             Object key = entry[0];
             String file = (String)entry[1];
@@ -179,10 +224,16 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
         }
 
         for (ZZombieType type : ZZombieType.values()) {
-            type.imageOptions = Utils.toIntArray(objectToImageMap.get(type));
+//            type.imageOptions = Utils.toIntArray(objectToImageMap.get(type));
+  //          type.imageDims = new GDimension[type.imageOptions.length];
+            List<Integer> ids = objectToImageMap.get(type);
+            type.imageOptions = new int[ids.size()/2];
+            type.imageOutlineOptions = new int[type.imageOptions.length];
             type.imageDims = new GDimension[type.imageOptions.length];
             int idx=0;
-            for (int id : type.imageOptions) {
+            for (int i=0; i<ids.size(); i+=2) {
+                type.imageOptions[idx] = ids.get(i);
+                type.imageOutlineOptions[idx] = ids.get(i+1);
                 type.imageDims[idx] = new GDimension(g.getImage(type.imageOptions[idx]));
                 idx++;
             }
@@ -190,12 +241,13 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
 
         for (ZPlayerName pl : ZPlayerName.values()) {
             pl.imageId = objectToImageMap.get(pl).get(0);
+            pl.outlineImageId = objectToImageMap.get(pl).get(1);
             pl.imageDim = new GDimension(g.getImage(pl.imageId));
             pl.cardImageId = objectToImageMap.get(pl.name()).get(0);
         }
 
-        {
-            ZIcon icon = ZIcon.DRAGON_BILE;
+        // Icons that 'spin'
+        for (ZIcon icon : Utils.toArray(ZIcon.DRAGON_BILE, ZIcon.TORCH, ZIcon.SWORD, ZIcon.DAGGER)) {
             int [] ids = new int[8];
             ids[0] = objectToImageMap.get(icon).get(0);
             for (int i=1; i<ids.length; i++) {
@@ -207,59 +259,37 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
             icon.imageIds = ids;
         }
 
-        {
-            ZIcon icon = ZIcon.TORCH;
-            int [] ids = new int[8];
-            ids[0] = objectToImageMap.get(icon).get(0);
-            for (int i=1; i<ids.length; i++) {
-                int deg = 45*i;
-                ids[i] = g.createRotatedImage(ids[0], deg);
-                numImagesLoaded++;
-                repaint();
-            }
-            icon.imageIds = ids;
-        }
-
-        {
-            ZIcon icon = ZIcon.ARROW;
+        // Icons that shoot
+        for (ZIcon icon : Utils.toArray(ZIcon.ARROW)) {
             int [] ids = new int[4];
             int eastId = objectToImageMap.get(icon).get(0);
             ids[ZDir.EAST.ordinal()] = eastId;
             ids[ZDir.WEST.ordinal()] = g.createRotatedImage(eastId, 180);
-            numImagesLoaded++;
-            repaint();
             ids[ZDir.NORTH.ordinal()] = g.createRotatedImage(eastId, 270);
-            numImagesLoaded++;
-            repaint();
             ids[ZDir.SOUTH.ordinal()] = g.createRotatedImage(eastId, 90);
+            icon.imageIds = ids;
             numImagesLoaded++;
             repaint();
-            icon.imageIds = ids;
         }
 
+        for (ZIcon icon : Utils.toArray(ZIcon.SPAWN_RED, ZIcon.SPAWN_GREEN, ZIcon.SPAWN_BLUE))
         {
-            ZIcon icon = ZIcon.SPAWN;
             int [] ids = new int[4];
             int northId = objectToImageMap.get(icon).get(0);
             ids[ZDir.NORTH.ordinal()] = northId;
             ids[ZDir.WEST.ordinal()] = g.createRotatedImage(northId, 270);
-            numImagesLoaded++;
-            repaint();
             ids[ZDir.EAST.ordinal()] = g.createRotatedImage(northId, 90);
-            numImagesLoaded++;
-            repaint();
             ids[ZDir.SOUTH.ordinal()] = northId;
             icon.imageIds = ids;
+            numImagesLoaded++;
+            repaint();
         }
 
-        {
-            ZIcon.CLAWS.imageIds = Utils.toIntArray(objectToImageMap.get(ZIcon.CLAWS));
-            ZIcon.SHIELD.imageIds = Utils.toIntArray(objectToImageMap.get(ZIcon.SHIELD));
-            ZIcon.SLIME.imageIds = Utils.toIntArray(objectToImageMap.get(ZIcon.SLIME));
-            ZIcon.SLASH.imageIds = Utils.toIntArray(objectToImageMap.get(ZIcon.SLASH));
-            ZIcon.FIREBALL.imageIds = Utils.toIntArray(objectToImageMap.get(ZIcon.FIREBALL));
-            ZIcon.GRAVESTONE.imageIds = Utils.toIntArray(objectToImageMap.get(ZIcon.GRAVESTONE));
-            ZIcon.PADLOCK.imageIds = Utils.toIntArray(objectToImageMap.get(ZIcon.PADLOCK));
+        // Icons that have a single id variation
+        for (ZIcon icon : Utils.toArray(ZIcon.CLAWS, ZIcon.SHIELD, ZIcon.SLIME, ZIcon.SLASH, ZIcon.FIREBALL, ZIcon.GRAVESTONE, ZIcon.PADLOCK, ZIcon.SKULL)) {
+            icon.imageIds = Utils.toIntArray(objectToImageMap.get(icon));
+            numImagesLoaded++;
+            repaint();
         }
 
         {
@@ -268,16 +298,19 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
                     { 0,0, 56, 84 }, { 56, 0, 131-56, 84 }, { 131, 0, 196-131, 84 },
                     { 0,84, 60, 152-84 }, { 60,84,122-60,152-84 }, { 122,84,196-122,152-84 }
             };
-            icon.imageIds  = g.loadImageCells("zfire_icons.gif", cells);
+            icon.imageIds  = g.loadImageCells("zfire_icons.png", cells);
             numImagesLoaded++;
             repaint();
-
         }
 
         log.debug("Images: " + objectToImageMap);
         numImagesLoaded = totalImagesToLoad;
         ZombicideApplet.instance.onAllImagesLoaded();
         renderer.setDrawTiles(ZombicideApplet.instance.getStringProperty("tiles", "no").equals("yes"));
+        renderer.setDrawDebugText(ZombicideApplet.instance.getStringProperty("debugText", "no").equals("yes"));
+        renderer.setDrawRangedAccessibility(ZombicideApplet.instance.getStringProperty("rangedAccessibility", "no").equals("yes"));
+        renderer.setDrawTowersHighlighted(ZombicideApplet.instance.getStringProperty("drawTowersHighlighted", "no").equals("yes"));
+        renderer.setDrawZombiePaths(ZombicideApplet.instance.getStringProperty("drawZombiePaths", "no").equals("yes"));
         repaint();
     }
 
@@ -307,22 +340,63 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
         repaint();
     }
 
+    synchronized void initKeysPresses(List options) {
+        keyMap.clear();
+        for (Iterator it = options.iterator(); it.hasNext(); ) {
+            Object obj = it.next();
+            if (!(obj instanceof ZMove))
+                continue;
+            ZMove move = (ZMove)obj;
+            switch (move.type) {
+                case WALK_DIR: {
+                    switch (move.dir) {
+                        case NORTH:
+                            keyMap.put(KeyEvent.VK_UP, move);
+                            break;
+                        case SOUTH:
+                            keyMap.put(KeyEvent.VK_DOWN, move);
+                            break;
+                        case EAST:
+                            keyMap.put(KeyEvent.VK_RIGHT, move);
+                            break;
+                        case WEST:
+                            keyMap.put(KeyEvent.VK_LEFT, move);
+                            break;
+                        case DESCEND:
+                        case ASCEND:
+                            keyMap.put(KeyEvent.VK_SLASH, move);
+                            break;
+                    }
+                    it.remove();
+                    break;
+                }
+
+                case SWITCH_ACTIVE_CHARACTER:
+                    keyMap.put(KeyEvent.VK_SPACE, move);
+                    it.remove();
+                    break;
+            }
+        }
+    }
+
+    Map<Integer, ZMove> keyMap = new HashMap<>();
+
     @Override
-    public void keyPressed(KeyEvent e) {
+    public synchronized void keyPressed(KeyEvent e) {
         UIZombicide game = UIZombicide.getInstance();
         switch (e.getKeyCode()) {
             case KeyEvent.VK_LEFT:
-                game.tryWalk(ZDir.WEST);
-                break;
             case KeyEvent.VK_RIGHT:
-                game.tryWalk(ZDir.EAST);
-                break;
             case KeyEvent.VK_UP:
-                game.tryWalk(ZDir.NORTH);
-                break;
             case KeyEvent.VK_DOWN:
-                game.tryWalk(ZDir.SOUTH);
+            case KeyEvent.VK_SPACE:
+            case KeyEvent.VK_SLASH: {
+                ZMove move = keyMap.get(e.getKeyCode());
+                if (move != null) {
+                    game.setResult(move);
+                }
                 break;
+            }
             case KeyEvent.VK_PLUS:
             case KeyEvent.VK_EQUALS:
                 // zoom in
@@ -333,25 +407,35 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
                 // zoom out
                 renderer.animateZoomTo(renderer.getZoomPercent() - 0.25f);
                 break;
-            case KeyEvent.VK_SPACE:
-                // toggle active player
-                game.trySwitchActivePlayer();
-                break;
-            case KeyEvent.VK_SLASH:
-                if (game.getBoard().canMove(game.getCurrentCharacter(), ZDir.DESCEND)) {
-                    game.setResult(ZMove.newWalkDirMove(ZDir.DESCEND));
-                } else if (game.getBoard().canMove(game.getCurrentCharacter(), ZDir.ASCEND)) {
-                    game.setResult(ZMove.newWalkDirMove(ZDir.ASCEND));
-                }
-                break;
         }
 
         switch (e.getKeyCode()) {
             case KeyEvent.VK_T:
-                renderer.toggleDrawTiles();
-                ZombicideApplet.instance.setStringProperty("tiles", renderer.isDrawTiles() ? "yes" : "no");
+                ZombicideApplet.instance.setStringProperty("tiles", renderer.toggleDrawTiles() ? "yes" : "no");
+                break;
+
+            case KeyEvent.VK_D:
+                ZombicideApplet.instance.setStringProperty("debugText", renderer.toggleDrawDebugText() ? "yes" : "no");
+                break;
+
+            case KeyEvent.VK_R:
+                ZombicideApplet.instance.setStringProperty("rangedAccessibility", renderer.toggleDrawRangedAccessibility() ? "yes" : "no");
+                break;
+
+            case KeyEvent.VK_P:
+                ZombicideApplet.instance.setStringProperty("drawZombiePaths", renderer.toggleDrawZoombiePaths() ? "yes" : "no");
+                break;
+
+            case KeyEvent.VK_H:
+                ZombicideApplet.instance.setStringProperty("drawTowersHighlighted", renderer.toggleDrawTowersHighlighted() ? "yes" : "no");
                 break;
         }
+        keyMap.clear();
         repaint();
+    }
+
+    @Override
+    protected void onMouseWheel(int rotation) {
+        renderer.scroll(0, -5f * rotation);
     }
 }

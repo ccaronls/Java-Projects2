@@ -23,7 +23,7 @@ public class OverridesSerialize extends Reflector<OverridesSerialize> {
     }
 
     @Override
-    public void deserialize(BufferedReader in) throws IOException {
+    public void deserialize(BufferedReader in, boolean keepInstances) throws IOException {
         String text = in.readLine().trim();
         String [] parts = text.split("[ ]+");
         msg = parts[0];

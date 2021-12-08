@@ -1,15 +1,21 @@
 package cc.lib.zombicide;
 
 import cc.lib.game.AGraphics;
+import cc.lib.game.GColor;
 import cc.lib.game.GDimension;
+import cc.lib.game.Justify;
 import cc.lib.game.Utils;
 import cc.lib.utils.Table;
 
-public final class ZZombie extends ZActor<ZZombieType> implements Comparable<ZZombie> {
+public final class ZZombie extends ZActor<ZZombieType> {
 
     static {
         addAllFields(ZZombie.class);
     }
+
+    final ZZombieType type;
+    private int imageIdx = -1;
+    boolean destroyed = false;
 
     @Override
     protected int getActionsPerTurn() {
@@ -26,9 +32,6 @@ public final class ZZombie extends ZActor<ZZombieType> implements Comparable<ZZo
         this.type = type;
         onBeginRound();
     }
-
-    final ZZombieType type;
-    private int imageIdx = -1;
 
     private int getIdx() {
         if (imageIdx < 0 || imageIdx >= type.imageOptions.length)
@@ -48,7 +51,7 @@ public final class ZZombie extends ZActor<ZZombieType> implements Comparable<ZZo
         info.addRow("Actions", type.actionsPerTurn);
         info.addRow("Experience", type.expProvided);
         info.addRow("Ignores Armor", type.ignoresArmor);
-        info.addRow("Ranged Priority", type.rangedPriority);
+        info.addRow("Ranged Priority", type.attackPriority);
         Table outer = new Table().setNoBorder();
         outer.addRow(info, type.description);
         return outer.draw(g);//g.drawString(outer.toString(), 0, 0);
@@ -71,6 +74,11 @@ public final class ZZombie extends ZActor<ZZombieType> implements Comparable<ZZo
     }
 
     @Override
+    public int getOutlineImageId() {
+        return type.imageOutlineOptions[getIdx()];
+    }
+
+    @Override
     public GDimension getDimension() {
         return type.imageDims[getIdx()];
     }
@@ -79,6 +87,7 @@ public final class ZZombie extends ZActor<ZZombieType> implements Comparable<ZZo
     ZCellQuadrant getSpawnQuadrant() {
         switch (type) {
             case Abomination:
+            case Wolfbomination:
                 return ZCellQuadrant.CENTER;
         }
         return super.getSpawnQuadrant();
@@ -103,11 +112,30 @@ public final class ZZombie extends ZActor<ZZombieType> implements Comparable<ZZo
     }
 
     @Override
-    public int compareTo(ZZombie o) {
-        if (o.type.minDamageToDestroy == type.minDamageToDestroy) {
-            return Integer.compare(type.ordinal(), o.type.ordinal());
-        };
-        return Integer.compare(type.minDamageToDestroy, o.type.minDamageToDestroy);
+    protected boolean performAction(ZActionType action, ZGame game) {
+        if (action == ZActionType.MELEE) {
+            actionsLeftThisTurn = 0;
+            return false; // zombies are done once they attack
+        }
+        return super.performAction(action, game);
+    }
+
+    @Override
+    public void draw(AGraphics g) {
+        if (isAlive() || isAnimating()) {
+            super.draw(g);
+            if (actionsLeftThisTurn > 1) {
+                g.setColor(GColor.WHITE);
+                float oldHgt = g.setTextHeight(10);
+                g.drawJustifiedString(getRect().getCenterBottom(), Justify.CENTER, Justify.BOTTOM, String.valueOf(actionsLeftThisTurn));
+                g.setTextHeight(oldHgt);
+            }
+        }
+    }
+
+    @Override
+    public boolean isAlive() {
+        return !destroyed;
     }
 }
 

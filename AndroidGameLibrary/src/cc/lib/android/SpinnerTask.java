@@ -14,13 +14,13 @@ import android.support.annotation.Nullable;
 
 import java.lang.ref.WeakReference;
 
-public abstract class SpinnerTask extends AsyncTask<String, Integer, Object> implements DialogInterface.OnCancelListener, Application.ActivityLifecycleCallbacks {
+public abstract class SpinnerTask<T> extends AsyncTask<T, Integer, Object> implements DialogInterface.OnCancelListener, Application.ActivityLifecycleCallbacks, DialogInterface.OnDismissListener {
 
     private Dialog dialog = null;
-    private final WeakReference<Context> context;
+    private final WeakReference<Activity> context;
     private Object result = null;
 
-    public SpinnerTask(Context context) {
+    public SpinnerTask(Activity context) {
         this.context = new WeakReference<>(context);
         if (context instanceof Activity) {
             // we want to handle the activity pausing so we can cancel ourself
@@ -28,14 +28,20 @@ public abstract class SpinnerTask extends AsyncTask<String, Integer, Object> imp
         }
     }
 
+    public <T extends Context> T getContext() {
+        return (T)context.get();
+    }
+
     @Override
     protected void onCancelled() {
-        dialog.dismiss();
+        if (dialog != null)
+            dialog.dismiss();
     }
 
     @Override
     protected final void onPostExecute(Object o) {
-        dialog.dismiss();
+        if (dialog != null)
+            dialog.dismiss();
         if (!isCancelled()) {
             if (o != null && o instanceof Exception) {
                 Exception e = (Exception) o;
@@ -54,7 +60,10 @@ public abstract class SpinnerTask extends AsyncTask<String, Integer, Object> imp
 
     @Override
     protected void onPreExecute() {
-        dialog = ProgressDialog.show(context.get(), getProgressMessage(), null, true, isCancellable(), this);
+        if (!context.get().isFinishing() && !context.get().isDestroyed()) {
+            dialog = ProgressDialog.show(context.get(), getProgressMessage(), null, true, isCancellable(), this);
+            dialog.setOnDismissListener(this);
+        }
     }
 
     protected String getProgressMessage() {
@@ -66,14 +75,16 @@ public abstract class SpinnerTask extends AsyncTask<String, Integer, Object> imp
         super.onProgressUpdate(values);
     }
 
-    protected abstract void doIt(String ... args) throws Exception;
+    protected abstract void doIt(T ... args) throws Exception;
 
     protected void onSuccess() {}
 
+    protected void onCompleted() {}
+
     @Override
-    protected final Object doInBackground(String... strings) {
+    protected final Object doInBackground(T... args) {
         try {
-            doIt(strings);
+            doIt(args);
         } catch (Exception e ) {
             return e;
         }
@@ -98,37 +109,42 @@ public abstract class SpinnerTask extends AsyncTask<String, Integer, Object> imp
     }
 
     @Override
-    public void onActivityCreated(@NonNull Activity activity, @Nullable Bundle savedInstanceState) {
+    public final void onDismiss(DialogInterface dialog) {
+        onCompleted();
+    }
+
+    @Override
+    public final void onActivityCreated(@NonNull Activity activity, @Nullable Bundle savedInstanceState) {
 
     }
 
     @Override
-    public void onActivityStarted(@NonNull Activity activity) {
+    public final void onActivityStarted(@NonNull Activity activity) {
 
     }
 
     @Override
-    public void onActivityResumed(@NonNull Activity activity) {
+    public final void onActivityResumed(@NonNull Activity activity) {
 
     }
 
     @Override
-    public void onActivityPaused(@NonNull Activity activity) {
+    public final void onActivityPaused(@NonNull Activity activity) {
+
+    }
+
+    @Override
+    public final void onActivityStopped(@NonNull Activity activity) {
         cancel(true);
     }
 
     @Override
-    public void onActivityStopped(@NonNull Activity activity) {
+    public final void onActivitySaveInstanceState(@NonNull Activity activity, @NonNull Bundle outState) {
 
     }
 
     @Override
-    public void onActivitySaveInstanceState(@NonNull Activity activity, @NonNull Bundle outState) {
-
-    }
-
-    @Override
-    public void onActivityDestroyed(@NonNull Activity activity) {
+    public final void onActivityDestroyed(@NonNull Activity activity) {
 
     }
 }

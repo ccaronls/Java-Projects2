@@ -76,16 +76,8 @@ public abstract class APGraphics extends AGraphics {
     }
 
     @Override
-    public final MutableVector2D screenToViewport(int screenX, int screenY) {
-        return r.untransform(screenX, screenY);
-    }
-
-    public final MutableVector2D screenToViewport(float screenX, float screenY) {
-        return r.untransform(screenX, screenY);
-    }
-
-    public final MutableVector2D screenToViewport(IVector2D screen) {
-        return r.untransform(screen.getX(), screen.getY());
+    protected MutableVector2D untransform(float x, float y) {
+        return r.untransform(x, y);
     }
 
     float [] lastVertex = new float[2];
@@ -115,6 +107,23 @@ public abstract class APGraphics extends AGraphics {
             int dx = x - Math.round(r.getX(i));
             int dy = y - Math.round(r.getY(i));
             int d = Utils.fastLen(dx, dy);
+            if (d <= size) {
+                if (picked < 0 || d < bestD) {
+                    picked = r.getName(i);
+                    bestD = d;
+                }
+            }
+        }
+        return picked;
+    }
+
+    public final int pickPoints(IVector2D m, int size) {
+        int picked = -1;
+        float bestD = Float.MAX_VALUE;
+        for (int i=0; i<r.getNumVerts(); i++) {
+            float dx = m.getX() - r.getX(i);
+            float dy = m.getY() - r.getY(i);
+            float d = Utils.fastLen(dx, dy);
             if (d <= size) {
                 if (picked < 0 || d < bestD) {
                     picked = r.getName(i);
@@ -159,6 +168,34 @@ public abstract class APGraphics extends AGraphics {
         return picked;
     }
 
+    public final int pickLines(IVector2D m, int thickness) {
+        int picked = -1;
+        for (int i=0; i<r.getNumVerts(); i+=2) {
+
+            float mx = m.getX();
+            float my = m.getY();
+            float x0 = r.getX(i);
+            float y0 = r.getY(i);
+            float x1 = r.getX(i+1);
+            float y1 = r.getY(i+1);
+
+            float d0 = Utils.distSqPointLine(mx, my, x0, y0, x1, y1);
+            if (d0 > thickness)
+                continue;
+
+            float dx = x1 - x0;
+            float dy = y1 - y0;
+
+            float dot_p_d1 = (mx-x0)*dx + (my-y0)*dy;
+            float dot_p_d2 = (mx-x1)*-dx + (my-y1)*-dy;
+
+            if (dot_p_d1 < 0 || dot_p_d2 < 0)
+                continue;
+
+            picked = r.getName(i);
+        }
+        return picked;
+    }
     /**
      *
      * @param x

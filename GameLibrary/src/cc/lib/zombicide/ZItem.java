@@ -28,11 +28,11 @@ public class ZItem extends ZEquipment<ZItemType> {
 
     @Override
     public boolean isConsumable() {
-        return type.canConsume;
+        return type.isActionType(ZActionType.CONSUME);
     }
 
     @Override
-    public boolean isEquippable() {
+    public boolean isEquippable(ZCharacter c) {
         return type.slot.canEquip();
     }
 
@@ -54,16 +54,6 @@ public class ZItem extends ZEquipment<ZItemType> {
     @Override
     public ZItemType getType() {
         return type;
-    }
-
-    @Override
-    public boolean isThrowable() {
-        switch (type) {
-            case DRAGON_BILE:
-            case TORCH:
-                return true;
-        }
-        return false;
     }
 
     @Override

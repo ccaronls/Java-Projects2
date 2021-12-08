@@ -1,8 +1,10 @@
 package cc.lib.net;
 
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import cc.lib.utils.NoDupesMap;
+import cc.lib.utils.WeakHashSet;
 
 /**
  * <pre>
@@ -46,7 +48,7 @@ public final class GameCommandType implements Comparable<GameCommandType> {
 
     public synchronized void addListener(Listener l) {
         if (listeners == null) {
-            listeners = new HashSet<>();
+            listeners = new WeakHashSet<>();
         }
         listeners.add(l);
     }
@@ -57,7 +59,7 @@ public final class GameCommandType implements Comparable<GameCommandType> {
         }
     }
 
-    private HashSet<Listener> listeners = null;
+    private WeakHashSet<Listener> listeners = null;
 
     void notifyListeners(GameCommand cmd) {
         if (listeners != null) {
@@ -95,9 +97,6 @@ public final class GameCommandType implements Comparable<GameCommandType> {
     static final GameCommandType CL_REMOTE_RETURNS = new GameCommandType("CL_REMOTE_RETURNS");
     // additional info is name and version
     static final GameCommandType CL_CONNECT = new GameCommandType("CL_CONNECT");
-    // additional info is name and version
-    @Deprecated
-    static final GameCommandType CL_RECONNECT = new GameCommandType("CL_RECONNECT");
     // no additional info
     static final GameCommandType CL_KEEPALIVE = new GameCommandType("CL_KEEPALIVE");
     // report an error that occured on the client
@@ -180,5 +179,6 @@ public final class GameCommandType implements Comparable<GameCommandType> {
     public final String toString() {
         return mName;
     }
+
 }
 

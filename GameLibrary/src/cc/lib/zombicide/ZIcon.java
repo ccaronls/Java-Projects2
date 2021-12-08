@@ -11,11 +11,16 @@ public enum ZIcon {
     TORCH,
     FIRE,
     ARROW,
-    SPAWN,
+    SPAWN_RED,
+    SPAWN_BLUE,
+    SPAWN_GREEN,
     SLASH,
     FIREBALL,
     GRAVESTONE,
-    PADLOCK
+    PADLOCK,
+    SKULL,
+    DAGGER,
+    SWORD
     ;
 
     public int [] imageIds;

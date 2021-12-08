@@ -16,7 +16,7 @@ public class ChessTestActivity extends DroidActivity {
             if (delayMs > 0)
                 getContent().postInvalidateDelayed(delayMs);
             else
-                getContent().postInvalidate();
+                redraw();
         }
 
         @Override
