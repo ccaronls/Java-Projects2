@@ -658,7 +658,7 @@ public class MainActivity extends CCActivityBase implements
                 .setMultiChoiceItems(items, checked, (dialogInterface, i, b) -> all[i].enabled = b)
                 .setNegativeButton(R.string.popup_button_cancel, null)
                 .setPositiveButton(R.string.popup_button_add_station, (dialogInterface, i) -> showAddStationPopup(all)).setNeutralButton(R.string.popup_button_save, (dialogInterface, i) -> {
-                    if (Utils.filterItems(object -> object.enabled, all).size() == 0) {
+                    if (Utils.filter(all, object -> object.enabled).size() == 0) {
                         Snackbar.make(tv_currentstation, R.string.toast_err_emptylist, Snackbar.LENGTH_LONG).show();
                         return;
                     }
