@@ -2,9 +2,9 @@ apply plugin: 'com.android.application'
 
 dependencies {
     implementation fileTree(dir: 'libs', include: '*.jar')
-    implementation project(':android-sdks:extras:google:google_play_services:libproject:google-play-services_lib')
-    implementation project(':Documents:workspace2:MyStuff:Java:AndroidGameLibrary')
-    implementation project(':Documents:workspace2:MyStuff:Java:AndroidGameLibrary')
+//    implementation project(':android-sdks:extras:google:google_play_services:libproject:google-play-services_lib')
+//    implementation project(':Documents:workspace2:MyStuff:Java:AndroidGameLibrary')
+//    implementation project(':Documents:workspace2:MyStuff:Java:AndroidGameLibrary')
 }
 
 android {

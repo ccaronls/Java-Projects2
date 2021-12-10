@@ -5,6 +5,7 @@ import cc.lib.android.DroidGraphics;
 import cc.lib.game.AAnimation;
 import cc.lib.game.AGraphics;
 import cc.lib.game.GColor;
+import cc.lib.game.GDimension;
 import cc.lib.game.GRectangle;
 import cc.lib.game.Justify;
 import cc.lib.math.Vector2D;
@@ -31,17 +32,17 @@ public class StringBoundsActivity extends DroidActivity {
         g.drawLine(.7f, -1, .7f, 1);
 
         g.setColor(GColor.RED);
-        GRectangle rect = g.drawJustifiedString2(-.7f, 0, Justify.LEFT, Justify.TOP, "Aqy");
+        GDimension rect = g.drawJustifiedString(-.7f, 0, Justify.LEFT, Justify.TOP, "Aqy");
         g.setColor(GColor.WHITE);
         rect.drawOutlined(g, 1);
 
         g.setColor(GColor.RED);
-        rect = g.drawJustifiedString2(0, 0, Justify.CENTER, Justify.CENTER, "Aqy\nAqy");
+        rect = g.drawJustifiedString(0, 0, Justify.CENTER, Justify.CENTER, "Aqy\nAqy");
         g.setColor(GColor.WHITE);
         rect.drawOutlined(g, 1);
 
         g.setColor(GColor.RED);
-        rect = g.drawJustifiedString2(.7f, 0, Justify.RIGHT, Justify.BOTTOM, "Aqy\nAqy\nAqy");
+        rect = g.drawJustifiedString(.7f, 0, Justify.RIGHT, Justify.BOTTOM, "Aqy\nAqy\nAqy");
         g.setColor(GColor.WHITE);
         rect.drawOutlined(g, 1);
 

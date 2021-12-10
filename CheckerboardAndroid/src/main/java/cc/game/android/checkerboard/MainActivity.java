@@ -3,12 +3,12 @@ package cc.game.android.checkerboard;
 import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.view.Menu;
 import android.view.MenuItem;
 
 import java.io.File;
 
+import androidx.annotation.NonNull;
 import cc.lib.android.DroidActivity;
 import cc.lib.android.DroidGraphics;
 import cc.lib.checkerboard.CanadianDraughts;

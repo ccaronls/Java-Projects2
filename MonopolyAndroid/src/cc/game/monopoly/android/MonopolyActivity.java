@@ -64,13 +64,7 @@ public class MonopolyActivity extends DroidActivity {
         public void runGame() {
             monopoly.trySaveToFile(saveFile);
             if (BuildConfig.DEBUG) {
-                checkPermissionAndThen(() -> {
-                    try {
-                        FileUtils.copyFile(saveFile, Environment.getExternalStorageDirectory());
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                });
+                FileUtils.tryCopyFile(saveFile, Environment.getExternalStorageDirectory());
             }
             super.runGame();
         }
@@ -229,8 +223,8 @@ public class MonopolyActivity extends DroidActivity {
                         v = View.inflate(MonopolyActivity.this, R.layout.mark_sellable_listitem, null);
                     }
                     Card card = list.get(position);
-                    TextView tvLabel = (TextView)v.findViewById(R.id.tvLabel);
-                    TextView tvCost  = (TextView)v.findViewById(R.id.tvCost);
+                    TextView tvLabel = v.findViewById(R.id.tvLabel);
+                    TextView tvCost  = v.findViewById(R.id.tvCost);
                     tvLabel.setText(Utils.toPrettyString(card.getProperty().name()));
                     int cost = playerUser.getSellableCardCost(card);
                     tvCost.setText(cost <= 0 ? "Not For Sale" : String.valueOf(cost));
@@ -267,7 +261,7 @@ public class MonopolyActivity extends DroidActivity {
         @Override
         protected void onError(final Throwable t) {
             t.printStackTrace();
-            checkPermissionAndThen(()-> { FileUtils.tryCopyFile(saveFile, new File(Environment.getExternalStorageDirectory(), "monopoly_error.txt")); }, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+            FileUtils.tryCopyFile(saveFile, new File(Environment.getExternalStorageDirectory(), "monopoly_error.txt"));
             stopGameThread();
             runOnUiThread(() -> { newDialogBuilder().setTitle("ERROR").setMessage(t.toString()).setNegativeButton("Ok", null).show(); });
         }
@@ -330,6 +324,7 @@ public class MonopolyActivity extends DroidActivity {
         super.onCreate(savedInstanceState);
         //AndroidLogger.setLogFile(new File(Environment.getExternalStorageDirectory(), "monopoly.log"));
         saveFile = new File(getFilesDir(),"monopoly.save");
+        checkPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE);
     }
 
     @Override
@@ -424,13 +419,11 @@ public class MonopolyActivity extends DroidActivity {
     }
 
     void showOptionsMenu() {
-        checkPermissionAndThen(() -> {
-                File fixed = new File(Environment.getExternalStorageDirectory(), "monopoly_fixed.txt");
-                if (fixed.exists()) {
-                    FileUtils.tryCopyFile(fixed, saveFile);
-                    fixed.delete();
-                }
-        }, android.Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        File fixed = new File(Environment.getExternalStorageDirectory(), "monopoly_fixed.txt");
+        if (fixed.exists()) {
+            FileUtils.tryCopyFile(fixed, saveFile);
+            fixed.delete();
+        }
 
         newDialogBuilder().setTitle("OPTIONS")
                 .setItems(new String[]{"New Game", "Resume"}, (DialogInterface dialog, int which) -> {

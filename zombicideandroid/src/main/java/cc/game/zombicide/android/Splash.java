@@ -2,8 +2,8 @@ package cc.game.zombicide.android;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 
+import androidx.annotation.Nullable;
 import cc.lib.android.DroidActivity;
 import cc.lib.android.DroidGraphics;
 import cc.lib.game.AAnimation;

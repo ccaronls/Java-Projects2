@@ -9,13 +9,14 @@ import android.database.AbstractCursor;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.ParcelFileDescriptor;
-import android.support.v4.content.FileProvider;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Arrays;
+
+import androidx.core.content.FileProvider;
 
 /**
  * This file allows external applications to read files we place into the cache directory.

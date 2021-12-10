@@ -1,8 +1,5 @@
 package cc.game.zombicide.android;
 
-import android.support.annotation.NonNull;
-import android.support.v4.view.PagerAdapter;
-import android.support.v4.view.ViewPager;
 import android.text.SpannableString;
 import android.text.style.UnderlineSpan;
 import android.view.View;
@@ -14,6 +11,9 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
+import androidx.annotation.NonNull;
+import androidx.viewpager.widget.PagerAdapter;
+import androidx.viewpager.widget.ViewPager;
 import cc.lib.game.GColor;
 import cc.lib.zombicide.ZColor;
 import cc.lib.zombicide.ZPlayerName;

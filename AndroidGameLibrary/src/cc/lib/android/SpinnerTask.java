@@ -9,10 +9,11 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
 import java.lang.ref.WeakReference;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 public abstract class SpinnerTask<T> extends AsyncTask<T, Integer, Object> implements DialogInterface.OnCancelListener, Application.ActivityLifecycleCallbacks, DialogInterface.OnDismissListener {
 

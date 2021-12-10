@@ -7,13 +7,6 @@ import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.speech.tts.TextToSpeech;
-import android.support.annotation.NonNull;
-import android.support.design.widget.Snackbar;
-import android.support.v4.view.PagerAdapter;
-import android.support.v4.view.ViewPager;
-import android.support.v7.widget.DividerItemDecoration;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,6 +17,8 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.NumberPicker;
 import android.widget.TextView;
+
+import com.google.android.material.snackbar.Snackbar;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -36,6 +31,12 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.TimeZone;
 
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager.widget.PagerAdapter;
+import androidx.viewpager.widget.ViewPager;
 import cc.lib.android.CCActivityBase;
 import cc.lib.android.DragAndDropAdapter;
 import cc.lib.android.VerticalViewPager;

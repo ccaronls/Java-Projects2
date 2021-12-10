@@ -3,8 +3,6 @@ apply plugin: 'com.android.application'
 dependencies {
     implementation project(':AndroidGameLibrary')
     implementation project(path: ':GameLibrary', configuration: 'androidLib')
-    implementation project.android_support
-    implementation 'com.android.support.constraint:constraint-layout:1.1.2'
 }
 
 android {

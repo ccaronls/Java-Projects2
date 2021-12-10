@@ -1,9 +1,9 @@
 package cc.android.thomas;
 
 import android.os.Build;
-import android.support.v4.view.ViewPager;
 import android.view.View;
 
+import androidx.viewpager.widget.ViewPager;
 import cc.lib.game.Utils;
 
 public class DepthPageTransformer implements ViewPager.PageTransformer {

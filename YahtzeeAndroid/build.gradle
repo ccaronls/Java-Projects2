@@ -4,18 +4,8 @@ dependencies {
     implementation project(':AndroidGameLibrary')
     //implementation 'cc.lib:gamelib-android:1.0'
     //implementation project(path: ':GameLibrary', configuration: 'androidLib')
-    implementation 'com.google.android.gms:play-services:4.0.30'
+    //implementation 'com.google.android.gms:play-services:4.0.30'
     implementation project(path: ':Yahtzee', configuration: 'androidLib')
-
-    testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'com.android.support.test:runner:1.0.2'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
-
-//    implementation fileTree(dir: 'libs', include: ['*.jar'])
-//    androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
-//        exclude group: 'com.android.support', module: 'support-annotations'
-//    })
-//    testImplementation 'junit:junit:4.12'
 }
 
 android {

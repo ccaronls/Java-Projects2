@@ -8,7 +8,6 @@
  * Detailed information about configuring a multi-project build in Gradle can be found
  * in the user guide at http://gradle.org/docs/2.2.1/userguide/multi_project_builds.html
  */
-include ':CheckerboardAndroid'
 
 /*
 // To declare projects as part of a multi-project build use the 'include' method
@@ -18,18 +17,19 @@ include 'services:webservice'
 */
 
 // Android
+include ':GameLibrary'
 include ':AndroidGameLibrary'
 include ':AndroidMultiplayerGameLibrary'
 include ':Yahtzee'
 include ':YahtzeeAndroid'
 include ':SuperRobotron'
 include ':TicTacToe'
-include ':GameLibrary'
 include ':jmdns'
 include ':PacBoy'
 include ':LearningCalc'
 // include ':PicMatch'
 //include ':Checkerboard'
+//include ':CheckerboardAndroid'
 include ':Robots'
 
 // Swing Applications
@@ -61,7 +61,7 @@ include ':othello'
 include ':Golf'
 include ':ScoreKeeper'
 include ':GeniusSquaresAndroid'
-//include ':Karaoke'
+include ':Karaoke'
 include ':zombicideandroid'
 include ':Thomas'
 include ':RiskAndroid'

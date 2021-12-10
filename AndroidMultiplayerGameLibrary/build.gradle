@@ -4,10 +4,6 @@ dependencies {
 //    implementation files('../DnsAndroid/mdnsjava-2.1.6-SNAPSHOT.jar', '../DnsAndroid/dnsjava-2.1.7.jar')
     implementation project (path: ':GameLibrary', configuration: 'androidLib')
     implementation project (':AndroidGameLibrary')
-    implementation project.android_support
-    androidTestImplementation 'com.android.support.test:runner:1.0.2'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
-
 }
 
 android {

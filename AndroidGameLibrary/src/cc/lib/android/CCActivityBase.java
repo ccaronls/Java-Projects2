@@ -64,7 +64,7 @@ public class CCActivityBase extends Activity {
      *
      * @param permissions
      */
-    public void checkPermissions(String [] permissions) {
+    public void checkPermissions(String ... permissions) {
         if (Build.VERSION.SDK_INT >= 23 && permissions.length > 0) {
             List<String> permissionsToRequest = new ArrayList<>();
             for (String p : permissions) {
