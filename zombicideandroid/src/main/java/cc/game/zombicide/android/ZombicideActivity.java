@@ -51,6 +51,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.view.ContextThemeWrapper;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -399,7 +400,7 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
 
     @Override
     public AlertDialog.Builder newDialogBuilder() {
-        AlertDialog.Builder b = new AlertDialog.Builder(this, R.style.ZDialogTheme) {
+        AlertDialog.Builder b = new AlertDialog.Builder(new ContextThemeWrapper(this, android.R.style.Theme_Holo_Dialog)) {
             @Override
             public AlertDialog show() {
                 AlertDialog d = super.show();

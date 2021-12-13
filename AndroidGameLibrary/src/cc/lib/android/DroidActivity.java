@@ -2,7 +2,6 @@ package cc.lib.android;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.ViewGroup;
 
@@ -21,6 +20,7 @@ public abstract class DroidActivity extends CCActivityBase {
     private DroidView content = null;
     private ViewGroup topBar = null;
     private int margin = 0;
+    private boolean initialized = false;
 
     /**
      *
@@ -35,8 +35,8 @@ public abstract class DroidActivity extends CCActivityBase {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(getContentViewId());
-        content = (DroidView)findViewById(R.id.droid_view);
-        topBar = (ViewGroup)findViewById(R.id.top_bar_layout);
+        content = findViewById(R.id.droid_view);
+        topBar = findViewById(R.id.top_bar_layout);
     }
 
     protected int getContentViewId() {
@@ -64,6 +64,7 @@ public abstract class DroidActivity extends CCActivityBase {
     protected void onDestroy() {
         if (g != null)
             g.releaseBitmaps();
+        initialized = false;
         super.onDestroy();
     }
 
@@ -72,7 +73,20 @@ public abstract class DroidActivity extends CCActivityBase {
         super.onBackPressed();
     }
 
+    void onDrawInternal(DroidGraphics g) {
+        if (!isFinishing()) {
+            if (initialized) {
+                onDraw(g);
+            } else {
+                onInit(g);
+                initialized = true;
+            }
+        }
+    }
+
     protected abstract void onDraw(DroidGraphics g);
+
+    protected void onInit(DroidGraphics g) {}
 
     protected void onTap(float x, float y) {}
 
@@ -106,12 +120,9 @@ public abstract class DroidActivity extends CCActivityBase {
             }
         }.setCancelable(false);
         if (shouldDialogAddBackButton() && currentDialog != null && currentDialog.isShowing()) {
-                builder.setNeutralButton(R.string.popup_button_back, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                    currentDialog = previous;
-                    previous.show();
-                    }
+                builder.setNeutralButton(R.string.popup_button_back, (dialog, which) -> {
+                currentDialog = previous;
+                previous.show();
                 });
             }
         return builder;
@@ -136,5 +147,9 @@ public abstract class DroidActivity extends CCActivityBase {
 
     public void redraw() {
         getContent().postInvalidate();
+    }
+
+    public DroidGraphics getGraphics() {
+        return g;
     }
 }

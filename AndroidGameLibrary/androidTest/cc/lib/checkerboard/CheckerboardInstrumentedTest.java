@@ -6,9 +6,6 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Debug;
 import android.os.Environment;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
-import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 
 import org.junit.Assert;
@@ -17,6 +14,10 @@ import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.util.List;
+
+import androidx.core.app.ActivityCompat;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
 
 /**
  * Instrumented test, which will execute on an Android device.
@@ -48,9 +49,9 @@ public class CheckerboardInstrumentedTest {
             }
         }
 
-        int grantResult = ActivityCompat.checkSelfPermission(InstrumentationRegistry.getTargetContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        int grantResult = ActivityCompat.checkSelfPermission(InstrumentationRegistry.getInstrumentation().getTargetContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE);
         Assert.assertEquals(PackageManager.PERMISSION_GRANTED, grantResult);
-        grantResult = ActivityCompat.checkSelfPermission(InstrumentationRegistry.getContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        grantResult = ActivityCompat.checkSelfPermission(InstrumentationRegistry.getInstrumentation().getContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE);
         Assert.assertEquals(PackageManager.PERMISSION_GRANTED, grantResult);
 
         File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "chess.trace");

@@ -50,13 +50,23 @@ public class ZMPCommonTest {
             public void onError(Exception e) {
                 Assert.assertFalse(true);
             }
+
+            @Override
+            public void onUndoPressed(ClientConnection conn) {
+
+            }
         };
 
 
         ZMPCommon.CL cl = new ZMPCommon.CL() {
+
             @Override
-            public void onInit(ZQuests quest, int color, int maxCharacters, List<Assignee> playerAssignments) {
-                Assert.assertEquals(quest, ZQuests.Big_Game_Hunting);
+            public void onLoadQuest(ZQuests quest) {
+
+            }
+
+            @Override
+            public void onInit(int color, int maxCharacters, List<Assignee> playerAssignments) {
                 Assert.assertEquals(maxCharacters, 2);
                 Assert.assertEquals(color, 2);
                 Assert.assertNotNull(playerAssignments);
@@ -82,9 +92,8 @@ public class ZMPCommonTest {
             }
 
             @Override
-            public void onGameUpdated(ZGame game, String currentUser) {
+            public void onGameUpdated(ZGame game) {
                 Assert.assertNotNull(game.getBoard());
-                Assert.assertEquals(currentUser, "Chris");
                 System.out.println(game.toStringNumbered());
 
                 Assert.assertEquals(game.getAllCharacters().size(), 2);
@@ -97,7 +106,7 @@ public class ZMPCommonTest {
         };
 
         svr.parseCLCommand(null, transfer(cl.newAssignCharacter(ZPlayerName.Ann, true)));
-        cl.parseSVRCommand(transfer(svr.newInit(ZQuests.Big_Game_Hunting, 2, 2, new ArrayList<>())));
+        cl.parseSVRCommand(transfer(svr.newInit( 2, 2, new ArrayList<>())));
         cl.parseSVRCommand(transfer(svr.newAssignPlayer(new Assignee(ZPlayerName.Baldric, "Chris", 2, true))));
         game2.loadQuest(ZQuests.The_Black_Book);
         game2.addCharacter(ZPlayerName.Baldric);

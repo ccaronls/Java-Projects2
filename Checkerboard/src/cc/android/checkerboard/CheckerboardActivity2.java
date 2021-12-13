@@ -14,7 +14,7 @@ public class CheckerboardActivity2 extends DroidActivity {
 
     private final UIGame game = new UIGame() {
         @Override
-        public void repaint() {
+        public void repaint(long delay) {
             redraw();
         }
 
@@ -45,15 +45,18 @@ public class CheckerboardActivity2 extends DroidActivity {
                         return R.drawable.bk_bishop;
                     else
                         return R.drawable.wt_bishop;
-                case KNIGHT:
+                case KNIGHT_L:
+                case KNIGHT_R:
                     if (color == Color.BLACK)
                         return R.drawable.bk_knight;
                     else
                         return R.drawable.wt_knight;
                 case ROOK:
                 case ROOK_IDLE:
-                case DRAGON: // TEMP until icon available
-                case DRAGON_IDLE:
+                case DRAGON_L:
+                case DRAGON_R:
+                case DRAGON_IDLE_L: // TEMP until icon available
+                case DRAGON_IDLE_R:
                     if (color == Color.BLACK)
                         return R.drawable.bk_rook;
                     else

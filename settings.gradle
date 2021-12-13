@@ -29,7 +29,7 @@ include ':PacBoy'
 include ':LearningCalc'
 // include ':PicMatch'
 //include ':Checkerboard'
-//include ':CheckerboardAndroid'
+include ':CheckerboardAndroid'
 include ':Robots'
 
 // Swing Applications
@@ -44,7 +44,7 @@ include ':JavaRoids'
 include ':MissleCommand'
 //include ':Kaiser'
 include ':Hexes'
-include ':CircleBuddy'
+include ':CrosswordPuzzleGenerator'
 
 // These 4 projects use cross reference R.java but this not longer works in latest gradle
 //     -- need a new way to stang string resources between AWT and android
@@ -52,6 +52,7 @@ include ':CircleBuddy'
 //include ':SOCAndroid'
 //include ':Dominos'
 //include ':DominosAndroid'
+include ':FeedThePig'
 include ':DnsAndroid'
 include ':TestConsole'
 include ':TestAndroid'

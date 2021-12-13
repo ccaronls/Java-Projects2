@@ -9,7 +9,7 @@
         android:configChanges="orientation|keyboardHidden|screenSize"
         android:roundIcon="@drawable/zicon"
         android:supportsRtl="true"
-        android:theme="@style/ZAppTheme">
+        android:theme="@style/Theme.AppCompat">
         <activity android:name=".Splash"
             android:theme="@style/ZAppTheme"
             android:screenOrientation="sensorLandscape">

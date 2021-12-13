@@ -198,7 +198,7 @@ public class DroidView extends View implements ScaleGestureDetector.OnScaleGestu
     protected void onDrag(float x, float y) { ((DroidActivity)getContext()).onDrag(x, y); }
 
     protected void onPaint(DroidGraphics g) {
-        if (isParentDroidActivity) ((DroidActivity)getContext()).onDraw(g);
+        if (isParentDroidActivity) ((DroidActivity)getContext()).onDrawInternal(g);
     }
 
 

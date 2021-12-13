@@ -16,7 +16,7 @@ android {
         versionCode 7
         versionName "1.1"
 
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner project.androidTestRunner
     }
 
     signingConfigs {

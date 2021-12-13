@@ -2,9 +2,17 @@ apply plugin: 'com.android.application'
 
 dependencies {
     implementation project(':AndroidGameLibrary')
+    implementation project(path: ':GameLibrary', configuration: 'androidLib')
+
 }
 
 android {
+
+    defaultConfig {
+        minSdkVersion project.myMinSdkVersion
+        targetSdkVersion project.myTargetSdkVersion
+    }
+
     compileOptions {
         sourceCompatibility project.sourceCompatibility
         targetCompatibility project.targetCompatibility
@@ -12,11 +20,13 @@ android {
 
     compileSdkVersion project.myCompileSdkVersion.toInteger()
     buildToolsVersion project.myBuildToolsVersion
-    
+
     sourceSets {
         main {
             manifest.srcFile 'AndroidManifest.xml'
-            java.srcDirs = ['src']
+            java {
+                srcDirs = ['src']
+            }
             resources.srcDirs = ['src']
             aidl.srcDirs = ['src']
             renderscript.srcDirs = ['src']
@@ -25,7 +35,7 @@ android {
         }
 
         // Move the tests to tests/java, tests/res, etc...
-        //implementationTest.setRoot('tests')
+        ////implementationTest.setRoot('tests')
 
         // Move the build types to build-types/<type>
         // For instance, build-types/debug/java, build-types/debug/AndroidManifest.xml, ...
@@ -38,7 +48,7 @@ android {
     }
 
     signingConfigs {
-        release {
+        general {
             storeFile file(project.storeFile)
             storePassword project.storePassword
             keyAlias project.keyAlias
@@ -52,11 +62,15 @@ android {
          * By default, Android Studio configures the release build type to enable code
          * shrinking, using minifyEnabled, and specifies the Proguard settings file.
          */
+        debug {
+            debuggable true
+            signingConfig signingConfigs.general
+        }
 
         release {
             minifyEnabled true // Enables code shrinking for the release build type.
             proguardFiles getDefaultProguardFile('proguard-android.txt'), '../common/proguard.txt'
-            signingConfig signingConfigs.release
+            signingConfig signingConfigs.general
         }
     }
 }

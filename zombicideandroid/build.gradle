@@ -11,7 +11,7 @@ android {
         versionCode 2
         versionName "1.0"
 
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner project.androidTestRunner
     }
 
     signingConfigs {
@@ -73,4 +73,5 @@ dependencies {
     implementation project(':AndroidMultiplayerGameLibrary')
     implementation project(path: ':GameLibrary', configuration: 'androidLib')
     implementation fileTree(dir: "libs", include: ["*.jar"])
+    testImplementation project(path: ':GameLibrary', configuration: 'androidLib')
 }

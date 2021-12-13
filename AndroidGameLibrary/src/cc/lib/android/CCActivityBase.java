@@ -1,6 +1,5 @@
 package cc.lib.android;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -25,6 +24,7 @@ import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import androidx.appcompat.app.AppCompatActivity;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
@@ -36,7 +36,7 @@ import cc.lib.logger.LoggerFactory;
  * @author ccaron
  *
  */
-public class CCActivityBase extends Activity {
+public class CCActivityBase extends AppCompatActivity {
 
     static {
         LoggerFactory.factory = new LoggerFactory() {

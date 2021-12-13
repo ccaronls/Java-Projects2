@@ -1,18 +1,20 @@
 package cc.game.ftp.android;
 
-import java.util.ArrayList;
-
-import cc.lib.android.GL10Graphics;
-import cc.lib.android.GraphicsActivity;
-import cc.lib.game.AImage;
-import cc.lib.game.Utils;
 import android.util.Log;
 import android.view.MotionEvent;
 
-public class FTPActivity extends GraphicsActivity {
+import java.util.ArrayList;
 
-	@Override
-	protected void drawFrame(GL10Graphics g) {
+import cc.lib.android.DroidActivity;
+import cc.lib.android.DroidGraphics;
+import cc.lib.game.AImage;
+import cc.lib.game.GColor;
+import cc.lib.game.Utils;
+
+public class FTPActivity extends DroidActivity {
+
+    @Override
+    protected void onDraw(DroidGraphics g) {
 		final int w = g.getViewportWidth();
 		final int h = g.getViewportHeight()/2;
 		switch (state) {
@@ -31,7 +33,7 @@ public class FTPActivity extends GraphicsActivity {
 				state = State.CHOOSE_TYPE;
 				break;
 		}
-		g.clearScreen(g.WHITE);
+		g.clearScreen(GColor.WHITE);
 		g.drawImage(bank, 0, h, w, h);
 		if (wanted != null) {
 			int r = Math.round(wanted.radius);
@@ -54,24 +56,21 @@ public class FTPActivity extends GraphicsActivity {
 	}
 
 	@Override
-	protected void init(GL10Graphics g) {
+	protected void onInit(DroidGraphics g) {
 		int w = g.getViewportWidth();
 		int h = g.getViewportHeight();
 		
-		int id = g.loadImage(R.drawable.penny);
-		Type.PENNY.setImage(g.getImage(id), id);
-		id = g.loadImage(R.drawable.nickel);
-		Type.NICKEL.setImage(g.getImage(id), id);
-		id = g.loadImage(R.drawable.dime);
-		Type.DIME.setImage(g.getImage(id), id);
-		id = g.loadImage(R.drawable.quarter);
-		Type.QUARTER.setImage(g.getImage(id), id);
-		bank = g.loadImage(R.drawable.piggybank);
-		bankBottom = g.loadImage(R.drawable.piggybankbottom);
-		bubble = g.loadImage(R.drawable.bubble);
+		Type.PENNY.setImage(g.getImage(R.drawable.penny), R.drawable.penny);
+		Type.NICKEL.setImage(g.getImage(R.drawable.nickel), R.drawable.nickel);
+		Type.DIME.setImage(g.getImage(R.drawable.dime), R.drawable.dime);
+		Type.QUARTER.setImage(g.getImage(R.drawable.quarter), R.drawable.quarter);
+		bank = R.drawable.piggybank;
+		bankBottom = R.drawable.piggybankbottom;
+		bubble = R.drawable.bubble;
 		g.ortho(0,w,0,h);
-		getRenderer().setTargetFPS(20);
-		getRenderer().setDrawFPS(false);
+
+//		getRenderer().setTargetFPS(20);
+//		getRenderer().setDrawFPS(false);
 	}
 	
     @Override
@@ -113,13 +112,6 @@ public class FTPActivity extends GraphicsActivity {
 		
 		return super.onTouchEvent(event);
 	}
-
-	@Override
-	protected void shutdown() {
-		// TODO Auto-generated method stub
-		
-	}
-
 
     enum State {
     	INIT,
@@ -177,10 +169,13 @@ public class FTPActivity extends GraphicsActivity {
     }
     
     private void processCoinMove(Coin c) {
-    	final int h = getRenderer().getHeight() / 2;
+        DroidGraphics g = getGraphics();
+        if (g == null)
+            return;
+    	final int h = g.getViewportHeight() / 2;
     	
-    	final float x0 = getRenderer().getWidth() * SLOT_LEFT;
-    	final float x1 = getRenderer().getWidth() * SLOT_RIGHT;
+    	final float x0 = g.getViewportWidth() * SLOT_LEFT;
+    	final float x1 = g.getViewportWidth() * SLOT_RIGHT;
     	final float y0 = h + h*SLOT_LEFT_BOTTOM;
     	final float y1 = h + h*SLOT_RIGHT_BOTTOM;
     	

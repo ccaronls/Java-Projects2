@@ -4,14 +4,14 @@ package cc.android.scorekeeper;
 import android.content.SharedPreferences;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
-import android.support.v4.view.PagerAdapter;
-import android.support.v4.view.ViewPager;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.viewpager.widget.PagerAdapter;
+import androidx.viewpager.widget.ViewPager;
 import cc.lib.android.CCActivityBase;
 import cc.lib.game.Utils;
 
@@ -46,7 +46,7 @@ public class ScoreKeeper extends CCActivityBase {
     final Cell [] cells = new Cell[4];
 
     final ViewGroup [] vg = new ViewGroup[4];
-    final ViewPager [] vp = new ViewPager[4];
+    final ViewPager[] vp = new ViewPager[4];
     final ImageButton [] ibRemove = new ImageButton[4];
     final ImageButton [] ibToggle = new ImageButton[4];
     ImageButton ibAdd;

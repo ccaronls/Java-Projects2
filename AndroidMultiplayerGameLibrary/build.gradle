@@ -12,7 +12,7 @@ android {
         targetSdkVersion project.myTargetSdkVersion
         minSdkVersion project.myMinSdkVersion
         targetSdkVersion project.myTargetSdkVersion
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner project.androidTestRunner
     }
 
     compileOptions {
