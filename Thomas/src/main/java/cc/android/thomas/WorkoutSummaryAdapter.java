@@ -1,15 +1,14 @@
 package cc.android.thomas;
 
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+import cc.android.thomas.databinding.WorkoutSummaryListItemBinding;
 import cc.lib.game.Utils;
 
 public class WorkoutSummaryAdapter extends RecyclerView.Adapter<WorkoutSummaryAdapter.Holder> {
@@ -44,8 +43,7 @@ public class WorkoutSummaryAdapter extends RecyclerView.Adapter<WorkoutSummaryAd
     @NonNull
     @Override
     public Holder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
-        View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.workout_summary_list_item, viewGroup, false);
-        return new Holder(view);
+        return new Holder(WorkoutSummaryListItemBinding.inflate(LayoutInflater.from(viewGroup.getContext()), viewGroup, false));
     }
 
     @Override
@@ -65,22 +63,21 @@ public class WorkoutSummaryAdapter extends RecyclerView.Adapter<WorkoutSummaryAd
 
     public static class Holder extends RecyclerView.ViewHolder {
 
-        TextView stationName, stationTime;
+        WorkoutSummaryListItemBinding binding;
 
-        public Holder(@NonNull View itemView) {
-            super(itemView);
-            stationName = itemView.findViewById(R.id.tv_station_name);
-            stationTime = itemView.findViewById(R.id.tv_station_time);
+        public Holder(@NonNull WorkoutSummaryListItemBinding binding) {
+            super(binding.getRoot());
+            this.binding = binding;
         }
 
         void set(String name, String time) {
-            stationName.setText(name);
-            stationTime.setText(time);
+            binding.tvStationName.setText(name);
+            binding.tvStationTime.setText(time);
         }
 
         void set(int stringResId, int stringArrayIndex) {
-            stationName.setText(stringResId);
-            stationTime.setText(stationTime.getResources().getStringArray(R.array.workout_column_names)[stringArrayIndex]);
+            binding.tvStationName.setText(stringResId);
+            binding.tvStationTime.setText(binding.getRoot().getResources().getStringArray(R.array.workout_column_names)[stringArrayIndex]);
         }
     }
 }

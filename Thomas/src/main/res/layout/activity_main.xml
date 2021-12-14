@@ -1,35 +1,146 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context="cc.android.thomas.MainActivity">
+    xmlns:tools="http://schemas.android.com/tools">
 
-    <com.google.android.material.appbar.AppBarLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        android:theme="@style/AppTheme.AppBarOverlay">
+        android:layout_height="match_parent">
 
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            app:popupTheme="@style/AppTheme.PopupOverlay" />
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/vert_guideline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_percent=".5"
+            app:layout_constraintEnd_toEndOf="parent"/>
 
-    </com.google.android.material.appbar.AppBarLayout>
+        <TextView
+            android:id="@+id/tv_timeperiod"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/text_period"
+            android:textSize="@dimen/text"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="@id/vert_guideline"
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_margin="@dimen/margin"
+            />
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="@dimen/fab_margin"
-        android:visibility="gone"
-        app:srcCompat="@android:drawable/ic_dialog_email" />
+        <NumberPicker
+            android:id="@+id/np_period"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="@id/vert_guideline"
+            app:layout_constraintTop_toBottomOf="@id/tv_timeperiod"
+            android:layout_margin="@dimen/margin"/>
 
-    <include layout="@layout/content_main" />
+        <TextView
+            android:id="@+id/tv_stations"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/text_stations"
+            android:textSize="@dimen/text"
+            app:layout_constraintStart_toStartOf="@id/vert_guideline"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_margin="@dimen/margin"
+            />
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+        <NumberPicker
+            android:id="@+id/np_stations"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toStartOf="@id/vert_guideline"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_stations"
+            android:layout_margin="@dimen/margin"/>
+
+        <cc.lib.android.VerticalViewPager
+            android:id="@+id/pager_workouts"
+            android:layout_width="0dp"
+            android:layout_height="100dp"
+            app:layout_constraintTop_toBottomOf="@id/np_period"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginRight="10dp"
+            android:layout_marginLeft="10dp"/>
+
+        <TextView
+            android:id="@+id/tv_currentstation"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/text_press_start_to_workout"
+            android:textSize="@dimen/text"
+            android:gravity="center"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/pager_workouts"
+            android:layout_margin="@dimen/margin"/>
+
+        <TextView
+            android:id="@+id/tv_timer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/text_timer"
+            android:textSize="@dimen/text_large"
+            app:layout_constraintStart_toStartOf="@id/vert_guideline"
+            app:layout_constraintEnd_toEndOf="@id/vert_guideline"
+            app:layout_constraintBottom_toTopOf="@id/b_options"
+            android:layout_marginBottom="40dp"/>
+        <!--
+            <Button
+                android:id="@+id/b_ordering"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Ordering"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="@id/vert_guideline"
+                app:layout_constraintBottom_toTopOf="@id/b_start"
+                android:layout_margin="@dimen/margin"/>
+
+            <Button
+                android:id="@+id/b_stations"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Stations"
+                app:layout_constraintStart_toStartOf="@id/vert_guideline"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintBottom_toTopOf="@id/b_start"
+                android:layout_margin="@dimen/margin"/>
+        -->
+        <Button
+            android:id="@+id/b_start"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/button_start"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="@id/vert_guideline"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_margin="@dimen/margin"/>
+
+        <Button
+            android:id="@+id/b_options"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/button_options"
+            app:layout_constraintStart_toEndOf="@id/b_start"
+            app:layout_constraintEnd_toStartOf="@id/b_pause"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_margin="@dimen/margin"/>
+
+        <Button
+            android:id="@+id/b_pause"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/button_pause"
+            app:layout_constraintStart_toStartOf="@id/vert_guideline"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_margin="@dimen/margin"/>
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</layout>

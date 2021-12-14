@@ -46,6 +46,9 @@ android {
             outputFileName = "thomas-${variant.buildType.name}-${android.defaultConfig.versionName}.${android.defaultConfig.versionCode}.apk"
         }
     }
+    buildFeatures {
+        dataBinding true
+    }
 }
 
 dependencies {

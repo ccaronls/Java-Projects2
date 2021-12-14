@@ -8,13 +8,12 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
-import android.widget.ListView;
 import android.widget.NumberPicker;
 import android.widget.TextView;
 
@@ -37,9 +36,13 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager.widget.PagerAdapter;
 import androidx.viewpager.widget.ViewPager;
+import cc.android.thomas.databinding.ActivityMainBinding;
+import cc.android.thomas.databinding.AddStationPopupBinding;
+import cc.android.thomas.databinding.OrderingPopupBinding;
+import cc.android.thomas.databinding.WorkoutListItemBinding;
+import cc.android.thomas.databinding.WorkoutSummaryBinding;
 import cc.lib.android.CCActivityBase;
 import cc.lib.android.DragAndDropAdapter;
-import cc.lib.android.VerticalViewPager;
 import cc.lib.annotation.Keep;
 import cc.lib.game.Utils;
 import cc.lib.utils.Reflector;
@@ -58,11 +61,7 @@ public class MainActivity extends CCActivityBase implements
     final static int STATE_PAUSED = 1;
     final static int STATE_RUNNING = 2;
 
-    NumberPicker np_timer;
-    NumberPicker np_stations;
-    Button b_start, b_pause, b_options;
-    //ToggleButton tb_randomize;
-    TextView tv_timer, tv_currentstation;
+    ActivityMainBinding binding;
     TextToSpeech tts = null;
     final String STATIONS_FILE = "stations.txt";
     final String WORKOUTS_FILE = "workouts.txt";
@@ -70,7 +69,6 @@ public class MainActivity extends CCActivityBase implements
     final List<Station> sets = new ArrayList<>();
     List<Workout> workouts;
     int currentWorkout = 0;
-    VerticalViewPager pager_workouts;
     PagerAdapter pager_adapter;
     int timeLeftSecs = 0;
     int state = STATE_STOPPED; // stopped, paused, running
@@ -195,6 +193,7 @@ public class MainActivity extends CCActivityBase implements
         File file = new File(getFilesDir(), WORKOUTS_FILE);
         try {
             workouts = Reflector.deserializeFromFile(file);
+//            Log.d(TAG, "Loaded:\n" + workouts.toString());
             return;
         } catch (FileNotFoundException e) {
             // ignore
@@ -243,22 +242,11 @@ public class MainActivity extends CCActivityBase implements
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        /*
-        Toolbar toolbar = findViewById(R.id.toolbar);
-
-        FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });*/
+        binding = ActivityMainBinding.inflate(LayoutInflater.from(this));
+        setContentView(binding.getRoot());
 
         loadWorkouts();
 
-        np_timer = findViewById(R.id.np_period);
         String [] values = new String[30];
         for (int i=0; i<30; i++) {
             int seconds = 10+i*10;
@@ -273,30 +261,22 @@ public class MainActivity extends CCActivityBase implements
         currentWorkout = getPrefs().getInt("current_workout", 0);
         if (currentWorkout >= workouts.size())
             currentWorkout = 0;
-        np_timer.setMinValue(0);
-        np_timer.setMaxValue(29);
-        np_timer.setValue(workouts.get(currentWorkout).timerIndex);
-        np_timer.setDisplayedValues(values);
-        np_timer.setOnValueChangedListener(this);
-        b_start = findViewById(R.id.b_start);
-        b_start.setOnClickListener(this);
-        b_pause = findViewById(R.id.b_pause);
-        b_pause.setOnClickListener(this);
-        b_options = findViewById(R.id.b_options);
-        b_options.setOnClickListener(this);
-        tv_timer = findViewById(R.id.tv_timer);
-        //tb_randomize = findViewById(R.id.tb_random);
-        //tb_randomize.setOnCheckedChangeListener(this);
-        np_stations = findViewById(R.id.np_stations);
-        np_stations.setMinValue(BuildConfig.DEBUG ? 2 : 5);
-        np_stations.setMaxValue(60);
-        np_stations.setValue(workouts.get(currentWorkout).numStations);
-        tv_currentstation = findViewById(R.id.tv_currentstation);
-        pager_workouts = findViewById(R.id.pager_workouts);
-        pager_workouts.setOffscreenPageLimit(5);
-        pager_workouts.setPageMargin(-50);
-        pager_workouts.setPageTransformer(false, new DepthPageTransformer());
-        pager_workouts.setAdapter(pager_adapter = new PagerAdapter() {
+        binding.npPeriod.setMinValue(0);
+        binding.npPeriod.setMaxValue(29);
+        binding.npPeriod.setValue(workouts.get(currentWorkout).timerIndex);
+        binding.npPeriod.setDisplayedValues(values);
+        binding.npPeriod.setOnValueChangedListener(this);
+
+        binding.bStart.setOnClickListener(this);
+        binding.bPause.setOnClickListener(this);
+        binding.bOptions.setOnClickListener(this);
+        binding.npStations.setMinValue(BuildConfig.DEBUG ? 2 : 5);
+        binding.npStations.setMaxValue(60);
+        binding.npStations.setValue(workouts.get(currentWorkout).numStations);
+        binding.pagerWorkouts.setOffscreenPageLimit(5);
+        binding.pagerWorkouts.setPageMargin(-50);
+        binding.pagerWorkouts.setPageTransformer(false, new DepthPageTransformer());
+        binding.pagerWorkouts.setAdapter(pager_adapter = new PagerAdapter() {
 
             @Override
             public int getCount() {
@@ -311,11 +291,10 @@ public class MainActivity extends CCActivityBase implements
             @NonNull
             @Override
             public Object instantiateItem(@NonNull ViewGroup container, int position) {
-                View item = View.inflate(MainActivity.this, R.layout.workout_list_item, null);
-                TextView tv = item.findViewById(R.id.text);
-                tv.setText(workouts.get(position).name);
-                container.addView(item);
-                return item;
+                WorkoutListItemBinding lb = WorkoutListItemBinding.inflate(getLayoutInflater());
+                lb.text.setText(workouts.get(position).name);
+                container.addView(lb.getRoot());
+                return lb.getRoot();
             }
 
             @Override
@@ -328,8 +307,8 @@ public class MainActivity extends CCActivityBase implements
                 return POSITION_NONE;
             }
         });
-        pager_workouts.setCurrentItem(currentWorkout, false);
-        pager_workouts.setOnPageChangeListener(this);
+        binding.pagerWorkouts.setCurrentItem(currentWorkout, false);
+        binding.pagerWorkouts.setOnPageChangeListener(this);
     }
 
     @Override
@@ -355,8 +334,8 @@ public class MainActivity extends CCActivityBase implements
         }
         pause();
         try {
-            workouts.get(currentWorkout).numStations = np_stations.getValue();
-            workouts.get(currentWorkout).timerIndex = np_timer.getValue();
+            workouts.get(currentWorkout).numStations = binding.npStations.getValue();
+            workouts.get(currentWorkout).timerIndex = binding.npPeriod.getValue();
             Reflector.serializeToFile(workouts, new File(getFilesDir(), WORKOUTS_FILE));
         } catch (Exception e) {
             e.printStackTrace();
@@ -375,12 +354,12 @@ public class MainActivity extends CCActivityBase implements
                 timeLeftSecs = getPrefs().getInt("timeLeftSecs", 0);
                 setIndex = getPrefs().getInt("setIndex", 0);
                 state = STATE_PAUSED;
-                b_pause.setText(R.string.button_resume);
-//                tv_timer.post(this);
+                binding.bPause.setText(R.string.button_resume);
+//                binding.tvTimer.post(this);
                 run();
-                b_start.setText(R.string.button_stop);
-                b_pause.setEnabled(true);
-                b_options.setEnabled(false);
+                binding.bStart.setText(R.string.button_stop);
+                binding.bPause.setEnabled(true);
+                binding.bOptions.setEnabled(false);
 //                setKeepScreenOn(true);
                 pause();
                 break;
@@ -399,14 +378,14 @@ public class MainActivity extends CCActivityBase implements
     public void onPageSelected(int i) {
         if (i >= 0 && i < workouts.size()) {
             // save off the current values into the workout
-            workouts.get(currentWorkout).timerIndex = np_timer.getValue();
-            workouts.get(currentWorkout).numStations = np_stations.getValue();
+            workouts.get(currentWorkout).timerIndex = binding.npPeriod.getValue();
+            workouts.get(currentWorkout).numStations = binding.npStations.getValue();
             // update the np pickers to reflect the newly selected workout
             currentWorkout = i;
             Workout workout = workouts.get(i);
             Log.d(TAG, "Workout set to: " + workout.name);
-            np_stations.setValue(workout.numStations);
-            np_timer.setValue(workout.timerIndex);
+            binding.npStations.setValue(workout.numStations);
+            binding.npPeriod.setValue(workout.timerIndex);
             getPrefs().edit().putInt("current_workout", currentWorkout).apply();
         }
     }
@@ -489,7 +468,7 @@ public class MainActivity extends CCActivityBase implements
                 .setPositiveButton(R.string.popup_button_save, (dialogInterface, i) -> {
                     String name = et.getText().toString();
                     if (name.isEmpty()) {
-                        Snackbar.make(tv_currentstation, R.string.toast_err_empty_name, Snackbar.LENGTH_LONG).show();
+                        Snackbar.make(binding.tvCurrentstation, R.string.toast_err_empty_name, Snackbar.LENGTH_LONG).show();
                         return;
                     }
 
@@ -503,20 +482,15 @@ public class MainActivity extends CCActivityBase implements
                         Reflector.serializeToFile(workouts, new File(getFilesDir(), WORKOUTS_FILE));
                     } catch (Exception e) {
                         e.printStackTrace();
-                        Snackbar.make(tv_currentstation, R.string.toast_err_save_workout, Snackbar.LENGTH_LONG).show();
+                        Snackbar.make(binding.tvCurrentstation, R.string.toast_err_save_workout, Snackbar.LENGTH_LONG).show();
                     }
                     pager_adapter.notifyDataSetChanged();
                 }).show();
     }
 
     void showOrderingPopup() {
-        View v = View.inflate(this, R.layout.ordering_popup, null);
-        Button b_cardio = v.findViewById(R.id.b_cardio);
-        Button b_upper = v.findViewById(R.id.b_upperbody);
-        Button b_core = v.findViewById(R.id.b_core);
-        Button b_lower = v.findViewById(R.id.b_lowerbody);
-        ListView lv = v.findViewById(R.id.listview);
-        DragAndDropAdapter<StationType> adapter = new DragAndDropAdapter<StationType>(lv, workouts.get(currentWorkout).ordering) {
+        OrderingPopupBinding ob = OrderingPopupBinding.inflate(getLayoutInflater());
+        DragAndDropAdapter<StationType> adapter = new DragAndDropAdapter<StationType>(ob.listview, workouts.get(currentWorkout).ordering) {
             @Override
             protected void populateItem(StationType cmd, ViewGroup container) {
                 TextView tv;
@@ -534,18 +508,18 @@ public class MainActivity extends CCActivityBase implements
                 return item.name().replace('_', ' ');
             }
         };
-        lv.setAdapter(adapter);
-        adapter.addDraggable(b_cardio, StationType.Cardio);
-        adapter.addDraggable(b_upper, StationType.Upper_Body);
-        adapter.addDraggable(b_core, StationType.Core);
-        adapter.addDraggable(b_lower, StationType.Lower_Body);
+        ob.listview.setAdapter(adapter);
+        adapter.addDraggable(ob.bCardio, StationType.Cardio);
+        adapter.addDraggable(ob.bUpperbody, StationType.Upper_Body);
+        adapter.addDraggable(ob.bCore, StationType.Core);
+        adapter.addDraggable(ob.bLowerbody, StationType.Lower_Body);
 
         Dialog d = newDialogBuilder()
-                .setView(v)
+                .setView(ob.getRoot())
                 .setNegativeButton(R.string.popup_button_cancel, null)
                 .setPositiveButton(R.string.popup_button_save, (dialogInterface, i) -> {
                     if (adapter.getList().size() == 0) {
-                        Snackbar.make(tv_currentstation, R.string.toast_err_emptylist, Snackbar.LENGTH_LONG).show();
+                        Snackbar.make(binding.tvCurrentstation, R.string.toast_err_emptylist, Snackbar.LENGTH_LONG).show();
                         return;
                     }
 
@@ -568,7 +542,7 @@ public class MainActivity extends CCActivityBase implements
         } catch (FileNotFoundException e) {
             // ignore
         } catch (Exception e) {
-            Snackbar.make(tv_currentstation, R.string.toast_err_load_stations, Snackbar.LENGTH_LONG).show();
+            Snackbar.make(binding.tvCurrentstation, R.string.toast_err_load_stations, Snackbar.LENGTH_LONG).show();
             e.printStackTrace();
         }
         return getDefaultStations();
@@ -576,9 +550,9 @@ public class MainActivity extends CCActivityBase implements
 
     void showSummaryPopup() {
 
+        WorkoutSummaryBinding wb = WorkoutSummaryBinding.inflate(getLayoutInflater());
         Workout workout = workouts.get(currentWorkout);
-        ViewPager pager = new ViewPager(this);
-        pager.setAdapter(new PagerAdapter() {
+        wb.viewPager.setAdapter(new PagerAdapter() {
             @Override
             public int getCount() {
                 return 4;
@@ -615,7 +589,7 @@ public class MainActivity extends CCActivityBase implements
         });
 
         newDialogBuilder().setTitle(getString(R.string.popup_title_summary, workout.name))
-                .setView(pager).setPositiveButton(R.string.popup_button_ok, null)
+                .setView(wb.getRoot()).setPositiveButton(R.string.popup_button_ok, null)
                 .setNeutralButton(R.string.popup_button_clear, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -660,41 +634,39 @@ public class MainActivity extends CCActivityBase implements
                 .setNegativeButton(R.string.popup_button_cancel, null)
                 .setPositiveButton(R.string.popup_button_add_station, (dialogInterface, i) -> showAddStationPopup(all)).setNeutralButton(R.string.popup_button_save, (dialogInterface, i) -> {
                     if (Utils.filter(all, object -> object.enabled).size() == 0) {
-                        Snackbar.make(tv_currentstation, R.string.toast_err_emptylist, Snackbar.LENGTH_LONG).show();
+                        Snackbar.make(binding.tvCurrentstation, R.string.toast_err_emptylist, Snackbar.LENGTH_LONG).show();
                         return;
                     }
                     try {
                         workouts.get(currentWorkout).stations = all;
                         Reflector.serializeToFile(all, new File(getFilesDir(), STATIONS_FILE));
                     } catch (Exception e) {
-                        Snackbar.make(tv_currentstation, getString(R.string.toast_err_savefailed, e.getMessage()), Snackbar.LENGTH_LONG).show();
+                        Snackbar.make(binding.tvCurrentstation, getString(R.string.toast_err_savefailed, e.getMessage()), Snackbar.LENGTH_LONG).show();
                     }
                 }).show();
     }
 
     void showAddStationPopup(final Station [] stations) {
-        View v = View.inflate(this, R.layout.add_station_popup, null);
-        final EditText et_name = v.findViewById(R.id.et_name);
-        final NumberPicker np_type = v.findViewById(R.id.np_station_type);
-        np_type.setDisplayedValues(Utils.toStringArray(StationType.values()));
-        np_type.setMinValue(0);
-        np_type.setMaxValue(StationType.values().length-1);
+        AddStationPopupBinding ab = AddStationPopupBinding.inflate(LayoutInflater.from(this));
+        ab.npStationType.setDisplayedValues(Utils.toStringArray(StationType.values()));
+        ab.npStationType.setMinValue(0);
+        ab.npStationType.setMaxValue(StationType.values().length-1);
 
-        newDialogBuilder().setTitle(R.string.popup_title_add_station).setView(v).setNegativeButton(R.string.popup_button_cancel, (dialogInterface, i) -> showStationsPopup(stations)).setPositiveButton(R.string.popup_button_add, (dialogInterface, i) -> {
-            String name = et_name.getText().toString().trim();
+        newDialogBuilder().setTitle(R.string.popup_title_add_station).setView(ab.getRoot()).setNegativeButton(R.string.popup_button_cancel, (dialogInterface, i) -> showStationsPopup(stations)).setPositiveButton(R.string.popup_button_add, (dialogInterface, i) -> {
+            String name = ab.etName.getText().toString().trim();
             if (name.isEmpty()) {
-                Snackbar.make(tv_currentstation, R.string.toast_err_emptyname, Snackbar.LENGTH_SHORT).show();
+                Snackbar.make(binding.tvCurrentstation, R.string.toast_err_emptyname, Snackbar.LENGTH_SHORT).show();
                 showStationsPopup(stations);
                 return;
             }
             for (Station s : stations) {
                 if (s.name.equalsIgnoreCase(name)) {
-                    Snackbar.make(tv_currentstation, R.string.toast_err_duplicationname, Snackbar.LENGTH_SHORT).show();
+                    Snackbar.make(binding.tvCurrentstation, R.string.toast_err_duplicationname, Snackbar.LENGTH_SHORT).show();
                     showStationsPopup(stations);
                     return;
                 }
             }
-            Station st = new Station(name, StationType.values()[np_type.getValue()]);
+            Station st = new Station(name, StationType.values()[ab.npStationType.getValue()]);
             List<Station> l = new ArrayList<>(Arrays.asList(stations));
             l.add(st);
             Station [] newArr = l.toArray(new Station[l.size()]);
@@ -743,7 +715,7 @@ public class MainActivity extends CCActivityBase implements
         // customize ordering here so, for example, we can do like 2 upper and 2 lower
         StationType [] order = workouts.get(currentWorkout).ordering;
         int orderIndex = 0;
-        while (sets.size() < np_stations.getValue()) {
+        while (sets.size() < binding.npStations.getValue()) {
             int idx = order[orderIndex++ % order.length].ordinal();
             List<Station> set = workout[idx];
             if (set.size() == 0) {
@@ -780,8 +752,8 @@ public class MainActivity extends CCActivityBase implements
         if (state == STATE_RUNNING) {
             getPrefs().edit().putInt("timeLeftSecs", timeLeftSecs).apply();
             state = STATE_PAUSED;
-            b_pause.setText(R.string.button_resume);
-            tv_timer.removeCallbacks(this);
+            binding.bPause.setText(R.string.button_resume);
+            binding.tvTimer.removeCallbacks(this);
             setKeepScreenOn(false);
         }
     }
@@ -790,9 +762,9 @@ public class MainActivity extends CCActivityBase implements
         if (state != STATE_RUNNING) {
             timeLeftSecs = getPrefs().getInt("timeLeftSecs", 0);
             state = STATE_RUNNING;
-            b_pause.setText(R.string.button_pause);
-            b_start.setText(R.string.button_stop);
-            tv_timer.post(this);
+            binding.bPause.setText(R.string.button_pause);
+            binding.bStart.setText(R.string.button_stop);
+            binding.tvTimer.post(this);
             setKeepScreenOn(true);
         }
     }
@@ -800,10 +772,10 @@ public class MainActivity extends CCActivityBase implements
     void stop() {
         timeLeftSecs = 0;
         state = STATE_STOPPED;
-        b_start.setText(R.string.button_start);
-        tv_timer.removeCallbacks(this);
-        b_pause.setEnabled(false);
-        b_options.setEnabled(true);
+        binding.bStart.setText(R.string.button_start);
+        binding.tvTimer.removeCallbacks(this);
+        binding.bPause.setEnabled(false);
+        binding.bOptions.setEnabled(true);
         setKeepScreenOn(false);
     }
 
@@ -811,19 +783,19 @@ public class MainActivity extends CCActivityBase implements
         initWorkout();
         timeLeftSecs = 0;
         state = STATE_RUNNING;
-        b_pause.setText(R.string.button_pause);
-        tv_timer.post(this);
-        b_start.setText(R.string.button_stop);
-        b_pause.setEnabled(true);
-        b_options.setEnabled(false);
+        binding.bPause.setText(R.string.button_pause);
+        binding.tvTimer.post(this);
+        binding.bStart.setText(R.string.button_stop);
+        binding.bPause.setEnabled(true);
+        binding.bOptions.setEnabled(false);
         setKeepScreenOn(true);
     }
 
     @Override
     public void run() {
 
-        int stationPeriodSecs = np_timer.getValue()*10 + 10;
-        final int numStations = np_stations.getValue();
+        int stationPeriodSecs = binding.npPeriod.getValue()*10 + 10;
+        final int numStations = binding.npStations.getValue();
 
         if (timeLeftSecs <= 0)
             timeLeftSecs = stationPeriodSecs;
@@ -864,11 +836,11 @@ public class MainActivity extends CCActivityBase implements
 
             default: {
                 if (secs <= 60) {
-                    tv_timer.setText(String.valueOf(secs));
+                    binding.tvTimer.setText(String.valueOf(secs));
                 } else {
                     int mins = secs/60;
                     secs -= mins*60;
-                    tv_timer.setText(getString(R.string.time_format, mins, secs));
+                    binding.tvTimer.setText(getString(R.string.time_format, mins, secs));
                 }
                 break;
             }
@@ -877,20 +849,20 @@ public class MainActivity extends CCActivityBase implements
                 station.addSeconds(stationPeriodSecs);
                 if (allDone) {
                     sayNow(getString(R.string.tts_alldone));
-                    tv_timer.setText(getString(R.string.tts_completed));
+                    binding.tvTimer.setText(getString(R.string.tts_completed));
                     stop();
                     showSummaryPopup();
                 } else {
                     sayNow(curSet);
-                    tv_timer.setText(R.string.text_switch);
+                    binding.tvTimer.setText(R.string.text_switch);
                 }
                 break;
         }
 
-        tv_currentstation.setText(getString(R.string.text_n_of_n_stations, (setIndex +1), numStations, curSet, nextSet));
+        binding.tvCurrentstation.setText(getString(R.string.text_n_of_n_stations, (setIndex +1), numStations, curSet, nextSet));
 
         if (state == STATE_RUNNING)
-            tv_timer.postDelayed(this, 1000);
+            binding.tvTimer.postDelayed(this, 1000);
     }
 
     @Override

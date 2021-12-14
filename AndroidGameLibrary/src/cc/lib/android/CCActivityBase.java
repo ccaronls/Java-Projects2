@@ -202,6 +202,7 @@ public class CCActivityBase extends AppCompatActivity {
     }
 
     public AlertDialog.Builder newDialogBuilder() {
+	    // to get the Holo.Dark theme use: new ContextThemeWrapper(this, android.R.style.Theme_Holo_Dialog)
 	    return new AlertDialog.Builder(this);
     }
 
