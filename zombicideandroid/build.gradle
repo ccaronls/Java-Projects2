@@ -61,7 +61,7 @@ android {
         }
     }
 
-    aaptOptions { cruncherEnabled = false }
+//    aaptOptions { cruncherEnabled = false }
 
     buildFeatures {
         dataBinding true

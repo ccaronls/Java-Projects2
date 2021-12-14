@@ -57,6 +57,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager.widget.PagerAdapter;
 import androidx.viewpager.widget.ViewPager;
+import cc.game.zombicide.android.databinding.ActivityZombicideBinding;
 import cc.lib.android.CCActivityBase;
 import cc.lib.android.DroidGraphics;
 import cc.lib.android.DroidUtils;
@@ -99,21 +100,15 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
     final static String PREF_P2P_NAME = "p2pname";
     final static String PREF_PLAYERS = "players";
 
-    ListView menu;
-    ZBoardView boardView;
-    ZCharacterView consoleView;
+    ActivityZombicideBinding zb;
+
     File gameFile, statsFile, savesMapFile;
-    ViewGroup buttonsGrid;
-    View consoleContainer;
-    CompoundButton buttonToggleHideContainer;
 
     UIZombicide game;
     final ZUser user = new UIZUser();
 
     ZClientMgr clientMgr = null;
     ZServerMgr serverMgr = null;
-
-    View bLH, bUp, bRH, bLeft, bCenter, bRight, bZoom, bDown, bVault;
 
     final ArrayBlockingQueue fileWriterQueue = new ArrayBlockingQueue(1);
     final Stats stats = new Stats();
@@ -196,29 +191,25 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
         ZGame.DEBUG = BuildConfig.DEBUG;
 
         hideNavigationBar();
-        setContentView(R.layout.activity_zombicide);
+        zb = ActivityZombicideBinding.inflate(getLayoutInflater());
+        setContentView(zb.getRoot());
 
-        menu = findViewById(R.id.list_menu);
-        menu.setOnItemClickListener(this);
-        menu.setOnItemLongClickListener(this);
-        boardView = findViewById(R.id.board_view);
-        consoleView = findViewById(R.id.console_view);
-        buttonsGrid = findViewById(R.id.buttons_layout);
-        buttonsGrid.setVisibility(View.GONE);
-        (bZoom = findViewById(R.id.b_zoom)).setOnClickListener(this);
-        (bUp = findViewById(R.id.b_up)).setOnClickListener(this);
-        (bLH = findViewById(R.id.b_useleft)).setOnClickListener(this);
-        (bRH = findViewById(R.id.b_useright)).setOnClickListener(this);
-        (bCenter = findViewById(R.id.b_center)).setOnClickListener(this);
-        (bVault = findViewById(R.id.b_vault)).setOnClickListener(this);
-        (bLeft = findViewById(R.id.b_left)).setOnClickListener(this);
-        (bDown = findViewById(R.id.b_down)).setOnClickListener(this);
-        (bRight = findViewById(R.id.b_right)).setOnClickListener(this);
-        (buttonToggleHideContainer = findViewById(R.id.b_toggleConsole)).setOnCheckedChangeListener(this);
-        consoleContainer = findViewById(R.id.sv_console);
+        zb.listMenu.setOnItemClickListener(this);
+        zb.listMenu.setOnItemLongClickListener(this);
+        zb.buttonsLayout.setVisibility(View.GONE);
+        zb.bZoom.setOnClickListener(this);
+        zb.bUp.setOnClickListener(this);
+        zb.bUseleft.setOnClickListener(this);
+        zb.bUseright.setOnClickListener(this);
+        zb.bCenter.setOnClickListener(this);
+        zb.bVault.setOnClickListener(this);
+        zb.bLeft.setOnClickListener(this);
+        zb.bDown.setOnClickListener(this);
+        zb.bRight.setOnClickListener(this);
+        zb.bToggleConsole.setOnCheckedChangeListener(this);
 
-        UIZCharacterRenderer cr = new UIZCharacterRenderer(consoleView);
-        UIZBoardRenderer br = new UIZBoardRenderer<DroidGraphics>(boardView) {
+        UIZCharacterRenderer cr = new UIZCharacterRenderer(zb.consoleView);
+        UIZBoardRenderer br = new UIZBoardRenderer<DroidGraphics>(zb.boardView) {
 
             Map<GColor, Paint> outlinePaints = new HashMap<>();
 
@@ -239,9 +230,9 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
 
             @Override
             public void onLoaded() {
-                menu.setVisibility(View.VISIBLE);
-                if (!buttonToggleHideContainer.isChecked()) {
-                    consoleContainer.setVisibility(View.VISIBLE);
+                zb.listMenu.setVisibility(View.VISIBLE);
+                if (!zb.bToggleConsole.isChecked()) {
+                    zb.svConsole.setVisibility(View.VISIBLE);
                 }
                 if (game.getQuest().getPercentComplete(game) == 0)
                     game.showObjectivesOverlay();
@@ -251,8 +242,8 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
 
             @Override
             public void onLoading() {
-                menu.setVisibility(View.GONE);
-                consoleContainer.setVisibility(View.GONE);
+                zb.listMenu.setVisibility(View.GONE);
+                zb.svConsole.setVisibility(View.GONE);
             }
         };
         br.setDrawTiles(true);
@@ -270,8 +261,8 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
                         //trySaveToFile(gameFile);
                         fileWriterQueue.put(0);
                     }
-                    boardView.postInvalidate();
-                    consoleView.postInvalidate();
+                    zb.boardView.postInvalidate();
+                    zb.consoleView.postInvalidate();
                     //synchronized (boardView) {
                     //    boardView.wait(2000); // wait for the board to render at least one frame
                     //}
@@ -283,7 +274,7 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
 
             @Override
             public <T> T waitForUser(Class<T> expectedType) {
-                boardView.post(() -> initMenu(getUiMode(), getOptions()));
+                zb.boardView.post(() -> initMenu(getUiMode(), getOptions()));
                 return super.waitForUser(expectedType);
             }
 
@@ -521,7 +512,7 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
 
     @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-        consoleContainer.setVisibility(isChecked ? View.GONE : View.VISIBLE);
+        zb.svConsole.setVisibility(isChecked ? View.GONE : View.VISIBLE);
     }
 
     @Override
@@ -796,7 +787,7 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
                     new CLSendCommandSpinnerTask(this, ZMPCommon.SVR_UPDATE_GAME) {
                         @Override
                         protected void onSuccess() {
-                            boardView.postInvalidate();
+                            zb.boardView.postInvalidate();
                         }
                     }.execute(clientMgr.newUndoPressed());
                     //getClient().sendCommand(clientMgr.newUndoPressed());
@@ -858,7 +849,7 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
             game.trySaveToFile(gameFile);
         }
         startGame();
-        boardView.postInvalidate();
+        zb.boardView.postInvalidate();
     }
 
     void showLoadQuestDialog() {
@@ -1254,8 +1245,6 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
     }
 
     void showNewGameDialogChoosePlayers(ZQuests quest, ZDifficulty difficulty) {
-
-
         Set<String> selectedPlayers = new HashSet(getStoredCharacters());
         View view = View.inflate(this, R.layout.viewpager_dialog, null);
         ViewPager pager = view.findViewById(R.id.view_pager);
@@ -1375,7 +1364,7 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
     }
 
     public void initHomeMenu() {
-        buttonsGrid.setVisibility(View.GONE);
+        zb.buttonsLayout.setVisibility(View.GONE);
         List<View> buttons = new ArrayList<>();
         for (MenuItem i : Utils.filter(MenuItem.values(), object -> object.isHomeButton(ZombicideActivity.this))) {
             buttons.add(ZButton.build(this, i, i.isEnabled(this)));
@@ -1384,7 +1373,7 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
     }
 
     public void initGameMenu() {
-        buttonsGrid.setVisibility(View.VISIBLE);
+        zb.buttonsLayout.setVisibility(View.VISIBLE);
         initMenu(UIZombicide.UIMode.NONE, null);
         game.refresh();
     }
@@ -1398,43 +1387,43 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
                     case WALK_DIR:
                         switch (move.dir) {
                             case NORTH:
-                                bUp.setTag(move);
-                                bUp.setVisibility(View.VISIBLE);
+                                zb.bUp.setTag(move);
+                                zb.bUp.setVisibility(View.VISIBLE);
                                 break;
                             case SOUTH:
-                                bDown.setTag(move);
-                                bDown.setVisibility(View.VISIBLE);
+                                zb.bDown.setTag(move);
+                                zb.bDown.setVisibility(View.VISIBLE);
                                 break;
                             case EAST:
-                                bRight.setTag(move);
-                                bRight.setVisibility(View.VISIBLE);
+                                zb.bRight.setTag(move);
+                                zb.bRight.setVisibility(View.VISIBLE);
                                 break;
                             case WEST:
-                                bLeft.setTag(move);
-                                bLeft.setVisibility(View.VISIBLE);
+                                zb.bLeft.setTag(move);
+                                zb.bLeft.setVisibility(View.VISIBLE);
                                 break;
                             case ASCEND:
                             case DESCEND:
-                                bVault.setTag(move);
-                                bVault.setVisibility(View.VISIBLE);
+                                zb.bVault.setTag(move);
+                                zb.bVault.setVisibility(View.VISIBLE);
                                 break;
                         }
                         it.remove();
                         break;
 
                     case USE_LEFT_HAND:
-                        bLH.setTag(move);
-                        bLH.setVisibility(View.VISIBLE);
+                        zb.bUseleft.setTag(move);
+                        zb.bUseleft.setVisibility(View.VISIBLE);
                         it.remove();
                         break;
                     case USE_RIGHT_HAND:
-                        bRH.setTag(move);
-                        bRH.setVisibility(View.VISIBLE);
+                        zb.bUseright.setTag(move);
+                        zb.bUseright.setVisibility(View.VISIBLE);
                         it.remove();
                         break;
                     case SWITCH_ACTIVE_CHARACTER:
-                        bCenter.setTag(move);
-                        bCenter.setVisibility(View.VISIBLE);
+                        zb.bCenter.setTag(move);
+                        zb.bCenter.setVisibility(View.VISIBLE);
                         it.remove();
                         break;
                 }
@@ -1443,14 +1432,14 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
     }
 
     void clearKeypad() {
-        bLH.setVisibility(View.INVISIBLE);
-        bRH.setVisibility(View.INVISIBLE);
-        bUp.setVisibility(View.INVISIBLE);
-        bDown.setVisibility(View.INVISIBLE);
-        bLeft.setVisibility(View.INVISIBLE);
-        bRight.setVisibility(View.INVISIBLE);
-        bVault.setVisibility(View.INVISIBLE);
-        bCenter.setTag(null);
+        zb.bUseleft.setVisibility(View.INVISIBLE);
+        zb.bUseright.setVisibility(View.INVISIBLE);
+        zb.bUp.setVisibility(View.INVISIBLE);
+        zb.bDown.setVisibility(View.INVISIBLE);
+        zb.bLeft.setVisibility(View.INVISIBLE);
+        zb.bRight.setVisibility(View.INVISIBLE);
+        zb.bVault.setVisibility(View.INVISIBLE);
+        zb.bCenter.setTag(null);
     }
 
     void initMenu(UIZombicide.UIMode mode, List<IButton> _options) {
@@ -1461,7 +1450,7 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
             initKeypad(options);
             switch (mode) {
                 case PICK_CHARACTER:
-                    bCenter.setTag(options.get(0));
+                    zb.bCenter.setTag(options.get(0));
                 case PICK_MENU:
                     for (IButton e : options) {
                         buttons.add(ZButton.build(this, e, e.isEnabled()));
@@ -1477,7 +1466,7 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
     }
 
     void initMenuItems(List<View> buttons) {
-        menu.setAdapter(new BaseAdapter() {
+        zb.listMenu.setAdapter(new BaseAdapter() {
             @Override
             public int getCount() {
                 return buttons.size();

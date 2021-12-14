@@ -6,14 +6,14 @@ import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CheckBox;
 import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.List;
 
 import androidx.recyclerview.widget.RecyclerView;
+import cc.game.zombicide.android.databinding.AssignDialogItemBinding;
+import cc.game.zombicide.android.databinding.AssignDialogP2pBinding;
 import cc.lib.zombicide.ZUser;
 
 /**
@@ -33,16 +33,14 @@ public abstract class CharacterChooserDialog extends RecyclerView.Adapter<Charac
         this.activity = activity;
         this.selectedPlayers = selectedPlayers;
         this.maxPlayers = maxPlayers;
-        View view = View.inflate(activity, R.layout.assign_dialog_p2p, null);
-        RecyclerView recyclerView = view.findViewById(R.id.recyclerView);
-        view.findViewById(R.id.bStart).setOnClickListener(this);
-        view.findViewById(R.id.bDisconnect).setOnClickListener(this);
-        recyclerView.setAdapter(this);
-//        recyclerView.setLayoutManager(new GridLayoutManager(activity, 2, LinearLayoutManager.VERTICAL, false));
+        AssignDialogP2pBinding ab = AssignDialogP2pBinding.inflate(activity.getLayoutInflater());
+        ab.bStart.setOnClickListener(this);
+        ab.bDisconnect.setOnClickListener(this);
+        ab.recyclerView.setAdapter(this);
 
         updateSelected();
         dialog = activity.newDialogBuilder().setTitle("ASSIGN")
-                .setView(view).show();
+                .setView(ab.getRoot()).show();
     }
 
     protected abstract void onAssigneeChecked(Assignee a, boolean checked);
@@ -57,7 +55,8 @@ public abstract class CharacterChooserDialog extends RecyclerView.Adapter<Charac
 
     @Override
     public Holder onCreateViewHolder(ViewGroup parent, int viewType) {
-        return new Holder(LayoutInflater.from(activity).inflate(R.layout.assign_dialog_item, parent, false), this);
+        AssignDialogItemBinding ib = AssignDialogItemBinding.inflate(LayoutInflater.from(activity), parent, false);
+        return new Holder(ib, this);
     }
 
     @Override
@@ -152,52 +151,42 @@ public abstract class CharacterChooserDialog extends RecyclerView.Adapter<Charac
     public static class Holder extends RecyclerView.ViewHolder {
 
         Assignee assignee;
-        final ImageView image;
-        final CheckBox checkbox;
-        final View lockedOverlay;
-        final TextView lockedReason;
-        final TextView assignedPlayer; // MP Only
+        final AssignDialogItemBinding ib;
 
         void bind(Assignee a, CharacterChooserDialog cl) {
             this.assignee = a;
 
-            assignedPlayer.setText(a.userName);
+            ib.tvP2PName.setText(a.userName);
             if (a.color >= 0) {
-                assignedPlayer.setTextColor(ZUser.USER_COLORS[a.color].toARGB());
-                assignedPlayer.setText(a.userName);
+                ib.tvP2PName.setTextColor(ZUser.USER_COLORS[a.color].toARGB());
+                ib.tvP2PName.setText(a.userName);
             } else {
-                assignedPlayer.setTextColor(Color.WHITE);
-                assignedPlayer.setText(R.string.p2p_name_unassigned);
+                ib.tvP2PName.setTextColor(Color.WHITE);
+                ib.tvP2PName.setText(R.string.p2p_name_unassigned);
             }
-            checkbox.setChecked(a.checked);
-            checkbox.setClickable(false);
-            image.setOnLongClickListener(cl);
+            ib.checkbox.setChecked(a.checked);
+            ib.checkbox.setClickable(false);
+            ib.image.setOnLongClickListener(cl);
             if (!a.isUnlocked()) {
-                lockedOverlay.setVisibility(View.VISIBLE);
-                lockedReason.setVisibility(View.VISIBLE);
-                lockedReason.setText(a.lock.unlockMessage);
-                checkbox.setEnabled(false);
-                image.setOnClickListener(null);
+                ib.lockedOverlay.setVisibility(View.VISIBLE);
+                ib.tvLockedReason.setVisibility(View.VISIBLE);
+                ib.tvLockedReason.setText(a.lock.unlockMessage);
+                ib.checkbox.setEnabled(false);
+                ib.image.setOnClickListener(null);
             } else {
-                lockedOverlay.setVisibility(View.INVISIBLE);
-                checkbox.setEnabled(true);
-                lockedReason.setVisibility(View.GONE);
-                image.setOnClickListener(cl);
+                ib.lockedOverlay.setVisibility(View.INVISIBLE);
+                ib.checkbox.setEnabled(true);
+                ib.tvLockedReason.setVisibility(View.GONE);
+                ib.image.setOnClickListener(cl);
             }
 
-            image.setImageResource(a.name.cardImageId);
-            image.setTag(assignee);
+            ib.image.setImageResource(a.name.cardImageId);
+            ib.image.setTag(assignee);
         }
 
-        public Holder(View itemView, View.OnClickListener listener) {
-            super(itemView);
-            image = itemView.findViewById(R.id.image);
-            image.setOnClickListener(listener);
-            checkbox = itemView.findViewById(R.id.checkbox);
-            checkbox.setClickable(false);
-            lockedOverlay = itemView.findViewById(R.id.lockedOverlay);
-            lockedReason = itemView.findViewById(R.id.tvLockedReason);
-            assignedPlayer = itemView.findViewById(R.id.tvP2PName);
+        public Holder(AssignDialogItemBinding ib, View.OnClickListener listener) {
+            super(ib.getRoot());
+            this.ib = ib;
         }
     }
 

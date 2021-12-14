@@ -55,10 +55,6 @@ android {
     }
 
     aaptOptions { cruncherEnabled = false }
-
-    buildFeatures {
-        dataBinding true
-    }
 }
 
 dependencies {
