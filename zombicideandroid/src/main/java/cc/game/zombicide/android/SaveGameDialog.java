@@ -4,12 +4,12 @@ import android.app.Dialog;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.ListView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import cc.game.zombicide.android.databinding.SaveGameDialogBinding;
 import cc.lib.game.Utils;
 import cc.lib.utils.Pair;
 
@@ -22,12 +22,12 @@ public class SaveGameDialog extends BaseAdapter implements View.OnClickListener 
     final int maxSaves;
     final List<Pair<String,String>> list = new ArrayList<>();
     final Dialog dialog;
-    final View b_save;
+    SaveGameDialogBinding sb;
 
     void updateSaves() {
         list.clear();
         list.addAll(Utils.toList(activity.getSaves()));
-        b_save.setEnabled(list.size() < maxSaves);
+        sb.bSave.setEnabled(list.size() < maxSaves);
         while (list.size() < maxSaves) {
             list.add(new Pair("EMPTY", null));
         }
@@ -36,18 +36,17 @@ public class SaveGameDialog extends BaseAdapter implements View.OnClickListener 
     public SaveGameDialog(ZombicideActivity activity, int maxSaves) {
         this.activity = activity;
         this.maxSaves = maxSaves;
-        View view = View.inflate(activity, R.layout.save_game_dialog, null);
-        (b_save = view.findViewById(R.id.b_save)).setOnClickListener(this);
-        ListView lv = view.findViewById(R.id.listView);
-        view.findViewById(R.id.b_cancel).setOnClickListener(this);
+        SaveGameDialogBinding sb = SaveGameDialogBinding.inflate(activity.getLayoutInflater());
+        sb.bSave.setOnClickListener(this);
+        sb.bCancel.setOnClickListener(this);
         updateSaves();
 
-        lv.setScrollContainer(false);
-        lv.setAdapter(this);
+        sb.listView.setScrollContainer(false);
+        sb.listView.setAdapter(this);
 
 
         dialog = activity.newDialogBuilder().setTitle("Save Game")
-                .setView(view).show();
+                .setView(sb.getRoot()).show();
     }
 
     @Override
@@ -92,7 +91,7 @@ public class SaveGameDialog extends BaseAdapter implements View.OnClickListener 
                 activity.deleteSave(name);
                 updateSaves();
                 notifyDataSetChanged();
-                b_save.setEnabled(true);
+                sb.bSave.setEnabled(true);
                 break;
             }
             case R.id.b_save: {

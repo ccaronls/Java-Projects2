@@ -24,11 +24,9 @@ import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -52,6 +50,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.view.ContextThemeWrapper;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -90,7 +89,7 @@ import cc.lib.zombicide.ui.UIZombicide;
  *
  *
  */
-public class ZombicideActivity extends P2PActivity implements View.OnClickListener, ListView.OnItemClickListener, ListView.OnItemLongClickListener, RadioButton.OnCheckedChangeListener {
+public class ZombicideActivity extends P2PActivity implements View.OnClickListener, ListView.OnItemClickListener, ListView.OnItemLongClickListener {
 
     private final static String TAG = ZombicideActivity.class.getSimpleName();
 
@@ -101,6 +100,7 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
     final static String PREF_PLAYERS = "players";
 
     ActivityZombicideBinding zb;
+    ActivityViewModel vm;
 
     File gameFile, statsFile, savesMapFile;
 
@@ -191,7 +191,10 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
         ZGame.DEBUG = BuildConfig.DEBUG;
 
         hideNavigationBar();
+        vm = new ViewModelProvider(this).get(ActivityViewModel.class);
         zb = ActivityZombicideBinding.inflate(getLayoutInflater());
+        zb.setViewModel(vm);
+        zb.setLifecycleOwner(this);
         setContentView(zb.getRoot());
 
         zb.listMenu.setOnItemClickListener(this);
@@ -206,7 +209,6 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
         zb.bLeft.setOnClickListener(this);
         zb.bDown.setOnClickListener(this);
         zb.bRight.setOnClickListener(this);
-        zb.bToggleConsole.setOnCheckedChangeListener(this);
 
         UIZCharacterRenderer cr = new UIZCharacterRenderer(zb.consoleView);
         UIZBoardRenderer br = new UIZBoardRenderer<DroidGraphics>(zb.boardView) {
@@ -508,11 +510,6 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
 
     ZDifficulty getSavedDifficulty() {
         return ZDifficulty.valueOf(getPrefs().getString("difficulty", ZDifficulty.MEDIUM.name()));
-    }
-
-    @Override
-    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-        zb.svConsole.setVisibility(isChecked ? View.GONE : View.VISIBLE);
     }
 
     @Override

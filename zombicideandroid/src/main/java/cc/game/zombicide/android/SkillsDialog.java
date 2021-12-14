@@ -13,7 +13,7 @@ import java.util.List;
 
 import androidx.annotation.NonNull;
 import androidx.viewpager.widget.PagerAdapter;
-import androidx.viewpager.widget.ViewPager;
+import cc.game.zombicide.android.databinding.ViewpagerDialogBinding;
 import cc.lib.game.GColor;
 import cc.lib.zombicide.ZColor;
 import cc.lib.zombicide.ZPlayerName;
@@ -42,16 +42,14 @@ class SkillsDialog extends PagerAdapter {
             idx++;
         }
 
-        View view = View.inflate(activity, R.layout.viewpager_dialog, null);
-        ViewPager pager = view.findViewById(R.id.view_pager);
-        //pager.setAdapter(new Page
-        pager.setAdapter(this);
+        ViewpagerDialogBinding vb = ViewpagerDialogBinding.inflate(activity.getLayoutInflater());
+        vb.viewPager.setAdapter(this);
 
         if (activity.game.getCurrentCharacter() != null) {
-            pager.setCurrentItem(activity.game.getCurrentCharacter().ordinal());
+            vb.viewPager.setCurrentItem(activity.game.getCurrentCharacter().ordinal());
         }
 
-        activity.newDialogBuilder().setTitle("Skills").setView(view).setNegativeButton("Close", null).show();
+        activity.newDialogBuilder().setTitle("Skills").setView(vb.getRoot()).setNegativeButton("Close", null).show();
     }
 
     @Override
