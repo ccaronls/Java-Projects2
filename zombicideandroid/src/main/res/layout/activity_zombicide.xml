@@ -11,13 +11,13 @@
 
     </data>
 
-
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/vgTop"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/background"
-        tools:context=".ZombicideActivity">
+        tools:context=".ZombicideActivity"
+        tools:ignore="ContentDescription">
 
         <ListView
             android:id="@+id/list_menu"
@@ -34,6 +34,7 @@
             android:layout_height="wrap_content"
             android:rowCount="3"
             android:columnCount="3"
+            goneIfNot="@{viewModel.playing}"
             app:layout_constraintTop_toBottomOf="@id/sv_console"
             app:layout_constraintBottom_toTopOf="@id/list_menu"
             app:layout_constraintStart_toStartOf="parent"
@@ -42,7 +43,7 @@
             <Button
                 style="@style/ZDPadButton"
                 android:id="@+id/b_useleft"
-                android:text="LH"/>
+                android:text="@string/dpad_lh"/>
 
             <ImageButton
                 style="@style/ZDPadButton"
@@ -52,7 +53,7 @@
             <Button
                 style="@style/ZDPadButton"
                 android:id="@+id/b_useright"
-                android:text="RH"/>
+                android:text="@string/dpad_rh"/>
 
             <ImageButton
                 style="@style/ZDPadButton"
@@ -73,7 +74,7 @@
             <Button
                 style="@style/ZDPadButton"
                 android:id="@+id/b_zoom"
-                android:text="ZM"/>
+                android:text="@string/dpad_zm"/>
 
             <ImageButton
                 style="@style/ZDPadButton"
@@ -83,8 +84,7 @@
             <ImageButton
                 style="@style/ZDPadButton"
                 android:id="@+id/b_vault"
-                android:src="@drawable/stairs_icon"
-                />
+                android:src="@drawable/stairs_icon" />
 
 
         </GridLayout>

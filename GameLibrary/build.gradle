@@ -24,7 +24,7 @@ sourceSets {
             srcDirs = [ 'src', 'apps' ]
         }
         resources {
-            srcDirs = [ 'resources', 'images', 'gifs', '../zombicideandroid/src/main/res/drawable',  '../zombicideandroid/assets' ]
+            srcDirs = [ 'resources', 'images', 'gifs', 'zpngs', '../zombicideandroid/assets' ]
         }
     }
 

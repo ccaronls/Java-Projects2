@@ -89,7 +89,7 @@ abstract class PlayerChooserDialog extends PagerAdapter implements View.OnClickL
         if (!a.isUnlocked()) {
             lockedOverlay.setVisibility(View.VISIBLE);
             tvHowToUnlock.setVisibility(View.VISIBLE);
-            tvHowToUnlock.setText(a.lock.unlockMessage);
+            tvHowToUnlock.setText(a.lock.unlockMessageId);
             checkbox.setEnabled(false);
             view.setOnClickListener(null);
         } else {

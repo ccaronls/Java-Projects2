@@ -54,4 +54,60 @@ are fulfilled.
     <string name="email_">An error occurred trying to send report:\n%s</string>
     <string name="p2p_name_unassigned">Unassigned</string>
 
+    <string name="char_lock_tucker">Complete \'Big Game Hunting\' in Medium difficulty.</string>
+    <string name="char_lock_jain">Complete \'The Black Book\' in Hard difficulty</string>
+    <string name="char_lock_benson">Complete \'The Evil Temple\' in Hard difficulty</string>
+    <string name="char_lock_wolfz">Unlock Wolfzburg</string>
+
+
+
+    <string name="popup_button_back">Back</string>
+    <string name="popup_button_send">Send</string>
+    <string name="popup_button_newgame">New Game</string>
+    <string name="popup_button_cancel_mp">Cancel Multi-player</string>
+
+    <string name="popup_title_welcome">Welcome</string>
+    <string name="popup_title_legend">Legend</string>
+    <string name="popup_title_skills">Skills</string>
+    <string name="popup_title_email">Email a report to the Author</string>
+    <string name="popup_title_searchables">Searchable</string>
+    <string name="popup_title_choose">Choose</string>
+    <string name="popup_title_difficulty">Difficulty %s</string>
+    <string name="popup_title_load_quest">Load Quest</string>
+    <string name="popup_title_load_saved">Load Saved</string>
+    <string name="popup_title_choose_color">Choose Color</string>
+    <string name="popup_title_choose_version">Choose Version</string>
+    <string name="popup_title_wolflocked">Wolfburg Locked</string>
+    <string name="popup_title_quest">Quest %1$d : %2$s</string>
+    <string name="popup_title_choose_players">Choose Players</string>
+    <string name="popup_title_assign">Assign</string>
+
+    <string name="popup_message_sending_report">Sending report</string>
+    <string name="popup_message_confirm_restart">Are you sure you want to start a new game?</string>
+    <string name="popup_message_confirm_disconnect">Are you sure you want to Disconnect?</string>
+    <string name="popup_message_unlock_wolfburg">Finish last level of Black Plague at Medium difficulty to unlock</string>
+    <string name="popup_message_err_fileopen">Failed to open %s</string>
+    <string name="popup_message_err_nonemptyname">Please set non empty name for display</string>
+
+    <string name="toast_msg_minplayers">Must have at least one player</string>
+    <string name="toast_msg_maxplayers">Can only have %d players at a time</string>
+    <string name="dpad_lh">LH</string>
+    <string name="dpad_rh">RH</string>
+    <string name="dpad_zm">ZM</string>
+
+    <string-array name="popup_message_choose_game_types">
+        <item>LEVEL</item>
+        <item>SAVED</item>
+    </string-array>
+
+    <string-array name="popup_message_choose_game_version_debug">
+        <item>Black Plague</item>
+        <item>Wolfsburg</item>
+        <item>All (DEBUG)</item>
+    </string-array>
+    <string-array name="popup_message_choose_game_version">
+        <item>Black Plague</item>
+        <item>Wolfsburg</item>
+    </string-array>
+
 </resources>

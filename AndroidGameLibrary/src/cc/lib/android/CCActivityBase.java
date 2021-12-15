@@ -2,13 +2,11 @@ package cc.lib.android;
 
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.text.InputFilter;
 import android.util.Log;
 import android.view.View;
@@ -24,7 +22,9 @@ import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.preference.PreferenceManager;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
@@ -87,12 +87,7 @@ public class CCActivityBase extends AppCompatActivity {
 	protected void onPermissionLimited(List<String> permissionsNotGranted) {
         newDialogBuilder().setTitle("Cannot Launch")
                 .setMessage("The following permissions are not granted and app cannot run;\n" + permissionsNotGranted)
-                .setNegativeButton("Ok", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        finish();
-                    }
-                }).show().setCanceledOnTouchOutside(false);
+                .setNegativeButton(R.string.popup_button_ok, (dialogInterface, i) -> finish()).show().setCanceledOnTouchOutside(false);
         Toast.makeText(this, "The following permissions are not granted: " + permissionsNotGranted, Toast.LENGTH_LONG).show();
     }
 	
@@ -159,11 +154,7 @@ public class CCActivityBase extends AppCompatActivity {
 		}
 	}
 	
-	private Runnable pollRunnable = new Runnable() {
-		public void run() {
-			onPoll();
-		}
-	};
+	private Runnable pollRunnable = this::onPoll;
 	
 	/**
 	 * Override this method to handle your polling needs.  Base method just logs to LogCat a warning.
@@ -207,7 +198,7 @@ public class CCActivityBase extends AppCompatActivity {
     }
 
     @Override
-    public final void onRequestPermissionsResult(int requestCode, String permissions[], final int[] grantResults) {
+    public final void onRequestPermissionsResult(int requestCode, String[] permissions, @NonNull final int[] grantResults) {
         switch (requestCode) {
             case PERMISSION_REQUEST_CODE: {
                 final List<String> permissionsNotGranted = new ArrayList<>();
@@ -254,13 +245,10 @@ public class CCActivityBase extends AppCompatActivity {
         et.setFilters(new InputFilter[] { new InputFilter.LengthFilter(maxChars) });
         newDialogBuilder().setTitle(title)
                 .setView(et)
-                .setNegativeButton("Cancel", null)
-                .setPositiveButton(R.string.popup_button_ok, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        String txt = et.getText().toString();
-                        callabck.onDone(txt);
-                    }
+                .setNegativeButton(R.string.popup_button_cancel, null)
+                .setPositiveButton(R.string.popup_button_ok, (dialog, which) -> {
+                    String txt = et.getText().toString();
+                    callabck.onDone(txt);
                 }).show();
 
     }

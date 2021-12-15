@@ -12,4 +12,6 @@ public class ActivityViewModel extends ViewModel {
 
     public MutableLiveData<Boolean> loading = new MutableLiveData(false);
 
+    public MutableLiveData<Boolean> playing = new MutableLiveData(false);
+
 }
