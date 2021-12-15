@@ -10,8 +10,6 @@ public class ActivityViewModel extends ViewModel {
 
     public MutableLiveData<Boolean> consoleVisible = new MutableLiveData(true);
 
-    public void toggleButtonPressed(boolean checked) {
-        consoleVisible.postValue(checked);
-    }
+    public MutableLiveData<Boolean> loading = new MutableLiveData(false);
 
 }

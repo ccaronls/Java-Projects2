@@ -1,5 +1,6 @@
 package cc.game.zombicide.android;
 
+import android.animation.LayoutTransition;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
@@ -232,10 +233,9 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
 
             @Override
             public void onLoaded() {
+                zb.vgTop.setLayoutTransition(new LayoutTransition());
                 zb.listMenu.setVisibility(View.VISIBLE);
-                if (!zb.bToggleConsole.isChecked()) {
-                    zb.svConsole.setVisibility(View.VISIBLE);
-                }
+                vm.loading.postValue(false);
                 if (game.getQuest().getPercentComplete(game) == 0)
                     game.showObjectivesOverlay();
                 else
@@ -244,8 +244,9 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
 
             @Override
             public void onLoading() {
+                zb.vgTop.setLayoutTransition(null);
                 zb.listMenu.setVisibility(View.GONE);
-                zb.svConsole.setVisibility(View.GONE);
+                vm.loading.postValue(true);
             }
         };
         br.setDrawTiles(true);

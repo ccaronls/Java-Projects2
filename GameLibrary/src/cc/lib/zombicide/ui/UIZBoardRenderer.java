@@ -1117,9 +1117,8 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                 g.setIdentity();
                 g.ortho();
                 g.setColor(GColor.YELLOW);
-                IVector2D cntr = new Vector2D(getWidth()/2, .6f*getHeight());
+                IVector2D cntr = new Vector2D(getWidth()/2, getHeight()/2);
                 Table t = (Table)overlayToDraw;
-                GDimension d = t.getDimension(g);
                 t.draw(g, cntr, Justify.CENTER, Justify.CENTER);
                 g.popMatrix();
                 /*
