@@ -122,17 +122,45 @@ public class TestGraphics extends APGraphics {
 
     @Override
     public int[] loadImageCells(String assetPath, int w, int h, int numCellsX, int numCells, boolean bordered, GColor transparent) {
-        return new int[0];
+        return new int[numCells];
+    }
+
+    static class DummyImage extends AImage {
+
+        final int width, height;
+
+        DummyImage() {
+            this(32, 32);
+        }
+        DummyImage(int width, int height) {
+            this.width = width;
+            this.height = height;
+        }
+
+        @Override
+        public int[] getPixels() {
+            return new int[0];
+        }
+
+        @Override
+        public float getWidth() {
+            return width;
+        }
+
+        @Override
+        public float getHeight() {
+            return height;
+        }
     }
 
     @Override
     public AImage getImage(int id) {
-        return null;
+        return new DummyImage();
     }
 
     @Override
     public AImage getImage(int id, int width, int height) {
-        return null;
+        return new DummyImage(width, height);
     }
 
     @Override

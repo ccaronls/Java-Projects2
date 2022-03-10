@@ -33,8 +33,7 @@ public class WolfTheGhostDoor extends ZQuest {
 
                 { "z60","z61:i:ww:ws:ode","z62:i:ds:de",    "z70:i:ws","z70:i:ws:ode","z71:i:ode:ws",       "z80:i:ws:we","z81","z82:ww:ds"             },
                 { "z63","z64","z65",                        "z72:st","z73","z74",                           "z83","z84","z85"                           },
-                { "z66:i:wn:ode:red","z67:i:dn:ww","z68:sps","z75:i:dw:vd2:wn:we","z76:sps","z77:i:ww:dn:ode","z86:i:wn:we:red","z87","z88:i:dn:ww:red" }
-
+                { "z66:i:wn:ode:red","z67:i:dn:we","z68:sps","z75:i:dw:vd1:wn:we","z76:sps","z77:i:ww:dn:ode","z86:i:wn:we:red","z87","z88:i:dn:ww:red" }
         };
 
 

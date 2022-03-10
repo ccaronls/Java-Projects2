@@ -6,7 +6,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import cc.lib.game.APGraphics;
+import cc.lib.game.TestGraphics;
 import cc.lib.game.Utils;
+import cc.lib.zombicide.ui.UIZombicide;
 
 public class ZombicideTest extends TestCase {
 
@@ -17,12 +20,18 @@ public class ZombicideTest extends TestCase {
     }
 
     public void testQuests() throws Exception {
-        ZGame game = new ZGame();
+        UIZombicide game = new HeadlessUIZombicide();
+        APGraphics g = new TestGraphics();
         for (ZQuests q : ZQuests.values()) {
             System.out.println("Testing Quest: " + q);
             game.loadQuest(q);
             assertEquals(q, game.getQuest().getQuest());
             game.getQuest().getPercentComplete(game);
+            game.getQuest().getTiles(game.getBoard());
+            for (ZIcon ic : ZIcon.values()) {
+                ic.imageIds = new int[8];
+            }
+            game.boardRenderer.draw(g, 500, 300);
         }
     }
 
@@ -46,6 +55,7 @@ public class ZombicideTest extends TestCase {
     }
 
     public void testUltraRed() {
+        ZSkillLevel.ULTRA_RED_MODE = false;
         ZGame game = new ZGame();
         game.setUsers(new ZTestUser(ZPlayerName.Ann));
         game.loadQuest(ZQuests.The_Abomination);
@@ -59,8 +69,8 @@ public class ZombicideTest extends TestCase {
         ZSkillLevel.ULTRA_RED_MODE = true;
         ZState state = game.getState();
 
-        for (int i=0; i<100; i++) {
-            game.addExperience(ann, Utils.rand() % 20 + 1);
+        for (int i=0; i<1000; i++) {
+            game.addExperience(ann, 1);
             while (game.getState() != state) {
                 game.runGame();
             }

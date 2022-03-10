@@ -125,7 +125,7 @@ public class P2PClientConnectionsDialog extends BaseAdapter implements
     public final void onClick(DialogInterface dialog, int which) {
         new SpinnerTask<Void>(context) {
             @Override
-            protected void doIt(Void... args) throws Exception {
+            protected void doIt(Void... args) {
                 helper.stop();
                 server.stop();
             }

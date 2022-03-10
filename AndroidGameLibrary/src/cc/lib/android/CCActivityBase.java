@@ -15,6 +15,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -260,4 +261,7 @@ public class CCActivityBase extends AppCompatActivity {
         decorView.setSystemUiVisibility(uiOptions);
     }
 
+    public File getExternalStorageDirectory() {
+	    return getExternalFilesDir(null);
+    }
 }

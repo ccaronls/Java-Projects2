@@ -453,7 +453,12 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                         }
                         break;
                 }
-                drawCellWalls(g, pos, 1);
+                try {
+                    drawCellWalls(g, pos, 1);
+                } catch (Exception e) {
+                    log.error("Problem draw cell walls pos: " + pos);
+                    throw e;
+                }
                 if (cell.contains(mouseX, mouseY)) {
                     result = i;
                     g.setColor(GColor.RED.withAlpha(32));

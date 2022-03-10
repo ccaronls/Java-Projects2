@@ -59,6 +59,9 @@ android {
         main {
             assets.srcDirs = [ 'assets' ]
         }
+        //test.java {
+        //    srcDirs = [ 'src/test/java', '../GameLibraary/test' ]
+        //}
     }
 
 //    aaptOptions { cruncherEnabled = false }
@@ -73,5 +76,7 @@ dependencies {
     implementation project(':AndroidMultiplayerGameLibrary')
     implementation project(path: ':GameLibrary', configuration: 'androidLib')
     implementation fileTree(dir: "libs", include: ["*.jar"])
-    testImplementation project(path: ':GameLibrary', configuration: 'androidLib')
+//    testImplementation 'junit:junit:4.12'
+//    testImplementation(testFixtures(project(':GameLibrary')))
+//    testImplementation project(":GameLibrary")
 }

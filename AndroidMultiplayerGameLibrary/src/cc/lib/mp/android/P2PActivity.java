@@ -3,6 +3,8 @@ package cc.lib.mp.android;
 import android.Manifest;
 import android.os.Build;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import cc.lib.android.CCActivityBase;
@@ -44,8 +46,14 @@ public abstract class P2PActivity extends CCActivityBase
         }
     }
 
+    @Override
+    public final void checkPermissions(String... permissions) {
+        super.checkPermissions(permissions);
+    }
+
     String[] getRequiredPermissions() {
-        return new String[]{
+        List<String> perms = new ArrayList<>();
+        perms.addAll(Arrays.asList(
                 Manifest.permission.ACCESS_WIFI_STATE,
                 Manifest.permission.CHANGE_WIFI_STATE,
                 Manifest.permission.ACCESS_FINE_LOCATION,
@@ -53,8 +61,12 @@ public abstract class P2PActivity extends CCActivityBase
                 Manifest.permission.ACCESS_NETWORK_STATE,
                 Manifest.permission.CHANGE_NETWORK_STATE,
                 Manifest.permission.INTERNET
-        };
+        ));
+        perms.addAll(Arrays.asList(getExtraPermissions()));
+        return perms.toArray(new String[perms.size()]);
     }
+
+    protected String [] getExtraPermissions() { return new String[0]; }
 
     @Override
     protected final void onPermissionLimited(List<String> permissionsNotGranted) {

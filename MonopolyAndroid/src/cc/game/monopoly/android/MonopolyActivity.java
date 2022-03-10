@@ -7,7 +7,6 @@ import android.content.DialogInterface;
 import android.graphics.Point;
 import android.graphics.Typeface;
 import android.os.Bundle;
-import android.os.Environment;
 import android.view.Display;
 import android.view.View;
 import android.view.ViewGroup;
@@ -64,7 +63,7 @@ public class MonopolyActivity extends DroidActivity {
         public void runGame() {
             monopoly.trySaveToFile(saveFile);
             if (BuildConfig.DEBUG) {
-                FileUtils.tryCopyFile(saveFile, Environment.getExternalStorageDirectory());
+                FileUtils.tryCopyFile(saveFile, getExternalStorageDirectory());
             }
             super.runGame();
         }
@@ -261,7 +260,7 @@ public class MonopolyActivity extends DroidActivity {
         @Override
         protected void onError(final Throwable t) {
             t.printStackTrace();
-            FileUtils.tryCopyFile(saveFile, new File(Environment.getExternalStorageDirectory(), "monopoly_error.txt"));
+            FileUtils.tryCopyFile(saveFile, new File(getExternalStorageDirectory(), "monopoly_error.txt"));
             stopGameThread();
             runOnUiThread(() -> { newDialogBuilder().setTitle("ERROR").setMessage(t.toString()).setNegativeButton("Ok", null).show(); });
         }
@@ -322,7 +321,7 @@ public class MonopolyActivity extends DroidActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //AndroidLogger.setLogFile(new File(Environment.getExternalStorageDirectory(), "monopoly.log"));
+        //AndroidLogger.setLogFile(new File(getExternalStorageDirectory(), "monopoly.log"));
         saveFile = new File(getFilesDir(),"monopoly.save");
         checkPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE);
     }
@@ -419,7 +418,7 @@ public class MonopolyActivity extends DroidActivity {
     }
 
     void showOptionsMenu() {
-        File fixed = new File(Environment.getExternalStorageDirectory(), "monopoly_fixed.txt");
+        File fixed = new File(getExternalStorageDirectory(), "monopoly_fixed.txt");
         if (fixed.exists()) {
             FileUtils.tryCopyFile(fixed, saveFile);
             fixed.delete();
