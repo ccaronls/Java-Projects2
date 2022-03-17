@@ -80,14 +80,14 @@ public class WolfZombieCourt extends ZQuest {
 
     @Override
     public int getPercentComplete(ZGame game) {
-        return getNumFoundObjectives()*100 / getNumStartRedObjectives();
+        return getNumFoundObjectives()*100 / getNumStartObjectives();
     }
 
     @Override
     public Table getObjectivesOverlay(ZGame game) {
         return new Table(getName())
                 .addRow(new Table().setNoBorder()
-                    .addRow("1.", "Collect all objectives", String.format("%d of %d", getNumFoundObjectives(), getNumStartRedObjectives()))
+                    .addRow("1.", "Collect all objectives", String.format("%d of %d", getNumFoundObjectives(), getNumStartObjectives()))
                     .addRow("2.", "Find the Crown", blueObjZone < 0)
                     .addRow("3.", "Find the Pendant", greenObjZone < 0)
                     .addRow("4.", "Find Vault Artifacts", getNumFoundVaultItems())

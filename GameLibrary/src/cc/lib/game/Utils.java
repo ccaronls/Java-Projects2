@@ -2970,6 +2970,22 @@ public class Utils {
     }
 
     /**
+     *
+     * @param iterable
+     * @param mapper
+     * @param <T>
+     * @param <C>
+     * @return
+     */
+    public static <T,C> List<T> mergeLists(Iterable<C> iterable, Mapper<C, List<T>> mapper) {
+        List<T> merged = new ArrayList<>();
+        for (C c : iterable) {
+            merged.addAll(mapper.map(c));
+        }
+        return merged;
+    }
+
+    /**
      * Sum the mapped values from a collection
      *
      * @param in

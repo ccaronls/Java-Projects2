@@ -764,12 +764,17 @@ public class ZGame extends Reflector<ZGame>  {
                     }
 
                     List<ZDoor> doors = new ArrayList<>();
+                    List<ZDoor> barricadeDoors = new ArrayList<>();
                     for (ZDoor door : zone.doors) {
                         if (door.isJammed() && !ch.canUnjamDoor())
                             continue;
-                        if (!door.isClosed(board) && !door.canBeClosed(ch))
-                            continue;
                         if (door.isLocked(board))
+                            continue;
+                        if (!door.isClosed(board) && ch.canBarricadeDoors()) {
+                            barricadeDoors.add(door);
+                            continue;
+                        }
+                        if (!door.isClosed(board) && !door.canBeClosed(ch))
                             continue;
                         doors.add(door);
                     }
@@ -777,7 +782,17 @@ public class ZGame extends Reflector<ZGame>  {
                     if (doors.size() > 0) {
                         options.add(ZMove.newToggleDoor(doors));
                     }
+                    if (barricadeDoors.size() > 0 && ch.getActionsLeftThisTurn() >= ZActionType.BARRICADE_DOOR.costPerTurn()) {
+                        options.add(ZMove.newBarricadeDoor(barricadeDoors));
+                    }
                 }
+
+                // TODO: Figure out a way to remove any moves that take
+                //  more turns to perform than the player has left
+                //Iterator<ZMove> it = options.iterator();
+                //while (it.hasNext()) {
+                //    ZMove move = it.next();
+                //}
 
                 if (options.size() == 0) {
                     ch.onEndOfTurn(this);
@@ -1040,17 +1055,18 @@ public class ZGame extends Reflector<ZGame>  {
     }
 
     void playerWounded(ZCharacter victim, ZActor attacker, ZAttackType attackType, int amount, String reason) {
-        victim.wound(amount);
-        if (victim.isDead()) {
-            victim.clearActions();
-            addLogMessage(victim.name() + " has been killed by a " + reason);
-            onCharacterAttacked(victim.getPlayerName(), attacker.getPosition(), attackType, true);
-            //removeCharacter(victim);
-        } else {
-            addLogMessage(victim.name() + " has been wounded by a " + reason);
-            onCharacterAttacked(victim.getPlayerName(), attacker.getPosition(), attackType, false);
+        if (!victim.isDead()) {
+            victim.wound(amount);
+            if (victim.isDead()) {
+                victim.clearActions();
+                addLogMessage(victim.name() + " has been killed by a " + reason);
+                onCharacterAttacked(victim.getPlayerName(), attacker.getPosition(), attackType, true);
+                //removeCharacter(victim);
+            } else {
+                addLogMessage(victim.name() + " has been wounded by a " + reason);
+                onCharacterAttacked(victim.getPlayerName(), attacker.getPosition(), attackType, false);
+            }
         }
-
     }
 
 
@@ -1470,11 +1486,34 @@ public class ZGame extends Reflector<ZGame>  {
                 }
                 return false;
             }
+            case BARRICADE: {
+                List<ZDoor> doors = move.list;
+                ZDoor door;
+                if (doors.size() > 1) {
+                    door = user.chooseDoorToToggleInternal(cur.getPlayerName(), doors);
+                } else {
+                    door = doors.get(0);
+                }
+
+                if (door != null) {
+                    Utils.assertTrue(!door.isClosed(board));
+                    ZEquipment barricade = cur.getEquipmentOfType(ZItemType.BARRICADE);
+                    Utils.assertTrue(barricade != null);
+                    door.toggle(board, true);
+                    cur.removeEquipment(barricade);
+                    putBackInSearchables(barricade);
+                    cur.performAction(ZActionType.BARRICADE_DOOR, this);
+                    return true;
+                }
+
+                return false;
+            }
             case SEARCH: {
                 // draw from top of the deck
                 int numCardsDrawn = 1;
                 if (cur.isEquipped(ZItemType.TORCH))
                     numCardsDrawn = 2;
+                List<ZEquipment> found = new ArrayList<>();
                 while (searchables.size() > 0 && numCardsDrawn-- > 0) {
                     ZEquipment equip = searchables.removeLast();
                     if (equip.getType() == ZItemType.AAHHHH) {
@@ -1485,7 +1524,7 @@ public class ZGame extends Reflector<ZGame>  {
                         spawnZombies(cur.occupiedZone);
                         putBackInSearchables(equip);
                     } else {
-                        onEquipmentFound(cur.getPlayerName(), equip);
+                        found.add(equip);
                         quest.onEquipmentFound(this, equip);
                         pushState(ZState.PLAYER_STAGE_CHOOSE_KEEP_EQUIPMENT, cur.getPlayerName(), equip);
                         if (equip.isDualWieldCapable() && cur.hasAvailableSkill(ZSkill.Matching_set)) {
@@ -1494,6 +1533,8 @@ public class ZGame extends Reflector<ZGame>  {
                         }
                     }
                 }
+                if (found.size() > 0)
+                    onEquipmentFound(cur.getPlayerName(), found);
                 cur.performAction(ZActionType.SEARCH, this);
                 return true;
             }
@@ -1729,7 +1770,7 @@ public class ZGame extends Reflector<ZGame>  {
 
     protected void onNecromancerEscaped(ZZombie necro) {}
 
-    protected void onEquipmentFound(ZPlayerName c, ZEquipment equipment) {}
+    protected void onEquipmentFound(ZPlayerName c, List<ZEquipment> equipment) {}
 
     protected void onCharacterHealed(ZPlayerName c, int amt) {}
 
@@ -1859,13 +1900,8 @@ public class ZGame extends Reflector<ZGame>  {
                     } else {
                         List<ZZombie> zombies = board.getZombiesInZone(zoneIdx);
                         if (zombies.size() > 1) {
-                            switch (actionType) {
-                                case RANGED:
-                                    if (cur.hasAvailableSkill(ZSkill.Marksman)) {
-                                        Collections.sort(zombies, new MarksmanComparator(stat.damagePerHit));
-                                        break;
-                                    }
-                                    Collections.sort(zombies, new RangedComparator());
+                            if (cur.hasAvailableSkill(ZSkill.Marksman)) {
+                                Collections.sort(zombies, new MarksmanComparator(stat.damagePerHit));
                             }
                             log.debug("Ranged Priority:" + Utils.map(zombies, z -> z.getType()));
                         }
@@ -2230,6 +2266,7 @@ public class ZGame extends Reflector<ZGame>  {
         ZSpawnCard.Action action = card.getAction(level.getDifficultyColor());
         switch (action.action) {
             case NOTHING_IN_SIGHT:
+                addLogMessage("Nothing in Sight");
                 break;
             case SPAWN:
                 spawnZombiesInternal(action.type, action.count, zoneIdx);
@@ -2475,7 +2512,7 @@ public class ZGame extends Reflector<ZGame>  {
     }
 
     public void giftEquipment(ZCharacter c, ZEquipment e) {
-        onEquipmentFound(c.getPlayerName(), e);
+        onEquipmentFound(c.getPlayerName(), Utils.asList(e));
         quest.onEquipmentFound(this, e);
         ZEquipSlot slot = c.getEmptyEquipSlotForOrNull(e);
         if (slot != null) {

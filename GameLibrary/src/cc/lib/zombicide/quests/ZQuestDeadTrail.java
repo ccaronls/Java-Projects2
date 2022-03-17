@@ -103,7 +103,7 @@ public class ZQuestDeadTrail extends ZQuest {
 
     @Override
     public int getPercentComplete(ZGame game) {
-        int numTasks = getNumStartRedObjectives() + NUM_VAULT_ITEMS + 1;
+        int numTasks = getNumStartObjectives() + NUM_VAULT_ITEMS + 1;
         int numComplete = getNumFoundObjectives();
         numComplete += getNumFoundVaultItems();
         if (isAllPlayersInExit(game))
@@ -134,7 +134,7 @@ public class ZQuestDeadTrail extends ZQuest {
     public Table getObjectivesOverlay(ZGame game) {
         return new Table(getName())
                 .addRow(new Table().setNoBorder()
-                    .addRow("1.", "Take all Objectives", String.format("%d of %d", getNumFoundObjectives(), getNumStartRedObjectives()))
+                    .addRow("1.", "Take all Objectives", String.format("%d of %d", getNumFoundObjectives(), getNumStartObjectives()))
                     .addRow("2.", "Key to Violet Vault is hidden among the RED objectives", blueKeyZone == -1 ? "Found" : "Not Found")
                     .addRow("3.", "Key to Gold Vault is hidden among the RED objectives", greenKeyZone == -1 ? "Found" : "Not Found")
                     .addRow("4.", "Take all vault artifacts", String.format("%d of %d", getNumFoundVaultItems(), NUM_VAULT_ITEMS))

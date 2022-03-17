@@ -3,8 +3,8 @@ package cc.lib.zombicide.quests;
 import cc.lib.game.Utils;
 import cc.lib.utils.Table;
 import cc.lib.zombicide.ZBoard;
+import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZGame;
-import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZQuest;
 import cc.lib.zombicide.ZQuests;
 import cc.lib.zombicide.ZTile;
@@ -38,10 +38,10 @@ public class WolfQuestKnowYourEnemy extends ZQuest {
 
     @Override
     public int getPercentComplete(ZGame game) {
-        int numTasks = getNumStartRedObjectives() + game.getAllCharacters().size();
+        int numTasks = getNumStartObjectives() + game.getAllCharacters().size();
         int numCompleted = getNumFoundObjectives();
-        for (ZPlayerName c : game.getAllCharacters()) {
-            if (c.getCharacter().getOccupiedZone() == getExitZone())
+        for (ZCharacter c : game.getBoard().getAllCharacters()) {
+            if (c.getOccupiedZone() == getExitZone())
                 numCompleted++;
         }
         int percentCompleted = numCompleted*100 / numTasks;
@@ -77,7 +77,7 @@ public class WolfQuestKnowYourEnemy extends ZQuest {
         return new Table(getName())
                 .addRow(new Table().setNoBorder()
                         .addRow("", "Use the Towers for cover to execute ranged attacks on enemies")
-                        .addRow("1.", "Collect all Objectives", String.format("%d of %d", getNumFoundObjectives(), getNumStartRedObjectives()))
+                        .addRow("1.", "Collect all Objectives", String.format("%d of %d", getNumFoundObjectives(), getNumStartObjectives()))
                         .addRow("2.", "A Random Artifact is in the Vault - Go get it!", getNumFoundVaultItems() > 0)
                         .addRow("3.", "Get all players into the EXIT zone.", String.format("%d of %d", numInZone, totalChars))
                         .addRow("4.", "Exit zone must be cleared of zombies.")
@@ -87,7 +87,10 @@ public class WolfQuestKnowYourEnemy extends ZQuest {
     }
     @Override
     public String getQuestFailedReason(ZGame game) {
-        return "Not all players survived.";
+        if (Utils.count(game.getBoard().getAllCharacters(), object -> object.isDead()) > 0) {
+            return "Not all players survived.";
+        }
+        return super.getQuestFailedReason(game);
     }
 
 }

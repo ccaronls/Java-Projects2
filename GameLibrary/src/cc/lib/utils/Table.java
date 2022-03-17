@@ -9,6 +9,7 @@ import cc.lib.game.AGraphics;
 import cc.lib.game.AImage;
 import cc.lib.game.GColor;
 import cc.lib.game.GDimension;
+import cc.lib.game.IMeasurable;
 import cc.lib.game.IVector2D;
 import cc.lib.game.Justify;
 import cc.lib.game.Utils;
@@ -18,7 +19,7 @@ import cc.lib.game.Utils;
  *
  * TODO: Add AImage references
  */
-public final class Table {
+public final class Table implements IMeasurable {
 
     public interface Model {
         /**
@@ -214,7 +215,7 @@ public final class Table {
 
     private GDimension cachedDimension = null;
 
-    public GDimension getDimension(AGraphics g) {
+    public GDimension measure(AGraphics g) {
         if (cachedDimension != null)
             return cachedDimension;
         if (header.size() == 0 && rows.isEmpty())
@@ -245,7 +246,7 @@ public final class Table {
                 Object o = rows.get(r).get(c);
                 if (o instanceof Table) {
                     Table t = (Table) o;
-                    GDimension d2 = t.getDimension(g);
+                    GDimension d2 = t.measure(g);
                     maxHeight[r] = Math.max(maxHeight[r], d2.height);
                     maxWidth[c] = Math.max(maxWidth[c], d2.width);
                     if (t.borderWidth != 0)
@@ -285,7 +286,7 @@ public final class Table {
      * @return
      */
     public GDimension draw(AGraphics g) {
-        GDimension dim = getDimension(g);
+        GDimension dim = measure(g);
         if (dim == GDimension.EMPTY)
             return dim;
 
@@ -383,7 +384,7 @@ public final class Table {
      * @param vert
      */
     public void draw(AGraphics g, float x, float y, Justify horz, Justify vert) {
-        GDimension dim = getDimension(g);
+        GDimension dim = measure(g);
         g.pushMatrix();
         g.translate(x,y);
         switch (horz) {

@@ -55,7 +55,7 @@ public class WolfQuestTheEvilTwins extends ZQuest {
 
     @Override
     public int getPercentComplete(ZGame game) {
-        int numThings = getNumStartRedObjectives() + NUM_TWINS + 1;
+        int numThings = getNumStartObjectives() + NUM_TWINS + 1;
         int numFound = getNumFoundObjectives();
         int numKilled = game.getNumKills(ZZombieType.Abomination);
         int allInZone = isAllPlayersInExit(game) ? 1 : 0;

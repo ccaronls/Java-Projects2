@@ -12,6 +12,7 @@ import android.text.format.Formatter;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -52,6 +53,8 @@ import androidx.viewpager.widget.PagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 import cc.game.zombicide.android.databinding.ActivityZombicideBinding;
 import cc.game.zombicide.android.databinding.AssignDialogItemBinding;
+import cc.game.zombicide.android.databinding.AssignDialogSpBinding;
+import cc.game.zombicide.android.databinding.AssignDialogSpListviewItemBinding;
 import cc.lib.android.CCActivityBase;
 import cc.lib.android.DroidGraphics;
 import cc.lib.android.DroidUtils;
@@ -1177,10 +1180,65 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
     }
 
     void showNewGameDialogChoosePlayers(ZQuests quest, ZDifficulty difficulty) {
+        final LayoutInflater inflater = LayoutInflater.from(this);
         Set<String> selectedPlayers = new HashSet(getStoredCharacters());
-        View view = View.inflate(this, R.layout.viewpager_dialog, null);
-        ViewPager pager = view.findViewById(R.id.view_pager);
-        pager.setAdapter(new PagerAdapter() {
+        AssignDialogSpBinding binding = AssignDialogSpBinding.inflate(inflater);
+        //View view = View.inflate(this, R.layout.viewpager_dialog, null);
+
+        binding.listView.setAdapter(new BaseAdapter() {
+            @Override
+            public int getCount() {
+                return charLocks.length;
+            }
+
+            @Override
+            public Object getItem(int position) {
+                return null;
+            }
+
+            @Override
+            public long getItemId(int position) {
+                return 0;
+            }
+
+            @Override
+            public View getView(int position, View view, ViewGroup parent) {
+                if (view == null) {
+                    view = AssignDialogSpListviewItemBinding.inflate(inflater).getRoot();
+                }
+
+                CharLock lock = charLocks[position];
+                CheckBox cb = view.findViewById(R.id.checkbox);
+                TextView tv = view.findViewById(R.id.textview);
+                tv.setText(lock.player.getLabel());
+                cb.setChecked(selectedPlayers.contains(lock.player.name()));
+                if (cb.isChecked() || lock.isUnlocked()) {
+                    cb.setClickable(true);
+                    cb.setEnabled(true);
+                    cb.setOnTouchListener((v,event) -> {
+                        if (event.getAction() != MotionEvent.ACTION_DOWN)
+                            return false;
+                        if (cb.isChecked()) {
+                            selectedPlayers.remove(lock.player.name());
+                            cb.setChecked(false);
+                        } else if (selectedPlayers.size() < MAX_PLAYERS) {
+                            selectedPlayers.add(lock.player.name());
+                            cb.setChecked(true);
+                        } else {
+                            Toast.makeText(ZombicideActivity.this, getString(R.string.toast_msg_maxplayers, MAX_PLAYERS), Toast.LENGTH_LONG).show();
+                        }
+                        return true;
+                    });
+                } else {
+                    cb.setClickable(false);
+                    cb.setEnabled(false);
+                }
+                view.setOnClickListener(v -> binding.viewPager.setCurrentItem(position, true));
+                return view;
+            }
+        });
+
+        binding.viewPager.setAdapter(new PagerAdapter() {
             @Override
             public int getCount() {
                 return charLocks.length;
@@ -1194,71 +1252,73 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
             @NonNull
             @Override
             public Object instantiateItem(@NonNull ViewGroup container, int position) {
-                View view = LayoutInflater.from(ZombicideActivity.this).inflate(R.layout.assign_dialog_item, null);
-                ImageView image = view.findViewById(R.id.image);
-                CheckBox checkbox = view.findViewById(R.id.checkbox);
-                ViewGroup lockedOverlay = view.findViewById(R.id.lockedOverlay);
-                TextView tvHowToUnlock = view.findViewById(R.id.tvLockedReason);
-
+                AssignDialogItemBinding item = AssignDialogItemBinding.inflate(inflater);
+                item.tvP2PName.setVisibility(View.GONE);
                 CharLock lock = charLocks[position];
-
+                item.checkbox.setVisibility(View.GONE);
                 if (!lock.isUnlocked() && !selectedPlayers.contains(lock.player.name())) {
-                    lockedOverlay.setVisibility(View.VISIBLE);
-                    tvHowToUnlock.setVisibility(View.VISIBLE);
-                    tvHowToUnlock.setText(lock.unlockMessageId);
-                    checkbox.setEnabled(false);
+                    item.lockedOverlay.setVisibility(View.VISIBLE);
+                    item.tvLockedReason.setVisibility(View.VISIBLE);
+                    item.tvLockedReason.setText(lock.unlockMessageId);
                 } else {
-                    lockedOverlay.setVisibility(View.INVISIBLE);
-                    checkbox.setEnabled(true);
-                    checkbox.setClickable(false);
-                    tvHowToUnlock.setVisibility(View.GONE);
-                    image.setOnClickListener(v -> {
-                        if (selectedPlayers.contains(lock.player.name())) {
-                            if (selectedPlayers.size() > 1) {
-                                selectedPlayers.remove(lock.player.name());
-                                checkbox.setChecked(false);
-                            } else {
-                                Toast.makeText(ZombicideActivity.this, R.string.toast_msg_minplayers, Toast.LENGTH_LONG).show();
-                            }
-                        } else if (selectedPlayers.size() >= MAX_PLAYERS) {
-                            Toast.makeText(ZombicideActivity.this, getString(R.string.toast_msg_maxplayers, MAX_PLAYERS), Toast.LENGTH_LONG).show();
-                        } else {
-                            selectedPlayers.add(lock.player.name());
-                            checkbox.setChecked(true);
-                        }
-                    });
+                    item.lockedOverlay.setVisibility(View.INVISIBLE);
+                    item.tvLockedReason.setVisibility(View.GONE);
                 }
-
-                if (selectedPlayers.contains(lock.player.name())) {
-                    checkbox.setChecked(true);
-                } else {
-                    checkbox.setChecked(false);
-                }
-
-                image.setImageResource(lock.player.cardImageId);
-
-
-                container.addView(view);
-                return view;
+                item.image.setImageResource(lock.player.cardImageId);
+                container.addView(item.getRoot());
+                return item.getRoot();
             }
 
             @Override
             public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
                 container.removeView((View) object);
             }
+
+            @Override
+            public int getItemPosition(@NonNull Object object) {
+                return POSITION_NONE;
+            }
         });
-        newDialogBuilder().setTitle(R.string.popup_title_choose_players).setView(view).setNegativeButton(R.string.popup_button_cancel, null)
-                .setPositiveButton(R.string.popup_button_start, (dialog, which) -> {
-                    Log.d(TAG, "Selected players: " + selectedPlayers);
-                    getPrefs().edit().putStringSet(PREF_PLAYERS, selectedPlayers).apply();
-                    game.loadQuest(quest);
-                    loadCharacters(getStoredCharacters());
-                    getPrefs().edit().putString("difficulty", difficulty.name()).apply();
-                    game.trySaveToFile(gameFile);
-                    game.showQuestTitleOverlay();
-                    game.setDifficulty(difficulty);
-                    startGame();
-                }).show();
+        binding.viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                binding.listView.setItemChecked(position, true);
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+
+            }
+        });
+        Dialog d = newDialogBuilder().setTitle(R.string.popup_title_choose_players).setView(binding.getRoot()).show();
+        binding.bCancel.setOnClickListener(v -> d.dismiss());
+        binding.bClear.setOnClickListener(v -> {
+            selectedPlayers.clear();
+            ((BaseAdapter)binding.listView.getAdapter()).notifyDataSetChanged();
+            binding.viewPager.getAdapter().notifyDataSetChanged();
+        });
+        binding.bStart.setOnClickListener(v -> {
+            Log.d(TAG, "Selected players: " + selectedPlayers);
+            if (selectedPlayers.size() < 1) {
+                Toast.makeText(ZombicideActivity.this, R.string.toast_msg_minplayers, Toast.LENGTH_LONG).show();
+                return;
+            }
+
+            getPrefs().edit().putStringSet(PREF_PLAYERS, selectedPlayers).apply();
+            game.loadQuest(quest);
+            loadCharacters(getStoredCharacters());
+            getPrefs().edit().putString("difficulty", difficulty.name()).apply();
+            game.trySaveToFile(gameFile);
+            game.showQuestTitleOverlay();
+            game.setDifficulty(difficulty);
+            startGame();
+            d.dismiss();
+        });
 
     }
 

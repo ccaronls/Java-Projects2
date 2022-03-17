@@ -43,7 +43,8 @@ public enum ZMoveType implements IButton {
     BLOODLUST_MELEE("Spend an action to move up to 2 zones and perform melee."),
     BLOODLUST_RANGED("Spend an action to move up to 2 zones and perform ranged."),
     BLOODLUST_MAGIC("Spend an action to move up to 2 spaces and perform magic."),
-    IGNITE("Ignite a Dragon Bile within range")
+    IGNITE("Ignite a Dragon Bile within range"),
+    BARRICADE("Close and barricade a door"),
     ;
 
     final String toolTipText;

@@ -125,7 +125,7 @@ public class ZQuestBigGameHunting extends ZQuest {
 
     @Override
     public int getPercentComplete(ZGame game) {
-        int numTasks = getNumStartRedObjectives() + 2;
+        int numTasks = getNumStartObjectives() + 2;
         int numCompleted = getNumFoundObjectives();
         if (skipKillAbomination || game.getNumKills(ZZombieType.Abomination) > 0)
             numCompleted++;

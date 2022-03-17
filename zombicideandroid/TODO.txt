@@ -1,3 +1,18 @@
+03/12/22
+
+-Character Picker image doesnt fit inside dialog (DONE)
+-Add Barricade Consumable
+-Add Minimap, or ability to zoom out
+- Traps
+- Lightning Sword
+- 2 Handed weapons
+- New Skill: +1 damage when dual wielding
+
+
+
+
+
+
 BUGS
 -----
 (DONE)Hitting Cancel/End should not make possible to choose a different character before all actions used

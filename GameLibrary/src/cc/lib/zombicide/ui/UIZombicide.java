@@ -6,6 +6,7 @@ import java.util.List;
 
 import cc.lib.game.AGraphics;
 import cc.lib.game.AImage;
+import cc.lib.game.GColor;
 import cc.lib.game.GRectangle;
 import cc.lib.game.IInterpolator;
 import cc.lib.game.IRectangle;
@@ -16,6 +17,7 @@ import cc.lib.logger.LoggerFactory;
 import cc.lib.math.Vector2D;
 import cc.lib.ui.IButton;
 import cc.lib.utils.Lock;
+import cc.lib.utils.Table;
 import cc.lib.zombicide.ZActionType;
 import cc.lib.zombicide.ZActor;
 import cc.lib.zombicide.ZActorAnimation;
@@ -396,13 +398,7 @@ public abstract class UIZombicide extends ZGameMP {
         ZActor attacker = board.getActor(attackerPosition);
         switch (attackType) {
             case ELECTROCUTION:
-                attacker.addAnimation(new EmptyAnimation(attacker) {
-                    @Override
-                    protected void onDone() {
-                        super.onDone();
-                        character.getCharacter().addAnimation(new ElectrocutionAnimation(character.getCharacter()));
-                    }
-                });
+                character.getCharacter().addAnimation(new ElectrocutionAnimation(character.getCharacter()));
                 break;
             case NORMAL:
             case FIRE:
@@ -415,13 +411,7 @@ public abstract class UIZombicide extends ZGameMP {
             case EARTHQUAKE:
             case MENTAL_STRIKE:
             default:
-                attacker.addAnimation(new EmptyAnimation(attacker) {
-                    @Override
-                    protected void onDone() {
-                        super.onDone();
-                        character.getCharacter().addAnimation(new SlashedAnimation(character.getCharacter()));
-                    }
-                });
+                character.getCharacter().addAnimation(new SlashedAnimation(character.getCharacter()));
         }
         if (perished) {
             character.getCharacter().addAnimation(new AscendingAngelDeathAnimation(character.getCharacter()));
@@ -449,10 +439,23 @@ public abstract class UIZombicide extends ZGameMP {
     }
 
     @Override
-    protected void onEquipmentFound(ZPlayerName c, ZEquipment equipment) {
+    protected void onEquipmentFound(ZPlayerName c, List<ZEquipment> equipment) {
         super.onEquipmentFound(c, equipment);
-        boardRenderer.addPostActor(new HoverMessage(boardRenderer, "+" + equipment.getLabel(), c.getCharacter()));
-        Utils.waitNoThrow(this, 500);
+        //boardRenderer.addPostActor(new HoverMessage(boardRenderer, "+" + equipment.getLabel(), c.getCharacter()));
+        Table info = new Table().setModel(new Table.Model() {
+            @Override
+            public float getCornerRadius() {
+                return 20;
+            }
+
+            @Override
+            public GColor getBackgroundColor() {
+                return GColor.TRANSLUSCENT_BLACK;
+            }
+        });
+        info.addRowList(Utils.map(equipment, e -> e.getCardInfo(c.getCharacter(), this)));
+        boardRenderer.setOverlay(info);
+        //Utils.waitNoThrow(this, 500);
     }
 
     @Override

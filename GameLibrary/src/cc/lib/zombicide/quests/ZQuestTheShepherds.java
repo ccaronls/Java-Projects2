@@ -52,7 +52,7 @@ public class ZQuestTheShepherds extends ZQuest {
 
     @Override
     public int getPercentComplete(ZGame game) {
-        return getNumFoundObjectives() * 100 / getNumStartRedObjectives();
+        return getNumFoundObjectives() * 100 / getNumStartObjectives();
     }
 
     @Override
@@ -79,7 +79,7 @@ public class ZQuestTheShepherds extends ZQuest {
     public Table getObjectivesOverlay(ZGame game) {
         return new Table(getName()).addRow(
                 new Table().setNoBorder()
-                    .addRow("Rescue the townsfolk by claiming\nall of the objectives.\nSome townsfolk are infected.", String.format("%d of %d", getNumFoundObjectives(), getNumStartRedObjectives()))
+                    .addRow("Rescue the townsfolk by claiming\nall of the objectives.\nSome townsfolk are infected.", String.format("%d of %d", getNumFoundObjectives(), getNumStartObjectives()))
         );
     }
 }

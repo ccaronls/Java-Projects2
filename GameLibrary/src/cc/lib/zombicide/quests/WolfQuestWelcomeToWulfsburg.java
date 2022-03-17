@@ -72,7 +72,7 @@ public class WolfQuestWelcomeToWulfsburg extends ZQuest {
         return new Table(getName())
                 .addRow(new Table().setNoBorder()
                         .addRow("", "Use the Towers for cover to execute ranged attacks on enemies")
-                        .addRow("1.", "Collect all Objectives", String.format("%d of %d", getNumFoundObjectives(), getNumStartRedObjectives()))
+                        .addRow("1.", "Collect all Objectives", String.format("%d of %d", getNumFoundObjectives(), getNumStartObjectives()))
                         .addRow("2.", "Find the BLUE objective hidden among RED objectives for a random vault item.", blueKeyZone < 0)
                         .addRow("3.", "Find the GREEN objective hidden among RED objectives for a random vault item.", greenKeyZone < 0)
                         .addRow("4.", "Get all players into the EXIT zone.", String.format("%d of %d", numInZone, totalChars))
@@ -99,7 +99,7 @@ public class WolfQuestWelcomeToWulfsburg extends ZQuest {
 
     @Override
     public int getPercentComplete(ZGame game) {
-        int numTasks = getNumStartRedObjectives() + game.getAllCharacters().size();
+        int numTasks = getNumStartObjectives() + game.getAllCharacters().size();
         int numCompleted = getNumFoundObjectives();
         for (ZPlayerName c : game.getAllCharacters()) {
             if (c.getCharacter().getOccupiedZone() == getExitZone())

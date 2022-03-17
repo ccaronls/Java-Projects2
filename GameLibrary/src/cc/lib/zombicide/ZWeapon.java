@@ -199,7 +199,8 @@ public class ZWeapon extends ZEquipment<ZWeaponType> {
             } else {
                 doorInfo = "no";
             }
-            cardLower.addColumnNoHeader(Arrays.asList(Utils.toPrettyString(stats.attackType.name()),
+            cardLower.addColumnNoHeader(Arrays.asList(
+                    Utils.toPrettyString(stats.attackType.name()),
                     type.canTwoHand ? "yes" : "no",
                     String.format("%d %s", stats.damagePerHit, type.attackIsNoisy ? " loud" : " quiet"),
                     String.format("%d%% x %d", (7 - stats.dieRollToHit) * 100 / 6, stats.numDice),

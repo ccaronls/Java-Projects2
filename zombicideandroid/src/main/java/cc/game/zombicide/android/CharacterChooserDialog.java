@@ -169,8 +169,10 @@ public abstract class CharacterChooserDialog extends RecyclerView.Adapter<Charac
             ib.image.setOnLongClickListener(cl);
             if (!a.isUnlocked()) {
                 ib.lockedOverlay.setVisibility(View.VISIBLE);
-                ib.tvLockedReason.setVisibility(View.VISIBLE);
-                ib.tvLockedReason.setText(a.lock.unlockMessageId);
+                if (a.lock.unlockMessageId != 0) {
+                    ib.tvLockedReason.setVisibility(View.VISIBLE);
+                    ib.tvLockedReason.setText(a.lock.unlockMessageId);
+                }
                 ib.checkbox.setEnabled(false);
                 ib.image.setOnClickListener(null);
             } else {

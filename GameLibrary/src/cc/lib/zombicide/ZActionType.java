@@ -10,6 +10,12 @@ public enum ZActionType {
     SEARCH,
     OPEN_DOOR,
     CLOSE_DOOR,
+    BARRICADE_DOOR {
+        @Override
+        public int costPerTurn() {
+            return 3;
+        }
+    },
     MELEE,
     RANGED,
     MAGIC,
@@ -49,6 +55,7 @@ public enum ZActionType {
             case SHOVE:
             case OPEN_DOOR:
             case CLOSE_DOOR:
+            case BARRICADE_DOOR:
             case MAKE_NOISE:
                 return true;
         }

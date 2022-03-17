@@ -179,6 +179,9 @@ public class GameClient {
             case READY:
             case DISCONNECTED:
                 socket = new Socket();
+                socket.setTcpNoDelay(true);
+                socket.setKeepAlive(true);
+                //socket.setTrafficClass();
                 socket.bind(null);
                 socket.connect(new InetSocketAddress(address, port), 30000);
                 //socket.setSoTimeout(5000);
@@ -583,7 +586,7 @@ public class GameClient {
         primitiveCompatibilityMap.put(int.class, c=Arrays.asList(int.class, Integer.class, byte.class, Byte.class));
         primitiveCompatibilityMap.put(Integer.class, c);
         primitiveCompatibilityMap.put(long.class, c=Arrays.asList(int.class, Integer.class, byte.class, Byte.class, long.class, Long.class));
-        primitiveCompatibilityMap.put(long.class, c);
+        primitiveCompatibilityMap.put(Long.class, c);
         primitiveCompatibilityMap.put(float.class, c=Arrays.asList(int.class, Integer.class, byte.class, Byte.class, float.class, Float.class));
         primitiveCompatibilityMap.put(Float.class, c);
         primitiveCompatibilityMap.put(double.class, c=Arrays.asList(int.class, Integer.class, byte.class, Byte.class, float.class, Float.class, double.class, Double.class, long.class, Long.class));

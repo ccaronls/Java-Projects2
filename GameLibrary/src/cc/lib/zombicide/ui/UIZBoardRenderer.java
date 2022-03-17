@@ -16,6 +16,7 @@ import cc.lib.game.GColor;
 import cc.lib.game.GDimension;
 import cc.lib.game.GRectangle;
 import cc.lib.game.IDimension;
+import cc.lib.game.IMeasurable;
 import cc.lib.game.IRectangle;
 import cc.lib.game.IShape;
 import cc.lib.game.IVector2D;
@@ -642,6 +643,32 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
         }
     }
 
+    public void drawMiniMap(AGraphics g) {
+        for (ZCell cell : getBoard().getCells()) {
+
+            g.pushMatrix();
+            Vector2D center = cell.getCenter();
+            g.translate(center);
+            Vector2D v0 = cell.getTopLeft().subEq(center);
+            Vector2D v1 = cell.getTopRight().subEq(center);
+
+            for (ZDir dir : ZDir.getCompassValues()) {
+                Vector2D dv = v1.sub(v0).scaleEq(.33f);
+                Vector2D dv0 = v0.add(dv);
+                Vector2D dv1 = dv0.add(dv);
+
+                g.pushMatrix();
+                g.rotate(dir.rotation);
+                g.setColor(GColor.BLACK);
+                switch (cell.getWallFlag(dir)) {
+
+                }
+            }
+
+            g.popMatrix();
+        }
+    }
+
     public Grid.Pos pickCell(AGraphics g, float mouseX, float mouseY) {
         Grid.Iterator<ZCell> it = getBoard().getCellsIterator();
         while (it.hasNext()) {
@@ -1106,48 +1133,81 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
     }
 
     protected void drawOverlay(AGraphics g) {
-        // overlay
-        if (overlayToDraw != null) {
-            if (overlayToDraw instanceof Integer) {
-                int id = ((Integer) overlayToDraw);
-                if (id >= 0) {
-                    AImage img = g.getImage(id);
-                    GRectangle rect = new GRectangle(0, 0, getWidth(), getHeight());
-                    rect.scale(.9f, .9f);
-                    rect = rect.fit(img, Justify.LEFT, Justify.CENTER);
-                    g.drawImage(id, rect);
-                }
-            } else if (overlayToDraw instanceof Table) {
-                g.pushMatrix();
-                g.setIdentity();
-                g.ortho();
-                g.setColor(GColor.YELLOW);
-                IVector2D cntr = new Vector2D(getWidth()/2, getHeight()/2);
-                Table t = (Table)overlayToDraw;
-                t.draw(g, cntr, Justify.CENTER, Justify.CENTER);
-                g.popMatrix();
-                /*
-                g.setColor(GColor.RED);
-                GRectangle r = new GRectangle(d).withCenter(cntr);
-                g.drawRect(r);
-                g.drawRect(0, 0, g.getViewportWidth(), g.getViewportHeight());
-                */
-            } else if (overlayToDraw instanceof String) {
-                g.setColor(GColor.WHITE);
-                g.drawWrapStringOnBackground(getWidth()/2, getHeight()/2, getWidth()/2, Justify.CENTER, Justify.CENTER, (String)overlayToDraw, GColor.TRANSLUSCENT_BLACK, 10);
-            } else if (overlayToDraw instanceof ZAnimation) {
-                ZAnimation a = (ZAnimation)overlayToDraw;
-                if (!a.isStarted()) {
-                    a.start();
-                }
-                if (!a.isDone()) {
-                    a.update(g);
-                    redraw();
-                }
-            } else if (overlayToDraw instanceof AImage) {
+        drawOverlayObject(overlayToDraw, g);
+    }
 
+    private void drawOverlayObject(Object obj, AGraphics g) {
+        // overlay
+        if (obj == null)
+            return;
+
+        if (obj instanceof Integer) {
+            int id = ((Integer) obj);
+            if (id >= 0) {
+                AImage img = g.getImage(id);
+                GRectangle rect = new GRectangle(0, 0, getWidth(), getHeight());
+                rect.scale(.9f, .9f);
+                rect = rect.fit(img, Justify.LEFT, Justify.CENTER);
+                g.drawImage(id, rect);
             }
+        } else if (obj instanceof Table) {
+            g.pushMatrix();
+            g.setIdentity();
+            g.ortho();
+            g.setColor(GColor.YELLOW);
+            IVector2D cntr = new Vector2D(getWidth()/2, getHeight()/2);
+            Table t = (Table)obj;
+            t.draw(g, cntr, Justify.CENTER, Justify.CENTER);
+            g.popMatrix();
+            /*
+            g.setColor(GColor.RED);
+            GRectangle r = new GRectangle(d).withCenter(cntr);
+            g.drawRect(r);
+            g.drawRect(0, 0, g.getViewportWidth(), g.getViewportHeight());
+            */
+        } else if (obj instanceof String) {
+            g.setColor(GColor.WHITE);
+            g.drawWrapStringOnBackground(getWidth()/2, getHeight()/2, getWidth()/2, Justify.CENTER, Justify.CENTER, (String)obj, GColor.TRANSLUSCENT_BLACK, 10);
+        } else if (obj instanceof ZAnimation) {
+            ZAnimation a = (ZAnimation)obj;
+            if (!a.isStarted()) {
+                a.start();
+            }
+            if (!a.isDone()) {
+                a.update(g);
+                redraw();
+            }
+        } else if (obj instanceof AImage) {
+
+        } else if (obj instanceof List) {
+            drawOverlayList(Utils.filter((List)obj, o -> o instanceof IMeasurable), g);
         }
+    }
+
+    private void drawOverlayList(List<IMeasurable> list, AGraphics g) {
+        float width = 0;
+        float height = 0;
+        g.pushMatrix();
+        g.setIdentity();
+        g.ortho();
+//        g.setColor(GColor.YELLOW);
+//        IVector2D cntr = new Vector2D(getWidth()/2, getHeight()/2);
+//        Table t = (Table)obj;
+//        t.draw(g, cntr, Justify.CENTER, Justify.CENTER);
+        for (IMeasurable m : list) {
+            IDimension dim = m.measure(g);
+            width += dim.getWidth();
+            height = Math.max(height, dim.getHeight());
+        }
+        float padding = 20;
+        width += padding * (list.size()-1);
+        g.transform(g.getViewportWidth()/2 - width/2, g.getViewportHeight()/2);
+        for (IMeasurable m : list) {
+            drawOverlayObject(m, g);
+
+        }
+
+        g.popMatrix();
     }
 
     public float getBorderThickness() {

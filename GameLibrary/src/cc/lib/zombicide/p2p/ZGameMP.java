@@ -158,7 +158,7 @@ public class ZGameMP extends ZGame {
     }
 
     @Override
-    protected void onEquipmentFound(ZPlayerName c, ZEquipment equipment) {
+    protected void onEquipmentFound(ZPlayerName c, List<ZEquipment> equipment) {
         if (server != null) {
             server.broadcastExecuteOnRemote(GAME_ID, c, equipment);
         }

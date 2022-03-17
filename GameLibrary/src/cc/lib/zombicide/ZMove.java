@@ -170,6 +170,10 @@ public class ZMove extends Reflector<ZMove> implements IButton {
         return new ZMove(ZMoveType.OPERATE_DOOR, doors);
     }
 
+    static ZMove newBarricadeDoor(List<ZDoor> doors) {
+        return new ZMove(ZMoveType.BARRICADE, doors);
+    }
+
     static ZMove newSearchMove(int zoneIndex) {
         return new ZMove(ZMoveType.SEARCH, zoneIndex);
     }

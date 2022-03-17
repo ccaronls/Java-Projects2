@@ -1,6 +1,7 @@
 package cc.lib.zombicide;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,9 +26,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
     private Map<Integer, List<ZEquipment>> vaultMap = new HashMap<>();
     private List<ZEquipment> vaultItemsRemaining = null;
     private int numFoundVaultItems = 0;
-    // TODO: Make this just 'objectives' and capture blue objective from Tutorial
-    private List<Integer> redObjectives = new ArrayList<>();
-    private int numStartRedObjectives = 0;
+    private Map<ZCellType, ZObjective> objectives = new HashMap<>();
 
     protected ZQuest(ZQuests quest) {
         this.quest = quest;
@@ -92,7 +91,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
      * @return
      */
     public int getNumUnfoundObjectives() {
-        return redObjectives.size();
+        return Utils.sumInt(objectives.values(), o -> o.objectives.size());
     }
 
     /**
@@ -100,15 +99,36 @@ public abstract class ZQuest extends Reflector<ZQuest> {
      * @return
      */
     public int getNumFoundObjectives() {
-        return getNumStartRedObjectives() - redObjectives.size();
+        return Utils.sumInt(objectives.values(), o -> o.found.size());
     }
 
     /**
      *
      * @return
      */
+    @Deprecated
     public List<Integer> getRedObjectives() {
-        return redObjectives;
+        return getObjectives(ZCellType.OBJECTIVE_RED);
+    }
+
+    public List<Integer> getObjectives(ZCellType color) {
+        ZObjective obj = objectives.get(color);
+        if (obj == null)
+            return Collections.emptyList();
+        return obj.objectives;
+    }
+
+    public List<Integer> getAllObjectives() {
+        return Utils.mergeLists(objectives.values(), o -> o.objectives);
+    }
+
+    private void addObjective(ZCellType color, Integer zoneIndex) {
+        ZObjective obj = objectives.get(color);
+        if (obj == null) {
+            obj = new ZObjective();
+            objectives.put(color, obj);
+        }
+        obj.objectives.add(zoneIndex);
     }
 
     /**
@@ -276,10 +296,10 @@ public abstract class ZQuest extends Reflector<ZQuest> {
                 cell.setCellType(ZCellType.ABOMINATION, true);
                 break;
             case "red":
-                redObjectives.add(cell.getZoneIndex());
+                addObjective(ZCellType.OBJECTIVE_RED, cell.getZoneIndex());
                 cell.setCellType(ZCellType.OBJECTIVE_RED, true);
                 break;
-                // ramparts (wulfsburg) cannot be walked past but can be seen through for ranhed attacks
+                // ramparts (wulfsburg) cannot be walked past but can be seen through for ranged attacks
             case "rn":
                 setCellWall(grid, pos, ZDir.NORTH, ZWallFlag.RAMPART);
                 break;
@@ -382,8 +402,6 @@ public abstract class ZQuest extends Reflector<ZQuest> {
                 zones.get(i).checkSanity();
             }
         }
-
-        numStartRedObjectives = redObjectives.size();
         return new ZBoard(grid, zones);
 
     }
@@ -395,10 +413,18 @@ public abstract class ZQuest extends Reflector<ZQuest> {
      * @param options
      */
     public void addMoves(ZGame game, ZCharacter cur, List<ZMove> options) {
-        for (int red : redObjectives) {
-            if (cur.getOccupiedZone() == red && game.getBoard().getNumZombiesInZone(red) == 0)
-                options.add(ZMove.newObjectiveMove(red));
+        for (int obj : getAllObjectives()) {
+            if (cur.getOccupiedZone() == obj && game.getBoard().getNumZombiesInZone(obj) == 0)
+                options.add(ZMove.newObjectiveMove(obj));
         }
+    }
+
+    ZObjective findObjectiveForZone(int zoneIdx) {
+        for (ZObjective obj : objectives.values()) {
+            if (obj.objectives.contains(zoneIdx))
+                return obj;
+        }
+        return null;
     }
 
     /**
@@ -407,7 +433,9 @@ public abstract class ZQuest extends Reflector<ZQuest> {
      * @param c
      */
     public void processObjective(ZGame game, ZCharacter c) {
-        if (redObjectives.remove((Object)c.getOccupiedZone())) {
+        ZObjective obj = findObjectiveForZone(c.getOccupiedZone());
+        if (obj.objectives.remove((Object)c.getOccupiedZone())) {
+            obj.found.add(c.getOccupiedZone());
             game.addExperience(c, getObjectiveExperience(c.getOccupiedZone(), getNumFoundObjectives()));
         }
     }
@@ -539,8 +567,8 @@ public abstract class ZQuest extends Reflector<ZQuest> {
      */
     public void processSearchables(List<ZEquipment> items) {}
 
-    protected int getNumStartRedObjectives() {
-        return this.numStartRedObjectives;
+    protected int getNumStartObjectives() {
+        return Utils.sumInt(objectives.values(), o->o.found.size() + o.objectives.size());
     }
 
     public void onDragonBileExploded(ZCharacter c, int zoneIdx) {}

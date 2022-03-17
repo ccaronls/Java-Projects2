@@ -88,7 +88,7 @@ public class WolfQuestTheAmbush extends ZQuest {
     @Override
     public int getPercentComplete(ZGame game) {
         ZCell blueCell = game.getBoard().getCell(blueSpawnPos);
-        int total = getNumStartRedObjectives() + occupyZones.size() + 1;
+        int total = getNumStartObjectives() + occupyZones.size() + 1;
         int found = getNumFoundObjectives() + getOccupiedZones(game).size() + (blueCell.getNumSpawns() > 0 ? 0 : 1);
         return found * 100 / total;
     }
@@ -158,7 +158,7 @@ public class WolfQuestTheAmbush extends ZQuest {
         ZCell blueCell = game.getBoard().getCell(blueSpawnPos);
         return new Table(getName())
                 .addRow(new Table().setNoBorder()
-                        .addRow("1.", "Collect all Objectives. Each objective gives a vault item.", String.format("%d of %d", getNumFoundObjectives(), getNumStartRedObjectives()))
+                        .addRow("1.", "Collect all Objectives. Each objective gives a vault item.", String.format("%d of %d", getNumFoundObjectives(), getNumStartObjectives()))
                         .addRow("2.", "Eliminate the BLUE spawn zone using normal necromancer rules.", blueCell.getNumSpawns() == 0)
                         .addRow("3.", "Occupy each tower with at least one player", String.format("%d of %d", getOccupiedZones(game).size(), occupyZones.size()))
                         .addRow("4.", "RED spawn zones can spawn Necromancers but they cannot be removed.")

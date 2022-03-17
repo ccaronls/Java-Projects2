@@ -121,7 +121,7 @@ public class WolfBloodRed extends ZQuest {
         ZSkillLevel ULTRA_RED = new ZSkillLevel(ZColor.RED, 1);
         int numPlayers = game.getAllCharacters().size();
         int numAtUltraRed = Utils.count(game.getAllCharacters(), pl -> pl.getCharacter().getSkillLevel().compareTo(ULTRA_RED) >= 0);
-        int total = numPlayers + getNumStartRedObjectives();
+        int total = numPlayers + getNumStartObjectives();
         int completed = numAtUltraRed + getNumFoundObjectives();
         return completed*100 / total;
 
@@ -141,7 +141,7 @@ public class WolfBloodRed extends ZQuest {
         int numPlayers = game.getAllCharacters().size();
         int numAtUltraRed = Utils.count(game.getAllCharacters(), pl -> pl.getCharacter().getSkillLevel().compareTo(ULTRA_RED) >= 0);
         return new Table(getName()).addRow(new Table().setNoBorder()
-            .addRow("1.", "Collect all objectives. Some of the objectives give a random vault item", String.format("%d of %d", getNumFoundObjectives(), getNumStartRedObjectives()))
+            .addRow("1.", "Collect all objectives. Some of the objectives give a random vault item", String.format("%d of %d", getNumFoundObjectives(), getNumStartObjectives()))
             .addRow("2.", "Get all survivors to ultra RED danger level", String.format("%d of %d", numAtUltraRed, numPlayers))
             .addRow("3.", "Only spawns from Necromancers can be removed", "")
         );

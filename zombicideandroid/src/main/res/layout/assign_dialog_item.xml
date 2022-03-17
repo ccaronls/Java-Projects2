@@ -8,7 +8,7 @@
 
         <ImageView
             android:id="@+id/image"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="0dp"
             android:src="@drawable/zcard_ann"
             app:layout_constraintDimensionRatio=".855"
@@ -58,6 +58,8 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 android:text="Locked Reason"
                 android:textSize="20dp"
+                android:gravity="center_horizontal"
+                tools:text="Complete big game hunting in Medium Difficulty"
                 android:layout_marginLeft="20dp"
                 android:layout_marginRight="20dp"/>
 

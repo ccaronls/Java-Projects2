@@ -34,6 +34,14 @@ public enum ZSkill implements IButton {
             }
         }
     },
+    Plus1_Damage_DualWielding("The survivor get +1 damage when dual weilding a melee weapon.") {
+        @Override
+        public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game, int targetZone) {
+            if (actionType == ZActionType.MELEE && character.isDualWielding()) {
+                stat.damagePerHit++;
+            }
+        }
+    },
     //Plus1_Damage_with("[Equipment] – The Survivor gets a +1 Damage bonus with the specified Equipment."),
     Plus1_to_dice_roll_Combat("The Survivor adds 1 to the result of each die he rolls on a Combat Action (Melee, Ranged or Magic). The maximum result is always 6.") {
         @Override

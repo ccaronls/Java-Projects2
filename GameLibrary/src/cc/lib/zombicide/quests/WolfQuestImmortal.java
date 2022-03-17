@@ -115,7 +115,7 @@ public class WolfQuestImmortal extends ZQuest {
 
     @Override
     public int getPercentComplete(ZGame game) {
-        int total = getNumStartRedObjectives() + numStartImmortals + getNumNecrosOnBoard(game);
+        int total = getNumStartObjectives() + numStartImmortals + getNumNecrosOnBoard(game);
         int completed = getNumFoundObjectives() + (numStartImmortals - immortals.size());
         return completed*100 / total;
     }
@@ -125,7 +125,7 @@ public class WolfQuestImmortal extends ZQuest {
     public Table getObjectivesOverlay(ZGame game) {
         return new Table(getName())
                 .addRow(new Table().setNoBorder()
-                        .addRow("1.", "Collect all Objectives. Each objective gives a vault item.", String.format("%d of %d", getNumFoundObjectives(), getNumStartRedObjectives()))
+                        .addRow("1.", "Collect all Objectives. Each objective gives a vault item.", String.format("%d of %d", getNumFoundObjectives(), getNumStartObjectives()))
                         .addRow("2.", "Purge the EVIL by removing the GREEN spawn areas. BLUE spawn areas become GREEN once a Necromancer is spawned from one", String.format("%d of %d", numStartImmortals-immortals.size(), numStartImmortals))
                         .addRow("3.", "Random Vault weapon hidden in the Vault", getNumFoundVaultItems() > 0)
                 );

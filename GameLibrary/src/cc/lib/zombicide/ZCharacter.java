@@ -233,6 +233,10 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
         return false;
     }
 
+    public boolean canBarricadeDoors() {
+        return isInPossession(ZItemType.BARRICADE);
+    }
+
     /**
      *
      * @return
@@ -822,6 +826,14 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
                 return true;
         }
         return false;
+    }
+
+    ZEquipment getEquipmentOfType(ZEquipmentType type) {
+        for (ZEquipment e : getAllEquipment()) {
+            if (e.getType().equals(type))
+                return e;
+        }
+        return null;
     }
 
     boolean isEquipped(ZEquipmentType type) {

@@ -69,7 +69,7 @@ public class WolfACoinForTheFerryman extends ZQuest {
                 blueKeyPos = pos;
                 break;
             case "red":
-                if (getNumStartRedObjectives()>0)
+                if (getNumStartObjectives()>0)
                     break; // for DEBUG allow only 1
                 else {
                     super.loadCmd(grid, pos, "st");
@@ -140,7 +140,7 @@ public class WolfACoinForTheFerryman extends ZQuest {
 
     @Override
     public int getPercentComplete(ZGame game) {
-        int total = getNumStartRedObjectives() + 2;
+        int total = getNumStartObjectives() + 2;
         int completed = getNumFoundObjectives() + (isExitZoneOccupied(game) ? 1 : 0) + (blueKeyPos == null ? 1 : 0);
 
         return completed * 100 / total;
@@ -150,7 +150,7 @@ public class WolfACoinForTheFerryman extends ZQuest {
     public Table getObjectivesOverlay(ZGame game) {
         return new Table(getName())
                 .addRow(new Table().setNoBorder()
-                    .addRow("1.", "Take all of the objective to reveal the BLUE key", String.format("%d of %d", getNumFoundObjectives(), getNumStartRedObjectives()))
+                    .addRow("1.", "Take all of the objective to reveal the BLUE key", String.format("%d of %d", getNumFoundObjectives(), getNumStartObjectives()))
                     .addRow("2.", "Take the BLUE key to unlock the BLUE doors and the escape portal", blueKeyPos == null)
                     .addRow("3.", "Enter the portal and banish the Necromancers for good", isExitZoneOccupied(game))
 
