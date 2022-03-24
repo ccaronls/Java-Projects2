@@ -39,7 +39,6 @@ public class GameClient {
         READY, // connect not called
         CONNECTING, // connect called, handshake in progress
         CONNECTED, // handshake success
-        DISCONNECTING, // disconnect called, notify server
         DISCONNECTED // all IO closed and threads stopped
     }
 
@@ -273,30 +272,28 @@ public class GameClient {
      */
     public final void disconnect(String reason) {
         if (state == State.CONNECTED || state == State.CONNECTING) {
-            state = State.DISCONNECTING;
             log.debug("GameClient: client '" + this.getDisplayName() + "' disconnecitng ...");
             try {
                 outQueue.clear();
-                outQueue.add(new GameCommand(GameCommandType.CL_DISCONNECT).setArg("reason", "player left session"));
+                outQueue.add(new GameCommand(GameCommandType.CL_DISCONNECT).setMessage("player left session"));
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            outQueue.stop();
-            log.debug("GameClient: outQueue stopped");
+            state = State.DISCONNECTED;
+            close();
             if (listeners.size() > 0) {
                 Listener[] arr = listeners.toArray(new Listener[listeners.size()]);
                 for (Listener l : arr) {
                     l.onDisconnected(reason, false);
                 }
             }
-            close();
         }
 //        reset(); // we want to be in the 'disconnected state'
     }
     
     // making this package access so JUnit can test a client timeout
     void close() {
-        state = State.DISCONNECTING;
+        state = State.DISCONNECTED;
         outQueue.stop();
         // close output first to make sure it is flushed
         // https://stackoverflow.com/questions/19307011/does-close-a-socket-will-also-close-flush-the-input-output-stream
@@ -363,21 +360,11 @@ public class GameClient {
                         for (Listener l : larray) {
                             l.onMessage(cmd.getMessage());
                         }
-                    } else if (cmd.getType() == GameCommandType.CONNECT_REJECTED) {
-                        state = State.DISCONNECTED;
-                        outQueue.clear();
-                        for (Listener l : larray) {
-                            l.onDisconnected(cmd.getMessage(), true);
-                        }
-                        break;
                     } else if (cmd.getType() == GameCommandType.SVR_DISCONNECT) {
-                        state = State.DISCONNECTING;
+                        state = State.DISCONNECTED;
                         disconnectedReason = cmd.getMessage();
                         outQueue.clear();
-                        outQueue.add(GameCommandType.CL_DISCONNECTED.make());
-                        break;
-                    } else if (cmd.getType() == GameCommandType.SVR_DISCONNECTED) {
-                        state = State.DISCONNECTED;
+                        outQueue.add(GameCommandType.CL_DISCONNECT.make().setMessage(""));
                         break;
                     } else if (cmd.getType() == GameCommandType.SVR_EXECUTE_REMOTE) {
                         handleExecuteRemote(cmd);

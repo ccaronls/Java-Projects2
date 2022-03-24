@@ -97,16 +97,15 @@ public final class GameCommandType implements Comparable<GameCommandType> {
     static final GameCommandType CL_REMOTE_RETURNS = new GameCommandType("CL_REMOTE_RETURNS");
     // additional info is name and version
     static final GameCommandType CL_CONNECT = new GameCommandType("CL_CONNECT");
-    // client initialized disconnect
-    static final GameCommandType CL_DISCONNECT = new GameCommandType("CL_DISCONNECT");
-    // client response to disconnect from server
-    static final GameCommandType CL_DISCONNECTED = new GameCommandType("CL_DISCONNECTED");
     // no additional info
     static final GameCommandType CL_KEEPALIVE = new GameCommandType("CL_KEEPALIVE");
     // report an error that occured on the client
     static final GameCommandType CL_ERROR       = new GameCommandType("CL_ERROR");
     // set the display name of this user. Includes a 'name' argument.
     static final GameCommandType CL_HANDLE      = new GameCommandType("CL_HANDLE");
+    // client signals they are disconnecting
+    static final GameCommandType CL_DISCONNECT = new GameCommandType("CL_DISCONNECT");
+
 
     // --------------------------------------
     // commands sent from the server
@@ -115,16 +114,13 @@ public final class GameCommandType implements Comparable<GameCommandType> {
     // confirmation command from the server that a client has connected
     static final GameCommandType SVR_CONNECTED = new GameCommandType("SVR_CONNECTED");
     static final GameCommandType SVR_EXECUTE_REMOTE = new GameCommandType("SVR_EXEC_REMOTE");
-    // server initialized disconnect
+    // server asks client to disconnect from their end
     static final GameCommandType SVR_DISCONNECT = new GameCommandType("SVR_DISCONNECT");
-    // server response to disconnect from client
-    static final GameCommandType SVR_DISCONNECTED = new GameCommandType("SVR_DISCONNECTED");
 
     // --------------------------------------
     // shared command types
     // --------------------------------------
     static final GameCommandType MESSAGE = new GameCommandType("MESSAGE");
-    static final GameCommandType CONNECT_REJECTED = new GameCommandType("CONNECT_REJECTED");
     // confirmation from server when client asks to be disconnected
     static final GameCommandType PASSWORD = new GameCommandType("PASSWORD");
 

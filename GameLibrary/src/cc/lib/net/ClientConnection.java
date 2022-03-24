@@ -176,6 +176,7 @@ public class ClientConnection implements Runnable {
 
     private void close() {
         log.debug("ClientConnection: close() ...");
+        server.removeClient(this);
         connected = false;
         disconnecting = false;
         outQueue.stop();
@@ -313,7 +314,7 @@ public class ClientConnection implements Runnable {
             }
         }
     }
-    
+
     /**
      * Send a message to the remote client
      * @param message
@@ -367,29 +368,20 @@ public class ClientConnection implements Runnable {
         close();
     }
     
-    protected boolean processCommand(GameCommand cmd) throws IOException {
+    protected boolean processCommand(GameCommand cmd) {
         cmd.getType().notifyListeners(cmd);
         if (!connected)
             return false;
         if (cmd.getType() == GameCommandType.CL_DISCONNECT) {
-            String reason = cmd.getString("reason");
+            String reason = cmd.getMessage();
             log.info("Client disconnected: " + reason);
-            sendCommand(GameCommandType.SVR_DISCONNECTED.make());
             connected = false;
-            //for (GameServer.Listener l : server.getListeners()) {
-            //    l.onClientDisconnected(this);
-            //}
             if (listeners.size() > 0) {
                 Listener[] arr = listeners.toArray(new Listener[listeners.size()]);
                 for (Listener l : arr) {
                     l.onDisconnected(this, reason);
                 }
             }
-            server.removeClient(this);
-            close();
-        } else if (cmd.getType() == GameCommandType.CL_DISCONNECTED) {
-            connected = false;
-            server.removeClient(this);
             close();
         } else if (cmd.getType() == GameCommandType.CL_KEEPALIVE) {
             // client should do this at regular intervals to prevent getting dropped

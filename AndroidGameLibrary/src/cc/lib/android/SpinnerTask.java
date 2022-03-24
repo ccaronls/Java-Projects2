@@ -63,6 +63,7 @@ public abstract class SpinnerTask<T> extends AsyncTask<T, Integer, Object> imple
     protected void onPreExecute() {
         if (!context.get().isFinishing() && !context.get().isDestroyed()) {
             dialog = ProgressDialog.show(context.get(), getProgressMessage(), null, true, isCancellable(), this);
+            dialog.setCanceledOnTouchOutside(false);
             dialog.setOnDismissListener(this);
         }
     }

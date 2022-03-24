@@ -111,6 +111,7 @@ public class GameServer {
     }
 
     void removeClient(ClientConnection cl) {
+        log.debug("removing client " + cl.getName());
         synchronized (clients) {
             clients.remove(cl);
         }
@@ -209,6 +210,8 @@ public class GameServer {
     public final void stop() {
         log.info("GameServer: Stopping server: " + this);
         if (socketListener != null) {
+            socketListener.stop();
+            socketListener = null;
             disconnectingLock.reset();
             synchronized (clients) {
                 for (ClientConnection c : clients.values()) {
@@ -218,10 +221,8 @@ public class GameServer {
                     }
                 }
             }
-            disconnectingLock.block(10000);
+            disconnectingLock.block(25000); // give clients a chance to disconnect from their end
             clients.clear();
-            socketListener.stop();
-            socketListener = null;
         }
 
         if (counter != null) {
@@ -544,8 +545,9 @@ public class GameServer {
             } catch (ProtocolException e) {
                 try {
                     log.error(e);
-                    new GameCommand(GameCommandType.CONNECT_REJECTED).setMessage(e.getMessage()).write(out);
+                    GameCommandType.SVR_DISCONNECT.make().setMessage(e.getMessage()).write(out);
                 } catch (Exception ex) {
+                    ex.printStackTrace();
                 }
                 close(socket, in, out);
             } catch (Exception e) {
