@@ -159,11 +159,6 @@ public class WifiTest2 extends P2PActivity implements
                         getPrefs().edit().putString("handle", et.getText().toString()).apply();
                     }
                 }).show();
-
-
-
-
-        // do nothing
     }
 
     @Override
@@ -179,6 +174,11 @@ public class WifiTest2 extends P2PActivity implements
         p2pServer.getServer().addListener(this);
         this.serverController = p2pServer;
         runOnUiThread(new UpdateButtonsRunnable(State.HOSTING));
+    }
+
+    @Override
+    protected void onP2PShutdown() {
+        initButtons(State.DISCONNECTED);
     }
 
     private void sendText() {
@@ -272,7 +272,7 @@ public class WifiTest2 extends P2PActivity implements
 
     @Override
     public void onReconnection(ClientConnection conn) {
-        addListEntry("Client Reconnected: " + conn.getDisplayName(), GColor.ORANGE.toARGB(), false);
+        addListEntry("Client Reconnected: " + conn.getDisplayName(), Color.YELLOW, false);
     }
 
     @Override

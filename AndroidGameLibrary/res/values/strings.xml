@@ -79,6 +79,7 @@
     <string name="generate_page_error_msg">Failed to generate the report.  You may not have enough memory to perform this action.  If you think this is a bug, please screenshot this error and include in an bug report email through send feedback channel.</string>
 
     <string name="popup_button_back">Back</string>
+    <string name="popup_button_next">Next</string>
     <string name="popup_button_no">No</string>
     <string name="popup_button_yes">Yes</string>
     <string name="popup_button_quit">Quit</string>

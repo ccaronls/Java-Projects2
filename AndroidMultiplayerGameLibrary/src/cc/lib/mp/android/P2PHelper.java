@@ -48,6 +48,7 @@ abstract class P2PHelper extends BroadcastReceiver implements
     private final List<WifiP2pDevice> peers = new ArrayList<>();
     private GameServer server;
     private GameClient client;
+    private boolean registered = false;
 
     public static boolean isP2PAvailable(Context context) {
         if (!context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_WIFI_DIRECT)) {
@@ -147,8 +148,20 @@ abstract class P2PHelper extends BroadcastReceiver implements
         if (client != null || this.server != null)
             throw new IllegalArgumentException("Already started");
         this.server = server;
-        activity.registerReceiver(this, p2pFilter);
-        activity.getApplication().unregisterActivityLifecycleCallbacks(this);
+        setRegistered(true);
+        activity.getApplication().registerActivityLifecycleCallbacks(this);
+    }
+
+    private synchronized void setRegistered(boolean enable) {
+        if (enable == registered)
+            return;
+        if (enable) {
+            activity.registerReceiver(this, p2pFilter);
+            registered = true;
+        } else {
+            activity.unregisterReceiver(this);
+            registered = false;
+        }
     }
 
     @Override
@@ -167,8 +180,8 @@ abstract class P2PHelper extends BroadcastReceiver implements
         if (this.client != null || server != null)
             throw new IllegalArgumentException("Already started");
         this.client = client;
-        activity.registerReceiver(this, p2pFilter);
-        activity.getApplication().unregisterActivityLifecycleCallbacks(this);
+        setRegistered(true);
+        activity.getApplication().registerActivityLifecycleCallbacks(this);
         p2pMgr.discoverPeers(channel, new MyActionListener("start(client)"));
     }
 
@@ -179,7 +192,7 @@ abstract class P2PHelper extends BroadcastReceiver implements
         client = null;
         server = null;
         p2pMgr.stopPeerDiscovery(channel, new MyActionListener("stopPeerDiscovery"));
-        activity.unregisterReceiver(this);
+        setRegistered(false);
         activity.getApplication().unregisterActivityLifecycleCallbacks(this);
     }
 
@@ -291,22 +304,24 @@ abstract class P2PHelper extends BroadcastReceiver implements
     public void onActivityCreated(Activity activity, Bundle savedInstanceState) {}
 
     @Override
-    public void onActivityStarted(Activity activity) {}
+    public void onActivityStarted(Activity activity) {
+        Log.i(TAG, "activity started");
+        setRegistered(true);
+    }
 
     @Override
     public void onActivityResumed(Activity activity) {
-        Log.i(TAG, "activity resumed");
-        activity.registerReceiver(this, p2pFilter);
     }
 
     @Override
     public void onActivityPaused(Activity activity) {
-        Log.w(TAG, "activity paused");
-        activity.unregisterReceiver(this);
     }
 
     @Override
-    public void onActivityStopped(Activity activity) {}
+    public void onActivityStopped(Activity activity) {
+        Log.w(TAG, "activity stopped");
+        setRegistered(false);
+    }
 
     @Override
     public void onActivitySaveInstanceState(Activity activity, Bundle outState) {}

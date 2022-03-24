@@ -29,6 +29,7 @@
     <string name="popup_title_new_sp_game">New Single Player Game</string>
     <string name="popup_title_mp_hosts">Multiplayer Host</string>
     <string name="popup_title_game_over">Game Over</string>
+    <string name="popup_title_starting_server">Starting Server ...</string>
 
     <string name="popup_button_kick">Kick</string>
     <string name="popup_button_unkick">Unkick</string>

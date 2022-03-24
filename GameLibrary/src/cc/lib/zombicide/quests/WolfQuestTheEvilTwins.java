@@ -63,19 +63,19 @@ public class WolfQuestTheEvilTwins extends ZQuest {
     }
 
     @Override
-    public ZTile[] getTiles(ZBoard board) {
+    public ZTile[] getTiles() {
         return new ZTile[] {
-                new ZTile("7R", 180, ZTile.getQuadrant(0, 0, board)),
-                new ZTile("4V", 90, ZTile.getQuadrant(0, 3, board)),
-                new ZTile("2R", 90, ZTile.getQuadrant(0, 6, board)),
+                new ZTile("7R", 180, ZTile.getQuadrant(0, 0)),
+                new ZTile("4V", 90, ZTile.getQuadrant(0, 3)),
+                new ZTile("2R", 90, ZTile.getQuadrant(0, 6)),
 
-                new ZTile("3V", 90, ZTile.getQuadrant(3, 0, board)),
-                new ZTile("5V", 180, ZTile.getQuadrant(3, 3, board)),
-                new ZTile("10V", 270, ZTile.getQuadrant(3, 6, board)),
+                new ZTile("3V", 90, ZTile.getQuadrant(3, 0)),
+                new ZTile("5V", 180, ZTile.getQuadrant(3, 3)),
+                new ZTile("10V", 270, ZTile.getQuadrant(3, 6)),
 
-                new ZTile("11V", 180, ZTile.getQuadrant(6, 0, board)),
-                new ZTile("6R", 0, ZTile.getQuadrant(6, 3, board)),
-                new ZTile("9V", 90, ZTile.getQuadrant(6, 6, board)),
+                new ZTile("11V", 180, ZTile.getQuadrant(6, 0)),
+                new ZTile("6R", 0, ZTile.getQuadrant(6, 3)),
+                new ZTile("9V", 90, ZTile.getQuadrant(6, 6)),
         };
     }
 

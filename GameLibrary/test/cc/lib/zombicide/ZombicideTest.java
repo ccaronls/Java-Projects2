@@ -27,7 +27,7 @@ public class ZombicideTest extends TestCase {
             game.loadQuest(q);
             assertEquals(q, game.getQuest().getQuest());
             game.getQuest().getPercentComplete(game);
-            game.getQuest().getTiles(game.getBoard());
+            game.getQuest().getTiles();
             for (ZIcon ic : ZIcon.values()) {
                 ic.imageIds = new int[8];
             }

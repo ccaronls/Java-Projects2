@@ -80,13 +80,13 @@ public class WolfTheZombieArmy extends ZQuest {
     }
 
     @Override
-    public ZTile[] getTiles(ZBoard board) {
+    public ZTile[] getTiles() {
         return new ZTile[] {
-                new ZTile("6R", 0, ZTile.getQuadrant(0, 0, board)),
-                new ZTile("1V", 270, ZTile.getQuadrant(0, 3, board)),
+                new ZTile("6R", 0, ZTile.getQuadrant(0, 0)),
+                new ZTile("1V", 270, ZTile.getQuadrant(0, 3)),
 
-                new ZTile("9V", 180, ZTile.getQuadrant(3, 0, board)),
-                new ZTile("10R", 90, ZTile.getQuadrant(3, 3, board))
+                new ZTile("9V", 180, ZTile.getQuadrant(3, 0)),
+                new ZTile("10R", 90, ZTile.getQuadrant(3, 3))
         };
     }
 

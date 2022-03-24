@@ -31,7 +31,7 @@ class ZServerMgr extends ZMPCommon implements GameServer.Listener, ZMPCommon.SVR
 
     Map<ZPlayerName, Assignee> playerAssignments = new LinkedHashMap<>();
     Map<ClientConnection, ZUser> clientToUserMap = new ConcurrentHashMap<>();
-    final CharacterChooserDialog playerChooser;
+    final CharacterChooserDialogMP playerChooser;
 
     ZServerMgr(ZombicideActivity activity, UIZombicide game, int maxCharacters, GameServer server) {
         super(activity, game);
@@ -46,7 +46,7 @@ class ZServerMgr extends ZMPCommon implements GameServer.Listener, ZMPCommon.SVR
         activity.user.setColor(nextColor());
         List<Assignee> assignments = new ArrayList<>(playerAssignments.values());
         Collections.sort(assignments);
-        playerChooser = new CharacterChooserDialog(activity, assignments, maxCharacters) {
+        playerChooser = new CharacterChooserDialogMP(activity, assignments, maxCharacters) {
             @Override
             protected void onAssigneeChecked(Assignee assignee, boolean checked) {
                 synchronized (playerAssignments) {
@@ -90,7 +90,7 @@ class ZServerMgr extends ZMPCommon implements GameServer.Listener, ZMPCommon.SVR
         for (ClientConnection c : clientToUserMap.keySet()) {
             if (!c.isConnected()) {
                 ZUser user = clientToUserMap.get(c);
-                if (user != null && user.getCharacters().size() > 0) {
+                if (user != null && user.getPlayers().size() > 0) {
                     // reuse
                     clientToUserMap.remove(c);
                     clientToUserMap.put(conn, user);

@@ -98,14 +98,14 @@ public class ZQuestTheCommandry extends ZQuest {
     }
 
     @Override
-    public ZTile[] getTiles(ZBoard board) {
+    public ZTile[] getTiles() {
         return new ZTile[] {
-                new ZTile("4R", 180, ZTile.getQuadrant(0, 0, board)),
-                new ZTile("6R", 270, ZTile.getQuadrant(0, 3, board)),
-                new ZTile("5R", 270, ZTile.getQuadrant(0, 6, board)),
-                new ZTile("7R", 90, ZTile.getQuadrant(3, 0, board)),
-                new ZTile("8R", 180, ZTile.getQuadrant(3, 3, board)),
-                new ZTile("9R", 180, ZTile.getQuadrant(3, 6, board)),
+                new ZTile("4R", 180, ZTile.getQuadrant(0, 0)),
+                new ZTile("6R", 270, ZTile.getQuadrant(0, 3)),
+                new ZTile("5R", 270, ZTile.getQuadrant(0, 6)),
+                new ZTile("7R", 90, ZTile.getQuadrant(3, 0)),
+                new ZTile("8R", 180, ZTile.getQuadrant(3, 3)),
+                new ZTile("9R", 180, ZTile.getQuadrant(3, 6)),
         };
     }
 

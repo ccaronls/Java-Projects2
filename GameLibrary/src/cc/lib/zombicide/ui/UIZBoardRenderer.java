@@ -44,6 +44,7 @@ import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZIcon;
 import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZPlayerName;
+import cc.lib.zombicide.ZQuest;
 import cc.lib.zombicide.ZSpawnArea;
 import cc.lib.zombicide.ZSpell;
 import cc.lib.zombicide.ZTile;
@@ -78,6 +79,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
     boolean drawRangedAccessibility = false;
     boolean drawTowersHighlighted = false;
     boolean drawZombiePaths = false;
+    int miniMapMode = 1;
     MutableVector2D dragOffset = new MutableVector2D(Vector2D.ZERO);
     Vector2D dragStart = Vector2D.ZERO;
 
@@ -91,6 +93,10 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
 
     ZBoard getBoard() {
         return getGame().getBoard();
+    }
+
+    ZQuest getQuest() {
+        return getGame().getQuest();
     }
 
     public boolean isAnimating() {
@@ -215,7 +221,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                 case KEEP_ROLL:
                     break;
                 case ENCHANT: {
-                    List<ZCharacter> targets = Utils.filter(getGame().getBoard().getAllCharacters(), object -> object.isAlive() && getBoard().canSee(cur.getOccupiedZone(), object.getOccupiedZone()));
+                    List<ZCharacter> targets = Utils.filter(getBoard().getAllCharacters(), object -> object.isAlive() && getBoard().canSee(cur.getOccupiedZone(), object.getOccupiedZone()));
                     for (ZSpell spell : (List<ZSpell>)move.list) {
                         for (ZCharacter c : targets) {
                             addClickable(c.getRect(), new ZMove(move, spell, c.getPlayerName()));
@@ -275,7 +281,6 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
         ZActor picked = null;
         float distFromCenter = 0;
         actorsAnimating = false;
-        ZBoard b = game.getBoard();
 
         Set<ZActor> options = Collections.emptySet();
 
@@ -295,13 +300,13 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
             }
         }
 
-        List<ZActor> actors = b.getAllActors();
+        List<ZActor> actors = getBoard().getAllActors();
         Collections.sort(actors, (a0,a1) -> Integer.compare(a0.isAnimating() ? 1 : 0, a1.isAnimating() ? 1 : 0));
 
         for (ZActor a : actors) {
             AImage img = g.getImage(a.getImageId());
             if (img != null) {
-                GRectangle rect = a.getRect(b);
+                GRectangle rect = a.getRect(getBoard());
                 // draw box under character of the color of the user who is owner
                 if (rect.contains(mx, my)) {
                     float dist = rect.getCenter().sub(mx, my).magSquared();
@@ -437,25 +442,24 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
      * @param mouseY
      * @return
      */
-    public int drawZones(AGraphics g, float mouseX, float mouseY) {
-        final ZBoard board = getBoard();
+    public int drawZones(AGraphics g, float mouseX, float mouseY, boolean miniMap) {
         int result = -1;
         for (int i=0; i<getBoard().getNumZones(); i++) {
-            ZZone zone = board.getZone(i);
+            ZZone zone = getBoard().getZone(i);
             for (Grid.Pos pos : zone.getCells()) {
-                ZCell cell = board.getCell(pos);
+                ZCell cell = getBoard().getCell(pos);
                 if (cell.isCellTypeEmpty())
                     continue;
                 switch (zone.getType()) {
                     case TOWER:
-                        if (drawTowersHighlighted) {
-                            g.setColor(GColor.GREEN.withAlpha((cell.getScale()-1)*3));
+                        if (miniMap || drawTowersHighlighted) {
+                            g.setColor(GColor.SKY_BLUE.withAlpha((cell.getScale()-1)*3));
                             g.drawFilledRect(cell);
                         }
                         break;
                 }
                 try {
-                    drawCellWalls(g, pos, 1);
+                    drawCellWalls(g, pos, 1, miniMap);
                 } catch (Exception e) {
                     log.error("Problem draw cell walls pos: " + pos);
                     throw e;
@@ -466,6 +470,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                     g.drawFilledRect(cell);
                 }
                 String text = "";
+                final int lineThickness = miniMap ? 2 : 10;
                 for (ZCellType type : ZCellType.values()) {
                     if (cell.isCellType(type)) {
                         switch (type) {
@@ -477,8 +482,8 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                                     // draw a big red X om the center of the cell
                                     GRectangle redX = new GRectangle(cell).scaledBy(.25f, .25f);
                                     g.setColor(type.getColor());
-                                    g.drawLine(redX.getTopLeft(), redX.getBottomRight(), 10);
-                                    g.drawLine(redX.getTopRight(), redX.getBottomLeft(), 10);
+                                    g.drawLine(redX.getTopLeft(), redX.getBottomRight(), lineThickness);
+                                    g.drawLine(redX.getTopRight(), redX.getBottomLeft(), lineThickness);
                                 }
                                 break;
                             case EXIT:
@@ -491,13 +496,18 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                     drawSpawn(g, cell, area);
                 }
                 if (zone.isDragonBile()) {
-                    g.drawImage(ZIcon.SLIME.imageIds[0], cell);
+                    if (miniMap) {
+                        g.setColor(GColor.SLIME_GREEN);
+                        g.drawFilledRect(cell);
+                    }
+                    else
+                        g.drawImage(ZIcon.SLIME.imageIds[0], cell);
                 }
-                if (text.length() > 0) {
+                if (!miniMap && text.length() > 0) {
                     g.setColor(GColor.YELLOW);
                     g.drawJustifiedStringOnBackground(cell.getCenter(), Justify.CENTER, Justify.CENTER, text, GColor.TRANSLUSCENT_BLACK, 10, 2);
                 }
-                if (getGame().getUiMode() == UIZombicide.UIMode.PICK_ZONE && !getGame().getOptions().contains(i)) {
+                if (!miniMap && getGame().getUiMode() == UIZombicide.UIMode.PICK_ZONE && !getGame().getOptions().contains(i)) {
                     g.setColor(GColor.TRANSLUSCENT_BLACK);
                     g.drawFilledRect(cell);
                 }
@@ -523,9 +533,8 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
         }
     }
 
-    public void drawCellWalls(AGraphics g, Grid.Pos cellPos, float scale) {
-        final ZBoard board = getBoard();
-        ZCell cell = board.getCell(cellPos);
+    public void drawCellWalls(AGraphics g, Grid.Pos cellPos, float scale, boolean miniMap) {
+        ZCell cell = getBoard().getCell(cellPos);
         g.pushMatrix();
         Vector2D center = cell.getCenter();
         g.translate(center);
@@ -543,41 +552,43 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
             g.pushMatrix();
             g.rotate(dir.rotation);
             g.setColor(GColor.BLACK);
+            final int wallThickness = miniMap ? 1 : 3;
             switch (cell.getWallFlag(dir)) {
                 case WALL:
-                    g.drawLine(v0, v1, 3);
+                    g.drawLine(v0, v1, wallThickness);
                     break;
                 case RAMPART:
-                    g.drawDashedLine(v0, v1, 3, 20);
+                    g.drawDashedLine(v0, v1, wallThickness, miniMap ? 2 : 20);
                     break;
                 case OPEN: {
-                    g.drawLine(v0, dv0, 3);
-                    g.drawLine(dv1, v1, 3);
+                    g.drawLine(v0, dv0, wallThickness);
+                    g.drawLine(dv1, v1, wallThickness);
                     if (dir == ZDir.SOUTH || dir == ZDir.WEST) {
                         g.setColor(doorColor);
-                        g.drawLine(dv0, (dv0.add(dv.scaledBy(.5f).rotate(145))), 4);
-                        g.drawLine(dv1, (dv1.sub(dv.scaledBy(.5f).rotate(-145))), 4);
+                        g.drawLine(dv0, (dv0.add(dv.scaledBy(.5f).rotate(145))), wallThickness+1);
+                        g.drawLine(dv1, (dv1.sub(dv.scaledBy(.5f).rotate(-145))), wallThickness+1);
                     }
                     break;
                 }
                 case LOCKED: {
                     if (dir == ZDir.SOUTH || dir == ZDir.WEST) {
-                        g.drawLine(v0, v1, 3);
+                        g.drawLine(v0, v1, wallThickness);
                         ZDoor door = getBoard().findDoor(cellPos, dir);
                         g.setColor(door.getLockedColor());
-                        GRectangle padlock = new GRectangle(0, 0, .2f, .2f).withCenter(dv1.add(dv0).scaleEq(.5f));
-                        //GRectangle rect = door.getRect(board).withDimension()scale(.5f);
-                        g.drawLine(dv0, dv1, 4);
-                        AImage img = g.getImage(ZIcon.PADLOCK.imageIds[0]);
-                        g.drawImage(ZIcon.PADLOCK.imageIds[0], padlock.fit(img));
+                        g.drawLine(dv0, dv1, wallThickness+1);
+                        if (!miniMap) {
+                            GRectangle padlock = new GRectangle(0, 0, .2f, .2f).withCenter(dv1.add(dv0).scaleEq(.5f));
+                            AImage img = g.getImage(ZIcon.PADLOCK.imageIds[0]);
+                            g.drawImage(ZIcon.PADLOCK.imageIds[0], padlock.fit(img));
+                        }
                     }
                     break;
                 }
                 case CLOSED:
                     if (dir == ZDir.SOUTH || dir == ZDir.WEST) {
-                        g.drawLine(v0, v1, 3);
+                        g.drawLine(v0, v1, wallThickness);
                         g.setColor(doorColor);
-                        g.drawLine(dv0, dv1, 4);
+                        g.drawLine(dv0, dv1, wallThickness+1);
                     }
                     break;
             }
@@ -585,37 +596,39 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
         }
         g.popMatrix();
 
+        final int vaultLineThickness = miniMap ? 1 : 2;
         for (ZDir dir : ZDir.getElevationValues()) {
             switch (cell.getWallFlag(dir)) {
                 case LOCKED: {
-                    ZDoor door = board.findDoor(cellPos, dir);
+                    ZDoor door = getBoard().findDoor(cellPos, dir);
                     g.setColor(GColor.BLACK);
-                    GRectangle vaultRect = door.getRect(board);
+                    GRectangle vaultRect = door.getRect(getBoard());
                     g.setColor(door.getLockedColor());
                     vaultRect.drawFilled(g);
                     g.setColor(GColor.RED);
-                    vaultRect.drawOutlined(g, 2);
-//                    g.drawJustifiedString(vaultRect.getCenter(), Justify.CENTER, Justify.CENTER, "LOCKED");
-                    GRectangle rect = door.getRect(board).scale(.7f);
-                    AImage img = g.getImage(ZIcon.PADLOCK.imageIds[0]);
-                    g.drawImage(ZIcon.PADLOCK.imageIds[0], rect.fit(img));
+                    vaultRect.drawOutlined(g, vaultLineThickness);
+                    if (!miniMap) {
+                        GRectangle rect = door.getRect(getBoard()).scale(.7f);
+                        AImage img = g.getImage(ZIcon.PADLOCK.imageIds[0]);
+                        g.drawImage(ZIcon.PADLOCK.imageIds[0], rect.fit(img));
+                    }
                     break;
                 }
                 case CLOSED: {
-                    ZDoor door = board.findDoor(cellPos, dir);
+                    ZDoor door = getBoard().findDoor(cellPos, dir);
                     g.setColor(GColor.BLACK);
-                    GRectangle vaultRect = door.getRect(board);
+                    GRectangle vaultRect = door.getRect(getBoard());
                     g.setColor(door.lockedColor);
                     vaultRect.drawFilled(g);
                     g.setColor(GColor.YELLOW);
-                    vaultRect.drawOutlined(g, 2);
+                    vaultRect.drawOutlined(g, vaultLineThickness);
 //                    g.drawJustifiedString(vaultRect.getCenter(), Justify.CENTER, Justify.CENTER, "VAULT");
                     break;
                 }
                 case OPEN: {
-                    ZDoor door = board.findDoor(cellPos, dir);
+                    ZDoor door = getBoard().findDoor(cellPos, dir);
                     g.setColor(GColor.BLACK);
-                    GRectangle vaultRect = door.getRect(board);
+                    GRectangle vaultRect = door.getRect(getBoard());
                     vaultRect.drawFilled(g);
                     // draw the 'lid' opened
                     g.begin();
@@ -636,37 +649,61 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                     g.drawTriangleFan();
                     g.setColor(GColor.YELLOW);
                     g.end();
-                    vaultRect.drawOutlined(g, 2);
-                    g.drawLineLoop(2);
+                    vaultRect.drawOutlined(g, vaultLineThickness);
+                    g.drawLineLoop(vaultLineThickness);
                 }
             }
         }
     }
 
     public void drawMiniMap(AGraphics g) {
-        for (ZCell cell : getBoard().getCells()) {
+        if (miniMapMode == 0)
+            return;
+        g.pushMatrix();
+        g.ortho();
+        float xscale = 0.25f * (getWidth() / getBoard().getColumns());
+        float yscale = 0.5f * (getHeight() / getBoard().getRows());
+        float padding = 10;
+        switch (miniMapMode) {
+            case 1: // top left
+                g.translate(padding, padding);
+                g.scale(Math.min(xscale, yscale));
+                break;
+            case 2: // top right
+                g.translate(getWidth()-padding, padding);
+                g.scale(Math.min(xscale, yscale));
+                g.translate(-getBoard().getColumns(), 0);
+                break;
+            case 3: // bottom left
+                g.translate(padding, getHeight()-padding);
+                g.scale(Math.min(xscale, yscale));
+                g.translate(0, -getBoard().getRows());
+                break;
+            case 4:
+                g.translate(getWidth()-padding, getHeight()-padding);
+                g.scale(Math.min(xscale, yscale));
+                g.translate(0, -getBoard().getRows());
+                g.translate(-getBoard().getColumns(), 0);
+                break;
+        }
 
-            g.pushMatrix();
-            Vector2D center = cell.getCenter();
-            g.translate(center);
-            Vector2D v0 = cell.getTopLeft().subEq(center);
-            Vector2D v1 = cell.getTopRight().subEq(center);
-
-            for (ZDir dir : ZDir.getCompassValues()) {
-                Vector2D dv = v1.sub(v0).scaleEq(.33f);
-                Vector2D dv0 = v0.add(dv);
-                Vector2D dv1 = dv0.add(dv);
-
-                g.pushMatrix();
-                g.rotate(dir.rotation);
-                g.setColor(GColor.BLACK);
-                switch (cell.getWallFlag(dir)) {
-
-                }
+        g.setTransparencyFilter(.6f);
+        g.setColor(GColor.TRANSLUSCENT_BLACK);
+        g.drawFilledRect(0,0,getBoard().getColumns(),getBoard().getRows());
+        drawZones(g, -1, -1, true);
+        // draw the actors
+        for (ZActor a : getBoard().getAllActors()) {
+            if (a instanceof ZCharacter) {
+                g.setColor(((ZCharacter)a).getColor());
+            } else if (a instanceof ZZombie) {
+                g.setColor(GColor.LIGHT_GRAY);
             }
 
-            g.popMatrix();
+            GRectangle rect = a.getRect(getBoard());
+            g.drawFilledOval(rect.scale(.8f));
         }
+        g.removeFilter();
+        g.popMatrix();
     }
 
     public Grid.Pos pickCell(AGraphics g, float mouseX, float mouseY) {
@@ -709,10 +746,10 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
             }
             /*
             if (cell.contains(mouseX, mouseY)) {
-                List<Integer> accessible = getBoard().getAccessableZones(cell.getZoneIndex(), 1, 5, ZActionType.MOVE);
+                List<Integer> accessible = board.getAccessableZones(cell.getZoneIndex(), 1, 5, ZActionType.MOVE);
                 text = "1 Unit away:\n" + accessible;
                 //returnCell = it.getPos();//new int[] { col, row };
-                List<Integer> accessible2 = getBoard().getAccessableZones(cell.getZoneIndex(), 2, 5, ZActionType.MAGIC);
+                List<Integer> accessible2 = board.getAccessableZones(cell.getZoneIndex(), 2, 5, ZActionType.MAGIC);
                 text += "\n2 Units away:\n" + accessible2;
             }*/
             g.setColor(GColor.CYAN);
@@ -826,8 +863,8 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
     public IVector2D getBoardCenter() {
         ZGame game = getGame();
         if (game.getCurrentCharacter() != null)
-            return game.getCurrentCharacter().getCharacter().getRect().getCenter();//game.getBoard().getZone(game.getCurrentCharacter().getOccupiedZone()).getCenter();
-        List<ZCharacter> chars = game.getBoard().getAllCharacters();
+            return game.getCurrentCharacter().getCharacter().getRect().getCenter();//game.board.getZone(game.getCurrentCharacter().getOccupiedZone()).getCenter();
+        List<ZCharacter> chars = getBoard().getAllCharacters();
         if (chars.size() == 0)
             return new GRectangle(getBoard()).getCenter();
         GRectangle rect = null;
@@ -926,39 +963,52 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
 
     void drawQuestLabel(AGraphics g) {
         g.setColor(GColor.BLACK);
-        if (getGame().getQuest()!=null) {
+        if (getQuest()!=null) {
             float height = g.getTextHeight();
             g.setTextHeight(24);//setFont(bigFont);
             g.setTextStyles(AGraphics.TextStyle.BOLD, AGraphics.TextStyle.ITALIC);
-            g.drawJustifiedString(10, getHeight()-10-g.getTextHeight(), Justify.LEFT, Justify.BOTTOM, getGame().getQuest().getName());
+            g.drawJustifiedString(10, getHeight()-10-g.getTextHeight(), Justify.LEFT, Justify.BOTTOM, getQuest().getName());
             g.setTextHeight(height);
             g.setTextStyles(AGraphics.TextStyle.NORMAL);
         }
     }
 
-    private void drawNoBoard(AGraphics g) {
-        g.clearScreen(GColor.WHITE);
-        Vector2D cntr = new Vector2D(g.getViewportWidth()/2, g.getViewportHeight()/2);
-        GDimension minDim = new GDimension(g.getViewportWidth()/4, g.getViewportHeight()/4);
-        GDimension maxDim = new GDimension(g.getViewportWidth()/2, g.getViewportHeight()/2);
-        GRectangle rect = new GRectangle().withDimension(minDim.interpolateTo(maxDim, 1)).withCenter(cntr);
-        //g.setColor(GColor.RED);
-        //rect.drawOutlined(g, 5);
-        AImage img = g.getImage(ZIcon.GRAVESTONE.imageIds[0]);
-        g.drawImage(ZIcon.GRAVESTONE.imageIds[0], rect.fit(img));
+    public void drawPlayerName(String name) {
 
+    }
+
+    private void drawNoBoard(AGraphics g) {
+        if (getQuest() != null && drawTiles) {
+            if (tiles == null) {
+                tiles = getQuest().getTiles();
+                onLoading();
+                ((UIZComponent) getComponent()).loadTiles(g, tiles);
+            } else {
+                for (int i = 0; i < tileIds.length; i++) {
+                    g.drawImage(tileIds[i], tiles[i].quadrant);
+                }
+            }
+        } else {
+            g.clearScreen(GColor.WHITE);
+            Vector2D cntr = new Vector2D(g.getViewportWidth() / 2, g.getViewportHeight() / 2);
+            GDimension minDim = new GDimension(g.getViewportWidth() / 4, g.getViewportHeight() / 4);
+            GDimension maxDim = new GDimension(g.getViewportWidth() / 2, g.getViewportHeight() / 2);
+            GRectangle rect = new GRectangle().withDimension(minDim.interpolateTo(maxDim, 1)).withCenter(cntr);
+            //g.setColor(GColor.RED);
+            //rect.drawOutlined(g, 5);
+            AImage img = g.getImage(ZIcon.GRAVESTONE.imageIds[0]);
+            g.drawImage(ZIcon.GRAVESTONE.imageIds[0], rect.fit(img));
+        }
     }
 
     @Override
     public void draw(APGraphics g, int mouseX, int mouseY) {
         //log.debug("mouseX=" + mouseX + " mouseY=" + mouseY);
         UIZombicide game = getGame();
-        if (game == null || game.getBoard() == null) {
+        if (game == null || getBoard() == null) {
             drawNoBoard(g);
             return;
         }
-
-        ZBoard board = getBoard();
 
         highlightedActor = null;
         highlightedCell = null;
@@ -973,7 +1023,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
 
         //log.debug("dragViewport = " + dragViewport);// + " topL = " + topL + "  bottomR = "+ bottomR);
 
-        IDimension boardRect = board.getDimension();
+        IDimension boardRect = getBoard().getDimension();
         rect.moveBy(dragViewport);
         if (rect.x < 0) {
             rect.x = 0;
@@ -994,7 +1044,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
         Vector2D mouse = g.screenToViewport(mouseX, mouseY);
 
         if (drawTiles && tiles == null) {
-            tiles = getGame().getQuest().getTiles(getBoard());
+            tiles = getQuest().getTiles();
             onLoading();
             ((UIZComponent)getComponent()).loadTiles(g, tiles);
             return;
@@ -1007,8 +1057,8 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
             }
         }
 
-        int highlightedZone = drawZones(g, mouse.X(), mouse.Y());
-        game.getQuest().drawQuest(game, g);
+        int highlightedZone = drawZones(g, mouse.X(), mouse.Y(), false);
+        getQuest().drawQuest(game, g);
         drawNoise(g);
 
         if (drawDebugText)
@@ -1042,7 +1092,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
             } else if (highlightedActor instanceof ZCharacter) {
                 List<Integer> visibleZones = getBoard().getAccessableZones(highlightedActor.getOccupiedZone(), 0, 4, ZActionType.RANGED);
                 for (int zoneIdx : visibleZones) {
-                    ZZone zone = board.getZone(zoneIdx);
+                    ZZone zone = getBoard().getZone(zoneIdx);
                     g.setColor(GColor.YELLOW);
                     zone.getRectangle().drawOutlined(g, 2);
                 }
@@ -1052,8 +1102,8 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
 
         if (drawRangedAccessibility && highlightedZone >= 0) {
             g.setColor(GColor.BLUE.withAlpha(.5f));
-            for (int zIndex : board.getAccessableZones(highlightedZone, 1, 5, ZActionType.RANGED)) {
-                drawZoneFilled(g, board, zIndex);
+            for (int zIndex : getBoard().getAccessableZones(highlightedZone, 1, 5, ZActionType.RANGED)) {
+                drawZoneFilled(g, getBoard(), zIndex);
             }
         }
 
@@ -1077,9 +1127,9 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                 if (highlightedZone >= 0 && game.getOptions().contains(highlightedZone)) {
                     highlightedResult = highlightedZone;
                     g.setColor(GColor.YELLOW);
-                    drawZoneOutline(g, board, highlightedZone);
+                    drawZoneOutline(g, getBoard(), highlightedZone);
                 } else if (cellPos != null) {
-                    ZCell cell = board.getCell(cellPos);
+                    ZCell cell = getBoard().getCell(cellPos);
                     for (int i = 0; i < game.getOptions().size(); i++) {
                         if (cell.getZoneIndex() == (Integer)game.getOptions().get(i)) {
                             highlightedCell = cellPos;
@@ -1104,9 +1154,9 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
             }
         }
         if (highlightedCell != null) {
-            ZCell cell = board.getCell(highlightedCell);
+            ZCell cell = getBoard().getCell(highlightedCell);
             g.setColor(GColor.RED.withAlpha(32));
-            drawZoneOutline(g, board, cell.getZoneIndex());
+            drawZoneOutline(g, getBoard(), cell.getZoneIndex());
         }
 
         g.pushMatrix();
@@ -1114,9 +1164,9 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
         g.ortho();
         g.setColor(GColor.WHITE);
         g.drawJustifiedStringOnBackground(10, getHeight()-10, Justify.LEFT, Justify.BOTTOM, game.getBoardMessage(), GColor.TRANSLUSCENT_BLACK, getBorderThickness());
+        drawAnimations(overlayAnimations, g);
         g.popMatrix();
         game.characterRenderer.redraw();
-        drawAnimations(overlayAnimations, g);
 
         drawOverlay(g);
 
@@ -1130,6 +1180,8 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
 
         if (isAnimating())
             redraw();
+        else
+            drawMiniMap(g);
     }
 
     protected void drawOverlay(AGraphics g) {
@@ -1285,6 +1337,22 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
 
     public boolean toggleDrawRangedAccessibility() {
         return drawRangedAccessibility = !drawRangedAccessibility;
+    }
+
+    public int getMiniMapMode() {
+        return miniMapMode;
+    }
+
+    public void setMiniMapMode(int miniMapMode) {
+        this.miniMapMode = miniMapMode;
+    }
+
+    public int toggleDrawMinimap() {
+        try {
+            return miniMapMode = (miniMapMode + 1) % 5;
+        } finally {
+            redraw();
+        }
     }
 
     public ZActor getHighlightedActor() {

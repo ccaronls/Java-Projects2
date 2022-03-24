@@ -35,14 +35,14 @@ public class ZQuestTheHellHole extends ZQuest {
     }
 
     @Override
-    public ZTile[] getTiles(ZBoard board) {
+    public ZTile[] getTiles() {
         return new ZTile[] {
-                new ZTile("7R", 180, ZTile.getQuadrant(0, 0, board)),
-                new ZTile("9R", 180, ZTile.getQuadrant(0, 3, board)),
-                new ZTile("8V", 90, ZTile.getQuadrant(0, 6, board)),
-                new ZTile("2R", 0, ZTile.getQuadrant(3, 0, board)),
-                new ZTile("1V", 270, ZTile.getQuadrant(3, 3, board)),
-                new ZTile("6V", 270, ZTile.getQuadrant(3, 6, board)),
+                new ZTile("7R", 180, ZTile.getQuadrant(0, 0)),
+                new ZTile("9R", 180, ZTile.getQuadrant(0, 3)),
+                new ZTile("8V", 90, ZTile.getQuadrant(0, 6)),
+                new ZTile("2R", 0, ZTile.getQuadrant(3, 0)),
+                new ZTile("1V", 270, ZTile.getQuadrant(3, 3)),
+                new ZTile("6V", 270, ZTile.getQuadrant(3, 6)),
         };
     }
 

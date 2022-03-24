@@ -26,7 +26,11 @@ public abstract class P2PActivity extends CCActivityBase
 
     private GameServer server = null;
     private GameClient client = null;
+    private P2PMode mode = P2PMode.DONT_KNOW;
 
+    public enum P2PMode {
+        CLIENT, SERVER, DONT_KNOW
+    }
 
     @Override
     protected void onStop() {
@@ -35,8 +39,13 @@ public abstract class P2PActivity extends CCActivityBase
     }
 
     public final void p2pInit() {
+        p2pInit(P2PMode.DONT_KNOW);
+    }
+
+    public final void p2pInit(P2PMode mode) {
         client = null;
         server = null;
+        this.mode = mode;
         if (!P2PHelper.isP2PAvailable(this)) {
             newDialogBuilder().setTitle(R.string.p2p_popup_title_unsupported)
                     .setMessage(R.string.p2p_popup_message_unsupported)
@@ -94,6 +103,14 @@ public abstract class P2PActivity extends CCActivityBase
      * connection process.
      */
     public void p2pStart() {
+        switch (mode) {
+            case CLIENT:
+                p2pInitAsClient();
+                return;
+            case SERVER:
+                p2pInitAsServer();
+                return;
+        }
         newDialogBuilder().setTitle(R.string.p2p_popup_title_choose_mode)
                 .setItems(getResources().getStringArray(R.array.p2p_popup_choose_mode_items), (dialog, which) -> {
                     switch (which) {
@@ -130,6 +147,12 @@ public abstract class P2PActivity extends CCActivityBase
         }
         server = null;
         client = new GameClient(getDeviceName(), getVersion(), getCypher());
+        client.addListener(new GameClient.Listener() {
+            @Override
+            public void onDisconnected(String reason, boolean serverInitiated) {
+                runOnUiThread(() -> p2pShutdown());
+            }
+        });
         new P2PJoinGameDialog(this, client, getDeviceName(), getConnectPort());
         onP2PClient(new P2PClient() {
             @Override
@@ -146,51 +169,39 @@ public abstract class P2PActivity extends CCActivityBase
             throw new IllegalArgumentException("P2P Mode already in progress. Call p2pShutdown first.");
         }
 
-
         client = null;
         server = new GameServer(getDeviceName(), getConnectPort(), getVersion(), getCypher(), getMaxConnections());
         P2PClientConnectionsDialog d = new P2PClientConnectionsDialog(this, server, getDeviceName());
-        onP2PServer(new P2PServer() {
-            @Override
-            public GameServer getServer() {
-                return server;
-            }
-
-            @Override
-            public void openConnections() {
-                d.show();
-            }
-        });
     }
 
     protected abstract void onP2PServer(P2PServer p2pServer);
 
+    /**
+     * Called from UI thread
+     */
     public final void p2pShutdown() {
-        if (server != null) {
-            new SpinnerTask<Void>(this) {
+        new SpinnerTask<Void>(this) {
 
-                @Override
-                protected String getProgressMessage() {
-                    return getString(R.string.p2p_progress_message_disconnecting);
-                }
+            @Override
+            protected String getProgressMessage() {
+                return getString(R.string.p2p_progress_message_disconnecting);
+            }
 
-                @Override
-                protected void doIt(Void... args) {
+            @Override
+            protected void doIt(Void... args) {
+                if (server != null)
                     server.stop();
-                }
+                if (client != null)
+                    client.disconnect();
+            }
 
-                @Override
-                protected void onCompleted() {
-                    server = null;
-                    onP2PShutdown();
-                }
-            }.execute();
-        }
-        if (client != null) {
-            client.disconnect();
-            client = null;
-            onP2PShutdown();
-        }
+            @Override
+            protected void onCompleted() {
+                server = null;
+                client = null;
+                onP2PShutdown();
+            }
+        }.execute();
     }
 
     public boolean isP2PConnected() {

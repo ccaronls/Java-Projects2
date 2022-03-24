@@ -11,15 +11,12 @@ import android.text.format.DateFormat;
 import android.text.format.Formatter;
 import android.util.Log;
 import android.view.Gravity;
-import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -49,16 +46,13 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.viewpager.widget.PagerAdapter;
-import androidx.viewpager.widget.ViewPager;
 import cc.game.zombicide.android.databinding.ActivityZombicideBinding;
 import cc.game.zombicide.android.databinding.AssignDialogItemBinding;
-import cc.game.zombicide.android.databinding.AssignDialogSpBinding;
-import cc.game.zombicide.android.databinding.AssignDialogSpListviewItemBinding;
 import cc.lib.android.CCActivityBase;
 import cc.lib.android.DroidGraphics;
 import cc.lib.android.DroidUtils;
 import cc.lib.android.EmailHelper;
+import cc.lib.android.SpinnerTask;
 import cc.lib.game.GRectangle;
 import cc.lib.game.Utils;
 import cc.lib.mp.android.P2PActivity;
@@ -106,6 +100,9 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
 
     ZClientMgr clientMgr = null;
     ZServerMgr serverMgr = null;
+
+    UIZBoardRenderer<DroidGraphics> boardRenderer;
+    UIZCharacterRenderer characterRenderer;
 
     final ArrayBlockingQueue<Integer> fileWriterQueue = new ArrayBlockingQueue(1);
     final Stats stats = new Stats();
@@ -206,8 +203,8 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
         zb.bDown.setOnClickListener(this);
         zb.bRight.setOnClickListener(this);
 
-        UIZCharacterRenderer cr = new UIZCharacterRenderer(zb.consoleView);
-        UIZBoardRenderer<DroidGraphics> br = new UIZBoardRenderer<DroidGraphics>(zb.boardView) {
+        characterRenderer = new UIZCharacterRenderer(zb.consoleView);
+        boardRenderer = new UIZBoardRenderer<DroidGraphics>(zb.boardView) {
 
             /*
                         Map<GColor, Paint> outlinePaints = new HashMap<>();
@@ -231,10 +228,12 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
                 zb.vgTop.setLayoutTransition(new LayoutTransition());
                 zb.listMenu.setVisibility(View.VISIBLE);
                 vm.loading.postValue(false);
+                /*
                 if (game.getQuest().getPercentComplete(game) == 0)
                     game.showObjectivesOverlay();
                 else
                     game.showSummaryOverlay();
+                 */
             }
 
             @Override
@@ -244,9 +243,10 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
                 vm.loading.postValue(true);
             }
         };
-        br.setDrawTiles(true);
+        boardRenderer.setDrawTiles(true);
+        boardRenderer.setMiniMapMode(getPrefs().getInt("miniMapMode", 1));
 
-        game = new UIZombicide(cr, br) {
+        game = new UIZombicide(characterRenderer, boardRenderer) {
 
             @Override
             public boolean runGame() {
@@ -313,6 +313,11 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
             public void undo() {
                 tryUndo();
             }
+
+            @Override
+            public ZUser getThisUser() {
+                return user;
+            }
         };
 
         int colorIdx = getPrefs().getInt("userColorIndex", 0);
@@ -352,6 +357,18 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
         });
         t.start();
         return t;
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        setKeepScreenOn(true);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        setKeepScreenOn(false);
     }
 
     @Override
@@ -407,10 +424,9 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
         CANCEL,
         LOAD,
         SAVE,
-        SINGLE_PLAYER_GAME,
-        MULTI_PLAYER_GAME,
+        NEW_GAME,
+        JOIN_GAME,
         SETUP_PLAYERS,
-        DISCONNECT,
         CONNECTIONS,
         START,
         ASSIGN,
@@ -425,7 +441,8 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
         SEARCHABLES,
         RULES,
         CHOOSE_COLOR,
-        EMAIL_REPORT;
+        EMAIL_REPORT,
+        MINIMAP_MODE;
 
         boolean isHomeButton(ZombicideActivity instance) {
             switch (this) {
@@ -438,15 +455,14 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
                 case CHOOSE_COLOR:
                     return BuildConfig.DEBUG;
                 case START:
-                case SINGLE_PLAYER_GAME:
-                case MULTI_PLAYER_GAME:
+                case NEW_GAME:
+                case JOIN_GAME:
                 case SETUP_PLAYERS:
                 case SKILLS:
                 case LEGEND:
                 case EMAIL_REPORT:
+                case MINIMAP_MODE:
                     return true;
-                case DISCONNECT:
-                    return instance.clientControl != null || instance.serverControl != null;
                 case CONNECTIONS:
                     return instance.serverControl != null;
                 case RESUME:
@@ -462,13 +478,11 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
                 case START:
                 case ASSIGN:
                 case RESUME:
-                case SINGLE_PLAYER_GAME:
-                case MULTI_PLAYER_GAME:
+                case NEW_GAME:
+                case JOIN_GAME:
                 case SETUP_PLAYERS:
                 case CLEAR:
                     return false;
-                case DISCONNECT:
-                    return instance.clientControl != null || instance.serverControl != null;
                 case CONNECTIONS:
                     return instance.serverControl != null;
                 case UNDO:
@@ -576,8 +590,8 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
         if (window != null) {
             WindowManager.LayoutParams lp = window.getAttributes();
             lp.gravity = Gravity.TOP | Gravity.LEFT;
-            lp.x = outPos[0] + view.getWidth();//outRect.right;//Math.round(getX() + getWidth());
-            lp.y = outPos[1];//outRect.top;//Math.round(getY());
+            lp.x = outPos[0] + view.getWidth();
+            lp.y = outPos[1];
             lp.width = DroidUtils.convertDipsToPixels(this, 200);
         }
         d.show();
@@ -590,6 +604,14 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
         fileWriterThread = startFileWriterThread();
         initGameMenu();
         game.refresh();
+    }
+
+    public void shutdownMP() {
+        p2pShutdown();
+        clientControl = null;
+        serverControl = null;
+        clientMgr = null;
+        serverMgr = null;
     }
 
     public void stopGame() {
@@ -642,8 +664,46 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
                 break;
             }
             case QUIT:
-                stopGame();
-                game.setResult(null);
+                if (getClient() != null) {
+                    newDialogBuilder().setTitle(R.string.popup_title_confirm)
+                            .setMessage(R.string.popup_message_confirm_disconnect)
+                            .setNegativeButton(R.string.popup_button_cancel, null)
+                            .setPositiveButton(R.string.popup_button_disconnect, (dialog, which) -> {
+                                new SpinnerTask<Integer>(ZombicideActivity.this) {
+                                    @Override
+                                    protected void doIt(Integer... args) throws Exception {
+                                        getClient().disconnect("Quit Game");
+                                    }
+
+                                    @Override
+                                    protected void onCompleted() {
+                                        shutdownMP();
+                                        stopGame();
+                                    }
+                                }.execute();
+                            }).show();
+                } else if (getServer() != null) {
+                    newDialogBuilder().setTitle(R.string.popup_title_confirm)
+                            .setMessage(R.string.popup_message_confirm_disconnect)
+                            .setNegativeButton(R.string.popup_button_cancel, null)
+                            .setPositiveButton(R.string.popup_button_disconnect, (dialog, which) -> {
+                                new SpinnerTask<Integer>(ZombicideActivity.this) {
+                                    @Override
+                                    protected void doIt(Integer... args) throws Exception {
+                                        getServer().stop();
+                                    }
+
+                                    @Override
+                                    protected void onCompleted() {
+                                        stopGame();
+                                        shutdownMP();
+                                    }
+                                }.execute();
+                            }).show();
+                } else {
+                    stopGame();
+                    game.setResult(null);
+                }
                 break;
             case CANCEL:
                 if (game.isGameRunning()) {
@@ -660,33 +720,19 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
                 game.showSummaryOverlay();
                 break;
             }
-            case SINGLE_PLAYER_GAME: {
-                // choose level (if multiple available)
-                //   choose difficulty
-                //      assign players
+            case NEW_GAME: {
                 showNewGameDialog();
                 break;
             }
-            case MULTI_PLAYER_GAME:
-                p2pInit();
+            case JOIN_GAME: {
+                p2pInit(P2PMode.CLIENT);
                 break;
+            }
             case SETUP_PLAYERS:
                 showSetupPlayersDialog();
                 break;
             case CONNECTIONS:
                 serverControl.openConnections();
-                break;
-            case DISCONNECT:
-                newDialogBuilder().setTitle(R.string.popup_title_confirm)
-                        .setMessage(R.string.popup_message_confirm_disconnect)
-                        .setNegativeButton(R.string.popup_button_cancel, null)
-                        .setPositiveButton(R.string.popup_button_yes, (dialog, which) -> {
-                            p2pShutdown();
-                            clientControl = null;
-                            serverControl = null;
-                            clientMgr = null;
-                            serverMgr = null;
-                        }).show();
                 break;
             case CLEAR: {
                 getPrefs().edit().remove("completedQuests").apply();
@@ -796,6 +842,10 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
                 showChooseColorDialog();
                 break;
             }
+            case MINIMAP_MODE: {
+                getPrefs().edit().putInt("miniMapMode", boardRenderer.toggleDrawMinimap());
+                break;
+            }
         }
     }
 
@@ -819,7 +869,7 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
             game.clearCharacters();
             for (ZUser user : game.getUsers()) {
                 List<ZPlayerName> newPlayers = new ArrayList<>();
-                for (ZPlayerName pl : user.getCharacters()) {
+                for (ZPlayerName pl : user.getPlayers()) {
                     game.addCharacter(pl);
                     newPlayers.add(pl);
                 }
@@ -1018,7 +1068,7 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
             assignments.add(a);
         }
 
-        new CharacterChooserDialog(this, assignments, 6) {
+        new CharacterChooserDialogMP(this, assignments, 6) {
             @Override
             protected void onAssigneeChecked(Assignee a, boolean checked) {
                 a.checked = checked;
@@ -1157,12 +1207,34 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
         new NewGameChooseQuestDialog(this, allQuests, playable);
     }
 
-    void showNewGameDailogChooseDifficulty(ZQuests quest) {
+    void showNewGameDialogChooseDifficulty(ZQuests quest) {
         newDialogBuilder().setTitle(getString(R.string.popup_title_quest, quest.ordinal(), quest.getDisplayName()))
                 .setItems(Utils.toStringArray(ZDifficulty.values()), (dialog, which) -> {
                     ZDifficulty difficulty = ZDifficulty.values()[which];
-                    showNewGameDialogChoosePlayers(quest, difficulty);
+                    getPrefs().edit().putString("difficulty", difficulty.name()).apply();
+                    game.setDifficulty(difficulty);
+                    showChooseGameModeDialog(quest);
                 }).setNegativeButton(R.string.popup_button_back, (dialog, which) -> showNewGameDialog()).show();
+    }
+
+    void showChooseGameModeDialog(ZQuests quest) {
+        String [] modes = {
+                "Single Player",
+                "Multi-player Host"
+        };
+        newDialogBuilder().setTitle("Choose Mode")
+                .setItems(modes, (dialog, which) -> {
+                    switch (which) {
+                        case 0: // single player
+                            showNewGameDialogChoosePlayers(quest);
+                            break;
+                        case 1: // multiplayer
+                            game.loadQuest(quest);
+                            p2pInit(P2PMode.SERVER);
+                            break;
+                    }
+                }).setNegativeButton(R.string.popup_button_back, (dialog, which) -> showNewGameDialogChooseDifficulty(quest))
+                .show();
     }
 
     static class CharLock {
@@ -1179,147 +1251,17 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
         }
     }
 
-    void showNewGameDialogChoosePlayers(ZQuests quest, ZDifficulty difficulty) {
-        final LayoutInflater inflater = LayoutInflater.from(this);
-        Set<String> selectedPlayers = new HashSet(getStoredCharacters());
-        AssignDialogSpBinding binding = AssignDialogSpBinding.inflate(inflater);
-        //View view = View.inflate(this, R.layout.viewpager_dialog, null);
-
-        binding.listView.setAdapter(new BaseAdapter() {
+    void showNewGameDialogChoosePlayers(ZQuests quest) {
+        new CharacterChooserDialogSP(this, quest) {
             @Override
-            public int getCount() {
-                return charLocks.length;
+            void onStarted() {
+                getPrefs().edit().putStringSet(PREF_PLAYERS, selectedPlayers).apply();
+                game.loadQuest(quest);
+                loadCharacters(getStoredCharacters());
+                game.trySaveToFile(gameFile);
+                startGame();
             }
-
-            @Override
-            public Object getItem(int position) {
-                return null;
-            }
-
-            @Override
-            public long getItemId(int position) {
-                return 0;
-            }
-
-            @Override
-            public View getView(int position, View view, ViewGroup parent) {
-                if (view == null) {
-                    view = AssignDialogSpListviewItemBinding.inflate(inflater).getRoot();
-                }
-
-                CharLock lock = charLocks[position];
-                CheckBox cb = view.findViewById(R.id.checkbox);
-                TextView tv = view.findViewById(R.id.textview);
-                tv.setText(lock.player.getLabel());
-                cb.setChecked(selectedPlayers.contains(lock.player.name()));
-                if (cb.isChecked() || lock.isUnlocked()) {
-                    cb.setClickable(true);
-                    cb.setEnabled(true);
-                    cb.setOnTouchListener((v,event) -> {
-                        if (event.getAction() != MotionEvent.ACTION_DOWN)
-                            return false;
-                        if (cb.isChecked()) {
-                            selectedPlayers.remove(lock.player.name());
-                            cb.setChecked(false);
-                        } else if (selectedPlayers.size() < MAX_PLAYERS) {
-                            selectedPlayers.add(lock.player.name());
-                            cb.setChecked(true);
-                        } else {
-                            Toast.makeText(ZombicideActivity.this, getString(R.string.toast_msg_maxplayers, MAX_PLAYERS), Toast.LENGTH_LONG).show();
-                        }
-                        return true;
-                    });
-                } else {
-                    cb.setClickable(false);
-                    cb.setEnabled(false);
-                }
-                view.setOnClickListener(v -> binding.viewPager.setCurrentItem(position, true));
-                return view;
-            }
-        });
-
-        binding.viewPager.setAdapter(new PagerAdapter() {
-            @Override
-            public int getCount() {
-                return charLocks.length;
-            }
-
-            @Override
-            public boolean isViewFromObject(@NonNull View view, @NonNull Object o) {
-                return view == o;
-            }
-
-            @NonNull
-            @Override
-            public Object instantiateItem(@NonNull ViewGroup container, int position) {
-                AssignDialogItemBinding item = AssignDialogItemBinding.inflate(inflater);
-                item.tvP2PName.setVisibility(View.GONE);
-                CharLock lock = charLocks[position];
-                item.checkbox.setVisibility(View.GONE);
-                if (!lock.isUnlocked() && !selectedPlayers.contains(lock.player.name())) {
-                    item.lockedOverlay.setVisibility(View.VISIBLE);
-                    item.tvLockedReason.setVisibility(View.VISIBLE);
-                    item.tvLockedReason.setText(lock.unlockMessageId);
-                } else {
-                    item.lockedOverlay.setVisibility(View.INVISIBLE);
-                    item.tvLockedReason.setVisibility(View.GONE);
-                }
-                item.image.setImageResource(lock.player.cardImageId);
-                container.addView(item.getRoot());
-                return item.getRoot();
-            }
-
-            @Override
-            public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
-                container.removeView((View) object);
-            }
-
-            @Override
-            public int getItemPosition(@NonNull Object object) {
-                return POSITION_NONE;
-            }
-        });
-        binding.viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
-            @Override
-            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-
-            }
-
-            @Override
-            public void onPageSelected(int position) {
-                binding.listView.setItemChecked(position, true);
-            }
-
-            @Override
-            public void onPageScrollStateChanged(int state) {
-
-            }
-        });
-        Dialog d = newDialogBuilder().setTitle(R.string.popup_title_choose_players).setView(binding.getRoot()).show();
-        binding.bCancel.setOnClickListener(v -> d.dismiss());
-        binding.bClear.setOnClickListener(v -> {
-            selectedPlayers.clear();
-            ((BaseAdapter)binding.listView.getAdapter()).notifyDataSetChanged();
-            binding.viewPager.getAdapter().notifyDataSetChanged();
-        });
-        binding.bStart.setOnClickListener(v -> {
-            Log.d(TAG, "Selected players: " + selectedPlayers);
-            if (selectedPlayers.size() < 1) {
-                Toast.makeText(ZombicideActivity.this, R.string.toast_msg_minplayers, Toast.LENGTH_LONG).show();
-                return;
-            }
-
-            getPrefs().edit().putStringSet(PREF_PLAYERS, selectedPlayers).apply();
-            game.loadQuest(quest);
-            loadCharacters(getStoredCharacters());
-            getPrefs().edit().putString("difficulty", difficulty.name()).apply();
-            game.trySaveToFile(gameFile);
-            game.showQuestTitleOverlay();
-            game.setDifficulty(difficulty);
-            startGame();
-            d.dismiss();
-        });
-
+        };
     }
 
     void showSkillsDialog2() {
@@ -1444,27 +1386,7 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
     }
 
     void initMenuItems(List<View> buttons) {
-        zb.listMenu.setAdapter(new BaseAdapter() {
-            @Override
-            public int getCount() {
-                return buttons.size();
-            }
-
-            @Override
-            public Object getItem(int position) {
-                return null;
-            }
-
-            @Override
-            public long getItemId(int position) {
-                return 0;
-            }
-
-            @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
-                return buttons.get(position);
-            }
-        });
+        vm.listAdapter.update(buttons);
     }
 
     Set<String> getDefaultPlayers() {

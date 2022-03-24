@@ -13,14 +13,12 @@ public class ZTile {
         this.quadrant = quadrant;
     }
 
-    public static GRectangle getQuadrant(int row, int col, ZBoard b) {
-        return new GRectangle(b.getCell(row, col).getTopLeft(),
-                b.getCell(row+2, col+2).getBottomRight());
+    public static GRectangle getQuadrant(int row, int col) {
+        return new GRectangle(col, row, 3, 3);
     }
 
-    public static GRectangle getQuadrant(int row, int col, int colsWidth, int rowsHeight, ZBoard b) {
-        return new GRectangle(b.getCell(row, col).getTopLeft(),
-                b.getCell(row+rowsHeight, col+colsWidth).getBottomRight());
+    public static GRectangle getQuadrant(int row, int col, int colsWidth, int rowsHeight) {
+        return new GRectangle(col, row, colsWidth, rowsHeight);
     }
 
 }

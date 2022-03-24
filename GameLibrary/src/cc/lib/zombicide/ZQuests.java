@@ -31,262 +31,262 @@ import static cc.lib.zombicide.ZQuestFlags.*;
 
 @Keep
 public enum ZQuests {
-    Tutorial(FLAG_BLACK_PLAGUE,"TUTORIAL:DANSE MACABRE", "War is nothing new for us. Our counts\n" +
-            "and dukes are always fighting amongst\n" +
-            "themselves. For the peasantry, it usually just\n" +
-            "involves a change in taxes and rents, assuming you\n" +
-            "survive. But this time, the duke and his army went\n" +
-            "off and were never seen again. Well, not until the\n" +
-            "hordes emerged. Pretty sure a lot of the tougher\n" +
-            "ones came from his troops. Now everything’s a\n" +
-            "brutal mess. Now we’re all equals, facing the danse\n" +
-            "macabre together. There’s no time for social\n" +
-            "snobbery when the hordes are at your door. We\n" +
+    Tutorial(FLAG_BLACK_PLAGUE,"TUTORIAL:DANSE MACABRE", "War is nothing new for us. Our counts " +
+            "and dukes are always fighting amongst " +
+            "themselves. For the peasantry, it usually just " +
+            "involves a change in taxes and rents, assuming you " +
+            "survive. But this time, the duke and his army went " +
+            "off and were never seen again. Well, not until the " +
+            "hordes emerged. Pretty sure a lot of the tougher " +
+            "ones came from his troops. Now everything’s a " +
+            "brutal mess. Now we’re all equals, facing the danse " +
+            "macabre together. There’s no time for social " +
+            "snobbery when the hordes are at your door. We " +
             "stand together, and throw death back in their teeth. "),
     The_Abomination(FLAG_DEBUG, "The Abomination", "Test Abomination!"),
     The_Necromancer(FLAG_DEBUG, "The Necromancer", "Test Necromancer!"),
-    Big_Game_Hunting(FLAG_BLACK_PLAGUE,"Big Game Hunting","We quickly discovered the starting point\n" +
-            "of the zombie invasion. Other survivors\n" +
-            "spotted a huge zombie wandering the streets, and some\n" +
-            "kind of sick wizard directing the horde to engulf us.\n" +
-            "It took us two days to pinpoint the Necromancer’s\n" +
-            "location, and understand the Abomination can’t be\n" +
-            "killed by any weapon at our disposal. Let’s raid the\n" +
-            "Necromancer’s laboratory and take them both out\n" +
-            "with a secret brew of our own: Dragon Fire.\n" +
+    Big_Game_Hunting(FLAG_BLACK_PLAGUE,"Big Game Hunting","We quickly discovered the starting point " +
+            "of the zombie invasion. Other survivors " +
+            "spotted a huge zombie wandering the streets, and some " +
+            "kind of sick wizard directing the horde to engulf us. " +
+            "It took us two days to pinpoint the Necromancer’s " +
+            "location, and understand the Abomination can’t be " +
+            "killed by any weapon at our disposal. Let’s raid the " +
+            "Necromancer’s laboratory and take them both out " +
+            "with a secret brew of our own: Dragon Fire. " +
             "Let the hunt begin!"),
-    The_Black_Book(FLAG_BLACK_PLAGUE,"The Black Book", "Now we know. It’s not just our village. The\n" +
-            "zombie plague has spread across the land.\n" +
-            "What’s going on? The Necromancer we killed held\n" +
-            "notes in his laboratory, most of them referring to a\n" +
-            "mysterious Black Book and other items of power.\n" +
-            "Exploring the surroundings could prove useful to\n" +
-            "get a better grasp about the threat we’re facing. Of\n" +
-            "course, there are zombies on the way, familiar faces\n" +
-            "turned to monsters...\n" +
+    The_Black_Book(FLAG_BLACK_PLAGUE,"The Black Book", "Now we know. It’s not just our village. The " +
+            "zombie plague has spread across the land. " +
+            "What’s going on? The Necromancer we killed held " +
+            "notes in his laboratory, most of them referring to a " +
+            "mysterious Black Book and other items of power. " +
+            "Exploring the surroundings could prove useful to " +
+            "get a better grasp about the threat we’re facing. Of " +
+            "course, there are zombies on the way, familiar faces " +
+            "turned to monsters... " +
             "Hey, that one owed me money!"),
-    The_Shepherds(FLAG_BLACK_PLAGUE,"The Shepherds", "Necromancers are everywhere. They’re\n" +
-            "spreading chaos and seizing power in the\n" +
-            "whole kingdom! Against a menace this big, there\n" +
-            "is almost nothing we could do. Almost. We know\n" +
-            "we’re good at survival as long as we stand together.\n" +
-            "Our plan is to reach out and find other survivors\n" +
-            "to create an army of our own. Four days we’ve spent,\n" +
-            "traveling to the next village, which\n" +
-            "is currently under attack, but not\n" +
-            "completely overrun. Let’s get in\n" +
+    The_Shepherds(FLAG_BLACK_PLAGUE,"The Shepherds", "Necromancers are everywhere. They’re " +
+            "spreading chaos and seizing power in the " +
+            "whole kingdom! Against a menace this big, there " +
+            "is almost nothing we could do. Almost. We know " +
+            "we’re good at survival as long as we stand together. " +
+            "Our plan is to reach out and find other survivors " +
+            "to create an army of our own. Four days we’ve spent, " +
+            "traveling to the next village, which " +
+            "is currently under attack, but not " +
+            "completely overrun. Let’s get in " +
             "the fray and help these people!"),
-    Famine(FLAG_BLACK_PLAGUE, "Famine", "Afew days have passed. These\n" +
-            "zombies are, for the most part,\n" +
-            "stupid as hell. But they never tire, or\n" +
-            "need food, or even sleep. Alas, we’re all\n" +
-            "too human. We need food and a secure\n" +
-            "shelter.\n" +
-            "There are many vaults beneath this\n" +
-            "town. Clever survivors could hole up\n" +
-            "and rest for a while. But, we still need\n" +
-            "to gather supplies to last a couple of days\n" +
-            "while we plan our next move. This war\n" +
-            "may last far longer than anyone - even\n" +
+    Famine(FLAG_BLACK_PLAGUE, "Famine", "Afew days have passed. These " +
+            "zombies are, for the most part, " +
+            "stupid as hell. But they never tire, or " +
+            "need food, or even sleep. Alas, we’re all " +
+            "too human. We need food and a secure " +
+            "shelter. " +
+            "There are many vaults beneath this " +
+            "town. Clever survivors could hole up " +
+            "and rest for a while. But, we still need " +
+            "to gather supplies to last a couple of days " +
+            "while we plan our next move. This war " +
+            "may last far longer than anyone - even " +
             "the Necromancers - expected."),
-    The_Commandry(FLAG_BLACK_PLAGUE, "The Commandry", "This capital has been taken. People died\n" +
-            "by the thousands, but some areas are\n" +
-            "still unharmed. The Necromancers seem content\n" +
-            "to battle the nobility in the castle, and leave the\n" +
-            "commoners corralled for when their zombie hordes\n" +
-            "need ready reinforcements.\n" +
-            "We need a way in, to establish communications with\n" +
-            "the people still alive. It’s also been suggested we\n" +
-            "learn more about the infection. The Black Book\n" +
-            "says little on it. If we can learn more,\n" +
-            "we can plan a bold move to end this.\n" +
-            "First we need a way past the city walls.\n" +
-            "Some survivors we rescued speak of a\n" +
-            "secret passage beneath the commandry\n" +
-            "nearby. However, it’s guarded. Clearly\n" +
-            "the Necromancers are aware of it. If\n" +
-            "we can dispatch the guardians, we can\n" +
+    The_Commandry(FLAG_BLACK_PLAGUE, "The Commandry", "This capital has been taken. People died " +
+            "by the thousands, but some areas are " +
+            "still unharmed. The Necromancers seem content " +
+            "to battle the nobility in the castle, and leave the " +
+            "commoners corralled for when their zombie hordes " +
+            "need ready reinforcements. " +
+            "We need a way in, to establish communications with " +
+            "the people still alive. It’s also been suggested we " +
+            "learn more about the infection. The Black Book " +
+            "says little on it. If we can learn more, " +
+            "we can plan a bold move to end this. " +
+            "First we need a way past the city walls. " +
+            "Some survivors we rescued speak of a " +
+            "secret passage beneath the commandry " +
+            "nearby. However, it’s guarded. Clearly " +
+            "the Necromancers are aware of it. If " +
+            "we can dispatch the guardians, we can " +
             "get inside, and get our plan in motion."),
-    In_Caligine_Abditus(FLAG_BLACK_PLAGUE, "In Caligine Abdicus", "We’re now in the city, but not as close to\n" +
-            "the Necromancers as we would like. The\n" +
-            "area is eerily quiet, and there’s desolation as far as\n" +
-            "we can see. That won’t last. As soon as they hear\n" +
-            "us, they’ll be rushing to kill us. We must proceed as\n" +
-            "stealthily as possible.\n" +
-            "Clovis and Baldric both noticed strange Latin\n" +
-            "writings on some walls. It seems someone here used\n" +
-            "a network of underground passages to get around\n" +
-            "town. And Clovis is right when he says\n" +
-            "that not everybody knows Latin... Only\n" +
-            "the highly educated know this language\n" +
-            "on sight, not to mention being able to\n" +
-            "write it. It’s probably a Necromancer!\n" +
+    In_Caligine_Abditus(FLAG_BLACK_PLAGUE, "In Caligine Abdicus", "We’re now in the city, but not as close to " +
+            "the Necromancers as we would like. The " +
+            "area is eerily quiet, and there’s desolation as far as " +
+            "we can see. That won’t last. As soon as they hear " +
+            "us, they’ll be rushing to kill us. We must proceed as " +
+            "stealthily as possible. " +
+            "Clovis and Baldric both noticed strange Latin " +
+            "writings on some walls. It seems someone here used " +
+            "a network of underground passages to get around " +
+            "town. And Clovis is right when he says " +
+            "that not everybody knows Latin... Only " +
+            "the highly educated know this language " +
+            "on sight, not to mention being able to " +
+            "write it. It’s probably a Necromancer! " +
             "Wait. Clovis knows how to read?"),
-    Dead_Trail(FLAG_BLACK_PLAGUE, "Dead Trail", "There is no way we can get any further\n" +
-            "unnoticed. That’s good, for my fingers are\n" +
-            "itching for some zombie bashing, and I was getting\n" +
-            "tired of walking on tiptoe.\n" +
-            "There are dark signs and symbols on the walls here.\n" +
-            "The necromancers are hanging around. We don’t\n" +
-            "know what kind of ritual they are performing, but\n" +
-            "we must try to make it fail. Let’s see what happens\n" +
-            "if we destroy these wicked scriptures...\n" +
-            "Fortunately, this is the foundry\n" +
-            "district. These Orc weaponsmiths seem\n" +
+    Dead_Trail(FLAG_BLACK_PLAGUE, "Dead Trail", "There is no way we can get any further " +
+            "unnoticed. That’s good, for my fingers are " +
+            "itching for some zombie bashing, and I was getting " +
+            "tired of walking on tiptoe. " +
+            "There are dark signs and symbols on the walls here. " +
+            "The necromancers are hanging around. We don’t " +
+            "know what kind of ritual they are performing, but " +
+            "we must try to make it fail. Let’s see what happens " +
+            "if we destroy these wicked scriptures... " +
+            "Fortunately, this is the foundry " +
+            "district. These Orc weaponsmiths seem " +
             "to know their job pretty well. New toys!"),
-    The_Evil_Temple(FLAG_BLACK_PLAGUE, "The Evil Temple", "This is the center of necromantic\n" +
-            "power.Cursed idols are everywhere, and\n" +
-            "a huge Abomination is locked up in the temple.\n" +
-            "Plus, it seems the Necromancers have figured out\n" +
-            "how we’re dealing with their biggest beasts. Dragon\n" +
-            "Bile is scarce, and our supplies gone. But, there\n" +
-            "are vaults here. All the old parts of town had them.\n" +
-            "Killing that beast could draw the Necromancers to\n" +
-            "us. There may be thousands of zombies, but there\n" +
+    The_Evil_Temple(FLAG_BLACK_PLAGUE, "The Evil Temple", "This is the center of necromantic " +
+            "power.Cursed idols are everywhere, and " +
+            "a huge Abomination is locked up in the temple. " +
+            "Plus, it seems the Necromancers have figured out " +
+            "how we’re dealing with their biggest beasts. Dragon " +
+            "Bile is scarce, and our supplies gone. But, there " +
+            "are vaults here. All the old parts of town had them. " +
+            "Killing that beast could draw the Necromancers to " +
+            "us. There may be thousands of zombies, but there " +
             "can’t be too many more Necromancers. … Right?"),
-    The_Hell_Hole(FLAG_BLACK_PLAGUE,"The Hell Hole", "I think we stumbled upon the place our Duke made\n" +
-            "his last stand before the town fell. All who sought\n" +
-            "his protection gathered in the temple, under the protection\n" +
-            "of the gods, the remaining soldiers and the Duke himself.\n" +
-            "It wasn’t enough, unfortunately. After a huge fight,\n" +
-            "the zombies killed everyone. And now, this is a hellhole\n" +
-            "vomiting zombies. We have no choice but to fight them\n" +
-            "and destroy this forsaken place once and for all.\n" +
+    The_Hell_Hole(FLAG_BLACK_PLAGUE,"The Hell Hole", "I think we stumbled upon the place our Duke made " +
+            "his last stand before the town fell. All who sought " +
+            "his protection gathered in the temple, under the protection " +
+            "of the gods, the remaining soldiers and the Duke himself. " +
+            "It wasn’t enough, unfortunately. After a huge fight, " +
+            "the zombies killed everyone. And now, this is a hellhole " +
+            "vomiting zombies. We have no choice but to fight them " +
+            "and destroy this forsaken place once and for all. " +
             "Hey, do I see the Duke? Nothing personal, Your Grace!"),
-    Trial_by_Fire(FLAG_BLACK_PLAGUE, "Trial by fire", "We’re in the heart of the city, the place where\n" +
-            "all zombies converged. It seems we’re not\n" +
-            "the first ones to get here. Heroes or mercenaries\n" +
-            "of some sort tried to clean the place before us, and\n" +
-            "failed. However, they locked the most impressive\n" +
-            "Abomination we’ve seen so far in a nearby magic\n" +
-            "school. The beast is trapped and is waiting for someone\n" +
-            "– or something – to break its bonds. Its roaring\n" +
-            "lures every zombie around like a beacon.\n" +
-            "And the Necromancers are still nowhere\n" +
+    Trial_by_Fire(FLAG_BLACK_PLAGUE, "Trial by fire", "We’re in the heart of the city, the place where " +
+            "all zombies converged. It seems we’re not " +
+            "the first ones to get here. Heroes or mercenaries " +
+            "of some sort tried to clean the place before us, and " +
+            "failed. However, they locked the most impressive " +
+            "Abomination we’ve seen so far in a nearby magic " +
+            "school. The beast is trapped and is waiting for someone " +
+            "– or something – to break its bonds. Its roaring " +
+            "lures every zombie around like a beacon. " +
+            "And the Necromancers are still nowhere " +
             "to be seen."),
     // Wulfsburg
-    Welcome_to_Wulfsberg(FLAG_WOLFBURG, "Welcome to Wulfsburg", "The prosperous city of Wulfsburg earned its\n" +
-            "name due to the many wolf packs roaming\n" +
-            "the surrounding forests and mountains. Nobles and\n" +
-            "merchants built tall towers here, the better to view\n" +
-            "the scenic valley (and display their wealth and status).\n" +
-            "With the plague’s coming, the wolf packs attacked\n" +
-            "wandering zombies, and fell victim to the infection\n" +
-            "themselves. Now hungry for living flesh, the wolfz’\n" +
-            "made the city their new hunting ground.\n" +
-            "Wulfsburg has become a Necromancer outpost,\n" +
-            "populated with hidden, terrified survivors. We’re on\n" +
-            "our way to liberate the city. Breaching the inner\n" +
-            "city will take time, however, and we’ll need supplies.\n" +
+    Welcome_to_Wulfsberg(FLAG_WOLFBURG, "Welcome to Wulfsburg", "The prosperous city of Wulfsburg earned its " +
+            "name due to the many wolf packs roaming " +
+            "the surrounding forests and mountains. Nobles and " +
+            "merchants built tall towers here, the better to view " +
+            "the scenic valley (and display their wealth and status). " +
+            "With the plague’s coming, the wolf packs attacked " +
+            "wandering zombies, and fell victim to the infection " +
+            "themselves. Now hungry for living flesh, the wolfz’ " +
+            "made the city their new hunting ground. " +
+            "Wulfsburg has become a Necromancer outpost, " +
+            "populated with hidden, terrified survivors. We’re on " +
+            "our way to liberate the city. Breaching the inner " +
+            "city will take time, however, and we’ll need supplies. " +
             "Fresh food is scarce, but still to be had."),
     Know_Your_Enemy(FLAG_WOLFBURG, "Know your Enemy",
-            "Wulfsburg sustained some unusual damage,\n" +
-            "as if a civil war had raged inside. In\n" +
-            "some place, people were not killed by zombies but by\n" +
-            "soldiers. We don’t know yet if survivor groups are\n" +
-            "prone to fighting one another here, or if someone\n" +
-            "tried to invade the infested city, killing any\n" +
-            "survivors they ran across in the process. Exploring\n" +
-            "the area could give us a clue.\n" +
-            "Come to think of it, Wulfsburg\n" +
-            "was known for its elven beer. That\n" +
+            "Wulfsburg sustained some unusual damage, " +
+            "as if a civil war had raged inside. In " +
+            "some place, people were not killed by zombies but by " +
+            "soldiers. We don’t know yet if survivor groups are " +
+            "prone to fighting one another here, or if someone " +
+            "tried to invade the infested city, killing any " +
+            "survivors they ran across in the process. Exploring " +
+            "the area could give us a clue. " +
+            "Come to think of it, Wulfsburg " +
+            "was known for its elven beer. That " +
             "would be a rare treat!"),
     The_Evil_Twins(FLAG_WOLFBURG, "The Evil Twins",
-    "We found a soldier’s journal among the\n" +
-            "bloodstained houses. It seems a foreign\n" +
-            "prince had come to Wulfsburg shortly after the\n" +
-            "invasion began with his private army. Even its\n" +
-            "fallen state, the city retains its wealth. Zombies\n" +
-            "aren’t interested in treasure, so he thought it’d be\n" +
-            "an easy conquest.\n" +
-            "The blood-spattered journal ends with an entry\n" +
-            "about a pair of abominations stalking the final few\n" +
-            "survivors from the prince’s retinue. The ‘Evil\n" +
-            "Twins’ they were called, and they seem to haunt\n" +
-            "the Usurer’s Ward, a block away.\n" +
-            "They’ve surely caught our scent now as well, and\n" +
-            "could attack at any time. So, we’ll attack first.\n" +
-            "The best defense is sometimes all-out offense,\n" +
+    "We found a soldier’s journal among the " +
+            "bloodstained houses. It seems a foreign " +
+            "prince had come to Wulfsburg shortly after the " +
+            "invasion began with his private army. Even its " +
+            "fallen state, the city retains its wealth. Zombies " +
+            "aren’t interested in treasure, so he thought it’d be " +
+            "an easy conquest. " +
+            "The blood-spattered journal ends with an entry " +
+            "about a pair of abominations stalking the final few " +
+            "survivors from the prince’s retinue. The ‘Evil " +
+            "Twins’ they were called, and they seem to haunt " +
+            "the Usurer’s Ward, a block away. " +
+            "They’ve surely caught our scent now as well, and " +
+            "could attack at any time. So, we’ll attack first. " +
+            "The best defense is sometimes all-out offense, " +
             "right?"),
     The_Ambush(FLAG_WOLFBURG, "The Ambush",
-            "We were returning to our haven as night\n" +
-            "began to fall, when the wizard spotted some\n" +
-            "esoteric writing on the walls. Before our eyes they\n" +
-            "flared to brilliance, and we heard shuffling footsteps!\n" +
-            "An ambush! Someone placed zombie lures all around,\n" +
-            "and the infected are hot on our trail! We must resist\n" +
-            "long enough to destroy the lures and secure our escape.\n" +
-            "The Necromancers know we’re here, and consider\n" +
-            "us a threat. I don’t know what to think about this\n" +
+            "We were returning to our haven as night " +
+            "began to fall, when the wizard spotted some " +
+            "esoteric writing on the walls. Before our eyes they " +
+            "flared to brilliance, and we heard shuffling footsteps! " +
+            "An ambush! Someone placed zombie lures all around, " +
+            "and the infected are hot on our trail! We must resist " +
+            "long enough to destroy the lures and secure our escape. " +
+            "The Necromancers know we’re here, and consider " +
+            "us a threat. I don’t know what to think about this " +
             "flattering change."),
     Immortal(FLAG_WOLFBURG, "Immortal",
-    "Night has fallen, and the\n" +
-            "zombies are still dogging our\n" +
-            "footsteps by the dozen. To make\n" +
-            "matters worse, we seem to have killed\n" +
-            "the same Necromancer at least four\n" +
-            "times. He keeps coming back, over\n" +
-            "and over. He’s rallying his hordes and\n" +
-            "summoning more. We’re experienced\n" +
-            "survivors, but we’re still just mortals.\n" +
-            "We either figure out how to kill him\n" +
-            "permanently, or die from exhaustion.\n" +
-            "The wizards say he likely has some\n" +
-            "kind of magical anchors binding him\n" +
-            "to this area. If we destroy them, we\n" +
-            "can probably kill him for good and take\n" +
-            "a rest. (And then I can enjoy some\n" +
-            "of that Elven brew I found before.\n" +
+    "Night has fallen, and the " +
+            "zombies are still dogging our " +
+            "footsteps by the dozen. To make " +
+            "matters worse, we seem to have killed " +
+            "the same Necromancer at least four " +
+            "times. He keeps coming back, over " +
+            "and over. He’s rallying his hordes and " +
+            "summoning more. We’re experienced " +
+            "survivors, but we’re still just mortals. " +
+            "We either figure out how to kill him " +
+            "permanently, or die from exhaustion. " +
+            "The wizards say he likely has some " +
+            "kind of magical anchors binding him " +
+            "to this area. If we destroy them, we " +
+            "can probably kill him for good and take " +
+            "a rest. (And then I can enjoy some " +
+            "of that Elven brew I found before. " +
             "Don’t tell anyone!)"),
     Zombie_Court(FLAG_WOLFBURG, "Zombie Court",
-    "We finally discovered the fate of that\n" +
-            "invading prince and his retinue. They\n" +
-            "were hunted, encircled, and butchered by a giant\n" +
-            "zombie wolfz pack. Fresh cadavers are everywhere.\n" +
-            "Wait.\n" +
-            "Make that: fresh zombies are everywhere. Well,\n" +
-            "let’s call this morning training, eh?\n" +
-            "While we’re here, let’s find the prince’s royal\n" +
-            "implements; a crown or scepter for example. It\n" +
-            "would be nice to return them to the king, and a good\n" +
+    "We finally discovered the fate of that " +
+            "invading prince and his retinue. They " +
+            "were hunted, encircled, and butchered by a giant " +
+            "zombie wolfz pack. Fresh cadavers are everywhere. " +
+            "Wait. " +
+            "Make that: fresh zombies are everywhere. Well, " +
+            "let’s call this morning training, eh? " +
+            "While we’re here, let’s find the prince’s royal " +
+            "implements; a crown or scepter for example. It " +
+            "would be nice to return them to the king, and a good " +
             "reminder that the land belongs to free people now!"),
     Blood_Red(FLAG_WOLFBURG, "Blood Red",
-    "We’ve discovered a district just packed with\n" +
-            "zombies. The Necromancers use the wolfz\n" +
-            "to round them up and herd them here. We don’t know\n" +
-            "why, but packing such large numbers of infected into\n" +
-            "such close quarters is a target too tempting to ignore!\n" +
+    "We’ve discovered a district just packed with " +
+            "zombies. The Necromancers use the wolfz " +
+            "to round them up and herd them here. We don’t know " +
+            "why, but packing such large numbers of infected into " +
+            "such close quarters is a target too tempting to ignore! " +
             "Let’s show them why it’s called zombicide!"),
     The_Ghost_Door(FLAG_WOLFBURG, "The Ghost Door",
-    "Being reliably sturdy and easy to defend,\n" +
-            "towers are havens of choice for any\n" +
-            "survivor group, and for Necromancers as well. The\n" +
-            "wealthy Wulfsburg is home to many towers built\n" +
-            "by merchants and nobles as headquarters for their\n" +
-            "guilds and testimonies to their wealth.\n" +
-            "One of these towers bears the mark of the ‘immortal’\n" +
-            "Necromancer that we killed yesterday. Taking\n" +
-            "a peek at his stuff could give us a clue about the\n" +
-            "Necromancers’ master plan (if there even is such a\n" +
-            "thing). He had plenty of guards, but we’re betting\n" +
+    "Being reliably sturdy and easy to defend, " +
+            "towers are havens of choice for any " +
+            "survivor group, and for Necromancers as well. The " +
+            "wealthy Wulfsburg is home to many towers built " +
+            "by merchants and nobles as headquarters for their " +
+            "guilds and testimonies to their wealth. " +
+            "One of these towers bears the mark of the ‘immortal’ " +
+            "Necromancer that we killed yesterday. Taking " +
+            "a peek at his stuff could give us a clue about the " +
+            "Necromancers’ master plan (if there even is such a " +
+            "thing). He had plenty of guards, but we’re betting " +
             "on some nice artifacts too!"),
     The_Zombie_Army(FLAG_WOLFBURG, "The Zombie Army",
-    "We found another Necromancer’s lair!\n" +
-            "The good news is: it’s filled with\n" +
-            "treasure! The bad news is: the Necromancers have\n" +
-            "spotted us. Even now, their hordes encircle us. But\n" +
-            "by now, we’re all experienced survivors. We’ve faced\n" +
+    "We found another Necromancer’s lair! " +
+            "The good news is: it’s filled with " +
+            "treasure! The bad news is: the Necromancers have " +
+            "spotted us. Even now, their hordes encircle us. But " +
+            "by now, we’re all experienced survivors. We’ve faced " +
             "worse than just this petty army, right? Zombicide!"),
     A_Coin_For_The_Ferryman(FLAG_WOLFBURG, "A Coin for the Ferryman",
-    "Turns out the Necromancers are human\n" +
-            "after all. They’ve been using the towers\n" +
-            "to boost their egos and pile up plundered treasure,\n" +
-            "just like their former owners did. But, the\n" +
-            "Necromancers have also opened magical gates\n" +
-            "leading to some hidden place! The next step in their\n" +
-            "invasion, perhaps? Who knows? Finding these\n" +
-            "towers and sealing the gates will trap them here\n" +
-            "in Wulfsburg with us. Then we finish it, once and\n" +
+    "Turns out the Necromancers are human " +
+            "after all. They’ve been using the towers " +
+            "to boost their egos and pile up plundered treasure, " +
+            "just like their former owners did. But, the " +
+            "Necromancers have also opened magical gates " +
+            "leading to some hidden place! The next step in their " +
+            "invasion, perhaps? Who knows? Finding these " +
+            "towers and sealing the gates will trap them here " +
+            "in Wulfsburg with us. Then we finish it, once and " +
             "for all!"),
     ;
 
@@ -300,7 +300,7 @@ public enum ZQuests {
     final String displayName;
     final String description;
 
-    ZQuest load() {
+    public ZQuest load() {
         switch (this) {
             case Tutorial:
                 return new ZQuestTutorial();

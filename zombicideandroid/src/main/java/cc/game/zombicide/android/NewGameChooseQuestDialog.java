@@ -2,6 +2,10 @@ package cc.game.zombicide.android;
 
 import android.app.Dialog;
 import android.content.DialogInterface;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Rect;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -14,8 +18,10 @@ import java.util.Set;
 import androidx.annotation.NonNull;
 import androidx.viewpager.widget.PagerAdapter;
 import androidx.viewpager.widget.ViewPager;
+import cc.lib.game.GRectangle;
 import cc.lib.game.Utils;
 import cc.lib.zombicide.ZQuests;
+import cc.lib.zombicide.ZTile;
 
 /**
  * Created by Chris Caron on 8/22/21.
@@ -45,13 +51,13 @@ class NewGameChooseQuestDialog extends PagerAdapter {
         ViewPager pager = view.findViewById(R.id.view_pager);
         pager.setAdapter(this);
         pager.setCurrentItem(firstPage);
-        dialog = activity.newDialogBuilder().setTitle("Choose Quest")
-                .setView(view).setPositiveButton("Start", new DialogInterface.OnClickListener() {
+        dialog = activity.newDialogBuilder().setTitle(R.string.popup_title_choose_quest)
+                .setView(view).setPositiveButton(R.string.popup_button_next, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         ZQuests q = allQuests.get(pager.getCurrentItem());
                         if (playable.contains(q)) {
-                            activity.showNewGameDailogChooseDifficulty(q);
+                            activity.showNewGameDialogChooseDifficulty(q);
                         } else {
                             Toast.makeText(activity, "Quest Locked", Toast.LENGTH_LONG).show();
                         }
@@ -81,12 +87,58 @@ class NewGameChooseQuestDialog extends PagerAdapter {
     public Object instantiateItem(@NonNull ViewGroup container, int position) {
         ZQuests q = allQuests.get(position);
         View content = View.inflate(activity, R.layout.choose_quest_dialog_item, null);
+        ZTile[] tiles = q.load().getTiles();
+        Bitmap bm = null;
+        if (tiles != null && tiles.length > 0) {
+            GRectangle rect = new GRectangle();
+            float imageDim = 64;
+            for (ZTile tile : tiles) {
+                rect.addEq(tile.quadrant);
+            }
+            rect.scaleDimension(imageDim);
+            bm = Bitmap.createBitmap(Math.round(rect.getWidth()), Math.round(rect.getHeight()), Bitmap.Config.ARGB_8888);
+
+            Canvas c = new Canvas(bm);
+            c.scale(imageDim, imageDim);
+
+            for (ZTile tile : tiles) {
+                try {
+                    Bitmap t = BitmapFactory.decodeStream(container.getContext().getAssets().open("ztile_" + tile.id + ".png"));
+                    c.save();
+                    c.translate(tile.quadrant.x + 1.5f, tile.quadrant.y + 1.5f);
+                    c.rotate(tile.orientation);
+                    c.translate(-1.5f, -1.5f);
+                    Rect src = new Rect(0, 0, t.getWidth(), t.getHeight());
+                    Rect dst = new Rect(0, 0, 3, 3);
+                    c.drawBitmap(t, src, dst, null);
+                    t.recycle();
+                    c.restore();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        TextView tv_body;
+        ImageView iv_board;
+
+        if (bm == null || (bm.getWidth() > bm.getHeight())) {
+            // use horz
+            tv_body = content.findViewById(R.id.tv_body_horz);
+            iv_board = content.findViewById(R.id.iv_board_horz);
+        } else {
+            // use vert
+            tv_body = content.findViewById(R.id.tv_body_vert);
+            iv_board = content.findViewById(R.id.iv_board_vert);
+        }
+
         TextView title = content.findViewById(R.id.tv_title);
-        TextView body = content.findViewById(R.id.tv_body);
         ImageView lockedOverlay = content.findViewById(R.id.lockedOverlay);
 
         title.setText(q.getDisplayName());
-        body.setText(q.getDescription());
+        tv_body.setText(q.getDescription());
+        if (bm != null)
+            iv_board.setImageBitmap(bm);
 
         if (playable.contains(q)) {
             lockedOverlay.setVisibility(View.INVISIBLE);
@@ -94,7 +146,7 @@ class NewGameChooseQuestDialog extends PagerAdapter {
                 @Override
                 public void onClick(View v) {
                     dialog.dismiss();
-                    activity.showNewGameDailogChooseDifficulty(q);
+                    activity.showChooseGameModeDialog(q);
                 }
             });
         } else {

@@ -26,12 +26,27 @@ public final class Lock {
     }
 
     public void block() {
-        try {
-            synchronized (monitor) {
-                monitor.wait();
+        if (holders > 0) {
+            try {
+                synchronized (monitor) {
+                    monitor.wait();
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        }
+        holders = 0;
+    }
+
+    public void block(long waitTimeMillis) {
+        if (holders > 0) {
+            try {
+                synchronized (monitor) {
+                    monitor.wait(waitTimeMillis);
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
         holders = 0;
     }
@@ -71,4 +86,7 @@ public final class Lock {
         return holders;
     }
 
+    public final void reset() {
+        holders = 0;
+    }
 }

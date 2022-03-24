@@ -26,7 +26,7 @@ class ZClientMgr extends ZMPCommon implements GameClient.Listener, ZMPCommon.CL 
 
     final ZUser user;
     final GameClient client;
-    CharacterChooserDialog playerChooser = null;
+    CharacterChooserDialogMP playerChooser = null;
 
     ZClientMgr(ZombicideActivity activity, UIZombicide game, GameClient client, ZUser user) {
         super(activity, game);
@@ -76,7 +76,7 @@ class ZClientMgr extends ZMPCommon implements GameClient.Listener, ZMPCommon.CL 
         }
         activity.runOnUiThread(new Runnable() {
             public void run() {
-                playerChooser = new CharacterChooserDialog(activity, assignees, maxCharacters) {
+                playerChooser = new CharacterChooserDialogMP(activity, assignees, maxCharacters) {
                     @Override
                     protected void onAssigneeChecked(Assignee assignee, boolean checked) {
                         Log.d(TAG, "onAssigneeChecked: " + assignee);
@@ -95,6 +95,7 @@ class ZClientMgr extends ZMPCommon implements GameClient.Listener, ZMPCommon.CL 
                         game.setClient(client);
                         client.sendCommand(newStartPressed());
                         activity.initGameMenu();
+                        activity.game.showQuestTitleOverlay();
                     }
                 };
                 game.boardRenderer.redraw();

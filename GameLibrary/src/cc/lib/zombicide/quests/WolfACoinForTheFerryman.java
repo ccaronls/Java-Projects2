@@ -81,19 +81,19 @@ public class WolfACoinForTheFerryman extends ZQuest {
     }
 
     @Override
-    public ZTile[] getTiles(ZBoard board) {
+    public ZTile[] getTiles() {
         return new ZTile[]{
-                new ZTile("7V", 270, ZTile.getQuadrant(0, 0, board)),
-                new ZTile("6R", 0, ZTile.getQuadrant(0, 3, board)),
-                new ZTile("1R", 0, ZTile.getQuadrant(0, 6, board)),
+                new ZTile("7V", 270, ZTile.getQuadrant(0, 0)),
+                new ZTile("6R", 0, ZTile.getQuadrant(0, 3)),
+                new ZTile("1R", 0, ZTile.getQuadrant(0, 6)),
 
-                new ZTile("5R", 90, ZTile.getQuadrant(3, 0, board)),
-                new ZTile("10R", 270, ZTile.getQuadrant(3, 3, board)),
-                new ZTile("2R", 90, ZTile.getQuadrant(3, 6, board)),
+                new ZTile("5R", 90, ZTile.getQuadrant(3, 0)),
+                new ZTile("10R", 270, ZTile.getQuadrant(3, 3)),
+                new ZTile("2R", 90, ZTile.getQuadrant(3, 6)),
 
-                new ZTile("8R", 90, ZTile.getQuadrant(6, 0, board)),
-                new ZTile("4R", 270, ZTile.getQuadrant(6, 3, board)),
-                new ZTile("3V", 180, ZTile.getQuadrant(6, 6, board))
+                new ZTile("8R", 90, ZTile.getQuadrant(6, 0)),
+                new ZTile("4R", 270, ZTile.getQuadrant(6, 3)),
+                new ZTile("3V", 180, ZTile.getQuadrant(6, 6))
 
         };
     }

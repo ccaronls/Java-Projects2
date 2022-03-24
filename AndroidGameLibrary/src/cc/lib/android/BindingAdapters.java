@@ -2,6 +2,8 @@ package cc.lib.android;
 
 import android.view.View;
 import android.widget.CompoundButton;
+import android.widget.ListAdapter;
+import android.widget.ListView;
 
 import androidx.databinding.BindingAdapter;
 
@@ -23,6 +25,11 @@ public final class BindingAdapters {
     @BindingAdapter("goneIfNot")
     public static void setGoneIfNot(View view, boolean predicate) {
         view.setVisibility(!predicate ? View.GONE : View.VISIBLE);
+    }
+
+    @BindingAdapter("adapter")
+    public static void setAdapter(ListView view, ListAdapter adapter) {
+        view.setAdapter(adapter);
     }
 
 }

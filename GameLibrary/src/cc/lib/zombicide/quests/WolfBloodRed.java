@@ -78,15 +78,15 @@ public class WolfBloodRed extends ZQuest {
     }
 
     @Override
-    public ZTile[] getTiles(ZBoard board) {
+    public ZTile[] getTiles() {
         return new ZTile[] {
-                new ZTile("2R", 270, ZTile.getQuadrant(0, 0, board)),
-                new ZTile("9V", 90, ZTile.getQuadrant(0, 3, board)),
-                new ZTile("3V", 0, ZTile.getQuadrant(0, 6, board)),
+                new ZTile("2R", 270, ZTile.getQuadrant(0, 0)),
+                new ZTile("9V", 90, ZTile.getQuadrant(0, 3)),
+                new ZTile("3V", 0, ZTile.getQuadrant(0, 6)),
 
-                new ZTile("10V", 270, ZTile.getQuadrant(3, 0, board)),
-                new ZTile("6X", 0, ZTile.getQuadrant(3, 3, 2, 3, board)),
-                new ZTile("11R", 270, ZTile.getQuadrant(3, 6, board))
+                new ZTile("10V", 270, ZTile.getQuadrant(3, 0)),
+                new ZTile("6X", 0, ZTile.getQuadrant(3, 3, 2, 3)),
+                new ZTile("11R", 270, ZTile.getQuadrant(3, 6))
         };
 
     }

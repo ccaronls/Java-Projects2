@@ -286,6 +286,13 @@ public class ZGameMP extends ZGame {
     }
 
     @Override
+    protected void onBeginRound(int roundNum) {
+        if (server != null) {
+            server.broadcastExecuteOnRemote(GAME_ID, roundNum);
+        }
+    }
+
+    @Override
     protected void onActorMoved(ZActor actor, GRectangle start, GRectangle end, long speed) {
         if (server != null) {
             server.broadcastExecuteOnRemote(GAME_ID, actor, start, end, speed);

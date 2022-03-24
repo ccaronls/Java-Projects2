@@ -49,7 +49,7 @@ public abstract class ZUser {
         this.name = name;
     }
 
-    public List<ZPlayerName> getCharacters() {
+    public List<ZPlayerName> getPlayers() {
         return new ArrayList<>(characters);
     }
 

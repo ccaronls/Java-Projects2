@@ -65,6 +65,14 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
         this.name = name;
     }
 
+    public boolean equals(Object other) {
+        if (this == other)
+            return true;
+        if (!(other instanceof ZCharacter))
+            return false;
+        return ((ZCharacter)other).name == name;
+    }
+
     public ZCharacter() {
         this(null);
     }

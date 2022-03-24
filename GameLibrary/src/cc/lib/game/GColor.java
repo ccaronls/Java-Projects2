@@ -34,6 +34,8 @@ public final class GColor extends Reflector<GColor> {
     public final static GColor DARK_OLIVE   = new GColor(0xff808000);
     public final static GColor LIGHT_OLIVE  = new GColor(0xffcdcd00);
     public final static GColor GOLD         = new GColor(0xFFFFD700);
+    public final static GColor SLIME_GREEN  = new GColor(0xffa1e203);
+    public final static GColor SKY_BLUE     = new GColor(0xff87ceeb);
 
     private int argb = 0;
 

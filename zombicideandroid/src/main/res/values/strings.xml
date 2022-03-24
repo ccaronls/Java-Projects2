@@ -77,6 +77,7 @@ are fulfilled.
     <string name="popup_title_load_saved">Load Saved</string>
     <string name="popup_title_choose_color">Choose Color</string>
     <string name="popup_title_choose_version">Choose Version</string>
+    <string name="popup_title_choose_quest">Choose Quest</string>
     <string name="popup_title_wolflocked">Wolfburg Locked</string>
     <string name="popup_title_quest">Quest %1$d : %2$s</string>
     <string name="popup_title_choose_players">Choose Players</string>

@@ -17,30 +17,74 @@
         app:layout_constraintTop_toTopOf="parent"
         />
 
-    <TextView
-        android:id="@+id/tv_body"
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Quest Description"
-        android:textSize="18dp"
-        android:layout_marginTop="10dp"
-        app:layout_constraintTop_toBottomOf="@id/tv_title"
-        />
-
-    <ImageView
-        android:id="@+id/lockedOverlay"
-        android:layout_width="0dp"
         android:layout_height="0dp"
-        android:background="#8000"
-        android:scaleType="center"
-        android:scaleX="2"
-        android:scaleY="2"
-        android:visibility="invisible"
-        tools:visibility="visible"
-        android:tint="#fff"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:src="@drawable/zpadlock"/>
+        app:layout_constraintTop_toBottomOf="@id/tv_title"
+        app:layout_constraintBottom_toBottomOf="parent">
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <!-- Use 'vert' when board is taller than it is wide -->
+            <TextView
+                android:id="@+id/tv_body_vert"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:textSize="18dp"
+                android:layout_marginTop="10dp"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintWidth_percent=".4"
+                />
+
+            <ImageView
+                android:id="@+id/iv_board_vert"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:scaleType="fitStart"
+                app:layout_constraintTop_toTopOf="@id/tv_body_vert"
+                app:layout_constraintStart_toEndOf="@id/tv_body_vert"
+                app:layout_constraintEnd_toEndOf="parent"/>
+
+
+            <!-- Use horz when board is wider than it is tall -->
+            <ImageView
+                android:id="@+id/iv_board_horz"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/tv_body_horz"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="18dp"
+                app:layout_constraintTop_toBottomOf="@id/iv_board_horz"
+                />
+
+            <ImageView
+                android:id="@+id/lockedOverlay"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:background="#8000"
+                android:scaleType="center"
+                android:scaleX="2"
+                android:scaleY="2"
+                android:visibility="invisible"
+                tools:visibility="visible"
+                android:tint="#fff"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:src="@drawable/zpadlock"/>
+
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+    </ScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>

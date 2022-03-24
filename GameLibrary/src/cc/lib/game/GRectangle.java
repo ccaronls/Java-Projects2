@@ -175,6 +175,12 @@ public class GRectangle extends Reflector<GRectangle> implements IRectangle {
         return scale(s,s);
     }
 
+    public GRectangle scaleDimension(float s) {
+        w *= s;
+        h *= s;
+        return this;
+    }
+
     /**
      *
      * @param s

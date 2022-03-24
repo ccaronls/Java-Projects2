@@ -93,10 +93,10 @@ public class ZQuestTutorial extends ZQuest {
     }
 
     @Override
-    public ZTile [] getTiles(ZBoard board) {
+    public ZTile [] getTiles() {
         return new ZTile[] {
-                new ZTile("9R", 90, ZTile.getQuadrant(0, 0, board)),
-                new ZTile("4V", 90, ZTile.getQuadrant(0, 3, board))
+                new ZTile("9R", 90, ZTile.getQuadrant(0, 0)),
+                new ZTile("4V", 90, ZTile.getQuadrant(0, 3))
         };
     }
 

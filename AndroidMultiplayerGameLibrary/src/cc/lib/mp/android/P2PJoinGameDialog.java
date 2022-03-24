@@ -17,7 +17,6 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 
-import cc.lib.android.CCActivityBase;
 import cc.lib.android.SpinnerTask;
 import cc.lib.net.GameClient;
 import cc.lib.net.GameCommand;
@@ -28,7 +27,7 @@ public class P2PJoinGameDialog extends BaseAdapter
         Runnable,
         GameClient.Listener {
 
-    final CCActivityBase context;
+    final P2PActivity context;
     final ListView lvHost;
     final List<WifiP2pDevice> p2pDevices = new ArrayList<>();
     final Dialog dialog;
@@ -36,7 +35,7 @@ public class P2PJoinGameDialog extends BaseAdapter
     final int connectPort;
     final GameClient client;
 
-    public P2PJoinGameDialog(CCActivityBase activity, GameClient client, String clientName, int port) {
+    public P2PJoinGameDialog(P2PActivity activity, GameClient client, String clientName, int port) {
         this.context = activity;
         this.connectPort = port;
         this.client = client;
@@ -127,8 +126,7 @@ public class P2PJoinGameDialog extends BaseAdapter
     @Override
     public void onClick(DialogInterface dialog, int which) {
         // cancel out of the dialog
-        helper.stop();
-        client.disconnect("Client Left");
+        context.p2pShutdown();
     }
 
     @Override

@@ -106,6 +106,7 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
 
     void loadImages(AWTGraphics g) {
 
+        g.addSearchPath("../zombicideandroid/src/main/res/drawable");
         Object [][] files = {
 
             { ZZombieType.Abomination, "zabomination.png" },
@@ -311,6 +312,7 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
         renderer.setDrawRangedAccessibility(ZombicideApplet.instance.getStringProperty("rangedAccessibility", "no").equals("yes"));
         renderer.setDrawTowersHighlighted(ZombicideApplet.instance.getStringProperty("drawTowersHighlighted", "no").equals("yes"));
         renderer.setDrawZombiePaths(ZombicideApplet.instance.getStringProperty("drawZombiePaths", "no").equals("yes"));
+        renderer.setMiniMapMode(ZombicideApplet.instance.getIntProperty("miniMapMode", 0));
         repaint();
     }
 
@@ -320,6 +322,7 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
     @Override
     public void loadTiles(AWTGraphics g, ZTile[] tiles) {
         numTilesLoaded = 0;
+        g.addSearchPath("../zombicideandroid/assets");
         new Thread() {
             public void run() {
                 for (int t : loadedTiles) {
@@ -429,6 +432,11 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
             case KeyEvent.VK_H:
                 ZombicideApplet.instance.setStringProperty("drawTowersHighlighted", renderer.toggleDrawTowersHighlighted() ? "yes" : "no");
                 break;
+
+            case KeyEvent.VK_M:
+                ZombicideApplet.instance.setIntProperty("miniMapMode", renderer.toggleDrawMinimap());
+                break;
+
         }
         keyMap.clear();
         repaint();

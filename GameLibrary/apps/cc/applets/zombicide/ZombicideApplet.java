@@ -90,6 +90,16 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
             public <T extends Enum<T>> void setEnumListProperty(String s, Collection<T> l) {
                 frame.setEnumListProperty(s, l);
             }
+
+            @Override
+            public void setIntProperty(String s, int value) {
+                frame.setProperty(s, String.valueOf(value));
+            }
+
+            @Override
+            public int getIntProperty(String s, int defaultValue) {
+                return frame.getIntProperty(s, defaultValue);
+            }
         };
         File settings = FileUtils.getOrCreateSettingsDirectory(ZombicideApplet.class);
         frame.setPropertiesFile(new File(settings, "application.properties"));
@@ -160,6 +170,11 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
             public void setResult(Object result) {
                 super.setResult(result);
                 boardComp.requestFocus();
+            }
+
+            @Override
+            public ZUser getThisUser() {
+                return user;
             }
         };
         try {

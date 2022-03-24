@@ -19,9 +19,9 @@ import cc.lib.zombicide.ZUser;
 /**
  * Created by Chris Caron on 7/21/21.
  */
-public abstract class CharacterChooserDialog extends RecyclerView.Adapter<CharacterChooserDialog.Holder> implements View.OnClickListener, View.OnLongClickListener, Runnable {
+public abstract class CharacterChooserDialogMP extends RecyclerView.Adapter<CharacterChooserDialogMP.Holder> implements View.OnClickListener, View.OnLongClickListener, Runnable {
 
-    final static String TAG = CharacterChooserDialog.class.getSimpleName();
+    final static String TAG = CharacterChooserDialogMP.class.getSimpleName();
 
     final List<Assignee> selectedPlayers;
     final ZombicideActivity activity;
@@ -29,7 +29,7 @@ public abstract class CharacterChooserDialog extends RecyclerView.Adapter<Charac
     int numSelected = 0;
     final Dialog dialog;
 
-    CharacterChooserDialog(ZombicideActivity activity, List<Assignee> selectedPlayers, int maxPlayers) {
+    CharacterChooserDialogMP(ZombicideActivity activity, List<Assignee> selectedPlayers, int maxPlayers) {
         this.activity = activity;
         this.selectedPlayers = selectedPlayers;
         this.maxPlayers = maxPlayers;
@@ -39,7 +39,7 @@ public abstract class CharacterChooserDialog extends RecyclerView.Adapter<Charac
         ab.recyclerView.setAdapter(this);
 
         updateSelected();
-        dialog = activity.newDialogBuilder().setTitle("ASSIGN")
+        dialog = activity.newDialogBuilder().setTitle(R.string.popup_title_assign)
                 .setView(ab.getRoot()).show();
     }
 
@@ -153,7 +153,7 @@ public abstract class CharacterChooserDialog extends RecyclerView.Adapter<Charac
         Assignee assignee;
         final AssignDialogItemBinding ib;
 
-        void bind(Assignee a, CharacterChooserDialog cl) {
+        void bind(Assignee a, CharacterChooserDialogMP cl) {
             this.assignee = a;
 
             ib.tvP2PName.setText(a.userName);

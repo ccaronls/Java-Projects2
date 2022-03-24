@@ -9,6 +9,7 @@ import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.image.RGBImageFilter;
+import java.io.File;
 import java.util.Arrays;
 
 import cc.lib.game.AImage;
@@ -20,6 +21,7 @@ import cc.lib.game.Justify;
 import cc.lib.game.Utils;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
+import cc.lib.utils.GException;
 
 public class AWTGraphics extends APGraphics {
 
@@ -339,6 +341,15 @@ public class AWTGraphics extends APGraphics {
     }
 
     public final void addSearchPath(String path) {
+        try {
+            File fullPath = new File(path).getCanonicalFile();
+            if (!fullPath.isDirectory())
+                throw new GException("Not a path " + path + " on root path: '" + new File(".").getCanonicalPath() + "'");
+        } catch (GException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new GException(e);
+        }
         images.addSearchPath(path);
     }
 

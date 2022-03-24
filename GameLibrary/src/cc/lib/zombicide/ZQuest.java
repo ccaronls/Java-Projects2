@@ -38,7 +38,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
      *
      * @return
      */
-    public abstract ZTile [] getTiles(ZBoard board);
+    public abstract ZTile [] getTiles();
 
     /**
      * Called once during INIT stage of game

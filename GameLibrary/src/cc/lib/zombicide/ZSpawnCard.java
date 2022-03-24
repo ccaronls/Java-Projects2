@@ -66,9 +66,9 @@ public class ZSpawnCard extends Reflector<ZSpawnCard> {
         this(null, false, 0, 0, 0);
     }
 
-    private ZSpawnCard(String name, boolean wolfzburf, int easyCount, int mediumCount, int hardCount, Action...actions) {
+    private ZSpawnCard(String name, boolean wolfzburg, int easyCount, int mediumCount, int hardCount, Action...actions) {
         this.name = name;
-        this.wolfburg = wolfzburf;
+        this.wolfburg = wolfzburg;
         this.easyCount = easyCount;
         this.mediumCount = mediumCount;
         this.hardCount = hardCount;
@@ -187,7 +187,7 @@ public class ZSpawnCard extends Reflector<ZSpawnCard> {
     public String toString() {
         return "ZSpawnCard{" +
                 "name='" + name + '\'' +
-                ", wolfzburf=" + wolfburg +
+                ", wolfzburg=" + wolfburg +
                 ", easyCount=" + easyCount +
                 ", mediumCount=" + mediumCount +
                 ", hardCount=" + hardCount +

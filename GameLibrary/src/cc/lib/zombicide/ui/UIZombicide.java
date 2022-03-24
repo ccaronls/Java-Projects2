@@ -34,6 +34,7 @@ import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZQuest;
 import cc.lib.zombicide.ZSkill;
 import cc.lib.zombicide.ZSpawnArea;
+import cc.lib.zombicide.ZUser;
 import cc.lib.zombicide.ZWeapon;
 import cc.lib.zombicide.ZZombie;
 import cc.lib.zombicide.ZZombieCategory;
@@ -99,6 +100,8 @@ public abstract class UIZombicide extends ZGameMP {
         this.characterRenderer = characterRenderer;
         this.boardRenderer = boardRenderer;
     }
+
+    public abstract ZUser getThisUser();
 
     public void refresh() {
         boardRenderer.redraw();
@@ -175,6 +178,7 @@ public abstract class UIZombicide extends ZGameMP {
         synchronized (monitor) {
             monitor.notify();
         }
+        refresh();
     }
 
     @Override
@@ -274,7 +278,6 @@ public abstract class UIZombicide extends ZGameMP {
     @Override
     protected void initQuest(ZQuest quest) {
         boardRenderer.clearTiles();
-        showQuestTitleOverlay();
     }
 
 
@@ -441,21 +444,26 @@ public abstract class UIZombicide extends ZGameMP {
     @Override
     protected void onEquipmentFound(ZPlayerName c, List<ZEquipment> equipment) {
         super.onEquipmentFound(c, equipment);
-        //boardRenderer.addPostActor(new HoverMessage(boardRenderer, "+" + equipment.getLabel(), c.getCharacter()));
-        Table info = new Table().setModel(new Table.Model() {
-            @Override
-            public float getCornerRadius() {
-                return 20;
-            }
+        if (getThisUser().getPlayers().contains(c)) {
+            Table info = new Table().setModel(new Table.Model() {
+                @Override
+                public float getCornerRadius() {
+                    return 20;
+                }
 
-            @Override
-            public GColor getBackgroundColor() {
-                return GColor.TRANSLUSCENT_BLACK;
+                @Override
+                public GColor getBackgroundColor() {
+                    return GColor.TRANSLUSCENT_BLACK;
+                }
+            });
+            info.addRowList(Utils.map(equipment, e -> e.getCardInfo(c.getCharacter(), this)));
+            boardRenderer.setOverlay(info);
+        } else {
+            for (ZEquipment e : equipment) {
+                boardRenderer.addPostActor(new HoverMessage(boardRenderer, "+" + e.getLabel(), c.getCharacter()));
+                Utils.waitNoThrow(this, 500);
             }
-        });
-        info.addRowList(Utils.map(equipment, e -> e.getCardInfo(c.getCharacter(), this)));
-        boardRenderer.setOverlay(info);
-        //Utils.waitNoThrow(this, 500);
+        }
     }
 
     @Override
@@ -548,6 +556,13 @@ public abstract class UIZombicide extends ZGameMP {
     protected void onWeaponGoesClick(ZPlayerName c, ZWeapon weapon) {
         super.onWeaponGoesClick(c, weapon);
         boardRenderer.addPostActor(new HoverMessage(boardRenderer, "CLICK", c.getCharacter()));
+    }
+
+    @Override
+    protected void onBeginRound(int roundNum) {
+        super.onBeginRound(roundNum);
+        if (roundNum == 0)
+            showQuestTitleOverlay();
     }
 
     @Override

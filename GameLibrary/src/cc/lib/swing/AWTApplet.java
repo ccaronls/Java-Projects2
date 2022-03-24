@@ -34,5 +34,8 @@ public abstract class AWTApplet extends JApplet {
 
     public <T extends Enum<T>> void setEnumListProperty(String s, Collection<T> l) {}
 
+    public void setIntProperty(String s, int value) {}
+
+    public int getIntProperty(String s, int defaultValue) { return defaultValue; }
 
 }

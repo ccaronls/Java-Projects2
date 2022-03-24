@@ -45,7 +45,7 @@ public class ZQuestTheAbomination extends ZQuest {
     }
 
     @Override
-    public ZTile[] getTiles(ZBoard board) {
+    public ZTile[] getTiles() {
         return new ZTile[0];
     }
 

@@ -113,6 +113,7 @@ public class ZGame extends Reflector<ZGame>  {
     private void initGame() {
         initSearchables();
         roundNum = 0;
+        currentUser = 0;
         gameOverStatus = 0;
         spawnMultiplier = 1;
         dice = initDice(difficulty);
@@ -318,7 +319,7 @@ public class ZGame extends Reflector<ZGame>  {
             board.removeCharacters();
             int curCellIndex = 0;
             for (ZUser u : users) {
-                for (ZPlayerName pl : u.getCharacters()) {
+                for (ZPlayerName pl : u.getPlayers()) {
                     ZCharacter c = pl.create();
                     c.setColor(u.getColor());
                     ZCell cell = startCells.get(curCellIndex);
@@ -597,6 +598,7 @@ public class ZGame extends Reflector<ZGame>  {
             }
 
             case BEGIN_ROUND: {
+                onBeginRound(roundNum);
                 if (roundNum > 0)
                     setState(ZState.SPAWN, null);
                 else
@@ -1181,14 +1183,14 @@ public class ZGame extends Reflector<ZGame>  {
             case SWITCH_ACTIVE_CHARACTER: {
                 if (canSwitchActivePlayer()) {
                     int idx = 0;
-                    for (ZPlayerName nm : user.getCharacters()) {
+                    for (ZPlayerName nm : user.getPlayers()) {
                         if (nm == cur.getType()) {
                             break;
                         }
                         idx++;
                     }
-                    for (int i=(idx+1) % user.getCharacters().size(); i!=idx; i=(i+1)%user.getCharacters().size()) {
-                        ZCharacter c = user.getCharacters().get(i).character;
+                    for (int i = (idx+1) % user.getPlayers().size(); i!=idx; i=(i+1)%user.getPlayers().size()) {
+                        ZCharacter c = user.getPlayers().get(i).character;
                         if (c.isAlive() && c.getActionsLeftThisTurn() > 0) {
                             popState();
                             pushState(ZState.PLAYER_STAGE_CHOOSE_CHARACTER_ACTION, c.getPlayerName());
@@ -2103,7 +2105,7 @@ public class ZGame extends Reflector<ZGame>  {
     public ZSkillLevel getHighestSkillLevel() {
         ZSkillLevel best = new ZSkillLevel(ZColor.BLUE);
         for (ZUser u : users) {
-            for (ZPlayerName c : u.getCharacters()) {
+            for (ZPlayerName c : u.getPlayers()) {
                 ZSkillLevel lvl = c.character.getSkillLevel();
                 if (best.compareTo(lvl) < 0) {
                     best = lvl;
@@ -2221,7 +2223,7 @@ public class ZGame extends Reflector<ZGame>  {
 
     public List<ZPlayerName> getCurrentUserCharacters() {
         List<ZPlayerName> list = new ArrayList<>();
-        for (ZPlayerName nm : getCurrentUser().getCharacters()) {
+        for (ZPlayerName nm : getCurrentUser().getPlayers()) {
             if (nm.character.isAlive())
                 list.add(nm);
         }
@@ -2346,6 +2348,8 @@ public class ZGame extends Reflector<ZGame>  {
             actor.performAction(ZActionType.MOVE, this);
         }
     }
+
+    protected void onBeginRound(int roundNum) {}
 
     protected void onActorMoved(ZActor actor, GRectangle start, GRectangle end, long speed) {
     }
