@@ -22,6 +22,7 @@ import cc.lib.crypt.HuffmanEncoding;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
+import cc.lib.utils.Lock;
 import cc.lib.utils.WeakHashSet;
 
 /**
@@ -100,6 +101,7 @@ public class GameServer {
     private final String mServerName;
     private String password = null;
     private HuffmanEncoding counter = null;
+    private final Lock disconnectingLock = new Lock();
 
     public String toString() {
         String r = "GameServer:" + mServerName + " v:" + mVersion;
@@ -112,6 +114,7 @@ public class GameServer {
         synchronized (clients) {
             clients.remove(cl);
         }
+        disconnectingLock.release();
     }
 
     public final String getName() {
@@ -206,11 +209,16 @@ public class GameServer {
     public final void stop() {
         log.info("GameServer: Stopping server: " + this);
         if (socketListener != null) {
+            disconnectingLock.reset();
             synchronized (clients) {
                 for (ClientConnection c : clients.values()) {
-                    c.disconnect("Server Stopping");
+                    if (c.isConnected()) {
+                        c.disconnect("Server Stopping");
+                        disconnectingLock.acquire();
+                    }
                 }
             }
+            disconnectingLock.block(10000);
             clients.clear();
             socketListener.stop();
             socketListener = null;
@@ -536,8 +544,9 @@ public class GameServer {
             } catch (ProtocolException e) {
                 try {
                     log.error(e);
-                    new GameCommand(GameCommandType.DISCONNECT).setMessage(e.getMessage()).write(out);
-                } catch (Exception ex) {}
+                    new GameCommand(GameCommandType.CONNECT_REJECTED).setMessage(e.getMessage()).write(out);
+                } catch (Exception ex) {
+                }
                 close(socket, in, out);
             } catch (Exception e) {
                 log.error(e);

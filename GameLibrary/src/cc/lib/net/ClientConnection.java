@@ -162,21 +162,18 @@ public class ClientConnection implements Runnable {
             if (isConnected()) {
                 log.info("ClientConnection: Disconnecting client '" + getName() + "'");
                 connected = false;
+                disconnecting = true;
                 synchronized (outQueue) {
                     outQueue.clear();
-                    outQueue.add(new GameCommand(GameCommandType.DISCONNECT).setMessage(reason));
+                    outQueue.add(GameCommandType.SVR_DISCONNECT.make().setMessage(reason));
                 }
-                //synchronized (this) {
-                //    wait(500); // do we need this?
-                //}
                 outQueue.stop(); // <-- blocks until network flushed
-                disconnecting = true;
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-    
+
     private void close() {
         log.debug("ClientConnection: close() ...");
         connected = false;
@@ -184,12 +181,14 @@ public class ClientConnection implements Runnable {
         outQueue.stop();
         reader.stop();
         log.debug("ClientConnection: outQueue stopped ...");
+        // close output stream first to make sure it is flushed
+        // https://stackoverflow.com/questions/19307011/does-close-a-socket-will-also-close-flush-the-input-output-stream
+        try {
+            out.close();
+        } catch (Exception ex) {}
         try {
             in.close();
         } catch (Exception ex) {}
-        try {
-            out.close();
-        } catch (Exception ex) {}                
         try {
             socket.close();
         } catch (Exception ex) {}   
@@ -303,12 +302,16 @@ public class ClientConnection implements Runnable {
      * Sent a command to the remote client
      * @param cmd
      */
-    public synchronized final void sendCommand(GameCommand cmd) {
+    public final void sendCommand(GameCommand cmd) {
         log.debug("Sending command to client " + getName() + "\n    " + cmd);
         if (!isConnected())
             throw new GException("Client " + getName() + " is not connected");
         //log.debug("ClientConnection: " + getName() + "-> sendCommand: " + cmd);
-        outQueue.add(cmd);
+        synchronized (outQueue) {
+            if (!disconnecting) {
+                outQueue.add(cmd);
+            }
+        }
     }
     
     /**
@@ -316,7 +319,7 @@ public class ClientConnection implements Runnable {
      * @param message
      */
     public final void sendMessage(String message) {
-        sendCommand(new GameCommand(GameCommandType.MESSAGE).setMessage(message));
+        sendCommand(GameCommandType.MESSAGE.make().setMessage(message));
     }
 
     /**
@@ -336,8 +339,8 @@ public class ClientConnection implements Runnable {
             try {
                 reader.queue(GameCommand.parse(in));
             } catch (Exception e) {
-                e.printStackTrace();
                 if (isConnected()) {
+                    e.printStackTrace();
                     log.error("ClientConnection: Connection with client '" + name + "' dropped: " + e.getClass().getSimpleName() + " " + e.getMessage());
                 }
                 if (listeners.size() > 0) {
@@ -368,18 +371,24 @@ public class ClientConnection implements Runnable {
         cmd.getType().notifyListeners(cmd);
         if (!connected)
             return false;
-        if (cmd.getType() == GameCommandType.DISCONNECT) {
-            log.info("Client disconnected");
+        if (cmd.getType() == GameCommandType.CL_DISCONNECT) {
+            String reason = cmd.getString("reason");
+            log.info("Client disconnected: " + reason);
+            sendCommand(GameCommandType.SVR_DISCONNECTED.make());
             connected = false;
-            for (GameServer.Listener l : server.getListeners()) {
-                l.onClientDisconnected(this);
-            }
+            //for (GameServer.Listener l : server.getListeners()) {
+            //    l.onClientDisconnected(this);
+            //}
             if (listeners.size() > 0) {
-                Listener [] arr = listeners.toArray(new Listener[listeners.size()]);
+                Listener[] arr = listeners.toArray(new Listener[listeners.size()]);
                 for (Listener l : arr) {
-                    l.onDisconnected(this, cmd.getString("reason"));
+                    l.onDisconnected(this, reason);
                 }
             }
+            server.removeClient(this);
+            close();
+        } else if (cmd.getType() == GameCommandType.CL_DISCONNECTED) {
+            connected = false;
             server.removeClient(this);
             close();
         } else if (cmd.getType() == GameCommandType.CL_KEEPALIVE) {
@@ -468,6 +477,7 @@ public class ClientConnection implements Runnable {
     }
 
     /**
+     * Send command to client and block until response or client disconnects
      *
      * @param targetId
      * @param method
@@ -501,11 +511,14 @@ public class ClientConnection implements Runnable {
                 GameCommandType.CL_REMOTE_RETURNS.addListener(listener);
                 sendCommand(cmd);
                 log.debug("Waiting for response");
-                synchronized (lock) {
-                    lock.wait();
+                try {
+                    synchronized (lock) {
+                        lock.wait();
+                    }
+                } finally {
+                    GameCommandType.CL_REMOTE_RETURNS.removeListener(listener);
                 }
                 log.debug("Response: %s", listener.response);
-                GameCommandType.CL_REMOTE_RETURNS.removeListener(listener);
                 removeListener(listener);
                 if (listener.cancelled)
                     onCancelled(id);

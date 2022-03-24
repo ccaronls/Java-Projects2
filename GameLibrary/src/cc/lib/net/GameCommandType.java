@@ -97,6 +97,10 @@ public final class GameCommandType implements Comparable<GameCommandType> {
     static final GameCommandType CL_REMOTE_RETURNS = new GameCommandType("CL_REMOTE_RETURNS");
     // additional info is name and version
     static final GameCommandType CL_CONNECT = new GameCommandType("CL_CONNECT");
+    // client initialized disconnect
+    static final GameCommandType CL_DISCONNECT = new GameCommandType("CL_DISCONNECT");
+    // client response to disconnect from server
+    static final GameCommandType CL_DISCONNECTED = new GameCommandType("CL_DISCONNECTED");
     // no additional info
     static final GameCommandType CL_KEEPALIVE = new GameCommandType("CL_KEEPALIVE");
     // report an error that occured on the client
@@ -111,12 +115,17 @@ public final class GameCommandType implements Comparable<GameCommandType> {
     // confirmation command from the server that a client has connected
     static final GameCommandType SVR_CONNECTED = new GameCommandType("SVR_CONNECTED");
     static final GameCommandType SVR_EXECUTE_REMOTE = new GameCommandType("SVR_EXEC_REMOTE");
+    // server initialized disconnect
+    static final GameCommandType SVR_DISCONNECT = new GameCommandType("SVR_DISCONNECT");
+    // server response to disconnect from client
+    static final GameCommandType SVR_DISCONNECTED = new GameCommandType("SVR_DISCONNECTED");
 
     // --------------------------------------
     // shared command types
     // --------------------------------------
     static final GameCommandType MESSAGE = new GameCommandType("MESSAGE");
-    static final GameCommandType DISCONNECT = new GameCommandType("DISCONNECT");
+    static final GameCommandType CONNECT_REJECTED = new GameCommandType("CONNECT_REJECTED");
+    // confirmation from server when client asks to be disconnected
     static final GameCommandType PASSWORD = new GameCommandType("PASSWORD");
 
 
@@ -179,6 +188,10 @@ public final class GameCommandType implements Comparable<GameCommandType> {
     public final String toString() {
         return mName;
     }
+
+    public final GameCommand make() {
+        return new GameCommand(this);
+    };
 
 }
 
