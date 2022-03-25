@@ -196,7 +196,7 @@ public final class ComplexNumber extends Reflector<ComplexNumber> {
     	ComplexNumber result = new ComplexNumber();
         result.set(1,0);
         for (int i=0; i<power; i++) {
-            multiply(result);
+            result.multiplyEq(this);
         }
         return result;
     }

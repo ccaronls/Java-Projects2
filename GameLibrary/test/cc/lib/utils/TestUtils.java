@@ -120,7 +120,16 @@ public class TestUtils extends TestCase {
 
     public void testTable() {
 
+        String [] txt = Utils.wrapText("ThisIsThePartThatIsGettingTestedToMakeSureThereIsAHyphen The quick brown fox jumped over the lazy brown dog and then tried to eat a sandwich before going over to his friends house for some tea", 20);
 
+        // Try a table with 7 entries
+        Table t = new Table();
+        t.addRow(new Table().addRow(new Table().addColumnNoHeader(txt), new Table().addColumnNoHeader(txt), new Table().addColumnNoHeader(txt)));
+        t.addRow(new Table().addRow(new Table().addColumnNoHeader(txt), new Table().addColumnNoHeader(txt)));
+
+        //t.addRow(new Table().addColumnNoHeader(txt), new Table().addColumnNoHeader(txt));
+
+        System.out.println(t.toString(10));
 
     }
 

@@ -342,7 +342,7 @@ public abstract class AWTBoardBuilder<V extends BVertex, E extends BEdge, C exte
     }
 
     private void setTool(String name) {
-        tool = Utils.requireNotNull(Utils.findFirst(tools, name, t -> t.name));
+        tool = Utils.requireNotNull(Utils.findFirstOrNull(tools, t -> name.equals(t.name)));
         frame.setProperty("tool", name);
     }
 

@@ -2662,23 +2662,17 @@ public class Utils {
      * @return
      */
     public static String [] wrapText(String txt, int maxChars) {
-        if (txt == null)
+        assertTrue(txt != null && maxChars > 1);
+        if (txt == null || maxChars < 1)
             return null;
         List<String> lines = new ArrayList<>();
         String [] parts = txt.split("[\n]");
         for (String str : parts) {
             while (str.length() > maxChars) {
-                /*
-                int endl = str.indexOf('\n');
-                if (endl >= 0 && endl <= maxChars) {
-                    lines.add(str.substring(0, endl));
-                    str = str.substring(endl + 1);
-                    continue;
-                }*/
                 int spc = str.indexOf(' ');
-                if (spc < 0 || spc > maxChars) {
-                    lines.add(str.substring(0, maxChars));
-                    str = str.substring(maxChars);
+                if (spc < 0 || spc > maxChars-1) {
+                    lines.add(str.substring(0, maxChars-1)+"-");
+                    str = str.substring(maxChars-1);
                 } else {
                     while (true) {
                         int nxt = str.indexOf(' ', spc + 1);
@@ -3240,19 +3234,16 @@ public class Utils {
     }
 
     /**
-     * Find the first element in a set such that its mapped value 'equals' some value
+     *
      * @param c
-     * @param b
-     * @param mapper
-     * @param <A>
-     * @param <B>
+     * @param filter
+     * @param <T>
      * @return
      */
-    public static <A,B> A findFirst(Collection<A> c, B b, Mapper<A,B> mapper) {
-        for (A a : c) {
-            B ab = mapper.map(a);
-            if (ab.equals(b))
-                return a;
+    public static <T> T findFirstOrNull(Collection<T> c, Filter<T> filter) {
+        for (T t : c) {
+            if (filter.keep(t))
+                return t;
         }
         return null;
     }

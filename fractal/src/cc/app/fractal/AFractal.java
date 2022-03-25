@@ -83,7 +83,6 @@ public abstract class AFractal {
         
         /**
          * Generates Julia styles fractals
-         * @param juliaConstantExpression
          * @param expression
          * @throws Exception
          */

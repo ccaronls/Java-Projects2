@@ -13,6 +13,12 @@ sourceSets {
             srcDirs = [compileJavacc.outputDirectory, 'src']
         }
     }
+
+    test {
+        java {
+            srcDirs = ['test']
+        }
+    }
 }
 
 compileJavacc{

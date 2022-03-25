@@ -1,10 +1,13 @@
 package cc.app.fractal;
 
+import junit.framework.TestCase;
+
+import org.junit.Assert;
+
 import java.util.HashMap;
 
 import cc.app.fractal.evaluator.Evaluator;
 import cc.lib.math.ComplexNumber;
-import junit.framework.TestCase;
 
 public class TestEvaluator extends TestCase {
 
@@ -21,7 +24,7 @@ public class TestEvaluator extends TestCase {
 
     public void testAddition() throws Exception {
         ComplexNumber t0 = a.add(b);
-        String expr = a.toString() + " + " + b.toString();
+        String expr = a + " + " + b;
         System.out.println("expr = " + expr);
         e.parse(expr);
         ComplexNumber x = e.evaluate();
@@ -31,7 +34,7 @@ public class TestEvaluator extends TestCase {
 
     public void testSubtraction() throws Exception {
     	ComplexNumber t0 = a.sub(b);
-        String expr = a.toString() + " - " + b.toString();
+        String expr = a + " - " + b;
         System.out.println("expr = " + expr);
         e.parse(expr);
         ComplexNumber x = e.evaluate();
@@ -41,7 +44,7 @@ public class TestEvaluator extends TestCase {
 
     public void testMultiplication() throws Exception {
     	ComplexNumber t0 = a.multiply(b);
-        String expr = a.toString() + " * " + b.toString();
+        String expr = a + " * " + b;
         System.out.println("expr = " + expr);
         e.parse(expr);
         ComplexNumber x = e.evaluate();
@@ -51,7 +54,7 @@ public class TestEvaluator extends TestCase {
     
     public void testDivision() throws Exception {
     	ComplexNumber t0 = a.divide(b);
-        String expr = a.toString() + " / " + b.toString();
+        String expr = a + " / " + b;
         System.out.println("expr = " + expr);
         e.parse(expr);
         ComplexNumber x = e.evaluate();
@@ -61,7 +64,7 @@ public class TestEvaluator extends TestCase {
 
     public void testPow() throws Exception {
     	ComplexNumber t0 = a.powi(2);
-        String expr = a.toString() + " ^2 ";// + b.toString();
+        String expr = a + " ^2 ";// + b;
         System.out.println("expr = " + expr);
         e.parse(expr);
         ComplexNumber x = e.evaluate();
@@ -71,16 +74,24 @@ public class TestEvaluator extends TestCase {
     
     public void testPow2() throws Exception {
     	ComplexNumber t0 = a.powi(3);
-        String expr = a.toString() + " ^3 ";// + b.toString();
+        String expr = a + " ^3 ";// + b;
         System.out.println("expr = " + expr);
         e.parse(expr);
         ComplexNumber x = e.evaluate();
         System.out.println("result: " + x + "/" + t0);
         assertEquals(x, t0);
     }
+
+    public void testPowi() throws Exception {
+        ComplexNumber t = new ComplexNumber(2314231.7563546,235243.234543);
+        ComplexNumber t0 = t.multiply(t);
+        ComplexNumber t1 = t.powi(2);
+        assertEquals(t0, t1);
+    }
+
 /*
     public void testChain1() throws Exception {
-        String expr = a.toString() + " ^2 + " + b.toString();
+        String expr = a + " ^2 + " + b;
         ComplexNumber t0 = a.powi(2);
         t1.add(b, t0);
         System.out.println("expr = " + expr);
@@ -92,7 +103,7 @@ public class TestEvaluator extends TestCase {
 
     public void testChain2() throws Exception {
         Evaluator e = new Evaluator();
-        String expr = a.toString() + " ^2 + " + b.toString() + " ^2";
+        String expr = a + " ^2 + " + b + " ^2";
         a.powi(2, t1);
         b.powi(2, t2);
         t1.add(t2, t0);
@@ -104,7 +115,7 @@ public class TestEvaluator extends TestCase {
     }
 
     public void testChain3() throws Exception {
-        String expr = a.toString() + " ^2 + " + b.toString() + " ^3";
+        String expr = a + " ^2 + " + b + " ^3";
         a.powi(2, t1);
         b.powi(3, t2);
         t1.add(t2, t0);
@@ -141,4 +152,26 @@ public class TestEvaluator extends TestCase {
         }
     }
     */
+
+    public void testFractal() throws Exception {
+        AFractal mandelbrot = new AFractal.Mandelbrot();
+        AFractal custom = new AFractal.Custom("Z^2 + Z0");
+
+        double x = -1;
+        double y = -1;
+
+        double d = 0.01;
+
+        while (y < 1) {
+            x = -1;
+            while (x < 1) {
+                int a = mandelbrot.processPixel(x, y, 256);
+                int b = custom.processPixel(x, y, 256);
+                Assert.assertEquals("Pixel at " + x + "," + y + " invalid", a, b);
+                x += d;
+            }
+            y += d;
+        }
+
+    }
 }

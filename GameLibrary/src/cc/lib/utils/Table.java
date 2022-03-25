@@ -62,6 +62,8 @@ public final class Table implements IMeasurable {
         }
 
         default int getMaxCharsPerLine() { return 64; }
+
+        default int getBorderWidth() { return 2; }
     }
 
     private final List<String> header;
@@ -70,7 +72,7 @@ public final class Table implements IMeasurable {
     private int totalWidth=0;
     private int totalHeight=0;
     private int padding = 1;
-    private int borderWidth = 2;
+    private int borderWidth = 2; // TODO:  Make this apart of the model
     private float[] maxWidth;
     private float[] maxHeight;
     private int headerHeightLines = 0;
