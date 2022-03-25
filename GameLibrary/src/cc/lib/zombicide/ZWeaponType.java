@@ -157,4 +157,5 @@ public enum ZWeaponType implements ZEquipmentType<ZWeapon> {
     public ZEquipmentClass getEquipmentClass() {
         return weaponClass;
     }
+
 }

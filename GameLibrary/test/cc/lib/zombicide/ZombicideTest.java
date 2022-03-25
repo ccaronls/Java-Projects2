@@ -2,6 +2,8 @@ package cc.lib.zombicide;
 
 import junit.framework.TestCase;
 
+import org.junit.Assert;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -19,11 +21,31 @@ public class ZombicideTest extends TestCase {
         Utils.setDebugEnabled();
     }
 
+    public void testRunGame() {
+        ZGame game = new ZGame();
+        game.addUser(new ZTestUser());
+        for (ZQuests q : ZQuests.values()) {
+            System.out.println("Testing Quest: " + q);
+            game.clearCharacters();
+            game.loadQuest(q);
+            for (ZPlayerName pl : ZPlayerName.values()) {
+                game.addCharacter(pl);
+            }
+
+            for (int i=0; i<1000; i++) {
+                game.runGame();
+                if (game.isGameOver())
+                    break;
+            }
+        }
+    }
+
     public void testQuests() throws Exception {
         UIZombicide game = new HeadlessUIZombicide();
         APGraphics g = new TestGraphics();
         for (ZQuests q : ZQuests.values()) {
             System.out.println("Testing Quest: " + q);
+            game.clearCharacters();
             game.loadQuest(q);
             assertEquals(q, game.getQuest().getQuest());
             game.getQuest().getPercentComplete(game);
@@ -31,7 +53,13 @@ public class ZombicideTest extends TestCase {
             for (ZIcon ic : ZIcon.values()) {
                 ic.imageIds = new int[8];
             }
+            for (ZZombieType z : ZZombieType.values()) {
+                z.imageOptions = new int[1];
+            }
             game.boardRenderer.draw(g, 500, 300);
+            for (ZZone zone : game.board.getZones()) {
+                Assert.assertTrue("Zone: " + zone + " is invalid", zone.getZoneIndex() >= 0);
+            }
         }
     }
 

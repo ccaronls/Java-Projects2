@@ -161,4 +161,6 @@ public abstract class ZUser {
     public abstract Integer chooseZoneToIgnite(ZPlayerName playerName, List<Integer> ignitableZones);
 
     public abstract ZEquipmentClass chooseEquipmentClass(ZPlayerName playerName, List<ZEquipmentClass> classes);
+
+    public abstract ZEquipmentType chooseStartingEquipment(ZPlayerName playerName, List<ZEquipmentType> list);
 }

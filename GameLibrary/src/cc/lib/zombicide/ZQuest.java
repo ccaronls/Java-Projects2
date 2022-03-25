@@ -397,7 +397,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
         // fill in null zones with empty ones
         for (int i=0; i<zones.size(); i++) {
             if (zones.get(i) == null)
-                zones.set(i, new ZZone());
+                zones.set(i, new ZZone(i));
             else {
                 zones.get(i).checkSanity();
             }

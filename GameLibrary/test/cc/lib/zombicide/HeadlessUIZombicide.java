@@ -73,4 +73,8 @@ class HeadlessUIZombicide extends UIZombicide {
     }
 
 
+    @Override
+    public ZUser getThisUser() {
+        return new ZTestUser();
+    }
 }

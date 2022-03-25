@@ -48,6 +48,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
     private boolean forceInvisible = false;
     private GColor color = GColor.WHITE;
     private int zonesMoved = 0;
+    private boolean startingWeaponChosen = false;
 
     synchronized void clear() {
         Arrays.fill(kills, 0);
@@ -58,6 +59,7 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
         cachedSkills = null;
         dangerBar=0;
         woundBar=0;
+        startingWeaponChosen=false;
     }
 
     ZCharacter(ZPlayerName name) {
@@ -1040,6 +1042,15 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
 
     public int getZonesMoved() {
         return zonesMoved;
+    }
+
+    public boolean isStartingWeaponChosen() {
+        return startingWeaponChosen;
+    }
+
+    public void setStartingEquipment(ZEquipmentType type) {
+        attachEquipment(type.create());
+        startingWeaponChosen = true;
     }
 
     @Override

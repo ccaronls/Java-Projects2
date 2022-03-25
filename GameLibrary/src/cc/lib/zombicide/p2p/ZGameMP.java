@@ -137,13 +137,6 @@ public class ZGameMP extends ZGame {
     }
 
     @Override
-    protected void onStartRound(int roundNum) {
-        if (server != null) {
-            server.broadcastExecuteOnRemote(GAME_ID, roundNum);
-        }
-    }
-
-    @Override
     protected void onAhhhhhh(ZPlayerName c) {
         if (server != null) {
             server.broadcastExecuteOnRemote(GAME_ID, c);

@@ -15,7 +15,7 @@ public enum ZPlayerName implements IButton, IDimension {
             toArray(ZSkill.Plus1_free_Magic_Action, ZSkill.Plus1_free_Melee_Action),
             toArray(ZSkill.Plus1_free_Combat_Action, ZSkill.Plus1_to_dice_roll_Combat, ZSkill.Roll_6_plus1_die_Combat)),
     Baldric("Magician",
-            toArray(ZWeaponType.MANA_BLAST, ZWeaponType.LIGHTNING_BOLT, ZItemType.TORCH),
+            toArray(ZWeaponType.MANA_BLAST),
             ZEquipmentClass.SWORD,
             toArray(ZSkill.Spellcaster),
             toArray(ZSkill.Plus1_Action),
@@ -29,7 +29,7 @@ public enum ZPlayerName implements IButton, IDimension {
             toArray(ZSkill.Plus1_free_Melee_Action, ZSkill.Swordmaster),
             toArray(ZSkill.Plus1_free_Combat_Action, ZSkill.Plus1_to_dice_roll_Combat, ZSkill.Hit_and_run)),
     Samson("Dwarf",
-            toArray(ZWeaponType.AXE, ZArmorType.SHIELD, ZItemType.BARRICADE),
+            toArray(ZWeaponType.AXE, ZWeaponType.HAMMER),
             ZEquipmentClass.SHIELD,
             toArray(ZSkill.Iron_hide),
             toArray(ZSkill.Plus1_Action),
@@ -43,21 +43,21 @@ public enum ZPlayerName implements IButton, IDimension {
             toArray(ZSkill.Bloodlust_Melee, ZSkill.Slippery),
             toArray(ZSkill.Plus1_free_Combat_Action, ZSkill.Plus1_to_dice_roll_Combat, ZSkill.Hit_and_run)),
     Silas("Elven Ranger",
-            toArray(ZWeaponType.SHORT_BOW),
+            toArray(ZWeaponType.SHORT_SWORD, ZWeaponType.SHORT_BOW),
             ZEquipmentClass.SWORD,
             toArray(ZSkill.Plus1_to_dice_roll_Ranged),
             toArray(ZSkill.Plus1_Action),
             toArray(ZSkill.Plus1_free_Ranged_Action, ZSkill.Point_blank),
             toArray(ZSkill.Plus1_die_Ranged, ZSkill.Plus1_free_Combat_Action, ZSkill.Iron_rain)),
     Tucker("Monk",
-            toArray(ZWeaponType.CROSSBOW, ZWeaponType.CROSSBOW),
+            toArray(ZWeaponType.CROSSBOW, ZWeaponType.BASTARD_SWORD),
             ZEquipmentClass.AXE,
             toArray(ZSkill.Shove),
             toArray(ZSkill.Plus1_Action),
             toArray(ZSkill.Lucky, ZSkill.Spellcaster),
             toArray(ZSkill.Plus1_die_Combat, ZSkill.Plus1_free_Combat_Action, ZSkill.Free_reload)),
     Jain("Valkerie",
-            toArray(ZWeaponType.LONG_BOW, ZItemType.PLENTY_OF_ARROWS),
+            toArray(ZWeaponType.LONG_BOW),
             ZEquipmentClass.THROWABLE,
             toArray(ZSkill.Steady_hand),
             toArray(ZSkill.Plus1_Action),
@@ -72,7 +72,7 @@ public enum ZPlayerName implements IButton, IDimension {
             toArray(ZSkill.Plus1_Damage_Melee, ZSkill.Lucky, ZSkill.Shove)),
     // Wulfsburg
     Theo("Ranger",
-            toArray(ZWeaponType.DAGGER),//, ZWeaponType.EARTHQUAKE_HAMMER),
+            toArray(ZWeaponType.DAGGER, ZWeaponType.SHORT_SWORD),//, ZWeaponType.EARTHQUAKE_HAMMER),
             ZEquipmentClass.SWORD,
             toArray(ZSkill.Sprint),
             toArray(ZSkill.Plus1_Action),
@@ -86,7 +86,7 @@ public enum ZPlayerName implements IButton, IDimension {
             toArray(ZSkill.Plus1_free_Melee_Action, ZSkill.Spellcaster),
             toArray(ZSkill.Plus1_Damage_Melee, ZSkill.Plus1_die_Magic, ZSkill.Bloodlust)),
     Karl("Monk",
-            toArray(ZWeaponType.SWORD, ZWeaponType.FIREBALL),
+            toArray(ZWeaponType.SWORD, ZWeaponType.MANA_BLAST),
             ZEquipmentClass.MAGIC,
             toArray(ZSkill.Plus1_die_Magic),
             toArray(ZSkill.Plus1_Action),
@@ -169,11 +169,6 @@ public enum ZPlayerName implements IButton, IDimension {
     public ZCharacter create() {
         ZCharacter c = new ZCharacter(this);
         character = c;
-        for (ZEquipmentType e : startingEquipment) {
-            c.tryEquip(e.create());
-            if (!ZGame.DEBUG)
-                break;
-        }
         c.initAllSkills(skillOptions);
         return c;
     }

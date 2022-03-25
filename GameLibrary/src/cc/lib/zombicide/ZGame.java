@@ -97,9 +97,13 @@ public class ZGame extends Reflector<ZGame>  {
 
     }
 
-    protected void onCurrentUserUpdated(ZUser user) {}
+    protected void onCurrentUserUpdated(ZUser user) {
+        log.debug("%s updated", user);
+    }
 
-    protected void onCurrentCharacterUpdated(ZPlayerName priorPlayer, ZPlayerName player) {}
+    protected void onCurrentCharacterUpdated(ZPlayerName priorPlayer, ZPlayerName player) {
+        log.debug("%s updated too %s", priorPlayer, player);
+    }
 
     public void setDifficulty(ZDifficulty difficulty) {
         this.difficulty = difficulty;
@@ -437,14 +441,22 @@ public class ZGame extends Reflector<ZGame>  {
     }
 
     boolean isGameSetup() {
-        if(board == null)
+        if(board == null) {
+            System.err.println("No Board!");
             return false;
-        if (users.size() == 0 || getCurrentUser() == null)
+        }
+        if (users.size() == 0 || getCurrentUser() == null) {
+            System.err.println("No users!");
             return false;
-        if (getAllCharacters().size() == 0)
+        }
+        if (getAllCharacters().size() == 0) {
+            System.err.println("No characters!");
             return false;
-        if (quest == null)
+        }
+        if (quest == null) {
+            System.err.println("No quest!");
             return false;
+        }
         return true;
     }
 
@@ -605,7 +617,6 @@ public class ZGame extends Reflector<ZGame>  {
                     setState(ZState.PLAYER_STAGE_CHOOSE_CHARACTER, null);
                 roundNum++;
                 addLogMessage("Begin Round " + roundNum);
-                onStartRound(roundNum);
                 if (currentUser != startUser) {
                     currentUser = startUser;
                     onCurrentUserUpdated(getCurrentUser());
@@ -659,7 +670,8 @@ public class ZGame extends Reflector<ZGame>  {
                         onCurrentUserUpdated(getCurrentUser());
                     }
                     if (currentUser == startUser) {
-                        startUser = (startUser + 1) % users.size();
+                        if (users.size() > 1)
+                            startUser = (startUser + 1) % users.size();
                         setState(ZState.ZOMBIE_STAGE, null);
                     }
                     break;
@@ -678,6 +690,15 @@ public class ZGame extends Reflector<ZGame>  {
 
                 final ZPlayerName cur = getCurrentCharacter();
                 final ZCharacter ch = cur.getCharacter();
+
+                if (!ch.isStartingWeaponChosen()) {
+                    if (ch.getPlayerName().startingEquipment.length > 1) {
+                        ZEquipmentType type = getCurrentUser().chooseStartingEquipment(ch.getPlayerName(), Utils.toList(ch.getPlayerName().startingEquipment));
+                        if (type == null)
+                            return false;
+                        ch.setStartingEquipment(type);
+                    }
+                }
 
                 int actionsLeft = ch.getActionsLeftThisTurn();
                 LinkedList<ZMove> options = new LinkedList<>();
@@ -1023,12 +1044,17 @@ public class ZGame extends Reflector<ZGame>  {
         return false;
     }
 
-    protected void onCharacterDestroysSpawn(ZPlayerName c, int zoneIdx) {}
-
-    protected void onCharacterDefends(ZPlayerName cur, ZActorPosition attackerPosition) {
+    protected void onCharacterDestroysSpawn(ZPlayerName c, int zoneIdx) {
+        log.debug("%s destroys spawn at %d", c, zoneIdx);
     }
 
-    protected void onNewSkillAquired(ZPlayerName c, ZSkill skill) {}
+    protected void onCharacterDefends(ZPlayerName cur, ZActorPosition attackerPosition) {
+        log.debug("%s defends from %s", cur, attackerPosition);
+    }
+
+    protected void onNewSkillAquired(ZPlayerName c, ZSkill skill) {
+        log.debug("%s acquires new skill %s", c, skill);
+    }
 
     private boolean playerDefends(ZCharacter cur, ZZombieType type) {
         for (int rating : cur.getArmorRatings(type)) {
@@ -1053,7 +1079,7 @@ public class ZGame extends Reflector<ZGame>  {
     }
 
     protected void onGameLost() {
-
+        log.debug("GAME LOST");
     }
 
     void playerWounded(ZCharacter victim, ZActor attacker, ZAttackType attackType, int amount, String reason) {
@@ -1073,9 +1099,11 @@ public class ZGame extends Reflector<ZGame>  {
 
 
     protected void onCharacterAttacked(ZPlayerName character, ZActorPosition attackerPosition, ZAttackType attackType, boolean characterPerished) {
+        log.debug("%s attacked from %s with %s and %s", character, attackerPosition, attackType, characterPerished ? "Died" : "Was Wounded");
     }
 
     protected void onEquipmentThrown(ZPlayerName c, ZIcon icon, int zone) {
+        log.debug("%s throws %s into %d", c, icon, zone);
     }
 
     boolean isZoneEscapableForNecromancers(int zoneIdx) {
@@ -1150,10 +1178,6 @@ public class ZGame extends Reflector<ZGame>  {
         }
 
         return Collections.emptyList();
-    }
-
-    protected void onStartRound(int roundNum) {
-
     }
 
     private boolean useEquipment(ZCharacter c, ZEquipment e) {
@@ -1768,19 +1792,33 @@ public class ZGame extends Reflector<ZGame>  {
         return false;
     }
 
-    protected void onAhhhhhh(ZPlayerName c) {}
+    protected void onAhhhhhh(ZPlayerName c) {
+        log.debug("AHHHHHHH!");
+    }
 
-    protected void onNecromancerEscaped(ZZombie necro) {}
+    protected void onNecromancerEscaped(ZZombie necro) {
+        log.debug("necromancer %s escaped", necro);
+    }
 
-    protected void onEquipmentFound(ZPlayerName c, List<ZEquipment> equipment) {}
+    protected void onEquipmentFound(ZPlayerName c, List<ZEquipment> equipment) {
+        log.debug("%s found %d eqipments", c, equipment.size());
+    }
 
-    protected void onCharacterHealed(ZPlayerName c, int amt) {}
+    protected void onCharacterHealed(ZPlayerName c, int amt) {
+        log.debug("%s healed %d pts", c, amt);
+    }
 
-    protected void onSkillKill(ZPlayerName c, ZSkill skill, ZZombie z, ZAttackType attackType) {}
+    protected void onSkillKill(ZPlayerName c, ZSkill skill, ZZombie z, ZAttackType attackType) {
+        log.debug("%s skill kill on %s with %s", c, z, attackType);
+    }
 
-    protected void onRollSixApplied(ZPlayerName c, ZSkill skill) {}
+    protected void onRollSixApplied(ZPlayerName c, ZSkill skill) {
+        log.debug("%s roll six applied to %s", c, skill);
+    }
 
-    protected void onWeaponReloaded(ZPlayerName c, ZWeapon w) {}
+    protected void onWeaponReloaded(ZPlayerName c, ZWeapon w) {
+        log.debug("%s reloaded %s", c, w);
+    }
 /*
     static List<ZZombie> filterZombiesForMelee(List<ZZombie> list, int weaponDamage) {
         List<ZZombie> zombies = Utils.filter(list, object -> object.type.minDamageToDestroy <= weaponDamage);
@@ -2075,11 +2113,17 @@ public class ZGame extends Reflector<ZGame>  {
         return hits;
     }
 
-    protected void onWeaponGoesClick(ZPlayerName c, ZWeapon weapon) {}
+    protected void onWeaponGoesClick(ZPlayerName c, ZWeapon weapon) {
+        log.debug("%s fired unloaded weapon %s", c, weapon);
+    }
 
-    protected void onCharacterOpenedDoor(ZPlayerName cur, ZDoor door) {}
+    protected void onCharacterOpenedDoor(ZPlayerName cur, ZDoor door) {
+        log.debug("%s opened door %s", cur, door);
+    }
 
-    protected void onCharacterOpenDoorFailed(ZPlayerName cur, ZDoor door) {}
+    protected void onCharacterOpenDoorFailed(ZPlayerName cur, ZDoor door) {
+        log.debug("%s failed to open door %s", cur, door);
+    }
 
     /**
      * Prior to processing damages and kills this iu
@@ -2090,9 +2134,13 @@ public class ZGame extends Reflector<ZGame>  {
      * @param actorsHit
      * @param targetZone
      */
-    protected void onAttack(ZPlayerName attacker, ZWeapon weapon, ZActionType actionType, int numDice, List<ZActorPosition> actorsHit, int targetZone) {}
+    protected void onAttack(ZPlayerName attacker, ZWeapon weapon, ZActionType actionType, int numDice, List<ZActorPosition> actorsHit, int targetZone) {
+        log.debug("%s made %d hits in zone %d with %s action %s numDice %d", attacker, actorsHit.size(), targetZone, weapon, actionType, numDice);
+    }
 
-    protected void onBonusAction(ZPlayerName pl, ZSkill action) {}
+    protected void onBonusAction(ZPlayerName pl, ZSkill action) {
+        log.debug("%s got bonus action %s", pl, action);
+    }
 
     private void checkForHitAndRun(ZCharacter cur) {
         if (cur.hasAvailableSkill(ZSkill.Hit_and_run) && board.getNumZombiesInZone(cur.getOccupiedZone()) == 0) {
@@ -2235,6 +2283,7 @@ public class ZGame extends Reflector<ZGame>  {
     }
 
     protected void onDoubleSpawn(int multiplier) {
+        log.debug("Double spawn X %d", multiplier);
     }
 
     private void doubleSpawn() {
@@ -2252,7 +2301,9 @@ public class ZGame extends Reflector<ZGame>  {
         }
     }
 
-    protected void onExtraActivation(ZZombieCategory category) {}
+    protected void onExtraActivation(ZZombieCategory category) {
+        log.debug("Extra Activation %s", category);
+    }
 
     public void spawnZombies(int zoneIdx) {
         spawnZombies(zoneIdx, getHighestSkillLevel());
@@ -2349,9 +2400,12 @@ public class ZGame extends Reflector<ZGame>  {
         }
     }
 
-    protected void onBeginRound(int roundNum) {}
+    protected void onBeginRound(int roundNum) {
+        log.debug("Begin round %d", roundNum);
+    }
 
     protected void onActorMoved(ZActor actor, GRectangle start, GRectangle end, long speed) {
+        log.debug("actor %s moved from %s to %s with speed %d", actor, start, end, speed);
     }
 
     List<ZEquipment> make(int count, Enum e) {
@@ -2371,6 +2425,7 @@ public class ZGame extends Reflector<ZGame>  {
 
     void initSearchables() {
         searchables.clear();
+        searchables.addAll(make(4, ZItemType.BARRICADE));
         searchables.addAll(make(4, ZItemType.AAHHHH));
         searchables.addAll(make(2, ZItemType.APPLES));
         searchables.addAll(make(2, ZWeaponType.AXE));
@@ -2420,6 +2475,7 @@ public class ZGame extends Reflector<ZGame>  {
     }
 
     protected void onNoiseAdded(int zoneIndex) {
+        log.debug("Noise added at %d", zoneIndex);
     }
 
     protected void onZombiePath(ZZombie zombie, List<ZDir> path) {}
@@ -2464,9 +2520,13 @@ public class ZGame extends Reflector<ZGame>  {
         return Collections.unmodifiableList(searchables);
     }
 
-    public void onIronRain(ZPlayerName c, int targetZone) {}
+    public void onIronRain(ZPlayerName c, int targetZone) {
+        log.debug("%s unleashed iron rain at %d", c, targetZone);
+    }
 
-    protected void onDoorUnlocked(ZDoor door) {}
+    protected void onDoorUnlocked(ZDoor door) {
+        log.debug("%s unlocked", door);
+    }
 
     public void unlockDoor(ZDoor door) {
         Utils.assertTrue(board.getDoor(door) == ZWallFlag.LOCKED);
@@ -2538,7 +2598,9 @@ public class ZGame extends Reflector<ZGame>  {
         return false;
     }
 
-    protected void onDragonBileExploded(int zoneIdx) {}
+    protected void onDragonBileExploded(int zoneIdx) {
+        log.debug("Dragon bil eexploded in %d", zoneIdx);
+    }
 
     public void chooseEquipmentFromSearchables() {
         pushState(ZState.PLAYER_STAGE_CHOOSE_WEAPON_FROM_DECK, getCurrentCharacter());

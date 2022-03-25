@@ -2,10 +2,12 @@ package cc.lib.zombicide.ui;
 
 import java.util.List;
 
+import cc.lib.utils.Table;
 import cc.lib.zombicide.ZDoor;
 import cc.lib.zombicide.ZEquipSlot;
 import cc.lib.zombicide.ZEquipment;
 import cc.lib.zombicide.ZEquipmentClass;
+import cc.lib.zombicide.ZEquipmentType;
 import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZSkill;
@@ -133,5 +135,16 @@ public class UIZUser extends ZUser {
     @Override
     public ZEquipmentClass chooseEquipmentClass(ZPlayerName playerName, List<ZEquipmentClass> classes) {
         return UIZombicide.getInstance().pickMenu(playerName, "Choose Equipment Class", ZEquipmentClass.class, classes);
+    }
+
+    @Override
+    public ZEquipmentType chooseStartingEquipment(ZPlayerName playerName, List<ZEquipmentType> list) {
+        Table table = new Table();
+        for (ZEquipmentType t : list) {
+            table.addColumnNoHeader(t.create().getCardInfo(playerName.getCharacter(), UIZombicide.getInstance()));
+        }
+
+        UIZombicide.getInstance().boardRenderer.setOverlay(table);
+        return UIZombicide.getInstance().pickMenu(playerName, "Choose Starting Equipment", ZEquipmentType.class, list);
     }
 }

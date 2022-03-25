@@ -190,7 +190,7 @@ public final class Table implements IMeasurable {
         return this;
     }
 
-    public Table addColumnNoHeader(Object [] items) {
+    public Table addColumnNoHeader(Object ... items) {
         return addColumnNoHeader(Arrays.asList(items));
     }
 

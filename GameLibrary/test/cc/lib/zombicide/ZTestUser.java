@@ -127,4 +127,9 @@ public class ZTestUser extends ZUser {
     public ZEquipmentClass chooseEquipmentClass(ZPlayerName playerName, List<ZEquipmentClass> classes) {
         return Utils.randItem(classes);
     }
+
+    @Override
+    public ZEquipmentType chooseStartingEquipment(ZPlayerName playerName, List<ZEquipmentType> list) {
+        return list.get(0);
+    }
 }

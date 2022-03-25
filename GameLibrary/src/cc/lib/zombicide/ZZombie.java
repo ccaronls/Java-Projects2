@@ -80,6 +80,9 @@ public final class ZZombie extends ZActor<ZZombieType> {
 
     @Override
     public GDimension getDimension() {
+        if (type.imageDims == null) {
+            return GDimension.EMPTY;
+        }
         return type.imageDims[getIdx()];
     }
 
