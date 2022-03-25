@@ -15,7 +15,6 @@ import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
 import cc.lib.math.Vector2D;
-import cc.lib.ui.IButton;
 import cc.lib.utils.Lock;
 import cc.lib.utils.Table;
 import cc.lib.zombicide.ZActionType;
@@ -174,6 +173,7 @@ public abstract class UIZombicide extends ZGameMP {
     }
 
     public void setResult(Object result) {
+        boardRenderer.setOverlay(null);
         this.result = result;
         synchronized (monitor) {
             monitor.notify();
@@ -233,9 +233,9 @@ public abstract class UIZombicide extends ZGameMP {
             options = moves;
             uiMode = UIMode.PICK_MENU;
             if (expectedType.equals(ZMove.class))
-                boardRenderer.processMoveOptions(name.getCharacter(), (List<ZMove>)moves);
+                boardRenderer.processMoveOptions(name.getCharacter(), moves);
             else
-                boardRenderer.processSubMenu(name.getCharacter(), (List<IButton>)moves);
+                boardRenderer.processSubMenu(name.getCharacter(), moves);
             setBoardMessage(message);
         }
         return (T) waitForUser(expectedType);
@@ -259,6 +259,20 @@ public abstract class UIZombicide extends ZGameMP {
 
     public void showObjectivesOverlay() {
         boardRenderer.setOverlay(getQuest().getObjectivesOverlay(this));
+    }
+
+    public <T extends ZEquipment> void showEquipmentOverlay(ZPlayerName player, List<T> list) {
+        Table table = new Table(new Table.Model() {
+            @Override
+            public int getMaxCharsPerLine() {
+                return 32;
+            }
+        });
+        for (ZEquipment t : list) {
+            table.addColumnNoHeader(t.getCardInfo(player.getCharacter(), this));
+        }
+        boardRenderer.setOverlay(table);
+
     }
 
     public void showQuestTitleOverlay() {
@@ -367,13 +381,7 @@ public abstract class UIZombicide extends ZGameMP {
     protected void onCharacterDefends(ZPlayerName cur, ZActorPosition attackerPosition) {
         super.onCharacterDefends(cur, attackerPosition);
         ZActor actor = board.getActor(attackerPosition);
-        actor.addAnimation(new EmptyAnimation(actor) {
-            @Override
-            protected void onDone() {
-                super.onDone();
-                cur.getCharacter().addAnimation(new ShieldBlockAnimation(cur.getCharacter()));
-            }
-        });
+        actor.addAnimation(new ShieldBlockAnimation(cur.getCharacter()));
         boardRenderer.redraw();
     }
 
@@ -401,7 +409,7 @@ public abstract class UIZombicide extends ZGameMP {
         ZActor attacker = board.getActor(attackerPosition);
         switch (attackType) {
             case ELECTROCUTION:
-                character.getCharacter().addAnimation(new ElectrocutionAnimation(character.getCharacter()));
+                attacker.addAnimation(new ElectrocutionAnimation(character.getCharacter()));
                 break;
             case NORMAL:
             case FIRE:
@@ -414,12 +422,12 @@ public abstract class UIZombicide extends ZGameMP {
             case EARTHQUAKE:
             case MENTAL_STRIKE:
             default:
-                character.getCharacter().addAnimation(new SlashedAnimation(character.getCharacter()));
+                attacker.addAnimation(new SlashedAnimation(character.getCharacter()));
         }
         if (perished) {
-            character.getCharacter().addAnimation(new AscendingAngelDeathAnimation(character.getCharacter()));
+            attacker.addAnimation(new AscendingAngelDeathAnimation(character.getCharacter()));
             // at the end of the 'ascending angel' grow a tombstone
-            character.getCharacter().addAnimation(new ZActorAnimation(character.getCharacter(), 2000) {
+            attacker.addAnimation(new ZActorAnimation(character.getCharacter(), 2000) {
                 @Override
                 protected void draw(AGraphics g, float position, float dt) {
                     AImage img = g.getImage(ZIcon.GRAVESTONE.imageIds[0]);
@@ -476,11 +484,12 @@ public abstract class UIZombicide extends ZGameMP {
     @Override
     protected void onGameLost() {
         super.onGameLost();
+        boardRenderer.waitForAnimations();
         boardRenderer.addOverlay(new OverlayTextAnimation("Y O U   L O S T", boardRenderer.getNumOverlayTextAnimations()) {
             @Override
             protected void onDone() {
                 super.onDone();
-                boardRenderer.setOverlay(getGameSummaryTable());
+                showSummaryOverlay();
             }
         });
     }
@@ -488,11 +497,12 @@ public abstract class UIZombicide extends ZGameMP {
     @Override
     protected void onQuestComplete() {
         super.onQuestComplete();
+        boardRenderer.waitForAnimations();
         boardRenderer.addOverlay(new OverlayTextAnimation("C O M P L E T E D", 0) {
             @Override
             protected void onDone() {
                 super.onDone();
-                boardRenderer.setOverlay(getGameSummaryTable());
+                showSummaryOverlay();
             }
         });
     }
@@ -561,6 +571,7 @@ public abstract class UIZombicide extends ZGameMP {
     @Override
     protected void onBeginRound(int roundNum) {
         super.onBeginRound(roundNum);
+        boardRenderer.waitForAnimations();
         if (roundNum == 0)
             showQuestTitleOverlay();
     }

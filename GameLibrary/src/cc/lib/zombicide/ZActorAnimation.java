@@ -32,6 +32,8 @@ public abstract class ZActorAnimation extends ZAnimation {
     public boolean isDone() {
         if (next == null || actor ==  null)
             return super.isDone();
+        if (next != null)
+            return next.isDone();
         return false;
     }
 

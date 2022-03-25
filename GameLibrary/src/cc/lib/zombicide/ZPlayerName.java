@@ -147,6 +147,7 @@ public enum ZPlayerName implements IButton, IDimension {
     ZPlayerName(String characterClass, ZEquipmentType [] startingEquipment, ZEquipmentClass alternateBodySlot, ZSkill [] blueSkillOptions, ZSkill[] yellowSkillOptions, ZSkill[] orangeSkillOptions, ZSkill[] redSkillOptions) {
         this.characterClass = characterClass;
         this.startingEquipment = startingEquipment;
+        assert(startingEquipment.length > 0);
         this.alternateBodySlot = alternateBodySlot;
         this.skillOptions = new ZSkill[][] {
                 blueSkillOptions,

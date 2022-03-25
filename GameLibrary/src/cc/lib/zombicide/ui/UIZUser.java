@@ -2,6 +2,7 @@ package cc.lib.zombicide.ui;
 
 import java.util.List;
 
+import cc.lib.game.Utils;
 import cc.lib.utils.Table;
 import cc.lib.zombicide.ZDoor;
 import cc.lib.zombicide.ZEquipSlot;
@@ -33,8 +34,18 @@ public class UIZUser extends ZUser {
     }
 
     @Override
-    public ZSkill chooseNewSkill(ZPlayerName cur, List<ZSkill> skillOptions) {
-        return UIZombicide.getInstance().pickMenu(cur,cur.name() + " Choose New Skill", ZSkill.class, skillOptions);
+    public ZSkill chooseNewSkill(ZPlayerName cur, List<ZSkill> list) {
+        Table table = new Table(new Table.Model() {
+            @Override
+            public int getMaxCharsPerLine() {
+                return 32;
+            }
+        });
+        for (ZSkill t : list) {
+            table.addColumn(t.name(), t.description);
+        }
+        UIZombicide.getInstance().boardRenderer.setOverlay(table);
+        return UIZombicide.getInstance().pickMenu(cur,cur.name() + " Choose New Skill", ZSkill.class, list);
     }
 
     @Override
@@ -43,8 +54,9 @@ public class UIZUser extends ZUser {
     }
 
     @Override
-    public Integer chooseEquipment(ZPlayerName cur, List<ZEquipment> equipOptions) {
-        return indexOrNull(UIZombicide.getInstance().pickMenu(cur,cur.name() + " Choose Equipment to Organize", ZEquipment.class, equipOptions), equipOptions);
+    public Integer chooseEquipment(ZPlayerName cur, List<ZEquipment> list) {
+        UIZombicide.getInstance().showEquipmentOverlay(cur, list);
+        return indexOrNull(UIZombicide.getInstance().pickMenu(cur,cur.name() + " Choose Equipment to Organize", ZEquipment.class, list), list);
     }
 
     @Override
@@ -79,21 +91,25 @@ public class UIZUser extends ZUser {
 
     @Override
     public Integer chooseItemToPickup(ZPlayerName cur, List<ZEquipment> list) {
-        return indexOrNull(UIZombicide.getInstance().pickMenu(cur, "Choose Menu to Pickup", ZEquipment.class, list), list);
+        UIZombicide.getInstance().showEquipmentOverlay(cur, list);
+        return indexOrNull(UIZombicide.getInstance().pickMenu(cur, "Choose Item to Pickup", ZEquipment.class, list), list);
     }
 
     @Override
     public Integer chooseItemToDrop(ZPlayerName cur, List<ZEquipment> list) {
-        return indexOrNull(UIZombicide.getInstance().pickMenu(cur, "Choose Menu to Drop", ZEquipment.class, list), list);
+        UIZombicide.getInstance().showEquipmentOverlay(cur, list);
+        return indexOrNull(UIZombicide.getInstance().pickMenu(cur, "Choose Item to Drop", ZEquipment.class, list), list);
     }
 
     @Override
-    public Integer chooseEquipmentToThrow(ZPlayerName cur, List<ZEquipment> slots) {
-        return indexOrNull(UIZombicide.getInstance().pickMenu(cur,  "Choose Item to Throw", ZEquipment.class, slots), slots);
+    public Integer chooseEquipmentToThrow(ZPlayerName cur, List<ZEquipment> list) {
+        UIZombicide.getInstance().showEquipmentOverlay(cur, list);
+        return indexOrNull(UIZombicide.getInstance().pickMenu(cur,  "Choose Item to Throw", ZEquipment.class, list), list);
     }
 
     @Override
     public Integer chooseZoneToThrowEquipment(ZPlayerName cur, ZEquipment toThrow, List<Integer> zones) {
+        UIZombicide.getInstance().showEquipmentOverlay(cur, Utils.toList(toThrow));
         return UIZombicide.getInstance().pickZone("Choose Zone to throw the " + toThrow, zones);
     }
 
@@ -104,11 +120,13 @@ public class UIZUser extends ZUser {
 
     @Override
     public ZSpell chooseSpell(ZPlayerName cur, List<ZSpell> spells) {
+        UIZombicide.getInstance().showEquipmentOverlay(cur, spells);
         return UIZombicide.getInstance().pickMenu(cur, "Choose Spell", ZSpell.class, spells);
     }
 
     @Override
     public ZPlayerName chooseCharacterForSpell(ZPlayerName cur, ZSpell spell, List<ZPlayerName> targets) {
+        UIZombicide.getInstance().showEquipmentOverlay(cur, Utils.toList(spell));
         return UIZombicide.getInstance().pickCharacter("Choose character to enchant with " + spell.getType(), targets);
     }
 
@@ -139,12 +157,12 @@ public class UIZUser extends ZUser {
 
     @Override
     public ZEquipmentType chooseStartingEquipment(ZPlayerName playerName, List<ZEquipmentType> list) {
-        Table table = new Table();
+        Table table = new Table().setNoBorder();
         for (ZEquipmentType t : list) {
             table.addColumnNoHeader(t.create().getCardInfo(playerName.getCharacter(), UIZombicide.getInstance()));
         }
 
-        UIZombicide.getInstance().boardRenderer.setOverlay(table);
+        UIZombicide.getInstance().boardRenderer.setOverlay(new Table().addColumn("Choose Starting Equipment", table));
         return UIZombicide.getInstance().pickMenu(playerName, "Choose Starting Equipment", ZEquipmentType.class, list);
     }
 }

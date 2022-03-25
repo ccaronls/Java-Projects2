@@ -956,6 +956,15 @@ public final class ZCharacter extends ZActor<ZPlayerName> implements Table.Model
         return getAvailableSkills().contains(skill);
     }
 
+    public boolean useMarksmanForSorting(int zoneIdx) {
+        for (ZSkill skill : getAvailableSkills()) {
+            if (skill.useMarksmanForSorting(getOccupiedZone(), zoneIdx)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public boolean hasSkill(ZSkill skill) {
         return allSkills.contains(skill);
     }

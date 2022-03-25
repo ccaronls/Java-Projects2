@@ -697,6 +697,8 @@ public class ZGame extends Reflector<ZGame>  {
                         if (type == null)
                             return false;
                         ch.setStartingEquipment(type);
+                    } else {
+                        ch.setStartingEquipment(ch.getPlayerName().startingEquipment[0]);
                     }
                 }
 
@@ -789,15 +791,15 @@ public class ZGame extends Reflector<ZGame>  {
                     List<ZDoor> doors = new ArrayList<>();
                     List<ZDoor> barricadeDoors = new ArrayList<>();
                     for (ZDoor door : zone.doors) {
+                        if (!door.isClosed(board) && !door.canBeClosed(ch)) {
+                            if (ch.canBarricadeDoors()) {
+                                barricadeDoors.add(door);
+                            }
+                            continue;
+                        }
                         if (door.isJammed() && !ch.canUnjamDoor())
                             continue;
                         if (door.isLocked(board))
-                            continue;
-                        if (!door.isClosed(board) && ch.canBarricadeDoors()) {
-                            barricadeDoors.add(door);
-                            continue;
-                        }
-                        if (!door.isClosed(board) && !door.canBeClosed(ch))
                             continue;
                         doors.add(door);
                     }
@@ -1940,8 +1942,10 @@ public class ZGame extends Reflector<ZGame>  {
                     } else {
                         List<ZZombie> zombies = board.getZombiesInZone(zoneIdx);
                         if (zombies.size() > 1) {
-                            if (cur.hasAvailableSkill(ZSkill.Marksman)) {
+                            if (cur.useMarksmanForSorting(zoneIdx)) {
                                 Collections.sort(zombies, new MarksmanComparator(stat.damagePerHit));
+                            } else {
+                                Collections.sort(zombies, RANGED_COMPARATOR);
                             }
                             log.debug("Ranged Priority:" + Utils.map(zombies, z -> z.getType()));
                         }
@@ -2001,29 +2005,8 @@ public class ZGame extends Reflector<ZGame>  {
                         for (ZCharacter victim : friendsHit) {
                             playerWounded(victim, cur, stat.getAttackType(), stat.damagePerHit, "Friendly Fire!");
                         }
-                        /*
-                        if (cur.canFriendlyFire()) {
-                            int misses = stat.numDice - hitsMade;
-                            List<ZCharacter> friendlyFireOptions = Utils.filter(board.getCharactersInZone(zoneIdx), object -> object != cur && object.canReceiveFriendlyFire());
-                            for (int i = 0; i < misses && friendlyFireOptions.size() > 0; i++) {
-                                if (friendlyFireOptions.size() > 1) {
-                                    // sort them in same way we would sort zombie attacks
-                                    Collections.sort(friendlyFireOptions, new WoundingComparator(ZZombieType.Walker));
-                                }
-                                // friendy fire!
-                                ZCharacter victim = friendlyFireOptions.get(0);
-                                if (playerDefends(victim, ZZombieType.Walker)) {
-                                    addLogMessage(victim.name() + " defended thyself from friendly fire!");
-                                    onCharacterDefends(victim.getPlayerName(), cur.getPosition());
-                                } else {
-                                    playerWounded(victim, cur, stat.getAttackType(), stat.damagePerHit, "Friendly Fire!");
-                                    if (victim.isDead())
-                                        friendlyFireOptions.remove(0);
-                                }
-                            }
-                        }*/
-                        addLogMessage(getCurrentCharacter().name() + " Scored " + hits + " hits");
-                        if (hits > 0)
+                        addLogMessage(getCurrentCharacter().name() + " Scored " + hitsMade + " hits");
+                        if (hitsMade > 0)
                             checkForHitAndRun(cur);
                         return true;
                     }
@@ -2054,12 +2037,8 @@ public class ZGame extends Reflector<ZGame>  {
         }
     }
 
-    static class RangedComparator implements Comparator<ZZombie> {
-        @Override
-        public int compare(ZZombie o1, ZZombie o2) {
-            return Integer.compare(o1.type.attackPriority, o2.type.attackPriority);
-        }
-    }
+    private static Comparator<ZZombie> RANGED_COMPARATOR = (o1, o2) ->
+            Integer.compare(o1.type.attackPriority, o2.type.attackPriority);
 
     // Marksman have reverse of Ranged expect Zombies with minDamage above are prioritized last
     static class MarksmanComparator implements Comparator<ZZombie> {

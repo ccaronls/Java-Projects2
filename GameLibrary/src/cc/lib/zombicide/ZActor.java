@@ -125,7 +125,7 @@ public abstract class ZActor<E extends Enum<E>> extends Reflector<ZActor<E>> imp
     }
 
     public boolean isAnimating() {
-        return animation != null;// && !animation.isDone();
+        return animation != null && !animation.isDone();
     }
 
     public ZAnimation getAnimation() {

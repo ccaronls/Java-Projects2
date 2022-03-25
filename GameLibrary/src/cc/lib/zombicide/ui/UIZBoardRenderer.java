@@ -99,28 +99,23 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
         return getGame().getQuest();
     }
 
-    public boolean isAnimating() {
-        return actorsAnimating || postActor.size() > 0 || preActor.size() > 0 || overlayAnimations.size() > 0 || zoomAnimation != null;
+    public synchronized boolean isAnimating() {
+        boolean animating = actorsAnimating || postActor.size() > 0 || preActor.size() > 0 || overlayAnimations.size() > 0 || zoomAnimation != null;
+        return animating;
     }
 
-    void addPreActor(ZAnimation a) {
-        synchronized (preActor) {
-            preActor.add(a.start());
-        }
+    synchronized void addPreActor(ZAnimation a) {
+        preActor.add(a.start());
         redraw();
     }
 
-    void addPostActor(ZAnimation a) {
-        synchronized (postActor) {
-            postActor.add(a.start());
-        }
+    synchronized void addPostActor(ZAnimation a) {
+        postActor.add(a.start());
         redraw();
     }
 
-    void addOverlay(ZAnimation a) {
-        synchronized (overlayAnimations) {
-            overlayAnimations.add(a);
-        }
+    synchronized void addOverlay(ZAnimation a) {
+        overlayAnimations.add(a);
         redraw();
     }
 
@@ -525,10 +520,17 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
         }
         g.drawImage(id, area.getRect());
         if (drawDebugText) {
-            String txt = String.format("spawnsNecros:%s\nEscapable:%s\nRemovable:%s\n", area.isCanSpawnNecromancers(), area.isEscapableForNecromancers(), area.isCanBeRemovedFromBoard());
+            String txt = "";
+            if (area.isCanSpawnNecromancers())
+                txt += "\nNecros";
+            if (area.isEscapableForNecromancers())
+                txt += "\nEscapable";
+            if (area.isCanBeRemovedFromBoard())
+                txt += "\nDestroyable";
+            //String txt = String.format("spawnsNecros:%s\nEscapable:%s\nRemovable:%s\n", area.isCanSpawnNecromancers(), area.isEscapableForNecromancers(), area.isCanBeRemovedFromBoard());
             g.setColor(GColor.YELLOW);
             float oldHeight = g.setTextHeight(10);
-            g.drawString(txt, area.getRect().getTopLeft());
+            g.drawString(txt.trim(), area.getRect().getTopLeft());
             g.setTextHeight(oldHeight);
         }
     }
@@ -907,7 +909,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
      *
      * @param targetZoomPercent 0 is fully zoomed out and 1 is fully zoomed in
      */
-    public void animateZoomTo(float targetZoomPercent) {
+    synchronized public void animateZoomTo(float targetZoomPercent) {
         clearDragOffset();
         targetZoomPercent = Utils.clamp(targetZoomPercent, 0, 1);
         if (zoomPercent != targetZoomPercent) {
@@ -1061,11 +1063,12 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
         getQuest().drawQuest(game, g);
         drawNoise(g);
 
-        if (drawDebugText)
-            drawDebugText(g, mouseX, mouseY);
         drawAnimations(preActor, g);
 
         highlightedActor = drawActors(g, game, mouse.X(), mouse.Y());
+
+        if (drawDebugText)
+            drawDebugText(g, mouseX, mouseY);
 
         if (drawZombiePaths) {
             if (highlightedActor instanceof ZZombie) {
@@ -1180,8 +1183,18 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
 
         if (isAnimating())
             redraw();
-        else
+        else {
             drawMiniMap(g);
+            synchronized (this) {
+                notify();
+            }
+        }
+    }
+
+    void waitForAnimations() {
+        if (isAnimating() || null != Utils.findFirstOrNull(getBoard().getAllActors(), a -> a.isAnimating())) {
+            Utils.waitNoThrow(this, 20000);
+        }
     }
 
     protected void drawOverlay(AGraphics g) {

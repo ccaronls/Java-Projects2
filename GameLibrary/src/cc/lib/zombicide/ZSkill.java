@@ -515,6 +515,11 @@ public enum ZSkill implements IButton {
         boolean avoidsInflictingFriendlyFire() {
             return true;
         }
+
+        @Override
+        boolean useMarksmanForSorting(int playerZone, int targetZone) {
+            return true;
+        }
     },
     Matching_set("When a Survivor performs a Search Action and draws an Equipment card with the Dual symbol, he can immediately take a second card of the same type from the Equipment deck. Shuffle the deck afterward."),
     Point_blank("The Survivor can resolve Ranged and Magic Actions in his own Zone, no matter the minimum Range. When resolving a Magic or Ranged Action at Range 0, the Survivor freely chooses the targets and can kill any type of Zombies. His Combat spells and Ranged weapons still need to inflict enough Damage to kill his targets. Misses don’t hit Survivors.") {
@@ -530,6 +535,11 @@ public enum ZSkill implements IButton {
                 case MAGIC:
                     stat.minRange = 0;
             }
+        }
+
+        @Override
+        boolean useMarksmanForSorting(int playerZone, int targetZone) {
+            return playerZone == targetZone;
         }
     },
     Reaper_Combat("Use this Skill when assigning hits while resolving a Combat Action (Melee, Ranged or Magic). One of these hits can freely kill an additional identical Zombie in the same Zone. Only a single additional Zombie can be killed per Action when using this Skill. The Survivor gains the experience for the additional Zombie.") {
@@ -918,4 +928,8 @@ public enum ZSkill implements IButton {
      * @return
      */
     boolean onSixRolled(ZGame game, ZCharacter c, ZWeaponStat stat) { return false; }
+
+    boolean useMarksmanForSorting(int playerZone, int targetZone) {
+        return false;
+    }
 }

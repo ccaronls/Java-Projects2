@@ -713,7 +713,7 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
                 }
                 break;
             case OBJECTIVES: {
-                game.boardRenderer.setOverlay(game.getQuest().getObjectivesOverlay(game));
+                game.showObjectivesOverlay();
                 break;
             }
             case SUMMARY: {
