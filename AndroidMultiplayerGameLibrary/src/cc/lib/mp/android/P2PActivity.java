@@ -180,6 +180,7 @@ public abstract class P2PActivity extends CCActivityBase
      * Called from UI thread
      */
     public final void p2pShutdown() {
+        log.debug("p2pShutdown");
         new SpinnerTask<Void>(this) {
 
             @Override

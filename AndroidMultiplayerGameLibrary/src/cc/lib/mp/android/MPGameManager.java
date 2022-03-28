@@ -450,8 +450,7 @@ public abstract class MPGameManager implements Application.ActivityLifecycleCall
                     }
 
                     @Override
-                    protected void onCancelled() {
-                        super.onCancelled();
+                    protected void onCancelButtonClicked() {
                         new SpinnerTask<String>(activity) {
                             @Override
                             protected void doIt(String ... args) throws Exception {

@@ -20,10 +20,12 @@ import java.util.List;
 import cc.lib.android.SpinnerTask;
 import cc.lib.net.GameClient;
 import cc.lib.net.GameCommand;
+import cc.lib.utils.Lock;
 
 public class P2PJoinGameDialog extends BaseAdapter
         implements AdapterView.OnItemClickListener,
         DialogInterface.OnClickListener,
+        DialogInterface.OnCancelListener,
         Runnable,
         GameClient.Listener {
 
@@ -34,6 +36,7 @@ public class P2PJoinGameDialog extends BaseAdapter
     final P2PHelper helper;
     final int connectPort;
     final GameClient client;
+    final Lock connectLock = new Lock(1);
 
     public P2PJoinGameDialog(P2PActivity activity, GameClient client, String clientName, int port) {
         this.context = activity;
@@ -70,9 +73,7 @@ public class P2PJoinGameDialog extends BaseAdapter
                     if (!success) {
                         showError(context.getString(R.string.popup_error_msg_failed_to_connect));
                     }
-                    synchronized (helper) {
-                        helper.notify();
-                    }
+                    connectLock.release();
                 });
             }
         };
@@ -80,7 +81,12 @@ public class P2PJoinGameDialog extends BaseAdapter
         helper.setDeviceName(clientName);
         helper.start(client);
         dialog = context.newDialogBuilder().setTitle(R.string.popup_title_join_game).setView(lvHost)
-                .setNegativeButton(R.string.popup_button_cancel, this).show();
+                .setNegativeButton(R.string.popup_button_cancel, this).setOnCancelListener(this).show();
+    }
+
+    @Override
+    public void onCancel(DialogInterface dialog) {
+        shutdown();
     }
 
     @Override
@@ -126,7 +132,7 @@ public class P2PJoinGameDialog extends BaseAdapter
     @Override
     public void onClick(DialogInterface dialog, int which) {
         // cancel out of the dialog
-        context.p2pShutdown();
+        shutdown();
     }
 
     @Override
@@ -140,20 +146,26 @@ public class P2PJoinGameDialog extends BaseAdapter
             }
 
             @Override
-            protected void doIt(Void ... args) throws Exception {
+            protected void doIt(Void ... args) throws Throwable {
                 helper.connect(d);
-                synchronized (helper) {
-                    try {
-                        helper.wait(30000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
+                connectLock.block(30000);
             }
 
             @Override
             protected void onSuccess() {
             }
+
+            @Override
+            protected void onError(Exception e) {
+                connectLock.release();
+                super.onError(e);
+            }
+
+            @Override
+            protected void onCancelButtonClicked() {
+                connectLock.release();
+            }
+
         }.execute();
     }
 
@@ -184,4 +196,9 @@ public class P2PJoinGameDialog extends BaseAdapter
         context.runOnUiThread(() -> Toast.makeText(context, msg, Toast.LENGTH_LONG).show());
     }
 
+    private void shutdown() {
+        dialog.dismiss();
+        helper.stop();
+        context.p2pShutdown();
+    }
 }

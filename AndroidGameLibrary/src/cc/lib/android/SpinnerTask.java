@@ -3,7 +3,6 @@ package cc.lib.android;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Application;
-import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -15,17 +14,18 @@ import java.lang.ref.WeakReference;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-public abstract class SpinnerTask<T> extends AsyncTask<T, Integer, Object> implements DialogInterface.OnCancelListener, Application.ActivityLifecycleCallbacks, DialogInterface.OnDismissListener {
+public abstract class SpinnerTask<T> extends AsyncTask<T, Integer, Object>
+        implements Application.ActivityLifecycleCallbacks {
 
-    private Dialog dialog = null;
+    private ProgressDialog dialog = null;
     private final WeakReference<Activity> context;
     private Object result = null;
 
     public SpinnerTask(Activity context) {
         this.context = new WeakReference<>(context);
         if (context instanceof Activity) {
-            // we want to handle the activity pausing so we can cancel ourself
-            ((Activity)context).getApplication().registerActivityLifecycleCallbacks(this);
+            // we want to handle the activity pausing so we can cancel ourselves
+            context.getApplication().registerActivityLifecycleCallbacks(this);
         }
     }
 
@@ -34,9 +34,15 @@ public abstract class SpinnerTask<T> extends AsyncTask<T, Integer, Object> imple
     }
 
     @Override
-    protected void onCancelled() {
+    protected final void onCancelled(Object o) {
+        super.onCancelled(o);
+    }
+
+    @Override
+    protected final void onCancelled() {
         if (dialog != null)
             dialog.dismiss();
+        onCompleted();
     }
 
     @Override
@@ -50,8 +56,14 @@ public abstract class SpinnerTask<T> extends AsyncTask<T, Integer, Object> imple
             } else {
                 onSuccess();
             }
+            onCompleted();
         }
     }
+
+    /**
+     * Gets called for all situations: SUCCESS, ERROR, CANCELLED
+     */
+    protected void onCompleted() {}
 
     protected void onError(Exception e) {
         e.printStackTrace();
@@ -62,9 +74,15 @@ public abstract class SpinnerTask<T> extends AsyncTask<T, Integer, Object> imple
     @Override
     protected void onPreExecute() {
         if (!context.get().isFinishing() && !context.get().isDestroyed()) {
-            dialog = ProgressDialog.show(context.get(), getProgressMessage(), null, true, isCancellable(), this);
-            dialog.setCanceledOnTouchOutside(false);
-            dialog.setOnDismissListener(this);
+            dialog = new ProgressDialog(context.get());
+            dialog.setMessage(getProgressMessage());
+            dialog.setCancelable(false); // prevents cancel from back button
+            dialog.setIndeterminate(true);
+            dialog.setCanceledOnTouchOutside(false); // prevents cancel from random touches
+            if (isCancellable()) {
+                dialog.setButton(DialogInterface.BUTTON_NEGATIVE, context.get().getString(R.string.popup_button_cancel), this::onCancelButtonClicked);
+            }
+            dialog.show();
         }
     }
 
@@ -77,17 +95,15 @@ public abstract class SpinnerTask<T> extends AsyncTask<T, Integer, Object> imple
         super.onProgressUpdate(values);
     }
 
-    protected abstract void doIt(T ... args) throws Exception;
+    protected abstract void doIt(T ... args) throws Throwable;
 
     protected void onSuccess() {}
-
-    protected void onCompleted() {}
 
     @Override
     protected final Object doInBackground(T... args) {
         try {
             doIt(args);
-        } catch (Exception e ) {
+        } catch (Throwable e ) {
             return e;
         }
         return null;
@@ -97,9 +113,8 @@ public abstract class SpinnerTask<T> extends AsyncTask<T, Integer, Object> imple
         return true;
     }
 
-    @Override
-    public void onCancel(DialogInterface dialog) {
-        cancel(true);
+    public boolean canInterruptOnCancel() {
+        return false;
     }
 
     protected final void setResult(Object result) {
@@ -110,10 +125,13 @@ public abstract class SpinnerTask<T> extends AsyncTask<T, Integer, Object> imple
         return (T)result;
     }
 
-    @Override
-    public final void onDismiss(DialogInterface dialog) {
-        onCompleted();
+    private void onCancelButtonClicked(DialogInterface dialog, int which) {
+        cancel(canInterruptOnCancel());
+        onCancelButtonClicked();
+        dialog.dismiss();
     }
+
+    protected void onCancelButtonClicked() {}
 
     @Override
     public final void onActivityCreated(@NonNull Activity activity, @Nullable Bundle savedInstanceState) {

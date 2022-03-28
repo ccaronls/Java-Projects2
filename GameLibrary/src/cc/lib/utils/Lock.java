@@ -25,7 +25,7 @@ public final class Lock {
         this.holders = holders;
     }
 
-    public void block() {
+    public synchronized void block() {
         if (holders > 0) {
             try {
                 synchronized (monitor) {
@@ -38,7 +38,7 @@ public final class Lock {
         holders = 0;
     }
 
-    public void block(long waitTimeMillis) {
+    public synchronized void block(long waitTimeMillis) {
         if (holders > 0) {
             try {
                 synchronized (monitor) {
@@ -47,8 +47,8 @@ public final class Lock {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+            holders--;
         }
-        holders = 0;
     }
 
     public synchronized void acquireAndBlock() {
@@ -58,7 +58,14 @@ public final class Lock {
         block();
     }
 
-    public synchronized void release() {
+    public synchronized void acquireAndBlock(long timeout) {
+        if (holders > 0)
+            throw new GException("Dead Lock");
+        holders++;
+        block(timeout);
+    }
+
+    public void release() {
         if (holders > 0)
             holders --;
         if (holders == 0) {
@@ -68,7 +75,7 @@ public final class Lock {
         }
     }
 
-    public synchronized void releaseAll() {
+    public void releaseAll() {
         holders = 0;
         synchronized (monitor) {
             monitor.notify();

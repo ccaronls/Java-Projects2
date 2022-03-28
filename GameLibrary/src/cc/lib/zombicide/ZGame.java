@@ -670,7 +670,7 @@ public class ZGame extends Reflector<ZGame>  {
                         onCurrentUserUpdated(getCurrentUser());
                     }
                     if (currentUser == startUser) {
-                        if (users.size() > 1)
+                        if (users.size() > 2)
                             startUser = (startUser + 1) % users.size();
                         setState(ZState.ZOMBIE_STAGE, null);
                     }
@@ -2319,7 +2319,7 @@ public class ZGame extends Reflector<ZGame>  {
     }
 
     public ZUser getCurrentUser() {
-        return users.get(currentUser);
+        return users.get(Utils.clamp(currentUser, 0, users.size()-1));
     }
 
     public ZPlayerName getCurrentCharacter() {

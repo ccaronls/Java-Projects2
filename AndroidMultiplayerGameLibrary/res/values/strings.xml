@@ -49,7 +49,7 @@
     <string name="popup_msg_confirm_disconnect">Disconnect from server?</string>
     <string name="popup_msg_failed_to_load">Failed to load from save file</string>
     <string name="popup_msg_player_disconnect_reason">Client %1$s has disconnected because %2$s. You can choose to continue without or wait for them to reconnect.</string>
-    <string name="popup_msg_failed_to_start_server">"Failed to start server\n%s"</string>
+    <string name="popup_msg_failed_to_start_server">Failed to start server</string>
     <string name="popup_msg_failed_to_connect_reason">Failed to connect %s</string>
     <string name="popup_msg_please_wait_forconnect_accept">Please wait while your connect request is accepted</string>
     <string name="popup_msg_failed_connect_host">Failed to connect to host</string>

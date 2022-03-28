@@ -26,6 +26,7 @@ public class P2PClientConnectionsDialog extends BaseAdapter implements
         GameServer.Listener,
         Runnable,
         DialogInterface.OnDismissListener,
+        DialogInterface.OnCancelListener,
         View.OnClickListener {
 
     private final P2PActivity context;
@@ -84,37 +85,41 @@ public class P2PClientConnectionsDialog extends BaseAdapter implements
 
             @Override
             protected void doIt(Void... args) throws Exception {
-                groupFormedLock.block(60000);
+                groupFormedLock.block(20000);
+                if (!server.isRunning())
+                    throw new Exception("Timeout trying to start server");
             }
 
             @Override
-            protected void onCancelled() {
+            protected void onSuccess() {
+                Toast.makeText(activity, "Server started", Toast.LENGTH_LONG).show();
+                activity.onP2PServer(new P2PActivity.P2PServer() {
+                    @Override
+                    public GameServer getServer() {
+                        return server;
+                    }
+
+                    @Override
+                    public void openConnections() {
+                        show();
+                    }
+                });
+            }
+
+            @Override
+            protected void onCancelButtonClicked() {
                 groupFormedLock.release();
-                super.onCancelled();
+                shutdown();
             }
 
             @Override
-            protected void onCompleted() {
-                if (!server.isRunning()) {
-                    activity.newDialogBuilder().setTitle(R.string.popup_title_error)
-                            .setMessage("Failed to strat server")
-                            .setPositiveButton(R.string.popup_button_ok, (dialog1, which) -> helper.stop())
-                            .show();
-                } else {
-                    Toast.makeText(activity, "Server started", Toast.LENGTH_LONG).show();
-                    activity.onP2PServer(new P2PActivity.P2PServer() {
-                        @Override
-                        public GameServer getServer() {
-                            return server;
-                        }
-
-                        @Override
-                        public void openConnections() {
-                            show();
-                        }
-                    });
-                }
-
+            protected void onError(Exception e) {
+                activity.newDialogBuilder().setTitle(R.string.popup_title_error)
+                        .setMessage(R.string.popup_msg_failed_to_start_server)
+                        .setPositiveButton(R.string.popup_button_ok, (dialog1, which) -> {
+                            shutdown();
+                        }).setCancelable(false)
+                        .show();
             }
         }.execute();
     }
@@ -126,7 +131,8 @@ public class P2PClientConnectionsDialog extends BaseAdapter implements
             dialog = context.newDialogBuilder().setTitle(R.string.popup_title_connected_clients)
                     .setView(lvPlayers)
                     .setPositiveButton(R.string.popup_button_close, null)
-                    .setNegativeButton(R.string.popup_button_disconnect, this).show();
+                    .setNegativeButton(R.string.popup_button_disconnect, this)
+                    .show();
             dialog.setOnDismissListener(this);
         }
     }
@@ -167,7 +173,7 @@ public class P2PClientConnectionsDialog extends BaseAdapter implements
 
     @Override
     public final void onClick(DialogInterface dialog, int which) {
-        context.p2pShutdown();
+        shutdown();
     }
 
     @Override
@@ -221,7 +227,18 @@ public class P2PClientConnectionsDialog extends BaseAdapter implements
         notifyDataSetChanged();
     }
 
+    @Override
+    public void onCancel(DialogInterface dialog) {
+        shutdown();
+    }
+
     public void onError(String msg) {
+        shutdown();
         Toast.makeText(context, msg, Toast.LENGTH_LONG).show();
+    }
+
+    private void shutdown() {
+        helper.stop();
+        context.p2pShutdown();
     }
 }
