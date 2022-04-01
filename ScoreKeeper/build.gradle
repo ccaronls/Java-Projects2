@@ -49,9 +49,9 @@ android {
     signingConfigs {
         release {
             storeFile file(project.storeFile)
-            storePassword project.storePassword
-            keyAlias project.keyAlias
-            keyPassword project.keyPassword
+            storePassword sebi_storePassword
+            keyAlias sebi_keyAlias
+            keyPassword sebi_keyPassword
         }
     }
 
