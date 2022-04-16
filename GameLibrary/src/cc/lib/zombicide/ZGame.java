@@ -29,6 +29,12 @@ public class ZGame extends Reflector<ZGame>  {
     static {
         addAllFields(ZGame.class);
         addAllFields(State.class);
+        registerClass(ZZombie.class);
+        registerClass(ZWallFlag.class);
+        registerClass(ZSkill.class);
+        registerClass(HashMap.class);
+        registerClass(HashSet.class);
+        registerClass(ZCellType.class);
     }
 
     private final static Logger log = LoggerFactory.getLogger(ZGame.class);
@@ -62,7 +68,8 @@ public class ZGame extends Reflector<ZGame>  {
     private ZQuest quest=null;
     private int currentUser=0;
     private int startUser=0;
-    private LinkedList<ZEquipment> searchables = new LinkedList<>();
+    @Alternate(variations = "searchables")
+    private LinkedList<ZEquipment> lootDeck = new LinkedList<>();
     private int spawnMultiplier=1;
     private int roundNum=0;
     private int gameOverStatus=0; // 0 == in play, 1, == game won, 2 == game lost
@@ -115,7 +122,7 @@ public class ZGame extends Reflector<ZGame>  {
     }
 
     private void initGame() {
-        initSearchables();
+        initLootDeck();
         roundNum = 0;
         currentUser = 0;
         gameOverStatus = 0;
@@ -216,10 +223,12 @@ public class ZGame extends Reflector<ZGame>  {
             loadQuest(currentQuest);
     }
 
-    public int getNumKills(ZZombieType type) {
+    public int getNumKills(ZZombieType ... types) {
         int num=0;
-        for (ZCharacter c : board.getAllCharacters()) {
-            num += c.getKills(type);
+        for (ZZombieType type : types) {
+            for (ZCharacter c : board.getAllCharacters()) {
+                num += c.getKills(type);
+            }
         }
         return num;
     }
@@ -343,6 +352,8 @@ public class ZGame extends Reflector<ZGame>  {
         for (Grid.Iterator<ZCell> it2 = board.getCellsIterator(); it2.hasNext(); ) {
             ZCell cell2 = it2.next();
             if (cell == cell2)
+                continue;
+            if (cell.getVaultType() != cell2.getVaultType())
                 continue;
             if (cell.vaultFlag == cell2.vaultFlag) {
                 zone.doors.add(new ZDoor(pos, it2.getPos(), cell.environment == ZCell.ENV_VAULT ? ZDir.ASCEND : ZDir.DESCEND, color));
@@ -855,6 +866,7 @@ public class ZGame extends Reflector<ZGame>  {
                     log.debug("New Skill Chosen: " + skill);
                     onNewSkillAquired(cur, skill);
                     ch.addSkill(skill);
+                    skill.onAcquired(this, ch);
                     options.remove(skill);
                     popState();
                     return true;
@@ -1015,7 +1027,7 @@ public class ZGame extends Reflector<ZGame>  {
                     ZEquipment equip = user.chooseEquipmentInternal(getCurrentCharacter(), choices);
                     if (equip != null) {
                         popState();
-                        searchables.remove(equip);
+                        lootDeck.remove(equip);
                         giftEquipment(getCurrentCharacter().getCharacter(), equip);
                         return true;
                     }
@@ -1287,10 +1299,8 @@ public class ZGame extends Reflector<ZGame>  {
                 }
                 switch (selectedSlot) {
                     case BACKPACK:
-                        if (selectedEquipment.isEquippable(cur)) {
-                            for (ZEquipSlot slot : cur.getEquipableSlots(selectedEquipment)) {
-                                options.add(ZMove.newEquipMove(selectedEquipment, selectedSlot, slot));
-                            }
+                        for (ZEquipSlot slot : cur.getEquipableSlots(selectedEquipment)) {
+                            options.add(ZMove.newEquipMove(selectedEquipment, selectedSlot, slot));
                         }
                         break;
                     case RIGHT_HAND:
@@ -1427,7 +1437,7 @@ public class ZGame extends Reflector<ZGame>  {
                 else
                     slot = getCurrentUser().chooseEquipmentToThrowInternal(cur.getPlayerName(), slots);
                 if (slot != null) {
-                    Integer zoneIdx = null;
+                    Integer zoneIdx;
                     if (move.integer != null) {
                         zoneIdx = move.integer;
                     } else {
@@ -1437,26 +1447,6 @@ public class ZGame extends Reflector<ZGame>  {
                     }
                     if (zoneIdx != null) {
                         slot.getType().onThrown(this, cur, zoneIdx);
-                        /*
-                        switch (slot.type) {
-                            case DRAGON_BILE:
-                                addLogMessage(cur.name() + " threw the dragon Bile!");
-                                onDragonBileThrown(cur.getPlayerName(), zoneIdx);
-                                board.getZone(zoneIdx).setDragonBile(true);
-                                break;
-                            case TORCH: {
-                                ZZone zone = board.getZone(zoneIdx);
-                                onTorchThrown(cur.getPlayerName(), zoneIdx);
-                                if (!zone.isDragonBile()) {
-                                    addLogMessage("Throwing the Torch had no effect");
-                                } else {
-                                    performDragonFire(cur, zone.getZoneIndex());
-                                }
-                                break;
-                            }
-                            default:
-                                throw new GException("Unhandled case: " + slot.type);
-                        }*/
                         cur.removeEquipment(slot);
                         cur.performAction(ZActionType.THROW_ITEM, this);
                         putBackInSearchables(slot);
@@ -1542,8 +1532,8 @@ public class ZGame extends Reflector<ZGame>  {
                 if (cur.isEquipped(ZItemType.TORCH))
                     numCardsDrawn = 2;
                 List<ZEquipment> found = new ArrayList<>();
-                while (searchables.size() > 0 && numCardsDrawn-- > 0) {
-                    ZEquipment equip = searchables.removeLast();
+                while (lootDeck.size() > 0 && numCardsDrawn-- > 0) {
+                    ZEquipment equip = lootDeck.removeLast();
                     if (equip.getType() == ZItemType.AAHHHH) {
                         addLogMessage("Aaaahhhh!!!");
                         onAhhhhhh(cur.getPlayerName());
@@ -1689,10 +1679,7 @@ public class ZGame extends Reflector<ZGame>  {
                 if (targetZone != null) {
                     // shove all zombies in this zone into target zone
                     for (ZZombie z : board.getZombiesInZone(cur.getOccupiedZone())) {
-                        GRectangle prev = z.getRect();
-                        board.moveActor(z, targetZone);
-                        GRectangle next   = board.getCell(z.occupiedCell).getQuadrant(z.occupiedQuadrant);
-                        onActorMoved(z, prev, next, 300);
+                        moveActor(z, targetZone, 300, ZActionType.SHOVE);
                     }
                     cur.performAction(ZActionType.SHOVE, this);
                     return true;
@@ -1921,7 +1908,7 @@ public class ZGame extends Reflector<ZGame>  {
                 }
                 addLogMessage(getCurrentCharacter().name() + " Scored " + hits + " hits");
                 for (ZSkill skill : Utils.mergeLists(cur.getAvailableSkills(), weapon.getType().getSkillsWhenUsed())) {
-                    skill.onAttack(this, cur, actionType, stat, cur.getOccupiedZone(), hits, zombiesDestroyed);
+                    skill.onAttack(this, cur, weapon, actionType, stat, cur.getOccupiedZone(), hits, zombiesDestroyed);
                 }
                 if (hits > 0)
                     checkForHitAndRun(cur);
@@ -2000,7 +1987,7 @@ public class ZGame extends Reflector<ZGame>  {
                             addExperience(cur, zombie.type.expProvided);
                         }
                         for (ZSkill skill : Utils.mergeLists(cur.getAvailableSkills(), weapon.getType().getSkillsWhenUsed())) {
-                            skill.onAttack(this, cur, actionType, stat, zoneIdx, hits, zombiesDestroyed);
+                            skill.onAttack(this, cur, weapon, actionType, stat, zoneIdx, hits, zombiesDestroyed);
                         }
                         for (ZCharacter victim : friendsHit) {
                             playerWounded(victim, cur, stat.getAttackType(), stat.damagePerHit, "Friendly Fire!");
@@ -2319,6 +2306,12 @@ public class ZGame extends Reflector<ZGame>  {
     }
 
     public ZUser getCurrentUser() {
+        ZPlayerName pl = getCurrentCharacter();
+        if (pl != null) {
+            ZUser user = Utils.findFirstOrNull(users, u -> u.getPlayers().contains(pl));
+            if (user != null)
+                return user;
+        }
         return users.get(Utils.clamp(currentUser, 0, users.size()-1));
     }
 
@@ -2387,64 +2380,54 @@ public class ZGame extends Reflector<ZGame>  {
         log.debug("actor %s moved from %s to %s with speed %d", actor, start, end, speed);
     }
 
-    List<ZEquipment> make(int count, Enum e) {
+    List<ZEquipment> make(int count, ZEquipmentType e) {
         List<ZEquipment> list = new ArrayList<>();
-        if (e instanceof ZWeaponType) {
-            for (int i=0; i<count; i++)
-                list.add(new ZWeapon((ZWeaponType)e));
-        } else if (e instanceof ZArmorType) {
-            for (int i=0; i<count; i++)
-                list.add(new ZArmor((ZArmorType)e));
-        } else if (e instanceof ZItemType) {
-            for (int i=0; i<count; i++)
-                list.add(new ZItem((ZItemType)e));
+        for (int i=0; i<count; i++) {
+            list.add(e.create());
         }
         return list;
     }
 
-    void initSearchables() {
-        searchables.clear();
-        searchables.addAll(make(4, ZItemType.BARRICADE));
-        searchables.addAll(make(4, ZItemType.AAHHHH));
-        searchables.addAll(make(2, ZItemType.APPLES));
-        searchables.addAll(make(2, ZWeaponType.AXE));
-        searchables.addAll(make(2, ZArmorType.CHAINMAIL));
-        searchables.addAll(make(2, ZWeaponType.CROSSBOW));
-        searchables.addAll(make(2, ZWeaponType.DAGGER));
-        searchables.addAll(make(2, ZWeaponType.DEATH_STRIKE));
-        searchables.addAll(make(3, ZItemType.DRAGON_BILE));
-        searchables.addAll(make(4, ZWeaponType.FIREBALL));
-        searchables.addAll(make(2, ZWeaponType.GREAT_SWORD));
-        searchables.addAll(make(1, ZWeaponType.HAMMER));
-        searchables.addAll(make(2, ZWeaponType.HAND_CROSSBOW));
-        searchables.addAll(make(1, ZSpellType.HEALING));
+    void initLootDeck() {
+        lootDeck.clear();
+        lootDeck.addAll(make(4, ZItemType.BARRICADE));
+        lootDeck.addAll(make(4, ZItemType.AAHHHH));
+        lootDeck.addAll(make(2, ZItemType.APPLES));
+        lootDeck.addAll(make(2, ZWeaponType.AXE));
+        lootDeck.addAll(make(2, ZArmorType.CHAINMAIL));
+        lootDeck.addAll(make(2, ZWeaponType.CROSSBOW));
+        lootDeck.addAll(make(2, ZWeaponType.DAGGER));
+        lootDeck.addAll(make(2, ZWeaponType.DEATH_STRIKE));
+        lootDeck.addAll(make(3, ZItemType.DRAGON_BILE));
+        lootDeck.addAll(make(2, ZWeaponType.FIREBALL));
+        lootDeck.addAll(make(2, ZWeaponType.GREAT_SWORD));
+        lootDeck.addAll(make(1, ZWeaponType.HAMMER));
+        lootDeck.addAll(make(2, ZWeaponType.HAND_CROSSBOW));
 //        searchables.addAll(make(1, ZWeaponType.INFERNO));
-        searchables.addAll(make(1, ZSpellType.INVISIBILITY));
-        searchables.addAll(make(2, ZArmorType.LEATHER));
-        searchables.addAll(make(2, ZWeaponType.LIGHTNING_BOLT));
-        searchables.addAll(make(2, ZWeaponType.LONG_BOW));
-        searchables.addAll(make(1, ZWeaponType.MANA_BLAST));
+        lootDeck.addAll(make(2, ZArmorType.LEATHER));
+        lootDeck.addAll(make(2, ZWeaponType.LIGHTNING_BOLT));
+        lootDeck.addAll(make(2, ZWeaponType.LONG_BOW));
+        lootDeck.addAll(make(1, ZWeaponType.MANA_BLAST));
 //        searchables.addAll(make(1, ZWeaponType.ORCISH_CROSSBOW));
-        searchables.addAll(make(1, ZArmorType.PLATE));
-        searchables.addAll(make(3, ZItemType.PLENTY_OF_ARROWS));
-        searchables.addAll(make(3, ZItemType.PLENTY_OF_BOLTS));
-        searchables.addAll(make(2, ZWeaponType.REPEATING_CROSSBOW));
+        lootDeck.addAll(make(1, ZArmorType.PLATE));
+        lootDeck.addAll(make(3, ZItemType.PLENTY_OF_ARROWS));
+        lootDeck.addAll(make(3, ZItemType.PLENTY_OF_BOLTS));
+        lootDeck.addAll(make(2, ZWeaponType.REPEATING_CROSSBOW));
         //searchables.addAll(make(1, ZSpellType.REPULSE));
-        searchables.addAll(make(2, ZItemType.SALTED_MEAT));
-        searchables.addAll(make(2, ZArmorType.SHIELD));
-        searchables.addAll(make(1, ZWeaponType.SHORT_BOW));
-        searchables.addAll(make(2, ZWeaponType.SHORT_SWORD));
-        searchables.addAll(make(1, ZSpellType.SPEED));
-        searchables.addAll(make(2, ZWeaponType.SWORD));
-        searchables.addAll(make(4, ZItemType.TORCH));
-        searchables.addAll(make(2, ZItemType.WATER));
-        searchables.addAll(make(1, ZSpellType.HEALING));
-        searchables.addAll(make(1, ZSpellType.INVISIBILITY));
-        searchables.addAll(make(1, ZSpellType.SPEED));
-        searchables.addAll(make(1, ZSpellType.HELL_GOAT));
-        quest.processSearchables(searchables);
+        lootDeck.addAll(make(2, ZItemType.SALTED_MEAT));
+        lootDeck.addAll(make(2, ZArmorType.SHIELD));
+        lootDeck.addAll(make(1, ZWeaponType.SHORT_BOW));
+        lootDeck.addAll(make(2, ZWeaponType.SHORT_SWORD));
+        lootDeck.addAll(make(2, ZWeaponType.SWORD));
+        lootDeck.addAll(make(4, ZItemType.TORCH));
+        lootDeck.addAll(make(2, ZItemType.WATER));
+        lootDeck.addAll(make(1, ZSpellType.HEALING));
+        lootDeck.addAll(make(1, ZSpellType.INVISIBILITY));
+        lootDeck.addAll(make(1, ZSpellType.SPEED));
+        lootDeck.addAll(make(1, ZSpellType.HELL_GOAT));
+        quest.processLootDeck(lootDeck);
 
-        Utils.shuffle(searchables);
+        Utils.shuffle(lootDeck);
     }
 
     public void addNoise(int zoneIdx, int noise) {
@@ -2481,7 +2464,7 @@ public class ZGame extends Reflector<ZGame>  {
     }
 
     void putBackInSearchables(ZEquipment e) {
-        searchables.addFirst(e);
+        lootDeck.addFirst(e);
     }
 
     private boolean canSwitchActivePlayer() {
@@ -2496,7 +2479,7 @@ public class ZGame extends Reflector<ZGame>  {
     }
 
     public List<ZEquipment> getAllSearchables() {
-        return Collections.unmodifiableList(searchables);
+        return Collections.unmodifiableList(lootDeck);
     }
 
     public void onIronRain(ZPlayerName c, int targetZone) {
@@ -2587,5 +2570,17 @@ public class ZGame extends Reflector<ZGame>  {
 
     public void chooseVaultItem() {
         pushState(ZState.PLAYER_STAGE_CHOOSE_VAULT_ITEM, getCurrentCharacter());
+    }
+
+    public void giftRandomVaultArtifact(ZCharacter c) {
+        List<ZEquipment> remaining = quest.getVaultItemsRemaining();
+        if (remaining.size() == 0)
+            return;
+
+        ZEquipment equip = Utils.randItem(remaining);
+        remaining.remove(equip);
+
+        addLogMessage(c.getLabel() + " has been gifted a " + equip.getLabel());
+        giftEquipment(c, equip);
     }
 }

@@ -111,6 +111,10 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
 
             { ZZombieType.Abomination, "zabomination.png" },
                 { ZZombieType.Abomination, "zabomination_outline.png" },
+            { ZZombieType.GreenTwin, "zgreentwin.png" },
+                { ZZombieType.GreenTwin, "zabomination_outline.png" },
+            { ZZombieType.BlueTwin, "zbluetwin.png" },
+                { ZZombieType.BlueTwin, "zabomination_outline.png" },
             { ZZombieType.Necromancer, "znecro.png" },
                 { ZZombieType.Necromancer, "znecro_outline.png" },
             { ZZombieType.Walker, "zwalker1.png" },

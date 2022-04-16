@@ -31,7 +31,7 @@ public enum ZItemType implements ZEquipmentType<ZItem> {
     APPLES(ZEquipmentClass.CONSUMABLE, ZActionType.CONSUME, ZEquipSlotType.BACKPACK, "Consume and gain 3 experience point"),
     PLENTY_OF_ARROWS(ZEquipmentClass.BOW, ZActionType.NOTHING, ZEquipSlotType.BACKPACK, "You may re-roll all ranged attacked involving bows. The new result takes place of old."), // user can reroll ranged arrow attacks if they want
     PLENTY_OF_BOLTS(ZEquipmentClass.CROSSBOW, ZActionType.NOTHING, ZEquipSlotType.BACKPACK, "You may re-roll all ranged attacked involving bolts. The new result takes place of old."),
-    BARRICADE(ZEquipmentClass.CONSUMABLE, ZActionType.BARRICADE_DOOR, ZEquipSlotType.BACKPACK, "Close and barricade a door. Takes 3 turns to execute."),
+    BARRICADE(ZEquipmentClass.CONSUMABLE, ZActionType.BARRICADE_DOOR, ZEquipSlotType.HAND, "Close and barricade a door. Takes 3 turns to execute."),
     ;
 
     ZItemType(ZEquipmentClass clazz, ZActionType actionType, ZEquipSlotType slot, String description) {

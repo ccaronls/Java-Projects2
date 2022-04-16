@@ -346,8 +346,9 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
                 } catch (InterruptedException e) {
                     break;
                 }
-                if (getServer() != null) {
-                    getServer().broadcastCommand(serverMgr.newUpdateGameCommand(game));
+
+                if (serverMgr != null) {
+                    serverMgr.broadcastUpdateGame();
                 }
                 log.debug("Backingup ... ");
                 FileUtils.backupFile(gameFile, 32);
@@ -721,6 +722,7 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
                 break;
             }
             case NEW_GAME: {
+                shutdownMP();
                 showNewGameDialog();
                 break;
             }
@@ -843,7 +845,7 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
                 break;
             }
             case MINIMAP_MODE: {
-                getPrefs().edit().putInt("miniMapMode", boardRenderer.toggleDrawMinimap());
+                getPrefs().edit().putInt("miniMapMode", boardRenderer.toggleDrawMinimap()).apply();
                 break;
             }
         }
@@ -855,8 +857,8 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
         if (FileUtils.restoreFile(gameFile)) {
             game.tryLoadFromFile(gameFile);
             game.refresh();
-            if (getServer() != null) {
-                getServer().broadcastCommand(serverMgr.newUpdateGameCommand(game));
+            if (serverMgr != null) {
+                serverMgr.broadcastUpdateGame();
             }
         }
         if (isRunning)
@@ -875,7 +877,7 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
                 }
                 user.setCharacters(newPlayers);
             }
-            getServer().broadcastCommand(serverMgr.newUpdateGameCommand(game));
+            serverMgr.broadcastUpdateGame();
         } else {
             loadCharacters(getStoredCharacters());
             game.trySaveToFile(gameFile);

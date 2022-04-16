@@ -4,6 +4,7 @@ import cc.lib.annotation.Keep;
 import cc.lib.game.Justify;
 import cc.lib.game.Utils;
 import cc.lib.math.Vector2D;
+import cc.lib.utils.GException;
 import cc.lib.utils.Grid;
 
 @Keep
@@ -43,8 +44,7 @@ public enum ZDir {
             case DESCEND:
                 return ASCEND;
         }
-        Utils.assertTrue(false);
-        return null;
+        throw new GException("No opposite for " + this);
     }
 
     public Grid.Pos getAdjacent(Grid.Pos pos) {

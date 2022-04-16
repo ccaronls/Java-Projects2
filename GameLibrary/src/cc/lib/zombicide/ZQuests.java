@@ -197,7 +197,7 @@ public enum ZQuests {
             "prince had come to Wulfsburg shortly after the " +
             "invasion began with his private army. Even its " +
             "fallen state, the city retains its wealth. Zombies " +
-            "aren’t interested in treasure, so he thought it’d be " +
+            "are’nt interested in treasure, so he thought it’d be " +
             "an easy conquest. " +
             "The blood-spattered journal ends with an entry " +
             "about a pair of abominations stalking the final few " +

@@ -151,7 +151,7 @@ public class ZWeapon extends ZEquipment<ZWeaponType> {
         for (ZActionType at : ZActionType.values()) {
             ZWeaponStat stats = c.getWeaponStat(this, at, game, -1);
             if (stats != null) {
-                String doorInfo = "";
+                String doorInfo;
                 if (stats.dieRollToOpenDoor > 0) {
                     doorInfo = String.format("%s %d%%", type.openDoorsIsNoisy ? "noisy" : "quiet", (7-stats.dieRollToOpenDoor)*100/6);
                 } else {
@@ -193,7 +193,7 @@ public class ZWeapon extends ZEquipment<ZWeaponType> {
                 "Reloads"));
 
         for (ZWeaponStat stats : type.getStats()) {
-            String doorInfo = "";
+            String doorInfo;
             if (stats.dieRollToOpenDoor > 0) {
                 doorInfo = String.format("%s %d%%", type.openDoorsIsNoisy ? "noisy" : "quiet", (7-stats.dieRollToOpenDoor)*100/6);
             } else {

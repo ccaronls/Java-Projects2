@@ -1,7 +1,9 @@
 package cc.lib.zombicide;
 
+import cc.lib.annotation.Keep;
 import cc.lib.game.GColor;
 
+@Keep
 public enum ZColor {
     BLUE(0, 7, GColor.BLUE),
     YELLOW(8, 19, GColor.YELLOW),

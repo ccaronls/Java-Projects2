@@ -23,8 +23,7 @@ public final class ZZombie extends ZActor<ZZombieType> {
     }
 
     public ZZombie() {
-        super(-1);
-        type = null;
+        this(ZZombieType.Walker, -1);
     }
 
     public ZZombie(ZZombieType type, int zone) {
@@ -98,9 +97,8 @@ public final class ZZombie extends ZActor<ZZombieType> {
 
     @Override
     long getMoveSpeed() {
-        switch (type) {
-            case Runner:
-                return 500;
+        if (type == ZZombieType.Runner) {
+            return 500;
         }
         return super.getMoveSpeed();
     }

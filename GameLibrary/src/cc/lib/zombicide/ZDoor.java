@@ -75,12 +75,12 @@ public final class ZDoor extends Reflector<ZDoor>  {
         switch (board.getDoor(this)) {
             case OPEN:
                 board.setDoor(this, ZWallFlag.CLOSED);
-                board.setDoor(otherSide, ZWallFlag.CLOSED);
+//                board.setDoor(otherSide, ZWallFlag.CLOSED);
                 break;
             case LOCKED:
             case CLOSED:
                 board.setDoor(this, ZWallFlag.OPEN);
-                board.setDoor(otherSide, ZWallFlag.OPEN);
+//                board.setDoor(otherSide, ZWallFlag.OPEN);
                 break;
         }
         this.jammed = otherSide.jammed = jammed;

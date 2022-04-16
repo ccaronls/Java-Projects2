@@ -79,6 +79,14 @@ public class ZCell extends Reflector<ZCell> implements IRectangle {
         return false;
     }
 
+    public ZCellType getVaultType() {
+        if (isCellType(ZCellType.VAULT_DOOR_GOLD))
+            return ZCellType.VAULT_DOOR_GOLD;
+        if (isCellType(ZCellType.VAULT_DOOR_VIOLET))
+            return ZCellType.VAULT_DOOR_VIOLET;
+        return ZCellType.NONE;
+    }
+
     public boolean isCellTypeEmpty() {
         return cellFlag == 0;
     }

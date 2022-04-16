@@ -133,7 +133,7 @@ public class ZQuestTutorial extends ZQuest {
                     .addRow("2.", "Unlock the GREEN Door. GREEN key hidden among RED objectives.", game.getBoard().getDoor(greenDoor) != ZWallFlag.LOCKED)
                     .addRow("3.", String.format("Collect all Objectives for %d EXP Each", getObjectiveExperience(0,0)), String.format("%d of %d", getNumFoundObjectives(), getNumStartObjectives()))
                     .addRow("4.", "Get all players into the EXIT zone.", isAllPlayersInExit(game))
-                    .addRow("5.", "Exit zone must be cleared of zombies.")
+                    .addRow("5.", "Exit zone must be cleared of zombies.", isExitClearedOfZombies(game))
                     .addRow("6.", "All Players must survive.")
                 );
     }

@@ -63,19 +63,11 @@ public enum ZActionType {
     }
 
     public boolean isRanged() {
-        switch (this) {
-            case RANGED:
-                return true;
-        }
-        return false;
+        return this == ZActionType.RANGED;
     }
 
     public boolean isMagic() {
-        switch (this) {
-            case MAGIC:
-                return true;
-        }
-        return false;
+        return this == ZActionType.MAGIC;
     }
 
     public boolean isProjectile() {

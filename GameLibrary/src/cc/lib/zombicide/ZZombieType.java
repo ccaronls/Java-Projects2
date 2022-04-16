@@ -64,11 +64,19 @@ public enum ZZombieType {
              "Scavenging is smart, and numerous wolves can run any\n" +
              "lone mountain lion off their kill. When they first\n" +
              "encountered the shambling hordes, straggling in like\n" +
-             "the zombies do, we’re sure the wolves couldn’t resist\n" +
+             "the zombies do, we’re sure the wolves could’nt resist\n" +
              "such easy prey. But, eating that infected meat… well.\n" +
              "It changed them."),
     Wolfbomination(ZZombieCategory.WOLFSBURG, 3, 5, 3, true, 2, false,
-            "The Big Bad Wolf exists, and it is a bloodthirsty nightmare. We don’t know yet how the Wolfbominations are created, if they are just alpha males turned zombies or the result of hideous experiments, but there is one thing for sure: if you see one, keep away from it for as long as you can. And save dragon bile for them, whatever comes for you first.");
+            "The Big Bad Wolf exists, and it is a bloodthirsty nightmare. We don’t know yet how the Wolfbominations are created, if they are just alpha males turned zombies or the result of hideous experiments, but there is one thing for sure: if you see one, keep away from it for as long as you can. And save dragon bile for them, whatever comes for you first."),
+    GreenTwin(ZZombieCategory.STANDARD, 3, 5, 1, true, 3, false,
+                        ""),
+    BlueTwin(ZZombieCategory.STANDARD, 3, 5, 1, true, 3, false,
+            ""),
+
+    ;
+
+
 
     ZZombieType(ZZombieCategory category, int minDamageToDestroy, int expProvided, int actionsPerTurn, boolean ignoresArmor, int attackPriority, boolean canDoubleSpawn, String description) {
         this.category = category;
@@ -94,6 +102,8 @@ public enum ZZombieType {
         switch (this) {
             case Abomination:
             case Wolfbomination:
+            case GreenTwin:
+            case BlueTwin:
                 return 1.8f;
         }
         return 1;

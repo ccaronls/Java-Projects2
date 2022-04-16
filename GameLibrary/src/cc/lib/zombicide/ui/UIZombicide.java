@@ -269,7 +269,7 @@ public abstract class UIZombicide extends ZGameMP {
             }
         });
         for (ZEquipment t : list) {
-            table.addColumnNoHeader(t.getCardInfo(player.getCharacter(), this));
+            table.addColumnNoHeaderVarArg(t.getCardInfo(player.getCharacter(), this));
         }
         boardRenderer.setOverlay(table);
 

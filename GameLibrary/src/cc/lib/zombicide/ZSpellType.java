@@ -8,7 +8,12 @@ public enum  ZSpellType implements ZEquipmentType<ZSpell>, IButton {
 
     // TODO: Do we really need spell type?
 
-    HEALING(ZSkill.Healing,"Once per turn targeted survivor recovers a wound point"),
+    HEALING(ZSkill.Healing,"Once per turn targeted survivor recovers a wound point") {
+        @Override
+        public void doEnchant(ZGame game, ZCharacter target) {
+            target.heal(game, 1);
+        }
+    },
     INVISIBILITY(ZSkill.Invisible,"Once per turn targeted survivor benefits from rotten skill effects until end of round. Making noise or attacking nullify the effect"),
     //IRONCLAD_ZOMBIE_WOLFZ(ZSkill.Ironclad, "Once per turn targeted survivor benefits from effect until end of round."),
     //REPULSE("once per turn select a target zone survivor can see and destination zone at range 1 from it - sharing an open path - and 1 zone farther from the survivor. Zombies standing in the target zone are pushed into the destination zone."),

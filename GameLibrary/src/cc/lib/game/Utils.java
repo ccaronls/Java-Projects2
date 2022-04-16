@@ -2733,6 +2733,19 @@ public class Utils {
     }
 
     /**
+     *
+     * @param collection
+     * @param filter
+     * @param <O>
+     */
+    public static <O> void filterInPlace(Iterable<O> collection, Filter<O> filter) {
+        for (Iterator<O> i = collection.iterator(); i.hasNext(); ) {
+            if (!filter.keep(i.next()))
+                i.remove();
+        }
+    }
+
+    /**
      * Returns number of items in collection after filtering
      * @param collection
      * @param filter

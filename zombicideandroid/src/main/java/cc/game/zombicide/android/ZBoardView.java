@@ -121,6 +121,8 @@ public class ZBoardView extends UIComponentView implements UIZComponent<DroidGra
                 R.drawable.zwalker5, R.drawable.zwalker5_outline);
 
         initZombieImages(g, ZZombieType.Abomination, R.drawable.zabomination, R.drawable.zabomination_outline);
+        initZombieImages(g, ZZombieType.BlueTwin, R.drawable.zbluetwin, R.drawable.zabomination_outline);
+        initZombieImages(g, ZZombieType.GreenTwin, R.drawable.zgreentwin, R.drawable.zabomination_outline);
         initZombieImages(g, ZZombieType.Necromancer, R.drawable.znecro, R.drawable.znecro_outline);
         initZombieImages(g, ZZombieType.Runner, R.drawable.zrunner1, R.drawable.zrunner1_outline, R.drawable.zrunner2, R.drawable.zrunner2_outline);
         initZombieImages(g, ZZombieType.Fatty, R.drawable.zfatty1, R.drawable.zfatty1_outline, R.drawable.zfatty2, R.drawable.zfatty2_outline);

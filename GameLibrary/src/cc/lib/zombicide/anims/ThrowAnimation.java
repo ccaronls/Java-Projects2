@@ -12,7 +12,7 @@ import cc.lib.zombicide.ZActorAnimation;
 import cc.lib.zombicide.ZDir;
 import cc.lib.zombicide.ZIcon;
 
-// TODO: Consider mergeing Fireball, Throw, Shoot animation types which all have similar features and special charateristics like: STATIC, SPIN, DIRECTIONAL, RANDOM
+// TODO: Consider merging Fireball, Throw, Shoot animation types which all have similar features and special characteristics like: STATIC, SPIN, DIRECTIONAL, RANDOM
 public class ThrowAnimation extends ZActorAnimation {
 
     final ZIcon icon;
@@ -48,11 +48,6 @@ public class ThrowAnimation extends ZActorAnimation {
     @Override
     protected boolean hidesActor() {
         return false;
-    }
-
-    @Override
-    public GRectangle getRect() {
-        return rect;
     }
 
     public ZDir getDir() {

@@ -42,7 +42,7 @@ public class UIZUser extends ZUser {
             }
         });
         for (ZSkill t : list) {
-            table.addColumn(t.name(), t.description);
+            table.addColumn(Utils.toPrettyString(t.name()), t.description);
         }
         UIZombicide.getInstance().boardRenderer.setOverlay(table);
         return UIZombicide.getInstance().pickMenu(cur,cur.name() + " Choose New Skill", ZSkill.class, list);
@@ -159,7 +159,7 @@ public class UIZUser extends ZUser {
     public ZEquipmentType chooseStartingEquipment(ZPlayerName playerName, List<ZEquipmentType> list) {
         Table table = new Table().setNoBorder();
         for (ZEquipmentType t : list) {
-            table.addColumnNoHeader(t.create().getCardInfo(playerName.getCharacter(), UIZombicide.getInstance()));
+            table.addColumnNoHeaderVarArg(t.create().getCardInfo(playerName.getCharacter(), UIZombicide.getInstance()));
         }
 
         UIZombicide.getInstance().boardRenderer.setOverlay(new Table().addColumn("Choose Starting Equipment", table));

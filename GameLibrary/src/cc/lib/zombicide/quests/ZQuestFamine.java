@@ -187,7 +187,7 @@ public class ZQuestFamine extends ZQuest {
     }
 
     @Override
-    public void processSearchables(List<ZEquipment> items) {
+    public void processLootDeck(List<ZEquipment> items) {
         // bump up number of quest specific items
         items.addAll(Arrays.asList(
                 ZItemType.APPLES.create(),

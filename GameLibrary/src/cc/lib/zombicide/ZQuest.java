@@ -137,7 +137,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
      */
     public List<ZEquipmentType> getAllVaultOptions() {
         if (isWolfBurg()) {
-            return Utils.toList(ZWeaponType.CHAOS_LONGBOW, ZWeaponType.VAMPIRE_CROSSBOW);
+            return Utils.toList(ZWeaponType.CHAOS_LONGBOW, ZWeaponType.VAMPIRE_CROSSBOW, ZWeaponType.EARTHQUAKE_HAMMER, ZWeaponType.DRAGON_FIRE_BLADE);
         }
         return Utils.asList(ZWeaponType.INFERNO, ZWeaponType.ORCISH_CROSSBOW);
     }
@@ -389,6 +389,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
         }
 
         // do another pass ans make sure all the zone cells are adjacent
+        //MergableVector<ZZone> zones = new MergableVector<>();
         Vector<ZZone> zones = new Vector<>();
         zones.setSize(maxZone+1);
         for (Map.Entry<Integer, ZZone> e : zoneMap.entrySet()) {
@@ -523,19 +524,11 @@ public abstract class ZQuest extends Reflector<ZQuest> {
         return vaultItemsRemaining;
     }
 
-    protected ZEquipment getRandomVaultArtifact() {
-        List<ZEquipment> remaining = getVaultItemsRemaining();
-        if (remaining.size() > 0) {
-            ZEquipment e = Utils.randItem(remaining);
-            remaining.remove(e);
-            return e;
-        }
-        Utils.assertTrue(false);
-        return null;
-    }
-
     public int getMaxNumZombiesOfType(ZZombieType type) {
         switch (type) {
+            case GreenTwin:
+            case BlueTwin:
+                return 0;
             case Abomination:
             case Wolfbomination:
                 return 1;
@@ -549,7 +542,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
             case Runner:
                 return 14;
         }
-        return Integer.MAX_VALUE;
+        return 20;
     }
 
     public void onEquipmentFound(ZGame game, ZEquipment equip) {
@@ -565,7 +558,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
      * Perform any processing to the searchable. Called once on quest init
      * @param items
      */
-    public void processSearchables(List<ZEquipment> items) {}
+    public void processLootDeck(List<ZEquipment> items) {}
 
     protected int getNumStartObjectives() {
         return Utils.sumInt(objectives.values(), o->o.found.size() + o.objectives.size());
@@ -603,5 +596,9 @@ public abstract class ZQuest extends Reflector<ZQuest> {
      */
     public ZSpawnCard drawSpawnCard(ZGame game, int targetZone, ZSkillLevel dangerLevel) {
         return ZSpawnCard.drawSpawnCard(isWolfBurg(), game.canZoneSpawnNecromancers(targetZone), game.getDifficulty());
+    }
+
+    public boolean isExitClearedOfZombies(ZGame game) {
+        return game.getBoard().getNumZombiesInZone(getExitZone()) == 0;
     }
 }

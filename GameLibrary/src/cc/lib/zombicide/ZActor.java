@@ -23,7 +23,7 @@ public abstract class ZActor<E extends Enum<E>> extends Reflector<ZActor<E>> imp
         this.occupiedZone = zone;
     }
 
-    int occupiedZone = -1;
+    int occupiedZone;
     int priorZone;
     Grid.Pos occupiedCell;
     ZCellQuadrant occupiedQuadrant;

@@ -377,7 +377,7 @@ public class ZBoard extends Reflector<ZBoard> implements IDimension {
             ZCell cell = getCell(pos);
             if (cell.numSpawns < 2) {
                 ZDir newDir = cell.spawns[0].getDir().getOpposite();
-                cell.spawns[cell.numSpawns++] = new ZSpawnArea(pos, icon, newDir, canSpawnNecromancers, isEscapableForNecromancers, canBeRemovedFromBoard);;
+                cell.spawns[cell.numSpawns++] = new ZSpawnArea(pos, icon, newDir, canSpawnNecromancers, isEscapableForNecromancers, canBeRemovedFromBoard);
                 break;
             }
         }
@@ -415,7 +415,7 @@ public class ZBoard extends Reflector<ZBoard> implements IDimension {
     public boolean addActor(ZActor actor, int zoneIndex, Grid.Pos cellPos) {
         ZZone zone = zones.get(zoneIndex);
         boolean added = false;
-        for (int c=0;!added && c < zone.cells.size(); c++) {
+        for (int c=0; c < zone.cells.size(); c++) {
             if (cellPos == null) {
                 cellPos = zone.cells.get(zone.getNextCellAndIncrement());
             }

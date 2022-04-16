@@ -12,7 +12,7 @@ import cc.lib.zombicide.ui.UIZombicide;
 /**
  * Created by Chris Caron on 3/7/22.
  */
-class HeadlessUIZombicide extends UIZombicide {
+public class HeadlessUIZombicide extends UIZombicide {
     public HeadlessUIZombicide() {
         super(new UIZCharacterRenderer(new UIComponent() {
             @Override
@@ -76,5 +76,9 @@ class HeadlessUIZombicide extends UIZombicide {
     @Override
     public ZUser getThisUser() {
         return new ZTestUser();
+    }
+
+    @Override
+    protected void onBeginRound(int roundNum) {
     }
 }

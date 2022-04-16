@@ -175,7 +175,7 @@ class ZServerMgr extends ZMPCommon implements GameServer.Listener, ZMPCommon.SVR
         ZUser user = clientToUserMap.get(conn);
         if (user != null) {
             game.addUser(user);
-            conn.sendCommand(newUpdateGameCommand(game));
+            broadcastUpdateGame();
         }
     }
 
@@ -196,6 +196,11 @@ class ZServerMgr extends ZMPCommon implements GameServer.Listener, ZMPCommon.SVR
         if (user != null) {
             user.setName(newHandle);
         }
+    }
+
+    public void broadcastUpdateGame() {
+        server.broadcastCommand(newUpdateGameCommand(game));
+        //previous.copyFrom(game);
     }
 }
 

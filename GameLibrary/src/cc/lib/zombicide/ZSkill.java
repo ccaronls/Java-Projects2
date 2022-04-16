@@ -34,7 +34,7 @@ public enum ZSkill implements IButton {
             }
         }
     },
-    Plus1_Damage_DualWielding("The survivor get +1 damage when dual weilding a melee weapon.") {
+    Plus1_Damage_DualWielding("The survivor get +1 damage when dual wielding a melee weapon.") {
         @Override
         public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game, int targetZone) {
             if (actionType == ZActionType.MELEE && character.isDualWielding()) {
@@ -125,9 +125,8 @@ public enum ZSkill implements IButton {
     Plus1_free_Enchantment_Action("The Survivor has one extra free Enchantment Action. This Action may only be used for Enchantment Actions.") {
         @Override
         public int modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
-            switch (type) {
-                case ENCHANTMENT:
-                    return 1;
+            if (type == ZActionType.ENCHANTMENT) {
+                return 1;
             }
             return super.modifyActionsRemaining(character, type, game);
         }
@@ -145,9 +144,8 @@ public enum ZSkill implements IButton {
     Plus1_free_Magic_Action("The Survivor has one extra free Magic Action. This Action may only be used for Magic Actions.") {
         @Override
         public int modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
-            switch (type) {
-                case MAGIC:
-                    return 1;
+            if (type == ZActionType.MAGIC) {
+                return 1;
             }
             return super.modifyActionsRemaining(character, type, game);
         }
@@ -165,9 +163,8 @@ public enum ZSkill implements IButton {
     Plus1_free_Melee_Action("The Survivor has one extra free Melee Action. This Action may only be used for a Melee Action.") {
         @Override
         public int modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
-            switch (type) {
-                case MELEE:
-                    return 1;
+            if (type == ZActionType.MELEE) {
+                return 1;
             }
             return super.modifyActionsRemaining(character, type, game);
         }
@@ -185,9 +182,8 @@ public enum ZSkill implements IButton {
     Plus1_free_Move_Action("The Survivor has one extra free Move Action. This Action may only be used as a Move Action.") {
         @Override
         public int modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
-            switch (type) {
-                case MOVE:
-                    return 1;
+            if (type == ZActionType.MOVE) {
+                return 1;
             }
             return super.modifyActionsRemaining(character, type, game);
         }
@@ -202,9 +198,8 @@ public enum ZSkill implements IButton {
     Plus1_free_Ranged_Action("The Survivor has one extra free Ranged Action. This Action may only be used as a Ranged Action.") {
         @Override
         public int modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
-            switch (type) {
-                case RANGED:
-                    return 1;
+            if (type == ZActionType.RANGED) {
+                return 1;
             }
             return super.modifyActionsRemaining(character, type, game);
         }
@@ -223,9 +218,8 @@ public enum ZSkill implements IButton {
     Plus1_free_Search_Action("The Survivor has one extra free Search Action. This Action may only be used to Search, and the Survivor can still only Search once per Turn.") {
         @Override
         public int modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
-            switch (type) {
-                case SEARCH:
-                    return 1;
+            if (type == ZActionType.SEARCH) {
+                return 1;
             }
             return super.modifyActionsRemaining(character, type, game);
         }
@@ -243,12 +237,11 @@ public enum ZSkill implements IButton {
     Plus1_Zone_per_Move("The Survivor can move through one extra Zone each time he performs a Move Action. This Skill stacks with other effects benefiting Move Actions. Entering a Zone containing Zombies ends the Survivor’s Move Action.") {
         @Override
         public int modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
-            switch (type) {
-                case MOVE:
-                    if (game.getBoard().getNumZombiesInZone(character.occupiedZone) == 0) {
-                        return character.getZonesMoved() % 2 == 0 ? 1 : -1;
-                    }
-                    return 1;
+            if (type == ZActionType.MOVE) {
+                if (game.getBoard().getNumZombiesInZone(character.occupiedZone) == 0) {
+                    return character.getZonesMoved() % 2 == 0 ? 1 : -1;
+                }
+                return 1;
             }
             return super.modifyActionsRemaining(character, type, game);
         }
@@ -257,7 +250,7 @@ public enum ZSkill implements IButton {
         @Override
         public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game, int targetZone) {
             // if another melee weapon equipped then +1 die
-            if (actionType == ZActionType.MELEE && Utils.count(character.getWeapons(), object -> object.isMelee()) > 1) {
+            if (actionType == ZActionType.MELEE && Utils.count(character.getWeapons(), ZWeapon::isMelee) > 1) {
                 stat.numDice++;
             }
         }
@@ -278,12 +271,7 @@ public enum ZSkill implements IButton {
         @Override
         public void addSpecialMoves(ZGame game, ZCharacter character, List<ZMove> moves) {
             if (character.getActionsLeftThisTurn() > 0) {
-                List<Integer> zones = Utils.filter(game.getBoard().getAccessableZones(character.getOccupiedZone(), 1, 2, ZActionType.MOVE), new Utils.Filter<Integer>() {
-                    @Override
-                    public boolean keep(Integer object) {
-                        return game.getBoard().getNumZombiesInZone(object) > 0;
-                    }
-                });
+                List<Integer> zones = Utils.filter(game.getBoard().getAccessableZones(character.getOccupiedZone(), 1, 2, ZActionType.MOVE), object -> game.getBoard().getNumZombiesInZone(object) > 0);
                 if (zones.size() > 0) {
                     if (character.getMeleeWeapons().size() > 0)
                         moves.add(ZMove.newBloodlustMeleeMove(zones, this));
@@ -299,12 +287,7 @@ public enum ZSkill implements IButton {
         @Override
         public void addSpecialMoves(ZGame game, ZCharacter character, List<ZMove> moves) {
             if (character.getActionsLeftThisTurn() > 0 && character.getMagicWeapons().size() > 0) {
-                List<Integer> zones = Utils.filter(game.getBoard().getAccessableZones(character.getOccupiedZone(), 1, 2, ZActionType.MOVE), new Utils.Filter<Integer>() {
-                    @Override
-                    public boolean keep(Integer object) {
-                        return game.getBoard().getNumZombiesInZone(object) > 0;
-                    }
-                });
+                List<Integer> zones = Utils.filter(game.getBoard().getAccessableZones(character.getOccupiedZone(), 1, 2, ZActionType.MOVE), object -> game.getBoard().getNumZombiesInZone(object) > 0);
                 moves.add(ZMove.newBloodlustMagicMove(zones, this));
             }
         }
@@ -313,12 +296,7 @@ public enum ZSkill implements IButton {
         @Override
         public void addSpecialMoves(ZGame game, ZCharacter character, List<ZMove> moves) {
             if (character.getActionsLeftThisTurn() > 0 && character.getMeleeWeapons().size() > 0) {
-                List<Integer> zones = Utils.filter(game.getBoard().getAccessableZones(character.getOccupiedZone(), 1, 2, ZActionType.MOVE), new Utils.Filter<Integer>() {
-                    @Override
-                    public boolean keep(Integer object) {
-                        return game.getBoard().getNumZombiesInZone(object) > 0;
-                    }
-                });
+                List<Integer> zones = Utils.filter(game.getBoard().getAccessableZones(character.getOccupiedZone(), 1, 2, ZActionType.MOVE), object -> game.getBoard().getNumZombiesInZone(object) > 0);
                 moves.add(ZMove.newBloodlustMeleeMove(zones, this));
             }
         }
@@ -327,12 +305,7 @@ public enum ZSkill implements IButton {
         @Override
         public void addSpecialMoves(ZGame game, ZCharacter character, List<ZMove> moves) {
             if (character.getActionsLeftThisTurn() > 0 && character.getRangedWeapons().size() > 0) {
-                List<Integer> zones = Utils.filter(game.getBoard().getAccessableZones(character.getOccupiedZone(), 1, 2, ZActionType.MOVE), new Utils.Filter<Integer>() {
-                    @Override
-                    public boolean keep(Integer object) {
-                        return game.getBoard().getNumZombiesInZone(object) > 0;
-                    }
-                });
+                List<Integer> zones = Utils.filter(game.getBoard().getAccessableZones(character.getOccupiedZone(), 1, 2, ZActionType.MOVE), object -> game.getBoard().getNumZombiesInZone(object) > 0);
                 moves.add(ZMove.newBloodlustRangedMove(zones, this));
             }
         }
@@ -343,14 +316,14 @@ public enum ZSkill implements IButton {
             if (character.getActionsLeftThisTurn() > 0) {
                 List<ZPlayerName> options = Utils.map(
                         Utils.filter(game.board.getAllCharacters(), object -> object != character && object.isAlive()),
-                        c -> c.getPlayerName());
+                        ZCharacter::getPlayerName);
                 if (options.size() > 0) {
                     moves.add(ZMove.newBornLeaderMove(options));
                 }
             }
         }
     },
-    Break_in("In order to open doors, the Survivor rolls no dice, and needs no equipment (but still spends an Action to do so). He doesn’t make Noise while using this Skill. However, other prerequisites still apply (such as taking a designated Objective before a door can be opened). Moreover, the Survivor gains one extra free Action that can only be used to open doors.") {
+    Break_in("In order to open doors, the Survivor rolls no dice, and needs no equipment (but still spends an Action to do so). He does’nt make Noise while using this Skill. However, other prerequisites still apply (such as taking a designated Objective before a door can be opened). Moreover, the Survivor gains one extra free Action that can only be used to open doors.") {
         @Override
         public int modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
             if (type == ZActionType.OPEN_DOOR) {
@@ -363,12 +336,7 @@ public enum ZSkill implements IButton {
         @Override
         public void addSpecialMoves(ZGame game, ZCharacter character, List<ZMove> moves) {
         List<Integer> zones = game.getBoard().getAccessableZones(character.getOccupiedZone(), 1, 2, ZActionType.MOVE);
-        zones = Utils.filter(zones, new Utils.Filter<Integer>() {
-            @Override
-            public boolean keep(Integer zone) {
-                return game.getBoard().getNumZombiesInZone(zone) > 0;
-            }
-        });
+        zones = Utils.filter(zones, zone -> game.getBoard().getNumZombiesInZone(zone) > 0);
         if (zones.size() > 0)
             moves.add(ZMove.newChargeMove(zones));
         }
@@ -392,19 +360,27 @@ public enum ZSkill implements IButton {
 
         @Override
         public int modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
-            switch (type) {
-                case INVENTORY:
-                    return -1;
+            if (type == ZActionType.INVENTORY) {
+                return -1;
             }
             return super.modifyActionsRemaining(character, type, game);
         }
     },
     Free_reload("The Survivor reloads reloadable weapons (Hand Crossbows, Orcish Crossbow, etc.) for free. ") {
         @Override
-        public void addSpecialMoves(ZGame game, ZCharacter character, List<ZMove> moves) {
-            for (ZWeapon w : character.getWeapons()) {
+        void onAttack(ZGame game, ZCharacter c, ZWeapon weapon, ZActionType actionType, ZWeaponStat stat, int targetZone, int hits, List<ZZombie> destroyedZombies) {
+            if (!weapon.isLoaded()) {
+                game.addLogMessage("Free Reload!");
+                weapon.reload();
+            }
+        }
+
+        @Override
+        public void onAcquired(ZGame game, ZCharacter c) {
+            // reload all of the players wielded weapons
+            for (ZWeapon w : c.getWeapons()) {
                 if (!w.isLoaded()) {
-                    game.onBonusAction(character.getPlayerName(), this);
+                    game.addLogMessage("Weapon " + w.getType().getLabel() + " is reloaded!");
                     w.reload();
                 }
             }
@@ -473,15 +449,13 @@ public enum ZSkill implements IButton {
     Iron_rain("When resolving a Ranged Action, the Survivor may substitute the Dice number of the Ranged weapon(s) he uses with the number of Zombies standing in the targeted Zone. Skills affecting the dice value, like +1 die: Ranged, still apply. ") {
         @Override
         public void modifyStat(ZWeaponStat stat, ZActionType actionType, ZCharacter character, ZGame game, int targetZone) {
-            switch (actionType) {
-                case RANGED:
-                    int numInZone = game.getBoard().getNumZombiesInZone(targetZone);
-                    if (numInZone > stat.numDice) {
-                        game.addLogMessage(String.format("%s applied Iron Rain!", character.getLabel()));
-                        game.onIronRain(character.getPlayerName(), targetZone);
-                        stat.numDice = numInZone;
-                    }
-                    break;
+            if (actionType == ZActionType.RANGED) {
+                int numInZone = game.getBoard().getNumZombiesInZone(targetZone);
+                if (numInZone > stat.numDice) {
+                    game.addLogMessage(String.format("%s applied Iron Rain!", character.getLabel()));
+                    game.onIronRain(character.getPlayerName(), targetZone);
+                    stat.numDice = numInZone;
+                }
             }
         }
     },
@@ -544,13 +518,13 @@ public enum ZSkill implements IButton {
     },
     Reaper_Combat("Use this Skill when assigning hits while resolving a Combat Action (Melee, Ranged or Magic). One of these hits can freely kill an additional identical Zombie in the same Zone. Only a single additional Zombie can be killed per Action when using this Skill. The Survivor gains the experience for the additional Zombie.") {
         @Override
-        void onAttack(ZGame game, ZCharacter c, ZActionType actionType, ZWeaponStat weapon, int targetZone, int hits, List<ZZombie> destroyedZombies) {
+        void onAttack(ZGame game, ZCharacter c, ZWeapon weapon, ZActionType actionType, ZWeaponStat stat, int targetZone, int hits, List<ZZombie> destroyedZombies) {
             List<ZZombie> zombiesLeftInZone = game.getBoard().getZombiesInZone(targetZone);
             for (ZZombie zombieKilled : destroyedZombies) {
                 for (Iterator<ZZombie> it = zombiesLeftInZone.iterator() ; it.hasNext(); ) {
                     ZZombie z = it.next();
                     if (z.type == zombieKilled.type) {
-                        game.performSkillKill(c, this, z, weapon.attackType);
+                        game.performSkillKill(c, this, z, stat.attackType);
                         it.remove();
                         break;
                     }
@@ -560,7 +534,7 @@ public enum ZSkill implements IButton {
     },
     Reaper_Magic("Use this Skill when assigning hits while resolving a Magic Action. One of these hits can freely kill an additional identical Zombie in the same Zone. Only a single additional Zombie can be killed per Action when using this Skill. The Survivor gains the experience for the additional Zombie.") {
         @Override
-        void onAttack(ZGame game, ZCharacter c, ZActionType actionType, ZWeaponStat weapon, int targetZone, int hits, List<ZZombie> destroyedZombies) {
+        void onAttack(ZGame game, ZCharacter c, ZWeapon weapon, ZActionType actionType, ZWeaponStat stat, int targetZone, int hits, List<ZZombie> destroyedZombies) {
             if (actionType != ZActionType.MAGIC)
                 return;
             List<ZZombie> zombiesLeftInZone = game.getBoard().getZombiesInZone(targetZone);
@@ -568,7 +542,7 @@ public enum ZSkill implements IButton {
                 for (Iterator<ZZombie> it = zombiesLeftInZone.iterator() ; it.hasNext(); ) {
                     ZZombie z = it.next();
                     if (z.type == zombieKilled.type) {
-                        game.performSkillKill(c, this, z, weapon.attackType);
+                        game.performSkillKill(c, this, z, stat.attackType);
                         it.remove();
                         break;
                     }
@@ -578,7 +552,7 @@ public enum ZSkill implements IButton {
     },
     Reaper_Melee("Use this Skill when assigning hits while resolving a Melee Action. One of these hits can freely kill an additional identical Zombie in the same Zone. Only a single additional Zombie can be killed per Action when using this Skill. The Survivor gains the experience for the additional Zombie.") {
         @Override
-        void onAttack(ZGame game, ZCharacter c, ZActionType actionType, ZWeaponStat weapon, int targetZone, int hits, List<ZZombie> destroyedZombies) {
+        void onAttack(ZGame game, ZCharacter c, ZWeapon weapon, ZActionType actionType, ZWeaponStat stat, int targetZone, int hits, List<ZZombie> destroyedZombies) {
             if (actionType != ZActionType.MELEE)
                 return;
             List<ZZombie> zombiesLeftInZone = game.getBoard().getZombiesInZone(targetZone);
@@ -586,7 +560,7 @@ public enum ZSkill implements IButton {
                 for (Iterator<ZZombie> it = zombiesLeftInZone.iterator() ; it.hasNext(); ) {
                     ZZombie z = it.next();
                     if (z.type == zombieKilled.type) {
-                        game.performSkillKill(c, this, z, weapon.attackType);
+                        game.performSkillKill(c, this, z, stat.attackType);
                         it.remove();
                         break;
                     }
@@ -596,7 +570,7 @@ public enum ZSkill implements IButton {
     },
     Reaper_Ranged("Use this Skill when assigning hits while resolving a Ranged Action. One of these hits can freely kill an additional identical Zombie in the same Zone. Only a single additional Zombie can be killed per Action when using this Skill. The Survivor gains the experience for the additional Zombie.") {
         @Override
-        void onAttack(ZGame game, ZCharacter c, ZActionType actionType, ZWeaponStat weapon, int targetZone, int hits, List<ZZombie> destroyedZombies) {
+        void onAttack(ZGame game, ZCharacter c, ZWeapon weapon, ZActionType actionType, ZWeaponStat stat, int targetZone, int hits, List<ZZombie> destroyedZombies) {
             if (actionType != ZActionType.RANGED)
                 return;
             List<ZZombie> zombiesLeftInZone = game.getBoard().getZombiesInZone(targetZone);
@@ -604,7 +578,7 @@ public enum ZSkill implements IButton {
                 for (Iterator<ZZombie> it = zombiesLeftInZone.iterator() ; it.hasNext(); ) {
                     ZZombie z = it.next();
                     if (z.type == zombieKilled.type) {
-                        game.performSkillKill(c, this, z, weapon.attackType);
+                        game.performSkillKill(c, this, z, stat.attackType);
                         it.remove();
                         break;
                     }
@@ -613,7 +587,7 @@ public enum ZSkill implements IButton {
         }
 
     },
-    Regeneration("At the end of each Game Round, remove all Wounds the Survivor received. Regeneration doesn’t work if the Survivor has been eliminated."),
+    Regeneration("At the end of each Game Round, remove all Wounds the Survivor received. Regeneration does’nt work if the Survivor has been eliminated."),
     Roll_6_plus1_die_Combat("You may roll an additional die for each '6' rolled on any Combat Action (Melee, Ranged or Magic). Keep on rolling additional dice as long as you keep getting '6'. Game effects that allow re-rolls (the Plenty Of Arrows Equipment card, for example) must be used before rolling any additional dice for this Skill.") {
         @Override
         boolean onSixRolled(ZGame game, ZCharacter c, ZWeaponStat stat) {
@@ -627,24 +601,22 @@ public enum ZSkill implements IButton {
             return false;
         }
     },
-    Roll_6_plus1_die_Magic("You may roll an additional die for each '6' rolled on a Magic Action. Keep on rolling additional dice as long as you keep getting '6'. Game effects that allow rerolls must be used before rolling any additional dice for this Skill.") {
+    Roll_6_plus1_die_Magic("You may roll an additional die for each '6' rolled on a Magic Action. Keep on rolling additional dice as long as you keep getting '6'. Game effects that allow re-rolls must be used before rolling any additional dice for this Skill.") {
         @Override
         boolean onSixRolled(ZGame game, ZCharacter c, ZWeaponStat stat) {
-            switch (stat.getActionType()) {
-                case MAGIC:
-                    game.onRollSixApplied(c.getPlayerName(),this);
-                    return true;
+            if (stat.getActionType() == ZActionType.MAGIC) {
+                game.onRollSixApplied(c.getPlayerName(), this);
+                return true;
             }
             return false;
         }
     },
-    Roll_6_plus1_die_Melee("You may roll an additional die for each '6' rolled on a Melee Action. Keep on rolling additional dice as long as you keep getting '6'. Game effects that allow rerolls must be used before rolling any additional dice for this Skill.") {
+    Roll_6_plus1_die_Melee("You may roll an additional die for each '6' rolled on a Melee Action. Keep on rolling additional dice as long as you keep getting '6'. Game effects that allow re-rolls must be used before rolling any additional dice for this Skill.") {
         @Override
         boolean onSixRolled(ZGame game, ZCharacter c, ZWeaponStat stat) {
-            switch (stat.getActionType()) {
-                case MELEE:
-                    game.onRollSixApplied(c.getPlayerName(),this);
-                    return true;
+            if (stat.getActionType() == ZActionType.MELEE) {
+                game.onRollSixApplied(c.getPlayerName(), this);
+                return true;
             }
             return false;
         }
@@ -652,10 +624,9 @@ public enum ZSkill implements IButton {
     Roll_6_plus1_die_Ranged("You may roll an additional die for each '6' rolled on a Ranged Action. Keep on rolling additional dice as long as you keep getting '6'. Game effects that allow re-rolls (the Plenty Of Arrows Equipment card, for example) must be used before rolling any additional dice for this Skill.") {
         @Override
         boolean onSixRolled(ZGame game, ZCharacter c, ZWeaponStat stat) {
-            switch (stat.getActionType()) {
-                case RANGED:
-                    game.onRollSixApplied(c.getPlayerName(),this);
-                    return true;
+            if (stat.getActionType() == ZActionType.RANGED) {
+                game.onRollSixApplied(c.getPlayerName(), this);
+                return true;
             }
             return false;
         }
@@ -721,11 +692,10 @@ public enum ZSkill implements IButton {
     Speed("Can move up to 2 unoccupied by zombie zones for free.") {
         @Override
         public int modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
-            switch (type) {
-                case MOVE:
-                    if (game.getBoard().getNumZombiesInZone(character.getOccupiedZone()) > 0)
-                        return super.modifyActionsRemaining(character, type, game);
-                    return character.getZonesMoved() > 1 ? 1 : -1;
+            if (type == ZActionType.MOVE) {
+                if (game.getBoard().getNumZombiesInZone(character.getOccupiedZone()) > 0)
+                    return super.modifyActionsRemaining(character, type, game);
+                return character.getZonesMoved() > 1 ? 1 : -1;
             }
             return super.modifyActionsRemaining(character, type, game);
         }
@@ -733,11 +703,10 @@ public enum ZSkill implements IButton {
     Sprint("The first 3 moves are free unless a zone with zombies is entered.") {
         @Override
         public int modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
-            switch (type) {
-                case MOVE:
-                    if (game.getBoard().getNumZombiesInZone(character.getOccupiedZone()) == 0) {
-                        return character.getZonesMoved() > 2 ? 1 : -1;
-                    }
+            if (type == ZActionType.MOVE) {
+                if (game.getBoard().getNumZombiesInZone(character.getOccupiedZone()) == 0) {
+                    return character.getZonesMoved() > 2 ? 1 : -1;
+                }
             }
             return super.modifyActionsRemaining(character, type, game);
         }
@@ -780,7 +749,7 @@ public enum ZSkill implements IButton {
     Trick_shot("When the Survivor is equipped with Dual Combat spells or Ranged weapons, he can aim at different Zones with each spell/weapon in the same Action."),
     Zombie_link("The Survivor plays an extra Turn each time an Extra Activation card is drawn from the Zombie pile. He plays before the extra-activated Zombies. If several Survivors benefit from this Skill at the same time, choose their Turn order."),
 
-    Roll_6_Plus1_Damage("If any one of the die rolled is a 6 then add 1 to the damage. Addidional sixes to not increase beyond 1.") {
+    Roll_6_Plus1_Damage("If any one of the die rolled is a 6 then add 1 to the damage. Additional sixes to not increase beyond 1.") {
         @Override
         boolean onSixRolled(ZGame game, ZCharacter c, ZWeaponStat stat) {
             if (stat.damagePerHit < 3) {
@@ -793,13 +762,13 @@ public enum ZSkill implements IButton {
     },
     Hit_Heals("A successful hit results in healing of a single wound.") {
         @Override
-        void onAttack(ZGame game, ZCharacter c, ZActionType actionType, ZWeaponStat weapon, int targetZone, int hits, List<ZZombie> destroyedZombies) {
+        void onAttack(ZGame game, ZCharacter c, ZWeapon weapon, ZActionType actionType, ZWeaponStat stat, int targetZone, int hits, List<ZZombie> destroyedZombies) {
             c.heal(game, destroyedZombies.size());
         }
     },
     Hit_4_Dragon_Fire("If an attack results in 4 successful hits then dragon fire in the target zone") {
         @Override
-        void onAttack(ZGame game, ZCharacter c, ZActionType actionType, ZWeaponStat weapon, int targetZone, int hits, List<ZZombie> destroyedZombies) {
+        void onAttack(ZGame game, ZCharacter c, ZWeapon weapon, ZActionType actionType, ZWeaponStat stat, int targetZone, int hits, List<ZZombie> destroyedZombies) {
             if (hits >= 4) {
                 game.performDragonFire(c, targetZone);
             }
@@ -824,11 +793,11 @@ public enum ZSkill implements IButton {
     },
     Two_For_One_Melee("Each Successful hit generates two hits in the target zone. Similar to reaper but without the condition the zombie type must be the same") {
         @Override
-        void onAttack(ZGame game, ZCharacter c, ZActionType actionType, ZWeaponStat weapon, int targetZone, int hits, List<ZZombie> destroyedZombies) {
-            List<ZZombie> zombiesLeftInZone = Utils.filter(game.getBoard().getZombiesInZone(targetZone), z -> z.getType().minDamageToDestroy <= weapon.damagePerHit);
+        void onAttack(ZGame game, ZCharacter c, ZWeapon weapon, ZActionType actionType, ZWeaponStat stat, int targetZone, int hits, List<ZZombie> destroyedZombies) {
+            List<ZZombie> zombiesLeftInZone = Utils.filter(game.getBoard().getZombiesInZone(targetZone), z -> z.getType().minDamageToDestroy <= stat.damagePerHit);
             while (zombiesLeftInZone.size() > 0 && hits-- >0) {
                 ZZombie z = zombiesLeftInZone.remove(0);
-                game.performSkillKill(c, this, z, weapon.attackType);
+                game.performSkillKill(c, this, z, stat.attackType);
             }
         }
     },
@@ -872,6 +841,8 @@ public enum ZSkill implements IButton {
     public int modifyActionsRemaining(ZCharacter character, ZActionType type, ZGame game) {
         return 0;
     }
+
+    public void onAcquired(ZGame game, ZCharacter c) {}
 
     /**
      *
@@ -919,7 +890,7 @@ public enum ZSkill implements IButton {
         return 0;
     }
 
-    void onAttack(ZGame game, ZCharacter c, ZActionType actionType, ZWeaponStat weapon, int targetZone, int hits, List<ZZombie> destroyedZombies) {}
+    void onAttack(ZGame game, ZCharacter c, ZWeapon weapon, ZActionType actionType, ZWeaponStat stat, int targetZone, int hits, List<ZZombie> destroyedZombies) {}
 
     /**
      * Return true to re-roll

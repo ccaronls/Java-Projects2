@@ -2,7 +2,6 @@ package cc.lib.zombicide.quests;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 
 import cc.lib.game.GColor;
@@ -144,11 +143,7 @@ public class ZQuestTrialByFire extends ZQuest {
     }
 
     @Override
-    public void processSearchables(List<ZEquipment> items) {
-        Iterator<ZEquipment> it = items.iterator();
-        while (it.hasNext()) {
-            if (it.next().getType() == ZItemType.DRAGON_BILE)
-                it.remove();
-        }
+    public void processLootDeck(List<ZEquipment> items) {
+        Utils.filterInPlace(items, item -> item.getType() != ZItemType.DRAGON_BILE);
     }
 }

@@ -80,7 +80,7 @@ public class WolfQuestKnowYourEnemy extends ZQuest {
                         .addRow("1.", "Collect all Objectives", String.format("%d of %d", getNumFoundObjectives(), getNumStartObjectives()))
                         .addRow("2.", "A Random Artifact is in the Vault - Go get it!", getNumFoundVaultItems() > 0)
                         .addRow("3.", "Get all players into the EXIT zone.", String.format("%d of %d", numInZone, totalChars))
-                        .addRow("4.", "Exit zone must be cleared of zombies.")
+                        .addRow("4.", "Exit zone must be cleared of zombies.", isExitClearedOfZombies(game))
                         .addRow("5.", "All Players must survive.")
                 );
 

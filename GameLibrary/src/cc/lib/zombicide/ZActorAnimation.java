@@ -7,7 +7,7 @@ import cc.lib.game.Utils;
 public abstract class ZActorAnimation extends ZAnimation {
 
     public final ZActor actor;
-    ZActorAnimation next;
+    private ZActorAnimation next;
 
     public ZActorAnimation(ZActor actor, long ... durations) {
         super(Utils.toLongArray(durations));
@@ -32,9 +32,7 @@ public abstract class ZActorAnimation extends ZAnimation {
     public boolean isDone() {
         if (next == null || actor ==  null)
             return super.isDone();
-        if (next != null)
-            return next.isDone();
-        return false;
+        return next.isDone();
     }
 
     void add(ZActorAnimation anim) {

@@ -283,14 +283,6 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
             case PICK_ZOMBIE:
             case PICK_CHARACTER: {
                 options = new HashSet<>(game.getOptions());
-                /*
-                g.setColor(GColor.YELLOW);
-                for (ZActor a : (List<ZActor>) game.getOptions()) {
-                    a.getRect(game.getBoard()).drawOutlined(g, 1);
-                }
-                if (game.getOptions().contains(highlightedActor)) {
-                    highlightedResult = highlightedActor;
-                }*/
                 break;
             }
         }

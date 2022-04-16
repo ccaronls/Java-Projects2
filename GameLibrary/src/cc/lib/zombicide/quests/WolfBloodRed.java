@@ -104,10 +104,10 @@ public class WolfBloodRed extends ZQuest {
         super.processObjective(game, c);
         if (c.getOccupiedZone() == greenObjZone) {
             greenObjZone = -1;
-            game.giftEquipment(c, getRandomVaultArtifact());
+            game.giftRandomVaultArtifact(c);
         } else if (c.getOccupiedZone() == blueObjZone) {
             blueObjZone = -1;
-            game.giftEquipment(c, getRandomVaultArtifact());
+            game.giftRandomVaultArtifact(c);
         }
     }
 

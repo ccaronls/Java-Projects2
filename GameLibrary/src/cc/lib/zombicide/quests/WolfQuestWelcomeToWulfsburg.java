@@ -4,7 +4,6 @@ import cc.lib.game.Utils;
 import cc.lib.utils.Table;
 import cc.lib.zombicide.ZBoard;
 import cc.lib.zombicide.ZCharacter;
-import cc.lib.zombicide.ZEquipment;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZPlayerName;
 import cc.lib.zombicide.ZQuest;
@@ -76,7 +75,7 @@ public class WolfQuestWelcomeToWulfsburg extends ZQuest {
                         .addRow("2.", "Find the BLUE objective hidden among RED objectives for a random vault item.", blueKeyZone < 0)
                         .addRow("3.", "Find the GREEN objective hidden among RED objectives for a random vault item.", greenKeyZone < 0)
                         .addRow("4.", "Get all players into the EXIT zone.", String.format("%d of %d", numInZone, totalChars))
-                        .addRow("5.", "Exit zone must be cleared of zombies.")
+                        .addRow("5.", "Exit zone must be cleared of zombies.", isExitClearedOfZombies(game))
                         .addRow("6.", "All Players must survive.")
                 );
     }
@@ -85,14 +84,12 @@ public class WolfQuestWelcomeToWulfsburg extends ZQuest {
     public void processObjective(ZGame game, ZCharacter c) {
         super.processObjective(game, c);
         if (c.getOccupiedZone() == blueKeyZone) {
-            ZEquipment e = getRandomVaultArtifact();
-            game.addLogMessage(c.getLabel() + " has found the BLUE key and also a " + e.getLabel());
-            game.giftEquipment(c, e);
+            game.addLogMessage(c.getLabel() + " has found the BLUE key");
+            game.giftRandomVaultArtifact(c);
             blueKeyZone = -1;
         } else if (c.getOccupiedZone() == greenKeyZone) {
-            ZEquipment e = getRandomVaultArtifact();
-            game.addLogMessage(c.getLabel() + " has found the GREEN key and also a " + e.getLabel());
-            game.giftEquipment(c, e);
+            game.addLogMessage(c.getLabel() + " has found the GREEN key");
+            game.giftRandomVaultArtifact(c);
             greenKeyZone = -1;
         }
     }
