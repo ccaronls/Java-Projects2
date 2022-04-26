@@ -14,6 +14,7 @@ import java.util.List;
 import androidx.recyclerview.widget.RecyclerView;
 import cc.game.zombicide.android.databinding.AssignDialogItemBinding;
 import cc.game.zombicide.android.databinding.AssignDialogP2pBinding;
+import cc.lib.game.Utils;
 import cc.lib.zombicide.ZUser;
 
 /**
@@ -26,7 +27,6 @@ public abstract class CharacterChooserDialogMP extends RecyclerView.Adapter<Char
     final List<Assignee> selectedPlayers;
     final ZombicideActivity activity;
     final int maxPlayers;
-    int numSelected = 0;
     final Dialog dialog;
 
     CharacterChooserDialogMP(ZombicideActivity activity, List<Assignee> selectedPlayers, int maxPlayers) {
@@ -38,7 +38,6 @@ public abstract class CharacterChooserDialogMP extends RecyclerView.Adapter<Char
         ab.bDisconnect.setOnClickListener(this);
         ab.recyclerView.setAdapter(this);
 
-        updateSelected();
         dialog = activity.newDialogBuilder().setTitle(R.string.popup_title_assign)
                 .setView(ab.getRoot()).show();
     }
@@ -70,11 +69,15 @@ public abstract class CharacterChooserDialogMP extends RecyclerView.Adapter<Char
         return selectedPlayers.size();
     }
 
+    int getNumSelected() {
+        return Utils.count(selectedPlayers, pl -> pl.isAssingedToMe);
+    }
+
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.bStart: {
-                if (numSelected <= 0) {
+                if (getNumSelected() <= 0) {
                     Toast.makeText(activity, "Please select at least one character", Toast.LENGTH_LONG).show();
                 } else {
                     dialog.dismiss();
@@ -104,13 +107,12 @@ public abstract class CharacterChooserDialogMP extends RecyclerView.Adapter<Char
         if (a == null)
             return;
 
-        if (!a.checked && numSelected >= maxPlayers) {
+        if (!a.checked && getNumSelected() >= maxPlayers) {
             Toast.makeText(activity, "Can only have " + maxPlayers + " at a time", Toast.LENGTH_LONG).show();
             return;
         }
 
         onAssigneeChecked(a, !a.checked);
-        updateSelected();
         notifyDataSetChanged();
     }
 
@@ -138,14 +140,6 @@ public abstract class CharacterChooserDialogMP extends RecyclerView.Adapter<Char
             c.isAssingedToMe = a.isAssingedToMe;
         }
         activity.runOnUiThread(this);
-    }
-
-    private void updateSelected() {
-        numSelected = 0;
-        for (Assignee aa : selectedPlayers) {
-            if (aa.isAssingedToMe)
-                numSelected++;
-        }
     }
 
     public static class Holder extends RecyclerView.ViewHolder {

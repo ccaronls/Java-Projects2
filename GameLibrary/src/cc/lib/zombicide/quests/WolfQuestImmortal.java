@@ -8,6 +8,7 @@ import cc.lib.utils.Grid;
 import cc.lib.utils.Table;
 import cc.lib.zombicide.ZBoard;
 import cc.lib.zombicide.ZCell;
+import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZDir;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZIcon;
@@ -93,9 +94,8 @@ public class WolfQuestImmortal extends ZQuest {
 
     @Override
     public void onZombieSpawned(ZGame game, ZZombie zombie, int zone) {
-        List<Integer> spawnZones = Utils.map(immortals, sp -> game.getBoard().getCell(sp.getCellPos()).getZoneIndex());
-        int idx = spawnZones.indexOf((Object)zone);
-        if (idx > 0) {
+        int idx = Utils.searchIndex(immortals, sp -> game.getBoard().getCell(sp.getCellPos()).getZoneIndex());
+        if (idx >= 0) {
             switch (zombie.getType()) {
                 case Necromancer:
                     ZSpawnArea area = immortals.remove(idx);
@@ -103,6 +103,7 @@ public class WolfQuestImmortal extends ZQuest {
                     area.setCanBeRemovedFromBoard(true);
                     area.setEscapableForNecromancers(false);
                     area.setCanSpawnNecromancers(false);
+                    game.spawnZombies(idx);
                     return;
             }
         }
@@ -126,8 +127,14 @@ public class WolfQuestImmortal extends ZQuest {
         return new Table(getName())
                 .addRow(new Table().setNoBorder()
                         .addRow("1.", "Collect all Objectives. Each objective gives a vault item.", String.format("%d of %d", getNumFoundObjectives(), getNumStartObjectives()))
-                        .addRow("2.", "Purge the EVIL by removing the GREEN spawn areas. BLUE spawn areas become GREEN once a Necromancer is spawned from one", String.format("%d of %d", numStartImmortals-immortals.size(), numStartImmortals))
-                        .addRow("3.", "Random Vault weapon hidden in the Vault", getNumFoundVaultItems() > 0)
+                        .addRow("2.", "Purge the EVIL by removing the GREEN spawn areas. BLUE spawn areas become GREEN once a Necromancer is spawned.", String.format("%d of %d", numStartImmortals-immortals.size(), numStartImmortals))
+                        .addRow("3.", "Random Vault weapon hidden in the Vault.", getNumFoundVaultItems() > 0)
                 );
+    }
+
+    @Override
+    public void processObjective(ZGame game, ZCharacter c) {
+        super.processObjective(game, c);
+        game.giftRandomVaultArtifact(c);
     }
 }

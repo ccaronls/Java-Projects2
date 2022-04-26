@@ -1,6 +1,8 @@
 package cc.applets.zombicide;
 
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -24,7 +26,7 @@ import cc.lib.zombicide.ui.UIZBoardRenderer;
 import cc.lib.zombicide.ui.UIZComponent;
 import cc.lib.zombicide.ui.UIZombicide;
 
-class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
+class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics>, WindowListener {
 
     final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -74,7 +76,6 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
         g.clearScreen();
         if (renderer != null) {
             renderer.draw(g, mouseX, mouseY);
-            grabFocus();
         }
     }
 
@@ -356,7 +357,7 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
             ZMove move = (ZMove)obj;
             switch (move.type) {
                 case WALK_DIR: {
-                    switch (move.dir) {
+                    switch (ZDir.values()[move.integer]) {
                         case NORTH:
                             keyMap.put(KeyEvent.VK_UP, move);
                             break;
@@ -448,6 +449,43 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics> {
 
     @Override
     protected void onMouseWheel(int rotation) {
-        renderer.scroll(0, -5f * rotation);
+        if (renderer != null)
+            renderer.scroll(0, -5f * rotation);
+    }
+
+    @Override
+    public void windowOpened(WindowEvent e) {
+
+    }
+
+    @Override
+    public void windowClosing(WindowEvent e) {
+
+    }
+
+    @Override
+    public void windowClosed(WindowEvent e) {
+
+    }
+
+    @Override
+    public void windowIconified(WindowEvent e) {
+
+    }
+
+    @Override
+    public void windowDeiconified(WindowEvent e) {
+
+    }
+
+    @Override
+    public void windowActivated(WindowEvent e) {
+        log.debug("grabFocus");
+        requestFocusInWindow();
+    }
+
+    @Override
+    public void windowDeactivated(WindowEvent e) {
+
     }
 }

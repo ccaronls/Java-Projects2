@@ -90,7 +90,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
      *
      * @return
      */
-    public int getNumUnfoundObjectives() {
+    public int getNumRemainingObjectives() {
         return Utils.sumInt(objectives.values(), o -> o.objectives.size());
     }
 
@@ -289,7 +289,7 @@ public abstract class ZQuest extends Reflector<ZQuest> {
                 cell.setCellType(ZCellType.FATTY, true);
                 break;
             case "necro":
-                cell.setCellType(ZCellType.NECRO, true);
+                cell.setCellType(ZCellType.NECROMANCER, true);
                 break;
             case "abom":
             case "abomination":
@@ -450,6 +450,9 @@ public abstract class ZQuest extends Reflector<ZQuest> {
      * @return null if game not failed, otherwise a failed reason
      */
     public String getQuestFailedReason(ZGame game) {
+        if (game.getAllLivingCharacters().size() == 0) {
+            return "All Players Killed";
+        }
         return null;
     }
 

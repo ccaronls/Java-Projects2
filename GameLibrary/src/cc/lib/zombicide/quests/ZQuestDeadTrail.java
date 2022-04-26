@@ -116,7 +116,7 @@ public class ZQuestDeadTrail extends ZQuest {
         if (Utils.count(game.getBoard().getAllCharacters(), object -> object.isDead()) > 0) {
             return "Not all players survived";
         }
-        return null;
+        return super.getQuestFailedReason(game);
     }
 
     @Override

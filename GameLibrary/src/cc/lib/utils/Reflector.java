@@ -34,6 +34,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.zip.CRC32;
+import java.util.zip.Checksum;
 
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
@@ -109,20 +111,14 @@ public class Reflector<T> {
     public static int ARRAY_DIMENSION_VARIATIONS = 2;
 
     /**
-     * This flag to support situations where we dont want to create new Reflector instances, just overwrite their values.
-     * This can be helpful where we have derived classes that might be anonymous or have class scope that provides some
-     * critical functionality that we want to keep and it cannot be instantiated but otherwise shares all the fields with
-     * the incoming class type.
-     * One thing to be aware of is where deserializing an instance where the input has fields not represented in the
-     * instance. Consider enable THROW_ON_UNKNOWN flag when using KEEP_INSTANCES
-     */
-    //public static boolean KEEP_INSTANCES = false;
-
-    /**
      * Turn this on to throw exceptions on any unknown fields.  Default is off.
      */
     public static boolean THROW_ON_UNKNOWN = false;
 
+    /**
+     * Strip package name qualifier from serialize and deserialize
+     */
+    public static boolean STRIP_PACKAGE_QUALIFIER = false;
 
     /**
      * Use this annotation to Omit field for usage by Reflector
@@ -205,7 +201,32 @@ public class Reflector<T> {
             lineNum = markedLineNum;
         }
 
+        public String peekLine() throws IOException {
+            try {
+                mark(1024);
+                return super.readLine();
+            } finally {
+                reset();
+            }
+        }
+    }
 
+    public static class ParseException extends IOException {
+        final int lineNum;
+        ParseException(int lineNum, String msg) {
+            super(msg);
+            this.lineNum = lineNum;
+        }
+
+        ParseException(int lineNum, Exception e) {
+            super(e);
+            this.lineNum = lineNum;
+        }
+
+        @Override
+        public String getMessage() {
+            return "Line (" + lineNum + ") " + super.getMessage();
+        }
     }
 
     public static class MyPrintWriter extends PrintWriter {
@@ -213,6 +234,7 @@ public class Reflector<T> {
         final boolean numbered;
         static String[] indents;
         int lineNum = 0;
+        boolean indented = false;
 
         static {
             indents = new String[32];
@@ -244,6 +266,7 @@ public class Reflector<T> {
         private int currentIndent = 0;
 
         void push() {
+            println(" {");
             if (currentIndent < indents.length - 1)
                 currentIndent++;
         }
@@ -252,24 +275,29 @@ public class Reflector<T> {
             Utils.assertTrue (currentIndent > 0);
             if (currentIndent > 0)
                 currentIndent--;
+            println("}");
         }
 
         @Override
-        public void println(Object obj) {
-            if (numbered) {
-                super.print(String.format("%-5d:", lineNum ++ ));
+        public void write(String s) {
+            if (!indented) {
+                if (numbered)
+                    super.write(String.format("%-5d:", lineNum ++ ));
+                super.write(indents[currentIndent]);
+                indented = true;
             }
-            super.print(indents[currentIndent]);
-            super.println(obj);
+            super.write(s);
         }
 
         @Override
-        public void println(String obj) {
-            if (numbered) {
-                super.print(String.format("%-5d:", lineNum ++ ));
+        public void println() {
+            super.println();
+            indented = false;
             }
-            super.print(indents[currentIndent]);
-            super.println(obj);
+
+        MyPrintWriter p(Object o) {
+            write(String.valueOf(o));
+            return this;
         }
 
     }
@@ -322,11 +350,10 @@ public class Reflector<T> {
         public void serializeArray(Object arr, MyPrintWriter out) {
             int len = Array.getLength(arr);
             if (len > 0) {
-                StringBuffer buf = new StringBuffer();
                 for (int i = 0; i < len; i++) {
-                    buf.append(Array.get(arr, i)).append(" ");
+                    out.p(Array.get(arr, i)).p(" ");
                 }
-                out.println(buf.toString());
+                out.println();
             }
         }
 
@@ -337,7 +364,7 @@ public class Reflector<T> {
                 String line = readLineOrEOF(in);
                 String[] parts = line.split(" ");
                 if (parts.length != len)
-                    throw new Exception("Expected " + len + " parts but found " + parts.length);
+                    throw new ParseException(in.lineNum, "Expected " + len + " parts but found " + parts.length);
                 for (int i = 0; i < len; i++) {
                     Array.set(arr, i, parse(parts[i]));
                 }
@@ -378,7 +405,7 @@ public class Reflector<T> {
                         //buf.append("null\n");
                         out.println("null");
                     else
-                        out.println("\"" + encodeString((String) entry) + "\"");
+                        out.p("\"").p(encodeString((String) entry)).println("\"");
                 }
             }
         }
@@ -394,7 +421,7 @@ public class Reflector<T> {
                 }
             }
             if (readLineOrEOF(in) != null)
-                throw new Exception("Line: " + in.lineNum + " expected closing '}'");
+                throw new ParseException(in.lineNum, " expected closing '}'");
         }
     };
 
@@ -481,15 +508,14 @@ public class Reflector<T> {
         public void serializeArray(Object arr, MyPrintWriter out) {
             int len = Array.getLength(arr);
             if (len > 0) {
-                StringBuffer buf = new StringBuffer();
                 for (int i = 0; i < len; i++) {
                     Object o = Array.get(arr, i);
                     if (o == null)
-                        buf.append("null ");
+                        out.p("null ");
                     else
-                        buf.append(((Enum<?>) o).name()).append(" ");
+                        out.p(((Enum<?>) o).name()).p(" ");
                 }
-                out.println(buf.toString());
+                out.println();
             }
         }
 
@@ -500,29 +526,44 @@ public class Reflector<T> {
                 String line = readLineOrEOF(in);
                 String[] parts = line.split(" ");
                 if (parts.length != len)
-                    throw new Exception("Expected " + len + " parts but found " + parts.length);
+                    throw new ParseException(in.lineNum, "Expected " + len + " parts but found " + parts.length);
                 for (int i = 0; i < len; i++) {
                     Enum<?> enumEntry = findEnumEntry(arr.getClass().getComponentType(), parts[i]);
                     Array.set(arr, i, enumEntry);
                 }
                 if (readLineOrEOF(in) != null)
-                    throw new Exception("Line: " + in.lineNum + " expected closing '}'");
+                    throw new ParseException(in.lineNum, " expected closing '}'");
             }
         }
     };
 
-    private final static Map<Class, String> caconicalNameCash = new HashMap<>();
+    private final static Map<Class, String> canonicalNameCache = new HashMap<>();
 
     private static String getCanonicalName(Class clazz) {
         String name;
-        if ((name = caconicalNameCash.get(clazz)) != null) {
+        if (STRIP_PACKAGE_QUALIFIER) {
+            if (clazz.isAnonymousClass()) {
+                clazz = clazz.getSuperclass();
+            }
+            if ((name = canonicalNameCache.get(clazz)) != null) {
+                return name;
+            }
+            if (!classMap.containsKey(clazz.getSimpleName())) {
+                name = clazz.getSimpleName();
+                classMap.put(name, clazz);
+            } else {
+                name = clazz.getCanonicalName();
+            }
+        } else {
+            if ((name = canonicalNameCache.get(clazz)) != null) {
             return name;
         }
         if (clazz.isAnonymousClass()) {
             clazz = clazz.getSuperclass();
         }
         name = clazz.getCanonicalName();
-        caconicalNameCash.put(clazz, name);
+        }
+        canonicalNameCache.put(clazz, name);
         return name;
     }
 
@@ -540,7 +581,7 @@ public class Reflector<T> {
             else
                 className = getCanonicalName(clazz);
             Utils.assertTrue(className != null, "Failed to get className for class %s", clazz);
-            return className + " {";
+            return className;
         }
 
         @Override
@@ -572,13 +613,13 @@ public class Reflector<T> {
                 for (int i = 0; i < len; i++) {
                     Reflector<?> o = (Reflector<?>) Array.get(arr, i);
                     if (o != null) {
-                        out.println(getCanonicalName(o.getClass()) + " {");
+                        out.print(getCanonicalName(o.getClass()));
                         out.push();
                         o.serialize(out);
                         out.pop();
-                        out.println("}");
-                    } else
+                    } else {
                         out.println("null");
+                    }
                 }
             }
         }
@@ -600,15 +641,19 @@ public class Reflector<T> {
                 } else {
                     a = (Reflector) o;
                 }
-                a.deserialize(in, keepInstances);
+                if (keepInstances) {
+                    a.merge(in);
+                } else {
+                    a.deserialize(in);
+                }
                 Array.set(arr, i, a);
                 if (in.depth > depth) {
                     if (readLineOrEOF(in) != null)
-                        throw new Exception("Line: " + in.lineNum + " expected closing '}'");
+                        throw new ParseException(in.lineNum, " expected closing '}'");
                 }
             }
             if (readLineOrEOF(in) != null)
-                throw new Exception("Line: " + in.lineNum + " expected closing '}'");
+                throw new ParseException(in.lineNum, " expected closing '}'");
         }
     };
 
@@ -617,7 +662,7 @@ public class Reflector<T> {
         @Override
         public String get(Field field, Reflector<?> a) throws Exception {
             Collection<?> c = (Collection<?>) field.get(a);
-            String s = getCanonicalName(c.getClass()) + " {";
+            String s = getCanonicalName(c.getClass());
             return s;
         }
 
@@ -638,7 +683,7 @@ public class Reflector<T> {
                 for (int i = 0; i < len; i++) {
                     Collection<?> c = (Collection<?>) Array.get(arr, i);
                     if (c != null) {
-                        out.println(getCanonicalName(c.getClass()) + " {");
+                        out.print(getCanonicalName(c.getClass()));
                         serializeObject(c, out, true);
                     } else
                         out.println("null");
@@ -667,7 +712,7 @@ public class Reflector<T> {
                 }
             }
             if (readLineOrEOF(in) != null)
-                throw new Exception("Line: " + in.lineNum + " expected closing '}'");
+                throw new ParseException(in.lineNum, " expected closing '}'");
         }
     };
 
@@ -676,7 +721,7 @@ public class Reflector<T> {
         @Override
         public String get(Field field, Reflector<?> a) throws Exception {
             Map<?, ?> m = (Map<?, ?>) field.get(a);
-            String s = getCanonicalName(m.getClass()) + " {";
+            String s = getCanonicalName(m.getClass());
             return s;
         }
 
@@ -696,7 +741,7 @@ public class Reflector<T> {
                 for (int i = 0; i < len; i++) {
                     Map<?, ?> m = (Map<?, ?>) Array.get(arr, i);
                     if (m != null) {
-                        out.println(getCanonicalName(m.getClass()) + " {");
+                        out.println(getCanonicalName(m.getClass()));
                         serializeObject(m, out, true);
                     } else
                         out.println("null");
@@ -716,7 +761,7 @@ public class Reflector<T> {
                 }
             }
             if (readLineOrEOF(in) != null)
-                throw new Exception("Line: " + in.lineNum + " expected closing '}'");
+                throw new ParseException(in.lineNum, " expected closing '}'");
         }
     };
 
@@ -725,7 +770,7 @@ public class Reflector<T> {
         @Override
         public String get(Field field, Reflector<?> a) throws Exception {
             Object o = field.get(a);
-            String s = getCanonicalName(field.getType().getComponentType()) + " " + Array.getLength(o) + " {";
+            String s = getCanonicalName(field.getType().getComponentType()) + " " + Array.getLength(o);
             return s;
         }
 
@@ -760,11 +805,10 @@ public class Reflector<T> {
                     if (obj == null) {
                         out.println("null");
                     } else {
-                        out.println(getCanonicalName(obj.getClass().getComponentType()) + " " + Array.getLength(obj) + " {");
+                        out.p(getCanonicalName(obj.getClass().getComponentType())).p(" ").p(Array.getLength(obj));
                         out.push();
                         compArchiver.serializeArray(Array.get(arr, i), out);
                         out.pop();
-                        out.println("}");
                     }
                 }
             }
@@ -787,7 +831,7 @@ public class Reflector<T> {
                 }
             }
             if (readLineOrEOF(in) != null)
-                throw new Exception("Line: " + in.lineNum + " expected closing '}'");
+                throw new ParseException(in.lineNum, " expected closing '}'");
 
         }
     };
@@ -844,11 +888,11 @@ public class Reflector<T> {
         classMap.put("boolean[][][]", boolean[][][].class);
         classMap.put("[[[Z", boolean[][][].class);
 
+        classMap.put("java.util.Arrays.ArrayList", ArrayList.class);
+
         classMap.put("java.lang.String[]", String[].class);
         classMap.put("java.lang.String[][]", String[][].class);
         classMap.put("java.lang.String[][][]", String[][][].class);
-
-        classMap.put("java.util.Arrays.ArrayList", ArrayList.class);
 
         classMap.put("java.lang.Boolean[]", Boolean[].class);
         classMap.put("java.lang.Boolean[][]", Boolean[][].class);
@@ -874,6 +918,38 @@ public class Reflector<T> {
         classMap.put("java.lang.Byte[][]", Byte[][].class);
         classMap.put("java.lang.Byte[][][]", Byte[][][].class);
 
+        if (STRIP_PACKAGE_QUALIFIER) {
+            classMap.put("String[]", String[].class);
+            classMap.put("String[][]", String[][].class);
+            classMap.put("String[][][]", String[][][].class);
+
+            classMap.put("Boolean[]", Boolean[].class);
+            classMap.put("Boolean[][]", Boolean[][].class);
+            classMap.put("Boolean[][][]", Boolean[][][].class);
+
+            classMap.put("Integer[]", Integer[].class);
+            classMap.put("Integer[][]", Integer[][].class);
+            classMap.put("Integer[][][]", Integer[][][].class);
+
+            classMap.put("Float[]", Float[].class);
+            classMap.put("Float[][]", Float[][].class);
+            classMap.put("Float[][][]", Float[][][].class);
+
+            classMap.put("Double[]", Double[].class);
+            classMap.put("Double[][]", Double[][].class);
+            classMap.put("Double[][][]", Double[][][].class);
+
+            classMap.put("Long[]", Long[].class);
+            classMap.put("Long[][]", Long[][].class);
+            classMap.put("Long[][][]", Long[][][].class);
+
+            classMap.put("Byte[]", Byte[].class);
+            classMap.put("Byte[][]", Byte[][].class);
+            classMap.put("Byte[][][]", Byte[][][].class);
+
+        }
+
+        registerClass(ArrayList.class);
     }
 
     /**
@@ -884,9 +960,23 @@ public class Reflector<T> {
     public static void registerClass(Class<?> clazz, String ... alternateNames) {
         String sClazz = getCanonicalName(clazz);
         int lastDot = sClazz.lastIndexOf(".");
+        if (STRIP_PACKAGE_QUALIFIER) {
+            if (lastDot > 0) {
+                String simpleName = sClazz.substring(lastDot + 1);
+                if (simpleName.length() > 0 && !classMap.containsKey(simpleName)) {
+                    classMap.put(simpleName, clazz);
+                }
+            }
+            for (String alt : alternateNames) {
+                if (classMap.containsKey(alt))
+                    throw new GException("Alternate name " + alt + " is already mapped to: " + classMap.get(alt));
+                classMap.put(alt, clazz);
+            }
+        } else {
         for (String alt : alternateNames) {
             String altName = sClazz.substring(0, lastDot+1)+alt;
             classMap.put(altName, clazz);
+        }
         }
         addArrayTypes(clazz);
         classMap.put(sClazz, clazz);
@@ -897,6 +987,10 @@ public class Reflector<T> {
             return classMap.get(forName);
         try {
             return Reflector.class.getClassLoader().loadClass(forName);
+            /*
+            Class<?> clazz =  Reflector.class.getClassLoader().loadClass(forName);
+            classMap.put(forName, clazz);
+            return clazz;*/
         } catch (ClassNotFoundException e) {
             log.error("Failed to find class '" + forName + "'");
             throw e;
@@ -930,7 +1024,7 @@ public class Reflector<T> {
                 // test newInstance works for this clazz
                 if (!Modifier.isAbstract(clazz.getModifiers())) {
                     if (clazz.isArray()) {
-                        System.out.println("array?");
+                        throw new GException("array?");
                     }
                     clazz.newInstance();
                 }
@@ -946,9 +1040,6 @@ public class Reflector<T> {
                     arrClass = Array.newInstance(arrClass, 0).getClass();
                     classMap.put(arrName, arrClass);
                 }
-
-                //classMap.put(getCanonicalName(clazz) + "[]", Array.newInstance(clazz, 0).getClass());
-                //classMap.put(getCanonicalName(clazz) + "[][]", Array.newInstance(Array.newInstance(clazz, 0).getClass(), 0).getClass());
             } else if (clazz.getSuperclass() == null) {
                 //log.warn("Cannot find any fields to archive (did you add an addField(...) method in your class?)");
                 values = Collections.emptyMap();
@@ -995,6 +1086,7 @@ public class Reflector<T> {
     }
 
     private static Archiver getArchiverForType(Class<?> clazz) {
+        registerClass(clazz);
         if (clazz.equals(Byte.class) || clazz.equals(byte.class)) {
             return byteArchiver;
         } else if (clazz.equals(Boolean.class) || clazz.equals(boolean.class)) {
@@ -1144,6 +1236,7 @@ public class Reflector<T> {
     public static void addAllFields(Class<?> clazz) {
         if (DISABLED)
             return;
+        registerClass(clazz);
         addArrayTypes(clazz);
         try {
             Field[] fields = clazz.getDeclaredFields();
@@ -1188,11 +1281,15 @@ public class Reflector<T> {
             _out = (MyPrintWriter) out;
         else
             _out = new MyPrintWriter(out);
+        if (obj == null) {
+            _out.println("null");
+            return;
+        }
         if (obj.getClass().isArray()) {
             int num = Array.getLength(obj);
-            _out.println(getCanonicalName(obj.getClass()) + " " + num + " {");
+            _out.p(getCanonicalName(obj.getClass())).p(" ").p(num);
         } else {
-            _out.println(getCanonicalName(obj.getClass()) + " {");
+            _out.print(getCanonicalName(obj.getClass()));
         }
         try {
             serializeObject(obj, _out, true);
@@ -1281,15 +1378,80 @@ public class Reflector<T> {
         } catch (IOException e) {
             throw e;
         } catch (Exception e) {
-            throw new IOException("Error on line " + _in.lineNum + " " + e.getMessage(), e);
+            throw new ParseException(_in.lineNum, e);
+        }
+    }
+
+    public static void mergeObject(Object target, String in) throws IOException {
+        mergeObject(target, new MyBufferedReader(new StringReader(in)));
+    }
+
+    public static <T> T mergeObject(T target, MyBufferedReader _in) throws IOException {
+        try {
+            if (target == null) {
+                return deserializeObject(_in);
+            } else if (target.getClass().isArray()) {
+                deserializeArray(target, _in, true);
+            } else {
+                final int startDepth = _in.depth;
+                String line = _in.readLine();
+                if (line.equals("null")) {
+                    return null;
+                } else {
+                    String[] parts = line.split(" ");
+                    if (parts.length > 1) {
+                        int num = Integer.parseInt(parts[1]);
+                        Class<?> clazz = getClassForName(parts[0]);
+                        if (target == null || Array.getLength(target) != num) {
+                            //Class<?> clazz = getClassForName(parts[0]);
+                            target = (T)Array.newInstance(clazz, num);
+                        }
+                        getArchiverForType(clazz).deserializeArray(target, _in, true);
+                    } else {
+                        Class<?> clazz;
+                        if (target == null)
+                            clazz = getClassForName(parts[0]);
+                        else
+                            clazz = target.getClass();
+                        return (T)parse(target, clazz, _in, true);
+                    }
+                    if (_in.depth > startDepth)
+                        if (readLineOrEOF(_in) != null)
+                            throw new ParseException(_in.lineNum, " Expected closing '}'");
+                }
+            }
+        } catch (IOException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new IOException(e);
+        }
+        return target;
+    }
+
+
+    public static <T> T mergeObject(BufferedReader in) throws IOException {
+        MyBufferedReader _in;
+        if (in instanceof MyBufferedReader)
+            _in = (MyBufferedReader) in;
+        else
+            _in = new MyBufferedReader(in);
+        try {
+            Object o = _deserializeObject(_in, true);
+            return (T) o;
+        } catch (IOException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new IOException(e);
         }
     }
 
     private static Object _deserializeObject(MyBufferedReader in, boolean keepInstances) throws Exception {
         String line = readLineOrEOF(in);
+        if (line.equals("null"))
+            return null;
         String[] parts = line.split(" ");
         if (parts.length < 1)
-            throw new Exception("Not of form <class> <len>? {");
+            throw new ParseException(in.lineNum, "Not of form <class> <len>? {");
         Class<?> clazz = getClassForName(parts[0]);
         if (parts.length > 1) {
             Archiver a = getArchiverForType(clazz.getComponentType());
@@ -1314,57 +1476,54 @@ public class Reflector<T> {
             out.push();
             ((Reflector<?>) obj).serialize(out);
             out.pop();
-            out.println("}");
         } else if (obj instanceof Collection) {
             Collection<?> c = (Collection<?>) obj;
             out.push();
             for (Object o : c) {
                 if (o != null && o.getClass().isArray()) {
                     int len = Array.getLength(o);
-                    out.println(o.getClass().getComponentType().getName() + " " + len + " {");
+                    out.p(o.getClass().getComponentType().getName()).p(" ").p(len);
                 } else {
                     if (o == null) {
                         out.println("null");
                         continue;
                     }
-                    out.println(getCanonicalName(o.getClass()) + " {");
+                    out.p(getCanonicalName(o.getClass()));
                 }
                 serializeObject(o, out, true);
             }
             out.pop();
-            out.println("}");
         } else if (obj instanceof Map) {
             Map<?, ?> m = (Map<?, ?>) obj;
             out.push();
             for (Map.Entry<?, ?> entry : m.entrySet()) {
                 Object o = entry.getKey();
-                out.println(getCanonicalName(o.getClass()) + " {");
+                out.print(getCanonicalName(o.getClass()));
                 serializeObject(o, out, true);
                 o = entry.getValue();
                 if (o == null) {
                      out.println("null");
                 } else {
-                    out.println(getCanonicalName(o.getClass()) + " {");
+                    out.print(getCanonicalName(o.getClass()));
                     serializeObject(o, out, true);
                 }
             }
             out.pop();
-            out.println("}");
         } else if (obj.getClass().isArray()) {
             Archiver compArchiver = getArchiverForType(obj.getClass().getComponentType());
             out.push();
             compArchiver.serializeArray(obj, out);
             out.pop();
-            out.println("}");
         } else if (printObjects) {
             out.push();
             if (obj instanceof String) {
-                out.println("\"" + encodeString((String) obj) + "\"");
+                out.p("\"").p(encodeString((String) obj)).println("\"");
             } else {
                 out.println(obj);
             }
             out.pop();
-            out.println("}");
+        } else {
+            out.println();
         }
     }
 
@@ -1376,14 +1535,7 @@ public class Reflector<T> {
         return URLDecoder.decode(in, "UTF-8");
     }
 
-    protected synchronized void serialize(PrintWriter out_) throws IOException {
-//        Utils.println("Serializing %s", getClass().getName());
-        if (Profiler.ENABLED) Profiler.push("Reflector.serialize");
-        MyPrintWriter out;
-        if (out_ instanceof MyPrintWriter)
-            out = (MyPrintWriter) out_;
-        else
-            out = new MyPrintWriter(out_);
+    protected synchronized void serialize(MyPrintWriter out) throws IOException {
         try {
             Map<Field, Archiver> values = getValues(getClass(), false);
             for (Field field : values.keySet()) {
@@ -1391,10 +1543,10 @@ public class Reflector<T> {
                 field.setAccessible(true);
                 Object obj = field.get(Reflector.this);
                 if (obj == null) {
-                    out.println(field.getName() + "=null");
+                    out.p(field.getName()).println("=null");
                     continue;
                 }
-                out.println(field.getName() + "=" + archiver.get(field, this));
+                out.p(field.getName()).p("=").p(archiver.get(field, this));
                 serializeObject(obj, out, false);
             }
         } catch (IOException e) {
@@ -1413,6 +1565,15 @@ public class Reflector<T> {
      * @throws IOException
      */
     public final void serialize(OutputStream out) throws IOException {
+        serialize(new MyPrintWriter(out));
+    }
+
+    /**
+     *
+     * @param out
+     * @throws IOException
+     */
+    public final void serialize(PrintWriter out) throws IOException {
         serialize(new MyPrintWriter(out));
     }
 
@@ -1439,7 +1600,7 @@ public class Reflector<T> {
         if (enumClazz != null)
             return findEnumEntry(enumClazz, readLineOrEOF(in));
         if (clazz.isArray()) {
-            throw new Exception("This method not to be called for array types");
+            throw new ParseException(in.lineNum, "This method not to be called for array types");
         }
         if (isSubclassOf(clazz, Integer.class)) {
             return Integer.parseInt(readLineAndClosedParen(in));
@@ -1465,7 +1626,10 @@ public class Reflector<T> {
                 a = (Reflector<?>) clazz.newInstance();
             else
                 a = (Reflector) current;
-            a.deserialize(in, keepInstances);
+            if (keepInstances)
+                a.merge(in);
+            else
+                a.deserialize(in);
             return a;
         }
         if (isSubclassOf(clazz, Map.class)) {
@@ -1493,7 +1657,7 @@ public class Reflector<T> {
             return cons.newInstance(arg);
         } catch (NoSuchMethodException e) {
         }
-        throw new Exception("Dont know how to parse class " + clazz);
+        throw new ParseException(in.lineNum, "Dont know how to parse class " + clazz);
     }
 
     private static boolean isImmutable(Object o) {
@@ -1547,7 +1711,7 @@ public class Reflector<T> {
                 }
                 if (in.depth > startDepth)
                     if (readLineOrEOF(in) != null)
-                        throw new Exception("Line " + in.lineNum + " Expected closing '}'");
+                        throw new ParseException(in.lineNum, " Expected closing '}'");
             }
             if (doAdd)
                 c.add(entry);
@@ -1555,6 +1719,41 @@ public class Reflector<T> {
         while (it != null && it.hasNext()) {
             it.next();
             it.remove(); // remove any remaining in the collection
+        }
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private synchronized static void deserializeArray(Object array, MyBufferedReader in, boolean keepInstances) throws Exception {
+        final int startDepth = in.depth;
+        final int len = Array.getLength(array);
+        for (int i=0;i<len;i++) {
+            String line = readLineOrEOF(in);
+            if (line == null)
+                break;
+            Object entry = null;
+            if (!line.equals("null")) {
+                String[] parts = line.split(" ");
+                if (parts.length > 1) {
+                    int num = Integer.parseInt(parts[1]);
+                    Class<?> clazz = getClassForName(parts[0]);
+                    if (!keepInstances || entry == null || Array.getLength(entry) != num) {
+                        //Class<?> clazz = getClassForName(parts[0]);
+                        entry = Array.newInstance(clazz, num);
+                    }
+                    getArchiverForType(clazz).deserializeArray(entry, in, keepInstances);
+                } else {
+                    Class<?> clazz;
+                    if (!keepInstances || entry == null)
+                        clazz = getClassForName(parts[0]);
+                    else
+                        clazz = entry.getClass();
+                    entry = parse(entry, clazz, in, keepInstances);
+                }
+                if (in.depth > startDepth)
+                    if (readLineOrEOF(in) != null)
+                        throw new ParseException(in.lineNum, " Expected closing '}'");
+            }
+            Array.set(array, i, entry);
         }
     }
 
@@ -1568,15 +1767,15 @@ public class Reflector<T> {
             Class<?> clazz = getClassForName(line);
             Object key = parse(null, clazz, in, keepInstances);
             if (key == null)
-                throw new Exception("null key in map");
+                throw new ParseException(in.lineNum, "null key in map");
             if (in.depth > startDepth) {
                 line = readLineOrEOF(in);
                 if (line != null)
-                    throw new Exception("Expected closing }");
+                    throw new ParseException(in.lineNum, "Expected closing }");
             }
             line = readLineOrEOF(in);
             if (line == null)
-                throw new Exception("Missing value from key/value pair in map");
+                throw new ParseException(in.lineNum, "Missing value from key/value pair in map");
             Object value = null;
             if (line != null && !line.equals("null")) {
                 clazz = getClassForName(line);
@@ -1584,7 +1783,7 @@ public class Reflector<T> {
                 if (in.depth > startDepth) {
                     line = readLineOrEOF(in);
                     if (line != null)
-                        throw new Exception("Expected closing }");
+                        throw new ParseException(in.lineNum, "Expected closing }");
                 }
             }
             c.put(key, value);
@@ -1592,20 +1791,19 @@ public class Reflector<T> {
     }
 
     /**
+     *
      * @param text
-     * @throws Exception
+     * @throws IOException
      */
-    public synchronized final void deserialize(String text) throws Exception {
-        deserialize(text, false);
-    }
-
-    public synchronized final void deserialize(String text, boolean keepInstances) throws Exception {
+    public synchronized final void deserialize(String text) throws IOException {
 
         MyBufferedReader reader = new MyBufferedReader(new StringReader(text));
         try {
-            deserialize(reader, keepInstances);
+            deserializeInternal(reader, false);
+        } catch (IOException e) {
+            throw e;
         } catch (Exception e) {
-            throw new Exception("Error on line " + reader.lineNum + ": " + e.getMessage(), e);
+            throw new IOException(e);
         }
     }
 
@@ -1615,37 +1813,26 @@ public class Reflector<T> {
      * @param diff
      * @throws Exception
      */
-    public synchronized final void mergeDiff(String diff) throws Exception {
-        deserialize(diff, true);
-    }
-
-    /**
-     * @param in
-     * @throws Exception
-     */
-    public synchronized final void deserialize(InputStream in) throws IOException {
-        deserialize(in, false);
+    public synchronized final void merge(String diff) throws Exception {
+        merge(new MyBufferedReader(new StringReader(diff)));
     }
 
     /**
      *
      * @param in
-     * @param keepInstances
      * @throws IOException
      */
-    public synchronized final void deserialize(InputStream in, boolean keepInstances) throws IOException {
-
-        MyBufferedReader reader = new MyBufferedReader(new InputStreamReader(in));
-        try {
-            deserialize(reader, keepInstances);
+    public synchronized final void deserialize(InputStream in) throws IOException {
+        try (MyBufferedReader reader = new MyBufferedReader(new InputStreamReader(in))) {
+            deserializeInternal(reader, false);
         } catch (IOException e) {
-            throw new IOException("Error on line " + reader.lineNum + ": " + e.getMessage(), e);
+            throw e;
         } catch (Exception e) {
-            throw new IOException("Error on line " + reader.lineNum + ": " + e.getMessage(), e);
+            throw new IOException(e);
         }
     }
 
-    private boolean fieldMatches(Field field, String name) throws Exception {
+    private boolean fieldMatches(Field field, String name) {
         if (field.getName().equals(name))
             return true;
 
@@ -1666,31 +1853,46 @@ public class Reflector<T> {
      * @param in
      * @throws Exception
      */
-    protected final synchronized void deserialize(BufferedReader in) throws Exception {
-        deserialize(in, false);
+    public final void deserialize(Reader in) throws Exception {
+        deserializeInternal(((MyBufferedReader)((in instanceof MyBufferedReader) ? in : new MyBufferedReader(in))), false);
     }
 
-    protected synchronized void deserialize(BufferedReader in, boolean keepInstances) throws Exception {
+    /**
+     * initialize fields of this object there are explicitly added by addField for this class type.
+     *
+     * @param in
+     * @throws Exception
+     */
+    protected void deserialize(MyBufferedReader in) throws Exception {
+        deserializeInternal(in, false);
+    }
 
-        if (Profiler.ENABLED) Profiler.push("Reflector.deserialize");
-        try {
-            MyBufferedReader _in = null;
-            if (in instanceof MyBufferedReader)
-                _in = (MyBufferedReader) in;
-            else
-                _in = new MyBufferedReader(in);
+    public final synchronized void merge(InputStream in) throws Exception {
+        merge(new MyBufferedReader(new InputStreamReader(in)));
+    }
+
+    public final synchronized void merge(BufferedReader in) throws Exception {
+        merge((MyBufferedReader)((in instanceof MyBufferedReader) ? in : new MyBufferedReader(in)));
+    }
+
+    protected void merge(MyBufferedReader in) throws Exception {
+        deserializeInternal(in, true);
+    }
+
+    private void deserializeInternal(MyBufferedReader in, boolean keepInstances) throws Exception {
+
             Map<Field, Archiver> values = getValues(getClass(), false);
-            final int depth = _in.depth;
+        final int depth = in.depth;
             while (true) {
-                if (_in.depth > depth)
-                    if (_in.readLine() != null)
-                        throw new Exception("Line: " + _in.lineNum + " Expected closing '}'");
-                String line = readLineOrEOF(_in);
+            if (in.depth > depth)
+                if (in.readLine() != null)
+                    throw new ParseException(in.lineNum, " Expected closing '}'");
+            String line = readLineOrEOF(in);
                 if (line == null)
                     break;
                 String[] parts = line.split("=");
                 if (parts.length < 2)
-                    throw new Exception("Line '" + line + "' not of form 'name=value'");
+                throw new ParseException(in.lineNum, " not of form 'name=value'");
                 String name = parts[0].trim();
                 for (Field field : values.keySet()) {
                     if (fieldMatches(field, name)) {
@@ -1699,21 +1901,24 @@ public class Reflector<T> {
                         archiver.set(instance, field, parts[1], this, keepInstances);
                         if (field.get(Reflector.this) instanceof Reflector) {
                             Reflector<T> ref = (Reflector<T>) field.get(Reflector.this);
-                            ref.deserialize(_in, keepInstances);
+                        if (keepInstances)
+                            ref.merge(in);
+                        else
+                            ref.deserialize(in);
                         } else if (field.getType().isArray()) {
                             Object obj = field.get(this);
                             if (obj != null) {
                                 Archiver arrayArchiver = getArchiverForType(obj.getClass().getComponentType());
-                                arrayArchiver.deserializeArray(obj, _in, keepInstances);
+                            arrayArchiver.deserializeArray(obj, in, keepInstances);
                             }
                         } else if (isSubclassOf(field.getType(), Collection.class)) {
                             Collection<?> collection = (Collection<?>) field.get(this);
                             if (collection != null)
-                                deserializeCollection(collection, _in, keepInstances);
+                            deserializeCollection(collection, in, keepInstances);
                         } else if (isSubclassOf(field.getType(), Map.class)) {
                             Map<?, ?> map = (Map<?, ?>) field.get(this);
                             if (map != null)
-                                deserializeMap(map, _in, keepInstances);
+                            deserializeMap(map, in, keepInstances);
                         }
                         parts = null;
                         break;
@@ -1724,14 +1929,11 @@ public class Reflector<T> {
                         throw new Exception("Unknown field: " + name + " not in fields: " + values.keySet());
                     log.error("Unknown field: " + name + " not found in class: " + getClass());// + " not in fields: " + values.keySet());
                     // skip ahead until depth matches current depth
-                    while (_in.depth > depth) {
-                        readLineOrEOF(_in);
+                while (in.depth > depth) {
+                    readLineOrEOF(in);
                     }
                 }
             }
-        } finally {
-            if (Profiler.ENABLED) Profiler.pop("Reflector.deserialize");
-        }
     }
 
     private static boolean isArraysEqual(Object a, Object b) {
@@ -1774,7 +1976,7 @@ public class Reflector<T> {
         return true;
     }
 
-    private static boolean isEqual(Object a, Object b) {
+    static boolean isEqual(Object a, Object b) {
         if (a == b)
             return true;
         if (a == null || b == null)
@@ -2036,16 +2238,30 @@ public class Reflector<T> {
     }
 
     /**
+     * Convenience method
+     *
+     * @param file
+     * @throws IOException
+     */
+    public synchronized void mergeFromFile(File file) throws IOException {
+        loadFromFile(file, true);
+    }
+
+    /**
      *
      * @param file
      * @param keepInstances
      * @throws IOException
      */
-    public synchronized void loadFromFile(File file, boolean keepInstances) throws IOException {
+    private void loadFromFile(File file, boolean keepInstances) throws IOException {
 
         log.debug("Loading from file %s", file.getAbsolutePath());
         try (InputStream in = new FileInputStream(file)) {
-            deserialize(in, keepInstances);
+            deserializeInternal(new MyBufferedReader(new InputStreamReader(in)), keepInstances);
+        } catch (IOException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new IOException(e);
         }
     }
 
@@ -2068,8 +2284,17 @@ public class Reflector<T> {
     }
 
     /**
-     * Return a string that represenrts the differences in other compared to this.
-     * The resulting strings can be deserialized back into this with KEEP_INSTANCES to merge in changes.
+     * Return a string that represents the differences in other compared to this.
+     * The resulting strings can be merged into source
+     *
+     * Example:
+     *
+     * Given 2 Reflector Objects: a, b;
+     * String d = a.diff(b)
+     * a.merge(b)
+     * assertEquals(a,b)
+     *
+     *
      * <p>
      * Purpose is to allow for situations where we want to transmit changes in the objects instead of whole object
      *
@@ -2077,9 +2302,11 @@ public class Reflector<T> {
      * @return
      * @throws Exception
      */
-    public synchronized String diff(Reflector<T> other) {
+    public final synchronized String diff(T other) {
         if (other == null)
             throw new NullPointerException("Reflector.diff - other cannot be null");
+        if (!isSubclassOf(getClass(), other.getClass()))
+            throw new IllegalArgumentException("Reflector.diff - other type '" + other.getClass() + " must be same or supertype of '" + getClass() + "'");
 
         StringWriter out = new StringWriter();
         try (MyPrintWriter writer = new MyPrintWriter(out)) {
@@ -2091,15 +2318,14 @@ public class Reflector<T> {
         return out.getBuffer().toString();
     }
 
-    private final void diff(Reflector<T> other, MyPrintWriter writer) throws Exception {
-
+    protected void diff(T other, MyPrintWriter out) throws Exception {
         Map<Field, Archiver> values = null;
         if (isSubclassOf(other.getClass(), getClass()))
             values = getValues(other.getClass(), false);
         else if (isSubclassOf(getClass(), other.getClass()))
             values = getValues(getClass(), false);
         else
-            throw new Exception("Classes " + getClass() + " and " + other.getClass() + " are not related");
+            throw new ParseException(out.lineNum, "Classes " + getClass() + " and " + other.getClass() + " are not related");
 
         for (Field field : values.keySet()) {
             Archiver archiver = values.get(field);
@@ -2118,26 +2344,32 @@ public class Reflector<T> {
 
             if (mine == null) {
                 // difference is entire contents of them
-                writer.println(field.getName() + "=" + archiver.get(field, other));
-                serializeObject(thrs, writer, false);
+                out.print(field.getName() + "=" + archiver.get(field, (Reflector<T>)other));
+                serializeObject(thrs, out, false);
             } else if (thrs == null) {
-                writer.println(field.getName() + "=null");
+                out.p(field.getName()).println("=null");
             } else if (isSubclassOf(mine.getClass(), thrs.getClass())) {
+                out.p(field.getName()).p("=");
                 if (mine instanceof Reflector) {
-                    writer.println(field.getName() + "=" + getCanonicalName(thrs.getClass()) + " {");
-                    writer.push();
-                    ((Reflector) mine).diff((Reflector) thrs, writer);
-                    writer.pop();
-                    writer.println("}");
+                    out.p(getCanonicalName(thrs.getClass()));
+                    out.push();
+                    ((Reflector) mine).diff((Reflector) thrs, out);
+                    out.pop();
                 } else if (mine instanceof Collection) {
-                    diffCollections(field.getName(), (Collection) mine, (Collection) thrs, writer);
+                    out.p(getCanonicalName(thrs.getClass()));
+                    out.push();
+                    diffCollections((Collection) mine, (Collection) thrs, out);
+                    out.pop();
                 } else if (mine instanceof Map) {
-                    diffMaps(field.getName(), (Map) mine, (Map) thrs, writer);
+                    out.p(getCanonicalName(thrs.getClass()));
+                    out.push();
+                    diffMaps(field.getName(), (Map) mine, (Map) thrs, out);
+                    out.pop();
                 } else if (mine.getClass().isArray()) {
-                    diffArrays(field.getName(), mine, thrs, writer);
+                    serializeObject(thrs, out);//diffArrays(mine, thrs, out);
                 } else {
-                    String themStr = archiver.get(field, other);
-                    writer.println(field.getName() + "=" + themStr);
+                    String themStr = archiver.get(field, (Reflector<T>)other);
+                    out.println(themStr);
                 }
             } else {
                 throw new Exception("Cannot diff object that are not related");
@@ -2146,9 +2378,6 @@ public class Reflector<T> {
     }
 
     private void diffMaps(String name, Map mine, Map thrs, MyPrintWriter writer) throws Exception {
-        writer.println(name + "=" + getCanonicalName(thrs.getClass()) + " {");
-        writer.push();
-
         for (Object key : mine.keySet()) {
 
             serializeObject(key, writer);
@@ -2167,20 +2396,24 @@ public class Reflector<T> {
             serializeObject(key, writer);
             serializeObject(thrs.get(key), writer);
         }
-
-        writer.pop();
-        writer.println("}");
     }
 
-    private void diffObjects(Object o1, Object o2, MyPrintWriter writer) throws Exception {
+    public static String diffObjects(Object o1, Object o2) throws Exception {
+        try (StringWriter out = new StringWriter(128)) {
+            diffObjects(o1, o2, new MyPrintWriter(out));
+            return out.getBuffer().toString();
+        }
+    }
+
+    static void diffObjects(Object o1, Object o2, MyPrintWriter writer) throws Exception {
         if (o2 == null) {
             writer.println("null");
         } else if (o1 == null) {
             serializeObject(o2, writer);
         } else if (o2.getClass().isArray()) {
-            diffArrays(null, o1, o2, writer);
+            diffArrays(o1, o2, writer);
         } else if (o2 instanceof Reflector) {
-            writer.println(getCanonicalName(o2.getClass()) + " {");
+            writer.print(getCanonicalName(o2.getClass()));
             writer.push();
             if (((Reflector) o2).isImmutable()) {
                 ((Reflector) o2).serialize(writer);
@@ -2188,16 +2421,12 @@ public class Reflector<T> {
                 ((Reflector) o1).diff((Reflector) o2, writer);
             }
             writer.pop();
-            writer.println("}");
         } else {
             serializeObject(o2, writer);
         }
     }
 
-    private void diffCollections(String name, Collection mine, Collection thrs, MyPrintWriter writer) throws Exception {
-        writer.println(name + "=" + getCanonicalName(thrs.getClass()) + " {");
-        writer.push();
-
+    private void diffCollections(Collection mine, Collection thrs, MyPrintWriter writer) throws Exception {
         Iterator i1 = mine.iterator();
         Iterator i2 = thrs.iterator();
 
@@ -2207,17 +2436,14 @@ public class Reflector<T> {
 
             diffObjects(o1, o2, writer);
         }
-
-        writer.pop();
-        writer.println("}");
     }
 
-    private static final void diffArrays(String name, Object array1, Object array2, MyPrintWriter writer) throws Exception {
+    private static final void diffArrays(Object array1, Object array2, MyPrintWriter writer) throws Exception {
         if (isArraysEqual(array1, array2))
             return;
         int len1 = Array.getLength(array1);
         int len2 = Array.getLength(array2);
-        writer.println((name != null ? (name + "=") : "") + array2.getClass().getComponentType().getName().replace('$', '.') + " " + len2 + " {");
+        writer.p(array2.getClass().getComponentType().getName().replace('$', '.')).p(" ").p(len2);
         writer.push();
         for (int i = 0; i < len2; i++) {
             Object o1 = i < len1 ? Array.get(array1, i) : null;
@@ -2225,14 +2451,13 @@ public class Reflector<T> {
             if (o2 == null) {
                 writer.println("null");
             } else if (o2 instanceof Reflector) {
-                writer.println(getCanonicalName(o2.getClass()) + " {");
+                writer.print(getCanonicalName(o2.getClass()));
                 if (o1 == null)
                     serializeObject(o2, writer, true);
                 else {
                     writer.push();
                     ((Reflector) o1).diff((Reflector) o2, writer);
                     writer.pop();
-                    writer.println("}");
                 }
             } else {
                 Archiver a = getArchiverForType(o2.getClass());
@@ -2241,8 +2466,6 @@ public class Reflector<T> {
             }
         }
         writer.pop();
-        writer.println("}");
-
     }
 
     /**
@@ -2254,10 +2477,29 @@ public class Reflector<T> {
         return false;
     }
 
+    /**
+     * CRC32 Checksum
+     * @return
+     */
+    public final long getChecksum() {
+        Checksum crc32 = new CRC32();
+        try {
+            serialize(new OutputStream() {
+                @Override
+                public void write(int b) throws IOException {
+                    crc32.update(b);
+                }
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return crc32.getValue();
+    }
+
     public static void dump() {
         log.info("classMap=" + classMap.toString().replace(',', '\n'));
         log.info("classValues=" + classValues.toString().replace(',', '\n'));
-        log.info("canonicalNameCash=" + caconicalNameCash.toString().replace(',', '\n'));
+        log.info("canonicalNameCache=" + canonicalNameCache.toString().replace(',', '\n'));
 
     }
 }

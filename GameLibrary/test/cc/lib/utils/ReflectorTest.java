@@ -11,7 +11,6 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -31,6 +30,7 @@ public class ReflectorTest extends TestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
+        Utils.setDebugEnabled();
         System.out.println("Start Test: " + getName());
         System.out.println("--------------------------------------------------------");        
     }
@@ -38,10 +38,9 @@ public class ReflectorTest extends TestCase {
     public void testAllNull() throws Exception {
         MyArchivable t = new MyArchivable();
         String data = t.toString();
-        System.out.println(data);
+        System.out.println(t.toStringNumbered());
         MyArchivable s = new MyArchivable();
-        BufferedReader reader = new BufferedReader(new StringReader(data));
-        s.deserialize(reader);
+        s.deserialize(data);
         assertEquals(t, s);
         MyArchivable u = t.deepCopy();
         assertEquals(u, t);
@@ -188,8 +187,7 @@ public class ReflectorTest extends TestCase {
         String data = t.toString();
         System.out.println(data);
         MyArchivable s = new MyArchivable();
-        BufferedReader reader = new BufferedReader(new StringReader(data));
-        s.deserialize(reader);
+        s.deserialize(data);
         assertEquals(t, s);
         MyArchivable u = t.deepCopy();
         assertEquals(u, t);
@@ -309,8 +307,13 @@ public class ReflectorTest extends TestCase {
         assertEquals(uos, uos2);
     }
 
-    class MyArchivableX extends MyArchivable {
-        MyArchivableX() {}
+    public static class MyArchivableX extends MyArchivable {
+
+        static {
+            addAllFields(MyArchivableX.class);
+        }
+
+        public MyArchivableX() {}
     }
 
     public void testDerivedReflectors() throws Exception {
@@ -321,7 +324,7 @@ public class ReflectorTest extends TestCase {
 
         String txt = a.toString();
 
-        a.deserialize(txt, true);
+        a.deserialize(txt);
 
         a.myArchivableArray = new MyArchivable[] {
                 new MyArchivableX(),
@@ -331,7 +334,7 @@ public class ReflectorTest extends TestCase {
 
         txt = a.toString();
 
-        a. deserialize(txt, true);
+        a.deserialize(txt);
 
         a.my2DArchivableArray = new MyArchivable[][] {
                 { new MyArchivableX(), new MyArchivableX() },
@@ -340,14 +343,14 @@ public class ReflectorTest extends TestCase {
 
         txt = a.toString();
 
-        a. deserialize(txt, true);
+        a.deserialize(txt);
 
         a.myCollection = new ArrayList();
         a.myCollection.add(new MyArchivableX());
         a.myCollection.add(new MyArchivableX());
 
         txt = a.toString();
-        a. deserialize(txt, true);
+        a.deserialize(txt);
 
         a.collectionArray = new Collection[] {
             new ArrayList(),
@@ -360,7 +363,7 @@ public class ReflectorTest extends TestCase {
         a.collectionArray[1].add(new MyArchivableX());
 
         txt = a.toString();
-        a. deserialize(txt, true);
+        a.deserialize(txt);
 
     }
     
@@ -554,7 +557,7 @@ public class ReflectorTest extends TestCase {
         sb.myObjArray[2].myInt = -100;
         diff = sa.diff(sb);
         System.out.println("diff:\n" + diff);
-        sa.deserialize(diff);
+        sa.merge(diff);
         assertTrue(Arrays.deepEquals(sa.myObjArray, sb.myObjArray));
         assertTrue(sa.equals(sb));
         assertTrue(sa.toString().equals(sb.toString()));
@@ -608,7 +611,7 @@ public class ReflectorTest extends TestCase {
         sb.myIntList = new ArrayList<>(Arrays.asList(1, 2, 3, 4, 5));
         String diff = sa.diff(sb);
         System.out.println("diff:\n" + diff);
-        sa.deserialize(diff);
+        sa.merge(diff);
         //System.out.println("sa:\n"+sa.toString());
         //System.out.println("sb:\n"+sb.toString());
         //assertTrue(sa.toString().equals(sb.toString()));
@@ -618,7 +621,7 @@ public class ReflectorTest extends TestCase {
         sb.myObjList = new Vector<>();
         diff = sa.diff(sb);
         System.out.println("diff:\n" + diff);
-        sa.deserialize(diff);
+        sa.merge(diff);
         assertEquals(sa, sb);
 
         sb.myObjList.add(null);
@@ -626,23 +629,23 @@ public class ReflectorTest extends TestCase {
         sb.myObjList.add(null);
         diff = sa.diff(sb);
         System.out.println("diff:\n" + diff);
-        sa.deserialize(diff);
+        sa.merge(diff);
         assertEquals(sa, sb);
 
         sb.myObjList.get(1).myEnum = SomeEnum.ENUM1;
         diff = sa.diff(sb);
         System.out.println("diff:\n" + diff);
-        sa.deserialize(diff);
+        sa.merge(diff);
         assertEquals(sa, sb);
 
         sb.myEnum = SomeEnum.ENUM2;
         sb.myObjList.get(1).myEnumArray = SomeEnum.values();
         diff = sa.diff(sb);
         System.out.println("diff:\n" + diff);
-        sa.deserialize(diff, true);
-        System.out.println("sa:\n" + sa);
-        System.out.println("sb:\n" + sb);
-        assertEquals(sa.toString(), sb.toString());
+        sa.merge(diff);
+        //System.out.println("sa:\n" + sa);
+        //System.out.println("sb:\n" + sb);
+        assertEquals(sb, sa);
     }
 
     public void testDiffIntList() throws Exception {
@@ -657,7 +660,7 @@ public class ReflectorTest extends TestCase {
 
         String diff = a.diff(b);
         System.out.println("diff=\n"+diff);
-        a.mergeDiff(diff);
+        a.merge(diff);
         assertEquals(a, b);
     }
 
@@ -669,13 +672,13 @@ public class ReflectorTest extends TestCase {
 
         String diff = a.diff(b);
         System.out.println("diff=\n"+diff);
-        a.mergeDiff(diff);
+        a.merge(diff);
         assertEquals(a, b);
 
         a.myColorList.set(0, GColor.BLUE);
         diff = a.diff(b);
         System.out.println("diff=\n"+diff);
-        a.mergeDiff(diff);
+        a.merge(diff);
         assertEquals(a, b);
     }
 
@@ -741,6 +744,7 @@ public class ReflectorTest extends TestCase {
         Map<String, String> myStrStrMap = null;
 
         Map<MyEnum, MyEnum> myEnumMap = null;
+        List<MyEnum> myEnumList = null;
     }
 
     public void testMaps() throws Exception {
@@ -849,7 +853,9 @@ public class ReflectorTest extends TestCase {
         //Reflector.registerClass(Collections.synchronizedList(new ArrayList()).getClass(), "java.util.Collections.SynchronizedRandomAccessList");
         //Reflector.registerConstructor("java.util.Collections.SynchronizedRandomAccessList", () -> Collections.synchronizedList(new ArrayList()));
 
-        List<String> list = Collections.unmodifiableList(Utils.toList("Hello", "Goodbye"));
+        List<List<String>> list = Utils.toList(
+                Utils.toList("Hello", "Goodbye"),
+                Utils.toList("So Long", "Farewell"));
 
         String str = Reflector.serializeObject(list);
         System.out.println("str="+str);
@@ -882,8 +888,199 @@ public class ReflectorTest extends TestCase {
             a.serialize(out);
         }
         System.out.println("str=" + str.toString());
-        b.deserialize(str.toString(), true);
+        b.merge(str.toString());
 
         System.out.println(b.toString());
+    }
+
+    public void testMergeArraysNull() throws Exception {
+        SimpleObject a = new SimpleObject();
+        SimpleObject b = new SimpleObject();
+
+        a.myEnumArray = new SomeEnum[100];
+        String diff = b.diff(a);
+        b.merge(diff);
+        assertEquals(a, b);
+
+        a.myEnumArray[50] = SomeEnum.ENUM1;
+        diff = b.diff(a);
+        System.out.println("diff=" + diff);
+        b.merge(diff);
+        assertEquals(a, b);
+
+    }
+
+    public void testGrid() throws Exception {
+        Grid<String> grid = new Grid<>(2, 2);
+
+        grid.set(0, 0, "Hello");
+        grid.set(1, 1, "Goodbye");
+
+        System.out.println("grid=" + grid);
+
+        Grid<String> copy = grid.deepCopy();
+        grid.set(0, 1, "Whatev");
+        grid.set(0, 0, null);
+        System.out.println("grid=" + grid);
+        String diff = copy.diff(grid);
+        System.out.println("diff=" + diff);
+
+        copy.merge(diff);
+        System.out.println("grid=" + grid);
+        System.out.println("copy=" + copy);
+        assertEquals(grid, copy);
+
+    }
+/*
+    public void testMergableVector() throws Exception {
+
+        MergableVector<Integer> v = new MergableVector<>();
+        MergableVector<Integer> copy = new MergableVector<>();
+
+        String diff = copy.diff(v);
+        System.out.println(diff);
+        copy.merge(diff);
+        assertEquals(v, copy);
+
+        v.setSize(3);
+
+        diff = copy.diff(v);
+        System.out.println(diff);
+        copy.merge(diff);
+        assertEquals(v, copy);
+
+        v.set(1, 100);
+        diff = copy.diff(v);
+        System.out.println(diff);
+        copy.merge(diff);
+        assertEquals(v, copy);
+
+        copy.setSize(5);
+        diff = copy.diff(v);
+        System.out.println(diff);
+        copy.merge(diff);
+        assertEquals(v, copy);
+
+        String str = copy.toString();
+        MergableVector vv = new MergableVector();
+        vv.deserialize(str);
+
+        assertEquals(vv, copy);
+    }*/
+
+    public void testGColor() throws Exception {
+        System.out.println(GColor.BLUE.toStringNumbered());
+    }
+
+    public void testDiffListsDifferentLengths() throws Exception {
+        SimpleObject a = new SimpleObject();
+        SimpleObject b = new SimpleObject();
+
+        a.myIntList = Utils.toIntList(1, 2, 3);
+        b.myIntList = Utils.toIntList(1, 3, 4, 5);
+
+        String diff = a.diff(b);
+        System.out.println(diff);
+
+        a.merge(diff);
+
+        assertEquals(b, a);
+
+        a.myObjList = new Vector();
+        a.myObjList.add(new SimpleObject());
+
+        b.myObjList = new Vector<>();
+        b.myObjList.add(new SimpleObject());
+        b.myObjList.add(new SimpleObject());
+
+        diff = b.diff(a);
+        System.out.println(diff);
+
+        b.merge(diff);
+
+        assertEquals(b, a);
+        assertEquals(b.getChecksum(), a.getChecksum());
+    }
+
+    public void testEnumCollections() throws Exception {
+
+        SimpleObject a = new SimpleObject();
+        a.myEnumList = Utils.toList(SimpleObject.MyEnum.A, SimpleObject.MyEnum.B, SimpleObject.MyEnum.C);
+
+        String str = a.toString();
+        System.out.println("a=" + str);
+
+        SimpleObject [] arr = {
+                a,a
+        };
+
+        SimpleObject b = new SimpleObject();
+        b.deserialize(str);
+
+        assertEquals(a, b);
+        assertEquals(a.getChecksum(), b.getChecksum());
+
+        str = Reflector.serializeObject(arr);
+        System.out.println("a=" + str);
+
+        Reflector.dump();
+        SimpleObject [] barr = Reflector.deserializeFromString(str);
+        assertTrue(Arrays.equals(arr, barr));
+    }
+/*
+    static class TestA extends Reflector<TestA> {
+
+        static {
+            addAllFields(TestA.class);
+        }
+
+        TestObject a = new TestObject();
+        cc.lib.utils.pkgb.TestObject b = new cc.lib.utils.pkgb.TestObject();
+    }
+
+    public void testPkgCollision() throws Exception {
+
+        // test that reflector objects of same name but different packages are handled
+        TestA a = new TestA();
+        a.a.x = "Hello X";
+        a.b.y = "Goodbye Y";
+        System.out.println("a=" + a.toString());
+
+        TestA b = new TestA();
+        b.deserialize(a.toString());
+        System.out.println("b=" + a.toString());
+
+        assertEquals(a, b);
+        assertEquals(a.getChecksum(), b.getChecksum());
+    }*/
+
+    public void testLoadFromNewProcess() throws Exception {
+
+        SimpleObject a = new SimpleObject();
+        SimpleObject b = new SimpleObject();
+        a.myObjList = new Vector<>();
+        a.myObjList.add(b);
+        a.deserialize(FileUtils.openFileOrResource("testLoadFromNewProcess.txt"));
+        /*
+        b.myEnumArray = Utils.toArray(SomeEnum.ENUM1, SomeEnum.ENUM2, SomeEnum.ENUM3);
+        String str = a.toString();
+        System.out.println(str);
+        a.saveToFile(new File("testResources/testLoadFromNewProcess.txt"));
+         */
+
+    }
+
+    public void testSerializeArrays() throws Exception {
+        Integer [] arr = { 4 };
+
+        String strx = Reflector.serializeObject(arr);
+        //System.out.println(str);
+        String str = "Integer[] 1 {\n"
+        + "   4\n"
+        + "}";
+
+        Integer [] arr2 = Reflector.deserializeFromString(str);
+
+        assertTrue(Arrays.equals(arr, arr2));
     }
 }

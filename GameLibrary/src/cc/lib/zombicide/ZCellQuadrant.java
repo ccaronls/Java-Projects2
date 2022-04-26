@@ -10,9 +10,9 @@ public enum ZCellQuadrant {
     UPPERRIGHT,
     LOWERLEFT,
     TOP,
+    BOTTOM,
     LEFT,
     RIGHT,
-    BOTTOM,
     CENTER;
 
     public static ZCellQuadrant [] valuesForRender() {

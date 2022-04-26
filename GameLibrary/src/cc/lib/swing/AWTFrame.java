@@ -275,13 +275,25 @@ public class AWTFrame extends JFrame implements WindowListener, ComponentListene
         }
     }
 
-	public void windowOpened(WindowEvent ev) {}
-	public void windowClosed(WindowEvent ev) {}
+	public void windowOpened(WindowEvent ev) {
+        log.debug("windowOpened");
+    }
+	public void windowClosed(WindowEvent ev) {
+        log.debug("windowClosed");
+    }
 	public final void windowClosing(WindowEvent ev) { saveToFile(); onWindowClosing(); System.exit(0); }
-	public void windowIconified(WindowEvent ev) {}
-	public void windowDeiconified(WindowEvent ev) {}
-	public void windowActivated(WindowEvent ev) {}
-	public void windowDeactivated(WindowEvent ev) {}
+	public void windowIconified(WindowEvent ev) {
+        log.debug("windowIconified");
+    }
+	public void windowDeiconified(WindowEvent ev) {
+        log.debug("windowDeiconified");
+    }
+	public void windowActivated(WindowEvent ev) {
+        log.debug("windowActivated");
+    }
+	public void windowDeactivated(WindowEvent ev) {
+        log.debug("windowDeactivated");
+    }
 
 	public void centerToScreen() {
 		this.pack();

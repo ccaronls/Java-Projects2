@@ -8,30 +8,30 @@ public enum ZCellType {
     NONE,
     VAULT_DOOR_VIOLET,
     VAULT_DOOR_GOLD,
-    OBJECTIVE_RED,
-    OBJECTIVE_BLUE,
-    OBJECTIVE_GREEN,
-    OBJECTIVE_BLACK,
+    OBJECTIVE_RED(GColor.RED, true, false),
+    OBJECTIVE_BLUE(GColor.BLUE, true, false),
+    OBJECTIVE_GREEN(GColor.GREEN, true, false),
+    OBJECTIVE_BLACK(GColor.BLACK, true, false),
     START,
     EXIT,
     WALKER,
     RUNNER,
     FATTY,
-    NECRO,
+    NECROMANCER,
     ABOMINATION;
 
-    public GColor getColor() {
-        switch (this) {
-            case OBJECTIVE_BLACK:
-                return GColor.BLACK;
-            case OBJECTIVE_BLUE:
-                return GColor.BLUE;
-            case OBJECTIVE_GREEN:
-                return GColor.GREEN;
-            case OBJECTIVE_RED:
-                return GColor.RED;
-        }
-        return GColor.YELLOW;
+    ZCellType() {
+        this(GColor.YELLOW, false, false);
     }
+
+    ZCellType(GColor color, boolean isObjective, boolean isZombie) {
+        this.color = color;
+        this.isObjective = isObjective;
+        this.isZombie = isZombie;
+    }
+
+    public final GColor color;
+    public final boolean isObjective;
+    public final boolean isZombie;
 
 }

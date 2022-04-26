@@ -18,6 +18,10 @@ import cc.lib.zombicide.ui.UIZombicide;
  */
 class ZMPCommon {
 
+    static {
+        Reflector.registerClass(Assignee.class);
+    }
+
     final ZombicideActivity activity;
     final UIZombicide game;
 

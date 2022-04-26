@@ -57,6 +57,8 @@ import cc.lib.zombicide.anims.ZoomAnimation;
 
 public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
 
+    static final boolean ENABLE_ENHANCED_UI = false;
+
     final static Logger log = LoggerFactory.getLogger(UIZBoardRenderer.class);
 
     final List<ZAnimation> preActor = new ArrayList<>();
@@ -96,7 +98,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
     }
 
     ZQuest getQuest() {
-        return getGame().getQuest();
+        return getGame() != null ? getGame().getQuest() : null;
     }
 
     public synchronized boolean isAnimating() {
@@ -131,13 +133,15 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
     List<IButton> submenu = null;
 
     void processSubMenu(ZCharacter cur, List<IButton> options) {
-//        submenu = options;
-  //      redraw();
+        if (ENABLE_ENHANCED_UI) {
+            submenu = options;
+            redraw();
+        }
     }
 
     void processMoveOptions(ZCharacter cur, List<ZMove> options) {
         clickables.clear();
-        if (true)
+        if (!ENABLE_ENHANCED_UI)
             return;
         for (ZMove move : options) {
             switch (move.type) {
@@ -468,7 +472,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                                 if (zone.isObjective()) {
                                     // draw a big red X om the center of the cell
                                     GRectangle redX = new GRectangle(cell).scaledBy(.25f, .25f);
-                                    g.setColor(type.getColor());
+                                    g.setColor(type.color);
                                     g.drawLine(redX.getTopLeft(), redX.getBottomRight(), lineThickness);
                                     g.drawLine(redX.getTopRight(), redX.getBottomLeft(), lineThickness);
                                 }
@@ -917,6 +921,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
     }
 
     public GRectangle getZoomedRectangle(AGraphics g, IVector2D center) {
+        log.verbose("getZoomedRectangle cntr: %s", center);
         GDimension dim = getBoard().getDimension();
         float aspect = dim.getAspect();
         GDimension zoomed;

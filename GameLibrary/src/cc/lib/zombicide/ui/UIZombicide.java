@@ -37,7 +37,6 @@ import cc.lib.zombicide.ZUser;
 import cc.lib.zombicide.ZWeapon;
 import cc.lib.zombicide.ZZombie;
 import cc.lib.zombicide.ZZombieCategory;
-import cc.lib.zombicide.ZZombieType;
 import cc.lib.zombicide.ZZone;
 import cc.lib.zombicide.anims.AscendingAngelDeathAnimation;
 import cc.lib.zombicide.anims.DeathAnimation;
@@ -370,9 +369,15 @@ public abstract class UIZombicide extends ZGameMP {
     protected void onZombieSpawned(ZZombie zombie) {
         super.onZombieSpawned(zombie);
         zombie.addAnimation(new SpawnAnimation(zombie, board));
-        if (zombie.getType() == ZZombieType.Abomination) {
-            boardRenderer.addOverlay(new OverlayTextAnimation("A B O M I N A T I O N ! !", boardRenderer.getNumOverlayTextAnimations()));
-            Utils.waitNoThrow(this, 500);
+        switch (zombie.getType()) {
+            case Abomination:
+                boardRenderer.addOverlay(new OverlayTextAnimation("A B O M I N A T I O N ! !", boardRenderer.getNumOverlayTextAnimations()));
+                Utils.waitNoThrow(this, 500);
+                break;
+            case Necromancer:
+                boardRenderer.addOverlay(new OverlayTextAnimation("N E C R O M A N C E R ! !", boardRenderer.getNumOverlayTextAnimations()));
+                Utils.waitNoThrow(this, 500);
+                break;
         }
         boardRenderer.redraw();
     }
@@ -399,6 +404,7 @@ public abstract class UIZombicide extends ZGameMP {
                 }
             });
             boardRenderer.redraw();
+            characterRenderer.redraw();
             animLock.block();
         }
     }

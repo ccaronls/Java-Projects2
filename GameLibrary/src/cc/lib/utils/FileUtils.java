@@ -142,6 +142,11 @@ public class FileUtils {
 	    return restoreFile(file.getAbsolutePath());
     }
 
+    /**
+     *
+     * @param file
+     * @return
+     */
     public static boolean hasBackupFile(File file) {
 	    return hasBackupFile(file.getAbsolutePath());
     }

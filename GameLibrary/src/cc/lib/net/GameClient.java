@@ -486,6 +486,7 @@ public class GameClient {
      * @throws IOException
      */
     private void handleExecuteRemote(GameCommand cmd) throws IOException {
+        log.debug("handleExecuteOnRemote %s", cmd);
         String method = cmd.getString("method");
         int numParams = cmd.getInt("numParams");
         Class [] paramsTypes = new Class[numParams];

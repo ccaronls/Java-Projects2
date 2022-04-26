@@ -239,8 +239,5 @@ public class ZBoardView extends UIComponentView implements UIZComponent<DroidGra
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-/*        synchronized (this) {
-            notify(); // notify activity we have rendered a frame
-        }*/
     }
 }

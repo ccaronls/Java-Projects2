@@ -2620,6 +2620,15 @@ public class Utils {
     }
 
     /**
+     *
+     * @param array
+     * @return
+     */
+    public static List<Integer> toIntList(Integer ... array) {
+        return toList(0, array.length, array);
+    }
+
+    /**
      * Return subset of an array as a list
      * @param num
      * @param array
@@ -3419,5 +3428,20 @@ public class Utils {
      */
     public static <T> T requireNotNull(T in, T otherwise) {
         return in == null ? otherwise : in;
+    }
+
+    /**
+     *
+     * @param map
+     * @param object
+     * @param <T>
+     */
+    public static <T> void incrementCountingMap(Map<T, Integer> map, T object, int amt) {
+        if (map.containsKey(object)) {
+            int value = map.get(object)+amt;
+            map.put(object, value);
+        } else {
+            map.put(object, amt);
+        }
     }
 }

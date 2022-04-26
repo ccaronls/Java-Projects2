@@ -1,9 +1,17 @@
 package cc.lib.crypt;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.Random;
+
+import cc.lib.utils.GException;
 
 // 0 goes left
 // 1 goes right
@@ -94,6 +102,8 @@ public class HuffmanEncoding implements Cypher {
         }
         
         void incrementOccurance() {
+            if (occurances + 1 < 0)
+                throw new GException("Overflow");
             occurances ++;
         }
 
@@ -172,6 +182,7 @@ public class HuffmanEncoding implements Cypher {
         for (int i=0; i<counts.length; i++) {
             this.counts[i].setOccurance(counts[i]);
         }
+        generate();
     }
 
     long [] getCounts() {
@@ -216,8 +227,7 @@ public class HuffmanEncoding implements Cypher {
         }
     }
 
-    public final void importCounts(String s) throws IOException {
-        byte [] buffer = new byte[COUNTS_ARRAY_SIZE];
+    public final void importCounts(String s) {
         byte [] b = s.getBytes();
         for (int i=0; i<b.length; i++) {
             int n = b[i];
@@ -241,6 +251,11 @@ public class HuffmanEncoding implements Cypher {
         }
     }
     
+    public void initStandardCounts() {
+        String keys = " abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*()`~-_=+[]{}\\|;:'\",<.>/?";
+        importCounts(keys);
+    }
+
     /**
      * 
      * @param file
@@ -480,6 +495,7 @@ public class HuffmanEncoding implements Cypher {
      *  (non-Javadoc)
      * @see Cypher#decrypt(int)
      */
+    @Override
     public int [] decrypt(int encrypted) {
         // traverse the tree to get to the child
         return decryptR(encrypted, root, 0, 0);

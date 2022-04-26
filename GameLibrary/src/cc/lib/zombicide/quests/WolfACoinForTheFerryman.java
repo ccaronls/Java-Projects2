@@ -116,7 +116,7 @@ public class WolfACoinForTheFerryman extends ZQuest {
             blueKeyPos = null;
         } else {
             super.processObjective(game, c);
-            if (getNumUnfoundObjectives() == 0) {
+            if (getNumRemainingObjectives() == 0) {
                 game.addLogMessage("The BLUE key is revealed!!!");
                 game.getBoard().setObjective(blueKeyPos, ZCellType.OBJECTIVE_BLUE);
             }

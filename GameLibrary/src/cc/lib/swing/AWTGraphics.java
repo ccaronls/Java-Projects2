@@ -38,6 +38,10 @@ public class AWTGraphics extends APGraphics {
         return images;
     }
 
+    private int getCurrentFontHeight() {
+        return g.getFontMetrics().getFont().getSize();
+    }
+
     int getPolyPts() {
         int n = getNumVerts();
         if (x.length < n) {
@@ -110,22 +114,17 @@ public class AWTGraphics extends APGraphics {
         comp.setBackground(new Color(color.toARGB(), true));
     }
 
-    private int currentFontHeight = -1;
-
     @Override
     public final float getTextHeight() {
-        if (currentFontHeight < 0) {
-            currentFontHeight = g.getFontMetrics(g.getFont()).getHeight();
-        }
-        return currentFontHeight;
+        return getCurrentFontHeight();
     }
 
     @Override
     public final float setTextHeight(float height) {
-        float oldHeight = currentFontHeight;
-        Font newFont = g.getFont().deriveFont(height);
+        int oldHeight = getCurrentFontHeight();
+        System.out.println("Setting height from  " + oldHeight + " -> " + height);
+        Font newFont = g.getFont().deriveFont((float)(int)height);
         g.setFont(newFont);
-        currentFontHeight = Math.round(height);
         return oldHeight;
     }
 
@@ -506,7 +505,6 @@ public class AWTGraphics extends APGraphics {
 
     public final  void setFont(Font font) {
         g.setFont(font);
-        this.currentFontHeight = -1;
     }
 
 	public void setColor(Color c) {

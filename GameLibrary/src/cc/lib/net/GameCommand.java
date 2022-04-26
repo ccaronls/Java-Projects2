@@ -126,7 +126,7 @@ public class GameCommand {
 
     public final <T extends Reflector> T parseReflector(String key, T object) throws Exception {
         try (InputStream in = new ByteArrayInputStream((byte[]) arguments.get(key))) {
-            object.deserialize(in, true);
+            object.merge(in);
             return object;
         }
     }
@@ -380,9 +380,7 @@ public class GameCommand {
                     ((Reflector) o).serialize(out);
                     dout.writeByte(TYPE_BYTE_ARRAY);
                     dout.writeInt(out.size());
-                    log.debug("Writing %d bytes", out.size());
                     dout.write(out.toByteArray());
-                    dout.flush();
                 }
             } else {
                 dout.writeByte(TYPE_STRING);

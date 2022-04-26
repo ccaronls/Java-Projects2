@@ -88,7 +88,7 @@ public class WolfTheGhostDoor extends ZQuest {
         return new Table(getName()).addRow(new Table().setNoBorder()
             .addRow("1.", "Get at least one survivor to RED danger level.", numSurvivorsAtDangerRED > 0)
             .addRow("2.", "Get at least one survor at danger level RED to the EXIT. The EXIT but be clear on zombies.", numREDinEXIT > 0)
-            .addRow("3.", "Each OBJECTIVE grants " + getObjectiveExperience(0,0) + " points and allow survivor to take an equipment card of their choice form the deck as well as reorganize their inventory for free", String.format("%d of %d", getNumUnfoundObjectives(), getNumStartObjectives()))
+            .addRow("3.", "Each OBJECTIVE grants " + getObjectiveExperience(0,0) + " points and allow survivor to take an equipment card of their choice form the deck as well as reorganize their inventory for free", String.format("%d of %d", getNumRemainingObjectives(), getNumStartObjectives()))
         );
     }
 }

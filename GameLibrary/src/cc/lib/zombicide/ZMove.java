@@ -19,8 +19,8 @@ public class ZMove extends Reflector<ZMove> implements IButton {
     public final ZEquipment equipment;
     public final ZEquipSlot fromSlot;
     public final ZEquipSlot toSlot;
+    public final ZActionType action;
     public final List list;
-    public final ZDir dir;
     public final ZSkill skill;
 
     public ZMove() {
@@ -28,39 +28,47 @@ public class ZMove extends Reflector<ZMove> implements IButton {
     }
 
     public ZMove(ZMove copy, Object singleListElement) {
-        this(copy.type, copy.integer, copy.character, copy.equipment, copy.fromSlot, copy.toSlot, Arrays.asList(singleListElement), copy.dir, copy.skill);
+        this(copy.type, copy.integer, copy.character, copy.equipment, copy.fromSlot, copy.toSlot, Arrays.asList(singleListElement), copy.skill, copy.action);
     }
 
     public ZMove(ZMove copy, Object singleListElement, int integer) {
-        this(copy.type, integer, copy.character, copy.equipment, copy.fromSlot, copy.toSlot, Arrays.asList(singleListElement), copy.dir, copy.skill);
+        this(copy.type, integer, copy.character, copy.equipment, copy.fromSlot, copy.toSlot, Arrays.asList(singleListElement), copy.skill, copy.action);
     }
 
     public ZMove(ZMove copy, Object singleListElement, ZPlayerName character) {
-        this(copy.type, copy.integer, character, copy.equipment, copy.fromSlot, copy.toSlot, Arrays.asList(singleListElement), copy.dir, copy.skill);
+        this(copy.type, copy.integer, character, copy.equipment, copy.fromSlot, copy.toSlot, Arrays.asList(singleListElement), copy.skill, copy.action);
     }
 
     public ZMove(ZMove copy, Object singleListElement, ZEquipment equipment) {
-        this(copy.type, copy.integer, copy.character, equipment, copy.fromSlot, copy.toSlot, Arrays.asList(singleListElement), copy.dir, copy.skill);
+        this(copy.type, copy.integer, copy.character, equipment, copy.fromSlot, copy.toSlot, Arrays.asList(singleListElement), copy.skill, copy.action);
     }
 
     private ZMove(ZMoveType type) {
         this(type, (Integer)null);
     }
 
-    private ZMove(ZMoveType type, ZDir dir) {
-        this(type, null, null, null, null, null, null, dir, null);
+    private ZMove(ZMoveType type, ZActionType action) {
+        this(type, null, null, null, null, null, null, null, action);
     }
 
     private ZMove(ZMoveType type, Integer num) {
         this(type, num, null, null, null, null, null, null, null);
     }
 
+    private ZMove(ZMoveType type, Integer num, ZActionType action) {
+        this(type, num, null, null, null, null, null, null, action);
+    }
+
     private ZMove(ZMoveType type, List list) {
         this(type, null, null, null, null, null, list, null, null);
     }
 
+    private ZMove(ZMoveType type, List list, ZActionType action) {
+        this(type, null, null, null, null, null, list, null, action);
+    }
+
     private ZMove(ZMoveType type, List list, ZSkill skill) {
-        this(type, null, null, null, null, null, list, null, skill);
+        this(type, null, null, null, null, null, list, skill, null);
     }
 
     private ZMove(ZMoveType type, ZEquipment equip, ZEquipSlot fromSlot) {
@@ -71,7 +79,7 @@ public class ZMove extends Reflector<ZMove> implements IButton {
         this(type, targetIndex, character, equip, fromSlot, toSlot, list, null, null);
     }
 
-    private ZMove(ZMoveType type, Integer integer, ZPlayerName character, ZEquipment equip, ZEquipSlot fromSlot, ZEquipSlot toSlot, List list, ZDir dir, ZSkill skill) {
+    private ZMove(ZMoveType type, Integer integer, ZPlayerName character, ZEquipment equip, ZEquipSlot fromSlot, ZEquipSlot toSlot, List list, ZSkill skill, ZActionType action) {
         this.type = type;
         this.integer = integer;
         this.character = character;
@@ -79,8 +87,8 @@ public class ZMove extends Reflector<ZMove> implements IButton {
         this.fromSlot = fromSlot;
         this.toSlot = toSlot;
         this.list  = list;
-        this.dir = dir;
         this.skill = skill;
+        this.action = action;
     }
 
     @Override
@@ -92,7 +100,6 @@ public class ZMove extends Reflector<ZMove> implements IButton {
                 ", fromSlot=" + fromSlot +
                 ", toSlot=" + toSlot +
                 ", list=" + list +
-                ", dir=" + dir +
                 '}';
     }
 
@@ -101,11 +108,12 @@ public class ZMove extends Reflector<ZMove> implements IButton {
         if (this == o) return true;
         if (o == null)
             return false;
+        if (o instanceof ZMoveType)
+            return type == o;
         if (!(o instanceof ZMove))
             return false;
         ZMove zMove = (ZMove) o;
         return type == zMove.type
-                && dir == zMove.dir
                 && Utils.isEquals(equipment, zMove.equipment)
                 && Utils.isEquals(integer, zMove.integer)
                 && character == zMove.character
@@ -146,8 +154,8 @@ public class ZMove extends Reflector<ZMove> implements IButton {
         return new ZMove(ZMoveType.END_TURN);
     }
 
-    static ZMove newWalkMove(List<Integer> zones) {
-        return new ZMove(ZMoveType.WALK, zones);
+    static ZMove newWalkMove(List<Integer> zones, ZActionType action) {
+        return new ZMove(ZMoveType.WALK, zones, action);
     }
 
     static ZMove newJumpMove(List<Integer> zones) {
@@ -246,8 +254,8 @@ public class ZMove extends Reflector<ZMove> implements IButton {
         return new ZMove(ZMoveType.DROP_ITEM, items);
     }
 
-    static ZMove newWalkDirMove(ZDir dir) {
-        return new ZMove(ZMoveType.WALK_DIR, dir);
+    static ZMove newWalkDirMove(ZActionType action, ZDir dir) {
+        return new ZMove(ZMoveType.WALK_DIR, dir.ordinal(), action);
     }
 
     static ZMove newSwitchActiveCharacter() {

@@ -222,11 +222,11 @@ public class ZGameMP extends ZGame {
     }
 */
     @Override
-    protected void moveActorInDirection(ZActor actor, ZDir dir) {
+    protected void moveActorInDirection(ZActor actor, ZDir dir, ZActionType action) {
         if (server != null) {
             server.broadcastExecuteOnRemote(GAME_ID, actor, dir);
         }
-        super.moveActorInDirection(actor, dir);
+        super.moveActorInDirection(actor, dir, action);
     }
 
     @Override

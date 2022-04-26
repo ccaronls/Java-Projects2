@@ -22,7 +22,6 @@ import java.util.Map;
 import javax.swing.Box;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.SwingUtilities;
@@ -69,7 +68,7 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
     public static void main(String [] args) {
         Utils.setDebugEnabled();
         ZGame.DEBUG = true;
-        AWTFrame frame = new AWTFrame("Zombicide");
+        frame = new AWTFrame("Zombicide");
         ZombicideApplet app = new ZombicideApplet() {
             @Override
             public <T extends Enum<T>> List<T> getEnumListProperty(String property, Class className, List<T> defaultList) {
@@ -114,11 +113,11 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
     final ZUser user = new UIZUser();
     UIZombicide game;
     AWTPanel menu = new AWTPanel();
-    JPanel menuContainer = new JPanel();
-
+    AWTPanel menuContainer = new AWTPanel();
     BoardComponent boardComp;
     CharacterComponent charComp;
     File gameFile = null;
+    static AWTFrame frame;
 
     public void onAllImagesLoaded() {
         UIZBoardRenderer renderer = new UIZBoardRenderer(boardComp) {
@@ -142,7 +141,7 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
                     charComp.repaint();
                     boardComp.repaint();
                     if (isGameRunning() && changed && gameFile != null) {
-                        FileUtils.backupFile(gameFile, 20);
+                        FileUtils.backupFile(gameFile, 100);
                         game.trySaveToFile(gameFile);
                     }
                 } catch (Exception e) {
@@ -225,6 +224,7 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
     void initHomeMenu() {
         List<MenuItem> items = Utils.filter(MenuItem.values(), object -> object.isHomeButton(this));
         setMenuItems(items);
+        frame.setTitle("Zombicide: " + game.getQuest().getName());
     }
 
     synchronized void setMenuItems(List<MenuItem> items) {
@@ -361,18 +361,21 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
         // For applets:all fonts are: [Arial, Dialog, DialogInput, Monospaced, SansSerif, Serif]
 
         setLayout(new BorderLayout());
-        JScrollPane charContainer = new JScrollPane();
+        JScrollPane charScrollContainer = new JScrollPane();
         JScrollPane menuScrollContainer = new JScrollPane();
-        charContainer.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        charScrollContainer.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         menuScrollContainer.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        charContainer.getViewport().add(charComp = new CharacterComponent());
-        charContainer.setPreferredSize(new Dimension(400, 200));
-        charContainer.setMaximumSize(new Dimension(10000, 200));
-        add(charContainer, BorderLayout.SOUTH);
+        charScrollContainer.getViewport().add(charComp = new CharacterComponent());
+        charScrollContainer.setPreferredSize(new Dimension(400, 200));
+        charScrollContainer.setMaximumSize(new Dimension(10000, 200));
+        add(charScrollContainer, BorderLayout.SOUTH);
 
         menu.setLayout(new GridLayout(0, 1));
         menuContainer.setLayout(new GridBagLayout());
-        menuContainer.setPreferredSize(new Dimension(150, 400));
+        menuScrollContainer.setPreferredSize(new Dimension(150, 400));
+        //menuContainer.setMinimumSize(new Dimension(150, 400));
+        //menuContainer.setPreferredSize(new Dimension(150, 400));
+        //menuContainer.setMaximumSize(new Dimension(150, 1000));
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -392,6 +395,7 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
         menuScrollContainer.getViewport().add(menuContainer);
         add(menuScrollContainer, BorderLayout.LINE_START);
         add(boardComp = new BoardComponent(), BorderLayout.CENTER);
+        frame.addWindowListener(boardComp);
     }
 
     class ZButton extends AWTButton {
@@ -399,6 +403,7 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
         ZButton(IButton obj) {
             super(obj);
             this.obj = obj;
+            setPreferredSize(new Dimension(140, 40));
         }
 
         @Override

@@ -191,7 +191,7 @@ public enum ZSkill implements IButton {
         @Override
         public void addSpecialMoves(ZGame game, ZCharacter character, List<ZMove> moves) {
             if (character.getActionsLeftThisTurn() == 0) {
-                game.addWalkOptions(character, moves);
+                game.addWalkOptions(character, moves, null);
             }
         }
     },
@@ -353,7 +353,8 @@ public enum ZSkill implements IButton {
         @Override
         public void addSpecialMoves(ZGame game, ZCharacter character, List<ZMove> moves) {
             if (character.getActionsLeftThisTurn() == 0) {
-                moves.add(ZMove.newInventoryMove());
+                if (!moves.contains(ZMoveType.INVENTORY))
+                    moves.add(ZMove.newInventoryMove());
                 game.addTradeOptions(character, moves);
             }
         }
@@ -714,7 +715,7 @@ public enum ZSkill implements IButton {
         @Override
         public void addSpecialMoves(ZGame game, ZCharacter character, List<ZMove> moves) {
             if (character.getActionsLeftThisTurn() == 0 && character.getZonesMoved() < 3 && game.getBoard().getNumZombiesInZone(character.getOccupiedZone())==0) {
-                game.addWalkOptions(character, moves);
+                game.addWalkOptions(character, moves, null);
             }
         }
     },

@@ -1,8 +1,6 @@
 package cc.lib.utils;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.PrintWriter;
 
 public class OverridesSerialize extends Reflector<OverridesSerialize> {
 
@@ -18,12 +16,12 @@ public class OverridesSerialize extends Reflector<OverridesSerialize> {
     }
 
     @Override
-    public void serialize(PrintWriter out) throws IOException {
+    public void serialize(MyPrintWriter out) throws IOException {
         out.println(msg + " " + x);
     }
 
     @Override
-    public void deserialize(BufferedReader in, boolean keepInstances) throws IOException {
+    public void deserialize(MyBufferedReader in) throws IOException {
         String text = in.readLine().trim();
         String [] parts = text.split("[ ]+");
         msg = parts[0];

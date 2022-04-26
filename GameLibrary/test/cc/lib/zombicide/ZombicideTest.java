@@ -4,13 +4,22 @@ import junit.framework.TestCase;
 
 import org.junit.Assert;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import cc.lib.crypt.EncryptionInputStream;
+import cc.lib.crypt.EncryptionOutputStream;
+import cc.lib.crypt.HuffmanEncoding;
 import cc.lib.game.APGraphics;
 import cc.lib.game.TestGraphics;
 import cc.lib.game.Utils;
+import cc.lib.logger.LoggerFactory;
+import cc.lib.utils.Grid;
 import cc.lib.zombicide.ui.UIZombicide;
 
 public class ZombicideTest extends TestCase {
@@ -279,7 +288,7 @@ Total Decompression Time:   49343
 
         System.out.println("----------------------------------------------------");
         for (ZZombie z : zombies) {
-            System.out.println(String.format("%-20s hits:%d  priority:%d", z.getType(), z.type.minDamageToDestroy, z.type.attackPriority));
+            System.out.println(String.format("%-20s hits:%d  priority:%d", z.getType(), z.type.minDamageToDestroy, z.type.rangedPriority));
         }
         System.out.println("----------------------------------------------------");
 
@@ -289,7 +298,7 @@ Total Decompression Time:   49343
             System.out.println("MELEE SORTING " + i);
             System.out.println("----------------------------------------------------");
             for (ZZombie z : meleeList) {
-                System.out.println(String.format("%-20s hits:%d  priority:%d", z.getType(), z.type.minDamageToDestroy, z.type.attackPriority));
+                System.out.println(String.format("%-20s hits:%d  priority:%d", z.getType(), z.type.minDamageToDestroy, z.type.rangedPriority));
             }
         }
 
@@ -301,7 +310,7 @@ Total Decompression Time:   49343
             System.out.println("RANGED SORTING " + i);
             System.out.println("----------------------------------------------------");
             for (ZZombie z : rangedList) {
-                System.out.println(String.format("%-20s hits:%d  priority:%d", z.getType(), z.type.minDamageToDestroy, z.type.attackPriority));
+                System.out.println(String.format("%-20s hits:%d  priority:%d", z.getType(), z.type.minDamageToDestroy, z.type.rangedPriority));
             }
         }
 
@@ -311,7 +320,7 @@ Total Decompression Time:   49343
             System.out.println("MARKSMAN SORTING " + i);
             System.out.println("----------------------------------------------------");
             for (ZZombie z : marksmanList) {
-                System.out.println(String.format("%-20s hits:%d  priority:%d", z.getType(), z.type.minDamageToDestroy, z.type.attackPriority));
+                System.out.println(String.format("%-20s hits:%d  priority:%d", z.getType(), z.type.minDamageToDestroy, z.type.rangedPriority));
             }
         }
 
@@ -347,7 +356,4 @@ Total Decompression Time:   49343
         }
     }
 
-    public void testDiff() throws Exception {
-
-    }
 }
