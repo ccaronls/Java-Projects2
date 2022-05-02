@@ -1,4 +1,7 @@
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: "kotlin-parcelize"
+
 
 android {
     compileSdkVersion project.myCompileSdkVersion.toInteger()
@@ -48,6 +51,7 @@ android {
     }
     buildFeatures {
         dataBinding true
+        viewBinding true
     }
 }
 

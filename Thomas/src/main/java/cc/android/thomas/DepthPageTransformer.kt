@@ -1,63 +1,42 @@
-package cc.android.thomas;
+package cc.android.thomas
 
-import android.os.Build;
-import android.view.View;
+import android.os.Build
+import android.view.View
+import androidx.viewpager.widget.ViewPager
+import cc.lib.game.Utils
 
-import androidx.viewpager.widget.ViewPager;
-import cc.lib.game.Utils;
-
-public class DepthPageTransformer implements ViewPager.PageTransformer {
-    private final float sizeScale;
-    private final float alphaScale;
-
-    public DepthPageTransformer() {
-        this(.75f, .85f);
-    }
-
-    public DepthPageTransformer(float scale, float alphaScale) {
-        this.sizeScale = scale;
-        this.alphaScale = alphaScale;
-    }
-
-    public void transformPage(View view, float position) {
-        int pageWidth = view.getWidth();
-        int pageHeight = view.getHeight();
+class DepthPageTransformer @JvmOverloads constructor(private val sizeScale: Float = .75f, private val alphaScale: Float = .85f) : ViewPager.PageTransformer {
+    override fun transformPage(view: View, position: Float) {
+        val pageWidth = view.width
+        val pageHeight = view.height
 
         // [0-1] -> [1-.75]
-        float scale = 1f - Math.abs(position)*(1f- sizeScale);
-
-        if (Build.VERSION.SDK_INT >= 21)
-            view.setElevation(-Math.abs(position));
+        val scale = 1f - Math.abs(position) * (1f - sizeScale)
+        if (Build.VERSION.SDK_INT >= 21) view.elevation = -Math.abs(position)
 
         //if (position < -1 || position > 1) { // [-Infinity,-1)
-            // This page is way off-screen to the left.
+        // This page is way off-screen to the left.
         //    view.setAlpha(0);
         //} else
         if (position < 0) {
-
-            view.setAlpha(Utils.clamp(alphaScale*(1f+position), 0, 1));
-            view.setScaleX(scale);
-            view.setScaleY(scale);
-            view.setTranslationY(-pageHeight*position* sizeScale);
+            view.alpha = Utils.clamp(alphaScale * (1f + position), 0f, 1f)
+            view.scaleX = scale
+            view.scaleY = scale
+            view.translationY = -pageHeight * position * sizeScale
             // the view is above current
-
         } else if (position > 0) {
-
-            view.setAlpha(Utils.clamp(alphaScale*(1f-position), 0, 1));
-            view.setScaleX(scale);
-            view.setScaleY(scale);
-            view.setTranslationY(-pageHeight*position*sizeScale);
+            view.alpha = Utils.clamp(alphaScale * (1f - position), 0f, 1f)
+            view.scaleX = scale
+            view.scaleY = scale
+            view.translationY = -pageHeight * position * sizeScale
 
             // the view is below current
-
         } else { // [-1,0]
             // Use the default slide transition when moving to the left page
-            view.setAlpha(1);
-            view.setTranslationY(0);
-            view.setScaleX(1);
-            view.setScaleY(1);
+            view.alpha = 1f
+            view.translationY = 0f
+            view.scaleX = 1f
+            view.scaleY = 1f
         }
-
     }
 }
-

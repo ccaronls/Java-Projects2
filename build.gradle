@@ -2,7 +2,7 @@
 
 buildscript {
     ext {
-        kotlin_version = '1.4.0'
+        kotlin_version = '1.4.20'
     }
     repositories {
         mavenCentral()
@@ -72,6 +72,7 @@ allprojects {
     }
 
     plugins.withId("com.android.application") {
+
         dependencies {
             implementation 'androidx.annotation:annotation:1.1.0'
             implementation 'androidx.constraintlayout:constraintlayout:1.1.2'

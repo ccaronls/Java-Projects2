@@ -1,83 +1,51 @@
-package cc.android.thomas;
+package cc.android.thomas
 
-import android.view.LayoutInflater;
-import android.view.ViewGroup;
+import android.content.Context
+import android.content.res.Resources
+import android.view.LayoutInflater
+import android.view.ViewGroup
+import androidx.recyclerview.widget.RecyclerView
+import cc.android.thomas.MainActivity.Workout
+import cc.android.thomas.databinding.WorkoutSummaryListItemBinding
+import cc.lib.game.Utils
+import java.util.*
 
-import java.util.ArrayList;
-import java.util.List;
+data class Info(val str: String, val time: String)
 
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
-import cc.android.thomas.databinding.WorkoutSummaryListItemBinding;
-import cc.lib.game.Utils;
+class WorkoutSummaryAdapter internal constructor(context: Context, workout: Workout, which: Int) : RecyclerView.Adapter<WorkoutSummaryAdapter.Holder>() {
+    val text: MutableList<Info> = ArrayList()
+    override fun onCreateViewHolder(viewGroup: ViewGroup, i: Int): Holder {
+        return Holder(WorkoutSummaryListItemBinding.inflate(LayoutInflater.from(viewGroup.context), viewGroup, false))
+    }
 
-public class WorkoutSummaryAdapter extends RecyclerView.Adapter<WorkoutSummaryAdapter.Holder> {
+    override fun onBindViewHolder(holder: Holder, i: Int) {
+        holder.set(text[i].str, text[i].time)
+    }
 
-    final List<Object[]> text = new ArrayList<>();
+    override fun getItemCount(): Int {
+        return text.size
+    }
 
-    WorkoutSummaryAdapter(MainActivity.Workout workout, int which) {
-        text.add(Utils.toArray(R.string.workout_column_station, which));
-        for (MainActivity.Station s : workout.stations) {
+    class Holder(var binding: WorkoutSummaryListItemBinding) : RecyclerView.ViewHolder(binding.root) {
+        operator fun set(name: String, time: String) {
+            binding.tvStationName.text = name
+            binding.tvStationTime.text = time
+        }
+    }
+
+    init {
+        text.add(Info(context.getString(R.string.workout_column_station), context.resources.getStringArray(R.array.workout_column_names)[which]))
+        workout.stations.forEach { s->
             if (s.enabled) {
-                long secs = 0;
-                switch (which) {
-                    case 0: // today
-                        secs = s.todaySecs;
-                        break;
-                    case 1: // this week
-                        secs = s.thisWeekSecs;
-                        break;
-                    case 2: // this month
-                        secs = s.thisMonthSecs;
-                        break;
-                    default: // all time
-                        secs = s.allTimeSecs;
-                        break;
+                var secs: Long = when (which) {
+                    0 -> s.todaySecs
+                    1 -> s.thisWeekSecs
+                    2 -> s.thisMonthSecs
+                    else -> s.allTimeSecs
                 }
                 if (secs > 0)
-                    text.add(Utils.toArray(s.name, MainActivity.getTimeString(secs)));
+                    text.add(Info(s.name, MainActivity.getTimeString(secs)))
             }
-        }
-    }
-
-    @NonNull
-    @Override
-    public Holder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
-        return new Holder(WorkoutSummaryListItemBinding.inflate(LayoutInflater.from(viewGroup.getContext()), viewGroup, false));
-    }
-
-    @Override
-    public void onBindViewHolder(@NonNull Holder holder, int i) {
-        Object [] o = text.get(i);
-        if (o instanceof String[]) {
-            holder.set((String)o[0], (String)o[1]);
-        } else if (o instanceof Integer[]) {
-            holder.set((Integer)o[0], (Integer)o[1]);
-        }
-    }
-
-    @Override
-    public int getItemCount() {
-        return text.size();
-    }
-
-    public static class Holder extends RecyclerView.ViewHolder {
-
-        WorkoutSummaryListItemBinding binding;
-
-        public Holder(@NonNull WorkoutSummaryListItemBinding binding) {
-            super(binding.getRoot());
-            this.binding = binding;
-        }
-
-        void set(String name, String time) {
-            binding.tvStationName.setText(name);
-            binding.tvStationTime.setText(time);
-        }
-
-        void set(int stringResId, int stringArrayIndex) {
-            binding.tvStationName.setText(stringResId);
-            binding.tvStationTime.setText(binding.getRoot().getResources().getStringArray(R.array.workout_column_names)[stringArrayIndex]);
         }
     }
 }
