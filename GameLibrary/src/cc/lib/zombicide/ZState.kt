@@ -1,12 +1,11 @@
-package cc.lib.zombicide;
+package cc.lib.zombicide
 
-import cc.lib.annotation.Keep;
+import cc.lib.annotation.Keep
 
 @Keep
-public enum ZState {
-
+enum class ZState {
     INIT,
-    BEGIN_ROUND, // reset enchantments
+    BEGIN_ROUND,  // reset enchantments
     SPAWN,
     PLAYER_STAGE_CHOOSE_CHARACTER,
     PLAYER_STAGE_CHOOSE_CHARACTER_ACTION,
@@ -16,7 +15,5 @@ public enum ZState {
     PLAYER_STAGE_CHOOSE_SPAWN_AREA_TO_REMOVE,
     PLAYER_STAGE_CHOOSE_WEAPON_FROM_DECK,
     PLAYER_STAGE_CHOOSE_VAULT_ITEM,
-    ZOMBIE_STAGE,
-    ;
-
+    ZOMBIE_STAGE
 }

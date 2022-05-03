@@ -1,9 +1,9 @@
-package cc.lib.zombicide;
+package cc.lib.zombicide
 
-import cc.lib.annotation.Keep;
+import cc.lib.annotation.Keep
 
 @Keep
-public enum ZZoneType {
+enum class ZZoneType {
     OUTDOORS,
     BUILDING,
     VAULT,

@@ -1,10 +1,10 @@
-package cc.lib.zombicide;
+package cc.lib.zombicide
 
-import cc.lib.annotation.Keep;
-import cc.lib.game.Utils;
+import cc.lib.annotation.Keep
+import cc.lib.game.Utils
 
 @Keep
-public enum ZCellQuadrant {
+enum class ZCellQuadrant {
     UPPERLEFT,
     LOWERRIGHT,
     UPPERRIGHT,
@@ -15,16 +15,10 @@ public enum ZCellQuadrant {
     RIGHT,
     CENTER;
 
-    public static ZCellQuadrant [] valuesForRender() {
-        return Utils.toArray(UPPERLEFT,
-                TOP,
-                UPPERRIGHT,
-                LEFT,
-                CENTER,
-                RIGHT,
-                LOWERLEFT,
-                BOTTOM,
-                LOWERRIGHT
-                );
+    companion object {
+        @JvmStatic
+        fun valuesForRender(): Array<ZCellQuadrant> {
+            return Utils.toArray(UPPERLEFT, TOP, UPPERRIGHT, LEFT, CENTER, RIGHT, LOWERLEFT, BOTTOM, LOWERRIGHT)
+        }
     }
 }

@@ -1,9 +1,9 @@
-package cc.lib.zombicide;
+package cc.lib.zombicide
 
-import cc.lib.annotation.Keep;
+import cc.lib.annotation.Keep
 
 @Keep
-public enum ZAttackType {
+enum class ZAttackType {
     NORMAL,
     FIRE,
     ELECTROCUTION,
@@ -17,7 +17,7 @@ public enum ZAttackType {
     MENTAL_STRIKE,
     DRAGON_FIRE;
 
-    public boolean needsReload() {
-        return this == RANGED_BOLTS;
+    fun needsReload(): Boolean {
+        return this == RANGED_BOLTS
     }
 }

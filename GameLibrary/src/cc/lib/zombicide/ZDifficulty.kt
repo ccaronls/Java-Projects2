@@ -1,8 +1,10 @@
-package cc.lib.zombicide;
+package cc.lib.zombicide
 
-import cc.lib.annotation.Keep;
+import cc.lib.annotation.Keep
 
 @Keep
-public enum ZDifficulty {
-    EASY, MEDIUM, HARD
+enum class ZDifficulty {
+    EASY,
+    MEDIUM,
+    HARD
 }

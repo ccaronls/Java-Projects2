@@ -7,7 +7,7 @@ import cc.lib.annotation.Keep;
 import cc.lib.game.Utils;
 
 @Keep
-public enum ZWeaponType implements ZEquipmentType<ZWeapon> {
+public enum ZWeaponType implements ZEquipmentType {
     // DAGGER get extra die roll when 2 handed with another melee weapon
 
     // BLUE WEAPONS

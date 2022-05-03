@@ -1,215 +1,191 @@
-package cc.lib.zombicide;
+package cc.lib.zombicide
 
-import cc.lib.annotation.Keep;
-import cc.lib.game.GDimension;
-import cc.lib.game.IDimension;
-import cc.lib.ui.IButton;
+import cc.lib.annotation.Keep
+import cc.lib.game.GDimension
+import cc.lib.game.IDimension
+import cc.lib.ui.IButton
 
 @Keep
-public enum ZPlayerName implements IButton, IDimension {
+enum class ZPlayerName(@JvmField val characterClass: String, @JvmField val startingEquipment: Array<ZEquipmentType>, @JvmField val alternateBodySlot: ZEquipmentClass, blueSkillOptions: Array<ZSkill>, yellowSkillOptions: Array<ZSkill>, orangeSkillOptions: Array<ZSkill>, redSkillOptions: Array<ZSkill>) : IButton, IDimension {
     Ann("Angry Nun",
-            toArray(ZWeaponType.DAGGER, ZWeaponType.HAND_CROSSBOW),
+            arrayOf(ZWeaponType.DAGGER, ZWeaponType.HAND_CROSSBOW),
             ZEquipmentClass.DAGGER,
-            toArray(ZSkill.Bloodlust),
-            toArray(ZSkill.Plus1_Action),
-            toArray(ZSkill.Plus1_free_Magic_Action, ZSkill.Plus1_free_Melee_Action),
-            toArray(ZSkill.Plus1_free_Combat_Action, ZSkill.Plus1_to_dice_roll_Combat, ZSkill.Roll_6_plus1_die_Combat)),
+            arrayOf(ZSkill.Bloodlust),
+            arrayOf(ZSkill.Plus1_Action),
+            arrayOf(ZSkill.Plus1_free_Magic_Action, ZSkill.Plus1_free_Melee_Action),
+            arrayOf(ZSkill.Plus1_free_Combat_Action, ZSkill.Plus1_to_dice_roll_Combat, ZSkill.Roll_6_plus1_die_Combat)),
     Baldric("Magician",
-            toArray(ZWeaponType.MANA_BLAST),
+            arrayOf(ZWeaponType.MANA_BLAST),
             ZEquipmentClass.SWORD,
-            toArray(ZSkill.Spellcaster),
-            toArray(ZSkill.Plus1_Action),
-            toArray(ZSkill.Plus1_free_Magic_Action, ZSkill.Spellbook),
-            toArray(ZSkill.Plus1_die_Magic, ZSkill.Plus1_free_Combat_Action, ZSkill.Plus1_to_dice_roll_Melee)),
+            arrayOf(ZSkill.Spellcaster),
+            arrayOf(ZSkill.Plus1_Action),
+            arrayOf(ZSkill.Plus1_free_Magic_Action, ZSkill.Spellbook),
+            arrayOf(ZSkill.Plus1_die_Magic, ZSkill.Plus1_free_Combat_Action, ZSkill.Plus1_to_dice_roll_Melee)),
     Clovis("Warrior",
-            toArray(ZWeaponType.SHORT_SWORD, ZWeaponType.CROSSBOW),
+            arrayOf(ZWeaponType.SHORT_SWORD, ZWeaponType.CROSSBOW),
             ZEquipmentClass.SHIELD,
-            toArray(ZSkill.Plus1_die_Melee, ZSkill.Marksman),
-            toArray(ZSkill.Plus1_Action),
-            toArray(ZSkill.Plus1_free_Melee_Action, ZSkill.Swordmaster),
-            toArray(ZSkill.Plus1_free_Combat_Action, ZSkill.Plus1_to_dice_roll_Combat, ZSkill.Hit_and_run)),
+            arrayOf(ZSkill.Plus1_die_Melee, ZSkill.Marksman),
+            arrayOf(ZSkill.Plus1_Action),
+            arrayOf(ZSkill.Plus1_free_Melee_Action, ZSkill.Swordmaster),
+            arrayOf(ZSkill.Plus1_free_Combat_Action, ZSkill.Plus1_to_dice_roll_Combat, ZSkill.Hit_and_run)),
     Samson("Dwarf",
-            toArray(ZWeaponType.AXE, ZWeaponType.HAMMER),
+            arrayOf(ZWeaponType.AXE, ZWeaponType.HAMMER),
             ZEquipmentClass.SHIELD,
-            toArray(ZSkill.Iron_hide),
-            toArray(ZSkill.Plus1_Action),
-            toArray(ZSkill.Plus1_die_Combat, ZSkill.Plus1_to_dice_roll_Melee),
-            toArray(ZSkill.Plus1_Damage_Melee, ZSkill.Plus1_free_Combat_Action, ZSkill.Barbarian)),
+            arrayOf(ZSkill.Iron_hide),
+            arrayOf(ZSkill.Plus1_Action),
+            arrayOf(ZSkill.Plus1_die_Combat, ZSkill.Plus1_to_dice_roll_Melee),
+            arrayOf(ZSkill.Plus1_Damage_Melee, ZSkill.Plus1_free_Combat_Action, ZSkill.Barbarian)),
     Nelly("Rogue",
-            toArray(ZWeaponType.SHORT_SWORD, ZWeaponType.SHORT_BOW),
+            arrayOf(ZWeaponType.SHORT_SWORD, ZWeaponType.SHORT_BOW),
             ZEquipmentClass.BOW,
-            toArray(ZSkill.Plus1_free_Move_Action),
-            toArray(ZSkill.Plus1_Action),
-            toArray(ZSkill.Bloodlust_Melee, ZSkill.Slippery),
-            toArray(ZSkill.Plus1_free_Combat_Action, ZSkill.Plus1_to_dice_roll_Combat, ZSkill.Hit_and_run)),
+            arrayOf(ZSkill.Plus1_free_Move_Action),
+            arrayOf(ZSkill.Plus1_Action),
+            arrayOf(ZSkill.Bloodlust_Melee, ZSkill.Slippery),
+            arrayOf(ZSkill.Plus1_free_Combat_Action, ZSkill.Plus1_to_dice_roll_Combat, ZSkill.Hit_and_run)),
     Silas("Elven Ranger",
-            toArray(ZWeaponType.SHORT_SWORD, ZWeaponType.SHORT_BOW),
+            arrayOf(ZWeaponType.SHORT_SWORD, ZWeaponType.SHORT_BOW),
             ZEquipmentClass.SWORD,
-            toArray(ZSkill.Plus1_to_dice_roll_Ranged),
-            toArray(ZSkill.Plus1_Action),
-            toArray(ZSkill.Plus1_free_Ranged_Action, ZSkill.Point_blank),
-            toArray(ZSkill.Plus1_die_Ranged, ZSkill.Plus1_free_Combat_Action, ZSkill.Iron_rain)),
+            arrayOf(ZSkill.Plus1_to_dice_roll_Ranged),
+            arrayOf(ZSkill.Plus1_Action),
+            arrayOf(ZSkill.Plus1_free_Ranged_Action, ZSkill.Point_blank),
+            arrayOf(ZSkill.Plus1_die_Ranged, ZSkill.Plus1_free_Combat_Action, ZSkill.Iron_rain)),
     Tucker("Monk",
-            toArray(ZWeaponType.CROSSBOW, ZWeaponType.BASTARD_SWORD),
+            arrayOf(ZWeaponType.CROSSBOW, ZWeaponType.BASTARD_SWORD),
             ZEquipmentClass.AXE,
-            toArray(ZSkill.Shove),
-            toArray(ZSkill.Plus1_Action),
-            toArray(ZSkill.Lucky, ZSkill.Spellcaster),
-            toArray(ZSkill.Plus1_die_Combat, ZSkill.Plus1_free_Combat_Action, ZSkill.Free_reload)),
+            arrayOf(ZSkill.Shove),
+            arrayOf(ZSkill.Plus1_Action),
+            arrayOf(ZSkill.Lucky, ZSkill.Spellcaster),
+            arrayOf(ZSkill.Plus1_die_Combat, ZSkill.Plus1_free_Combat_Action, ZSkill.Free_reload)),
     Jain("Valkerie",
-            toArray(ZWeaponType.LONG_BOW),
+            arrayOf(ZWeaponType.LONG_BOW),
             ZEquipmentClass.THROWABLE,
-            toArray(ZSkill.Steady_hand),
-            toArray(ZSkill.Plus1_Action),
-            toArray(ZSkill.Plus1_die_Ranged, ZSkill.Plus1_max_Range),
-            toArray(ZSkill.Plus1_Damage_Ranged, ZSkill.Point_blank, ZSkill.Sprint)),
+            arrayOf(ZSkill.Steady_hand),
+            arrayOf(ZSkill.Plus1_Action),
+            arrayOf(ZSkill.Plus1_die_Ranged, ZSkill.Plus1_max_Range),
+            arrayOf(ZSkill.Plus1_Damage_Ranged, ZSkill.Point_blank, ZSkill.Sprint)),
     Benson("Elite Guard",
-            toArray(ZWeaponType.SWORD),
+            arrayOf(ZWeaponType.SWORD),
             ZEquipmentClass.SWORD,
-            toArray(ZSkill.Steel_hide),
-            toArray(ZSkill.Plus1_Action),
-            toArray(ZSkill.Plus1_free_Melee_Action, ZSkill.Born_leader),
-            toArray(ZSkill.Plus1_Damage_Melee, ZSkill.Lucky, ZSkill.Shove)),
-    // Wulfsburg
+            arrayOf(ZSkill.Steel_hide),
+            arrayOf(ZSkill.Plus1_Action),
+            arrayOf(ZSkill.Plus1_free_Melee_Action, ZSkill.Born_leader),
+            arrayOf(ZSkill.Plus1_Damage_Melee, ZSkill.Lucky, ZSkill.Shove)),  // Wulfsburg
     Theo("Ranger",
-            toArray(ZWeaponType.DAGGER, ZWeaponType.SHORT_SWORD),//, ZWeaponType.EARTHQUAKE_HAMMER),
+            arrayOf(ZWeaponType.DAGGER, ZWeaponType.SHORT_SWORD),  //, ZWeaponType.EARTHQUAKE_HAMMER),
             ZEquipmentClass.SWORD,
-            toArray(ZSkill.Sprint),
-            toArray(ZSkill.Plus1_Action),
-            toArray(ZSkill.Plus1_die_Melee, ZSkill.Plus1_to_dice_roll_Ranged),
-            toArray(ZSkill.Plus1_free_Combat_Action, ZSkill.Charge, ZSkill.Marksman)),
+            arrayOf(ZSkill.Sprint),
+            arrayOf(ZSkill.Plus1_Action),
+            arrayOf(ZSkill.Plus1_die_Melee, ZSkill.Plus1_to_dice_roll_Ranged),
+            arrayOf(ZSkill.Plus1_free_Combat_Action, ZSkill.Charge, ZSkill.Marksman)),
     Morrigan("Witcher",
-            toArray(ZWeaponType.AXE),//, ZWeaponType.CHAOS_LONGBOW),
+            arrayOf(ZWeaponType.AXE),  //, ZWeaponType.CHAOS_LONGBOW),
             ZEquipmentClass.DAGGER,
-            toArray(ZSkill.Reaper_Combat),
-            toArray(ZSkill.Plus1_Action),
-            toArray(ZSkill.Plus1_free_Melee_Action, ZSkill.Spellcaster),
-            toArray(ZSkill.Plus1_Damage_Melee, ZSkill.Plus1_die_Magic, ZSkill.Bloodlust)),
+            arrayOf(ZSkill.Reaper_Combat),
+            arrayOf(ZSkill.Plus1_Action),
+            arrayOf(ZSkill.Plus1_free_Melee_Action, ZSkill.Spellcaster),
+            arrayOf(ZSkill.Plus1_Damage_Melee, ZSkill.Plus1_die_Magic, ZSkill.Bloodlust)),
     Karl("Monk",
-            toArray(ZWeaponType.SWORD, ZWeaponType.MANA_BLAST),
+            arrayOf(ZWeaponType.SWORD, ZWeaponType.MANA_BLAST),
             ZEquipmentClass.MAGIC,
-            toArray(ZSkill.Plus1_die_Magic),
-            toArray(ZSkill.Plus1_Action),
-            toArray(ZSkill.Plus1_free_Combat_Action, ZSkill.Spellcaster),
-            toArray(ZSkill.Plus1_free_Combat_Action, ZSkill.Plus1_max_Range, ZSkill.Marksman)),
+            arrayOf(ZSkill.Plus1_die_Magic),
+            arrayOf(ZSkill.Plus1_Action),
+            arrayOf(ZSkill.Plus1_free_Combat_Action, ZSkill.Spellcaster),
+            arrayOf(ZSkill.Plus1_free_Combat_Action, ZSkill.Plus1_max_Range, ZSkill.Marksman)),
     Ariane("Thief",
-            toArray(ZWeaponType.CROSSBOW),
+            arrayOf(ZWeaponType.CROSSBOW),
             ZEquipmentClass.CROSSBOW,
-            toArray(ZSkill.Jump),
-            toArray(ZSkill.Plus1_Action),
-            toArray(ZSkill.Plus1_free_Move_Action, ZSkill.Plus1_free_Melee_Action),
-            toArray(ZSkill.Plus1_die_Combat, ZSkill.Plus1_die_Ranged, ZSkill.Spellcaster))
+            arrayOf(ZSkill.Jump),
+            arrayOf(ZSkill.Plus1_Action),
+            arrayOf(ZSkill.Plus1_free_Move_Action, ZSkill.Plus1_free_Melee_Action),
+            arrayOf(ZSkill.Plus1_die_Combat, ZSkill.Plus1_die_Ranged, ZSkill.Spellcaster));
+
+    private val skillOptions: Array<Array<ZSkill>>
+    @JvmField
+    var imageId = -1
+    @JvmField
+    var cardImageId = -1
+    @JvmField
+    var outlineImageId = -1
+    @JvmField
+    var imageDim: GDimension = GDimension.EMPTY
+
+    fun create(): ZCharacter {
+        val c = ZCharacter(this)
+        character = c
+        c.initAllSkills(skillOptions)
+        return c
+    }
+
+    lateinit var character: ZCharacter
+    override fun getTooltipText(): String {
+        return characterClass
+    }
+
+    override fun getLabel(): String {
+        return name
+    }
+
+    override fun getWidth(): Float {
+        return imageDim!!.getWidth()
+    }
+
+    override fun getHeight(): Float {
+        return imageDim!!.getHeight()
+    }
+
+    fun getSkillOptions(color: ZColor): Array<ZSkill> {
+        return skillOptions[color.ordinal]
+    }
+
     /*
     Leander("Elite Guard",
-            toArray(ZWeaponType.GREAT_SWORD, ZWeaponType.ORCISH_CROSSBOW, (ZEquipmentType)ZArmorType.PLATE),
-            toArray(ZWeaponType.GREAT_SWORD),
-            toArray(ZSkill.Steel_hide),
-            toArray(ZSkill.Plus1_Damage_Melee),
-            toArray(ZSkill.Plus1_to_dice_roll_Melee, ZSkill.Plus1_to_dice_roll_Ranged),
-            toArray(ZSkill.Plus1_die_Melee, ZSkill.Plus1_Damage_Ranged, ZSkill.Bloodlust)),
+            arrayOf(ZWeaponType.GREAT_SWORD, ZWeaponType.ORCISH_CROSSBOW, (ZEquipmentType)ZArmorType.PLATE),
+            arrayOf(ZWeaponType.GREAT_SWORD),
+            arrayOf(ZSkill.Steel_hide),
+            arrayOf(ZSkill.Plus1_Damage_Melee),
+            arrayOf(ZSkill.Plus1_to_dice_roll_Melee, ZSkill.Plus1_to_dice_roll_Ranged),
+            arrayOf(ZSkill.Plus1_die_Melee, ZSkill.Plus1_Damage_Ranged, ZSkill.Bloodlust)),
 
-    /*
+    / *
     Tyrion("Elitist",
-            toArray(ZWeaponType.DAGGER),
-            toArray(ZWeaponType.AXE),
-            toArray(ZSkill.Born_leader, ZSkill.Low_profile),
-            toArray(ZSkill.Plus1_Action),
-            toArray(ZSkill.Plus1_free_Ranged_Action, ZSkill.Plus1_die_Combat),
-            toArray(ZSkill.Plus1_die_Ranged, ZSkill.Plus1_free_Combat_Action, ZSkill.Marksman)),
+            arrayOf(ZWeaponType.DAGGER),
+            arrayOf(ZWeaponType.AXE),
+            arrayOf(ZSkill.Born_leader, ZSkill.Low_profile),
+            arrayOf(ZSkill.Plus1_Action),
+            arrayOf(ZSkill.Plus1_free_Ranged_Action, ZSkill.Plus1_die_Combat),
+            arrayOf(ZSkill.Plus1_die_Ranged, ZSkill.Plus1_free_Combat_Action, ZSkill.Marksman)),
     Damiel("Assasin",
-            toArray(ZWeaponType.DEATH_STRIKE),
-            toArray(ZItemType.DRAGON_BILE),
-            toArray(), //ZSkill.TwoDragonBilesIsBeterThanOne),
-            toArray(ZSkill.Plus1_Action),
-            toArray(ZSkill.Search_plus1_card, ZSkill.Scavenger),
-            toArray(ZSkill.Low_profile, ZSkill.Spellbook, ZSkill.Free_reload)),
+            arrayOf(ZWeaponType.DEATH_STRIKE),
+            arrayOf(ZItemType.DRAGON_BILE),
+            arrayOf(), //ZSkill.TwoDragonBilesIsBeterThanOne),
+            arrayOf(ZSkill.Plus1_Action),
+            arrayOf(ZSkill.Search_plus1_card, ZSkill.Scavenger),
+            arrayOf(ZSkill.Low_profile, ZSkill.Spellbook, ZSkill.Free_reload)),
     Annice("Healer",
-            toArray(ZSpellType.HEALING),
-            toArray(ZSpellType.HEALING),
-            toArray(),
-            toArray(ZSkill.Plus1_Action),
-            toArray(ZSkill.Lifesaver, ZSkill.Spellcaster),
-            toArray(ZSkill.Born_leader, ZSkill.Regeneration, ZSkill.Plus1_free_Magic_Action)),
+            arrayOf(ZSpellType.HEALING),
+            arrayOf(ZSpellType.HEALING),
+            arrayOf(),
+            arrayOf(ZSkill.Plus1_Action),
+            arrayOf(ZSkill.Lifesaver, ZSkill.Spellcaster),
+            arrayOf(ZSkill.Born_leader, ZSkill.Regeneration, ZSkill.Plus1_free_Magic_Action)),
     Kabral("Barbarian",
-            toArray(ZWeaponType.SWORD),
-            toArray(ZWeaponType.DAGGER),
-            toArray(ZSkill.Shove),
-            toArray(ZSkill.Plus1_Action),
-            toArray(ZSkill.Barbarian, ZSkill.Bloodlust_Melee),
-            toArray(ZSkill.Plus1_die_Melee, ZSkill.Plus1_free_Melee_Action, ZSkill.Plus1_to_dice_roll_Melee)),
-    /*
+            arrayOf(ZWeaponType.SWORD),
+            arrayOf(ZWeaponType.DAGGER),
+            arrayOf(ZSkill.Shove),
+            arrayOf(ZSkill.Plus1_Action),
+            arrayOf(ZSkill.Barbarian, ZSkill.Bloodlust_Melee),
+            arrayOf(ZSkill.Plus1_die_Melee, ZSkill.Plus1_free_Melee_Action, ZSkill.Plus1_to_dice_roll_Melee)),
+    / *
     Mortimer("Knight",
-            toArray(ZWeapon.GREAT_SWORD),
-            toArray(),
+            arrayOf(ZWeapon.GREAT_SWORD),
+            arrayOf(),
             )*/
-    ;
-
-    ZPlayerName(String characterClass, ZEquipmentType [] startingEquipment, ZEquipmentClass alternateBodySlot, ZSkill [] blueSkillOptions, ZSkill[] yellowSkillOptions, ZSkill[] orangeSkillOptions, ZSkill[] redSkillOptions) {
-        this.characterClass = characterClass;
-        this.startingEquipment = startingEquipment;
-        assert(startingEquipment.length > 0);
-        this.alternateBodySlot = alternateBodySlot;
-        this.skillOptions = new ZSkill[][] {
+    init {
+        skillOptions = arrayOf(
                 blueSkillOptions,
                 yellowSkillOptions,
                 orangeSkillOptions,
                 redSkillOptions
-        };
-    }
-
-    public final String characterClass;
-    public final ZEquipmentType [] startingEquipment;
-    public final ZEquipmentClass alternateBodySlot;
-    private final ZSkill [][] skillOptions;
-
-    public int imageId = -1;
-    public int cardImageId = -1;
-    public int outlineImageId = -1;
-    public GDimension imageDim;
-
-    public ZCharacter create() {
-        ZCharacter c = new ZCharacter(this);
-        character = c;
-        c.initAllSkills(skillOptions);
-        return c;
-    }
-
-    ZCharacter character;
-
-    public ZCharacter getCharacter() {
-        return character;
-    }
-
-    @Override
-    public String getTooltipText() {
-        return characterClass;
-    }
-
-    @Override
-    public String getLabel() {
-        return name();
-    }
-
-
-    static ZEquipmentType [] toArray(ZEquipmentType ... e) {
-        return e;
-    }
-
-    static ZSkill [] toArray(ZSkill ... e) {
-        return e;
-    }
-
-    @Override
-    public float getWidth() {
-        return imageDim.getWidth();
-    }
-
-    @Override
-    public float getHeight() {
-        return imageDim.getHeight();
-    }
-
-    public ZSkill [] getSkillOptions(ZColor color) {
-        return skillOptions[color.ordinal()];
+        )
     }
 }

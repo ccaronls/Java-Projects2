@@ -7,9 +7,9 @@ import cc.lib.game.Utils;
 import cc.lib.ui.IButton;
 import cc.lib.utils.GException;
 
-public interface ZEquipmentType<T extends ZEquipment> extends IButton {
+public interface ZEquipmentType extends IButton {
 
-    T create();
+    <T extends ZEquipmentType> ZEquipment<T> create();
 
     String name();
 

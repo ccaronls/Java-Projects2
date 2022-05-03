@@ -1,37 +1,23 @@
-package cc.lib.zombicide;
+package cc.lib.zombicide
 
-import cc.lib.utils.Grid;
-import cc.lib.utils.Reflector;
+import cc.lib.utils.Grid
+import cc.lib.utils.Reflector
 
 /**
  * Created by Chris Caron on 8/30/21.
  */
-public class ZActorPosition extends Reflector<ZActorPosition> {
-
-    static {
-        addAllFields(ZActorPosition.class);
+class ZActorPosition internal constructor(@JvmField val pos: Grid.Pos= Grid.Pos(), @JvmField val quadrant: ZCellQuadrant=ZCellQuadrant.UPPERLEFT) : Reflector<ZActorPosition>() {
+    companion object {
+        init {
+            addAllFields(ZActorPosition::class.java)
+        }
     }
 
-    final Grid.Pos pos;
-    final ZCellQuadrant quadrant;
+    var data = 0
+        private set
 
-    private int data = 0;
-
-    public ZActorPosition() {
-        this(null, null);
-    }
-
-    ZActorPosition(Grid.Pos pos, ZCellQuadrant quadrant) {
-        this.pos = pos;
-        this.quadrant = quadrant;
-    }
-
-    ZActorPosition setData(int data) {
-        this.data = data;
-        return this;
-    }
-
-    public int getData() {
-        return data;
+    fun setData(data: Int): ZActorPosition {
+        this.data = data
+        return this
     }
 }

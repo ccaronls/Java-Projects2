@@ -1,19 +1,18 @@
-package cc.lib.zombicide;
+package cc.lib.zombicide
 
-import cc.lib.annotation.Keep;
-import cc.lib.game.Utils;
+import cc.lib.annotation.Keep
+import cc.lib.game.Utils
 
 @Keep
-public enum ZActionType {
+enum class ZActionType {
     NOTHING,
     MOVE,
     SEARCH,
     OPEN_DOOR,
     CLOSE_DOOR,
     BARRICADE_DOOR {
-        @Override
-        public int costPerTurn() {
-            return 3;
+        override fun costPerTurn(): Int {
+            return 3
         }
     },
     MELEE,
@@ -33,62 +32,39 @@ public enum ZActionType {
     DEFEND,
     BEQUEATH_MOVE;
 
-    public boolean oncePerTurn() {
-        switch (this) {
-            case SEARCH:
-            case SHOVE:
-            case ENCHANTMENT:
-                return true;
+    fun oncePerTurn(): Boolean {
+        when (this) {
+            SEARCH, SHOVE, ENCHANTMENT -> return true
         }
-        return false;
+        return false
     }
 
-    public int costPerTurn() {
-        return 1;
+    open fun costPerTurn(): Int {
+        return 1
     }
 
-    public boolean breaksInvisibility() {
-        switch (this) {
-            case MELEE:
-            case RANGED:
-            case MAGIC:
-            case SHOVE:
-            case OPEN_DOOR:
-            case CLOSE_DOOR:
-            case BARRICADE_DOOR:
-            case MAKE_NOISE:
-                return true;
+    fun breaksInvisibility(): Boolean {
+        when (this) {
+            MELEE, RANGED, MAGIC, SHOVE, OPEN_DOOR, CLOSE_DOOR, BARRICADE_DOOR, MAKE_NOISE -> return true
         }
-        return false;
+        return false
     }
 
-    public boolean isRanged() {
-        return this == ZActionType.RANGED;
-    }
-
-    public boolean isMagic() {
-        return this == ZActionType.MAGIC;
-    }
-
-    public boolean isProjectile() {
-        switch (this) {
-            case RANGED:
-            case MAGIC:
-            case THROW_ITEM:
-                return true;
+    val isRanged: Boolean
+        get() = this === RANGED
+    val isMagic: Boolean
+        get() = this === MAGIC
+    val isProjectile: Boolean
+        get() {
+            when (this) {
+                RANGED, MAGIC, THROW_ITEM -> return true
+            }
+            return false
         }
-        return false;
-    }
-
-    public boolean isMelee() {
-        return this == MELEE;
-    }
-
-    public boolean isMovement() {
-        return this == MOVE;
-    }
-
-    public String getLabel() {
-        return Utils.toPrettyString(name());
-    }
+    val isMelee: Boolean
+        get() = this === MELEE
+    val isMovement: Boolean
+        get() = this === MOVE
+    val label: String
+        get() = Utils.toPrettyString(name)
 }

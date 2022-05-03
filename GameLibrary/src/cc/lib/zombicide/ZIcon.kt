@@ -1,9 +1,9 @@
-package cc.lib.zombicide;
+package cc.lib.zombicide
 
-import cc.lib.annotation.Keep;
+import cc.lib.annotation.Keep
 
 @Keep
-public enum ZIcon {
+enum class ZIcon {
     DRAGON_BILE,
     CLAWS,
     SHIELD,
@@ -20,8 +20,7 @@ public enum ZIcon {
     PADLOCK,
     SKULL,
     DAGGER,
-    SWORD
-    ;
+    SWORD;
 
-    public int [] imageIds;
+    lateinit var imageIds: IntArray
 }

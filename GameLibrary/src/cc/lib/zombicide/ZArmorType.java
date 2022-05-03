@@ -6,7 +6,7 @@ import cc.lib.annotation.Keep;
 import cc.lib.game.Utils;
 
 @Keep
-public enum ZArmorType implements ZEquipmentType<ZArmor> {
+public enum ZArmorType implements ZEquipmentType {
     LEATHER(ZEquipmentClass.ARMOR, ZEquipSlotType.BODY,5, ""),
     CHAINMAIL(ZEquipmentClass.ARMOR, ZEquipSlotType.BODY, 4, ""),
     PLATE(ZEquipmentClass.ARMOR, ZEquipSlotType.BODY, 3, ""),

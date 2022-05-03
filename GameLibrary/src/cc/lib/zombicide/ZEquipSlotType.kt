@@ -1,12 +1,14 @@
-package cc.lib.zombicide;
+package cc.lib.zombicide
 
-import cc.lib.annotation.Keep;
+import cc.lib.annotation.Keep
 
 @Keep
-public enum ZEquipSlotType {
-    HAND, BODY, BACKPACK;
+enum class ZEquipSlotType {
+    HAND,
+    BODY,
+    BACKPACK;
 
-    public boolean canEquip() {
-        return this != BACKPACK;
+    fun canEquip(): Boolean {
+        return this != BACKPACK
     }
 }

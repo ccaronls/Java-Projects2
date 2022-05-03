@@ -122,7 +122,6 @@ public class AWTGraphics extends APGraphics {
     @Override
     public final float setTextHeight(float height) {
         int oldHeight = getCurrentFontHeight();
-        System.out.println("Setting height from  " + oldHeight + " -> " + height);
         Font newFont = g.getFont().deriveFont((float)(int)height);
         g.setFont(newFont);
         return oldHeight;

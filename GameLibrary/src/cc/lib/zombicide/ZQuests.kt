@@ -1,37 +1,16 @@
-package cc.lib.zombicide;
+package cc.lib.zombicide
 
-import java.util.List;
+import cc.lib.annotation.Keep
+import cc.lib.game.Utils
+import cc.lib.zombicide.quests.*
 
-import cc.lib.annotation.Keep;
-import cc.lib.game.Utils;
-import cc.lib.zombicide.quests.WolfACoinForTheFerryman;
-import cc.lib.zombicide.quests.WolfBloodRed;
-import cc.lib.zombicide.quests.WolfQuestImmortal;
-import cc.lib.zombicide.quests.WolfQuestKnowYourEnemy;
-import cc.lib.zombicide.quests.WolfQuestTheAmbush;
-import cc.lib.zombicide.quests.WolfQuestTheEvilTwins;
-import cc.lib.zombicide.quests.WolfTheGhostDoor;
-import cc.lib.zombicide.quests.WolfTheZombieArmy;
-import cc.lib.zombicide.quests.WolfZombieCourt;
-import cc.lib.zombicide.quests.ZQuestBigGameHunting;
-import cc.lib.zombicide.quests.ZQuestDeadTrail;
-import cc.lib.zombicide.quests.ZQuestFamine;
-import cc.lib.zombicide.quests.ZQuestInCaligineAbditus;
-import cc.lib.zombicide.quests.ZQuestTheAbomination;
-import cc.lib.zombicide.quests.ZQuestTheBlackBook;
-import cc.lib.zombicide.quests.ZQuestTheCommandry;
-import cc.lib.zombicide.quests.ZQuestTheEvilTemple;
-import cc.lib.zombicide.quests.ZQuestTheHellHole;
-import cc.lib.zombicide.quests.ZQuestTheNecromancer;
-import cc.lib.zombicide.quests.ZQuestTheShepherds;
-import cc.lib.zombicide.quests.ZQuestTrialByFire;
-import cc.lib.zombicide.quests.ZQuestTutorial;
-import cc.lib.zombicide.quests.WolfQuestWelcomeToWulfsburg;
-import static cc.lib.zombicide.ZQuestFlags.*;
+const val FLAG_BLACK_PLAGUE = 1
+const val FLAG_WOLFBURG = 2
+const val FLAG_DEBUG = 4
 
 @Keep
-public enum ZQuests {
-    Tutorial(FLAG_BLACK_PLAGUE,"TUTORIAL:DANSE MACABRE", "War is nothing new for us. Our counts " +
+enum class ZQuests(val flag: Int, val displayName: String, val description: String) {
+    Tutorial(FLAG_BLACK_PLAGUE, "TUTORIAL:DANSE MACABRE", "War is nothing new for us. Our counts " +
             "and dukes are always fighting amongst " +
             "themselves. For the peasantry, it usually just " +
             "involves a change in taxes and rents, assuming you " +
@@ -45,7 +24,7 @@ public enum ZQuests {
             "stand together, and throw death back in their teeth. "),
     The_Abomination(FLAG_DEBUG, "The Abomination", "Test Abomination!"),
     The_Necromancer(FLAG_DEBUG, "The Necromancer", "Test Necromancer!"),
-    Big_Game_Hunting(FLAG_BLACK_PLAGUE,"Big Game Hunting","We quickly discovered the starting point " +
+    Big_Game_Hunting(FLAG_BLACK_PLAGUE, "Big Game Hunting", "We quickly discovered the starting point " +
             "of the zombie invasion. Other survivors " +
             "spotted a huge zombie wandering the streets, and some " +
             "kind of sick wizard directing the horde to engulf us. " +
@@ -55,7 +34,7 @@ public enum ZQuests {
             "Necromancer’s laboratory and take them both out " +
             "with a secret brew of our own: Dragon Fire. " +
             "Let the hunt begin!"),
-    The_Black_Book(FLAG_BLACK_PLAGUE,"The Black Book", "Now we know. It’s not just our village. The " +
+    The_Black_Book(FLAG_BLACK_PLAGUE, "The Black Book", "Now we know. It’s not just our village. The " +
             "zombie plague has spread across the land. " +
             "What’s going on? The Necromancer we killed held " +
             "notes in his laboratory, most of them referring to a " +
@@ -65,7 +44,7 @@ public enum ZQuests {
             "course, there are zombies on the way, familiar faces " +
             "turned to monsters... " +
             "Hey, that one owed me money!"),
-    The_Shepherds(FLAG_BLACK_PLAGUE,"The Shepherds", "Necromancers are everywhere. They’re " +
+    The_Shepherds(FLAG_BLACK_PLAGUE, "The Shepherds", "Necromancers are everywhere. They’re " +
             "spreading chaos and seizing power in the " +
             "whole kingdom! Against a menace this big, there " +
             "is almost nothing we could do. Almost. We know " +
@@ -144,7 +123,7 @@ public enum ZQuests {
             "Killing that beast could draw the Necromancers to " +
             "us. There may be thousands of zombies, but there " +
             "can’t be too many more Necromancers. … Right?"),
-    The_Hell_Hole(FLAG_BLACK_PLAGUE,"The Hell Hole", "I think we stumbled upon the place our Duke made " +
+    The_Hell_Hole(FLAG_BLACK_PLAGUE, "The Hell Hole", "I think we stumbled upon the place our Duke made " +
             "his last stand before the town fell. All who sought " +
             "his protection gathered in the temple, under the protection " +
             "of the gods, the remaining soldiers and the Duke himself. " +
@@ -163,8 +142,7 @@ public enum ZQuests {
             "– or something – to break its bonds. Its roaring " +
             "lures every zombie around like a beacon. " +
             "And the Necromancers are still nowhere " +
-            "to be seen."),
-    // Wulfsburg
+            "to be seen."),  // Wulfsburg
     Welcome_to_Wulfsberg(FLAG_WOLFBURG, "Welcome to Wulfsburg", "The prosperous city of Wulfsburg earned its " +
             "name due to the many wolf packs roaming " +
             "the surrounding forests and mountains. Nobles and " +
@@ -181,195 +159,154 @@ public enum ZQuests {
             "Fresh food is scarce, but still to be had."),
     Know_Your_Enemy(FLAG_WOLFBURG, "Know your Enemy",
             "Wulfsburg sustained some unusual damage, " +
-            "as if a civil war had raged inside. In " +
-            "some place, people were not killed by zombies but by " +
-            "soldiers. We don’t know yet if survivor groups are " +
-            "prone to fighting one another here, or if someone " +
-            "tried to invade the infested city, killing any " +
-            "survivors they ran across in the process. Exploring " +
-            "the area could give us a clue. " +
-            "Come to think of it, Wulfsburg " +
-            "was known for its elven beer. That " +
-            "would be a rare treat!"),
+                    "as if a civil war had raged inside. In " +
+                    "some place, people were not killed by zombies but by " +
+                    "soldiers. We don’t know yet if survivor groups are " +
+                    "prone to fighting one another here, or if someone " +
+                    "tried to invade the infested city, killing any " +
+                    "survivors they ran across in the process. Exploring " +
+                    "the area could give us a clue. " +
+                    "Come to think of it, Wulfsburg " +
+                    "was known for its elven beer. That " +
+                    "would be a rare treat!"),
     The_Evil_Twins(FLAG_WOLFBURG, "The Evil Twins",
-    "We found a soldier’s journal among the " +
-            "bloodstained houses. It seems a foreign " +
-            "prince had come to Wulfsburg shortly after the " +
-            "invasion began with his private army. Even its " +
-            "fallen state, the city retains its wealth. Zombies " +
-            "are’nt interested in treasure, so he thought it’d be " +
-            "an easy conquest. " +
-            "The blood-spattered journal ends with an entry " +
-            "about a pair of abominations stalking the final few " +
-            "survivors from the prince’s retinue. The ‘Evil " +
-            "Twins’ they were called, and they seem to haunt " +
-            "the Usurer’s Ward, a block away. " +
-            "They’ve surely caught our scent now as well, and " +
-            "could attack at any time. So, we’ll attack first. " +
-            "The best defense is sometimes all-out offense, " +
-            "right?"),
+            "We found a soldier’s journal among the " +
+                    "bloodstained houses. It seems a foreign " +
+                    "prince had come to Wulfsburg shortly after the " +
+                    "invasion began with his private army. Even its " +
+                    "fallen state, the city retains its wealth. Zombies " +
+                    "are’nt interested in treasure, so he thought it’d be " +
+                    "an easy conquest. " +
+                    "The blood-spattered journal ends with an entry " +
+                    "about a pair of abominations stalking the final few " +
+                    "survivors from the prince’s retinue. The ‘Evil " +
+                    "Twins’ they were called, and they seem to haunt " +
+                    "the Usurer’s Ward, a block away. " +
+                    "They’ve surely caught our scent now as well, and " +
+                    "could attack at any time. So, we’ll attack first. " +
+                    "The best defense is sometimes all-out offense, " +
+                    "right?"),
     The_Ambush(FLAG_WOLFBURG, "The Ambush",
             "We were returning to our haven as night " +
-            "began to fall, when the wizard spotted some " +
-            "esoteric writing on the walls. Before our eyes they " +
-            "flared to brilliance, and we heard shuffling footsteps! " +
-            "An ambush! Someone placed zombie lures all around, " +
-            "and the infected are hot on our trail! We must resist " +
-            "long enough to destroy the lures and secure our escape. " +
-            "The Necromancers know we’re here, and consider " +
-            "us a threat. I don’t know what to think about this " +
-            "flattering change."),
+                    "began to fall, when the wizard spotted some " +
+                    "esoteric writing on the walls. Before our eyes they " +
+                    "flared to brilliance, and we heard shuffling footsteps! " +
+                    "An ambush! Someone placed zombie lures all around, " +
+                    "and the infected are hot on our trail! We must resist " +
+                    "long enough to destroy the lures and secure our escape. " +
+                    "The Necromancers know we’re here, and consider " +
+                    "us a threat. I don’t know what to think about this " +
+                    "flattering change."),
     Immortal(FLAG_WOLFBURG, "Immortal",
-    "Night has fallen, and the " +
-            "zombies are still dogging our " +
-            "footsteps by the dozen. To make " +
-            "matters worse, we seem to have killed " +
-            "the same Necromancer at least four " +
-            "times. He keeps coming back, over " +
-            "and over. He’s rallying his hordes and " +
-            "summoning more. We’re experienced " +
-            "survivors, but we’re still just mortals. " +
-            "We either figure out how to kill him " +
-            "permanently, or die from exhaustion. " +
-            "The wizards say he likely has some " +
-            "kind of magical anchors binding him " +
-            "to this area. If we destroy them, we " +
-            "can probably kill him for good and take " +
-            "a rest. (And then I can enjoy some " +
-            "of that Elven brew I found before. " +
-            "Don’t tell anyone!)"),
+            "Night has fallen, and the " +
+                    "zombies are still dogging our " +
+                    "footsteps by the dozen. To make " +
+                    "matters worse, we seem to have killed " +
+                    "the same Necromancer at least four " +
+                    "times. He keeps coming back, over " +
+                    "and over. He’s rallying his hordes and " +
+                    "summoning more. We’re experienced " +
+                    "survivors, but we’re still just mortals. " +
+                    "We either figure out how to kill him " +
+                    "permanently, or die from exhaustion. " +
+                    "The wizards say he likely has some " +
+                    "kind of magical anchors binding him " +
+                    "to this area. If we destroy them, we " +
+                    "can probably kill him for good and take " +
+                    "a rest. (And then I can enjoy some " +
+                    "of that Elven brew I found before. " +
+                    "Don’t tell anyone!)"),
     Zombie_Court(FLAG_WOLFBURG, "Zombie Court",
-    "We finally discovered the fate of that " +
-            "invading prince and his retinue. They " +
-            "were hunted, encircled, and butchered by a giant " +
-            "zombie wolfz pack. Fresh cadavers are everywhere. " +
-            "Wait. " +
-            "Make that: fresh zombies are everywhere. Well, " +
-            "let’s call this morning training, eh? " +
-            "While we’re here, let’s find the prince’s royal " +
-            "implements; a crown or scepter for example. It " +
-            "would be nice to return them to the king, and a good " +
-            "reminder that the land belongs to free people now!"),
+            "We finally discovered the fate of that " +
+                    "invading prince and his retinue. They " +
+                    "were hunted, encircled, and butchered by a giant " +
+                    "zombie wolfz pack. Fresh cadavers are everywhere. " +
+                    "Wait. " +
+                    "Make that: fresh zombies are everywhere. Well, " +
+                    "let’s call this morning training, eh? " +
+                    "While we’re here, let’s find the prince’s royal " +
+                    "implements; a crown or scepter for example. It " +
+                    "would be nice to return them to the king, and a good " +
+                    "reminder that the land belongs to free people now!"),
     Blood_Red(FLAG_WOLFBURG, "Blood Red",
-    "We’ve discovered a district just packed with " +
-            "zombies. The Necromancers use the wolfz " +
-            "to round them up and herd them here. We don’t know " +
-            "why, but packing such large numbers of infected into " +
-            "such close quarters is a target too tempting to ignore! " +
-            "Let’s show them why it’s called zombicide!"),
+            "We’ve discovered a district just packed with " +
+                    "zombies. The Necromancers use the wolfz " +
+                    "to round them up and herd them here. We don’t know " +
+                    "why, but packing such large numbers of infected into " +
+                    "such close quarters is a target too tempting to ignore! " +
+                    "Let’s show them why it’s called zombicide!"),
     The_Ghost_Door(FLAG_WOLFBURG, "The Ghost Door",
-    "Being reliably sturdy and easy to defend, " +
-            "towers are havens of choice for any " +
-            "survivor group, and for Necromancers as well. The " +
-            "wealthy Wulfsburg is home to many towers built " +
-            "by merchants and nobles as headquarters for their " +
-            "guilds and testimonies to their wealth. " +
-            "One of these towers bears the mark of the ‘immortal’ " +
-            "Necromancer that we killed yesterday. Taking " +
-            "a peek at his stuff could give us a clue about the " +
-            "Necromancers’ master plan (if there even is such a " +
-            "thing). He had plenty of guards, but we’re betting " +
-            "on some nice artifacts too!"),
+            "Being reliably sturdy and easy to defend, " +
+                    "towers are havens of choice for any " +
+                    "survivor group, and for Necromancers as well. The " +
+                    "wealthy Wulfsburg is home to many towers built " +
+                    "by merchants and nobles as headquarters for their " +
+                    "guilds and testimonies to their wealth. " +
+                    "One of these towers bears the mark of the ‘immortal’ " +
+                    "Necromancer that we killed yesterday. Taking " +
+                    "a peek at his stuff could give us a clue about the " +
+                    "Necromancers’ master plan (if there even is such a " +
+                    "thing). He had plenty of guards, but we’re betting " +
+                    "on some nice artifacts too!"),
     The_Zombie_Army(FLAG_WOLFBURG, "The Zombie Army",
-    "We found another Necromancer’s lair! " +
-            "The good news is: it’s filled with " +
-            "treasure! The bad news is: the Necromancers have " +
-            "spotted us. Even now, their hordes encircle us. But " +
-            "by now, we’re all experienced survivors. We’ve faced " +
-            "worse than just this petty army, right? Zombicide!"),
+            "We found another Necromancer’s lair! " +
+                    "The good news is: it’s filled with " +
+                    "treasure! The bad news is: the Necromancers have " +
+                    "spotted us. Even now, their hordes encircle us. But " +
+                    "by now, we’re all experienced survivors. We’ve faced " +
+                    "worse than just this petty army, right? Zombicide!"),
     A_Coin_For_The_Ferryman(FLAG_WOLFBURG, "A Coin for the Ferryman",
-    "Turns out the Necromancers are human " +
-            "after all. They’ve been using the towers " +
-            "to boost their egos and pile up plundered treasure, " +
-            "just like their former owners did. But, the " +
-            "Necromancers have also opened magical gates " +
-            "leading to some hidden place! The next step in their " +
-            "invasion, perhaps? Who knows? Finding these " +
-            "towers and sealing the gates will trap them here " +
-            "in Wulfsburg with us. Then we finish it, once and " +
-            "for all!"),
-    ;
+            "Turns out the Necromancers are human " +
+                    "after all. They’ve been using the towers " +
+                    "to boost their egos and pile up plundered treasure, " +
+                    "just like their former owners did. But, the " +
+                    "Necromancers have also opened magical gates " +
+                    "leading to some hidden place! The next step in their " +
+                    "invasion, perhaps? Who knows? Finding these " +
+                    "towers and sealing the gates will trap them here " +
+                    "in Wulfsburg with us. Then we finish it, once and " +
+                    "for all!");
 
-    ZQuests(int flag, String displayName, String description) {
-        this.flag = flag;
-        this.displayName = displayName;
-        this.description = description;
-    }
-
-    final int flag;
-    final String displayName;
-    final String description;
-
-    public ZQuest load() {
-        switch (this) {
-            case Tutorial:
-                return new ZQuestTutorial();
-            case Big_Game_Hunting:
-                return new ZQuestBigGameHunting();
-            case The_Black_Book:
-                return new ZQuestTheBlackBook();
-            case The_Abomination:
-                return new ZQuestTheAbomination();
-            case The_Necromancer:
-                return new ZQuestTheNecromancer();
-            case The_Shepherds:
-                return new ZQuestTheShepherds();
-            case Famine:
-                return new ZQuestFamine();
-            case The_Commandry:
-                return new ZQuestTheCommandry();
-            case In_Caligine_Abditus:
-                return new ZQuestInCaligineAbditus();
-            case Dead_Trail:
-                return new ZQuestDeadTrail();
-            case The_Evil_Temple:
-                return new ZQuestTheEvilTemple();
-            case The_Hell_Hole:
-                return new ZQuestTheHellHole();
-            case Trial_by_Fire:
-                return new ZQuestTrialByFire();
-            case Welcome_to_Wulfsberg:
-                return new WolfQuestWelcomeToWulfsburg();
-            case Know_Your_Enemy:
-                return new WolfQuestKnowYourEnemy();
-            case The_Evil_Twins:
-                return new WolfQuestTheEvilTwins();
-            case The_Ambush:
-                return new WolfQuestTheAmbush();
-            case Immortal:
-                return new WolfQuestImmortal();
-            case Zombie_Court:
-                return new WolfZombieCourt();
-            case Blood_Red:
-                return new WolfBloodRed();
-            case The_Ghost_Door:
-                return new WolfTheGhostDoor();
-            case The_Zombie_Army:
-                return new WolfTheZombieArmy();
-            case A_Coin_For_The_Ferryman:
-                return new WolfACoinForTheFerryman();
+    fun load(): ZQuest? {
+        return when (this) {
+            Tutorial -> ZQuestTutorial()
+            Big_Game_Hunting -> ZQuestBigGameHunting()
+            The_Black_Book -> ZQuestTheBlackBook()
+            The_Abomination -> ZQuestTheAbomination()
+            The_Necromancer -> ZQuestTheNecromancer()
+            The_Shepherds -> ZQuestTheShepherds()
+            Famine -> ZQuestFamine()
+            The_Commandry -> ZQuestTheCommandry()
+            In_Caligine_Abditus -> ZQuestInCaligineAbditus()
+            Dead_Trail -> ZQuestDeadTrail()
+            The_Evil_Temple -> ZQuestTheEvilTemple()
+            The_Hell_Hole -> ZQuestTheHellHole()
+            Trial_by_Fire -> ZQuestTrialByFire()
+            Welcome_to_Wulfsberg -> WolfQuestWelcomeToWulfsburg()
+            Know_Your_Enemy -> WolfQuestKnowYourEnemy()
+            The_Evil_Twins -> WolfQuestTheEvilTwins()
+            The_Ambush -> WolfQuestTheAmbush()
+            Immortal -> WolfQuestImmortal()
+            Zombie_Court -> WolfZombieCourt()
+            Blood_Red -> WolfBloodRed()
+            The_Ghost_Door -> WolfTheGhostDoor()
+            The_Zombie_Army -> WolfTheZombieArmy()
+            A_Coin_For_The_Ferryman -> WolfACoinForTheFerryman()
         }
-        Utils.assertTrue(false);
-        return null;
     }
 
-    public String getDisplayName() {
-        return displayName;
-    }
+    val isWolfburg: Boolean
+        get() = 0 != flag and FLAG_WOLFBURG
 
-    public String getDescription() {
-        return description;
-    }
+    companion object {
+        @JvmStatic
+        fun questsBlackPlague(): List<ZQuests> {
+            return Utils.filter(values()) { quest: ZQuests -> 0 != quest.flag and FLAG_BLACK_PLAGUE }
+        }
 
-    public static List<ZQuests> questsBlackPlague() {
-        return Utils.filter(values(), quest -> 0 != (quest.flag & FLAG_BLACK_PLAGUE));
-    }
-
-    public static List<ZQuests> questsWolfsburg() {
-        return Utils.filter(values(), quest -> 0 != (quest.flag & FLAG_WOLFBURG));
-    }
-
-    boolean isWolfburg() {
-        return 0 != (flag & FLAG_WOLFBURG);
+        @JvmStatic
+        fun questsWolfsburg(): List<ZQuests> {
+            return Utils.filter(values()) { quest: ZQuests -> 0 != quest.flag and FLAG_WOLFBURG }
+        }
     }
 }

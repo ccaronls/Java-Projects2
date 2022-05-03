@@ -1,10 +1,10 @@
-package cc.lib.zombicide;
+package cc.lib.zombicide
 
-import cc.lib.annotation.Keep;
-import cc.lib.game.GColor;
+import cc.lib.annotation.Keep
+import cc.lib.game.GColor
 
 @Keep
-public enum ZCellType {
+enum class ZCellType(@JvmField val color: GColor = GColor.YELLOW, @JvmField val isObjective: Boolean = false, @JvmField val isZombie: Boolean = false) {
     NONE,
     VAULT_DOOR_VIOLET,
     VAULT_DOOR_GOLD,
@@ -19,19 +19,4 @@ public enum ZCellType {
     FATTY,
     NECROMANCER,
     ABOMINATION;
-
-    ZCellType() {
-        this(GColor.YELLOW, false, false);
-    }
-
-    ZCellType(GColor color, boolean isObjective, boolean isZombie) {
-        this.color = color;
-        this.isObjective = isObjective;
-        this.isZombie = isZombie;
-    }
-
-    public final GColor color;
-    public final boolean isObjective;
-    public final boolean isZombie;
-
 }

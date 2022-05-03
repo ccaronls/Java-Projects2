@@ -3,7 +3,7 @@ package cc.lib.zombicide;
 import cc.lib.annotation.Keep;
 
 @Keep
-public enum ZItemType implements ZEquipmentType<ZItem> {
+public enum ZItemType implements ZEquipmentType {
     AAHHHH(null, ZActionType.NOTHING, null, "Stop Searching and place a zombie in the room being searched."),
     TORCH(ZEquipmentClass.THROWABLE, ZActionType.THROW_ITEM, ZEquipSlotType.HAND, "Draw 2 cards when searching. Spend an action, discard, and select a dragon bile at range 0-1 to ignite. Resolve dragon Fire.") {
         @Override

@@ -1,33 +1,28 @@
-package cc.lib.zombicide;
+package cc.lib.zombicide
 
-import cc.lib.annotation.Keep;
-import cc.lib.game.Utils;
-import cc.lib.ui.IButton;
+import cc.lib.annotation.Keep
+import cc.lib.game.Utils
+import cc.lib.ui.IButton
 
 @Keep
-public enum ZEquipSlot implements IButton {
+enum class ZEquipSlot(val shorthand: String) : IButton {
     LEFT_HAND("LH"),
     BODY("Bo"),
     RIGHT_HAND("RH"),
     BACKPACK("BP");
 
-    ZEquipSlot(String shorthand) {
-        this.shorthand = shorthand;
+    override fun getTooltipText(): String? {
+        return null
     }
 
-    final String shorthand;
-
-    @Override
-    public String getTooltipText() {
-        return null;
+    override fun getLabel(): String {
+        return Utils.toPrettyString(name)
     }
 
-    @Override
-    public String getLabel() {
-        return Utils.toPrettyString(name());
-    }
-
-    public static ZEquipSlot [] wearableValues() {
-        return Utils.toArray(LEFT_HAND, BODY, RIGHT_HAND);
+    companion object {
+        @JvmStatic
+        fun wearableValues(): Array<ZEquipSlot> {
+            return Utils.toArray(LEFT_HAND, BODY, RIGHT_HAND)
+        }
     }
 }

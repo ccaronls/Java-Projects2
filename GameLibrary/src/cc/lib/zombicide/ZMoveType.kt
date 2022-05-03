@@ -1,13 +1,13 @@
-package cc.lib.zombicide;
+package cc.lib.zombicide
 
-import cc.lib.annotation.Keep;
-import cc.lib.game.Utils;
-import cc.lib.ui.IButton;
+import cc.lib.annotation.Keep
+import cc.lib.game.Utils
+import cc.lib.ui.IButton
 
 @Keep
-public enum ZMoveType implements IButton {
+enum class ZMoveType(val toolTipText: String?) : IButton {
     END_TURN("Expend all remaining actions and end turn"),
-    INVENTORY("View inventory. The first change of inventory cost an action. You can perform as many subsequent inventory actions for free for the rest of the round."), // equip things, drop things, etc.
+    INVENTORY("View inventory. The first change of inventory cost an action. You can perform as many subsequent inventory actions for free for the rest of the round."),  // equip things, drop things, etc.
     TRADE("Like inventory the first trade costs an action and subsequent trades are free for the rest of the round. You can only trade with players in your zone and if the zone is free of zombies."),
     WALK("Walk to a different zone at the cost of 1 action."),
     JUMP("Jump to 2 zones line of sight from current position for free"),
@@ -19,7 +19,7 @@ public enum ZMoveType implements IButton {
     MELEE_ATTACK("Use an equipped melee weapon at cost of 1 action."),
     RANGED_ATTACK("Use an equipped range weapon at cost pf 1 action."),
     MAGIC_ATTACK("Use an equipped spell at cost of 1 action"),
-    THROW_ITEM("Throw an equipped item after choosing target zone."), // torch / dragon bile
+    THROW_ITEM("Throw an equipped item after choosing target zone."),  // torch / dragon bile
     RELOAD("Reload an equipped range weapon that requires it."),
     OPERATE_DOOR("Spend an action to open a door. Your best option for opening a door will be chosen automatically."),
     SEARCH("Spend an action to search area for loot."),
@@ -30,8 +30,7 @@ public enum ZMoveType implements IButton {
     GIVE(null),
     TAKE(null),
     DISPOSE("After disposing an item it is returned to the deck."),
-    TAKE_OBJECTIVE("Zones that contain an 'X' are objectives. Take an objective to claim its EXP and whatever else might be associated with it like keys ot special loot."),
-    // drop or collect items from vault
+    TAKE_OBJECTIVE("Zones that contain an 'X' are objectives. Take an objective to claim its EXP and whatever else might be associated with it like keys ot special loot."),  // drop or collect items from vault
     DROP_ITEM("Dropping an item in the vault allows anyone to pick it up later."),
     PICKUP_ITEM("Take an item from the vault into your inventory or open slot."),
     MAKE_NOISE("Spend an action to draw zombies toward you. Zombies that have line of sight to a different player will not be affected by make noise."),
@@ -44,22 +43,13 @@ public enum ZMoveType implements IButton {
     BLOODLUST_RANGED("Spend an action to move up to 2 zones and perform ranged."),
     BLOODLUST_MAGIC("Spend an action to move up to 2 spaces and perform magic."),
     IGNITE("Ignite a Dragon Bile within range"),
-    BARRICADE("Close and barricade a door"),
-    ;
+    BARRICADE("Close and barricade a door");
 
-    final String toolTipText;
-
-    ZMoveType(String toolTipText) {
-        this.toolTipText = toolTipText;
+    override fun getLabel(): String {
+        return Utils.toPrettyString(name)
     }
 
-    @Override
-    public String getLabel() {
-        return Utils.toPrettyString(name());
-    }
-
-    @Override
-    public String getTooltipText() {
-        return toolTipText;
+    override fun getTooltipText(): String? {
+        return toolTipText
     }
 }
