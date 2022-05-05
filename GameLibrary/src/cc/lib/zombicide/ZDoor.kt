@@ -1,128 +1,77 @@
-package cc.lib.zombicide;
+package cc.lib.zombicide
 
-import cc.lib.game.GColor;
-import cc.lib.game.GRectangle;
-import cc.lib.game.Utils;
-import cc.lib.utils.Grid;
-import cc.lib.utils.Reflector;
+import cc.lib.game.GColor
+import cc.lib.game.GRectangle
+import cc.lib.game.Utils
+import cc.lib.utils.Grid
+import cc.lib.utils.Reflector
 
-public final class ZDoor extends Reflector<ZDoor>  {
-
-    static {
-        addAllFields(ZDoor.class);
-    }
-
-    private final Grid.Pos cellPosStart, cellPosEnd;
-    private final ZDir dir;
-    private boolean jammed;
-    public final GColor lockedColor;
-
-    public ZDoor() {
-        this(null, null, null, null);
-    }
-
-    public ZDoor(Grid.Pos cellPosStart, ZDir dir, GColor lockedColor) {
-        this(cellPosStart, dir.getAdjacent(cellPosStart), dir, lockedColor);
-    }
-
-    public ZDoor(Grid.Pos cellPosStart, Grid.Pos cellPosEnd, ZDir dir, GColor lockedColor) {
-        this.cellPosStart = cellPosStart;
-        this.cellPosEnd = cellPosEnd;
-        this.dir = dir;
-        this.lockedColor = lockedColor;
-        if (dir != null) {
-            switch (dir) {
-                case ASCEND:
-                case DESCEND:
-                    jammed = false;
-                    break;
-                default:
-                    jammed = true;
-            }
+class ZDoor (val cellPosStart: Grid.Pos, val cellPosEnd: Grid.Pos, val moveDirection: ZDir, val lockedColor: GColor) : Reflector<ZDoor>() {
+    companion object {
+        init {
+            addAllFields(ZDoor::class.java)
         }
     }
 
-    public boolean isLocked(ZBoard b) {
-        return b.getDoor(this) == ZWallFlag.LOCKED;
+    constructor() : this(Grid.Pos(), Grid.Pos(), ZDir.NORTH, GColor.BLACK)
+    constructor(start: Grid.Pos, dir:ZDir, color:GColor):this(start, dir.getAdjacent(start)!!, dir, color)
+
+    var isJammed = false
+        private set
+
+    fun isLocked(b: ZBoard): Boolean {
+        return b.getDoor(this) === ZWallFlag.LOCKED
     }
 
-    public boolean isClosed(ZBoard board) {
-        return !board.getCell(cellPosStart).getWallFlag(dir).opened;
+    fun isClosed(board: ZBoard): Boolean {
+        return !board.getCell(cellPosStart).getWallFlag(moveDirection).opened
     }
 
-    public Grid.Pos getCellPosStart() {
-        return cellPosStart;
+    fun getRect(board: ZBoard): GRectangle {
+        return board.getCell(cellPosStart).getWallRect(moveDirection)
     }
 
-    public Grid.Pos getCellPosEnd() {
-        return cellPosEnd;
-    }
-
-    public ZDir getMoveDirection() {
-        return dir;
-    }
-
-    public GRectangle getRect(ZBoard board) {
-        return board.getCell(cellPosStart).getWallRect(dir);
-    }
-
-    public void toggle(ZBoard board) {
-        toggle(board, false);
-    }
-
-    public void toggle(ZBoard board, boolean jammed) {
-        ZDoor otherSide = getOtherSide();
-        switch (board.getDoor(this)) {
-            case OPEN:
-                board.setDoor(this, ZWallFlag.CLOSED);
-//                board.setDoor(otherSide, ZWallFlag.CLOSED);
-                break;
-            case LOCKED:
-            case CLOSED:
-                board.setDoor(this, ZWallFlag.OPEN);
-//                board.setDoor(otherSide, ZWallFlag.OPEN);
-                break;
+    @JvmOverloads
+    fun toggle(board: ZBoard, jammed: Boolean = false) {
+        val otherSide = otherSide
+        when (board.getDoor(this)) {
+            ZWallFlag.OPEN -> board.setDoor(this, ZWallFlag.CLOSED)
+            ZWallFlag.LOCKED, ZWallFlag.CLOSED -> board.setDoor(this, ZWallFlag.OPEN)
         }
-        this.jammed = otherSide.jammed = jammed;
+        otherSide.isJammed = jammed
+        isJammed = otherSide.isJammed
     }
 
-    public ZDoor getOtherSide() {
-        return new ZDoor(cellPosEnd, cellPosStart, dir.getOpposite(), lockedColor);
-    }
+    val otherSide: ZDoor
+        get() = ZDoor(cellPosEnd, cellPosStart, moveDirection.opposite, lockedColor)
 
-    public boolean isJammed() {
-        return jammed;
-    }
-
-    public boolean canBeClosed(ZCharacter c) {
-        switch (dir) {
-            case DESCEND:
-            case ASCEND:
-                return true;
+    fun canBeClosed(c: ZCharacter): Boolean {
+        when (moveDirection) {
+            ZDir.DESCEND, ZDir.ASCEND -> return true
         }
-        for (ZSkill sk : c.getAvailableSkills()) {
-            if (sk.canCloseDoors())
-                return true;
+        for (sk in c.getAvailableSkills()) {
+            if (sk.canCloseDoors()) return true
         }
-        return false;
+        return false
     }
 
-    public GColor getLockedColor() {
-        return lockedColor;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
-        ZDoor zDoor = (ZDoor) o;
+    override fun equals(o: Any?): Boolean {
+        if (this === o) return true
+        if (o == null || javaClass != o.javaClass) return false
+        if (!super.equals(o)) return false
+        val zDoor = o as ZDoor
         return Utils.equals(cellPosStart, zDoor.cellPosStart) &&
-                dir == zDoor.dir;
+                moveDirection === zDoor.moveDirection
     }
 
-    @Override
-    public int hashCode() {
-        return Utils.hashCode(cellPosStart, dir);
+    override fun hashCode(): Int {
+        return Utils.hashCode(cellPosStart, moveDirection)
+    }
+
+    init {
+        when (moveDirection) {
+            ZDir.ASCEND, ZDir.DESCEND -> isJammed = false
+            else                      -> isJammed = true
+        }
     }
 }

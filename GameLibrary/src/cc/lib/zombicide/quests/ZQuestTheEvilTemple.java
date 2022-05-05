@@ -3,14 +3,12 @@ package cc.lib.zombicide.quests;
 import java.util.Arrays;
 import java.util.List;
 
-import cc.lib.game.GColor;
 import cc.lib.game.Utils;
 import cc.lib.utils.Grid;
 import cc.lib.utils.Table;
 import cc.lib.zombicide.ZBoard;
 import cc.lib.zombicide.ZCell;
 import cc.lib.zombicide.ZCharacter;
-import cc.lib.zombicide.ZDir;
 import cc.lib.zombicide.ZDoor;
 import cc.lib.zombicide.ZEquipment;
 import cc.lib.zombicide.ZGame;
@@ -68,18 +66,30 @@ public class ZQuestTheEvilTemple extends ZQuest {
     protected void loadCmd(Grid<ZCell> grid, Grid.Pos pos, String cmd) {
         switch (cmd) {
             case "lvd2":
-                violetVaultZone = grid.get(pos).getZoneIndex();
-                violetVaultDoor = new ZDoor(pos, ZDir.DESCEND, GColor.MAGENTA);
+                violetVaultZone = grid.get(pos).zoneIndex;
+//                violetVaultDoor = new ZDoor(pos, ZDir.DESCEND, GColor.MAGENTA);
                 super.loadCmd(grid, pos, "vd2");
                 break;
             case "lgvd1":
-                goldVaultZone = grid.get(pos).getZoneIndex();
-                goldVaultDoor = new ZDoor(pos, ZDir.DESCEND, GColor.GOLD);
+                goldVaultZone = grid.get(pos).zoneIndex;
+//                goldVaultDoor = new ZDoor(pos, ZDir.DESCEND, GColor.GOLD);
                 super.loadCmd(grid, pos, "gvd1");
                 break;
             default:
                 super.loadCmd(grid, pos, cmd);
         }
+    }
+
+    @Override
+    public void init(ZGame game) {
+        violetVaultDoor = game.board.findVault(2);
+        goldVaultDoor = game.board.findVault(1);
+        while (blueObjZone == greenObjZone) {
+            blueObjZone = Utils.randItem(getRedObjectives());
+            greenObjZone = Utils.randItem(getRedObjectives());
+        }
+        game.lockDoor(goldVaultDoor);
+        game.lockDoor(violetVaultDoor);
     }
 
     @Override
@@ -102,11 +112,11 @@ public class ZQuestTheEvilTemple extends ZQuest {
     }
 
     @Override
-    public List<ZEquipment> getInitVaultItems(int vaultZone) {
+    public List<ZEquipment<?>> getInitVaultItems(int vaultZone) {
         if (vaultZone == goldVaultZone) {
             return Arrays.asList(ZItemType.TORCH.create(), ZItemType.DRAGON_BILE.create());
         } else if (vaultZone == violetVaultZone) {
-            List<ZEquipment> all = getVaultItemsRemaining();
+            List<ZEquipment<?>> all = getVaultItemsRemaining();
             Utils.shuffle(all);
             while (all.size() > 2)
                 all.remove(0);
@@ -114,16 +124,6 @@ public class ZQuestTheEvilTemple extends ZQuest {
         } else {
             return super.getInitVaultItems(vaultZone);
         }
-    }
-
-    @Override
-    public void init(ZGame game) {
-        while (blueObjZone == greenObjZone) {
-            blueObjZone = Utils.randItem(getRedObjectives());
-            greenObjZone = Utils.randItem(getRedObjectives());
-        }
-        game.lockDoor(goldVaultDoor);
-        game.lockDoor(violetVaultDoor);
     }
 
     @Override

@@ -6,6 +6,7 @@ import cc.lib.game.Utils
 import cc.lib.math.Vector2D
 import cc.lib.utils.GException
 import cc.lib.utils.Grid
+import kotlin.math.abs
 
 @Keep
 enum class ZDir(@JvmField val dx: Int, @JvmField val dy: Int, @JvmField val dz: Int, @JvmField val rotation: Int, @JvmField val horz: Justify, @JvmField val vert: Justify) {
@@ -28,12 +29,10 @@ enum class ZDir(@JvmField val dx: Int, @JvmField val dy: Int, @JvmField val dz: 
             }
         }
 
-    fun getAdjacent(pos: Grid.Pos): Grid.Pos? {
-        when (this) {
-            NORTH, WEST, EAST, SOUTH -> return Grid.Pos(pos.row + dy, pos.column + dx)
+    fun getAdjacent(pos: Grid.Pos): Grid.Pos? = when (this) {
+            NORTH, WEST, EAST, SOUTH -> Grid.Pos(pos.row + dy, pos.column + dx)
+            else -> null
         }
-        return null
-    }
 
     companion object {
         @JvmStatic
@@ -51,12 +50,12 @@ enum class ZDir(@JvmField val dx: Int, @JvmField val dy: Int, @JvmField val dz: 
         }
 
         @JvmStatic
-        fun valuesSorted(start: Grid.Pos, end: Grid.Pos): Array<ZDir?> {
-            if (start == end) return arrayOfNulls(0)
-            val dirs = arrayOfNulls<ZDir>(4)
+        fun valuesSorted(start: Grid.Pos, end: Grid.Pos): Array<ZDir> {
+            if (start == end) return arrayOf()
             val dx = end.column - start.column
             val dy = end.row - start.row
-            if (Math.abs(dx) < Math.abs(dy)) {
+            val dirs = ArrayList<ZDir>(4)
+            if (abs(dx) < abs(dy)) {
                 // either north or south is primary
                 if (dy < 0) {
                     dirs[0] = NORTH
@@ -88,7 +87,7 @@ enum class ZDir(@JvmField val dx: Int, @JvmField val dy: Int, @JvmField val dz: 
                     dirs[2] = NORTH
                 }
             }
-            return dirs
+            return dirs.toTypedArray()
         }
 
         @JvmStatic

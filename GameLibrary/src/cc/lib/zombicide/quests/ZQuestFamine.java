@@ -1,10 +1,11 @@
 package cc.lib.zombicide.quests;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import cc.lib.game.GColor;
 import cc.lib.game.Utils;
 import cc.lib.utils.Grid;
 import cc.lib.utils.Table;
@@ -64,17 +65,26 @@ public class ZQuestFamine extends ZQuest {
             case "lvd1":
                 super.loadCmd(grid, pos, "gvd1");
                 setCellWall(grid, pos, ZDir.DESCEND, ZWallFlag.LOCKED);
-                lockedVaults.add(new ZDoor(pos, ZDir.DESCEND, GColor.BLUE));
+                //lockedVaults.add(new ZDoor(pos, ZDir.DESCEND, GColor.BLUE));
                 break;
             case "lvd2":
                 super.loadCmd(grid, pos, "gvd2");
                 setCellWall(grid, pos, ZDir.DESCEND, ZWallFlag.LOCKED);
-                lockedVaults.add(new ZDoor(pos, ZDir.DESCEND, GColor.BLUE));
+                //lockedVaults.add(new ZDoor(pos, ZDir.DESCEND, GColor.BLUE));
                 break;
             default:
                 super.loadCmd(grid, pos, cmd);
         }
     }
+
+    @Override
+    public void init(ZGame game) {
+        lockedVaults.add(game.board.findVault(1));
+        lockedVaults.add(game.board.findVault(2));
+        blueKeyZone = Utils.randItem(getRedObjectives());
+    }
+
+
 
     @Override
     public void processObjective(ZGame game, ZCharacter c) {
@@ -121,10 +131,10 @@ public class ZQuestFamine extends ZQuest {
 
     boolean isAllLockedInVault(ZGame game) {
         int vaultZone = -1;
-        for (ZCharacter c : game.getBoard().getAllCharacters()) {
+        for (ZCharacter c : game.board.getAllCharacters()) {
             if (!c.isAlive())
                 continue;
-            ZZone zone = game.getBoard().getZone(c.getOccupiedZone());
+            ZZone zone = game.board.getZone(c.getOccupiedZone());
             if (zone.getType() != ZZoneType.VAULT) {
                 return false;
             } else {
@@ -133,11 +143,11 @@ public class ZQuestFamine extends ZQuest {
         }
 
         if (vaultZone >= 0) {
-            if (game.getBoard().getZombiesInZone(vaultZone).size() > 0)
+            if (game.board.getZombiesInZone(vaultZone).size() > 0)
                 return false;
-            ZZone zone = game.getBoard().getZone(vaultZone);
-            for (ZDoor door : zone.getDoors()) {
-                if (!door.isClosed(game.getBoard()))
+            ZZone zone = game.board.getZone(vaultZone);
+            for (ZDoor door : zone.doors) {
+                if (!door.isClosed(game.board))
                     return false;
             }
         }
@@ -169,11 +179,6 @@ public class ZQuestFamine extends ZQuest {
     }
 
     @Override
-    public void init(ZGame game) {
-        blueKeyZone = Utils.randItem(getRedObjectives());
-    }
-
-    @Override
     public Table getObjectivesOverlay(ZGame game) {
         return new Table(getName())
             .addRow(new Table().setNoBorder()
@@ -186,8 +191,9 @@ public class ZQuestFamine extends ZQuest {
 
     }
 
+    /*
     @Override
-    public void processLootDeck(List<ZEquipment> items) {
+    public <T> void processLootDeck(List<T extends ZEquipment<T>> items) {
         // bump up number of quest specific items
         items.addAll(Arrays.asList(
                 ZItemType.APPLES.create(),
@@ -196,6 +202,17 @@ public class ZQuestFamine extends ZQuest {
                 ZItemType.WATER.create(),
                 ZItemType.SALTED_MEAT.create(),
                 ZItemType.SALTED_MEAT.create()
+        ));
+    }*/
+
+    @Override
+    public void processLootDeck(@NotNull List<? extends ZEquipment<?>> items) {
+        ((List)items).addAll(Arrays.asList(
+               ZItemType.APPLES.create(), ZItemType.APPLES.create(),
+               ZItemType.WATER.create(),
+               ZItemType.WATER.create(),
+               ZItemType.SALTED_MEAT.create(),
+               ZItemType.SALTED_MEAT.create()
         ));
     }
 }

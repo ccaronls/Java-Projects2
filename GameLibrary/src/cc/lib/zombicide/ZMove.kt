@@ -1,98 +1,189 @@
-package cc.lib.zombicide;
+package cc.lib.zombicide
 
-import java.util.Arrays;
-import java.util.List;
+import cc.lib.game.Utils
+import cc.lib.ui.IButton
+import cc.lib.utils.Reflector
+import java.util.*
 
-import cc.lib.game.Utils;
-import cc.lib.ui.IButton;
-import cc.lib.utils.Reflector;
+class ZMove private constructor(val type: ZMoveType=ZMoveType.END_TURN, val integer: Int?, val character: ZPlayerName?, val equipment: ZEquipment<*>?, val fromSlot: ZEquipSlot?, val toSlot: ZEquipSlot?, val list: List<*>?, val skill: ZSkill?, val action: ZActionType?) : Reflector<ZMove>(), IButton {
+    companion object {
+        fun newEndTurn(): ZMove {
+            return ZMove(ZMoveType.END_TURN)
+        }
 
-public class ZMove extends Reflector<ZMove> implements IButton {
+        fun newWalkMove(zones: List<Int>, action: ZActionType?): ZMove {
+            return ZMove(ZMoveType.WALK, zones, action)
+        }
 
-    static {
-        addAllFields(ZMove.class);
+        fun newJumpMove(zones: List<Int>): ZMove {
+            return ZMove(ZMoveType.JUMP, zones)
+        }
+
+        fun newChargeMove(zones: List<Int>): ZMove {
+            return ZMove(ZMoveType.CHARGE, zones)
+        }
+
+        fun newUseLeftHand(): ZMove {
+            return ZMove(ZMoveType.USE_LEFT_HAND)
+        }
+
+        fun newUseRightHand(): ZMove {
+            return ZMove(ZMoveType.USE_RIGHT_HAND)
+        }
+
+        fun newToggleDoor(doors: List<ZDoor>): ZMove {
+            return ZMove(ZMoveType.OPERATE_DOOR, doors)
+        }
+
+        fun newBarricadeDoor(doors: List<ZDoor>): ZMove {
+            return ZMove(ZMoveType.BARRICADE, doors)
+        }
+
+        fun newSearchMove(zoneIndex: Int): ZMove {
+            return ZMove(ZMoveType.SEARCH, zoneIndex)
+        }
+
+        fun newMeleeAttackMove(weapons: List<ZWeapon>): ZMove {
+            return ZMove(ZMoveType.MELEE_ATTACK, weapons)
+        }
+
+        fun newRangedAttackMove(weapons: List<ZWeapon>): ZMove {
+            return ZMove(ZMoveType.RANGED_ATTACK, weapons)
+        }
+
+        fun newMagicAttackMove(weapons: List<ZWeapon>): ZMove {
+            return ZMove(ZMoveType.MAGIC_ATTACK, weapons)
+        }
+
+        fun newThrowEquipmentMove(slots: List<ZEquipment<*>?>): ZMove {
+            return ZMove(ZMoveType.THROW_ITEM, slots)
+        }
+
+        fun newInventoryMove(): ZMove {
+            return ZMove(ZMoveType.INVENTORY)
+        }
+
+        fun newTradeMove(tradeOptions: List<ZPlayerName>): ZMove {
+            return ZMove(ZMoveType.TRADE, tradeOptions)
+        }
+
+        fun newConsumeMove(equip: ZEquipment<*>, slot: ZEquipSlot?): ZMove {
+            return ZMove(ZMoveType.CONSUME, equip, slot)
+        }
+
+        fun newEquipMove(equip: ZEquipment<*>, fromSlot: ZEquipSlot, toSlot: ZEquipSlot): ZMove {
+            return ZMove(ZMoveType.EQUIP, 0, null, equip, fromSlot, toSlot, null)
+        }
+
+        fun newKeepMove(equip: ZEquipment<*>): ZMove {
+            return ZMove(ZMoveType.KEEP, equip, null)
+        }
+
+        fun newUnequipMove(equip: ZEquipment<*>, slot: ZEquipSlot): ZMove {
+            return ZMove(ZMoveType.UNEQUIP, equip, slot)
+        }
+
+        fun newDisposeMove(equip: ZEquipment<*>, slot: ZEquipSlot): ZMove {
+            return ZMove(ZMoveType.DISPOSE, equip, slot)
+        }
+
+        fun newGiveMove(taker: ZPlayerName, toGive: ZEquipment<*>): ZMove {
+            return ZMove(ZMoveType.GIVE, 0, taker, toGive, null, null, null)
+        }
+
+        fun newTakeMove(giver: ZPlayerName, toTake: ZEquipment<*>): ZMove {
+            return ZMove(ZMoveType.TAKE, 0, giver, toTake, null, null, null)
+        }
+
+        @JvmStatic
+        fun newObjectiveMove(zone: Int): ZMove {
+            return ZMove(ZMoveType.TAKE_OBJECTIVE, zone)
+        }
+
+        fun newReloadMove(slot: ZWeapon): ZMove {
+            return ZMove(ZMoveType.RELOAD, slot, null)
+        }
+
+        fun newPickupItemMove(takables: List<ZEquipment<*>>): ZMove {
+            return ZMove(ZMoveType.PICKUP_ITEM, takables)
+        }
+
+        fun newDropItemMove(items: List<ZEquipment<*>>): ZMove {
+            return ZMove(ZMoveType.DROP_ITEM, items)
+        }
+
+        fun newWalkDirMove(dir: ZDir, action: ZActionType?): ZMove {
+            return ZMove(ZMoveType.WALK_DIR, dir.ordinal, action)
+        }
+
+        fun newSwitchActiveCharacter(): ZMove {
+            return ZMove(ZMoveType.SWITCH_ACTIVE_CHARACTER)
+        }
+
+        fun newMakeNoiseMove(occupiedZone: Int): ZMove {
+            return ZMove(ZMoveType.MAKE_NOISE, occupiedZone)
+        }
+
+        fun newShoveMove(toZones: List<Int>): ZMove {
+            return ZMove(ZMoveType.SHOVE, toZones)
+        }
+
+        fun newReRollMove(): ZMove {
+            return ZMove(ZMoveType.REROLL)
+        }
+
+        fun newKeepRollMove(): ZMove {
+            return ZMove(ZMoveType.KEEP_ROLL)
+        }
+
+        fun newEnchantMove(spells: List<ZSpell>): ZMove {
+            return ZMove(ZMoveType.ENCHANT, spells)
+        }
+
+        fun newBornLeaderMove(options: List<ZPlayerName>): ZMove {
+            return ZMove(ZMoveType.BORN_LEADER, options)
+        }
+
+        fun newBloodlustMeleeMove(zones: List<Int>, skill: ZSkill): ZMove {
+            return ZMove(ZMoveType.BLOODLUST_MELEE, zones, skill)
+        }
+
+        fun newBloodlustRangedMove(zones: List<Int>, skill: ZSkill): ZMove {
+            return ZMove(ZMoveType.BLOODLUST_RANGED, zones, skill)
+        }
+
+        fun newBloodlustMagicMove(zones: List<Int>, skill: ZSkill): ZMove {
+            return ZMove(ZMoveType.BLOODLUST_MAGIC, zones, skill)
+        }
+
+        fun newDisposeEquipmentMove(e: ZEquipment<*>): ZMove {
+            return ZMove(ZMoveType.DISPOSE, e, null)
+        }
+
+        fun newIgniteMove(ignitableZones: List<Int>): ZMove {
+            return ZMove(ZMoveType.IGNITE, ignitableZones)
+        }
+
+        init {
+            addAllFields(ZMove::class.java)
+        }
     }
 
-    public final ZMoveType type;
-    public final Integer integer;
-    public final ZPlayerName character;
-    public final ZEquipment equipment;
-    public final ZEquipSlot fromSlot;
-    public final ZEquipSlot toSlot;
-    public final ZActionType action;
-    public final List list;
-    public final ZSkill skill;
+    constructor() : this(ZMoveType.END_TURN) {}
+    constructor(copy: ZMove, singleListElement: Any) : this(copy.type, copy.integer, copy.character, copy.equipment, copy.fromSlot, copy.toSlot, Arrays.asList<Any>(singleListElement), copy.skill, copy.action) {}
+    constructor(copy: ZMove, singleListElement: Any, integer: Int) : this(copy.type, integer, copy.character, copy.equipment, copy.fromSlot, copy.toSlot, Arrays.asList<Any>(singleListElement), copy.skill, copy.action) {}
+    constructor(copy: ZMove, singleListElement: Any, character: ZPlayerName?) : this(copy.type, copy.integer, character, copy.equipment, copy.fromSlot, copy.toSlot, Arrays.asList<Any>(singleListElement), copy.skill, copy.action) {}
+    constructor(copy: ZMove, singleListElement: Any, equipment: ZEquipment<*>?) : this(copy.type, copy.integer, copy.character, equipment, copy.fromSlot, copy.toSlot, Arrays.asList<Any>(singleListElement), copy.skill, copy.action) {}
+    private constructor(type: ZMoveType, action: ZActionType) : this(type, null, null, null, null, null, null, null, action) {}
+    private constructor(type: ZMoveType, num: Int? = null) : this(type, num, null, null, null, null, null, null, null) {}
+    private constructor(type: ZMoveType, num: Int, action: ZActionType?) : this(type, num, null, null, null, null, null, null, action) {}
+    private constructor(type: ZMoveType, list: List<*>) : this(type, null, null, null, null, null, list, null, null) {}
+    private constructor(type: ZMoveType, list: List<*>, action: ZActionType?) : this(type, null, null, null, null, null, list, null, action) {}
+    private constructor(type: ZMoveType, list: List<*>, skill: ZSkill) : this(type, null, null, null, null, null, list, skill, null) {}
+    private constructor(type: ZMoveType, equip: ZEquipment<*>, fromSlot: ZEquipSlot?) : this(type, null, null, equip, fromSlot, null, null, null, null) {}
+    private constructor(type: ZMoveType, targetIndex: Int, character: ZPlayerName?, equip: ZEquipment<*>, fromSlot: ZEquipSlot?, toSlot: ZEquipSlot?, list: List<*>?) : this(type, targetIndex, character, equip, fromSlot, toSlot, list, null, null) {}
 
-    public ZMove() {
-        this(null);
-    }
-
-    public ZMove(ZMove copy, Object singleListElement) {
-        this(copy.type, copy.integer, copy.character, copy.equipment, copy.fromSlot, copy.toSlot, Arrays.asList(singleListElement), copy.skill, copy.action);
-    }
-
-    public ZMove(ZMove copy, Object singleListElement, int integer) {
-        this(copy.type, integer, copy.character, copy.equipment, copy.fromSlot, copy.toSlot, Arrays.asList(singleListElement), copy.skill, copy.action);
-    }
-
-    public ZMove(ZMove copy, Object singleListElement, ZPlayerName character) {
-        this(copy.type, copy.integer, character, copy.equipment, copy.fromSlot, copy.toSlot, Arrays.asList(singleListElement), copy.skill, copy.action);
-    }
-
-    public ZMove(ZMove copy, Object singleListElement, ZEquipment equipment) {
-        this(copy.type, copy.integer, copy.character, equipment, copy.fromSlot, copy.toSlot, Arrays.asList(singleListElement), copy.skill, copy.action);
-    }
-
-    private ZMove(ZMoveType type) {
-        this(type, (Integer)null);
-    }
-
-    private ZMove(ZMoveType type, ZActionType action) {
-        this(type, null, null, null, null, null, null, null, action);
-    }
-
-    private ZMove(ZMoveType type, Integer num) {
-        this(type, num, null, null, null, null, null, null, null);
-    }
-
-    private ZMove(ZMoveType type, Integer num, ZActionType action) {
-        this(type, num, null, null, null, null, null, null, action);
-    }
-
-    private ZMove(ZMoveType type, List list) {
-        this(type, null, null, null, null, null, list, null, null);
-    }
-
-    private ZMove(ZMoveType type, List list, ZActionType action) {
-        this(type, null, null, null, null, null, list, null, action);
-    }
-
-    private ZMove(ZMoveType type, List list, ZSkill skill) {
-        this(type, null, null, null, null, null, list, skill, null);
-    }
-
-    private ZMove(ZMoveType type, ZEquipment equip, ZEquipSlot fromSlot) {
-        this(type, null, null, equip, fromSlot, null, null, null, null);
-    }
-
-    private ZMove(ZMoveType type, int targetIndex, ZPlayerName character, ZEquipment equip, ZEquipSlot fromSlot, ZEquipSlot toSlot, List list) {
-        this(type, targetIndex, character, equip, fromSlot, toSlot, list, null, null);
-    }
-
-    private ZMove(ZMoveType type, Integer integer, ZPlayerName character, ZEquipment equip, ZEquipSlot fromSlot, ZEquipSlot toSlot, List list, ZSkill skill, ZActionType action) {
-        this.type = type;
-        this.integer = integer;
-        this.character = character;
-        this.equipment = equip;
-        this.fromSlot = fromSlot;
-        this.toSlot = toSlot;
-        this.list  = list;
-        this.skill = skill;
-        this.action = action;
-    }
-
-    @Override
-    public String toString() {
+    override fun toString(): String {
         return "ZMove{" +
                 "type=" + type +
                 ", integer=" + integer +
@@ -100,209 +191,35 @@ public class ZMove extends Reflector<ZMove> implements IButton {
                 ", fromSlot=" + fromSlot +
                 ", toSlot=" + toSlot +
                 ", list=" + list +
-                '}';
+                '}'
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null)
-            return false;
-        if (o instanceof ZMoveType)
-            return type == o;
-        if (!(o instanceof ZMove))
-            return false;
-        ZMove zMove = (ZMove) o;
-        return type == zMove.type
-                && Utils.isEquals(equipment, zMove.equipment)
+    override fun equals(o: Any?): Boolean {
+        if (this === o) return true
+        if (o == null) return false
+        if (o is ZMoveType) return type === o
+        if (o !is ZMove) return false
+        val zMove = o
+        return (type === zMove.type && Utils.isEquals(equipment, zMove.equipment)
                 && Utils.isEquals(integer, zMove.integer)
-                && character == zMove.character
-                && fromSlot == zMove.fromSlot
-                && toSlot == zMove.toSlot
-                && skill == zMove.skill;
+                && character === zMove.character && fromSlot === zMove.fromSlot && toSlot === zMove.toSlot && skill === zMove.skill)
     }
 
-    @Override
-    public String getTooltipText() {
-        if (equipment != null) {
-            return equipment.getTooltipText();
+    override fun getTooltipText(): String? {
+        return equipment?.tooltipText?:run {
+            skill?.tooltipText?:run {
+                character?.tooltipText?:type.toolTipText
+            }
         }
-        if (skill != null) {
-            return skill.getTooltipText();
-        }
-        if (this.character != null) {
-            return character.getTooltipText();
-        }
-        return type.getTooltipText();
     }
 
-    @Override
-    public String getLabel() {
-        String label = Utils.toPrettyString(type.name());
-        if (equipment != null)
-            label += " " + equipment.getLabel();
+    override fun getLabel(): String {
+        var label = Utils.toPrettyString(type.name)
+        if (equipment != null) label += " " + equipment.label
         if (toSlot == null && fromSlot != null) {
-            label += " from " + fromSlot.getLabel();
+            label += " from ${fromSlot.label}"
         }
-        if (toSlot != null)
-            label += " to " + toSlot.getLabel();
-
-        return label;
-    }
-
-    static ZMove newEndTurn() {
-        return new ZMove(ZMoveType.END_TURN);
-    }
-
-    static ZMove newWalkMove(List<Integer> zones, ZActionType action) {
-        return new ZMove(ZMoveType.WALK, zones, action);
-    }
-
-    static ZMove newJumpMove(List<Integer> zones) {
-        return new ZMove(ZMoveType.JUMP, zones);
-    }
-
-    static ZMove newChargeMove(List<Integer> zones) {
-        return new ZMove(ZMoveType.CHARGE, zones);
-    }
-
-    static ZMove newUseLeftHand() {
-        return new ZMove(ZMoveType.USE_LEFT_HAND);
-    }
-
-    static ZMove newUseRightHand() {
-        return new ZMove(ZMoveType.USE_RIGHT_HAND);
-    }
-
-    static ZMove newToggleDoor(List<ZDoor> doors) {
-        return new ZMove(ZMoveType.OPERATE_DOOR, doors);
-    }
-
-    static ZMove newBarricadeDoor(List<ZDoor> doors) {
-        return new ZMove(ZMoveType.BARRICADE, doors);
-    }
-
-    static ZMove newSearchMove(int zoneIndex) {
-        return new ZMove(ZMoveType.SEARCH, zoneIndex);
-    }
-
-    static ZMove newMeleeAttackMove(List<ZWeapon> weapons) {
-        return new ZMove(ZMoveType.MELEE_ATTACK, weapons);
-    }
-
-    static ZMove newRangedAttackMove(List<ZWeapon> weapons) {
-        return new ZMove(ZMoveType.RANGED_ATTACK, weapons);
-    }
-
-    static ZMove newMagicAttackMove(List<ZWeapon> weapons) {
-        return new ZMove(ZMoveType.MAGIC_ATTACK, weapons);
-    }
-
-    static ZMove newThrowEquipmentMove(List<ZEquipment> slots) {
-        return new ZMove(ZMoveType.THROW_ITEM, slots);
-    }
-
-    static ZMove newInventoryMove() {
-        return new ZMove(ZMoveType.INVENTORY);
-    }
-
-    static ZMove newTradeMove(List<ZPlayerName> tradeOptions) {
-        return new ZMove(ZMoveType.TRADE, tradeOptions);
-    }
-
-    static ZMove newConsumeMove(ZEquipment equip, ZEquipSlot slot) {
-        return new ZMove(ZMoveType.CONSUME, equip, slot);
-    }
-
-    static ZMove newEquipMove(ZEquipment equip, ZEquipSlot fromSlot, ZEquipSlot toSlot) {
-        return new ZMove(ZMoveType.EQUIP, 0, null, equip, fromSlot, toSlot, null);
-    }
-
-    static ZMove newKeepMove(ZEquipment equip) {
-        return new ZMove(ZMoveType.KEEP, equip, null);
-    }
-
-    static ZMove newUnequipMove(ZEquipment equip, ZEquipSlot slot) {
-        return new ZMove(ZMoveType.UNEQUIP, equip, slot);
-    }
-
-    static ZMove newDisposeMove(ZEquipment equip, ZEquipSlot slot) {
-        return new ZMove(ZMoveType.DISPOSE, equip, slot);
-    }
-
-    static ZMove newGiveMove(ZPlayerName taker, ZEquipment toGive) {
-        return new ZMove(ZMoveType.GIVE, 0, taker, toGive, null, null, null);
-    }
-
-    static ZMove newTakeMove(ZPlayerName giver, ZEquipment toTake) {
-        return new ZMove(ZMoveType.TAKE, 0, giver, toTake, null, null, null);
-    }
-
-    public static ZMove newObjectiveMove(int zone) {
-        return new ZMove(ZMoveType.TAKE_OBJECTIVE, zone);
-    }
-
-    static ZMove newReloadMove(ZWeapon slot) {
-        return new ZMove(ZMoveType.RELOAD, slot, null);
-    }
-
-    static ZMove newPickupItemMove(List<ZEquipment> takables) {
-        return new ZMove(ZMoveType.PICKUP_ITEM, takables);
-    }
-
-    static ZMove newDropItemMove(List<ZEquipment> items) {
-        return new ZMove(ZMoveType.DROP_ITEM, items);
-    }
-
-    static ZMove newWalkDirMove(ZActionType action, ZDir dir) {
-        return new ZMove(ZMoveType.WALK_DIR, dir.ordinal(), action);
-    }
-
-    static ZMove newSwitchActiveCharacter() {
-        return new ZMove(ZMoveType.SWITCH_ACTIVE_CHARACTER);
-    }
-
-    static ZMove newMakeNoiseMove(int occupiedZone) {
-        return new ZMove(ZMoveType.MAKE_NOISE, occupiedZone);
-    }
-
-    static ZMove newShoveMove(List<Integer> toZones) {
-        return new ZMove(ZMoveType.SHOVE, toZones);
-    }
-
-    static ZMove newReRollMove() {
-        return new ZMove(ZMoveType.REROLL);
-    }
-
-    static ZMove newKeepRollMove() {
-        return new ZMove(ZMoveType.KEEP_ROLL);
-    }
-
-    static ZMove newEnchantMove(List<ZSpell> spells) {
-        return new ZMove(ZMoveType.ENCHANT, spells);
-    }
-
-    static ZMove newBornLeaderMove(List<ZPlayerName> options) {
-        return new ZMove(ZMoveType.BORN_LEADER, options);
-    }
-
-    static ZMove newBloodlustMeleeMove(List<Integer> zones, ZSkill skill) {
-        return new ZMove(ZMoveType.BLOODLUST_MELEE, zones, skill);
-    }
-
-    static ZMove newBloodlustRangedMove(List<Integer> zones, ZSkill skill) {
-        return new ZMove(ZMoveType.BLOODLUST_RANGED, zones, skill);
-    }
-
-    static ZMove newBloodlustMagicMove(List<Integer> zones, ZSkill skill) {
-        return new ZMove(ZMoveType.BLOODLUST_MAGIC, zones, skill);
-    }
-
-    static ZMove newDisposeEquipmentMove(ZEquipment e) {
-        return new ZMove(ZMoveType.DISPOSE, e, null);
-    }
-
-    static ZMove newIgniteMove(List<Integer> ignitableZones) {
-        return new ZMove(ZMoveType.IGNITE, ignitableZones);
+        if (toSlot != null) "$label to ${toSlot.label}"
+        return label
     }
 }

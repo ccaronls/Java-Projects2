@@ -1,166 +1,125 @@
-package cc.lib.zombicide;
+package cc.lib.zombicide
 
-import java.util.ArrayList;
-import java.util.List;
+import cc.lib.game.GColor
+import cc.lib.game.Utils
+import java.util.*
 
-import cc.lib.game.GColor;
-import cc.lib.game.Utils;
-
-public abstract class ZUser {
-
-    public final static GColor [] USER_COLORS = {
-            GColor.YELLOW,
-            GColor.RED,
-            GColor.GREEN,
-            GColor.ORANGE,
-            GColor.BLUE,
-            GColor.MAGENTA
-    };
-
-    public final static String [] USER_COLOR_NAMES = {
-            "YELLOW", "RED", "GREEN", "ORANGE", "BLUE", "MAGENTA"
-    };
-
-    private int color = 0;
-    private String name = null;
-    private final List<ZPlayerName> characters = new ArrayList<>();
-
-    public GColor getColor() {
-        return USER_COLORS[color];
+abstract class ZUser {
+    var colorId = 0
+        private set
+    var name: String? = null
+        get() = if (field == null) USER_COLOR_NAMES[colorId] else field
+    private val characters: MutableList<ZPlayerName> = ArrayList()
+    fun getColor(): GColor {
+        return USER_COLORS[colorId]
     }
 
-    public int getColorId() {
-        return color;
-    }
-
-    public void setColor(int color) {
-        Utils.assertTrue(color >= 0 && color < USER_COLORS.length);
-        this.color = color;
-        for (ZPlayerName nm : characters) {
-            nm.character.setColor(USER_COLORS[color]);
+    fun setColor(color: Int) {
+        Utils.assertTrue(color >= 0 && color < USER_COLORS.size)
+        colorId = color
+        for (nm in characters) {
+            nm.character.color = USER_COLORS[color]
         }
     }
 
-    public String getName() {
-        return name == null ? USER_COLOR_NAMES[color] : name;
+    val players: List<ZPlayerName>
+        get() = ArrayList(characters)
+
+    fun clearCharacters() {
+        characters.clear()
     }
 
-    public void setName(String name) {
-        this.name = name;
+    fun addCharacter(c: ZPlayerName) {
+        characters.remove(c)
+        characters.add(c)
+        c.character.color = USER_COLORS[colorId]
     }
 
-    public List<ZPlayerName> getPlayers() {
-        return new ArrayList<>(characters);
+    fun removeCharacter(name: ZPlayerName) {
+        name.character.color = null
+        characters.remove(name)
     }
 
-    public void clearCharacters() {
-        characters.clear();
-    }
-
-    public void addCharacter(ZPlayerName c) {
-        characters.remove(c);
-        characters.add(c);
-        c.character.setColor(USER_COLORS[color]);
-    }
-
-    public void removeCharacter(ZPlayerName name) {
-        name.character.setColor(null);
-        characters.remove(name);
-    }
-
-    public void setCharacters(List<ZPlayerName> chars) {
-        characters.clear();
-        for (ZPlayerName nm : chars) {
-            addCharacter(nm);
+    fun setCharacters(chars: List<ZPlayerName>) {
+        characters.clear()
+        for (nm in chars) {
+            addCharacter(nm)
         }
     }
 
-    public void setCharactersHidden(boolean hidden) {
-        for (ZPlayerName nm : characters) {
-            if (nm.getCharacter() != null)
-                nm.getCharacter().setInvisible(hidden);
+    fun setCharactersHidden(hidden: Boolean) {
+        for (nm in characters) {
+            nm.character.isInvisible = hidden
         }
     }
 
-    public abstract ZPlayerName chooseCharacter(List<ZPlayerName> options);
+    abstract fun chooseCharacter(options: List<ZPlayerName>): ZPlayerName?
+    abstract fun chooseMove(cur: ZPlayerName, options: List<ZMove>): Int?
 
-    public abstract Integer chooseMove(ZPlayerName cur, List<ZMove> options);
-
-    <T> T elemOrNull(Integer idx, List options) {
-        if (idx == null)
-            return null;
-        return (T)options.get(idx);
+    fun chooseMoveInternal(cur: ZPlayerName, options: List<ZMove>): ZMove? {
+        return chooseMove(cur, options)?.let { options[it] }
     }
 
-    final ZMove chooseMoveInternal(ZPlayerName cur, List<ZMove> options) {
-        return elemOrNull(chooseMove(cur, options), options);
+    abstract fun chooseNewSkill(character: ZPlayerName, skillOptions: List<ZSkill>): ZSkill?
+    abstract fun chooseSlotToOrganize(cur: ZPlayerName, slots: List<ZEquipSlot>): ZEquipSlot?
+    abstract fun chooseEquipment(cur: ZPlayerName, equipOptions: List<ZEquipment<*>>): Int?
+    fun chooseEquipmentInternal(cur: ZPlayerName, equipOptions: List<ZEquipment<*>>): ZEquipment<*>? {
+        return chooseEquipment(cur, equipOptions)?.let { equipOptions[it] }
     }
 
-    public abstract ZSkill chooseNewSkill(ZPlayerName character, List<ZSkill> skillOptions);
-
-    public abstract ZEquipSlot chooseSlotToOrganize(ZPlayerName cur, List<ZEquipSlot> slots);
-
-    public abstract Integer chooseEquipment(ZPlayerName cur, List<ZEquipment> equipOptions);
-
-    final ZEquipment chooseEquipmentInternal(ZPlayerName cur, List<ZEquipment> equipOptions) {
-        return elemOrNull(chooseEquipment(cur, equipOptions), equipOptions);
+    abstract fun chooseSlotForEquip(cur: ZPlayerName, equipableSlots: List<ZEquipSlot>): ZEquipSlot?
+    abstract fun chooseZoneToWalk(cur: ZPlayerName, zones: List<Int>): Int?
+    abstract fun chooseDoorToToggle(cur: ZPlayerName, doors: List<ZDoor>): Int?
+    fun chooseDoorToToggleInternal(cur: ZPlayerName, doors: List<ZDoor>): ZDoor? {
+        return chooseDoorToToggle(cur, doors)?.let { doors[it] }
     }
 
-    public abstract ZEquipSlot chooseSlotForEquip(ZPlayerName cur, List<ZEquipSlot> equipableSlots);
-
-    public abstract Integer chooseZoneToWalk(ZPlayerName cur, List<Integer> zones);
-
-    public abstract Integer chooseDoorToToggle(ZPlayerName cur, List<ZDoor> doors);
-
-    final ZDoor chooseDoorToToggleInternal(ZPlayerName cur, List<ZDoor> doors) {
-        return elemOrNull(chooseDoorToToggle(cur, doors), doors);
+    abstract fun chooseWeaponSlot(c: ZPlayerName, weapons: List<ZWeapon>): Int?
+    fun chooseWeaponSlotInternal(c: ZPlayerName, weapons: List<ZWeapon>): ZWeapon? {
+        return chooseWeaponSlot(c, weapons)?.let { weapons[it] }
     }
 
-    public abstract Integer chooseWeaponSlot(ZPlayerName c, List<ZWeapon> weapons);
-
-    final ZWeapon chooseWeaponSlotInternal(ZPlayerName c, List<ZWeapon> weapons) {
-        return elemOrNull(chooseWeaponSlot(c, weapons), weapons);
+    abstract fun chooseTradeCharacter(c: ZPlayerName, list: List<ZPlayerName>): ZPlayerName?
+    abstract fun chooseZoneForAttack(c: ZPlayerName, zones: List<Int>): Int?
+    abstract fun chooseItemToPickup(cur: ZPlayerName, list: List<ZEquipment<*>>): Int?
+    fun chooseItemToPickupInternal(cur: ZPlayerName, list: List<ZEquipment<*>>): ZEquipment<*>? {
+        return chooseItemToPickup(cur, list)?.let { list[it] }
     }
 
-    public abstract ZPlayerName chooseTradeCharacter(ZPlayerName c, List<ZPlayerName> list);
-
-    public abstract Integer chooseZoneForAttack(ZPlayerName c, List<Integer> zones);
-
-    public abstract Integer chooseItemToPickup(ZPlayerName cur, List<ZEquipment> list);
-
-    final ZEquipment chooseItemToPickupInternal(ZPlayerName cur, List<ZEquipment> list) {
-        return elemOrNull(chooseItemToPickup(cur, list), list);
+    abstract fun chooseItemToDrop(cur: ZPlayerName, list: List<ZEquipment<*>>): Int?
+    fun chooseItemToDropInternal(cur: ZPlayerName, list: List<ZEquipment<*>>): ZEquipment<*>? {
+        return chooseItemToDrop(cur, list)?.let { list[it] }
     }
 
-    public abstract Integer chooseItemToDrop(ZPlayerName cur, List<ZEquipment> list);
-
-    final ZEquipment chooseItemToDropInternal(ZPlayerName cur, List<ZEquipment> list) {
-        return elemOrNull(chooseItemToDrop(cur, list), list);
+    abstract fun chooseEquipmentToThrow(cur: ZPlayerName, slots: List<ZEquipment<*>>): Int?
+    fun chooseEquipmentToThrowInternal(cur: ZPlayerName, slots: List<ZEquipment<*>>): ZEquipment<*>? {
+        return chooseEquipmentToThrow(cur, slots)?.let { slots[it] }
     }
 
-    public abstract Integer chooseEquipmentToThrow(ZPlayerName cur, List<ZEquipment> slots);
+    abstract fun chooseZoneToThrowEquipment(cur: ZPlayerName, toThrow: ZEquipment<*>, zones: List<Int>): Int?
+    abstract fun chooseZoneToShove(cur: ZPlayerName, list: List<Int>): Int?
+    abstract fun chooseSpell(cur: ZPlayerName, spells: List<ZSpell>): ZSpell?
+    abstract fun chooseCharacterForSpell(cur: ZPlayerName, spell: ZSpell, targets: List<ZPlayerName>): ZPlayerName?
+    abstract fun chooseCharacterToBequeathMove(cur: ZPlayerName, list: List<ZPlayerName>): ZPlayerName?
+    abstract fun chooseZoneForBloodlust(cur: ZPlayerName, list: List<Int>): Int?
+    abstract fun chooseSpawnAreaToRemove(cur: ZPlayerName, list: List<ZSpawnArea>): Int?
+    abstract fun chooseZoneToIgnite(playerName: ZPlayerName, ignitableZones: List<Int>): Int?
+    abstract fun chooseEquipmentClass(playerName: ZPlayerName, classes: List<ZEquipmentClass>): ZEquipmentClass?
+    abstract fun chooseStartingEquipment(playerName: ZPlayerName, list: List<ZEquipmentType>): ZEquipmentType?
 
-    final ZEquipment chooseEquipmentToThrowInternal(ZPlayerName cur, List<ZEquipment> slots) {
-        return elemOrNull(chooseEquipmentToThrow(cur, slots), slots);
+    companion object {
+        @JvmField
+        val USER_COLORS = arrayOf(
+                GColor.YELLOW,
+                GColor.RED,
+                GColor.GREEN,
+                GColor.ORANGE,
+                GColor.BLUE,
+                GColor.MAGENTA
+        )
+        @JvmField
+        val USER_COLOR_NAMES = arrayOf(
+                "YELLOW", "RED", "GREEN", "ORANGE", "BLUE", "MAGENTA"
+        )
     }
-
-    public abstract Integer chooseZoneToThrowEquipment(ZPlayerName cur, ZEquipment toThrow, List<Integer> zones);
-
-    public abstract Integer chooseZoneToShove(ZPlayerName cur, List<Integer> list);
-
-    public abstract ZSpell chooseSpell(ZPlayerName cur, List<ZSpell> spells);
-
-    public abstract ZPlayerName chooseCharacterForSpell(ZPlayerName cur, ZSpell spell, List<ZPlayerName> targets);
-
-    public abstract ZPlayerName chooseCharacterToBequeathMove(ZPlayerName cur, List<ZPlayerName> list);
-
-    public abstract Integer chooseZoneForBloodlust(ZPlayerName cur, List<Integer> list);
-
-    public abstract Integer chooseSpawnAreaToRemove(ZPlayerName cur, List<ZSpawnArea> list);
-
-    public abstract Integer chooseZoneToIgnite(ZPlayerName playerName, List<Integer> ignitableZones);
-
-    public abstract ZEquipmentClass chooseEquipmentClass(ZPlayerName playerName, List<ZEquipmentClass> classes);
-
-    public abstract ZEquipmentType chooseStartingEquipment(ZPlayerName playerName, List<ZEquipmentType> list);
 }

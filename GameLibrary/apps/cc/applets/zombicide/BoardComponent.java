@@ -355,9 +355,9 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics>, 
             if (!(obj instanceof ZMove))
                 continue;
             ZMove move = (ZMove)obj;
-            switch (move.type) {
+            switch (move.getType()) {
                 case WALK_DIR: {
-                    switch (ZDir.values()[move.integer]) {
+                    switch (ZDir.values()[move.getInteger()]) {
                         case NORTH:
                             keyMap.put(KeyEvent.VK_UP, move);
                             break;

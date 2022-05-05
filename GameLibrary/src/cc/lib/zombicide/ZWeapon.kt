@@ -1,124 +1,81 @@
-package cc.lib.zombicide;
+package cc.lib.zombicide
 
-import java.util.Arrays;
-import java.util.List;
+import cc.lib.game.Utils
+import cc.lib.utils.Table
+import java.util.*
 
-import cc.lib.game.Utils;
-import cc.lib.utils.Table;
-
-public class ZWeapon extends ZEquipment<ZWeaponType> {
-
-    static {
-        addAllFields(ZWeapon.class);
-    }
-
-    final ZWeaponType type;
-    boolean isEmpty=false;
-
-    public ZWeapon() {
-        this(null);
-    }
-
-    ZWeapon(ZWeaponType type) {
-        this.type = type;
-    }
-
-    int getOpenDoorValue() {
-        ZWeaponStat doorStat = getOpenDoorStat();
-        if (doorStat == null)
-            return 0;
-        return 7-doorStat.dieRollToOpenDoor + (type.openDoorsIsNoisy ? 0 : 1);
-    }
-
-    @Override
-    public boolean isOpenDoorCapable() {
-        return getOpenDoorStat() != null;
-    }
-
-    ZWeaponStat getOpenDoorStat() {
-        for (ZWeaponStat stat : type.weaponStats) {
-            if (stat.dieRollToOpenDoor > 0)
-                return stat;
-        }
-        return null;
-    }
-
-    ZWeaponStat getStatForAction(ZActionType actionType) {
-        return Utils.getFirstOrNull(Utils.filter(type.getStats(), stat -> stat.actionType == actionType));
-    }
-
-    @Override
-    public ZEquipSlotType getSlotType() {
-        return ZEquipSlotType.HAND;
-    }
-
-    @Override
-    public boolean isMelee() {
-        return countStatsType(ZActionType.MELEE) > 0;
-    }
-
-    @Override
-    public boolean isRanged() {
-        return countStatsType(ZActionType.RANGED) > 0;
-    }
-
-    @Override
-    public boolean isMagic() {
-        return countStatsType(ZActionType.MAGIC) > 0;
-    }
-
-    private int countStatsType(ZActionType actionType) {
-        return Utils.count(type.getStats(), stat -> stat.actionType==actionType);
-    }
-
-    @Override
-    public boolean isEquippable(ZCharacter c) {
-        return c.getSkillLevel().getDifficultyColor().ordinal() >= type.minColorToEquip.ordinal();
-    }
-
-    public boolean isLoaded() {
-        return !isEmpty;
-    }
-
-    @Override
-    public ZWeaponType getType() {
-        return type;
-    }
-
-    public void fireWeapon(ZGame game, ZCharacter cur, ZWeaponStat stat) {
-        if (stat.getAttackType().needsReload())
-            isEmpty = true;
-        if (type == ZWeaponType.DAGGER) {
-            cur.removeEquipment(this);
-            game.putBackInSearchables(this);
+class ZWeapon(override val type: ZWeaponType=ZWeaponType.AXE) : ZEquipment<ZWeaponType>() {
+    companion object {
+        init {
+            addAllFields(ZWeapon::class.java)
         }
     }
 
-    @Override
-    public boolean isDualWieldCapable() {
-        return type.canTwoHand;
+    var isEmpty = false
+
+    val openDoorValue: Int
+        get() {
+            val doorStat = openDoorStat ?: return 0
+            return 7 - doorStat.dieRollToOpenDoor + if (type.openDoorsIsNoisy) 0 else 1
+        }
+    override val isOpenDoorCapable: Boolean
+        get() = openDoorStat != null
+    val openDoorStat: ZWeaponStat?
+        get() {
+            for (stat in type.weaponStats) {
+                if (stat.dieRollToOpenDoor > 0) return stat
+            }
+            return null
+        }
+
+    fun getStatForAction(actionType: ZActionType): ZWeaponStat? {
+        return type.stats.firstOrNull { it.actionType === actionType }
     }
 
-    @Override
-    public boolean isAttackNoisy() {
-        return type.attackIsNoisy;
+    override val slotType: ZEquipSlotType
+        get() = ZEquipSlotType.HAND
+    override val isMelee: Boolean
+        get() = countStatsType(ZActionType.MELEE) > 0
+    override val isRanged: Boolean
+        get() = countStatsType(ZActionType.RANGED) > 0
+    override val isMagic: Boolean
+        get() = countStatsType(ZActionType.MAGIC) > 0
+
+    private fun countStatsType(actionType: ZActionType): Int {
+        return Utils.count(type.stats) { stat: ZWeaponStat -> stat.actionType === actionType }
     }
 
-    @Override
-    public boolean isOpenDoorsNoisy() {
-        return type.openDoorsIsNoisy;
+    override fun isEquippable(c: ZCharacter): Boolean {
+        return c.skillLevel.difficultyColor.ordinal >= type.minColorToEquip.ordinal
     }
 
-    public boolean reload() {
+    val isLoaded: Boolean
+        get() = !isEmpty
+
+    fun fireWeapon(game: ZGame, cur: ZCharacter, stat: ZWeaponStat) {
+        if (stat.attackType.needsReload()) isEmpty = true
+        if (type === ZWeaponType.DAGGER) {
+            cur.removeEquipment(this)
+            game.putBackInSearchables(this)
+        }
+    }
+
+    override val isDualWieldCapable: Boolean
+        get() = type.canTwoHand
+    override val isAttackNoisy: Boolean
+        get() = type.attackIsNoisy
+    override val isOpenDoorsNoisy: Boolean
+        get() = type.openDoorsIsNoisy
+
+    fun reload(): Boolean {
         if (isEmpty) {
-            isEmpty = false;
-            return true;
+            isEmpty = false
+            return true
         }
-        return false;
+        return false
     }
 
-    @Override
-    public Table getCardInfo(ZCharacter c, ZGame game) {
+    override fun getCardInfo(c: ZCharacter, game: ZGame): Table {
 
         /*
 
@@ -139,50 +96,45 @@ public class ZWeapon extends ZEquipment<ZWeaponType> {
                 { "Open %", type.meleeStats == null ? "(/)" : String.format("%d%%", (7-type.meleeStats.dieRollToOpenDoor)*100/6) }
         }, Table.NO_BORDER);
 */
-        Table cardLower = new Table().setNoBorder();
+        val cardLower = Table().setNoBorder()
         cardLower.addColumnNoHeader(Arrays.asList(
                 "Type",
                 "Damage",
                 "Hit %",
                 "Range",
                 "Doors",
-                "Reloads"));
-
-        for (ZActionType at : ZActionType.values()) {
-            ZWeaponStat stats = c.getWeaponStat(this, at, game, -1);
+                "Reloads"))
+        for (at in ZActionType.values()) {
+            val stats = c.getWeaponStat(this, at, game, -1)
             if (stats != null) {
-                String doorInfo;
-                if (stats.dieRollToOpenDoor > 0) {
-                    doorInfo = String.format("%s %d%%", type.openDoorsIsNoisy ? "noisy" : "quiet", (7-stats.dieRollToOpenDoor)*100/6);
+                var doorInfo: String
+                doorInfo = if (stats.dieRollToOpenDoor > 0) {
+                    String.format("%s %d%%", if (type.openDoorsIsNoisy) "noisy" else "quiet", (7 - stats.dieRollToOpenDoor) * 100 / 6)
                 } else {
-                    doorInfo = "no";
+                    "no"
                 }
-                cardLower.addColumnNoHeader(Arrays.asList(at.getLabel(),
-                        String.format("%d %s", stats.damagePerHit, type.attackIsNoisy ? " loud" : " quiet"),
-                        String.format("%d%% x %d", (7 - stats.dieRollToHit) * 100 / 6, stats.numDice),
-                        stats.minRange == stats.maxRange ? String.valueOf(stats.minRange) : String.format("%d-%d", stats.minRange, stats.maxRange),
+                cardLower.addColumnNoHeader(Arrays.asList(at.label, String.format("%d %s", stats.damagePerHit, if (type.attackIsNoisy) " loud" else " quiet"), String.format("%d%% x %d", (7 - stats.dieRollToHit) * 100 / 6, stats.numDice),
+                        if (stats.minRange == stats.maxRange) stats.minRange.toString() else String.format("%d-%d", stats.minRange, stats.maxRange),
                         doorInfo,
-                        stats.getAttackType().needsReload() ? String.format("yes (%s)", isEmpty ? "empty" : "loaded") : "no"
-                ));
+                        if (stats.attackType.needsReload()) String.format("yes (%s)", if (isEmpty) "empty" else "loaded") else "no"
+                ))
             }
         }
-
-        Table card = new Table(String.format("%s%s %s", type.getLabel(), type.canTwoHand ? " (DW)" : "", type.minColorToEquip))
-                .addRow(cardLower).setNoBorder();
+        val card = Table(String.format("%s%s %s", type.label, if (type.canTwoHand) " (DW)" else "", type.minColorToEquip))
+                .addRow(cardLower).setNoBorder()
         if (type.specialInfo != null) {
-            card.addRow(Utils.wrapTextWithNewlines("*" + type.specialInfo, 32));
+            card.addRow(Utils.wrapTextWithNewlines("*" + type.specialInfo, 32))
         } else {
-            List<ZSkill> skills = type.getSkillsWhileEquipped();
-            if (skills.size() > 0) {
-                card.addRow("Equipped", skills);
+            val skills = type.skillsWhileEquipped
+            if (skills.size > 0) {
+                card.addRow("Equipped", skills)
             }
         }
-        return card;
+        return card
     }
 
-    @Override
-    public String getTooltipText() {
-        Table cardLower = new Table().setNoBorder();
+    override fun getTooltipText(): String? {
+        val cardLower = Table().setNoBorder()
         cardLower.addColumnNoHeader(Arrays.asList(
                 "Attack Type",
                 "Dual Wield",
@@ -190,47 +142,38 @@ public class ZWeapon extends ZEquipment<ZWeaponType> {
                 "Hit %",
                 "Range",
                 "Doors",
-                "Reloads"));
-
-        for (ZWeaponStat stats : type.getStats()) {
-            String doorInfo;
-            if (stats.dieRollToOpenDoor > 0) {
-                doorInfo = String.format("%s %d%%", type.openDoorsIsNoisy ? "noisy" : "quiet", (7-stats.dieRollToOpenDoor)*100/6);
+                "Reloads"))
+        for (stats in type.stats) {
+            var doorInfo: String
+            doorInfo = if (stats.dieRollToOpenDoor > 0) {
+                String.format("%s %d%%", if (type.openDoorsIsNoisy) "noisy" else "quiet", (7 - stats.dieRollToOpenDoor) * 100 / 6)
             } else {
-                doorInfo = "no";
+                "no"
             }
             cardLower.addColumnNoHeader(Arrays.asList(
-                    Utils.toPrettyString(stats.attackType.name()),
-                    type.canTwoHand ? "yes" : "no",
-                    String.format("%d %s", stats.damagePerHit, type.attackIsNoisy ? " loud" : " quiet"),
-                    String.format("%d%% x %d", (7 - stats.dieRollToHit) * 100 / 6, stats.numDice),
-                    stats.minRange == stats.maxRange ? String.valueOf(stats.minRange) : String.format("%d-%d", stats.minRange, stats.maxRange),
+                    Utils.toPrettyString(stats.attackType.name),
+                    if (type.canTwoHand) "yes" else "no", String.format("%d %s", stats.damagePerHit, if (type.attackIsNoisy) " loud" else " quiet"), String.format("%d%% x %d", (7 - stats.dieRollToHit) * 100 / 6, stats.numDice),
+                    if (stats.minRange == stats.maxRange) stats.minRange.toString() else String.format("%d-%d", stats.minRange, stats.maxRange),
                     doorInfo,
-                    stats.getAttackType().needsReload() ? String.format("yes (%s)", isEmpty ? "empty" : "loaded") : "no"
-            ));
+                    if (stats.attackType.needsReload()) String.format("yes (%s)", if (isEmpty) "empty" else "loaded") else "no"
+            ))
         }
-
-        if (type.minColorToEquip.ordinal() > 0) {
-            cardLower.addRow(type.minColorToEquip + " Required");
+        if (type.minColorToEquip.ordinal > 0) {
+            cardLower.addRow(type.minColorToEquip.toString() + " Required")
         }
-        List<ZSkill> skills = Utils.mergeLists(type.getSkillsWhileEquipped(), type.getSkillsWhenUsed());
-        for (ZSkill skill : skills) {
-            cardLower.addRow(skill.getLabel());
+        val skills = Utils.mergeLists(type.skillsWhileEquipped, type.skillsWhenUsed)
+        for (skill in skills) {
+            cardLower.addRow(skill.label)
         }
-
-        return cardLower.toString();
+        return cardLower.toString()
     }
 
-    @Override
-    public void onEndOfRound(ZGame game) {
-        switch (type) {
-            case HAND_CROSSBOW:
-                if (!isLoaded()) {
-                    game.addLogMessage(getLabel() + " auto reloaded");
-                    reload();
-                }
-                break;
+    override fun onEndOfRound(game: ZGame) {
+        when (type) {
+            ZWeaponType.HAND_CROSSBOW -> if (!isLoaded) {
+                game.addLogMessage("$label auto reloaded")
+                reload()
+            }
         }
     }
-
 }

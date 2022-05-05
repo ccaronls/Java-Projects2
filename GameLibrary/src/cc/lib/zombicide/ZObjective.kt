@@ -6,15 +6,13 @@ import java.util.*
 /**
  * Created by Chris Caron on 3/10/22.
  */
-class ZObjective : Reflector<ZObjective?>() {
+class ZObjective : Reflector<ZObjective>() {
     companion object {
         init {
             addAllFields(ZObjective::class.java)
         }
     }
 
-    @JvmField
-    val objectives: List<Int> = ArrayList()
-    @JvmField
-    val found: List<Int> = ArrayList()
+    val objectives: MutableList<Int> = ArrayList()
+    val found: MutableList<Int> = ArrayList()
 }

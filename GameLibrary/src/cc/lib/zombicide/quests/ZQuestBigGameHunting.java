@@ -53,18 +53,18 @@ public class ZQuestBigGameHunting extends ZQuest {
     public void processObjective(ZGame game, ZCharacter c) {
         super.processObjective(game, c);
         // check for necro / abom in special spawn places
-        game.getBoard().getZone(c.getOccupiedZone()).setObjective(false);
+        game.board.getZone(c.getOccupiedZone()).setObjective(false);
         if (c.getOccupiedZone() == blueRevealZone) {
             getRedObjectives().add(blueObjZone);
             game.addLogMessage("The Labratory objective is revealed!");
-            game.getBoard().getZone(blueObjZone).setObjective(true);
+            game.board.getZone(blueObjZone).setObjective(true);
             game.spawnZombies(1, ZZombieType.Necromancer, blueObjZone);
             blueRevealZone = -1;
         }
         if (getRedObjectives().size() == 0 && game.getNumKills(ZZombieType.Abomination) == 0) {
-            if (Utils.count(game.getBoard().getAllZombies(), object -> object.getType()==ZZombieType.Abomination) == 0) {
+            if (Utils.count(game.board.getAllZombies(), object -> object.getType()==ZZombieType.Abomination) == 0) {
                 // spawn an abomination somewhere far form where all the characters are
-                List<ZZone> spawnZones = game.getBoard().getSpawnZones();
+                List<ZZone> spawnZones = game.board.getSpawnZones();
                 if (spawnZones.size() > 0) {
                     ZZone zone = Utils.randItem(spawnZones);
                     game.spawnZombies(1, ZZombieType.Abomination, zone.getZoneIndex());
@@ -80,7 +80,7 @@ public class ZQuestBigGameHunting extends ZQuest {
         ZCell cell = grid.get(pos);
         switch (cmd) {
             case "blue":
-                blueObjZone = cell.getZoneIndex();
+                blueObjZone = cell.zoneIndex;
                 cell.setCellType(ZCellType.OBJECTIVE_BLUE, true);
                 break;
 
@@ -93,7 +93,7 @@ public class ZQuestBigGameHunting extends ZQuest {
     @Override
     public void init(ZGame game) {
         blueRevealZone = Utils.randItem(getRedObjectives());
-        game.getBoard().getZone(blueObjZone).setObjective(false); // this does not get revealed until the blueRevealZone found
+        game.board.getZone(blueObjZone).setObjective(false); // this does not get revealed until the blueRevealZone found
     }
 
     @Override

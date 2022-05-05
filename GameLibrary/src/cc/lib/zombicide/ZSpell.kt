@@ -1,48 +1,27 @@
-package cc.lib.zombicide;
+package cc.lib.zombicide
 
-import cc.lib.game.Utils;
-import cc.lib.utils.Table;
+import cc.lib.game.Utils
+import cc.lib.utils.Table
 
-public class ZSpell extends ZEquipment<ZSpellType> {
-
-    static {
-        addAllFields(ZSpell.class);
+class ZSpell(override val type: ZSpellType=ZSpellType.HEALING) : ZEquipment<ZSpellType>() {
+    companion object {
+        init {
+            addAllFields(ZSpell::class.java)
+        }
     }
 
-    final ZSpellType type;
+    override val slotType: ZEquipSlotType
+        get() = ZEquipSlotType.HAND
 
-    public ZSpell() {
-        this(null);
+    override fun isEquippable(c: ZCharacter): Boolean {
+        return true
     }
 
-    ZSpell(ZSpellType type) {
-        this.type = type;
-    }
+    override val isEnchantment: Boolean
+        get() = true
 
-    @Override
-    public ZEquipSlotType getSlotType() {
-        return ZEquipSlotType.HAND;
+    override fun getCardInfo(c: ZCharacter, game: ZGame): Table {
+        val t = Table(label).setNoBorder()
+        return t.addRow(Utils.wrapTextWithNewlines(type.description, 20))
     }
-
-    @Override
-    public boolean isEquippable(ZCharacter c) {
-        return true;
-    }
-
-    @Override
-    public boolean isEnchantment() {
-        return true;
-    }
-
-    @Override
-    public ZSpellType getType() {
-        return type;
-    }
-
-    @Override
-    public Table getCardInfo(ZCharacter c, ZGame game) {
-        Table t = new Table(getLabel()).setNoBorder();
-        return t.addRow(Utils.wrapTextWithNewlines(type.description, 20));
-    }
-
 }

@@ -9,6 +9,7 @@ import cc.lib.ui.IButton
  */
 @Keep
 enum class ZEquipmentClass : IButton {
+    AHHHH,
     THROWABLE,
     CONSUMABLE,
     DAGGER,

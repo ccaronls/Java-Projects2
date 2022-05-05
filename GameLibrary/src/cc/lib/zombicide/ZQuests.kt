@@ -267,7 +267,7 @@ enum class ZQuests(val flag: Int, val displayName: String, val description: Stri
                     "in Wulfsburg with us. Then we finish it, once and " +
                     "for all!");
 
-    fun load(): ZQuest? {
+    fun load(): ZQuest {
         return when (this) {
             Tutorial -> ZQuestTutorial()
             Big_Game_Hunting -> ZQuestBigGameHunting()
@@ -295,7 +295,7 @@ enum class ZQuests(val flag: Int, val displayName: String, val description: Stri
         }
     }
 
-    val isWolfburg: Boolean
+    val isWolfBurg: Boolean
         get() = 0 != flag and FLAG_WOLFBURG
 
     companion object {

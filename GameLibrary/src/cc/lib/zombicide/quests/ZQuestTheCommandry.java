@@ -91,7 +91,7 @@ public class ZQuestTheCommandry extends ZQuest {
 
     @Override
     public String getQuestFailedReason(ZGame game) {
-        if (Utils.count(game.getBoard().getAllCharacters(), object -> object.isDead()) > 0) {
+        if (Utils.count(game.board.getAllCharacters(), object -> object.isDead()) > 0) {
             return "Not all players survived.";
         }
         return super.getQuestFailedReason(game);
@@ -115,8 +115,8 @@ public class ZQuestTheCommandry extends ZQuest {
             greenDoorKeyZone = Utils.randItem(getRedObjectives());
             blueDoorKeyZone = Utils.randItem(getRedObjectives());
         }
-        game.getBoard().setDoorLocked(blueDoor);
-        game.getBoard().setDoorLocked(greenDoor);
+        game.board.setDoorLocked(blueDoor);
+        game.board.setDoorLocked(greenDoor);
     }
 
     @Override

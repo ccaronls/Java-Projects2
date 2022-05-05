@@ -106,7 +106,7 @@ public class WolfTheZombieArmy extends ZQuest {
                 startDeckSize = 40; break;
         }
         for (int i=0; i<startDeckSize; i++)
-            spawnDeck.add(ZSpawnCard.drawSpawnCard(isWolfBurg(), true, game.getDifficulty()));
+            spawnDeck.add(ZSpawnCard.drawSpawnCard(true, true, game.getDifficulty()));
     }
 
     @Override
@@ -118,7 +118,7 @@ public class WolfTheZombieArmy extends ZQuest {
 
     @Override
     public int getPercentComplete(ZGame game) {
-        int numZombies = game.getBoard().getAllZombies().size();
+        int numZombies = game.board.getAllZombies().size();
         int total = 4 * startDeckSize + numZombies;
         int completed = 4 * (startDeckSize-spawnDeck.size());
         return completed * 100 / total;
@@ -140,7 +140,7 @@ public class WolfTheZombieArmy extends ZQuest {
     }
 
     int getNumSpawnZones(ZGame game) {
-        return Utils.sumInt(game.getBoard().getCells(), c -> c.getSpawnAreas().size());
+        return Utils.sumInt(game.board.getCells(), c -> c.getSpawnAreas().size());
     }
 
     @Override
@@ -160,7 +160,7 @@ public class WolfTheZombieArmy extends ZQuest {
         switch (zombie.getType()) {
             case Necromancer: {
                 if (getNumSpawnZones(game) < MAX_SPAWN_ZONES) {
-                    game.getBoard().setSpawnZone(zone, ZIcon.SPAWN_GREEN, false, false, false);
+                    game.board.setSpawnZone(zone, ZIcon.SPAWN_GREEN, false, false, false);
                     game.spawnZombies(zone);
                 }
                 break;

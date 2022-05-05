@@ -345,4 +345,8 @@ public final class Grid<T> extends Reflector<Grid<T>> {
         return pos.getRow() >= 0 && pos.getRow() < getRows() && pos.getColumn() >= 0 && pos.getColumn() < getCols();
     }
 
+    public boolean isEmpty() {
+        return getRows()==0 && getCols()==0;
+    }
+
 }

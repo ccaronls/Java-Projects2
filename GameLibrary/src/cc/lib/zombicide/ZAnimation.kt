@@ -1,30 +1,17 @@
-package cc.lib.zombicide;
+package cc.lib.zombicide
 
-import cc.lib.game.AGraphics;
-import cc.lib.game.AMultiPhaseAnimation;
-import cc.lib.game.Utils;
-import cc.lib.utils.GException;
+import cc.lib.game.AGraphics
+import cc.lib.game.AMultiPhaseAnimation
+import cc.lib.game.Utils
+import cc.lib.utils.GException
 
-public abstract class ZAnimation extends AMultiPhaseAnimation<AGraphics> {
+abstract class ZAnimation : AMultiPhaseAnimation<AGraphics> {
+    constructor(vararg durations: Long) : super(durations) {}
+    constructor(durationMSecs: Long) : super(durationMSecs) {}
+    constructor(durationMSecs: Long, repeats: Int) : super(durationMSecs, repeats) {}
+    constructor(durationMSecs: Long, repeats: Int, oscilateOnRepeat: Boolean) : super(durationMSecs, repeats, oscilateOnRepeat) {}
 
-    public ZAnimation(long ... durations) {
-        super(Utils.toLongArray(durations));
-    }
-
-    public ZAnimation(long durationMSecs) {
-        super(durationMSecs);
-    }
-
-    public ZAnimation(long durationMSecs, int repeats) {
-        super(durationMSecs, repeats);
-    }
-
-    public ZAnimation(long durationMSecs, int repeats, boolean oscilateOnRepeat) {
-        super(durationMSecs, repeats, oscilateOnRepeat);
-    }
-
-    @Override
-    protected void drawPhase(AGraphics g, float position, int phase) {
-        throw new GException("Unhandled");
+    protected override fun drawPhase(g: AGraphics, position: Float, phase: Int) {
+        throw GException("Unhandled")
     }
 }

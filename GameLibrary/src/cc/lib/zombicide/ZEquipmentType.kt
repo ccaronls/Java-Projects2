@@ -1,46 +1,42 @@
-package cc.lib.zombicide;
+package cc.lib.zombicide
 
-import java.util.Collections;
-import java.util.List;
+import cc.lib.game.Utils
+import cc.lib.ui.IButton
+import cc.lib.utils.GException
 
-import cc.lib.game.Utils;
-import cc.lib.ui.IButton;
-import cc.lib.utils.GException;
+interface ZEquipmentType : IButton {
 
-public interface ZEquipmentType extends IButton {
+    open fun create(): ZEquipment<*>
 
-    <T extends ZEquipmentType> ZEquipment<T> create();
-
-    String name();
-
-    @Override
-    default String getLabel() {
-        return Utils.toPrettyString(name());
+    val name: String
+    override fun getLabel(): String {
+        return Utils.toPrettyString(name)
     }
 
-    @Override
-    default String getTooltipText() {
-        return null;
+    override fun getTooltipText(): String? {
+        return null
     }
 
     /**
      * Additional skills processed when item equipped in hand or body
      * @return
      */
-    default List<ZSkill> getSkillsWhileEquipped() { return Collections.emptyList(); }
+    val skillsWhileEquipped: List<ZSkill>
+        get() = emptyList()
 
     /**
      * Additional skills processed when the item used
      *
      * @return
      */
-    default List<ZSkill> getSkillsWhenUsed() { return Collections.emptyList(); }
+    val skillsWhenUsed: List<ZSkill>
+        get() = emptyList()
 
     /**
      *
      * @return
      */
-    ZEquipmentClass getEquipmentClass();
+    val equipmentClass: ZEquipmentClass
 
     /**
      * Items have can potentially support multiple actions
@@ -48,17 +44,20 @@ public interface ZEquipmentType extends IButton {
      * @param type
      * @return
      */
-    boolean isActionType(ZActionType type);
-
-    default void onThrown(ZGame game, ZCharacter thrower, int targetZoneIdx) {
-        throw new GException("Not a throwable item '" + this + "'");
+    fun isActionType(type: ZActionType): Boolean
+    fun onThrown(game: ZGame, thrower: ZCharacter, targetZoneIdx: Int) {
+        throw GException("Not a throwable item '$this'")
     }
 
-    default int getThrowMinRange() { return 0; }
+    val throwMinRange: Int
+        get() = 0
+    val throwMaxRange: Int
+        get() = 1
 
-    default int getThrowMaxRange() { return 1; }
+    fun getDieRollToBlock(type: ZZombieType): Int {
+        return 0
+    }
 
-    default int getDieRollToBlock(ZZombieType type) { return 0; }
-
-    default boolean isShield() { return false; }
+    val isShield: Boolean
+        get() = false
 }

@@ -40,12 +40,12 @@ public class WolfQuestKnowYourEnemy extends ZQuest {
     public int getPercentComplete(ZGame game) {
         int numTasks = getNumStartObjectives() + game.getAllCharacters().size();
         int numCompleted = getNumFoundObjectives();
-        for (ZCharacter c : game.getBoard().getAllCharacters()) {
+        for (ZCharacter c : game.board.getAllCharacters()) {
             if (c.getOccupiedZone() == getExitZone())
                 numCompleted++;
         }
         int percentCompleted = numCompleted*100 / numTasks;
-        if (game.getBoard().getZombiesInZone(getExitZone()).size() > 0)
+        if (game.board.getZombiesInZone(getExitZone()).size() > 0)
             percentCompleted --;
         return percentCompleted;
     }
@@ -73,7 +73,7 @@ public class WolfQuestKnowYourEnemy extends ZQuest {
     @Override
     public Table getObjectivesOverlay(ZGame game) {
         int totalChars = game.getAllCharacters().size();
-        int numInZone = Utils.count(game.getBoard().getAllCharacters(), object -> object.getOccupiedZone() == getExitZone());
+        int numInZone = Utils.count(game.board.getAllCharacters(), object -> object.getOccupiedZone() == getExitZone());
         return new Table(getName())
                 .addRow(new Table().setNoBorder()
                         .addRow("", "Use the Towers for cover to execute ranged attacks on enemies")
@@ -87,7 +87,7 @@ public class WolfQuestKnowYourEnemy extends ZQuest {
     }
     @Override
     public String getQuestFailedReason(ZGame game) {
-        if (Utils.count(game.getBoard().getAllCharacters(), object -> object.isDead()) > 0) {
+        if (Utils.count(game.board.getAllCharacters(), object -> object.isDead()) > 0) {
             return "Not all players survived.";
         }
         return super.getQuestFailedReason(game);

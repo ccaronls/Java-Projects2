@@ -94,7 +94,7 @@ public class WolfQuestImmortal extends ZQuest {
 
     @Override
     public void onZombieSpawned(ZGame game, ZZombie zombie, int zone) {
-        int idx = Utils.searchIndex(immortals, sp -> game.getBoard().getCell(sp.getCellPos()).getZoneIndex());
+        int idx = Utils.searchIndex(immortals, sp -> game.board.getCell(sp.getCellPos()).zoneIndex);
         if (idx >= 0) {
             switch (zombie.getType()) {
                 case Necromancer:
@@ -111,7 +111,7 @@ public class WolfQuestImmortal extends ZQuest {
     }
 
     int getNumNecrosOnBoard(ZGame game) {
-        return Utils.count(game.getBoard().getAllZombies(), z -> z.getType() == ZZombieType.Necromancer);
+        return Utils.count(game.board.getAllZombies(), z -> z.getType() == ZZombieType.Necromancer);
     }
 
     @Override

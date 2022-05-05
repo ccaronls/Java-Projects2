@@ -1,118 +1,81 @@
-package cc.lib.zombicide;
+package cc.lib.zombicide
 
-import cc.lib.game.Utils;
-import cc.lib.utils.Reflector;
+import cc.lib.game.Utils
+import cc.lib.utils.Reflector
 
-public class ZSkillLevel extends Reflector<ZSkillLevel> implements Comparable<ZSkillLevel> {
-
-    static {
-        addAllFields(ZSkillLevel.class);
-    }
-
-    public static boolean ULTRA_RED_MODE = true;
-
-    public final static int NUM_LEVELS = ZColor.values().length;
-
-    private final ZColor color;
-    private final int ultra;
-
-    public ZSkillLevel() {
-        this(null, -1);
-    }
-
-    public ZSkillLevel(ZColor lvl) {
-        this(lvl, 0);
-    }
-
-    public ZSkillLevel(ZColor lvl, int ultra) {
-        this.color = lvl;
-        this.ultra = ultra;
-    }
-
-    public ZColor getColor() {
-        return color;
-    }
-
-    public ZColor getDifficultyColor() {
-        if (ultra > 0)
-            return ZColor.RED;
-        return color;
-    }
-
-    public int getUltra() {
-        return ultra;
-    }
-
-    @Override
-    public int compareTo(ZSkillLevel o) {
-        if (ultra != o.ultra)
-            return Integer.compare(ultra, o.ultra);
-        return color.compareTo(o.color);
-    }
-
-    public ZSkillLevel nextLevel() {
-        switch (color) {
-            case BLUE:
-                return new ZSkillLevel(ZColor.YELLOW, ultra);
-            case YELLOW:
-                return new ZSkillLevel(ZColor.ORANGE, ultra);
-            case ORANGE:
-                return new ZSkillLevel(ZColor.RED, ultra);
-        }
-        if (ULTRA_RED_MODE)
-            return new ZSkillLevel(ZColor.YELLOW, ultra+1);
-        return new ZSkillLevel(ZColor.RED, ultra);
-    }
-
-    public static ZSkillLevel getLevel(int expPts) {
-        int ultra = 0;
-        ZColor lvl = ZColor.RED;
-        if (ULTRA_RED_MODE) {
-            ultra = expPts / ZColor.RED.maxPts;
-            expPts = expPts % ZColor.RED.maxPts;
-        }
-        for (ZColor sl : ZColor.values()) {
-            if (expPts <= sl.maxPts) {
-                lvl = sl;
-                break;
+class ZSkillLevel(val color: ZColor = ZColor.BLUE, val ultra: Int = -1) : Reflector<ZSkillLevel>(), Comparable<ZSkillLevel> {
+    companion object {
+        @JvmField
+        var ULTRA_RED_MODE = true
+        @JvmField
+        val NUM_LEVELS = ZColor.values().size
+        @JvmStatic
+        fun getLevel(expPts: Int): ZSkillLevel {
+            var expPts = expPts
+            var ultra = 0
+            var lvl = ZColor.RED
+            if (ULTRA_RED_MODE) {
+                ultra = expPts / ZColor.RED.maxPts
+                expPts = expPts % ZColor.RED.maxPts
             }
+            for (sl in ZColor.values()) {
+                if (expPts <= sl.maxPts) {
+                    lvl = sl
+                    break
+                }
+            }
+            return if (lvl === ZColor.BLUE && ultra > 0) ZSkillLevel(ZColor.RED, ultra - 1) else ZSkillLevel(lvl, ultra)
         }
-        if (lvl == ZColor.BLUE && ultra > 0)
-            return new ZSkillLevel(ZColor.RED, ultra-1);
-        return new ZSkillLevel(lvl, ultra);
+
+        init {
+            addAllFields(ZSkillLevel::class.java)
+        }
     }
 
-    public int getPtsToNextLevel(int curPts) {
+    constructor(lvl: ZColor) : this(lvl, 0) {}
+
+    val difficultyColor: ZColor
+        get() = if (ultra > 0) ZColor.RED else color
+
+    override fun compareTo(o: ZSkillLevel): Int {
+        return if (ultra != o.ultra) Integer.compare(ultra, o.ultra) else color.compareTo(o.color)
+    }
+
+    fun nextLevel(): ZSkillLevel {
+        when (color) {
+            ZColor.BLUE -> return ZSkillLevel(ZColor.YELLOW, ultra)
+            ZColor.YELLOW -> return ZSkillLevel(ZColor.ORANGE, ultra)
+            ZColor.ORANGE -> return ZSkillLevel(ZColor.RED, ultra)
+        }
+        return if (ULTRA_RED_MODE) ZSkillLevel(ZColor.YELLOW, ultra + 1) else ZSkillLevel(ZColor.RED, ultra)
+    }
+
+    fun getPtsToNextLevel(curPts: Int): Int {
+        var curPts = curPts
         if (ULTRA_RED_MODE) {
-            curPts = curPts % ZColor.RED.dangerPts;
-        } else if (color == ZColor.RED)
-            return 0;
-        int idx = (color.ordinal()+1)%NUM_LEVELS;
-        if (idx==0)
-            idx++;
-        return ZColor.values()[idx].dangerPts - curPts;
+            curPts = curPts % ZColor.RED.dangerPts
+        } else if (color === ZColor.RED) return 0
+        var idx = (color.ordinal + 1) % NUM_LEVELS
+        if (idx == 0) idx++
+        return ZColor.values()[idx].dangerPts - curPts
     }
 
-    public int getDangerPts() {
-        return color.dangerPts;
+    val dangerPts: Int
+        get() = color.dangerPts
+
+    override fun toString(): String {
+        return color.name + Utils.getRepeatingChars('+', ultra)
     }
 
-    @Override
-    public String toString() {
-        return color.name() + Utils.getRepeatingChars('+', ultra);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ZSkillLevel that = (ZSkillLevel) o;
+    override fun equals(o: Any?): Boolean {
+        if (this === o) return true
+        if (o == null || javaClass != o.javaClass) return false
+        val that = o as ZSkillLevel
         return ultra == that.ultra &&
-                color == that.color;
+                color === that.color
     }
 
-    @Override
-    public int hashCode() {
-        return Utils.hashCode(color, ultra);
+    override fun hashCode(): Int {
+        return Utils.hashCode(color, ultra)
     }
 }

@@ -101,15 +101,15 @@ public class WolfACoinForTheFerryman extends ZQuest {
     @Override
     public void init(ZGame game) {
         for (ZDoor door : lockedDoors)
-            game.getBoard().setDoorLocked(door);
+            game.board.setDoorLocked(door);
     }
 
     @Override
     public void processObjective(ZGame game, ZCharacter c) {
         int zIdx;
-        if (blueKeyPos != null && (zIdx=game.getBoard().getCell(blueKeyPos).getZoneIndex()) == c.getOccupiedZone()) {
+        if (blueKeyPos != null && (zIdx=game.board.getCell(blueKeyPos).zoneIndex) == c.getOccupiedZone()) {
             game.addLogMessage("The PORTAL is unlocked!!");
-            game.getBoard().getZone(zIdx).setObjective(false);
+            game.board.getZone(zIdx).setObjective(false);
             for (ZDoor door : lockedDoors) {
                 game.unlockDoor(door);
             }
@@ -118,7 +118,7 @@ public class WolfACoinForTheFerryman extends ZQuest {
             super.processObjective(game, c);
             if (getNumRemainingObjectives() == 0) {
                 game.addLogMessage("The BLUE key is revealed!!!");
-                game.getBoard().setObjective(blueKeyPos, ZCellType.OBJECTIVE_BLUE);
+                game.board.setObjective(blueKeyPos, ZCellType.OBJECTIVE_BLUE);
             }
         }
     }
@@ -127,7 +127,7 @@ public class WolfACoinForTheFerryman extends ZQuest {
     public void addMoves(ZGame game, ZCharacter cur, List<ZMove> options) {
         super.addMoves(game, cur, options);
         if (blueKeyPos != null) {
-            int idx = game.getBoard().getCell(blueKeyPos).getZoneIndex();
+            int idx = game.board.getCell(blueKeyPos).zoneIndex;
             if (idx == cur.getOccupiedZone()) {
                 options.add(ZMove.newObjectiveMove(idx));
             }

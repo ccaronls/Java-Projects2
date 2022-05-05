@@ -1,46 +1,26 @@
-package cc.lib.zombicide;
+package cc.lib.zombicide
 
-import cc.lib.game.Utils;
-import cc.lib.utils.Table;
+import cc.lib.game.Utils
+import cc.lib.utils.Table
 
-public class ZArmor extends ZEquipment<ZArmorType> {
-
-    static {
-        addAllFields(ZArmor.class);
+class ZArmor(override val type: ZArmorType=ZArmorType.CHAINMAIL) : ZEquipment<ZArmorType>() {
+    companion object {
+        init {
+            addAllFields(ZArmor::class.java)
+        }
     }
 
-    public ZArmor() {
-        this(null);
+    override val slotType: ZEquipSlotType
+        get() = type.slotType
+
+    override fun isEquippable(c: ZCharacter): Boolean {
+        return true
     }
 
-    ZArmor(ZArmorType type) {
-        this.type = type;
-    }
+    override val isArmor: Boolean
+        get() = true
 
-    private final ZArmorType type;
-
-    @Override
-    public ZEquipSlotType getSlotType() {
-        return type.slotType;
-    }
-
-    @Override
-    public boolean isEquippable(ZCharacter c) {
-        return true;
-    }
-
-    @Override
-    public boolean isArmor() {
-        return true;
-    }
-
-    @Override
-    public ZArmorType getType() {
-        return type;
-    }
-
-    @Override
-    public Table getCardInfo(ZCharacter c, ZGame game) {
+    override fun getCardInfo(c: ZCharacter, game: ZGame): Table {
 
         /*
 
@@ -55,29 +35,25 @@ public class ZArmor extends ZEquipment<ZArmorType> {
         Abomination | 5|
         Special        |
          */
-
-
-
-        Table ratings = new Table().setNoBorder();
-        for (ZZombieType type : Utils.asList(ZZombieType.Walker, ZZombieType.Fatty, ZZombieType.Runner, ZZombieType.Necromancer, ZZombieType.Abomination)) {
-            ratings.addRow(type, this.type.getDieRollToBlock(type));
+        val ratings = Table().setNoBorder()
+        for (type in Utils.asList(ZZombieType.Walker, ZZombieType.Fatty, ZZombieType.Runner, ZZombieType.Necromancer, ZZombieType.Abomination)) {
+            ratings.addRow(type, this.type.getDieRollToBlock(type))
         }
-        Table main = new Table(getLabel()).setNoBorder().addRow(ratings);
+        val main = Table(label).setNoBorder().addRow(ratings)
         if (type.specialAbilityDescription != null) {
-            main.addRow(Utils.wrapTextWithNewlines(type.specialAbilityDescription, 24));
+            main.addRow(Utils.wrapTextWithNewlines(type.specialAbilityDescription, 24))
         }
-        return main;
+        return main
     }
 
-    @Override
-    public String getTooltipText() {
-        Table ratings = new Table().setNoBorder();
-        for (ZZombieType type : Utils.asList(ZZombieType.Walker, ZZombieType.Fatty, ZZombieType.Runner, ZZombieType.Necromancer, ZZombieType.Abomination)) {
-            ratings.addRow(type, this.type.getDieRollToBlock(type));
+    override fun getTooltipText(): String {
+        val ratings = Table().setNoBorder()
+        for (type in Utils.asList(ZZombieType.Walker, ZZombieType.Fatty, ZZombieType.Runner, ZZombieType.Necromancer, ZZombieType.Abomination)) {
+            ratings.addRow(type, this.type.getDieRollToBlock(type))
         }
         if (type.specialAbilityDescription != null) {
-            ratings.addRow(Utils.wrapTextWithNewlines(type.specialAbilityDescription, 24));
+            ratings.addRow(Utils.wrapTextWithNewlines(type.specialAbilityDescription, 24))
         }
-        return ratings.toString();
+        return ratings.toString()
     }
 }

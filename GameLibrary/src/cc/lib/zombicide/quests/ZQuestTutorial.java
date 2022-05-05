@@ -55,7 +55,7 @@ public class ZQuestTutorial extends ZQuest {
     @Override
     protected void loadCmd(Grid<ZCell> grid, Grid.Pos pos, String cmd) {
         ZCell cell = grid.get(pos);
-        int zoneIndex = cell.getZoneIndex();
+        int zoneIndex = cell.zoneIndex;
         switch (cmd) {
             case "green":
                 greenSpawnZone = zoneIndex;
@@ -84,7 +84,7 @@ public class ZQuestTutorial extends ZQuest {
             blueKeyZone = -1;
         } else if (c.getOccupiedZone() == greenKeyZone) {
             game.unlockDoor(greenDoor);
-            game.getBoard().setSpawnZone(greenSpawnZone, ZIcon.SPAWN_GREEN, false, true, true);
+            game.board.setSpawnZone(greenSpawnZone, ZIcon.SPAWN_GREEN, false, true, true);
             game.spawnZombies(greenSpawnZone);
             game.addLogMessage(c.name() + " has unlocked the GREEN door");
             game.addLogMessage(c.name() + " has created a new spawn zone!");
@@ -103,8 +103,8 @@ public class ZQuestTutorial extends ZQuest {
     @Override
     public void init(ZGame game) {
         greenKeyZone = Utils.randItem(getRedObjectives());
-        game.getBoard().setDoorLocked(blueDoor);
-        game.getBoard().setDoorLocked(greenDoor);
+        game.board.setDoorLocked(blueDoor);
+        game.board.setDoorLocked(greenDoor);
         getRedObjectives().add(blueKeyZone); // call this after putting the greenKeyRandomly amongst the red objectives
     }
 
@@ -115,8 +115,8 @@ public class ZQuestTutorial extends ZQuest {
     }
 
     @Override
-    public List<ZEquipment> getInitVaultItems(int vaultZone) {
-        List<ZEquipment> vaultItems = new ArrayList<>();
+    public List<ZEquipment<?>> getInitVaultItems(int vaultZone) {
+        List<ZEquipment<?>> vaultItems = new ArrayList<>();
         if (vaultItems == null) {
             vaultItems = new ArrayList<>();
             for (ZEquipmentType et : getAllVaultOptions())
@@ -129,8 +129,8 @@ public class ZQuestTutorial extends ZQuest {
     public Table getObjectivesOverlay(ZGame game) {
         return new Table(getName())
                 .addRow(new Table().setNoBorder()
-                    .addRow("1.", "Unlock the BLUE Door.", game.getBoard().getDoor(blueDoor) != ZWallFlag.LOCKED)
-                    .addRow("2.", "Unlock the GREEN Door. GREEN key hidden among RED objectives.", game.getBoard().getDoor(greenDoor) != ZWallFlag.LOCKED)
+                    .addRow("1.", "Unlock the BLUE Door.", game.board.getDoor(blueDoor) != ZWallFlag.LOCKED)
+                    .addRow("2.", "Unlock the GREEN Door. GREEN key hidden among RED objectives.", game.board.getDoor(greenDoor) != ZWallFlag.LOCKED)
                     .addRow("3.", String.format("Collect all Objectives for %d EXP Each", getObjectiveExperience(0,0)), String.format("%d of %d", getNumFoundObjectives(), getNumStartObjectives()))
                     .addRow("4.", "Get all players into the EXIT zone.", isAllPlayersInExit(game))
                     .addRow("5.", "Exit zone must be cleared of zombies.", isExitClearedOfZombies(game))
@@ -143,19 +143,19 @@ public class ZQuestTutorial extends ZQuest {
     public int getPercentComplete(ZGame game) {
         int numTasks = getNumStartObjectives() + game.getAllCharacters().size();
         int numCompleted = getNumFoundObjectives();
-        for (ZCharacter c : game.getBoard().getAllCharacters()) {
+        for (ZCharacter c : game.board.getAllCharacters()) {
             if (c.getOccupiedZone() == getExitZone())
                 numCompleted++;
         }
         int percentCompleted = numCompleted*100 / numTasks;
-        if (game.getBoard().getZombiesInZone(getExitZone()).size() > 0)
+        if (game.board.getZombiesInZone(getExitZone()).size() > 0)
             percentCompleted --;
         return percentCompleted;
     }
 
     @Override
     public String getQuestFailedReason(ZGame game) {
-        if (Utils.count(game.getBoard().getAllCharacters(), object -> object.isDead()) > 0) {
+        if (Utils.count(game.board.getAllCharacters(), object -> object.isDead()) > 0) {
             return "Not all players survived.";
         }
         return super.getQuestFailedReason(game);

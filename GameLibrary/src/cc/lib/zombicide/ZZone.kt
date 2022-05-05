@@ -1,164 +1,111 @@
-package cc.lib.zombicide;
+package cc.lib.zombicide
 
-import java.util.ArrayList;
-import java.util.List;
-
-import cc.lib.game.AGraphics;
-import cc.lib.game.GRectangle;
-import cc.lib.game.IShape;
-import cc.lib.game.Utils;
-import cc.lib.math.MutableVector2D;
-import cc.lib.math.Vector2D;
-import cc.lib.utils.GException;
-import cc.lib.utils.Grid;
-import cc.lib.utils.Reflector;
+import cc.lib.game.AGraphics
+import cc.lib.game.GRectangle
+import cc.lib.game.IShape
+import cc.lib.game.Utils
+import cc.lib.math.MutableVector2D
+import cc.lib.math.Vector2D
+import cc.lib.utils.GException
+import cc.lib.utils.Grid
+import cc.lib.utils.Reflector
+import cc.lib.utils.rotate
+import java.util.*
 
 /**
  * Zones are sets of adjacent cells that comprise rooms or streets separated by doors and walls
  */
-public class ZZone extends Reflector<ZZone> implements IShape {
-
-    static {
-        addAllFields(ZZone.class);
-    }
-
-    final List<Grid.Pos> cells = new ArrayList<>();
-    final List<ZDoor> doors = new ArrayList<>();
-
-    private ZZoneType type = ZZoneType.OUTDOORS;
-    private int noiseLevel = 0;
-    private boolean dragonBile;
-    private boolean objective;
-    private int nextCell = 0;
-    private final int zoneIndex;
-
-    public ZZone() {
-        this(-1);
-    }
-
-    ZZone(int zoneIndex) {
-        this.zoneIndex = zoneIndex;
-    }
-
-    public boolean canSpawn() {
-        return type == ZZoneType.BUILDING;
-    }
-
-    @Override
-    public MutableVector2D getCenter() {
-        if (cells.size() == 0)
-            return new MutableVector2D(Vector2D.ZERO);
-        MutableVector2D v = new MutableVector2D();
-        for (Grid.Pos p : cells) {
-            v.addEq(.5f + p.getColumn(), .5f + p.getRow());
+class ZZone(val zoneIndex: Int=-1) : Reflector<ZZone>(), IShape {
+    companion object {
+        init {
+            addAllFields(ZZone::class.java)
         }
-        v.scaleEq(1f / cells.size());
-        return v;
+    }
+
+    @JvmField
+    val cells: MutableList<Grid.Pos> = ArrayList()
+    @JvmField
+    val doors: MutableList<ZDoor> = ArrayList()
+    var type = ZZoneType.OUTDOORS
+    var noiseLevel = 0
+    var isDragonBile = false
+    var isObjective = false
+    private var nextCell = 0
+
+    fun canSpawn(): Boolean {
+        return type === ZZoneType.BUILDING
+    }
+
+    override fun getCenter(): MutableVector2D {
+        if (cells.size == 0) return MutableVector2D(Vector2D.ZERO)
+        val v = MutableVector2D()
+        for (p in cells) {
+            v.addEq(.5f + p.column, .5f + p.row)
+        }
+        v.scaleEq(1f / cells.size)
+        return v
     }
 
     /**
      *
      * @return
      */
-    public GRectangle getRectangle() {
-        GRectangle rect = new GRectangle();
-        for (Grid.Pos p : cells) {
-            rect.addEq(p.getColumn(), p.getRow(), 1, 1);
+    val rectangle: GRectangle
+        get() {
+            val rect = GRectangle()
+            for (p in cells) {
+                rect.addEq(p.column.toFloat(), p.row.toFloat(), 1f, 1f)
+            }
+            return rect
         }
-        return rect;
-    }
 
-    @Override
-    public void drawFilled(AGraphics g) {
-        for (Grid.Pos p : cells) {
-            g.drawFilledRect(p.getColumn(), p.getRow(), 1, 1);
-        }
-    }
-
-    @Override
-    public void drawOutlined(AGraphics g) {
-        for (Grid.Pos p : cells) {
-            g.drawRect(p.getColumn(), p.getRow(), 1, 1);
+    override fun drawFilled(g: AGraphics) {
+        for (p in cells) {
+            g.drawFilledRect(p.column.toFloat(), p.row.toFloat(), 1f, 1f)
         }
     }
 
-    public boolean isSearchable() {
-        return type == ZZoneType.BUILDING;
-    }
-
-    public List<ZDoor> getDoors() {
-        return doors;
-    }
-
-    public boolean isDragonBile() {
-        return dragonBile;
-    }
-
-    public void setDragonBile(boolean dragonBile) {
-        this.dragonBile = dragonBile;
-    }
-
-    public Iterable<Grid.Pos> getCells() {
-        return cells;
-    }
-
-    @Override
-    public boolean contains(float x, float y) {
-        for (Grid.Pos pos : cells) {
-            if (Utils.isPointInsideRect(x, y, pos.getColumn(), pos.getRow(), 1, 1))
-                return true;
+    override fun drawOutlined(g: AGraphics) {
+        for (p in cells) {
+            g.drawRect(p.column.toFloat(), p.row.toFloat(), 1f, 1f)
         }
-        return false;
     }
 
-    public int getZoneIndex() {
-        return zoneIndex;
+    val isSearchable: Boolean
+        get() = type === ZZoneType.BUILDING
+
+    fun getCells(): Iterable<Grid.Pos> {
+        return cells
     }
 
-    public ZZoneType getType() {
-        return type;
+    override fun contains(x: Float, y: Float): Boolean {
+        for (pos in cells) {
+            if (Utils.isPointInsideRect(x, y, pos.column.toFloat(), pos.row.toFloat(), 1f, 1f)) return true
+        }
+        return false
     }
 
-    public void setType(ZZoneType type) {
-        this.type = type;
+    fun addNoise(amt: Int) {
+        noiseLevel += amt
     }
 
-    public int getNoiseLevel() {
-        return noiseLevel;
-    }
+    val nextCellAndIncrement: Int
+        get() {
+            val next = nextCell
+            nextCell = nextCell.rotate(cells.size)
+            return next
+        }
 
-    public void setNoiseLevel(int noiseLevel) {
-        this.noiseLevel = noiseLevel;
-    }
-
-    public void addNoise(int amt) {
-        this.noiseLevel += amt;
-    }
-
-    public void setObjective(boolean objective) {
-        this.objective = objective;
-    }
-
-    public boolean isObjective() {
-        return objective;
-    }
-
-    public int getNextCellAndIncrement() {
-        int next = nextCell;
-        nextCell = (nextCell+1) % cells.size();
-        return next;
-    }
-
-    void checkSanity() {
-        if (cells.size() > 1) {
-            for (int i = 0; i < cells.size() - 1; i++) {
-                for (int ii = i + 1; ii < cells.size(); ii++) {
-                    if (cells.get(i).isAdjacentTo(cells.get(ii))) {
-                        return; // zone is sane
+    fun checkSanity() {
+        if (cells.size > 1) {
+            for (i in 0 until cells.size - 1) {
+                for (ii in i + 1 until cells.size) {
+                    if (cells[i].isAdjacentTo(cells[ii])) {
+                        return  // zone is sane
                     }
                 }
             }
-            throw new GException("Zone " + zoneIndex + " is INSANE!! Not all positions are adjacent:" + cells);
+            throw GException("Zone $zoneIndex is INSANE!! Not all positions are adjacent:$cells")
         }
     }
 }

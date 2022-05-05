@@ -1,52 +1,46 @@
-package cc.lib.zombicide;
+package cc.lib.zombicide
 
-import cc.lib.annotation.CallSuper;
-import cc.lib.game.GRectangle;
-import cc.lib.game.Utils;
+import cc.lib.annotation.CallSuper
+import cc.lib.game.AAnimation
+import cc.lib.game.AGraphics
+import cc.lib.game.GRectangle
+import cc.lib.game.Utils
 
-public abstract class ZActorAnimation extends ZAnimation {
+abstract class ZActorAnimation : ZAnimation {
+    @JvmField
+    val actor: ZActor<*>
+    private var next: ZActorAnimation? = null
 
-    public final ZActor actor;
-    private ZActorAnimation next;
-
-    public ZActorAnimation(ZActor actor, long ... durations) {
-        super(Utils.toLongArray(durations));
-        this.actor = actor;
+    constructor(actor: ZActor<*>, vararg durations: Long) : super(*durations) {
+        this.actor = actor
     }
 
-    public ZActorAnimation(ZActor actor, long durationMSecs, int repeats) {
-        super(durationMSecs, repeats);
-        this.actor = actor;
+    constructor(actor: ZActor<*>, durationMSecs: Long, repeats: Int) : super(durationMSecs, repeats) {
+        this.actor = actor
     }
 
-    @Override
     @CallSuper
-    protected void onDone() {
-        if (next != null && actor != null) {
-            actor.animation = next;
-            next.start();
+    override fun onDone() {
+        next?.let {
+            actor.animation = it
+            it.start<AAnimation<AGraphics>>()
         }
     }
 
-    @Override
-    public boolean isDone() {
-        if (next == null || actor ==  null)
-            return super.isDone();
-        return next.isDone();
+    override fun isDone(): Boolean {
+        return next?.isDone?:super.isDone()
     }
 
-    void add(ZActorAnimation anim) {
-        if (next == null)
-            next = anim;
-        else
-            next.add(anim);
+    fun add(anim: ZActorAnimation) {
+        next?.add(anim) ?:run {
+            next = anim
+        }
     }
 
-    protected GRectangle getRect() {
-        return null;
-    }
+    open val rect: GRectangle?
+        get() = null
 
-    protected boolean hidesActor() {
-        return true;
+    open fun hidesActor(): Boolean {
+        return true
     }
 }

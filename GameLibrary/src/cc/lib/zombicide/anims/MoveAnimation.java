@@ -33,7 +33,7 @@ public class MoveAnimation extends ZActorAnimation {
     }
 
     @Override
-    protected GRectangle getRect() {
+    public GRectangle getRect() {
         return current;
     }
 }

@@ -65,15 +65,15 @@ public class ZQuestTheHellHole extends ZQuest {
     protected void loadCmd(Grid<ZCell> grid, Grid.Pos pos, String cmd) {
         switch (cmd) {
             case "hh":
-                hellHoleZone = grid.get(pos).getZoneIndex();
+                hellHoleZone = grid.get(pos).zoneIndex;
                 break;
             case "objspawnw":
                 super.loadCmd(grid, pos, "spw");
-                objSpawns.add(grid.get(pos).getZoneIndex());
+                objSpawns.add(grid.get(pos).zoneIndex);
                 break;
             case "objspawne":
                 super.loadCmd(grid, pos, "spe");
-                objSpawns.add(grid.get(pos).getZoneIndex());
+                objSpawns.add(grid.get(pos).zoneIndex);
                 break;
             default:
                 super.loadCmd(grid, pos, cmd);
@@ -119,7 +119,7 @@ public class ZQuestTheHellHole extends ZQuest {
 
     @Override
     public void drawQuest(UIZombicide game, AGraphics g) {
-        ZZone hellhole = game.getBoard().getZone(hellHoleZone);
+        ZZone hellhole = game.board.getZone(hellHoleZone);
         g.setColor(GColor.RED.withAlpha(.2f));
         hellhole.drawFilled(g);
     }

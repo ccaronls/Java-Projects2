@@ -1,142 +1,99 @@
-package cc.lib.zombicide;
+package cc.lib.zombicide
 
-import cc.lib.game.AGraphics;
-import cc.lib.game.GColor;
-import cc.lib.game.GDimension;
-import cc.lib.game.Justify;
-import cc.lib.game.Utils;
-import cc.lib.utils.Table;
+import cc.lib.game.*
+import cc.lib.utils.Table
 
-public final class ZZombie extends ZActor<ZZombieType> {
-
-    static {
-        addAllFields(ZZombie.class);
-    }
-
-    final ZZombieType type;
-    private int imageIdx = -1;
-    boolean destroyed = false;
-
-    @Override
-    protected int getActionsPerTurn() {
-        return type.actionsPerTurn;
-    }
-
-    public ZZombie() {
-        this(ZZombieType.Walker, -1);
-    }
-
-    public ZZombie(ZZombieType type, int zone) {
-        super(zone);
-        this.type = type;
-        onBeginRound();
-    }
-
-    private int getIdx() {
-        if (imageIdx < 0 || imageIdx >= type.imageOptions.length)
-            imageIdx = Utils.rand() % type.imageOptions.length;
-        return imageIdx;
-    }
-
-    @Override
-    public String name() {
-        return type.name();
-    }
-
-    @Override
-    public GDimension drawInfo(AGraphics g, ZGame game, float width, float height) {
-        Table info = new Table(getLabel()).setNoBorder();
-        info.addRow("Min Hits", type.minDamageToDestroy);
-        info.addRow("Actions", type.actionsPerTurn);
-        info.addRow("Experience", type.expProvided);
-        info.addRow("Ignores Armor", type.ignoresArmor);
-        info.addRow("Ranged Priority", type.rangedPriority);
-        Table outer = new Table().setNoBorder();
-        outer.addRow(info, type.description);
-        return outer.draw(g);//g.drawString(outer.toString(), 0, 0);
-    }
-
-    @Override
-    public ZZombieType getType() {
-        return type;
-    }
-
-
-    @Override
-    public float getScale() {
-        return type.getScale();
-    }
-
-    @Override
-    public int getImageId() {
-        return type.imageOptions[getIdx()];
-    }
-
-    @Override
-    public int getOutlineImageId() {
-        return type.imageOutlineOptions[getIdx()];
-    }
-
-    @Override
-    public GDimension getDimension() {
-        if (type.imageDims == null) {
-            return GDimension.EMPTY;
+class ZZombie(override val type: ZZombieType = ZZombieType.Walker, zone: Int = -1) : ZActor<ZZombieType>(zone) {
+    companion object {
+        init {
+            addAllFields(ZZombie::class.java)
         }
-        return type.imageDims[getIdx()];
     }
 
-    @Override
-    ZCellQuadrant getSpawnQuadrant() {
-        switch (type) {
-            case Abomination:
-            case Wolfbomination:
-                return ZCellQuadrant.CENTER;
+    private var imageIdx = -1
+    @JvmField
+    var destroyed = false
+    public override val actionsPerTurn: Int
+        get() = type.actionsPerTurn
+    private val idx: Int
+        private get() {
+            if (imageIdx < 0 || imageIdx >= type.imageOptions.size) imageIdx = Utils.rand() % type.imageOptions.size
+            return imageIdx
         }
-        return super.getSpawnQuadrant();
+
+    override fun name(): String {
+        return type.name
     }
 
-    @Override
-    long getMoveSpeed() {
-        if (type == ZZombieType.Runner) {
-            return 500;
+    override fun getSpawnQuadrant(): ZCellQuadrant? = when(type) {
+        ZZombieType.Abomination,
+        ZZombieType.Wolfbomination,
+        ZZombieType.BlueTwin,
+        ZZombieType.GreenTwin -> ZCellQuadrant.CENTER
+        else -> super.getSpawnQuadrant()
+    }
+
+    override fun drawInfo(g: AGraphics, game: ZGame, width: Float, height: Float): GDimension {
+        val info = Table(label).setNoBorder()
+        info.addRow("Min Hits", type.minDamageToDestroy)
+        info.addRow("Actions", type.actionsPerTurn)
+        info.addRow("Experience", type.expProvided)
+        info.addRow("Ignores Armor", type.ignoresArmor)
+        info.addRow("Ranged Priority", type.rangedPriority)
+        val outer = Table().setNoBorder()
+        outer.addRow(info, type.description)
+        return outer.draw(g) //g.drawString(outer.toString(), 0, 0);
+    }
+
+    override val scale: Float
+        get() = type.scale
+    override val imageId: Int
+        get() = type.imageOptions[idx]
+    override val outlineImageId: Int
+        get() = type.imageOutlineOptions[idx]
+
+    override fun getDimension(): GDimension {
+        return if (type.imageDims == null) {
+            GDimension.EMPTY
+        } else type.imageDims[idx]
+    }
+
+    override val moveSpeed: Long
+        get() = if (type === ZZombieType.Runner) {
+            500
+        } else super.moveSpeed
+
+    override val priority: Int
+        get() = type.ordinal
+
+    fun getDescription(): String {
+        return type.description
+    }
+
+    override fun performAction(action: ZActionType, game: ZGame): Boolean {
+        if (action === ZActionType.MELEE) {
+            actionsLeftThisTurn = 0
+            return false // zombies are done once they attack
         }
-        return super.getMoveSpeed();
+        return super.performAction(action, game)
     }
 
-    @Override
-    int getPriority() {
-        return type.ordinal();
-    }
-
-    public String getDescription() {
-        return type.description;
-    }
-
-    @Override
-    protected boolean performAction(ZActionType action, ZGame game) {
-        if (action == ZActionType.MELEE) {
-            actionsLeftThisTurn = 0;
-            return false; // zombies are done once they attack
-        }
-        return super.performAction(action, game);
-    }
-
-    @Override
-    public void draw(AGraphics g) {
-        if (isAlive() || isAnimating()) {
-            super.draw(g);
+    override fun draw(g: AGraphics) {
+        if (isAlive || isAnimating) {
+            super.draw(g)
             if (actionsLeftThisTurn > 1) {
-                g.setColor(GColor.WHITE);
-                float oldHgt = g.setTextHeight(10);
-                g.drawJustifiedString(getRect().getCenterBottom(), Justify.CENTER, Justify.BOTTOM, String.valueOf(actionsLeftThisTurn));
-                g.setTextHeight(oldHgt);
+                g.color = GColor.WHITE
+                val oldHgt = g.setTextHeight(10f)
+                g.drawJustifiedString(rect.centerBottom, Justify.CENTER, Justify.BOTTOM, java.lang.String.valueOf(actionsLeftThisTurn))
+                g.textHeight = oldHgt
             }
         }
     }
 
-    @Override
-    public boolean isAlive() {
-        return !destroyed;
+    override val isAlive: Boolean
+        get() = !destroyed
+
+    init {
+        onBeginRound()
     }
 }
-

@@ -1,70 +1,39 @@
-package cc.lib.zombicide;
+package cc.lib.zombicide
 
-import java.util.Arrays;
+import cc.lib.game.Utils
+import cc.lib.utils.Table
+import java.util.*
 
-import cc.lib.game.Utils;
-import cc.lib.utils.Table;
-
-public class ZItem extends ZEquipment<ZItemType> {
-
-    static {
-        addAllFields(ZItem.class);
+class ZItem(override val type: ZItemType=ZItemType.APPLES) : ZEquipment<ZItemType>() {
+    companion object {
+        init {
+            addAllFields(ZItem::class.java)
+        }
     }
 
-    public ZItem() {
-        this(null);
+    override val slotType: ZEquipSlotType
+        get() = type.slot
+    override val isConsumable: Boolean
+        get() = type.isActionType(ZActionType.CONSUME)
+
+    override fun isEquippable(c: ZCharacter): Boolean {
+        return type.slot.canEquip()
     }
 
-    ZItem(ZItemType type) {
-        this.type = type;
+    override val isMelee: Boolean
+        get() = false
+    override val isMagic: Boolean
+        get() = false
+    override val isRanged: Boolean
+        get() = false
+
+    override fun getCardInfo(c: ZCharacter, game: ZGame): Table {
+        val card = Table().setNoBorder()
+        card.addColumn(label, Arrays.asList(Utils.wrapTextWithNewlines(type.description, 24)))
+        return card
     }
 
-    final ZItemType type;
-
-    @Override
-    public ZEquipSlotType getSlotType() {
-        return type.slot;
-    }
-
-    @Override
-    public boolean isConsumable() {
-        return type.isActionType(ZActionType.CONSUME);
-    }
-
-    @Override
-    public boolean isEquippable(ZCharacter c) {
-        return type.slot.canEquip();
-    }
-
-    @Override
-    public boolean isMelee() {
-        return false;
-    }
-
-    @Override
-    public boolean isMagic() {
-        return false;
-    }
-
-    @Override
-    public boolean isRanged() {
-        return false;
-    }
-
-    @Override
-    public ZItemType getType() {
-        return type;
-    }
-
-    @Override
-    public Table getCardInfo(ZCharacter c, ZGame game) {
-        Table card = new Table().setNoBorder();
-        card.addColumn(getLabel(), Arrays.asList(Utils.wrapTextWithNewlines(type.description, 24)));
-        return card;
-    }
-
-    @Override
-    public String getTooltipText() {
-        return type.description;
+    override fun getTooltipText(): String {
+        return type.description
     }
 }

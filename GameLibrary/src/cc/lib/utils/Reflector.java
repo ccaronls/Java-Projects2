@@ -556,12 +556,23 @@ public class Reflector<T> {
             }
         } else {
             if ((name = canonicalNameCache.get(clazz)) != null) {
-            return name;
-        }
-        if (clazz.isAnonymousClass()) {
-            clazz = clazz.getSuperclass();
-        }
-        name = clazz.getCanonicalName();
+                return name;
+            }
+            boolean isArray = clazz.isArray();
+
+            boolean isEnum = clazz.isEnum();
+            boolean isAnnotation = clazz.isAnnotation();
+            boolean isAnnonymous = clazz.isAnonymousClass();
+            boolean isInterface = clazz.isInterface();
+            boolean isLocal = clazz.isLocalClass();
+            boolean isMember = clazz.isMemberClass();
+            boolean isPrimitive = clazz.isPrimitive();
+            boolean isSynthetic = clazz.isSynthetic();
+
+            if (clazz.isAnonymousClass() || (clazz.getSuperclass() != null && clazz.getSuperclass().isEnum())) {
+                clazz = clazz.getSuperclass();
+            }
+            name = clazz.getCanonicalName();
         }
         canonicalNameCache.put(clazz, name);
         return name;

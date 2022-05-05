@@ -82,7 +82,7 @@ public class GroupAnimation extends ZActorAnimation {
     }
 
     @Override
-    protected boolean hidesActor() {
+    public boolean hidesActor() {
         return false;
     }
 }

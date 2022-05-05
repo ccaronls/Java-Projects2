@@ -94,11 +94,11 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
     }
 
     ZBoard getBoard() {
-        return getGame().getBoard();
+        return getGame().board;
     }
 
     ZQuest getQuest() {
-        return getGame() != null ? getGame().getQuest() : null;
+        return getGame() != null && getGame().getQuestInitialized() ? getGame().getQuest() : null;
     }
 
     public synchronized boolean isAnimating() {
@@ -144,7 +144,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
         if (!ENABLE_ENHANCED_UI)
             return;
         for (ZMove move : options) {
-            switch (move.type) {
+            switch (move.getType()) {
                 case END_TURN:
                     //addClickable(cur.getRect(), move);
                     break;
@@ -152,11 +152,11 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                     //addClickable(cur.getRect(), move);
                     break;
                 case TRADE:
-                    for (ZCharacter c : (List<ZCharacter>)move.list)
+                    for (ZCharacter c : (List<ZCharacter>)move.getList())
                         addClickable(c.getRect(), new ZMove(move, c));
                     break;
                 case WALK:
-                    for (Integer zoneIdx : (List<Integer>)move.list)
+                    for (Integer zoneIdx : (List<Integer>)move.getList())
                         addClickable(getBoard().getZone(zoneIdx), new ZMove(move, zoneIdx, zoneIdx));
                     break;
                 case WALK_DIR:
@@ -164,9 +164,9 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                 case MELEE_ATTACK:
                 case RANGED_ATTACK:
                 case MAGIC_ATTACK:
-                    for (ZWeapon w : (List<ZWeapon>)move.list) {
+                    for (ZWeapon w : (List<ZWeapon>)move.getList()) {
                         for (ZWeaponStat stat : w.getType().getStats()) {
-                            for (int zoneIdx : getBoard().getAccessableZones(cur.getOccupiedZone(), stat.getMinRange(), stat.getMaxRange(), stat.getActionType())) {
+                            for (int zoneIdx : getBoard().getAccessableZones(cur.getOccupiedZone(), stat.minRange, stat.maxRange, stat.getActionType())) {
                                 addClickable(getBoard().getZone(zoneIdx), new ZMove(move, w, zoneIdx));
                             }
                         }
@@ -174,7 +174,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                     break;
                 case THROW_ITEM: {
                     List<Integer> zones = getBoard().getAccessableZones(cur.getOccupiedZone(), 0, 1, ZActionType.THROW_ITEM);
-                    for (ZEquipment item : (List<ZEquipment>) move.list) {
+                    for (ZEquipment item : (List<ZEquipment>) move.getList()) {
                         for (Integer zoneIdx : zones) {
                             addClickable(cur.getRect(), new ZMove(move, item, zoneIdx));
                         }
@@ -185,7 +185,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                     addClickable(cur.getRect(), move);
                     break;
                 case OPERATE_DOOR:
-                    for (ZDoor door : (List<ZDoor>)move.list) {
+                    for (ZDoor door : (List<ZDoor>)move.getList()) {
                         addClickable(door.getRect(getBoard()).grow(.1f), new ZMove(move, door));
                     }
                     break;
@@ -203,7 +203,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                     break;
                 case DROP_ITEM:
                 case PICKUP_ITEM:
-                    for (ZEquipment e : (List<ZEquipment>)move.list) {
+                    for (ZEquipment e : (List<ZEquipment>)move.getList()) {
                         addClickable(cur.getRect(), new ZMove(move, e));
                     }
                     break;
@@ -211,7 +211,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                     addClickable(cur.getRect(), move);
                     break;
                 case SHOVE:
-                    for (int zoneIdx : (List<Integer>)move.list) {
+                    for (int zoneIdx : (List<Integer>)move.getList()) {
                         addClickable(getBoard().getZone(zoneIdx), new ZMove(move, zoneIdx));
                     }
                     break;
@@ -221,41 +221,41 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                     break;
                 case ENCHANT: {
                     List<ZCharacter> targets = Utils.filter(getBoard().getAllCharacters(), object -> object.isAlive() && getBoard().canSee(cur.getOccupiedZone(), object.getOccupiedZone()));
-                    for (ZSpell spell : (List<ZSpell>)move.list) {
+                    for (ZSpell spell : (List<ZSpell>)move.getList()) {
                         for (ZCharacter c : targets) {
-                            addClickable(c.getRect(), new ZMove(move, spell, c.getPlayerName()));
+                            addClickable(c.getRect(), new ZMove(move, spell, c.getType()));
                         }
                     }
                     break;
                 }
                 case BORN_LEADER:
-                    for (ZCharacter c : (List<ZCharacter>)move.list) {
-                        addClickable(c.getRect(), new ZMove(move, c.getPlayerName(), c.getPlayerName()));
+                    for (ZCharacter c : (List<ZCharacter>)move.getList()) {
+                        addClickable(c.getRect(), new ZMove(move, c.getType(), c.getType()));
                     }
                     break;
                 case BLOODLUST_MELEE:
                     for (ZWeapon w : cur.getMeleeWeapons()) {
-                        for (int zoneIdx : (List<Integer>)move.list) {
+                        for (int zoneIdx : (List<Integer>)move.getList()) {
                             addClickable(getBoard().getZone(zoneIdx), new ZMove(move, zoneIdx, w));
                         }
                     }
                     break;
                 case BLOODLUST_RANGED:
                     for (ZWeapon w : cur.getRangedWeapons()) {
-                        for (int zoneIdx : (List<Integer>)move.list) {
+                        for (int zoneIdx : (List<Integer>)move.getList()) {
                             addClickable(getBoard().getZone(zoneIdx), new ZMove(move, zoneIdx, w));
                         }
                     }
                     break;
                 case BLOODLUST_MAGIC:
                     for (ZWeapon w : cur.getMagicWeapons()) {
-                        for (int zoneIdx : (List<Integer>)move.list) {
+                        for (int zoneIdx : (List<Integer>)move.getList()) {
                             addClickable(getBoard().getZone(zoneIdx), new ZMove(move, zoneIdx, w));
                         }
                     }
                     break;
                 default:
-                    log.warn("Unhandled case: %s", move.type);
+                    log.warn("Unhandled case: %s", move.getType());
             }
         }
     }
@@ -291,7 +291,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
             }
         }
 
-        List<ZActor> actors = getBoard().getAllActors();
+        List<ZActor<?>> actors = getBoard().getAllActors();
         Collections.sort(actors, (a0,a1) -> Integer.compare(a0.isAnimating() ? 1 : 0, a1.isAnimating() ? 1 : 0));
 
         for (ZActor a : actors) {
@@ -315,7 +315,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                 } else {
                     GColor outline = null;
                     ZPlayerName currentCharacter = game.getCurrentCharacter();
-                    if (a instanceof ZCharacter && (((ZCharacter) a).getPlayerName() == currentCharacter)) {
+                    if (a instanceof ZCharacter && (((ZCharacter) a).getType() == currentCharacter)) {
                         outline = GColor.GREEN;
                     } else if (a == picked)
                         outline = GColor.CYAN;
@@ -350,7 +350,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
     public int pickZone(AGraphics g, int mouseX, int mouseY) {
         for (ZCell cell : getBoard().getCells()) {
             if (cell.contains(mouseX, mouseY)) {
-                return cell.getZoneIndex();
+                return cell.zoneIndex;
             }
         }
         return -1;
@@ -444,7 +444,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                 switch (zone.getType()) {
                     case TOWER:
                         if (miniMap || drawTowersHighlighted) {
-                            g.setColor(GColor.SKY_BLUE.withAlpha((cell.getScale()-1)*3));
+                            g.setColor(GColor.SKY_BLUE.withAlpha((cell.scale-1)*3));
                             g.drawFilledRect(cell);
                         }
                         break;
@@ -616,7 +616,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                     ZDoor door = getBoard().findDoor(cellPos, dir);
                     g.setColor(GColor.BLACK);
                     GRectangle vaultRect = door.getRect(getBoard());
-                    g.setColor(door.lockedColor);
+                    g.setColor(door.getLockedColor());
                     vaultRect.drawFilled(g);
                     g.setColor(GColor.YELLOW);
                     vaultRect.drawOutlined(g, vaultLineThickness);
@@ -643,7 +643,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                         g.moveTo(dw, dh);
                         g.moveTo(vaultRect.w-dw*2, 0);
                     }
-                    g.setColor(door.lockedColor);
+                    g.setColor(door.getLockedColor());
                     g.drawTriangleFan();
                     g.setColor(GColor.YELLOW);
                     g.end();
@@ -723,7 +723,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
             ZCell cell = it.next();
             if (cell.isCellTypeEmpty())
                 continue;
-            String text = "Zone " + cell.getZoneIndex();
+            String text = "Zone " + cell.zoneIndex;
             for (ZCellType type : ZCellType.values()) {
                 if (cell.isCellType(type)) {
                     switch (type) {
@@ -744,10 +744,10 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
             }
             /*
             if (cell.contains(mouseX, mouseY)) {
-                List<Integer> accessible = board.getAccessableZones(cell.getZoneIndex(), 1, 5, ZActionType.MOVE);
+                List<Integer> accessible = getBoard().getAccessableZones(cell.zoneIndex, 1, 5, ZActionType.MOVE);
                 text = "1 Unit away:\n" + accessible;
                 //returnCell = it.getPos();//new int[] { col, row };
-                List<Integer> accessible2 = board.getAccessableZones(cell.getZoneIndex(), 2, 5, ZActionType.MAGIC);
+                List<Integer> accessible2 = getBoard().getAccessableZones(cell.zoneIndex, 2, 5, ZActionType.MAGIC);
                 text += "\n2 Units away:\n" + accessible2;
             }*/
             g.setColor(GColor.CYAN);
@@ -756,8 +756,8 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                     text += "\n" + a.name();
                 }
             }
-            if (cell.getVaultFlag() > 0) {
-                text += "\nvaultFlag " + cell.getVaultFlag();
+            if (cell.vaultId > 0) {
+                text += "\nvaultFlag " + cell.vaultId;
             }
             g.drawJustifiedStringOnBackground(cell.getCenter(), Justify.CENTER, Justify.CENTER, text, GColor.TRANSLUSCENT_BLACK, 10, 3);
 
@@ -774,7 +774,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
             ZCell cell = it.next();
             if (cell.isCellTypeEmpty())
                 continue;
-            switch (cell.getEnvironment()) {
+            switch (cell.environment) {
                 case ZCell.ENV_BUILDING:
                     g.setColor(GColor.DARK_GRAY); break;
                 case ZCell.ENV_OUTDOORS:
@@ -861,7 +861,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
     public IVector2D getBoardCenter() {
         ZGame game = getGame();
         if (game.getCurrentCharacter() != null)
-            return game.getCurrentCharacter().getCharacter().getRect().getCenter();//game.board.getZone(game.getCurrentCharacter().getOccupiedZone()).getCenter();
+            return game.getCurrentCharacter().getCharacter().getRect().getCenter();//game.getBoard().getZone(game.getCurrentCharacter().getOccupiedZone()).getCenter();
         List<ZCharacter> chars = getBoard().getAllCharacters();
         if (chars.size() == 0)
             return new GRectangle(getBoard()).getCenter();
@@ -1004,7 +1004,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
     public void draw(APGraphics g, int mouseX, int mouseY) {
         //log.debug("mouseX=" + mouseX + " mouseY=" + mouseY);
         UIZombicide game = getGame();
-        if (game == null || getBoard() == null) {
+        if (game == null || getBoard() == null || getGame().getQuestInitialized() == false) {
             drawNoBoard(g);
             return;
         }
@@ -1116,7 +1116,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
             case PICK_CHARACTER: {
                 //g.setColor(GColor.YELLOW);
                 //for (ZActor a : (List<ZActor>)game.getOptions()) {
-                //    a.getRect(board).drawOutlined(g, 1);
+                //    a.getRect(getBoard()).drawOutlined(g, 1);
                 //}
                 if (game.getOptions().contains(highlightedActor)) {
                     highlightedResult = highlightedActor;
@@ -1131,9 +1131,9 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
                 } else if (cellPos != null) {
                     ZCell cell = getBoard().getCell(cellPos);
                     for (int i = 0; i < game.getOptions().size(); i++) {
-                        if (cell.getZoneIndex() == (Integer)game.getOptions().get(i)) {
+                        if (cell.zoneIndex == (Integer)game.getOptions().get(i)) {
                             highlightedCell = cellPos;
-                            highlightedResult = cell.getZoneIndex();
+                            highlightedResult = cell.zoneIndex;
                             break;
                         }
                     }
@@ -1156,7 +1156,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
         if (highlightedCell != null) {
             ZCell cell = getBoard().getCell(highlightedCell);
             g.setColor(GColor.RED.withAlpha(32));
-            drawZoneOutline(g, getBoard(), cell.getZoneIndex());
+            drawZoneOutline(g, getBoard(), cell.zoneIndex);
         }
 
         g.pushMatrix();

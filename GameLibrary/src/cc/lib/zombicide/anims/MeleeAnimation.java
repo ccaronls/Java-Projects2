@@ -30,7 +30,7 @@ public class MeleeAnimation extends ZActorAnimation {
     }
 
     @Override
-    protected boolean hidesActor() {
+    public boolean hidesActor() {
         return false;
     }
 }

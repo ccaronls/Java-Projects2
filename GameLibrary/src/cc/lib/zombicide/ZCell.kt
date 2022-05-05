@@ -1,224 +1,176 @@
-package cc.lib.zombicide;
+package cc.lib.zombicide
 
-import java.util.ArrayList;
-import java.util.List;
+import cc.lib.game.GRectangle
+import cc.lib.game.IRectangle
+import cc.lib.game.Utils
+import cc.lib.utils.Reflector
+import cc.lib.zombicide.ZCellQuadrant
+import cc.lib.zombicide.ZCellQuadrant.Companion.valuesForRender
+import cc.lib.zombicide.ZDir
+import java.util.*
 
-import cc.lib.game.GRectangle;
-import cc.lib.game.IRectangle;
-import cc.lib.game.Utils;
-import cc.lib.utils.Reflector;
+class ZCell internal constructor(private val x: Float, private val y: Float) : Reflector<ZCell>(), IRectangle {
+    companion object {
+        const val ENV_OUTDOORS = 0
+        const val ENV_BUILDING = 1
+        const val ENV_VAULT = 2
+        const val ENV_TOWER = 4
 
-public class ZCell extends Reflector<ZCell> implements IRectangle {
-
-    public final static int ENV_OUTDOORS=0;
-    public final static int ENV_BUILDING=1;
-    public final static int ENV_VAULT=2;
-    public final static int ENV_TOWER=3;
-
-    static {
-        addAllFields(ZCell.class);
-
-        Utils.assertTrue(ZCellType.values().length < 32, "Bit flag can only handle 32 values");
-    }
-
-    private ZWallFlag[] walls = { ZWallFlag.NONE, ZWallFlag.NONE, ZWallFlag.NONE, ZWallFlag.NONE, ZWallFlag.WALL, ZWallFlag.WALL };
-
-    int environment=ENV_OUTDOORS; // 0 == outdoors, 1 == building, 2 == vault
-    int zoneIndex;
-    int vaultFlag;
-    private final float x, y;
-    private int cellFlag = 0;
-    boolean discovered=false;
-    float scale = 1;
-    private ZActor [] occupied = new ZActor[ZCellQuadrant.values().length];
-    ZSpawnArea [] spawns = new ZSpawnArea[2];
-    int numSpawns = 0;
-
-    public ZCell() {
-        this(-1,-1);
-    }
-
-    ZCell(float x, float y) {
-        this.x = x;
-        this.y = y;
-    }
-
-    @Override
-    public float X() {
-        return x;
-    }
-
-    @Override
-    public float Y() {
-        return y;
-    }
-
-    @Override
-    public float getWidth() {
-        return 1;
-    }
-
-    @Override
-    public float getHeight() {
-        return 1;
-    }
-
-    public int getEnvironment() {
-        return environment;
-    }
-
-    public int getVaultFlag() {
-        return vaultFlag;
-    }
-
-    public boolean isCellType(ZCellType ... types) {
-        for (ZCellType t : types) {
-            if ((1 << t.ordinal() & cellFlag) != 0)
-                return true;
+        init {
+            addAllFields(ZCell::class.java)
+            Utils.assertTrue(ZCellType.values().size < 32, "Bit flag can only handle 32 values")
         }
-        return false;
     }
 
-    public ZCellType getVaultType() {
-        if (isCellType(ZCellType.VAULT_DOOR_GOLD))
-            return ZCellType.VAULT_DOOR_GOLD;
-        if (isCellType(ZCellType.VAULT_DOOR_VIOLET))
-            return ZCellType.VAULT_DOOR_VIOLET;
-        return ZCellType.NONE;
+    private val walls = arrayOf(ZWallFlag.NONE, ZWallFlag.NONE, ZWallFlag.NONE, ZWallFlag.NONE, ZWallFlag.WALL, ZWallFlag.WALL)
+    @JvmField
+    var environment = ENV_OUTDOORS // 0 == outdoors, 1 == building, 2 == vault
+    @JvmField
+    var zoneIndex = 0
+    @JvmField
+    var vaultId = 0
+    private var cellFlag = 0
+    @JvmField
+    var discovered = false
+    @JvmField
+    var scale = 1f
+    private val occupied = arrayOfNulls<ZActor<*>?>(ZCellQuadrant.values().size)
+    @JvmField
+    var spawns = arrayOfNulls<ZSpawnArea>(2)
+    @JvmField
+    var numSpawns = 0
+
+    constructor() : this(-1f, -1f) {}
+
+    override fun X(): Float {
+        return x
     }
 
-    public boolean isCellTypeEmpty() {
-        return cellFlag == 0;
+    override fun Y(): Float {
+        return y
     }
 
-    public float getScale() {
-        return scale;
+    override fun getWidth(): Float {
+        return 1f
     }
 
-    public void setCellType(ZCellType type, boolean enabled) {
-        if (enabled) {
-            cellFlag |= 1<<type.ordinal();
+    override fun getHeight(): Float {
+        return 1f
+    }
+
+    fun isCellType(vararg types: ZCellType): Boolean {
+        for (t in types) {
+            if (1 shl t.ordinal and cellFlag != 0) return true
+        }
+        return false
+    }
+
+    val vaultType: ZCellType
+        get() {
+            if (isCellType(ZCellType.VAULT_DOOR_GOLD)) return ZCellType.VAULT_DOOR_GOLD
+            return if (isCellType(ZCellType.VAULT_DOOR_VIOLET)) ZCellType.VAULT_DOOR_VIOLET else ZCellType.NONE
+        }
+
+    val isVault: Boolean
+        get() = environment == ENV_VAULT
+
+    val isCellTypeEmpty: Boolean
+        get() = cellFlag == 0
+
+    fun setCellType(type: ZCellType, enabled: Boolean) {
+        cellFlag = if (enabled) {
+            cellFlag or (1 shl type.ordinal)
         } else {
-            cellFlag &= ~(1<<type.ordinal());
+            cellFlag and (1 shl type.ordinal).inv()
         }
     }
 
-    public void clearCellTypes(ZCellType ... types) {
-        for (ZCellType t : types) {
-            cellFlag &= ~(1 << t.ordinal());
+    fun clearCellTypes(vararg types: ZCellType) {
+        for (t in types) {
+            cellFlag = cellFlag and (1 shl t.ordinal).inv()
         }
     }
 
-    public ZActor getOccupant(ZCellQuadrant quadrant) {
-        return occupied[quadrant.ordinal()];
+    fun getOccupant(quadrant: ZCellQuadrant): ZActor<*>? {
+        return occupied[quadrant.ordinal]
     }
 
-    ZActor setQuadrant(ZActor actor, ZCellQuadrant quadrant) {
-        ZActor previous = getOccupant(quadrant);
-        occupied[quadrant.ordinal()] = actor;
-        return previous;
+    fun setQuadrant(actor: ZActor<*>?, quadrant: ZCellQuadrant) {
+        occupied[quadrant.ordinal] = actor
     }
 
-    public Iterable<ZActor> getOccupant() {
-        List<ZActor> occupants = new ArrayList<>();
-        for (ZCellQuadrant q : ZCellQuadrant.valuesForRender()) {
-            occupants.add(occupied[q.ordinal()]);
+    val occupant: Iterable<ZActor<*>>
+        get() {
+            return valuesForRender().map { occupied[it.ordinal] }.filterNotNull()
         }
-        return occupants;
-    }
 
-    ZCellQuadrant findLowestPriorityOccupant() {
-        ZCellQuadrant lowest = null;
-        int minPriority = 100;
-        for (int i=0; i<occupied.length; i++) {
-            if (occupied[i] == null)
-                return ZCellQuadrant.values()[i];
-            int pri = occupied[i].getPriority();
-            if (pri < minPriority || lowest == null) {
-                minPriority = pri;
-                lowest = ZCellQuadrant.values()[i];
+    fun findLowestPriorityOccupant(): ZCellQuadrant {
+        var min = ZCharacter.PRIORITY
+        var best: ZCellQuadrant? = null
+        for (q in ZCellQuadrant.values()) {
+            with (occupied[q.ordinal]) {
+                if (this == null)
+                    return q
+                if (priority < min || best == null) {
+                    min = priority
+                    best = q
+                }
             }
         }
-        return lowest;
+        return best!!
     }
 
-    boolean isInside() {
-        return environment==ENV_BUILDING;
+    val isInside: Boolean
+        get() = environment == ENV_BUILDING
+
+    fun getWallFlag(dir: ZDir): ZWallFlag {
+        return walls[dir.ordinal]
     }
 
-    public ZWallFlag getWallFlag(ZDir dir) {
-        return walls[dir.ordinal()];
+    fun setWallFlag(dir: ZDir, flag: ZWallFlag) {
+        walls[dir.ordinal] = flag
     }
 
-    public void setWallFlag(ZDir dir, ZWallFlag flag) {
-        walls[dir.ordinal()] = flag;
-    }
-
-    public GRectangle getWallRect(ZDir dir) {
-        switch (dir) {
-            case NORTH:
-                return new GRectangle(getTopLeft(), getTopRight());
-            case SOUTH:
-                return new GRectangle(getBottomLeft(), getBottomRight());
-            case EAST:
-                return new GRectangle(getTopRight(), getBottomRight());
-            case WEST:
-                return new GRectangle(getTopLeft(), getBottomLeft());
+    fun getWallRect(dir: ZDir): GRectangle {
+        when (dir) {
+            ZDir.NORTH -> return GRectangle(topLeft, topRight)
+            ZDir.SOUTH -> return GRectangle(bottomLeft, bottomRight)
+            ZDir.EAST -> return GRectangle(topRight, bottomRight)
+            ZDir.WEST -> return GRectangle(topLeft, bottomLeft)
         }
-        return new GRectangle(this).scaledBy(.5f);
+        return GRectangle(this).scaledBy(.5f)
     }
 
-    public int getZoneIndex() {
-        return zoneIndex;
-    }
-
-    public GRectangle getQuadrant(ZCellQuadrant quadrant) {
-        switch (quadrant) {
-            case UPPERLEFT:
-                return new GRectangle(getTopLeft(), getCenter());
-            case LOWERRIGHT:
-                return new GRectangle(getCenter(), getBottomRight());
-            case UPPERRIGHT:
-                return new GRectangle(getCenter(), getTopRight());
-            case LOWERLEFT:
-                return new GRectangle(getCenter(), getBottomLeft());
-            case CENTER:
-                return new GRectangle(X()+ getWidth()/4, Y()+ getHeight()/4, getWidth()/2, getHeight()/2);
-            case TOP:
-                return new GRectangle(X()+ getWidth()/4, Y(), getWidth()/2, getHeight()/2);
-            case LEFT:
-                return new GRectangle(X(), Y()+ getHeight()/4, getWidth()/2, getHeight()/2);
-            case RIGHT:
-                return new GRectangle(X()+ getWidth()/2, Y()+ getHeight()/4, getWidth()/2, getHeight()/2);
-            case BOTTOM:
-                return new GRectangle(X()+ getWidth()/4, Y()+ getHeight()/2, getWidth()/2, getHeight()/2);
+    fun getQuadrant(quadrant: ZCellQuadrant): GRectangle {
+        when (quadrant) {
+            ZCellQuadrant.UPPERLEFT -> return GRectangle(topLeft, center)
+            ZCellQuadrant.LOWERRIGHT -> return GRectangle(center, bottomRight)
+            ZCellQuadrant.UPPERRIGHT -> return GRectangle(center, topRight)
+            ZCellQuadrant.LOWERLEFT -> return GRectangle(center, bottomLeft)
+            ZCellQuadrant.CENTER -> return GRectangle(X() + width / 4, Y() + height / 4, width / 2, height / 2)
+            ZCellQuadrant.TOP -> return GRectangle(X() + width / 4, Y(), width / 2, height / 2)
+            ZCellQuadrant.LEFT -> return GRectangle(X(), Y() + height / 4, width / 2, height / 2)
+            ZCellQuadrant.RIGHT -> return GRectangle(X() + width / 2, Y() + height / 4, width / 2, height / 2)
+            ZCellQuadrant.BOTTOM -> return GRectangle(X() + width / 4, Y() + height / 2, width / 2, height / 2)
         }
-        return null;
     }
 
-    public boolean isFull() {
-        for (ZActor a : occupied)
-            if (a==null)
-                return false;
-        return true;
-    }
+    val isFull: Boolean
+        get() {
+            for (a in occupied) if (a == null) return false
+            return true
+        }
+    val spawnAreas: List<ZSpawnArea>
+        get() = spawns.toList().filterNotNull()
 
-    public int getNumSpawns() {
-        return numSpawns;
-    }
-
-    public final List<ZSpawnArea> getSpawnAreas() {
-        return Utils.toList(0, numSpawns, spawns);
-    }
-
-    void removeSpawn(ZDir dir) {
-        Utils.assertTrue(numSpawns > 0);
-        if (spawns[0].getDir() == dir) {
-            spawns[0] = spawns[--numSpawns];
+    fun removeSpawn(dir: ZDir) {
+        Utils.assertTrue(numSpawns > 0)
+        if (spawns[0]!!.dir === dir) {
+            spawns[0] = spawns[--numSpawns]
         } else {
-            Utils.assertTrue(numSpawns > 1);
-            Utils.assertTrue(spawns[1].getDir() == dir);
-            spawns[--numSpawns] = null;
+            Utils.assertTrue(numSpawns > 1)
+            Utils.assertTrue(spawns[1]!!.dir === dir)
+            spawns[--numSpawns] = null
         }
     }
 }

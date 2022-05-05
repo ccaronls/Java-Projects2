@@ -48,8 +48,8 @@ public class ZQuestInCaligineAbditus extends ZQuestTheCommandry {
         return new Table(getName())
                 .addRow(new Table().setNoBorder()
                         .addRow("1.", "Reach EXIT will all survivors.")
-                        .addRow("2.", "Unlock the Green Door", game.getBoard().getDoor(greenDoor) != ZWallFlag.LOCKED)
-                        .addRow("3.", "Unlock the Blue Door", game.getBoard().getDoor(blueDoor) != ZWallFlag.LOCKED)
+                        .addRow("2.", "Unlock the Green Door", game.board.getDoor(greenDoor) != ZWallFlag.LOCKED)
+                        .addRow("3.", "Unlock the Blue Door", game.board.getDoor(blueDoor) != ZWallFlag.LOCKED)
                 );
     }
 }

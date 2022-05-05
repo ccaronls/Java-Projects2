@@ -5,6 +5,7 @@ import cc.lib.game.Utils
 
 @Keep
 enum class ZCellQuadrant {
+    // the ordering is how actors are added to a cell
     UPPERLEFT,
     LOWERRIGHT,
     UPPERRIGHT,

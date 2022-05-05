@@ -55,12 +55,12 @@ public class ZQuestTheBlackBook extends ZQuest {
         ZCell cell = grid.get(pos);
         switch (cmd) {
             case "blackbook":
-                blackBookZone = cell.getZoneIndex();
+                blackBookZone = cell.zoneIndex;
                 cell.setCellType(ZCellType.OBJECTIVE_BLACK, true);
                 break;
 
             case "green":
-                greenSpawnZone = cell.getZoneIndex();
+                greenSpawnZone = cell.zoneIndex;
                 break;
 
             // these are locked until the theor respective objectives found
@@ -86,8 +86,8 @@ public class ZQuestTheBlackBook extends ZQuest {
         }
         // do this after the above so it does not get mixed in with other objectives. Effect would be player could never access
         getRedObjectives().add(blackBookZone);
-        game.getBoard().setDoorLocked(blueDoor);
-        game.getBoard().setDoorLocked(greenDoor);
+        game.board.setDoorLocked(blueDoor);
+        game.board.setDoorLocked(greenDoor);
     }
 
     @Override
@@ -105,7 +105,7 @@ public class ZQuestTheBlackBook extends ZQuest {
         if (c.getOccupiedZone() == greenObjZone) {
             game.addLogMessage(c.name() + " has unlocked the Green Door. A New Spawn zone has appeared!");
             game.unlockDoor(greenDoor);
-            game.getBoard().setSpawnZone(greenSpawnZone, ZIcon.SPAWN_GREEN, false, false, true);
+            game.board.setSpawnZone(greenSpawnZone, ZIcon.SPAWN_GREEN, false, false, true);
             game.spawnZombies(greenSpawnZone);
         }
     }
@@ -139,8 +139,8 @@ public class ZQuestTheBlackBook extends ZQuest {
 
         return new Table(getName())
                 .addRow(new Table().setNoBorder()
-                        .addRow("1.", "Unlock the GREEN Door. GREEN Key hidden among the RED objectives.", "", game.getBoard().getDoor(greenDoor) != ZWallFlag.LOCKED)
-                        .addRow("2.", "Unlock the BLUE Door. BLUE Key hidden among the RED objectives.", "", game.getBoard().getDoor(blueDoor) != ZWallFlag.LOCKED)
+                        .addRow("1.", "Unlock the GREEN Door. GREEN Key hidden among the RED objectives.", "", game.board.getDoor(greenDoor) != ZWallFlag.LOCKED)
+                        .addRow("2.", "Unlock the BLUE Door. BLUE Key hidden among the RED objectives.", "", game.board.getDoor(blueDoor) != ZWallFlag.LOCKED)
                         .addRow("3.", "Steal the Black Book in central building.", "", blackBookTaken)
                         .addRow("4.", "Claim all Vault artifacts.", String.format("%d of %d", numVaultItemsTaken, allVaultItems), numVaultItemsTaken == allVaultItems)
                         .addRow("5.", "Get to RED Danger level with at least one survivor.", lvl, lvl.getDifficultyColor() == ZColor.RED)

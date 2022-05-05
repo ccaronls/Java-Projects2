@@ -1,10 +1,11 @@
 package cc.lib.zombicide.quests;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import cc.lib.game.GColor;
 import cc.lib.game.Utils;
 import cc.lib.utils.Grid;
 import cc.lib.utils.Table;
@@ -12,7 +13,6 @@ import cc.lib.zombicide.ZBoard;
 import cc.lib.zombicide.ZCell;
 import cc.lib.zombicide.ZCellType;
 import cc.lib.zombicide.ZCharacter;
-import cc.lib.zombicide.ZDir;
 import cc.lib.zombicide.ZDoor;
 import cc.lib.zombicide.ZEquipment;
 import cc.lib.zombicide.ZEquipmentType;
@@ -87,7 +87,6 @@ public class ZQuestTrialByFire extends ZQuest {
         ZCell cell = grid.get(pos);
         switch (cmd) {
             case "lvd1":
-                lockedVault = new ZDoor(pos, ZDir.DESCEND, GColor.MAGENTA);
                 setVaultDoor(cell, grid, pos,  ZCellType.VAULT_DOOR_VIOLET, 1, ZWallFlag.LOCKED);
                 break;
 
@@ -98,6 +97,7 @@ public class ZQuestTrialByFire extends ZQuest {
 
     @Override
     public void init(ZGame game) {
+        lockedVault = game.board.findVault(1);
         blueObjZone = Utils.randItem(getRedObjectives());
     }
 
@@ -115,7 +115,7 @@ public class ZQuestTrialByFire extends ZQuest {
             game.giftEquipment(c, blueObjTreasure);
         }
         super.processObjective(game, c);
-        if (getRedObjectives().size() == 0 && game.getBoard().getDoor(lockedVault) == ZWallFlag.LOCKED) {
+        if (getRedObjectives().size() == 0 && game.board.getDoor(lockedVault) == ZWallFlag.LOCKED) {
             game.addLogMessage(c.name() + " has unlocked the Violet Door");
             game.unlockDoor(lockedVault);
         }
@@ -143,7 +143,7 @@ public class ZQuestTrialByFire extends ZQuest {
     }
 
     @Override
-    public void processLootDeck(List<ZEquipment> items) {
+    public void processLootDeck(@NotNull List<? extends ZEquipment<?>> items) {
         Utils.filterInPlace(items, item -> item.getType() != ZItemType.DRAGON_BILE);
     }
 }

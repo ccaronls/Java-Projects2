@@ -24,8 +24,8 @@ public class UIZUser extends ZUser {
     }
 
     @Override
-    public ZPlayerName chooseCharacter(List<ZPlayerName> characters) {
-        return UIZombicide.getInstance().pickCharacter("Pick character to play", characters);
+    public ZPlayerName chooseCharacter(List<? extends ZPlayerName> characters) {
+        return UIZombicide.getInstance().pickCharacter("Pick character to play", (List)characters);
     }
 
     @Override
@@ -34,7 +34,7 @@ public class UIZUser extends ZUser {
     }
 
     @Override
-    public ZSkill chooseNewSkill(ZPlayerName cur, List<ZSkill> list) {
+    public ZSkill chooseNewSkill(ZPlayerName cur, List<? extends ZSkill> list) {
         Table table = new Table(new Table.Model() {
             @Override
             public int getMaxCharsPerLine() {
@@ -42,25 +42,25 @@ public class UIZUser extends ZUser {
             }
         });
         for (ZSkill t : list) {
-            table.addColumn(Utils.toPrettyString(t.name()), t.description);
+            table.addColumn(Utils.toPrettyString(t.name()), t.getDescription());
         }
         UIZombicide.getInstance().boardRenderer.setOverlay(table);
         return UIZombicide.getInstance().pickMenu(cur,cur.name() + " Choose New Skill", ZSkill.class, list);
     }
 
     @Override
-    public ZEquipSlot chooseSlotToOrganize(ZPlayerName cur, List<ZEquipSlot> slots) {
+    public ZEquipSlot chooseSlotToOrganize(ZPlayerName cur, List<? extends ZEquipSlot> slots) {
         return UIZombicide.getInstance().pickMenu(cur,cur.name() + " Choose Slot to Organize", ZEquipSlot.class, slots);
     }
 
     @Override
-    public Integer chooseEquipment(ZPlayerName cur, List<ZEquipment> list) {
+    public Integer chooseEquipment(ZPlayerName cur, List<? extends ZEquipment<?>> list) {
         UIZombicide.getInstance().showEquipmentOverlay(cur, list);
-        return indexOrNull(UIZombicide.getInstance().pickMenu(cur,cur.name() + " Choose Equipment to Organize", ZEquipment.class, list), list);
+        return indexOrNull(UIZombicide.getInstance().pickMenu(cur,cur.name() + " Choose Equipment to Organize", ZEquipment.class, list), (List)list);
     }
 
     @Override
-    public ZEquipSlot chooseSlotForEquip(ZPlayerName cur, List<ZEquipSlot> equipableSlots) {
+    public ZEquipSlot chooseSlotForEquip(ZPlayerName cur, List<? extends ZEquipSlot> equipableSlots) {
         return UIZombicide.getInstance().pickMenu(cur,cur.name() + " Choose Slot to Equip Item", ZEquipSlot.class, equipableSlots);
     }
 
@@ -80,8 +80,8 @@ public class UIZUser extends ZUser {
     }
 
     @Override
-    public ZPlayerName chooseTradeCharacter(ZPlayerName cur, List<ZPlayerName> list) {
-        return UIZombicide.getInstance().pickCharacter(cur.name() + " Choose Character for Trade", list);
+    public ZPlayerName chooseTradeCharacter(ZPlayerName cur, List<? extends ZPlayerName> list) {
+        return UIZombicide.getInstance().pickCharacter(cur.name() + " Choose Character for Trade", (List)list);
     }
 
     @Override
@@ -90,25 +90,25 @@ public class UIZUser extends ZUser {
     }
 
     @Override
-    public Integer chooseItemToPickup(ZPlayerName cur, List<ZEquipment> list) {
+    public Integer chooseItemToPickup(ZPlayerName cur, List<? extends ZEquipment<?>> list) {
         UIZombicide.getInstance().showEquipmentOverlay(cur, list);
-        return indexOrNull(UIZombicide.getInstance().pickMenu(cur, "Choose Item to Pickup", ZEquipment.class, list), list);
+        return indexOrNull(UIZombicide.getInstance().pickMenu(cur, "Choose Item to Pickup", ZEquipment.class, list), (List)list);
     }
 
     @Override
-    public Integer chooseItemToDrop(ZPlayerName cur, List<ZEquipment> list) {
+    public Integer chooseItemToDrop(ZPlayerName cur, List<? extends ZEquipment<?>> list) {
         UIZombicide.getInstance().showEquipmentOverlay(cur, list);
-        return indexOrNull(UIZombicide.getInstance().pickMenu(cur, "Choose Item to Drop", ZEquipment.class, list), list);
+        return indexOrNull(UIZombicide.getInstance().pickMenu(cur, "Choose Item to Drop", ZEquipment.class, list), (List)list);
     }
 
     @Override
-    public Integer chooseEquipmentToThrow(ZPlayerName cur, List<ZEquipment> list) {
+    public Integer chooseEquipmentToThrow(ZPlayerName cur, List<? extends ZEquipment<?>> list) {
         UIZombicide.getInstance().showEquipmentOverlay(cur, list);
-        return indexOrNull(UIZombicide.getInstance().pickMenu(cur,  "Choose Item to Throw", ZEquipment.class, list), list);
+        return indexOrNull(UIZombicide.getInstance().pickMenu(cur,  "Choose Item to Throw", ZEquipment.class, list), (List)list);
     }
 
     @Override
-    public Integer chooseZoneToThrowEquipment(ZPlayerName cur, ZEquipment toThrow, List<Integer> zones) {
+    public Integer chooseZoneToThrowEquipment(ZPlayerName cur, ZEquipment<?> toThrow, List<Integer> zones) {
         UIZombicide.getInstance().showEquipmentOverlay(cur, Utils.toList(toThrow));
         return UIZombicide.getInstance().pickZone("Choose Zone to throw the " + toThrow, zones);
     }
@@ -125,14 +125,14 @@ public class UIZUser extends ZUser {
     }
 
     @Override
-    public ZPlayerName chooseCharacterForSpell(ZPlayerName cur, ZSpell spell, List<ZPlayerName> targets) {
+    public ZPlayerName chooseCharacterForSpell(ZPlayerName cur, ZSpell spell, List<? extends ZPlayerName> targets) {
         UIZombicide.getInstance().showEquipmentOverlay(cur, Utils.toList(spell));
-        return UIZombicide.getInstance().pickCharacter("Choose character to enchant with " + spell.getType(), targets);
+        return UIZombicide.getInstance().pickCharacter("Choose character to enchant with " + spell.getType(), (List)targets);
     }
 
     @Override
-    public ZPlayerName chooseCharacterToBequeathMove(ZPlayerName cur, List<ZPlayerName> targets) {
-        return UIZombicide.getInstance().pickCharacter("Choose character to bequeath an extra action", targets);
+    public ZPlayerName chooseCharacterToBequeathMove(ZPlayerName cur, List<? extends ZPlayerName> targets) {
+        return UIZombicide.getInstance().pickCharacter("Choose character to bequeath an extra action", (List)targets);
     }
 
     @Override
@@ -151,12 +151,12 @@ public class UIZUser extends ZUser {
     }
 
     @Override
-    public ZEquipmentClass chooseEquipmentClass(ZPlayerName playerName, List<ZEquipmentClass> classes) {
+    public ZEquipmentClass chooseEquipmentClass(ZPlayerName playerName, List<? extends ZEquipmentClass> classes) {
         return UIZombicide.getInstance().pickMenu(playerName, "Choose Equipment Class", ZEquipmentClass.class, classes);
     }
 
     @Override
-    public ZEquipmentType chooseStartingEquipment(ZPlayerName playerName, List<ZEquipmentType> list) {
+    public ZEquipmentType chooseStartingEquipment(ZPlayerName playerName, List<? extends ZEquipmentType> list) {
         Table table = new Table().setNoBorder();
         for (ZEquipmentType t : list) {
             table.addColumnNoHeaderVarArg(t.create().getCardInfo(playerName.getCharacter(), UIZombicide.getInstance()));

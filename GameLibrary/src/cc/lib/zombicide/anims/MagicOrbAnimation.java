@@ -71,7 +71,7 @@ public class MagicOrbAnimation extends ZActorAnimation {
     }
 
     @Override
-    protected boolean hidesActor() {
+    public boolean hidesActor() {
         return false;
     }
 }

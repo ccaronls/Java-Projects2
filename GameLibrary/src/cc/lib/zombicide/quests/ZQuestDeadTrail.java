@@ -10,7 +10,6 @@ import cc.lib.zombicide.ZBoard;
 import cc.lib.zombicide.ZCell;
 import cc.lib.zombicide.ZCellType;
 import cc.lib.zombicide.ZCharacter;
-import cc.lib.zombicide.ZDir;
 import cc.lib.zombicide.ZDoor;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZQuest;
@@ -68,19 +67,33 @@ public class ZQuestDeadTrail extends ZQuest {
         switch (cmd) {
             case "violet_vd1":
                 super.loadCmd(grid, pos, "vd1");
-                violetVault1 = new ZDoor(pos, ZDir.DESCEND, GColor.MAGENTA);
+                //violetVault1 = new ZDoor(pos, ZDir.DESCEND, GColor.MAGENTA);
                 break;
             case "violet_vd3":
                 super.loadCmd(grid, pos, "vd3");
-                violetVault2 = new ZDoor(pos, ZDir.DESCEND, GColor.MAGENTA);
+                //violetVault2 = new ZDoor(pos, ZDir.DESCEND, GColor.MAGENTA);
                 break;
             case "gold_vd2":
                 super.loadCmd(grid, pos, "gvd2");
-                goldVault = new ZDoor(pos, ZDir.DESCEND, GColor.GOLD);
+                //goldVault = new ZDoor(pos, ZDir.DESCEND, GColor.GOLD);
                 break;
             default:
                 super.loadCmd(grid, pos, cmd);
         }
+    }
+
+    @Override
+    public void init(ZGame game) {
+        violetVault1 = game.board.findVault(1);
+        violetVault2 = game.board.findVault(3);
+        goldVault = game.board.findVault(2);
+        while (greenKeyZone == blueKeyZone) {
+            greenKeyZone = Utils.randItem(getRedObjectives());
+            blueKeyZone = Utils.randItem(getRedObjectives());
+        }
+        game.lockDoor(violetVault1);
+        game.lockDoor(violetVault2);
+        game.lockDoor(goldVault);
     }
 
     @Override
@@ -113,21 +126,10 @@ public class ZQuestDeadTrail extends ZQuest {
 
     @Override
     public String getQuestFailedReason(ZGame game) {
-        if (Utils.count(game.getBoard().getAllCharacters(), object -> object.isDead()) > 0) {
+        if (Utils.count(game.board.getAllCharacters(), object -> object.isDead()) > 0) {
             return "Not all players survived";
         }
         return super.getQuestFailedReason(game);
-    }
-
-    @Override
-    public void init(ZGame game) {
-        while (greenKeyZone == blueKeyZone) {
-            greenKeyZone = Utils.randItem(getRedObjectives());
-            blueKeyZone = Utils.randItem(getRedObjectives());
-        }
-        game.lockDoor(violetVault1);
-        game.lockDoor(violetVault2);
-        game.lockDoor(goldVault);
     }
 
     @Override
@@ -149,9 +151,9 @@ public class ZQuestDeadTrail extends ZQuest {
         }
 
         if (blueKeyZone >= 0) {
-            ZZone z = game.getBoard().getZone(blueKeyZone);
+            ZZone z = game.board.getZone(blueKeyZone);
             for (Grid.Pos p : z.getCells()) {
-                ZCell cell = game.getBoard().getCell(p);
+                ZCell cell = game.board.getCell(p);
                 if (cell.isCellType(ZCellType.OBJECTIVE_RED)) {
                     GRectangle redX = new GRectangle(cell).scaledBy(.2f, .2f);
                     g.setColor(GColor.BLUE);
@@ -162,9 +164,9 @@ public class ZQuestDeadTrail extends ZQuest {
         }
 
         if (greenKeyZone >= 0) {
-            ZZone z = game.getBoard().getZone(greenKeyZone);
+            ZZone z = game.board.getZone(greenKeyZone);
             for (Grid.Pos p : z.getCells()) {
-                ZCell cell = game.getBoard().getCell(p);
+                ZCell cell = game.board.getCell(p);
                 if (cell.isCellType(ZCellType.OBJECTIVE_RED)) {
                     GRectangle redX = new GRectangle(cell).scaledBy(.2f, .2f);
                     g.setColor(GColor.GREEN);

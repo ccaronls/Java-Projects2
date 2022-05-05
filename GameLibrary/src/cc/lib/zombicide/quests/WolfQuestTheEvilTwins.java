@@ -134,7 +134,7 @@ public class WolfQuestTheEvilTwins extends ZQuest {
 
     @Override
     public String getQuestFailedReason(ZGame game) {
-        if (Utils.count(game.getBoard().getAllCharacters(), object -> object.isDead()) > 0) {
+        if (Utils.count(game.board.getAllCharacters(), object -> object.isDead()) > 0) {
             return "Not all players survived.";
         }
         return super.getQuestFailedReason(game);

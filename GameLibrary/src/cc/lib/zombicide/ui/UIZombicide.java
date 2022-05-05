@@ -1,5 +1,7 @@
 package cc.lib.zombicide.ui;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -199,7 +201,7 @@ public abstract class UIZombicide extends ZGameMP {
         }
         ZCharacter ch = waitForUser(ZCharacter.class);
         if (ch != null) {
-            return ch.getPlayerName();
+            return ch.getType();
         }
         return null;
     }
@@ -295,7 +297,7 @@ public abstract class UIZombicide extends ZGameMP {
 
 
     @Override
-    protected void onEquipmentThrown(ZPlayerName actor, ZIcon icon, int zone) {
+    public void onEquipmentThrown(ZPlayerName actor, ZIcon icon, int zone) {
         super.onEquipmentThrown(actor, icon, zone);
         Lock animLock = new Lock(1);
         if (actor.getCharacter().getOccupiedZone() != zone) {
@@ -456,7 +458,7 @@ public abstract class UIZombicide extends ZGameMP {
     }
 
     @Override
-    protected void onEquipmentFound(ZPlayerName c, List<ZEquipment> equipment) {
+    protected void onEquipmentFound(@NotNull ZPlayerName c, @NotNull List<? extends ZEquipment<?>> equipment) {
         super.onEquipmentFound(c, equipment);
         if (getThisUser().getPlayers().contains(c)) {
             Table info = new Table().setModel(new Table.Model() {
@@ -541,7 +543,7 @@ public abstract class UIZombicide extends ZGameMP {
     }
 
     @Override
-    protected void onRollSixApplied(ZPlayerName c, ZSkill skill) {
+    public void onRollSixApplied(ZPlayerName c, ZSkill skill) {
         super.onRollSixApplied(c, skill);
         boardRenderer.addPostActor(new HoverMessage(boardRenderer, String.format("Roll Six!! %s", skill.getLabel()), c.getCharacter()));
     }
@@ -877,7 +879,7 @@ public abstract class UIZombicide extends ZGameMP {
     }
 
     @Override
-    protected void onZombiePath(ZZombie zombie, List<ZDir> path) {
+    protected void onZombiePath(@NotNull ZZombie zombie, @NotNull List<? extends ZDir> path) {
         super.onZombiePath(zombie, path);
         /*
         final Vector2D start = zombie.getRect().getCenter();
@@ -906,7 +908,7 @@ public abstract class UIZombicide extends ZGameMP {
     }
 
     @Override
-    protected void onCharacterHealed(ZPlayerName c, int amt) {
+    public void onCharacterHealed(ZPlayerName c, int amt) {
         super.onCharacterHealed(c, amt);
         boardRenderer.addPostActor(new HoverMessage(boardRenderer, String.format("+%d wounds healed",amt), c.getCharacter()));
     }
@@ -925,13 +927,13 @@ public abstract class UIZombicide extends ZGameMP {
     @Override
     public void onIronRain(ZPlayerName c, int targetZone) {
         super.onIronRain(c, targetZone);
-        boardRenderer.addPostActor(new HoverMessage(boardRenderer, "LET IT RAIN!!", getBoard().getZone(targetZone).getCenter()));
+        boardRenderer.addPostActor(new HoverMessage(boardRenderer, "LET IT RAIN!!", board.getZone(targetZone).getCenter()));
     }
 
     @Override
     protected void onDoorUnlocked(ZDoor door) {
         super.onDoorUnlocked(door);
-        boardRenderer.addPostActor(new HoverMessage(boardRenderer, "DOOR UNLOCKED", door.getRect(getBoard()).getCenter()));
+        boardRenderer.addPostActor(new HoverMessage(boardRenderer, "DOOR UNLOCKED", door.getRect(board).getCenter()));
     }
 
     @Override

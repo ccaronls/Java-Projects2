@@ -1,5 +1,7 @@
 package cc.lib.zombicide.p2p;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.List;
 
 import cc.lib.game.GRectangle;
@@ -130,7 +132,7 @@ public class ZGameMP extends ZGame {
     }
 
     @Override
-    protected void onEquipmentThrown(ZPlayerName c, ZIcon icon, int zone) {
+    public void onEquipmentThrown(ZPlayerName c, ZIcon icon, int zone) {
         if (server != null) {
             server.broadcastExecuteOnRemote(GAME_ID, c, icon, zone);
         }
@@ -151,7 +153,7 @@ public class ZGameMP extends ZGame {
     }
 
     @Override
-    protected void onEquipmentFound(ZPlayerName c, List<ZEquipment> equipment) {
+    protected void onEquipmentFound(@NotNull ZPlayerName c, @NotNull List<? extends ZEquipment<?>> equipment) {
         if (server != null) {
             server.broadcastExecuteOnRemote(GAME_ID, c, equipment);
         }
@@ -235,14 +237,14 @@ public class ZGameMP extends ZGame {
             server.broadcastExecuteOnRemote(GAME_ID, zoneIndex);
         }
     }
-
+/*
     @Override
     protected void onZombiePath(ZZombie zombie, List<ZDir> path) {
         //if (server != null) {
         //    server.broadcastExecuteOnRemote(GAME_ID, zombie, path);
        // }
     }
-
+*/
     @Override
     public void onIronRain(ZPlayerName c, int targetZone) {
         if (server != null) {
@@ -293,7 +295,7 @@ public class ZGameMP extends ZGame {
     }
 
     @Override
-    protected void onCharacterHealed(ZPlayerName c, int amt) {
+    public void onCharacterHealed(ZPlayerName c, int amt) {
         if (server != null) {
             server.broadcastExecuteOnRemote(GAME_ID, c, amt);
         }
@@ -307,7 +309,7 @@ public class ZGameMP extends ZGame {
     }
 
     @Override
-    protected void onRollSixApplied(ZPlayerName c, ZSkill skill) {
+    public void onRollSixApplied(ZPlayerName c, ZSkill skill) {
         if (server != null) {
             server.broadcastExecuteOnRemote(GAME_ID, c, skill);
         }

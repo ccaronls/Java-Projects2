@@ -72,7 +72,7 @@ public class WolfQuestTheAmbush extends ZQuest {
                 setSpawnArea(grid.get(pos), new ZSpawnArea(pos, ZIcon.SPAWN_RED, ZDir.EAST, true, false, false));
                 break;
             case "occupy":
-                occupyZones.add(grid.get(pos).getZoneIndex());
+                occupyZones.add(grid.get(pos).zoneIndex);
                 break;
             default:
                 super.loadCmd(grid, pos, cmd);
@@ -87,9 +87,9 @@ public class WolfQuestTheAmbush extends ZQuest {
 
     @Override
     public int getPercentComplete(ZGame game) {
-        ZCell blueCell = game.getBoard().getCell(blueSpawnPos);
+        ZCell blueCell = game.board.getCell(blueSpawnPos);
         int total = getNumStartObjectives() + occupyZones.size() + 1;
-        int found = getNumFoundObjectives() + getOccupiedZones(game).size() + (blueCell.getNumSpawns() > 0 ? 0 : 1);
+        int found = getNumFoundObjectives() + getOccupiedZones(game).size() + (blueCell.numSpawns > 0 ? 0 : 1);
         return found * 100 / total;
     }
 
@@ -135,12 +135,12 @@ public class WolfQuestTheAmbush extends ZQuest {
     @Override
     public void drawQuest(UIZombicide game, AGraphics g) {
         for (int zIdx : occupyZones) {
-            ZZone zone = game.getBoard().getZone(zIdx);
+            ZZone zone = game.board.getZone(zIdx);
             GRectangle rect = zone.getRectangle().scaledBy(.25f, .25f);
             g.setColor(GColor.GREEN);//.withAlpha(.5f));
             g.drawLine(rect.getTopLeft(), rect.getBottomRight(), 10);
             g.drawLine(rect.getTopRight(), rect.getBottomLeft(), 10);
-            if (Utils.count(game.getBoard().getActorsInZone(zIdx), a -> a instanceof ZCharacter) > 0) {
+            if (Utils.count(game.board.getActorsInZone(zIdx), a -> a instanceof ZCharacter) > 0) {
                 g.drawCircle(rect.getCenter(), rect.getRadius(), 10);
             }
         }
@@ -155,11 +155,11 @@ public class WolfQuestTheAmbush extends ZQuest {
 
     @Override
     public Table getObjectivesOverlay(ZGame game) {
-        ZCell blueCell = game.getBoard().getCell(blueSpawnPos);
+        ZCell blueCell = game.board.getCell(blueSpawnPos);
         return new Table(getName())
                 .addRow(new Table().setNoBorder()
                         .addRow("1.", "Collect all Objectives. Each objective gives a vault item.", String.format("%d of %d", getNumFoundObjectives(), getNumStartObjectives()))
-                        .addRow("2.", "Eliminate the BLUE spawn zone using normal necromancer rules.", blueCell.getNumSpawns() == 0)
+                        .addRow("2.", "Eliminate the BLUE spawn zone using normal necromancer rules.", blueCell.numSpawns == 0)
                         .addRow("3.", "Occupy each tower with at least one player", String.format("%d of %d", getOccupiedZones(game).size(), occupyZones.size()))
                         .addRow("4.", "RED spawn zones can spawn Necromancers but they cannot be removed.")
                 );

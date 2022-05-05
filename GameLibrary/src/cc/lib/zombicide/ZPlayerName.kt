@@ -99,7 +99,13 @@ enum class ZPlayerName(@JvmField val characterClass: String, @JvmField val start
             arrayOf(ZSkill.Plus1_free_Move_Action, ZSkill.Plus1_free_Melee_Action),
             arrayOf(ZSkill.Plus1_die_Combat, ZSkill.Plus1_die_Ranged, ZSkill.Spellcaster));
 
-    private val skillOptions: Array<Array<ZSkill>>
+    private val skillOptions: Array<Array<ZSkill>> = arrayOf(
+            blueSkillOptions,
+            yellowSkillOptions,
+            orangeSkillOptions,
+            redSkillOptions
+    )
+
     @JvmField
     var imageId = -1
     @JvmField
@@ -110,9 +116,8 @@ enum class ZPlayerName(@JvmField val characterClass: String, @JvmField val start
     var imageDim: GDimension = GDimension.EMPTY
 
     fun create(): ZCharacter {
-        val c = ZCharacter(this)
+        val c = ZCharacter(this, skillOptions)
         character = c
-        c.initAllSkills(skillOptions)
         return c
     }
 
@@ -126,66 +131,15 @@ enum class ZPlayerName(@JvmField val characterClass: String, @JvmField val start
     }
 
     override fun getWidth(): Float {
-        return imageDim!!.getWidth()
+        return imageDim.getWidth()
     }
 
     override fun getHeight(): Float {
-        return imageDim!!.getHeight()
+        return imageDim.getHeight()
     }
 
     fun getSkillOptions(color: ZColor): Array<ZSkill> {
         return skillOptions[color.ordinal]
     }
 
-    /*
-    Leander("Elite Guard",
-            arrayOf(ZWeaponType.GREAT_SWORD, ZWeaponType.ORCISH_CROSSBOW, (ZEquipmentType)ZArmorType.PLATE),
-            arrayOf(ZWeaponType.GREAT_SWORD),
-            arrayOf(ZSkill.Steel_hide),
-            arrayOf(ZSkill.Plus1_Damage_Melee),
-            arrayOf(ZSkill.Plus1_to_dice_roll_Melee, ZSkill.Plus1_to_dice_roll_Ranged),
-            arrayOf(ZSkill.Plus1_die_Melee, ZSkill.Plus1_Damage_Ranged, ZSkill.Bloodlust)),
-
-    / *
-    Tyrion("Elitist",
-            arrayOf(ZWeaponType.DAGGER),
-            arrayOf(ZWeaponType.AXE),
-            arrayOf(ZSkill.Born_leader, ZSkill.Low_profile),
-            arrayOf(ZSkill.Plus1_Action),
-            arrayOf(ZSkill.Plus1_free_Ranged_Action, ZSkill.Plus1_die_Combat),
-            arrayOf(ZSkill.Plus1_die_Ranged, ZSkill.Plus1_free_Combat_Action, ZSkill.Marksman)),
-    Damiel("Assasin",
-            arrayOf(ZWeaponType.DEATH_STRIKE),
-            arrayOf(ZItemType.DRAGON_BILE),
-            arrayOf(), //ZSkill.TwoDragonBilesIsBeterThanOne),
-            arrayOf(ZSkill.Plus1_Action),
-            arrayOf(ZSkill.Search_plus1_card, ZSkill.Scavenger),
-            arrayOf(ZSkill.Low_profile, ZSkill.Spellbook, ZSkill.Free_reload)),
-    Annice("Healer",
-            arrayOf(ZSpellType.HEALING),
-            arrayOf(ZSpellType.HEALING),
-            arrayOf(),
-            arrayOf(ZSkill.Plus1_Action),
-            arrayOf(ZSkill.Lifesaver, ZSkill.Spellcaster),
-            arrayOf(ZSkill.Born_leader, ZSkill.Regeneration, ZSkill.Plus1_free_Magic_Action)),
-    Kabral("Barbarian",
-            arrayOf(ZWeaponType.SWORD),
-            arrayOf(ZWeaponType.DAGGER),
-            arrayOf(ZSkill.Shove),
-            arrayOf(ZSkill.Plus1_Action),
-            arrayOf(ZSkill.Barbarian, ZSkill.Bloodlust_Melee),
-            arrayOf(ZSkill.Plus1_die_Melee, ZSkill.Plus1_free_Melee_Action, ZSkill.Plus1_to_dice_roll_Melee)),
-    / *
-    Mortimer("Knight",
-            arrayOf(ZWeapon.GREAT_SWORD),
-            arrayOf(),
-            )*/
-    init {
-        skillOptions = arrayOf(
-                blueSkillOptions,
-                yellowSkillOptions,
-                orangeSkillOptions,
-                redSkillOptions
-        )
-    }
 }

@@ -54,7 +54,7 @@ public class ZUserMP extends ZUser {
     }
 */
     @Override
-    public ZPlayerName chooseCharacter(List<ZPlayerName> options) {
+    public ZPlayerName chooseCharacter(List<? extends ZPlayerName> options) {
         if (connection != null) {
             return connection.executeDerivedOnRemote(USER_ID, true, options);
         }
@@ -70,7 +70,7 @@ public class ZUserMP extends ZUser {
     }
 
     @Override
-    public ZSkill chooseNewSkill(ZPlayerName character, List<ZSkill> skillOptions) {
+    public ZSkill chooseNewSkill(ZPlayerName character, List<? extends ZSkill> skillOptions) {
         if (connection != null) {
             return connection.executeDerivedOnRemote(USER_ID, true, character, skillOptions);
         }
@@ -78,7 +78,7 @@ public class ZUserMP extends ZUser {
     }
 
     @Override
-    public ZEquipSlot chooseSlotToOrganize(ZPlayerName cur, List<ZEquipSlot> slots) {
+    public ZEquipSlot chooseSlotToOrganize(ZPlayerName cur, List<? extends ZEquipSlot> slots) {
         if (connection != null) {
             return connection.executeDerivedOnRemote(USER_ID, true, cur, slots);
         }
@@ -86,7 +86,7 @@ public class ZUserMP extends ZUser {
     }
 
     @Override
-    public Integer chooseEquipment(ZPlayerName cur, List<ZEquipment> equipOptions) {
+    public Integer chooseEquipment(ZPlayerName cur, List<? extends ZEquipment<?>> equipOptions) {
         if (connection != null) {
             return connection.executeDerivedOnRemote(USER_ID, true, cur, equipOptions);
         }
@@ -94,7 +94,7 @@ public class ZUserMP extends ZUser {
     }
 
     @Override
-    public ZEquipSlot chooseSlotForEquip(ZPlayerName cur, List<ZEquipSlot> equipableSlots) {
+    public ZEquipSlot chooseSlotForEquip(ZPlayerName cur, List<? extends ZEquipSlot> equipableSlots) {
         if (connection != null) {
             return connection.executeDerivedOnRemote(USER_ID, true, cur, equipableSlots);
         }
@@ -128,7 +128,7 @@ public class ZUserMP extends ZUser {
     }
 
     @Override
-    public ZPlayerName chooseTradeCharacter(ZPlayerName c, List<ZPlayerName> list) {
+    public ZPlayerName chooseTradeCharacter(ZPlayerName c, List<? extends ZPlayerName> list) {
         if (connection != null) {
             return connection.executeDerivedOnRemote(USER_ID, true, c, list);
         }
@@ -144,7 +144,7 @@ public class ZUserMP extends ZUser {
     }
 
     @Override
-    public Integer chooseItemToPickup(ZPlayerName cur, List<ZEquipment> list) {
+    public Integer chooseItemToPickup(ZPlayerName cur, List<? extends ZEquipment<?>> list) {
         if (connection != null) {
             return connection.executeDerivedOnRemote(USER_ID, true, cur, list);
         }
@@ -153,7 +153,7 @@ public class ZUserMP extends ZUser {
     }
 
     @Override
-    public Integer chooseItemToDrop(ZPlayerName cur, List<ZEquipment> list) {
+    public Integer chooseItemToDrop(ZPlayerName cur, List<? extends ZEquipment<?>> list) {
         if (connection != null) {
             return connection.executeDerivedOnRemote(USER_ID, true, cur, list);
         }
@@ -161,7 +161,7 @@ public class ZUserMP extends ZUser {
     }
 
     @Override
-    public Integer chooseEquipmentToThrow(ZPlayerName cur, List<ZEquipment> slots) {
+    public Integer chooseEquipmentToThrow(ZPlayerName cur, List<? extends ZEquipment<?>> slots) {
         if (connection != null) {
             return connection.executeDerivedOnRemote(USER_ID, true, cur, slots);
         }
@@ -170,7 +170,7 @@ public class ZUserMP extends ZUser {
     }
 
     @Override
-    public Integer chooseZoneToThrowEquipment(ZPlayerName cur, ZEquipment toThrow, List<Integer> zones) {
+    public Integer chooseZoneToThrowEquipment(ZPlayerName cur, ZEquipment<?> toThrow, List<Integer> zones) {
         if (connection != null) {
             return connection.executeDerivedOnRemote(USER_ID, true, cur, toThrow, zones);
         }
@@ -196,7 +196,7 @@ public class ZUserMP extends ZUser {
     }
 
     @Override
-    public ZPlayerName chooseCharacterForSpell(ZPlayerName cur, ZSpell spell, List<ZPlayerName> targets) {
+    public ZPlayerName chooseCharacterForSpell(ZPlayerName cur, ZSpell spell, List<? extends ZPlayerName> targets) {
         if (connection != null) {
             return connection.executeDerivedOnRemote(USER_ID, true, cur, spell, targets);
         }
@@ -204,7 +204,7 @@ public class ZUserMP extends ZUser {
     }
 
     @Override
-    public ZPlayerName chooseCharacterToBequeathMove(ZPlayerName cur, List<ZPlayerName> list) {
+    public ZPlayerName chooseCharacterToBequeathMove(ZPlayerName cur, List<? extends ZPlayerName> list) {
         if (connection != null) {
             return connection.executeDerivedOnRemote(USER_ID, true, cur, list);
         }
@@ -238,7 +238,7 @@ public class ZUserMP extends ZUser {
     }
 
     @Override
-    public ZEquipmentClass chooseEquipmentClass(ZPlayerName playerName, List<ZEquipmentClass> classes) {
+    public ZEquipmentClass chooseEquipmentClass(ZPlayerName playerName, List<? extends ZEquipmentClass> classes) {
         if (connection != null) {
             return connection.executeDerivedOnRemote(USER_ID, true, playerName, classes);
         }
@@ -246,7 +246,7 @@ public class ZUserMP extends ZUser {
     }
 
     @Override
-    public ZEquipmentType chooseStartingEquipment(ZPlayerName playerName, List<ZEquipmentType> list) {
+    public ZEquipmentType chooseStartingEquipment(ZPlayerName playerName, List<? extends ZEquipmentType> list) {
         if (connection != null) {
             return connection.executeDerivedOnRemote(USER_ID, true, playerName, list);
         }
