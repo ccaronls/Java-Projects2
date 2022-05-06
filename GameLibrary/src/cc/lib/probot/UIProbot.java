@@ -315,7 +315,7 @@ public abstract class UIProbot extends Probot {
         private boolean startedCorrectly = false;
 
         @Override
-        protected void onStarted() {
+        protected void onStarted(AGraphics g) {
             Utils.assertTrue(startedCorrectly);
         }
 

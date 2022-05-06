@@ -1,55 +1,38 @@
-package cc.lib.zombicide.anims;
+package cc.lib.zombicide.anims
 
-import cc.lib.game.AGraphics;
-import cc.lib.game.IVector2D;
-import cc.lib.math.Vector2D;
-import cc.lib.zombicide.ZActor;
-import cc.lib.zombicide.ZActorAnimation;
-import cc.lib.zombicide.ui.UIZBoardRenderer;
+import cc.lib.game.AGraphics
+import cc.lib.game.GRectangle
+import cc.lib.game.IVector2D
+import cc.lib.math.Vector2D
+import cc.lib.zombicide.ZActor
+import cc.lib.zombicide.ZActorAnimation
+import cc.lib.zombicide.ZAnimation
+import cc.lib.zombicide.ui.UIZBoardRenderer
 
-public class ZoomAnimation extends ZActorAnimation {
+class ZoomAnimation(startCenter: IVector2D, val renderer: UIZBoardRenderer<*>, targetZoomPercent: Float) : ZAnimation( 500) {
+	val startZoomPercent: Float
+	val dv: Vector2D
+	val dz: Float
 
-    final float targetZoomPercent;
-    final float startZoomPercent;
-    final Vector2D startCenter;
-    final UIZBoardRenderer renderer;
-    final Vector2D dv;
-    final float dz;
+	//constructor(actor: ZActor<*>, renderer: UIZBoardRenderer<*>, zoomPercent: Float) : this(actor.rect.center, renderer, zoomPercent) {}
+	//constructor(renderer: UIZBoardRenderer<*>, zoomPercent: Float) : this(renderer.boardCenter, renderer, zoomPercent) {}
 
-    public ZoomAnimation(ZActor actor, UIZBoardRenderer renderer, float zoomPercent) {
-        this(actor, actor.getRect().getCenter(), renderer, zoomPercent);
-    }
+	override fun draw(g: AGraphics, position: Float, dt: Float) {
+		renderer.zoomPercent = startZoomPercent + dz * position
+	}
 
-    public ZoomAnimation(UIZBoardRenderer renderer, float zoomPercent) {
-        this(null, renderer.getBoardCenter(), renderer, zoomPercent);
-    }
-
-    /**
-     *
-     * @param actor
-     * @param center
-     * @param renderer
-     * @param zoomPercent value between 0-1 where 0 is full zoom out and 1 is full zoom into the target rectangle
-     */
-    public ZoomAnimation(ZActor actor, IVector2D center, UIZBoardRenderer renderer, float zoomPercent) {
-        super(actor, 500);
-        this.targetZoomPercent = zoomPercent;
-        this.renderer = renderer;
-        startCenter = new Vector2D(renderer.getBoardCenter());
-        startZoomPercent = renderer.getZoomPercent();
-        Vector2D cntr = new Vector2D(center);
-        // we want the actor to be off to the left or right
-        dv = cntr.sub(startCenter);
-        dz = targetZoomPercent - startZoomPercent;
-    }
-
-    @Override
-    protected void draw(AGraphics g, float position, float dt) {
-        renderer.setZoomPercent(startZoomPercent + dz*position);
-    }
-
-    @Override
-    public boolean hidesActor() {
-        return false;
-    }
+	/**
+	 *
+	 * @param actor
+	 * @param center
+	 * @param renderer
+	 * @param zoomPercent value between 0-1 where 0 is full zoom out and 1 is full zoom into the target rectangle
+	 */
+	init {
+		startZoomPercent = renderer.zoomPercent
+		val cntr = Vector2D(startCenter)
+		// we want the actor to be off to the left or right
+		dv = cntr.sub(startCenter)
+		dz = targetZoomPercent - startZoomPercent
+	}
 }

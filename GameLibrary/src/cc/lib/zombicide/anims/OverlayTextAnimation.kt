@@ -1,52 +1,33 @@
-package cc.lib.zombicide.anims;
+package cc.lib.zombicide.anims
 
-import cc.lib.game.AGraphics;
-import cc.lib.game.GColor;
-import cc.lib.game.Justify;
-import cc.lib.zombicide.ZAnimation;
+import cc.lib.game.AGraphics
+import cc.lib.game.GColor
+import cc.lib.game.Justify
+import cc.lib.zombicide.ZAnimation
 
-public class OverlayTextAnimation extends ZAnimation {
-    final String text;
-    final int dyType;
-
-    public OverlayTextAnimation(String text, int type) {
-        super(3000);
-        this.text = text;
-        this.dyType = type % 3; // this make the animation stagger in case there are multiple
-    }
-
-    @Override
-    protected void draw(AGraphics g, float position, float dt) {
-        float cx = g.getViewportWidth()/2;
-        float cy0 = g.getViewportHeight()/2;
-
-        float cy1 = 0;
-        switch (dyType) {
-            default:
-                cy1 = g.getViewportHeight()/3;
-                break;
-            case 1:
-                cy1 = g.getViewportHeight()/2;
-                break;
-            case 2:
-                cy1 = g.getViewportHeight()*2/3;
-                break;
+open class OverlayTextAnimation(val text: String, type: Int) : ZAnimation(3000) {
+    private val dyType: Int = type % 3
+    override fun draw(g: AGraphics, position: Float, dt: Float) {
+        val cx = (g.viewportWidth / 2).toFloat()
+        val cy0 = (g.viewportHeight / 2).toFloat()
+        val cy1 = when (dyType) {
+            1 -> (g.viewportHeight / 2).toFloat()
+            2 -> (g.viewportHeight * 2 / 3).toFloat()
+            else -> (g.viewportHeight / 3).toFloat()
         }
-
-        float minHeight = 32;
-        float maxHeight = 48;
-
-        GColor color = GColor.RED;
+        val minHeight = 32f
+        val maxHeight = 48f
+        var color = GColor.RED
         if (position > .5f) {
-            float alpha = 1f - 2f * (position - .5f);
-            color = color.withAlpha(alpha);
+            val alpha = 1f - 2f * (position - .5f)
+            color = color.withAlpha(alpha)
         }
-
-        g.setColor(color);
-        float curHeight = g.getTextHeight();
-        g.setTextHeight(minHeight + (maxHeight-minHeight)*position);
-        float cy = cy0 + (cy1-cy0) * position;
-        g.drawJustifiedString(cx, cy, Justify.CENTER, Justify.BOTTOM, text);
-        g.setTextHeight(curHeight);
+        g.color = color
+        val curHeight = g.textHeight
+        g.textHeight = minHeight + (maxHeight - minHeight) * position
+        val cy = cy0 + (cy1 - cy0) * position
+        g.drawJustifiedString(cx, cy, Justify.CENTER, Justify.BOTTOM, text)
+        g.textHeight = curHeight
     }
+
 }

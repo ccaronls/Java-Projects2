@@ -25,6 +25,7 @@ abstract class ZActor<E : Enum<E>> internal constructor(var occupiedZone: Int=-1
     @JvmField
     @Omit
     var animation: ZActorAnimation? = null
+
     fun getRect(b: ZBoard): GRectangle {
         return b.getCell(occupiedCell)
                 .getQuadrant(occupiedQuadrant)
@@ -72,6 +73,7 @@ abstract class ZActor<E : Enum<E>> internal constructor(var occupiedZone: Int=-1
     fun addAnimation(anim: ZActorAnimation) {
         if (animation == null || animation!!.isDone) {
             animation = anim
+	        anim.start<AAnimation<AGraphics>>()
         } else {
             animation!!.add(anim)
         }
@@ -80,21 +82,23 @@ abstract class ZActor<E : Enum<E>> internal constructor(var occupiedZone: Int=-1
     open val moveSpeed: Long
         get() = 1000
     val isAnimating: Boolean
-        get() = animation?.isDone?:false
+        get() = animation != null && !animation!!.isDone
 
     fun getAnimation(): ZAnimation? {
         return animation
     }
 
     fun drawOrAnimate(g: AGraphics) {
-        if (animation != null && !animation!!.isDone) {
-            if (!animation!!.hidesActor()) draw(g)
-            if (!animation!!.isStarted) animation!!.start<AAnimation<AGraphics>>()
-            animation!!.update(g)
-        } else {
-            animation = null
-            draw(g)
-        }
+	    animation?.takeIf { !it.isDone }?.let {
+		    if (!it.hidesActor())
+		    	draw(g)
+		    if (!it.isStarted)
+		    	it.start<AAnimation<AGraphics>>()
+		    it.update(g)
+	    }?:run {
+		    animation = null
+		    draw(g)
+	    }
     }
 
     open fun draw(g: AGraphics) {

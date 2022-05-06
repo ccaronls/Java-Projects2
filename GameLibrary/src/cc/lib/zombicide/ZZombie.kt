@@ -64,7 +64,7 @@ class ZZombie(override val type: ZZombieType = ZZombieType.Walker, zone: Int = -
         } else super.moveSpeed
 
     override val priority: Int
-        get() = type.ordinal
+        get() = if (destroyed) -1 else type.ordinal
 
     fun getDescription(): String {
         return type.description

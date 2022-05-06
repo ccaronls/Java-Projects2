@@ -104,6 +104,9 @@ class ZCell internal constructor(private val x: Float, private val y: Float) : R
             return valuesForRender().map { occupied[it.ordinal] }.filterNotNull()
         }
 
+	val numOccupants: Int
+		get() = occupied.filterNotNull().size
+
     fun findLowestPriorityOccupant(): ZCellQuadrant {
         var min = ZCharacter.PRIORITY
         var best: ZCellQuadrant? = null

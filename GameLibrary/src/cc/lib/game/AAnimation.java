@@ -177,9 +177,9 @@ public abstract class AAnimation<T> {
                 state = State.RUNNING;
                 lastTime = t;
                 if (startDirectionReverse) {
-                    onStartedReversed();
+                    onStartedReversed(g);
                 } else {
-                    onStarted();
+                    onStarted(g);
                 }
             }
 
@@ -261,9 +261,9 @@ public abstract class AAnimation<T> {
      * Called from update thread when animation is started. base mthod does nothing
      * If there is an initial delay then this will indicate the delay has expired.
      */
-    protected void onStarted() {}
+    protected void onStarted(T g) {}
 
-    protected void onStartedReversed() {}
+    protected void onStartedReversed(T g) {}
 
     protected void onRepeat(int n) {}
 

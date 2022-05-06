@@ -54,7 +54,7 @@ enum class ZDir(@JvmField val dx: Int, @JvmField val dy: Int, @JvmField val dz: 
             if (start == end) return arrayOf()
             val dx = end.column - start.column
             val dy = end.row - start.row
-            val dirs = ArrayList<ZDir>(4)
+            val dirs = Array(4) { ZDir.NORTH }
             if (abs(dx) < abs(dy)) {
                 // either north or south is primary
                 if (dy < 0) {
@@ -87,7 +87,7 @@ enum class ZDir(@JvmField val dx: Int, @JvmField val dy: Int, @JvmField val dz: 
                     dirs[2] = NORTH
                 }
             }
-            return dirs.toTypedArray()
+            return dirs
         }
 
         @JvmStatic

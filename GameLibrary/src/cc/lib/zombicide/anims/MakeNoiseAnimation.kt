@@ -1,36 +1,31 @@
-package cc.lib.zombicide.anims;
+package cc.lib.zombicide.anims
 
-import cc.lib.game.AGraphics;
-import cc.lib.game.GColor;
-import cc.lib.game.GRectangle;
-import cc.lib.game.IVector2D;
-import cc.lib.zombicide.ZAnimation;
+import cc.lib.game.AGraphics
+import cc.lib.game.GColor
+import cc.lib.game.GRectangle
+import cc.lib.game.IVector2D
+import cc.lib.zombicide.ZAnimation
 
-public class MakeNoiseAnimation extends ZAnimation {
+open class MakeNoiseAnimation(center: IVector2D) : ZAnimation(1000) {
 
-    final GRectangle rect;
+    val rect: GRectangle = GRectangle(0f, 0f, 1f, 1f).withCenter(center)
 
-    public MakeNoiseAnimation(IVector2D center) {
-        super(1000);
-        this.rect = new GRectangle(0, 0, 1, 1).withCenter(center);
-    }
-
-    @Override
-    protected void draw(AGraphics g, float position, float dt) {
-        final float RADIUS = rect.getRadius();
-        final int numCircles = 3;
-        float r = RADIUS * position;
-        float steps = numCircles+1;
-        float r2 = ((float)((int)(steps*position))) / steps;
-        g.setColor(GColor.BLACK);
-        g.drawCircle(rect.getCenter(), r, 3);
+    override fun draw(g: AGraphics, position: Float, dt: Float) {
+        val RADIUS = rect.radius
+        val numCircles = 3
+        val r = RADIUS * position
+        val steps = (numCircles + 1).toFloat()
+        val r2 = (steps * position).toInt().toFloat() / steps
+        g.color = GColor.BLACK
+        g.drawCircle(rect.center, r, 3f)
         if (r2 > 0) {
-            float radius = r2*RADIUS;
-            float delta = (r-radius)*steps / RADIUS;
-            float alpha = 1 - delta;
+            val radius = r2 * RADIUS
+            val delta = (r - radius) * steps / RADIUS
+            val alpha = 1 - delta
             //log.debug("alpha = %d", Math.round(alpha*100));
-            g.setColor(GColor.BLACK.withAlpha(alpha));
-            g.drawCircle(rect.getCenter(), radius, 0);
+            g.color = GColor.BLACK.withAlpha(alpha)
+            g.drawCircle(rect.center, radius, 0f)
         }
     }
+
 }

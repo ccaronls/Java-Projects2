@@ -108,7 +108,7 @@ public abstract class UIMonopoly extends Monopoly {
             int die2 = 1+Utils.rand()%6;
 
             @Override
-            protected void onStarted() {
+            protected void onStarted(AGraphics g) {
                 new Thread() {
                     public void run() {
                         while (!isDone()) {
@@ -292,7 +292,7 @@ public abstract class UIMonopoly extends Monopoly {
             final Bezier curve = new Bezier();
 
             @Override
-            protected void onStarted() {
+            protected void onStarted(Sprite g) {
                 MutableVector2D s = start.getTopLeft();
                 MutableVector2D e = end.getTopLeft();
                 curve.addPoint(s);
@@ -328,7 +328,7 @@ public abstract class UIMonopoly extends Monopoly {
             Vector2D start, end;
 
             @Override
-            protected void onStarted() {
+            protected void onStarted(Sprite g) {
                 start = board.getPiecePlacementJail(playerNum).getTopLeft();
                 end   = board.getPiecePlacement(playerNum, Square.VISITING_JAIL).getTopLeft();
             }
@@ -419,8 +419,7 @@ public abstract class UIMonopoly extends Monopoly {
             Vector2D v0, v1;
 
             @Override
-            protected void onStarted() {
-                super.onStarted();
+            protected void onStarted(AGraphics g) {
                 v0 = new Vector2D(DIM/2, DIM/2);
                 v1 = board.getInnerEdge(property);
             }
@@ -454,8 +453,7 @@ public abstract class UIMonopoly extends Monopoly {
             Vector2D v0, v1;
 
             @Override
-            protected void onStarted() {
-                super.onStarted();
+            protected void onStarted(AGraphics g) {
                 v0 = new Vector2D(DIM/2, DIM/2);
                 v1 = board.getInnerEdge(property);
             }

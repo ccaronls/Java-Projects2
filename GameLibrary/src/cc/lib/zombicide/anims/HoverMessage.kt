@@ -1,45 +1,35 @@
-package cc.lib.zombicide.anims;
+package cc.lib.zombicide.anims
 
-import cc.lib.game.AGraphics;
-import cc.lib.game.GColor;
-import cc.lib.game.IVector2D;
-import cc.lib.game.Justify;
-import cc.lib.game.Utils;
-import cc.lib.math.Vector2D;
-import cc.lib.zombicide.ZAnimation;
-import cc.lib.zombicide.ui.UIZBoardRenderer;
+import cc.lib.game.*
+import cc.lib.math.Vector2D
+import cc.lib.zombicide.ZAnimation
+import cc.lib.zombicide.ui.UIZBoardRenderer
 
-public class HoverMessage extends ZAnimation {
+class HoverMessage(board: UIZBoardRenderer<*>, private val msg: String, private val center: IVector2D) : ZAnimation(3000) {
+    private val dv: Vector2D
+    private lateinit var hJust: Justify
 
-    private final String msg;
-    private final IVector2D center;
-    private final Vector2D dv;
-    private Justify hJust = null;
+	override fun onStarted(g: AGraphics) {
+		val tv: Vector2D = g.transform(center)
+		val width = g.getTextWidth(msg) / 2
+		hJust = if (tv.X() + width > g.viewportWidth) {
+			Justify.RIGHT
+		} else if (tv.X() - width < 0) {
+			Justify.LEFT
+		} else {
+			Justify.CENTER
+		}
+	}
 
-    public HoverMessage(UIZBoardRenderer board, String msg, IVector2D center) {
-        super(3000);
-        this.msg = msg;
-        this.center = center;
-        dv = board.getZoomedRect().getCenter().subEq(center)
-                .rotateEq(Utils.randFloatX(30))
-                .normalizedEq().scaleEq(.5f);
+    override fun draw(g: AGraphics, position: Float, dt: Float) {
+        val v: Vector2D = Vector2D(center).add(dv.scaledBy(position))
+        g.color = GColor.YELLOW.withAlpha(1f - position)
+        g.drawJustifiedString(v, hJust, Justify.CENTER, msg)
     }
 
-    @Override
-    protected void draw(AGraphics g, float position, float dt) {
-        Vector2D v = new Vector2D(center).add(dv.scaledBy(position));
-        g.setColor(GColor.YELLOW.withAlpha(1f-position));
-        Vector2D tv = g.transform(center);
-        float width = g.getTextWidth(msg)/2;
-        if (hJust == null) {
-            if (tv.X() + width > g.getViewportWidth()) {
-                hJust = Justify.RIGHT;
-            } else if (tv.X() - width < 0) {
-                hJust = Justify.LEFT;
-            } else {
-                hJust = Justify.CENTER;
-            }
-        }
-        g.drawJustifiedString(v, hJust, Justify.CENTER, msg);
+    init {
+        dv = board.zoomedRect.center.subEq(center)
+                .rotateEq(Utils.randFloatX(30f))
+                .normalizedEq().scaleEq(.5f)
     }
 }

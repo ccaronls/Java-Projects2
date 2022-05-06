@@ -22,12 +22,12 @@ public class SeriesAnimation<T> extends AAnimation<T> {
     }
 
     @Override
-    protected final void onStarted() {
+    protected void onStarted(T g) {
         setDuration(Utils.sumLong(series, s -> s.getDuration()));
     }
 
     @Override
-    protected final void onStartedReversed() {
+    protected final void onStartedReversed(T g) {
         setDuration(Utils.sumLong(series, s -> s.getDuration()));
     }
 

@@ -323,7 +323,7 @@ public abstract class UIZombicide extends ZGameMP {
     protected void onDragonBileExploded(int zone) {
         super.onDragonBileExploded(zone);
         List<IRectangle> rects = Utils.map(board.getZone(zone).getCells(), pos -> board.getCell(pos));
-        boardRenderer.addPreActor(new InfernoAnimation(rects).start());
+        boardRenderer.addPreActor(new InfernoAnimation(rects));
         Utils.waitNoThrow(this, 1000);
     }
 
@@ -593,8 +593,10 @@ public abstract class UIZombicide extends ZGameMP {
                 case EARTHQUAKE_HAMMER: {
                     Lock animLock = new Lock(numDice);
                     float currentZoom = boardRenderer.getZoomPercent();
-                    if (currentZoom < 1)
-                        attacker.addAnimation(new ZoomAnimation(attacker, boardRenderer, 1));
+                    if (currentZoom < 1) {
+                        attacker.addAnimation(new EmptyAnimation(attacker, 500));
+                        boardRenderer.addPreActor(new ZoomAnimation(attacker.getRect(board).getCenter(), boardRenderer, 1));
+                    }
                     for (int i = 0; i < numDice; i++) {
                         attacker.addAnimation(new MeleeAnimation(attacker, board) {
                             @Override
@@ -627,8 +629,10 @@ public abstract class UIZombicide extends ZGameMP {
                 default: {
                     Lock animLock = new Lock(numDice);
                     float currentZoom = boardRenderer.getZoomPercent();
-                    if (currentZoom < 1)
-                        attacker.addAnimation(new ZoomAnimation(attacker, boardRenderer, 1));
+                    if (currentZoom < 1) {
+                        attacker.addAnimation(new EmptyAnimation(attacker, 500));
+                        boardRenderer.addPreActor(new ZoomAnimation(attacker.getRect(board).getCenter(), boardRenderer, 1));
+                    }
                     for (int i = 0; i < numDice; i++) {
                         if (i < hits.size()) {
                             ZActorPosition pos = hits.get(i);

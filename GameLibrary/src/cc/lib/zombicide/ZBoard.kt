@@ -514,7 +514,7 @@ class ZBoard : Reflector<ZBoard>, IDimension {
             return emptyList()
         val actors: MutableList<ZActor<*>> = ArrayList()
         for (cellPos in zones[zoneIndex].cells) {
-            getCell(cellPos).occupant.forEach { 
+            getCell(cellPos).occupant.forEach {
                 actors.add(it)
             }
         }

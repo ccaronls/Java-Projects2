@@ -9,6 +9,7 @@ import cc.lib.logger.LoggerFactory
 import cc.lib.utils.*
 import java.lang.IllegalArgumentException
 import java.util.*
+import kotlin.Pair
 
 open class ZGame() : Reflector<ZGame>() {
     companion object {
@@ -739,31 +740,25 @@ open class ZGame() : Reflector<ZGame>() {
             ZState.ZOMBIE_STAGE -> {
 
                 // sort them such that filled zones have their actions performed first
-                val zoneArr = object : ArrayList<Int>(board.zones.size) {
-                    init {
-                        board.zones.forEachIndexed { index, zone ->
-                            this[index] = index
-                        }
-                    }
-                }
+                val zoneArr = Array(board.zones.size) { Pair(it, board.getActorsInZone(it)) }
                 zoneArr.sortWith { o0, o1 ->
-                    val z0 = board.zones[o0]
-                    val z1 = board.zones[o1]
-                    val numZ0 = board.getActorsInZone(o0).size
-                    val numZ1 = board.getActorsInZone(o1).size
+                    val z0 = board.zones[o0.first]
+                    val z1 = board.zones[o1.first]
+                    val numZ0 = o0.second.size
+                    val numZ1 = o1.second.size
                     val maxPerCell = ZCellQuadrant.values().size
                     val numEmptyZ0 = z0.cells.size * maxPerCell - numZ0
                     val numEmptyZ1 = z1.cells.size * maxPerCell - numZ1
                     // order such that zones with fewest empty slots have their zombies move first
                     numEmptyZ0.compareTo(numEmptyZ1)
                 }
-                for (zoneIdx: Int in zoneArr) {
-                    val zombies = board.getZombiesInZone(zoneIdx)
+                for (p in zoneArr) {
+                    val zombies = p.second.filterIsInstance<ZZombie>()
                     for (zombie: ZZombie in zombies) {
                         var path: MutableList<ZDir>? = null
                         while (zombie.actionsLeftThisTurn > 0) {
                             val victims = board.getCharactersInZone(zombie.occupiedZone).filter { 
-                                it.isInvisible && it.isAlive 
+                                !it.isInvisible && it.isAlive
                             }
                             if (victims.size > 1) {
                                 Collections.sort(victims, WoundingComparator(zombie.type))

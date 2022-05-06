@@ -1,88 +1,70 @@
-package cc.lib.zombicide.anims;
+package cc.lib.zombicide.anims
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
-import cc.lib.game.AGraphics;
-import cc.lib.game.Utils;
-import cc.lib.utils.Pair;
-import cc.lib.zombicide.ZActor;
-import cc.lib.zombicide.ZActorAnimation;
-import cc.lib.zombicide.ZAnimation;
+import cc.lib.game.AAnimation
+import cc.lib.game.AGraphics
+import cc.lib.game.Utils
+import cc.lib.zombicide.ZActor
+import cc.lib.zombicide.ZActorAnimation
+import cc.lib.zombicide.ZAnimation
+import java.util.*
 
 /**
- * Allow for running multiple animations with some delay inbetween each starting position
+ * Allow for running multiple animations with some delay in between each starting position
  *
  */
-public class GroupAnimation extends ZActorAnimation {
+open class GroupAnimation(actor: ZActor<*>) : ZActorAnimation(actor, 1) {
+    private val group: MutableList<Pair<ZAnimation, Int>> = ArrayList()
 
-    private final List<Pair<ZAnimation, Integer>> group = new ArrayList<>();
-
-    public GroupAnimation(ZActor actor) {
-        super(actor, 1);
-    }
-
-    public synchronized GroupAnimation addAnimation(ZAnimation animation) {
-        return addAnimation(0, animation);
+    @Synchronized
+    fun addAnimation(animation: ZAnimation): GroupAnimation {
+        return addAnimation(0, animation)
     }
 
     /**
      * IMPORTANT!: Make sure to have all animations added before starting!
      * @param animation
      */
-    public synchronized GroupAnimation addAnimation(int delay, ZAnimation animation) {
-        Utils.assertTrue(!isStarted());
-        group.add(new Pair(animation, delay));
-        return this;
+    @Synchronized
+    fun addAnimation(delay: Int, animation: ZAnimation): GroupAnimation {
+        Utils.assertTrue(!isStarted)
+        group.add(Pair(animation, delay))
+        return this
     }
 
-    @Override
-    public boolean isDone() {
-        for (Pair<ZAnimation, Integer> a : group) {
-            if (!a.first.isDone())
-                return false;
+    override fun isDone(): Boolean {
+        for (a in group) {
+            if (!a.first.isDone) return false
         }
-        return super.isDone();
+        return super.isDone()
     }
 
-    @Override
-    protected void onStarted() {
-        super.onStarted();
+    override fun draw(g: AGraphics, position: Float, dt: Float) {
+        Utils.assertTrue(false) // should not get called
     }
 
-    @Override
-    protected void draw(AGraphics g, float position, float dt) {
-        Utils.assertTrue(false); // should not get called
-    }
-
-    @Override
-    public synchronized boolean update(AGraphics g) {
-        Iterator<Pair<ZAnimation,Integer>> it = group.iterator();
+    @Synchronized
+    override fun update(g: AGraphics): Boolean {
+        val it = group.iterator()
         while (it.hasNext()) {
-            Pair<ZAnimation, Integer> p = it.next();
-            if (p.first.isDone())
-                it.remove();
-            else if (!p.first.isStarted()) {
+            val p = it.next()
+            if (p.first.isDone) it.remove() else if (!p.first.isStarted) {
                 //a.start();
-                if (getCurrentTimeMSecs()-getStartTime() >= p.second) {
-                    p.first.start();
+                if (currentTimeMSecs - startTime >= p.second) {
+                    p.first.start<AAnimation<AGraphics>>()
                 }
-            }
-            else {
-                p.first.update(g);
+            } else {
+                p.first.update(g)
             }
         }
         if (group.isEmpty()) {
-            kill();
-            onDone();
-            return true;
+            kill()
+            onDone()
+            return true
         }
-        return false;
+        return false
     }
 
-    @Override
-    public boolean hidesActor() {
-        return false;
+    override fun hidesActor(): Boolean {
+        return false
     }
 }

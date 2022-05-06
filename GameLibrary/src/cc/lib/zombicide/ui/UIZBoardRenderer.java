@@ -909,7 +909,7 @@ public class UIZBoardRenderer<T extends AGraphics> extends UIRenderer {
         clearDragOffset();
         targetZoomPercent = Utils.clamp(targetZoomPercent, 0, 1);
         if (zoomPercent != targetZoomPercent) {
-            zoomAnimation = new ZoomAnimation(this, targetZoomPercent).start();
+            zoomAnimation = new ZoomAnimation(getBoardCenter(), this, targetZoomPercent).start();
             redraw();
         }
     }

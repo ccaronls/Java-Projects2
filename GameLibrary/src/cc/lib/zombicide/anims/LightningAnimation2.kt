@@ -1,80 +1,59 @@
-package cc.lib.zombicide.anims;
+package cc.lib.zombicide.anims
 
-import java.util.List;
+import cc.lib.game.*
+import cc.lib.math.Vector2D
+import cc.lib.zombicide.ZActor
+import cc.lib.zombicide.ZActorAnimation
 
-import cc.lib.game.AGraphics;
-import cc.lib.game.IInterpolator;
-import cc.lib.game.InterpolatorUtils;
-import cc.lib.game.LightningStrand;
-import cc.lib.game.Utils;
-import cc.lib.math.Vector2D;
-import cc.lib.zombicide.ZActor;
-import cc.lib.zombicide.ZActorAnimation;
+open class LightningAnimation2(actor: ZActor<*>, targets: List<IInterpolator<Vector2D>>) : ZActorAnimation(actor, 700L, 1000L) {
+    val start0: Vector2D
+    val start1: Vector2D
 
-public class LightningAnimation2 extends ZActorAnimation {
-
-    final Vector2D start0, start1;
     // phase1 arcs between magicians hands to arc upward
-    final LightningStrand [] arcs;
-    final LightningStrand [] shots;
+    val arcs: Array<LightningStrand>
+    val shots: Array<LightningStrand>
+    val minArc = 0f
+    val maxArc = .5f
 
-    final float minArc = 0f;
-    final float maxArc = .5f;
+    override fun drawPhase(g: AGraphics, position: Float, phase: Int) {
+        when (phase) {
+            0 -> {
 
-    public LightningAnimation2(ZActor actor, List<IInterpolator<Vector2D>> targets) {
-        super(actor, 700L, 1000L);
-        start0 = actor.getRect().getTopLeft();
-        start1 = actor.getRect().getTopRight();
-
-        arcs = new LightningStrand[Utils.randRange(3, 6)];
-        for (int i=0; i<arcs.length; i++) {
-            arcs[i] = new LightningStrand(start0, start1, InterpolatorUtils.linear(minArc, maxArc), 4, 7, .5f);
-        }
-
-        shots = new LightningStrand[targets.size()];
-        Vector2D dv = start1.sub(start0).normEq().scaleEq(-maxArc);
-        //Vector2D start = (start0.add(start1)).scaleEq(.5f).addEq(dv);
-        int idx=0;
-        for (IInterpolator<Vector2D> i : targets) {
-            //IInterpolator<Vector2D> endInt = Vector2D.getLinearInterpolator(target.getRandomPointInside(), target.getRandomPointInside());
-            shots[idx++] = new LightningStrand(start0, i, 10, 15, .4f);
-            //endInt = Vector2D.getLinearInterpolator(target.getRandomPointInside(), target.getRandomPointInside());
-            //shots[i+1] = new LightningStrand(start1, endInt, 10, 15, .4f);
-        }
-    }
-
-    @Override
-    protected void drawPhase(AGraphics g, float position, int phase) {
-        switch (phase) {
-            case 0: {
                 // draw the arc build up
-                for (LightningStrand l : arcs) {
-                    l.draw(g, position);
+                for (l in arcs) {
+                    l.draw(g, position)
                 }
-                break;
             }
+            1 -> {
 
-            case 1: {
                 // draw the discharge
-                for (LightningStrand l : shots) {
-                    l.draw(g, position);
+                for (l in shots) {
+                    l.draw(g, position)
                 }
-                break;
             }
         }
     }
 
-    @Override
-    public boolean hidesActor() {
-        return false;
+    override fun hidesActor(): Boolean {
+        return false
     }
 
-    @Override
-    protected final void onPhaseStarted(AGraphics g, int phase) {
+    override fun onPhaseStarted(g: AGraphics, phase: Int) {
         if (phase == 1) {
-            onShotPhaseStarted(g);
+            onShotPhaseStarted(g)
         }
     }
 
-    protected void onShotPhaseStarted(AGraphics g) {}
+    protected fun onShotPhaseStarted(g: AGraphics) {}
+
+    init {
+        start0 = actor.rect.topLeft
+        start1 = actor.rect.topRight
+        arcs = Array(Utils.randRange(3, 6)) {
+            LightningStrand(start0, start1, InterpolatorUtils.linear(minArc, maxArc), 4, 7, .5f)
+        }
+        shots = Array(targets.size) {
+            LightningStrand(start0, targets[it], 10, 15, .4f)
+        }
+    }
 }
