@@ -732,7 +732,7 @@ public abstract class UIZombicide extends ZGameMP {
                                                 .addAnimation(new DeflectionAnimation(victim, arrowId, getRect(), getDir().getOpposite()))
                                         );
                                     } else {
-                                        victim.addAnimation(new StaticAnimation(victim, 800, arrowId, getRect(), true));
+                                        victim.addAnimation(new StaticAnimation(victim, 800, arrowId, r, true));
                                     }
                                     animLock.release();
                                 }
