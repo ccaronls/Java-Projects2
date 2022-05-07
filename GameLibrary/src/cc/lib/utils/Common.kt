@@ -23,7 +23,7 @@ fun <T> List<T>.mergeWith(other: Collection<T>) : MutableList<T> {
     return a
 }
 
-fun assertTrue(expr: Boolean, msg: String = "") {
+inline fun assertTrue(expr: Boolean, msg: String = "") {
     if (!expr) {
         throw GException("Assertion Failed $msg")
     }
@@ -39,6 +39,68 @@ fun Iterable<Any>.toStringArray(pretty: Boolean) : Array<String> {
     return map { if (pretty) Utils.toPrettyString(it) else it.toString() }.toTypedArray()
 }
 
-fun Int.rotate(max: Int) : Int {
+inline fun Int.rotate(max: Int) : Int {
     return plus(1) % max
+}
+
+inline fun prettify(a:Any) : String {
+	return Utils.toPrettyString(a)
+}
+
+inline fun String.wrap(maxChar: Int) : String {
+	return Utils.wrapTextWithNewlines(this, maxChar)
+}
+
+inline fun isEqual(a: Any?, b: Any?) : Boolean {
+	return Utils.isEquals(a, b)
+}
+
+inline fun hashCode(vararg objects: Any?) : Int {
+	return Utils.hashCode(objects)
+}
+
+/**
+ * Return random in range 0 to this
+ */
+inline fun Float.random() : Float {
+	return Utils.randFloat(this)
+}
+
+/**
+ * return + or - random in range 0-this
+ */
+inline fun Float.randomSigned() : Float {
+	return Utils.randFloatX(this)
+}
+
+/**
+ * return random int in range 0 to this-1
+ */
+inline fun random(range: Int) : Int {
+	return if (range > 0) Utils.rand() % range else -1
+}
+
+/**
+ * Return random int in range
+ */
+inline fun random(range: IntRange) : Int {
+	return Utils.randRange(range.first, range.last)
+}
+
+/**
+ *
+ */
+inline fun <T> List<T>.random() : T {
+	return get(random(size))
+}
+
+/**
+ * Return a random number between [0-size) where the likelyhood of a number is based on the weight value
+ * at that index. Example: for array[0,1,2], the possible results and their probability are:
+ * 0 -> 0 out of 3
+ * 1 -> 1 out of 3
+ * 2 -> 2 out of 3
+ */
+inline fun IntArray.randomWeighted() : Int {
+	return Utils.chooseRandomFromSet(*this)
 }

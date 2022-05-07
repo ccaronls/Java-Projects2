@@ -1,119 +1,91 @@
-package cc.lib.zombicide.quests;
+package cc.lib.zombicide.quests
 
-import cc.lib.game.Utils;
-import cc.lib.utils.Table;
-import cc.lib.zombicide.ZBoard;
-import cc.lib.zombicide.ZCharacter;
-import cc.lib.zombicide.ZGame;
-import cc.lib.zombicide.ZPlayerName;
-import cc.lib.zombicide.ZQuest;
-import cc.lib.zombicide.ZQuests;
-import cc.lib.zombicide.ZTile;
+import cc.lib.utils.Table
+import cc.lib.zombicide.*
+import cc.lib.zombicide.ZTile.Companion.getQuadrant
 
-public class WolfQuestWelcomeToWulfsburg extends ZQuest {
+class WolfQuestWelcomeToWulfsburg : ZQuest(ZQuests.Welcome_to_Wulfsberg) {
+	companion object {
+		init {
+			addAllFields(WolfQuestWelcomeToWulfsburg::class.java)
+		}
+	}
 
-    static {
-        addAllFields(WolfQuestWelcomeToWulfsburg.class);
-    }
+	var blueKeyZone = 0
+	var greenKeyZone = 0
+	override fun loadBoard(): ZBoard {
+		val map = arrayOf(
+arrayOf("z0:exit:i:de:ws", "z1:spn", "z2:i:ww:ws:ode",                      "z3:i:ode:ds", "z4:i:ode:ods", "z5:i:ods"),
+arrayOf("z6", "z7", "z8",                                                   "z9", "z10:i:ww:ods", "z10:i:ods"),
+arrayOf("z11:i:wn:ode:ws", "z12:i:wn:ws", "z12:i:wn:ods:de",                "z13:i:wn:ode", "z14:i:we", "z15:i:odn"),
+arrayOf("z16:i", "z16:i", "z16:i:we",                                       "z17:t2:rn", "z18:t3:rn", "z18:t3:rn"),
+arrayOf("z16:i:ds", "z16:i:ws", "z16:i:we:ws",                              "z19:t1:re", "z18:t3:rs", "z18:t3:rs"),
+arrayOf("z20:spw", "z21", "z22",                                            "z23", "z24", "z25:spe"),
+arrayOf("z26", "z27:i:ww:wn:ws:ode", "z28:i:red:dn:de:ws",                  "z29", "z30:i:dw:red:wn:ws:ode", "z31:i:dn:ws"),
+arrayOf("z32", "z33", "z34",                                                "z35:st", "z36", "z37"),
+arrayOf("z38:i:wn:ode", "z39:i:dn:red:we", "z40:sps",                       "z41:i:dw:wn:red", "z42:i:wn:we", "z43"))
+		return load(map)
+	}
 
-    int blueKeyZone, greenKeyZone;
+	override val tiles: Array<ZTile>
+		get() = arrayOf(
+			ZTile("5R", 180, getQuadrant(0, 0)),
+			ZTile("8V", 180, getQuadrant(0, 3)),
+			ZTile("1V", 270, getQuadrant(3, 0)),
+			ZTile("10V", 180, getQuadrant(3, 3)),
+			ZTile("6V", 0, getQuadrant(6, 0)),
+			ZTile("3V", 180, getQuadrant(6, 3))
+		)
 
-    public WolfQuestWelcomeToWulfsburg() {
-        super(ZQuests.Welcome_to_Wulfsberg);
-    }
+	override fun init(game: ZGame) {
+		blueKeyZone = redObjectives.random()
+		do {
+			greenKeyZone = redObjectives.random()
+		} while (greenKeyZone == blueKeyZone)
+	}
 
-    @Override
-    public ZBoard loadBoard() {
+	override fun getObjectivesOverlay(game: ZGame): Table {
+		val totalChars = game.allCharacters.size
+		val numInZone = numPlayersInExitEvent(game)
+		return Table(name)
+			.addRow(Table().setNoBorder()
+				.addRow("", "Use the Towers for cover to execute ranged attacks on enemies")
+				.addRow("1.", "Collect all Objectives", String.format("%d of %d", numFoundObjectives, numStartObjectives))
+				.addRow("2.", "Find the BLUE objective hidden among RED objectives for a random vault item.", blueKeyZone < 0)
+				.addRow("3.", "Find the GREEN objective hidden among RED objectives for a random vault item.", greenKeyZone < 0)
+				.addRow("4.", "Get all players into the EXIT zone.", String.format("%d of %d", numInZone, totalChars))
+				.addRow("5.", "Exit zone must be cleared of zombies.", isExitClearedOfZombies(game))
+				.addRow("6.", "All Players must survive.")
+			)
+	}
 
-        final String [][] map = {
-                { "z0:exit:i:de:ws", "z1:spn",          "z2:i:ww:ws:ode",       "z3:i:ode:ds",      "z4:i:ode:ods",     "z5:i:ods" },
-                { "z6",              "z7",              "z8",                   "z9",               "z10:i:ww:ods",     "z10:i:ods" },
-                { "z11:i:wn:ode:ws", "z12:i:wn:ws",     "z12:i:wn:ods:de",      "z13:i:wn:ode",     "z14:i:we",         "z15:i:odn" },
-                { "z16:i",           "z16:i",           "z16:i:we",             "z17:t2:rn",         "z18:t3:rn",         "z18:t3:rn" },
-                { "z16:i:ds",        "z16:i:ws",        "z16:i:we:ws",          "z19:t1:re",         "z18:t3:rs",         "z18:t3:rs" },
-                { "z20:spw",         "z21",             "z22",                  "z23",              "z24",              "z25:spe" },
-                { "z26",             "z27:i:ww:wn:ws:ode", "z28:i:red:dn:de:ws", "z29",             "z30:i:dw:red:wn:ws:ode", "z31:i:dn:ws" },
-                { "z32",             "z33",             "z34",                  "z35:st",           "z36",              "z37" },
-                { "z38:i:wn:ode",    "z39:i:dn:red:we", "z40:sps",              "z41:i:dw:wn:red",  "z42:i:wn:we",      "z43" }
-        };
+	override fun processObjective(game: ZGame, c: ZCharacter) {
+		super.processObjective(game, c)
+		if (c.occupiedZone == blueKeyZone) {
+			game.addLogMessage(c.label + " has found the BLUE key")
+			game.giftRandomVaultArtifact(c)
+			blueKeyZone = -1
+		} else if (c.occupiedZone == greenKeyZone) {
+			game.addLogMessage(c.label + " has found the GREEN key")
+			game.giftRandomVaultArtifact(c)
+			greenKeyZone = -1
+		}
+	}
 
-        return load(map);
-    }
+	override fun getPercentComplete(game: ZGame): Int {
+		val numTasks = numStartObjectives + game.allCharacters.size
+		var numCompleted = numFoundObjectives
+		for (c in game.allCharacters) {
+			if (c.character.occupiedZone == exitZone) numCompleted++
+		}
+		var percentCompleted = numCompleted * 100 / numTasks
+		if (game.board.getZombiesInZone(exitZone).size > 0) percentCompleted--
+		return percentCompleted
+	}
 
-    @Override
-    public ZTile[] getTiles() {
-        return new ZTile[] {
-                new ZTile("5R", 180, ZTile.getQuadrant(0, 0)),
-                new ZTile("8V", 180, ZTile.getQuadrant(0, 3)),
-
-                new ZTile("1V", 270, ZTile.getQuadrant(3, 0)),
-                new ZTile("10V", 180, ZTile.getQuadrant(3, 3)),
-
-                new ZTile("6V", 0, ZTile.getQuadrant(6, 0)),
-                new ZTile("3V", 180, ZTile.getQuadrant(6, 3))
-
-
-        };
-    }
-
-    @Override
-    public void init(ZGame game) {
-        blueKeyZone = Utils.randItem(getRedObjectives());
-        do {
-            greenKeyZone = Utils.randItem(getRedObjectives());
-        } while (greenKeyZone == blueKeyZone);
-    }
-
-    @Override
-    public Table getObjectivesOverlay(ZGame game) {
-        int totalChars = game.getAllCharacters().size();
-        int numInZone = Utils.count(game.board.getAllCharacters(), object -> object.getOccupiedZone() == getExitZone());
-        return new Table(getName())
-                .addRow(new Table().setNoBorder()
-                        .addRow("", "Use the Towers for cover to execute ranged attacks on enemies")
-                        .addRow("1.", "Collect all Objectives", String.format("%d of %d", getNumFoundObjectives(), getNumStartObjectives()))
-                        .addRow("2.", "Find the BLUE objective hidden among RED objectives for a random vault item.", blueKeyZone < 0)
-                        .addRow("3.", "Find the GREEN objective hidden among RED objectives for a random vault item.", greenKeyZone < 0)
-                        .addRow("4.", "Get all players into the EXIT zone.", String.format("%d of %d", numInZone, totalChars))
-                        .addRow("5.", "Exit zone must be cleared of zombies.", isExitClearedOfZombies(game))
-                        .addRow("6.", "All Players must survive.")
-                );
-    }
-
-    @Override
-    public void processObjective(ZGame game, ZCharacter c) {
-        super.processObjective(game, c);
-        if (c.getOccupiedZone() == blueKeyZone) {
-            game.addLogMessage(c.getLabel() + " has found the BLUE key");
-            game.giftRandomVaultArtifact(c);
-            blueKeyZone = -1;
-        } else if (c.getOccupiedZone() == greenKeyZone) {
-            game.addLogMessage(c.getLabel() + " has found the GREEN key");
-            game.giftRandomVaultArtifact(c);
-            greenKeyZone = -1;
-        }
-    }
-
-    @Override
-    public int getPercentComplete(ZGame game) {
-        int numTasks = getNumStartObjectives() + game.getAllCharacters().size();
-        int numCompleted = getNumFoundObjectives();
-        for (ZPlayerName c : game.getAllCharacters()) {
-            if (c.getCharacter().getOccupiedZone() == getExitZone())
-                numCompleted++;
-        }
-        int percentCompleted = numCompleted*100 / numTasks;
-        if (game.board.getZombiesInZone(getExitZone()).size() > 0)
-            percentCompleted --;
-        return percentCompleted;
-    }
-
-    @Override
-    public String getQuestFailedReason(ZGame game) {
-        if (Utils.count(game.getAllCharacters(), object -> object.getCharacter().isDead()) > 0) {
-            return "Not all players survived.";
-        }
-        return super.getQuestFailedReason(game);
-    }
-
+	override fun getQuestFailedReason(game: ZGame): String? {
+		return if (numDeadPlayers(game) > 0) {
+			"Not all players survived."
+		} else super.getQuestFailedReason(game)
+	}
 }

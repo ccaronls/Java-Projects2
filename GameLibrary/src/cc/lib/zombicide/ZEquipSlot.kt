@@ -1,8 +1,9 @@
 package cc.lib.zombicide
 
 import cc.lib.annotation.Keep
-import cc.lib.game.Utils
+
 import cc.lib.ui.IButton
+import cc.lib.utils.prettify
 
 @Keep
 enum class ZEquipSlot(val shorthand: String) : IButton {
@@ -16,13 +17,13 @@ enum class ZEquipSlot(val shorthand: String) : IButton {
     }
 
     override fun getLabel(): String {
-        return Utils.toPrettyString(name)
+        return prettify(name)
     }
 
     companion object {
         @JvmStatic
         fun wearableValues(): Array<ZEquipSlot> {
-            return Utils.toArray(LEFT_HAND, BODY, RIGHT_HAND)
+            return arrayOf(LEFT_HAND, BODY, RIGHT_HAND)
         }
     }
 }

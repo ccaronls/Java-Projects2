@@ -128,7 +128,7 @@ public abstract class AWTBoardBuilder<V extends BVertex, E extends BEdge, C exte
         public boolean equals(Object o) {
             if (this == o) return true;
             String s = o.toString();
-            return Utils.equals(name, s);
+            return Utils.isEquals(name, s);
         }
 
         public void onPick() {

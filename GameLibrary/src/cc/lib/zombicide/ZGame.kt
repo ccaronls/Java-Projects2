@@ -4,7 +4,7 @@ import cc.lib.zombicide.ZDir.Companion.compassValues
 import cc.lib.game.GColor
 import cc.lib.zombicide.ZSpawnCard.ActionType
 import cc.lib.game.GRectangle
-import cc.lib.game.Utils
+
 import cc.lib.logger.LoggerFactory
 import cc.lib.utils.*
 import java.lang.IllegalArgumentException
@@ -66,7 +66,7 @@ open class ZGame() : Reflector<ZGame>() {
         init {
             addAllFields(ZGame::class.java)
             addAllFields(State::class.java)
-            registerClass(ZZombie::class.java)
+//            registerClass(ZZombie::class.java)
             registerClass(ZWallFlag::class.java)
             registerClass(ZSkill::class.java)
             registerClass(HashMap::class.java)
@@ -401,16 +401,11 @@ open class ZGame() : Reflector<ZGame>() {
         if (ch.canTrade()) {
             // check for trade with another character in the same zone (even if they are dead)
             if (isClearedOfZombies(ch.occupiedZone)) {
-                val tradablePlayers = Utils.map(Utils.filter(board.getCharactersInZone(ch.occupiedZone),
-                        { `object`: ZCharacter -> `object` !== ch }), Utils.Mapper<ZCharacter, ZPlayerName> { zChar: ZCharacter -> zChar.type })
-                val it = tradablePlayers.iterator()
-                while (it.hasNext()) {
-                    val pl = it.next()
-                    if (!pl.character.canTrade() && !ch.canTrade()) {
-                        it.remove()
-                    }
-                }
-                if (tradablePlayers.size > 0) options.add(ZMove.newTradeMove(tradablePlayers))
+	            board.getCharactersInZone(ch.occupiedZone).filter {
+		            it != ch && (it.canTrade() || ch.canTrade())
+	            }.takeIf { it.isNotEmpty() }?.map { it.type }?.also {
+	            	options.add(ZMove.newTradeMove(it))
+	            }
             }
         }
     }
@@ -440,17 +435,19 @@ open class ZGame() : Reflector<ZGame>() {
     }
 
     fun addHandOptions(ch: ZCharacter, options: MutableList<ZMove>) {
-        val types = Utils.map(options, { move: ZMove -> move!!.type })
-        if (isHandMoveAvailable(ch, ZEquipSlot.LEFT_HAND, types)) {
-            options.add(ZMove.newUseLeftHand())
-        }
-        if (isHandMoveAvailable(ch, ZEquipSlot.RIGHT_HAND, types)) {
-            options.add(ZMove.newUseRightHand())
-        }
+	    options.map { it.type}.let { types ->
+		    if (isHandMoveAvailable(ch, ZEquipSlot.LEFT_HAND, types)) {
+			    options.add(ZMove.newUseLeftHand())
+		    }
+		    if (isHandMoveAvailable(ch, ZEquipSlot.RIGHT_HAND, types)) {
+			    options.add(ZMove.newUseRightHand())
+		    }
+	    }
     }
 
     private fun removeDeadZombies() {
-        for (z: ZActor<*> in Utils.filter(board.getAllActors(), { a: ZActor<*>? -> a is ZZombie })) {
+        //for (z: ZActor<*> in Utils.filter(board.getAllActors(), { a: ZActor<*>? -> a is ZZombie })) {
+	    board.getAllZombies().forEach { z ->
             if (!z.isAlive && !z.isAnimating) {
                 board.removeActor(z)
             }
@@ -541,7 +538,7 @@ open class ZGame() : Reflector<ZGame>() {
                     }
                 }
                 if (options.size == 0) {
-                    options.addAll(Utils.filter(currentUserCharacters, Utils.Filter { `object`: ZPlayerName -> `object`.character.actionsLeftThisTurn > 0 }))
+                	options.addAll(currentUserCharacters.filter { it.character.actionsLeftThisTurn > 0 })
                 }
 
                 //if (options.size() > 0) {
@@ -838,7 +835,7 @@ open class ZGame() : Reflector<ZGame>() {
             ZState.PLAYER_STAGE_CHOOSE_SPAWN_AREA_TO_REMOVE -> {
                 val areas: MutableList<ZSpawnArea> = ArrayList()
                 for (cell: ZCell in board.getCells()) {
-                    areas.addAll(Utils.filter(cell.spawnAreas, { a: ZSpawnArea -> a.rect != null && a.isCanBeRemovedFromBoard }))
+                    areas.addAll(cell.spawnAreas.filter { a: ZSpawnArea -> a.isCanBeRemovedFromBoard })
                 }
                 if (areas.size > 0) {
                     val cur = currentCharacter!!
@@ -855,11 +852,9 @@ open class ZGame() : Reflector<ZGame>() {
                 return false
             }
             ZState.PLAYER_STAGE_CHOOSE_WEAPON_FROM_DECK -> {
-                val clazz = user.chooseEquipmentClass(currentCharacter!!, Utils.toList(*ZEquipmentClass.values()))
-                if (clazz != null) {
-                    val choices = Utils.filter(allSearchables, { e: ZEquipment<*> -> e!!.type.equipmentClass === clazz })
-                    val equip = user.chooseEquipmentInternal(currentCharacter!!, choices)
-                    if (equip != null) {
+                user.chooseEquipmentClass(currentCharacter!!, listOf(*ZEquipmentClass.values()))?.let { clazz ->
+                    val choices = allSearchables.filter { e: ZEquipment<*> -> e.type.equipmentClass === clazz }
+                    user.chooseEquipmentInternal(currentCharacter!!, choices)?.let { equip ->
                         popState()
                         lootDeck.remove(equip)
                         giftEquipment(currentCharacter!!.character, equip)
@@ -969,9 +964,9 @@ open class ZGame() : Reflector<ZGame>() {
     fun getZombiePathTowardNearestSpawn(zombie: ZZombie): List<ZDir> {
         val pathsMap: MutableMap<Int, List<ZDir>> = HashMap()
         var shortestPath: Int? = null
-        for (zone: ZZone in Utils.filter(board.zones, { z: ZZone -> isZoneEscapableForNecromancers(z.zoneIndex) })) {
+        board.zones.filter { z: ZZone -> isZoneEscapableForNecromancers(z.zoneIndex) }.forEach { zone ->
             val paths: List<List<ZDir>> = board.getShortestPathOptions(zombie.occupiedCell, zone.zoneIndex)
-            if (paths.size > 0) {
+            if (paths.isNotEmpty()) {
                 pathsMap[zone.zoneIndex] = paths.get(0)
                 if (shortestPath == null || paths.size < pathsMap[shortestPath]!!.size) {
                     shortestPath = zone.zoneIndex
@@ -985,7 +980,7 @@ open class ZGame() : Reflector<ZGame>() {
         // zombie will move toward players it can see first and then noisy areas second
         var maxNoise = 0
         var targetZone = -1
-        for (c: ZCharacter in Utils.filter(board.getAllCharacters(), { `object`: ZCharacter -> !`object`.isInvisible && `object`.isAlive })) {
+        board.getAllCharacters().filter { ch: ZCharacter -> !ch.isInvisible && ch.isAlive }.forEach { c ->
             if (board.canSee(zombie.occupiedZone, c.occupiedZone)) {
                 val noiseLevel = board.getZone(c.occupiedZone).noiseLevel
                 if (maxNoise < noiseLevel) {
@@ -1006,8 +1001,8 @@ open class ZGame() : Reflector<ZGame>() {
         }
         if (targetZone >= 0) {
             val paths: List<List<ZDir>> = board.getShortestPathOptions(zombie.occupiedCell, targetZone)
-            if (paths.size > 0) {
-                return Utils.randItem(paths)
+            if (paths.isNotEmpty()) {
+                return paths.random()
             }
         }
         return emptyList()
@@ -1016,13 +1011,13 @@ open class ZGame() : Reflector<ZGame>() {
     protected fun onStartRound(roundNum: Int) {}
     private fun useEquipment(c: ZCharacter, e: ZEquipment<*>): Boolean {
         if (e.isMagic) {
-            return performMove(c, ZMove.newMagicAttackMove(Utils.toList(e as ZWeapon)))
+            return performMove(c, ZMove.newMagicAttackMove(listOf(e as ZWeapon)))
         } else if (e.isMelee) {
-            return performMove(c, ZMove.newMeleeAttackMove(Utils.toList(e as ZWeapon)))
+            return performMove(c, ZMove.newMeleeAttackMove(listOf(e as ZWeapon)))
         } else if (e.isRanged) {
-            return performMove(c, ZMove.newRangedAttackMove(Utils.toList(e as ZWeapon)))
+            return performMove(c, ZMove.newRangedAttackMove(listOf(e as ZWeapon)))
         } else if (e.isThrowable) {
-            return performMove(c, ZMove.newThrowEquipmentMove(Utils.toList<ZEquipment<*>>(e as ZItem)))
+            return performMove(c, ZMove.newThrowEquipmentMove(listOf<ZEquipment<*>>(e as ZItem)))
         }
         return false
     }
@@ -1063,7 +1058,9 @@ open class ZGame() : Reflector<ZGame>() {
                 val zone = board.getZone(cur.occupiedZone)
                 zone.isObjective = false
                 for (pos: Grid.Pos in zone.cells) {
-                    for (ct: ZCellType in Utils.filter(ZCellType.values(), { type: ZCellType -> type.isObjective })) board.getCell(pos).setCellType(ct, false)
+                    ZCellType.values().filter { type: ZCellType -> type.isObjective }.forEach { ct ->
+	                    board.getCell(pos).setCellType(ct, false)
+                    }
                 }
                 addLogMessage(cur.name() + " Found an OBJECTIVE")
                 quest.processObjective(this, cur)
@@ -1290,7 +1287,7 @@ open class ZGame() : Reflector<ZGame>() {
                     1 -> doors[0]
                     else -> user.chooseDoorToToggleInternal(cur.type, doors)
                 }?.let { door ->
-                    Utils.assertTrue(!door.isClosed(board))
+                    assertTrue(!door.isClosed(board))
                     val barricade = cur.getEquipmentOfType(ZItemType.BARRICADE)!!
                     door.toggle(board, true)
                     cur.removeEquipment(barricade)
@@ -1307,13 +1304,14 @@ open class ZGame() : Reflector<ZGame>() {
                 val found: MutableList<ZEquipment<*>> = ArrayList()
                 while (lootDeck.size > 0 && numCardsDrawn-- > 0) {
                     val equip = lootDeck.removeLast()
-                    if (equip!!.type === ZItemType.AAHHHH) {
+                    if (equip.type === ZItemType.AHHHH) {
                         addLogMessage("Aaaahhhh!!!")
                         onAhhhhhh(cur.type)
                         // spawn zombie right here right now
                         //spawnZombies(1, ZZombieType.Walker, cur.occupiedZone);
                         spawnZombies(cur.occupiedZone)
                         putBackInSearchables(equip)
+	                    break // stop the search
                     } else {
                         found.add(equip)
                         quest.onEquipmentFound(this, equip)
@@ -1650,7 +1648,7 @@ open class ZGame() : Reflector<ZGame>() {
                     addNoise(cur.occupiedZone, 1)
                 }
                 addLogMessage(currentCharacter!!.name + " Scored " + hits + " hits")
-                for (skill: ZSkill in Utils.mergeLists(cur.getAvailableSkills(), weapon.type.skillsWhenUsed)) {
+                cur.getAvailableSkills().mergeWith(weapon.type.skillsWhenUsed).forEach { skill ->
                     skill.onAttack(this, cur, weapon, stat.actionType, (stat), cur.occupiedZone, hits, zombiesDestroyed)
                 }
                 if (hits > 0) checkForHitAndRun(cur)
@@ -1676,7 +1674,7 @@ open class ZGame() : Reflector<ZGame>() {
                             } else {
                                 Collections.sort(zombies, RangedComparator())
                             }
-                            log.debug("Ranged Priority: %s", Utils.map(zombies, { z: ZZombie -> z.type }))
+                            log.debug("Ranged Priority: %s", zombies.map { z: ZZombie -> z.type })
                         }
                         val hits = resolveHits(cur, zombies.size, weapon.type, stat, zombies.size / 2 - 1, zombies.size / 2 + 1)
                         var hitsMade = 0
@@ -1700,7 +1698,7 @@ open class ZGame() : Reflector<ZGame>() {
                         val friendsHit: MutableList<ZCharacter> = ArrayList()
                         if (cur.canFriendlyFire()) {
                             val misses = stat.numDice - hitsMade
-                            val friendlyFireOptions = Utils.filter(board.getCharactersInZone(zoneIdx), { `object`: ZCharacter -> `object` !== cur && `object`.canReceiveFriendlyFire() })
+                            val friendlyFireOptions = board.getCharactersInZone(zoneIdx).filter { ch: ZCharacter -> ch !== cur && ch.canReceiveFriendlyFire() }.toMutableList()
                             var i = 0
                             while (i < misses && friendlyFireOptions.size > 0) {
                                 if (friendlyFireOptions.size > 1) {
@@ -1731,7 +1729,7 @@ open class ZGame() : Reflector<ZGame>() {
                             destroyZombie(zombie, stat.attackType, cur, weapon.type)
                             addExperience(cur, zombie.type.expProvided)
                         }
-                        for (skill: ZSkill in Utils.mergeLists(cur.getAvailableSkills(), weapon.type.skillsWhenUsed)) {
+                        cur.getAvailableSkills().mergeWith(weapon.type.skillsWhenUsed).forEach { skill ->
                             skill.onAttack(this, cur, weapon, stat.actionType, (stat), zoneIdx, hits, zombiesDestroyed)
                         }
                         for (victim: ZCharacter in friendsHit) {
@@ -1793,9 +1791,9 @@ open class ZGame() : Reflector<ZGame>() {
                     hits++
                 }
             }
-            val numSixes = Utils.count(result, { `object`: Int? -> `object` == 6 })
+            val numSixes = result.count { it == 6 }
             if (numSixes > 0) {
-                for (skill: ZSkill in Utils.mergeLists(cur.getAvailableSkills(), type.skillsWhenUsed)) {
+                cur.getAvailableSkills().mergeWith(type.skillsWhenUsed).forEach { skill ->
                     if (skill.onSixRolled(this, cur, (stat)) && hits < maxHits) {
                         result = rollDice(numSixes)
                         keepGoing = true
@@ -1949,9 +1947,9 @@ open class ZGame() : Reflector<ZGame>() {
     }
 
     val allCharacters: List<ZPlayerName>
-        get() = Utils.map(board.getAllCharacters(), Utils.Mapper<ZCharacter, ZPlayerName> { `in`: ZCharacter -> `in`.type })
+        get() = board.getAllCharacters().map { it.type }
     val allLivingCharacters: List<ZPlayerName>
-        get() = Utils.filter(allCharacters, { `object`: ZPlayerName -> `object`.character.isAlive })
+        get() = allCharacters.filter { it.character.isAlive }
     val currentUserCharacters: List<ZPlayerName>
         get() {
             val list: MutableList<ZPlayerName> = ArrayList()
@@ -2001,7 +1999,7 @@ open class ZGame() : Reflector<ZGame>() {
         val action = card.getAction(level.difficultyColor)
         when (action.action) {
             ActionType.NOTHING_IN_SIGHT -> addLogMessage("Nothing in Sight")
-            ActionType.SPAWN -> spawnZombiesInternal(action.type, action.count, zoneIdx)
+            ActionType.SPAWN -> spawnZombiesInternal(action.type!!, action.count, zoneIdx)
             ActionType.DOUBLE_SPAWN -> doubleSpawn()
             ActionType.EXTRA_ACTIVATION_STANDARD -> extraActivation(ZZombieCategory.STANDARD)
             ActionType.EXTRA_ACTIVATION_NECROMANCER -> extraActivation(ZZombieCategory.NECROMANCER)
@@ -2012,10 +2010,11 @@ open class ZGame() : Reflector<ZGame>() {
     fun getCurrentUser(): ZUser {
         val pl = currentCharacter
         if (pl != null) {
-            val user = Utils.findFirstOrNull(users, { u: ZUser -> u.players.contains(pl) })
-            if (user != null) return user
+        	users.firstOrNull { it.players.contains(pl) }?.let {
+        		return it
+	        }
         }
-        return users[Utils.clamp(currentUser, 0, users.size - 1)]
+        return users[currentUser.coerceIn(0 until users.size)]
     }
 
     open val currentCharacter: ZPlayerName?
@@ -2092,7 +2091,7 @@ open class ZGame() : Reflector<ZGame>() {
     fun initLootDeck() {
         lootDeck.clear()
         lootDeck.addAll(make(4, ZItemType.BARRICADE))
-        lootDeck.addAll(make(4, ZItemType.AAHHHH))
+        lootDeck.addAll(make(4, ZItemType.AHHHH))
         lootDeck.addAll(make(2, ZItemType.APPLES))
         lootDeck.addAll(make(2, ZWeaponType.AXE))
         lootDeck.addAll(make(2, ZArmorType.CHAINMAIL))
@@ -2127,7 +2126,7 @@ open class ZGame() : Reflector<ZGame>() {
         lootDeck.addAll(make(1, ZSpellType.SPEED))
         lootDeck.addAll(make(1, ZSpellType.HELL_GOAT))
         quest.processLootDeck(lootDeck)
-        Utils.shuffle(lootDeck)
+        lootDeck.shuffle()
     }
 
     fun addNoise(zoneIdx: Int, noise: Int) {
@@ -2152,7 +2151,7 @@ open class ZGame() : Reflector<ZGame>() {
             when (gameOverStatus) {
                 GAME_LOST -> gameStatus = quest.getQuestFailedReason(this)
                 GAME_WON -> gameStatus = String.format("Completed")
-                else      -> gameStatus = String.format("In Progress: %d%% Completed", Utils.clamp(quest.getPercentComplete(this), 0, 100))
+                else      -> gameStatus = String.format("In Progress: %d%% Completed", quest.getPercentComplete(this).coerceIn(0 .. 100))
             }
             return Table(quest.name)
                     .addRow("STATUS: $gameStatus")
@@ -2182,13 +2181,13 @@ open class ZGame() : Reflector<ZGame>() {
     }
 
     fun unlockDoor(door: ZDoor) {
-        Utils.assertTrue(board.getDoor(door) === ZWallFlag.LOCKED)
+        assertTrue(board.getDoor(door) === ZWallFlag.LOCKED)
         board.setDoor(door, ZWallFlag.CLOSED)
         onDoorUnlocked(door)
     }
 
     fun lockDoor(door: ZDoor) {
-        Utils.assertTrue(board.getDoor(door) !== ZWallFlag.LOCKED)
+        assertTrue(board.getDoor(door) !== ZWallFlag.LOCKED)
         board.setDoor(door, ZWallFlag.LOCKED)
     }
 
@@ -2206,7 +2205,7 @@ open class ZGame() : Reflector<ZGame>() {
         var exp = 0
         var num = 0
         addLogMessage(cur.name() + " ignited the dragon bile!")
-        for (a: ZActor<*>? in Utils.filter(board.getActorsInZone(zoneIdx), { a: ZActor<*> -> a.isAlive })) {
+        board.getActorsInZone(zoneIdx).filter { a -> a.isAlive }.forEach { a ->
             if (a is ZZombie) {
                 val z = a
                 exp += z.type.expProvided
@@ -2227,7 +2226,7 @@ open class ZGame() : Reflector<ZGame>() {
     }
 
     fun giftEquipment(c: ZCharacter, e: ZEquipment<*>) {
-        onEquipmentFound(c.type, Utils.asList(e))
+        onEquipmentFound(c.type, listOf(e))
         quest.onEquipmentFound(this, e)
         val slot = c.getEmptyEquipSlotForOrNull(e)
         if (slot != null) {

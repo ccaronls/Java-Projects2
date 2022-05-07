@@ -1,7 +1,7 @@
 package cc.lib.zombicide
 
 import cc.lib.annotation.Keep
-import cc.lib.game.Utils
+
 
 @Keep
 enum class ZCellQuadrant {
@@ -19,7 +19,7 @@ enum class ZCellQuadrant {
     companion object {
         @JvmStatic
         fun valuesForRender(): Array<ZCellQuadrant> {
-            return Utils.toArray(UPPERLEFT, TOP, UPPERRIGHT, LEFT, CENTER, RIGHT, LOWERLEFT, BOTTOM, LOWERRIGHT)
+            return arrayOf(UPPERLEFT, TOP, UPPERRIGHT, LEFT, CENTER, RIGHT, LOWERLEFT, BOTTOM, LOWERRIGHT)
         }
     }
 }

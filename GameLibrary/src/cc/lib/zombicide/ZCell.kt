@@ -2,8 +2,9 @@ package cc.lib.zombicide
 
 import cc.lib.game.GRectangle
 import cc.lib.game.IRectangle
-import cc.lib.game.Utils
+
 import cc.lib.utils.Reflector
+import cc.lib.utils.assertTrue
 import cc.lib.zombicide.ZCellQuadrant
 import cc.lib.zombicide.ZCellQuadrant.Companion.valuesForRender
 import cc.lib.zombicide.ZDir
@@ -18,7 +19,7 @@ class ZCell internal constructor(private val x: Float, private val y: Float) : R
 
         init {
             addAllFields(ZCell::class.java)
-            Utils.assertTrue(ZCellType.values().size < 32, "Bit flag can only handle 32 values")
+            assertTrue(ZCellType.values().size < 32, "Bit flag can only handle 32 values")
         }
     }
 
@@ -167,12 +168,12 @@ class ZCell internal constructor(private val x: Float, private val y: Float) : R
         get() = spawns.toList().filterNotNull()
 
     fun removeSpawn(dir: ZDir) {
-        Utils.assertTrue(numSpawns > 0)
+        assertTrue(numSpawns > 0)
         if (spawns[0]!!.dir === dir) {
             spawns[0] = spawns[--numSpawns]
         } else {
-            Utils.assertTrue(numSpawns > 1)
-            Utils.assertTrue(spawns[1]!!.dir === dir)
+            assertTrue(numSpawns > 1)
+            assertTrue(spawns[1]!!.dir === dir)
             spawns[--numSpawns] = null
         }
     }

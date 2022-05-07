@@ -1,7 +1,8 @@
 package cc.lib.zombicide
 
-import cc.lib.game.Utils
+
 import cc.lib.utils.Table
+import cc.lib.utils.wrap
 
 class ZSpell(override val type: ZSpellType=ZSpellType.HEALING) : ZEquipment<ZSpellType>() {
     companion object {
@@ -22,6 +23,6 @@ class ZSpell(override val type: ZSpellType=ZSpellType.HEALING) : ZEquipment<ZSpe
 
     override fun getCardInfo(c: ZCharacter, game: ZGame): Table {
         val t = Table(label).setNoBorder()
-        return t.addRow(Utils.wrapTextWithNewlines(type.description, 20))
+        return t.addRow(type.description.wrap( 20))
     }
 }

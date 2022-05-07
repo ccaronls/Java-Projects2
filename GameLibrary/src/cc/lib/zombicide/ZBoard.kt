@@ -3,7 +3,7 @@ package cc.lib.zombicide
 import cc.lib.game.GColor
 import cc.lib.game.GDimension
 import cc.lib.game.IDimension
-import cc.lib.game.Utils
+
 import cc.lib.logger.LoggerFactory
 import cc.lib.math.Vector2D
 import cc.lib.utils.GException
@@ -665,11 +665,11 @@ class ZBoard : Reflector<ZBoard>, IDimension {
     }
 
     fun getZonesOfType(type: ZZoneType): List<ZZone> {
-        return Utils.filter(zones) { `object`: ZZone -> `object`.type === type }
+        return zones.filter { zone -> zone.type === type }
     }
 
     fun getSpawnZones(): List<ZZone> {
-        return Utils.filter(zones) { `object`: ZZone -> isZoneSpawnable(`object`.zoneIndex) }
+        return zones.filter { zone -> isZoneSpawnable(zone.zoneIndex) }
     }
 
     fun isZoneSpawnable(zoneIndex: Int): Boolean {

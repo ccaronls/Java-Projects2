@@ -32,10 +32,10 @@ public class WeakHashSet<E> implements Set<E> {
                 return false;
 
             if (obj instanceof MyWeakReference) {
-                return Utils.equals(get(), ((MyWeakReference)obj).get());
+                return Utils.isEquals(get(), ((MyWeakReference)obj).get());
             }
 
-            return Utils.equals(get(), obj);
+            return Utils.isEquals(get(), obj);
         }
     }
 

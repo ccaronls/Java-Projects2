@@ -1,8 +1,9 @@
 package cc.lib.zombicide
 
-import cc.lib.game.Utils
+
 import cc.lib.ui.IButton
 import cc.lib.utils.Reflector
+import cc.lib.utils.prettify
 import java.util.*
 
 class ZMove private constructor(val type: ZMoveType=ZMoveType.END_TURN, val integer: Int?, val character: ZPlayerName?, val equipment: ZEquipment<*>?, val fromSlot: ZEquipSlot?, val toSlot: ZEquipSlot?, val list: List<*>?, val skill: ZSkill?, val action: ZActionType?) : Reflector<ZMove>(), IButton {
@@ -200,8 +201,8 @@ class ZMove private constructor(val type: ZMoveType=ZMoveType.END_TURN, val inte
         if (o is ZMoveType) return type === o
         if (o !is ZMove) return false
         val zMove = o
-        return (type === zMove.type && Utils.isEquals(equipment, zMove.equipment)
-                && Utils.isEquals(integer, zMove.integer)
+        return (type === zMove.type && cc.lib.utils.isEqual(equipment, zMove.equipment)
+                && cc.lib.utils.isEqual(integer, zMove.integer)
                 && character === zMove.character && fromSlot === zMove.fromSlot && toSlot === zMove.toSlot && skill === zMove.skill)
     }
 
@@ -214,8 +215,8 @@ class ZMove private constructor(val type: ZMoveType=ZMoveType.END_TURN, val inte
     }
 
     override fun getLabel(): String {
-        var label = Utils.toPrettyString(type.name)
-        if (equipment != null) label += " " + equipment.label
+        var label = prettify(type.name)
+	    equipment?.let { label += " ${it.label}"}
         if (toSlot == null && fromSlot != null) {
             label += " from ${fromSlot.label}"
         }

@@ -1,131 +1,86 @@
-package cc.lib.zombicide.quests;
+package cc.lib.zombicide.quests
 
-import cc.lib.game.GColor;
-import cc.lib.game.Utils;
-import cc.lib.utils.Grid;
-import cc.lib.utils.Table;
-import cc.lib.zombicide.ZBoard;
-import cc.lib.zombicide.ZCell;
-import cc.lib.zombicide.ZCharacter;
-import cc.lib.zombicide.ZDir;
-import cc.lib.zombicide.ZDoor;
-import cc.lib.zombicide.ZGame;
-import cc.lib.zombicide.ZQuest;
-import cc.lib.zombicide.ZQuests;
-import cc.lib.zombicide.ZTile;
+import cc.lib.game.GColor
+import cc.lib.utils.Grid
+import cc.lib.utils.Table
+import cc.lib.zombicide.*
+import cc.lib.zombicide.ZTile.Companion.getQuadrant
 
-public class ZQuestTheCommandry extends ZQuest {
+open class ZQuestTheCommandry(quests: ZQuests = ZQuests.The_Commandry) : ZQuest(quests) {
+	companion object {
+		init {
+			addAllFields(ZQuestTheCommandry::class.java)
+		}
+	}
 
-    static {
-        addAllFields(ZQuestTheCommandry.class);
-    }
+	lateinit var blueDoor: ZDoor
+	lateinit var greenDoor: ZDoor
+	private var blueDoorKeyZone = -1
+	private var greenDoorKeyZone = -1
 
-    ZDoor blueDoor, greenDoor;
-    int blueDoorKeyZone = -1;
-    int greenDoorKeyZone = -1;
+	override fun loadBoard(): ZBoard {
+		val map = arrayOf(arrayOf("z0:i:red:ods:de", "z1:spn", "z2:i:ww:de", "z3", "z4", "z5", "z6:i:dw:we:ods", "z7:spn", "z8:i:gvd1:ds:ww:red"), arrayOf("z9:i:vd2:we", "z10", "z2:i:ww:we:ods", "z11", "z12:i:exit:bluedn:ww:ws:we", "z13", "z14:i:ww:we", "z15", "z16"), arrayOf("z9:i:red:we:ods", "z17", "z18:i:ww:de:ods", "z19", "z20", "z21", "z14:i:dw:ods:de", "z22", "z23:i:wn:ww:red"), arrayOf("z24:i:we::ods", "z25", "z26:i:ww:ws:ode", "z27:i:dn:ws", "z28:i:wn:greends:odw", "z28:i:dn:ws:ode", "z29:i:ws:we:odn", "z30", "z31:i:ww"), arrayOf("z32:i:gvd3:we", "z33", "z34", "z35", "z36", "z37", "z38", "z39", "z31:i:ww:ods"), arrayOf("z32:i:red:ws", "z32:i:wn:ws:ode", "z40:i:wn:ws:ode", "z41:i:wn:ws:de", "z42:sps:start:ws", "z43:i:dw:wn:ws:ode", "z44:i:wn:ws:ode", "z45:i:wn:ws:red", "z45:i:odn:ws:vd4"), arrayOf("", "", "", "z46:v:gvd1:ww", "z46:v", "z46:v:gvd3:we", "z47:v:vd2", "z47:v", "z47:v:vd4"))
+		return load(map)
+	}
 
-    public ZQuestTheCommandry() {
-        super(ZQuests.The_Commandry);
-    }
+	override fun loadCmd(grid: Grid<ZCell>, pos: Grid.Pos, cmd: String) {
+		when (cmd) {
+			"greends" -> greenDoor = ZDoor(pos, ZDir.SOUTH, GColor.GREEN)
+			"greende" -> greenDoor = ZDoor(pos, ZDir.EAST, GColor.GREEN)
+			"bluedn" -> blueDoor = ZDoor(pos, ZDir.NORTH, GColor.BLUE)
+			"bluede" -> blueDoor = ZDoor(pos, ZDir.EAST, GColor.BLUE)
+			else      -> super.loadCmd(grid, pos, cmd)
+		}
+	}
 
-    ZQuestTheCommandry(ZQuests q) {
-        super(q);
-    }
+	override fun processObjective(game: ZGame, c: ZCharacter) {
+		super.processObjective(game, c)
+		if (c.occupiedZone == blueDoorKeyZone) {
+			game.addLogMessage(c.name() + " has unlocked the Blue Door")
+			game.unlockDoor(blueDoor)
+			blueDoorKeyZone = -1
+		}
+		if (c.occupiedZone == greenDoorKeyZone) {
+			game.addLogMessage(c.name() + " has unlocked the Green Door")
+			game.unlockDoor(greenDoor)
+			greenDoorKeyZone = -1
+		}
+	}
 
-    @Override
-    public ZBoard loadBoard() {
+	override fun getPercentComplete(game: ZGame): Int {
+		return if (isAllPlayersInExit(game)) 100 else 0
+	}
 
-        String [][] map = {
-                { "z0:i:red:ods:de", "z1:spn", "z2:i:ww:de", "z3", "z4", "z5", "z6:i:dw:we:ods", "z7:spn", "z8:i:gvd1:ds:ww:red" },
-                { "z9:i:vd2:we",     "z10",   "z2:i:ww:we:ods", "z11", "z12:i:exit:bluedn:ww:ws:we", "z13", "z14:i:ww:we", "z15", "z16" },
-                { "z9:i:red:we:ods", "z17",   "z18:i:ww:de:ods", "z19", "z20", "z21", "z14:i:dw:ods:de", "z22", "z23:i:wn:ww:red" },
-                { "z24:i:we::ods",   "z25",   "z26:i:ww:ws:ode", "z27:i:dn:ws", "z28:i:wn:greends:odw", "z28:i:dn:ws:ode", "z29:i:ws:we:odn", "z30", "z31:i:ww" },
-                { "z32:i:gvd3:we",    "z33",   "z34", "z35", "z36", "z37", "z38", "z39", "z31:i:ww:ods" },
-                { "z32:i:red:ws",    "z32:i:wn:ws:ode", "z40:i:wn:ws:ode", "z41:i:wn:ws:de", "z42:sps:start:ws", "z43:i:dw:wn:ws:ode", "z44:i:wn:ws:ode", "z45:i:wn:ws:red", "z45:i:odn:ws:vd4" },
-                { "", "", "", "z46:v:gvd1:ww", "z46:v", "z46:v:gvd3:we", "z47:v:vd2", "z47:v", "z47:v:vd4" }
-        };
+	override fun getQuestFailedReason(game: ZGame): String? {
+		return if (numDeadPlayers(game) > 0) {
+			"Not all players survived."
+		} else super.getQuestFailedReason(game)
+	}
 
-        return load(map);
-    }
+	override val tiles: Array<ZTile>
+		get() = arrayOf(
+			ZTile("4R", 180, getQuadrant(0, 0)),
+			ZTile("6R", 270, getQuadrant(0, 3)),
+			ZTile("5R", 270, getQuadrant(0, 6)),
+			ZTile("7R", 90, getQuadrant(3, 0)),
+			ZTile("8R", 180, getQuadrant(3, 3)),
+			ZTile("9R", 180, getQuadrant(3, 6)))
 
-    @Override
-    protected void loadCmd(Grid<ZCell> grid, Grid.Pos pos, String cmd) {
-        switch (cmd) {
-            case "greends":
-                greenDoor = new ZDoor(pos, ZDir.SOUTH, GColor.GREEN);
-                break;
-            case "greende":
-                greenDoor = new ZDoor(pos, ZDir.EAST, GColor.GREEN);
-                break;
-            case "bluedn":
-                blueDoor = new ZDoor(pos, ZDir.NORTH, GColor.BLUE);
-                break;
-            case "bluede":
-                blueDoor = new ZDoor(pos, ZDir.EAST, GColor.BLUE);
-                break;
-            default:
-                super.loadCmd(grid, pos, cmd);
-        }
-    }
+	override fun init(game: ZGame) {
+		while (greenDoorKeyZone == blueDoorKeyZone) {
+			greenDoorKeyZone = redObjectives.random()
+			blueDoorKeyZone = redObjectives.random()
+		}
+		game.board.setDoorLocked(blueDoor)
+		game.board.setDoorLocked(greenDoor)
+	}
 
-    @Override
-    public void processObjective(ZGame game, ZCharacter c) {
-        super.processObjective(game, c);
-        if (c.getOccupiedZone() == blueDoorKeyZone) {
-            game.addLogMessage(c.name() + " has unlocked the Blue Door");
-            game.unlockDoor(blueDoor);
-            blueDoorKeyZone = -1;
-        }
-
-        if (c.getOccupiedZone() == greenDoorKeyZone) {
-            game.addLogMessage(c.name() + " has unlocked the Green Door");
-            game.unlockDoor(greenDoor);
-            greenDoorKeyZone = -1;
-        }
-    }
-
-    @Override
-    public int getPercentComplete(ZGame game) {
-        return isAllPlayersInExit(game) ? 100 : 0;
-    }
-
-    @Override
-    public String getQuestFailedReason(ZGame game) {
-        if (Utils.count(game.board.getAllCharacters(), object -> object.isDead()) > 0) {
-            return "Not all players survived.";
-        }
-        return super.getQuestFailedReason(game);
-    }
-
-    @Override
-    public ZTile[] getTiles() {
-        return new ZTile[] {
-                new ZTile("4R", 180, ZTile.getQuadrant(0, 0)),
-                new ZTile("6R", 270, ZTile.getQuadrant(0, 3)),
-                new ZTile("5R", 270, ZTile.getQuadrant(0, 6)),
-                new ZTile("7R", 90, ZTile.getQuadrant(3, 0)),
-                new ZTile("8R", 180, ZTile.getQuadrant(3, 3)),
-                new ZTile("9R", 180, ZTile.getQuadrant(3, 6)),
-        };
-    }
-
-    @Override
-    public void init(ZGame game) {
-        while (greenDoorKeyZone == blueDoorKeyZone) {
-            greenDoorKeyZone = Utils.randItem(getRedObjectives());
-            blueDoorKeyZone = Utils.randItem(getRedObjectives());
-        }
-        game.board.setDoorLocked(blueDoor);
-        game.board.setDoorLocked(greenDoor);
-    }
-
-    @Override
-    public Table getObjectivesOverlay(ZGame game) {
-        return new Table(getName())
-                .addRow(new Table().setNoBorder()
-                    .addRow("1.", "Escape through the underpass.")
-                    .addRow("2.", "Unlock the Green Door", greenDoorKeyZone < 0)
-                    .addRow("3.", "Unlock the Blue Door", blueDoorKeyZone < 0)
-                );
-    }
+	override fun getObjectivesOverlay(game: ZGame): Table {
+		return Table(name)
+			.addRow(Table().setNoBorder()
+				.addRow("1.", "Escape through the underpass.")
+				.addRow("2.", "Unlock the Green Door", greenDoorKeyZone < 0)
+				.addRow("3.", "Unlock the Blue Door", blueDoorKeyZone < 0)
+			)
+	}
 }

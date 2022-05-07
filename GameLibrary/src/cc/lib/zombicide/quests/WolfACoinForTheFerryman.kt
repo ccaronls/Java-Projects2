@@ -1,159 +1,120 @@
-package cc.lib.zombicide.quests;
+package cc.lib.zombicide.quests
 
-import java.util.ArrayList;
-import java.util.List;
-
-import cc.lib.game.GColor;
-import cc.lib.game.Utils;
-import cc.lib.utils.Grid;
-import cc.lib.utils.Table;
-import cc.lib.zombicide.ZBoard;
-import cc.lib.zombicide.ZCell;
-import cc.lib.zombicide.ZCellType;
-import cc.lib.zombicide.ZCharacter;
-import cc.lib.zombicide.ZDir;
-import cc.lib.zombicide.ZDoor;
-import cc.lib.zombicide.ZGame;
-import cc.lib.zombicide.ZMove;
-import cc.lib.zombicide.ZQuest;
-import cc.lib.zombicide.ZQuests;
-import cc.lib.zombicide.ZTile;
+import cc.lib.game.GColor
+import cc.lib.utils.Grid
+import cc.lib.utils.Table
+import cc.lib.zombicide.*
+import cc.lib.zombicide.ZMove.Companion.newObjectiveMove
+import cc.lib.zombicide.ZTile.Companion.getQuadrant
+import java.util.*
 
 /**
  * Created by Chris Caron on 9/1/21.
  */
-public class WolfACoinForTheFerryman extends ZQuest {
+class WolfACoinForTheFerryman : ZQuest(ZQuests.A_Coin_For_The_Ferryman) {
+	companion object {
+		init {
+			addAllFields(WolfACoinForTheFerryman::class.java)
+		}
+	}
 
-    static {
-        addAllFields(WolfACoinForTheFerryman.class);
-    }
+	var lockedDoors: MutableList<ZDoor> = ArrayList()
+	var blueKeyPos: Grid.Pos? = null
+	override fun loadBoard(): ZBoard {
+		val map = arrayOf(
+					arrayOf("z0:i:ww:ws", "z1", "z2:i::ww::ws:de:red",      "z10", "z11", "z12",                                "z20", "z21:spn", "z22:i:ww"),
+					arrayOf("z3", "z4", "z5",                               "z13", "z14:i:wn::lde:ldw:exit", "z15",             "z23:i:dn:ww:we:ods", "z24", "z22:i:ww:ws"),
+					arrayOf("z6:i:wn:we:ods", "z7", "z8:i:wn:ww:de:ods",    "z16", "z17", "z18",                                "z25:i:dw:we:red", "z26", "z27"),
+					arrayOf("z30:i:we:ws", "z31", "z32:i:ww",               "z40:t3:rn:rw", "z41:t3:blue:rn", "z42:t3:rn:re",   "z50:i:ds:ode", "z51:i:wn:we:ws", "z52"),
+					arrayOf("z33", "z34", "z32:i:ww",                       "z43:t3:rw", "z44:t3", "z45:t3:re:rs",              "z53", "z54", "z55"),
+					arrayOf("z35:i:wn:we:red", "z36", "z37:v:dw:wn:ws",     "z46:t3:rw:rs:re", "z47:t2:rs", "z48:t1:rs:st",     "z56", "z57:i:wn:dw:ws:ode", "z58:i:wn:ods"),
+					arrayOf("z60:i:de:ods", "z61", "z62:i:ww:ws:ode",       "z70:i:ws", "z70:i:ws:ode", "z71:i:de:ws",          "z80", "z81:i:ww:ws:ode", "z82:i:ws"),
+					arrayOf("z63:i:we", "z64", "z65",                       "z72", "z73", "z74",                                "z83", "z84", "z85"),
+					arrayOf("z63:i:we", "z66:sps", "z67:i:ww:dn:ode",       "z75:i:wn:ode", "z76:i:wn", "z77:i:wn:red:ode",     "z86:i:dn:ode", "z87:i:wn:we", "z88"))
+		return load(map)
+	}
 
-    List<ZDoor> lockedDoors = new ArrayList<>();
-    Grid.Pos blueKeyPos = null;
+	override fun loadCmd(grid: Grid<ZCell>, pos: Grid.Pos, cmd: String) {
+		when (cmd) {
+			"ldw" -> lockedDoors.add(ZDoor(pos, ZDir.WEST, GColor.BLUE))
+			"lde" -> lockedDoors.add(ZDoor(pos, ZDir.EAST, GColor.BLUE))
+			"blue" ->                 // blue key hidden until all other objectives taken
+				blueKeyPos = pos
+/*			"red" -> {
+				if (numStartObjectives > 0)  // for DEBUG allow only 1
+				else {
+					super.loadCmd(grid, pos, "st")
+				}
+				super.loadCmd(grid, pos, cmd)
+			}*/
+			else   -> super.loadCmd(grid, pos, cmd)
+		}
+	}
 
-    public WolfACoinForTheFerryman() {
-        super(ZQuests.A_Coin_For_The_Ferryman);
-    }
+	override val tiles: Array<ZTile>
+		get() = arrayOf(
+			ZTile("7V", 270, getQuadrant(0, 0)),
+			ZTile("6R", 0, getQuadrant(0, 3)),
+			ZTile("1R", 0, getQuadrant(0, 6)),
+			ZTile("5R", 90, getQuadrant(3, 0)),
+			ZTile("10R", 270, getQuadrant(3, 3)),
+			ZTile("2R", 90, getQuadrant(3, 6)),
+			ZTile("8R", 90, getQuadrant(6, 0)),
+			ZTile("4R", 270, getQuadrant(6, 3)),
+			ZTile("3V", 180, getQuadrant(6, 6))
+		)
 
-    @Override
-    public ZBoard loadBoard() {
-        String [][] map = {
-                { "z0:i:ww:ws","z1","z2:i::ww::ws:de:red",              "z10","z11","z12",                                          "z20","z21:spn","z22:i:ww"   },
-                { "z3","z4","z5",                                       "z13","z14:i:wn::lde:ldw:exit","z15",                       "z23:i:dn:ww:we:ods","z24","z22:i:ww:ws"   },
-                { "z6:i:wn:we:ods","z7","z8:i:wn:ww:de:ods",            "z16","z17","z18",                                          "z25:i:dw:we:red","z26","z27"   },
+	override fun init(game: ZGame) {
+		for (door in lockedDoors) game.board.setDoorLocked(door)
+	}
 
-                { "z30:i:we:ws","z31","z32:i:ww",                       "z40:t3:rn:rw","z41:t3:blue:rn","z42:t3:rn:re",             "z50:i:ds:ode","z51:i:wn:we:ws","z52"   },
-                { "z33","z34","z32:i:ww",                                 "z43:t3:rw","z44:t3","z45:t3:re:rs",                      "z53","z54","z55"   },
-                { "z35:i:wn:we:red","z36","z37:v:dw:wn:ws",               "z46:t3:rw:rs:re","z47:t2:rs","z48:t1:rs:st",             "z56","z57:i:wn:dw:ws:ode","z58:i:wn:ods"   },
+	override fun processObjective(game: ZGame, c: ZCharacter) {
+		blueKeyPos?.let {
+			val zIdx = game.board.getCell(it).zoneIndex
+			if (zIdx == c.occupiedZone) {
+				game.addLogMessage("The PORTAL is unlocked!!")
+				game.board.getZone(zIdx).isObjective = false
+				for (door in lockedDoors) {
+					game.unlockDoor(door)
+				}
+				blueKeyPos = null
+				return
+			}
+		}
 
-                { "z60:i:de:ods","z61","z62:i:ww:ws:ode",               "z70:i:ws","z70:i:ws:ode","z71:i:de:ws",                    "z80","z81:i:ww:ws:ode","z82:i:ws"    },
-                { "z63:i:we","z64","z65",                               "z72","z73","z74",                                          "z83","z84","z85"              },
-                { "z63:i:we","z66:sps","z67:i:ww:dn:ode",                 "z75:i:wn:ode","z76:i:wn","z77:i:wn:red:ode",             "z86:i:dn:ode","z87:i:wn:we","z88"    }
-        };
+		super.processObjective(game, c)
+		if (numRemainingObjectives == 0) {
+			game.addLogMessage("The BLUE key is revealed!!!")
+			game.board.setObjective(blueKeyPos!!, ZCellType.OBJECTIVE_BLUE)
+		}
+	}
 
-        return load(map);
-    }
+	override fun addMoves(game: ZGame, cur: ZCharacter, options: MutableList<ZMove>) {
+		super.addMoves(game, cur, options)
+		if (blueKeyPos != null) {
+			val idx = game.board.getCell(blueKeyPos!!).zoneIndex
+			if (idx == cur.occupiedZone) {
+				options.add(newObjectiveMove(idx))
+			}
+		}
+	}
 
-    @Override
-    protected void loadCmd(Grid<ZCell> grid, Grid.Pos pos, String cmd) {
-        switch (cmd) {
+	fun isExitZoneOccupied(game: ZGame): Boolean {
+		return numPlayersInExitEvent(game) > 0
+	}
 
-            case "ldw":
-                lockedDoors.add(new ZDoor(pos, ZDir.WEST, GColor.BLUE));
-                break;
-            case "lde":
-                lockedDoors.add(new ZDoor(pos, ZDir.EAST, GColor.BLUE));
-                break;
-            case "blue":
-                // blue key hidden until all other objectives taken
-                blueKeyPos = pos;
-                break;
-            case "red":
-                if (getNumStartObjectives()>0)
-                    break; // for DEBUG allow only 1
-                else {
-                    super.loadCmd(grid, pos, "st");
-                }
-                // fallthrough
-            default:
-                super.loadCmd(grid, pos, cmd);
-        }
-    }
+	override fun getPercentComplete(game: ZGame): Int {
+		val total = numStartObjectives + 2
+		val completed = numFoundObjectives + (if (isExitZoneOccupied(game)) 1 else 0) + if (blueKeyPos == null) 1 else 0
+		return completed * 100 / total
+	}
 
-    @Override
-    public ZTile[] getTiles() {
-        return new ZTile[]{
-                new ZTile("7V", 270, ZTile.getQuadrant(0, 0)),
-                new ZTile("6R", 0, ZTile.getQuadrant(0, 3)),
-                new ZTile("1R", 0, ZTile.getQuadrant(0, 6)),
-
-                new ZTile("5R", 90, ZTile.getQuadrant(3, 0)),
-                new ZTile("10R", 270, ZTile.getQuadrant(3, 3)),
-                new ZTile("2R", 90, ZTile.getQuadrant(3, 6)),
-
-                new ZTile("8R", 90, ZTile.getQuadrant(6, 0)),
-                new ZTile("4R", 270, ZTile.getQuadrant(6, 3)),
-                new ZTile("3V", 180, ZTile.getQuadrant(6, 6))
-
-        };
-    }
-
-    @Override
-    public void init(ZGame game) {
-        for (ZDoor door : lockedDoors)
-            game.board.setDoorLocked(door);
-    }
-
-    @Override
-    public void processObjective(ZGame game, ZCharacter c) {
-        int zIdx;
-        if (blueKeyPos != null && (zIdx=game.board.getCell(blueKeyPos).zoneIndex) == c.getOccupiedZone()) {
-            game.addLogMessage("The PORTAL is unlocked!!");
-            game.board.getZone(zIdx).setObjective(false);
-            for (ZDoor door : lockedDoors) {
-                game.unlockDoor(door);
-            }
-            blueKeyPos = null;
-        } else {
-            super.processObjective(game, c);
-            if (getNumRemainingObjectives() == 0) {
-                game.addLogMessage("The BLUE key is revealed!!!");
-                game.board.setObjective(blueKeyPos, ZCellType.OBJECTIVE_BLUE);
-            }
-        }
-    }
-
-    @Override
-    public void addMoves(ZGame game, ZCharacter cur, List<ZMove> options) {
-        super.addMoves(game, cur, options);
-        if (blueKeyPos != null) {
-            int idx = game.board.getCell(blueKeyPos).zoneIndex;
-            if (idx == cur.getOccupiedZone()) {
-                options.add(ZMove.newObjectiveMove(idx));
-            }
-        }
-    }
-
-    boolean isExitZoneOccupied(ZGame game) {
-        return Utils.count(game.getAllLivingCharacters(), c -> c.getCharacter().getOccupiedZone() == getExitZone()) > 0;
-    }
-
-    @Override
-    public int getPercentComplete(ZGame game) {
-        int total = getNumStartObjectives() + 2;
-        int completed = getNumFoundObjectives() + (isExitZoneOccupied(game) ? 1 : 0) + (blueKeyPos == null ? 1 : 0);
-
-        return completed * 100 / total;
-    }
-
-    @Override
-    public Table getObjectivesOverlay(ZGame game) {
-        return new Table(getName())
-                .addRow(new Table().setNoBorder()
-                    .addRow("1.", "Take all of the objective to reveal the BLUE key", String.format("%d of %d", getNumFoundObjectives(), getNumStartObjectives()))
-                    .addRow("2.", "Take the BLUE key to unlock the BLUE doors and the escape portal", blueKeyPos == null)
-                    .addRow("3.", "Enter the portal and banish the Necromancers for good", isExitZoneOccupied(game))
-
-                );
-    }
+	override fun getObjectivesOverlay(game: ZGame): Table {
+		return Table(name)
+			.addRow(Table().setNoBorder()
+				.addRow("1.", "Take all of the objective to reveal the BLUE key", String.format("%d of %d", numFoundObjectives, numStartObjectives))
+				.addRow("2.", "Take the BLUE key to unlock the BLUE doors and the escape portal", blueKeyPos == null)
+				.addRow("3.", "Enter the portal and banish the Necromancers for good", isExitZoneOccupied(game))
+			)
+	}
 }

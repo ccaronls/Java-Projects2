@@ -1,7 +1,8 @@
 package cc.lib.zombicide
 
-import cc.lib.game.Utils
+
 import cc.lib.utils.Table
+import cc.lib.utils.wrap
 
 class ZArmor(override val type: ZArmorType=ZArmorType.CHAINMAIL) : ZEquipment<ZArmorType>() {
     companion object {
@@ -36,23 +37,23 @@ class ZArmor(override val type: ZArmorType=ZArmorType.CHAINMAIL) : ZEquipment<ZA
         Special        |
          */
         val ratings = Table().setNoBorder()
-        for (type in Utils.asList(ZZombieType.Walker, ZZombieType.Fatty, ZZombieType.Runner, ZZombieType.Necromancer, ZZombieType.Abomination)) {
+        for (type in listOf(ZZombieType.Walker, ZZombieType.Fatty, ZZombieType.Runner, ZZombieType.Necromancer, ZZombieType.Abomination)) {
             ratings.addRow(type, this.type.getDieRollToBlock(type))
         }
         val main = Table(label).setNoBorder().addRow(ratings)
-        if (type.specialAbilityDescription != null) {
-            main.addRow(Utils.wrapTextWithNewlines(type.specialAbilityDescription, 24))
+        type.specialAbilityDescription?.let {
+            main.addRow(it.wrap( 24))
         }
         return main
     }
 
     override fun getTooltipText(): String {
         val ratings = Table().setNoBorder()
-        for (type in Utils.asList(ZZombieType.Walker, ZZombieType.Fatty, ZZombieType.Runner, ZZombieType.Necromancer, ZZombieType.Abomination)) {
+        for (type in listOf(ZZombieType.Walker, ZZombieType.Fatty, ZZombieType.Runner, ZZombieType.Necromancer, ZZombieType.Abomination)) {
             ratings.addRow(type, this.type.getDieRollToBlock(type))
         }
-        if (type.specialAbilityDescription != null) {
-            ratings.addRow(Utils.wrapTextWithNewlines(type.specialAbilityDescription, 24))
+        type.specialAbilityDescription?.let {
+            ratings.addRow(it.wrap(24))
         }
         return ratings.toString()
     }

@@ -1,7 +1,7 @@
 package cc.lib.zombicide
 
 import cc.lib.game.AGraphics
-import cc.lib.game.Utils
+
 import cc.lib.utils.*
 import cc.lib.zombicide.ui.UIZombicide
 import java.util.*
@@ -37,6 +37,10 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
     }
 
     private val objectives: MutableMap<ZCellType, ZObjective> = HashMap()
+
+	fun numPlayersInExitEvent(game: ZGame) : Int = game.board.getAllCharacters().count {it.occupiedZone == exitZone }
+	fun numDeadPlayers(game: ZGame) : Int = game.board.getAllCharacters().count { it.isDead }
+
     abstract fun loadBoard(): ZBoard
 
     /**
@@ -79,22 +83,22 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
      * @return
      */
     val numRemainingObjectives: Int
-        get() = Utils.sumInt(objectives.values) { o: ZObjective -> o.objectives.size }
+        get() = objectives.values.sumBy { it.objectives.size }
 
     /**
      *
      * @return
      */
     val numFoundObjectives: Int
-        get() = Utils.sumInt(objectives.values) { o: ZObjective -> o.found.size }
+        get() = objectives.values.sumBy { it.found.size }
 
 
     /**
      *
      * @return
      */
-    val redObjectives: List<Int>
-        get() = getObjectives(ZCellType.OBJECTIVE_RED)
+    val redObjectives: MutableList<Int>
+        get() = getObjectives(ZCellType.OBJECTIVE_RED).toMutableList()
 
     fun getObjectives(color: ZCellType): List<Int> {
         val obj = objectives[color] ?: return emptyList()
@@ -102,7 +106,7 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
     }
 
     val allObjectives: List<Int>
-        get() = Utils.mergeLists(objectives.values) { o: ZObjective -> o.objectives }
+        get() = objectives.values.map { it.objectives }.flatten()
 
     private fun addObjective(color: ZCellType, zoneIndex: Int) {
         var obj = objectives[color]
@@ -140,7 +144,7 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
     }
 
     protected fun setSpawnArea(cell: ZCell, area: ZSpawnArea?) {
-        Utils.assertTrue(cell.numSpawns == 0)
+        assertTrue(cell.numSpawns == 0)
         cell.spawns[cell.numSpawns++] = area
     }
 
@@ -251,7 +255,7 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
                     // make sure outer perimeter has walls
                 }
                 if (cell.isCellType(ZCellType.EXIT)) {
-                    Utils.assertTrue(exitZone < 0, "Multiple EXIT zones not supported")
+                    assertTrue(exitZone < 0, "Multiple EXIT zones not supported")
                     exitZone = cell.zoneIndex
                 }
                 if (row == 0) {
@@ -308,10 +312,11 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
      * @param c
      */
     open fun processObjective(game: ZGame, c: ZCharacter) {
-        val obj = findObjectiveForZone(c.occupiedZone)
-        if (obj!!.objectives.remove(c.occupiedZone as Any)) {
-            obj.found.add(c.occupiedZone)
-            game.addExperience(c, getObjectiveExperience(c.occupiedZone, numFoundObjectives))
+        findObjectiveForZone(c.occupiedZone)?.let { obj ->
+	        if (obj.objectives.remove(c.occupiedZone as Any)) {
+		        obj.found.add(c.occupiedZone)
+		        game.addExperience(c, getObjectiveExperience(c.occupiedZone, numFoundObjectives))
+	        }
         }
     }
 
@@ -402,17 +407,17 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
     }
 
     protected fun isAllPlayersInExit(game: ZGame): Boolean {
-        Utils.assertTrue(exitZone >= 0)
-        return game.board.getNumZombiesInZone(exitZone) == 0 && Utils.count(game.board.getAllCharacters()) { `object`: ZCharacter -> `object`.occupiedZone != exitZone } <= 0
+        assertTrue(exitZone >= 0)
+        return game.board.getNumZombiesInZone(exitZone) == 0 && game.board.getAllCharacters().count { it.occupiedZone != exitZone } <= 0
     }
 
     /**
      * Perform any processing to the searchable. Called once on quest init
      * @param items
      */
-    open fun processLootDeck(items: List<ZEquipment<*>>) {}
+    open fun processLootDeck(items: MutableList<ZEquipment<*>>) {}
     protected val numStartObjectives: Int
-        get() = Utils.sumInt(objectives.values) { o: ZObjective -> o.found.size + o.objectives.size }
+        get() = objectives.values.sumBy { it.found.size + it.objectives.size }
 
     open fun onDragonBileExploded(c: ZCharacter, zoneIdx: Int) {}
     open fun drawQuest(game: UIZombicide, g: AGraphics) {}

@@ -1,7 +1,10 @@
 package cc.lib.zombicide
 
-import cc.lib.game.Utils
+
 import cc.lib.utils.Table
+import cc.lib.utils.mergeWith
+import cc.lib.utils.prettify
+import cc.lib.utils.wrap
 import java.util.*
 
 class ZWeapon(override val type: ZWeaponType=ZWeaponType.AXE) : ZEquipment<ZWeaponType>() {
@@ -42,7 +45,7 @@ class ZWeapon(override val type: ZWeaponType=ZWeaponType.AXE) : ZEquipment<ZWeap
         get() = countStatsType(ZActionType.MAGIC) > 0
 
     private fun countStatsType(actionType: ZActionType): Int {
-        return Utils.count(type.stats) { stat: ZWeaponStat -> stat.actionType === actionType }
+        return type.stats.count { stat -> stat.actionType === actionType }
     }
 
     override fun isEquippable(c: ZCharacter): Boolean {
@@ -123,10 +126,10 @@ class ZWeapon(override val type: ZWeaponType=ZWeaponType.AXE) : ZEquipment<ZWeap
         val card = Table(String.format("%s%s %s", type.label, if (type.canTwoHand) " (DW)" else "", type.minColorToEquip))
                 .addRow(cardLower).setNoBorder()
         if (type.specialInfo != null) {
-            card.addRow(Utils.wrapTextWithNewlines("*" + type.specialInfo, 32))
+            card.addRow("*${type.specialInfo}".wrap( 32))
         } else {
             val skills = type.skillsWhileEquipped
-            if (skills.size > 0) {
+            if (skills.isNotEmpty()) {
                 card.addRow("Equipped", skills)
             }
         }
@@ -151,7 +154,7 @@ class ZWeapon(override val type: ZWeaponType=ZWeaponType.AXE) : ZEquipment<ZWeap
                 "no"
             }
             cardLower.addColumnNoHeader(Arrays.asList(
-                    Utils.toPrettyString(stats.attackType.name),
+                    prettify(stats.attackType.name),
                     if (type.canTwoHand) "yes" else "no", String.format("%d %s", stats.damagePerHit, if (type.attackIsNoisy) " loud" else " quiet"), String.format("%d%% x %d", (7 - stats.dieRollToHit) * 100 / 6, stats.numDice),
                     if (stats.minRange == stats.maxRange) stats.minRange.toString() else String.format("%d-%d", stats.minRange, stats.maxRange),
                     doorInfo,
@@ -161,7 +164,7 @@ class ZWeapon(override val type: ZWeaponType=ZWeaponType.AXE) : ZEquipment<ZWeap
         if (type.minColorToEquip.ordinal > 0) {
             cardLower.addRow(type.minColorToEquip.toString() + " Required")
         }
-        val skills = Utils.mergeLists(type.skillsWhileEquipped, type.skillsWhenUsed)
+        val skills = type.skillsWhileEquipped.mergeWith(type.skillsWhenUsed)
         for (skill in skills) {
             cardLower.addRow(skill.label)
         }

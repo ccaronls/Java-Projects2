@@ -1,7 +1,8 @@
 package cc.lib.zombicide
 
-import cc.lib.game.Utils
+
 import cc.lib.utils.Reflector
+import cc.lib.utils.repeat
 
 class ZSkillLevel(val color: ZColor = ZColor.BLUE, val ultra: Int = -1) : Reflector<ZSkillLevel>(), Comparable<ZSkillLevel> {
     companion object {
@@ -37,17 +38,15 @@ class ZSkillLevel(val color: ZColor = ZColor.BLUE, val ultra: Int = -1) : Reflec
     val difficultyColor: ZColor
         get() = if (ultra > 0) ZColor.RED else color
 
-    override fun compareTo(o: ZSkillLevel): Int {
-        return if (ultra != o.ultra) Integer.compare(ultra, o.ultra) else color.compareTo(o.color)
+    override fun compareTo(other: ZSkillLevel): Int {
+        return if (ultra != other.ultra) ultra.compareTo(other.ultra) else color.compareTo(other.color)
     }
 
-    fun nextLevel(): ZSkillLevel {
-        when (color) {
-            ZColor.BLUE -> return ZSkillLevel(ZColor.YELLOW, ultra)
-            ZColor.YELLOW -> return ZSkillLevel(ZColor.ORANGE, ultra)
-            ZColor.ORANGE -> return ZSkillLevel(ZColor.RED, ultra)
-        }
-        return if (ULTRA_RED_MODE) ZSkillLevel(ZColor.YELLOW, ultra + 1) else ZSkillLevel(ZColor.RED, ultra)
+    fun nextLevel(): ZSkillLevel = when (color) {
+        ZColor.BLUE -> ZSkillLevel(ZColor.YELLOW, ultra)
+        ZColor.YELLOW -> ZSkillLevel(ZColor.ORANGE, ultra)
+        ZColor.ORANGE -> ZSkillLevel(ZColor.RED, ultra)
+        else -> if (ULTRA_RED_MODE) ZSkillLevel(ZColor.YELLOW, ultra + 1) else ZSkillLevel(ZColor.RED, ultra)
     }
 
     fun getPtsToNextLevel(curPts: Int): Int {
@@ -64,7 +63,7 @@ class ZSkillLevel(val color: ZColor = ZColor.BLUE, val ultra: Int = -1) : Reflec
         get() = color.dangerPts
 
     override fun toString(): String {
-        return color.name + Utils.getRepeatingChars('+', ultra)
+        return "${color.name} ${'+'.repeat(ultra)}"
     }
 
     override fun equals(o: Any?): Boolean {
@@ -76,6 +75,6 @@ class ZSkillLevel(val color: ZColor = ZColor.BLUE, val ultra: Int = -1) : Reflec
     }
 
     override fun hashCode(): Int {
-        return Utils.hashCode(color, ultra)
+        return cc.lib.utils.hashCode(color, ultra)
     }
 }

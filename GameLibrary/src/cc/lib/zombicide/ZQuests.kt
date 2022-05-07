@@ -1,7 +1,7 @@
 package cc.lib.zombicide
 
 import cc.lib.annotation.Keep
-import cc.lib.game.Utils
+
 import cc.lib.zombicide.quests.*
 
 const val FLAG_BLACK_PLAGUE = 1
@@ -301,12 +301,12 @@ enum class ZQuests(val flag: Int, val displayName: String, val description: Stri
     companion object {
         @JvmStatic
         fun questsBlackPlague(): List<ZQuests> {
-            return Utils.filter(values()) { quest: ZQuests -> 0 != quest.flag and FLAG_BLACK_PLAGUE }
+            return values().filter { quest: ZQuests -> 0 != quest.flag and FLAG_BLACK_PLAGUE }
         }
 
         @JvmStatic
         fun questsWolfsburg(): List<ZQuests> {
-            return Utils.filter(values()) { quest: ZQuests -> 0 != quest.flag and FLAG_WOLFBURG }
+            return values().filter { quest: ZQuests -> 0 != quest.flag and FLAG_WOLFBURG }
         }
     }
 }

@@ -1,8 +1,9 @@
 package cc.lib.zombicide
 
 import cc.lib.annotation.Keep
-import cc.lib.game.Utils
+
 import cc.lib.ui.IButton
+import cc.lib.utils.prettify
 import cc.lib.zombicide.ZCharacter
 import cc.lib.zombicide.ZWeapon
 
@@ -206,7 +207,7 @@ enum class ZSkill(val description: String) : IButton {
     Plus1_die_Melee_Weapon("Gain +1 die with another equipped melee weapon") {
         override fun modifyStat(stat: ZWeaponStat, actionType: ZActionType, character: ZCharacter, game: ZGame, targetZone: Int) {
             // if another melee weapon equipped then +1 die
-            if (actionType === ZActionType.MELEE && Utils.count(character.weapons, ZWeapon::isMelee) > 1) {
+            if (actionType === ZActionType.MELEE && character.weapons.count { it.isMelee } > 1) {
                 stat.numDice++
             }
         }
@@ -225,36 +226,46 @@ enum class ZSkill(val description: String) : IButton {
     Bloodlust("Spend one Action with the Survivor: He Moves up to two Zones to a Zone containing at least one Zombie. He then gains one free Combat Action (Melee, Ranged or Magic).") {
         override fun addSpecialMoves(game: ZGame, character: ZCharacter, moves: MutableList<ZMove>) {
             if (character.actionsLeftThisTurn > 0) {
-                val zones = Utils.filter(game.board.getAccessableZones(character.occupiedZone, 1, 2, ZActionType.MOVE)) { `object`: Int? -> game.board.getNumZombiesInZone(`object`!!) > 0 }
-                if (zones.size > 0) {
-                    if (character.meleeWeapons.size > 0) moves.add(ZMove.newBloodlustMeleeMove(zones, this))
-                    if (character.rangedWeapons.size > 0) moves.add(ZMove.newBloodlustRangedMove(zones, this))
-                    if (character.magicWeapons.size > 0) moves.add(ZMove.newBloodlustMagicMove(zones, this))
-                }
+                game.board.getAccessableZones(character.occupiedZone, 1, 2, ZActionType.MOVE)
+	                .filter { game.board.getNumZombiesInZone(it) > 0 }
+	                .takeIf { it.isNotEmpty()}?.let { zones ->
+	                    if (character.meleeWeapons.isNotEmpty()) moves.add(ZMove.newBloodlustMeleeMove(zones, this))
+	                    if (character.rangedWeapons.isNotEmpty()) moves.add(ZMove.newBloodlustRangedMove(zones, this))
+	                    if (character.magicWeapons.isNotEmpty()) moves.add(ZMove.newBloodlustMagicMove(zones, this))
+	                }
             }
         }
     },
     Bloodlust_Magic("Spend one Action with the Survivor: He Moves up to two Zones to a Zone containing at least one Zombie. He then gains one free Magic Action, to use immediately.") {
         override fun addSpecialMoves(game: ZGame, character: ZCharacter, moves: MutableList<ZMove>) {
-            if (character.actionsLeftThisTurn > 0 && character.magicWeapons.size > 0) {
-                val zones = Utils.filter(game.board.getAccessableZones(character.occupiedZone, 1, 2, ZActionType.MOVE)) { `object`: Int? -> game.board.getNumZombiesInZone(`object`!!) > 0 }
-                moves.add(ZMove.newBloodlustMagicMove(zones, this))
+            if (character.actionsLeftThisTurn > 0 && character.magicWeapons.isNotEmpty()) {
+                game.board.getAccessableZones(character.occupiedZone, 1, 2, ZActionType.MOVE)
+	                .filter { game.board.getNumZombiesInZone(it) > 0 }
+	                .takeIf { it.isNotEmpty() }?.let { zones ->
+		                moves.add(ZMove.newBloodlustMagicMove(zones, this))
+	                }
             }
         }
     },
     Bloodlust_Melee("Spend one Action with the Survivor: He Moves up to two Zones to a Zone containing at least one Zombie. He then gains one free Melee Action, to use immediately.") {
         override fun addSpecialMoves(game: ZGame, character: ZCharacter, moves: MutableList<ZMove>) {
             if (character.actionsLeftThisTurn > 0 && character.meleeWeapons.size > 0) {
-                val zones = Utils.filter(game.board.getAccessableZones(character.occupiedZone, 1, 2, ZActionType.MOVE)) { `object`: Int? -> game.board.getNumZombiesInZone(`object`!!) > 0 }
-                moves.add(ZMove.newBloodlustMeleeMove(zones, this))
+	            game.board.getAccessableZones(character.occupiedZone, 1, 2, ZActionType.MOVE)
+		            .filter { game.board.getNumZombiesInZone(it) > 0 }
+		            .takeIf { it.isNotEmpty() }?.let { zones ->
+			            moves.add(ZMove.newBloodlustMeleeMove(zones, this))
+		            }
             }
         }
     },
     Bloodlust_Ranged("Spend one Action with the Survivor: He Moves up to two Zones to a Zone containing at least one Zombie. He then gains one free Ranged Action, to use immediately.") {
         override fun addSpecialMoves(game: ZGame, character: ZCharacter, moves: MutableList<ZMove>) {
             if (character.actionsLeftThisTurn > 0 && character.rangedWeapons.size > 0) {
-                val zones = Utils.filter(game.board.getAccessableZones(character.occupiedZone, 1, 2, ZActionType.MOVE)) { `object`: Int? -> game.board.getNumZombiesInZone(`object`!!) > 0 }
-                moves.add(ZMove.newBloodlustRangedMove(zones, this))
+	            game.board.getAccessableZones(character.occupiedZone, 1, 2, ZActionType.MOVE)
+		            .filter { game.board.getNumZombiesInZone(it) > 0 }
+		            .takeIf { it.isNotEmpty() }?.let { zones ->
+			            moves.add(ZMove.newBloodlustRangedMove(zones, this))
+		            }
             }
         }
     },
@@ -281,8 +292,11 @@ enum class ZSkill(val description: String) : IButton {
     Charge("The Survivor can use this Skill for free, as often as he pleases, during each of his Turns: He moves up to two Zones to a Zone containing at least one Zombie. Normal Movement rules still apply. Entering a Zone containing Zombies ends the Survivor’s Move Action.") {
         override fun addSpecialMoves(game: ZGame, character: ZCharacter, moves: MutableList<ZMove>) {
             var zones = game.board.getAccessableZones(character.occupiedZone, 1, 2, ZActionType.MOVE)
-            zones = Utils.filter(zones) { zone: Int? -> game.board.getNumZombiesInZone(zone!!) > 0 }
-            if (zones.size > 0) moves.add(ZMove.newChargeMove(zones))
+            zones.filter { game.board.getNumZombiesInZone(it) > 0 }
+	            .takeIf { it.isNotEmpty() }
+	            ?.let { zones ->
+	            moves.add(ZMove.newChargeMove(zones))
+            }
         }
     },
     Collector("The Survivor gains double the experience each time he kills a Zombie of any type."),
@@ -663,11 +677,11 @@ enum class ZSkill(val description: String) : IButton {
     },
     Ignite_Dragon_Fire("Can ignite dragon fire without torch at range 0-1") {
         override fun addSpecialMoves(game: ZGame, character: ZCharacter, moves: MutableList<ZMove>) {
-            val ignitableZones = Utils.filter(
-                    game.board.getAccessableZones(character.occupiedZone, 1, 1, ZActionType.THROW_ITEM)
-            ) { zIdx: Int? -> game.board.getZone(zIdx!!).isDragonBile }
-            if (ignitableZones.size > 0) {
-                moves.add(ZMove.newIgniteMove(ignitableZones))
+            game.board.getAccessableZones(character.occupiedZone, 1, 1, ZActionType.THROW_ITEM)
+	            .filter { game.board.getZone(it).isDragonBile }
+	            .takeIf { it.isNotEmpty() }
+	            ?.let { ignitableZones ->
+		            moves.add(ZMove.newIgniteMove(ignitableZones))
             }
         }
     },
@@ -679,7 +693,9 @@ enum class ZSkill(val description: String) : IButton {
     Two_For_One_Melee("Each Successful hit generates two hits in the target zone. Similar to reaper but without the condition the zombie type must be the same") {
         override fun onAttack(game: ZGame, c: ZCharacter, weapon: ZWeapon, actionType: ZActionType, stat: ZWeaponStat, targetZone: Int, hits: Int, destroyedZombies: List<ZZombie>) {
             var hits = hits
-            val zombiesLeftInZone = Utils.filter(game.board.getZombiesInZone(targetZone)) { z: ZZombie -> z.type.minDamageToDestroy <= stat.damagePerHit }
+            val zombiesLeftInZone = game.board.getZombiesInZone(targetZone)
+	            .filter { z -> z.type.minDamageToDestroy <= stat.damagePerHit }
+	            .toMutableList()
             while (zombiesLeftInZone.size > 0 && hits-- > 0) {
                 val z = zombiesLeftInZone.removeAt(0)
                 game.performSkillKill(c, this, z, stat.attackType)
@@ -692,7 +708,7 @@ enum class ZSkill(val description: String) : IButton {
     }
 
     override fun getLabel(): String {
-        return Utils.toPrettyString(name)
+        return prettify(name)
     }
 
     /**

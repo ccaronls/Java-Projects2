@@ -1,8 +1,9 @@
 package cc.lib.zombicide
 
 import cc.lib.annotation.Keep
-import cc.lib.game.Utils
+
 import cc.lib.ui.IButton
+import cc.lib.utils.prettify
 
 @Keep
 enum class ZMoveType(val toolTipText: String?) : IButton {
@@ -46,7 +47,7 @@ enum class ZMoveType(val toolTipText: String?) : IButton {
     BARRICADE("Close and barricade a door");
 
     override fun getLabel(): String {
-        return Utils.toPrettyString(name)
+        return prettify(name)
     }
 
     override fun getTooltipText(): String? {

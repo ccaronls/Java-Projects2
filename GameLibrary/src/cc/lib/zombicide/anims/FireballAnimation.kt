@@ -3,7 +3,7 @@ package cc.lib.zombicide.anims
 import cc.lib.game.AGraphics
 import cc.lib.game.GRectangle
 import cc.lib.game.IVector2D
-import cc.lib.game.Utils
+
 import cc.lib.math.Vector2D
 import cc.lib.zombicide.ZActor
 import cc.lib.zombicide.ZActorAnimation
@@ -14,7 +14,7 @@ open class FireballAnimation(actor: ZActor<*>, end: IVector2D?) : ZActorAnimatio
     val start: Vector2D
     val r: GRectangle = actor.rect.scaledBy(.5f)
 	override fun draw(g: AGraphics, position: Float, dt: Float) {
-        val id = Utils.randItem(ZIcon.FIREBALL.imageIds)
+        val id = ZIcon.FIREBALL.imageIds.random()
         val img = g.getImage(id)
         //GRectangle rect = attacker.getRect(board).scaledBy(.5f).fit(img);
         val pos: Vector2D = start.add(path.scaledBy(position))

@@ -1,7 +1,6 @@
 package cc.lib.zombicide.ui;
 
 import java.util.List;
-
 import cc.lib.game.Utils;
 import cc.lib.utils.Table;
 import cc.lib.zombicide.ZDoor;

@@ -1,8 +1,9 @@
 package cc.lib.zombicide
 
 import cc.lib.annotation.Keep
-import cc.lib.game.Utils
+
 import cc.lib.ui.IButton
+import cc.lib.utils.prettify
 
 /**
  * Created by Chris Caron on 8/28/21.
@@ -27,6 +28,6 @@ enum class ZEquipmentClass : IButton {
     }
 
     override fun getLabel(): String {
-        return Utils.toPrettyString(name)
+        return prettify(name)
     }
 }

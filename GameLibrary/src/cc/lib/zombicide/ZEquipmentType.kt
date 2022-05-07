@@ -1,8 +1,9 @@
 package cc.lib.zombicide
 
-import cc.lib.game.Utils
+
 import cc.lib.ui.IButton
 import cc.lib.utils.GException
+import cc.lib.utils.prettify
 
 interface ZEquipmentType : IButton {
 
@@ -10,7 +11,7 @@ interface ZEquipmentType : IButton {
 
     val name: String
     override fun getLabel(): String {
-        return Utils.toPrettyString(name)
+        return prettify(name)
     }
 
     override fun getTooltipText(): String? {

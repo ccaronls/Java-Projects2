@@ -2,7 +2,7 @@ package cc.lib.zombicide
 
 import cc.lib.annotation.Keep
 import cc.lib.game.Justify
-import cc.lib.game.Utils
+
 import cc.lib.math.Vector2D
 import cc.lib.utils.GException
 import cc.lib.utils.Grid
@@ -92,10 +92,10 @@ enum class ZDir(@JvmField val dx: Int, @JvmField val dy: Int, @JvmField val dz: 
 
         @JvmStatic
         val compassValues: Array<ZDir>
-            get() = Utils.toArray(NORTH, SOUTH, EAST, WEST)
+            get() = arrayOf(NORTH, SOUTH, EAST, WEST)
         @JvmStatic
         val elevationValues: Array<ZDir>
-            get() = Utils.toArray(ASCEND, DESCEND)
+            get() = arrayOf(ASCEND, DESCEND)
 
         @JvmStatic
         fun getFromVector(dv: Vector2D): ZDir {

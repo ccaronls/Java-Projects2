@@ -30,8 +30,8 @@ public class Pair<FIRST,SECOND> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Pair<?, ?> pair = (Pair<?, ?>) o;
-        return Utils.equals(first, pair.first) &&
-                Utils.equals(second, pair.second);
+        return Utils.isEquals(first, pair.first) &&
+                Utils.isEquals(second, pair.second);
     }
 
     @Override

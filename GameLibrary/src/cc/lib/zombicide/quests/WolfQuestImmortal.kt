@@ -1,140 +1,104 @@
-package cc.lib.zombicide.quests;
+package cc.lib.zombicide.quests
 
-import java.util.ArrayList;
-import java.util.List;
-
-import cc.lib.game.Utils;
-import cc.lib.utils.Grid;
-import cc.lib.utils.Table;
-import cc.lib.zombicide.ZBoard;
-import cc.lib.zombicide.ZCell;
-import cc.lib.zombicide.ZCharacter;
-import cc.lib.zombicide.ZDir;
-import cc.lib.zombicide.ZGame;
-import cc.lib.zombicide.ZIcon;
-import cc.lib.zombicide.ZQuest;
-import cc.lib.zombicide.ZQuests;
-import cc.lib.zombicide.ZSpawnArea;
-import cc.lib.zombicide.ZTile;
-import cc.lib.zombicide.ZZombie;
-import cc.lib.zombicide.ZZombieType;
+import cc.lib.utils.Grid
+import cc.lib.utils.Table
+import cc.lib.zombicide.*
+import cc.lib.zombicide.ZTile.Companion.getQuadrant
+import java.util.*
 
 /**
  * Created by Chris Caron on 8/27/21.
  */
-public class WolfQuestImmortal extends ZQuest {
+class WolfQuestImmortal : ZQuest(ZQuests.Immortal) {
+	companion object {
+		init {
+			addAllFields(WolfQuestImmortal::class.java)
+		}
+	}
 
-    static {
-        addAllFields(WolfQuestImmortal.class);
-    }
+	var immortals: MutableList<ZSpawnArea> = ArrayList()
+	var numStartImmortals = 0
+	override fun loadBoard(): ZBoard {
+		val map = arrayOf(
+arrayOf("z0:i:re", "z1:t3", "z1:t3:re",                     "z2:i:ods:we", "z3", "z4:blspe"),
+arrayOf("z5:t2:rn", "z1:t3:rs", "z1:t3:re:rs",              "z6:i:ws:de", "z7", "z8:i:dw:wn:ods:red"),
+arrayOf("z5:t2:rs", "z9:t1:rs", "z10",                      "z11", "z12", "z13:i:ww"),
+arrayOf("z14:spw", "z15", "z16",                            "z17:t2:rw:rn", "z18:t3:rn", "z18:t3:rn"),
+arrayOf("z19:spw", "z20:v:wn:vd1:ws:we:ww", "z21:st",       "z22:t1:rw", "z18:t3:rw:rs", "z18:t3:rs"),
+arrayOf("z23:spw", "z24", "z25",                            "z26", "z27", "z28"),
+arrayOf("z29:i:dn:we:ods", "z30", "z31:i:dn:de:ods:ww:red", "z32:i:dn", "z32:i:wn:we", "z33"),
+arrayOf("z34:i:ws:ode", "z35:i:ods:ode:wn", "z36:i:we:ods", "z32:i", "z32:i:red:we", "z40"),
+arrayOf("z37:i:vd1", "z37:i:we", "z38:i:de",                "z32:i", "z32:i:we", "z39:blsps"))
+		return load(map)
+	}
 
-    List<ZSpawnArea> immortals = new ArrayList<>();
-    int numStartImmortals = 0;
+	override fun loadCmd(grid: Grid<ZCell>, pos: Grid.Pos, cmd: String) {
+		var area: ZSpawnArea
+		when (cmd) {
+			"blsps" -> {
+				setSpawnArea(grid[pos], ZSpawnArea(pos, ZIcon.SPAWN_BLUE, ZDir.SOUTH, true, false, true).also { area = it })
+				immortals.add(area)
+			}
+			"blspe" -> {
+				setSpawnArea(grid[pos], ZSpawnArea(pos, ZIcon.SPAWN_BLUE, ZDir.EAST, true, false, true).also { area = it })
+				immortals.add(area)
+			}
+			else    -> super.loadCmd(grid, pos, cmd)
+		}
+	}
 
-    public WolfQuestImmortal() {
-        super(ZQuests.Immortal);
-    }
+	override val tiles: Array<ZTile>
+		get() = arrayOf(
+			ZTile("11R", 0, getQuadrant(0, 0)),
+			ZTile("3V", 90, getQuadrant(0, 3)),
+			ZTile("6R", 0, getQuadrant(3, 0)),
+			ZTile("10V", 180, getQuadrant(3, 3)),
+			ZTile("8V", 270, getQuadrant(6, 0)),
+			ZTile("1V", 180, getQuadrant(6, 3))
+		)
 
-    @Override
-    public ZBoard loadBoard() {
-        String [][] map = {
-                {"z0:i:re", "z1:t3", "z1:t3:re", "z2:i:ods:we", "z3", "z4:blspe"},
-                {"z5:t2:rn", "z1:t3:rs", "z1:t3:re:rs", "z6:i:ws:de", "z7", "z8:i:dw:wn:ods:red"},
-                {"z5:t2:rs", "z9:t1:rs", "z10", "z11", "z12", "z13:i:ww"},
+	override fun init(game: ZGame) {
+		numStartImmortals = immortals.size
+	}
 
-                {"z14:spw", "z15", "z16", "z17:t2:rw:rn", "z18:t3:rn", "z18:t3:rn"},
-                {"z19:spw", "z20:v:wn:vd1:ws:we:ww", "z21:st", "z22:t1:rw", "z18:t3:rw:rs", "z18:t3:rs"},
-                {"z23:spw", "z24", "z25", "z26", "z27", "z28"},
+	override fun onZombieSpawned(game: ZGame, zombie: ZZombie, zone: Int) {
+		if (zombie.type == ZZombieType.Necromancer) {
+			immortals.indexOfFirst { sp: ZSpawnArea ->
+				zone == game.board.getCell(sp.cellPos).zoneIndex
+			}.takeIf { it >= 0 }?.let { idx ->
+				val area = immortals.removeAt(idx)
+				area.icon = ZIcon.SPAWN_GREEN
+				area.isCanBeRemovedFromBoard = true
+				area.isEscapableForNecromancers = false
+				area.isCanSpawnNecromancers = false
+				game.spawnZombies(idx)
+				return
+			}
+		}
+		super.onZombieSpawned(game, zombie, zone)
+	}
 
-                {"z29:i:dn:we:ods", "z30", "z31:i:dn:de:ods:ww:red", "z32:i:dn", "z32:i:wn:we", "z33"},
-                {"z34:i:ws:ode", "z35:i:ods:ode:wn", "z36:i:we:ods", "z32:i", "z32:i:red:we", "z40"},
-                {"z37:i:vd1", "z37:i:we", "z38:i:de", "z32:i", "z32:i:we", "z39:blsps"}
-        };
+	fun getNumNecrosOnBoard(game: ZGame): Int {
+		return game.board.getAllZombies().count { it.type === ZZombieType.Necromancer }
+	}
 
-        return load(map);
-    }
+	override fun getPercentComplete(game: ZGame): Int {
+		val total = numStartObjectives + numStartImmortals + getNumNecrosOnBoard(game)
+		val completed = numFoundObjectives + (numStartImmortals - immortals.size)
+		return completed * 100 / total
+	}
 
-    @Override
-    protected void loadCmd(Grid<ZCell> grid, Grid.Pos pos, String cmd) {
-        ZSpawnArea area;
-        switch (cmd) {
-            case "blsps":
-                setSpawnArea(grid.get(pos), area = new ZSpawnArea(pos, ZIcon.SPAWN_BLUE, ZDir.SOUTH, true, false, true));
-                immortals.add(area);
-                break;
-            case "blspe":
-                setSpawnArea(grid.get(pos), area = new ZSpawnArea(pos, ZIcon.SPAWN_BLUE, ZDir.EAST, true, false, true));
-                immortals.add(area);
-                break;
+	override fun getObjectivesOverlay(game: ZGame): Table {
+		return Table(name)
+			.addRow(Table().setNoBorder()
+				.addRow("1.", "Collect all Objectives. Each objective gives a vault item.", String.format("%d of %d", numFoundObjectives, numStartObjectives))
+				.addRow("2.", "Purge the EVIL by removing the GREEN spawn areas. BLUE spawn areas become GREEN once a Necromancer is spawned.", String.format("%d of %d", numStartImmortals - immortals.size, numStartImmortals))
+				.addRow("3.", "Random Vault weapon hidden in the Vault.", numFoundVaultItems > 0)
+			)
+	}
 
-            default:
-                super.loadCmd(grid, pos, cmd);
-        }
-    }
-
-    @Override
-    public ZTile[] getTiles() {
-
-        return new ZTile[] {
-                new ZTile("11R", 0, ZTile.getQuadrant(0, 0)),
-                new ZTile("3V", 90, ZTile.getQuadrant(0, 3)),
-
-                new ZTile("6R", 0, ZTile.getQuadrant(3, 0)),
-                new ZTile("10V", 180, ZTile.getQuadrant(3, 3)),
-
-                new ZTile("8V", 270, ZTile.getQuadrant(6, 0)),
-                new ZTile("1V", 180, ZTile.getQuadrant(6, 3))
-        };
-    }
-
-    @Override
-    public void init(ZGame game) {
-        numStartImmortals = immortals.size();
-    }
-
-    @Override
-    public void onZombieSpawned(ZGame game, ZZombie zombie, int zone) {
-        int idx = Utils.searchIndex(immortals, sp -> game.board.getCell(sp.getCellPos()).zoneIndex);
-        if (idx >= 0) {
-            switch (zombie.getType()) {
-                case Necromancer:
-                    ZSpawnArea area = immortals.remove(idx);
-                    area.setIcon(ZIcon.SPAWN_GREEN);
-                    area.setCanBeRemovedFromBoard(true);
-                    area.setEscapableForNecromancers(false);
-                    area.setCanSpawnNecromancers(false);
-                    game.spawnZombies(idx);
-                    return;
-            }
-        }
-        super.onZombieSpawned(game, zombie, zone);
-    }
-
-    int getNumNecrosOnBoard(ZGame game) {
-        return Utils.count(game.board.getAllZombies(), z -> z.getType() == ZZombieType.Necromancer);
-    }
-
-    @Override
-    public int getPercentComplete(ZGame game) {
-        int total = getNumStartObjectives() + numStartImmortals + getNumNecrosOnBoard(game);
-        int completed = getNumFoundObjectives() + (numStartImmortals - immortals.size());
-        return completed*100 / total;
-    }
-
-
-    @Override
-    public Table getObjectivesOverlay(ZGame game) {
-        return new Table(getName())
-                .addRow(new Table().setNoBorder()
-                        .addRow("1.", "Collect all Objectives. Each objective gives a vault item.", String.format("%d of %d", getNumFoundObjectives(), getNumStartObjectives()))
-                        .addRow("2.", "Purge the EVIL by removing the GREEN spawn areas. BLUE spawn areas become GREEN once a Necromancer is spawned.", String.format("%d of %d", numStartImmortals-immortals.size(), numStartImmortals))
-                        .addRow("3.", "Random Vault weapon hidden in the Vault.", getNumFoundVaultItems() > 0)
-                );
-    }
-
-    @Override
-    public void processObjective(ZGame game, ZCharacter c) {
-        super.processObjective(game, c);
-        game.giftRandomVaultArtifact(c);
-    }
+	override fun processObjective(game: ZGame, c: ZCharacter) {
+		super.processObjective(game, c)
+		game.giftRandomVaultArtifact(c)
+	}
 }

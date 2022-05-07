@@ -2,7 +2,7 @@ package cc.lib.zombicide
 
 import cc.lib.game.GColor
 import cc.lib.game.GRectangle
-import cc.lib.game.Utils
+
 import cc.lib.utils.Grid
 import cc.lib.utils.Reflector
 
@@ -60,12 +60,12 @@ class ZDoor (val cellPosStart: Grid.Pos, val cellPosEnd: Grid.Pos, val moveDirec
         if (o == null || javaClass != o.javaClass) return false
         if (!super.equals(o)) return false
         val zDoor = o as ZDoor
-        return Utils.equals(cellPosStart, zDoor.cellPosStart) &&
+        return cc.lib.utils.isEqual(cellPosStart, zDoor.cellPosStart) &&
                 moveDirection === zDoor.moveDirection
     }
 
     override fun hashCode(): Int {
-        return Utils.hashCode(cellPosStart, moveDirection)
+        return cc.lib.utils.hashCode(cellPosStart, moveDirection)
     }
 
     init {

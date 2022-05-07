@@ -2,8 +2,9 @@ package cc.lib.zombicide.anims
 
 import cc.lib.game.AGraphics
 import cc.lib.game.GColor
-import cc.lib.game.Utils
+
 import cc.lib.math.Vector2D
+import cc.lib.utils.randomSigned
 import cc.lib.zombicide.ZActor
 import cc.lib.zombicide.ZActorAnimation
 import cc.lib.zombicide.ZBoard
@@ -31,13 +32,13 @@ class LightningAnimation(actor: ZActor<*>, start: Vector2D, end: Vector2D, secti
 		val randLenFactor = .8f
 		val randAngFactor = 30f
 		if (position <= .52f) {
-			val sec = Utils.clamp(Math.round(position * 2 * (numSections + 1)) + 1, 1, numSections + 1)
+			val sec = (Math.round(position * 2 * (numSections + 1)) + 1).coerceIn(1 .. numSections + 1)
 			for (l in sections) {
 				while (sec > l.size) {
 					val m = sectionLen * (l.size + 1)
 					val n = l.first.add(dv.scaledBy(randLenFactor * m))
 					//n.addEq(Vector2D.newRandom(sectionLen / (maxRandomFactor/sec)));
-					n.addEq(dv.rotate(Utils.randFloatX(randAngFactor)).scaledBy((1f - randLenFactor) * m))
+					n.addEq(dv.rotate(randAngFactor.randomSigned()).scaledBy((1f - randLenFactor) * m))
 					l.add(n)
 				}
 			}

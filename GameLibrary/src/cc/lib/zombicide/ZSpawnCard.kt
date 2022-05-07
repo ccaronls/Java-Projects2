@@ -1,197 +1,140 @@
-package cc.lib.zombicide;
+package cc.lib.zombicide
 
-import java.util.Arrays;
+import cc.lib.logger.LoggerFactory
+import cc.lib.utils.Reflector
+import cc.lib.utils.randomWeighted
+import java.util.*
 
-import cc.lib.game.Utils;
-import cc.lib.logger.Logger;
-import cc.lib.logger.LoggerFactory;
-import cc.lib.utils.Reflector;
+class ZSpawnCard private constructor(val name: String, private val wolfburg: Boolean, private val easyCount: Int, private val mediumCount: Int, private val hardCount: Int, vararg actions: Action) : Reflector<ZSpawnCard>() {
+	companion object {
+		var log = LoggerFactory.getLogger(ZSpawnCard::class.java)
+		var NOTHING_IN_SIGHT = Action(ActionType.NOTHING_IN_SIGHT, 0, null)
+		var DOUBLE_SPAWN = Action(ActionType.DOUBLE_SPAWN, 0, null)
+		var EXTRA_ACTIVATION = Action(ActionType.EXTRA_ACTIVATION_STANDARD, 0, null)
+		var NECROMANCER = Action(ActionType.SPAWN, 1, ZZombieType.Necromancer)
+		val cards = arrayOf(
+			ZSpawnCard("Standard Zombie Invasion", false, 6, 4, 2,
+				NOTHING_IN_SIGHT,
+				Action(ActionType.SPAWN, 2, ZZombieType.Runner),
+				Action(ActionType.SPAWN, 5, ZZombieType.Walker),
+				Action(ActionType.SPAWN, 2, ZZombieType.Fatty)),
+			ZSpawnCard("Standard Zombie Invasion", false, 10, 5, 2,
+				Action(ActionType.SPAWN, 2, ZZombieType.Walker),
+				Action(ActionType.SPAWN, 3, ZZombieType.Walker),
+				Action(ActionType.SPAWN, 4, ZZombieType.Walker),
+				Action(ActionType.SPAWN, 5, ZZombieType.Walker)),
+			ZSpawnCard("Standard Zombie Invasion", false, 0, 0, 1,
+				Action(ActionType.SPAWN, 1, ZZombieType.Abomination),
+				Action(ActionType.SPAWN, 1, ZZombieType.Runner),
+				Action(ActionType.SPAWN, 5, ZZombieType.Walker),
+				Action(ActionType.SPAWN, 2, ZZombieType.Fatty)),
+			ZSpawnCard("Standard Zombie Invasion", false, 8, 6, 4,
+				Action(ActionType.SPAWN, 1, ZZombieType.Walker),
+				Action(ActionType.SPAWN, 2, ZZombieType.Fatty),
+				Action(ActionType.SPAWN, 2, ZZombieType.Runner),
+				Action(ActionType.SPAWN, 8, ZZombieType.Walker)),
+			ZSpawnCard("Standard Zombie Invasion", false, 1, 2, 3,
+				Action(ActionType.SPAWN, 2, ZZombieType.Walker),
+				Action(ActionType.SPAWN, 1, ZZombieType.Fatty),
+				Action(ActionType.SPAWN, 1, ZZombieType.Abomination),
+				Action(ActionType.SPAWN, 2, ZZombieType.Walker)),
+			ZSpawnCard("Standard Zombie Invasion", false, 4, 4, 4,
+				Action(ActionType.SPAWN, 1, ZZombieType.Fatty),
+				Action(ActionType.SPAWN, 2, ZZombieType.Walker),
+				Action(ActionType.SPAWN, 2, ZZombieType.Runner),
+				Action(ActionType.SPAWN, 3, ZZombieType.Runner)),
+			ZSpawnCard("Standard Zombie Invasion", false, 2, 4, 6,
+				Action(ActionType.SPAWN, 1, ZZombieType.Fatty),
+				Action(ActionType.SPAWN, 1, ZZombieType.Runner),
+				Action(ActionType.SPAWN, 6, ZZombieType.Walker),
+				Action(ActionType.SPAWN, 2, ZZombieType.Runner)),
+			ZSpawnCard("Standard Zombie Invasion", false, 4, 4, 4,
+				Action(ActionType.SPAWN, 1, ZZombieType.Runner),
+				Action(ActionType.SPAWN, 1, ZZombieType.Fatty),
+				Action(ActionType.SPAWN, 4, ZZombieType.Walker),
+				Action(ActionType.SPAWN, 5, ZZombieType.Walker)),
+			ZSpawnCard("Standard Zombie Invasion", false, 8, 6, 4,
+				Action(ActionType.SPAWN, 3, ZZombieType.Walker),
+				Action(ActionType.SPAWN, 1, ZZombieType.Fatty),
+				Action(ActionType.SPAWN, 4, ZZombieType.Walker),
+				Action(ActionType.SPAWN, 6, ZZombieType.Walker)),
+			ZSpawnCard("Necromancer!", false, 1, 2, 4,
+				NECROMANCER, NECROMANCER, NECROMANCER, NECROMANCER),
+			ZSpawnCard("Double Spawn!", false, 0, 1, 2,
+				DOUBLE_SPAWN, DOUBLE_SPAWN, DOUBLE_SPAWN, DOUBLE_SPAWN),
+			ZSpawnCard("Extra Activation!", false, 0, 3, 6,
+				NOTHING_IN_SIGHT, EXTRA_ACTIVATION, EXTRA_ACTIVATION, EXTRA_ACTIVATION),
+			ZSpawnCard("Zombie Wolfz Invasion", true, 1, 2, 3,
+				NOTHING_IN_SIGHT,
+				Action(ActionType.SPAWN, 1, ZZombieType.Wolfbomination),
+				Action(ActionType.SPAWN, 1, ZZombieType.Wolfbomination),
+				Action(ActionType.SPAWN, 1, ZZombieType.Wolfbomination)),
+			ZSpawnCard("Zombie Wolfz Invasion", true, 4, 6, 10,
+				Action(ActionType.SPAWN, 2, ZZombieType.Wolfz),
+				Action(ActionType.SPAWN, 3, ZZombieType.Wolfz),
+				Action(ActionType.SPAWN, 4, ZZombieType.Wolfz),
+				Action(ActionType.SPAWN, 5, ZZombieType.Wolfz)))
 
-public class ZSpawnCard extends Reflector<ZSpawnCard> {
+		fun drawSpawnCard(wolfburg: Boolean, canSpawnNecromancers: Boolean, difficulty: ZDifficulty?): ZSpawnCard {
+			val weights = IntArray(cards.size)
+			for (i in cards.indices) {
+				val card = cards[i]
+				if (!wolfburg && card.wolfburg) continue
+				if (cards[i].actions[0] === NECROMANCER && !canSpawnNecromancers) continue  // dont spawn necromancers in spawn zones, only in buildings
+				when (difficulty) {
+					ZDifficulty.EASY -> weights[i] = card.easyCount
+					ZDifficulty.MEDIUM -> weights[i] = card.mediumCount
+					ZDifficulty.HARD -> weights[i] = card.hardCount
+				}
+			}
+			for (i in weights.indices) {
+				if (weights[i] == 0) continue
+				log.debug("%2d %s", weights[i], cards[i].actions.contentToString())
+			}
+			val cardIdx = weights.randomWeighted()
+			return cards[cardIdx]
+		}
 
-    static Logger log = LoggerFactory.getLogger(ZSpawnCard.class);
+		init {
+			addAllFields(ZSpawnCard::class.java)
+			addAllFields(Action::class.java)
+		}
+	}
 
-    static {
-        addAllFields(ZSpawnCard.class);
-        addAllFields(Action.class);
-    }
+	enum class ActionType {
+		NOTHING_IN_SIGHT,
+		SPAWN,
+		DOUBLE_SPAWN,
+		EXTRA_ACTIVATION_STANDARD,
+		EXTRA_ACTIVATION_NECROMANCER,
+		EXTRA_ACTIVATION_WOLFSBURG
+	}
 
-    public enum ActionType {
-        NOTHING_IN_SIGHT,
-        SPAWN,
-        DOUBLE_SPAWN,
-        EXTRA_ACTIVATION_STANDARD,
-        EXTRA_ACTIVATION_NECROMANCER,
-        EXTRA_ACTIVATION_WOLFSBURG
-    }
+	class Action(val action: ActionType=ActionType.NOTHING_IN_SIGHT, val count: Int = 0, val type: ZZombieType?=null) : Reflector<Action>() {
+		override fun toString(): String {
+			return if (count > 0) {
+				String.format("%s %d X %s", action, count, type)
+			} else action.toString()
+		}
+	}
 
-    public static class Action extends Reflector<Action> {
+	constructor() : this("", false, 0, 0, 0)
 
-        public final ActionType action;
-        public final int count;
-        public final ZZombieType type;
+	private val actions: Array<Action> = arrayOf(*actions)
 
-        public Action() {
-            this(null, 0, null);
-        }
+	fun getAction(color: ZColor): Action {
+		return actions[color.ordinal]
+	}
 
-        public Action(ActionType action, int count, ZZombieType type) {
-            this.action = action;
-            this.count = count;
-            this.type = type;
-        }
+	override fun toString(): String {
+		return "ZSpawnCard{" +
+			"name='" + name + '\'' +
+			", wolfzburg=" + wolfburg +
+			", easyCount=" + easyCount +
+			", mediumCount=" + mediumCount +
+			", hardCount=" + hardCount +
+			", actions=" + Arrays.toString(actions) +
+			'}'
+	}
 
-        @Override
-        public String toString() {
-            if (count > 0 || type != null) {
-                return String.format("%s %d X %s", action, count, type);
-            }
-            return action.toString();
-        }
-    }
-
-    public static Action NOTHING_IN_SIGHT = new Action(ActionType.NOTHING_IN_SIGHT, 0, null);
-    public static Action DOUBLE_SPAWN = new Action(ActionType.DOUBLE_SPAWN, 0, null);
-    public static Action EXTRA_ACTIVATION = new Action(ActionType.EXTRA_ACTIVATION_STANDARD, 0, null);
-    public static Action NECROMANCER = new Action(ActionType.SPAWN, 1, ZZombieType.Necromancer);
-
-    private final String name;
-    private final boolean wolfburg;
-    private final int easyCount;
-    private final int mediumCount;
-    private final int hardCount;
-    private final Action [] actions;
-
-    public ZSpawnCard() {
-        this(null, false, 0, 0, 0);
-    }
-
-    private ZSpawnCard(String name, boolean wolfzburg, int easyCount, int mediumCount, int hardCount, Action...actions) {
-        this.name = name;
-        this.wolfburg = wolfzburg;
-        this.easyCount = easyCount;
-        this.mediumCount = mediumCount;
-        this.hardCount = hardCount;
-        this.actions = actions;
-    }
-
-    public final static ZSpawnCard [] cards = {
-            new ZSpawnCard("Standard Zombie Invasion", false, 6, 4, 2,
-                    NOTHING_IN_SIGHT,
-                    new Action(ActionType.SPAWN, 2, ZZombieType.Runner),
-                    new Action(ActionType.SPAWN, 5, ZZombieType.Walker),
-                    new Action(ActionType.SPAWN, 2, ZZombieType.Fatty)),
-            new ZSpawnCard("Standard Zombie Invasion", false, 10, 5, 2,
-                    new Action(ActionType.SPAWN, 2, ZZombieType.Walker),
-                    new Action(ActionType.SPAWN, 3, ZZombieType.Walker),
-                    new Action(ActionType.SPAWN, 4, ZZombieType.Walker),
-                    new Action(ActionType.SPAWN, 5, ZZombieType.Walker)),
-            new ZSpawnCard("Standard Zombie Invasion", false, 0, 0, 1,
-                    new Action(ActionType.SPAWN, 1, ZZombieType.Abomination),
-                    new Action(ActionType.SPAWN, 1, ZZombieType.Runner),
-                    new Action(ActionType.SPAWN, 5, ZZombieType.Walker),
-                    new Action(ActionType.SPAWN, 2, ZZombieType.Fatty)),
-            new ZSpawnCard("Standard Zombie Invasion", false, 8, 6, 4,
-                    new Action(ActionType.SPAWN, 1, ZZombieType.Walker),
-                    new Action(ActionType.SPAWN, 2, ZZombieType.Fatty),
-                    new Action(ActionType.SPAWN, 2, ZZombieType.Runner),
-                    new Action(ActionType.SPAWN, 8, ZZombieType.Walker)),
-            new ZSpawnCard("Standard Zombie Invasion", false, 1, 2, 3,
-                    new Action(ActionType.SPAWN, 2, ZZombieType.Walker),
-                    new Action(ActionType.SPAWN, 1, ZZombieType.Fatty),
-                    new Action(ActionType.SPAWN, 1, ZZombieType.Abomination),
-                    new Action(ActionType.SPAWN, 2, ZZombieType.Walker)),
-            new ZSpawnCard("Standard Zombie Invasion", false, 4, 4, 4,
-                    new Action(ActionType.SPAWN, 1, ZZombieType.Fatty),
-                    new Action(ActionType.SPAWN, 2, ZZombieType.Walker),
-                    new Action(ActionType.SPAWN, 2, ZZombieType.Runner),
-                    new Action(ActionType.SPAWN, 3, ZZombieType.Runner)),
-            new ZSpawnCard("Standard Zombie Invasion", false, 2, 4, 6,
-                    new Action(ActionType.SPAWN, 1, ZZombieType.Fatty),
-                    new Action(ActionType.SPAWN, 1, ZZombieType.Runner),
-                    new Action(ActionType.SPAWN, 6, ZZombieType.Walker),
-                    new Action(ActionType.SPAWN, 2, ZZombieType.Runner)),
-            new ZSpawnCard("Standard Zombie Invasion", false, 4, 4, 4,
-                    new Action(ActionType.SPAWN, 1, ZZombieType.Runner),
-                    new Action(ActionType.SPAWN, 1, ZZombieType.Fatty),
-                    new Action(ActionType.SPAWN, 4, ZZombieType.Walker),
-                    new Action(ActionType.SPAWN, 5, ZZombieType.Walker)),
-            new ZSpawnCard("Standard Zombie Invasion", false, 8, 6, 4,
-                    new Action(ActionType.SPAWN, 3, ZZombieType.Walker),
-                    new Action(ActionType.SPAWN, 1, ZZombieType.Fatty),
-                    new Action(ActionType.SPAWN, 4, ZZombieType.Walker),
-                    new Action(ActionType.SPAWN, 6, ZZombieType.Walker)),
-
-            new ZSpawnCard("Necromancer!", false, 1, 2, 4,
-                    NECROMANCER, NECROMANCER, NECROMANCER, NECROMANCER),
-
-            new ZSpawnCard("Double Spawn!", false, 0, 1, 2,
-                    DOUBLE_SPAWN, DOUBLE_SPAWN, DOUBLE_SPAWN, DOUBLE_SPAWN),
-
-            new ZSpawnCard("Extra Activation!", false, 0, 3, 6,
-                    NOTHING_IN_SIGHT, EXTRA_ACTIVATION, EXTRA_ACTIVATION, EXTRA_ACTIVATION),
-
-            new ZSpawnCard("Zombie Wolfz Invasion", true, 1, 2, 3,
-                    NOTHING_IN_SIGHT,
-                    new Action(ActionType.SPAWN, 1, ZZombieType.Wolfbomination),
-                    new Action(ActionType.SPAWN, 1, ZZombieType.Wolfbomination),
-                    new Action(ActionType.SPAWN, 1, ZZombieType.Wolfbomination)),
-            new ZSpawnCard("Zombie Wolfz Invasion", true, 4, 6, 10,
-                    new Action(ActionType.SPAWN, 2, ZZombieType.Wolfz),
-                    new Action(ActionType.SPAWN, 3, ZZombieType.Wolfz),
-                    new Action(ActionType.SPAWN, 4, ZZombieType.Wolfz),
-                    new Action(ActionType.SPAWN, 5, ZZombieType.Wolfz)),
-    };
-
-    public static ZSpawnCard drawSpawnCard(boolean wolfburg, boolean canSpawnNecromancers, ZDifficulty difficulty) {
-        int [] weights = new int[cards.length];
-
-        for (int i=0; i<cards.length; i++) {
-            ZSpawnCard card = cards[i];
-            if (!wolfburg && card.wolfburg)
-                continue;
-            if (cards[i].actions[0] == NECROMANCER && !canSpawnNecromancers)
-                continue; // dont spawn necromancers in spawn zones, only in buildings
-            switch (difficulty) {
-                case EASY:
-                    weights[i] = card.easyCount;
-                    break;
-                case MEDIUM:
-                    weights[i] = card.mediumCount;
-                    break;
-                case HARD:
-                    weights[i] = card.hardCount;
-                    break;
-            }
-        }
-
-        for (int i=0; i<weights.length; i++) {
-            if (weights[i] == 0)
-                continue;
-            log.debug("%2d %s", weights[i], Arrays.toString(cards[i].actions));
-        }
-
-        int cardIdx = Utils.chooseRandomFromSet(weights);
-        return cards[cardIdx];
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public Action getAction(ZColor color) {
-        return actions[color.ordinal()];
-    }
-
-    @Override
-    public String toString() {
-        return "ZSpawnCard{" +
-                "name='" + name + '\'' +
-                ", wolfzburg=" + wolfburg +
-                ", easyCount=" + easyCount +
-                ", mediumCount=" + mediumCount +
-                ", hardCount=" + hardCount +
-                ", actions=" + Arrays.toString(actions) +
-                '}';
-    }
 }

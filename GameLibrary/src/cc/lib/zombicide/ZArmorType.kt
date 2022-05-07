@@ -1,18 +1,18 @@
 package cc.lib.zombicide
 
 import cc.lib.annotation.Keep
-import cc.lib.game.Utils
+
 
 @Keep
-enum class ZArmorType(override val equipmentClass: ZEquipmentClass, val slotType: ZEquipSlotType, val dieRollToBlock: Int, val specialAbilityDescription: String) : ZEquipmentType {
-    LEATHER(ZEquipmentClass.ARMOR, ZEquipSlotType.BODY, 5, ""),
-    CHAINMAIL(ZEquipmentClass.ARMOR, ZEquipSlotType.BODY, 4, ""),
-    PLATE(ZEquipmentClass.ARMOR, ZEquipSlotType.BODY, 3, ""),
-    SHIELD(ZEquipmentClass.SHIELD, ZEquipSlotType.HAND, 4, ""),
+enum class ZArmorType(override val equipmentClass: ZEquipmentClass, val slotType: ZEquipSlotType, val dieRollToBlock: Int, val specialAbilityDescription: String?) : ZEquipmentType {
+    LEATHER(ZEquipmentClass.ARMOR, ZEquipSlotType.BODY, 5, null),
+    CHAINMAIL(ZEquipmentClass.ARMOR, ZEquipSlotType.BODY, 4, null),
+    PLATE(ZEquipmentClass.ARMOR, ZEquipSlotType.BODY, 3, null),
+    SHIELD(ZEquipmentClass.SHIELD, ZEquipSlotType.HAND, 4, null),
     DWARVEN_SHIELD(ZEquipmentClass.SHIELD, ZEquipSlotType.HAND, 4, "TODO: Protects against abomination"),
     SHIELD_OF_AGES(ZEquipmentClass.SHIELD, ZEquipSlotType.HAND, 4, "TODO: Gain the shove skill") {
         override val skillsWhileEquipped: List<ZSkill>
-            get() = Utils.toList(ZSkill.Shove)
+            get() = listOf(ZSkill.Shove)
     };
 
     override fun getDieRollToBlock(type: ZZombieType): Int {

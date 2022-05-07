@@ -1,7 +1,8 @@
 package cc.lib.zombicide
 
-import cc.lib.game.Utils
+
 import cc.lib.utils.Table
+import cc.lib.utils.wrap
 import java.util.*
 
 class ZItem(override val type: ZItemType=ZItemType.APPLES) : ZEquipment<ZItemType>() {
@@ -29,7 +30,7 @@ class ZItem(override val type: ZItemType=ZItemType.APPLES) : ZEquipment<ZItemTyp
 
     override fun getCardInfo(c: ZCharacter, game: ZGame): Table {
         val card = Table().setNoBorder()
-        card.addColumn(label, Arrays.asList(Utils.wrapTextWithNewlines(type.description, 24)))
+        card.addColumn(label, listOf(type.description.wrap(24)))
         return card
     }
 

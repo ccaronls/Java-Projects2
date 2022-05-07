@@ -2,7 +2,8 @@ package cc.lib.zombicide.anims
 
 import cc.lib.game.AAnimation
 import cc.lib.game.AGraphics
-import cc.lib.game.Utils
+import cc.lib.utils.assertTrue
+
 import cc.lib.zombicide.ZActor
 import cc.lib.zombicide.ZActorAnimation
 import cc.lib.zombicide.ZAnimation
@@ -26,7 +27,7 @@ open class GroupAnimation(actor: ZActor<*>) : ZActorAnimation(actor, 1) {
      */
     @Synchronized
     fun addAnimation(delay: Int, animation: ZAnimation): GroupAnimation {
-        Utils.assertTrue(!isStarted)
+        assertTrue(!isStarted)
         group.add(Pair(animation, delay))
         return this
     }
@@ -39,7 +40,7 @@ open class GroupAnimation(actor: ZActor<*>) : ZActorAnimation(actor, 1) {
     }
 
     override fun draw(g: AGraphics, position: Float, dt: Float) {
-        Utils.assertTrue(false) // should not get called
+        assertTrue(false) // should not get called
     }
 
     @Synchronized

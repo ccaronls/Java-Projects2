@@ -1,10 +1,10 @@
 package cc.lib.zombicide
 
-import cc.lib.game.Utils
+
 import cc.lib.ui.IButton
 import cc.lib.utils.Reflector
 import cc.lib.utils.Table
-import cc.lib.zombicide.ZEquipSlot
+import cc.lib.utils.prettify
 
 abstract class ZEquipment<T : ZEquipmentType> : Reflector<ZEquipment<T>>(), IButton, Comparable<ZEquipment<*>> {
     companion object {
@@ -64,18 +64,14 @@ abstract class ZEquipment<T : ZEquipmentType> : Reflector<ZEquipment<T>>(), IBut
     }
 
     abstract fun getCardInfo(c: ZCharacter, game: ZGame): Table
-    override fun getTooltipText(): String? {
-        return if (type is IButton) {
-            (type as IButton).tooltipText
-        } else null
-    }
+    override fun getTooltipText(): String? = type.tooltipText
 
     override fun toString(): String {
-        return Utils.toPrettyString(type.name)
+        return prettify(type.name)
     }
 
     override fun getLabel(): String {
-        return Utils.toPrettyString(type.name)
+        return prettify(type.name)
     }
 
     open fun onEndOfRound(game: ZGame) {}

@@ -2,7 +2,8 @@ package cc.lib.zombicide.anims
 
 import cc.lib.game.AGraphics
 import cc.lib.game.GRectangle
-import cc.lib.game.Utils
+import cc.lib.utils.randomSigned
+
 import cc.lib.zombicide.ZActor
 import cc.lib.zombicide.ZActorAnimation
 import cc.lib.zombicide.ZIcon
@@ -15,7 +16,7 @@ open class DeathStrikeAnimation(actor: ZActor<*>, targetRect: GRectangle, numDic
 
     var phases: MutableList<Phase> = ArrayList()
     fun drawPhase0(g: AGraphics, position: Float, vararg rects: GRectangle) {
-        val id = Utils.randItem(ZIcon.SKULL.imageIds)
+        val id = ZIcon.SKULL.imageIds.random()
         val img = g.getImage(id)
         g.setTransparencyFilter(position)
         g.drawImage(id, rects[0].fit(img))
@@ -23,13 +24,13 @@ open class DeathStrikeAnimation(actor: ZActor<*>, targetRect: GRectangle, numDic
     }
 
     fun drawPhase1(g: AGraphics, position: Float, vararg rects: GRectangle) {
-        val id = Utils.randItem(ZIcon.SKULL.imageIds)
+        val id = ZIcon.SKULL.imageIds.random()
         val img = g.getImage(id)
         g.drawImage(id, rects[0].getInterpolationTo(rects[1], position).fit(img))
     }
 
     fun drawPhase2(g: AGraphics, position: Float, vararg rects: GRectangle) {
-        val id = Utils.randItem(ZIcon.SKULL.imageIds)
+        val id = ZIcon.SKULL.imageIds.random()
         val img = g.getImage(id)
         g.pushMatrix()
         val rect = rects[0].shaked(0.1f, 0f)
@@ -38,14 +39,14 @@ open class DeathStrikeAnimation(actor: ZActor<*>, targetRect: GRectangle, numDic
     }
 
     fun drawPhase3(g: AGraphics, position: Float, vararg rects: GRectangle) {
-        val id = Utils.randItem(ZIcon.SKULL.imageIds)
+        val id = ZIcon.SKULL.imageIds.random()
         val img = g.getImage(id)
         g.drawImage(id, rects[0].getInterpolationTo(rects[1], position).fit(img))
         g.removeFilter()
     }
 
     fun drawPhase4(g: AGraphics, position: Float, vararg rects: GRectangle) {
-        val id = Utils.randItem(ZIcon.SKULL.imageIds)
+        val id = ZIcon.SKULL.imageIds.random()
         val img = g.getImage(id)
         g.setTransparencyFilter(1f - position)
         g.drawImage(id, rects[0].getInterpolationTo(rects[1], position).fit(img))
@@ -82,15 +83,15 @@ open class DeathStrikeAnimation(actor: ZActor<*>, targetRect: GRectangle, numDic
         var target = endRect
         var start = startRect
         for (i in 0 until numDice) {
-            target = targetRect.movedBy(Utils.randFloatX(targetRect.w / 2), 0f)
-            phases.add(Phase(1, phaseDropDur, start!!, target))
+            target = targetRect.movedBy((targetRect.w / 2).randomSigned(), 0f)
+            phases.add(Phase(1, phaseDropDur, start, target))
             start = endRect
             phases.add(Phase(2, phaseShakeDur, target))
             if (i < numDice - 1) {
                 phases.add(Phase(3, phaseRiseDur, target, endRect))
             }
         }
-        phases.add(Phase(4, phaseFadeOutDur, target!!, endRect))
-        setDurations(Utils.map(phases) { m: Phase -> m.dur })
+        phases.add(Phase(4, phaseFadeOutDur, target, endRect))
+        setDurations(phases.map { it.dur })
     }
 }

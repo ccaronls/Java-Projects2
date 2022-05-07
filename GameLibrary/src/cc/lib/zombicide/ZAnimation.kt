@@ -2,7 +2,7 @@ package cc.lib.zombicide
 
 import cc.lib.game.AGraphics
 import cc.lib.game.AMultiPhaseAnimation
-import cc.lib.game.Utils
+
 import cc.lib.utils.GException
 
 abstract class ZAnimation : AMultiPhaseAnimation<AGraphics> {

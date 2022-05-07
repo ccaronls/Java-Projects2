@@ -4,7 +4,6 @@ import cc.lib.annotation.Keep
 
 @Keep
 enum class ZItemType(override val equipmentClass: ZEquipmentClass, val actionType: ZActionType, val slot: ZEquipSlotType, val description: String) : ZEquipmentType {
-    AAHHHH(ZEquipmentClass.AHHHH, ZActionType.NOTHING, ZEquipSlotType.BACKPACK, "Stop Searching and place a zombie in the room being searched."),
     TORCH(ZEquipmentClass.THROWABLE, ZActionType.THROW_ITEM, ZEquipSlotType.HAND, "Draw 2 cards when searching. Spend an action, discard, and select a dragon bile at range 0-1 to ignite. Resolve dragon Fire.") {
         override fun onThrown(game: ZGame, thrower: ZCharacter, targetZoneIdx: Int) {
             val zone = game.board.getZone(targetZoneIdx)
@@ -28,7 +27,9 @@ enum class ZItemType(override val equipmentClass: ZEquipmentClass, val actionTyp
     APPLES(ZEquipmentClass.CONSUMABLE, ZActionType.CONSUME, ZEquipSlotType.BACKPACK, "Consume and gain 3 experience point"),
     PLENTY_OF_ARROWS(ZEquipmentClass.BOW, ZActionType.NOTHING, ZEquipSlotType.BACKPACK, "You may re-roll all ranged attacked involving bows. The new result takes place of old."),  // user can reroll ranged arrow attacks if they want
     PLENTY_OF_BOLTS(ZEquipmentClass.CROSSBOW, ZActionType.NOTHING, ZEquipSlotType.BACKPACK, "You may re-roll all ranged attacked involving bolts. The new result takes place of old."),
-    BARRICADE(ZEquipmentClass.CONSUMABLE, ZActionType.BARRICADE_DOOR, ZEquipSlotType.HAND, "Close and barricade a door. Takes 3 turns to execute.");
+    BARRICADE(ZEquipmentClass.CONSUMABLE, ZActionType.BARRICADE_DOOR, ZEquipSlotType.HAND, "Close and barricade a door. Takes 3 turns to execute."),
+	AHHHH(ZEquipmentClass.AHHHH, ZActionType.NOTHING, ZEquipSlotType.BACKPACK, "Stop Searching and place a zombie in the room being searched."),
+	;
 
     override fun create(): ZItem {
         return ZItem(this)

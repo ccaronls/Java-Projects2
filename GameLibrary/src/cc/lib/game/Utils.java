@@ -788,7 +788,7 @@ public class Utils {
         for (i = 0; i < weights.length; i++)
             total += weights[i];
         if (total <= 0) {
-            return 0;
+            return -1;
         }
         int r = rand() % total;
         for (i = 0; i < weights.length; i++) {
@@ -980,7 +980,7 @@ public class Utils {
      */
     public static String toPrettyString(final Object obj) {
         if (obj == null)
-            return null;
+            return "null";
         String str = obj.toString();
         String cached = PRETTY_CACHE.get(str);
         if (cached != null)
@@ -2853,10 +2853,6 @@ public class Utils {
             result = 31 * result + (element == null ? 0 : element.hashCode());
 
         return result;
-    }
-
-    public static boolean equals(Object a, Object b) {
-        return (a == b) || (a != null && a.equals(b));
     }
 
     /**

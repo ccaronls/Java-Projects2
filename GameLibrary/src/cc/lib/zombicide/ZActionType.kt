@@ -1,7 +1,7 @@
 package cc.lib.zombicide
 
 import cc.lib.annotation.Keep
-import cc.lib.game.Utils
+import cc.lib.utils.prettify
 
 @Keep
 enum class ZActionType {
@@ -66,5 +66,5 @@ enum class ZActionType {
     val isMovement: Boolean
         get() = this === MOVE
     val label: String
-        get() = Utils.toPrettyString(name)
+        get() = prettify(name)
 }
