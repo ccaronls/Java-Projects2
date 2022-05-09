@@ -54,6 +54,8 @@ class ZBoard : Reflector<ZBoard>, IDimension {
         return rows.toFloat()
     }
 
+	fun isEmpty(): Boolean = grid.isEmpty
+
     /**
      * Get list of accessable zones
      *
@@ -502,7 +504,7 @@ class ZBoard : Reflector<ZBoard>, IDimension {
     }
 
     fun getNumZombiesInZone(zoneIdx: Int): Int {
-        return getActorsInZone(zoneIdx).count { `object`: ZActor<*> -> `object` is ZZombie && `object`.isAlive }
+        return getActorsInZone(zoneIdx).count { it is ZZombie && it.isAlive }
     }
 
     fun getCharactersInZone(zoneIdx: Int): List<ZCharacter> {

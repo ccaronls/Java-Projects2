@@ -9,7 +9,7 @@ import cc.lib.zombicide.ZIcon
 
 class SlashedAnimation(actor: ZActor<*>) : ZActorAnimation(actor, 1000) {
 	val claws = ZIcon.CLAWS.imageIds.random()
-	var r: GRectangle = actor.rect
+	var r: GRectangle = actor.getRect()
 	override fun draw(g: AGraphics, position: Float, dt: Float) {
 		val img = g.getImage(claws)
 		g.setTransparencyFilter(1f - position)

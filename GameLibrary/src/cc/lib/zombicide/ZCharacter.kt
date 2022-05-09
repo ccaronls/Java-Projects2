@@ -818,7 +818,7 @@ class ZCharacter(override val type: ZPlayerName=ZPlayerName.Ann, skillz: Array<A
 
     override fun draw(g: AGraphics) {
         if (fallen) {
-            g.drawImage(ZIcon.GRAVESTONE.imageIds[0], rect.fit(g.getImage(ZIcon.GRAVESTONE.imageIds[0])))
+            g.drawImage(ZIcon.GRAVESTONE.imageIds[0], getRect().fit(g.getImage(ZIcon.GRAVESTONE.imageIds[0])))
         } else {
             drawPedestal(g)
             super.draw(g)
@@ -827,7 +827,7 @@ class ZCharacter(override val type: ZPlayerName=ZPlayerName.Ann, skillz: Array<A
 
     protected fun drawPedestal(g: AGraphics) {
         val hgt = 0.04f
-        val rect = rect
+        val rect = getRect()
         if (color != null) {
             g.color = color!!.darkened(.5f)
             val x = rect.x + 0.02f

@@ -378,11 +378,11 @@ open class ZGame() : Reflector<ZGame>() {
 
     private val isGameSetup: Boolean
         get() {
-            if (board == null) {
-                System.err.println("No Board!")
+            if (board.isEmpty()) {
+                System.err.println("Empty Board!")
                 return false
             }
-            if (users.size == 0 || getCurrentUser() == null) {
+            if (users.size == 0) {
                 System.err.println("No users!")
                 return false
             }
@@ -390,8 +390,8 @@ open class ZGame() : Reflector<ZGame>() {
                 System.err.println("No characters!")
                 return false
             }
-            if (quest == null) {
-                System.err.println("No quest!")
+            if (!questInitialized) {
+                System.err.println("Quest not initialized")
                 return false
             }
             return true
@@ -885,7 +885,7 @@ open class ZGame() : Reflector<ZGame>() {
         log.debug("%s destroys spawn at %d", c, zoneIdx)
     }
 
-    protected open fun onCharacterDefends(cur: ZPlayerName, attackerPosition: ZActorPosition?) {
+    protected open fun onCharacterDefends(cur: ZPlayerName, attackerPosition: ZActorPosition) {
         log.debug("%s defends from %s", cur, attackerPosition)
     }
 
@@ -933,7 +933,7 @@ open class ZGame() : Reflector<ZGame>() {
         }
     }
 
-    protected open fun onCharacterAttacked(character: ZPlayerName, attackerPosition: ZActorPosition?, attackType: ZAttackType, characterPerished: Boolean) {
+    open fun onCharacterAttacked(character: ZPlayerName, attackerPosition: ZActorPosition, attackType: ZAttackType, characterPerished: Boolean) {
         log.debug("%s attacked from %s with %s and %s", character, attackerPosition, attackType, if (characterPerished) "Died" else "Was Wounded")
     }
 
@@ -1787,7 +1787,7 @@ open class ZGame() : Reflector<ZGame>() {
         do {
             keepGoing = false
             for (i in result.indices) {
-                if (result[i]!! >= stat.dieRollToHit) {
+                if (result[i] >= stat.dieRollToHit) {
                     hits++
                 }
             }
@@ -2019,7 +2019,7 @@ open class ZGame() : Reflector<ZGame>() {
 
     open val currentCharacter: ZPlayerName?
         get() {
-            return if (stateStack.isEmpty()) null else stateStack.peek()!!.player
+            return if (stateStack.isEmpty()) null else stateStack.peek().player
         }
 
     protected fun moveActor(actor: ZActor<*>, toZone: Int, speed: Long, actionType: ZActionType?) {
@@ -2164,7 +2164,7 @@ open class ZGame() : Reflector<ZGame>() {
 
     private fun canSwitchActivePlayer(): Boolean {
         val cur = currentCharacter ?: return false
-        if (cur.character.actionsLeftThisTurn === cur.character.actionsPerTurn) 
+        if (cur.character.actionsLeftThisTurn == cur.character.actionsPerTurn)
             return true
         return cur.character.hasAvailableSkill(ZSkill.Tactician)
     }

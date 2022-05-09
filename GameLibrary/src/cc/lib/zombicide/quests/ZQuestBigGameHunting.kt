@@ -58,6 +58,7 @@ arrayOf("z22:i:ww:red:ws:de", "z26:ws:sps:de", "z24:i:red:ww:we:ws:dw",         
 			"blue" -> {
 				blueObjZone = cell.zoneIndex
 				cell.setCellType(ZCellType.OBJECTIVE_BLUE, true)
+				addObjective(ZCellType.OBJECTIVE_BLUE, cell.zoneIndex)
 			}
 			else   -> super.loadCmd(grid, pos, cmd)
 		}

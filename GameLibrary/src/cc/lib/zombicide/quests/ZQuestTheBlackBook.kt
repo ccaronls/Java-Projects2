@@ -35,6 +35,7 @@ arrayOf("z29:i:red:wn:de", "z30", "z31:i:dw:wn:ode",        "z32:i:red:wn:we", "
 			"blackbook" -> {
 				blackBookZone = cell.zoneIndex
 				cell.setCellType(ZCellType.OBJECTIVE_BLACK, true)
+				addObjective(ZCellType.OBJECTIVE_BLACK, cell.zoneIndex)
 			}
 			"green" -> greenSpawnZone = cell.zoneIndex
 			"blds" -> blueDoor = ZDoor(pos, ZDir.SOUTH, GColor.BLUE)

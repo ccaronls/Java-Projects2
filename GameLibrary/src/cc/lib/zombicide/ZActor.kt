@@ -14,7 +14,7 @@ abstract class ZActor<E : Enum<E>> internal constructor(var occupiedZone: Int=-1
     }
 
     var priorZone:Int = -1
-        get() = if (field < 0) occupiedZone else priorZone
+        get() = if (field < 0) occupiedZone else field
 
     lateinit var occupiedCell: Grid.Pos
     lateinit var occupiedQuadrant: ZCellQuadrant

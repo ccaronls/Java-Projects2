@@ -33,6 +33,7 @@ arrayOf("", "", "", "z16:v:wn:ww:gvd1", "z16:v:wn", "z16:v:wn:gvd2")))
 			"blue" -> {
 				blueKeyZone = zoneIndex
 				cell.setCellType(ZCellType.OBJECTIVE_BLUE, true)
+				addObjective(ZCellType.OBJECTIVE_BLUE, zoneIndex)
 			}
 			"bluedn" -> blueDoor = ZDoor(pos, ZDir.NORTH, GColor.BLUE)
 			"greende" -> greenDoor = ZDoor(pos, ZDir.EAST, GColor.GREEN)

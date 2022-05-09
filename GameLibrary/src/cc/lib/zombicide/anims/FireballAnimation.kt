@@ -12,7 +12,7 @@ import cc.lib.zombicide.ZIcon
 open class FireballAnimation(actor: ZActor<*>, end: IVector2D?) : ZActorAnimation(actor, 500) {
     val path: Vector2D
     val start: Vector2D
-    val r: GRectangle = actor.rect.scaledBy(.5f)
+    val r: GRectangle = actor.getRect().scaledBy(.5f)
 	override fun draw(g: AGraphics, position: Float, dt: Float) {
         val id = ZIcon.FIREBALL.imageIds.random()
         val img = g.getImage(id)

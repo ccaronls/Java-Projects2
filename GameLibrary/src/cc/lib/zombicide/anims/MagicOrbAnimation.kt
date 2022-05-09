@@ -12,7 +12,7 @@ import kotlin.math.roundToLong
 open class MagicOrbAnimation(actor: ZActor<*>, end: Vector2D) : ZActorAnimation(actor, 600L, 800L) {
     val path: Vector2D
     val start: Vector2D
-    val r: GRectangle = actor.rect.scaledBy(.5f)
+    val r: GRectangle = actor.getRect().scaledBy(.5f)
     val strands: Array<LightningStrand>
     val startAlpha = .9f
     val endAlpha = .3f

@@ -12,7 +12,7 @@ class ShieldBlockAnimation(actor: ZActor<*>) : ZActorAnimation(actor, 1000) {
 	override fun onStarted(g: AGraphics) {
 		val id = ZIcon.SHIELD.imageIds[0]
 		val img = g.getImage(id)
-		r = actor.rect.fit(img).scaledBy(.5f)
+		r = actor.getRect().fit(img).scaledBy(.5f)
 	}
 
     override fun draw(g: AGraphics, position: Float, dt: Float) {

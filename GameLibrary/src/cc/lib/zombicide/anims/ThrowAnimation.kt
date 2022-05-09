@@ -25,7 +25,7 @@ open class ThrowAnimation(actor: ZActor<*>, target: IVector2D, val icon: ZIcon, 
 		val idx = (position * (icon.imageIds.size - 1)).roundToInt()
 		val id = icon.imageIds[idx]
 		val img = g.getImage(id)
-		val rect = actor.rect.scaledBy(.5f).fit(img)
+		val rect = actor.getRect().scaledBy(.5f).fit(img)
 		rect.setCenter(curve.getAtPosition(position))
 		g.drawImage(id, rect)
 	}
@@ -35,7 +35,7 @@ open class ThrowAnimation(actor: ZActor<*>, target: IVector2D, val icon: ZIcon, 
 	}
 
 	init {
-		val start: Vector2D = actor.rect.center
+		val start: Vector2D = actor.getRect().center
 		val end = Vector2D(target)
 		dir = getFromVector(end.sub(start))
 		curve = Bezier.build(start, end, arc)

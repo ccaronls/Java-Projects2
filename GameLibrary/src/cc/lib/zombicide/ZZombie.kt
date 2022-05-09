@@ -84,7 +84,7 @@ class ZZombie(override val type: ZZombieType = ZZombieType.Walker, zone: Int = -
             if (actionsLeftThisTurn > 1) {
                 g.color = GColor.WHITE
                 val oldHgt = g.setTextHeight(10f)
-                g.drawJustifiedString(rect.centerBottom, Justify.CENTER, Justify.BOTTOM, java.lang.String.valueOf(actionsLeftThisTurn))
+                g.drawJustifiedString(getRect().centerBottom, Justify.CENTER, Justify.BOTTOM, java.lang.String.valueOf(actionsLeftThisTurn))
                 g.textHeight = oldHgt
             }
         }

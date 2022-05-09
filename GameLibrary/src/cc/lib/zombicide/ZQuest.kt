@@ -108,7 +108,7 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
     val allObjectives: List<Int>
         get() = objectives.values.map { it.objectives }.flatten()
 
-    private fun addObjective(color: ZCellType, zoneIndex: Int) {
+    fun addObjective(color: ZCellType, zoneIndex: Int) {
         var obj = objectives[color]
         if (obj == null) {
             obj = ZObjective()
@@ -294,8 +294,13 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
      * @param options
      */
     open fun addMoves(game: ZGame, cur: ZCharacter, options: MutableList<ZMove>) {
-        for (obj in allObjectives) {
-            if (cur.occupiedZone == obj && game.board.getNumZombiesInZone(obj) == 0) options.add(ZMove.newObjectiveMove(obj))
+        allObjectives.filter {
+	        game.board.getNumZombiesInZone(it) == 0
+        }.firstOrNull {
+	        val zone = cur.occupiedZone
+	        it == zone
+        }?.let {
+            options.add(ZMove.newObjectiveMove(it))
         }
     }
 

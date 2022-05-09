@@ -19,7 +19,7 @@ class WolfACoinForTheFerryman : ZQuest(ZQuests.A_Coin_For_The_Ferryman) {
 	}
 
 	var lockedDoors: MutableList<ZDoor> = ArrayList()
-	var blueKeyPos: Grid.Pos? = null
+	lateinit var blueKeyPos: Grid.Pos
 	override fun loadBoard(): ZBoard {
 		val map = arrayOf(
 					arrayOf("z0:i:ww:ws", "z1", "z2:i::ww::ws:de:red",      "z10", "z11", "z12",                                "z20", "z21:spn", "z22:i:ww"),
@@ -69,23 +69,20 @@ class WolfACoinForTheFerryman : ZQuest(ZQuests.A_Coin_For_The_Ferryman) {
 	}
 
 	override fun processObjective(game: ZGame, c: ZCharacter) {
-		blueKeyPos?.let {
-			val zIdx = game.board.getCell(it).zoneIndex
-			if (zIdx == c.occupiedZone) {
-				game.addLogMessage("The PORTAL is unlocked!!")
-				game.board.getZone(zIdx).isObjective = false
-				for (door in lockedDoors) {
-					game.unlockDoor(door)
-				}
-				blueKeyPos = null
-				return
+		val zIdx = game.board.getCell(blueKeyPos).zoneIndex
+		if (zIdx == c.occupiedZone) {
+			game.addLogMessage("The PORTAL is unlocked!!")
+			game.board.getZone(zIdx).isObjective = false
+			for (door in lockedDoors) {
+				game.unlockDoor(door)
 			}
+			return
 		}
 
 		super.processObjective(game, c)
 		if (numRemainingObjectives == 0) {
 			game.addLogMessage("The BLUE key is revealed!!!")
-			game.board.setObjective(blueKeyPos!!, ZCellType.OBJECTIVE_BLUE)
+			game.board.setObjective(blueKeyPos, ZCellType.OBJECTIVE_BLUE)
 		}
 	}
 

@@ -1,5 +1,7 @@
 package cc.lib.ui;
 
+import org.jetbrains.annotations.NotNull;
+
 import cc.lib.game.APGraphics;
 import cc.lib.game.GDimension;
 import cc.lib.game.IDimension;
@@ -25,6 +27,7 @@ public abstract class UIRenderer implements IDimension {
             component.setRenderer(this);
     }
 
+    @NotNull
     public <T extends UIComponent> T getComponent() {
         return (T)component;
     }

@@ -13,7 +13,7 @@ import cc.lib.zombicide.ZActorAnimation
 import java.util.*
 
 open class ElectrocutionAnimation(actor: ZActor<*>) : ZActorAnimation(actor, 1000) {
-	private val r: GRectangle = actor.rect
+	private val r: GRectangle = actor.getRect()
     private val minStrands = 5
     private val maxStrands = 7
     private val minSections = 6

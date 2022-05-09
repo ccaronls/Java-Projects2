@@ -21,7 +21,7 @@ open class ShootAnimation(actor: ZActor<*>, duration: Long, center: IVector2D?, 
 
 	override fun onStarted(g: AGraphics) {
 		val img = g.getImage(id)
-		r = actor.rect.scaledBy(.5f).fit(img)
+		r = actor.getRect().scaledBy(.5f).fit(img)
 	}
 
 	override fun draw(g: AGraphics, position: Float, dt: Float) {

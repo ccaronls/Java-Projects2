@@ -20,7 +20,7 @@ open class EarthquakeAnimation : ZActorAnimation {
     override fun draw(g: AGraphics, position: Float, dt: Float) {
         g.pushMatrix()
         g.translate(((1f - position) / 8).randomSigned(), 0f)
-        g.drawImage(target.imageId, target.rect)
+        g.drawImage(target.imageId, target.getRect())
         g.popMatrix()
     }
 

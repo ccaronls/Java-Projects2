@@ -19,7 +19,7 @@ class LightningAnimation(actor: ZActor<*>, start: Vector2D, end: Vector2D, secti
 	val sectionLen: Float
 	val numSections: Int
 
-	constructor(actor: ZActor<*>, board: ZBoard, targetZone: Int, strands: Int) : this(actor, actor.rect.center, board.getZone(targetZone).center.add(Vector2D.newRandom(.3f)), 4, strands) {}
+	constructor(actor: ZActor<*>, board: ZBoard, targetZone: Int, strands: Int) : this(actor, actor.getRect().center, board.getZone(targetZone).center.add(Vector2D.newRandom(.3f)), 4, strands) {}
 
 	override fun onRepeat(n: Int) {
 		for (l in sections) {

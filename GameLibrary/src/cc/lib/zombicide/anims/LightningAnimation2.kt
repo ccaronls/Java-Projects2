@@ -47,8 +47,8 @@ open class LightningAnimation2(actor: ZActor<*>, targets: List<IInterpolator<Vec
     protected fun onShotPhaseStarted(g: AGraphics) {}
 
     init {
-        start0 = actor.rect.topLeft
-        start1 = actor.rect.topRight
+        start0 = actor.getRect().topLeft
+        start1 = actor.getRect().topRight
         arcs = Array(Utils.randRange(3, 6)) {
             LightningStrand(start0, start1, InterpolatorUtils.linear(minArc, maxArc), 4, 7, .5f)
         }
