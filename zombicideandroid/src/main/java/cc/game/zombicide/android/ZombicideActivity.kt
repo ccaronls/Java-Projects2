@@ -1060,11 +1060,10 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 		zb.bCenter.tag = null
 	}
 
-	fun initMenu(mode: UIMode, _options: List<*>?) {
+	fun initMenu(mode: UIMode, options: List<*>?) {
 		val buttons: MutableList<View> = ArrayList()
 		clearKeypad()
-		if (_options != null) {
-			val options = _options.toMutableList()
+		options?.toMutableList()?.also { options ->
 			initKeypad(options)
 			when (mode) {
 				UIMode.PICK_CHARACTER -> {
