@@ -1,63 +1,49 @@
-package cc.game.zombicide.android;
+package cc.game.zombicide.android
 
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.BaseAdapter;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.ViewModel;
+import android.view.View
+import android.view.ViewGroup
+import android.widget.BaseAdapter
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import java.util.*
 
 /**
  * Created by Chris Caron on 12/13/21.
  */
-public class ActivityViewModel extends ViewModel {
+class ActivityViewModel : ViewModel() {
+    val consoleVisible = MutableLiveData(true)
+    val loading = MutableLiveData(false)
+    val playing = MutableLiveData(false)
 
-    public MutableLiveData<Boolean> consoleVisible = new MutableLiveData(true);
+	// TODO: Move this to ViewModel
+	class ButtonAdapter internal constructor() : BaseAdapter() {
+		private val buttons: MutableList<View>
+		fun update(buttons: List<View>) {
+			this.buttons.clear()
+			this.buttons.addAll(buttons)
+			notifyDataSetChanged()
+		}
 
-    public MutableLiveData<Boolean> loading = new MutableLiveData(false);
+		override fun getCount(): Int {
+			return buttons.size
+		}
 
-    public MutableLiveData<Boolean> playing = new MutableLiveData(false);
+		override fun getItem(position: Int): Any {
+			return 0
+		}
 
-    // TODO: Move this to ViewModel
-    public static class ButtonAdapter extends BaseAdapter {
+		override fun getItemId(position: Int): Long {
+			return 0
+		}
 
-        ButtonAdapter() {
-            this.buttons = new ArrayList<>();
-        }
+		override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+			return buttons[position]
+		}
 
-        private final List<View> buttons;
+		init {
+			buttons = ArrayList()
+		}
+	}
 
-        public void update(List<View> buttons) {
-            this.buttons.clear();
-            this.buttons.addAll(buttons);
-            notifyDataSetChanged();
-        }
-
-        @Override
-        public int getCount() {
-            return buttons.size();
-        }
-
-        @Override
-        public Object getItem(int position) {
-            return null;
-        }
-
-        @Override
-        public long getItemId(int position) {
-            return 0;
-        }
-
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            return buttons.get(position);
-        }
-    }
-
-    public final ButtonAdapter listAdapter = new ButtonAdapter();
-
-
+    val listAdapter = ButtonAdapter()
 }

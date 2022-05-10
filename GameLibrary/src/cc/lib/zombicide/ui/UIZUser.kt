@@ -1,7 +1,7 @@
 package cc.lib.zombicide.ui
 
-import cc.lib.game.Utils
 import cc.lib.utils.Table
+import cc.lib.utils.prettify
 import cc.lib.zombicide.*
 
 class UIZUser : ZUser() {
@@ -24,7 +24,7 @@ class UIZUser : ZUser() {
 			}
 		})
 		for (t in list) {
-			table.addColumn(Utils.toPrettyString(t.name), t.description)
+			table.addColumn(prettify(t.name), t.description)
 		}
 		UIZombicide.instance.boardRenderer.setOverlay(table)
 		return UIZombicide.instance.pickMenu(cur, cur.name + " Choose New Skill", ZSkill::class.java, list)
@@ -79,7 +79,7 @@ class UIZUser : ZUser() {
 	}
 
 	override fun chooseZoneToThrowEquipment(cur: ZPlayerName, toThrow: ZEquipment<*>, zones: List<Int>): Int? {
-		UIZombicide.instance.showEquipmentOverlay(cur, Utils.toList(toThrow))
+		UIZombicide.instance.showEquipmentOverlay(cur, listOf(toThrow))
 		return UIZombicide.instance.pickZone("Choose Zone to throw the $toThrow", zones)
 	}
 
@@ -93,7 +93,7 @@ class UIZUser : ZUser() {
 	}
 
 	override fun chooseCharacterForSpell(cur: ZPlayerName, spell: ZSpell, targets: List<ZPlayerName>): ZPlayerName? {
-		UIZombicide.instance.showEquipmentOverlay(cur, Utils.toList(spell))
+		UIZombicide.instance.showEquipmentOverlay(cur, listOf(spell))
 		return UIZombicide.instance.pickCharacter("Choose character to enchant with " + spell.type, targets)
 	}
 

@@ -1,34 +1,30 @@
-package cc.game.zombicide.android;
+package cc.game.zombicide.android
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import cc.lib.utils.Reflector
+import cc.lib.zombicide.ZQuests
+import cc.lib.zombicide.ZDifficulty
+import java.util.HashMap
+import java.util.HashSet
 
-import cc.lib.utils.Reflector;
-import cc.lib.zombicide.ZDifficulty;
-import cc.lib.zombicide.ZQuests;
+class Stats : Reflector<Stats>() {
+	companion object {
+		init {
+			addAllFields(Stats::class.java)
+		}
+	}
 
-public class Stats extends Reflector<Stats> {
+	private val completedQuests: MutableMap<ZQuests, ZDifficulty> = HashMap()
+	fun completeQuest(quest: ZQuests, difficulty: ZDifficulty) {
+		completedQuests[quest] = difficulty
+	}
 
-    static {
-        addAllFields(Stats.class);
-    }
+	fun isQuestCompleted(q: ZQuests, minDifficulty: ZDifficulty): Boolean {
+		return if (completedQuests.containsKey(q)) {
+			completedQuests[q]!!.ordinal >= minDifficulty.ordinal
+		} else false
+	}
 
-    private final Map<ZQuests, ZDifficulty> completedQuests = new HashMap<>();
-
-    public void completeQuest(ZQuests quest, ZDifficulty difficulty) {
-        completedQuests.put(quest, difficulty);
-    }
-
-    public boolean isQuestCompleted(ZQuests q, ZDifficulty minDifficulty) {
-        if (completedQuests.containsKey(q)) {
-            return completedQuests.get(q).ordinal() >= minDifficulty.ordinal();
-        }
-        return false;
-    }
-
-    public Set<ZQuests> getCompletedQuests() {
-        return new HashSet<>(completedQuests.keySet());
-    }
+	fun getCompletedQuests(): Set<ZQuests> {
+		return HashSet(completedQuests.keys)
+	}
 }

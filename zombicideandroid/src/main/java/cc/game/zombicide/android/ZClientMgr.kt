@@ -1,178 +1,135 @@
-package cc.game.zombicide.android;
+package cc.game.zombicide.android
 
-import android.content.DialogInterface;
-import android.util.Log;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import cc.lib.logger.Logger;
-import cc.lib.logger.LoggerFactory;
-import cc.lib.net.GameClient;
-import cc.lib.net.GameCommand;
-import cc.lib.zombicide.ZGame;
-import cc.lib.zombicide.ZQuests;
-import cc.lib.zombicide.ZUser;
-import cc.lib.zombicide.p2p.ZGameMP;
-import cc.lib.zombicide.p2p.ZUserMP;
-import cc.lib.zombicide.ui.UIZombicide;
+import android.util.Log
+import cc.game.zombicide.android.ZMPCommon.CL
+import cc.lib.logger.LoggerFactory
+import cc.lib.net.GameClient
+import cc.lib.net.GameCommand
+import cc.lib.zombicide.ZGame
+import cc.lib.zombicide.ZQuests
+import cc.lib.zombicide.ZUser
+import cc.lib.zombicide.p2p.ZGameMP
+import cc.lib.zombicide.p2p.ZUserMP
+import cc.lib.zombicide.ui.UIZombicide
+import java.util.*
 
 /**
  * Created by Chris Caron on 7/28/21.
  */
-class ZClientMgr extends ZMPCommon implements GameClient.Listener, ZMPCommon.CL {
+class ZClientMgr(activity: ZombicideActivity, game: UIZombicide, val client: GameClient, val user: ZUser) : ZMPCommon(activity, game), GameClient.Listener, CL {
+	var playerChooser: CharacterChooserDialogMP? = null
+	fun shutdown() {
+		client.removeListener(this)
+	}
 
-    static Logger log = LoggerFactory.getLogger(ZClientMgr.class);
+	override fun onCommand(cmd: GameCommand) {
+		parseSVRCommand(cmd)
+	}
 
-    final ZUser user;
-    final GameClient client;
-    CharacterChooserDialogMP playerChooser = null;
+	override fun onLoadQuest(quest: ZQuests) {
+		game.loadQuest(quest)
+		game.boardRenderer.redraw()
+	}
 
-    ZClientMgr(ZombicideActivity activity, UIZombicide game, GameClient client, ZUser user) {
-        super(activity, game);
-        this.client = client;
-        this.user = user;
-        client.addListener(this);
-    }
+	override fun onInit(color: Int, maxCharacters: Int, playerAssignments: List<Assignee>) {
+		user.setColor(color)
+		game.clearCharacters()
+		game.clearUsersCharacters()
+		val assignees: MutableList<Assignee> = ArrayList()
+		for (c in activity.charLocks) {
+			val a = Assignee(c)
+			val idx = playerAssignments.indexOf(a)
+			if (idx >= 0) {
+				val aa = playerAssignments[idx]
+				a.copyFrom(aa)
+				if (color == a.color) a.isAssingedToMe = true
+			}
+			assignees.add(a)
+			if (a.checked) {
+				game.addCharacter(a.name)
+				if (a.isAssingedToMe) {
+					user.addCharacter(a.name)
+				}
+			}
+		}
+		activity.runOnUiThread {
+			playerChooser = object : CharacterChooserDialogMP(activity, assignees, maxCharacters) {
+				override fun onAssigneeChecked(assignee: Assignee, checked: Boolean) {
+					Log.d(TAG, "onAssigneeChecked: $assignee")
+					val cmd = activity.clientMgr!!.newAssignCharacter(assignee.name, checked)
+					object : CLSendCommandSpinnerTask(activity, SVR_ASSIGN_PLAYER) {
+						override fun onSuccess() {
+							assignee.checked = checked
+							postNotifyUpdateAssignee(assignee)
+						}
+					}.execute(cmd)
+				}
 
-    void shutdown() {
-        client.removeListener(this);
-    }
+				override fun onStart() {
+					game.client = client
+					client.sendCommand(newStartPressed())
+					activity.initGameMenu()
+					activity.game.showQuestTitleOverlay()
+				}
+			}
+			game.boardRenderer.redraw()
+		}
+	}
 
-    @Override
-    public void onCommand(GameCommand cmd) {
-        parseSVRCommand(cmd);
-    }
+	override fun onAssignPlayer(assignee: Assignee) {
+		Log.d("ZClientMgr", "onAssignPlayer: $assignee")
+		if (user.colorId == assignee.color) assignee.isAssingedToMe = true
+		if (assignee.checked) {
+			game.addCharacter(assignee.name)
+			if (assignee.isAssingedToMe) user.addCharacter(assignee.name)
+		} else {
+			game.removeCharacter(assignee.name)
+			user.removeCharacter(assignee.name)
+		}
+		game.boardRenderer.redraw()
+		playerChooser?.postNotifyUpdateAssignee(assignee)
+	}
 
-    @Override
-    public void onLoadQuest(ZQuests quest) {
-        game.loadQuest(quest);
-        game.boardRenderer.redraw();
-    }
+	override fun onError(e: Exception) {
+		log.error(e)
+		game.addPlayerComponentMessage("Error: ${e.javaClass.simpleName} :  + ${e.message}")
+	}
 
-    @Override
-    public void onInit(int color, int maxCharacters, List<Assignee> playerAssignments) {
-        user.setColor(color);
-        game.clearCharacters();
-        game.clearUsersCharacters();
+	override val gameForUpdate: ZGame
+		get() = game
 
-        List<Assignee> assignees = new ArrayList<>();
-        for (ZombicideActivity.CharLock c : activity.charLocks) {
-            Assignee a = new Assignee(c);
-            int idx = playerAssignments.indexOf(a);
-            if (idx >= 0) {
-                Assignee aa = playerAssignments.get(idx);
-                a.copyFrom(aa);
-                if (color == a.color)
-                    a.isAssingedToMe = true;
-            }
-            assignees.add(a);
-            if (a.checked) {
-                game.addCharacter(a.name);
-                if (a.isAssingedToMe) {
-                    user.addCharacter(a.name);
-                }
-            }
-        }
-        activity.runOnUiThread(new Runnable() {
-            public void run() {
-                playerChooser = new CharacterChooserDialogMP(activity, assignees, maxCharacters) {
-                    @Override
-                    protected void onAssigneeChecked(Assignee assignee, boolean checked) {
-                        Log.d(TAG, "onAssigneeChecked: " + assignee);
-                        GameCommand cmd = activity.clientMgr.newAssignCharacter(assignee.name,checked);
-                        new CLSendCommandSpinnerTask(activity, ZMPCommon.SVR_ASSIGN_PLAYER) {
-                            @Override
-                            protected void onSuccess() {
-                                assignee.checked = checked;
-                                postNotifyUpdateAssignee(assignee);
-                            }
-                        }.execute(cmd);
-                    }
+	override fun onGameUpdated(game: ZGame) {
+		this.game.boardRenderer.redraw()
+		this.game.characterRenderer.redraw()
+	}
 
-                    @Override
-                    protected void onStart() {
-                        game.setClient(client);
-                        client.sendCommand(newStartPressed());
-                        activity.initGameMenu();
-                        activity.game.showQuestTitleOverlay();
-                    }
-                };
-                game.boardRenderer.redraw();
-            }
-        });
-    }
+	override fun onMessage(msg: String) {
+		game.addPlayerComponentMessage(msg)
+	}
 
-    @Override
-    public void onAssignPlayer(Assignee assignee) {
-        Log.d("ZClientMgr", "onAssignPlayer: " + assignee);
-        if (user.getColorId() == assignee.color)
-            assignee.isAssingedToMe = true;
-        if (assignee.checked) {
-            game.addCharacter(assignee.name);
-            if (assignee.isAssingedToMe)
-                user.addCharacter(assignee.name);
-        } else {
-            game.removeCharacter(assignee.name);
-            user.removeCharacter(assignee.name);
-        }
-        game.boardRenderer.redraw();
-        if (playerChooser != null)
-            playerChooser.postNotifyUpdateAssignee(assignee);
-    }
+	override fun onDisconnected(reason: String, serverInitiated: Boolean) {
+		if (serverInitiated) {
+			activity.game.setResult(null)
+			playerChooser?.dialog?.dismiss()
+			activity.runOnUiThread {
+				activity.newDialogBuilder().setTitle("Disconnected from Server")
+					.setMessage("Do you want to try and Reconnect?")
+					.setNegativeButton(R.string.popup_button_no) { dialog, which -> activity.p2pShutdown() }.setPositiveButton(R.string.popup_button_yes) { dialog, which -> client.reconnectAsync() }.show()
+			}
+		}
+	}
 
-    @Override
-    public void onError(Exception e) {
-        log.error(e);
-        game.addPlayerComponentMessage("Error: " + e.getClass().getSimpleName() + ":" + e.getMessage());
-    }
+	override fun onConnected() {
+		client.register(ZUserMP.USER_ID, user)
+		client.register(ZGameMP.GAME_ID, game)
+		client.displayName = activity.displayName
+	}
 
-    @Override
-    public UIZombicide getGameForUpdate() {
-        return game;
-    }
+	companion object {
+		var log = LoggerFactory.getLogger(ZClientMgr::class.java)
+	}
 
-    @Override
-    public void onGameUpdated(ZGame game) {
-        this.game.boardRenderer.redraw();
-        this.game.characterRenderer.redraw();
-    }
-
-    @Override
-    public void onMessage(String msg) {
-        game.addPlayerComponentMessage(msg);
-    }
-
-    @Override
-    public void onDisconnected(String reason, boolean serverInitiated) {
-        if (serverInitiated) {
-            activity.game.setResult(null);
-            if (playerChooser != null)
-                playerChooser.dialog.dismiss();
-            activity.runOnUiThread(new Runnable() {
-                public void run() {
-                    activity.newDialogBuilder().setTitle("Disconnected from Server")
-                            .setMessage("Do you want to try and Reconnect?")
-                            .setNegativeButton(R.string.popup_button_no, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    activity.p2pShutdown();
-                                }
-                            }).setPositiveButton(R.string.popup_button_yes, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            client.reconnectAsync();
-                        }
-                    }).show();
-                }
-            });
-        }
-    }
-
-    @Override
-    public void onConnected() {
-        client.register(ZUserMP.USER_ID, user);
-        client.register(ZGameMP.GAME_ID, game);
-        client.setDisplayName(activity.getDisplayName());
-    }
+	init {
+		client.addListener(this)
+	}
 }

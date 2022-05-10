@@ -1,155 +1,123 @@
-package cc.game.zombicide.android;
+package cc.game.zombicide.android
 
-import android.text.SpannableString;
-import android.text.style.UnderlineSpan;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.BaseAdapter;
-import android.widget.ListView;
-import android.widget.TextView;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import androidx.annotation.NonNull;
-import androidx.viewpager.widget.PagerAdapter;
-import cc.game.zombicide.android.databinding.ViewpagerDialogBinding;
-import cc.lib.game.GColor;
-import cc.lib.zombicide.ZColor;
-import cc.lib.zombicide.ZPlayerName;
-import cc.lib.zombicide.ZSkill;
+import android.text.SpannableString
+import android.text.style.UnderlineSpan
+import android.view.View
+import android.view.ViewGroup
+import android.widget.BaseAdapter
+import android.widget.ListView
+import android.widget.TextView
+import androidx.viewpager.widget.PagerAdapter
+import cc.game.zombicide.android.databinding.ViewpagerDialogBinding
+import cc.lib.game.GColor
+import cc.lib.zombicide.ZColor
+import cc.lib.zombicide.ZPlayerName
+import cc.lib.zombicide.ZSkill
+import java.util.*
 
 /**
  * Created by Chris Caron on 8/9/21.
  */
-class SkillsDialog extends PagerAdapter {
+internal class SkillsDialog(val activity: ZombicideActivity) : PagerAdapter() {
+	val skills: Array<Array<Array<ZSkill>>> = Array(ZPlayerName.values().size) { plIt ->
+		Array(ZColor.values().size) { colIt ->
+			ZPlayerName.values()[plIt].getSkillOptions(ZColor.values()[colIt])
+		}
+	}
 
-    final ZombicideActivity activity;
-    final ZSkill[][][] skills = new ZSkill[ZPlayerName.values().length][][];
-    final String[] labels = new String[skills.length];
+	/*
+		var idx = 0
+		for (pl in ZPlayerName.values()) {
+			skills[idx] = arrayOfNulls(ZColor.values().size)
+			labels[idx] = pl.label
+			for (lvl in ZColor.values()) {
+				skills[idx][lvl.ordinal] = pl.getSkillOptions(lvl)
+			}
+			idx++
+		}
+	}*/
+	val labels = ZPlayerName.values().map { it.label }
 
-    SkillsDialog(ZombicideActivity activity) {
-        this.activity = activity;
-        // series of TABS, one for each character and then one for ALL
+	override fun getCount(): Int {
+		return skills.size
+	}
 
-        int idx = 0;
-        for (ZPlayerName pl : ZPlayerName.values()) {
-            skills[idx] = new ZSkill[ZColor.values().length][];
-            labels[idx] = pl.getLabel();
-            for (ZColor lvl : ZColor.values()) {
-                skills[idx][lvl.ordinal()] = pl.getSkillOptions(lvl);
-            }
-            idx++;
-        }
+	override fun isViewFromObject(view: View, o: Any): Boolean {
+		return view === o
+	}
 
-        ViewpagerDialogBinding vb = ViewpagerDialogBinding.inflate(activity.getLayoutInflater());
-        vb.viewPager.setAdapter(this);
+	override fun instantiateItem(container: ViewGroup, position: Int): Any {
+		val page = View.inflate(activity, R.layout.skills_page, null)
+		val title = page.findViewById<TextView>(R.id.tv_title)
+		title.text = labels[position]
+		val lv = page.findViewById<ListView>(R.id.lv_list)
+		lv.adapter = SkillAdapter(ZPlayerName.values()[position], skills[position])
+		container.addView(page)
+		return page
+	}
 
-        if (activity.game.getCurrentCharacter() != null) {
-            vb.viewPager.setCurrentItem(activity.game.getCurrentCharacter().ordinal());
-        }
+	override fun destroyItem(container: ViewGroup, position: Int, `object`: Any) {
+		container.removeView(`object` as View)
+	}
 
-        activity.newDialogBuilder().setTitle("Skills").setView(vb.getRoot()).setNegativeButton("Close", null).show();
-    }
+	internal inner class Item(val name: String, val description: String?, val color: GColor?, val owned: Boolean)
+	internal inner class SkillAdapter(pl: ZPlayerName, skills: Array<Array<ZSkill>>) : BaseAdapter() {
+		val items: MutableList<Item> = ArrayList()
+		override fun getCount(): Int {
+			return items.size
+		}
 
-    @Override
-    public int getCount() {
-        return skills.length;
-    }
+		override fun getItem(position: Int): Any {
+			return 0
+		}
 
-    @Override
-    public boolean isViewFromObject(@NonNull View view, @NonNull Object o) {
-        return view == o;
-    }
+		override fun getItemId(position: Int): Long {
+			return 0
+		}
 
-    @NonNull
-    @Override
-    public Object instantiateItem(@NonNull ViewGroup container, int position) {
-        View page = View.inflate(activity, R.layout.skills_page, null);
-        TextView title = page.findViewById(R.id.tv_title);
-        title.setText(labels[position]);
-        ListView lv = page.findViewById(R.id.lv_list);
-        lv.setAdapter(new SkillAdapter(ZPlayerName.values()[position], skills[position]));
-        container.addView(page);
-        return page;
-    }
+		override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+			var convertView = convertView?:View.inflate(activity, R.layout.skill_list_item, null)
+			val name = convertView.findViewById<TextView>(R.id.tv_label)
+			val desc = convertView.findViewById<TextView>(R.id.tv_description)
+			val item = items[position]
+			if (item.color == null) {
+				name.setTextColor(GColor.WHITE.toARGB())
+				desc.visibility = View.VISIBLE
+				desc.text = item.description
+				if (item.owned) {
+					val content = SpannableString(item.name)
+					content.setSpan(UnderlineSpan(), 0, content.length, 0)
+					name.text = content
+				} else {
+					name.text = item.name
+				}
+			} else {
+				name.text = item.name
+				name.setTextColor(item.color.toARGB())
+				desc.visibility = View.GONE
+			}
+			return convertView
+		}
 
-    @Override
-    public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
-        container.removeView((View) object);
-    }
+		init {
+			for (lvl in ZColor.values()) {
+				items.add(Item(lvl.name + " " + lvl.dangerPts + " Danger Points", null, lvl.color, false))
+				for (skill in skills[lvl.ordinal]) {
+					val owned = pl.character != null && pl.character.hasSkill(skill)
+					items.add(Item(skill.label, skill.description, null, owned))
+				}
+			}
+		}
+	}
 
-    class Item {
-        final String name;
-        final String description;
-        final GColor color;
-        final boolean owned;
+	init {
+		// series of TABS, one for each character and then one for ALL
 
-        public Item(String name, String description, GColor color, boolean owned) {
-            this.name = name;
-            this.description = description;
-            this.color = color;
-            this.owned = owned;
-        }
-    }
-
-    class SkillAdapter extends BaseAdapter {
-
-        final List<Item> items = new ArrayList<>();
-
-        SkillAdapter(ZPlayerName pl, ZSkill[][] skills) {
-            for (ZColor lvl : ZColor.values()) {
-                items.add(new Item(lvl.name() + " " + lvl.dangerPts + " Danger Points", null, lvl.color, false));
-                for (ZSkill skill : skills[lvl.ordinal()]) {
-                    boolean owned = pl.getCharacter() != null && pl.getCharacter().hasSkill(skill);
-                    items.add(new Item(skill.getLabel(), skill.description, null, owned));
-                }
-            }
-        }
-
-        @Override
-        public int getCount() {
-            return items.size();
-        }
-
-        @Override
-        public Object getItem(int position) {
-            return null;
-        }
-
-        @Override
-        public long getItemId(int position) {
-            return 0;
-        }
-
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            if (convertView == null) {
-                convertView = View.inflate(activity, R.layout.skill_list_item, null);
-            }
-            TextView name = convertView.findViewById(R.id.tv_label);
-            TextView desc = convertView.findViewById(R.id.tv_description);
-
-            Item item = items.get(position);
-            if (item.color == null) {
-                name.setTextColor(GColor.WHITE.toARGB());
-                desc.setVisibility(View.VISIBLE);
-                desc.setText(item.description);
-                if (item.owned) {
-                    SpannableString content = new SpannableString(item.name);
-                    content.setSpan(new UnderlineSpan(), 0, content.length(), 0);
-                    name.setText(content);
-                } else {
-                    name.setText(item.name);
-                }
-            } else {
-                name.setText(item.name);
-                name.setTextColor(item.color.toARGB());
-                desc.setVisibility(View.GONE);
-            }
-
-            return convertView;
-        }
-    }
-
+		val vb = ViewpagerDialogBinding.inflate(activity.layoutInflater)
+		vb.viewPager.adapter = this
+		if (activity.game.currentCharacter != null) {
+			vb.viewPager.currentItem = activity.game.currentCharacter!!.ordinal
+		}
+		activity.newDialogBuilder().setTitle("Skills").setView(vb.root).setNegativeButton("Close", null).show()
+	}
 }

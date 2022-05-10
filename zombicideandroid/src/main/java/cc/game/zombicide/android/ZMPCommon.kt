@@ -1,167 +1,136 @@
-package cc.game.zombicide.android;
+package cc.game.zombicide.android
 
-import android.util.Log;
-
-import java.util.List;
-
-import cc.lib.net.ClientConnection;
-import cc.lib.net.GameCommand;
-import cc.lib.net.GameCommandType;
-import cc.lib.utils.Reflector;
-import cc.lib.zombicide.ZGame;
-import cc.lib.zombicide.ZPlayerName;
-import cc.lib.zombicide.ZQuests;
-import cc.lib.zombicide.ui.UIZombicide;
+import android.util.Log
+import cc.game.zombicide.android.Assignee
+import cc.lib.net.ClientConnection
+import cc.lib.net.GameCommand
+import cc.lib.net.GameCommandType
+import cc.lib.utils.Reflector
+import cc.lib.zombicide.ZGame
+import cc.lib.zombicide.ZPlayerName
+import cc.lib.zombicide.ZQuests
+import cc.lib.zombicide.ui.UIZombicide
 
 /**
  * Created by Chris Caron on 7/28/21.
  */
-class ZMPCommon {
+open class ZMPCommon(val activity: ZombicideActivity, val game: UIZombicide) {
+	companion object {
+		const val CONNECT_PORT = 31314
+		const val VERSION = BuildConfig.VERSION_NAME
 
-    static {
-        Reflector.registerClass(Assignee.class);
-    }
+		// commands that originate from server are marked SVR
+		var SVR_INIT = GameCommandType("SVR_INIT")
+		var SVR_LOAD_QUEST = GameCommandType("SVR_LOAD_QUEST")
+		var SVR_ASSIGN_PLAYER = GameCommandType("SVR_ASSIGN_PLAYER")
+		@JvmField
+        var SVR_UPDATE_GAME = GameCommandType("SVR_UPDATE_GAME")
 
-    final ZombicideActivity activity;
-    final UIZombicide game;
+		// commands that originate from client are marked CL
+		private val CL_CHOOSE_CHARACTER = GameCommandType("CL_CHOOSE_CHARACTER")
+		private val CL_BUTTON_PRESSED = GameCommandType("CL_BUTTON_PRESSED")
 
-    final static int CONNECT_PORT = 31314;
-    final static String VERSION   = BuildConfig.VERSION_NAME;
+		init {
+			Reflector.registerClass(Assignee::class.java)
+		}
+	}
 
-    // commands that originate from server are marked SVR
-    public static GameCommandType SVR_INIT = new GameCommandType("SVR_INIT");
-    public static GameCommandType SVR_LOAD_QUEST = new GameCommandType("SVR_LOAD_QUEST");
-    public static GameCommandType SVR_ASSIGN_PLAYER = new GameCommandType("SVR_ASSIGN_PLAYER");
-    public static GameCommandType SVR_UPDATE_GAME = new GameCommandType("SVR_UPDATE_GAME");
+	internal interface CL {
+		fun onLoadQuest(quest: ZQuests)
+		fun onInit(color: Int, maxCharacters: Int, playerAssignments: List<Assignee>)
+		fun onAssignPlayer(assignee: Assignee)
+		fun onError(e: Exception)
+		val gameForUpdate: ZGame
+		fun onGameUpdated(game: ZGame)
+		fun newAssignCharacter(name: ZPlayerName, checked: Boolean): GameCommand {
+			return GameCommand(CL_CHOOSE_CHARACTER).setArg("name", name.name).setArg("checked", checked)
+		}
 
-    // commands that originate from client are marked CL
-    private static GameCommandType CL_CHOOSE_CHARACTER = new GameCommandType("CL_CHOOSE_CHARACTER");
-    private static GameCommandType CL_BUTTON_PRESSED = new GameCommandType("CL_BUTTON_PRESSED");
+		fun newStartPressed(): GameCommand {
+			return GameCommand(CL_BUTTON_PRESSED).setArg("button", "START")
+		}
 
-    ZMPCommon(ZombicideActivity activity, UIZombicide game) {
-        this.activity = activity;
-        this.game = game;
-    }
+		fun newUndoPressed(): GameCommand {
+			return GameCommand(CL_BUTTON_PRESSED).setArg("button", "UNDO")
+		}
 
-    interface CL {
+		fun parseSVRCommand(cmd: GameCommand) {
+			try {
+				if (cmd.type == SVR_INIT) {
+					val color = cmd.getInt("color")
+					val list: List<Assignee> = Reflector.deserializeFromString(cmd.getString("assignments"))
+					val maxCharacters = cmd.getInt("maxCharacters")
+					onInit(color, maxCharacters, list)
+				} else if (cmd.type == SVR_LOAD_QUEST) {
+					val quest = ZQuests.valueOf(cmd.getString("quest"))
+					onLoadQuest(quest)
+				} else if (cmd.type == SVR_ASSIGN_PLAYER) {
+					val a = cmd.parseReflector("assignee", Assignee())
+					onAssignPlayer(a)
+				} else if (cmd.type == SVR_UPDATE_GAME) {
+					val game = gameForUpdate
+					cmd.parseReflector("board", game.board)
+					cmd.parseReflector("quest", game.quest)
+					onGameUpdated(game)
+				} else {
+					throw Exception("Unhandled cmd: $cmd")
+				}
+			} catch (e: Exception) {
+				e.printStackTrace()
+				onError(e)
+			}
+		}
+	}
 
-        void onLoadQuest(ZQuests quest);
+	internal interface SVR {
+		fun onChooseCharacter(conn: ClientConnection, name: ZPlayerName, checked: Boolean)
+		fun onStartPressed(conn: ClientConnection)
+		fun onUndoPressed(conn: ClientConnection)
+		fun onError(e: Exception)
+		fun newInit(clientColor: Int, maxCharacters: Int, playerAssignments: List<Assignee>): GameCommand? {
+			return try {
+				GameCommand(SVR_INIT)
+					.setArg("color", clientColor)
+					.setArg("maxCharacters", maxCharacters)
+					.setArg("assignments", Reflector.serializeObject(playerAssignments))
+			} catch (e: Exception) {
+				onError(e)
+				null
+			}
+		}
 
-        void onInit(int color, int maxCharacters, List<Assignee> playerAssignments);
+		fun newLoadQuest(quest: ZQuests): GameCommand {
+			return GameCommand(SVR_LOAD_QUEST).setArg("quest", quest)
+		}
 
-        void onAssignPlayer(Assignee assignee);
+		fun newAssignPlayer(assignee: Assignee): GameCommand {
+			return GameCommand(SVR_ASSIGN_PLAYER).setArg("assignee", assignee)
+		}
 
-        void onError(Exception e);
+		fun newUpdateGameCommand(game: ZGame): GameCommand {
+			//ZPlayerName currentChar = game.getCurrentCharacter();
+			return GameCommand(SVR_UPDATE_GAME)
+				.setArg("board", game.board)
+				.setArg("quest", game.quest)
+		}
 
-        ZGame getGameForUpdate();
-
-        void onGameUpdated(ZGame game);
-
-        default GameCommand newAssignCharacter(ZPlayerName name, boolean checked) {
-            return new GameCommand(CL_CHOOSE_CHARACTER).setArg("name", name.name()).setArg("checked", checked);
-        }
-
-        default GameCommand newStartPressed() {
-            return new GameCommand(CL_BUTTON_PRESSED).setArg("button", "START");
-        }
-
-        default GameCommand newUndoPressed() {
-            return new GameCommand(CL_BUTTON_PRESSED).setArg("button", "UNDO");
-        }
-
-        default void parseSVRCommand(GameCommand cmd) {
-            try {
-                if (cmd.getType() == SVR_INIT) {
-                    int color = cmd.getInt("color");
-                    List<Assignee> list = Reflector.deserializeFromString(cmd.getString("assignments"));
-                    int maxCharacters = cmd.getInt("maxCharacters");
-                    onInit(color, maxCharacters, list);
-                } else if (cmd.getType() == SVR_LOAD_QUEST) {
-                    ZQuests quest = ZQuests.valueOf(cmd.getString("quest"));
-                    onLoadQuest(quest);
-                } else if (cmd.getType() == SVR_ASSIGN_PLAYER) {
-                    Assignee a = cmd.parseReflector("assignee", new Assignee());
-                    onAssignPlayer(a);
-                } else if (cmd.getType() == SVR_UPDATE_GAME) {
-                    ZGame game = getGameForUpdate();
-                    cmd.parseReflector("board", game.getBoard());
-                    cmd.parseReflector("quest", game.getQuest());
-                    onGameUpdated(game);
-                } else {
-                    throw new Exception("Unhandled cmd: " + cmd);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                onError(e);
-            }
-        }
-
-
-    }
-
-    interface SVR {
-        void onChooseCharacter(ClientConnection conn, ZPlayerName name, boolean checked);
-
-        void onStartPressed(ClientConnection conn);
-
-        void onUndoPressed(ClientConnection conn);
-
-        void onError(Exception e);
-
-        default GameCommand newInit(int clientColor, int maxCharacters, List<Assignee> playerAssignments) {
-            try {
-                return new GameCommand(SVR_INIT)
-                        .setArg("color", clientColor)
-                        .setArg("maxCharacters", maxCharacters)
-                        .setArg("assignments", Reflector.serializeObject(playerAssignments));
-            } catch (Exception e) {
-                onError(e);
-                return null;
-            }
-        }
-
-        default GameCommand newLoadQuest(ZQuests quest) {
-            return new GameCommand(SVR_LOAD_QUEST).setArg("quest", quest);
-        }
-
-
-        default GameCommand newAssignPlayer(Assignee assignee) {
-            return new GameCommand(SVR_ASSIGN_PLAYER).setArg("assignee", assignee);
-        }
-
-        default GameCommand newUpdateGameCommand(ZGame game) {
-            //ZPlayerName currentChar = game.getCurrentCharacter();
-            return new GameCommand(SVR_UPDATE_GAME)
-                    .setArg("board", game.getBoard())
-                    .setArg("quest", game.getQuest())
-                    ;
-        }
-
-        default void parseCLCommand(ClientConnection conn, GameCommand cmd) {
-            try {
-                if (cmd.getType() == CL_CHOOSE_CHARACTER) {
-                    onChooseCharacter(conn, ZPlayerName.valueOf(cmd.getString("name")), cmd.getBoolean("checked", false));
-                } else if (cmd.getType() == CL_BUTTON_PRESSED) {
-                    switch (cmd.getString("button")) {
-                        case "START":
-                            onStartPressed(conn);
-                            break;
-                        case "UNDO":
-                            onUndoPressed(conn);
-                            break;
-                    }
-                } else {
-                    //throw new Exception("Unhandled cmd: " + cmd);
-                    Log.w("ZMPCommon", "parseCLCommand:Unhandled command: " + cmd);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                onError(e);
-            }
-        }
-
-    }
-
-
-
+		fun parseCLCommand(conn: ClientConnection, cmd: GameCommand) {
+			try {
+				if (cmd.type == CL_CHOOSE_CHARACTER) {
+					onChooseCharacter(conn, ZPlayerName.valueOf(cmd.getString("name")), cmd.getBoolean("checked", false))
+				} else if (cmd.type == CL_BUTTON_PRESSED) {
+					when (cmd.getString("button")) {
+						"START" -> onStartPressed(conn)
+						"UNDO" -> onUndoPressed(conn)
+					}
+				} else {
+					//throw new Exception("Unhandled cmd: " + cmd);
+					Log.w("ZMPCommon", "parseCLCommand:Unhandled command: $cmd")
+				}
+			} catch (e: Exception) {
+				e.printStackTrace()
+				onError(e)
+			}
+		}
+	}
 }

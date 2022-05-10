@@ -104,3 +104,7 @@ inline fun <T> List<T>.random() : T {
 inline fun IntArray.randomWeighted() : Int {
 	return Utils.chooseRandomFromSet(*this)
 }
+
+inline fun isEmpty(obj: Any?) : Boolean {
+	return Utils.isEmpty(obj)
+}

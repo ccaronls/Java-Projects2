@@ -1,59 +1,43 @@
-package cc.game.zombicide.android;
+package cc.game.zombicide.android
 
-import cc.lib.utils.Reflector;
-import cc.lib.zombicide.ZPlayerName;
+import cc.game.zombicide.android.ZombicideActivity.CharLock
+import cc.lib.utils.Reflector
+import cc.lib.zombicide.ZPlayerName
 
-public class Assignee extends Reflector<Assignee> implements Comparable<Assignee> {
-    static {
-        addAllFields(Assignee.class);
-    }
-    final ZPlayerName name;
-    String userName = "";
-    int color = -1;
-    boolean checked;
+class Assignee(val name: ZPlayerName=ZPlayerName.Nelly, var userName: String="??", var color: Int=0, var checked: Boolean=false) : Reflector<Assignee>(), Comparable<Assignee> {
+	companion object {
+		init {
+			addAllFields(Assignee::class.java)
+		}
+	}
+
+	@JvmField
     @Omit
-    boolean isAssingedToMe;
+	var isAssingedToMe = false
 
+	@JvmField
     @Omit
-    final ZombicideActivity.CharLock lock;
+	var lock: CharLock?=null
 
-    public Assignee() {
-        name = null;
-        lock = null;
-    }
+	constructor(cl: CharLock) : this(cl.player) {
+		lock = cl
+	}
 
-    public Assignee(ZPlayerName name, String userName, int color, boolean checked) {
-        this.name = name;
-        this.userName = userName;
-        this.color = color;
-        this.checked = checked;
-        lock = null;
-    }
+	override fun compareTo(o: Assignee): Int {
+		return name.compareTo(o.name)
+	}
 
-    Assignee(ZombicideActivity.CharLock cl) {
-        name = cl.player;
-        lock = cl;
-    }
+	val isUnlocked: Boolean
+		get() = (color < 0 || isAssingedToMe) && lock!!.isUnlocked
 
-    @Override
-    public int compareTo(Assignee o) {
-        return name.compareTo(o.name);
-    }
+	override fun equals(o: Any?): Boolean {
+		if (this === o) return true
+		if (o == null || javaClass != o.javaClass) return false
+		val assignee = o as Assignee
+		return name === assignee.name
+	}
 
-    boolean isUnlocked() {
-        return (color < 0 || isAssingedToMe) && lock.isUnlocked();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Assignee assignee = (Assignee) o;
-        return name == assignee.name;
-    }
-
-    @Override
-    public int hashCode() {
-        return name.hashCode();
-    }
+	override fun hashCode(): Int {
+		return name.hashCode()
+	}
 }

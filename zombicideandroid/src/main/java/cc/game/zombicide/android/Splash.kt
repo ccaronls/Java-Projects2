@@ -1,97 +1,80 @@
-package cc.game.zombicide.android;
+package cc.game.zombicide.android
 
-import android.content.Intent;
-import android.os.Bundle;
+import android.content.Intent
+import android.os.Bundle
+import cc.lib.android.DroidActivity
+import cc.lib.android.DroidGraphics
+import cc.lib.game.*
+import cc.lib.math.Vector2D
 
-import androidx.annotation.Nullable;
-import cc.lib.android.DroidActivity;
-import cc.lib.android.DroidGraphics;
-import cc.lib.game.AAnimation;
-import cc.lib.game.AGraphics;
-import cc.lib.game.AImage;
-import cc.lib.game.GColor;
-import cc.lib.game.GDimension;
-import cc.lib.game.GRectangle;
-import cc.lib.game.Justify;
-import cc.lib.math.Vector2D;
+class Splash : DroidActivity() {
+	lateinit var animation: AAnimation<AGraphics>
+	lateinit var rect: GRectangle
+	override fun onCreate(savedInstanceState: Bundle?) {
+		super.onCreate(savedInstanceState)
+		if (BuildConfig.DEBUG) {
+			transition()
+			return
+		}
+		animation = object : AAnimation<AGraphics>(3000) {
+			override fun draw(g: AGraphics, position: Float, dt: Float) {
+				g.clearScreen(GColor.WHITE)
+				val cntr = Vector2D((g.viewportWidth / 2).toFloat(), (g.viewportHeight / 2).toFloat())
+				val minDim = GDimension((g.viewportWidth / 4).toFloat(), (g.viewportHeight / 4).toFloat())
+				val maxDim = GDimension((g.viewportWidth / 2).toFloat(), (g.viewportHeight / 2).toFloat())
+				rect = GRectangle().withDimension(minDim.interpolateTo(maxDim, position)).withCenter(cntr)
+				//g.setColor(GColor.RED);
+				//rect.drawOutlined(g, 5);
+				val img = g.getImage(R.drawable.zgravestone)
+				g.drawImage(R.drawable.zgravestone, rect.fit(img))
+			}
 
-public class Splash extends DroidActivity {
+			override fun onDone() {
+				animation = object : AAnimation<AGraphics>(2000) {
+					override fun draw(g: AGraphics, position: Float, dt: Float) {
+						var position = position
+						val popupTime = 300f
+						if (elapsedTime < popupTime) {
+							position = elapsedTime.toFloat() / popupTime
+							//g.clearScreen(GColor.WHITE.interpolateTo(GColor.BLACK, position));
+						} else {
+							position = 1f
+							g.color = GColor.WHITE
+							val yPos = (g.viewportHeight / 6).toFloat()
+							g.textHeight = yPos / 2
+							g.drawJustifiedString((g.viewportWidth / 2).toFloat(), yPos, Justify.CENTER, Justify.CENTER, getString(R.string.app_name))
+						}
+						//g.clearScreen(GColor.BLACK);
+						val handRect = GRectangle(rect)
+						handRect.w /= 2f
+						handRect.h /= 2f
+						handRect.x += handRect.w
+						handRect.y += handRect.h
+						var img = g.getImage(R.drawable.zgravestone)
+						g.drawImage(R.drawable.zgravestone, rect!!.fit(img))
+						img = g.getImage(R.drawable.zicon)
+						handRect.y += handRect.h * (1f - position)
+						handRect.h *= position
+						g.drawImage(R.drawable.zicon, handRect.fit(img))
+					}
 
-    AAnimation<AGraphics> animation;
-    GRectangle rect;
+					override fun onDone() {
+						transition()
+					}
+				}.start()
+			}
+		}.start()
+	}
 
-    @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (BuildConfig.DEBUG) {
-            transition();
-            return;
-        }
-        animation = new AAnimation<AGraphics>(3000) {
-            @Override
-            protected void draw(AGraphics g, float position, float dt) {
-                g.clearScreen(GColor.WHITE);
-                Vector2D cntr = new Vector2D(g.getViewportWidth()/2, g.getViewportHeight()/2);
-                GDimension minDim = new GDimension(g.getViewportWidth()/4, g.getViewportHeight()/4);
-                GDimension maxDim = new GDimension(g.getViewportWidth()/2, g.getViewportHeight()/2);
-                rect = new GRectangle().withDimension(minDim.interpolateTo(maxDim, position)).withCenter(cntr);
-                //g.setColor(GColor.RED);
-                //rect.drawOutlined(g, 5);
-                AImage img = g.getImage(R.drawable.zgravestone);
-                g.drawImage(R.drawable.zgravestone, rect.fit(img));
-            }
+	override fun onDraw(g: DroidGraphics) {
+		g.setTextModePixels(true)
+		animation.update(g)
+		redraw()
+	}
 
-            @Override
-            protected void onDone() {
-                animation = new AAnimation<AGraphics>(2000) {
-                    @Override
-                    protected void draw(AGraphics g, float position, float dt) {
-                        float popupTime = 300;
-                        if (getElapsedTime() < popupTime) {
-                            position = (float)getElapsedTime() / popupTime;
-                            //g.clearScreen(GColor.WHITE.interpolateTo(GColor.BLACK, position));
-                        } else {
-                            position = 1;
-                            g.setColor(GColor.WHITE);
-                            float yPos = g.getViewportHeight()/6;
-                            g.setTextHeight(yPos/2);
-                            g.drawJustifiedString(g.getViewportWidth()/2, yPos, Justify.CENTER, Justify.CENTER, getString(R.string.app_name));
-                        }
-                        //g.clearScreen(GColor.BLACK);
-                        GRectangle handRect = new GRectangle(rect);
-                        handRect.w /= 2;
-                        handRect.h /= 2;
-                        handRect.x += handRect.w;
-                        handRect.y += handRect.h;
-                        AImage img = g.getImage(R.drawable.zgravestone);
-                        g.drawImage(R.drawable.zgravestone, rect.fit(img));
-                        img = g.getImage(R.drawable.zicon);
-                        handRect.y += handRect.h * (1f-position);
-                        handRect.h *= position;
-                        g.drawImage(R.drawable.zicon, handRect.fit(img));
-
-                    }
-
-                    @Override
-                    protected void onDone() {
-                        transition();
-                    }
-                }.start();
-            }
-        }.start();
-    }
-
-    @Override
-    protected void onDraw(DroidGraphics g) {
-        g.setTextModePixels(true);
-        animation.update(g);
-        redraw();
-    }
-
-    public void transition() {
-        Intent intent = new Intent(this, ZombicideActivity.class);
-        startActivity(intent);
-        finish();
-
-    }
+	fun transition() {
+		val intent = Intent(this, ZombicideActivity::class.java)
+		startActivity(intent)
+		finish()
+	}
 }

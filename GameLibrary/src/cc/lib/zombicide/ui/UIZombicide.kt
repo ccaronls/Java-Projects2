@@ -14,7 +14,6 @@ import java.util.*
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.thread
 import kotlin.concurrent.withLock
-import kotlin.coroutines.suspendCoroutine
 
 abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRenderer: UIZBoardRenderer<*>) : ZGameMP() {
 	enum class UIMode {
@@ -27,8 +26,10 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 		PICK_ZOMBIE
 	}
 
-	var isGameRunning = false
-		private set
+	private var gameRunning = false
+
+	open fun isGameRunning() : Boolean = gameRunning
+
 	var uiMode = UIMode.NONE
 		private set
 	var boardMessage: String? = null
@@ -56,18 +57,20 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 
 	@Synchronized
 	fun stopGameThread() {
-		isGameRunning = false
+		gameRunning = false
+		setResult(null)
 	}
 
 	@Synchronized
 	fun startGameThread() {
-		if (isGameRunning) return
+		if (isGameRunning())
+			return
 		characterRenderer.clearMessages()
-		isGameRunning = true
+		gameRunning = true
 		thread {
 			kotlin.runCatching {
 				boardRenderer.redraw()
-				while (isGameRunning && !isGameOver) {
+				while (gameRunning && !isGameOver) {
 					runGame()
 				}
 			}.exceptionOrNull()?.let { e ->

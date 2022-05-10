@@ -973,14 +973,14 @@ open class UIZBoardRenderer<T : AGraphics>(component: UIZComponent<*>) : UIRende
 		g.popMatrix()
 		game.characterRenderer.redraw()
 		drawOverlay(g)
-		if (zoomAnimation != null) {
-			if (zoomAnimation!!.isDone) {
-				zoomAnimation = null
-			} else {
-				zoomAnimation!!.update(g)
-			}
+		if (zoomAnimation?.isDone == true) {
+			zoomAnimation = null
+		} else {
+			zoomAnimation?.update(g)
 		}
-		if (isAnimating) redraw() else {
+		if (isAnimating)
+			redraw()
+		else {
 			drawMiniMap(g)
 			lock.withLock {
 				condition.signal()
@@ -1096,7 +1096,7 @@ open class UIZBoardRenderer<T : AGraphics>(component: UIZComponent<*>) : UIRende
 	override fun onClick() {
 		overlayToDraw = null
 		submenu = null
-		if (game.isGameRunning) {
+		if (game.isGameRunning()) {
 			game.setResult(highlightedResult)
 		} else {
 			highlightedDoor?.toggle(board)?:run {

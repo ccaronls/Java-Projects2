@@ -96,7 +96,7 @@ open class ZGame() : Reflector<ZGame>() {
     @Alternate(variations = ["searchables"])
     private val lootDeck = LinkedList<ZEquipment<*>>()
     private var spawnMultiplier = 1
-    private var roundNum = 0
+    var roundNum = 0
     private var gameOverStatus = 0 // 0 == in play, 1, == game won, 2 == game lost
     private lateinit var currentQuest: ZQuests
     private lateinit var dice: IntArray

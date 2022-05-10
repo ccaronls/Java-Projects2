@@ -1,78 +1,51 @@
-package cc.game.zombicide.android;
+package cc.game.zombicide.android
 
-import android.animation.LayoutTransition;
-import android.app.AlertDialog;
-import android.app.Dialog;
-import android.app.ProgressDialog;
-import android.graphics.Bitmap;
-import android.os.AsyncTask;
-import android.os.Bundle;
-import android.text.format.DateFormat;
-import android.text.format.Formatter;
-import android.util.Log;
-import android.view.Gravity;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.Window;
-import android.view.WindowManager;
-import android.widget.AdapterView;
-import android.widget.BaseAdapter;
-import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.Toast;
-
-import java.io.File;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ArrayBlockingQueue;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.view.ContextThemeWrapper;
-import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import cc.game.zombicide.android.databinding.ActivityZombicideBinding;
-import cc.game.zombicide.android.databinding.AssignDialogItemBinding;
-import cc.lib.android.CCActivityBase;
-import cc.lib.android.DroidGraphics;
-import cc.lib.android.DroidUtils;
-import cc.lib.android.EmailHelper;
-import cc.lib.android.SpinnerTask;
-import cc.lib.game.GRectangle;
-import cc.lib.game.Utils;
-import cc.lib.mp.android.P2PActivity;
-import cc.lib.ui.IButton;
-import cc.lib.utils.FileUtils;
-import cc.lib.utils.Reflector;
-import cc.lib.zombicide.ZDifficulty;
-import cc.lib.zombicide.ZEquipment;
-import cc.lib.zombicide.ZGame;
-import cc.lib.zombicide.ZMove;
-import cc.lib.zombicide.ZPlayerName;
-import cc.lib.zombicide.ZQuests;
-import cc.lib.zombicide.ZSkill;
-import cc.lib.zombicide.ZUser;
-import cc.lib.zombicide.ZZombieType;
-import cc.lib.zombicide.ui.UIZBoardRenderer;
-import cc.lib.zombicide.ui.UIZButton;
-import cc.lib.zombicide.ui.UIZCharacterRenderer;
-import cc.lib.zombicide.ui.UIZUser;
-import cc.lib.zombicide.ui.UIZombicide;
+import android.animation.LayoutTransition
+import android.app.AlertDialog
+import android.app.Dialog
+import android.app.ProgressDialog
+import android.content.DialogInterface
+import android.graphics.Bitmap
+import android.os.AsyncTask
+import android.os.Bundle
+import android.text.format.DateFormat
+import android.text.format.Formatter
+import android.util.Log
+import android.view.Gravity
+import android.view.View
+import android.view.ViewGroup
+import android.widget.*
+import android.widget.AdapterView.OnItemClickListener
+import android.widget.AdapterView.OnItemLongClickListener
+import androidx.appcompat.view.ContextThemeWrapper
+import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import cc.game.zombicide.android.ZButton.Companion.build
+import cc.game.zombicide.android.databinding.ActivityZombicideBinding
+import cc.game.zombicide.android.databinding.AssignDialogItemBinding
+import cc.lib.android.*
+import cc.lib.game.GRectangle
+import cc.lib.mp.android.P2PActivity
+import cc.lib.ui.IButton
+import cc.lib.utils.*
+import cc.lib.zombicide.*
+import cc.lib.zombicide.ZQuests.Companion.questsBlackPlague
+import cc.lib.zombicide.ZQuests.Companion.questsWolfsburg
+import cc.lib.zombicide.ui.*
+import cc.lib.zombicide.ui.UIZombicide.Companion.instance
+import cc.lib.zombicide.ui.UIZombicide.UIMode
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import java.io.File
+import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.*
+import java.util.concurrent.ArrayBlockingQueue
+import kotlin.Pair
+import kotlin.coroutines.suspendCoroutine
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -80,1326 +53,1055 @@ import cc.lib.zombicide.ui.UIZombicide;
  *
  *
  */
-public class ZombicideActivity extends P2PActivity implements View.OnClickListener, ListView.OnItemClickListener, ListView.OnItemLongClickListener {
-
-    private final static String TAG = ZombicideActivity.class.getSimpleName();
-
-    final static int MAX_PLAYERS = 4; // max number of characters on screen at one time
-    final static int MAX_SAVES = 4;
-
-    final static String PREF_P2P_NAME = "p2pname";
-    final static String PREF_PLAYERS = "players";
-
-    ActivityZombicideBinding zb;
-    ActivityViewModel vm;
-
-    File gameFile, statsFile, savesMapFile;
-
-    UIZombicide game;
-    final ZUser user = new UIZUser();
-
-    ZClientMgr clientMgr = null;
-    ZServerMgr serverMgr = null;
-
-    UIZBoardRenderer<DroidGraphics> boardRenderer;
-    UIZCharacterRenderer characterRenderer;
-
-    final ArrayBlockingQueue<Integer> fileWriterQueue = new ArrayBlockingQueue(1);
-    final Stats stats = new Stats();
-
-    boolean isWolfburgUnlocked() {
-        if (BuildConfig.DEBUG)
-            return true;
-        return stats.isQuestCompleted(ZQuests.Trial_by_Fire, ZDifficulty.MEDIUM);
-    }
-
-    final CharLock[] charLocks = {
-            new CharLock(ZPlayerName.Ann, 0),
-            new CharLock(ZPlayerName.Baldric, 0),
-            new CharLock(ZPlayerName.Clovis, 0),
-            new CharLock(ZPlayerName.Samson, 0),
-            new CharLock(ZPlayerName.Nelly, 0),
-            new CharLock(ZPlayerName.Silas, 0),
-            new CharLock(ZPlayerName.Tucker, R.string.char_lock_tucker) {
-                @Override
-                boolean isUnlocked() {
-                    return stats.isQuestCompleted(ZQuests.Big_Game_Hunting, ZDifficulty.MEDIUM);
-                }
-            },
-            new CharLock(ZPlayerName.Jain, R.string.char_lock_jain) {
-                @Override
-                boolean isUnlocked() {
-                    return stats.isQuestCompleted(ZQuests.The_Black_Book, ZDifficulty.HARD);
-                }
-            },
-            new CharLock(ZPlayerName.Benson, R.string.char_lock_benson) {
-                @Override
-                boolean isUnlocked() {
-                    return stats.isQuestCompleted(ZQuests.The_Evil_Temple, ZDifficulty.HARD);
-                }
-            },
-            new CharLock(ZPlayerName.Karl, R.string.char_lock_wolfz) {
-                @Override
-                boolean isUnlocked() {
-                    return isWolfburgUnlocked();
-                }
-            },
-            new CharLock(ZPlayerName.Morrigan, R.string.char_lock_wolfz) {
-                @Override
-                boolean isUnlocked() {
-                    return isWolfburgUnlocked();
-                }
-            },
-            new CharLock(ZPlayerName.Ariane, R.string.char_lock_wolfz) {
-                @Override
-                boolean isUnlocked() {
-                    return isWolfburgUnlocked();
-                }
-            },
-            new CharLock(ZPlayerName.Theo, R.string.char_lock_wolfz) {
-                @Override
-                boolean isUnlocked() {
-                    return isWolfburgUnlocked();
-                }
-            },
-    };
-
-    @Override
-    protected int getConnectPort() {
-        return ZMPCommon.CONNECT_PORT;
-    }
-
-    @Override
-    protected String getVersion() {
-        return ZMPCommon.VERSION;
-    }
-
-    @Override
-    protected int getMaxConnections() {
-        return 2;
-    }
-
-    @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        ZGame.DEBUG = BuildConfig.DEBUG;
-
-        hideNavigationBar();
-        vm = new ViewModelProvider(this).get(ActivityViewModel.class);
-        zb = ActivityZombicideBinding.inflate(getLayoutInflater());
-        zb.setViewModel(vm);
-        zb.setLifecycleOwner(this);
-        setContentView(zb.getRoot());
-
-        zb.listMenu.setOnItemClickListener(this);
-        zb.listMenu.setOnItemLongClickListener(this);
-        zb.bZoom.setOnClickListener(this);
-        zb.bUp.setOnClickListener(this);
-        zb.bUseleft.setOnClickListener(this);
-        zb.bUseright.setOnClickListener(this);
-        zb.bCenter.setOnClickListener(this);
-        zb.bVault.setOnClickListener(this);
-        zb.bLeft.setOnClickListener(this);
-        zb.bDown.setOnClickListener(this);
-        zb.bRight.setOnClickListener(this);
-
-        characterRenderer = new UIZCharacterRenderer(zb.consoleView);
-        boardRenderer = new UIZBoardRenderer<DroidGraphics>(zb.boardView) {
-
-            /*
-                        Map<GColor, Paint> outlinePaints = new HashMap<>();
-                        Paint getPaint(GColor color) {
-                            Paint p = outlinePaints.get(color);
-                            if (p != null)
-                                return p;
-
-                            ColorFilter filter = new PorterDuffColorFilter(color.toARGB(), PorterDuff.Mode.SRC_IN);
-                            BlurMaskFilter blur = new BlurMaskFilter(15, BlurMaskFilter.Blur.INNER);
-                            p = new Paint();
-                            p.setColorFilter(filter);
-                            p.setMaskFilter(blur);
-                            p.setColor(color.toARGB());
-                            outlinePaints.put(color, p);
-                            return p;
-                        }
-            */
-            @Override
-            public void onLoaded() {
-                zb.vgTop.setLayoutTransition(new LayoutTransition());
-                zb.listMenu.setVisibility(View.VISIBLE);
-                vm.loading.postValue(false);
-                /*
-                if (game.getQuest().getPercentComplete(game) == 0)
-                    game.showObjectivesOverlay();
-                else
-                    game.showSummaryOverlay();
-                 */
-            }
-
-            @Override
-            public void onLoading() {
-                zb.vgTop.setLayoutTransition(null);
-                zb.listMenu.setVisibility(View.GONE);
-                vm.loading.postValue(true);
-            }
-        };
-        boardRenderer.setDrawTiles(true);
-        boardRenderer.setMiniMapMode(getPrefs().getInt("miniMapMode", 1));
-
-        game = new UIZombicide(characterRenderer, boardRenderer) {
-
-            @Override
-            public boolean runGame() {
-                boolean changed = false;
-                try {
-                    changed = super.runGame();
-                    log.debug("runGame changed=" + changed);
-                    if (changed) {
-                        //FileUtils.backupFile(gameFile, 32);
-                        //trySaveToFile(gameFile);
-                        fileWriterQueue.put(0);
-                    }
-                    zb.boardView.postInvalidate();
-                    zb.consoleView.postInvalidate();
-                    //synchronized (boardView) {
-                    //    boardView.wait(2000); // wait for the board to render at least one frame
-                    //}
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                return changed;
-            }
-
-            @Override
-            public <T> T waitForUser(Class<T> expectedType) {
-                zb.boardView.post(() -> initMenu(getUiMode(), getOptions()));
-                return super.waitForUser(expectedType);
-            }
-
-            @Override
-            protected void onQuestComplete() {
-                super.onQuestComplete();
-                runOnUiThread(() -> {
-                    stopGame();
-                    completeQuest(getQuest().getQuest());
-                    initHomeMenu();
-                });
-            }
-
-            @Override
-            public void setResult(Object result) {
-                game.boardRenderer.setOverlay(null);
-                super.setResult(result);
-            }
-
-            @Override
-            public boolean isGameRunning() {
-                return super.isGameRunning() || clientMgr != null;
-            }
-
-            @Override
-            protected void onCurrentCharacterUpdated(ZPlayerName priorPlayer, ZPlayerName player) {
-                super.onCurrentCharacterUpdated(priorPlayer, player);
-                runOnUiThread(() -> initGameMenu());
-            }
-
-            @Override
-            protected void onCurrentUserUpdated(ZUser user) {
-                super.onCurrentUserUpdated(user);
-                runOnUiThread(() -> initGameMenu());
-            }
-
-            @Override
-            public void undo() {
-                tryUndo();
-            }
-
-            @Override
-            public ZUser getThisUser() {
-                return user;
-            }
-        };
-
-        int colorIdx = getPrefs().getInt("userColorIndex", 0);
-        user.setColor(colorIdx);
-        game.addUser(user);
-    }
-
-    void loadCharacters(Collection<String> playersSet) {
-        game.clearCharacters();
-        game.clearUsersCharacters();
-
-        List<ZPlayerName> players = Utils.map(playersSet, ZPlayerName::valueOf);
-        for (ZPlayerName player : players) {
-            game.addCharacter(player);
-            user.addCharacter(player);
-        }
-    }
-
-
-    Thread startFileWriterThread() {
-        Thread t = new Thread(() -> {
-            log.debug("fileWriterThread ENTER");
-            while (game.isGameRunning()) {
-                try {
-                    fileWriterQueue.take();
-                } catch (InterruptedException e) {
-                    break;
-                }
-
-                if (serverMgr != null) {
-                    serverMgr.broadcastUpdateGame();
-                }
-                log.debug("Backingup ... ");
-                FileUtils.backupFile(gameFile, 32);
-                game.trySaveToFile(gameFile);
-            }
-            log.debug("fileWriterThread EXIT");
-        });
-        t.start();
-        return t;
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        setKeepScreenOn(true);
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        setKeepScreenOn(false);
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        game.setDifficulty(getSavedDifficulty());
-        gameFile = new File(getFilesDir(), "game.save");
-        statsFile = new File(getFilesDir(), "stats.save");
-        savesMapFile = new File(getFilesDir(), "saves.save");
-        //if (!gameFile.exists() || !game.tryLoadFromFile(gameFile)) {
-        //    showWelcomeDialog(true);
-        //} else
-        if (gameFile.exists() && game.tryLoadFromFile(gameFile)) {
-            game.showSummaryOverlay();
-        } else {
-            game.loadQuest(ZQuests.Tutorial);
-        }
-        if (statsFile.exists()) {
-            try {
-                log.debug(FileUtils.fileToString(statsFile));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            stats.tryLoadFromFile(statsFile);
-        }
-
-        initHomeMenu();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        stopGame();
-    }
-
-    @Override
-    public AlertDialog.Builder newDialogBuilder() {
-        AlertDialog.Builder b = new AlertDialog.Builder(new ContextThemeWrapper(this, android.R.style.Theme_Holo_Dialog)) {
-            @Override
-            public AlertDialog show() {
-                AlertDialog d = super.show();
-                d.setCanceledOnTouchOutside(false);
-                return d;
-            }
-        };
-        if (!BuildConfig.DEBUG)
-            b.setCancelable(false);
-        return b;
-    }
-
-    enum MenuItem implements UIZButton {
-        RESUME,
-        CANCEL,
-        LOAD,
-        SAVE,
-        NEW_GAME,
-        JOIN_GAME,
-        SETUP_PLAYERS,
-        CONNECTIONS,
-        START,
-        ASSIGN,
-        SUMMARY,
-        UNDO,
-        DIFFICULTY,
-        OBJECTIVES,
-        SKILLS,
-        LEGEND,
-        QUIT,
-        CLEAR,
-        SEARCHABLES,
-        RULES,
-        CHOOSE_COLOR,
-        EMAIL_REPORT,
-        MINIMAP_MODE;
-
-        boolean isHomeButton(ZombicideActivity instance) {
-            switch (this) {
-                case LOAD:
-                case SAVE:
-                case ASSIGN:
-                case CLEAR:
-                case UNDO:
-                case DIFFICULTY:
-                case CHOOSE_COLOR:
-                    return BuildConfig.DEBUG;
-                case START:
-                case NEW_GAME:
-                case JOIN_GAME:
-                case SETUP_PLAYERS:
-                case SKILLS:
-                case LEGEND:
-                case EMAIL_REPORT:
-                case MINIMAP_MODE:
-                    return true;
-                case CONNECTIONS:
-                    return instance.serverControl != null;
-                case RESUME:
-                    return instance.gameFile != null && instance.gameFile.exists();
-            }
-            return false;
-        }
-
-        boolean isGameButton(ZombicideActivity instance) {
-            switch (this) {
-                case LOAD:
-                case SAVE:
-                case START:
-                case ASSIGN:
-                case RESUME:
-                case NEW_GAME:
-                case JOIN_GAME:
-                case SETUP_PLAYERS:
-                case CLEAR:
-                    return false;
-                case CONNECTIONS:
-                    return instance.serverControl != null;
-                case UNDO:
-                case SEARCHABLES:
-                case CHOOSE_COLOR:
-                    return BuildConfig.DEBUG;
-            }
-            return true;
-        }
-
-
-        @Override
-        public GRectangle getRect() {
-            return null;
-        }
-
-        @Override
-        public String getTooltipText() {
-            return null;
-        }
-
-        @Override
-        public String getLabel() {
-            return Utils.toPrettyString(name());
-        }
-
-        public boolean isEnabled(ZombicideActivity z) {
-            if (this == MenuItem.UNDO) {
-                return z.getClient() != null || FileUtils.hasBackupFile(z.gameFile);
-            }
-            return true;
-        }
-    }
-
-    ZDifficulty getSavedDifficulty() {
-        return ZDifficulty.valueOf(getPrefs().getString("difficulty", ZDifficulty.MEDIUM.name()));
-    }
-
-    @Override
-    public void onClick(View v) {
-        try {
-            game.boardRenderer.setOverlay(null);
-            switch (v.getId()) {
-                case R.id.b_zoom: {
-                    float curZoom = game.boardRenderer.getZoomPercent();
-                    if (curZoom < 1) {
-                        game.boardRenderer.animateZoomTo(curZoom + .5f);
-                    } else {
-                        game.boardRenderer.animateZoomTo(0);
-                    }
-                    game.boardRenderer.redraw();
-                    break;
-                }
-                case R.id.b_center:
-                    game.boardRenderer.clearDragOffset();
-                case R.id.b_useleft:
-                case R.id.b_useright:
-                case R.id.b_vault:
-                case R.id.b_up:
-                case R.id.b_left:
-                case R.id.b_down:
-                case R.id.b_right:
-                    if (v.getTag() != null) {
-                        game.setResult(v.getTag());
-                        clearKeypad();
-                    }
-                    break;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        if (view.getTag() instanceof MenuItem) {
-            processMainMenuItem((MenuItem) view.getTag());
-        } else {
-            UIZombicide.getInstance().setResult(view.getTag());
-        }
-    }
-
-    @Override
-    public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-        if (view.getTag() != null && view.getTag() instanceof IButton) {
-            IButton button = (IButton) view.getTag();
-            showToolTipTextPopup(parent, button);
-            return true;
-        }
-        return false;
-    }
-
-    public void showToolTipTextPopup(View view, IButton button) {
-        String toolTipText = button.getTooltipText();
-        if (Utils.isEmpty(toolTipText))
-            return;
-        View popup = View.inflate(this, R.layout.tooltippopup_layout, null);
-        ((TextView) popup.findViewById(R.id.header)).setText(button.getLabel());
-        ((TextView) popup.findViewById(R.id.text)).setText(toolTipText);
-        Dialog d = new AlertDialog.Builder(this, R.style.ZTooltipDialogTheme)
-                .setView(popup).create();
-        Window window = d.getWindow();
-        int[] outPos = {0, 0};
-        view.getLocationOnScreen(outPos);
-        if (window != null) {
-            WindowManager.LayoutParams lp = window.getAttributes();
-            lp.gravity = Gravity.TOP | Gravity.LEFT;
-            lp.x = outPos[0] + view.getWidth();
-            lp.y = outPos[1];
-            lp.width = DroidUtils.convertDipsToPixels(this, 200);
-        }
-        d.show();
-    }
-
-    Thread fileWriterThread = null;
-
-    public void startGame() {
-        game.startGameThread();
-        fileWriterThread = startFileWriterThread();
-        initGameMenu();
-        game.refresh();
-    }
-
-    public void shutdownMP() {
-        p2pShutdown();
-        clientControl = null;
-        serverControl = null;
-        clientMgr = null;
-        serverMgr = null;
-    }
-
-    public void stopGame() {
-        game.stopGameThread();
-        if (fileWriterThread != null) {
-            fileWriterThread.interrupt();
-            fileWriterThread = null;
-        }
-        game.setResult(null);
-        initHomeMenu();
-    }
-
-    Set<String> getStoredCharacters() {
-        return getPrefs().getStringSet(PREF_PLAYERS, getDefaultPlayers());
-    }
-
-    void processMainMenuItem(MenuItem item) {
-        switch (item) {
-            case START:
-                if (game.getRoundNum() > 0) {
-                    newDialogBuilder().setTitle(R.string.popup_title_confirm).setMessage(R.string.popup_message_confirm_restart)
-                            .setNegativeButton(R.string.popup_button_cancel, null)
-                            .setPositiveButton(R.string.popup_button_newgame, (dialogInterface, i) -> {
-                                FileUtils.deleteFileAndBackups(gameFile);
-                                game.reload();
-                                loadCharacters(getStoredCharacters());
-                                startGame();
-                            }).show();
-                } else {
-                    FileUtils.deleteFileAndBackups(gameFile);
-                    game.reload();
-                    startGame();
-                }
-                break;
-            case RESUME: {
-                user.clearCharacters();
-                for (ZPlayerName pl : game.getAllCharacters()) {
-                    if (user.getColor().equals(pl.getCharacter().getColor()))
-                        user.addCharacter(pl);
-                    else
-                        pl.getCharacter().setInvisible(true);
-                }
-                startGame();
-                /*
-                if (game.tryLoadFromFile(gameFile)) {
-                    //user.setCharacters(game.getAllCharacters());
-                    //game.boardRenderer.setOverlay(game.getQuest().getObjectivesOverlay(game));
-                    startGame();
-                }*/
-                break;
-            }
-            case QUIT:
-                if (getClient() != null) {
-                    newDialogBuilder().setTitle(R.string.popup_title_confirm)
-                            .setMessage(R.string.popup_message_confirm_disconnect)
-                            .setNegativeButton(R.string.popup_button_cancel, null)
-                            .setPositiveButton(R.string.popup_button_disconnect, (dialog, which) -> {
-                                new SpinnerTask<Integer>(ZombicideActivity.this) {
-                                    @Override
-                                    protected void doIt(Integer... args) throws Exception {
-                                        getClient().disconnect("Quit Game");
-                                    }
-
-                                    @Override
-                                    protected void onCompleted() {
-                                        shutdownMP();
-                                        stopGame();
-                                    }
-                                }.execute();
-                            }).show();
-                } else if (getServer() != null) {
-                    newDialogBuilder().setTitle(R.string.popup_title_confirm)
-                            .setMessage(R.string.popup_message_confirm_disconnect)
-                            .setNegativeButton(R.string.popup_button_cancel, null)
-                            .setPositiveButton(R.string.popup_button_disconnect, (dialog, which) -> {
-                                new SpinnerTask<Integer>(ZombicideActivity.this) {
-                                    @Override
-                                    protected void doIt(Integer... args) throws Exception {
-                                        getServer().stop();
-                                    }
-
-                                    @Override
-                                    protected void onCompleted() {
-                                        stopGame();
-                                        shutdownMP();
-                                    }
-                                }.execute();
-                            }).show();
-                } else {
-                    stopGame();
-                    game.setResult(null);
-                }
-                break;
-            case CANCEL:
-                if (game.isGameRunning()) {
-                    game.setResult(null);
-                } else {
-                    initHomeMenu();
-                }
-                break;
-            case OBJECTIVES: {
-                game.showObjectivesOverlay();
-                break;
-            }
-            case SUMMARY: {
-                game.showSummaryOverlay();
-                break;
-            }
-            case NEW_GAME: {
-                shutdownMP();
-                showNewGameDialog();
-                break;
-            }
-            case JOIN_GAME: {
-                p2pInit(P2PMode.CLIENT);
-                break;
-            }
-            case SETUP_PLAYERS:
-                showSetupPlayersDialog();
-                break;
-            case CONNECTIONS:
-                serverControl.openConnections();
-                break;
-            case CLEAR: {
-                getPrefs().edit().remove("completedQuests").apply();
-                long byteDeleted = FileUtils.deleteFileAndBackups(gameFile);
-                statsFile.delete();
-                log.debug("deleted " + Formatter.formatFileSize(this, byteDeleted) + " of memory");
-                initHomeMenu();
-                break;
-            }
-            case SEARCHABLES: {
-                ListView lv = new ListView(this);
-                List<ZEquipment> searchables = new ArrayList(game.getAllSearchables());
-                Collections.reverse(searchables);
-                //Collections.sort(searchables);
-
-                lv.setAdapter(new BaseAdapter() {
-                    @Override
-                    public int getCount() {
-                        return searchables.size();
-                    }
-
-                    @Override
-                    public Object getItem(int position) {
-                        return null;
-                    }
-
-                    @Override
-                    public long getItemId(int position) {
-                        return 0;
-                    }
-
-                    @Override
-                    public View getView(int position, View convertView, ViewGroup parent) {
-                        if (convertView == null) {
-                            convertView = new TextView(ZombicideActivity.this);
-                        }
-                        ((TextView) convertView).setText(searchables.get(position).getLabel());
-                        return convertView;
-                    }
-                });
-                newDialogBuilder().setTitle(R.string.popup_title_searchables).setView(lv).setNegativeButton("Close", null).show();
-                break;
-            }
-            case LOAD:
-                newDialogBuilder().setTitle(R.string.popup_title_choose).setItems(getResources().getStringArray(R.array.popup_message_choose_game_types),
-                        (dialog, which) -> {
-                            switch (which) {
-                                case 0:
-                                    showLoadQuestDialog();
-                                    break;
-                                case 1:
-                                    showLoadSavedGameDialog();
-                                    break;
-                            }
-                        }).setNegativeButton(R.string.popup_button_cancel, null).show();
-
-                break;
-            case SAVE:
-                showSaveGameDialog();
-                break;
-            case ASSIGN:
-                showAssignDialog();
-                break;
-            case DIFFICULTY: {
-                newDialogBuilder().setTitle(getString(R.string.popup_title_difficulty, getSavedDifficulty()))
-                        .setItems(Utils.toStringArray(ZDifficulty.values()), (dialog, which) -> {
-                            ZDifficulty difficulty = ZDifficulty.values()[which];
-                            game.setDifficulty(difficulty);
-                            getPrefs().edit().putString("difficulty", difficulty.name()).apply();
-                        }).setNegativeButton(R.string.popup_button_cancel, null).show();
-                break;
-            }
-            case SKILLS: {
-                showSkillsDialog2();
-                break;
-            }
-
-            case UNDO: {
-                if (getClient() != null) {
-                    new CLSendCommandSpinnerTask(this, ZMPCommon.SVR_UPDATE_GAME) {
-                        @Override
-                        protected void onSuccess() {
-                            zb.boardView.postInvalidate();
-                        }
-                    }.execute(clientMgr.newUndoPressed());
-                    //getClient().sendCommand(clientMgr.newUndoPressed());
-                    game.setResult(null);
-                } else {
-                    tryUndo();
-                }
-                break;
-            }
-
-            case LEGEND: {
-                showLegendDialog();
-                break;
-            }
-            case RULES: {
-                showWelcomeDialog(false);
-                break;
-            }
-            case EMAIL_REPORT: {
-                showEmailReportDialog();
-                break;
-            }
-            case CHOOSE_COLOR: {
-                showChooseColorDialog();
-                break;
-            }
-            case MINIMAP_MODE: {
-                getPrefs().edit().putInt("miniMapMode", boardRenderer.toggleDrawMinimap()).apply();
-                break;
-            }
-        }
-    }
-
-    void tryUndo() {
-        boolean isRunning = game.isGameRunning();
-        stopGame();
-        if (FileUtils.restoreFile(gameFile)) {
-            game.tryLoadFromFile(gameFile);
-            game.refresh();
-            if (serverMgr != null) {
-                serverMgr.broadcastUpdateGame();
-            }
-        }
-        if (isRunning)
-            startGame();
-    }
-
-    void updateCharacters(ZQuests quest) {
-        if (serverMgr != null) {
-            getServer().broadcastCommand(serverMgr.newLoadQuest(quest));
-            game.clearCharacters();
-            for (ZUser user : game.getUsers()) {
-                List<ZPlayerName> newPlayers = new ArrayList<>();
-                for (ZPlayerName pl : user.getPlayers()) {
-                    game.addCharacter(pl);
-                    newPlayers.add(pl);
-                }
-                user.setCharacters(newPlayers);
-            }
-            serverMgr.broadcastUpdateGame();
-        } else {
-            loadCharacters(getStoredCharacters());
-            game.trySaveToFile(gameFile);
-        }
-        startGame();
-        zb.boardView.postInvalidate();
-    }
-
-    void showLoadQuestDialog() {
-        newDialogBuilder().setTitle(R.string.popup_title_load_quest)
-                .setItems(Utils.toStringArray(ZQuests.values(), true), (dialog, which) -> {
-                    ZQuests q = ZQuests.values()[which];
-                    game.loadQuest(q);
-                    updateCharacters(q);
-                }).setNegativeButton(R.string.popup_button_cancel, null).show();
-    }
-
-    void showSaveGameDialog() {
-        new SaveGameDialog(this, MAX_SAVES);
-    }
-
-    void showLoadSavedGameDialog() {
-        Map<String,String> saves = getSaves();
-        if (saves.size() > 0) {
-            String [] items = new String[saves.size()];
-            newDialogBuilder().setTitle(R.string.popup_title_load_saved)
-                    .setItems(saves.keySet().toArray(items), (dialog, which) -> {
-                        String fileName = saves.get(items[which]);
-                        File file = new File(getFilesDir(), fileName);
-                        if (game.tryLoadFromFile(file)) {
-                            updateCharacters(game.getQuest().getQuest());
-                        } else {
-                            newDialogBuilder().setTitle(R.string.popup_title_error)
-                                    .setMessage(getString(R.string.popup_message_err_fileopen, fileName))
-                                    .setNegativeButton(R.string.popup_button_ok, null).show();
-                        }
-                    }).setNegativeButton(R.string.popup_button_cancel, null).show();
-        }
-    }
-
-    void deleteSave(String key) {
-        Map<String,String> saves = getSaves();
-        String fileName = saves.get(key);
-        if (fileName != null) {
-            File file = new File(getFilesDir(), fileName);
-            file.delete();
-        }
-        saves.remove(key);
-        try {
-            Reflector.serializeToFile(saves, savesMapFile);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    Map<String,String> getSaves() {
-        Map<String,String> saves = null;
-        try {
-            saves = Reflector.deserializeFromFile(savesMapFile);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        if (saves == null)
-            saves = new LinkedHashMap<>();
-
-        return saves;
-    }
-
-    void saveGame() {
-        StringBuffer buf = new StringBuffer();
-        buf.append(game.getQuest().getQuest().getDisplayName());
-        buf.append(" ").append(game.getDifficulty().name());
-        String delim = " ";
-        for (ZPlayerName c : game.getAllCharacters()) {
-            buf.append(delim).append(c.name());
-            delim = ",";
-        }
-        int completePercent = game.getQuest().getPercentComplete(game);
-        buf.append(String.format(" %d%% Completed", completePercent));
-        buf.append(" ").append(new SimpleDateFormat("MMM dd").format(new Date()));
-
-        int idx = 0;
-        File file = null;
-        while (idx < 10) {
-            String fileName = "savegame" + idx;
-            file = new File(getFilesDir(), fileName);
-            if (!file.isFile())
-                break;
-            idx++;
-        }
-
-        try {
-            game.saveToFile(file);
-            Map<String,String> saves = getSaves();
-            saves.put(buf.toString(), file.getName());
-            Reflector.serializeToFile(saves, savesMapFile);
-        } catch (Exception e) {
-            e.printStackTrace();
-            Toast.makeText(this, "There was a problem saving the game.", Toast.LENGTH_LONG).show();
-        }
-
-    }
-
-    void showChooseColorDialog() {
-        newDialogBuilder().setTitle(R.string.popup_title_choose_color)
-                .setItems(ZUser.USER_COLOR_NAMES, (dialog, which) -> {
-                    getPrefs().edit().putInt("userColorIndex", which).apply();
-                    user.setColor(which);
-                    game.refresh();
-                }).setNegativeButton(R.string.popup_button_cancel, null).show();
-    }
-
-    public String getDisplayName() {
-        return getPrefs().getString(PREF_P2P_NAME, "Unnamed");
-    }
-
-    @Override
-    protected void onP2PReady() {
-        String p2pName = getPrefs().getString(PREF_P2P_NAME, null);
-        if (p2pName == null) {
-            showEditTextInputPopup("Set P2P Name", p2pName, "Display Name", 32, (String txt) -> {
-                if (Utils.isEmpty(txt)) {
-                    newDialogBuilder().setMessage(R.string.popup_message_err_nonemptyname)
-                            .setNegativeButton(R.string.popup_button_cancel_mp, (dialog, which) -> {
-                                hideKeyboard();
-                                p2pShutdown();
-                            }).setPositiveButton(R.string.popup_button_ok, (dialog, which) -> {
-                                hideKeyboard();
-                                onP2PReady();
-                            }).show();
-                } else {
-                    getPrefs().edit().putString(PREF_P2P_NAME, txt).apply();
-                    p2pStart();
-                }
-            });
-        } else {
-            p2pStart();
-        }
-    }
-
-    @Override
-    public void p2pStart() {
-        game.clearCharacters();
-        game.clearUsersCharacters();
-        game.reload();
-        game.refresh();
-        super.p2pStart();
-    }
-
-    P2PClient clientControl;
-
-
-    @Override
-    protected void onP2PClient(P2PClient p2pClient) {
-        clientControl = p2pClient;
-        clientMgr = new ZClientMgr(this, game, clientControl.getClient(), user);
-    }
-
-    P2PServer serverControl;
-
-    @Override
-    protected void onP2PServer(P2PServer p2pServer) {
-        serverControl = p2pServer;
-        serverMgr = new ZServerMgr(this, game, 2, p2pServer.getServer());
-        user.setName(getPrefs().getString(PREF_P2P_NAME, null));
-    }
-
-    @Override
-    protected void onP2PShutdown() {
-        clientMgr = null;
-        clientControl = null;
-        serverMgr = null;
-        serverControl = null;
-        game.setServer(null);
-        game.setClient(null);
-        initHomeMenu();
-    }
-
-    void showSetupPlayersDialog() {
-        Set<String> saved = getStoredCharacters();
-        List<Assignee> assignments = new ArrayList<>();
-        for (ZombicideActivity.CharLock c : charLocks) {
-            Assignee a = new Assignee(c);
-            if (saved.contains(a.name.name())) {
-                a.checked = true;
-                a.color = user.getColorId();
-                a.userName = user.getName();
-                a.isAssingedToMe = true;
-            }
-            assignments.add(a);
-        }
-
-        new CharacterChooserDialogMP(this, assignments, 6) {
-            @Override
-            protected void onAssigneeChecked(Assignee a, boolean checked) {
-                a.checked = checked;
-                if (a.checked) {
-                    a.color = user.getColorId();
-                    a.userName = user.getName();
-                    a.isAssingedToMe = true;
-                } else {
-                    a.color = -1;
-                    a.userName = null;
-                    a.isAssingedToMe = false;
-                }
-            }
-
-            @Override
-            protected void onStart() {
-                game.clearCharacters();
-                game.clearUsersCharacters();
-                Set<String> players = new HashSet<>();
-                for (Assignee a : assignments) {
-                    if (a.checked) {
-                        game.addCharacter(a.name);
-                        user.addCharacter(a.name);
-                        players.add(a.name.name());
-                    }
-                }
-                getPrefs().edit().putStringSet(PREF_PLAYERS, players).apply();
-                game.refresh();
-            }
-        };
-    }
-
-    void showLegendDialog() {
-        Object[][] legend = {
-                {R.drawable.legend_chars, "CHARACTERS\nChoose your characters. Some are unlockable. Players can operate in any order but must execute all of their actions before switching to another player."},
-                {R.drawable.legend_gamepad, "GAMEPAD\nUse gamepad to perform common actions.\nLH / RH - Use Item in Left/Right hand.\nO - Toggle active player.\nZM - Zoom in/out."},
-                {R.drawable.legend_obj, "OBJECTIVES\nObjectives give player EXP, unlock doors, reveal special items and other things related to the Quest."},
-                {R.drawable.legend_vault, "VAULTS\nVaults are very handy. You can find special loot or drop loot to be pickup up later. You can also close zombies in or out of the vault. Also they can sometimes be shortcuts across the map. The only limitation is you cannot fire ranged weapons or magic into the vault from the outside or fire outside of vault from inside of it."},
-                {R.drawable.zwalker1, "WALKER\n" + ZZombieType.Walker.getDescription()},
-                {R.drawable.zfatty1, "FATTY\n" + ZZombieType.Fatty.getDescription()},
-                {R.drawable.zrunner1, "RUNNER\n" + ZZombieType.Runner.getDescription()},
-                {R.drawable.znecro, "NECROMANCER\n" + ZZombieType.Necromancer.getDescription()},
-                {R.drawable.zabomination, "ABOMINATION\n" + ZZombieType.Abomination.getDescription()},
-
-        };
-
-        ListView lv = new ListView(this);
-        lv.setAdapter(new BaseAdapter() {
-            @Override
-            public int getCount() {
-                return legend.length;
-            }
-
-            @Override
-            public Object getItem(int position) {
-                return null;
-            }
-
-            @Override
-            public long getItemId(int position) {
-                return 0;
-            }
-
-            @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
-                if (convertView == null) {
-                    convertView = View.inflate(ZombicideActivity.this, R.layout.legend_list_item, null);
-                }
-
-                ImageView iv_image = convertView.findViewById(R.id.iv_image);
-                TextView tv_desc = convertView.findViewById(R.id.tv_description);
-
-                Object[] item = legend[position];
-
-                if (item[0] instanceof Integer) {
-                    iv_image.setImageResource((Integer) item[0]);
-                } else if (item[0] instanceof Bitmap) {
-                    iv_image.setImageBitmap((Bitmap) item[0]);
-                }
-
-                if (item[1] instanceof Integer) {
-                    tv_desc.setText((Integer) item[1]);
-                } else if (item[1] instanceof String) {
-                    tv_desc.setText((String) item[1]);
-                }
-
-                return convertView;
-            }
-        });
-
-        newDialogBuilder().setTitle("Legend").setView(lv).setNegativeButton(R.string.popup_button_close, null).show();
-    }
-
-    void completeQuest(ZQuests quest) {
-        stats.completeQuest(quest, game.getDifficulty());
-        stats.trySaveToFile(statsFile);
-    }
-
-    void showWelcomeDialog(boolean showNewGame) {
-        AlertDialog.Builder b = newDialogBuilder().setTitle(R.string.popup_title_welcome).setMessage(R.string.welcome_msg);
-        if (showNewGame) {
-            b.setPositiveButton(R.string.popup_button_newgame, (dialog, which) -> showNewGameDialog());
-        } else {
-            b.setPositiveButton(R.string.popup_button_close, null);
-        }
-        b.show();
-    }
-
-    void showNewGameDialog() {
-        newDialogBuilder().setTitle(R.string.popup_title_choose_version)
-                .setItems(getResources().getStringArray(BuildConfig.DEBUG ? R.array.popup_message_choose_game_version_debug : R.array.popup_message_choose_game_version), (dialog, which) -> {
-                    switch (which) {
-                        case 0: // Black Plague
-                            showNewGameChooseQuestDialog(ZQuests.questsBlackPlague(), stats.getCompletedQuests());
-                            break;
-
-                        case 1:
-                            if (isWolfburgUnlocked())
-                                showNewGameChooseQuestDialog(ZQuests.questsWolfsburg(), stats.getCompletedQuests());
-                            else
-                                newDialogBuilder().setTitle(R.string.popup_title_wolflocked)
-                                    .setMessage(R.string.popup_message_unlock_wolfburg)
-                                    .setPositiveButton(R.string.popup_button_ok, (dialog1, which1) -> showNewGameDialog()).show();
-                            break;
-
-                        case 2:
-                            showNewGameChooseQuestDialog(Arrays.asList(ZQuests.values()), new HashSet(Arrays.asList(ZQuests.values())));
-                            break;
-
-                    }
-                }).setNegativeButton(R.string.popup_button_cancel, null).show();
-
-    }
-
-    void showNewGameChooseQuestDialog(List<ZQuests> allQuests, Set<ZQuests> playable) {
-        new NewGameChooseQuestDialog(this, allQuests, playable);
-    }
-
-    void showNewGameDialogChooseDifficulty(ZQuests quest) {
-        newDialogBuilder().setTitle(getString(R.string.popup_title_quest, quest.ordinal(), quest.getDisplayName()))
-                .setItems(Utils.toStringArray(ZDifficulty.values()), (dialog, which) -> {
-                    ZDifficulty difficulty = ZDifficulty.values()[which];
-                    getPrefs().edit().putString("difficulty", difficulty.name()).apply();
-                    game.setDifficulty(difficulty);
-                    showChooseGameModeDialog(quest);
-                }).setNegativeButton(R.string.popup_button_back, (dialog, which) -> showNewGameDialog()).show();
-    }
-
-    void showChooseGameModeDialog(ZQuests quest) {
-        String [] modes = {
-                "Single Player",
-                "Multi-player Host"
-        };
-        newDialogBuilder().setTitle("Choose Mode")
-                .setItems(modes, (dialog, which) -> {
-                    switch (which) {
-                        case 0: // single player
-                            showNewGameDialogChoosePlayers(quest);
-                            break;
-                        case 1: // multiplayer
-                            game.loadQuest(quest);
-                            p2pInit(P2PMode.SERVER);
-                            break;
-                    }
-                }).setNegativeButton(R.string.popup_button_back, (dialog, which) -> showNewGameDialogChooseDifficulty(quest))
-                .show();
-    }
-
-    static class CharLock {
-        final int unlockMessageId;
-        final ZPlayerName player;
-
-        public CharLock(ZPlayerName player, int unlockMessageId) {
-            this.unlockMessageId = unlockMessageId;
-            this.player = player;
-        }
-
-        boolean isUnlocked() {
-            return true;
-        }
-    }
-
-    void showNewGameDialogChoosePlayers(ZQuests quest) {
-        new CharacterChooserDialogSP(this, quest) {
-            @Override
-            void onStarted() {
-                getPrefs().edit().putStringSet(PREF_PLAYERS, selectedPlayers).apply();
-                game.loadQuest(quest);
-                loadCharacters(getStoredCharacters());
-                game.trySaveToFile(gameFile);
-                startGame();
-            }
-        };
-    }
-
-    void showSkillsDialog2() {
-        new SkillsDialog(this);
-    }
-
-    // TODO: Make this more organized. Should be able to order by character, danger level or all POSSIBLE
-    void showSkillsDialog() {
-        ZSkill[] sorted = Utils.copyOf(ZSkill.values());
-        Arrays.sort(sorted, (o1, o2) -> o1.name().compareTo(o2.name()));
-        newDialogBuilder().setTitle(R.string.popup_title_skills)
-                .setItems(Utils.toStringArray(sorted, true), (dialog, which) -> {
-                    ZSkill skill = sorted[which];
-                    newDialogBuilder().setTitle(skill.getLabel())
-                            .setMessage(skill.description)
-                            .setNegativeButton(R.string.popup_button_cancel, null)
-                            .setPositiveButton(R.string.popup_button_back, (dialog1, which1) -> showSkillsDialog()).show();
-                }).setNegativeButton(R.string.popup_button_cancel, null).show();
-
-    }
-
-    public void initHomeMenu() {
-        vm.playing.postValue(false);
-        List<View> buttons = new ArrayList<>();
-        for (MenuItem i : Utils.filter(MenuItem.values(), object -> object.isHomeButton(ZombicideActivity.this))) {
-            buttons.add(ZButton.build(this, i, i.isEnabled(this)));
-        }
-        initMenuItems(buttons);
-    }
-
-    public void initGameMenu() {
-        vm.playing.postValue(true);
-        initMenu(UIZombicide.UIMode.NONE, null);
-        game.refresh();
-    }
-
-    void initKeypad(List options) {
-        for (Iterator it = options.iterator(); it.hasNext(); ) {
-            Object o = it.next();
-            if (o instanceof ZMove) {
-                ZMove move = (ZMove)o;
-                switch (move.type) {
-                    case WALK_DIR:
-                        switch (move.dir) {
-                            case NORTH:
-                                zb.bUp.setTag(move);
-                                zb.bUp.setVisibility(View.VISIBLE);
-                                break;
-                            case SOUTH:
-                                zb.bDown.setTag(move);
-                                zb.bDown.setVisibility(View.VISIBLE);
-                                break;
-                            case EAST:
-                                zb.bRight.setTag(move);
-                                zb.bRight.setVisibility(View.VISIBLE);
-                                break;
-                            case WEST:
-                                zb.bLeft.setTag(move);
-                                zb.bLeft.setVisibility(View.VISIBLE);
-                                break;
-                            case ASCEND:
-                            case DESCEND:
-                                zb.bVault.setTag(move);
-                                zb.bVault.setVisibility(View.VISIBLE);
-                                break;
-                        }
-                        it.remove();
-                        break;
-
-                    case USE_LEFT_HAND:
-                        zb.bUseleft.setTag(move);
-                        zb.bUseleft.setVisibility(View.VISIBLE);
-                        it.remove();
-                        break;
-                    case USE_RIGHT_HAND:
-                        zb.bUseright.setTag(move);
-                        zb.bUseright.setVisibility(View.VISIBLE);
-                        it.remove();
-                        break;
-                    case SWITCH_ACTIVE_CHARACTER:
-                        zb.bCenter.setTag(move);
-                        zb.bCenter.setVisibility(View.VISIBLE);
-                        it.remove();
-                        break;
-                }
-            }
-        }
-    }
-
-    void clearKeypad() {
-        zb.bUseleft.setVisibility(View.INVISIBLE);
-        zb.bUseright.setVisibility(View.INVISIBLE);
-        zb.bUp.setVisibility(View.INVISIBLE);
-        zb.bDown.setVisibility(View.INVISIBLE);
-        zb.bLeft.setVisibility(View.INVISIBLE);
-        zb.bRight.setVisibility(View.INVISIBLE);
-        zb.bVault.setVisibility(View.INVISIBLE);
-        zb.bCenter.setTag(null);
-    }
-
-    void initMenu(UIZombicide.UIMode mode, List<IButton> _options) {
-        List<View> buttons = new ArrayList<>();
-        clearKeypad();
-        if (_options != null) {
-            List<IButton> options = new ArrayList<>(_options);
-            initKeypad(options);
-            switch (mode) {
-                case PICK_CHARACTER:
-                    zb.bCenter.setTag(options.get(0));
-                case PICK_MENU:
-                    for (IButton e : options) {
-                        buttons.add(ZButton.build(this, e, e.isEnabled()));
-                    }
-                    buttons.add(new ListSeparator(this));
-                    break;
-            }
-        }
-        for (MenuItem i : Utils.filter(MenuItem.values(), object -> object.isGameButton(ZombicideActivity.this))) {
-            buttons.add(ZButton.build(this, i, i.isEnabled(this)));
-        }
-        initMenuItems(buttons);
-    }
-
-    void initMenuItems(List<View> buttons) {
-        vm.listAdapter.update(buttons);
-    }
-
-    Set<String> getDefaultPlayers() {
-        HashSet<String> players = new HashSet<>();
-        players.add(ZPlayerName.Baldric.name());
-        players.add(ZPlayerName.Clovis.name());
-        players.add(ZPlayerName.Silas.name());
-        return players;
-    }
-
-    /*
+class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListener, OnItemLongClickListener {
+	lateinit var zb: ActivityZombicideBinding
+	lateinit var vm: ActivityViewModel
+	lateinit var gameFile: File
+	lateinit var statsFile: File
+	lateinit var savesMapFile: File
+	lateinit var game: UIZombicide
+	val thisUser: ZUser = UIZUser()
+	var clientMgr: ZClientMgr? = null
+	var serverMgr: ZServerMgr? = null
+	lateinit var boardRenderer: UIZBoardRenderer<DroidGraphics>
+	lateinit var characterRenderer: UIZCharacterRenderer
+	val stats = Stats()
+	val isWolfburgUnlocked: Boolean
+		get() = if (BuildConfig.DEBUG) true else stats.isQuestCompleted(ZQuests.Trial_by_Fire, ZDifficulty.MEDIUM)
+	
+	val charLocks = arrayOf(
+		CharLock(ZPlayerName.Ann, 0),
+		CharLock(ZPlayerName.Baldric, 0),
+		CharLock(ZPlayerName.Clovis, 0),
+		CharLock(ZPlayerName.Samson, 0),
+		CharLock(ZPlayerName.Nelly, 0),
+		CharLock(ZPlayerName.Silas, 0),
+		object : CharLock(ZPlayerName.Tucker, R.string.char_lock_tucker) {
+			override val isUnlocked: Boolean
+				get() = stats.isQuestCompleted(ZQuests.Big_Game_Hunting, ZDifficulty.MEDIUM)
+		},
+		object : CharLock(ZPlayerName.Jain, R.string.char_lock_jain) {
+			override val isUnlocked: Boolean
+				get() = stats.isQuestCompleted(ZQuests.The_Black_Book, ZDifficulty.HARD)
+		},
+		object : CharLock(ZPlayerName.Benson, R.string.char_lock_benson) {
+			override val isUnlocked: Boolean
+				get() = stats.isQuestCompleted(ZQuests.The_Evil_Temple, ZDifficulty.HARD)
+		},
+		object : CharLock(ZPlayerName.Karl, R.string.char_lock_wolfz) {
+			override val isUnlocked: Boolean
+				get() = isWolfburgUnlocked
+		},
+		object : CharLock(ZPlayerName.Morrigan, R.string.char_lock_wolfz) {
+			override val isUnlocked: Boolean
+				get() = isWolfburgUnlocked
+		},
+		object : CharLock(ZPlayerName.Ariane, R.string.char_lock_wolfz) {
+			override val isUnlocked: Boolean
+				get() = isWolfburgUnlocked
+		},
+		object : CharLock(ZPlayerName.Theo, R.string.char_lock_wolfz) {
+			override val isUnlocked: Boolean
+				get() = isWolfburgUnlocked
+		})
+
+	override fun getConnectPort(): Int {
+		return ZMPCommon.CONNECT_PORT
+	}
+
+	override fun getVersion(): String {
+		return ZMPCommon.VERSION
+	}
+
+	override fun getMaxConnections(): Int {
+		return 2
+	}
+
+	override fun onCreate(savedInstanceState: Bundle?) {
+		super.onCreate(savedInstanceState)
+		ZGame.DEBUG = BuildConfig.DEBUG
+		hideNavigationBar()
+		vm = ViewModelProvider(this).get(ActivityViewModel::class.java)
+		zb = ActivityZombicideBinding.inflate(layoutInflater)
+		zb.viewModel = vm
+		zb.lifecycleOwner = this
+		setContentView(zb.root)
+		zb.listMenu.onItemClickListener = this
+		zb.listMenu.onItemLongClickListener = this
+		zb.bZoom.setOnClickListener(this)
+		zb.bUp.setOnClickListener(this)
+		zb.bUseleft.setOnClickListener(this)
+		zb.bUseright.setOnClickListener(this)
+		zb.bCenter.setOnClickListener(this)
+		zb.bVault.setOnClickListener(this)
+		zb.bLeft.setOnClickListener(this)
+		zb.bDown.setOnClickListener(this)
+		zb.bRight.setOnClickListener(this)
+		characterRenderer = UIZCharacterRenderer(zb.consoleView)
+		boardRenderer = object : UIZBoardRenderer<DroidGraphics>(zb.boardView) {
+			override fun onLoaded() {
+				zb.vgTop.layoutTransition = LayoutTransition()
+				zb.listMenu.visibility = View.VISIBLE
+				vm.loading.postValue(false)
+			}
+
+			override fun onLoading() {
+				zb.vgTop.layoutTransition = null
+				zb.listMenu.visibility = View.GONE
+				vm.loading.postValue(true)
+			}
+		}
+		boardRenderer.drawTiles = true
+		boardRenderer.miniMapMode = prefs.getInt("miniMapMode", 1)
+		val lock = Lock()
+
+		game = object : UIZombicide(characterRenderer, boardRenderer) {
+			override fun runGame(): Boolean {
+				var changed = false
+				try {
+					// block here until the save game is completed
+					lock.block()
+					changed = super.runGame()
+					log.debug("runGame changed=$changed")
+
+					if (changed) {
+						GlobalScope.launch {
+							lock.acquire()
+							pushGameState()
+							lock.release()
+						}
+					}
+					zb.boardView.postInvalidate()
+					zb.consoleView.postInvalidate()
+				} catch (e: Exception) {
+					e.printStackTrace()
+				}
+				return changed
+			}
+
+			override val thisUser: ZUser
+				get() = this@ZombicideActivity.thisUser
+
+			override fun <T> waitForUser(expectedType: Class<T>): T? {
+				zb.boardView.post { initMenu(uiMode, options) }
+				return super.waitForUser(expectedType)
+			}
+
+			override fun onQuestComplete() {
+				super.onQuestComplete()
+				runOnUiThread {
+					stopGame()
+					completeQuest(quest.quest)
+					initHomeMenu()
+				}
+			}
+
+			override fun setResult(result: Any?) {
+				game.boardRenderer.setOverlay(null)
+				super.setResult(result)
+			}
+
+			override fun isGameRunning(): Boolean {
+				return super.isGameRunning() || clientMgr != null
+			}
+
+			override fun onCurrentCharacterUpdated(priorPlayer: ZPlayerName?, player: ZPlayerName?) {
+				super.onCurrentCharacterUpdated(priorPlayer, player)
+				runOnUiThread { initGameMenu() }
+			}
+
+			override fun onCurrentUserUpdated(user: ZUser) {
+				super.onCurrentUserUpdated(user)
+				runOnUiThread { initGameMenu() }
+			}
+
+			override fun undo() {
+				tryUndo()
+			}
+		}
+		val colorIdx = prefs.getInt("userColorIndex", 0)
+		thisUser.setColor(colorIdx)
+		game.addUser(thisUser)
+	}
+
+	fun loadCharacters(playersSet: Collection<String>) {
+		game.clearCharacters()
+		game.clearUsersCharacters()
+		val players = playersSet.map { ZPlayerName.valueOf(it) }
+		for (player in players) {
+			game.addCharacter(player)
+			thisUser.addCharacter(player)
+		}
+	}
+
+	override fun onResume() {
+		super.onResume()
+		setKeepScreenOn(true)
+	}
+
+	override fun onPause() {
+		super.onPause()
+		setKeepScreenOn(false)
+	}
+
+	override fun onStart() {
+		super.onStart()
+		game.setDifficulty(savedDifficulty)
+		gameFile = File(filesDir, "game.save")
+		statsFile = File(filesDir, "stats.save")
+		savesMapFile = File(filesDir, "saves.save")
+		//if (!gameFile.exists() || !game.tryLoadFromFile(gameFile)) {
+		//    showWelcomeDialog(true);
+		//} else
+		if (gameFile.exists() && game.tryLoadFromFile(gameFile)) {
+			game.showSummaryOverlay()
+		} else {
+			game.loadQuest(ZQuests.Tutorial)
+		}
+		if (statsFile.exists()) {
+			try {
+				log.debug(FileUtils.fileToString(statsFile))
+			} catch (e: IOException) {
+				e.printStackTrace()
+			}
+			stats.tryLoadFromFile(statsFile)
+		}
+		initHomeMenu()
+	}
+
+	override fun onStop() {
+		super.onStop()
+		stopGame()
+	}
+
+	override fun newDialogBuilder(): AlertDialog.Builder {
+		val b: AlertDialog.Builder = object : AlertDialog.Builder(ContextThemeWrapper(this, android.R.style.Theme_Holo_Dialog)) {
+			override fun show(): AlertDialog {
+				val d = super.show()
+				d.setCanceledOnTouchOutside(false)
+				return d
+			}
+		}
+		if (!BuildConfig.DEBUG) b.setCancelable(false)
+		return b
+	}
+
+	enum class MenuItem : UIZButton {
+		RESUME,
+		CANCEL,
+		LOAD,
+		SAVE,
+		NEW_GAME,
+		JOIN_GAME,
+		SETUP_PLAYERS,
+		CONNECTIONS,
+		START,
+		ASSIGN,
+		SUMMARY,
+		UNDO,
+		DIFFICULTY,
+		OBJECTIVES,
+		SKILLS,
+		LEGEND,
+		QUIT,
+		CLEAR,
+		SEARCHABLES,
+		RULES,
+		CHOOSE_COLOR,
+		EMAIL_REPORT,
+		MINIMAP_MODE;
+
+		fun isHomeButton(instance: ZombicideActivity): Boolean {
+			when (this) {
+				LOAD, SAVE, ASSIGN, CLEAR, UNDO, DIFFICULTY, CHOOSE_COLOR -> return BuildConfig.DEBUG
+				START, NEW_GAME, JOIN_GAME, SETUP_PLAYERS, SKILLS, LEGEND, EMAIL_REPORT, MINIMAP_MODE -> return true
+				CONNECTIONS -> return instance.serverControl != null
+				RESUME -> return instance.gameFile != null && instance.gameFile.exists()
+			}
+			return false
+		}
+
+		fun isGameButton(instance: ZombicideActivity): Boolean {
+			when (this) {
+				LOAD, SAVE, START, ASSIGN, RESUME, NEW_GAME, JOIN_GAME, SETUP_PLAYERS, CLEAR -> return false
+				CONNECTIONS -> return instance.serverControl != null
+				UNDO, SEARCHABLES, CHOOSE_COLOR -> return BuildConfig.DEBUG
+			}
+			return true
+		}
+
+		override fun getRect(): GRectangle {
+			return GRectangle.EMPTY
+		}
+
+		override fun getTooltipText(): String? {
+			return null
+		}
+
+		override fun getLabel(): String {
+			return prettify(name)
+		}
+
+		fun isEnabled(z: ZombicideActivity): Boolean {
+			return if (this == UNDO) {
+				z.client != null || FileUtils.hasBackupFile(z.gameFile)
+			} else true
+		}
+	}
+
+	val savedDifficulty: ZDifficulty
+		get() = ZDifficulty.valueOf(prefs.getString("difficulty", ZDifficulty.MEDIUM.name)!!)
+
+	override fun onClick(v: View) {
+		try {
+			game.boardRenderer.setOverlay(null)
+			when (v.id) {
+				R.id.b_zoom -> {
+					val curZoom = game.boardRenderer.zoomPercent
+					if (curZoom < 1) {
+						game.boardRenderer.animateZoomTo(curZoom + .5f)
+					} else {
+						game.boardRenderer.animateZoomTo(0f)
+					}
+					game.boardRenderer.redraw()
+				}
+				R.id.b_center -> {
+					game.boardRenderer.clearDragOffset()
+					if (v.tag != null) {
+						game.setResult(v.tag)
+						clearKeypad()
+					}
+				}
+				R.id.b_useleft, R.id.b_useright, R.id.b_vault, R.id.b_up, R.id.b_left, R.id.b_down, R.id.b_right -> if (v.tag != null) {
+					game.setResult(v.tag)
+					clearKeypad()
+				}
+			}
+		} catch (e: Exception) {
+			e.printStackTrace()
+		}
+	}
+
+	override fun onItemClick(parent: AdapterView<*>?, view: View, position: Int, id: Long) {
+		if (view.tag is MenuItem) {
+			processMainMenuItem(view.tag as MenuItem)
+		} else {
+			instance.setResult(view.tag)
+		}
+	}
+
+	override fun onItemLongClick(parent: AdapterView<*>, view: View, position: Int, id: Long): Boolean {
+		if (view.tag != null && view.tag is IButton) {
+			val button = view.tag as IButton
+			showToolTipTextPopup(parent, button)
+			return true
+		}
+		return false
+	}
+
+	fun showToolTipTextPopup(view: View, button: IButton) {
+		button.tooltipText?.takeIf { !it.isEmpty() }?.let { text ->
+			val popup = View.inflate(this, R.layout.tooltippopup_layout, null)
+			(popup.findViewById<View>(R.id.header) as TextView).text = button.label
+			(popup.findViewById<View>(R.id.text) as TextView).text = text
+			val d: Dialog = AlertDialog.Builder(this, R.style.ZTooltipDialogTheme)
+				.setView(popup).create()
+			val window = d.window
+			val outPos = intArrayOf(0, 0)
+			view.getLocationOnScreen(outPos)
+			if (window != null) {
+				val lp = window.attributes
+				lp.gravity = Gravity.TOP or Gravity.LEFT
+				lp.x = outPos[0] + view.width
+				lp.y = outPos[1]
+				lp.width = DroidUtils.convertDipsToPixels(this, 200f)
+			}
+			d.show()
+		}
+	}
+
+	fun startGame() {
+		game.startGameThread()
+		initGameMenu()
+		game.refresh()
+	}
+
+	fun shutdownMP() {
+		p2pShutdown()
+		clientControl = null
+		serverControl = null
+		clientMgr = null
+		serverMgr = null
+	}
+
+	fun stopGame() {
+		game.stopGameThread()
+		game.setResult(null)
+		initHomeMenu()
+	}
+
+	val storedCharacters: Set<String>
+		get() = prefs.getStringSet(PREF_PLAYERS, defaultPlayers)!!
+
+	fun processMainMenuItem(item: MenuItem?) {
+		when (item) {
+			MenuItem.START -> if (game.roundNum > 0) {
+				newDialogBuilder().setTitle(R.string.popup_title_confirm).setMessage(R.string.popup_message_confirm_restart)
+					.setNegativeButton(R.string.popup_button_cancel, null)
+					.setPositiveButton(R.string.popup_button_newgame) { dialogInterface: DialogInterface?, i: Int ->
+						FileUtils.deleteFileAndBackups(gameFile)
+						game.reload()
+						loadCharacters(storedCharacters)
+						startGame()
+					}.show()
+			} else {
+				FileUtils.deleteFileAndBackups(gameFile)
+				game.reload()
+				startGame()
+			}
+			MenuItem.RESUME -> {
+				thisUser.clearCharacters()
+				for (pl in game.allCharacters) {
+					if (thisUser.getColor() == pl.character.color) thisUser.addCharacter(pl) else pl.character.isInvisible = true
+				}
+				startGame()
+			}
+			MenuItem.QUIT -> if (client != null) {
+				newDialogBuilder().setTitle(R.string.popup_title_confirm)
+					.setMessage(R.string.popup_message_confirm_disconnect)
+					.setNegativeButton(R.string.popup_button_cancel, null)
+					.setPositiveButton(R.string.popup_button_disconnect) { dialog: DialogInterface?, which: Int ->
+						object : SpinnerTask<Int>(this@ZombicideActivity) {
+							@Throws(Exception::class)
+							protected override fun doIt(vararg args: Int?) {
+								client.disconnect("Quit Game")
+							}
+
+							override fun onCompleted() {
+								shutdownMP()
+								stopGame()
+							}
+						}.execute()
+					}.show()
+			} else if (server != null) {
+				newDialogBuilder().setTitle(R.string.popup_title_confirm)
+					.setMessage(R.string.popup_message_confirm_disconnect)
+					.setNegativeButton(R.string.popup_button_cancel, null)
+					.setPositiveButton(R.string.popup_button_disconnect) { dialog: DialogInterface?, which: Int ->
+						object : SpinnerTask<Int>(this@ZombicideActivity) {
+							@Throws(Exception::class)
+							protected override fun doIt(vararg args: Int?) {
+								server.stop()
+							}
+
+							override fun onCompleted() {
+								stopGame()
+								shutdownMP()
+							}
+						}.execute()
+					}.show()
+			} else {
+				stopGame()
+				game.setResult(null)
+			}
+			MenuItem.CANCEL -> if (game.isGameRunning()) {
+				game.setResult(null)
+			} else {
+				initHomeMenu()
+			}
+			MenuItem.OBJECTIVES -> {
+				game.showObjectivesOverlay()
+			}
+			MenuItem.SUMMARY -> {
+				game.showSummaryOverlay()
+			}
+			MenuItem.NEW_GAME -> {
+				shutdownMP()
+				showNewGameDialog()
+			}
+			MenuItem.JOIN_GAME -> {
+				p2pInit(P2PMode.CLIENT)
+			}
+			MenuItem.SETUP_PLAYERS -> showSetupPlayersDialog()
+			MenuItem.CONNECTIONS -> serverControl!!.openConnections()
+			MenuItem.CLEAR -> {
+				prefs.edit().remove("completedQuests").apply()
+				val byteDeleted = FileUtils.deleteFileAndBackups(gameFile)
+				statsFile.delete()
+				log.debug("deleted " + Formatter.formatFileSize(this, byteDeleted) + " of memory")
+				initHomeMenu()
+			}
+			MenuItem.SEARCHABLES -> {
+				val lv = ListView(this)
+				val searchables = game.allSearchables.toMutableList()
+				searchables.reverse()
+				lv.adapter = object : BaseAdapter() {
+					override fun getCount(): Int {
+						return searchables.size
+					}
+
+					override fun getItem(position: Int): Any {
+						return 0
+					}
+
+					override fun getItemId(position: Int): Long {
+						return 0
+					}
+
+					override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+						var convertView = convertView?:TextView(this@ZombicideActivity)
+						(convertView as TextView).text = searchables[position].label
+						return convertView
+					}
+				}
+				newDialogBuilder().setTitle(R.string.popup_title_searchables).setView(lv).setNegativeButton("Close", null).show()
+			}
+			MenuItem.LOAD -> newDialogBuilder().setTitle(R.string.popup_title_choose).setItems(resources.getStringArray(R.array.popup_message_choose_game_types)
+			) { dialog: DialogInterface?, which: Int ->
+				when (which) {
+					0 -> showLoadQuestDialog()
+					1 -> showLoadSavedGameDialog()
+				}
+			}.setNegativeButton(R.string.popup_button_cancel, null).show()
+			MenuItem.SAVE -> showSaveGameDialog()
+			MenuItem.ASSIGN -> showAssignDialog()
+			MenuItem.DIFFICULTY -> {
+				newDialogBuilder().setTitle(getString(R.string.popup_title_difficulty, savedDifficulty))
+					.setItems(ZDifficulty.values().map { it.name }.toTypedArray()) { dialog: DialogInterface?, which: Int ->
+						val difficulty = ZDifficulty.values()[which]
+						game.setDifficulty(difficulty)
+						prefs.edit().putString("difficulty", difficulty.name).apply()
+					}.setNegativeButton(R.string.popup_button_cancel, null).show()
+			}
+			MenuItem.SKILLS -> {
+				showSkillsDialog2()
+			}
+			MenuItem.UNDO -> {
+				if (client != null) {
+					object : CLSendCommandSpinnerTask(this, ZMPCommon.SVR_UPDATE_GAME) {
+						override fun onSuccess() {
+							zb.boardView.postInvalidate()
+						}
+					}.execute(clientMgr!!.newUndoPressed())
+					//getClient().sendCommand(clientMgr.newUndoPressed());
+					game.setResult(null)
+				} else {
+					tryUndo()
+				}
+			}
+			MenuItem.LEGEND -> {
+				showLegendDialog()
+			}
+			MenuItem.RULES -> {
+				showWelcomeDialog(false)
+			}
+			MenuItem.EMAIL_REPORT -> {
+				showEmailReportDialog()
+			}
+			MenuItem.CHOOSE_COLOR -> {
+				showChooseColorDialog()
+			}
+			MenuItem.MINIMAP_MODE -> {
+				prefs.edit().putInt("miniMapMode", boardRenderer!!.toggleDrawMinimap()).apply()
+			}
+		}
+	}
+
+	fun tryUndo() {
+		val isRunning = game.isGameRunning()
+		stopGame()
+		if (FileUtils.restoreFile(gameFile)) {
+			game.tryLoadFromFile(gameFile)
+			game.refresh()
+			if (serverMgr != null) {
+				serverMgr!!.broadcastUpdateGame()
+			}
+		}
+		if (isRunning) startGame()
+	}
+
+	fun updateCharacters(quest: ZQuests?) {
+		if (serverMgr != null) {
+			server.broadcastCommand(serverMgr!!.newLoadQuest(quest!!))
+			game.clearCharacters()
+			for (user in game.getUsers()) {
+				val newPlayers: MutableList<ZPlayerName> = ArrayList()
+				for (pl in user.players) {
+					game.addCharacter(pl)
+					newPlayers.add(pl)
+				}
+				user.setCharacters(newPlayers)
+			}
+			serverMgr!!.broadcastUpdateGame()
+		} else {
+			loadCharacters(storedCharacters)
+			game.trySaveToFile(gameFile)
+		}
+		startGame()
+		zb.boardView.postInvalidate()
+	}
+
+	fun showLoadQuestDialog() {
+		newDialogBuilder().setTitle(R.string.popup_title_load_quest)
+			.setItems(ZQuests.values().map { prettify(it.name)}.toTypedArray()) { dialog: DialogInterface?, which: Int ->
+				val q = ZQuests.values()[which]
+				game.loadQuest(q)
+				updateCharacters(q)
+			}.setNegativeButton(R.string.popup_button_cancel, null).show()
+	}
+
+	fun showSaveGameDialog() {
+		SaveGameDialog(this, MAX_SAVES)
+	}
+
+	fun showLoadSavedGameDialog() {
+		val saves: Map<String, String> = saves
+		if (saves.isNotEmpty()) {
+			val items = arrayOfNulls<String>(saves.size)
+			newDialogBuilder().setTitle(R.string.popup_title_load_saved)
+				.setItems(saves.keys.toList().toTypedArray()) { dialog: DialogInterface?, which: Int ->
+					val fileName = saves[items[which]]
+					val file = File(filesDir, fileName)
+					if (game.tryLoadFromFile(file)) {
+						updateCharacters(game.quest.quest)
+					} else {
+						newDialogBuilder().setTitle(R.string.popup_title_error)
+							.setMessage(getString(R.string.popup_message_err_fileopen, fileName))
+							.setNegativeButton(R.string.popup_button_ok, null).show()
+					}
+				}.setNegativeButton(R.string.popup_button_cancel, null).show()
+		}
+	}
+
+	fun deleteSave(key: String) {
+		val saves = saves
+		val fileName = saves[key]
+		if (fileName != null) {
+			val file = File(filesDir, fileName)
+			file.delete()
+		}
+		saves.remove(key)
+		try {
+			Reflector.serializeToFile<Any>(saves, savesMapFile)
+		} catch (e: Exception) {
+			e.printStackTrace()
+		}
+	}
+
+	val saves: MutableMap<String, String>
+		get() {
+			var saves: MutableMap<String, String>
+			try {
+				saves = Reflector.deserializeFromFile(savesMapFile)
+			} catch (e: Exception) {
+				e.printStackTrace()
+				saves = LinkedHashMap()
+			}
+			return saves
+		}
+
+	suspend fun pushGameState() {
+		serverMgr?.broadcastUpdateGame()
+		log.debug("Backing up ... ")
+		FileUtils.backupFile(gameFile, 32)
+		game.trySaveToFile(gameFile)
+	}
+
+	fun saveGame() {
+		val buf = StringBuffer()
+		buf.append(game.quest.quest.displayName)
+		buf.append(" ").append(game.getDifficulty().name)
+		var delim = " "
+		for (c in game.allCharacters) {
+			buf.append(delim).append(c.name)
+			delim = ","
+		}
+		val completePercent = game.quest.getPercentComplete(game)
+		buf.append(String.format(" %d%% Completed", completePercent))
+		buf.append(" ").append(SimpleDateFormat("MMM dd").format(Date()))
+		var idx = 0
+		var file: File? = null
+		while (idx < 10) {
+			val fileName = "savegame$idx"
+			file = File(filesDir, fileName)
+			if (!file.isFile) break
+			idx++
+		}
+		try {
+			game.saveToFile(file)
+			val saves = saves
+			saves[buf.toString()] = file!!.name
+			Reflector.serializeToFile<Any>(saves, savesMapFile)
+		} catch (e: Exception) {
+			e.printStackTrace()
+			Toast.makeText(this, "There was a problem saving the game.", Toast.LENGTH_LONG).show()
+		}
+	}
+
+	fun showChooseColorDialog() {
+		newDialogBuilder().setTitle(R.string.popup_title_choose_color)
+			.setItems(ZUser.USER_COLOR_NAMES) { dialog: DialogInterface?, which: Int ->
+				prefs.edit().putInt("userColorIndex", which).apply()
+				thisUser.setColor(which)
+				game.refresh()
+			}.setNegativeButton(R.string.popup_button_cancel, null).show()
+	}
+
+	val displayName: String
+		get() = prefs.getString(PREF_P2P_NAME, "Unnamed")!!
+
+	override fun onP2PReady() {
+		val p2pName = prefs.getString(PREF_P2P_NAME, null)
+		if (p2pName == null) {
+			showEditTextInputPopup("Set P2P Name", p2pName, "Display Name", 32) { txt: String? ->
+				if (isEmpty(txt)) {
+					newDialogBuilder().setMessage(R.string.popup_message_err_nonemptyname)
+						.setNegativeButton(R.string.popup_button_cancel_mp) { dialog: DialogInterface?, which: Int ->
+							hideKeyboard()
+							p2pShutdown()
+						}.setPositiveButton(R.string.popup_button_ok) { dialog: DialogInterface?, which: Int ->
+							hideKeyboard()
+							onP2PReady()
+						}.show()
+				} else {
+					prefs.edit().putString(PREF_P2P_NAME, txt).apply()
+					p2pStart()
+				}
+			}
+		} else {
+			p2pStart()
+		}
+	}
+
+	override fun p2pStart() {
+		game.clearCharacters()
+		game.clearUsersCharacters()
+		game.reload()
+		game.refresh()
+		super.p2pStart()
+	}
+
+	var clientControl: P2PClient? = null
+	override fun onP2PClient(p2pClient: P2PClient) {
+		clientControl = p2pClient
+		clientMgr = ZClientMgr(this, game, clientControl!!.client, thisUser)
+	}
+
+	var serverControl: P2PServer? = null
+	override fun onP2PServer(p2pServer: P2PServer) {
+		serverControl = p2pServer
+		serverMgr = ZServerMgr(this, game, 2, p2pServer.server)
+		thisUser.name = prefs.getString(PREF_P2P_NAME, null)
+	}
+
+	override fun onP2PShutdown() {
+		clientMgr = null
+		clientControl = null
+		serverMgr = null
+		serverControl = null
+		game.server = null
+		game.client = null
+		initHomeMenu()
+	}
+
+	fun showSetupPlayersDialog() {
+		val saved = storedCharacters
+		val assignments: MutableList<Assignee> = ArrayList()
+		for (c in charLocks) {
+			val a = Assignee(c)
+			if (saved!!.contains(a.name.name)) {
+				a.checked = true
+				a.color = thisUser.colorId
+				a.userName = thisUser.name!!
+				a.isAssingedToMe = true
+			}
+			assignments.add(a)
+		}
+		object : CharacterChooserDialogMP(this@ZombicideActivity, assignments, 6) {
+			override fun onAssigneeChecked(a: Assignee, checked: Boolean) {
+				a.checked = checked
+				if (a.checked) {
+					a.color = thisUser.colorId
+					a.userName = thisUser.name!!
+					a.isAssingedToMe = true
+				} else {
+					a.color = -1
+					a.userName = "??"
+					a.isAssingedToMe = false
+				}
+			}
+
+			override fun onStart() {
+				game.clearCharacters()
+				game.clearUsersCharacters()
+				val players: MutableSet<String> = HashSet()
+				for (a in assignments) {
+					if (a.checked) {
+						game.addCharacter(a.name)
+						thisUser.addCharacter(a.name)
+						players.add(a.name.name)
+					}
+				}
+				prefs.edit().putStringSet(PREF_PLAYERS, players).apply()
+				game.refresh()
+			}
+		}
+	}
+
+	fun showLegendDialog() {
+		val legend = arrayOf(
+			Pair(R.drawable.legend_chars, "CHARACTERS\nChoose your characters. Some are unlockable. Players can operate in any order but must execute all of their actions before switching to another player."),
+			Pair(R.drawable.legend_gamepad, "GAMEPAD\nUse gamepad to perform common actions.\nLH / RH - Use Item in Left/Right hand.\nO - Toggle active player.\nZM - Zoom in/out."),
+			Pair(R.drawable.legend_obj, "OBJECTIVES\nObjectives give player EXP, unlock doors, reveal special items and other things related to the Quest."),
+			Pair(R.drawable.legend_vault, "VAULTS\nVaults are very handy. You can find special loot or drop loot to be pickup up later. You can also close zombies in or out of the vault. Also they can sometimes be shortcuts across the map. The only limitation is you cannot fire ranged weapons or magic into the vault from the outside or fire outside of vault from inside of it."),
+			Pair(R.drawable.zwalker1, "WALKER\n${ZZombieType.Walker.description}".trimIndent()),
+			Pair(R.drawable.zfatty1, "FATTY\n${ZZombieType.Fatty.description}".trimIndent()),
+			Pair(R.drawable.zrunner1, "RUNNER\n${ZZombieType.Runner.description}".trimIndent()),
+			Pair(R.drawable.znecro, "NECROMANCER\n${ZZombieType.Necromancer.description}".trimIndent()),
+			Pair(R.drawable.zabomination, "ABOMINATION\n${ZZombieType.Abomination.description}".trimIndent()))
+		val lv = ListView(this)
+		lv.adapter = object : BaseAdapter() {
+			override fun getCount(): Int {
+				return legend.size
+			}
+
+			override fun getItem(position: Int): Any {
+				return 0
+			}
+
+			override fun getItemId(position: Int): Long {
+				return 0
+			}
+
+			override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+				var convertView = convertView?:View.inflate(this@ZombicideActivity, R.layout.legend_list_item, null)
+				val iv_image = convertView.findViewById<ImageView>(R.id.iv_image)
+				val tv_desc = convertView.findViewById<TextView>(R.id.tv_description)
+				with (legend[position]) {
+					iv_image.setImageResource(first)
+					tv_desc.text = second
+				}
+				return convertView
+			}
+		}
+		newDialogBuilder().setTitle(R.string.popup_title_legend).setView(lv).setNegativeButton(R.string.popup_button_close, null).show()
+	}
+
+	fun completeQuest(quest: ZQuests) {
+		stats.completeQuest(quest, game.getDifficulty())
+		stats.trySaveToFile(statsFile)
+	}
+
+	fun showWelcomeDialog(showNewGame: Boolean) {
+		val b = newDialogBuilder().setTitle(R.string.popup_title_welcome).setMessage(R.string.welcome_msg)
+		if (showNewGame) {
+			b.setPositiveButton(R.string.popup_button_newgame) { dialog: DialogInterface?, which: Int -> showNewGameDialog() }
+		} else {
+			b.setPositiveButton(R.string.popup_button_close, null)
+		}
+		b.show()
+	}
+
+	fun showNewGameDialog() {
+		newDialogBuilder().setTitle(R.string.popup_title_choose_version)
+			.setItems(resources.getStringArray(if (BuildConfig.DEBUG) R.array.popup_message_choose_game_version_debug else R.array.popup_message_choose_game_version)) { dialog: DialogInterface?, which: Int ->
+				when (which) {
+					0 -> showNewGameChooseQuestDialog(questsBlackPlague(), stats.getCompletedQuests())
+					1 -> if (isWolfburgUnlocked) showNewGameChooseQuestDialog(questsWolfsburg(), stats.getCompletedQuests()) else newDialogBuilder().setTitle(R.string.popup_title_wolflocked)
+						.setMessage(R.string.popup_message_unlock_wolfburg)
+						.setPositiveButton(R.string.popup_button_ok) { dialog1: DialogInterface?, which1: Int -> showNewGameDialog() }.show()
+					2 -> showNewGameChooseQuestDialog(Arrays.asList(*ZQuests.values()), HashSet(Arrays.asList(*ZQuests.values())))
+				}
+			}.setNegativeButton(R.string.popup_button_cancel, null).show()
+	}
+
+	fun showNewGameChooseQuestDialog(allQuests: List<ZQuests>, playable: Set<ZQuests>) {
+		NewGameChooseQuestDialog(this, allQuests, playable.toMutableSet())
+	}
+
+	fun showNewGameDialogChooseDifficulty(quest: ZQuests) {
+		newDialogBuilder().setTitle(getString(R.string.popup_title_quest, quest.ordinal, quest.displayName))
+			.setItems(ZDifficulty.values().map { it.name }.toTypedArray()) { dialog: DialogInterface?, which: Int ->
+				val difficulty = ZDifficulty.values()[which]
+				prefs.edit().putString("difficulty", difficulty.name).apply()
+				game.setDifficulty(difficulty)
+				showChooseGameModeDialog(quest)
+			}.setNegativeButton(R.string.popup_button_back) { dialog: DialogInterface?, which: Int -> showNewGameDialog() }.show()
+	}
+
+	fun showChooseGameModeDialog(quest: ZQuests) {
+		val modes = arrayOf(
+			"Single Player",
+			"Multi-player Host"
+		)
+		newDialogBuilder().setTitle("Choose Mode")
+			.setItems(modes) { dialog: DialogInterface?, which: Int ->
+				when (which) {
+					0 -> showNewGameDialogChoosePlayers(quest)
+					1 -> {
+						game.loadQuest(quest)
+						p2pInit(P2PMode.SERVER)
+					}
+				}
+			}.setNegativeButton(R.string.popup_button_back) { dialog: DialogInterface?, which: Int -> showNewGameDialogChooseDifficulty(quest) }
+			.show()
+	}
+
+	open class CharLock(val player: ZPlayerName, val unlockMessageId: Int) {
+		open val isUnlocked: Boolean
+			get() = true
+	}
+
+	fun showNewGameDialogChoosePlayers(quest: ZQuests?) {
+		object : CharacterChooserDialogSP(this@ZombicideActivity, quest!!) {
+			override fun onStarted() {
+				prefs.edit().putStringSet(PREF_PLAYERS, selectedPlayers).apply()
+				game.loadQuest(quest!!)
+				loadCharacters(storedCharacters)
+				game.trySaveToFile(gameFile)
+				startGame()
+			}
+		}
+	}
+
+	fun showSkillsDialog2() {
+		SkillsDialog(this)
+	}
+
+	// TODO: Make this more organized. Should be able to order by character, danger level or all POSSIBLE
+	fun showSkillsDialog() {
+		val sorted = ZSkill.values().toMutableList().sortedWith { o1: ZSkill, o2: ZSkill -> o1.name.compareTo(o2.name) }
+		newDialogBuilder().setTitle(R.string.popup_title_skills)
+			.setItems(sorted.map { prettify(it.name) }.toTypedArray()) { dialog: DialogInterface?, which: Int ->
+				val skill = sorted[which]
+				newDialogBuilder().setTitle(skill.label)
+					.setMessage(skill.description)
+					.setNegativeButton(R.string.popup_button_cancel, null)
+					.setPositiveButton(R.string.popup_button_back) { dialog1: DialogInterface?, which1: Int -> showSkillsDialog() }.show()
+			}.setNegativeButton(R.string.popup_button_cancel, null).show()
+	}
+
+	fun initHomeMenu() {
+		vm.playing.postValue(false)
+		val buttons: MutableList<View> = ArrayList()
+		MenuItem.values().filter { it.isHomeButton(this@ZombicideActivity) }.forEach { i ->
+			buttons.add(build(this, i, i.isEnabled(this)))
+		}
+		initMenuItems(buttons)
+	}
+
+	fun initGameMenu() {
+		vm.playing.postValue(true)
+		initMenu(UIMode.NONE, null)
+		game.refresh()
+	}
+
+	fun initKeypad(options: MutableList<*>) {
+		val it = options.iterator()
+		while (it.hasNext()) {
+			val o = it.next()!!
+			if (o is ZMove) {
+				val move = o
+				when (move.type) {
+					ZMoveType.WALK_DIR -> {
+						when (ZDir.values()[move.integer!!]) {
+							ZDir.NORTH -> {
+								zb.bUp.tag = move
+								zb.bUp.visibility = View.VISIBLE
+							}
+							ZDir.SOUTH -> {
+								zb.bDown.tag = move
+								zb.bDown.visibility = View.VISIBLE
+							}
+							ZDir.EAST -> {
+								zb.bRight.tag = move
+								zb.bRight.visibility = View.VISIBLE
+							}
+							ZDir.WEST -> {
+								zb.bLeft.tag = move
+								zb.bLeft.visibility = View.VISIBLE
+							}
+							ZDir.ASCEND,
+							ZDir.DESCEND -> {
+								zb.bVault.tag = move
+								zb.bVault.visibility = View.VISIBLE
+							}
+						}
+						it.remove()
+					}
+					ZMoveType.USE_LEFT_HAND -> {
+						zb.bUseleft.tag = move
+						zb.bUseleft.visibility = View.VISIBLE
+						it.remove()
+					}
+					ZMoveType.USE_RIGHT_HAND -> {
+						zb.bUseright.tag = move
+						zb.bUseright.visibility = View.VISIBLE
+						it.remove()
+					}
+					ZMoveType.SWITCH_ACTIVE_CHARACTER -> {
+						zb.bCenter.tag = move
+						zb.bCenter.visibility = View.VISIBLE
+						it.remove()
+					}
+				}
+			}
+		}
+	}
+
+	fun clearKeypad() {
+		zb.bUseleft.visibility = View.INVISIBLE
+		zb.bUseright.visibility = View.INVISIBLE
+		zb.bUp.visibility = View.INVISIBLE
+		zb.bDown.visibility = View.INVISIBLE
+		zb.bLeft.visibility = View.INVISIBLE
+		zb.bRight.visibility = View.INVISIBLE
+		zb.bVault.visibility = View.INVISIBLE
+		zb.bCenter.tag = null
+	}
+
+	fun initMenu(mode: UIMode, _options: List<*>?) {
+		val buttons: MutableList<View> = ArrayList()
+		clearKeypad()
+		if (_options != null) {
+			val options = _options.toMutableList()
+			initKeypad(options)
+			when (mode) {
+				UIMode.PICK_CHARACTER -> {
+					zb.bCenter.tag = options[0]
+					for (e:IButton in options as List<IButton>) {
+						buttons.add(build(this, e, e.isEnabled))
+					}
+					buttons.add(ListSeparator(this))
+				}
+				UIMode.PICK_MENU -> {
+					for (e:IButton in options as List<IButton>) {
+						buttons.add(build(this, e, e.isEnabled))
+					}
+					buttons.add(ListSeparator(this))
+				}
+			}
+		}
+		MenuItem.values().filter { it.isGameButton(this@ZombicideActivity) }.forEach { i->
+			buttons.add(build(this, i, i.isEnabled(this)))
+		}
+		initMenuItems(buttons)
+	}
+
+	fun initMenuItems(buttons: List<View>) {
+		vm.listAdapter.update(buttons)
+	}
+
+	val defaultPlayers: Set<String>
+		get() {
+			val players = HashSet<String>()
+			players.add(ZPlayerName.Baldric.name)
+			players.add(ZPlayerName.Clovis.name)
+			players.add(ZPlayerName.Silas.name)
+			return players
+		}
+
+	/*
         Set<String> getDefaultUnlockedPlayers() {
             HashSet<String> players = new HashSet<>();
             players.add(ZPlayerName.Baldric.name());
@@ -1411,124 +1113,103 @@ public class ZombicideActivity extends P2PActivity implements View.OnClickListen
             return players;
         }
     */
+	fun showAssignDialog() {
+		val selectedPlayers = storedCharacters.toMutableSet()
+		val recyclerView = RecyclerView(this)
+		recyclerView.layoutManager = GridLayoutManager(this, 2, LinearLayoutManager.VERTICAL, false)
+		recyclerView.adapter = object : RecyclerView.Adapter<Holder>() {
+			override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder {
+				val ab = AssignDialogItemBinding.inflate(layoutInflater, parent, false)
+				return Holder(ab)
+			}
 
-    void showAssignDialog() {
-        Set<String> selectedPlayers = new HashSet(getStoredCharacters());
+			override fun onBindViewHolder(holder: Holder, position: Int) {
+				val player = ZPlayerName.values()[position]
+				holder.ab.image.setImageResource(player.cardImageId)
+				holder.ab.image.tag = player.name
+				holder.ab.checkbox.isChecked = selectedPlayers.contains(player.name)
+				holder.ab.image.setOnClickListener { v: View? ->
+					if (selectedPlayers.contains(player.name)) {
+						selectedPlayers.remove(player.name)
+						holder.ab.checkbox.isChecked = false
+					} else {
+						selectedPlayers.add(player.name)
+						holder.ab.checkbox.isChecked = true
+					}
+				}
+				holder.ab.checkbox.isClickable = false
+			}
 
-        RecyclerView recyclerView = new RecyclerView(this);
-        recyclerView.setLayoutManager(new GridLayoutManager(this, 2, LinearLayoutManager.VERTICAL, false));
-        recyclerView.setAdapter(new RecyclerView.Adapter<Holder>() {
-            @Override
-            public Holder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+			override fun getItemCount(): Int {
+				return ZPlayerName.values().size
+			}
+		}
+		newDialogBuilder().setTitle(R.string.popup_title_assign).setView(recyclerView).setNegativeButton(R.string.popup_button_cancel, null)
+			.setPositiveButton(R.string.popup_button_ok) { dialog: DialogInterface?, which: Int ->
+				Log.d(TAG, "Selected players: $selectedPlayers")
+				prefs.edit().putStringSet(PREF_PLAYERS, selectedPlayers).apply()
+				loadCharacters(selectedPlayers)
+				game.reload()
+			}.show()
+	}
 
-                AssignDialogItemBinding ab = AssignDialogItemBinding.inflate(getLayoutInflater(), parent, false);
-                return new Holder(ab);
-            }
+	class Holder(val ab: AssignDialogItemBinding) : RecyclerView.ViewHolder(ab.root)
 
-            @Override
-            public void onBindViewHolder(@NonNull Holder holder, int position) {
-                ZPlayerName player = ZPlayerName.values()[position];
-                holder.ab.image.setImageResource(player.cardImageId);
-                holder.ab.image.setTag(player.name());
-                holder.ab.checkbox.setChecked(selectedPlayers.contains(player.name()));
-                holder.ab.image.setOnClickListener(v -> {
-                    if (selectedPlayers.contains(player.name())) {
-                        selectedPlayers.remove(player.name());
-                        holder.ab.checkbox.setChecked(false);
-                    } else {
-                        selectedPlayers.add(player.name());
-                        holder.ab.checkbox.setChecked(true);
-                    }
-                });
-                holder.ab.checkbox.setClickable(false);
-            }
+	fun showEmailReportDialog() {
+		val message = EditText(this)
+		message.minLines = 5
+		newDialogBuilder().setTitle(R.string.popup_title_email)
+			.setView(message)
+			.setNegativeButton(R.string.popup_button_cancel, null)
+			.setPositiveButton(R.string.popup_button_send) { dialog: DialogInterface?, which: Int ->
+				//char [] pw = { 'z', '0', 'm', 'b', '1', '3', '$', '4', 'e', 'v', 'a' };
+				EmailTask(this@ZombicideActivity,
+					message.editableText.toString() //, new String(pw)
+				).execute(gameFile)
+			}.show()
+	}
 
-            @Override
-            public int getItemCount() {
-                return ZPlayerName.values().length;
-            }
-        });
-        newDialogBuilder().setTitle(R.string.popup_title_assign).setView(recyclerView).setNegativeButton(R.string.popup_button_cancel, null)
-                .setPositiveButton(R.string.popup_button_ok, (dialog, which) -> {
-                    Log.d(TAG, "Selected players: " + selectedPlayers);
-                    getPrefs().edit().putStringSet(PREF_PLAYERS, selectedPlayers).apply();
-                    loadCharacters(selectedPlayers);
-                    game.reload();
-                }).show();
-    }
+	internal class EmailTask(private val context: CCActivityBase, private val message: String) : AsyncTask<File, Void, Exception>() {
+		private var progress: Dialog? = null
+		override fun onPreExecute() {
+			progress = ProgressDialog.show(context, null, context.getString(R.string.popup_message_sending_report))
+		}
 
-    public static class Holder extends RecyclerView.ViewHolder {
+		override fun doInBackground(vararg inFile: File): Exception? {
+			return try {
+				val date = DateFormat.format("MMddyyyy", Date()).toString()
+				val zipFile = File(context.filesDir, "zh_$date.zip")
+				val files = FileUtils.getFileAndBackups(inFile[0])
+				FileUtils.zipFiles(zipFile, files)
+				val fileSize = DroidUtils.getHumanReadableFileSize(context, zipFile)
+				Log.d(TAG, "Zipped file size: $fileSize")
+				EmailHelper.sendEmail(context, zipFile, "ccaronsoftware@gmail.com", "Zombies Hide Report", message)
+				null
+			} catch (e: Exception) {
+				e.printStackTrace()
+				e
+			}
+		}
 
-        final AssignDialogItemBinding ab;
+		override fun onPostExecute(e: Exception?) {
+			progress!!.dismiss()
+			if (e != null) {
+				context.newDialogBuilder().setTitle(R.string.popup_title_error)
+					.setMessage("""An error occurred trying to send report: ${e.javaClass.simpleName} ${e.message}""")
+					.setNegativeButton(R.string.popup_button_ok, null).show()
+			}
+		}
 
-        public Holder(AssignDialogItemBinding ab) {
-            super(ab.getRoot());
-            this.ab = ab;
-        }
-    }
+		companion object {
+			const val TAG = "EmailTask"
+		}
+	}
 
-    public void showEmailReportDialog() {
-        EditText message = new EditText(this);
-        message.setMinLines(5);
-        newDialogBuilder().setTitle(R.string.popup_title_email)
-                .setView(message)
-                .setNegativeButton(R.string.popup_button_cancel, null)
-                .setPositiveButton(R.string.popup_button_send, (dialog, which) -> {
-                    //char [] pw = { 'z', '0', 'm', 'b', '1', '3', '$', '4', 'e', 'v', 'a' };
-                    new EmailTask(ZombicideActivity.this,
-                            message.getEditableText().toString()
-                            //, new String(pw)
-                    ).execute(gameFile);
-                }).show();
-    }
-
-    static class EmailTask extends AsyncTask<File, Void, Exception> {
-
-        final static String TAG = "EmailTask";
-
-        private final CCActivityBase context;
-        private Dialog progress;
-        private final String message;
-
-        public EmailTask(CCActivityBase context, String message) {
-            this.context = context;
-            this.message = message;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            progress = ProgressDialog.show(context, null, context.getString(R.string.popup_message_sending_report));
-        }
-
-        @Override
-        protected Exception doInBackground(File... inFile) {
-
-            try {
-                String date = DateFormat.format("MMddyyyy", new Date()).toString();
-                File zipFile = new File(context.getFilesDir(), "zh_" + date + ".zip");
-                List<File> files = FileUtils.getFileAndBackups(inFile[0]);
-                FileUtils.zipFiles(zipFile, files);
-                String fileSize = DroidUtils.getHumanReadableFileSize(context, zipFile);
-                Log.d(TAG, "Zipped file size: " + fileSize);
-                EmailHelper.sendEmail(context, zipFile, "ccaronsoftware@gmail.com", "Zombies Hide Report", message);
-
-                return null;
-            } catch (Exception e) {
-                e.printStackTrace();
-                return e;
-            }
-        }
-
-        @Override
-        protected void onPostExecute(Exception e) {
-            progress.dismiss();
-            if (e != null) {
-                context.newDialogBuilder().setTitle(R.string.popup_title_error)
-                        .setMessage("An error occurred trying to send report:\n" + e.getClass().getSimpleName() + " " + e.getMessage())
-                        .setNegativeButton(R.string.popup_button_ok, null).show();
-            }
-        }
-    }
-
+	companion object {
+		private val TAG = ZombicideActivity::class.java.simpleName
+		const val MAX_PLAYERS = 4 // max number of characters on screen at one time
+		const val MAX_SAVES = 4
+		const val PREF_P2P_NAME = "p2pname"
+		const val PREF_PLAYERS = "players"
+	}
 }
-
