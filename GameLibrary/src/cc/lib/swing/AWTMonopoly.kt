@@ -1,435 +1,350 @@
-package cc.lib.swing;
+package cc.lib.swing
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import cc.lib.game.AGraphics
+import cc.lib.logger.LoggerFactory
+import cc.lib.monopoly.*
+import cc.lib.monopoly.Player.CardChoiceType
+import cc.lib.swing.AWTFrame.OnListItemChoosen
+import cc.lib.utils.FileUtils
+import cc.lib.utils.Reflector
+import cc.lib.utils.prettify
+import java.awt.BorderLayout
+import java.awt.event.ActionEvent
+import java.awt.event.ActionListener
+import java.io.File
+import java.util.*
+import java.util.concurrent.locks.ReentrantLock
+import javax.swing.JLabel
+import javax.swing.JSpinner
+import javax.swing.SpinnerNumberModel
+import javax.swing.event.ChangeEvent
+import kotlin.concurrent.withLock
 
-import java.awt.BorderLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.File;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+class AWTMonopoly internal constructor() : AWTComponent() {
+	val SAVE_FILE: File
+	val RULES_FILE: File
+	val frame: AWTFrame
+	val lock = ReentrantLock()
+	val cond = lock.newCondition()
 
-import javax.swing.JLabel;
-import javax.swing.JSpinner;
-import javax.swing.SpinnerNumberModel;
-import javax.swing.event.ChangeEvent;
+	init {
+		setMouseEnabled(true)
+		setPadding(5)
+		val settings = FileUtils.getOrCreateSettingsDirectory(javaClass)
+		SAVE_FILE = File(settings, "game.save")
+		RULES_FILE = File(settings, "rules.save")
 
-import cc.lib.game.AGraphics;
-import cc.lib.game.Utils;
-import cc.lib.logger.Logger;
-import cc.lib.logger.LoggerFactory;
-import cc.lib.monopoly.Card;
-import cc.lib.monopoly.MoveType;
-import cc.lib.monopoly.Piece;
-import cc.lib.monopoly.Player;
-import cc.lib.monopoly.PlayerUser;
-import cc.lib.monopoly.Rules;
-import cc.lib.monopoly.Square;
-import cc.lib.monopoly.Trade;
-import cc.lib.monopoly.UIMonopoly;
-import cc.lib.utils.FileUtils;
-import cc.lib.utils.Reflector;
-
-public class AWTMonopoly extends AWTComponent {
-    private final static Logger log = LoggerFactory.getLogger(AWTMonopoly.class);
-
-    public static void main(String[] args) {
-        AGraphics.DEBUG_ENABLED = true;
-        Utils.setDebugEnabled();
-        new AWTMonopoly();
-    }
-
-    final File SAVE_FILE;
-    final File RULES_FILE;
-
-    final AWTFrame frame;
-    final UIMonopoly monopoly = new UIMonopoly() {
-        @Override
-        public void repaint() {
-            AWTMonopoly.this.repaint();
-        }
-
-        @Override
-        public int getImageId(Piece p) {
-            return pieceMap.get(p);
-        }
-
-        @Override
-        public int getBoardImageId() {
-            return Images.monopoly_board.imageId;
-        }
-
-        @Nullable
-        @Override
-        public MoveType showChooseMoveMenu(@NotNull Player player, @NotNull List<? extends MoveType> moves) {
-            final MoveType [] result = new MoveType[1];
-            final String [] strings = new String[moves.size()];
-            int index = 0;
-            for (MoveType mt : moves) {
-                switch (mt) {
-                    case PURCHASE_UNBOUGHT: {
-                        Square sq = getPurchasePropertySquare();
-                        strings[index++] = "Purchase " + Utils.toPrettyString(sq.name()) + " $" + sq.getPrice();
-                        break;
-                    }
-                    case PAY_BOND: {
-                        strings[index++] = String.format("%s $%d", Utils.toPrettyString(mt.name()), player.getJailBond());
-                        break;
-                    }
-                    default:
-                        strings[index++] = Utils.toPrettyString(mt.name());
-                        break;
-                }
-            }
-            monopoly.trySaveToFile(SAVE_FILE);
-            frame.showListChooserDialog(new AWTFrame.OnListItemChoosen() {
-                @Override
-                public void itemChoose(int index) {
-                    result[0] = moves.get(index);
-                    switch (result[0]) {
-                        case PURCHASE_UNBOUGHT:{
-                            showPropertyPopup("Purchase?", "Buy",
-                                    getPurchasePropertySquare(), () -> {
-                                        synchronized (monopoly) {
-                                            monopoly.notify();
-                                        }
-                                    }, () -> {
-                                        result[0] = null;
-                                        synchronized (monopoly) {
-                                            monopoly.notify();
-                                        }
-
-                                    }
-                            );
-                            break;
-                        }
-                        case PURCHASE: {
-                            showPropertyPopup("Purchase?", "Buy", 
-                                    player.getSquare(), () -> {
-                                        synchronized (monopoly) {
-                                            monopoly.notify();
-                                        }
-                                    }, () -> {
-                                        result[0] = null;
-                                        synchronized (monopoly) {
-                                            monopoly.notify();
-                                        }
-
-                                    }
-                            );
-                            break;
-                        }
-                        default:
-                            synchronized (monopoly) {
-                                monopoly.notify();
-                            }
-                    }
-                }
-
-                @Override
-                public void cancelled() {
-                    if (monopoly.canCancel())
-                        monopoly.cancel();
-                    else
-                        monopoly.stopGameThread();
-                    synchronized (monopoly) {
-                        monopoly.notify();
-                    }
-                }
-            }, "Choose Move " + player.getPiece(), strings);
-            Utils.waitNoThrow(monopoly, -1);
-            return result[0];
-        }
-
-        @Override
-        public Card showChooseCardMenu(final Player player, final List<Card> cards, final Player.CardChoiceType type) {
-            final Card [] result = new Card[1];
-            final String [] items = new String[cards.size()];
-            int index = 0;
-            for (Card c : cards) {
-                switch (type) {
-
-                    case CHOOSE_CARD_TO_MORTGAGE:
-                        items[index++] = Utils.toPrettyString(c.getProperty().name()) + " Mortgage $" + c.getProperty().getMortgageValue(c.houses);
-                        break;
-                    case CHOOSE_CARD_TO_UNMORTGAGE:
-                        items[index++] = Utils.toPrettyString(c.getProperty().name()) + " Buyback $" + c.getProperty().getMortgageBuybackPrice();
-                        break;
-                    case CHOOSE_CARD_FOR_NEW_UNIT:
-                        items[index++] = Utils.toPrettyString(c.getProperty().name()) + " Unit $" + c.getProperty().getUnitPrice();
-                        break;
-                }
-            }
-            frame.showListChooserDialog(new AWTFrame.OnListItemChoosen() {
-                @Override
-                public void itemChoose(int index) {
-                    result[0] = cards.get(index);
-                    synchronized (monopoly) {
-                        monopoly.notify();
-                    }
-                }
-
-                @Override
-                public void cancelled() {
-                    if (monopoly.canCancel())
-                        monopoly.cancel();
-                    else
-                        monopoly.stopGameThread();
-                    synchronized (monopoly) {
-                        monopoly.notify();
-                    }
-                }
-            }, player.getPiece() +  " " + Utils.toPrettyString(type.name()), items);
-            Utils.waitNoThrow(monopoly, -1);
-            return result[0];
-        }
-
-        @Override
-        public Trade showChooseTradeMenu(Player player, List<Trade> trades) {
-            final Trade [] result = new Trade[1];
-            frame.showListChooserDialog(new AWTFrame.OnListItemChoosen() {
-                @Override
-                public void itemChoose(int index) {
-                    final Trade t = trades.get(index);
-                    final Player trader = t.getTrader();
-                    String title = "Buy " + Utils.toPrettyString(t.getCard().getProperty().name()) + " from " + Utils.toPrettyString(trader.getPiece().name());
-                    showPropertyPopup(title, "Buy for $" +t.getPrice(), t.getCard().getProperty(), () -> {
-                        result[0] = t;
-                        synchronized (monopoly) {
-                            monopoly.notify();
-                        }
-                    }, ()->{
-                        synchronized (monopoly) {
-                            monopoly.notify();
-                        }
-                    });
-                }
-
-                @Override
-                public void cancelled() {
-                    if (monopoly.canCancel())
-                        monopoly.cancel();
-                    else
-                        monopoly.stopGameThread();
-                    synchronized (monopoly) {
-                        monopoly.notify();
-                    }
-                }
-            }, "Choose Trade" + player.getPiece(), Utils.toStringArray(trades, true));
-            Utils.waitNoThrow(monopoly, -1);
-            return result[0];
-        }
-
-        @Override
-        public boolean showMarkSellableMenu(PlayerUser user, List<Card> sellable) {
-            final AWTFrame popup = new AWTFrame();
-            final ActionListener listener = (ActionEvent e) -> {
-                synchronized (monopoly) {
-                    monopoly.notify();
-                }
-                popup.closePopup();
-            };
-            AWTPanel content = new AWTPanel(new BorderLayout());
-            AWTPanel list = new AWTPanel(0, 2);
-            for (final Card card : sellable) {
-                int price = user.getSellableCardCost(card);
-                list.add(new JLabel(card.getProperty().name()));
-                final JSpinner spinner = new JSpinner(new SpinnerNumberModel(price, 0, 2000, 50));
-                spinner.addChangeListener((ChangeEvent e) -> {
-                    user.setSellableCard(card, (Integer)spinner.getValue());
-                });
-                list.add(spinner);
-            }
-            content.add(new AWTLabel("Mark Sellable " + user.getPiece().name(), 1, 20, true), BorderLayout.NORTH);
-            content.add(list, BorderLayout.CENTER);
-            content.add(new AWTButton("DONE", listener), BorderLayout.SOUTH);
-            popup.setContentPane(content);
-            popup.showAsPopup(frame);
-            Utils.waitNoThrow(monopoly, -1);
-            return true;
-        }
-    };
-
-    public AWTFrame showPropertyPopup(String title, String yesLabel, final Square sq, final Runnable onBuyRunnable, final Runnable onDontBuyRunnble) {
-        final AWTFrame popup = new AWTFrame();
-        AWTPanel content = new AWTPanel(new BorderLayout());
-        content.add(new AWTLabel(title, 1, 20, true), BorderLayout.NORTH);
-        AWTComponent sqPanel = new AWTComponent() {
-            @Override
-            protected void paint(AWTGraphics g, int mouseX, int mouseY) {
-                monopoly.drawPropertyCard(g, sq, g.getViewportWidth(), g.getViewportHeight());
-            }
-        };
-        sqPanel.setPreferredSize(monopoly.DIM/3, monopoly.DIM/4*2);
-        content.add(sqPanel);
-        content.add(new AWTPanel(1, 2, new AWTButton(yesLabel) {
-            @Override
-            protected void onAction() {
-                popup.closePopup();
-                onBuyRunnable.run();
-            }
-        }, new AWTButton("Dont Buy") {
-            @Override
-            protected void onAction() {
-                popup.closePopup();
-                onDontBuyRunnble.run();
-            }
-        }), BorderLayout.SOUTH);
-        popup.setContentPane(content);
-        popup.showAsPopup(frame);
-        return popup;
-    }
-
-    AWTMonopoly() {
-        setMouseEnabled(true);
-        setPadding(5);
-        frame = new AWTFrame("Monopoly") {
-            /*
+		frame = object : AWTFrame("Monopoly") {
+			/*
             @Override
             protected void onWindowClosing() {
                 if (monopoly.isGameRunning())
                     monopoly.trySaveToFile(SAVE_FILE);
             }*/
+			override fun onMenuItemSelected(menu: String, subMenu: String) {
+				when (menu) {
+					"File" -> when (subMenu) {
+						"New Game" -> showListChooserDialog(object : OnListItemChoosen {
+							override fun itemChoose(item: Int) {
+								showListChooserDialog(object : OnListItemChoosen {
+									override fun itemChoose(pc: Int) {
+										monopoly.stopGameThread()
+										monopoly.initPlayers(item + 2, Piece.values()[pc])
+										monopoly.newGame()
+										monopoly.startGameThread()
+									}
 
-            @Override
-            protected void onMenuItemSelected(String menu, String subMenu) {
-                switch (menu) {
-                    case "File":
-                        switch (subMenu) {
-                            case "New Game":
-                                frame.showListChooserDialog(new OnListItemChoosen() {
-                                    @Override
-                                    public void itemChoose(final int item) {
-                                        frame.showListChooserDialog(new OnListItemChoosen() {
-                                            @Override
-                                            public void itemChoose(int pc) {
-                                                monopoly.stopGameThread();
-                                                monopoly.initPlayers(item + 2, Piece.values()[pc]);
-                                                monopoly.newGame();
-                                                monopoly.startGameThread();
-                                            }
+									override fun cancelled() {}
+								}, "Choose Piece", *Piece.values().toList().prettify())
+							}
 
-                                            @Override
-                                            public void cancelled() {}
-                                        }, "Choose Piece", Utils.toStringArray(Piece.values(), true));
+							override fun cancelled() {}
+						}, "How Many Players?", "2", "3", "4")
+						"Resume"   -> if (monopoly.tryLoadFromFile(SAVE_FILE)) {
+							monopoly.startGameThread()
+						}
+						"Rules"    -> {
+							val rules = monopoly.rules
+							val popup = AWTFrame()
+							val content = AWTPanel(BorderLayout())
+							val npStart = AWTNumberPicker.Builder().setLabel("Start $").setMin(500).setMax(1500).setStep(100).setValue(rules.startMoney).build(null)
+							val npWin = AWTNumberPicker.Builder().setLabel("Win $").setMin(2000).setMax(5000).setStep(500).setValue(rules.valueToWin).build(null)
+							val npTaxScale = AWTNumberPicker.Builder().setLabel("Tax Scale %").setMin(0).setMax(200).setStep(50).setValue(Math.round(100f * rules.taxScale)).build(null)
+							val jailBump = AWTToggleButton("Jail Bump", rules.jailBumpEnabled)
+							val jailMulti = AWTToggleButton("Jail Multiplier", rules.jailMultiplier)
+							content.addTop(AWTLabel("RULES", 1, 20f, true))
+							val buttons = AWTPanel(0, 1)
+							val pickers = AWTPanel(1, 0)
+							pickers.add(npStart)
+							pickers.add(npWin)
+							pickers.add(npTaxScale)
+							content.add(pickers)
+							content.addRight(buttons)
+							buttons.add(jailBump)
+							buttons.add(jailMulti)
+							buttons.add(object : AWTButton("Apply") {
+								override fun onAction() {
+									rules.valueToWin = npWin.value
+									rules.taxScale = 0.01f * npTaxScale.value
+									rules.startMoney = npStart.value
+									rules.jailBumpEnabled = jailBump.isSelected
+									rules.jailMultiplier = jailMulti.isSelected
+									popup.closePopup()
+									try {
+										Reflector.serializeToFile<Any>(rules, RULES_FILE)
+									} catch (e: Exception) {
+										showMessageDialog("ERROR", """Error save rules to file $RULES_FILE
+${e.javaClass.simpleName} ${e.message}""")
+									}
+								}
+							})
+							content.addBottom(object : AWTButton("Cancel") {
+								override fun onAction() {
+									popup.closePopup()
+								}
+							})
+							popup.contentPane = content
+							popup.showAsPopup(this)
+						}
+					}
+				}
+			}
+		}
+		frame.addMenuBarMenu("File", "New Game", "Resume", "Rules")
+		frame.add(this)
+		if (!frame.loadFromFile(File(settings, "monopoly.properties"))) frame.centerToScreen(800, 600)
+		if (RULES_FILE.isFile) {
+			try {
+				val rules = Reflector.deserializeFromFile<Rules>(RULES_FILE)
+				rules.copyFrom(rules)
+			} catch (e: Exception) {
+				frame.showMessageDialog("ERROR", """Failed to load rules from $RULES_FILE
+ ${e.javaClass.simpleName} ${e.message}""")
+			}
+		}
+	}
 
-                                    }
-                                    @Override
-                                    public void cancelled() {}
-                                }, "How Many Players?", "2", "3", "4");
-                                break;
-                            case "Resume":
-                                if (monopoly.tryLoadFromFile(SAVE_FILE)) {
-                                    monopoly.startGameThread();
-                                }
-                                break;
-                            case "Rules": {
-                                final Rules rules = monopoly.getRules();
-                                final AWTFrame popup = new AWTFrame();
-                                AWTPanel content= new AWTPanel(new BorderLayout());
-                                final AWTNumberPicker npStart = new AWTNumberPicker.Builder().setLabel("Start $").setMin(500).setMax(1500).setStep(100).setValue(rules.startMoney).build(null);
-                                final AWTNumberPicker npWin   = new AWTNumberPicker.Builder().setLabel("Win $").setMin(2000).setMax(5000).setStep(500).setValue(rules.valueToWin).build(null);
-                                final AWTNumberPicker npTaxScale = new AWTNumberPicker.Builder().setLabel("Tax Scale %").setMin(0).setMax(200).setStep(50).setValue(Math.round(100f * rules.taxScale)).build(null);
-                                final AWTToggleButton jailBump = new AWTToggleButton("Jail Bump", rules.jailBumpEnabled);
-                                final AWTToggleButton jailMulti = new AWTToggleButton("Jail Multiplier", rules.jailMultiplier);
-                                content.addTop(new AWTLabel("RULES", 1, 20, true));
-                                AWTPanel buttons = new AWTPanel(0, 1);
-                                AWTPanel pickers = new AWTPanel(1, 0);
-                                pickers.add(npStart);
-                                pickers.add(npWin);
-                                pickers.add(npTaxScale);
-                                content.add(pickers);
-                                content.addRight(buttons);
-                                buttons.add(jailBump);
-                                buttons.add(jailMulti);
-                                buttons.add(new AWTButton("Apply") {
-                                    @Override
-                                    protected void onAction() {
-                                        rules.valueToWin = npWin.getValue();
-                                        rules.taxScale = 0.01f * npTaxScale.getValue();
-                                        rules.startMoney = npStart.getValue();
-                                        rules.jailBumpEnabled = jailBump.isSelected();
-                                        rules.jailMultiplier = jailMulti.isSelected();
-                                        popup.closePopup();
-                                        try {
-                                            Reflector.serializeToFile(rules, RULES_FILE);
-                                        } catch (Exception e) {
-                                            frame.showMessageDialog("ERROR", "Error save rules to file " + RULES_FILE + "\n" + e.getClass().getSimpleName() + " " + e.getMessage());
-                                        }
-                                    }
-                                });
-                                content.addBottom(new AWTButton("Cancel") {
-                                    @Override
-                                    protected void onAction() {
-                                        popup.closePopup();
-                                    }
-                                });
-                                popup.setContentPane(content);
-                                popup.showAsPopup(frame);
-                                break;
-                            }
-                        }
-                }
-            }
-        };
+	val monopoly: UIMonopoly = object : UIMonopoly() {
+		override fun repaint() {
+			this@AWTMonopoly.repaint()
+		}
 
-        frame.addMenuBarMenu("File", "New Game", "Resume", "Rules");
-        frame.add(this);
+		override fun getImageId(p: Piece): Int {
+			return pieceMap[p]!!
+		}
 
-        File settings = FileUtils.getOrCreateSettingsDirectory(getClass());
-        SAVE_FILE = new File(settings, "game.save");
-        RULES_FILE = new File(settings, "rules.save");
-        if (!frame.loadFromFile(new File(settings, "monopoly.properties")))
-            frame.centerToScreen(800, 600);
-        if (RULES_FILE.isFile()) {
-            try {
-                Rules rules = Reflector.deserializeFromFile(RULES_FILE);
-                monopoly.getRules().copyFrom(rules);
-            } catch (Exception e) {
-                frame.showMessageDialog("ERROR", "Failed to load rules from " + RULES_FILE + "\n " + e.getClass().getSimpleName() + " " + e.getMessage());
-            }
-        }
-    }
+		override val boardImageId: Int
+			get() = Images.monopoly_board.boardImageId
 
+		override fun showChooseMoveMenu(player: Player, moves: List<MoveType>): MoveType? {
+			val result = arrayOfNulls<MoveType>(1)
+			val strings = arrayOfNulls<String>(moves.size)
+			var index = 0
+			for (mt in moves) {
+				when (mt) {
+					MoveType.PURCHASE_UNBOUGHT -> {
+						val sq = getPurchasePropertySquare()
+						strings[index++] = "Purchase " + prettify(sq.name) + " $" + sq.price
+					}
+					MoveType.PAY_BOND -> {
+						strings[index++] = String.format("%s $%d", prettify(mt.name), player.jailBond)
+					}
+					else                       -> strings[index++] = prettify(mt.name)
+				}
+			}
+			trySaveToFile(SAVE_FILE)
+			frame.showListChooserDialog(object : OnListItemChoosen {
+				override fun itemChoose(index: Int) {
+					result[0] = moves[index]
+					when (result[0]) {
+						MoveType.PURCHASE_UNBOUGHT -> {
+							showPropertyPopup("Purchase?", "Buy",
+								getPurchasePropertySquare(), {
+									lock.withLock { cond.signal() }
+								}
+							) {
+								result[0] = null
+								lock.withLock { cond.signal() }
+							}
+						}
+						MoveType.PURCHASE          -> {
+							showPropertyPopup("Purchase?", "Buy",
+								player.square, { lock.withLock { cond.signal() } }
+							) {
+								result[0] = null
+								lock.withLock { cond.signal() }
+							}
+						}
+						else                       -> lock.withLock { cond.signal() }
+					}
+				}
 
-    int numImagesLoaded = 0;
+				override fun cancelled() {
+					if (canCancel())
+						cancel()
+					else
+						stopGameThread()
+					lock.withLock { cond.signal() }
+				}
+			}, "Choose Move " + player.piece, *strings)
+			lock.withLock { cond.await() }
+			return result[0]
+		}
 
-    enum Images {
-        monopoly_board, car, dog, iron, ship, shoe, thimble, tophat, wheelbarrow;
+		override fun showChooseCardMenu(player: Player, cards: List<Card>, type: CardChoiceType): Card? {
+			val result = arrayOfNulls<Card>(1)
+			val items = arrayOfNulls<String>(cards.size)
+			var index = 0
+			for (c in cards) {
+				when (type) {
+					CardChoiceType.CHOOSE_CARD_TO_MORTGAGE -> items[index++] = prettify(c.property.name) + " Mortgage $" + c.property.getMortgageValue(c.houses)
+					CardChoiceType.CHOOSE_CARD_TO_UNMORTGAGE -> items[index++] = prettify(c.property.name) + " Buyback $" + c.property.mortgageBuybackPrice
+					CardChoiceType.CHOOSE_CARD_FOR_NEW_UNIT -> items[index++] = prettify(c.property.name) + " Unit $" + c.property.unitPrice
+				}
+			}
+			frame.showListChooserDialog(object : OnListItemChoosen {
+				override fun itemChoose(index: Int) {
+					result[0] = cards[index]
+					lock.withLock { cond.signal() }
+				}
 
-        int imageId;
-    }
+				override fun cancelled() {
+					if (canCancel())
+						cancel()
+					else
+						stopGameThread()
+					lock.withLock { cond.signal() }
+				}
+			}, player.piece.toString() + " " + prettify(type.name), *items)
+			lock.withLock { cond.await() }
+			return result[0]
+		}
 
-    Map<Piece, Integer> pieceMap = new HashMap<>();
+		override fun showChooseTradeMenu(player: Player, trades: List<Trade>): Trade? {
+			val result = arrayOfNulls<Trade>(1)
+			frame.showListChooserDialog(object : OnListItemChoosen {
+				override fun itemChoose(index: Int) {
+					val t = trades[index]
+					val trader = t.trader
+					val title = "Buy " + prettify(t.card.property.name) + " from " + prettify(trader.piece.name)
+					showPropertyPopup(title, "Buy for $" + t.price, t.card.property, {
+						result[0] = t
+						lock.withLock { cond.signal() }
+					}) { lock.withLock { cond.signal() } }
+				}
 
-    @Override
-    protected void init(AWTGraphics g) {
-        for (Images img : Images.values()) {
-            img.imageId = g.loadImage("images/" + img.name() + ".png");
-            numImagesLoaded++;
-        }
-        pieceMap.put(Piece.BOAT, Images.ship.imageId);
-        pieceMap.put(Piece.CAR, Images.car.imageId);
-        pieceMap.put(Piece.DOG, Images.dog.imageId);
-        pieceMap.put(Piece.HAT, Images.tophat.imageId);
-        pieceMap.put(Piece.IRON, Images.iron.imageId);
-        pieceMap.put(Piece.SHOE, Images.shoe.imageId);
-        pieceMap.put(Piece.THIMBLE, Images.thimble.imageId);
-        pieceMap.put(Piece.WHEELBARROW, Images.wheelbarrow.imageId);
-    }
+				override fun cancelled() {
+					if (canCancel())
+						cancel()
+					else
+						stopGameThread()
+					lock.withLock { cond.signal() }
+				}
+			}, "Choose Trade" + player.piece, *trades.prettify())
+			lock.withLock { cond.await() }
+			return result[0]
+		}
 
-    @Override
-    protected float getInitProgress() {
-        return (float)numImagesLoaded / Images.values().length;
-    }
+		override fun showMarkSellableMenu(user: PlayerUser, sellable: List<Card>): Boolean {
+			val popup = AWTFrame()
+			val listener = ActionListener { e: ActionEvent? ->
+				lock.withLock { cond.signal() }
+				popup.closePopup()
+			}
+			val content = AWTPanel(BorderLayout())
+			val list = AWTPanel(0, 2)
+			for (card in sellable) {
+				val price = user.getSellableCardCost(card)
+				list.add(JLabel(card.property.name))
+				val spinner = JSpinner(SpinnerNumberModel(price, 0, 2000, 50))
+				spinner.addChangeListener { e: ChangeEvent? -> user.setSellableCard(card, (spinner.value as Int)) }
+				list.add(spinner)
+			}
+			content.add(AWTLabel("Mark Sellable " + user.piece.name, 1, 20f, true), BorderLayout.NORTH)
+			content.add(list, BorderLayout.CENTER)
+			content.add(AWTButton("DONE", listener), BorderLayout.SOUTH)
+			popup.contentPane = content
+			popup.showAsPopup(frame)
+			lock.withLock { cond.await() }
+			return true
+		}
+	}
 
+	fun showPropertyPopup(title: String?, yesLabel: String?, sq: Square?, onBuyRunnable: Runnable, onDontBuyRunnble: Runnable): AWTFrame {
+		val popup = AWTFrame()
+		val content = AWTPanel(BorderLayout())
+		content.add(AWTLabel(title, 1, 20f, true), BorderLayout.NORTH)
+		val sqPanel: AWTComponent = object : AWTComponent() {
+			override fun paint(g: AWTGraphics, mouseX: Int, mouseY: Int) {
+				monopoly.drawPropertyCard(g, sq!!, g.viewportWidth.toFloat(), g.viewportHeight.toFloat())
+			}
+		}
+		sqPanel.setPreferredSize(monopoly.DIM / 3, monopoly.DIM / 4 * 2)
+		content.add(sqPanel)
+		content.add(AWTPanel(1, 2, object : AWTButton(yesLabel) {
+			override fun onAction() {
+				popup.closePopup()
+				onBuyRunnable.run()
+			}
+		}, object : AWTButton("Dont Buy") {
+			override fun onAction() {
+				popup.closePopup()
+				onDontBuyRunnble.run()
+			}
+		}), BorderLayout.SOUTH)
+		popup.contentPane = content
+		popup.showAsPopup(frame)
+		return popup
+	}
 
-    @Override
-    protected void paint(AWTGraphics g, int mouseX, int mouseY) {
-        monopoly.paint(g, mouseX, mouseY);
-    }
+	var numImagesLoaded = 0
 
+	internal enum class Images {
+		monopoly_board,
+		car,
+		dog,
+		iron,
+		ship,
+		shoe,
+		thimble,
+		tophat,
+		wheelbarrow;
+
+		var boardImageId = -1
+	}
+
+	var pieceMap: MutableMap<Piece, Int> = HashMap()
+	override fun init(g: AWTGraphics) {
+		for (img in Images.values()) {
+			img.boardImageId = g.loadImage("images/" + img.name + ".png")
+			numImagesLoaded++
+		}
+		pieceMap[Piece.BOAT] = Images.ship.boardImageId
+		pieceMap[Piece.CAR] = Images.car.boardImageId
+		pieceMap[Piece.DOG] = Images.dog.boardImageId
+		pieceMap[Piece.HAT] = Images.tophat.boardImageId
+		pieceMap[Piece.IRON] = Images.iron.boardImageId
+		pieceMap[Piece.SHOE] = Images.shoe.boardImageId
+		pieceMap[Piece.THIMBLE] = Images.thimble.boardImageId
+		pieceMap[Piece.WHEELBARROW] = Images.wheelbarrow.boardImageId
+	}
+
+	override fun getInitProgress(): Float {
+		return numImagesLoaded.toFloat() / Images.values().size
+	}
+
+	override fun paint(g: AWTGraphics, mouseX: Int, mouseY: Int) {
+		monopoly.paint(g, mouseX, mouseY)
+	}
+
+	companion object {
+		private val log = LoggerFactory.getLogger(AWTMonopoly::class.java)
+		@JvmStatic
+		fun main(args: Array<String>) {
+			AGraphics.DEBUG_ENABLED = true
+			//Utils.setDebugEnabled()
+			AWTMonopoly()
+		}
+	}
 
 }

@@ -10,6 +10,7 @@ class PlayerUser : Player() {
 	}
 
 	private val sellableCards: MutableMap<Card, Int> = HashMap()
+	var pieceChosen = false
 
 	override fun chooseMove(game: Monopoly, options: List<MoveType>): MoveType? {
 		return (game as UIMonopoly).showChooseMoveMenu(this, options)

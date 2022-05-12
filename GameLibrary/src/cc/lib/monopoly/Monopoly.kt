@@ -5,7 +5,6 @@ import cc.lib.monopoly.Card.Companion.newGetOutOfJailFreeCard
 import cc.lib.monopoly.Card.Companion.newPropertyCard
 import cc.lib.utils.*
 import java.util.*
-import kotlin.Pair
 import kotlin.math.roundToInt
 
 open class Monopoly : Reflector<Monopoly>() {
@@ -149,17 +148,18 @@ open class Monopoly : Reflector<Monopoly>() {
 					}
 					if (cur.hasGetOutOfJailFreeCard()) moves.add(MoveType.GET_OUT_OF_JAIL_FREE)
 				} else {
-					if (cur.cardsForNewHouse.size > 0) {
+					if (cur.cardsForNewHouse.isNotEmpty()) {
 						moves.add(MoveType.UPGRADE)
 					}
 				}
-				if (cur.cardsForMortgage.size > 0) {
+				if (cur.cardsForMortgage.isNotEmpty()) {
 					moves.add(MoveType.MORTGAGE)
 				}
-				if (cur.cardsForUnMortgage.size > 0) {
+				if (cur.cardsForUnMortgage.isNotEmpty()) {
 					moves.add(MoveType.UNMORTGAGE)
 				}
-				if (getTradeOptions(cur).isNotEmpty()) moves.add(MoveType.TRADE)
+				if (getTradeOptions(cur).isNotEmpty())
+					moves.add(MoveType.TRADE)
 				if (cur is PlayerUser) {
 					cur.cards.firstOrNull { it.isSellable }?.let {
 						moves.add(MoveType.MARK_CARDS_FOR_SALE)
@@ -176,7 +176,7 @@ open class Monopoly : Reflector<Monopoly>() {
 				if (cur.square.canPurchase() && cur.money >= cur.square.price) {
 					moves.add(MoveType.PURCHASE)
 				}
-				if (cur.cardsForMortgage.size > 0) {
+				if (cur.cardsForMortgage.isNotEmpty()) {
 					moves.add(MoveType.MORTGAGE)
 				}
 				moves.add(MoveType.END_TURN)
@@ -199,7 +199,7 @@ open class Monopoly : Reflector<Monopoly>() {
 					if (cur.money > 0) {
 						onPlayerGotPaid(toWhom, cur.money / (numActivePlayers - 1))
 					}
-					for (c in cur.cards) {
+					for (c in cur.cards.toList()) {
 						cur.removeCard(c)
 						getPlayer(toWhom).addCard(c)
 					}
@@ -292,7 +292,7 @@ open class Monopoly : Reflector<Monopoly>() {
 				val cards = cur.cardsForMortgage
 				val card = cur.chooseCard(this, cards, Player.CardChoiceType.CHOOSE_CARD_TO_MORTGAGE)
 				if (card != null) {
-					val mortgageAmt = card.property!!.getMortgageValue(card.houses)
+					val mortgageAmt = card.property.getMortgageValue(card.houses)
 					onPlayerMortgaged(currentPlayerNum, card.property, mortgageAmt)
 					cur.addMoney(mortgageAmt)
 					card.isMortgaged = true
@@ -305,7 +305,7 @@ open class Monopoly : Reflector<Monopoly>() {
 				val cards = cur.cardsForUnMortgage
 				val card = cur.chooseCard(this, cards, Player.CardChoiceType.CHOOSE_CARD_TO_UNMORTGAGE)
 				if (card != null) {
-					val buyBackAmt: Int = card.property!!.mortgageBuybackPrice
+					val buyBackAmt: Int = card.property.mortgageBuybackPrice
 					onPlayerUnMortgaged(currentPlayerNum, card.property, buyBackAmt)
 					cur.addMoney(-buyBackAmt)
 					card.isMortgaged = false
@@ -317,11 +317,11 @@ open class Monopoly : Reflector<Monopoly>() {
 				val cards = cur.cardsForNewHouse
 				val card = cur.chooseCard(this, cards, Player.CardChoiceType.CHOOSE_CARD_FOR_NEW_UNIT)
 				if (card != null) {
-					val houseCost: Int = card.property!!.unitPrice
+					val houseCost: Int = card.property.unitPrice
 					if (card.houses < 4) {
-						onPlayerBoughtHouse(currentPlayerNum, card.property!!, houseCost)
+						onPlayerBoughtHouse(currentPlayerNum, card.property, houseCost)
 					} else {
-						onPlayerBoughtHotel(currentPlayerNum, card.property!!, houseCost)
+						onPlayerBoughtHotel(currentPlayerNum, card.property, houseCost)
 					}
 					cur.addMoney(-houseCost)
 					card.houses++
@@ -334,7 +334,7 @@ open class Monopoly : Reflector<Monopoly>() {
 				assertTrue(trades.isNotEmpty())
 				val trade = cur.chooseTrade(this, trades)
 				if (trade != null) {
-					onPlayerTrades(currentPlayerNum, getPlayerNum(trade.trader), trade.card.property!!, trade.price)
+					onPlayerTrades(currentPlayerNum, getPlayerNum(trade.trader), trade.card.property, trade.price)
 					cur.addMoney(-trade.price)
 					trade.trader.addMoney(trade.price)
 					trade.trader.removeCard(trade.card)
@@ -345,7 +345,7 @@ open class Monopoly : Reflector<Monopoly>() {
 			State.CHOOSE_CARDS_FOR_SALE -> {
 				val cur = getCurrentPlayer()
 				val sellable = cur.cardsForSale
-				assertTrue(sellable.size > 0)
+				assertTrue(sellable.isNotEmpty())
 				if (cur.markCardsForSale(this, sellable)) {
 					popState()
 				}
@@ -470,7 +470,7 @@ open class Monopoly : Reflector<Monopoly>() {
 				onPlayerPurchaseProperty(currentPlayerNum, sq)
 				cur.addCard(newPropertyCard(sq))
 				cur.addMoney(-sq.price)
-				while (state.size > 0 && state.peek().state == State.CHOOSE_PURCHASE_PROPERTY) {
+				while (state.isNotEmpty() && state.peek().state == State.CHOOSE_PURCHASE_PROPERTY) {
 					popState()
 				}
 			}
@@ -1026,8 +1026,8 @@ open class Monopoly : Reflector<Monopoly>() {
 	 * @param property
 	 * @param amt
 	 */
-	protected open fun onPlayerMortgaged(playerNum: Int, property: Square?, amt: Int) {
-		log.info("%s mortgaged property %s for $%d", getPlayerName(playerNum), property!!.name, amt)
+	protected open fun onPlayerMortgaged(playerNum: Int, property: Square, amt: Int) {
+		log.info("%s mortgaged property %s for $%d", getPlayerName(playerNum), property.name, amt)
 	}
 
 	/**
@@ -1036,8 +1036,8 @@ open class Monopoly : Reflector<Monopoly>() {
 	 * @param property
 	 * @param amt
 	 */
-	protected open fun onPlayerUnMortgaged(playerNum: Int, property: Square?, amt: Int) {
-		log.info("%s unmortaged %s for $%d", getPlayerName(playerNum), property!!.name, amt)
+	protected open fun onPlayerUnMortgaged(playerNum: Int, property: Square, amt: Int) {
+		log.info("%s unmortaged %s for $%d", getPlayerName(playerNum), property.name, amt)
 	}
 
 	/**
@@ -1056,7 +1056,7 @@ open class Monopoly : Reflector<Monopoly>() {
 	 * @param amt
 	 */
 	protected open fun onPlayerBoughtHouse(playerNum: Int, property: Square, amt: Int) {
-		log.info("%s bought a HOUSE for property %s for $%d", getPlayerName(playerNum), property!!.name, amt)
+		log.info("%s bought a HOUSE for property %s for $%d", getPlayerName(playerNum), property.name, amt)
 	}
 
 	/**
@@ -1066,7 +1066,7 @@ open class Monopoly : Reflector<Monopoly>() {
 	 * @param amt
 	 */
 	protected open fun onPlayerBoughtHotel(playerNum: Int, property: Square, amt: Int) {
-		log.info("%s bought a HOTEL for property %s for $%d", getPlayerName(playerNum), property!!.name, amt)
+		log.info("%s bought a HOTEL for property %s for $%d", getPlayerName(playerNum), property.name, amt)
 	}
 
 	/**

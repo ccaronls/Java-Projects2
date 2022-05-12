@@ -69,7 +69,11 @@ public abstract class DroidGraphics extends APGraphics {
     }
 
     public void setTextModePixels(boolean textModePixels) {
-        this.textModePixels = textModePixels;
+        if (this.textModePixels != textModePixels) {
+            float h = getTextHeight();
+            this.textModePixels = textModePixels;
+            setTextHeight(h);
+        }
     }
 
     public void setLineThicknessModePixels(boolean lineThicknessModePixels) {

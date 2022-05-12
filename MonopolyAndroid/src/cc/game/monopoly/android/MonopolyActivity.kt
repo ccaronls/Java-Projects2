@@ -1,582 +1,497 @@
-package cc.game.monopoly.android;
+package cc.game.monopoly.android
 
-import android.Manifest;
-import android.app.AlertDialog;
-import android.app.Dialog;
-import android.content.DialogInterface;
-import android.graphics.Point;
-import android.graphics.Typeface;
-import android.os.Bundle;
-import android.view.Display;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.WindowManager;
-import android.widget.AdapterView;
-import android.widget.BaseAdapter;
-import android.widget.CompoundButton;
-import android.widget.GridLayout;
-import android.widget.ImageButton;
-import android.widget.ListView;
-import android.widget.NumberPicker;
-import android.widget.TextView;
-
-import java.io.File;
-import java.util.List;
-
-import cc.lib.android.CCNumberPicker;
-import cc.lib.android.DroidActivity;
-import cc.lib.android.DroidGraphics;
-import cc.lib.android.DroidView;
-import cc.lib.game.AGraphics;
-import cc.lib.game.Utils;
-import cc.lib.monopoly.Card;
-import cc.lib.monopoly.Monopoly;
-import cc.lib.monopoly.MoveType;
-import cc.lib.monopoly.Piece;
-import cc.lib.monopoly.Player;
-import cc.lib.monopoly.PlayerUser;
-import cc.lib.monopoly.Rules;
-import cc.lib.monopoly.Square;
-import cc.lib.monopoly.Trade;
-import cc.lib.monopoly.UIMonopoly;
-import cc.lib.utils.FileUtils;
+import android.Manifest
+import android.app.AlertDialog
+import android.app.Dialog
+import android.content.DialogInterface
+import android.graphics.Point
+import android.graphics.Typeface
+import android.os.Bundle
+import android.view.View
+import android.view.ViewGroup
+import android.widget.*
+import android.widget.AdapterView.OnItemClickListener
+import cc.lib.android.CCNumberPicker
+import cc.lib.android.DroidActivity
+import cc.lib.android.DroidGraphics
+import cc.lib.android.DroidView
+import cc.lib.game.AGraphics
+import cc.lib.monopoly.*
+import cc.lib.monopoly.Player.CardChoiceType
+import cc.lib.utils.FileUtils
+import cc.lib.utils.prettify
+import java.io.File
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
+import kotlin.math.roundToInt
 
 /**
  * Created by chriscaron on 2/15/18.
  */
+class MonopolyActivity : DroidActivity() {
+	private var saveFile: File? = null
 
-public class MonopolyActivity extends DroidActivity {
+	private val monopoly: UIMonopoly = object : UIMonopoly() {
+		override fun repaint() {
+			redraw()
+		}
 
-    private final static String TAG = MonopolyActivity.class.getSimpleName();
+		override fun runGame() {
+			trySaveToFile(saveFile)
+			if (BuildConfig.DEBUG) {
+				FileUtils.tryCopyFile(saveFile, externalStorageDirectory)
+			}
+			super.runGame()
+		}
 
-    private File saveFile=null;
+		override fun getImageId(p: Piece): Int = when (p) {
+				Piece.CAR -> R.drawable.car
+				Piece.BOAT -> R.drawable.ship
+				Piece.HAT -> R.drawable.tophat
+				Piece.DOG -> R.drawable.dog
+				Piece.THIMBLE -> R.drawable.thimble
+				Piece.SHOE -> R.drawable.shoe
+				Piece.WHEELBARROW -> R.drawable.wheelbarrow
+				Piece.IRON -> R.drawable.iron
+			}
 
-    Monopoly copy = null;
+		override val boardImageId: Int = R.drawable.board
 
-    private UIMonopoly monopoly = new UIMonopoly() {
-        @Override
-        public void repaint() {
-            redraw();
-        }
+		override fun showChooseMoveMenu(player: Player, moves: List<MoveType>): MoveType? {
+			val lock = ReentrantLock()
+			val cond = lock.newCondition()
+			val items =Array(moves.size) { index ->
+				when (moves[index]) {
+					MoveType.PURCHASE_UNBOUGHT -> {
+						val sq = getPurchasePropertySquare()
+						"Purchase ${prettify(sq.name)}  for $${sq.price}"
+					}
+					MoveType.PAY_BOND -> "${prettify(moves[index])} \$${player.jailBond}"
+					else -> prettify(moves[index])
+				}
+			}
+			val result = arrayOfNulls<MoveType>(1)
+			runOnUiThread {
+				newDialogBuilderINGAME().setTitle("${prettify(player.piece.name)} Choose Move ")
+					.setItems(items) { _, which: Int ->
+						when (val mt: MoveType = moves[which]) {
+							MoveType.PURCHASE_UNBOUGHT -> {
+								val property: Square = getPurchasePropertySquare()
+								showPurchasePropertyDialog("Buy Property", "Buy", property) {
+									result[0] = mt
+									lock.withLock { cond.signal() }
+								}
+							}
+							MoveType.PURCHASE          -> {
+								val property: Square = player.square
+								showPurchasePropertyDialog("Buy Property", "Buy", property) {
+									result[0] = mt
+									lock.withLock { cond.signal() }
+								}
+							}
+							else                       -> {
+								result[0] = mt
+								lock.withLock { cond.signal() }
+							}
+						}
+					}.setNegativeButton("Exit") { _, _ ->
+						if (canCancel()) {
+							cancel()
+						} else {
+							stopGameThread()
+						}
+						lock.withLock { cond.signal() }
+					}.show()
+			}
+			lock.withLock { cond.await() }
+			return result[0]
+		}
 
-        @Override
-        public void runGame() {
-            monopoly.trySaveToFile(saveFile);
-            if (BuildConfig.DEBUG) {
-                FileUtils.tryCopyFile(saveFile, getExternalStorageDirectory());
-            }
-            super.runGame();
-        }
+		override fun showChooseCardMenu(player: Player, cards: List<Card>, type: CardChoiceType): Card? {
+			val lock = ReentrantLock()
+			val cond = lock.newCondition()
+			val items = cards.prettify()
+			val result = arrayOfNulls<Card>(1)
+			runOnUiThread {
+				newDialogBuilderINGAME().setTitle(player.piece.toString() + prettify(type.name))
+					.setItems(items) { _, which: Int ->
+						result[0] = cards.get(which)
+						lock.withLock { cond.signal() }
+					}.setNegativeButton(R.string.popup_button_cancel) { _, which: Int ->
+						if (canCancel()) {
+							cancel()
+						} else {
+							stopGameThread()
+						}
+						lock.withLock { cond.signal() }
+					}.show()
+			}
+			lock.withLock { cond.await() }
+			return result[0]
+		}
 
-        @Override
-        public int getImageId(Piece p) {
-            switch (p) {
+		override fun showChooseTradeMenu(player: Player, list: List<Trade>): Trade? {
+			val lock = ReentrantLock()
+			val cond = lock.newCondition()
+			val items = list.prettify()
+			val result = arrayOfNulls<Trade>(1)
+			runOnUiThread {
+				newDialogBuilderINGAME().setTitle("${player.piece} Choose Trade")
+					.setItems(items) { _, which: Int ->
+						val t: Trade = list[which]
+						showPurchasePropertyDialog("Buy ${prettify(t.card.property.name)} from ${prettify(t.trader.piece.name)}",
+							"Buy for $${t.price}", t.card.property) {
+							result[0] = t
+							lock.withLock { cond.signal() }
+						}
+					}.show()
+			}
+			lock.withLock { cond.await() }
+			return result[0]
+		}
 
-                case CAR:
-                    return R.drawable.car;
-                case BOAT:
-                    return R.drawable.ship;
-                case HAT:
-                    return R.drawable.tophat;
-                case DOG:
-                    return R.drawable.dog;
-                case THIMBLE:
-                    return R.drawable.thimble;
-                case SHOE:
-                    return R.drawable.shoe;
-                case WHEELBARROW:
-                    return R.drawable.wheelbarrow;
-                case IRON:
-                    return R.drawable.iron;
-            }
-            return 0;
-        }
+		private fun openMarkSaleableMenu(playerUser: PlayerUser, list: List<Card>) {
+			val view = ListView(this@MonopolyActivity)
+			view.adapter = object : BaseAdapter() {
+				override fun getCount(): Int {
+					return list.size
+				}
 
-        @Override
-        public int getBoardImageId() {
-            return R.drawable.board;
-        }
+				override fun getItem(position: Int): Any {
+					return list.get(position)
+				}
 
-        @Override
-        protected MoveType showChooseMoveMenu(final Player player, final List<MoveType> moves) {
+				override fun getItemId(position: Int): Long {
+					return position.toLong()
+				}
 
-            final String [] items = new String[moves.size()];
-            int index=0;
-            for (MoveType mt : moves) {
-                switch (mt) {
-                    case PURCHASE_UNBOUGHT: {
-                        Square sq = getPurchasePropertySquare();
-                        items[index++] = "Purchase " + Utils.toPrettyString(sq.name()) + " for $" + sq.getPrice();
-                        break;
-                    }
-                    default:
-                        items[index++] = Utils.toPrettyString(mt.name());
-                        break;
-                }
-            }
-            final MoveType [] result = new MoveType[1];
-            runOnUiThread(() ->{
-                    newDialogBuilderINGAME().setTitle(Utils.toPrettyString(player.getPiece().name()) + " Choose Move ")
-                            .setItems(items, (DialogInterface dialog, int which) -> {
-                                    final MoveType mt = moves.get(which);
-                                    switch (mt) {
-                                        case PURCHASE_UNBOUGHT: {
-                                            Square property = getPurchasePropertySquare();
-                                            showPurchasePropertyDialog("Buy Property", "Buy", property,  () -> { result[0] = mt; });
-                                            break;
-                                        }
-                                        case PURCHASE:
-                                            Square property = player.getSquare();
-                                            showPurchasePropertyDialog("Buy Property", "Buy", property, () -> { result[0] = mt; });
-                                            break;
-                                        default:
-                                            result[0] = mt;
-                                            synchronized (monopoly) {
-                                                monopoly.notify();
-                                            }
+				override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+					val v = convertView?:View.inflate(this@MonopolyActivity, R.layout.mark_sellable_listitem, null)
+					val card: Card = list.get(position)
+					val tvLabel: TextView = v.findViewById(R.id.tvLabel)
+					val tvCost: TextView = v.findViewById(R.id.tvCost)
+					tvLabel.text = prettify(card.property.name)
+					val cost: Int = playerUser.getSellableCardCost(card)
+					tvCost.text = if (cost <= 0) "Not For Sale" else cost.toString()
+					return v
+				}
+			}
+			view.onItemClickListener = OnItemClickListener { _: AdapterView<*>?, _: View?, position: Int, id: Long ->
+				val card = list[position]
+				val cost = playerUser.getSellableCardCost(card)
+				val STEP = 50
+				val np: NumberPicker = CCNumberPicker.newPicker(this@MonopolyActivity, cost, 0, 5000, STEP, null)
+				newDialogBuilderINGAME().setTitle("Set Cost for " + card.property.name)
+					.setView(np).setNeutralButton("Done") { _: DialogInterface?, _: Int ->
+						playerUser.setSellableCard(card, np.value * STEP)
+						openMarkSaleableMenu(playerUser, list)
+					}.show()
+			}
+			newDialogBuilderINGAME()
+				.setTitle("${playerUser.piece} Mark Saleable")
+				.setView(view).setNeutralButton("Done") { _,_ -> lock.withLock { cond.signal() } }
+				.show()
+		}
 
-                                    }
-                            }).setNegativeButton("Exit", (DialogInterface dialog, int which) -> {
-                            if (monopoly.canCancel()) {
-                                monopoly.cancel();
-                            } else {
-                                monopoly.stopGameThread();
-                            }
-                            synchronized (monopoly) {
-                                monopoly.notify();
-                            }
-                    }).show();
+		override fun showMarkSellableMenu(playerUser: PlayerUser, list: List<Card>): Boolean {
+			runOnUiThread { openMarkSaleableMenu(playerUser, list) }
+			lock.withLock { cond.await() }
+			return true
+		}
 
-            });
-            Utils.waitNoThrow(monopoly, -1);
-            return result[0];
-        }
+		override fun onError(t: Throwable?) {
+			t?.printStackTrace()
+			FileUtils.tryCopyFile(saveFile, File(externalStorageDirectory, "monopoly_error.txt"))
+			stopGameThread()
+			runOnUiThread {
+				newDialogBuilder().setTitle(R.string.popup_title_error)
+					.setMessage(t.toString())
+					.setNegativeButton(R.string.popup_button_ok, null)
+					.show()
+			}
+		}
 
-        @Override
-        protected Card showChooseCardMenu(final Player player, final List<Card> cards, final Player.CardChoiceType type) {
-            final String [] items = Utils.toStringArray(cards, true);
-            final Card [] result = new Card[1];
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    newDialogBuilderINGAME().setTitle(player.getPiece() + Utils.toPrettyString(type.name()))
-                            .setItems(items, (DialogInterface dialog, int which) -> {
-                                    result[0] = cards.get(which);
-                                    synchronized (monopoly) {
-                                        monopoly.notify();
-                                    }
-                            }).setNegativeButton("Cancel", (DialogInterface dialog, int which) -> {
-                                if (monopoly.canCancel()) {
-                                    monopoly.cancel();
-                                } else {
-                                    monopoly.stopGameThread();
-                                }
-                                synchronized (monopoly) {
-                                    monopoly.notify();
-                                }
-                        }).show();
-                }
-            });
-            Utils.waitNoThrow(monopoly, -1);
-            return result[0];
-        }
+		override fun drawPropertyCard(g: AGraphics, property: Square, w: Float, h: Float) {
+			//(g as DroidGraphics).textHeight = resources.getDimension(R.dimen.dialog_purchase_text_size)
+			with (g as DroidGraphics) {
+				//textHeight = resources.getDimension(R.dimen.dialog_purchase_text_size)
+				paint.typeface = Typeface.DEFAULT_BOLD
+			}
 
-        @Override
-        protected Trade showChooseTradeMenu(final Player player, final List<Trade> list) {
-            final String [] items = Utils.toStringArray(list, true);
-            final Trade [] result = new Trade[1];
-            runOnUiThread(() -> {
-                    newDialogBuilderINGAME().setTitle(player.getPiece() + " Choose Trade")
-                            .setItems(items, (DialogInterface dialog, int which) -> {
-                                    final Trade t = list.get(which);
-                                    showPurchasePropertyDialog("Buy " + Utils.toPrettyString(t.getCard().getProperty().name()) + " from " + Utils.toPrettyString(t.getTrader().getPiece().name()),
-                                            "Buy for $" + t.getPrice(), t.getCard().getProperty(), () -> { result[0] = t; });
+			super.drawPropertyCard(g, property, w, h)
+		}
+	}
 
-                            }).show();
-            });
-            Utils.waitNoThrow(monopoly, -1);
-            return result[0];
-        }
+	fun newDialogBuilderINGAME(): AlertDialog.Builder {
+		val builder = super.newDialogBuilder()
+		if (monopoly.canCancel()) {
+			builder.setNegativeButton(R.string.popup_button_cancel) { _, _ ->
+				monopoly.cancel()
+			}
+		} else {
+			builder.setNegativeButton("Exit") { _, _ -> monopoly.stopGameThread() }
+		}
+		return builder
+	}
 
-        private void openMarkSellableMenu(final PlayerUser playerUser, final List<Card> list) {
-            ListView view = new ListView(MonopolyActivity.this);
-            view.setAdapter(new BaseAdapter() {
-                @Override
-                public int getCount() {
-                    return list.size();
-                }
+	fun showPurchasePropertyDialog(title: String, buyLabel: String, property: Square, onBuyRunnable: Runnable) {
+		newDialogBuilder().setTitle(title).setView(object : DroidView(this, false) {
+			override fun onPaint(g: DroidGraphics) {
+				g.setTextModePixels(false)
+				g.textHeight = 16f
+				g.setTextModePixels(true)
+				monopoly.drawPropertyCard(g, property, g.viewportWidth.toFloat(), g.viewportHeight.toFloat())
+			}
 
-                @Override
-                public Object getItem(int position) {
-                    return list.get(position);
-                }
+			override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+				when (MeasureSpec.getMode(widthMeasureSpec)) {
+					MeasureSpec.AT_MOST, MeasureSpec.EXACTLY -> {
+						val width = MeasureSpec.getSize(widthMeasureSpec)
+						setMeasuredDimension(width, width * 3 / 2)
+						return
+					}
+				}
+				super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+			}
+		}).setNegativeButton("Don't Buy", null)
+		.setPositiveButton(buyLabel) { _, _ ->
+			onBuyRunnable.run()
+		}.show()
+	}
 
-                @Override
-                public long getItemId(int position) {
-                    return position;
-                }
+	override fun onCreate(savedInstanceState: Bundle?) {
+		super.onCreate(savedInstanceState)
+		//AndroidLogger.setLogFile(new File(getExternalStorageDirectory(), "monopoly.log"));
+		saveFile = File(filesDir, "monopoly.save")
+		checkPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+	}
 
-                @Override
-                public View getView(int position, View v, ViewGroup parent) {
-                    if (v == null) {
-                        v = View.inflate(MonopolyActivity.this, R.layout.mark_sellable_listitem, null);
-                    }
-                    Card card = list.get(position);
-                    TextView tvLabel = v.findViewById(R.id.tvLabel);
-                    TextView tvCost  = v.findViewById(R.id.tvCost);
-                    tvLabel.setText(Utils.toPrettyString(card.getProperty().name()));
-                    int cost = playerUser.getSellableCardCost(card);
-                    tvCost.setText(cost <= 0 ? "Not For Sale" : String.valueOf(cost));
-                    return v;
-                }
-            });
-            view.setOnItemClickListener((AdapterView<?> parent, View adapterView, final int position, long id) -> {
-                    final Card card = list.get(position);
-                    int cost = playerUser.getSellableCardCost(card);
-                    final int STEP = 50;
-                    final NumberPicker np = CCNumberPicker.newPicker(MonopolyActivity.this, cost, 0, 5000, STEP, null);
-                    newDialogBuilderINGAME().setTitle("Set Cost for " + card.getProperty().name())
-                            .setView(np).setNeutralButton("Done", (DialogInterface dialog, int which) -> {
-                            playerUser.setSellableCard(card, np.getValue()*STEP);
-                            openMarkSellableMenu(playerUser, list);
+	override fun onResume() {
+		super.onResume()
+		monopoly.repaint()
+		if (saveFile!!.exists()) {
+			showOptionsMenu()
+		} else {
+			showPlayerSetupMenu()
+		}
+	}
 
-                    }).show();
+	override fun onPause() {
+		super.onPause()
+		if (monopoly.isGameRunning) {
+			monopoly.stopGameThread()
+		}
+	}
 
-            });
-            newDialogBuilderINGAME().setTitle(playerUser.getPiece() + " Mark Sellable").setView(view).setNeutralButton("Done", (DialogInterface dialog, int which) -> {
-                    synchronized (monopoly) {
-                        monopoly.notify();
-                    }
-            }).show();
-        }
+	override fun shouldDialogAddBackButton(): Boolean {
+		return !monopoly.isGameRunning
+	}
 
-        @Override
-        protected boolean showMarkSellableMenu(final PlayerUser playerUser, final List<Card> list) {
-            runOnUiThread(() -> { openMarkSellableMenu(playerUser, list); });
-            Utils.waitNoThrow(monopoly, -1);
-            return true;
-        }
+	var tx = -1
+	var ty = -1
+	var dragging = false
+	override fun onDraw(g: DroidGraphics) {
+		g.setTextModePixels(false)
+		g.textHeight = 16f
+		g.setTextModePixels(true)
+		monopoly.paint(g, tx, ty)
+	}
 
-        @Override
-        protected void onError(final Throwable t) {
-            t.printStackTrace();
-            FileUtils.tryCopyFile(saveFile, new File(getExternalStorageDirectory(), "monopoly_error.txt"));
-            stopGameThread();
-            runOnUiThread(() -> { newDialogBuilder().setTitle("ERROR").setMessage(t.toString()).setNegativeButton("Ok", null).show(); });
-        }
+	override fun onTouchDown(x: Float, y: Float) {
+		tx = x.roundToInt()
+		ty = y.roundToInt()
+		redraw()
+	}
 
-        @Override
-        public void drawPropertyCard(AGraphics g, Square property, float w, float h) {
-            ((DroidGraphics)g).setTextHeight(getResources().getDimension(R.dimen.dialog_purchase_text_size));
-            ((DroidGraphics)g).getPaint().setTypeface(Typeface.DEFAULT_BOLD);
-            super.drawPropertyCard(g, property, w, h);
-        }
-    };
+	override fun onTouchUp(x: Float, y: Float) {
+		if (dragging) {
+			monopoly.stopDrag()
+			dragging = false
+		}
+		tx = -1 //Math.round(x);
+		ty = -1 //Math.round(y);
+		redraw()
+	}
 
-    AlertDialog.Builder newDialogBuilderINGAME() {
-        AlertDialog.Builder builder = super.newDialogBuilder();
-        if (monopoly.canCancel()) {
-            builder.setNegativeButton("Cancel", (dialog, which) -> {
-                monopoly.cancel();
-                synchronized (monopoly) {
-                    monopoly.notify();
-                }
-            });
-        } else {
-            builder.setNegativeButton("Exit", (dialog, which) -> { monopoly.stopGameThread(); });
-        }
-        return builder;
-    }
+	override fun onDrag(x: Float, y: Float) {
+		if (!dragging) {
+			monopoly.startDrag()
+			dragging = true
+		}
+		tx = x.roundToInt()
+		ty = y.roundToInt()
+		redraw()
+	}
 
-    void showPurchasePropertyDialog(String title, String buyLabel, final Square property, final Runnable onBuyRunnable) {
-        newDialogBuilder().setTitle(title).setView(new DroidView(this, false) {
-            @Override
-            protected void onPaint(DroidGraphics g) {
-                monopoly.drawPropertyCard(g, property, g.getViewportWidth(), g.getViewportHeight());
-            }
-
-            @Override
-            protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-                switch (MeasureSpec.getMode(widthMeasureSpec)) {
-                    case MeasureSpec.AT_MOST:
-                    case MeasureSpec.EXACTLY:
-                        int width = MeasureSpec.getSize(widthMeasureSpec);
-                        setMeasuredDimension(width, width*3/2);
-                        return;
-                }
-                super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-            }
-        }).setNegativeButton("Don't Buy", (DialogInterface dialog, int which) -> {
-                synchronized (monopoly) {
-                    monopoly.notify();
-                }
-        }).setPositiveButton(buyLabel, (DialogInterface dialog, int which) -> {
-                onBuyRunnable.run();
-                synchronized (monopoly) {
-                    monopoly.notify();
-                }
-        }).show();
-    }
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        //AndroidLogger.setLogFile(new File(getExternalStorageDirectory(), "monopoly.log"));
-        saveFile = new File(getFilesDir(),"monopoly.save");
-        checkPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE);
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        monopoly.repaint();
-        if (saveFile.exists()) {
-            showOptionsMenu();
-        } else {
-            showPlayerSetupMenu();
-        }
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        if (monopoly.isGameRunning()) {
-            monopoly.stopGameThread();
-        }
-    }
-
-    @Override
-    protected boolean shouldDialogAddBackButton() {
-        return !monopoly.isGameRunning();
-    }
-
-    int tx=-1, ty=-1;
-    boolean dragging = false;
-
-    @Override
-    protected void onDraw(DroidGraphics g) {
-        synchronized (this) {
-            monopoly.paint(g, tx, ty);
-        }
-    }
-
-    @Override
-    protected void onTouchDown(float x, float y) {
-        tx = Math.round(x);
-        ty = Math.round(y);
-        redraw();
-    }
-
-    @Override
-    protected void onTouchUp(float x, float y) {
-        if (dragging) {
-            monopoly.stopDrag();
-            dragging = false;
-        }
-        tx = -1;//Math.round(x);
-        ty = -1;//Math.round(y);
-        redraw();
-    }
-
-    @Override
-    protected void onDrag(float x, float y) {
-        if (!dragging) {
-            monopoly.startDrag();
-            dragging = true;
-        }
-        tx = Math.round(x);
-        ty = Math.round(y);
-        redraw();
-    }
-
-    @Override
-    protected void onTap(float x, float y) {
-        tx = Math.round(x);
-        ty = Math.round(y);
-        /*
+	override fun onTap(x: Float, y: Float) {
+		tx = x.roundToInt()
+		ty = y.roundToInt()
+		/*
         redraw();
         getContent().postDelayed(new Runnable() {
             public void run() {
                 tx = ty = -1;
                 monopoly.onClick();
             }
-        }, 100);*/
-        if (!monopoly.isGameRunning()) {
-            if (saveFile.exists()) {
-                showOptionsMenu();
-            } else {
-                showPlayerSetupMenu();
-            }
-        } else {
-            monopoly.onClick();
-            for (int i=0; i<monopoly.getNumPlayers(); i++) {
-                if (monopoly.getPlayer(i) instanceof PlayerUser)
-                    return;
-            }
-            monopoly.stopGameThread();
-        }
-    }
+        }, 100);*/if (!monopoly.isGameRunning) {
+			if (saveFile!!.exists()) {
+				showOptionsMenu()
+			} else {
+				showPlayerSetupMenu()
+			}
+		} else {
+			monopoly.onClick()
+			for (i in 0 until monopoly.numPlayers) {
+				if (monopoly.getPlayer(i) is PlayerUser) return
+			}
+			monopoly.stopGameThread()
+		}
+	}
 
-    void showOptionsMenu() {
-        File fixed = new File(getExternalStorageDirectory(), "monopoly_fixed.txt");
-        if (fixed.exists()) {
-            FileUtils.tryCopyFile(fixed, saveFile);
-            fixed.delete();
-        }
+	fun showOptionsMenu() {
+		val fixed = File(externalStorageDirectory, "monopoly_fixed.txt")
+		if (fixed.exists()) {
+			FileUtils.tryCopyFile(fixed, saveFile)
+			fixed.delete()
+		}
+		newDialogBuilder().setTitle("OPTIONS")
+			.setItems(arrayOf("New Game", "Resume")) { _, which: Int ->
+				when (which) {
+					0 -> showGameSetupDialog()
+					1 -> if (monopoly.tryLoadFromFile(saveFile)) {
+						monopoly.repaint()
+						monopoly.startGameThread()
+					} else {
+						saveFile!!.delete()
+						newDialogBuilder().setTitle("ERROR").setMessage("Unable to load from save game.")
+							.setNegativeButton("Ok") { _, _ -> showGameSetupDialog() }.show()
+					}
+				}
+			}.show()
+	}
 
-        newDialogBuilder().setTitle("OPTIONS")
-                .setItems(new String[]{"New Game", "Resume"}, (DialogInterface dialog, int which) -> {
-                        switch (which) {
-                            case 0:
-                                showGameSetupDialog();
-                                break;
-                            case 1:
-                                if (monopoly.tryLoadFromFile(saveFile)) {
-                                    monopoly.repaint();
-                                    monopoly.startGameThread();
-                                } else {
-                                    saveFile.delete();
-                                    newDialogBuilder().setTitle("ERROR").setMessage("Unable to load from save game.")
-                                            .setNegativeButton("Ok", (DialogInterface dialog2, int which2) -> { showGameSetupDialog(); }).show();
-                                }
-                        }
+	fun showPlayerSetupMenu() {
+		val v = View.inflate(this, R.layout.players_setup_dialog, null)
+		val realPlayers = v.findViewById<View>(R.id.npLivePlayers) as NumberPicker
+		val compPlayers = v.findViewById<View>(R.id.npCompPlayers) as NumberPicker
+		realPlayers.minValue = 0
+		realPlayers.maxValue = Monopoly.MAX_PLAYERS
+		realPlayers.value = 1
+		compPlayers.minValue = 0
+		compPlayers.maxValue = Monopoly.MAX_PLAYERS
+		compPlayers.value = 1
+		realPlayers.setOnValueChangedListener { _, _, newVal: Int ->
+			val total: Int = newVal + compPlayers.value
+			if (total > Monopoly.MAX_PLAYERS) {
+				compPlayers.setValue(compPlayers.value - 1)
+			} else if (total < 2) {
+				compPlayers.setValue(compPlayers.value + 1)
+			}
+		}
+		compPlayers.setOnValueChangedListener { _, _, newVal: Int ->
+			val total: Int = newVal + realPlayers.value
+			if (total > Monopoly.MAX_PLAYERS) {
+				realPlayers.setValue(realPlayers.value - 1)
+			} else if (total < 2) {
+				realPlayers.setValue(realPlayers.value + 1)
+			}
+		}
+		newDialogBuilder().setTitle("NEW GAME").setView(v)
+			.setPositiveButton("Start") { _, _ ->
+				monopoly.clear()
+				for (i in 0 until realPlayers.value) monopoly.addPlayer(PlayerUser())
+				for (i in 0 until compPlayers.value) monopoly.addPlayer(Player())
+				showPieceChooser {
+					monopoly.newGame()
+					monopoly.startGameThread()
+				}
+			}.show()
+	}
 
-                }).show();
+	fun showGameSetupDialog() {
+		val startMoneyValues = resources.getIntArray(R.array.start_money_values)
+		val winMoneyValues = resources.getIntArray(R.array.win_money_values)
+		val taxPercentValues = resources.getIntArray(R.array.tax_scale_percent_values)
+		val v = View.inflate(this, R.layout.game_config_dialog, null)
+		val npStartMoney = v.findViewById<View>(R.id.npStartMoney) as CCNumberPicker
+		val npWinMoney = v.findViewById<View>(R.id.npWinMoney) as CCNumberPicker
+		val npTaxScale = v.findViewById<View>(R.id.npTaxScale) as CCNumberPicker
+		val cbJailBumpEnabled = v.findViewById<View>(R.id.cbJailBumpEnabled) as CompoundButton
+		val startMoney = prefs.getInt("startMoney", 1000)
+		val winMoney = prefs.getInt("winMoney", 5000)
+		val taxPercent = prefs.getInt("taxPercent", 100)
+		val jailBump = prefs.getBoolean("jailBump", false)
+		val rules = monopoly.rules
+		npStartMoney.init(startMoneyValues, startMoney, { value: Int -> "$" + value }, { picker: NumberPicker?, oldVal: Int, newVal: Int -> getPrefs().edit().putInt("startMoney", startMoneyValues.get(newVal)).apply() })
+		npWinMoney.init(winMoneyValues, winMoney, { value: Int -> "$" + value }, { picker: NumberPicker?, oldVal: Int, newVal: Int -> getPrefs().edit().putInt("winMoney", winMoneyValues.get(newVal)).apply() })
+		npTaxScale.init(taxPercentValues, taxPercent, { value: Int -> value.toString() + "%" }, { picker: NumberPicker?, oldVal: Int, newVal: Int -> getPrefs().edit().putInt("taxPercent", taxPercentValues.get(newVal)).apply() })
+		cbJailBumpEnabled.isChecked = jailBump
+		cbJailBumpEnabled.setOnCheckedChangeListener({ buttonView: CompoundButton?, isChecked: Boolean -> getPrefs().edit().putBoolean("jailBump", isChecked).apply() })
+		newDialogBuilder().setTitle("Configure").setView(v)
+			.setPositiveButton("Setup Players") { _, _ ->
+				rules.startMoney = startMoneyValues[npStartMoney.value]
+				rules.valueToWin = winMoneyValues[npWinMoney.value]
+				rules.taxScale = 0.01f * taxPercentValues[npTaxScale.value]
+				rules.jailBumpEnabled = cbJailBumpEnabled.isChecked
+				showPlayerSetupMenu()
+			}.show()
+	}
 
-    }
+	private var pieceDialog: Dialog? = null
+	fun showPieceChooser(andThen: Runnable) {
+		for (i in 0 until monopoly.numPlayers) {
+			val p = monopoly.getPlayer(i)
+			if (p is PlayerUser && !p.pieceChosen) {
+				val listener = View.OnClickListener { v: View ->
+					pieceDialog?.dismiss()
+					v.tag?.let {
+						if (it is Piece) {
+							p.piece = it
+							p.pieceChosen = true
+							showPieceChooser(andThen)
+						}
+					}
+				}
+				val pieces = monopoly.unusedPieces
+				val gl = GridLayout(this@MonopolyActivity)
+				gl.columnCount = 4
+				gl.rowCount = 2
+				for (pc: Piece? in pieces) {
+					val iv = ImageButton(this@MonopolyActivity)
+					iv.tag = pc
+					iv.setImageResource(monopoly.getImageId((pc)!!))
+					gl.addView(iv)
+					iv.setOnClickListener(listener)
+				}
+				pieceDialog = newDialogBuilder().setTitle("CHOOSE PIECE " + (i + 1)).setView(gl).show()
+				return
+			}
+		}
+		andThen.run()
+	}
 
-    void showPlayerSetupMenu() {
-        final View v = View.inflate(this, R.layout.players_setup_dialog, null);
-        final NumberPicker realPlayers = (NumberPicker)v.findViewById(R.id.npLivePlayers);
-        final NumberPicker compPlayers = (NumberPicker)v.findViewById(R.id.npCompPlayers);
+	override fun getDialogTheme(): Int {
+		return R.style.MonopolyDialogTheme
+	}
 
-        realPlayers.setMinValue(0);
-        realPlayers.setMaxValue(Monopoly.MAX_PLAYERS);
-        realPlayers.setValue(1);
-        compPlayers.setMinValue(0);
-        compPlayers.setMaxValue(Monopoly.MAX_PLAYERS);
-        compPlayers.setValue(1);
-
-        realPlayers.setOnValueChangedListener((NumberPicker picker, int oldVal, int newVal) -> {
-                    int total = newVal + compPlayers.getValue();
-                    if (total > Monopoly.MAX_PLAYERS) {
-                        compPlayers.setValue(compPlayers.getValue()-1);
-                    } else if (total < 2) {
-                        compPlayers.setValue(compPlayers.getValue()+1);
-                    }
-
-            });
-
-        compPlayers.setOnValueChangedListener((NumberPicker picker, int oldVal, int newVal) -> {
-                    int total = newVal + realPlayers.getValue();
-                    if (total > Monopoly.MAX_PLAYERS) {
-                        realPlayers.setValue(realPlayers.getValue()-1);
-                    } else if (total < 2) {
-                        realPlayers.setValue(realPlayers.getValue()+1);
-                    }
-            });
-
-        newDialogBuilder().setTitle("NEW GAME").setView(v)
-            .setPositiveButton("Start", (DialogInterface dialog, int which) -> {
-                    monopoly.clear();
-                    for (int i=0; i<realPlayers.getValue(); i++)
-                        monopoly.addPlayer(new PlayerUser());
-                    for (int i=0; i<compPlayers.getValue(); i++)
-                        monopoly.addPlayer(new Player());
-                    showPieceChooser(() -> {
-                        monopoly.newGame();
-                        monopoly.startGameThread();
-                    });
-
-            }).show();
-    }
-
-    void showGameSetupDialog() {
-        final int [] startMoneyValues = getResources().getIntArray(R.array.start_money_values);
-        final int [] winMoneyValues = getResources().getIntArray(R.array.win_money_values);
-        final int [] taxPercentValues = getResources().getIntArray(R.array.tax_scale_percent_values);
-        final View v = View.inflate(this, R.layout.game_config_dialog, null);
-        final CCNumberPicker npStartMoney = (CCNumberPicker)v.findViewById(R.id.npStartMoney);
-        final CCNumberPicker npWinMoney = (CCNumberPicker)v.findViewById(R.id.npWinMoney);
-        final CCNumberPicker npTaxScale = (CCNumberPicker)v.findViewById(R.id.npTaxScale);
-        final CompoundButton cbJailBumpEnabled = (CompoundButton)v.findViewById(R.id.cbJailBumpEnabled);
-        int startMoney = getPrefs().getInt("startMoney", 1000);
-        int winMoney = getPrefs().getInt("winMoney", 5000);
-        int taxPercent = getPrefs().getInt("taxPercent", 100);
-        boolean jailBump = getPrefs().getBoolean("jailBump", false);
-        final Rules rules = monopoly.getRules();
-        npStartMoney.init(startMoneyValues, startMoney, (int value) -> "$" + value, (picker, oldVal, newVal) -> {
-            getPrefs().edit().putInt("startMoney", startMoneyValues[newVal]).apply();
-        });
-        npWinMoney.init(winMoneyValues, winMoney, (int value) -> "$" + value, (picker, oldVal, newVal) -> {
-            getPrefs().edit().putInt("winMoney", winMoneyValues[newVal]).apply();
-        });
-        npTaxScale.init(taxPercentValues, taxPercent, (int value) -> value + "%", (picker, oldVal, newVal) -> {
-            getPrefs().edit().putInt("taxPercent", taxPercentValues[newVal]).apply();
-        });
-        cbJailBumpEnabled.setChecked(jailBump);
-        cbJailBumpEnabled.setOnCheckedChangeListener((buttonView, isChecked) -> { getPrefs().edit().putBoolean("jailBump", isChecked).apply(); });
-        newDialogBuilder().setTitle("Configure").setView(v)
-                .setPositiveButton("Setup Players", (DialogInterface dialog, int which) -> {
-                        rules.startMoney = startMoneyValues[npStartMoney.getValue()];
-                        rules.valueToWin = winMoneyValues[npWinMoney.getValue()];
-                        rules.taxScale = 0.01f * taxPercentValues[npTaxScale.getValue()];
-                        rules.jailBumpEnabled = cbJailBumpEnabled.isChecked();
-                        showPlayerSetupMenu();
-                }).show();
-    }
-
-    private Dialog pieceDialog = null;
-
-    void showPieceChooser(final Runnable andThen) {
-        for (int i=0; i<monopoly.getNumPlayers(); i++) {
-            final Player p = monopoly.getPlayer(i);
-            if (p instanceof PlayerUser && p.getPiece() == null) {
-                View.OnClickListener listener = (View v) -> {
-                        if (pieceDialog != null)
-                            pieceDialog.dismiss();
-                        p.setPiece((Piece)v.getTag());
-                        showPieceChooser(andThen);
-                };
-                final List<Piece> pieces = monopoly.getUnusedPieces();
-                GridLayout gl = new GridLayout(MonopolyActivity.this);
-                gl.setColumnCount(4);
-                gl.setRowCount(2);
-                for (Piece pc : pieces) {
-                    ImageButton iv = new ImageButton(MonopolyActivity.this);
-                    iv.setTag(pc);
-                    iv.setImageResource(monopoly.getImageId(pc));
-                    gl.addView(iv);
-                    iv.setOnClickListener(listener);
-                }
-
-                pieceDialog = newDialogBuilder().setTitle("CHOOSE PIECE " + (i+1)).setView(gl).show();
-                return;
-            }
-        }
-        andThen.run();
-    }
-
-    @Override
-    protected int getDialogTheme() {
-        return R.style.MonopolyDialogTheme;
-    }
-
-    @Override
-    protected void onDialogShown(Dialog d) {
+	override fun onDialogShown(d: Dialog) {
 
 //        d.getWindow().setLayout(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        Display display = getWindowManager().getDefaultDisplay();
-        WindowManager.LayoutParams lp = d.getWindow().getAttributes();
-        Point size = new Point();
-        display.getSize(size);
-        if (isPortrait()) {
-            //lp.gravity = Gravity.TOP;
-            //lp.y = size.y/5;
-            lp.width = size.x/2;
-        } else {
-            lp.width = size.y/2;
-        }
-        d.getWindow().setAttributes(lp);
-    }
+		val display = windowManager.defaultDisplay
+		val lp = d.window!!.attributes
+		val size = Point()
+		display.getSize(size)
+		if (isPortrait) {
+			//lp.gravity = Gravity.TOP;
+			//lp.y = size.y/5;
+			lp.width = size.x / 2
+		} else {
+			lp.width = size.y / 2
+		}
+		d.window!!.attributes = lp
+	}
+
+	companion object {
+		private val TAG = MonopolyActivity::class.java.simpleName
+	}
 }

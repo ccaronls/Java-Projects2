@@ -18,7 +18,7 @@ open class Player(var piece: Piece = Piece.BOAT) : Reflector<Player>() {
 		private set
 	var square: Square = Square.GO
 	val cards: MutableList<Card> = ArrayList()
-	var jailBond = 0
+	public var jailBond = 0
 		private set
 	private var jailedTimes = 0
 	var isBankrupt=false
@@ -327,7 +327,7 @@ open class Player(var piece: Piece = Piece.BOAT) : Reflector<Player>() {
 		}
 
 	val cardsForMortgage: List<Card>
-		get() = cards.filter { c-> c.isMortgaged }
+		get() = cards.filter { c-> c.canMortgage() }
 
 	fun getCardsOfType(type: SquareType): List<Card> = cards.filter { c-> c.property.type == type }
 

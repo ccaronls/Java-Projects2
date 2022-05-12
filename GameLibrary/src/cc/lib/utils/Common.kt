@@ -132,3 +132,13 @@ inline fun <R,T> List<R>.join(elems: Iterator<T>) : List<Pair<R,T>> {
 	}
 	return list
 }
+
+inline fun List<Any>.prettify() : Array<String> {
+	return map { prettify(it) }.toTypedArray()
+}
+
+inline fun <T: Comparable<T>> T.increment(steps: Int, values: Array<T>) : T {
+	var idx = Utils.linearSearch(values, this)
+	idx = (idx + steps) % values.size
+	return values[idx]
+}

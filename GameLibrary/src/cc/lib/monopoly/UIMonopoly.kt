@@ -3,10 +3,15 @@ package cc.lib.monopoly
 import cc.lib.game.*
 import cc.lib.logger.LoggerFactory
 import cc.lib.math.*
+import cc.lib.utils.GException
+import cc.lib.utils.increment
+import cc.lib.utils.prettify
+import cc.lib.utils.random
 import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
+import kotlin.math.min
 
 abstract class UIMonopoly : Monopoly() {
 	
@@ -15,7 +20,6 @@ abstract class UIMonopoly : Monopoly() {
 	
 	var isGameRunning = false
 		private set
-	private var gameStopped = true
 	var W = 0
 	var H = 0
 	@JvmField
@@ -36,7 +40,7 @@ abstract class UIMonopoly : Monopoly() {
 	 * @param p
 	 * @return
 	 */
-	abstract fun getImageId(p: Piece?): Int
+	abstract fun getImageId(p: Piece): Int
 
 	/**
 	 *
@@ -83,16 +87,16 @@ abstract class UIMonopoly : Monopoly() {
 	override fun onDiceRolled() {
 		addAnimation("GAME", object : AAnimation<AGraphics>(2000) {
 			var delay: Long = 10
-			var die1 = 1 + Utils.rand() % 6
-			var die2 = 1 + Utils.rand() % 6
+			var die1 = random(1..6)
+			var die2 = random(1..6)
 			override fun onStarted(g: AGraphics) {
 				object : Thread() {
 					override fun run() {
 						while (!isDone) {
-							Utils.waitNoThrow(this, delay)
+							sleep(delay)
 							delay += 20
-							die1 = 1 + Utils.rand() % 6
-							die2 = 1 + Utils.rand() % 6
+							die1 = random(1..6)
+							die2 = random(1..6)
 						}
 					}
 				}.start()
@@ -174,23 +178,26 @@ abstract class UIMonopoly : Monopoly() {
 	}
 
 	internal inner class TurnOverCardAnim(val start: Array<Vector2D>, val color: GColor, val title: String, val msg: String) : AAnimation<AGraphics>(1500) {
-		var dest: Array<Vector2D>? = null
+		lateinit var dest: Array<Vector2D>
+
+		override fun onStarted(g: AGraphics) {
+			super.onStarted(g)
+			val r = renderMessage(g, title, msg, false)
+			dest = arrayOf(
+				Vector2D(r.x, r.y + r.h),
+				Vector2D(r.x + r.w, r.y + r.h),
+				Vector2D(r.x + r.w, r.y),
+				Vector2D(r.x, r.y)
+			)
+		}
+
 		override fun draw(g: AGraphics, position: Float, dt: Float) {
-			if (dest == null) {
-				val r = renderMessage(g, title, msg, false)
-				dest = arrayOf(
-					Vector2D(r.x, r.y + r.h),
-					Vector2D(r.x + r.w, r.y + r.h),
-					Vector2D(r.x + r.w, r.y),
-					Vector2D(r.x, r.y)
-				)
-			}
 			g.pushMatrix()
 			if (position < 0.5f) g.color = color else g.color = GColor.WHITE
 			g.begin()
 			for (i in 0..3) {
 				val s: Vector2D = start[i].scaledBy(board.scale)
-				g.vertex(s.add(dest!![i].sub(s).scaledBy(position)))
+				g.vertex(s.add(dest[i].sub(s).scaledBy(position)))
 			}
 			g.drawTriangleFan()
 			g.popMatrix()
@@ -268,15 +275,16 @@ abstract class UIMonopoly : Monopoly() {
 
 	override fun onPlayerOutOfJail(playerNum: Int) {
 		setSpriteAnim("PLAYER$playerNum", object : AAnimation<Sprite>(500) {
-			var start: Vector2D? = null
-			var end: Vector2D? = null
+			lateinit var start: Vector2D
+			lateinit var end: Vector2D
+
 			override fun onStarted(g: Sprite) {
 				start = board.getPiecePlacementJail(playerNum).topLeft
 				end = board.getPiecePlacement(playerNum, Square.VISITING_JAIL).topLeft
 			}
 
 			override fun draw(g: Sprite, position: Float, dt: Float) {
-				g.M.translate(start!!.add(end!!.sub(start).scaledBy(position)))
+				g.M.translate(start.add(end.sub(start).scaledBy(position)))
 			}
 		}.start())
 		addAnimation("PLAYER$playerNum", JailedAnim(playerInfoWidth, playerInfoHeight).startReverse<AAnimation<AGraphics>>())
@@ -291,13 +299,13 @@ abstract class UIMonopoly : Monopoly() {
 		super.onPlayerPaysRent(playerNum, renterNum, amt)
 	}
 
-	override fun onPlayerMortgaged(playerNum: Int, property: Square?, amt: Int) {
+	override fun onPlayerMortgaged(playerNum: Int, property: Square, amt: Int) {
 		setSpriteAnim("PLAYER$playerNum", MoneyAnim(getPlayer(playerNum).money, amt).start<AAnimation<Sprite>>())
 		lock.withLock { cond.await(MONEY_PAUSE, TimeUnit.MILLISECONDS) }
 		super.onPlayerMortgaged(playerNum, property, amt)
 	}
 
-	override fun onPlayerUnMortgaged(playerNum: Int, property: Square?, amt: Int) {
+	override fun onPlayerUnMortgaged(playerNum: Int, property: Square, amt: Int) {
 		setSpriteAnim("PLAYER$playerNum", MoneyAnim(getPlayer(playerNum).money, -amt).start<AAnimation<Sprite>>())
 		lock.withLock { cond.await(MONEY_PAUSE, TimeUnit.MILLISECONDS) }
 		super.onPlayerUnMortgaged(playerNum, property, amt)
@@ -340,20 +348,20 @@ abstract class UIMonopoly : Monopoly() {
 
 	override fun onPlayerBoughtHouse(playerNum: Int, property: Square, amt: Int) {
 		addAnimation("BOARD", object : AAnimation<AGraphics>(HOUSE_PAUSE) {
-			var v0: Vector2D? = null
-			var v1: Vector2D? = null
+			lateinit var v0: Vector2D
+			lateinit var v1: Vector2D
 			override fun onStarted(g: AGraphics) {
 				v0 = Vector2D((DIM / 2).toFloat(), (DIM / 2).toFloat())
 				v1 = board.getInnerEdge(property)
 			}
 
 			override fun draw(g: AGraphics, position: Float, dt: Float) {
-				val v: Vector2D = v0!!.add(v1!!.sub(v0).scaledBy(position))
+				val v: Vector2D = v0.add(v1.sub(v0).scaledBy(position))
 				val s = (DIM / 20).toFloat()
 				g.pushMatrix()
 				g.translate(v)
 				g.color = HOUSE_COLOR
-				g.scale(s * (1.0f - position))
+				g.scale(s * (.2f+(1.0f - position)))
 				drawHouse(g)
 				g.popMatrix()
 			}
@@ -363,21 +371,21 @@ abstract class UIMonopoly : Monopoly() {
 				setSpriteAnim(property.name, ErectHouseAnim().start())
 			}
 		}.start())
-		lock.withLock { cond.await(MONEY_PAUSE*2, TimeUnit.MILLISECONDS) }
+		lock.withLock { cond.await(10000, TimeUnit.MILLISECONDS) }
 		super.onPlayerBoughtHouse(playerNum, property, amt)
 	}
 
 	override fun onPlayerBoughtHotel(playerNum: Int, property: Square, amt: Int) {
-		addAnimation("BOARD", object : AAnimation<AGraphics>(HOUSE_PAUSE.toLong()) {
-			var v0: Vector2D? = null
-			var v1: Vector2D? = null
+		addAnimation("BOARD", object : AAnimation<AGraphics>(HOUSE_PAUSE) {
+			lateinit var v0: Vector2D
+			lateinit var v1: Vector2D
 			override fun onStarted(g: AGraphics) {
 				v0 = Vector2D((DIM / 2).toFloat(), (DIM / 2).toFloat())
 				v1 = board.getInnerEdge(property)
 			}
 
 			override fun draw(g: AGraphics, position: Float, dt: Float) {
-				val v: Vector2D = v0!!.add(v1!!.sub(v0).scaledBy(position))
+				val v: Vector2D = v0.add(v1.sub(v0).scaledBy(position))
 				val sx = (DIM / 12).toFloat()
 				val sy = (DIM / 10).toFloat()
 				g.pushMatrix()
@@ -394,7 +402,7 @@ abstract class UIMonopoly : Monopoly() {
 				setSpriteAnim(property.name, ErectHouseAnim().start())
 			}
 		}.start())
-		lock.withLock { cond.await(HOUSE_PAUSE*2, TimeUnit.MILLISECONDS) }
+		lock.withLock { cond.await(10000, TimeUnit.MILLISECONDS) }
 		super.onPlayerBoughtHotel(playerNum, property, amt)
 	}
 
@@ -419,7 +427,7 @@ abstract class UIMonopoly : Monopoly() {
 		addAnimation("PLAYER$playerNum", object : AAnimation<AGraphics>(500, -1) {
 			override fun draw(g: AGraphics, position: Float, dt: Float) {
 				val r = g.clipRect
-				g.setColor(Utils.rand() % 256, Utils.rand() % 256, Utils.rand() % 256, 255)
+				g.setColor(random(256), random(256), random(256), 255)
 				g.drawRect(r, 3f)
 			}
 		}.start())
@@ -442,16 +450,13 @@ abstract class UIMonopoly : Monopoly() {
 	fun stopAnimations() {
 		synchronized(animations) { animations.clear() }
 		for (sprite in spriteMap.values) {
-			if (sprite.animation != null) {
-				sprite.animation!!.kill()
-			}
+			sprite.animation?.kill()
 		}
 	}
 
-	fun setSpriteAnim(key: String, anim: AAnimation<Sprite>?) {
+	fun setSpriteAnim(key: String, anim: AAnimation<Sprite>) {
 		if (!isGameRunning) return
-		val s = spriteMap[key]
-		s!!.animation = anim
+		spriteMap[key]?.animation = anim
 		repaint()
 	}
 
@@ -479,9 +484,7 @@ abstract class UIMonopoly : Monopoly() {
 		var data1 = 0
 		var data2 = 0
 		fun animateAndDraw(g: AGraphics, w: Float, h: Float) {
-			if (isAnimating) {
-				animation!!.update(this)
-			}
+			animation?.takeIf { !it.isDone }?.update(this)
 			g.pushMatrix()
 			g.multMatrix(M)
 			val c = g.color
@@ -493,7 +496,7 @@ abstract class UIMonopoly : Monopoly() {
 		}
 
 		val isAnimating: Boolean
-			get() = animation != null && !animation!!.isDone
+			get() = animation?.isDone==false
 
 		/**
 		 * Draw the sprite at origin facing at angle 0. Translations will orient and move according
@@ -551,17 +554,17 @@ abstract class UIMonopoly : Monopoly() {
 					g.color = GColor.TRANSLUSCENT_BLACK
 					g.drawFilledRect(-dim.width / 2 - 5, -dim.height / 2 - 5, dim.width + 10, dim.height + 10)
 					var money: Int = kitty
-					if (isAnimating) {
+					animation?.takeIf { !it.isDone }?.let { animation ->
 						money = data1
 						val textHeight = g.textHeight
 						val amt = if (data2 < 0) data2.toString() else "+$data2"
-						animation!!.position
+						animation.position
 						val dir = CMath.signOf(-data2.toFloat())
-						val delta = Vector2D(0f, textHeight * animation!!.position * dir)
+						val delta = Vector2D(0f, textHeight * animation.position * dir)
 						g.pushMatrix()
 						g.translate(0f, textHeight * dir)
 						g.translate(delta)
-						g.color = (if (data2 > 0) GColor.GREEN else GColor.RED).withAlpha(1f - animation!!.position)
+						g.color = (if (data2 > 0) GColor.GREEN else GColor.RED).withAlpha(1f - animation.position)
 						g.drawJustifiedString(0f, 0f, Justify.RIGHT, Justify.CENTER, amt)
 						g.popMatrix()
 					}
@@ -577,7 +580,7 @@ abstract class UIMonopoly : Monopoly() {
 				spriteMap[sq.name] = object : Sprite() {
 					override fun draw(g: AGraphics, w: Float, h: Float) {
 						val r = board.getSqaureBounds(sq)
-						val houseScale = Math.min(r.w, r.h) / 15
+						val houseScale: Float = min(r.w, r.h) / 15
 						g.pushMatrix()
 						val houses = data1
 						var v: Vector2D? = null
@@ -603,58 +606,52 @@ abstract class UIMonopoly : Monopoly() {
 						g.translate(v)
 						g.rotate(angle.toFloat())
 						g.multMatrix(M)
-						if (isAnimating) {
+						animation?.takeIf { !it.isDone }?.let { animation ->
+							log.debug("${sq.name} : houses = $houses")
 							when (houses) {
-								0 -> {
-									g.color = HOUSE_COLOR
-									g.scale(houseScale * 2 * animation!!.position)
-									drawHouse(g)
-								}
-								1, 2, 3 -> {
+								0,1,2,3 -> {
 									g.scale(houseScale * 2)
 									g.color = HOUSE_COLOR
-									g.translate(-HOUSE_RADIUS * (houses - 1) - HOUSE_RADIUS * animation!!.position, 0f)
-									var i = 0
-									while (i < houses) {
+									g.translate(-HOUSE_RADIUS * (houses-1), 0f)
+									g.translate(-HOUSE_RADIUS * animation.position, 0f)
+									for (i in 0 until houses) {
 										drawHouse(g)
 										g.translate(HOUSE_RADIUS * 2, 0f)
-										i++
 									}
-									g.scale(animation!!.position)
+									g.scale(animation.position)
 									drawHouse(g)
 								}
 								4 -> {
 									g.pushMatrix()
-									g.scale(houseScale * 2, houseScale * 2 * (1.0f - animation!!.position))
+									g.scale(houseScale * 2, houseScale * 2 * (1.0f - animation.position))
 									g.color = HOUSE_COLOR
 									g.translate(-HOUSE_RADIUS * (houses - 1), 0f)
-									var i = 0
-									while (i < houses) {
+									for (i in 0 until houses) {
 										drawHouse(g)
 										g.translate(HOUSE_RADIUS * 2, 0f)
-										i++
 									}
 									g.popMatrix()
-									g.scale(animation!!.position * houseScale * 4)
+									g.scale(animation.position * houseScale * 4)
 									g.color = HOTEL_COLOR
 									drawHouse(g)
 								}
 							}
-						} else {
-							if (houses == 5) {
-								g.scale(houseScale * 4)
-								g.color = HOTEL_COLOR
-								drawHouse(g)
-							} else if (houses < 5) {
-								g.color = HOUSE_COLOR
-								g.scale(houseScale * 2)
-								g.translate(-HOUSE_RADIUS * (houses - 1), 0f)
-								for (i in 0 until houses) {
+						}?:run {
+							when (houses) {
+								5    -> {
+									g.scale(houseScale * 4)
+									g.color = HOTEL_COLOR
 									drawHouse(g)
-									g.translate(HOUSE_RADIUS * 2, 0f)
 								}
-							} else {
-								Utils.unhandledCase(houses)
+								else -> {
+									g.color = HOUSE_COLOR
+									g.scale(houseScale * 2)
+									g.translate(-HOUSE_RADIUS * (houses - 1), 0f)
+									for (i in 0 until houses) {
+										drawHouse(g)
+										g.translate(HOUSE_RADIUS * 2, 0f)
+									}
+								}
 							}
 						}
 						g.popMatrix()
@@ -664,8 +661,12 @@ abstract class UIMonopoly : Monopoly() {
 		}
 	}
 
-	internal inner class ErectHouseAnim : AAnimation<Sprite>(HOUSE_PAUSE.toLong()) {
+	internal inner class ErectHouseAnim() : AAnimation<Sprite>(HOUSE_PAUSE) {
 		override fun draw(g: Sprite, position: Float, dt: Float) {}
+
+		override fun onDone() {
+			lock.withLock { cond.signal() }
+		}
 	}
 
 	internal inner class JailedAnim(val width: Float, val height: Float) : AAnimation<AGraphics>(2000) {
@@ -711,19 +712,19 @@ abstract class UIMonopoly : Monopoly() {
 			var steps = 1
 			if (jumps > 5) {
 				steps = 5
-				start = Square.values()[(start.ordinal + 5) % NUM_SQUARES] // make bigger steps when a long way to jump
+				start = start.increment(5, Square.values()) // make bigger steps when a long way to jump
 			} else if (jumps < 0) {
-				start = Utils.decrementValue(start, *Square.values())
+				start = start.increment(-1, Square.values())
 			} else {
-				start = Utils.incrementValue(start, *Square.values())
+				start = start.increment(1, Square.values())
 			}
 			val r1 = board.getPiecePlacement(playerNum, start)
 			curve.reset()
 			curve.addPoint(r0.x, r0.y)
 			val dx = r1.x - r0.x
 			val dy = r1.y - r0.y
-			curve.addPoint(r0.x + dx / 3, Utils.clamp(r0.y + dy * 0.33f + dx / 6, 0f, DIM.toFloat()))
-			curve.addPoint(r0.x + dx * 2 / 3, Utils.clamp(r0.y + dy * 0.66f + dx / 6, 0f, DIM.toFloat()))
+			curve.addPoint(r0.x + dx / 3, (r0.y + dy * 0.33f + dx / 6).coerceIn(0f, DIM.toFloat()))
+			curve.addPoint(r0.x + dx * 2 / 3, (r0.y + dy * 0.66f + dx / 6).coerceIn(0f, DIM.toFloat()))
 			curve.addPoint(r1.x, r1.y)
 			jumps -= dir * steps
 		}
@@ -752,10 +753,10 @@ abstract class UIMonopoly : Monopoly() {
 
 	@Synchronized
 	fun startGameThread() {
-		if (isGameRunning) return
+		if (isGameRunning)
+			return
 		log.debug("startGameThread")
 		isGameRunning = true
-		gameStopped = false
 		object : Thread() {
 			override fun run() {
 				log.debug("ENTER game thread")
@@ -767,11 +768,10 @@ abstract class UIMonopoly : Monopoly() {
 						break
 					}
 					repaint()
-					Utils.waitNoThrow(this, 100)
+					sleep(100)
 				}
 				log.debug("EXIT game thread")
 				isGameRunning = false
-				gameStopped = true
 			}
 		}.start()
 	}
@@ -781,15 +781,11 @@ abstract class UIMonopoly : Monopoly() {
 	}
 
 	fun stopGameThread() {
-		if (gameStopped) return
 		log.debug("stopGameThread")
 		isGameRunning = false
 		stopAnimations()
 		lock.withLock { 
 			cond.signalAll()
-		}
-		while (!gameStopped) {
-			Thread.sleep(50)
 		}
 		log.debug("GAME THREAD STOPPED")
 	}
@@ -807,9 +803,9 @@ abstract class UIMonopoly : Monopoly() {
 		g.clearScreen(Board.BOARD_COLOR)
 		W = g.viewportWidth
 		H = g.viewportHeight
-		DIM = Math.min(W, H)
+		DIM = W.coerceAtMost(H)
 		board = Board(DIM.toFloat())
-		g.textHeight = 16f
+//		g.textHeight = 16f
 		g.setTextStyles(AGraphics.TextStyle.BOLD)
 		if (W > H) {
 			drawLandscape(g, mouseX, mouseY)
@@ -826,7 +822,6 @@ abstract class UIMonopoly : Monopoly() {
 		g.setClipRect(0f, 0f, w, h)
 		playerInfoWidth = w
 		val p = getPlayer(playerNum)
-		if (p.piece == null) return
 		val pcId = getImageId(p.piece)
 		val dim = Math.min(w / 2, h / 4)
 		playerInfoHeight = dim
@@ -844,59 +839,60 @@ abstract class UIMonopoly : Monopoly() {
 				g.popMatrix()
 			}
 		}
-		val sp = spriteMap["PLAYER$playerNum"]
-		sp!!.M.setTranslate(w - PADDING, dim / 2)
-		sp.color = GColor.BLACK
-		sp.animateAndDraw(g, 0f, 0f)
-		if (p.isBankrupt) {
-			g.color = GColor.TRANSLUSCENT_BLACK
-			g.drawFilledRect(0f, 0f, w, h)
-			g.color = GColor.RED
-			g.drawWrapString(w / 2, h / 2, w, Justify.CENTER, Justify.CENTER, "BANKRUPT")
-		} else {
-			var sy = dim
-			var bkColor = GColor.TRANSPARENT
-			var txtColor = GColor.BLACK
-			if (p.isInJail) {
-				drawJail(g, w, dim, 1f)
-				sy += drawWrapStringOnBackground(g, 0f, sy, w, "IN JAIL", bkColor, txtColor, border)
+		spriteMap["PLAYER$playerNum"]?.let { sp ->
+			sp.M.setTranslate(w - PADDING, dim / 2)
+			sp.color = GColor.BLACK
+			sp.animateAndDraw(g, 0f, 0f)
+			if (p.isBankrupt) {
+				g.color = GColor.TRANSLUSCENT_BLACK
+				g.drawFilledRect(0f, 0f, w, h)
+				g.color = GColor.RED
+				g.drawWrapString(w / 2, h / 2, w, Justify.CENTER, Justify.CENTER, "BANKRUPT")
 			} else {
-				if (p.square.canPurchase()) {
-					bkColor = p.square.color
+				var sy = dim
+				var bkColor = GColor.TRANSPARENT
+				var txtColor = GColor.BLACK
+				if (p.isInJail) {
+					drawJail(g, w, dim, 1f)
+					sy += drawWrapStringOnBackground(g, 0f, sy, w, "IN JAIL", bkColor, txtColor, border)
+				} else {
+					if (p.square.canPurchase()) {
+						bkColor = p.square.color
+						txtColor = chooseContrastColor(bkColor)
+					}
+					var sqStr = prettify(p.square.name)
+					while (Character.isDigit(sqStr[sqStr.length - 1])) {
+						sqStr = sqStr.substring(0, sqStr.length - 1)
+					}
+					sy += drawWrapStringOnBackground(g, 0f, sy, w, sqStr, bkColor, txtColor, border)
+				}
+				var num: Int
+				if (p.numGetOutOfJailFreeCards.also { num = it } > 0) {
+					g.color = GColor.BLACK
+					sy += drawWrapStringOnBackground(g, 0f, sy, w, "Get out of Jail FREE x $num", GColor.WHITE, GColor.BLACK, border)
+				}
+				if (p.numRailroads.also { num = it } > 0) {
+					g.color = GColor.BLACK
+					sy += drawWrapStringOnBackground(g, 0f, sy, w, "Railroads x $num", GColor.BLACK, GColor.WHITE, border)
+				}
+				if (p.numUtilities.also { num = it } > 0) {
+					g.color = GColor.BLACK
+					sy += drawWrapStringOnBackground(g, 0f, sy, w, "Utilities x $num", GColor.WHITE, GColor.BLACK, border)
+				}
+				val map = p.propertySets
+				for ((key, value) in map) {
+					val txt = String.format("%d of %d", value.size, value[0].property.numForSet)
+					bkColor = key
 					txtColor = chooseContrastColor(bkColor)
+					sy += drawWrapStringOnBackground(g, 0f, sy, w, txt, bkColor, txtColor, border)
 				}
-				var sqStr = Utils.toPrettyString(p.square.name)
-				while (Character.isDigit(sqStr[sqStr.length - 1])) {
-					sqStr = sqStr.substring(0, sqStr.length - 1)
-				}
-				sy += drawWrapStringOnBackground(g, 0f, sy, w, sqStr, bkColor, txtColor, border)
-			}
-			var num: Int
-			if (p.numGetOutOfJailFreeCards.also { num = it } > 0) {
-				g.color = GColor.BLACK
-				sy += drawWrapStringOnBackground(g, 0f, sy, w, "Get out of Jail FREE x $num", GColor.WHITE, GColor.BLACK, border)
-			}
-			if (p.numRailroads.also { num = it } > 0) {
-				g.color = GColor.BLACK
-				sy += drawWrapStringOnBackground(g, 0f, sy, w, "Railroads x $num", GColor.BLACK, GColor.WHITE, border)
-			}
-			if (p.numUtilities.also { num = it } > 0) {
-				g.color = GColor.BLACK
-				sy += drawWrapStringOnBackground(g, 0f, sy, w, "Utilities x $num", GColor.WHITE, GColor.BLACK, border)
-			}
-			val map = p.propertySets
-			for ((key, value) in map) {
-				val txt = String.format("%d of %d", value.size, value[0].property.numForSet)
-				bkColor = key
-				txtColor = chooseContrastColor(bkColor)
-				sy += drawWrapStringOnBackground(g, 0f, sy, w, txt, bkColor, txtColor, border)
 			}
 		}
 		drawAnimations(g, "PLAYER$playerNum")
 		g.clearClip()
 	}
 
-	fun drawWrapStringOnBackground(g: AGraphics, x: Float, y: Float, width: Float, txt: String?, bkColor: GColor?, txtColor: GColor?, border: Float): Float {
+	fun drawWrapStringOnBackground(g: AGraphics, x: Float, y: Float, width: Float, txt: String?, bkColor: GColor, txtColor: GColor, border: Float): Float {
 		val d = g.drawWrapString(x + border, y + border, width - border * 2, txt)
 		g.color = bkColor
 		g.drawFilledRect(x, y, width, d.height + 2 * border)
@@ -920,7 +916,7 @@ abstract class UIMonopoly : Monopoly() {
 		g.translate(padding, padding)
 		w -= padding * 2
 		g.color = chooseContrastColor(property.color)
-		g.drawWrapString(w / 2, 0f, w, Justify.CENTER, Justify.TOP, Utils.toPrettyString(property.name))
+		g.drawWrapString(w / 2, 0f, w, Justify.CENTER, Justify.TOP, prettify(property.name))
 		g.textHeight = oldTextHeight
 		g.translate(0f, BANNER_HEIGHT)
 		h -= padding * 2 - BANNER_HEIGHT
@@ -928,7 +924,7 @@ abstract class UIMonopoly : Monopoly() {
 		if (property.isProperty) {
 			g.drawWrapString(0f, 0f, w,
 				"""
-	            	PRICE ${property.price} RENT $${property.getRent(0)}
+	            	PRICE $${property.price} RENT $${property.getRent(0)}
 
 	            	Rent With:
 	            	1 House $${property.getRent(1)}
@@ -1062,11 +1058,12 @@ abstract class UIMonopoly : Monopoly() {
 	private fun drawBoard(g: AGraphics) {
 		g.drawImage(boardImageId, 0f, 0f, DIM.toFloat(), DIM.toFloat())
 		run {
-			val kitty = spriteMap[Square.FREE_PARKING.name]
-			val r = board.getSqaureBounds(Square.FREE_PARKING)
-			kitty!!.M.setTranslate(r.center)
-			kitty.color = GColor.GREEN
-			kitty.animateAndDraw(g, r.w, r.h)
+			spriteMap[Square.FREE_PARKING.name]?.let { kitty ->
+				val r = board.getSqaureBounds(Square.FREE_PARKING)
+				kitty.M.setTranslate(r.center)
+				kitty.color = GColor.GREEN
+				kitty.animateAndDraw(g, r.w, r.h)
+			}
 		}
 		/*
         if (kitty > 0) {
@@ -1082,41 +1079,39 @@ abstract class UIMonopoly : Monopoly() {
 		for (i in 0 until numPlayers) {
 			val p = getPlayer(i)
 			if (p.isBankrupt) continue
-			if (p.piece == null) continue
 			val pcId = getImageId(p.piece)
 			val targetDim: Float = board.pieceDimension
 			for (c in ArrayList(p.cards)) {
-				c.property?.let {
-					val r = board.getSqaureBounds(it)
-					when (board.getSquarePosition(it)) {
-						Board.Position.TOP    -> g.drawImage(pcId, r.x + r.w / 2 - targetDim / 2, r.y + r.h - targetDim / 3, targetDim, targetDim)
-						Board.Position.RIGHT  -> g.drawImage(pcId, r.x - targetDim * 2 / 3, r.y + r.h / 2 - targetDim / 2, targetDim, targetDim)
-						Board.Position.BOTTOM -> g.drawImage(pcId, r.x + r.w / 2 - targetDim / 2, r.y - targetDim * 2 / 3, targetDim, targetDim)
-						Board.Position.LEFT   -> g.drawImage(pcId, r.x + r.w - targetDim / 3, r.y + r.h / 2 - targetDim / 2, targetDim, targetDim)
-					}
-					val sp = spriteMap[it.name]
-					if (sp != null) {
-						sp.data1 = c.houses
-						//sp.M.setTranslate(r.x, r.y);
-						sp.animateAndDraw(g, r.w, r.h)
-					}
-					if (c.isMortgaged) {
-						g.color = GColor.TRANSLUSCENT_BLACK
-						g.drawFilledRect(r)
-						g.color = GColor.RED
-						val v: Vector2D = r.center
-						g.drawWrapString(v.x, v.y, r.w, Justify.CENTER, Justify.CENTER,
-							"MORTGAGED")
-					}
+				val r = board.getSqaureBounds(c.property)
+				when (board.getSquarePosition(c.property)) {
+					Board.Position.TOP    -> g.drawImage(pcId, r.x + r.w / 2 - targetDim / 2, r.y + r.h - targetDim / 3, targetDim, targetDim)
+					Board.Position.RIGHT  -> g.drawImage(pcId, r.x - targetDim * 2 / 3, r.y + r.h / 2 - targetDim / 2, targetDim, targetDim)
+					Board.Position.BOTTOM -> g.drawImage(pcId, r.x + r.w / 2 - targetDim / 2, r.y - targetDim * 2 / 3, targetDim, targetDim)
+					Board.Position.LEFT   -> g.drawImage(pcId, r.x + r.w - targetDim / 3, r.y + r.h / 2 - targetDim / 2, targetDim, targetDim)
+				}
+				val sp = spriteMap[c.property.name]
+				if (sp != null) {
+					sp.data1 = c.houses
+					//sp.M.setTranslate(r.x, r.y);
+					sp.animateAndDraw(g, r.w, r.h)
+				}
+				if (c.isMortgaged) {
+					g.color = GColor.TRANSLUSCENT_BLACK
+					g.drawFilledRect(r)
+					g.color = GColor.RED
+					val v: Vector2D = r.center
+					g.drawWrapString(v.x, v.y, r.w, Justify.CENTER, Justify.CENTER,
+						"MORTGAGED")
 				}
 			}
 			run {
 
 				// draw player piece on the board
 				val r = if (p.isInJail) board.getPiecePlacementJail(i) else board.getPiecePlacement(i, p.square)
-				val sp = spriteMap[p.piece.name]
-				sp!!.M.setTranslate(r.x, r.y)
-				sp.animateAndDraw(g, r.w, r.h)
+				spriteMap[p.piece.name]?.let { sp ->
+					sp.M.setTranslate(r.x, r.y)
+					sp.animateAndDraw(g, r.w, r.h)
+				}
 			}
 
 			// Mark all sellable properties
@@ -1131,7 +1126,7 @@ abstract class UIMonopoly : Monopoly() {
 					Board.Position.RIGHT -> g.drawJustifiedStringOnBackground(v.X() - offset, v.Y(), Justify.RIGHT, Justify.CENTER, "$" + t.price, GColor.TRANSLUSCENT_BLACK, 5f, 5f)
 					Board.Position.BOTTOM -> g.drawJustifiedStringOnBackground(v.X(), v.Y() - offset, Justify.CENTER, Justify.BOTTOM, "$" + t.price, GColor.TRANSLUSCENT_BLACK, 5f, 5f)
 					Board.Position.LEFT -> g.drawJustifiedStringOnBackground(v.X() + offset, v.Y(), Justify.LEFT, Justify.CENTER, "$" + t.price, GColor.TRANSLUSCENT_BLACK, 5f, 5f)
-					else                  -> Utils.unhandledCase(pos)
+					else                  -> throw GException("Unhandled case")
 				}
 			}
 		}
@@ -1202,7 +1197,7 @@ abstract class UIMonopoly : Monopoly() {
 				g.vertex(dd4, dd2)
 				g.vertex(dd34, dd2)
 			}
-			else -> Utils.unhandledCase(numDots) // && "Invalid die");
+			else -> throw GException("Unsupported dot num $numDots")
 		}
 		g.drawPoints()
 		g.setPointSize(oldDotSize)

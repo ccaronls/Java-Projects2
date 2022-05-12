@@ -21,22 +21,23 @@ class Card(val property: Square=Square.GO) : Reflector<Card>() {
 	@JvmField
     var houses = 0
 	var isMortgaged = false
+
 	val isSellable: Boolean
-		get() = !isGetOutOfJail && !isMortgaged
+		get() = property.canPurchase() && !isMortgaged
 
 	fun canMortgage(): Boolean {
-		return !isGetOutOfJail && !isMortgaged
+		return property.canPurchase() && !isMortgaged
 	}
 
 	fun canUnMortgage(): Boolean {
-		return !isGetOutOfJail && isMortgaged
+		return property.canPurchase() && isMortgaged
 	}
 
 	override fun toString(): String {
 		if (isGetOutOfJail)
 			return "Get Out of Jail Free"
 		var s = property.name
-		if (houses > 0 && houses < 5) {
+		if (houses in 1..4) {
 			s += "\nhouses X $houses"
 		} else if (houses == 5) {
 			s += "\nHOTEL"
