@@ -1648,7 +1648,7 @@ open class ZGame() : Reflector<ZGame>() {
                     addNoise(cur.occupiedZone, 1)
                 }
                 addLogMessage(currentCharacter!!.name + " Scored " + hits + " hits")
-                cur.getAvailableSkills().mergeWith(weapon.type.skillsWhenUsed).forEach { skill ->
+                cur.getAvailableSkills().appendedWith(weapon.type.skillsWhenUsed).forEach { skill ->
                     skill.onAttack(this, cur, weapon, stat.actionType, (stat), cur.occupiedZone, hits, zombiesDestroyed)
                 }
                 if (hits > 0) checkForHitAndRun(cur)
@@ -1729,7 +1729,7 @@ open class ZGame() : Reflector<ZGame>() {
                             destroyZombie(zombie, stat.attackType, cur, weapon.type)
                             addExperience(cur, zombie.type.expProvided)
                         }
-                        cur.getAvailableSkills().mergeWith(weapon.type.skillsWhenUsed).forEach { skill ->
+                        cur.getAvailableSkills().appendedWith(weapon.type.skillsWhenUsed).forEach { skill ->
                             skill.onAttack(this, cur, weapon, stat.actionType, (stat), zoneIdx, hits, zombiesDestroyed)
                         }
                         for (victim: ZCharacter in friendsHit) {
@@ -1793,7 +1793,7 @@ open class ZGame() : Reflector<ZGame>() {
             }
             val numSixes = result.count { it == 6 }
             if (numSixes > 0) {
-                cur.getAvailableSkills().mergeWith(type.skillsWhenUsed).forEach { skill ->
+                cur.getAvailableSkills().appendedWith(type.skillsWhenUsed).forEach { skill ->
                     if (skill.onSixRolled(this, cur, (stat)) && hits < maxHits) {
                         result = rollDice(numSixes)
                         keepGoing = true

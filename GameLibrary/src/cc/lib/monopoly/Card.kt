@@ -1,83 +1,67 @@
-package cc.lib.monopoly;
+package cc.lib.monopoly
 
-import cc.lib.utils.Reflector;
+import cc.lib.utils.Reflector
 
-public class Card extends Reflector<Card> {
+class Card(val property: Square=Square.GO) : Reflector<Card>() {
+	companion object {
+		@JvmStatic
+        fun newGetOutOfJailFreeCard(): Card = Card(Square.GOTO_JAIL)
 
-    static {
-        addAllFields(Card.class);
-    }
+		@JvmStatic
+        fun newPropertyCard(property: Square): Card = Card(property)
 
-    Square property;
-    boolean getOutOfJail;
-    int houses;
-    boolean mortgaged;
+		init {
+			addAllFields(Card::class.java)
+		}
+	}
 
-    static Card newGetOutOfJailFreeCard() {
-        Card c = new Card();
-        c.getOutOfJail = true;
-        return c;
-    }
+	val isGetOutOfJail
+		get() = property == Square.GOTO_JAIL
 
-    static Card newPropertyCard(Square property) {
-        Card c = new Card();
-        c.property = property;
-        return c;
-    }
+	@JvmField
+    var houses = 0
+	var isMortgaged = false
+	val isSellable: Boolean
+		get() = !isGetOutOfJail && !isMortgaged
 
-    public boolean isSellable() {
-        return !getOutOfJail && !mortgaged;
-    }
+	fun canMortgage(): Boolean {
+		return !isGetOutOfJail && !isMortgaged
+	}
 
-    public int getHouses() {
-        return houses;
-    }
+	fun canUnMortgage(): Boolean {
+		return !isGetOutOfJail && isMortgaged
+	}
 
-    public boolean isMortgaged() {
-        return mortgaged;
-    }
+	override fun toString(): String {
+		if (isGetOutOfJail)
+			return "Get Out of Jail Free"
+		var s = property.name
+		if (houses > 0 && houses < 5) {
+			s += "\nhouses X $houses"
+		} else if (houses == 5) {
+			s += "\nHOTEL"
+		}
+		s += if (isMortgaged) {
+			"""
 
-    public boolean isGetOutOfJail() {
-        return getOutOfJail;
-    }
+ 	MORTGAGED
+	    Buy Back ${"$"}${property.mortgageBuybackPrice}
+ 	""".trimIndent()
+		} else {
+			"""
 
-    public Square getProperty() {
-        return property;
-    }
+ 	Mortgage
+ 	Value ${"$"}${property.getMortgageValue(houses)}
+ 	""".trimIndent()
+		}
+		return s
+	}
 
-    boolean canMortgage() {
-        return property != null && !mortgaged;
-    }
+	override fun hashCode(): Int {
+		return property.hashCode()
+	}
 
-    boolean canUnMortgage() {
-        return property != null && mortgaged;
-    }
-
-    @Override
-    public String toString() {
-        if (getOutOfJail)
-            return "Get Out of Jail Free";
-        String s = property.name();
-        if (houses > 0 && houses < 5) {
-            s += "\nhouses X " + houses;
-        } else if (houses == 5) {
-            s += "\nHOTEL";
-        }
-        if (mortgaged) {
-            s += "\nMORTGAGED\nBuy Back $" + property.getMortgageBuybackPrice();
-        } else {
-            s += "\nMortgage\nValue $" + property.getMortgageValue(houses);
-        }
-        return s;
-    }
-
-    @Override
-    public int hashCode() {
-        return property.hashCode();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        return ((Card)obj).property == property;
-    }
+	override fun equals(obj: Any?): Boolean {
+		return (obj as Card?)?.property == property
+	}
 }

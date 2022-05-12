@@ -1,5 +1,8 @@
 package cc.lib.swing;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -58,8 +61,9 @@ public class AWTMonopoly extends AWTComponent {
             return Images.monopoly_board.imageId;
         }
 
+        @Nullable
         @Override
-        protected MoveType showChooseMoveMenu(final Player player, final List<MoveType> moves) {
+        public MoveType showChooseMoveMenu(@NotNull Player player, @NotNull List<? extends MoveType> moves) {
             final MoveType [] result = new MoveType[1];
             final String [] strings = new String[moves.size()];
             int index = 0;
@@ -140,7 +144,7 @@ public class AWTMonopoly extends AWTComponent {
         }
 
         @Override
-        protected Card showChooseCardMenu(final Player player, final List<Card> cards, final Player.CardChoiceType type) {
+        public Card showChooseCardMenu(final Player player, final List<Card> cards, final Player.CardChoiceType type) {
             final Card [] result = new Card[1];
             final String [] items = new String[cards.size()];
             int index = 0;
@@ -148,7 +152,7 @@ public class AWTMonopoly extends AWTComponent {
                 switch (type) {
 
                     case CHOOSE_CARD_TO_MORTGAGE:
-                        items[index++] = Utils.toPrettyString(c.getProperty().name()) + " Mortgage $" + c.getProperty().getMortgageValue(c.getHouses());
+                        items[index++] = Utils.toPrettyString(c.getProperty().name()) + " Mortgage $" + c.getProperty().getMortgageValue(c.houses);
                         break;
                     case CHOOSE_CARD_TO_UNMORTGAGE:
                         items[index++] = Utils.toPrettyString(c.getProperty().name()) + " Buyback $" + c.getProperty().getMortgageBuybackPrice();
@@ -183,7 +187,7 @@ public class AWTMonopoly extends AWTComponent {
         }
 
         @Override
-        protected Trade showChooseTradeMenu(Player player, List<Trade> trades) {
+        public Trade showChooseTradeMenu(Player player, List<Trade> trades) {
             final Trade [] result = new Trade[1];
             frame.showListChooserDialog(new AWTFrame.OnListItemChoosen() {
                 @Override
@@ -219,7 +223,7 @@ public class AWTMonopoly extends AWTComponent {
         }
 
         @Override
-        protected boolean showMarkSellableMenu(PlayerUser user, List<Card> sellable) {
+        public boolean showMarkSellableMenu(PlayerUser user, List<Card> sellable) {
             final AWTFrame popup = new AWTFrame();
             final ActionListener listener = (ActionEvent e) -> {
                 synchronized (monopoly) {

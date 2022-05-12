@@ -2,7 +2,7 @@ package cc.lib.zombicide
 
 
 import cc.lib.utils.Table
-import cc.lib.utils.mergeWith
+import cc.lib.utils.appendedWith
 import cc.lib.utils.prettify
 import cc.lib.utils.wrap
 import java.util.*
@@ -164,7 +164,7 @@ class ZWeapon(override val type: ZWeaponType=ZWeaponType.AXE) : ZEquipment<ZWeap
         if (type.minColorToEquip.ordinal > 0) {
             cardLower.addRow(type.minColorToEquip.toString() + " Required")
         }
-        val skills = type.skillsWhileEquipped.mergeWith(type.skillsWhenUsed)
+        val skills = type.skillsWhileEquipped.appendedWith(type.skillsWhenUsed)
         for (skill in skills) {
             cardLower.addRow(skill.label)
         }

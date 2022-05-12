@@ -1,5 +1,12 @@
-package cc.lib.monopoly;
+package cc.lib.monopoly
 
-public enum Piece {
-    CAR, BOAT, HAT, DOG, THIMBLE, SHOE, WHEELBARROW, IRON
+enum class Piece {
+	CAR,
+	BOAT,
+	HAT,
+	DOG,
+	THIMBLE,
+	SHOE,
+	WHEELBARROW,
+	IRON
 }

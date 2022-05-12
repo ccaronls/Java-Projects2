@@ -17,7 +17,7 @@ fun Char.repeat(times: Int) : String {
     return buf.toString()
 }
 
-fun <T> List<T>.mergeWith(other: Collection<T>) : MutableList<T> {
+fun <T> List<T>.appendedWith(other: Collection<T>) : MutableList<T> {
     val a = ArrayList(this)
     a.addAll(other)
     return a
@@ -105,6 +105,30 @@ inline fun IntArray.randomWeighted() : Int {
 	return Utils.chooseRandomFromSet(*this)
 }
 
+/**
+ *
+ */
 inline fun isEmpty(obj: Any?) : Boolean {
 	return Utils.isEmpty(obj)
+}
+
+/**
+ * left rotate all elems in the array and return the first elem shifted off.
+ */
+inline fun IntArray.popFirst(fillLastElem: Int=0) : Int  {
+	return Utils.popFirst(this).also {
+		set(size -1, fillLastElem)
+	}
+}
+
+inline fun <R,T> List<R>.join(elems: Iterator<T>) : List<Pair<R,T>> {
+	val list = mutableListOf<Pair<R,T>>()
+	var index = 0
+	elems.forEach { r ->
+		if (index < size) {
+			list.add(Pair(get(index), r))
+			index ++
+		}
+	}
+	return list
 }

@@ -23,11 +23,6 @@ open class ElectrocutionAnimation(actor: ZActor<*>) : ZActorAnimation(actor, 100
         g.pushMatrix()
         g.translate(r.topLeft)
         for (i in strands.indices) {
-            val t = random(100)
-            when (t) {
-                0, 1, 2, 3 -> {
-                }
-            }
             val y = strands[i]
             val y0 = y[0] + position * y[2]
             val y1 = y[1] + position * y[3]

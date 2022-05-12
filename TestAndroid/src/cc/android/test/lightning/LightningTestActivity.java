@@ -8,7 +8,6 @@ import cc.lib.game.GColor;
 import cc.lib.game.GRectangle;
 import cc.lib.game.Justify;
 import cc.lib.math.Vector2D;
-import cc.lib.zombicide.anims.ElectrocutionAnimation;
 
 public class LightningTestActivity extends DroidActivity {
 
@@ -60,7 +59,7 @@ public class LightningTestActivity extends DroidActivity {
             //a = new LightningAnimation(click[0], click[1], 5, 3).start();
             //a = new MagicAnimation(click[0], click[1], 5, 10).start();
             rect = new GRectangle(click[0], click[1]);
-            a = new ElectrocutionAnimation(null, rect).start();
+            //a = new ElectrocutionAnimation(null, rect).start();
         }
     }
 }

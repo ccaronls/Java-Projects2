@@ -1,64 +1,51 @@
-package cc.lib.monopoly;
+package cc.lib.monopoly
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*
 
-public class PlayerUser extends Player {
+class PlayerUser : Player() {
+	companion object {
+		init {
+			addAllFields(PlayerUser::class.java)
+		}
+	}
 
-    static {
-        addAllFields(PlayerUser.class);
-    }
+	private val sellableCards: MutableMap<Card, Int> = HashMap()
 
-    private Map<Card, Integer> sellableCards = new HashMap<>();
+	override fun chooseMove(game: Monopoly, options: List<MoveType>): MoveType? {
+		return (game as UIMonopoly).showChooseMoveMenu(this, options)
+	}
 
-    @Override
-    public MoveType chooseMove(Monopoly game, List<MoveType> options) {
-        return ((UIMonopoly)game).showChooseMoveMenu(this, options);
-    }
+	override fun chooseCard(game: Monopoly, cards: List<Card>, type: CardChoiceType): Card? {
+		return (game as UIMonopoly).showChooseCardMenu(this, cards, type)
+	}
 
-    @Override
-    public Card chooseCard(Monopoly game, List<Card> cards, CardChoiceType type) {
-        return ((UIMonopoly)game).showChooseCardMenu(this, cards, type);
-    }
+	override fun chooseTrade(game: Monopoly, trades: List<Trade>): Trade? {
+		return (game as UIMonopoly).showChooseTradeMenu(this, trades)
+	}
 
-    @Override
-    public Trade chooseTrade(Monopoly game, List<Trade> trades) {
-        return ((UIMonopoly)game).showChooseTradeMenu(this, trades);
-    }
+	override fun markCardsForSale(game: Monopoly, sellable: List<Card>): Boolean {
+		return (game as UIMonopoly).showMarkSellableMenu(this, sellable)
+	}
 
-    @Override
-    public boolean markCardsForSale(Monopoly game, List<Card> sellable) {
-        return ((UIMonopoly)game).showMarkSellableMenu(this, sellable);
-    }
+	override fun getTrades(): List<Trade> {
+		val trades: MutableList<Trade> = ArrayList()
+		for ((key, value) in sellableCards) {
+			trades.add(Trade(key, value, this))
+		}
+		return trades
+	}
 
-    @Override
-    public List<Trade> getTrades() {
-        List<Trade> trades = new ArrayList<>();
-        for (Map.Entry<Card, Integer> e : sellableCards.entrySet()) {
-            trades.add(new Trade(e.getKey(), e.getValue(), this));
-        }
-        return trades;
-    }
+	fun setSellableCard(card: Card, amount: Int) {
+		if (amount <= 0) sellableCards.remove(card) else sellableCards[card] = amount
+	}
 
-    public void setSellableCard(Card card, int amount) {
-        if (amount <= 0)
-            sellableCards.remove(card);
-        else
-            sellableCards.put(card, amount);
-    }
+	fun getSellableCardCost(card: Card): Int {
+		val amt = sellableCards[card]
+		return amt ?: 0
+	}
 
-    public int getSellableCardCost(Card  card) {
-        Integer amt = sellableCards.get(card);
-        if (amt != null)
-            return amt;
-        return 0;
-    }
-
-    @Override
-    protected void removeCard(Card card) {
-        super.removeCard(card);
-        sellableCards.remove(card);
-    }
+	override fun removeCard(card: Card) {
+		super.removeCard(card)
+		sellableCards.remove(card)
+	}
 }
