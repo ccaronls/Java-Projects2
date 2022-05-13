@@ -18,10 +18,11 @@ open class Player(var piece: Piece = Piece.BOAT) : Reflector<Player>() {
 		private set
 	var square: Square = Square.GO
 	val cards: MutableList<Card> = ArrayList()
-	public var jailBond = 0
+	var jailBond = 0
 		private set
 	private var jailedTimes = 0
 	var isBankrupt=false
+	var turnsLeftInJail=0 // player can only spend limited time in jail or they must pay fine or go bankrupt
 
 	private fun getPropertyValue(sq: Square, cost: Int): Float {
 		when (sq.type) {
@@ -211,6 +212,7 @@ open class Player(var piece: Piece = Piece.BOAT) : Reflector<Player>() {
 
 	fun setInJail(inJail: Boolean, rules: Rules) {
 		jailBond = if (inJail) {
+			turnsLeftInJail = rules.maxTurnsInJail
 			if (rules.jailMultiplier) {
 				jailedTimes++
 				50 * jailedTimes
@@ -373,20 +375,4 @@ open class Player(var piece: Piece = Piece.BOAT) : Reflector<Player>() {
 		return trades
 	}
 
-	override fun toString(): String {
-		return """
-${piece.name}
-  bankrupt=$isBankrupt
-  injail=$isInJail
-  money=$money
-  cards=${cards.size}
-  mortgaged=$numMortgaged
-  unmortgaged=$numUnmortgaged
-  value=$value
-  sets =${propertySets.size}
-  complete sets=$numCompletePropertySets
-  units=$totalUnits
-  rroads=$numRailroads
-  utils =$numUtilities"""
-	}
 }

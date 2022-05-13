@@ -4,13 +4,6 @@ apply plugin: "kotlin-parcelize"
 
 
 android {
-    compileSdkVersion project.myCompileSdkVersion.toInteger()
-    buildToolsVersion project.myBuildToolsVersion
-
-    compileOptions {
-        sourceCompatibility project.sourceCompatibility
-        targetCompatibility project.targetCompatibility
-    }
 
     defaultConfig {
         applicationId "cc.android.thomas"
@@ -22,37 +15,12 @@ android {
         testInstrumentationRunner project.androidTestRunner
     }
 
-    signingConfigs {
-        general {
-            storeFile file(project.storeFile)
-            storePassword sebi_storePassword
-            keyAlias sebi_keyAlias
-            keyPassword sebi_keyPassword
-        }
-    }
-
-    buildTypes {
-        release {
-            minifyEnabled true
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), '../common/proguard.txt'
-            signingConfig signingConfigs.general
-        }
-        debug {
-// Test minimizing
-//            minifyEnabled true
-//            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), '../common/proguard.txt'
-            signingConfig signingConfigs.general
-        }
-    }
     applicationVariants.all {
         variant -> variant.outputs.all {
             outputFileName = "thomas-${variant.buildType.name}-${android.defaultConfig.versionName}.${android.defaultConfig.versionCode}.apk"
         }
     }
-    buildFeatures {
-        dataBinding true
-        viewBinding true
-    }
+
 }
 
 dependencies {

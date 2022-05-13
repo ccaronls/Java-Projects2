@@ -15,8 +15,8 @@ import kotlin.math.min
 
 abstract class UIMonopoly : Monopoly() {
 	
-	val lock = ReentrantLock()
-	val cond = lock.newCondition()
+	private val lock = ReentrantLock()
+	private val cond = lock.newCondition()
 	
 	var isGameRunning = false
 		private set
@@ -522,6 +522,7 @@ abstract class UIMonopoly : Monopoly() {
 			spriteMap["PLAYER$i"] = object : Sprite() {
 				override fun draw(g: AGraphics, w: Float, h: Float) {
 					val p = getPlayer(i)
+					var value = p.cardsForMortgage.sumBy { it.property.getMortgageValue(it.houses) }
 					var money = p.money
 					animation?.let {
 						money = data1
@@ -531,11 +532,11 @@ abstract class UIMonopoly : Monopoly() {
 						g.pushMatrix()
 						g.translate(delta)
 						g.color = (if (data2 > 0) Board.GREEN else Board.RED).withAlpha(it.position)
-						g.drawJustifiedString(0f, 0f, Justify.RIGHT, Justify.CENTER, amt)
+						g.drawJustifiedString(0f, textHeight, Justify.RIGHT, Justify.CENTER, amt)
 						g.popMatrix()
 					}
 					g.color = color
-					g.drawJustifiedString(0f, 0f, Justify.RIGHT, Justify.CENTER, "$$money")
+					g.drawJustifiedString(0f, 0f, Justify.RIGHT, Justify.CENTER, "($$value)\n$$money")
 				}
 			}
 		}

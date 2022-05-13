@@ -141,12 +141,30 @@ open class Monopoly : Reflector<Monopoly>() {
 				val cur = getCurrentPlayer()
 				assertTrue(cur.value > 0)
 				val moves: MutableList<MoveType> = ArrayList()
+				if (cur.isInJail && cur.turnsLeftInJail-- <= 0) {
+					if (cur.hasGetOutOfJailFreeCard()) {
+						cur.useGetOutOfJailCard()
+						cur.setInJail(false, rules)
+						onPlayerOutOfJail(currentPlayerNum)
+						nextPlayer(true)
+					} else if (cur.money > cur.jailBond) { // must pay bond or bankrupt
+						processMove(MoveType.PAY_BOND)
+					} else if (cur.value > cur.jailBond) {
+						pushState(State.CHOOSE_MORTGAGE_PROPERTY)
+					} else {
+						if (playerBankrupt(currentPlayerNum))
+							nextPlayer(true)
+					}
+					return
+				}
+
 				moves.add(MoveType.ROLL_DICE)
 				if (cur.isInJail) {
 					if (cur.money >= cur.jailBond) {
 						moves.add(MoveType.PAY_BOND)
 					}
-					if (cur.hasGetOutOfJailFreeCard()) moves.add(MoveType.GET_OUT_OF_JAIL_FREE)
+					if (cur.hasGetOutOfJailFreeCard())
+						moves.add(MoveType.GET_OUT_OF_JAIL_FREE)
 				} else {
 					if (cur.cardsForNewHouse.isNotEmpty()) {
 						moves.add(MoveType.UPGRADE)
@@ -203,7 +221,8 @@ open class Monopoly : Reflector<Monopoly>() {
 						cur.removeCard(c)
 						getPlayer(toWhom).addCard(c)
 					}
-					if (playerBankrupt(currentPlayerNum)) nextPlayer(true)
+					if (playerBankrupt(currentPlayerNum))
+						nextPlayer(true)
 				}
 			}
 			State.PAY_KITTY -> {
@@ -843,7 +862,6 @@ open class Monopoly : Reflector<Monopoly>() {
 	private fun playerBankrupt(playerNum: Int): Boolean {
 		onPlayerBankrupt(playerNum)
 		getCurrentPlayer().bankrupt()
-		val winner = winner
 		if (winner >= 0) {
 			state.clear()
 			pushState(State.GAME_OVER)

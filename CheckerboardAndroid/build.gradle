@@ -3,57 +3,11 @@ apply plugin: 'com.android.application'
 android {
 
     defaultConfig {
-        minSdkVersion project.myMinSdkVersion
-        targetSdkVersion project.myTargetSdkVersion
-    }
-
-    compileOptions {
-        sourceCompatibility project.sourceCompatibility
-        targetCompatibility project.targetCompatibility
-
-    }
-    /*
-    sourceSets {
-        main {
-            assets.srcDirs = ['../GameLibrary/images']
-        }
-    }*/
-
-    compileSdkVersion project.myCompileSdkVersion.toInteger()
-    buildToolsVersion project.myBuildToolsVersion
-
-
-    defaultConfig {
         applicationId "cc.game.android.checkerboard"
-        minSdkVersion project.myMinSdkVersion
-        targetSdkVersion project.myTargetSdkVersion
         versionCode 1
         versionName "1.0"
-
-        testInstrumentationRunner project.androidTestRunner
     }
 
-    signingConfigs {
-        general {
-            storeFile file(project.storeFile)
-            storePassword sebi_storePassword
-            keyAlias sebi_keyAlias
-            keyPassword sebi_keyPassword
-        }
-    }
-
-    buildTypes {
-        debug {
-            debuggable true
-            signingConfig signingConfigs.general
-        }
-
-        release {
-            minifyEnabled true // Enables code shrinking for the release build type.
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), '../common/proguard.txt'
-            signingConfig signingConfigs.general
-        }
-    }
 }
 
 dependencies {

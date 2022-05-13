@@ -2,6 +2,12 @@
 <resources>
 
     <string name="app_name">Monopoly</string>
+    <string name="tax_scale">Tax Scale</string>
+    <string name="win_money">Win Money</string>
+    <string name="start_money">Start Money</string>
+    <string name="jail_bump_enabled">Jail Bump Enabled</string>
+    <string name="jail_multiplier_enabled">Jail Multiplier Enabled</string>
+    <string name="max_turns_nin_jail">Max Turns\nIn Jail</string>
 
 
 </resources>

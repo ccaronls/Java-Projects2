@@ -19,6 +19,7 @@ import javax.swing.JSpinner
 import javax.swing.SpinnerNumberModel
 import javax.swing.event.ChangeEvent
 import kotlin.concurrent.withLock
+import kotlin.math.roundToInt
 
 class AWTMonopoly internal constructor() : AWTComponent() {
 	val SAVE_FILE: File
@@ -26,6 +27,53 @@ class AWTMonopoly internal constructor() : AWTComponent() {
 	val frame: AWTFrame
 	val lock = ReentrantLock()
 	val cond = lock.newCondition()
+
+	fun showRulesPopup() {
+		val rules = monopoly.rules
+		val popup = AWTFrame()
+		val content = AWTPanel(BorderLayout())
+		val npStart = AWTNumberPicker.Builder().setLabel("Start $").setMin(500).setMax(1500).setStep(100).setValue(rules.startMoney).build { _, value: Int -> rules.startMoney = value }
+		val npWin = AWTNumberPicker.Builder().setLabel("Win $").setMin(2000).setMax(5000).setStep(500).setValue(rules.valueToWin).build(null)
+		val npTaxScale = AWTNumberPicker.Builder().setLabel("Tax Scale %").setMin(0).setMax(200).setStep(25).setValue((100f * rules.taxScale).roundToInt()).build(null)
+		val jailBump = AWTToggleButton("Jail Bump", rules.jailBumpEnabled)
+		val jailMulti = AWTToggleButton("Jail Multiplier", rules.jailMultiplier)
+		val jailMaxTurns = AWTNumberPicker.Builder().setLabel("Max Jail Turns").setMin(2).setMax(5).setValue(rules.maxTurnsInJail).build(null)
+		content.addTop(AWTLabel("RULES", 1, 20f, true))
+		val buttons = AWTPanel(0, 1)
+		val pickers = AWTPanel(1, 0)
+		pickers.add(npStart)
+		pickers.add(npWin)
+		pickers.add(npTaxScale)
+		pickers.add(jailMaxTurns)
+		content.add(pickers)
+		content.addRight(buttons)
+		buttons.add(jailBump)
+		buttons.add(jailMulti)
+		buttons.add(object : AWTButton("Apply") {
+			override fun onAction() {
+				rules.valueToWin = npWin.value
+				rules.taxScale = 0.01f * npTaxScale.value
+				rules.startMoney = npStart.value
+				rules.jailBumpEnabled = jailBump.isSelected
+				rules.jailMultiplier = jailMulti.isSelected
+				rules.maxTurnsInJail = jailMaxTurns.value
+				popup.closePopup()
+				try {
+					Reflector.serializeToFile<Any>(rules, RULES_FILE)
+				} catch (e: Exception) {
+					frame.showMessageDialog("ERROR", """Error save rules to file $RULES_FILE
+${e.javaClass.simpleName} ${e.message}""")
+				}
+			}
+		})
+		content.addBottom(object : AWTButton("Cancel") {
+			override fun onAction() {
+				popup.closePopup()
+			}
+		})
+		popup.contentPane = content
+		popup.showAsPopup(frame)
+	}
 
 	init {
 		setMouseEnabled(true)
@@ -63,65 +111,15 @@ class AWTMonopoly internal constructor() : AWTComponent() {
 						"Resume"   -> if (monopoly.tryLoadFromFile(SAVE_FILE)) {
 							monopoly.startGameThread()
 						}
-						"Rules"    -> {
-							val rules = monopoly.rules
-							val popup = AWTFrame()
-							val content = AWTPanel(BorderLayout())
-							val npStart = AWTNumberPicker.Builder().setLabel("Start $").setMin(500).setMax(1500).setStep(100).setValue(rules.startMoney).build(null)
-							val npWin = AWTNumberPicker.Builder().setLabel("Win $").setMin(2000).setMax(5000).setStep(500).setValue(rules.valueToWin).build(null)
-							val npTaxScale = AWTNumberPicker.Builder().setLabel("Tax Scale %").setMin(0).setMax(200).setStep(50).setValue(Math.round(100f * rules.taxScale)).build(null)
-							val jailBump = AWTToggleButton("Jail Bump", rules.jailBumpEnabled)
-							val jailMulti = AWTToggleButton("Jail Multiplier", rules.jailMultiplier)
-							content.addTop(AWTLabel("RULES", 1, 20f, true))
-							val buttons = AWTPanel(0, 1)
-							val pickers = AWTPanel(1, 0)
-							pickers.add(npStart)
-							pickers.add(npWin)
-							pickers.add(npTaxScale)
-							content.add(pickers)
-							content.addRight(buttons)
-							buttons.add(jailBump)
-							buttons.add(jailMulti)
-							buttons.add(object : AWTButton("Apply") {
-								override fun onAction() {
-									rules.valueToWin = npWin.value
-									rules.taxScale = 0.01f * npTaxScale.value
-									rules.startMoney = npStart.value
-									rules.jailBumpEnabled = jailBump.isSelected
-									rules.jailMultiplier = jailMulti.isSelected
-									popup.closePopup()
-									try {
-										Reflector.serializeToFile<Any>(rules, RULES_FILE)
-									} catch (e: Exception) {
-										showMessageDialog("ERROR", """Error save rules to file $RULES_FILE
-${e.javaClass.simpleName} ${e.message}""")
-									}
-								}
-							})
-							content.addBottom(object : AWTButton("Cancel") {
-								override fun onAction() {
-									popup.closePopup()
-								}
-							})
-							popup.contentPane = content
-							popup.showAsPopup(this)
-						}
+						"Rules"    -> showRulesPopup()
 					}
 				}
 			}
 		}
 		frame.addMenuBarMenu("File", "New Game", "Resume", "Rules")
 		frame.add(this)
-		if (!frame.loadFromFile(File(settings, "monopoly.properties"))) frame.centerToScreen(800, 600)
-		if (RULES_FILE.isFile) {
-			try {
-				val rules = Reflector.deserializeFromFile<Rules>(RULES_FILE)
-				rules.copyFrom(rules)
-			} catch (e: Exception) {
-				frame.showMessageDialog("ERROR", """Failed to load rules from $RULES_FILE
- ${e.javaClass.simpleName} ${e.message}""")
-			}
-		}
+		if (!frame.loadFromFile(File(settings, "monopoly.properties")))
+			frame.centerToScreen(800, 600)
 	}
 
 	val monopoly: UIMonopoly = object : UIMonopoly() {
@@ -315,6 +313,13 @@ ${e.javaClass.simpleName} ${e.message}""")
 
 	var pieceMap: MutableMap<Piece, Int> = HashMap()
 	override fun init(g: AWTGraphics) {
+		try {
+			val rules:Rules = Reflector.deserializeFromFile(RULES_FILE)
+			monopoly.rules.copyFrom(rules)
+		} catch (e: Exception) {
+			e.printStackTrace()
+		}
+
 		for (img in Images.values()) {
 			img.boardImageId = g.loadImage("images/" + img.name + ".png")
 			numImagesLoaded++

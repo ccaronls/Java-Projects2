@@ -19,4 +19,6 @@ class Rules : Reflector<Rules?>() {
     var taxScale = 1f // iuse this to scale the 'meanness' of the tax squares.
 	@JvmField
     var jailMultiplier = false // cost to get out of jail goes up each time you goto jail.
+	@JvmField
+	var maxTurnsInJail = 3 // max attempts to roll double to get out of jail
 }

@@ -11,6 +11,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import android.widget.AdapterView.OnItemClickListener
+import cc.game.monopoly.android.databinding.*
 import cc.lib.android.CCNumberPicker
 import cc.lib.android.DroidActivity
 import cc.lib.android.DroidGraphics
@@ -21,6 +22,7 @@ import cc.lib.monopoly.Player.CardChoiceType
 import cc.lib.utils.FileUtils
 import cc.lib.utils.prettify
 import java.io.File
+import java.util.concurrent.locks.Condition
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 import kotlin.math.roundToInt
@@ -45,14 +47,14 @@ class MonopolyActivity : DroidActivity() {
 		}
 
 		override fun getImageId(p: Piece): Int = when (p) {
-				Piece.CAR -> R.drawable.car
-				Piece.BOAT -> R.drawable.ship
-				Piece.HAT -> R.drawable.tophat
-				Piece.DOG -> R.drawable.dog
-				Piece.THIMBLE -> R.drawable.thimble
-				Piece.SHOE -> R.drawable.shoe
-				Piece.WHEELBARROW -> R.drawable.wheelbarrow
-				Piece.IRON -> R.drawable.iron
+			Piece.CAR -> R.drawable.car
+			Piece.BOAT -> R.drawable.ship
+			Piece.HAT -> R.drawable.tophat
+			Piece.DOG -> R.drawable.dog
+			Piece.THIMBLE -> R.drawable.thimble
+			Piece.SHOE -> R.drawable.shoe
+			Piece.WHEELBARROW -> R.drawable.wheelbarrow
+			Piece.IRON -> R.drawable.iron
 			}
 
 		override val boardImageId: Int = R.drawable.board
@@ -82,7 +84,7 @@ class MonopolyActivity : DroidActivity() {
 									lock.withLock { cond.signal() }
 								}
 							}
-							MoveType.PURCHASE          -> {
+							MoveType.PURCHASE -> {
 								val property: Square = player.square
 								showPurchasePropertyDialog("Buy Property", "Buy", property) {
 									result[0] = mt
@@ -117,7 +119,7 @@ class MonopolyActivity : DroidActivity() {
 					.setItems(items) { _, which: Int ->
 						result[0] = cards.get(which)
 						lock.withLock { cond.signal() }
-					}.setNegativeButton(R.string.popup_button_cancel) { _, which: Int ->
+					}.setNegativeButton(R.string.popup_button_cancel) { _, _: Int ->
 						if (canCancel()) {
 							cancel()
 						} else {
@@ -150,7 +152,7 @@ class MonopolyActivity : DroidActivity() {
 			return result[0]
 		}
 
-		private fun openMarkSaleableMenu(playerUser: PlayerUser, list: List<Card>) {
+		private fun openMarkSaleableMenu(playerUser: PlayerUser, list: List<Card>, lock: ReentrantLock, cond: Condition) {
 			val view = ListView(this@MonopolyActivity)
 			view.adapter = object : BaseAdapter() {
 				override fun getCount(): Int {
@@ -184,17 +186,19 @@ class MonopolyActivity : DroidActivity() {
 				newDialogBuilderINGAME().setTitle("Set Cost for " + card.property.name)
 					.setView(np).setNeutralButton("Done") { _: DialogInterface?, _: Int ->
 						playerUser.setSellableCard(card, np.value * STEP)
-						openMarkSaleableMenu(playerUser, list)
+						openMarkSaleableMenu(playerUser, list, lock, cond)
 					}.show()
 			}
 			newDialogBuilderINGAME()
 				.setTitle("${playerUser.piece} Mark Saleable")
-				.setView(view).setNeutralButton("Done") { _,_ -> lock.withLock { cond.signal() } }
+				.setView(view).setNeutralButton("Done") { _, _ -> lock.withLock { cond.signal() } }
 				.show()
 		}
 
 		override fun showMarkSellableMenu(playerUser: PlayerUser, list: List<Card>): Boolean {
-			runOnUiThread { openMarkSaleableMenu(playerUser, list) }
+			val lock = ReentrantLock()
+			val cond = lock.newCondition()
+			runOnUiThread { openMarkSaleableMenu(playerUser, list, lock, cond) }
 			lock.withLock { cond.await() }
 			return true
 		}
@@ -213,7 +217,7 @@ class MonopolyActivity : DroidActivity() {
 
 		override fun drawPropertyCard(g: AGraphics, property: Square, w: Float, h: Float) {
 			//(g as DroidGraphics).textHeight = resources.getDimension(R.dimen.dialog_purchase_text_size)
-			with (g as DroidGraphics) {
+			with(g as DroidGraphics) {
 				//textHeight = resources.getDimension(R.dimen.dialog_purchase_text_size)
 				paint.typeface = Typeface.DEFAULT_BOLD
 			}
@@ -412,29 +416,35 @@ class MonopolyActivity : DroidActivity() {
 		val startMoneyValues = resources.getIntArray(R.array.start_money_values)
 		val winMoneyValues = resources.getIntArray(R.array.win_money_values)
 		val taxPercentValues = resources.getIntArray(R.array.tax_scale_percent_values)
-		val v = View.inflate(this, R.layout.game_config_dialog, null)
-		val npStartMoney = v.findViewById<View>(R.id.npStartMoney) as CCNumberPicker
-		val npWinMoney = v.findViewById<View>(R.id.npWinMoney) as CCNumberPicker
-		val npTaxScale = v.findViewById<View>(R.id.npTaxScale) as CCNumberPicker
-		val cbJailBumpEnabled = v.findViewById<View>(R.id.cbJailBumpEnabled) as CompoundButton
+		val maxJailTurnsValues = resources.getIntArray(R.array.max_turns_in_jail_values)
+		val binding = GameConfigDialogBinding.inflate(layoutInflater)
 		val startMoney = prefs.getInt("startMoney", 1000)
 		val winMoney = prefs.getInt("winMoney", 5000)
 		val taxPercent = prefs.getInt("taxPercent", 100)
 		val jailBump = prefs.getBoolean("jailBump", false)
+		val jailMulti = prefs.getBoolean("jailMulti", false)
+		val maxJainTurns = prefs.getInt("maxJailTurns", 3)
 		val rules = monopoly.rules
-		npStartMoney.init(startMoneyValues, startMoney, { value: Int -> "$" + value }, { picker: NumberPicker?, oldVal: Int, newVal: Int -> getPrefs().edit().putInt("startMoney", startMoneyValues.get(newVal)).apply() })
-		npWinMoney.init(winMoneyValues, winMoney, { value: Int -> "$" + value }, { picker: NumberPicker?, oldVal: Int, newVal: Int -> getPrefs().edit().putInt("winMoney", winMoneyValues.get(newVal)).apply() })
-		npTaxScale.init(taxPercentValues, taxPercent, { value: Int -> value.toString() + "%" }, { picker: NumberPicker?, oldVal: Int, newVal: Int -> getPrefs().edit().putInt("taxPercent", taxPercentValues.get(newVal)).apply() })
-		cbJailBumpEnabled.isChecked = jailBump
-		cbJailBumpEnabled.setOnCheckedChangeListener({ buttonView: CompoundButton?, isChecked: Boolean -> getPrefs().edit().putBoolean("jailBump", isChecked).apply() })
-		newDialogBuilder().setTitle("Configure").setView(v)
+		binding.npStartMoney.init(startMoneyValues, startMoney, { value: Int -> "$${value}" }, { _: NumberPicker?, _: Int, newVal: Int -> prefs.edit().putInt("startMoney", startMoneyValues[newVal]).apply() })
+		binding.npWinMoney.init(winMoneyValues, winMoney, { value: Int -> "$$value" }, { _: NumberPicker?, _: Int, newVal: Int -> prefs.edit().putInt("winMoney", winMoneyValues[newVal]).apply() })
+		binding.npTaxScale.init(taxPercentValues, taxPercent, { value: Int -> "$value%" }, { _: NumberPicker?, _: Int, newVal: Int -> prefs.edit().putInt("taxPercent", taxPercentValues[newVal]).apply() })
+		binding.npJailMaxTurns.init(maxJailTurnsValues, maxJainTurns, { value: Int -> "$value" }, { _, _, newVal: Int -> prefs.edit().putInt("maxJailTurns", maxJailTurnsValues[newVal]).apply() })
+		binding.cbJailBumpEnabled.isChecked = jailBump
+		binding.cbJailBumpEnabled.setOnCheckedChangeListener { _, isChecked: Boolean -> prefs.edit().putBoolean("jailBump", isChecked).apply() }
+		binding.cbJailMultiplierEnabled.isChecked = jailMulti
+		binding.cbJailMultiplierEnabled.setOnCheckedChangeListener { _, isChecked:Boolean -> prefs.edit().putBoolean("jailMulti", isChecked).apply() }
+		newDialogBuilder().setTitle("Configure").setView(binding.root)
 			.setPositiveButton("Setup Players") { _, _ ->
-				rules.startMoney = startMoneyValues[npStartMoney.value]
-				rules.valueToWin = winMoneyValues[npWinMoney.value]
-				rules.taxScale = 0.01f * taxPercentValues[npTaxScale.value]
-				rules.jailBumpEnabled = cbJailBumpEnabled.isChecked
+				rules.startMoney = startMoneyValues[binding.npStartMoney.value]
+				rules.valueToWin = winMoneyValues[binding.npWinMoney.value]
+				rules.taxScale = 0.01f * taxPercentValues[binding.npTaxScale.value]
+				rules.jailBumpEnabled = binding.cbJailBumpEnabled.isChecked
 				showPlayerSetupMenu()
-			}.show()
+			}.show().also {
+				val width = (resources.displayMetrics.widthPixels * 0.75).toInt()
+				val height = (resources.displayMetrics.heightPixels * 0.6).toInt()
+				it.window?.setLayout(width, height)
+			}
 	}
 
 	private var pieceDialog: Dialog? = null
@@ -463,7 +473,7 @@ class MonopolyActivity : DroidActivity() {
 					gl.addView(iv)
 					iv.setOnClickListener(listener)
 				}
-				pieceDialog = newDialogBuilder().setTitle("CHOOSE PIECE " + (i + 1)).setView(gl).show()
+				pieceDialog = newDialogBuilder().setTitle("CHOOSE PIECE ${(i + 1)}").setView(gl).show()
 				return
 			}
 		}

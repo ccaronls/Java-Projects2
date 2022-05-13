@@ -10,19 +10,6 @@ dependencies {
 
 android {
 
-    defaultConfig {
-        minSdkVersion project.myMinSdkVersion
-        targetSdkVersion project.myTargetSdkVersion
-    }
-
-    compileOptions {
-        sourceCompatibility project.sourceCompatibility
-        targetCompatibility project.targetCompatibility
-    }
-
-    compileSdkVersion project.myCompileSdkVersion.toInteger()
-    buildToolsVersion project.myBuildToolsVersion
-    
     sourceSets {
         main {
             manifest.srcFile 'AndroidManifest.xml'
@@ -47,26 +34,4 @@ android {
         release.setRoot('build-types/release')
     }
 
-    signingConfigs {
-        release {
-            storeFile file(project.storeFile)
-            storePassword sebi_storePassword
-            keyAlias sebi_keyAlias
-            keyPassword sebi_keyPassword
-        }
-    }
-
-    buildTypes {
-
-        /**
-         * By default, Android Studio configures the release build type to enable code
-         * shrinking, using minifyEnabled, and specifies the Proguard settings file.
-         */
-
-        release {
-            minifyEnabled true // Enables code shrinking for the release build type.
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), '../common/proguard.txt'
-            signingConfig signingConfigs.release
-        }
-    }
 }

@@ -2,52 +2,13 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdkVersion project.myCompileSdkVersion.toInteger()
-    buildToolsVersion project.myBuildToolsVersion
 
     defaultConfig {
         applicationId "cc.game.zombicide.android"
-        minSdkVersion project.myMinSdkVersion
-        targetSdkVersion project.myTargetSdkVersion
         versionCode 2
         versionName "1.0"
-
-        testInstrumentationRunner project.androidTestRunner
     }
 
-    signingConfigs {
-        general {
-            storeFile file(project.storeFile)
-            storePassword sebi_storePassword
-            keyAlias sebi_keyAlias
-            keyPassword sebi_keyPassword
-        }
-    }
-
-    compileOptions {
-        sourceCompatibility project.sourceCompatibility
-        targetCompatibility project.targetCompatibility
-    }
-
-    buildTypes {
-        //release {
-        //    minifyEnabled false
-        //    proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), '../common/proguard.txt'
-       // }
-
-        debug {
-            debuggable true
-            signingConfig signingConfigs.general
-        }
-
-        release {
-            minifyEnabled true // Enables code shrinking for the release build type.
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), '../common/proguard.txt'
-            signingConfig signingConfigs.general
-        }
-
-
-    }
 
     applicationVariants.all {
         variant -> variant.outputs.all {
@@ -60,16 +21,8 @@ android {
         main {
             assets.srcDirs = [ 'assets' ]
         }
-        //test.java {
-        //    srcDirs = [ 'src/test/java', '../GameLibraary/test' ]
-        //}
     }
 
-//    aaptOptions { cruncherEnabled = false }
-
-    buildFeatures {
-        dataBinding true
-    }
 }
 
 dependencies {

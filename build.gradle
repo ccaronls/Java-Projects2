@@ -73,6 +73,56 @@ allprojects {
 
     plugins.withId("com.android.application") {
 
+        android {
+            defaultConfig {
+                minSdkVersion project.myMinSdkVersion
+                targetSdkVersion project.myTargetSdkVersion
+                testInstrumentationRunner project.androidTestRunner
+            }
+
+            compileOptions {
+                sourceCompatibility project.sourceCompatibility
+                targetCompatibility project.targetCompatibility
+
+            }
+
+            compileSdkVersion project.myCompileSdkVersion.toInteger()
+            buildToolsVersion project.myBuildToolsVersion
+
+            signingConfigs {
+                general {
+                    storeFile file("common/android.jks")
+                    storePassword sebi_storePassword
+                    keyAlias sebi_keyAlias
+                    keyPassword sebi_keyPassword
+                }
+            }
+
+            buildTypes {
+
+                /**
+                 * By default, Android Studio configures the release build type to enable code
+                 * shrinking, using minifyEnabled, and specifies the Proguard settings file.
+                 */
+                debug {
+                    debuggable true
+                    signingConfig signingConfigs.general
+                }
+
+                release {
+                    minifyEnabled true // Enables code shrinking for the release build type.
+                    proguardFiles getDefaultProguardFile('proguard-android.txt'), 'common/proguard.txt'
+                    signingConfig signingConfigs.general
+                }
+            }
+
+            buildFeatures {
+                dataBinding true
+                viewBinding true
+            }
+
+        }
+
         dependencies {
             implementation 'androidx.annotation:annotation:1.1.0'
             implementation 'androidx.constraintlayout:constraintlayout:1.1.2'
