@@ -16,6 +16,7 @@ import cc.lib.crypt.EncryptionInputStream;
 import cc.lib.crypt.EncryptionOutputStream;
 import cc.lib.crypt.HuffmanEncoding;
 import cc.lib.game.APGraphics;
+import cc.lib.game.GDimension;
 import cc.lib.game.TestGraphics;
 import cc.lib.game.Utils;
 import cc.lib.logger.LoggerFactory;
@@ -28,6 +29,17 @@ public class ZombicideTest extends TestCase {
     protected void setUp() throws Exception {
         super.setUp();
         Utils.setDebugEnabled();
+        for (ZZombieType z : ZZombieType.values()) {
+            z.imageDims = new GDimension[] {
+                    GDimension.EMPTY
+            };
+            z.imageOptions = new int[] { 0 };
+            z.imageOutlineOptions = new int[] { 0 };
+        }
+
+        for (ZIcon i : ZIcon.values()) {
+            i.imageIds = new int [] { 0 };
+        }
     }
 
     public void testRunGame() {
@@ -37,9 +49,8 @@ public class ZombicideTest extends TestCase {
             System.out.println("Testing Quest: " + q);
             game.clearCharacters();
             game.loadQuest(q);
-            for (ZPlayerName pl : ZPlayerName.values()) {
+            for (ZPlayerName pl : Utils.toList(ZPlayerName.Ariane, ZPlayerName.Clovis, ZPlayerName.Ann, ZPlayerName.Nelly))
                 game.addCharacter(pl);
-            }
 
             for (int i=0; i<1000; i++) {
                 game.runGame();
@@ -105,9 +116,8 @@ Total Decompression Time:   49343
             System.out.println("Testing Quest: " + q);
             game.clearCharacters();
             game.loadQuest(q);
-            for (ZPlayerName pl : ZPlayerName.values()) {
+            for (ZPlayerName pl : Utils.toList(ZPlayerName.Ariane, ZPlayerName.Clovis, ZPlayerName.Ann, ZPlayerName.Nelly))
                 game.addCharacter(pl);
-            }
             ZGame prev = game.deepCopy();
             assertEquals(game, prev);
 
@@ -179,12 +189,12 @@ Total Decompression Time:   49343
             System.out.println("Testing Quest: " + q);
             game.clearCharacters();
             game.loadQuest(q);
-            ZBoard b = game.getBoard();
+            ZBoard b = game.board;
             for (ZZone zone : b.getZones()) {
                 for (ZDoor door : zone.doors) {
                     Grid.Pos pos = door.getCellPosStart();
                     ZCell cell = b.getCell(pos);
-                    assertEquals(cell.getZoneIndex(), zone.getZoneIndex());
+                    assertEquals(cell.zoneIndex, zone.getZoneIndex());
                     ZDoor otherSide = door.getOtherSide();
                     if (otherSide != null) {
                         pos = otherSide.getCellPosStart();
@@ -215,7 +225,7 @@ Total Decompression Time:   49343
         ZGame game = new ZGame();
         game.loadQuest(ZQuests.The_Evil_Twins);
 
-        ZDoor gvd1 = game.getBoard().findDoor(new Grid.Pos(0, 0), ZDir.DESCEND);
+        ZDoor gvd1 = game.board.findDoor(new Grid.Pos(0, 0), ZDir.DESCEND);
         assertNotNull(gvd1);
 
         ZDoor other = gvd1.getOtherSide();
@@ -247,14 +257,12 @@ Total Decompression Time:   49343
     public void testUltraRed() {
         ZSkillLevel.ULTRA_RED_MODE = false;
         ZGame game = new ZGame();
-        game.setUsers(new ZTestUser(ZPlayerName.Ann));
+        game.setUsers(new ZTestUser());
+        game.clearCharacters();
         game.loadQuest(ZQuests.The_Abomination);
+        game.addCharacter(ZPlayerName.Ann);
 
-        ZCharacter ann = null;
-        while (ann == null) {
-            game.runGame();
-            ann = game.getCurrentCharacter().character;
-        }
+        ZCharacter ann = ZPlayerName.Ann.character;
 
         ZSkillLevel.ULTRA_RED_MODE = true;
         ZState state = game.getState();
@@ -288,7 +296,7 @@ Total Decompression Time:   49343
 
         System.out.println("----------------------------------------------------");
         for (ZZombie z : zombies) {
-            System.out.println(String.format("%-20s hits:%d  priority:%d", z.getType(), z.type.minDamageToDestroy, z.type.rangedPriority));
+            System.out.println(String.format("%-20s hits:%d  priority:%d", z.getType(), z.getType().minDamageToDestroy, z.getType().rangedPriority));
         }
         System.out.println("----------------------------------------------------");
 
@@ -298,7 +306,7 @@ Total Decompression Time:   49343
             System.out.println("MELEE SORTING " + i);
             System.out.println("----------------------------------------------------");
             for (ZZombie z : meleeList) {
-                System.out.println(String.format("%-20s hits:%d  priority:%d", z.getType(), z.type.minDamageToDestroy, z.type.rangedPriority));
+                System.out.println(String.format("%-20s hits:%d  priority:%d", z.getType(), z.getType().minDamageToDestroy, z.getType().rangedPriority));
             }
         }
 
@@ -310,7 +318,7 @@ Total Decompression Time:   49343
             System.out.println("RANGED SORTING " + i);
             System.out.println("----------------------------------------------------");
             for (ZZombie z : rangedList) {
-                System.out.println(String.format("%-20s hits:%d  priority:%d", z.getType(), z.type.minDamageToDestroy, z.type.rangedPriority));
+                System.out.println(String.format("%-20s hits:%d  priority:%d", z.getType(), z.getType().minDamageToDestroy, z.getType().rangedPriority));
             }
         }
 
@@ -320,7 +328,7 @@ Total Decompression Time:   49343
             System.out.println("MARKSMAN SORTING " + i);
             System.out.println("----------------------------------------------------");
             for (ZZombie z : marksmanList) {
-                System.out.println(String.format("%-20s hits:%d  priority:%d", z.getType(), z.type.minDamageToDestroy, z.type.rangedPriority));
+                System.out.println(String.format("%-20s hits:%d  priority:%d", z.getType(), z.getType().minDamageToDestroy, z.getType().rangedPriority));
             }
         }
 
@@ -339,8 +347,8 @@ Total Decompression Time:   49343
         ZGame game = new ZGame();
         game.setUsers(new ZTestUser(ZPlayerName.Ann));
         game.loadQuest(ZQuests.Welcome_to_Wulfsberg);
-        assertTrue(game.getQuest().isWolfBurg());
-        ZSpawnCard.drawSpawnCard(game.getQuest().isWolfBurg(), true, ZDifficulty.HARD);
+        assertTrue(game.getQuest().getQuest().isWolfBurg());
+        ZSpawnCard.Companion.drawSpawnCard(game.getQuest().getQuest().isWolfBurg(), true, ZDifficulty.HARD);
     }
 
     public void testUltraExp() {

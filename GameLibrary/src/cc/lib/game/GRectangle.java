@@ -447,4 +447,8 @@ public class GRectangle extends Reflector<GRectangle> implements IRectangle {
         }
         return divisions;
     }
+
+    public final boolean isEmpty() {
+        return this == EMPTY || (getWidth() <= 0 && getHeight() <= 0);
+    }
 }

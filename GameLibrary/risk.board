@@ -23,6 +23,9 @@ cells=java.util.Vector {
          java.lang.Integer {
             34
          }
+         java.lang.Integer {
+            12
+         }
       }
       cx=81.25
       cy=86.75
@@ -497,6 +500,9 @@ cells=java.util.Vector {
          java.lang.Integer {
             13
          }
+         java.lang.Integer {
+            0
+         }
       }
       cx=469.33334
       cy=50.000008
@@ -661,6 +667,9 @@ cells=java.util.Vector {
       connectedCells=java.util.ArrayList {
          java.lang.Integer {
             14
+         }
+         java.lang.Integer {
+            38
          }
       }
       cx=647.0
@@ -1477,6 +1486,9 @@ cells=java.util.Vector {
          java.lang.Integer {
             30
          }
+         java.lang.Integer {
+            36
+         }
       }
       adjVerts=java.util.ArrayList {
          java.lang.Integer {
@@ -1504,39 +1516,48 @@ cells=java.util.Vector {
    }
    cc.lib.risk.RiskCell {
       adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            35
+         }
+         java.lang.Integer {
+            37
+         }
       }
       adjVerts=java.util.ArrayList {
          java.lang.Integer {
-            111
+            63
          }
          java.lang.Integer {
-            112
+            74
          }
          java.lang.Integer {
-            113
+            75
          }
          java.lang.Integer {
             76
          }
+         java.lang.Integer {
+            59
+         }
       }
       connectedCells=java.util.ArrayList {
          java.lang.Integer {
-            22
-         }
-         java.lang.Integer {
-            28
+            39
          }
       }
-      cx=797.25006
-      cy=484.0
+      cx=1091.0
+      cy=373.0
       movableTroops=0
       numArmies=0
       occupier=null
-      radius=45.432
-      region=AFRICA
+      radius=93.26307
+      region=AUSTRALIA
    }
    cc.lib.risk.RiskCell {
       adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            36
+         }
          java.lang.Integer {
             39
          }
@@ -1592,6 +1613,9 @@ cells=java.util.Vector {
          }
       }
       connectedCells=java.util.ArrayList {
+         java.lang.Integer {
+            16
+         }
       }
       cx=1172.5
       cy=204.0
@@ -1672,6 +1696,39 @@ cells=java.util.Vector {
       occupier=null
       radius=115.53381
       region=AUSTRALIA
+   }
+   cc.lib.risk.RiskCell {
+      adjCells=java.util.ArrayList {
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            111
+         }
+         java.lang.Integer {
+            112
+         }
+         java.lang.Integer {
+            113
+         }
+         java.lang.Integer {
+            114
+         }
+      }
+      connectedCells=java.util.ArrayList {
+         java.lang.Integer {
+            22
+         }
+         java.lang.Integer {
+            28
+         }
+      }
+      cx=797.25006
+      cy=484.0
+      movableTroops=0
+      numArmies=0
+      occupier=null
+      radius=45.432
+      region=AFRICA
    }
 }
 dimension=cc.lib.game.GDimension {
@@ -2324,8 +2381,16 @@ edges=java.util.Vector {
          35 36 
       }
       from=59
-      numAdjCells=1
+      numAdjCells=2
       to=63
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         36 0 
+      }
+      from=59
+      numAdjCells=1
+      to=76
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
@@ -2350,6 +2415,14 @@ edges=java.util.Vector {
       from=62
       numAdjCells=1
       to=63
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         36 0 
+      }
+      from=63
+      numAdjCells=1
+      to=74
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
@@ -2449,10 +2522,10 @@ edges=java.util.Vector {
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         37 37 
+         36 37 
       }
       from=74
-      numAdjCells=1
+      numAdjCells=2
       to=75
    }
    cc.lib.board.BEdge {
@@ -2465,11 +2538,11 @@ edges=java.util.Vector {
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         0 0 
+         36 0 
       }
-      from=74
-      numAdjCells=0
-      to=115
+      from=75
+      numAdjCells=1
+      to=76
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
@@ -2518,14 +2591,6 @@ edges=java.util.Vector {
       from=79
       numAdjCells=1
       to=80
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=79
-      numAdjCells=0
-      to=114
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
@@ -2809,7 +2874,7 @@ edges=java.util.Vector {
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         36 0 
+         41 0 
       }
       from=111
       numAdjCells=1
@@ -2817,15 +2882,15 @@ edges=java.util.Vector {
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         36 0 
+         41 0 
       }
-      from=76
+      from=111
       numAdjCells=1
-      to=111
+      to=114
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         36 0 
+         41 0 
       }
       from=112
       numAdjCells=1
@@ -2833,19 +2898,11 @@ edges=java.util.Vector {
    }
    cc.lib.board.BEdge {
       adjacentCells=int 2 {
-         36 0 
+         41 0 
       }
-      from=76
+      from=113
       numAdjCells=1
-      to=113
-   }
-   cc.lib.board.BEdge {
-      adjacentCells=int 2 {
-         0 0 
-      }
-      from=114
-      numAdjCells=0
-      to=115
+      to=114
    }
 }
 verts=java.util.Vector {
@@ -3564,8 +3621,8 @@ verts=java.util.Vector {
       adjacentVerts=int 8 {
          57 63 76 0 0 0 0 0 
       }
-      numAdjCells=1
-      numAdjVerts=2
+      numAdjCells=2
+      numAdjVerts=3
       x=1039.0
       y=371.0
    }
@@ -3612,7 +3669,7 @@ verts=java.util.Vector {
       adjacentVerts=int 8 {
          58 59 62 74 0 0 0 0 
       }
-      numAdjCells=2
+      numAdjCells=3
       numAdjVerts=4
       x=1084.0
       y=280.0
@@ -3739,25 +3796,25 @@ verts=java.util.Vector {
    }
    cc.lib.board.BVertex {
       adjacentCells=int 8 {
-         37 37 0 0 0 0 0 0 
+         36 37 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
          63 75 77 0 0 0 0 0 
       }
-      numAdjCells=1
+      numAdjCells=2
       numAdjVerts=3
       x=1174.0
       y=341.0
    }
    cc.lib.board.BVertex {
       adjacentCells=int 8 {
-         39 37 39 0 0 0 0 0 
+         36 37 39 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         74 79 78 79 0 0 0 0 
+         74 76 78 79 0 0 0 0 
       }
-      numAdjCells=2
-      numAdjVerts=3
+      numAdjCells=3
+      numAdjVerts=4
       x=1117.0
       y=443.0
    }
@@ -3766,12 +3823,12 @@ verts=java.util.Vector {
          36 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         111 113 0 0 0 0 0 0 
+         59 75 0 0 0 0 0 0 
       }
       numAdjCells=1
       numAdjVerts=2
-      x=765.0
-      y=516.0
+      x=1041.0
+      y=430.0
    }
    cc.lib.board.BVertex {
       adjacentCells=int 8 {
@@ -4183,10 +4240,10 @@ verts=java.util.Vector {
    }
    cc.lib.board.BVertex {
       adjacentCells=int 8 {
-         36 0 0 0 0 0 0 0 
+         41 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         112 76 0 0 0 0 0 0 
+         112 114 0 0 0 0 0 0 
       }
       numAdjCells=1
       numAdjVerts=2
@@ -4195,7 +4252,7 @@ verts=java.util.Vector {
    }
    cc.lib.board.BVertex {
       adjacentCells=int 8 {
-         36 0 0 0 0 0 0 0 
+         41 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
          111 113 0 0 0 0 0 0 
@@ -4207,10 +4264,10 @@ verts=java.util.Vector {
    }
    cc.lib.board.BVertex {
       adjacentCells=int 8 {
-         36 0 0 0 0 0 0 0 
+         41 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         112 76 0 0 0 0 0 0 
+         112 114 0 0 0 0 0 0 
       }
       numAdjCells=1
       numAdjVerts=2
@@ -4219,26 +4276,14 @@ verts=java.util.Vector {
    }
    cc.lib.board.BVertex {
       adjacentCells=int 8 {
-         0 0 0 0 0 0 0 0 
+         41 0 0 0 0 0 0 0 
       }
       adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
+         111 113 0 0 0 0 0 0 
       }
-      numAdjCells=0
-      numAdjVerts=0
-      x=994.0
-      y=366.0
-   }
-   cc.lib.board.BVertex {
-      adjacentCells=int 8 {
-         0 0 0 0 0 0 0 0 
-      }
-      adjacentVerts=int 8 {
-         0 0 0 0 0 0 0 0 
-      }
-      numAdjCells=0
-      numAdjVerts=0
-      x=1129.0
-      y=294.0
+      numAdjCells=1
+      numAdjVerts=2
+      x=765.0
+      y=516.0
    }
 }

@@ -13,7 +13,7 @@ public class ZTestUser extends ZUser {
     }
 
     @Override
-    public ZPlayerName chooseCharacter(List<ZPlayerName> options) {
+    public ZPlayerName chooseCharacter(List<? extends ZPlayerName> options) {
         return Utils.randItem(options);
     }
 
@@ -23,22 +23,22 @@ public class ZTestUser extends ZUser {
     }
 
     @Override
-    public ZSkill chooseNewSkill(ZPlayerName character, List<ZSkill> skillOptions) {
+    public ZSkill chooseNewSkill(ZPlayerName character, List<? extends ZSkill> skillOptions) {
         return Utils.randItem(skillOptions);
     }
 
     @Override
-    public ZEquipSlot chooseSlotToOrganize(ZPlayerName cur, List<ZEquipSlot> slots) {
+    public ZEquipSlot chooseSlotToOrganize(ZPlayerName cur, List<? extends ZEquipSlot> slots) {
         return Utils.randItem(slots);
     }
 
     @Override
-    public Integer chooseEquipment(ZPlayerName cur, List<ZEquipment> equipOptions) {
+    public Integer chooseEquipment(ZPlayerName cur, List<? extends ZEquipment<?>> equipOptions) {
         return Utils.rand() % equipOptions.size();
     }
 
     @Override
-    public ZEquipSlot chooseSlotForEquip(ZPlayerName cur, List<ZEquipSlot> equipableSlots) {
+    public ZEquipSlot chooseSlotForEquip(ZPlayerName cur, List<? extends ZEquipSlot> equipableSlots) {
         return Utils.randItem(equipableSlots);
     }
 
@@ -58,7 +58,7 @@ public class ZTestUser extends ZUser {
     }
 
     @Override
-    public ZPlayerName chooseTradeCharacter(ZPlayerName c, List<ZPlayerName> list) {
+    public ZPlayerName chooseTradeCharacter(ZPlayerName c, List<? extends ZPlayerName> list) {
         return Utils.randItem(list);
     }
 
@@ -68,12 +68,12 @@ public class ZTestUser extends ZUser {
     }
 
     @Override
-    public Integer chooseItemToPickup(ZPlayerName cur, List<ZEquipment> list) {
+    public Integer chooseItemToPickup(ZPlayerName cur, List<? extends ZEquipment<?>> list) {
         return Utils.rand() % list.size();
     }
 
     @Override
-    public Integer chooseItemToDrop(ZPlayerName cur, List<ZEquipment> list) {
+    public Integer chooseItemToDrop(ZPlayerName cur, List<? extends ZEquipment<?>> list) {
         return Utils.rand() % list.size();
     }
 
@@ -88,12 +88,12 @@ public class ZTestUser extends ZUser {
     }
 
     @Override
-    public ZPlayerName chooseCharacterForSpell(ZPlayerName cur, ZSpell spell, List<ZPlayerName> targets) {
+    public ZPlayerName chooseCharacterForSpell(ZPlayerName cur, ZSpell spell, List<? extends ZPlayerName> targets) {
         return Utils.randItem(targets);
     }
 
     @Override
-    public ZPlayerName chooseCharacterToBequeathMove(ZPlayerName cur, List<ZPlayerName> list) {
+    public ZPlayerName chooseCharacterToBequeathMove(ZPlayerName cur, List<? extends ZPlayerName> list) {
         return Utils.randItem(list);
     }
 
@@ -109,13 +109,13 @@ public class ZTestUser extends ZUser {
     }
 
     @Override
-    public Integer chooseEquipmentToThrow(ZPlayerName cur, List<ZEquipment> slots) {
+    public Integer chooseEquipmentToThrow(ZPlayerName cur, List<? extends ZEquipment<?>> slots) {
         return Utils.rand() % slots.size();
     }
 
     @Override
-    public Integer chooseZoneToThrowEquipment(ZPlayerName cur, ZEquipment toThrow, List<Integer> zones) {
-        return Utils.randItem(zones);
+    public Integer chooseZoneToThrowEquipment(ZPlayerName cur, ZEquipment toThrow, List zones) {
+        return Utils.randItem((List<Integer>)zones);
     }
 
     @Override
@@ -124,12 +124,12 @@ public class ZTestUser extends ZUser {
     }
 
     @Override
-    public ZEquipmentClass chooseEquipmentClass(ZPlayerName playerName, List<ZEquipmentClass> classes) {
+    public ZEquipmentClass chooseEquipmentClass(ZPlayerName playerName, List<? extends ZEquipmentClass> classes) {
         return Utils.randItem(classes);
     }
 
     @Override
-    public ZEquipmentType chooseStartingEquipment(ZPlayerName playerName, List<ZEquipmentType> list) {
+    public ZEquipmentType chooseStartingEquipment(ZPlayerName playerName, List<? extends ZEquipmentType> list) {
         return list.get(0);
     }
 }

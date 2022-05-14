@@ -121,6 +121,12 @@ allprojects {
                 viewBinding true
             }
 
+            sourceSets {
+                main {
+                    assets.srcDirs = [ 'assets' ]
+                }
+            }
+
         }
 
         dependencies {

@@ -8,6 +8,7 @@
     <TextView
         android:id="@+id/text_view"
         android:textSize="20dp"
+        android:textColor="#fff"
         tools:text="HELLO"
         android:padding="10dp"
         android:background="@drawable/white_rounded_rect"

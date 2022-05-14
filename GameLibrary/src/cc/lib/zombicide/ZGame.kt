@@ -10,6 +10,16 @@ import cc.lib.utils.*
 import java.lang.IllegalArgumentException
 import java.util.*
 import kotlin.Pair
+/*
+abstract class ZState : Reflector<ZState>()
+class ZStateInit : ZState()
+class ZStateBeginRound : ZState()
+class ZStateSpawn : ZState()
+class ZStatePlayerChooseCharacter : ZState()
+class ZStatePlayerChooseAction(val pl:ZPlayerName) : ZState()
+class ZStatePlayerChooseNewSkill(val pl:ZPlayerName) : ZState()
+class ZStatePlayerChooseKeepEquipment(val pl:ZPlayerName) : ZState()
+*/
 
 open class ZGame() : Reflector<ZGame>() {
     companion object {
@@ -127,7 +137,7 @@ open class ZGame() : Reflector<ZGame>() {
     }
 
     protected open fun onCurrentCharacterUpdated(priorPlayer: ZPlayerName?, player: ZPlayerName?) {
-        log.debug("%s updated too %s", priorPlayer, player)
+        log.debug("%s updated too %s", priorPlayer?:"none", player)
     }
 
     fun setDifficulty(difficulty: ZDifficulty) {

@@ -80,6 +80,7 @@ public abstract class DroidActivity extends CCActivityBase {
             } else {
                 onInit(g);
                 initialized = true;
+                redraw();
             }
         }
     }
