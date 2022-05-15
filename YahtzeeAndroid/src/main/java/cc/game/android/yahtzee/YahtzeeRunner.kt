@@ -1,113 +1,95 @@
-package cc.game.android.yahtzee;
+package cc.game.android.yahtzee
 
-import java.io.File;
-import java.util.List;
+import cc.game.yahtzee.core.Yahtzee
+import cc.game.yahtzee.core.YahtzeeRules
+import cc.game.yahtzee.core.YahtzeeSlot
+import cc.lib.utils.Lock
+import java.io.File
 
-import cc.game.yahtzee.core.Yahtzee;
-import cc.game.yahtzee.core.YahtzeeRules;
-import cc.game.yahtzee.core.YahtzeeSlot;
+internal class YahtzeeRunner(private val activity: YahtzeeActivity) : Yahtzee() {
+	private val SAVE_FILE: File = File(activity.filesDir, "yahtzee.save")
+	private val RULES_FILE: File = File(activity.filesDir, "yahtzeerules.sav")
 
-class YahtzeeRunner extends Yahtzee{
+	val lock = Lock()
 
-	private final File SAVE_FILE;
-	private final File RULES_FILE;
-	
-	private final YahtzeeActivity activity;
-	private final YahtzeeRules rules = new YahtzeeRules();
-	
-	YahtzeeRunner(YahtzeeActivity activity) {
-		this.activity = activity;
-		SAVE_FILE = new File(activity.getFilesDir(), "yahtzee.save");
-		RULES_FILE = new File(activity.getFilesDir(), "yahtzeerules.sav");
-		if (RULES_FILE.exists()) {
-			try {
-				rules.loadFromFile(RULES_FILE);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-		if (SAVE_FILE.exists()) {
-			try {
-				loadFromFile(SAVE_FILE);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-	}
-	
-	@Override
-	protected boolean onChooseKeepers(boolean[] keeprs) {
-		return activity.showChooseKeepers(keeprs);
+	override fun onChooseKeepers(keeprs: BooleanArray): Boolean {
+		return activity.showChooseKeepers(keeprs)
 	}
 
-	@Override
-	protected YahtzeeSlot onChooseSlotAssignment(List<YahtzeeSlot> choices) {
-		return activity.showChooseSlot(choices);
-	}
-	
-	@Override
-	protected void onRollingDice() {
-		activity.rollTheDice();
+	override fun onChooseSlotAssignment(choices: List<YahtzeeSlot>): YahtzeeSlot? {
+		return activity.showChooseSlot(choices)
 	}
 
-	@Override
-	protected void onBonusYahtzee(int bonusScore) {
+	override fun onRollingDice() {
+		activity.rollTheDice()
+	}
+
+	override fun onBonusYahtzee(bonusScore: Int) {
 		// TODO Auto-generated method stub
-		super.onBonusYahtzee(bonusScore);
+		super.onBonusYahtzee(bonusScore)
 	}
 
-	@Override
-	protected void onGameOver() {
-		activity.showGameOver();
+	override fun onGameOver() {
+		activity.showGameOver()
 	}
 
-	@Override
-	protected void onError(String msg) {
+	override fun onError(msg: String) {
 		// TODO Auto-generated method stub
-		super.onError(msg);
+		super.onError(msg)
 	}
 
-	enum RunState {
+	internal enum class RunState {
 		STOPPED,
 		STARTED,
 		STOPPING
 	}
-	
-	private RunState runState = RunState.STOPPED;
-	
-	private Runnable thread = new Runnable() {
-		public void run() {
-			try {
-				while (runState == RunState.STARTED) {
-					saveToFile(SAVE_FILE);
-					runGame();
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
+
+	private var runState = RunState.STOPPED
+	private val thread = Runnable {
+		try {
+			while (runState == RunState.STARTED) {
+				saveToFile(SAVE_FILE)
+				runGame()
 			}
-			runState = RunState.STOPPED;
+		} catch (e: Exception) {
+			e.printStackTrace()
 		}
-	};
-	
-	public void startThread() {
-		synchronized (this) {
+		runState = RunState.STOPPED
+	}
+
+	fun startThread() {
+		synchronized(this) {
 			if (runState == RunState.STOPPED) {
-				runState = RunState.STARTED;
-				new Thread(thread).start();
+				runState = RunState.STARTED
+				Thread(thread).start()
 			}
 		}
-		
 	}
 
-	public void stopThread() {
-		synchronized (this) {
-			runState = RunState.STOPPING;
-			notify();
+	fun stopThread() {
+		synchronized(this) {
+			runState = RunState.STOPPING
+			lock.releaseAll()
 		}
 	}
-	
-	boolean isRunning() {
-		return runState == RunState.STARTED;
-	}
 
+	val isRunning: Boolean
+		get() = runState == RunState.STARTED
+
+	init {
+		if (RULES_FILE.exists()) {
+			try {
+				rules.loadFromFile(RULES_FILE)
+			} catch (e: Exception) {
+				e.printStackTrace()
+			}
+		}
+		if (SAVE_FILE.exists()) {
+			try {
+				loadFromFile(SAVE_FILE)
+			} catch (e: Exception) {
+				e.printStackTrace()
+			}
+		}
+	}
 }
