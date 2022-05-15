@@ -136,6 +136,21 @@ public final class Grid<T> extends Reflector<Grid<T>> {
 
     /**
      *
+     * @param elems
+     */
+    public Grid(T [][] elems) {
+        this.grid = new ArrayList<>(elems.length);
+        for (T [] t : elems) {
+            List<T> row = new ArrayList<>(t.length);
+            for (T e : t) {
+                row.add(e);
+            }
+            grid.add(row);
+        }
+    }
+
+    /**
+     *
      * @return
      */
     public Iterable<T> getCells() {
@@ -345,8 +360,17 @@ public final class Grid<T> extends Reflector<Grid<T>> {
         return pos.getRow() >= 0 && pos.getRow() < getRows() && pos.getColumn() >= 0 && pos.getColumn() < getCols();
     }
 
+    /**
+     *
+     * @param row
+     * @param col
+     * @return
+     */
+    public boolean isOnGrid(int row, int col) {
+        return row >= 0 && row < getRows() && col >= 0 && col < getCols();
+    }
+
     public boolean isEmpty() {
         return getRows()==0 && getCols()==0;
     }
-
 }

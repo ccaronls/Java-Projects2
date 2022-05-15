@@ -31,7 +31,7 @@ import kotlin.math.roundToInt
  * Created by chriscaron on 2/15/18.
  */
 class MonopolyActivity : DroidActivity() {
-	private var saveFile: File? = null
+	private lateinit var saveFile: File
 
 	private val monopoly: UIMonopoly = object : UIMonopoly() {
 		override fun repaint() {
@@ -273,7 +273,7 @@ class MonopolyActivity : DroidActivity() {
 	override fun onResume() {
 		super.onResume()
 		monopoly.repaint()
-		if (saveFile!!.exists()) {
+		if (saveFile.exists()) {
 			showOptionsMenu()
 		} else {
 			showPlayerSetupMenu()
@@ -338,7 +338,7 @@ class MonopolyActivity : DroidActivity() {
                 monopoly.onClick();
             }
         }, 100);*/if (!monopoly.isGameRunning) {
-			if (saveFile!!.exists()) {
+			if (saveFile.exists()) {
 				showOptionsMenu()
 			} else {
 				showPlayerSetupMenu()
@@ -366,7 +366,7 @@ class MonopolyActivity : DroidActivity() {
 						monopoly.repaint()
 						monopoly.startGameThread()
 					} else {
-						saveFile!!.delete()
+						saveFile.delete()
 						newDialogBuilder().setTitle("ERROR").setMessage("Unable to load from save game.")
 							.setNegativeButton("Ok") { _, _ -> showGameSetupDialog() }.show()
 					}

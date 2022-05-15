@@ -203,7 +203,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
         return drawString(text, x, y);
     }
 
-    final static Pattern ANNOTATION_PATTERN = Pattern.compile("\\[([0-9]{1,3},)?[0-9]{1,3},[0-9]{1,3},[0-9]{1,3}\\]");
+    final static Pattern ANNOTATION_PATTERN = Pattern.compile("(ARGB)?\\[([0-9]{1,3},)?[0-9]{1,3},[0-9]{1,3},[0-9]{1,3}\\]");
 
     /**
      * 

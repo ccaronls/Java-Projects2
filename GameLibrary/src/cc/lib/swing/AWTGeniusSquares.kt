@@ -1,91 +1,74 @@
-package cc.lib.swing;
+package cc.lib.swing
 
-import java.io.File;
+import cc.lib.game.AGraphics
+import cc.lib.game.Utils
+import cc.lib.geniussqaure.UIGeniusSquares
+import cc.lib.utils.FileUtils
+import java.io.File
 
-import cc.lib.game.AGraphics;
-import cc.lib.game.Utils;
-import cc.lib.geniussqaure.UIGeniusSquares;
-import cc.lib.utils.FileUtils;
+class AWTGeniusSquares internal constructor() : AWTComponent() {
+	val frame: AWTFrame
+	val game = object : UIGeniusSquares() {
+		override fun repaint() {
+			this@AWTGeniusSquares.repaint()
+		}
+	}
+	override fun paint(g: AWTGraphics, mouseX: Int, mouseY: Int) {
+		game.paint(g, mouseX, mouseY)
+	}
 
-public class AWTGeniusSquares extends AWTComponent {
+	override fun onClick() {
+		game.doClick()
+	}
 
-    public static void main(String[] args) {
-        AGraphics.DEBUG_ENABLED = true;
-        Utils.setDebugEnabled();
-        new AWTGeniusSquares();
-    }
+	override fun onDragStarted(x: Int, y: Int) {
+		game.startDrag()
+	}
 
-    final AWTFrame frame;
-    final UIGeniusSquares game;
+	override fun onDragStopped() {
+		game.stopDrag()
+	}
 
-    AWTGeniusSquares() {
-        setMouseEnabled(true);
-        final File settings = FileUtils.getOrCreateSettingsDirectory(getClass());
-        final File saveFile = new File(settings, "gs.save");
-        frame = new AWTFrame("Genius Squares") {
-            @Override
-            protected void onWindowClosing() {
-                game.pauseTimer();
-                game.trySaveToFile(saveFile);
-            }
+	companion object {
+		@JvmStatic
+		fun main(args: Array<String>) {
+			AGraphics.DEBUG_ENABLED = true
+			Utils.setDebugEnabled()
+			AWTGeniusSquares()
+		}
+	}
 
-            @Override
-            protected void onMenuItemSelected(String menu, String subMenu) {
-                switch (subMenu) {
-                    case "New Game":
-                        game.newGame();
-                        break;
-                    case "Reset Pieces":
-                        game.resetPieces();
-                        break;
-                    case "Toggle Autofit": {
-                        boolean autoFit = !game.isAutoFitPieces();
-                        game.setAutoFitPieces(autoFit);
-                        frame.setProperty("autofit", autoFit);
-                        break;
-                    }
-                }
+	init {
+		setMouseEnabled(true)
+		val settings = FileUtils.getOrCreateSettingsDirectory(javaClass)
+		val saveFile = File(settings, "gs.save")
+		frame = object : AWTFrame("Genius Squares") {
+			override fun onWindowClosing() {
+				game.pauseTimer()
+				game.trySaveToFile(saveFile)
+			}
 
-                repaint();
-            }
-        };
-        frame.addMenuBarMenu("GeniusSquares", "New Game", "Reset Pieces", "Toggle Autofit");
-
-        game = new UIGeniusSquares() {
-            @Override
-            public void repaint() {
-                AWTGeniusSquares.this.repaint();
-
-            }
-        };
-        game.setAutoFitPieces(frame.getBooleanProperty("autofit", game.isAutoFitPieces()));
-        if (!game.tryLoadFromFile(saveFile))
-            game.newGame();
-        frame.add(this);
-        frame.setPropertiesFile(new File(settings, "gui.properties"));
-        if (!frame.restoreFromProperties()) {
-            frame.centerToScreen(640, 480);
-        }
-        game.resumeTimer();
-    }
-
-    @Override
-    protected void paint(AWTGraphics g, int mouseX, int mouseY) {
-        game.paint(g, mouseX, mouseY);
-    }
-
-    @Override
-    protected void onClick() {
-        game.doClick();
-    }
-
-    @Override
-    protected void onDragStarted(int x, int y) {
-        game.startDrag();
-    }
-
-    @Override
-    protected void onDragStopped() {
-        game.stopDrag();
-    }
+			override fun onMenuItemSelected(menu: String, subMenu: String) {
+				when (subMenu) {
+					"New Game" -> game.newGame()
+					"Reset Pieces" -> game.resetPieces()
+					"Toggle Autofit" -> {
+						val autoFit = !game.isAutoFitPieces
+						game.isAutoFitPieces = autoFit
+						setProperty("autofit", autoFit)
+					}
+				}
+				repaint()
+			}
+		}
+		frame.addMenuBarMenu("GeniusSquares", "New Game", "Reset Pieces", "Toggle Autofit")
+		game.isAutoFitPieces = frame.getBooleanProperty("autofit", game.isAutoFitPieces)
+		if (!game.tryLoadFromFile(saveFile)) game.newGame()
+		frame.add(this)
+		frame.setPropertiesFile(File(settings, "gui.properties"))
+		if (!frame.restoreFromProperties()) {
+			frame.centerToScreen(640, 480)
+		}
+		game.resumeTimer()
+	}
 }

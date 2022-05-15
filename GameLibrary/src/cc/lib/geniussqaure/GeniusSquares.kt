@@ -1,29 +1,18 @@
-package cc.lib.geniussqaure;
+package cc.lib.geniussqaure
 
-import java.util.ArrayList;
-import java.util.List;
+import cc.lib.game.GColor
+import cc.lib.game.IVector2D
+import cc.lib.game.Utils
+import cc.lib.logger.LoggerFactory
+import cc.lib.math.MutableVector2D
+import cc.lib.math.Vector2D
+import cc.lib.utils.Grid
+import cc.lib.utils.Reflector
+import cc.lib.utils.StopWatch
+import java.util.*
 
-import cc.lib.game.GColor;
-import cc.lib.game.IVector2D;
-import cc.lib.game.Utils;
-import cc.lib.logger.Logger;
-import cc.lib.logger.LoggerFactory;
-import cc.lib.math.MutableVector2D;
-import cc.lib.math.Vector2D;
-import cc.lib.utils.Reflector;
-import cc.lib.utils.StopWatch;
-
-public class GeniusSquares extends Reflector<GeniusSquares> { // GeniusSquare. 6x6 board
-
-    public final static Logger log = LoggerFactory.getLogger(GeniusSquares.class);
-
-    static {
-        addAllFields(GeniusSquares.class);
-        addAllFields(Piece.class);
-    }
-
-    public enum PieceType {
-        PIECE_0(null, 0, 0, null), // this way the matrix value aligns with ordinal()
+/*
+PIECE_0(null, 0, 0, null), // this way the matrix value aligns with ordinal()
         PIECE_1x1(GColor.BLUE, 0, 0, new int [][][] {
                 {{ 1 }}
         }), // matrices are row major
@@ -56,10 +45,10 @@ public class GeniusSquares extends Reflector<GeniusSquares> { // GeniusSquare. 6
                 {{ 7, 7 }, { 0, 7 }},
                 {{ 7, 7 }, { 7, 0 }}}),
         PIECE_TEE(GColor.YELLOW, 0, 4, new int [][][] {
-                {{ 8, 0 }, { 8, 8 }, { 8, 0 }},
-                {{ 0, 8 }, { 8, 8 }, { 0, 8 }},
-                {{ 8, 8, 8 }, { 0, 8, 0 }},
-                {{ 0, 8, 0 }, { 8, 8, 8 }},
+                {{ 8, 0 }, { 8, 8 }, { 8, 0 }}, // T
+                {{ 0, 8 }, { 8, 8 }, { 0, 8 }}, // Upside down T
+                {{ 8, 8, 8 }, { 0, 8, 0 }}, // sideways pointing right
+                {{ 0, 8, 0 }, { 8, 8, 8 }}, // sideways pointing left
         }),
 
         PIECE_STEP(GColor.RED, 1, 5, new int [][][]  {{{ 0, 9, 9 }, { 9, 9, 0 }},
@@ -69,248 +58,275 @@ public class GeniusSquares extends Reflector<GeniusSquares> { // GeniusSquare. 6
         PIECE_CHIT(new GColor(0xFFDBB584), 0, 0, new int [][][] {{{ 10 }}}),
         ;
 
-        PieceType(GColor color, int startX, int startY, int [][][] orientations) {
-            this.color = color;
-            this.orientations = orientations;
-            this.startX = startX;
-            this.startY = startY;
-        }
+ */
 
-        final GColor color;
-        final int [][][] orientations;
-        final float startX, startY;
-    }
+enum class PieceType(val color: GColor, startX: Int, startY: Int, val orientations: Array<Array<Array<Int>>>) {
+	PIECE_0(GColor.TRANSPARENT, 0, 0, arrayOf(arrayOf(arrayOf(0)))),
+	PIECE_1x1(GColor.BLUE, 0, 0, arrayOf(arrayOf(arrayOf(1)))),
+	PIECE_2x2(GColor.GREEN, 1, 0, arrayOf(arrayOf(
+		arrayOf(2, 2), arrayOf(2, 2)))), // BOX
+	PIECE_1x2(GColor.BROWN, 0, 2, arrayOf(
+		arrayOf(arrayOf(3, 3)), // horz
+		arrayOf(arrayOf(3), arrayOf(3)))), // vert
+	PIECE_1x3(GColor.ORANGE, 0, 3, arrayOf(
+		arrayOf(arrayOf(4, 4, 4)), // horz
+		arrayOf(arrayOf(4), arrayOf(4), arrayOf(4)))), // vert
+	PIECE_1x4(GColor.GRAY, 0, 7, arrayOf(
+		arrayOf(arrayOf(5, 5, 5, 5)), // horz
+		arrayOf(arrayOf(5), arrayOf(5), arrayOf(5), arrayOf(5)))), // vert
+	PIECE_EL(GColor.CYAN, 2, 0, arrayOf(
+		arrayOf(arrayOf(0, 6), arrayOf(0, 6), arrayOf(6, 6)), // backward L
+		arrayOf(arrayOf(6, 6), arrayOf(0, 6), arrayOf(0, 6)), // upside down backward L
+		arrayOf(arrayOf(6, 6), arrayOf(6, 0), arrayOf(6, 0)), // upside down forward L
+		arrayOf(arrayOf(6, 0), arrayOf(6, 0), arrayOf(6, 6)), // forward L
+		arrayOf(arrayOf(6, 0, 0), arrayOf(6, 6, 6)), // backward L rotated CW 90 degrees
+		arrayOf(arrayOf(0, 0, 6), arrayOf(6, 6, 6)), // L rotated CCW 90 degrees
+		arrayOf(arrayOf(6, 6, 6), arrayOf(6, 0, 0)), // L rotated CW 90 degrees
+		arrayOf(arrayOf(6, 6, 6), arrayOf(0, 0, 6)))), // backward L rotated CCW 90 degrees
+	PIECE_BEND(GColor.MAGENTA, 2, 3, arrayOf(
+		arrayOf(arrayOf(0, 7), arrayOf(7, 7)),  // . *
+												// * *
+		arrayOf(arrayOf(7, 0), arrayOf(7, 7)),  // * .
+												// * *
+		arrayOf(arrayOf(7, 7), arrayOf(0, 7)),  // * *
+												// . *
+		arrayOf(arrayOf(7, 7), arrayOf(7, 0)))),// * *
+												// * .
+	PIECE_TEE(GColor.YELLOW, 0, 4, arrayOf(
+		arrayOf(arrayOf(8, 0), arrayOf(8, 8), arrayOf(8, 0)),
+		arrayOf(arrayOf(0, 8), arrayOf(8, 8), arrayOf(0, 8)),
+		arrayOf(arrayOf(8, 8, 8), arrayOf(0, 8, 0)),
+		arrayOf(arrayOf(0, 8, 0), arrayOf(8, 8, 8)))),
+	PIECE_STEP(GColor.RED, 1, 5, arrayOf(
+		arrayOf(arrayOf(0, 9, 9), arrayOf(9, 9, 0)),
+		arrayOf(arrayOf(9, 9, 0), arrayOf(0, 9, 9)),
+		arrayOf(arrayOf(9, 0), arrayOf(9, 9), arrayOf(0, 9)), arrayOf(arrayOf(0, 9),
+		arrayOf(9, 9), arrayOf(9, 0)))),
+	PIECE_CHIT(GColor(219, 181, 132), 0, 0,
+		arrayOf(arrayOf(arrayOf(10))));
 
-    public static class Piece extends Reflector<Piece> {
-        final PieceType pieceType;
-        private int index = 0;
-        final MutableVector2D topLeft = new MutableVector2D();
-        final MutableVector2D bottomRight = new MutableVector2D();
-        boolean dropped = false;
+	val startX: Float
+	val startY: Float
 
-        public Piece() {
-            this(null);
-        }
+	init {
+		this.startX = startX.toFloat()
+		this.startY = startY.toFloat()
+	}
+}
 
-        public Piece(PieceType pt) {
-            this.pieceType = pt;
-            if (pt != null) {
-                reset();
-            }
-        }
+class Piece @JvmOverloads constructor(val pieceType: PieceType=PieceType.PIECE_0) : Reflector<Piece>() {
 
-        void reset() {
-            index = 0;
-            this.topLeft.set(pieceType.startX, pieceType.startY);
-            this.bottomRight.set(topLeft).addEq(getWidth(), getHeight());
-            dropped = false;
-        }
+	var index = 0
+		private set
+	val topLeft = MutableVector2D()
+	val bottomRight = MutableVector2D()
+	var dropped = false
+	fun reset() {
+		index = 0
+		topLeft[pieceType.startX] = pieceType.startY
+		bottomRight.set(topLeft).addEq(width, height)
+		dropped = false
+	}
 
-        int [][] getShape() {
-            return pieceType.orientations[index];
-        }
+	val shape: Array<Array<Int>>
+		get() = pieceType.orientations[index]
 
-        void increment(int amt) {
-            setIndex((index + amt + pieceType.orientations.length) % pieceType.orientations.length);
-        }
+	fun increment(amt: Int) {
+		setIndex((index + amt + pieceType.orientations.size) % pieceType.orientations.size)
+	}
 
-        void setIndex(int idx) {
-            index = idx;
-            Vector2D center = topLeft.add(bottomRight).scaledBy(0.5f);
-            topLeft.set(center).subEq(getWidth()/2, getHeight()/2);
-            bottomRight.set(topLeft).addEq(getWidth(), getHeight());
-        }
+	fun setIndex(idx: Int) {
+		index = idx
+		val center: Vector2D = topLeft.add(bottomRight).scaledBy(0.5f)
+		topLeft.set(center).subEq(width / 2, height / 2)
+		bottomRight.set(topLeft).addEq(width, height)
+	}
 
-        public float getWidth() {
-            return getShape()[0].length;
-        }
+	val width: Float
+		get() = shape[0].size.toFloat()
+	val height: Float
+		get() = shape.size.toFloat()
+	var center: IVector2D?
+		get() = topLeft.add(bottomRight).scaledBy(0.5f)
+		set(cntr) {
+			topLeft.set(cntr).subEq(width / 2, height / 2)
+			bottomRight.set(cntr).addEq(width / 2, height / 2)
+		}
 
-        public float getHeight() {
-            return getShape().length;
-        }
+	fun getTopLeft(): Vector2D {
+		return topLeft
+	}
 
-        public Vector2D getCenter() {
-            return topLeft.add(bottomRight).scaledBy(0.5f);
-        }
+	init {
+		reset()
+	}
+}
 
-        public void setCenter(IVector2D cntr) {
-            topLeft.set(cntr).subEq(getWidth()/2, getHeight()/2);
-            bottomRight.set(cntr).addEq(getWidth()/2, getHeight()/2);
-        }
+open class GeniusSquares : Reflector<GeniusSquares?>() {
+	companion object {
+		// GeniusSquare. 6x6 board
+		val log = LoggerFactory.getLogger(GeniusSquares::class.java)
+		var BOARD_DIM_CELLS = 6
+		var NUM_BLOCKERS = 7
 
-        public Vector2D getTopLeft() {
-            return topLeft;
-        }
+		init {
+			addAllFields(GeniusSquares::class.java)
+			addAllFields(Piece::class.java)
+		}
+	}
 
-    }
+	val pieces: MutableList<Piece> = ArrayList()
+	var board: Grid<Int> = Grid<Int>(BOARD_DIM_CELLS, BOARD_DIM_CELLS, 0) // row major
 
-    final List<Piece> pieces = new ArrayList<>();
-    int [][] board = new int[BOARD_DIM_CELLS][BOARD_DIM_CELLS]; // row major
-    @Omit
-    final StopWatch timer = new StopWatch();
-    long bestTime = 0;
+	@Omit
+	val timer = StopWatch()
+	var bestTime: Long = 0
+	open fun newGame() {
+		board.fill(0)
+		var i = 0
+		while (i < NUM_BLOCKERS) {
+			val r = Utils.randRange(0, BOARD_DIM_CELLS - 1)
+			val c = Utils.randRange(0, BOARD_DIM_CELLS - 1)
+			if (board[r, c] != 0) {
+				continue
+			}
+			board[r, c] = PieceType.PIECE_CHIT.ordinal
+			i++
+		}
+		resetPieces()
+		timer.start()
+	}
 
-    static int BOARD_DIM_CELLS = 6;
-    static int NUM_BLOCKERS = 7;
+	@Synchronized
+	fun resetPieces() {
+		pieces.clear()
+		for (i in 1..9) {
+			val p = Piece(PieceType.values()[i])
+			pieces.add(p)
+			liftPiece(p)
+		}
+	}
 
-    public GeniusSquares() {
-    }
+	fun canDropPiece(p: Piece, cellX: Int, cellY: Int): Boolean {
+		if (cellX < 0 || cellY < 0) return false
+		val shape = p.shape
+		if (cellY + shape.size > BOARD_DIM_CELLS) return false
+		if (cellX + shape[0].size > BOARD_DIM_CELLS) return false
+		for (y in shape.indices) {
+			for (x in shape[y].indices) {
+				if (shape[y][x] != 0 && board[cellY + y, cellX + x] != 0)
+					return false
+			}
+		}
+		return true
+	}
 
-    public void newGame() {
-        board = new int[BOARD_DIM_CELLS][BOARD_DIM_CELLS];
-        for (int i = 0; i < NUM_BLOCKERS; ) {
-            int r = Utils.randRange(0, BOARD_DIM_CELLS - 1);
-            int c = Utils.randRange(0, BOARD_DIM_CELLS - 1);
-            if (board[r][c] != 0)
-                continue;
-            board[r][c] = PieceType.PIECE_CHIT.ordinal();
-            i++;
-        }
-        resetPieces();
-        timer.start();
-    }
+	/**
+	 * search through all the possible orientations to fit the piece at cx, cy
+	 * @param p
+	 * @param cellX
+	 * @param cellY
+	 * @return 3 ints: orientation, y and x or null if not possible to fit
+	 * if not result != null then can call dropPiece(p, result[0], result[1], result[2])
+	 */
+	fun findDropForPiece(p: Piece, cellX: Int, cellY: Int): Array<Int>? {
+		for (s in p.pieceType.orientations.indices) {
+			val shapeIndex = (p.index + s) % p.pieceType.orientations.size
+			val shape = p.pieceType.orientations[shapeIndex]
+			for (y in shape.indices) {
+				for (x in shape[y].indices) {
+					val tested = Array(shape.size) { Array(shape[0].size) { 0 } }
+					if (searchDropPieceR(shape, x, y, cellX, cellY, tested)) {
+						return arrayOf(shapeIndex, cellX - x, cellY - y)
+					}
+				}
+			}
+		}
+		return null
+	}
 
-    public synchronized void resetPieces() {
-        pieces.clear();
-        for (int i=1; i<=9; i++) {
-            Piece p = new Piece(PieceType.values()[i]);
-            pieces.add(p);
-            liftPiece(p);
-        }
-    }
+	/**
+	 * This version will fit the piece using its current orientation only
+	 *
+	 * @param p
+	 * @param cellX
+	 * @param cellY
+	 * @return
+	 */
+	fun findDropForPiece2(p: Piece, cellX: Int, cellY: Int): Array<Int>? {
+		val shape = p.shape
+		for (y in shape.indices) {
+			for (x in shape[y].indices) {
+				val tested = Array(shape.size) { Array(shape[0].size) { 0 } }
+				if (searchDropPieceR(shape, x, y, cellX, cellY, tested)) {
+					return arrayOf(p.index, cellX - x, cellY - y)
+				}
+			}
+		}
+		return null
+	}
 
-    public final boolean canDropPiece(Piece p, int cellX, int cellY) {
-        if (cellX < 0 || cellY < 0)
-            return false;
-        int [][] shape = p.getShape();
-        if (cellY + shape.length > BOARD_DIM_CELLS)
-            return false;
-        if (cellX + shape[0].length > BOARD_DIM_CELLS)
-            return false;
-        for (int y=0; y<shape.length; y++) {
-            for (int x=0; x<shape[y].length; x++) {
-                if (shape[y][x] != 0 && board[cellY+y][cellX+x] != 0)
-                    return false;
-            }
-        }
-        return true;
-    }
+	private fun searchDropPieceR(shape: Array<Array<Int>>, px: Int, py: Int, cellX: Int, cellY: Int, tested: Array<Array<Int>>): Boolean {
+		if (px < 0 || py < 0 || py >= shape.size || px >= shape[0].size) return true
+		if (tested[py][px] != 0) return true
+		tested[py][px] = 1
+		if (cellX < 0 || cellY < 0 || cellX >= BOARD_DIM_CELLS || cellY >= BOARD_DIM_CELLS) return false
+		return if (shape[py][px] != 0 && board[cellY, cellX] != 0) false else searchDropPieceR(shape, px - 1, py, cellX - 1, cellY, tested) &&
+			searchDropPieceR(shape, px + 1, py, cellX + 1, cellY, tested) &&
+			searchDropPieceR(shape, px, py - 1, cellX, cellY - 1, tested) &&
+			searchDropPieceR(shape, px, py + 1, cellX, cellY + 1, tested)
+	}
 
-    /**
-     * search through all the possible orientations to fit the piece at cx, cy
-     * @param p
-     * @param cellX
-     * @param cellY
-     * @return 3 ints: orientation, y and x or null if not possible to fit
-     *   if not result != null then can call dropPiece(p, result[0], result[1], result[2])
-     */
-    public final int [] findDropForPiece(Piece p, int cellX, int cellY) {
-        for (int s=0; s<p.pieceType.orientations.length; s++) {
-            final int shapeIndex = (p.index+s) % p.pieceType.orientations.length;
-            final int [][] shape = p.pieceType.orientations[shapeIndex];
-            for (int y=0; y<shape.length; y++) {
-                for (int x=0; x<shape[y].length; x++) {
-                    int [][] tested = new int[shape.length][shape[0].length];
-                    if (searchDropPieceR(shape, x, y, cellX, cellY, tested)) {
-                        return new int [] { shapeIndex, cellX-x, cellY-y };
-                    }
-                }
-            }
-        }
-        return null;
-    }
+	@Synchronized
+	fun dropPiece(p: Piece, cellX: Int, cellY: Int) {
+		log.info("Dropping Piece")
+		if (canDropPiece(p, cellX, cellY)) {
+			//throw new cc.lib.utils.GException("Logic Error: Cannot drop piece");
+			val shape = p.shape
+			for (y in shape.indices) {
+				for (x in shape[y].indices) {
+					if (board[cellY + y, cellX + x] != 0)
+						System.err.println("Logic Error: should not be able to drop piece")
+					if (shape[y][x] != 0)
+						board[cellY + y, cellX + x] = shape[y][x]
+				}
+			}
+			p.dropped = true
+		} else {
+			log.error("Cannot drop piece at: $cellX, $cellY")
+		}
+	}
 
-    /**
-     * This version will fit the piece using its current orientation only
-     *
-     * @param p
-     * @param cellX
-     * @param cellY
-     * @return
-     */
-    public final int [] findDropForPiece2(Piece p, int cellX, int cellY) {
-        final int [][] shape = p.getShape();
-        for (int y=0; y<shape.length; y++) {
-            for (int x=0; x<shape[y].length; x++) {
-                int [][] tested = new int[shape.length][shape[0].length];
-                if (searchDropPieceR(shape, x, y, cellX, cellY, tested)) {
-                    return new int [] { p.index, cellX-x, cellY-y };
-                }
-            }
-        }
-        return null;
-    }
+	@Synchronized
+	fun liftPiece(p: Piece) {
+		log.info("Lifting Piece")
+		for (y in 0 until BOARD_DIM_CELLS) {
+			for (x in 0 until BOARD_DIM_CELLS) {
+				if (board[y, x] == p.pieceType.ordinal) board[y, x] = 0
+			}
+		}
+		p.dropped = false
+	}
 
-    private boolean searchDropPieceR(final int [][] shape, int px, int py, int cellX, int cellY, final int [][] tested) {
-        if (px < 0 || py < 0 || py >= shape.length || px >= shape[0].length)
-            return true;
-        if (tested[py][px] != 0)
-            return true;
-        tested[py][px] = 1;
-        if (cellX < 0 || cellY < 0 || cellX >= BOARD_DIM_CELLS || cellY >= BOARD_DIM_CELLS)
-            return false;
-        if (shape[py][px] != 0 && board[cellY][cellX] != 0)
-            return false;
-        return searchDropPieceR(shape, px-1, py, cellX-1, cellY, tested) &&
-                searchDropPieceR(shape, px+1, py, cellX+1, cellY, tested) &&
-                searchDropPieceR(shape, px, py-1, cellX, cellY-1, tested) &&
-                searchDropPieceR(shape, px, py+1, cellX, cellY+1, tested);
-    }
+	val isCompleted: Boolean
+		get() {
+			for (y in 0 until BOARD_DIM_CELLS) {
+				for (x in 0 until BOARD_DIM_CELLS) {
+					if (board[y, x] == 0) return false
+				}
+			}
+			timer.pause()
+			if (bestTime == 0L || timer.time < bestTime) {
+				bestTime = timer.time
+			}
+			return true
+		}
 
-    synchronized void dropPiece(Piece p, int cellX, int cellY) {
-        log.info("Dropping Piece");
-        if (canDropPiece(p, cellX, cellY)) {
-            //throw new cc.lib.utils.GException("Logic Error: Cannot drop piece");
-            final int[][] shape = p.getShape();
-            for (int y=0; y<shape.length; y++) {
-                for (int x=0; x<shape[y].length; x++) {
-                    if (board[cellY+y][cellX+x] != 0)
-                        System.err.println("Logic Error: should not be able to drop piece");
-                    if (shape[y][x] != 0)
-                        board[cellY+y][cellX+x] = shape[y][x];
-                }
-            }
-            p.dropped = true;
-        } else {
-            log.error("Cannot drop piece at: " + cellX + ", " + cellY);
-        }
-    }
+	fun pauseTimer() {
+		synchronized(timer) { timer.pause() }
+	}
 
-    synchronized void liftPiece(Piece p) {
-        log.info("Lifting Piece");
-        for (int y=0; y<BOARD_DIM_CELLS; y++) {
-            for (int x=0; x<BOARD_DIM_CELLS; x++) {
-                if (board[y][x] == p.pieceType.ordinal())
-                    board[y][x] = 0;
-            }
-        }
-        p.dropped = false;
-    }
-
-    public boolean isCompleted() {
-        for (int y=0; y<BOARD_DIM_CELLS; y++) {
-            for (int x=0; x<BOARD_DIM_CELLS; x++) {
-                if (board[y][x] == 0)
-                    return false;
-            }
-        }
-        timer.pause();
-        if (bestTime == 0 || timer.getTime() < bestTime) {
-            bestTime = timer.getTime();
-        }
-        return true;
-    }
-
-    public void pauseTimer() {
-        synchronized (timer) {
-            timer.pause();
-        }
-    }
-
-    public void resumeTimer() {
-        synchronized (timer) {
-            timer.unpause();
-        }
-    }
-
+	fun resumeTimer() {
+		synchronized(timer) { timer.unpause() }
+	}
 }
