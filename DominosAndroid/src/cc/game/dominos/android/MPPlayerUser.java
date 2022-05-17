@@ -13,7 +13,6 @@ import cc.game.dominos.core.PlayerUser;
 import cc.lib.annotation.Keep;
 import cc.lib.net.GameClient;
 import cc.lib.net.GameCommand;
-import cc.lib.utils.Reflector;
 
 /**
  * Created by chriscaron on 3/14/18.
@@ -37,7 +36,7 @@ public class MPPlayerUser extends PlayerUser implements GameClient.Listener {
 
     @Override
     public String getName() {
-        return "P" + (getPlayerNum()+1) + " " + client.getName();
+        return "P" + (getPlayerNum()+1) + " " + client.getDisplayName();
     }
 
     @Keep
@@ -67,7 +66,6 @@ public class MPPlayerUser extends PlayerUser implements GameClient.Listener {
             dominos.clear();
             dominos.setPlayers(players);
         } else if (cmd.getType() == MPConstants.SVR_TO_CL_INIT_ROUND) {
-            Reflector.KEEP_INSTANCES = true;
             try {
                 dominos.reset();
                 cmd.parseReflector("dominos", dominos);
@@ -79,7 +77,6 @@ public class MPPlayerUser extends PlayerUser implements GameClient.Listener {
                 client.sendError(e);
                 client.disconnect("Error: " + e.getMessage());
             }
-            Reflector.KEEP_INSTANCES = false;
         } else {
             client.sendError("Dont know how to handle cmd: '" + cmd + "'");
             client.disconnect("Error: dont understand command: " + cmd.getType());
@@ -97,7 +94,7 @@ public class MPPlayerUser extends PlayerUser implements GameClient.Listener {
     }
 
     @Override
-    public void onDisconnected(String reason) {
+    public void onDisconnected(String reason, boolean serverInitiated) {
         client.removeListener(this);
         client.unregister(MPConstants.USER_ID);
         client.unregister(MPConstants.DOMINOS_ID);

@@ -1,50 +1,18 @@
 package cc.game.dominos.android;
 
 import android.app.AlertDialog;
-import android.app.Dialog;
-import android.app.ProgressDialog;
 import android.content.DialogInterface;
-import android.content.pm.PackageManager;
-import android.graphics.Color;
-import android.net.wifi.p2p.WifiP2pDevice;
-import android.net.wifi.p2p.WifiP2pGroup;
-import android.net.wifi.p2p.WifiP2pInfo;
-import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.BaseAdapter;
-import android.widget.ListView;
 import android.widget.RadioGroup;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
 
 import cc.game.dominos.core.Dominos;
-import cc.game.dominos.core.MPConstants;
-import cc.game.dominos.core.Player;
-import cc.game.dominos.core.PlayerUser;
-import cc.lib.android.BonjourThread;
 import cc.lib.android.DroidActivity;
 import cc.lib.android.DroidGraphics;
-import cc.lib.android.WifiP2pHelper;
 import cc.lib.annotation.Keep;
-import cc.lib.game.Utils;
-import cc.lib.net.ClientConnection;
-import cc.lib.net.GameClient;
-import cc.lib.net.GameCommand;
-import cc.lib.net.GameServer;
 import cc.lib.utils.FileUtils;
 
 /**
@@ -62,68 +30,6 @@ public class DominosActivity extends DroidActivity {
 
     }
 
-    public abstract class SpinnerTask extends AsyncTask<Void, Void, Exception> {
-
-        Dialog spinner;
-        @Override
-        protected final void onPreExecute() {
-            spinner = showSpinner();
-        }
-
-        protected Dialog showSpinner() {
-            ProgressDialog d = new ProgressDialog(DominosActivity.this, R.style.DialogTheme);
-            d.setOnCancelListener(new DialogInterface.OnCancelListener() {
-                @Override
-                public void onCancel(DialogInterface dialog) {
-                    cancel(true);
-                }
-            });
-            d.show();
-            return d;
-        }
-
-        @Override
-        protected final Exception doInBackground(Void... voids) {
-            try {
-                doIt();
-            } catch (Exception e) {
-                e.printStackTrace();
-                return e;
-            }
-            return null;
-        }
-
-        @Override
-        protected final void onPostExecute(Exception e) {
-            spinner.dismiss();
-            if (e == null) {
-                onDone();
-            } else {
-                onError(e);
-            }
-        }
-
-        protected abstract void doIt() throws Exception;
-
-        protected abstract void onDone();
-
-        protected void onError(Exception e) {
-            newDialogBuilder().setTitle(R.string.popup_title_error).setMessage(getString(R.string.popup_msg_error_occured, e.getMessage())).setNegativeButton(R.string.popup_button_cancel, null)
-                    .setPositiveButton(R.string.popup_button_proceed, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            onDone();
-                        }
-                    }).show();
-        }
-
-        public void run() {
-            executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-        }
-    }
-
-    private GameServer server = null;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -136,213 +42,26 @@ public class DominosActivity extends DroidActivity {
         dominos = new Dominos() {
             @Override
             public void redraw() {
-                redraw();
+                DominosActivity.this.redraw();
             }
 
             @Override
             @Keep
             protected void onGameOver(int winner) {
                 super.onGameOver(winner);
-                if (server.isRunning()) {
-                    getContent().postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            showNewMultiplayerPlayerSetupDialog(false);
-                        }
-                    }, 5000);
-                } else if (client.isConnected()) {
-                    getContent().postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            newDialogBuilder().setTitle(R.string.popup_title_game_over)
-                                    .setMessage(R.string.popup_msg_standby_for_next_game)
-                                    .setNegativeButton(R.string.popup_button_quit, new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int which) {
-                                            new SpinnerTask() {
-                                                @Override
-                                                protected void doIt() throws Exception {
-                                                    killGame();
-                                                }
-
-                                                @Override
-                                                protected void onDone() {
-                                                    showNewGameDialog();
-                                                }
-                                            }.run();
-                                        }
-                                    }).show();
-                        }
-                    }, 5000);
-                } else {
-                    getContent().postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            showNewGameDialog();
-                        }
-                    }, 5000);
-                }
+                getContent().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        showNewGameDialog();
+                    }
+                }, 5000);
             }
 
             @Override
             protected void onMenuClicked() {
-                if (server.isRunning()) {
-                    String[] options = {
-                            getString(R.string.popup_item_view_clients),
-                            getString(R.string.popup_item_new_game),
-                            getString(R.string.popup_item_stop_session)
-                    };
-                    newDialogBuilder().setTitle(R.string.popup_title_mp_hosts)
-                            .setItems(options, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    switch (which) {
-                                        case 0: {
-                                            // View clients
-                                            final String[] clientItems = new String[server.getNumClients()];
-                                            final ClientConnection[] clients = new ClientConnection[server.getNumClients()];
-                                            int index = 0;
-                                            for (ClientConnection c : server.getConnectionValues()) {
-                                                clients[index] = c;
-                                                clientItems[index++] = getString(c.isConnected() ? R.string.list_item_player_status_connected :
-                                                                R.string.list_item_player_status_disconnected,
-                                                        c.getName());
-                                            }
-                                            newDialogBuilder().setTitle(R.string.popup_title_clients)
-                                                    .setItems(clientItems, new DialogInterface.OnClickListener() {
-                                                        @Override
-                                                        public void onClick(DialogInterface dialog, int which) {
-                                                            final ClientConnection client = clients[which];
-                                                            newDialogBuilder().setTitle(getString(R.string.popup_title_client_name, client.getName()))
-                                                                    .setMessage(R.string.popup_msg_kick_client)
-                                                                    .setNegativeButton(R.string.popup_button_no, null)
-                                                                    .setPositiveButton(R.string.popup_button_kick, new DialogInterface.OnClickListener() {
-                                                                        @Override
-                                                                        public void onClick(DialogInterface dialog, int which) {
-                                                                            client.disconnect(getString(R.string.client_disconnected_reason_kicked_out));
-                                                                        }
-                                                                    }).show();
-                                                        }
-
-                                                    }).show();
-                                            break;
-                                        }
-                                        case 1: {
-                                            newDialogBuilder().setTitle(R.string.popup_title_confirm).setMessage(R.string.popup_msg_start_new_game)
-                                                    .setNegativeButton(R.string.popup_button_cancel, null)
-                                                    .setPositiveButton(R.string.popup_button_start, new DialogInterface.OnClickListener() {
-                                                        @Override
-                                                        public void onClick(DialogInterface dialog, int which) {
-                                                            dominos.startNewGame();
-                                                            dominos.startGameThread();
-                                                        }
-                                                    }).show();
-                                            break;
-                                        }
-                                        case 2:
-                                            newDialogBuilder().setTitle(R.string.popup_title_confirm)
-                                                    .setMessage(R.string.popup_msg_exit_mp)
-                                                    .setNegativeButton(R.string.popup_button_no, null)
-                                                    .setPositiveButton(R.string.popup_button_yes, new DialogInterface.OnClickListener() {
-                                                        @Override
-                                                        public void onClick(DialogInterface dialog, int which) {
-                                                            new SpinnerTask() {
-                                                                @Override
-                                                                protected void doIt() {
-                                                                    server.stop();
-                                                                    killGame();
-                                                                }
-
-                                                                @Override
-                                                                protected void onDone() {
-                                                                    showNewGameDialog();
-                                                                }
-
-                                                            }.run();
-                                                        }
-                                                    }).show();
-                                    }
-                                }
-                            })
-                            .setNegativeButton(R.string.popup_button_cancel, null).show();
-                } else if (client.isConnected()) {
-                    String[] options = {
-                            getString(R.string.popup_item_forfeit),
-                            getString(R.string.popup_item_exit_mp)
-                    };
-                    newDialogBuilder().setTitle(R.string.popup_title_client_session)
-                            .setItems(options, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    switch (which) {
-                                        case 0: // forfeit
-                                            newDialogBuilder().setTitle(R.string.popup_title_confirm)
-                                                    .setMessage(R.string.popup_msg_confirm_forfeit)
-                                                    .setNegativeButton(R.string.popup_button_no, null)
-                                                    .setPositiveButton(R.string.popup_button_forfiet, new DialogInterface.OnClickListener() {
-                                                        @Override
-                                                        public void onClick(DialogInterface dialog, int which) {
-                                                            client.sendCommand(new GameCommand(MPConstants.CL_TO_SVR_FORFEIT));
-                                                            synchronized (dominos) {
-                                                                dominos.notify();
-                                                            }
-                                                        }
-                                                    }).show();
-                                            break;
-                                        case 1: // exit
-                                            newDialogBuilder().setTitle(R.string.popup_title_confirm)
-                                                    .setMessage(R.string.popup_msg_confirm_disconnect)
-                                                    .setNegativeButton(R.string.popup_button_no, null)
-                                                    .setPositiveButton(R.string.popup_button_yes, new DialogInterface.OnClickListener() {
-                                                        @Override
-                                                        public void onClick(DialogInterface dialog, int which) {
-                                                            new SpinnerTask() {
-                                                                @Override
-                                                                protected void doIt() {
-                                                                    client.disconnect();
-                                                                    helper.disconnect();
-                                                                    helper.destroy();
-                                                                }
-
-                                                                @Override
-                                                                protected void onDone() {
-                                                                    showNewGameDialog();
-                                                                }
-                                                            }.execute();
-                                                        }
-                                                    }).show();
-                                    }
-                                }
-                            }).setNegativeButton(R.string.popup_button_cancel, null).show();
-
-                } else {
-                    showNewGameDialog();
-                }
-            }
-
-            @Override
-            protected void onAllPlayersJoined() {
-                dismissCurrentDialog();
-                dominos.startGameThread();
-            }
-
-            @Override
-            protected void onPlayerConnected(Player player) {
-                player.getConnection().addListener(connectionListener);
-                dismissCurrentDialog();
-            }
-
-            @Override
-            protected String getServerName() {
-                return NAME;
-            }
-
-            @Override
-            protected String getString(int id, Object ... params) {
-                return getResources().getString(id, params);
+                showNewGameDialog();
             }
         };
-        server = dominos.server;
         dominos.startDominosIntroAnimation(new Runnable() {
             @Override
             public void run() {
@@ -364,60 +83,14 @@ public class DominosActivity extends DroidActivity {
     protected void onResume() {
         super.onResume();
         dominos.redraw();
-        if (server.isRunning()) {
-            if (dominos.isInitialized())
-                dominos.startGameThread();
-            else if (!isCurrentDialogShowing())
-                showWaitingForPlayersDialog();
-
-        } else if (!client.isConnected()) {
-            if (dominos.isInitialized()) {
-                dominos.startGameThread();
-            } else {
-                //showNewGameDialog();
-            }
-        }
     }
 
     final int PERMISSION_REQUEST_CODE = 1001;
-
-    private boolean checkPermission() {
-        int result = ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE);
-        if (result == PackageManager.PERMISSION_GRANTED) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    private void requestPermission() {
-
-        if (ActivityCompat.shouldShowRequestPermissionRationale(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-            Toast.makeText(this, R.string.toast_allow_write_external_storage, Toast.LENGTH_LONG).show();
-        } else {
-            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSION_REQUEST_CODE);
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        switch (requestCode) {
-            case PERMISSION_REQUEST_CODE:
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    copyFileToExt();
-                } else {
-                    Log.e("value", "Permission Denied, You cannot use local drive .");
-                }
-                break;
-        }
-    }
 
     @Override
     protected void onPause() {
         super.onPause();
         dominos.stopGameThread();
-        if (!client.isConnected())
-            dominos.trySaveToFile(saveFile);
     }
 
     int tx=-1, ty=-1;
@@ -495,6 +168,7 @@ public class DominosActivity extends DroidActivity {
                 showNewSinglePlayerSetupDialog();
             }
         });
+        /*
         v.findViewById(R.id.bMultiPlayerHost).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -511,7 +185,7 @@ public class DominosActivity extends DroidActivity {
             public void onClick(View v) {
                 showSearchMultiplayerHostsDialog();
             }
-        });
+        });*/
         View button = v.findViewById(R.id.bResumeSP);
         if (saveFile.exists()) {
             button.setOnClickListener(new View.OnClickListener() {
@@ -537,62 +211,7 @@ public class DominosActivity extends DroidActivity {
         }
     }
 
-    WifiP2pHelper helper = null;
-
-    class GameListener implements ClientConnection.Listener {
-        @Override
-        public synchronized void onConnected(ClientConnection conn) {
-        }
-
-        @Override
-        public void onCancelled(ClientConnection c, String id) {
-
-        }
-
-        @Override
-        public void onCommand(ClientConnection c, GameCommand cmd) {
-            if (cmd.getType() == MPConstants.CL_TO_SVR_FORFEIT) {
-                c.getServer().broadcastMessage(getString(R.string.server_broadcast_player_forfieted, c.getName()));
-                startNewGame();
-            } else {
-                Log.w(TAG, "Unhandled cmd: " + cmd);
-            }
-        }
-
-        @Override
-        public void onDisconnected(final ClientConnection c, final String reason) {
-            Log.w(TAG, "Client disconnected: " + reason);
-            if (dominos.isGameRunning()) {
-                dominos.stopGameThread();
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        newDialogBuilder().setTitle(R.string.popup_title_notice)
-                                .setMessage(getString(R.string.popup_msg_player_disconnect_reason, c.getName(), reason))
-                                .setNegativeButton(R.string.popup_button_continue_without, new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        new SpinnerTask() {
-                                            @Override
-                                            protected void doIt() throws Exception {
-                                                c.disconnect(getString(R.string.client_disconnected_reason_droppped));
-                                            }
-
-                                            @Override
-                                            protected void onDone() {
-                                                dominos.startGameThread();
-                                            }
-                                        }.run();
-                                    }
-                                }).show();
-                    }
-                });
-            }
-        }
-    }
-
-    final GameListener connectionListener = new GameListener();
-
+/*
     void showHostMultiplayerDialog() {
         new SpinnerTask() {
             @Override
@@ -648,29 +267,14 @@ public class DominosActivity extends DroidActivity {
             }
 
         }.run();
-    }
+    }*/
 
     void killGame() {
-        try {
-            server.stop();
-        } catch (Exception e) {
-        }
-        try {
-            client.disconnect();
-        } catch (Exception e) {
-        }
-        try {
-            helper.disconnect();
-        } catch (Exception e) {
-        }
-        try {
-            helper.destroy();
-        } catch (Exception e) {
-        }
         dominos.stopGameThread();
         dominos.clear();
     }
 
+    /*
     void showWaitingForPlayersDialog() {
         dominos.stopGameThread();
         ListView lvPlayers = new ListView(this);
@@ -1060,8 +664,6 @@ public class DominosActivity extends DroidActivity {
 
     final static String NAME= Build.MODEL;
 
-    GameClient client = new GameClient(NAME, MPConstants.VERSION, MPConstants.getCypher());
-
     void showNewMultiplayerPlayerSetupDialog(final boolean firstGame) {
         final View v = View.inflate(this, R.layout.game_setup_dialog, null);
         final RadioGroup rgNumPlayers = (RadioGroup)v.findViewById(R.id.rgNumPlayers);
@@ -1194,7 +796,7 @@ public class DominosActivity extends DroidActivity {
         dominos.startNewGame();
         server.broadcastMessage(getString(R.string.server_broadcast_starting_new_game));
         dominos.startGameThread();
-    }
+    }*/
 
     void showNewSinglePlayerSetupDialog() {
         final View v = View.inflate(this, R.layout.game_setup_dialog, null);
