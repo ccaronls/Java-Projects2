@@ -1,8 +1,7 @@
 package cc.game.android.yahtzee
 
-import cc.game.yahtzee.core.Yahtzee
-import cc.game.yahtzee.core.YahtzeeRules
-import cc.game.yahtzee.core.YahtzeeSlot
+import cc.lib.yahtzee.Yahtzee
+import cc.lib.yahtzee.YahtzeeSlot
 import cc.lib.utils.Lock
 import java.io.File
 
@@ -10,14 +9,30 @@ internal class YahtzeeRunner(private val activity: YahtzeeActivity) : Yahtzee() 
 	private val SAVE_FILE: File = File(activity.filesDir, "yahtzee.save")
 	private val RULES_FILE: File = File(activity.filesDir, "yahtzeerules.sav")
 
-	val lock = Lock()
+	private val lock = Lock()
+	var result: Any? = null
+		set(value) {
+			field = value
+			lock.release()
+		}
 
 	override fun onChooseKeepers(keeprs: BooleanArray): Boolean {
-		return activity.showChooseKeepers(keeprs)
+		activity.showChooseKeepers(keeprs)
+		lock.acquireAndBlock()
+		return when (result) {
+			null -> false
+			is Boolean -> result as Boolean
+			else -> false
+		}
 	}
 
 	override fun onChooseSlotAssignment(choices: List<YahtzeeSlot>): YahtzeeSlot? {
-		return activity.showChooseSlot(choices)
+		activity.showChooseSlot(choices)
+		lock.acquireAndBlock()
+		return when (result) {
+			is YahtzeeSlot -> result as YahtzeeSlot
+			else -> null
+		}
 	}
 
 	override fun onRollingDice() {

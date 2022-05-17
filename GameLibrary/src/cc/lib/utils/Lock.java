@@ -9,7 +9,7 @@ import cc.lib.game.Utils;
  * Release decrements a count.
  * When count gets to zero the blocked thread is notified.
  */
-public final class Lock {
+public class Lock {
 
     private int holders = 0;
 

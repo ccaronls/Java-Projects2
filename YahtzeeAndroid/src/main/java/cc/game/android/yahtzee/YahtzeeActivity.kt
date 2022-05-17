@@ -1,156 +1,146 @@
 package cc.game.android.yahtzee
 
-import android.app.Activity
 import android.app.AlertDialog
 import android.content.DialogInterface
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.ListView
-import android.widget.TextView
-import cc.game.yahtzee.core.YahtzeeRules
-import cc.game.yahtzee.core.YahtzeeSlot
-import cc.game.yahtzee.core.YahtzeeState
-import cc.lib.game.Utils
-import java.util.*
+import android.widget.*
+import androidx.core.view.postDelayed
+import androidx.databinding.BindingAdapter
+import androidx.databinding.ObservableArrayList
+import androidx.databinding.ViewDataBinding
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import cc.game.android.yahtzee.databinding.YahtzeeactivityBinding
+import cc.lib.android.CCActivityBase
+import cc.lib.android.LayoutFactory
+import cc.lib.utils.Lock
+import cc.lib.utils.random
+import cc.lib.yahtzee.YahtzeeRules
+import cc.lib.yahtzee.YahtzeeSlot
+import cc.lib.yahtzee.YahtzeeState
 
-class YahtzeeActivity() : Activity(), View.OnClickListener {
-	private val DICE_COUNT = 5
+const val DICE_COUNT = 5
 
-	private val imageViewDie = arrayOfNulls<ImageView>(DICE_COUNT)
-	private val textViewKeepDie = arrayOfNulls<TextView>(DICE_COUNT)
-	private var textViewRollsValue: TextView? = null
-	private var textViewYahtzeesValue: TextView? = null
-	private var textViewUpperPointsValue: TextView? = null
-	private var textViewTotalPointsValue: TextView? = null
-	private var textViewBonusPointsValue: TextView? = null
-	private var textViewTopScoreValue: TextView? = null
-	private var listViewYahtzeeSlots: ListView? = null
-	private var buttonRollDice: Button? = null
-
-	// should these really be in other files?
-	private lateinit var slotAdapter: YahtzeeSlotAdapter
-	private lateinit var runner: YahtzeeRunner
-
-	override fun onCreate(savedInstanceState: Bundle?) {
-		super.onCreate(savedInstanceState)
-		runner = YahtzeeRunner(this)
-		setContentView(R.layout.yahtzeeactivity)
-		imageViewDie[0] = findViewById<View>(R.id.imageViewDie1) as ImageView
-		imageViewDie[1] = findViewById<View>(R.id.imageViewDie2) as ImageView
-		imageViewDie[2] = findViewById<View>(R.id.imageViewDie3) as ImageView
-		imageViewDie[3] = findViewById<View>(R.id.imageViewDie4) as ImageView
-		imageViewDie[4] = findViewById<View>(R.id.imageViewDie5) as ImageView
-		textViewKeepDie[0] = findViewById<View>(R.id.textViewKeepDie1) as TextView
-		textViewKeepDie[1] = findViewById<View>(R.id.textViewKeepDie2) as TextView
-		textViewKeepDie[2] = findViewById<View>(R.id.textViewKeepDie3) as TextView
-		textViewKeepDie[3] = findViewById<View>(R.id.textViewKeepDie4) as TextView
-		textViewKeepDie[4] = findViewById<View>(R.id.textViewKeepDie5) as TextView
-		imageViewDie[0]!!.setOnClickListener(this)
-		imageViewDie[1]!!.setOnClickListener(this)
-		imageViewDie[2]!!.setOnClickListener(this)
-		imageViewDie[3]!!.setOnClickListener(this)
-		imageViewDie[4]!!.setOnClickListener(this)
-		textViewRollsValue = findViewById<View>(R.id.TextViewRollsValue) as TextView
-		textViewYahtzeesValue = findViewById<View>(R.id.textViewYahtzeesValue) as TextView
-		textViewUpperPointsValue = findViewById<View>(R.id.textViewUpperPointsValue) as TextView
-		textViewBonusPointsValue = findViewById<View>(R.id.textViewBonusPointValue) as TextView
-		textViewTotalPointsValue = findViewById<View>(R.id.textViewTotalPointsValue) as TextView
-		textViewTopScoreValue = findViewById<View>(R.id.textViewTopScoreValue) as TextView
-		listViewYahtzeeSlots = findViewById<View>(R.id.listViewYahtzeeSlots) as ListView
-		slotAdapter = YahtzeeSlotAdapter(this, runner)
-		listViewYahtzeeSlots!!.adapter = slotAdapter
-		buttonRollDice = findViewById<View>(R.id.buttonRollDice) as Button
-		buttonRollDice!!.setOnClickListener(this)
-	}
-
-	private val diceImageIds = intArrayOf(
+@BindingAdapter("dieImage")
+fun ImageView.setDieImage(id: Int) {
+	setImageResource(arrayOf(
 		R.drawable.dice1,
 		R.drawable.dice2,
 		R.drawable.dice3,
 		R.drawable.dice4,
 		R.drawable.dice5,
-		R.drawable.dice6
-	)
+		R.drawable.dice6)[id.coerceIn(1..6)-1])
+}
 
-	fun setDieImage(view: ImageView?, dieNum: Int) {
-		if ((view != null) && (dieNum > 0) && (dieNum <= diceImageIds.size)) {
-			view.setImageResource(diceImageIds[dieNum - 1])
+class YahtzeeViewModel : ViewModel() {
+
+	val adapter = MutableLiveData<BaseAdapter>(null)
+	val buttonRollDiceText = MutableLiveData("")
+	val buttonRollDiceEnabled = MutableLiveData(false)
+	val listViewClickable = MutableLiveData(false)
+	val dice = ObservableArrayList<Int>().also {
+		it.addAll(IntArray(DICE_COUNT) { 0 }.toList())
+	}
+	val keepers = ObservableArrayList<Boolean>().also {
+		//MutableLiveData(BooleanArray(DICE_COUNT) { false })
+		it.addAll(BooleanArray(DICE_COUNT) { false }.toList())
+	}
+
+	val rollsValue = MutableLiveData("")
+	val yahtzeesValue = MutableLiveData("")
+	val upperPointsValue = MutableLiveData("")
+	val bonusPointsValue = MutableLiveData("")
+	val totalPointsValue = MutableLiveData("")
+	val topScoreValue = MutableLiveData("")
+	val rollingDice = MutableLiveData(false)
+
+	fun toggleKeeper(idx: Int) {
+		keepers[idx] = keepers[idx].not()
+	}
+
+}
+
+class YahtzeeActivity : CCActivityBase() {
+
+	private lateinit var slotAdapter: YahtzeeSlotAdapter
+	private lateinit var runner: YahtzeeRunner
+	private lateinit var binding: YahtzeeactivityBinding
+	private lateinit var viewModel: YahtzeeViewModel
+
+	override fun getLayoutFactory(): LayoutFactory {
+		return LayoutFactory(this, R.layout.yahtzeeactivity, YahtzeeViewModel::class.java)
+	}
+
+	override fun onLayoutCreated(binding: ViewDataBinding, viewModel: ViewModel) {
+		this.binding = binding as YahtzeeactivityBinding
+		this.viewModel = viewModel as YahtzeeViewModel
+		binding.viewModel = viewModel
+	}
+
+
+	override fun onCreate(savedInstanceState: Bundle?) {
+		super.onCreate(savedInstanceState)
+		setContentView(binding.root)
+		runner = YahtzeeRunner(this)
+		slotAdapter = YahtzeeSlotAdapter(this, runner)
+		viewModel.adapter.postValue(slotAdapter)
+		binding.listViewYahtzeeSlots.setOnItemClickListener { parent, view, position, id ->
+			viewModel.keepers.fill(false)
+			runner.result = view.tag
 		}
 	}
 
-	var keepers = BooleanArray(DICE_COUNT)
-	var slotChoice: YahtzeeSlot? = null
 	fun refresh() {
-		runOnUiThread {
-			slotAdapter.notifyDataSetChanged()
-			when (runner.state) {
-				YahtzeeState.CHOOSE_SLOT -> {
-					buttonRollDice!!.text = "Choose Slot"
-					buttonRollDice!!.isEnabled = false
-				}
-				YahtzeeState.GAME_OVER   -> {
-					buttonRollDice!!.text = "Play Again"
-					buttonRollDice!!.isEnabled = true
-				}
-				else                     -> {
-					buttonRollDice!!.text = "Roll Dice"
-					buttonRollDice!!.isEnabled = true
-				}
-			}
-			val dice = runner.diceRoll
-			for (i in dice.indices) {
-				setDieImage(imageViewDie[i], dice[i])
-				textViewKeepDie.get(i)!!.visibility = if (keepers.get(i)) View.VISIBLE else View.INVISIBLE
-			}
-			textViewRollsValue!!.text = "${runner.rollCount} of ${runner.getRules().numRollsPerRound}"
-			textViewYahtzeesValue!!.text = "${runner.numYahtzees}"
-			textViewUpperPointsValue!!.text = "${runner.upperPoints}"
-			textViewBonusPointsValue!!.text = "${runner.bonusPoints}"
-			textViewTotalPointsValue!!.text = "${runner.totalPoints}"
-			textViewTopScoreValue!!.text = "${runner.topScore}"
-		}
+		viewModel.dice.clear()
+		viewModel.dice.addAll(runner.diceRoll.toList())
+		viewModel.rollsValue.postValue("${runner.rollCount} of ${runner.rules.numRollsPerRound}")
+		viewModel.yahtzeesValue.postValue("${runner.numYahtzees}")
+		viewModel.upperPointsValue.postValue("${runner.upperPoints}")
+		viewModel.bonusPointsValue.postValue("${runner.bonusPoints}")
+		viewModel.totalPointsValue.postValue("${runner.totalPoints}")
+		viewModel.topScoreValue.postValue("${runner.topScore}")
 	}
 
 	fun showGameOver() {
 		refresh()
-		runner.lock.acquireAndBlock()
+		slotAdapter.postNotifyDataSetChanged()
+		viewModel.listViewClickable.postValue(false)
+		viewModel.buttonRollDiceText.postValue("Play Again")
+		viewModel.buttonRollDiceEnabled.postValue(true)
+		binding.buttonRollDice.setOnClickListener {
+			runner.result = true
+		}
 	}
 
 	// called from other runner thread
-	fun showChooseSlot(slots: List<YahtzeeSlot>): YahtzeeSlot? {
-		slotChoice = null
+	fun showChooseSlot(slots: List<YahtzeeSlot>) {
 		refresh()
-		runner.lock.acquireAndBlock()
-		return slotChoice
+		slotAdapter.postNotifyDataSetChanged()
+		viewModel.listViewClickable.postValue(true)
+		viewModel.buttonRollDiceText.postValue("Choose Slot")
+		viewModel.buttonRollDiceEnabled.postValue(false)
 	}
-
-	private fun sleep() {
-		runner.lock.acquireAndBlock()
-	}
-
-	private fun wake() {
-		runner.lock.release()
-	}
-
-	private var rollEm = false
 
 	// called from other runner thread
-	fun showChooseKeepers(keepers: BooleanArray): Boolean {
-		rollEm = false
-		this.keepers = keepers
+	fun showChooseKeepers(keepers: BooleanArray) {
 		refresh()
-		sleep()
-		return rollEm
-	}
-
-	fun chooseSlot(slot: YahtzeeSlot?) {
-		slotChoice = slot
-		slotAdapter.notifyDataSetChanged()
-		Arrays.fill(keepers, false)
+		slotAdapter.postNotifyDataSetChanged()
+		viewModel.listViewClickable.postValue(false)
+		viewModel.buttonRollDiceText.postValue("Choose Keepers")
+		viewModel.buttonRollDiceEnabled.postValue(false)
+		binding.root.postDelayed( {
+			viewModel.buttonRollDiceText.postValue("Roll Dice")
+			viewModel.buttonRollDiceEnabled.postValue(true)
+			binding.buttonRollDice.setOnClickListener {
+				viewModel.keepers.forEachIndexed { index, b ->
+					keepers[index] = b
+				}
+				runner.result = true
+			}
+		}, 2000L)
 	}
 
 	override fun onResume() {
@@ -173,11 +163,12 @@ class YahtzeeActivity() : Activity(), View.OnClickListener {
 	override fun onOptionsItemSelected(item: MenuItem): Boolean {
 		if ((item.title == "New Game")) {
 			runner.reset()
-			wake()
+			refresh()
+			runner.result = null
 		} else if ((item.title == "Rules")) {
 			val builder = AlertDialog.Builder(this)
 			val items = arrayOf("Normal", "Alternate")
-			val checkedItem = if (runner.getRules().isEnableAlternateVersion) 1 else 0
+			val checkedItem = if (runner.rules.isEnableAlternateVersion) 1 else 0
 			builder.setTitle("Choose game type")
 				.setSingleChoiceItems(items, checkedItem, object : DialogInterface.OnClickListener {
 					override fun onClick(dialog: DialogInterface, which: Int) {
@@ -185,7 +176,7 @@ class YahtzeeActivity() : Activity(), View.OnClickListener {
 						rules.isEnableAlternateVersion = if (which == 0) false else true
 						runner.reset(rules)
 						dialog.dismiss()
-						wake()
+						runner.result = null
 					}
 				}).setNegativeButton("Cancel", null)
 				.show()
@@ -193,70 +184,41 @@ class YahtzeeActivity() : Activity(), View.OnClickListener {
 		return super.onOptionsItemSelected(item)
 	}
 
-	private var numDiceRolling = 0
+	fun rollTheDice() {
+		refresh()
+		slotAdapter.postNotifyDataSetChanged()
+		viewModel.rollingDice.postValue(true)
+		val animLock = Lock()
+		binding.root.postDelayed(DieRoller(animLock), 1)
+		animLock.acquireAndBlock()
+	}
 
-	internal inner class DieRoller(view: ImageView?) : Runnable {
-		var delay: Int
-		var view: ImageView?
+	internal inner class DieRoller(val animLock: Lock) : Runnable {
+		var delay: Long
 		override fun run() {
-			delay += Utils.rand() % 30 + 10
+			delay += random(30) + 10
 			if (delay < 500) {
-				buttonRollDice!!.isEnabled = false
-				view!!.setImageResource(diceImageIds[Utils.rand() % diceImageIds.size])
-				view!!.postDelayed(this, delay.toLong())
+				viewModel.buttonRollDiceEnabled.postValue(false)
+				val dice = viewModel.dice.toTypedArray()
+				viewModel.dice.clear()
+				viewModel.dice.addAll(IntArray(DICE_COUNT) {
+					if (viewModel.keepers[it])
+						dice[it]
+					else
+						random(1..6)
+					}.toList()
+				)
+				binding.root.postDelayed(this, delay)
 			} else {
-				numDiceRolling--
-				if (numDiceRolling <= 0) {
-					rollEm = true
-					buttonRollDice!!.isEnabled = false
-					wake()
-				}
+				viewModel.rollingDice.postValue(false)
+				viewModel.buttonRollDiceEnabled.postValue(false)
+				animLock.release()
 			}
 		}
 
 		init {
-			delay = Utils.rand() % 10 + 10
-			this.view = view
-			view!!.postDelayed(this, delay.toLong())
-			numDiceRolling++
+			delay = random(10).toLong() + 10
+			binding.root.postDelayed(this, delay)
 		}
-	}
-
-	fun rollTheDice() {
-		refresh()
-		numDiceRolling = 0
-		val keepers = runner.keepers
-		for (i in keepers.indices) {
-			if (!keepers[i]) {
-				DieRoller(imageViewDie[i])
-			}
-		}
-		if (numDiceRolling <= 0) {
-			wake()
-		} else {
-			sleep()
-		}
-	}
-
-	override fun onClick(v: View) {
-		if (v.tag != null && (v.tag is YahtzeeSlot)) {
-			chooseSlot(v.tag as YahtzeeSlot)
-		} else if (v.id == R.id.buttonRollDice) {
-			if (runner.state == YahtzeeState.GAME_OVER) {
-				runner.reset()
-			} else {
-				rollEm = true
-			}
-		} else {
-			if (numDiceRolling <= 0) {
-				for (i in imageViewDie.indices) {
-					if (v.id == imageViewDie[i]!!.id) {
-						keepers[i] = !keepers[i]
-						break
-					}
-				}
-			}
-		}
-		wake()
 	}
 }

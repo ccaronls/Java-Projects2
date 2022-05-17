@@ -1,4 +1,4 @@
-package cc.game.yahtzee.console;
+package cc.lib.main;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -6,9 +6,9 @@ import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.List;
 
-import cc.game.yahtzee.core.Yahtzee;
-import cc.game.yahtzee.core.YahtzeeRules;
-import cc.game.yahtzee.core.YahtzeeSlot;
+import cc.lib.yahtzee.Yahtzee;
+import cc.lib.yahtzee.YahtzeeRules;
+import cc.lib.yahtzee.YahtzeeSlot;
 import cc.lib.game.Utils;
 import cc.lib.utils.FileUtils;
 
@@ -181,7 +181,7 @@ public class YahtzeeConsole extends Yahtzee {
 	}
 	
 	@Override
-	protected YahtzeeSlot onChooseSlotAssignment(List<YahtzeeSlot> choices) {
+	protected YahtzeeSlot onChooseSlotAssignment(List<? extends YahtzeeSlot> choices) {
 		System.out.print("\n\nChoose slot num to assign\n> ");
 		
 		try {

@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout  xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+        <variable
+            name="viewModel"
+            type="cc.game.android.yahtzee.YahtzeeViewModel" />
+    </data>
+
+
     <RelativeLayout android:layout_width="match_parent"
         android:layout_height="match_parent">
 
@@ -19,18 +28,20 @@
                 android:orientation="vertical">
 
                 <ImageView
-                    android:id="@+id/imageViewDie1"
                     android:layout_width="fill_parent"
                     android:layout_height="fill_parent"
-                    android:src="@drawable/dice1" />
+                    dieImage="@{viewModel.dice[0]}"
+                    android:src="@drawable/dice1"
+                    android:clickable="@{!viewModel.rollingDice}"
+                    android:onClick="@{()->viewModel.toggleKeeper(0)}"/>
 
                 <TextView
-                    android:id="@+id/textViewKeepDie1"
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
                     android:layout_alignParentBottom="true"
                     android:layout_alignParentTop="true"
                     android:gravity="center"
+                    goneIfNot="@{viewModel.keepers[0]}"
                     android:text="KEEP"
                     android:textColor="#00f"
                     style="@style/yahtzeeStyle" />
@@ -44,10 +55,12 @@
                 android:orientation="vertical">
 
                 <ImageView
-                    android:id="@+id/imageViewDie2"
                     android:layout_width="fill_parent"
                     android:layout_height="fill_parent"
-                    android:src="@drawable/dice2" />
+                    dieImage="@{viewModel.dice[1]}"
+                    android:src="@drawable/dice2"
+                    android:clickable="@{!viewModel.rollingDice}"
+                    android:onClick="@{()->viewModel.toggleKeeper(1)}"/>
 
                 <TextView
                     android:id="@+id/textViewKeepDie2"
@@ -56,6 +69,7 @@
                     android:layout_alignParentBottom="true"
                     android:layout_alignParentTop="true"
                     android:gravity="center"
+                    goneIfNot="@{viewModel.keepers[1]}"
                     android:text="KEEP"
                     android:textColor="#00f"
                     style="@style/yahtzeeStyle" />
@@ -69,18 +83,20 @@
                 android:orientation="vertical">
 
                 <ImageView
-                    android:id="@+id/imageViewDie3"
                     android:layout_width="fill_parent"
                     android:layout_height="fill_parent"
-                    android:src="@drawable/dice3" />
+                    dieImage="@{viewModel.dice[2]}"
+                    android:src="@drawable/dice3"
+                    android:clickable="@{!viewModel.rollingDice}"
+                    android:onClick="@{()->viewModel.toggleKeeper(2)}"/>
 
                 <TextView
-                    android:id="@+id/textViewKeepDie3"
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
                     android:layout_alignParentBottom="true"
                     android:layout_alignParentTop="true"
                     android:gravity="center"
+                    goneIfNot="@{viewModel.keepers[2]}"
                     android:text="KEEP"
                     android:textColor="#00f"
                     style="@style/yahtzeeStyle" />
@@ -94,18 +110,20 @@
                 android:orientation="vertical">
 
                 <ImageView
-                    android:id="@+id/imageViewDie4"
                     android:layout_width="fill_parent"
                     android:layout_height="fill_parent"
-                    android:src="@drawable/dice4" />
+                    dieImage="@{viewModel.dice[3]}"
+                    android:src="@drawable/dice4"
+                    android:clickable="@{!viewModel.rollingDice}"
+                    android:onClick="@{()->viewModel.toggleKeeper(3)}"/>
 
                 <TextView
-                    android:id="@+id/textViewKeepDie4"
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
                     android:layout_alignParentBottom="true"
                     android:layout_alignParentTop="true"
                     android:gravity="center"
+                    goneIfNot="@{viewModel.keepers[3]}"
                     android:text="KEEP"
                     android:textColor="#00f"
                     style="@style/yahtzeeStyle" />
@@ -119,18 +137,20 @@
                 android:orientation="vertical">
 
                 <ImageView
-                    android:id="@+id/imageViewDie5"
                     android:layout_width="fill_parent"
                     android:layout_height="fill_parent"
-                    android:src="@drawable/dice5" />
+                    dieImage="@{viewModel.dice[4]}"
+                    android:src="@drawable/dice5"
+                    android:clickable="@{!viewModel.rollingDice}"
+                    android:onClick="@{()->viewModel.toggleKeeper(4)}"/>
 
                 <TextView
-                    android:id="@+id/textViewKeepDie5"
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
                     android:layout_alignParentBottom="true"
                     android:layout_alignParentTop="true"
                     android:gravity="center"
+                    goneIfNot="@{viewModel.keepers[4]}"
                     android:text="KEEP"
                     android:textColor="#00f"
                     style="@style/yahtzeeStyle"/>
@@ -168,15 +188,8 @@
                     android:layout_marginRight="5dp"
                     android:layout_weight="1"
                     android:gravity="left"
-                    android:text="******" />
-
-                <!--
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content" >
-     -->
+                    android:text="@{viewModel.rollsValue}"
+                    tools:text="***"/>
 
                 <TextView
                     android:id="@+id/textViewYahtzees"
@@ -195,7 +208,8 @@
                     android:layout_marginRight="10dp"
                     android:layout_weight="1"
                     android:gravity="right"
-                    android:text="*" />
+                    android:text="@{viewModel.yahtzeesValue}"
+                    tools:text="***"/>
 
             </LinearLayout>
 
@@ -219,15 +233,8 @@
                     android:layout_marginRight="5dp"
                     android:layout_weight="1"
                     android:gravity="left"
-                    android:text="**" />
-
-                <!--
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content" >
-    -->
+                    android:text="@{viewModel.upperPointsValue}"
+                    tools:text="***"/>
 
                 <TextView
                     android:id="@+id/textViewBonusPoints"
@@ -246,7 +253,8 @@
                     android:layout_marginRight="10dp"
                     android:layout_weight="1"
                     android:gravity="right"
-                    android:text="***" />
+                    android:text="@{viewModel.bonusPointsValue}"
+                    tools:text="***"/>
 
             </LinearLayout>
 
@@ -270,15 +278,8 @@
                     android:layout_marginRight="5dp"
                     android:layout_weight="1"
                     android:gravity="left"
-                    android:text="***" />
-
-                <!--
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content" >
-     -->
+                    android:text="@{viewModel.totalPointsValue}"
+                    tools:text="***"/>
 
                 <TextView
                     android:id="@+id/textViewTopScore"
@@ -297,7 +298,8 @@
                     android:layout_marginRight="10dp"
                     android:layout_weight="1"
                     android:gravity="right"
-                    android:text="***" />
+                    android:text="@{viewModel.topScoreValue}"
+                    tools:text="***"/>
 
             </LinearLayout>
         </LinearLayout>
@@ -318,6 +320,8 @@
             android:layout_centerHorizontal="true"
             android:layout_marginBottom="5dp"
             tools:listitem="@layout/yahtzeeslotlistitem"
+            android:clickable="@{viewModel.listViewClickable}"
+            adapter="@{viewModel.adapter}"
             android:background="#006" >
 
         </ListView>
@@ -329,7 +333,8 @@
             android:layout_alignParentBottom="true"
             android:layout_centerHorizontal="true"
             android:layout_weight="1"
-            android:text="Roll"
+            android:text   ="@{viewModel.buttonRollDiceText}"
+            android:enabled="@{viewModel.buttonRollDiceEnabled}"
             android:textStyle="bold"/>
 
     </RelativeLayout>

@@ -5,7 +5,7 @@ import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.ImageView
 import android.widget.TextView
-import cc.game.yahtzee.core.Yahtzee
+import cc.lib.yahtzee.Yahtzee
 
 internal class YahtzeeSlotAdapter(val activity: YahtzeeActivity, val yahtzee: Yahtzee) : BaseAdapter() {
 	override fun getCount(): Int {
@@ -24,7 +24,6 @@ internal class YahtzeeSlotAdapter(val activity: YahtzeeActivity, val yahtzee: Ya
 
 	override fun getView(position: Int, view: View?, parent: ViewGroup): View {
 		var view = view?:View.inflate(activity, R.layout.yahtzeeslotlistitem, null)
-		view.setOnClickListener(activity)
 		val tvName = view.findViewById<View>(R.id.textViewSlotName) as TextView
 		val tvPts = view.findViewById<View>(R.id.textViewSlotPoints) as TextView
 		val ivUnavail = view.findViewById<View>(R.id.imageViewUnavailable) as ImageView
@@ -36,5 +35,9 @@ internal class YahtzeeSlotAdapter(val activity: YahtzeeActivity, val yahtzee: Ya
 		tvPts.text = "${if (used) yahtzee.getSlotScore(slot) else slot.getScore(yahtzee)}"
 		ivUnavail.visibility = if (used) View.VISIBLE else View.INVISIBLE
 		return view
+	}
+
+	fun postNotifyDataSetChanged() {
+		activity.runOnUiThread { notifyDataSetChanged() }
 	}
 }

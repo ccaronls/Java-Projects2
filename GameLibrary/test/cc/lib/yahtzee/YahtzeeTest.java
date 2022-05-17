@@ -1,10 +1,10 @@
-package cc.game.yahtzee.core;
+package cc.lib.yahtzee;
+
+import junit.framework.TestCase;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
-
-import junit.framework.TestCase;
 
 public class YahtzeeTest extends TestCase {
 
@@ -29,7 +29,7 @@ public class YahtzeeTest extends TestCase {
 		Yahtzee y = new Yahtzee() {
 			
 			@Override
-			protected YahtzeeSlot onChooseSlotAssignment(List<YahtzeeSlot> choices) {
+			protected YahtzeeSlot onChooseSlotAssignment(List<? extends YahtzeeSlot> choices) {
 				if (choices.contains(YahtzeeSlot.YAHZEE))
 					return YahtzeeSlot.YAHZEE;
 				return choices.get(0);
@@ -42,7 +42,7 @@ public class YahtzeeTest extends TestCase {
 			}
 
 			@Override
-			void rollDice(int [] dice) {
+			public void rollDice(int [] dice) {
 				Arrays.fill(dice,  6); // always a yahtzee
 			}
 

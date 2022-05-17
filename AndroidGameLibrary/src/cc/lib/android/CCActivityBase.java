@@ -25,6 +25,8 @@ import java.util.TimerTask;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.databinding.ViewDataBinding;
+import androidx.lifecycle.ViewModel;
 import androidx.preference.PreferenceManager;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
@@ -52,13 +54,24 @@ public class CCActivityBase extends AppCompatActivity {
 
     private final int PERMISSION_REQUEST_CODE = 1001;
 
+    protected LayoutFactory getLayoutFactory() {
+        return null;
+    }
+
+    protected void onLayoutCreated(ViewDataBinding binding, ViewModel vewModel) {}
+
     @Override
 	protected void onCreate(Bundle bundle) {
+        super.onCreate(bundle);
         if (BuildConfig.DEBUG) {
             Utils.setDebugEnabled();
         }
-	    super.onCreate(bundle);
-	}
+        LayoutFactory factory = getLayoutFactory();
+        if (factory != null) {
+            factory.build();
+            onLayoutCreated(factory.binding, factory.viewModel);
+        }
+    }
 
     /**
      * DO NOT CALL FROM onResume!!!!
