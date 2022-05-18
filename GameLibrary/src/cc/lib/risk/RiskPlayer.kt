@@ -42,7 +42,7 @@ open class RiskPlayer(val army: Army=Army.NEUTRAL) : Reflector<RiskPlayer>() {
 		//return Utils.randItem(options);
 		return options.maxByOrNull {  
 			val cell = game.board.getCell(it) 
-			cell.region.extraArmies + cell.allConnectedCells.size
+			cell.region.extraArmies + cell.getAllConnectedCells().size
 		}
 	}
 
@@ -81,7 +81,7 @@ open class RiskPlayer(val army: Army=Army.NEUTRAL) : Reflector<RiskPlayer>() {
 	}
 
 	open fun pickTerritoryToMoveTo(game: RiskGame, sourceCellIdx: Int, options: List<Int>): Int? {
-		return bestMove?.first?:options.maxByOrNull { -game.board.getCell(it).numArmies }
+		return bestMove?.second?:options.maxByOrNull { -game.board.getCell(it).numArmies }
 	}
 
 	open fun pickAction(game: RiskGame, actions: List<Action>, msg: String): Action? {
@@ -94,7 +94,7 @@ open class RiskPlayer(val army: Army=Army.NEUTRAL) : Reflector<RiskPlayer>() {
 					if (0 < game.board.getTerritories(army).count { idx: Int ->
 							val cell = game.board.getCell(idx)
 							if (cell.numArmies < 3) return@count false
-							for (adjIdx in cell.allConnectedCells) {
+							for (adjIdx in cell.getAllConnectedCells()) {
 								val adj = game.board.getCell(adjIdx)
 								if (adj.occupier != army) {
 									if (adj.numArmies < cell.numArmies) return@count true
@@ -147,7 +147,7 @@ open class RiskPlayer(val army: Army=Army.NEUTRAL) : Reflector<RiskPlayer>() {
 		var adjDelta = 0.0
 		for (idx in terr) {
 			val cell = b.getCell(idx)
-			for (adjIdx in cell.allConnectedCells) {
+			for (adjIdx in cell.getAllConnectedCells()) {
 				val adj = b.getCell(adjIdx)
 				if (adj.occupier != army) {
 					numAdj++
@@ -188,12 +188,15 @@ open class RiskPlayer(val army: Army=Army.NEUTRAL) : Reflector<RiskPlayer>() {
 					if (delta > 1) {
 						//delta = 1 + Math.log(delta);
 					}
-					if (dist > 0) distance += delta / dist
+					if (dist > 0)
+						distance += delta / dist
 				}
 			}
 			score += distance
 		}
-		if (numAdj > 0) {
+		if (adjDelta < 1) {
+			score += adjDelta
+		} else if (numAdj > 0) {
 			val factor = Math.log(adjDelta / numAdj)
 			score += factor
 		}
@@ -215,10 +218,10 @@ open class RiskPlayer(val army: Army=Army.NEUTRAL) : Reflector<RiskPlayer>() {
 		var adjacentEnemiesDelta = 0f
 		for (idx in terr) {
 			val cell = b.getCell(idx)
-			score += (cell.region.extraArmies + cell.allConnectedCells.size).toLong()
+			score += (cell.region.extraArmies + cell.getAllConnectedCells().size).toLong()
 			var numOwnArmiesAdj = 0
 			var numEnemyArmiesAdj = 0
-			for (adjIdx in cell.allConnectedCells) {
+			for (adjIdx in cell.getAllConnectedCells()) {
 				val c = b.getCell(adjIdx)
 				if (c.occupier == cell.occupier) {
 					numOwnArmiesAdj += c.numArmies

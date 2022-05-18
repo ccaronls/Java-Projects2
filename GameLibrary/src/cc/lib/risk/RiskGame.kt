@@ -157,15 +157,11 @@ open class RiskGame : Reflector<RiskGame>() {
 
 				// See which territories can attack an adjacent
 				stageable = territories.filter { idx ->
-					val cell = board.getCell(idx)
-					if (cell.numArmies < 2) 
-						false
-					for (adj in board.getConnectedCells(cell)) {
-						if (board.getCell(adj).occupier != cur.army) {
-							true
-						}
+					board.getCell(idx).let { cell ->
+						cell.numArmies > 1  && board.getConnectedCells(cell).firstOrNull { adj ->
+							board.getCell(adj).occupier != cur.army
+						} != null
 					}
-					false
 				}
 				if (stageable.isNotEmpty()) {	
 					actions.add(Action.ATTACK)
@@ -180,7 +176,7 @@ open class RiskGame : Reflector<RiskGame>() {
 				if (moveable.isNotEmpty()) {
 					actions.add(Action.MOVE)
 				}
-				if (actions.size > 0) 
+				if (actions.isNotEmpty())
 					actions.add(Action.END) 
 				else {
 					state = State.BEGIN_TURN
@@ -312,14 +308,11 @@ open class RiskGame : Reflector<RiskGame>() {
 	protected open fun onMoveTroops(startIdx: Int, endIdx: Int, numTroops: Int) {}
 	fun getMoveSourceOptions(territories: List<Int>, army: Army): List<Int> {
 		return territories.filter { idx: Int ->
-			val cell = board.getCell(idx)
-			if (cell.movableTroops < 1) false
-			for (adj in board.getConnectedCells(cell)) {
-				if (board.getCell(adj).occupier == army) {
-					true
-				}
+			board.getCell(idx).let { cell ->
+				cell.movableTroops > 0 && board.getConnectedCells(cell).firstOrNull { adj ->
+					board.getCell(adj).occupier == army
+				} != null
 			}
-			false
 		}
 	}
 
@@ -416,9 +409,10 @@ open class RiskGame : Reflector<RiskGame>() {
 				onMoveTroops(startIdx, endIdx, numToOccupy)
 				end.occupier = (start.occupier)
 				end.numArmies = (numToOccupy)
-				onAtatckerGainedTerritory(end.occupier, endIdx)
-				if (winner == null && board.getTerritories(end.region).count { idx: Int -> board.getCell(idx).occupier != start.occupier } > 0) {
+				if (winner == null && board.getTerritories(end.region).count { idx: Int -> board.getCell(idx).occupier != start.occupier } == 0) {
 					onAttackerGainedRegion(end.occupier, end.region)
+				} else {
+					onAtatckerGainedTerritory(end.occupier, endIdx)
 				}
 			}
 		}
@@ -460,7 +454,7 @@ open class RiskGame : Reflector<RiskGame>() {
 		dice.reverse()
 	}
 
-	protected fun onMessage(army: Army?, msg: String?) {
+	protected fun onMessage(army: Army, msg: String?) {
 		log.info("%s: %s", army, msg)
 	}
 

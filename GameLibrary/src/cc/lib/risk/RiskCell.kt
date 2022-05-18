@@ -26,5 +26,5 @@ class RiskCell(var region: Region=Region.AFRICA, verts:List<Int> = emptyList()) 
 		numArmies = 0
 	}
 
-	val allConnectedCells: List<Int> = connectedCells.appendedWith(adjCells.toList())
+	fun getAllConnectedCells(): List<Int> = connectedCells.appendedWith(adjCells.toList())
 }

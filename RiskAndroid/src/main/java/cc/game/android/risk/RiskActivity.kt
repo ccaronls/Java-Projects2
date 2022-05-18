@@ -90,7 +90,8 @@ class RiskActivity : DroidActivity(), OnItemClickListener {
 			val start = board.getCell(cellIdx)
 			val zoom = board.getCellBoundingRect(cellIdx)
 			val startRect = GRectangle(board.dimension)
-			for (idx in start.allConnectedCells) {
+			val all = start.getAllConnectedCells()
+			for (idx in all) {
 				val rect2 = board.getCellBoundingRect(idx)
 				val dv: Vector2D = rect2.center.subEq(start)
 				if (dv.x < -board.dimension.getWidth() / 2) {
@@ -246,7 +247,7 @@ class RiskActivity : DroidActivity(), OnItemClickListener {
 			}
 		} catch (e: Exception) {
 			e.printStackTrace()
-			saveGame.delete()
+			//saveGame.delete()
 		}
 		initHomeMenu()
 	}
@@ -569,11 +570,12 @@ class RiskActivity : DroidActivity(), OnItemClickListener {
 		object : Thread() {
 			override fun run() {
 				while (running && !game.isDone) {
-					result = try {
+					try {
 						game.runGame()
 						redraw()
-						if (result != null) game.trySaveToFile(saveGame)
-						null
+						if (result != null)
+							game.trySaveToFile(saveGame)
+						result = null
 					} catch (e: Exception) {
 						e.printStackTrace()
 						break

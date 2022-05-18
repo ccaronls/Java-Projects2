@@ -13,7 +13,7 @@ import cc.lib.utils.prettify
 /**
  * Created by Chris Caron on 9/15/21.
  */
-internal class DiceDialog(val context: RiskActivity, val attacker: Army, val defender: Army, val attackingDice: IntArray, val defendingDice: IntArray, val result: BooleanArray) : Runnable, DialogInterface.OnDismissListener, DialogInterface.OnClickListener {
+internal class DiceDialog(val context: RiskActivity, val attacker: Army, val defender: Army, val attackingDice: IntArray, val defendingDice: IntArray, val result: BooleanArray) : Runnable {
 	private val lock = Lock()
 	private lateinit var dialog: Dialog
 	private lateinit var text: Array<TextView>
@@ -48,20 +48,12 @@ internal class DiceDialog(val context: RiskActivity, val attacker: Army, val def
 			binding.text1,
 			binding.text2)
 		dialog = context.newDialogBuilder().setView(binding.root)
-			.setNegativeButton("Pause", this).show()
-		dialog.setOnDismissListener(this)
-	}
-
-	override fun onDismiss(dialog: DialogInterface) {
-		lock.releaseAll()
-	}
-
-	override fun onClick(dialog: DialogInterface, which: Int) {
-		context.stopGameThread()
-	}
-
-	fun dismiss() {
-		dialog.dismiss()
+			.setNegativeButton("Pause") { _, _ ->
+				dialog.dismiss()
+				context.stopGameThread()
+			}.show()
+		dialog.setCanceledOnTouchOutside(true)
+		dialog.setOnDismissListener { lock.releaseAll() }
 	}
 
 	private fun showResult() {
@@ -70,23 +62,14 @@ internal class DiceDialog(val context: RiskActivity, val attacker: Army, val def
 		}
 	}
 
-	private fun init() {
+	init {
 		context.runOnUiThread(this)
-		lock.block(2000)
-		if (!dialog.isShowing)
-			return
+		Thread.sleep(1000)
 		lock.block()
-		if (!dialog.isShowing)
-			return
 		context.runOnUiThread { showResult() }
 		if (dialog.isShowing) {
-			dialog.setCanceledOnTouchOutside(true)
-			lock.block(6000)
+			lock.acquireAndBlock(6000)
+			context.runOnUiThread { dialog.dismiss() }
 		}
-		context.runOnUiThread { dialog.dismiss() }
-	}
-	
-	init {
-		init()
 	}
 }

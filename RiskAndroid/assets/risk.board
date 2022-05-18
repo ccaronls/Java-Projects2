@@ -668,9 +668,6 @@ cells=java.util.Vector {
          java.lang.Integer {
             14
          }
-         java.lang.Integer {
-            38
-         }
       }
       cx=647.0
       cy=148.25
@@ -1613,9 +1610,6 @@ cells=java.util.Vector {
          }
       }
       connectedCells=java.util.ArrayList {
-         java.lang.Integer {
-            16
-         }
       }
       cx=1172.5
       cy=204.0

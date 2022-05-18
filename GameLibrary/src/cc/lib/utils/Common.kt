@@ -23,7 +23,7 @@ fun <T> List<T>.appendedWith(other: Collection<T>) : MutableList<T> {
     return a
 }
 
-inline fun assertTrue(expr: Boolean, msg: String = "") {
+fun assertTrue(expr: Boolean, msg: String = "") {
     if (!expr) {
         throw GException("Assertion Failed $msg")
     }

@@ -6,6 +6,7 @@
     <LinearLayout
         android:layout_width="400dp"
         android:layout_height="wrap_content"
+        android:background="#999"
         android:orientation="vertical">
 
         <LinearLayout
@@ -23,8 +24,6 @@
                 android:id="@+id/tv_defender"
                 android:gravity="center_vertical|right"
                 android:text="Defender"/>
-
-
 
         </LinearLayout>
 

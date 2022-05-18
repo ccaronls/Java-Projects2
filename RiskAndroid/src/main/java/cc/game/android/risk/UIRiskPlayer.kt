@@ -9,7 +9,7 @@ import cc.lib.risk.RiskPlayer
 /**
  * Created by Chris Caron on 9/14/21.
  */
-class UIRiskPlayer(army: Army) : RiskPlayer(army) {
+class UIRiskPlayer(army: Army=Army.BLUE) : RiskPlayer(army) {
 
 	override fun pickTerritoryToClaim(game: RiskGame, options: List<Int>): Int? {
 		return RiskActivity.instance.pickTerritory(options, "$army Pick a territory to claim")

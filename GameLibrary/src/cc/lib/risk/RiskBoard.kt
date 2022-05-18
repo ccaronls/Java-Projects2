@@ -69,7 +69,7 @@ class RiskBoard : CustomBoard<BVertex, BEdge, RiskCell>() {
 		}
 		for (cellIdx in 0 until numCells) {
 			val cell = getCell(cellIdx)
-			for (adjIdx in cell.allConnectedCells) {
+			for (adjIdx in cell.getAllConnectedCells()) {
 				dist[adjIdx][cellIdx] = 1
 				dist[cellIdx][adjIdx] = dist[adjIdx][cellIdx]
 			}

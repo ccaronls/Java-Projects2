@@ -23,7 +23,7 @@ class DiceView(context: Context, attrs: AttributeSet?) : DroidView(context, attr
 	var rolling = false
 	var dieColor = GColor.WHITE
 	var pipColor = GColor.BLACK
-	var lock: Lock? = null
+	lateinit var lock: Lock
 	override fun onPaint(g: DroidGraphics) {
 		g.setLineWidth(5f)
 		if (rolling) drawDie(g, height.toFloat(), dieNum) else {
@@ -64,9 +64,7 @@ class DiceView(context: Context, attrs: AttributeSet?) : DroidView(context, attr
 				postDelayed(this, delay)
 			} else {
 				rolling = false
-				if (lock != null) {
-					lock!!.release()
-				}
+				lock.release()
 			}
 		}
 		invalidate()
