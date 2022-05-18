@@ -1726,8 +1726,8 @@ cells=java.util.Vector {
    }
 }
 dimension=cc.lib.game.GDimension {
-   height=678.0
-   width=1304.0
+   height=668.0
+   width=1314.0
 }
 edges=java.util.Vector {
    cc.lib.board.BEdge {

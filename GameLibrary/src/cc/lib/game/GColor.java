@@ -259,14 +259,14 @@ public final class GColor extends Reflector<GColor> {
     public final GColor interpolateTo(GColor target, float factor) {
 
         if (factor > 0.99)
-            return target;
-        if (factor < 0.01)
             return this;
+        if (factor < 0.01)
+            return target;
 
-        float R = getRed()   * factor + target.getRed() * (1.0f - factor);
-        float G = getGreen() * factor + target.getGreen() * (1.0f - factor);
-        float B = getBlue()  * factor + target.getBlue() * (1.0f - factor);
-        float A = getAlpha() * factor + target.getAlpha() * (1.0f - factor);
+        float R = Utils.clamp(getRed()   * factor + target.getRed() * (1.0f - factor), 0, 1);
+        float G = Utils.clamp(getGreen() * factor + target.getGreen() * (1.0f - factor), 0, 1);
+        float B = Utils.clamp(getBlue()  * factor + target.getBlue() * (1.0f - factor), 0, 1);
+        float A = Utils.clamp(getAlpha() * factor + target.getAlpha() * (1.0f - factor), 0, 1);
         
         return new GColor(R, G, B, A);
     }
