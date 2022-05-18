@@ -45,7 +45,14 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param argb
      */
 	public abstract void setColorARGB(int argb);
-	
+
+    /**
+     *
+     * @param r
+     * @param g
+     * @param b
+     * @param a
+     */
 	public abstract void setColor(int r, int g, int b, int a);
 	
     /**
@@ -1466,18 +1473,24 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param w
      * @param h
      *
-    public void drawFilledRect(int x, int y, int w, int h) {
-        drawQuad(x, y, x+w, y+h);
-    }*/
-
+     */
     public void drawFilledRect(float x, float y, float w, float h) {
         drawQuad(x, y, x+w, y+h);
     }
 
+    /**
+     *
+     * @param rect
+     */
     public final void drawFilledRect(IRectangle rect) {
         drawFilledRect(rect.X(), rect.Y(), rect.getWidth(), rect.getHeight());
     }
 
+    /**
+     *
+     * @param center
+     * @param dim
+     */
     public final void drawFilledRect(IVector2D center, IDimension dim) {
         drawFilledRect(center.getX() - dim.getWidth()/2, center.getY()-dim.getHeight()/2, dim.getWidth(), dim.getHeight());
     }

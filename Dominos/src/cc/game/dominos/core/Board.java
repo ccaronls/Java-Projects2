@@ -14,7 +14,6 @@ import cc.lib.game.IVector2D;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
-import cc.lib.math.Bezier;
 import cc.lib.math.Matrix3x3;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
@@ -571,11 +570,11 @@ public final class Board extends Reflector<Board> {
     static void drawDie(AGraphics g, float x, float y, int numDots) {
         float dd2 = 0.5f;
         float dd4 = 0.25f;
-        float dd34 = 0.75f;//(dim*3)/4;
-        float dd5 = 0.2f;//dim/5;
-        float dd25 = 0.4f;//dim*2/5;
-        float dd35 = 0.6f;//dim*3/5;
-        float dd45 = 0.8f;//dim*4/5;
+        float dd34 = 0.75f;
+        float dd5 = 0.2f;
+        float dd25 = 0.4f;
+        float dd35 = 0.6f;
+        float dd45 = 0.8f;
         g.begin();
         switch (numDots) {
             case 0:

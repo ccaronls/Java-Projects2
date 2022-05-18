@@ -67,7 +67,6 @@ class Splash : DroidActivity() {
 	}
 
 	override fun onDraw(g: DroidGraphics) {
-		g.setTextModePixels(true)
 		animation.update(g)
 		redraw()
 	}

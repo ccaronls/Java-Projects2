@@ -7,7 +7,9 @@ import android.util.Log
 import android.view.View
 import cc.lib.android.DroidActivity
 import cc.lib.android.DroidGraphics
+import cc.lib.android.DroidStopWatch
 import cc.lib.geniussqaure.UIGeniusSquares
+import cc.lib.utils.StopWatch
 import java.io.File
 
 /**
@@ -17,6 +19,10 @@ class GeniusSquaresActivity : DroidActivity() {
 	val gs: UIGeniusSquares = object : UIGeniusSquares() {
 		override fun repaint() {
 			redraw()
+		}
+
+		override fun newStopWatch(): StopWatch {
+			return DroidStopWatch()
 		}
 	}
 	lateinit var saveFile: File
@@ -43,7 +49,8 @@ class GeniusSquaresActivity : DroidActivity() {
 
 	override fun onResume() {
 		super.onResume()
-		if (!gs.tryLoadFromFile(saveFile)) gs.newGame()
+		if (!gs.tryLoadFromFile(saveFile))
+			gs.newGame()
 		gs.resumeTimer()
 	}
 
@@ -57,7 +64,6 @@ class GeniusSquaresActivity : DroidActivity() {
 	var ty = -1
 	var dragging = false
 	override fun onDraw(g: DroidGraphics) {
-		g.setTextModePixels(true)
 		g.paint.isAntiAlias = false
 		gs.paint(g, tx, ty)
 		content.postInvalidateDelayed(500)

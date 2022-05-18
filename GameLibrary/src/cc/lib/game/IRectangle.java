@@ -113,7 +113,13 @@ public interface IRectangle extends IDimension, IShape {
      * @param g
      */
     default void drawFilled(AGraphics g) {
-        g.drawFilledRect(X(), Y(), getWidth(), getHeight());
+        g.begin();
+        g.vertex(getTopLeft());
+        g.vertex(getBottomLeft());
+        g.vertex(getTopRight());
+        g.vertex(getBottomRight());
+        g.drawQuadStrip();
+//        g.drawFilledRect(X(), Y(), getWidth(), getHeight());
     }
 
     /**

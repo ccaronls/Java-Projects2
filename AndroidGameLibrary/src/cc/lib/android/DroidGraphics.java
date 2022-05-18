@@ -27,8 +27,6 @@ import cc.lib.game.APGraphics;
 import cc.lib.game.GColor;
 import cc.lib.game.GRectangle;
 import cc.lib.game.IImageFilter;
-import cc.lib.game.IRectangle;
-import cc.lib.game.IVector2D;
 import cc.lib.game.Justify;
 import cc.lib.math.CMath;
 import cc.lib.math.Vector2D;
@@ -52,7 +50,6 @@ public abstract class DroidGraphics extends APGraphics {
     private Bitmap screenCapture = null;
     private Canvas savedCanvas = null;
     private final Vector<Bitmap> bitmaps = new Vector<>();
-    private boolean textModePixels = false;
     private boolean lineThicknessModePixels = true;
     private float curStrokeWidth = 1;
 
@@ -60,20 +57,12 @@ public abstract class DroidGraphics extends APGraphics {
         super(width, height);
         this.context = context;
         this.canvas = canvas;
-        r.setOrtho(0, width, 0, height);
+        R.setOrtho(0, width, 0, height);
         paint.setStrokeWidth(1);
         textPaint.setStrokeWidth(1);
         curStrokeWidth = 1;
         paint.setAntiAlias(true);
         textPaint.setAntiAlias(true);
-    }
-
-    public void setTextModePixels(boolean textModePixels) {
-        if (this.textModePixels != textModePixels) {
-            float h = getTextHeight();
-            this.textModePixels = textModePixels;
-            setTextHeight(h);
-        }
     }
 
     public void setLineThicknessModePixels(boolean lineThicknessModePixels) {
@@ -87,7 +76,7 @@ public abstract class DroidGraphics extends APGraphics {
     public void setCanvas(Canvas c, int width, int height) {
         this.canvas = c;
         initViewport(width, height);
-        r.setOrtho(0, width, 0, height);
+        R.setOrtho(0, width, 0, height);
     }
 
     public float convertPixelsToDips(float pixels) {
@@ -134,20 +123,18 @@ public abstract class DroidGraphics extends APGraphics {
 
     @Override
     public final float getTextHeight() {
-        if (textModePixels)
-            return textPaint.getTextSize();
-        return convertPixelsToDips(textPaint.getTextSize());
+        return textPaint.getTextSize();
     }
 
     @Override
     public final float setTextHeight(float height) {
         float curHeight = textPaint.getTextSize();
-        if (textModePixels) {
-            textPaint.setTextSize(height);
-            return curHeight;
-        }
-        textPaint.setTextSize(convertDipsToPixels(height));
-        return convertPixelsToDips(curHeight);
+        textPaint.setTextSize(height);
+        return curHeight;
+    }
+
+    public final void setTextHeightDips(float dips) {
+        setTextHeight(convertDipsToPixels(dips));
     }
 
     @Override
@@ -293,8 +280,8 @@ public abstract class DroidGraphics extends APGraphics {
         float lw = paint.getStrokeWidth();
         paint.setStrokeWidth(0);
         paint.setStyle(Paint.Style.FILL_AND_STROKE);
-        for (int i = 0; i < r.getNumVerts(); i++) {
-            Vector2D v = r.getVertex(i);
+        for (int i = 0; i < R.getNumVerts(); i++) {
+            Vector2D v = R.getVertex(i);
             canvas.drawCircle(v.getX(), v.getY(), pointSize / 2, paint);
         }
         paint.setStrokeWidth(lw);
@@ -303,9 +290,9 @@ public abstract class DroidGraphics extends APGraphics {
     @Override
     public final void drawLines() {
         paint.setStyle(Paint.Style.STROKE);
-        for (int i = 0; i < r.getNumVerts() - 1; i += 2) {
-            Vector2D v0 = r.getVertex(i);
-            Vector2D v1 = r.getVertex(i + 1);
+        for (int i = 0; i < R.getNumVerts() - 1; i += 2) {
+            Vector2D v0 = R.getVertex(i);
+            Vector2D v1 = R.getVertex(i + 1);
             canvas.drawLine(v0.getX(), v0.getY(), v1.getX(), v1.getY(), paint);
         }
     }
@@ -313,11 +300,11 @@ public abstract class DroidGraphics extends APGraphics {
     @Override
     public final void drawLineStrip() {
         paint.setStyle(Paint.Style.STROKE);
-        int num = r.getNumVerts();
+        int num = R.getNumVerts();
         if (num > 1) {
-            Vector2D v0 = r.getVertex(0);
-            for (int i = 1; i < r.getNumVerts(); i++) {
-                Vector2D v1 = r.getVertex(i);
+            Vector2D v0 = R.getVertex(0);
+            for (int i = 1; i < R.getNumVerts(); i++) {
+                Vector2D v1 = R.getVertex(i);
                 canvas.drawLine(v0.getX(), v0.getY(), v1.getX(), v1.getY(), paint);
                 v0 = v1;
             }
@@ -327,16 +314,16 @@ public abstract class DroidGraphics extends APGraphics {
     @Override
     public final void drawLineLoop() {
         paint.setStyle(Paint.Style.STROKE);
-        int num = r.getNumVerts();
+        int num = R.getNumVerts();
         if (num > 1) {
-            Vector2D v0 = r.getVertex(0);
-            for (int i = 1; i < r.getNumVerts(); i++) {
-                Vector2D v1 = r.getVertex(i);
+            Vector2D v0 = R.getVertex(0);
+            for (int i = 1; i < R.getNumVerts(); i++) {
+                Vector2D v1 = R.getVertex(i);
                 canvas.drawLine(v0.getX(), v0.getY(), v1.getX(), v1.getY(), paint);
                 v0 = v1;
             }
             if (num > 2) {
-                Vector2D v1 = r.getVertex(0);
+                Vector2D v1 = R.getVertex(0);
                 canvas.drawLine(v0.getX(), v0.getY(), v1.getX(), v1.getY(), paint);
             }
         }
@@ -356,11 +343,11 @@ public abstract class DroidGraphics extends APGraphics {
         float lw = paint.getStrokeWidth();
         paint.setStrokeWidth(0);
         paint.setStyle(Paint.Style.FILL_AND_STROKE);
-        int num = r.getNumVerts();
+        int num = R.getNumVerts();
         for (int i = 0; i <= num - 3; i += 3) {
-            Vector2D v0 = r.getVertex(i);
-            Vector2D v1 = r.getVertex(i + 1);
-            Vector2D v2 = r.getVertex(i + 2);
+            Vector2D v0 = R.getVertex(i);
+            Vector2D v1 = R.getVertex(i + 1);
+            Vector2D v2 = R.getVertex(i + 2);
             drawPolygon(v0, v1, v2);
         }
         paint.setStrokeWidth(lw);
@@ -371,13 +358,13 @@ public abstract class DroidGraphics extends APGraphics {
         float lw = paint.getStrokeWidth();
         paint.setStrokeWidth(0);
         paint.setStyle(Paint.Style.FILL_AND_STROKE);
-        int num = r.getNumVerts();
+        int num = R.getNumVerts();
         if (num < 3)
             return;
-        Vector2D ctr = r.getVertex(0);
-        Vector2D v0 = r.getVertex(1);
+        Vector2D ctr = R.getVertex(0);
+        Vector2D v0 = R.getVertex(1);
         for (int i = 2; i < num; i++) {
-            Vector2D v1 = r.getVertex(i);
+            Vector2D v1 = R.getVertex(i);
             drawPolygon(ctr, v0, v1);
             v0 = v1;
         }
@@ -389,13 +376,13 @@ public abstract class DroidGraphics extends APGraphics {
         float lw = paint.getStrokeWidth();
         paint.setStrokeWidth(0);
         paint.setStyle(Paint.Style.FILL_AND_STROKE);
-        int num = r.getNumVerts();
+        int num = R.getNumVerts();
         if (num < 3)
             return;
-        Vector2D v0 = r.getVertex(0);
-        Vector2D v1 = r.getVertex(1);
+        Vector2D v0 = R.getVertex(0);
+        Vector2D v1 = R.getVertex(1);
         for (int i = 2; i < num; i++) {
-            Vector2D v2 = r.getVertex(i);
+            Vector2D v2 = R.getVertex(i);
             drawPolygon(v0, v1, v2);
             v0 = v1;
             v1 = v2;
@@ -406,14 +393,14 @@ public abstract class DroidGraphics extends APGraphics {
     @Override
     public final void drawQuadStrip() {
         paint.setStyle(Paint.Style.FILL);
-        int num = r.getNumVerts();
+        int num = R.getNumVerts();
         if (num < 4)
             return;
-        Vector2D v0 = r.getVertex(0);
-        Vector2D v1 = r.getVertex(1);
+        Vector2D v0 = R.getVertex(0);
+        Vector2D v1 = R.getVertex(1);
         for (int i = 2; i <= num - 1; i += 2) {
-            Vector2D v3 = r.getVertex(i);
-            Vector2D v2 = r.getVertex(i + 1);
+            Vector2D v3 = R.getVertex(i);
+            Vector2D v2 = R.getVertex(i + 1);
             drawPolygon(v0, v1, v2, v3);
             v0 = v2;
             v1 = v3;
@@ -423,9 +410,9 @@ public abstract class DroidGraphics extends APGraphics {
     @Override
     public void drawRects() {
         paint.setStyle(Paint.Style.STROKE);
-        for (int i = 0; i <= r.getNumVerts() - 2; i += 2) {
-            Vector2D v0 = r.getVertex(i);
-            Vector2D v1 = r.getVertex(i + 1);
+        for (int i = 0; i <= R.getNumVerts() - 2; i += 2) {
+            Vector2D v0 = R.getVertex(i);
+            Vector2D v1 = R.getVertex(i + 1);
             float x = Math.min(v0.X(), v1.X());
             float y = Math.min(v0.Y(), v1.Y());
             float w = Math.abs(v0.X() - v1.X());
@@ -440,17 +427,18 @@ public abstract class DroidGraphics extends APGraphics {
 
     @Override
     public final void drawFilledOval(float x, float y, float w, float h) {
-        setRectF(x, y, x+w, y+h);
+        push(x, y, x+w, y+h);
         paint.setStyle(Paint.Style.FILL);
         canvas.drawOval(rectf, paint);
+        canvas.restore();
     }
 
     @Override
     public void drawFilledRects() {
         paint.setStyle(Paint.Style.FILL);
-        for (int i = 0; i <= r.getNumVerts()-1; i += 2) {
-            Vector2D v0 = r.getVertex(i);
-            Vector2D v1 = r.getVertex(i + 1);
+        for (int i = 0; i <= R.getNumVerts()-1; i += 2) {
+            Vector2D v0 = R.getVertex(i);
+            Vector2D v1 = R.getVertex(i + 1);
             Vector2D min = v0.min(v1);
             Vector2D max = v0.max(v1);
             canvas.drawRect(min.X(), min.Y(), max.X(), max.Y(), paint);
@@ -639,10 +627,7 @@ public abstract class DroidGraphics extends APGraphics {
     @Override
     public void drawImage(int imageKey) {
         canvas.save();
-        Matrix M = getCurrentTransform();
-//        Matrix I = new Matrix();
-  //      I.reset();
-    //    canvas.setMatrix(I);
+        captureTransform();
         Bitmap bm = getBitmap(imageKey);
         canvas.drawBitmap(bm, M, paint);
         canvas.restore();
@@ -750,25 +735,20 @@ public abstract class DroidGraphics extends APGraphics {
         setLineWidth(oldWidth);
     }
 
-    private Matrix getCurrentTransform() {
-        Matrix m = new Matrix();
-        float [] arr = r.getCurrentTransform().transpose().toFloatArray();
-        m.setValues(arr);
-        return m;
-    }
-
     @Override
     public void drawFilledRect(float x, float y, float w, float h) {
         paint.setStyle(Paint.Style.FILL);
-        setRectF(x, y, x+w, y+h);
+        push(x, y, x+w, y+h);
         canvas.drawRect(rectf, paint);
+        canvas.restore();
     }
 
     @Override
     public void drawArc(float x, float y, float radius, float startDegrees, float sweepDegrees) {
         paint.setStyle(Paint.Style.STROKE);
-        setRectF(x-radius, y-radius, x+radius, y+radius);
+        push(x-radius, y-radius, x+radius, y+radius);
         canvas.drawArc(rectf, startDegrees, sweepDegrees, false, paint);
+        canvas.restore();
     }
 
     @Override
@@ -776,9 +756,10 @@ public abstract class DroidGraphics extends APGraphics {
         float lw = paint.getStrokeWidth();
         paint.setStrokeWidth(0);
         paint.setStyle(Paint.Style.FILL_AND_STROKE);
-        setRectF(x-radius, y-radius, x+radius, y+radius);
+        push(x-radius, y-radius, x+radius, y+radius);
         canvas.drawArc(rectf, startDegrees, sweepDegrees, false, paint);
         paint.setStrokeWidth(lw);
+        canvas.restore();
     }
 
     @Override
@@ -789,14 +770,18 @@ public abstract class DroidGraphics extends APGraphics {
         canvas.drawLine(rectf.left, rectf.top, rectf.right, rectf.bottom, paint);
     }
 
+    /*
     @Override
     public void drawRect(float x, float y, float w, float h) {
-        setRectF(x, y, x+w, y+h);
+        push(x, y, x+w, y+h);
         paint.setStyle(Paint.Style.STROKE);
         canvas.drawRect(rectf, paint);
-    }
+        canvas.restore();
+    }*/
 
     final float [] T = { 0,0 };
+    final float [] Marr = new float[9];
+    final  Matrix M = new Matrix();
 
     public RectF setRectF(float l, float t, float r, float b) {
         transform(l, t, T);
@@ -807,16 +792,16 @@ public abstract class DroidGraphics extends APGraphics {
         rectf.bottom = T[1];
         return rectf;
     }
-
+/*
     public RectF setRectF(IRectangle rect) {
         IVector2D tl = rect.getTopLeft();
         IVector2D br = rect.getBottomRight();
         return setRectF(tl.getX(), tl.getY(), br.getX(), br.getY());
     }
-
+*/
     @Override
     public void drawCircle(float x, float y, float radius) {
-        setRectF(x-radius, y-radius, x+radius, y+radius);
+        push(x-radius, y-radius, x+radius, y+radius);
         float width = rectf.width();
         float height = rectf.height();
         if (width < height) {
@@ -828,11 +813,12 @@ public abstract class DroidGraphics extends APGraphics {
         }
         paint.setStyle(Paint.Style.STROKE);
         canvas.drawOval(rectf, paint);
+        canvas.restore();
     }
 
     @Override
     public void drawFilledCircle(float x, float y, float radius) {
-        setRectF(x-radius, y-radius, x+radius, y+radius);
+        push(x-radius, y-radius, x+radius, y+radius);
         float width = rectf.width();
         float height = rectf.height();
         if (width < height) {
@@ -847,18 +833,33 @@ public abstract class DroidGraphics extends APGraphics {
         paint.setStyle(Paint.Style.FILL_AND_STROKE);
         canvas.drawOval(rectf, paint);
         paint.setStrokeWidth(lw);
+        canvas.restore();
     }
 
     @Override
     public void drawOval(float x, float y, float w, float h) {
-        setRectF(x, y, x+w, y+h);
+        push(x, y, x+w, y+h);
         paint.setStyle(Paint.Style.STROKE);
         canvas.drawOval(rectf, paint);
+        canvas.restore();
+    }
+
+    private void captureTransform() {
+        R.getCurrentTransform().transpose().copyInto(Marr);
+        M.setValues(Marr);
+    }
+
+    private void push(float l, float t, float r, float b) {
+        rectf.set(l, t, r, b);
+        captureTransform();
+        canvas.save();
+        canvas.setMatrix(M);
     }
 
     private void renderRoundRect(float x, float y, float w, float h, float radius) {
-        setRectF(x, y, x+w, y+h);
+        push(x, y, x+w, y+h);
         canvas.drawRoundRect(rectf, radius, radius,paint);
+        canvas.restore();
     }
 
     @Override

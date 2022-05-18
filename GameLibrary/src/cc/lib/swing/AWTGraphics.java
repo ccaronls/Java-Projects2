@@ -67,7 +67,7 @@ public class AWTGraphics extends APGraphics {
     public AWTGraphics(AWTGraphics g, Graphics G, Component comp) {
         super(g.comp.getWidth(), g.comp.getHeight());
         this.g = G;
-        r.setWindow(this);
+        R.setWindow(this);
         this.comp  = g.comp;
         initViewport(comp.getWidth(), comp.getHeight());
         ortho();
@@ -199,19 +199,19 @@ public class AWTGraphics extends APGraphics {
     }
 
     protected int getNumVerts() {
-        return r.getNumVerts();
+        return R.getNumVerts();
     }
 
     protected float getX(int index) {
-        return r.getX(index);
+        return R.getX(index);
     }
 
     protected float getY(int index) {
-        return r.getY(index);
+        return R.getY(index);
     }
 
     protected Vector2D getVertex(int index) {
-        return r.getVertex(index);
+        return R.getVertex(index);
     }
 
     @Override
@@ -594,7 +594,7 @@ public class AWTGraphics extends APGraphics {
     }
 
     public int getMatrixStackSize() {
-        return r.getStackSize();
+        return R.getStackSize();
     }
 
     @Override

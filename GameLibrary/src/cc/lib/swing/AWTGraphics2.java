@@ -87,7 +87,7 @@ public class AWTGraphics2 extends AWTGraphics {
 
     @Override
     public void drawImage(int imageKey) {
-        double [][] M = r.getCurrentTransform().get();
+        double [][] M = R.getCurrentTransform().get();
         AffineTransform t = new AffineTransform(M[0][0], M[1][0]
                 ,M[0][1], M[1][1]
                 ,M[0][2], M[1][2]);

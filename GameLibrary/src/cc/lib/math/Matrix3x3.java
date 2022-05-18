@@ -1,6 +1,7 @@
 package cc.lib.math;
 
 import cc.lib.game.IVector2D;
+import cc.lib.game.Utils;
 import cc.lib.utils.Reflector;
 
 
@@ -375,6 +376,12 @@ public final class Matrix3x3 extends Reflector<Matrix3x3>  {
                 (float)a11, (float)a21, (float)a31,
                 (float)a12, (float)a22, (float)a32,
                 (float)a13, (float)a23, (float)a33};
+    }
+
+    public final void copyInto(float [] arr) {
+	    System.arraycopy(
+	            Utils.toFloatArray((float)a11, (float)a21, (float)a31, (float)a12, (float)a22, (float)a32,(float) a13, (float)a23, (float)a33),
+                0, arr, 0, arr.length);
     }
 
     /**

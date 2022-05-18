@@ -955,6 +955,7 @@ public abstract class Dominos extends Reflector<Dominos> implements GameServer.L
         g.setColor(GColor.WHITE);
         float x = w-menuButtonPadding;
         float y = menuButtonPadding;
+        g.setTextHeight(TEXT_SIZE);
         float tw = g.drawJustifiedString(x, y, Justify.RIGHT, infoStr).width;
         final float rx = w-tw-menuButtonPadding*2;
         final float ry = 0;

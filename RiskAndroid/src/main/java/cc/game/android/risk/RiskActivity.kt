@@ -337,7 +337,6 @@ class RiskActivity : DroidActivity(), OnItemClickListener {
 	
 	
 	override fun onDraw(g: DroidGraphics) {
-		g.setTextModePixels(true)
 		//        g.getPaint().setStrokeWidth(getResources().getDimension(R.dimen.roman_number_thickness));
 		val board = game.board
 		val imageRect = GRectangle(board.dimension)

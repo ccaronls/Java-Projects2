@@ -64,9 +64,13 @@ class MonopolyActivity : DroidActivity() {
 			val cond = lock.newCondition()
 			val items =Array(moves.size) { index ->
 				when (moves[index]) {
+					MoveType.PURCHASE -> {
+						val sq = player.square
+						"Purchase ${prettify(sq.name)} for $${sq.price}"
+					}
 					MoveType.PURCHASE_UNBOUGHT -> {
 						val sq = getPurchasePropertySquare()
-						"Purchase ${prettify(sq.name)}  for $${sq.price}"
+						"Purchase ${prettify(sq.name)} for $${sq.price}"
 					}
 					MoveType.PAY_BOND -> "${prettify(moves[index])} \$${player.jailBond}"
 					else -> prettify(moves[index])
@@ -80,14 +84,14 @@ class MonopolyActivity : DroidActivity() {
 							MoveType.PURCHASE_UNBOUGHT -> {
 								val property: Square = getPurchasePropertySquare()
 								showPurchasePropertyDialog("Buy Property", "Buy", property) {
-									result[0] = mt
+									result[0] = if (it) mt else null
 									lock.withLock { cond.signal() }
 								}
 							}
 							MoveType.PURCHASE -> {
 								val property: Square = player.square
 								showPurchasePropertyDialog("Buy Property", "Buy", property) {
-									result[0] = mt
+									result[0] = if (it) mt else null
 									lock.withLock { cond.signal() }
 								}
 							}
@@ -143,7 +147,7 @@ class MonopolyActivity : DroidActivity() {
 						val t: Trade = list[which]
 						showPurchasePropertyDialog("Buy ${prettify(t.card.property.name)} from ${prettify(t.trader.piece.name)}",
 							"Buy for $${t.price}", t.card.property) {
-							result[0] = t
+							result[0] = if (it) t else null
 							lock.withLock { cond.signal() }
 						}
 					}.show()
@@ -238,12 +242,10 @@ class MonopolyActivity : DroidActivity() {
 		return builder
 	}
 
-	fun showPurchasePropertyDialog(title: String, buyLabel: String, property: Square, onBuyRunnable: Runnable) {
+	fun showPurchasePropertyDialog(title: String, buyLabel: String, property: Square, callback: (bought:Boolean)->Unit) {
 		newDialogBuilder().setTitle(title).setView(object : DroidView(this, false) {
 			override fun onPaint(g: DroidGraphics) {
-				g.setTextModePixels(false)
-				g.textHeight = 16f
-				g.setTextModePixels(true)
+				g.setTextHeightDips(16f)
 				monopoly.drawPropertyCard(g, property, g.viewportWidth.toFloat(), g.viewportHeight.toFloat())
 			}
 
@@ -257,10 +259,9 @@ class MonopolyActivity : DroidActivity() {
 				}
 				super.onMeasure(widthMeasureSpec, heightMeasureSpec)
 			}
-		}).setNegativeButton("Don't Buy", null)
-		.setPositiveButton(buyLabel) { _, _ ->
-			onBuyRunnable.run()
-		}.show()
+		}).setNegativeButton("Don't Buy") { _, _ -> callback.invoke(false) }
+			.setPositiveButton(buyLabel) { _, _ -> callback.invoke(true) }
+			.show()
 	}
 
 	override fun onCreate(savedInstanceState: Bundle?) {
@@ -295,9 +296,7 @@ class MonopolyActivity : DroidActivity() {
 	var ty = -1
 	var dragging = false
 	override fun onDraw(g: DroidGraphics) {
-		g.setTextModePixels(false)
-		g.textHeight = 16f
-		g.setTextModePixels(true)
+		g.setTextHeightDips(16f)
 		monopoly.paint(g, tx, ty)
 	}
 
@@ -330,14 +329,7 @@ class MonopolyActivity : DroidActivity() {
 	override fun onTap(x: Float, y: Float) {
 		tx = x.roundToInt()
 		ty = y.roundToInt()
-		/*
-        redraw();
-        getContent().postDelayed(new Runnable() {
-            public void run() {
-                tx = ty = -1;
-                monopoly.onClick();
-            }
-        }, 100);*/if (!monopoly.isGameRunning) {
+		if (!monopoly.isGameRunning) {
 			if (saveFile.exists()) {
 				showOptionsMenu()
 			} else {

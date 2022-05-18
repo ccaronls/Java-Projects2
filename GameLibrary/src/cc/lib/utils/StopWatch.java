@@ -1,18 +1,28 @@
 package cc.lib.utils;
 
-public class StopWatch {
+public class StopWatch extends Reflector<StopWatch> {
 
+    static {
+        addAllFields(StopWatch.class);
+    }
+
+    @Omit
     protected long startTime = 0;
+    @Omit
     protected long pauseTime = 0;
-    protected long curTime = 0;
+    @Omit
     protected long deltaTime = 0;
+    @Omit
     protected long lastCaptureTime = 0;
+
+    protected long curTime = 0;
     protected boolean started = false;
     
     /**
      * Start the stopwatch.  MUST be the first call
      */
     public void start() {
+        curTime = 0;
         startTime = getClockMiliseconds();
         started = true;
         unpause();
@@ -34,8 +44,9 @@ public class StopWatch {
      * Pause the stop watch.  getTime/getDeltaTime will not advance until unpause called.
      */
     public void pause() {
-        if (!isPaused())
+        if (!isPaused()) {
             pauseTime = getClockMiliseconds();
+        }
     }
     
     /**
@@ -44,7 +55,8 @@ public class StopWatch {
     public void capture() {
         if (started && pauseTime == 0) {
             long t = this.getClockMiliseconds();
-            curTime = t - startTime;
+            curTime += t - startTime;
+            startTime = t;
             this.deltaTime = curTime - lastCaptureTime;
             this.lastCaptureTime = curTime;
         }
@@ -55,7 +67,7 @@ public class StopWatch {
      */
     public void unpause() {
         if (pauseTime > 0) {
-            startTime += (getClockMiliseconds() - pauseTime);
+            startTime = getClockMiliseconds();
             pauseTime = 0;
         }
     }
@@ -87,5 +99,13 @@ public class StopWatch {
      */
     protected long getClockMiliseconds() {
         return System.currentTimeMillis();
+    }
+
+    @Override
+    protected void deserialize(MyBufferedReader in) throws Exception {
+        super.deserialize(in);
+        if (started) {
+            pauseTime = startTime = getClockMiliseconds();
+        }
     }
 }

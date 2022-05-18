@@ -13,71 +13,71 @@ import cc.lib.math.Vector2D;
  */
 public abstract class APGraphics extends AGraphics {
 
-    protected final Renderer r;
+    protected final Renderer R;
 
     protected APGraphics(int viewportWidth, int viewportHeight) {
         super(viewportWidth, viewportHeight);
-        this.r = new Renderer(this);
+        this.R = new Renderer(this);
     }
 
     @Override
     public final  void begin() {
-        r.clearVerts();
+        R.clearVerts();
     }
 
     @Override
     public final  void end() {
-        r.clearVerts();
+        R.clearVerts();
     }
 
     @Override
     public final  void ortho(float left, float right, float top, float bottom) {
-        r.setOrtho(left, right, top, bottom);
+        R.setOrtho(left, right, top, bottom);
     }
 
     @Override
     public final  void pushMatrix() {
-        r.pushMatrix();
+        R.pushMatrix();
     }
 
     @Override
     public final  void popMatrix() {
-        r.popMatrix();
+        R.popMatrix();
     }
 
     @Override
     public final  void translate(float x, float y) {
-        r.translate(x, y);
+        R.translate(x, y);
     }
 
     @Override
     public final  void rotate(float degrees) {
-        r.rotate(degrees);
+        R.rotate(degrees);
     }
 
     @Override
     public final  void scale(float x, float y) {
-        r.scale(x, y);
+        R.scale(x, y);
     }
 
     @Override
     public final  void setIdentity() {
-        r.makeIdentity();
+        R.makeIdentity();
     }
 
     @Override
     public void multMatrix(Matrix3x3 m) {
-        r.multiply(m);
+        R.multiply(m);
     }
 
     @Override
     public final  void transform(float x, float y, float[] result) {
-        r.transformXY(x, y, result);
+        R.transformXY(x, y, result);
     }
 
     @Override
     protected MutableVector2D untransform(float x, float y) {
-        return r.untransform(x, y);
+        return R.untransform(x, y);
     }
 
     float [] lastVertex = new float[2];
@@ -85,7 +85,7 @@ public abstract class APGraphics extends AGraphics {
     @Override
     public final void vertex(float x, float y) {
         Utils.copyElems(lastVertex, x, y);
-        r.addVertex(x, y);
+        R.addVertex(x, y);
     }
 
     @Override
@@ -103,13 +103,13 @@ public abstract class APGraphics extends AGraphics {
     public final int pickPoints(int x, int y, int size) {
         int picked = -1;
         int bestD = Integer.MAX_VALUE;
-        for (int i=0; i<r.getNumVerts(); i++) {
-            int dx = x - Math.round(r.getX(i));
-            int dy = y - Math.round(r.getY(i));
+        for (int i = 0; i< R.getNumVerts(); i++) {
+            int dx = x - Math.round(R.getX(i));
+            int dy = y - Math.round(R.getY(i));
             int d = Utils.fastLen(dx, dy);
             if (d <= size) {
                 if (picked < 0 || d < bestD) {
-                    picked = r.getName(i);
+                    picked = R.getName(i);
                     bestD = d;
                 }
             }
@@ -120,13 +120,13 @@ public abstract class APGraphics extends AGraphics {
     public final int pickPoints(IVector2D m, int size) {
         int picked = -1;
         float bestD = Float.MAX_VALUE;
-        for (int i=0; i<r.getNumVerts(); i++) {
-            float dx = m.getX() - r.getX(i);
-            float dy = m.getY() - r.getY(i);
+        for (int i = 0; i< R.getNumVerts(); i++) {
+            float dx = m.getX() - R.getX(i);
+            float dy = m.getY() - R.getY(i);
             float d = Utils.fastLen(dx, dy);
             if (d <= size) {
                 if (picked < 0 || d < bestD) {
-                    picked = r.getName(i);
+                    picked = R.getName(i);
                     bestD = d;
                 }
             }
@@ -143,12 +143,12 @@ public abstract class APGraphics extends AGraphics {
      */
     public final int pickLines(int x, int y, int thickness) {
         int picked = -1;
-        for (int i=0; i<r.getNumVerts(); i+=2) {
+        for (int i = 0; i< R.getNumVerts(); i+=2) {
 
-            float x0 = r.getX(i);
-            float y0 = r.getY(i);
-            float x1 = r.getX(i+1);
-            float y1 = r.getY(i+1);
+            float x0 = R.getX(i);
+            float y0 = R.getY(i);
+            float x1 = R.getX(i+1);
+            float y1 = R.getY(i+1);
 
             float d0 = Utils.distSqPointLine(x, y, x0, y0, x1, y1);
             if (d0 > thickness)
@@ -163,21 +163,21 @@ public abstract class APGraphics extends AGraphics {
             if (dot_p_d1 < 0 || dot_p_d2 < 0)
                 continue;
 
-            picked = r.getName(i);
+            picked = R.getName(i);
         }
         return picked;
     }
 
     public final int pickLines(IVector2D m, int thickness) {
         int picked = -1;
-        for (int i=0; i<r.getNumVerts(); i+=2) {
+        for (int i = 0; i< R.getNumVerts(); i+=2) {
 
             float mx = m.getX();
             float my = m.getY();
-            float x0 = r.getX(i);
-            float y0 = r.getY(i);
-            float x1 = r.getX(i+1);
-            float y1 = r.getY(i+1);
+            float x0 = R.getX(i);
+            float y0 = R.getY(i);
+            float x1 = R.getX(i+1);
+            float y1 = R.getY(i+1);
 
             float d0 = Utils.distSqPointLine(mx, my, x0, y0, x1, y1);
             if (d0 > thickness)
@@ -192,7 +192,7 @@ public abstract class APGraphics extends AGraphics {
             if (dot_p_d1 < 0 || dot_p_d2 < 0)
                 continue;
 
-            picked = r.getName(i);
+            picked = R.getName(i);
         }
         return picked;
     }
@@ -204,10 +204,10 @@ public abstract class APGraphics extends AGraphics {
      */
     public final int pickRects(int x, int y) {
         int picked = -1;
-        for (int i=0; i<=r.getNumVerts()-2; i+=2) {
-            IVector2D v0 = r.getVertex(i);
-            IVector2D v1 = r.getVertex(i+1);
-            if (r.getName(i) < 0)
+        for (int i = 0; i<= R.getNumVerts()-2; i+=2) {
+            IVector2D v0 = R.getVertex(i);
+            IVector2D v1 = R.getVertex(i+1);
+            if (R.getName(i) < 0)
                 continue;
             float X = Math.min(v0.getX(), v1.getX());
             float Y = Math.min(v0.getY(), v1.getY());
@@ -217,7 +217,7 @@ public abstract class APGraphics extends AGraphics {
             //Utils.println("pick rect[%d] m[%d,%d] r[%3.1f,%3.1f,%3.1f,%3.1f]", getName(i),x, y, X, Y, W, H);
 
             if (Utils.isPointInsideRect(x,y,X,Y,W,H)) {
-                picked = r.getName(i);
+                picked = R.getName(i);
                 break;
             }
         }
@@ -233,15 +233,15 @@ public abstract class APGraphics extends AGraphics {
     public final int pickClosest(int x, int y) {
         int picked = -1;
         float closest = Float.MAX_VALUE;
-        for (int i=0; i<r.getNumVerts(); i++) {
-            if (r.getName(i) < 0)
+        for (int i = 0; i< R.getNumVerts(); i++) {
+            if (R.getName(i) < 0)
                 continue;
-            Vector2D v = r.getVertex(i);
+            Vector2D v = R.getVertex(i);
             Vector2D dv =  v.sub(x, y);
             float d = dv.magSquared();
             if (d < closest) {
                 closest = d;
-                picked = r.getName(i);
+                picked = R.getName(i);
             }
         }
         return picked;
@@ -255,9 +255,9 @@ public abstract class APGraphics extends AGraphics {
      */
     public final int pickQuads(int x, int y) {
         int picked = -1;
-        for (int i=0; i<=r.getNumVerts()-4; i+=4) {
-            if (Utils.isPointInsidePolygon(x, y, r.getVertex(i), r.getVertex(i+1), r.getVertex(i+2), r.getVertex(i+3))) {
-                picked = r.getName(i);
+        for (int i = 0; i<= R.getNumVerts()-4; i+=4) {
+            if (Utils.isPointInsidePolygon(x, y, R.getVertex(i), R.getVertex(i+1), R.getVertex(i+2), R.getVertex(i+3))) {
+                picked = R.getName(i);
             }
         }
         return picked;
@@ -268,7 +268,7 @@ public abstract class APGraphics extends AGraphics {
      * @param index
      */
     public final void setName(int index) {
-        r.setName(index);
+        R.setName(index);
     }
 
     /**
@@ -277,28 +277,28 @@ public abstract class APGraphics extends AGraphics {
      * @return
      */
     public final List<IVector2D> getVerticesForName(int name) {
-        return r.getVerticesForName(name);
+        return R.getVerticesForName(name);
     }
 
 
     @Override
     public final void clearMinMax() {
-        r.clearBoundingRect();
+        R.clearBoundingRect();
     }
 
     @Override
     public final Vector2D getMinBoundingRect() {
-        return r.getMin();
+        return R.getMin();
     }
 
     @Override
     public final Vector2D getMaxBoundingRect() {
-        return r.getMax();
+        return R.getMax();
     }
 
     @Override
     public void getTransform(Matrix3x3 result) {
-        result.assign(r.getCurrentTransform());
+        result.assign(R.getCurrentTransform());
     }
 
 }

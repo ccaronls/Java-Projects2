@@ -34,7 +34,6 @@ class ZBoardView(context: Context, attrs: AttributeSet) : UIComponentView<UIZBoa
 	}
 
 	override fun preDrawInit(g: DroidGraphics) {
-		g.setTextModePixels(true)
 		g.textHeight = resources.getDimension(R.dimen.board_view_text_size)
 		g.setLineThicknessModePixels(false)
 		//g.getPaint().setStrokeWidth(getResources().getDimension(R.dimen.default_line_width));

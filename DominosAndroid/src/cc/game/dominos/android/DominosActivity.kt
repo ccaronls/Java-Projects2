@@ -1,174 +1,119 @@
-package cc.game.dominos.android;
+package cc.game.dominos.android
 
-import android.app.AlertDialog;
-import android.content.DialogInterface;
-import android.os.Bundle;
-import android.os.Environment;
-import android.view.View;
-import android.widget.RadioGroup;
-
-import java.io.File;
-
-import cc.game.dominos.core.Dominos;
-import cc.lib.android.DroidActivity;
-import cc.lib.android.DroidGraphics;
-import cc.lib.annotation.Keep;
-import cc.lib.utils.FileUtils;
+import android.os.Bundle
+import android.view.View
+import android.widget.RadioGroup
+import cc.game.dominos.core.Dominos
+import cc.lib.android.DroidActivity
+import cc.lib.android.DroidGraphics
+import cc.lib.annotation.Keep
+import cc.lib.utils.FileUtils
+import java.io.File
 
 /**
  * Created by chriscaron on 2/15/18.
  */
+class DominosActivity : DroidActivity() {
+	private lateinit var dominos: Dominos
+	private lateinit var saveFile: File
+	override fun onCreate(savedInstanceState: Bundle?) {
+		super.onCreate(savedInstanceState)
+		//AndroidLogger.setLogFile(new File(Environment.getExternalStorageDirectory(), "dominos.log"));
+		val padding = resources.getDimensionPixelSize(R.dimen.border_padding)
+		setMargin(padding)
+		saveFile = File(externalStorageDirectory, "dominos.save")
+		Dominos.SPACING = resources.getDimension(R.dimen.element_spacing)
+		Dominos.TEXT_SIZE = resources.getDimension(R.dimen.info_txt_size)
+		dominos = object : Dominos() {
+			override fun redraw() {
+				this@DominosActivity.redraw()
+			}
 
-public class DominosActivity extends DroidActivity {
+			@Keep
+			override fun onGameOver(winner: Int) {
+				super.onGameOver(winner)
+				content.postDelayed({ showNewGameDialog() }, 5000)
+			}
 
-    private final static String TAG = DominosActivity.class.getSimpleName();
+			override fun onMenuClicked() {
+				showNewGameDialog()
+			}
+		}
+		dominos.startDominosIntroAnimation { if (!isCurrentDialogShowing) showNewGameDialog() }
+	}
 
-    private Dominos dominos = null;
-    private File saveFile=null;
+	fun copyFileToExt() {
+		try {
+			FileUtils.copyFile(saveFile, externalStorageDirectory)
+		} catch (e: Exception) {
+			e.printStackTrace()
+		}
+	}
 
-    public DominosActivity() {
+	override fun onResume() {
+		super.onResume()
+		dominos.redraw()
+	}
 
-    }
+	override fun onPause() {
+		super.onPause()
+		dominos.stopGameThread()
+	}
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        //AndroidLogger.setLogFile(new File(Environment.getExternalStorageDirectory(), "dominos.log"));
-        int padding = getResources().getDimensionPixelSize(R.dimen.border_padding);
-        setMargin(padding);
-        saveFile = new File(Environment.getExternalStorageDirectory(), "dominos.save");
-        Dominos.SPACING = getResources().getDimension(R.dimen.element_spacing);
-        Dominos.TEXT_SIZE = getResources().getDimension(R.dimen.info_txt_size);
-        dominos = new Dominos() {
-            @Override
-            public void redraw() {
-                DominosActivity.this.redraw();
-            }
+	var tx = -1
+	var ty = -1
+	var dragging = false
+	override fun onDraw(g: DroidGraphics) {
+		synchronized(this) { dominos.draw(g, tx, ty) }
+	}
 
-            @Override
-            @Keep
-            protected void onGameOver(int winner) {
-                super.onGameOver(winner);
-                getContent().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        showNewGameDialog();
-                    }
-                }, 5000);
-            }
+	override fun onTouchDown(x: Float, y: Float) {
+		tx = Math.round(x)
+		ty = Math.round(y)
+		redraw()
+	}
 
-            @Override
-            protected void onMenuClicked() {
-                showNewGameDialog();
-            }
-        };
-        dominos.startDominosIntroAnimation(new Runnable() {
-            @Override
-            public void run() {
-                if (!isCurrentDialogShowing())
-                    showNewGameDialog();
-            }
-        });
-    }
+	override fun onTouchUp(x: Float, y: Float) {
+		if (dragging) {
+			dominos.stopDrag()
+			dragging = false
+		}
+		tx = -1 //Math.round(x);
+		ty = -1 //Math.round(y);
+		redraw()
+	}
 
-    void copyFileToExt() {
-        try {
-            FileUtils.copyFile(saveFile, Environment.getExternalStorageDirectory());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+	override fun onDrag(x: Float, y: Float) {
+		if (!dragging) {
+			dominos.startDrag()
+			dragging = true
+		}
+		tx = Math.round(x)
+		ty = Math.round(y)
+		redraw()
+	}
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        dominos.redraw();
-    }
+	override fun onTap(x: Float, y: Float) {
+		tx = Math.round(x)
+		ty = Math.round(y)
+		redraw()
+		content.postDelayed({
+			ty = -1
+			tx = ty
+			dominos.onClick()
+		}, 100)
+	}
 
-    final int PERMISSION_REQUEST_CODE = 1001;
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        dominos.stopGameThread();
-    }
-
-    int tx=-1, ty=-1;
-    boolean dragging = false;
-
-    @Override
-    protected void onDraw(DroidGraphics g) {
-        synchronized (this) {
-            dominos.draw(g, tx, ty);
-        }
-    }
-
-    @Override
-    protected void onTouchDown(float x, float y) {
-        tx = Math.round(x);
-        ty = Math.round(y);
-        redraw();
-    }
-
-    @Override
-    protected void onTouchUp(float x, float y) {
-        if (dragging) {
-            dominos.stopDrag();
-            dragging = false;
-        }
-        tx = -1;//Math.round(x);
-        ty = -1;//Math.round(y);
-        redraw();
-    }
-
-    @Override
-    protected void onDrag(float x, float y) {
-        if (!dragging) {
-            dominos.startDrag();
-            dragging = true;
-        }
-        tx = Math.round(x);
-        ty = Math.round(y);
-        redraw();
-    }
-
-    @Override
-    protected void onTap(float x, float y) {
-        tx = Math.round(x);
-        ty = Math.round(y);
-        redraw();
-        getContent().postDelayed(new Runnable() {
-            public void run() {
-                tx = ty = -1;
-                dominos.onClick();
-            }
-        }, 100);
-    }
-
-    void showNewGameDialog() {
-
-        final View v = View.inflate(this, R.layout.new_game_type_dialog, null);
-        AlertDialog.Builder b = newDialogBuilder().setTitle(R.string.popup_title_choose_game_type)
-                .setView(v).setNegativeButton(R.string.popup_button_cancel, null);
-
-        if (dominos.isInitialized()) {
-            b.setNegativeButton(R.string.popup_button_cancel, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    if (!dominos.isGameRunning())
-                        dominos.startGameThread();
-                }
-            });
-        }
-        b.show();
-
-        v.findViewById(R.id.bSinglePlayer).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showNewSinglePlayerSetupDialog();
-            }
-        });
-        /*
+	fun showNewGameDialog() {
+		val v = View.inflate(this, R.layout.new_game_type_dialog, null)
+		val b = newDialogBuilder().setTitle(R.string.popup_title_choose_game_type)
+			.setView(v).setNegativeButton(R.string.popup_button_cancel, null)
+		if (dominos.isInitialized) {
+			b.setNegativeButton(R.string.popup_button_cancel) { dialog, which -> if (!dominos.isGameRunning) dominos.startGameThread() }
+		}
+		b.show()
+		v.findViewById<View>(R.id.bSinglePlayer).setOnClickListener { showNewSinglePlayerSetupDialog() }
+		/*
         v.findViewById(R.id.bMultiPlayerHost).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -186,32 +131,24 @@ public class DominosActivity extends DroidActivity {
                 showSearchMultiplayerHostsDialog();
             }
         });*/
-        View button = v.findViewById(R.id.bResumeSP);
-        if (saveFile.exists()) {
-            button.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    dominos.clear();
-                    if (dominos.tryLoadFromFile(saveFile) && dominos.isInitialized()) {
-                        dominos.startGameThread();
-                        dismissCurrentDialog();
-                    } else {
-                        dominos.clear();
-                        newDialogBuilder().setTitle(R.string.popup_title_error).setMessage(R.string.popup_msg_failed_to_load).setNegativeButton(R.string.popup_button_ok, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                showNewGameDialog();
-                            }
-                        }).show();
-                    }
-                }
-            });
-        }  else {
-            button.setVisibility(View.GONE);
-        }
-    }
+		val button = v.findViewById<View>(R.id.bResumeSP)
+		if (saveFile.exists()) {
+			button.setOnClickListener {
+				dominos.clear()
+				if (dominos.tryLoadFromFile(saveFile) && dominos.isInitialized) {
+					dominos.startGameThread()
+					dismissCurrentDialog()
+				} else {
+					dominos.clear()
+					newDialogBuilder().setTitle(R.string.popup_title_error).setMessage(R.string.popup_msg_failed_to_load).setNegativeButton(R.string.popup_button_ok) { dialog, which -> showNewGameDialog() }.show()
+				}
+			}
+		} else {
+			button.visibility = View.GONE
+		}
+	}
 
-/*
+	/*
     void showHostMultiplayerDialog() {
         new SpinnerTask() {
             @Override
@@ -268,13 +205,12 @@ public class DominosActivity extends DroidActivity {
 
         }.run();
     }*/
+	fun killGame() {
+		dominos.stopGameThread()
+		dominos.clear()
+	}
 
-    void killGame() {
-        dominos.stopGameThread();
-        dominos.clear();
-    }
-
-    /*
+	/*
     void showWaitingForPlayersDialog() {
         dominos.stopGameThread();
         ListView lvPlayers = new ListView(this);
@@ -797,118 +733,78 @@ public class DominosActivity extends DroidActivity {
         server.broadcastMessage(getString(R.string.server_broadcast_starting_new_game));
         dominos.startGameThread();
     }*/
+	fun showNewSinglePlayerSetupDialog() {
+		val v = View.inflate(this, R.layout.game_setup_dialog, null)
+		val rgNumPlayers = v.findViewById<View>(R.id.rgNumPlayers) as RadioGroup
+		val rgDifficulty = v.findViewById<View>(R.id.rgDifficulty) as RadioGroup
+		val rgTiles = v.findViewById<View>(R.id.rgTiles) as RadioGroup
+		val rgMaxPoints = v.findViewById<View>(R.id.rgMaxPoints) as RadioGroup
+		val numPlayer = prefs.getInt("numPlayers", 0)
+		val difficulty = prefs.getInt("difficulty", 0)
+		val maxPips = prefs.getInt("maxPips", 0)
+		val maxScore = prefs.getInt("maxScore", 0)
+		when (numPlayer) {
+			2 -> rgNumPlayers.check(R.id.rbPlayersTwo)
+			3 -> rgNumPlayers.check(R.id.rbPlayersThree)
+			4 -> rgNumPlayers.check(R.id.rbPlayersFour)
+		}
+		when (difficulty) {
+			0 -> rgDifficulty.check(R.id.rbDifficultyEasy)
+			1 -> rgDifficulty.check(R.id.rbDifficultyMedium)
+			2 -> rgDifficulty.check(R.id.rbDifficultyHard)
+		}
+		when (maxPips) {
+			6 -> rgTiles.check(R.id.rbTiles6x6)
+			9 -> rgTiles.check(R.id.rbTiles9x9)
+			12 -> rgTiles.check(R.id.rbTiles12x12)
+		}
+		when (maxScore) {
+			150 -> rgMaxPoints.check(R.id.rbMaxPoints150)
+			200 -> rgMaxPoints.check(R.id.rbMaxPoints200)
+			250 -> rgMaxPoints.check(R.id.rbMaxPoints250)
+		}
+		newDialogBuilder().setTitle(R.string.popup_title_new_sp_game)
+			.setView(v)
+			.setPositiveButton(R.string.popup_button_start) { dialog, which ->
+				var difficulty = 0
+				var numPlayers = 4
+				var maxPoints = 150
+				var maxPips = 9
+				when (rgDifficulty.checkedRadioButtonId) {
+					R.id.rbDifficultyEasy -> difficulty = 0
+					R.id.rbDifficultyMedium -> difficulty = 1
+					R.id.rbDifficultyHard -> difficulty = 2
+				}
+				when (rgNumPlayers.checkedRadioButtonId) {
+					R.id.rbPlayersTwo -> numPlayers = 2
+					R.id.rbPlayersThree -> numPlayers = 3
+					R.id.rbPlayersFour -> numPlayers = 4
+				}
+				when (rgMaxPoints.checkedRadioButtonId) {
+					R.id.rbMaxPoints150 -> maxPoints = 150
+					R.id.rbMaxPoints200 -> maxPoints = 200
+					R.id.rbMaxPoints250 -> maxPoints = 250
+				}
+				when (rgTiles.checkedRadioButtonId) {
+					R.id.rbTiles6x6 -> maxPips = 6
+					R.id.rbTiles9x9 -> maxPips = 9
+					R.id.rbTiles12x12 -> maxPips = 12
+				}
+				prefs.edit()
+					.putInt("numPlayers", numPlayers)
+					.putInt("difficulty", difficulty)
+					.putInt("maxPips", maxPips)
+					.putInt("maxScore", maxScore)
+					.apply()
+				dominos.stopGameThread()
+				dominos.initGame(maxPips, maxPoints, difficulty)
+				dominos.numPlayers = numPlayers
+				dominos.startNewGame()
+				dominos.startGameThread()
+			}.setOnCancelListener { showNewGameDialog() }.show()
+	}
 
-    void showNewSinglePlayerSetupDialog() {
-        final View v = View.inflate(this, R.layout.game_setup_dialog, null);
-        final RadioGroup rgNumPlayers = (RadioGroup)v.findViewById(R.id.rgNumPlayers);
-        final RadioGroup rgDifficulty = (RadioGroup)v.findViewById(R.id.rgDifficulty);
-        final RadioGroup rgTiles      = (RadioGroup)v.findViewById(R.id.rgTiles);
-        final RadioGroup rgMaxPoints  = (RadioGroup)v.findViewById(R.id.rgMaxPoints);
-
-        final int numPlayer = getPrefs().getInt("numPlayers", 0);
-        int difficulty = getPrefs().getInt("difficulty", 0);
-        int maxPips = getPrefs().getInt("maxPips", 0);
-        final int maxScore = getPrefs().getInt("maxScore", 0);
-
-        switch (numPlayer) {
-            case 2:
-                rgNumPlayers.check(R.id.rbPlayersTwo); break;
-            case 3:
-                rgNumPlayers.check(R.id.rbPlayersThree); break;
-            case 4:
-                rgNumPlayers.check(R.id.rbPlayersFour); break;
-        }
-        switch (difficulty) {
-            case 0:
-                rgDifficulty.check(R.id.rbDifficultyEasy); break;
-            case 1:
-                rgDifficulty.check(R.id.rbDifficultyMedium); break;
-            case 2:
-                rgDifficulty.check(R.id.rbDifficultyHard); break;
-        }
-        switch (maxPips) {
-            case 6:
-                rgTiles.check(R.id.rbTiles6x6); break;
-            case 9:
-                rgTiles.check(R.id.rbTiles9x9); break;
-            case 12:
-                rgTiles.check(R.id.rbTiles12x12); break;
-        }
-        switch (maxScore) {
-            case 150:
-                rgMaxPoints.check(R.id.rbMaxPoints150); break;
-            case 200:
-                rgMaxPoints.check(R.id.rbMaxPoints200); break;
-            case 250:
-                rgMaxPoints.check(R.id.rbMaxPoints250); break;
-        }
-        newDialogBuilder().setTitle(R.string.popup_title_new_sp_game)
-                .setView(v)
-                .setPositiveButton(R.string.popup_button_start, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-
-                        int difficulty = 0;
-                        int numPlayers = 4;
-                        int maxPoints = 150;
-                        int maxPips = 9;
-
-                        switch (rgDifficulty.getCheckedRadioButtonId()) {
-                            case R.id.rbDifficultyEasy:
-                                difficulty = 0; break;
-                            case R.id.rbDifficultyMedium:
-                                difficulty = 1; break;
-                            case R.id.rbDifficultyHard:
-                                difficulty = 2; break;
-                        }
-
-                        switch (rgNumPlayers.getCheckedRadioButtonId()) {
-                            case R.id.rbPlayersTwo:
-                                numPlayers = 2; break;
-                            case R.id.rbPlayersThree:
-                                numPlayers = 3; break;
-                            case R.id.rbPlayersFour:
-                                numPlayers = 4; break;
-                        }
-
-                        switch (rgMaxPoints.getCheckedRadioButtonId()) {
-                            case R.id.rbMaxPoints150:
-                                maxPoints = 150; break;
-                            case R.id.rbMaxPoints200:
-                                maxPoints = 200; break;
-                            case R.id.rbMaxPoints250:
-                                maxPoints = 250; break;
-                        }
-
-                        switch (rgTiles.getCheckedRadioButtonId()) {
-                            case R.id.rbTiles6x6:
-                                maxPips = 6; break;
-                            case R.id.rbTiles9x9:
-                                maxPips = 9; break;
-                            case R.id.rbTiles12x12:
-                                maxPips = 12; break;
-                        }
-                        getPrefs().edit()
-                                .putInt("numPlayers", numPlayers)
-                                .putInt("difficulty", difficulty)
-                                .putInt("maxPips", maxPips)
-                                .putInt("maxScore", maxScore)
-                                .apply();
-                        dominos.stopGameThread();
-                        dominos.initGame(maxPips, maxPoints, difficulty);
-                        dominos.setNumPlayers(numPlayers);
-                        dominos.startNewGame();
-                        dominos.startGameThread();
-
-                    }
-
-
-                }).setOnCancelListener(new DialogInterface.OnCancelListener() {
-            @Override
-            public void onCancel(DialogInterface dialog) {
-                showNewGameDialog();
-            }
-        }).show();
-    }
-
+	companion object {
+		private val TAG = DominosActivity::class.java.simpleName
+	}
 }

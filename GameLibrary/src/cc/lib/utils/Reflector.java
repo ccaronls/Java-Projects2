@@ -1892,7 +1892,7 @@ public class Reflector<T> {
 
     private void deserializeInternal(MyBufferedReader in, boolean keepInstances) throws Exception {
 
-            Map<Field, Archiver> values = getValues(getClass(), false);
+        Map<Field, Archiver> values = getValues(getClass(), false);
         final int depth = in.depth;
             while (true) {
             if (in.depth > depth)

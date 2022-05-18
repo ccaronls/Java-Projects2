@@ -60,7 +60,7 @@ PIECE_0(null, 0, 0, null), // this way the matrix value aligns with ordinal()
 
  */
 
-enum class PieceType(val color: GColor, startX: Int, startY: Int, val orientations: Array<Array<Array<Int>>>) {
+enum class PieceType(val color: GColor, val startX: Int, val startY: Int, val orientations: Array<Array<Array<Int>>>) {
 	PIECE_0(GColor.TRANSPARENT, 0, 0, arrayOf(arrayOf(arrayOf(0)))),
 	PIECE_1x1(GColor.BLUE, 0, 0, arrayOf(arrayOf(arrayOf(1)))),
 	PIECE_2x2(GColor.GREEN, 1, 0, arrayOf(arrayOf(
@@ -104,14 +104,6 @@ enum class PieceType(val color: GColor, startX: Int, startY: Int, val orientatio
 		arrayOf(9, 9), arrayOf(9, 0)))),
 	PIECE_CHIT(GColor(219, 181, 132), 0, 0,
 		arrayOf(arrayOf(arrayOf(10))));
-
-	val startX: Float
-	val startY: Float
-
-	init {
-		this.startX = startX.toFloat()
-		this.startY = startY.toFloat()
-	}
 }
 
 class Piece @JvmOverloads constructor(val pieceType: PieceType=PieceType.PIECE_0) : Reflector<Piece>() {
@@ -123,7 +115,7 @@ class Piece @JvmOverloads constructor(val pieceType: PieceType=PieceType.PIECE_0
 	var dropped = false
 	fun reset() {
 		index = 0
-		topLeft[pieceType.startX] = pieceType.startY
+		topLeft.set(pieceType.startX.toFloat(), pieceType.startY.toFloat())
 		bottomRight.set(topLeft).addEq(width, height)
 		dropped = false
 	}
@@ -177,9 +169,7 @@ open class GeniusSquares : Reflector<GeniusSquares?>() {
 
 	val pieces: MutableList<Piece> = ArrayList()
 	var board: Grid<Int> = Grid<Int>(BOARD_DIM_CELLS, BOARD_DIM_CELLS, 0) // row major
-
-	@Omit
-	val timer = StopWatch()
+	val timer = newStopWatch()
 	var bestTime: Long = 0
 	open fun newGame() {
 		board.fill(0)
@@ -328,5 +318,9 @@ open class GeniusSquares : Reflector<GeniusSquares?>() {
 
 	fun resumeTimer() {
 		synchronized(timer) { timer.unpause() }
+	}
+
+	open fun newStopWatch() : StopWatch {
+		return StopWatch()
 	}
 }

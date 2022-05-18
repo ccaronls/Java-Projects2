@@ -37,7 +37,6 @@ public class ChessTestActivity extends DroidActivity {
 
     @Override
     protected void onDraw(DroidGraphics g) {
-        g.setTextModePixels(true);
         game.draw(g, 0, 0);
     }
 
