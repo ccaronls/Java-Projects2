@@ -1,0 +1,476 @@
+turn=0
+pool=java.util.LinkedList {
+   cc.game.dominos.core.Tile {
+      placement=0
+      pip2=7
+      openPips=7
+      pip1=7
+   }
+   cc.game.dominos.core.Tile {
+      placement=0
+      pip2=2
+      openPips=2
+      pip1=2
+   }
+   cc.game.dominos.core.Tile {
+      placement=0
+      pip2=6
+      openPips=1
+      pip1=1
+   }
+   cc.game.dominos.core.Tile {
+      placement=0
+      pip2=7
+      openPips=1
+      pip1=1
+   }
+   cc.game.dominos.core.Tile {
+      placement=0
+      pip2=8
+      openPips=5
+      pip1=5
+   }
+   cc.game.dominos.core.Tile {
+      placement=0
+      pip2=4
+      openPips=1
+      pip1=1
+   }
+   cc.game.dominos.core.Tile {
+      placement=0
+      pip2=8
+      openPips=1
+      pip1=1
+   }
+   cc.game.dominos.core.Tile {
+      placement=0
+      pip2=5
+      openPips=5
+      pip1=5
+   }
+   cc.game.dominos.core.Tile {
+      placement=0
+      pip2=7
+      openPips=5
+      pip1=5
+   }
+   cc.game.dominos.core.Tile {
+      placement=0
+      pip2=4
+      openPips=2
+      pip1=2
+   }
+   cc.game.dominos.core.Tile {
+      placement=0
+      pip2=6
+      openPips=5
+      pip1=5
+   }
+   cc.game.dominos.core.Tile {
+      placement=0
+      pip2=8
+      openPips=7
+      pip1=7
+   }
+   cc.game.dominos.core.Tile {
+      placement=0
+      pip2=9
+      openPips=8
+      pip1=8
+   }
+   cc.game.dominos.core.Tile {
+      placement=0
+      pip2=7
+      openPips=4
+      pip1=4
+   }
+   cc.game.dominos.core.Tile {
+      placement=0
+      pip2=8
+      openPips=3
+      pip1=3
+   }
+   cc.game.dominos.core.Tile {
+      placement=0
+      pip2=8
+      openPips=4
+      pip1=4
+   }
+   cc.game.dominos.core.Tile {
+      placement=0
+      pip2=9
+      openPips=5
+      pip1=5
+   }
+   cc.game.dominos.core.Tile {
+      placement=0
+      pip2=6
+      openPips=3
+      pip1=3
+   }
+   cc.game.dominos.core.Tile {
+      placement=0
+      pip2=9
+      openPips=9
+      pip1=9
+   }
+   cc.game.dominos.core.Tile {
+      placement=0
+      pip2=4
+      openPips=3
+      pip1=3
+   }
+   cc.game.dominos.core.Tile {
+      placement=0
+      pip2=7
+      openPips=3
+      pip1=3
+   }
+   cc.game.dominos.core.Tile {
+      placement=0
+      pip2=4
+      openPips=4
+      pip1=4
+   }
+}
+board=cc.game.dominos.core.Board {
+   endpoints=java.util.LinkedList 4 {
+      java.util.LinkedList {
+         cc.game.dominos.core.Tile {
+            placement=0
+            pip2=8
+            openPips=2
+            pip1=2
+         }
+         cc.game.dominos.core.Tile {
+            placement=0
+            pip2=2
+            openPips=1
+            pip1=1
+         }
+         cc.game.dominos.core.Tile {
+            placement=3
+            pip2=3
+            openPips=3
+            pip1=1
+         }
+         cc.game.dominos.core.Tile {
+            placement=1
+            pip2=5
+            openPips=5
+            pip1=3
+         }
+         cc.game.dominos.core.Tile {
+            placement=0
+            pip2=5
+            openPips=4
+            pip1=4
+         }
+      }
+      java.util.LinkedList {
+         cc.game.dominos.core.Tile {
+            placement=0
+            pip2=8
+            openPips=6
+            pip1=6
+         }
+         cc.game.dominos.core.Tile {
+            placement=0
+            pip2=7
+            openPips=7
+            pip1=6
+         }
+         cc.game.dominos.core.Tile {
+            placement=3
+            pip2=9
+            openPips=9
+            pip1=7
+         }
+         cc.game.dominos.core.Tile {
+            placement=1
+            pip2=9
+            openPips=6
+            pip1=6
+         }
+         cc.game.dominos.core.Tile {
+            placement=3
+            pip2=6
+            openPips=2
+            pip1=2
+         }
+      }
+      java.util.LinkedList {
+      }
+      java.util.LinkedList {
+      }
+   }
+   saveMinV=cc.lib.math.MutableVector2D {
+      x=-7.0
+      y=-5.5
+   }
+   root=cc.game.dominos.core.Tile {
+      placement=0
+      pip2=8
+      openPips=8
+      pip1=8
+   }
+   rects=java.util.ArrayList {
+      cc.lib.math.Vector2D 2 {
+         cc.lib.math.Vector2D {
+            x=-1.0
+            y=-0.5
+         }
+         cc.lib.math.Vector2D {
+            x=1.0
+            y=0.5
+         }
+      }
+      cc.lib.math.Vector2D 2 {
+         cc.lib.math.MutableVector2D {
+            x=1.0
+            y=-0.5
+         }
+         cc.lib.math.MutableVector2D {
+            x=3.0
+            y=0.5
+         }
+      }
+      cc.lib.math.Vector2D 2 {
+         cc.lib.math.MutableVector2D {
+            x=3.0
+            y=-0.5
+         }
+         cc.lib.math.MutableVector2D {
+            x=5.0
+            y=0.5
+         }
+      }
+      cc.lib.math.Vector2D 2 {
+         cc.lib.math.MutableVector2D {
+            x=-1.0
+            y=0.5
+         }
+         cc.lib.math.MutableVector2D {
+            x=-3.0
+            y=-0.5
+         }
+      }
+      cc.lib.math.Vector2D 2 {
+         cc.lib.math.MutableVector2D {
+            x=-3.0
+            y=0.5
+         }
+         cc.lib.math.MutableVector2D {
+            x=-5.0
+            y=-0.5
+         }
+      }
+      cc.lib.math.Vector2D 2 {
+         cc.lib.math.MutableVector2D {
+            x=4.0
+            y=-0.5
+         }
+         cc.lib.math.MutableVector2D {
+            x=5.0
+            y=-2.5
+         }
+      }
+      cc.lib.math.Vector2D 2 {
+         cc.lib.math.MutableVector2D {
+            x=-4.0
+            y=0.5
+         }
+         cc.lib.math.MutableVector2D {
+            x=-5.0
+            y=2.5
+         }
+      }
+      cc.lib.math.Vector2D 2 {
+         cc.lib.math.MutableVector2D {
+            x=-5.0
+            y=2.5
+         }
+         cc.lib.math.MutableVector2D {
+            x=-2.9999998
+            y=3.4999998
+         }
+      }
+      cc.lib.math.Vector2D 2 {
+         cc.lib.math.MutableVector2D {
+            x=5.0
+            y=-2.5
+         }
+         cc.lib.math.MutableVector2D {
+            x=2.9999998
+            y=-3.4999998
+         }
+      }
+      cc.lib.math.Vector2D 2 {
+         cc.lib.math.MutableVector2D {
+            x=4.0
+            y=-2.5
+         }
+         cc.lib.math.MutableVector2D {
+            x=3.0000002
+            y=-0.49999982
+         }
+      }
+      cc.lib.math.Vector2D 2 {
+         cc.lib.math.MutableVector2D {
+            x=-3.0
+            y=2.4999998
+         }
+         cc.lib.math.MutableVector2D {
+            x=-0.9999998
+            y=3.4999998
+         }
+      }
+   }
+   endpointTransforms=cc.lib.math.Matrix3x3 4 {
+      cc.lib.math.Matrix3x3 {
+         a31=0.0
+         a12=8.742278000372473E-8
+         a23=2.4999996940202687
+         a13=-0.9999999125772348
+         a21=-8.742278000372473E-8
+         a32=0.0
+         a11=0.9999999999999961
+         a22=0.9999999999999961
+         a33=1.0
+      }
+      cc.lib.math.Matrix3x3 {
+         a31=0.0
+         a12=-0.9999999999999913
+         a23=-0.4999999562886259
+         a13=4.000000174845563
+         a21=0.9999999999999913
+         a32=0.0
+         a11=1.311341700055869E-7
+         a22=1.311341700055869E-7
+         a33=1.0
+      }
+      cc.lib.math.Matrix3x3 {
+         a31=0.0
+         a12=-0.999999999999999
+         a23=0.5
+         a13=0.5
+         a21=0.999999999999999
+         a32=0.0
+         a11=-4.371139000186241E-8
+         a22=-4.371139000186241E-8
+         a33=1.0
+      }
+      cc.lib.math.Matrix3x3 {
+         a31=0.0
+         a12=0.999999999999999
+         a23=-0.5
+         a13=-0.5
+         a21=-0.999999999999999
+         a32=0.0
+         a11=4.371139000186241E-8
+         a22=4.371139000186241E-8
+         a33=1.0
+      }
+   }
+   saveMaxV=cc.lib.math.MutableVector2D {
+      x=7.0
+      y=5.5
+   }
+}
+maxNum=9
+maxScore=150
+difficulty=0
+players=cc.game.dominos.core.Player 4 {
+   cc.game.dominos.core.PlayerUser {
+      tiles=java.util.ArrayList {
+         cc.game.dominos.core.Tile {
+            placement=0
+            pip2=5
+            openPips=1
+            pip1=1
+         }
+         cc.game.dominos.core.Tile {
+            placement=0
+            pip2=9
+            openPips=2
+            pip1=2
+         }
+         cc.game.dominos.core.Tile {
+            placement=0
+            pip2=9
+            openPips=4
+            pip1=4
+         }
+         cc.game.dominos.core.Tile {
+            placement=0
+            pip2=6
+            openPips=6
+            pip1=6
+         }
+         cc.game.dominos.core.Tile {
+            placement=0
+            pip2=5
+            openPips=2
+            pip1=2
+         }
+      }
+      score=0
+   }
+   cc.game.dominos.core.Player {
+      tiles=java.util.ArrayList {
+         cc.game.dominos.core.Tile {
+            placement=0
+            pip2=9
+            openPips=1
+            pip1=1
+         }
+         cc.game.dominos.core.Tile {
+            placement=0
+            pip2=6
+            openPips=4
+            pip1=4
+         }
+      }
+      score=0
+   }
+   cc.game.dominos.core.Player {
+      tiles=java.util.ArrayList {
+         cc.game.dominos.core.Tile {
+            placement=0
+            pip2=7
+            openPips=2
+            pip1=2
+         }
+         cc.game.dominos.core.Tile {
+            placement=0
+            pip2=3
+            openPips=2
+            pip1=2
+         }
+         cc.game.dominos.core.Tile {
+            placement=0
+            pip2=9
+            openPips=3
+            pip1=3
+         }
+      }
+      score=10
+   }
+   cc.game.dominos.core.Player {
+      tiles=java.util.ArrayList {
+         cc.game.dominos.core.Tile {
+            placement=0
+            pip2=1
+            openPips=1
+            pip1=1
+         }
+         cc.game.dominos.core.Tile {
+            placement=0
+            pip2=3
+            openPips=3
+            pip1=3
+         }
+      }
+      score=15
+   }
+}

@@ -1,30 +1,21 @@
-apply plugin: 'java'
+apply plugin: 'java-library'
 apply plugin: 'application'
+apply plugin: 'kotlin'
 
 mainClassName = 'cc.game.dominos.swing.DominosApplet'
 
 configurations {
-    androidLib
+    javaLib.extendsFrom(main)
 }
 
 dependencies {
     implementation project(':GameLibrary')
-    implementation project(':jmdns')
-    testImplementation 'junit:junit:4.12'
-    androidLib project(path: ':GameLibrary', configuration: 'androidLib')
 }
 
 sourceSets {
     main {
         java {
-            srcDirs = ['src', '../DominosAndroid/build/generated/source/r/debug' ]
-        }
-    }
-
-    androidLib {
-        java {
-            srcDirs = [ 'src', '../DominosAndroid/build/generated/source/r/debug' ]
-            excludes = ['**/skunkworks/**', '**/swing*/**']
+            srcDirs = ['src' ]
         }
     }
 
@@ -33,22 +24,4 @@ sourceSets {
             srcDirs = ['test']
         }
     }
-}
-
-// Why is this necessary? Doesn't the dependency imply this?
-// I cant tell if I am doing something wring or it is a bug
-compileAndroidLibJava.dependsOn project(':GameLibrary').getTasksByName('androidLibJar', false)
-compileAndroidLibJava.classpath += project(':GameLibrary').sourceSets.androidLib.output.classesDirs
-// These call are required since we need the R.string class from android project
-compileAndroidLibJava.dependsOn project(':DominosAndroid').getTasksByName('generateDebugSources', false)
-compileJava.dependsOn project(':DominosAndroid').getTasksByName('generateDebugSources', false)
-
-task androidLibJar(type: Jar) {
-    from sourceSets.androidLib.output.classesDirs.filter {
-        excludes = ['**/R.class', '**/R$*.class' ]
-    }
-}
-
-artifacts {
-    androidLib androidLibJar
 }

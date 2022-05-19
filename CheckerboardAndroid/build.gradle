@@ -12,5 +12,5 @@ android {
 
 dependencies {
     implementation project(':AndroidGameLibrary')
-    implementation project(path: ':GameLibrary', configuration: 'androidLib')
+    implementation project(':GameLibrary')
 }

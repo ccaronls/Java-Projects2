@@ -3,7 +3,7 @@ apply plugin: 'com.android.application'
 dependencies {
     implementation project(':AndroidGameLibrary')
     //implementation 'cc.lib:gamelib-android:1.0'
-    implementation project(path: ':GameLibrary', configuration: 'androidLib')
+    implementation project(':GameLibrary')
 }
 
 android {

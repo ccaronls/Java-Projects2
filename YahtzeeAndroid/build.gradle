@@ -4,7 +4,7 @@ apply plugin: 'kotlin-kapt'
 
 dependencies {
     implementation project(':AndroidGameLibrary')
-    implementation project(path: ':GameLibrary', configuration: 'androidLib')
+    implementation project(':GameLibrary')
 }
 
 android {

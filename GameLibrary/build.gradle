@@ -4,22 +4,9 @@ apply plugin: 'kotlin'
 
 mainClassName = 'cc.game.swing.AWTBoardBuilder'
 
-configurations {
-    androidLib.extendsFrom(main)
-    appletLib.extendsFrom(main)
-}
-
 dependencies {
-    // https://mvnrepository.com/artifact/org.json/json
     implementation group: 'org.json', name: 'json', version: '20090211'
-//    testImplementation 'junit:junit:4.12'
-//    implementation 'junit:junit:4.12'
     implementation group: 'net.sourceforge.jaadec', name: 'jaad', version: '0.8.5'
-    // TextTable
-    //implementation group: 'com.massisframework', name: 'j-text-utils', version: '0.3.4'
-//    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
-//    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
-    //testImplementation(kotlin("test"))
 }
 
 sourceSets {
@@ -29,23 +16,6 @@ sourceSets {
         }
         resources {
             srcDirs = [ 'resources', 'images', 'gifs', 'zpngs' ]
-        }
-    }
-
-    androidLib {
-        java {
-            srcDirs = [ 'src' ]
-            excludes = ['**/skunkworks/**', '**/swing/**']
-        }
-    }
-
-    appletLib {
-        java {
-            srcDirs = [ 'src', 'apps' ]
-            excludes = [ '**/audio/**' ]
-        }
-        resources {
-            srcDirs = [ 'resources', 'gifs' ]
         }
     }
 
@@ -61,146 +31,3 @@ sourceSets {
     }
 
 }
-
-task androidLibJar(type: Jar) {
-    from sourceSets.androidLib.output.classesDirs
-    archiveName("GameLibraryAndroid.jar")
-}
-
-task appletLibJar(type: Jar) {
-    from sourceSets.appletLib.output.classesDirs
-    from sourceSets.appletLib.resources
-    archiveName("GameLibraryApplet.jar")
-}
-
-task runCheckers(type: JavaExec) {
-    group = 'Application' 
-    description = 'Run the Checkers Applet'
-
-    classpath sourceSets.main.runtimeClasspath 
-    main = "cc.lib.swing.AWTCheckers"
-//    args "arg1", "arg2"
-}
-
-task runCheckerboard(type: JavaExec) {
-    group = 'Application'
-    description = 'Run the Checkerboard Applet'
-
-    classpath sourceSets.main.runtimeClasspath
-    main = "cc.lib.swing.AWTCheckerboard"
-//    args "arg1", "arg2"
-}
-
-task runBoardBuilder(type: JavaExec) {
-    group = 'Application' // <-- change the name as per your need
-    description = 'Run the Custum Board Builder App'
-
-    classpath sourceSets.main.runtimeClasspath // <-- Don't change this
-    main = "cc.lib.swing.AWTBoardBuilder"
-//    args "arg1", "arg2"
-}
-
-task runDungeonBuilder(type: JavaExec) {
-    group = 'Application' // <-- change the name as per your need
-    description = 'Run the Dungeon Builder Applet App'
-
-    classpath sourceSets.main.runtimeClasspath // <-- Don't change this
-    main = "cc.lib.swing.AWTDungeonBuilder"
-//    args "arg1", "arg2"
-}
-
-task runMonopoly(type: JavaExec) {
-    group = 'Application' // <-- change the name as per your need
-    description = 'Run Monopoly App'
-
-    classpath sourceSets.main.runtimeClasspath // <-- Don't change this
-    main = "cc.lib.swing.AWTMonopoly"
-//    args "arg1", "arg2"
-}
-
-task runProbotLevelBuilder(type: JavaExec) {
-    group = 'Application' // <-- change the name as per your need
-    description = 'Run Probot Level Editor App'
-
-    classpath sourceSets.main.runtimeClasspath // <-- Don't change this
-    main = "cc.lib.swing.AWTProbotLevelBuilder"
-//    args "arg1", "arg2"
-}
-
-task runYahtzeeConsole(type: JavaExec) {
-    group = 'Application' // <-- change the name as per your need
-    description = 'Run Probot Level Editor App'
-
-    classpath sourceSets.main.runtimeClasspath // <-- Don't change this
-    main = "cc.lib.main.YahtzeeConsole"
-//    args "arg1", "arg2"
-}
-
-task runProbot(type: JavaExec) {
-    group = 'Application' // <-- change the name as per your need
-    description = 'Run Probot Desktop App'
-
-    classpath sourceSets.main.runtimeClasspath // <-- Don't change this
-    main = "cc.lib.swing.AWTProbot"
-//    args "arg1", "arg2"
-}
-
-task runAudioClient(type: JavaExec) {
-    group = 'Application' // <-- change the name as per your need
-    description = 'Run the audio client'
-
-    classpath sourceSets.main.runtimeClasspath // <-- Don't change this
-    main = "cc.audio.stream.server.AudioClient"
-//    args "arg1", "arg2"
-}
-
-task runZombicide(type: JavaExec) {
-    group = 'Application' // <-- change the name as per your need
-    description = 'Run the audio client'
-
-    classpath sourceSets.main.runtimeClasspath // <-- Don't change this
-    main = "cc.applets.zombicide.ZombicideApplet"
-//    args "arg1", "arg2"
-}
-
-task deployLearnToTypeApplet {
-    dependsOn tasks.withType(Jar)
-    group = 'Distribution'
-    description = 'Deply the Learn to Type Applet to Sites'
-    def homePath = System.properties['user.home']
-    doLast {
-        copy {
-            from 'build/libs/GameLibrary.jar'
-            into homePath + '/Sites/learnToType/'
-        }
-        copy {
-            from 'html/TypingTeacher/'
-            into homePath + '/Sites/learnToType/'
-        }
-    }
-}
-
-task deployZombicideApplet {
-    dependsOn tasks.withType(Jar)
-    group = 'Distribution'
-    description = 'Deply the Zombicide Applet to Sites'
-    def homePath = System.properties['user.home']
-    def zPath = homePath + '/Sites/Zombicide/'
-    doLast {
-        delete zPath
-        copy {
-            from 'build/libs/GameLibraryApplet.jar'
-            into zPath
-        }
-        copy {
-            from 'html/Zombicide/'
-            into zPath
-        }
-    }
-}
-
-artifacts {
-    androidLib androidLibJar
-    appletLib appletLibJar
-}
-

@@ -1,0 +1,43 @@
+<root value="0" turn="0">
+  <min value="0">0:SLIDE CHECKER from:{5,1} to:{4,0}
+    <max value="0">1:SLIDE CHECKER from:{2,0} to:{3,1}
+      <min value="-4541">0:SLIDE CHECKER from:{5,3} to:{4,2}
+        <max path="true" value="-4541">1:JUMP CHECKER from:{3,1} to:{5,3} cap:{4,2,CHECKER}
+          <leaf value="-4599">0:JUMP CHECKER from:{6,2} to:{4,4} cap:{5,3,CHECKER}</leaf>
+          <leaf path="true" value="-4541">0:JUMP CHECKER from:{6,4} to:{4,2} cap:{5,3,CHECKER}</leaf>
+        </max>
+      </min>
+      <min value="0">0:SLIDE CHECKER from:{5,3} to:{4,4}
+        <max value="0">1:SLIDE CHECKER from:{1,1} to:{2,0}
+          <max value="0">0:JUMP CHECKER from:{5,5} to:{3,3} cap:{4,4,CHECKER}
+            <leaf path="true" value="-5297">0:JUMP CHECKER from:{3,3} to:{1,1} cap:{2,2,CHECKER}</leaf>
+          </max>
+        </max>
+        <leaf value="0">1:SLIDE CHECKER from:{2,2} to:{3,1}</leaf>
+        <leaf value="0">1:SLIDE CHECKER from:{2,2} to:{3,3}</leaf>
+        <leaf value="0">1:SLIDE CHECKER from:{2,4} to:{3,3}</leaf>
+        <leaf value="0">1:SLIDE CHECKER from:{2,4} to:{3,5}</leaf>
+        <leaf value="0">1:SLIDE CHECKER from:{2,6} to:{3,5}</leaf>
+        <leaf value="0">1:SLIDE CHECKER from:{2,6} to:{3,7}</leaf>
+        <leaf value="0">1:SLIDE CHECKER from:{4,4} to:{5,3}</leaf>
+      </min>
+      <leaf value="0">0:SLIDE CHECKER from:{5,5} to:{4,4}</leaf>
+      <leaf value="0">0:SLIDE CHECKER from:{5,5} to:{4,6}</leaf>
+      <leaf value="0">0:SLIDE CHECKER from:{5,7} to:{4,6}</leaf>
+      <leaf value="0">0:SLIDE CHECKER from:{6,0} to:{5,1}</leaf>
+      <leaf value="0">0:SLIDE CHECKER from:{6,2} to:{5,1}</leaf>
+    </max>
+    <leaf value="0">1:SLIDE CHECKER from:{2,2} to:{3,1}</leaf>
+    <leaf value="0">1:SLIDE CHECKER from:{2,2} to:{3,3}</leaf>
+    <leaf value="0">1:SLIDE CHECKER from:{2,4} to:{3,3}</leaf>
+    <leaf value="0">1:SLIDE CHECKER from:{2,4} to:{3,5}</leaf>
+    <leaf value="0">1:SLIDE CHECKER from:{2,6} to:{3,5}</leaf>
+    <leaf value="0">1:SLIDE CHECKER from:{2,6} to:{3,7}</leaf>
+  </min>
+  <leaf value="0">0:SLIDE CHECKER from:{5,1} to:{4,2}</leaf>
+  <leaf value="0">0:SLIDE CHECKER from:{5,3} to:{4,2}</leaf>
+  <leaf value="0">0:SLIDE CHECKER from:{5,3} to:{4,4}</leaf>
+  <leaf value="0">0:SLIDE CHECKER from:{5,5} to:{4,4}</leaf>
+  <leaf value="0">0:SLIDE CHECKER from:{5,5} to:{4,6}</leaf>
+  <leaf value="0">0:SLIDE CHECKER from:{5,7} to:{4,6}</leaf>
+</root>

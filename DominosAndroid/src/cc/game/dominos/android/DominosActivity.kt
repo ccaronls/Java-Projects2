@@ -108,7 +108,7 @@ class DominosActivity : DroidActivity() {
 		val v = View.inflate(this, R.layout.new_game_type_dialog, null)
 		val b = newDialogBuilder().setTitle(R.string.popup_title_choose_game_type)
 			.setView(v).setNegativeButton(R.string.popup_button_cancel, null)
-		if (dominos.isInitialized) {
+		if (dominos.isInitialized()) {
 			b.setNegativeButton(R.string.popup_button_cancel) { dialog, which -> if (!dominos.isGameRunning) dominos.startGameThread() }
 		}
 		b.show()
@@ -135,7 +135,7 @@ class DominosActivity : DroidActivity() {
 		if (saveFile.exists()) {
 			button.setOnClickListener {
 				dominos.clear()
-				if (dominos.tryLoadFromFile(saveFile) && dominos.isInitialized) {
+				if (dominos.tryLoadFromFile(saveFile) && dominos.isInitialized()) {
 					dominos.startGameThread()
 					dismissCurrentDialog()
 				} else {
@@ -798,7 +798,7 @@ class DominosActivity : DroidActivity() {
 					.apply()
 				dominos.stopGameThread()
 				dominos.initGame(maxPips, maxPoints, difficulty)
-				dominos.numPlayers = numPlayers
+				dominos.setNumPlayers(numPlayers)
 				dominos.startNewGame()
 				dominos.startGameThread()
 			}.setOnCancelListener { showNewGameDialog() }.show()

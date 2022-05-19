@@ -1,0 +1,806 @@
+java.util.ArrayList {
+   cc.lib.probot.Level {
+      coins=cc.lib.probot.Type[] 5 {
+         cc.lib.probot.Type 5 {
+            EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 5 {
+            EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 5 {
+            SE DD DD DD EM 
+         }
+         cc.lib.probot.Type 5 {
+            EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 5 {
+            EM EM EM EM EM 
+         }
+      }
+      info="Your+first+program%21+A+program+is+simply+a+series+of+commands+you+give+a+computer+to+do+something.+Try+the+command+%27chomp%27.+Press+the%27HELP%27+button+to+see+all+the+commands."
+      label="Hello+World%21"
+      lazers=java.lang.Boolean 3 {
+         true true true 
+      }
+      numJumps=0
+      numLoops=0
+      numTurns=0
+   }
+   cc.lib.probot.Level {
+      coins=cc.lib.probot.Type[] 6 {
+         cc.lib.probot.Type 5 {
+            EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 5 {
+            SE DD EM EM EM 
+         }
+         cc.lib.probot.Type 5 {
+            EM DD DD EM EM 
+         }
+         cc.lib.probot.Type 5 {
+            EM EM DD DD EM 
+         }
+         cc.lib.probot.Type 5 {
+            EM EM EM DD EM 
+         }
+         cc.lib.probot.Type 5 {
+            EM EM EM EM EM 
+         }
+      }
+      info="You+made+it+to+level+2%21+Great+job%21+Now+time+to+try+turning.+The+commands+%27right%27+and+%27left%27+are+used+to+rotate+the+chomper.+Try+it%21"
+      label="Try+Turning"
+      lazers=java.lang.Boolean 3 {
+         true true true 
+      }
+      numJumps=0
+      numLoops=-1
+      numTurns=-1
+   }
+   cc.lib.probot.Level {
+      coins=cc.lib.probot.Type[] 4 {
+         cc.lib.probot.Type 4 {
+            EM EM EM EM 
+         }
+         cc.lib.probot.Type 4 {
+            EM SE DD EM 
+         }
+         cc.lib.probot.Type 4 {
+            EM DD DD EM 
+         }
+         cc.lib.probot.Type 4 {
+            EM EM EM EM 
+         }
+      }
+      info="Great+you+learned+3+commands%21+Now+to+try+loops%21+This+puzzle+requires+you+eat+all+dots+using+1+%27chomp%27+and+1+%27right%27+command+inside+a+loop.+Begin+a+loop+with+the+command%3A+%27loop%27+followed+by+how+many+time+to+loop.+End+the+loop+by+calling+%27loopend%27."
+      label="Learning+Loops"
+      lazers=java.lang.Boolean 3 {
+         true true true 
+      }
+      numJumps=0
+      numLoops=1
+      numTurns=1
+   }
+   cc.lib.probot.Level {
+      coins=cc.lib.probot.Type[] 7 {
+         cc.lib.probot.Type 7 {
+            EM EM EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM DD DD EM DD DD EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM DD EM DD EM DD EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM EM DD EM EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM EM SN EM EM EM 
+         }
+      }
+      info="The+command+%27jump%27+can+be+used+to+jump+over+empty+and+occupied+squares.+"
+      label="Jump+into+the+Fire"
+      lazers=java.lang.Boolean 3 {
+         true true true 
+      }
+      numJumps=-1
+      numLoops=-1
+      numTurns=-1
+   }
+   cc.lib.probot.Level {
+      coins=cc.lib.probot.Type[] 7 {
+         cc.lib.probot.Type 7 {
+            EM LV0 EM LV0 EM LV0 EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            SE DD DD LB DD DD DD 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM LV0 EM LV0 EM LV0 
+         }
+      }
+      info="%3CEMPTY%3E"
+      label="The+Landmine"
+      lazers=java.lang.Boolean 3 {
+         false true true 
+      }
+      numJumps=1
+      numLoops=0
+      numTurns=0
+   }
+   cc.lib.probot.Level {
+      coins=cc.lib.probot.Type[] 6 {
+         cc.lib.probot.Type 6 {
+            SE DD EM DD EM EM 
+         }
+         cc.lib.probot.Type 6 {
+            EM EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 6 {
+            SE DD EM DD EM EM 
+         }
+         cc.lib.probot.Type 6 {
+            EM EM DD EM DD SW 
+         }
+         cc.lib.probot.Type 6 {
+            EM EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 6 {
+            EM EM DD EM DD SW 
+         }
+      }
+      info="Four+Chompers%21+Yes%2C+your+program+will+run+%27concurrently%27+on+each+chomper+at+the+same+time.+This+is+sometimes+called+multi-threading."
+      label="Group+Therapy"
+      lazers=java.lang.Boolean 3 {
+         true true true 
+      }
+      numJumps=0
+      numLoops=-1
+      numTurns=-1
+   }
+   cc.lib.probot.Level {
+      coins=cc.lib.probot.Type[] 11 {
+         cc.lib.probot.Type 7 {
+            EM EM LV0 EM EM SS EM 
+         }
+         cc.lib.probot.Type 7 {
+            SE DD DD EM EM DD EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM EM EM EM DD LH1 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            LH1 DD EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM DD EM EM DD DD SW 
+         }
+         cc.lib.probot.Type 7 {
+            EM SN EM EM LV1 EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM EM LH1 EM EM EM 
+         }
+      }
+      info="%3CEMPTY%3E"
+      label="Test"
+      lazers=java.lang.Boolean 3 {
+         true true false 
+      }
+      numJumps=0
+      numLoops=-1
+      numTurns=-1
+   }
+   cc.lib.probot.Level {
+      coins=cc.lib.probot.Type[] 7 {
+         cc.lib.probot.Type 7 {
+            EM EM EM LV2 EM EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM LB1 LB2 DD LB2 LB1 LH0 
+         }
+         cc.lib.probot.Type 7 {
+            SE DD DD LB DD DD EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM LB0 LB2 DD LB2 LB1 LH1 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM LV2 EM EM EM LV2 EM 
+         }
+      }
+      info="%3CEMPTY%3E"
+      label="Lazer+vs.+Lazer"
+      lazers=java.lang.Boolean 3 {
+         false false false 
+      }
+      numJumps=-1
+      numLoops=-1
+      numTurns=1
+   }
+   cc.lib.probot.Level {
+      coins=cc.lib.probot.Type[] 7 {
+         cc.lib.probot.Type 7 {
+            EM EM EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM EM EM EM DD EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM EM EM DD DD EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM EM DD DD EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM DD DD EM EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM DD DD EM EM EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM SN EM EM EM EM EM 
+         }
+      }
+      info="%3CEMPTY%3E"
+      label="Learning+Loops"
+      lazers=java.lang.Boolean 3 {
+         true true true 
+      }
+      numJumps=0
+      numLoops=1
+      numTurns=2
+   }
+   cc.lib.probot.Level {
+      coins=cc.lib.probot.Type[] 7 {
+         cc.lib.probot.Type 7 {
+            EM EM EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM EM DD EM EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM DD EM DD EM DD EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM DD DD SN DD DD EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM DD EM DD EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM EM EM EM EM EM 
+         }
+      }
+      info="%3CEMPTY%3E"
+      label="Castle+Run"
+      lazers=java.lang.Boolean 3 {
+         true true true 
+      }
+      numJumps=-1
+      numLoops=-1
+      numTurns=-1
+   }
+   cc.lib.probot.Level {
+      coins=cc.lib.probot.Type[] 10 {
+         cc.lib.probot.Type 9 {
+            EM EM EM EM EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 9 {
+            LH0 EM EM EM EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 9 {
+            LB2 EM LB2 EM LB2 EM EM EM LH2 
+         }
+         cc.lib.probot.Type 9 {
+            LH1 EM EM EM EM EM EM EM LB1 
+         }
+         cc.lib.probot.Type 9 {
+            LB1 EM LB2 EM DD EM LB2 EM LH0 
+         }
+         cc.lib.probot.Type 9 {
+            LH1 EM EM EM EM EM EM EM LB0 
+         }
+         cc.lib.probot.Type 9 {
+            LB2 EM LB0 EM LB2 EM LB1 EM LH2 
+         }
+         cc.lib.probot.Type 9 {
+            LH0 EM EM EM EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 9 {
+            EM LV1 LB0 LV1 LB2 LV1 LB2 LV1 LB0 
+         }
+         cc.lib.probot.Type 9 {
+            EM EM EM EM SN EM EM EM EM 
+         }
+      }
+      info="%3CEMPTY%3E"
+      label="Alot+for+one+dot"
+      lazers=java.lang.Boolean 3 {
+         true false false 
+      }
+      numJumps=-1
+      numLoops=0
+      numTurns=-1
+   }
+   cc.lib.probot.Level {
+      coins=cc.lib.probot.Type[] 7 {
+         cc.lib.probot.Type 7 {
+            EM LV0 LV2 EM EM EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM DD DD DD DD DD EM 
+         }
+         cc.lib.probot.Type 7 {
+            LH1 DD EM EM EM DD EM 
+         }
+         cc.lib.probot.Type 7 {
+            LB1 DD DD DD EM DD EM 
+         }
+         cc.lib.probot.Type 7 {
+            LH1 EM EM EM EM DD EM 
+         }
+         cc.lib.probot.Type 7 {
+            SE LB0 DD LB2 DD DD EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM EM EM LV0 EM EM 
+         }
+      }
+      info="%3CEMPTY%3E"
+      label="Lazer+Brain"
+      lazers=java.lang.Boolean 3 {
+         false false true 
+      }
+      numJumps=-1
+      numLoops=-1
+      numTurns=-1
+   }
+   cc.lib.probot.Level {
+      coins=cc.lib.probot.Type[] 1 {
+         cc.lib.probot.Type 1 {
+            EM 
+         }
+      }
+      info="%3CEMPTY%3E"
+      label="%3CUNNAMED%3E"
+      lazers=java.lang.Boolean 3 {
+         true true true 
+      }
+      numJumps=0
+      numLoops=-1
+      numTurns=-1
+   }
+   cc.lib.probot.Level {
+      coins=cc.lib.probot.Type[] 1 {
+         cc.lib.probot.Type 1 {
+            EM 
+         }
+      }
+      info="%3CEMPTY%3E"
+      label="%3CUNNAMED%3E"
+      lazers=java.lang.Boolean 3 {
+         true true true 
+      }
+      numJumps=0
+      numLoops=-1
+      numTurns=-1
+   }
+   cc.lib.probot.Level {
+      coins=cc.lib.probot.Type[] 1 {
+         cc.lib.probot.Type 1 {
+            EM 
+         }
+      }
+      info="%3CEMPTY%3E"
+      label="%3CUNNAMED%3E"
+      lazers=java.lang.Boolean 3 {
+         true true true 
+      }
+      numJumps=0
+      numLoops=-1
+      numTurns=-1
+   }
+   cc.lib.probot.Level {
+      coins=cc.lib.probot.Type[] 5 {
+         cc.lib.probot.Type 5 {
+            EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 5 {
+            EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 5 {
+            SE DD DD DD EM 
+         }
+         cc.lib.probot.Type 5 {
+            EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 5 {
+            EM EM EM EM EM 
+         }
+      }
+      info="Your+first+program%21+A+program+is+simply+a+series+of+commands+you+give+a+computer+to+do+something.+Try+the+command+%27chomp%27.+Press+the%27HELP%27+button+to+see+all+the+commands."
+      label="Hello+World%21"
+      lazers=java.lang.Boolean 3 {
+         true true true 
+      }
+      numJumps=0
+      numLoops=0
+      numTurns=0
+   }
+   cc.lib.probot.Level {
+      coins=cc.lib.probot.Type[] 5 {
+         cc.lib.probot.Type 5 {
+            EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 5 {
+            SE DD EM EM EM 
+         }
+         cc.lib.probot.Type 5 {
+            EM DD DD EM EM 
+         }
+         cc.lib.probot.Type 5 {
+            EM EM DD DD EM 
+         }
+         cc.lib.probot.Type 5 {
+            EM EM EM EM EM 
+         }
+      }
+      info="You+made+it+to+level+2%21+Great+job%21+Now+time+to+try+turning.+The+commands+%27right%27+and+%27left%27+are+used+to+rotate+the+chomper.+Try+it%21"
+      label="Try+Turning"
+      lazers=java.lang.Boolean 3 {
+         true true true 
+      }
+      numJumps=0
+      numLoops=-1
+      numTurns=-1
+   }
+   cc.lib.probot.Level {
+      coins=cc.lib.probot.Type[] 4 {
+         cc.lib.probot.Type 4 {
+            EM EM EM EM 
+         }
+         cc.lib.probot.Type 4 {
+            EM SE DD EM 
+         }
+         cc.lib.probot.Type 4 {
+            EM DD DD EM 
+         }
+         cc.lib.probot.Type 4 {
+            EM EM EM EM 
+         }
+      }
+      info="Great+you+learned+3+commands%21+Now+to+try+loops%21+This+puzzle+requires+you+eat+all+dots+using+1+%27chomp%27+and+1+%27right%27+command+inside+a+loop.+Begin+a+loop+with+the+command%3A+%27loop%27+followed+by+how+many+time+to+loop.+End+the+loop+by+calling+%27loopend%27."
+      label="Learning+Loops"
+      lazers=java.lang.Boolean 3 {
+         true true true 
+      }
+      numJumps=0
+      numLoops=1
+      numTurns=1
+   }
+   cc.lib.probot.Level {
+      coins=cc.lib.probot.Type[] 7 {
+         cc.lib.probot.Type 7 {
+            EM EM EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM DD DD EM DD DD EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM DD EM DD EM DD EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM EM DD EM EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM EM SN EM EM EM 
+         }
+      }
+      info="The+command+%27jump%27+can+be+used+to+jump+over+empty+and+occupied+squares.+"
+      label="Jump+into+the+Fire"
+      lazers=java.lang.Boolean 3 {
+         true true true 
+      }
+      numJumps=-1
+      numLoops=-1
+      numTurns=-1
+   }
+   cc.lib.probot.Level {
+      coins=cc.lib.probot.Type[] 7 {
+         cc.lib.probot.Type 7 {
+            EM LV0 EM LV0 EM LV0 EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            SE DD DD LB DD DD DD 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM LV0 EM LV0 EM LV0 
+         }
+      }
+      info="%3CEMPTY%3E"
+      label="The+Landmine"
+      lazers=java.lang.Boolean 3 {
+         false true true 
+      }
+      numJumps=1
+      numLoops=0
+      numTurns=0
+   }
+   cc.lib.probot.Level {
+      coins=cc.lib.probot.Type[] 7 {
+         cc.lib.probot.Type 7 {
+            EM EM EM LV2 EM EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM EM EM EM EM LH0 
+         }
+         cc.lib.probot.Type 7 {
+            SE DD LB DD LB2 DD EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM EM EM EM EM LH1 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM LV2 EM EM EM LV2 EM 
+         }
+      }
+      info="%3CEMPTY%3E"
+      label="Lazer+vs.+Lazer"
+      lazers=java.lang.Boolean 3 {
+         false false true 
+      }
+      numJumps=-1
+      numLoops=-1
+      numTurns=1
+   }
+   cc.lib.probot.Level {
+      coins=cc.lib.probot.Type[] 7 {
+         cc.lib.probot.Type 7 {
+            EM EM EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM EM EM EM DD EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM EM EM DD DD EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM EM DD DD EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM DD DD EM EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM DD DD EM EM EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM SN EM EM EM EM EM 
+         }
+      }
+      info="%3CEMPTY%3E"
+      label="Learning+Loops"
+      lazers=java.lang.Boolean 3 {
+         true true true 
+      }
+      numJumps=0
+      numLoops=1
+      numTurns=2
+   }
+   cc.lib.probot.Level {
+      coins=cc.lib.probot.Type[] 7 {
+         cc.lib.probot.Type 7 {
+            EM EM EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM EM DD EM EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM DD EM DD EM DD EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM DD DD SN DD DD EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM DD EM DD EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM EM EM EM EM EM 
+         }
+      }
+      info="%3CEMPTY%3E"
+      label="Castle+Run"
+      lazers=java.lang.Boolean 3 {
+         true true true 
+      }
+      numJumps=-1
+      numLoops=-1
+      numTurns=-1
+   }
+   cc.lib.probot.Level {
+      coins=cc.lib.probot.Type[] 10 {
+         cc.lib.probot.Type 9 {
+            EM EM EM EM EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 9 {
+            LH0 EM EM EM EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 9 {
+            LB2 EM LB2 EM LB2 EM EM EM LH2 
+         }
+         cc.lib.probot.Type 9 {
+            LH1 EM EM EM EM EM EM EM LB1 
+         }
+         cc.lib.probot.Type 9 {
+            LB1 EM LB2 EM DD EM LB2 EM LH0 
+         }
+         cc.lib.probot.Type 9 {
+            LH1 EM EM EM EM EM EM EM LB0 
+         }
+         cc.lib.probot.Type 9 {
+            LB2 EM LB0 EM LB2 EM LB1 EM LH2 
+         }
+         cc.lib.probot.Type 9 {
+            LH0 EM EM EM EM EM EM EM EM 
+         }
+         cc.lib.probot.Type 9 {
+            EM LV1 LB0 LV1 LB2 LV1 LB2 LV1 LB0 
+         }
+         cc.lib.probot.Type 9 {
+            EM EM EM EM SN EM EM EM EM 
+         }
+      }
+      info="%3CEMPTY%3E"
+      label="Alot+for+one+dot"
+      lazers=java.lang.Boolean 3 {
+         true false false 
+      }
+      numJumps=-1
+      numLoops=0
+      numTurns=-1
+   }
+   cc.lib.probot.Level {
+      coins=cc.lib.probot.Type[] 7 {
+         cc.lib.probot.Type 7 {
+            EM LV0 LV2 EM EM EM EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM DD DD DD DD DD EM 
+         }
+         cc.lib.probot.Type 7 {
+            LH1 DD EM EM EM DD EM 
+         }
+         cc.lib.probot.Type 7 {
+            LB1 DD DD DD EM DD EM 
+         }
+         cc.lib.probot.Type 7 {
+            LH1 EM EM EM EM DD EM 
+         }
+         cc.lib.probot.Type 7 {
+            SE LB0 DD LB2 DD DD EM 
+         }
+         cc.lib.probot.Type 7 {
+            EM EM EM EM LV0 EM EM 
+         }
+      }
+      info="%3CEMPTY%3E"
+      label="Lazer+Brain"
+      lazers=java.lang.Boolean 3 {
+         false false true 
+      }
+      numJumps=-1
+      numLoops=-1
+      numTurns=-1
+   }
+   cc.lib.probot.Level {
+      coins=cc.lib.probot.Type[] 1 {
+         cc.lib.probot.Type 1 {
+            EM 
+         }
+      }
+      info="%3CEMPTY%3E"
+      label="%3CUNNAMED%3E"
+      lazers=java.lang.Boolean 3 {
+         true true true 
+      }
+      numJumps=0
+      numLoops=-1
+      numTurns=-1
+   }
+   cc.lib.probot.Level {
+      coins=cc.lib.probot.Type[] 1 {
+         cc.lib.probot.Type 1 {
+            EM 
+         }
+      }
+      info="%3CEMPTY%3E"
+      label="%3CUNNAMED%3E"
+      lazers=java.lang.Boolean 3 {
+         true true true 
+      }
+      numJumps=0
+      numLoops=-1
+      numTurns=-1
+   }
+   cc.lib.probot.Level {
+      coins=cc.lib.probot.Type[] 1 {
+         cc.lib.probot.Type 1 {
+            EM 
+         }
+      }
+      info="%3CEMPTY%3E"
+      label="%3CUNNAMED%3E"
+      lazers=java.lang.Boolean 3 {
+         true true true 
+      }
+      numJumps=0
+      numLoops=-1
+      numTurns=-1
+   }
+}

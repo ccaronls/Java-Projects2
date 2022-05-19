@@ -1,0 +1,39 @@
+chance=java.util.LinkedList {
+}
+communityChest=java.util.LinkedList {
+}
+currentPlayer=0
+dice=null
+die1=0
+die2=0
+kitty=0
+players=java.util.ArrayList {
+   cc.lib.monopoly.Player {
+      cards=java.util.ArrayList {
+      }
+      inJail=false
+      money=0
+      piece=null
+      square=0
+   }
+   cc.lib.monopoly.Player {
+      cards=java.util.ArrayList {
+      }
+      inJail=false
+      money=0
+      piece=null
+      square=0
+   }
+   cc.lib.monopoly.Player {
+      cards=java.util.ArrayList {
+      }
+      inJail=false
+      money=0
+      piece=null
+      square=0
+   }
+}
+rules=cc.lib.monopoly.Rules {
+}
+state=java.util.Stack {
+}

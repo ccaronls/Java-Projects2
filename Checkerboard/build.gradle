@@ -2,24 +2,10 @@ apply plugin: 'com.android.application'
 
 dependencies {
     implementation project (':AndroidGameLibrary')
-    //implementation 'cc.lib:gamelib-android:1.0'
-    implementation project(path: ':GameLibrary', configuration: 'androidLib')
+    implementation project(':GameLibrary')
 }
 
 android {
-
-    defaultConfig {
-        minSdkVersion project.myMinSdkVersion
-        targetSdkVersion project.myTargetSdkVersion
-    }
-
-    compileOptions {
-        sourceCompatibility project.sourceCompatibility
-        targetCompatibility project.targetCompatibility
-    }
-
-    compileSdkVersion project.myCompileSdkVersion.toInteger()
-    buildToolsVersion project.myBuildToolsVersion
 
     sourceSets {
         main {
@@ -43,37 +29,5 @@ android {
         // by a similar customization.
         debug.setRoot('build-types/debug')
         release.setRoot('build-types/release')
-    }
-
-    signingConfigs {
-        general {
-            storeFile file(project.storeFile)
-            storePassword sebi_storePassword
-            keyAlias sebi_keyAlias
-            keyPassword sebi_keyPassword
-        }
-    }
-
-    defaultConfig {
-        versionCode 1       // increment with every release
-        versionName '1.0.0'
-    }
-
-    buildTypes {
-
-        /**
-         * By default, Android Studio configures the release build type to enable code
-         * shrinking, using minifyEnabled, and specifies the Proguard settings file.
-         */
-        debug {
-            debuggable true
-            signingConfig signingConfigs.general
-        }
-
-        release {
-            minifyEnabled true // Enables code shrinking for the release build type.
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), '../common/proguard.txt'
-            signingConfig signingConfigs.general
-        }
     }
 }

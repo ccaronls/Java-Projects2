@@ -4,7 +4,6 @@ plugins {
 
 apply plugin: 'java'
 apply plugin: 'application'
-
 apply plugin: 'ca.coglinc.javacc'
 
 sourceSets {
@@ -31,6 +30,7 @@ mainClassName = 'cc.app.fractal.FractalViewer'
 
 dependencies {
     implementation project(':GameLibrary')
+    implementation project(path: ':SwingApps', configuration: 'swingLib')
 }
 
 

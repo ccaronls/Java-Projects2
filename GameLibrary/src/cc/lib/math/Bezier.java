@@ -23,8 +23,9 @@ public final class Bezier implements IInterpolator<Vector2D> {
 		numCtrl = v.length;
 	}
 	
-	public void addPoint(float x, float y) {
+	public Bezier addPoint(float x, float y) {
         ctrl[numCtrl++] = new Vector2D(x, y);
+        return this;
 	}
 
 	public void addPoint(IVector2D v) {

@@ -225,7 +225,7 @@ class RiskActivity : DroidActivity(), OnItemClickListener {
 			finish()
 		}
 		listView = findViewById(R.id.list_view)
-		listView.setOnItemClickListener(this)
+		listView.onItemClickListener = this
 		hideNavigationBar()
 
 		//getContent().setPinchZoomEnabled(true);

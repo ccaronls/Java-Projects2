@@ -142,3 +142,12 @@ inline fun <T: Comparable<T>> T.increment(steps: Int, values: Array<T>) : T {
 	idx = (idx + steps) % values.size
 	return values[idx]
 }
+
+fun <K,V> MutableMap<K,V>.removeAll(predicate: (entry: MutableMap.MutableEntry<K,V>)->Boolean) {
+	with (iterator()) {
+		while (hasNext()) {
+			if (predicate.invoke(next()))
+				remove()
+		}
+	}
+}

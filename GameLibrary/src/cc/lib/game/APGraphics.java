@@ -40,6 +40,12 @@ public abstract class APGraphics extends AGraphics {
         R.pushMatrix();
     }
 
+    public final  void pushAndRun(Runnable runner) {
+        R.pushMatrix();
+        runner.run();
+        R.popMatrix();
+    }
+
     @Override
     public final  void popMatrix() {
         R.popMatrix();

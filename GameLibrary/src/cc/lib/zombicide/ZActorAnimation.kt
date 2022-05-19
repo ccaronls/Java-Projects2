@@ -1,6 +1,5 @@
 package cc.lib.zombicide
 
-import cc.lib.annotation.CallSuper
 import cc.lib.game.AAnimation
 import cc.lib.game.AGraphics
 import cc.lib.game.GRectangle
@@ -19,7 +18,6 @@ abstract class ZActorAnimation : ZAnimation {
         this.actor = actor
     }
 
-    @CallSuper
     override fun onDone() {
         next?.let {
             actor.animation = it

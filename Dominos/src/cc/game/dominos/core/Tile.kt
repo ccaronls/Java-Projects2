@@ -1,49 +1,34 @@
-package cc.game.dominos.core;
+package cc.game.dominos.core
 
-import cc.lib.utils.Reflector;
+import cc.lib.utils.Reflector
 
-public final class Tile extends Reflector<Tile> {
-
-	static {
-		addAllFields(Tile.class);
-	}
-	
-	public final int pip1, pip2;
-
-	int openPips;
-    int placement = 0;
-
-	public Tile() {
-	    this(0,0);
-    }
-
-	public Tile(int pip1, int pip2) {
-		this.pip1 = pip1;
-		this.pip2 = pip2;
-		openPips = pip1;
+class Tile @JvmOverloads constructor(val pip1: Int = 0, val pip2: Int = 0) : Reflector<Tile?>() {
+	companion object {
+		init {
+			addAllFields(Tile::class.java)
+		}
 	}
 
-	public int getClosedPips() {
-	    if (pip1 == openPips)
-	        return pip2;
-	    return pip1;
-    }
+	@JvmField
+    var openPips = pip1
 
-	@Override
-	public boolean equals(Object o) {
-		if (o == this)
-			return true;
-		Tile p = (Tile)o;
-		return pip1 == p.pip1 && pip2 == p.pip2;
+	@JvmField
+    var placement = 0
+	fun getClosedPips(): Int = if (pip1 == openPips) pip2 else pip1
+
+	override fun equals(o: Any?): Boolean {
+		if (o === this) return true
+		val p = o as Tile?
+		return pip1 == p!!.pip1 && pip2 == p.pip2
 	}
 
-    @Override
-    public int hashCode() {
-        return 17*pip1 + 191*pip2;
-    }
-
-	public final boolean isDouble() {
-		return pip1 == pip2;
+	override fun hashCode(): Int {
+		return 17 * pip1 + 191 * pip2
 	}
-	
+
+	fun isDouble(): Boolean = pip1 == pip2
+
+	init {
+		openPips = pip1
+	}
 }

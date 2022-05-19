@@ -1,65 +1,39 @@
-package cc.game.dominos.core;
+package cc.game.dominos.core
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-
-import cc.lib.game.Utils;
+import java.util.*
 
 /**
  * Created by chriscaron on 2/14/18.
  */
+open class PlayerUser : Player {
+	var chosenMove: Move? = null
+	val usable = HashSet<Tile>()
+	val moves: MutableList<Move> = ArrayList()
 
-public class PlayerUser extends Player {
+	constructor() {}
+	constructor(playerNum: Int) : super(playerNum) {}
 
-    private Move choosedMove = null;
-    final HashSet<Tile> usable = new HashSet<>();
-    final List<Move> moves = new ArrayList<>();
+	override fun chooseMove(game: Dominos, moves: List<Move>): Move? {
+		clearMoves()
+		this.moves.addAll(moves)
+		for (m in moves) {
+			usable.add(m.piece)
+		}
+		game.redraw()
+		game.gameLock.acquireAndBlock()
+		if (chosenMove != null)
+			usable.clear()
+		return chosenMove
+	}
 
-    public PlayerUser() {
-    }
+	override fun isPiecesVisible(): Boolean {
+		return true
+	}
 
-    public PlayerUser(int playerNum) {
-        super(playerNum);
-    }
+	protected fun clearMoves() {
+		moves.clear()
+		usable.clear()
+		chosenMove = null
+	}
 
-    @Override
-    public Move chooseMove(Dominos game, List<Move> moves) {
-
-        clearMoves();
-        this.moves.addAll(moves);
-        for (Move m : moves) {
-            usable.add(m.piece);
-        }
-
-        game.redraw();
-        Utils.waitNoThrow(game, -1);
-        if (choosedMove != null)
-            usable.clear();
-
-        return choosedMove;
-    }
-
-    @Override
-    public boolean isPiecesVisible() {
-        return true;
-    }
-
-    public Move getChoosedMove() {
-        return choosedMove;
-    }
-
-    public void setChoosedMove(Move choosedMove) {
-        this.choosedMove = choosedMove;
-    }
-
-    protected void clearMoves() {
-        moves.clear();
-        usable.clear();
-        choosedMove = null;
-    }
-
-    protected List<Move> getMoves() {
-        return moves;
-    }
 }

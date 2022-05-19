@@ -27,7 +27,7 @@ dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation 'com.google.android.material:material:1.1.0'
     implementation project(':AndroidGameLibrary')
-    implementation project(path: ':GameLibrary', configuration: 'androidLib')
+    implementation project(':GameLibrary')
     implementation 'joda-time:joda-time:2.10.9'
     implementation 'androidx.navigation:navigation-fragment:2.3.3'
     implementation 'androidx.navigation:navigation-ui:2.3.3'

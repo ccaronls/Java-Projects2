@@ -28,7 +28,7 @@ android {
 dependencies {
     implementation project(':AndroidGameLibrary')
     implementation project(':AndroidMultiplayerGameLibrary')
-    implementation project(path: ':GameLibrary', configuration: 'androidLib')
+    implementation project(':GameLibrary')
     implementation fileTree(dir: "libs", include: ["*.jar"])
 //    testImplementation 'junit:junit:4.12'
 //    testImplementation(testFixtures(project(':GameLibrary')))

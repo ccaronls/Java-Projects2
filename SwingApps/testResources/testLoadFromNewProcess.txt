@@ -1,0 +1,37 @@
+myColorList=null
+myDouble=0.23498752083475
+myEnum=null
+myEnum2=null
+myEnumArray=null
+myEnumList=null
+myEnumMap=null
+myFloat=2.5
+myInt=10
+myIntArray=null
+myIntList=null
+myLong=24738504127385701
+myObj=null
+myObjArray=null
+myObjList=Vector {
+   SimpleObject {
+      myColorList=null
+      myDouble=0.23498752083475
+      myEnum=null
+      myEnum2=null
+      myEnumArray=SomeEnum 3 {
+         ENUM1 ENUM2 ENUM3 
+      }
+      myEnumList=null
+      myEnumMap=null
+      myFloat=2.5
+      myInt=10
+      myIntArray=null
+      myIntList=null
+      myLong=24738504127385701
+      myObj=null
+      myObjArray=null
+      myObjList=null
+      myStrStrMap=null
+   }
+}
+myStrStrMap=null
