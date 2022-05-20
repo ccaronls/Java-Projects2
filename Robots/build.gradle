@@ -1,8 +1,8 @@
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
 
 dependencies {
     implementation project(':AndroidGameLibrary')
-    //implementation 'cc.lib:gamelib-android:1.0'
     implementation project(':GameLibrary')
     implementation project(':Probot')
 }
@@ -15,7 +15,6 @@ android {
             manifest.srcFile 'AndroidManifest.xml'
             java {
                 srcDirs = ['src']
-                excludes = ['**/swing/**']
             }
             resources.srcDirs = ['src']
             aidl.srcDirs = ['src']

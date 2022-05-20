@@ -4,18 +4,11 @@
     android:versionCode="1"
     android:versionName="1.0" >
 
-    <uses-permission android:required="true" android:name="android.permission.ACCESS_COARSE_LOCATION"/>
-    <uses-permission android:required="true" android:name="android.permission.ACCESS_WIFI_STATE"/>
-    <uses-permission android:required="true" android:name="android.permission.CHANGE_WIFI_STATE"/>
-    <uses-permission android:required="true" android:name="android.permission.INTERNET"/>
-    <uses-permission android:required="true" android:name="android.permission.ACCESS_NETWORK_STATE" />
-
-
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" >
+        android:theme="@style/Theme.AppCompat.Dark.FullScreen" >
 
         <activity
             android:name=".ProbotActivity"
@@ -32,8 +25,7 @@
             android:name=".RobotnixActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:screenOrientation="landscape"
-            android:label="Robotnix"
-            android:theme="@android:style/Theme.Holo.Light.NoActionBar.Fullscreen" >
+            android:label="Robotnix">
             <!--
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -45,8 +37,7 @@
             android:name=".RoboActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:screenOrientation="sensorLandscape"
-            android:label="Robotron"
-            android:theme="@android:style/Theme.Holo.Light.NoActionBar.Fullscreen" >
+            android:label="Robotron">
             <!--
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

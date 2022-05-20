@@ -1,196 +1,154 @@
-package cc.android.game.robots;
+package cc.android.game.robots
 
-import android.os.Bundle;
-import android.view.MotionEvent;
-import android.view.View;
-import android.widget.TextView;
-
-import cc.lib.android.CCActivityBase;
-import cc.lib.probot.Command;
-import cc.lib.probot.CommandType;
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.MotionEvent
+import android.view.View
+import android.view.View.OnTouchListener
+import android.widget.TextView
+import cc.android.game.robots.databinding.ProbotviewBinding
+import cc.lib.android.CCActivityBase
+import cc.lib.probot.Command
+import cc.lib.probot.CommandType
 
 /**
  * Created by chriscaron on 12/7/17.
  */
+class ProbotActivity : CCActivityBase(), View.OnClickListener, OnTouchListener, Runnable {
+	/*
+	var pv: ProbotView? = null
+	var lv: ProbotListView? = null
+	var binding.ivArrowForward: View? = null
+	var binding.ivArrowRight: View? = null
+	var binding.ivArrowLeft: View? = null
+	var binding.ivUTurn: View? = null
+	var binding.ivArrowJump: View? = null
+	var bPlay: View? = null
+	var bStop: View? = null
+	var bNext: View? = null
+	var bPrevious: View? = null
+	var tvLevel: TextView? = null
+	var tvLevelName: TextView? = null
+	var tvForwardCount: TextView? = null
+	var tvTurnRightCount: TextView? = null
+	var tvTurnLeftCount: TextView? = null
+	var tvUTurnCount: TextView? = null
+	var tvJumpCount: TextView? = null
+	 */
+	lateinit var actions: Array<Pair<View, TextView>>
+	lateinit var binding: ProbotviewBinding
+	override fun onCreate(savedInstanceState: Bundle?) {
+		super.onCreate(savedInstanceState)
+		binding = ProbotviewBinding.inflate(LayoutInflater.from(this))
+		setContentView(binding.root)
+		binding.lvProgram.setProbot(binding.probotView.probot)
+		binding.ivArrowForward.tag = CommandType.Advance
+		binding.ivArrowRight.tag = CommandType.TurnRight
+		binding.ivArrowLeft.tag = CommandType.TurnLeft
+		binding.ivUTurn.tag = CommandType.UTurn
+		binding.ivArrowJump.tag = CommandType.Jump
+		binding.tvArrowForwardCount.tag = CommandType.Advance
+		binding.tvArrowRightCount.tag = CommandType.TurnRight
+		binding.tvArrowLeftCount.tag = CommandType.TurnLeft
+		binding.tvUTurnCount.tag = CommandType.UTurn
+		binding.tvJumpCount.tag = CommandType.Jump
+		actions = arrayOf(
+			binding.ivArrowJump to binding.tvJumpCount, 
+			binding.ivArrowLeft to binding.tvArrowLeftCount, 
+			binding.ivArrowRight to binding.tvArrowRightCount, 
+			binding.ivArrowForward to binding.tvArrowForwardCount, 
+			binding.ivUTurn to binding.tvUTurnCount
+		)
+		binding.ivArrowForward.setOnTouchListener(this)
+		binding.ivArrowRight.setOnTouchListener(this)
+		binding.ivArrowLeft.setOnTouchListener(this)
+		binding.ivUTurn.setOnTouchListener(this)
+		binding.ivArrowJump.setOnTouchListener(this)
+		binding.ibPlay.setOnClickListener(this)
+		binding.ibStop.setOnClickListener(this)
+		binding.ibPrevious.setOnClickListener(this)
+		binding.ibNext.setOnClickListener(this)
+		val level = prefs.getInt("Level", 0)
+		binding.probotView.maxLevel = prefs.getInt("MaxLevel", 0)
+		setLevel(level)
+	}
 
-public class ProbotActivity extends CCActivityBase implements View.OnClickListener, View.OnTouchListener, Runnable {
+	private fun setLevel(level: Int) {
+		binding.probotView.setLevel(level)
+		refresh()
+	}
 
-    ProbotView pv;
-    ProbotListView lv;
-    View actionForward;
-    View actionRight;
-    View actionLeft;
-    View actionUTurn;
-    View actionJump;
-    View bPlay;
-    View bStop;
-    View bNext;
-    View bPrevious;
-    TextView tvLevel;
-    TextView tvLevelName;
+	override fun onTouch(v: View, event: MotionEvent): Boolean {
+		if (!binding.probotView.probot.isRunning) {
+			val type = v.tag as CommandType
+			val cmd = Command(type, 0)
+			binding.lvProgram.startDrag(v, cmd)
+		}
+		return true
+	}
 
-    TextView tvForwardCount;
-    TextView tvTurnRightCount;
-    TextView tvTurnLeftCount;
-    TextView tvUTurnCount;
-    TextView tvJumpCount;
+	override fun run() {
+		binding.tvLevel.text = (binding.probotView.probot.levelNum + 1).toString()
+		binding.tvLevelName.text = binding.probotView.probot.level.label
+		if (binding.probotView.probot.isRunning) {
+			binding.ibPrevious.isEnabled = false
+			binding.ibNext.isEnabled = false
+			binding.ibPlay.visibility = View.GONE
+			binding.ibStop.visibility = View.VISIBLE
+		} else {
+			binding.ibPrevious.isEnabled = binding.probotView.probot.levelNum > 0
+			binding.ibNext.isEnabled = BuildConfig.DEBUG || binding.probotView.probot.levelNum < binding.probotView.maxLevel
+			binding.ibPlay.visibility = View.VISIBLE
+			binding.ibStop.visibility = View.GONE
+		}
+		for (a in actions) {
+			val c = a.first.tag as CommandType
+			a.first.visibility = if (binding.probotView.probot.isCommandTypeVisible(c)) View.VISIBLE else View.GONE
+			a.second.isEnabled = binding.probotView.probot.getCommandTypeNumAvaialable(c) != 0
+		}
+		for (tv in actions) {
+			val c = tv.second.tag as CommandType
+			if (binding.probotView.probot.isCommandTypeVisible(c)) {
+				val count = binding.probotView.probot.getCommandTypeNumAvaialable(c)
+				if (count < 0) {
+					tv.second.visibility = View.GONE
+				} else {
+					tv.second.visibility = View.VISIBLE
+					tv.second.text = count.toString()
+				}
+			} else {
+				tv.second.visibility = View.GONE
+			}
+		}
+	}
 
-    View [] actions;
-    TextView [] actionCounts;
+	fun refresh() {
+		run()
+	}
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.probotview);
-        pv = (ProbotView)findViewById(R.id.probotView);
-        lv = (ProbotListView)findViewById(R.id.lvProgram);
-        lv.setProbot(pv.probot);
-        tvLevel = (TextView)findViewById(R.id.tvLevel);
-        tvLevelName = (TextView)findViewById(R.id.tvLevelName);
-        actionForward = findViewById(R.id.ivArrowForward);
-        actionRight = findViewById(R.id.ivArrowRight);
-        actionLeft = findViewById(R.id.ivArrowLeft);
-        actionUTurn = findViewById(R.id.ivUTurn);
-        actionJump = findViewById(R.id.ivArrowJump);
+	fun postRefresh() {
+		runOnUiThread(this)
+	}
 
-        actionForward.setTag(CommandType.Advance);
-        actionRight.setTag(CommandType.TurnRight);
-        actionLeft.setTag(CommandType.TurnLeft);
-        actionUTurn.setTag(CommandType.UTurn);
-        actionJump.setTag(CommandType.Jump);
-
-        actions = new View[] {
-                actionJump, actionLeft, actionRight, actionForward, actionUTurn
-        };
-
-        tvForwardCount = (TextView)findViewById(R.id.tvArrowForwardCount);
-        tvTurnRightCount = (TextView)findViewById(R.id.tvArrowRightCount);
-        tvTurnLeftCount = (TextView)findViewById(R.id.tvArrowLeftCount);
-        tvUTurnCount = (TextView)findViewById(R.id.tvUTurnCount);
-        tvJumpCount = (TextView)findViewById(R.id.tvJumpCount);
-        tvForwardCount.setTag(CommandType.Advance);
-        tvTurnRightCount.setTag(CommandType.TurnRight);
-        tvTurnLeftCount.setTag(CommandType.TurnLeft);
-        tvUTurnCount.setTag(CommandType.UTurn);
-        tvJumpCount.setTag(CommandType.Jump);
-
-        actionCounts = new TextView[] {
-                tvForwardCount, tvJumpCount, tvTurnLeftCount, tvTurnRightCount, tvUTurnCount
-        };
-
-        actionForward.setOnTouchListener(this);
-        actionRight.setOnTouchListener(this);
-        actionLeft.setOnTouchListener(this);
-        actionUTurn.setOnTouchListener(this);
-        actionJump.setOnTouchListener(this);
-
-        bPlay = findViewById(R.id.ibPlay);
-        bPlay.setOnClickListener(this);
-        bStop = findViewById(R.id.ibStop);
-        bStop.setOnClickListener(this);
-        bPrevious = findViewById(R.id.ibPrevious);
-        bPrevious.setOnClickListener(this);
-        bNext = findViewById(R.id.ibNext);
-        bNext.setOnClickListener(this);
-
-        int level = getPrefs().getInt("Level", 0);
-        pv.maxLevel = getPrefs().getInt("MaxLevel", 0);
-
-        setLevel(level);
-    }
-
-    private void setLevel(int level) {
-        pv.setLevel(level);
-        refresh();
-    }
-
-    @Override
-    public boolean onTouch(View v, MotionEvent event) {
-        if (!pv.probot.isRunning()) {
-            CommandType type = (CommandType) v.getTag();
-            Command cmd = new Command(type, 0);
-            lv.startDrag(v, cmd);
-        }
-        return true;
-    }
-
-    @Override
-    public void run() {
-        tvLevel.setText(String.valueOf(pv.probot.getLevelNum()+1));
-        tvLevelName.setText(pv.probot.level.label);
-        if (pv.probot.isRunning()) {
-            bPrevious.setEnabled(false);
-            bNext.setEnabled(false);
-            bPlay.setVisibility(View.GONE);
-            bStop.setVisibility(View.VISIBLE);
-        } else {
-            bPrevious.setEnabled(pv.probot.getLevelNum() > 0);
-            bNext.setEnabled(BuildConfig.DEBUG || pv.probot.getLevelNum() < pv.maxLevel);
-            bPlay.setVisibility(View.VISIBLE);
-            bStop.setVisibility(View.GONE);
-        }
-        for (View a : actions) {
-            CommandType c = (CommandType)a.getTag();
-            a.setVisibility(pv.probot.isCommandTypeVisible(c) ? View.VISIBLE : View.GONE);
-            a.setEnabled(pv.probot.getCommandTypeNumAvaialable(c) != 0);
-        }
-        for (TextView tv : actionCounts) {
-            CommandType c = (CommandType)tv.getTag();
-            if (pv.probot.isCommandTypeVisible(c)) {
-                int count = pv.probot.getCommandTypeNumAvaialable(c);
-                if (count < 0) {
-                    tv.setVisibility(View.GONE);
-                } else {
-                    tv.setVisibility(View.VISIBLE);
-                    tv.setText(String.valueOf(count));
-                }
-            } else {
-                tv.setVisibility(View.GONE);
-            }
-        }
-    }
-
-    public void refresh() {
-        run();
-    }
-
-    public void postRefresh() {
-        runOnUiThread(this);
-    }
-
-    @Override
-    public void onClick(final View v) {
-        switch (v.getId()) {
-            /*
-            case R.id.ibClear:
-                pv.probot.program.clear();
-                lv.notifyDataSetChanged();
-                break;*/
-            case R.id.ibStop:
-                pv.probot.stop();
-                break;
-            case R.id.ibPlay:
-                if (pv.probot.size() > 0) {
-                    new Thread() {
-                        public void run() {
-                            postRefresh();
-                            pv.probot.runProgram();
-                            postRefresh();
-                        }
-                    }.start();
-                }
-                break;
-            case R.id.ibPrevious:
-                if (pv.probot.getLevelNum() > 0) {
-                    setLevel(pv.probot.getLevelNum()-1);
-                }
-                break;
-            case R.id.ibNext:
-                if (pv.probot.getLevelNum() < pv.maxLevel) {
-                    setLevel(pv.probot.getLevelNum()+1);
-                }
-                break;
-        }
-        refresh();
-    }
+	override fun onClick(v: View) {
+		when (v.id) {
+			R.id.ibStop -> binding.probotView.probot.stop()
+			R.id.ibPlay -> if (binding.probotView.probot.size() > 0) {
+				object : Thread() {
+					override fun run() {
+						postRefresh()
+						binding.probotView.probot.runProgram()
+						postRefresh()
+					}
+				}.start()
+			}
+			R.id.ibPrevious -> if (binding.probotView.probot.levelNum > 0) {
+				setLevel(binding.probotView.probot.levelNum - 1)
+			}
+			R.id.ibNext -> if (binding.probotView.probot.levelNum < binding.probotView.maxLevel) {
+				setLevel(binding.probotView.probot.levelNum + 1)
+			}
+		}
+		refresh()
+	}
 }

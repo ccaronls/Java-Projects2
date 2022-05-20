@@ -1,483 +1,413 @@
-package cc.android.game.robots;
+package cc.android.game.robots
 
-import android.content.ClipData;
-import android.content.Context;
-import android.graphics.Color;
-import android.util.AttributeSet;
-import android.util.Log;
-import android.view.DragEvent;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.BaseAdapter;
-import android.widget.ImageView;
-import android.widget.ListView;
-import android.widget.TextView;
-
-import cc.lib.game.Utils;
-import cc.lib.probot.Command;
-import cc.lib.probot.CommandType;
-import cc.lib.probot.Probot;
+import android.content.ClipData
+import android.content.Context
+import android.graphics.Color
+import android.util.AttributeSet
+import android.util.Log
+import android.view.DragEvent
+import android.view.View
+import android.view.View.OnDragListener
+import android.view.View.OnLongClickListener
+import android.view.ViewGroup
+import android.widget.BaseAdapter
+import android.widget.ImageView
+import android.widget.ListView
+import android.widget.TextView
+import cc.lib.game.Utils
+import cc.lib.probot.Command
+import cc.lib.probot.CommandType
+import cc.lib.probot.Probot
 
 /**
  * Created by chriscaron on 12/12/17.
  */
+class ProbotListView : ListView, OnDragListener, View.OnClickListener, OnLongClickListener, Runnable {
+	
+	lateinit var adapter: BaseAdapter
+	private var programLineNum = -1
+	private var failedLineNum = -1
+	private lateinit var probot: Probot
+	
+	private fun init(c: Context, a: AttributeSet?) {
+		setOnDragListener(this)
+		adapter = object : BaseAdapter() {
+			override fun getCount(): Int {
+				return probot.size()
+			}
 
-public class ProbotListView extends ListView implements View.OnDragListener, View.OnClickListener, View.OnLongClickListener, Runnable {
+			override fun getItem(position: Int): Any {
+				return probot[position]
+			}
 
-    BaseAdapter adapter = null;
-    int programLineNum = -1;
-    int failedLineNum = -1;
-    Probot probot = null;
+			override fun getItemId(position: Int): Long {
+				return position.toLong()
+			}
 
-    private void init(Context c, AttributeSet a) {
-        setOnDragListener(this);
-        adapter = new BaseAdapter() {
-            @Override
-            public int getCount() {
-                return probot.size();
-            }
+			override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+				var convertView = convertView?:inflate(context, R.layout.item_command, null)
+				convertView.setOnDragListener(this@ProbotListView)
+				convertView.setOnLongClickListener(this@ProbotListView)
+				convertView.setOnClickListener(this@ProbotListView)
+				convertView.tag = position
+				val divTop = convertView.findViewById<View>(R.id.divider_top)
+				val divBot = convertView.findViewById<View>(R.id.divider_bottom)
+				divTop.visibility = GONE
+				divBot.visibility = GONE
+				if (dragInsertPos >= 0) {
+					if (dragInsertPos == position) {
+						divTop.visibility = VISIBLE
+					} else if (dragInsertPos == position + 1) {
+						divBot.visibility = VISIBLE
+					}
+				}
+				val cmd = probot[position]
+				val isInLoop = cmd.nesting > 0
+				val isLoop = cmd.type == CommandType.LoopEnd || cmd.type == CommandType.LoopStart
+				val tvLineNum = convertView.findViewById<View>(R.id.tvLineNum) as TextView
+				tvLineNum.text = (position + 1).toString()
+				if (position == programLineNum) {
+					tvLineNum.setBackgroundColor(Color.GREEN)
+				} else if (position == failedLineNum) {
+					tvLineNum.setBackgroundColor(Color.RED)
+				} else {
+					tvLineNum.setBackgroundColor(Color.TRANSPARENT)
+				}
+				//tvLineNum.setVisibility(View.GONE);
+				var v = convertView.findViewById<View>(R.id.ibDelete)
+				if (cmd.type == CommandType.LoopEnd) {
+					v.visibility = GONE
+				} else {
+					v.visibility = VISIBLE
+					v.tag = position
+					v.setOnClickListener(this@ProbotListView)
+				}
+				val tvLoopCount = convertView.findViewById<View>(R.id.tvLoopCount) as TextView
+				v = convertView.findViewById(R.id.ibLoop)
+				if (isLoop || isInLoop) {
+					v.visibility = GONE
+					tvLoopCount.visibility = GONE
+				} else {
+					if (probot.level.numLoops < 0) {
+						// infinite loops
+						tvLoopCount.visibility = GONE
+					} else {
+						tvLoopCount.visibility = VISIBLE
+						tvLoopCount.text = probot.level.numLoops.toString()
+						v.isEnabled = probot.level.numLoops > 0
+					}
+					v.tag = position
+					v.visibility = VISIBLE
+					v.setOnClickListener(this@ProbotListView)
+				}
+				val iv = convertView.findViewById<View>(R.id.imageView) as ImageView
+				if (isLoop) {
+					iv.visibility = INVISIBLE
+				} else {
+					iv.visibility = VISIBLE
+					when (cmd.type) {
+						CommandType.Advance -> iv.setImageResource(R.drawable.arrow_forward)
+						CommandType.TurnRight -> iv.setImageResource(R.drawable.arrow_right)
+						CommandType.TurnLeft -> iv.setImageResource(R.drawable.arrow_left)
+						CommandType.Jump -> iv.setImageResource(R.drawable.arrow_jump)
+						CommandType.UTurn -> iv.setImageResource(R.drawable.uturn)
+					}
+				}
 
-            @Override
-            public Object getItem(int position) {
-                return probot.get(position);
-            }
+				//iv = (ImageView) convertView.findViewById(R.id.ivPlay);
+				//iv.setVisibility(position == programLineNum ? View.VISIBLE : View.INVISIBLE);
+				val bPlus = convertView.findViewById<View>(R.id.ibPlus)
+				val bMinus = convertView.findViewById<View>(R.id.ibMinus)
+				val tvCount = convertView.findViewById<View>(R.id.tvCount) as TextView
+				if (cmd.type == CommandType.LoopStart) {
+					bPlus.visibility = VISIBLE
+					bPlus.setOnClickListener(this@ProbotListView)
+					bPlus.tag = cmd
+					bMinus.visibility = VISIBLE
+					bMinus.setOnClickListener(this@ProbotListView)
+					bMinus.tag = cmd
+					tvCount.visibility = VISIBLE
+					tvCount.text = cmd.count.toString()
+				} else {
+					bPlus.visibility = GONE
+					bMinus.visibility = GONE
+					tvCount.visibility = GONE
+				}
+				return convertView
+			}
 
-            @Override
-            public long getItemId(int position) {
-                return position;
-            }
+			override fun notifyDataSetChanged() {
+				super.notifyDataSetChanged()
+				(context as ProbotActivity).refresh()
+			}
+		}
+	}
 
-            @Override
-            public View getView(final int position, View convertView, ViewGroup parent) {
-                if (convertView == null) {
-                    convertView = View.inflate(getContext(), R.layout.item_command, null);
-                }
-                convertView.setOnDragListener(ProbotListView.this);
-                convertView.setOnLongClickListener(ProbotListView.this);
-                convertView.setOnClickListener(ProbotListView.this);
-                convertView.setTag(position);
+	fun setProbot(p: Probot) {
+		probot = p
+		setAdapter(adapter)
+	}
 
-                View divTop = convertView.findViewById(R.id.divider_top);
-                View divBot = convertView.findViewById(R.id.divider_bottom);
+	constructor(context: Context) : super(context) {
+		init(context, null)
+	}
 
-                divTop.setVisibility(View.GONE);
-                divBot.setVisibility(View.GONE);
+	constructor(context: Context, attrs: AttributeSet?) : super(context, attrs) {
+		init(context, attrs)
+	}
 
-                if (dragInsertPos >= 0) {
-                    if (dragInsertPos == position) {
-                        divTop.setVisibility(View.VISIBLE);
-                    } else if (dragInsertPos == position+1) {
-                        divBot.setVisibility(View.VISIBLE);
-                    }
-                }
+	constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(context, attrs, defStyleAttr) {
+		init(context, attrs)
+	}
 
-                final Command cmd = probot.get(position);
-                boolean isInLoop = cmd.nesting > 0;
-                boolean isLoop = cmd.type == CommandType.LoopEnd || cmd.type == CommandType.LoopStart;
+	var dragInsertPos = -1
+	var dragMinInsertPos = 0
+	var dragMaxInsertPos = 0
+	fun getActionStr(action: Int): String {
+		when (action) {
+			DragEvent.ACTION_DRAG_ENDED -> return "Ended"
+			DragEvent.ACTION_DRAG_STARTED -> return "Started"
+			DragEvent.ACTION_DRAG_ENTERED -> return "Entered"
+			DragEvent.ACTION_DRAG_EXITED -> return "Exited"
+			DragEvent.ACTION_DRAG_LOCATION -> return "Location"
+			DragEvent.ACTION_DROP -> return "Drop"
+		}
+		return "???"
+	}
 
-                TextView tvLineNum = (TextView) convertView.findViewById(R.id.tvLineNum);
-                tvLineNum.setText(String.valueOf(position + 1));
-                if (position == programLineNum) {
-                    tvLineNum.setBackgroundColor(Color.GREEN);
-                } else if (position == failedLineNum) {
-                    tvLineNum.setBackgroundColor(Color.RED);
-                } else {
-                    tvLineNum.setBackgroundColor(Color.TRANSPARENT);
-                }
-                //tvLineNum.setVisibility(View.GONE);
+	private var dropped = false
+	override fun onDrag(v: View, event: DragEvent): Boolean {
+		val dragInsertPosIn = dragInsertPos
+		var obj: String? = null
+		val state = event.localState as Array<Any>
+			?: return false
+		val cmd = state[0] as Command
+		val originatingLine = state[1] as Int
+		if (v is ProbotListView) {
+			obj = "ListView"
+			when (event.action) {
+				DragEvent.ACTION_DROP -> {
+					if (cmd != null) {
+						if (dragInsertPos < 0) {
+							probot.add(cmd)
+						} else {
+							probot.add(dragInsertPos, cmd)
+						}
+						adapter.notifyDataSetChanged()
+						setSelection(dragInsertPos)
+						dragInsertPos = -1
+					}
+					dropped = true
+				}
+				DragEvent.ACTION_DRAG_ENTERED -> {
+					if (probot.size() > 0) {
+						dragInsertPos = Utils.clamp(probot.size(), dragMinInsertPos, dragMaxInsertPos)
+						adapter.notifyDataSetChanged()
+					}
+				}
+				DragEvent.ACTION_DRAG_EXITED -> {
+					if (dragMinInsertPos < 0) {
+						dragInsertPos = -1
+					} else if (originatingLine >= 0) {
+						dragInsertPos = originatingLine
+					}
+					adapter.notifyDataSetChanged()
+				}
+				DragEvent.ACTION_DRAG_STARTED -> dropped = false
+				DragEvent.ACTION_DRAG_ENDED -> {
+					dragInsertPos = -1
+					if (!dropped && originatingLine >= 0) {
+						probot.add(originatingLine, cmd)
+						adapter.notifyDataSetChanged()
+					}
+				}
+			}
+		} else {
+			val position = v.tag as Int
+			obj = "RowItem[$position]"
+			when (event.action) {
+				DragEvent.ACTION_DROP -> {
+					if (dragInsertPos < 0) {
+						probot.add(cmd)
+					} else {
+						probot.add(dragInsertPos, cmd)
+					}
+					adapter.notifyDataSetChanged()
+					setSelection(dragInsertPos)
+					dragInsertPos = -1
+					dropped = true
+				}
+				DragEvent.ACTION_DRAG_EXITED -> {
+				}
+				DragEvent.ACTION_DRAG_LOCATION, DragEvent.ACTION_DRAG_ENTERED -> {
+					val mp = (v.height / 2).toFloat()
+					val mpd = event.y // + dragging.getHeight();
+					val first = firstVisiblePosition
+					val last = lastVisiblePosition
 
-                View v = convertView.findViewById(R.id.ibDelete);
-                if (cmd.type == CommandType.LoopEnd) {
-                    v.setVisibility(View.GONE);
-                } else {
-                    v.setVisibility(View.VISIBLE);
-                    v.setTag(position);
-                    v.setOnClickListener(ProbotListView.this);
-                }
+					//if (position == first) {
+					//    Log.d("PLV", "A");
+					//    dragInsertPos = position;
+					//} else if (position == last) {
+					//    Log.d("PLV", "B");
+					//    dragInsertPos = position+1;
+					//} else
+					dragInsertPos = if (mp > mpd) {
+						Log.d("PLV", "C mp=$mp mpd=$mpd")
+						position
+					} else {
+						Log.d("PLV", "D")
+						position + 1
+					}
+					dragInsertPos = Utils.clamp(dragInsertPos, dragMinInsertPos, dragMaxInsertPos)
+					adapter.notifyDataSetChanged()
+					//              setSelection(dragInsertPos);
+					if (dragInsertPosIn != dragInsertPos) {
+						val scrollDist = v.height
+						val midpt = (last + first + 1) / 2
+						val maxSp = 500f
+						val speed = Math.round(maxSp - Math.abs(maxSp * 2 * (dragInsertPos - midpt) / (last - first)))
+						//0.5f * (dragInsertPos - first - midpt));
+						Log.d("PLV", "speed=$speed")
+						if (dragInsertPos < midpt) {
+							smoothScrollBy(-scrollDist, speed)
+						} else {
+							smoothScrollBy(scrollDist, speed)
+						}
+					}
+					if (dragInsertPos == 0) smoothScrollToPositionFromTop(0, 0, 0)
+					if (dragInsertPos <= first + 1) {
+						//    smoothScrollBy(-scrollDist, 500);
+					} else if (dragInsertPos >= last - 1) {
+						//  smoothScrollBy(scrollDist, 500);
+					}
+				}
+				DragEvent.ACTION_DRAG_STARTED -> {
+				}
+			}
+		}
+		//if (dragInsertPos != dragInsertPosIn)
+		run { Log.d("List", "v=" + obj + " action=" + getActionStr(event.action) + " pos=" + dragInsertPos + " origLine: " + originatingLine) }
+		return true
+	}
 
-                TextView tvLoopCount = (TextView)convertView.findViewById(R.id.tvLoopCount);
-                v = convertView.findViewById(R.id.ibLoop);
-                if (isLoop || isInLoop) {
-                    v.setVisibility(View.GONE);
-                    tvLoopCount.setVisibility(View.GONE);
-                } else {
-                    if (probot.level.numLoops < 0) {
-                        // infinite loops
-                        tvLoopCount.setVisibility(View.GONE);
-                    } else {
-                        tvLoopCount.setVisibility(View.VISIBLE);
-                        tvLoopCount.setText(String.valueOf(probot.level.numLoops));
-                        v.setEnabled(probot.level.numLoops > 0);
-                    }
-                    v.setTag(position);
-                    v.setVisibility(View.VISIBLE);
-                    v.setOnClickListener(ProbotListView.this);
-                }
+	fun setProgramLineNum(lineNum: Int) {
+		programLineNum = lineNum
+		failedLineNum = -1
+		post(this)
+	}
 
-                ImageView iv = (ImageView) convertView.findViewById(R.id.imageView);
-                if (isLoop) {
-                    iv.setVisibility(View.INVISIBLE);
-                } else {
-                    iv.setVisibility(View.VISIBLE);
-                    switch (cmd.type) {
+	fun markFailed() {
+		failedLineNum = programLineNum
+		programLineNum = -1
+		post(this)
+	}
 
-                        case Advance:
-                            iv.setImageResource(R.drawable.arrow_forward);
-                            break;
-                        case TurnRight:
-                            iv.setImageResource(R.drawable.arrow_right);
-                            break;
-                        case TurnLeft:
-                            iv.setImageResource(R.drawable.arrow_left);
-                            break;
-                        case Jump:
-                            iv.setImageResource(R.drawable.arrow_jump);
-                            break;
-                        case UTurn:
-                            iv.setImageResource(R.drawable.uturn);
-                            break;
-                    }
-                }
+	fun notifyDataSetChanged() {
+		post(this)
+	}
 
-                //iv = (ImageView) convertView.findViewById(R.id.ivPlay);
-                //iv.setVisibility(position == programLineNum ? View.VISIBLE : View.INVISIBLE);
+	override fun run() {
+		adapter.notifyDataSetChanged()
+		if (programLineNum >= 0) {
+			setSelection(programLineNum)
+		}
+	}
 
-                View bPlus = convertView.findViewById(R.id.ibPlus);
-                View bMinus = convertView.findViewById(R.id.ibMinus);
-                TextView tvCount = (TextView) convertView.findViewById(R.id.tvCount);
+	override fun onClick(v: View) {
+		if (programLineNum >= 0) return
+		when (v.id) {
+			R.id.ibLoop -> {
+				val position = v.tag as Int
+				probot.add(position, Command(CommandType.LoopStart, 1))
+				probot.add(position + 2, Command(CommandType.LoopEnd, 0))
+			}
+			R.id.ibDelete -> {
+				var position = v.tag as Int
+				val cmd = probot.remove(position)
+				if (cmd.type == CommandType.LoopStart) {
+					while (probot[position].type != CommandType.LoopEnd) {
+						//probot.remove(position);
+						position++
+					}
+					probot.remove(position)
+				}
+			}
+			R.id.ibPlus -> {
+				val cmd = v.tag as Command
+				if (cmd.count < 5) cmd.count++
+			}
+			R.id.ibMinus -> {
+				val cmd = v.tag as Command
+				if (cmd.count > 1) cmd.count--
+			}
+		}
+		adapter.notifyDataSetChanged()
+	}
 
-                if (cmd.type == CommandType.LoopStart) {
-                    bPlus.setVisibility(View.VISIBLE);
-                    bPlus.setOnClickListener(ProbotListView.this);
-                    bPlus.setTag(cmd);
-                    bMinus.setVisibility(View.VISIBLE);
-                    bMinus.setOnClickListener(ProbotListView.this);
-                    bMinus.setTag(cmd);
-                    tvCount.setVisibility(View.VISIBLE);
-                    tvCount.setText(String.valueOf(cmd.count));
-                } else {
-                    bPlus.setVisibility(View.GONE);
-                    bMinus.setVisibility(View.GONE);
-                    tvCount.setVisibility(View.GONE);
-                }
+	override fun onLongClick(v: View): Boolean {
+		if (probot.size() > 1) {
+			val position = v.tag as Int
+			val cmd = probot.remove(position)
+			startDrag(v, cmd, position)
+			adapter.notifyDataSetChanged()
+		}
+		return true
+	}
 
-                return convertView;
-            }
+	fun startDrag(v: View, cmd: Command) {
+		startDrag(v, cmd, -1)
+	}
 
-            @Override
-            public void notifyDataSetChanged() {
-                super.notifyDataSetChanged();
-                ((ProbotActivity)getContext()).refresh();
-            }
-        };
-    }
-
-    public void setProbot(Probot p) {
-        this.probot = p;
-        setAdapter(adapter);
-    }
-
-    public ProbotListView(Context context) {
-        super(context);
-        init(context, null);
-    }
-
-    public ProbotListView(Context context, AttributeSet attrs) {
-        super(context, attrs);
-        init(context, attrs);
-    }
-
-    public ProbotListView(Context context, AttributeSet attrs, int defStyleAttr) {
-        super(context, attrs, defStyleAttr);
-        init(context, attrs);
-    }
-
-    int dragInsertPos = -1;
-    int dragMinInsertPos = 0;
-    int dragMaxInsertPos = 0;
-
-    String getActionStr(int action) {
-        switch (action) {
-            case DragEvent.ACTION_DRAG_ENDED:
-                return "Ended";
-            case DragEvent.ACTION_DRAG_STARTED:
-                return "Started";
-            case DragEvent.ACTION_DRAG_ENTERED:
-                return "Entered";
-            case DragEvent.ACTION_DRAG_EXITED:
-                return "Exited";
-            case DragEvent.ACTION_DRAG_LOCATION:
-                return "Location";
-            case DragEvent.ACTION_DROP:
-                return "Drop";
-        }
-        return "???";
-    }
-
-    private boolean dropped = false;
-
-    @Override
-    public boolean onDrag(View v, DragEvent event) {
-        int dragInsertPosIn = dragInsertPos;
-        String obj = null;
-        Object [] state = (Object []) event.getLocalState();
-        if (state == null)
-            return false;
-        Command cmd = (Command)state[0];
-        int originatingLine = (Integer)state[1];
-        if (v instanceof ProbotListView) {
-            obj = "ListView";
-            switch (event.getAction()) {
-                case DragEvent.ACTION_DROP: {
-                    if (cmd != null) {
-                        if (dragInsertPos < 0) {
-                            probot.add(cmd);
-                        } else {
-                            probot.add(dragInsertPos, cmd);
-                        }
-                        adapter.notifyDataSetChanged();
-                        setSelection(dragInsertPos);
-                        dragInsertPos = -1;
-                    }
-                    dropped = true;
-                    break;
-                }
-                //case DragEvent.ACTION_DRAG_LOCATION:
-                case DragEvent.ACTION_DRAG_ENTERED: {
-                    if (probot.size() > 0) {
-                        dragInsertPos = Utils.clamp(probot.size(), dragMinInsertPos, dragMaxInsertPos);
-                        adapter.notifyDataSetChanged();
-                    }
-                    break;
-                }
-                case DragEvent.ACTION_DRAG_EXITED:
-                    if (dragMinInsertPos < 0) {
-                        dragInsertPos = -1;
-                    } else if (originatingLine >= 0) {
-                        dragInsertPos = originatingLine;
-                    }
-                    adapter.notifyDataSetChanged();
-                    break;
-                case DragEvent.ACTION_DRAG_STARTED:
-                    dropped = false;
-                    break;
-                case DragEvent.ACTION_DRAG_ENDED:
-                    dragInsertPos = -1;
-                    if (!dropped && originatingLine >= 0) {
-                        probot.add(originatingLine, cmd);
-                        adapter.notifyDataSetChanged();
-                    }
-                    break;
-            }
-        } else {
-            int position = (Integer)v.getTag();
-            obj = "RowItem[" + position + "]";
-            switch (event.getAction()) {
-                case DragEvent.ACTION_DROP: {
-                    if (dragInsertPos < 0) {
-                        probot.add(cmd);
-                    } else {
-                        probot.add(dragInsertPos, cmd);
-                    }
-                    adapter.notifyDataSetChanged();
-                    setSelection(dragInsertPos);
-                    dragInsertPos = -1;
-                    dropped = true;
-                    break;
-                }
-                case DragEvent.ACTION_DRAG_EXITED:
-                    // TODO: Do I need this?
-                    //dragInsertPos = -1;
-                    //adapter.notifyDataSetChanged();
-                    break;
-                case DragEvent.ACTION_DRAG_LOCATION:
-                case DragEvent.ACTION_DRAG_ENTERED: {
-                    float mp = v.getHeight()/2;
-                    float mpd = event.getY();// + dragging.getHeight();
-                    int first = getFirstVisiblePosition();
-                    int last = getLastVisiblePosition();
-
-                    //if (position == first) {
-                    //    Log.d("PLV", "A");
-                    //    dragInsertPos = position;
-                    //} else if (position == last) {
-                    //    Log.d("PLV", "B");
-                    //    dragInsertPos = position+1;
-                    //} else
-                    if (mp > mpd) {
-                        Log.d("PLV", "C mp=" + mp + " mpd=" + mpd);
-                        dragInsertPos = position;
-                    } else {
-                        Log.d("PLV", "D");
-                        dragInsertPos = position+1;
-                    }
-                    dragInsertPos = Utils.clamp(dragInsertPos, dragMinInsertPos, dragMaxInsertPos);
-                    adapter.notifyDataSetChanged();
-      //              setSelection(dragInsertPos);
-                    if (dragInsertPosIn != dragInsertPos){
-                        int scrollDist = v.getHeight();
-                        int midpt =(last + first + 1) / 2;
-                        float maxSp = 500f;
-                        int speed = Math.round(maxSp - Math.abs(maxSp * 2 * (dragInsertPos-midpt)/((last-first))));
-                                //0.5f * (dragInsertPos - first - midpt));
-                        Log.d("PLV", "speed=" + speed);
-                        if (dragInsertPos < midpt) {
-                            smoothScrollBy(-scrollDist, speed);
-                        } else {
-                            smoothScrollBy(scrollDist, speed);
-                        }
-                    }
-
-                    if (dragInsertPos == 0)
-                        smoothScrollToPositionFromTop(0, 0, 0);
-
-                    if (dragInsertPos <= first+1) {
-                    //    smoothScrollBy(-scrollDist, 500);
-                    } else if (dragInsertPos >= last-1) {
-                      //  smoothScrollBy(scrollDist, 500);
-                    }
-        //            setSelection(dragInsertPos);
-                    break;
-                }
-                case DragEvent.ACTION_DRAG_STARTED:
-
-            }
-        }
-        //if (dragInsertPos != dragInsertPosIn)
-        {
-            Log.d("List", "v=" + obj + " action=" + getActionStr(event.getAction()) + " pos=" + dragInsertPos + " origLine: " + originatingLine);
-
-        }
-        return true;
-    }
-
-    public void setProgramLineNum(int lineNum) {
-        this.programLineNum = lineNum;
-        this.failedLineNum = -1;
-        post(this);
-    }
-
-    public void markFailed() {
-        this.failedLineNum = programLineNum;
-        programLineNum = -1;
-        post(this);
-    }
-
-    public void notifyDataSetChanged() {
-        post(this);
-    }
-
-    @Override
-    public void run() {
-        adapter.notifyDataSetChanged();
-        if (programLineNum >= 0) {
-            setSelection(programLineNum);
-        }
-    }
-
-    @Override
-    public void onClick(View v) {
-        if (programLineNum >= 0)
-            return;
-        switch (v.getId()) {
-            case R.id.ibLoop: {
-                int position = (Integer) v.getTag();
-                probot.add(position, new Command(CommandType.LoopStart, 1));
-                probot.add(position + 2, new Command(CommandType.LoopEnd, 0));
-                break;
-            }
-            case R.id.ibDelete: {
-                int position = (Integer) v.getTag();
-                Command cmd = probot.remove(position);
-                if (cmd.type == CommandType.LoopStart) {
-                    while (probot.get(position).type != CommandType.LoopEnd) {
-                        //probot.remove(position);
-                        position++;
-                    }
-                    probot.remove(position);
-                }
-                break;
-            }
-
-            case R.id.ibPlus: {
-                Command cmd = (Command) v.getTag();
-                if (cmd.count < 5)
-                    cmd.count++;
-                break;
-            }
-            case R.id.ibMinus: {
-                Command cmd = (Command) v.getTag();
-                if (cmd.count > 1)
-                    cmd.count--;
-                break;
-            }
-        }
-        adapter.notifyDataSetChanged();
-    }
-
-    @Override
-    public boolean onLongClick(View v) {
-        if (probot.size() > 1) {
-            int position = (Integer) v.getTag();
-            Command cmd = probot.remove(position);
-            startDrag(v, cmd, position);
-            adapter.notifyDataSetChanged();
-        }
-        return true;
-    }
-
-    public final void startDrag(View v, Command cmd) {
-        startDrag(v, cmd, -1);
-    }
-
-    private final void startDrag(View v, Command cmd, int originatingLine) {
-        v.startDrag(ClipData.newPlainText(cmd.type.name(), cmd.type.name()), new View.DragShadowBuilder(v),
-                new Object[] {
-                    cmd, originatingLine
-                }, 0);
-        dragMinInsertPos = -1;
-        dragMaxInsertPos = probot.size();
-        if (cmd.type == CommandType.LoopStart) {
-            final int position = (Integer)v.getTag();
-            int pos = position;
-            dragMaxInsertPos = dragMinInsertPos = pos;
-            while (pos > 0) {
-                if (probot.get(pos-1).type == CommandType.LoopEnd) {
-                    break;
-                }
-                dragMinInsertPos--;
-                pos--;
-            }
-            pos = position;
-            while (pos < probot.size()-1) {
-                if (probot.get(pos+1).type == CommandType.LoopEnd) {
-                    break;
-                }
-                dragMaxInsertPos++;
-                pos++;
-            }
-            Log.d("ProbotListView", "dragMin=" + dragMinInsertPos + " dragMax=" + dragMaxInsertPos + " pos=" + position);
-        } else if (cmd.type == CommandType.LoopEnd) {
-            final int position = (Integer)v.getTag();
-            // scan forward and back to make sure
-            int pos = position;
-            dragMaxInsertPos = dragMinInsertPos = pos;
-            while (pos > 1) {
-                if (probot.get(pos-2).type == CommandType.LoopStart) {
-                    break;
-                }
-                dragMinInsertPos--;
-                pos--;
-            }
-            pos = position;
-            while (pos < probot.size()) {
-                if (probot.get(pos).type == CommandType.LoopStart) {
-                    break;
-                }
-                dragMaxInsertPos++;
-                pos++;
-            }
-            Log.d("ProbotListView", "insertPos=" + dragInsertPos + " dragMin=" + dragMinInsertPos + " dragMax=" + dragMaxInsertPos + " pos=" + position);
-        }
-    }
+	private fun startDrag(v: View, cmd: Command, originatingLine: Int) {
+		v.startDrag(ClipData.newPlainText(cmd.type.name, cmd.type.name), DragShadowBuilder(v), arrayOf(
+			cmd, originatingLine
+		), 0)
+		dragMinInsertPos = -1
+		dragMaxInsertPos = probot.size()
+		if (cmd.type == CommandType.LoopStart) {
+			val position = v.tag as Int
+			var pos = position
+			dragMinInsertPos = pos
+			dragMaxInsertPos = dragMinInsertPos
+			while (pos > 0) {
+				if (probot[pos - 1].type == CommandType.LoopEnd) {
+					break
+				}
+				dragMinInsertPos--
+				pos--
+			}
+			pos = position
+			while (pos < probot.size() - 1) {
+				if (probot[pos + 1].type == CommandType.LoopEnd) {
+					break
+				}
+				dragMaxInsertPos++
+				pos++
+			}
+			Log.d("ProbotListView", "dragMin=$dragMinInsertPos dragMax=$dragMaxInsertPos pos=$position")
+		} else if (cmd.type == CommandType.LoopEnd) {
+			val position = v.tag as Int
+			// scan forward and back to make sure
+			var pos = position
+			dragMinInsertPos = pos
+			dragMaxInsertPos = dragMinInsertPos
+			while (pos > 1) {
+				if (probot[pos - 2].type == CommandType.LoopStart) {
+					break
+				}
+				dragMinInsertPos--
+				pos--
+			}
+			pos = position
+			while (pos < probot.size()) {
+				if (probot[pos].type == CommandType.LoopStart) {
+					break
+				}
+				dragMaxInsertPos++
+				pos++
+			}
+			Log.d("ProbotListView", "insertPos=$dragInsertPos dragMin=$dragMinInsertPos dragMax=$dragMaxInsertPos pos=$position")
+		}
+	}
 }

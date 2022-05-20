@@ -1,166 +1,179 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                xmlns:app="http://schemas.android.com/apk/res-auto"
-                xmlns:tools="http://schemas.android.com/tools"
-                android:layout_width="match_parent"
-              android:layout_height="match_parent">
-
-    <LinearLayout
-        android:id="@+id/layoutButtons"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-        <ImageButton
-            android:id="@+id/ibPlay"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@android:drawable/ic_media_play"/>
-        <ImageButton
-            android:id="@+id/ibStop"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@android:drawable/ic_menu_close_clear_cancel"/>
-        <ImageButton
-            android:id="@+id/ibPrevious"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@android:drawable/ic_media_previous"/>
-
-        <TextView
-            android:id="@+id/tvLevel"
-            android:layout_width="60dp"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="100"
-            android:textSize="32dp"/>
-        <ImageButton
-            android:id="@+id/ibNext"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@android:drawable/ic_media_next"/>
-
-    </LinearLayout>
-
-    <cc.android.game.robots.ProbotListView
-        android:id="@+id/lvProgram"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:background="#888"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/probotView"
-        app:layout_constraintTop_toBottomOf="@id/layoutButtons"
-        app:layout_constraintBottom_toTopOf="@id/commandsLayout"
-        />
-
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/commandsLayout"
-        android:layout_width="match_parent"
-        android:layout_height="64dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        >
+                    android:layout_width="match_parent"
+                  android:layout_height="match_parent">
 
-        <ImageView
-            android:background="@drawable/arrow_forward"
-            android:id="@+id/ivArrowForward"
+        <LinearLayout
+            android:id="@+id/layoutButtons"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toTopOf="parent">
+            <ImageButton
+                android:id="@+id/ibPlay"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@android:drawable/ic_media_play"/>
+            <ImageButton
+                android:id="@+id/ibStop"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@android:drawable/ic_menu_close_clear_cancel"/>
+            <ImageButton
+                android:id="@+id/ibPrevious"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@android:drawable/ic_media_previous"/>
+
+            <TextView
+                android:id="@+id/tvLevel"
+                android:layout_width="60dp"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="100"
+                android:textSize="32dp"/>
+            <ImageButton
+                android:id="@+id/ibNext"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@android:drawable/ic_media_next"/>
+
+        </LinearLayout>
+
+        <cc.android.game.robots.ProbotListView
+            android:id="@+id/lvProgram"
             android:layout_width="0dp"
-            android:layout_height="fill_parent"
-            app:layout_constraintDimensionRatio="1:1"
+            android:layout_height="0dp"
+            android:background="#888"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/probotView"
+            app:layout_constraintTop_toBottomOf="@id/layoutButtons"
+            app:layout_constraintBottom_toTopOf="@id/commandsLayout"
             />
 
-        <TextView
-            android:id="@+id/tvArrowForwardCount"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="10"
-            android:textSize="16sp"
-            app:layout_constraintStart_toStartOf="@id/ivArrowForward"/>
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/commandsLayout"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            >
 
-        <ImageView
-            android:background="@drawable/arrow_right"
-            android:id="@+id/ivArrowRight"
+            <ImageView
+                android:background="@drawable/arrow_forward"
+                android:id="@+id/ivArrowForward"
+                android:layout_width="0dp"
+                android:layout_height="fill_parent"
+                app:layout_constraintDimensionRatio="1:1"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                />
+
+            <TextView
+                android:id="@+id/tvArrowForwardCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="10"
+                android:textSize="16sp"
+                app:layout_constraintStart_toStartOf="@id/ivArrowForward"
+                app:layout_constraintTop_toTopOf="@id/ivArrowForward"/>
+
+            <ImageView
+                android:background="@drawable/arrow_right"
+                android:id="@+id/ivArrowRight"
+                android:layout_width="0dp"
+                android:layout_height="fill_parent"
+                app:layout_constraintDimensionRatio="1:1"
+                app:layout_constraintStart_toEndOf="@id/ivArrowForward"
+                app:layout_constraintTop_toTopOf="parent"/>
+
+            <TextView
+                android:id="@+id/tvArrowRightCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="10"
+                android:textSize="16sp"
+                app:layout_constraintStart_toStartOf="@id/ivArrowRight"
+                app:layout_constraintTop_toTopOf="@id/ivArrowRight"/>
+
+            <ImageView
+                android:background="@drawable/arrow_left"
+                android:id="@+id/ivArrowLeft"
+                android:layout_width="0dp"
+                android:layout_height="fill_parent"
+                app:layout_constraintDimensionRatio="1:1"
+                app:layout_constraintStart_toEndOf="@id/ivArrowRight"
+                app:layout_constraintTop_toTopOf="parent"/>
+
+            <TextView
+                android:id="@+id/tvArrowLeftCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="10"
+                android:textSize="16sp"
+                app:layout_constraintEnd_toEndOf="@id/ivArrowLeft"
+                app:layout_constraintTop_toTopOf="@id/ivArrowLeft"/>
+
+            <ImageView
+                android:background="@drawable/uturn"
+                android:id="@+id/ivUTurn"
+                android:layout_width="0dp"
+                android:layout_height="fill_parent"
+                app:layout_constraintDimensionRatio="1:1"
+                app:layout_constraintStart_toEndOf="@id/ivArrowLeft"
+                app:layout_constraintTop_toTopOf="parent"/>
+
+            <TextView
+                android:id="@+id/tvUTurnCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="10"
+                android:textSize="16sp"
+                app:layout_constraintEnd_toEndOf="@id/ivUTurn"
+                app:layout_constraintTop_toTopOf="@id/ivUTurn"/>
+
+            <ImageView
+                android:background="@drawable/arrow_jump"
+                android:id="@+id/ivArrowJump"
+                android:layout_width="0dp"
+                android:layout_height="fill_parent"
+                app:layout_constraintDimensionRatio="1:1"
+                app:layout_constraintStart_toEndOf="@id/ivUTurn"
+                app:layout_constraintTop_toBottomOf="parent"/>
+
+            <TextView
+                android:id="@+id/tvJumpCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="10"
+                android:textSize="16sp"
+                app:layout_constraintBottom_toBottomOf="@id/ivArrowJump"
+                app:layout_constraintStart_toStartOf="@id/ivArrowJump"/>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <TextView
+            android:id="@+id/tvLevelName"
+            android:layout_height="0dp"
             android:layout_width="0dp"
-            android:layout_height="fill_parent"
-            app:layout_constraintDimensionRatio="1:1"
-            app:layout_constraintStart_toEndOf="@id/ivArrowForward"/>
+            android:text="LEVEL TITLE"
+            android:gravity="center"
+            android:textSize="24sp"
+            android:textColor="#fff"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="@id/layoutButtons"
+            app:layout_constraintStart_toStartOf="@+id/probotView"
+            />
 
-        <TextView
-            android:id="@+id/tvArrowRightCount"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="10"
-            android:textSize="16sp"
-            app:layout_constraintStart_toStartOf="@id/ivArrowRight"/>
-
-        <ImageView
-            android:background="@drawable/arrow_left"
-            android:id="@+id/ivArrowLeft"
+        <cc.android.game.robots.ProbotView
+            android:id="@+id/probotView"
+            android:layout_height="0dp"
             android:layout_width="0dp"
-            android:layout_height="fill_parent"
-            app:layout_constraintDimensionRatio="1:1"
-            app:layout_constraintStart_toEndOf="@id/ivArrowRight"/>
-
-        <TextView
-            android:id="@+id/tvArrowLeftCount"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="10"
-            android:textSize="16sp"
-            app:layout_constraintEnd_toEndOf="@id/ivArrowLeft"/>
-
-        <ImageView
-            android:background="@drawable/uturn"
-            android:id="@+id/ivUTurn"
-            android:layout_width="0dp"
-            android:layout_height="fill_parent"
-            app:layout_constraintDimensionRatio="1:1"
-            app:layout_constraintStart_toEndOf="@id/ivArrowLeft"/>
-
-        <TextView
-            android:id="@+id/tvUTurnCount"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="10"
-            android:textSize="16sp"
-            app:layout_constraintEnd_toEndOf="@id/ivUTurn"/>
-
-        <ImageView
-            android:background="@drawable/arrow_jump"
-            android:id="@+id/ivArrowJump"
-            android:layout_width="0dp"
-            android:layout_height="fill_parent"
-            app:layout_constraintDimensionRatio="1:1"
-            app:layout_constraintStart_toEndOf="@id/ivUTurn"/>
-
-        <TextView
-            android:id="@+id/tvJumpCount"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="10"
-            android:textSize="16sp"
-            app:layout_constraintBottom_toBottomOf="@id/ivArrowJump"
-            app:layout_constraintStart_toStartOf="@id/ivArrowJump"/>
-
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toTopOf="@+id/commandsLayout"
+            app:layout_constraintTop_toBottomOf="@+id/tvLevelName"
+            app:layout_constraintDimensionRatio="1:1"/>
     </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <TextView
-        android:id="@+id/tvLevelName"
-        android:layout_height="0dp"
-        android:layout_width="0dp"
-        android:text="LEVEL TITLE"
-        android:gravity="center"
-        android:textSize="24sp"
-        android:textColor="#fff"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="@id/layoutButtons"
-        app:layout_constraintStart_toStartOf="@+id/probotView"
-        />
-
-    <cc.android.game.robots.ProbotView
-        android:id="@+id/probotView"
-        android:layout_height="0dp"
-        android:layout_width="0dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/commandsLayout"
-        app:layout_constraintTop_toBottomOf="@+id/tvLevelName"
-        app:layout_constraintDimensionRatio="1:1"/>
-</androidx.constraintlayout.widget.ConstraintLayout>
+</layout>
