@@ -5,6 +5,7 @@ plugins {
 apply plugin: 'java'
 apply plugin: 'application'
 apply plugin: 'ca.coglinc.javacc'
+apply plugin: 'kotlin'
 
 sourceSets {
     main {

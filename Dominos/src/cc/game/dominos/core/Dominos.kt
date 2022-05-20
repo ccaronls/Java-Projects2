@@ -1358,22 +1358,21 @@ abstract class Dominos : Reflector<Dominos?>(), GameServer.Listener {
 			}
 		}
 
+		var dim: Float = 0f
+
 		override fun onStarted(g: AGraphics) {
 			val min = MutableVector2D(Vector2D.MAX)
 			val max = MutableVector2D(Vector2D.MIN)
-			val dim = board.boardWidth / (max.x - min.x + 2)
+			dominosPositions.forEach {
+				val v = it[0] as Vector2D
+				min.minEq(v)
+				max.maxEq(v)
+			}
+			dim = board.boardWidth / (max.x - min.x + 2)
 			init(board.boardWidth / dim, Vector2D(.5f, 9f))
 		}
 
 		override fun draw(g: AGraphics, position: Float, dt: Float) {
-			val min = MutableVector2D(Vector2D.MAX)
-			val max = MutableVector2D(Vector2D.MIN)
-			for (o in dominosPositions) {
-				val v = o[0] as Vector2D
-				min.minEq(v)
-				max.maxEq(v)
-			}
-			val dim = board.boardWidth / (max.x - min.x + 2)
 			val pos = (position * 2).coerceIn(0f, 1f)
 			g.setPointSize(dim / 8)
 			g.pushMatrix()

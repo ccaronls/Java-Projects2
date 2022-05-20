@@ -5,7 +5,6 @@ import android.app.AlertDialog
 import android.app.Dialog
 import android.app.ProgressDialog
 import android.content.DialogInterface
-import android.graphics.Bitmap
 import android.os.AsyncTask
 import android.os.Bundle
 import android.text.format.DateFormat
@@ -37,15 +36,12 @@ import cc.lib.zombicide.ui.*
 import cc.lib.zombicide.ui.UIZombicide.Companion.instance
 import cc.lib.zombicide.ui.UIZombicide.UIMode
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
-import java.util.concurrent.ArrayBlockingQueue
 import kotlin.Pair
-import kotlin.coroutines.suspendCoroutine
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.

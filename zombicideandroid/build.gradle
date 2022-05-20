@@ -29,8 +29,6 @@ dependencies {
     implementation project(':AndroidGameLibrary')
     implementation project(':AndroidMultiplayerGameLibrary')
     implementation project(':GameLibrary')
+    implementation project(':Zombicide')
     implementation fileTree(dir: "libs", include: ["*.jar"])
-//    testImplementation 'junit:junit:4.12'
-//    testImplementation(testFixtures(project(':GameLibrary')))
-//    testImplementation project(":GameLibrary")
 }

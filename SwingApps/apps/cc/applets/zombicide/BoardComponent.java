@@ -107,7 +107,7 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics>, 
 
     void loadImages(AWTGraphics g) {
 
-        g.addSearchPath("../zombicideandroid/src/main/res/drawable");
+        g.addSearchPath("zombicideandroid/src/main/res/drawable");
         Object [][] files = {
 
             { ZZombieType.Abomination, "zabomination.png" },
@@ -327,7 +327,7 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics>, 
     @Override
     public void loadTiles(AWTGraphics g, ZTile[] tiles) {
         numTilesLoaded = 0;
-        g.addSearchPath("../zombicideandroid/assets");
+        g.addSearchPath("zombicideandroid/assets");
         new Thread() {
             public void run() {
                 for (int t : loadedTiles) {

@@ -15,6 +15,8 @@ dependencies {
     implementation project(':GameLibrary')
     implementation project(':Dominos')
     implementation project(':othello')
+    implementation project(':Zombicide')
+    implementation project(':Monopoly')
 }
 
 sourceSets {
@@ -54,101 +56,73 @@ artifacts {
     swingLib swingLibJar
 }
 
-task runCheckers(type: JavaExec) {
-    group = 'Application' 
-    description = 'Run the Checkers Applet'
+tasks.withType(JavaExec) {
+    workingDir = "${rootDir}"
+    classpath sourceSets.main.runtimeClasspath
+    group = 'Application'
+    standardInput = System.in
+}
 
-    classpath sourceSets.main.runtimeClasspath 
+task runCheckers(type: JavaExec) {
+    description = 'Run the Checkers Applet'
     main = "cc.lib.swing.AWTCheckers"
-//    args "arg1", "arg2"
 }
 
 task runCheckerboard(type: JavaExec) {
-    group = 'Application'
     description = 'Run the Checkerboard Applet'
-
-    classpath sourceSets.main.runtimeClasspath
     main = "cc.lib.swing.AWTCheckerboard"
 //    args "arg1", "arg2"
 }
 
 task runBoardBuilder(type: JavaExec) {
-    group = 'Application' // <-- change the name as per your need
     description = 'Run the Custum Board Builder App'
-
-    classpath sourceSets.main.runtimeClasspath // <-- Don't change this
     main = "cc.lib.swing.AWTBoardBuilder"
 //    args "arg1", "arg2"
 }
 
 task runDungeonBuilder(type: JavaExec) {
-    group = 'Application' // <-- change the name as per your need
     description = 'Run the Dungeon Builder Applet App'
-
-    classpath sourceSets.main.runtimeClasspath // <-- Don't change this
-    main = "cc.lib.swing.AWTDungeonBuilder"
+    main = "cc.applets.dungeonbb.AWTDungeonBuilder"
 //    args "arg1", "arg2"
 }
 
 task runMonopoly(type: JavaExec) {
-    group = 'Application' // <-- change the name as per your need
     description = 'Run Monopoly App'
-
-    classpath sourceSets.main.runtimeClasspath // <-- Don't change this
-    main = "cc.lib.swing.AWTMonopoly"
-//    args "arg1", "arg2"
+    main = "cc.applets.monopoly.AWTMonopoly"
 }
 
 task runProbotLevelBuilder(type: JavaExec) {
-    group = 'Application' // <-- change the name as per your need
     description = 'Run Probot Level Editor App'
-
-    classpath sourceSets.main.runtimeClasspath // <-- Don't change this
-    main = "cc.lib.swing.AWTProbotLevelBuilder"
+    main = "cc.applets.probotbb.AWTProbotLevelBuilder"
 //    args "arg1", "arg2"
 }
 
 task runYahtzeeConsole(type: JavaExec) {
-    group = 'Application' // <-- change the name as per your need
     description = 'Run Probot Level Editor App'
-
-    classpath sourceSets.main.runtimeClasspath // <-- Don't change this
     main = "cc.lib.main.YahtzeeConsole"
 //    args "arg1", "arg2"
 }
 
 task runProbot(type: JavaExec) {
-    group = 'Application' // <-- change the name as per your need
     description = 'Run Probot Desktop App'
-
-    classpath sourceSets.main.runtimeClasspath // <-- Don't change this
-    main = "cc.lib.swing.AWTProbot"
+    main = "cc.applets.probot.AWTProbot"
 //    args "arg1", "arg2"
 }
 
 task runAudioClient(type: JavaExec) {
-    group = 'Application' // <-- change the name as per your need
     description = 'Run the audio client'
-
-    classpath sourceSets.main.runtimeClasspath // <-- Don't change this
     main = "cc.audio.stream.server.AudioClient"
 //    args "arg1", "arg2"
 }
 
 task runZombicide(type: JavaExec) {
-    group = 'Application' // <-- change the name as per your need
-    description = 'Run the audio client'
-
-    classpath sourceSets.main.runtimeClasspath // <-- Don't change this
+    description = 'Play Zombicide!'
     main = "cc.applets.zombicide.ZombicideApplet"
 //    args "arg1", "arg2"
 }
 
 task runDominos(type: JavaExec) {
-    group = 'Application' // <-- change the name as per your need
     description = 'Run the Dominos App'
-
-    classpath sourceSets.main.runtimeClasspath // <-- Don't change this
     main = "cc.applets.dominos.DominosApplet"
 //    args "arg1", "arg2"
 }

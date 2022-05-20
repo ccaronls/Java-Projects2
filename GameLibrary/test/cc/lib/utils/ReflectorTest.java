@@ -21,9 +21,6 @@ import java.util.Vector;
 
 import cc.lib.game.GColor;
 import cc.lib.game.Utils;
-import cc.lib.zombicide.ZEquipment;
-import cc.lib.zombicide.ZItemType;
-import cc.lib.zombicide.ZWeaponType;
 
 public class ReflectorTest extends TestCase {
 
@@ -861,36 +858,6 @@ public class ReflectorTest extends TestCase {
         System.out.println("str="+str);
 
         list = Reflector.deserializeFromString(str);
-    }
-
-    static class Hand extends Reflector<Hand> {
-        ZEquipment e;
-    }
-
-
-    public void testDeserializeEnums() throws Exception {
-
-        Reflector.addAllFields(Hand.class);
-
-        Hand a, b;
-
-        a = new Hand();
-        b = new Hand();
-
-        a.e = ZItemType.DRAGON_BILE.create();
-        b.e = ZWeaponType.DAGGER.create();
-
-//        System.out.println("a=" + a.toStringNumbered());
-//        System.out.println("b=" + b.toStringNumbered());
-
-        StringWriter str = new StringWriter();
-        try (PrintWriter out = new PrintWriter(str)) {
-            a.serialize(out);
-        }
-        System.out.println("str=" + str.toString());
-        b.merge(str.toString());
-
-        System.out.println(b.toString());
     }
 
     public void testMergeArraysNull() throws Exception {

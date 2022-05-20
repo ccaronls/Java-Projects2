@@ -82,8 +82,20 @@ public final class GDimension extends Reflector<GDimension> implements IDimensio
         return new GDimension(w, h);
     }
 
+    public GDimension addVert(GDimension d) {
+        return new GDimension(Math.max(width, d.width), height+d.height);
+    }
+
+    public GDimension addHorz(GDimension d) {
+        return new GDimension(width+d.width, Math.max(height, d.height));
+    }
+
     public MutableVector2D getCenter() {
         return new MutableVector2D(width/2, height/2);
+    }
+
+    public Float minLength() {
+        return Math.min(width, height);
     }
 
     @Override

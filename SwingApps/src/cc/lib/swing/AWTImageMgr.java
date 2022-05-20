@@ -193,7 +193,7 @@ public final class AWTImageMgr {
                 }
             }
         } catch (FileNotFoundException e) {
-		    log.error("File '" + fileOrResourceName + "' Not found on file paths or resources");
+		    log.error("File '" + fileOrResourceName + "' Not found on file paths or resources. Working dir is: " + new File(".").getAbsolutePath());
             throw new GException("File not found '" + fileOrResourceName + "'");
         } catch (Exception e) {
 		    log.error(e.getClass().getSimpleName() + ":" + e.getMessage());

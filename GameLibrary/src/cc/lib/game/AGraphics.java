@@ -16,6 +16,10 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     public static boolean DEBUG_ENABLED = false;
     
     private int mViewportWidth, mViewportHeight;
+    private float [] textHeightStack = new float[32];
+    private int textHeightIndex = 0;
+    private GColor [] colorStack = new GColor[32];
+    private int colorStackIndex = 0;
 
     /**
      *
@@ -60,6 +64,38 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @return
      */
     public abstract GColor getColor();
+
+    /**
+     *
+     * @param color
+     */
+    public final void pushColor(GColor color) {
+        colorStack[colorStackIndex++] = getColor();
+        setColor(color);
+    }
+
+    /**
+     *
+     */
+    public final void popColor() {
+        setColor(colorStack[--colorStackIndex]);
+    }
+
+    /**
+     *
+     * @param height
+     */
+    public final void pushTextHeight(float height) {
+        textHeightStack[textHeightIndex++] = getTextHeight();
+        setTextHeight(height);
+    }
+
+    /**
+     *
+     */
+    public final void popTextHeight() {
+        setTextHeight(textHeightStack[--textHeightIndex]);
+    }
 
     /**
      * 
@@ -614,7 +650,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @return the maxWidth of any line
      */
     public final GDimension generateWrappedText(String str, float maxWidth, List<String> resultLines, List<Float> resultLineWidths) {
-        String text = str.trim();
+        String text = Utils.trimSpaces(str);
         if (text.isEmpty())
             return GDimension.EMPTY;
         float maxLineWidth = 0;
@@ -622,7 +658,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
         while (text.length() > 0 && resultLines.size() < 256) {
             int endl = text.indexOf('\n');
             if (endl >= 0) {
-                String t = text.substring(0, endl).trim();
+                String t = Utils.trimSpaces(text.substring(0, endl));
                 float width = getTextWidth(t);
                 if (width <= maxWidth) {
                     resultLines.add(t);
@@ -650,7 +686,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
             while (width > maxWidth) {
                 spc = t.lastIndexOf(' ');
                 if (spc >= 0) {
-                    t = t.substring(0, spc).trim();
+                    t = Utils.trimSpaces(t.substring(0, spc));
                     width = getTextWidth(t);
                 } else {
                     spc = -1;
@@ -664,7 +700,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
                 if (resultLineWidths != null)
                     resultLineWidths.add(width);
                 maxLineWidth = Math.max(maxLineWidth, width);
-                text = text.substring(spc+1).trim();
+                text = Utils.trimSpaces(text.substring(spc+1));
                 continue;
             }
             
@@ -692,7 +728,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
 
 
             try {
-            	text = text.substring(t.length()).trim();
+            	text = Utils.trimSpaces(text.substring(t.length()));
             } catch (Exception e) {
             	e.printStackTrace();
             	break;
@@ -1961,15 +1997,5 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @return
      */
     public abstract GRectangle getClipRect();
-
-    /**
-     * Return a string that can be rendered in the supplied color using @see drawAnnotatedString
-     * @param color
-     * @param string
-     * @return
-     */
-    public static String getAnnotatedString(GColor color, String string) {
-        return String.format("%s%s", color.toString(), string);
-    }
 
 }

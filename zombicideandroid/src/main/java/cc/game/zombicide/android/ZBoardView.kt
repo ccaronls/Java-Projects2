@@ -10,7 +10,6 @@ import cc.lib.game.GDimension
 import cc.lib.zombicide.*
 import cc.lib.zombicide.ui.UIZBoardRenderer
 import cc.lib.zombicide.ui.UIZComponent
-import kotlin.coroutines.coroutineContext
 
 class ZBoardView(context: Context, attrs: AttributeSet) : UIComponentView<UIZBoardRenderer<DroidGraphics>>(context, attrs), UIZComponent<DroidGraphics> {
 	var progress = 0

@@ -64,6 +64,12 @@ public final class Table implements IMeasurable {
         default int getMaxCharsPerLine() { return 64; }
 
         default int getBorderWidth() { return 2; }
+
+        default float getHeaderTextHeight(AGraphics g) { return g.getTextHeight(); }
+
+        default float getCellTextHeight(AGraphics g) { return g.getTextHeight(); }
+
+        default Justify getHeaderJustify(int col) { return Justify.LEFT; }
     }
 
     private final List<String> header;
@@ -236,6 +242,7 @@ public final class Table implements IMeasurable {
         float cellPadding = getCellPadding(g);
 
         headerHeightLines = 0;
+        float saveTxtHgt = g.setTextHeight(model.getHeaderTextHeight(g));
         if (header != null && header.size() > 0) {
             for (int i = 0; i < columns && i < header.size(); i++) {
                 String [] parts = header.get(i).split("\n");
@@ -247,6 +254,7 @@ public final class Table implements IMeasurable {
             }
         }
         float headerHeight = headerHeightLines * g.getTextHeight() + cellPadding*2;
+        g.setTextHeight(saveTxtHgt);
         for (int r = 0; r < rows.size(); r++) {
             for (int c = 0; c < rows.get(r).size(); c++) {
                 Object o = rows.get(r).get(c);
@@ -260,12 +268,14 @@ public final class Table implements IMeasurable {
                 } else if (o instanceof AImage) {
                     // TODO: Implement this
                 } else {
+                    g.pushTextHeight(model.getCellTextHeight(g));
                     String entry = model.getStringValue(o);
                     String [] parts = Utils.wrapText(entry, model.getMaxCharsPerLine());
                     for (String s : parts) {
                         maxWidth[c] = Math.max(maxWidth[c], g.getTextWidth(s));
                     }
                     maxHeight[r] = Math.max(maxHeight[r], g.getTextHeight() * parts.length);
+                    g.popTextHeight();
                 }
             }
         }
@@ -301,14 +311,13 @@ public final class Table implements IMeasurable {
         if (borderWidth > 0) {
             outerPadding = getCellPadding(g) / 2;
             // if there is a border, then there is padding around between border and text
-            GColor cur = g.getColor();
-            g.setColor(model.getBackgroundColor());
+            g.pushColor(model.getBackgroundColor());
             float radius = model.getCornerRadius();
             g.drawFilledRoundedRect(0, 0, dim.width, dim.height, radius);
-            g.setColor(cur);
             g.setColor(model.getBorderColor(g));
             g.drawRoundedRect(dim, borderWidth, radius);
             g.translate(borderWidth, borderWidth);
+            g.popColor();
         } else {
             // if there is no border then no padding
         }
@@ -327,14 +336,24 @@ public final class Table implements IMeasurable {
         // check for header. if so render and draw a divider line
         float cellPadding = Math.max(4, padding*g.getTextHeight()/2);
         if (header != null && header.size() > 0) {
-            g.setColor(model.getHeaderColor(g));
+            g.pushColor(model.getHeaderColor(g));
             float x=outerPadding;
             for (int i=0; i<header.size(); i++) {
-                g.drawJustifiedString(x, 0, Justify.LEFT, header.get(i));
+                switch (model.getHeaderJustify(i)) {
+                    case LEFT:
+                        g.drawJustifiedString(x, 0, Justify.LEFT, header.get(i)); break;
+                    case CENTER:
+                        g.drawJustifiedString(x+maxWidth[i]/2, 0, Justify.CENTER, header.get(i)); break;
+                    case RIGHT:
+                        g.drawJustifiedString(x+maxWidth[i], 0, Justify.CENTER, header.get(i)); break;
+                }
                 x += maxWidth[i];
             }
+            g.popColor();
+            g.pushTextHeight(model.getHeaderTextHeight(g));
             g.translate(0, g.getTextHeight()*headerHeightLines + cellPadding);
             g.drawLine(0, 0, dim.width-borderWidth, 0, borderWidth);
+            g.popTextHeight();
             g.translate(0, cellPadding);
         }
 
@@ -355,8 +374,17 @@ public final class Table implements IMeasurable {
                     } else {
                         String txt = model.getStringValue(o);
                         Justify hJust = model.getTextAlignment(i, ii);
-                        g.setColor(model.getCellColor(g, i, ii));
+                        g.pushColor(model.getCellColor(g, i, ii));
+                        g.pushTextHeight(model.getCellTextHeight(g));
+                        g.pushMatrix();
+                        switch (hJust) {
+                            case CENTER: g.translate(maxWidth[ii]/2, 0); break;
+                            case RIGHT:  g.translate(maxWidth[ii], 0); break;
+                        }
                         g.drawWrapString(0, 0, maxWidth[ii], hJust, Justify.TOP, txt);
+                        g.popColor();
+                        g.popTextHeight();
+                        g.popMatrix();
                     }
                 }
                 g.translate(maxWidth[ii], 0);

@@ -1,7 +1,6 @@
 package cc.game.zombicide.android
 
 import android.util.Log
-import cc.game.zombicide.android.Assignee
 import cc.lib.net.ClientConnection
 import cc.lib.net.GameCommand
 import cc.lib.net.GameCommandType

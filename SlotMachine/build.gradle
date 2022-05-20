@@ -5,15 +5,13 @@ mainClassName = 'cc.game.slot.SlotMachine'
 
 dependencies {
     implementation project(':GameLibrary')
+    implementation project(path: ':SwingApps', configuration: 'swingLib')
 }
 
 sourceSets {
     main {
         java {
             srcDirs = ['src']
-            //, '../GameLibrary/src']
-            //exclude '**/swing/**'
-            //exclude '**/skunkworks/**'
         }
     }
 }

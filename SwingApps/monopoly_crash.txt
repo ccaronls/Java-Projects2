@@ -8,7 +8,7 @@ die1=0
 die2=0
 kitty=0
 players=java.util.ArrayList {
-   cc.lib.monopoly.Player {
+   Player {
       cards=java.util.ArrayList {
       }
       inJail=false
@@ -16,7 +16,7 @@ players=java.util.ArrayList {
       piece=null
       square=0
    }
-   cc.lib.monopoly.Player {
+   Player {
       cards=java.util.ArrayList {
       }
       inJail=false
@@ -24,7 +24,7 @@ players=java.util.ArrayList {
       piece=null
       square=0
    }
-   cc.lib.monopoly.Player {
+   Player {
       cards=java.util.ArrayList {
       }
       inJail=false
@@ -33,7 +33,7 @@ players=java.util.ArrayList {
       square=0
    }
 }
-rules=cc.lib.monopoly.Rules {
+rules=Rules {
 }
 state=java.util.Stack {
 }

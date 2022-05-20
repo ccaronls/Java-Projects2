@@ -2675,8 +2675,9 @@ public class Utils {
         if (txt == null || maxChars < 1)
             return null;
         List<String> lines = new ArrayList<>();
-        String [] parts = txt.split("[\n]");
-        for (String str : parts) {
+        int newline = txt.indexOf('\n');
+        String str = newline>=0? txt.substring(0,newline) : txt;
+        while (true) {
             while (str.length() > maxChars) {
                 int spc = str.indexOf(' ');
                 if (spc < 0 || spc > maxChars-1) {
@@ -2695,6 +2696,18 @@ public class Utils {
                 }
             }
             lines.add(str);
+            if (newline >= 0) {
+                int end = txt.indexOf('\n', newline+1);
+                if (end > newline) {
+                    str = txt.substring(newline+1, end);
+                    newline = end;
+                } else {
+                    str = txt.substring(newline+1);
+                    newline = -1;
+                }
+            } else {
+                break;
+            }
         }
 
         return lines.toArray(new String[lines.size()]);
@@ -3439,5 +3452,23 @@ public class Utils {
         } else {
             map.put(object, amt);
         }
+    }
+
+    public static String trimSpaces(String in) {
+        if (in == null)
+            return null;
+        char [] value = in.toCharArray();
+        int len = value.length;
+
+        int st = 0;
+        char[] val = value;    /* avoid getfield opcode */
+
+        while ((st < len) && (val[st] == ' ')) {
+            st++;
+        }
+        while ((st < len) && (val[len - 1] == ' ')) {
+            len--;
+        }
+        return ((st > 0) || (len < value.length)) ? in.substring(st, len) : in;
     }
 }

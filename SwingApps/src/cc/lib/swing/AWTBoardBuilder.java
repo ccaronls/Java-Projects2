@@ -243,7 +243,7 @@ public abstract class AWTBoardBuilder<V extends BVertex, E extends BEdge, C exte
     final Map<Integer, KeyAction> actions = new HashMap<>();
     Tool tool = tools.get(0);
 
-    AWTBoardBuilder() {
+    public AWTBoardBuilder() {
         board = newBoard();
         setMouseEnabled(true);
         setPadding(10);

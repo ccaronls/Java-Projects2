@@ -43,7 +43,7 @@ public class AWTNumberPicker extends AWTPanel implements ChangeListener {
             listener.onValueChanged(0, (Integer)model.getValue());
     }
 
-    static class Builder {
+    public static class Builder {
 
         private int min=Integer.MIN_VALUE;
         private int max=Integer.MAX_VALUE;

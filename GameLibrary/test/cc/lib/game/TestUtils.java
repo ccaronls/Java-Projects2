@@ -137,4 +137,17 @@ public class TestUtils extends TestCase {
         }
     }
 
+    public void testWrapText() {
+        String txt = "\n\nHello\n\nGoodbye\n\n";
+        String [] lines = Utils.wrapText(txt, 100);
+        assertTrue(lines.length == 7);
+        assertEquals("", lines[0]);
+        assertEquals("", lines[1]);
+        assertEquals("Hello", lines[2]);
+        assertEquals("", lines[3]);
+        assertEquals("Goodbye", lines[4]);
+        assertEquals("", lines[5]);
+        assertEquals("", lines[6]);
+    }
+
 }
