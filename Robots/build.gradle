@@ -4,6 +4,7 @@ dependencies {
     implementation project(':AndroidGameLibrary')
     //implementation 'cc.lib:gamelib-android:1.0'
     implementation project(':GameLibrary')
+    implementation project(':Probot')
 }
 
 android {

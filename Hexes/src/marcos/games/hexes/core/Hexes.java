@@ -93,8 +93,10 @@ public class Hexes extends Reflector<Hexes> {
 				cancel();
 			}
 			if (shape != null && playerChoice >= 0 && player.getShapeCount(shape) > 0) {
+			    int ptsBefore = board.computePlayerPoints(curPlayer+1);
 				board.setPiece(playerChoice, curPlayer+1, shape);
-				onPiecePlayed(playerChoice);
+				int ptsAfter = board.computePlayerPoints(curPlayer+1);
+				onPiecePlayed(playerChoice, ptsAfter-ptsBefore);
 				board.shapeSearch(curPlayer+1);
 				playerChoice = -1;
 				player.score = board.computePlayerPoints(curPlayer+1);
@@ -171,6 +173,6 @@ public class Hexes extends Reflector<Hexes> {
 	
 	protected void onGameOver(int winner) {}
 	
-	protected void onPiecePlayed(int pieceIndex) {}
+	protected void onPiecePlayed(int pieceIndex, int pts) {}
 
 }

@@ -3,11 +3,9 @@ package cc.game.android.yahtzee
 import android.app.AlertDialog
 import android.content.DialogInterface
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.*
-import androidx.core.view.postDelayed
 import androidx.databinding.BindingAdapter
 import androidx.databinding.ObservableArrayList
 import androidx.databinding.ViewDataBinding
@@ -20,7 +18,6 @@ import cc.lib.utils.Lock
 import cc.lib.utils.random
 import cc.lib.yahtzee.YahtzeeRules
 import cc.lib.yahtzee.YahtzeeSlot
-import cc.lib.yahtzee.YahtzeeState
 
 const val DICE_COUNT = 5
 

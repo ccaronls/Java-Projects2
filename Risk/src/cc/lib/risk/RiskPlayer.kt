@@ -9,7 +9,7 @@ import kotlin.math.roundToInt
 /**
  * Created by Chris Caron on 9/13/21.
  */
-open class RiskPlayer(val army: Army=Army.NEUTRAL) : Reflector<RiskPlayer>() {
+open class RiskPlayer(val army: Army = Army.NEUTRAL) : Reflector<RiskPlayer>() {
 	companion object {
 		val log = LoggerFactory.getLogger(RiskPlayer::class.java)
 
@@ -88,7 +88,7 @@ open class RiskPlayer(val army: Army=Army.NEUTRAL) : Reflector<RiskPlayer>() {
 		var best: Action? = null
 		for (a in actions) {
 			when (a) {
-				Action.ATTACK -> {
+				Action.ATTACK                                           -> {
 
 					// if we have any cells with 3 or more that are adjacent to something then choose yes
 					if (0 < game.board.getTerritories(army).count { idx: Int ->
@@ -105,7 +105,7 @@ open class RiskPlayer(val army: Army=Army.NEUTRAL) : Reflector<RiskPlayer>() {
 						return a
 					}
 				}
-				Action.MOVE -> {
+				Action.MOVE                                             -> {
 
 					// compute all move pairs
 					val copy = game.board
@@ -131,8 +131,8 @@ open class RiskPlayer(val army: Army=Army.NEUTRAL) : Reflector<RiskPlayer>() {
 					}
 				}
 				Action.THREE_ARMIES, Action.TWO_ARMIES, Action.ONE_ARMY -> if (best == null || best.ordinal < a.ordinal) best = a
-				Action.END -> if (bestMove == null) return a
-				Action.CANCEL -> {
+				Action.END                                              -> if (bestMove == null) return a
+				Action.CANCEL                                           -> {
 				}
 			}
 		}

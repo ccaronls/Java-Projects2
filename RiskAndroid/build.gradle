@@ -2,9 +2,6 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdkVersion project.myCompileSdkVersion.toInteger()
-    buildToolsVersion project.myBuildToolsVersion
-
     defaultConfig {
         applicationId "cc.game.android.risk"
         versionCode 1
@@ -24,5 +21,5 @@ dependencies {
     implementation project(':AndroidGameLibrary')
     implementation project(':AndroidMultiplayerGameLibrary')
     implementation project(':GameLibrary')
-    implementation fileTree(dir: "libs", include: ["*.jar"])
+    implementation project(':Risk')
 }

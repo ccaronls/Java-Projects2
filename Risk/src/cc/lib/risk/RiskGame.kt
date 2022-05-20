@@ -43,7 +43,7 @@ open class RiskGame : Reflector<RiskGame>() {
 		val actions: MutableList<Action> = ArrayList()
 		var stageable: List<Int>? = null
 		when (state) {
-			State.INIT -> {
+			State.INIT                                                                          -> {
 				val terr = LinkedList<RiskCell>()
 				for (cell in board.cells) {
 					cell.occupier = (null)
@@ -83,7 +83,7 @@ open class RiskGame : Reflector<RiskGame>() {
 				}
 				state = State.PLACE_ARMY1
 			}
-			State.CHOOSE_TERRITORIES -> {
+			State.CHOOSE_TERRITORIES                                                            -> {
 				val unclaimed = Array(board.numCells) { it }.filter { 
 					with (board.getCell(it)) {
 						occupier == null && numArmies == 0
@@ -132,7 +132,7 @@ open class RiskGame : Reflector<RiskGame>() {
 					}
 				}
 			}
-			State.PLACE_NEUTRAL -> {
+			State.PLACE_NEUTRAL                                                                 -> {
 				territories = board.getTerritories(Army.NEUTRAL)
 				cur.pickTerritoryForNeutralArmy(this, territories)?.let { picked ->
 					assertTrue(territories.contains(picked))
@@ -143,7 +143,7 @@ open class RiskGame : Reflector<RiskGame>() {
 					nextPlayer()
 				}
 			}
-			State.BEGIN_TURN -> {
+			State.BEGIN_TURN                                                                    -> {
 				if (territories.isEmpty()) {
 					nextPlayer()
 				} else {
@@ -153,7 +153,7 @@ open class RiskGame : Reflector<RiskGame>() {
 					state = State.BEGIN_TURN_PLACE_ARMY
 				}
 			}
-			State.CHOOSE_MOVE -> {
+			State.CHOOSE_MOVE                                                                   -> {
 
 				// See which territories can attack an adjacent
 				stageable = territories.filter { idx ->
@@ -177,7 +177,7 @@ open class RiskGame : Reflector<RiskGame>() {
 					actions.add(Action.MOVE)
 				}
 				if (actions.isNotEmpty())
-					actions.add(Action.END) 
+					actions.add(Action.END)
 				else {
 					state = State.BEGIN_TURN
 					nextPlayer()
@@ -228,7 +228,7 @@ open class RiskGame : Reflector<RiskGame>() {
 					}
 				}
 			}
-			State.CHOOSE_MOVE_NO_ATTACK -> {
+			State.CHOOSE_MOVE_NO_ATTACK                                                         -> {
 				val moveable = getMoveSourceOptions(territories, cur.army)
 				if (moveable.isNotEmpty()) {
 					actions.add(Action.MOVE)
@@ -284,11 +284,11 @@ open class RiskGame : Reflector<RiskGame>() {
 					}
 				}
 			}
-			State.GAME_OVER -> {
+			State.GAME_OVER                                                                     -> {
 				onGameOver(winner!!)
 				state = State.DONE
 			}
-			State.DONE -> {
+			State.DONE                                                                          -> {
 			}
 		}
 		log.debug("runGame EXIT")
@@ -470,7 +470,7 @@ open class RiskGame : Reflector<RiskGame>() {
 		return players[playerNum]
 	}
 
-	val winner: Army? 
+	val winner: Army?
 			get() = board.getCell(0).occupier?.takeIf { army -> 
 			board.cells.count { cell ->
 				cell.occupier != army

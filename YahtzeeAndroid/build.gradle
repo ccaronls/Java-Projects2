@@ -5,6 +5,7 @@ apply plugin: 'kotlin-kapt'
 dependencies {
     implementation project(':AndroidGameLibrary')
     implementation project(':GameLibrary')
+    implementation project(':Yahtzee')
 }
 
 android {

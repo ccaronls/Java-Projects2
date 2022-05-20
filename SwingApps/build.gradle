@@ -17,6 +17,10 @@ dependencies {
     implementation project(':othello')
     implementation project(':Zombicide')
     implementation project(':Monopoly')
+    implementation project(':Probot')
+    implementation project(':Risk')
+    implementation project(':GeniusSquares')
+    implementation project(':Yahtzee')
 }
 
 sourceSets {

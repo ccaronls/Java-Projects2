@@ -1,25 +1,14 @@
 package marcos.games.hexes.swing;
 
-import java.awt.BorderLayout;
-import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.LinkedList;
 
-import javax.swing.JButton;
-import javax.swing.JDialog;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-import javax.swing.JPasswordField;
-import javax.swing.JProgressBar;
-import javax.swing.JTextField;
 
 import cc.lib.game.AGraphics;
 import cc.lib.game.GColor;
 import cc.lib.game.Justify;
 import cc.lib.game.Utils;
-import cc.lib.swing.AWTButton;
 import cc.lib.swing.AWTFrame;
 import cc.lib.swing.AWTKeyboardAnimationApplet;
 import cc.lib.utils.FileUtils;
@@ -28,11 +17,8 @@ import marcos.games.hexes.core.Hexes;
 import marcos.games.hexes.core.Piece;
 import marcos.games.hexes.core.Player;
 import marcos.games.hexes.core.Shape;
-import marcos.games.hexes.swing.MultiPlayerClient.Callback;
-import marcos.games.hexes.swing.MultiPlayerClient.ResultStatus;
-import marcos.games.hexes.swing.MultiPlayerClient.User;
 
-public class HexesApplet extends AWTKeyboardAnimationApplet implements MultiPlayerClient.Listener {
+public class HexesApplet extends AWTKeyboardAnimationApplet {
 
 	static HexesApplet instance = null;
 
@@ -48,15 +34,11 @@ public class HexesApplet extends AWTKeyboardAnimationApplet implements MultiPlay
         app.setMillisecondsPerFrame(200);
     }   
 
-	MultiPlayerClient mpClient = null;
 	final Hexes game = new Hexes() {
 
 		@Override
 		protected void onGameOver(final int winner) {
-			if (mpClient != null) {
-				mpClient.sendCommand("gameState", game);
-				mpClient.disconnect();
-			}
+		    stopGame();
 			new Thread() {
 				public void run() {
         			int n = JOptionPane.showConfirmDialog(
@@ -82,12 +64,9 @@ public class HexesApplet extends AWTKeyboardAnimationApplet implements MultiPlay
 		}
 
 		@Override
-		protected void onPiecePlayed(int pIndex) {
+		protected void onPiecePlayed(int pIndex, int pts) {
 			Piece p = getBoard().getPiece(pIndex);
-			addMessage("Player " + p.getPlayer() + " played a " + p.getType());
-			if (mpClient != null) {
-				mpClient.sendCommand("gameState", game);
-			}
+			addMessage("Player %s played a %s for %d points", p.getPlayer(), p.getType(), pts);
 		}
 		
 	};
@@ -96,10 +75,10 @@ public class HexesApplet extends AWTKeyboardAnimationApplet implements MultiPlay
 	int highlightedPiece = -1;
 	final LinkedList<String> messages = new LinkedList<String>();
 	
-	void addMessage(String msg) {
+	void addMessage(String msg, Object ... args) {
 		synchronized (messages) {
-			messages.add(msg);
-			while (messages.size() > 6)
+			messages.add(String.format(msg, args));
+			while (messages.size() > 3)
 				messages.removeLast();
 		}
 	}
@@ -109,27 +88,24 @@ public class HexesApplet extends AWTKeyboardAnimationApplet implements MultiPlay
 		this.frame = frame;
 		File settings = FileUtils.getOrCreateSettingsDirectory(getClass());
 		frame.loadFromFile(new File(settings, "hexes.properties"));
-		showMainMenu();
 		restoreFile = new File(settings, "hexes.txt");
 		if (restoreFile.exists()) {
-        	new Thread() {
-        		public void run() {
-        			try {
-        				Thread.sleep(1000);
-        			} catch (Exception e) {}
-                	showHelpPopup();
-        		}
-        	}.start();
-
+        	if (game.tryLoadFromFile(restoreFile)) {
+        	    startGame();
+        	    return;
+            }
 		}
+        showHelpPopup();
 	}
 
 	private void showHelpPopup() {
-		
-		String welcome = "Welcome to Hexes!\n\n"
-		       + "The Object of the game is to gain the most points by placing triangular pieces to form hexagons, triangles and diamonds.\n"
-			   + "";
-		JOptionPane.showMessageDialog(frame, welcome, "Welcome!", JOptionPane.INFORMATION_MESSAGE); 
+		new Thread(() -> {
+            String welcome = "Welcome to Hexes!\n\n"
+                    + "The Object of the game is to gain the most points by placing triangular pieces to form hexagons, triangles and diamonds.\n"
+                    + "";
+            JOptionPane.showConfirmDialog(frame, welcome, "Welcome!", JOptionPane.INFORMATION_MESSAGE);
+            showChooseColorMenu();
+        }).start();
 	}
 
 	private void showChooseColorMenu() {
@@ -163,7 +139,7 @@ public class HexesApplet extends AWTKeyboardAnimationApplet implements MultiPlay
         			    JOptionPane.YES_NO_OPTION,
         			    JOptionPane.PLAIN_MESSAGE,
         			    null,
-        			    new String[] { "NEW", "RESTORE", "CUSTOM", "AUTO", "MULTI PLAYER" },
+        			    new String[] { "NEW", "RESTORE", "CUSTOM", "AUTO" },
         			    null);
         		switch (n) {
         			case 0:
@@ -192,138 +168,16 @@ public class HexesApplet extends AWTKeyboardAnimationApplet implements MultiPlay
         				startGame();
         				break;
         				
-        			case 4: { // MULTIPLAYER
-        				mpClient = new MultiPlayerClient(HexesApplet.this);
-        				connectMultiplayer();
-        				break;
-        			}
-        			
+
         		}
 			}
 		}.start();
 	}
 	
-	private void endMultiplayer() {
-		if (mpClient != null) {
-			mpClient.disconnect();
-		}
-		mpClient = null;
-		showMainMenu();
-	}
-	
-	private void connectMultiplayer() {
-		if (frame.getStringProperty("username", null) == null) {
-			showUsernamePasswordDialog("Enter User name and Password");
-			return;
-		}
 
-		final JDialog dlg = showProgressDialog("Connecting", new ActionListener() {
-			
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				mpClient.disconnect();
-			}
-		});
-		final Callback<Void> connectCB = new Callback<Void>() {
-			
-			@Override
-			public void complete(ResultStatus status, String statusMsg, Void... params) {
-				switch (status) {
-					default:
-					case STATUS_FAILED:
-						dlg.setVisible(false);
-						int n = JOptionPane.showOptionDialog(frame, "Connect Failed\n" + statusMsg + "\nTry Again?", "Error", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.ERROR_MESSAGE, null, null, null);
-						switch (n) {
-							case JOptionPane.YES_OPTION:
-								connectMultiplayer();
-								break;
-							default:
-								endMultiplayer();
-								break;
-						}
-						break;
-					case STATUS_OK: {
-						User user = mpClient.chooseRandomUserForNewGame();
-						if (user == null) {
-							JOptionPane.showMessageDialog(frame, "There are no games ready yet.  Once another player becomes available you will be connected");
-						} else {
-							if (Utils.flipCoin()) {
-								game.initPlayers(new SwingPlayer(), new RemotePlayer(user, mpClient));
-							} else {
-								game.initPlayers(new RemotePlayer(user, mpClient), new SwingPlayer());
-							}
-							startGame();
-						}
-						break;
-					}
-					case STATUS_CANCELED:
-						dlg.setVisible(false);
-						endMultiplayer();
-						break;
-					
-				}
-			}
-		};
-		mpClient.connect(frame.getStringProperty("username", null),
-                frame.getStringProperty("password", null), connectCB);
-	}
-	
-	private void showUsernamePasswordDialog(final String message) {
-		new Thread() {
-			public void run() {
-				final JDialog d = new JDialog(frame, message, true);
-				d.setLayout(new GridLayout(0, 3));
-				final JTextField userName = new JTextField(frame.getStringProperty("username", null), 32);
-				final JTextField passWord = new JPasswordField(frame.getStringProperty("password", null), 32);
-				d.add(new JLabel("User Name"));
-				d.add(userName);
-				d.add(new JLabel("Password"));
-				d.add(passWord);
-				d.add(new AWTButton("Cancel", new ActionListener() {
-					
-					@Override
-					public void actionPerformed(ActionEvent arg0) {
-						d.setVisible(false);
-						endMultiplayer();
-					}
-				}));
-				d.add(new AWTButton("Connect", new ActionListener() {
-					
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						frame.setProperty("username", userName.getText());
-						frame.setProperty("password", passWord.getText());
-					}
-				}));
-			}
-		}.start();
-	}
-	
-	private JDialog showProgressDialog(String msg, final ActionListener cancelListener) {
-		final JDialog dlg = new JDialog(frame, msg, true);
-		new Thread() {
-			public void run() {
-        	    JProgressBar dpb = new JProgressBar();
-        	    dpb.setIndeterminate(true);
-        	    dlg.add(BorderLayout.CENTER, dpb);
-        	    dlg.add(BorderLayout.NORTH, new JLabel("Progress..."));
-        	    JButton button = new JButton("Cancel");
-        	    button.addActionListener(cancelListener);
-        	    button.addActionListener(new ActionListener() {
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						dlg.setVisible(false);
-					}
-				});
-        	    dlg.add(BorderLayout.SOUTH, button);
-        	    dlg.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
-        	    dlg.setSize(300, 75);
-        	    dlg.setLocationRelativeTo(frame);
-				dlg.setVisible(true);
-			}
-        	    }.start();
-	    return dlg;
-	}
+	void stopGame() {
+	    running = false;
+    }
 
 	boolean running = false;
 	void startGame() {
@@ -393,15 +247,6 @@ public class HexesApplet extends AWTKeyboardAnimationApplet implements MultiPlay
 
 	}
 	
-	@Override
-	public boolean onCommandReceived(String cmd, Object... params) {
-		if (cmd.equals("gameState")) {
-			game.copyFrom((Hexes)params[0]);
-		}
-
-		return false;
-	}
-
 	@Override
 	protected void onDimensionsChanged(AGraphics g, int width, int height) {
 		

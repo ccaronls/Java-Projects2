@@ -1,4 +1,4 @@
-package cc.lib.geniussqaure
+package cc.lib.geniussquare
 
 import cc.lib.game.GColor
 import cc.lib.game.IVector2D
@@ -106,7 +106,7 @@ enum class PieceType(val color: GColor, val startX: Int, val startY: Int, val or
 		arrayOf(arrayOf(arrayOf(10))));
 }
 
-class Piece @JvmOverloads constructor(val pieceType: PieceType=PieceType.PIECE_0) : Reflector<Piece>() {
+class Piece @JvmOverloads constructor(val pieceType: PieceType = PieceType.PIECE_0) : Reflector<Piece>() {
 
 	var index = 0
 		private set

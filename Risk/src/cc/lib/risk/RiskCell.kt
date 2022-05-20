@@ -7,7 +7,7 @@ import java.util.*
 /**
  * Created by Chris Caron on 9/13/21.
  */
-class RiskCell(var region: Region=Region.AFRICA, verts:List<Int> = emptyList()) : BCell(verts) {
+class RiskCell(var region: Region = Region.AFRICA, verts:List<Int> = emptyList()) : BCell(verts) {
 	companion object {
 		init {
 			addAllFields(RiskCell::class.java)

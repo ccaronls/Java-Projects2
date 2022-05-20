@@ -2,7 +2,7 @@ package cc.applets.geniussqaures
 
 import cc.lib.game.AGraphics
 import cc.lib.game.Utils
-import cc.lib.geniussqaure.UIGeniusSquares
+import cc.lib.geniussquare.UIGeniusSquares
 import cc.lib.swing.AWTComponent
 import cc.lib.swing.AWTFrame
 import cc.lib.swing.AWTGraphics

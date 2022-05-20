@@ -8,7 +8,7 @@ import android.view.View
 import cc.lib.android.DroidActivity
 import cc.lib.android.DroidGraphics
 import cc.lib.android.DroidStopWatch
-import cc.lib.geniussqaure.UIGeniusSquares
+import cc.lib.geniussquare.UIGeniusSquares
 import cc.lib.utils.StopWatch
 import java.io.File
 

@@ -16,9 +16,9 @@ public class Board extends Reflector<Board> {
 		addAllFields(Board.class);
 	}
 	
-	private List<Vertex> verts = new ArrayList<Vertex>();
-	private List<Piece> pieces = new ArrayList<Piece>();
-	private List<Edge> edges = new ArrayList<Edge>();
+	private List<Vertex> verts = new ArrayList();
+	private List<Piece> pieces = new ArrayList();
+	private List<Edge> edges = new ArrayList();
 	private int minX, minY, maxX, maxY;
 	private int highlightX, highlightY;
 	private final IdGenerator gen = new IdGenerator();
@@ -26,14 +26,14 @@ public class Board extends Reflector<Board> {
 	private List<Integer> pieceChoices = null;
 
 	private static class Outline {
-		HashSet<Edge> edges = new HashSet<Edge>();
+		HashSet<Edge> edges = new HashSet();
 		float cx, cy;
 		int player;
 		Shape shape;
 	}
 
 	@Omit
-	private List<Outline> outlines = new ArrayList<Outline>();
+	private List<Outline> outlines = new ArrayList();
 	
 	public synchronized void init() {
 		verts.clear();
@@ -199,18 +199,17 @@ public class Board extends Reflector<Board> {
 					break;
 				}
 				case TRIANGLE: {
-					float r = 0.3f;
+					float r = 0.25f;
 					g.begin();
-					if (isPieceUpward(p)) {
-						g.vertex(c.getX()-r, c.getY()-r);
-						g.vertex(c.getX()+r, c.getY()-r);
-						g.vertex(c.getX(), c.getY()+r*2);
-					} else {
-						g.vertex(c.getX()-r, c.getY()+r);
-						g.vertex(c.getX()+r, c.getY()+r);
-						g.vertex(c.getX(), c.getY()-r*2);
-					}
+					g.pushMatrix();
+					if (!isPieceUpward(p)) {
+                        g.scale(1, -1);
+                    }
+                    g.vertex(c.getX()-r, c.getY()-r/3);
+                    g.vertex(c.getX()+r, c.getY()-r/3);
+                    g.vertex(c.getX(), c.getY()+r*3/2);
 					g.drawTriangles();
+					g.popMatrix();
 					break;
 				}
 				case HEXAGON: {

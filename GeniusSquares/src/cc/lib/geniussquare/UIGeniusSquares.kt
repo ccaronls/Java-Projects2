@@ -1,4 +1,4 @@
-package cc.lib.geniussqaure
+package cc.lib.geniussquare
 
 import cc.lib.game.*
 import cc.lib.math.MutableVector2D
@@ -175,7 +175,7 @@ abstract class UIGeniusSquares : GeniusSquares() {
 				}
 				val pt = PieceType.values()[board.get(y,x)]
 				when (pt) {
-					PieceType.PIECE_0 -> {
+					PieceType.PIECE_0    -> {
 					}
 					PieceType.PIECE_CHIT -> {
 						g.color = pt.color

@@ -1,0 +1,57 @@
+Rules of the Game:
+
+Hexes is a 2 player board game whereby each player places triangular pieces on the
+board to make points
+
+
+Each player places triangular shaped pieces on the bord to gain points. Each piece has a
+shape on the piece.
+
+SHAPE       PTS         MULTIPLIER          HOW TO FORM
+---------+---------+------------------+----------------------------------------
+DIAMOND  |   1     |       1          |  Any to triangular pieces of same color
+TRIANGLE |   2     |       2          |  4 triangles of same color to form a larger triangle
+HEXAGON  |   3     |       3          |  6 triangular pieces of same color forming a hexagon
+
+The game is over when a player has played 6 of each type of piece.
+
+No 2 pieces of the same type can be adjacent.
+
+Players form shapes from the triangles to gain points.
+
+Here are the ways to form the different shapes:
+
+ ____
+ \  / \   A Diamond formed by 2 triangles
+  \/___\
+
+
+       /\
+      /__\      A Triangle formed by 4 smaller triangles
+     /\  /\
+    /__\/__\
+
+       ____
+      /\  /\
+     /__\/__\   A Hexagon formed by six triangles
+     \  /\  /
+      \/__\/
+
+Points are computed as follows:
+
+Each piece gives points determined by the points from with multiplier of the
+overall group shape that piece is apart of.
+
+For instance, if you form a diamond from a triangle and a hexagon, the points earned are:
+
+Pts = D * D + D * H
+    = 1 * 1 + 1 * 3
+    = 4
+
+If you form a triangle from 2 triangles, 1 hex and 1 diamond then
+
+
+Pts = T * T + T * T + H * T + D * T
+    = 2 * 2 + 2 * 2 + 3 * 2 + 1 * 2
+    =     4 +     4 +     6 +     2
+    = 16
