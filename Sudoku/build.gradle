@@ -5,6 +5,7 @@ mainClassName = 'cc.game.sudoku.Main'
 
 dependencies {
     implementation project(':GameLibrary')
+    implementation project(':SwingApps')
 }
 
 sourceSets {

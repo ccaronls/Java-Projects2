@@ -5,7 +5,9 @@ mainClassName = 'marcos.games.hexes.swing.HexesApplet'
 
 dependencies {
     implementation project(':GameLibrary')
-    implementation project(path: ':SwingApps', configuration: 'swingLib')
+    // TODO: Why wont this work?
+    //implementation project(path: ':SwingApps', configuration: 'swingLib')
+    implementation project(':SwingApps')
 }
 
 sourceSets {

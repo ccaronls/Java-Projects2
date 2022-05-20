@@ -219,14 +219,12 @@ class MonopolyActivity : DroidActivity() {
 			}
 		}
 
-		override fun drawPropertyCard(g: AGraphics, property: Square, w: Float, h: Float) {
-			//(g as DroidGraphics).textHeight = resources.getDimension(R.dimen.dialog_purchase_text_size)
+		override fun drawPropertyCard(g: AGraphics, maxWidth: Float, topY: Float, property: Square, buyer: String?) {
 			with(g as DroidGraphics) {
 				//textHeight = resources.getDimension(R.dimen.dialog_purchase_text_size)
 				paint.typeface = Typeface.DEFAULT_BOLD
 			}
-
-			super.drawPropertyCard(g, property, w, h)
+			super.drawPropertyCard(g, maxWidth, topY, property, buyer)
 		}
 	}
 
@@ -246,7 +244,7 @@ class MonopolyActivity : DroidActivity() {
 		newDialogBuilder().setTitle(title).setView(object : DroidView(this, false) {
 			override fun onPaint(g: DroidGraphics) {
 				g.setTextHeightDips(16f)
-				monopoly.drawPropertyCard(g, property, g.viewportWidth.toFloat(), g.viewportHeight.toFloat())
+				monopoly.drawPropertyCard(g, g.viewportWidth.toFloat(), 0f, property, null)
 			}
 
 			override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {

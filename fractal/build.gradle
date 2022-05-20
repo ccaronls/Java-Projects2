@@ -31,7 +31,9 @@ mainClassName = 'cc.app.fractal.FractalViewer'
 
 dependencies {
     implementation project(':GameLibrary')
-    implementation project(path: ':SwingApps', configuration: 'swingLib')
+    implementation project(':SwingApps')
+    // TODO: Why doesnt this work
+    //implementation project(path: ':SwingApps', configuration: 'swingLib')
 }
 
 

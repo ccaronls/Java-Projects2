@@ -5,6 +5,7 @@ mainClassName = 'cc.game.roids.applet.RoidsApplet'
 
 dependencies {
     implementation project(':GameLibrary')
+    implementation project(':SwingApps')
 }
 
 sourceSets {

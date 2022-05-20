@@ -3,15 +3,13 @@ apply plugin: 'application'
 
 dependencies {
     implementation project(':GameLibrary')
+    implementation project(':SwingApps')
 }
 
 sourceSets {
     main {
         java {
             srcDirs = ['src']
-            //, '../GameLibrary/src']
-            //exclude '**/swing/**'
-            //exclude '**/skunkworks/**'
         }
     }
 }

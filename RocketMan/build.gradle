@@ -5,6 +5,7 @@ mainClassName = 'cc.game.rocketman.swing.LevelBuilder'
 
 dependencies {
     implementation project(':GameLibrary')
+    implementation project(':SwingApps')
 }
 
 sourceSets {

@@ -5,6 +5,7 @@ mainClassName = 'cc.misslecommand.swing.MCApplet'
 
 dependencies {
     implementation project(':GameLibrary')
+    implementation project(':SwingApps')
 }
 
 sourceSets {

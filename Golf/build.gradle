@@ -3,17 +3,17 @@ apply plugin: 'application'
 
 mainClassName = 'cc.game.golf.swing.GolfSwing'
 
+// TODO: Move into SwingApps
+
 dependencies {
     implementation project(':GameLibrary')
+    implementation project(':SwingApps')
 }
 
 sourceSets {
     main {
         java {
             srcDirs = ['src']
-            //, '../GameLibrary/src']
-            //exclude '**/swing/**'
-            //exclude '**/skunkworks/**'
         }
 
         resources {

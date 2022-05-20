@@ -5,7 +5,7 @@ mainClassName = 'cc.game.slot.SlotMachine'
 
 dependencies {
     implementation project(':GameLibrary')
-    implementation project(path: ':SwingApps', configuration: 'swingLib')
+    implementation project(':SwingApps')
 }
 
 sourceSets {
