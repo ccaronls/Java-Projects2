@@ -28,6 +28,7 @@ import cc.lib.android.DragAndDropAdapter
 import cc.lib.annotation.Keep
 import cc.lib.game.Utils
 import cc.lib.utils.Reflector
+import cc.lib.utils.prettify
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
@@ -387,7 +388,7 @@ class MainActivity : CCActivityBase(), OnValueChangeListener, View.OnClickListen
     fun showOrderingPopup() {
         val ob = OrderingPopupBinding.inflate(layoutInflater)
         val adapter: DragAndDropAdapter<StationType> = object : DragAndDropAdapter<StationType>(ob.listview, *workouts[currentWorkout].ordering) {
-            override fun populateItem(cmd: StationType, container: ViewGroup) {
+            override fun populateItem(cmd: StationType, container: ViewGroup, lineNum: Int) {
                 val tv: TextView
                 if (container.childCount > 0) {
                     tv = container.getChildAt(0) as TextView
@@ -399,10 +400,9 @@ class MainActivity : CCActivityBase(), OnValueChangeListener, View.OnClickListen
             }
 
             override fun getItemName(item: StationType): String {
-                return item.name.replace('_', ' ')
+                return prettify(item.name)
             }
         }
-        ob.listview.adapter = adapter
         adapter.addDraggable(ob.bCardio, StationType.Cardio)
         adapter.addDraggable(ob.bUpperbody, StationType.Upper_Body)
         adapter.addDraggable(ob.bCore, StationType.Core)
@@ -410,7 +410,7 @@ class MainActivity : CCActivityBase(), OnValueChangeListener, View.OnClickListen
         val d: Dialog = newDialogBuilder()
                 .setView(ob.root)
                 .setNegativeButton(R.string.popup_button_cancel, null)
-                .setPositiveButton(R.string.popup_button_save) { dialogInterface: DialogInterface?, i: Int ->
+                .setPositiveButton(R.string.popup_button_save) { _, _ ->
                     if (adapter.list.size == 0) {
                         Snackbar.make(binding.tvCurrentstation, R.string.toast_err_emptylist, Snackbar.LENGTH_LONG).show()
                         return@setPositiveButton

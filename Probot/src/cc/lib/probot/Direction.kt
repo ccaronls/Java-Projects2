@@ -1,20 +1,15 @@
-package cc.lib.probot;
+package cc.lib.probot
 
-public enum Direction {
-    Right(1, 0),
-    Down(0, 1),
-    Left(-1, 0),
-    Up(0, -1),
-    ;
+import cc.lib.annotation.Keep
 
-    Direction(int dx, int dy) {
-        this.dx = dx;
-        this.dy = dy;
-    }
+@Keep
+enum class Direction(val dx: Int, val dy: Int) {
+	Right(1, 0),
+	Down(0, 1),
+	Left(-1, 0),
+	Up(0, -1);
 
-    public final int dx, dy;
-
-    Direction turn(int amt) {
-        return Direction.values()[(ordinal()+amt+values().length)%values().length];
-    }
+	fun turn(amt: Int): Direction {
+		return values()[(ordinal + amt + values().size) % values().size]
+	}
 }

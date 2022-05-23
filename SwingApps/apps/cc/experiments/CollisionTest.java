@@ -1,4 +1,4 @@
-package cc.lib.main;
+package cc.experiments;
 
 import cc.lib.game.AGraphics;
 import cc.lib.game.Utils;

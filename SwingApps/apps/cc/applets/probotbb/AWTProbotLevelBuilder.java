@@ -1,4 +1,4 @@
-package cc.lib.swing;
+package cc.applets.probotbb;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -20,6 +20,8 @@ import cc.lib.probot.Direction;
 import cc.lib.probot.Level;
 import cc.lib.probot.Probot;
 import cc.lib.probot.Type;
+import cc.lib.swing.AWTComponent;
+import cc.lib.swing.*;
 import cc.lib.utils.FileUtils;
 import cc.lib.utils.Grid;
 import cc.lib.utils.Reflector;

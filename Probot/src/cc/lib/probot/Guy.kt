@@ -1,24 +1,25 @@
-package cc.lib.probot;
+package cc.lib.probot
 
-import cc.lib.game.GColor;
-import cc.lib.utils.Reflector;
+import cc.lib.game.GColor
+import cc.lib.utils.Reflector
 
-public class Guy extends Reflector<Guy> {
+class Guy : Reflector<Guy> {
+	companion object {
+		init {
+			addAllFields(Guy::class.java)
+		}
+	}
 
-    static {
-        addAllFields(Guy.class);
-    }
+	var posx = 0
+	var posy = 2
+	var dir = Direction.Right
+	var color = GColor.RED
 
-    public int posx=0, posy=2;
-    public Direction dir= Direction.Right;
-    public GColor color = GColor.RED;
-
-    public Guy() {}
-
-    public Guy(int posx, int posy, Direction dir, GColor color) {
-        this.posx = posx;
-        this.posy = posy;
-        this.dir = dir;
-        this.color = color;
-    }
+	constructor() {}
+	constructor(posx: Int, posy: Int, dir: Direction, color: GColor) {
+		this.posx = posx
+		this.posy = posy
+		this.dir = dir
+		this.color = color
+	}
 }

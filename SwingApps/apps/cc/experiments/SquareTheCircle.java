@@ -1,4 +1,4 @@
-package cc.lib.main;
+package cc.experiments;
 
 import cc.lib.game.GColor;
 import cc.lib.game.Utils;

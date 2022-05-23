@@ -1,5 +1,8 @@
 package cc.lib.probot;
 
+import cc.lib.annotation.Keep;
+
+@Keep
 public enum Type {
     EM("Empty", null),  // EMPTY
     DD("Coin", null),  // DOT

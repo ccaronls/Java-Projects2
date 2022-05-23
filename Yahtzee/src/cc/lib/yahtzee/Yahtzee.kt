@@ -42,7 +42,7 @@ abstract class Yahtzee : Reflector<Yahtzee>() {
 	var topScore = 0
 		private set
 	private val slots = ArrayList<YahtzeeSlot>()
-	private val scoring: MutableMap<YahtzeeSlot, Int> = EnumMap(YahtzeeSlot::class.java)
+	private val scoring: MutableMap<YahtzeeSlot, Int> = HashMap()
 
 	@JvmOverloads
 	fun reset(rules: YahtzeeRules = this.rules) {
@@ -125,7 +125,8 @@ abstract class Yahtzee : Reflector<Yahtzee>() {
 		get() {
 			val unused = ArrayList<YahtzeeSlot>()
 			for (s in slots) {
-				if (!scoring.containsKey(s)) unused.add(s)
+				if (!scoring.containsKey(s))
+					unused.add(s)
 			}
 			return unused
 		}

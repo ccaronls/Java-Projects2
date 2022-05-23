@@ -12,9 +12,24 @@ import androidx.databinding.BindingAdapter;
  */
 public final class BindingAdapters {
 
+    @BindingAdapter("comment")
+    public static void setComment(View view, String comment) {
+    }
+
+
     @BindingAdapter("onCheckChanged")
     public static void setOnCheckChanged(CompoundButton cb, CompoundButton.OnCheckedChangeListener listener) {
         cb.setOnCheckedChangeListener(listener);
+    }
+
+    @BindingAdapter("visibleIf")
+    public static void setVisibleIf(View view, boolean predicate) {
+        view.setVisibility(predicate ? View.VISIBLE : View.INVISIBLE);
+    }
+
+    @BindingAdapter("visibleIfNot")
+    public static void setVisibleIfNot(View view, boolean predicate) {
+        view.setVisibility(!predicate ? View.VISIBLE : View.INVISIBLE);
     }
 
     @BindingAdapter("goneIf")
@@ -25,6 +40,16 @@ public final class BindingAdapters {
     @BindingAdapter("goneIfNot")
     public static void setGoneIfNot(View view, boolean predicate) {
         view.setVisibility(!predicate ? View.GONE : View.VISIBLE);
+    }
+
+    @BindingAdapter("enabledIf")
+    public static void setEnabledIf(View view, boolean predicate) {
+        view.setEnabled(predicate);
+    }
+
+    @BindingAdapter("enabledIfNot")
+    public static void setEnabledIfNot(View view, boolean predicate) {
+        view.setEnabled(!predicate);
     }
 
     @BindingAdapter("adapter")

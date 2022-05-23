@@ -1,4 +1,4 @@
-package cc.app.bspline;
+package cc.applets.bspline;
 
 import java.awt.event.MouseEvent;
 

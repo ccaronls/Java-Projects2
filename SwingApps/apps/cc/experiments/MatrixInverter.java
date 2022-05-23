@@ -1,4 +1,4 @@
-package cc.lib.main;
+package cc.experiments;
 
 import cc.lib.math.Matrix4x4;
 

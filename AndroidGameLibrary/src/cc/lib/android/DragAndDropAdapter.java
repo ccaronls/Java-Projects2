@@ -78,7 +78,7 @@ public abstract class DragAndDropAdapter<T> extends BaseAdapter implements View.
     final static String TAG = DragAndDropAdapter.class.getSimpleName();
 
     private final ListView listView;
-    private final List<T> list = new ArrayList<>();
+    private final List<T> list; // TODO: Use dataset observer instead
     private int dragInsertPos = -1;
     private int dragMinInsertPos = 0;
     private int dragMaxInsertPos = 0;
@@ -91,7 +91,7 @@ public abstract class DragAndDropAdapter<T> extends BaseAdapter implements View.
      * @param data
      * @param container
      */
-    protected abstract void populateItem(T data, ViewGroup container);
+    protected abstract void populateItem(T data, ViewGroup container, int position);
 
     /**
      *
@@ -106,18 +106,22 @@ public abstract class DragAndDropAdapter<T> extends BaseAdapter implements View.
      * @param listView
      */
     public DragAndDropAdapter(ListView listView) {
-        this.listView = listView;
-//        listView.setStackFromBottom(true);
+        this(listView, new ArrayList<>());
     }
 
     public DragAndDropAdapter(ListView listView, List<T> items) {
-        this(listView);
-        list.addAll(items);
+        this.listView = listView;
+        list = items;
+        listView.setAdapter(this);
     }
 
     public DragAndDropAdapter(ListView listView, T ... items) {
-        this(listView);
-        list.addAll(Arrays.asList(items));
+        this(listView, new ArrayList<>(Arrays.asList(items)));
+    }
+
+    @Override
+    public void notifyDataSetChanged() {
+        super.notifyDataSetChanged();
     }
 
     public final List<T> getList() {
@@ -126,6 +130,7 @@ public abstract class DragAndDropAdapter<T> extends BaseAdapter implements View.
 
     @Override
     public final int getCount() {
+        int s = list.size();
         return list.size();
     }
 
@@ -166,6 +171,7 @@ public abstract class DragAndDropAdapter<T> extends BaseAdapter implements View.
 
         TextView tvLineNum = convertView.findViewById(R.id.tvLineNum);
         tvLineNum.setText(String.valueOf(position + 1));
+        onLineNumTextViewUpdated(position, tvLineNum);
 
         View v = convertView.findViewById(R.id.ibDelete);
         v.setVisibility(View.VISIBLE);
@@ -176,13 +182,18 @@ public abstract class DragAndDropAdapter<T> extends BaseAdapter implements View.
             notifyDataSetChanged();
         });
 
+        onDeleteButtonUpdated(position, v);
 
         ViewGroup container = convertView.findViewById(R.id.container);
         //container.removeAllViews();
-        populateItem(data, container);
+        populateItem(data, container, position);
 
         return convertView;
     }
+
+    public void onLineNumTextViewUpdated(int position, TextView textView) {}
+
+    public void onDeleteButtonUpdated(int position, View button) {}
 
     @Override
     public final boolean onDrag(View v, DragEvent event) {

@@ -7,13 +7,13 @@ import android.util.Log
 import android.view.View
 import cc.lib.android.DroidUtils
 import cc.lib.game.AAnimation
-import cc.lib.game.Utils
 import cc.lib.math.Bezier
 import cc.lib.probot.*
 import cc.lib.utils.Lock
 import cc.lib.utils.Reflector
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import kotlin.math.max
 import kotlin.math.roundToInt
 
 /**
@@ -21,79 +21,6 @@ import kotlin.math.roundToInt
  */
 class ProbotView : View {
 
-	val lock = Lock()
-
-	@JvmField
-    var maxLevel = 0
-	@JvmField
-    var probot: Probot = object : Probot() {
-		override fun onCommand(line: Int) {
-			Log.d("ProbotView", "onCommand: $line")
-			setProgramLine(line)
-			when (get(line).type) {
-				CommandType.LoopStart,
-				CommandType.LoopEnd -> Thread.sleep(500)
-			}
-		}
-
-		override fun onFailed() {
-			(context as ProbotActivity).binding.lvProgram.markFailed()
-			postInvalidate()
-		}
-
-		override fun onDotsLeftUneaten() {
-			for (guy in getGuys()) startFailedAnim(guy)
-			lock.acquireAndBlock()
-			postInvalidate()
-		}
-
-		override fun onAdvanced(guy: Guy) {
-			super.onAdvanced(guy)
-			startAdvanceAnim(guy)
-			lock.acquireAndBlock()
-			postInvalidate()
-		}
-
-		override fun onAdvanceFailed(guy: Guy) {
-			startFailedAnim(guy)
-			lock.acquireAndBlock()
-			postInvalidate()
-		}
-
-		override fun onJumped(guy: Guy) {
-			startJumpAnim(guy)
-			lock.acquireAndBlock()
-			postInvalidate()
-		}
-
-		override fun onTurned(guy: Guy, dir: Int) {
-			startTurnAnim(guy, dir)
-			lock.acquireAndBlock()
-			postInvalidate()
-		}
-
-		override fun onLazered(guy: Guy, type: Int) {
-			startLazeredAnim(guy, type == 0)
-			lock.acquireAndBlock()
-			postInvalidate()
-		}
-
-		override fun onSuccess() {
-			for (guy in getGuys()) startSuccessAnim(guy)
-			lock.acquireAndBlock()
-			nextLevel()
-			postInvalidate()
-		}
-
-		override fun stop() {
-			super.stop()
-			setProgramLine(-1)
-			if (animation != null) {
-				animation!!.stop()
-				animation = null
-			}
-		}
-	}
 	var p = Paint()
 	var r = Rect()
 	var rf = RectF()
@@ -101,16 +28,9 @@ class ProbotView : View {
 	var cw = 0
 	var ch = 0
 	var animation: AAnimation<Canvas>? = null
+	lateinit var probot: Probot;
 
-	constructor(context: Context, attrs: AttributeSet?) : super(context, attrs) {
-		levels = try {
-			context.assets.open("levels.txt").use {
-				Reflector.deserializeObject(BufferedReader(InputStreamReader(it)))
-			}
-		} catch (e: Exception) {
-			throw RuntimeException(e)
-		}
-	}
+	constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
 
 	override fun onDraw(canvas: Canvas) {
 
@@ -229,7 +149,7 @@ class ProbotView : View {
 
 		override fun onDone() {
 			animation = null
-			lock.release()
+			probot.lock.release()
 		}
 	}
 
@@ -395,45 +315,46 @@ class ProbotView : View {
 
 	fun startJumpAnim(guy: Guy) {
 		animation = object : BaseAnim(1000) {
-			var b: Bezier? = null
-			override fun draw(canvas: Canvas, position: Float, dt: Float) {
-				if (b == null) {
-					b = Bezier()
-					val x = guy.posx * cw + cw / 2
-					val y = guy.posy * ch + ch / 2
-					b!!.addPoint(x.toFloat(), y.toFloat())
-					when (guy.dir) {
-						Direction.Right -> {
-							b!!.addPoint((x + cw * 2 / 3).toFloat(), (y - ch / 2).toFloat())
-							b!!.addPoint((x + cw * 4 / 3).toFloat(), (y - ch / 2).toFloat())
-							b!!.addPoint((x + cw * 2).toFloat(), y.toFloat())
-						}
-						Direction.Down -> {
-							b!!.addPoint((x + cw).toFloat(), (y + ch * 2 / 3).toFloat())
-							b!!.addPoint((x + cw).toFloat(), (y + ch * 4 / 3).toFloat())
-							b!!.addPoint(x.toFloat(), (y + ch * 2).toFloat())
-						}
-						Direction.Left -> {
-							b!!.addPoint((x - cw * 2 / 3).toFloat(), (y - ch / 2).toFloat())
-							b!!.addPoint((x - cw * 4 / 3).toFloat(), (y - ch / 2).toFloat())
-							b!!.addPoint((x - cw * 2).toFloat(), y.toFloat())
-						}
-						Direction.Up -> {
-							b!!.addPoint((x + cw).toFloat(), (y - ch * 2 / 3).toFloat())
-							b!!.addPoint((x + cw).toFloat(), (y - ch * 4 / 3).toFloat())
-							b!!.addPoint(x.toFloat(), (y - ch * 2).toFloat())
-						}
+			val b = Bezier()
+
+			override fun onStarted(g: Canvas) {
+				val x = guy.posx * cw + cw / 2
+				val y = guy.posy * ch + ch / 2
+				b.addPoint(x.toFloat(), y.toFloat())
+				when (guy.dir) {
+					Direction.Right -> {
+						b.addPoint((x + cw * 2 / 3).toFloat(), (y - ch / 2).toFloat())
+						b.addPoint((x + cw * 4 / 3).toFloat(), (y - ch / 2).toFloat())
+						b.addPoint((x + cw * 2).toFloat(), y.toFloat())
+					}
+					Direction.Down -> {
+						b.addPoint((x + cw).toFloat(), (y + ch * 2 / 3).toFloat())
+						b.addPoint((x + cw).toFloat(), (y + ch * 4 / 3).toFloat())
+						b.addPoint(x.toFloat(), (y + ch * 2).toFloat())
+					}
+					Direction.Left -> {
+						b.addPoint((x - cw * 2 / 3).toFloat(), (y - ch / 2).toFloat())
+						b.addPoint((x - cw * 4 / 3).toFloat(), (y - ch / 2).toFloat())
+						b.addPoint((x - cw * 2).toFloat(), y.toFloat())
+					}
+					Direction.Up -> {
+						b.addPoint((x + cw).toFloat(), (y - ch * 2 / 3).toFloat())
+						b.addPoint((x + cw).toFloat(), (y - ch * 4 / 3).toFloat())
+						b.addPoint(x.toFloat(), (y - ch * 2).toFloat())
 					}
 				}
+			}
+
+			override fun draw(canvas: Canvas, position: Float, dt: Float) {
 				rf[-radius.toFloat(), -radius.toFloat(), radius.toFloat()] = radius.toFloat()
-				var angStart = 0
-				var sweepAng = 270
-				angStart = if (position < 0.5f) {
+				//var angStart = 0
+				//var sweepAng = 270
+				var angStart = if (position < 0.5f) {
 					(position * 2 * 45).roundToInt()
 				} else {
 					((1.0f - position) * 2 * 45).roundToInt()
 				}
-				sweepAng = 360 - angStart * 2
+				val sweepAng = 360 - angStart * 2
 				when (guy.dir) {
 					Direction.Right -> {
 					}
@@ -441,7 +362,7 @@ class ProbotView : View {
 					Direction.Left -> angStart += 180
 					Direction.Up -> angStart += 270
 				}
-				val v = b!!.getAtPosition(position)
+				val v = b.getAtPosition(position)
 				val x = v.Xi()
 				val y = v.Yi()
 				canvas.save()
@@ -472,7 +393,7 @@ class ProbotView : View {
 				val y = guy.posy * ch + ch / 2
 				g.save()
 				g.translate(x.toFloat(), y.toFloat())
-				g.rotate(Math.round(position * 90 * dir).toFloat())
+				g.rotate((position * 90 * dir).roundToInt().toFloat())
 				drawGuy(g, 0, 0, guy.dir)
 				g.restore()
 			}
@@ -517,26 +438,33 @@ class ProbotView : View {
 		}
 	}
 
+	fun stopAnimations() {
+		animation?.stop().also {
+			animation = null
+		}
+	}
+/*
 	fun nextLevel() {
 		setLevel(probot.levelNum + 1)
 	}
 
 	val levels: List<Level>
+
 	fun setLevel(level: Int) {
 		var level = level
-		maxLevel = Math.max(maxLevel, level)
+		maxLevel = max(maxLevel, level)
 		(context as ProbotActivity).prefs.edit()
 			.putInt("Level", level)
 			.putInt("MaxLevel", maxLevel)
 			.apply()
-		if (level >= levels!!.size) level = 0
-		probot.setLevel(level, levels!![level].deepCopy())
+		if (level >= levels.size) level = 0
+		probot.setLevel(level, levels[level].deepCopy())
 		probot.start()
 		postInvalidate()
 		setProgramLine(-1)
 	}
 
 	fun setProgramLine(line: Int) {
-		(context as ProbotActivity).binding.lvProgram.setProgramLineNum(line)
-	}
+		(context as ProbotActivity).adapter.setProgramLineNum(line)
+	}*/
 }

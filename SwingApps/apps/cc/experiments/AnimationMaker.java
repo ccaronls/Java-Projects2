@@ -1,4 +1,4 @@
-package cc.lib.main;
+package cc.experiments;
 
 import java.awt.event.KeyEvent;
 import java.io.File;

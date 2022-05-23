@@ -1,14 +1,38 @@
-package cc.lib.probot;
+package cc.lib.probot
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
+import cc.lib.game.AGraphics
+import cc.lib.game.GColor
+import cc.lib.utils.Lock
+import cc.lib.utils.Reflector
+import cc.lib.utils.assertTrue
+import java.util.*
 
-import cc.lib.game.AGraphics;
-import cc.lib.game.GColor;
-import cc.lib.game.Utils;
-import cc.lib.utils.Reflector;
+interface Observer {
+	fun onChanged()
+}
+
+class ObservableArrayList<T>(initalCapacity: Int = 0) : ArrayList<T>(initalCapacity) {
+
+	var observer: Observer? = null
+
+	override fun add(element: T): Boolean {
+		return super.add(element).also { if (it) observer?.onChanged() }
+	}
+
+	override fun add(index: Int, element: T) {
+		super.add(index, element).also {  observer?.onChanged() }
+	}
+
+	override fun removeAt(index: Int): T {
+		return super.removeAt(index).also { observer?.onChanged() }
+	}
+
+	override fun clear() {
+		super.clear()
+		observer?.onChanged()
+	}
+
+}
 
 /**
  * Created by chriscaron on 12/7/17.
@@ -21,827 +45,633 @@ import cc.lib.utils.Reflector;
  * The robot must advance to a coin or the level fails
  *
  */
-public class Probot extends Reflector<Probot> implements Comparator<Integer> {
+open class Probot(private val program: ObservableArrayList<Command> = ObservableArrayList()) : Reflector<Probot>(), Comparator<Int>, Observer, MutableList<Command> by program {
 
-    static {
-        addAllFields(Probot.class);
-    }
+	init {
+		program.observer = this
+	}
 
-    public final static GColor [] manColors = {
-            GColor.YELLOW,
-            GColor.GREEN,
-            GColor.ORANGE,
-            GColor.PINK
-    };
+	companion object {
+		val manColors = arrayOf(
+			GColor.YELLOW,
+			GColor.GREEN,
+			GColor.ORANGE,
+			GColor.PINK
+		)
+		const val LAZER_EAST = 1 shl 0
+		const val LAZER_SOUTH = 1 shl 1
+		const val LAZER_WEST = 1 shl 2
+		const val LAZER_NORTH = 1 shl 3
 
-    @Omit
-    private List<Command> program = new ArrayList<>();
+		init {
+			addAllFields(Probot::class.java)
+		}
+	}
 
-    public Level level = new Level();
-    int levelNum = 0;
+	@JvmField
+    var level = Level()
 
-    // the lazer matrix is same size as the coins. Each elem is a bit flag of LAZER_N/S/E/W values
+	@JvmField
+	@Omit
+	val lock = Lock()
 
-    public int [][] lazer = {};
+	/**
+	 *
+	 * @return
+	 */
+	var levelNum = 0
 
-    public final static int LAZER_EAST  = 1<<0;
-    public final static int LAZER_SOUTH = 1<<1;
-    public final static int LAZER_WEST  = 1<<2;
-    public final static int LAZER_NORTH = 1<<3;
+	// the lazer matrix is same size as the coins. Each elem is a bit flag of LAZER_N/S/E/W values
+    @JvmField
+    var lazer = arrayOf<IntArray>()
+	@JvmField
+    val guys: MutableList<Guy> = ArrayList()
 
-    public final List<Guy> guys = new ArrayList<>();
+	@Omit
+	private var copy: Probot? = null
 
-    @Omit
-    private Probot copy;
+	/**
+	 *
+	 * @return
+	 */
+	@Omit
+	var isRunning = false
+		private set
 
-    @Omit
-    private boolean running = false;
+	/**
+	 * Called in separate thread. callbacks made to events should be handled to show on ui
+	 */
+	fun runProgram() {
+		assertTrue(!isRunning)
+		isRunning = true
+		copy = Probot()
+		copy!!.copyFrom(this)
+		val run = runProgram(intArrayOf(0))
+		when (run) {
+			1 -> onSuccess()
+			0 -> {
+				onFailed()
+				reset()
+			}
+			-1 -> reset()
+		}
+		isRunning = false
+	}
 
-    /**
-     * Called in separate thread. callbacks made to events should be handled to show on ui
-     */
-    public final void runProgram() {
-        Utils.assertFalse(running);
-        running = true;
-        copy = new Probot();
-        copy.copyFrom(this);
-        int run = runProgram(new int [] { 0 });
-        switch (run) {
-            case 1:
-                onSuccess();
-                break;
-            case 0:
-                onFailed();
-            case -1:
-                reset();
-        }
-        running = false;
-    }
+	/**
+	 *
+	 * @param types
+	 * @return
+	 */
+	fun getCommandCount(vararg types: CommandType): Int {
+		return program.count { cmd ->
+			types.firstOrNull { it==cmd.type } != null
+		}
+	}
 
-    /**
-     *
-     * @param types
-     * @return
-     */
-    public int getCommandCount(CommandType ... types) {
-        int count = 0;
-        for (Command c : program) {
-            if (Utils.linearSearch(types, c.type) >= 0) {
-                count++;
-            }
-        }
-        return count;
-    }
+	/**
+	 *
+	 */
+	open fun stop() {
+		isRunning = false
+		lock.releaseAll()
+	}
 
-    /**
-     *
-     * @return
-     */
-    public final boolean isRunning() {
-        return running;
-    }
+	override fun onChanged() {
+		var nesting = 0
+		for (c in program) {
+			c.nesting = nesting
+			when (c.type) {
+				CommandType.LoopStart -> nesting++
+				CommandType.LoopEnd -> nesting--
+			}
+		}
+	}
 
-    /**
-     *
-     */
-    public void stop() {
-        running = false;
-        synchronized (this) {
-            notifyAll();
-        }
-    }
+	/**
+	 *
+	 * @return
+	 */
+	fun getMaxGuys(): Int {
+		return manColors.size
+	}
 
-    /**
-     *
-     * @param cmd
-     */
-    public void add(Command cmd) {
-        add(size(), cmd);
-    }
+	/**
+	 *
+	 * @return
+	 */
+	fun getNumGuys(): Int {
+		return guys.size
+	}
 
-    private void updateNesting() {
-        int nesting = 0;
-        for (Command c : program) {
-            c.nesting = nesting;
-            switch (c.type) {
-                case LoopStart:
-                    nesting++;
-                    break;
-                case LoopEnd:
-                    nesting--;
-                    break;
-            }
-        }
-    }
+	/**
+	 *
+	 * @return
+	 */
+	fun getGuys(): Iterable<Guy> {
+		return guys
+	}
 
-    /**
-     *
-     * @param index
-     * @param cmd
-     */
-    public void add(int index, Command cmd) {
-        program.add(index, cmd);
-        updateNesting();
-    }
+	private fun runProgram(linePtr: IntArray): Int {
+		while (linePtr[0] < program.size) {
+			if (!isRunning) return -1
+			val c = program[linePtr[0]]
+			onCommand(linePtr[0])
+			for (guy in guys) {
+				when (c.type) {
+					CommandType.Advance -> advance(guy, 1, true)
+					CommandType.TurnRight -> onTurned(guy, 1)
+					CommandType.TurnLeft -> onTurned(guy, -1)
+					CommandType.UTurn -> onTurned(guy, 2)
+					CommandType.LoopStart -> {
+					}
+					CommandType.LoopEnd -> {
+					}
+					CommandType.Jump -> advance(guy, 2, true)
+					CommandType.IfThen -> {
+					}
+					CommandType.IfElse -> {
+					}
+					CommandType.IfEnd -> {
+					}
+				}
+			}
+			onCommand(linePtr[0])
+			for (guy in guys) {
+				when (c.type) {
+					CommandType.LoopStart -> {
+						val lineStart = ++linePtr[0]
+						var i = 0
+						while (i < c.count) {
+							if (!isRunning) return -1
+							linePtr[0] = lineStart
+							var r: Int
+							if (runProgram(linePtr).also { r = it } != 1) return r
+							i++
+						}
+					}
+					CommandType.LoopEnd -> {
+						return 1
+					}
+					CommandType.Advance -> if (!advance(guy, 1, false)) {
+						return if (isRunning) 0 else -1
+					}
+					CommandType.TurnRight -> turn(guy, 1)
+					CommandType.TurnLeft -> turn(guy, -1)
+					CommandType.UTurn -> turn(guy, 2)
+					CommandType.Jump -> if (!advance(guy, 2, false)) {
+						return if (isRunning) 0 else -1
+					}
+				}
+			}
+			linePtr[0]++
+		}
+		var i = 0
+		while (isRunning && i < level.coins.size) {
+			var ii = 0
+			while (isRunning && ii < level.coins[i].size) {
+				if (level.coins[i][ii] == Type.DD) {
+					onDotsLeftUneaten()
+					return if (isRunning) 0 else -1
+				}
+				ii++
+			}
+			i++
+		}
+		return if (isRunning) 1 else -1
+	}
 
-    /**
-     *
-     * @param index
-     * @return
-     */
-    public Command remove(int index) {
-        Command cmd = program.remove(index);
-        updateNesting();
-        return cmd;
-    }
+	private fun init(level: Level) {
+		this.level = level
+		initLazers()
+		program.clear()
+		guys.clear()
+	}
 
-    public void clear() {
-        program.clear();
-        updateNesting();
-    }
+	fun start() {
+		for (i in level.coins.indices) {
+			for (ii in 0 until level.coins[i].size) {
+				when (level.coins[i][ii]) {
+					Type.EM -> {
+					}
+					Type.DD -> {
+					}
+					Type.SE, Type.SS, Type.SW, Type.SN -> {
+						guys.add(Guy(ii, i, level.coins[i][ii].direction, manColors[guys.size]))
+						level.coins[i][ii] = Type.EM
+					}
+					Type.LH0 -> {
+					}
+					Type.LV0 -> {
+					}
+					Type.LB0 -> {
+					}
+					Type.LH1 -> {
+					}
+					Type.LV1 -> {
+					}
+					Type.LB1 -> {
+					}
+					Type.LH2 -> {
+					}
+					Type.LV2 -> {
+					}
+					Type.LB2 -> {
+					}
+					Type.LB -> {
+					}
+				}
+			}
+		}
+	}
 
-    /**
-     *
-     * @return
-     */
-    public int getLevelNum() {
-        return levelNum;
-    }
+	// return false if failed
+	private fun advance(guy: Guy, amt: Int, useCB: Boolean): Boolean {
+		val nx = guy.posx + guy.dir.dx * amt
+		val ny = guy.posy + guy.dir.dy * amt
+		if (!canMoveToPos(ny, nx)) {
+			if (useCB) onAdvanceFailed(guy)
+			return false
+		} else if (lazer[ny][nx] != 0) {
+			if (useCB) onLazered(guy, amt) // walking into a lazer
+			return false
+		} else {
+			if (useCB) {
+				if (amt == 1) {
+					onAdvanced(guy)
+				} else {
+					onJumped(guy)
+				}
+			} else {
+				guy.posx = nx
+				guy.posy = ny
+				when (level.coins[guy.posy][guy.posx]) {
+					Type.DD -> level.coins[guy.posy][guy.posx] = Type.EM
+					Type.LB0 -> toggleLazers(0)
+					Type.LB1 -> toggleLazers(1)
+					Type.LB2 -> toggleLazers(2)
+					Type.LB -> toggleLazers(0, 1, 2)
+				}
+				if (lazer[ny][nx] != 0) {
+					onLazered(guy, 0) // lazer activated on guy
+					return false
+				}
+			}
+		}
+		return true
+	}
 
-    /**
-     *
-     * @return
-     */
-    public int size() {
-        return program.size();
-    }
+	private fun testLazers(row: Int, col: Int) {
+		when (level.coins[row][col]) {
+			Type.DD -> {
+			}
+			Type.LB0 -> toggleLazers(0)
+			Type.LB1 -> toggleLazers(1)
+			Type.LB2 -> toggleLazers(2)
+			Type.LB -> toggleLazers(0, 1, 2)
+		}
+	}
 
-    /**
-     *
-     * @param index
-     * @return
-     */
-    public Command get(int index) {
-        return program.get(index);
-    }
+	private fun initHorzLazer(y: Int, x: Int) {
+		for (i in x - 1 downTo 0) {
+			if (lazer[y][i] != 0) {
+				lazer[y][i] = lazer[y][i] or LAZER_EAST
+				break // cannot lazer past another lazer
+			}
+			lazer[y][i] = lazer[y][i] or (LAZER_WEST or LAZER_EAST)
+		}
+		for (i in x + 1 until lazer[0].size) {
+			if (lazer[y][i] != 0) {
+				lazer[y][i] = lazer[y][i] or LAZER_WEST
+				break // cannot lazer past another lazer
+			}
+			lazer[y][i] = lazer[y][i] or (LAZER_WEST or LAZER_EAST)
+		}
+	}
 
-    /**
-     *
-     * @return
-     */
-    public final int getMaxGuys() {
-        return manColors.length;
-    }
+	private fun initVertLazer(y: Int, x: Int) {
+		for (i in y - 1 downTo 0) {
+			if (lazer[i][x] != 0) {
+				lazer[i][x] = lazer[i][x] or LAZER_SOUTH
+				break // cannot lazer past another lazer
+			}
+			lazer[i][x] = lazer[i][x] or (LAZER_NORTH or LAZER_SOUTH)
+		}
+		for (i in y + 1 until lazer.size) {
+			if (lazer[i][x] != 0) {
+				lazer[i][x] = lazer[i][x] or LAZER_NORTH
+				break // cannot lazer past another lazer
+			}
+			lazer[i][x] = lazer[i][x] or (LAZER_NORTH or LAZER_SOUTH)
+		}
+	}
 
-    /**
-     *
-     * @return
-     */
-    public final int getNumGuys() {
-        return guys.size();
-    }
-
-    /**
-     *
-     * @return
-     */
-    public final Iterable<Guy> getGuys() {
-        return guys;
-    }
-
-    private int runProgram(int [] linePtr) {
-        while (linePtr[0] < program.size()) {
-            if (!running)
-                return -1;
-            final Command c = program.get(linePtr[0]);
-            onCommand(linePtr[0]);
-            for (Guy guy : guys) {
-                switch (c.type) {
-
-                    case Advance:
-                        advance(guy, 1, true);
-                        break;
-                    case TurnRight:
-                        onTurned(guy, 1);
-                        break;
-                    case TurnLeft:
-                        onTurned(guy, -1);
-                        break;
-                    case UTurn:
-                        onTurned(guy, 2);
-                        break;
-                    case LoopStart:
-                        break;
-                    case LoopEnd:
-                        break;
-                    case Jump:
-                        advance(guy, 2, true);
-                        break;
-                    case IfThen:
-                        break;
-                    case IfElse:
-                        break;
-                    case IfEnd:
-                        break;
-                }
-            }
-            onCommand(linePtr[0]);
-            for (Guy guy : guys) {
-                switch (c.type) {
-                    case LoopStart: {
-                        int lineStart = ++linePtr[0];
-                        for (int i = 0; i < c.count; i++) {
-                            if (!running)
-                                return -1;
-                            linePtr[0] = lineStart;
-                            int r;
-                            if ((r = runProgram(linePtr)) != 1)
-                                return r;
-                        }
-                        break;
-                    }
-                    case LoopEnd: {
-                        return 1;
-                    }
-                    case Advance:
-                        if (!advance(guy, 1, false)) {
-                            return running ? 0 : -1;
-                        }
-                        break;
-                    case TurnRight:
-                        turn(guy, 1);
-                        break;
-                    case TurnLeft:
-                        turn(guy, -1);
-                        break;
-                    case UTurn:
-                        turn(guy, 2);
-                        break;
-                    case Jump:
-                        if (!advance(guy, 2, false)) {
-                            return running ? 0 : -1;
-                        }
-                        break;
-                }
-            }
-            linePtr[0]++;
-        }
-        for (int i=0; running && i<level.coins.length; i++) {
-            for (int ii=0; running && ii<level.coins[i].length; ii++) {
-                if (level.coins[i][ii] == Type.DD) {
-                    onDotsLeftUneaten();
-                    return running ? 0 : -1;
-                }
-            }
-        }
-        return running ? 1 : -1;
-    }
-
-    private final void init(Level level) {
-        this.level = level;
-        initLazers();
-        program.clear();
-        guys.clear();
-    }
-
-    public void start() {
-        for (int i=0; i<level.coins.length; i++) {
-            for (int ii=0; ii<level.coins[i].length; ii++) {
-                switch (level.coins[i][ii]) {
-                    case EM:
-                        break;
-                    case DD:
-                        break;
-                    case SE:
-                    case SS:
-                    case SW:
-                    case SN:
-                        guys.add(new Guy(ii, i, level.coins[i][ii].direction, manColors[guys.size()]));
-                        level.coins[i][ii] = Type.EM;
-                        break;
-                    case LH0:
-                        break;
-                    case LV0:
-                        break;
-                    case LB0:
-                        break;
-                    case LH1:
-                        break;
-                    case LV1:
-                        break;
-                    case LB1:
-                        break;
-                    case LH2:
-                        break;
-                    case LV2:
-                        break;
-                    case LB2:
-                        break;
-                    case LB:
-                        break;
-                }
-            }
-        }
-    }
-
-    // return false if failed
-    private boolean advance(Guy guy, int amt, boolean useCB) {
-        int nx = guy.posx + guy.dir.dx*amt;
-        int ny = guy.posy + guy.dir.dy*amt;
-
-        if (!canMoveToPos(ny, nx)) {
-            if (useCB)
-                onAdvanceFailed(guy);
-            return false;
-        } else if (lazer[ny][nx] != 0) {
-            if (useCB)
-                onLazered(guy,amt); // walking into a lazer
-            return false;
-        } else {
-            if (useCB) {
-                if (amt == 1) {
-                    onAdvanced(guy);
-                } else {
-                    onJumped(guy);
-                }
-            } else {
-                guy.posx = nx;
-                guy.posy = ny;
-                switch (level.coins[guy.posy][guy.posx]) {
-                    case DD:
-                        level.coins[guy.posy][guy.posx] = Type.EM;
-                        break;
-                    case LB0:
-                        toggleLazers(0);
-                        break;
-                    case LB1:
-                        toggleLazers(1);
-                        break;
-                    case LB2:
-                        toggleLazers(2);
-                        break;
-                    case LB:
-                        toggleLazers(0, 1, 2);
-                        break;
-                }
-                if (lazer[ny][nx] != 0) {
-                    onLazered(guy, 0); // lazer activated on guy
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    private void testLazers(int row, int col) {
-        switch (level.coins[row][col]) {
-            case DD:
-                break;
-            case LB0:
-                toggleLazers(0);
-                break;
-            case LB1:
-                toggleLazers(1);
-                break;
-            case LB2:
-                toggleLazers(2);
-                break;
-            case LB:
-                toggleLazers(0, 1, 2);
-                break;
-        }
-    }
-
-    private void initHorzLazer(int y, int x) {
-        for (int i=x-1; i>=0; i--) {
-            if (lazer[y][i] != 0) {
-                lazer[y][i] |= LAZER_EAST;
-                break; // cannot lazer past another lazer
-            }
-            lazer[y][i] |= LAZER_WEST | LAZER_EAST;
-        }
-
-        for (int i=x+1; i<lazer[0].length; i++) {
-            if (lazer[y][i] != 0) {
-                lazer[y][i] |= LAZER_WEST;
-                break; // cannot lazer past another lazer
-            }
-            lazer[y][i] |= LAZER_WEST | LAZER_EAST;
-        }
-    }
-
-    private void initVertLazer(int y, int x) {
-        for (int i=y-1; i>=0; i--) {
-            if (lazer[i][x] != 0) {
-                lazer[i][x] |= LAZER_SOUTH;
-                break; // cannot lazer past another lazer
-            }
-            lazer[i][x] |= LAZER_NORTH | LAZER_SOUTH;
-        }
-
-        for (int i=y+1; i<lazer.length; i++) {
-            if (lazer[i][x] != 0) {
-                lazer[i][x] |= LAZER_NORTH;
-                break; // cannot lazer past another lazer
-            }
-            lazer[i][x] |= LAZER_NORTH | LAZER_SOUTH;
-        }
-    }
-
-    /*
+	/*
     INTERNAL USE ONLY
      */
-    @Override
-    public final int compare(Integer i1, Integer i2) {
-        boolean o1 = level.lazers[i1];
-        boolean o2 = level.lazers[i2];
-        if (o1 && !o2)
-            return -1;
-        if (!o1 && o2)
-            return 1;
-        return 0;
-    }
+	override fun compare(i1: Int, i2: Int): Int {
+		val o1 = level.lazers[i1]
+		val o2 = level.lazers[i2]
+		if (o1 && !o2) return -1
+		return if (!o1 && o2) 1 else 0
+	}
 
-    private void initLazers() {
-        Arrays.sort(lazerOrdering, this);
-        lazer = new int[level.coins.length][level.coins[0].length];
-        for (int laz : lazerOrdering) {
-            if (!level.lazers[laz])
-                continue;
-            for (int i=0; i<level.coins.length; i++) {
-                for (int ii=0; ii<level.coins[0].length; ii++) {
-                    switch (level.coins[i][ii]) {
-                        case LH0:
-                            if (laz == 0) {
-                                initHorzLazer(i, ii);
-                            }
-                            break;
-                        case LV0:
-                            if (laz == 0) {
-                                initVertLazer(i, ii);
-                            }
-                            break;
-                        case LH1:
-                            if (laz == 1) {
-                                initHorzLazer(i, ii);
-                            }
-                            break;
-                        case LV1:
-                            if (laz == 1) {
-                                initVertLazer(i, ii);
-                            }
-                            break;
-                        case LH2:
-                            if (laz == 2) {
-                                initHorzLazer(i, ii);
-                            }
-                            break;
-                        case LV2:
-                            if (laz == 2) {
-                                initVertLazer(i, ii);
-                            }
-                            break;
-                    }
-                }
-            }
-        }
-    }
+	private fun initLazers() {
+		Arrays.sort(lazerOrdering, this)
+		lazer = Array(level.coins.size) { IntArray(level.coins[0].size) }
+		for (laz in lazerOrdering) {
+			if (!level.lazers[laz]) continue
+			for (i in level.coins.indices) {
+				for (ii in 0 until level.coins[0].size) {
+					when (level.coins[i][ii]) {
+						Type.LH0 -> if (laz == 0) {
+							initHorzLazer(i, ii)
+						}
+						Type.LV0 -> if (laz == 0) {
+							initVertLazer(i, ii)
+						}
+						Type.LH1 -> if (laz == 1) {
+							initHorzLazer(i, ii)
+						}
+						Type.LV1 -> if (laz == 1) {
+							initVertLazer(i, ii)
+						}
+						Type.LH2 -> if (laz == 2) {
+							initHorzLazer(i, ii)
+						}
+						Type.LV2 -> if (laz == 2) {
+							initVertLazer(i, ii)
+						}
+					}
+				}
+			}
+		}
+	}
 
-    // ordering the lazer initialilzation makes possible for any lazer to block any other depending on whose state has changed
-    Integer [] lazerOrdering = { 0, 1, 2 };
+	// ordering the lazer initialilzation makes possible for any lazer to block any other depending on whose state has changed
+	var lazerOrdering = arrayOf(0, 1, 2)
+	private fun toggleLazers(vararg nums: Int) {
+		for (n in nums) {
+			level.lazers[n] = !level.lazers[n]
+		}
+		initLazers()
+	}
 
-    private void toggleLazers(int ... nums) {
-        for (int n : nums) {
-            level.lazers[n] = !level.lazers[n];
-        }
-        initLazers();
-    }
+	fun setLazerEnabled(num: Int, on: Boolean) {
+		println("lazerOrdering num = " + num + " ordering: " + Arrays.toString(lazerOrdering))
+		level.lazers[num] = on
+		initLazers()
+		println("lazerOrdering = " + Arrays.toString(lazerOrdering))
+	}
 
-    public void setLazerEnabled(int num, boolean on) {
-        System.out.println("lazerOrdering num = " + num + " ordering: " + Arrays.toString(lazerOrdering));
-        level.lazers[num] = on;
-        initLazers();
-        System.out.println("lazerOrdering = " + Arrays.toString(lazerOrdering));
-    }
+	private fun canMoveToPos(y: Int, x: Int): Boolean {
+		if (x < 0 || y < 0 || y >= level.coins.size || x >= level.coins[y].size) return false
+		when (level.coins[y][x]) {
+			Type.DD, Type.LB0, Type.LB1, Type.LB2, Type.LB -> return true
+		}
+		return false
+	}
 
-    private boolean canMoveToPos(int y, int x) {
-        if (x < 0 || y < 0 || y >= level.coins.length || x >= level.coins[y].length)
-            return false;
-        switch (level.coins[y][x]) {
-            case DD:
-            case LB0:
-            case LB1:
-            case LB2:
-            case LB:
-                return true;
-        }
-        return false;
-    }
+	private fun turn(guy: Guy, d: Int) {
+		var nd = guy.dir.ordinal + d
+		nd += Direction.values().size
+		nd %= Direction.values().size
+		guy.dir = Direction.values()[nd]
+	}
 
-    private void turn(Guy guy, int d) {
-        int nd = guy.dir.ordinal() + d;
-        nd += Direction.values().length;
-        nd %= Direction.values().length;
-        guy.dir = Direction.values()[nd];
-    }
+	fun reset() {
+		stop()
+		if (copy != null) {
+			copyFrom(copy)
+		}
+	}
 
-    public void reset() {
-        stop();
-        if (copy != null) {
-            copyFrom(copy);
-        }
-    }
+	open fun setLevel(num: Int, level: Level) {
+		levelNum = num
+		program.clear()
+		Arrays.sort(lazerOrdering)
+		init(level.deepCopy())
+	}
 
-    public void setLevel(int num, Level level) {
-        this.levelNum = num;
-        program.clear();
-        Arrays.sort(lazerOrdering);
-        init(level.deepCopy());
-    }
+	/**
+	 * Return -1 for infinte available.
+	 * Otherwise a number >= 0 of num available.
+	 *
+	 * @param t
+	 * @return
+	 */
+	fun getCommandTypeNumAvaialable(t: CommandType): Int {
+		when (t) {
+			CommandType.Jump -> return if (level.numJumps < 0) -1 else level.numJumps - getCommandCount(t)
+			CommandType.LoopStart -> return if (level.numLoops < 0) -1 else level.numLoops - getCommandCount(CommandType.LoopStart)
+			CommandType.TurnLeft, CommandType.TurnRight, CommandType.UTurn -> return if (level.numTurns < 0) -1 else level.numTurns - getCommandCount(CommandType.TurnLeft, CommandType.TurnRight, CommandType.UTurn)
+		}
+		return -1
+	}
 
-    /**
-     * Return -1 for infinte available.
-     * Otherwise a number >= 0 of num available.
-     *
-     * @param t
-     * @return
-     */
-    public int getCommandTypeNumAvaialable(CommandType t) {
-        switch (t) {
-            case Jump:
-                return level.numJumps < 0 ? -1 : level.numJumps - getCommandCount(t);
-            case LoopStart:
-                return level.numLoops < 0 ? -1 : level.numLoops - getCommandCount(CommandType.LoopStart);
-            case TurnLeft:
-            case TurnRight:
-            case UTurn:
-                return level.numTurns < 0 ? -1 : level.numTurns - getCommandCount(CommandType.TurnLeft, CommandType.TurnRight, CommandType.UTurn);
-        }
-        return -1;
-    }
+	/**
+	 *
+	 * @param t
+	 * @return
+	 */
+	fun getCommandTypeMaxAvailable(t: CommandType): Int {
+		when (t) {
+			CommandType.Jump -> return if (level.numJumps < 0) -1 else level.numJumps
+			CommandType.LoopStart -> return if (level.numLoops < 0) -1 else level.numLoops
+			CommandType.TurnLeft, CommandType.TurnRight, CommandType.UTurn -> return if (level.numTurns < 0) -1 else level.numTurns
+		}
+		return -1
+	}
 
-    /**
-     *
-     * @param t
-     * @return
-     */
-    public int getCommandTypeMaxAvailable(CommandType t) {
-        switch (t) {
-            case Jump:
-                return level.numJumps < 0 ? -1 : level.numJumps;
-            case LoopStart:
-                return level.numLoops < 0 ? -1 : level.numLoops;
-            case TurnLeft:
-            case TurnRight:
-            case UTurn:
-                return level.numTurns < 0 ? -1 : level.numTurns;
-        }
-        return -1;
+	fun isCommandTypeVisible(t: CommandType): Boolean {
+		return when (t) {
+			CommandType.Jump -> level.numJumps != 0
+			CommandType.LoopStart, CommandType.LoopEnd -> level.numLoops != 0
+			CommandType.TurnRight, CommandType.TurnLeft, CommandType.UTurn -> level.numTurns != 0
+			CommandType.Advance -> true
+			else -> true
+		}
+	}
 
-    }
+	protected open fun getStrokeWidth(): Float {
+		return 10f
+	}
 
-    public boolean isCommandTypeVisible(CommandType t) {
-        switch (t) {
-            case Jump:
-                return level.numJumps != 0;
-            case LoopStart:
-            case LoopEnd:
-                return level.numLoops != 0;
-            case TurnRight:
-            case TurnLeft:
-            case UTurn:
-                return level.numTurns != 0;
-            case Advance:
-            default:
-                return true;
-        }
-    }
+	// begin rendering
+	fun draw(g: AGraphics, width: Int, height: Int) {
+		val lineWidth = getStrokeWidth()
+		g.clearScreen(GColor.BLACK)
+		g.color = GColor.RED
+		g.drawRect(0f, 0f, width.toFloat(), height.toFloat(), lineWidth)
+		val l = level
+		if (l.coins.isEmpty() || l.coins[0].isEmpty()) return
+		val cols: Int = l.coins[0].size
+		val rows = l.coins.size
 
-    protected float getStrokeWidth() {
-        return 10;
-    }
+		// get cell width/height
+		val cw = width / cols
+		val ch = height / rows
+		val radius = Math.round(0.2f * Math.min(cw, ch)).toFloat()
+		var curColor = 0
+		for (i in 0 until rows) {
+			for (ii in 0 until cols) {
+				val x = ii * cw + cw / 2
+				val y = i * ch + ch / 2
+				val t = l.coins[i][ii]
+				when (t) {
+					Type.EM -> {
+					}
+					Type.DD -> {
+						g.color = GColor.WHITE
+						g.drawFilledCircle(x.toFloat(), y.toFloat(), radius)
+					}
+					Type.SE, Type.SS, Type.SW, Type.SN -> if (curColor < getMaxGuys()) drawGuy(g, Guy(x, y, Direction.values()[t.ordinal - 2], manColors[curColor++]), radius) else l.coins[i][ii] = Type.EM
+					Type.LH0 -> drawLazer(g, x, y, radius, true, GColor.RED)
+					Type.LV0 -> drawLazer(g, x, y, radius, false, GColor.RED)
+					Type.LB0 -> drawButton(g, x, y, radius, GColor.RED, level.lazers[0])
+					Type.LH1 -> drawLazer(g, x, y, radius, true, GColor.BLUE)
+					Type.LV1 -> drawLazer(g, x, y, radius, false, GColor.BLUE)
+					Type.LB1 -> drawButton(g, x, y, radius, GColor.BLUE, level.lazers[1])
+					Type.LH2 -> drawLazer(g, x, y, radius, true, GColor.GREEN)
+					Type.LV2 -> drawLazer(g, x, y, radius, false, GColor.GREEN)
+					Type.LB2 -> drawButton(g, x, y, radius, GColor.GREEN, level.lazers[2])
+					Type.LB -> {
+						// toggle all button
+						g.color = GColor.RED
+						g.drawFilledCircle(x.toFloat(), y.toFloat(), radius * 3 / 2)
+						g.color = GColor.GREEN
+						g.drawCircle(x.toFloat(), y.toFloat(), radius)
+						g.color = GColor.BLUE
+						g.drawCircle(x.toFloat(), y.toFloat(), radius * 2 / 3)
+					}
+				}
+			}
+		}
 
-    // begin rendering
-    public void draw(AGraphics g, int width, int height) {
+		// draw guys
+		for (guy in guys) {
+			drawGuy(g, guy, radius)
+		}
 
-        float lineWidth = getStrokeWidth();
+		// draw lazers
+		g.color = GColor.RED
+		for (i in 0 until rows) {
+			for (ii in 0 until cols) {
+				val cx = ii * cw + cw / 2
+				val cy = i * ch + ch / 2
+				val left = ii * cw
+				val right = left + cw
+				val top = i * ch
+				val bottom = top + ch
+				if (0 != lazer[i][ii] and LAZER_WEST) {
+					g.drawLine(left.toFloat(), cy.toFloat(), cx.toFloat(), cy.toFloat(), lineWidth)
+				}
+				if (0 != lazer[i][ii] and LAZER_EAST) {
+					g.drawLine(cx.toFloat(), cy.toFloat(), right.toFloat(), cy.toFloat(), lineWidth)
+				}
+				if (0 != lazer[i][ii] and LAZER_NORTH) {
+					g.drawLine(cx.toFloat(), top.toFloat(), cx.toFloat(), cy.toFloat(), lineWidth)
+				}
+				if (0 != lazer[i][ii] and LAZER_SOUTH) {
+					g.drawLine(cx.toFloat(), cy.toFloat(), cx.toFloat(), bottom.toFloat(), lineWidth)
+				}
+			}
+		}
+	}
 
-        g.clearScreen(GColor.BLACK);
-        g.setColor(GColor.RED);
-        g.drawRect(0, 0, width, height, lineWidth);
+	fun drawLazer(g: AGraphics, cx: Int, cy: Int, rad: Float, horz: Boolean, color: GColor?) {
+		g.pushMatrix()
+		g.translate(cx.toFloat(), cy.toFloat())
+		if (!horz) {
+			g.rotate(90f)
+		}
+		g.color = GColor.GRAY
+		val radius = rad * 3 / 2
+		g.drawFilledCircle(0f, 0f, radius)
+		g.color = color
+		g.begin()
+		g.vertex(-radius, 0f)
+		g.vertex(0f, -radius / 2)
+		g.vertex(radius, 0f)
+		g.vertex(0f, radius / 2)
+		g.drawTriangleFan()
+		g.popMatrix()
+	}
 
-        Level l = level;
-        if (l.coins == null || l.coins.length == 0 || l.coins[0].length == 0)
-            return;
+	fun drawButton(g: AGraphics, cx: Int, cy: Int, radius: Float, color: GColor, on: Boolean) {
+		g.color = GColor.GRAY
+		g.drawFilledCircle(cx.toFloat(), cy.toFloat(), radius)
+		g.color = color
+		//g.setStyle(on ? Paint.Style.FILL : Paint.Style.STROKE);
+		//c.drawCircle(cx, cy, radius/2, p);
+		if (on) {
+			g.drawFilledCircle(cx.toFloat(), cy.toFloat(), radius / 2)
+		} else {
+			g.drawCircle(cx.toFloat(), cy.toFloat(), radius / 2)
+		}
+	}
 
-        int cols = l.coins[0].length;
-        int rows = l.coins.length;
+	fun drawGuy(g: AGraphics, guy: Guy, radius: Float) {
+		g.color = guy.color
+		val x = guy.posx
+		val y = guy.posy
+		g.drawFilledCircle(x.toFloat(), y.toFloat(), radius)
+		g.color = GColor.BLACK
+		when (guy.dir) {
+			Direction.Right -> g.drawLine(x.toFloat(), y.toFloat(), x + radius, y.toFloat(), getStrokeWidth())
+			Direction.Down -> g.drawLine(x.toFloat(), y.toFloat(), x.toFloat(), y + radius, getStrokeWidth())
+			Direction.Left -> g.drawLine(x.toFloat(), y.toFloat(), x - radius, y.toFloat(), getStrokeWidth())
+			Direction.Up -> g.drawLine(x.toFloat(), y.toFloat(), x.toFloat(), y - radius, getStrokeWidth())
+		}
+	}
 
-        // get cell width/height
-        int cw = width / cols;
-        int ch = height / rows;
-        float radius = Math.round(0.2f * Math.min(cw, ch));
+	// Overrides to handle important events.
+	open fun onCommand(line: Int) {}
 
-        int curColor = 0;
-        for (int i=0; i<rows; i++) {
-            for (int ii=0; ii<cols; ii++) {
-                final int x = ii*cw + cw/2;
-                final int y = i*ch + ch/2;
-                final Type t = l.coins[i][ii];
-                switch (t) {
-                    case EM:
-                        break;
-                    case DD:
-                        g.setColor(GColor.WHITE);
-                        g.drawFilledCircle(x, y, radius);
-                        break;
-                    case SE:
-                    case SS:
-                    case SW:
-                    case SN:
-                        if (curColor < getMaxGuys())
-                            drawGuy(g, new Guy(x, y, Direction.values()[t.ordinal()-2], manColors[curColor++]), radius);
-                        else
-                            l.coins[i][ii] = Type.EM;
-                        break;
-                    case LH0:
-                        drawLazer(g, x, y, radius, true, GColor.RED);
-                        break;
-                    case LV0:
-                        drawLazer(g, x, y, radius, false, GColor.RED);
-                        break;
-                    case LB0:
-                        drawButton(g, x, y, radius, GColor.RED, level.lazers[0]);
-                        break;
-                    case LH1:
-                        drawLazer(g, x, y, radius, true, GColor.BLUE);
-                        break;
-                    case LV1:
-                        drawLazer(g, x, y, radius, false, GColor.BLUE);
-                        break;
-                    case LB1:
-                        drawButton(g, x, y, radius, GColor.BLUE, level.lazers[1]);
-                        break;
-                    case LH2:
-                        drawLazer(g, x, y, radius, true, GColor.GREEN);
-                        break;
-                    case LV2:
-                        drawLazer(g, x, y, radius, false, GColor.GREEN);
-                        break;
-                    case LB2:
-                        drawButton(g, x, y, radius, GColor.GREEN, level.lazers[2]);
-                        break;
-                    case LB:
-                        // toggle all button
-                        g.setColor(GColor.RED);
-                        g.drawFilledCircle(x, y, radius*3/2);
-                        g.setColor(GColor.GREEN);
-                        g.drawCircle(x, y, radius);
-                        g.setColor(GColor.BLUE);
-                        g.drawCircle(x, y, radius*2/3);
-                        break;
-                }
-            }
-        }
+	/**
+	 * Called at the end of program if some FAILED action occured.
+	 */
+	open fun onFailed() {}
 
-        // draw guys
-        for (Guy guy : guys) {
-            drawGuy(g, guy, radius);
-        }
+	/**
+	 * Guy a walked off board or onto an unavailable square
+	 * @param guy
+	 */
+	open fun onAdvanceFailed(guy: Guy) {}
 
-        // draw lazers
-        g.setColor(GColor.RED);
-        for (int i=0; i<rows; i++) {
-            for (int ii=0; ii<cols; ii++) {
-                int cx = ii*cw + cw/2;
-                int cy = i*ch + ch/2;
-                int left = ii*cw;
-                int right = left + cw;
-                int top = i*ch;
-                int bottom = top + ch;
+	/**
+	 * A guy has advanced
+	 * @param guy
+	 */
+	open fun onAdvanced(guy: Guy) {}
 
-                if (0 != (lazer[i][ii] & Probot.LAZER_WEST)) {
-                    g.drawLine(left, cy, cx, cy, lineWidth);
-                }
+	/**
+	 * A guy has jumped
+	 * @param guy
+	 */
+	open fun onJumped(guy: Guy) {}
 
-                if (0 != (lazer[i][ii] & Probot.LAZER_EAST)) {
-                    g.drawLine(cx, cy, right, cy, lineWidth);
-                }
+	/**
+	 * A Guy has execute a right, left or U turn
+	 * @param guy
+	 * @param dir
+	 */
+	open fun onTurned(guy: Guy, dir: Int) {}
 
-                if (0 != (lazer[i][ii] & Probot.LAZER_NORTH)) {
-                    g.drawLine(cx, top, cx, cy, lineWidth);
-                }
+	/**
+	 * Called at end of program if no FAILED events occured.
+	 */
+	open fun onSuccess() {}
 
-                if (0 != (lazer[i][ii] & Probot.LAZER_SOUTH)) {
-                    g.drawLine(cx, cy, cx, bottom, lineWidth);
-                }
+	/**
+	 * Guy has walked into a lazer or a lazer activated on them. FAILED.
+	 * @param guy
+	 * @param type 0 == instantaneous, 1 == walked into, 2 == jumped into
+	 */
+	open fun onLazered(guy: Guy, type: Int) {}
 
-            }
-        }
-    }
-
-    void drawLazer(AGraphics g, int cx, int cy, float rad, boolean horz, GColor color) {
-        g.pushMatrix();
-        g.translate(cx, cy);
-        if (!horz) {
-            g.rotate(90);
-        }
-        g.setColor(GColor.GRAY);
-        float radius = rad*3/2;
-        g.drawFilledCircle(0, 0, radius);
-        g.setColor(color);
-        g.begin();
-        g.vertex(-radius, 0);
-        g.vertex(0, -radius/2);
-        g.vertex(radius, 0);
-        g.vertex(0, radius/2);
-        g.drawTriangleFan();
-        g.popMatrix();
-    }
-
-    void drawButton(AGraphics g, int cx, int cy, float radius, GColor color, boolean on) {
-        g.setColor(GColor.GRAY);
-        g.drawFilledCircle(cx, cy, radius);
-        g.setColor(color);
-        //g.setStyle(on ? Paint.Style.FILL : Paint.Style.STROKE);
-        //c.drawCircle(cx, cy, radius/2, p);
-        if (on) {
-            g.drawFilledCircle(cx, cy, radius/2);
-        } else {
-            g.drawCircle(cx, cy, radius/2);
-        }
-    }
-
-    public void drawGuy(AGraphics g, Guy guy, float radius) {
-        g.setColor(guy.color);
-        final int x = guy.posx;
-        final int y = guy.posy;
-        g.drawFilledCircle(x, y, radius);
-        g.setColor(GColor.BLACK);
-        switch (guy.dir) {
-            case Right:
-                g.drawLine(x, y, x+radius, y, getStrokeWidth());
-                break;
-            case Down:
-                g.drawLine(x, y, x, y+radius, getStrokeWidth());
-                break;
-            case Left:
-                g.drawLine(x, y, x-radius, y, getStrokeWidth());
-                break;
-            case Up:
-                g.drawLine(x, y, x, y-radius, getStrokeWidth());
-                break;
-        }
-    }
-
-    // Overrides to handle important events.
-
-    protected void onCommand(int line) {}
-
-    /**
-     * Called at the end of program if some FAILED action occured.
-     */
-    protected void onFailed() {}
-
-    /**
-     * Guy a walked off board or onto an unavailable square
-     * @param guy
-     */
-    protected void onAdvanceFailed(Guy guy) {}
-
-    /**
-     * A guy has advanced
-     * @param guy
-     */
-    protected void onAdvanced(Guy guy) {}
-
-    /**
-     * A guy has jumped
-     * @param guy
-     */
-    protected void onJumped(Guy guy) {}
-
-    /**
-     * A Guy has execute a right, left or U turn
-     * @param guy
-     * @param dir
-     */
-    protected void onTurned(Guy guy, int dir) {}
-
-    /**
-     * Called at end of program if no FAILED events occured.
-     */
-    protected void onSuccess() {}
-
-    /**
-     * Guy has walked into a lazer or a lazer activated on them. FAILED.
-     * @param guy
-     * @param type 0 == instantaneous, 1 == walked into, 2 == jumped into
-     */
-    protected void onLazered(Guy guy, int type) {}
-
-    /**
-     * The program has finished but not all dots eaten. FAILED.
-     */
-    protected void onDotsLeftUneaten() {}
+	/**
+	 * The program has finished but not all dots eaten. FAILED.
+	 */
+	open fun onDotsLeftUneaten() {}
 }

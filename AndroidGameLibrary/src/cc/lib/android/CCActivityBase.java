@@ -31,6 +31,7 @@ import androidx.preference.PreferenceManager;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
+import cc.lib.utils.GException;
 
 /**
  * Base class has support for inApp billing, polling and various helper methods
@@ -58,7 +59,9 @@ public class CCActivityBase extends AppCompatActivity {
         return null;
     }
 
-    protected void onLayoutCreated(ViewDataBinding binding, ViewModel vewModel) {}
+    protected void onLayoutCreated(ViewDataBinding binding, ViewModel viewModel) {
+        throw new GException("If you override getLayoutFactory then you must handle this callback");
+    }
 
     @Override
 	protected void onCreate(Bundle bundle) {

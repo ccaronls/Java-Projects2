@@ -1,4 +1,4 @@
-package cc.app.bspline;
+package cc.lib.geoloc;
 
 import java.io.File;
 import java.io.FileInputStream;
