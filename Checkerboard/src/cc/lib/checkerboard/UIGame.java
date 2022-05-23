@@ -453,7 +453,7 @@ public abstract class UIGame extends Game {
                 }
                 float x = _selectedPiece.getCol() * cw + cw / 2;
                 float y = _selectedPiece.getRank() * ch + ch / 2;
-                g.setTextHeight(PIECE_RADIUS / 2);
+                //g.setTextHeight(PIECE_RADIUS / 2);
                 g.drawJustifiedString(x, y, Justify.CENTER, Justify.CENTER, "END");
             } else if (m.getEnd() >= 0) {
                 g.setColor(GColor.CYAN);
@@ -718,8 +718,7 @@ public abstract class UIGame extends Game {
         } else {
             g.setColor(color.color);
             g.drawFilledCircle(0, -h/2, w/2);
-            float curHeight = g.getTextHeight();
-            g.setTextHeight(SQ_DIM/2);
+            float curHeight = g.setTextHeight(SQ_DIM/2);
             g.setColor(color.color.inverted());
             g.drawJustifiedString(0, -h/2, Justify.CENTER, Justify.CENTER, p.abbrev);
             g.setTextHeight(curHeight);

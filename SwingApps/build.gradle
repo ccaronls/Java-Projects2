@@ -12,6 +12,8 @@ dependencies {
     // https://mvnrepository.com/artifact/org.json/json
     implementation group: 'org.json', name: 'json', version: '20090211'
     implementation group: 'net.sourceforge.jaadec', name: 'jaad', version: '0.8.5'
+
+    // TODO: Should eb able to isolate the game lib for each swing app
     implementation project(':GameLibrary')
     implementation project(':Dominos')
     implementation project(':othello')
@@ -21,6 +23,7 @@ dependencies {
     implementation project(':Risk')
     implementation project(':GeniusSquares')
     implementation project(':Yahtzee')
+    implementation project(':Checkerboard')
 }
 
 sourceSets {

@@ -251,7 +251,8 @@ public class MainActivity extends DroidActivity {
     protected void onDraw(DroidGraphics g) {
         g.setIdentity();
         g.ortho();
-        g.getPaint().setTextSize(getResources().getDimension(R.dimen.txt_size_normal));
+        g.setTextHeightDips(18);
+//        g.getPaint().setTextSize(getResources().getDimension(R.dimen.txt_size_normal));
         game.draw(g, touchX, touchY);
         if (clicked) {
             game.doClick();
