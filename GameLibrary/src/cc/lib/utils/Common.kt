@@ -151,3 +151,5 @@ fun <K,V> MutableMap<K,V>.removeAll(predicate: (entry: MutableMap.MutableEntry<K
 		}
 	}
 }
+
+fun flipCoin() : Boolean = random(2) == 0

@@ -151,6 +151,7 @@ class ProbotActivity : CCActivityBase() {
 	private fun setLevel(level: Int) {
 		var level = level
 		val maxLevel = max(level, prefs.getInt("MaxLevel", 0))
+		val showInfo = level == maxLevel
 		//max(viewModel.maxLevel.value?:0, level)
 		viewModel.maxLevel.postValue(maxLevel)
 		if (level >= levels.size)
@@ -166,6 +167,12 @@ class ProbotActivity : CCActivityBase() {
 		adapter.setProgramLineNum(-1)
 		refresh()
 		binding.probotView.postInvalidate()
+		if (showInfo)
+			newDialogBuilder()
+				.setTitle(levels[level].label)
+				.setMessage(levels[level].info)
+				.setNegativeButton(R.string.popup_button_ok, null)
+				.show()
 	}
 
 	fun refresh() {

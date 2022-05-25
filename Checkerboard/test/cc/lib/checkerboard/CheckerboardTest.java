@@ -20,8 +20,10 @@ public class CheckerboardTest extends TestCase {
 
     final Logger log = LoggerFactory.getLogger(getClass());
 
+
+
     private void runGame(Game gm) {
-        runGame(gm, false, 500);
+        runGame(gm, false, 10);
     }
 
     private void runGame(Game gm, boolean expectWinner, final int maxIterations) {
@@ -35,7 +37,7 @@ public class CheckerboardTest extends TestCase {
                 gm.trySaveToFile(new File("outputs/" + gm.getRules().getClass().getSimpleName() + "_" + i + ".txt"));
             }
             gm.runGame();
-            totalNodesEvaluated += AIPlayer.stats.evalCount;
+            totalNodesEvaluated += AIPlayer.stats.getEvalCount();
             //gm.trySaveToFile(new File("minimaxtest_testcheckrs.game"));
             if (AIPlayer.lastSearchResult != null) {
                 try (Writer out = new FileWriter("outputs/" + AIPlayer.algorithm + "_tree." + i + ".xml")) {
@@ -63,6 +65,7 @@ public class CheckerboardTest extends TestCase {
     @Override
     protected void setUp() throws Exception {
         Utils.setRandomSeed(0);
+        Utils.setDebugEnabled();
         File dir = new File("outputs");
         if (!dir.exists())
             assertTrue(dir.mkdir());
@@ -74,8 +77,7 @@ public class CheckerboardTest extends TestCase {
 
         Game gm = new Game();
         gm.setRules(new Checkers());
-        gm.setPlayer(Game.FAR, new AIPlayer());
-        gm.setPlayer(Game.NEAR, new AIPlayer());
+        gm.setPlayers(new AIPlayer(), new AIPlayer());
         gm.newGame();
         for (int i=0; i<10; i++) {
             System.out.println(gm);
@@ -89,8 +91,7 @@ public class CheckerboardTest extends TestCase {
 
         Game gm = new Game();
         gm.setRules(new Checkers());
-        gm.setPlayer(Game.FAR, new AIPlayer());
-        gm.setPlayer(Game.NEAR, new AIPlayer());
+        gm.setPlayers(new AIPlayer(), new AIPlayer());
         gm.newGame();
         gm.clear();
         gm.setPiece(0, 0, Game.FAR, PieceType.CHECKER);
@@ -107,11 +108,10 @@ public class CheckerboardTest extends TestCase {
     }
 
     public void testAIFindsWinningMoveCheckers() throws Exception {
+        Rules r = new Checkers();
         Game gm = new Game();
-        gm.setRules(new Checkers());
-        gm.setPlayer(Game.FAR, new AIPlayer());
-        gm.setPlayer(Game.NEAR, new AIPlayer());
-        gm.init(8, 8);
+        gm.setRules(r);
+        gm.setPlayers(new AIPlayer(), new AIPlayer());
         gm.clear();
         gm.setPiece(0, 0, Game.NEAR, PieceType.KING);
         gm.setPiece(4, 2, Game.FAR, PieceType.KING);
@@ -141,27 +141,55 @@ public class CheckerboardTest extends TestCase {
         runGame(gm, true, 50);
     }
 
-    public void testAIFindsWinningMoveChess1() {
+    public void testAIFindsWinningMoveChess1() throws IOException {
         Game gm = new Game();
         gm.setRules(new Chess());
         AIPlayer p;
-        gm.setPlayer(Game.FAR, new AIPlayer(3));
-        gm.setPlayer(Game.NEAR, p=new AIPlayer(3));
-        gm.newGame();
+        gm.setPlayers(new AIPlayer(3), p=new AIPlayer(3));
         gm.clear();
         gm.setPiece(0, 7, Game.FAR, PieceType.UNCHECKED_KING);
         gm.setPiece(1, 4, Game.NEAR, PieceType.QUEEN);
         gm.setPiece(2, 5, Game.NEAR, PieceType.UNCHECKED_KING);
         gm.setTurn(Game.NEAR);
+        runGame(gm, true, 1);
 
-        runGame(gm, true, 10);
+
+    }
+
+    public void testCheckmateDetected() throws IOException {
+        Game gm = new Game();
+        gm.setRules(new Chess());
+        AIPlayer p;
+        gm.setPlayers(new AIPlayer(3), p=new AIPlayer(3));
+        gm.clear();
+        gm.setPiece(0, 7, Game.FAR, PieceType.CHECKED_KING);
+        gm.setPiece(1, 6, Game.NEAR, PieceType.QUEEN);
+        gm.setPiece(2, 5, Game.NEAR, PieceType.UNCHECKED_KING);
+        gm.setTurn(Game.FAR);
+        gm.refreshGameState();
+        long score = AIPlayer.Companion.evaluate(gm, 0);
+        assertEquals(Long.MIN_VALUE, score);
+
+        assertEquals(Game.NEAR, gm.getRules().getWinner(gm));
+    }
+
+    public void testDrawDetected() throws IOException {
+        Game gm = new Game();
+        gm.setRules(new Chess());
+        AIPlayer p;
+        gm.setPlayers(new AIPlayer(3), p=new AIPlayer(3));
+        gm.clear();
+        gm.setPiece(0, 7, Game.FAR, PieceType.UNCHECKED_KING);
+        gm.setPiece(1, 5, Game.NEAR, PieceType.QUEEN);
+        gm.setPiece(2, 5, Game.NEAR, PieceType.UNCHECKED_KING);
+        gm.setTurn(Game.FAR);
+        assertEquals(Game.NOP, gm.getRules().getWinner(gm));
     }
 
     public void testChessDetermineDraw() {
         Game gm = new Game();
         gm.setRules(new Chess());
-        gm.setPlayer(Game.FAR, new AIPlayer());
-        gm.setPlayer(Game.NEAR, new AIPlayer());
+        gm.setPlayers(new AIPlayer(), new AIPlayer());
         gm.newGame();
         gm.clear();
         gm.setPiece(0, 7, Game.FAR, PieceType.UNCHECKED_KING);
@@ -205,8 +233,8 @@ public class CheckerboardTest extends TestCase {
     public void testCheckers() {
         Game gm = new Game();
         gm.setRules(new Checkers());
-        gm.setPlayer(Game.FAR, new AIPlayer(3));
-        gm.setPlayer(Game.NEAR, new AIPlayer(3));
+        gm.setPlayers(new AIPlayer(3), new AIPlayer(3));
+        System.out.println(gm.toString());
         gm.newGame();
         runGame(gm);
     }
@@ -214,8 +242,7 @@ public class CheckerboardTest extends TestCase {
     public void testCanadianDraughts() {
         Game gm = new Game();
         gm.setRules(new CanadianDraughts());
-        gm.setPlayer(Game.FAR, new AIPlayer());
-        gm.setPlayer(Game.NEAR, new AIPlayer());
+        gm.setPlayers(new AIPlayer(), new AIPlayer());
         gm.newGame();
         runGame(gm);
     }
@@ -223,8 +250,7 @@ public class CheckerboardTest extends TestCase {
     public void testSuicide() {
         Game gm = new Game();
         gm.setRules(new Suicide());
-        gm.setPlayer(Game.FAR, new AIPlayer());
-        gm.setPlayer(Game.NEAR, new AIPlayer());
+        gm.setPlayers(new AIPlayer(), new AIPlayer());
         gm.newGame();
         runGame(gm);
     }
@@ -237,16 +263,14 @@ public class CheckerboardTest extends TestCase {
         AIPlayer.algorithm = AIPlayer.Algorithm.minimax;
         Game gm1 = new Game();
         gm1.setRules(new Checkers());
-        gm1.setPlayer(Game.FAR, new AIPlayer(3));
-        gm1.setPlayer(Game.NEAR, new AIPlayer(3));
+        gm1.setPlayers(new AIPlayer(), new AIPlayer());
         gm1.newGame();
         runGame(gm1);
 
         AIPlayer.algorithm = AIPlayer.Algorithm.negamax;
         Game gm = new Game();
         gm.setRules(new Checkers());
-        gm.setPlayer(Game.FAR, new AIPlayer(3));
-        gm.setPlayer(Game.NEAR, new AIPlayer(3));
+        gm.setPlayers(new AIPlayer(), new AIPlayer());
         gm.newGame();
         runGame(gm);
 
@@ -257,8 +281,7 @@ public class CheckerboardTest extends TestCase {
     public void testUgolki() {
         Game gm = new Game();
         gm.setRules(new Ugolki());
-        gm.setPlayer(Game.FAR, new AIPlayer(3));
-        gm.setPlayer(Game.NEAR, new AIPlayer(3));
+        gm.setPlayers(new AIPlayer(), new AIPlayer());
         gm.newGame();
         runGame(gm);
     }
@@ -266,8 +289,7 @@ public class CheckerboardTest extends TestCase {
     public void testChess() {
         Game gm = new Game();
         gm.setRules(new Chess());
-        gm.setPlayer(Game.FAR, new AIPlayer(3));
-        gm.setPlayer(Game.NEAR, new AIPlayer(3));
+        gm.setPlayers(new AIPlayer(), new AIPlayer());
         gm.newGame();
         runGame(gm);
 
@@ -283,9 +305,7 @@ public class CheckerboardTest extends TestCase {
     public void testChessSwapPawn() {
         Game gm = new Game();
         gm.setRules(new Chess());
-        gm.setPlayer(Game.FAR, new AIPlayer(5));
-        gm.setPlayer(Game.NEAR, new AIPlayer(5));
-        gm.newGame();
+        gm.setPlayers(new AIPlayer(), new AIPlayer());
         gm.clear();
         gm.setPiece(5, 5, Game.FAR, PieceType.UNCHECKED_KING);
         gm.setPiece(7, 7, Game.NEAR, PieceType.UNCHECKED_KING);
@@ -298,8 +318,7 @@ public class CheckerboardTest extends TestCase {
 
         Game gm = new Game();
         gm.setRules(new Shashki());
-        gm.setPlayer(0, new Player());
-        gm.setPlayer(1, new Player());
+        gm.setPlayers(new AIPlayer(), new AIPlayer());
         gm.newGame();
         gm.clear();
         gm.setTurn(Game.NEAR);
@@ -329,9 +348,7 @@ public class CheckerboardTest extends TestCase {
     public void testGetPieces() {
         Game gm = new Game();
         gm.setRules(new DragonChess());
-        gm.setPlayer(0, new Player());
-        gm.setPlayer(1, new Player());
-        gm.getRules().init(gm);
+        gm.setPlayers(new AIPlayer(), new AIPlayer());
         int num = 0;
         for (Piece p : gm.getPieces(-1)) {
             System.out.println(p);
@@ -343,11 +360,9 @@ public class CheckerboardTest extends TestCase {
     public void testGetPieces2() {
         Game gm = new Game();
         gm.setRules(new DragonChess());
-        gm.setPlayer(0, new Player());
-        gm.setPlayer(1, new Player());
-        gm.getRules().init(gm);
+        gm.setPlayers(new Player(), new Player());
         int num = 0;
-        for (Piece p : gm.getPieces(0)) {
+        for (Piece p : gm.getPieces(Game.NEAR)) {
             System.out.println(p);
             num++;
         }
@@ -357,9 +372,7 @@ public class CheckerboardTest extends TestCase {
     public void testGetPieces3() {
         Game gm = new Game();
         gm.setRules(new DragonChess());
-        gm.setPlayer(0, new Player());
-        gm.setPlayer(1, new Player());
-        gm.getRules().init(gm);
+        gm.setPlayers(new Player(), new Player());
         int num = 0;
         for (Piece p : gm.getPieces(1)) {
             System.out.println(p);
@@ -371,8 +384,7 @@ public class CheckerboardTest extends TestCase {
     public void testGetPieces4() {
         Game gm = new Game();
         gm.setRules(new Chess());
-        gm.setPlayer(0, new Player());
-        gm.setPlayer(1, new Player());
+        gm.setPlayers(new Player(), new Player());
         gm.getRules().init(gm);
         int num = 0;
         for (Piece p : gm.getPieces(-1)) {
@@ -384,7 +396,7 @@ public class CheckerboardTest extends TestCase {
 
     public void testChess1() throws Exception {
         Game game = new Game();
-        game.deserialize(FileUtils.openFileOrResource("chess1.save"));
+        game.deserialize(FileUtils.openFileOrResource("testResources/chess1.save"));
         //game.setPlayer(0, new Player());
         //game.setPlayer(1, new Player());
         System.out.println(game);
