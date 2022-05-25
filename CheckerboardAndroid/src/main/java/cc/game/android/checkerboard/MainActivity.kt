@@ -58,11 +58,11 @@ class MainActivity : DroidActivity() {
 	override fun onResume() {
 		super.onResume()
 		if (saveFile.exists()) {
-			newDialogBuilder().setTitle("Resume Previous " + game.rules.javaClass.simpleName + " Game?")
+			newDialogBuilder().setTitle("Resume Previous " + game.getRules().javaClass.simpleName + " Game?")
 				.setItems(arrayOf("Resume", "New Game")) { dialog, which ->
 					when (which) {
 						0 -> {
-							title = game.rules.javaClass.simpleName
+							title = game.getRules().javaClass.simpleName
 							game.startGameThread()
 							game.repaint(-1)
 						}
@@ -79,17 +79,17 @@ class MainActivity : DroidActivity() {
 		game.stopGameThread()
 		newDialogBuilder().setItems(items) { dialog, which ->
 			when (items[which]) {
-				"Checkers" -> game.rules = Checkers()
-				"Suicide" -> game.rules = Suicide()
-				"Draughts" -> game.rules = Draughts()
-				"Canadian Draughts" -> game.rules = CanadianDraughts()
-				"Dama" -> game.rules = Dama()
-				"Chess" -> game.rules = Chess()
-				"Dragon Chess" -> game.rules = DragonChess()
-				"Ugolki" -> game.rules = Ugolki()
-				"Columns" -> game.rules = Columns()
-				"Kings Court" -> game.rules = KingsCourt()
-				"Shashki" -> game.rules = Shashki()
+				"Checkers" -> game.setRules(Checkers())
+				"Suicide" -> game.setRules(Suicide())
+				"Draughts" -> game.setRules(Draughts())
+				"Canadian Draughts" -> game.setRules(CanadianDraughts())
+				"Dama" -> game.setRules(Dama())
+				"Chess" -> game.setRules(Chess())
+				"Dragon Chess" -> game.setRules(DragonChess())
+				"Ugolki" -> game.setRules(Ugolki())
+				"Columns" -> game.setRules(Columns())
+				"Kings Court" -> game.setRules(KingsCourt())
+				"Shashki" -> game.setRules(Shashki())
 			}
 			title = items[which]
 			showChoosePlayersDialog()

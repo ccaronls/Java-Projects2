@@ -24,6 +24,7 @@ dependencies {
     implementation project(':GeniusSquares')
     implementation project(':Yahtzee')
     implementation project(':Checkerboard')
+    implementation project(':Kaiser')
 }
 
 sourceSets {

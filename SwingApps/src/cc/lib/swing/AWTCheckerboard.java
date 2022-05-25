@@ -308,7 +308,7 @@ public class AWTCheckerboard extends AWTComponent {
                 break;
             case VK_E: {
                 Move m = game.getMoveHistory().get(0);
-                long value = game.getRules().evaluate(game, m);
+                long value = game.getRules().evaluate(game);
                 System.out.println("EVALUATION [" + value + "] for move:" + m);
                 ((UIPlayer)game.getCurrentPlayer()).forceRebuildMovesList(game);
                 break;
