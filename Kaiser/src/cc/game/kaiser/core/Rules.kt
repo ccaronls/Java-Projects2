@@ -1,10 +1,8 @@
-package cc.game.kaiser.core;
+package cc.game.kaiser.core
 
-public class Rules {
-
-    // TODO: Implement 
-    public static int MINIMUM_BID = 5;
-    
-    public static boolean KITTY = false; // 34 card game with 2 cards in kitty
-    
+object Rules {
+	// TODO: Implement
+    @JvmField
+    var MINIMUM_BID = 5
+	var KITTY = false // 34 card game with 2 cards in kitty
 }

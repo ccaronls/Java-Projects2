@@ -1,59 +1,44 @@
-package cc.game.kaiser.core;
+package cc.game.kaiser.core
 
-import cc.lib.utils.Reflector;
+import cc.lib.utils.Reflector
 
-public class Bid extends Reflector<Bid> {
-    static {
-        addAllFields(Bid.class);
-    }
-    
-    
-    public final static Bid NO_BID = new Bid(0, Suit.NOTRUMP) {
-        public String toString() { return "NO_BID"; }
-    };
+open class Bid(val numTricks: Int=0, val trump: Suit=Suit.NOTRUMP) : Reflector<Bid>() {
+	companion object {
+		@JvmField
+        val NO_BID: Bid = object : Bid(0, Suit.NOTRUMP) {
+			override fun toString(): String {
+				return "NO_BID"
+			}
+		}
 
+		@JvmStatic
+        @Throws(IllegalArgumentException::class)
+		fun parseBid(str: String): Bid {
+			var str = str
+			str = str.trim { it <= ' ' }
+			return if (str == toString()) {
+				NO_BID
+			} else {
+				val parts = str.split("[ ]+".toRegex()).toTypedArray()
+				require(parts.size == 2) { "Bid string invalid: \"$str\" not of format: '%d %s'" }
+				try {
+					val numTricks = parts[0].trim { it <= ' ' }.toInt()
+					val trump = Suit.valueOf(parts[1].trim { it <= ' ' })
+					Bid(numTricks, trump)
+				} catch (e: NumberFormatException) {
+					throw NumberFormatException("Bid string invalid: \"" + str + "\" failed to parse numTricks from '" + parts[0] + "'")
+				} catch (e: IllegalArgumentException) {
+					throw IllegalArgumentException("Bid string invalid: \"" + str + "\" failed to parse trump suit from '" + parts[1] + "'")
+				}
+			}
+		}
 
-    public final int numTricks;
-    public final Suit trump;
+		init {
+			addAllFields(Bid::class.java)
+		}
+	}
 
-    public Bid() {
-        this(0, Suit.NOTRUMP);
-    }
-    
-    Bid(int numTricks, Suit trump) {
-        this.numTricks = numTricks;
-        this.trump = trump;
-    }
-    
-    @Override
-    public final boolean equals(Object obj) {
-        Bid bid = (Bid)obj;
-        return bid.numTricks == numTricks && bid.trump == trump;
-    }
-    
-    @Override
-    public String toString() {
-        return "" + numTricks + " " + trump.name();
-    }
-    
-    public static Bid parseBid(String str) throws IllegalArgumentException {
-        str = str.trim();
-        if (str.equals(NO_BID.toString())) {
-            return NO_BID;
-        } else {
-            String [] parts = str.split("[ ]+");
-            if (parts.length != 2)
-                throw new IllegalArgumentException("Bid string invalid: \"" + str + "\" not of format: '%d %s'");
-            try {
-                int numTricks = Integer.parseInt(parts[0].trim());
-                Suit trump = Suit.valueOf(parts[1].trim());
-                return new Bid(numTricks, trump);
-            } catch (NumberFormatException e) {
-                throw new NumberFormatException("Bid string invalid: \"" + str + "\" failed to parse numTricks from '" + parts[0] + "'");
-            } catch (IllegalArgumentException e) {
-                throw new IllegalArgumentException("Bid string invalid: \"" + str + "\" failed to parse trump suit from '" + parts[1] + "'");
-            }
-        }
-    }    
-    
-};
+	override fun toString(): String {
+		return "" + numTricks + " " + trump.name
+	}
+}

@@ -1,205 +1,172 @@
-package cc.game.kaiser.core;
+package cc.game.kaiser.core
 
-import cc.lib.utils.Reflector;
+import cc.lib.utils.Reflector
 
 /**
  * base class for a KaiserPlayer
  * @author ccaron
- *
  */
-public abstract class Player extends Reflector<Player> {
+abstract class Player protected constructor(name: String) : Reflector<Player>() {
+	companion object {
+		const val HAND_SIZE = 8
+		const val MAX_PLAYER_TRICKS = 8
 
-    static {
-        addAllFields(Player.class);
-    }
-    
-    public static final int HAND_SIZE = 8;
-    public static final int MAX_PLAYER_TRICKS = 8;
+		init {
+			addAllFields(Player::class.java)
+		}
+	}
+	/**
+	 *
+	 * @return
+	 */
+	/**
+	 *
+	 * @param nm
+	 */
+	var name: String
 
-    String mName;
-    int mTeam;
-    Hand mHand = new Hand();
-    int playerNum = -1;
+	/**
+	 *
+	 * @return
+	 */
+	var team = 0
+	@JvmField
+    var mHand = Hand()
 
-    Hand[] mTricks = new Hand[MAX_PLAYER_TRICKS];
-    int mNumTricks = 0;
+	/**
+	 *
+	 * @return
+	 */
+    @JvmField
+    var playerNum = -1
 
-    /**
-     * 
-     * @param name
-     */
-    protected Player(String name) {
-        mName = (name);
-    }
+	/**
+	 *
+	 * @return
+	 *
+	 * public Player getTeammate() {
+	 * if (this.mTeam.getPlayerA() == this)
+	 * return mTeam.getPlayerB();
+	 * return mTeam.getPlayerA();
+	 * }
+	 *
+	 * / **
+	 *
+	 * @return
+	 */
+	val tricks = mutableListOf<Hand>()
 
-    /**
-     * Callback when a new game has started. Default impl does nothing.
-     * 
-     * @param k
-     */
-    public void onNewGame(Kaiser k) {
-    }
+	/**
+	 * Callback when a new game has started. Default impl does nothing.
+	 *
+	 * @param k
+	 */
+	fun onNewGame(k: Kaiser) {}
 
-    /**
-     * handle when a new round is started. kaiser state is NEW_ROUND Default
-     * impl does nothing.
-     * 
-     * @param k
-     */
-    public void onNewRound(Kaiser k) {
-    }
+	/**
+	 * handle when a new round is started. kaiser state is NEW_ROUND Default
+	 * impl does nothing.
+	 *
+	 * @param k
+	 */
+	fun onNewRound(k: Kaiser) {}
 
-    /**
-     * handle when this player wins a trick. kaiser state is PROCESS_TRICK
-     * Default impl does nothing.
-     * 
-     * @param k
-     */
-    public void onWinsTrick(Kaiser k, Hand trick) {
-    }
+	/**
+	 * handle when this player wins a trick. kaiser state is PROCESS_TRICK
+	 * Default impl does nothing.
+	 *
+	 * @param k
+	 */
+	fun onWinsTrick(k: Kaiser, trick: Hand?) {}
 
-    /**
-     * handle for every card this player is dealt. kaiser state is DEAL Default
-     * impl does nothing.
-     * 
-     * @param c
-     */
-    public void onDealtCard(Kaiser k, Card c) {
-    }
+	/**
+	 * handle for every card this player is dealt. kaiser state is DEAL Default
+	 * impl does nothing.
+	 *
+	 * @param c
+	 */
+	fun onDealtCard(k: Kaiser, c: Card?) {}
 
-    /**
-     * handle for end of trick processing. kaiser state is PROCESS_TRICK Default
-     * impl does nothing.
-     * 
-     * @param kaiser
-     * @param trick
-     * @param reciever
-     * @param pointsInTrick
-     */
-    public void onProcessTrick(Kaiser kaiser, Hand trick, Player reciever,
-            int pointsInTrick) {
-    }
+	/**
+	 * handle for end of trick processing. kaiser state is PROCESS_TRICK Default
+	 * impl does nothing.
+	 *
+	 * @param kaiser
+	 * @param trick
+	 * @param reciever
+	 * @param pointsInTrick
+	 */
+	fun onProcessTrick(kaiser: Kaiser, trick: Hand?, reciever: Player,
+	                   pointsInTrick: Int) {
+	}
 
-    /**
-     * handle for end of round processing. kaiser state is PROCESS_ROUND Default
-     * impl does nothing.
-     * 
-     * @param k
-     */
-    public void onProcessRound(Kaiser k) {
-    }
+	/**
+	 * handle for end of round processing. kaiser state is PROCESS_ROUND Default
+	 * impl does nothing.
+	 *
+	 * @param k
+	 */
+	open fun onProcessRound(k: Kaiser) {}
 
-    /**
-     * Returns a value from the options array. returning null will result in no
-     * advance in state. This is to support integrations that do not want this
-     * method to ever block.
-     * 
-     * @param kaiser
-     * @param options
-     * @param numOptions
-     * @return
-     */
-    public abstract Card playTrick(Kaiser kaiser, Card [] options);
+	/**
+	 * Returns a value from the options array. returning null will result in no
+	 * advance in state. This is to support integrations that do not want this
+	 * method to ever block.
+	 *
+	 * @param kaiser
+	 * @param options
+	 * @param numOptions
+	 * @return
+	 */
+	abstract fun playTrick(kaiser: Kaiser, options: Array<Card>): Card?
 
-    /**
-     * Returning NULL will result in no advancement of state. This is to support
-     * integrations that do not want this method to ever block.
-     * 
-     * @param kaiser
-     * @param numOptions
-     * @return
-     */
-    public abstract Bid makeBid(Kaiser kaiser, Bid [] options);
+	/**
+	 * Returning NULL will result in no advancement of state. This is to support
+	 * integrations that do not want this method to ever block.
+	 *
+	 * @param kaiser
+	 * @param numOptions
+	 * @return
+	 */
+	abstract fun makeBid(kaiser: Kaiser, options: Array<Bid>): Bid?
 
-    /**
-     * 
-     * @return
-     */
-    public final int getPlayerNum() {
-        return playerNum;
-    }
+	/**
+	 *
+	 * @return
+	 */
+	val numCards: Int
+		get() = mHand.size
 
-    /**
-     * 
-     * @return
-     */
-    public final int getNumCards() {
-        return mHand.getNumCards();
-    }
+	/**
+	 *
+	 * @param index
+	 * @return
+	 */
+	fun getCard(index: Int): Card {
+		return mHand.get(index)
+	}
 
-    /**
-     * 
-     * @param index
-     * @return
-     */
-    public final Card getCard(int index) {
-        return mHand.getCard(index);
-    }
+	/**
+	 * Return a copy if this hand to avoid invalidating the game.
+	 * @return
+	 */
+	val hand: Hand
+		get() = mHand.deepCopy()
 
-    /**
-     * Return a copy if this hand to avoid invalidating the game.
-     * @return
-     */
-    public final Hand getHand() {
-        return mHand.deepCopy();
-    }
+	/**
+	 *
+	 * @param index
+	 * @return
+	 */
+	fun getTrick(index: Int): Hand {
+		return tricks[index]
+	}
 
-    /**
-     * 
-     * @return
-     */
-    public final int getTeam() {
-        return mTeam;
-    }
-
-    /**
-     * 
-     * @return
-     */
-    public final String getName() {
-        return mName;
-    }
-
-    /**
-     * 
-     * @param nm
-     */
-    public final void setName(String nm) {
-        mName = nm;
-    }
-
-    /**
-     * 
-     * @return
-     */
-    public final int getNumTricks() {
-        return mNumTricks;
-    }
-
-    /**
-     * 
-     * @param index
-     * @return
-     */
-    public final Hand getTrick(int index) {
-        return mTricks[index];
-    }
-
-    /**
-     * 
-     * @return
-     *
-    public Player getTeammate() {
-        if (this.mTeam.getPlayerA() == this)
-            return mTeam.getPlayerB();
-        return mTeam.getPlayerA();
-    }
-
-    /**
-     * 
-     * @return
-     */
-    public final Hand [] getTricks() {
-        return mTricks;
-    }
+	/**
+	 *
+	 * @param name
+	 */
+	init {
+		this.name = name
+	}
 }

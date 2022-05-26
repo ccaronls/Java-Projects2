@@ -33,7 +33,7 @@ sourceSets {
             srcDirs = [ 'src', 'apps' ]
         }
         resources {
-            srcDirs = [ 'resources', 'images', 'gifs', 'zpngs' ]
+            srcDirs = [ 'resources', 'images', 'gifs', 'zpngs', 'playingCards' ]
         }
     }
 
@@ -132,6 +132,18 @@ task runZombicide(type: JavaExec) {
 task runDominos(type: JavaExec) {
     description = 'Run the Dominos App'
     main = "cc.applets.dominos.DominosApplet"
+//    args "arg1", "arg2"
+}
+
+task runKaiserConsole(type: JavaExec) {
+    description = 'Run Kaiser Console'
+    main = "cc.console.KaiserConsole"
+//    args "arg1", "arg2"
+}
+
+task runKaiser(type: JavaExec) {
+    description = 'Run Kaiser Applet'
+    main = "cc.capplets.kaiser.KaiserApplet"
 //    args "arg1", "arg2"
 }
 

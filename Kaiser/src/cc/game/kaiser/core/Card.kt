@@ -1,44 +1,27 @@
-package cc.game.kaiser.core;
+package cc.game.kaiser.core
 
-import cc.lib.utils.Reflector;
+import cc.lib.utils.Reflector
 
-public final class Card extends Reflector<Card> {
-    static {
-        addAllFields(Card.class);
-    }
-    
-    public final Rank rank;
-    public final Suit suit;
+data class Card(val rank: Rank=Rank.ACE, val suit: Suit=Suit.CLUBS) : Reflector<Card>() {
+	companion object {
+		@Throws(IllegalArgumentException::class)
+		fun parseCard(str: String): Card {
+			val parts = str.split("[ ]+".toRegex()).toTypedArray()
+			require(parts.size == 2) { "string not of format <rank> <suit>" }
+			return Card(Rank.valueOf(parts[0].trim { it <= ' ' }), Suit.valueOf(parts[1].trim { it <= ' ' }))
+		}
 
-    public Card() {
-        this(null, null);
-    }
-    
-    Card(Rank rank, Suit suit) {
-        this.rank = rank;
-        this.suit = suit;
-    }
+		init {
+			addAllFields(Card::class.java)
+		}
+	}
 
-    @Override
-    public String toString() {
-        return rank.name() + " " + suit.name();
-    }
-    
-    public String toPrettyString() {
-        return rank.getRankString().trim() + " of " + suit.getSuitString();
-    }
-    
-    @Override
-    public boolean equals(Object obj) {
-        Card card = (Card)obj;
-        return card.rank == rank && card.suit == suit;
-    }
-    
-    public static Card parseCard(String str) throws IllegalArgumentException {
-        String [] parts = str.split("[ ]+");
-        if (parts.length != 2)
-            throw new IllegalArgumentException("string not of format <rank> <suit>");
-        return new Card(Rank.valueOf(parts[0].trim()), Suit.valueOf(parts[1].trim()));
-    }
+	override fun toString(): String {
+		return rank.name + " " + suit.name
+	}
 
-};
+	fun toPrettyString(): String {
+		return rank.rankString.trim { it <= ' ' } + " of " + suit.suitString
+	}
+
+}

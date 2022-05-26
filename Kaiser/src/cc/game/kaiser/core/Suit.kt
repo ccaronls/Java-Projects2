@@ -1,32 +1,9 @@
-package cc.game.kaiser.core;
+package cc.game.kaiser.core
 
-public enum Suit
-{
-    HEARTS  ("Hearts"),
-    DIAMONDS("Diamonds"),
-    CLUBS   ("Clubs"),
-    SPADES  ("Spades"),
-    NOTRUMP ("NOTRUMP");
-
-    private Suit(String symbol) {
-        this.symbol = symbol;
-    }
-    
-    private final String symbol;
-    
-    /**
-     * Get the human readable string for this suit: Hearts, diamonds, ect.
-     * @return
-     */
-    public final String getSuitString() {
-        return symbol;
-    }
-    
-    /**
-     * Get the display character for this string (H,S,D or C)
-     * @return
-     */
-    public final char getSuitChar() {
-        return this.symbol.charAt(0);
-    }
-};
+enum class Suit(val suitString: String, val suitChar: Char) {
+	HEARTS("Hearts", '\u2665'),
+	DIAMONDS("Diamonds", '\u2666'),
+	CLUBS("Clubs", '\u2663'),
+	SPADES("Spades", '\u2660'),
+	NOTRUMP("NOTRUMP", ' ');
+}
