@@ -20,7 +20,7 @@ class Team internal constructor(var name: String="") : Reflector<Team>() {
 	@JvmField
     var players = IntArray(2)
 	@JvmField
-    var bid: Bid = Bid.NO_BID
+    var bid: Bid = NO_BID
 	@JvmField
     var totalPoints = 0
 	@JvmField

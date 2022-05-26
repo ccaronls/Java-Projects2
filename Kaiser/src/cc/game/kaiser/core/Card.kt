@@ -2,7 +2,7 @@ package cc.game.kaiser.core
 
 import cc.lib.utils.Reflector
 
-data class Card(val rank: Rank=Rank.ACE, val suit: Suit=Suit.CLUBS) : Reflector<Card>() {
+data class Card(val rank: Rank=Rank.ACE, val suit: Suit=Suit.NOTRUMP) : Reflector<Card>() {
 	companion object {
 		@Throws(IllegalArgumentException::class)
 		fun parseCard(str: String): Card {

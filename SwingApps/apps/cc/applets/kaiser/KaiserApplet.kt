@@ -78,7 +78,9 @@ class KaiserApplet() : AWTKeyboardAnimationApplet() {
 		Reflector.THROW_ON_UNKNOWN = true
 		kaiser = Kaiser()
 		try {
-			kaiser.loadFromFile(SAVE_FILE)
+			val game = Kaiser()
+			game.loadFromFile(SAVE_FILE)
+			kaiser.copyFrom(game)
 			for (p: Player in kaiser.getPlayers()) {
 				if (p is SwingPlayerUser) {
 					p.applet = this
@@ -114,7 +116,6 @@ class KaiserApplet() : AWTKeyboardAnimationApplet() {
 		cardHeight = image.height
 	}
 
-	@Synchronized
 	fun startThread() {
 		if (running) return
 		running = true
@@ -122,35 +123,33 @@ class KaiserApplet() : AWTKeyboardAnimationApplet() {
 			try {
 				var prevState: State? = State.GAME_OVER
 				while (running) {
-					synchronized((kaiser)!!) {
-						kaiser.runGame()
-						if (prevState !== kaiser.state) {
-							println("went from state: " + prevState + " -> " + kaiser.state)
-							prevState = kaiser.state
-							kaiser.saveToFile(SAVE_FILE)
+					kaiser.runGame()
+					if (prevState !== kaiser.state) {
+						println("went from state: " + prevState + " -> " + kaiser.state)
+						prevState = kaiser.state
+						kaiser.saveToFile(SAVE_FILE)
+					}
+					when (kaiser.state) {
+						State.NEW_GAME, State.NEW_ROUND -> {
 						}
-						when (kaiser.state) {
-							State.NEW_GAME, State.NEW_ROUND -> {
-							}
-							State.DEAL                      -> Thread.sleep(100)
-							State.BID                       ->
-								/** each player play's their card  */
-								/** each player play's their card  */
-								/** each player play's their card  */
-								/** each player play's their card  */
-								/** each player play's their card  */
-								/** each player play's their card  */
-								/** each player play's their card  */
-								/** each player play's their card  */
-								Thread.sleep(1000)
-							State.TRICK                     -> Thread.sleep(1000)
-							State.PROCESS_TRICK             -> Thread.sleep(3000)
-							State.RESET_TRICK               -> {
-							}
-							State.PROCESS_ROUND             -> {
-							}
-							State.GAME_OVER                 -> {
-							}
+						State.DEAL                      -> Thread.sleep(100)
+						State.BID                       ->
+							/** each player play's their card  */
+							/** each player play's their card  */
+							/** each player play's their card  */
+							/** each player play's their card  */
+							/** each player play's their card  */
+							/** each player play's their card  */
+							/** each player play's their card  */
+							/** each player play's their card  */
+							Thread.sleep(1000)
+						State.TRICK                     -> Thread.sleep(1000)
+						State.PROCESS_TRICK             -> Thread.sleep(3000)
+						State.RESET_TRICK               -> {
+						}
+						State.PROCESS_ROUND             -> {
+						}
+						State.GAME_OVER                 -> {
 						}
 					}
 				}
@@ -210,115 +209,113 @@ class KaiserApplet() : AWTKeyboardAnimationApplet() {
 	}
 
 	private fun drawGame(g: AGraphics) {
-		synchronized(this) {
-			val padding: Int = 5
-			val sh: Int = screenHeight
-			val fh: Int = Math.round(g.getTextHeight() + 3)
-			val x: FloatArray = floatArrayOf(
-				padding * 2 + cardHeight,
-				sh - cardHeight - padding,
-				sh - (cardHeight * 2) - padding,
-				padding
-					.toFloat())
-			val y: FloatArray = floatArrayOf(
-				sh - cardHeight - (padding * 2),
-				padding + cardHeight,
-				padding.toFloat(),
-				sh - (cardHeight * 2) - padding
-			)
-			// draw the trick cards that have been played
-			val c: Int = sh / 2 // x/y center of board
-			val d: Float = cardWidth / 2
-			val tdx: FloatArray = floatArrayOf(-d, d, -d, -(d + cardHeight))
-			val tdy: FloatArray = floatArrayOf(d, -d, -(d + cardHeight), -d)
-			val maxCardsWidth: Int = screenHeight / 2
-			val txtPadding: Int = 15
-			val nx: FloatArray = floatArrayOf((screenHeight - txtPadding).toFloat(), (screenHeight - txtPadding).toFloat(), txtPadding.toFloat(), txtPadding.toFloat())
-			val ny: FloatArray = floatArrayOf(y.get(0), txtPadding.toFloat(), txtPadding.toFloat(), y.get(0))
-			val nhj: Array<Justify> = arrayOf(Justify.RIGHT, Justify.RIGHT, Justify.LEFT, Justify.LEFT)
-			val nvj: Array<Justify> = arrayOf(Justify.TOP, Justify.TOP, Justify.TOP, Justify.TOP)
-			for (i in 0..3) {
-				drawPlayerHand(g, getPlayer(i), Math.round(x.get(i)), Math.round(y.get(i)), Angle.values().get(i), maxCardsWidth)
-				var txt: String? = getPlayer(i).name
-				if (kaiser.dealer == i) {
-					txt += "\nDealer"
-				}
-				if (kaiser.startPlayer == i) {
-					txt += "\nStart"
-				}
-				if (kaiser.state === State.PROCESS_TRICK && kaiser.trickWinnerIndex == i) {
-					txt += "\nTrick Winner"
-				}
-				g.drawJustifiedString(nx.get(i), ny.get(i), nhj.get(i), nvj.get(i), txt)
-				val trick: Card? = kaiser.getTrick(i)
-				if (trick != null) {
-					drawCard(g, trick, Math.round(c + tdx.get(i)), Math.round(c + tdy.get(i)), Angle.values().get(i), true)
+		val padding: Int = 5
+		val sh: Int = screenHeight
+		val fh: Int = Math.round(g.getTextHeight() + 3)
+		val x: FloatArray = floatArrayOf(
+			padding * 2 + cardHeight,
+			sh - cardHeight - padding,
+			sh - (cardHeight * 2) - padding,
+			padding
+				.toFloat())
+		val y: FloatArray = floatArrayOf(
+			sh - cardHeight - (padding * 2),
+			padding + cardHeight,
+			padding.toFloat(),
+			sh - (cardHeight * 2) - padding
+		)
+		// draw the trick cards that have been played
+		val c: Int = sh / 2 // x/y center of board
+		val d: Float = cardWidth / 2
+		val tdx: FloatArray = floatArrayOf(-d, d, -d, -(d + cardHeight))
+		val tdy: FloatArray = floatArrayOf(d, -d, -(d + cardHeight), -d)
+		val maxCardsWidth: Int = screenHeight / 2
+		val txtPadding: Int = 15
+		val nx: FloatArray = floatArrayOf((screenHeight - txtPadding).toFloat(), (screenHeight - txtPadding).toFloat(), txtPadding.toFloat(), txtPadding.toFloat())
+		val ny: FloatArray = floatArrayOf(y.get(0), txtPadding.toFloat(), txtPadding.toFloat(), y.get(0))
+		val nhj: Array<Justify> = arrayOf(Justify.RIGHT, Justify.RIGHT, Justify.LEFT, Justify.LEFT)
+		val nvj: Array<Justify> = arrayOf(Justify.TOP, Justify.TOP, Justify.TOP, Justify.TOP)
+		for (i in 0..3) {
+			drawPlayerHand(g, getPlayer(i), Math.round(x.get(i)), Math.round(y.get(i)), Angle.values().get(i), maxCardsWidth)
+			var txt: String? = getPlayer(i).name
+			if (kaiser.dealer == i) {
+				txt += "\nDealer"
+			}
+			if (kaiser.startPlayer == i) {
+				txt += "\nStart"
+			}
+			if (kaiser.state === State.PROCESS_TRICK && kaiser.trickWinnerIndex == i) {
+				txt += "\nTrick Winner"
+			}
+			g.drawJustifiedString(nx.get(i), ny.get(i), nhj.get(i), nvj.get(i), txt)
+			val trick: Card? = kaiser.getTrick(i)
+			if (trick != null) {
+				drawCard(g, trick, Math.round(c + tdx.get(i)), Math.round(c + tdy.get(i)), Angle.values().get(i), true)
+			}
+		}
+		val t0: Team = kaiser.getTeam(0)
+		val t1: Team = kaiser.getTeam(1)
+		val text: String = ("Team ${t0.name} ${t0.bid}\n" +
+			kaiser.getPlayer(t0.playerA).name + " " + kaiser.getPlayer(t0.playerB).name + "\n" +
+			"\n" +
+			"Points " + t0.totalPoints + "\n" +
+			"Round  " + t0.totalPoints + "\n" +
+			"\n" +
+			"Team " + t1.name + " " + t1.bid + "\n" +
+			kaiser.getPlayer(t1.playerA).name + " " + kaiser.getPlayer(t1.playerB).name + "\n" +
+			"\n" +
+			"Points " + t1.totalPoints + "\n" +
+			"Round  " + t1.totalPoints + "\n")
+		g.setColor(GColor.WHITE)
+		val maxWidth: Int = screenWidth - screenHeight - 10
+		val sx: Int = screenHeight + 5
+		var sy: Float = 10f
+		sy += g.drawWrapString(sx.toFloat(), sy, maxWidth.toFloat(), text).height
+		val dy: Int = fh + 2
+		sy += dy.toFloat()
+		if (bidOptions.size > 0) {
+
+			// draw the bid numbers
+			var xx: Int = sx
+			g.drawJustifiedString(sx.toFloat(), sy, Justify.LEFT, Justify.TOP, "Choose your bid")
+			sy += dy.toFloat()
+			val used: BooleanArray = BooleanArray(52)
+			for (bid: Bid in bidOptions) {
+				if (bid.numTricks <= 0) continue
+				if (used[bid.numTricks]) continue
+				used[bid.numTricks] = true
+				xx += drawPickBidNumButton(g, xx.toFloat(), sy, bid.numTricks)
+				if (xx >= screenWidth - 10) {
+					xx = sx
+					sy += dy.toFloat()
 				}
 			}
-			val t0: Team = kaiser.getTeam(0)
-			val t1: Team = kaiser.getTeam(1)
-			val text: String = ("Team ${t0.name} ${t0.bid}\n" +
-				kaiser.getPlayer(t0.playerA).name + " " + kaiser.getPlayer(t0.playerB).name + "\n" +
-				"\n" +
-				"Points " + t0.totalPoints + "\n" +
-				"Round  " + t0.totalPoints + "\n" +
-				"\n" +
-				"Team " + t1.name + " " + t1.bid + "\n" +
-				kaiser.getPlayer(t1.playerA).name + " " + kaiser.getPlayer(t1.playerB).name + "\n" +
-				"\n" +
-				"Points " + t1.totalPoints + "\n" +
-				"Round  " + t1.totalPoints + "\n")
-			g.setColor(GColor.WHITE)
-			val maxWidth: Int = screenWidth - screenHeight - 10
-			val sx: Int = screenHeight + 5
-			var sy: Float = 10f
-			sy += g.drawWrapString(sx.toFloat(), sy, maxWidth.toFloat(), text).height
-			val dy: Int = fh + 2
 			sy += dy.toFloat()
-			if (bidOptions.size > 0) {
-
-				// draw the bid numbers
-				var xx: Int = sx
-				g.drawJustifiedString(sx.toFloat(), sy, Justify.LEFT, Justify.TOP, "Choose your bid")
-				sy += dy.toFloat()
-				val used: BooleanArray = BooleanArray(52)
+			if (selectedBidNum > 0) {
 				for (bid: Bid in bidOptions) {
-					if (bid.numTricks <= 0) continue
-					if (used[bid.numTricks]) continue
-					used[bid.numTricks] = true
-					xx += drawPickBidNumButton(g, xx.toFloat(), sy, bid.numTricks)
-					if (xx >= screenWidth - 10) {
-						xx = sx
+					if (bid.numTricks == selectedBidNum) {
+						if (drawPickBidSuitButton(g, sx.toFloat(), sy, bid.trump)) {
+							pickedBid = bid
+						}
 						sy += dy.toFloat()
 					}
 				}
-				sy += dy.toFloat()
-				if (selectedBidNum > 0) {
+			}
+			sy += dy.toFloat()
+			if (selectedBidNum > 0 && selectedBidSuit != null) {
+				if (drawPickButton(g, sx.toFloat(), sy, "BID " + selectedBidNum + " " + selectedBidSuit)) {
 					for (bid: Bid in bidOptions) {
-						if (bid.numTricks == selectedBidNum) {
-							if (drawPickBidSuitButton(g, sx.toFloat(), sy, bid.trump)) {
-								pickedBid = bid
-							}
-							sy += dy.toFloat()
+						if (bid.numTricks == selectedBidNum && bid.trump === selectedBidSuit) {
+							pickedBid = bid
 						}
 					}
-				}
-				sy += dy.toFloat()
-				if (selectedBidNum > 0 && selectedBidSuit != null) {
-					if (drawPickButton(g, sx.toFloat(), sy, "BID " + selectedBidNum + " " + selectedBidSuit)) {
-						for (bid: Bid in bidOptions) {
-							if (bid.numTricks == selectedBidNum && bid.trump === selectedBidSuit) {
-								pickedBid = bid
-							}
-						}
-						lock.release()
-					}
-					sy += dy.toFloat()
-				}
-				if (drawPickButton(g, sx.toFloat(), sy, "NO BID")) {
-					pickedBid = Bid.NO_BID
 					lock.release()
 				}
+				sy += dy.toFloat()
+			}
+			if (drawPickButton(g, sx.toFloat(), sy, "NO BID")) {
+				pickedBid = NO_BID
+				lock.release()
 			}
 		}
 	}
@@ -399,7 +396,12 @@ class KaiserApplet() : AWTKeyboardAnimationApplet() {
 
 	override fun mouseClicked(evt: MouseEvent) {
 		when (kaiser.state) {
-			State.NEW_GAME, State.NEW_ROUND, State.PROCESS_TRICK, State.RESET_TRICK, State.PROCESS_ROUND, State.GAME_OVER -> synchronized(this) { lock.releaseAll() }
+			State.NEW_GAME,
+			State.NEW_ROUND,
+			State.PROCESS_TRICK,
+			State.RESET_TRICK,
+			State.PROCESS_ROUND,
+			State.GAME_OVER -> lock.releaseAll()
 			else                                                                                                          -> {
 			}
 		}
@@ -407,7 +409,7 @@ class KaiserApplet() : AWTKeyboardAnimationApplet() {
 	}
 
 	private fun drawPlayerHand(g: AGraphics, player: SwingPlayer, x: Int, y: Int, angle: Angle, maxLenPixels: Int) {
-		drawCards(g, player.hand, 0, player.hand.size, x, y, angle, maxLenPixels, player.isCardsShowing)
+		drawCards(g, player.hand, 0, player.hand.size, x, y, angle, maxLenPixels, player.isCardsShowing())
 	}
 
 	private fun drawGameReady(g: AGraphics) {
@@ -438,59 +440,57 @@ class KaiserApplet() : AWTKeyboardAnimationApplet() {
 	private fun drawCards(g: AGraphics, cards: List<Card>, offset: Int, len: Int, x: Int, y: Int, angle: Angle, maxLenPixels: Int, showing: Boolean) {
 		var x = x
 		var y = y
-		synchronized(this) {
-			if (len <= 0) return
-			if (showing) pickedCard = -1
-			var dx: Float = 0f
-			var dy: Float = 0f
-			when (angle) {
-				Angle.ANG_0 -> {
-					dx = (maxLenPixels - cardWidth) / len
-					if (dx > cardWidth / 4) dx = cardWidth / 4
-				}
-				Angle.ANG_180 -> {
-					dx = (maxLenPixels - cardWidth) / len
-					if (dx > cardWidth / 4) dx = cardWidth / 4
-					dx = -dx
-				}
-				Angle.ANG_90 -> {
-					dy = (maxLenPixels - cardWidth) / len
-					if (dy > cardWidth / 4) dy = cardWidth / 4
-				}
-				Angle.ANG_270 -> {
-					dy = (maxLenPixels - cardWidth) / len
-					if (dy > cardWidth / 4) dy = cardWidth / 4
-					dy = -dy
-				}
+		if (len <= 0) return
+		if (showing) pickedCard = -1
+		var dx: Float = 0f
+		var dy: Float = 0f
+		when (angle) {
+			Angle.ANG_0 -> {
+				dx = (maxLenPixels - cardWidth) / len
+				if (dx > cardWidth / 4) dx = cardWidth / 4
 			}
-			var picked: Int = -1
-			if (showing) {
-				// search backwards to see if a card is picked
-				var sx: Float = x + dx * (len - 1)
-				var sy: Float = y + dy * (len - 1)
-				for (i in len - 1 downTo 0) {
-					pickedCard = getPickableIndex(cards.get(i))
-					if (pickedCard >= 0 && Utils.isPointInsideRect(getMouseX().toFloat(), getMouseY().toFloat(), sx, sy, cardWidth, cardHeight)) {
-						picked = i
-						break
-					}
-					pickedCard = -1
-					sx -= dx
-					sy -= dy
-				}
+			Angle.ANG_180 -> {
+				dx = (maxLenPixels - cardWidth) / len
+				if (dx > cardWidth / 4) dx = cardWidth / 4
+				dx = -dx
 			}
+			Angle.ANG_90 -> {
+				dy = (maxLenPixels - cardWidth) / len
+				if (dy > cardWidth / 4) dy = cardWidth / 4
+			}
+			Angle.ANG_270 -> {
+				dy = (maxLenPixels - cardWidth) / len
+				if (dy > cardWidth / 4) dy = cardWidth / 4
+				dy = -dy
+			}
+		}
+		var picked: Int = -1
+		if (showing) {
+			// search backwards to see if a card is picked
+			var sx: Float = x + dx * (len - 1)
+			var sy: Float = y + dy * (len - 1)
+			for (i in len - 1 downTo 0) {
+				pickedCard = getPickableIndex(cards.get(i))
+				if (pickedCard >= 0 && Utils.isPointInsideRect(getMouseX().toFloat(), getMouseY().toFloat(), sx, sy, cardWidth, cardHeight)) {
+					picked = i
+					break
+				}
+				pickedCard = -1
+				sx -= dx
+				sy -= dy
+			}
+		}
 
-			//System.out.println("card picked1 = " + cardPicked);
-			for (i in 0 until len) {
-				var sy: Int = y
-				if (i == picked) sy -= 20
-				drawCard(g, cards.get(i + offset), x, sy, angle, showing)
-				x += dx.toInt()
-				y += dy.toInt()
-			}
-			if (pickedCard >= 0 && getMouseButtonClicked(0)) {
-				lock.release()
-			}
+		//System.out.println("card picked1 = " + cardPicked);
+		for (i in 0 until len) {
+			var sy: Int = y
+			if (i == picked) sy -= 20
+			drawCard(g, cards.get(i + offset), x, sy, angle, showing)
+			x += dx.toInt()
+			y += dy.toInt()
+		}
+		if (pickedCard >= 0 && getMouseButtonClicked(0)) {
+			lock.release()
 		}
 	}
 
@@ -506,7 +506,9 @@ class KaiserApplet() : AWTKeyboardAnimationApplet() {
 			}
 		}
 		if (showing) {
-			g.drawImage(getCardImage(card.rank, card.suit, angle), x.toFloat(), y.toFloat(), cw, ch)
+			val imgId = getCardImage(card.rank, card.suit, angle)
+			if (imgId > 0)
+				g.drawImage(imgId, x.toFloat(), y.toFloat(), cw, ch)
 		} else g.drawImage(cardDownImage[angle.ordinal], x.toFloat(), y.toFloat(), cw, ch)
 	}
 
@@ -514,7 +516,7 @@ class KaiserApplet() : AWTKeyboardAnimationApplet() {
 		for (c: CardImage in cardImages) {
 			if (c.rank === rank && c.suit === suit) return c.imageId[angle.ordinal]
 		}
-		throw RuntimeException("No image for card $rank $suit")
+		return 0
 	}
 
 	override fun onDimensionsChanged(g: AGraphics, width: Int, height: Int) {
@@ -528,48 +530,24 @@ class KaiserApplet() : AWTKeyboardAnimationApplet() {
 	}
 
 	fun pickCard(options: Array<Card>): Card? {
-		synchronized(this) {
-			pickableCards.clear()
-			pickableCards.addAll(options)
-			lock.acquireAndBlock()
-			pickableCards.clear()
-		}
+		pickableCards.clear()
+		pickableCards.addAll(options)
+		lock.acquireAndBlock()
+		pickableCards.clear()
 		return if (pickedCard >= 0) {
 			options.get(pickedCard)
 		} else null
 	}
 
 	fun pickBid(options: Array<Bid>): Bid? {
-		synchronized(this) {
-			selectedBidNum = -1
-			selectedBidSuit = null
-			bidOptions.clear()
-			bidOptions.addAll(options)
-			lock.acquireAndBlock()
-			bidOptions.clear()
-		}
+		selectedBidNum = -1
+		selectedBidSuit = null
+		bidOptions.clear()
+		bidOptions.addAll(options)
+		lock.acquireAndBlock()
+		bidOptions.clear()
 		return pickedBid
-	} /*
-    // called form run thread
-    public Card chooseCard(Card[] options) {
-        synchronized (this) {
-            System.out.println("Card picked2 = " + cardPicked);
-            Card card = null;
-            if (pickableCards.size() == 0)
-                pickableCards.addAll(Arrays.asList(options));
-            if (getMouseButton(0, true) && cardPicked >= 0) {
-                pickableCards.clear();
-                card = options[cardPicked];
-                cardPicked = -1;
-            }
-            return card;
-        }
-    }
-
-    // called from run thread
-    public Bid chooseBid(Bid [] options) {
-        return options[0];
-    }*/
+	}
 
 	companion object {
 		@JvmStatic

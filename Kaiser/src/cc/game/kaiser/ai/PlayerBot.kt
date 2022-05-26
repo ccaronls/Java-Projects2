@@ -77,7 +77,7 @@ open class PlayerBot : Player {
 		lead = Suit.NOTRUMP
 	}
 
-	override fun playTrick(kaiser: Kaiser, options: Array<Card>): Card {
+	override fun playTrick(kaiser: Kaiser, options: Array<Card>): Card? {
 		lead = Suit.NOTRUMP
 		val leadCard = kaiser.trickLead
 		if (leadCard != null) lead = leadCard.suit
@@ -88,7 +88,10 @@ open class PlayerBot : Player {
 		var winningCard: Card? = null
 		for (i in 0 until Kaiser.numPlayers) {
 			val card = kaiser.getTrick(i) ?: continue
-			if (card.rank == Rank.FIVE) trickValue += 5 else if (card.rank == Rank.THREE) trickValue -= 3
+			if (card.rank == Rank.FIVE)
+				trickValue += 5
+			else if (card.rank == Rank.THREE)
+				trickValue -= 3
 			winningCard = if (winningCard == null) card else kaiser.getWinningCard(card, winningCard)
 			if (winningCard === card) {
 				if (i == kaiser.getTeammate(playerNum)) {
@@ -124,8 +127,8 @@ open class PlayerBot : Player {
 		return bestOption!!
 	}
 
-	override fun makeBid(kaiser: Kaiser, options: Array<Bid>): Bid {
-		return if (options.size > 0) options[0] else Bid.NO_BID
+	override fun makeBid(kaiser: Kaiser, options: Array<Bid>): Bid? {
+		return if (options.size > 0) options[0] else NO_BID
 	}
 
 	companion object {

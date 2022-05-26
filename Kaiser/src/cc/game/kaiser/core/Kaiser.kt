@@ -27,7 +27,7 @@ class Kaiser : Reflector<Kaiser?>() {
 		fun computeBidOptions(currentBid: Bid?, isDealer: Boolean, hand: List<Card>): Array<Bid> {
 			if (DEBUG_ENABLED) println("currentBid= " + currentBid + ", isDealer=" + isDealer + ", hand=" + hand.joinToString())
 			val options: MutableList<Bid> = ArrayList()
-			if (!isDealer) options.add(Bid.NO_BID)
+			if (!isDealer) options.add(NO_BID)
 			val suits = getBestTrumpOptions(hand)
 			var start = Rules.MINIMUM_BID
 			if (currentBid != null) {
@@ -180,7 +180,7 @@ class Kaiser : Reflector<Kaiser?>() {
 		= 0
 		private set
 	private val players = Array<Player>(numPlayers) { PlayerBot() }
-	private val teams = Array<Team>(numTeams) { Team() }
+	private val teams = Array(numTeams) { Team() }
 	private val trick = Array(numPlayers) { Card() }
 
 
@@ -278,12 +278,12 @@ class Kaiser : Reflector<Kaiser?>() {
 	}
 
 	private fun clearTricks() {
-		Arrays.fill(trick, null)
+		Arrays.fill(trick, Card())
 	}
 
 	private fun processTeam(team: Team, winner: Boolean) {
 		var pts = 0
-		if (team.bid === Bid.NO_BID) {
+		if (team.bid === NO_BID) {
 			if (winner || team.totalPoints < 45 || team.roundPoints < 0) pts = team.roundPoints
 		} else {
 			var multiplier = 1
@@ -379,8 +379,8 @@ class Kaiser : Reflector<Kaiser?>() {
 				clearTricks()
 				teams[0].roundPoints = 0
 				teams[1].roundPoints = 0
-				teams[0].bid = Bid.NO_BID
-				teams[1].bid = Bid.NO_BID
+				teams[0].bid = NO_BID
+				teams[1].bid = NO_BID
 			}
 			State.DEAL -> {
 				val card = deck[numCards++]
@@ -411,7 +411,7 @@ class Kaiser : Reflector<Kaiser?>() {
 					message("%s bids %d %s\n", p.name, bid.numTricks,
 						bid.trump.suitString)
 					var bidTeam = getCurBidTeam()
-					if (bidTeam != null) bidTeam.bid = Bid.NO_BID
+					if (bidTeam != null) bidTeam.bid = NO_BID
 					bidTeam = getTeam(p.team)
 					bidTeam.bid = bid
 					startPlayer = curPlayer
@@ -750,8 +750,8 @@ class Kaiser : Reflector<Kaiser?>() {
 		curBidTeam = -1
 		numTricks = 0
 		numRounds = 0
-		teams[0].bid = Bid.NO_BID
-		teams[1].bid = Bid.NO_BID
+		teams[0].bid = NO_BID
+		teams[1].bid = NO_BID
 		clearTricks()
 	}
 

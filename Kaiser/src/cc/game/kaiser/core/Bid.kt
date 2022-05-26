@@ -2,14 +2,10 @@ package cc.game.kaiser.core
 
 import cc.lib.utils.Reflector
 
+val NO_BID = Bid(0, Suit.NOTRUMP)
+
 open class Bid(val numTricks: Int=0, val trump: Suit=Suit.NOTRUMP) : Reflector<Bid>() {
 	companion object {
-		@JvmField
-        val NO_BID: Bid = object : Bid(0, Suit.NOTRUMP) {
-			override fun toString(): String {
-				return "NO_BID"
-			}
-		}
 
 		@JvmStatic
         @Throws(IllegalArgumentException::class)

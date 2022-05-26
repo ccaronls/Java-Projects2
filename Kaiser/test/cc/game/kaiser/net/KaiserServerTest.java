@@ -86,7 +86,7 @@ public class KaiserServerTest extends TestCase {
             this.logDebug("onMakeBid: " + Arrays.toString(bids));
             pause(Utils.rand() % 1000 + 100);
             //this.send(KaiserCommand.clientMakeBid(bids[Utils.rand() % bids.length]));
-            this.send(KaiserCommand.clientMakeBid(Bid.NO_BID));
+            this.send(KaiserCommand.clientMakeBid(NO_BID));
         }
 
         @Override

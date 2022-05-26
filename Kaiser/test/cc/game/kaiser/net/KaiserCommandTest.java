@@ -35,7 +35,7 @@ public class KaiserCommandTest extends TestCase implements KaiserCommand.Listene
             //assertTrue(KaiserCommand.clientDecode(this, cmd));
         }
         {
-            GameCommand cmd = KaiserCommand.getMakeBidCommand(new Bid [] { Bid.NO_BID });
+            GameCommand cmd = KaiserCommand.getMakeBidCommand(new Bid [] { NO_BID });
             assertTrue(KaiserCommand.clientDecode(this, cmd));
         }
         {
