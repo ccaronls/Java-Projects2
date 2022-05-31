@@ -1,4 +1,4 @@
-package cc.android.game.robots;
+package cc.android.game.probot;
 
 import android.os.SystemClock;
 import android.util.Log;

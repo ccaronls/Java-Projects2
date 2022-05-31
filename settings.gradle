@@ -8,7 +8,6 @@
  * Detailed information about configuring a multi-project build in Gradle can be found
  * in the user guide at http://gradle.org/docs/2.2.1/userguide/multi_project_builds.html
  */
-include ':robinhoodtest'
 
 /*
 // To declare projects as part of a multi-project build use the 'include' method
@@ -44,18 +43,21 @@ include ':MonopolyAndroid'
 include ':othello'
 include ':PacBoy'
 include ':Probot'
+include ':ProbotAndroid'
 include ':Risk'
 include ':RiskAndroid'
-include ':Robots'
+//include ':Robots'
 include ':Roids'
 include ':RocketMan'
 include ':RocketManAndroid'
+//include ':robinhoodtest'
 include ':ScoreKeeper'
 include ':SlotMachine'
 //include ':SOC'
 //include ':SOCAndroid'
 include ':Sudoku'
 include ':SuperRobotron'
+include ':SuperRobotronAndroid'
 include ':SwingApps'
 include ':TestConsole'
 include ':TestAndroid'

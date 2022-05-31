@@ -1,4 +1,4 @@
-package cc.android.game.robots;
+package cc.android.game.probot;
 
 
 import cc.lib.android.DPadView;

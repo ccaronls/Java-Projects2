@@ -1,253 +1,213 @@
-package cc.lib.android;
+package cc.lib.android
 
-import android.content.Context;
-import android.content.res.TypedArray;
-import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.graphics.drawable.ColorDrawable;
-import android.os.SystemClock;
-import android.util.AttributeSet;
-import android.view.MotionEvent;
-import android.view.View;
-import android.view.ViewGroup;
+import android.content.Context
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.drawable.ColorDrawable
+import android.os.SystemClock
+import android.util.AttributeSet
+import android.view.MotionEvent
+import android.view.View
+import android.view.ViewGroup
+import cc.lib.game.*
+import cc.lib.math.Vector2D
+import cc.lib.ui.UIComponent
+import cc.lib.ui.UIRenderer
+import kotlin.math.roundToInt
 
-import cc.lib.game.GColor;
-import cc.lib.game.GDimension;
-import cc.lib.game.GRectangle;
-import cc.lib.game.Justify;
-import cc.lib.game.Utils;
-import cc.lib.math.Vector2D;
-import cc.lib.ui.UIComponent;
-import cc.lib.ui.UIRenderer;
+abstract class UIComponentView<T : UIRenderer> : View, UIComponent, Runnable {
+	private lateinit var g: DroidGraphics
+	private var initialized = false
+	private var tx = -1
+	private var ty = -1
+	lateinit var renderer: T
+		private set
+	private var borderThickness = 0f
+	private var borderColor = 0
+	private val borderPaint = Paint()
+	private val CLICK_TIME = 700
+	private var downTime: Long = 0
+	private var touchDownX = 0f
+	private var touchDownY = 0f
 
-public abstract class UIComponentView<T extends UIRenderer> extends View implements UIComponent, Runnable {
+	constructor(context: Context, attrs: AttributeSet?) : super(context, attrs) {
+		init(context, attrs)
+	}
 
+	constructor(context: Context) : super(context) {
+		init(context, null)
+	}
 
-    private DroidGraphics g;
-    private int tx = -1, ty = -1;
-    private T renderer = null;
-    private float borderThickness = 0;
-    private int borderColor = 0;
-    private Paint borderPaint = new Paint();
-    private final int CLICK_TIME = 700;
-    private long downTime = 0;
-    private float touchDownX, touchDownY;
+	protected fun init(context: Context, attrs: AttributeSet?) {
+		val a = context.obtainStyledAttributes(attrs, R.styleable.UIComponentView)
+		borderThickness = a.getDimension(R.styleable.UIComponentView_borderThickness, borderThickness)
+		borderColor = a.getColor(R.styleable.UIComponentView_borderColor, borderColor)
+		borderPaint.style = Paint.Style.STROKE
+		borderPaint.strokeWidth = borderThickness
+		borderPaint.color = borderColor
+		a.recycle()
+	}
 
-    public UIComponentView(Context context, AttributeSet attrs) {
-        super(context, attrs);
-        init(context, attrs);
-    }
+	protected open fun getProgress(): Float = 1f
 
-    public UIComponentView(Context context) {
-        super(context);
-        init(context, null);
-    }
+	protected open fun loadAssets(g: DroidGraphics) {}
+	protected open fun preDrawInit(g: DroidGraphics) {}
+	var loadAssetsRunnable: Runnable? = null
+	protected open fun onLoading() {}
+	protected open fun onLoaded() {}
+	override fun onDraw(canvas: Canvas) {
+		val progress = getProgress()
+		val width = (width - borderThickness * 2).roundToInt()
+		val height = (height - borderThickness * 2).roundToInt()
+		if (!initialized) {
+			val BACK: GColor
+			BACK = if (background is ColorDrawable) {
+				GColor((background as ColorDrawable).color)
+			} else {
+				GColor.LIGHT_GRAY
+			}
+			g = object : DroidGraphics(context, canvas, width, height) {
+				override fun getBackgroundColor(): GColor {
+					return BACK
+				}
+			}
+			g.setCaptureModeSupported(!isInEditMode)
+			preDrawInit(g)
+			initialized = true
+		} else {
+			g.setCanvas(canvas, width, height)
+		}
+		if (borderThickness > 0) {
+			canvas.drawRect(0f, 0f, getWidth().toFloat(), getHeight().toFloat(), borderPaint)
+			g.translate(borderThickness, borderThickness)
+		}
+		if (progress < 1) {
+			if (loadAssetsRunnable == null) {
+				onLoading()
+				Thread(Runnable {
+					loadAssets(g)
+					post { onLoaded() }
+				}.also { loadAssetsRunnable = it }).start()
+			}
+			g.color = GColor.RED
+			g.ortho()
+			val rect: GRectangle = GRectangle(0f, 0f, GDimension((getWidth() * 3 / 4).toFloat(), (getHeight() / 6).toFloat())).withCenter(Vector2D((getWidth() / 2).toFloat(), (getHeight() / 2).toFloat()))
+			g.drawRect(rect, 3f)
+			rect.w *= progress
+			g.drawFilledRect(rect)
+			val hgt = g.textHeight
+			g.textHeight = rect.h * 3 / 4
+			g.color = GColor.WHITE
+			g.drawJustifiedString((getWidth() / 2).toFloat(), (getHeight() / 2).toFloat(), Justify.CENTER, Justify.CENTER, "LOADING")
+			g.textHeight = hgt
+		} else {
+			loadAssetsRunnable = null
+			val prev = renderer.getMinDimension()
+			try {
+				renderer.draw(g, tx, ty)
+			} catch (e: Exception) {
+				e.printStackTrace()
+			}
+			val next = renderer.getMinDimension()
+			if (next != prev) {
+				if (isResizable) {
+					requestLayout()
+					invalidate()
+				}
+			}
+		}
+		g.translate(-borderThickness, -borderThickness)
+	}
 
-    protected final void init(Context context, AttributeSet attrs) {
-        TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.UIComponentView);
-        borderThickness = a.getDimension(R.styleable.UIComponentView_borderThickness, borderThickness);
-        borderColor = a.getColor(R.styleable.UIComponentView_borderColor, borderColor);
-        borderPaint.setStyle(Paint.Style.STROKE);
-        borderPaint.setStrokeWidth(borderThickness);
-        borderPaint.setColor(borderColor);
-        a.recycle();
-    }
+	val isResizable: Boolean
+		get() {
+			val lp = layoutParams
+			return lp.width == ViewGroup.LayoutParams.WRAP_CONTENT || lp.height == ViewGroup.LayoutParams.WRAP_CONTENT
+		}
+	var dragging = false
+	override fun run() {
+		if (!dragging && touchDownX >= 0) {
+			renderer.onDragStart(touchDownX, touchDownY)
+			dragging = true
+		}
+	}
 
-    protected float getProgress() {
-        return 1;
-    }
+	override fun onTouchEvent(event: MotionEvent): Boolean {
+		when (event.action) {
+			MotionEvent.ACTION_DOWN -> {
+				downTime = SystemClock.uptimeMillis()
+				tx = Math.round(event.x.also { touchDownX = it })
+				ty = Math.round(event.y.also { touchDownY = it })
+				postDelayed(this, CLICK_TIME.toLong())
+			}
+			MotionEvent.ACTION_UP -> {
+				run {
+					ty = -1
+					tx = ty
+					touchDownY = tx.toFloat()
+					touchDownX = touchDownY
+				}
+				if (!dragging && SystemClock.uptimeMillis() - downTime < CLICK_TIME) {
+					renderer.onClick()
+				} else if (dragging) {
+					renderer.onDragEnd()
+				}
+				dragging = false
+			}
+			MotionEvent.ACTION_MOVE -> {
+				tx = Math.round(event.x)
+				ty = Math.round(event.y)
+				if (!dragging) {
+					if (Utils.fastLen(event.x - touchDownX, event.y - touchDownY) > 10) {
+						dragging = true
+						renderer.onDragStart(event.x, event.y)
+					}
+				} else {
+					renderer.onDragMove(event.x, event.y)
+				}
+			}
+		}
+		invalidate()
+		return true
+	}
 
-    protected void loadAssets(DroidGraphics g) {}
+	override fun redraw() {
+		postInvalidate()
+	}
 
-    protected void preDrawInit(DroidGraphics g) {}
+	override fun setRenderer(r: UIRenderer) {
+		renderer = r as T
+	}
 
-    Runnable loadAssetsRunnable = null;
+	override fun getViewportLocation(): Vector2D {
+		val loc = IntArray(2)
+		getLocationOnScreen(loc)
+		return Vector2D(loc[0].toFloat(), loc[1].toFloat())
+	}
 
-    protected void onLoading() {}
+	override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+		var width = MeasureSpec.getSize(widthMeasureSpec)
+		var height = MeasureSpec.getSize(heightMeasureSpec)
+		val wSpec = MeasureSpec.getMode(widthMeasureSpec)
+		val hSpec = MeasureSpec.getMode(heightMeasureSpec)
+		val dim = renderer.getMinDimension()
+		when (wSpec) {
+			MeasureSpec.AT_MOST -> width = Math.min(width, Math.round(dim.width))
+			MeasureSpec.UNSPECIFIED -> width = Math.round(dim.width)
+			MeasureSpec.EXACTLY -> {
+			}
+		}
+		when (hSpec) {
+			MeasureSpec.AT_MOST -> height = Math.min(height, Math.round(dim.height))
+			MeasureSpec.UNSPECIFIED -> height = Math.round(dim.height)
+			MeasureSpec.EXACTLY -> {
+			}
+		}
+		super.setMeasuredDimension(width, height)
+	}
 
-    protected void onLoaded() {}
-
-    @Override
-    protected void onDraw(Canvas canvas) {
-        float progress = getProgress();
-        int width = Math.round(getWidth() - borderThickness*2);
-        int height = Math.round(getHeight() - borderThickness*2);
-        if (g == null) {
-            GColor BACK;
-            if (getBackground() instanceof ColorDrawable) {
-                BACK = new GColor(((ColorDrawable)getBackground()).getColor());
-            } else {
-                BACK = GColor.LIGHT_GRAY;
-            }
-
-            g = new DroidGraphics(getContext(), canvas, width, height) {
-                @Override
-                public GColor getBackgroundColor() {
-                    return BACK;
-                }
-            };
-            g.setCaptureModeSupported(!isInEditMode());
-            preDrawInit(g);
-        } else {
-            g.setCanvas(canvas, width, height);
-        }
-
-        if (borderThickness > 0) {
-            canvas.drawRect(0, 0, getWidth(), getHeight(), borderPaint);
-            g.translate(borderThickness, borderThickness);
-        }
-
-        if (progress < 1) {
-            if (loadAssetsRunnable == null) {
-                onLoading();
-                new Thread(loadAssetsRunnable = () -> {
-                    loadAssets(g);
-                    post(()->onLoaded());
-                }).start();
-            }
-
-            g.setColor(GColor.RED);
-            g.ortho();
-            GRectangle rect = new GRectangle(0, 0, new GDimension(getWidth()*3/4, getHeight()/6)).withCenter(new Vector2D(getWidth()/2, getHeight()/2));
-            g.drawRect(rect, 3);
-            rect.w *= progress;
-            g.drawFilledRect(rect);
-            float hgt = g.getTextHeight();
-            g.setTextHeight(rect.h*3/4);
-            g.setColor(GColor.WHITE);
-            g.drawJustifiedString(getWidth()/2,getHeight()/2, Justify.CENTER,Justify.CENTER,"LOADING");
-            g.setTextHeight(hgt);
-
-        } else if (renderer != null) {
-            loadAssetsRunnable = null;
-            GDimension prev = renderer.getMinDimension();
-            try {
-                renderer.draw(g, tx, ty);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            GDimension next = renderer.getMinDimension();
-            if (!next.equals(prev)) {
-                if (isResizable()) {
-                    requestLayout();
-                    invalidate();
-                }
-            }
-        }
-
-        g.translate(-borderThickness, -borderThickness);
-
-    }
-
-    boolean isResizable() {
-        ViewGroup.LayoutParams lp = getLayoutParams();
-        return lp.width == ViewGroup.LayoutParams.WRAP_CONTENT || lp.height == ViewGroup.LayoutParams.WRAP_CONTENT;
-    }
-
-    boolean dragging = false;
-
-    @Override
-    public final void run() {
-        if (!dragging && touchDownX >= 0) {
-            renderer.onDragStart(touchDownX, touchDownY);
-            dragging = true;
-        }
-    }
-
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-
-        if (renderer == null)
-            return false;
-        switch (event.getAction()) {
-            case MotionEvent.ACTION_DOWN:
-                downTime = SystemClock.uptimeMillis();
-                tx = Math.round(touchDownX = event.getX());
-                ty = Math.round(touchDownY = event.getY());
-                postDelayed(this, CLICK_TIME);
-                break;
-            case MotionEvent.ACTION_UP:
-                touchDownX = touchDownY = tx = ty = -1;
-                if (!dragging && SystemClock.uptimeMillis() - downTime < CLICK_TIME) {
-                    renderer.onClick();
-                } else if (dragging) {
-                    renderer.onDragEnd();
-                }
-                dragging = false;
-                break;
-            case MotionEvent.ACTION_MOVE:
-                tx = Math.round(event.getX());
-                ty = Math.round(event.getY());
-                if (!dragging) {
-                    if (Utils.fastLen(event.getX() - touchDownX, event.getY() - touchDownY) > 10) {
-                        dragging = true;
-                        renderer.onDragStart(event.getX(), event.getY());
-                    }
-                } else {
-                    renderer.onDragMove(event.getX(), event.getY());
-                }
-                break;
-        }
-        invalidate();
-        return true;
-    }
-
-    @Override
-    public void redraw() {
-        postInvalidate();
-    }
-
-    @Override
-    public void setRenderer(UIRenderer r) {
-        this.renderer = (T)r;
-    }
-
-    @Override
-    public Vector2D getViewportLocation() {
-        int [] loc = new int[2];
-        getLocationOnScreen(loc);
-        return new Vector2D(loc[0], loc[1]);
-    }
-
-    public T getRenderer() {
-        return renderer;
-    }
-
-    @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        int width = MeasureSpec.getSize(widthMeasureSpec);
-        int height = MeasureSpec.getSize(heightMeasureSpec);
-
-        int wSpec = MeasureSpec.getMode(widthMeasureSpec);
-        int hSpec = MeasureSpec.getMode(heightMeasureSpec);
-
-        GDimension dim = renderer == null ? new GDimension(32, 32) : renderer.getMinDimension();
-
-        switch (wSpec) {
-            case MeasureSpec.AT_MOST:
-                width = Math.min(width, Math.round(dim.width)); break;
-            case MeasureSpec.UNSPECIFIED:
-                width = Math.round(dim.width); break;
-            case MeasureSpec.EXACTLY:
-        }
-
-        switch (hSpec) {
-            case MeasureSpec.AT_MOST:
-                height = Math.min(height, Math.round(dim.height)); break;
-            case MeasureSpec.UNSPECIFIED:
-                height = Math.round(dim.height); break;
-            case MeasureSpec.EXACTLY:
-        }
-
-        super.setMeasuredDimension(width, height);
-    }
-
-    @Override
-    protected void onDetachedFromWindow() {
-        super.onDetachedFromWindow();
-        if (this.g != null) {
-            g.releaseBitmaps();
-        }
-    }
+	override fun onDetachedFromWindow() {
+		super.onDetachedFromWindow()
+		g.releaseBitmaps()
+	}
 }
-

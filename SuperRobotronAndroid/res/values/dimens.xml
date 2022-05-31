@@ -1,0 +1,6 @@
+<resources>
+    <dimen name="icon_dim">64dp</dimen>
+    <dimen name="icon_dim_sm">48dp</dimen>
+    <dimen name="item_command_indent_width">20dp</dimen>
+    <dimen name="cmd_cnt_txt_hgt">16sp</dimen>
+</resources>

@@ -1,7 +1,0 @@
-# WEBAPP Specific settings for all OS
-
-# Required, can be: fantasyServiceXmlDao, fantasyServiceXmlEncryptedDao, fantasyServiceHibernateDao
-fantasy.dao=fantasyServiceXmlDao
-
-# Required to configure fantasyServiceXmlDao
-fantasy.xml.db.dir=/fan/db/xml/

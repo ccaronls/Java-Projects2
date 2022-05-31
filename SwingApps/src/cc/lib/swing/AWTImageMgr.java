@@ -162,7 +162,7 @@ public final class AWTImageMgr {
 	private final List<String> paths = new ArrayList<>();
 
     public void addSearchPath(String s) {
-        paths.add(s);
+        paths.add(0, s);
     }
 
     public synchronized int loadImage(String fileOrResourceName, Color transparent) {

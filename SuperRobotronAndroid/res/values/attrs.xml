@@ -1,0 +1,9 @@
+<resources>
+
+    <declare-styleable name="RobotnixView">
+        <attr name="textSize" format="dimension"/>
+        <attr name="armThickness" format="dimension"/>
+        <attr name="hingeRadius" format="dimension"/>
+    </declare-styleable>
+    
+</resources>

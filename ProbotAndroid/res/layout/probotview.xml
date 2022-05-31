@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="ContentDescription">
+
+    <data>
+        <import type="cc.lib.probot.CommandType"/>
+        <import type="android.view.View"/>
+
+        <variable
+            name="viewModel"
+            type="cc.android.game.probot.ProbotViewModel" />
+
+        <variable
+            name="activity"
+            type="cc.android.game.probot.ProbotActivity" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:id="@+id/layoutButtons"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toTopOf="parent">
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@android:drawable/ic_media_play"
+                app:visibleIfNot="@{viewModel.running}"
+                android:onClick="@{activity::onPlayClicked}"/>
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@android:drawable/ic_menu_close_clear_cancel"
+                app:visibleIf="@{viewModel.running}"
+                android:onClick="@{activity::onStopClicked}"/>
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@android:drawable/ic_media_previous"
+                app:visibleIf="@{!viewModel.running &amp;&amp; viewModel.level > 0}"
+                android:onClick="@{activity::onPrevClicked}"/>
+            <TextView
+                android:layout_width="60dp"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="@{viewModel.level.toString()}"
+                tools:text="100"
+                android:textSize="32dp"/>
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@android:drawable/ic_media_next"
+                app:visibleIf="@{!viewModel.running &amp;&amp; viewModel.level &lt; viewModel.maxLevel}"
+                android:onClick="@{activity::onNextClicked}"/>
+
+        </LinearLayout>
+
+        <ListView
+            android:id="@+id/listView"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="#888"
+            tools:listitem="@layout/draganddrop_list_item"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/probotView"
+            app:layout_constraintTop_toBottomOf="@id/layoutButtons"
+            app:layout_constraintBottom_toTopOf="@id/commandsLayout"
+            />
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/commandsLayout"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            >
+
+            <!-- Forward arrow -->
+            <ImageView
+                android:background="@drawable/arrow_forward"
+                android:id="@+id/ivArrowForward"
+                android:layout_width="0dp"
+                android:layout_height="fill_parent"
+                app:goneIfNot="@{viewModel.advanceVisible}"
+                app:enabledIf="@{viewModel.advanceCount != 0}"
+                android:tag="@{CommandType.Advance.build()}"
+                app:layout_constraintDimensionRatio="1:1"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:text="10"
+                android:text="@{viewModel.advanceCount.toString()}"
+                app:goneIf="@{!viewModel.advanceVisible || viewModel.advanceCount &lt; 0}"
+                android:textSize="16sp"
+                app:layout_constraintStart_toStartOf="@id/ivArrowForward"
+                app:layout_constraintTop_toTopOf="@id/ivArrowForward"/>
+
+            <!-- Right arrow -->
+            <ImageView
+                android:background="@drawable/arrow_right"
+                android:id="@+id/ivArrowRight"
+                android:layout_width="0dp"
+                android:layout_height="fill_parent"
+                app:goneIfNot="@{viewModel.rightVisible}"
+                app:enabledIf="@{viewModel.rightCount != 0}"
+                android:tag="@{CommandType.TurnRight.build()}"
+                app:layout_constraintDimensionRatio="1:1"
+                app:layout_constraintStart_toEndOf="@id/ivArrowForward"
+                app:layout_constraintTop_toTopOf="parent"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:text="10"
+                android:text="@{viewModel.rightCount.toString()}"
+                app:goneIf="@{!viewModel.rightVisible || viewModel.rightCount &lt; 0}"
+                android:textSize="16sp"
+                app:layout_constraintStart_toStartOf="@id/ivArrowRight"
+                app:layout_constraintTop_toTopOf="@id/ivArrowRight"/>
+
+            <!-- Left arrow -->
+            <ImageView
+                comment="Left Turn Button"
+                android:background="@drawable/arrow_left"
+                android:id="@+id/ivArrowLeft"
+                android:layout_width="0dp"
+                android:layout_height="fill_parent"
+                app:goneIfNot="@{viewModel.leftVisible}"
+                app:enabledIf="@{viewModel.leftCount != 0}"
+                android:tag="@{CommandType.TurnLeft.build()}"
+                app:layout_constraintDimensionRatio="1:1"
+                app:layout_constraintStart_toEndOf="@id/ivArrowRight"
+                app:layout_constraintTop_toTopOf="parent"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:text="10"
+                android:text="@{viewModel.leftCount.toString()}"
+                app:goneIf="@{!viewModel.leftVisible || viewModel.leftCount &lt; 0}"
+                android:textSize="16sp"
+                app:layout_constraintEnd_toEndOf="@id/ivArrowLeft"
+                app:layout_constraintTop_toTopOf="@id/ivArrowLeft"/>
+
+            <!-- UTurn arrow -->
+            <ImageView
+                android:background="@drawable/uturn"
+                android:id="@+id/ivUTurn"
+                android:layout_width="0dp"
+                android:layout_height="fill_parent"
+                app:goneIfNot="@{viewModel.uturnVisible}"
+                app:enabledIf="@{viewModel.uturnCount != 0}"
+                android:tag="@{CommandType.UTurn.build()}"
+                app:layout_constraintDimensionRatio="1:1"
+                app:layout_constraintStart_toEndOf="@id/ivArrowLeft"
+                app:layout_constraintTop_toTopOf="parent"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:text="10"
+                android:text="@{viewModel.uturnCount.toString()}"
+                app:goneIf="@{!viewModel.uturnVisible || viewModel.uturnCount &lt; 0}"
+                android:textSize="16sp"
+                app:layout_constraintEnd_toEndOf="@id/ivUTurn"
+                app:layout_constraintTop_toTopOf="@id/ivUTurn"/>
+
+            <!-- Jump arrow -->
+            <ImageView
+                android:background="@drawable/arrow_jump"
+                android:id="@+id/ivArrowJump"
+                android:layout_width="0dp"
+                android:layout_height="fill_parent"
+                app:goneIfNot="@{viewModel.jumpVisible}"
+                app:enabledIf="@{viewModel.jumpCount != 0}"
+                android:tag="@{CommandType.Jump.build()}"
+                app:layout_constraintDimensionRatio="1:1"
+                app:layout_constraintStart_toEndOf="@id/ivUTurn"
+                app:layout_constraintTop_toBottomOf="parent"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:text="10"
+                android:text="@{viewModel.jumpCount.toString()}"
+                app:goneIf="@{!viewModel.jumpVisible || viewModel.jumpCount &lt; 0}"
+                android:textSize="16sp"
+                app:layout_constraintBottom_toBottomOf="@id/ivArrowJump"
+                app:layout_constraintStart_toStartOf="@id/ivArrowJump"/>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <TextView
+            android:id="@+id/tvLevelLabel"
+            android:layout_height="0dp"
+            android:layout_width="0dp"
+            tools:text="LEVEL TITLE"
+            android:gravity="center"
+            android:textSize="24sp"
+            android:textColor="#fff"
+            android:text="@{viewModel.levelName}"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="@id/layoutButtons"
+            app:layout_constraintStart_toStartOf="@+id/probotView"
+            />
+
+        <cc.android.game.probot.ProbotView
+            android:id="@+id/probotView"
+            android:layout_height="0dp"
+            android:layout_width="0dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toTopOf="@+id/commandsLayout"
+            app:layout_constraintTop_toBottomOf="@+id/tvLevelLabel"
+            app:layout_constraintDimensionRatio="1:1"/>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

@@ -13,7 +13,7 @@ import androidx.lifecycle.ViewModelStoreOwner;
 /**
  * Created by Chris Caron on 12/15/21.
  */
-public  class LayoutFactory {
+public class LayoutFactory {
 
     final int layoutResId;
     final Class<? extends ViewModel> viewModelClass;

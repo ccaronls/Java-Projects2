@@ -13,7 +13,9 @@ import android.widget.LinearLayout;
  * 
  * dominantSide: one of height_matches_width or width_matches_height
  *
+ * Use constraint layout instead
  */
+@Deprecated
 public class SquareLinearLayout extends LinearLayout {
 
 	public enum DominantSide {

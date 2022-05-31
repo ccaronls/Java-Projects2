@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_height="@dimen/icon_dim_sm">
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="@dimen/icon_dim_sm"
+        android:layout_height="@dimen/icon_dim_sm"
+        android:src="@drawable/arrow_right"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+    <ImageButton
+        android:id="@+id/ibLoop"
+        android:layout_width="@dimen/icon_dim_sm"
+        android:layout_height="@dimen/icon_dim_sm"
+        android:scaleType="centerCrop"
+        android:src="@drawable/arrow_repeat"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/ibMinus"/>
+
+    <TextView
+        android:id="@+id/tvLoopCount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="10"
+        android:textColor="#00f"
+        android:paddingBottom="3dp"
+        app:layout_constraintStart_toStartOf="@id/ibLoop"
+        app:layout_constraintEnd_toEndOf="@id/ibLoop"
+        app:layout_constraintTop_toTopOf="@id/ibLoop"
+        app:layout_constraintBottom_toBottomOf="@id/ibLoop"/>
+
+    <ImageButton
+        android:id="@+id/ibMinus"
+        android:layout_width="@dimen/icon_dim_sm"
+        android:layout_height="@dimen/icon_dim_sm"
+        android:src="@drawable/minus"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/tvCount"/>
+
+    <TextView
+        android:id="@+id/tvCount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="3"
+        android:textSize="24dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/ibPlus"/>
+
+    <ImageButton
+        android:id="@+id/ibPlus"
+        android:layout_width="@dimen/icon_dim_sm"
+        android:layout_height="@dimen/icon_dim_sm"
+        android:src="@drawable/plus"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

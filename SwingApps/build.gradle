@@ -25,6 +25,7 @@ dependencies {
     implementation project(':Yahtzee')
     implementation project(':Checkerboard')
     implementation project(':Kaiser')
+    implementation project(':SuperRobotron')
 }
 
 sourceSets {
