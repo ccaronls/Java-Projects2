@@ -41,6 +41,8 @@ class RoboRenderer(component: UIComponent) : UIRenderer(component) {
 
 
 	override fun draw(g: APGraphics, px: Int, py: Int) {
+		robotron.setDimension(320, 320)
+		g.ortho(0f, 320f, 0f, 320f)
 		robotron.drawGame(g)
 	}
 }
@@ -48,10 +50,11 @@ class RoboRenderer(component: UIComponent) : UIRenderer(component) {
 class RoboView(context: Context, attrs: AttributeSet) : UIComponentView<RoboRenderer>(context, attrs) {
 
 	override fun onDraw(canvas: Canvas) {
+		val FPS = 20
 		val time = SystemClock.elapsedRealtime()
 		super.onDraw(canvas)
 		val dt = SystemClock.elapsedRealtime()-time
-		if (dt > 33) // 30 FPS
+		if (dt > 1000/FPS) // 30 FPS
 			postInvalidate()
 		else
 			postInvalidateDelayed(33 - dt)

@@ -82,7 +82,8 @@ class SuperRobotronActivity : CCActivityBase(), View.OnTouchListener {
 				roboRenderer.robotron.setPlayerMissleVector(dpadRight.dx.roundToInt(), dpadRight.dy.roundToInt())
 				roboRenderer.robotron.setPlayerFiring(firing)
 			} else if (Utils.isPointInsideRect(x, y, binding.roboView1.left.toFloat(), binding.roboView1.top.toFloat(), binding.roboView1.width.toFloat(), binding.roboView1.height.toFloat())) {
-				//binding.roboView1.doTouch(event, x - binding.roboView1.left, y - binding.roboView1.top)
+				roboRenderer.robotron.setCursor((x - binding.roboView1.left).roundToInt(), (y - binding.roboView1.top).roundToInt())
+				roboRenderer.robotron.setCursorPressed(true)
 			}
 		}
 		return true
