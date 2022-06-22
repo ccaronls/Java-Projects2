@@ -1,10 +1,8 @@
-package cc.game.soc.swing2;
+package cc.applets.soc;
 
 import java.awt.Point;
 
-import cc.game.soc.ui.UIRenderer;
 import cc.lib.game.GColor;
-import cc.lib.game.Utils;
 import cc.lib.math.Vector2D;
 import cc.lib.swing.AWTComponent;
 import cc.lib.swing.AWTGraphics;
@@ -46,17 +44,17 @@ public class SOCComponent extends AWTComponent implements UIComponent {
 
     @Override
     protected final void onClick() {
-        delegate.doClick();
+        delegate.onClick();
     }
 
     @Override
     protected final void onDragStarted(int x, int y) {
-        delegate.startDrag(x, y);
+        delegate.onDragStart(x, y);
     }
 
     @Override
     protected final void onDragStopped() {
-        delegate.endDrag();
+        delegate.onDragEnd();
     }
 
     @Override

@@ -82,7 +82,7 @@ public class Board extends Reflector<Board> {
 	 * Create an empty board
 	 */
 	public Board() {
-		Utils.fillArray(playerRoadLenCache, -1);
+		Arrays.fill(playerRoadLenCache, -1);
 	}
 	
 	private void generateR2(float cx, float cy, float w, float h, float z, int depth, int dir, boolean allowDup, TileType type) {
@@ -315,7 +315,7 @@ public class Board extends Reflector<Board> {
 		Collections.sort(routes);
 		
 		// make sure edges are unique and in ascending order
-        if (Utils.DEBUG_ENABLED) {
+        if (Utils.isDebugEnabled()) {
             // TODO: do we need this sanity check anymore?
             for (int i = 1; i < routes.size(); i++) {
                 Route e0 = getRoute(i - 1);
@@ -789,7 +789,7 @@ public class Board extends Reflector<Board> {
                 return "Unnamed";
             File file = new File(this.name);
             if (file.isFile())
-                return Utils.getPrettyString(file.getName());
+                return Utils.toPrettyString(file.getName());
         }
         return displayName;
     }

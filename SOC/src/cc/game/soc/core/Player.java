@@ -177,7 +177,7 @@ public abstract class Player extends Reflector<Player> {
 		harborPoints = 0;
 		numDiscoveredTerritories = 0;
 		merchantFleetTradable = null;
-		Utils.fillArray(cityDevelopment, 0);
+		Arrays.fill(cityDevelopment, 0);
 	}
 	
 	/**

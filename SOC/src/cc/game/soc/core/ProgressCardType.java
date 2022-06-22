@@ -1,7 +1,5 @@
 package cc.game.soc.core;
 
-import cc.game.soc.android.R;
-
 public enum ProgressCardType implements ICardType<DevelopmentArea> {
 
 	// Science
@@ -13,13 +11,13 @@ public enum ProgressCardType implements ICardType<DevelopmentArea> {
 	Medicine		(DevelopmentArea.Science, MoveType.MEDICINE_CARD, 2),
 	Smith			(DevelopmentArea.Science, MoveType.SMITH_CARD, 2),
 	Mining			(DevelopmentArea.Science, MoveType.MINING_CARD, 2),
-	Printer			(DevelopmentArea.Science, R.string.special_victory_printer, 1),
+	Printer			(DevelopmentArea.Science, "Printer", 1),
 	RoadBuilding	(DevelopmentArea.Science, MoveType.ROAD_BUILDING_CARD, 1),
 	
 	// Politics
 	Bishop			(DevelopmentArea.Politics, MoveType.BISHOP_CARD, 2),
 	Diplomat		(DevelopmentArea.Politics, MoveType.DIPLOMAT_CARD, 2),
-	Constitution	(DevelopmentArea.Politics, R.string.special_victory_constitution, 1),
+	Constitution	(DevelopmentArea.Politics, "Constitution", 1),
 	Intrigue		(DevelopmentArea.Politics, MoveType.INTRIGUE_CARD, 2),
 	Deserter		(DevelopmentArea.Politics, MoveType.DESERTER_CARD, 2),
 	Saboteur		(DevelopmentArea.Politics, MoveType.SABOTEUR_CARD, 2),
@@ -37,12 +35,12 @@ public enum ProgressCardType implements ICardType<DevelopmentArea> {
 	
 	;
 
-	final int nameId;
+	final String nameId;
 	final DevelopmentArea type;
 	final int deckOccurances;
 	final MoveType moveType;
 
-    ProgressCardType(DevelopmentArea type, int nameId, int deckOccurances) {
+    ProgressCardType(DevelopmentArea type, String nameId, int deckOccurances) {
         this.nameId = nameId;
         this.type = type;
         this.deckOccurances = deckOccurances;
@@ -62,8 +60,8 @@ public enum ProgressCardType implements ICardType<DevelopmentArea> {
 	}
 
 	@Override
-	public String getHelpText(Rules rules, StringResource sr) {
-		return moveType.getHelpText(rules, sr);
+	public String getHelpText(Rules rules) {
+		return moveType.getHelpText(rules);
 	}
 
 	@Override
@@ -77,8 +75,8 @@ public enum ProgressCardType implements ICardType<DevelopmentArea> {
 	}
 
     @Override
-    public String getName(StringResource sr) {
-        return sr.getString(nameId);
+    public String getName() {
+        return nameId;
     }
 
     public boolean isEnabled(Rules rules) {

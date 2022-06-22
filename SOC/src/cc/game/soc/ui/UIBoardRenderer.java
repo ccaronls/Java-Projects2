@@ -452,7 +452,7 @@ public class UIBoardRenderer extends UIRenderer {
 			g.setColor(getPlayerColor(playerNum));
 		drawFaces(g, t, 0, getStructureRadius(), FaceType.MERCHANT, false);
 		g.setColor(GColor.WHITE);
-		String txt = "\n2:1\n" + t.getResource().getName(UISOC.getInstance());
+		String txt = "\n2:1\n" + t.getResource().getName();
 		Vector2D v = g.transform(t);
 		
 		g.drawJustifiedString( v.Xi()-2, v.Yi()-2-g.getTextHeight()*2, Justify.CENTER, Justify.TOP, txt);
@@ -865,7 +865,7 @@ public class UIBoardRenderer extends UIRenderer {
             g.setColor(outlineColorLight);
             drawTileOutline(g, cell);
             g.setColor(textColor);
-            String name = cell.getType().getName(UISOC.getInstance());
+            String name = cell.getType().getName();
             switch (cell.getType()) {
                 case NONE:
                     break;
@@ -880,7 +880,7 @@ public class UIBoardRenderer extends UIRenderer {
         		case PORT_WHEAT:
         		case PORT_WOOD:
         		case PORT_BRICK:
-        			g.drawJustifiedString(x,y,Justify.CENTER,Justify.CENTER,"2:1\n" + cell.getResource().getName(UISOC.getInstance()));
+        			g.drawJustifiedString(x,y,Justify.CENTER,Justify.CENTER,"2:1\n" + cell.getResource().getName());
                     break;
                 case PORT_MULTI:
                     g.drawJustifiedString(x,y,Justify.CENTER,Justify.CENTER,"3:1\n?");
@@ -900,7 +900,7 @@ public class UIBoardRenderer extends UIRenderer {
 				case HILLS:
 				case MOUNTAINS:
 				case PASTURE:
-					g.drawJustifiedString( x, y, Justify.CENTER, Justify.CENTER, cell.getResource().getName(UISOC.getInstance()) + "\n" + String.valueOf(cell.getDieNum()));
+					g.drawJustifiedString( x, y, Justify.CENTER, Justify.CENTER, cell.getResource().getName() + "\n" + String.valueOf(cell.getDieNum()));
 					break;
 				case UNDISCOVERED:
 					break;
@@ -959,7 +959,7 @@ public class UIBoardRenderer extends UIRenderer {
                 g.setColor(outlineColorLight);
                 drawTileOutline(g, cell);
                 g.setColor(textColor);
-                g.drawJustifiedString(cell.getX(),cell.getY(),Justify.CENTER,Justify.CENTER,cell.getType().getName(UISOC.getInstance()));
+                g.drawJustifiedString(cell.getX(),cell.getY(),Justify.CENTER,Justify.CENTER,cell.getType().getName());
                 break;
             case FIELDS:
             	g.drawImage(fieldshexImage, v0, v1);
@@ -985,7 +985,7 @@ public class UIBoardRenderer extends UIRenderer {
     }
 
     @Override
-    public void doClick() {
+    public void onClick() {
 	    // allow the accept button to do this work now
         if (pickedValue >= 0) {
             pickHandler.onPick(this, pickedValue);

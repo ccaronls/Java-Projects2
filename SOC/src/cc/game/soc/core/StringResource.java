@@ -5,5 +5,7 @@ package cc.game.soc.core;
  */
 
 public interface StringResource {
-    String getString(int resourceId, Object ... args);
+    default String getString(String format, Object ... args) {
+        return String.format(format, args);
+    }
 }

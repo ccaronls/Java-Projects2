@@ -1,7 +1,5 @@
 package cc.game.soc.core;
 
-import cc.game.soc.android.R;
-
 /**
  * 
  * @author Chris Caron
@@ -9,17 +7,17 @@ import cc.game.soc.android.R;
  */
 public enum ResourceType implements ICardType<Void> {
 
-	Wood	(R.string.resource_type_wood, R.string.resource_type_wood_help),
-	Sheep	(R.string.resource_type_sheep, R.string.resource_type_sheep_help),
-	Ore		(R.string.resource_type_ore, R.string.resource_type_ore_help),
-	Wheat	(R.string.resource_type_wheat, R.string.resource_type_wheat_help),
-	Brick	(R.string.resource_type_brick, R.string.resource_type_brick_help),
+	Wood	("Wood", "Produced by Forest Tiles"),
+	Sheep	("Sheep", "Produced by Pasture Tiles"),
+	Ore		("Ore", "Produced by Mountains Tiles"),
+	Wheat	("Wheat", "Produced by Fields Tiles"),
+	Brick	("Brick", "Produced by Hills Tiles"),
 	;
 
-	final int helpId;
-	final int nameId;
+	final String helpId;
+	final String nameId;
 
-	ResourceType(int nameId, int helpId) {
+	ResourceType(String nameId, String helpId) {
 		this.nameId = nameId;
 		this.helpId = helpId;
 	}
@@ -30,8 +28,8 @@ public enum ResourceType implements ICardType<Void> {
 	}
 	
 	@Override
-	public String getHelpText(Rules rules, StringResource sr) {
-		return sr.getString(helpId);
+	public String getHelpText(Rules rules) {
+		return helpId;
 	}
 
 	@Override
@@ -45,8 +43,8 @@ public enum ResourceType implements ICardType<Void> {
 	}
 
     @Override
-    public String getName(StringResource sr) {
-        return sr.getString(nameId);
+    public String getName() {
+        return nameId;
     }
 
 

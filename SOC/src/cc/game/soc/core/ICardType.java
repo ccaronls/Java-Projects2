@@ -7,7 +7,7 @@ public interface ICardType<T> extends ILocalized {
 	
 	String name();
 	
-	String getHelpText(Rules rules, StringResource sr);
+	String getHelpText(Rules rules);
 	
 	T getData();
 	

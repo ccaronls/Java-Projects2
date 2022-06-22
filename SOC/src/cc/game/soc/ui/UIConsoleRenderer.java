@@ -66,7 +66,7 @@ public final class UIConsoleRenderer extends UIRenderer {
     }
 
     private void drawPrivate(APGraphics g) {
-	    final int txtHgt = g.getTextHeight();
+	    final int txtHgt = (int)g.getTextHeight();
 	    maxVisibleLines = getComponent().getHeight() / txtHgt;
         float y = 0;
 	    for (int i=startLine; i<lines.size(); i++) {

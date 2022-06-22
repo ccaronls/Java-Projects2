@@ -1,6 +1,5 @@
 package cc.game.soc.ui;
 
-import cc.game.soc.android.R;
 import cc.game.soc.core.Card;
 import cc.game.soc.core.CardType;
 import cc.game.soc.core.CommodityType;
@@ -61,34 +60,34 @@ public final class UIPlayerRenderer extends UIRenderer {
         //g.setTextStyles(AGraphics.TextStyle.BOLD);
 
         StringBuffer str = new StringBuffer();
-        str.append(getString(R.string.player_info_header_name_pts_cards_maxsafecards, player.getName(), player.getPoints(), player.getTotalCardsLeftInHand(), soc.getRules().getMaxSafeCardsForPlayer(player.getPlayerNum(), soc.getBoard())));
+        str.append(String.format("%1$s %2$d Points\nCards %3$d(%4$d)", player.getName(), player.getPoints(), player.getTotalCardsLeftInHand(), soc.getRules().getMaxSafeCardsForPlayer(player.getPlayerNum(), soc.getBoard())));
         str.append("\n");
         if (player.isInfoVisible()) {
             for (ResourceType t : ResourceType.values()) {
                 int num = player.getCardCount(t);
-                str.append(t.getName(UISOC.getInstance())).append(" X ").append(num).append("\n");
+                str.append(t.getName()).append(" X ").append(num).append("\n");
             }
             if (soc.getRules().isEnableCitiesAndKnightsExpansion()) {
                 for (CommodityType t : CommodityType.values()) {
                     int num = player.getCardCount(t);
-                    str.append(t.getName(UISOC.getInstance())).append(" X ").append(num).append("\n");
+                    str.append(t.getName()).append(" X ").append(num).append("\n");
                 }
                 for (Card c : player.getCards(CardType.Progress)) {
-                    str.append(c.getName(UISOC.getInstance())).append(" (").append(c.getCardStatus().getName(UISOC.getInstance())).append(")\n");
+                    str.append(c.getName()).append(" (").append(c.getCardStatus().getName()).append(")\n");
                 }
             } else {
                 for (Card c : player.getCards(CardType.Development)) {
                     // dont need to show these since it is covered by the army size
                     switch (c.getCardStatus()) {
                         case USABLE:
-                            str.append(c.getName(UISOC.getInstance())).append("\n");
+                            str.append(c.getName()).append("\n");
                             break;
                         case USED:
                             // ignore these since they are covered by the army size
                             if (c.getTypeOrdinal() == DevelopmentCardType.Soldier.ordinal() || c.getTypeOrdinal() == DevelopmentCardType.Warship.ordinal())
                                 continue;
                         case UNUSABLE:
-                            str.append(c.getName(UISOC.getInstance())).append(" (").append(c.getCardStatus().getName(UISOC.getInstance())).append(")\n");
+                            str.append(c.getName()).append(" (").append(c.getCardStatus().getName()).append(")\n");
                             break;
                     }
                 }
@@ -97,12 +96,12 @@ public final class UIPlayerRenderer extends UIRenderer {
             if (soc.getRules().isEnableCitiesAndKnightsExpansion()) {
                 int num = player.getCardCount(CardType.Resource);
                 num += player.getCardCount(CardType.Commodity);
-                str.append(getString(R.string.player_info_materials_count, num)).append("\n");
+                str.append(String.format("Progress X %d", num)).append("\n");
                 num = player.getCardCount(CardType.Progress);
-                str.append(getString(R.string.player_info_progress_count, num)).append("\n");
+                str.append(String.format("Progress X %d", num)).append("\n");
             } else {
                 int num = player.getUnusedCardCount();
-                str.append(getString(R.string.player_info_cards_count, num)).append("\n");
+                str.append(String.format("Cards X %d", num)).append("\n");
             }
         }
 
@@ -116,16 +115,16 @@ public final class UIPlayerRenderer extends UIRenderer {
 
         int size = player.getArmySize(soc.getBoard());
         if (size > 0) {
-            str.append(getString(R.string.player_info_army_size, size)).append("\n");
+            str.append(String.format("Army X %d", size)).append("\n");
         }
         if (numKnights > 0) {
-            str.append(getString(R.string.player_info_knights_count_strength, knightLevel, maxKnightLevel)).append("\n");
+            str.append(String.format("Knights %1$d/%2$d", knightLevel, maxKnightLevel)).append("\n");
         }
-        str.append(getString(R.string.player_info_road_length, player.getRoadLength())).append("\n");
+        str.append(String.format("Road Length %d", player.getRoadLength())).append("\n");
         for (SpecialVictoryType sv : SpecialVictoryType.values()) {
             int num = player.getCardCount(sv);
             if (num > 0) {
-                str.append(sv.getName(this));
+                str.append(sv.getName());
                 if (sv.points != 0)
                     str.append(Utils.getSignedString(num*sv.points));
                 str.append("\n");
@@ -134,7 +133,7 @@ public final class UIPlayerRenderer extends UIRenderer {
 
         for (DevelopmentArea d : DevelopmentArea.values()) {
             if (player.getCityDevelopment(d) > 0) {
-                str.append(d.getName(this)).append(" ").append(d.getLevelName(player.getCityDevelopment(d), UISOC.getInstance())).append(" (").append(player.getCityDevelopment(d)).append(") ");
+                str.append(d.getName()).append(" ").append(d.getLevelName(player.getCityDevelopment(d))).append(" (").append(player.getCityDevelopment(d)).append(") ");
                 if (soc.getMetropolisPlayer(d) == player.getPlayerNum()) {
                     str.append(" +").append(soc.getRules().getPointsPerMetropolis());
                 }
@@ -142,18 +141,18 @@ public final class UIPlayerRenderer extends UIRenderer {
             }
         }
         if (player.getMerchantFleetTradable() != null) {
-            str.append(getString(R.string.player_info_merchantfleet_tradable, player.getMerchantFleetTradable().getName(UISOC.getInstance()))).append("\n");
+            str.append(String.format("Merchant Fleet %s", player.getMerchantFleetTradable().getName())).append("\n");
         }
 
         {
             int num = soc.getBoard().getNumDiscoveredIslands(player.getPlayerNum());
             if (num > 0) {
-                str.append(getString(R.string.player_info_discoveredislands_count_pts, num, Utils.getSignedStringOrEmptyWhenZero(num * soc.getRules().getPointsIslandDiscovery()))).append("\n");
+                str.append(String.format("Discovered Islands X %$1d %$2s", num, Utils.getSignedStringOrEmptyWhenZero(num * soc.getRules().getPointsIslandDiscovery()))).append("\n");
             }
         }
 
         if (numDiscoveredTiles > 0) {
-            str.append(getString(R.string.player_info_discoveredtiles_count, numDiscoveredTiles)).append("\n");
+            str.append(String.format("Discovered Tiles X %d", numDiscoveredTiles)).append("\n");
         }
 
         float padding = RenderConstants.textMargin;

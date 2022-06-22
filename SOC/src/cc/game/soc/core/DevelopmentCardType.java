@@ -1,7 +1,5 @@
 package cc.game.soc.core;
 
-import cc.game.soc.android.R;
-
 /**
  * 
  * @author Chris Caron
@@ -9,25 +7,25 @@ import cc.game.soc.android.R;
  */
 public enum DevelopmentCardType implements ICardType<Void> {
 	// Take all of one resource
-	Monopoly(MoveType.MONOPOLY_CARD, 2, R.string.dev_type_monopoly, R.string.dev_type_monopoly_help),
+	Monopoly(MoveType.MONOPOLY_CARD, 2, "Monopoly", "force other players to give you resources of your choice"),
 	// take N of any resource
-	YearOfPlenty(MoveType.YEAR_OF_PLENTY_CARD, 5, R.string.dev_type_yop, R.string.dev_type_yop_help),
+	YearOfPlenty(MoveType.YEAR_OF_PLENTY_CARD, 5, "Year Of Plenty", "Draw resources of your choice from pile"),
 	// place N roads
-	RoadBuilding(MoveType.ROAD_BUILDING_CARD, 20, R.string.dev_type_rb, R.string.dev_type_rb_help),
+	RoadBuilding(MoveType.ROAD_BUILDING_CARD, 20, "Road Building", "Build 2 roads for free"),
 	// get N points
-	Victory(null, 4, R.string.dev_type_victory, R.string.dev_type_victory_help),
+	Victory(null, 4, "Victory", "Can be applied to your total points when the result winds you the game"),
 	// place the robber and add to your army
-	Soldier(MoveType.SOLDIER_CARD, 50, R.string.dev_type_soldier, R.string.dev_type_soldier_help),
+	Soldier(MoveType.SOLDIER_CARD, 50, "Soldier", "Use to place the robber"),
 	// seafarers expansion pirate islands scenario
-	Warship(MoveType.WARSHIP_CARD, 50, R.string.dev_type_warship, R.string.dev_type_warship_help),
+	Warship(MoveType.WARSHIP_CARD, 50, "Warship", "Convert a ship into a warship"),
 	;
 	
 	final int deckOccurances;
 	final MoveType moveType;
-	final int helpId;
-	final int nameId;
+	final String helpId;
+	final String nameId;
 
-	DevelopmentCardType(MoveType moveType, int deckOccurances, int nameId, int helpdId) {
+	DevelopmentCardType(MoveType moveType, int deckOccurances, String nameId, String helpdId) {
 		this.deckOccurances = deckOccurances;
 		this.moveType = moveType;
 		this.nameId = nameId;
@@ -40,8 +38,8 @@ public enum DevelopmentCardType implements ICardType<Void> {
 	}
 
     @Override
-    public String getHelpText(Rules rules, StringResource sr) {
-        return sr.getString(helpId);
+    public String getHelpText(Rules rules) {
+        return helpId;
     }
 
     @Override
@@ -55,8 +53,8 @@ public enum DevelopmentCardType implements ICardType<Void> {
 	}
 
     @Override
-    public String getName(StringResource sr) {
-        return sr.getString(nameId);
+    public String getName() {
+        return nameId;
     }
 
 

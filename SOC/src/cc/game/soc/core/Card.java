@@ -1,8 +1,6 @@
 package cc.game.soc.core;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.PrintWriter;
 
 import cc.lib.utils.Reflector;
 
@@ -17,12 +15,12 @@ public class Card extends Reflector<Card> implements Comparable <Card> {
 	private CardStatus status;
 
 	@Override
-	public void serialize(PrintWriter out) throws IOException {
+	public void serialize(MyPrintWriter out) throws IOException {
 		out.println(type+","+status+","+type.dereferenceOrdinal(typeOrdinal).name());
 	}
 
 	@Override
-	protected void deserialize(BufferedReader in) throws Exception {
+	protected void deserialize(MyBufferedReader in) throws Exception {
 	    String [] parts = in.readLine().split(",");
 		type = CardType.valueOf(parts[0]);
 		status = CardStatus.valueOf(parts[1]);
@@ -101,8 +99,8 @@ public class Card extends Reflector<Card> implements Comparable <Card> {
 	 * 
 	 * @return
 	 */
-    public final String getName(StringResource sr) {
-    	return type.dereferenceOrdinal(typeOrdinal).getName(sr);
+    public final String getName() {
+    	return type.dereferenceOrdinal(typeOrdinal).getName();
     }
     
     /**
@@ -169,8 +167,8 @@ public class Card extends Reflector<Card> implements Comparable <Card> {
 	 * 
 	 * @return
 	 */
-	public final String getHelpText(Rules rules, StringResource sr) {
-		return type.dereferenceOrdinal(typeOrdinal).getHelpText(rules, sr);
+	public final String getHelpText(Rules rules) {
+		return type.dereferenceOrdinal(typeOrdinal).getHelpText(rules);
 	}
 	
 	/**

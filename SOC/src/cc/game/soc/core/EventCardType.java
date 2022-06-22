@@ -1,7 +1,5 @@
 package cc.game.soc.core;
 
-import cc.game.soc.android.R;
-
 /**
  * Event cards are a variation that replace the dice.
  * 
@@ -10,25 +8,25 @@ import cc.game.soc.android.R;
  */
 public enum EventCardType implements ICardType<Void> {
 	
-	RobberAttack	(R.string.event_card_robber_attack, R.string.event_card_robber_attack_help, 7, 7, 7, 7, 7),
-	Epidemic		(R.string.event_card_epidemic, R.string.event_card_epidemic_help, 6, 8),
-	Earthquake		(R.string.event_card_earthquake, R.string.event_card_earthquake_help, 6),
-	GoodNeighbor	(R.string.event_card_good_neighbor, R.string.event_card_good_neighbor_help, 6),
-	Tournament		(R.string.event_card_tournament, R.string.event_card_tournament_help, 5),
-	TradeAdvantage	(R.string.event_card_trade_advantage, R.string.event_card_trade_advantage_help, 5),
-	CalmSea			(R.string.event_card_calm_sea, R.string.event_card_calm_sea_help, 9, 12),
-	RobberFlees		(R.string.event_card_robber_flees, R.string.event_card_robber_flees_help, 4, 4),
-	NeighborlyAssistance(R.string.event_card_neighborly_assistance, R.string.event_card_neighborly_assistance_help, 10, 11),
-	Conflict		(R.string.event_card_conflict, R.string.event_card_conflict_help, 3),
-	PlentifulYear	(R.string.event_card_plentiful_year, R.string.event_card_plentiful_year_help, 2),
-	NoEvent			(R.string.event_card_no_event, R.string.event_card_no_event_help, 3, 4, 5, 5, 6, 6, 6, 8, 8, 8, 8, 9, 9, 9, 10, 10, 11),
+	RobberAttack	("Robber\nAttack", "Current player places the robber and all players discard half of your cards (round down).  Same as rolling a '7'", 7, 7, 7, 7, 7),
+	Epidemic		("Epidemic", "Each player receives 1 resource for a city (no commodity)", 6, 8),
+	Earthquake		("Earthquake", "Each player has one of their roads damaged", 6),
+	GoodNeighbor	("Good\nNeighbor", "Each player give the player to their left 1 resource or commodity of the givers choice", 6),
+	Tournament		("Tournament", "The player(s) with most (active) knights take 1 resource card", 5),
+	TradeAdvantage	("Trade\nAdvantage", "The single player with longest road can take 1 resource card from another player", 5),
+	CalmSea			("Calm\nSea", "Player with the most harbors can take 1 resource card of their choice", 9, 12),
+	RobberFlees		("Robber\nFlees", "Robber returns to the desert", 4, 4),
+	NeighborlyAssistance("Neighborly\nAssistance", "Player with most victory points gives a player of their choice a resource card of the givers choice if they have it.", 10, 11),
+	Conflict		("Conflict", "The single player with largest army (active knights) take a random resource or commodity card from another player", 3),
+	PlentifulYear	("Plentiful\nYear", "Each player takes 1 resource of their choice from supply", 2),
+	NoEvent			("No Event", "The settlers labor and Catan prospers.", 3, 4, 5, 5, 6, 6, 6, 8, 8, 8, 8, 9, 9, 9, 10, 10, 11),
 	;
 
-	final int nameId;
-	final int helpTextId;
+	final String nameId;
+	final String helpTextId;
 	final int [] production;
 	
-	EventCardType(int nameId, int helpTextId, int cakEventDie, int ... productionDie) {
+	EventCardType(String nameId, String helpTextId, int cakEventDie, int ... productionDie) {
 		this.nameId = nameId;
 		this.helpTextId = helpTextId;
 		this.production = productionDie;
@@ -40,8 +38,8 @@ public enum EventCardType implements ICardType<Void> {
 	}
 
 	@Override
-	public String getHelpText(Rules rules, StringResource sr) {
-		return sr.getString(helpTextId);
+	public String getHelpText(Rules rules) {
+		return helpTextId;
 	}
 
 	@Override
@@ -55,7 +53,7 @@ public enum EventCardType implements ICardType<Void> {
 	}
 
     @Override
-    public String getName(StringResource sr) {
-        return sr.getString(nameId);
+    public String getName() {
+        return nameId;
     }
 }

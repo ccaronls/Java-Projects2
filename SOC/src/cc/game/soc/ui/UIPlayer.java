@@ -15,6 +15,7 @@ import cc.lib.game.GColor;
 import cc.lib.game.Utils;
 import cc.lib.net.ClientConnection;
 import cc.lib.net.GameCommand;
+import cc.lib.utils.GException;
 
 /**
  * 

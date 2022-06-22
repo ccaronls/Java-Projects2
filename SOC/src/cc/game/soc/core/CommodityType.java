@@ -1,17 +1,15 @@
 package cc.game.soc.core;
 
-import cc.game.soc.android.R;
-
 public enum CommodityType implements ICardType<DevelopmentArea> {
-	Paper(R.string.comm_type_paper, R.string.comm_type_paper_help),
-	Cloth(R.string.comm_type_cloth, R.string.comm_type_cloth_help),
-	Coin(R.string.comm_type_coin, R.string.comm_type_coin_help);
+	Paper("Paper", "Can be exchanged for Science improvements"),
+	Cloth("Cloth", "Can be exchanged for Trade improvements"),
+	Coin("Coin", "Can be exchanged for Politics improvements");
 
-	final int helpTextId;
-	final int nameId;
+	final String helpTextId;
+	final String nameId;
 	DevelopmentArea area;
 
-	CommodityType(int nameId, int helpTextId) {
+	CommodityType(String nameId, String helpTextId) {
 		this.nameId = nameId;
 		this.helpTextId = helpTextId;
 	}
@@ -22,8 +20,8 @@ public enum CommodityType implements ICardType<DevelopmentArea> {
 	}
 
 	@Override
-	public String getHelpText(Rules rules, StringResource sr) {
-		return sr.getString(helpTextId);
+	public String getHelpText(Rules rules) {
+		return helpTextId;
 	}
 
 	@Override
@@ -37,8 +35,8 @@ public enum CommodityType implements ICardType<DevelopmentArea> {
 	}
 
     @Override
-    public String getName(StringResource sr) {
-        return sr.getString(nameId);
+    public String getName() {
+        return nameId;
     }
 
 

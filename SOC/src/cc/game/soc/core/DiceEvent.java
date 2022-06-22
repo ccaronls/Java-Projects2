@@ -1,17 +1,15 @@
 package cc.game.soc.core;
 
-import cc.game.soc.android.R;
-
 public enum DiceEvent implements ILocalized {
-	AdvanceBarbarianShip(R.string.dice_event_advance_barbarian),
-	ScienceCard(R.string.dice_event_science_card),
-	TradeCard(R.string.dice_event_trade_card),
-	PoliticsCard(R.string.dice_event_politics_card),
+	AdvanceBarbarianShip("Advance Barbarian Ship"),
+	ScienceCard("Science Card"),
+	TradeCard("Trade Card"),
+	PoliticsCard("Politics Card"),
 	;
 
-	final int stringId;
+	final String stringId;
 
-	DiceEvent(int stringId) {
+	DiceEvent(String stringId) {
         this.stringId = stringId;
     }
 
@@ -34,7 +32,7 @@ public enum DiceEvent implements ILocalized {
 		return null;
 	}
 
-	public final String getName(StringResource sr) {
-        return sr.getString(stringId);
+	public final String getName() {
+        return stringId;
     }
 }

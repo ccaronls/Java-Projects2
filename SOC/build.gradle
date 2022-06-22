@@ -1,60 +1,19 @@
-apply plugin: 'java'
-apply plugin: 'application'
-
-mainClassName = 'cc.game.soc.swing2.GUI'
-
-configurations {
-    androidLib.extendsFrom compileOnly
-}
+apply plugin: 'java-library'
+apply plugin: 'kotlin'
 
 dependencies {
     implementation project(':GameLibrary')
-    implementation project(':jmdns')
-    testImplementation 'junit:junit:4.12'
-    androidLib project(path: ':GameLibrary', configuration: 'androidLib')
 }
 
 sourceSets {
-
     main {
         java {
-            srcDirs = ['src', '../SOCAndroid/build/generated/source/r/debug' ]
-        }
-        resources {
-            srcDirs = ['images', 'resources'];
+            srcDirs = ['src']
         }
     }
-
-    androidLib {
-        java {
-            srcDirs = [ 'src', '../SOCAndroid/build/generated/source/r/debug' ]
-            excludes = ['**/skunkworks/**', '**/swing*/**']
-        }
-    }
-
     test {
         java {
             srcDirs = ['test']
-            excludes = ['**/jmdns/src/test/**']
-        }
-        resources {
-            srcDirs = ['testResources']
         }
     }
-
-}
-
-compileAndroidLibJava.dependsOn project(':GameLibrary').getTasksByName('androidLibJar', false)
-compileAndroidLibJava.classpath += project(':GameLibrary').sourceSets.androidLib.output.classesDirs
-compileJava.dependsOn project(':SOCAndroid').getTasksByName('generateDebugSources', false)
-compileAndroidLibJava.dependsOn project(':SOCAndroid').getTasksByName('generateDebugSources', false)
-
-task androidLibJar(type: Jar) {
-    from sourceSets.androidLib.output.classesDirs.filter {
-        excludes = ['**/R.class', '**/R$*.class' ]
-    }
-}
-
-artifacts {
-    androidLib androidLibJar
 }

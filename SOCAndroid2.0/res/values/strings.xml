@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    
     <string name="hello">Hello World, SOCAndroid!</string>
     <string name="app_name">SOCAndroid</string>
     <string name="newGame">New Game</string>
@@ -31,135 +30,7 @@
     <string name="lrgRect">Large Rectangle</string>
     <string name="soclabel">Senators of Caron</string>
     <string name="instructions">Instructions</string>
-    <string name="instructions_body">
-    
-    Construction of the Island\n
-\n
-(Starting set up for beginners).\n
-\n
-The game is played on a randomly constructed game board. However, for your first game you may want to use the start arrangement for beginners [-] illustrated on the back of these rules. This set up is quite balanced. Set up the game board according to the illustration. The game is more fun with the variable set up, and for those who would like to go right to it, you\'ll find the necessary information under construction [-], founding phase [-] and tactic [-].
-\n
-Preparation
-\n
-(Start arrangement for beginners).
-\n
-Each player chooses a color. Streets and settlements for all four players are already set up on the illustration (see reverse). Each player takes their remaining settlements, roads and cities and sets them before themselves.
-If only 3 players are in the game, then the red settlements and roads are removed.\n
-Each player takes a building cost [-] card.\n
-The special cards Longest Trade Route [-] and Largest Knight Force [-] are set beside the game board as are the dice as well.\n
-The Raw Material Cards [-] are sorted into 5 stacks and they are set face up next to the game board.\n
-The Development Cards [-] (dark backs) are shuffled and set face down next to the game board.\n
-Finally, each player receives their first Raw Material Production [-] from their settlement marked with a star. For each land hex that borders this settlement, the player takes one corresponding raw material card. EXAMPLE (see reverse): Blue receives 2 x Lumber and 1 x Wheat.\n
-Your own raw material cards are always kept hidden from the other players.\n
-Game Outline in General\n
-\n
-The oldest player begins. On your turn, the following actions are taken in the indicated sequence:\n
-\n
-You must roll the dice for raw material production [-]. The dice roll counts for all of the players.\n
-You may trade [-]: with the other players to get the raw material cards you want.\n
-You may build [-]: roads [-], settlements [-] or cities [-]; or you can buy development cards [-].\n
-In addition, on your turn you may play one of your development cards [-]. After that the player to the left continues.\n
-\n
-Game Outline in Particular\n
-\n
-1. Raw Material Production\n
-\n
-A player begins his or her turn by rolling the dice. The number rolled determines which land hex(es) will produce raw materials.\n
-\n
-Each player who has a settlement [-] standing on an intersection [-] that borders these hexes takes one raw material card of the corresponding type.\n
-\n
-EXAMPLE: see raw material production [-].\n
-\n
-2. Trade [-]\n
-\n
-After that, the player who rolled for production now may conduct trades to try to get the raw material cards needed to buy the things he or she wants.\n
-\n
-Domestic trade [-]\n
-The player may exchange his own raw material cards for the raw material cards of the other players. The player may inform the other players what he wants and what he is willing to trade to get it. He can also listen to the suggestions of the other players and make counter-offers.\n
-\n
-Important: All trades must be made with the player who is currently taking his turn. The other players may not trade amongst themselves.\n
-\n
-Sea trade [-]\n
-You do not have to trade with the other players.\n
-\n
-On your turn, you may always make a 4:1 trade (even if you do not have a settlement at a harbor location [-]. To do this, you return four raw material cards of the same type to their stack and take one raw material card of your choice.\n
-\n
-If you have built a settlement at a harbor location [-], then you can get a better exchange rate. Either a 3:1 rate or, in the special harbors (the ones with the raw material symbols), a 2:1 rate. Note: the 2:1 rate is available only if you turn in two of the pictured raw material.\n
-\n
-3. Build [-]\n
-\n
-Finally, you can increase your victory points [-] by building things.\n
-\n
-To build, you must turn in certain raw material card combinations (see the building costs card). You then take as many roads, settlements and/or cities from your stock and set them on the game board.\n
-\n
-Roads [-];\n
-requires: 1 Brick + 1 Lumber\n
-\n
-A new street must always be placed on an edge [-] leading from one of your own settlements, cities or roads. On each edge, only one road may be built. As soon as a player has built a nonstop road at least 5 roads long, that player receives the special card for the Longest Trade Route [-]. If another player then builds a nonstop trade route longer than the one created by the current owner of the card, then that player is the new owner of the Longest Trade route card.\n
-\n
-Settlement [-];\n
-requires: 1 Brick + 1 Lumber + 1 Wool + 1 Wheat\n
-\n
-IMPORTANT: The distance rule [-]: A settlement may only be built on an intersection [-] if the three adjacent intersections are NOT occupied by settlements. It does not matter if the adjacent settlements would belong to the same player. The settlement must connect to at least one road of the same color.\n
-\n
-For each settlement that borders a producing land hex, the owner receives one raw material card of the corresponding type.\n
-\n
-Each of your settlements adds one victory point to your total.\n
-\n
-City [-];\n
-requires: 3 Ores + 2 Wheat\n
-\n
-When you build a city, you replace one of your settlements with one of your cities (church).\n
-\n
-For each city that borders a producing land hex, the owner receives two raw material cards of the corresponding type.\n
-\n
-Each of your cities adds two victory points to your total.\n
-\n
-Development Card [-];\n
-(requires 1 Ore + 1 Wool + 1 Wheat)\n
-\n
-When you buy a development card, you draw the top card from the development card stack.\n
-\n
-There are three different kinds of development cards: Knights [-], Progress [-] and Victory Points [-]\n
-\n
-The development cards you buy are kept hidden from the other players until you decide to use them.\n
-\n
-4. Special cases\n
-\n
-a) Rolling Seven-robbers become active [-].\n
-\n
-If a \'7\' is rolled in the raw material production phase, then none of the hexes produce raw material.\n
-\n
-All players count their raw material cards. If anyone has more than 7, then they must select half of them (round down) to return to their respective raw material stacks.\n
-\n
-Next, the robber [-] must be moved. Refer to the paragraph on knights below, under points 1 and 2 to see how this is done.\n
-\n
-b) Development Card Play [-].\n
-\n
-Knight cards [-]\n
-When played on your turn, the knight cards remain face up before you for the rest of the game.\n
-\n
-The first player to have three knight cards turned face up before him or herself receives the special Largest Knight Force card [-], which is worth 2 victory points.\n
-\n
-If another player manages to display more knight cards than the current owner of the Largest Knight Force card, then that player takes the card from its current owner.\n
-\n
-Also, when you play a knight card then you must:\n
-\n
-Immediately move the robber [-] to another land hex and set it on that land hex\'s number chip [-].\n
-You then rob any other player who has a settlement bordering the hex to which the robber has been moved. If more than one other player has a settlement on this hex, then the you may choose which player to rob. You then draw one card, sight unseen, from the robbed player\'s hand of raw material cards.\n
-IMPORTANT: If in a future raw material production phase the hex on which the robber is standing is rolled, then that hex produces NO raw materials.\n
-\n
-Progress cards [-]\n
-When played on your turn, you immediately execute the described action. The card is then removed from the game.\n
-\n
-Victory points [-]\n
-These cards should not be displayed until you declare the game won . Then you show them to bring your victory point total to 10.\n
-\n
-Game end [-]\n
-\n
-The game ends when a player declares on his or her turn that he or she has 10 victory points.\n
-\n
-    </string>
+    <string name="instructions_body">Construction of the Island\n\n(Starting set up for beginners).\n\nThe game is played on a randomly constructed game board. However, for your first game you may want to use the start arrangement for beginners [-] illustrated on the back of these rules. This set up is quite balanced. Set up the game board according to the illustration. The game is more fun with the variable set up, and for those who would like to go right to it, you\'ll find the necessary information under construction [-], founding phase [-] and tactic [-].\nPreparation\n(Start arrangement for beginners).\nEach player chooses a color. Streets and settlements for all four players are already set up on the illustration (see reverse). Each player takes their remaining settlements, roads and cities and sets them before themselves. If only 3 players are in the game, then the red settlements and roads are removed.\nEach player takes a building cost [-] card.\nThe special cards Longest Trade Route [-] and Largest Knight Force [-] are set beside the game board as are the dice as well.\nThe Raw Material Cards [-] are sorted into 5 stacks and they are set face up next to the game board.\nThe Development Cards [-] (dark backs) are shuffled and set face down next to the game board.\nFinally, each player receives their first Raw Material Production [-] from their settlement marked with a star. For each land hex that borders this settlement, the player takes one corresponding raw material card. EXAMPLE (see reverse): Blue receives 2 x Lumber and 1 x Wheat.\nYour own raw material cards are always kept hidden from the other players.\nGame Outline in General\n\nThe oldest player begins. On your turn, the following actions are taken in the indicated sequence:\n\nYou must roll the dice for raw material production [-]. The dice roll counts for all of the players.\nYou may trade [-]: with the other players to get the raw material cards you want.\nYou may build [-]: roads [-], settlements [-] or cities [-]; or you can buy development cards [-].\nIn addition, on your turn you may play one of your development cards [-]. After that the player to the left continues.\n\nGame Outline in Particular\n\n1. Raw Material Production\n\nA player begins his or her turn by rolling the dice. The number rolled determines which land hex(es) will produce raw materials.\n\nEach player who has a settlement [-] standing on an intersection [-] that borders these hexes takes one raw material card of the corresponding type.\n\nEXAMPLE: see raw material production [-].\n\n2. Trade [-]\n\nAfter that, the player who rolled for production now may conduct trades to try to get the raw material cards needed to buy the things he or she wants.\n\nDomestic trade [-]\nThe player may exchange his own raw material cards for the raw material cards of the other players. The player may inform the other players what he wants and what he is willing to trade to get it. He can also listen to the suggestions of the other players and make counter-offers.\n\nImportant: All trades must be made with the player who is currently taking his turn. The other players may not trade amongst themselves.\n\nSea trade [-]\nYou do not have to trade with the other players.\n\nOn your turn, you may always make a 4:1 trade (even if you do not have a settlement at a harbor location [-]. To do this, you return four raw material cards of the same type to their stack and take one raw material card of your choice.\n\nIf you have built a settlement at a harbor location [-], then you can get a better exchange rate. Either a 3:1 rate or, in the special harbors (the ones with the raw material symbols), a 2:1 rate. Note: the 2:1 rate is available only if you turn in two of the pictured raw material.\n\n3. Build [-]\n\nFinally, you can increase your victory points [-] by building things.\n\nTo build, you must turn in certain raw material card combinations (see the building costs card). You then take as many roads, settlements and/or cities from your stock and set them on the game board.\n\nRoads [-];\nrequires: 1 Brick + 1 Lumber\n\nA new street must always be placed on an edge [-] leading from one of your own settlements, cities or roads. On each edge, only one road may be built. As soon as a player has built a nonstop road at least 5 roads long, that player receives the special card for the Longest Trade Route [-]. If another player then builds a nonstop trade route longer than the one created by the current owner of the card, then that player is the new owner of the Longest Trade route card.\n\nSettlement [-];\nrequires: 1 Brick + 1 Lumber + 1 Wool + 1 Wheat\n\nIMPORTANT: The distance rule [-]: A settlement may only be built on an intersection [-] if the three adjacent intersections are NOT occupied by settlements. It does not matter if the adjacent settlements would belong to the same player. The settlement must connect to at least one road of the same color.\n\nFor each settlement that borders a producing land hex, the owner receives one raw material card of the corresponding type.\n\nEach of your settlements adds one victory point to your total.\n\nCity [-];\nrequires: 3 Ores + 2 Wheat\n\nWhen you build a city, you replace one of your settlements with one of your cities (church).\n\nFor each city that borders a producing land hex, the owner receives two raw material cards of the corresponding type.\n\nEach of your cities adds two victory points to your total.\n\nDevelopment Card [-];\n(requires 1 Ore + 1 Wool + 1 Wheat)\n\nWhen you buy a development card, you draw the top card from the development card stack.\n\nThere are three different kinds of development cards: Knights [-], Progress [-] and Victory Points [-]\n\nThe development cards you buy are kept hidden from the other players until you decide to use them.\n\n4. Special cases\n\na) Rolling Seven-robbers become active [-].\n\nIf a \'7\' is rolled in the raw material production phase, then none of the hexes produce raw material.\n\nAll players count their raw material cards. If anyone has more than 7, then they must select half of them (round down) to return to their respective raw material stacks.\n\nNext, the robber [-] must be moved. Refer to the paragraph on knights below, under points 1 and 2 to see how this is done.\n\nb) Development Card Play [-].\n\nKnight cards [-]\nWhen played on your turn, the knight cards remain face up before you for the rest of the game.\n\nThe first player to have three knight cards turned face up before him or herself receives the special Largest Knight Force card [-], which is worth 2 victory points.\n\nIf another player manages to display more knight cards than the current owner of the Largest Knight Force card, then that player takes the card from its current owner.\n\nAlso, when you play a knight card then you must:\n\nImmediately move the robber [-] to another land hex and set it on that land hex\'s number chip [-].\nYou then rob any other player who has a settlement bordering the hex to which the robber has been moved. If more than one other player has a settlement on this hex, then the you may choose which player to rob. You then draw one card, sight unseen, from the robbed player\'s hand of raw material cards.\nIMPORTANT: If in a future raw material production phase the hex on which the robber is standing is rolled, then that hex produces NO raw materials.\n\nProgress cards [-]\nWhen played on your turn, you immediately execute the described action. The card is then removed from the game.\n\nVictory points [-]\nThese cards should not be displayed until you declare the game won . Then you show them to bring your victory point total to 10.\n\nGame end [-]\n\nThe game ends when a player declares on his or her turn that he or she has 10 victory points.\n\n</string>
     <string name="none">NONE</string>
     <string name="water">Water</string>
     <string name="randomPort">Random Port</string>
@@ -167,9 +38,7 @@ The game ends when a player declares on his or her turn that he or she has 10 vi
     <string name="randomResource">Random Resource</string>
     <string name="randomResourceOrDesert">Random Resource\nor Desert</string>
     <string name="wood">Wood</string>
-    <string name="sheep">Sheep</string>
-    <string name="ore">Ore</string>
-    <string name="wheat">Wheat</string>
+    <string name="sheep">Sheep</string><string name="ore">Ore</string><string name="wheat">Wheat</string>
     <string name="brick">Brick</string>
     <string name="desert">Desert</string>
     <string name="monopoly">Monopoly</string>
@@ -203,7 +72,6 @@ The game ends when a player declares on his or her turn that he or she has 10 vi
     <string name="black">Black</string>
     <string name="orange">Orange</string>
     <string name="dark_gray">Dark Gray</string>
-    
     <string name="loadBoard">Load Board</string>
     <string name="emptySlot">Unused</string>
     <string name="errorMsg">There was an error\nperforming operation</string>
@@ -211,13 +79,7 @@ The game ends when a player declares on his or her turn that he or she has 10 vi
     <string name="configureAccountdialogTitle">Configure Account</string>
     <string name="configGameDialogTitle">Configure Game</string>
     <string name="about">About</string>
-    <string name="about_body">
-    	Thanks for Playing!\n
-    	Senators of Caron (a Settlers of Catan clone.)\n
-    	Author: Chris Caron\n
-    	Date: 10/2011\n
-    	Graphics: Android OpenGL\n\n\n
-    </string>
+    <string name="about_body">Thanks for Playing!\nSenators of Caron (a Settlers of Catan clone.)\nAuthor: Chris Caron\nDate: 10/2011\nGraphics: Android OpenGL\n\n\n</string>
     <string name="giveUpCard">Give Up %s</string>
     <plurals name="numberOfCards">
         <item quantity="one">%d card</item>
@@ -236,59 +98,13 @@ The game ends when a player declares on his or her turn that he or she has 10 vi
     <string name="helpWithResources">Resources</string>
     <string name="helpwithTrades">Trading</string>
     <string name="helpWithDevelopment">Development Cards</string>
-    <string name="helpPointsDialogBody">
-        Points are made in the following ways:\n
-        1. Building Settlements\n
-        2. Converting Settlements to Cities\n
-        3. Having the Longest Road\n
-        4. Having the Largest Army\n
-        5. Victory Cards \n
-        \n\n\n
-    </string>
-    <string name="helpArmiesDialogBody">
-        Armies are gained by Playing Soldier Cards. Soldier cards are the most common type of Development Card which can
-        be bought on a player\'s turn from their resources.   Soldiers can be used to block cells from producing resources. 
-        When placing a soldier, keep in mind that you will be able to take a card from an opponent who has a structure adjacent
-        to the cell you choose to place the robber.
-        \n\n\n
-    </string>
-    <string name="helpRoadsDialogBody">
-        Roads are a strategic element of SOC.  Players build 2 roads during the board setup.  Roads must originate from a structure
-        or existing road.  Only 1 road for hexagon edge is allowed.  After board setup, new structures must be placed on a road.  
-        The player with the longest uninterrupted road gets bonus points.
-        \n\n\n  
-    </string>
-    <string name="helpDevelopmentDialogBody">
-        Development Cards can be bought on the player\'s turn.  Newly drawn development cards cannot be used on the turn they were drawn in.\n
-        1. Soldier Card.  The most common.\n
-        2. Year Of Plenty.  Pick any 2 resources on your turn.\n
-        3. Road Building.  Place 2 Roads on your turn.\n
-        4. Monopoly.  Take all Resources of a single type from all players into your hand.\n
-        5. Victory.  Rare.  gives the player 1 Point.\n
-        \n\n\n
-	</string>
-    <string name="helpResourcesDialogBody">
-        Resources are used to build structures, roads and buy development cards.  Resources are generated from the hexagons that are adjacent 
-        to structures of the players\'.   When a die is rolled, if not a 7, cause all hexagons with the assigned value to generate resources 
-        for players who have structures adjacent to those hexagons.  Cities produce more resources than settlements.\n
-        1. Road -> 1 Brick + 1 Wood\n        
-        2. Settlement -> 1 Wheat + 1 Sheep + 1 Wood + 1 Brick\n
-        3. City -> 3 Ore + 2 Wheat\n
-        4. Development -> 1 Wheat + 1 Ore + 1 Sheep\n
-        \n\n\n 
-    </string>
-    <string name="helpTradingDialogBody">
-        Players can turn in excess amounts of some resource for another resource.  At any time a player can trade 4 of one kind of resource
-        for 1 of another resource.  Multiports give the player 3 to 1 trade in for any resource.  And Resource Specific Ports allow for 2 to
-        1 trading of a single type of resource.  Port trading rules apply when the player has a structure adjacent to a port.
-        \n\n\n
-    </string>
-    <string name="helpStructuresDialogBody">
-        Players build structures to gain points as well as produce more resources.  There are 2 types of structures, settlements and cities.  
-        Settlements can be bought and placed where the player has roads and is at least 1 unit away from any other structure.  settlements can
-        be converted into cities using resources which produce more resources from their adjacent cells.
-        \n\n\n
-    </string>
+    <string name="helpPointsDialogBody">Points are made in the following ways:\n1. Building Settlements\n2. Converting Settlements to Cities\n3. Having the Longest Road\n4. Having the Largest Army\n5. Victory Cards \n\n\n\n</string>
+    <string name="helpArmiesDialogBody">Armies are gained by Playing Soldier Cards. Soldier cards are the most common type of Development Card which can be bought on a player\'s turn from their resources.   Soldiers can be used to block cells from producing resources. When placing a soldier, keep in mind that you will be able to take a card from an opponent who has a structure adjacent to the cell you choose to place the robber.\n\n\n</string>
+    <string name="helpRoadsDialogBody">Roads are a strategic element of SOC.  Players build 2 roads during the board setup.  Roads must originate from a structure or existing road.  Only 1 road for hexagon edge is allowed.  After board setup, new structures must be placed on a road. The player with the longest uninterrupted road gets bonus points.\n\n\n</string>
+    <string name="helpDevelopmentDialogBody">Development Cards can be bought on the player\'s turn.  Newly drawn development cards cannot be used on the turn they were drawn in.\n1. Soldier Card.  The most common.\n2. Year Of Plenty.  Pick any 2 resources on your turn.\n3. Road Building.  Place 2 Roads on your turn.\n4. Monopoly.  Take all Resources of a single type from all players into your hand.\n5. Victory.  Rare.  gives the player 1 Point.\n\n\n\n</string>
+    <string name="helpResourcesDialogBody">Resources are used to build structures, roads and buy development cards.  Resources are generated from the hexagons that are adjacent to structures of the players\'.   When a die is rolled, if not a 7, cause all hexagons with the assigned value to generate resources for players who have structures adjacent to those hexagons.  Cities produce more resources than settlements.\n1. Road -> 1 Brick + 1 Wood\n2. Settlement -> 1 Wheat + 1 Sheep + 1 Wood + 1 Brick\n3. City -> 3 Ore + 2 Wheat\n4. Development -> 1 Wheat + 1 Ore + 1 Sheep\n\n\n\n</string>
+    <string name="helpTradingDialogBody">Players can turn in excess amounts of some resource for another resource.  At any time a player can trade 4 of one kind of resource for 1 of another resource.  Multiports give the player 3 to 1 trade in for any resource.  And Resource Specific Ports allow for 2 to 1 trading of a single type of resource.  Port trading rules apply when the player has a structure adjacent to a port.\n\n\n</string>
+    <string name="helpStructuresDialogBody">Players build structures to gain points as well as produce more resources.  There are 2 types of structures, settlements and cities. Settlements can be bought and placed where the player has roads and is at least 1 unit away from any other structure.  settlements can be converted into cities using resources which produce more resources from their adjacent cells.\n\n\n</string>
     <string name="mainheader">My Games</string>
     <string name="main_soc">Senators of Caron</string>
     <string name="main_robocraze">Robot Crazy</string>

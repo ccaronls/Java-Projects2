@@ -1,6 +1,5 @@
 package cc.game.soc.ui;
 
-import cc.game.soc.android.R;
 import cc.game.soc.core.EventCard;
 import cc.game.soc.core.EventCardType;
 import cc.game.soc.core.Rules;
@@ -34,13 +33,13 @@ public final class UIEventCardRenderer extends UIRenderer {
         g.setTextHeight(RenderConstants.textSizeSmall);
         g.setTextStyles(AGraphics.TextStyle.NORMAL);
 
-		String cardText = getString(R.string.event_card_new_year);
-		String helpText = getString(R.string.event_card_card_shuffled_on_next);
+		String cardText = ("New Year");
+		String helpText = ("Event cards wil be shuffled on next event card drawn.");
 		int production = 0;
         UISOC soc = UISOC.getInstance();
         if (eventCard != null) {
-            cardText = eventCard.getType().getName(this);
-            helpText = eventCard.getHelpText(soc != null ? soc.getRules() : new Rules(), this);
+            cardText = eventCard.getType().getName();
+            helpText = eventCard.getHelpText(soc != null ? soc.getRules() : new Rules());
             production = eventCard.getProduction();
         }
 
@@ -121,8 +120,8 @@ public final class UIEventCardRenderer extends UIRenderer {
         }
 	    final int productionIn = eventCard.getProduction();
 	    final int productionOut = card.getProduction();
-	    final String txtIn = eventCard.getName(UISOC.getInstance());
-        final String txtOut = card.getName(UISOC.getInstance());
+	    final String txtIn = eventCard.getName();
+        final String txtOut = card.getName();
 	    dealAnim = new AAnimation<AGraphics>(500, 1, true) {
             @Override
             protected void draw(AGraphics g, float position, float dt) {

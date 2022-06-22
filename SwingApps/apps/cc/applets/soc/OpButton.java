@@ -1,4 +1,4 @@
-package cc.game.soc.swing2;
+package cc.applets.soc;
 
 import javax.swing.JButton;
 

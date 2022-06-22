@@ -145,7 +145,7 @@ public final class UIPlayerUser extends UIPlayer implements GameClient.Listener 
     }
 
     @Override
-    public void onDisconnected(String reason) {
+    public void onDisconnected(String reason, boolean serverInitiated) {
         UISOC.getInstance().printinfo(getPlayerNum(), "Disconnected from " + client.getServerName() + ": " + reason);
     }
 

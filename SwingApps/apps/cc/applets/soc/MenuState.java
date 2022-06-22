@@ -1,4 +1,4 @@
-package cc.game.soc.swing2;
+package cc.applets.soc;
 
 public enum MenuState {
 

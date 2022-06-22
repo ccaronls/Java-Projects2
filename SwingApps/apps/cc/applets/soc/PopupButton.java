@@ -1,4 +1,4 @@
-package cc.game.soc.swing2;
+package cc.applets.soc;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;

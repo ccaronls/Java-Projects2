@@ -1,7 +1,5 @@
 package cc.game.soc.core;
 
-import cc.game.soc.android.R;
-
 /**
  * Special cards that are assigned to a single player.  The player the card is assigned too can change mid game.
  * @author chriscaron
@@ -12,51 +10,51 @@ public enum SpecialVictoryType implements ICardType<Integer> {
 	/**
 	 * first player with a road length of 3 gets this card.  Can be taken by another player who gains the longer road
 	 */
-	LargestArmy(R.string.special_victory_largest_army, 2, R.string.special_victory_largest_army_help),
+	LargestArmy("Largest Army", 2, "Given to player who has largest army"),
 	
 	/**
 	 * first player with 3 or more knights gets this card.  Taken by another who gain more.
 	 */
-	LongestRoad(R.string.special_victory_longest_road, 2, R.string.special_victory_longest_road_help),
+	LongestRoad("Longest Road", 2, "Given to player with the longest road"),
 	
-	DefenderOfCatan(R.string.special_victory_defender_of_catan, 1, R.string.special_victory_defender_of_catan_help),
-	Tradesman(R.string.special_victory_tradesman, 1, R.string.special_victory_tradesman_help),  // TODO
-	Constitution(R.string.special_victory_constitution, 1, R.string.special_victory_constitution_help),
-	Printer(R.string.special_victory_printer, 1, R.string.special_victory_printer_help),
-	Merchant(R.string.special_victory_merchant, 1, R.string.special_victory_merchant_help),
+	DefenderOfCatan("Defender Of Catan", 1, "Awarded when a player single-handedly defends against Barbarians."),
+	Tradesman("Tradesman", 1, "Given to the player who controls the Merchant."),  // TODO
+	Constitution("Constitution", 1, "When this progress card is picked it is immediately played and cannot be taken."),
+	Printer("Printer", 1, "When this progress card is picked it is immediately played and cannot be taken."),
+	Merchant("Merchant", 1, "Given to last player who has placed the Merchant"),
 	
 	/**
 	 * Given to first player to get to 3 harbor points  A settlement on a harbor is 1 pt.  A city is 2 points.
 	 * Can be taken by another player who gains the most harbor points.
 	 */
-	HarborMaster(R.string.special_victory_harbor_master, 2, R.string.special_victory_harbor_master_help),
+	HarborMaster("Harbor Master", 2, "Player who has most harbor points gets this card"),
 	
 	/**
 	 * Fisherman scenario.  Requires fish tokens, lake tile and fishing ground tiles.
 	 */
-	OldBoot(R.string.special_victory_old_boot, -1, R.string.special_victory_old_boot_help), // TODO
+	OldBoot("Old Boot", -1, "Counts against your points so you need 1 extra point to win"), // TODO
 
 	/**
 	 * Rivers of catan variation.  Need bridges and river tiles.
 	 */
-	WealthiestSettler(R.string.special_victory_wealthiest_settler, 1, R.string.special_victory_wealthiest_settler_help),
-	PoorestSettler(R.string.special_victory_poorest_settler, -2, R.string.special_victory_poorest_settler_help),
+	WealthiestSettler("Wealthiest Settler", 1, "Given to player with most gold coins"),
+	PoorestSettler("Poorest Settler", -2, "Given to player with fewest gold coins"),
 	
 	/**
 	 * Seafarers
 	 */
-	DiscoveredIsland(R.string.special_victory_discovered_island, 2, R.string.special_victory_discovered_island_help),
-	DamagedRoad(R.string.special_victory_damaged_road, 0, R.string.special_victory_damaged_road_help),
+	DiscoveredIsland("Discovered Island", 2, "One given for each discovered island"),
+	DamagedRoad("Damaged Road", 0, "One of users roads is damaged"),
 	
-	CapturePirateFortress(R.string.special_victory_capture_pirate_fortress, 0, R.string.special_victory_captured_fortress_help),
-	Explorer(R.string.special_victory_explorer, 1, R.string.special_victory_explorer_help),
+	CapturePirateFortress("Capture Pirate Fortress", 0, "Given for each pirate fortress conquered"),
+	Explorer("Explorer", 1, "Given to player who has discovered most territories"),
 	;
 
-	final int nameId;
-	final int descriptionId;
+	final String nameId;
+	final String descriptionId;
 	public final int points;
 
-	SpecialVictoryType(int nameId, int pts, int descriptionId) {
+	SpecialVictoryType(String nameId, int pts, String descriptionId) {
 	    this.nameId = nameId;
 		this.points = pts;
 		this.descriptionId = descriptionId;
@@ -68,8 +66,8 @@ public enum SpecialVictoryType implements ICardType<Integer> {
 	}
 
 	@Override
-	public String getHelpText(Rules rules, StringResource sr) {
-		return sr.getString(descriptionId);
+	public String getHelpText(Rules rules) {
+		return descriptionId;
 	}
 
 	@Override
@@ -83,8 +81,8 @@ public enum SpecialVictoryType implements ICardType<Integer> {
 	}
 
     @Override
-    public String getName(StringResource sr) {
-        return sr.getString(nameId);
+    public String getName() {
+        return nameId;
     }
 
 

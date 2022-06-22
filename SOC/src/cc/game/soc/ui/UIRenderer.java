@@ -16,12 +16,4 @@ public abstract class UIRenderer extends cc.lib.ui.UIRenderer implements StringR
     UIRenderer(UIComponent component, boolean attach) {
         super(component, attach);
     }
-
-    @Override
-    public String getString(int resourceId, Object... args) {
-        if (UISOC.getInstance() != null) {
-            return UISOC.getInstance().getString(resourceId, args);
-        }
-        return "NO STRINGS";
-    }
 }

@@ -6,7 +6,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import cc.game.soc.android.R;
 import cc.game.soc.core.Board;
 import cc.game.soc.core.BotNode;
 import cc.game.soc.core.Card;
@@ -56,7 +55,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
 
     private static UISOC instance = null;
 
-    public final GameServer server = new GameServer(getServerName(), NetCommon.PORT, NetCommon.CLIENT_READ_TIMEOUT, NetCommon.VERSION, NetCommon.getCypher(), NetCommon.MAX_CONNECTIONS);
+    public final GameServer server = new GameServer(getServerName(), NetCommon.PORT, NetCommon.VERSION, NetCommon.getCypher(), NetCommon.MAX_CONNECTIONS);
 
     private final UIPlayerRenderer [] playerComponents;
     private final UIBoardRenderer boardRenderer;
@@ -78,15 +77,15 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
         this.console = console;
         MAX_PLAYERS = playerComponents.length;
 
-        CANCEL = new MenuItem(getString(R.string.move_type_cancel), getString(R.string.move_type_cancel_help), this);
-        ACCEPT = new MenuItem(getString(R.string.move_type_accept), null, this);
+        CANCEL = new MenuItem(getString("Cancel"), getString("Cancel current operation"), this);
+        ACCEPT = new MenuItem(getString("Accept"), null, this);
         CHOOSE_MOVE = new MenuItem("--", null, this);
         CHOOSE_PLAYER = new MenuItem("--", null, this);
         CHOOSE_CARD = new MenuItem("--", null, this);
         CHOOSE_TRADE = new MenuItem("--", null, this);
-        CHOOSE_SHIP = new MenuItem(getString(R.string.move_type_choose_ships), getString(R.string.move_type_choose_ships_help), this);
-        CHOOSE_ROAD = new MenuItem(getString(R.string.move_type_choose_roads), getString(R.string.move_type_choose_roads_help), this);
-        SET_DICE = new MenuItem(getString(R.string.move_type_set_dice), getString(R.string.move_type_set_dice_help), this);
+        CHOOSE_SHIP = new MenuItem(getString("Ships"), getString("Show ship choices"), this);
+        CHOOSE_ROAD = new MenuItem(getString("Roads"), getString("Show road choices"), this);
+        SET_DICE = new MenuItem(getString("Set Dice"), getString("Click the dice to set value manually"), this);
 
     }
 
@@ -125,7 +124,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
                 String diff = copy.diff(this);
                 if (!diff.isEmpty()) {
                     server.broadcastCommand(new GameCommand(NetCommon.SVR_TO_CL_UPDATE).setArg("diff", diff));
-                    copy.mergeDiff(diff);
+                    copy.merge(diff);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -140,7 +139,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
         Iterator<MoveType> it = moves.iterator();
         while (it.hasNext()) {
             MoveType move = it.next();
-            addMenuItem(CHOOSE_MOVE, move.getName(this), move.getHelpText(getRules(), this), move);
+            addMenuItem(CHOOSE_MOVE, move.getName(), move.getHelpText(getRules()), move);
         }
         completeMenu();
         return waitForReturnValue(null);
@@ -492,7 +491,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
         Iterator<Trade> it = trades.iterator();
         while (it.hasNext()) {
             Trade trade = it.next();
-            String str = trade.getType().getName(this) + " X " + trade.getAmount();
+            String str = trade.getType().getName() + " X " + trade.getAmount();
             addMenuItem(CHOOSE_TRADE, str, null, trade);
         }
         completeMenu();
@@ -506,18 +505,18 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
             switch (mode) {
                 case PLAYER_FOR_DESERTION: {
                     int numKnights = getBoard().getNumKnightsForPlayer(player.getPlayerNum());
-                    addMenuItem(CHOOSE_PLAYER, getString(R.string.menu_item_choose_player_x_n_knights, player.getName(), numKnights), null, num);
+                    addMenuItem(CHOOSE_PLAYER, getString("%1$s X %2$d Knights", player.getName(), numKnights), null, num);
                     break;
                 }
                 case PLAYER_TO_SPY_ON:
-                    addMenuItem(CHOOSE_PLAYER, getString(R.string.menu_item_choose_player_x_n_progresscards, player.getName(), player.getUnusedCardCount(CardType.Progress)), null, num);
+                    addMenuItem(CHOOSE_PLAYER, getString("%1$s X %2$d Progress Cards", player.getName(), player.getUnusedCardCount(CardType.Progress)), null, num);
                     break;
                 default:
                     System.err.println("ERROR: Unhandled case '" + mode + "'");
                 case PLAYER_TO_FORCE_HARBOR_TRADE:
                 case PLAYER_TO_GIFT_CARD:
                 case PLAYER_TO_TAKE_CARD_FROM:
-                    addMenuItem(CHOOSE_PLAYER, getString(R.string.menu_item_choose_player_x_n_cards, player.getName(), player.getTotalCardsLeftInHand()), null, num);
+                    addMenuItem(CHOOSE_PLAYER, getString("%1$s X %2$d Cards", player.getName(), player.getTotalCardsLeftInHand()), null, num);
                     break;
             }
         }
@@ -528,7 +527,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     public final Card chooseCardMenu(Collection<Card> cards) {
         clearMenu();
         for (Card type : cards) {
-            addMenuItem(CHOOSE_CARD, type.getName(this), type.getHelpText(getRules(), this), type);
+            addMenuItem(CHOOSE_CARD, type.getName(), type.getHelpText(getRules()), type);
         }
         completeMenu();
         return waitForReturnValue(null);
@@ -539,7 +538,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
         Iterator<T> it = choices.iterator();
         while (it.hasNext()) {
             Enum<T> choice= it.next();
-            addMenuItem(CHOOSE_MOVE, ((ILocalized)choice).getName(this), null, choice);
+            addMenuItem(CHOOSE_MOVE, ((ILocalized)choice).getName(), null, choice);
         }
         completeMenu();
         return waitForReturnValue(null);
@@ -739,11 +738,11 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     protected void onBarbariansAttack(int catanStrength, int barbarianStrength, String [] playerStatus) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, catanStrength, barbarianStrength, playerStatus);
         barbarianRenderer.onBarbarianAttack(catanStrength, barbarianStrength, playerStatus);
-        StringBuffer str = new StringBuffer(getString(R.string.popup_content_barbarian_attack_summary, barbarianStrength, catanStrength));
+        StringBuffer str = new StringBuffer(getString("Barbarian Attack!\n\nBarbarian Strength %1$d\nCatan Strength %2$d\n", barbarianStrength, catanStrength));
         for (Player p : getPlayers()) {
             str.append(p.getName()).append(" ").append(playerStatus[p.getPlayerNum()]).append("\n");
         }
-        showOkPopup(getString(R.string.popup_title_barbarian_attack), str.toString());
+        showOkPopup(getString("Barbarian Attack"), str.toString());
         super.onBarbariansAttack(catanStrength, barbarianStrength, playerStatus);
         boardRenderer.getComponent().redraw();
     }
@@ -809,10 +808,10 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     @Keep
     protected void onCardPicked(final int playerNum, final Card card) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, playerNum, card);
-        String txt = card.getCardType().getName(this);
+        String txt = card.getCardType().getName();
         Player player = getPlayerByPlayerNum(playerNum);
         if (((UIPlayer)player).isInfoVisible()) {
-            txt = card.getName(this);
+            txt = card.getName();
         }
         addCardAnimation(playerNum, txt);
         super.onCardPicked(playerNum, card);
@@ -822,7 +821,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     @Keep
     protected void onDistributeResources(int player, final ResourceType type, final int amount) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, player, type, amount);
-        addCardAnimation(player, type.getName(this) + "\nX " + amount);
+        addCardAnimation(player, type.getName() + "\nX " + amount);
         super.onDistributeResources(player, type, amount);
     }
 
@@ -830,7 +829,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     @Keep
     protected void onDistributeCommodity(final int player, final CommodityType type, final int amount) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, player, type, amount);
-        addCardAnimation(player, type.getName(this) + "\nX " + amount);
+        addCardAnimation(player, type.getName() + "\nX " + amount);
         super.onDistributeCommodity(player, type, amount);
     }
 
@@ -838,9 +837,9 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     @Keep
     protected void onProgressCardDistributed(int player, ProgressCardType type) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, player, type);
-        String txt = type.getName(this);
+        String txt = type.getName();
         if (!((UIPlayer)getPlayerByPlayerNum(player)).isInfoVisible()) {
-            txt = CardType.Progress.getName(this);
+            txt = CardType.Progress.getName();
         }
         addCardAnimation(player, txt);
         super.onProgressCardDistributed(player, type);
@@ -850,7 +849,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     @Keep
     protected void onSpecialVictoryCard(int player, SpecialVictoryType type) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, player, type);
-        addCardAnimation(player, type.getName(this));
+        addCardAnimation(player, type.getName());
         super.onSpecialVictoryCard(player, type);
     }
 
@@ -859,9 +858,9 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     protected void onLargestArmyPlayerUpdated(final int oldPlayer, final int newPlayer, final int armySize) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, oldPlayer, newPlayer, armySize);
         if (newPlayer > 0)
-            addCardAnimation(newPlayer, getString(R.string.anim_largest_army));
+            addCardAnimation(newPlayer, getString("Largest Army"));
         if (oldPlayer > 0)
-            addCardAnimation(oldPlayer, getString(R.string.anim_largest_army_lost));
+            addCardAnimation(oldPlayer, getString("Largest Army Lost!"));
         super.onLargestArmyPlayerUpdated(oldPlayer, newPlayer, armySize);
     }
 
@@ -870,9 +869,9 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     protected void onLongestRoadPlayerUpdated(final int oldPlayer, final int newPlayer, final int maxRoadLen) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, oldPlayer, newPlayer, maxRoadLen);
         if (newPlayer > 0)
-            addCardAnimation(newPlayer, getString(R.string.anim_longest_road));
+            addCardAnimation(newPlayer, getString("Longest Road"));
         if (oldPlayer > 0)
-            addCardAnimation(oldPlayer, getString(R.string.anim_longest_road_lost));
+            addCardAnimation(oldPlayer, getString("Longest Road Lost!"));
         super.onLongestRoadPlayerUpdated(oldPlayer, newPlayer, maxRoadLen);
     }
 
@@ -881,9 +880,9 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     protected void onHarborMasterPlayerUpdated(int oldPlayer, int newPlayer, int harborPts) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, oldPlayer, newPlayer, harborPts);
         if (newPlayer > 0)
-            addCardAnimation(newPlayer, getString(R.string.anim_harbor_master));
+            addCardAnimation(newPlayer, getString("Harbor Master"));
         if (oldPlayer > 0)
-            addCardAnimation(oldPlayer, getString(R.string.anim_harbor_master_lost));
+            addCardAnimation(oldPlayer, getString("Harbor Master Lost!"));
         super.onHarborMasterPlayerUpdated(oldPlayer, newPlayer, harborPts);
     }
 
@@ -891,8 +890,8 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     @Keep
     protected void onMonopolyCardApplied(final int taker, final int giver, final ICardType<?> type, final int amount) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, taker, giver, type, amount);
-        addCardAnimation(giver, type.getName(this) + "\n- " + amount);
-        addCardAnimation(taker, type.getName(this) + "\n+ " + amount);
+        addCardAnimation(giver, type.getName() + "\n- " + amount);
+        addCardAnimation(taker, type.getName() + "\n+ " + amount);
         super.onMonopolyCardApplied(taker, giver, type, amount);
     }
 
@@ -907,8 +906,8 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     @Keep
     protected void onTakeOpponentCard(final int taker, final int giver, final Card card) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, taker, giver, card);
-        addCardAnimation(giver, card.getName(this) + "\n-1");
-        addCardAnimation(taker, card.getName(this) + "\n+1");
+        addCardAnimation(giver, card.getName() + "\n-1");
+        addCardAnimation(taker, card.getName() + "\n+1");
         super.onTakeOpponentCard(taker, giver, card);
     }
 
@@ -917,9 +916,9 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     protected void onPlayerRoadLengthChanged(int p, int oldLen, int newLen) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, p, oldLen, newLen);
         if (oldLen > newLen)
-            addCardAnimation(p, getString(R.string.anim_route_reduced_arg, oldLen - newLen));
+            addCardAnimation(p, getString("Route Reduced!\n-%d", oldLen - newLen));
         else
-            addCardAnimation(p, getString(R.string.anim_route_increased_arg, newLen - oldLen));
+            addCardAnimation(p, getString("Route Increased!\n+%d", newLen - oldLen));
         super.onPlayerRoadLengthChanged(p, oldLen, newLen);
     }
 
@@ -927,7 +926,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     @Keep
     protected void onCardsTraded(int player, Trade trade) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, player, trade);
-        addCardAnimation(player, getString(R.string.anim_trade_summary, trade.getType() , trade.getAmount()));
+        addCardAnimation(player, getString("Trade\n %1$s\n -%2$d", trade.getType() , trade.getAmount()));
         super.onCardsTraded(player, trade);
     }
 
@@ -935,7 +934,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     @Keep
     protected void onPlayerDiscoveredIsland(int player, int island) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, player, island);
-        addCardAnimation(player, getString(R.string.anim_island_discovered_arg, island));
+        addCardAnimation(player, getString("Island %s\nDiscovered!", island));
         super.onPlayerDiscoveredIsland(player, island);
     }
 
@@ -943,7 +942,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     @Keep
     protected void onDiscoverTerritory(int player, int tile) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, player, tile);
-        addCardAnimation(player, getString(R.string.anim_territory_discovered));
+        addCardAnimation(player, getString("Territory\nDiscovered"));
         boardRenderer.clearCached();
         super.onDiscoverTerritory(player, tile);
     }
@@ -953,8 +952,8 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     @Keep
     protected void onMetropolisStolen(int loser, int stealer, DevelopmentArea area) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, loser, stealer, area);
-        addCardAnimation(loser, getString(R.string.anim_metro_lost_arg, area.getName(this)));
-        addCardAnimation(stealer, getString(R.string.anim_metro_lost_arg, area.getName(this)));
+        addCardAnimation(loser, getString("Metropolis\n%s\nLost!", area.getName()));
+        addCardAnimation(stealer, getString("Metropolis\n%s\nLost!", area.getName()));
         super.onMetropolisStolen(loser, stealer, area);
     }
 
@@ -995,7 +994,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     @Keep
     protected void onCardLost(int playerNum, Card c) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, playerNum, c);
-        addCardAnimation(playerNum, c.getName(this) + "\n-1");
+        addCardAnimation(playerNum, c.getName() + "\n-1");
         super.onCardLost(playerNum, c);
     }
 
@@ -1003,7 +1002,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     @Keep
     protected void onPirateAttack(int playerNum, int playerStrength, int pirateStrength) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, playerNum, playerStrength, pirateStrength);
-        showOkPopup(getString(R.string.popup_title_pirate_attack), getString(R.string.popup_content_pirate_attack, getPlayerByPlayerNum(playerNum).getName(), playerStrength, pirateStrength));
+        showOkPopup(getString("Pirate Attack"), getString("Pirates attack %1$s\nPlayer Strength %2$d\nPirate Strength %3$d\n", getPlayerByPlayerNum(playerNum).getName(), playerStrength, pirateStrength));
         super.onPirateAttack(playerNum, playerStrength,pirateStrength);
     }
 
@@ -1022,7 +1021,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     @Keep
     protected void onPlayerConqueredPirateFortress(int p, int v) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, p, v);
-        showOkPopup(getString(R.string.popup_title_pirate_attack), getString(R.string.popup_content_player_attack_fortress_result_conquered, getPlayerByPlayerNum(p).getName()));
+        showOkPopup(getString("Pirate Attack"), getString("Player %s has conquered the fortress!", getPlayerByPlayerNum(p).getName()));
         super.onPlayerConqueredPirateFortress(p, v);
     }
 
@@ -1032,12 +1031,12 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, p, playerHealth, pirateHealth);
         String result = null;
         if (playerHealth > pirateHealth)
-            result = getString(R.string.popup_content_player_attack_fortress_result_player_won);
+            result = getString("Player damages the fortress");
         else if (playerHealth < pirateHealth)
-            result = getString(R.string.popup_content_player_attack_fortress_result_player_lost);
+            result = getString("Player loses battle and 2 ships");
         else
-            result = getString(R.string.popup_content_player_attack_fortress_result_draw);
-        showOkPopup(getString(R.string.popup_title_pirate_attack), getString(R.string.popup_content_player_attack_fortress_summary,
+            result = getString("Battle is a draw.  Player lost a ship");
+        showOkPopup(getString("Pirate Attack"), getString("%1$s attacks the pirate fortress!\nPlayer Strength %2$d\nPirate Strength %3$d\nResult:\n%4$s",
                 getPlayerByPlayerNum(p).getName(), playerHealth, pirateHealth, result));
         super.onPlayerAttacksPirateFortress(p, playerHealth,pirateHealth);
     }
@@ -1046,7 +1045,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     @Keep
     protected void onAqueduct(int playerNum) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, playerNum);
-        addCardAnimation(playerNum, getString(R.string.anim_aqueduct_ability));
+        addCardAnimation(playerNum, getString("Aqueduct Ability!"));
         super.onAqueduct(playerNum);
     }
 
@@ -1056,7 +1055,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, attackerNum, victimNum, attackingWhat, attackerScore, victimNum);
         Player attacker = getPlayerByPlayerNum(attackerNum);
         Player victim = getPlayerByPlayerNum(victimNum);
-        showOkPopup(getString(R.string.popup_title_player_attack), getString(R.string.popup_content_player_attack_opponent_summary, attacker.getName(), victim.getName(), attackingWhat, attacker.getName(), attackerScore, victim.getName(), victimScore));
+        showOkPopup(getString("Player Attack!"), getString("%1$s is attacking %2$s's %3$s\n%4$s's score : %5$d\n%6$s's score : %7$d", attacker.getName(), victim.getName(), attackingWhat, attacker.getName(), attackerScore, victim.getName(), victimScore));
         super.onPlayerAttackingOpponent(attackerNum, victimNum, attackingWhat, attackerScore, victimScore);
     }
 
@@ -1064,7 +1063,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     @Keep
     protected void onRoadDestroyed(int rIndex, int destroyer, int victim) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, rIndex, destroyer, victim);
-        addCardAnimation(victim, getString(R.string.anim_road_destroyed));
+        addCardAnimation(victim, getString("Road Destroyed"));
         super.onRoadDestroyed(rIndex, destroyer, victim);
     }
 
@@ -1072,7 +1071,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     @Keep
     protected void onStructureDemoted(int vIndex, VertexType newType, int destroyer, int victim) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, vIndex, newType, destroyer, victim);
-        addCardAnimation(victim, getString(R.string.anim_structure_demoted, getBoard().getVertex(vIndex).getType().getName(this), newType.getName(this)));
+        addCardAnimation(victim, getString("%1$s Reduced to %2$s", getBoard().getVertex(vIndex).getType().getName(), newType.getName()));
         super.onStructureDemoted(vIndex, newType, destroyer, victim);
     }
 
@@ -1081,8 +1080,8 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     protected void onExplorerPlayerUpdated(int oldPlayer, int newPlayer, int harborPts) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, oldPlayer, newPlayer, harborPts);
         if (oldPlayer > 0)
-            addCardAnimation(oldPlayer, getString(R.string.anim_explorer_lost));
-        addCardAnimation(newPlayer, getString(R.string.anim_explorer_gained));
+            addCardAnimation(oldPlayer, getString("Explorer Lost!"));
+        addCardAnimation(newPlayer, getString("Explorer Gained!"));
         super.onExplorerPlayerUpdated(oldPlayer, newPlayer, harborPts);
     }
 
@@ -1090,7 +1089,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     @Keep
     protected void onPlayerKnightDestroyed(int player, int knight) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, player, knight);
-        addFloatingTextAnimation((UIPlayer)getPlayerByPlayerNum(player), getBoard().getVertex(knight), getString(R.string.anim_knight_destroyed));
+        addFloatingTextAnimation((UIPlayer)getPlayerByPlayerNum(player), getBoard().getVertex(knight), getString("Knight\nDestroyed"));
         super.onPlayerKnightDestroyed(player, knight);
     }
 
@@ -1099,7 +1098,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     protected void onPlayerKnightDemoted(int player, int knightIndex) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, player, knightIndex);
         Vertex knight = getBoard().getVertex(knightIndex);
-        addFloatingTextAnimation((UIPlayer)getPlayerByPlayerNum(player), knight, getString(R.string.anim_knight_demoted_arg, knight.getType().getName(this)));
+        addFloatingTextAnimation((UIPlayer)getPlayerByPlayerNum(player), knight, getString("Demoted to\n%s", knight.getType().getName()));
         super.onPlayerKnightDemoted(player, knightIndex);
     }
 
@@ -1171,7 +1170,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     protected void onPlayerKnightPromoted(int player, final int knightIndex) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, player, knightIndex);
         Vertex knight = getBoard().getVertex(knightIndex);
-        addFloatingTextAnimation((UIPlayer)getPlayerByPlayerNum(player), knight, getString(R.string.anim_knight_promoted, knight.getType().getName(this)));
+        addFloatingTextAnimation((UIPlayer)getPlayerByPlayerNum(player), knight, getString("Promoted to\n%s", knight.getType().getName()));
         super.onPlayerKnightPromoted(player, knightIndex);
     }
 
@@ -1179,7 +1178,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     @Keep
     protected void onPlayerCityDeveloped(int p, DevelopmentArea area) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, p, area);
-        addCardAnimation(p, area.getName(this) + "\n\n" + area.getLevelName(getPlayerByPlayerNum(p).getCityDevelopment(area), this));
+        addCardAnimation(p, area.getName() + "\n\n" + area.getLevelName(getPlayerByPlayerNum(p).getCityDevelopment(area)));
         super.onPlayerCityDeveloped(p, area);
     }
 
@@ -1188,7 +1187,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     protected void onRoadDamaged(int r, int destroyer, int victim) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, r, destroyer, victim);
         Route road = getBoard().getRoute(r);
-        addFloatingTextAnimation((UIPlayer)getPlayerByPlayerNum(road.getPlayer()), getBoard().getRouteMidpoint(road), getString(R.string.anim_road_damaged));
+        addFloatingTextAnimation((UIPlayer)getPlayerByPlayerNum(road.getPlayer()), getBoard().getRouteMidpoint(road), getString("Road Damaged.\nCannot build another\nuntil it is repaired"));
         super.onRoadDamaged(r, destroyer, victim);
     }
 
@@ -1198,7 +1197,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, taker, shipTaken);
         Route ship = getBoard().getRoute(shipTaken);
         Player tPlayer = getPlayerByPlayerNum(taker);
-        addFloatingTextAnimation((UIPlayer)getPlayerByPlayerNum(ship.getPlayer()), getBoard().getRouteMidpoint(ship), getString(R.string.anim_ship_commandeered, tPlayer.getName()));
+        addFloatingTextAnimation((UIPlayer)getPlayerByPlayerNum(ship.getPlayer()), getBoard().getRouteMidpoint(ship), getString("Ship Commandeered by %s", tPlayer.getName()));
         super.onPlayerShipComandeered(taker, shipTaken);
     }
 
@@ -1207,7 +1206,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
     protected void onPlayerShipDestroyed(int r) {
         server.broadcastExecuteOnRemote(NetCommon.SOC_ID, r);
         Route ship = getBoard().getRoute(r);
-        addFloatingTextAnimation((UIPlayer)getPlayerByPlayerNum(ship.getPlayer()), getBoard().getRouteMidpoint(ship), getString(R.string.anim_ship_destroyed));
+        addFloatingTextAnimation((UIPlayer)getPlayerByPlayerNum(ship.getPlayer()), getBoard().getRouteMidpoint(ship), getString("Ship Destroyed"));
         super.onPlayerShipDestroyed(r);
     }
 
@@ -1221,7 +1220,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
             @Override
             protected void draw(AGraphics g, float position, float dt) {
                 UIPlayer player = (UIPlayer)getPlayerByPlayerNum(winnerNum);
-                String txt = getString(R.string.anim_player_wins, player.getName());
+                String txt = getString("%s WINS!!!", player.getName());
                 float width = g.getTextWidth(txt);
                 float ratio = g.getViewportWidth()/(width*2);
                 float oldHgt = g.getTextHeight();
@@ -1259,9 +1258,9 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
         }
         if (player == null) {
             if (isRunning()) {
-                conn.disconnect(getString(R.string.mp_info_game_full));
+                conn.disconnect(getString("Game Full"));
             } else if (getNumPlayers() >= getRules().getMaxPlayers()) {
-                conn.disconnect(getString(R.string.mp_info_game_full));
+                conn.disconnect(getString("Game Full"));
             } else {
                 // made it here so it means we were not able to assign, so add a new player!
                 player = new UIPlayer();
@@ -1282,7 +1281,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            printinfo(0, getString(R.string.mp_info_player_has_joined, conn.getName()));
+            printinfo(0, getString("Player %s has joined", conn.getName()));
         }
 
     }
@@ -1294,7 +1293,7 @@ public abstract class UISOC extends SOC implements MenuItem.Action, GameServer.L
 
     @Override
     public void onClientDisconnected(ClientConnection conn) {
-        printinfo(0, getString(R.string.mp_info_player_has_disconnected, conn.getName()));
+        printinfo(0, getString("Player %s has disconnected", conn.getName()));
     }
 
     @Override

@@ -1,15 +1,15 @@
-package cc.game.soc.swing2;
+package cc.applets.soc;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Image;
-import java.awt.Container;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -21,10 +21,16 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
-import java.net.InetAddress;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Stack;
+import java.util.Vector;
 
-import javax.swing.ToolTipManager;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -42,20 +48,51 @@ import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JToggleButton;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.ScrollPaneLayout;
 import javax.swing.SpinnerNumberModel;
-import javax.swing.ScrollPaneConstants;
+import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
 
-import javax.jmdns.JmDNS;
-import javax.jmdns.ServiceInfo;
-
-import cc.game.soc.android.R;
-import cc.game.soc.core.*;
-import cc.game.soc.ui.*;
+import cc.game.soc.core.AITuning;
+import cc.game.soc.core.Board;
+import cc.game.soc.core.BotNode;
+import cc.game.soc.core.BotNodeRoute;
+import cc.game.soc.core.BotNodeTile;
+import cc.game.soc.core.BotNodeVertex;
+import cc.game.soc.core.BuildableType;
+import cc.game.soc.core.IDistances;
+import cc.game.soc.core.Player;
+import cc.game.soc.core.PlayerBot;
+import cc.game.soc.core.ResourceType;
+import cc.game.soc.core.Route;
+import cc.game.soc.core.RouteType;
+import cc.game.soc.core.Rules;
+import cc.game.soc.core.SOC;
+import cc.game.soc.core.Scenario;
+import cc.game.soc.core.Tile;
+import cc.game.soc.core.TileType;
+import cc.game.soc.core.Vertex;
+import cc.game.soc.core.VertexType;
+import cc.game.soc.ui.CustomPickHandler;
+import cc.game.soc.ui.MenuItem;
+import cc.game.soc.ui.PickHandler;
+import cc.game.soc.ui.PickMode;
+import cc.game.soc.ui.RenderConstants;
+import cc.game.soc.ui.RenderFlag;
+import cc.game.soc.ui.UIBarbarianRenderer;
+import cc.game.soc.ui.UIBoardRenderer;
+import cc.game.soc.ui.UIConsoleRenderer;
+import cc.game.soc.ui.UIDiceRenderer;
+import cc.game.soc.ui.UIEventCardRenderer;
+import cc.game.soc.ui.UIPlayer;
+import cc.game.soc.ui.UIPlayerRenderer;
+import cc.game.soc.ui.UIPlayerUser;
+import cc.game.soc.ui.UIProperties;
+import cc.game.soc.ui.UISOC;
 import cc.lib.game.AGraphics;
 import cc.lib.game.APGraphics;
 import cc.lib.game.GColor;
@@ -66,14 +103,14 @@ import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
 import cc.lib.math.MutableVector2D;
-import cc.lib.swing.AWTGraphics;
-import cc.lib.swing.AWTImageColorFilter;
-import cc.lib.swing.AWTRadioButtonGroup;
 import cc.lib.swing.AWTButtonLayout;
 import cc.lib.swing.AWTFrame;
-import cc.lib.swing.AWTPanel;
+import cc.lib.swing.AWTGraphics;
+import cc.lib.swing.AWTImageColorFilter;
 import cc.lib.swing.AWTImageMgr;
+import cc.lib.swing.AWTPanel;
 import cc.lib.swing.AWTPanelStack;
+import cc.lib.swing.AWTRadioButtonGroup;
 import cc.lib.swing.AWTWrapLabel;
 import cc.lib.utils.FileUtils;
 
@@ -177,7 +214,6 @@ public class GUI implements ActionListener, MenuItem.Action {
         MENU_REWIND,
 	}
 
-    private JmDNS jmdns = null;
     private final UISOC soc;
 	private final JPanel menu = new JPanel();
 
@@ -360,12 +396,9 @@ public class GUI implements ActionListener, MenuItem.Action {
     }
     private final UIProperties props;
 
-    private final Map<Integer, String> stringTable;
-
 	public GUI(final AWTFrame frame, final UIProperties props) throws IOException {
 		this.frame = frame;
 		this.props = props;
-		this.stringTable = Utils.buildStringsTable(R.string.class, "../SOCAndroid/res/values/strings.xml");
         ToolTipManager.sharedInstance().setDismissDelay(Integer.MAX_VALUE);
 		soc = new UISOC(playerRenderers, boardRenderer, diceRenderers, console, eventCardRenderer, barbarianRenderer) {
             @Override
@@ -468,10 +501,10 @@ public class GUI implements ActionListener, MenuItem.Action {
 
                 APGraphics g = boardComp.getAPGraphics();
 
-                final int fontHeight = g.getTextHeight();
-                int ypos = -leftPanelOffset[0] * fontHeight;
+                final float fontHeight = g.getTextHeight();
+                float ypos = -leftPanelOffset[0] * fontHeight;
                 final NodeRect [] nodeRects = new NodeRect[leafs.size()];
-                initNodeRectsArray(g, leafs, nodeRects, ypos);
+                initNodeRectsArray(g, leafs, nodeRects, Math.round(ypos));
 
                 final int padding = 2;
 
@@ -510,8 +543,8 @@ public class GUI implements ActionListener, MenuItem.Action {
                     @Override
                     public void onMouseWheel(int clicks) {
                         leftPanelOffset[0] = Math.max(0, leftPanelOffset[0]+clicks);
-                        int ypos = -leftPanelOffset[0] * fontHeight;
-                        initNodeRectsArray(g, leafs, nodeRects, ypos);
+                        float ypos = -leftPanelOffset[0] * fontHeight;
+                        initNodeRectsArray(g, leafs, nodeRects, Math.round(ypos));
                         boardComp.repaint();
                     }
 
@@ -665,7 +698,7 @@ public class GUI implements ActionListener, MenuItem.Action {
                     @Override
                     public int pickElement(UIBoardRenderer b, APGraphics g, int x, int y) {
                         for (int i=0; i<nodeRects.length; i++) {
-                            int dy = i * g.getTextHeight();
+                            float dy = i * g.getTextHeight();
                             NodeRect nr = nodeRects[i];
                             if (nodeRects[i].r.contains(x, y))
                                 return i;
@@ -694,27 +727,13 @@ public class GUI implements ActionListener, MenuItem.Action {
             }
 
             @Override
-            public String getString(int resourceId, Object... args) {
-                String s = stringTable.get(resourceId);
-                if (s == null) {
-                    log.error("Unknown string resource '" + resourceId + "'");
-                }
-                try {
-                    return String.format(s, args);
-                } catch (MissingFormatArgumentException e) {
-                    log.error("Missing format argument for line:\n" + s);
-                    throw e;
-                }
-            }
-
-            @Override
             public boolean isAITuningEnabled() {
                 return getProps().getBooleanProperty(PROP_AI_TUNING_ENABLED, false);
             }
 
             @Override
             protected String showChoicePopup(String title, List<String> choices) {
-                int index = frame.showItemChooserDialog(title, "If you cancel from this dialog you will be disconnected from game", choices.toArray(new String[choices.size()]));
+                int index = frame.showItemChooserDialog(title, "If you cancel from this dialog you will be disconnected from game", null, choices.toArray(new String[choices.size()]));
                 if (index >= 0) {
                     return choices.get(index);
                 }
@@ -978,7 +997,7 @@ public class GUI implements ActionListener, MenuItem.Action {
             }
         };
         for (TileType c : TileType.values()) {
-            grp.addButton(formatString(c.getName(soc)), c);
+            grp.addButton(formatString(c.getName()), c);
         }
         grp.addButton("Islands", new PickHandler() {
 			
@@ -1738,6 +1757,7 @@ public class GUI implements ActionListener, MenuItem.Action {
                 }
 
                 try {
+                    /*
                     jmdns = JmDNS.create(InetAddress.getLocalHost());
 
                     // Register a service
@@ -1748,6 +1768,8 @@ public class GUI implements ActionListener, MenuItem.Action {
 
                     // Unregister all services
                     jmdns.unregisterAllServices();
+
+                     */
                     console.addText(GColor.BLACK, "Broadcasting on Bonjour");
                 } catch (Exception e) {
                     soc.server.stop();
@@ -2169,7 +2191,7 @@ public class GUI implements ActionListener, MenuItem.Action {
 	
 	private void initNodeRectsArray(AGraphics g, Collection<BotNode> leafs, NodeRect [] nodeRects, int ypos) {
 		int index = 0;
-		final int fontHeight = g.getTextHeight();
+		final float fontHeight = g.getTextHeight();
 		final int padding = 2;
 
 		// need to setup the same transform as UIBoardRenderer
@@ -2331,7 +2353,7 @@ public class GUI implements ActionListener, MenuItem.Action {
         JScrollPane panel = new JScrollPane();
         panel.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         //panel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        panel.setPreferredSize(new Dimension(1000, 800));
+        panel.setPreferredSize(new Dimension(frame.getWidth(), frame.getHeight()));
         panel.getViewport().add(view);
         view.setLayout(new GridBagLayout());
         GridBagConstraints cons = new GridBagConstraints();
