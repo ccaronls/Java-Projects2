@@ -1,102 +1,78 @@
-package cc.applets.soc;
+package cc.applets.soc
 
-import java.awt.Point;
-
-import cc.lib.game.GColor;
-import cc.lib.math.Vector2D;
-import cc.lib.swing.AWTComponent;
-import cc.lib.swing.AWTGraphics;
-import cc.lib.ui.UIComponent;
+import cc.lib.game.GColor
+import cc.lib.math.Vector2D
+import cc.lib.swing.AWTComponent
+import cc.lib.swing.AWTGraphics
+import cc.lib.ui.UIComponent
+import cc.lib.ui.UIRenderer
 
 /**
  * Created by chriscaron on 2/27/18.
  */
+open class SOCComponent internal constructor() : AWTComponent(), UIComponent {
+	private lateinit var delegate: UIRenderer
+	@JvmField
+    protected var progress = 1f
+	override fun paint(g: AWTGraphics, mouseX: Int, mouseY: Int) {
+		//g.clearScreen(GColor.DARK_GRAY);
+		delegate.draw(g, mouseX, mouseY)
+		setMinimumSize(delegate.minDimension)
+	}
 
-public class SOCComponent extends AWTComponent implements UIComponent {
+	override fun redraw() {
+		repaint()
+	}
 
-    private cc.lib.ui.UIRenderer delegate;
-    protected float progress = 1;
+	override fun setRenderer(r: UIRenderer) {
+		delegate = r
+	}
 
-    SOCComponent() {
-        //setBackground(GColor.DARK_GRAY);
-    }
+	override fun onClick() {
+		delegate.onClick()
+	}
 
-    @Override
-    protected final void paint(AWTGraphics g, int mouseX, int mouseY) {
-        //g.clearScreen(GColor.DARK_GRAY);
-        if (delegate != null) {
-            delegate.draw(g, mouseX, mouseY);
-            setMinimumSize(delegate.getMinDimension());
-        } else {
-            System.err.println("Missing delegate");
-        }
-    }
+	override fun onDragStarted(x: Int, y: Int) {
+		delegate.onDragStart(x.toFloat(), y.toFloat())
+	}
 
-    @Override
-    public final void redraw() {
-        repaint();
-    }
+	override fun onDragStopped() {
+		delegate.onDragEnd()
+	}
 
-    @Override
-    public final void setRenderer(cc.lib.ui.UIRenderer r) {
-        this.delegate = r;
-    }
+	override fun init(g: AWTGraphics) {
+		val assets = imagesToLoad
+		if (assets.isNotEmpty()) {
+			progress = 0f
+			object : Thread() {
+				override fun run() {
+					g.addSearchPath("images")
+					val ids = IntArray(assets.size)
+					val delta = 1.0f / ids.size
+					for (i in ids.indices) {
+						ids[i] = g.loadImage(assets[i][0] as String, assets[i][1] as GColor?)
+						progress += delta
+					}
+					onImagesLoaded(ids)
+					progress = 1f
+				}
+			}.start()
+		}
+	}
 
-    @Override
-    protected final void onClick() {
-        delegate.onClick();
-    }
+	protected open val imagesToLoad: Array<Array<Any?>>
+		protected get() = Array(0) { Array(0) {} }
 
-    @Override
-    protected final void onDragStarted(int x, int y) {
-        delegate.onDragStart(x, y);
-    }
+	protected open fun onImagesLoaded(ids: IntArray) {
+		throw RuntimeException("onImagesLoaded not handled")
+	}
 
-    @Override
-    protected final void onDragStopped() {
-        delegate.onDragEnd();
-    }
+	override fun getInitProgress(): Float {
+		return progress
+	}
 
-    @Override
-    protected void init(final AWTGraphics g) {
-        final Object [][] assets = getImagesToLoad();
-        if (assets.length > 0) {
-            progress = 0;
-            new Thread() {
-                public void run() {
-                    g.addSearchPath("images");
-
-                    int [] ids = new int[assets.length];
-                    float delta = 1.0f / ids.length;
-
-                    for (int i=0; i<ids.length; i++) {
-                        ids[i] = g.loadImage((String)assets[i][0], (GColor)assets[i][1]);
-                        progress += delta;
-                    }
-
-                    onImagesLoaded(ids);
-                    progress = 1;
-                }
-            }.start();
-        }
-    }
-
-    protected Object [][] getImagesToLoad() {
-        return new Object[0][];
-    }
-
-    protected void onImagesLoaded(int [] ids) {
-        throw new RuntimeException("onImagesLoaded not handled");
-    }
-
-    @Override
-    protected final float getInitProgress() {
-        return progress;
-    }
-
-    @Override
-    public Vector2D getViewportLocation() {
-        Point pt = super.getLocationOnScreen();
-        return new Vector2D(pt.x, pt.y);
-    }
+	override fun getViewportLocation(): Vector2D {
+		val pt = super.getLocationOnScreen()
+		return Vector2D(pt.x.toFloat(), pt.y.toFloat())
+	}
 }

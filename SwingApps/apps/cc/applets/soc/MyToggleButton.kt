@@ -1,27 +1,22 @@
-package cc.applets.soc;
+package cc.applets.soc
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent
+import java.awt.event.ActionListener
+import javax.swing.JCheckBox
 
-import javax.swing.JCheckBox;
+internal abstract class MyToggleButton(text: String, on: Boolean) : JCheckBox(text, on), ActionListener {
+	override fun actionPerformed(e: ActionEvent) {
+		if (isSelected) {
+			onChecked()
+		} else {
+			onUnchecked()
+		}
+	}
 
-@SuppressWarnings("serial")
-abstract class MyToggleButton extends JCheckBox implements ActionListener {
+	abstract fun onChecked()
+	abstract fun onUnchecked()
 
-    MyToggleButton(String text, boolean on) {
-        super(text, on);
-        addActionListener(this);
-    }
-    
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        if (isSelected()) {
-            onChecked();
-        } else {
-            onUnchecked();
-        }
-    }
-
-    abstract void onChecked();
-    abstract void onUnchecked();
+	init {
+		addActionListener(this)
+	}
 }

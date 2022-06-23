@@ -17,6 +17,7 @@ import cc.game.soc.ui.UIEventCardRenderer;
 import cc.game.soc.ui.UIPlayerRenderer;
 import cc.game.soc.ui.UIRenderer;
 import cc.lib.android.DroidGraphics;
+import cc.lib.game.GColor;
 import cc.lib.game.GDimension;
 import cc.lib.math.Vector2D;
 import cc.lib.ui.UIComponent;
@@ -40,7 +41,7 @@ public class SOCView<T extends UIRenderer> extends View implements UIComponent {
         }
         public void run() {
             //onTouchDown(x, y);
-            renderer.startDrag(Math.round(x), Math.round(y));
+            renderer.onDragStart(Math.round(x), Math.round(y));
             touchDownRunnable = null;
         }
     }
@@ -73,7 +74,7 @@ public class SOCView<T extends UIRenderer> extends View implements UIComponent {
             case R.id.soc_board: {
                 UIBoardRenderer r = new UIBoardRenderer(this) {
                     @Override
-                    public void doClick() {
+                    public void onClick() {
                         // disable this method since it is hard to pull off easily on a device. Use accept button only.
                         //super.doClick();
                     }
@@ -108,7 +109,12 @@ public class SOCView<T extends UIRenderer> extends View implements UIComponent {
     protected void onDraw(Canvas canvas) {
         if (renderer != null) {
             if (g == null) {
-                g = new DroidGraphics(getContext(), canvas, getWidth(), getHeight());
+                g = new DroidGraphics(getContext(), canvas, getWidth(), getHeight()) {
+                    @Override
+                    public GColor getBackgroundColor() {
+                        return GColor.GRAY;
+                    }
+                };
                 g.setCaptureModeSupported(!isInEditMode());
             } else {
                 g.setCanvas(canvas, getWidth(), getHeight());
@@ -146,16 +152,16 @@ public class SOCView<T extends UIRenderer> extends View implements UIComponent {
                 if (SystemClock.uptimeMillis() - downTime < CLICK_TIME) {
                     removeCallbacks(touchDownRunnable);
                     touchDownRunnable = null;
-                    renderer.doClick();
+                    renderer.onClick();
                 } else {
-                    renderer.endDrag();
+                    renderer.onDragEnd();
                 }
                 break;
             case MotionEvent.ACTION_MOVE:
                 tx = Math.round(event.getX());
                 ty = Math.round(event.getY());
                 if (touchDownRunnable == null) {
-                    renderer.startDrag(event.getX(), event.getY());
+                    renderer.onDragStart(event.getX(), event.getY());
                 }
                 break;
         }

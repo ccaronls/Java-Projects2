@@ -1,26 +1,18 @@
-package cc.applets.soc;
+package cc.applets.soc
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
-import cc.lib.swing.AWTButton;
+import cc.lib.swing.AWTButton
+import java.awt.event.ActionEvent
+import java.awt.event.ActionListener
 
 /**
  * Created by chriscaron on 2/28/18.
  */
+open class PopupButton internal constructor(txt: String) : AWTButton(txt, null), ActionListener {
+	override fun actionPerformed(e: ActionEvent) {
+		doAction()
+	}
 
-public class PopupButton extends AWTButton implements ActionListener {
-
-    PopupButton(String txt) {
-        super(txt, null);
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        doAction();
-    }
-
-    boolean doAction() {
-        return true;
-    }
+	open fun doAction(): Boolean {
+		return true
+	}
 }

@@ -3,13 +3,9 @@ package cc.game.soc.android;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
-import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,7 +20,10 @@ import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.*;
+import java.io.File;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -34,9 +33,29 @@ import java.util.Properties;
 import java.util.Stack;
 import java.util.Vector;
 
-import cc.game.soc.core.*;
-import cc.game.soc.ui.*;
-import cc.lib.android.*;
+import cc.game.soc.core.AITuning;
+import cc.game.soc.core.Board;
+import cc.game.soc.core.BuildableType;
+import cc.game.soc.core.ResourceType;
+import cc.game.soc.core.Rules;
+import cc.game.soc.core.SOC;
+import cc.game.soc.ui.MenuItem;
+import cc.game.soc.ui.NetCommon;
+import cc.game.soc.ui.RenderConstants;
+import cc.game.soc.ui.UIBarbarianRenderer;
+import cc.game.soc.ui.UIBoardRenderer;
+import cc.game.soc.ui.UIConsoleRenderer;
+import cc.game.soc.ui.UIDiceRenderer;
+import cc.game.soc.ui.UIEventCardRenderer;
+import cc.game.soc.ui.UIPlayer;
+import cc.game.soc.ui.UIPlayerRenderer;
+import cc.game.soc.ui.UIPlayerUser;
+import cc.game.soc.ui.UISOC;
+import cc.lib.android.ArrayListAdapter;
+import cc.lib.android.CCActivityBase;
+import cc.lib.android.CCNumberPicker;
+import cc.lib.android.EmailHelper;
+import cc.lib.android.SpinnerTask;
 import cc.lib.game.GColor;
 import cc.lib.game.Utils;
 import cc.lib.net.ClientConnection;
@@ -283,11 +302,6 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
             }
 
             @Override
-            public String getString(int resourceId, Object... args) {
-                return getResources().getString(resourceId, args);
-            }
-
-            @Override
             protected void onShouldSaveGame() {
                 trySaveToFile(gameFile);
                 if (BuildConfig.DEBUG) try {
@@ -463,7 +477,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
                     }
                 }
 
-                new SpinnerTask(this) {
+                new SpinnerTask<String>(this) {
 
                     @Override
                     protected void doIt(String... args) throws Exception {
@@ -535,9 +549,8 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
                 }).show();
     }
 
-    MPGameManager mpGame = null;
-
     void showJoinMultiPlayerDialog() {
+        /*
         user.client.register(NetCommon.SOC_ID, UISOC.getInstance());
         user.client.register(NetCommon.USER_ID, user);
 
@@ -548,7 +561,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
             }
         };
         mpGame.showJoinGameDialog();
-        user.client.addListener(this);
+        user.client.addListener(this);*/
     }
 
     @Override
@@ -576,7 +589,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
                     }
                 });
             } else if (cmd.getType().equals(NetCommon.SVR_TO_CL_UPDATE)) {
-                UISOC.getInstance().mergeDiff(cmd.getString("diff"));
+                UISOC.getInstance().merge(cmd.getString("diff"));
                 UISOC.getInstance().refreshComponents();
                 UISOC.getInstance().redraw();
             }
@@ -596,7 +609,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
     }
 
     @Override
-    public void onDisconnected(String reason) {
+    public void onDisconnected(String reason, boolean serverInitiated) {
         log.info("onDisconnected: %s", reason);
     }
 
@@ -627,7 +640,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
     }
 
     void showResumeMultiPlayerDialog() {
-        new SpinnerTask(this) {
+        new SpinnerTask<String>(this) {
 
             @Override
             protected void doIt(String... args) throws Exception {
@@ -637,6 +650,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
             @Override
             protected void onSuccess() {
                 soc.redraw();
+                /*
                 mpGame = new MPGameManager(SOCActivity.this, soc.server, soc.getNumPlayers()-1) {
                     @Override
                     public void onAllClientsJoined() {
@@ -644,7 +658,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
                         initGame();
                     }
                 };
-                mpGame.startHostMultiplayer();
+                mpGame.startHostMultiplayer();*/
             }
 
         }.execute();
@@ -665,6 +679,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
                             p.setColor(soc.getAvailableColors().entrySet().iterator().next().getValue());
                             soc.addPlayer(p);
                         }
+                        /*
                         mpGame = new MPGameManager(SOCActivity.this, soc.server, numPlayers-1) {
                             @Override
                             public void onAllClientsJoined() {
@@ -674,6 +689,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
                             }
                         };
                         mpGame.startHostMultiplayer();
+                         */
                     }
                 });
             }
@@ -732,7 +748,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
                 @Override
                 public void onClick(DialogInterface dialog, final int which) {
 
-                    new SpinnerTask(SOCActivity.this) {
+                    new SpinnerTask<String>(SOCActivity.this) {
                         @Override
                         protected void doIt(String... args) throws Exception {
                             InputStream in = getAssets().open("scenarios/" + scenarios[which]);
@@ -849,7 +865,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
         Vector<String> columnNames = new Vector<String>();
         columnNames.add("Buildable");
         for (ResourceType r : ResourceType.values()) {
-            columnNames.add(" " + r.getName(soc) + " ");
+            columnNames.add(" " + r.getName() + " ");
 
         }
         Vector<Vector<String>> rowData = new Vector<>();
@@ -894,7 +910,7 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
     class RuleItem implements Comparable<RuleItem> {
         final Rules.Variation var;
         final int min, max;
-        final int stringId;
+        final String stringId;
         final int order;
         final Field field;
 
@@ -1116,37 +1132,6 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
     }
 
     final int PERMISSION_REQUEST_CODE = 1001;
-
-    private boolean checkPermission() {
-        int result = ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE);
-        if (result == PackageManager.PERMISSION_GRANTED) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    private void requestPermission() {
-
-        if (ActivityCompat.shouldShowRequestPermissionRationale(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-            Toast.makeText(this, "Write External Storage permission allows us to do store images. Please allow this permission in App Settings.", Toast.LENGTH_LONG).show();
-        } else {
-            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSION_REQUEST_CODE);
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        switch (requestCode) {
-            case PERMISSION_REQUEST_CODE:
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    copyFileToExt();
-                } else {
-                    Log.e("value", "Permission Denied, You cannot use local drive .");
-                }
-                break;
-        }
-    }
 
     @Override
     protected void onPause() {

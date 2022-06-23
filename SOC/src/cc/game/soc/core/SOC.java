@@ -190,7 +190,7 @@ public class SOC extends Reflector<SOC> implements StringResource {
      * @return
      */
     public int getCurPlayerNum() {
-        Utils.assertTrue (mCurrentPlayer >= 0);
+//        Utils.assertTrue (mCurrentPlayer >= 0);
         if (mCurrentPlayer < 0)
             return 0;
 

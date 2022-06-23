@@ -1,24 +1,14 @@
-package cc.applets.soc;
+package cc.applets.soc
 
-import javax.swing.JButton;
+import cc.game.soc.ui.MenuItem
+import javax.swing.JButton
 
-import cc.game.soc.ui.MenuItem;
+class OpButton internal constructor(val item: MenuItem, text: String, extra: Any?) : JButton(text) {
+	@JvmField
+    val extra: Any
 
-@SuppressWarnings("serial")
-public class OpButton extends JButton {
-
-	public final Object extra;
-	public final MenuItem item;
-	
-	OpButton(MenuItem op, String text, Object extra) {
-		super(text);
-		this.item = op;
-		this.extra = extra == null ? this : extra;
-		this.setToolTipText(op.helpText);
+	init {
+		this.extra = extra ?: this
+		this.toolTipText = item.helpText
 	}
-	
-	public Object getExtra() {
-		return extra;
-	}
-	
 }
