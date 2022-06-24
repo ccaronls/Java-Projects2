@@ -1,290 +1,375 @@
-package cc.lib.android;
+package cc.lib.android
 
-import android.app.AlertDialog;
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
-import android.content.res.Configuration;
-import android.os.Build;
-import android.os.Bundle;
-import android.text.InputFilter;
-import android.util.Log;
-import android.view.View;
-import android.view.WindowManager;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.EditText;
-import android.widget.Toast;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
-import java.util.Timer;
-import java.util.TimerTask;
-
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.databinding.ViewDataBinding;
-import androidx.lifecycle.ViewModel;
-import androidx.preference.PreferenceManager;
-import cc.lib.game.Utils;
-import cc.lib.logger.Logger;
-import cc.lib.logger.LoggerFactory;
-import cc.lib.utils.GException;
+import android.Manifest
+import android.app.AlertDialog
+import android.content.Context
+import android.content.DialogInterface
+import android.content.SharedPreferences
+import android.content.pm.PackageManager
+import android.content.res.Configuration
+import android.os.Build
+import android.os.Bundle
+import android.os.Environment
+import android.os.storage.StorageManager
+import android.os.storage.StorageVolume
+import android.text.InputFilter
+import android.text.InputFilter.LengthFilter
+import android.util.Log
+import android.view.View
+import android.view.WindowManager
+import android.view.inputmethod.InputMethodManager
+import android.widget.EditText
+import android.widget.Toast
+import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.core.os.EnvironmentCompat
+import androidx.databinding.ViewDataBinding
+import androidx.lifecycle.ViewModel
+import androidx.preference.PreferenceManager
+import cc.lib.game.Utils
+import cc.lib.logger.Logger
+import cc.lib.logger.LoggerFactory
+import cc.lib.utils.GException
+import cc.lib.utils.toFile
+import java.io.File
+import java.util.*
 
 /**
  * Base class has support for inApp billing, polling and various helper methods
- *  
- *  
- * @author ccaron
  *
+ *
+ * @author ccaron
  */
-public class CCActivityBase extends AppCompatActivity {
-
-    static {
-        LoggerFactory.factory = new LoggerFactory() {
-            @Override
-            public Logger getLogger(String name) {
-                return new AndroidLogger(name);
-            }
-        };
-    }
-
-    public final Logger log = new AndroidLogger(getClass().toString());
-
-    private final int PERMISSION_REQUEST_CODE = 1001;
-
-    protected LayoutFactory getLayoutFactory() {
-        return null;
-    }
-
-    protected void onLayoutCreated(ViewDataBinding binding, ViewModel viewModel) {
-        throw new GException("If you override getLayoutFactory then you must handle this callback");
-    }
-
-    @Override
-	protected void onCreate(Bundle bundle) {
-        super.onCreate(bundle);
-        if (BuildConfig.DEBUG) {
-            Utils.setDebugEnabled();
-        }
-        LayoutFactory factory = getLayoutFactory();
-        if (factory != null) {
-            factory.build();
-            onLayoutCreated(factory.binding, factory.viewModel);
-        }
-    }
-
-    /**
-     * DO NOT CALL FROM onResume!!!!
-     *
-     * @param permissions
-     */
-    public void checkPermissions(String ... permissions) {
-        if (Build.VERSION.SDK_INT >= 23 && permissions.length > 0) {
-            List<String> permissionsToRequest = new ArrayList<>();
-            for (String p : permissions) {
-                if (checkCallingOrSelfPermission(p) != PackageManager.PERMISSION_GRANTED) {
-                    permissionsToRequest.add(p);
-                }
-            }
-
-            if (permissionsToRequest.size() > 0) {
-                permissions = permissionsToRequest.toArray(new String[permissionsToRequest.size()]);
-                requestPermissions(permissions, PERMISSION_REQUEST_CODE);
-                return;
-            }
-        }
-        onAllPermissionsGranted();
+open class CCActivityBase : AppCompatActivity() {
+	companion object {
+		init {
+			LoggerFactory.factory = object : LoggerFactory() {
+				override fun getLogger(name: String): Logger {
+					return AndroidLogger(name)
+				}
+			}
+		}
 	}
 
-	protected void onAllPermissionsGranted() {}
+	@JvmField
+    val log: Logger = AndroidLogger(javaClass.toString())
+	private val PERMISSION_REQUEST_CODE = 1001
 
-	protected void onPermissionLimited(List<String> permissionsNotGranted) {
-        newDialogBuilder().setTitle("Cannot Launch")
-                .setMessage("The following permissions are not granted and app cannot run;\n" + permissionsNotGranted)
-                .setNegativeButton(R.string.popup_button_ok, (dialogInterface, i) -> finish()).show().setCanceledOnTouchOutside(false);
-        Toast.makeText(this, "The following permissions are not granted: " + permissionsNotGranted, Toast.LENGTH_LONG).show();
-    }
-	
-	@Override
-	protected void onPause() {
-		super.onPause();
-		stopPolling();
+	protected open fun getLayoutFactory(): LayoutFactory? = null
+
+	protected open fun onLayoutCreated(binding: ViewDataBinding, viewModel: ViewModel?) {
+		throw GException("If you override getLayoutFactory then you must handle this callback")
 	}
-	
+
+	override fun onCreate(bundle: Bundle?) {
+		super.onCreate(bundle)
+		getSdCardPaths(this, true)?.forEach { volumePath ->
+			Log.d("CCActivityBase", "volumePath:$volumePath")
+		}
+		if (BuildConfig.DEBUG) {
+			Utils.setDebugEnabled()
+		}
+		getLayoutFactory()?.let { factory ->
+			factory.build()
+			onLayoutCreated(factory.binding, factory.viewModel)
+		}
+	}
+
+	/**
+	 * DO NOT CALL FROM onResume!!!!
+	 *
+	 * @param permissions
+	 */
+	fun checkPermissions(code: Int, vararg permissions: String?) {
+		var permissions = permissions
+		if (Build.VERSION.SDK_INT >= 23 && permissions.size > 0) {
+			val permissionsToRequest: MutableList<String?> = ArrayList()
+			for (p in permissions) {
+				if (checkCallingOrSelfPermission(p!!) != PackageManager.PERMISSION_GRANTED) {
+					permissionsToRequest.add(p)
+				}
+			}
+			if (permissionsToRequest.size > 0) {
+				permissions = permissionsToRequest.toTypedArray()
+				requestPermissions(permissions, code)
+				return
+			}
+		}
+		onAllPermissionsGranted(code)
+	}
+
+	open fun checkPermissions(vararg permissions: String?) {
+		checkPermissions(PERMISSION_REQUEST_CODE, *permissions)
+	}
+
+	fun checkExternalStoragePermissions(code: Int) {
+		checkPermissions(code, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+	}
+
+	protected open fun onAllPermissionsGranted() {}
+	protected open fun onAllPermissionsGranted(code: Int) {
+		if (code == PERMISSION_REQUEST_CODE) onAllPermissionsGranted()
+	}
+
+	protected open fun onPermissionLimited(permissionsNotGranted: List<String>) {
+		newDialogBuilder().setTitle("Cannot Launch")
+			.setMessage("The following permissions are not granted and app cannot run;\n$permissionsNotGranted")
+			.setNegativeButton(R.string.popup_button_ok) { dialogInterface: DialogInterface?, i: Int -> finish() }.show().setCanceledOnTouchOutside(false)
+		Toast.makeText(this, "The following permissions are not granted: $permissionsNotGranted", Toast.LENGTH_LONG).show()
+	}
+
+	override fun onPause() {
+		super.onPause()
+		stopPolling()
+	}
+
 	// ************ HELPERS ****************
-	
-	public final SharedPreferences getPrefs() {
-		return PreferenceManager.getDefaultSharedPreferences(this);
+	val prefs: SharedPreferences
+		get() = PreferenceManager.getDefaultSharedPreferences(this)
+	val isPortrait: Boolean
+		get() = resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT
+
+	fun hideKeyboard() {
+		val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+		if (imm != null) {
+			val focused = content.findFocus()
+			if (focused != null) {
+				imm.hideSoftInputFromWindow(focused.windowToken, 0)
+			}
+		}
 	}
 
-	public final boolean isPortrait() {
-		return getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT;
-	}
-	
-	public final void hideKeyboard() {
-        InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-        if (imm != null) {
-            View focused = getContent().findFocus();
-            if (focused != null) {
-                imm.hideSoftInputFromWindow(focused.getWindowToken(), 0);
-            }
-        }
-    }
-	
-	public View getContent() {
-		return getWindow().getDecorView().findViewById(android.R.id.content);
-	}
-	
+	open val content: View
+		get() = window.decorView.findViewById(android.R.id.content)
+
 	// ************ POLLING ****************
-	
-	private Timer pollingTimer = null;
-	
+	private var pollingTimer: Timer? = null
+
 	/**
 	 * Start polling.  onPoll will be called on UI thread at regular intervals until the
 	 * activity is paused or user calls stopPolling.
-	 * 
+	 *
 	 * @param intervalSeconds
 	 */
-	protected final void startPolling(int intervalSeconds) {
+	protected fun startPolling(intervalSeconds: Int) {
 		if (pollingTimer == null) {
-			pollingTimer = new Timer();
-			pollingTimer.schedule(new TimerTask() {
-				
-				@Override
-				public void run() {
-					runOnUiThread(pollRunnable);
+			pollingTimer = Timer()
+			pollingTimer!!.schedule(object : TimerTask() {
+				override fun run() {
+					runOnUiThread(pollRunnable)
 				}
-			}, intervalSeconds * 1000, intervalSeconds * 1000);
+			}, (intervalSeconds * 1000).toLong(), (intervalSeconds * 1000).toLong())
 		}
 	}
-	
+
 	/**
 	 * This is visible because there are cases when we want to stop polling even when not paused.
 	 */
-	protected final void stopPolling() {
+	protected fun stopPolling() {
 		if (pollingTimer != null) {
-			pollingTimer.cancel();
-			pollingTimer = null;
+			pollingTimer!!.cancel()
+			pollingTimer = null
 		}
 	}
-	
-	private Runnable pollRunnable = this::onPoll;
-	
+
+	private val pollRunnable = Runnable { onPoll() }
+
 	/**
 	 * Override this method to handle your polling needs.  Base method just logs to LogCat a warning.
 	 */
-	protected void onPoll() {
-		log.warn("onPoll not handled");
+	protected open fun onPoll() {
+		log.warn("onPoll not handled")
 	}
 
 	/**
 	 * Convenience to get the users currently configured locale
 	 * @return
 	 */
-	public final Locale getLocale() {
-		return getResources().getConfiguration().locale;
+	val locale: Locale
+		get() = resources.configuration.locale
+
+	fun dumpAssets() {
+		dumpAssetsR("")
 	}
 
-	public final void dumpAssets() {
-	    dumpAssetsR("");
-    }
+	private fun dumpAssetsR(folder: String) {
+		try {
+			val files = assets.list(folder)
+			Log.d("Assets", """
+ 	Contents of $folder:
+ 	${Arrays.toString(files)}
+ 	""".trimIndent())
+			for (f in files!!) {
+				if (f.indexOf('.') < 0) {
+					if (folder.length > 0) dumpAssetsR("$folder/$f") else dumpAssetsR(f)
+				}
+			}
+		} catch (e: Exception) {
+			e.printStackTrace()
+		}
+	}
 
-    private void dumpAssetsR(String folder) {
-        try {
-            String[] files = getAssets().list(folder);
-            Log.d("Assets", "Contents of " + folder + ":\n" + Arrays.toString(files));
-            for (String f : files) {
-                if (f.indexOf('.') < 0) {
-                    if (folder.length() > 0)
-                        dumpAssetsR(folder + "/" + f);
-                    else
-                        dumpAssetsR(f);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+	open fun newDialogBuilder(): AlertDialog.Builder {
+		// to get the Holo.Dark theme use: new ContextThemeWrapper(this, android.R.style.Theme_Holo_Dialog)
+		return object : AlertDialog.Builder(this) {
+			override fun show(): AlertDialog {
+				val d = super.show()
+				d.setCanceledOnTouchOutside(false)
+				return d
+			}
+		}
+	}
 
-    public AlertDialog.Builder newDialogBuilder() {
-	    // to get the Holo.Dark theme use: new ContextThemeWrapper(this, android.R.style.Theme_Holo_Dialog)
-	    return new AlertDialog.Builder(this) {
-            @Override
-            public AlertDialog show() {
-                AlertDialog d =  super.show();
-                d.setCanceledOnTouchOutside(false);
-                return d;
-            }
-        };
-    }
+	override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+		val permissionsNotGranted: MutableList<String> = ArrayList()
+		for (i in permissions.indices) {
+			if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
+				permissionsNotGranted.add(permissions[i])
+			}
+		}
+		if (permissionsNotGranted.size > 0) {
+			onPermissionLimited(permissionsNotGranted)
+		} else {
+			onAllPermissionsGranted(requestCode)
+		}
+	}
 
-    @Override
-    public final void onRequestPermissionsResult(int requestCode, String[] permissions, @NonNull final int[] grantResults) {
-        switch (requestCode) {
-            case PERMISSION_REQUEST_CODE: {
-                final List<String> permissionsNotGranted = new ArrayList<>();
-                for (int i=0; i<permissions.length; i++) {
-                    if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
-                        permissionsNotGranted.add(permissions[i]);
-                    }
-                }
-                if (permissionsNotGranted.size() > 0) {
-                    onPermissionLimited(permissionsNotGranted);
-                } else {
-                    onAllPermissionsGranted();
-                }
-                break;
-            }
-        }
-    }
+	val appVersionFromManifest: String
+		get() {
+			try {
+				var version = packageManager.getPackageInfo(packageName, 0).versionName
+				if (BuildConfig.DEBUG) {
+					version += " DEBUG"
+				}
+				return version
+			} catch (e: Exception) {
+				e.printStackTrace()
+			}
+			return "Unknown"
+		}
 
-    public String getAppVersionFromManifest() {
-        try {
-            String version = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
-            if (BuildConfig.DEBUG) {
-                version += " DEBUG";
-            }
-            return version;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return "Unknown";
-    }
+	fun setKeepScreenOn(enabled: Boolean) {
+		if (enabled) {
+			window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+		} else {
+			window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+		}
+	}
 
-    public void setKeepScreenOn(boolean enabled) {
-        if (enabled) {
-            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        } else {
-            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        }
-    }
+	fun showEditTextInputPopup(title: String?, defaultValue: String?, hint: String?, maxChars: Int, callabck: Utils.Callback<String?>) {
+		val et = EditText(this)
+		et.hint = hint
+		et.setText(defaultValue)
+		et.filters = arrayOf<InputFilter>(LengthFilter(maxChars))
+		newDialogBuilder().setTitle(title)
+			.setView(et)
+			.setNegativeButton(R.string.popup_button_cancel, null)
+			.setPositiveButton(R.string.popup_button_ok) { dialog: DialogInterface?, which: Int ->
+				val txt = et.text.toString()
+				callabck.onDone(txt)
+			}.show()
+	}
 
-    public void showEditTextInputPopup(String title, String defaultValue, String hint, int maxChars, Utils.Callback<String> callabck) {
-        EditText et = new EditText(this);
-        et.setHint(hint);
-        et.setText(defaultValue);
-        et.setFilters(new InputFilter[] { new InputFilter.LengthFilter(maxChars) });
-        newDialogBuilder().setTitle(title)
-                .setView(et)
-                .setNegativeButton(R.string.popup_button_cancel, null)
-                .setPositiveButton(R.string.popup_button_ok, (dialog, which) -> {
-                    String txt = et.getText().toString();
-                    callabck.onDone(txt);
-                }).show();
+	fun hideNavigationBar() {
+		val decorView = window.decorView
+		val uiOptions = (View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+			or View.SYSTEM_UI_FLAG_FULLSCREEN)
+		decorView.systemUiVisibility = uiOptions
+	}
 
-    }
+	val externalStorageDirectory: File
+		get() {
+			arrayOf(
+				"sdcard"
+			).forEach { folder ->
+				with (folder.toFile()) {
+					if (exists() && isDirectory)
+						return this
+				}
+			}
 
-    public void hideNavigationBar() {
-        View decorView = getWindow().getDecorView();
-        int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                | View.SYSTEM_UI_FLAG_FULLSCREEN;
-        decorView.setSystemUiVisibility(uiOptions);
-    }
+			return getSdCardPaths(this, true)?.firstOrNull()?.toFile()?:getExternalFilesDir(null) as File
+		}
 
-    public File getExternalStorageDirectory() {
-	    return getExternalFilesDir(null);
-    }
+	/**
+	 * returns a list of all available sd cards paths, or null if not found.
+	 *
+	 * @param includePrimaryExternalStorage set to true if you wish to also include the path of the primary external storage
+	 */
+	fun getSdCardPaths(context: Context, includePrimaryExternalStorage: Boolean): List<String>? {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+			val storageManager = context.getSystemService(Context.STORAGE_SERVICE) as StorageManager
+			val storageVolumes = storageManager.storageVolumes
+			if (!storageVolumes.isNullOrEmpty()) {
+				val primaryVolume = storageManager.primaryStorageVolume
+				val result = ArrayList<String>(storageVolumes.size)
+				for (storageVolume in storageVolumes) {
+					val volumePath = getVolumePath(storageVolume) ?: continue
+					if (storageVolume.uuid == primaryVolume.uuid || storageVolume.isPrimary) {
+						if (includePrimaryExternalStorage)
+							result.add(volumePath)
+						continue
+					}
+					result.add(volumePath)
+				}
+				return if (result.isEmpty()) null else result
+			}
+		}
+		val externalCacheDirs = ContextCompat.getExternalCacheDirs(context)
+		if (externalCacheDirs.isEmpty())
+			return null
+		if (externalCacheDirs.size == 1) {
+			if (externalCacheDirs[0] == null)
+				return null
+			val storageState = EnvironmentCompat.getStorageState(externalCacheDirs[0])
+			if (Environment.MEDIA_MOUNTED != storageState)
+				return null
+			if (!includePrimaryExternalStorage && Environment.isExternalStorageEmulated())
+				return null
+		}
+		val result = ArrayList<String>()
+		if (externalCacheDirs[0] != null && (includePrimaryExternalStorage || externalCacheDirs.size == 1))
+			result.add(getRootOfInnerSdCardFolder(context, externalCacheDirs[0]))
+		for (i in 1 until externalCacheDirs.size) {
+			val file = externalCacheDirs[i] ?: continue
+			val storageState = EnvironmentCompat.getStorageState(file)
+			if (Environment.MEDIA_MOUNTED == storageState)
+				result.add(getRootOfInnerSdCardFolder(context, externalCacheDirs[i]))
+		}
+		return if (result.isEmpty()) null else result
+	}
+
+	fun getRootOfInnerSdCardFolder(context: Context, inputFile: File): String {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+			val storageManager = context.getSystemService(Context.STORAGE_SERVICE) as StorageManager
+			storageManager.getStorageVolume(inputFile)?.let {
+				val result = getVolumePath(it)
+				if (result != null)
+					return result
+			}
+		}
+		var file: File = inputFile
+		val totalSpace = file.totalSpace
+		while (true) {
+			val parentFile = file.parentFile
+			if (parentFile == null || parentFile.totalSpace != totalSpace || !parentFile.canRead())
+				return file.absolutePath
+			file = parentFile
+		}
+	}
+
+	@RequiresApi(Build.VERSION_CODES.N)
+	fun getVolumePath(storageVolume: StorageVolume): String? {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+			return storageVolume.directory?.absolutePath
+		try {
+			val storageVolumeClazz = StorageVolume::class.java
+			val getPath = storageVolumeClazz.getMethod("getPath")
+			return getPath.invoke(storageVolume) as String
+		} catch (e: Exception) {
+			e.printStackTrace()
+		}
+		return null
+	}
 }

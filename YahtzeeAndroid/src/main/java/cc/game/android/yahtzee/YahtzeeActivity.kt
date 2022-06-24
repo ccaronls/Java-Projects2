@@ -71,7 +71,7 @@ class YahtzeeActivity : CCActivityBase() {
 		return LayoutFactory(this, R.layout.yahtzeeactivity, YahtzeeViewModel::class.java)
 	}
 
-	override fun onLayoutCreated(binding: ViewDataBinding, viewModel: ViewModel) {
+	override fun onLayoutCreated(binding: ViewDataBinding, viewModel: ViewModel?) {
 		this.binding = binding as YahtzeeactivityBinding
 		this.viewModel = viewModel as YahtzeeViewModel
 		binding.viewModel = viewModel

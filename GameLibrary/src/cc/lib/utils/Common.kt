@@ -1,6 +1,7 @@
 package cc.lib.utils
 
 import cc.lib.game.Utils
+import java.io.File
 
 fun <T> MutableMap<T, Int>.increment(obj: T, amt: Int) {
     when (val count = get(obj)) {
@@ -153,3 +154,5 @@ fun <K,V> MutableMap<K,V>.removeAll(predicate: (entry: MutableMap.MutableEntry<K
 }
 
 fun flipCoin() : Boolean = random(2) == 0
+
+fun String.toFile() = File(this)

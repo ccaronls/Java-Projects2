@@ -1,51 +1,34 @@
-package cc.game.soc.android;
+package cc.game.soc.android
 
-import android.app.Activity;
-import android.content.Intent;
-import android.os.Bundle;
+import android.app.Activity
+import android.content.Intent
+import android.os.Bundle
+import kotlinx.coroutines.*
+import java.lang.Runnable
 
-public class SOCSplash extends Activity {
+class SOCSplash : Activity() {
+	var startTime = System.currentTimeMillis()
+	override fun onCreate(savedInstanceState: Bundle?) {
+		super.onCreate(savedInstanceState)
+		startTime = System.currentTimeMillis()
+	}
 
-    long startTime = System.currentTimeMillis();
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        startTime = System.currentTimeMillis();
-    }
-
-    @Override
-    protected void onPostResume() {
-        super.onPostResume();
-
-        int splashTimeMSecs = 5000;
-
-        int timeShown = (int)(System.currentTimeMillis()-startTime);
-
-        final int timeLeft = splashTimeMSecs - timeShown;
-        final Intent i = new Intent(this, SOCActivity.class);
-        if (timeLeft <= 0) {
-            startActivity(i);
-            finish();
-        }
-        else
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        synchronized (this) {
-                            wait(timeLeft);
-                        }
-                        runOnUiThread(() -> {
-                                startActivity(i);
-                                finish();
-                        });
-                    } catch (Exception e) {
-                        e.printStackTrace();
-
-                    }
-                }
-            }).start();
-
-    }
+	override fun onPostResume() {
+		super.onPostResume()
+		val splashTimeMSecs = if (BuildConfig.DEBUG) 1000L else 5000L
+		val timeShown = (System.currentTimeMillis() - startTime).toInt()
+		val timeLeft = splashTimeMSecs - timeShown
+		val i = Intent(this, SOCActivity::class.java)
+		if (timeLeft <= 0) {
+			startActivity(i)
+			finish()
+		}
+		CoroutineScope(Dispatchers.IO).launch {
+			delay(splashTimeMSecs)
+			withContext(Dispatchers.Main) {
+				startActivity(i)
+				finish()
+			}
+		}
+	}
 }

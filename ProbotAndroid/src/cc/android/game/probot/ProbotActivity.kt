@@ -128,7 +128,7 @@ class ProbotActivity : CCActivityBase() {
 		return LayoutFactory(this, R.layout.probotview, ProbotViewModel::class.java)
 	}
 
-	override fun onLayoutCreated(binding: ViewDataBinding, viewModel: ViewModel) {
+	override fun onLayoutCreated(binding: ViewDataBinding, viewModel: ViewModel?) {
 		this.binding = binding as ProbotviewBinding
 		this.viewModel = viewModel as ProbotViewModel
 		binding.viewModel = viewModel

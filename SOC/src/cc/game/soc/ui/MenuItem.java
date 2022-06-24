@@ -1,5 +1,8 @@
 package cc.game.soc.ui;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Created by chriscaron on 2/27/18.
  */
@@ -7,7 +10,7 @@ package cc.game.soc.ui;
 public final class MenuItem {
 
     public interface Action {
-        void onAction(MenuItem item, Object extra);
+        void onAction(@NotNull MenuItem item, @Nullable Object extra);
     };
 
     public final String title;

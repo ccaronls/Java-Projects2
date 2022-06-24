@@ -1,556 +1,415 @@
-package cc.game.soc.android;
+package cc.game.soc.android
 
-import android.app.AlertDialog;
-import android.app.Dialog;
-import android.content.DialogInterface;
-import android.os.Build;
-import android.os.Bundle;
-import android.os.Environment;
-import android.view.Gravity;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.BaseAdapter;
-import android.widget.Button;
-import android.widget.CompoundButton;
-import android.widget.ListView;
-import android.widget.NumberPicker;
-import android.widget.ScrollView;
-import android.widget.TableLayout;
-import android.widget.TableRow;
-import android.widget.TextView;
-import android.widget.Toast;
-
-import java.io.File;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Properties;
-import java.util.Stack;
-import java.util.Vector;
-
-import cc.game.soc.core.AITuning;
-import cc.game.soc.core.Board;
-import cc.game.soc.core.BuildableType;
-import cc.game.soc.core.ResourceType;
-import cc.game.soc.core.Rules;
-import cc.game.soc.core.SOC;
-import cc.game.soc.ui.MenuItem;
-import cc.game.soc.ui.NetCommon;
-import cc.game.soc.ui.RenderConstants;
-import cc.game.soc.ui.UIBarbarianRenderer;
-import cc.game.soc.ui.UIBoardRenderer;
-import cc.game.soc.ui.UIConsoleRenderer;
-import cc.game.soc.ui.UIDiceRenderer;
-import cc.game.soc.ui.UIEventCardRenderer;
-import cc.game.soc.ui.UIPlayer;
-import cc.game.soc.ui.UIPlayerRenderer;
-import cc.game.soc.ui.UIPlayerUser;
-import cc.game.soc.ui.UISOC;
-import cc.lib.android.ArrayListAdapter;
-import cc.lib.android.CCActivityBase;
-import cc.lib.android.CCNumberPicker;
-import cc.lib.android.EmailHelper;
-import cc.lib.android.SpinnerTask;
-import cc.lib.game.GColor;
-import cc.lib.game.Utils;
-import cc.lib.net.ClientConnection;
-import cc.lib.net.GameClient;
-import cc.lib.net.GameCommand;
-import cc.lib.net.GameServer;
-import cc.lib.utils.FileUtils;
+import android.app.AlertDialog
+import android.app.Dialog
+import android.content.DialogInterface
+import android.os.Build
+import android.os.Bundle
+import android.view.Gravity
+import android.view.View
+import android.view.ViewGroup
+import android.widget.*
+import cc.game.soc.core.*
+import cc.game.soc.core.Rules.Variation
+import cc.game.soc.ui.*
+import cc.lib.android.*
+import cc.lib.game.GColor
+import cc.lib.game.Utils
+import cc.lib.net.ClientConnection
+import cc.lib.net.GameClient
+import cc.lib.net.GameCommand
+import cc.lib.net.GameServer
+import cc.lib.utils.FileUtils
+import java.io.File
+import java.io.IOException
+import java.lang.reflect.Field
+import java.util.*
 
 /**
  * Created by chriscaron on 2/15/18.
  */
+class SOCActivity() : CCActivityBase(), MenuItem.Action, View.OnClickListener, GameServer.Listener, GameClient.Listener {
+	lateinit var soc: UISOC
+	lateinit var rulesFile: File
+	lateinit var gameFile: File
+	override lateinit var content: View
+	lateinit var vBarbarian: SOCView<UIBarbarianRenderer>
+	lateinit var vEvent: SOCView<UIEventCardRenderer>
+	lateinit var vBoard: SOCView<UIBoardRenderer>
+	lateinit var vDice: SOCView<UIDiceRenderer>
+	lateinit var vPlayers: Array<SOCView<UIPlayerRenderer>>
+	lateinit var vConsole: SOCView<UIConsoleRenderer>
+	lateinit var lvMenu: ListView
+	lateinit var svPlayers: ScrollView
+	lateinit var tvHelpText: TextView
+	val dialogStack = Stack<Dialog>()
+	var helpItem = -1
+	override fun onCreate(savedInstanceState: Bundle?) {
+		super.onCreate(savedInstanceState)
+		if (BuildConfig.DEBUG) dumpAssets()
+		RenderConstants.textMargin = resources.getDimension(R.dimen.margin)
+		RenderConstants.textSizeBig = resources.getDimension(R.dimen.text_big)
+		RenderConstants.textSizeSmall = resources.getDimension(R.dimen.text_sm)
+		RenderConstants.thickLineThickness = resources.getDimension(R.dimen.line_thick)
+		RenderConstants.thinLineThickness = resources.getDimension(R.dimen.line_thin)
+		content = View.inflate(this, R.layout.soc_activity, null)
+		setContentView(content)
+		vBarbarian = findViewById(R.id.soc_barbarian)
+		vEvent = findViewById(R.id.soc_event_cards)
+		vBoard = findViewById(R.id.soc_board)
+		vDice = findViewById(R.id.soc_dice)
+		vPlayers = arrayOf(
+			findViewById(R.id.soc_player_1),
+			findViewById(R.id.soc_player_2),
+			findViewById(R.id.soc_player_3),
+			findViewById(R.id.soc_player_4),
+			findViewById(R.id.soc_player_5),
+			findViewById(R.id.soc_player_6)
+		)
+		if (vPlayers.size != SOC.MAX_PLAYERS) {
+			throw AssertionError()
+		}
+		lvMenu = findViewById(R.id.soc_menu_list)
+		vConsole = findViewById(R.id.soc_console)
+		vConsole.getRenderer().setMinVisibleLines(5)
+		svPlayers = findViewById<View>(R.id.svPlayers) as ScrollView
+		vDice.getRenderer().initImages(R.drawable.dicesideship2, R.drawable.dicesidecity_red2, R.drawable.dicesidecity_green2, R.drawable.dicesidecity_blue2)
+		tvHelpText = findViewById<View>(R.id.tvHelpText) as TextView
+		QUIT = MenuItem(getString(R.string.menu_item_quit), getString(R.string.menu_item_quit_help), this)
+		BUILDABLES = MenuItem(getString(R.string.menu_item_buildables), getString(R.string.menu_item_buildables_help), this)
+		RULES = MenuItem(getString(R.string.menu_item_rules), getString(R.string.menu_item_rules_help), this)
+		START = MenuItem(getString(R.string.menu_item_start), getString(R.string.menu_item_start_help), this)
+		CONSOLE = MenuItem(getString(R.string.menu_item_console), getString(R.string.menu_item_console_help), this)
+		SINGLE_PLAYER = MenuItem(getString(R.string.menu_item_sp), null, this)
+		MULTI_PLAYER = MenuItem(getString(R.string.menu_item_mp), null, this)
+		RESUME = MenuItem(getString(R.string.menu_item_resume), null, this)
+		LOADSAVED = MenuItem("Load Saved", null, this)
+		BOARDS = MenuItem(getString(R.string.menu_item_boards), null, this)
+		SCENARIOS = MenuItem(getString(R.string.menu_item_scenarios), null, this)
+		val menu = ArrayList<Array<Any?>>()
+		val adapter: BaseAdapter = object : ArrayListAdapter<Array<Any?>>(this, menu, R.layout.menu_list_item) {
+			override fun initItem(v: View, position: Int, item: Array<Any?>) {
+				val mi = item[0] as MenuItem
+				val title = item[1] as String?
+				val helpText = item[2] as String?
+				val extra = item[3]
+				val vDivider = v.findViewById<View>(R.id.ivDivider)
+				val tvTitle = v.findViewById<View>(R.id.tvTitle) as TextView
+				val tvHelp = v.findViewById<View>(R.id.tvHelp) as TextView
+				val bAction = v.findViewById<View>(R.id.bAction)
+				val content = v.findViewById<View>(R.id.layoutContent)
+				if (mi == DIVIDER) {
+					vDivider.visibility = View.VISIBLE
+					content.visibility = View.GONE
+					tvHelp.visibility = View.GONE
+				} else {
+					vDivider.visibility = View.GONE
+					content.visibility = View.VISIBLE
+					tvTitle.text = title
+					tvHelp.text = helpText
+					bAction.setOnClickListener {
+						mi.action.onAction(mi, extra)
+					}
+					tvHelp.visibility = if (helpItem == position) View.VISIBLE else View.GONE
+					if (!Utils.isEmpty(helpText)) {
+						v.setOnClickListener {
+							if (helpItem == position) helpItem = -1 else helpItem = position
+							notifyDataSetChanged()
+						}
+					} else {
+						v.setOnClickListener(null)
+					}
+				}
+			}
+		}
+		lvMenu.adapter = adapter
+		gameFile = File(filesDir, "save.txt")
+		rulesFile = File(filesDir, "rules.txt")
+		val players = arrayOfNulls<UIPlayerRenderer>(SOC.MAX_PLAYERS)
+		for (i in players.indices) {
+			players[i] = vPlayers[i].getRenderer()
+		}
+		soc = object : UISOC(players, vBoard.getRenderer(), vDice.getRenderer(), vConsole.getRenderer(), vEvent.getRenderer(), vBarbarian.getRenderer()) {
+			override fun addMenuItem(item: MenuItem, title: String?, helpText: String?, extra: Any?) {
+				menu.add(arrayOf(
+					item, title, helpText, extra
+				))
+			}
 
-public class SOCActivity extends CCActivityBase implements MenuItem.Action, View.OnClickListener, GameServer.Listener, GameClient.Listener {
+			override fun completeMenu() {
+				addMenuItem(DIVIDER)
+				super.completeMenu()
+				//                    addMenuItem(CONSOLE);
+				addMenuItem(BUILDABLES)
+				addMenuItem(RULES)
+				addMenuItem(QUIT)
+				runOnUiThread(object : Runnable {
+					override fun run() {
+						adapter.notifyDataSetChanged()
+					}
+				})
+			}
 
-    UISOC soc = null;
-    File rulesFile;
-    File gameFile;
-    View content;
+			override fun clearMenu() {
+				helpItem = -1
+				menu.clear()
+				runOnUiThread(object : Runnable {
+					override fun run() {
+						adapter.notifyDataSetChanged()
+					}
+				})
+			}
 
-    SOCView<UIBarbarianRenderer> vBarbarian;
-    SOCView<UIEventCardRenderer> vEvent;
-    SOCView<UIBoardRenderer> vBoard;
-    SOCView<UIDiceRenderer> vDice;
-    SOCView<UIPlayerRenderer> [] vPlayers;
-    SOCView<UIConsoleRenderer> vConsole;
-    ListView lvMenu;
-    ScrollView svPlayers;
-    TextView tvHelpText;
+			override fun redraw() {
+				runOnUiThread(object : Runnable {
+					override fun run() {
+						if (soc.curPlayerNum > 0) {
+							svPlayers.smoothScrollTo(0, vPlayers[soc.curPlayerNum - 1].top)
+							//content.invalidate();
+							//vConsole.requestLayout();
+							vConsole.redraw()
+							for (v: SOCView<*> in vPlayers) {
+								//v.requestLayout();
+								v.redraw()
+							}
+							vBarbarian.redraw()
+							tvHelpText.text = helpText
+							vBoard.redraw()
+							vDice.redraw()
+						}
+					}
+				})
+			}
 
-    Stack<Dialog> dialogStack = new Stack<>();
-    int helpItem = -1;
+			override fun showOkPopup(title: String, message: String) {
+				runOnUiThread {
+					newDialog(true).setTitle(title).setMessage(message).setNeutralButton("OK", object : DialogInterface.OnClickListener {
+						override fun onClick(dialog: DialogInterface, which: Int) {
+							soc.notifyWaitObj()
+						}
+					}).show()
+				}
+				Utils.waitNoThrow(this, -1)
+			}
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (cc.game.soc.android.BuildConfig.DEBUG)
-            dumpAssets();
+			override fun showChoicePopup(title: String, choices: List<String>): String? {
+				val choice = arrayOfNulls<String>(1)
+				runOnUiThread {
+					val items = choices.toTypedArray()
+					newDialog(false).setTitle(title).setItems(items, object : DialogInterface.OnClickListener {
+						override fun onClick(dialog: DialogInterface, which: Int) {
+							choice[0] = items[which]
+						}
+					})
+				}
+				Utils.waitNoThrow(this, -1)
+				return (choice[0])
+			}
 
-        RenderConstants.textMargin = getResources().getDimension(R.dimen.margin);
-        RenderConstants.textSizeBig = getResources().getDimension(R.dimen.text_big);
-        RenderConstants.textSizeSmall = getResources().getDimension(R.dimen.text_sm);
-        RenderConstants.thickLineThickness = getResources().getDimension(R.dimen.line_thick);
-        RenderConstants.thinLineThickness = getResources().getDimension(R.dimen.line_thin);
+			override fun getServerName(): String {
+				return Build.BRAND + "." + Build.PRODUCT
+			}
 
-        content = View.inflate(this, R.layout.soc_activity, null);
-        setContentView(content);
-        vBarbarian = (SOCView) findViewById(R.id.soc_barbarian);
-        vEvent = (SOCView) findViewById(R.id.soc_event_cards);
-        vBoard = (SOCView) findViewById(R.id.soc_board);
-        vDice = (SOCView) findViewById(R.id.soc_dice);
-        vPlayers = new SOCView[] {
-                (SOCView)findViewById(R.id.soc_player_1),
-                (SOCView)findViewById(R.id.soc_player_2),
-                (SOCView)findViewById(R.id.soc_player_3),
-                (SOCView)findViewById(R.id.soc_player_4),
-                (SOCView)findViewById(R.id.soc_player_5),
-                (SOCView)findViewById(R.id.soc_player_6),
-        };
+			override fun onShouldSaveGame() {
+				trySaveToFile(gameFile)
+				if (BuildConfig.DEBUG)
+					checkExternalStoragePermissions(1002)
+			}
 
-        if (vPlayers.length != SOC.MAX_PLAYERS) {
-            throw new AssertionError();
-        }
+			override fun onGameOver(winnerNum: Int) {
+				super.onGameOver(winnerNum)
+				clearMenu()
+				addMenuItem(QUIT)
+				runOnUiThread { adapter.notifyDataSetChanged() }
+			}
 
-        lvMenu = (ListView) findViewById(R.id.soc_menu_list);
-        vConsole = (SOCView) findViewById(R.id.soc_console);
-        vConsole.renderer.setMinVisibleLines(5);
-        svPlayers = (ScrollView)findViewById(R.id.svPlayers);
-        vDice.renderer.initImages(R.drawable.dicesideship2, R.drawable.dicesidecity_red2, R.drawable.dicesidecity_green2, R.drawable.dicesidecity_blue2);
-        tvHelpText = (TextView)findViewById(R.id.tvHelpText);
+			override fun onRunError(e: Throwable) {
+				super.onRunError(e)
+				if (BuildConfig.DEBUG) {
+					// write crashes to sdcard for eval later
+					try {
+						val tmpDir = File.createTempFile("crash", "", externalStorageDirectory)
+						tmpDir.delete()
+						tmpDir.mkdir()
+						val crash = File(tmpDir, "stack.txt")
+						FileUtils.stringToFile(e.toString(), crash)
+						FileUtils.copyFile(gameFile, tmpDir)
+					} catch (ee: Exception) {
+					}
+				}
+				runOnUiThread(object : Runnable {
+					override fun run() {
+						showStartMenu()
+						newDialog(true).setTitle("Error").setMessage("An error occurred:\n" + e.javaClass.simpleName + "  " + e.message)
+							.setNegativeButton("Ignore", null)
+							.setPositiveButton("Report", object : DialogInterface.OnClickListener {
+								override fun onClick(dialog: DialogInterface, which: Int) {
+									try {
+										val saveFile = File(cacheDir, "gameError.txt")
+										if (gameFile.exists()) {
+											FileUtils.copyFile(gameFile, saveFile)
+										} else {
+											saveToFile(saveFile)
+										}
+										EmailHelper.sendEmail(this@SOCActivity, saveFile, "sebisoftware@gmail.com", "SOC Crash log", Utils.toString(e.stackTrace))
+									} catch (e: Exception) {
+										e.printStackTrace()
+									}
+								}
+							}).show()
+					}
+				})
+			}
 
-        QUIT         = new MenuItem(getString(R.string.menu_item_quit),      getString(R.string.menu_item_quit_help), this);
-        BUILDABLES   = new MenuItem(getString(R.string.menu_item_buildables), getString(R.string.menu_item_buildables_help), this);
-        RULES        = new MenuItem(getString(R.string.menu_item_rules),     getString(R.string.menu_item_rules_help), this);
-        START        = new MenuItem(getString(R.string.menu_item_start),     getString(R.string.menu_item_start_help), this);
-        CONSOLE      = new MenuItem(getString(R.string.menu_item_console), getString(R.string.menu_item_console_help), this);
+			override fun printinfo(playerNum: Int, txt: String) {
+				vConsole.scrollTo(0, 0)
+				super.printinfo(playerNum, txt)
+			}
 
-        SINGLE_PLAYER= new MenuItem(getString(R.string.menu_item_sp), null, this);
-        MULTI_PLAYER = new MenuItem(getString(R.string.menu_item_mp), null, this);
-        RESUME       = new MenuItem(getString(R.string.menu_item_resume), null, this);
-        LOADSAVED    = new MenuItem("Load Saved", null, this);
-        BOARDS       = new MenuItem(getString(R.string.menu_item_boards), null, this);
-        SCENARIOS    = new MenuItem(getString(R.string.menu_item_scenarios), null, this);
+			override fun cancel() {
+				if (user.client.isConnected) {
+					user.client.cancelRemote()
+				}
+				super.cancel()
+			}
+		}
+		soc.setBoard(vBoard.getRenderer().getBoard())
+		val rules = Rules()
+		if (rules.tryLoadFromFile(rulesFile)) {
+			soc.setRules(rules)
+		}
+		val aiTuning = Properties()
+		try {
+			val `in` = assets.open("aituning.properties")
+			try {
+				aiTuning.load(`in`)
+			} finally {
+				`in`.close()
+			}
+		} catch (e: Exception) {
+			e.printStackTrace()
+		}
+		AITuning.setInstance(object : AITuning() {
+			override fun getScalingFactor(property: String): Double {
+				if (!aiTuning.containsKey(property)) {
+					aiTuning.setProperty(property, "1.0")
+					return 1.0
+				}
+				return java.lang.Double.valueOf(aiTuning.getProperty(property))
+			}
+		})
+	}
 
-        final ArrayList<Object[]> menu = new ArrayList<>();
-        final BaseAdapter adapter = new ArrayListAdapter<Object[]>(this, menu, R.layout.menu_list_item) {
+	val user = UIPlayerUser()
+	val DIVIDER = MenuItem(null, null, null)
+	var QUIT: MenuItem? = null
+	var BUILDABLES: MenuItem? = null
+	var RULES: MenuItem? = null
+	var START: MenuItem? = null
+	var CONSOLE: MenuItem? = null
+	var SINGLE_PLAYER: MenuItem? = null
+	var MULTI_PLAYER: MenuItem? = null
+	var RESUME: MenuItem? = null
+	var LOADSAVED: MenuItem? = null
+	var BOARDS: MenuItem? = null
+	var SCENARIOS: MenuItem? = null
+	fun quitGame() {
+		soc.server.stop()
+		soc.clear()
+		vBoard.getRenderer().setPickHandler(null)
+		soc.stopRunning()
+		user.client.disconnect("player quit")
+		soc.clearMenu()
+		showStartMenu()
+	}
 
-            @Override
-            protected void initItem(View v, final int position, Object[] item) {
-                final MenuItem mi = (MenuItem) item[0];
-                final String title = (String) item[1];
-                final String helpText = (String) item[2];
-                final Object extra = item[3];
+	override fun onAction(item: MenuItem, extra: Any?) {
+		if (item == QUIT) {
+			newDialog(true).setTitle("Confirm").setMessage("Ae you sure you want to quit the game?")
+				.setPositiveButton("Quit") { dialog, which -> quitGame() }.show()
+		} else if (item == BUILDABLES) {
+			showBuildablesDialog()
+		} else if (item == RULES) {
+			showRulesDialog()
+		} else if (item == START) {
+			soc.clearMenu()
+			soc.board.assignRandom()
+			soc.startGameThread()
+			vBoard.getRenderer().clearCached()
+		} else if (item == CONSOLE) {
+			//showConsole();
+		} else if (item == SINGLE_PLAYER) {
+			showSinglePlayerDialog()
+		} else if (item == MULTI_PLAYER) {
+			showMultiPlayerDialog()
+		} else if (item == RESUME) {
+			try {
+				if (BuildConfig.DEBUG) {
+					//FileUtils.copyFile(gameFile, externalStorageDirectory);
+					// User can put a fixed file onto sdcard to overwrite the current save file.
+					// It will be deleted when done
+					val fixed = File(externalStorageDirectory, "fixed.txt")
+					if (fixed.exists()) {
+						FileUtils.copyFile(fixed, gameFile)
+						fixed.delete()
+					}
+				}
+				object : SpinnerTask<String>(this) {
+					@Throws(Exception::class)
+					override fun doIt(vararg args: String) {
+						soc.loadFromFile(gameFile)
+					}
 
-                View vDivider = v.findViewById(R.id.ivDivider);
-                TextView tvTitle = (TextView) v.findViewById(R.id.tvTitle);
-                final TextView tvHelp = (TextView) v.findViewById(R.id.tvHelp);
-                View bAction = v.findViewById(R.id.bAction);
-                View content= v.findViewById(R.id.layoutContent);
+					override fun onSuccess() {
+						initGame()
+					}
+				}.execute()
+			} catch (e: Exception) {
+				(extra as View).isEnabled = false
+				soc.clear()
+				showError(e)
+			}
+		} else if (item == LOADSAVED) {
+			externalStorageDirectory.list { dir, name -> name.endsWith(".txt") }?.let { files ->
+				newDialog(true).setTitle("Load saved").setItems(files) { dialog, which ->
+					if (soc.tryLoadFromFile(File(externalStorageDirectory, files[which]))) {
+						initGame()
+					} else {
+						Toast.makeText(this@SOCActivity, "Problem loading '" + files[which], Toast.LENGTH_LONG).show()
+					}
+				}.setNegativeButton("Cancel", null).show()
+			}
+		} else if (item == BOARDS) {
+			showBoardsDialog()
+		} else if (item == SCENARIOS) {
+			showScenariosDialog()
+		}
+	}
 
-                if (mi == DIVIDER) {
-                    vDivider.setVisibility(View.VISIBLE);
-                    content.setVisibility(View.GONE);
-                    tvHelp.setVisibility(View.GONE);
-                } else {
-                    vDivider.setVisibility(View.GONE);
-                    content.setVisibility(View.VISIBLE);
-                    tvTitle.setText(title);
-                    tvHelp.setText(helpText);
-                    bAction.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            mi.action.onAction(mi, extra);
-                        }
-                    });
-                    tvHelp.setVisibility(helpItem == position ? View.VISIBLE : View.GONE);
+	fun showError(e: Exception) {
+		newDialog(true).setTitle("ERROR").setMessage("AN error occured: " + e.javaClass.simpleName + " " + e.message).show()
+	}
 
-                    if (!Utils.isEmpty(helpText)) {
-                        v.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                if (helpItem == position)
-                                    helpItem = -1;
-                                else
-                                    helpItem = position;
-                                notifyDataSetChanged();
-                            }
-                        });
+	fun showMultiPlayerDialog() {
+		val mpItems = arrayOf(
+			"Host",
+			"Join",
+			"Resume"
+		)
+		newDialog(true).setTitle("MULTIPLAYER")
+			.setItems(mpItems, object : DialogInterface.OnClickListener {
+				override fun onClick(dialog: DialogInterface, which: Int) {
+					when (which) {
+						0 -> showHostMultiPlayerDialog()
+						1 -> showJoinMultiPlayerDialog()
+						2 -> showResumeMultiPlayerDialog()
+					}
+				}
+			}).show()
+	}
 
-                    } else {
-                        v.setOnClickListener(null);
-                    }
-                }
-            }
-        };
-        lvMenu.setAdapter(adapter);
-
-        gameFile = new File(getFilesDir(), "save.txt");
-        rulesFile = new File(getFilesDir(), "rules.txt");
-
-        final UIPlayerRenderer[] players = new UIPlayerRenderer[SOC.MAX_PLAYERS];
-
-        for (int i=0; i<players.length; i++) {
-            players[i] = this.vPlayers[i].renderer;
-        }
-
-        soc = new UISOC(players, vBoard.renderer, vDice.renderer, vConsole.renderer, vEvent.renderer, vBarbarian.renderer) {
-            @Override
-            protected void addMenuItem(MenuItem item, String title, String helpText, Object extra) {
-                menu.add(new Object[]{
-                        item, title, helpText, extra
-                });
-            }
-
-            @Override
-            public void completeMenu() {
-                addMenuItem(DIVIDER);
-                super.completeMenu();
-//                    addMenuItem(CONSOLE);
-                addMenuItem(BUILDABLES);
-                addMenuItem(RULES);
-                addMenuItem(QUIT);
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        adapter.notifyDataSetChanged();
-                    }
-                });
-            }
-
-            @Override
-            public void clearMenu() {
-                helpItem = -1;
-                menu.clear();
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        adapter.notifyDataSetChanged();
-                    }
-                });
-            }
-
-            @Override
-            public void redraw() {
-                runOnUiThread(new Runnable() {
-                    public void run() {
-                        if (soc.getCurPlayerNum() > 0) {
-                            svPlayers.smoothScrollTo(0, vPlayers[soc.getCurPlayerNum() - 1].getTop());
-                            //content.invalidate();
-                            //vConsole.requestLayout();
-                            vConsole.redraw();
-                            for (final SOCView v : vPlayers) {
-                                //v.requestLayout();
-                                v.redraw();
-                            }
-                            vBarbarian.redraw();
-                            tvHelpText.setText(getHelpText());
-                            vBoard.redraw();
-                            vDice.redraw();
-                        }
-                    }
-                });
-            }
-
-            @Override
-            protected void showOkPopup(final String title, final String message) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        newDialog(true).setTitle(title).setMessage(message).setNeutralButton("OK", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                synchronized (soc) {
-                                    soc.notify();
-                                }
-                            }
-                        }).show();
-                    }
-                });
-                Utils.waitNoThrow(this, -1);
-            }
-
-            @Override
-            protected String showChoicePopup(final String title, final List<String> choices) {
-                final String [] choice = new String[1];
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        final String [] items = choices.toArray(new String[choices.size()]);
-                        newDialog(false).setTitle(title).setItems(items, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                choice[0] = items[which];
-                            }
-                        });
-                    }
-                });
-                Utils.waitNoThrow(this, -1);
-                return choice[0];
-            }
-
-            @Override
-            protected String getServerName() {
-                return Build.BRAND + "." + Build.PRODUCT;
-            }
-
-            @Override
-            protected void onShouldSaveGame() {
-                trySaveToFile(gameFile);
-                if (BuildConfig.DEBUG) try {
-                    FileUtils.backupFile(Environment.getExternalStorageDirectory().getAbsolutePath() + "/socsave.txt", 20);
-                    FileUtils.copyFile(gameFile, new File(Environment.getExternalStorageDirectory(), "socsave.txt"));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-            @Override
-            protected void onGameOver(int winnerNum) {
-                super.onGameOver(winnerNum);
-                clearMenu();
-                addMenuItem(QUIT);
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        adapter.notifyDataSetChanged();
-                    }
-                });
-            }
-
-            @Override
-            protected void onRunError(final Throwable e) {
-                super.onRunError(e);
-                if (BuildConfig.DEBUG) {
-                    // write crashes to sdcard for eval later
-                    try {
-                        File tmpDir = File.createTempFile("crash", "", Environment.getExternalStorageDirectory());
-                        tmpDir.delete();
-                        tmpDir.mkdir();
-                        File crash = new File(tmpDir, "stack.txt");
-                        FileUtils.stringToFile(e.toString(), crash);
-                        FileUtils.copyFile(gameFile, tmpDir);
-                    } catch (Exception ee) {
-                    }
-                }
-                runOnUiThread(new Runnable() {
-                    public void run() {
-                        showStartMenu();
-                        newDialog(true).setTitle("Error").setMessage("An error occurred:\n" + e.getClass().getSimpleName() + "  " + e.getMessage())
-                                .setNegativeButton("Ignore", null)
-                                .setPositiveButton("Report", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        try {
-                                            File saveFile = new File(getCacheDir(),"gameError.txt");
-                                            if (gameFile.exists()) {
-                                                FileUtils.copyFile(gameFile, saveFile);
-                                            } else {
-                                                saveToFile(saveFile);
-                                            }
-                                            EmailHelper.sendEmail(SOCActivity.this, saveFile, "sebisoftware@gmail.com", "SOC Crash log", Utils.toString(e.getStackTrace()));
-                                        } catch (Exception e) {
-                                            e.printStackTrace();
-                                        }
-                                    }
-                                }).show();
-                    }
-                });
-            }
-
-            @Override
-            public void printinfo(int playerNum, String txt) {
-                vConsole.scrollTo(0, 0);
-                super.printinfo(playerNum, txt);
-            }
-
-            @Override
-            public void cancel() {
-                if (user.client.isConnected()) {
-                    user.client.cancelRemote();
-                }
-                super.cancel();
-            }
-        };
-        soc.setBoard(vBoard.getRenderer().getBoard());
-        Rules rules = new Rules();
-        if (rules.tryLoadFromFile(rulesFile)) {
-            soc.setRules(rules);
-        }
-
-        final Properties aiTuning = new Properties();
-        try {
-            InputStream in = getAssets().open("aituning.properties");
-            try {
-                aiTuning.load(in);
-            } finally {
-                in.close();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        AITuning.setInstance(new AITuning() {
-
-            @Override
-            public double getScalingFactor(String property) {
-                if (!aiTuning.containsKey(property)) {
-                    aiTuning.setProperty(property, "1.0");
-                    return 1.0;
-                }
-
-                return Double.valueOf(aiTuning.getProperty(property));
-            }
-        });
-
-    }
-
-
-
-    final UIPlayerUser user = new UIPlayerUser();
-
-    final MenuItem DIVIDER = new MenuItem(null, null, null);
-    MenuItem QUIT;
-    MenuItem BUILDABLES;
-    MenuItem RULES;
-    MenuItem START;
-    MenuItem CONSOLE;
-
-    MenuItem SINGLE_PLAYER;
-    MenuItem MULTI_PLAYER;
-    MenuItem RESUME;
-    MenuItem LOADSAVED;
-    MenuItem BOARDS;
-    MenuItem SCENARIOS;
-
-    void quitGame() {
-        soc.server.stop();
-        soc.clear();
-        vBoard.renderer.setPickHandler(null);
-        soc.stopRunning();
-        user.client.disconnect("player quit");
-        soc.clearMenu();
-        showStartMenu();
-    }
-
-    @Override
-    public void onAction(MenuItem item, Object extra) {
-        if (item == QUIT) {
-            newDialog(true).setTitle("Confirm").setMessage("Ae you sure you want to quit the game?")
-                    .setPositiveButton("Quit", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            quitGame();
-                        }
-                    }).show();
-        } else if (item == BUILDABLES) {
-            showBuildablesDialog();
-        } else if (item == RULES) {
-            showRulesDialog();
-        } else if (item == START) {
-            soc.clearMenu();
-            soc.getBoard().assignRandom();
-            soc.startGameThread();
-            vBoard.renderer.clearCached();
-        } else if (item == CONSOLE) {
-            //showConsole();
-        } else if (item == SINGLE_PLAYER) {
-            showSinglePlayerDialog();
-        } else if (item == MULTI_PLAYER) {
-            showMultiPlayerDialog();
-        } else if (item == RESUME) {
-            try {
-                if (cc.game.soc.android.BuildConfig.DEBUG) {
-                    //FileUtils.copyFile(gameFile, Environment.getExternalStorageDirectory());
-                    // User can put a fixed file onto sdcard to overwrite the current save file.
-                    // It will be deleted when done
-                    File fixed = new File(Environment.getExternalStorageDirectory(), "fixed.txt");
-                    if (fixed.exists()) {
-                        FileUtils.copyFile(fixed, gameFile);
-                        fixed.delete();
-                    }
-                }
-
-                new SpinnerTask<String>(this) {
-
-                    @Override
-                    protected void doIt(String... args) throws Exception {
-                        soc.loadFromFile(gameFile);
-                    }
-
-                    @Override
-                    protected void onSuccess() {
-                        initGame();
-                    }
-
-                }.execute();
-            } catch (Exception e) {
-                if (extra != null)
-                    ((View) extra).setEnabled(false);
-                soc.clear();
-                showError(e);
-            }
-        } else if (item == LOADSAVED) {
-            final String [] files = Environment.getExternalStorageDirectory().list(new FilenameFilter() {
-                @Override
-                public boolean accept(File dir, String name) {
-                    return name.endsWith(".txt");
-                }
-            });
-            newDialog(true).setTitle("Load saved").setItems(files, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    if (soc.tryLoadFromFile(new File(Environment.getExternalStorageDirectory(), files[which]))) {
-                        initGame();
-                    } else {
-                        Toast.makeText(SOCActivity.this, "Problem loading '" + files[which], Toast.LENGTH_LONG).show();
-                    }
-                }
-            }).setNegativeButton("Cancel", null).show();
-        } else if (item == BOARDS) {
-            showBoardsDialog();
-        } else if (item == SCENARIOS) {
-            showScenariosDialog();
-        }
-    }
-
-    void showError(Exception e) {
-        newDialog(true).setTitle("ERROR").setMessage("AN error occured: " + e.getClass().getSimpleName() + " " + e.getMessage()).show();
-    }
-
-    void showMultiPlayerDialog() {
-        String [] mpItems = {
-                "Host",
-                "Join",
-                "Resume"
-        };
-        newDialog(true).setTitle("MULTIPLAYER")
-                .setItems(mpItems, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        switch (which) {
-                            case 0: // host
-                                showHostMultiPlayerDialog();
-                                break;
-                            case 1: // join
-                                showJoinMultiPlayerDialog();
-                                break;
-                            case 2:
-                                showResumeMultiPlayerDialog();
-                                break;
-                        }
-                    }
-                }).show();
-    }
-
-    void showJoinMultiPlayerDialog() {
-        /*
+	fun showJoinMultiPlayerDialog() {
+		/*
         user.client.register(NetCommon.SOC_ID, UISOC.getInstance());
         user.client.register(NetCommon.USER_ID, user);
 
@@ -562,95 +421,82 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
         };
         mpGame.showJoinGameDialog();
         user.client.addListener(this);*/
-    }
+	}
 
-    @Override
-    public void onCommand(GameCommand cmd) {
-        try {
+	override fun onCommand(cmd: GameCommand) {
+		try {
+			if ((cmd.type == NetCommon.SVR_TO_CL_INIT)) {
+				val soc = UISOC.getInstance()
+				soc.clear()
+				val num = cmd.getInt("numPlayers")
+				val playerNum = cmd.getInt("playerNum")
+				for (i in 0 until playerNum - 1) {
+					soc.addPlayer(UIPlayer())
+				}
+				soc.addPlayer(user)
+				for (i in playerNum until num) {
+					soc.addPlayer(UIPlayer())
+				}
+				cmd.parseReflector("soc", soc)
+				runOnUiThread(object : Runnable {
+					override fun run() {
+						initGame()
+						soc.redraw()
+					}
+				})
+			} else if ((cmd.type == NetCommon.SVR_TO_CL_UPDATE)) {
+				UISOC.getInstance().merge(cmd.getString("diff"))
+				UISOC.getInstance().refreshComponents()
+				UISOC.getInstance().redraw()
+			}
+			soc.clearMenu()
+			soc.completeMenu()
+		} catch (e: Exception) {
+			e.printStackTrace()
+		}
+	}
 
-            if (cmd.getType().equals(NetCommon.SVR_TO_CL_INIT)) {
-                final UISOC soc = UISOC.getInstance();
-                soc.clear();
-                int num = cmd.getInt("numPlayers");
-                int playerNum = cmd.getInt("playerNum");
-                for (int i=0; i<playerNum-1; i++) {
-                    soc.addPlayer(new UIPlayer());
-                }
-                soc.addPlayer(user);
-                for (int i=playerNum; i<num; i++) {
-                    soc.addPlayer(new UIPlayer());
-                }
+	override fun onMessage(msg: String) {
+		log.info("onMessage: %s", msg)
+	}
 
-                cmd.parseReflector("soc", soc);
-                runOnUiThread(new Runnable() {
-                    public void run() {
-                        initGame();
-                        soc.redraw();
-                    }
-                });
-            } else if (cmd.getType().equals(NetCommon.SVR_TO_CL_UPDATE)) {
-                UISOC.getInstance().merge(cmd.getString("diff"));
-                UISOC.getInstance().refreshComponents();
-                UISOC.getInstance().redraw();
-            }
+	override fun onDisconnected(reason: String, serverInitiated: Boolean) {
+		log.info("onDisconnected: %s", reason)
+	}
 
-            soc.clearMenu();
-            soc.completeMenu();
+	override fun onConnected() {
+		log.info("onConnected")
+	}
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+//	interface Callback<T> {
+//		fun onComplete(argument: T)
+//	}
 
-    }
+	val colorStrings = arrayOf(
+		"Red", "Green", "Blue", "Yellow", "Orange", "Pink"
+	)
+	val colors = arrayOf(
+		GColor.RED, GColor.GREEN, GColor.BLUE.lightened(.2f), GColor.YELLOW, GColor.ORANGE, GColor.PINK
+	)
 
-    @Override
-    public void onMessage(String msg) {
-        log.info("onMessage: %s", msg);
-    }
+	fun showChooseColorDialog(andThen: (Int) -> Unit) {
+		newDialog(true).setTitle("Pick Color").setItems(colorStrings, object : DialogInterface.OnClickListener {
+			override fun onClick(dialog: DialogInterface, which: Int) {
+				andThen(which)
+			}
+		}).show()
+	}
 
-    @Override
-    public void onDisconnected(String reason, boolean serverInitiated) {
-        log.info("onDisconnected: %s", reason);
-    }
+	fun showResumeMultiPlayerDialog() {
+		object : SpinnerTask<String>(this) {
+			@Throws(Exception::class)
+			override fun doIt(vararg args: String) {
+				soc.loadFromFile(gameFile)
+			}
 
-    @Override
-    public void onConnected() {
-        log.info("onConnected");
-    }
-
-    interface Callback<T> {
-        void onComplete(T argument);
-    }
-
-    final String [] colorStrings = {
-            "Red", "Green", "Blue", "Yellow", "Orange", "Pink"
-    };
-    final GColor[]  colors = {
-            GColor.RED, GColor.GREEN, GColor.BLUE.lightened(.2f), GColor.YELLOW, GColor.ORANGE, GColor.PINK
-    };
-
-    void showChooseColorDialog(final Callback<Integer> andThen) {
-        newDialog(true).setTitle("Pick Color").setItems(colorStrings, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(final DialogInterface dialog, int which) {
-                andThen.onComplete(which);
-            }
-        }).show();
-
-    }
-
-    void showResumeMultiPlayerDialog() {
-        new SpinnerTask<String>(this) {
-
-            @Override
-            protected void doIt(String... args) throws Exception {
-                soc.loadFromFile(gameFile);
-            }
-
-            @Override
-            protected void onSuccess() {
-                soc.redraw();
-                /*
+			override fun onSuccess() {
+				soc.redraw()
+				/*
                 mpGame = new MPGameManager(SOCActivity.this, soc.server, soc.getNumPlayers()-1) {
                     @Override
                     public void onAllClientsJoined() {
@@ -659,27 +505,24 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
                     }
                 };
                 mpGame.startHostMultiplayer();*/
-            }
+			}
+		}.execute()
+	}
 
-        }.execute();
-    }
-
-    void showHostMultiPlayerDialog() {
-        showChooseNumPlayersDialog(new Callback<Integer>() {
-            @Override
-            public void onComplete(final Integer numPlayers) {
-                showChooseColorDialog(new Callback<Integer>() {
-                    @Override
-                    public void onComplete(Integer which) {
-                        user.setColor(colors[which]);
-                        soc.clear();
-                        soc.addPlayer(user);
-                        while (soc.getNumPlayers() < numPlayers) {
-                            UIPlayer p = new UIPlayer();
-                            p.setColor(soc.getAvailableColors().entrySet().iterator().next().getValue());
-                            soc.addPlayer(p);
-                        }
-                        /*
+	fun showHostMultiPlayerDialog() {
+		/*
+		showChooseNumPlayersDialog() { param ->
+			showChooseColorDialog(object : (Int)->(Int) {
+					override fun onComplete(which: Int) {
+						user.color = colors.get((which))
+						soc.clear()
+						soc.addPlayer(user)
+						while (soc.numPlayers < numPlayers) {
+							val p = UIPlayer()
+							p.color = soc.availableColors.entries.iterator().next().value
+							soc.addPlayer(p)
+						}
+						/*
                         mpGame = new MPGameManager(SOCActivity.this, soc.server, numPlayers-1) {
                             @Override
                             public void onAllClientsJoined() {
@@ -690,516 +533,458 @@ public class SOCActivity extends CCActivityBase implements MenuItem.Action, View
                         };
                         mpGame.startHostMultiplayer();
                          */
-                    }
-                });
-            }
-        });
+					}
+				})
+			}
+		})*/
+	}
 
-    }
+	fun showChooseNumPlayersDialog(andThen: (Int) -> Unit) {
+		val minPlayers = soc.rules.minPlayers
+		val maxPlayers = soc.rules.maxPlayers
+		if (minPlayers >= maxPlayers) {
+			andThen(minPlayers)
+		} else {
+			val items = arrayOfNulls<String>(maxPlayers - minPlayers)
+			var index = 0
+			for (i in minPlayers until maxPlayers) {
+				items[index++] = i.toString()
+			}
+			newDialog(true).setTitle("Num Players").setItems(items, object : DialogInterface.OnClickListener {
+				override fun onClick(dialog: DialogInterface, which: Int) {
+					val numPlayers = which + minPlayers
+					andThen(numPlayers)
+				}
+			}).setNegativeButton("Cancel", null).show()
+		}
+	}
 
-    void showChooseNumPlayersDialog(final Callback<Integer> andThen) {
-        final int minPlayers = soc.getRules().getMinPlayers();
-        final int maxPlayers = soc.getRules().getMaxPlayers();
+	fun showSinglePlayerDialog() {
+		showChooseNumPlayersDialog { numPlayers ->
+			showChooseColorDialog { which ->
+				user.color = colors.get(which)
+				soc.clear()
+				soc.addPlayer(user)
+				for (i in 1 until numPlayers) {
+					val nextColor = (which + i) % colors.size
+					soc.addPlayer(UIPlayer(colors[nextColor]))
+				}
+				soc.initGame()
+				initGame()
+			}
+		}
+	}
 
-        if (minPlayers >=  maxPlayers) {
-            andThen.onComplete(minPlayers);
-        } else {
-            final String [] items = new String[maxPlayers-minPlayers];
-            int index = 0;
-            for (int i=minPlayers; i<maxPlayers; i++) {
-                items[index++] = String.valueOf(i);
-            }
-            newDialog(true).setTitle("Num Players").setItems(items, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    final int numPlayers = which + minPlayers;
-                    andThen.onComplete(numPlayers);
-                }
-            }).setNegativeButton("Cancel", null).show();
-        }
-    }
+	fun showScenariosDialog() {
+		assets.list("scenarios")?.let { scenarios ->
+			newDialog(true).setTitle("Load Scenario").setItems(scenarios, object : DialogInterface.OnClickListener {
+				override fun onClick(dialog: DialogInterface, which: Int) {
+					object : SpinnerTask<String>(this@SOCActivity) {
+						@Throws(Exception::class)
+						override fun doIt(vararg args: String) {
+							val `in` = assets.open("scenarios/" + scenarios[which])
+							try {
+								val scenario = SOC()
+								scenario.deserialize(`in`)
+								soc.copyFrom(scenario)
+							} finally {
+								`in`.close()
+							}
+						}
 
-    void showSinglePlayerDialog() {
-        showChooseNumPlayersDialog(new Callback<Integer>() {
-            @Override
-            public void onComplete(final Integer numPlayers) {
-                showChooseColorDialog(new Callback<Integer>() {
-                    @Override
-                    public void onComplete(Integer which) {
-                        user.setColor(colors[which]);
-                        soc.clear();
-                        soc.addPlayer(user);
-                        for (int i = 1; i < numPlayers; i++) {
-                            int nextColor = (which + i) % colors.length;
-                            soc.addPlayer(new UIPlayer(colors[nextColor]));
-                        }
-                        soc.initGame();
-                        initGame();
-                    }
-                });
-            }
-        });
-    }
+						override fun onSuccess() {
+							vBoard.invalidate()
+							vBoard.getRenderer().clearCached()
+						}
+					}.execute()
+				}
+			}).setNegativeButton("Cancel", null).show()
+		}?:run {
+			Toast.makeText(this, "No Scenarios", Toast.LENGTH_LONG).show()
+		}
+	}
 
-    void showScenariosDialog() {
-        try {
-            final String [] scenarios = getAssets().list("scenarios");
-            newDialog(true).setTitle("Load Scenario").setItems(scenarios, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, final int which) {
+	fun showBoardsDialog() {
+		assets.list("boards")?.let { boards ->
+			newDialog(true).setTitle("Load Board").setItems(boards, object : DialogInterface.OnClickListener {
+				override fun onClick(dialog: DialogInterface, which: Int) {
+					try {
+						val `in` = assets.open("boards/" + boards[which])
+						try {
+							val b = Board()
+							b.deserialize(`in`)
+							soc.board = b
+							vBoard.getRenderer().clearCached()
+							vBoard.invalidate()
+						} finally {
+							`in`.close()
+						}
+					} catch (e: IOException) {
+						showError(e)
+					}
+				}
+			}).setNegativeButton("Cancel", null).show()
+		} ?: run {
+			Toast.makeText(this, "No Boards", Toast.LENGTH_LONG).show()
+		}
+	}
 
-                    new SpinnerTask<String>(SOCActivity.this) {
-                        @Override
-                        protected void doIt(String... args) throws Exception {
-                            InputStream in = getAssets().open("scenarios/" + scenarios[which]);
-                            try {
-                                SOC scenario = new SOC();
-                                scenario.deserialize(in);
-                                soc.copyFrom(scenario);
-                            } finally {
-                                in.close();
-                            }
-                        }
+	fun showStartMenu() {
+		vBarbarian.visibility = View.GONE
+		vEvent.visibility = View.GONE
+		vDice.visibility = View.GONE
+		svPlayers.visibility = View.GONE
+		tvHelpText.visibility = View.GONE
+		lvMenu.visibility = View.VISIBLE
+		soc.clearMenu()
+		soc.addMenuItem(SINGLE_PLAYER)
+		soc.addMenuItem(MULTI_PLAYER)
+		soc.addMenuItem(RESUME)
+		if (BuildConfig.DEBUG) {
+			soc.addMenuItem(LOADSAVED)
+		}
+		if (BuildConfig.DEBUG) soc.addMenuItem(BOARDS)
+		soc.addMenuItem(SCENARIOS)
+		soc.addMenuItem(RULES)
+		vBoard.getRenderer().clearCached()
+	}
 
-                        @Override
-                        protected void onSuccess() {
-                            vBoard.invalidate();
-                            vBoard.renderer.clearCached();
-                        }
-                    }.execute();
-                }
-            }).setNegativeButton("Cancel", null).show();
-        } catch (Exception e) {
-            log.error(e);
-        }
-    }
+	fun initGame() {
+		var index = 1
+		svPlayers.visibility = View.VISIBLE
+		for (i in 1 until vPlayers.size) {
+			vPlayers.get(i).visibility = View.GONE
+		}
+		for (i in 1..soc.numPlayers) {
+			if (soc.getPlayerByPlayerNum(i) is UIPlayerUser) {
+				vPlayers[0].getRenderer().setPlayer(i)
+			} else {
+				vPlayers[index].setVisibility(View.VISIBLE)
+				vPlayers[index++].getRenderer().setPlayer(i)
+			}
+		}
+		soc.clearMenu()
+		if (user.client.isConnected) {
+			soc.clearMenu()
+			vBoard.getRenderer().clearCached()
+		} else soc.addMenuItem(START)
+		soc.completeMenu()
+		vBarbarian.visibility = if (soc.rules.isEnableCitiesAndKnightsExpansion) View.VISIBLE else View.GONE
+		if (soc.rules.isEnableEventCards) {
+			vEvent.visibility = View.VISIBLE
+			vDice.setVisibility(View.GONE)
+		} else {
+			vEvent.visibility = View.GONE
+			vDice.setVisibility(View.VISIBLE)
+		}
+		clearDialogs()
+		vBoard.getRenderer().clearCached()
+		tvHelpText.visibility = View.VISIBLE
+	}
 
-    void showBoardsDialog() {
-        try {
-            final String[] boards = getAssets().list("boards");
-            newDialog(true).setTitle("Load Board").setItems(boards, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
+	fun showBuildablesDialog() {
+		val columnNames = Vector<String>()
+		columnNames.add("Buildable")
+		for (r: ResourceType in ResourceType.values()) {
+			columnNames.add(" ${r.name} ")
+		}
+		val rowData = Vector<Vector<String>>()
+		for (b: BuildableType in BuildableType.values()) {
+			if (b.isAvailable(soc)) {
+				val row = Vector<String>()
+				row.add(b.name)
+				for (r: ResourceType? in ResourceType.values()) row.add(b.getCost(r).toString())
+				rowData.add(row)
+			}
+		}
+		val table = TableLayout(this)
+		val header = TableRow(this)
+		val params = TableLayout.LayoutParams()
+		params.width = TableLayout.LayoutParams.WRAP_CONTENT
+		//params.rightMargin = (int)getResources().getDimension(R.dimen.margin);
+		for (s: String? in columnNames) {
+			val t = TextView(this)
+			t.text = s
+			header.addView(t)
+		}
+		table.addView(header)
+		for (r: Vector<String> in rowData) {
+			var gravity = Gravity.LEFT
+			val row = TableRow(this)
+			for (s: String? in r) {
+				val t = TextView(this)
+				t.text = s
+				t.gravity = gravity
+				gravity = Gravity.CENTER
+				row.addView(t)
+			}
+			table.addView(row)
+		}
+		newDialog(true).setTitle("Buildables").setView(table).setNegativeButton("Ok", null).show()
+	}
 
-                    try {
-                        InputStream in = getAssets().open("boards/" + boards[which]);
-                        try {
-                            Board b = new Board();
-                            b.deserialize(in);
-                            soc.setBoard(b);
-                            vBoard.renderer.clearCached();
-                            vBoard.invalidate();
-                        } finally {
-                            in.close();
-                        }
-                    } catch (IOException e) {
-                        showError(e);
-                    }
-                }
-            }).setNegativeButton("Cancel", null).show();
-        } catch (Exception e) {
-            log.error(e);
-        }
-    }
+	internal inner class RuleItem : Comparable<RuleItem> {
+		val `var`: Variation
+		val min: Int
+		val max: Int
+		val stringId: String
+		val order: Int
+		val field: Field?
 
-    void showStartMenu() {
-        vBarbarian.setVisibility(View.GONE);
-        vEvent.setVisibility(View.GONE);
-        vDice.setVisibility(View.GONE);
-        svPlayers.setVisibility(View.GONE);
-        tvHelpText.setVisibility(View.GONE);
-        lvMenu.setVisibility(View.VISIBLE);
-        soc.clearMenu();
-        soc.addMenuItem(SINGLE_PLAYER);
-        soc.addMenuItem(MULTI_PLAYER);
-        soc.addMenuItem(RESUME);
-        if (cc.game.soc.android.BuildConfig.DEBUG) {
-            soc.addMenuItem(LOADSAVED);
-        }
-        if (cc.game.soc.android.BuildConfig.DEBUG)
-            soc.addMenuItem(BOARDS);
-        soc.addMenuItem(SCENARIOS);
-        soc.addMenuItem(RULES);
+		constructor(`var`: Variation) {
+			this.`var` = `var`
+			max = 0
+			min = max
+			field = null
+			stringId = `var`.stringId
+			order = 0
+		}
 
-        vBoard.renderer.clearCached();
-    }
+		constructor(rule: Rules.Rule, field: Field?) {
+			`var` = rule.variation
+			min = rule.minValue
+			max = rule.maxValue
+			this.field = field
+			stringId = rule.stringId
+			order = rule.order
+		}
 
-    void initGame() {
+		override fun compareTo(o: RuleItem): Int {
+			if (`var` != o.`var`) return `var`.compareTo(o.`var`)
+			if (order != o.order) return order - o.order
+			if (field == null) return -1
+			return if (o.field == null) 1 else field.name.compareTo(o.field.name)
+		}
+	}
 
-        int index = 1;
-        svPlayers.setVisibility(View.VISIBLE);
-        for (int i = 1; i< vPlayers.length; i++) {
-            vPlayers[i].setVisibility(View.GONE);
-        }
-        for (int i=1; i<=soc.getNumPlayers(); i++) {
-            if (soc.getPlayerByPlayerNum(i) instanceof UIPlayerUser) {
-                vPlayers[0].renderer.setPlayer(i);
-            } else {
-                vPlayers[index].setVisibility(View.VISIBLE);
-                vPlayers[index++].renderer.setPlayer(i);
-            }
-        }
+	internal inner class RulesAdapter(val rules: Rules, val canEdit: Boolean) : BaseAdapter(), CompoundButton.OnCheckedChangeListener, View.OnClickListener {
+		val rulesList: MutableList<RuleItem> = ArrayList()
+		override fun getCount(): Int {
+			return rulesList.size
+		}
 
-        soc.clearMenu();
-        if (user.client.isConnected()) {
-            soc.clearMenu();
-            vBoard.renderer.clearCached();
-        } else
-            soc.addMenuItem(START);
-        soc.completeMenu();
-        vBarbarian.setVisibility(soc.getRules().isEnableCitiesAndKnightsExpansion() ? View.VISIBLE  : View.GONE);
-        if (soc.getRules().isEnableEventCards()) {
-            vEvent.setVisibility(View.VISIBLE);
-            vDice.setVisibility(View.GONE);
-        } else {
-            vEvent.setVisibility(View.GONE);
-            vDice.setVisibility(View.VISIBLE);
-        }
+		override fun getItem(position: Int): Any? {
+			return null
+		}
 
-        clearDialogs();
-        vBoard.renderer.clearCached();
-        tvHelpText.setVisibility(View.VISIBLE);
-    }
+		override fun getItemId(position: Int): Long {
+			return position.toLong()
+		}
 
-    void showBuildablesDialog() {
-        Vector<String> columnNames = new Vector<String>();
-        columnNames.add("Buildable");
-        for (ResourceType r : ResourceType.values()) {
-            columnNames.add(" " + r.getName() + " ");
+		override fun getView(position: Int, v: View?, parent: ViewGroup): View {
+			var v = v?:View.inflate(this@SOCActivity, R.layout.rules_list_item, null)
+			val tvHeader = v.findViewById<View>(R.id.tvHeader) as TextView
+			//TextView tvName    = (TextView)v.findViewById(R.id.tvName);
+			val tvDesc = v.findViewById<View>(R.id.tvDescription) as TextView
+			val cb = v.findViewById<View>(R.id.cbEnabled) as CompoundButton
+			val bEdit = v.findViewById<View>(R.id.bEdit) as Button
+			try {
+				val item = rulesList[position]
+				if (item.field == null) {
+					// header
+					tvHeader.visibility = View.VISIBLE
+					//tvName.setVisibility(View.GONE);
+					tvDesc.visibility = View.GONE
+					cb.visibility = View.GONE
+					bEdit.visibility = View.GONE
+					tvHeader.text = item.stringId
+				} else if ((item.field.type == Boolean::class.javaPrimitiveType)) {
+					// checkbox
+					tvHeader.visibility = View.GONE
+					//tvName.setVisibility(View.GONE);
+					tvDesc.visibility = View.VISIBLE
+					cb.visibility = View.VISIBLE
+					bEdit.visibility = View.GONE
+					//tvName.setText(item.field.getName());
+					tvDesc.text = item.stringId
+					cb.setOnCheckedChangeListener(null)
+					cb.isChecked = item.field.getBoolean(rules)
+					cb.isEnabled = canEdit
+					cb.tag = item
+					cb.setOnCheckedChangeListener(this)
+				} else if ((item.field.type == Int::class.javaPrimitiveType)) {
+					// numberpicker
+					tvHeader.visibility = View.GONE
+					//tvName.setVisibility(View.GONE);
+					tvDesc.visibility = View.VISIBLE
+					cb.visibility = View.GONE
+					bEdit.visibility = View.VISIBLE
+					//tvName.setText(item.field.getName());
+					tvDesc.text = item.stringId
+					val value = item.field.getInt(rules)
+					bEdit.text = value.toString()
+					bEdit.isEnabled = canEdit
+					bEdit.tag = item
+					bEdit.setOnClickListener(this)
+				} else {
+					throw AssertionError("Dont know how to handle field: " + item.field.name)
+				}
+			} catch (e: Exception) {
+				throw AssertionError(e)
+			}
+			return v
+		}
 
-        }
-        Vector<Vector<String>> rowData = new Vector<>();
-        for (BuildableType b : BuildableType.values()) {
-            if (b.isAvailable(soc)) {
-                Vector<String> row = new Vector<>();
-                row.add(b.name());
-                for (ResourceType r : ResourceType.values())
-                    row.add(String.valueOf(b.getCost(r)));
-                rowData.add(row);
-            }
-        }
+		override fun onClick(v: View) {
+			try {
+				val item = v.tag as RuleItem
+				val value = item.field!!.getInt(rules)
+				val np = CCNumberPicker.newPicker(this@SOCActivity, value, item.min, item.max, null)
+				newDialog(false).setTitle(item.field.name).setView(np).setNegativeButton("Cancel", null)
+					.setPositiveButton("Ok", object : DialogInterface.OnClickListener {
+						override fun onClick(dialog: DialogInterface, which: Int) {
+							try {
+								item.field.setInt(rules, np.value)
+								(v as Button).text = np.value.toString()
+							} catch (e: Exception) {
+								e.printStackTrace()
+							}
+						}
+					}).show()
+			} catch (e: Exception) {
+				throw AssertionError(e)
+			}
+		}
 
-        TableLayout table = new TableLayout(this);
-        TableRow header = new TableRow(this);
-        TableLayout.LayoutParams params = new TableLayout.LayoutParams();
-        params.width = TableLayout.LayoutParams.WRAP_CONTENT;
-        //params.rightMargin = (int)getResources().getDimension(R.dimen.margin);
+		override fun onCheckedChanged(buttonView: CompoundButton, isChecked: Boolean) {
+			val item = buttonView.tag as RuleItem
+			try {
+				item.field!!.setBoolean(rules, isChecked)
+			} catch (e: Exception) {
+				e.printStackTrace()
+			}
+		}
 
-        for (String s : columnNames) {
-            TextView t = new TextView(this);
-            t.setText(s);
-            header.addView(t);
-        }
+		init {
+			for (v: Variation in Variation.values()) {
+				if (!canEdit) {
+					if (v == Variation.SEAFARERS && !rules.isEnableSeafarersExpansion) continue
+					if (v == Variation.CAK && !rules.isEnableCitiesAndKnightsExpansion) continue
+				}
+				rulesList.add(RuleItem(v))
+			}
+			for (f: Field in Rules::class.java.declaredFields) {
+				val anno = f.annotations
+				for (a: Annotation in anno) {
+					if ((a.annotationClass == Rules.Rule::class.java)) {
+						val ruleVar = a as Rules.Rule
+						if (!canEdit) {
+							if (ruleVar.variation == Variation.SEAFARERS && !rules.isEnableSeafarersExpansion) continue
+							if (ruleVar.variation == Variation.CAK && !rules.isEnableCitiesAndKnightsExpansion) continue
+						}
+						f.isAccessible = true
+						rulesList.add(RuleItem(ruleVar, f))
+					}
+				}
+			}
+			Collections.sort(rulesList)
+		}
+	}
 
-        table.addView(header);
-        for (Vector<String> r : rowData) {
-            int gravity = Gravity.LEFT;
-            TableRow row = new TableRow(this);
-            for (String s : r) {
-                TextView t = new TextView(this);
-                t.setText(s);
-                t.setGravity(gravity);
-                gravity = Gravity.CENTER;
-                row.addView(t);
-            }
-            table.addView(row);
-        }
-        newDialog(true).setTitle("Buildables").setView(table).setNegativeButton("Ok", null).show();
-    }
+	fun showRulesDialog() {
+		val canEdit = !soc.isRunning && !user.client.isConnected
+		val rules = soc.rules.deepCopy()
+		val lv = ListView(this)
+		lv.adapter = RulesAdapter(rules, canEdit)
+		val b = newDialog(true).setTitle("Rules").setView(lv)
+		if (canEdit) {
+			b.setNegativeButton("Discard", null)
+				.setNeutralButton("Save", object : DialogInterface.OnClickListener {
+					override fun onClick(dialog: DialogInterface, which: Int) {
+						rules.trySaveToFile(rulesFile)
+						soc.rules = rules
+					}
+				}).setPositiveButton("Keep", object : DialogInterface.OnClickListener {
+					override fun onClick(dialog: DialogInterface, which: Int) {
+						soc.rules = rules
+					}
+				}).show()
+		} else {
+			b.setNegativeButton("Ok", null).show()
+		}
+	}
 
-    class RuleItem implements Comparable<RuleItem> {
-        final Rules.Variation var;
-        final int min, max;
-        final String stringId;
-        final int order;
-        final Field field;
+	fun copyFileToExt() {
+		try {
+//            FileUtils.copyFile(saveFile, externalStorageDirectory);
+		} catch (e: Exception) {
+			e.printStackTrace()
+		}
+	}
 
-        public RuleItem(Rules.Variation var) {
-            this.var = var;
-            this.min = max = 0;
-            field = null;
-            this.stringId = var.stringId;
-            this.order = 0;
-        }
+	override fun onResume() {
+		super.onResume()
+		showStartMenu()
+	}
 
-        public RuleItem(Rules.Rule rule, Field field) {
-            this.var = rule.variation();
-            this.min = rule.minValue();
-            this.max = rule.maxValue();
-            this.field = field;
-            this.stringId = rule.stringId();
-            this.order = rule.order();
-        }
+	override fun onPause() {
+		super.onPause()
+		soc.stopRunning()
+	}
 
-        @Override
-        public int compareTo(RuleItem o) {
-            if (var != o.var)
-                return var.compareTo(o.var);
-            if (order != o.order)
-                return order - o.order;
-            if (field == null)
-                return -1;
-            if (o.field == null)
-                return 1;
-            return field.getName().compareTo(o.field.getName());
-        }
-    }
+	protected fun newDialog(cancelable: Boolean): AlertDialog.Builder {
+		val b: AlertDialog.Builder = object : AlertDialog.Builder(this, android.R.style.Theme_Holo_Dialog) {
+			override fun show(): AlertDialog {
+				val d = super.show()
+				dialogStack.push(d)
+				return d
+			}
+		}
+		if (cancelable) {
+			if (dialogStack.size > 0) {
+				b.setNegativeButton("Back", object : DialogInterface.OnClickListener {
+					override fun onClick(dialog: DialogInterface, which: Int) {
+						dialogStack.pop().show()
+					}
+				})
+			} else {
+				b.setNegativeButton("Cancel", null)
+			}
+		}
+		return b
+	}
 
-    class RulesAdapter extends BaseAdapter implements CompoundButton.OnCheckedChangeListener, View.OnClickListener {
+	fun clearDialogs() {
+		while (dialogStack.size > 0) {
+			dialogStack.pop().dismiss()
+		}
+	}
 
-        final boolean canEdit;
-        final Rules rules;
-        final List<RuleItem> rulesList = new ArrayList<>();
+	override fun onClick(v: View) {
+		when (v.id) {
+		}
+	}
 
-        RulesAdapter(Rules rules, boolean canEdit) {
-            this.rules = rules;
-            this.canEdit = canEdit;
-            for (Rules.Variation v : Rules.Variation.values()) {
-                if (!canEdit) {
-                    if (v == Rules.Variation.SEAFARERS && !rules.isEnableSeafarersExpansion())
-                        continue;
-                    if (v == Rules.Variation.CAK && !rules.isEnableCitiesAndKnightsExpansion())
-                        continue;
-                }
-                rulesList.add(new RuleItem(v));
-            }
-            for (Field f : Rules.class.getDeclaredFields()) {
-                Annotation[] anno = f.getAnnotations();
-                for (Annotation a : anno) {
-                    if (a.annotationType().equals(Rules.Rule.class)) {
-                        final Rules.Rule ruleVar = (Rules.Rule) a;
-                        if (!canEdit) {
-                            if (ruleVar.variation() == Rules.Variation.SEAFARERS && !rules.isEnableSeafarersExpansion())
-                                continue;
-                            if (ruleVar.variation() == Rules.Variation.CAK && !rules.isEnableCitiesAndKnightsExpansion())
-                                continue;
-                        }
+	override fun onConnected(conn: ClientConnection) {
+		log.info("Clinet connected: " + conn.displayName)
+	}
 
-                        f.setAccessible(true);
-                        rulesList.add(new RuleItem(ruleVar, f));
-                    }
-                }
-            }
-            Collections.sort(rulesList);
-        }
+	override fun onReconnection(conn: ClientConnection) {
+		log.info("Clinet reconnected: " + conn.displayName)
+	}
 
-        @Override
-        public int getCount() {
-            return rulesList.size();
-        }
+	override fun onClientDisconnected(conn: ClientConnection) {
+		log.info("Clinet disconnected: " + conn.displayName)
+		runOnUiThread(object : Runnable {
+			override fun run() {
+				newDialog(false).setTitle("ERROR").setMessage("You have been disconnected")
+					.setPositiveButton("Exit", object : DialogInterface.OnClickListener {
+						override fun onClick(dialog: DialogInterface, which: Int) {
+							quitGame()
+						}
+					}).show()
+			}
+		})
+	}
 
-        @Override
-        public Object getItem(int position) {
-            return null;
-        }
-
-        @Override
-        public long getItemId(int position) {
-            return position;
-        }
-
-        @Override
-        public View getView(int position, View v, ViewGroup parent) {
-            if (v == null) {
-                v = View.inflate(SOCActivity.this, R.layout.rules_list_item, null);
-            }
-            TextView tvHeader  = (TextView)v.findViewById(R.id.tvHeader);
-            //TextView tvName    = (TextView)v.findViewById(R.id.tvName);
-            TextView tvDesc    = (TextView)v.findViewById(R.id.tvDescription);
-            CompoundButton cb  = (CompoundButton)v.findViewById(R.id.cbEnabled);
-            final Button bEdit = (Button)v.findViewById(R.id.bEdit);
-
-            try {
-                final RuleItem item = rulesList.get(position);
-                if (item.field == null) {
-                    // header
-                    tvHeader.setVisibility(View.VISIBLE);
-                    //tvName.setVisibility(View.GONE);
-                    tvDesc.setVisibility(View.GONE);
-                    cb.setVisibility(View.GONE);
-                    bEdit.setVisibility(View.GONE);
-                    tvHeader.setText(item.stringId);
-                } else if (item.field.getType().equals(boolean.class)) {
-                    // checkbox
-                    tvHeader.setVisibility(View.GONE);
-                    //tvName.setVisibility(View.GONE);
-                    tvDesc.setVisibility(View.VISIBLE);
-                    cb.setVisibility(View.VISIBLE);
-                    bEdit.setVisibility(View.GONE);
-                    //tvName.setText(item.field.getName());
-                    tvDesc.setText(item.stringId);
-                    cb.setOnCheckedChangeListener(null);
-                    cb.setChecked(item.field.getBoolean(rules));
-                    cb.setEnabled(canEdit);
-                    cb.setTag(item);
-                    cb.setOnCheckedChangeListener(this);
-                } else if (item.field.getType().equals(int.class)) {
-                    // numberpicker
-                    tvHeader.setVisibility(View.GONE);
-                    //tvName.setVisibility(View.GONE);
-                    tvDesc.setVisibility(View.VISIBLE);
-                    cb.setVisibility(View.GONE);
-                    bEdit.setVisibility(View.VISIBLE);
-                    //tvName.setText(item.field.getName());
-                    tvDesc.setText(item.stringId);
-                    final int value = item.field.getInt(rules);
-                    bEdit.setText(String.valueOf(value));
-                    bEdit.setEnabled(canEdit);
-                    bEdit.setTag(item);
-                    bEdit.setOnClickListener(this);
-                } else {
-                    throw new AssertionError("Dont know how to handle field: " + item.field.getName());
-                }
-
-            } catch (Exception e) {
-                throw new AssertionError(e);
-            }
-            return v;
-        }
-
-        @Override
-        public void onClick(final View v) {
-            try {
-                final RuleItem item = (RuleItem) v.getTag();
-                final int value = item.field.getInt(rules);
-
-                final NumberPicker np = CCNumberPicker.newPicker(SOCActivity.this, value, item.min, item.max, null);
-                newDialog(false).setTitle(item.field.getName()).setView(np).setNegativeButton("Cancel", null)
-                        .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                try {
-                                    item.field.setInt(rules, np.getValue());
-                                    ((Button) v).setText(String.valueOf(np.getValue()));
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                        }).show();
-            } catch (Exception e) {
-                throw new AssertionError(e);
-            }
-        }
-
-        @Override
-        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-            final RuleItem item = (RuleItem)buttonView.getTag();
-            try {
-                item.field.setBoolean(rules, isChecked);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    void showRulesDialog() {
-        final boolean canEdit = !soc.isRunning() && !user.client.isConnected();
-        final Rules rules = soc.getRules().deepCopy();
-        ListView lv = new ListView(this);
-        lv.setAdapter(new RulesAdapter(rules, canEdit));
-        AlertDialog.Builder b = newDialog(true).setTitle("Rules").setView(lv);
-        if (canEdit) {
-            b.setNegativeButton("Discard", null)
-            .setNeutralButton("Save", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    rules.trySaveToFile(rulesFile);
-                    soc.setRules(rules);
-                }
-            }).setPositiveButton("Keep", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    soc.setRules(rules);
-                }
-            }).show();
-        } else {
-            b.setNegativeButton("Ok", null).show();
-        }
-    }
-
-    void copyFileToExt() {
-        try {
-//            FileUtils.copyFile(saveFile, Environment.getExternalStorageDirectory());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        showStartMenu();
-    }
-
-    final int PERMISSION_REQUEST_CODE = 1001;
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        soc.stopRunning();
-    }
-
-    protected AlertDialog.Builder newDialog(boolean cancelable) {
-        AlertDialog.Builder b = new AlertDialog.Builder(this, android.R.style.Theme_Holo_Dialog) {
-            @Override
-            public AlertDialog show() {
-                AlertDialog d = super.show();
-                dialogStack.push(d);
-                return d;
-            }
-        };
-        if (cancelable) {
-            if (dialogStack.size()>0) {
-                b.setNegativeButton("Back", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialogStack.pop().show();
-                    }
-                });
-            } else {
-                b.setNegativeButton("Cancel", null);
-            }
-        }
-        return b;
-    }
-
-    void clearDialogs() {
-        while (dialogStack.size() > 0) {
-            dialogStack.pop().dismiss();
-        }
-    }
-
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-
-        }
-    }
-
-    @Override
-    public void onConnected(ClientConnection conn) {
-        log.info("Clinet connected: " + conn.getDisplayName());
-    }
-
-    @Override
-    public void onReconnection(ClientConnection conn) {
-        log.info("Clinet reconnected: " + conn.getDisplayName());
-    }
-
-    @Override
-    public void onClientDisconnected(ClientConnection conn) {
-        log.info("Clinet disconnected: " + conn.getDisplayName());
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                newDialog(false).setTitle("ERROR").setMessage("You have been disconnected")
-                        .setPositiveButton("Exit", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                quitGame();
-                            }
-                        }).show();
-            }
-        });
-    }
+	override fun onAllPermissionsGranted(code: Int) {
+		if (code == 1002) {
+			try {
+				FileUtils.backupFile(externalStorageDirectory.absolutePath + "/socsave.txt", 20)
+				FileUtils.copyFile(gameFile, File(externalStorageDirectory, "socsave.txt"))
+			} catch (e: Exception) {
+				e.printStackTrace()
+			}
+		}
+	}
 }
