@@ -61,7 +61,7 @@ class SOCView<T : UIRenderer> : View, UIComponent {
 				_renderer = r as T
 			}
 			R.id.soc_board -> {
-				val r: UIBoardRenderer = object : UIBoardRenderer(this) {
+				val r: UIBoardRenderer = object : UIBoardRenderer(this@SOCView) {
 					override fun onClick() {
 						// disable this method since it is hard to pull off easily on a device. Use accept button only.
 						//super.doClick();

@@ -256,9 +256,9 @@ public abstract class AAnimation<T> {
      * Called from update thread when animation ended. base method does nothing
      */
     protected void onDone() {}
-    
+
     /**
-     * Called from update thread when animation is started. base mthod does nothing
+     * Called from update thread when animation is started. base method does nothing
      * If there is an initial delay then this will indicate the delay has expired.
      */
     protected void onStarted(T g) {}

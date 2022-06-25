@@ -1,5 +1,7 @@
 package cc.game.soc.core;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -31,7 +33,7 @@ public class PlayerRandom extends Player {
 	}
 
 	@Override
-	public Integer chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode, Integer knightToMove) {
+	public Integer chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode, @Nullable Integer knightToMove) {
 		return pickRandom(vertexIndices);
 	}
 

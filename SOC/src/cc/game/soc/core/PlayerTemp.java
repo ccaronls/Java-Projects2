@@ -1,5 +1,7 @@
 package cc.game.soc.core;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Collection;
 import java.util.List;
 
@@ -21,7 +23,7 @@ public class PlayerTemp extends Player {
 	}
 
 	@Override
-	public Integer chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode, Integer knightToMove) {
+	public Integer chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode, @Nullable Integer knightToMove) {
         throw new AssertionError("This should never get called");
 	}
 

@@ -1,168 +1,135 @@
-package cc.game.soc.ui;
+package cc.game.soc.ui
 
-import java.util.LinkedList;
+import cc.lib.game.*
+import cc.lib.ui.UIComponent
+import cc.lib.utils.QueueRunner
+import java.util.*
 
-import cc.lib.game.AAnimation;
-import cc.lib.game.APGraphics;
-import cc.lib.game.GColor;
-import cc.lib.game.GDimension;
-import cc.lib.game.Utils;
-import cc.lib.ui.UIComponent;
-import cc.lib.utils.QueueRunner;
+class UIConsoleRenderer(component: UIComponent?) : UIRenderer(component) {
+	internal class Line(val text: String, val color: GColor)
 
-@SuppressWarnings("serial")
-public final class UIConsoleRenderer extends UIRenderer {
+	private var startLine = 0
+	private var maxVisibleLines = 1
+	private var minVisibleLines = 0
+	private val lines = LinkedList<Line>()
+	fun scroll(numLines: Int) {
+		startLine += numLines
+		if (startLine > lines.size - maxVisibleLines) {
+			startLine = lines.size - maxVisibleLines
+		}
+		if (startLine < 0) startLine = 0
+		getComponent<UIComponent>().redraw()
+	}
 
-    static class Line {
-        final String text;
-        final GColor color;
-
-        public Line(String text, GColor color) {
-            this.text = text;
-            this.color = color;
-        }
-    }
-
-    private int startLine = 0;
-    private int maxVisibleLines = 1;
-    private int minVisibleLines = 0;
-
-    public UIConsoleRenderer(UIComponent component) {
-        super(component);
-    }
-
-    private final LinkedList<Line> lines = new LinkedList<>();
-
-    public void scroll(int numLines) {
-        startLine += numLines;
-        if (startLine > lines.size()-maxVisibleLines) {
-            startLine = lines.size()-maxVisibleLines;
-        }
-        if (startLine < 0)
-            startLine = 0;
-        getComponent().redraw();
-    }
-
-    public void scrollToTop() {
-        startLine = 0;
-        getComponent().redraw();
-    }
+	fun scrollToTop() {
+		startLine = 0
+		getComponent<UIComponent>().redraw()
+	}
 
 	/*
 	 *  (non-Javadoc)
 	 * @see java.awt.Component#paint(java.awt.Graphics)
 	 */
-	public void draw(APGraphics g, int pickX, int pickY) {
-        if (anim != null) {
-            if (anim.isDone()) {
-                anim = null;
-            } else {
-                anim.update(g);
-                getComponent().redraw();
-                return;
-            }
-        }
-        drawPrivate(g);
-    }
-
-    private void drawPrivate(APGraphics g) {
-	    final int txtHgt = (int)g.getTextHeight();
-	    maxVisibleLines = getComponent().getHeight() / txtHgt;
-        float y = 0;
-	    for (int i=startLine; i<lines.size(); i++) {
-	        Line l = lines.get(i);
-            g.setColor(l.color);
-            g.setTextHeight(RenderConstants.textSizeSmall);
-            GDimension dim = g.drawWrapString(0, y, getComponent().getWidth(), l.text);
-            y += dim.height;
-            if (y > getComponent().getHeight()) {
-                break;
-            }
-        }
-        if  (minVisibleLines > 0) {
-	        setMinDimension(new GDimension(getComponent().getWidth(), Math.max(minVisibleLines, lines.size())*txtHgt));
-        }
+	override fun draw(g: APGraphics, pickX: Int, pickY: Int) {
+		if (anim != null) {
+			anim = if (anim!!.isDone) {
+				null
+			} else {
+				anim!!.update(g)
+				getComponent<UIComponent>().redraw()
+				return
+			}
+		}
+		drawPrivate(g)
 	}
 
-	public void setMinVisibleLines(int min) {
-	    this.minVisibleLines = min;
-    }
-
-	private AAnimation<APGraphics> anim = null;
-
-    private QueueRunner<Line> queue = new QueueRunner<Line>() {
-        @Override
-        protected void process(final Line item) {
-            final String text = item.text;
-            final GColor color = item.color;
-            if (startLine > 0) {
-
-                // if user is scrolling, then show this line at top with a fade out.
-                anim = new AAnimation<APGraphics>(500) {
-                    @Override
-                    protected void draw(APGraphics g, float position, float dt) {
-                        drawPrivate(g);
-                        g.setColor(GColor.BLACK.withAlpha(0.5f-position));
-                        String [] lines = g.generateWrappedLines(text, getComponent().getWidth());
-                        g.drawFilledRect(0, 0, getComponent().getWidth(), lines.length*g.getTextHeight());
-                        g.setColor(color.withAlpha(1.0f-position/3));
-                        float y = 0;
-                        for (String l : lines) {
-                            g.drawString(l, 0, y);
-                            y += g.getTextHeight();
-                        }
-                    }
-
-                    @Override
-                    protected void onDone() {
-                        lines.addFirst(item);
-                        synchronized (this) {
-                            notify();
-                        }
-                    }
-                }.start();
-            } else {
-                // if user not scrolling, then show this line with the rest of lines tracing downward
-                anim = new AAnimation<APGraphics>(500) {
-                    @Override
-                    protected void draw(APGraphics g, float position, float dt) {
-                        g.pushMatrix();
-                        g.setColor(color.withAlpha(position));
-                        GDimension dim = g.drawWrapString(0, 0, getComponent().getWidth(), text);
-                        g.translate(0, dim.height*position);
-                        drawPrivate(g);
-                        g.popMatrix();
-                    }
-
-                    @Override
-                    protected void onDone() {
-                        lines.addFirst(item);
-                        synchronized (this) {
-                            notify();
-                        }
-                    }
-                }.start();
-            }
-
-            getComponent().redraw();
-            Utils.waitNoThrow(anim, -1);
-            if (startLine > 0)
-                startLine++;
-            while (lines.size() > 100) {
-                lines.removeLast();
-            }
-            getComponent().redraw();
-        }
-    };
-
-	public synchronized final void addText(final GColor color, final String text) {
-        queue.add(new Line(text, color));
-    }
-
-	public final void clear() {
-        queue.clear();
-	    lines.clear();
-        getComponent().redraw();
+	private fun drawPrivate(g: AGraphics) {
+		val txtHgt = g.textHeight.toInt()
+		maxVisibleLines = getComponent<UIComponent>().height / txtHgt
+		var y = 0f
+		for (i in startLine until lines.size) {
+			val l = lines[i]
+			g.color = l.color
+			g.textHeight = RenderConstants.textSizeSmall
+			val dim = g.drawWrapString(0f, y, getComponent<UIComponent>().width.toFloat(), l.text)
+			y += dim.height
+			if (y > getComponent<UIComponent>().height) {
+				break
+			}
+		}
+		if (minVisibleLines > 0) {
+			minDimension = GDimension(getComponent<UIComponent>().width.toFloat(), (Math.max(minVisibleLines, lines.size) * txtHgt).toFloat())
+		}
 	}
 
+	fun setMinVisibleLines(min: Int) {
+		minVisibleLines = min
+	}
+
+	private var anim: UIAnimation? = null
+	private val queue: QueueRunner<Line> = object : QueueRunner<Line>() {
+		override fun process(item: Line) {
+			val text = item.text
+			val color = item.color
+			anim = if (startLine > 0) {
+
+				// if user is scrolling, then show this line at top with a fade out.
+				object : UIAnimation(500) {
+					override fun draw(g: AGraphics, position: Float, dt: Float) {
+						drawPrivate(g)
+						g.color = GColor.BLACK.withAlpha(0.5f - position)
+						val lines = g.generateWrappedLines(text, getComponent<UIComponent>().width.toFloat())
+						g.drawFilledRect(0f, 0f, getComponent<UIComponent>().width.toFloat(), lines.size * g.textHeight)
+						g.color = color.withAlpha(1.0f - position / 3)
+						var y = 0f
+						for (l in lines) {
+							g.drawString(l, 0f, y)
+							y += g.textHeight
+						}
+					}
+
+					override fun onDone() {
+						lines.addFirst(item)
+						super.onDone()
+					}
+				}
+			} else {
+				// if user not scrolling, then show this line with the rest of lines tracing downward
+				object : UIAnimation(500) {
+					override fun draw(g: AGraphics, position: Float, dt: Float) {
+						g.pushMatrix()
+						g.color = color.withAlpha(position)
+						val dim = g.drawWrapString(0f, 0f, getComponent<UIComponent>().width.toFloat(), text)
+						g.translate(0f, dim.height * position)
+						drawPrivate(g)
+						g.popMatrix()
+					}
+
+					override fun onDone() {
+						lines.addFirst(item)
+						super.onDone()
+					}
+				}
+			}.start<UIAnimation>().also {
+				getComponent<UIComponent>().redraw()
+				it.block()
+				if (startLine > 0) startLine++
+				while (lines.size > 100) {
+					lines.removeLast()
+				}
+				getComponent<UIComponent>().redraw()
+			}
+		}
+	}
+
+	@Synchronized
+	fun addText(color: GColor, text: String) {
+		queue.add(Line(text, color))
+	}
+
+	fun clear() {
+		queue.clear()
+		lines.clear()
+		getComponent<UIComponent>().redraw()
+	}
 }

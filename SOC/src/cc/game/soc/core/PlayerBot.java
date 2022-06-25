@@ -1,5 +1,7 @@
 package cc.game.soc.core;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -1503,7 +1505,7 @@ public class PlayerBot extends Player {
 	}
 
 	@Override
-	public Integer chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode, Integer knightIndexToMove) {
+	public Integer chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode, @Nullable Integer knightIndexToMove) {
         if (movesPath != null) {
             return detatchMove();
         }

@@ -144,7 +144,7 @@ public class GameServer {
      * @throws Exception
      */
     public GameServer(String serverName, int listenPort, String serverVersion, Cypher cypher, int maxConnections) {
-        this.mServerName = serverName.toString(); // null check
+        this.mServerName = serverName; // null check
         if (listenPort < 1000)
             throw new RuntimeException("Invalid value for listener port/ Think higher.");
         this.port = listenPort;

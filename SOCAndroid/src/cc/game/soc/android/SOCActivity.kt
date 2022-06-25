@@ -108,7 +108,7 @@ class SOCActivity() : CCActivityBase(), MenuItem.Action, View.OnClickListener, G
 					tvTitle.text = title
 					tvHelp.text = helpText
 					bAction.setOnClickListener {
-						mi.action.onAction(mi, extra)
+						mi.action?.onAction(mi, extra)
 					}
 					tvHelp.visibility = if (helpItem == position) View.VISIBLE else View.GONE
 					if (!Utils.isEmpty(helpText)) {
@@ -125,9 +125,8 @@ class SOCActivity() : CCActivityBase(), MenuItem.Action, View.OnClickListener, G
 		lvMenu.adapter = adapter
 		gameFile = File(filesDir, "save.txt")
 		rulesFile = File(filesDir, "rules.txt")
-		val players = arrayOfNulls<UIPlayerRenderer>(SOC.MAX_PLAYERS)
-		for (i in players.indices) {
-			players[i] = vPlayers[i].getRenderer()
+		val players = Array(SOC.MAX_PLAYERS) {
+			vPlayers[it].getRenderer()
 		}
 		soc = object : UISOC(players, vBoard.getRenderer(), vDice.getRenderer(), vConsole.getRenderer(), vEvent.getRenderer(), vBarbarian.getRenderer()) {
 			override fun addMenuItem(item: MenuItem, title: String?, helpText: String?, extra: Any?) {
@@ -206,9 +205,7 @@ class SOCActivity() : CCActivityBase(), MenuItem.Action, View.OnClickListener, G
 				return (choice[0])
 			}
 
-			override fun getServerName(): String {
-				return Build.BRAND + "." + Build.PRODUCT
-			}
+			override val serverName = "${Build.BRAND}.${Build.PRODUCT}"
 
 			override fun onShouldSaveGame() {
 				trySaveToFile(gameFile)
@@ -273,7 +270,7 @@ class SOCActivity() : CCActivityBase(), MenuItem.Action, View.OnClickListener, G
 				super.cancel()
 			}
 		}
-		soc.setBoard(vBoard.getRenderer().getBoard())
+		soc.setBoard(vBoard.getRenderer().board)
 		val rules = Rules()
 		if (rules.tryLoadFromFile(rulesFile)) {
 			soc.setRules(rules)
@@ -302,17 +299,17 @@ class SOCActivity() : CCActivityBase(), MenuItem.Action, View.OnClickListener, G
 
 	val user = UIPlayerUser()
 	val DIVIDER = MenuItem(null, null, null)
-	var QUIT: MenuItem? = null
-	var BUILDABLES: MenuItem? = null
-	var RULES: MenuItem? = null
-	var START: MenuItem? = null
-	var CONSOLE: MenuItem? = null
-	var SINGLE_PLAYER: MenuItem? = null
-	var MULTI_PLAYER: MenuItem? = null
-	var RESUME: MenuItem? = null
-	var LOADSAVED: MenuItem? = null
-	var BOARDS: MenuItem? = null
-	var SCENARIOS: MenuItem? = null
+	lateinit var QUIT: MenuItem
+	lateinit var BUILDABLES: MenuItem
+	lateinit var RULES: MenuItem
+	lateinit var START: MenuItem
+	lateinit var CONSOLE: MenuItem
+	lateinit var SINGLE_PLAYER: MenuItem
+	lateinit var MULTI_PLAYER: MenuItem
+	lateinit var RESUME: MenuItem
+	lateinit var LOADSAVED: MenuItem
+	lateinit var BOARDS: MenuItem
+	lateinit var SCENARIOS: MenuItem
 	fun quitGame() {
 		soc.server.stop()
 		soc.clear()
@@ -426,7 +423,7 @@ class SOCActivity() : CCActivityBase(), MenuItem.Action, View.OnClickListener, G
 	override fun onCommand(cmd: GameCommand) {
 		try {
 			if ((cmd.type == NetCommon.SVR_TO_CL_INIT)) {
-				val soc = UISOC.getInstance()
+				val soc = UISOC.instance
 				soc.clear()
 				val num = cmd.getInt("numPlayers")
 				val playerNum = cmd.getInt("playerNum")
@@ -445,9 +442,9 @@ class SOCActivity() : CCActivityBase(), MenuItem.Action, View.OnClickListener, G
 					}
 				})
 			} else if ((cmd.type == NetCommon.SVR_TO_CL_UPDATE)) {
-				UISOC.getInstance().merge(cmd.getString("diff"))
-				UISOC.getInstance().refreshComponents()
-				UISOC.getInstance().redraw()
+				UISOC.instance.merge(cmd.getString("diff"))
+				UISOC.instance.refreshComponents()
+				UISOC.instance.redraw()
 			}
 			soc.clearMenu()
 			soc.completeMenu()

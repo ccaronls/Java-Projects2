@@ -1,5 +1,8 @@
 package cc.game.soc.core;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.*;
 
 import cc.lib.game.Utils;
@@ -847,7 +850,7 @@ public abstract class Player extends Reflector<Player> {
 	 * @param moves
 	 * @return
 	 */
-	public abstract MoveType chooseMove(SOC soc, Collection<MoveType> moves);
+	public abstract @Nullable MoveType chooseMove(@NotNull SOC soc, @NotNull Collection<MoveType> moves);
 	
 	public enum VertexChoice {
 		SETTLEMENT,
@@ -875,7 +878,7 @@ public abstract class Player extends Reflector<Player> {
 	 * @param knightToMove null unless mode is KNIGHT_DISPLACED or KNIGHT_TO_MOVE
 	 * @return
 	 */
-	public abstract Integer chooseVertex(SOC soc, Collection<Integer> vertexIndices, VertexChoice mode, Integer knightToMove);
+	public abstract @Nullable Integer chooseVertex(@NotNull SOC soc, @NotNull Collection<Integer> vertexIndices, @NotNull VertexChoice mode, @Nullable Integer knightToMove);
 
 	public enum RouteChoice {
 		ROAD,
@@ -887,7 +890,7 @@ public abstract class Player extends Reflector<Player> {
 		OPPONENT_SHIP_TO_ATTACK, // player chooses an opponent ship adjacent to one of they're warships
 	}
 	
-	public abstract Integer chooseRoute(SOC soc, Collection<Integer> routeIndices, RouteChoice mode, Integer shipToMove);
+	public abstract @Nullable Integer chooseRoute(@NotNull SOC soc, @NotNull Collection<Integer> routeIndices, @NotNull RouteChoice mode, @Nullable Integer shipToMove);
 
 	public enum RouteChoiceType {
 		ROAD_CHOICE,
@@ -899,7 +902,7 @@ public abstract class Player extends Reflector<Player> {
 	 * @param soc
 	 * @return
 	 */
-	public abstract RouteChoiceType chooseRouteType(SOC soc);
+	public abstract @Nullable RouteChoiceType chooseRouteType(SOC soc);
 	
 	public enum TileChoice {
 		ROBBER,
@@ -915,7 +918,7 @@ public abstract class Player extends Reflector<Player> {
 	 * @param mode
 	 * @return
 	 */
-	public abstract Integer chooseTile(SOC soc, Collection<Integer> tileIndices, TileChoice mode);
+	public abstract @Nullable Integer chooseTile(@NotNull SOC soc, @NotNull Collection<Integer> tileIndices, @NotNull TileChoice mode);
 	
 	
 	/**
@@ -927,7 +930,7 @@ public abstract class Player extends Reflector<Player> {
 	 * @param trades
 	 * @return
 	 */
-	public abstract Trade chooseTradeOption(SOC soc, Collection<Trade> trades);
+	public abstract @Nullable Trade chooseTradeOption(@NotNull SOC soc, @NotNull Collection<Trade> trades);
 
 	public enum PlayerChoice {
 		PLAYER_TO_TAKE_CARD_FROM,
@@ -947,7 +950,7 @@ public abstract class Player extends Reflector<Player> {
 	 * @param mode
 	 * @return
 	 */
-	public abstract Integer choosePlayer(SOC soc, Collection<Integer> playerOptions, PlayerChoice mode);
+	public abstract @Nullable Integer choosePlayer(@NotNull SOC soc, @NotNull Collection<Integer> playerOptions, @NotNull PlayerChoice mode);
 	
 	public enum CardChoice {
 		RESOURCE_OR_COMMODITY,
@@ -963,7 +966,7 @@ public abstract class Player extends Reflector<Player> {
 	 * @param cards
 	 * @return
 	 */
-	public abstract Card chooseCard(SOC soc, Collection<Card> cards, CardChoice mode);
+	public abstract @Nullable Card chooseCard(@NotNull SOC soc, @NotNull Collection<Card> cards, @NotNull CardChoice mode);
 	
 	public enum EnumChoice {
 		COMMODITY_MONOPOLY,
@@ -978,7 +981,7 @@ public abstract class Player extends Reflector<Player> {
 	 * @param values
 	 * @return
 	 */
-	public abstract <T extends Enum<T>> T chooseEnum(SOC soc, EnumChoice mode, T [] values);
+	public abstract @Nullable <T extends Enum<T>> T chooseEnum(@NotNull SOC soc, @NotNull EnumChoice mode, @NotNull T [] values);
 	
 	/**
 	 * Players sets the dice to values of their choice each in range [1-6] inclusive
@@ -988,7 +991,7 @@ public abstract class Player extends Reflector<Player> {
 	 * @param num length of array to set
 	 * @return true when player completed
 	 */
-	public abstract boolean setDice(SOC soc, List<Dice> dice, int num);
+	public abstract boolean setDice(@NotNull SOC soc, @NotNull List<Dice> dice, int num);
 
 
 }

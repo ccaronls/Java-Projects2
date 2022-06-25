@@ -1,5 +1,8 @@
 package cc.game.soc.core;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -5647,10 +5650,10 @@ public class SOC extends Reflector<SOC> implements StringResource {
     protected void onPlayerCityDeveloped(int playerNum, DevelopmentArea area) {
     }
 
-    protected void onVertexChosen(int playerNum, Player.VertexChoice mode, Integer vertexIndex, Integer v2) {
+    protected void onVertexChosen(int playerNum, @NotNull Player.VertexChoice mode, @NotNull Integer vertexIndex, @Nullable Integer v2) {
     }
 
-    protected void onRouteChosen(int playerNum, Player.RouteChoice mode, Integer routeIndex, Integer shipToMove) {
+    protected void onRouteChosen(int playerNum, @NotNull Player.RouteChoice mode, @NotNull Integer routeIndex, @Nullable Integer shipToMove) {
     }
 
 }

@@ -1,172 +1,141 @@
-package cc.game.soc.ui;
+package cc.game.soc.ui
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Properties;
+import cc.lib.game.GColor
+import cc.lib.logger.LoggerFactory
+import java.io.*
+import java.util.*
 
-import cc.lib.game.GColor;
-import cc.lib.logger.Logger;
-import cc.lib.logger.LoggerFactory;
-
-@SuppressWarnings("serial")
-public class UIProperties extends Properties {
-
-    private final static Logger log = LoggerFactory.getLogger(UIProperties.class);
-
-    public UIProperties() {}
-    
-    private String fileName = null;
-    
-    public GColor getColorProperty(String key, GColor defaultValue) {
-        try {
-            return GColor.fromString(getProperty(key, defaultValue.toString()));
-        } catch (Exception e) {
-        	e.printStackTrace();
-            log.error(e.getMessage());
-        }
-        return defaultValue;
-    }
-
-    /**
-     * 
-     */
-    public void setProperty(String key, File file) {
-        String fileName = file.getPath();
-        fileName = fileName.replace(File.separatorChar, '/');
-        setProperty(key, fileName);
-    }
-    
-
-    public int getIntProperty(String key, int defaultValue) {
-        try {
-            return Integer.parseInt(getProperty(key, String.valueOf(defaultValue)));
-        } catch (Exception e) {
-            log.error(e.getMessage());
-        }
-        return defaultValue;
-    }
-    
-    
-    @Override
-    public synchronized Object setProperty(String key, String value) {
-    	Object r = super.setProperty(key, value);
-    	save();
-        return r;
-    }
-
-    public void setProperty(String key, int value) {
-        setProperty(key, String.valueOf(value));
-    }
-    
-    public boolean getBooleanProperty(String key, boolean defaultValue) {
-        try {
-            return Boolean.parseBoolean(getProperty(key, String.valueOf(defaultValue)));
-        } catch (Exception e) {
-            log.error(e.getMessage());
-        }
-        return defaultValue;
-    }
-    
-	public void setProperty(String key, boolean selected) {
-		setProperty(key, selected ? "true" : "false");
+class UIProperties : Properties() {
+	private var fileName: String? = null
+	fun getColorProperty(key: String, defaultValue: GColor): GColor {
+		try {
+			return GColor.fromString(getProperty(key, defaultValue.toString()))
+		} catch (e: Exception) {
+			e.printStackTrace()
+			log.error(e.message)
+		}
+		return defaultValue
 	}
-    
-    public float getFloatProperty(String key, float defaultValue) {
-        try {
-            return Float.parseFloat(getProperty(key, String.valueOf(defaultValue)));
-        } catch (Exception e) {
-            log.error(e.getMessage());
-        }
-        return defaultValue;
-    }
-    
-    @Override
-    public String getProperty(String key, String defaultValue) {
-        if (!containsKey(key)) {
-            if (defaultValue == null)
-                return null;
-            put(key, defaultValue);
-            save();
-        }
-        return getProperty(key);
-    }
-    
-    public List<String> getListProperty(String key) {
-        if (!containsKey(key)) {
-            return Collections.emptyList();
-        }
-        String [] items = getProperty(key).split(",");
-        ArrayList<String> list = new ArrayList<String>();
-        for (int i=0; i<items.length; i++) {
-            list.add(items[i].trim());
-        }
-        return list;
-    }
-    
-    public void addListItem(String key, String value) {
-        if (!containsKey(key)) {
-            setProperty(key, value); 
-        } else {
-            String cur = getProperty(key);
-            cur += ",";
-            cur += value;
-            setProperty(key, cur);
-        }
-    }
 
-    public void load(String fileName) throws IOException {
-        this.fileName = fileName;
-        log.debug("Loading properties '" + fileName + "'");
-        InputStream in = null;
-        try {
-            in = new FileInputStream(fileName);
-            this.load(in);
-        } catch (IOException e) {
-            log.error(e.getMessage());
-        } finally {
-            try {
-                in.close();
-            } catch (Exception e) {}
-        }
-    }
-    
-    public synchronized void save() {
-        log.debug("Saving properties '" + fileName + "'");
-        PrintWriter out = null;
-        try {
-            out = new PrintWriter(new FileWriter(fileName));
-            out.println("# Application settings properties");
-            out.println("# " + new Date());
-            String [] keys = keySet().toArray(new String[size()]);
-            Arrays.sort(keys);
-            for (int i=0; i<keys.length; i++) {
-                out.println(keys[i] + "=" + getProperty(keys[i]));
-            }
-            
-            //this.store(out, "Properties file for SOC GUI");
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                out.close();
-            } catch (Exception e) {}
-        }
-    }
+	/**
+	 *
+	 */
+	fun setProperty(key: String, file: File) {
+		var fileName = file.path
+		fileName = fileName.replace(File.separatorChar, '/')
+		setProperty(key, fileName)
+	}
 
-    public void addAll(Properties props) {
-    	super.putAll(props);
-        save();
-    }
+	fun getIntProperty(key: String, defaultValue: Int): Int {
+		return getProperty(key, defaultValue.toString())?.toInt()?:defaultValue
+	}
 
+	@Synchronized
+	override fun setProperty(key: String, value: String): Any {
+		val r = super.setProperty(key, value)
+		save()
+		return r
+	}
 
-    
+	fun setProperty(key: String, value: Int) {
+		setProperty(key, value.toString())
+	}
+
+	fun getBooleanProperty(key: String, defaultValue: Boolean): Boolean {
+		try {
+			return java.lang.Boolean.parseBoolean(getProperty(key, defaultValue.toString()))
+		} catch (e: Exception) {
+			log.error(e.message)
+		}
+		return defaultValue
+	}
+
+	fun setProperty(key: String, selected: Boolean) {
+		setProperty(key, if (selected) "true" else "false")
+	}
+	fun getFloatProperty(key: String, defaultValue: Float): Float {
+		return getProperty(key, defaultValue.toString())?.toFloat()?:defaultValue
+	}
+
+	override fun getProperty(key: String, defaultValue: String?): String? {
+		if (!containsKey(key)) {
+			if (defaultValue == null) return null
+			put(key, defaultValue)
+			save()
+		}
+		return getProperty(key)
+	}
+
+	fun getListProperty(key: String): List<String> {
+		if (!containsKey(key)) {
+			return emptyList()
+		}
+		val items = getProperty(key).split(",".toRegex()).toTypedArray()
+		val list = ArrayList<String>()
+		for (i in items.indices) {
+			list.add(items[i].trim { it <= ' ' })
+		}
+		return list
+	}
+
+	fun addListItem(key: String, value: String) {
+		if (!containsKey(key)) {
+			setProperty(key, value)
+		} else {
+			var cur = getProperty(key)
+			cur += ","
+			cur += value
+			setProperty(key, cur)
+		}
+	}
+
+	@Throws(IOException::class)
+	fun load(fileName: String) {
+		this.fileName = fileName
+		log.debug("Loading properties '$fileName'")
+		var `in`: InputStream? = null
+		try {
+			`in` = FileInputStream(fileName)
+			this.load(`in`)
+		} catch (e: IOException) {
+			log.error(e.message)
+		} finally {
+			try {
+				`in`!!.close()
+			} catch (e: Exception) {
+			}
+		}
+	}
+
+	@Synchronized
+	fun save() {
+		log.debug("Saving properties '$fileName'")
+		var out: PrintWriter? = null
+		try {
+			out = PrintWriter(FileWriter(fileName))
+			out.println("# Application settings properties")
+			out.println("# " + Date())
+			(keys.toList() as List<String>).sorted().forEach {
+				out.println("$it = ${getProperty(it)}")
+			}
+
+			//this.store(out, "Properties file for SOC GUI");
+		} catch (e: Exception) {
+			e.printStackTrace()
+		} finally {
+			try {
+				out!!.close()
+			} catch (e: Exception) {
+			}
+		}
+	}
+
+	fun addAll(props: Properties?) {
+		super.putAll(props!!)
+		save()
+	}
+
+	companion object {
+		private val log = LoggerFactory.getLogger(UIProperties::class.java)
+	}
 }
