@@ -47,7 +47,7 @@ class UIPlayerUser : UIPlayer(), GameClient.Listener {
 	}
 
 	override fun chooseRoute(soc: SOC, routeIndices: Collection<Int>, mode: RouteChoice, shipToMove: Int?): Int? {
-		return (soc as UISOC).chooseRoute(routeIndices, mode, shipToMove?.let { soc.getBoard().getRoute(it) })
+		return (soc as UISOC).chooseRoute(routeIndices, mode, shipToMove?.let { soc.board.getRoute(it) })
 	}
 
 	// private versions of overloaded methods are called by remote server so as not to need to include the large SOC object

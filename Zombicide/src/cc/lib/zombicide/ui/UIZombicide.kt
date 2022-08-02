@@ -489,7 +489,7 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 						if (i < hits.size) {
 							val pos = hits[i]
 							val victim = board.getActor<ZActor<*>>(pos)
-							Utils.assertTrue(victim !== attacker)
+							assert(victim !== attacker)
 							attacker.addAnimation(object : MeleeAnimation(attacker, board) {
 								override fun onDone() {
 									super.onDone()

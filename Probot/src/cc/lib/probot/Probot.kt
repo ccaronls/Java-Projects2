@@ -4,7 +4,6 @@ import cc.lib.game.AGraphics
 import cc.lib.game.GColor
 import cc.lib.utils.Lock
 import cc.lib.utils.Reflector
-import cc.lib.utils.assertTrue
 import java.util.*
 
 interface Observer {
@@ -102,7 +101,7 @@ open class Probot(private val program: ObservableArrayList<Command> = Observable
 	 * Called in separate thread. callbacks made to events should be handled to show on ui
 	 */
 	fun runProgram() {
-		assertTrue(!isRunning)
+		assert(!isRunning)
 		isRunning = true
 		copy = Probot()
 		copy!!.copyFrom(this)

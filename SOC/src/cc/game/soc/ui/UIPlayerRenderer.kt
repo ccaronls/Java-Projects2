@@ -26,9 +26,8 @@ class UIPlayerRenderer(component: UIComponent?) : UIRenderer(component) {
 
 	override fun draw(g: APGraphics, px: Int, py: Int) {
 		if (playerNum < 1) return
-		val soc = UISOC.instance ?: return
+		val soc = UISOC.instance
 		val player = soc.getPlayerByPlayerNum(playerNum) as UIPlayer
-			?: return
 		g.textHeight = RenderConstants.textSizeBig
 		//g.setTextStyles(AGraphics.TextStyle.BOLD);
 		val str = StringBuffer()
@@ -37,15 +36,15 @@ class UIPlayerRenderer(component: UIComponent?) : UIRenderer(component) {
 		if (player.isInfoVisible) {
 			for (t in ResourceType.values()) {
 				val num = player.getCardCount(t)
-				str.append(t.name).append(" X ").append(num).append("\n")
+				str.append(t.getNameId()).append(" X ").append(num).append("\n")
 			}
 			if (soc.rules.isEnableCitiesAndKnightsExpansion) {
 				for (t in CommodityType.values()) {
 					val num = player.getCardCount(t)
-					str.append(t.name).append(" X ").append(num).append("\n")
+					str.append(t.getNameId()).append(" X ").append(num).append("\n")
 				}
 				for (c in player.getCards(CardType.Progress)) {
-					str.append(c.name).append(" (").append(c.cardStatus.getName()).append(")\n")
+					str.append(c.name).append(" (").append(c.cardStatus.getNameId()).append(")\n")
 				}
 			} else {
 				for (c in player.getCards(CardType.Development)) {
@@ -55,9 +54,9 @@ class UIPlayerRenderer(component: UIComponent?) : UIRenderer(component) {
 						CardStatus.USED -> {
 							// ignore these since they are covered by the army size
 							if (c.typeOrdinal == DevelopmentCardType.Soldier.ordinal || c.typeOrdinal == DevelopmentCardType.Warship.ordinal) continue
-							str.append(c.name).append(" (").append(c.cardStatus.getName()).append(")\n")
+							str.append(c.name).append(" (").append(c.cardStatus.getNameId()).append(")\n")
 						}
-						CardStatus.UNUSABLE -> str.append(c.name).append(" (").append(c.cardStatus.getName()).append(")\n")
+						CardStatus.UNUSABLE -> str.append(c.name).append(" (").append(c.cardStatus.getNameId()).append(")\n")
 					}
 				}
 			}
@@ -92,22 +91,22 @@ class UIPlayerRenderer(component: UIComponent?) : UIRenderer(component) {
 		for (sv in SpecialVictoryType.values()) {
 			val num = player.getCardCount(sv)
 			if (num > 0) {
-				str.append(sv.name)
+				str.append(sv.getNameId())
 				if (sv.points != 0) str.append(Utils.getSignedString(num * sv.points))
 				str.append("\n")
 			}
 		}
 		for (d in DevelopmentArea.values()) {
 			if (player.getCityDevelopment(d) > 0) {
-				str.append(d.getName()).append(" ").append(d.getLevelName(player.getCityDevelopment(d))).append(" (").append(player.getCityDevelopment(d)).append(") ")
+				str.append(d.getNameId()).append(" ").append(d.getLevelName(player.getCityDevelopment(d))).append(" (").append(player.getCityDevelopment(d)).append(") ")
 				if (soc.getMetropolisPlayer(d) == player.playerNum) {
 					str.append(" +").append(soc.rules.pointsPerMetropolis)
 				}
 				str.append("\n")
 			}
 		}
-		if (player.merchantFleetTradable != null) {
-			str.append(String.format("Merchant Fleet %s", player.merchantFleetTradable.name)).append("\n")
+		player.merchantFleetTradable?.let {
+			str.append(String.format("Merchant Fleet %s", it.name)).append("\n")
 		}
 		run {
 			val num = soc.board.getNumDiscoveredIslands(player.playerNum)

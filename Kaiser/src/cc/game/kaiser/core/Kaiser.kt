@@ -9,7 +9,7 @@ import java.util.*
  * NO external dependencies in the CORE!
  * @author ccaron
  */
-class Kaiser : Reflector<Kaiser?>() {
+class Kaiser : Reflector<Kaiser>() {
 	companion object {
 		@JvmField
         var DEBUG_ENABLED = false
@@ -89,7 +89,7 @@ class Kaiser : Reflector<Kaiser?>() {
 				}
 
 				//assert(test.rank != lead.rank);
-				//Utils.assertTrue(test.rank != lead.rank, "Expected ranks to be different");
+				//assert(test.rank != lead.rank, "Expected ranks to be different");
 				if (test.rank.ordinal > lead.rank.ordinal) {
 					lead = test
 					trickWinner = ii

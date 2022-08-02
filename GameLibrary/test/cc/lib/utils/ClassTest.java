@@ -1,9 +1,9 @@
 package cc.lib.utils;
 
+import junit.framework.TestCase;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import junit.framework.TestCase;
 
 public class ClassTest extends TestCase {
 

@@ -1,7 +1,6 @@
 package cc.lib.zombicide.quests
 
 import cc.lib.utils.Table
-import cc.lib.utils.assertTrue
 import cc.lib.zombicide.*
 import cc.lib.zombicide.ZTile.Companion.getQuadrant
 
@@ -45,7 +44,7 @@ class WolfQuestTheEvilTwins : ZQuest(ZQuests.The_Evil_Twins) {
 			ZTile("9V", 90, getQuadrant(6, 6)))
 
 	override fun init(game: ZGame) {
-		assertTrue(redObjectives.size > 1)
+		assert(redObjectives.size > 1)
 		while (blueObjective == greenObjective) {
 			blueObjective = redObjectives.random()
 			greenObjective = redObjectives.random()

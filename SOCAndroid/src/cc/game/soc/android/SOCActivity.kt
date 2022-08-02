@@ -10,7 +10,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import cc.game.soc.core.*
-import cc.game.soc.core.Rules.Variation
 import cc.game.soc.ui.*
 import cc.lib.android.*
 import cc.lib.game.GColor
@@ -73,19 +72,23 @@ class SOCActivity() : CCActivityBase(), MenuItem.Action, View.OnClickListener, G
 		vConsole = findViewById(R.id.soc_console)
 		vConsole.getRenderer().setMinVisibleLines(5)
 		svPlayers = findViewById<View>(R.id.svPlayers) as ScrollView
-		vDice.getRenderer().initImages(R.drawable.dicesideship2, R.drawable.dicesidecity_red2, R.drawable.dicesidecity_green2, R.drawable.dicesidecity_blue2)
+		vDice.getRenderer().initImages(
+			R.drawable.dicesideship2,
+			R.drawable.dicesidecity_red2,
+			R.drawable.dicesidecity_green2,
+			R.drawable.dicesidecity_blue2)
 		tvHelpText = findViewById<View>(R.id.tvHelpText) as TextView
 		QUIT = MenuItem(getString(R.string.menu_item_quit), getString(R.string.menu_item_quit_help), this)
 		BUILDABLES = MenuItem(getString(R.string.menu_item_buildables), getString(R.string.menu_item_buildables_help), this)
 		RULES = MenuItem(getString(R.string.menu_item_rules), getString(R.string.menu_item_rules_help), this)
 		START = MenuItem(getString(R.string.menu_item_start), getString(R.string.menu_item_start_help), this)
 		CONSOLE = MenuItem(getString(R.string.menu_item_console), getString(R.string.menu_item_console_help), this)
-		SINGLE_PLAYER = MenuItem(getString(R.string.menu_item_sp), null, this)
-		MULTI_PLAYER = MenuItem(getString(R.string.menu_item_mp), null, this)
-		RESUME = MenuItem(getString(R.string.menu_item_resume), null, this)
-		LOADSAVED = MenuItem("Load Saved", null, this)
-		BOARDS = MenuItem(getString(R.string.menu_item_boards), null, this)
-		SCENARIOS = MenuItem(getString(R.string.menu_item_scenarios), null, this)
+		SINGLE_PLAYER = MenuItem(getString(R.string.menu_item_sp), "", this)
+		MULTI_PLAYER = MenuItem(getString(R.string.menu_item_mp), "", this)
+		RESUME = MenuItem(getString(R.string.menu_item_resume), "", this)
+		LOADSAVED = MenuItem("Load Saved", "", this)
+		BOARDS = MenuItem(getString(R.string.menu_item_boards), "", this)
+		SCENARIOS = MenuItem(getString(R.string.menu_item_scenarios), "", this)
 		val menu = ArrayList<Array<Any?>>()
 		val adapter: BaseAdapter = object : ArrayListAdapter<Array<Any?>>(this, menu, R.layout.menu_list_item) {
 			override fun initItem(v: View, position: Int, item: Array<Any?>) {
@@ -129,7 +132,7 @@ class SOCActivity() : CCActivityBase(), MenuItem.Action, View.OnClickListener, G
 			vPlayers[it].getRenderer()
 		}
 		soc = object : UISOC(players, vBoard.getRenderer(), vDice.getRenderer(), vConsole.getRenderer(), vEvent.getRenderer(), vBarbarian.getRenderer()) {
-			override fun addMenuItem(item: MenuItem, title: String?, helpText: String?, extra: Any?) {
+			override fun addMenuItem(item: MenuItem, title: String, helpText: String, extra: Any?) {
 				menu.add(arrayOf(
 					item, title, helpText, extra
 				))
@@ -273,7 +276,7 @@ class SOCActivity() : CCActivityBase(), MenuItem.Action, View.OnClickListener, G
 		soc.setBoard(vBoard.getRenderer().board)
 		val rules = Rules()
 		if (rules.tryLoadFromFile(rulesFile)) {
-			soc.setRules(rules)
+			soc.rules = rules
 		}
 		val aiTuning = Properties()
 		try {
@@ -298,7 +301,7 @@ class SOCActivity() : CCActivityBase(), MenuItem.Action, View.OnClickListener, G
 	}
 
 	val user = UIPlayerUser()
-	val DIVIDER = MenuItem(null, null, null)
+	val DIVIDER = MenuItem("", "", this)
 	lateinit var QUIT: MenuItem
 	lateinit var BUILDABLES: MenuItem
 	lateinit var RULES: MenuItem
@@ -313,7 +316,7 @@ class SOCActivity() : CCActivityBase(), MenuItem.Action, View.OnClickListener, G
 	fun quitGame() {
 		soc.server.stop()
 		soc.clear()
-		vBoard.getRenderer().setPickHandler(null)
+		vBoard.getRenderer().pickHandler = null
 		soc.stopRunning()
 		user.client.disconnect("player quit")
 		soc.clearMenu()
@@ -610,7 +613,7 @@ class SOCActivity() : CCActivityBase(), MenuItem.Action, View.OnClickListener, G
 						try {
 							val b = Board()
 							b.deserialize(`in`)
-							soc.board = b
+							soc.setBoard(b)
 							vBoard.getRenderer().clearCached()
 							vBoard.invalidate()
 						} finally {
@@ -683,14 +686,15 @@ class SOCActivity() : CCActivityBase(), MenuItem.Action, View.OnClickListener, G
 		val columnNames = Vector<String>()
 		columnNames.add("Buildable")
 		for (r: ResourceType in ResourceType.values()) {
-			columnNames.add(" ${r.name} ")
+			columnNames.add(" ${r.getNameId()} ")
 		}
 		val rowData = Vector<Vector<String>>()
 		for (b: BuildableType in BuildableType.values()) {
 			if (b.isAvailable(soc)) {
 				val row = Vector<String>()
 				row.add(b.name)
-				for (r: ResourceType? in ResourceType.values()) row.add(b.getCost(r).toString())
+				for (r: ResourceType in ResourceType.values())
+					row.add(b.getCost(r).toString())
 				rowData.add(row)
 			}
 		}

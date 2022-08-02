@@ -82,7 +82,7 @@ class KaiserTest : TestCase() {
 		while (cnt-- > 0 && k.state !== State.GAME_OVER) {
 			k.runGame()
 		}
-		assertTrue(k.state === State.GAME_OVER)
+		assert(k.state === State.GAME_OVER)
 	}
 
 	@Throws(Exception::class)

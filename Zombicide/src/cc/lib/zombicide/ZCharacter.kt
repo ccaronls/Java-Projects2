@@ -314,7 +314,7 @@ class ZCharacter(override val type: ZPlayerName=ZPlayerName.Ann, skillz: Array<A
                 }
             }
         }
-        Utils.assertTrue(!isBackpackFull)
+        assert(!isBackpackFull)
         return ZEquipSlot.BACKPACK
     }
 
@@ -393,7 +393,7 @@ class ZCharacter(override val type: ZPlayerName=ZPlayerName.Ann, skillz: Array<A
             }
             ZEquipSlot.BACKPACK -> {
                 val idx = backpack.indexOf(type)
-                Utils.assertTrue(idx >= 0)
+                assert(idx >= 0)
                 removed = backpack.removeAt(idx)
             }
             ZEquipSlot.LEFT_HAND -> {
@@ -733,20 +733,20 @@ class ZCharacter(override val type: ZPlayerName=ZPlayerName.Ann, skillz: Array<A
         when (equip.slot) {
             ZEquipSlot.BACKPACK -> {
                 val success = backpack.remove(equip)
-                Utils.assertTrue(success)
+                assert(success)
             }
             ZEquipSlot.LEFT_HAND -> {
-                Utils.assertTrue(leftHand === equip)
+                assert(leftHand === equip)
                 leftHand = null
                 cachedSkills = null
             }
             ZEquipSlot.RIGHT_HAND -> {
-                Utils.assertTrue(rightHand === equip)
+                assert(rightHand === equip)
                 rightHand = null
                 cachedSkills = null
             }
             ZEquipSlot.BODY -> {
-                Utils.assertTrue(body === equip)
+                assert(body === equip)
                 body = null
                 cachedSkills = null
             }

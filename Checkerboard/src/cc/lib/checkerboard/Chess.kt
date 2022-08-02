@@ -2,7 +2,6 @@ package cc.lib.checkerboard
 
 import cc.lib.utils.GException
 import cc.lib.utils.Table
-import cc.lib.utils.assertTrue
 
 import cc.lib.utils.flipCoin
 import java.util.*
@@ -634,7 +633,7 @@ open class Chess : Rules() {
 				n++
 			}
 		}
-		assertTrue(n > 0)
+		assert(n > 0)
 		var t = d[0]
 		d[0] = IntArray(n)
 		System.arraycopy(t, 0, d[0], 0, n)
@@ -702,7 +701,7 @@ open class Chess : Rules() {
 			}
 			MoveType.CASTLE -> {
 				p = game.getPiece(m.castleRookEnd)
-				assertTrue(p.getType().idled.canCastleWith)
+				assert(p.getType().idled.canCastleWith)
 				game.setPiece(m.castleRookStart, m.playerNum, p.getType().idled)
 				game.clearPiece(m.castleRookEnd)
 				game.clearPiece(m.end)

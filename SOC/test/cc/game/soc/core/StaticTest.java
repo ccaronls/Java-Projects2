@@ -1,14 +1,14 @@
 package cc.game.soc.core;
 
+import junit.framework.TestCase;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import cc.lib.game.Utils;
-import junit.framework.TestCase;
 
 public class StaticTest extends TestCase {
 
@@ -29,13 +29,13 @@ public class StaticTest extends TestCase {
 		
 		List<Card> cards = new ArrayList<Card>();
 		for (DevelopmentCardType d : DevelopmentCardType.values())
-			cards.add(new Card(d, CardStatus.UNUSABLE));
+			cards.add(new Card(d.getCardType(), 0, CardStatus.UNUSABLE));
 		
 		for (DevelopmentCardType d : DevelopmentCardType.values())
-			cards.add(new Card(d, CardStatus.USABLE));
+			cards.add(new Card(d.getCardType(), 0, CardStatus.USABLE));
 		
 		for (DevelopmentCardType d : DevelopmentCardType.values())
-			cards.add(new Card(d, CardStatus.USED));
+			cards.add(new Card(d.getCardType(), 0, CardStatus.USED));
 		
 		Utils.shuffle(cards);
 		

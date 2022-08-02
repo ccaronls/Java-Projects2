@@ -6,6 +6,7 @@ import cc.lib.swing.AWTComponent
 import cc.lib.swing.AWTGraphics
 import cc.lib.ui.UIComponent
 import cc.lib.ui.UIRenderer
+import kotlin.coroutines.coroutineContext
 
 /**
  * Created by chriscaron on 2/27/18.
@@ -44,19 +45,18 @@ open class SOCComponent internal constructor() : AWTComponent(), UIComponent {
 		val assets = imagesToLoad
 		if (assets.isNotEmpty()) {
 			progress = 0f
-			object : Thread() {
-				override fun run() {
-					g.addSearchPath("images")
-					val ids = IntArray(assets.size)
-					val delta = 1.0f / ids.size
-					for (i in ids.indices) {
-						ids[i] = g.loadImage(assets[i][0] as String, assets[i][1] as GColor?)
-						progress += delta
-					}
-					onImagesLoaded(ids)
-					progress = 1f
+			kotlin.runCatching {
+				g.addSearchPath("images")
+				val ids = IntArray(assets.size)
+				val delta = 1.0f / ids.size
+				for (i in ids.indices) {
+					ids[i] = g.loadImage(assets[i][0] as String, assets[i][1] as GColor?)
+					progress += delta
+					redraw()
 				}
-			}.start()
+				onImagesLoaded(ids)
+				progress = 1f
+			}
 		}
 	}
 

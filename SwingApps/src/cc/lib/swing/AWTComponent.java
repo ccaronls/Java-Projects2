@@ -316,7 +316,7 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
     }
 
     public void setMinimumSize(int w, int h) {
-        log.debug("set min size: %d x %d", w, h);
+//        log.debug("set min size: %d x %d", w, h);
         super.setMinimumSize(new Dimension(w, h));
     }
 

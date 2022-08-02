@@ -18,7 +18,7 @@ public class YahtzeeTest extends TestCase {
 		int [] dice = { 4, 6, 5, 4, 3 };
 		
 		int score = YahtzeeSlot.SMALL_STRAIGHT.getScore(rules, dice);
-		assertTrue(score > 0);
+		assert(score > 0);
 		score = YahtzeeSlot.LARGE_STRAIGHT.getScore(rules, dice);
 		assertTrue(score == 0);
 	}

@@ -144,7 +144,7 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
     }
 
     protected fun setSpawnArea(cell: ZCell, area: ZSpawnArea?) {
-        assertTrue(cell.numSpawns == 0)
+        assert(cell.numSpawns == 0)
         cell.spawns[cell.numSpawns++] = area
     }
 
@@ -255,7 +255,7 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
                     // make sure outer perimeter has walls
                 }
                 if (cell.isCellType(ZCellType.EXIT)) {
-                    assertTrue(exitZone < 0, "Multiple EXIT zones not supported")
+                    assert(exitZone < 0, "Multiple EXIT zones not supported")
                     exitZone = cell.zoneIndex
                 }
                 if (row == 0) {
@@ -412,7 +412,7 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
     }
 
     protected fun isAllPlayersInExit(game: ZGame): Boolean {
-        assertTrue(exitZone >= 0)
+        assert(exitZone >= 0)
         return game.board.getNumZombiesInZone(exitZone) == 0 && game.board.getAllCharacters().count { it.occupiedZone != exitZone } <= 0
     }
 

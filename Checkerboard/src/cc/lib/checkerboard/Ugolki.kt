@@ -100,7 +100,7 @@ class Ugolki : Checkers() {
 			val pos = targetPositions.removeAt(clIdx)
 			totalD += dist(pos, p.position)
 		}
-		Utils.assertTrue(totalD > 0)
+		assert(totalD > 0)
 		return (Int.MAX_VALUE - totalD).toLong()
 	}
 
@@ -117,7 +117,7 @@ class Ugolki : Checkers() {
 			for (c in 0 until game.columns) {
 				val p = game.getPiece(r, c)
 				if (p.getType() === PieceType.EMPTY) continue
-				Utils.assertTrue(p.getType() === PieceType.DAMA_MAN, "Invalid piece")
+				assert(p.getType() === PieceType.DAMA_MAN, {"Invalid piece" })
 				when (p.playerNum) {
 					Game.NEAR, Game.FAR -> {
 					}
@@ -149,7 +149,7 @@ class Ugolki : Checkers() {
 			}
 		}
 		for (pos in OTHER_POSITIONS) {
-			val p = game.getPiece(pos!![0], pos[1])
+			val p = game.getPiece(pos[0], pos[1])
 			if (p.getType() === PieceType.EMPTY) continue
 			if (p.getType() !== PieceType.DAMA_MAN) throw GException("Invalid piece")
 			when (p.playerNum) {
@@ -184,7 +184,7 @@ class Ugolki : Checkers() {
 	}
 
 	fun getClosest(pos: Int, positions: List<IntArray>): Int {
-		Utils.assertTrue(positions.size > 0)
+		assert(positions.size > 0)
 		val cl = positions[0]
 		val p0r = pos shr 8
 		val p0c = pos and 0xff

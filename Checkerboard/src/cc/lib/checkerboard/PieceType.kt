@@ -1,6 +1,5 @@
 package cc.lib.checkerboard
 
-import cc.lib.utils.assertTrue
 
 /**
  * Created by chriscaron on 10/10/17.
@@ -122,7 +121,7 @@ enum class PieceType(castleWith: Boolean, abbrev: String, points: Int, value: In
 	}
 
 	init {
-		assertTrue(abbrev.length == 2, "Abbrev must be 2 chars")
+		cc.lib.utils.assert(abbrev.length == 2, "Abbrev must be 2 chars")
 		this.abbrev = abbrev
 		this.value = value
 		this.points = points

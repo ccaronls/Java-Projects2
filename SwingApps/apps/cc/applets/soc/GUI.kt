@@ -1,8 +1,7 @@
 package cc.applets.soc
 
-import cc.applets.soc.GUI
 import cc.game.soc.core.*
-import cc.game.soc.core.Rules.Variation
+import cc.game.soc.core.Variation
 import cc.game.soc.ui.*
 import cc.game.soc.ui.MenuItem
 import cc.lib.game.*
@@ -10,6 +9,7 @@ import cc.lib.logger.LoggerFactory
 import cc.lib.math.MutableVector2D
 import cc.lib.swing.*
 import cc.lib.utils.FileUtils
+import cc.lib.utils.Reflector
 import java.awt.*
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
@@ -24,14 +24,14 @@ import javax.swing.filechooser.FileFilter
 class GUI(private val frame: AWTFrame, val props: UIProperties) : ActionListener, MenuItem.Action {
 	val log = LoggerFactory.getLogger(GUI::class.java)
 	val QUIT = MenuItem("Quit", "Quit current game", this)
-	val BACK = MenuItem("Back", null, this)
+	val BACK = MenuItem("Back", "", this)
 	val EXIT = MenuItem("Exit", "Exit the Application", this)
 	val NEW_GAME = MenuItem("New Game", "Start a new game", this)
 	val RESTORE = MenuItem("Restore", "Restore previously saved game", this)
 	val CONFIG_BOARD = MenuItem("Configure Board", "Open configure board mode", this)
 	val CONFIG_SETTINGS = MenuItem("Config Settings", "Configure game settings", this)
-	val CHOOSE_NUM_PLAYERS = MenuItem("--", null, this)
-	val CHOOSE_COLOR = MenuItem("--", null, this)
+	val CHOOSE_NUM_PLAYERS = MenuItem("--", "", this)
+	val CHOOSE_COLOR = MenuItem("--", "", this)
 	val START = MenuItem("Start", "Start the game", this)
 	val RESTART = MenuItem("Restart", "Start the game", this)
 	val START_MULTIPLAYER = MenuItem("Start MP", "Start game and wait for players to join", this)
@@ -90,7 +90,7 @@ class GUI(private val frame: AWTFrame, val props: UIProperties) : ActionListener
 		}
 
 		public override fun onMouseWheel(rotation: Int) {
-			console!!.scroll(rotation)
+			console.scroll(rotation)
 		}
 	}
 	private val console: UIConsoleRenderer = UIConsoleRenderer(consoleComponent)
@@ -129,8 +129,9 @@ class GUI(private val frame: AWTFrame, val props: UIProperties) : ActionListener
 		}
 
 		override fun onMouseWheel(rotation: Int) {
-			if (boardRenderer.pickHandler != null && boardRenderer.pickHandler is MyCustomPickHandler) {
-				(boardRenderer.pickHandler as MyCustomPickHandler).onMouseWheel(rotation)
+			boardRenderer.pickHandler?.let {
+				if (it is MyCustomPickHandler)
+					it.onMouseWheel(rotation)
 			}
 		}
 	}
@@ -317,15 +318,13 @@ class GUI(private val frame: AWTFrame, val props: UIProperties) : ActionListener
 		val chooser = JPanel()
 		chooser.layout = GridLayout(0, 1)
 		val grp: AWTRadioButtonGroup<Any> = object : AWTRadioButtonGroup<Any>(chooser) {
-			protected override fun onChange(extra: Any) {
+			override fun onChange(extra: Any) {
 				if (extra is TileType) {
 					boardRenderer.pickHandler = object : PickHandler {
-						override fun getPickMode(): PickMode {
-							return PickMode.PM_TILE
-						}
+						override val pickMode: PickMode = PickMode.PM_TILE
 
 						override fun onPick(bc: UIBoardRenderer, pickedValue: Int) {
-							val t = bc.getBoard().getTile(pickedValue)
+							val t = bc.board.getTile(pickedValue)
 							t.type = extra
 							if (t.resource == null) {
 								t.dieNum = 0
@@ -353,7 +352,7 @@ class GUI(private val frame: AWTFrame, val props: UIProperties) : ActionListener
 			}
 		}
 		for (c in TileType.values()) {
-			grp.addButton(formatString(c.getName()), c)
+			grp.addButton(formatString(c.name), c)
 		}
 		grp.addButton("Islands", object : PickHandler {
 			override fun onPick(bc: UIBoardRenderer, pickedValue: Int) {
@@ -362,7 +361,7 @@ class GUI(private val frame: AWTFrame, val props: UIProperties) : ActionListener
 					board.removeIsland(islandNum)
 				} else {
 					islandNum = board.createIsland(pickedValue)
-					console!!.addText(GColor.BLACK, "Found island: $islandNum")
+					console.addText(GColor.BLACK, "Found island: $islandNum")
 				}
 			}
 
@@ -373,12 +372,10 @@ class GUI(private val frame: AWTFrame, val props: UIProperties) : ActionListener
 			override fun onDrawPickable(bc: UIBoardRenderer, g: APGraphics, index: Int) {}
 			override fun onDrawOverlay(bc: UIBoardRenderer, g: APGraphics) {}
 			override fun isPickableIndex(bc: UIBoardRenderer, index: Int): Boolean {
-				return !bc.getBoard().getTile(index).isWater
+				return !bc.board.getTile(index).isWater
 			}
 
-			override fun getPickMode(): PickMode {
-				return PickMode.PM_TILE
-			}
+			override val pickMode = PickMode.PM_TILE
 		})
 		grp.addButton("Pirate Route", object : PickHandler {
 			var indices = computePirateRouteTiles()
@@ -405,7 +402,7 @@ class GUI(private val frame: AWTFrame, val props: UIProperties) : ActionListener
 			}
 
 			override fun onPick(bc: UIBoardRenderer, pickedValue: Int) {
-				bc.getBoard().addPirateRoute(pickedValue)
+				bc.board.addPirateRoute(pickedValue)
 				indices = computePirateRouteTiles()
 			}
 
@@ -442,10 +439,7 @@ class GUI(private val frame: AWTFrame, val props: UIProperties) : ActionListener
 				return indices.contains(index)
 			}
 
-			override fun getPickMode(): PickMode {
-				indices = computePirateRouteTiles()
-				return PickMode.PM_TILE
-			}
+			override val pickMode = PickMode.PM_TILE
 		})
 		grp.addButton("Close routes", object : PickHandler {
 			override fun onPick(bc: UIBoardRenderer, pickedValue: Int) {
@@ -477,14 +471,12 @@ class GUI(private val frame: AWTFrame, val props: UIProperties) : ActionListener
 				return true
 			}
 
-			override fun getPickMode(): PickMode {
-				return PickMode.PM_EDGE
-			}
+			override val pickMode = PickMode.PM_EDGE
 		})
 		grp.addButton("Pirate Fortress", object : PickHandler {
 			var indices: MutableList<Int> = ArrayList()
 			override fun onPick(bc: UIBoardRenderer, pickedValue: Int) {
-				val v = bc.getBoard().getVertex(pickedValue)
+				val v = bc.board.getVertex(pickedValue)
 				if (v.type == VertexType.OPEN) {
 					v.setPirateFortress()
 				} else {
@@ -513,24 +505,24 @@ class GUI(private val frame: AWTFrame, val props: UIProperties) : ActionListener
 				return indices.contains(index)
 			}
 
-			override fun getPickMode(): PickMode {
-				indices.clear()
-				for (i in 0 until board.numAvailableVerts) {
-					val v = board.getVertex(i)
-					if (v.canPlaceStructure() && v.type == VertexType.OPEN) {
-						indices.add(i)
+			override val pickMode: PickMode
+				get() {
+					indices.clear()
+					for (i in 0 until board.numAvailableVerts) {
+						val v = board.getVertex(i)
+						if (v.canPlaceStructure() && v.type == VertexType.OPEN) {
+							indices.add(i)
+						}
 					}
+					return PickMode.PM_VERTEX
 				}
-				return PickMode.PM_VERTEX
-			}
 		})
 		grp.addButton("Settlements", object : PickHandler {
-			override fun getPickMode(): PickMode {
-				return PickMode.PM_VERTEX
-			}
+
+			override val pickMode = PickMode.PM_VERTEX
 
 			override fun onPick(bc: UIBoardRenderer, pickedValue: Int) {
-				val v = bc.getBoard().getVertex(pickedValue)
+				val v = bc.board.getVertex(pickedValue)
 				if (v.type == VertexType.OPEN) {
 					v.setOpenSettlement()
 				} else {
@@ -539,15 +531,15 @@ class GUI(private val frame: AWTFrame, val props: UIProperties) : ActionListener
 			}
 
 			override fun onDrawPickable(bc: UIBoardRenderer, g: APGraphics, index: Int) {
-				val v = bc.getBoard().getVertex(index)
+				val v = bc.board.getVertex(index)
 				g.color = GColor.TRANSLUSCENT_BLACK
 				bc.drawSettlement(g, v, 0, false)
 			}
 
 			override fun onDrawOverlay(bc: UIBoardRenderer, g: APGraphics) {
 				var index = 1
-				for (vIndex in bc.getBoard().getVertIndicesOfType(0, VertexType.OPEN_SETTLEMENT)) {
-					val v = bc.getBoard().getVertex(vIndex)
+				for (vIndex in bc.board.getVertIndicesOfType(0, VertexType.OPEN_SETTLEMENT)) {
+					val v = bc.board.getVertex(vIndex)
 					g.color = GColor.LIGHT_GRAY
 					bc.drawSettlement(g, v, 0, false)
 					val mv = g.transform(v)
@@ -558,12 +550,12 @@ class GUI(private val frame: AWTFrame, val props: UIProperties) : ActionListener
 			}
 
 			override fun onHighlighted(bc: UIBoardRenderer, g: APGraphics, highlightedIndex: Int) {
-				val v = bc.getBoard().getVertex(highlightedIndex)
+				val v = bc.board.getVertex(highlightedIndex)
 				bc.drawSettlement(g, v, 0, true)
 			}
 
 			override fun isPickableIndex(bc: UIBoardRenderer, index: Int): Boolean {
-				val v = bc.getBoard().getVertex(index)
+				val v = bc.board.getVertex(index)
 				return if (v.type != VertexType.OPEN && v.type != VertexType.SETTLEMENT) false else v.player == 0 && v.canPlaceStructure()
 				// TODO Auto-generated method stub
 			}
@@ -608,7 +600,7 @@ class GUI(private val frame: AWTFrame, val props: UIProperties) : ActionListener
 	}
 
 	private fun initMenu() {
-		if (board.name.length == 0) {
+		if (board.name.isEmpty()) {
 			boardNameLabel.text = "Untitled"
 		} else {
 			boardNameLabel.text = board.name
@@ -728,7 +720,7 @@ class GUI(private val frame: AWTFrame, val props: UIProperties) : ActionListener
 							DebugPick.CITY, DebugPick.CITY_WALL, DebugPick.SETTLEMENT -> {
 								v = board.getVertex(pickedValue)
 								if (v.player == 0) {
-									v.setPlayerAndType(curPlayerNum, mode.vType)
+									v.setPlayerAndType(curPlayerNum, mode.vType!!)
 								} else {
 									v.setOpen()
 								}
@@ -767,8 +759,8 @@ class GUI(private val frame: AWTFrame, val props: UIProperties) : ActionListener
 							DebugPick.ROAD, DebugPick.SHIP, DebugPick.WARSHIP -> {
 								r = board.getRoute(pickedValue)
 								if (r.player == 0) {
-									r.type = mode.rType
-									board.setPlayerForRoute(r, curPlayerNum, mode.rType)
+									r.type = mode.rType!!
+									board.setPlayerForRoute(r, curPlayerNum, mode.rType!!)
 								} else {
 									board.setRouteOpen(r)
 								}
@@ -814,7 +806,7 @@ class GUI(private val frame: AWTFrame, val props: UIProperties) : ActionListener
 									g.drawPoints(10f)
 								} else {
 									g.color = getPlayerColor(curPlayerNum)
-									bc.drawVertex(g, v, mode.vType, v.player, true)
+									bc.drawVertex(g, v, mode.vType!!, v.player, true)
 								}
 							}
 							PickMode.PM_CUSTOM, PickMode.PM_NONE -> {
@@ -870,9 +862,7 @@ class GUI(private val frame: AWTFrame, val props: UIProperties) : ActionListener
 						return true
 					}
 
-					override fun getPickMode(): PickMode {
-						return mode.mode
-					}
+					override val pickMode = mode.mode
 				}
 			}
 		}
@@ -892,7 +882,7 @@ class GUI(private val frame: AWTFrame, val props: UIProperties) : ActionListener
 		addMenuItem(getMenuOpButton(BACK))
 	}
 
-	override fun onAction(op: MenuItem, extra: Any) {
+	override fun onAction(op: MenuItem, extra: Any?) {
 		if (op == BACK) {
 			if (menuStack.size > 0) {
 				menuStack.pop()
@@ -951,6 +941,7 @@ class GUI(private val frame: AWTFrame, val props: UIProperties) : ActionListener
 				menuStack.push(MenuState.MENU_PLAY_GAME)
 				initMenu()
 				clearSaves()
+				soc.initUI()
 				soc.initGame()
 				soc.startGameThread()
 			} else {
@@ -982,7 +973,7 @@ class GUI(private val frame: AWTFrame, val props: UIProperties) : ActionListener
                     jmdns.unregisterAllServices();
 
                      */
-					console!!.addText(GColor.BLACK, "Broadcasting on Bonjour")
+					console.addText(GColor.BLACK, "Broadcasting on Bonjour")
 				} catch (e: Exception) {
 					soc.server.stop()
 					showOkPopup("ERROR", "Failed to register Bonjour service. " + e.javaClass.simpleName + ":" + e.message)
@@ -1101,7 +1092,7 @@ class GUI(private val frame: AWTFrame, val props: UIProperties) : ActionListener
 			val columnNames = Vector<String>()
 			columnNames.add("Buildable")
 			for (r in ResourceType.values()) {
-				columnNames.add(r.name)
+				columnNames.add(r.getNameId())
 			}
 			val rowData = Vector<Vector<Any>>()
 			for (b in BuildableType.values()) {
@@ -1254,7 +1245,7 @@ class GUI(private val frame: AWTFrame, val props: UIProperties) : ActionListener
 		soc.stopRunning()
 		//soc.clear();
 		boardRenderer.pickHandler = null
-		console!!.clear()
+		console.clear()
 		menuStack.clear()
 		menuStack.push(MenuState.MENU_START)
 		initMenu()
@@ -1291,7 +1282,7 @@ class GUI(private val frame: AWTFrame, val props: UIProperties) : ActionListener
 		// now shuffle the player nums
 		for (i in 0 until numPlayers) {
 			players[i]!!.playerNum = i + 1
-			soc.addPlayer(players[i])
+			soc.addPlayer(players[i]!!)
 		}
 	}
 
@@ -1364,7 +1355,7 @@ class GUI(private val frame: AWTFrame, val props: UIProperties) : ActionListener
 			val factor = AITuning.getInstance().getScalingFactor(key)
 			val value = node.getValue(key)
 			val percentMax = (100 * value / maxValues[key]!!).toInt()
-			val percentTot = (100 * factor * value / node.value).toInt()
+			val percentTot = (100.0 * factor * value / node.getValue()).toInt()
 			info.append(String.format("""
 	%-${maxKeyWidth}s %1.4f %1.4f %3d %3d
 
@@ -1401,7 +1392,7 @@ class GUI(private val frame: AWTFrame, val props: UIProperties) : ActionListener
 			var best = node
 			var desc = n.description
 			while (n.parent != null) {
-				n = n.parent
+				n = n.parent!!
 				if (n is BotNodeVertex ||
 					n is BotNodeRoute ||
 					n is BotNodeTile) {
@@ -1544,7 +1535,9 @@ class GUI(private val frame: AWTFrame, val props: UIProperties) : ActionListener
 			for (f in fields) {
 				val anno = f.annotations
 				for (a in anno) {
-					if (a.annotationClass == Rules.Rule::class.java) {
+					val k = a.annotationClass
+					val kk = Rules.Rule::class
+					if (a.annotationClass == Rules.Rule::class) {
 						cons.gridx = 0
 						f.isAccessible = true
 						val ruleVar = a as Rules.Rule
@@ -1723,8 +1716,8 @@ class GUI(private val frame: AWTFrame, val props: UIProperties) : ActionListener
 	init {
 		ToolTipManager.sharedInstance().dismissDelay = Int.MAX_VALUE
 		soc = object : UISOC(playerRenderers, boardRenderer, diceRenderers, console, eventCardRenderer, barbarianRenderer) {
-			override fun addMenuItem(item: MenuItem, title: String, helpText: String?, `object`: Any?) {
-				this@GUI.addMenuItem(getMenuOpButton(item, title, helpText, `object`))
+			override fun addMenuItem(item: MenuItem, title: String, helpText: String, extra: Any?) {
+				this@GUI.addMenuItem(getMenuOpButton(item, title, helpText, extra))
 			}
 
 			override fun clearMenu() {
@@ -1735,9 +1728,8 @@ class GUI(private val frame: AWTFrame, val props: UIProperties) : ActionListener
 				frame.repaint()
 			}
 
-			override fun getServerName(): String {
-				return System.getProperty("user.name")
-			}
+			override val serverName: String
+				get() = System.getProperty("user.name")
 
 			override fun showOkPopup(title: String, message: String) {
 				JOptionPane.showMessageDialog(frame, message, title, JOptionPane.PLAIN_MESSAGE)
@@ -1769,7 +1761,7 @@ class GUI(private val frame: AWTFrame, val props: UIProperties) : ActionListener
 				frame.validate()
 			}
 
-			override fun chooseOptimalPath(optimal: BotNode, leafs: List<BotNode>): BotNode {
+			override fun chooseOptimalPath(optimal: BotNode?, leafs: List<BotNode>): BotNode? {
 				var optimal = optimal
 				if (props.getBooleanProperty(PROP_AI_TUNING_ENABLED, false) == false) return optimal
 				if (!isRunning) return optimal
@@ -1837,7 +1829,7 @@ class GUI(private val frame: AWTFrame, val props: UIProperties) : ActionListener
 							val v = n.data as Vertex
 							v.setPlayerAndType(curPlayerNum, VertexType.SETTLEMENT)
 							val d = board.computeDistances(rules, curPlayerNum)
-							console!!.addText(GColor.BLACK, d.toString())
+							console.addText(GColor.BLACK, d.toString())
 							v.setOpen()
 						}
 						if (n.data is Route) {
@@ -1845,14 +1837,14 @@ class GUI(private val frame: AWTFrame, val props: UIProperties) : ActionListener
 							//r.setType(RouteType.SHIP);
 							board.setPlayerForRoute(r, curPlayerNum, RouteType.SHIP)
 							val d = board.computeDistances(rules, curPlayerNum)
-							console!!.addText(GColor.BLACK, d.toString())
+							console.addText(GColor.BLACK, d.toString())
 							board.setRouteOpen(r)
 						}
 
 						// rewrite the aituning properties (to the text pane, user must visually inspect and commit) such that the picked botnode becomes the most dominant.
 						// there will be cases when this is not possible, in which case, algorithm will need additional factors introduced to give favor to the node we want to 'win'
 						val best = leafs[0]
-						val delta = best.value - n.value
+						val delta = best.getValue() - n.getValue()
 						if (delta > 0) {
 							var deltaPos = 0.0
 							var deltaNeg = 0.0
@@ -1895,7 +1887,7 @@ class GUI(private val frame: AWTFrame, val props: UIProperties) : ActionListener
 									}
 								}
 							} else {
-								console!!.addText(GColor.BLACK, "Node has no max values")
+								console.addText(GColor.BLACK, "Node has no max values")
 							}
 						}
 						notifyWaitObj()
@@ -1913,12 +1905,12 @@ class GUI(private val frame: AWTFrame, val props: UIProperties) : ActionListener
 						val nr = nodeRects[highlightedIndex]
 						var text = node.description
 						while (node.parent != null) {
-							node = node.parent
+							node = node.parent!!
 							text = node.description + " => " + text
 						}
 						text = "$highlightedIndex: $text"
 						node = leafs[highlightedIndex]
-						val info = String.format("%.6f\n", node.value) + text
+						val info = String.format("%.6f\n", node.getValue()) + text
 						g.pushMatrix()
 						g.setIdentity()
 						g.color = GColor.RED
@@ -1934,7 +1926,7 @@ class GUI(private val frame: AWTFrame, val props: UIProperties) : ActionListener
 							if (!v.isZero) {
 								g.vertex(v)
 							}
-							node = node.parent
+							node = node.parent!!
 						}
 						g.drawPoints(15f)
 					}
@@ -1953,13 +1945,8 @@ class GUI(private val frame: AWTFrame, val props: UIProperties) : ActionListener
 						return true
 					}
 
-					override fun getPickMode(): PickMode {
-						return PickMode.PM_CUSTOM
-					}
-
-					override fun getNumElements(): Int {
-						return nodeRects.size
-					}
+					override val pickMode = PickMode.PM_CUSTOM
+					override val numElements = nodeRects.size
 
 					override fun pickElement(b: UIBoardRenderer, g: APGraphics, x: Int, y: Int): Int {
 						for (i in nodeRects.indices) {
@@ -1987,9 +1974,8 @@ class GUI(private val frame: AWTFrame, val props: UIProperties) : ActionListener
 				quitToMainMenu()
 			}
 
-			override fun isAITuningEnabled(): Boolean {
-				return props.getBooleanProperty(PROP_AI_TUNING_ENABLED, false)
-			}
+			override val isAITuningEnabled: Boolean
+				get() = props.getBooleanProperty(PROP_AI_TUNING_ENABLED, false)
 
 			override fun showChoicePopup(title: String, choices: List<String>): String? {
 				val index = frame.showItemChooserDialog(title, "If you cancel from this dialog you will be disconnected from game", null, *choices.toTypedArray())

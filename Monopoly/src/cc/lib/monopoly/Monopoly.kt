@@ -108,7 +108,7 @@ open class Monopoly : Reflector<Monopoly>() {
 		val item = state.peek()
 		when (item.state) {
 			State.INIT -> {
-				assertTrue(state.size == 1)
+				assert(state.size == 1)
 				if (players.size < 2) throw RuntimeException("Not enough players")
 				for (i in 0 until numPlayers) {
 					val p = getPlayer(i)
@@ -139,7 +139,7 @@ open class Monopoly : Reflector<Monopoly>() {
 			}
 			State.TURN -> {
 				val cur = getCurrentPlayer()
-				assertTrue(cur.value > 0)
+				assert(cur.value > 0)
 				val moves: MutableList<MoveType> = ArrayList()
 				if (cur.isInJail && cur.turnsLeftInJail-- <= 0) {
 					if (cur.hasGetOutOfJailFreeCard()) {
@@ -350,7 +350,7 @@ open class Monopoly : Reflector<Monopoly>() {
 			State.CHOOSE_TRADE -> {
 				val cur = getCurrentPlayer()
 				val trades = getTradeOptions(cur)
-				assertTrue(trades.isNotEmpty())
+				assert(trades.isNotEmpty())
 				val trade = cur.chooseTrade(this, trades)
 				if (trade != null) {
 					onPlayerTrades(currentPlayerNum, getPlayerNum(trade.trader), trade.card.property, trade.price)
@@ -364,7 +364,7 @@ open class Monopoly : Reflector<Monopoly>() {
 			State.CHOOSE_CARDS_FOR_SALE -> {
 				val cur = getCurrentPlayer()
 				val sellable = cur.cardsForSale
-				assertTrue(sellable.isNotEmpty())
+				assert(sellable.isNotEmpty())
 				if (cur.markCardsForSale(this, sellable)) {
 					popState()
 				}
@@ -413,7 +413,7 @@ open class Monopoly : Reflector<Monopoly>() {
 
 	private fun processMove(move: MoveType) {
 		val cur = getCurrentPlayer()
-		assertTrue(!cur.isBankrupt)
+		assert(!cur.isBankrupt)
 		when (move) {
 			MoveType.END_TURN -> {
 				val sq = cur.square
@@ -421,7 +421,7 @@ open class Monopoly : Reflector<Monopoly>() {
 				pushState(State.SET_PLAYER, currentPlayerNum)
 				if (sq.canPurchase() && getOwner(cur.square) < 0) {
 					val curNum = getPlayerNum(cur)
-					assertTrue(curNum >= 0)
+					assert(curNum >= 0)
 					var i = 0
 					while (i < numActivePlayers - 1) {
 						pushState(State.CHOOSE_PURCHASE_PROPERTY, curNum)
@@ -449,9 +449,9 @@ open class Monopoly : Reflector<Monopoly>() {
 			MoveType.FORFEIT -> if (playerBankrupt(currentPlayerNum)) nextPlayer(true)
 			MoveType.MARK_CARDS_FOR_SALE -> pushState(State.CHOOSE_CARDS_FOR_SALE)
 			MoveType.PAY_BOND -> {
-				assertTrue(cur.isInJail)
+				assert(cur.isInJail)
 				val bond = cur.jailBond
-				assertTrue(bond > 0)
+				assert(bond > 0)
 				cur.setInJail(false, rules)
 				onPlayerOutOfJail(currentPlayerNum)
 				onPlayerGotPaid(currentPlayerNum, -bond)
@@ -461,7 +461,7 @@ open class Monopoly : Reflector<Monopoly>() {
 				nextPlayer(true)
 			}
 			MoveType.GET_OUT_OF_JAIL_FREE -> {
-				assertTrue(cur.isInJail)
+				assert(cur.isInJail)
 				cur.setInJail(false, rules)
 				onPlayerOutOfJail(currentPlayerNum)
 				cur.useGetOutOfJailCard()
@@ -469,9 +469,9 @@ open class Monopoly : Reflector<Monopoly>() {
 			}
 			MoveType.PURCHASE -> {
 				val sq = cur.square
-				assertTrue(sq.canPurchase())
-				assertTrue(getOwner(sq) < 0)
-				assertTrue(cur.money >= sq.price)
+				assert(sq.canPurchase())
+				assert(getOwner(sq) < 0)
+				assert(cur.money >= sq.price)
 				onPlayerPurchaseProperty(currentPlayerNum, sq)
 				cur.addCard(newPropertyCard(sq))
 				cur.addMoney(-sq.price)
@@ -483,9 +483,9 @@ open class Monopoly : Reflector<Monopoly>() {
 			MoveType.PURCHASE_UNBOUGHT -> {
 				val pIndex = getData(0)
 				val sq = getPlayer(pIndex).square
-				assertTrue(sq.canPurchase())
-				assertTrue(getOwner(sq) < 0)
-				assertTrue(cur.money >= sq.price)
+				assert(sq.canPurchase())
+				assert(getOwner(sq) < 0)
+				assert(cur.money >= sq.price)
 				onPlayerPurchaseProperty(currentPlayerNum, sq)
 				cur.addCard(newPropertyCard(sq))
 				cur.addMoney(-sq.price)
@@ -499,7 +499,7 @@ open class Monopoly : Reflector<Monopoly>() {
 	fun getPurchasePropertySquare(): Square = getPlayer(getData(0)).square
 
 	fun addPlayer(player: Player) {
-		assertTrue(players.size < MAX_PLAYERS)
+		assert(players.size < MAX_PLAYERS)
 		players.add(player)
 	}
 

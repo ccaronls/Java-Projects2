@@ -61,18 +61,32 @@ class SOCView<T : UIRenderer> : View, UIComponent {
 				_renderer = r as T
 			}
 			R.id.soc_board -> {
+				val board = Board()
+				board.generateDefaultBoard()
 				val r: UIBoardRenderer = object : UIBoardRenderer(this@SOCView) {
 					override fun onClick() {
 						// disable this method since it is hard to pull off easily on a device. Use accept button only.
 						//super.doClick();
 					}
 				}
+
+				r.board = board
 				r.initImages(R.drawable.desert,
 					R.drawable.water,
-					R.drawable.gold, R.drawable.undiscoveredtile, R.drawable.foresthex, R.drawable.hillshex, R.drawable.mountainshex, R.drawable.pastureshex, R.drawable.fieldshex, R.drawable.knight_basic_inactive, R.drawable.knight_basic_active, R.drawable.knight_strong_inactive, R.drawable.knight_strong_active, R.drawable.knight_mighty_inactive, R.drawable.knight_mighty_active) //, R.drawable.card_frame);
-				val board = Board()
-				board.generateDefaultBoard()
-				r.board = board
+					R.drawable.gold,
+					R.drawable.undiscoveredtile,
+					R.drawable.foresthex,
+					R.drawable.hillshex,
+					R.drawable.mountainshex,
+					R.drawable.pastureshex,
+					R.drawable.fieldshex,
+					R.drawable.knight_basic_inactive,
+					R.drawable.knight_basic_active,
+					R.drawable.knight_strong_inactive,
+					R.drawable.knight_strong_active,
+					R.drawable.knight_mighty_inactive,
+					R.drawable.knight_mighty_active) //, R.drawable.card_frame);
+
 				_renderer = r as T
 			}
 			R.id.soc_dice -> _renderer = UIDiceRenderer(this, true) as T

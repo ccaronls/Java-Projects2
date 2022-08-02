@@ -9,9 +9,7 @@ import cc.lib.ui.UIComponent
 import java.util.*
 
 open class UIBoardRenderer(component: UIComponent) : UIRenderer(component) {
-	
-	lateinit var board: Board
-	
+
 	protected fun getPlayerColor(playerNum: Int): GColor {
 		return UISOC.instance.getPlayerColor(playerNum)
 	}
@@ -31,7 +29,17 @@ open class UIBoardRenderer(component: UIComponent) : UIRenderer(component) {
 	private val textColor = GColor.CYAN
 	private var pickMode = PickMode.PM_NONE
 	private var pickedValue = -1
-	private var pickHandler: PickHandler? = null
+	var pickHandler: PickHandler? = null
+		set(value) {
+			if (value == null) {
+				pickMode = PickMode.PM_NONE
+			} else {
+				pickMode = value.pickMode
+			}
+			field = value
+			pickedValue = -1
+			getComponent<UIComponent>().redraw()
+		}
 	var renderFlag = 0
 	private val animations = LinkedList<AAnimation<AGraphics>>()
 	private var edgeInfoIndex = -1
@@ -58,10 +66,6 @@ open class UIBoardRenderer(component: UIComponent) : UIRenderer(component) {
 		)
 	}
 
-	fun getPickHandler(): PickHandler? {
-		return pickHandler
-	}
-
 	fun setRenderFlag(flag: RenderFlag, enabled: Boolean) {
 		renderFlag = if (enabled) renderFlag or (1 shl flag.ordinal) else renderFlag and (1 shl flag.ordinal).inv()
 		//getProperties().setProperty("renderFlag", renderFlag);
@@ -85,6 +89,9 @@ open class UIBoardRenderer(component: UIComponent) : UIRenderer(component) {
 			anim.block(anim.duration + 500)
 		}
 	}
+
+	val board: Board
+		get () = UISOC.instance.board
 
 	//fun getBoard(): Board? {
 	//	return if (UISOC.getInstance() == null) board else UISOC.getInstance().board
@@ -226,7 +233,7 @@ open class UIBoardRenderer(component: UIComponent) : UIRenderer(component) {
 		val txt = """
 
 	       	2:1
-	       	${t.resource.name}
+	       	${t.resource!!.getNameId()}
 	       	""".trimIndent()
 		val v: Vector2D = g.transform(t)
 		g.drawJustifiedString((v.Xi() - 2).toFloat(), v.Yi() - 2 - g.textHeight * 2, Justify.CENTER, Justify.TOP, txt)
@@ -516,22 +523,6 @@ open class UIBoardRenderer(component: UIComponent) : UIRenderer(component) {
 		drawFaces(g, v, 0f, robberRadius, FaceType.WAR_SHIP, false)
 	}
 
-	/**
-	 * Set the current pick mode.
-	 *
-	 * @param handler
-	 */
-	fun setPickHandler(handler: PickHandler?) {
-		if (handler == null) {
-			pickMode = PickMode.PM_NONE
-		} else {
-			pickMode = handler.pickMode
-		}
-		pickHandler = handler
-		pickedValue = -1
-		getComponent<UIComponent>().redraw()
-	}
-
 	fun drawIslandOutlined(g: AGraphics, tileIndex: Int) {
 		val islandEdges = board.findIslandShoreline(tileIndex)
 		g.begin()
@@ -587,7 +578,7 @@ open class UIBoardRenderer(component: UIComponent) : UIRenderer(component) {
 			g.color = outlineColorLight
 			drawTileOutline(g, cell)
 			g.color = textColor
-			val name = cell.type.getName()
+			val name = cell.type.name
 			when (cell.type) {
 				TileType.NONE -> {
 				}
@@ -595,7 +586,7 @@ open class UIBoardRenderer(component: UIComponent) : UIRenderer(component) {
 				TileType.WATER -> g.drawJustifiedString(x.toFloat(), y.toFloat(), Justify.CENTER, Justify.CENTER, name)
 				TileType.PORT_ORE, TileType.PORT_SHEEP, TileType.PORT_WHEAT, TileType.PORT_WOOD, TileType.PORT_BRICK -> g.drawJustifiedString(x.toFloat(), y.toFloat(), Justify.CENTER, Justify.CENTER, """
  	2:1
- 	${cell.resource.name}
+ 	${cell.resource!!.getNameId()}
  	""".trimIndent())
 				TileType.PORT_MULTI -> g.drawJustifiedString(x.toFloat(), y.toFloat(), Justify.CENTER, Justify.CENTER, "3:1\n?")
 				TileType.GOLD -> g.drawJustifiedString(x.toFloat(), y.toFloat(), Justify.CENTER, Justify.CENTER, """
@@ -603,7 +594,7 @@ open class UIBoardRenderer(component: UIComponent) : UIRenderer(component) {
  	${cell.dieNum}
  	""".trimIndent())
 				TileType.RANDOM_RESOURCE_OR_DESERT, TileType.RANDOM_RESOURCE, TileType.RANDOM_PORT_OR_WATER, TileType.RANDOM_PORT -> g.drawJustifiedString(x.toFloat(), y.toFloat(), Justify.CENTER, Justify.CENTER, name)
-				TileType.FIELDS, TileType.FOREST, TileType.HILLS, TileType.MOUNTAINS, TileType.PASTURE -> g.drawJustifiedString(x.toFloat(), y.toFloat(), Justify.CENTER, Justify.CENTER, cell.resource.name + "\n" + cell.dieNum.toString())
+				TileType.FIELDS, TileType.FOREST, TileType.HILLS, TileType.MOUNTAINS, TileType.PASTURE -> g.drawJustifiedString(x.toFloat(), y.toFloat(), Justify.CENTER, Justify.CENTER, cell.resource!!.getNameId() + "\n" + cell.dieNum.toString())
 				TileType.UNDISCOVERED -> {
 				}
 			}
@@ -630,7 +621,7 @@ open class UIBoardRenderer(component: UIComponent) : UIRenderer(component) {
 					g.color = textColor
 					g.drawJustifiedString(cell.x, cell.y, Justify.CENTER, Justify.CENTER, """
  	2:1
- 	${cell.resource.name}
+ 	${cell.resource!!.getNameId()}
  	""".trimIndent())
 				}
 				TileType.PORT_MULTI -> {
@@ -798,7 +789,7 @@ open class UIBoardRenderer(component: UIComponent) : UIRenderer(component) {
 				}
 			}
 			if (getRenderFlag(RenderFlag.SHOW_ISLAND_INFO)) {
-				for (i in board.islands) {
+				for (i in board.getIslands()) {
 					drawIslandInfo(g, i)
 				}
 			}
@@ -943,8 +934,9 @@ adj:${cell.adjVerts}"""
 	 * Delete screen capture and force a full redraw
 	 */
 	fun clearCached() {}
-	fun reset() {
-		setPickHandler(null)
+
+	override fun reset() {
+		pickHandler = null
 		animations.clear()
 	}
 

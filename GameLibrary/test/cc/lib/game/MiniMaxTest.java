@@ -2,12 +2,8 @@ package cc.lib.game;
 
 import junit.framework.TestCase;
 
-import java.io.File;
-
-import cc.lib.checkerboard.*;
-
 public class MiniMaxTest extends TestCase {
-
+/*
     @Override
     protected void setUp() throws Exception {
         Utils.setRandomSeed(0);
@@ -112,5 +108,5 @@ public class MiniMaxTest extends TestCase {
         }
         return true;
     }
-
+*/
 }

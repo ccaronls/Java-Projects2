@@ -1,60 +1,59 @@
 package cc.game.soc.ui
 
 import cc.game.soc.core.EventCard
-import cc.game.soc.core.EventCardType
-import cc.game.soc.core.Rules
 import cc.lib.game.*
+import cc.lib.logger.LoggerFactory
 import cc.lib.ui.UIComponent
 
 class UIEventCardRenderer(component: UIComponent) : UIRenderer(component) {
-	//private float minCardWidth = 0;
-    val diceComps: UIDiceRenderer
-	private var eventCard: EventCard = EventCard(EventCardType.NoEvent, 8)
+
+    val diceComps: UIDiceRenderer = UIDiceRenderer(component, false)
+	val log = LoggerFactory.getLogger(javaClass)
+
+	private var eventCard: EventCard? = null
+
 	private var dealAnim: AAnimation<AGraphics>? = null
 	var cw = 0f
 	var ch = 0f
 	var arc = 0f
 	var padding = RenderConstants.thickLineThickness
+
 	@Synchronized
 	override fun draw(g: APGraphics, px: Int, py: Int) {
-		g.textHeight = RenderConstants.textSizeSmall
-		g.setTextStyles(AGraphics.TextStyle.NORMAL)
-		var cardText = "New Year"
-		var helpText: String? = "Event cards wil be shuffled on next event card drawn."
-		var production = 0
-		val soc = UISOC.instance
-		cardText = eventCard.type.name
-		helpText = eventCard.getHelpText(soc.rules)
-		production = eventCard.production
-		ch = getComponent<UIComponent>().height.toFloat()
-		cw = ch * 2 / 3
-		if (cw > getComponent<UIComponent>().width / 2) {
-			cw = (getComponent<UIComponent>().width / 2).toFloat()
-			ch = cw * 3 / 2
-		}
-		val tw = g.viewportWidth - cw - 3 * padding
-		val r = g.getTextDimension(helpText, tw)
-		val cx = g.viewportWidth - cw
-		val cy = g.viewportHeight - ch
-		arc = Math.min(cw, ch) / 5
-		g.color = GColor.WHITE
-		g.setTextStyles(AGraphics.TextStyle.NORMAL)
-		g.drawWrapString(padding, cy + padding, tw, helpText)
-		val dieDim = cw / 2 - 4 * padding
-		val dy = cy + ch - 2 * padding - dieDim
-		g.pushMatrix()
-		g.translate(cx, cy)
-		if (dealAnim != null) {
-			dealAnim!!.update(g)
-			if (dealAnim!!.isDone) {
-				dealAnim = null
+		eventCard?.let { card ->
+			g.textHeight = RenderConstants.textSizeSmall
+			g.setTextStyles(AGraphics.TextStyle.NORMAL)
+			val cardText = card.type.getNameId()
+			val helpText: String? = card.getHelpText(UISOC.instance.rules)
+			val production = card.production
+			ch = getComponent<UIComponent>().height.toFloat()
+			cw = ch * 2 / 3
+			if (cw > getComponent<UIComponent>().width / 2) {
+				cw = (getComponent<UIComponent>().width / 2).toFloat()
+				ch = cw * 3 / 2
 			}
-			getComponent<UIComponent>().redraw()
-		} else {
-			drawCard(g, production, cardText)
-		}
-		g.popMatrix()
-		if (diceComps != null) {
+			val tw = g.viewportWidth - cw - 3 * padding
+			val r = g.getTextDimension(helpText, tw)
+			val cx = g.viewportWidth - cw
+			val cy = g.viewportHeight - ch
+			arc = Math.min(cw, ch) / 5
+			g.color = GColor.WHITE
+			g.setTextStyles(AGraphics.TextStyle.NORMAL)
+			g.drawWrapString(padding, cy + padding, tw, helpText)
+			val dieDim = cw / 2 - 4 * padding
+			val dy = cy + ch - 2 * padding - dieDim
+			g.pushMatrix()
+			g.translate(cx, cy)
+			dealAnim?.let { anim ->
+				anim.update(g)
+				if (anim.isDone) {
+					dealAnim = null
+				}
+				getComponent<UIComponent>().redraw()
+			} ?: run {
+				drawCard(g, production, cardText)
+			}
+			g.popMatrix()
 			g.pushMatrix()
 			g.translate(cx, dy)
 			diceComps.setDiceRect(GDimension(cw, dieDim))
@@ -86,38 +85,40 @@ class UIEventCardRenderer(component: UIComponent) : UIRenderer(component) {
 		}
 	}
 
-	fun setEventCard(card: EventCard?) {
-		if (card == null) return
-		if (eventCard == null) {
-			eventCard = card
-			getComponent<UIComponent>().redraw()
-			return
-		}
-		val productionIn = eventCard.production
-		val productionOut = card.production
-		val txtIn = eventCard.name
-		val txtOut = card.name
-		object : UIAnimation(500, 1, true) {
-			override fun draw(g: AGraphics, position: Float, dt: Float) {
-				g.pushMatrix()
-				g.translate(cw / 2, 0f)
-				g.scale(1f - position, 1f)
-				g.translate(-cw / 2, 0f)
-				if (repeat == 0) drawCard(g, productionIn, txtIn) else drawCard(g, productionOut, txtOut)
-				g.popMatrix()
-			}
+	fun setEventCard(newCard: EventCard) {
+		log.debug("setEventCard $newCard")
+		eventCard?.let { oldCard ->
+			val productionIn = oldCard.production
+			val productionOut = newCard.production
+			val txtIn = oldCard.name
+			val txtOut = newCard.name
+			dealAnim = object : UIAnimation(500, 1, true) {
+				override fun draw(g: AGraphics, position: Float, dt: Float) {
+					g.pushMatrix()
+					g.translate(cw / 2, 0f)
+					g.scale(1f - position, 1f)
+					g.translate(-cw / 2, 0f)
+					if (repeat == 0) drawCard(g, productionIn, txtIn) else drawCard(g, productionOut, txtOut)
+					g.popMatrix()
+				}
 
-			override fun onDone() {
-				eventCard = card
-				super.onDone()
+				override fun onDone() {
+					eventCard = newCard
+					super.onDone()
+				}
+			}.start<UIAnimation>().also {
+				redraw()
+				it.block(it.duration + 100)
 			}
-		}.start<UIAnimation>().also {
-			getComponent<UIComponent>().redraw()
-			it.block(it.duration + 100)
+		}?:run {
+			eventCard = newCard
+			redraw()
 		}
 	}
 
-	init {
-		diceComps = UIDiceRenderer(component, false)
+	override fun reset() {
+		eventCard = null
+		redraw()
 	}
+
 }

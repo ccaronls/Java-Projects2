@@ -2,6 +2,8 @@ package cc.game.soc.core;
 
 import junit.framework.TestCase;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileWriter;
@@ -38,7 +40,7 @@ public class SOCTest extends TestCase {
         System.out.println("----------------------------------------------");
         Profiler.ENABLED = true;
         PlayerBot.DEBUG_ENABLED = true;
-        Utils.DEBUG_ENABLED = true;
+        Utils.setDebugEnabled();
         startTimeMs = System.currentTimeMillis();
     }
 
@@ -233,7 +235,6 @@ public class SOCTest extends TestCase {
 	
 	public void testDiff() throws Exception {
 
-        Reflector.KEEP_INSTANCES = true;
         SOC a = new SOC();
         SOC b = new SOC();
         assertTrue(a.deepEquals(b));
@@ -242,7 +243,7 @@ public class SOCTest extends TestCase {
         String diff = a.diff(b);
         System.out.println("diff:\n" + diff);
 
-        b.addPlayer(new PlayerTemp());
+        b.addPlayer(new PlayerTemp(1));
         diff = a.diff(b);
         System.out.println("diff:\n" + diff);
         a.deserialize(diff);
@@ -302,15 +303,14 @@ public class SOCTest extends TestCase {
     }
 
     public void testDiffBoard() throws Exception {
-	    Reflector.KEEP_INSTANCES = true;
 	    SOC a = new SOC();
 	    SOC b = new SOC();
 	    assertTrue(a.deepEquals(b));
 	    assertEquals(a.toString(), b.toString());
 
-	    b.addPlayer(new PlayerTemp());
-	    b.addPlayer(new PlayerTemp());
-	    b.addPlayer(new PlayerTemp());
+	    b.addPlayer(new PlayerTemp(1));
+	    b.addPlayer(new PlayerTemp(2));
+	    b.addPlayer(new PlayerTemp(3));
 
 	    String diff = a.diff(b);
 	    a.deserialize(diff);
@@ -380,7 +380,7 @@ public class SOCTest extends TestCase {
             out.write(diff.getBytes());
             compressBytesDiffed += b.size();
             b.reset();
-            copy.mergeDiff(diff);
+            copy.merge(diff);
             //assertEquals(copy.toString(), soc.toString());
             //assertTrue(copy.deepEquals(soc));
         }
@@ -409,8 +409,9 @@ public class SOCTest extends TestCase {
 	    SOC soc = new SOC();
 
 	    SOC annon = new SOC() {
+            @NotNull
             @Override
-            public String getString(int resourceId, Object... args) {
+            public String getString(@NotNull String format, @NotNull Object... args) {
                 return "";
             }
         };
@@ -444,7 +445,7 @@ public class SOCTest extends TestCase {
         diff = soc.diff(b);
         System.out.println("diff:\n" + diff);
 
-        soc.mergeDiff(diff);
+        soc.merge(diff);
         diff = soc.diff(b);
         System.out.println("diff:\n" + diff);
         //assertEquals(soc, b);
@@ -466,4 +467,8 @@ public class SOCTest extends TestCase {
         }
     }
 
+    public void testSerializeEnum() throws Exception {
+	    EventCard card = new EventCard();
+	    System.out.println(Reflector.serializeObject(card));
+    }
 }

@@ -15,7 +15,7 @@ abstract class ZUser {
     }
 
     fun setColor(color: Int) {
-        Utils.assertTrue(color >= 0 && color < USER_COLORS.size)
+        assert(color >= 0 && color < USER_COLORS.size)
         colorId = color
         for (nm in characters) {
             nm.character.color = USER_COLORS[color]

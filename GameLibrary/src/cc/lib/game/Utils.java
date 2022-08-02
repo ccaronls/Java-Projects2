@@ -2515,6 +2515,19 @@ public class Utils {
 
     /**
      *
+     * @param s
+     * @param ending
+     * @return
+     */
+    public static String chopEnd(String s, String ending) {
+        if (s.endsWith(ending)) {
+            return s.substring(0, s.length()-ending.length());
+        }
+        return s;
+    }
+
+    /**
+     *
      * @param stringResource
      * @param stringTable
      * @param resource

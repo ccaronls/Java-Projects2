@@ -5,7 +5,6 @@ import cc.lib.game.GColor
 import cc.lib.game.GRectangle
 import cc.lib.utils.Grid
 import cc.lib.utils.Table
-import cc.lib.utils.assertTrue
 import cc.lib.zombicide.*
 import cc.lib.zombicide.ZTile.Companion.getQuadrant
 import cc.lib.zombicide.ui.UIZombicide
@@ -55,7 +54,7 @@ arrayOf("", "", "",                                             "", "z49:v:vd1:w
 	}
 
 	override fun init(game: ZGame) {
-		assertTrue(redObjectives.size > 1)
+		assert(redObjectives.size > 1)
 		violetVault1 = game.board.findVault(1)
 		violetVault2 = game.board.findVault(3)
 		goldVault = game.board.findVault(2)

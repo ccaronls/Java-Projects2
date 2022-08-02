@@ -48,7 +48,7 @@ abstract class ZActor<E : Enum<E>> internal constructor(var occupiedZone: Int=-1
     open fun performAction(action: ZActionType, game: ZGame): Boolean {
         if (isAlive) {
             actionsLeftThisTurn -= action.costPerTurn()
-            Utils.assertTrue(actionsLeftThisTurn >= 0)
+            assert(actionsLeftThisTurn >= 0)
         }
         return false
     }

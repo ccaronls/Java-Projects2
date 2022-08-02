@@ -17,12 +17,12 @@ import java.util.*
 /**
  * Created by chriscaron on 2/22/18.
  */
-abstract class UISOC protected constructor(playerComponents: Array<UIPlayerRenderer>, boardRenderer: UIBoardRenderer, diceRenderer: UIDiceRenderer, console: UIConsoleRenderer?, eventCardRenderer: UIEventCardRenderer, barbarianRenderer: UIBarbarianRenderer) : SOC(), MenuItem.Action, GameServer.Listener, ClientConnection.Listener {
+abstract class UISOC protected constructor(playerComponents: Array<UIPlayerRenderer>, boardRenderer: UIBoardRenderer, diceRenderer: UIDiceRenderer, console: UIConsoleRenderer, eventCardRenderer: UIEventCardRenderer, barbarianRenderer: UIBarbarianRenderer) : SOC(), MenuItem.Action, GameServer.Listener, ClientConnection.Listener {
 	val server = GameServer(serverName, NetCommon.PORT, NetCommon.VERSION, cypher, NetCommon.MAX_CONNECTIONS)
 	private val playerComponents: Array<UIPlayerRenderer>
 	val uIBoard: UIBoardRenderer
 	private val diceRenderer: UIDiceRenderer
-	private val console: UIConsoleRenderer?
+	private val console: UIConsoleRenderer
 	private val eventCardRenderer: UIEventCardRenderer
 	private val barbarianRenderer: UIBarbarianRenderer
 	private var returnValue: Any? = null
@@ -31,6 +31,16 @@ abstract class UISOC protected constructor(playerComponents: Array<UIPlayerRende
 	fun setReturnValue(o: Any?) {
 		returnValue = o
 		lock.releaseAll()
+	}
+
+	fun initUI() {
+		playerComponents.forEach {
+			it.reset()
+		}
+		diceRenderer.reset()
+		console.reset()
+		eventCardRenderer.reset()
+		barbarianRenderer.reset()
 	}
 
 	private var copy: SOC? = null
@@ -61,7 +71,7 @@ abstract class UISOC protected constructor(playerComponents: Array<UIPlayerRende
 		val it = moves.iterator()
 		while (it.hasNext()) {
 			val move = it.next()
-			addMenuItem(CHOOSE_MOVE, move.getName(), move.getHelpText(rules), move)
+			addMenuItem(CHOOSE_MOVE, move.getNameId(), move.getHelpText(rules), move)
 		}
 		completeMenu()
 		return waitForReturnValue<MoveType?>(null)
@@ -76,15 +86,17 @@ abstract class UISOC protected constructor(playerComponents: Array<UIPlayerRende
 	}
 
 	fun getPlayerColor(playerNum: Int): GColor {
-		return (getPlayerByPlayerNum(playerNum) as UIPlayer?)?.color?:GColor.DARK_GRAY
+		return if (playerNum < 1)
+			GColor.DARK_GRAY
+		else (getPlayerByPlayerNum(playerNum) as UIPlayer).color
 	}
 
 	fun chooseVertex(vertexIndices: Collection<Int?>, choice: VertexChoice?, knightToMove: Int?): Int? {
 		clearMenu()
 		addMenuItem(ACCEPT)
-		uIBoard.setPickHandler(object : PickHandler {
+		uIBoard.pickHandler = (object : PickHandler {
 			override fun onPick(b: UIBoardRenderer, pickedValue: Int) {
-				b.setPickHandler(null)
+				b.pickHandler = null
 				setReturnValue(pickedValue)
 			}
 
@@ -181,9 +193,9 @@ abstract class UISOC protected constructor(playerComponents: Array<UIPlayerRende
 		if (shipToMove != null) {
 			shipToMove.type = RouteType.OPEN
 		}
-		uIBoard.setPickHandler(object : PickHandler {
+		uIBoard.pickHandler = (object : PickHandler {
 			override fun onPick(b: UIBoardRenderer, pickedValue: Int) {
-				b.setPickHandler(null)
+				b.pickHandler = null
 				if (shipToMove != null) {
 					shipToMove.type = shipType
 				}
@@ -238,15 +250,15 @@ abstract class UISOC protected constructor(playerComponents: Array<UIPlayerRende
 	fun chooseTile(tiles: Collection<Int?>, choice: TileChoice?): Int? {
 		clearMenu()
 		addMenuItem(ACCEPT)
-		val robberTile = board.robberTile
+		val robberTile = board.getRobberTile()
 		val merchantTileIndex = board.merchantTileIndex
 		val merchantTilePlayer = board.merchantPlayer
 		board.setRobber(-1)
 		board.setMerchant(-1, 0)
-		uIBoard.setPickHandler(object : PickHandler {
+		uIBoard.pickHandler = (object : PickHandler {
 			override fun onPick(b: UIBoardRenderer, pickedValue: Int) {
-				b.setPickHandler(null)
-				board.robberTile = robberTile
+				b.pickHandler = null
+				board.setRobberTile(robberTile)
 				board.setMerchant(merchantTileIndex, merchantTilePlayer)
 				setReturnValue(pickedValue)
 			}
@@ -299,8 +311,8 @@ abstract class UISOC protected constructor(playerComponents: Array<UIPlayerRende
 		val it = trades.iterator()
 		while (it.hasNext()) {
 			val trade = it.next()
-			val str = trade.type.name + " X " + trade.amount
-			addMenuItem(CHOOSE_TRADE, str, null, trade)
+			val str = trade.getType().getNameId() + " X " + trade.amount
+			addMenuItem(CHOOSE_TRADE, str, "", trade)
 		}
 		completeMenu()
 		return waitForReturnValue<Trade?>(null)
@@ -313,13 +325,13 @@ abstract class UISOC protected constructor(playerComponents: Array<UIPlayerRende
 			when (mode) {
 				PlayerChoice.PLAYER_FOR_DESERTION -> {
 					val numKnights = board.getNumKnightsForPlayer(player.playerNum)
-					addMenuItem(CHOOSE_PLAYER, getString("%1\$s X %2\$d Knights", player.name, numKnights), null, num)
+					addMenuItem(CHOOSE_PLAYER, getString("%1\$s X %2\$d Knights", player.name, numKnights), "", num)
 				}
-				PlayerChoice.PLAYER_TO_SPY_ON -> addMenuItem(CHOOSE_PLAYER, getString("%1\$s X %2\$d Progress Cards", player.name, player.getUnusedCardCount(CardType.Progress)), null, num)
-				PlayerChoice.PLAYER_TO_FORCE_HARBOR_TRADE, PlayerChoice.PLAYER_TO_GIFT_CARD, PlayerChoice.PLAYER_TO_TAKE_CARD_FROM -> addMenuItem(CHOOSE_PLAYER, getString("%1\$s X %2\$d Cards", player.name, player.totalCardsLeftInHand), null, num)
+				PlayerChoice.PLAYER_TO_SPY_ON -> addMenuItem(CHOOSE_PLAYER, getString("%1\$s X %2\$d Progress Cards", player.name, player.getUnusedCardCount(CardType.Progress)), "", num)
+				PlayerChoice.PLAYER_TO_FORCE_HARBOR_TRADE, PlayerChoice.PLAYER_TO_GIFT_CARD, PlayerChoice.PLAYER_TO_TAKE_CARD_FROM -> addMenuItem(CHOOSE_PLAYER, getString("%1\$s X %2\$d Cards", player.name, player.totalCardsLeftInHand), "", num)
 				else                                                                                                               -> {
 					System.err.println("ERROR: Unhandled case '$mode'")
-					addMenuItem(CHOOSE_PLAYER, getString("%1\$s X %2\$d Cards", player.name, player.totalCardsLeftInHand), null, num)
+					addMenuItem(CHOOSE_PLAYER, getString("%1\$s X %2\$d Cards", player.name, player.totalCardsLeftInHand), "", num)
 				}
 			}
 		}
@@ -330,7 +342,7 @@ abstract class UISOC protected constructor(playerComponents: Array<UIPlayerRende
 	fun chooseCardMenu(cards: Collection<Card>): Card? {
 		clearMenu()
 		for (type in cards) {
-			addMenuItem(CHOOSE_CARD, type.name, type.getHelpText(rules), type)
+			addMenuItem(CHOOSE_CARD, type.name, type.getHelpText(rules)?:"", type)
 		}
 		completeMenu()
 		return waitForReturnValue<Card?>(null)
@@ -341,7 +353,7 @@ abstract class UISOC protected constructor(playerComponents: Array<UIPlayerRende
 		val it = choices.iterator()
 		while (it.hasNext()) {
 			val choice: Enum<T> = it.next()
-			addMenuItem(CHOOSE_MOVE, (choice as ILocalized).name, null, choice)
+			addMenuItem(CHOOSE_MOVE, (choice as ILocalized).getNameId(), "", choice)
 		}
 		completeMenu()
 		return waitForReturnValue(null)
@@ -354,7 +366,7 @@ abstract class UISOC protected constructor(playerComponents: Array<UIPlayerRende
 	}
 
 	protected abstract val serverName: String
-	protected abstract fun addMenuItem(item: MenuItem, title: String?, helpText: String?, extra: Any?)
+	protected abstract fun addMenuItem(item: MenuItem, title: String, helpText: String, extra: Any?)
 	abstract fun clearMenu()
 	abstract fun redraw()
 	fun refreshComponents() {
@@ -364,7 +376,7 @@ abstract class UISOC protected constructor(playerComponents: Array<UIPlayerRende
 		barbarianRenderer.setDistance(barbarianDistance)
 	}
 
-	fun chooseOptimalPath(optimal: BotNode, leafs: List<BotNode?>?): BotNode {
+	open fun chooseOptimalPath(optimal: BotNode?, leafs: List<BotNode>): BotNode? {
 		return optimal
 	}
 
@@ -467,7 +479,7 @@ abstract class UISOC protected constructor(playerComponents: Array<UIPlayerRende
 	val SET_DICE: MenuItem
 	override fun onAction(item: MenuItem, extra: Any?) {
 		if (item == CANCEL) {
-			uIBoard.setPickHandler(null)
+			uIBoard.pickHandler = null
 			cancel()
 			notifyWaitObj()
 		} else if (item == SET_DICE) {
@@ -576,6 +588,7 @@ abstract class UISOC protected constructor(playerComponents: Array<UIPlayerRende
 			}
 
 			public override fun onDone() {
+				super.onDone()
 				comp.numCardAnimations--
 			}
 		}, false)
@@ -585,7 +598,7 @@ abstract class UISOC protected constructor(playerComponents: Array<UIPlayerRende
 	@Keep
 	override fun onCardPicked(playerNum: Int, card: Card) {
 		server.broadcastExecuteOnRemote(NetCommon.SOC_ID, playerNum, card)
-		var txt = card.cardType.getName()
+		var txt = card.cardType.getNameId()
 		val player = getPlayerByPlayerNum(playerNum)
 		if ((player as UIPlayer).isInfoVisible) {
 			txt = card.name
@@ -597,23 +610,23 @@ abstract class UISOC protected constructor(playerComponents: Array<UIPlayerRende
 	@Keep
 	override fun onDistributeResources(player: Int, type: ResourceType, amount: Int) {
 		server.broadcastExecuteOnRemote(NetCommon.SOC_ID, player, type, amount)
-		addCardAnimation(player, type.name + "\nX " + amount)
+		addCardAnimation(player, type.getNameId() + "\nX " + amount)
 		super.onDistributeResources(player, type, amount)
 	}
 
 	@Keep
 	override fun onDistributeCommodity(player: Int, type: CommodityType, amount: Int) {
 		server.broadcastExecuteOnRemote(NetCommon.SOC_ID, player, type, amount)
-		addCardAnimation(player, type.name + "\nX " + amount)
+		addCardAnimation(player, type.getNameId() + "\nX " + amount)
 		super.onDistributeCommodity(player, type, amount)
 	}
 
 	@Keep
 	override fun onProgressCardDistributed(player: Int, type: ProgressCardType) {
 		server.broadcastExecuteOnRemote(NetCommon.SOC_ID, player, type)
-		var txt: String? = type.name
+		var txt: String? = type.getNameId()
 		if (!(getPlayerByPlayerNum(player) as UIPlayer).isInfoVisible) {
-			txt = CardType.Progress.getName()
+			txt = CardType.Progress.getNameId()
 		}
 		addCardAnimation(player, txt)
 		super.onProgressCardDistributed(player, type)
@@ -622,7 +635,7 @@ abstract class UISOC protected constructor(playerComponents: Array<UIPlayerRende
 	@Keep
 	override fun onSpecialVictoryCard(player: Int, type: SpecialVictoryType) {
 		server.broadcastExecuteOnRemote(NetCommon.SOC_ID, player, type)
-		addCardAnimation(player, type.name)
+		addCardAnimation(player, type.getNameId())
 		super.onSpecialVictoryCard(player, type)
 	}
 
@@ -654,11 +667,11 @@ abstract class UISOC protected constructor(playerComponents: Array<UIPlayerRende
 	override fun onMonopolyCardApplied(taker: Int, giver: Int, type: ICardType<*>, amount: Int) {
 		server.broadcastExecuteOnRemote(NetCommon.SOC_ID, taker, giver, type, amount)
 		addCardAnimation(giver, """
- 	${type.name}
+ 	${type.getNameId()}
  	- $amount
  	""".trimIndent())
 		addCardAnimation(taker, """
- 	${type.name}
+ 	${type.getNameId()}
  	+ $amount
  	""".trimIndent())
 		super.onMonopolyCardApplied(taker, giver, type, amount)
@@ -694,7 +707,7 @@ abstract class UISOC protected constructor(playerComponents: Array<UIPlayerRende
 	@Keep
 	override fun onCardsTraded(player: Int, trade: Trade) {
 		server.broadcastExecuteOnRemote(NetCommon.SOC_ID, player, trade)
-		addCardAnimation(player, getString("Trade\n %1\$s\n -%2\$d", trade.type, trade.amount))
+		addCardAnimation(player, getString("Trade\n %1\$s\n -%2\$d", trade.getType(), trade.amount))
 		super.onCardsTraded(player, trade)
 	}
 
@@ -716,8 +729,8 @@ abstract class UISOC protected constructor(playerComponents: Array<UIPlayerRende
 	@Keep
 	override fun onMetropolisStolen(loser: Int, stealer: Int, area: DevelopmentArea) {
 		server.broadcastExecuteOnRemote(NetCommon.SOC_ID, loser, stealer, area)
-		addCardAnimation(loser, getString("Metropolis\n%s\nLost!", area.getName()))
-		addCardAnimation(stealer, getString("Metropolis\n%s\nLost!", area.getName()))
+		addCardAnimation(loser, getString("Metropolis\n%s\nLost!", area.getNameId()))
+		addCardAnimation(stealer, getString("Metropolis\n%s\nLost!", area.getNameId()))
 		super.onMetropolisStolen(loser, stealer, area)
 	}
 
@@ -818,7 +831,7 @@ abstract class UISOC protected constructor(playerComponents: Array<UIPlayerRende
 	@Keep
 	override fun onStructureDemoted(vIndex: Int, newType: VertexType, destroyer: Int, victim: Int) {
 		server.broadcastExecuteOnRemote(NetCommon.SOC_ID, vIndex, newType, destroyer, victim)
-		addCardAnimation(victim, getString("%1\$s Reduced to %2\$s", board.getVertex(vIndex).type.getName(), newType.getName()))
+		addCardAnimation(victim, getString("%1\$s Reduced to %2\$s", board.getVertex(vIndex).type.name, newType.name))
 		super.onStructureDemoted(vIndex, newType, destroyer, victim)
 	}
 
@@ -841,7 +854,7 @@ abstract class UISOC protected constructor(playerComponents: Array<UIPlayerRende
 	override fun onPlayerKnightDemoted(player: Int, knightIndex: Int) {
 		server.broadcastExecuteOnRemote(NetCommon.SOC_ID, player, knightIndex)
 		val knight = board.getVertex(knightIndex)
-		addFloatingTextAnimation(getPlayerByPlayerNum(player) as UIPlayer, knight, getString("Demoted to\n%s", knight.type.getName()))
+		addFloatingTextAnimation(getPlayerByPlayerNum(player) as UIPlayer, knight, getString("Demoted to\n%s", knight.type.name))
 		super.onPlayerKnightDemoted(player, knightIndex)
 	}
 
@@ -902,7 +915,7 @@ abstract class UISOC protected constructor(playerComponents: Array<UIPlayerRende
 	override fun onPlayerKnightPromoted(player: Int, knightIndex: Int) {
 		server.broadcastExecuteOnRemote(NetCommon.SOC_ID, player, knightIndex)
 		val knight = board.getVertex(knightIndex)
-		addFloatingTextAnimation(getPlayerByPlayerNum(player) as UIPlayer, knight, getString("Promoted to\n%s", knight.type.getName()))
+		addFloatingTextAnimation(getPlayerByPlayerNum(player) as UIPlayer, knight, getString("Promoted to\n%s", knight.type.name))
 		super.onPlayerKnightPromoted(player, knightIndex)
 	}
 
@@ -910,7 +923,7 @@ abstract class UISOC protected constructor(playerComponents: Array<UIPlayerRende
 	override fun onPlayerCityDeveloped(p: Int, area: DevelopmentArea) {
 		server.broadcastExecuteOnRemote(NetCommon.SOC_ID, p, area)
 		addCardAnimation(p, """
- 	${area.getName()}
+ 	${area.getNameId()}
 
  	${area.getLevelName(getPlayerByPlayerNum(p).getCityDevelopment(area))}
  	""".trimIndent())
@@ -1083,8 +1096,8 @@ abstract class UISOC protected constructor(playerComponents: Array<UIPlayerRende
 				g.pushMatrix()
 				//render.translate(mp);
 				//render.scale(1, position);
-				val startV = soc.getBoard().getRouteMidpoint(source)
-				val endV = soc.getBoard().getRouteMidpoint(target)
+				val startV = soc.board.getRouteMidpoint(source)
+				val endV = soc.board.getRouteMidpoint(target)
 				val curV: Vector2D = startV.add(endV.sub(startV).scaledBy(position))
 				val startAng = comp.getEdgeAngle(source).toFloat()
 				val endAng = comp.getEdgeAngle(target).toFloat()
@@ -1267,11 +1280,11 @@ abstract class UISOC protected constructor(playerComponents: Array<UIPlayerRende
 		this.console = console
 		MAX_PLAYERS = playerComponents.size
 		CANCEL = MenuItem(getString("Cancel"), getString("Cancel current operation"), this)
-		ACCEPT = MenuItem(getString("Accept"), null, this)
-		CHOOSE_MOVE = MenuItem("--", null, this)
-		CHOOSE_PLAYER = MenuItem("--", null, this)
-		CHOOSE_CARD = MenuItem("--", null, this)
-		CHOOSE_TRADE = MenuItem("--", null, this)
+		ACCEPT = MenuItem(getString("Accept"), "", this)
+		CHOOSE_MOVE = MenuItem("--", "", this)
+		CHOOSE_PLAYER = MenuItem("--", "", this)
+		CHOOSE_CARD = MenuItem("--", "", this)
+		CHOOSE_TRADE = MenuItem("--", "", this)
 		CHOOSE_SHIP = MenuItem(getString("Ships"), getString("Show ship choices"), this)
 		CHOOSE_ROAD = MenuItem(getString("Roads"), getString("Show road choices"), this)
 		SET_DICE = MenuItem(getString("Set Dice"), getString("Click the dice to set value manually"), this)

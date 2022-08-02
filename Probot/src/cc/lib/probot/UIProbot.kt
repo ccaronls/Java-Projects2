@@ -235,13 +235,13 @@ abstract class UIProbot : Probot() {
 
 		private var startedCorrectly = false
 		override fun onStarted(g: AGraphics) {
-			Utils.assertTrue(startedCorrectly)
+			assert(startedCorrectly)
 		}
 
 		fun start(guy: Guy): AAnimation<AGraphics> {
 			synchronized(animations) {
 				animations[guy] = this
-				Utils.assertTrue(animations.size < 32)
+				assert(animations.size < 32)
 			}
 			startedCorrectly = true
 			repaint()

@@ -2,7 +2,6 @@ package cc.lib.zombicide.quests
 
 import cc.lib.utils.Grid
 import cc.lib.utils.Table
-import cc.lib.utils.assertTrue
 import cc.lib.zombicide.*
 import cc.lib.zombicide.ZTile.Companion.getQuadrant
 
@@ -52,7 +51,7 @@ arrayOf("z41:v:vd1:wn:ww", "z41:v:wn", "z41:v:wn:vd2:we",           "z42", "z43"
 		)
 
 	override fun init(game: ZGame) {
-		assertTrue(redObjectives.size > 1)
+		assert(redObjectives.size > 1)
 		while (blueObjZone == greenObjZone) {
 			blueObjZone = redObjectives.random()
 			greenObjZone = redObjectives.random()

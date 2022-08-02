@@ -38,12 +38,13 @@ open class UIPlayer : PlayerBot, ClientConnection.Listener {
 		this.color = color
 	}
 
-	override fun getName(): String {
-		connection?.takeIf { it.isConnected }?.let {
-			return it.displayName
+	override val name: String
+		get() {
+			connection?.takeIf { it.isConnected }?.let {
+				return it.displayName
+			}
+			return "Player $playerNum"
 		}
-		return "Player $playerNum"
-	}
 
 	open val isInfoVisible: Boolean
 		get() = isNeutralPlayer || UISOC.instance.isAITuningEnabled
@@ -141,19 +142,17 @@ open class UIPlayer : PlayerBot, ClientConnection.Listener {
 	}
 
 	override fun onBoardChanged() {
-		if (UISOC.instance == null) return
 		val bc = UISOC.instance.uIBoard
 		bc.getComponent<UIComponent>().redraw()
-		Utils.waitNoThrow(bc, 100)
+		Utils.waitNoThrow(bc, 20)
 		//        synchronized (this) {
 //            notify(); // notify anyone waiting on this (see spinner)
 //        }
 	}
 
-	override fun onOptimalPath(optimal: BotNode, leafs: List<BotNode>): BotNode {
-		return if (UISOC.instance == null) {
-			super.onOptimalPath(optimal, leafs)
-		} else UISOC.instance.chooseOptimalPath(optimal, leafs)
+
+	override fun onOptimalPath(optimal: BotNode?, leafs: List<BotNode>): BotNode? {
+		return UISOC.instance.chooseOptimalPath(optimal, leafs)
 	}
 
 	override fun onCommand(c: ClientConnection, cmd: GameCommand) {}

@@ -3,7 +3,6 @@ package cc.lib.risk
 import cc.lib.board.BEdge
 import cc.lib.board.BVertex
 import cc.lib.board.CustomBoard
-import cc.lib.utils.assertTrue
 import java.util.*
 
 /**
@@ -50,9 +49,9 @@ class RiskBoard : CustomBoard<BVertex, BEdge, RiskCell>() {
 
 	fun moveArmies(fromCellIdx: Int, toCellIdx: Int, numArmies: Int) {
 		val from = getCell(fromCellIdx)
-		assertTrue(from.numArmies > numArmies)
+		assert(from.numArmies > numArmies)
 		val to = getCell(toCellIdx)
-		assertTrue(to.numArmies > 0)
+		assert(to.numArmies > 0)
 		from.numArmies -= numArmies
 		to.numArmies += numArmies
 	}

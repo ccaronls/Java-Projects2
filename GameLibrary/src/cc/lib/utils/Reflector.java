@@ -153,6 +153,7 @@ public class Reflector<T> {
 
     private final static Map<Class<?>, Map<Field, Archiver>> classValues = new HashMap<>();
     private final static Map<String, Class<?>> classMap = new HashMap<>();
+    private final static Map<Class, Map<Class, Boolean>> subclassOfCache = new HashMap<>();
 
     public static class MyBufferedReader extends BufferedReader {
 
@@ -490,7 +491,7 @@ public class Reflector<T> {
             }
             // TODO : Is there a way to use variation annotation on emum?
         }
-        throw new Exception("Failed to find enum value: '" + value + "' in available constants: " + Arrays.asList(constants));
+        throw new GException("Failed to find enum value: '" + value + "' in available constants: " + Arrays.asList(constants));
     }
 
     private static Archiver enumArchiver = new Archiver() {
@@ -568,11 +569,17 @@ public class Reflector<T> {
             boolean isMember = clazz.isMemberClass();
             boolean isPrimitive = clazz.isPrimitive();
             boolean isSynthetic = clazz.isSynthetic();
+            Class<?> superClass = clazz.getSuperclass();
 
-            if (clazz.isAnonymousClass() || (clazz.getSuperclass() != null && clazz.getSuperclass().isEnum())) {
+            if (clazz.isAnonymousClass() || (superClass != null && superClass.isEnum())) {
                 clazz = clazz.getSuperclass();
             }
+            //while (DirtyDelegate.class.isAssignableFrom(clazz)) {
+            //    clazz = clazz.getSuperclass();
+            //}
             name = clazz.getCanonicalName();
+            if (name == null)
+                throw new GException("cannot getCannonicalName for : " + clazz);
         }
         canonicalNameCache.put(clazz, name);
         return name;
@@ -668,6 +675,14 @@ public class Reflector<T> {
         }
     };
 
+    private static Collection newCollectionInstance(String name) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+        switch (name) {
+            case "java.util.Collections.SynchronizedRandomAccessList":
+                return Collections.synchronizedList(new ArrayList());
+        }
+        return (Collection)getClassForName(name).newInstance();
+    }
+
     private static Archiver collectionArchiver = new Archiver() {
 
         @Override
@@ -681,7 +696,7 @@ public class Reflector<T> {
         public void set(Object o, Field field, String value, Reflector<?> a, boolean keepInstances) throws Exception {
             if (value != null && !value.equals("null")) {
                 if (!keepInstances || o == null)
-                    field.set(a, getClassForName(value).newInstance());
+                    field.set(a, newCollectionInstance(value));
             } else {
                 field.set(a, null);
             }
@@ -709,9 +724,9 @@ public class Reflector<T> {
                 String clazz = readLineOrEOF(in);
                 Collection c = (Collection) Array.get(arr, i);
                 if (!clazz.equals("null")) {
-                    Class clars = getClassForName(clazz);
-                    if (!keepInstances || c == null || !c.getClass().equals(clars)) {
-                        Collection cc = (Collection<?>) clars.newInstance();
+                    Class classNm = getClassForName(clazz);
+                    if (!keepInstances || c == null || !c.getClass().equals(classNm)) {
+                        Collection cc = (Collection<?>) classNm.newInstance();
                         if (c != null)
                             cc.addAll(c);
                         c = cc;
@@ -776,6 +791,29 @@ public class Reflector<T> {
         }
     };
 
+    private static Archiver dirtyArchiver = new Archiver() {
+        @Override
+        public String get(Field field, Reflector<?> a) throws Exception {
+            Object o = ((DirtyDelegate)field.get(a)).getValue();
+            return o == null ? "null" : o.toString();
+        }
+
+        @Override
+        public void set(Object o, Field field, String value, Reflector<?> a, boolean keepInstances) throws Exception {
+            ((DirtyDelegate)field.get(a)).setValueFromString(value == null ? "" : value);
+        }
+
+        @Override
+        public void serializeArray(Object arr, MyPrintWriter out) throws Exception {
+            throw new GException("Not implemented");
+        }
+
+        @Override
+        public void deserializeArray(Object arr, MyBufferedReader in, boolean keepInstances) throws Exception {
+            throw new GException("Not implemented");
+        }
+    };
+
     private static Archiver arrayArchiver = new Archiver() {
 
         @Override
@@ -788,7 +826,7 @@ public class Reflector<T> {
         private Object createArray(Object current, String line, boolean keepInstances) throws Exception {
             String[] parts = line.split(" ");
             if (parts.length < 2)
-                throw new Exception("Invalid array description '" + line + "' excepted < 2 parts");
+                throw new GException("Invalid array description '" + line + "' excepted < 2 parts");
             final int len = Integer.parseInt(parts[1].trim());
             if (!keepInstances || current == null || Array.getLength(current) != len) {
                 Class<?> clazz = getClassForName(parts[0].trim());
@@ -1017,7 +1055,7 @@ public class Reflector<T> {
         inheritValues(clazz.getSuperclass(), values);
     }
 
-    private static Map<Field, Archiver> getValues(Class<?> clazz, boolean createIfDNE) {
+    static Map<Field, Archiver> getValues(Class<?> clazz, boolean createIfDNE) {
         try {
             if (getCanonicalName(clazz) == null) {
                 if (clazz.getSuperclass() != null)
@@ -1031,8 +1069,9 @@ public class Reflector<T> {
             } else if (createIfDNE) {
                 // reject unsupported classes
                 if (clazz.isAnonymousClass() || clazz.isSynthetic())
-                    throw new Exception("Synthetic and anonymous classes not supported");
+                    throw new GException("Synthetic and anonymous classes not supported");
                 // test newInstance works for this clazz
+
                 if (!Modifier.isAbstract(clazz.getModifiers())) {
                     if (clazz.isArray()) {
                         throw new GException("array?");
@@ -1072,8 +1111,6 @@ public class Reflector<T> {
             return o1.getName().compareTo(o2.getName());
         }
     };
-
-    private final static Map<Class, Map<Class, Boolean>> subclassOfCache = new HashMap<>();
 
     public static boolean isSubclassOf(Class<?> subClass, Class<?> baseClass) {
         Boolean result;
@@ -1125,14 +1162,22 @@ public class Reflector<T> {
             // add enums if this is an enum
             addArrayTypes(clazz);
             return arrayArchiver;
+        } else if (isSubclassOf(clazz, DirtyDelegate.class)) {
+            return dirtyArchiver;
         } else {
             throw new GException("No reflector available for class: " + clazz);
         }
     }
 
     private static void addArrayTypes(Class<?> clazz) {
+        if (clazz.isAnnotation())
+            return;
         String nm = clazz.getName();
         if (classMap.containsKey(nm))
+            return;
+        if (nm.endsWith("$Companion"))
+            return;
+        if (nm.startsWith("cc.lib.utils.Reflector$"))
             return;
         if (nm.indexOf("java.lang.Object") > 0)
             throw new GException("Arrays of Objects not supported");
@@ -1187,7 +1232,10 @@ public class Reflector<T> {
             if (values.containsKey(field))
                 throw new GException("Duplicate field.  Field '" + name + "' has already been included for class: " + getCanonicalName(clazz));
             values.put(field, archiver);
-            classMap.put(clazz.getName().replace('$', '.'), clazz);
+            String nm = clazz.getName();
+            nm = Utils.chopEnd(nm, "$delegate");
+            nm = nm.replace('$', '.');
+            classMap.put(nm, clazz);
             //log.debug("Added field '" + name + "' for " + clazz);
         } catch (GException e) {
             throw e;
@@ -1252,6 +1300,8 @@ public class Reflector<T> {
         try {
             Field[] fields = clazz.getDeclaredFields();
             for (Field f : fields) {
+                if (f.getName().endsWith("Companion"))
+                    continue;
                 if (Modifier.isStatic(f.getModifiers()))
                     continue;
                 addField(clazz, f.getName());
@@ -1259,8 +1309,10 @@ public class Reflector<T> {
             for (Class e : clazz.getClasses()) {
                 addArrayTypes(e); // add enclosed classes
             }
+        } catch (GException e) {
+            throw e;
         } catch (Exception e) {
-            throw new GException("Failed to add all fields", e);
+            throw new GException("Failed to add all fields in " + clazz.getName(), e);
         }
     }
 
@@ -1312,7 +1364,7 @@ public class Reflector<T> {
     }
 
     /**
-     * This version will derive the objecft type from the top level element.
+     * This version will derive the object type from the top level element.
      *
      * @param file
      * @param <T>
@@ -1546,6 +1598,10 @@ public class Reflector<T> {
         return URLDecoder.decode(in, "UTF-8");
     }
 
+    protected static String getName(Field f) {
+        return Utils.chopEnd(f.getName(), "$delegate");
+    }
+
     protected synchronized void serialize(MyPrintWriter out) throws IOException {
         try {
             Map<Field, Archiver> values = getValues(getClass(), false);
@@ -1554,10 +1610,10 @@ public class Reflector<T> {
                 field.setAccessible(true);
                 Object obj = field.get(Reflector.this);
                 if (obj == null) {
-                    out.p(field.getName()).println("=null");
+                    out.p(getName(field)).println("=null");
                     continue;
                 }
-                out.p(field.getName()).p("=").p(archiver.get(field, this));
+                out.p(getName(field)).p("=").p(archiver.get(field, this));
                 serializeObject(obj, out, false);
             }
         } catch (IOException e) {
@@ -1844,7 +1900,7 @@ public class Reflector<T> {
     }
 
     private boolean fieldMatches(Field field, String name) {
-        if (field.getName().equals(name))
+        if (getName(field).equals(name))
             return true;
 
         Alternate alt = field.getAnnotation(Alternate.class);
@@ -1903,7 +1959,7 @@ public class Reflector<T> {
                     break;
                 String[] parts = line.split("=");
                 if (parts.length < 2)
-                throw new ParseException(in.lineNum, " not of form 'name=value'");
+                    throw new ParseException(in.lineNum, " not of form 'name=value'");
                 String name = parts[0].trim();
                 for (Field field : values.keySet()) {
                     if (fieldMatches(field, name)) {
@@ -1920,7 +1976,7 @@ public class Reflector<T> {
                             Object obj = field.get(this);
                             if (obj != null) {
                                 Archiver arrayArchiver = getArchiverForType(obj.getClass().getComponentType());
-                            arrayArchiver.deserializeArray(obj, in, keepInstances);
+                                arrayArchiver.deserializeArray(obj, in, keepInstances);
                             }
                         } else if (isSubclassOf(field.getType(), Collection.class)) {
                             Collection<?> collection = (Collection<?>) field.get(this);
@@ -1937,7 +1993,7 @@ public class Reflector<T> {
                 }
                 if (parts != null) {
                     if (THROW_ON_UNKNOWN)
-                        throw new Exception("Unknown field: " + name + " not in fields: " + values.keySet());
+                        throw new GException("Unknown field: " + name + " not in fields: " + values.keySet());
                     log.error("Unknown field: " + name + " not found in class: " + getClass());// + " not in fields: " + values.keySet());
                     // skip ahead until depth matches current depth
                 while (in.depth > depth) {
@@ -2076,7 +2132,7 @@ public class Reflector<T> {
             }
             if (o instanceof Collection) {
                 Collection oldCollection = (Collection) o;
-                Collection newCollection = (Collection) o.getClass().newInstance();
+                Collection newCollection = newCollectionInstance(getCanonicalName(o.getClass()));
                 for (Object oo : oldCollection) {
                     newCollection.add(deepCopy(oo));
                 }
@@ -2355,12 +2411,12 @@ public class Reflector<T> {
 
             if (mine == null) {
                 // difference is entire contents of them
-                out.print(field.getName() + "=" + archiver.get(field, (Reflector<T>)other));
+                out.print(getName(field) + "=" + archiver.get(field, (Reflector<T>)other));
                 serializeObject(thrs, out, false);
             } else if (thrs == null) {
-                out.p(field.getName()).println("=null");
+                out.p(getName(field)).println("=null");
             } else if (isSubclassOf(mine.getClass(), thrs.getClass())) {
-                out.p(field.getName()).p("=");
+                out.p(getName(field)).p("=");
                 if (mine instanceof Reflector) {
                     out.p(getCanonicalName(thrs.getClass()));
                     out.push();
@@ -2374,7 +2430,7 @@ public class Reflector<T> {
                 } else if (mine instanceof Map) {
                     out.p(getCanonicalName(thrs.getClass()));
                     out.push();
-                    diffMaps(field.getName(), (Map) mine, (Map) thrs, out);
+                    diffMaps(getName(field), (Map) mine, (Map) thrs, out);
                     out.pop();
                 } else if (mine.getClass().isArray()) {
                     serializeObject(thrs, out);//diffArrays(mine, thrs, out);
@@ -2383,7 +2439,7 @@ public class Reflector<T> {
                     out.println(themStr);
                 }
             } else {
-                throw new Exception("Cannot diff object that are not related");
+                throw new GException("Cannot diff object that are not related");
             }
         }
     }
@@ -2486,6 +2542,61 @@ public class Reflector<T> {
      */
     protected boolean isImmutable() {
         return false;
+    }
+
+    /**
+     *
+     * @param resetDirtyFlag
+     * @return
+     */
+    public boolean isDirty(boolean resetDirtyFlag) {
+        boolean dirty = false;
+        Map<Field, Archiver> fields = getValues(getClass(), false);
+        for (Map.Entry<Field, Archiver> e : fields.entrySet()) {
+            try {
+                Object o = e.getKey().get(this);
+                if (o instanceof Reflector<?>) {
+                    if (((Reflector<?>) o).isDirty(resetDirtyFlag)) {
+                        dirty = true;
+                        if (!resetDirtyFlag)
+                            break;
+                    }
+                }
+            } catch (Exception ex) {
+                throw new GException(ex);
+            }
+        }
+        return dirty;
+    }
+
+    public void serializeDirty(MyPrintWriter out) throws IOException {
+        try {
+            Map<Field, Archiver> values = getValues(getClass(), false);
+            for (Field field : values.keySet()) {
+                field.setAccessible(true);
+                Object obj = field.get(Reflector.this);
+                if (obj instanceof DirtyReflector) {
+                    ((DirtyReflector) obj).serializeDirty(out);
+                }
+            }
+        } catch (Exception e) {
+            throw new IOException(e.getMessage(), e);
+        } finally {
+            if (Profiler.ENABLED) Profiler.pop("Reflector.serialize");
+        }
+    }
+
+    public final void serializeDirty(OutputStream out) throws IOException {
+        serializeDirty(new MyPrintWriter(out));
+    }
+
+
+    public final String serializeDirtyToString() throws IOException {
+        StringWriter buf = new StringWriter();
+        try (MyPrintWriter out = new MyPrintWriter(buf)) {
+            serializeDirty(out);
+        }
+        return buf.toString();
     }
 
     /**

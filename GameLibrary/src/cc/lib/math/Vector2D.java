@@ -415,8 +415,24 @@ public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializ
     @Override
     public final String toString() {
         return String.format("<%6f, %6f>", x, y);
-    }    
-    
+    }
+
+    /**
+     * Opposite operation of toString()
+     *
+     * @param in
+     * @return
+     * @throws IllegalArgumentException
+     */
+    public static Vector2D parse(String in) throws IllegalArgumentException {
+        try {
+            String [] parts = in.split("[, ]+");
+            return new Vector2D(Float.parseFloat(parts[0].substring(1)), Float.parseFloat(parts[1].substring(0, parts[0].length()-1)));
+        } catch (Exception e) {
+            throw new IllegalArgumentException(e);
+        }
+    }
+
     private static MutableVector2D getFromPool() {
     	return new MutableVector2D();
     }

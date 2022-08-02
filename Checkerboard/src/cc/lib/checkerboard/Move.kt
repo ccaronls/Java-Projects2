@@ -107,7 +107,7 @@ class Move @JvmOverloads constructor(val moveType: MoveType = MoveType.END, priv
 	}
 
 	fun setCaptured(capturedRank: Int, capturedCol: Int, type: PieceType): Move {
-		Utils.assertTrue(0 == type.flag and PieceType.FLAG_KING)
+		assert(0 == type.flag and PieceType.FLAG_KING)
 		capturedPosition = capturedRank shl 8 or capturedCol
 		capturedType = type
 		compareValue += 100 + type.value

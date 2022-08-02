@@ -63,7 +63,7 @@ open class ZGame() : Reflector<ZGame>() {
                 cnt += step
                 num--
             }
-            assertTrue(idx == dice.size)
+            assert(idx == dice.size)
             dice.shuffle()
             return dice
         }
@@ -294,7 +294,7 @@ open class ZGame() : Reflector<ZGame>() {
 
     private fun addVaultDoor(cell: ZCell, zone: ZZone, pos: Grid.Pos, color: GColor) {
         // add a vault door leading to the cell specified by vaultFlag
-        assertTrue(cell.vaultId > 0)
+        assert(cell.vaultId > 0)
         val it2 = board.getCellsIterator()
         while (it2.hasNext()) {
             val cell2 = it2.next()
@@ -472,7 +472,7 @@ open class ZGame() : Reflector<ZGame>() {
         log.debug("runGame %s", state)
         if (!isGameSetup) {
             log.error("Invalid Game")
-            assertTrue(false)
+            assert(false)
             return false
         }
         if (isGameOver) 
@@ -1297,7 +1297,7 @@ open class ZGame() : Reflector<ZGame>() {
                     1 -> doors[0]
                     else -> user.chooseDoorToToggleInternal(cur.type, doors)
                 }?.let { door ->
-                    assertTrue(!door.isClosed(board))
+                    assert(!door.isClosed(board))
                     val barricade = cur.getEquipmentOfType(ZItemType.BARRICADE)!!
                     door.toggle(board, true)
                     cur.removeEquipment(barricade)
@@ -2191,13 +2191,13 @@ open class ZGame() : Reflector<ZGame>() {
     }
 
     fun unlockDoor(door: ZDoor) {
-        assertTrue(board.getDoor(door) === ZWallFlag.LOCKED)
+        assert(board.getDoor(door) === ZWallFlag.LOCKED)
         board.setDoor(door, ZWallFlag.CLOSED)
         onDoorUnlocked(door)
     }
 
     fun lockDoor(door: ZDoor) {
-        assertTrue(board.getDoor(door) !== ZWallFlag.LOCKED)
+        assert(board.getDoor(door) !== ZWallFlag.LOCKED)
         board.setDoor(door, ZWallFlag.LOCKED)
     }
 

@@ -4443,7 +4443,7 @@ frame=$frame"""
 
 	// -----------------------------------------------------------------------------------------------
 	private fun getWall(v0: Int, v1: Int): Wall {
-		//Utils.assertTrue(wall_lookup[v0][v1] == wall_lookup[v1][v0])
+		//assert(wall_lookup[v0][v1] == wall_lookup[v1][v0])
 		return wall_lookup[v0][v1]
 	}
 
@@ -5263,7 +5263,7 @@ frame=$frame"""
 	//
 	// if any point lies outside the world rect, it is < 0
 	private fun computePrimaryVerts(px: Int, py: Int, result: IntArray) {
-		Utils.assertTrue(result.size == 5)
+		assert(result.size == 5)
 		computeBaseQuad(px, py, result)
 
 		// these are the four in our region, find the closest
@@ -5306,7 +5306,7 @@ frame=$frame"""
 				bestDist = d
 			}
 		}
-		Utils.assertTrue(nearest >= 0)
+		assert(nearest >= 0)
 		return nearest
 	}
 
@@ -5332,7 +5332,7 @@ frame=$frame"""
 		computePrimaryVerts(x0, y0, collision_verts)
 		//int [] newDelta = new int[2];
 		v0 = collision_verts[0]
-		Utils.assertTrue(v0 >= 0)
+		assert(v0 >= 0)
 		for (i in 1 until collision_verts.size) {
 			v1 = collision_verts[i]
 			if (v1 < 0 || v1 >= MAZE_NUM_VERTS) continue
@@ -5413,7 +5413,7 @@ frame=$frame"""
 		// compute the 4 vertices associated with this vertex
 		computePrimaryVerts(px, py, collision_verts)
 		val v0 = collision_verts[0]
-		Utils.assertTrue(v0 >= 0)
+		assert(v0 >= 0)
 		for (i in 1 until collision_verts.size) {
 			val v1 = collision_verts[i]
 			if (v1 < 0 || v1 >= MAZE_NUM_VERTS) continue

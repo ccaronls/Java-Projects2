@@ -3,12 +3,14 @@ apply plugin: 'kotlin'
 
 dependencies {
     implementation project(':GameLibrary')
+//    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
 }
 
 sourceSets {
     main {
         java {
             srcDirs = ['src']
+            excludes = ['**/*.java']
         }
     }
     test {

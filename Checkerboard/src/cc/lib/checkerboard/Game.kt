@@ -4,7 +4,6 @@ import cc.lib.game.IGame
 import cc.lib.logger.LoggerFactory
 import cc.lib.utils.GException
 import cc.lib.utils.Reflector
-import cc.lib.utils.assertTrue
 import java.util.*
 
 open class Game : Reflector<Game>(), IGame<Move> {
@@ -325,7 +324,7 @@ open class Game : Reflector<Game>(), IGame<Move> {
 			for (p in getPieces(turn)) {
 				if (p.numMoves > 0) pieces.add(p)
 			}
-			assertTrue(pieces.size > 0)
+			assert(pieces.size > 0)
 			return pieces
 		}
 
@@ -383,7 +382,7 @@ open class Game : Reflector<Game>(), IGame<Move> {
 		if (move.playerNum != turn) throw GException("Invalid move to execute")
 		val state = State(getMovesInternal().indexOf(move) // <-- TODO: Make this faster
 			, movesCache!!)
-		assertTrue(undoStack.size < 1024)
+		assert(undoStack.size < 1024)
 
 		//
 		movesCache = null
@@ -547,8 +546,8 @@ open class Game : Reflector<Game>(), IGame<Move> {
 
 	fun movePiece(m: Move): Piece {
 		var p = getPiece(m.start)
-		assertTrue(p.playerNum == turn) //, "Logic Error: Not player " + p.getPlayerNum() + "'s turn: " + turn + "'s turn. For Piece:\n" + p);
-		assertTrue(p.getType().flag != 0) //, "Logic Error: Moving an empty piece. For Move:\n" + m);
+		assert(p.playerNum == turn) //, "Logic Error: Not player " + p.getPlayerNum() + "'s turn: " + turn + "'s turn. For Piece:\n" + p);
+		assert(p.getType().flag != 0) //, "Logic Error: Moving an empty piece. For Move:\n" + m);
 		copyPiece(m.start, m.end)
 		clearPiece(m.start)
 		p = getPiece(m.end)

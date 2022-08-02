@@ -4,7 +4,6 @@ import cc.lib.game.AGraphics
 import cc.lib.game.APGraphics
 import cc.lib.game.GColor
 import cc.lib.game.GDimension
-import cc.lib.utils.assertTrue
 import cc.lib.zombicide.ui.UIZCharacterRenderer.IWrappable
 
 class ZDiceWrappable(val dieNums: Array<Int>) : IWrappable {
@@ -81,7 +80,7 @@ class ZDiceWrappable(val dieNums: Array<Int>) : IWrappable {
 				g.vertex(dd4, dd2)
 				g.vertex(dd34, dd2)
 			}
-			else -> assertTrue(false, "Invalid die value $numDots")
+			else -> assert(false) { "Invalid die value $numDots" }
 		}
 		g.drawPoints()
 		g.setPointSize(oldDotSize)

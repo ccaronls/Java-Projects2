@@ -118,7 +118,7 @@ open class Player(var piece: Piece = Piece.BOAT) : Reflector<Player>() {
 				MoveType.TRADE -> {
 					for (t in game.getTradeOptions(this)) {
 						weights[index] += getNumOfSet(t.card.property!!)
-						//Utils.assertTrue(t.price > 0);
+						//assert(t.price > 0);
 						//float weight = (num * 100) / t.price;
 						//weights[index] += weight;
 					}
@@ -142,7 +142,7 @@ open class Player(var piece: Piece = Piece.BOAT) : Reflector<Player>() {
 	}
 
 	open fun chooseCard(game: Monopoly, cards: List<Card>, choiceType: CardChoiceType): Card? {
-		assertTrue(cards.isNotEmpty())
+		assert(cards.isNotEmpty())
 		if (cards.size == 1)
 			return cards[0]
 		var bestD = 0
@@ -196,7 +196,7 @@ open class Player(var piece: Piece = Piece.BOAT) : Reflector<Player>() {
 
 	fun addMoney(amt: Int) {
 		money += amt
-		assertTrue(money >= 0)
+		assert(money >= 0)
 	}
 
 	fun addCard(card: Card) {
@@ -245,7 +245,7 @@ open class Player(var piece: Piece = Piece.BOAT) : Reflector<Player>() {
 			val sets = propertySets
 			for (l in sets.values) {
 				val c = l[0]
-				assertTrue(c.property.numForSet >= l.size)
+				assert(c.property.numForSet >= l.size)
 				if (l.size == c.property.numForSet) num++
 			}
 			return num
@@ -283,7 +283,7 @@ open class Player(var piece: Piece = Piece.BOAT) : Reflector<Player>() {
 				1 -> 4 * dice
 				2 -> 10 * dice
 				else -> {
-					assertTrue(false, "Invalid value for num utilities $numUtilities")
+					assert(false, "Invalid value for num utilities $numUtilities")
 					0
 				}
 			}
@@ -320,7 +320,7 @@ open class Player(var piece: Piece = Piece.BOAT) : Reflector<Player>() {
 				return
 			}
 		}
-		assertTrue(false, "Cannot find get out of jail card in cards: ${cards}")
+		assert(false, "Cannot find get out of jail card in cards: ${cards}")
 	}
 
 	val cardsForUnMortgage: List<Card>

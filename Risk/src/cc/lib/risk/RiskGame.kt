@@ -72,7 +72,7 @@ open class RiskGame : Reflector<RiskGame>() {
 						cell.occupier = (pl.army)
 						cell.numArmies = (1)
 						pl.decrementArmy()
-						assertTrue(pl.getArmiesToPlace() > 0)
+						assert(pl.getArmiesToPlace() > 0)
 					}
 					i++
 				}
@@ -93,9 +93,9 @@ open class RiskGame : Reflector<RiskGame>() {
 					state = State.PLACE_ARMY
 				} else {
 					cur.pickTerritoryToClaim(this, unclaimed)?.let { picked ->
-						assertTrue(unclaimed.contains(picked))
+						assert(unclaimed.contains(picked))
 						val cell = board.getCell(picked)
-						assertTrue(cell.occupier == null)
+						assert(cell.occupier == null)
 						cell.occupier = (cur.army)
 						cell.numArmies = (1)
 						cur.decrementArmy()
@@ -108,7 +108,7 @@ open class RiskGame : Reflector<RiskGame>() {
 					val startArmiesToPlace: Int = cur.initialArmiesToPlace
 					val remainingArmiesToPlace = startArmiesToPlace - cur.getArmiesToPlace()
 					cur.pickTerritoryForArmy(this, territories, remainingArmiesToPlace, startArmiesToPlace)?.let { picked ->
-						assertTrue(territories.contains(picked))
+						assert(territories.contains(picked))
 						onPlaceArmy(cur.army, picked)
 						val cell = board.getCell(picked)
 						cell.numArmies++
@@ -135,7 +135,7 @@ open class RiskGame : Reflector<RiskGame>() {
 			State.PLACE_NEUTRAL                                                                 -> {
 				territories = board.getTerritories(Army.NEUTRAL)
 				cur.pickTerritoryForNeutralArmy(this, territories)?.let { picked ->
-					assertTrue(territories.contains(picked))
+					assert(territories.contains(picked))
 					val cell = board.getCell(picked)
 					onPlaceArmy(Army.NEUTRAL, picked)
 					cell.numArmies++
@@ -185,19 +185,19 @@ open class RiskGame : Reflector<RiskGame>() {
 				}
 				onBeginMove()
 				cur.pickAction(this, actions, cur.army.toString() + " Choose your Move")?.let { action ->
-					assertTrue(actions.contains(action))
+					assert(actions.contains(action))
 					when (action) {
 						Action.ATTACK -> {
 							val start = cur.pickTerritoryToAttackFrom(this, stageable)
 							if (start != null) {
-								assertTrue(stageable!!.contains(start))
+								assert(stageable!!.contains(start))
 								onStartAttackTerritoryChosen(start)
 								val cell = board.getCell(start)
 								val options = board.getConnectedCells(cell).filter { idx: Int -> board.getCell(idx).occupier != cur.army }
 								if (options.isEmpty()) throw GException("Invalid stagable")
 								val end = cur.pickTerritoryToAttack(this, start, options)
 								if (end != null) {
-									assertTrue(options.contains(end))
+									assert(options.contains(end))
 									onEndAttackTerritoryChosen(start, end)
 									performAttack(start, end)
 								}
@@ -206,7 +206,7 @@ open class RiskGame : Reflector<RiskGame>() {
 						Action.MOVE   -> {
 							val start = cur.pickTerritoryToMoveFrom(this, moveable)
 							if (start != null) {
-								assertTrue(moveable.contains(start))
+								assert(moveable.contains(start))
 								onStartMoveTerritoryChosen(start)
 								val cell = board.getCell(start)
 								val options = board.getConnectedCells(cell).filter { idx: Int? -> board.getCell(idx!!).occupier == cur.army }
@@ -214,7 +214,7 @@ open class RiskGame : Reflector<RiskGame>() {
 								while (cell.movableTroops > 0) {
 									val end = cur.pickTerritoryToMoveTo(this, start, options)
 										?: break
-									assertTrue(options.contains(end))
+									assert(options.contains(end))
 									onMoveTroops(start, end, 1)
 									performMove(start, end)
 									state = State.CHOOSE_MOVE_NO_ATTACK
@@ -241,19 +241,19 @@ open class RiskGame : Reflector<RiskGame>() {
 				onBeginMove()
 				val action = cur.pickAction(this, actions, cur.army.toString() + " Choose your Move")
 				if (action != null) {
-					assertTrue(actions.contains(action))
+					assert(actions.contains(action))
 					when (action) {
 						Action.ATTACK -> {
-							assertTrue(stageable != null)
+							assert(stageable != null)
 							val start = cur.pickTerritoryToAttackFrom(this, stageable!!)
 							if (start != null) {
-								assertTrue(stageable!!.contains(start))
+								assert(stageable!!.contains(start))
 								onStartAttackTerritoryChosen(start)
 								val cell = board.getCell(start)
 								val options = board.getConnectedCells(cell).filter { idx: Int? -> board.getCell(idx!!).occupier != cur.army }
 								if (options.isEmpty()) throw GException("Invalid stagable")
 								cur.pickTerritoryToAttack(this, start, options)?.let { end ->
-									assertTrue(options.contains(end))
+									assert(options.contains(end))
 									onEndAttackTerritoryChosen(start, end)
 									performAttack(start, end)
 								}
@@ -262,7 +262,7 @@ open class RiskGame : Reflector<RiskGame>() {
 						Action.MOVE   -> {
 							val start = cur.pickTerritoryToMoveFrom(this, moveable)
 							if (start != null) {
-								assertTrue(moveable.contains(start))
+								assert(moveable.contains(start))
 								onStartMoveTerritoryChosen(start)
 								val cell = board.getCell(start)
 								val options = board.getConnectedCells(cell).filter { idx: Int -> board.getCell(idx).occupier == cur.army }
@@ -270,7 +270,7 @@ open class RiskGame : Reflector<RiskGame>() {
 								while (cell.movableTroops > 0) {
 									val end = cur.pickTerritoryToMoveTo(this, start, options)
 										?: break
-									assertTrue(options.contains(end))
+									assert(options.contains(end))
 									onMoveTroops(start, end, 1)
 									performMove(start, end)
 									state = State.CHOOSE_MOVE_NO_ATTACK
@@ -348,9 +348,9 @@ open class RiskGame : Reflector<RiskGame>() {
 		val start = board.getCell(startIdx)
 		val end = board.getCell(endIdx)
 		start.movableTroops--
-		assertTrue(start.movableTroops >= 0)
+		assert(start.movableTroops >= 0)
 		start.numArmies--
-		assertTrue(start.numArmies > 0)
+		assert(start.numArmies > 0)
 		end.numArmies++
 	}
 
@@ -398,14 +398,14 @@ open class RiskGame : Reflector<RiskGame>() {
 			}
 			start.numArmies -= numStartArmiesLost
 			end.numArmies -= numEndArmiesLost
-			assertTrue(start.numArmies > 0)
-			assertTrue(end.numArmies >= 0)
+			assert(start.numArmies > 0)
+			assert(end.numArmies >= 0)
 			onArmiesDestroyed(startIdx, numStartArmiesLost, endIdx, numEndArmiesLost)
 			if (end.numArmies < 0) throw GException("Cannot have negative armies")
 			if (end.numArmies == 0) {
-				assertTrue(numToOccupy > 0)
+				assert(numToOccupy > 0)
 				start.numArmies = (start.numArmies - numToOccupy)
-				assertTrue(start.numArmies > 0)
+				assert(start.numArmies > 0)
 				onMoveTroops(startIdx, endIdx, numToOccupy)
 				end.occupier = (start.occupier)
 				end.numArmies = (numToOccupy)
