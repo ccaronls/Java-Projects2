@@ -31,7 +31,7 @@ class GeniusSquaresActivity : DroidActivity() {
 		saveFile = File(filesDir, "gs.save")
 		content.setBackgroundColor(Color.GRAY)
 		val topBar = View.inflate(this, R.layout.menu_bar, null)
-		getTopBar().addView(topBar)
+		topBar.addView(topBar)
 		findViewById<View>(R.id.buttonMenu).setOnClickListener {
 			val options = arrayOf(
 				"New Game",

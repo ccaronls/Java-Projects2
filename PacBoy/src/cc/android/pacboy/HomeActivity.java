@@ -1,9 +1,5 @@
 package cc.android.pacboy;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesClient;
-import com.google.android.gms.games.leaderboard.LeaderboardVariant;
-
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -14,7 +10,7 @@ import android.view.View.OnClickListener;
 import android.widget.Toast;
 import cc.lib.android.CCActivityBase;
 
-public class HomeActivity extends CCActivityBase implements OnClickListener, GooglePlayServicesClient.ConnectionCallbacks, GooglePlayServicesClient.OnConnectionFailedListener {
+public class HomeActivity extends CCActivityBase implements OnClickListener {
 
 	//private GoogleApiClient mGAPI;
 	
@@ -75,7 +71,6 @@ public class HomeActivity extends CCActivityBase implements OnClickListener, Goo
 	@Override
 	public void onClick(View v) {
 		Intent i = new Intent(this, PacBoyActivity.class);
-		int code = RC_GAME_RESULT;
 		switch (v.getId()) {
 			case R.id.buttonSmallEasy:
 				i.putExtra(PacBoyActivity.INTENT_EXTRA_INT_WIDTH, 6);
@@ -137,11 +132,6 @@ public class HomeActivity extends CCActivityBase implements OnClickListener, Goo
 				i.putExtra(PacBoyActivity.INTENT_EXTRA_INT_HEIGHT, 16);
 				i.putExtra(PacBoyActivity.INTENT_EXTRA_INT_DIFFUCULTY, 20);
 				break;
-			case R.id.buttonViewLeaderboards:
-				//i = Games.Leaderboards.getLeaderboardIntent(mGAPI, LEADERBOARD_ID);
-//					.getAllLeaderboardsIntent(mGAPI);
-				code = RC_GET_ALL_LEADERBOARDS;
-				break;
 		}
 		startActivityForResult(i, code);
 	}
@@ -174,95 +164,5 @@ public class HomeActivity extends CCActivityBase implements OnClickListener, Goo
 		
 	};
 
-	@Override
-	public void onConnectionFailed(ConnectionResult result) {
-		try {
-			result.startResolutionForResult(this, RC_RESOLUTION_RESULT);
-		} catch (Exception e) {
-			e.printStackTrace();
-			handler.sendEmptyMessage(MSG_SIGNIN_FAILED);
-		}
-	}
-
-	@Override
-	public void onConnected(Bundle connectionHint) {
-		handler.sendEmptyMessage(MSG_SIGNIN_SUCCESS);
-	}
-
-	@Override
-    public void onDisconnected() {}
-
-	final int RC_GET_ALL_LEADERBOARDS = 10030;
-	final int RC_GAME_RESULT = 10031;
-	final int RC_RESOLUTION_RESULT = 10032;
-	
-	final String LEADERBOARD_ID = "CgkIq6K3rt4dEAIQBg";
-	
-	protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
-		
-		switch (requestCode) {
-			case RC_RESOLUTION_RESULT: {
-				if (resultCode == RESULT_OK) {
-					//mGAPI.connect();
-				}
-				break;
-			}
-			
-			case RC_GET_ALL_LEADERBOARDS: {
-				break;
-			}
-			
-			case RC_GAME_RESULT: {
-				/*
-				if (mGAPI != null && mGAPI.isConnected()) {
-					PendingResult<SubmitScoreResult> result = Games.Leaderboards.submitScoreImmediate(mGAPI, LEADERBOARD_ID, intent.getIntExtra("score", 0));
-					result.setResultCallback(new ResultCallback<SubmitScoreResult>() {
-						
-						@Override
-						public void onResult(SubmitScoreResult result) {
-							Status status = result.getStatus();
-							if (status.isSuccess()) {
-								do {
-    								ScoreSubmissionData.Result score = result.getScoreData().getScoreResult(LeaderboardVariant.TIME_SPAN_ALL_TIME);
-    								if (score != null && score.newBest) {
-    									handler.sendMessage(handler.obtainMessage(MSG_SCORE_SUBMIT_RESULT, "New All Time Best!"));
-    									break;
-    								} 
-    								score = result.getScoreData().getScoreResult(LeaderboardVariant.TIME_SPAN_WEEKLY);
-    								if (score != null && score.newBest) {
-    									handler.sendMessage(handler.obtainMessage(MSG_SCORE_SUBMIT_RESULT, "New Weekly Best!"));
-    									break;
-    								} 
-    								score = result.getScoreData().getScoreResult(LeaderboardVariant.TIME_SPAN_DAILY);
-    								if (score != null && score.newBest) {
-    									handler.sendMessage(handler.obtainMessage(MSG_SCORE_SUBMIT_RESULT, "New Daily Best!"));
-    									break;
-    								} 
-								} while (false);
-							} else if (status.getStatusCode() == GamesStatusCodes.STATUS_CLIENT_RECONNECT_REQUIRED) {
-								mGAPI.reconnect();
-							} 
-						}
-					});
-				}*/
-			}
-		}
-		
-		/*
-	    if (requestCode == RC_SIGN_IN) {
-	        mSignInClicked = false;
-	        mResolvingConnectionFailure = false;
-	        if (resultCode == RESULT_OK) {
-	            mGoogleApiClient.connect();
-	        } else {
-	            // Bring up an error dialog to alert the user that sign-in
-	            // failed. The R.string.signin_failure should reference an error
-	            // string in your strings.xml file that tells the user they
-	            // could not be signed in, such as "Unable to sign in."
-	            BaseGameUtils.showActivityResultError(this,
-	                requestCode, resultCode, R.string.signin_failure);
-	        }
-	    }*/
-	}
 
 }

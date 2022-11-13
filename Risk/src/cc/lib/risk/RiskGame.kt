@@ -30,8 +30,7 @@ open class RiskGame : Reflector<RiskGame>() {
 		state = State.INIT
 	}
 
-	@Synchronized
-	fun runGame() {
+	suspend fun runGame() {
 		log.debug("runGame ENTER")
 		log.verbose("Run game state: %s", state)
 		if (players.size < 2) throw GException("Need at least 2 players")

@@ -381,7 +381,7 @@ open class Probot(private val program: ObservableArrayList<Command> = Observable
 		for (laz in lazerOrdering) {
 			if (!level.lazers[laz]) continue
 			for (i in level.coins.indices) {
-				for (ii in 0 until level.coins[0].size) {
+				for (ii in level.coins[i].indices) {
 					when (level.coins[i][ii]) {
 						Type.LH0 -> if (laz == 0) {
 							initHorzLazer(i, ii)
@@ -562,17 +562,19 @@ open class Probot(private val program: ObservableArrayList<Command> = Observable
 				val right = left + cw
 				val top = i * ch
 				val bottom = top + ch
-				if (0 != lazer[i][ii] and LAZER_WEST) {
-					g.drawLine(left.toFloat(), cy.toFloat(), cx.toFloat(), cy.toFloat(), lineWidth)
-				}
-				if (0 != lazer[i][ii] and LAZER_EAST) {
-					g.drawLine(cx.toFloat(), cy.toFloat(), right.toFloat(), cy.toFloat(), lineWidth)
-				}
-				if (0 != lazer[i][ii] and LAZER_NORTH) {
-					g.drawLine(cx.toFloat(), top.toFloat(), cx.toFloat(), cy.toFloat(), lineWidth)
-				}
-				if (0 != lazer[i][ii] and LAZER_SOUTH) {
-					g.drawLine(cx.toFloat(), cy.toFloat(), cx.toFloat(), bottom.toFloat(), lineWidth)
+				if (i < lazer.size && ii < lazer[i].size) {
+					if (0 != lazer[i][ii] and LAZER_WEST) {
+						g.drawLine(left.toFloat(), cy.toFloat(), cx.toFloat(), cy.toFloat(), lineWidth)
+					}
+					if (0 != lazer[i][ii] and LAZER_EAST) {
+						g.drawLine(cx.toFloat(), cy.toFloat(), right.toFloat(), cy.toFloat(), lineWidth)
+					}
+					if (0 != lazer[i][ii] and LAZER_NORTH) {
+						g.drawLine(cx.toFloat(), top.toFloat(), cx.toFloat(), cy.toFloat(), lineWidth)
+					}
+					if (0 != lazer[i][ii] and LAZER_SOUTH) {
+						g.drawLine(cx.toFloat(), cy.toFloat(), cx.toFloat(), bottom.toFloat(), lineWidth)
+					}
 				}
 			}
 		}

@@ -18,6 +18,7 @@ import cc.lib.math.Vector2D
 import cc.lib.risk.*
 import cc.lib.utils.Lock
 import cc.lib.utils.prettify
+import kotlinx.coroutines.*
 import java.io.File
 import java.util.*
 import java.util.concurrent.locks.ReentrantLock
@@ -25,10 +26,20 @@ import kotlin.concurrent.withLock
 import kotlin.math.roundToInt
 
 class RiskActivity : DroidActivity(), OnItemClickListener {
-	
-	val lock = ReentrantLock()
-	val cond = lock.newCondition()
-	var message: String = ""
+
+	private val roman = RomanNumeral()
+	private val animations: MutableList<RiskAnim> = ArrayList()
+	private val highlightedCells: MutableList<Pair<Int?, GColor?>> = ArrayList()
+	private val pickableTerritories: MutableList<Int> = ArrayList()
+	private val running : Boolean
+		get() = runJob != null
+	private var result: Any? = null
+	private lateinit var listView: ListView
+	private var zoomRect = GRectangle.EMPTY
+	private val lock = ReentrantLock()
+	private val cond = lock.newCondition()
+	private var message: String = ""
+	private var runJob: Job? = null
 
 	lateinit var saveGame: File
 	var game: RiskGame = object : RiskGame() {
@@ -190,14 +201,7 @@ class RiskActivity : DroidActivity(), OnItemClickListener {
 			)
 		}
 	}
-	private val roman = RomanNumeral()
-	private val animations: MutableList<RiskAnim> = ArrayList()
-	private val highlightedCells: MutableList<Pair<Int?, GColor?>> = ArrayList()
-	private val pickableTerritories: MutableList<Int> = ArrayList()
-	private var running = false
-	private var result: Any? = null
-	private lateinit var listView: ListView
-	private var zoomRect = GRectangle.EMPTY
+
 	fun clearAnimations() {
 		synchronized(animations) {
 			for (a in animations) {
@@ -553,7 +557,7 @@ class RiskActivity : DroidActivity(), OnItemClickListener {
 	}
 
 	fun stopGameThread() {
-		running = false
+		runJob?.cancel()
 		setGameResult(null)
 		if (!isFinishing) {
 			runOnUiThread { initHomeMenu() }
@@ -566,26 +570,22 @@ class RiskActivity : DroidActivity(), OnItemClickListener {
 		init()
 		clearAnimations()
 		initMenu(emptyList<Any>())
-		running = true
-		object : Thread() {
-			override fun run() {
-				while (running && !game.isDone) {
-					try {
-						game.runGame()
-						redraw()
-						if (result != null)
-							game.trySaveToFile(saveGame)
-						result = null
-					} catch (e: Exception) {
-						e.printStackTrace()
-						break
-					}
+		runJob = CoroutineScope(Dispatchers.Default).launch {
+			while (running && !game.isDone) {
+				try {
+					game.runGame()
+					redraw()
+					if (result != null)
+						game.trySaveToFile(saveGame)
+					result = null
+				} catch (e: Exception) {
+					e.printStackTrace()
+					break
 				}
-				running = false
-				runOnUiThread { initHomeMenu() }
-				log.debug("game thread EXIT")
 			}
-		}.start()
+			runOnUiThread { initHomeMenu() }
+			log.debug("game thread EXIT")
+		}
 	}
 
 	fun <T> waitForUser(expectedType: Class<T>): T? {

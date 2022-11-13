@@ -86,6 +86,8 @@ public class AWTProbotLevelBuilder extends AWTComponent {
             if (levels.size() == 0) {
                 levels.add(new Level());
             }
+
+            probot.setLevel(0, levels.get(0));
         }
 
         setMouseEnabled(true);
@@ -103,7 +105,7 @@ public class AWTProbotLevelBuilder extends AWTComponent {
                         break;
                     }
                     case "Open": {
-                        File toOpen = frame.showFileOpenChooser("Open Levels File", "Probot Levels", null);
+                        File toOpen = frame.showFileOpenChooser("Open Levels File", "txt", null);
                         if (toOpen != null) {
                             frame.log.info("Opening '%s'", toOpen);
                             try {
@@ -296,11 +298,13 @@ public class AWTProbotLevelBuilder extends AWTComponent {
         next10 = new AWTButton(">>") {
             @Override
             protected void onAction() {
-                if (curLevel < levels.size()-1) {
-                    curLevel = Math.min(curLevel+10, levels.size()-1);
-                    probot.setLevel(curLevel, levels.get(curLevel));
-                    updateAll();
-                    AWTProbotLevelBuilder.this.repaint();
+                synchronized (AWTProbotLevelBuilder.this) {
+                    if (curLevel < levels.size() - 1) {
+                        curLevel = Math.min(curLevel + 10, levels.size() - 1);
+                        probot.setLevel(curLevel, levels.get(curLevel));
+                        updateAll();
+                        AWTProbotLevelBuilder.this.repaint();
+                    }
                 }
             }
         };
@@ -352,7 +356,7 @@ public class AWTProbotLevelBuilder extends AWTComponent {
     Grid<Type> grid = new Grid();
 
     @Override
-    protected void paint(AWTGraphics g, int mouseX, int mouseY) {
+    protected synchronized void paint(AWTGraphics g, int mouseX, int mouseY) {
 
         if (levels.size() == 0)
             return;
@@ -362,7 +366,7 @@ public class AWTProbotLevelBuilder extends AWTComponent {
         final int viewWidth = g.getViewportWidth();
         final int viewHeight = g.getViewportHeight();
 
-        probot.setLevel(curLevel, getLevel());
+//        probot.setLevel(curLevel, getLevel());
         probot.draw(g, grid.getCols()*cellDim, grid.getRows()*cellDim);
         g.setColor(GColor.WHITE);
 
