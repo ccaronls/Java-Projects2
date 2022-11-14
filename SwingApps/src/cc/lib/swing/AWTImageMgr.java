@@ -104,13 +104,21 @@ public final class AWTImageMgr {
 	}*/
 
 	/* */
-	private Image loadImageFromFile(String name) throws Exception {
+	public Image loadImageFromFile(String name) throws Exception {
 		try (InputStream in = new FileInputStream(new File(name))) {
 			byte [] buffer = new byte[in.available()];
 			in.read(buffer);
 			return new ImageIcon(buffer).getImage();
 		}
 	}
+
+    public Image loadImageFile(File file) throws Exception {
+        try (InputStream in = new FileInputStream(file)) {
+            byte [] buffer = new byte[in.available()];
+            in.read(buffer);
+            return new ImageIcon(buffer).getImage();
+        }
+    }
 
     private Image loadImageFromSearchPaths(String name) throws Exception {
 	    for (String path : paths) {
