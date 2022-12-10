@@ -56,6 +56,13 @@ open class CCActivityBase : AppCompatActivity() {
     val log: Logger = AndroidLogger(javaClass.toString())
 	private val PERMISSION_REQUEST_CODE = 1001
 
+	val preferredLocale : Locale by lazy {
+		if (Build.VERSION.SDK_INT < 24)
+			resources.configuration.locale
+		else
+			resources.configuration.locales.get(0)
+	}
+
 	protected open fun getLayoutFactory(): LayoutFactory? = null
 
 	protected open fun onLayoutCreated(binding: ViewDataBinding, viewModel: ViewModel?) {

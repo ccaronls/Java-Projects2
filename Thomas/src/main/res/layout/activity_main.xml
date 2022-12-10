@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:bind="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+        <import type="cc.android.thomas.WorkoutState"/>
+        <import type="cc.android.thomas.BuildConfig"/>
+        <variable name="viewModel"
+            type="cc.android.thomas.ThomasViewModel" />
+    </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-
-        <androidx.constraintlayout.widget.Guideline
-            android:id="@+id/vert_guideline"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            app:layout_constraintGuide_percent=".5"
-            app:layout_constraintEnd_toEndOf="parent"/>
 
         <TextView
             android:id="@+id/tv_timeperiod"
@@ -22,7 +22,7 @@
             android:text="@string/text_period"
             android:textSize="@dimen/text"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="@id/vert_guideline"
+            app:layout_constraintEnd_toStartOf="@id/tv_stations"
             app:layout_constraintTop_toTopOf="parent"
             android:layout_margin="@dimen/margin"
             />
@@ -31,10 +31,15 @@
             android:id="@+id/np_period"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="@id/vert_guideline"
+            app:layout_constraintStart_toStartOf="@id/tv_timeperiod"
+            app:layout_constraintEnd_toEndOf="@id/tv_timeperiod"
             app:layout_constraintTop_toBottomOf="@id/tv_timeperiod"
-            android:layout_margin="@dimen/margin"/>
+            android:layout_marginVertical="@dimen/margin"
+            bind:minValue="@{0}"
+            bind:maxValue="@{29}"
+            bind:value="@={viewModel.npTimePeriod}"
+            bind:formatter="@{viewModel.npPeriodFormatter}"
+            />
 
         <TextView
             android:id="@+id/tv_stations"
@@ -42,8 +47,8 @@
             android:layout_height="wrap_content"
             android:text="@string/text_stations"
             android:textSize="@dimen/text"
-            app:layout_constraintStart_toStartOf="@id/vert_guideline"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/tv_timeperiod"
+            app:layout_constraintEnd_toStartOf="@id/tv_circuits"
             app:layout_constraintTop_toTopOf="parent"
             android:layout_margin="@dimen/margin"
             />
@@ -52,10 +57,37 @@
             android:id="@+id/np_stations"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:layout_constraintStart_toStartOf="@id/vert_guideline"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@id/tv_stations"
+            app:layout_constraintEnd_toEndOf="@id/tv_stations"
             app:layout_constraintTop_toBottomOf="@id/tv_stations"
-            android:layout_margin="@dimen/margin"/>
+            android:layout_marginVertical="@dimen/margin"
+            bind:minValue="@{BuildConfig.DEBUG ? 2 : 5}"
+            bind:maxValue="@{60}"
+            bind:value="@={viewModel.npStations}"/>
+
+        <TextView
+            android:id="@+id/tv_circuits"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/text_circuits"
+            android:textSize="@dimen/text"
+            app:layout_constraintStart_toEndOf="@id/tv_stations"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_margin="@dimen/margin"
+            />
+
+        <NumberPicker
+            android:id="@+id/np_circuits"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toStartOf="@id/tv_circuits"
+            app:layout_constraintEnd_toEndOf="@id/tv_circuits"
+            app:layout_constraintTop_toBottomOf="@id/tv_circuits"
+            android:layout_marginVertical="@dimen/margin"
+            bind:minValue="@{1}"
+            bind:maxValue="@{10}"
+            bind:value="@={viewModel.npCircuits}"/>
 
         <cc.lib.android.VerticalViewPager
             android:id="@+id/pager_workouts"
@@ -64,61 +96,66 @@
             app:layout_constraintTop_toBottomOf="@id/np_period"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginRight="10dp"
-            android:layout_marginLeft="10dp"/>
+            android:layout_marginHorizontal="10dp"
+            enabledIf="@{viewModel.state == WorkoutState.STOPPED}"/>
 
-        <TextView
-            android:id="@+id/tv_currentstation"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/text_press_start_to_workout"
-            android:textSize="@dimen/text"
-            android:gravity="center"
+            android:orientation="vertical"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@id/pager_workouts"
-            android:layout_margin="@dimen/margin"/>
+            android:layout_margin="@dimen/margin"
+            >
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@{viewModel.started ? @string/text_n_of_n_stations(viewModel.setIndex+1, viewModel.numStations) : @string/text_press_start_to_workout}"
+                tools:text="N on M Stations"
+                android:textSize="@dimen/text"
+                android:layout_gravity="center"
+                />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@{viewModel.started ? viewModel.curSet : ``}"
+                tools:text="Plank up Downs"
+                android:textSize="@dimen/text"
+                android:layout_gravity="center"
+                />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@{@string/text_next_station(viewModel.nextSet)}"
+                tools:text="Next : Sit Ups"
+                android:textSize="@dimen/text"
+                android:layout_gravity="center"
+                visibleIf="@{viewModel.started &amp;&amp; !viewModel.nextSet.isEmpty()}"
+                />
+        </LinearLayout>
 
         <TextView
-            android:id="@+id/tv_timer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/text_timer"
+            tools:text="@string/text_timer"
+            android:text="@{viewModel.timerText}"
             android:textSize="@dimen/text_large"
-            app:layout_constraintStart_toStartOf="@id/vert_guideline"
-            app:layout_constraintEnd_toEndOf="@id/vert_guideline"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBottom_toTopOf="@id/b_options"
             android:layout_marginBottom="40dp"/>
-        <!--
-            <Button
-                android:id="@+id/b_ordering"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Ordering"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="@id/vert_guideline"
-                app:layout_constraintBottom_toTopOf="@id/b_start"
-                android:layout_margin="@dimen/margin"/>
-
-            <Button
-                android:id="@+id/b_stations"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Stations"
-                app:layout_constraintStart_toStartOf="@id/vert_guideline"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintBottom_toTopOf="@id/b_start"
-                android:layout_margin="@dimen/margin"/>
-        -->
         <Button
             android:id="@+id/b_start"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/button_start"
+            android:text="@{viewModel.state == WorkoutState.STOPPED ? @string/button_start : @string/button_stop}"
+            tools:text="@string/button_start"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="@id/vert_guideline"
+            app:layout_constraintEnd_toStartOf="@id/b_options"
             app:layout_constraintBottom_toBottomOf="parent"
-            android:layout_margin="@dimen/margin"/>
+            android:layout_margin="@dimen/margin"
+            android:onClick="@{() -> viewModel.activity.toggleStart()}"/>
 
         <Button
             android:id="@+id/b_options"
@@ -128,17 +165,32 @@
             app:layout_constraintStart_toEndOf="@id/b_start"
             app:layout_constraintEnd_toStartOf="@id/b_pause"
             app:layout_constraintBottom_toBottomOf="parent"
-            android:layout_margin="@dimen/margin"/>
+            android:layout_margin="@dimen/margin"
+            android:onClick="@{() -> viewModel.activity.showOptionsPopup()}"
+            enabledIf="@{viewModel.state == WorkoutState.STOPPED}"
+            onLongClick="@{() -> viewModel.activity.emailWorkouts()}"/>
 
         <Button
             android:id="@+id/b_pause"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/button_pause"
-            app:layout_constraintStart_toStartOf="@id/vert_guideline"
+            android:text="@{viewModel.state == WorkoutState.RUNNING ? @string/button_pause : @string/button_resume}"
+            tools:text="@string/button_pause"
+            enabledIf="@{viewModel.state != WorkoutState.STOPPED}"
+            app:layout_constraintStart_toEndOf="@id/b_options"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            android:layout_margin="@dimen/margin"/>
+            android:layout_margin="@dimen/margin"
+            android:onClick="@{() -> viewModel.activity.togglePause()}"/>
+
+        <View
+            android:id="@+id/v_center"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>

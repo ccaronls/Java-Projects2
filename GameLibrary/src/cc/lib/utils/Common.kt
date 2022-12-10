@@ -3,7 +3,9 @@ package cc.lib.utils
 import cc.lib.game.Utils
 import cc.lib.math.Vector2D
 import java.io.File
+import java.lang.ref.WeakReference
 import java.lang.reflect.Field
+import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
 fun <T> MutableMap<T, Int>.increment(obj: T, amt: Int) {
@@ -251,5 +253,15 @@ class DirtyDelegateReflector<T : Reflector<T>>(value: T, val parser: (String) ->
 class DirtyDelegateVector2D(value: Vector2D) : DirtyDelegate<Vector2D>(value) {
 	override fun setValueFromString(str: String) {
 		value = Vector2D.parse(str)
+	}
+}
+
+fun <T> weakReference(tIn : T? = null) : ReadWriteProperty<Any?, T?> = object : ReadWriteProperty<Any?, T?> {
+	var t = WeakReference(tIn)
+
+	override fun getValue(thisRef: Any?, property: KProperty<*>): T? = t.get()
+
+	override fun setValue(thisRef: Any?, property: KProperty<*>, value: T?) {
+		t = WeakReference(value)
 	}
 }

@@ -1844,6 +1844,8 @@ public class VerticalViewPager extends ViewGroup {
             mVelocityTracker = VelocityTracker.obtain();
         }
         mVelocityTracker.addMovement(ev);
+        if (!isEnabled())
+            return false;
 
         final int action = ev.getAction();
         boolean needsInvalidate = false;

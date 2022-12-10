@@ -12,11 +12,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
-import android.widget.CompoundButton
-import android.widget.EditText
-import android.widget.NumberPicker
-import android.widget.NumberPicker.OnValueChangeListener
-import android.widget.TextView
+import android.widget.*
+import androidx.activity.viewModels
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -25,10 +25,12 @@ import androidx.viewpager.widget.ViewPager
 import cc.android.thomas.databinding.*
 import cc.lib.android.CCActivityBase
 import cc.lib.android.DragAndDropAdapter
+import cc.lib.android.EmailHelper
 import cc.lib.annotation.Keep
 import cc.lib.game.Utils
 import cc.lib.utils.Reflector
 import cc.lib.utils.prettify
+import cc.lib.utils.weakReference
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
@@ -36,28 +38,71 @@ import org.joda.time.DateTime
 import org.joda.time.DateTimeZone
 import java.io.File
 import java.io.FileNotFoundException
+import java.lang.RuntimeException
 import java.util.*
 
-class MainActivity : CCActivityBase(), OnValueChangeListener, View.OnClickListener, Runnable, CompoundButton.OnCheckedChangeListener, OnInitListener, ViewPager.OnPageChangeListener {
+enum class WorkoutState {
+	STOPPED,
+	PAUSED,
+	RUNNING
+}
+
+class ThomasViewModel(_context : MainActivity) : ViewModel() {
+	val activity by weakReference(_context)
+
+	val started = MutableLiveData(false)
+	val numStations = MutableLiveData(0)
+	val setIndex = MutableLiveData(0)
+	val curSet = MutableLiveData("")
+	val nextSet = MutableLiveData("")
+	val timerText = MutableLiveData(_context.getString(R.string.text_timer))
+
+	val timeLeftSecs = MutableLiveData(0)
+	val state = MutableLiveData(WorkoutState.STOPPED)
+
+	val npTimePeriod = MutableLiveData(0)
+	val npStations = MutableLiveData(0)
+	val npCircuits = MutableLiveData(0)
+
+	val currentWorkout = MutableLiveData(0)
+
+	val npPeriodFormatter = object : NumberPicker.Formatter {
+		override fun format(value: Int): String {
+			var seconds = 10 + value * 10
+			val minutes = seconds / 60
+			seconds -= minutes * 60
+			return if (minutes > 0) {
+				activity?.getString(R.string.time_format, minutes, seconds)?:""
+			} else {
+				activity?.getString(R.string.tts_n_seconds, seconds)?:""
+			}
+		}
+	}
+}
+
+class MainActivity : CCActivityBase(),
+	Runnable,
+	OnInitListener,
+	ViewPager.OnPageChangeListener {
     lateinit var binding: ActivityMainBinding
     var tts: TextToSpeech? = null
-    var setIndex = 0
     val sets: MutableList<Station> = ArrayList()
     lateinit var workouts: MutableList<Workout>
-    var currentWorkout = 0
     lateinit var pager_adapter: PagerAdapter
-    var timeLeftSecs = 0
-    var state = STATE_STOPPED // stopped, paused, running
+	val vm : ThomasViewModel by viewModels {
+		object : ViewModelProvider.NewInstanceFactory() {
+			override fun <T : ViewModel> create(modelClass: Class<T>): T  = ThomasViewModel(this@MainActivity) as T
+		}
+	}
+	val curWorkout : Workout
+		get() = workouts[(vm.currentWorkout.value?:0).coerceIn(0, workouts.size)]
 
     companion object {
-        val TAG = MainActivity::class.java.simpleName
-        val STATIONS_FILE = "stations.txt"
-        val WORKOUTS_FILE = "workouts.txt"
-        const val STATE_STOPPED = 0
-        const val STATE_PAUSED = 1
-        const val STATE_RUNNING = 2
-        fun getTimeString(secs: Long): String {
-            var secs = secs
+        val TAG : String = MainActivity::class.java.simpleName
+        const val STATIONS_FILE = "stations.txt"
+        const val WORKOUTS_FILE = "workouts.txt"
+        fun getTimeString(_secs: Long): String {
+            var secs = _secs
             return if (secs <= 60) {
                 String.format("%d Secs", secs)
             } else if (secs < 60 * 60) {
@@ -83,7 +128,8 @@ class MainActivity : CCActivityBase(), OnValueChangeListener, View.OnClickListen
         Cardio(R.string.station_type_cardio),
         Upper_Body(R.string.station_type_upper_body),
         Core(R.string.station_type_core),
-        Lower_Body(R.string.station_type_lower_body);
+        Lower_Body(R.string.station_type_lower_body),
+        Stretch(R.string.station_type_stretch);
     }
 
     class Workout : Reflector<Workout>() {
@@ -92,6 +138,7 @@ class MainActivity : CCActivityBase(), OnValueChangeListener, View.OnClickListen
         lateinit var ordering: Array<StationType>
         var numStations = 0
         var timerIndex = 0
+	    var numCircuits = 1
         fun clearCounts() {
             stations.forEach { st ->
                 st.clearCounts()
@@ -127,13 +174,13 @@ class MainActivity : CCActivityBase(), OnValueChangeListener, View.OnClickListen
             return String.format("%s - %s", name, r.getString(type.stringResId))
         }
 
-        override fun equals(o: Any?): Boolean {
-            if (this === o)
+        override fun equals(other: Any?): Boolean {
+            if (this === other)
                 return true
-            if (o == null)
+            if (other == null)
                 return false
-            if (o is Station) {
-                return o.name == name && o.type == type
+            if (other is Station) {
+                return other.name == name && other.type == type
             }
             return false
         }
@@ -152,10 +199,11 @@ class MainActivity : CCActivityBase(), OnValueChangeListener, View.OnClickListen
             return
         } catch (e: FileNotFoundException) {
             // ignore
-            Log.w(TAG, "File not found: $file")
         } catch (e: Exception) {
             e.message
             Log.e(TAG, "Failed to load " + WORKOUTS_FILE + " : " + e.message)
+	        if (BuildConfig.DEBUG)
+	        	throw RuntimeException(e)
         }
         val workout = Workout()
         workout.name = getString(R.string.defaut_workout_name)
@@ -164,7 +212,6 @@ class MainActivity : CCActivityBase(), OnValueChangeListener, View.OnClickListen
         workout.numStations = 60
         workout.timerIndex = 5
         workouts = ArrayList<Workout>(Arrays.asList(workout))
-        currentWorkout = 0
     }
 
     val defaultStations: Array<Station>
@@ -186,79 +233,113 @@ class MainActivity : CCActivityBase(), OnValueChangeListener, View.OnClickListen
                 Station(getString(R.string.lunges), StationType.Lower_Body),
                 Station(getString(R.string.squats), StationType.Lower_Body))
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(LayoutInflater.from(this))
-        setContentView(binding.root)
-        loadWorkouts()
-        val values = arrayOfNulls<String>(30)
-        for (i in 0..29) {
-            var seconds = 10 + i * 10
-            val minutes = seconds / 60
-            seconds -= minutes * 60
-            if (minutes > 0) {
-                values[i] = getString(R.string.time_format, minutes, seconds)
-            } else {
-                values[i] = getString(R.string.tts_n_seconds, seconds)
-            }
-        }
-        currentWorkout = prefs.getInt("current_workout", 0)
-        if (currentWorkout >= workouts.size) currentWorkout = 0
-        binding.npPeriod.minValue = 0
-        binding.npPeriod.maxValue = 29
-        binding.npPeriod.value = workouts[currentWorkout].timerIndex
-        binding.npPeriod.displayedValues = values
-        binding.npPeriod.setOnValueChangedListener(this)
-        binding.bStart.setOnClickListener(this)
-        binding.bPause.setOnClickListener(this)
-        binding.bOptions.setOnClickListener(this)
-        binding.npStations.setOnValueChangedListener(this)
-        binding.npStations.minValue = if (BuildConfig.DEBUG) 2 else 5
-        binding.npStations.maxValue = 60
-        binding.npStations.value = workouts[currentWorkout].numStations
-        binding.pagerWorkouts.offscreenPageLimit = 5
-        binding.pagerWorkouts.pageMargin = -50
-        binding.pagerWorkouts.setPageTransformer(false, DepthPageTransformer())
-        binding.pagerWorkouts.adapter = object : PagerAdapter() {
-            override fun getCount(): Int {
-                return workouts.size
-            }
+    override fun onCreate(bundle: Bundle?) {
+	    super.onCreate(bundle)
+	    binding = ActivityMainBinding.inflate(LayoutInflater.from(this))
+	    binding.lifecycleOwner = this
+	    binding.viewModel = vm
+	    setContentView(binding.root)
+	    loadWorkouts()
+	    val values = arrayOfNulls<String>(30)
+	    for (i in 0..29) {
+		    var seconds = 10 + i * 10
+		    val minutes = seconds / 60
+		    seconds -= minutes * 60
+		    if (minutes > 0) {
+			    values[i] = getString(R.string.time_format, minutes, seconds)
+		    } else {
+			    values[i] = getString(R.string.tts_n_seconds, seconds)
+		    }
+	    }
+	    vm.currentWorkout.value = prefs.getInt("current_workout", 0)
+	    //binding.npPeriod.minValue = 0
+	    //binding.npPeriod.maxValue = 29
+	    //binding.npPeriod.value = w.timerIndex
+	    //binding.npPeriod.displayedValues = values
+	    //binding.npPeriod.setOnValueChangedListener(this)
+	    //binding.npStations.setOnValueChangedListener(this)
+	    //binding.npStations.minValue = if (BuildConfig.DEBUG) 2 else 5
+	    //binding.npStations.maxValue = 60
+	    //binding.npStations.value = w.numStations
+	    //binding.npCircuits.minValue = 1
+	    //binding.npCircuits.maxValue = 10
+	    //binding.npCircuits.value = w.numCircuits
+	    //binding.npCircuits.setOnValueChangedListener(this)
+	    binding.pagerWorkouts.offscreenPageLimit = 5
+	    binding.pagerWorkouts.pageMargin = -50
+	    binding.pagerWorkouts.setPageTransformer(false, DepthPageTransformer())
+	    binding.pagerWorkouts.adapter = object : PagerAdapter() {
+		    override fun getCount(): Int {
+			    return workouts.size
+		    }
 
-            override fun isViewFromObject(view: View, o: Any): Boolean {
-                return view === o
-            }
+		    override fun isViewFromObject(view: View, o: Any): Boolean {
+			    return view === o
+		    }
 
-            override fun instantiateItem(container: ViewGroup, position: Int): Any {
-                val lb = WorkoutListItemBinding.inflate(layoutInflater)
-                lb.text.text = workouts[position].name
-                container.addView(lb.root)
-                return lb.root
-            }
+		    override fun instantiateItem(container: ViewGroup, position: Int): Any {
+			    val lb = WorkoutListItemBinding.inflate(layoutInflater)
+			    lb.text.text = workouts[position].name
+			    container.addView(lb.root)
+			    return lb.root
+		    }
 
-            override fun destroyItem(container: ViewGroup, position: Int, `object`: Any) {
-                container.removeView(`object` as View)
-            }
+		    override fun destroyItem(container: ViewGroup, position: Int, `object`: Any) {
+			    container.removeView(`object` as View)
+		    }
 
-            override fun getItemPosition(`object`: Any): Int {
-                return POSITION_NONE
-            }
-        }.also { pager_adapter = it }
-        binding.pagerWorkouts.setCurrentItem(currentWorkout, false)
-        binding.pagerWorkouts.setOnPageChangeListener(this)
+		    override fun getItemPosition(`object`: Any): Int {
+			    return POSITION_NONE
+		    }
+	    }.also { pager_adapter = it }
+	    binding.pagerWorkouts.setCurrentItem(vm.currentWorkout.value?:0, false)
+	    binding.pagerWorkouts.setOnPageChangeListener(this)
+    }
+
+	override fun onStart() {
+		super.onStart()
+		vm.state.observe(this) {
+			Log.d(TAG, "setKeepScreenOn $it")
+			setKeepScreenOn(it == WorkoutState.RUNNING)
+		}
+		listOf(
+			Pair(vm.npStations, Workout::numStations),
+			Pair(vm.npCircuits, Workout::numCircuits),
+			Pair(vm.npTimePeriod, Workout::timerIndex)
+		).forEach { pair ->
+			pair.first.value = pair.second.get(curWorkout)
+			pair.first.observe(this) {
+				with (curWorkout) {
+					if (pair.second.get(this) != it) {
+						pair.second.set(this, it)
+						saveWorkouts()
+					}
+				}
+			}
+		}
+		vm.currentWorkout.observe(this) {
+			with (curWorkout) {
+				vm.npStations.value = numStations
+				vm.npCircuits.value = numCircuits
+				vm.npTimePeriod.value = timerIndex
+			}
+		}
     }
 
     override fun onResume() {
         super.onResume()
         tts = TextToSpeech(this, this)
-        tts?.language = resources.configuration.locale
+        tts?.language = preferredLocale
         restoreState()
+	    updateWorkoutsSummary()
     }
 
     override fun onPause() {
         super.onPause()
         prefs.edit()
-                .putInt("state", state)
-                .putInt("setIndex", setIndex).apply()
+            .putInt("state", vm.state.value?.ordinal?:0)
+            .putInt("setIndex", vm.setIndex.value?:0)
+	        .apply()
         pause()
         tts?.let {
             it.stop()
@@ -266,8 +347,6 @@ class MainActivity : CCActivityBase(), OnValueChangeListener, View.OnClickListen
             tts = null
         }
         pause()
-        workouts[currentWorkout].numStations = binding.npStations.value
-        workouts[currentWorkout].timerIndex = binding.npPeriod.value
         saveWorkouts()
     }
 
@@ -276,60 +355,68 @@ class MainActivity : CCActivityBase(), OnValueChangeListener, View.OnClickListen
             Reflector.serializeToFile<Any>(workouts, File(filesDir, WORKOUTS_FILE))
         } catch (e: Exception) {
             e.printStackTrace()
-            Snackbar.make(binding.tvCurrentstation, R.string.toast_err_save_workout, Snackbar.LENGTH_LONG).show()
+            Snackbar.make(binding.vCenter, R.string.toast_err_save_workout, Snackbar.LENGTH_LONG).show()
         }
     }
 
     private fun restoreState() {
-        val st = prefs.getInt("state", STATE_STOPPED)
+        val st = WorkoutState.values()[prefs.getInt("state", WorkoutState.STOPPED.ordinal)]
         when (st) {
-            STATE_STOPPED -> stop()
-            STATE_PAUSED, STATE_RUNNING -> {
+            WorkoutState.STOPPED -> stop()
+            WorkoutState.PAUSED,
+            WorkoutState.RUNNING -> {
                 initWorkout()
-                timeLeftSecs = prefs.getInt("timeLeftSecs", 0)
-                setIndex = prefs.getInt("setIndex", 0)
-                state = STATE_PAUSED
+                vm.timeLeftSecs.value = prefs.getInt("timeLeftSecs", 0)
+                vm.setIndex.value = prefs.getInt("setIndex", 0)
+                vm.state.value = WorkoutState.PAUSED
                 binding.bPause.setText(R.string.button_resume)
                 //                binding.tvTimer.post(this);
                 run()
                 binding.bStart.setText(R.string.button_stop)
                 binding.bPause.isEnabled = true
                 binding.bOptions.isEnabled = false
-                //                setKeepScreenOn(true);
                 pause()
             }
-            else                        -> stop()
         }
     }
+
+	private fun updateWorkoutsSummary() {
+		val dtz = DateTimeZone.forTimeZone(TimeZone.getDefault())
+		val today = DateTime.now(dtz).withTimeAtStartOfDay()
+		workouts.forEach { w ->
+			val all = w.stations
+			for (s in all) {
+				if (s.lastDoneLocalSecs > 0) {
+					// see if we need to 0 out the day, week, month counters
+					val prev = DateTime(s.lastDoneLocalSecs * 1000, dtz).withTimeAtStartOfDay()
+					if (prev.isBefore(today)) {
+						s.todaySecs = 0
+					}
+					if (prev.isBefore(today.withDayOfWeek(1))) {
+						s.thisWeekSecs = 0
+					}
+					if (prev.isBefore(today.withDayOfMonth(1))) {
+						s.thisMonthSecs = 0
+					}
+				}
+			}
+		}
+		saveWorkouts()
+	}
 
     override fun onPageScrolled(i: Int, v: Float, i1: Int) {}
     override fun onPageSelected(i: Int) {
         if (i >= 0 && i < workouts.size) {
-            // save off the current values into the workout
-            workouts[currentWorkout].timerIndex = binding.npPeriod.value
-            workouts[currentWorkout].numStations = binding.npStations.value
-            // update the np pickers to reflect the newly selected workout
-            currentWorkout = i
-            val workout = workouts[i]
-            Log.d(TAG, "Workout set to: " + workout.name)
-            binding.npStations.value = workout.numStations
-            binding.npPeriod.value = workout.timerIndex
-            prefs.edit().putInt("current_workout", currentWorkout).apply()
+            vm.currentWorkout.value = i
+            prefs.edit().putInt("current_workout", i.coerceIn(0, workouts.size)).apply()
         }
     }
 
     override fun onPageScrollStateChanged(i: Int) {}
-    override fun onClick(view: View) {
-        when (view.id) {
-            R.id.b_pause -> togglePause()
-            R.id.b_start -> toggleStart()
-            R.id.b_options -> showOptionsPopup()
-        }
-    }
 
     fun showOptionsPopup() {
         newDialogBuilder().setTitle(R.string.popup_title_options)
-                .setItems(resources.getStringArray(R.array.popup_options)) { dialogInterface: DialogInterface?, i: Int ->
+                .setItems(resources.getStringArray(R.array.popup_options)) { _, i: Int ->
                     when (i) {
                         0 -> {
                             val stations = allKnownStations
@@ -337,8 +424,7 @@ class MainActivity : CCActivityBase(), OnValueChangeListener, View.OnClickListen
                                 s.enabled = false
                             }
                             val all = LinkedHashSet<Station>()
-                            val w = workouts[currentWorkout]
-                            all.addAll(Arrays.asList(*w.stations))
+                            all.addAll(Arrays.asList(*curWorkout.stations))
                             all.addAll(Arrays.asList(*stations))
                             showStationsPopup(all.toTypedArray())
                         }
@@ -348,7 +434,7 @@ class MainActivity : CCActivityBase(), OnValueChangeListener, View.OnClickListen
                         4 -> showSaveWorkoutPopup(false)
                         5 -> newDialogBuilder().setTitle(R.string.popup_title_confirm).setMessage(R.string.popup_msg_confirmreset)
                                 .setNegativeButton(R.string.popup_button_cancel, null)
-                                .setPositiveButton(R.string.popup_button_reset) { dialogInterface1: DialogInterface?, i1: Int ->
+                                .setPositiveButton(R.string.popup_button_reset) { _, _ ->
                                     File(filesDir, STATIONS_FILE).delete()
                                     File(filesDir, WORKOUTS_FILE).delete()
                                     loadWorkouts()
@@ -362,19 +448,18 @@ class MainActivity : CCActivityBase(), OnValueChangeListener, View.OnClickListen
     fun showSaveWorkoutPopup(createNew: Boolean) {
         val et = EditText(this)
         et.setHint(R.string.et_hint_workoutname)
-        val curWorkout = workouts[currentWorkout]
         if (!createNew) {
             et.setText(curWorkout.name, TextView.BufferType.EDITABLE)
         }
-        newDialogBuilder().setTitle(if (createNew) getString(R.string.popup_title_copy_workout, workouts[currentWorkout].name) else getString(R.string.popup_title_rename_workout, curWorkout.name)).setView(et)
+        newDialogBuilder().setTitle(if (createNew) getString(R.string.popup_title_copy_workout, curWorkout.name) else getString(R.string.popup_title_rename_workout, curWorkout.name)).setView(et)
                 .setNegativeButton(R.string.popup_button_cancel, null)
                 .setPositiveButton(R.string.popup_button_save) { dialogInterface: DialogInterface?, i: Int ->
                     val name = et.text.toString()
                     if (name.isEmpty()) {
-                        Snackbar.make(binding.tvCurrentstation, R.string.toast_err_empty_name, Snackbar.LENGTH_LONG).show()
+                        Snackbar.make(binding.vCenter, R.string.toast_err_empty_name, Snackbar.LENGTH_LONG).show()
                         return@setPositiveButton
                     }
-                    val w = workouts[currentWorkout]
+                    val w = curWorkout
                     if (createNew) {
                         val saved = w.deepCopy()
                         workouts.add(saved)
@@ -387,7 +472,7 @@ class MainActivity : CCActivityBase(), OnValueChangeListener, View.OnClickListen
 
     fun showOrderingPopup() {
         val ob = OrderingPopupBinding.inflate(layoutInflater)
-        val adapter: DragAndDropAdapter<StationType> = object : DragAndDropAdapter<StationType>(ob.listview, *workouts[currentWorkout].ordering) {
+        val adapter: DragAndDropAdapter<StationType> = object : DragAndDropAdapter<StationType>(ob.listview, *curWorkout.ordering) {
             override fun populateItem(cmd: StationType, container: ViewGroup, lineNum: Int) {
                 val tv: TextView
                 if (container.childCount > 0) {
@@ -403,19 +488,25 @@ class MainActivity : CCActivityBase(), OnValueChangeListener, View.OnClickListen
                 return prettify(item.name)
             }
         }
-        adapter.addDraggable(ob.bCardio, StationType.Cardio)
-        adapter.addDraggable(ob.bUpperbody, StationType.Upper_Body)
-        adapter.addDraggable(ob.bCore, StationType.Core)
-        adapter.addDraggable(ob.bLowerbody, StationType.Lower_Body)
+	    with (ob.vgButtons) {
+		    removeAllViews()
+	    	StationType.values().forEach { station ->
+	    		ItemOrderingButtonBinding.inflate(layoutInflater).let {
+	    			it.button.text = getString(station.stringResId)
+				    addView(it.root)
+				    adapter.addDraggable(it.button, station)
+			    }
+		    }
+	    }
         val d: Dialog = newDialogBuilder()
                 .setView(ob.root)
                 .setNegativeButton(R.string.popup_button_cancel, null)
                 .setPositiveButton(R.string.popup_button_save) { _, _ ->
                     if (adapter.list.size == 0) {
-                        Snackbar.make(binding.tvCurrentstation, R.string.toast_err_emptylist, Snackbar.LENGTH_LONG).show()
+                        Snackbar.make(binding.vCenter, R.string.toast_err_emptylist, Snackbar.LENGTH_LONG).show()
                         return@setPositiveButton
                     }
-                    workouts[currentWorkout].ordering = adapter.list.toTypedArray()
+                    curWorkout.ordering = adapter.list.toTypedArray()
                 }.create()
         val lp = WindowManager.LayoutParams()
         d.window?.let {
@@ -434,7 +525,7 @@ class MainActivity : CCActivityBase(), OnValueChangeListener, View.OnClickListen
             } catch (e: FileNotFoundException) {
                 // ignore
             } catch (e: Exception) {
-                Snackbar.make(binding.tvCurrentstation, R.string.toast_err_load_stations, Snackbar.LENGTH_LONG).show()
+                Snackbar.make(binding.vCenter, R.string.toast_err_load_stations, Snackbar.LENGTH_LONG).show()
                 e.printStackTrace()
             }
             return defaultStations
@@ -442,7 +533,20 @@ class MainActivity : CCActivityBase(), OnValueChangeListener, View.OnClickListen
 
     fun showSummaryPopup() {
         val wb = WorkoutSummaryBinding.inflate(layoutInflater)
-        val workout = workouts[currentWorkout]
+	    val stations = mutableMapOf<String, Station>()
+	    workouts.forEach { w ->
+		    w.stations.forEach { s ->
+			    stations[s.name]?.let { station ->
+				    station.allTimeSecs += s.allTimeSecs
+				    station.thisMonthSecs += s.thisMonthSecs
+				    station.thisWeekSecs += s.thisWeekSecs
+				    station.todaySecs += s.todaySecs
+				    station.lastDoneLocalSecs = minOf(station.lastDoneLocalSecs, s.lastDoneLocalSecs)
+			    }?:s.deepCopy().also {
+				    stations[s.name] = it
+			    }
+		    }
+	    }
         wb.viewPager.adapter = object : PagerAdapter() {
             override fun getCount(): Int {
                 return 4
@@ -455,7 +559,7 @@ class MainActivity : CCActivityBase(), OnValueChangeListener, View.OnClickListen
             override fun instantiateItem(container: ViewGroup, position: Int): Any {
                 val rv = RecyclerView(this@MainActivity)
                 rv.layoutManager = LinearLayoutManager(this@MainActivity)
-                rv.adapter = WorkoutSummaryAdapter(container.context, workout, position)
+                rv.adapter = WorkoutSummaryAdapter(container.context, stations.values, position)
                 val dividerItemDecoration = DividerItemDecoration(this@MainActivity,
                         LinearLayoutManager.VERTICAL)
                 rv.addItemDecoration(dividerItemDecoration)
@@ -471,15 +575,16 @@ class MainActivity : CCActivityBase(), OnValueChangeListener, View.OnClickListen
                 return POSITION_NONE
             }
         }
+	    val workout = curWorkout
         newDialogBuilder().setTitle(getString(R.string.popup_title_summary, workout.name))
                 .setView(wb.root).setPositiveButton(R.string.popup_button_ok, null)
-                .setNeutralButton(R.string.popup_button_clear) { dialog, which ->
+                .setNeutralButton(R.string.popup_button_clear) { _,_ ->
                     newDialogBuilder().setTitle(R.string.popup_title_confirm)
                             .setMessage(getString(R.string.popup_msg_confirm_clear, workout.name))
                             .setNeutralButton(R.string.popup_button_cancel, null)
-                            .setPositiveButton(R.string.popup_button_clear) { dialog, which ->
+                            .setPositiveButton(R.string.popup_button_clear) { _,_ ->
                                 run {
-                                    workout.clearCounts()
+                                    workouts.forEach { it.clearCounts() }
                                     Reflector.serializeToFile<Any>(workouts, File(filesDir, WORKOUTS_FILE))
                                 }
                             }.show()
@@ -498,14 +603,14 @@ class MainActivity : CCActivityBase(), OnValueChangeListener, View.OnClickListen
                 .setNegativeButton(R.string.popup_button_cancel, null)
                 .setPositiveButton(R.string.popup_button_add_station) { dialogInterface: DialogInterface?, i: Int -> showAddStationPopup(all) }.setNeutralButton(R.string.popup_button_save) { dialogInterface: DialogInterface?, i: Int ->
                     if (Utils.filter(all) { `object`: Station -> `object`.enabled }.size == 0) {
-                        Snackbar.make(binding.tvCurrentstation, R.string.toast_err_emptylist, Snackbar.LENGTH_LONG).show()
+                        Snackbar.make(binding.vCenter, R.string.toast_err_emptylist, Snackbar.LENGTH_LONG).show()
                         return@setNeutralButton
                     }
                     try {
-                        workouts[currentWorkout].stations = all
+                        curWorkout.stations = all
                         Reflector.serializeToFile<Any>(all, File(filesDir, STATIONS_FILE))
                     } catch (e: Exception) {
-                        Snackbar.make(binding.tvCurrentstation, getString(R.string.toast_err_savefailed, e.message), Snackbar.LENGTH_LONG).show()
+                        Snackbar.make(binding.vCenter, getString(R.string.toast_err_savefailed, e.message), Snackbar.LENGTH_LONG).show()
                     }
                 }.show()
     }
@@ -515,16 +620,16 @@ class MainActivity : CCActivityBase(), OnValueChangeListener, View.OnClickListen
         ab.npStationType.displayedValues = Utils.toStringArray(StationType.values())
         ab.npStationType.minValue = 0
         ab.npStationType.maxValue = StationType.values().size - 1
-        newDialogBuilder().setTitle(R.string.popup_title_add_station).setView(ab.root).setNegativeButton(R.string.popup_button_cancel) { dialogInterface: DialogInterface?, i: Int -> showStationsPopup(stations) }.setPositiveButton(R.string.popup_button_add) { dialogInterface: DialogInterface?, i: Int ->
+        newDialogBuilder().setTitle(R.string.popup_title_add_station).setView(ab.root).setNegativeButton(R.string.popup_button_cancel) { _, _ -> showStationsPopup(stations) }.setPositiveButton(R.string.popup_button_add) { dialogInterface: DialogInterface?, i: Int ->
             val name = ab.etName.text.toString().trim { it <= ' ' }
             if (name.isEmpty()) {
-                Snackbar.make(binding.tvCurrentstation, R.string.toast_err_emptyname, Snackbar.LENGTH_SHORT).show()
+                Snackbar.make(binding.vCenter, R.string.toast_err_emptyname, Snackbar.LENGTH_SHORT).show()
                 showStationsPopup(stations)
                 return@setPositiveButton
             }
             for (s in stations) {
                 if (s.name.equals(name, ignoreCase = true)) {
-                    Snackbar.make(binding.tvCurrentstation, R.string.toast_err_duplicationname, Snackbar.LENGTH_SHORT).show()
+                    Snackbar.make(binding.vCenter, R.string.toast_err_duplicationname, Snackbar.LENGTH_SHORT).show()
                     showStationsPopup(stations)
                     return@setPositiveButton
                 }
@@ -537,48 +642,28 @@ class MainActivity : CCActivityBase(), OnValueChangeListener, View.OnClickListen
         }.show()
     }
 
-    override fun onValueChange(numberPicker: NumberPicker, previousValue: Int, newValue: Int) {
-        when (numberPicker) {
-            binding.npPeriod -> workouts[currentWorkout].timerIndex = newValue
-            binding.npStations -> workouts[currentWorkout].numStations = newValue
-        }
-        saveWorkouts()
-    }
-
     fun initWorkout() {
         val workout: Array<MutableList<Station>> = Array(StationType.values().size) { ArrayList<Station>() }
         val count = IntArray(StationType.values().size)
-        val w = workouts[currentWorkout]
-        val all = w.stations
-        val dtz = DateTimeZone.forTimeZone(TimeZone.getDefault())
-        val today = DateTime.now(dtz).withTimeAtStartOfDay()
-        for (s in all) {
-            if (s.enabled) {
-                workout[s.type.ordinal].add(s)
-                if (s.lastDoneLocalSecs > 0) {
-                    // see if we need to 0 out the day, week, month counters
-                    val prev = DateTime(s.lastDoneLocalSecs * 1000, dtz).withTimeAtStartOfDay()
-                    if (prev.isBefore(today)) {
-                        s.todaySecs = 0
-                    }
-                    if (prev.isBefore(today.withDayOfWeek(1))) {
-                        s.thisWeekSecs = 0
-                    }
-                    if (prev.isBefore(today.withDayOfMonth(1))) {
-                        s.thisMonthSecs = 0
-                    }
-                }
-                s.lastDoneLocalSecs = today.millis / 1000
-            }
-        }
+        val w = curWorkout
+	    val all = w.stations
+	    val dtz = DateTimeZone.forTimeZone(TimeZone.getDefault())
+	    val today = DateTime.now(dtz).withTimeAtStartOfDay()
+	    for (s in all) {
+		    if (s.enabled) {
+			    workout[s.type.ordinal].add(s)
+			    s.lastDoneLocalSecs = today.millis / 1000
+		    }
+	    }
         for (l in workout) {
             Utils.shuffle(l)
         }
         sets.clear()
+	    val subSets = mutableListOf<Station>()
         // customize ordering here so, for example, we can do like 2 upper and 2 lower
-        val order = workouts[currentWorkout].ordering
+        val order = w.ordering
         var orderIndex = 0
-        while (sets.size < binding.npStations.value) {
+        while (subSets.size < binding.npStations.value) {
             val idx = order[orderIndex++ % order.size].ordinal
             val set: List<Station> = workout[idx]
             if (set.isEmpty()) {
@@ -587,135 +672,133 @@ class MainActivity : CCActivityBase(), OnValueChangeListener, View.OnClickListen
             val c = count[idx]++ % set.size
             val s = set[c]
             Log.d("SETS", "Added $s")
-            sets.add(s)
+            subSets.add(s)
         }
+	    for (i in 0 until w.numCircuits) {
+	    	sets.addAll(subSets)
+	    }
         Log.d("SETS", "All sets: $sets")
         sayNow(sets[0].name)
-        setIndex = 0
+        vm.setIndex.value = 0
     }
 
     fun toggleStart() {
-        if (state != STATE_STOPPED) {
-            stop()
-        } else {
-            start()
-        }
+	    when (vm.state.value) {
+	    	WorkoutState.STOPPED -> start()
+		    else -> stop()
+	    }
     }
 
     fun togglePause() {
-        if (state == STATE_PAUSED) {
-            resume()
-        } else if (state == STATE_RUNNING) {
-            pause()
-        }
+	    when (vm.state.value) {
+	    	WorkoutState.PAUSED -> resume()
+		    WorkoutState.RUNNING -> pause()
+	    }
     }
 
     fun pause() {
-        if (state == STATE_RUNNING) {
-            prefs.edit().putInt("timeLeftSecs", timeLeftSecs).apply()
-            state = STATE_PAUSED
-            binding.bPause.setText(R.string.button_resume)
-            binding.tvTimer.removeCallbacks(this)
-            setKeepScreenOn(false)
+        if (vm.state.value == WorkoutState.RUNNING) {
+            prefs.edit().putInt("timeLeftSecs", vm.timeLeftSecs.value!!).apply()
+            vm.state.value = WorkoutState.PAUSED
+            binding.vCenter.removeCallbacks(this)
         }
     }
 
     fun resume() {
-        if (state != STATE_RUNNING) {
-            timeLeftSecs = prefs.getInt("timeLeftSecs", 0)
-            state = STATE_RUNNING
-            binding.bPause.setText(R.string.button_pause)
-            binding.bStart.setText(R.string.button_stop)
-            binding.tvTimer.post(this)
-            setKeepScreenOn(true)
+        if (vm.state.value != WorkoutState.RUNNING) {
+            vm.timeLeftSecs.value = prefs.getInt("timeLeftSecs", 0)
+            vm.state.value = WorkoutState.RUNNING
+            binding.vCenter.post(this)
         }
     }
 
     fun stop() {
-        timeLeftSecs = 0
-        state = STATE_STOPPED
-        binding.bStart.setText(R.string.button_start)
-        binding.tvTimer.removeCallbacks(this)
-        binding.bPause.isEnabled = false
-        binding.bOptions.isEnabled = true
-        setKeepScreenOn(false)
+        vm.timeLeftSecs.value = 0
+        vm.state.value = WorkoutState.STOPPED
+        binding.vCenter.removeCallbacks(this)
     }
 
     fun start() {
         initWorkout()
-        timeLeftSecs = 0
-        state = STATE_RUNNING
-        binding.bPause.setText(R.string.button_pause)
-        binding.tvTimer.post(this)
-        binding.bStart.setText(R.string.button_stop)
-        binding.bPause.isEnabled = true
-        binding.bOptions.isEnabled = false
-        setKeepScreenOn(true)
+        vm.timeLeftSecs.value = 0
+        vm.state.value = WorkoutState.RUNNING
+        //binding.bPause.setText(R.string.button_pause)
+        binding.vCenter.post(this)
+        //binding.bStart.setText(R.string.button_stop)
+        //binding.bPause.isEnabled = true
+        //binding.bOptions.isEnabled = false
+        //setKeepScreenOn(true)
     }
 
     override fun run() {
+	    vm.started.value = true
         val stationPeriodSecs = binding.npPeriod.value * 10 + 10
         val numStations = binding.npStations.value
-        if (timeLeftSecs <= 0) timeLeftSecs = stationPeriodSecs else timeLeftSecs--
-        if (timeLeftSecs > stationPeriodSecs) {
-            timeLeftSecs = stationPeriodSecs
+	    vm.numStations.value = numStations
+        if (vm.timeLeftSecs.value!! <= 0)
+        	vm.timeLeftSecs.value = stationPeriodSecs
+        else
+        	with (vm.timeLeftSecs) { value = value?.dec() }
+        if (vm.timeLeftSecs.value!! > stationPeriodSecs) {
+            vm.timeLeftSecs.value = stationPeriodSecs
         }
-        if (timeLeftSecs == 0) {
-            sets[setIndex++].addSeconds(stationPeriodSecs)
-            saveWorkouts()
-        }
-        val allDone = setIndex >= numStations
-        setIndex = Utils.clamp(setIndex, 0, numStations - 1)
-        val curSet: String
-        val nextSet: String
-        val station = sets[setIndex]
-        if (allDone) {
-            curSet = getString(R.string.tts_completed)
-            nextSet = ""
-        } else if (setIndex == numStations - 1) {
-            curSet = station.name
-            nextSet = getString(R.string.tts_next_completed)
+	    if (sets.isEmpty()) {
+		    sayNow(getString(R.string.tts_alldone))
+		    vm.timerText.value = getString(R.string.text_completed)
+		    stop()
+		    showSummaryPopup()
+		    vm.curSet.value = getString(R.string.text_completed)
+		    vm.nextSet.value = ""
+		    return
+	    }
+	    val station = sets.first()
+
+		if (sets.size > 1) {
+	        vm.curSet.value = station.name
+	        vm.nextSet.value = sets[1].name
         } else {
-            curSet = station.name
-            nextSet = getString(R.string.tts_next_workout, sets[setIndex + 1].name)
+	        vm.curSet.value = station.name
+	        vm.nextSet.value = getString(R.string.text_completed)
         }
-        var secs = timeLeftSecs
+        var secs = vm.timeLeftSecs.value!!
         when (secs) {
             60, 30, 15, 3, 2, 1 -> {
-                if (stationPeriodSecs > secs) sayNow(if (secs < 10) secs.toString() else getString(R.string.tts_n_seconds, secs))
+                if (stationPeriodSecs > secs)
+                	sayNow(if (secs < 10) secs.toString() else getString(R.string.tts_n_seconds, secs))
                 run {
                     if (secs <= 60) {
-                        binding.tvTimer.text = secs.toString()
+                        vm.timerText.value = secs.toString()
                     } else {
                         val mins = secs / 60
                         secs -= mins * 60
-                        binding.tvTimer.text = getString(R.string.time_format, mins, secs)
+	                    vm.timerText.value = getString(R.string.time_format, mins, secs)
                     }
                 }
             }
             0 -> {
-                if (allDone) {
-                    sayNow(getString(R.string.tts_alldone))
-                    binding.tvTimer.text = getString(R.string.tts_completed)
-                    stop()
-                    showSummaryPopup()
-                } else {
-                    sayNow(curSet)
-                    binding.tvTimer.setText(R.string.text_switch)
-                }
+                sayNow(vm.nextSet.value?:"")
+                vm.timerText.value = getString(R.string.text_switch)
+	            station.addSeconds(stationPeriodSecs)
+	            saveWorkouts()
+	            with (vm.setIndex) {
+		            value = value?.inc()?.coerceIn(0 until numStations)
+	            }
+	            sets.removeFirst()
             }
-            else                -> {
+            else -> {
                 if (secs <= 60) {
-                    binding.tvTimer.text = secs.toString()
+	                vm.timerText.value = secs.toString()
                 } else {
                     val mins = secs / 60
                     secs -= mins * 60
-                    binding.tvTimer.text = getString(R.string.time_format, mins, secs)
+	                vm.timerText.value = getString(R.string.time_format, mins, secs)
                 }
             }
         }
-        binding.tvCurrentstation.text = getString(R.string.text_n_of_n_stations, setIndex + 1, numStations, curSet, nextSet)
-        if (state == STATE_RUNNING) binding.tvTimer.postDelayed(this, 1000)
+        //binding.tvCurrentstation.text = getString(R.string.text_n_of_n_stations, setIndex + 1, numStations, curSet, nextSet)
+        if (vm.state.value == WorkoutState.RUNNING)
+        	binding.vCenter.postDelayed(this, 1000)
+
     }
 
     override fun onInit(status: Int) {
@@ -726,11 +809,19 @@ class MainActivity : CCActivityBase(), OnValueChangeListener, View.OnClickListen
         }
     }
 
-    override fun onCheckedChanged(compoundButton: CompoundButton, b: Boolean) {}
     fun sayNow(txt: String) {
         tts?.let {
             it.stop()
-            it.speak(txt, TextToSpeech.QUEUE_ADD, null)
+	        it.speak(txt, TextToSpeech.QUEUE_ADD, null)
         }
     }
+
+	fun emailWorkouts() {
+		if (BuildConfig.DEBUG) {
+			File(filesDir, WORKOUTS_FILE).copyTo(File(cacheDir, WORKOUTS_FILE)).also {
+				EmailHelper.sendEmail(this, it, "ccaronls@yahoo.com", "WORKOUTS", "Workouts for today")
+				Toast.makeText(this, "Email Sent", Toast.LENGTH_LONG).show();
+			}
+		}
+	}
 }

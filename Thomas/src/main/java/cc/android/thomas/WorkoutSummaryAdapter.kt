@@ -12,7 +12,7 @@ import java.util.*
 
 data class Info(val str: String, val time: String)
 
-class WorkoutSummaryAdapter internal constructor(context: Context, workout: Workout, which: Int) : RecyclerView.Adapter<WorkoutSummaryAdapter.Holder>() {
+class WorkoutSummaryAdapter internal constructor(context: Context, stations: Collection<MainActivity.Station>, which: Int) : RecyclerView.Adapter<WorkoutSummaryAdapter.Holder>() {
     val text: MutableList<Info> = ArrayList()
     override fun onCreateViewHolder(viewGroup: ViewGroup, i: Int): Holder {
         return Holder(WorkoutSummaryListItemBinding.inflate(LayoutInflater.from(viewGroup.context), viewGroup, false))
@@ -35,17 +35,15 @@ class WorkoutSummaryAdapter internal constructor(context: Context, workout: Work
 
     init {
         text.add(Info(context.getString(R.string.workout_column_station), context.resources.getStringArray(R.array.workout_column_names)[which]))
-        workout.stations.forEach { s->
-            if (s.enabled) {
-                var secs: Long = when (which) {
-                    0 -> s.todaySecs
-                    1 -> s.thisWeekSecs
-                    2 -> s.thisMonthSecs
-                    else -> s.allTimeSecs
-                }
-                if (secs > 0)
-                    text.add(Info(s.name, MainActivity.getTimeString(secs)))
+        stations.forEach { s->
+            var secs: Long = when (which) {
+                0 -> s.todaySecs
+                1 -> s.thisWeekSecs
+                2 -> s.thisMonthSecs
+                else -> s.allTimeSecs
             }
+            if (secs > 0)
+                text.add(Info(s.name, MainActivity.getTimeString(secs)))
         }
     }
 }

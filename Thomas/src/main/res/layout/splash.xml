@@ -1,32 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#fff"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-
-    <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/thomas2"
-        android:layout_centerInParent="true"/>
-
-    <cc.lib.android.CircleTextView
+    <RelativeLayout
+        android:id="@+id/screen"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_centerInParent="true"
-        android:textSize="48dp"
-        android:textColor="#000"
-        android:text="@string/text_circle_thomas_s"/>
+        android:background="#fff">
 
-    <cc.lib.android.CircleTextView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_centerInParent="true"
-        android:textSize="48dp"
-        android:textColor="#000"
-        app:textCenterAngle="90"
-        app:textDirectionReverse="true"
-        android:text="@string/text_circle_circuit_class"/>
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/thomas2"
+            android:layout_centerInParent="true"/>
 
-</RelativeLayout>
+        <cc.lib.android.CircleTextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_centerInParent="true"
+            android:textSize="48dp"
+            android:textColor="#000"
+            android:text="@string/text_circle_thomas_s"/>
+
+        <cc.lib.android.CircleTextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_centerInParent="true"
+            android:textSize="48dp"
+            android:textColor="#000"
+            app:textCenterAngle="90"
+            app:textDirectionReverse="true"
+            android:text="@string/text_circle_circuit_class"/>
+
+    </RelativeLayout>
+</layout>

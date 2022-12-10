@@ -13,7 +13,6 @@ android {
         minSdkVersion project.myMinSdkVersion
         targetSdkVersion project.myTargetSdkVersion
         testInstrumentationRunner project.androidTestRunner
-        multiDexEnabled true
     }
 
     compileOptions {
@@ -42,7 +41,6 @@ android {
     }
 
     defaultConfig {
-        //multiDexEnabled true
 	    minSdkVersion project.myMinSdkVersion.toInteger()
         targetSdkVersion project.myTargetSdkVersion
         versionCode 1
