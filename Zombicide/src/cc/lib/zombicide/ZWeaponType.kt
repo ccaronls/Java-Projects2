@@ -65,7 +65,16 @@ enum class ZWeaponType(override val equipmentClass: ZEquipmentClass, val minColo
     CHAOS_LONGBOW(ZEquipmentClass.BOW, ZColor.ORANGE, false, false, false, false, arrayOf(ZWeaponStat(ZActionType.RANGED, ZAttackType.RANGED_ARROWS, 0, 0, 3, 4, 4, 2)), "4 or more hits on a ranged action causes dragon fire in the targeted zone.") {
         override val skillsWhenUsed: List<ZSkill>
             get() = listOf(ZSkill.Hit_4_Dragon_Fire)
-    };
+    },
+    MJOLNIR(ZEquipmentClass.AXE, ZColor.RED, false, false, true, true,
+	    arrayOf(ZWeaponStat(ZActionType.MELEE, ZAttackType.CRUSH, 1, 0, 0, 4, 4, 2),
+		        ZWeaponStat(ZActionType.MAGIC, ZAttackType.ELECTROCUTION, 0, 1, 4, 4, 5, 1),
+	            ZWeaponStat(ZActionType.RANGED, ZAttackType.RANGED_THROW, 0, 1, 2, 2, 5, 3)), "Returns to the survivor after being thrown. Survivor gains Hand of God Skill.") {
+	    override val skillsWhileEquipped : List<ZSkill>
+		    get() = listOf(ZSkill.Hand_of_God)
+    }
+
+    ;
 
     val stats: List<ZWeaponStat>
         get() = listOf(*weaponStats)

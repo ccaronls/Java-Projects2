@@ -24,6 +24,7 @@ enum class ZQuests(val flag: Int, val displayName: String, val description: Stri
             "stand together, and throw death back in their teeth. "),
     The_Abomination(FLAG_DEBUG, "The Abomination", "Test Abomination!"),
     The_Necromancer(FLAG_DEBUG, "The Necromancer", "Test Necromancer!"),
+	Thors_Hammer(FLAG_DEBUG, "Thor's Hammer", "Obtain Mjolnir and destroy all zombies and spawn zones"),
     Big_Game_Hunting(FLAG_BLACK_PLAGUE, "Big Game Hunting", "We quickly discovered the starting point " +
             "of the zombie invasion. Other survivors " +
             "spotted a huge zombie wandering the streets, and some " +
@@ -274,6 +275,7 @@ enum class ZQuests(val flag: Int, val displayName: String, val description: Stri
             The_Black_Book -> ZQuestTheBlackBook()
             The_Abomination -> ZQuestTheAbomination()
             The_Necromancer -> ZQuestTheNecromancer()
+	        Thors_Hammer -> ZQuestThorsHammer()
             The_Shepherds -> ZQuestTheShepherds()
             Famine -> ZQuestFamine()
             The_Commandry -> ZQuestTheCommandry()

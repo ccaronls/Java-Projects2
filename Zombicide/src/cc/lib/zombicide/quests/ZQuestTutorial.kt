@@ -5,7 +5,6 @@ import cc.lib.utils.Grid
 import cc.lib.utils.Table
 import cc.lib.zombicide.*
 import cc.lib.zombicide.ZTile.Companion.getQuadrant
-import java.util.*
 
 class ZQuestTutorial : ZQuest(ZQuests.Tutorial) {
 	companion object {
@@ -25,6 +24,7 @@ arrayOf("", "", "", "z16:v:wn:ww:gvd1", "z16:v:wn", "z16:v:wn:gvd2")))
 	var greenSpawnZone = -1
 	var blueKeyZone = -1
 	var greenKeyZone = -1
+
 	override fun loadCmd(grid: Grid<ZCell>, pos: Grid.Pos, cmd: String) {
 		val cell = grid[pos]
 		val zoneIndex = cell.zoneIndex
@@ -44,11 +44,11 @@ arrayOf("", "", "", "z16:v:wn:ww:gvd1", "z16:v:wn", "z16:v:wn:gvd2")))
 	override fun processObjective(game: ZGame, c: ZCharacter) {
 		super.processObjective(game, c)
 		if (c.occupiedZone == blueKeyZone) {
-			game.unlockDoor(blueDoor!!)
+			game.unlockDoor(blueDoor)
 			game.addLogMessage(c.name() + " has unlocked the BLUE door")
 			blueKeyZone = -1
 		} else if (c.occupiedZone == greenKeyZone) {
-			game.unlockDoor(greenDoor!!)
+			game.unlockDoor(greenDoor)
 			game.board.setSpawnZone(greenSpawnZone, ZIcon.SPAWN_GREEN, false, true, true)
 			game.spawnZombies(greenSpawnZone)
 			game.addLogMessage(c.name() + " has unlocked the GREEN door")
@@ -80,8 +80,8 @@ arrayOf("", "", "", "z16:v:wn:ww:gvd1", "z16:v:wn", "z16:v:wn:gvd2")))
 	override fun getObjectivesOverlay(game: ZGame): Table {
 		return Table(name)
 			.addRow(Table().setNoBorder()
-				.addRow("1.", "Unlock the BLUE Door.", game.board.getDoor(blueDoor!!) !== ZWallFlag.LOCKED)
-				.addRow("2.", "Unlock the GREEN Door. GREEN key hidden among RED objectives.", game.board.getDoor(greenDoor!!) !== ZWallFlag.LOCKED)
+				.addRow("1.", "Unlock the BLUE Door.", game.board.getDoor(blueDoor) !== ZWallFlag.LOCKED)
+				.addRow("2.", "Unlock the GREEN Door. GREEN key hidden among RED objectives.", game.board.getDoor(greenDoor) !== ZWallFlag.LOCKED)
 				.addRow("3.", String.format("Collect all Objectives for %d EXP Each", getObjectiveExperience(0, 0)), String.format("%d of %d", numFoundObjectives, numStartObjectives))
 				.addRow("4.", "Get all players into the EXIT zone.", isAllPlayersInExit(game))
 				.addRow("5.", "Exit zone must be cleared of zombies.", isExitClearedOfZombies(game))
@@ -96,7 +96,7 @@ arrayOf("", "", "", "z16:v:wn:ww:gvd1", "z16:v:wn", "z16:v:wn:gvd2")))
 			if (c.occupiedZone == exitZone) numCompleted++
 		}
 		var percentCompleted = numCompleted * 100 / numTasks
-		if (game.board.getZombiesInZone(exitZone).size > 0) percentCompleted--
+		if (game.board.getZombiesInZone(exitZone).isNotEmpty()) percentCompleted--
 		return percentCompleted
 	}
 

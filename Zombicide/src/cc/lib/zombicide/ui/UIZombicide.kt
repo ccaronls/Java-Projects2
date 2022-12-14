@@ -250,7 +250,16 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 				lock.block()
 				zombie.addAnimation(DeathAnimation(zombie))
 			}
-			ZAttackType.FIRE, ZAttackType.DISINTEGRATION, ZAttackType.BLADE, ZAttackType.CRUSH, ZAttackType.RANGED_ARROWS, ZAttackType.RANGED_BOLTS, ZAttackType.RANGED_THROW, ZAttackType.EARTHQUAKE, ZAttackType.MENTAL_STRIKE, ZAttackType.NORMAL -> zombie.addAnimation(DeathAnimation(zombie))
+			ZAttackType.FIRE,
+			ZAttackType.DISINTEGRATION,
+			ZAttackType.BLADE,
+			ZAttackType.CRUSH,
+			ZAttackType.RANGED_ARROWS,
+			ZAttackType.RANGED_BOLTS,
+			ZAttackType.RANGED_THROW,
+			ZAttackType.EARTHQUAKE,
+			ZAttackType.MENTAL_STRIKE,
+			ZAttackType.NORMAL -> zombie.addAnimation(DeathAnimation(zombie))
 			else                                                                                                                                                                                                                                     -> zombie.addAnimation(DeathAnimation(zombie))
 		}
 	}
@@ -306,7 +315,16 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 		val attacker = board.getActor<ZActor<*>>(attackerPosition)
 		when (attackType) {
 			ZAttackType.ELECTROCUTION -> attacker.addAnimation(ElectrocutionAnimation(character.character))
-			ZAttackType.NORMAL, ZAttackType.FIRE, ZAttackType.DISINTEGRATION, ZAttackType.BLADE, ZAttackType.CRUSH, ZAttackType.RANGED_ARROWS, ZAttackType.RANGED_BOLTS, ZAttackType.RANGED_THROW, ZAttackType.EARTHQUAKE, ZAttackType.MENTAL_STRIKE -> attacker.addAnimation(SlashedAnimation(character.character))
+			ZAttackType.NORMAL,
+			ZAttackType.FIRE,
+			ZAttackType.DISINTEGRATION,
+			ZAttackType.BLADE,
+			ZAttackType.CRUSH,
+			ZAttackType.RANGED_ARROWS,
+			ZAttackType.RANGED_BOLTS,
+			ZAttackType.RANGED_THROW,
+			ZAttackType.EARTHQUAKE,
+			ZAttackType.MENTAL_STRIKE -> attacker.addAnimation(SlashedAnimation(character.character))
 			else                                                                                                                                                                                                                                     -> attacker.addAnimation(SlashedAnimation(character.character))
 		}
 		if (perished) {
@@ -771,6 +789,9 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 		@JvmStatic
         lateinit var instance: UIZombicide
 			private set
+
+		val initialized : Boolean
+			get() = ::instance.isInitialized && instance.questInitialized
 	}
 
 	init {

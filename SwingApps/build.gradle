@@ -109,7 +109,7 @@ task runProbotLevelBuilder(type: JavaExec) {
 
 task runYahtzeeConsole(type: JavaExec) {
     description = 'Run Probot Level Editor App'
-    main = "cc.lib.main.YahtzeeConsole"
+    main = "cc.console.YahtzeeConsole"
 //    args "arg1", "arg2"
 }
 

@@ -1,6 +1,8 @@
 package cc.lib.zombicide.quests
 
+import cc.lib.game.AGraphics
 import cc.lib.game.GColor
+import cc.lib.game.GRectangle
 import cc.lib.utils.Grid
 import cc.lib.utils.Table
 import cc.lib.zombicide.*
@@ -100,5 +102,9 @@ arrayOf("z29:i:red:wn:de", "z30", "z31:i:dw:wn:ode",        "z32:i:red:wn:we", "
 				.addRow("4.", "Claim all Vault artifacts.", String.format("%d of %d", numVaultItemsTaken, allVaultItems), numVaultItemsTaken == allVaultItems)
 				.addRow("5.", "Get to RED Danger level with at least one survivor.", lvl, lvl.difficultyColor === ZColor.RED)
 			)
+	}
+
+	override fun drawBlackObjective(game: ZGame, g: AGraphics, cell: ZCell, zone: ZZone) {
+		g.drawImage(ZIcon.BLACKBOOK.imageIds[0], GRectangle(cell).scaledBy(.5f))
 	}
 }

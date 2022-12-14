@@ -4,7 +4,6 @@ import cc.lib.game.Utils
 import cc.lib.math.Vector2D
 import java.io.File
 import java.lang.ref.WeakReference
-import java.lang.reflect.Field
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
@@ -265,3 +264,14 @@ fun <T> weakReference(tIn : T? = null) : ReadWriteProperty<Any?, T?> = object : 
 		t = WeakReference(value)
 	}
 }
+
+fun Long.toHMS() : IntArray {
+	var secs = this
+	var mins = secs /60
+	secs -= mins * 60
+	val hours = mins / 60
+	mins -= hours * 60
+	return intArrayOf(hours.toInt(), mins.toInt(), secs.toInt())
+}
+
+fun Int.toHMS() : IntArray = toLong().toHMS()

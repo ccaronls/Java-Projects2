@@ -110,12 +110,11 @@ class ZWeapon(override val type: ZWeaponType=ZWeaponType.AXE) : ZEquipment<ZWeap
         for (at in ZActionType.values()) {
             val stats = c.getWeaponStat(this, at, game, -1)
             if (stats != null) {
-                var doorInfo: String
-                doorInfo = if (stats.dieRollToOpenDoor > 0) {
-                    String.format("%s %d%%", if (type.openDoorsIsNoisy) "noisy" else "quiet", (7 - stats.dieRollToOpenDoor) * 100 / 6)
-                } else {
-                    "no"
-                }
+	            var doorInfo: String = if (stats.dieRollToOpenDoor > 0) {
+	                String.format("%s %d%%", if (type.openDoorsIsNoisy) "noisy" else "quiet", (7 - stats.dieRollToOpenDoor) * 100 / 6)
+	            } else {
+	                "no"
+	            }
                 cardLower.addColumnNoHeader(Arrays.asList(at.label, String.format("%d %s", stats.damagePerHit, if (type.attackIsNoisy) " loud" else " quiet"), String.format("%d%% x %d", (7 - stats.dieRollToHit) * 100 / 6, stats.numDice),
                         if (stats.minRange == stats.maxRange) stats.minRange.toString() else String.format("%d-%d", stats.minRange, stats.maxRange),
                         doorInfo,
@@ -147,12 +146,11 @@ class ZWeapon(override val type: ZWeaponType=ZWeaponType.AXE) : ZEquipment<ZWeap
                 "Doors",
                 "Reloads"))
         for (stats in type.stats) {
-            var doorInfo: String
-            doorInfo = if (stats.dieRollToOpenDoor > 0) {
-                String.format("%s %d%%", if (type.openDoorsIsNoisy) "noisy" else "quiet", (7 - stats.dieRollToOpenDoor) * 100 / 6)
-            } else {
-                "no"
-            }
+	        var doorInfo: String = if (stats.dieRollToOpenDoor > 0) {
+	            String.format("%s %d%%", if (type.openDoorsIsNoisy) "noisy" else "quiet", (7 - stats.dieRollToOpenDoor) * 100 / 6)
+	        } else {
+	            "no"
+	        }
             cardLower.addColumnNoHeader(Arrays.asList(
                     prettify(stats.attackType.name),
                     if (type.canTwoHand) "yes" else "no", String.format("%d %s", stats.damagePerHit, if (type.attackIsNoisy) " loud" else " quiet"), String.format("%d%% x %d", (7 - stats.dieRollToHit) * 100 / 6, stats.numDice),

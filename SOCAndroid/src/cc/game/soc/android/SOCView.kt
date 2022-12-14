@@ -70,7 +70,6 @@ class SOCView<T : UIRenderer> : View, UIComponent {
 					}
 				}
 
-				r.board = board
 				r.initImages(R.drawable.desert,
 					R.drawable.water,
 					R.drawable.gold,

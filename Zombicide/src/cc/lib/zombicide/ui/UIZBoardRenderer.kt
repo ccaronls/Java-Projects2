@@ -186,7 +186,7 @@ open class UIZBoardRenderer<T : AGraphics>(component: UIZComponent<*>) : UIRende
 		var picked: ZActor<*>? = null
 		var distFromCenter = 0f
 		actorsAnimating = false
-		var options: Set<ZActor<*>> = when (game.uiMode) {
+		val options: Set<ZActor<*>> = when (game.uiMode) {
 			UIMode.PICK_ZOMBIE,
 			UIMode.PICK_CHARACTER -> game.options.toSet() as Set<ZActor<*>>
 			else -> emptySet()
@@ -325,6 +325,14 @@ open class UIZBoardRenderer<T : AGraphics>(component: UIZComponent<*>) : UIRende
 		}
 	}
 
+	private fun drawObjectiveX(g: AGraphics, color: GColor, lineThickness: Float, cell: ZCell) {
+		// draw a big red X om the center of the cell
+		val redX = GRectangle(cell).scaledBy(.25f, .25f)
+		g.color = color
+		g.drawLine(redX.topLeft, redX.bottomRight, lineThickness.toFloat())
+		g.drawLine(redX.topRight, redX.bottomLeft, lineThickness.toFloat())
+	}
+
 	/**
 	 * return zone highlighted by mouseX, mouseY
 	 *
@@ -358,16 +366,21 @@ open class UIZBoardRenderer<T : AGraphics>(component: UIZComponent<*>) : UIRende
 					g.drawFilledRect(cell)
 				}
 				var text = ""
-				val lineThickness = if (miniMap) 2 else 10
+				val lineThickness = if (miniMap) 2f else 10f
 				for (type in ZCellType.values()) {
 					if (cell.isCellType(type)) {
 						when (type) {
-							ZCellType.OBJECTIVE_BLACK, ZCellType.OBJECTIVE_BLUE, ZCellType.OBJECTIVE_GREEN, ZCellType.OBJECTIVE_RED -> if (zone.isObjective) {
-								// draw a big red X om the center of the cell
-								val redX = GRectangle(cell).scaledBy(.25f, .25f)
-								g.color = type.color
-								g.drawLine(redX.topLeft, redX.bottomRight, lineThickness.toFloat())
-								g.drawLine(redX.topRight, redX.bottomLeft, lineThickness.toFloat())
+							ZCellType.OBJECTIVE_BLACK -> {
+								if (zone.isObjective) {
+									if (miniMap) {
+										drawObjectiveX(g, type.color, lineThickness, cell)
+									} else {
+										quest?.drawBlackObjective(game, g, cell, zone)
+									}
+								}
+							}
+							ZCellType.OBJECTIVE_BLUE, ZCellType.OBJECTIVE_GREEN, ZCellType.OBJECTIVE_RED -> if (zone.isObjective) {
+								drawObjectiveX(g, type.color, lineThickness, cell)
 							}
 							ZCellType.EXIT -> text += "EXIT"
 						}
@@ -716,10 +729,10 @@ open class UIZBoardRenderer<T : AGraphics>(component: UIZComponent<*>) : UIRende
 			return rect.center
 		}
 
-	var tiles: Array<ZTile>? = null
+	var tiles: Array<ZTile> = arrayOf()
 	var tileIds = IntArray(0)
 	fun clearTiles() {
-		tiles = null
+		tiles = arrayOf()
 		tileIds = IntArray(0)
 	}
 
@@ -800,17 +813,18 @@ open class UIZBoardRenderer<T : AGraphics>(component: UIZComponent<*>) : UIRende
 	fun drawPlayerName(name: String?) {}
 
 	private fun drawNoBoard(g: AGraphics) {
-		if (quest != null && drawTiles) {
-			if (tiles == null) {
-				tiles = quest!!.tiles
+		quest?.takeIf { drawTiles }?.let {
+			if (tiles.isEmpty()) {
+				tiles = it.tiles
 				onLoading()
-				(getComponent<UIComponent>() as UIZComponent<AGraphics>).loadTiles(g, tiles!!)
+				(getComponent<UIComponent>() as UIZComponent<AGraphics>).loadTiles(g, tiles)
 			} else {
 				for (i in tileIds.indices) {
-					g.drawImage(tileIds[i], tiles!![i].quadrant)
+					g.drawImage(tileIds[i], tiles[i].quadrant)
 				}
 			}
-		} else {
+		}?:run {
+			g.ortho()
 			g.clearScreen(GColor.WHITE)
 			val cntr = Vector2D((g.viewportWidth / 2).toFloat(), (g.viewportHeight / 2).toFloat())
 			val minDim = GDimension((g.viewportWidth / 4).toFloat(), (g.viewportHeight / 4).toFloat())
@@ -825,7 +839,7 @@ open class UIZBoardRenderer<T : AGraphics>(component: UIZComponent<*>) : UIRende
 
 	override fun draw(g: APGraphics, mouseX: Int, mouseY: Int) {
 		//log.debug("mouseX=" + mouseX + " mouseY=" + mouseY);
-		if (!game.questInitialized) {
+		if (!UIZombicide.initialized) {
 			drawNoBoard(g)
 			return
 		}
@@ -855,16 +869,16 @@ open class UIZBoardRenderer<T : AGraphics>(component: UIZComponent<*>) : UIRende
 		//log.debug("Rect = " + rect);
 		g.ortho(rect)
 		val mouse = g.screenToViewport(mouseX, mouseY)
-		if (drawTiles && tiles == null) {
+		if (drawTiles && tiles.isEmpty() && quest?.tiles?.size != 0) {
 			tiles = quest!!.tiles
 			onLoading()
-			(getComponent<UIComponent>() as UIZComponent<AGraphics>).loadTiles(g, tiles!!)
+			(getComponent<UIComponent>() as UIZComponent<AGraphics>).loadTiles(g, tiles )
 			return
 		}
 		val cellPos = drawNoTiles(g, mouseX.toFloat(), mouseY.toFloat())
 		if (drawTiles) {
 			for (i in tileIds.indices) {
-				g.drawImage(tileIds[i], tiles!![i].quadrant)
+				g.drawImage(tileIds[i], tiles[i].quadrant)
 			}
 		}
 		val highlightedZone = drawZones(g, mouse.X(), mouse.Y(), false)
@@ -876,7 +890,7 @@ open class UIZBoardRenderer<T : AGraphics>(component: UIZComponent<*>) : UIRende
 		if (drawZombiePaths) {
 			highlightedActor?.let {
 				if (it is ZZombie) {
-					var path = when (it.type) {
+					val path = when (it.type) {
 						ZZombieType.Necromancer -> game.getZombiePathTowardNearestSpawn(it)
 						else                    -> game.getZombiePathTowardVisibleCharactersOrLoudestZone(it)
 					}
@@ -958,9 +972,9 @@ open class UIZBoardRenderer<T : AGraphics>(component: UIZComponent<*>) : UIRende
 		g.color = GColor.WHITE
 		g.drawJustifiedStringOnBackground(10f, height - 10, Justify.LEFT, Justify.BOTTOM, game.boardMessage, GColor.TRANSLUSCENT_BLACK, borderThickness)
 		drawAnimations(overlayAnimations, g)
+		drawOverlay(g)
 		g.popMatrix()
 		game.characterRenderer.redraw()
-		drawOverlay(g)
 		if (zoomAnimation?.isDone == true) {
 			zoomAnimation = null
 		} else {

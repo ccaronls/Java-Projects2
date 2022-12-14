@@ -2,10 +2,8 @@ package cc.lib.zombicide
 
 import cc.lib.game.GRectangle
 import cc.lib.game.IRectangle
-
 import cc.lib.utils.Reflector
 import cc.lib.zombicide.ZCellQuadrant.Companion.valuesForRender
-import java.util.*
 
 class ZCell internal constructor(private val x: Float, private val y: Float) : Reflector<ZCell>(), IRectangle {
     companion object {
@@ -174,4 +172,5 @@ class ZCell internal constructor(private val x: Float, private val y: Float) : R
             spawns[--numSpawns] = null
         }
     }
+
 }

@@ -20,7 +20,9 @@ enum class ZIcon {
     PADLOCK,
     SKULL,
     DAGGER,
-    SWORD;
+    SWORD,
+    MJOLNIR,
+    BLACKBOOK;
 
     lateinit var imageIds: IntArray
 }

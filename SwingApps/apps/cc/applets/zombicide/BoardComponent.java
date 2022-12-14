@@ -210,6 +210,8 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics>, 
             { ZIcon.SKULL, "zskull.png"},
             { ZIcon.DAGGER, "zdagger_icon.png" },
             { ZIcon.SWORD, "zsword_icon.png" },
+            { ZIcon.MJOLNIR, "zmjolnir.png" },
+            { ZIcon.BLACKBOOK, "zblack_book.png" }
         };
 
         Map<Object, List<Integer>> objectToImageMap = new HashMap<>();
@@ -266,7 +268,7 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics>, 
         }
 
         // Icons that shoot
-        for (ZIcon icon : Utils.toArray(ZIcon.ARROW)) {
+        for (ZIcon icon : Utils.toArray(ZIcon.ARROW, ZIcon.MJOLNIR)) {
             int [] ids = new int[4];
             int eastId = objectToImageMap.get(icon).get(0);
             ids[ZDir.EAST.ordinal()] = eastId;
@@ -292,7 +294,7 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics>, 
         }
 
         // Icons that have a single id variation
-        for (ZIcon icon : Utils.toArray(ZIcon.CLAWS, ZIcon.SHIELD, ZIcon.SLIME, ZIcon.SLASH, ZIcon.FIREBALL, ZIcon.GRAVESTONE, ZIcon.PADLOCK, ZIcon.SKULL)) {
+        for (ZIcon icon : Utils.toArray(ZIcon.CLAWS, ZIcon.SHIELD, ZIcon.SLIME, ZIcon.SLASH, ZIcon.FIREBALL, ZIcon.GRAVESTONE, ZIcon.PADLOCK, ZIcon.SKULL, ZIcon.BLACKBOOK)) {
             icon.imageIds = Utils.toIntArray(objectToImageMap.get(icon));
             numImagesLoaded++;
             repaint();

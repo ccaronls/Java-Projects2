@@ -1,7 +1,6 @@
 package cc.lib.zombicide
 
 import cc.lib.game.AGraphics
-
 import cc.lib.utils.*
 import cc.lib.zombicide.ui.UIZombicide
 import java.util.*
@@ -182,10 +181,10 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
             "ods" -> setCellWall(grid, pos, ZDir.SOUTH, ZWallFlag.OPEN)
             "ode" -> setCellWall(grid, pos, ZDir.EAST, ZWallFlag.OPEN)
             "odw" -> setCellWall(grid, pos, ZDir.WEST, ZWallFlag.OPEN)
-            "spn" -> setSpawnArea(cell, ZSpawnArea(pos, ZDir.NORTH))
-            "sps" -> setSpawnArea(cell, ZSpawnArea(pos, ZDir.SOUTH))
-            "spe" -> setSpawnArea(cell, ZSpawnArea(pos, ZDir.EAST))
-            "spw" -> setSpawnArea(cell, ZSpawnArea(pos, ZDir.WEST))
+            "spn" -> setSpawnArea(cell, createSpawnAreas(pos, ZDir.NORTH))
+            "sps" -> setSpawnArea(cell, createSpawnAreas(pos, ZDir.SOUTH))
+            "spe" -> setSpawnArea(cell, createSpawnAreas(pos, ZDir.EAST))
+            "spw" -> setSpawnArea(cell, createSpawnAreas(pos, ZDir.WEST))
             "st", "start" -> cell.setCellType(ZCellType.START, true)
             "exit" -> cell.setCellType(ZCellType.EXIT, true)
             "walker" -> cell.setCellType(ZCellType.WALKER, true)
@@ -205,6 +204,10 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
         }
     }
 
+	open fun createSpawnAreas(pos: Grid.Pos, dir : ZDir) : ZSpawnArea {
+		return ZSpawnArea(pos, dir)
+	}
+
     protected fun setCellWall(grid: Grid<ZCell>, pos: Grid.Pos, dir: ZDir, flag: ZWallFlag) {
         grid[pos].setWallFlag(dir, flag)
         val adj = dir.getAdjacent(pos)
@@ -216,19 +219,19 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
         val cols: Int = map[0].size
         // make sure all cols the same length
         for (i in 1 until rows) {
-            require(map[i].size == cols) { "Row $i is not same length as rest: $cols" }
+            require(map[i].size == cols) { "Row $i is not same length as rest. Is ${map[i].size} expected $cols" }
         }
         val grid = Grid<ZCell>(rows, cols)
         val zoneMap: MutableMap<Int, ZZone> = HashMap()
         var maxZone = 0
         for (row in map.indices) {
-            for (col in 0 until map[row].size) {
+            for (col in map[row].indices) {
                 grid[row, col] = ZCell(col.toFloat(), row.toFloat())
             }
         }
         for (row in map.indices) {
             require(map[0].size == map[row].size) { "Length of row $row differs" }
-            for (col in 0 until map[row].size) {
+            for (col in map[row].indices) {
                 val cell = grid[row, col]
                 val parts = map[row][col].split(":").toTypedArray()
                 var zone: ZZone? = null
@@ -334,7 +337,7 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
      * @return null if game not failed, otherwise a failed reason
      */
     open fun getQuestFailedReason(game: ZGame): String? {
-        return if (game.allLivingCharacters.size == 0) {
+        return if (game.allLivingCharacters.isEmpty()) {
             "All Players Killed"
         } else null
     }
@@ -454,4 +457,8 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
     fun isExitClearedOfZombies(game: ZGame): Boolean {
         return game.board.getNumZombiesInZone(exitZone) == 0
     }
+
+	open fun drawBlackObjective(game: ZGame, g: AGraphics, cell: ZCell, zone: ZZone) {
+		throw Exception("Unhandled method drawBlackObjective")
+	}
 }

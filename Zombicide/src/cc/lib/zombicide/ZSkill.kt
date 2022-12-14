@@ -1,11 +1,8 @@
 package cc.lib.zombicide
 
 import cc.lib.annotation.Keep
-
 import cc.lib.ui.IButton
 import cc.lib.utils.prettify
-import cc.lib.zombicide.ZCharacter
-import cc.lib.zombicide.ZWeapon
 
 @Keep
 enum class ZSkill(val description: String) : IButton {
@@ -701,7 +698,20 @@ enum class ZSkill(val description: String) : IButton {
                 game.performSkillKill(c, this, z, stat.attackType)
             }
         }
-    };
+    },
+    Hand_of_God("Survivor has ability to close a spawn zone thus destroying it") {
+	    override fun addSpecialMoves(game: ZGame, character: ZCharacter, moves: MutableList<ZMove>) {
+	    	game.board.getCell(character.occupiedCell).spawnAreas.forEach {
+				if (it.isCanBeRemovedFromBoard) {
+					moves.add(ZMove.newCloseSpawnPortal(character.occupiedZone))
+				}
+		    }
+	    }
+
+
+    }
+
+    ;
 
     override fun getTooltipText(): String {
         return description
@@ -725,7 +735,7 @@ enum class ZSkill(val description: String) : IButton {
      * @param character
      * @param type
      * @param game
-     * @return returns 0 when noting changed. 1 when action used and should be removed, -1 when used but should not be removed
+     * @return returns 0 when nothing changed. >0 when action used and should be removed, -1 when used but should not be removed
      */
     open fun modifyActionsRemaining(character: ZCharacter, type: ZActionType, game: ZGame): Int {
         return 0

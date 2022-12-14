@@ -44,7 +44,8 @@ enum class ZMoveType(val toolTipText: String?) : IButton {
     BLOODLUST_RANGED("Spend an action to move up to 2 zones and perform ranged."),
     BLOODLUST_MAGIC("Spend an action to move up to 2 spaces and perform magic."),
     IGNITE("Ignite a Dragon Bile within range"),
-    BARRICADE("Close and barricade a door");
+    BARRICADE("Close and barricade a door"),
+    CLOSE_SPAWN_PORTAL("Destroy all spawns in the occupied zone");
 
     override fun getLabel(): String {
         return prettify(name)

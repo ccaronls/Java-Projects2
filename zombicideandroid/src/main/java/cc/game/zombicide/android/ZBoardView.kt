@@ -156,7 +156,8 @@ class ZBoardView(context: Context, attrs: AttributeSet) : UIComponentView<UIZBoa
 			Pair(ZIcon.FIREBALL, R.drawable.zfireball),
 			Pair(ZIcon.GRAVESTONE, R.drawable.zgravestone),
 			Pair(ZIcon.PADLOCK, R.drawable.zpadlock3),
-			Pair(ZIcon.SKULL, R.drawable.zskull)
+			Pair(ZIcon.SKULL, R.drawable.zskull),
+			Pair(ZIcon.BLACKBOOK, R.drawable.zblack_book)
 		)) {
 			pair.first.imageIds = intArrayOf(pair.second)
 			publishProgress(++progress)
@@ -164,7 +165,8 @@ class ZBoardView(context: Context, attrs: AttributeSet) : UIComponentView<UIZBoa
 
 		// Directional, like projectiles
 		for (pair in arrayOf(
-			Pair(ZIcon.ARROW, R.drawable.zarrow_icon)
+			Pair(ZIcon.ARROW, R.drawable.zarrow_icon),
+			Pair(ZIcon.MJOLNIR, R.drawable.zmjolnir)
 		)) {
 			pair.first.imageIds = IntArray(4)
 			val ids = pair.first.imageIds

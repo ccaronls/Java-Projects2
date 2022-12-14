@@ -30,7 +30,12 @@ enum class ZActionType {
     MAKE_NOISE,
     SHOVE,
     DEFEND,
-    BEQUEATH_MOVE;
+    BEQUEATH_MOVE,
+    CLOSE_PORTAL {
+	    override fun costPerTurn(): Int {
+		    return 3
+	    }
+    };
 
     fun oncePerTurn(): Boolean {
         when (this) {

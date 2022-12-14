@@ -4,7 +4,7 @@ import cc.lib.game.GRectangle
 import cc.lib.utils.Grid
 import cc.lib.utils.Reflector
 
-class ZSpawnArea(val cellPos: Grid.Pos=Grid.Pos(), var icon: ZIcon=ZIcon.ARROW, val dir: ZDir=ZDir.NORTH, var isCanSpawnNecromancers: Boolean=false, var isEscapableForNecromancers: Boolean=false, var isCanBeRemovedFromBoard: Boolean=false) : Reflector<ZSpawnArea>() {
+class ZSpawnArea(val cellPos: Grid.Pos=Grid.Pos(), var icon: ZIcon=ZIcon.SPAWN_RED, val dir: ZDir=ZDir.NORTH, var isCanSpawnNecromancers: Boolean=false, var isEscapableForNecromancers: Boolean=false, var isCanBeRemovedFromBoard: Boolean=false) : Reflector<ZSpawnArea>() {
     companion object {
         init {
             addAllFields(ZSpawnArea::class.java)

@@ -102,7 +102,7 @@ class ZMove private constructor(val type: ZMoveType=ZMoveType.END_TURN, val inte
         }
 
         fun newReloadMove(slot: ZWeapon): ZMove {
-            return ZMove(ZMoveType.RELOAD, slot, null)
+            return ZMove(ZMoveType.RELOAD, slot, slot.slot)
         }
 
         fun newPickupItemMove(takables: List<ZEquipment<*>>): ZMove {
@@ -164,6 +164,10 @@ class ZMove private constructor(val type: ZMoveType=ZMoveType.END_TURN, val inte
         fun newIgniteMove(ignitableZones: List<Int>): ZMove {
             return ZMove(ZMoveType.IGNITE, ignitableZones)
         }
+
+	    fun newCloseSpawnPortal(zone: Int) : ZMove {
+		    return ZMove(ZMoveType.CLOSE_SPAWN_PORTAL, listOf(zone), ZSkill.Hand_of_God)
+	    }
 
         init {
             addAllFields(ZMove::class.java)
