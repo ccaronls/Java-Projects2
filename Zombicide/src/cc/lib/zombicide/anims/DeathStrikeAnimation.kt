@@ -53,14 +53,14 @@ open class DeathStrikeAnimation(actor: ZActor<*>, targetRect: GRectangle, numDic
         g.removeFilter()
     }
 
-    override fun drawPhase(g: AGraphics, pos: Float, phase: Int) {
+    override fun drawPhase(g: AGraphics, positionInPhase: Float, positionInAnimation: Float, phase: Int) {
         val entry = phases[phase]
         when (entry.id) {
-            0 -> drawPhase0(g, pos, *entry.rects)
-            1 -> drawPhase1(g, pos, *entry.rects)
-            2 -> drawPhase2(g, pos, *entry.rects)
-            3 -> drawPhase3(g, pos, *entry.rects)
-            4 -> drawPhase4(g, pos, *entry.rects)
+            0 -> drawPhase0(g, positionInPhase, *entry.rects)
+            1 -> drawPhase1(g, positionInPhase, *entry.rects)
+            2 -> drawPhase2(g, positionInPhase, *entry.rects)
+            3 -> drawPhase3(g, positionInPhase, *entry.rects)
+            4 -> drawPhase4(g, positionInPhase, *entry.rects)
         }
     }
 

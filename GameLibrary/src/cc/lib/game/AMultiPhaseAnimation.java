@@ -34,10 +34,11 @@ public abstract class AMultiPhaseAnimation<T> extends AAnimation<T> {
      * Draw a phase of a complete animation. Phase will be a value between [0-durations.length)
      *
      * @param g
-     * @param position value between 0-1
+     * @param positionInPhase value between 0-1
+     * @param positionInAnimation value between 0-1
      * @param phase
      */
-    protected abstract void drawPhase(T g, float position, int phase);
+    protected abstract void drawPhase(T g, float positionInPhase, float positionInAnimation, int phase);
 
     @Override
     protected void draw(T g, float position, float dt) {
@@ -50,7 +51,7 @@ public abstract class AMultiPhaseAnimation<T> extends AAnimation<T> {
                     lastPhase = i;
                     onPhaseStarted(g, i);
                 }
-                drawPhase(g, pos, i);
+                drawPhase(g, pos, position, i);
                 break;
             }
             dur+=durations[i];

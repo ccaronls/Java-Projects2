@@ -11,7 +11,7 @@ abstract class ZAnimation : AMultiPhaseAnimation<AGraphics> {
     constructor(durationMSecs: Long, repeats: Int) : super(durationMSecs, repeats) {}
     constructor(durationMSecs: Long, repeats: Int, oscilateOnRepeat: Boolean) : super(durationMSecs, repeats, oscilateOnRepeat) {}
 
-    protected override fun drawPhase(g: AGraphics, position: Float, phase: Int) {
+    protected override fun drawPhase(g: AGraphics, positionInPhase: Float, positionInAnimation: Float, phase: Int) {
         throw GException("Unhandled")
     }
 }

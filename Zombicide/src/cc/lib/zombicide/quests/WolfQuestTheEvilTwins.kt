@@ -44,7 +44,7 @@ class WolfQuestTheEvilTwins : ZQuest(ZQuests.The_Evil_Twins) {
 			ZTile("9V", 90, getQuadrant(6, 6)))
 
 	override fun init(game: ZGame) {
-		assert(redObjectives.size > 1)
+		require(redObjectives.size > 1)
 		while (blueObjective == greenObjective) {
 			blueObjective = redObjectives.random()
 			greenObjective = redObjectives.random()

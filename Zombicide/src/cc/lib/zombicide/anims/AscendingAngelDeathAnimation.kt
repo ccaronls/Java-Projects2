@@ -14,6 +14,10 @@ class AscendingAngelDeathAnimation(a: ZCharacter) : DeathAnimation(a) {
         g.removeFilter()
     }
 
+	override fun hidesActor(): Boolean {
+		return true
+	}
+
     override fun onDone() {
         super.onDone()
         (actor as ZCharacter).setFallen(true)

@@ -191,9 +191,8 @@ open class UIZBoardRenderer<T : AGraphics>(component: UIZComponent<*>) : UIRende
 			UIMode.PICK_CHARACTER -> game.options.toSet() as Set<ZActor<*>>
 			else -> emptySet()
 		}
-		with (board.getAllActors()) {
-			sortedWith() { a0, a1 -> Integer.compare(if (a0.isAnimating) 1 else 0, if (a1.isAnimating) 1 else 0) }
-		}.forEach { a ->
+
+		fun drawActor(a : ZActor<*>) {
 			val img = g.getImage(a.imageId)
 			if (img != null) {
 				val rect = a.getRect(board)
@@ -227,6 +226,13 @@ open class UIZBoardRenderer<T : AGraphics>(component: UIZComponent<*>) : UIRende
 				}
 				g.removeFilter()
 			}
+		}
+
+		board.getAllActors().filter { !it.isAnimating }.forEach {
+			drawActor(it)
+		}
+		board.getAllActors().filter { it.isAnimating }.forEach {
+			drawActor(it)
 		}
 		return picked
 	}
@@ -813,28 +819,16 @@ open class UIZBoardRenderer<T : AGraphics>(component: UIZComponent<*>) : UIRende
 	fun drawPlayerName(name: String?) {}
 
 	private fun drawNoBoard(g: AGraphics) {
-		quest?.takeIf { drawTiles }?.let {
-			if (tiles.isEmpty()) {
-				tiles = it.tiles
-				onLoading()
-				(getComponent<UIComponent>() as UIZComponent<AGraphics>).loadTiles(g, tiles)
-			} else {
-				for (i in tileIds.indices) {
-					g.drawImage(tileIds[i], tiles[i].quadrant)
-				}
-			}
-		}?:run {
-			g.ortho()
-			g.clearScreen(GColor.WHITE)
-			val cntr = Vector2D((g.viewportWidth / 2).toFloat(), (g.viewportHeight / 2).toFloat())
-			val minDim = GDimension((g.viewportWidth / 4).toFloat(), (g.viewportHeight / 4).toFloat())
-			val maxDim = GDimension((g.viewportWidth / 2).toFloat(), (g.viewportHeight / 2).toFloat())
-			val rect = GRectangle().withDimension(minDim.interpolateTo(maxDim, 1f)).withCenter(cntr)
-			//g.setColor(GColor.RED);
-			//rect.drawOutlined(g, 5);
-			val img = g.getImage(ZIcon.GRAVESTONE.imageIds[0])
-			g.drawImage(ZIcon.GRAVESTONE.imageIds[0], rect.fit(img))
-		}
+		g.ortho()
+		g.clearScreen(GColor.WHITE)
+		val cntr = Vector2D((g.viewportWidth / 2).toFloat(), (g.viewportHeight / 2).toFloat())
+		val minDim = GDimension((g.viewportWidth / 4).toFloat(), (g.viewportHeight / 4).toFloat())
+		val maxDim = GDimension((g.viewportWidth / 2).toFloat(), (g.viewportHeight / 2).toFloat())
+		val rect = GRectangle().withDimension(minDim.interpolateTo(maxDim, 1f)).withCenter(cntr)
+		//g.setColor(GColor.RED);
+		//rect.drawOutlined(g, 5);
+		val img = g.getImage(ZIcon.GRAVESTONE.imageIds[0])
+		g.drawImage(ZIcon.GRAVESTONE.imageIds[0], rect.fit(img))
 	}
 
 	override fun draw(g: APGraphics, mouseX: Int, mouseY: Int) {

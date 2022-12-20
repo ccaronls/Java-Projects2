@@ -19,7 +19,7 @@ open class MagicOrbAnimation(actor: ZActor<*>, end: Vector2D) : ZActorAnimation(
     val startRadius = .05f
     val endRadius = .25f
     val padding = .02f // padding between the lightning strands and the outer edge of orb
-    override fun drawPhase(g: AGraphics, position: Float, phase: Int) {
+    override fun drawPhase(g: AGraphics, positionInPhase: Float, positionInAnimation: Float, phase: Int) {
         val orbColor = GColor.MAGENTA
         when (phase) {
             0 -> {

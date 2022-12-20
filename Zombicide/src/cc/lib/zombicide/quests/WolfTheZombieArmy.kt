@@ -51,7 +51,7 @@ arrayOf("z25:i:wn:xspw", "z25:i:dn:we", "z26",          "z36:t3:rw:red", "z37:t3
 		)
 
 	override fun init(game: ZGame) {
-		assert(redObjectives.size > 1)
+		require(redObjectives.size > 1)
 		while (blueObjZone == greenObjZone) {
 			blueObjZone = redObjectives.random()
 			greenObjZone = redObjectives.random()

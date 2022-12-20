@@ -154,7 +154,7 @@ class CrosswordPuzzleGenerator internal constructor(reader: BufferedReader, widt
 		}
 
 		operator fun set(x: Int, y: Int, c: Char) {
-			grid[x]!![y] = c
+			grid[x][y] = c
 		}
 
 		fun copy(g: Grid) {

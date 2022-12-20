@@ -10,10 +10,7 @@ import cc.lib.utils.LRUCache
 import cc.lib.utils.Reflector
 import java.io.File
 import java.io.IOException
-import java.lang.Exception
-import java.lang.RuntimeException
 import java.util.*
-import kotlin.Throws
 import kotlin.math.max
 import kotlin.math.min
 
@@ -1904,7 +1901,7 @@ class Board : Reflector<Board>() {
 	 */
 	fun center() {
 		val minMax = computeMinMax()
-		val v: Vector2D = minMax.center
+		val v = minMax.center
 		translate(v.x, v.y)
 	}
 
@@ -1928,7 +1925,7 @@ class Board : Reflector<Board>() {
 		var minMax = computeMinMax()
 		//if (minMax.w <= 1 && minMax.h <= 1)
 		//    return;
-		val v: Vector2D = minMax.center
+		val v = minMax.center
 		// center at 0,0
 		translate(v.x, v.y)
 		// fill a 1,1 rect

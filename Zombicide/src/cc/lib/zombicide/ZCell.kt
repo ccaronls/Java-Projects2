@@ -14,7 +14,7 @@ class ZCell internal constructor(private val x: Float, private val y: Float) : R
 
         init {
             addAllFields(ZCell::class.java)
-            assert(ZCellType.values().size < 32) // Bit flag can only handle 32 values
+            require(ZCellType.values().size < 32) // Bit flag can only handle 32 values
         }
     }
 
@@ -163,12 +163,13 @@ class ZCell internal constructor(private val x: Float, private val y: Float) : R
         get() = spawns.toList().filterNotNull()
 
     fun removeSpawn(dir: ZDir) {
-        assert(numSpawns > 0)
+        require(numSpawns > 0)
         if (spawns[0]!!.dir === dir) {
-            spawns[0] = spawns[--numSpawns]
+            spawns[0] = spawns[1]
+	        numSpawns --
         } else {
-            assert(numSpawns > 1)
-            assert(spawns[1]!!.dir === dir)
+	        require(numSpawns > 1)
+	        require(spawns[1]!!.dir === dir)
             spawns[--numSpawns] = null
         }
     }

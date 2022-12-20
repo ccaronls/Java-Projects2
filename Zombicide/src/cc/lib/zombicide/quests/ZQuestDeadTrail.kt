@@ -54,7 +54,7 @@ arrayOf("", "", "",                                             "", "z49:v:vd1:w
 	}
 
 	override fun init(game: ZGame) {
-		assert(redObjectives.size > 1)
+		require(redObjectives.size > 1)
 		violetVault1 = game.board.findVault(1)
 		violetVault2 = game.board.findVault(3)
 		goldVault = game.board.findVault(2)

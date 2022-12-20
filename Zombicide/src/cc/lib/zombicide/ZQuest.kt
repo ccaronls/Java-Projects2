@@ -143,7 +143,7 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
     }
 
     protected fun setSpawnArea(cell: ZCell, area: ZSpawnArea?) {
-        assert(cell.numSpawns == 0)
+        require(cell.numSpawns == 0)
         cell.spawns[cell.numSpawns++] = area
     }
 
@@ -258,7 +258,7 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
                     // make sure outer perimeter has walls
                 }
                 if (cell.isCellType(ZCellType.EXIT)) {
-                    assert(exitZone < 0, "Multiple EXIT zones not supported")
+                    require(exitZone < 0) { "Multiple EXIT zones not supported" }
                     exitZone = cell.zoneIndex
                 }
                 if (row == 0) {
@@ -296,16 +296,19 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
      * @param cur
      * @param options
      */
-    open fun addMoves(game: ZGame, cur: ZCharacter, options: MutableList<ZMove>) {
+    open fun addMoves(game: ZGame, cur: ZCharacter, options: MutableCollection<ZMove>) {
         allObjectives.filter {
 	        game.board.getNumZombiesInZone(it) == 0
         }.firstOrNull {
-	        val zone = cur.occupiedZone
-	        it == zone
+	        it == cur.occupiedZone
+        }?.takeIf {
+        	canCharacterTakeObjective(game, cur, it)
         }?.let {
             options.add(ZMove.newObjectiveMove(it))
         }
     }
+
+	open fun canCharacterTakeObjective(game: ZGame, cur: ZCharacter, zone: Int) : Boolean = true
 
     fun findObjectiveForZone(zoneIdx: Int): ZObjective? {
         for (obj in objectives.values) {
@@ -415,7 +418,7 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
     }
 
     protected fun isAllPlayersInExit(game: ZGame): Boolean {
-        assert(exitZone >= 0)
+        require(exitZone >= 0)
         return game.board.getNumZombiesInZone(exitZone) == 0 && game.board.getAllCharacters().count { it.occupiedZone != exitZone } <= 0
     }
 

@@ -47,7 +47,7 @@ arrayOf("", "", "",                                             "z47:v:gvd3:ww:w
 			ZTile("5R", 180, getQuadrant(3, 6)))
 
 	override fun init(game: ZGame) {
-		assert(redObjectives.size > 1)
+		require(redObjectives.size > 1)
 		while (blueSpawnZone == greenSpawnZone) {
 			blueSpawnZone = redObjectives.random()
 			greenSpawnZone = redObjectives.random()

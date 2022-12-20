@@ -1,11 +1,11 @@
 package cc.applets.zombicide;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
@@ -112,7 +113,15 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
 
     final ZUser user = new UIZUser();
     UIZombicide game;
-    AWTPanel menu = new AWTPanel();
+    AWTPanel menu = new AWTPanel() {
+        @Override
+        public Component add(Component comp) {
+            comp.setMinimumSize(new Dimension(140, 40));
+            comp.setMaximumSize(new Dimension(140, 400));
+            ((JComponent)comp).setAlignmentX(LEFT_ALIGNMENT);
+            return super.add(comp);
+        }
+    };
     AWTPanel menuContainer = new AWTPanel();
     BoardComponent boardComp;
     CharacterComponent charComp;
@@ -370,9 +379,10 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
         charScrollContainer.setMaximumSize(new Dimension(10000, 200));
         add(charScrollContainer, BorderLayout.SOUTH);
 
-        menu.setLayout(new GridLayout(0, 1));
+        menu.setLayout(new BoxLayout(menu, BoxLayout.Y_AXIS));
         menuContainer.setLayout(new GridBagLayout());
         menuScrollContainer.setPreferredSize(new Dimension(150, 400));
+        menu.setAlignmentX(Component.LEFT_ALIGNMENT);
         //menuContainer.setMinimumSize(new Dimension(150, 400));
         //menuContainer.setPreferredSize(new Dimension(150, 400));
         //menuContainer.setMaximumSize(new Dimension(150, 1000));
@@ -403,7 +413,6 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
         ZButton(IButton obj) {
             super(obj);
             this.obj = obj;
-            setPreferredSize(new Dimension(140, 40));
         }
 
         @Override
@@ -439,10 +448,11 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
         }
 
         JComponent sep = new JSeparator();
-        Dimension d = sep.getPreferredSize();
-        d.height = 32;
-        sep.setPreferredSize(d);
-        menu.add(sep);
+        //sep.setMaximumSize(new Dimension(140, 32));
+        //Dimension d = sep.getPreferredSize();
+        //d.height = 32;
+        //sep.setPreferredSize(d);
+        menu.add(sep, null);
         menu.add(new AWTButton(MenuItem.CANCEL.name(), this));
         menu.add(new AWTButton(MenuItem.SUMMARY.name(), this));
         menu.add(new AWTButton(MenuItem.OBJECTIVES.name(), this));

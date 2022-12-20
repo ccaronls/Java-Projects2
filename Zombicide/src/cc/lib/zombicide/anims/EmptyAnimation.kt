@@ -11,7 +11,7 @@ open class EmptyAnimation(actor: ZActor<*>, duration: Long) : ZActorAnimation(ac
 
 	constructor(actor: ZActor<*>) : this(actor, 1)
 
-    override fun drawPhase(g: AGraphics, position: Float, phase: Int) {
+    override fun drawPhase(g: AGraphics, positionInPhase: Float, positionInAnimation: Float, phase: Int) {
         // do nothing
     }
 

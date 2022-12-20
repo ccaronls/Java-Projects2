@@ -80,7 +80,7 @@ class ZDiceWrappable(val dieNums: Array<Int>) : IWrappable {
 				g.vertex(dd4, dd2)
 				g.vertex(dd34, dd2)
 			}
-			else -> assert(false) { "Invalid die value $numDots" }
+			else -> require(false) { "Invalid die value $numDots" }
 		}
 		g.drawPoints()
 		g.setPointSize(oldDotSize)

@@ -3,6 +3,9 @@ apply plugin: 'kotlin'
 
 dependencies {
     implementation project(':GameLibrary')
+    evaluationDependsOn(':GameLibrary')
+    testCompile files(project(':GameLibrary').sourceSets.test.output)
+
 }
 
 sourceSets {

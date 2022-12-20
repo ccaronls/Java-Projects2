@@ -17,7 +17,7 @@ open class ShootAnimation(actor: ZActor<*>, duration: Long, center: IVector2D?, 
 	lateinit var r: GRectangle
 
 	val path: IInterpolator<Vector2D>
-	var pos: Vector2D
+	var pos: IVector2D
 
 	override fun onStarted(g: AGraphics) {
 		val img = g.getImage(id)
@@ -41,6 +41,6 @@ open class ShootAnimation(actor: ZActor<*>, duration: Long, center: IVector2D?, 
 		path = Vector2D.getLinearInterpolator(start, end)
 		pos = path.getAtPosition(0f)
 		setDuration(Math.round(dv.mag() * duration).toLong())
-		id = ZIcon.ARROW.imageIds[dir.ordinal]
+		id = icon.imageIds[dir.ordinal]
 	}
 }

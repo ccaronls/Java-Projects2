@@ -319,7 +319,7 @@ class ZBoard : Reflector<ZBoard>, IDimension {
     private fun addLockedDoor(door: ZDoor) {
         val cell = getCell(door.cellPosStart)
         val zone = zones[cell.zoneIndex]
-        if (zone.doors.contains(door)) throw AssertionError("Already have a door like that.")
+        require (!zone.doors.contains(door))
         cell.setWallFlag(door.moveDirection, ZWallFlag.LOCKED)
         zone.doors.add(door)
     }
@@ -619,7 +619,7 @@ class ZBoard : Reflector<ZBoard>, IDimension {
      */
     fun getDimension(): GDimension {
         if (grid.isEmpty()) return GDimension(0f, 0f)
-        val br: Vector2D = grid[grid.rows - 1, grid.cols - 1].bottomRight
+        val br = grid[grid.rows - 1, grid.cols - 1].bottomRight
         return GDimension(br.x, br.y)
     }
 

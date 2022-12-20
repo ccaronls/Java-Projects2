@@ -1,6 +1,9 @@
 package cc.lib.zombicide
 
-import cc.lib.game.*
+import cc.lib.game.AGraphics
+import cc.lib.game.GColor
+import cc.lib.game.GDimension
+import cc.lib.game.Utils
 import cc.lib.logger.LoggerFactory
 import cc.lib.ui.IButton
 import cc.lib.utils.Pair
@@ -314,7 +317,7 @@ class ZCharacter(override val type: ZPlayerName=ZPlayerName.Ann, skillz: Array<A
                 }
             }
         }
-        assert(!isBackpackFull)
+        require(!isBackpackFull)
         return ZEquipSlot.BACKPACK
     }
 
@@ -393,7 +396,7 @@ class ZCharacter(override val type: ZPlayerName=ZPlayerName.Ann, skillz: Array<A
             }
             ZEquipSlot.BACKPACK -> {
                 val idx = backpack.indexOf(type)
-                assert(idx >= 0)
+                require(idx >= 0)
                 removed = backpack.removeAt(idx)
             }
             ZEquipSlot.LEFT_HAND -> {
@@ -733,20 +736,20 @@ class ZCharacter(override val type: ZPlayerName=ZPlayerName.Ann, skillz: Array<A
         when (equip.slot) {
             ZEquipSlot.BACKPACK -> {
                 val success = backpack.remove(equip)
-                assert(success)
+                require(success)
             }
             ZEquipSlot.LEFT_HAND -> {
-                assert(leftHand === equip)
+                require(leftHand === equip)
                 leftHand = null
                 cachedSkills = null
             }
             ZEquipSlot.RIGHT_HAND -> {
-                assert(rightHand === equip)
+                require(rightHand === equip)
                 rightHand = null
                 cachedSkills = null
             }
             ZEquipSlot.BODY -> {
-                assert(body === equip)
+                require(body === equip)
                 body = null
                 cachedSkills = null
             }

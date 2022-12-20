@@ -1,7 +1,6 @@
 package cc.lib.zombicide
 
 import cc.lib.game.GColor
-import cc.lib.game.Utils
 import java.util.*
 
 abstract class ZUser {
@@ -15,7 +14,7 @@ abstract class ZUser {
     }
 
     fun setColor(color: Int) {
-        assert(color >= 0 && color < USER_COLORS.size)
+        require(color >= 0 && color < USER_COLORS.size)
         colorId = color
         for (nm in characters) {
             nm.character.color = USER_COLORS[color]

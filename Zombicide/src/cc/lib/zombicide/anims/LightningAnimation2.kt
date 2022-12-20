@@ -15,7 +15,7 @@ open class LightningAnimation2(actor: ZActor<*>, targets: List<IInterpolator<Vec
     val minArc = 0f
     val maxArc = .5f
 
-    override fun drawPhase(g: AGraphics, position: Float, phase: Int) {
+    override fun drawPhase(g: AGraphics, positionInPhase: Float, positionInAnimation: Float, phase: Int) {
         when (phase) {
             0 -> {
 

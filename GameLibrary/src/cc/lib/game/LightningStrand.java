@@ -31,14 +31,9 @@ public class LightningStrand {
     public void draw(AGraphics g, float position) {
 
         MutableVector2D start = new MutableVector2D(startInt.getAtPosition(position));
-        Vector2D end = endInt.getAtPosition(position);
-
-        int sec = Utils.randRange(minSections, maxSections);
-        if (sec < 1)
-            return;
-
-        IInterpolator<Vector2D> vInt = Bezier.build(start, end, arcInt.getAtPosition(position));
-
+        IVector2D end = endInt.getAtPosition(position);
+        drawLightning(g, start, end, minSections, maxSections, excitability, arcInt.getAtPosition(position));
+/*
         //MutableVector2D dv = end.sub(start);
         //float mag = dv.mag();
         //float secLen = mag / sec;
@@ -52,6 +47,33 @@ public class LightningStrand {
             float pos = (float)ii / (float)sec;
             //Vector2D v = start.addEq(dv.rotate(Utils.randFloatX(30*excitability)));
             Vector2D v = vInt.getAtPosition(pos);
+            Vector2D dv = v.sub(start).rotate(sign * Utils.randFloat(30*excitability));
+            sign *= -1;
+            g.vertex(start.addEq(dv));
+            //start.set(v);
+        }
+        g.vertex(end);
+        g.drawLineStrip();
+*/
+    }
+
+    public static void drawLightning(AGraphics g, IVector2D _start, IVector2D end, int minSections, int maxSections, float excitability, float arcBend) {
+        int sec = Utils.randRange(minSections, maxSections);
+        if (sec < 1)
+            return;
+
+        MutableVector2D start = _start.toMutable();
+        IInterpolator<Vector2D> vInt = Bezier.build(start, end.toMutable(), arcBend);
+
+        g.setColor(GColor.WHITE.withAlpha(.5f + Utils.randFloat(.5f)));
+        g.setLineWidth(Utils.randRange(1,5));
+        g.begin();
+        g.vertex(start);
+        float sign = 1;
+        for (int ii=1; ii<=sec; ii++) {
+            float pos = (float)ii / (float)sec;
+            //Vector2D v = start.addEq(dv.rotate(Utils.randFloatX(30*excitability)));
+            Vector2D v = vInt.getAtPosition(pos).toMutable();
             Vector2D dv = v.sub(start).rotate(sign * Utils.randFloat(30*excitability));
             sign *= -1;
             g.vertex(start.addEq(dv));

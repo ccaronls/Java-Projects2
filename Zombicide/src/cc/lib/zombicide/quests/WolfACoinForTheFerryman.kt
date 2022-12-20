@@ -86,7 +86,7 @@ class WolfACoinForTheFerryman : ZQuest(ZQuests.A_Coin_For_The_Ferryman) {
 		}
 	}
 
-	override fun addMoves(game: ZGame, cur: ZCharacter, options: MutableList<ZMove>) {
+	override fun addMoves(game: ZGame, cur: ZCharacter, options: MutableCollection<ZMove>) {
 		super.addMoves(game, cur, options)
 		if (blueKeyPos != null) {
 			val idx = game.board.getCell(blueKeyPos!!).zoneIndex

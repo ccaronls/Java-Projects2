@@ -60,20 +60,20 @@ arrayOf("z59:i:we:red", "z60", "z61",                           "z62", "z63", "z
 	}
 
 	override val allVaultOptions: List<ZEquipmentType>
-		get() = ArrayList<ZEquipmentType>(Arrays.asList(ZItemType.DRAGON_BILE, ZItemType.DRAGON_BILE, ZItemType.DRAGON_BILE, ZItemType.DRAGON_BILE))
+		get() = ArrayList<ZEquipmentType>(listOf(ZItemType.DRAGON_BILE, ZItemType.DRAGON_BILE, ZItemType.DRAGON_BILE, ZItemType.DRAGON_BILE))
 
 	override fun processObjective(game: ZGame, c: ZCharacter) {
 		if (c.occupiedZone == blueObjZone) {
 			game.giftEquipment(c, blueObjTreasure)
 		}
 		super.processObjective(game, c)
-		if (redObjectives.size == 0 && game.board.getDoor(lockedVault!!) === ZWallFlag.LOCKED) {
+		if (redObjectives.size == 0 && game.board.getDoor(lockedVault) === ZWallFlag.LOCKED) {
 			game.addLogMessage(c.name() + " has unlocked the Violet Door")
-			game.unlockDoor(lockedVault!!)
+			game.unlockDoor(lockedVault)
 		}
 	}
 
-	override fun addMoves(game: ZGame, cur: ZCharacter, options: MutableList<ZMove>) {
+	override fun addMoves(game: ZGame, cur: ZCharacter, options: MutableCollection<ZMove>) {
 		super.addMoves(game, cur, options)
 		if (cur.occupiedZone == blueObjZone && !redObjectives.contains(blueObjZone)) {
 			options.add(newObjectiveMove(cur.occupiedZone))

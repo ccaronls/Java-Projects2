@@ -12,7 +12,7 @@ import java.util.*
  * Allow for running multiple animations with some delay in between each starting position
  *
  */
-open class GroupAnimation(actor: ZActor<*>) : ZActorAnimation(actor, 1) {
+open class GroupAnimation(actor: ZActor<*>, val hidesActor:Boolean = false) : ZActorAnimation(actor, 1) {
     private val group: MutableList<Pair<ZAnimation, Int>> = ArrayList()
 
     @Synchronized
@@ -26,10 +26,16 @@ open class GroupAnimation(actor: ZActor<*>) : ZActorAnimation(actor, 1) {
      */
     @Synchronized
     fun addAnimation(delay: Int, animation: ZAnimation): GroupAnimation {
-        assert(!isStarted)
+        require(!isStarted)
         group.add(Pair(animation, delay))
         return this
     }
+
+	fun addSequentially(animation: ZAnimation) : GroupAnimation {
+		val delay = group.sumBy { it.first.duration.toInt() }
+		addAnimation(delay, animation)
+		return this
+	}
 
     override fun isDone(): Boolean {
         for (a in group) {
@@ -39,7 +45,7 @@ open class GroupAnimation(actor: ZActor<*>) : ZActorAnimation(actor, 1) {
     }
 
     override fun draw(g: AGraphics, position: Float, dt: Float) {
-        assert(false) // should not get called
+        require(false) // should not get called
     }
 
     @Synchronized
@@ -65,6 +71,6 @@ open class GroupAnimation(actor: ZActor<*>) : ZActorAnimation(actor, 1) {
     }
 
     override fun hidesActor(): Boolean {
-        return false
+        return hidesActor
     }
 }

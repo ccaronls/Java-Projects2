@@ -53,7 +53,7 @@ arrayOf("", "", "",                                             "", "", "z41:v:w
 	}
 
 	override fun init(game: ZGame) {
-		assert(redObjectives.size > 1)
+		require(redObjectives.size > 1)
 		violetVaultDoor = game.board.findVault(2)
 		goldVaultDoor = game.board.findVault(1)
 		while (blueObjZone == greenObjZone) {
