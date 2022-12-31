@@ -248,8 +248,13 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 	override fun onZombieDestroyed(c: ZPlayerName, deathType: ZAttackType, pos: ZActorPosition) {
 		super.onZombieDestroyed(c, deathType, pos)
 		val zombie = board.getActor<ZZombie>(pos)
+		zombie.addAnimation(DeathAnimation(zombie))
+		/*
 		val lock = Lock()
+		zombie.addAnimation(DeathAnimation(zombie))
 		when (deathType) {
+		// ELECTROCUTION ANIMATION MOVED TO ATTACK SEQUENCE SO IT CAN BE DISPLAYED SIMULTANEOUSLY
+		// WHEN THE ELECTRIC STRANDS ARE SHOOTING
 			ZAttackType.ELECTROCUTION -> {
 				lock.acquire()
 				zombie.addAnimation(object : ElectrocutionAnimation(zombie) {
@@ -271,9 +276,9 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 			ZAttackType.RANGED_THROW,
 			ZAttackType.EARTHQUAKE,
 			ZAttackType.MENTAL_STRIKE,
-			ZAttackType.NORMAL -> zombie.addAnimation(DeathAnimation(zombie))
-			else                                                                                                                                                                                                                                     -> zombie.addAnimation(DeathAnimation(zombie))
-		}
+			ZAttackType.NORMAL,
+			else                                                             -> zombie.addAnimation(DeathAnimation(zombie))                                                                                                                                                                        -> zombie.addAnimation(DeathAnimation(zombie))
+		}*/
 	}
 
 	override fun onActorMoved(actor: ZActor<*>, start: GRectangle, end: GRectangle, speed: Long) {
@@ -559,10 +564,11 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 	private fun onAttackRanged(attacker: ZCharacter, weapon: ZWeapon, actionType: ZActionType?, numDice: Int, hits: MutableList<ZActorPosition>, targetZone: Int) {
 		when (weapon.type) {
 			ZWeaponType.MJOLNIR -> {
+				val hammerSpeed = 600L
 				val animLock = Lock()
 				if (hits.isEmpty()) {
 					animLock.acquire()
-					attacker.addAnimation(object : ShootAnimation(attacker, 600, board.getZone(targetZone).rectangle.randomPointInside, ZIcon.MJOLNIR) {
+					attacker.addAnimation(object : ShootAnimation(attacker, hammerSpeed, board.getZone(targetZone).rectangle.randomPointInside, ZIcon.MJOLNIR) {
 						override fun onDone() {
 							animLock.release()
 						}
@@ -573,7 +579,7 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 					hits.forEach {
 						val victim = board.getActor<ZActor<*>>(it)
 						animLock.acquire()
-						group.addSequentially(object : ShootAnimation(prev, 600, victim, ZIcon.MJOLNIR) {
+						group.addSequentially(object : ShootAnimation(prev, hammerSpeed, victim, ZIcon.MJOLNIR) {
 							override fun onDone() {
 								animLock.release()
 							}
@@ -581,7 +587,7 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 						prev = victim
 					}
 					animLock.acquire()
-					group.addSequentially(object: ShootAnimation(prev, 600, attacker, ZIcon.MJOLNIR) {
+					group.addSequentially(object: ShootAnimation(prev, hammerSpeed, attacker, ZIcon.MJOLNIR) {
 						override fun onDone() {
 							animLock.release()
 						}
@@ -605,7 +611,7 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 								if (pos.data == ACTOR_POS_DATA_DEFENDED) {
 									victim.addAnimation(GroupAnimation(victim)
 										.addAnimation(ShieldBlockAnimation(victim))
-										.addAnimation(DeflectionAnimation(victim, Utils.randItem(ZIcon.DAGGER.imageIds), rect?: GRectangle.EMPTY, dir.opposite))
+										.addAnimation(DeflectionAnimation(victim, Utils.randItem(ZIcon.DAGGER.imageIds), dir.opposite))
 									)
 								} else {
 									victim.addAnimation(SlashedAnimation(victim))
@@ -644,7 +650,7 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 								if (pos.data == ACTOR_POS_DATA_DEFENDED) {
 									victim.addAnimation(GroupAnimation(victim)
 										.addAnimation(ShieldBlockAnimation(victim))
-										.addAnimation(DeflectionAnimation(victim, arrowId, rect!!, dir.opposite))
+										.addAnimation(DeflectionAnimation(victim, arrowId, dir.opposite))
 									)
 								} else {
 									victim.addAnimation(StaticAnimation(victim, 800, arrowId, r, true))
@@ -749,7 +755,8 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 			}
 			ZWeaponType.MJOLNIR,
 			ZWeaponType.LIGHTNING_BOLT -> {
-				val animLock = Lock(1)
+				val animLock1 = Lock(1)
+				val animLock2 = Lock(1)
 				val targets: MutableList<IInterpolator<Vector2D>> = ArrayList()
 				var i = 0
 				while (i < numDice) {
@@ -765,18 +772,39 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 				val dir = ZDir.getDirFrom(attacker.occupiedCell, board.getZone(targetZone).cells[0])?:ZDir.NORTH
 				when (weapon.type) {
 					ZWeaponType.MJOLNIR -> attacker.addAnimation(object : MjolnirLightningAnimation(attacker, targets, dir) {
+						override fun onPhaseStarted(g: AGraphics, phase: Int) {
+							super.onPhaseStarted(g, phase)
+							if (phase == 1)
+								animLock1.release()
+						}
 						override fun onDone() {
-							animLock.release()
+							animLock2.release()
 						}
 					})
 					else -> attacker.addAnimation(object : LightningAnimation2(attacker, targets) {
+						override fun onPhaseStarted(g: AGraphics, phase: Int) {
+							super.onPhaseStarted(g, phase)
+							if (phase == 1)
+								animLock1.release()
+						}
 						override fun onDone() {
-							animLock.release()
+							animLock2.release()
 						}
 					})
 				}
 				boardRenderer.redraw()
-				animLock.block()
+				animLock1.block()
+				hits.forEach {
+					val victim = board.getActor<ZActor<*>>(it)
+					if (it.data == ACTOR_POS_DATA_DEFENDED) {
+						victim.addAnimation(ShieldBlockAnimation(victim))
+					} else {
+						boardRenderer.addPostActor(ElectrocutionAnimation(victim))
+					}
+				}
+				boardRenderer.redraw()
+				animLock2.block()
+				print("")
 			}
 			ZWeaponType.EARTHQUAKE -> {
 				val animLock = Lock()

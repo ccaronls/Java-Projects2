@@ -4,7 +4,6 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.EventQueue;
-import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -19,7 +18,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
@@ -41,6 +39,7 @@ import cc.lib.swing.AWTToggleButton;
 import cc.lib.ui.IButton;
 import cc.lib.utils.FileUtils;
 import cc.lib.zombicide.ZActor;
+import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZDifficulty;
 import cc.lib.zombicide.ZGame;
 import cc.lib.zombicide.ZPlayerName;
@@ -242,7 +241,7 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
             for (MenuItem i : items) {
                 menu.add(new AWTButton(i.name(), this));
             }
-            menuContainer.validate();
+            menuContainer.revalidate();
         } else {
             EventQueue.invokeLater(() -> setMenuItems(items));
         }
@@ -285,7 +284,7 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
             case LOAD: {
                 menu.removeAll();
                 for (ZQuests q : ZQuests.values()) {
-                    menu.add(new AWTButton(q.name().replace('_', ' '), e12 -> {
+                    menu.add(new AWTButton(q, action -> {
                         game.loadQuest(q);
                         setStringProperty("quest", q.name());
                         boardComp.repaint();
@@ -293,7 +292,7 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
                     }));
                 }
                 menu.add(new AWTButton(MenuItem.CANCEL.name(), this));
-                menuContainer.validate();
+                menuContainer.revalidate();
                 break;
             }
             case ASSIGN: {
@@ -341,7 +340,7 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
                     boardComp.repaint();
                 }));
                 menu.add(new AWTButton(MenuItem.CANCEL.name(), this));
-                menuContainer.validate();
+                menuContainer.revalidate();
                 break;
             }
             case DIFFICULTY:
@@ -383,29 +382,50 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
         menuContainer.setLayout(new GridBagLayout());
         menuScrollContainer.setPreferredSize(new Dimension(150, 400));
         menu.setAlignmentX(Component.LEFT_ALIGNMENT);
-        //menuContainer.setMinimumSize(new Dimension(150, 400));
-        //menuContainer.setPreferredSize(new Dimension(150, 400));
-        //menuContainer.setMaximumSize(new Dimension(150, 1000));
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        menuContainer.add(menu, gbc);
-        // add a vertical filler as last component to "push" the buttons up
-        gbc = new GridBagConstraints();
-        Box.Filler verticalFiller = new Box.Filler(
-                new java.awt.Dimension(0, 0),
-                new java.awt.Dimension(0, 0),
-                new java.awt.Dimension(0, Integer.MAX_VALUE));
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        gbc.fill = java.awt.GridBagConstraints.VERTICAL;
-        gbc.weighty = 1.0;
-        menuScrollContainer.add(verticalFiller, gbc);
+        menuContainer.addMouseListener(new MouseListener() {
+            @Override
+            public void mouseClicked(MouseEvent e) {}
+            @Override
+            public void mousePressed(MouseEvent e) {}
+            @Override
+            public void mouseReleased(MouseEvent e) {}
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                if (game != null) {
+                    game.boardRenderer.setHighlightedActor(null);
+                    game.characterRenderer.redraw();
+                }
+            }
+            @Override
+            public void mouseExited(MouseEvent e) {}
+        });
+        menuContainer.setMinimumSize(new Dimension(150, 400));
 
         menuScrollContainer.getViewport().add(menuContainer);
         add(menuScrollContainer, BorderLayout.LINE_START);
         add(boardComp = new BoardComponent(), BorderLayout.CENTER);
         frame.addWindowListener(boardComp);
+        charComp.addMouseListener(new MouseListener() {
+            @Override
+            public void mouseClicked(MouseEvent e) {}
+            @Override
+            public void mousePressed(MouseEvent e) {}
+            @Override
+            public void mouseReleased(MouseEvent e) {}
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                if (game != null && game.getCurrentCharacter() != null)
+                    setCharacterSkillsOverlay(game.getCurrentCharacter().getCharacter());
+            }
+            @Override
+            public void mouseExited(MouseEvent e) {
+                boardComp.renderer.setOverlay(null);
+            }
+        });
+    }
+
+    void setCharacterSkillsOverlay(ZCharacter c) {
+        boardComp.renderer.setOverlay(c.getSkillsTable());
     }
 
     class ZButton extends AWTButton {
@@ -458,7 +478,7 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
         menu.add(new AWTButton(MenuItem.OBJECTIVES.name(), this));
         menu.add(new AWTButton(MenuItem.DIFFICULTY.name(), this));
         menu.add(new AWTButton(MenuItem.QUIT.name(), this));
-        menuContainer.validate();
+        menuContainer.revalidate();
     }
 
 }

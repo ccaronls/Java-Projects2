@@ -9,6 +9,7 @@ import cc.lib.swing.AWTComponent;
 import cc.lib.swing.AWTGraphics;
 import cc.lib.ui.UIComponent;
 import cc.lib.ui.UIRenderer;
+import cc.lib.zombicide.ui.UIZCharacterRenderer;
 
 class CharacterComponent extends AWTComponent implements Scrollable, UIComponent {
 
@@ -26,11 +27,11 @@ class CharacterComponent extends AWTComponent implements Scrollable, UIComponent
         g.setTextHeight(14);
     }
 
-    UIRenderer renderer;
+    UIZCharacterRenderer renderer;
 
     @Override
     public void setRenderer(UIRenderer renderer) {
-        this.renderer = renderer;
+        this.renderer = (UIZCharacterRenderer)renderer;
     }
 
     @Override

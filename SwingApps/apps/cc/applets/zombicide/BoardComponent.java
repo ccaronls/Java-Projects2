@@ -16,6 +16,7 @@ import cc.lib.logger.LoggerFactory;
 import cc.lib.swing.AWTComponent;
 import cc.lib.swing.AWTGraphics;
 import cc.lib.ui.UIRenderer;
+import cc.lib.utils.Table;
 import cc.lib.zombicide.ZDir;
 import cc.lib.zombicide.ZIcon;
 import cc.lib.zombicide.ZMove;
@@ -404,6 +405,7 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics>, 
                 ZMove move = keyMap.get(e.getKeyCode());
                 if (move != null) {
                     game.setResult(move);
+                    keyMap.clear();
                 }
                 break;
             }
@@ -417,9 +419,7 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics>, 
                 // zoom out
                 renderer.animateZoomTo(renderer.getZoomPercent() - 0.25f);
                 break;
-        }
 
-        switch (e.getKeyCode()) {
             case KeyEvent.VK_T:
                 ZombicideApplet.instance.setStringProperty("tiles", renderer.toggleDrawTiles() ? "yes" : "no");
                 break;
@@ -444,9 +444,31 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics>, 
                 ZombicideApplet.instance.setIntProperty("miniMapMode", renderer.toggleDrawMinimap());
                 break;
 
+            case KeyEvent.VK_BACK_QUOTE:
+                ZombicideApplet.instance.boardComp.renderer.setOverlay(new Table()
+                    .addRow("+ / -", "Zoom in / out", String.format("%s%%", Math.round(100f*renderer.getZoomPercent())))
+                    .addRow("T", "Toggle draw Tiles", renderer.getDrawTiles())
+                    .addRow("D", "Toggle draw Debug text", renderer.getDrawDebugText())
+                    .addRow("R", "Toggle show Ranged Accessibility", renderer.getDrawRangedAccessibility())
+                    .addRow("P", "Toggle draw zombie paths", renderer.getDrawZombiePaths())
+                    .addRow("H", "Toggle draw towers highlighted", renderer.getDrawTowersHighlighted())
+                    .addRow("M", "Toggle Minimap mode", renderer.getMiniMapMode())
+                );
+                break;
+            default:
+                System.err.println("Got code " + e.getKeyCode());
         }
-        keyMap.clear();
         repaint();
+    }
+
+    @Override
+    public synchronized void keyReleased(KeyEvent evt) {
+        switch (evt.getKeyCode()) {
+            case KeyEvent.VK_BACK_QUOTE:
+                renderer.setOverlay(null);
+                repaint();
+                break;
+        }
     }
 
     @Override

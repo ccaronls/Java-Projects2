@@ -1,6 +1,7 @@
 package cc.lib.zombicide
 
 import cc.lib.annotation.Keep
+import cc.lib.ui.IButton
 
 import cc.lib.zombicide.quests.*
 
@@ -9,7 +10,7 @@ const val FLAG_WOLFBURG = 2
 const val FLAG_DEBUG = 4
 
 @Keep
-enum class ZQuests(val flag: Int, val displayName: String, val description: String) {
+enum class ZQuests(val flag: Int, val displayName: String, val description: String) : IButton {
     Tutorial(FLAG_BLACK_PLAGUE, "TUTORIAL:DANSE MACABRE", "War is nothing new for us. Our counts " +
             "and dukes are always fighting amongst " +
             "themselves. For the peasantry, it usually just " +
@@ -311,4 +312,8 @@ enum class ZQuests(val flag: Int, val displayName: String, val description: Stri
             return values().filter { quest: ZQuests -> 0 != quest.flag and FLAG_WOLFBURG }
         }
     }
+
+	override fun getTooltipText(): String = description
+
+	override fun getLabel(): String = name.replace('_', ' ')
 }

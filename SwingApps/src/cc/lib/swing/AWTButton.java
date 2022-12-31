@@ -15,6 +15,9 @@ import cc.lib.utils.FileUtils;
 
 public class AWTButton extends JButton implements ActionListener {
 
+    private final static String HTML_PREFIX = "<html><center><p>";
+    private final static String HTML_SUFFIX = "</p></center></html>";
+
     public static AWTButton createWithImage(String fileOrResource) throws Exception {
         try (InputStream in = FileUtils.openFileOrResource(fileOrResource)) {
             Image img = ImageIO.read(in);
@@ -30,8 +33,15 @@ public class AWTButton extends JButton implements ActionListener {
     }
 
     public AWTButton(IButton source) {
-        super("<html>" + source.getLabel() + "</html>");
+        this(source, null);
         addActionListener(this);
+    }
+
+    public AWTButton(IButton source, ActionListener listener) {
+        super(HTML_PREFIX + source.getLabel() + HTML_SUFFIX);
+        setActionCommand(source.getLabel());
+        if (listener != null)
+            addActionListener(listener);
         String ttt = source.getTooltipText();
         if (ttt != null) {
             if (ttt.length() >= 64) {
@@ -42,34 +52,33 @@ public class AWTButton extends JButton implements ActionListener {
         }
     }
 
-    public AWTButton(IButton source, ActionListener listener) {
-        this(source.getLabel(), listener);
-        setToolTipText(source.getTooltipText());
-    }
-
     public AWTButton setTooltip(String text, int maxChars) {
         setToolTipText(Utils.wrapTextWithNewlines(text, maxChars));
         return this;
     }
 
     public AWTButton(String label, boolean selected) {
-        this(label);
+        super(HTML_PREFIX + label + HTML_SUFFIX);
+        setActionCommand(label);
         setSelected(selected);
     }
 
     public AWTButton(String label) {
-        super(label.indexOf('\n') >= 0 ? "<html>" + label.replaceAll("[\n]", "<br/>") + "</html>" : label);
+        super(HTML_PREFIX + label + HTML_SUFFIX);
+        setActionCommand(label);
         addActionListener(this);
     }
 
     public AWTButton(String label, ActionListener listener) {
-        super(label);
+        super(HTML_PREFIX + label + HTML_SUFFIX);
+        setActionCommand(label);
         addActionListener(listener);
     }
 
     public AWTButton(String label, Object data, ActionListener listener) {
-        super(label);
+        super(HTML_PREFIX + label + HTML_SUFFIX);
         addActionListener(listener);
+        setActionCommand(label);
         this.data = data;
     }
 
@@ -83,10 +92,6 @@ public class AWTButton extends JButton implements ActionListener {
 
     public void toggleSelected() {
         setSelected(!isSelected());
-    }
-
-    public boolean isSelected() {
-        return super.isSelected();
     }
 
     public <T> T getData() {

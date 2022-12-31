@@ -27,7 +27,7 @@ class ZBoard : Reflector<ZBoard>, IDimension {
     var zones: List<ZZone> = emptyList()
         private set
 
-    constructor() {}
+    constructor()
     constructor(grid: Grid<ZCell>, zones: List<ZZone>) {
         this.grid = grid
         this.zones = zones
@@ -166,13 +166,16 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 
     fun findVault(id: Int): ZDoor {
         var numIds = 0
-        var ids = arrayOfNulls<Grid.Pos>(2)
+        var ids = arrayOf(Grid.Pos(), Grid.Pos())
         var color: GColor? = null
         zones.forEach { zone->
             zone.cells.forEach { pos->
                 with (getCell(pos)) {
                     if (vaultId == id) {
-                        color = this.vaultType.color
+                    	if (color == null)
+	                        color = this.vaultType.color
+	                    else
+	                    	require(color == this.vaultType.color)
                         if (this.isVault) {
                             ids[1] = pos
                         } else {
@@ -183,9 +186,8 @@ class ZBoard : Reflector<ZBoard>, IDimension {
                 }
             }
         }
-        if (numIds != 2)
-            throw GException("wrong number of positions for vaultId $id")
-        return ZDoor(ids[0]!!, ids[1]!!, ZDir.DESCEND, color!!)
+        require (numIds == 2)
+        return ZDoor(ids[0], ids[1], ZDir.DESCEND, requireNotNull(color))
     }
 
     fun canSee(fromZone: Int, toZone: Int): Boolean {
@@ -230,7 +232,7 @@ class ZBoard : Reflector<ZBoard>, IDimension {
         if (grid[fromPos].zoneIndex == toZoneIndex) return emptyList()
         val toZone = zones[toZoneIndex]
         val allPaths: MutableList<List<ZDir>> = ArrayList()
-        var maxDist = (grid.rows + grid.cols) * 2
+        var maxDist = (grid.rows + grid.cols)
         val visited: MutableSet<Grid.Pos> = HashSet()
         for (bCellPos in toZone.cells) {
             val paths = getShortestPathOptions(fromPos, bCellPos, visited, maxDist)
@@ -260,7 +262,12 @@ class ZBoard : Reflector<ZBoard>, IDimension {
             }
             return
         }
-        if (curPath.size >= maxDist[0]) return
+        if (curPath.size >= maxDist[0]) {
+        	if (paths.isEmpty()) {
+		        paths.add(ArrayList(curPath))
+	        }
+        	return
+        }
         if (visited.contains(fromPos)) return
         visited.add(fromPos)
         val fromCell = grid[fromPos]
@@ -357,18 +364,19 @@ class ZBoard : Reflector<ZBoard>, IDimension {
         return maxNoise
     }
 
-    fun getMaxNoiseLevelZone(): ZZone? {
-        var maxNoise = 0
-        var maxZone: ZZone? = null
+    fun getMaxNoiseLevelZones(): List<ZZone> {
+	    val result = mutableListOf<ZZone>()
+        var maxNoise = 1
         for (z in zones) {
             if (z.noiseLevel > maxNoise) {
-                maxZone = z
+                result.clear()
+	            result.add(z)
                 maxNoise = z.noiseLevel
             } else if (z.noiseLevel == maxNoise) {
-                maxZone = null // when multiple zones share same noise level, then neither are the max
+                result.add(z)
             }
         }
-        return maxZone
+        return result
     }
 
     fun spawnActor(actor: ZActor<*>) : Boolean {
@@ -580,10 +588,10 @@ class ZBoard : Reflector<ZBoard>, IDimension {
         }
     }
 
-    fun getCellsOfType(type: ZCellType?): List<ZCell> {
+    fun getCellsOfType(type: ZCellType): List<ZCell> {
         val start: MutableList<ZCell> = ArrayList()
         for (cell in getCells()) {
-            if (cell.isCellType(type!!)) {
+            if (cell.isCellType(type)) {
                 start.add(cell)
             }
         }

@@ -215,7 +215,7 @@ enum class ZSkill(val description: String) : IButton {
         override fun modifyStat(stat: ZWeaponStat, actionType: ZActionType, character: ZCharacter, game: ZGame, targetZone: Int) {
             if (actionType === ZActionType.MELEE) {
                 val num = game.board.getNumZombiesInZone(character.occupiedZone)
-                stat.numDice = Math.max(num, stat.numDice)
+                stat.numDice = num.coerceAtLeast(stat.numDice)
             }
         }
     },
@@ -288,10 +288,9 @@ enum class ZSkill(val description: String) : IButton {
     },
     Charge("The Survivor can use this Skill for free, as often as he pleases, during each of his Turns: He moves up to two Zones to a Zone containing at least one Zombie. Normal Movement rules still apply. Entering a Zone containing Zombies ends the Survivor’s Move Action.") {
         override fun addSpecialMoves(game: ZGame, character: ZCharacter, moves: MutableCollection<ZMove>) {
-            var zones = game.board.getAccessableZones(character.occupiedZone, 1, 2, ZActionType.MOVE)
-            zones.filter { game.board.getNumZombiesInZone(it) > 0 }
-	            .takeIf { it.isNotEmpty() }
-	            ?.let { zones ->
+            game.board.getAccessableZones(character.occupiedZone, 1, 2, ZActionType.MOVE).filter {
+	            game.board.getNumZombiesInZone(it) > 0
+            }.takeIf { it.isNotEmpty() }?.let { zones ->
 	            moves.add(ZMove.newChargeMove(zones))
             }
         }

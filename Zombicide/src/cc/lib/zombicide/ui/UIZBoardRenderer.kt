@@ -316,8 +316,7 @@ open class UIZBoardRenderer<T : AGraphics>(component: UIZComponent<*>) : UIRende
 				g.drawJustifiedString(zone.center, Justify.CENTER, Justify.CENTER, java.lang.String.valueOf(zone.noiseLevel))
 			}
 		}
-		val maxNoise = board.getMaxNoiseLevelZone()
-		if (maxNoise != null) {
+		board.getMaxNoiseLevelZones().forEach { maxNoise ->
 			var color = GColor(GColor.BLACK)
 			var radius = 0.5f
 			val dr = radius / 5
@@ -605,7 +604,13 @@ open class UIZBoardRenderer<T : AGraphics>(component: UIZComponent<*>) : UIRende
 		while (it.hasNext()) {
 			val cell = it.next()
 			if (cell.isCellTypeEmpty) continue
-			var text = "Zone " + cell.zoneIndex
+			var text : String = when (cell.environment) {
+				ZCell.ENV_BUILDING -> "Building "
+				ZCell.ENV_VAULT -> "Vault "
+				ZCell.ENV_TOWER -> "Tower "
+				ZCell.ENV_OUTDOORS -> "Outside "
+				else -> "??? "
+			} + cell.zoneIndex
 			for (type in ZCellType.values()) {
 				if (cell.isCellType(type)) {
 					when (type) {
@@ -1109,28 +1114,28 @@ open class UIZBoardRenderer<T : AGraphics>(component: UIZComponent<*>) : UIRende
 	}
 
 	fun toggleDrawTiles(): Boolean {
-		return !drawTiles.also { drawTiles = it }
+		return drawTiles.not().also { drawTiles = it }
 	}
 
 	fun toggleDrawDebugText(): Boolean {
-		return !drawDebugText.also { drawDebugText = it }
+		return drawDebugText.not().also { drawDebugText = it }
 	}
 
 	fun toggleDrawTowersHighlighted(): Boolean {
-		return !drawTowersHighlighted.also { drawTowersHighlighted = it }
+		return drawTowersHighlighted.not().also { drawTowersHighlighted = it }
 	}
 
 	fun toggleDrawZoombiePaths(): Boolean {
-		return !drawZombiePaths.also { drawZombiePaths = it }
+		return drawZombiePaths.not().also { drawZombiePaths = it }
 	}
 
 	fun toggleDrawRangedAccessibility(): Boolean {
-		return !drawRangedAccessibility.also { drawRangedAccessibility = it }
+		return drawRangedAccessibility.not().also { drawRangedAccessibility = it }
 	}
 
 	fun toggleDrawMinimap(): Int {
 		return try {
-			(miniMapMode + 1) % 5.also { miniMapMode = it }
+			((miniMapMode + 1) % 5).also { miniMapMode = it }
 		} finally {
 			redraw()
 		}

@@ -52,7 +52,7 @@ enum class ZWeaponType(override val equipmentClass: ZEquipmentClass, val minColo
         override val skillsWhenUsed: List<ZSkill>
             get() = listOf(ZSkill.Roll_6_Plus1_Damage, ZSkill.Roll_6_plus1_die_Melee)
     },
-    AXE_OF_CARNAGE(ZEquipmentClass.AXE, ZColor.ORANGE, false, false, false, true, arrayOf(ZWeaponStat(ZActionType.MELEE, ZAttackType.BLADE, 1, 0, 0, 4, 4, 2)), "Add an additional success with each melee action resolved.??") {
+    AXE_OF_CARNAGE(ZEquipmentClass.AXE, ZColor.ORANGE, false, false, false, true, arrayOf(ZWeaponStat(ZActionType.MELEE, ZAttackType.BLADE, 1, 0, 0, 4, 4, 2)), "Add an additional success with each melee action resolved.") {
         override val skillsWhenUsed: List<ZSkill>
             get() = listOf(ZSkill.Two_For_One_Melee)
     },
@@ -67,9 +67,9 @@ enum class ZWeaponType(override val equipmentClass: ZEquipmentClass, val minColo
             get() = listOf(ZSkill.Hit_4_Dragon_Fire)
     },
     MJOLNIR(ZEquipmentClass.AXE, ZColor.RED, false, false, true, true,
-	    arrayOf(ZWeaponStat(ZActionType.MELEE, ZAttackType.CRUSH, 1, 0, 0, 4, 4, 2),
+	    arrayOf(ZWeaponStat(ZActionType.MELEE, ZAttackType.CRUSH, 1, 0, 0, 2, 4, 3),
 		        ZWeaponStat(ZActionType.MAGIC, ZAttackType.ELECTROCUTION, 0, 1, 4, 4, 5, 1),
-	            ZWeaponStat(ZActionType.RANGED, ZAttackType.RANGED_THROW, 0, 1, 2, 2, 5, 3)), "Returns to the survivor after being thrown. Survivor gains Hand of God Skill.") {
+	            ZWeaponStat(ZActionType.RANGED, ZAttackType.RANGED_THROW, 0, 1, 2, 4, 5, 2)), "Returns to the survivor after being thrown. Survivor gains Hand of God Skill.") {
 	    override val skillsWhileEquipped : List<ZSkill>
 		    get() = listOf(ZSkill.Hand_of_God)
     }

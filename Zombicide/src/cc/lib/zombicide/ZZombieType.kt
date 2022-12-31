@@ -88,11 +88,9 @@ enum class ZZombieType(@JvmField val category: ZZombieCategory, @JvmField val mi
             "");
 
     val scale: Float
-        get() {
-            when (this) {
-                Abomination, Wolfbomination, GreenTwin, BlueTwin -> return 1.8f
-            }
-            return 1f
+        get() = when (this) {
+            Abomination, Wolfbomination, GreenTwin, BlueTwin -> 1.8f
+            else -> 1f
         }
     lateinit var imageOptions: IntArray
     lateinit var imageOutlineOptions: IntArray

@@ -464,4 +464,8 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
 	open fun drawBlackObjective(game: ZGame, g: AGraphics, cell: ZCell, zone: ZZone) {
 		throw Exception("Unhandled method drawBlackObjective")
 	}
+
+	open fun onDoorOpened(game: ZGame, door: ZDoor, c:ZCharacter) {
+
+	}
 }

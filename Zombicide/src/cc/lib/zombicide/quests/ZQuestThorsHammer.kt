@@ -21,14 +21,15 @@ class ZQuestThorsHammer : ZQuest(ZQuests.Thors_Hammer) {
 	var mjolnirZone = -1
 	var greenDoors = mutableListOf<ZDoor>()
 	var numStartSpawns = 0
+	val abomZones = mutableMapOf<ZDir, Int>()
 
 	override fun loadBoard() = load(arrayOf(
 		arrayOf("z0:start",       "z2","z3",                      "z4","z5:spn","z6",                         "z7", "z8",                             "z10"),
 		arrayOf("z22",            "z24:i:red:wn:ww","z24:i:wn",   "z25:i:wn:ww","z25:i:dn","z25:i:wn",        "z26:i:dw:wn","z26:i:wn:red:we",        "z28"),
 		arrayOf("z29",            "z24:i:ww:ws","z24:i:ds:de",    "z25:i:ws","z25:i:greends","z25:i:ws",      "z26:i:ww:ds","z26:i:we:ws",            "z32"),
-		arrayOf("z33",            "z36:i:ww","z36:i:we",          "z37","z38","z39",                          "z40:i:ww","z40:i:we",                  "z42"),
-		arrayOf("z43:spw",        "z36:i:dw","z36:i:greende",     "z45","z46:i:mjolnir","z47",                "z40:i:greendw","z40:i:de",             "z49:spe"),
-		arrayOf("z50",            "z36:i:ww:ws","z36:i:ds:we",    "z52","z53","z54",                          "z40:i:ww:ws","z40:i:ds",               "z56"),
+		arrayOf("z33",            "z36:i:ww","z36:i:we",          "z37","z38:abomds","z39",                   "z40:i:ww","z40:i:we",                  "z42"),
+		arrayOf("z43:spw",        "z36:i:dw","z36:i:greende",     "z45:abomde","z46:i:mjolnir","z47:abomdw",  "z40:i:greendw","z40:i:de",             "z49:spe"),
+		arrayOf("z50",            "z36:i:ww:ws","z36:i:ds:we",    "z52","z53:abomdn","z54",                   "z40:i:ww:ws","z40:i:ds:we",            "z56"),
 		arrayOf("z57",            "z59:i:ww","z59:i:de",          "z60:i:wn","z60:i:greendn","z60:i:wn:de",   "z61:i:wn","z61:i:we",                  "z63"),
 		arrayOf("z64",            "z59:i:red:ww:ws","z59:i:ws",   "z60:i:ww:ws","z60:i:ds","z60:i:ws:we",     "z61:i:ww:ws","z61:i:red:ws:we",        "z67"),
 		arrayOf("z79",            "z81", "z82",                   "z83", "z84:sps", "z85",                    "z86", "z87",                           "z89:start"),
@@ -40,6 +41,7 @@ class ZQuestThorsHammer : ZQuest(ZQuests.Thors_Hammer) {
 		}
 		greenKeyZone = redObjectives.random()
 		numStartSpawns = game.board.getSpawnZones().size
+		require(numStartSpawns > 0)
 	}
 
 	override val allVaultOptions: List<ZEquipmentType>
@@ -58,10 +60,18 @@ class ZQuestThorsHammer : ZQuest(ZQuests.Thors_Hammer) {
 					game.unlockDoor(it)
 				}
 				greenKeyZone = -1
-				greenDoors.clear()
 			}
-
 			game.giftRandomVaultArtifact(c)
+		}
+	}
+
+	override fun onDoorOpened(game: ZGame, door: ZDoor, c: ZCharacter) {
+		greenDoors.firstOrNull { it == door }?.let {
+			// when a character open a green door, spawn a abomination right in front of them!!
+			abomZones[door.moveDirection]?.let {
+				game.spawnZombies(1, ZZombieType.Abomination, it)
+			}
+			abomZones.clear()
 		}
 	}
 
@@ -76,6 +86,10 @@ class ZQuestThorsHammer : ZQuest(ZQuests.Thors_Hammer) {
 			"greends" -> greenDoors.add(ZDoor(pos, ZDir.SOUTH, GColor.GREEN))
 			"greende" -> greenDoors.add(ZDoor(pos, ZDir.EAST, GColor.GREEN))
 			"greendw" -> greenDoors.add(ZDoor(pos, ZDir.WEST, GColor.GREEN))
+			"abomdn" -> abomZones[ZDir.NORTH] = cell.zoneIndex
+			"abomds" -> abomZones[ZDir.SOUTH] = cell.zoneIndex
+			"abomde" -> abomZones[ZDir.EAST] = cell.zoneIndex
+			"abomdw" -> abomZones[ZDir.WEST] = cell.zoneIndex
 			"mjolnir" -> {
 				mjolnirZone = grid[pos].zoneIndex
 				cell.setCellType(ZCellType.OBJECTIVE_BLACK, true)
@@ -109,8 +123,8 @@ class ZQuestThorsHammer : ZQuest(ZQuests.Thors_Hammer) {
 		val maxSkillPlayer = game.allLivingCharacters.maxByOrNull { it.character.skillLevel }
 		val greenKeyFound = greenKeyZone < 0 // 15%
 		val mjolnirFound = isMjolnirFound(game)
-		val numSpawns = numStartSpawns - game.board.getSpawnZones().size // 0-20%
-		val numZombies = game.board.getAllZombies().filter { it.isAlive }.size // 5%
+		val numSpawnsClosed = numStartSpawns - game.board.getSpawnZones().size // 0-20%
+		val numZombies = if (game.getNumKills(ZZombieType.Walker) == 0) 100 else game.board.getAllZombies().filter { it.isAlive }.size // 5%
 		val skill = maxSkillPlayer?.let {
 			it.character.skillLevel.difficultyColor.ordinal
 		}?:0
@@ -118,7 +132,7 @@ class ZQuestThorsHammer : ZQuest(ZQuests.Thors_Hammer) {
 		return skill * 15 + // 0-45%
 			(if (greenKeyFound) 15 else 0) + // 15%
 			(if (mjolnirFound) 15 else 0) + // 15%
-			((numStartSpawns - numSpawns).toFloat() / numSpawns).roundToInt() * 20 + // 0-20%
+			(numSpawnsClosed.toFloat() * 20 / numStartSpawns).roundToInt() + // 0-20%
 			(5 - numZombies.coerceIn(0..5)) // 5%
 	}
 

@@ -30,7 +30,7 @@ enum class ZPlayerName(@JvmField val characterClass: String, @JvmField val start
             arrayOf(ZSkill.Plus1_free_Combat_Action, ZSkill.Plus1_to_dice_roll_Combat, ZSkill.Hit_and_run)),
     Samson("Dwarf",
             arrayOf(ZWeaponType.AXE, ZWeaponType.HAMMER),
-            ZEquipmentClass.SHIELD,
+            ZEquipmentClass.THROWABLE,
             arrayOf(ZSkill.Iron_hide),
             arrayOf(ZSkill.Plus1_Action),
             arrayOf(ZSkill.Plus1_die_Combat, ZSkill.Plus1_to_dice_roll_Melee),

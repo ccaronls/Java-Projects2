@@ -32,7 +32,7 @@ public abstract class AAnimation<T> {
 
     enum State {
         PRESTART, STARTED, RUNNING, STOPPED, DONE
-    };
+    }
 
     /**
      * Create an animation that plays for a fixed time without repeats
@@ -226,7 +226,7 @@ public abstract class AAnimation<T> {
      */
     public synchronized void stop() {
         if (state != State.DONE)
-            state = state.STOPPED;
+            state = State.STOPPED;
     }
 
     /**

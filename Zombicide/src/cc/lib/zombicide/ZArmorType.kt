@@ -9,8 +9,8 @@ enum class ZArmorType(override val equipmentClass: ZEquipmentClass, val slotType
     CHAINMAIL(ZEquipmentClass.ARMOR, ZEquipSlotType.BODY, 4, null),
     PLATE(ZEquipmentClass.ARMOR, ZEquipSlotType.BODY, 3, null),
     SHIELD(ZEquipmentClass.SHIELD, ZEquipSlotType.HAND, 4, null),
-    DWARVEN_SHIELD(ZEquipmentClass.SHIELD, ZEquipSlotType.HAND, 4, "TODO: Protects against abomination"),
-    SHIELD_OF_AGES(ZEquipmentClass.SHIELD, ZEquipSlotType.HAND, 4, "TODO: Gain the shove skill") {
+    DWARVEN_SHIELD(ZEquipmentClass.SHIELD, ZEquipSlotType.HAND, 4, "Protects against abomination"),
+    SHIELD_OF_AGES(ZEquipmentClass.SHIELD, ZEquipSlotType.HAND, 4, "Gain the shove skill") {
         override val skillsWhileEquipped: List<ZSkill>
             get() = listOf(ZSkill.Shove)
     };

@@ -97,11 +97,11 @@ class ZMove constructor(
         }
 
         fun newGiveMove(taker: ZPlayerName, toGive: ZEquipment<*>): ZMove {
-            return ZMove(type = ZMoveType.GIVE, character = taker, equipment = toGive)
+            return ZMove(type = ZMoveType.GIVE, character = taker, equipment = toGive, fromSlot = toGive.slot)
         }
 
         fun newTakeMove(giver: ZPlayerName, toTake: ZEquipment<*>): ZMove {
-            return ZMove(type = ZMoveType.TAKE, character = giver, equipment = toTake)
+            return ZMove(type = ZMoveType.TAKE, character = giver, equipment = toTake, fromSlot = toTake.slot)
         }
 
         fun newObjectiveMove(zone: Int): ZMove {
@@ -230,11 +230,14 @@ class ZMove constructor(
 
     override fun getLabel(): String {
         var label = prettify(type.name)
-	    equipment?.let { label += " ${it.label}"}
-        if (toSlot == null && fromSlot != null) {
+	    equipment?.let {
+		    label += " ${it.label}"
+	    }
+        if (fromSlot != null) {
             label += " from ${fromSlot.label}"
         }
-        if (toSlot != null) "$label to ${toSlot.label}"
+        if (toSlot != null)
+        	label += " to ${toSlot.label}"
         return label
     }
 }

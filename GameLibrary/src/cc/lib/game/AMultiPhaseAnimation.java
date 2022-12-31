@@ -45,8 +45,9 @@ public abstract class AMultiPhaseAnimation<T> extends AAnimation<T> {
         long dur=0;
         for (int i=0; i<durations.length; i++) {
             long d = durations[i]+dur;
-            if (getElapsedTime() < d) {
-                float pos = (getElapsedTime()-dur) / (float)durations[i];
+            long elapsedTime = getElapsedTime();
+            if (elapsedTime < d) {
+                float pos = (elapsedTime-dur) / (float)durations[i];
                 if (i != lastPhase) {
                     lastPhase = i;
                     onPhaseStarted(g, i);

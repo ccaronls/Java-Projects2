@@ -71,12 +71,11 @@ abstract class ZActor<E : Enum<E>> internal constructor(var occupiedZone: Int=-1
         get() = false
 
     fun addAnimation(anim: ZActorAnimation) {
-        if (animation == null || animation!!.isDone) {
-            animation = anim
-	        anim.start<AAnimation<AGraphics>>()
-        } else {
-            animation!!.add(anim)
-        }
+	    animation?.takeIf { !it.isDone }?.let {
+		    it.add(anim)
+	    }?:run {
+	    	animation = anim.start()
+	    }
     }
 
     open val moveSpeed: Long
