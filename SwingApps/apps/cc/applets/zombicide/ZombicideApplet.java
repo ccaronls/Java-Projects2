@@ -400,7 +400,7 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
             public void mouseExited(MouseEvent e) {}
         });
         menuContainer.setMinimumSize(new Dimension(150, 400));
-
+        menuContainer.add(menu);
         menuScrollContainer.getViewport().add(menuContainer);
         add(menuScrollContainer, BorderLayout.LINE_START);
         add(boardComp = new BoardComponent(), BorderLayout.CENTER);

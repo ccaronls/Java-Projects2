@@ -37,7 +37,7 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 			field = msg
 			boardRenderer.redraw()
 		}
-	var options: List<*> = emptyList<Any>()
+	var options: List<Any> = emptyList()
 		private set
 
 	private var result: Any? = null
@@ -116,7 +116,7 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 
 	fun pickCharacter(message: String, characters: List<ZPlayerName>): ZPlayerName? {
 		synchronized(this) {
-			options = Utils.map(characters) { `in`: ZPlayerName -> `in`.character }
+			options = characters.map { it.character }
 			uiMode = UIMode.PICK_CHARACTER
 			boardMessage = message
 		}

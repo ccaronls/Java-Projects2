@@ -406,6 +406,8 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics>, 
                 if (move != null) {
                     game.setResult(move);
                     keyMap.clear();
+                } else if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+                    renderer.clearDragOffset();
                 }
                 break;
             }

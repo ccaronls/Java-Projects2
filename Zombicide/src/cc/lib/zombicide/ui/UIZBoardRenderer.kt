@@ -848,22 +848,32 @@ open class UIZBoardRenderer<T : AGraphics>(component: UIZComponent<*>) : UIRende
 		highlightedDoor = null
 		g.setIdentity()
 		val center = boardCenter
+		// the dim of the board in cells
 		val rect = getZoomedRectangle(g, center)
-		val dragViewport = dragOffset.scaledBy(-rect.width / g.viewportWidth, -rect.height / g.viewportHeight)
-
-		//log.debug("dragViewport = " + dragViewport);// + " topL = " + topL + "  bottomR = "+ bottomR);
+		val xScale = -rect.width / g.viewportWidth
+		val yScale = -rect.height / g.viewportHeight
+		val dragViewport = dragOffset.scaledBy(xScale, yScale)
 		val boardRect: IDimension = board.getDimension()
+
+//		log.debug("dragOffset: $dragOffset dragViewport: $dragViewport")
 		rect.moveBy(dragViewport)
+//		log.debug("afterMove rect: $rect")
 		if (rect.x < 0) {
+			dragViewport.subEq(rect.x, 0f)
 			rect.x = 0f
 		} else if (rect.x + rect.w > boardRect.width) {
+			dragViewport.subEq(rect.x + rect.w - boardRect.width, 0f)
 			rect.x = boardRect.width - rect.w
 		}
 		if (rect.y < 0) {
+			dragViewport.subEq(0f, rect.y)
 			rect.y = 0f
 		} else if (rect.y + rect.h > boardRect.height) {
+			dragViewport.subEq(0f, rect.y + rect.h - boardRect.height)
 			rect.y = boardRect.height - rect.h
 		}
+//		log.debug("afterClamp rect: $rect dragOffset: $dragOffset dragViewport: $dragViewport")
+		dragOffset.set(dragViewport.scaledBy(1f / xScale, 1f / yScale))
 
 		//log.debug("Rect = " + rect);
 		g.ortho(rect)
