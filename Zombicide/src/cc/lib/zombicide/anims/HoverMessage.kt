@@ -5,7 +5,7 @@ import cc.lib.math.Vector2D
 import cc.lib.zombicide.ZAnimation
 import cc.lib.zombicide.ui.UIZBoardRenderer
 
-class HoverMessage(board: UIZBoardRenderer<*>, private val msg: String, private val center: IVector2D) : ZAnimation(3000) {
+class HoverMessage(board: UIZBoardRenderer, private val msg: String, private val center: IVector2D) : ZAnimation(3000) {
     private val dv: Vector2D
     private lateinit var hJust: Justify
 

@@ -46,7 +46,7 @@ arrayOf("z41:v:vd1:wn:ww", "z41:v:wn", "z41:v:wn:vd2:we",           "z42", "z43"
 			ZTile("9V", 90, getQuadrant(0, 3)),
 			ZTile("3V", 0, getQuadrant(0, 6)),
 			ZTile("10V", 270, getQuadrant(3, 0)),
-			ZTile("6X", 0, getQuadrant(3, 3, 2, 3)),
+			ZTile("6X", 0, getQuadrant(3, 3, 3, 4)),
 			ZTile("11R", 270, getQuadrant(3, 6))
 		)
 

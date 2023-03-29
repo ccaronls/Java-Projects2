@@ -117,7 +117,7 @@ open class Player(var piece: Piece = Piece.BOAT) : Reflector<Player>() {
 				MoveType.UPGRADE -> weights[index] = 1 + money / 100
 				MoveType.TRADE -> {
 					for (t in game.getTradeOptions(this)) {
-						weights[index] += getNumOfSet(t.card.property!!)
+						weights[index] += getNumOfSet(t.card.property)
 						//assert(t.price > 0);
 						//float weight = (num * 100) / t.price;
 						//weights[index] += weight;
@@ -178,7 +178,7 @@ open class Player(var piece: Piece = Piece.BOAT) : Reflector<Player>() {
 		var bestRatio = 0f
 		for (t in trades) {
 			cards.add(t.card)
-			val rent = game.getRent(t.card.property!!).toFloat()
+			val rent = game.getRent(t.card.property).toFloat()
 			val cost: Float = t.price.toFloat()
 			val ratio = rent / cost
 			if (ratio > bestRatio) {
@@ -273,8 +273,8 @@ open class Player(var piece: Piece = Piece.BOAT) : Reflector<Player>() {
 		get() = cards.count { it.property.isUtility }
 
 	fun getRent(property: Square, dice: Int): Int {
-		val card = getCard(property)
-		if (card!!.isMortgaged) return 0
+		val card = requireNotNull(getCard(property))
+		if (card.isMortgaged) return 0
 		if (property.isRailroad) {
 			val rentScale = intArrayOf(0, 1, 2, 4, 8)
 			return Monopoly.RAILROAD_RENT * rentScale[numRailroads]
@@ -283,7 +283,7 @@ open class Player(var piece: Piece = Piece.BOAT) : Reflector<Player>() {
 				1 -> 4 * dice
 				2 -> 10 * dice
 				else -> {
-					assert(false, "Invalid value for num utilities $numUtilities")
+					require(false) { "Invalid value for num utilities $numUtilities" }
 					0
 				}
 			}

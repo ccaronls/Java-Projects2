@@ -1,15 +1,12 @@
 package cc.lib.zombicide.anims
 
 import cc.lib.game.AGraphics
-import cc.lib.game.GRectangle
 import cc.lib.game.IVector2D
 import cc.lib.math.Vector2D
-import cc.lib.zombicide.ZActor
-import cc.lib.zombicide.ZActorAnimation
 import cc.lib.zombicide.ZAnimation
 import cc.lib.zombicide.ui.UIZBoardRenderer
 
-class ZoomAnimation(startCenter: IVector2D, val renderer: UIZBoardRenderer<*>, targetZoomPercent: Float) : ZAnimation( 500) {
+class ZoomAnimation(startCenter: IVector2D, val renderer: UIZBoardRenderer, targetZoomPercent: Float) : ZAnimation( 500) {
 	val startZoomPercent: Float
 	val dv: Vector2D
 	val dz: Float

@@ -105,6 +105,7 @@ abstract class ZUser {
     abstract fun chooseZoneToIgnite(playerName: ZPlayerName, ignitableZones: List<Int>): Int?
     abstract fun chooseEquipmentClass(playerName: ZPlayerName, classes: List<ZEquipmentClass>): ZEquipmentClass?
     abstract fun chooseStartingEquipment(playerName: ZPlayerName, list: List<ZEquipmentType>): ZEquipmentType?
+	abstract fun chooseOrganize(playerName: ZPlayerName, list: List<ZMove>): ZMove?
 
     companion object {
         @JvmField

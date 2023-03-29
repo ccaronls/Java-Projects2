@@ -250,7 +250,7 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics>, 
 
         for (ZPlayerName pl : ZPlayerName.values()) {
             pl.imageId = objectToImageMap.get(pl).get(0);
-            pl.outlineImageId = objectToImageMap.get(pl).get(1);
+            pl.outlineImageId = Utils.getOrNull(objectToImageMap.get(pl), 1);
             pl.imageDim = new GDimension(g.getImage(pl.imageId));
             pl.cardImageId = objectToImageMap.get(pl.name()).get(0);
         }
@@ -513,5 +513,11 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics>, 
     @Override
     public void windowDeactivated(WindowEvent e) {
 
+    }
+
+    @Override
+    protected void onFocusLost() {
+        super.onFocusLost();
+        renderer.setHighlightActor(null);
     }
 }

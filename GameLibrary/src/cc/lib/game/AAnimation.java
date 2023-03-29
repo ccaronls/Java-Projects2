@@ -158,7 +158,7 @@ public abstract class AAnimation<T> {
      * Call this within your rendering loop.  Animation is over when onDone() {} executed
      * 
      * @param g
-     * returns true when isDone
+     * returns true when draw has been called, false otherwise
      */
     public synchronized boolean update(T g) {
         if (state == State.PRESTART) {
@@ -218,7 +218,7 @@ public abstract class AAnimation<T> {
             kill();
             onDone();
         }
-        return isDone();
+        return true;
     }
 
     /**

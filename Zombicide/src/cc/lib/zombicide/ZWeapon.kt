@@ -135,7 +135,7 @@ class ZWeapon(override val type: ZWeaponType=ZWeaponType.AXE) : ZEquipment<ZWeap
         return card
     }
 
-    override fun getTooltipText(): String? {
+    override fun getTooltipText(): String {
         val cardLower = Table().setNoBorder()
         cardLower.addColumnNoHeader(Arrays.asList(
                 "Attack Type",

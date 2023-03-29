@@ -23,12 +23,12 @@ class WolfTheZombieArmy : ZQuest(ZQuests.The_Zombie_Army) {
 	var spawnDeck: MutableList<ZSpawnCard> = ArrayList()
 	override fun loadBoard(): ZBoard {
 		val map = arrayOf(
-arrayOf("z0", "z1", "z2:st",                            "z10:i:ww", "z10:i:xspn", "z10:i"),
-arrayOf("z3:xspw", "z4:i:wn:ws:we:ww", "z5",            "z10:i:dw:ws", "z10:i:ws", "z10:i:ws"),
-arrayOf("z6", "z7", "z8",                               "z11", "z12", "z13"),
-arrayOf("z20:i:odn:ws:xspw", "z20:i:wn:we:ws", "z21",   "z30:t1:rn", "z31:t2:rn:re", "z32:t3:rn:red"),
-arrayOf("z22", "z23", "z24",                            "z33:t3:rw:rn:red", "z34:t3:red", "z35:t3:red"),
-arrayOf("z25:i:wn:xspw", "z25:i:dn:we", "z26",          "z36:t3:rw:red", "z37:t3:rw:red:odn:odw:ode", "z38:t3:red"))
+			arrayOf("z0", "z1", "z2:st",                            "z10:i:ww", "z10:i:xspn", "z10:i"),
+			arrayOf("z3:xspw", "z4:i:wn:ws:we:ww", "z5",            "z10:i:dw:ws", "z10:i:ws", "z10:i:ws"),
+			arrayOf("z6", "z7", "z8",                               "z11", "z12", "z13"),
+			arrayOf("z20:i:odn:ws:xspw", "z20:i:wn:we:ws", "z21",   "z30:t1:rn", "z31:t2:rn:re", "z32:t3:rn:red"),
+			arrayOf("z22", "z23", "z24",                            "z33:t3:rw:rn:red", "z34:t3:red", "z35:t3:red"),
+			arrayOf("z25:i:wn:xspw", "z25:i:dn:we", "z26",          "z36:t3:rw:red", "z37:t3:rw:red:odn:odw:ode", "z38:t3:red"))
 		return load(map)
 	}
 
@@ -60,7 +60,6 @@ arrayOf("z25:i:wn:xspw", "z25:i:dn:we", "z26",          "z36:t3:rw:red", "z37:t3
 			ZDifficulty.EASY -> 20
 			ZDifficulty.MEDIUM -> 30
 			ZDifficulty.HARD -> 40
-			else               -> 20
 		}
 		for (i in 0 until startDeckSize) spawnDeck.add(ZSpawnCard.drawSpawnCard(true, true, game.getDifficulty()))
 	}
@@ -101,7 +100,7 @@ arrayOf("z25:i:wn:xspw", "z25:i:dn:we", "z26",          "z36:t3:rw:red", "z37:t3
 				.addRow("2.", "Find the GREEN objective hidden among the RED objetives. Choose a Vault item of your choice", greenObjZone < 0)
 				.addRow("3.", "Find the BLUE objective hidden among the RED objetives. Choose a Vault item of your choice", blueObjZone < 0)
 				.addRow("4.", "Taking a RED objectives allows survivor to take and item from deck and reorganize their inventory for free")
-				.addRow("5.", "Spawn areas cannot be removed after killing a Necromancer, even those created by Necromancers. Max of " + MAX_SPAWN_ZONES + " spawn areas on the board", String.format("%d of %d", getNumSpawnZones(game), MAX_SPAWN_ZONES))
+				.addRow("5.", "Spawn areas cannot be removed after killing a Necromancer, even those created by Necromancers. Max of $MAX_SPAWN_ZONES spawn areas on the board", String.format("%d of %d", getNumSpawnZones(game), MAX_SPAWN_ZONES))
 			)
 	}
 

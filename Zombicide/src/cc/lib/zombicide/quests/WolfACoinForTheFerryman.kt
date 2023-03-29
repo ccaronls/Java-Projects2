@@ -19,6 +19,8 @@ class WolfACoinForTheFerryman : ZQuest(ZQuests.A_Coin_For_The_Ferryman) {
 	}
 
 	var lockedDoors: MutableList<ZDoor> = ArrayList()
+	val isBlueKeyFound : Boolean
+		get() = lockedDoors.isEmpty()
 	lateinit var blueKeyPos: Grid.Pos
 	override fun loadBoard(): ZBoard {
 		val map = arrayOf(
@@ -30,7 +32,7 @@ class WolfACoinForTheFerryman : ZQuest(ZQuests.A_Coin_For_The_Ferryman) {
 					arrayOf("z35:i:wn:we:red", "z36", "z37:v:dw:wn:ws",     "z46:t3:rw:rs:re", "z47:t2:rs", "z48:t1:rs:st",     "z56", "z57:i:wn:dw:ws:ode", "z58:i:wn:ods"),
 					arrayOf("z60:i:de:ods", "z61", "z62:i:ww:ws:ode",       "z70:i:ws", "z70:i:ws:ode", "z71:i:de:ws",          "z80", "z81:i:ww:ws:ode", "z82:i:ws"),
 					arrayOf("z63:i:we", "z64", "z65",                       "z72", "z73", "z74",                                "z83", "z84", "z85"),
-					arrayOf("z63:i:we", "z66:sps", "z67:i:ww:dn:ode",       "z75:i:wn:ode", "z76:i:wn", "z77:i:wn:red:ode",     "z86:i:dn:ode", "z87:i:wn:we", "z88"))
+					arrayOf("z63:i:we", "z66:sps", "z67:i:ww:dn:ode",       "z75:i:wn:ode", "z76:i:wn", "z76:i:wn:red:ode",     "z86:i:dn:ode", "z87:i:wn:we", "z88"))
 		return load(map)
 	}
 
@@ -76,6 +78,7 @@ class WolfACoinForTheFerryman : ZQuest(ZQuests.A_Coin_For_The_Ferryman) {
 			for (door in lockedDoors) {
 				game.unlockDoor(door)
 			}
+			lockedDoors.clear()
 			return
 		}
 
@@ -88,8 +91,8 @@ class WolfACoinForTheFerryman : ZQuest(ZQuests.A_Coin_For_The_Ferryman) {
 
 	override fun addMoves(game: ZGame, cur: ZCharacter, options: MutableCollection<ZMove>) {
 		super.addMoves(game, cur, options)
-		if (blueKeyPos != null) {
-			val idx = game.board.getCell(blueKeyPos!!).zoneIndex
+		blueKeyPos?.let {
+			val idx = game.board.getCell(it).zoneIndex
 			if (idx == cur.occupiedZone) {
 				options.add(newObjectiveMove(idx))
 			}
@@ -102,7 +105,7 @@ class WolfACoinForTheFerryman : ZQuest(ZQuests.A_Coin_For_The_Ferryman) {
 
 	override fun getPercentComplete(game: ZGame): Int {
 		val total = numStartObjectives + 2
-		val completed = numFoundObjectives + (if (isExitZoneOccupied(game)) 1 else 0) + if (blueKeyPos == null) 1 else 0
+		val completed = numFoundObjectives + (if (isExitZoneOccupied(game)) 1 else 0) + if (isBlueKeyFound) 1 else 0
 		return completed * 100 / total
 	}
 
@@ -110,7 +113,7 @@ class WolfACoinForTheFerryman : ZQuest(ZQuests.A_Coin_For_The_Ferryman) {
 		return Table(name)
 			.addRow(Table().setNoBorder()
 				.addRow("1.", "Take all of the objective to reveal the BLUE key", String.format("%d of %d", numFoundObjectives, numStartObjectives))
-				.addRow("2.", "Take the BLUE key to unlock the BLUE doors and the escape portal", blueKeyPos == null)
+				.addRow("2.", "Take the BLUE key to unlock the BLUE doors and the escape portal", isBlueKeyFound)
 				.addRow("3.", "Enter the portal and banish the Necromancers for good", isExitZoneOccupied(game))
 			)
 	}

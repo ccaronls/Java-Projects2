@@ -8,7 +8,6 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
-import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
@@ -509,7 +508,7 @@ abstract class UIMonopoly : Monopoly() {
 			spriteMap["PLAYER$i"] = object : Sprite() {
 				override fun draw(g: AGraphics, w: Float, h: Float) {
 					val p = getPlayer(i)
-					var value = p.cardsForMortgage.sumBy { it.property.getMortgageValue(it.houses) }
+					val value = p.cardsForMortgage.sumBy { it.property.getMortgageValue(it.houses) }
 					var money = p.money
 					animation?.let {
 						money = data1
@@ -563,7 +562,7 @@ abstract class UIMonopoly : Monopoly() {
 			}
 		}
 
-		// the property squares them selves can animate building houses
+		// the property squares can animate building houses
 		for (sq in Square.values()) {
 			if (sq.isProperty) {
 				spriteMap[sq.name] = object : Sprite() {
@@ -765,7 +764,7 @@ abstract class UIMonopoly : Monopoly() {
 		}.start()
 	}
 
-	protected open fun onError(t: Throwable?) {
+	protected open fun onError(t: Throwable) {
 		throw RuntimeException(t)
 	}
 
@@ -936,11 +935,12 @@ abstract class UIMonopoly : Monopoly() {
 		}?:run {
 			"\n\n\n"
 		}
-		g.textHeight = TEXT_HEIGHT_LARGE
+		val txtLrg = g.textHeight
+		val txtMed = txtLrg * .75f
 		val table = Table().addColumn(
 			prettify(property.name), getPropertyDetails(property), buyerStr).setModel(object: Table.Model {
 			override fun getCornerRadius(): Float {
-				return TEXT_HEIGHT_LARGE/2
+				return txtLrg/2
 			}
 
 			override fun getBorderColor(g: AGraphics?): GColor {
@@ -956,7 +956,7 @@ abstract class UIMonopoly : Monopoly() {
 			}
 
 			override fun getBorderWidth(): Int {
-				return (TEXT_HEIGHT_LARGE/4).roundToInt()
+				return (txtLrg/4).roundToInt()
 			}
 
 			override fun getCellColor(g: AGraphics, row: Int, col: Int): GColor {
@@ -974,11 +974,11 @@ abstract class UIMonopoly : Monopoly() {
 			}
 
 			override fun getHeaderTextHeight(g: AGraphics?): Float {
-				return TEXT_HEIGHT_LARGE
+				return txtLrg
 			}
 
 			override fun getCellTextHeight(g: AGraphics?): Float {
-				return TEXT_HEIGHT_MED
+				return txtMed
 			}
 
 			override fun getHeaderJustify(col: Int): Justify {
@@ -987,7 +987,7 @@ abstract class UIMonopoly : Monopoly() {
 		})
 
 		val dim = g.viewport.minLength()
-		g.setColor(GColor.BLACK)
+		g.color = GColor.BLACK
 		table.draw(g, dim/2, topY, Justify.CENTER, Justify.TOP)
 	}
 

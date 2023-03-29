@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
-open class UIZBoardRenderer<T : AGraphics>(component: UIZComponent<*>) : UIRenderer(component) {
+open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) {
 	val preActor: MutableList<ZAnimation> = ArrayList()
 	val postActor: MutableList<ZAnimation> = ArrayList()
 	val overlayAnimations: MutableList<ZAnimation> = ArrayList()
@@ -29,6 +29,12 @@ open class UIZBoardRenderer<T : AGraphics>(component: UIZComponent<*>) : UIRende
 	var highlightedCell: Grid.Pos? = null
 	var highlightedResult: Any? = null
 	var highlightedActor: ZActor<*>? = null
+		private set
+	var highlightActor: ZActor<*>? = null
+		set(value) {
+			field = value
+			redraw()
+		}
 	var highlightedDoor: ZDoor? = null
 	var selectedCell: Grid.Pos? = null
 	var highlightedShape: IShape? = null
@@ -52,7 +58,11 @@ open class UIZBoardRenderer<T : AGraphics>(component: UIZComponent<*>) : UIRende
 
 	@get:Synchronized
 	val isAnimating: Boolean
-		get() = actorsAnimating || postActor.size > 0 || preActor.size > 0 || overlayAnimations.size > 0 || zoomAnimation != null
+		get() = actorsAnimating
+			|| postActor.size > 0
+			|| preActor.size > 0
+			|| overlayAnimations.size > 0
+			|| zoomAnimation != null
 
 	@Synchronized
 	fun addPreActor(a: ZAnimation) {
@@ -212,6 +222,7 @@ open class UIZBoardRenderer<T : AGraphics>(component: UIZComponent<*>) : UIRende
 					actorsAnimating = true
 				} else {
 					var outline: GColor? = null
+					highlightAnimationScale = 1f
 					game.currentCharacter?.let {
 						if (a is ZCharacter && a.type === it) {
 							outline = GColor.GREEN
@@ -221,8 +232,14 @@ open class UIZBoardRenderer<T : AGraphics>(component: UIZComponent<*>) : UIRende
 							outline = GColor.YELLOW
 						else if (a.isAlive)
 							outline = GColor.WHITE
+					}?:run {
+						if (a == highlightActor) {
+							highlightAnimation.update(g)
+							outline = g.color
+							redraw()
+						}
 					}
-					drawActor(g as T, a, outline)
+					drawActor(g, a, outline)
 				}
 				g.removeFilter()
 			}
@@ -237,12 +254,21 @@ open class UIZBoardRenderer<T : AGraphics>(component: UIZComponent<*>) : UIRende
 		return picked
 	}
 
-	protected open fun drawActor(g: T, actor: ZActor<*>, outline: GColor?) {
+	var highlightAnimationScale = 1f
+	val highlightAnimation = object : AAnimation<AGraphics>(1000, -1, true) {
+		override fun draw(g: AGraphics, position: Float, dt: Float) {
+			g.color = GColor.TRANSPARENT.interpolateTo(GColor.CYAN, position)
+			//g.scale(1f + .2f*position)
+			//highlightAnimationScale = 1f + .2f*position
+		}
+	}.start<AAnimation<AGraphics>>()
+
+	protected open fun drawActor(g: AGraphics, actor: ZActor<*>, outline: GColor?) {
 		if (outline != null) {
 			if (actor.outlineImageId > 0) {
 				g.pushMatrix()
 				g.setTintFilter(GColor.WHITE, outline)
-				g.drawImage(actor.outlineImageId, actor.getRect())
+				g.drawImage(actor.outlineImageId, actor.getRect().scaledBy(highlightAnimationScale))
 				g.removeFilter()
 				g.popMatrix()
 			} else {
@@ -392,7 +418,12 @@ open class UIZBoardRenderer<T : AGraphics>(component: UIZComponent<*>) : UIRende
 					}
 				}
 				for (area in cell.spawnAreas) {
-					drawSpawn(g, cell, area)
+					with (drawSpawn(g, cell, area)) {
+						if (zone.isTargetForEscape && area.isEscapableForNecromancers) {
+							g.color = GColor.RED
+							g.drawRect(this, 2f)
+						}
+					}
 				}
 				if (zone.isDragonBile) {
 					if (miniMap) {
@@ -413,7 +444,7 @@ open class UIZBoardRenderer<T : AGraphics>(component: UIZComponent<*>) : UIRende
 		return result
 	}
 
-	fun drawSpawn(g: AGraphics, rect: IRectangle, area: ZSpawnArea) {
+	fun drawSpawn(g: AGraphics, rect: IRectangle, area: ZSpawnArea) : IRectangle {
 		val dir = area.dir
 		val id = area.icon.imageIds[dir.ordinal]
 		val img = g.getImage(id)
@@ -430,6 +461,7 @@ open class UIZBoardRenderer<T : AGraphics>(component: UIZComponent<*>) : UIRende
 			g.drawString(txt.trim { it <= ' ' }, area.rect.topLeft)
 			g.textHeight = oldHeight
 		}
+		return area.rect
 	}
 
 	fun drawCellWalls(g: AGraphics, cellPos: Grid.Pos?, scale: Float, miniMap: Boolean) {
@@ -727,11 +759,23 @@ open class UIZBoardRenderer<T : AGraphics>(component: UIZComponent<*>) : UIRende
 		return picked
 	}
 
+	var savedCenter : IVector2D? = null
 	//game.getBoard().getZone(game.getCurrentCharacter().getOccupiedZone()).getCenter();
 	val boardCenter: IVector2D
 		get() {
+			savedCenter?.takeIf { it is ZCharacter && it.isAnimating }?.let {
+				return it
+			}
 			game.currentCharacter?.let {
-				return it.character.getRect().center
+				return it.character.also {
+					savedCenter = it
+				}
+			}?:highlightActor?.let {
+				return it.also {
+					savedCenter = it
+				}
+			}?:savedCenter?.let {
+				return it
 			}
 			val rect = GRectangle()
 			board.getAllCharacters().takeIf { it.isNotEmpty() }?.forEach { c ->
@@ -749,6 +793,7 @@ open class UIZBoardRenderer<T : AGraphics>(component: UIZComponent<*>) : UIRende
 
 	fun onTilesLoaded(ids: IntArray) {
 		tileIds = ids
+		savedCenter = null
 	}
 
 	open fun onLoading() {}

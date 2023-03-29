@@ -66,16 +66,10 @@ abstract class ZEquipment<T : ZEquipmentType> : Reflector<ZEquipment<T>>(), IBut
     abstract fun getCardInfo(c: ZCharacter, game: ZGame): Table
     override fun getTooltipText(): String? = type.tooltipText
 
-    override fun toString(): String {
-        return prettify(type.name)
-    }
+    override fun toString(): String  = prettify(type.name)
 
-    override fun getLabel(): String {
-        return prettify(type.name)
-    }
+    override fun getLabel(): String = prettify(type.name)
 
     open fun onEndOfRound(game: ZGame) {}
-    override fun isImmutable(): Boolean {
-        return true
-    }
+    override fun isImmutable(): Boolean = true
 }

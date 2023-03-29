@@ -8,6 +8,7 @@ import cc.lib.zombicide.ZDir.Companion.compassValues
 import cc.lib.zombicide.ZSpawnCard.ActionType
 import java.util.*
 import kotlin.Pair
+import kotlin.collections.ArrayList
 
 @Suppress("UNCHECKED_CAST")
 open class ZGame() : Reflector<ZGame>() {
@@ -75,9 +76,7 @@ open class ZGame() : Reflector<ZGame>() {
         }
     }
 
-    class State internal constructor(val state: ZState, val player: ZPlayerName?, val equipment: ZEquipment<*>?, val skillLevel: ZSkillLevel?) : Reflector<State>() {
-        constructor() : this(ZState.INIT, null, null, null) {}
-    }
+    data class State internal constructor(val state: ZState = ZState.INIT, val player: ZPlayerName? = null, val equipment: ZEquipment<*>? = null, val skillLevel: ZSkillLevel? = null, val target: ZPlayerName? = null) : Reflector<State>()
 
     private val stateStack = Stack<State>()
     @JvmField
@@ -100,10 +99,6 @@ open class ZGame() : Reflector<ZGame>() {
     private lateinit var currentQuest: ZQuests
     private lateinit var dice: IntArray
     private var difficulty = ZDifficulty.EASY
-    @JvmOverloads
-    fun pushState(state: ZState, player: ZPlayerName?, e: ZEquipment<*>? = null, skill: ZSkillLevel? = null) {
-        pushState(State(state, player, e, skill))
-    }
 
     fun pushState(state: State) {
         val oldPlayer = currentCharacter
@@ -145,7 +140,8 @@ open class ZGame() : Reflector<ZGame>() {
         gameOverStatus = 0
         spawnMultiplier = 1
         dice = initDice(difficulty)
-        setState(ZState.INIT)
+	    stateStack.clear()
+        setState(State(ZState.INIT))
     }
 
     fun clearCharacters() {
@@ -299,9 +295,9 @@ open class ZGame() : Reflector<ZGame>() {
         }
     }
 
-    fun spawnZombies(count: Int, name: ZZombieType, zone: Int) {
-        var count = count
-        var name = name
+    fun spawnZombies(_count: Int, _name: ZZombieType, zone: Int) {
+        var count = _count
+        var name = _name
         if (count == 0) return
         while (true) {
             val _name = name
@@ -330,8 +326,8 @@ open class ZGame() : Reflector<ZGame>() {
         }
     }
 
-    private fun spawnZombiesInternal(type: ZZombieType, count: Int, zone: Int) {
-        var count = count
+    private fun spawnZombiesInternal(type: ZZombieType, _count: Int, zone: Int) {
+        var count = _count
         log.debug("spawn zombies %s X %d in zone %d", type, count, zone)
         if ((count > 0) && type.canDoubleSpawn && (spawnMultiplier > 1)) {
             log.debug("**** Spawn multiplier applied %d", spawnMultiplier)
@@ -355,9 +351,10 @@ open class ZGame() : Reflector<ZGame>() {
     protected open fun onZombieSpawned(zombie: ZZombie) {}
     val state: ZState
         get() {
-            if (stateStack.empty()) pushState(ZState.BEGIN_ROUND, null)
+            if (stateStack.empty()) pushState(State(ZState.BEGIN_ROUND))
             return stateStack.peek()!!.state
         }
+
     val stateEquipment: ZEquipment<*>?
         get() {
             if (stateStack.isEmpty()) throw GException("Invalid state")
@@ -365,9 +362,13 @@ open class ZGame() : Reflector<ZGame>() {
             return stateStack.peek()!!.equipment
         }
 
-    private fun setState(state: ZState) {
-        stateStack.clear()
-        pushState(state, null)
+	val stateData: State
+		get() = stateStack.peek()
+
+    private fun setState(state: State) {
+        if (stateStack.size > 0)
+        	stateStack.pop()
+        pushState(state)
     }
 
     protected open fun onQuestComplete() {
@@ -457,7 +458,7 @@ open class ZGame() : Reflector<ZGame>() {
      * @return true if something changed, false otherwise
      */
     open fun runGame(): Boolean {
-        log.debug("runGame %s", state)
+        log.debug("runGame %s", stateStack.joinToString())
         if (!isGameSetup) {
             log.error("Invalid Game")
             require(false)
@@ -490,13 +491,13 @@ open class ZGame() : Reflector<ZGame>() {
                         }
                     }
                 }
-                setState(ZState.BEGIN_ROUND)
+                setState(State(ZState.BEGIN_ROUND))
                 onCurrentUserUpdated(getCurrentUser())
                 return true
             }
             ZState.BEGIN_ROUND -> {
                 onBeginRound(roundNum)
-	            setState(if (roundNum > 0) ZState.SPAWN else ZState.PLAYER_STAGE_CHOOSE_CHARACTER)
+	            setState(State(if (roundNum > 0) ZState.SPAWN else ZState.PLAYER_STAGE_CHOOSE_CHARACTER))
                 roundNum++
                 addLogMessage("Begin Round $roundNum")
                 onStartRound(roundNum)
@@ -519,7 +520,7 @@ open class ZGame() : Reflector<ZGame>() {
                     }
                     zIdx++
                 }
-                setState(ZState.PLAYER_STAGE_CHOOSE_CHARACTER)
+                setState(State(ZState.PLAYER_STAGE_CHOOSE_CHARACTER))
             }
             ZState.PLAYER_STAGE_CHOOSE_CHARACTER -> {
 
@@ -551,7 +552,7 @@ open class ZGame() : Reflector<ZGame>() {
                     }
                     if (currentUser == startUser) {
                         if (users.size > 2) startUser = (startUser + 1) % users.size
-                        setState(ZState.ZOMBIE_STAGE)
+                        setState(State(ZState.ZOMBIE_STAGE))
                     }
                 } else if (options.size == 1) {
                     currentCharacter = options[0]
@@ -559,7 +560,7 @@ open class ZGame() : Reflector<ZGame>() {
                     currentCharacter = getCurrentUser().chooseCharacter(options)
                 }
                 if (currentCharacter != null) {
-                    pushState(ZState.PLAYER_STAGE_CHOOSE_CHARACTER_ACTION, currentCharacter)
+                    pushState(State(ZState.PLAYER_STAGE_CHOOSE_CHARACTER_ACTION, currentCharacter))
                 }
             }
             ZState.PLAYER_STAGE_CHOOSE_CHARACTER_ACTION -> {
@@ -581,15 +582,19 @@ open class ZGame() : Reflector<ZGame>() {
                 for (skill: ZSkill in ch.getAvailableSkills()) {
                     skill.addSpecialMoves(this, ch, options)
                 }
-                if (actionsLeft > 0) {
 
+	            if (isOrganizeEnabled) {
+	            	options.add(ZMove.newOrganize())
+	            }
+
+	            if (actionsLeft > 0) {
                     // check for organize
-                    if (ch.allEquipment.isNotEmpty())
+                    if (!isOrganizeEnabled && ch.allEquipment.isNotEmpty())
                     	options.add(ZMove.newInventoryMove())
                     val zoneCleared = isClearedOfZombies(ch.occupiedZone)
 
                     // check for trade with another character in the same zone (even if they are dead)
-                    if (zoneCleared) {
+                    if (!isOrganizeEnabled && zoneCleared) {
                         addTradeOptions(ch, options)
                     }
 
@@ -605,38 +610,25 @@ open class ZGame() : Reflector<ZGame>() {
 
                     // check for move up, down, right, left
                     addWalkOptions(ch, options, ZActionType.MOVE)
-                    run {
-                        val melee: List<ZWeapon> = ch.meleeWeapons
-                        if (melee.isNotEmpty()) {
-                            options.add(ZMove.newMeleeAttackMove(melee))
-                        }
-                    }
-                    run {
-                        val ranged: List<ZWeapon> = ch.rangedWeapons
-                        if (ranged.isNotEmpty()) {
-                            options.add(ZMove.newRangedAttackMove(ranged))
-                            for (slot: ZWeapon in ranged) {
-                                if (!slot.isLoaded) {
-                                    options.add(ZMove.newReloadMove(slot))
-                                }
+		            ch.meleeWeapons.takeIf { it.isNotEmpty() }?.let {
+			            options.add(ZMove.newMeleeAttackMove(it))
+		            }
+                    ch.rangedWeapons.takeIf { it.isNotEmpty() }?.let { ranged ->
+                        options.add(ZMove.newRangedAttackMove(ranged))
+                        for (slot: ZWeapon in ranged) {
+                            if (!slot.isLoaded) {
+                                options.add(ZMove.newReloadMove(slot))
                             }
                         }
                     }
-                    run {
-                        val magic: List<ZWeapon> = ch.magicWeapons
-                        if (magic.isNotEmpty()) {
-                            options.add(ZMove.newMagicAttackMove(magic))
-                        }
+		            ch.magicWeapons.takeIf { it.isNotEmpty() }?.let {
+                        options.add(ZMove.newMagicAttackMove(it))
                     }
-                    run {
-                        val items: List<ZEquipment<*>> = ch.throwableEquipment
-                        if (items.isNotEmpty()) {
-                            options.add(ZMove.newThrowEquipmentMove(items))
-                        }
+		            ch.throwableEquipment.takeIf { it.isNotEmpty() }?.let {
+                        options.add(ZMove.newThrowEquipmentMove(it))
                     }
-                    val spells = ch.spells
-                    if (spells.isNotEmpty()) {
-                        options.add(ZMove.newEnchantMove(spells))
+                    ch.spells.takeIf { it.isNotEmpty() }?.let {
+                        options.add(ZMove.newEnchantMove(it))
                     }
 	                if (zone.type === ZZoneType.VAULT) {
                         val takables: List<ZEquipment<*>> = quest.getVaultItems(ch.occupiedZone)
@@ -669,7 +661,7 @@ open class ZGame() : Reflector<ZGame>() {
                     }
                 }
                 if (options.size == 0) {
-                    setState(ZState.PLAYER_STAGE_CHOOSE_CHARACTER)
+                    setState(State(ZState.PLAYER_STAGE_CHOOSE_CHARACTER))
                     return false
                 }
 
@@ -726,8 +718,10 @@ open class ZGame() : Reflector<ZGame>() {
                 val equip = stateEquipment!!
                 val options: MutableList<ZMove> = object : ArrayList<ZMove>() {
                     init {
-                        add(ZMove.newKeepMove(equip))
-                        add(ZMove.newDisposeEquipmentMove(equip))
+	                    cur.character.getEquippableSlots(equip, true).takeIf { it.isNotEmpty() }?.forEach {
+							add(ZMove.newEquipMove(equip, null, it))
+	                    }?:add(ZMove.newKeepMove(equip))
+                        add(ZMove.newDisposeMove(equip))
                     }
                 }
                 if (cur.character.actionsLeftThisTurn > 0 && equip.isConsumable) {
@@ -737,13 +731,15 @@ open class ZGame() : Reflector<ZGame>() {
                 // need to pop first since performMove might push TODO: Consider remove?
                 popState()
                 if (!performMove(cur.character, move)) {
-                    pushState(ZState.PLAYER_STAGE_CHOOSE_KEEP_EQUIPMENT, cur, equip)
+                    pushState(State(ZState.PLAYER_STAGE_CHOOSE_KEEP_EQUIPMENT, cur, equip))
                     return false
                 }
                 return true
             }
             ZState.ZOMBIE_STAGE -> {
-
+				board.zones.forEach {
+					it.reset()
+				}
                 // sort them such that filled zones have their actions performed first
                 val zoneArr = Array(board.zones.size) { Pair(it, board.getActorsInZone(it)) }
                 zoneArr.sortWith { o0, o1 ->
@@ -765,7 +761,7 @@ open class ZGame() : Reflector<ZGame>() {
                             if (!tryZombieAttack(zombie)) {
                                 if (path == null) {
                                     if (zombie.type === ZZombieType.Necromancer) {
-                                        if (isZoneEscapableForNecromancers(zombie.occupiedZone)) {
+                                        if (zombie.startZone != zombie.occupiedZone && isZoneEscapableForNecromancers(zombie.occupiedZone)) {
                                             // necromancer is escaping!
                                             zombie.performAction(ZActionType.MOVE, this)
                                             onNecromancerEscaped(zombie)
@@ -806,7 +802,7 @@ open class ZGame() : Reflector<ZGame>() {
                 allLivingCharacters.forEach { 
                     it.character.onEndOfRound(this)
                 }
-                setState(ZState.BEGIN_ROUND)
+                setState(State(ZState.BEGIN_ROUND))
                 return true
             }
             ZState.PLAYER_ENCHANT_SPEED_MOVE -> {
@@ -845,9 +841,10 @@ open class ZGame() : Reflector<ZGame>() {
                 return false
             }
             ZState.PLAYER_STAGE_CHOOSE_WEAPON_FROM_DECK -> {
-                user.chooseEquipmentClass(currentCharacter!!, listOf(*ZEquipmentClass.values()))?.let { clazz ->
-                    val choices = allSearchables.filter { e: ZEquipment<*> -> e.type.equipmentClass === clazz }
-                    user.chooseEquipmentInternal(currentCharacter!!, choices)?.let { equip ->
+	            val allClasses = allSearchables.map { it.type.equipmentClass }.filter { it != ZEquipmentClass.AHHHH }.toSet()
+                user.chooseEquipmentClass(currentCharacter!!, allClasses.toList())?.let { clazz ->
+                    val choices = allSearchables.filter { e: ZEquipment<*> -> e.type.equipmentClass === clazz }.toSet()
+                    user.chooseEquipmentInternal(currentCharacter!!, choices.toList())?.let { equip ->
                         popState()
                         lootDeck.remove(equip)
                         giftEquipment(currentCharacter!!.character, equip)
@@ -864,15 +861,27 @@ open class ZGame() : Reflector<ZGame>() {
                         giftEquipment(currentCharacter!!.character, it)
                         return true
                     }
-                    
+
                 }?:run {
                     popState()
                 }
                 return false
             }
+	        ZState.PLAYER_STAGE_ORGANIZE -> {
+		        val cur = currentCharacter!!.character
+		        val secondary : ZPlayerName? = stateData.target ?: board.getCharactersInZone(cur.occupiedZone).firstOrNull {
+			        it != cur
+		        }?.type?.also { 
+		        	setState(State(state = ZState.PLAYER_STAGE_ORGANIZE, player = cur.type, target = it))
+		        }
+		        onOrganizeStarted(cur.type, secondary)
+		        return performOrganize(cur, secondary?.character)
+	        }
         }
         return false
     }
+
+	open val isOrganizeEnabled = false
 
     protected open fun onCharacterDestroysSpawn(c: ZPlayerName, zoneIdx: Int) {
         log.debug("%s destroys spawn at %d", c, zoneIdx)
@@ -965,32 +974,36 @@ open class ZGame() : Reflector<ZGame>() {
         return false
     }
 
-    fun canZoneSpawnNecromancers(zoneIdx: Int): Boolean {
-        val zone = board.getZone(zoneIdx)
-        for (pos: Grid.Pos in zone.getCells()) {
-            for (area: ZSpawnArea in board.getCell(pos).spawnAreas) {
-                if (area.isCanSpawnNecromancers) return true
-            }
-        }
-        return false
-    }
+    fun canZoneSpawnNecromancers(zoneIdx: Int): Boolean = board.getZone(zoneIdx).getCells().firstOrNull {
+    	board.getCell(it).spawnAreas.firstOrNull { area ->
+    		area.isCanSpawnNecromancers
+	    } != null
+    } != null
 
-    fun getZombiePathTowardNearestSpawn(zombie: ZZombie): List<ZDir> {
-        val pathsMap: MutableMap<Int, List<ZDir>> = HashMap()
-        var shortestPath: Int? = null
-        board.zones.filter { z: ZZone -> isZoneEscapableForNecromancers(z.zoneIndex) }.forEach { zone ->
-            val paths: List<List<ZDir>> = board.getShortestPathOptions(zombie.occupiedCell, zone.zoneIndex)
-            if (paths.isNotEmpty()) {
-                pathsMap[zone.zoneIndex] = paths.get(0)
-                if (shortestPath == null || paths.size < pathsMap[shortestPath]!!.size) {
-                    shortestPath = zone.zoneIndex
-                }
-            }
-        }
-        return if (shortestPath == null) emptyList() else (pathsMap.get(shortestPath))!!
-    }
+	fun getZombiePathTowardNearestSpawn(zombie: ZZombie): List<ZDir> {
+		val pathsMap: MutableMap<Int, List<ZDir>> = HashMap()
+		var shortestPath: Int? = null
+		board.zones.filter { z: ZZone -> isZoneEscapableForNecromancers(z.zoneIndex) }.forEach { zone ->
+			if (zone != board.getZone(zombie.startZone)) {
+				val paths: List<List<ZDir>> = board.getShortestPathOptions(zombie.occupiedCell, zone.zoneIndex)
+				if (paths.isNotEmpty()) {
+					pathsMap[zone.zoneIndex] = paths[0]
+					if (shortestPath == null || paths.size < pathsMap[shortestPath]!!.size) {
+						shortestPath = zone.zoneIndex
+					}
+				}
+			}
+		}
+		return shortestPath?.let { zoneIdx ->
+			pathsMap[zoneIdx]?.also { list ->
+				board.getZone(zoneIdx)?.let { zone ->
+					zone.isTargetForEscape = true
+				}
+			}?: emptyList()
+		}?: emptyList()
+	}
 
-    fun getZombiePathTowardVisibleCharactersOrLoudestZone(zombie: ZZombie): List<ZDir> {
+	fun getZombiePathTowardVisibleCharactersOrLoudestZone(zombie: ZZombie): List<ZDir> {
         // zombie will move toward players it can see first and then noisy areas second
         var maxNoise = 0
         var targetZone = -1
@@ -1058,7 +1071,7 @@ open class ZGame() : Reflector<ZGame>() {
                         val c = user.players[i].character
                         if (c.isAlive && c.actionsLeftThisTurn > 0) {
                             popState()
-                            pushState(ZState.PLAYER_STAGE_CHOOSE_CHARACTER_ACTION, c.type)
+                            pushState(State(ZState.PLAYER_STAGE_CHOOSE_CHARACTER_ACTION, c.type))
                             return true
                         }
                         i = (i + 1) % user.players.size
@@ -1112,9 +1125,9 @@ open class ZGame() : Reflector<ZGame>() {
                     options.add(ZMove.newConsumeMove(selectedEquipment, selectedSlot))
                 }
                 when (selectedSlot) {
-                    ZEquipSlot.BACKPACK                                          -> if (selectedEquipment.isEquippable(cur)) {
+                    ZEquipSlot.BACKPACK -> if (selectedEquipment.isEquippable(cur)) {
                         for (slot: ZEquipSlot in cur.getEquippableSlots(selectedEquipment)) {
-                            options.add(ZMove.newEquipMove(selectedEquipment, selectedSlot, slot))
+                            options.add(ZMove.newEquipMove(selectedEquipment, selectedSlot, slot, ZActionType.INVENTORY))
                         }
                     }
                     ZEquipSlot.RIGHT_HAND, ZEquipSlot.LEFT_HAND, ZEquipSlot.BODY -> {
@@ -1138,12 +1151,12 @@ open class ZGame() : Reflector<ZGame>() {
                     // we can take if our backpack is not full or give if their backpack is not full
                     for (eq: ZEquipment<*> in cur.allEquipment) {
                         if (other.character.canTake(eq)) {
-                            options.add(ZMove.newGiveMove(other, eq))
+                            options.add(ZMove.newGiveMove(other, eq, null))
                         }
                     }
                     for (eq: ZEquipment<*> in other.character.allEquipment) {
                         if (cur.canTake(eq)) {
-                            options.add(ZMove.newTakeMove(other, eq))
+                            options.add(ZMove.newTakeMove(other, eq, null))
                         }
                     }
                     user.chooseMoveInternal(cur.type, options)?.let { move ->
@@ -1332,10 +1345,10 @@ open class ZGame() : Reflector<ZGame>() {
                     } else {
                         found.add(equip)
                         quest.onEquipmentFound(this, equip)
-                        pushState(ZState.PLAYER_STAGE_CHOOSE_KEEP_EQUIPMENT, cur.type, equip)
+                        pushState(State(ZState.PLAYER_STAGE_CHOOSE_KEEP_EQUIPMENT, cur.type, equip))
                         if (equip!!.isDualWieldCapable && cur.hasAvailableSkill(ZSkill.Matching_set)) {
                             onBonusAction(cur.type, ZSkill.Matching_set)
-                            pushState(ZState.PLAYER_STAGE_CHOOSE_KEEP_EQUIPMENT, cur.type, equip.type.create())
+                            pushState(State(ZState.PLAYER_STAGE_CHOOSE_KEEP_EQUIPMENT, cur.type, equip.type.create()))
                         }
                     }
                 }
@@ -1349,10 +1362,16 @@ open class ZGame() : Reflector<ZGame>() {
                     cur.removeEquipment(move.equipment!!, move.fromSlot)
                 }
                 cur.attachEquipment(move.equipment!!, move.toSlot)
-                if (prev != null && !cur.isBackpackFull) {
-                    cur.attachEquipment(prev, ZEquipSlot.BACKPACK)
+                if (prev != null) {
+                	if (!cur.isBackpackFull) {
+		                cur.attachEquipment(prev, ZEquipSlot.BACKPACK)
+	                } else {
+	                	putBackInSearchables(prev)
+	                }
                 }
-                cur.performAction(ZActionType.INVENTORY, this)
+	            move.action?.let {
+		            cur.performAction(it, this)
+	            }
                 return true
             }
             ZMoveType.UNEQUIP -> {
@@ -1362,14 +1381,14 @@ open class ZGame() : Reflector<ZGame>() {
                 return true
             }
             ZMoveType.TAKE -> {
-                move.character!!.character.removeEquipment(move.equipment!!)
-                cur.attachEquipment(move.equipment)
-                cur.performAction(ZActionType.INVENTORY, this)
-                return true
+	            move.character!!.character.removeEquipment(move.equipment!!)
+                cur.attachEquipment(move.equipment, move.toSlot)
+	            cur.performAction(ZActionType.INVENTORY, this)
+	            return true
             }
             ZMoveType.GIVE -> {
                 cur.removeEquipment(move.equipment!!)
-                move.character!!.character.attachEquipment(move.equipment)
+                move.character!!.character.attachEquipment(move.equipment, move.toSlot)
                 cur.performAction(ZActionType.INVENTORY, this)
                 return true
             }
@@ -1503,10 +1522,103 @@ open class ZGame() : Reflector<ZGame>() {
             ZMoveType.BLOODLUST_MAGIC,
             ZMoveType.BLOODLUST_RANGED -> return performBloodlust(cur, move)
 	        ZMoveType.CLOSE_SPAWN_PORTAL -> return performCloseSpawnPortal(cur, move)
+	        ZMoveType.ORGANIZE -> {
+		        pushState(State(ZState.PLAYER_STAGE_ORGANIZE, currentCharacter))
+		        return false
+	        }
+	        ZMoveType.ORGANIZE_DONE -> {
+		        if (state == ZState.PLAYER_STAGE_ORGANIZE)
+			        popState()
+		        onOrganizeDone()
+	        }
+	        ZMoveType.ORGANIZE_SLOT -> {
+	        	getCurrentUser().chooseOrganize(cur.type, move.list as List<ZMove>)?.let { move ->
+	        		return performMove(cur, move)
+		        }
+	        }
+	        ZMoveType.ORGANIZE_TRADE -> {
+	        	setState(State(state = ZState.PLAYER_STAGE_ORGANIZE, player = currentCharacter, target = move.character))
+	        }
             else -> log.error("Unhandled move: %s", move.type)
         }
         return false
     }
+
+	private fun performOrganize(cur: ZCharacter, secondary: ZCharacter?) : Boolean {
+		// find all the players we can trade with
+		val moves : MutableMap<ZPlayerName, MutableMap<ZEquipSlot, MutableList<ZMove>>> = mutableMapOf()
+		
+		fun getListFor(name : ZPlayerName, slot : ZEquipSlot) : MutableList<ZMove> = moves.getOrPut(
+			name, { mutableMapOf() }
+		).getOrPut(
+			slot, { mutableListOf() }
+		)
+		
+		//listOfNotNull(cur.type, secondary?.type).map { name ->
+		//	name to ZEquipSlot.values().map { Pair(it, ArrayList<ZMove>()) }.toMap()
+		//}.toMap()
+
+		val extraMoves = mutableListOf<ZMove>()
+		
+		// for each non-null primary / secondary slots, compute all the possible move they can execute
+		val canDoInventory = cur.actionsLeftThisTurn > 0 || cur.hasSkill(ZSkill.Inventory)
+		if (canDoInventory && board.getNumZombiesInZone(cur.occupiedZone) == 0) {
+			// we can trade
+			board.getCharactersInZone(cur.occupiedZone).filter {
+				it.type != cur.type && it.type != secondary?.type
+			}.forEach {
+				extraMoves.add(ZMove.newOrganizeTrade(it.type))
+			}
+
+			secondary?.let { sec ->
+				sec.allEquipment.forEach { equip ->
+					cur.getEquippableSlots(equip, true).forEach { slot ->
+						getListFor(sec.type, equip.slot!!).add(ZMove.newTakeMove(sec.type, equip, slot))
+					}
+				}
+
+				cur.allEquipment.forEach { equip ->
+					sec.getEquippableSlots(equip, true).forEach { slot ->
+						getListFor(cur.type, equip.slot!!).add(ZMove.newGiveMove(sec.type, equip, slot))
+					}
+				}
+			}
+		}
+
+		if (canDoInventory) {
+			cur.allEquipment.forEach { equip ->
+				getListFor(cur.type, equip.slot!!).add(ZMove.newDisposeMove(equip, equip.slot))
+				cur.getEquippableSlots(equip, true).filter { it != equip.slot }.forEach {
+					getListFor(cur.type, equip.slot!!).add(ZMove.newEquipMove(equip, equip.slot, it, ZActionType.INVENTORY, cur.type))
+				}
+			}
+		}
+		
+		val allMoves : List<ZMove> = moves.flatMap { entry -> 
+			entry.value.map { 
+				ZMove.newOrganizeSlot(entry.key, it.key, it.value)
+			}.toList()
+		}.toMutableList().also {
+			it.addAll(extraMoves)
+		}
+
+		getCurrentUser().chooseOrganize(cur.type, allMoves)?.let { move ->
+			return performMove(cur, move)
+		}
+
+		return false
+	}
+
+	/**
+	 * This may be called more than once. Need to handle if a dialog is already open
+	 */
+	open fun onOrganizeStarted(primary : ZPlayerName, secondary : ZPlayerName?) {
+		throw NotImplementedError()
+	}
+
+	open fun onOrganizeDone() {
+		throw NotImplementedError()
+	}
 
 	open fun onCloseSpawnArea(c : ZCharacter, zone: Int, area: ZSpawnArea) {}
 
@@ -1523,6 +1635,31 @@ open class ZGame() : Reflector<ZGame>() {
 		}
 		return false
 	}
+/*
+	private fun performAssignEquipment(cur: ZCharacter, equip: ZEquipment<*>, action : ZActionType) : Boolean {
+		val movesToExecute = mutableListOf<ZMove>()
+		cur.getEquippableSlots2(equip).let { slotList ->
+			val moves = slotList.map { ZMove.newEquipMove(equip, null, it, action)}
+			getCurrentUser().chooseMove(cur.type, moves)?.let { moveIdx ->
+				val move = moves[moveIdx]
+				movesToExecute.add(move)
+				cur.getSlot(move.toSlot!!)?.let { oldEquip ->
+					// move current to backpack if possible
+					if (cur.isBackpackFull) {
+						val disposeMoves : List<ZMove> = cur.getBackpack().map { ZMove.newDisposeMove(it, ZEquipSlot.BACKPACK) }
+						.toMutableList() .also {
+							it.add(ZMove.newDisposeEquipmentMove(oldEquip))
+						}
+						getCurrentUser().chooseMove(cur.type, disposeMoves)?.let {
+							movesToExecute.add(disposeMoves[it])
+						}?:return false
+					} else {
+						cur.attachEquipment(oldEquip, ZEquipSlot.BACKPACK)
+					}
+				}
+			}
+		}
+	}*/
 
     private fun performBloodlust(cur: ZCharacter, move: ZMove): Boolean {
         val weapons: List<ZWeapon>
@@ -1857,18 +1994,11 @@ open class ZGame() : Reflector<ZGame>() {
     }
 
     val highestSkillLevel: ZSkillLevel
-        get() {
-            var best = ZSkillLevel(ZColor.BLUE)
-            for (u: ZUser in users) {
-                for (c: ZPlayerName in u.players) {
-                    val lvl = c.character.skillLevel
-                    if (best < lvl) {
-                        best = lvl
-                    }
-                }
-            }
-            return best
-        }
+        get() = users.maxOfOrNull {
+        	it.players.maxOfOrNull {
+        		it.character.skillLevel
+	        }?:ZSkillLevel.getLevel(0)
+        }?:ZSkillLevel.getLevel(0)
 
     fun addExperience(c: ZCharacter, pts: Int) {
         if (pts <= 0) return
@@ -1878,7 +2008,7 @@ open class ZGame() : Reflector<ZGame>() {
         // make so a user can level up multiple times in a single level up
         // need to push state in reverse order so that the lowest new level choices are first
         val states: MutableList<State> = ArrayList()
-        while (!sl.equals(c.skillLevel)) {
+        while (sl != c.skillLevel) {
             sl = sl.nextLevel()
             addLogMessage(c.name() + " has gained the " + sl.toString() + " skill level")
             states.add(State(ZState.PLAYER_STAGE_CHOOSE_NEW_SKILL, c.type, null, sl))
@@ -1891,11 +2021,11 @@ open class ZGame() : Reflector<ZGame>() {
         log.info("%s gained %d experence!", c, points)
     }
 
-    fun rollDiceWithRerollOption(numDice: Int, dieNumToHit: Int, minHitsForAutoReroll: Int, maxHitsForAutoNoReroll: Int): Array<Int> {
-        var minHitsForAutoReroll = minHitsForAutoReroll
-        var maxHitsForAutoNoReroll = maxHitsForAutoNoReroll
-        minHitsForAutoReroll = Math.max(minHitsForAutoReroll, 0)
-        maxHitsForAutoNoReroll = Math.min(maxHitsForAutoNoReroll, numDice)
+    fun rollDiceWithRerollOption(numDice: Int, dieNumToHit: Int, _minHitsForAutoReroll: Int, _maxHitsForAutoNoReroll: Int): Array<Int> {
+        var minHitsForAutoReroll = _minHitsForAutoReroll
+        var maxHitsForAutoNoReroll = _maxHitsForAutoNoReroll
+        minHitsForAutoReroll = minHitsForAutoReroll.coerceAtLeast(0)
+        maxHitsForAutoNoReroll = maxHitsForAutoNoReroll.coerceAtMost(numDice)
         val dice = rollDice(numDice)
         var hits = 0
         for (d: Int in dice) {
@@ -1908,7 +2038,7 @@ open class ZGame() : Reflector<ZGame>() {
         }
         if (hits > minHitsForAutoReroll) {
             val plentyOMove = getCurrentUser().chooseMoveInternal(currentCharacter!!,
-                    Arrays.asList(ZMove.newReRollMove(), ZMove.newKeepRollMove()))
+                    listOf(ZMove.newReRollMove(), ZMove.newKeepRollMove()))
             if (plentyOMove != null) {
                 if (plentyOMove.type === ZMoveType.KEEP_ROLL) return dice
             }
@@ -1947,7 +2077,7 @@ open class ZGame() : Reflector<ZGame>() {
         onZombieDestroyed(killer.type, deathType, zombie.position)
         zombie.destroyed = true //board.removeActor(zombie);
         if (zombie.type === ZZombieType.Necromancer) {
-            pushState(ZState.PLAYER_STAGE_CHOOSE_SPAWN_AREA_TO_REMOVE, killer.type)
+            pushState(State(ZState.PLAYER_STAGE_CHOOSE_SPAWN_AREA_TO_REMOVE, killer.type))
         }
     }
 
@@ -2242,7 +2372,7 @@ open class ZGame() : Reflector<ZGame>() {
         if (slot != null) {
             c.attachEquipment((e), slot)
         } else {
-            pushState(ZState.PLAYER_STAGE_CHOOSE_KEEP_EQUIPMENT, c.type, e)
+            pushState(State(ZState.PLAYER_STAGE_CHOOSE_KEEP_EQUIPMENT, c.type, e))
         }
     }
 
@@ -2261,11 +2391,11 @@ open class ZGame() : Reflector<ZGame>() {
     }
 
     fun chooseEquipmentFromSearchables() {
-        pushState(ZState.PLAYER_STAGE_CHOOSE_WEAPON_FROM_DECK, currentCharacter)
+        pushState(State(ZState.PLAYER_STAGE_CHOOSE_WEAPON_FROM_DECK, currentCharacter))
     }
 
     fun chooseVaultItem() {
-        pushState(ZState.PLAYER_STAGE_CHOOSE_VAULT_ITEM, currentCharacter)
+        pushState(State(ZState.PLAYER_STAGE_CHOOSE_VAULT_ITEM, currentCharacter))
     }
 
     fun giftRandomVaultArtifact(c: ZCharacter) {

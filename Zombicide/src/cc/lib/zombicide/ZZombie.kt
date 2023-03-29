@@ -3,7 +3,7 @@ package cc.lib.zombicide
 import cc.lib.game.*
 import cc.lib.utils.Table
 
-class ZZombie(override val type: ZZombieType = ZZombieType.Walker, zone: Int = -1) : ZActor<ZZombieType>(zone) {
+class ZZombie(override val type: ZZombieType = ZZombieType.Walker, val startZone: Int = -1) : ZActor<ZZombieType>(startZone) {
     companion object {
         init {
             addAllFields(ZZombie::class.java)
@@ -70,12 +70,12 @@ class ZZombie(override val type: ZZombieType = ZZombieType.Walker, zone: Int = -
         return type.description
     }
 
-    override fun performAction(action: ZActionType, game: ZGame): Boolean {
+    override fun performAction(action: ZActionType, game: ZGame) {
         if (action === ZActionType.MELEE) {
             actionsLeftThisTurn = 0
-            return false // zombies are done once they attack
+        } else {
+	        super.performAction(action, game)
         }
-        return super.performAction(action, game)
     }
 
     override fun draw(g: AGraphics) {

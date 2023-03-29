@@ -27,6 +27,7 @@ import cc.lib.game.APGraphics;
 import cc.lib.game.GColor;
 import cc.lib.game.GRectangle;
 import cc.lib.game.IImageFilter;
+import cc.lib.game.IVector2D;
 import cc.lib.game.Justify;
 import cc.lib.math.CMath;
 import cc.lib.math.Vector2D;
@@ -430,7 +431,6 @@ public abstract class DroidGraphics extends APGraphics {
         push(x, y, x+w, y+h);
         paint.setStyle(Paint.Style.FILL);
         canvas.drawOval(rectf, paint);
-        canvas.restore();
     }
 
     @Override
@@ -740,7 +740,7 @@ public abstract class DroidGraphics extends APGraphics {
         paint.setStyle(Paint.Style.FILL);
         push(x, y, x+w, y+h);
         canvas.drawRect(rectf, paint);
-        canvas.restore();
+
     }
 
     @Override
@@ -748,7 +748,7 @@ public abstract class DroidGraphics extends APGraphics {
         paint.setStyle(Paint.Style.STROKE);
         push(x-radius, y-radius, x+radius, y+radius);
         canvas.drawArc(rectf, startDegrees, sweepDegrees, false, paint);
-        canvas.restore();
+
     }
 
     @Override
@@ -759,7 +759,7 @@ public abstract class DroidGraphics extends APGraphics {
         push(x-radius, y-radius, x+radius, y+radius);
         canvas.drawArc(rectf, startDegrees, sweepDegrees, false, paint);
         paint.setStrokeWidth(lw);
-        canvas.restore();
+
     }
 
     @Override
@@ -776,7 +776,7 @@ public abstract class DroidGraphics extends APGraphics {
         push(x, y, x+w, y+h);
         paint.setStyle(Paint.Style.STROKE);
         canvas.drawRect(rectf, paint);
-        canvas.restore();
+
     }*/
 
     final float [] T = { 0,0 };
@@ -813,7 +813,7 @@ public abstract class DroidGraphics extends APGraphics {
         }
         paint.setStyle(Paint.Style.STROKE);
         canvas.drawOval(rectf, paint);
-        canvas.restore();
+
     }
 
     @Override
@@ -833,7 +833,7 @@ public abstract class DroidGraphics extends APGraphics {
         paint.setStyle(Paint.Style.FILL_AND_STROKE);
         canvas.drawOval(rectf, paint);
         paint.setStrokeWidth(lw);
-        canvas.restore();
+
     }
 
     @Override
@@ -841,7 +841,7 @@ public abstract class DroidGraphics extends APGraphics {
         push(x, y, x+w, y+h);
         paint.setStyle(Paint.Style.STROKE);
         canvas.drawOval(rectf, paint);
-        canvas.restore();
+
     }
 
     private void captureTransform() {
@@ -850,16 +850,14 @@ public abstract class DroidGraphics extends APGraphics {
     }
 
     private void push(float l, float t, float r, float b) {
-        rectf.set(l, t, r, b);
-        captureTransform();
-        canvas.save();
-        canvas.setMatrix(M);
+        IVector2D tl = R.transformXY(l, t);
+        IVector2D br = R.transformXY(r, b);
+        rectf.set(tl.getX(), tl.getY(), br.getX(), br.getY());
     }
 
     private void renderRoundRect(float x, float y, float w, float h, float radius) {
         push(x, y, x+w, y+h);
         canvas.drawRoundRect(rectf, radius, radius,paint);
-        canvas.restore();
     }
 
     @Override

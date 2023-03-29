@@ -5,13 +5,14 @@ import cc.game.kaiser.core.*
 import cc.lib.game.Utils
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import kotlin.system.exitProcess
 
 class KaiserConsole internal constructor() {
 	fun chooseGameType() {
-		var option: String? = null
-		var name: String? = null
+		var option = ""
+		var name = ""
 		while (true) {
-			while (name == null || name.length <= 0) {
+			while (name.isEmpty()) {
 				printf("Enter your name >")
 				name = readLine()!!.trim { it <= ' ' }
 			}
@@ -23,7 +24,7 @@ class KaiserConsole internal constructor() {
 				printf("J>   Join Multi Player\n")
 				printf("Q>   Quit")
 				option = readLine()!!.trim { it <= ' ' }.toUpperCase()
-			} while (option!!.length <= 0)
+			} while (option.isEmpty())
 			when (option[0]) {
 				'S' -> singlePlayerGame(name)
 				'Q' -> System.exit(0)
@@ -57,16 +58,15 @@ class KaiserConsole internal constructor() {
 	}
 
 	var thisPlayer: ConsolePlayer? = null
-	var reader: BufferedReader? = null
-	fun readLine(): String? {
+	val reader: BufferedReader by lazy {
+		BufferedReader(InputStreamReader(System.`in`))
+	}
+	fun readLine(): String {
 		try {
-			if (reader == null) reader = BufferedReader(InputStreamReader(System.`in`))
-			return reader!!.readLine()
+			return reader.readLine()
 		} catch (e: Exception) {
-			e.printStackTrace()
-			System.exit(1)
+			exitProcess(1)
 		}
-		return null
 	}
 
 	fun printf(fmt: String?, vararg args: Any?) {
@@ -153,8 +153,8 @@ class KaiserConsole internal constructor() {
 	}
 
 	inner class ConsolePlayer(nm: String?) : Player(nm!!) {
-		override fun playTrick(kaiser: Kaiser, cards: Array<Card>): Card? {
-			var card: Card? = null
+		override fun playTrick(kaiser: Kaiser, cards: Array<Card>): Card {
+			var card: Card
 			drawHeader(kaiser)
 			drawTrick(kaiser, 0) //getPlayerNum());
 			drawCards(arrayOf(hand), 1, true)
@@ -168,7 +168,7 @@ class KaiserConsole internal constructor() {
 				val line = readLine()
 				var num = 0
 				num = try {
-					line!!.trim { it <= ' ' }.toInt()
+					line.trim { it <= ' ' }.toInt()
 				} catch (e: Exception) {
 					printf("\n\nInvalid entry.\n\n")
 					continue
@@ -178,7 +178,8 @@ class KaiserConsole internal constructor() {
 					continue
 				}
 				card = getCard(num - 1)
-				if (isInArray(card, cards)) break
+				if (isInArray(card, cards))
+					break
 				printf("\n\n%s is not a valid card to play.\n\n", card.toPrettyString())
 			}
 			printf("\n\n")

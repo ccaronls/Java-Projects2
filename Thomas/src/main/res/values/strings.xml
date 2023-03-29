@@ -56,6 +56,7 @@
     <string name="button_stop">STOP</string>
     <string name="text_completed">Completed</string>
     <string name="tts_n_seconds">%d Seconds</string>
+    <string name="text_n_secs">%d Secs</string>
     <string name="tts_alldone">All Done</string>
     <string name="text_switch">SWITCH</string>
     <string name="text_n_of_n_stations">%1$d of %2$d Stations</string>
@@ -86,6 +87,7 @@
         <item>ORDERING</item>
         <item>COPY WORKOUT</item>
         <item>RENAME WORKOUT</item>
+        <item>DELETE WORKOUT</item>
         <item>RESET</item>
         <item>ABOUT</item>
     </string-array>
@@ -100,9 +102,11 @@
     <string name="popup_button_clear">Clear</string>
     <string name="popup_msg_confirm_clear">This will delete all of your tracking data for %s. Are you Sure?</string>
     <string name="popup_title_about">About Thomas\'s Workout</string>
-    <string name="popup_about_body">
+    <string name="popup_message_about">
 Thomas\'s workout is based on the Variation Principle which suggests that making minor changes to your workout will yield better results. Design your workout with the stations you want, then choose the ordering based on the station type.
 For instance: you may want to perform cardio, core and upper-body in that order. Once setup, the stations will be assigned at random based on the ordering you specify. This way you get variations of the stations you like to do.
 \n\nThanks to my trainer Thomas for his inspiration for this app as well as my son Sebi for so enthusiastically testing the app regularly.
     </string>
+    <string name="popup_message_delete_workout">Are you sure you want to delete workout %s?</string>
+    <string name="popup_message_stations_invalid">Your workout configuration is invalid. The ordering has station types but no enabled stations matching any of the ordering types. Try enabling some more stations of the types indicated in the ordering</string>
 </resources>

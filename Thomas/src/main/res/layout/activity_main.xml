@@ -155,7 +155,19 @@
             app:layout_constraintEnd_toStartOf="@id/b_options"
             app:layout_constraintBottom_toBottomOf="parent"
             android:layout_margin="@dimen/margin"
+            enabledIf="@{viewModel.currentWorkoutIsValid}"
             android:onClick="@{() -> viewModel.activity.toggleStart()}"/>
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toStartOf="@id/b_start"
+            app:layout_constraintEnd_toEndOf="@id/b_start"
+            app:layout_constraintBottom_toTopOf="@id/b_start"
+            android:src="@android:drawable/stat_notify_error"
+            android:layout_marginBottom="5dp"
+            visibleIfNot="@{viewModel.currentWorkoutIsValid}"
+            android:onClick="@{() -> viewModel.activity.showWorkoutErrorMessage()}"/>
 
         <Button
             android:id="@+id/b_options"
@@ -187,6 +199,8 @@
             android:id="@+id/v_center"
             android:layout_width="0dp"
             android:layout_height="0dp"
+            app:layout_constraintWidth_percent="0"
+            app:layout_constraintHeight_percent="0"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"

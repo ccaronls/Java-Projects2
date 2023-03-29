@@ -45,12 +45,11 @@ abstract class ZActor<E : Enum<E>> internal constructor(var occupiedZone: Int=-1
 
     protected abstract val actionsPerTurn: Int
     abstract fun name(): String
-    open fun performAction(action: ZActionType, game: ZGame): Boolean {
+    open fun performAction(action: ZActionType, game: ZGame) {
         if (isAlive) {
             actionsLeftThisTurn -= action.costPerTurn()
             require(actionsLeftThisTurn >= 0)
         }
-        return false
     }
 
     fun addExtraAction() {
@@ -81,7 +80,7 @@ abstract class ZActor<E : Enum<E>> internal constructor(var occupiedZone: Int=-1
     open val moveSpeed: Long
         get() = 1000
     val isAnimating: Boolean
-        get() = animation != null && !animation!!.isDone
+		get() = animation?.isDone?.not()?:false
 
     fun getAnimation(): ZAnimation? {
         return animation

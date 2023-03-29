@@ -5,7 +5,7 @@ import cc.lib.ui.IButton
 import cc.lib.utils.Reflector
 import cc.lib.utils.prettify
 
-class ZMove constructor(
+data class ZMove constructor(
 	val type: ZMoveType=ZMoveType.END_TURN,
 	val integer: Int?=null,
 	val character: ZPlayerName?=null,
@@ -80,8 +80,8 @@ class ZMove constructor(
             return ZMove(type = ZMoveType.CONSUME, equipment = equip, fromSlot = slot)
         }
 
-        fun newEquipMove(equip: ZEquipment<*>, fromSlot: ZEquipSlot, toSlot: ZEquipSlot): ZMove {
-            return ZMove(type = ZMoveType.EQUIP, equipment = equip, fromSlot = fromSlot, toSlot = toSlot)
+        fun newEquipMove(equip: ZEquipment<*>, fromSlot: ZEquipSlot?, toSlot: ZEquipSlot, action: ZActionType? = null, player : ZPlayerName?=null): ZMove {
+            return ZMove(type = ZMoveType.EQUIP, equipment = equip, fromSlot = fromSlot, toSlot = toSlot, action = action, character = player)
         }
 
         fun newKeepMove(equip: ZEquipment<*>): ZMove {
@@ -92,16 +92,16 @@ class ZMove constructor(
             return ZMove(type = ZMoveType.UNEQUIP, equipment = equip, fromSlot = slot)
         }
 
-        fun newDisposeMove(equip: ZEquipment<*>, slot: ZEquipSlot): ZMove {
-            return ZMove(type = ZMoveType.DISPOSE, equipment = equip, fromSlot = slot)
+        fun newDisposeMove(equip: ZEquipment<*>, slot: ZEquipSlot?=null): ZMove {
+            return ZMove(type = ZMoveType.DISPOSE, equipment = equip, fromSlot = slot?:equip.slot)
         }
 
-        fun newGiveMove(taker: ZPlayerName, toGive: ZEquipment<*>): ZMove {
-            return ZMove(type = ZMoveType.GIVE, character = taker, equipment = toGive, fromSlot = toGive.slot)
+        fun newGiveMove(taker: ZPlayerName, toGive: ZEquipment<*>, toSlot : ZEquipSlot?): ZMove {
+            return ZMove(type = ZMoveType.GIVE, character = taker, equipment = toGive, fromSlot = toGive.slot, toSlot = toSlot)
         }
 
-        fun newTakeMove(giver: ZPlayerName, toTake: ZEquipment<*>): ZMove {
-            return ZMove(type = ZMoveType.TAKE, character = giver, equipment = toTake, fromSlot = toTake.slot)
+        fun newTakeMove(giver: ZPlayerName, toTake: ZEquipment<*>, toSlot : ZEquipSlot?): ZMove {
+            return ZMove(type = ZMoveType.TAKE, character = giver, equipment = toTake, fromSlot = toTake.slot, toSlot = toSlot)
         }
 
         fun newObjectiveMove(zone: Int): ZMove {
@@ -164,10 +164,6 @@ class ZMove constructor(
             return ZMove(type = ZMoveType.BLOODLUST_MAGIC, list = zones, skill = skill)
         }
 
-        fun newDisposeEquipmentMove(e: ZEquipment<*>): ZMove {
-            return ZMove(type = ZMoveType.DISPOSE, equipment = e)
-        }
-
         fun newIgniteMove(ignitableZones: List<Int>): ZMove {
             return ZMove(type = ZMoveType.IGNITE, list = ignitableZones)
         }
@@ -176,7 +172,23 @@ class ZMove constructor(
 		    return ZMove(type = ZMoveType.CLOSE_SPAWN_PORTAL, integer = zone, skill = ZSkill.Hand_of_God)
 	    }
 
-        init {
+	    fun newOrganize() : ZMove {
+	    	return ZMove(type = ZMoveType.ORGANIZE)
+	    }
+
+	    fun newOrganizeDone() : ZMove {
+		    return ZMove(type = ZMoveType.ORGANIZE_DONE)
+	    }
+
+	    fun newOrganizeTrade(player : ZPlayerName) : ZMove {
+		    return ZMove(type = ZMoveType.ORGANIZE_TRADE, character = player)
+	    }
+
+	    fun newOrganizeSlot(player : ZPlayerName, slot: ZEquipSlot?, moves : List<ZMove>) : ZMove {
+	    	return ZMove(type = ZMoveType.ORGANIZE_SLOT, fromSlot = slot, character = player, list = moves)
+	    }
+
+	    init {
             addAllFields(ZMove::class.java)
         }
     }
@@ -184,26 +196,6 @@ class ZMove constructor(
     constructor(copy: ZMove, singleListElement: Any, integer: Int) : this(copy.type, integer, copy.character, copy.equipment, copy.fromSlot, copy.toSlot, listOf(singleListElement), copy.skill, copy.action) {}
     constructor(copy: ZMove, singleListElement: Any, character: ZPlayerName?) : this(copy.type, copy.integer, character, copy.equipment, copy.fromSlot, copy.toSlot, listOf(singleListElement), copy.skill, copy.action) {}
     constructor(copy: ZMove, singleListElement: Any, equipment: ZEquipment<*>?) : this(copy.type, copy.integer, copy.character, equipment, copy.fromSlot, copy.toSlot, listOf(singleListElement), copy.skill, copy.action) {}
-/*
-    private constructor(type: ZMoveType, action: ZActionType) : this(type, null, null, null, null, null, null, null, action) {}
-    private constructor(type: ZMoveType, num: Int? = null) : this(type, num, null, null, null, null, null, null, null) {}
-    private constructor(type: ZMoveType, num: Int, action: ZActionType?) : this(type, num, null, null, null, null, null, null, action) {}
-    private constructor(type: ZMoveType, list: List<*>) : this(type, null, null, null, null, null, list, null, null) {}
-    private constructor(type: ZMoveType, list: List<*>, action: ZActionType?) : this(type, null, null, null, null, null, list, null, action) {}
-    private constructor(type: ZMoveType, list: List<*>, skill: ZSkill) : this(type, null, null, null, null, null, list, skill, null) {}
-    private constructor(type: ZMoveType, equip: ZEquipment<*>, fromSlot: ZEquipSlot?) : this(type, null, null, equip, fromSlot, null, null, null, null) {}
-    private constructor(type: ZMoveType, targetIndex: Int, character: ZPlayerName?, equip: ZEquipment<*>, fromSlot: ZEquipSlot?, toSlot: ZEquipSlot?, list: List<*>?) : this(type, targetIndex, character, equip, fromSlot, toSlot, list, null, null) {}
-*/
-    override fun toString(): String {
-        return "ZMove{" +
-                "type=" + type +
-                ", integer=" + integer +
-                ", equipment=" + equipment +
-                ", fromSlot=" + fromSlot +
-                ", toSlot=" + toSlot +
-                ", list=" + list +
-                '}'
-    }
 
     override fun equals(o: Any?): Boolean {
         if (this === o) return true
@@ -238,6 +230,11 @@ class ZMove constructor(
         }
         if (toSlot != null)
         	label += " to ${toSlot.label}"
+	    if (type == ZMoveType.TRADE) {
+	    	list?.takeIf { it.size == 1 }?.map { it as ZPlayerName }?.firstOrNull()?.let {
+			    label += " with ${it.label}"
+		    }
+	    }
         return label
     }
 }

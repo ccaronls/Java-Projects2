@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <data>
+
+        <variable
+            name="viewModel"
+            type="cc.game.zombicide.android.OrganizeViewModel" />
+
+        <variable
+            name="character"
+            type="cc.lib.zombicide.ZCharacter" />
+
+        <variable
+            name="position"
+            type="Integer" />
+    </data>
+    <LinearLayout
+        style="@style/container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TextView
+            android:id="@+id/tvItemName"
+            style="@style/h1"
+            android:gravity="center"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@{character.backpack.get(position).label}"
+            tools:text="WATER"/>
+
+    </LinearLayout>
+</layout>

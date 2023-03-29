@@ -125,4 +125,8 @@ class UIZUser : ZUser() {
 		UIZombicide.instance.boardRenderer.setOverlay(Table().addColumn("Choose Starting Equipment", table))
 		return UIZombicide.instance.pickMenu(playerName, "Choose Starting Equipment", ZEquipmentType::class.java, list)
 	}
+
+	override fun chooseOrganize(playerName: ZPlayerName, list: List<ZMove>): ZMove? {
+		return UIZombicide.instance.updateOrganize(playerName.character, list)
+	}
 }

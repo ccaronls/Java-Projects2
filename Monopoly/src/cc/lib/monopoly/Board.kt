@@ -2,7 +2,6 @@ package cc.lib.monopoly
 
 import cc.lib.game.GColor
 import cc.lib.game.GRectangle
-import cc.lib.game.Utils
 import cc.lib.math.Vector2D
 
 class Board(  // dimension of whole board
@@ -121,19 +120,15 @@ class Board(  // dimension of whole board
 	}
 
 	// TODO: Make this apart of Square enum
-	fun getSquarePosition(sq: Square?): Position? {
-		when (sq) {
-			Square.GO -> return Position.CORNER_BR
-			Square.MEDITERRANEAN_AVE, Square.COMM_CHEST1, Square.BALTIC_AVE, Square.INCOME_TAX, Square.READING_RAILROAD, Square.ORIENTAL_AVE, Square.CHANCE1, Square.VERMONT_AVE, Square.CONNECTICUT_AVE -> return Position.BOTTOM
-			Square.VISITING_JAIL -> return Position.CORNER_BL
-			Square.ST_CHARLES_PLACE, Square.ELECTRIC_COMPANY, Square.STATES_AVE, Square.VIRGINIA_AVE, Square.PENNSYLVANIA_RAILROAD, Square.ST_JAMES_PLACE, Square.COMM_CHEST2, Square.TENNESSEE_AVE, Square.NEW_YORK_AVE -> return Position.LEFT
-			Square.FREE_PARKING -> return Position.CORNER_TL
-			Square.KENTUCKY_AVE, Square.CHANCE2, Square.INDIANA_AVE, Square.ILLINOIS_AVE, Square.B_AND_O_RAILROAD, Square.ATLANTIC_AVE, Square.VENTNOR_AVE, Square.WATER_WORKS, Square.MARVIN_GARDINS -> return Position.TOP
-			Square.GOTO_JAIL -> return Position.CORNER_TR
-			Square.PACIFIC_AVE, Square.NORTH_CAROLINA_AVE, Square.COMM_CHEST3, Square.PENNSYLVANIA_AVE, Square.SHORT_LINE_RAILROAD, Square.CHANCE3, Square.PARK_PLACE, Square.LUXURY_TAX, Square.BOARDWALK -> return Position.RIGHT
-		}
-		Utils.unhandledCase(sq)
-		return null
+	fun getSquarePosition(sq: Square): Position = when (sq) {
+		Square.GO -> Position.CORNER_BR
+		Square.MEDITERRANEAN_AVE, Square.COMM_CHEST1, Square.BALTIC_AVE, Square.INCOME_TAX, Square.READING_RAILROAD, Square.ORIENTAL_AVE, Square.CHANCE1, Square.VERMONT_AVE, Square.CONNECTICUT_AVE -> Position.BOTTOM
+		Square.VISITING_JAIL -> Position.CORNER_BL
+		Square.ST_CHARLES_PLACE, Square.ELECTRIC_COMPANY, Square.STATES_AVE, Square.VIRGINIA_AVE, Square.PENNSYLVANIA_RAILROAD, Square.ST_JAMES_PLACE, Square.COMM_CHEST2, Square.TENNESSEE_AVE, Square.NEW_YORK_AVE -> Position.LEFT
+		Square.FREE_PARKING -> Position.CORNER_TL
+		Square.KENTUCKY_AVE, Square.CHANCE2, Square.INDIANA_AVE, Square.ILLINOIS_AVE, Square.B_AND_O_RAILROAD, Square.ATLANTIC_AVE, Square.VENTNOR_AVE, Square.WATER_WORKS, Square.MARVIN_GARDINS -> Position.TOP
+		Square.GOTO_JAIL -> Position.CORNER_TR
+		Square.PACIFIC_AVE, Square.NORTH_CAROLINA_AVE, Square.COMM_CHEST3, Square.PENNSYLVANIA_AVE, Square.SHORT_LINE_RAILROAD, Square.CHANCE3, Square.PARK_PLACE, Square.LUXURY_TAX, Square.BOARDWALK -> Position.RIGHT
 	}
 
 	companion object {

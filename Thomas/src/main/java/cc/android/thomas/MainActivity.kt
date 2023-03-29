@@ -16,7 +16,6 @@ import android.widget.*
 import androidx.activity.viewModels
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -28,9 +27,7 @@ import cc.lib.android.DragAndDropAdapter
 import cc.lib.android.EmailHelper
 import cc.lib.annotation.Keep
 import cc.lib.game.Utils
-import cc.lib.utils.Reflector
-import cc.lib.utils.prettify
-import cc.lib.utils.weakReference
+import cc.lib.utils.*
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
@@ -38,8 +35,8 @@ import org.joda.time.DateTime
 import org.joda.time.DateTimeZone
 import java.io.File
 import java.io.FileNotFoundException
-import java.lang.RuntimeException
 import java.util.*
+import kotlin.Pair
 
 enum class WorkoutState {
 	STOPPED,
@@ -65,17 +62,16 @@ class ThomasViewModel(_context : MainActivity) : ViewModel() {
 	val npCircuits = MutableLiveData(0)
 
 	val currentWorkout = MutableLiveData(0)
+	val currentWorkoutIsValid = MutableLiveData(false)
 
-	val npPeriodFormatter = object : NumberPicker.Formatter {
-		override fun format(value: Int): String {
-			var seconds = 10 + value * 10
-			val minutes = seconds / 60
-			seconds -= minutes * 60
-			return if (minutes > 0) {
-				activity?.getString(R.string.time_format, minutes, seconds)?:""
-			} else {
-				activity?.getString(R.string.tts_n_seconds, seconds)?:""
-			}
+	val npPeriodFormatter = NumberPicker.Formatter { value ->
+		var seconds = 10 + value * 10
+		val minutes = seconds / 60
+		seconds -= minutes * 60
+		if (minutes > 0) {
+			activity?.getString(R.string.time_format, minutes, seconds)?:""
+		} else {
+			activity?.getString(R.string.tts_n_seconds, seconds)?:""
 		}
 	}
 }
@@ -89,32 +85,21 @@ class MainActivity : CCActivityBase(),
     val sets: MutableList<Station> = ArrayList()
     lateinit var workouts: MutableList<Workout>
     lateinit var pager_adapter: PagerAdapter
-	val vm : ThomasViewModel by viewModels {
+	val vm : ThomasViewModel by viewModels()
+	/*{
 		object : ViewModelProvider.NewInstanceFactory() {
 			override fun <T : ViewModel> create(modelClass: Class<T>): T  = ThomasViewModel(this@MainActivity) as T
 		}
-	}
+	}*/
 	val curWorkout : Workout
-		get() = workouts[(vm.currentWorkout.value?:0).coerceIn(0, workouts.size)]
+		get() = workouts[(vm.currentWorkout.value?:0).coerceIn(0 until workouts.size)]
 
-    companion object {
+	val STATIONS_FILE by lazy { File(filesDir, "stations.txt") }
+	val WORKOUTS_FILE by lazy { File(filesDir, "workouts.txt") }
+
+
+	companion object {
         val TAG : String = MainActivity::class.java.simpleName
-        const val STATIONS_FILE = "stations.txt"
-        const val WORKOUTS_FILE = "workouts.txt"
-        fun getTimeString(_secs: Long): String {
-            var secs = _secs
-            return if (secs <= 60) {
-                String.format("%d Secs", secs)
-            } else if (secs < 60 * 60) {
-                String.format("%d:%02d", secs / 60, secs % 60)
-            } else {
-                var mins = secs / 60
-                secs -= mins * 60
-                val hours = mins / 60
-                mins -= hours * 60
-                String.format("%d:%02d:%02d", hours, mins, secs)
-            }
-        }
 
         init {
             Reflector.registerClass(StationType::class.java)
@@ -144,6 +129,16 @@ class MainActivity : CCActivityBase(),
                 st.clearCounts()
             }
         }
+	    fun isValid() : Boolean {
+	    	if (stations.isEmpty() || ordering.isEmpty())
+	    		return false
+
+		    val o = ordering.toHashSet()
+		    o.forEach { stationType ->
+		    	stations.firstOrNull { it.enabled && it.type == stationType }?:return false
+		    }
+		    return true
+	    }
     }
 
     @Parcelize
@@ -192,16 +187,16 @@ class MainActivity : CCActivityBase(),
     }
 
     fun loadWorkouts() {
-        val file = File(filesDir, WORKOUTS_FILE)
+        val file = WORKOUTS_FILE
         try {
             workouts = Reflector.deserializeFromFile(file)
-            //            Log.d(TAG, "Loaded:\n" + workouts.toString());
-            return
+            Log.d(TAG, "Loaded:\n$workouts")
+	        if (!Utils.isEmpty(workouts))
+	            return
         } catch (e: FileNotFoundException) {
             // ignore
         } catch (e: Exception) {
-            e.message
-            Log.e(TAG, "Failed to load " + WORKOUTS_FILE + " : " + e.message)
+            Log.e(TAG, "Failed to load " + file.name + " : " + e.message)
 	        if (BuildConfig.DEBUG)
 	        	throw RuntimeException(e)
         }
@@ -211,7 +206,7 @@ class MainActivity : CCActivityBase(),
         workout.ordering = StationType.values()
         workout.numStations = 60
         workout.timerIndex = 5
-        workouts = ArrayList<Workout>(Arrays.asList(workout))
+        workouts = mutableListOf(workout)
     }
 
     val defaultStations: Array<Station>
@@ -252,19 +247,6 @@ class MainActivity : CCActivityBase(),
 		    }
 	    }
 	    vm.currentWorkout.value = prefs.getInt("current_workout", 0)
-	    //binding.npPeriod.minValue = 0
-	    //binding.npPeriod.maxValue = 29
-	    //binding.npPeriod.value = w.timerIndex
-	    //binding.npPeriod.displayedValues = values
-	    //binding.npPeriod.setOnValueChangedListener(this)
-	    //binding.npStations.setOnValueChangedListener(this)
-	    //binding.npStations.minValue = if (BuildConfig.DEBUG) 2 else 5
-	    //binding.npStations.maxValue = 60
-	    //binding.npStations.value = w.numStations
-	    //binding.npCircuits.minValue = 1
-	    //binding.npCircuits.maxValue = 10
-	    //binding.npCircuits.value = w.numCircuits
-	    //binding.npCircuits.setOnValueChangedListener(this)
 	    binding.pagerWorkouts.offscreenPageLimit = 5
 	    binding.pagerWorkouts.pageMargin = -50
 	    binding.pagerWorkouts.setPageTransformer(false, DepthPageTransformer())
@@ -322,16 +304,19 @@ class MainActivity : CCActivityBase(),
 				vm.npStations.value = numStations
 				vm.npCircuits.value = numCircuits
 				vm.npTimePeriod.value = timerIndex
+				vm.currentWorkoutIsValid.value = isValid()
 			}
 		}
     }
 
     override fun onResume() {
         super.onResume()
-        tts = TextToSpeech(this, this)
-        tts?.language = preferredLocale
+	    val context by weakReference(this)
+	    // TTS Apparently leaks its context, hmmmm
+        tts = TextToSpeech(context, this).also {
+        	it.language = preferredLocale
+        }
         restoreState()
-	    updateWorkoutsSummary()
     }
 
     override fun onPause() {
@@ -339,6 +324,7 @@ class MainActivity : CCActivityBase(),
         prefs.edit()
             .putInt("state", vm.state.value?.ordinal?:0)
             .putInt("setIndex", vm.setIndex.value?:0)
+	        .putString("workout", Reflector.serializeObject(sets))
 	        .apply()
         pause()
         tts?.let {
@@ -352,7 +338,8 @@ class MainActivity : CCActivityBase(),
 
     fun saveWorkouts() {
         try {
-            Reflector.serializeToFile<Any>(workouts, File(filesDir, WORKOUTS_FILE))
+            Reflector.serializeToFile<Any>(workouts, WORKOUTS_FILE)
+	        vm.currentWorkoutIsValid.postValue(curWorkout.isValid())
         } catch (e: Exception) {
             e.printStackTrace()
             Snackbar.make(binding.vCenter, R.string.toast_err_save_workout, Snackbar.LENGTH_LONG).show()
@@ -365,12 +352,18 @@ class MainActivity : CCActivityBase(),
             WorkoutState.STOPPED -> stop()
             WorkoutState.PAUSED,
             WorkoutState.RUNNING -> {
-                initWorkout()
+                try {
+                	val s = Reflector.deserializeFromString<MutableList<Station>>(prefs.getString("workout", null))
+	                sets.addAll(s)
+                } catch (e: Exception) {
+                	e.printStackTrace()
+	                stop()
+	                return
+                }
                 vm.timeLeftSecs.value = prefs.getInt("timeLeftSecs", 0)
                 vm.setIndex.value = prefs.getInt("setIndex", 0)
                 vm.state.value = WorkoutState.PAUSED
                 binding.bPause.setText(R.string.button_resume)
-                //                binding.tvTimer.post(this);
                 run()
                 binding.bStart.setText(R.string.button_stop)
                 binding.bPause.isEnabled = true
@@ -383,25 +376,24 @@ class MainActivity : CCActivityBase(),
 	private fun updateWorkoutsSummary() {
 		val dtz = DateTimeZone.forTimeZone(TimeZone.getDefault())
 		val today = DateTime.now(dtz).withTimeAtStartOfDay()
-		workouts.forEach { w ->
-			val all = w.stations
-			for (s in all) {
-				if (s.lastDoneLocalSecs > 0) {
-					// see if we need to 0 out the day, week, month counters
-					val prev = DateTime(s.lastDoneLocalSecs * 1000, dtz).withTimeAtStartOfDay()
-					if (prev.isBefore(today)) {
-						s.todaySecs = 0
-					}
-					if (prev.isBefore(today.withDayOfWeek(1))) {
-						s.thisWeekSecs = 0
-					}
-					if (prev.isBefore(today.withDayOfMonth(1))) {
-						s.thisMonthSecs = 0
-					}
+		val allStations = allKnownStations.map { it.name to it }.toMap().toMutableMap()
+		for (station in curWorkout.stations) {
+			if (station.lastDoneLocalSecs > 0) {
+				val s = allStations.getOrSet(station.name, station)
+				// see if we need to 0 out the day, week, month counters
+				val prev = DateTime(s.lastDoneLocalSecs * 1000, dtz).withTimeAtStartOfDay()
+				if (prev.isBefore(today)) {
+					s.todaySecs = 0
+				}
+				if (prev.isBefore(today.withDayOfWeek(1))) {
+					s.thisWeekSecs = 0
+				}
+				if (prev.isBefore(today.withDayOfMonth(1))) {
+					s.thisMonthSecs = 0
 				}
 			}
 		}
-		saveWorkouts()
+		saveStations(allStations.values.toTypedArray())
 	}
 
     override fun onPageScrolled(i: Int, v: Float, i1: Int) {}
@@ -415,35 +407,61 @@ class MainActivity : CCActivityBase(),
     override fun onPageScrollStateChanged(i: Int) {}
 
     fun showOptionsPopup() {
-        newDialogBuilder().setTitle(R.string.popup_title_options)
-                .setItems(resources.getStringArray(R.array.popup_options)) { _, i: Int ->
-                    when (i) {
-                        0 -> {
-                            val stations = allKnownStations
-                            for (s in stations) {
-                                s.enabled = false
-                            }
-                            val all = LinkedHashSet<Station>()
-                            all.addAll(Arrays.asList(*curWorkout.stations))
-                            all.addAll(Arrays.asList(*stations))
-                            showStationsPopup(all.toTypedArray())
+        newDialogBuilder()
+	        .setTitle(R.string.popup_title_options)
+            .setItems(resources.getStringArray(R.array.popup_options)) { _, i: Int ->
+                when (i) {
+                    0 -> {
+                        val stations = allKnownStations
+                        for (s in stations) {
+                            s.enabled = false
                         }
-                        1 -> showSummaryPopup()
-                        2 -> showOrderingPopup()
-                        3 -> showSaveWorkoutPopup(true)
-                        4 -> showSaveWorkoutPopup(false)
-                        5 -> newDialogBuilder().setTitle(R.string.popup_title_confirm).setMessage(R.string.popup_msg_confirmreset)
-                                .setNegativeButton(R.string.popup_button_cancel, null)
-                                .setPositiveButton(R.string.popup_button_reset) { _, _ ->
-                                    File(filesDir, STATIONS_FILE).delete()
-                                    File(filesDir, WORKOUTS_FILE).delete()
-                                    loadWorkouts()
-                                    pager_adapter.notifyDataSetChanged()
-                                }.show()
-                        6 -> newDialogBuilder().setTitle(R.string.popup_title_about).setMessage(R.string.popup_about_body).setPositiveButton(R.string.popup_button_ok, null).show()
+                        val all = LinkedHashSet<Station>()
+                        all.addAll(curWorkout.stations)
+                        all.addAll(stations)
+                        showStationsPopup(all.filter {
+                            curWorkout.ordering.contains(it.type)
+                        }.toTypedArray())
                     }
-                }.setPositiveButton(R.string.popup_button_ok, null).show()
+                    1 -> showSummaryPopup()
+                    2 -> showOrderingPopup()
+                    3 -> showSaveWorkoutPopup(true)
+                    4 -> showSaveWorkoutPopup(false)
+	                5 -> showDeleteWorkoutPopup()
+                    6 -> newDialogBuilder()
+	                        .setTitle(R.string.popup_title_confirm)
+	                        .setMessage(R.string.popup_msg_confirmreset)
+                            .setNegativeButton(R.string.popup_button_cancel, null)
+                            .setPositiveButton(R.string.popup_button_reset) { _, _ ->
+                                STATIONS_FILE.delete()
+                                WORKOUTS_FILE.delete()
+                                loadWorkouts()
+                                pager_adapter.notifyDataSetChanged()
+                            }.show()
+                    7 -> newDialogBuilder()
+                            .setTitle(R.string.popup_title_about)
+                            .setMessage(R.string.popup_message_about)
+                            .setPositiveButton(R.string.popup_button_ok, null)
+                            .show()
+                }
+            }
+	        .setPositiveButton(R.string.popup_button_ok, null).show()
     }
+
+	fun showDeleteWorkoutPopup() {
+		if (workouts.size > 1 && vm.currentWorkout.value != 0) {
+			newDialogBuilder().setTitle(R.string.popup_title_confirm)
+				.setMessage(getString(R.string.popup_message_delete_workout, curWorkout.name))
+				.setNegativeButton(R.string.popup_button_cancel, null)
+				.setPositiveButton(R.string.popup_button_ok) { _, _ ->
+					workouts.removeAt(vm.currentWorkout.value!!)
+					binding.pagerWorkouts.adapter.notifyDataSetChanged()
+					saveWorkouts()
+				}.show()
+		} else {
+			Snackbar.make(binding.vCenter, "Cannot delete Thomas's workout", Snackbar.LENGTH_LONG).show()
+		}
+	}
 
     fun showSaveWorkoutPopup(createNew: Boolean) {
         val et = EditText(this)
@@ -451,23 +469,25 @@ class MainActivity : CCActivityBase(),
         if (!createNew) {
             et.setText(curWorkout.name, TextView.BufferType.EDITABLE)
         }
-        newDialogBuilder().setTitle(if (createNew) getString(R.string.popup_title_copy_workout, curWorkout.name) else getString(R.string.popup_title_rename_workout, curWorkout.name)).setView(et)
-                .setNegativeButton(R.string.popup_button_cancel, null)
-                .setPositiveButton(R.string.popup_button_save) { dialogInterface: DialogInterface?, i: Int ->
-                    val name = et.text.toString()
-                    if (name.isEmpty()) {
-                        Snackbar.make(binding.vCenter, R.string.toast_err_empty_name, Snackbar.LENGTH_LONG).show()
-                        return@setPositiveButton
-                    }
-                    val w = curWorkout
-                    if (createNew) {
-                        val saved = w.deepCopy()
-                        workouts.add(saved)
-                    }
-                    w.name = et.text.toString()
-                    saveWorkouts()
-                    pager_adapter.notifyDataSetChanged()
-                }.show()
+        newDialogBuilder()
+	        .setTitle(if (createNew) getString(R.string.popup_title_copy_workout, curWorkout.name) else getString(R.string.popup_title_rename_workout, curWorkout.name))
+	        .setView(et)
+            .setNegativeButton(R.string.popup_button_cancel, null)
+            .setPositiveButton(R.string.popup_button_save) { _: DialogInterface?, _: Int ->
+                val name = et.text.toString()
+                if (name.isEmpty()) {
+                    Snackbar.make(binding.vCenter, R.string.toast_err_empty_name, Snackbar.LENGTH_LONG).show()
+                    return@setPositiveButton
+                }
+                val w = curWorkout
+                if (createNew) {
+                    val saved = w.deepCopy()
+                    workouts.add(saved)
+                }
+                w.name = et.text.toString()
+                saveWorkouts()
+                pager_adapter.notifyDataSetChanged()
+            }.show()
     }
 
     fun showOrderingPopup() {
@@ -507,11 +527,16 @@ class MainActivity : CCActivityBase(),
                         return@setPositiveButton
                     }
                     curWorkout.ordering = adapter.list.toTypedArray()
+	                curWorkout.ordering.forEach { type ->
+	                	curWorkout.stations.firstOrNull { it.type == type}?:run {
+
+		                }
+	                }
+	                saveWorkouts()
                 }.create()
         val lp = WindowManager.LayoutParams()
         d.window?.let {
             lp.copyFrom(it.attributes)
-            //        lp.width = WindowManager.LayoutParams.MATCH_PARENT;
             lp.height = WindowManager.LayoutParams.WRAP_CONTENT
         }
         d.show()
@@ -521,7 +546,7 @@ class MainActivity : CCActivityBase(),
     val allKnownStations: Array<Station>
         get() {
             try {
-                return Reflector.deserializeFromFile(File(filesDir, STATIONS_FILE))
+                return Reflector.deserializeFromFile(STATIONS_FILE)
             } catch (e: FileNotFoundException) {
                 // ignore
             } catch (e: Exception) {
@@ -531,22 +556,17 @@ class MainActivity : CCActivityBase(),
             return defaultStations
         }
 
+	fun saveStations(stations: Array<Station>) {
+		try {
+			Reflector.serializeToFile<Array<Station>>(stations, STATIONS_FILE)
+		} catch (e: Exception) {
+			e.printStackTrace()
+		}
+	}
+
     fun showSummaryPopup() {
         val wb = WorkoutSummaryBinding.inflate(layoutInflater)
-	    val stations = mutableMapOf<String, Station>()
-	    workouts.forEach { w ->
-		    w.stations.forEach { s ->
-			    stations[s.name]?.let { station ->
-				    station.allTimeSecs += s.allTimeSecs
-				    station.thisMonthSecs += s.thisMonthSecs
-				    station.thisWeekSecs += s.thisWeekSecs
-				    station.todaySecs += s.todaySecs
-				    station.lastDoneLocalSecs = minOf(station.lastDoneLocalSecs, s.lastDoneLocalSecs)
-			    }?:s.deepCopy().also {
-				    stations[s.name] = it
-			    }
-		    }
-	    }
+	    val stations = allKnownStations.toList()
         wb.viewPager.adapter = object : PagerAdapter() {
             override fun getCount(): Int {
                 return 4
@@ -559,7 +579,7 @@ class MainActivity : CCActivityBase(),
             override fun instantiateItem(container: ViewGroup, position: Int): Any {
                 val rv = RecyclerView(this@MainActivity)
                 rv.layoutManager = LinearLayoutManager(this@MainActivity)
-                rv.adapter = WorkoutSummaryAdapter(container.context, stations.values, position)
+                rv.adapter = WorkoutSummaryAdapter(container.context, stations, position)
                 val dividerItemDecoration = DividerItemDecoration(this@MainActivity,
                         LinearLayoutManager.VERTICAL)
                 rv.addItemDecoration(dividerItemDecoration)
@@ -585,7 +605,7 @@ class MainActivity : CCActivityBase(),
                             .setPositiveButton(R.string.popup_button_clear) { _,_ ->
                                 run {
                                     workouts.forEach { it.clearCounts() }
-                                    Reflector.serializeToFile<Any>(workouts, File(filesDir, WORKOUTS_FILE))
+	                                saveWorkouts()
                                 }
                             }.show()
                 }.show()
@@ -598,21 +618,18 @@ class MainActivity : CCActivityBase(),
             items[i] = all[i].getDisplayName(resources)
             checked[i] = all[i].enabled
         }
-        newDialogBuilder().setTitle(R.string.popup_title_stations)
-                .setMultiChoiceItems(items, checked) { dialogInterface: DialogInterface?, i: Int, b: Boolean -> all[i].enabled = b }
-                .setNegativeButton(R.string.popup_button_cancel, null)
-                .setPositiveButton(R.string.popup_button_add_station) { dialogInterface: DialogInterface?, i: Int -> showAddStationPopup(all) }.setNeutralButton(R.string.popup_button_save) { dialogInterface: DialogInterface?, i: Int ->
-                    if (Utils.filter(all) { `object`: Station -> `object`.enabled }.size == 0) {
-                        Snackbar.make(binding.vCenter, R.string.toast_err_emptylist, Snackbar.LENGTH_LONG).show()
-                        return@setNeutralButton
-                    }
-                    try {
-                        curWorkout.stations = all
-                        Reflector.serializeToFile<Any>(all, File(filesDir, STATIONS_FILE))
-                    } catch (e: Exception) {
-                        Snackbar.make(binding.vCenter, getString(R.string.toast_err_savefailed, e.message), Snackbar.LENGTH_LONG).show()
-                    }
-                }.show()
+        newDialogBuilder()
+	        .setTitle(R.string.popup_title_stations)
+            .setMultiChoiceItems(items, checked) { _: DialogInterface?, i: Int, b: Boolean -> all[i].enabled = b }
+            .setNegativeButton(R.string.popup_button_cancel, null)
+            .setPositiveButton(R.string.popup_button_add_station) { _: DialogInterface?, _: Int -> showAddStationPopup(all) }.setNeutralButton(R.string.popup_button_save) { dialogInterface: DialogInterface?, i: Int ->
+                if (Utils.filter(all) { `object`: Station -> `object`.enabled }.size == 0) {
+                    Snackbar.make(binding.vCenter, R.string.toast_err_emptylist, Snackbar.LENGTH_LONG).show()
+                    return@setNeutralButton
+                }
+		        curWorkout.stations = all
+		        saveWorkouts()
+            }.show()
     }
 
     fun showAddStationPopup(stations: Array<Station>) {
@@ -620,29 +637,34 @@ class MainActivity : CCActivityBase(),
         ab.npStationType.displayedValues = Utils.toStringArray(StationType.values())
         ab.npStationType.minValue = 0
         ab.npStationType.maxValue = StationType.values().size - 1
-        newDialogBuilder().setTitle(R.string.popup_title_add_station).setView(ab.root).setNegativeButton(R.string.popup_button_cancel) { _, _ -> showStationsPopup(stations) }.setPositiveButton(R.string.popup_button_add) { dialogInterface: DialogInterface?, i: Int ->
-            val name = ab.etName.text.toString().trim { it <= ' ' }
-            if (name.isEmpty()) {
-                Snackbar.make(binding.vCenter, R.string.toast_err_emptyname, Snackbar.LENGTH_SHORT).show()
-                showStationsPopup(stations)
-                return@setPositiveButton
-            }
-            for (s in stations) {
-                if (s.name.equals(name, ignoreCase = true)) {
-                    Snackbar.make(binding.vCenter, R.string.toast_err_duplicationname, Snackbar.LENGTH_SHORT).show()
-                    showStationsPopup(stations)
-                    return@setPositiveButton
-                }
-            }
-            val st = Station(name, StationType.values()[ab.npStationType.value])
-            val l: MutableList<Station> = ArrayList(Arrays.asList(*stations))
-            l.add(st)
-            val newArr = l.toTypedArray()
-            showStationsPopup(newArr)
-        }.show()
+        newDialogBuilder()
+	        .setTitle(R.string.popup_title_add_station)
+	        .setView(ab.root)
+	        .setNegativeButton(R.string.popup_button_cancel) { _, _ ->
+		        showStationsPopup(stations)
+	        }.setPositiveButton(R.string.popup_button_add) { _: DialogInterface?, _: Int ->
+	            val name = ab.etName.text.toString().trim { it <= ' ' }
+	            if (name.isEmpty()) {
+	                Snackbar.make(binding.vCenter, R.string.toast_err_emptyname, Snackbar.LENGTH_SHORT).show()
+	                showStationsPopup(stations)
+	                return@setPositiveButton
+	            }
+	            for (s in stations) {
+	                if (s.name.equals(name, ignoreCase = true)) {
+	                    Snackbar.make(binding.vCenter, R.string.toast_err_duplicationname, Snackbar.LENGTH_SHORT).show()
+	                    showStationsPopup(stations)
+	                    return@setPositiveButton
+	                }
+	            }
+	            val st = Station(name, StationType.values()[ab.npStationType.value])
+		        with (listOf(st, *stations).toTypedArray()) {
+			        saveStations(this)
+			        showStationsPopup(this)
+		        }
+	        }.show()
     }
 
-    fun initWorkout() {
+    fun createRandomizedWorkout() : List<Station> {
         val workout: Array<MutableList<Station>> = Array(StationType.values().size) { ArrayList<Station>() }
         val count = IntArray(StationType.values().size)
         val w = curWorkout
@@ -656,9 +678,8 @@ class MainActivity : CCActivityBase(),
 		    }
 	    }
         for (l in workout) {
-            Utils.shuffle(l)
+            l.shuffle()
         }
-        sets.clear()
 	    val subSets = mutableListOf<Station>()
         // customize ordering here so, for example, we can do like 2 upper and 2 lower
         val order = w.ordering
@@ -674,17 +695,12 @@ class MainActivity : CCActivityBase(),
             Log.d("SETS", "Added $s")
             subSets.add(s)
         }
-	    for (i in 0 until w.numCircuits) {
-	    	sets.addAll(subSets)
-	    }
-        Log.d("SETS", "All sets: $sets")
-        sayNow(sets[0].name)
-        vm.setIndex.value = 0
+	    return subSets
     }
 
     fun toggleStart() {
 	    when (vm.state.value) {
-	    	WorkoutState.STOPPED -> start()
+	    	WorkoutState.STOPPED -> generate()
 		    else -> stop()
 	    }
     }
@@ -718,23 +734,39 @@ class MainActivity : CCActivityBase(),
         binding.vCenter.removeCallbacks(this)
     }
 
-    fun start() {
-        initWorkout()
-        vm.timeLeftSecs.value = 0
+
+
+    fun generate() {
+	    val workoutSet = createRandomizedWorkout()
+	    newDialogBuilder()
+		    .setTitle("Workout")
+		    .setItems(workoutSet.map { it.name + " (" + getString(it.type.stringResId) + ")" }.toTypedArray(), null)
+		    .setPositiveButton("Start") { _, _ -> start(workoutSet) }
+		    .setNeutralButton("Re-randomize") { _, _ -> generate() }
+		    .setNegativeButton(R.string.popup_button_cancel, null)
+		    .show()
+    }
+
+	fun start(workoutSet: List<Station>) {
+	    sets.clear()
+	    for (i in 0 until curWorkout.numCircuits) {
+		    sets.addAll(workoutSet)
+	    }
+	    Log.d("SETS", "All sets: $sets")
+	    sayNow(sets[0].name)
+	    vm.setIndex.value = 0
+
+	    vm.timeLeftSecs.value = 0
         vm.state.value = WorkoutState.RUNNING
-        //binding.bPause.setText(R.string.button_pause)
         binding.vCenter.post(this)
-        //binding.bStart.setText(R.string.button_stop)
-        //binding.bPause.isEnabled = true
-        //binding.bOptions.isEnabled = false
-        //setKeepScreenOn(true)
     }
 
     override fun run() {
 	    vm.started.value = true
         val stationPeriodSecs = binding.npPeriod.value * 10 + 10
         val numStations = binding.npStations.value
-	    vm.numStations.value = numStations
+	    val numCircuits = binding.npCircuits.value
+	    vm.numStations.value = numStations*numCircuits
         if (vm.timeLeftSecs.value!! <= 0)
         	vm.timeLeftSecs.value = stationPeriodSecs
         else
@@ -746,6 +778,7 @@ class MainActivity : CCActivityBase(),
 		    sayNow(getString(R.string.tts_alldone))
 		    vm.timerText.value = getString(R.string.text_completed)
 		    stop()
+		    onWorkoutCompleted()
 		    showSummaryPopup()
 		    vm.curSet.value = getString(R.string.text_completed)
 		    vm.nextSet.value = ""
@@ -781,7 +814,7 @@ class MainActivity : CCActivityBase(),
 	            station.addSeconds(stationPeriodSecs)
 	            saveWorkouts()
 	            with (vm.setIndex) {
-		            value = value?.inc()?.coerceIn(0 until numStations)
+		            value = value?.inc()
 	            }
 	            sets.removeFirst()
             }
@@ -803,9 +836,8 @@ class MainActivity : CCActivityBase(),
 
     override fun onInit(status: Int) {
         when (status) {
-            TextToSpeech.SUCCESS -> {
-            }
-            else                 -> Log.e("TTS", "Failed to init.  status=$status")
+            TextToSpeech.SUCCESS -> Log.d("TTS", "Init SUCCESS")
+            else                 -> Log.e("TTS", "Init Failed code:$status")
         }
     }
 
@@ -818,10 +850,22 @@ class MainActivity : CCActivityBase(),
 
 	fun emailWorkouts() {
 		if (BuildConfig.DEBUG) {
-			File(filesDir, WORKOUTS_FILE).copyTo(File(cacheDir, WORKOUTS_FILE)).also {
-				EmailHelper.sendEmail(this, it, "ccaronls@yahoo.com", "WORKOUTS", "Workouts for today")
-				Toast.makeText(this, "Email Sent", Toast.LENGTH_LONG).show();
+			File(cacheDir, "workouts.zip").let {
+				it.delete()
+				FileUtils.zipFiles(it, listOf(WORKOUTS_FILE, STATIONS_FILE))
+				EmailHelper.sendEmail(this, it, "ccaronsyn@gmail.com", "WORKOUTS", "Workouts for today")
+				Toast.makeText(this, "Email Sent", Toast.LENGTH_LONG).show()
 			}
 		}
+	}
+
+	fun showWorkoutErrorMessage() {
+		newDialogBuilder().setTitle(R.string.popup_title_error)
+			.setMessage(R.string.popup_message_stations_invalid)
+			.setNegativeButton(R.string.popup_button_ok, null).show()
+	}
+
+	fun onWorkoutCompleted() {
+		updateWorkoutsSummary()
 	}
 }

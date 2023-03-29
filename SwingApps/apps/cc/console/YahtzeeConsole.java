@@ -1,16 +1,15 @@
 package cc.console;
 
-import java.io.BufferedReader;
+import java.io.Console;
 import java.io.File;
-import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.List;
 
+import cc.lib.game.Utils;
+import cc.lib.utils.FileUtils;
 import cc.lib.yahtzee.Yahtzee;
 import cc.lib.yahtzee.YahtzeeRules;
 import cc.lib.yahtzee.YahtzeeSlot;
-import cc.lib.game.Utils;
-import cc.lib.utils.FileUtils;
 
 public class YahtzeeConsole extends Yahtzee {
 
@@ -19,14 +18,15 @@ public class YahtzeeConsole extends Yahtzee {
 		Utils.setDebugEnabled();
 		final File restoreFile = new File(FileUtils.getOrCreateSettingsDirectory(YahtzeeConsole.class), "yahtzee.sav");
 		try {
-			
-			YahtzeeConsole yc = new YahtzeeConsole();
-			do {
-				System.out.println("N>  New game\n" + 
-								   "R>  Restore Game\n" + 
-								   "A>  New Alternate Game\n\n>");
 
-				String input = in.readLine();
+            Console console = System.console();
+			YahtzeeConsole yc = new YahtzeeConsole(console);
+			do {
+			    console.printf("N>  New game\n" +
+                               "R>  Restore Game\n" +
+                               "A>  New Alternate Game\n\n>");
+
+				String input = console.readLine();
 				if (input.length() == 0) {
 					continue;
 				}
@@ -72,17 +72,18 @@ public class YahtzeeConsole extends Yahtzee {
 		}
 		
 	}
-	
-	static BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+
+	YahtzeeConsole(Console console) {
+	    this.console = console;
+    }
+
+    Console console;
 	boolean isRunning = true;
 	
 	private void checkQuit(String input) {
-		input = input.trim();if (input.length() > 0) {
+		input = input.trim();
+		if (input.length() > 0) {
 			if (input.toLowerCase().charAt(0) == 'q') {
-				try {
-					in.close();
-				} catch (Exception e) {}
-				in = null;
 				isRunning = false;
 				System.exit(0);
 			}
@@ -91,28 +92,28 @@ public class YahtzeeConsole extends Yahtzee {
 	
 	private void draw() {
 		// Draw a divider
-		System.out.println("\n\n\n-----------------------------------------------------------------\n");
+		console.printf("\n\n\n-----------------------------------------------------------------\n");
 		
 		// draw roll count
-		System.out.println("Roll " + getRollCount() + " of " + getRules().getNumRollsPerRound());
+		console.printf("Roll " + getRollCount() + " of " + getRules().getNumRollsPerRound());
 		// draw the roll
 		final int [] dice = getDiceRoll();
 		final boolean [] keepers = getKeepers();
 		drawDice(dice);
-		System.out.println();
+		console.printf("\n");
 		// draw the keepers
 		for (boolean keep : keepers) {
 			System.out.print(String.format("%-" + DICE_SPACING + "s", keep ? " KEEP" : ""));
 		}
-		System.out.println();
+		console.printf("\n");
 		// draw the slots
 		int index = 1;
 		for (YahtzeeSlot slot : getAllSlots()) {
-			System.out.println(String.format("%-2d %-20s %6s : %d", index++, slot.name(), isSlotUsed(slot) ? "CLOSED" : "", isSlotUsed(slot) ? getSlotScore(slot) : slot.getScore(getRules(), dice)));
+			console.printf(String.format("%-2d %-20s %6s : %d", index++, slot.name(), isSlotUsed(slot) ? "CLOSED" : "", isSlotUsed(slot) ? getSlotScore(slot) : slot.getScore(getRules(), dice)));
 		}
-		System.out.println();
+		console.printf("\n");
 		// draw the score
-		System.out.println(String.format(
+		console.printf(String.format(
 						   "Yahtzees     %-5d\n" + 
 						   "Upper Points %-5d\n" + 
 						   "Bonus Points %-5d\n" +
@@ -130,7 +131,7 @@ public class YahtzeeConsole extends Yahtzee {
 		
 		System.out.print("\n\nChoose die nums to toggle seperated by a space or enter to continue\n> ");
 		try {
-			String line = in.readLine();
+			String line = console.readLine();
 			if (line == null) {
 				isRunning = false;
 				return false;
@@ -167,7 +168,7 @@ public class YahtzeeConsole extends Yahtzee {
 
 			System.out.print("G A M E    O V E R\nPress enter to start a new game or q to exit\n> ");
 			
-			String line = in.readLine();
+			String line = console.readLine();
 			if (line == null) {
 				System.exit(1);
 			}
@@ -186,7 +187,7 @@ public class YahtzeeConsole extends Yahtzee {
 		
 		try {
 			
-			String line = in.readLine();
+			String line = console.readLine();
 			if (line == null) {
 				isRunning= false;
 				return null;
@@ -253,21 +254,21 @@ public class YahtzeeConsole extends Yahtzee {
 			
 	};
 	
-	static void drawDice(int ... roll) {
+	void drawDice(int ... roll) {
 		final String diceSpacing = String.format("%" + (DICE_SPACING - diceEdge.length()) + "s", " ");
 		for (int i=0; i<roll.length; i++) {
 			System.out.print(String.format("%-" + DICE_SPACING + "s", "  [" + (i+1) + "]"));
 		}
-		System.out.println();
+		console.printf("\n");
 		for (int i=0; i<roll.length; i++) {
 			System.out.print(diceEdge + diceSpacing);
 		}
-		System.out.println();
+		console.printf("\n");
 		for (int ii=0; ii<3; ii++) {
 			for (int i=0; i<roll.length; i++) {
 				System.out.print(diceMiddle[roll[i]][ii] + diceSpacing);
 			}
-			System.out.println();
+			console.printf("\n");
 		}
 		for (int i=0; i<roll.length; i++) {
 			System.out.print(diceEdge + diceSpacing);

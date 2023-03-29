@@ -1,7 +1,6 @@
 package cc.game.zombicide.android
 
 import android.content.Context
-import android.graphics.Canvas
 import android.util.AttributeSet
 import android.util.Log
 import cc.lib.android.DroidGraphics
@@ -11,7 +10,7 @@ import cc.lib.zombicide.*
 import cc.lib.zombicide.ui.UIZBoardRenderer
 import cc.lib.zombicide.ui.UIZComponent
 
-class ZBoardView(context: Context, attrs: AttributeSet) : UIComponentView<UIZBoardRenderer<DroidGraphics>>(context, attrs), UIZComponent<DroidGraphics> {
+class ZBoardView(context: Context, attrs: AttributeSet) : UIComponentView<UIZBoardRenderer>(context, attrs), UIZComponent<DroidGraphics> {
 	var progress = 0
 	var numImages = 21
 	fun initZombieImages(g: DroidGraphics, t: ZZombieType, vararg ids: Int) {
@@ -57,7 +56,7 @@ class ZBoardView(context: Context, attrs: AttributeSet) : UIComponentView<UIZBoa
 	override fun loadTiles(g: DroidGraphics, tiles: Array<ZTile>) {
 		progress = 0
 		numImages = tiles.size
-		val renderer = renderer as UIZBoardRenderer<*>?
+		val renderer = renderer as UIZBoardRenderer?
 		deleteTiles(g)
 		try {
 			tileIds = IntArray(tiles.size)
@@ -208,9 +207,5 @@ class ZBoardView(context: Context, attrs: AttributeSet) : UIComponentView<UIZBoa
 
 	override fun onLoaded() {
 		renderer.onLoaded()
-	}
-
-	override fun onDraw(canvas: Canvas) {
-		super.onDraw(canvas)
 	}
 }

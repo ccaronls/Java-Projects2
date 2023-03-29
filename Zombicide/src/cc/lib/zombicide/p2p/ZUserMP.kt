@@ -128,6 +128,10 @@ class ZUserMP(val connection: ClientConnection?) : ZUser() {
 		return connection?.executeDerivedOnRemote(USER_ID, true, playerName, list)
 	}
 
+	override fun chooseOrganize(playerName: ZPlayerName, list: List<ZMove>): ZMove? {
+		return connection?.executeDerivedOnRemote(USER_ID, true, playerName, list)
+	}
+
 	companion object {
 		const val USER_ID = "ZUser"
 	}

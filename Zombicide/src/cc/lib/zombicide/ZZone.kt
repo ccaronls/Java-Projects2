@@ -33,6 +33,9 @@ class ZZone(val zoneIndex: Int=-1) : Reflector<ZZone>(), IShape {
     var isObjective = false
     private var nextCell = 0
 
+	@Omit
+	var isTargetForEscape = false
+
     fun canSpawn(): Boolean {
         return type === ZZoneType.BUILDING
     }
@@ -109,4 +112,8 @@ class ZZone(val zoneIndex: Int=-1) : Reflector<ZZone>(), IShape {
             throw GException("Zone $zoneIndex is INSANE!! Not all positions are adjacent:$cells")
         }
     }
+
+	fun reset() {
+		isTargetForEscape = false
+	}
 }

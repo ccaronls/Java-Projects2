@@ -1,6 +1,5 @@
 package cc.console
 
-import cc.lib.math.CMath
 import cc.lib.swing.AWTImageMgr
 import cc.lib.utils.FileUtils
 import java.awt.Image
@@ -81,6 +80,11 @@ fun Int.toRGBA() : IntArray {
 	return intArrayOf(r, g, b, a)
 }
 
+fun Int.toGrayScale() : Float {
+	val rgb = toRGBA()
+	return rgb[0].toFloat() * .3f + rgb[1].toFloat() * .59f + rgb[2].toFloat() * .11f
+}
+
 fun colorDist(c0: IntArray, c1: IntArray) : Double {
 
 	/*
@@ -103,18 +107,27 @@ fun colorDistSimple(c0: IntArray, c1:IntArray) : Double {
 	val dg = abs(c0[1] - c1[1]).toDouble().div(255.0)
 	val db = abs(c0[2] - c1[2]).toDouble().div(255.0)
 
-	return (dr+dg+db) * 100.0 / 3
+	return dr*dr+dg*dg+db*db
+}
+
+fun colorDistGrayScale(c0: IntArray, c1:IntArray) : Double {
+	val g0 = c0[0].toDouble() * .3 + c0[1].toDouble() * .59 + c0[2].toDouble() * .11
+	val g1 = c1[0].toDouble() * .3 + c1[1].toDouble() * .59 + c1[2].toDouble() * .11
+	return abs(g0-g1);
 }
 
 fun compareImagesStdDev(i0: IntArray, i1: IntArray) : Double {
 	var sum = 0.0
-	for (i in i0) {
+	var sum2 = 0.0
+	for (i in i0.indices) {
 		val c0 = i0[i].toRGBA()
 		val c1 = i1[i].toRGBA()
 		val d = colorDistSimple(c0, c1)
 		sum += d*d
+		sum2 += d
 	}
 	return sqrt(sum * 1.0/(i0.size-1))
+	//return sum2 / i0.size
 }
 
 fun rgb2lab(rgba: IntArray): IntArray {
@@ -177,10 +190,29 @@ fun colorDist_nope(c0: IntArray, c1: IntArray) : Double {
 	return sqrt((lab1[0]-lab0[0]).toDouble().pow(2) + (lab1[1]-lab0[1]).toDouble().pow(2) + (lab1[2]-lab0[2]).toDouble().pow(2))
 }
 
+fun <T> MutableMap<T, Int>.increment(item: T, amt: Int) {
+	val cur = get(item)?:0
+	put(item, cur+amt)
+}
+
+fun computeAvgRGB(buffer: IntArray) : IntArray {
+	var r = 0L
+	var g = 0L
+	var b = 0L
+	buffer.forEach {
+		val c = it.toRGBA()
+		r += c[0]
+		g += c[1]
+		b += c[2]
+	}
+	val n = buffer.size
+	return intArrayOf((r/n).toInt(), (g/n).toInt(), (b/n).toInt())
+}
+
 /**
  * Created by Chris Caron on 11/13/22.
  */
-class PhotoMosaic(val cellWidthPixels: Int, val cellHeightPixels: Int, val sourceDir : File) {
+class PhotoMosaic(val targetImg: BufferedImage, val cellWidthPixels: Int, val cellHeightPixels: Int, val sourceDir : File) {
 	companion object {
 
 		val images = AWTImageMgr()
@@ -196,8 +228,8 @@ class PhotoMosaic(val cellWidthPixels: Int, val cellHeightPixels: Int, val sourc
 			// input image
 			// cells wide
 			// cell tall
-			// input image directory
 			// cache directory
+			// input image directory(s)
 			if (args.size < 4) {
 				usage()
 				exitProcess(1)
@@ -234,14 +266,7 @@ class PhotoMosaic(val cellWidthPixels: Int, val cellHeightPixels: Int, val sourc
 
 			println("Sample images size ${cells.contentToString()}")
 
-			val sourceDir = File(args[3])
-			if (!sourceDir.isDirectory) {
-				println("$sourceDir is not a directory")
-				usage()
-				exitProcess(1)
-			}
-
-			val cacheDir = File(args[4])
+			val cacheDir = File(args[3])
 			if (!cacheDir.isDirectory) {
 				if (!cacheDir.exists()) {
 					if (!cacheDir.mkdir()) {
@@ -256,6 +281,17 @@ class PhotoMosaic(val cellWidthPixels: Int, val cellHeightPixels: Int, val sourc
 				}
 			}
 
+			val sourceDirs = ArrayList<File>()
+			for (i in 4 until args.size) {
+				val dir = File(args[i])
+				if (!dir.isDirectory) {
+					println("$dir is not a directory")
+					usage()
+					exitProcess(1)
+				}
+				sourceDirs.add(dir)
+			}
+
 			println("source image dimension is ${targetImg.width} x ${targetImg.height}")
 
 			val extraWidth = targetImg.width % cells[0]
@@ -267,6 +303,15 @@ class PhotoMosaic(val cellWidthPixels: Int, val cellHeightPixels: Int, val sourc
 				targetImg = targetImg.getScaledInstance(targetImg.width + newWidth, targetImg.height + newHeight, 1).toBufferedImage()
 				println("Target image scaled to ${targetImg.width}x${targetImg.height}")
 			}
+
+			/*
+
+			THIS IS SOPHIAS FIRST LINE OF CODE
+
+			mom go cra-cra
+
+
+			 */
 
 			val prop = Properties()
 			val propsFile = File(cacheDir, "props.txt")
@@ -281,6 +326,7 @@ class PhotoMosaic(val cellWidthPixels: Int, val cellHeightPixels: Int, val sourc
 				}
 
 			} catch (e : Exception) {
+				e.printStackTrace()
 				intArrayOf(0,0)
 			}
 
@@ -297,10 +343,13 @@ class PhotoMosaic(val cellWidthPixels: Int, val cellHeightPixels: Int, val sourc
 			}
 
 			try {
-				with(PhotoMosaic(cells[0], cells[1], cacheDir)) {
-					process(sourceDir)
-					val resultImg = generate(targetImg)
-					val output = File(target.parent, FileUtils.stripExtension(target.name) + "_mosaic.png")
+				with(PhotoMosaic(targetImg, cells[0], cells[1], cacheDir)) {
+					sourceDirs.forEach {
+						process(it)
+					}
+					computeAvgRgb()
+					val resultImg = generate()
+					val output = File(target.parent, FileUtils.stripExtension(target.name) + "_mosaic_${cellWidthPixels}x$cellHeightPixels.png")
 					if (ImageIO.write(resultImg, "png", output)) {
 						println("Success!! Wrote mosaic to $output")
 					}
@@ -313,34 +362,28 @@ class PhotoMosaic(val cellWidthPixels: Int, val cellHeightPixels: Int, val sourc
 		}
 	}
 
-	val used = mutableSetOf<File>()
+	var maxOccurances = 1
+	val used = mutableMapOf<File, Int>()
 	val skipUsed = true
 	val colorFunc = ::colorDistSimple
-	val buf0 = IntArray(cellWidthPixels*cellHeightPixels+1)
-	val buf1 = IntArray(cellWidthPixels*cellHeightPixels+1)
+	val buf0 = IntArray(cellWidthPixels*cellHeightPixels)
+	val buf1 = IntArray(cellWidthPixels*cellHeightPixels)
+
+	init {
+	}
 
 	@Throws
 	private fun match(target: BufferedImage, sourceDir: File, x: Int, y: Int) : File {
-		//target.getRGB(x, y, cellWidthPixels, cellHeightPixels, buf0, 0, target.width)
-		return sourceDir.listFiles { file -> file.path.endsWith(".png") && (!skipUsed || !used.contains(file)) }?.minByOrNull {
+		target.getRGB(x, y, cellWidthPixels, cellHeightPixels, buf0, 0, cellWidthPixels)
+		val targetAvgRgb = computeAvgRGB(buf0)
+		return sourceDir.listFiles { file -> file.path.endsWith(".png") && (!skipUsed || used[file]?:0 < maxOccurances) }?.minByOrNull {
 			val image = images.loadImageFile(it).toBufferedImage()
-			//image.getRGB(0, 0, cellWidthPixels, cellHeightPixels, buf1, 0, image.width)
-			//compareImagesStdDev(buf0, buf1)
-			var pixels = 0L
-			var sum = 0.0
-			for (xx in 0 until image.width) {
-				for (yy in 0 until image.height) {
-					val p0 = target.getRGB(x + xx, y + yy).toRGBA()
-					val p1 = image.getRGB(xx, yy).toRGBA()
-
-					//diff += abs(p0-p1)
-					sum += colorFunc(p0, p1)
-					pixels ++
-				}
-			}
-			sqrt(sum * 1.0 / (pixels-1))
+			image.getRGB(0, 0, cellWidthPixels, cellHeightPixels, buf1, 0, image.width)
+			compareImagesStdDev(buf0, buf1)
+			//val d = avgRGBMap[it]!!
+			//colorDistSimple(targetAvgRgb, d)
 		}?.also {
-			used.add(it)
+			used.increment(it, 1)
 		}?:run {
 			throw Exception("Failed to match")
 		}
@@ -372,21 +415,34 @@ class PhotoMosaic(val cellWidthPixels: Int, val cellHeightPixels: Int, val sourc
 		}
 	}
 
+	val avgRGBMap = mutableMapOf<File, IntArray>()
+
 	@Throws
-	fun generate(targetImg: BufferedImage) : BufferedImage {
+	fun computeAvgRgb() {
+		sourceDir.listFiles { file -> file.path.endsWith(".png") }.forEach {
+			with (images.loadImageFile(it).toBufferedImage()) {
+				getRGB(0, 0, cellWidthPixels, cellHeightPixels, buf1, 0, width)
+				avgRGBMap.put(it, computeAvgRGB(buf1))
+			}
+		}
+	}
+
+	@Throws
+	fun generate() : BufferedImage {
 		if (skipUsed) {
 			val numNeeded = (targetImg.width * targetImg.height) / (cellWidthPixels * cellHeightPixels)
-			val numHave = sourceDir.list().size
+			val numHave = sourceDir.list().filter { it.endsWith(".png") }.size
 			println("have $numHave and need $numNeeded")
-			if (numHave < numNeeded) {
-				throw Exception("Not enough images")
+			while (numHave * maxOccurances < numNeeded) {
+				maxOccurances++
 			}
+			println("max occurrences of each: $maxOccurances")
 		}
 		// now we have everything we need to generate an new image from the target and the source
 		val resultImg = BufferedImage(targetImg.width, targetImg.height, BufferedImage.TYPE_INT_ARGB)
 		// get the pixels from the source image
-		for (x in 0 until targetImg.width step cellWidthPixels) {
-			for (y in 0 until targetImg.height step cellHeightPixels) {
+		for (y in 0 until targetImg.height step cellHeightPixels) {
+			for (x in 0 until targetImg.width step cellWidthPixels) {
 				// find the best image thats fits into this cell
 				val file = match(targetImg, sourceDir, x, y)
 				val img = try {

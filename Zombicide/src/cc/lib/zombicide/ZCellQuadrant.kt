@@ -14,7 +14,7 @@ enum class ZCellQuadrant {
     BOTTOM,
     LEFT,
     RIGHT,
-    CENTER;
+    CENTER; // make center the very last so that an ABOMINATION has good chance of not squashing someth
 
     companion object {
         @JvmStatic

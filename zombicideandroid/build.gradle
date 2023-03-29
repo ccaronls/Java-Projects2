@@ -1,5 +1,6 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
 
 android {
 
@@ -21,6 +22,10 @@ android {
         main {
             assets.srcDirs = [ 'assets' ]
         }
+    }
+
+    buildFeatures {
+        dataBinding true
     }
 
 }

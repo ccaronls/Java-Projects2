@@ -16,7 +16,7 @@ enum class ZSpellType(val skill: ZSkill, val description: String) : ZEquipmentTy
     //REPULSE("once per turn select a target zone survivor can see and destination zone at range 1 from it - sharing an open path - and 1 zone farther from the survivor. Zombies standing in the target zone are pushed into the destination zone."),
     SPEED(ZSkill.Speed, "Once per turn select a survivor in a zone without zombies. He may immediately perform a free move action up to 2 zones.") {
         override fun doEnchant(game: ZGame, target: ZCharacter) {
-            game.pushState(ZState.PLAYER_ENCHANT_SPEED_MOVE, target.type)
+            game.pushState(ZGame.State(ZState.PLAYER_ENCHANT_SPEED_MOVE, target.type))
         }
     },  //TRANSMUTATION("Once per turn the survivor discards an equipment of their choice from inventory. Draw an equipment card. He can re-organize inventory for free. Not a search action. Ahhhh! card played as usual"),
 

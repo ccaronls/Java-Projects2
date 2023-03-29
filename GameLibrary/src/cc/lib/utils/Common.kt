@@ -4,6 +4,9 @@ import cc.lib.game.Utils
 import cc.lib.math.Vector2D
 import java.io.File
 import java.lang.ref.WeakReference
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.math.roundToInt
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
@@ -15,7 +18,7 @@ fun <T> MutableMap<T, Int>.increment(obj: T, amt: Int) {
 }
 
 fun Char.repeat(times: Int) : String {
-    val buf = StringBuffer()
+    val buf = StringBuffer(times)
     for (i in 0 until times) {
         buf.append(this)
     }
@@ -267,7 +270,7 @@ fun <T> weakReference(tIn : T? = null) : ReadWriteProperty<Any?, T?> = object : 
 
 fun Long.toHMS() : IntArray {
 	var secs = this
-	var mins = secs /60
+	var mins = secs / 60
 	secs -= mins * 60
 	val hours = mins / 60
 	mins -= hours * 60
@@ -275,3 +278,57 @@ fun Long.toHMS() : IntArray {
 }
 
 fun Int.toHMS() : IntArray = toLong().toHMS()
+
+/**
+ * For values between 0 and 1 will return a string between '0%' to '100%'
+ */
+fun Float.toPercentString() : String = String.format("%d%%", (100f*this).roundToInt())
+
+fun computeFloydWarshallDistanceMatrix(numCells : Int, predicate : (from: Int, to: Int) -> Boolean): Array<IntArray> {
+	val numV = numCells
+	val INF = Int.MAX_VALUE / 2 - 1
+	val dist = Array(numV) { IntArray(numV) }
+	for (i in 0 until numV) {
+		for (ii in 0 until numV) {
+			dist[i][ii] = INF
+		}
+		dist[i][i] = 0
+	}
+	for (i in 0 until numCells) {
+		for (ii in i+1 until numCells) {
+			require (i != ii)
+			if (predicate.invoke(i, ii)) {
+				dist[i][ii] = 1
+				dist[ii][i] = 1
+			}
+		}
+	}
+	for (k in 0 until numV) {
+		for (i in 0 until numV) {
+			for (j in 0 until numV) {
+				dist[i][j] = Math.min(dist[i][k] + dist[k][j], dist[i][j])
+			}
+		}
+	}
+	return dist
+}
+
+fun <T> Stack<T>.peekOrNull() : T? {
+	if (size == 0)
+		return null
+	return peek()
+}
+
+fun <K,V> MutableMap<K,V>.getOrSet(key: K, default: V) : V {
+	get(key)?.let {
+		return it
+	}
+	set(key, default)
+	return default
+}
+
+fun <T> List<T>.getOrNull(index: Int) : T? {
+	if (index in 0 until size)
+		return get(index)
+	return null
+}

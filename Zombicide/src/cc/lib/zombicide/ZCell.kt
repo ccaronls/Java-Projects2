@@ -97,7 +97,7 @@ class ZCell internal constructor(private val x: Float, private val y: Float) : R
 
     val occupant: Iterable<ZActor<*>>
         get() {
-            return valuesForRender().map { occupied[it.ordinal] }.filterNotNull()
+            return valuesForRender().mapNotNull { occupied[it.ordinal] }
         }
 
 	val numOccupants: Int

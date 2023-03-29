@@ -1,70 +1,93 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    >
 
-    <LinearLayout
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:orientation="vertical">
-        <TextView
-            style="@style/ZOrganizeColumnHeader"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Trash"/>
-    </LinearLayout>
+    <data>
+        <variable
+            name="viewModel"
+            type="cc.game.zombicide.android.OrganizeViewModel" />
+    </data>
 
-    <LinearLayout
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:orientation="vertical">
-        <TextView
-            style="@style/ZOrganizeColumnHeader"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Left Hand"/>
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
-    </LinearLayout>
+        <LinearLayout
+            style="@style/container"
+            android:id="@+id/vgDescription"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintHeight_percent=".4"
+            android:orientation="vertical"
+            android:padding="10dp">
 
-    <LinearLayout
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:orientation="vertical">
-        <TextView
-            style="@style/ZOrganizeColumnHeader"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Body"/>
+            <TextView
+                style="@style/h1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@{viewModel.descriptionItem}"
+                tools:text="Water"/>
 
-    </LinearLayout>
+            <TextView
+                style="@style/body"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@{viewModel.descriptionText}"
+                android:fontFamily="monospace"
+                tools:text="Consume to gain EXP"/>
 
-    <LinearLayout
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:orientation="vertical">
-        <TextView
-            style="@style/ZOrganizeColumnHeader"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Right Hand"/>
+        </LinearLayout>
 
-    </LinearLayout>
+        <ListView
+            android:id="@+id/lvOptions"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintTop_toBottomOf="@id/vgDescription"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintWidth_percent=".2"
+            listOptions="@{viewModel.listOptions}"
+            viewModel="@{viewModel}"
+            visibleIfNot="@{viewModel.dragging}"
+            tools:listitem="@layout/zbutton_layout"
+            />
 
-    <LinearLayout
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:orientation="vertical">
-        <TextView
-            style="@style/ZOrganizeColumnHeader"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Backpack"/>
+        <ImageView
+            android:id="@+id/ivTrash"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintStart_toStartOf="@id/lvOptions"
+            app:layout_constraintEnd_toEndOf="@id/lvOptions"
+            app:layout_constraintTop_toTopOf="@id/lvOptions"
+            app:layout_constraintDimensionRatio="1"
+            android:src="@drawable/trash"
+            android:background="@drawable/dragndrop_container_outline"
+            android:padding="10dp"
+            visibleIf="@{viewModel.dragging}"
+            tagTrash="@{viewModel.allOptions}"
+            android:layout_margin="5dp"/>
 
-    </LinearLayout>
+        <include layout="@layout/organize_dialog_character"
+            android:id="@+id/primaryCharacter"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintTop_toTopOf="@id/lvOptions"
+            app:layout_constraintStart_toEndOf="@id/lvOptions"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintWidth_percent=".4"/>
 
-</LinearLayout>
+        <include layout="@layout/organize_dialog_character"
+            android:id="@+id/secondaryCharacter"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintTop_toTopOf="@id/lvOptions"
+            app:layout_constraintStart_toEndOf="@id/primaryCharacter"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintWidth_percent=".4"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</layout>

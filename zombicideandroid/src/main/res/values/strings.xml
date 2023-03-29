@@ -111,4 +111,6 @@ are fulfilled.
         <item>Wolfsburg</item>
     </string-array>
 
+    <string name="label_empty">-- Empty --</string>
+
 </resources>

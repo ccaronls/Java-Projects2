@@ -77,13 +77,12 @@ arrayOf("z22:i:ww:red:ws:de", "z26:ws:sps:de", "z24:i:red:ww:we:ws:dw",         
 			ZTile("1V", 90, getQuadrant(3, 3)))
 
 	override fun getObjectivesOverlay(game: ZGame): Table {
-		val allObjCollected = redObjectives.size == 0 && blueRevealZone < 0
 		val exposeLaboratory = blueRevealZone < 0
 		val necroKilled = game.getNumKills(ZZombieType.Necromancer) > 0
 		val abomKilled = game.getNumKills(ZZombieType.Abomination) > 0
 		return Table(name)
 			.addRow(Table().setNoBorder()
-				.addRow("1.", "Collect all objectives. One of the objectives\nexposes the laboratory objective.", allObjCollected)
+				.addRow("1.", "Collect all objectives. One of the objectives\nexposes the laboratory objective.", String.format("%d of %d", numFoundObjectives, numStartObjectives))
 				.addRow("2.", "Find the Laboratory Objective", exposeLaboratory)
 				.addRow("3.", "Kill at least 1 Necromancer.", necroKilled)
 				.addRow("4.", "Kill at least 1 Abomination.", abomKilled)

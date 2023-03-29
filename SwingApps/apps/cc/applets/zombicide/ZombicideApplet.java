@@ -353,8 +353,11 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
                 break;
             case UNDO:
                 if (FileUtils.restoreFile(gameFile)) {
+                    boolean running = game.isGameRunning();
+                    game.stopGameThread();
                     game.tryLoadFromFile(gameFile);
-                    boardComp.repaint();
+                    game.refresh();
+                    if (running) game.startGameThread();
                 }
                 break;
             default:
@@ -392,7 +395,7 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
             @Override
             public void mouseEntered(MouseEvent e) {
                 if (game != null) {
-                    game.boardRenderer.setHighlightedActor(null);
+                    game.boardRenderer.setHighlightActor(null);
                     game.characterRenderer.redraw();
                 }
             }
@@ -433,6 +436,24 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
         ZButton(IButton obj) {
             super(obj);
             this.obj = obj;
+            log.debug("created button for type " + obj.getClass());
+            if (obj instanceof ZCharacter) {
+                addMouseListener(new MouseListener() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {}
+                    @Override
+                    public void mousePressed(MouseEvent e) {}
+                    @Override
+                    public void mouseReleased(MouseEvent e) {}
+                    @Override
+                    public void mouseEntered(MouseEvent e) {
+                        boardComp.renderer.setHighlightActor((ZCharacter)obj);
+                        charComp.redraw();
+                    }
+                    @Override
+                    public void mouseExited(MouseEvent e) {}
+                });
+            }
         }
 
         @Override
@@ -477,6 +498,7 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
         menu.add(new AWTButton(MenuItem.SUMMARY.name(), this));
         menu.add(new AWTButton(MenuItem.OBJECTIVES.name(), this));
         menu.add(new AWTButton(MenuItem.DIFFICULTY.name(), this));
+        menu.add(new AWTButton(MenuItem.UNDO.name(), this));
         menu.add(new AWTButton(MenuItem.QUIT.name(), this));
         menuContainer.revalidate();
     }

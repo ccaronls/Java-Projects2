@@ -50,11 +50,11 @@ open class CCActivityBase : AppCompatActivity() {
 				}
 			}
 		}
+		const val PERMISSION_REQUEST_CODE = 1001
 	}
 
 	@JvmField
     val log: Logger = AndroidLogger(javaClass.toString())
-	private val PERMISSION_REQUEST_CODE = 1001
 
 	val preferredLocale : Locale by lazy {
 		if (Build.VERSION.SDK_INT < 24)
@@ -88,12 +88,12 @@ open class CCActivityBase : AppCompatActivity() {
 	 *
 	 * @param permissions
 	 */
-	fun checkPermissions(code: Int, vararg permissions: String?) {
+	fun checkPermissions(code: Int, vararg permissions: String) {
 		var permissions = permissions
-		if (Build.VERSION.SDK_INT >= 23 && permissions.size > 0) {
-			val permissionsToRequest: MutableList<String?> = ArrayList()
+		if (Build.VERSION.SDK_INT >= 23 && permissions.isNotEmpty()) {
+			val permissionsToRequest: MutableList<String> = ArrayList()
 			for (p in permissions) {
-				if (checkCallingOrSelfPermission(p!!) != PackageManager.PERMISSION_GRANTED) {
+				if (checkCallingOrSelfPermission(p) != PackageManager.PERMISSION_GRANTED) {
 					permissionsToRequest.add(p)
 				}
 			}
@@ -106,7 +106,7 @@ open class CCActivityBase : AppCompatActivity() {
 		onAllPermissionsGranted(code)
 	}
 
-	open fun checkPermissions(vararg permissions: String?) {
+	open fun checkPermissions(vararg permissions: String) {
 		checkPermissions(PERMISSION_REQUEST_CODE, *permissions)
 	}
 
@@ -138,8 +138,7 @@ open class CCActivityBase : AppCompatActivity() {
 		get() = resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT
 
 	fun hideKeyboard() {
-		val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-		if (imm != null) {
+		(getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager)?.let { imm ->
 			val focused = content.findFocus()
 			if (focused != null) {
 				imm.hideSoftInputFromWindow(focused.windowToken, 0)
@@ -209,7 +208,7 @@ open class CCActivityBase : AppCompatActivity() {
  	""".trimIndent())
 			for (f in files!!) {
 				if (f.indexOf('.') < 0) {
-					if (folder.length > 0) dumpAssetsR("$folder/$f") else dumpAssetsR(f)
+					if (folder.isNotEmpty()) dumpAssetsR("$folder/$f") else dumpAssetsR(f)
 				}
 			}
 		} catch (e: Exception) {

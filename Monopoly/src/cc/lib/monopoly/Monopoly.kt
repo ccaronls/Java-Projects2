@@ -102,14 +102,14 @@ open class Monopoly : Reflector<Monopoly>() {
 	}
 
 	open fun runGame() {
-		if (state.isEmpty()) throw AssertionError("runGame called with empty stack")
+		require (!state.isEmpty()) { "runGame called with empty stack" }
 		//    pushState(State.INIT, null);
 		log.debug("runGame: states: $state")
 		val item = state.peek()
 		when (item.state) {
 			State.INIT -> {
-				assert(state.size == 1)
-				if (players.size < 2) throw RuntimeException("Not enough players")
+				require(state.size == 1)
+				require (players.size >= 2) { "Not enough players" }
 				for (i in 0 until numPlayers) {
 					val p = getPlayer(i)
 					p.clear()
@@ -134,12 +134,12 @@ open class Monopoly : Reflector<Monopoly>() {
 				pushState(State.TURN)
 			}
 			State.SET_PLAYER -> {
-				currentPlayerNum = getData(0)?:0
+				currentPlayerNum = getData(0)
 				popState()
 			}
 			State.TURN -> {
 				val cur = getCurrentPlayer()
-				assert(cur.value > 0)
+				require(cur.value > 0)
 				val moves: MutableList<MoveType> = ArrayList()
 				if (cur.isInJail && cur.turnsLeftInJail-- <= 0) {
 					if (cur.hasGetOutOfJailFreeCard()) {
@@ -185,8 +185,9 @@ open class Monopoly : Reflector<Monopoly>() {
 						moves.add(MoveType.FORFEIT)
 					}
 				}
-				val move = cur.chooseMove(this, moves)
-				move?.let { processMove(it) }
+				cur.chooseMove(this, moves)?.let {
+					processMove(it)
+				}
 			}
 			State.PURCHASE_OR_SKIP -> {
 				val cur = getCurrentPlayer()
@@ -198,13 +199,14 @@ open class Monopoly : Reflector<Monopoly>() {
 					moves.add(MoveType.MORTGAGE)
 				}
 				moves.add(MoveType.END_TURN)
-				val move = cur.chooseMove(this, moves)
-				move?.let { processMove(it) }
+				cur.chooseMove(this, moves)?.let {
+					processMove(it)
+				}
 			}
 			State.PAY_RENT -> {
 				val cur = getCurrentPlayer()
-				val rent = getData(0)!!
-				val toWhom = getData(1)!!
+				val rent = getData(0)
+				val toWhom = getData(1)
 				if (cur.money >= rent) {
 					onPlayerPaysRent(currentPlayerNum, toWhom, rent)
 					cur.addMoney(-rent)
@@ -227,7 +229,7 @@ open class Monopoly : Reflector<Monopoly>() {
 			}
 			State.PAY_KITTY -> {
 				val cur = getCurrentPlayer()
-				val amt = getData(0)!!
+				val amt = getData(0)
 				if (cur.money >= amt) {
 					onPlayerPayMoneyToKitty(currentPlayerNum, amt)
 					cur.addMoney(-amt)
@@ -244,7 +246,7 @@ open class Monopoly : Reflector<Monopoly>() {
 			}
 			State.PAY_PLAYERS -> {
 				val cur = getCurrentPlayer()
-				val amt = getData(0)!!
+				val amt = getData(0)
 				var total = amt * (numActivePlayers - 1)
 				if (cur.money >= total) {
 					onPlayerGotPaid(currentPlayerNum, -total)
@@ -309,8 +311,7 @@ open class Monopoly : Reflector<Monopoly>() {
 			State.CHOOSE_MORTGAGE_PROPERTY -> {
 				val cur = getCurrentPlayer()
 				val cards = cur.cardsForMortgage
-				val card = cur.chooseCard(this, cards, Player.CardChoiceType.CHOOSE_CARD_TO_MORTGAGE)
-				if (card != null) {
+				cur.chooseCard(this, cards, Player.CardChoiceType.CHOOSE_CARD_TO_MORTGAGE)?.let { card ->
 					val mortgageAmt = card.property.getMortgageValue(card.houses)
 					onPlayerMortgaged(currentPlayerNum, card.property, mortgageAmt)
 					cur.addMoney(mortgageAmt)
@@ -322,8 +323,7 @@ open class Monopoly : Reflector<Monopoly>() {
 			State.CHOOSE_UNMORTGAGE_PROPERTY -> {
 				val cur = getCurrentPlayer()
 				val cards = cur.cardsForUnMortgage
-				val card = cur.chooseCard(this, cards, Player.CardChoiceType.CHOOSE_CARD_TO_UNMORTGAGE)
-				if (card != null) {
+				cur.chooseCard(this, cards, Player.CardChoiceType.CHOOSE_CARD_TO_UNMORTGAGE)?.let { card ->
 					val buyBackAmt: Int = card.property.mortgageBuybackPrice
 					onPlayerUnMortgaged(currentPlayerNum, card.property, buyBackAmt)
 					cur.addMoney(-buyBackAmt)
@@ -334,8 +334,7 @@ open class Monopoly : Reflector<Monopoly>() {
 			State.CHOOSE_PROPERTY_FOR_UNIT -> {
 				val cur = getCurrentPlayer()
 				val cards = cur.cardsForNewHouse
-				val card = cur.chooseCard(this, cards, Player.CardChoiceType.CHOOSE_CARD_FOR_NEW_UNIT)
-				if (card != null) {
+				cur.chooseCard(this, cards, Player.CardChoiceType.CHOOSE_CARD_FOR_NEW_UNIT)?.let { card ->
 					val houseCost: Int = card.property.unitPrice
 					if (card.houses < 4) {
 						onPlayerBoughtHouse(currentPlayerNum, card.property, houseCost)
@@ -350,9 +349,8 @@ open class Monopoly : Reflector<Monopoly>() {
 			State.CHOOSE_TRADE -> {
 				val cur = getCurrentPlayer()
 				val trades = getTradeOptions(cur)
-				assert(trades.isNotEmpty())
-				val trade = cur.chooseTrade(this, trades)
-				if (trade != null) {
+				require(trades.isNotEmpty())
+				cur.chooseTrade(this, trades)?.let { trade ->
 					onPlayerTrades(currentPlayerNum, getPlayerNum(trade.trader), trade.card.property, trade.price)
 					cur.addMoney(-trade.price)
 					trade.trader.addMoney(trade.price)
@@ -364,7 +362,7 @@ open class Monopoly : Reflector<Monopoly>() {
 			State.CHOOSE_CARDS_FOR_SALE -> {
 				val cur = getCurrentPlayer()
 				val sellable = cur.cardsForSale
-				assert(sellable.isNotEmpty())
+				require(sellable.isNotEmpty())
 				if (cur.markCardsForSale(this, sellable)) {
 					popState()
 				}
@@ -375,8 +373,9 @@ open class Monopoly : Reflector<Monopoly>() {
 				val pl = getPlayer(owner)
 				val sq = pl.square
 				if (cur.money >= sq.price && owner != currentPlayerNum) {
-					val move = cur.chooseMove(this, listOf(MoveType.PURCHASE_UNBOUGHT, MoveType.DONT_PURCHASE, MoveType.MORTGAGE))
-					move?.let { processMove(it) }
+					cur.chooseMove(this, listOf(MoveType.PURCHASE_UNBOUGHT, MoveType.DONT_PURCHASE, MoveType.MORTGAGE))?.let { move ->
+						processMove(move)
+					}
 				} else {
 					nextPlayer(true)
 				}
@@ -413,7 +412,7 @@ open class Monopoly : Reflector<Monopoly>() {
 
 	private fun processMove(move: MoveType) {
 		val cur = getCurrentPlayer()
-		assert(!cur.isBankrupt)
+		require(!cur.isBankrupt)
 		when (move) {
 			MoveType.END_TURN -> {
 				val sq = cur.square
@@ -421,7 +420,7 @@ open class Monopoly : Reflector<Monopoly>() {
 				pushState(State.SET_PLAYER, currentPlayerNum)
 				if (sq.canPurchase() && getOwner(cur.square) < 0) {
 					val curNum = getPlayerNum(cur)
-					assert(curNum >= 0)
+					require(curNum >= 0)
 					var i = 0
 					while (i < numActivePlayers - 1) {
 						pushState(State.CHOOSE_PURCHASE_PROPERTY, curNum)
@@ -449,9 +448,9 @@ open class Monopoly : Reflector<Monopoly>() {
 			MoveType.FORFEIT -> if (playerBankrupt(currentPlayerNum)) nextPlayer(true)
 			MoveType.MARK_CARDS_FOR_SALE -> pushState(State.CHOOSE_CARDS_FOR_SALE)
 			MoveType.PAY_BOND -> {
-				assert(cur.isInJail)
+				require(cur.isInJail)
 				val bond = cur.jailBond
-				assert(bond > 0)
+				require(bond > 0)
 				cur.setInJail(false, rules)
 				onPlayerOutOfJail(currentPlayerNum)
 				onPlayerGotPaid(currentPlayerNum, -bond)
@@ -461,7 +460,7 @@ open class Monopoly : Reflector<Monopoly>() {
 				nextPlayer(true)
 			}
 			MoveType.GET_OUT_OF_JAIL_FREE -> {
-				assert(cur.isInJail)
+				require(cur.isInJail)
 				cur.setInJail(false, rules)
 				onPlayerOutOfJail(currentPlayerNum)
 				cur.useGetOutOfJailCard()
@@ -469,9 +468,9 @@ open class Monopoly : Reflector<Monopoly>() {
 			}
 			MoveType.PURCHASE -> {
 				val sq = cur.square
-				assert(sq.canPurchase())
-				assert(getOwner(sq) < 0)
-				assert(cur.money >= sq.price)
+				require(sq.canPurchase())
+				require(getOwner(sq) < 0)
+				require(cur.money >= sq.price)
 				onPlayerPurchaseProperty(currentPlayerNum, sq)
 				cur.addCard(newPropertyCard(sq))
 				cur.addMoney(-sq.price)
@@ -483,9 +482,9 @@ open class Monopoly : Reflector<Monopoly>() {
 			MoveType.PURCHASE_UNBOUGHT -> {
 				val pIndex = getData(0)
 				val sq = getPlayer(pIndex).square
-				assert(sq.canPurchase())
-				assert(getOwner(sq) < 0)
-				assert(cur.money >= sq.price)
+				require(sq.canPurchase())
+				require(getOwner(sq) < 0)
+				require(cur.money >= sq.price)
 				onPlayerPurchaseProperty(currentPlayerNum, sq)
 				cur.addCard(newPropertyCard(sq))
 				cur.addMoney(-sq.price)
@@ -499,7 +498,7 @@ open class Monopoly : Reflector<Monopoly>() {
 	fun getPurchasePropertySquare(): Square = getPlayer(getData(0)).square
 
 	fun addPlayer(player: Player) {
-		assert(players.size < MAX_PLAYERS)
+		require(players.size < MAX_PLAYERS)
 		players.add(player)
 	}
 
@@ -527,16 +526,16 @@ open class Monopoly : Reflector<Monopoly>() {
 
 	private fun initChance() {
 		chance.clear()
-		for (c in CardActionType.values()) {
-			if (c.isChance) chance.add(c)
+		CardActionType.values().filter { it.isChance }.forEach {
+			chance.add(it)
 		}
 		chance.shuffle()
 	}
 
 	private fun initCommunityChest() {
 		communityChest.clear()
-		for (c in CardActionType.values()) {
-			if (!c.isChance) communityChest.add(c)
+		CardActionType.values().filter { !it.isChance }.forEach {
+			communityChest.add(it)
 		}
 		communityChest.shuffle()
 	}
@@ -566,7 +565,10 @@ open class Monopoly : Reflector<Monopoly>() {
 		return state.peek().state
 	}
 
-	fun getData(index: Int): Int = state.peek().data[index]
+	fun getData(index: Int): Int {
+		require(state.size > 0) { "Empty State Stack" }
+		return state.peek().data[index]
+	}
 
 	fun getDataOrNull(index: Int): Int? {
 		if (!state.empty() && state.peek().data.size > index) {
@@ -786,9 +788,14 @@ open class Monopoly : Reflector<Monopoly>() {
 				nextPlayer(true)
 			}
 			Square.GOTO_JAIL -> gotoJail()
-			Square.INCOME_TAX, Square.LUXURY_TAX -> pushState(State.PAY_KITTY, (rules.taxScale * square.tax).roundToInt())
-			Square.COMM_CHEST1, Square.COMM_CHEST2, Square.COMM_CHEST3 -> processCommunityChest()
-			Square.CHANCE1, Square.CHANCE2, Square.CHANCE3 -> processChance()
+			Square.INCOME_TAX,
+			Square.LUXURY_TAX -> pushState(State.PAY_KITTY, (rules.taxScale * square.tax).roundToInt())
+			Square.COMM_CHEST1,
+			Square.COMM_CHEST2,
+			Square.COMM_CHEST3 -> processCommunityChest()
+			Square.CHANCE1,
+			Square.CHANCE2,
+			Square.CHANCE3 -> processChance()
 			Square.MEDITERRANEAN_AVE,
 			Square.BALTIC_AVE,
 			Square.ORIENTAL_AVE,
@@ -834,7 +841,7 @@ open class Monopoly : Reflector<Monopoly>() {
 					nextPlayer(true)
 				}
 			}
-			else -> throw GException("Unhandled case $square")
+			//else -> throw GException("Unhandled case $square")
 		}
 	}
 
@@ -921,7 +928,7 @@ open class Monopoly : Reflector<Monopoly>() {
 			if (pp === p) return index
 			index++
 		}
-		throw RuntimeException("Player object not apart of players list")
+		throw GException("Player object not apart of players list")
 	}
 
 	fun cancel() {

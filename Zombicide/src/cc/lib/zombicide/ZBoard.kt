@@ -386,7 +386,7 @@ class ZBoard : Reflector<ZBoard>, IDimension {
             val cell = getCell(pos)
             if (cell.isFull)
                 continue
-            val quadrant = cell.findLowestPriorityOccupant()
+            val quadrant = actor.getSpawnQuadrant()?:cell.findLowestPriorityOccupant()
             if (cell.getOccupant(quadrant) == null) {
                 actor.occupiedCell = pos
                 actor.occupiedQuadrant = quadrant

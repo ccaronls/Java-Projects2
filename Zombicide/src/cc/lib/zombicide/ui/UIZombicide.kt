@@ -15,7 +15,7 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.thread
 import kotlin.concurrent.withLock
 
-abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRenderer: UIZBoardRenderer<*>) : ZGameMP() {
+abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRenderer: UIZBoardRenderer) : ZGameMP() {
 	enum class UIMode {
 		NONE,
 		PICK_CHARACTER,
@@ -44,7 +44,7 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 	@JvmField
     val characterRenderer: UIZCharacterRenderer
 	@JvmField
-    val boardRenderer: UIZBoardRenderer<*>
+    val boardRenderer: UIZBoardRenderer
 	abstract val thisUser: ZUser
 	fun refresh() {
 		boardRenderer.redraw()
@@ -120,8 +120,7 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 			uiMode = UIMode.PICK_CHARACTER
 			boardMessage = message
 		}
-		val ch = waitForUser(ZCharacter::class.java)
-		return ch?.type
+		return waitForUser(ZCharacter::class.java)?.type
 	}
 
 	fun pickZone(message: String, zones: List<Int>): Int? {
@@ -166,6 +165,10 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 			boardMessage = message
 		}
 		return waitForUser(ZDoor::class.java)
+	}
+
+	open fun updateOrganize(character : ZCharacter, list : List<ZMove>) : ZMove? {
+		throw NotImplementedError()
 	}
 
 	override fun addLogMessage(msg: String) {

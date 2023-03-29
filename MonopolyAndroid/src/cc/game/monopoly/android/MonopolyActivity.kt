@@ -21,10 +21,10 @@ import cc.lib.monopoly.*
 import cc.lib.monopoly.Player.CardChoiceType
 import cc.lib.utils.FileUtils
 import cc.lib.utils.prettify
+import kotlinx.coroutines.runBlocking
 import java.io.File
-import java.util.concurrent.locks.Condition
-import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 import kotlin.math.roundToInt
 
 /**
@@ -55,13 +55,11 @@ class MonopolyActivity : DroidActivity() {
 			Piece.SHOE -> R.drawable.shoe
 			Piece.WHEELBARROW -> R.drawable.wheelbarrow
 			Piece.IRON -> R.drawable.iron
-			}
+		}
 
 		override val boardImageId: Int = R.drawable.board
 
-		override fun showChooseMoveMenu(player: Player, moves: List<MoveType>): MoveType? {
-			val lock = ReentrantLock()
-			val cond = lock.newCondition()
+		override fun showChooseMoveMenu(player: Player, moves: List<MoveType>): MoveType? = runBlocking {
 			val items =Array(moves.size) { index ->
 				when (moves[index]) {
 					MoveType.PURCHASE -> {
@@ -76,87 +74,78 @@ class MonopolyActivity : DroidActivity() {
 					else -> prettify(moves[index])
 				}
 			}
-			val result = arrayOfNulls<MoveType>(1)
-			runOnUiThread {
-				newDialogBuilderINGAME().setTitle("${prettify(player.piece.name)} Choose Move ")
-					.setItems(items) { _, which: Int ->
-						when (val mt: MoveType = moves[which]) {
-							MoveType.PURCHASE_UNBOUGHT -> {
-								val property: Square = getPurchasePropertySquare()
-								showPurchasePropertyDialog("Buy Property", "Buy", property) {
-									result[0] = if (it) mt else null
-									lock.withLock { cond.signal() }
+			suspendCoroutine { cont ->
+				runOnUiThread {
+					newDialogBuilderINGAME {
+						cont.resume(null)
+					}.setTitle("${prettify(player.piece.name)} Choose Move ")
+						.setItems(items) { _, which: Int ->
+							when (val mt: MoveType = moves[which]) {
+								MoveType.PURCHASE_UNBOUGHT -> {
+									val property: Square = getPurchasePropertySquare()
+									showPurchasePropertyDialog("Buy Property", "Buy", property) {
+										cont.resume(if (it) mt else null)
+									}
+								}
+								MoveType.PURCHASE -> {
+									val property: Square = player.square
+									showPurchasePropertyDialog("Buy Property", "Buy", property) {
+										cont.resume(if (it) mt else null)
+									}
+								}
+								else -> {
+									cont.resume(mt)
 								}
 							}
-							MoveType.PURCHASE -> {
-								val property: Square = player.square
-								showPurchasePropertyDialog("Buy Property", "Buy", property) {
-									result[0] = if (it) mt else null
-									lock.withLock { cond.signal() }
-								}
+						}.setNegativeButton("Exit") { _, _ ->
+							if (canCancel()) {
+								cancel()
+							} else {
+								stopGameThread()
 							}
-							else                       -> {
-								result[0] = mt
-								lock.withLock { cond.signal() }
+							cont.resume(null)
+						}.show()
+				}
+			}
+		}
+
+		override fun showChooseCardMenu(player: Player, cards: List<Card>, type: CardChoiceType): Card? = runBlocking {
+			suspendCoroutine { cont ->
+				runOnUiThread {
+					val items = cards.prettify()
+					newDialogBuilderINGAME{ cont.resume(null) }.setTitle(player.piece.toString() + prettify(type.name))
+						.setItems(items) { _, which: Int ->
+							cont.resume(cards[which])
+						}.setNegativeButton(R.string.popup_button_cancel) { _, _: Int ->
+							if (canCancel()) {
+								cancel()
+							} else {
+								stopGameThread()
 							}
-						}
-					}.setNegativeButton("Exit") { _, _ ->
-						if (canCancel()) {
-							cancel()
-						} else {
-							stopGameThread()
-						}
-						lock.withLock { cond.signal() }
-					}.show()
+							cont.resume(null)
+						}.show()
+				}
 			}
-			lock.withLock { cond.await() }
-			return result[0]
 		}
 
-		override fun showChooseCardMenu(player: Player, cards: List<Card>, type: CardChoiceType): Card? {
-			val lock = ReentrantLock()
-			val cond = lock.newCondition()
-			val items = cards.prettify()
-			val result = arrayOfNulls<Card>(1)
-			runOnUiThread {
-				newDialogBuilderINGAME().setTitle(player.piece.toString() + prettify(type.name))
-					.setItems(items) { _, which: Int ->
-						result[0] = cards.get(which)
-						lock.withLock { cond.signal() }
-					}.setNegativeButton(R.string.popup_button_cancel) { _, _: Int ->
-						if (canCancel()) {
-							cancel()
-						} else {
-							stopGameThread()
-						}
-						lock.withLock { cond.signal() }
-					}.show()
+		override fun showChooseTradeMenu(player: Player, list: List<Trade>): Trade? = runBlocking {
+			suspendCoroutine { cont ->
+				runOnUiThread {
+					val items = list.prettify()
+					newDialogBuilderINGAME { cont.resume(null) }
+						.setTitle("${player.piece} Choose Trade")
+						.setItems(items) { _, which: Int ->
+							val t: Trade = list[which]
+							showPurchasePropertyDialog("Buy ${prettify(t.card.property.name)} from ${prettify(t.trader.piece.name)}",
+								"Buy for $${t.price}", t.card.property) {
+								cont.resume(if (it) t else null)
+							}
+						}.show()
+				}
 			}
-			lock.withLock { cond.await() }
-			return result[0]
 		}
 
-		override fun showChooseTradeMenu(player: Player, list: List<Trade>): Trade? {
-			val lock = ReentrantLock()
-			val cond = lock.newCondition()
-			val items = list.prettify()
-			val result = arrayOfNulls<Trade>(1)
-			runOnUiThread {
-				newDialogBuilderINGAME().setTitle("${player.piece} Choose Trade")
-					.setItems(items) { _, which: Int ->
-						val t: Trade = list[which]
-						showPurchasePropertyDialog("Buy ${prettify(t.card.property.name)} from ${prettify(t.trader.piece.name)}",
-							"Buy for $${t.price}", t.card.property) {
-							result[0] = if (it) t else null
-							lock.withLock { cond.signal() }
-						}
-					}.show()
-			}
-			lock.withLock { cond.await() }
-			return result[0]
-		}
-
-		private fun openMarkSaleableMenu(playerUser: PlayerUser, list: List<Card>, lock: ReentrantLock, cond: Condition) {
+		private fun openMarkSaleableMenu(playerUser: PlayerUser, list: List<Card>, onDoneCB: () -> Unit) {
 			val view = ListView(this@MonopolyActivity)
 			view.adapter = object : BaseAdapter() {
 				override fun getCount(): Int {
@@ -187,28 +176,30 @@ class MonopolyActivity : DroidActivity() {
 				val cost = playerUser.getSellableCardCost(card)
 				val STEP = 50
 				val np: NumberPicker = CCNumberPicker.newPicker(this@MonopolyActivity, cost, 0, 5000, STEP, null)
-				newDialogBuilderINGAME().setTitle("Set Cost for " + card.property.name)
+				newDialogBuilderINGAME { }.setTitle("Set Cost for " + card.property.name)
 					.setView(np).setNeutralButton("Done") { _: DialogInterface?, _: Int ->
 						playerUser.setSellableCard(card, np.value * STEP)
-						openMarkSaleableMenu(playerUser, list, lock, cond)
+						openMarkSaleableMenu(playerUser, list, onDoneCB)
 					}.show()
 			}
-			newDialogBuilderINGAME()
+			newDialogBuilderINGAME { }
 				.setTitle("${playerUser.piece} Mark Saleable")
-				.setView(view).setNeutralButton("Done") { _, _ -> lock.withLock { cond.signal() } }
+				.setView(view).setNeutralButton("Done") { _, _ -> onDoneCB.invoke() }
 				.show()
 		}
 
-		override fun showMarkSellableMenu(playerUser: PlayerUser, list: List<Card>): Boolean {
-			val lock = ReentrantLock()
-			val cond = lock.newCondition()
-			runOnUiThread { openMarkSaleableMenu(playerUser, list, lock, cond) }
-			lock.withLock { cond.await() }
-			return true
+		override fun showMarkSellableMenu(playerUser: PlayerUser, list: List<Card>): Boolean = runBlocking {
+			suspendCoroutine { cont ->
+				runOnUiThread {
+					openMarkSaleableMenu(playerUser, list) {
+						cont.resume(true)
+					}
+				}
+			}
 		}
 
-		override fun onError(t: Throwable?) {
-			t?.printStackTrace()
+		override fun onError(t: Throwable) {
+			t.printStackTrace()
 			FileUtils.tryCopyFile(saveFile, File(externalStorageDirectory, "monopoly_error.txt"))
 			stopGameThread()
 			runOnUiThread {
@@ -228,22 +219,26 @@ class MonopolyActivity : DroidActivity() {
 		}
 	}
 
-	fun newDialogBuilderINGAME(): AlertDialog.Builder {
+	private fun newDialogBuilderINGAME(onCancel: () -> Unit): AlertDialog.Builder {
 		val builder = super.newDialogBuilder()
 		if (monopoly.canCancel()) {
 			builder.setNegativeButton(R.string.popup_button_cancel) { _, _ ->
 				monopoly.cancel()
+				onCancel.invoke()
 			}
 		} else {
-			builder.setNegativeButton("Exit") { _, _ -> monopoly.stopGameThread() }
+			builder.setNegativeButton("Exit") { _, _ ->
+				monopoly.stopGameThread()
+				onCancel.invoke()
+			}
 		}
 		return builder
 	}
 
-	fun showPurchasePropertyDialog(title: String, buyLabel: String, property: Square, callback: (bought:Boolean)->Unit) {
+	private fun showPurchasePropertyDialog(title: String, buyLabel: String, property: Square, callback: (bought:Boolean)->Unit) {
 		newDialogBuilder().setTitle(title).setView(object : DroidView(this, false) {
 			override fun onPaint(g: DroidGraphics) {
-				g.setTextHeightDips(16f)
+				g.setTextHeightDips(32f)
 				monopoly.drawPropertyCard(g, g.viewportWidth.toFloat(), 0f, property, null)
 			}
 
@@ -377,9 +372,9 @@ class MonopolyActivity : DroidActivity() {
 		realPlayers.setOnValueChangedListener { _, _, newVal: Int ->
 			val total: Int = newVal + compPlayers.value
 			if (total > Monopoly.MAX_PLAYERS) {
-				compPlayers.setValue(compPlayers.value - 1)
+				compPlayers.value = compPlayers.value - 1
 			} else if (total < 2) {
-				compPlayers.setValue(compPlayers.value + 1)
+				compPlayers.value = compPlayers.value + 1
 			}
 		}
 		compPlayers.setOnValueChangedListener { _, _, newVal: Int ->

@@ -78,9 +78,11 @@ open class ZQuestTheCommandry(quests: ZQuests = ZQuests.The_Commandry) : ZQuest(
 	override fun getObjectivesOverlay(game: ZGame): Table {
 		return Table(name)
 			.addRow(Table().setNoBorder()
-				.addRow("1.", "Escape through the underpass.")
+				.addRow("1.", "Escape through the underpass", String.format("%d of %d", game.board.getCharactersInZone(exitZone).size, game.allCharacters.size))
 				.addRow("2.", "Unlock the Green Door", greenDoorKeyZone < 0)
 				.addRow("3.", "Unlock the Blue Door", blueDoorKeyZone < 0)
+				.addRow("4.", "All Player must survive", numDeadPlayers(game) == 0)
+				.addRow("5.", "Exit is cleared of zombies", game.board.getNumZombiesInZone(exitZone) == 0)
 			)
 	}
 }

@@ -1,5 +1,4 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
-
 buildscript {
     ext {
         kotlin_version = '1.4.20'
@@ -48,6 +47,9 @@ allprojects {
     plugins.withType(JavaPlugin) {
         dependencies {
             testImplementation "$junit"
+//  Figure out how to allow for this in this file and not in every project
+//            evaluationDependsOn(':GameLibrary')
+//            testCompile files(project(':GameLibrary').sourceSets.test.output)
         }
     }
 
@@ -80,7 +82,6 @@ allprojects {
     }
 
     plugins.withId("com.android.application") {
-
         android {
             defaultConfig {
                 minSdkVersion project.myMinSdkVersion
@@ -144,7 +145,7 @@ allprojects {
             implementation 'androidx.recyclerview:recyclerview:1.1.0'
             implementation 'androidx.appcompat:appcompat:1.1.0'
             implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0-alpha03'
-            implementation 'androidx.fragment:fragment-ktx:1.3.2'
+            implementation 'androidx.fragment:fragment-ktx:1.2.5'
 
             testImplementation "$junit"
 
@@ -154,6 +155,13 @@ allprojects {
             // AndroidJUnitRunner and JUnit Rules
             androidTestImplementation 'androidx.test:runner:1.4.0'
             androidTestImplementation 'androidx.test:rules:1.4.0'
+
+            // This thing is awesome
+            debugImplementation 'com.squareup.leakcanary:leakcanary-android:+'
+        }
+
+        configurations {
+            //debugImplementation.exclude group: "junit", module: "junit"
         }
     }
 

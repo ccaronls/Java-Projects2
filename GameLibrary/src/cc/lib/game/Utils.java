@@ -2827,14 +2827,18 @@ public class Utils {
         return true;
     }
 
+
     /**
      *
      * @param list
+     * @param idx
      * @param <O>
      * @return
      */
-    public static <O> O getFirstOrNull(List<O> list) {
-        return list.isEmpty() ? null : list.get(0);
+    public static <O> O getOrNull(List<O> list, int idx) {
+        if (idx < 0 || idx >= list.size())
+            return null;
+        return list.get(idx);
     }
 
     /**
