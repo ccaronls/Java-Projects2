@@ -299,49 +299,29 @@ class ZCharacter(override val type: ZPlayerName=ZPlayerName.Ann, skillz: Array<A
         return backpack
     }
 
-    fun getEmptyEquipSlotFor(e: ZEquipment<*>): ZEquipSlot {
+    fun getEmptyEquipSlotsFor(e: ZEquipment<*>): List<ZEquipSlot> {
+	    val list = mutableListOf<ZEquipSlot>()
         if (e.isEquippable(this)) {
             if (body == null && canEquipBody(e)) {
-                return ZEquipSlot.BODY
+                list.add(ZEquipSlot.BODY)
             }
             when (e.slotType) {
                 ZEquipSlotType.HAND -> {
                     if (leftHand == null) {
-                        return ZEquipSlot.LEFT_HAND
+	                    list.add(ZEquipSlot.LEFT_HAND)
                     }
                     if (rightHand == null) {
-                        return ZEquipSlot.RIGHT_HAND
+                        list.add(ZEquipSlot.RIGHT_HAND)
                     }
                 }
                 ZEquipSlotType.BODY -> if (body == null) {
-                    return ZEquipSlot.BODY
+                    list.add(ZEquipSlot.BODY)
                 }
             }
         }
-        require(!isBackpackFull)
-        return ZEquipSlot.BACKPACK
-    }
-
-    fun getEmptyEquipSlotForOrNull(e: ZEquipment<*>): ZEquipSlot? {
-        if (e.isEquippable(this)) {
-            if (body == null && canEquipBody(e)) {
-                return ZEquipSlot.BODY
-            }
-            when (e.slotType) {
-                ZEquipSlotType.HAND -> {
-                    if (leftHand == null) {
-                        return ZEquipSlot.LEFT_HAND
-                    }
-                    if (rightHand == null) {
-                        return ZEquipSlot.RIGHT_HAND
-                    }
-                }
-                ZEquipSlotType.BODY -> if (body == null) {
-                    return ZEquipSlot.BODY
-                }
-            }
-        }
-        return if (isBackpackFull) null else ZEquipSlot.BACKPACK
+	    if (!isBackpackFull)
+	    	list.add(ZEquipSlot.BACKPACK)
+	    return list
     }
 
     /**
@@ -416,7 +396,7 @@ class ZCharacter(override val type: ZPlayerName=ZPlayerName.Ann, skillz: Array<A
 
     @JvmOverloads
     fun attachEquipment(equipment: ZEquipment<*>, _slot: ZEquipSlot? = null): ZEquipment<*>? {
-	    val slot = _slot?:getEmptyEquipSlotFor(equipment)
+	    val slot = _slot?:getEmptyEquipSlotsFor(equipment)[0]
         equipment.slot = slot
         var prev: ZEquipment<*>? = null
         when (slot) {
@@ -587,6 +567,15 @@ class ZCharacter(override val type: ZPlayerName=ZPlayerName.Ann, skillz: Array<A
         return type.alternateBodySlot == equip.type.equipmentClass
     }
 
+	fun canEquip(_slot : ZEquipSlot?, equip : ZEquipment<*>) : Boolean {
+		val slot = _slot ?: getEmptyEquipSlotsFor(equip).firstOrNull() ?: return false
+		return when (equip.slotType) {
+			ZEquipSlotType.HAND     -> ((slot == ZEquipSlot.LEFT_HAND && leftHand == null)
+				|| (slot == ZEquipSlot.RIGHT_HAND && rightHand == null))
+			ZEquipSlotType.BACKPACK -> slot == ZEquipSlot.BACKPACK && numBackpackItems < MAX_BACKPACK_SIZE
+			ZEquipSlotType.BODY     -> slot == ZEquipSlot.BODY && body == null
+		}
+	}
     val meleeWeapons: List<ZWeapon>
         get() = (if (isDualWielding) listOfNotNull(leftHand, body) else listOfNotNull(leftHand, rightHand, body))
 			.filterIsInstance<ZWeapon>().filter { it.isMelee }
@@ -716,7 +705,8 @@ class ZCharacter(override val type: ZPlayerName=ZPlayerName.Ann, skillz: Array<A
 	        it.addAll(listOfNotNull(leftHand, body, rightHand))
         }
 
-    fun removeEquipment(equip: ZEquipment<*>) {
+    fun removeEquipment(equip: ZEquipment<*>) : ZEquipSlot? {
+	    val slot = equip.slot
         when (equip.slot) {
 	        ZEquipSlot.BACKPACK -> {
 		        val success = backpack.remove(equip)
@@ -740,6 +730,7 @@ class ZCharacter(override val type: ZPlayerName=ZPlayerName.Ann, skillz: Array<A
         }
         cachedSkills = null
         equip.slot = null
+	    return slot
     }
 
     /**
@@ -850,11 +841,13 @@ class ZCharacter(override val type: ZPlayerName=ZPlayerName.Ann, skillz: Array<A
         return allSkills.contains(skill)
     }
 
+	// adds a permanent skill
     fun addSkill(skill: ZSkill) {
         allSkills.add(skill)
         availableSkills.add(skill)
     }
 
+	// Adds a temporary skill
     fun addAvailableSkill(skill: ZSkill) {
         availableSkills.add(skill)
         cachedSkills = null
@@ -902,6 +895,14 @@ class ZCharacter(override val type: ZPlayerName=ZPlayerName.Ann, skillz: Array<A
         isStartingWeaponChosen = true
     }
 
+	fun canDoAction(action : ZActionType) : Boolean {
+		when (action) {
+			ZActionType.INVENTORY -> if (availableSkills.contains(ZSkill.Inventory))
+				return true
+		}
+		return actionsLeftThisTurn > 0
+	}
+
     override val isNoisy: Boolean
         get() = isAlive && !isInvisible
     override val scale: Float
@@ -912,6 +913,8 @@ class ZCharacter(override val type: ZPlayerName=ZPlayerName.Ann, skillz: Array<A
 	        }
 	        return super.scale
 	    }
+	val isWounded : Boolean
+		get() = woundBar > 0
 
 	fun getAllSkillsTable() : Table {
 		return Table().also { table ->

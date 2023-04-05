@@ -5,11 +5,21 @@ import android.util.AttributeSet
 import android.view.View
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.databinding.BindingAdapter
 import cc.lib.ui.IButton
+
+@BindingAdapter("buttonText")
+fun ZButton.setButtonText(text : String) {
+	findViewById<TextView>(R.id.text).text = text
+}
 
 class ZButton : ConstraintLayout {
 	constructor(context: Context) : super(context) {}
 	constructor(context: Context, attrs: AttributeSet) : super(context, attrs) {}
+
+	init {
+		inflate(context, R.layout.zbutton_layout, this)
+	}
 
 	private fun init(button: IButton, enabled: Boolean) {
 		val tv = findViewById<TextView>(R.id.text)
@@ -22,13 +32,12 @@ class ZButton : ConstraintLayout {
 		}
 		tag = button
 		isEnabled = enabled
-		//setOnClickListener(listener);
 	}
 
 	companion object {
 		@JvmStatic
         fun build(context: Context, button: IButton, enabled: Boolean): ZButton {
-			val b = inflate(context, R.layout.zbutton_layout, null) as ZButton
+			val b = ZButton(context)
 			b.init(button, enabled)
 			return b
 		}

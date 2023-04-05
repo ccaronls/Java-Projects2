@@ -28,6 +28,11 @@ enum class ZSkill(val description: String) : IButton {
             }
         }
     },
+	Plus1_Damage_Combat("The Survivor gets a +1 Damage bonus with all weapons.") {
+		override fun modifyStat(stat: ZWeaponStat, actionType: ZActionType, character: ZCharacter, game: ZGame, targetZone: Int) {
+			stat.damagePerHit++
+		}
+	},
     Plus1_Damage_DualWielding("The survivor get +1 damage when dual wielding a melee weapon.") {
         override fun modifyStat(stat: ZWeaponStat, actionType: ZActionType, character: ZCharacter, game: ZGame, targetZone: Int) {
             if (actionType === ZActionType.MELEE && character.isDualWielding) {
@@ -304,8 +309,9 @@ enum class ZSkill(val description: String) : IButton {
     Destiny("The Survivor can use this Skill once per Turn when he reveals an Equipment card he drew. You can ignore and discard that card, then draw another Equipment card."),  //Dragon_Aura("Gain +4 Armor till end of round."),
     Inventory("User can make modification to their inventory or, if occupied zone is free from zombies, trade with others in their same zone for no cost") {
         override fun addSpecialMoves(game: ZGame, character: ZCharacter, moves: MutableCollection<ZMove>) {
-            if (character.actionsLeftThisTurn == 0) {
-                if (!moves.contains(ZMoveType.INVENTORY)) moves.add(ZMove.newInventoryMove())
+            if (!game.isOrganizeEnabled && character.actionsLeftThisTurn == 0) {
+                if (!moves.contains(ZMoveType.INVENTORY))
+					moves.add(ZMove.newOrganize())
                 game.addTradeOptions(character, moves)
             }
         }

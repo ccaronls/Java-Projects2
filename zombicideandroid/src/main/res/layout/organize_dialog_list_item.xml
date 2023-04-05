@@ -27,6 +27,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@{character.backpack.get(position).label}"
+            backpackPosition="@{position}"
+            tagBackpackItem="@{character}"
             tools:text="WATER"/>
 
     </LinearLayout>

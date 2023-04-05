@@ -3,7 +3,6 @@ package cc.lib.zombicide
 
 import cc.lib.ui.IButton
 import cc.lib.utils.Reflector
-import cc.lib.utils.prettify
 
 data class ZMove constructor(
 	val type: ZMoveType=ZMoveType.END_TURN,
@@ -104,7 +103,11 @@ data class ZMove constructor(
             return ZMove(type = ZMoveType.TAKE, character = giver, equipment = toTake, fromSlot = toTake.slot, toSlot = toSlot)
         }
 
-        fun newObjectiveMove(zone: Int): ZMove {
+	    fun newOrganizeTakeMove(taker: ZPlayerName, toTake: ZEquipment<*>, toSlot : ZEquipSlot?): ZMove {
+		    return ZMove(type = ZMoveType.ORGANIZE_TAKE, character = taker, equipment = toTake, fromSlot = toTake.slot, toSlot = toSlot)
+	    }
+
+	    fun newObjectiveMove(zone: Int): ZMove {
             return ZMove(type = ZMoveType.TAKE_OBJECTIVE, integer = zone)
         }
 
@@ -221,7 +224,7 @@ data class ZMove constructor(
     }
 
     override fun getLabel(): String {
-        var label = prettify(type.name)
+        var label = type.label
 	    equipment?.let {
 		    label += " ${it.label}"
 	    }
@@ -230,9 +233,9 @@ data class ZMove constructor(
         }
         if (toSlot != null)
         	label += " to ${toSlot.label}"
-	    if (type == ZMoveType.TRADE) {
-	    	list?.takeIf { it.size == 1 }?.map { it as ZPlayerName }?.firstOrNull()?.let {
-			    label += " with ${it.label}"
+	    if (type == ZMoveType.ORGANIZE_TRADE) {
+	    	character?.name?.let {
+			    label += " with $it"
 		    }
 	    }
         return label

@@ -7,7 +7,7 @@ import androidx.lifecycle.*
 /**
  * Created by Chris Caron on 3/25/23.
  */
-abstract class LifecycleDialog<VM : ViewModel>(context : Context, modelClass : Class<VM>) : Dialog(context)
+abstract class LifecycleDialog<VM : ViewModel>(context : Context, modelClass : Class<VM>, themeRes : Int = 0) : Dialog(context, themeRes)
 	, LifecycleOwner
 	, ViewModelStoreOwner {
 

@@ -1,9 +1,6 @@
 package cc.lib.android
 
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MediatorLiveData
-import androidx.lifecycle.Observer
+import androidx.lifecycle.*
 
 /**
  * Created by Chris Caron on 12/7/22.
@@ -38,11 +35,15 @@ fun <IN1, IN2, OUT> combine(in1 : LiveData<IN1>, in2 : LiveData<IN2>, combiner :
 		}
 	}
 }
-/*
-fun <K,V> MutableMap<K,V>.getOrPut(key : K, defaultValue : V) : V {
-	get(key)?.let {
-		return it
+
+fun MutableLiveData<Int>.increment(amt : Int) {
+	postValue((value?:0) + amt)
+}
+
+class TransformedLiveData<IN, OUT>(data : LiveData<IN>, converter : (v : IN) -> OUT) : MediatorLiveData<OUT>() {
+	init {
+		addSource(data) {
+			value = converter(it)
+		}
 	}
-	put(key, defaultValue)
-	return defaultValue
-}*/
+}

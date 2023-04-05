@@ -46,9 +46,14 @@ enum class ZMoveType(val toolTipText: String?) : IButton {
     IGNITE("Ignite a Dragon Bile within range"),
     BARRICADE("Close and barricade a door"),
     CLOSE_SPAWN_PORTAL("Destroy all spawns in the occupied zone"),
-    ORGANIZE("Adjust Inventory / Trade"),
+    ORGANIZE("View inventory. The first change of inventory cost an action. You can perform as many subsequent inventory actions for free for the rest of the round."),  // equip things, drop things, etc.
     ORGANIZE_DONE("Completed"),
-	ORGANIZE_TRADE("Choose Player for secondary slot"),
+	ORGANIZE_TRADE(null) {
+		override fun getLabel(): String {
+			return TRADE.label
+		}
+	},
+	ORGANIZE_TAKE(null),
     ORGANIZE_SLOT("Choose Slot to Organize"),
 	;
 

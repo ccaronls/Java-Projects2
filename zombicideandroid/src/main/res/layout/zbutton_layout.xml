@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<cc.game.zombicide.android.ZButton xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_weight="1"
@@ -27,8 +28,9 @@
         android:layout_height="0dp"
         android:scaleType="fitXY"
         android:src="@android:drawable/ic_media_play"
+        android:visibility="gone"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
-</cc.game.zombicide.android.ZButton>
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -112,5 +112,10 @@ are fulfilled.
     </string-array>
 
     <string name="label_empty">-- Empty --</string>
+    <string name="popup_title_organize">ORGANIZE</string>
+    <string name="label_left_hand">Left Hand</string>
+    <string name="label_right_hand">Right Hand</string>
+    <string name="label_body">Body</string>
+    <string name="label_backpack">Backpack</string>
 
 </resources>

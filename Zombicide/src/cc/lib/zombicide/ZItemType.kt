@@ -22,9 +22,33 @@ enum class ZItemType(override val equipmentClass: ZEquipmentClass, val actionTyp
             game.board.getZone(targetZoneIdx).isDragonBile = true
         }
     },
-    WATER(ZEquipmentClass.CONSUMABLE, ZActionType.CONSUME, ZEquipSlotType.BACKPACK, "Consume and gain 1 experience point"),
-    SALTED_MEAT(ZEquipmentClass.CONSUMABLE, ZActionType.CONSUME, ZEquipSlotType.BACKPACK, "Consume and gain 2 experience point"),
-    APPLES(ZEquipmentClass.CONSUMABLE, ZActionType.CONSUME, ZEquipSlotType.BACKPACK, "Consume and gain 3 experience point"),
+    WATER(ZEquipmentClass.CONSUMABLE, ZActionType.CONSUME, ZEquipSlotType.BACKPACK, "Consume and heal 1 wound or gain 3 experience points if not wounded.") {
+	    override fun consume(char: ZCharacter, game: ZGame) {
+		    if (char.isWounded) {
+				char.heal(game, 1)
+		    } else {
+				char.addExp(3)
+		    }
+	    }
+	},
+    SALTED_MEAT(ZEquipmentClass.CONSUMABLE, ZActionType.CONSUME, ZEquipSlotType.BACKPACK, "Consume and heal 1 wound or gain +1 Damage for remainder of turn if not wounded.") {
+	    override fun consume(char: ZCharacter, game: ZGame) {
+		    if (char.isWounded) {
+			    char.heal(game, 1)
+		    } else {
+			    char.addAvailableSkill(ZSkill.Plus1_Damage_Combat)
+		    }
+	    }
+    },
+    APPLES(ZEquipmentClass.CONSUMABLE, ZActionType.CONSUME, ZEquipSlotType.BACKPACK, "Consume and heal 1 wound or gain +1 Die Roll Combat for remainder of turn if not wounded.") {
+	    override fun consume(char: ZCharacter, game: ZGame) {
+		    if (char.isWounded) {
+			    char.heal(game, 1)
+		    } else {
+			    char.addAvailableSkill(ZSkill.Plus1_die_Combat)
+		    }
+	    }
+    },
     PLENTY_OF_ARROWS(ZEquipmentClass.BOW, ZActionType.NOTHING, ZEquipSlotType.BACKPACK, "You may re-roll all ranged attacked involving bows. The new result takes place of old."),  // user can reroll ranged arrow attacks if they want
     PLENTY_OF_BOLTS(ZEquipmentClass.CROSSBOW, ZActionType.NOTHING, ZEquipSlotType.BACKPACK, "You may re-roll all ranged attacked involving bolts. The new result takes place of old."),
     BARRICADE(ZEquipmentClass.CONSUMABLE, ZActionType.BARRICADE_DOOR, ZEquipSlotType.HAND, "Close and barricade a door. Takes 3 turns to execute."),
@@ -39,14 +63,9 @@ enum class ZItemType(override val equipmentClass: ZEquipmentClass, val actionTyp
         return type === actionType
     }
 
-    val expWhenConsumed: Int
-        get() {
-            when (this) {
-                SALTED_MEAT -> return 2
-                APPLES -> return 3
-            }
-            return 1
-        }
+	open fun consume(char : ZCharacter, game : ZGame) {
+		throw NotImplementedError()
+	}
 
     override fun getTooltipText(): String? {
         return description

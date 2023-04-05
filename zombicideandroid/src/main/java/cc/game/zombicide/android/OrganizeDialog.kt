@@ -4,14 +4,14 @@ import android.content.ClipData
 import android.os.Bundle
 import android.util.Log
 import android.view.*
+import android.widget.AdapterView
 import android.widget.BaseAdapter
 import android.widget.ListView
 import androidx.databinding.BindingAdapter
 import androidx.lifecycle.MutableLiveData
 import cc.game.zombicide.android.databinding.OrganizeDialogBinding
 import cc.game.zombicide.android.databinding.OrganizeDialogListItemBinding
-import cc.lib.android.LifecycleDialog
-import cc.lib.android.LifecycleViewModel
+import cc.lib.android.*
 import cc.lib.ui.IButton
 import cc.lib.zombicide.*
 import cc.lib.zombicide.ui.UIZombicide
@@ -22,8 +22,8 @@ fun <T> MutableLiveData<T>.refresh() {
 	value = value
 }
 
-@BindingAdapter("charBackpack", "moves", "viewModel")
-fun ListView.setBackpackItems(char : ZCharacter?, moves: List<ZMove>, viewModel: OrganizeViewModel) {
+@BindingAdapter("charBackpack", "viewModel")
+fun ListView.setBackpackItems(char : ZCharacter?, viewModel: OrganizeViewModel) {
 	adapter = object : BaseAdapter() {
 		override fun getCount(): Int = char?.getBackpack()?.size?:0
 
@@ -37,12 +37,10 @@ fun ListView.setBackpackItems(char : ZCharacter?, moves: List<ZMove>, viewModel:
 				it.lifecycleOwner = viewModel
 				it.position = position
 				it.character = char
-//			return (convertView?:View.inflate(context, R.layout.organize_dialog_list_item, parent)).also {
-//				it.findViewById<TextView>(R.id.tvItemName).text = char?.getBackpackItem(position)?.label
-//				it.setTagFromMoves(moves, char, ZEquipSlot.BACKPACK, viewModel)
-//				it.setOnClickListener { viewModel.setSelected(it, getItem(position)) }
-//				it.setOnLongClickListener { viewModel.startDrag(it, getItem(position) as ZEquipment<*>?) }
-			}.root
+			}.root.also {
+				it.tag = getItem(position)
+				Log.d(TAG, "${char?.type} Backpack at position $position has tag: $tag")
+			}
 		}
 	}
 }
@@ -64,8 +62,8 @@ fun ListView.setListOptions(list : List<ZMove>, viewModel : OrganizeViewModel) {
 	}
 }
 
-@BindingAdapter("tagMove", "character", "slot")
-fun View.setTagFromMoves(moves : List<ZMove>, _character : ZCharacter?, slot : ZEquipSlot) {
+@BindingAdapter("tagMove", "character", "slot", "dragging", "equipped")
+fun View.setTagFromMoves(moves : List<ZMove>, _character : ZCharacter?, slot : ZEquipSlot, dragging : Boolean, equipped : Boolean) {
 	_character?.let { character ->
 		val options = moves.filter {
 			it.character == character.type && ((it.toSlot == null && it.fromSlot == slot) || it.toSlot == slot)
@@ -79,35 +77,45 @@ fun View.setTagFromMoves(moves : List<ZMove>, _character : ZCharacter?, slot : Z
 				Log.e(TAG, "ERROR: too many options for tag: ${options.joinToString()}")
 			else {}
 		}
+
+		if (dragging) {
+			isEnabled = tag != null
+			isActivated = tag != null
+			isSelected = false
+		} else {
+			isEnabled = equipped
+			isActivated = false
+			isSelected = false
+		}
 	}
 }
 
 @BindingAdapter("tagTrash")
-fun View.setTagFromMoves(moves : List<ZMove>) {
+fun View.setTagTrash(moves : List<ZMove>) {
 	tag = moves.firstOrNull { it.type == ZMoveType.DISPOSE }
 	Log.i(TAG, "tag for TRASH -> $tag")
 }
 
-@BindingAdapter("updateEnabled", "equipped")
-fun View.setStatusForDrop(dragging : Boolean, equipped : Boolean) {
-	if (!dragging) {
-		isEnabled = equipped
-		isActivated = false
-		isSelected = false
-	}
+@BindingAdapter("tagConsume")
+fun View.setTagConsume(moves : List<ZMove>) {
+	tag = moves.firstOrNull { it.type == ZMoveType.CONSUME }
+	isEnabled = tag!=null
+	isActivated = tag!=null
+	Log.i(TAG, "tag for CONSUME -> $tag")
 }
 
-@BindingAdapter("dragAndDropSupported")
-fun View.setDragAndDropSupported(viewModel : OrganizeViewModel) {
-	Log.d(TAG, "dragAndDropSupported $viewModel")
-	setOnDragListener(viewModel)
-	setOnTouchListener(viewModel)
+@BindingAdapter("tagBackpackItem", "backpackPosition")
+fun View.setBackpackTag(char : ZCharacter?, position : Int) {
+	tag = char?.getBackpackItem(position)
 }
 
 /**
  * Created by Chris Caron on 3/24/23.
  */
-class OrganizeViewModel : LifecycleViewModel(), View.OnDragListener, View.OnTouchListener {
+class OrganizeViewModel : LifecycleViewModel(),
+	View.OnDragListener,
+	AdapterView.OnItemLongClickListener,
+	AdapterView.OnItemClickListener {
 
 	val descriptionItem = MutableLiveData("")
 	val descriptionText = MutableLiveData("")
@@ -119,9 +127,24 @@ class OrganizeViewModel : LifecycleViewModel(), View.OnDragListener, View.OnTouc
 	val listOptions = MutableLiveData<List<ZMove>>(emptyList())
 	val dragging = MutableLiveData(false)
 	val dropTarget = MutableLiveData<View?>(null)
+	val undoPushes = MutableLiveData(0)
 
 	private var currentSelectedView : View? = null
 	val game by lazy { UIZombicide.instance }
+
+	fun onGameSaved() {
+		undoPushes.increment(1)
+	}
+
+	fun onUndo() {
+		undoPushes.increment(-1)
+		primaryCharacter.refresh()
+		secondaryCharacter.refresh()
+	}
+
+	fun tryUndo() {
+		game.undo()
+	}
 
 	fun setSelected(view : View, _obj : Any?) {
 		val obj = _obj?:return
@@ -150,34 +173,35 @@ class OrganizeViewModel : LifecycleViewModel(), View.OnDragListener, View.OnTouc
 
 	fun startDrag(view : View, equip : ZEquipment<*>?) : Boolean {
 		Log.d(TAG, "startDrag equip:$equip tag:${view.tag}")
-
-		return equip?.let {
-			val name = equip.label
-			dragging.value = true
-			view.startDrag(
-				ClipData.newPlainText(name, name),
-				View.DragShadowBuilder(view),
-				equip, 0)
-			true
-		}?:false
-	}
-
-	override fun onTouch(v: View, event: MotionEvent): Boolean {
-		v.onTouchEvent(event)
-		when (event.action) {
-			MotionEvent.ACTION_DOWN -> {
-				Log.d(TAG, "onTouch DOWN tag=${v.tag}")
-				v.tag?.let {
-					game.setResult(it)
+		if (equip == null)
+			return false
+		view.tag?.let {
+			if (it is ZMove) {
+				it.list?.filterIsInstance<ZMove>()?.takeIf { it.isNotEmpty() }?.let {
+					allOptions.value = it
+					dragging.value = true
+					view.post {
+						val name = equip.label
+						dragging.value = true
+						view.startDrag(
+							ClipData.newPlainText(name, name),
+							View.DragShadowBuilder(view),
+							equip, 0)
+					}
+					return true
 				}
 			}
-			MotionEvent.ACTION_UP -> {
-				Log.d(TAG, "onTouch UP")
-				dragging.value = false
-				game.setResult(null)
-			}
 		}
-		return true
+		return false
+	}
+	override fun onItemLongClick(parent: AdapterView<*>, view: View, position: Int, id: Long): Boolean {
+		val equip = view.tag as ZEquipment<*>?
+		view.tag = parent.tag
+		return startDrag(view, equip)
+	}
+
+	override fun onItemClick(parent: AdapterView<*>, view: View, position: Int, id: Long) {
+		setSelected(view, view.tag)
 	}
 
 	// A view state has
@@ -195,6 +219,10 @@ class OrganizeViewModel : LifecycleViewModel(), View.OnDragListener, View.OnTouc
 			DragEvent.ACTION_DRAG_ENDED -> {
 				v.isActivated = false
 				Log.d(TAG, "Drag end ${v.tag}")
+				if (dragging.value == true) {
+					dragging.value = false
+					game.setResult(null)
+				}
 			}
 			DragEvent.ACTION_DROP -> {
 				// perform the move accociated with the
@@ -232,12 +260,14 @@ class OrganizeDialog(context : ZombicideActivity) : LifecycleDialog<OrganizeView
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
-		setTitle("ORGANIZE")
+		setTitle(R.string.popup_title_organize)
 		OrganizeDialogBinding.inflate(layoutInflater).also {
 			binding = it
 			it.viewModel = viewModel
 			it.lifecycleOwner = this
-			it.ivTrash.setOnDragListener(viewModel)
+			//it.ivTrash.setOnDragListener(viewModel)
+			it.tvConsume.setOnDragListener(viewModel)
+			it.tvTrash.setOnDragListener(viewModel)
 			listOf(Pair(it.primaryCharacter, viewModel.primaryCharacter), Pair(it.secondaryCharacter, viewModel.secondaryCharacter)).forEach { pair ->
 				pair.first.viewModel = viewModel
 				pair.first.lifecycleOwner = this
@@ -246,13 +276,11 @@ class OrganizeDialog(context : ZombicideActivity) : LifecycleDialog<OrganizeView
 				pair.first.vgBody.setOnDragListener(viewModel)
 				pair.first.vgRightHand.setOnDragListener(viewModel)
 				pair.first.vgBackpack.setOnDragListener(viewModel)
-				pair.first.vgLeftHand.setOnTouchListener(viewModel)
-				pair.first.vgBody.setOnTouchListener(viewModel)
-				pair.first.vgRightHand.setOnTouchListener(viewModel)
-
+				pair.first.lvBackpack.onItemLongClickListener = viewModel
+				pair.first.lvBackpack.onItemClickListener = viewModel
 			}
 			setContentView(it.root)
-			window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+			window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
 			setOnCancelListener {
 				game.setResult(ZMove.newOrganizeDone())
 			}
@@ -260,7 +288,7 @@ class OrganizeDialog(context : ZombicideActivity) : LifecycleDialog<OrganizeView
 
 		viewModel.allOptions.observe(this) { list ->
 			// list options are 'TRADE', 'DONE', 'UNDO'
-			list.filter { it.type == ZMoveType.TRADE }.toMutableList().also {
+			list.filter { it.type == ZMoveType.ORGANIZE_TRADE }.toMutableList().also {
 				it.add(ZMove.newOrganizeDone())
 				viewModel.listOptions.postValue(it)
 			}

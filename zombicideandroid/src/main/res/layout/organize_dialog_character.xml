@@ -24,7 +24,8 @@
         style="@style/container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        visibleIf="@{character != null}">
+        visibleIf="@{character != null}"
+        android:onClick="@{(view) -> viewModel.setSelected(view, character)}">
 
         <TextView
             android:id="@+id/tvName"
@@ -35,8 +36,7 @@
             android:layout_height="wrap_content"
             app:layout_constraintTop_toTopOf="parent"
             tools:text="SAMPSON"
-            android:text="@{character.name()}"
-            android:onClick="@{(view) -> viewModel.setSelected(view, character)}"/>
+            android:text="@{character.name()}"/>
 
         <LinearLayout
             android:id="@+id/vgEquipped"
@@ -57,18 +57,18 @@
                 android:orientation="vertical"
                 character="@{character}"
                 slot="@{ZEquipSlot.LEFT_HAND}"
-                tagMove="@{viewModel.allOptions}"
+                dragging="@{viewModel.dragging}"
                 equipped="@{character.leftHand != null}"
-                updateEnabled="@{viewModel.dragging}"
+                tagMove="@{viewModel.allOptions}"
                 android:longClickable="@{character.leftHand != null}"
                 android:onLongClick="@{(view) -> viewModel.startDrag(view, character.leftHand)}"
                 android:onClick="@{(view) -> viewModel.setSelected(view, character.leftHand)}">
 
                 <TextView
-                    style="h3"
+                    style="@style/ZOrganizeCharacterSlot"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Left Hand"/>
+                    android:text="@string/label_left_hand"/>
 
                 <TextView
                     android:id="@+id/leftHand"
@@ -90,18 +90,19 @@
                 android:orientation="vertical"
                 character="@{character}"
                 slot="@{ZEquipSlot.BODY}"
-                tagMove="@{viewModel.allOptions}"
+                dragging="@{viewModel.dragging}"
                 equipped="@{character.body != null}"
-                updateEnabled="@{viewModel.dragging}"
+                tagMove="@{viewModel.allOptions}"
                 android:longClickable="@{character.body != null}"
                 android:onLongClick="@{(view) -> viewModel.startDrag(view, character.body)}"
                 android:onClick="@{(view) -> viewModel.setSelected(view, character.body)}">
 
                 <TextView
-                    style="h3"
+                    style="@style/ZOrganizeCharacterSlot"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@{`Body (` + character.type.alternateBodySlot.name() + `)`}"/>
+                    android:text="@{`Body (` + character.type.alternateBodySlot.name() + `)`}"
+                    tools:text="Body (SUMPTIN)"/>
 
                 <TextView
                     style="h2"
@@ -122,18 +123,19 @@
                 android:orientation="vertical"
                 character="@{character}"
                 slot="@{ZEquipSlot.RIGHT_HAND}"
-                tagMove="@{viewModel.allOptions}"
+                dragging="@{viewModel.dragging}"
                 equipped="@{character.rightHand != null}"
-                updateEnabled="@{viewModel.dragging}"
+                tagMove="@{viewModel.allOptions}"
                 android:longClickable="@{character.rightHand != null}"
                 android:onLongClick="@{(view) -> viewModel.startDrag(view, character.rightHand)}"
                 android:onClick="@{(view) -> viewModel.setSelected(view, character.rightHand)}">
 
                 <TextView
-                    style="h3"
+                    style="@style/ZOrganizeCharacterSlot"
+                    android:layout_margin="5dp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Right Hand"/>
+                    android:text="@string/label_right_hand"/>
 
                 <TextView
                     style="h2"
@@ -160,9 +162,9 @@
             android:orientation="vertical"
             character="@{character}"
             slot="@{ZEquipSlot.BACKPACK}"
-            tagMove="@{viewModel.allOptions}"
+            dragging="@{viewModel.dragging}"
             equipped="@{character.backpack.size() &gt; 0}"
-            updateEnabled="@{viewModel.dragging}"
+            tagMove="@{viewModel.allOptions}"
             >
 
             <TextView
@@ -176,7 +178,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 tools:listitem="@layout/organize_dialog_list_item"
-                moves="@{viewModel.allOptions}"
+                equipped="@{character.backpack.size() &gt; 0}"
+                dragging="@{viewModel.dragging}"
+                slot="@{ZEquipSlot.BACKPACK}"
+                character="@{character}"
+                tagMove="@{viewModel.allOptions}"
                 viewModel="@{viewModel}"
                 charBackpack="@{character}"/>
 

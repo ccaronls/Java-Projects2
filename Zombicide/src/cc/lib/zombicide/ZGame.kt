@@ -8,7 +8,6 @@ import cc.lib.zombicide.ZDir.Companion.compassValues
 import cc.lib.zombicide.ZSpawnCard.ActionType
 import java.util.*
 import kotlin.Pair
-import kotlin.collections.ArrayList
 
 @Suppress("UNCHECKED_CAST")
 open class ZGame() : Reflector<ZGame>() {
@@ -1381,16 +1380,40 @@ open class ZGame() : Reflector<ZGame>() {
                 return true
             }
             ZMoveType.TAKE -> {
-	            move.character!!.character.removeEquipment(move.equipment!!)
-                cur.attachEquipment(move.equipment, move.toSlot)
-	            cur.performAction(ZActionType.INVENTORY, this)
+	            move.character?.character?.let { giver ->
+		            val slot = giver.removeEquipment(move.equipment!!)
+		            cur.attachEquipment(move.equipment, move.toSlot)?.let {  prevEquipped ->
+			            if (giver.canEquip(slot, prevEquipped)) {
+							giver.attachEquipment(prevEquipped, slot)
+			            } else if (cur.canEquip(ZEquipSlot.BACKPACK, prevEquipped)) {
+							cur.attachEquipment(prevEquipped, ZEquipSlot.BACKPACK)
+			            } else {
+				            putBackInSearchables(prevEquipped)
+			            }
+		            }
+		            cur.performAction(ZActionType.INVENTORY, this)
+	            }
 	            return true
             }
             ZMoveType.GIVE -> {
-                cur.removeEquipment(move.equipment!!)
-                move.character!!.character.attachEquipment(move.equipment, move.toSlot)
-                cur.performAction(ZActionType.INVENTORY, this)
-                return true
+                val slot = cur.removeEquipment(move.equipment!!)
+	            move.character?.character?.let { taker ->
+		            taker.attachEquipment(move.equipment, move.toSlot)?.let { prevEquipped ->
+			            // we positioned onto existing.
+			            // 1. Try to swap with current
+			            if (cur.canEquip(slot, prevEquipped)) {
+				            cur.attachEquipment(prevEquipped, slot)
+			            } else if (taker.canEquip(ZEquipSlot.BACKPACK, prevEquipped)) {
+							taker.attachEquipment(prevEquipped, ZEquipSlot.BACKPACK)
+			            } else {
+							// dispose
+							putBackInSearchables(prevEquipped)
+			            }
+		            }
+		            cur.performAction(ZActionType.INVENTORY, this)
+		            return true
+	            }
+	            return false
             }
             ZMoveType.DISPOSE -> {
                 if (move.fromSlot != null) {
@@ -1402,8 +1425,8 @@ open class ZGame() : Reflector<ZGame>() {
             }
             ZMoveType.KEEP -> {
                 val equip = move.equipment!!
-                var slot = cur.getEmptyEquipSlotForOrNull(equip)
-                if (slot == null) {
+                var slot = cur.getEmptyEquipSlotsFor(equip).firstOrNull()
+	            if (slot == null) {
                     // need to make room
                     val options: MutableList<ZMove> = ArrayList()
                     for (e: ZEquipment<*> in cur.getBackpack()) {
@@ -1433,17 +1456,12 @@ open class ZGame() : Reflector<ZGame>() {
             ZMoveType.CONSUME -> {
                 val item = move.equipment as ZItem
                 val slot = move.fromSlot
-                when (item.type) {
-                    ZItemType.WATER, ZItemType.APPLES, ZItemType.SALTED_MEAT -> {
-                        addExperience(cur, item.type.expWhenConsumed)
-                        if (slot != null) {
-                            cur.removeEquipment(item, slot)
-                        }
-                        cur.performAction(ZActionType.CONSUME, this)
-                        putBackInSearchables(item)
-                    }
-                    else                                                     -> throw GException("Unhandled case: $item")
+	            item.type.consume(cur, this)
+                if (slot != null) {
+                    cur.removeEquipment(item, slot)
                 }
+                cur.performAction(ZActionType.CONSUME, this)
+                putBackInSearchables(item)
                 return true
             }
             ZMoveType.PICKUP_ITEM -> {
@@ -1539,30 +1557,36 @@ open class ZGame() : Reflector<ZGame>() {
 	        ZMoveType.ORGANIZE_TRADE -> {
 	        	setState(State(state = ZState.PLAYER_STAGE_ORGANIZE, player = currentCharacter, target = move.character))
 	        }
+	        ZMoveType.ORGANIZE_TAKE -> {
+		        stateData.target?.let { char ->
+			        char.character.removeEquipment(move.equipment!!)
+			        cur.attachEquipment(move.equipment, move.toSlot)
+			        cur.performAction(ZActionType.INVENTORY, this)
+			        return true
+		        }
+	        }
             else -> log.error("Unhandled move: %s", move.type)
         }
         return false
     }
 
+	// TODO: Add 'incoming equipment' parameter to allow for the popup when items found, picked up, gifted etc.
 	private fun performOrganize(cur: ZCharacter, secondary: ZCharacter?) : Boolean {
 		// find all the players we can trade with
 		val moves : MutableMap<ZPlayerName, MutableMap<ZEquipSlot, MutableList<ZMove>>> = mutableMapOf()
 		
-		fun getListFor(name : ZPlayerName, slot : ZEquipSlot) : MutableList<ZMove> = moves.getOrPut(
-			name, { mutableMapOf() }
-		).getOrPut(
-			slot, { mutableListOf() }
-		)
-		
-		//listOfNotNull(cur.type, secondary?.type).map { name ->
-		//	name to ZEquipSlot.values().map { Pair(it, ArrayList<ZMove>()) }.toMap()
-		//}.toMap()
+		fun getListFor(name : ZPlayerName, slot : ZEquipSlot) : MutableList<ZMove> =
+			moves.getOrPut(
+				name
+			) { mutableMapOf() }.getOrPut(
+				slot
+			) { mutableListOf() }
 
 		val extraMoves = mutableListOf<ZMove>()
 		
 		// for each non-null primary / secondary slots, compute all the possible move they can execute
-		val canDoInventory = cur.actionsLeftThisTurn > 0 || cur.hasSkill(ZSkill.Inventory)
-		if (canDoInventory && board.getNumZombiesInZone(cur.occupiedZone) == 0) {
+
+		if (cur.canDoAction(ZActionType.INVENTORY) && board.getNumZombiesInZone(cur.occupiedZone) == 0) {
 			// we can trade
 			board.getCharactersInZone(cur.occupiedZone).filter {
 				it.type != cur.type && it.type != secondary?.type
@@ -1572,24 +1596,32 @@ open class ZGame() : Reflector<ZGame>() {
 
 			secondary?.let { sec ->
 				sec.allEquipment.forEach { equip ->
-					cur.getEquippableSlots(equip, true).forEach { slot ->
-						getListFor(sec.type, equip.slot!!).add(ZMove.newTakeMove(sec.type, equip, slot))
+					cur.getEmptyEquipSlotsFor(equip).forEach { slot ->
+						getListFor(sec.type, equip.slot!!).add(ZMove.newOrganizeTakeMove(cur.type, equip, slot))
 					}
 				}
 
 				cur.allEquipment.forEach { equip ->
-					sec.getEquippableSlots(equip, true).forEach { slot ->
+					sec.getEmptyEquipSlotsFor(equip).forEach { slot ->
 						getListFor(cur.type, equip.slot!!).add(ZMove.newGiveMove(sec.type, equip, slot))
 					}
 				}
 			}
 		}
 
-		if (canDoInventory) {
+		if (cur.canDoAction(ZActionType.INVENTORY)) {
 			cur.allEquipment.forEach { equip ->
 				getListFor(cur.type, equip.slot!!).add(ZMove.newDisposeMove(equip, equip.slot))
-				cur.getEquippableSlots(equip, true).filter { it != equip.slot }.forEach {
-					getListFor(cur.type, equip.slot!!).add(ZMove.newEquipMove(equip, equip.slot, it, ZActionType.INVENTORY, cur.type))
+				cur.getEmptyEquipSlotsFor(equip).filter { it != equip.slot }.forEach { slot ->
+					getListFor(cur.type, equip.slot!!).add(ZMove.newEquipMove(equip, equip.slot, slot, ZActionType.INVENTORY, cur.type))
+				}
+			}
+		}
+
+		if (cur.canDoAction(ZActionType.CONSUME)) {
+			cur.allEquipment.forEach { equip ->
+				if (equip.isConsumable) {
+					getListFor(cur.type, equip.slot!!).add(ZMove.newConsumeMove(equip, equip.slot))
 				}
 			}
 		}
@@ -2368,10 +2400,9 @@ open class ZGame() : Reflector<ZGame>() {
     fun giftEquipment(c: ZCharacter, e: ZEquipment<*>) {
         onEquipmentFound(c.type, listOf(e))
         quest.onEquipmentFound(this, e)
-        val slot = c.getEmptyEquipSlotForOrNull(e)
-        if (slot != null) {
+        c.getEmptyEquipSlotsFor(e).takeIf { it.isNotEmpty() }?.get(0)?.let { slot ->
             c.attachEquipment((e), slot)
-        } else {
+        }?:run {
             pushState(State(ZState.PLAYER_STAGE_CHOOSE_KEEP_EQUIPMENT, c.type, e))
         }
     }

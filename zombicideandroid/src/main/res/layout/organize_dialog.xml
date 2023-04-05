@@ -12,7 +12,8 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content"
+        android:minHeight="550dp">
 
         <LinearLayout
             style="@style/container"
@@ -46,30 +47,73 @@
             android:layout_width="0dp"
             android:layout_height="0dp"
             app:layout_constraintTop_toBottomOf="@id/vgDescription"
-            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintBottom_toTopOf="@+id/bUndo"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintWidth_percent=".2"
             listOptions="@{viewModel.listOptions}"
             viewModel="@{viewModel}"
             visibleIfNot="@{viewModel.dragging}"
             tools:listitem="@layout/zbutton_layout"
+            tools:visibility="invisible"
             />
 
-        <ImageView
-            android:id="@+id/ivTrash"
+        <cc.game.zombicide.android.ZButton
+            android:id="@+id/bUndo"
             android:layout_width="0dp"
-            android:layout_height="0dp"
+            android:layout_height="40dp"
+            app:layout_constraintTop_toBottomOf="@id/lvOptions"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="@id/lvOptions"
             app:layout_constraintEnd_toEndOf="@id/lvOptions"
-            app:layout_constraintTop_toTopOf="@id/lvOptions"
-            app:layout_constraintDimensionRatio="1"
-            android:src="@drawable/trash"
-            android:background="@drawable/dragndrop_container_outline"
+            goneIf="@{viewModel.undoPushes == 0 || viewModel.dragging}"
+            buttonText="@{`UNDO`}"
+            android:onClick="@{() -> viewModel.tryUndo()}"/>
+
+        <TextView
+            android:id="@+id/tvConsume"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="CONSUME"
+            style="@style/container"
+            android:gravity="center"
+            android:padding="10dp"
+            visibleIf="@{viewModel.dragging}"
+            tagConsume="@{viewModel.allOptions}"
+            app:layout_constraintStart_toStartOf="@id/lvOptions"
+            app:layout_constraintEnd_toEndOf="@id/lvOptions"
+            app:layout_constraintTop_toTopOf="@id/lvOptions"/>
+
+        <TextView
+            android:id="@+id/tvTrash"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="TRASH"
+            style="@style/container"
+            android:gravity="center"
             android:padding="10dp"
             visibleIf="@{viewModel.dragging}"
             tagTrash="@{viewModel.allOptions}"
-            android:layout_margin="5dp"/>
+            app:layout_constraintStart_toStartOf="@id/lvOptions"
+            app:layout_constraintEnd_toEndOf="@id/lvOptions"
+            app:layout_constraintTop_toBottomOf="@id/tvConsume"/>
 
+        <!--
+                <ImageView
+                    android:id="@+id/ivTrash"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    app:layout_constraintStart_toStartOf="@id/lvOptions"
+                    app:layout_constraintEnd_toEndOf="@id/lvOptions"
+                    app:layout_constraintTop_toTopOf="@id/lvOptions"
+                    app:layout_constraintDimensionRatio="1"
+                    android:src="@drawable/trash"
+                    android:background="@drawable/dragndrop_container_outline"
+                    android:padding="10dp"
+                    visibleIf="@{viewModel.dragging}"
+                    tagTrash="@{viewModel.allOptions}"
+                    android:onClick="@{() -> viewModel.tryUndo()}"
+                    android:layout_margin="5dp"/>
+        -->
         <include layout="@layout/organize_dialog_character"
             android:id="@+id/primaryCharacter"
             android:layout_width="0dp"

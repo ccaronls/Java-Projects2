@@ -655,16 +655,15 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 		if (FileUtils.restoreFile(gameFile)) {
 			game.tryLoadFromFile(gameFile)
 			game.refresh()
-			if (serverMgr != null) {
-				serverMgr!!.broadcastUpdateGame()
-			}
+			serverMgr?.broadcastUpdateGame()
+			organizeDialog?.viewModel?.onUndo()
 		}
 		if (isRunning) startGame()
 	}
 
 	fun updateCharacters(quest: ZQuests?) {
-		if (serverMgr != null) {
-			server.broadcastCommand(serverMgr!!.newLoadQuest(quest!!))
+		serverMgr?.let { mgr ->
+			server.broadcastCommand(mgr.newLoadQuest(quest!!))
 			game.clearCharacters()
 			for (user in game.getUsers()) {
 				val newPlayers: MutableList<ZPlayerName> = ArrayList()
@@ -674,8 +673,8 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 				}
 				user.setCharacters(newPlayers)
 			}
-			serverMgr!!.broadcastUpdateGame()
-		} else {
+			mgr.broadcastUpdateGame()
+		}?:run {
 			loadCharacters(storedCharacters)
 			game.trySaveToFile(gameFile)
 		}
@@ -747,6 +746,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 
 	fun pushGameState() {
 		serverMgr?.broadcastUpdateGame()
+		organizeDialog?.viewModel?.onGameSaved()
 		log.debug("Backing up ... ")
 		FileUtils.backupFile(gameFile, 32)
 		game.trySaveToFile(gameFile)
