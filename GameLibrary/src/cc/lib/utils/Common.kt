@@ -5,7 +5,6 @@ import cc.lib.math.Vector2D
 import java.io.File
 import java.lang.ref.WeakReference
 import java.util.*
-import kotlin.collections.ArrayList
 import kotlin.math.roundToInt
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
@@ -332,3 +331,15 @@ fun <T> List<T>.getOrNull(index: Int) : T? {
 		return get(index)
 	return null
 }
+
+
+fun String.trimmedToSize(maxLen : Int) : String {
+	if (length > maxLen) {
+		return substring(0, maxLen)
+	}
+	return this
+}
+
+fun Boolean.toInt() : Int = if (this) 1 else 0
+
+fun Int.toBoolean() : Boolean = this != 0

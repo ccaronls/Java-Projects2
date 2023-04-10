@@ -658,7 +658,8 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 			serverMgr?.broadcastUpdateGame()
 			organizeDialog?.viewModel?.onUndo()
 		}
-		if (isRunning) startGame()
+		if (isRunning)
+			startGame()
 	}
 
 	fun updateCharacters(quest: ZQuests?) {

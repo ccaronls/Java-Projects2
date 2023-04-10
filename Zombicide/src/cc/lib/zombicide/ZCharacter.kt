@@ -29,7 +29,6 @@ class ZCharacter(override val type: ZPlayerName=ZPlayerName.Ann, skillz: Array<A
     var woundBar = 0
         private set
     var exp = 0
-        private set
 
     private val actionsDoneThisTurn: MutableList<ZActionType> = ArrayList()
     private val allSkills: MutableList<ZSkill> = ArrayList() // all skills based on the characters level and choices
@@ -922,5 +921,9 @@ class ZCharacter(override val type: ZPlayerName=ZPlayerName.Ann, skillz: Array<A
 				table.addRow(color.name, *type.getSkillOptions(color))
 			}
 		}
+	}
+
+	override fun toString(): String {
+		return "$label zone:$occupiedZone"// cell:${occupiedCell }quadrant:$occupiedQuadrant"
 	}
 }

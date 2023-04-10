@@ -8,6 +8,7 @@ import android.widget.AdapterView
 import android.widget.BaseAdapter
 import android.widget.ListView
 import androidx.databinding.BindingAdapter
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import cc.game.zombicide.android.databinding.OrganizeDialogBinding
 import cc.game.zombicide.android.databinding.OrganizeDialogListItemBinding
@@ -117,11 +118,30 @@ class OrganizeViewModel : LifecycleViewModel(),
 	AdapterView.OnItemLongClickListener,
 	AdapterView.OnItemClickListener {
 
-	val descriptionItem = MutableLiveData("")
-	val descriptionText = MutableLiveData("")
-
 	val primaryCharacter = MutableLiveData<ZCharacter?>(null)
 	val secondaryCharacter = MutableLiveData<ZCharacter?>(null)
+
+	val descriptionItem = MutableLiveData<Any?>(null)
+	val descriptionHeader = TransformedLiveData(descriptionItem) {
+		when (it) {
+			is ZCharacter    -> it.name()
+			is ZEquipment<*> -> it.label
+			else             -> it?.javaClass?.simpleName ?: ""
+		}
+	}
+	val descriptionBody : LiveData<String?> = combine(descriptionItem, primaryCharacter, secondaryCharacter) { obj, primary, secondary ->
+		when (obj) {
+			is ZCharacter -> obj.getAllSkillsTable().toString()
+			is ZWeapon    -> secondary?.let {
+				obj.getComparisonInfo(game, primary!!, it).toString()
+			}?:run {
+				obj.getCardInfo(primary!!, game).toString()
+			}
+			is ZEquipment<*> -> obj.label
+			is IButton -> obj.tooltipText
+			else -> ""
+		}
+	}
 
 	val allOptions = MutableLiveData<List<ZMove>>(emptyList())
 	val listOptions = MutableLiveData<List<ZMove>>(emptyList())
@@ -151,24 +171,7 @@ class OrganizeViewModel : LifecycleViewModel(),
 		currentSelectedView?.isSelected = false
 		currentSelectedView = view
 		view.isSelected = true
-		when (obj) {
-			is ZCharacter -> {
-				descriptionItem.value = obj.name()
-				descriptionText.value = obj.getAllSkillsTable().toString()
-			}
-			is ZEquipment<*> -> {
-				descriptionItem.value = obj.label
-				descriptionText.value = obj.tooltipText
-			}
-			is IButton -> {
-				descriptionItem.value = obj.label
-				descriptionText.value = obj.tooltipText
-			}
-			else -> {
-				descriptionItem.value = obj.javaClass.simpleName
-				descriptionText.value = null
-			}
-		}
+		descriptionItem.value = obj
 	}
 
 	fun startDrag(view : View, equip : ZEquipment<*>?) : Boolean {

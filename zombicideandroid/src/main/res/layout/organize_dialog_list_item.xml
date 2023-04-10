@@ -22,7 +22,7 @@
 
         <TextView
             android:id="@+id/tvItemName"
-            style="@style/h1"
+            style="@style/h2"
             android:gravity="center"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

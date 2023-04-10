@@ -3,12 +3,15 @@ package cc.game.zombicide.android
 import android.content.Context
 import android.util.AttributeSet
 import android.util.Log
+import androidx.core.view.postDelayed
 import cc.lib.android.DroidGraphics
 import cc.lib.android.UIComponentView
 import cc.lib.game.GDimension
+import cc.lib.utils.trimmedToSize
 import cc.lib.zombicide.*
 import cc.lib.zombicide.ui.UIZBoardRenderer
 import cc.lib.zombicide.ui.UIZComponent
+import kotlinx.coroutines.delay
 
 class ZBoardView(context: Context, attrs: AttributeSet) : UIComponentView<UIZBoardRenderer>(context, attrs), UIZComponent<DroidGraphics> {
 	var progress = 0
@@ -53,12 +56,14 @@ class ZBoardView(context: Context, attrs: AttributeSet) : UIComponentView<UIZBoa
 		tileIds = IntArray(0)
 	}
 
-	override fun loadTiles(g: DroidGraphics, tiles: Array<ZTile>) {
+	override var loadingString = "LOADING ASSETS"
+
+	override fun loadTiles(g: DroidGraphics, tiles: Array<ZTile>, quest : ZQuest) {
 		progress = 0
 		numImages = tiles.size
-		val renderer = renderer as UIZBoardRenderer?
 		deleteTiles(g)
 		try {
+			loadingString = "${quest.name.capitalize().trimmedToSize(10)}"
 			tileIds = IntArray(tiles.size)
 			for (i in tiles.indices) {
 				val id = g.loadImage("ztile_" + tiles[i].id + ".png")
@@ -70,7 +75,7 @@ class ZBoardView(context: Context, attrs: AttributeSet) : UIComponentView<UIZBoa
 				tileIds[i] = g.newRotatedImage(id, tiles[i].orientation)
 				g.deleteImage(id)
 			}
-			renderer!!.onTilesLoaded(tileIds)
+			renderer.onTilesLoaded(tileIds)
 			renderer.onLoaded()
 			redraw()
 		} catch (e: Exception) {
@@ -79,7 +84,7 @@ class ZBoardView(context: Context, attrs: AttributeSet) : UIComponentView<UIZBoa
 		}
 	}
 
-	override fun loadAssets(g: DroidGraphics) {
+	override suspend fun loadAssets(g: DroidGraphics) {
 		initCharacter(g, ZPlayerName.Baldric, R.drawable.zcard_baldric, R.drawable.zchar_baldric, R.drawable.zchar_baldric_outline)
 		initCharacter(g, ZPlayerName.Benson, R.drawable.zcard_benson, R.drawable.zchar_benson, R.drawable.zchar_benson_outline)
 		initCharacter(g, ZPlayerName.Jain, R.drawable.zcard_jain, R.drawable.zchar_jain, R.drawable.zchar_jain_outline)
@@ -191,10 +196,10 @@ class ZBoardView(context: Context, attrs: AttributeSet) : UIComponentView<UIZBoa
 		publishProgress(numImages)
 	}
 
-	fun publishProgress(p: Int) {
+	suspend fun publishProgress(p: Int) {
 		progress = p
 		postInvalidate()
-		Thread.sleep(100)
+		delay(100)
 	}
 
 	override fun getProgress(): Float {
@@ -206,6 +211,6 @@ class ZBoardView(context: Context, attrs: AttributeSet) : UIComponentView<UIZBoa
 	}
 
 	override fun onLoaded() {
-		renderer.onLoaded()
+		postDelayed(200) { renderer.onLoaded() }
 	}
 }

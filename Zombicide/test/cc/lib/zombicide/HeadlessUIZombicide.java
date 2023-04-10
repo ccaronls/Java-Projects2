@@ -41,7 +41,7 @@ public class HeadlessUIZombicide extends UIZombicide {
             }
         }), new UIZBoardRenderer(new UIZComponent() {
             @Override
-            public void loadTiles(AGraphics g, ZTile[] tiles) {
+            public void loadTiles(AGraphics g, ZTile[] tiles, ZQuest quest) {
 
             }
 

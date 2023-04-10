@@ -1,10 +1,7 @@
 package cc.lib.zombicide
 
 
-import cc.lib.utils.Table
-import cc.lib.utils.appendedWith
-import cc.lib.utils.prettify
-import cc.lib.utils.wrap
+import cc.lib.utils.*
 import java.util.*
 
 class ZWeapon(override val type: ZWeaponType=ZWeaponType.AXE) : ZEquipment<ZWeaponType>() {
@@ -78,13 +75,80 @@ class ZWeapon(override val type: ZWeaponType=ZWeaponType.AXE) : ZEquipment<ZWeap
         return false
     }
 
+	fun getComparisonInfo(game : ZGame, c0 : ZCharacter, c1 : ZCharacter) : Table {
+
+		// build a table where stats are followed by one of '^,-,v' for 'better, same, worse'
+		// for stats for each character
+
+		/*
+		ORCISH CROSSBOW
+		---------------------------------
+		ANN                           | MORRIGAN
+		---------------------------------
+		        | MELEE    | RANGED   | MELEE    | RANGED
+		Doors   | 50% -    | no -     | 50% -    | no -
+		Damage  |  1  v    | 2 ^      | 2 ^      | 1 v
+
+		 */
+
+		val c0StatsTab = Table().setNoBorder()
+		val c1StatsTab = Table().setNoBorder()
+		val labels = Table().setNoBorder().addColumnNoHeader(listOf(
+			"Damage",
+			"Hit %",
+			"Max Range",
+			"Doors",
+			"Equippable"))
+		c0StatsTab.addColumnNoHeader(listOf("", labels))
+
+		fun getComparisonArray(stat0 : Int, stat1 : Int, formatter : (Int) -> String) : Array<String> {
+			val f0 = formatter(stat0)
+			val f1 = formatter(stat1)
+			return when (stat0.compareTo(stat1)) {
+				-1   -> arrayOf("$f0", "v", "$f1", "^")
+				1    -> arrayOf("$f0", "^", "$f1", "v")
+				else -> arrayOf("$f0", "-", "$f1", "-")
+			}
+		}
+
+		for (at in ZActionType.values()) {
+			listOfNotNull(
+				c0.getWeaponStat(this, at, game, -1),
+				c1.getWeaponStat(this, at, game, -1)).takeIf { it.size > 1 }?.let {
+				val c0Stats = it[0]
+				val c1Stats = it[1]
+				val damage = getComparisonArray(c0Stats.damagePerHit, c1Stats.damagePerHit) { "$it" }
+				val hitPercent = getComparisonArray(c0Stats.numDice, c1Stats.numDice) { "${c0Stats.dieRollToHitPercent}% x $it" }
+				val range = getComparisonArray(c0Stats.maxRange, c1Stats.maxRange) { "$it" }
+				val dieRollToOpenDoor = getComparisonArray(c0Stats.dieRollToOpenDoorPercent, c1Stats.dieRollToOpenDoorPercent) { if (it == 0) "no" else "$it%" }
+				val equippable = getComparisonArray(isEquippable(c0).toInt(), isEquippable(c1).toInt()) { if (it == 0) "no" else "yes" }
+
+				c0StatsTab.addColumnNoHeader(listOf(
+					at.label, Table().setPadding(0).setNoBorder().addColumnNoHeader(listOf(damage[0], hitPercent[0], range[0], dieRollToOpenDoor[0], equippable[0]))
+					.addColumnNoHeader(listOf(damage[1], hitPercent[1], range[1], dieRollToOpenDoor[1], equippable[1]))
+
+				))
+				c1StatsTab.addColumnNoHeader(listOf(
+					at.label, Table().setPadding(0).setNoBorder().addColumnNoHeader(listOf(damage[2], hitPercent[2], range[2], dieRollToOpenDoor[2], equippable[2]))
+					.addColumnNoHeader(listOf(damage[3], hitPercent[3], range[3], dieRollToOpenDoor[3], equippable[3]))
+				))
+
+			}
+		}
+
+		return Table(label).addRow(
+			Table(c0.label, c1.label).setNoBorder()
+				.addRow(c0StatsTab, c1StatsTab)
+		).setNoBorder()
+	}
+
     override fun getCardInfo(c: ZCharacter, game: ZGame): Table {
 
         /*
 
         ORCISH CROSSBOW (DW)
         --------------------
-        Doors |  no/quietly/noisy
+        Doors |  no/quiet/noisy
         Open % |  1=6/6 2 = 5/6 3 = 4/6 4 = 3/6 2 = 5/6 6 = 1/6 ---> (7-n)*100/6 %
                | Melee      | Ranged
         Damage | 2 (loud)  | s (quiet)
@@ -100,7 +164,7 @@ class ZWeapon(override val type: ZWeaponType=ZWeaponType.AXE) : ZEquipment<ZWeap
         }, Table.NO_BORDER);
 */
         val cardLower = Table().setNoBorder()
-        cardLower.addColumnNoHeader(Arrays.asList(
+        cardLower.addColumnNoHeader(listOf(
                 "Type",
                 "Damage",
                 "Hit %",
@@ -108,10 +172,9 @@ class ZWeapon(override val type: ZWeaponType=ZWeaponType.AXE) : ZEquipment<ZWeap
                 "Doors",
                 "Reloads"))
         for (at in ZActionType.values()) {
-            val stats = c.getWeaponStat(this, at, game, -1)
-            if (stats != null) {
-	            var doorInfo: String = if (stats.dieRollToOpenDoor > 0) {
-	                String.format("%s %d%%", if (type.openDoorsIsNoisy) "noisy" else "quiet", (7 - stats.dieRollToOpenDoor) * 100 / 6)
+            c.getWeaponStat(this, at, game, -1)?.let { stats ->
+	            val doorInfo: String = if (stats.dieRollToOpenDoor > 0) {
+	                String.format("%s %d%%", if (type.openDoorsIsNoisy) "noisy" else "quiet", stats.dieRollToOpenDoorPercent)
 	            } else {
 	                "no"
 	            }
@@ -147,16 +210,18 @@ class ZWeapon(override val type: ZWeaponType=ZWeaponType.AXE) : ZEquipment<ZWeap
                 "Reloads"))
         for (stats in type.stats) {
 	        var doorInfo: String = if (stats.dieRollToOpenDoor > 0) {
-	            String.format("%s %d%%", if (type.openDoorsIsNoisy) "noisy" else "quiet", (7 - stats.dieRollToOpenDoor) * 100 / 6)
+	            String.format("%s %d%%", if (type.openDoorsIsNoisy) "noisy" else "quiet", stats.dieRollToOpenDoorPercent)
 	        } else {
 	            "no"
 	        }
             cardLower.addColumnNoHeader(Arrays.asList(
-                    prettify(stats.attackType.name),
-                    if (type.canTwoHand) "yes" else "no", String.format("%d %s", stats.damagePerHit, if (type.attackIsNoisy) " loud" else " quiet"), String.format("%d%% x %d", (7 - stats.dieRollToHit) * 100 / 6, stats.numDice),
-                    if (stats.minRange == stats.maxRange) stats.minRange.toString() else String.format("%d-%d", stats.minRange, stats.maxRange),
-                    doorInfo,
-                    if (stats.attackType.needsReload()) String.format("yes (%s)", if (isEmpty) "empty" else "loaded") else "no"
+                prettify(stats.attackType.name),
+                if (type.canTwoHand) "yes" else "no",
+                String.format("%d %s", stats.damagePerHit, if (type.attackIsNoisy) " loud" else " quiet"),
+                String.format("%d%% x %d", stats.dieRollToHitPercent, stats.numDice),
+                if (stats.minRange == stats.maxRange) stats.minRange.toString() else String.format("%d-%d", stats.minRange, stats.maxRange),
+                doorInfo,
+                if (stats.attackType.needsReload()) String.format("yes (%s)", if (isEmpty) "empty" else "loaded") else "no"
             ))
         }
         if (type.minColorToEquip.ordinal > 0) {

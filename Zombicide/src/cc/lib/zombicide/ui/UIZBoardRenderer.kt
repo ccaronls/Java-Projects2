@@ -15,7 +15,6 @@ import cc.lib.zombicide.ZDir.Companion.elevationValues
 import cc.lib.zombicide.anims.OverlayTextAnimation
 import cc.lib.zombicide.anims.ZoomAnimation
 import cc.lib.zombicide.ui.UIZombicide.UIMode
-import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -360,8 +359,8 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		// draw a big red X om the center of the cell
 		val redX = GRectangle(cell).scaledBy(.25f, .25f)
 		g.color = color
-		g.drawLine(redX.topLeft, redX.bottomRight, lineThickness.toFloat())
-		g.drawLine(redX.topRight, redX.bottomLeft, lineThickness.toFloat())
+		g.drawLine(redX.topLeft, redX.bottomRight, lineThickness)
+		g.drawLine(redX.topRight, redX.bottomLeft, lineThickness)
 	}
 
 	/**
@@ -926,7 +925,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		if (drawTiles && tiles.isEmpty() && quest?.tiles?.size != 0) {
 			tiles = quest!!.tiles
 			onLoading()
-			(getComponent<UIComponent>() as UIZComponent<AGraphics>).loadTiles(g, tiles )
+			(getComponent<UIComponent>() as UIZComponent<AGraphics>).loadTiles(g, tiles, quest!!)
 			return
 		}
 		val cellPos = drawNoTiles(g, mouseX.toFloat(), mouseY.toFloat())
@@ -983,8 +982,10 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 				//for (ZActor a : (List<ZActor>)game.getOptions()) {
 				//    a.getRect(getBoard()).drawOutlined(g, 1);
 				//}
-				if (game.options.contains(highlightedActor)) {
-					highlightedResult = highlightedActor
+				highlightActor?.let { actor ->
+					if (game.options.contains(actor)) {
+						highlightedResult = highlightedActor
+					}
 				}
 			}
 			UIMode.PICK_ZONE -> {

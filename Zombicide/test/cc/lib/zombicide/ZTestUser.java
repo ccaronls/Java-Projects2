@@ -1,5 +1,8 @@
 package cc.lib.zombicide;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.List;
 
 import cc.lib.game.Utils;
@@ -130,6 +133,12 @@ public class ZTestUser extends ZUser {
 
     @Override
     public ZEquipmentType chooseStartingEquipment(ZPlayerName playerName, List<? extends ZEquipmentType> list) {
+        return list.get(0);
+    }
+
+    @Nullable
+    @Override
+    public ZMove chooseOrganize(@NotNull ZPlayerName playerName, @NotNull List<ZMove> list) {
         return list.get(0);
     }
 }

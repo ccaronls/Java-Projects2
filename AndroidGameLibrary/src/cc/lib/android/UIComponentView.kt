@@ -13,6 +13,10 @@ import cc.lib.game.*
 import cc.lib.math.Vector2D
 import cc.lib.ui.UIComponent
 import cc.lib.ui.UIRenderer
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 abstract class UIComponentView<T : UIRenderer> : View, UIComponent, Runnable {
@@ -50,9 +54,9 @@ abstract class UIComponentView<T : UIRenderer> : View, UIComponent, Runnable {
 
 	protected open fun getProgress(): Float = 1f
 
-	protected open fun loadAssets(g: DroidGraphics) {}
+	protected open suspend fun loadAssets(g: DroidGraphics) {}
 	protected open fun preDrawInit(g: DroidGraphics) {}
-	var loadAssetsRunnable: Runnable? = null
+	var loadAssetsRunnable: Job? = null
 	protected open fun onLoading() {}
 	protected open fun onLoaded() {}
 	override fun onDraw(canvas: Canvas) {
@@ -84,10 +88,10 @@ abstract class UIComponentView<T : UIRenderer> : View, UIComponent, Runnable {
 		if (progress < 1) {
 			if (loadAssetsRunnable == null) {
 				onLoading()
-				Thread(Runnable {
+				loadAssetsRunnable = CoroutineScope(Dispatchers.Main).launch {
 					loadAssets(g)
 					post { onLoaded() }
-				}.also { loadAssetsRunnable = it }).start()
+				}
 			}
 			g.color = GColor.RED
 			g.ortho()
@@ -98,7 +102,7 @@ abstract class UIComponentView<T : UIRenderer> : View, UIComponent, Runnable {
 			val hgt = g.textHeight
 			g.textHeight = rect.h * 3 / 4
 			g.color = GColor.WHITE
-			g.drawJustifiedString((getWidth() / 2).toFloat(), (getHeight() / 2).toFloat(), Justify.CENTER, Justify.CENTER, "LOADING")
+			g.drawJustifiedString((getWidth() / 2).toFloat(), (getHeight() / 2).toFloat(), Justify.CENTER, Justify.CENTER, loadingString)
 			g.textHeight = hgt
 		} else {
 			loadAssetsRunnable = null
@@ -118,6 +122,9 @@ abstract class UIComponentView<T : UIRenderer> : View, UIComponent, Runnable {
 		}
 		g.translate(-borderThickness, -borderThickness)
 	}
+
+	open val loadingString : String
+		get() = "LOADING"
 
 	val isResizable: Boolean
 		get() {

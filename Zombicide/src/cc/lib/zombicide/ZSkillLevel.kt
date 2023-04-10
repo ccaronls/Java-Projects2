@@ -17,7 +17,7 @@ class ZSkillLevel(val color: ZColor = ZColor.BLUE, val ultra: Int = -1) : Reflec
             var lvl = ZColor.RED
             if (ULTRA_RED_MODE) {
                 ultra = expPts / ZColor.RED.maxPts
-                expPts = expPts % ZColor.RED.maxPts
+	            expPts %= ZColor.RED.maxPts
             }
             for (sl in ZColor.values()) {
                 if (expPts <= sl.maxPts) {

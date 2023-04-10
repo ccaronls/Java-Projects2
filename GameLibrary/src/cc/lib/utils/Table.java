@@ -36,7 +36,7 @@ public final class Table implements IMeasurable {
             if (obj == null)
                 return "";
             if (obj instanceof Boolean) {
-                return ((Boolean)obj).booleanValue() ? "yes" : "no";
+                return (Boolean) obj ? "yes" : "no";
             }
             return obj.toString();
         }
@@ -467,7 +467,7 @@ public final class Table implements IMeasurable {
         for (int r=0; r<rows.size(); r++) {
             for (int c=0; c<rows.get(r).size(); c++) {
                 String entry =  model.getStringValue(rows.get(r).get(c));
-                if (entry.indexOf("\n") >= 0) {
+                if (entry.contains("\n")) {
                     String [] parts = entry.split("[\n]+");
                     for (String s : parts) {
                         maxWidth[c] = Math.max(maxWidth[c], s.length());

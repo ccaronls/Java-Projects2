@@ -310,7 +310,7 @@ enum class ZSkill(val description: String) : IButton {
     Inventory("User can make modification to their inventory or, if occupied zone is free from zombies, trade with others in their same zone for no cost") {
         override fun addSpecialMoves(game: ZGame, character: ZCharacter, moves: MutableCollection<ZMove>) {
             if (!game.isOrganizeEnabled && character.actionsLeftThisTurn == 0) {
-                if (!moves.contains(ZMoveType.INVENTORY))
+                if (moves.firstOrNull { it.type == ZMoveType.INVENTORY } == null)
 					moves.add(ZMove.newOrganize())
                 game.addTradeOptions(character, moves)
             }

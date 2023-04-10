@@ -21,6 +21,7 @@ import cc.lib.zombicide.ZDir;
 import cc.lib.zombicide.ZIcon;
 import cc.lib.zombicide.ZMove;
 import cc.lib.zombicide.ZPlayerName;
+import cc.lib.zombicide.ZQuest;
 import cc.lib.zombicide.ZTile;
 import cc.lib.zombicide.ZZombieType;
 import cc.lib.zombicide.ui.UIZBoardRenderer;
@@ -328,7 +329,7 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics>, 
     int numTilesLoaded = 0;
 
     @Override
-    public void loadTiles(AWTGraphics g, ZTile[] tiles) {
+    public void loadTiles(AWTGraphics g, ZTile[] tiles, ZQuest quest) {
         numTilesLoaded = 0;
         g.addSearchPath("zombicideandroid/assets");
         new Thread() {

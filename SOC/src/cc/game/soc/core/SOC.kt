@@ -10,7 +10,6 @@ import cc.lib.utils.appendDelimited
 import cc.lib.utils.takeIfNotEmpty
 import java.io.File
 import java.util.*
-import kotlin.collections.ArrayList
 
 /**
  * SOC Core business logic
@@ -3131,7 +3130,7 @@ open class SOC() : Reflector<SOC>(), StringResource {
 								curPlayer.removeCard(card)
 								putCardBackInDeck(card)
 							}
-							options.remove(p)
+							options.remove(playerNum)
 							popState()
 							//						pushStateFront(State.CHOOSE_HARBOR_PLAYER, null, options);
 							pushStateFront(State.CHOOSE_HARBOR_RESOURCE, p, options)

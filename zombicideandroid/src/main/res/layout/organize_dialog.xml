@@ -29,14 +29,14 @@
                 style="@style/h1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@{viewModel.descriptionItem}"
+                android:text="@{viewModel.descriptionHeader}"
                 tools:text="Water"/>
 
             <TextView
                 style="@style/body"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@{viewModel.descriptionText}"
+                android:text="@{viewModel.descriptionBody}"
                 android:fontFamily="monospace"
                 tools:text="Consume to gain EXP"/>
 

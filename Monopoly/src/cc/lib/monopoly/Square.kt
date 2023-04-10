@@ -97,6 +97,6 @@ enum class Square(val type: SquareType, // rank according to: https://www.ranker
 			}
 
 	companion object {
-		var maxRank: Int = values().maxBy { it.rank }!!.rank
+		var maxRank: Int = values().maxByOrNull { it.rank }!!.rank
 	}
 }
