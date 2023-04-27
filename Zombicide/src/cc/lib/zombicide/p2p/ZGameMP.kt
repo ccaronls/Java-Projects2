@@ -192,6 +192,10 @@ open class ZGameMP : ZGame() {
 		server?.broadcastExecuteOnRemote(GAME_ID, c, w)
 	}
 
+	override fun onZombieAttack(zombiePos: ZActorPosition, victim: ZPlayerName, type: ZActionType) {
+		server?.broadcastExecuteOnRemote(GAME_ID, zombiePos, victim, type)
+	}
+
 	companion object {
 		const val GAME_ID = "ZGame"
 	}

@@ -28,7 +28,7 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
     var numFoundVaultItems = 0
         private set
 
-    init {
+	init {
         for (et in allVaultOptions) {
             vaultItemsRemaining.add(et.create())
         }
@@ -465,7 +465,7 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
 		throw Exception("Unhandled method drawBlackObjective")
 	}
 
-	open fun onDoorOpened(game: ZGame, door: ZDoor, c:ZCharacter) {
+	open fun onDoorOpened(game: ZGame, door: ZDoor, c:ZCharacter) {}
 
-	}
+	open fun onSpawnZoneRemoved(game: ZGame, zid : Int) {}
 }

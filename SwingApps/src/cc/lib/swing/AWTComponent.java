@@ -207,6 +207,7 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
     @Override
     public final synchronized void mouseExited(MouseEvent e) {
         focused = false;
+        mouseX = mouseY = -1;
         repaint();
         onFocusLost();
     }

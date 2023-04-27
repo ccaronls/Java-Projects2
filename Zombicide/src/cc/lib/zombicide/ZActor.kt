@@ -70,7 +70,7 @@ abstract class ZActor<E : Enum<E>> internal constructor(var occupiedZone: Int=-1
         get() = false
 
     fun addAnimation(anim: ZActorAnimation) {
-	    animation?.takeIf { !it.isDone }?.let {
+	    animation?.takeIf { !it.isDone }?.also {
 		    it.add(anim)
 	    }?:run {
 	    	animation = anim.start()
@@ -87,7 +87,7 @@ abstract class ZActor<E : Enum<E>> internal constructor(var occupiedZone: Int=-1
     }
 
     fun drawOrAnimate(g: AGraphics) {
-	    animation?.takeIf { !it.isDone }?.let {
+	    animation?.takeIf { !it.isDone }?.also {
 		    if (!it.hidesActor())
 		    	draw(g)
 		    if (!it.isStarted)
@@ -142,11 +142,11 @@ abstract class ZActor<E : Enum<E>> internal constructor(var occupiedZone: Int=-1
     }
 
     override fun getX(): Float {
-        return rect.center.X()
+        return getRect().center.X()
     }
 
     override fun getY(): Float {
-        return rect.center.Y()
+        return getRect().center.Y()
     }
 
     override fun getAtPosition(position: Float): Vector2D {
@@ -157,4 +157,12 @@ abstract class ZActor<E : Enum<E>> internal constructor(var occupiedZone: Int=-1
         get() = ZActorPosition(occupiedCell, occupiedQuadrant)
     open val isNoisy: Boolean
         get() = false
+
+	open val isVisible : Boolean
+		get () = isAlive || isAnimating
+
+	override fun toString(): String {
+		return "$label zone:$occupiedZone"
+	}
+
 }

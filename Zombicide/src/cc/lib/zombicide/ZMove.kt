@@ -67,10 +67,6 @@ data class ZMove constructor(
             return ZMove(type = ZMoveType.THROW_ITEM, list = slots)
         }
 
-        fun newInventoryMove(): ZMove {
-            return ZMove(type = ZMoveType.INVENTORY)
-        }
-
         fun newTradeMove(tradeOptions: List<ZPlayerName>): ZMove {
             return ZMove(type = ZMoveType.TRADE, list = tradeOptions)
         }

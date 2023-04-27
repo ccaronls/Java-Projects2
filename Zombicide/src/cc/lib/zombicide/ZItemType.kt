@@ -27,7 +27,7 @@ enum class ZItemType(override val equipmentClass: ZEquipmentClass, val actionTyp
 		    if (char.isWounded) {
 				char.heal(game, 1)
 		    } else {
-				char.addExp(3)
+				game.addExperience(char,3)
 		    }
 	    }
 	},

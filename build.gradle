@@ -115,6 +115,7 @@ allprojects {
                  */
                 debug {
                     debuggable true
+                    minifyEnabled false
                     signingConfig signingConfigs.general
                 }
 

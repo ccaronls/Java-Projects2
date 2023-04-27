@@ -64,4 +64,5 @@ class CharacterComponent extends AWTComponent implements Scrollable, UIComponent
     public boolean getScrollableTracksViewportHeight() {
         return false;
     }
+
 }

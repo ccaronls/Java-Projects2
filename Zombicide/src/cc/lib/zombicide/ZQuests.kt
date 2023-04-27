@@ -11,6 +11,10 @@ const val FLAG_DEBUG = 4
 
 @Keep
 enum class ZQuests(val flag: Int, val displayName: String, val description: String) : IButton {
+	The_Abomination(FLAG_DEBUG, "The Abomination", "Test Abomination!"),
+	The_Necromancer(FLAG_DEBUG, "The Necromancer", "Test Necromancer!"),
+	Hoard_Test(FLAG_DEBUG, "Hoard Movement Test", "Test Hoard!"),
+	Thors_Hammer(FLAG_DEBUG, "Thor's Hammer", "Obtain Mjolnir and destroy all zombies and spawn zones"),
     Tutorial(FLAG_BLACK_PLAGUE, "TUTORIAL:DANSE MACABRE", "War is nothing new for us. Our counts " +
             "and dukes are always fighting amongst " +
             "themselves. For the peasantry, it usually just " +
@@ -23,9 +27,6 @@ enum class ZQuests(val flag: Int, val displayName: String, val description: Stri
             "macabre together. There’s no time for social " +
             "snobbery when the hordes are at your door. We " +
             "stand together, and throw death back in their teeth. "),
-    The_Abomination(FLAG_DEBUG, "The Abomination", "Test Abomination!"),
-    The_Necromancer(FLAG_DEBUG, "The Necromancer", "Test Necromancer!"),
-	Thors_Hammer(FLAG_DEBUG, "Thor's Hammer", "Obtain Mjolnir and destroy all zombies and spawn zones"),
     Big_Game_Hunting(FLAG_BLACK_PLAGUE, "Big Game Hunting", "We quickly discovered the starting point " +
             "of the zombie invasion. Other survivors " +
             "spotted a huge zombie wandering the streets, and some " +
@@ -276,6 +277,7 @@ enum class ZQuests(val flag: Int, val displayName: String, val description: Stri
             The_Black_Book -> ZQuestTheBlackBook()
             The_Abomination -> ZQuestTheAbomination()
             The_Necromancer -> ZQuestTheNecromancer()
+	        Hoard_Test -> ZQuestHoardTest()
 	        Thors_Hammer -> ZQuestThorsHammer()
             The_Shepherds -> ZQuestTheShepherds()
             Famine -> ZQuestFamine()

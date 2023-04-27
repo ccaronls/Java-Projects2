@@ -4,7 +4,7 @@ package cc.lib.zombicide
 import cc.lib.utils.Table
 import cc.lib.utils.wrap
 
-class ZArmor(override val type: ZArmorType=ZArmorType.CHAINMAIL) : ZEquipment<ZArmorType>() {
+class ZArmor(override val type: ZArmorType=ZArmorType.CHAIN_MAIL) : ZEquipment<ZArmorType>() {
     companion object {
         init {
             addAllFields(ZArmor::class.java)

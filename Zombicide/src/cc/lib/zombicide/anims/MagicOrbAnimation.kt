@@ -21,19 +21,18 @@ open class MagicOrbAnimation(actor: ZActor<*>, end: Vector2D) : ZActorAnimation(
     val padding = .02f // padding between the lightning strands and the outer edge of orb
     override fun drawPhase(g: AGraphics, positionInPhase: Float, positionInAnimation: Float, phase: Int) {
         val orbColor = GColor.MAGENTA
+	    val alpha = startAlpha + (endAlpha - startAlpha) * positionInAnimation
+	    val radius = startRadius + (endRadius - startRadius) * positionInAnimation
+	    g.color = orbColor.withAlpha(1f - alpha)
         when (phase) {
             0 -> {
                 // orb expands over our actors head
-                g.color = orbColor.withAlpha(startAlpha)
-                g.drawFilledCircle(start, startRadius * position)
+                g.drawFilledCircle(start, radius)
             }
             1 -> {
 
                 // draw purple orb that fades but also grows at it travels
-                val alpha = startAlpha + (endAlpha - startAlpha) * position
-                val radius = startRadius + (endRadius - startRadius) * position
                 val center: Vector2D = start.add(path.scaledBy(position))
-                g.color = orbColor.withAlpha(alpha)
                 g.pushMatrix()
                 g.translate(center)
                 g.drawFilledCircle(Vector2D.ZERO, radius)

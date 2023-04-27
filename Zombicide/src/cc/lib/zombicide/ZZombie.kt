@@ -71,10 +71,10 @@ class ZZombie(override val type: ZZombieType = ZZombieType.Walker, val startZone
     }
 
     override fun performAction(action: ZActionType, game: ZGame) {
-        if (action === ZActionType.MELEE) {
-            actionsLeftThisTurn = 0
-        } else {
-	        super.performAction(action, game)
+        when (action) {
+			ZActionType.MELEE,
+			ZActionType.NOTHING -> actionsLeftThisTurn = 0
+            else -> super.performAction(action, game)
         }
     }
 

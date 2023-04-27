@@ -10,7 +10,6 @@ import cc.lib.utils.Table
 import cc.lib.zombicide.*
 import cc.lib.zombicide.anims.*
 import cc.lib.zombicide.p2p.ZGameMP
-import java.util.*
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.thread
 import kotlin.concurrent.withLock
@@ -105,6 +104,11 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 			condition.signal()
 		}
 		refresh()
+	}
+
+	override fun pushState(state: State) {
+		if (isGameRunning())
+			super.pushState(state)
 	}
 
 	override var currentUserName: String? = null
@@ -330,6 +334,44 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 		}
 	}
 
+	open inner class ChargeAttackAnimation(source : ZActor<*>, dest: ZActor<*>) : ZActorAnimation(source, 150L, 600L, 0L) {
+
+		val dv = dest.getRect().center.sub(source.getRect().center).scaledBy(.75f)
+
+		override fun drawPhase(g: AGraphics, positionInPhase: Float, positionInAnimation: Float, phase: Int) {
+			when (phase) {
+				0 -> {
+					val rect = GRectangle(actor.getRect()).moveBy(dv.scaledBy(positionInPhase))
+					g.drawImage(actor.imageId, rect)
+				}
+				1 -> {
+					val rect = GRectangle(actor.getRect()).moveBy(dv.scaledBy(1f - positionInPhase))
+					g.drawImage(actor.imageId, rect)
+				}
+			}
+		}
+	}
+
+	override fun onZombieAttack(zombiePos: ZActorPosition, victim: ZPlayerName, type: ZActionType) {
+		super.onZombieAttack(zombiePos, victim, type)
+		val lock = Lock()
+		val zombie = board.getActor<ZZombie>(zombiePos)
+		when (type) {
+			ZActionType.MELEE -> {
+				lock.acquire()
+				zombie.addAnimation(object : ChargeAttackAnimation(zombie, victim.character) {
+					override fun onPhaseStarted(g: AGraphics?, phase: Int) {
+						if (phase == 1) {
+							lock.release()
+						}
+					}
+				})
+			}
+		}
+		boardRenderer.redraw()
+		lock.block()
+	}
+
 	override fun onCharacterAttacked(character: ZPlayerName, attackerPosition: ZActorPosition, attackType: ZAttackType, perished: Boolean) {
 		super.onCharacterAttacked(character, attackerPosition, attackType, perished)
 		val attacker = board.getActor<ZActor<*>>(attackerPosition)
@@ -352,7 +394,7 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 			with (character.character) {
 				val group = GroupAnimation(this, true)
 				group.addSequentially(AscendingAngelDeathAnimation(this))
-				group.addSequentially(object : ZActorAnimation(character.character, 2000) {
+				group.addSequentially(object : ZActorAnimation(this, 2000) {
 					override fun draw(g: AGraphics, position: Float, dt: Float) {
 						val img = g.getImage(ZIcon.GRAVESTONE.imageIds[0])
 						val rect = GRectangle(actor.getRect().fit(img))
@@ -438,7 +480,7 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 	override fun onNewSkillAquired(c: ZPlayerName, skill: ZSkill) {
 		super.onNewSkillAquired(c, skill)
 		boardRenderer.addPostActor(HoverMessage(boardRenderer, String.format("%s Acquired", skill.label), c.character))
-		characterRenderer.addMessage(String.format("%s has aquired the %s skill", c.label, skill.label))
+		characterRenderer.addMessage(String.format("%s has acquired the %s skill", c.label, skill.label))
 	}
 
 	override fun onExtraActivation(category: ZZombieCategory) {

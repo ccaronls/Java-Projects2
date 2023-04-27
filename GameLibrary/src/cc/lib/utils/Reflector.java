@@ -1022,10 +1022,10 @@ public class Reflector<T> {
                 classMap.put(alt, clazz);
             }
         } else {
-        for (String alt : alternateNames) {
-            String altName = sClazz.substring(0, lastDot+1)+alt;
-            classMap.put(altName, clazz);
-        }
+            for (String alt : alternateNames) {
+                String altName = sClazz.substring(0, lastDot+1)+alt;
+                classMap.put(altName, clazz);
+            }
         }
         addArrayTypes(clazz);
         classMap.put(sClazz, clazz);

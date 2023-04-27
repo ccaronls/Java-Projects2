@@ -8,7 +8,7 @@ import cc.lib.utils.prettify
 @Keep
 enum class ZMoveType(val toolTipText: String?) : IButton {
     END_TURN("Expend all remaining actions and end turn"),
-    INVENTORY("View inventory. The first change of inventory cost an action. You can perform as many subsequent inventory actions for free for the rest of the round."),  // equip things, drop things, etc.
+    //INVENTORY("View inventory. The first change of inventory cost an action. You can perform as many subsequent inventory actions for free for the rest of the round."),  // equip things, drop things, etc.
     TRADE("Like inventory the first trade costs an action and subsequent trades are free for the rest of the round. You can only trade with players in your zone and if the zone is free of zombies."),
     WALK("Walk to a different zone at the cost of 1 action."),
     JUMP("Jump to 2 zones line of sight from current position for free"),

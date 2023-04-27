@@ -90,6 +90,7 @@ class ZCharacter(override val type: ZPlayerName=ZPlayerName.Ann, skillz: Array<A
         return type.imageDim
     }
 
+	// DONT USE THIS FUNCTION!!!! Use ZGame.addExperience!!!
     fun addExp(exp: Int) {
         this.exp += exp
     }
@@ -267,12 +268,12 @@ class ZCharacter(override val type: ZPlayerName=ZPlayerName.Ann, skillz: Array<A
             if (leftHand!!.type != rightHand!!.type) return false
             if (leftHand!!.isDualWieldCapable) return true
             if (leftHand != null && leftHand is ZWeapon) {
-                for (skill in getAvailableSkills()) {
+				for (skill in getAvailableSkills()) {
                     if (skill.canTwoHand(leftHand!! as ZWeapon)) return true
                 }
-            }
-            return false
-        }
+			}
+			return false
+		}
 
     fun isDualWielding(weapon: ZWeapon): Boolean {
         return (canDualWield(weapon)
@@ -298,8 +299,7 @@ class ZCharacter(override val type: ZPlayerName=ZPlayerName.Ann, skillz: Array<A
         return backpack
     }
 
-    fun getEmptyEquipSlotsFor(e: ZEquipment<*>): List<ZEquipSlot> {
-	    val list = mutableListOf<ZEquipSlot>()
+    fun getEmptyEquipSlotsFor(e: ZEquipment<*>): List<ZEquipSlot> = mutableListOf<ZEquipSlot>().also { list ->
         if (e.isEquippable(this)) {
             if (body == null && canEquipBody(e)) {
                 list.add(ZEquipSlot.BODY)
@@ -320,7 +320,6 @@ class ZCharacter(override val type: ZPlayerName=ZPlayerName.Ann, skillz: Array<A
         }
 	    if (!isBackpackFull)
 	    	list.add(ZEquipSlot.BACKPACK)
-	    return list
     }
 
     /**
@@ -480,7 +479,7 @@ class ZCharacter(override val type: ZPlayerName=ZPlayerName.Ann, skillz: Array<A
     }
 
 	fun getSkillsTable() : Table = Table().also { table ->
-		getAvailableSkills().forEachIndexed { index, it ->
+		setOf(*allSkills.toTypedArray(), *getAvailableSkills().toTypedArray()).forEachIndexed { index, it ->
 			if (index > 0)
 				table.addRow("", "")
 			table.addRow(it.label, it.description)
@@ -923,7 +922,17 @@ class ZCharacter(override val type: ZPlayerName=ZPlayerName.Ann, skillz: Array<A
 		}
 	}
 
-	override fun toString(): String {
-		return "$label zone:$occupiedZone"// cell:${occupiedCell }quadrant:$occupiedQuadrant"
+	fun getAllSkillsTableExpanded() : Table {
+		return Table().also { table ->
+			table.addRow(label)
+			ZColor.values().forEach { color ->
+				table.addRow(color.name)
+				type.getSkillOptions(color).forEach {
+					table.addRow(hasSkill(it), it.label, it.description)
+				}
+			}
+		}
 	}
+
+	override val isVisible: Boolean = true
 }

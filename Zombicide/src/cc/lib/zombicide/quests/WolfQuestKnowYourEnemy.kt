@@ -8,13 +8,13 @@ class WolfQuestKnowYourEnemy : ZQuest(ZQuests.Know_Your_Enemy) {
 	override fun loadBoard(): ZBoard {
 		val map = arrayOf(
 arrayOf("z0:i:we", "z1:spn", "z3:i:ww",                     "z4:t1:rw", "z44:t2", "z5:red:v:vd1:ww:ws"),
-arrayOf("z0:i:red:de:ws", "z6", "z3:we:ds",                 "z7", "z8:t3:rw", "z8:t3"),
+arrayOf("z0:i:red:de:ws", "z6", "z3:i:ww:we:ds",            "z7", "z8:t3:rw", "z8:t3"),
 arrayOf("z9:exit", "z10", "z11",                            "z12", "z8:t3:rs:rw", "z13:i:ww:wn:ws"),
 arrayOf("z14:i:dn:red:we:ods", "z15", "z16:i:dn:de:ww:red", "z17", "z18", "z19:spe"),
 arrayOf("z20:i:we", "z21", "z16:i:ww:we:ods",               "z22", "z23:i:dn:ww:we:ws:red", "z24"),
 arrayOf("z20:i:ds:we", "z25", "z26:i:ww:de:ods",            "z27", "z28", "z29"),
 arrayOf("z30:spw", "z31:st", "z32:i:ww",                    "z33:t2:rw:rn", "z34:t3:rn", "z34:t3:rn"),
-arrayOf("z35:i:wn:de:ods", "z36", "z32:i:ww:ws:we:v:vd1",   "z37:t1", "z34:t3:rw:rs", "z34:t3:rs"),
+arrayOf("z35:i:wn:de:ods", "z36", "z32:i:ww:ws:we:vd1",     "z37:t1", "z34:t3:rw:rs", "z34:t3:rs"),
 arrayOf("z38:i:odn:we", "z39", "z40",                       "z41", "z42", "z43"))
 		return load(map)
 	}
@@ -26,7 +26,7 @@ arrayOf("z38:i:odn:we", "z39", "z40",                       "z41", "z42", "z43")
 			if (c.occupiedZone == exitZone) numCompleted++
 		}
 		var percentCompleted = numCompleted * 100 / numTasks
-		if (game.board.getZombiesInZone(exitZone).size > 0) percentCompleted--
+		if (game.board.getZombiesInZone(exitZone).isNotEmpty()) percentCompleted--
 		return percentCompleted
 	}
 

@@ -84,7 +84,7 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics>, 
 
     @Override
     protected void onFocusGained() {
-        //renderer.setOverlay(null);
+        renderer.setFocussed(true);
     }
 
     @Override
@@ -322,6 +322,7 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics>, 
         renderer.setDrawTowersHighlighted(ZombicideApplet.instance.getStringProperty("drawTowersHighlighted", "no").equals("yes"));
         renderer.setDrawZombiePaths(ZombicideApplet.instance.getStringProperty("drawZombiePaths", "no").equals("yes"));
         renderer.setMiniMapMode(ZombicideApplet.instance.getIntProperty("miniMapMode", 0));
+        renderer.setDrawScreenCenter(ZombicideApplet.instance.getStringProperty("drawScreenCenter", "no").equals("yes"));
         repaint();
     }
 
@@ -447,6 +448,10 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics>, 
                 ZombicideApplet.instance.setIntProperty("miniMapMode", renderer.toggleDrawMinimap());
                 break;
 
+            case KeyEvent.VK_C:
+                ZombicideApplet.instance.setStringProperty("drawScreenCenter", renderer.toggleDrawScreenCenter() ? "yes" : "no");
+                break;
+
             case KeyEvent.VK_BACK_QUOTE:
                 ZombicideApplet.instance.boardComp.renderer.setOverlay(new Table()
                     .addRow("+ / -", "Zoom in / out", String.format("%s%%", Math.round(100f*renderer.getZoomPercent())))
@@ -456,6 +461,7 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics>, 
                     .addRow("P", "Toggle draw zombie paths", renderer.getDrawZombiePaths())
                     .addRow("H", "Toggle draw towers highlighted", renderer.getDrawTowersHighlighted())
                     .addRow("M", "Toggle Minimap mode", renderer.getMiniMapMode())
+                    .addRow("C", "Toggle draw Center", renderer.getDrawScreenCenter())
                 );
                 break;
             default:
@@ -520,5 +526,7 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics>, 
     protected void onFocusLost() {
         super.onFocusLost();
         renderer.setHighlightActor(null);
+        renderer.setFocussed(false);
     }
+
 }

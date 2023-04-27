@@ -9,10 +9,13 @@ import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.awt.event.ActionListener;
 import java.awt.font.GlyphVector;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import javax.swing.Timer;
 
 import cc.lib.game.GColor;
 import cc.lib.game.Justify;
@@ -1080,4 +1083,10 @@ public class AWTUtils {
 	    return new Color(c.red(), c.green(), c.blue(), c.alpha());
     }
 
+    public static Timer postDelayed(int delay, boolean repeats, ActionListener eventToFire) {
+        Timer t = new Timer(delay, eventToFire);
+        t.setRepeats(repeats);
+        t.start();
+        return t;
+    }
 }

@@ -310,8 +310,8 @@ enum class ZSkill(val description: String) : IButton {
     Inventory("User can make modification to their inventory or, if occupied zone is free from zombies, trade with others in their same zone for no cost") {
         override fun addSpecialMoves(game: ZGame, character: ZCharacter, moves: MutableCollection<ZMove>) {
             if (!game.isOrganizeEnabled && character.actionsLeftThisTurn == 0) {
-                if (moves.firstOrNull { it.type == ZMoveType.INVENTORY } == null)
-					moves.add(ZMove.newOrganize())
+                if (moves.firstOrNull { it.type == ZMoveType.ORGANIZE } == null)
+	                moves.add(ZMove.newOrganize())
                 game.addTradeOptions(character, moves)
             }
         }
@@ -408,7 +408,7 @@ enum class ZSkill(val description: String) : IButton {
     Jump("The Survivor can use this Skill once during each Activation. The Survivor spends one Action: He moves two Zones into a Zone to which he has Line of Sight. Movement related Skills (like +1 Zone per Move Action or Slippery) are ignored, but Movement penalties (like having Zombies in the starting Zone) apply. Ignore everything in the intervening Zone.") {
         override fun addSpecialMoves(game: ZGame, character: ZCharacter, moves: MutableCollection<ZMove>) {
             val zones = game.board.getAccessableZones(character.occupiedZone, 2, 2, ZActionType.MOVE)
-            if (zones.size > 0) moves.add(ZMove.newJumpMove(zones))
+            if (zones.isNotEmpty()) moves.add(ZMove.newJumpMove(zones))
         }
     },
     Lifesaver("The Survivor can use this Skill, for free, once during each of his Turns. Select a Zone containing at least one Zombie at Range 1 from your Survivor. Choose Survivors in the selected Zone to be dragged to your Survivor’s Zone without penalty. This is not a Move Action. A Survivor can decline the rescue and stay in the selected Zone if his controller chooses. Both Zones need to share a clear path. A Survivor can’t cross closed doors or walls, and can’t be extracted into or out of a Vault."),
@@ -646,7 +646,7 @@ enum class ZSkill(val description: String) : IButton {
         }
     },
     Swordmaster("The Survivor treats all Melee weapons as if they had the Dual symbol.") {
-        override fun canTwoHand(w: ZWeapon): Boolean {
+        override fun canTwoHand(w: ZEquipment<*>): Boolean {
             return w.isMelee
         }
     },
@@ -761,7 +761,7 @@ enum class ZSkill(val description: String) : IButton {
      * @param w
      * @return
      */
-    open fun canTwoHand(w: ZWeapon): Boolean {
+    open fun canTwoHand(w: ZEquipment<*>): Boolean {
         return false
     }
 
