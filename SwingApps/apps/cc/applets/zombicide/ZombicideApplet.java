@@ -24,6 +24,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 import javax.swing.ToolTipManager;
 
 import cc.lib.game.AGraphics;
@@ -36,6 +37,8 @@ import cc.lib.swing.AWTButton;
 import cc.lib.swing.AWTFrame;
 import cc.lib.swing.AWTPanel;
 import cc.lib.swing.AWTToggleButton;
+import cc.lib.swing.AWTUtils;
+import cc.lib.swing.AWTWrapLabel;
 import cc.lib.ui.IButton;
 import cc.lib.utils.FileUtils;
 import cc.lib.zombicide.ZActor;
@@ -417,8 +420,13 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
             public void mouseReleased(MouseEvent e) {}
             @Override
             public void mouseEntered(MouseEvent e) {
-                if (game != null && game.getCurrentCharacter() != null)
-                    setCharacterSkillsOverlay(game.getCurrentCharacter().getCharacter());
+                if (game != null) {
+                    if (game.getCurrentCharacter() != null)
+                        setCharacterSkillsOverlay(game.getCurrentCharacter().getCharacter());
+                    else if (boardComp.renderer.getHighlightedActor() instanceof ZCharacter) {
+                        setCharacterSkillsOverlay((ZCharacter)boardComp.renderer.getHighlightedActor());
+                    }
+                }
             }
             @Override
             public void mouseExited(MouseEvent e) {
@@ -436,9 +444,12 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
         ZButton(IButton obj) {
             super(obj);
             this.obj = obj;
-            log.debug("created button for type " + obj.getClass());
+//            log.debug("created button for type " + obj.getClass());
             if (obj instanceof ZCharacter) {
                 addMouseListener(new MouseListener() {
+
+                    Timer t = new Timer(1, null);
+
                     @Override
                     public void mouseClicked(MouseEvent e) {}
                     @Override
@@ -448,10 +459,15 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
                     @Override
                     public void mouseEntered(MouseEvent e) {
                         boardComp.renderer.setHighlightActor((ZCharacter)obj);
+                        t.stop();
+                        t = AWTUtils.postDelayed(2000, false, (ev) -> boardComp.renderer.setOverlay(((ZCharacter) obj).getAllSkillsTableExpanded()));
                         charComp.redraw();
                     }
                     @Override
-                    public void mouseExited(MouseEvent e) {}
+                    public void mouseExited(MouseEvent e) {
+                        t.stop();
+                        boardComp.renderer.setOverlay(null);
+                    }
                 });
             }
         }
@@ -485,6 +501,7 @@ public class ZombicideApplet extends AWTApplet implements ActionListener {
             case PICK_SPAWN:
             case PICK_ZOMBIE:
             case PICK_DOOR:
+                menu.add(new AWTWrapLabel("Pick an element on the board"));
                 break;
         }
 

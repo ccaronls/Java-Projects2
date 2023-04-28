@@ -467,5 +467,5 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
 
 	open fun onDoorOpened(game: ZGame, door: ZDoor, c:ZCharacter) {}
 
-	open fun onSpawnZoneRemoved(game: ZGame, zid : Int) {}
+	open fun onSpawnZoneRemoved(game: ZGame, spawnArea : ZSpawnArea) {}
 }

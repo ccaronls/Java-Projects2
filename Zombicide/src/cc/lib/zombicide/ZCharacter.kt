@@ -584,9 +584,9 @@ class ZCharacter(override val type: ZPlayerName=ZPlayerName.Ann, skillz: Array<A
 
     val magicWeapons: List<ZWeapon>
         get() = (if (isDualWielding) listOfNotNull(leftHand, body) else listOfNotNull(leftHand, rightHand, body))
-			.filterIsInstance<ZWeapon>().filter { it.isMagic }.also {
+			.filterIsInstance<ZWeapon>().filter { it.isMagic }.toMutableList().also {
 		        if (getAvailableSkills().contains(ZSkill.Spellbook)) {
-			        it.toMutableList().addAll(backpack.filterIsInstance<ZWeapon>().filter { it.isMagic })
+			        it.addAll(backpack.filterIsInstance<ZWeapon>().filter { it.isMagic })
 		        }
 	        }
 

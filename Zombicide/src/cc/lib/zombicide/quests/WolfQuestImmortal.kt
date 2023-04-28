@@ -4,7 +4,6 @@ import cc.lib.utils.Grid
 import cc.lib.utils.Table
 import cc.lib.zombicide.*
 import cc.lib.zombicide.ZTile.Companion.getQuadrant
-import java.util.*
 
 /**
  * Created by Chris Caron on 8/27/21.
@@ -33,15 +32,15 @@ arrayOf("z37:i:vd1", "z37:i:we", "z38:i:de",                "z32:i", "z32:i:we",
 	}
 
 	override fun loadCmd(grid: Grid<ZCell>, pos: Grid.Pos, cmd: String) {
-		var area: ZSpawnArea
 		when (cmd) {
-			"blsps" -> {
-				setSpawnArea(grid[pos], ZSpawnArea(pos, ZIcon.SPAWN_BLUE, ZDir.SOUTH, true, false, true).also { area = it })
-				immortals.add(area)
-			}
-			"blspe" -> {
-				setSpawnArea(grid[pos], ZSpawnArea(pos, ZIcon.SPAWN_BLUE, ZDir.EAST, true, false, true).also { area = it })
-				immortals.add(area)
+			"blsps" -> setSpawnArea(grid[pos], ZSpawnArea(pos, ZIcon.SPAWN_GREEN, ZDir.SOUTH, true, false, true).also {
+					immortals.add(it)
+				})
+			"blspe" -> setSpawnArea(grid[pos], ZSpawnArea(pos, ZIcon.SPAWN_GREEN, ZDir.EAST, true, false, true).also {
+				immortals.add(it)
+			})
+			"spw" -> {
+				setSpawnArea(grid[pos], ZSpawnArea(pos, ZIcon.SPAWN_RED, ZDir.WEST, false, true, false))
 			}
 			else    -> super.loadCmd(grid, pos, cmd)
 		}
@@ -63,19 +62,11 @@ arrayOf("z37:i:vd1", "z37:i:we", "z38:i:de",                "z32:i", "z32:i:we",
 
 	override fun onZombieSpawned(game: ZGame, zombie: ZZombie, zone: Int) {
 		if (zombie.type == ZZombieType.Necromancer) {
-			immortals.indexOfFirst { sp: ZSpawnArea ->
-				zone == game.board.getCell(sp.cellPos).zoneIndex
-			}.takeIf { it >= 0 }?.let { idx ->
-				val area = immortals.removeAt(idx)
-				area.icon = ZIcon.SPAWN_GREEN
-				area.isCanBeRemovedFromBoard = true
-				area.isEscapableForNecromancers = false
-				area.isCanSpawnNecromancers = false
-				game.spawnZombies(idx)
-				return
-			}
+			// dont create a new spawn zone
+			game.spawnZombies(zone)
+		} else {
+			super.onZombieSpawned(game, zombie, zone)
 		}
-		super.onZombieSpawned(game, zombie, zone)
 	}
 
 	fun getNumNecrosOnBoard(game: ZGame): Int {
@@ -92,7 +83,7 @@ arrayOf("z37:i:vd1", "z37:i:we", "z38:i:de",                "z32:i", "z32:i:we",
 		return Table(name)
 			.addRow(Table().setNoBorder()
 				.addRow("1.", "Collect all Objectives. Each objective gives a vault item.", String.format("%d of %d", numFoundObjectives, numStartObjectives))
-				.addRow("2.", "Purge the EVIL by removing the GREEN spawn areas. BLUE spawn areas become GREEN once a Necromancer is spawned.", String.format("%d of %d", numStartImmortals - immortals.size, numStartImmortals))
+				.addRow("2.", "Purge the EVIL by removing the GREEN spawn areas.", String.format("%d of %d", numStartImmortals - immortals.size, numStartImmortals))
 				.addRow("3.", "Random Vault weapon hidden in the Vault.", numFoundVaultItems > 0)
 			)
 	}
@@ -100,5 +91,11 @@ arrayOf("z37:i:vd1", "z37:i:we", "z38:i:de",                "z32:i", "z32:i:we",
 	override fun processObjective(game: ZGame, c: ZCharacter) {
 		super.processObjective(game, c)
 		game.giftRandomVaultArtifact(c)
+	}
+
+	override fun onSpawnZoneRemoved(game: ZGame, spawnArea : ZSpawnArea) {
+		immortals.removeAll {
+			it == spawnArea
+		}
 	}
 }

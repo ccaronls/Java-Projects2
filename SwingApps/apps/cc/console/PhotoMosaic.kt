@@ -249,14 +249,14 @@ class PhotoMosaic(val targetImg: BufferedImage, val cellWidthPixels: Int, val ce
 			}
 
 			var cells = intArrayOf(0, 0)
-			args[1].toIntOrNull()?.let {
+			args[1].toIntOrNull()?.also {
 				cells[0] = it
 			}?:run {
 				print("${args[1]} is not an int")
 				usage()
 				exitProcess(1)
 			}
-			args[2].toIntOrNull()?.let {
+			args[2].toIntOrNull()?.also {
 				cells[1] = it
 			}?:run {
 				print("${args[2]} is not an int")

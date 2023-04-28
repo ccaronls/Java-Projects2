@@ -29,11 +29,11 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 	var highlightedResult: Any? = null
 	var highlightedActor: ZActor<*>? = null
 		private set
-	var highlightActor: ZActor<*>? = null
-		set(value) {
-			field = value
-			redraw()
-		}
+	//var highlightActor: ZActor<*>? = null
+//		set(value) {
+//			field = value
+//			redraw()
+//		}
 	var highlightedDoor: ZDoor? = null
 	var selectedCell: Grid.Pos? = null
 	var highlightedShape: IShape? = null
@@ -45,6 +45,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 	var drawRangedAccessibility = false
 	var drawTowersHighlighted = false
 	var drawZombiePaths = false
+	var drawScreenCenter = false
 	var miniMapMode = 1
 	var dragOffset = MutableVector2D(Vector2D.ZERO)
 	var dragStart = Vector2D.ZERO
@@ -62,6 +63,14 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 			|| preActor.size > 0
 			|| overlayAnimations.size > 0
 			|| zoomAnimation != null
+
+	fun setHighlightActor(actor : ZActor<*>?) {
+		log.debug("highlighted actor: $actor")
+		highlightedActor = actor
+		if (actor != null)
+			dragOffset.zero()
+		redraw()
+	}
 
 	@Synchronized
 	fun addPreActor(a: ZAnimation) {
@@ -105,7 +114,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 			when (move.type) {
 				ZMoveType.END_TURN -> {
 				}
-				ZMoveType.INVENTORY -> {
+				ZMoveType.ORGANIZE -> {
 				}
 				ZMoveType.TRADE -> for (c in (move.list as List<ZCharacter>)) addClickable(c.getRect(), ZMove(move, c))
 				ZMoveType.WALK -> for (zoneIdx in (move.list as List<Int>)) addClickable(board.getZone(zoneIdx), ZMove(move, zoneIdx, zoneIdx))
@@ -218,6 +227,10 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 				}
 				if (a.isAnimating) {
 					a.drawOrAnimate(g)
+					if (drawScreenCenter) {
+						g.color = GColor.MAGENTA
+						g.drawRect(a.getRect())
+					}
 					actorsAnimating = true
 				} else {
 					var outline: GColor? = null
@@ -231,8 +244,10 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 							outline = GColor.YELLOW
 						else if (a.isAlive)
 							outline = GColor.WHITE
-					}?:run {
-						if (a == highlightActor) {
+					}
+
+					highlightedActor?.let {
+						if (it == a) {
 							highlightAnimation.update(g)
 							outline = g.color
 							redraw()
@@ -244,12 +259,20 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 			}
 		}
 
-		board.getAllActors().filter { !it.isAnimating }.forEach {
-			drawActor(it)
+		with (board.getAllActors().filter { it.isVisible }) {
+			filter { !it.isAnimating }.forEach {
+				drawActor(it)
+			}
+
+			filter { it.isAnimating }.forEach {
+				drawActor(it)
+			}
 		}
-		board.getAllActors().filter { it.isAnimating }.forEach {
-			drawActor(it)
+
+		picked?.let {
+			drawActor(it) // draw the highlighted actor over the top to see its stats
 		}
+
 		return picked
 	}
 
@@ -463,8 +486,8 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		return area.rect
 	}
 
-	fun drawCellWalls(g: AGraphics, cellPos: Grid.Pos?, scale: Float, miniMap: Boolean) {
-		val cell = board.getCell(cellPos!!)
+	fun drawCellWalls(g: AGraphics, cellPos: Grid.Pos, scale: Float, miniMap: Boolean) {
+		val cell = board.getCell(cellPos)
 		g.pushMatrix()
 		val center: Vector2D = cell.center
 		g.translate(center)
@@ -647,14 +670,9 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 					when (type) {
 						ZCellType.NONE, ZCellType.VAULT_DOOR_VIOLET, ZCellType.VAULT_DOOR_GOLD -> {
 						}
-						ZCellType.OBJECTIVE_RED, ZCellType.OBJECTIVE_BLUE, ZCellType.OBJECTIVE_GREEN, ZCellType.OBJECTIVE_BLACK -> text += """
-
- 	${type.name.substring(10)}
- 	""".trimIndent()
-						else                                                                                                    -> text += """
-
- 	$type
- 	""".trimIndent()
+						ZCellType.OBJECTIVE_RED, ZCellType.OBJECTIVE_BLUE, ZCellType.OBJECTIVE_GREEN, ZCellType.OBJECTIVE_BLACK ->
+							text += "\n\n${type.name.substring(10)}\n".trimIndent()
+						else -> text += "\n\n$type\n".trimIndent()
 					}
 				}
 			}
@@ -667,10 +685,10 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
                 text += "\n2 Units away:\n" + accessible2;
             }*/g.color = GColor.CYAN
 			for (a in cell.occupant) {
-				text += "/n/n${a.name()}".trimIndent()
+				text += "\n\n${a.name()}".trimIndent()
 			}
 			if (cell.vaultId > 0) {
-				text += "/n/nvaultFlag ${cell.vaultId}".trimIndent()
+				text += "\n\nvaultFlag ${cell.vaultId}".trimIndent()
 			}
 			g.drawJustifiedStringOnBackground(cell.center, Justify.CENTER, Justify.CENTER, text, GColor.TRANSLUSCENT_BLACK, 10f, 3f)
 		}
@@ -758,30 +776,61 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		return picked
 	}
 
+	var isFocussed = false
 	var savedCenter : IVector2D? = null
 	//game.getBoard().getZone(game.getCurrentCharacter().getOccupiedZone()).getCenter();
 	val boardCenter: IVector2D
-		get() {
-			savedCenter?.takeIf { it is ZCharacter && it.isAnimating }?.let {
-				return it
+		get() = computeBoardCenter().also {
+			//log.debug("board center: $it")
+		}
+
+	var lastUsage = 0
+
+	fun logIf(usage : Int, msg : String) {
+		if (lastUsage == usage)
+			return
+
+		lastUsage=usage
+		log.debug(msg)
+	}
+
+	private fun computeBoardCenter() : IVector2D {
+		game.currentCharacter?.character?.takeIf { it.isAnimating }?.let {
+			logIf(0, "0:Using animating current character")
+			return it
+		}
+		savedCenter?.takeIf { it is ZCharacter && it.isAnimating || isFocussed }?.let {
+			logIf(1, "1:Using animating savedCenter")
+			return it
+		}
+		highlightedActor?.takeIf { it.isAlive }?.let {
+			logIf(2, "2:Using highlightedActor")
+			return it
+		}
+
+		game.currentCharacter?.let {
+			return it.character.also {
+				logIf(3, "3:Using current character")
+				savedCenter = it
 			}
-			game.currentCharacter?.let {
-				return it.character.also {
-					savedCenter = it
-				}
-			}?:highlightActor?.let {
-				return it.also {
-					savedCenter = it
-				}
-			}?:savedCenter?.let {
-				return it
-			}
+		}
+
+		savedCenter?.let {
+			logIf(4, "4:Using saved center")
+			return it
+		}
+		board.getAllCharacters().takeIf { it.isNotEmpty() }?.let {
 			val rect = GRectangle()
-			board.getAllCharacters().takeIf { it.isNotEmpty() }?.forEach { c ->
+			it.forEach { c ->
 				rect.addEq(c.getRect())
 			}
+			logIf(5, "5:Using center of all characters")
 			return rect.center
 		}
+
+		logIf(6, "5:Using board center")
+		return board.center
+	}
 
 	var tiles: Array<ZTile> = arrayOf()
 	var tileIds = IntArray(0)
@@ -881,12 +930,12 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 	}
 
 	override fun draw(g: APGraphics, mouseX: Int, mouseY: Int) {
-		//log.debug("mouseX=" + mouseX + " mouseY=" + mouseY);
+		//log.debug("draw highlightedActor: $highlightedActor")
 		if (!UIZombicide.initialized) {
 			drawNoBoard(g)
 			return
 		}
-		highlightedActor = null
+		//highlightedActor = null
 		highlightedCell = null
 		highlightedResult = null
 		highlightedDoor = null
@@ -938,7 +987,9 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		quest!!.drawQuest(game, g)
 		drawNoise(g)
 		drawAnimations(preActor, g)
-		highlightedActor = drawActors(g, game, mouse.X(), mouse.Y())
+		drawActors(g, game, mouse.X(), mouse.Y())?.let { picked ->
+			highlightedActor = picked
+		}
 		if (drawDebugText) drawDebugText(g, mouseX.toFloat(), mouseY.toFloat())
 		if (drawZombiePaths) {
 			highlightedActor?.let {
@@ -982,7 +1033,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 				//for (ZActor a : (List<ZActor>)game.getOptions()) {
 				//    a.getRect(getBoard()).drawOutlined(g, 1);
 				//}
-				highlightActor?.let { actor ->
+				highlightedActor?.let { actor ->
 					if (game.options.contains(actor)) {
 						highlightedResult = highlightedActor
 					}
@@ -1042,7 +1093,11 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 			lock.withLock {
 				condition.signal()
 			}
-//			synchronized(this) { notify() }
+		}
+
+		if (drawScreenCenter) {
+			g.setColor(GColor.RED)
+			g.drawCircle(boardCenter, .25f)
 		}
 	}
 
@@ -1179,6 +1234,10 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 
 	fun toggleDrawTowersHighlighted(): Boolean {
 		return drawTowersHighlighted.not().also { drawTowersHighlighted = it }
+	}
+
+	fun toggleDrawScreenCenter(): Boolean {
+		return drawScreenCenter.not().also { drawScreenCenter = it }
 	}
 
 	fun toggleDrawZoombiePaths(): Boolean {

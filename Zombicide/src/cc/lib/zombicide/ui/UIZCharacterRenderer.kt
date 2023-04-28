@@ -71,10 +71,6 @@ class UIZCharacterRenderer(component: UIComponent) : UIRenderer(component) {
 				actorInfo = UIZombicide.instance.boardRenderer.highlightedActor
 				info = actorInfo?.drawInfo(g, game, width, height)
 			}
-			UIZombicide.instance.boardRenderer.highlightActor != null -> {
-				actorInfo = UIZombicide.instance.boardRenderer.highlightActor
-				info = actorInfo?.drawInfo(g, game, width, height)
-			}
 			game.currentCharacter != null -> {
 				info = game.currentCharacter?.character?.drawInfo(g, game, width, height)
 			}
