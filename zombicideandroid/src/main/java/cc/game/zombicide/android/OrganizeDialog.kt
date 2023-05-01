@@ -66,6 +66,7 @@ fun ListView.setListOptions(list : List<ZMove>, viewModel : OrganizeViewModel) {
 @BindingAdapter("tagMove", "character", "slot", "dragging", "equipped")
 fun View.setTagFromMoves(moves : List<ZMove>, _character : ZCharacter?, slot : ZEquipSlot, dragging : Boolean, equipped : Boolean) {
 	_character?.let { character ->
+		Log.d(TAG, "setTagFromMoves: char: $_character, slot:$slot, equipped: $equipped, moves: ${moves.joinToString(separator = "\n") { it.toStringAbbrev() }}")
 		val options = moves.filter {
 			it.character == character.type && ((it.toSlot == null && it.fromSlot == slot) || it.toSlot == slot)
 		}
@@ -74,8 +75,9 @@ fun View.setTagFromMoves(moves : List<ZMove>, _character : ZCharacter?, slot : Z
 			Log.i(TAG, "tag for ${character.name()}:${slot} -> $tag")
 		} else {
 			tag = null
-			if (options.size > 1)
+			if (options.size > 1) {
 				Log.e(TAG, "ERROR: too many options for tag: ${options.joinToString()}")
+			}
 			else {}
 		}
 
@@ -121,15 +123,15 @@ class OrganizeViewModel : LifecycleViewModel(),
 	val primaryCharacter = MutableLiveData<ZCharacter?>(null)
 	val secondaryCharacter = MutableLiveData<ZCharacter?>(null)
 
-	val descriptionItem = MutableLiveData<Any?>(null)
+	val descriptionItem = MutableLiveData<Any>(null)
 	val descriptionHeader = TransformedLiveData(descriptionItem) {
 		when (it) {
 			is ZCharacter    -> it.name()
-			is ZEquipment<*> -> it.label
+			is ZEquipment<*> -> it.label // it.label
 			else             -> it?.javaClass?.simpleName ?: ""
 		}
 	}
-	val descriptionBody : LiveData<String?> = combine(descriptionItem, primaryCharacter, secondaryCharacter) { obj, primary, secondary ->
+	val descriptionBody : LiveData<String> = combine(descriptionItem, primaryCharacter, secondaryCharacter) { obj, primary, secondary ->
 		when (obj) {
 			is ZCharacter -> obj.getAllSkillsTable().toString()
 			is ZWeapon    -> secondary?.let {
@@ -137,7 +139,8 @@ class OrganizeViewModel : LifecycleViewModel(),
 			}?:run {
 				obj.getCardInfo(primary!!, game).toString()
 			}
-			is ZEquipment<*> -> obj.label
+			is ZItem -> obj.type.description
+			is ZEquipment<*> -> obj.type.label
 			is IButton -> obj.tooltipText
 			else -> ""
 		}
@@ -175,32 +178,31 @@ class OrganizeViewModel : LifecycleViewModel(),
 	}
 
 	fun startDrag(view : View, equip : ZEquipment<*>?) : Boolean {
-		Log.d(TAG, "startDrag equip:$equip tag:${view.tag}")
-		if (equip == null)
-			return false
 		view.tag?.let {
 			if (it is ZMove) {
-				it.list?.filterIsInstance<ZMove>()?.takeIf { it.isNotEmpty() }?.let {
-					allOptions.value = it
-					dragging.value = true
-					view.post {
-						val name = equip.label
-						dragging.value = true
-						view.startDrag(
-							ClipData.newPlainText(name, name),
-							View.DragShadowBuilder(view),
-							equip, 0)
-					}
-					return true
-				}
+				return startDrag(view, it.list as List<ZMove>, equip)
 			}
 		}
 		return false
 	}
+	fun startDrag(view : View, options: List<ZMove>, equip : ZEquipment<*>?) : Boolean {
+		Log.d(TAG, "startDrag equip:$equip tag:${view.tag}")
+		if (equip == null || options.isEmpty())
+			return false
+		allOptions.value = options
+		dragging.value = true
+		val name = equip.label
+		return view.startDrag(
+			ClipData.newPlainText(name, name),
+			View.DragShadowBuilder(view),
+			equip, 0)
+	}
 	override fun onItemLongClick(parent: AdapterView<*>, view: View, position: Int, id: Long): Boolean {
 		val equip = view.tag as ZEquipment<*>?
-		view.tag = parent.tag
-		return startDrag(view, equip)
+		val options = (parent.tag as ZMove)?.list as List<ZMove>
+		return startDrag(view, options.filter {
+			it.equipment == equip
+		}, equip)
 	}
 
 	override fun onItemClick(parent: AdapterView<*>, view: View, position: Int, id: Long) {

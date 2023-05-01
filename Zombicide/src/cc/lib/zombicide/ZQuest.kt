@@ -205,7 +205,7 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
     }
 
 	open fun createSpawnAreas(pos: Grid.Pos, dir : ZDir) : ZSpawnArea {
-		return ZSpawnArea(pos, dir)
+		return ZSpawnArea(cellPos = pos, dir = dir)
 	}
 
     protected fun setCellWall(grid: Grid<ZCell>, pos: Grid.Pos, dir: ZDir, flag: ZWallFlag) {

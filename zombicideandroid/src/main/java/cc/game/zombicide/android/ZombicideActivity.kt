@@ -247,6 +247,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 			}
 
 			override fun updateOrganize(character: ZCharacter, list: List<ZMove>): ZMove? {
+				Log.d(TAG, "updateOrganize moves: ${list.joinToString(separator = "\n")}")
 				runOnUiThread {
 					organizeDialog?.let {
 						it.viewModel.allOptions.value = list
@@ -352,7 +353,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 				LOAD, SAVE, ASSIGN, CLEAR, UNDO, DIFFICULTY, CHOOSE_COLOR -> return BuildConfig.DEBUG
 				START, NEW_GAME, JOIN_GAME, SETUP_PLAYERS, SKILLS, LEGEND, EMAIL_REPORT, MINIMAP_MODE -> return true
 				CONNECTIONS -> return instance.serverControl != null
-				RESUME -> return instance.gameFile.exists()
+				RESUME -> return instance.gameFile.exists()// && instance.game.isGameSetup
 			}
 			return false
 		}
@@ -663,7 +664,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 	}
 
 	fun updateCharacters(quest: ZQuests?) {
-		serverMgr?.let { mgr ->
+		serverMgr?.also { mgr ->
 			server.broadcastCommand(mgr.newLoadQuest(quest!!))
 			game.clearCharacters()
 			for (user in game.getUsers()) {

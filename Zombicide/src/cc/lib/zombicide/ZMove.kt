@@ -236,4 +236,14 @@ data class ZMove constructor(
 	    }
         return label
     }
+
+	fun toStringAbbrev(): String {
+		return "$type, " +
+			(if (integer != null) " int:$integer" else "") +
+			(if (character != null) " char:$character" else "") +
+			(if (equipment != null) " equip:${equipment.type}" else "") +
+			(if (fromSlot != null) " from:$fromSlot" else "") +
+			(if (toSlot != null) " to:$toSlot" else "") +
+			(if (skill != null) " skill:$skill" else "")
+	}
 }

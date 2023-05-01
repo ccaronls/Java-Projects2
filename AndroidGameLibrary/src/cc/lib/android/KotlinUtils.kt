@@ -19,19 +19,23 @@ inline fun <T> LiveData<T>.observeWhile(
 	observe(lifecycleOwner, it)
 }
 
-fun <IN1, IN2, OUT> combine(in1 : LiveData<IN1>, in2 : LiveData<IN2>, combiner : (IN1, IN2) -> OUT) : LiveData<OUT> {
-	return object : MediatorLiveData<OUT>() {
+fun <IN1, IN2, OUT> combine(in1 : LiveData<IN1>, in2 : LiveData<IN2>, combiner : (IN1?, IN2?) -> OUT?) : LiveData<OUT> {
+	return object : MediatorLiveData<OUT>(), Observer<Any?> {
+		var ignore = true
 		init {
-			addSource(in1) { t ->
-				in2.value?.let {
-					value = combiner(t, it)
-				}
-			}
-			addSource(in2) { t ->
-				in1.value?.let {
-					value = combiner(it, t)
-				}
-			}
+			addSource(in1, this)
+			addSource(in2, this)
+			ignore = false
+			update()
+		}
+
+		override fun onChanged(t: Any?) {
+			if (!ignore)
+				update()
+		}
+
+		fun update() {
+			value = combiner(in1.value, in2.value)
 		}
 	}
 }

@@ -136,10 +136,7 @@ class ZWeapon(override val type: ZWeaponType=ZWeaponType.AXE) : ZEquipment<ZWeap
 			}
 		}
 
-		return Table(label).addRow(
-			Table(c0.label, c1.label).setNoBorder()
-				.addRow(c0StatsTab, c1StatsTab)
-		).setNoBorder()
+		return Table(c0.label, c1.label).setNoBorder().addRow(c0StatsTab, c1StatsTab)
 	}
 
     override fun getCardInfo(c: ZCharacter, game: ZGame): Table {

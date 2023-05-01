@@ -69,33 +69,42 @@
             buttonText="@{`UNDO`}"
             android:onClick="@{() -> viewModel.tryUndo()}"/>
 
-        <TextView
+        <LinearLayout
             android:id="@+id/tvConsume"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="CONSUME"
-            style="@style/container"
-            android:gravity="center"
-            android:padding="10dp"
-            visibleIf="@{viewModel.dragging}"
-            tagConsume="@{viewModel.allOptions}"
             app:layout_constraintStart_toStartOf="@id/lvOptions"
             app:layout_constraintEnd_toEndOf="@id/lvOptions"
-            app:layout_constraintTop_toTopOf="@id/lvOptions"/>
+            app:layout_constraintTop_toTopOf="@id/lvOptions"
+            visibleIf="@{viewModel.dragging}"
+            tagConsume="@{viewModel.allOptions}">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="CONSUME"
+                style="@style/container"
+                android:gravity="center"
+                android:padding="10dp"/>
+        </LinearLayout>
 
-        <TextView
+        <LinearLayout
             android:id="@+id/tvTrash"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="TRASH"
-            style="@style/container"
-            android:gravity="center"
-            android:padding="10dp"
-            visibleIf="@{viewModel.dragging}"
-            tagTrash="@{viewModel.allOptions}"
             app:layout_constraintStart_toStartOf="@id/lvOptions"
             app:layout_constraintEnd_toEndOf="@id/lvOptions"
-            app:layout_constraintTop_toBottomOf="@id/tvConsume"/>
+            app:layout_constraintTop_toBottomOf="@id/tvConsume"
+            visibleIf="@{viewModel.dragging}"
+            tagTrash="@{viewModel.allOptions}" >
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="TRASH"
+                style="@style/container"
+                android:gravity="center"
+                android:padding="10dp"/>
+        </LinearLayout>
+
 
         <!--
                 <ImageView
