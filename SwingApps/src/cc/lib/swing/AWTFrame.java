@@ -55,6 +55,10 @@ public class AWTFrame extends JFrame implements WindowListener, ComponentListene
 	private File propertiesFile = null;
 	private Properties properties = null;
 
+    public AWTFrame(Container content) {
+        this();
+        setContentPane(content);
+    }
 	public AWTFrame() {
 		super();
 		addWindowListener(this);
@@ -108,7 +112,7 @@ public class AWTFrame extends JFrame implements WindowListener, ComponentListene
         parent.setVisible(true);
     }
 
-	public void showFullscreenOnScreen( int screen )
+    public void showFullscreenOnScreen(int screen )
 	{
 	    GraphicsEnvironment ge = GraphicsEnvironment
 	        .getLocalGraphicsEnvironment();
@@ -746,7 +750,7 @@ public class AWTFrame extends JFrame implements WindowListener, ComponentListene
     public interface OnListItemChoosen {
         void itemChoose(int index);
 
-        void cancelled();
+        default void cancelled() {}
     }
 
     /**

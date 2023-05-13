@@ -616,7 +616,9 @@ public class AWTGraphics extends APGraphics {
         transform(tl);
         transform(br);
         int iRad = Math.round(radius * W / w);
-        g.fillRoundRect(tl.Xi(), tl.Yi(), br.Xi()-tl.Xi(), br.Yi()-tl.Yi(), iRad, iRad);
+        int xi = Math.min(tl.Xi(), br.Xi());
+        int yi = Math.min(tl.Yi(), br.Yi());
+        g.fillRoundRect(xi, yi, Math.abs(br.Xi()-tl.Xi()), Math.abs(br.Yi()-tl.Yi()), iRad, iRad);
     }
 
     @Override

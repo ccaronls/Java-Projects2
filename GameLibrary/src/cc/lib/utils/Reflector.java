@@ -541,6 +541,13 @@ public class Reflector<T> {
     private final static Map<Class, String> canonicalNameCache = new HashMap<>();
 
     private static String getCanonicalName(Class clazz) {
+        String name = getCanonicalNameOrNull(clazz);
+        if (name == null)
+            throw new GException("cannot getCannonicalName for : " + clazz);
+        return name;
+    }
+
+    private static String getCanonicalNameOrNull(Class clazz) {
         String name;
         if (STRIP_PACKAGE_QUALIFIER) {
             if (clazz.isAnonymousClass()) {
@@ -563,23 +570,25 @@ public class Reflector<T> {
 
             boolean isEnum = clazz.isEnum();
             boolean isAnnotation = clazz.isAnnotation();
-            boolean isAnnonymous = clazz.isAnonymousClass();
+            boolean isAnonymous = clazz.isAnonymousClass();
             boolean isInterface = clazz.isInterface();
             boolean isLocal = clazz.isLocalClass();
             boolean isMember = clazz.isMemberClass();
             boolean isPrimitive = clazz.isPrimitive();
             boolean isSynthetic = clazz.isSynthetic();
+            Class<?> enclosingClass = clazz.getEnclosingClass();
+            Class<?> declatingClass = clazz.getDeclaringClass();
             Class<?> superClass = clazz.getSuperclass();
 
-            if (clazz.isAnonymousClass() || (superClass != null && superClass.isEnum())) {
-                clazz = clazz.getSuperclass();
+            if (isAnonymous || (superClass != null && superClass.isEnum())) {
+                clazz = superClass;
             }
             //while (DirtyDelegate.class.isAssignableFrom(clazz)) {
             //    clazz = clazz.getSuperclass();
             //}
             name = clazz.getCanonicalName();
             if (name == null)
-                throw new GException("cannot getCannonicalName for : " + clazz);
+                return null;
         }
         canonicalNameCache.put(clazz, name);
         return name;
@@ -1057,7 +1066,7 @@ public class Reflector<T> {
 
     static Map<Field, Archiver> getValues(Class<?> clazz, boolean createIfDNE) {
         try {
-            if (getCanonicalName(clazz) == null) {
+            if (getCanonicalNameOrNull(clazz) == null) {
                 if (clazz.getSuperclass() != null)
                     clazz = clazz.getSuperclass();
                 else
@@ -1981,11 +1990,11 @@ public class Reflector<T> {
                         } else if (isSubclassOf(field.getType(), Collection.class)) {
                             Collection<?> collection = (Collection<?>) field.get(this);
                             if (collection != null)
-                            deserializeCollection(collection, in, keepInstances);
+                                deserializeCollection(collection, in, keepInstances);
                         } else if (isSubclassOf(field.getType(), Map.class)) {
                             Map<?, ?> map = (Map<?, ?>) field.get(this);
                             if (map != null)
-                            deserializeMap(map, in, keepInstances);
+                                deserializeMap(map, in, keepInstances);
                         }
                         parts = null;
                         break;

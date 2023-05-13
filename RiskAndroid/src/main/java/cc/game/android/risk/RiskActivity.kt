@@ -18,9 +18,11 @@ import cc.lib.math.Vector2D
 import cc.lib.risk.*
 import cc.lib.utils.Lock
 import cc.lib.utils.prettify
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import java.io.File
-import java.util.*
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 import kotlin.math.roundToInt
@@ -40,9 +42,14 @@ class RiskActivity : DroidActivity(), OnItemClickListener {
 	private val cond = lock.newCondition()
 	private var message: String = ""
 	private var runJob: Job? = null
+	private val board by lazy {
+		RiskBoard().also {
+			assets.open("risk.board").use { `in` -> it.deserialize(`in`) }
+		}
+	}
 
 	lateinit var saveGame: File
-	var game: RiskGame = object : RiskGame() {
+	var game: RiskGame = object : RiskGame(board) {
 		override fun onDiceRolled(attacker: Army, attackingDice: IntArray, defender: Army, defendingDice: IntArray, result: BooleanArray) {
 			super.onDiceRolled(attacker, attackingDice, defender, defendingDice, result)
 			if (getPlayerOrNull(attacker) is UIRiskPlayer || getPlayerOrNull(defender) is UIRiskPlayer) {
@@ -186,10 +193,10 @@ class RiskActivity : DroidActivity(), OnItemClickListener {
 			}
 		}
 
-		override fun onAttackerGainedRegion(attacker: Army?, region: Region) {
+		override fun onAttackerGainedRegion(attacker: Army, region: Region) {
 			if (!running) return
 			super.onAttackerGainedRegion(attacker, region)
-			addOverlayAnimation(ExpandingTextOverlayAnimation(attacker!!.name + " CONTROLS " + region.name, attacker.color))
+			addOverlayAnimation(ExpandingTextOverlayAnimation(attacker.name + " CONTROLS " + region.name, attacker.color))
 			Thread.sleep(1000)
 		}
 
@@ -222,12 +229,6 @@ class RiskActivity : DroidActivity(), OnItemClickListener {
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
 		saveGame = File(filesDir, "save.game")
-		try {
-			assets.open("risk.board").use { `in` -> game.board.deserialize(`in`) }
-		} catch (e: Exception) {
-			e.printStackTrace()
-			finish()
-		}
 		listView = findViewById(R.id.list_view)
 		listView.onItemClickListener = this
 		hideNavigationBar()
@@ -245,7 +246,7 @@ class RiskActivity : DroidActivity(), OnItemClickListener {
 		super.onStart()
 		try {
 			if (saveGame.exists()) {
-				val t = RiskGame()
+				val t = RiskGame(board)
 				t.loadFromFile(saveGame)
 				game.copyFrom(t)
 			}
@@ -276,25 +277,17 @@ class RiskActivity : DroidActivity(), OnItemClickListener {
 	}
 
 	override fun onItemClick(parent: AdapterView<*>?, view: View, position: Int, id: Long) {
-		Log.d("TAP", "onItemClick")
-		val tag = view.tag ?: return
-		if (tag is Action) {
-			setGameResult(tag)
-			return
-		}
-		if (tag is Buttons) {
-			when (tag) {
-				Buttons.NEW_GAME -> {
-					PlayerChooserDialog(this)
-				}
-				Buttons.ABOUT    -> newDialogBuilder().setTitle("About")
+		Log.d("TAP", "onItemClick: ${view.tag}")
+		when (view.tag) {
+			is Action        -> setGameResult(view.tag)
+			Buttons.NEW_GAME -> PlayerChooserDialog(this)
+			Buttons.ABOUT    -> newDialogBuilder().setTitle("About")
 					.setMessage("Game written by Chris Caron")
 					.setNegativeButton(R.string.popup_button_close, null)
 					.show()
-				Buttons.RESUME   -> {
-					if (game.tryLoadFromFile(saveGame)) {
-						startGameThread()
-					}
+			Buttons.RESUME   -> {
+				if (game.tryLoadFromFile(saveGame)) {
+					startGameThread()
 				}
 			}
 		}
@@ -627,7 +620,7 @@ class RiskActivity : DroidActivity(), OnItemClickListener {
 
 	fun startGame(players: List<RiskPlayer>) {
 		init()
-		game.clear()
+		game.reset()
 		Utils.shuffle(players)
 		for (pl in players) game.addPlayer(pl)
 		startGameThread()

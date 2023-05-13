@@ -13,7 +13,6 @@ import java.awt.BorderLayout
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
 import java.io.File
-import java.util.*
 import java.util.concurrent.locks.ReentrantLock
 import javax.swing.JLabel
 import javax.swing.JSpinner
@@ -103,11 +102,9 @@ ${e.javaClass.simpleName} ${e.message}""")
 										monopoly.startGameThread()
 									}
 
-									override fun cancelled() {}
 								}, "Choose Piece", *Piece.values().toList().prettify())
 							}
 
-							override fun cancelled() {}
 						}, "How Many Players?", "2", "3", "4")
 						"Resume"   -> if (monopoly.tryLoadFromFile(SAVE_FILE)) {
 							monopoly.startGameThread()

@@ -8,9 +8,12 @@ import cc.lib.game.GColor
 enum class Army(val color: GColor) {
 	BLUE(GColor(.3f, .3f, 1f, 1f)),
 	RED(GColor.RED),
-	WHITE(GColor.WHITE),
+	ORANGE(GColor.ORANGE),
 	GREEN(GColor(.3f, 1f, .3f, 1f)),
 	MAGENTA(GColor.MAGENTA),
 	NEUTRAL(GColor.LIGHT_GRAY);
 
+	companion object {
+		fun choices() : List<Army> = values().filter { it != NEUTRAL }
+	}
 }

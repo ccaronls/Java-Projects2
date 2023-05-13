@@ -100,3 +100,5 @@ fun <T> Collection<LiveData<T>>.combine(combiner : (List<T>) -> T) : LiveData<T>
 		}
 	}
 }
+
+inline fun <reified T> Any.takeIfInstance() : T? = if (this is T) this else null

@@ -9,6 +9,8 @@ import cc.lib.game.AGraphics
  */
 abstract class RiskAnim(durationMSecs: Long) : AAnimation<AGraphics>(durationMSecs) {
 	var zOrder = 0
+		private set
+
 	override fun onDone() {
 		Log.d("RiskAnim", "onDone")
 		super.onDone()

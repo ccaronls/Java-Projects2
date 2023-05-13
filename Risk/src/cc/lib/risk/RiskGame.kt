@@ -1,6 +1,5 @@
 package cc.lib.risk
 
-import cc.lib.logger.Logger
 import cc.lib.logger.LoggerFactory
 import cc.lib.utils.*
 import java.util.*
@@ -9,7 +8,7 @@ import kotlin.Pair
 /**
  * Created by Chris Caron on 9/13/21.
  */
-open class RiskGame : Reflector<RiskGame>() {
+open class RiskGame(val board : RiskBoard = RiskBoard()) : Reflector<RiskGame>() {
 	companion object {
 		val log = LoggerFactory.getLogger(RiskGame::class.java)
 		const val MIN_TROOPS_PER_TURN = 3
@@ -19,18 +18,21 @@ open class RiskGame : Reflector<RiskGame>() {
 		}
 	}
 
-	var players: MutableList<RiskPlayer> = ArrayList()
-	var board = RiskBoard()
-	var currentPlayer = 0
-	var state = State.INIT
-	fun clear() {
+	private val players = mutableListOf<RiskPlayer>()
+	private var currentPlayer = 0
+	private var state = State.INIT
+
+	/**
+	 * Must Call Super if override
+	 */
+	open fun reset() {
 		players.clear()
 		board.reset()
 		currentPlayer = 0
 		state = State.INIT
 	}
 
-	suspend fun runGame() {
+	fun runGame() {
 		log.debug("runGame ENTER")
 		log.verbose("Run game state: %s", state)
 		if (players.size < 2) throw GException("Need at least 2 players")
@@ -40,7 +42,6 @@ open class RiskGame : Reflector<RiskGame>() {
 		val cur = getCurrentPlayer()
 		var territories = board.getTerritories(cur!!.army)
 		val actions: MutableList<Action> = ArrayList()
-		var stageable: List<Int>? = null
 		when (state) {
 			State.INIT                                                                          -> {
 				val terr = LinkedList<RiskCell>()
@@ -51,12 +52,11 @@ open class RiskGame : Reflector<RiskGame>() {
 				}
 				terr.shuffle()
 				var numEach = terr.size / players.size
-				var infantryEach = 0
 				if (players.size == 2) {
 					// special case where we have a neutral player
 					numEach = terr.size / 3
 				}
-				infantryEach = (board.numCells + 10) / 10 * 10 - 5 * players.size
+				val infantryEach = (board.numCells + 10) / 10 * 10 - 5 * players.size
 				for (pl in players) {
 					pl.setArmiesToPlace(infantryEach)
 				}
@@ -82,7 +82,7 @@ open class RiskGame : Reflector<RiskGame>() {
 				}
 				state = State.PLACE_ARMY1
 			}
-			State.CHOOSE_TERRITORIES                                                            -> {
+			State.CHOOSE_TERRITORIES -> {
 				val unclaimed = Array(board.numCells) { it }.filter { 
 					with (board.getCell(it)) {
 						occupier == null && numArmies == 0
@@ -102,7 +102,10 @@ open class RiskGame : Reflector<RiskGame>() {
 					}
 				}
 			}
-			State.PLACE_ARMY1, State.PLACE_ARMY2, State.PLACE_ARMY, State.BEGIN_TURN_PLACE_ARMY -> {
+			State.PLACE_ARMY1,
+			State.PLACE_ARMY2,
+			State.PLACE_ARMY,
+			State.BEGIN_TURN_PLACE_ARMY -> {
 				if (cur.getArmiesToPlace() > 0) {
 					val startArmiesToPlace: Int = cur.initialArmiesToPlace
 					val remainingArmiesToPlace = startArmiesToPlace - cur.getArmiesToPlace()
@@ -131,7 +134,7 @@ open class RiskGame : Reflector<RiskGame>() {
 					}
 				}
 			}
-			State.PLACE_NEUTRAL                                                                 -> {
+			State.PLACE_NEUTRAL -> {
 				territories = board.getTerritories(Army.NEUTRAL)
 				cur.pickTerritoryForNeutralArmy(this, territories)?.let { picked ->
 					assert(territories.contains(picked))
@@ -142,7 +145,7 @@ open class RiskGame : Reflector<RiskGame>() {
 					nextPlayer()
 				}
 			}
-			State.BEGIN_TURN                                                                    -> {
+			State.BEGIN_TURN -> {
 				if (territories.isEmpty()) {
 					nextPlayer()
 				} else {
@@ -152,10 +155,10 @@ open class RiskGame : Reflector<RiskGame>() {
 					state = State.BEGIN_TURN_PLACE_ARMY
 				}
 			}
-			State.CHOOSE_MOVE                                                                   -> {
+			State.CHOOSE_MOVE -> {
 
 				// See which territories can attack an adjacent
-				stageable = territories.filter { idx ->
+				val stageable = territories.filter { idx ->
 					board.getCell(idx).let { cell ->
 						cell.numArmies > 1  && board.getConnectedCells(cell).firstOrNull { adj ->
 							board.getCell(adj).occupier != cur.army
@@ -189,7 +192,7 @@ open class RiskGame : Reflector<RiskGame>() {
 						Action.ATTACK -> {
 							val start = cur.pickTerritoryToAttackFrom(this, stageable)
 							if (start != null) {
-								assert(stageable!!.contains(start))
+								assert(stageable.contains(start))
 								onStartAttackTerritoryChosen(start)
 								val cell = board.getCell(start)
 								val options = board.getConnectedCells(cell).filter { idx: Int -> board.getCell(idx).occupier != cur.army }
@@ -208,7 +211,7 @@ open class RiskGame : Reflector<RiskGame>() {
 								assert(moveable.contains(start))
 								onStartMoveTerritoryChosen(start)
 								val cell = board.getCell(start)
-								val options = board.getConnectedCells(cell).filter { idx: Int? -> board.getCell(idx!!).occupier == cur.army }
+								val options = board.getConnectedCells(cell).filter { board.getCell(it).occupier == cur.army }
 								if (options.isEmpty()) throw GException("Invalid movable")
 								while (cell.movableTroops > 0) {
 									val end = cur.pickTerritoryToMoveTo(this, start, options)
@@ -227,7 +230,7 @@ open class RiskGame : Reflector<RiskGame>() {
 					}
 				}
 			}
-			State.CHOOSE_MOVE_NO_ATTACK                                                         -> {
+			State.CHOOSE_MOVE_NO_ATTACK -> {
 				val moveable = getMoveSourceOptions(territories, cur.army)
 				if (moveable.isNotEmpty()) {
 					actions.add(Action.MOVE)
@@ -242,22 +245,6 @@ open class RiskGame : Reflector<RiskGame>() {
 				if (action != null) {
 					assert(actions.contains(action))
 					when (action) {
-						Action.ATTACK -> {
-							assert(stageable != null)
-							val start = cur.pickTerritoryToAttackFrom(this, stageable!!)
-							if (start != null) {
-								assert(stageable!!.contains(start))
-								onStartAttackTerritoryChosen(start)
-								val cell = board.getCell(start)
-								val options = board.getConnectedCells(cell).filter { idx: Int? -> board.getCell(idx!!).occupier != cur.army }
-								if (options.isEmpty()) throw GException("Invalid stagable")
-								cur.pickTerritoryToAttack(this, start, options)?.let { end ->
-									assert(options.contains(end))
-									onEndAttackTerritoryChosen(start, end)
-									performAttack(start, end)
-								}
-							}
-						}
 						Action.MOVE   -> {
 							val start = cur.pickTerritoryToMoveFrom(this, moveable)
 							if (start != null) {
@@ -280,15 +267,15 @@ open class RiskGame : Reflector<RiskGame>() {
 							state = State.BEGIN_TURN
 							nextPlayer()
 						}
+						else -> throw GException("Unhandled case $action")
 					}
 				}
 			}
-			State.GAME_OVER                                                                     -> {
+			State.GAME_OVER -> {
 				onGameOver(winner!!)
 				state = State.DONE
 			}
-			State.DONE                                                                          -> {
-			}
+			State.DONE -> Unit
 		}
 		log.debug("runGame EXIT")
 	}
@@ -337,7 +324,7 @@ open class RiskGame : Reflector<RiskGame>() {
 			val cells = board.getTerritories(r)
 			if (cells.count { c: Int -> board.getCell(c).occupier != army } == 0) {
 				numArmies += r.extraArmies
-				onMessage(army, "Gets ${r.extraArmies} extra armies for holding all of ${r.name}");
+//				onMessage(army, "Gets ${r.extraArmies} extra armies for holding all of ${r.name}");
 			}
 		}
 		return Math.max(MIN_TROOPS_PER_TURN, numArmies)
@@ -409,9 +396,9 @@ open class RiskGame : Reflector<RiskGame>() {
 				end.occupier = (start.occupier)
 				end.numArmies = (numToOccupy)
 				if (winner == null && board.getTerritories(end.region).count { idx: Int -> board.getCell(idx).occupier != start.occupier } == 0) {
-					onAttackerGainedRegion(end.occupier, end.region)
+					onAttackerGainedRegion(end.occupier!!, end.region)
 				} else {
-					onAtatckerGainedTerritory(end.occupier, endIdx)
+					onAtatckerGainedTerritory(end.occupier!!, endIdx)
 				}
 			}
 		}
@@ -437,11 +424,11 @@ open class RiskGame : Reflector<RiskGame>() {
 		log.info("%s has lost %d armies and %s has lost %d armies", attacker.occupier, attackersLost, defender.occupier, defendersLost)
 	}
 
-	protected fun onAtatckerGainedTerritory(attacker: Army?, cellIdx: Int) {
+	protected fun onAtatckerGainedTerritory(attacker: Army, cellIdx: Int) {
 		log.info("%s: Gained Territory for %s", attacker, board.getCell(cellIdx).region)
 	}
 
-	protected open fun onAttackerGainedRegion(attacker: Army?, region: Region) {
+	protected open fun onAttackerGainedRegion(attacker: Army, region: Region) {
 		log.info("%s: Gained Region %s for +%d troops", attacker, region, region.extraArmies)
 	}
 
@@ -459,7 +446,10 @@ open class RiskGame : Reflector<RiskGame>() {
 
 	private fun nextPlayer() {
 		currentPlayer = (currentPlayer + 1) % players.size
+		onNextPlayer(currentPlayer)
 	}
+
+	open fun onNextPlayer(currentPlayer : Int) = Unit
 
 	fun getCurrentPlayer(): RiskPlayer? {
 		return if (currentPlayer >= 0 && currentPlayer < players.size) players[currentPlayer] else null

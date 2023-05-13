@@ -7,7 +7,6 @@ import android.widget.*
 import cc.lib.game.Utils
 import cc.lib.risk.Army
 import cc.lib.risk.RiskPlayer
-import java.util.*
 
 class PL(var army: Army) {
 	var checked = false
@@ -66,9 +65,8 @@ class PlayerChooserDialog internal constructor(val context: RiskActivity) : Base
 	}
 
 	init {
-		for (army in Army.values()) {
-			if (army !== Army.NEUTRAL)
-				players.add(PL(army))
+		Army.choices().forEach {
+			players.add(PL(it))
 		}
 		val lv = ListView(context)
 		lv.adapter = this

@@ -1113,7 +1113,29 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @return an array of length numCells with ids to the sub images or null if asset path does not produce an image
      */
     public abstract int [] loadImageCells(String assetPath, int w, int h, int numCellsX, int numCells, boolean bordered, GColor transparent);
-    
+
+    /**
+     *
+     * @param source
+     * @param cells
+     * @return
+     */
+    public int [] loadImageCells(int source, int [][] cells) {
+        int [] result = new int[cells.length];
+        for (int i=0; i<result.length; i++) {
+            int x = cells[i][0];
+            int y = cells[i][1];
+            int w = cells[i][2];
+            int h = cells[i][3];
+            try {
+                result[i] = newSubImage(source, x, y, w, h);
+            } catch (Throwable e) {
+                throw new GException("Problem loading image cell " + i, e);
+            }
+        }
+        return result;
+    }
+
     /**
      * 
      * @param id

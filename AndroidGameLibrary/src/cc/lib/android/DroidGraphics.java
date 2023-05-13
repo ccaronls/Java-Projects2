@@ -31,7 +31,6 @@ import cc.lib.game.IVector2D;
 import cc.lib.game.Justify;
 import cc.lib.math.CMath;
 import cc.lib.math.Vector2D;
-import cc.lib.utils.GException;
 
 /**
  * Created by chriscaron on 2/12/18.
@@ -559,28 +558,6 @@ public abstract class DroidGraphics extends APGraphics {
         } finally {
             deleteImage(source);
         }
-    }
-
-    /**
-     *
-     * @param source
-     * @param cells
-     * @return
-     */
-    public synchronized int [] loadImageCells(int source, int [][] cells) {
-        int [] result = new int[cells.length];
-        for (int i=0; i<result.length; i++) {
-            int x = cells[i][0];
-            int y = cells[i][1];
-            int w = cells[i][2];
-            int h = cells[i][3];
-            try {
-                result[i] = newSubImage(source, x, y, w, h);
-            } catch (Throwable e) {
-                throw new GException("Problem loading image cell " + i, e);
-            }
-        }
-        return result;
     }
 
     private static class DroidImage extends AImage {
