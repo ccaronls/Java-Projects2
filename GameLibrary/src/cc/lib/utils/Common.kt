@@ -343,3 +343,17 @@ fun String.trimmedToSize(maxLen : Int) : String {
 fun Boolean.toInt() : Int = if (this) 1 else 0
 
 fun Int.toBoolean() : Boolean = this != 0
+
+inline fun <reified T> Any.takeIfInstance() : T? = if (this is T) this else null
+
+fun String.padToFit(width: Int) : String {
+	val diff = width - length
+	if (diff <= 0)
+		return this
+	// for odd remainders, give more padding to the front
+	if (diff % 2 == 1) {
+		return padStart(1 + diff/2).padEnd(diff/2)
+	}
+
+	return padStart(diff/2).padEnd(diff/2)
+}

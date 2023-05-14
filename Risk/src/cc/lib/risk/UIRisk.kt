@@ -95,7 +95,7 @@ abstract class UIRisk(board : RiskBoard) : RiskGame(board) {
 	private val animations: MutableList<RiskAnim> = ArrayList()
 	private val highlightedCells: MutableList<Pair<Int, GColor>> = ArrayList()
 	private val pickableTerritories: MutableList<Int> = ArrayList()
-	private val running : Boolean
+	val running : Boolean
 		get() = runJob?.isActive == true
 	private var result: Any? = null
 	private var zoomRect = GRectangle.EMPTY

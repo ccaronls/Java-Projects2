@@ -9,7 +9,7 @@ import cc.lib.game.AGraphics;
 import cc.lib.game.AImage;
 import cc.lib.game.GColor;
 import cc.lib.game.GDimension;
-import cc.lib.game.IMeasurable;
+import cc.lib.game.IDimension;
 import cc.lib.game.IVector2D;
 import cc.lib.game.Justify;
 import cc.lib.game.Utils;
@@ -19,7 +19,7 @@ import cc.lib.game.Utils;
  *
  * TODO: Add AImage references
  */
-public final class Table implements IMeasurable {
+public final class Table implements ITableItem {
 
     public interface Model {
         /**
@@ -75,8 +75,8 @@ public final class Table implements IMeasurable {
     private final List<String> header;
     private final List<Vector<Object>> rows = new ArrayList<>();
     private Model model;
-    private int totalWidth=0;
-    private int totalHeight=0;
+    private int totalWidthChars =0;
+    private int totalHeightChars =0;
     private int padding = 1;
     private int borderWidth = 2; // TODO:  Make this apart of the model
     private float[] maxWidth;
@@ -243,7 +243,7 @@ public final class Table implements IMeasurable {
 
         headerHeightLines = 0;
         float saveTxtHgt = g.setTextHeight(model.getHeaderTextHeight(g));
-        if (header != null && header.size() > 0) {
+        if (header.size() > 0) {
             for (int i = 0; i < columns && i < header.size(); i++) {
                 String [] parts = header.get(i).split("\n");
                 int lines = parts.length;
@@ -258,12 +258,12 @@ public final class Table implements IMeasurable {
         for (int r = 0; r < rows.size(); r++) {
             for (int c = 0; c < rows.get(r).size(); c++) {
                 Object o = rows.get(r).get(c);
-                if (o instanceof Table) {
-                    Table t = (Table) o;
-                    GDimension d2 = t.measure(g);
-                    maxHeight[r] = Math.max(maxHeight[r], d2.height);
-                    maxWidth[c] = Math.max(maxWidth[c], d2.width);
-                    if (t.borderWidth != 0)
+                if (o instanceof ITableItem) {
+                    ITableItem t = (ITableItem) o;
+                    IDimension d2 = t.measure(g);
+                    maxHeight[r] = Math.max(maxHeight[r], d2.getWidth());
+                    maxWidth[c] = Math.max(maxWidth[c], d2.getHeight());
+                    if (t.getBorderWidth() != 0)
                         maxHeight[r] += 2*cellPadding;
                 } else if (o instanceof AImage) {
                     // TODO: Implement this
@@ -301,7 +301,7 @@ public final class Table implements IMeasurable {
      * @param g
      * @return
      */
-    public GDimension draw(AGraphics g) {
+    public IDimension draw(AGraphics g) {
         GDimension dim = measure(g);
         if (dim == GDimension.EMPTY)
             return dim;
@@ -364,9 +364,9 @@ public final class Table implements IMeasurable {
             for (int ii=0; ii<rows.get(i).size(); ii++) {
                 Object o = rows.get(i).get(ii);
                 if (o != null) {
-                    if (o instanceof Table) {
-                        Table t = (Table) o;
-                        if (t.borderWidth > 0)
+                    if (o instanceof ITableItem) {
+                        ITableItem t = (ITableItem) o;
+                        if (t.getBorderWidth() > 0)
                             g.translate(0, cellPadding);
                         t.draw(g);
                     } else if (o instanceof AImage) {
@@ -558,11 +558,11 @@ public final class Table implements IMeasurable {
 
         String str = buf.toString();
 
-        totalWidth = Utils.sum(maxWidth) + (getColumns()-1) * (padding*2+1) + (border ? 2 + padding*2 : 0);
-        totalHeight = 1;
+        totalWidthChars = Utils.sum(maxWidth) + (getColumns()-1) * (padding*2+1) + (border ? 2 + padding*2 : 0);
+        totalHeightChars = 1;
         int newline = str.indexOf('\n');
         while (newline >= 0) {
-            totalHeight++;
+            totalHeightChars++;
             newline = str.indexOf('\n', newline+1);
         }
 
@@ -613,15 +613,19 @@ public final class Table implements IMeasurable {
      * Only valid after call to toString
      * @return
      */
-    public int getTotalWidth() {
-        return totalWidth;
+    public int getTotalWidthChars() {
+        return totalWidthChars;
     }
 
     /**
      * Only valid after call to toString
      * @return
      */
-    public int getTotalHeight() {
-        return totalHeight;
+    public int getTotalHeightChars() {
+        return totalHeightChars;
+    };
+
+    public int getBorderWidth() {
+        return borderWidth;
     }
 }

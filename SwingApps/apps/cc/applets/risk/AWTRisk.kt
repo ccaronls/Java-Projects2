@@ -2,6 +2,7 @@ package cc.applets.risk
 
 import cc.lib.game.AGraphics
 import cc.lib.game.Dice
+import cc.lib.game.GColor
 import cc.lib.logger.LoggerFactory
 import cc.lib.risk.*
 import cc.lib.swing.*
@@ -43,11 +44,11 @@ class AWTRisk internal constructor(): AWTComponent() {
 	val game = object : UIRisk(board) {
 		override fun showDiceDialog(attacker: Army, attackingDice: IntArray, defender: Army, defendingDice: IntArray, result: BooleanArray) {
 			val table = Table().addColumn(attacker.name, attackingDice.map {
-				Dice(it).toTable()
+				Dice(numPips = it, dieColor = GColor.RED, pipColor = GColor.WHITE)
 			}).addColumn("", result.map {
 				if (it) " <-- " else " --> "
 			}).addColumn(defender.name, defendingDice.map {
-				Dice(it).toTable()
+				Dice(it)
 			})
 			val content = AWTPanel(BorderLayout())
 			val panel = object : AWTComponent() {

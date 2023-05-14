@@ -1,21 +1,31 @@
 package cc.lib.game
 
+import cc.lib.utils.ITableItem
 import cc.lib.utils.Table
+import cc.lib.utils.padToFit
 
 /**
  * Created by Chris Caron on 5/8/23.
  */
-class Dice(val numPips : Int) {
+class Dice(val numPips : Int,
+           val dieColor : GColor = GColor.WHITE,
+           val pipColor : GColor = GColor.BLACK,
+           val dimension : Float = 40f,
+           val padding : Int = 3) : ITableItem {
 
-	fun drawDie(g: AGraphics, dim: Float, dieColor: GColor, pipColor : GColor) {
+	override fun measure(g: AGraphics): IDimension = GDimension(dimension, dimension)
+
+	override fun getBorderWidth(): Int = padding
+
+	override fun draw(g: AGraphics): IDimension {
 		g.color = dieColor
-		val arc = dim / 4
-		g.drawFilledRoundedRect(0f, 0f, dim, dim, arc)
+		val arc = dimension / 4
+		g.drawFilledRoundedRect(0f, 0f, dimension, dimension, arc)
 		g.color = pipColor
-		val dd2 = dim / 2
-		val dd4 = dim / 4
-		val dd34 = dim * 3 / 4
-		val dotSize = dim / 8
+		val dd2 = dimension / 2
+		val dd4 = dimension / 4
+		val dd34 = dimension * 3 / 4
+		val dotSize = dimension / 8
 		val oldDotSize = g.setPointSize(dotSize)
 		g.begin()
 		when (numPips) {
@@ -82,11 +92,11 @@ class Dice(val numPips : Int) {
 			}
 			else -> {
 				g.drawJustifiedString(dd2, dd2, Justify.CENTER, Justify.CENTER, numPips.toString())
-				return
 			}
 		}
 		g.drawPoints()
 		g.setPointSize(oldDotSize)
+		return measure(g)
 	}
 
 	fun toTable() : Table = Table().also {
@@ -101,6 +111,44 @@ class Dice(val numPips : Int) {
 			7 -> it.addRow("o", " ", "o").addRow("o", "o", "o").addRow("o", " ", "o")
 			8 -> it.addRow("o", "o", "o").addRow("o", " ", "o").addRow("o", "o", "o")
 			9 -> it.addRow("o", "o", "o").addRow("o", "o", "o").addRow("o", "o", "o")
+		}
+	}
+
+	override fun toString() : String {
+		return "+-----+\n" + when (numPips) {
+		 0 -> """|     |
+			     |     |
+			     |     |"""
+		 1 -> """|     |
+			     |  o  |
+			     |     |"""
+		 2 -> """|o    |
+			     |     |
+			     |    o|"""
+		 3 -> """|o    |
+			     |  o  |
+			     |    o|"""
+		 4 -> """|o   o|
+			     |     |
+			     |o   o|"""
+		 5 -> """|o   o|
+			     |  o  |
+			     |o   o|"""
+		 6 -> """|o   o|
+			     |o   o|
+			     |o   o|"""
+		 7 -> """|o   o|
+			     |o o o|
+			     |o   o|"""
+		 8 -> """|o o o|
+			     |o   o|
+			     |o o o|"""
+		 9 -> """|o o o|
+			     |o o o|
+			     |o o o|"""
+		 else -> """|     |
+			        |${numPips.toString().padToFit(5)}|
+					|     |"""
 		}
 	}
 }
