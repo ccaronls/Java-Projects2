@@ -9,12 +9,16 @@ import cc.lib.ui.UIComponent
 import cc.lib.ui.UIRenderer
 import cc.lib.utils.Grid
 import cc.lib.utils.Table
+import cc.lib.utils.forEachAs
+import cc.lib.utils.getOrSet
 import cc.lib.zombicide.*
 import cc.lib.zombicide.ZDir.Companion.compassValues
 import cc.lib.zombicide.ZDir.Companion.elevationValues
+import cc.lib.zombicide.anims.HoverMessage
 import cc.lib.zombicide.anims.OverlayTextAnimation
 import cc.lib.zombicide.anims.ZoomAnimation
 import cc.lib.zombicide.ui.UIZombicide.UIMode
+import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -24,7 +28,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 	val postActor: MutableList<ZAnimation> = ArrayList()
 	val overlayAnimations: MutableList<ZAnimation> = ArrayList()
 	var zoomAnimation: ZAnimation? = null
-	val clickables: MutableMap<IShape, MutableList<IButton>> = HashMap()
+	val clickables: MutableMap<IRectangle, MutableList<IButton>> = TreeMap()
 	var highlightedCell: Grid.Pos? = null
 	var highlightedResult: Any? = null
 	var highlightedActor: ZActor<*>? = null
@@ -36,8 +40,9 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 //		}
 	var highlightedDoor: ZDoor? = null
 	var selectedCell: Grid.Pos? = null
-	var highlightedShape: IShape? = null
+	var highlightedShape: IRectangle? = null
 	var highlightedMoves: List<IButton>? = null
+	var highlightedMovesPos: Vector2D? = null
 	var actorsAnimating = false
 	private var overlayToDraw: Any? = null
 	var drawTiles = false
@@ -46,6 +51,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 	var drawTowersHighlighted = false
 	var drawZombiePaths = false
 	var drawScreenCenter = false
+	var drawClickable = false
 	var miniMapMode = 1
 	var dragOffset = MutableVector2D(Vector2D.ZERO)
 	var dragStart = Vector2D.ZERO
@@ -84,103 +90,147 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		redraw()
 	}
 
+	val actorMap = mutableMapOf<ZActor<*>, MutableList<HoverMessage>>()
+
+	fun addHoverMessage(txt: String, actor: ZActor<*>) {
+		val list = actorMap.getOrPut(actor) { Collections.synchronizedList(mutableListOf()) }
+		list.add(HoverMessage(this, txt, actor).also {
+			if (list.size == 0)
+				it.start<HoverMessage>()
+			postActor.add(it)
+			redraw()
+		})
+	}
+
+	fun fireNextHoverMessage(actor: ZActor<*>) {
+		actorMap.get(actor)?.let { list ->
+			list.removeFirstOrNull()
+			list.firstOrNull()?.start<HoverMessage>()
+		}
+	}
+
 	@Synchronized
 	fun addOverlay(a: ZAnimation) {
 		overlayAnimations.add(a)
 		redraw()
 	}
 
-	private fun addClickable(rect: IShape, move: IButton) {
-		var moves = clickables[rect]
-		if (moves == null) {
-			moves = ArrayList()
-			clickables[rect] = moves
+	private fun addClickable(rect: IRectangle, move: IButton) {
+		with(clickables.getOrSet(rect) { ArrayList() }) {
+			add(move)
 		}
-		moves.add(move)
 	}
 
-	var submenu: List<IButton>? = null
 	fun processSubMenu(cur: ZCharacter, options: List<IButton>) {
-		if (ENABLE_ENHANCED_UI) {
-			submenu = options
+		if (ENABLE_ONBOARD_SUBMENU && highlightedShape != null) {
+			val moves = options.toMutableList()
+			moves.add(object : IButton {
+				override fun getTooltipText(): String = ""
+				override fun getLabel(): String = "Cancel"
+			})
+			highlightedMoves = moves
+			clickables.clear()
 			redraw()
 		}
 	}
 
 	fun processMoveOptions(cur: ZCharacter, options: List<ZMove>) {
 		clickables.clear()
-		if (!ENABLE_ENHANCED_UI) return
+		if (!ENABLE_ONBOARD_MENU) return
 		for (move in options) {
 			when (move.type) {
-				ZMoveType.END_TURN -> {
+				ZMoveType.TRADE -> move.list?.forEachAs { c: ZPlayerName ->
+					addClickable(c.character.getRect(), ZMove(move, c, "Trade ${c.label}"))
 				}
-				ZMoveType.ORGANIZE -> {
+				ZMoveType.WALK -> move.list?.forEachAs { zoneIdx: Int ->
+					addClickable(board.getZone(zoneIdx), ZMove(move, zoneIdx, zoneIdx))
 				}
-				ZMoveType.TRADE -> for (c in (move.list as List<ZCharacter>)) addClickable(c.getRect(), ZMove(move, c))
-				ZMoveType.WALK -> for (zoneIdx in (move.list as List<Int>)) addClickable(board.getZone(zoneIdx), ZMove(move, zoneIdx, zoneIdx))
-				ZMoveType.WALK_DIR -> {
-				}
-				ZMoveType.MELEE_ATTACK, ZMoveType.RANGED_ATTACK, ZMoveType.MAGIC_ATTACK -> for (w in (move.list as List<ZWeapon>)) {
-					for ((actionType, _, _, minRange, maxRange) in w.type.stats) {
-						for (zoneIdx in board.getAccessableZones(cur.occupiedZone, minRange, maxRange, actionType)) {
-							addClickable(board.getZone(zoneIdx), ZMove(move, w, zoneIdx))
+				ZMoveType.MELEE_ATTACK, ZMoveType.RANGED_ATTACK, ZMoveType.MAGIC_ATTACK -> move.list?.forEachAs { w: ZWeapon ->
+					for (stat in w.type.stats.filter { it.actionType == move.action }) {
+						for (zoneIdx in board.getAccessibleZones(cur.occupiedZone, stat.minRange, stat.maxRange, stat.actionType)) {
+							addClickable(board.getZone(zoneIdx), ZMove(move, w, zoneIdx, "${move.type.shortName} ${w.label}"))
 						}
 					}
 				}
 				ZMoveType.THROW_ITEM -> {
-					val zones = board.getAccessableZones(cur.occupiedZone, 0, 1, ZActionType.THROW_ITEM)
-					for (item in (move.list as List<ZEquipment<*>>)) {
+					val zones = board.getAccessibleZones(cur.occupiedZone, 0, 1, ZActionType.THROW_ITEM)
+					move.list?.forEachAs { item: ZEquipment<*> ->
 						for (zoneIdx in zones) {
-							addClickable(cur.getRect(), ZMove(move, item, zoneIdx))
+							addClickable(cur.getRect(), ZMove(move, item, zoneIdx, "Throw ${item.label}"))
 						}
 					}
 				}
-				ZMoveType.RELOAD -> addClickable(cur.getRect(), move)
-				ZMoveType.OPERATE_DOOR -> for (door in (move.list as List<ZDoor>)) {
-					addClickable(door.getRect(board).grow(.1f), ZMove(move, door))
+				ZMoveType.OPERATE_DOOR -> move.list?.forEachAs { door: ZDoor ->
+					val rect = door.getRect(board).grow(if (door.isJammed) .1f else 0f)
+					addClickable(
+						rect,
+						ZMove(move, door,
+							if (door.isClosed(board))
+								"Open"
+							else
+								"Close"
+						)
+					)
 				}
-				ZMoveType.SEARCH, ZMoveType.CONSUME, ZMoveType.EQUIP, ZMoveType.UNEQUIP, ZMoveType.GIVE, ZMoveType.TAKE, ZMoveType.DISPOSE -> addClickable(cur.getRect(), move)
+
+				ZMoveType.BARRICADE -> move.list?.forEachAs { door: ZDoor ->
+					addClickable(door.getRect(board).grow(.1f), ZMove(move, door, "Barricade"))
+				}
+				//ZMoveType.SEARCH, ZMoveType.CONSUME, ZMoveType.EQUIP, ZMoveType.UNEQUIP, ZMoveType.GIVE, ZMoveType.TAKE, ZMoveType.DISPOSE -> addClickable(cur.getRect(), move)
 				ZMoveType.TAKE_OBJECTIVE -> addClickable(board.getZone(cur.occupiedZone), move)
-				ZMoveType.DROP_ITEM, ZMoveType.PICKUP_ITEM -> for (e in (move.list as List<ZEquipment<*>>)) {
-					addClickable(cur.getRect(), ZMove(move, e))
+				//ZMoveType.DROP_ITEM -> move.list?.forEachAs { e :ZEquipment<*> ->
+				//	addClickable(cur.getRect(), ZMove(move, e, "Drop ${e.label}"))
+				//}
+				//ZMoveType.PICKUP_ITEM -> move.list?.forEachAs { e :ZEquipment<*> ->
+				//	addClickable(cur.getRect(), ZMove(move, e, "Pickup ${e.label}"))
+				//}
+				//ZMoveType.MAKE_NOISE -> addClickable(cur.getRect(), move)
+				ZMoveType.SHOVE -> move.list?.forEachAs { zoneIdx: Int ->
+					addClickable(board.getZone(zoneIdx), ZMove(move, zoneIdx, "Shove"))
 				}
-				ZMoveType.MAKE_NOISE -> addClickable(cur.getRect(), move)
-				ZMoveType.SHOVE -> for (zoneIdx in (move.list as List<Int>)) {
-					addClickable(board.getZone(zoneIdx), ZMove(move, zoneIdx))
-				}
-				ZMoveType.REROLL -> {
-				}
-				ZMoveType.KEEP_ROLL -> {
-				}
+				ZMoveType.BORN_LEADER, // Born leader can be a spell?
+				ZMoveType.WALK_DIR,
+					//ZMoveType.REROLL,
+					//ZMoveType.KEEP_ROLL,
+				ZMoveType.USE_SLOT -> Unit
 				ZMoveType.ENCHANT -> {
 					board.getAllCharacters().filter {
 						it.isAlive && board.canSee(cur.occupiedZone, it.occupiedZone)
 					}.forEach { c ->
-						(move.list as List<ZSpell>).forEach { spell ->
-							addClickable(c.getRect(), ZMove(move, spell, c.type))
+						move.list?.forEachAs { spell: ZSpell ->
+							addClickable(c.getRect(), ZMove(move, spell, c.type, spell.label))
 						}
 					}
 				}
-				ZMoveType.BORN_LEADER -> for (c in (move.list as List<ZCharacter>)) {
-					addClickable(c.getRect(), ZMove(move, c.type, c.type))
-				}
+//				ZMoveType.BORN_LEADER -> for (c in (move.list as List<ZCharacter>)) {
+//					addClickable(c.getRect(), ZMove(move, c.type, c.type, "))
+//				}
 				ZMoveType.BLOODLUST_MELEE -> for (w in cur.meleeWeapons) {
-					for (zoneIdx in (move.list as List<Int>)) {
-						addClickable(board.getZone(zoneIdx), ZMove(move, zoneIdx, w))
+					move.list?.forEachAs { zoneIdx: Int ->
+						addClickable(board.getZone(zoneIdx), ZMove(move, zoneIdx, w, "Bloodlust ${w.label}"))
 					}
 				}
 				ZMoveType.BLOODLUST_RANGED -> for (w in cur.rangedWeapons) {
-					for (zoneIdx in (move.list as List<Int>)) {
-						addClickable(board.getZone(zoneIdx), ZMove(move, zoneIdx, w))
+					move.list?.forEachAs { zoneIdx: Int ->
+						addClickable(board.getZone(zoneIdx), ZMove(move, zoneIdx, w, "Bloodlust ${w.label}"))
 					}
 				}
 				ZMoveType.BLOODLUST_MAGIC -> for (w in cur.magicWeapons) {
-					for (zoneIdx in (move.list as List<Int>)) {
-						addClickable(board.getZone(zoneIdx), ZMove(move, zoneIdx, w))
+					move.list?.forEachAs { zoneIdx: Int ->
+						addClickable(board.getZone(zoneIdx), ZMove(move, zoneIdx, w, "Bloodlust ${w.label}"))
 					}
 				}
-				else                                                                                                                       -> log.warn("Unhandled case: %s", move.type)
+				else -> addClickable(cur.getRect(), move)
 			}
+		}
+		if (clickables.size == 1) {
+			with(clickables.entries.first()) {
+				if (highlightedShape == null)
+					highlightedShape = key
+				highlightedMoves = value
+			}
+		} else {
+			highlightedShape = null
 		}
 	}
 
@@ -310,10 +360,10 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		return -1
 	}
 
-	fun pickDoor(g: AGraphics, doors: List<ZDoor?>, mouseX: Float, mouseY: Float): ZDoor? {
+	fun pickDoor(g: AGraphics, doors: List<ZDoor>, mouseX: Float, mouseY: Float): ZDoor? {
 		var picked: ZDoor? = null
 		for (door in doors) {
-			val doorRect = door!!.getRect(board).grow(.1f)
+			val doorRect = door.getRect(board).grow(.1f)
 			if (doorRect.contains(mouseX, mouseY)) {
 				g.color = GColor.RED
 				picked = door
@@ -327,10 +377,10 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		return picked
 	}
 
-	fun pickSpawn(g: AGraphics, areas: List<ZSpawnArea?>, mouseX: Float, mouseY: Float): ZSpawnArea? {
+	fun pickSpawn(g: AGraphics, areas: List<ZSpawnArea>, mouseX: Float, mouseY: Float): ZSpawnArea? {
 		var picked: ZSpawnArea? = null
 		for (area in areas) {
-			val areaRect = area!!.rect.grownBy(.1f)
+			val areaRect = area.rect.grownBy(.1f)
 			if (areaRect.contains(mouseX, mouseY)) {
 				g.color = GColor.RED
 				picked = area
@@ -386,6 +436,27 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		g.drawLine(redX.topRight, redX.bottomLeft, lineThickness)
 	}
 
+	/*
+	internal class ZWall(zone : Int, cell : ZCell, dirs : MutableSet<ZDir>)
+
+	private val wallsCache : List<ZWall>? = null
+
+	private fun computeWalls() : List<ZWall> {
+		val cells = mutableMapOf<ZCell, MutableSet<ZDir>>()
+		for (i in 0 until board.getNumZones()) {
+			board.getZone(i).cells.forEach {
+				board.getCell(it).let { cell ->
+					if (!cell.isCellTypeEmpty) {
+						for (dir in ZDir.compassValues) {
+
+						}
+					}
+				}
+			}
+		}
+	}
+*/
+
 	/**
 	 * return zone highlighted by mouseX, mouseY
 	 *
@@ -408,7 +479,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 					}
 				}
 				try {
-					drawCellWalls(g, pos, 1f, miniMap)
+					drawCellWalls(g, pos, compassValues, 1f, miniMap)
 				} catch (e: Exception) {
 					log.error("Problem draw cell walls pos: $pos")
 					throw e
@@ -486,7 +557,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		return area.rect
 	}
 
-	fun drawCellWalls(g: AGraphics, cellPos: Grid.Pos, scale: Float, miniMap: Boolean) {
+	fun drawCellWalls(g: AGraphics, cellPos: Grid.Pos, dirs: Array<ZDir>, scale: Float, miniMap: Boolean) {
 		val cell = board.getCell(cellPos)
 		g.pushMatrix()
 		val center: Vector2D = cell.center
@@ -495,7 +566,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		val v1: Vector2D = cell.topRight.subEq(center)
 		g.scale(scale)
 		val doorColor = GColor.ORANGE
-		for (dir in compassValues) {
+		for (dir in dirs) {
 			val dv: Vector2D = v1.sub(v0).scaleEq(.33f)
 			val dv0: Vector2D = v0.add(dv)
 			val dv1: Vector2D = dv0.add(dv)
@@ -503,35 +574,40 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 			g.rotate(dir.rotation.toFloat())
 			g.color = GColor.BLACK
 			val wallThickness = if (miniMap) 1 else 3
-			when (cell.getWallFlag(dir)) {
-				ZWallFlag.WALL -> g.drawLine(v0, v1, wallThickness.toFloat())
-				ZWallFlag.RAMPART -> g.drawDashedLine(v0, v1, wallThickness.toFloat(), if (miniMap) 2f else 20f)
-				ZWallFlag.OPEN -> {
-					g.drawLine(v0, dv0, wallThickness.toFloat())
-					g.drawLine(dv1, v1, wallThickness.toFloat())
-					if (dir === ZDir.SOUTH || dir === ZDir.WEST) {
-						g.color = doorColor
-						g.drawLine(dv0, dv0.add(dv.scaledBy(.5f).rotate(145f)), (wallThickness + 1).toFloat())
-						g.drawLine(dv1, dv1.sub(dv.scaledBy(.5f).rotate(-145f)), (wallThickness + 1).toFloat())
-					}
-				}
-				ZWallFlag.LOCKED -> {
-					if (dir === ZDir.SOUTH || dir === ZDir.WEST) {
-						g.drawLine(v0, v1, wallThickness.toFloat())
-						val door = board.findDoor(cellPos, dir)
-						g.color = door.lockedColor
-						g.drawLine(dv0, dv1, (wallThickness + 1).toFloat())
-						if (!miniMap) {
-							val padlock = GRectangle(0f, 0f, .2f, .2f).withCenter(dv1.add(dv0).scaleEq(.5f))
-							val img = g.getImage(ZIcon.PADLOCK.imageIds[0])
-							g.drawImage(ZIcon.PADLOCK.imageIds[0], padlock.fit(img))
+			//board.findDoorOrNull(cellPos, dir)?.let { door ->
+
+			//}?:run
+			run {
+				when (cell.getWallFlag(dir)) {
+					ZWallFlag.WALL -> g.drawLine(v0, v1, wallThickness.toFloat())
+					ZWallFlag.RAMPART -> g.drawDashedLine(v0, v1, wallThickness.toFloat(), if (miniMap) 2f else 20f)
+					ZWallFlag.OPEN -> {
+						g.drawLine(v0, dv0, wallThickness.toFloat())
+						g.drawLine(dv1, v1, wallThickness.toFloat())
+						if (dir === ZDir.SOUTH || dir === ZDir.WEST) {
+							g.color = doorColor
+							g.drawLine(dv0, dv0.add(dv.scaledBy(.5f).rotate(145f)), (wallThickness + 1).toFloat())
+							g.drawLine(dv1, dv1.sub(dv.scaledBy(.5f).rotate(-145f)), (wallThickness + 1).toFloat())
 						}
 					}
-				}
-				ZWallFlag.CLOSED -> if (dir === ZDir.SOUTH || dir === ZDir.WEST) {
-					g.drawLine(v0, v1, wallThickness.toFloat())
-					g.color = doorColor
-					g.drawLine(dv0, dv1, (wallThickness + 1).toFloat())
+					ZWallFlag.LOCKED -> {
+						if (dir === ZDir.SOUTH || dir === ZDir.WEST) {
+							g.drawLine(v0, v1, wallThickness.toFloat())
+							val door = board.findDoor(cellPos, dir)
+							g.color = door.lockedColor
+							g.drawLine(dv0, dv1, (wallThickness + 1).toFloat())
+							if (!miniMap) {
+								val padlock = GRectangle(0f, 0f, .2f, .2f).withCenter(dv1.add(dv0).scaleEq(.5f))
+								val img = g.getImage(ZIcon.PADLOCK.imageIds[0])
+								g.drawImage(ZIcon.PADLOCK.imageIds[0], padlock.fit(img))
+							}
+						}
+					}
+					ZWallFlag.CLOSED -> if (dir === ZDir.SOUTH || dir === ZDir.WEST) {
+						g.drawLine(v0, v1, wallThickness.toFloat())
+						g.color = doorColor
+						g.drawLine(dv0, dv1, (wallThickness + 1).toFloat())
+					}
 				}
 			}
 			g.popMatrix()
@@ -722,22 +798,23 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		// draw buttons to the right is pos id on left side and to the left if user on the right side
 		var move: IButton? = null
 		val buttonHeight = g.textHeight * 2
-		var buttonWidth = 0f
 		val padding = g.textHeight / 2
-		for (m in moves) {
-			buttonWidth = Math.max(0f, g.getTextWidth(m.label))
-		}
-		buttonWidth += padding * 2
+		val buttonWidth = moves.maxOf { g.getTextWidth(it.label) } + (padding * 2)
 		if (top.x + buttonWidth > g.viewportWidth) {
 			top.x = g.viewportWidth - buttonWidth
 		}
 		val button = GRectangle(top, buttonWidth, buttonHeight)
 		for (m in moves) {
-			if (button.contains(mouseX.toFloat(), mouseY.toFloat())) {
-				g.color = GColor.RED
-				move = m
-			} else {
-				g.color = GColor.YELLOW
+			with(buttonHeight / 4) {
+				g.color = GColor.TRANSLUSCENT_BLACK
+				g.drawFilledRoundedRect(button, this)
+				if (button.contains(mouseX.toFloat(), mouseY.toFloat())) {
+					g.color = GColor.RED
+					move = m
+				} else {
+					g.color = GColor.YELLOW
+				}
+				g.drawRoundedRect(button, 1f, this)
 			}
 			button.drawRounded(g, buttonHeight / 4)
 			g.drawJustifiedString(button.x + padding, button.y + buttonHeight / 2, Justify.LEFT, Justify.CENTER, m.label)
@@ -747,33 +824,54 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 	}
 
 	fun pickMove(g: APGraphics, mouse: IVector2D, screenMouseX: Int, screenMouseY: Int): IButton? {
-		var picked: IButton? = null
-		if (submenu != null) {
-			highlightedMoves = submenu
-		} else {
-			for ((shape, value) in clickables) {
-				if (shape.contains(mouse.x, mouse.y)) {
-					highlightedShape = shape
-					highlightedMoves = value
-				} else {
-					g.color = GColor.YELLOW.withAlpha(32)
-					shape.drawFilled(g)
-				}
-			}
-		}
-		if (highlightedShape != null) {
+
+		highlightedShape?.let {
 			g.color = GColor.RED
 			g.setLineWidth(2f)
-			highlightedShape!!.drawOutlined(g)
-			val cntr = highlightedShape!!.center
-			g.transform(cntr)
-			g.pushMatrix()
-			g.setIdentity()
-			g.ortho()
-			picked = pickButtons(g, cntr, highlightedMoves, screenMouseX, screenMouseY)
-			g.popMatrix()
+			it.drawOutlined(g)
+			try {
+				with(highlightedMovesPos ?: it.center) {
+					g.transform(this)
+					g.pushMatrix()
+					g.setIdentity()
+					g.ortho()
+					pickButtons(g, this, highlightedMoves, screenMouseX, screenMouseY)?.let {
+						return pickMove@ it
+					}
+				}
+			} finally {
+				g.popMatrix()
+			}
 		}
-		return picked
+
+		for ((shape, value) in clickables) {
+			if (shape.contains(mouse.x, mouse.y)) {
+				if (shape != highlightedShape) {
+					highlightedShape = shape
+					highlightedMoves = value
+					highlightedMovesPos = Vector2D(screenMouseX.toFloat(), screenMouseY.toFloat())
+				}
+				break
+			} else {
+				g.color = GColor.YELLOW.withAlpha(32)
+				shape.drawFilled(g)
+			}
+		}
+		/*
+		highlightedShape?.let {
+			g.color = GColor.RED
+			g.setLineWidth(2f)
+			it.drawOutlined(g)
+			with (it.center) {
+				g.transform(this)
+				g.pushMatrix()
+				g.setIdentity()
+				g.ortho()
+				picked = pickButtons(g, this, highlightedMoves, screenMouseX, screenMouseY)
+			}
+			g.popMatrix()
+		}*/
+		return null
 	}
 
 	var isFocussed = false
@@ -1009,7 +1107,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 					}
 					g.drawLineStrip(3f)
 				} else if (highlightedActor is ZCharacter) {
-					val visibleZones = board.getAccessableZones(it.occupiedZone, 0, 4, ZActionType.RANGED)
+					val visibleZones = board.getAccessibleZones(it.occupiedZone, 0, 4, ZActionType.RANGED)
 					for (zoneIdx in visibleZones) {
 						val zone = board.getZone(zoneIdx)
 						g.color = GColor.YELLOW
@@ -1020,7 +1118,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		}
 		if (drawRangedAccessibility && highlightedZone >= 0) {
 			g.color = GColor.BLUE.withAlpha(.5f)
-			for (zIndex in board.getAccessableZones(highlightedZone, 1, 5, ZActionType.RANGED)) {
+			for (zIndex in board.getAccessibleZones(highlightedZone, 1, 5, ZActionType.RANGED)) {
 				drawZoneFilled(g, board, zIndex)
 			}
 		}
@@ -1096,8 +1194,15 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		}
 
 		if (drawScreenCenter) {
-			g.setColor(GColor.RED)
+			g.color = GColor.RED
 			g.drawCircle(boardCenter, .25f)
+		}
+
+		if (drawClickable) {
+			g.color = GColor.RED
+			clickables.keys.forEach() { shape ->
+				shape.drawOutlined(g)
+			}
 		}
 	}
 
@@ -1207,7 +1312,6 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 
 	override fun onClick() {
 		overlayToDraw = null
-		submenu = null
 		if (game.isGameRunning()) {
 			game.setResult(highlightedResult)
 		} else {
@@ -1238,6 +1342,10 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 
 	fun toggleDrawScreenCenter(): Boolean {
 		return drawScreenCenter.not().also { drawScreenCenter = it }
+	}
+
+	fun toggleDrawClickables(): Boolean {
+		return drawClickable.not().also { drawClickable = it }
 	}
 
 	fun toggleDrawZoombiePaths(): Boolean {
@@ -1286,7 +1394,8 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 	}
 
 	companion object {
-		const val ENABLE_ENHANCED_UI = false
+		const val ENABLE_ONBOARD_MENU = true
+		const val ENABLE_ONBOARD_SUBMENU = true
 		val log = LoggerFactory.getLogger(UIZBoardRenderer::class.java)
 	}
 }

@@ -8,6 +8,5 @@ public interface IDimension {
     default float getAspect() {
         return getWidth()/getHeight();
     }
-
     default IVector2D getCenter() { return new Vector2D(getWidth()/2, getHeight()/2); }
 }

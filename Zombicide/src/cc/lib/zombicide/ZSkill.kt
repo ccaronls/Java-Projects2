@@ -228,7 +228,7 @@ enum class ZSkill(val description: String) : IButton {
     Bloodlust("Spend one Action with the Survivor: He Moves up to two Zones to a Zone containing at least one Zombie. He then gains one free Combat Action (Melee, Ranged or Magic).") {
         override fun addSpecialMoves(game: ZGame, character: ZCharacter, moves: MutableCollection<ZMove>) {
             if (character.actionsLeftThisTurn > 0) {
-                game.board.getAccessableZones(character.occupiedZone, 1, 2, ZActionType.MOVE)
+                game.board.getAccessibleZones(character.occupiedZone, 1, 2, ZActionType.MOVE)
 	                .filter { game.board.getNumZombiesInZone(it) > 0 }
 	                .takeIf { it.isNotEmpty()}?.let { zones ->
 	                    if (character.meleeWeapons.isNotEmpty()) moves.add(ZMove.newBloodlustMeleeMove(zones, this))
@@ -241,7 +241,7 @@ enum class ZSkill(val description: String) : IButton {
     Bloodlust_Magic("Spend one Action with the Survivor: He Moves up to two Zones to a Zone containing at least one Zombie. He then gains one free Magic Action, to use immediately.") {
         override fun addSpecialMoves(game: ZGame, character: ZCharacter, moves: MutableCollection<ZMove>) {
             if (character.actionsLeftThisTurn > 0 && character.magicWeapons.isNotEmpty()) {
-                game.board.getAccessableZones(character.occupiedZone, 1, 2, ZActionType.MOVE)
+	            game.board.getAccessibleZones(character.occupiedZone, 1, 2, ZActionType.MOVE)
 	                .filter { game.board.getNumZombiesInZone(it) > 0 }
 	                .takeIf { it.isNotEmpty() }?.let { zones ->
 		                moves.add(ZMove.newBloodlustMagicMove(zones, this))
@@ -252,7 +252,7 @@ enum class ZSkill(val description: String) : IButton {
     Bloodlust_Melee("Spend one Action with the Survivor: He Moves up to two Zones to a Zone containing at least one Zombie. He then gains one free Melee Action, to use immediately.") {
         override fun addSpecialMoves(game: ZGame, character: ZCharacter, moves: MutableCollection<ZMove>) {
             if (character.actionsLeftThisTurn > 0 && character.meleeWeapons.size > 0) {
-	            game.board.getAccessableZones(character.occupiedZone, 1, 2, ZActionType.MOVE)
+	            game.board.getAccessibleZones(character.occupiedZone, 1, 2, ZActionType.MOVE)
 		            .filter { game.board.getNumZombiesInZone(it) > 0 }
 		            .takeIf { it.isNotEmpty() }?.let { zones ->
 			            moves.add(ZMove.newBloodlustMeleeMove(zones, this))
@@ -263,7 +263,7 @@ enum class ZSkill(val description: String) : IButton {
     Bloodlust_Ranged("Spend one Action with the Survivor: He Moves up to two Zones to a Zone containing at least one Zombie. He then gains one free Ranged Action, to use immediately.") {
         override fun addSpecialMoves(game: ZGame, character: ZCharacter, moves: MutableCollection<ZMove>) {
             if (character.actionsLeftThisTurn > 0 && character.rangedWeapons.size > 0) {
-	            game.board.getAccessableZones(character.occupiedZone, 1, 2, ZActionType.MOVE)
+	            game.board.getAccessibleZones(character.occupiedZone, 1, 2, ZActionType.MOVE)
 		            .filter { game.board.getNumZombiesInZone(it) > 0 }
 		            .takeIf { it.isNotEmpty() }?.let { zones ->
 			            moves.add(ZMove.newBloodlustRangedMove(zones, this))
@@ -293,9 +293,9 @@ enum class ZSkill(val description: String) : IButton {
     },
     Charge("The Survivor can use this Skill for free, as often as he pleases, during each of his Turns: He moves up to two Zones to a Zone containing at least one Zombie. Normal Movement rules still apply. Entering a Zone containing Zombies ends the Survivor’s Move Action.") {
         override fun addSpecialMoves(game: ZGame, character: ZCharacter, moves: MutableCollection<ZMove>) {
-            game.board.getAccessableZones(character.occupiedZone, 1, 2, ZActionType.MOVE).filter {
-	            game.board.getNumZombiesInZone(it) > 0
-            }.takeIf { it.isNotEmpty() }?.let { zones ->
+	        game.board.getAccessibleZones(character.occupiedZone, 1, 2, ZActionType.MOVE).filter {
+		        game.board.getNumZombiesInZone(it) > 0
+	        }.takeIf { it.isNotEmpty() }?.let { zones ->
 	            moves.add(ZMove.newChargeMove(zones))
             }
         }
@@ -407,7 +407,7 @@ enum class ZSkill(val description: String) : IButton {
     },  //    Is_that_all_you_got("You can use this Skill any time the Survivor is about to get Wounds. Discard one Equipment card in your Survivor’s inventory for each Wound he’s about to receive. Negate a Wound per discarded Equipment card."),
     Jump("The Survivor can use this Skill once during each Activation. The Survivor spends one Action: He moves two Zones into a Zone to which he has Line of Sight. Movement related Skills (like +1 Zone per Move Action or Slippery) are ignored, but Movement penalties (like having Zombies in the starting Zone) apply. Ignore everything in the intervening Zone.") {
         override fun addSpecialMoves(game: ZGame, character: ZCharacter, moves: MutableCollection<ZMove>) {
-            val zones = game.board.getAccessableZones(character.occupiedZone, 2, 2, ZActionType.MOVE)
+	        val zones = game.board.getAccessibleZones(character.occupiedZone, 2, 2, ZActionType.MOVE)
             if (zones.isNotEmpty()) moves.add(ZMove.newJumpMove(zones))
         }
     },
@@ -563,7 +563,7 @@ enum class ZSkill(val description: String) : IButton {
         override fun addSpecialMoves(game: ZGame, character: ZCharacter, moves: MutableCollection<ZMove>) {
             // if zombies stand in zone with character they can be shoved away
             if (game.board.getNumZombiesInZone(character.occupiedZone) > 0) {
-                val shovable = game.board.getAccessableZones(character.occupiedZone, 1, 1, ZActionType.MOVE)
+	            val shovable = game.board.getAccessibleZones(character.occupiedZone, 1, 1, ZActionType.MOVE)
                 if (shovable.size > 0) {
                     moves.add(ZMove.newShoveMove(shovable))
                 }
@@ -679,7 +679,7 @@ enum class ZSkill(val description: String) : IButton {
     },
     Ignite_Dragon_Fire("Can ignite dragon fire without torch at range 0-1") {
         override fun addSpecialMoves(game: ZGame, character: ZCharacter, moves: MutableCollection<ZMove>) {
-            game.board.getAccessableZones(character.occupiedZone, 1, 1, ZActionType.THROW_ITEM)
+	        game.board.getAccessibleZones(character.occupiedZone, 1, 1, ZActionType.THROW_ITEM)
 	            .filter { game.board.getZone(it).isDragonBile }
 	            .takeIf { it.isNotEmpty() }
 	            ?.let { ignitableZones ->

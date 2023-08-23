@@ -84,7 +84,8 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics>, 
 
     @Override
     protected void onFocusGained() {
-        renderer.setFocussed(true);
+        if (renderer != null)
+            renderer.setFocussed(true);
     }
 
     @Override
@@ -323,6 +324,7 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics>, 
         renderer.setDrawZombiePaths(ZombicideApplet.instance.getStringProperty("drawZombiePaths", "no").equals("yes"));
         renderer.setMiniMapMode(ZombicideApplet.instance.getIntProperty("miniMapMode", 0));
         renderer.setDrawScreenCenter(ZombicideApplet.instance.getStringProperty("drawScreenCenter", "no").equals("yes"));
+        renderer.setDrawClickable(ZombicideApplet.instance.getStringProperty("drawClickable", "no").equals("yes"));
         repaint();
     }
 
@@ -452,15 +454,19 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics>, 
                 ZombicideApplet.instance.setStringProperty("drawScreenCenter", renderer.toggleDrawScreenCenter() ? "yes" : "no");
                 break;
 
+            case KeyEvent.VK_L:
+                ZombicideApplet.instance.setStringProperty("drawClickable", renderer.toggleDrawClickables() ? "yes" : "no");
+                break;
+
             case KeyEvent.VK_BACK_QUOTE:
                 ZombicideApplet.instance.boardComp.renderer.setOverlay(new Table()
-                    .addRow("+ / -", "Zoom in / out", String.format("%s%%", Math.round(100f*renderer.getZoomPercent())))
-                    .addRow("T", "Toggle draw Tiles", renderer.getDrawTiles())
-                    .addRow("D", "Toggle draw Debug text", renderer.getDrawDebugText())
-                    .addRow("R", "Toggle show Ranged Accessibility", renderer.getDrawRangedAccessibility())
-                    .addRow("P", "Toggle draw zombie paths", renderer.getDrawZombiePaths())
-                    .addRow("H", "Toggle draw towers highlighted", renderer.getDrawTowersHighlighted())
-                    .addRow("M", "Toggle Minimap mode", renderer.getMiniMapMode())
+                        .addRow("+ / -", "Zoom in / out", String.format("%s%%", Math.round(100f * renderer.getZoomPercent())))
+                        .addRow("T", "Toggle draw Tiles", renderer.getDrawTiles())
+                        .addRow("D", "Toggle draw Debug text", renderer.getDrawDebugText())
+                        .addRow("R", "Toggle show Ranged Accessibility", renderer.getDrawRangedAccessibility())
+                        .addRow("P", "Toggle draw zombie paths", renderer.getDrawZombiePaths())
+                        .addRow("H", "Toggle draw towers highlighted", renderer.getDrawTowersHighlighted())
+                        .addRow("M", "Toggle Minimap mode", renderer.getMiniMapMode())
                     .addRow("C", "Toggle draw Center", renderer.getDrawScreenCenter())
                 );
                 break;

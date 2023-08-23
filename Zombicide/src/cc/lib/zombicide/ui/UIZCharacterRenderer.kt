@@ -1,9 +1,6 @@
 package cc.lib.zombicide.ui
 
-import cc.lib.game.APGraphics
-import cc.lib.game.GColor
-import cc.lib.game.GDimension
-import cc.lib.game.Justify
+import cc.lib.game.*
 import cc.lib.ui.UIComponent
 import cc.lib.ui.UIRenderer
 import cc.lib.utils.Table
@@ -64,7 +61,7 @@ class UIZCharacterRenderer(component: UIComponent) : UIRenderer(component) {
 
 	@Synchronized
 	override fun draw(g: APGraphics, px: Int, py: Int) {
-		var info: GDimension? = null
+		var info: IDimension? = null
 		g.color = textColor
 		when {
 			UIZombicide.instance.boardRenderer.highlightedActor != null -> {

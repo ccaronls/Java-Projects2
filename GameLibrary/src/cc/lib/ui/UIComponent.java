@@ -10,13 +10,14 @@ import cc.lib.math.Vector2D;
 public interface UIComponent {
 
     /**
-     * the physical width of this component in renderable units
+     * the physical width of this component in render-able units
+     *
      * @return
      */
     int getWidth();
 
     /**
-     * the physical height of this component in renderable units
+     * the physical height of this component in render-able units
      * @return
      */
     int getHeight();

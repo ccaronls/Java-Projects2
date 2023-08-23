@@ -363,8 +363,11 @@ public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializ
     }
 
     /**
-     *
-     * @return
+     * @return value between 0-360 where
+     * 0 represents x position and y 0
+     * 90 represents x zero and y position
+     * 180 represents x negative and y 0
+     * 270 represents x zero and y negative
      */
     public final float angleOf() {
         if (Math.abs(x) < CMath.EPSILON)

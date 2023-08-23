@@ -1,18 +1,20 @@
 package cc.lib.game;
 
+import org.jetbrains.annotations.NotNull;
+
 import cc.lib.math.MutableVector2D;
 
-public interface IRectangle extends IDimension, IShape {
+public interface IRectangle extends IDimension, IShape, Comparable<IRectangle> {
 
     float X();
+
     float Y();
 
     /**
-     *
      * @return
      */
     default MutableVector2D getCenter() {
-        return new MutableVector2D(X()+ getWidth()/2, Y()+ getHeight()/2);
+        return new MutableVector2D(X() + getWidth() / 2, Y() + getHeight() / 2);
     }
 
     /**
@@ -155,7 +157,21 @@ public interface IRectangle extends IDimension, IShape {
     default float getRadius() {
         double w = getWidth();
         double h = getHeight();
-        return (float)Math.sqrt(w*w + h*h)/2;
+        return (float) Math.sqrt(w * w + h * h) / 2;
     }
 
+    @Override
+    default float getArea() {
+        return getWidth() * getHeight();
+    }
+
+    @Override
+    default int compareTo(@NotNull IRectangle o) {
+        int c = Float.compare(getArea(), o.getArea());
+        if (c != 0)
+            return c;
+        if (X() != o.X())
+            return Float.compare(X(), o.X());
+        return Float.compare(Y(), o.Y());
+    }
 }

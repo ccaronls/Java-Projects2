@@ -13,8 +13,8 @@ class UIZUser : ZUser() {
 		return UIZombicide.instance.pickCharacter("Pick character to play", characters)
 	}
 
-	override fun chooseMove(cur: ZPlayerName, moves: List<ZMove>): Int? {
-		return indexOrNull(UIZombicide.instance.pickMenu(cur, cur.name + " Choose Move", ZMove::class.java, moves), moves)
+	override fun chooseMove(cur: ZPlayerName, moves: List<ZMove>): ZMove? {
+		return UIZombicide.instance.pickMenu(cur, cur.name + " Choose Move", ZMove::class.java, moves)
 	}
 
 	override fun chooseNewSkill(cur: ZPlayerName, list: List<ZSkill>): ZSkill? {

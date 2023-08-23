@@ -56,7 +56,7 @@ abstract class ZActor<E : Enum<E>> internal constructor(var occupiedZone: Int=-1
         actionsLeftThisTurn++
     }
 
-    abstract fun drawInfo(g: AGraphics, game: ZGame, width: Float, height: Float): GDimension?
+    abstract fun drawInfo(g: AGraphics, game: ZGame, width: Float, height: Float): IDimension?
 
     open val noise: Int
         get() = 0

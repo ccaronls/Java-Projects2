@@ -1,7 +1,6 @@
 package cc.lib.zombicide
 
 import cc.lib.game.GColor
-import java.util.*
 
 abstract class ZUser {
     var colorId = 0
@@ -53,11 +52,7 @@ abstract class ZUser {
     }
 
     abstract fun chooseCharacter(options: List<ZPlayerName>): ZPlayerName?
-    abstract fun chooseMove(cur: ZPlayerName, options: List<ZMove>): Int?
-
-    fun chooseMoveInternal(cur: ZPlayerName, options: List<ZMove>): ZMove? {
-        return chooseMove(cur, options)?.let { options[it] }
-    }
+	abstract fun chooseMove(cur: ZPlayerName, options: List<ZMove>): ZMove?
 
     abstract fun chooseNewSkill(character: ZPlayerName, skillOptions: List<ZSkill>): ZSkill?
     abstract fun chooseSlotToOrganize(cur: ZPlayerName, slots: List<ZEquipSlot>): ZEquipSlot?

@@ -1,9 +1,6 @@
 package cc.lib.zombicide
 
-import cc.lib.game.AGraphics
-import cc.lib.game.GColor
-import cc.lib.game.GDimension
-import cc.lib.game.Utils
+import cc.lib.game.*
 import cc.lib.logger.LoggerFactory
 import cc.lib.ui.IButton
 import cc.lib.utils.Table
@@ -489,9 +486,9 @@ class ZCharacter(override val type: ZPlayerName=ZPlayerName.Ann, skillz: Array<A
     val isBackpackFull: Boolean
         get() = backpack.size == MAX_BACKPACK_SIZE
 
-    override fun drawInfo(g: AGraphics, game: ZGame, width: Float, height: Float): GDimension? {
-        return getInfoTable(game).draw(g)
-    }
+	override fun drawInfo(g: AGraphics, game: ZGame, width: Float, height: Float): IDimension {
+		return getInfoTable(game).draw(g)
+	}
 
     fun canTrade(): Boolean {
         return allEquipment.size > 0
@@ -582,13 +579,13 @@ class ZCharacter(override val type: ZPlayerName=ZPlayerName.Ann, skillz: Array<A
         get() = (if (isDualWielding) listOfNotNull(leftHand, body) else listOfNotNull(leftHand, rightHand, body))
 	        .filterIsInstance<ZWeapon>().filter { it.isRanged }
 
-    val magicWeapons: List<ZWeapon>
-        get() = (if (isDualWielding) listOfNotNull(leftHand, body) else listOfNotNull(leftHand, rightHand, body))
+	val magicWeapons: List<ZWeapon>
+		get() = (if (isDualWielding) listOfNotNull(leftHand, body) else listOfNotNull(leftHand, rightHand, body))
 			.filterIsInstance<ZWeapon>().filter { it.isMagic }.toMutableList().also {
-		        if (getAvailableSkills().contains(ZSkill.Spellbook)) {
-			        it.addAll(backpack.filterIsInstance<ZWeapon>().filter { it.isMagic })
-		        }
-	        }
+				if (getAvailableSkills().contains(ZSkill.Spellbook)) {
+					it.addAll(backpack.filterIsInstance<ZWeapon>().filter { it.isMagic })
+				}
+			}
 
     val throwableEquipment: List<ZEquipment<*>>
         get() = listOfNotNull(leftHand, rightHand, body).filter { it.isThrowable }
@@ -693,53 +690,53 @@ class ZCharacter(override val type: ZPlayerName=ZPlayerName.Ann, skillz: Array<A
                 for (e in backpack) {
                     table.addRow(e)
                 }
-                return table
+	            return table
             }
         }
     }
 
-    val allEquipment: List<ZEquipment<*>>
-        get() = backpack.toMutableList().also {
-	        it.addAll(listOfNotNull(leftHand, body, rightHand))
-        }
+	val allEquipment: List<ZEquipment<*>>
+		get() = backpack.toMutableList().also {
+			it.addAll(listOfNotNull(leftHand, body, rightHand))
+		}
 
-    fun removeEquipment(equip: ZEquipment<*>) : ZEquipSlot? {
-	    val slot = equip.slot
-        when (equip.slot) {
-	        ZEquipSlot.BACKPACK -> {
-		        val success = backpack.remove(equip)
-		        require(success)
-	        }
-	        ZEquipSlot.LEFT_HAND -> {
-		        require(leftHand === equip)
-		        leftHand = null
-		        cachedSkills = null
-	        }
-	        ZEquipSlot.RIGHT_HAND -> {
-		        require(rightHand === equip)
-		        rightHand = null
-		        cachedSkills = null
-	        }
-	        ZEquipSlot.BODY -> {
-		        require(body === equip)
-		        body = null
-		        cachedSkills = null
-	        }
-        }
-        cachedSkills = null
-        equip.slot = null
-	    return slot
-    }
+	fun removeEquipment(equip: ZEquipment<*>): ZEquipSlot? {
+		val slot = equip.slot
+		when (equip.slot) {
+			ZEquipSlot.BACKPACK -> {
+				val success = backpack.remove(equip)
+				require(success)
+			}
+			ZEquipSlot.LEFT_HAND -> {
+				require(leftHand === equip)
+				leftHand = null
+				cachedSkills = null
+			}
+			ZEquipSlot.RIGHT_HAND -> {
+				require(rightHand === equip)
+				rightHand = null
+				cachedSkills = null
+			}
+			ZEquipSlot.BODY -> {
+				require(body === equip)
+				body = null
+				cachedSkills = null
+			}
+		}
+		cachedSkills = null
+		equip.slot = null
+		return slot
+	}
 
-    /**
-     * Return true if a equip type is in any of the users slots or backpack
-     * @param type
-     * @return
-     */
-    fun isInPossession(type: ZEquipmentType): Boolean = allEquipment.firstOrNull { it.type == type } != null
+	/**
+	 * Return true if a equip type is in any of the users slots or backpack
+	 * @param type
+	 * @return
+	 */
+	fun isInPossession(type: ZEquipmentType): Boolean = allEquipment.firstOrNull { it.type == type } != null
 
-    fun getEquipmentOfType(type: ZEquipmentType): ZEquipment<*>? {
-        return allEquipment.firstOrNull { it.type == type }
+	fun getEquipmentOfType(type: ZEquipmentType): ZEquipment<*>? {
+		return allEquipment.firstOrNull { it.type == type }
     }
 
     fun isEquipped(type: ZEquipmentType): Boolean {

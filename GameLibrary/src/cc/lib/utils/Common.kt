@@ -318,12 +318,14 @@ fun <T> Stack<T>.peekOrNull() : T? {
 	return peek()
 }
 
-fun <K,V> MutableMap<K,V>.getOrSet(key: K, default: V) : V {
+fun <K, V> MutableMap<K, V>.getOrSet(key: K, creator: () -> V): V {
 	get(key)?.let {
 		return it
 	}
-	set(key, default)
-	return default
+	with(creator()) {
+		set(key, this)
+		return this
+	}
 }
 
 fun <T> List<T>.getOrNull(index: Int) : T? {
@@ -352,8 +354,21 @@ fun String.padToFit(width: Int) : String {
 		return this
 	// for odd remainders, give more padding to the front
 	if (diff % 2 == 1) {
-		return padStart(1 + diff/2).padEnd(diff/2)
+		return padStart(1 + diff / 2).padEnd(diff / 2)
 	}
 
-	return padStart(diff/2).padEnd(diff/2)
+	return padStart(diff / 2).padEnd(diff / 2)
+}
+
+inline fun <reified T : Enum<T>> T.increment(amt: Int): T {
+	val values = enumValues<T>()
+	return values[(ordinal + amt + values.size) % values.size]
+}
+
+/*
+@kotlin.internal.HidesMembers public inline fun <T> kotlin.collections.Iterable<T>.forEach(action: (T) -> kotlin.Unit): kotlin.Unit { /* compiled code */ }
+
+ */
+inline fun <T, S> Iterable<T>.forEachAs(action: (S) -> Unit) {
+	(this as Iterable<S>).forEach(action)
 }

@@ -36,7 +36,7 @@ class ZUserMP(val connection: ClientConnection?) : ZUser() {
 		return connection?.executeDerivedOnRemote(USER_ID, true, options)
 	}
 
-	override fun chooseMove(cur: ZPlayerName, options: List<ZMove>): Int? {
+	override fun chooseMove(cur: ZPlayerName, options: List<ZMove>): ZMove? {
 		return connection?.executeDerivedOnRemote(USER_ID, true, cur, options)
 	}
 

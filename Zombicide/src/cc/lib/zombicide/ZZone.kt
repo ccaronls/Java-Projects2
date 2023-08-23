@@ -2,31 +2,30 @@ package cc.lib.zombicide
 
 import cc.lib.game.AGraphics
 import cc.lib.game.GRectangle
-import cc.lib.game.IShape
+import cc.lib.game.IRectangle
 import cc.lib.game.Utils
-
 import cc.lib.math.MutableVector2D
 import cc.lib.math.Vector2D
 import cc.lib.utils.GException
 import cc.lib.utils.Grid
 import cc.lib.utils.Reflector
 import cc.lib.utils.rotate
-import java.util.*
 
 /**
  * Zones are sets of adjacent cells that comprise rooms or streets separated by doors and walls
  */
-class ZZone(val zoneIndex: Int=-1) : Reflector<ZZone>(), IShape {
-    companion object {
-        init {
-            addAllFields(ZZone::class.java)
-        }
-    }
+class ZZone(val zoneIndex: Int = -1) : Reflector<ZZone>(), IRectangle {
+	companion object {
+		init {
+			addAllFields(ZZone::class.java)
+		}
+	}
 
-    @JvmField
-    val cells: MutableList<Grid.Pos> = ArrayList()
-    @JvmField
-    val doors: MutableList<ZDoor> = ArrayList()
+	@JvmField
+	val cells: MutableList<Grid.Pos> = ArrayList()
+
+	@JvmField
+	val doors: MutableList<ZDoor> = ArrayList()
     var type = ZZoneType.OUTDOORS
     var noiseLevel = 0
     var isDragonBile = false
@@ -40,28 +39,30 @@ class ZZone(val zoneIndex: Int=-1) : Reflector<ZZone>(), IShape {
         return type === ZZoneType.BUILDING
     }
 
-    override fun getCenter(): MutableVector2D {
-        if (cells.size == 0) return MutableVector2D(Vector2D.ZERO)
-        val v = MutableVector2D()
-        for (p in cells) {
-            v.addEq(.5f + p.column, .5f + p.row)
-        }
-        v.scaleEq(1f / cells.size)
-        return v
-    }
+	override fun getCenter(): MutableVector2D {
+		if (cells.size == 0) return MutableVector2D(Vector2D.ZERO)
+		val v = MutableVector2D()
+		for (p in cells) {
+			v.addEq(.5f + p.column, .5f + p.row)
+		}
+		v.scaleEq(1f / cells.size)
+		return v
+	}
 
-    /**
-     *
-     * @return
-     */
-    val rectangle: GRectangle
-        get() {
-            val rect = GRectangle()
-            for (p in cells) {
-                rect.addEq(p.column.toFloat(), p.row.toFloat(), 1f, 1f)
-            }
-            return rect
-        }
+	override fun getArea(): Float = rectangle.area
+
+	/**
+	 *
+	 * @return
+	 */
+	@delegate:Omit
+	val rectangle by lazy {
+		GRectangle().also {
+			for (p in cells) {
+				it.addEq(p.column.toFloat(), p.row.toFloat(), 1f, 1f)
+			}
+		}
+	}
 
     override fun drawFilled(g: AGraphics) {
         for (p in cells) {
@@ -109,11 +110,18 @@ class ZZone(val zoneIndex: Int=-1) : Reflector<ZZone>(), IShape {
                     }
                 }
             }
-            throw GException("Zone $zoneIndex is INSANE!! Not all positions are adjacent:$cells")
+	        throw GException("Zone $zoneIndex is INSANE!! Not all positions are adjacent:$cells")
         }
     }
 
 	fun reset() {
 		isTargetForEscape = false
 	}
+
+	override fun getWidth(): Float = rectangle.w
+
+	override fun getHeight(): Float = rectangle.h
+	override fun X(): Float = rectangle.x
+
+	override fun Y(): Float = rectangle.y
 }

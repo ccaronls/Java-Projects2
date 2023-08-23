@@ -64,17 +64,17 @@ class ZBoard : Reflector<ZBoard>, IDimension {
      * @param maxDist
      * @return
      */
-    fun getAccessableZones(zoneIndex: Int, minDist: Int, maxDist: Int, action: ZActionType): List<Int> {
-        if (maxDist == 0) return listOf(zoneIndex)
-        val result: MutableSet<Int> = HashSet()
-        val options = if (action === ZActionType.MOVE) ZDir.values() else compassValues
-        if (getZone(zoneIndex).type === ZZoneType.TOWER && action.isProjectile) {
-            // special case here
-            // buildings do not block from being able to see beyond
-            // can see into buildings with open door but only for a single zone
-            for (cellPos in zones[zoneIndex].cells) {
-                for (dir in compassValues) {
-                    var pos = cellPos
+    fun getAccessibleZones(zoneIndex: Int, minDist: Int, maxDist: Int, action: ZActionType): List<Int> {
+	    if (maxDist == 0) return listOf(zoneIndex)
+	    val result: MutableSet<Int> = HashSet()
+	    val options = if (action === ZActionType.MOVE) ZDir.values() else compassValues
+	    if (getZone(zoneIndex).type === ZZoneType.TOWER && action.isProjectile) {
+		    // special case here
+		    // buildings do not block from being able to see beyond
+		    // can see into buildings with open door but only for a single zone
+		    for (cellPos in zones[zoneIndex].cells) {
+			    for (dir in compassValues) {
+				    var pos = cellPos
                     var lastIndoorZone = -1
                     if (grid[pos].getWallFlag(dir).openForProjectile) {
                         for (i in 0 until minDist) {
@@ -155,24 +155,28 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 
     @Synchronized
     fun findDoor(pos: Grid.Pos, dir: ZDir): ZDoor {
-        val zone = zones[getCell(pos).zoneIndex]
-        for (door in zone.doors) {
-            if (door.cellPosStart == pos && door.moveDirection === dir) {
-                return door
-            }
-        }
-        throw GException("No door found at $pos, $dir")
+	    val zone = zones[getCell(pos).zoneIndex]
+	    for (door in zone.doors) {
+		    if (door.cellPosStart == pos && door.moveDirection === dir) {
+			    return door
+		    }
+	    }
+	    throw GException("No door found at $pos, $dir")
     }
 
-    fun findVault(id: Int): ZDoor {
-        var numIds = 0
-        var ids = arrayOf(Grid.Pos(), Grid.Pos())
-        var color: GColor? = null
-        zones.forEach { zone->
-            zone.cells.forEach { pos->
-                with (getCell(pos)) {
-                    if (vaultId == id) {
-                    	if (color == null)
+	fun findDoorOrNull(pos: Grid.Pos, dir: ZDir): ZDoor? = zones[getCell(pos).zoneIndex].doors.firstOrNull {
+		it.cellPosStart == pos && it.moveDirection === dir
+	}
+
+	fun findVault(id: Int): ZDoor {
+		var numIds = 0
+		var ids = arrayOf(Grid.Pos(), Grid.Pos())
+		var color: GColor? = null
+		zones.forEach { zone ->
+			zone.cells.forEach { pos ->
+				with(getCell(pos)) {
+					if (vaultId == id) {
+						if (color == null)
 	                        color = this.vaultType.color
 	                    else
 	                    	require(color == this.vaultType.color)

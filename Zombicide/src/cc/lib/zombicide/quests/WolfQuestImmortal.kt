@@ -19,15 +19,15 @@ class WolfQuestImmortal : ZQuest(ZQuests.Immortal) {
 	var numStartImmortals = 0
 	override fun loadBoard(): ZBoard {
 		val map = arrayOf(
-arrayOf("z0:i:re", "z1:t3", "z1:t3:re",                     "z2:i:ods:we", "z3", "z4:blspe"),
-arrayOf("z5:t2:rn", "z1:t3:rs", "z1:t3:re:rs",              "z6:i:ws:de", "z7", "z8:i:dw:wn:ods:red"),
-arrayOf("z5:t2:rs", "z9:t1:rs", "z10",                      "z11", "z12", "z13:i:ww"),
-arrayOf("z14:spw", "z15", "z16",                            "z17:t2:rw:rn", "z18:t3:rn", "z18:t3:rn"),
-arrayOf("z19:spw", "z20:v:wn:vd1:ws:we:ww", "z21:st",       "z22:t1:rw", "z18:t3:rw:rs", "z18:t3:rs"),
-arrayOf("z23:spw", "z24", "z25",                            "z26", "z27", "z28"),
-arrayOf("z29:i:dn:we:ods", "z30", "z31:i:dn:de:ods:ww:red", "z32:i:dn", "z32:i:wn:we", "z33"),
-arrayOf("z34:i:ws:ode", "z35:i:ods:ode:wn", "z36:i:we:ods", "z32:i", "z32:i:red:we", "z40"),
-arrayOf("z37:i:vd1", "z37:i:we", "z38:i:de",                "z32:i", "z32:i:we", "z39:blsps"))
+			arrayOf("z0:i:re", "z1:t3", "z1:t3:re:red", "z2:i:ods:we", "z3", "z4:blspe"),
+			arrayOf("z5:t2:rn", "z1:t3:rs", "z1:t3:re:rs", "z6:i:ws:de", "z7", "z8:i:dw:wn:ods:red"),
+			arrayOf("z5:t2:rs", "z9:t1:rs", "z10", "z11", "z12", "z13:i:ww"),
+			arrayOf("z14:spw", "z15", "z16", "z17:t2:rw:rn", "z18:t3:rn", "z18:t3:rn"),
+			arrayOf("z19:spw", "z20:v:wn:vd1:ws:we:ww", "z21:st", "z22:t1:rw", "z18:t3:rw:rs", "z18:t3:rs"),
+			arrayOf("z23:spw", "z24", "z25", "z26", "z27", "z28"),
+			arrayOf("z29:i:dn:we:ods", "z30", "z31:i:dn:de:ods:ww:red", "z32:i:dn", "z32:i:wn:we", "z33"),
+			arrayOf("z34:i:ws:ode", "z35:i:ods:ode:wn", "z36:i:we:ods", "z32:i", "z32:i:red:we", "z40"),
+			arrayOf("z37:i:vd1", "z37:i:we", "z38:i:de", "z32:i", "z32:i:we", "z39:blsps"))
 		return load(map)
 	}
 

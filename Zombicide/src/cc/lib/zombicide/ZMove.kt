@@ -5,62 +5,59 @@ import cc.lib.ui.IButton
 import cc.lib.utils.Reflector
 
 data class ZMove constructor(
-	val type: ZMoveType=ZMoveType.END_TURN,
-	val integer: Int?=null,
-	val character: ZPlayerName?=null,
-	val equipment: ZEquipment<*>?=null,
-	val fromSlot: ZEquipSlot?=null,
-	val toSlot: ZEquipSlot?=null,
-	val list: List<*>?=null,
-	val skill: ZSkill?=null,
-	val action: ZActionType?=null) : Reflector<ZMove>(), IButton {
-    companion object {
-        fun newEndTurn(): ZMove {
-            return ZMove(type = ZMoveType.END_TURN)
-        }
+	val type: ZMoveType = ZMoveType.END_TURN,
+	val integer: Int? = null,
+	val character: ZPlayerName? = null,
+	val equipment: ZEquipment<*>? = null,
+	val fromSlot: ZEquipSlot? = null,
+	val toSlot: ZEquipSlot? = null,
+	val list: List<*>? = null,
+	val skill: ZSkill? = null,
+	val action: ZActionType? = null,
+	val text: String? = null) : Reflector<ZMove>(), IButton {
+	companion object {
+		fun newEndTurn(): ZMove {
+			return ZMove(type = ZMoveType.END_TURN)
+		}
 
-        fun newWalkMove(zones: List<Int>, action: ZActionType?): ZMove {
-            return ZMove(type = ZMoveType.WALK, list = zones, action = action)
-        }
+		fun newWalkMove(zones: List<Int>, action: ZActionType?): ZMove {
+			return ZMove(type = ZMoveType.WALK, list = zones, action = action)
+		}
 
-        fun newJumpMove(zones: List<Int>): ZMove {
-            return ZMove(type = ZMoveType.JUMP, list = zones)
-        }
+		fun newJumpMove(zones: List<Int>): ZMove {
+			return ZMove(type = ZMoveType.JUMP, list = zones)
+		}
 
-        fun newChargeMove(zones: List<Int>): ZMove {
-            return ZMove(type = ZMoveType.CHARGE, list = zones)
-        }
+		fun newChargeMove(zones: List<Int>): ZMove {
+			return ZMove(type = ZMoveType.CHARGE, list = zones)
+		}
 
-        fun newUseLeftHand(): ZMove {
-            return ZMove(type = ZMoveType.USE_LEFT_HAND)
-        }
+		fun newUseSlot(slot: ZEquipSlot): ZMove {
+			return ZMove(type = ZMoveType.USE_SLOT, fromSlot = slot)
+		}
 
-        fun newUseRightHand(): ZMove {
-            return ZMove(type = ZMoveType.USE_RIGHT_HAND)
-        }
+		fun newToggleDoor(doors: List<ZDoor>): ZMove {
+			return ZMove(type = ZMoveType.OPERATE_DOOR, list = doors)
+		}
 
-        fun newToggleDoor(doors: List<ZDoor>): ZMove {
-            return ZMove(type = ZMoveType.OPERATE_DOOR, list = doors)
-        }
-
-        fun newBarricadeDoor(doors: List<ZDoor>): ZMove {
-            return ZMove(type = ZMoveType.BARRICADE, list = doors)
-        }
+		fun newBarricadeDoor(doors: List<ZDoor>): ZMove {
+			return ZMove(type = ZMoveType.BARRICADE, list = doors)
+		}
 
         fun newSearchMove(zoneIndex: Int): ZMove {
             return ZMove(type = ZMoveType.SEARCH, integer = zoneIndex)
         }
 
         fun newMeleeAttackMove(weapons: List<ZWeapon>): ZMove {
-            return ZMove(type = ZMoveType.MELEE_ATTACK, list = weapons)
+	        return ZMove(type = ZMoveType.MELEE_ATTACK, list = weapons, action = ZActionType.MELEE)
         }
 
         fun newRangedAttackMove(weapons: List<ZWeapon>): ZMove {
-            return ZMove(type = ZMoveType.RANGED_ATTACK, list = weapons)
+	        return ZMove(type = ZMoveType.RANGED_ATTACK, list = weapons, action = ZActionType.RANGED)
         }
 
         fun newMagicAttackMove(weapons: List<ZWeapon>): ZMove {
-            return ZMove(type = ZMoveType.MAGIC_ATTACK, list = weapons)
+	        return ZMove(type = ZMoveType.MAGIC_ATTACK, list = weapons, action = ZActionType.MAGIC)
         }
 
         fun newThrowEquipmentMove(slots: List<ZEquipment<*>?>): ZMove {
@@ -183,28 +180,32 @@ data class ZMove constructor(
 		    return ZMove(type = ZMoveType.ORGANIZE_TRADE, character = player)
 	    }
 
-	    fun newOrganizeSlot(player : ZPlayerName, slot: ZEquipSlot?, moves : List<ZMove>) : ZMove {
-	    	return ZMove(type = ZMoveType.ORGANIZE_SLOT, fromSlot = slot, character = player, list = moves)
-	    }
+		fun newOrganizeSlot(player: ZPlayerName, slot: ZEquipSlot?, moves: List<ZMove>): ZMove {
+			return ZMove(type = ZMoveType.ORGANIZE_SLOT, fromSlot = slot, character = player, list = moves)
+		}
 
-	    init {
-            addAllFields(ZMove::class.java)
-        }
-    }
-	constructor(copy: ZMove, singleListElement: Any) : this(copy.type, copy.integer, copy.character, copy.equipment, copy.fromSlot, copy.toSlot, listOf(singleListElement), copy.skill, copy.action) {}
-    constructor(copy: ZMove, singleListElement: Any, integer: Int) : this(copy.type, integer, copy.character, copy.equipment, copy.fromSlot, copy.toSlot, listOf(singleListElement), copy.skill, copy.action) {}
-    constructor(copy: ZMove, singleListElement: Any, character: ZPlayerName?) : this(copy.type, copy.integer, character, copy.equipment, copy.fromSlot, copy.toSlot, listOf(singleListElement), copy.skill, copy.action) {}
-    constructor(copy: ZMove, singleListElement: Any, equipment: ZEquipment<*>?) : this(copy.type, copy.integer, copy.character, equipment, copy.fromSlot, copy.toSlot, listOf(singleListElement), copy.skill, copy.action) {}
+		init {
+			addAllFields(ZMove::class.java)
+		}
+	}
 
-    override fun equals(o: Any?): Boolean {
-        if (this === o) return true
-        if (o == null) return false
-        if (o is ZMoveType) return type === o
-        if (o !is ZMove) return false
-        val zMove = o
-        return (type === zMove.type && cc.lib.utils.isEqual(equipment, zMove.equipment)
-                && cc.lib.utils.isEqual(integer, zMove.integer)
-                && character === zMove.character && fromSlot === zMove.fromSlot && toSlot === zMove.toSlot && skill === zMove.skill)
+	constructor(copy: ZMove, singleListElement: Any, text: String) : this(copy.type, copy.integer, copy.character, copy.equipment, copy.fromSlot, copy.toSlot, listOf(singleListElement), copy.skill, copy.action, text)
+	constructor(copy: ZMove, singleListElement: Any, integer: Int, text: String? = null) : this(copy.type, integer, copy.character, copy.equipment, copy.fromSlot, copy.toSlot, listOf(singleListElement), copy.skill, copy.action, text)
+	constructor(copy: ZMove, singleListElement: Any, character: ZPlayerName?, text: String) : this(copy.type, copy.integer, character, copy.equipment, copy.fromSlot, copy.toSlot, listOf(singleListElement), copy.skill, copy.action, text)
+	constructor(copy: ZMove, singleListElement: Any, equipment: ZEquipment<*>?, text: String) : this(copy.type, copy.integer, copy.character, equipment, copy.fromSlot, copy.toSlot, listOf(singleListElement), copy.skill, copy.action, text)
+
+	override fun equals(o: Any?): Boolean {
+		if (this === o) return true
+		if (o == null) return false
+		if (o is ZMoveType) return type === o
+		if (o !is ZMove) return false
+		val zMove = o
+		return (type === zMove.type && cc.lib.utils.isEqual(equipment, zMove.equipment)
+			&& cc.lib.utils.isEqual(integer, zMove.integer)
+			&& character === zMove.character
+			&& fromSlot === zMove.fromSlot
+			&& toSlot === zMove.toSlot
+			&& skill === zMove.skill)
     }
 
 	override fun hashCode(): Int {
@@ -220,15 +221,17 @@ data class ZMove constructor(
     }
 
     override fun getLabel(): String {
-        var label = type.label
+	    if (text != null)
+		    return text
+	    var label = type.label
 	    equipment?.let {
 		    label += " ${it.label}"
 	    }
-        if (fromSlot != null) {
-            label += " from ${fromSlot.label}"
-        }
-        if (toSlot != null)
-        	label += " to ${toSlot.label}"
+	    if (fromSlot != null) {
+		    label += " from ${fromSlot.label}"
+	    }
+	    if (toSlot != null)
+		    label += " to ${toSlot.label}"
 	    if (type == ZMoveType.ORGANIZE_TRADE) {
 	    	character?.name?.let {
 			    label += " with $it"

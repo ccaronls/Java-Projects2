@@ -21,8 +21,8 @@ public class ZTestUser extends ZUser {
     }
 
     @Override
-    public Integer chooseMove(ZPlayerName cur, List<ZMove> options) {
-        return Utils.rand() % options.size();
+    public ZMove chooseMove(ZPlayerName cur, List<ZMove> options) {
+        return Utils.randItem(options);
     }
 
     @Override

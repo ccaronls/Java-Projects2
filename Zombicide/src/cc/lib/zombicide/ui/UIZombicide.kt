@@ -417,8 +417,7 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 
 	override fun onAhhhhhh(c: ZPlayerName) {
 		super.onAhhhhhh(c)
-		boardRenderer.addPostActor(HoverMessage(boardRenderer, "AHHHHHH!", c.character))
-		Utils.waitNoThrow(this, 500)
+		boardRenderer.addHoverMessage("AHHHHHH!", c.character)
 	}
 
 	override fun onEquipmentFound(c: ZPlayerName, equipment: List<ZEquipment<*>>) {
@@ -438,7 +437,6 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 		} else {
 			for (e in equipment) {
 				boardRenderer.addPostActor(HoverMessage(boardRenderer, "+" + e.label, c.character))
-				Utils.waitNoThrow(this, 500)
 			}
 		}
 	}
@@ -446,7 +444,6 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 	override fun onCharacterGainedExperience(c: ZPlayerName, points: Int) {
 		super.onCharacterGainedExperience(c, points)
 		boardRenderer.addPostActor(HoverMessage(boardRenderer, String.format("+%d EXP", points), c.character))
-		Utils.waitNoThrow(this, 500)
 	}
 
 	override fun onGameLost() {
@@ -591,7 +588,7 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 							override fun onDone() {
 								super.onDone()
 								animLock.release()
-								boardRenderer.addPostActor(HoverMessage(boardRenderer, "MISS!!", attacker))
+								boardRenderer.addHoverMessage("MISS!!", attacker)
 							}
 						})
 					}
@@ -668,7 +665,7 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 						val center: IVector2D = board.getZone(targetZone).rectangle.randomPointInside
 						group.addAnimation(delay, object : ThrowAnimation(attacker, center, ZIcon.DAGGER, .1f, 400) {
 							override fun onDone() {
-								boardRenderer.addPostActor(HoverMessage(boardRenderer, "MISS!!", attacker))
+								boardRenderer.addHoverMessage("MISS!!", attacker)
 								animLock.release()
 							}
 						})
@@ -707,7 +704,7 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 						val center: IVector2D = board.getZone(targetZone).rectangle.randomPointInside
 						group.addAnimation(delay, object : ShootAnimation(attacker, 300, center, ZIcon.ARROW) {
 							override fun onDone() {
-								boardRenderer.addPostActor(HoverMessage(boardRenderer, "MISS!!", attacker))
+								boardRenderer.addHoverMessage("MISS!!", attacker)
 								animLock.release()
 							}
 						})
@@ -774,7 +771,7 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 						val end: Vector2D = board.getZone(targetZone).center.add(Vector2D.newRandom(0.3f))
 						group.addAnimation(delay, object : FireballAnimation(attacker, end) {
 							override fun onDone() {
-								boardRenderer.addPostActor(HoverMessage(boardRenderer, "MISS!!", attacker))
+								boardRenderer.addHoverMessage("MISS!!", attacker)
 								animLock.release()
 							}
 						})
@@ -908,7 +905,7 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 
 	override fun onCharacterHealed(c: ZPlayerName, amt: Int) {
 		super.onCharacterHealed(c, amt)
-		boardRenderer.addPostActor(HoverMessage(boardRenderer, String.format("+%d wounds healed", amt), c.character))
+		boardRenderer.addHoverMessage(String.format("+%d wounds healed", amt), c.character)
 	}
 
 	override fun onCharacterDestroysSpawn(c: ZPlayerName, zoneIdx: Int) {
@@ -932,7 +929,7 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 
 	override fun onBonusAction(pl: ZPlayerName, action: ZSkill) {
 		super.onBonusAction(pl, action)
-		boardRenderer.addPostActor(HoverMessage(boardRenderer, "BONUS ACTION " + action.label, pl.character))
+		boardRenderer.addHoverMessage("BONUS ACTION " + action.label, pl.character)
 	}
 
 	companion object {

@@ -261,10 +261,10 @@ public final class Table implements ITableItem {
                 if (o instanceof ITableItem) {
                     ITableItem t = (ITableItem) o;
                     IDimension d2 = t.measure(g);
-                    maxHeight[r] = Math.max(maxHeight[r], d2.getWidth());
-                    maxWidth[c] = Math.max(maxWidth[c], d2.getHeight());
+                    maxHeight[r] = Math.max(maxHeight[r], d2.getHeight());
+                    maxWidth[c] = Math.max(maxWidth[c], d2.getWidth());
                     if (t.getBorderWidth() != 0)
-                        maxHeight[r] += 2*cellPadding;
+                        maxHeight[r] += 2 * cellPadding;
                 } else if (o instanceof AImage) {
                     // TODO: Implement this
                 } else {

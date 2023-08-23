@@ -290,7 +290,7 @@ public class GRectangle extends Reflector<GRectangle> implements IRectangle {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
+        //if (!super.equals(o)) return false;
         GRectangle that = (GRectangle) o;
         return Float.compare(that.x, x) == 0 &&
                 Float.compare(that.y, y) == 0 &&
@@ -451,4 +451,5 @@ public class GRectangle extends Reflector<GRectangle> implements IRectangle {
     public final boolean isEmpty() {
         return this == EMPTY || (getWidth() <= 0 && getHeight() <= 0);
     }
+
 }

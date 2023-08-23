@@ -11,4 +11,6 @@ public interface IShape {
     void drawFilled(AGraphics g);
 
     MutableVector2D getCenter();
+
+    float getArea();
 }
