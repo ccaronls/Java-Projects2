@@ -14,13 +14,13 @@
             android:layout_height="wrap_content">
 
             <TextView
-                style="@style/dice_header"
+                style="@style/DiceDialogHeader"
                 android:id="@+id/tv_attacker"
                 android:gravity="center_vertical|left"
                 android:text="Attacker"/>
 
             <TextView
-                style="@style/dice_header"
+                style="@style/DiceDialogHeader"
                 android:id="@+id/tv_defender"
                 android:gravity="center_vertical|right"
                 android:text="Defender"/>
@@ -36,32 +36,33 @@
             app:layout_constraintTop_toTopOf="parent">
 
             <cc.game.android.risk.DiceView
-                style="@style/dice_red"
+                style="@style/DiceDialogRedDie"
                 android:id="@+id/red1"/>
 
-            <TextView style="@style/dice_text"
+            <TextView
+                style="@style/DiceDialogText"
                 android:id="@+id/text1"
-                tools:text="@string/arrow_left"
-                />
+                tools:text="@string/arrow_left" />
 
             <cc.game.android.risk.DiceView
-                style="@style/dice"
+                style="@style/DiceDialogDie"
                 android:id="@+id/white1"/>
 
             <cc.game.android.risk.DiceView
-                style="@style/dice_red"
+                style="@style/DiceDialogRedDie"
                 android:id="@+id/red2"/>
 
-            <TextView style="@style/dice_text"
+            <TextView
+                style="@style/DiceDialogText"
                 tools:text="@string/arrow_right"
-                android:id="@+id/text2"/>
+                android:id="@+id/text2" />
 
             <cc.game.android.risk.DiceView
-                style="@style/dice"
+                style="@style/DiceDialogDie"
                 android:id="@+id/white2"/>
 
             <cc.game.android.risk.DiceView
-                style="@style/dice_red"
+                style="@style/DiceDialogRedDie"
                 android:id="@+id/red3"/>
         </GridLayout>
 

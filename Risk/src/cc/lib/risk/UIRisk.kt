@@ -443,18 +443,27 @@ abstract class UIRisk(board : RiskBoard) : RiskGame(board) {
 		val tap = MutableVector2D(tapPos)
 		g.screenToViewport(tap)
 		//log.debug("TAP", "Tap Viewport: " + tap);
+		var highlightedIdx = -1
 		g.color = GColor.WHITE
 		for (idx in pickableTerritories) {
 			val cell = board.getCell(idx)
 			board.renderCell(cell, g)
+			if (board.isPointInsideCell(tap, idx)) {
+				highlightedIdx = idx
+				continue
+			}
 			g.drawLineLoop(cellLineThickness)
+		}
+		if (highlightedIdx >= 0) {
 			if (tapped) {
-				if (board.isPointInsideCell(tap, idx)) {
-					tapped = false
-					tapPos.zero()
-					setGameResult(idx)
-					break
-				}
+				tapped = false
+				tapPos.zero()
+				setGameResult(highlightedIdx)
+			} else {
+				g.color = GColor.RED.withAlpha(.5f)
+				val cell = board.getCell(highlightedIdx)
+				board.renderCell(cell, g)
+				g.drawLineLoop(cellLineThickness + 2)
 			}
 		}
 	}
@@ -465,9 +474,14 @@ abstract class UIRisk(board : RiskBoard) : RiskGame(board) {
 	private val tapPos = MutableVector2D()
 
 	fun onTap(x: Float, y: Float) {
-		log.debug("TAP", "onTap ($x,$y)")
+		log.debug("onTap ($x,$y)")
 		tapPos[x] = y
 		tapped = true
+	}
+
+	fun onMouse(x: Float, y: Float) {
+		log.debug("onMouse ($x,$y)")
+		tapPos[x] = y
 	}
 
 	fun onDragStart(x: Float, y: Float) {

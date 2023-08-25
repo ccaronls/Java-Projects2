@@ -1,5 +1,6 @@
 package cc.game.zombicide.android
 
+import android.annotation.SuppressLint
 import android.content.ClipData
 import android.os.Bundle
 import android.util.Log
@@ -14,6 +15,7 @@ import cc.game.zombicide.android.databinding.OrganizeDialogBinding
 import cc.game.zombicide.android.databinding.OrganizeDialogListItemBinding
 import cc.lib.android.*
 import cc.lib.ui.IButton
+import cc.lib.utils.takeIfInstance
 import cc.lib.zombicide.*
 import cc.lib.zombicide.ui.UIZombicide
 
@@ -32,6 +34,7 @@ fun ListView.setBackpackItems(char : ZCharacter?, viewModel: OrganizeViewModel) 
 
 		override fun getItemId(position: Int): Long = 0
 
+		@SuppressLint("ViewHolder")
 		override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
 			return OrganizeDialogListItemBinding.inflate(LayoutInflater.from(context)).also {
 				it.viewModel = viewModel
@@ -78,7 +81,6 @@ fun View.setTagFromMoves(moves : List<ZMove>, _character : ZCharacter?, slot : Z
 			if (options.size > 1) {
 				Log.e(TAG, "ERROR: too many options for tag: ${options.joinToString()}")
 			}
-			else {}
 		}
 
 		if (dragging) {
@@ -131,6 +133,7 @@ class OrganizeViewModel : LifecycleViewModel(),
 			else             -> it?.javaClass?.simpleName ?: ""
 		}
 	}
+
 	val descriptionBody : LiveData<String> = combine(descriptionItem, primaryCharacter, secondaryCharacter) { obj, primary, secondary ->
 		when (obj) {
 			is ZCharacter -> obj.getAllSkillsTable().toString()
@@ -177,11 +180,10 @@ class OrganizeViewModel : LifecycleViewModel(),
 		descriptionItem.value = obj
 	}
 
+	@SuppressWarnings("unchecked")
 	fun startDrag(view : View, equip : ZEquipment<*>?) : Boolean {
-		view.tag?.let {
-			if (it is ZMove) {
-				return startDrag(view, it.list as List<ZMove>, equip)
-			}
+		view.tag?.takeIfInstance<ZMove>()?.let {
+			return startDrag(view, it.list as List<ZMove>, equip)
 		}
 		return false
 	}
@@ -197,12 +199,17 @@ class OrganizeViewModel : LifecycleViewModel(),
 			View.DragShadowBuilder(view),
 			equip, 0)
 	}
+
+	// Long click on a backpack item. The item has the equipment
+	// and the 'parent' adapter view holds the move options
 	override fun onItemLongClick(parent: AdapterView<*>, view: View, position: Int, id: Long): Boolean {
 		val equip = view.tag as ZEquipment<*>?
-		val options = (parent.tag as ZMove)?.list as List<ZMove>
-		return startDrag(view, options.filter {
-			it.equipment == equip
-		}, equip)
+		return parent.tag?.takeIfInstance<ZMove>()?.let { move ->
+			val options = move.list as List<ZMove>
+			startDrag(view, options.filter {
+				it.equipment == equip
+			}, equip)
+		} ?: false
 	}
 
 	override fun onItemClick(parent: AdapterView<*>, view: View, position: Int, id: Long) {
@@ -230,7 +237,7 @@ class OrganizeViewModel : LifecycleViewModel(),
 				}
 			}
 			DragEvent.ACTION_DROP -> {
-				// perform the move accociated with the
+				// perform the move associated with the
 				Log.d(TAG, "Drag drop ${v.tag}")
 				dragging.value = false
 				game.setResult(v.tag)

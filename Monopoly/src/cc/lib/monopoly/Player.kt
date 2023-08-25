@@ -3,7 +3,6 @@ package cc.lib.monopoly
 import cc.lib.game.GColor
 import cc.lib.logger.LoggerFactory
 import cc.lib.utils.*
-import java.util.*
 import kotlin.math.roundToInt
 
 open class Player(var piece: Piece = Piece.BOAT) : Reflector<Player>() {
@@ -17,6 +16,8 @@ open class Player(var piece: Piece = Piece.BOAT) : Reflector<Player>() {
 	var money = 0
 		private set
 	var square: Square = Square.GO
+
+	@get:Synchronized
 	val cards: MutableList<Card> = ArrayList()
 	var jailBond = 0
 		private set
@@ -112,7 +113,7 @@ open class Player(var piece: Piece = Piece.BOAT) : Reflector<Player>() {
 				MoveType.PAY_BOND -> weights[index] = 2
 				MoveType.MORTGAGE -> {
 				}
-				MoveType.UNMORTGAGE -> weights[index] = cardsForMortgage.size
+				MoveType.UNMORTGAGE -> weights[index] = 1 + money / 100 + cardsForMortgage.size
 				MoveType.GET_OUT_OF_JAIL_FREE -> return mt
 				MoveType.UPGRADE -> weights[index] = 1 + money / 100
 				MoveType.TRADE -> {
@@ -363,7 +364,7 @@ open class Player(var piece: Piece = Piece.BOAT) : Reflector<Player>() {
 
 	open fun getTrades(): List<Trade> {
 		val trades: MutableList<Trade> = ArrayList()
-		for (card in cards) {
+		for (card in cards.toList()) {
 			if (card.isSellable) {
 				card.property.takeIf { !hasSet(it) }?.let { sq ->
 					val num = getNumOfSet(sq)

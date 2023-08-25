@@ -8,6 +8,7 @@ import android.os.Message;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Toast;
+
 import cc.lib.android.CCActivityBase;
 
 public class HomeActivity extends CCActivityBase implements OnClickListener {
@@ -133,7 +134,7 @@ public class HomeActivity extends CCActivityBase implements OnClickListener {
 				i.putExtra(PacBoyActivity.INTENT_EXTRA_INT_DIFFUCULTY, 20);
 				break;
 		}
-		startActivityForResult(i, code);
+        startActivity(i);
 	}
 
 	private final int MSG_SIGNIN_FAILED = 33;

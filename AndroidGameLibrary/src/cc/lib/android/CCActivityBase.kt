@@ -42,6 +42,9 @@ import java.util.*
  * @author ccaron
  */
 open class CCActivityBase : AppCompatActivity() {
+
+	open val TAG = javaClass.simpleName
+
 	companion object {
 		init {
 			LoggerFactory.factory = object : LoggerFactory() {
@@ -50,6 +53,7 @@ open class CCActivityBase : AppCompatActivity() {
 				}
 			}
 		}
+
 		const val PERMISSION_REQUEST_CODE = 1001
 	}
 

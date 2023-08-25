@@ -87,7 +87,7 @@ class UIEventCardRenderer(component: UIComponent) : UIRenderer(component) {
 
 	fun setEventCard(newCard: EventCard) {
 		log.debug("setEventCard $newCard")
-		eventCard?.let { oldCard ->
+		eventCard?.also { oldCard ->
 			val productionIn = oldCard.production
 			val productionOut = newCard.production
 			val txtIn = oldCard.name

@@ -120,7 +120,7 @@ abstract class UIMonopoly : Monopoly() {
 	}
 
 	override fun onPlayerMove(playerNum: Int, numSquares: Int, next: Square) {
-		setSpriteAnim(getPlayer(playerNum).piece.name, JumpAnimation(playerNum, numSquares).start<AAnimation<Sprite>>())
+		setSpriteAnim(getPlayer(playerNum).piece.name, JumpAnimation(playerNum, numSquares).start())
 		lock.withLock { 
 			cond.await(numSquares*600L, TimeUnit.MILLISECONDS)
 		}
@@ -207,35 +207,35 @@ abstract class UIMonopoly : Monopoly() {
 	}
 
 	override fun onPlayerDrawsChance(playerNum: Int, chance: CardActionType) {
-		addAnimation("BOARD", TurnOverCardAnim(Board.CHANCE_RECT, Board.CHANCE_ORANGE, "Chance", chance.description).start<AAnimation<AGraphics>>())
+		addAnimation("BOARD", TurnOverCardAnim(Board.CHANCE_RECT, Board.CHANCE_ORANGE, "Chance", chance.description).start())
 		lock.withLock { cond.await(3000, TimeUnit.MILLISECONDS) }
 		showMessage("Chance", chance.description)
 		super.onPlayerDrawsChance(playerNum, chance)
 	}
 
 	override fun onPlayerDrawsCommunityChest(playerNum: Int, commChest: CardActionType) {
-		addAnimation("BOARD", TurnOverCardAnim(Board.COMM_CHEST_RECT, Board.COMM_CHEST_BLUE, "Community Chest", commChest.description).start<AAnimation<AGraphics>>())
+		addAnimation("BOARD", TurnOverCardAnim(Board.COMM_CHEST_RECT, Board.COMM_CHEST_BLUE, "Community Chest", commChest.description).start())
 		lock.withLock { cond.await(3000, TimeUnit.MILLISECONDS) }
 		showMessage("Community Chest", commChest.description)
 		super.onPlayerDrawsCommunityChest(playerNum, commChest)
 	}
 
 	override fun onPlayerGotPaid(playerNum: Int, amt: Int) {
-		setSpriteAnim("PLAYER$playerNum", MoneyAnim(getPlayer(playerNum).money, amt).start<AAnimation<Sprite>>())
+		setSpriteAnim("PLAYER$playerNum", MoneyAnim(getPlayer(playerNum).money, amt).start())
 		lock.withLock { cond.await(MONEY_PAUSE, TimeUnit.MILLISECONDS) }
 		super.onPlayerGotPaid(playerNum, amt)
 	}
 
 	override fun onPlayerReceiveMoneyFromAnother(playerNum: Int, giverNum: Int, amt: Int) {
-		setSpriteAnim("PLAYER$playerNum", MoneyAnim(getPlayer(playerNum).money, amt).start<AAnimation<Sprite>>())
-		setSpriteAnim("PLAYER$giverNum", MoneyAnim(getPlayer(giverNum).money, -amt).start<AAnimation<Sprite>>())
+		setSpriteAnim("PLAYER$playerNum", MoneyAnim(getPlayer(playerNum).money, amt).start())
+		setSpriteAnim("PLAYER$giverNum", MoneyAnim(getPlayer(giverNum).money, -amt).start())
 		lock.withLock { cond.await(MONEY_PAUSE, TimeUnit.MILLISECONDS) }
 		super.onPlayerReceiveMoneyFromAnother(playerNum, giverNum, amt)
 	}
 
 	override fun onPlayerPayMoneyToKitty(playerNum: Int, amt: Int) {
-		setSpriteAnim("PLAYER$playerNum", MoneyAnim(getPlayer(playerNum).money, -amt).start<AAnimation<Sprite>>())
-		setSpriteAnim(Square.FREE_PARKING.name, MoneyAnim(kitty, amt).start<AAnimation<Sprite>>())
+		setSpriteAnim("PLAYER$playerNum", MoneyAnim(getPlayer(playerNum).money, -amt).start())
+		setSpriteAnim(Square.FREE_PARKING.name, MoneyAnim(kitty, amt).start())
 		lock.withLock { cond.await(MONEY_PAUSE, TimeUnit.MILLISECONDS) }
 		super.onPlayerPayMoneyToKitty(playerNum, amt)
 	}
@@ -291,20 +291,20 @@ abstract class UIMonopoly : Monopoly() {
 	}
 
 	override fun onPlayerPaysRent(playerNum: Int, renterNum: Int, amt: Int) {
-		setSpriteAnim("PLAYER$playerNum", MoneyAnim(getPlayer(playerNum).money, -amt).start<AAnimation<Sprite>>())
-		setSpriteAnim("PLAYER$renterNum", MoneyAnim(getPlayer(renterNum).money, amt).start<AAnimation<Sprite>>())
+		setSpriteAnim("PLAYER$playerNum", MoneyAnim(getPlayer(playerNum).money, -amt).start())
+		setSpriteAnim("PLAYER$renterNum", MoneyAnim(getPlayer(renterNum).money, amt).start())
 		lock.withLock { cond.await(MONEY_PAUSE, TimeUnit.MILLISECONDS) }
 		super.onPlayerPaysRent(playerNum, renterNum, amt)
 	}
 
 	override fun onPlayerMortgaged(playerNum: Int, property: Square, amt: Int) {
-		setSpriteAnim("PLAYER$playerNum", MoneyAnim(getPlayer(playerNum).money, amt).start<AAnimation<Sprite>>())
+		setSpriteAnim("PLAYER$playerNum", MoneyAnim(getPlayer(playerNum).money, amt).start())
 		lock.withLock { cond.await(MONEY_PAUSE, TimeUnit.MILLISECONDS) }
 		super.onPlayerMortgaged(playerNum, property, amt)
 	}
 
 	override fun onPlayerUnMortgaged(playerNum: Int, property: Square, amt: Int) {
-		setSpriteAnim("PLAYER$playerNum", MoneyAnim(getPlayer(playerNum).money, -amt).start<AAnimation<Sprite>>())
+		setSpriteAnim("PLAYER$playerNum", MoneyAnim(getPlayer(playerNum).money, -amt).start())
 		lock.withLock { cond.await(MONEY_PAUSE, TimeUnit.MILLISECONDS) }
 		super.onPlayerUnMortgaged(playerNum, property, amt)
 	}
@@ -594,13 +594,13 @@ abstract class UIMonopoly : Monopoly() {
 						g.translate(v)
 						g.rotate(angle.toFloat())
 						g.multMatrix(M)
-						animation?.takeIf { !it.isDone }?.let { animation ->
+						animation?.takeIf { !it.isDone }?.also { animation ->
 							log.debug("${sq.name} : houses = $houses")
 							when (houses) {
-								0,1,2,3 -> {
+								0, 1, 2, 3 -> {
 									g.scale(houseScale * 2)
 									g.color = HOUSE_COLOR
-									g.translate(-HOUSE_RADIUS * (houses-1), 0f)
+									g.translate(-HOUSE_RADIUS * (houses - 1), 0f)
 									g.translate(-HOUSE_RADIUS * animation.position, 0f)
 									for (i in 0 until houses) {
 										drawHouse(g)
@@ -681,7 +681,7 @@ abstract class UIMonopoly : Monopoly() {
 	internal inner class MoneyAnim(startMoney: Int, val delta: Int) : AAnimation<Sprite>(2500) {
 		val startMoney: Float
 		override fun draw(g: Sprite, position: Float, dt: Float) {
-			g.data1 = Math.round(startMoney + position * delta)
+			g.data1 = (startMoney + position * delta).roundToInt()
 			g.data2 = delta
 		}
 
@@ -700,11 +700,11 @@ abstract class UIMonopoly : Monopoly() {
 			var steps = 1
 			if (jumps > 5) {
 				steps = 5
-				start = start.increment(5, Square.values()) // make bigger steps when a long way to jump
+				start = start.increment(5) // TEST BEFORE CHECKING IN!, Square.values()) // make bigger steps when a long way to jump
 			} else if (jumps < 0) {
-				start = start.increment(-1, Square.values())
+				start = start.increment(-1) // TEST BEFORE CHECKING IN!
 			} else {
-				start = start.increment(1, Square.values())
+				start = start.increment(1) // TEST BEFORE CHECKING IN!
 			}
 			val r1 = board.getPiecePlacement(playerNum, start)
 			curve.reset()
@@ -724,7 +724,7 @@ abstract class UIMonopoly : Monopoly() {
 		override fun onDone() {
 			if (jumps != 0) {
 				init()
-				start<AAnimation<Sprite>>()
+				start()
 			} else {
 				lock.withLock { cond.signal() }
 			}

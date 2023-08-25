@@ -190,8 +190,14 @@ class AWTRisk internal constructor(): AWTComponent() {
 		game.onTap(mouseX.toFloat(), mouseY.toFloat())
 	}
 
+	override fun onMouseMoved(mouseX: Int, mouseY: Int) {
+		game.onMouse(mouseX.toFloat(), mouseY.toFloat())
+		game.redraw()
+	}
+
 	companion object {
 		private val log = LoggerFactory.getLogger(AWTRisk::class.java)
+
 		@JvmStatic
 		fun main(args: Array<String>) {
 			AGraphics.DEBUG_ENABLED = true

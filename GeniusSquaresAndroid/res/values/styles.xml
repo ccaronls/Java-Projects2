@@ -1,10 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="DialogTheme" parent="android:Theme.Holo.Dialog.NoActionBar">
-        <item name="android:windowCloseOnTouchOutside">false</item>
-    </style>
-
     <style name="ProgressDialog" parent="@android:style/Theme.Holo.Dialog">
         <item name="android:alertDialogStyle">@style/CCProgressStyle</item>
         <item name="android:windowBackground">@android:color/transparent</item>

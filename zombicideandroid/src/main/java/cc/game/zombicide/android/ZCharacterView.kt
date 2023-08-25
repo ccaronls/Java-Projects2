@@ -11,7 +11,8 @@ class ZCharacterView(context: Context, attrs: AttributeSet) : UIComponentView<UI
 	override fun preDrawInit(g: DroidGraphics) {
 		super.preDrawInit(g)
 		g.textHeight = resources.getDimension(R.dimen.chars_view_text_size)
-		renderer.setTextColor(GColor(resources.getColor(R.color.text_color)))
-		//        UIZCharacterRenderer.TEXT_COLOR_DIM = new GColor(getResources().getColor(R.color.text_color_dim));
+		if (!isInEditMode) {
+			renderer.setTextColor(GColor(resources.getColor(R.color.text_color)))
+		}
 	}
 }

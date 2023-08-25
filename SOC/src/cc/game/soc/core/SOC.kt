@@ -3196,7 +3196,7 @@ open class SOC() : Reflector<SOC>(), StringResource {
 					assert(!Utils.isEmpty(options))
 					curPlayer.chooseTile(this, options, TileChoice.INVENTOR)?.let { tileIndex ->
 						Utils.assertContains(tileIndex, options)
-						getStateData<Int?>()?.let { firstTileIndex ->
+						getStateData<Int?>()?.also { firstTileIndex ->
 							// swap em
 							popState()
 							val secondTile = board.getTile(tileIndex)

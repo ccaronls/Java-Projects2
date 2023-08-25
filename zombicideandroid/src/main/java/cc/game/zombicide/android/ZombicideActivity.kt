@@ -1075,15 +1075,19 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 						}
 						it.remove()
 					}
-					ZMoveType.USE_LEFT_HAND -> {
-						zb.bUseleft.tag = move
-						zb.bUseleft.visibility = View.VISIBLE
-						it.remove()
-					}
-					ZMoveType.USE_RIGHT_HAND -> {
-						zb.bUseright.tag = move
-						zb.bUseright.visibility = View.VISIBLE
-						it.remove()
+					ZMoveType.USE_SLOT -> {
+						when (move.fromSlot) {
+							ZEquipSlot.LEFT_HAND -> {
+								zb.bUseleft.tag = move
+								zb.bUseleft.visibility = View.VISIBLE
+								it.remove()
+							}
+							ZEquipSlot.RIGHT_HAND -> {
+								zb.bUseright.tag = move
+								zb.bUseright.visibility = View.VISIBLE
+								it.remove()
+							}
+						}
 					}
 					ZMoveType.SWITCH_ACTIVE_CHARACTER -> {
 						zb.bCenter.tag = move

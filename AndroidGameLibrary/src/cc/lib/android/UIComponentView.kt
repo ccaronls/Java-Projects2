@@ -17,6 +17,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlin.math.max
 import kotlin.math.roundToInt
 
 abstract class UIComponentView<T : UIRenderer> : View, UIComponent, Runnable {
@@ -86,7 +87,7 @@ abstract class UIComponentView<T : UIRenderer> : View, UIComponent, Runnable {
 			g.translate(borderThickness, borderThickness)
 		}
 		if (progress < 1) {
-			if (loadAssetsRunnable == null) {
+			if (!isInEditMode && loadAssetsRunnable == null) {
 				onLoading()
 				loadAssetsRunnable = CoroutineScope(Dispatchers.Main).launch {
 					loadAssets(g)
@@ -95,7 +96,8 @@ abstract class UIComponentView<T : UIRenderer> : View, UIComponent, Runnable {
 			}
 			g.color = GColor.RED
 			g.ortho()
-			val rect: GRectangle = GRectangle(0f, 0f, GDimension((getWidth() * 3 / 4).toFloat(), (getHeight() / 6).toFloat())).withCenter(Vector2D((getWidth() / 2).toFloat(), (getHeight() / 2).toFloat()))
+			val textWidth = g.getTextWidth(loadingString)
+			val rect: GRectangle = GRectangle(0f, 0f, GDimension(max(textWidth + 20, (getWidth() * 3 / 4).toFloat()), (getHeight() / 6).toFloat())).withCenter(Vector2D((getWidth() / 2).toFloat(), (getHeight() / 2).toFloat()))
 			g.drawRect(rect, 3f)
 			rect.w *= progress
 			g.drawFilledRect(rect)
@@ -104,7 +106,7 @@ abstract class UIComponentView<T : UIRenderer> : View, UIComponent, Runnable {
 			g.color = GColor.WHITE
 			g.drawJustifiedString((getWidth() / 2).toFloat(), (getHeight() / 2).toFloat(), Justify.CENTER, Justify.CENTER, loadingString)
 			g.textHeight = hgt
-		} else {
+		} else if (!isInEditMode) {
 			loadAssetsRunnable = null
 			val prev = renderer.getMinDimension()
 			try {
@@ -193,6 +195,10 @@ abstract class UIComponentView<T : UIRenderer> : View, UIComponent, Runnable {
 	}
 
 	override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+		if (isInEditMode) {
+			super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+			return
+		}
 		var width = MeasureSpec.getSize(widthMeasureSpec)
 		var height = MeasureSpec.getSize(heightMeasureSpec)
 		val wSpec = MeasureSpec.getMode(widthMeasureSpec)

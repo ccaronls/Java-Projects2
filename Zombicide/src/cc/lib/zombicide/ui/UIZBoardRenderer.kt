@@ -33,11 +33,6 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 	var highlightedResult: Any? = null
 	var highlightedActor: ZActor<*>? = null
 		private set
-	//var highlightActor: ZActor<*>? = null
-//		set(value) {
-//			field = value
-//			redraw()
-//		}
 	var highlightedDoor: ZDoor? = null
 	var selectedCell: Grid.Pos? = null
 	var highlightedShape: IRectangle? = null
@@ -231,6 +226,8 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 			}
 		} else {
 			highlightedShape = null
+			highlightedMoves = null
+			highlightedMovesPos = null
 		}
 	}
 
@@ -857,20 +854,6 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 				shape.drawFilled(g)
 			}
 		}
-		/*
-		highlightedShape?.let {
-			g.color = GColor.RED
-			g.setLineWidth(2f)
-			it.drawOutlined(g)
-			with (it.center) {
-				g.transform(this)
-				g.pushMatrix()
-				g.setIdentity()
-				g.ortho()
-				picked = pickButtons(g, this, highlightedMoves, screenMouseX, screenMouseY)
-			}
-			g.popMatrix()
-		}*/
 		return null
 	}
 
@@ -952,7 +935,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 	 */
 	@Synchronized
 	fun animateZoomTo(targetZoomPercent: Float) {
-		clearDragOffset()
+//		clearDragOffset()
 		targetZoomPercent.coerceIn(0f, 1f).let {
 			if (zoomPercent != it) {
 				zoomAnimation = ZoomAnimation(boardCenter, this, it).start()
@@ -965,7 +948,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		private set
 
 	fun getZoomedRectangle(g: AGraphics, center: IVector2D?): GRectangle {
-		log.verbose("getZoomedRectangle cntr: %s", center)
+		//log.verbose("getZoomedRectangle cntr: %s", center)
 		val dim = board.getDimension()
 		val aspect = dim.aspect
 		val zoomed: GDimension
@@ -1364,20 +1347,30 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		}
 	}
 
+	var dragging: Boolean = false
+
 	override fun onDragStart(x: Float, y: Float) {
-		dragStart = Vector2D(x, y)
+		if (highlightedShape == null) {
+			dragging = true
+			dragStart = Vector2D(x, y)
+		}
 	}
 
 	override fun onDragEnd() {
-		//dragOffset = Vector2D.ZERO;
+		if (!dragging && highlightedResult != null) {
+			game.setResult(highlightedResult)
+		}
+		dragging = false
 		redraw()
 	}
 
 	override fun onDragMove(x: Float, y: Float) {
-		val v = Vector2D(x, y)
-		val dv: Vector2D = v.sub(dragStart)
-		dragOffset.addEq(dv)
-		dragStart = v
+		if (dragging) {
+			val v = Vector2D(x, y)
+			val dv: Vector2D = v.sub(dragStart)
+			dragOffset.addEq(dv)
+			dragStart = v
+		}
 		redraw()
 	}
 

@@ -3,7 +3,6 @@ package cc.lib.risk
 import cc.lib.logger.LoggerFactory
 import cc.lib.utils.Reflector
 import cc.lib.utils.random
-import java.util.*
 import kotlin.math.roundToInt
 
 /**
@@ -159,25 +158,6 @@ open class RiskPlayer(val army: Army = Army.NEUTRAL) : Reflector<RiskPlayer>() {
 
 		// make the distance from enemies to our territories a minimum
 		if (enemies.size > 0) {
-			/*
-            GRectangle bounds = b.getBounds();
-            double maxDist = bounds.getTopLeft().subEq(bounds.getBottomRight()).mag();
-            double distance = 0;
-            for (int idx : terr) {
-                RiskCell cell= b.getCell(idx);
-                Vector2D v = new Vector2D(cell);
-
-                for (RiskCell enemy : enemies) {
-                    double distNorm = v.sub(enemy).mag() / maxDist;
-                    double distNormInv = 1000.0 / distNorm;
-                    double delta = cell.numArmies - enemy.numArmies;
-                    if (delta > 1) {
-                        delta = 1 + Math.log(delta);
-                    }
-                    //double logDelta = Math.log(delta);
-                    distance += distNormInv * delta;
-                }
-            }*/
 			var distance = 0.0
 			for (idx in terr) {
 				val cell = b.getCell(idx)
@@ -203,7 +183,7 @@ open class RiskPlayer(val army: Army = Army.NEUTRAL) : Reflector<RiskPlayer>() {
 		return (score.roundToInt() * 100 + random(100)).toLong()
 	}
 
-	fun evaluateBoard2(b: RiskBoard, army: Army): Long {
+	fun evaluateBoard0(b: RiskBoard, army: Army): Long {
 
 		// things that are good:
 		//   owning a continent

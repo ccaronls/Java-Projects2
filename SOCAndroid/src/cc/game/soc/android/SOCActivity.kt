@@ -576,7 +576,7 @@ class SOCActivity() : CCActivityBase(), MenuItem.Action, View.OnClickListener, G
 	}
 
 	fun showScenariosDialog() {
-		assets.list("scenarios")?.let { scenarios ->
+		assets.list("scenarios")?.also { scenarios ->
 			newDialog(true).setTitle("Load Scenario").setItems(scenarios, object : DialogInterface.OnClickListener {
 				override fun onClick(dialog: DialogInterface, which: Int) {
 					object : SpinnerTask<String>(this@SOCActivity) {

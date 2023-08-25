@@ -1,77 +1,64 @@
 package cc.game.android.risk
 
 import android.content.DialogInterface
-import android.view.View
+import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.*
-import cc.lib.game.Utils
+import android.widget.Toast
+import androidx.recyclerview.widget.RecyclerView
+import cc.game.android.risk.databinding.PlayerListItemBinding
+import cc.lib.android.LinearRecyclerView
 import cc.lib.risk.Army
 import cc.lib.risk.RiskPlayer
+import cc.lib.risk.UIRiskPlayer
 
 class PL(var army: Army) {
 	var checked = false
 	var robot = false
 }
 
+class PlayerViewHolder(val binding: PlayerListItemBinding) : RecyclerView.ViewHolder(binding.root)
+
 /**
  * Created by Chris Caron on 9/17/21.
  */
-class PlayerChooserDialog internal constructor(val context: RiskActivity) : BaseAdapter(), DialogInterface.OnClickListener {
+class PlayerChooserDialog internal constructor(val context: RiskActivity) : RecyclerView.Adapter<PlayerViewHolder>(), DialogInterface.OnClickListener {
 
 	var players: MutableList<PL> = ArrayList()
-	override fun getCount(): Int {
-		return players.size
+
+	override fun onCreateViewHolder(parent: ViewGroup, viewType: Int):
+		PlayerViewHolder = PlayerViewHolder(PlayerListItemBinding.inflate(LayoutInflater.from(parent.context)))
+
+	override fun onBindViewHolder(holder: PlayerViewHolder, position: Int) {
+		holder.binding.pl = players[position]
+		holder.binding.lifecycleOwner = context
 	}
 
-	override fun getItem(position: Int): Any? {
-		return null
-	}
-
-	override fun getItemId(position: Int): Long {
-		return 0
-	}
-
-	override fun getView(position: Int, view: View?, parent: ViewGroup): View {
-		val view = view?:View.inflate(context, R.layout.player_list_item, null)
-		val cb = view.findViewById<CheckBox>(R.id.check_box)
-		val tb = view.findViewById<ToggleButton>(R.id.toggle_button)
-		cb.setOnCheckedChangeListener(null)
-		tb.setOnCheckedChangeListener(null)
-		val pl = players[position]
-		cb.text = pl.army.name
-		cb.isChecked = pl.checked
-		tb.isChecked = pl.robot
-		cb.setOnCheckedChangeListener { buttonView: CompoundButton?, isChecked: Boolean -> pl.checked = !pl.checked }
-		tb.setOnCheckedChangeListener { buttonView: CompoundButton?, isChecked: Boolean -> pl.robot = !pl.robot }
-		return view
-	}
+	override fun getItemCount(): Int = players.size
 
 	override fun onClick(dialog: DialogInterface, which: Int) {
-		if (Utils.count(players) { pl: PL -> pl.checked } < 2) {
+		if (players.count { it.checked } < 2) {
 			Toast.makeText(context, "Not enough players", Toast.LENGTH_LONG).show()
 			return
 		}
-		val p: MutableList<RiskPlayer> = ArrayList()
-		for (pl in players) {
-			if (pl.checked) {
-				if (pl.robot) {
-					p.add(RiskPlayer(pl.army))
-				} else {
-					p.add(UIRiskPlayer(pl.army))
-				}
-			}
+
+		players.filter { it.checked }.map {
+			if (it.robot)
+				RiskPlayer(it.army)
+			else
+				UIRiskPlayer(it.army)
+		}.apply {
+			context.game.startGame(this)
 		}
-		context.startGame(p)
 	}
 
 	init {
 		Army.choices().forEach {
 			players.add(PL(it))
 		}
-		val lv = ListView(context)
-		lv.adapter = this
 		context.newDialogBuilder().setTitle("Choose Players")
-			.setView(lv)
+			.setView(LinearRecyclerView(context).also {
+				it.adapter = this
+			})
 			.setNegativeButton(R.string.popup_button_cancel, null)
 			.setPositiveButton(R.string.popup_button_ok, this).show()
 	}

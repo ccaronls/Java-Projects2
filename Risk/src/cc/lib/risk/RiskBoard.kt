@@ -3,41 +3,34 @@ package cc.lib.risk
 import cc.lib.board.BEdge
 import cc.lib.board.BVertex
 import cc.lib.board.CustomBoard
-import java.util.*
+import kotlin.math.min
 
 /**
  * Created by Chris Caron on 9/13/21.
  */
 class RiskBoard : CustomBoard<BVertex, BEdge, RiskCell>() {
-	private var distMatrix: Array<IntArray>? = null
+	private val distMatrix by lazy {
+		computeFloydWarshallDistanceMatrix()
+	}
+
 	override fun newCell(pts: List<Int>): RiskCell {
 		return RiskCell(verts = pts)
 	}
 
 	fun reset() {
 		for (cell in cells) {
-			cell!!.reset()
+			cell.reset()
 		}
 	}
 
-	/*
-	public List<Integer> getConnectedCells(RiskCell cell) {
-        Set<Integer> all = new HashSet<>(cell.getConnectedCells());
-        all.addAll(Utils.map(cell.getAdjCells(), idx -> idx));
-        return new ArrayList<>(all);
-    }
+	fun getConnectedCells(cell: RiskCell): List<Int> = HashSet<Int>().apply {
+		addAll(cell.connectedCells)
+		addAll(cell.adjCells)
+	}.toList()
 
-	 */
-
-	fun getConnectedCells(cell: RiskCell): List<Int> {
-		val all = HashSet<Int>()
-		all.addAll(cell.connectedCells)
-		all.addAll(cell.adjCells)
-		return ArrayList(all)
+	val allTerritories by lazy {
+		cells.map { cell: RiskCell -> cell }
 	}
-
-	val allTerritories: List<RiskCell>
-		get() = cells.map { cell: RiskCell -> cell }
 
 	fun getTerritories(army: Army): List<Int> {
 		return Array(numCells) { it }.filter { idx -> getCell(idx).occupier == army }
@@ -76,16 +69,12 @@ class RiskBoard : CustomBoard<BVertex, BEdge, RiskCell>() {
 		for (k in 0 until numV) {
 			for (i in 0 until numV) {
 				for (j in 0 until numV) {
-					dist[i][j] = Math.min(dist[i][k] + dist[k][j], dist[i][j])
+					dist[i][j] = min(dist[i][k] + dist[k][j], dist[i][j])
 				}
 			}
 		}
 		return dist
 	}
 
-	fun getDistance(fromCellIdx: Int, toCellIdx: Int): Int {
-		with (distMatrix?:computeFloydWarshallDistanceMatrix().also { distMatrix = it } ) {
-			return this[fromCellIdx][toCellIdx]
-		}
-	}
+	fun getDistance(fromCellIdx: Int, toCellIdx: Int): Int = distMatrix[fromCellIdx][toCellIdx]
 }

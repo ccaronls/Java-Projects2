@@ -1,11 +1,16 @@
 <resources>
-    <style name="dice">
+
+    <style name="DialogTheme" parent="android:Theme.Holo.Dialog.NoActionBar">
+        <item name="android:windowCloseOnTouchOutside">false</item>
+    </style>
+
+    <style name="DiceDialogDie">
         <item name="android:layout_width">72dp</item>
         <item name="android:layout_height">72dp</item>
         <item name="android:layout_margin">10dp</item>
     </style>
 
-    <style name="dice_header">
+    <style name="DiceDialogHeader">
         <item name="android:layout_width">0dp</item>
         <item name="android:layout_height">48dp</item>
         <item name="android:layout_weight">1</item>
@@ -14,12 +19,12 @@
         <item name="android:textColor">#fff</item>
     </style>
 
-    <style name="dice_red" parent="dice">
+    <style name="DiceDialogRedDie" parent="DiceDialogDie">
         <item name="dieColor">#f00</item>
         <item name="pipColor">#fff</item>
     </style>
 
-    <style name="dice_text" parent="dice">
+    <style name="DiceDialogText" parent="DiceDialogDie">
         <item name="android:textSize">@dimen/text_height_huge</item>
         <item name="android:gravity">top|center_horizontal</item>
         <item name="android:layout_marginTop">0dp</item>

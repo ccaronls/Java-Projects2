@@ -2,6 +2,7 @@ package cc.game.android.risk
 
 import android.app.Dialog
 import android.content.DialogInterface
+import android.content.DialogInterface.OnDismissListener
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.TextView
@@ -13,11 +14,12 @@ import cc.lib.utils.prettify
 /**
  * Created by Chris Caron on 9/15/21.
  */
-internal class DiceDialog(val context: RiskActivity, val attacker: Army, val defender: Army, val attackingDice: IntArray, val defendingDice: IntArray, val result: BooleanArray) : Runnable {
+internal class DiceDialog(val context: RiskActivity, val attacker: Army, val defender: Army, val attackingDice: IntArray, val defendingDice: IntArray, val result: BooleanArray)
+	: Runnable, OnDismissListener {
 	private val lock = Lock()
 	private lateinit var dialog: Dialog
 	private lateinit var text: Array<TextView>
-	
+
 	override fun run() {
 		val binding = DiceDialogBinding.inflate(LayoutInflater.from(context))
 		binding.tvAttacker.text = prettify(attacker)
@@ -50,10 +52,15 @@ internal class DiceDialog(val context: RiskActivity, val attacker: Army, val def
 		dialog = context.newDialogBuilder().setView(binding.root)
 			.setNegativeButton("Pause") { _, _ ->
 				dialog.dismiss()
-				context.stopGameThread()
+				context.game.stopGameThread()
 			}.show()
 		dialog.setCanceledOnTouchOutside(true)
-		dialog.setOnDismissListener { lock.releaseAll() }
+		dialog.setOnDismissListener(this)
+	}
+
+	override fun onDismiss(dialog: DialogInterface?) {
+		lock.releaseAll()
+		context.game.setGameResult(null)
 	}
 
 	private fun showResult() {

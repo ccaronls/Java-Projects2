@@ -1,10 +1,10 @@
 package cc.game.geniussquares.android
 
-import android.content.DialogInterface
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.view.ViewGroup
 import cc.lib.android.DroidActivity
 import cc.lib.android.DroidGraphics
 import cc.lib.android.DroidStopWatch
@@ -30,7 +30,7 @@ class GeniusSquaresActivity : DroidActivity() {
 		super.onCreate(savedInstanceState)
 		saveFile = File(filesDir, "gs.save")
 		content.setBackgroundColor(Color.GRAY)
-		val topBar = View.inflate(this, R.layout.menu_bar, null)
+		val topBar = View.inflate(this, R.layout.menu_bar, null) as ViewGroup
 		topBar.addView(topBar)
 		findViewById<View>(R.id.buttonMenu).setOnClickListener {
 			val options = arrayOf(
