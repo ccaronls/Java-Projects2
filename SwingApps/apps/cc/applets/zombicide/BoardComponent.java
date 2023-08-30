@@ -104,7 +104,7 @@ class BoardComponent extends AWTComponent implements UIZComponent<AWTGraphics>, 
     }
 
     @Override
-    protected void onDrag(int x, int y) {
+    protected void onDrag(int x, int y, int dx, int dy) {
         renderer.onDragMove(x, y);
     }
 

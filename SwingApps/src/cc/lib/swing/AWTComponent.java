@@ -171,7 +171,7 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
 
     @Override
     public final synchronized void mousePressed(MouseEvent e) {
-        //Utils.println("mousePressed");
+        Utils.println("mousePressed");
         grabFocus();
         mouseX = e.getX()-padding;
         mouseY = e.getY()-padding;
@@ -183,7 +183,7 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
 
     @Override
     public final synchronized void mouseReleased(MouseEvent e) {
-        //Utils.println("mouseReleased");
+        Utils.println("mouseReleased");
         if (dragging) {
             onDragStopped();
             dragging = false;
@@ -236,13 +236,18 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
 
     @Override
     public final synchronized void mouseDragged(MouseEvent e) {
-        mouseX = e.getX()-padding;
-        mouseY = e.getY()-padding;
+        Utils.println("mouseDragged");
+        int x = e.getX() - padding;
+        int y = e.getY() - padding;
+        int dx = x - mouseX;
+        int dy = y - mouseY;
+        mouseX = x;
+        mouseY = y;
         if (!dragging) {
             onDragStarted(mouseX, mouseY);
             dragging = true;
         } else {
-            onDrag(mouseX, mouseY);
+            onDrag(mouseX, mouseY, dx, dy);
         }
         //Utils.println("mouseDragged");
         repaint();
@@ -286,7 +291,8 @@ public abstract class AWTComponent extends JComponent implements Renderable, Mou
 
     protected void onDragStopped() {}
 
-    protected void onDrag(int x, int y) {}
+    protected void onDrag(int x, int y, int dx, int dy) {
+    }
 
     protected void onClick() {}
 

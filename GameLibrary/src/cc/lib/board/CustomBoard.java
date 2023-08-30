@@ -317,14 +317,18 @@ public class CustomBoard<V extends BVertex, E extends BEdge, C extends BCell> ex
      * @param verts
      * @return
      */
-    public int addCell(Integer ... verts) {
+    public final int addCell(Integer... verts) {
+        return addCell(Arrays.asList(verts));
+    }
+
+    public final int addCell(List<Integer> verts) {
         int index = cells.size();
-        cells.add(newCell(Arrays.asList(verts)));
+        cells.add(newCell(verts));
+        computeCell(index);
         return index;
     }
 
     /**
-     *
      * @param g
      * @param mouse
      * @return
@@ -446,7 +450,7 @@ public class CustomBoard<V extends BVertex, E extends BEdge, C extends BCell> ex
                 dfsCellSearch(queue, 0, "", v1, lookup, cell, unvisited);
             }
         }
-
+/*
         // now compute the center of each cell and assign adjCells to edges.
         MutableVector2D mv = new MutableVector2D();
         for (int cIndex=0; cIndex<cells.size(); cIndex++) {
@@ -478,9 +482,9 @@ public class CustomBoard<V extends BVertex, E extends BEdge, C extends BCell> ex
                     magSquared = m;
             }
             c.radius = (float)Math.sqrt(magSquared);
-        }
+        }*/
 
-        // now iterate over the edges and create the cell adjacencies
+        // now iterate over the edges and create the cell adjacency
         Iterator<E> it = edges.iterator();
         while (it.hasNext()) {
             BEdge e = it.next();
@@ -922,7 +926,7 @@ public class CustomBoard<V extends BVertex, E extends BEdge, C extends BCell> ex
         this.dimension = new GDimension(width, height);
     }
 
-    public void moveVertex(int idx, IVector2D dv) {
+    public void moveVertexBy(int idx, IVector2D dv) {
         BVertex bv = getVertex(idx);
         MutableVector2D v = new MutableVector2D(bv);
         v.addEq(dv);
@@ -931,4 +935,5 @@ public class CustomBoard<V extends BVertex, E extends BEdge, C extends BCell> ex
             computeCell(cellIdx);
         }
     }
+
 }

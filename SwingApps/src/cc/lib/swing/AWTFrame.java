@@ -539,12 +539,24 @@ public class AWTFrame extends JFrame implements WindowListener, ComponentListene
         return defaultValue;
     }
 
+    public final <T extends Enum<T>> T getEnumProperty(String name, Class enumClass, T defaultValue) {
+        String value = getProperties().getProperty(name);
+        if (value == null)
+            return defaultValue;
+        try {
+            return (T) Enum.valueOf(enumClass, value);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return defaultValue;
+    }
+
     public final <T extends Enum<T>> List<T> getEnumListProperty(String propertyName, Class enumClass, List<T> defaultList) {
         String value = getStringProperty(propertyName, null);
         if (value == null)
             return defaultList;
         List<T> list = new ArrayList<>();
-        String [] parts = value.split("[,]+");
+        String[] parts = value.split("[,]+");
         for (String s : parts) {
             s = s.trim();
             if (s.isEmpty())

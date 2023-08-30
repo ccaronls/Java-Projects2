@@ -182,7 +182,7 @@ class AWTRisk internal constructor(): AWTComponent() {
 		game.onDragStart(x.toFloat(), y.toFloat())
 	}
 
-	override fun onDrag(x: Int, y: Int) {
+	override fun onDrag(x: Int, y: Int, dx: Int, dy: Int) {
 		game.onDrag(x.toFloat(), y.toFloat())
 	}
 

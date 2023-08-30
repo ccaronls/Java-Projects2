@@ -153,19 +153,37 @@ public abstract class AWTBoardBuilder<V extends BVertex, E extends BEdge, C exte
                         if (highlightedIndex >= 0 && !selected.contains(highlightedIndex))
                             selected.add(highlightedIndex);
                         else
-                            selected.remove((Object)highlightedIndex);
+                            selected.remove((Object) highlightedIndex);
                     } else {
                         setSelectedIndex(highlightedIndex);
                     }
             }
         }
-        public void onDraw(AWTGraphics g) {}
+
+        public void onDraw(AWTGraphics g) {
+        }
+
+        /*
+        Override this is init tools as necessary
+         */
+        public void onActivated() {
+        }
+
+        public boolean onKeyTyped(int keyCode) {
+            return false;
+        }
     }
 
     List<Tool> tools = new ArrayList<Tool>() {{
         add(new Tool("NONE") {
         });
         add(new Tool("EDGE BUILDER") {
+            @Override
+            public void onActivated() {
+                setPickMode(PickMode.VERTEX);
+                setMultiselect(false);
+            }
+
             @Override
             public void onPick() {
                 if (pickMode == PickMode.VERTEX && !multiSelect) {
@@ -194,11 +212,18 @@ public abstract class AWTBoardBuilder<V extends BVertex, E extends BEdge, C exte
             boolean inside = false;
 
             @Override
+            public void onActivated() {
+                setPickMode(PickMode.VERTEX);
+                setMultiselect(true);
+            }
+
+            @Override
             public void onPick() {
                 if (inside) {
-                    //board.addCell(wrappedIndices);
+                    onCellAdded(board.getCell(board.addCell(wrappedIndices)));
+                } else {
+                    super.onPick();
                 }
-                super.onPick();
             }
 
             @Override
@@ -281,7 +306,18 @@ public abstract class AWTBoardBuilder<V extends BVertex, E extends BEdge, C exte
         frame.addMenuBarMenu("Select", "All", "None");
         frame.addMenuBarMenu("Mode", Utils.toStringArray(PickMode.values(), false));
         frame.addMenuBarMenu("Tool", Utils.toStringArray(tools));
-        frame.addMenuBarMenu("Action", "Compute", "Clear", "Undo", "Generate Grid");
+        frame.addMenuBarMenu("Action", getActionMenuActions().toArray(new String[0]));
+        registerActionBarItems(frame);
+    }
+
+    protected ArrayList<String> getActionMenuActions() {
+        ArrayList<String> list = new ArrayList<>();
+        list.addAll(Utils.toList("Compute", "Clear", "Undo", "Generate Grid"));
+        return list;
+    }
+
+    protected void registerActionBarItems(AWTFrame frame) {
+
     }
 
     /**
@@ -343,6 +379,7 @@ public abstract class AWTBoardBuilder<V extends BVertex, E extends BEdge, C exte
 
     private void setTool(String name) {
         tool = Utils.requireNotNull(Utils.findFirstOrNull(tools, t -> name.equals(t.name)));
+        tool.onActivated();
         frame.setProperty("tool", name);
     }
 
@@ -579,6 +616,7 @@ public abstract class AWTBoardBuilder<V extends BVertex, E extends BEdge, C exte
             board.renderCell(c, g, 0.9f);
             g.setLineWidth(4);
             g.drawLineLoop();
+            drawExtraCellInfo(g, (C) c);
         }
 
         highlightedIndex = board.pickCell(g, mouse);
@@ -608,6 +646,10 @@ public abstract class AWTBoardBuilder<V extends BVertex, E extends BEdge, C exte
         g.setColor(GColor.BLACK);
         if (showNumbers)
             board.drawCellsNumbered(g);
+
+    }
+
+    void drawExtraCellInfo(APGraphics g, C cell) {
     }
 
     void setBoardFile(File file) {
@@ -856,11 +898,16 @@ public abstract class AWTBoardBuilder<V extends BVertex, E extends BEdge, C exte
     protected void onDragStarted(int x, int y) {
         if (getSelectedIndex() < 0) {
             setSelectedIndex(board.pickVertex(getAPGraphics(), mouse));
-        } else {
-            BVertex v = board.getVertex(getSelectedIndex());
-            board.moveVertex(getSelectedIndex(), getMousePos(x, y));
         }
         repaint();
+    }
+
+    @Override
+    protected void onDrag(int x, int y, int dx, int dy) {
+        if (getSelectedIndex() >= 0) {
+            board.moveVertexBy(getSelectedIndex(), getMousePos(dx, dy));
+        }
+        super.onDrag(x, y, dx, dy);
     }
 
     @Override
@@ -871,20 +918,24 @@ public abstract class AWTBoardBuilder<V extends BVertex, E extends BEdge, C exte
 
     protected void initActions() {
         addAction(VK_ESCAPE, "ESC", "Clear Selected", () -> selected.clear());
-        addAction(VK_V, "V", "Set PickMode to VERTEX", ()->setPickMode(PickMode.VERTEX));
-        addAction(VK_E, "E", "Set PickMode EDGE", ()->setPickMode(PickMode.EDGE));
-        addAction(VK_C, "C", "Set PickMOde CELL", ()->setPickMode(PickMode.CELL));
-        addAction(VK_M, "M", "Set toggle MULTI-SELECT", ()->setMultiselect(!multiSelect));
+        addAction(VK_V, "V", "Set PickMode to VERTEX", () -> setPickMode(PickMode.VERTEX));
+        addAction(VK_E, "E", "Set PickMode EDGE", () -> setPickMode(PickMode.EDGE));
+        addAction(VK_C, "C", "Set PickMode CELL", () -> setPickMode(PickMode.CELL));
+        addAction(VK_M, "M", "Set toggle MULTI-SELECT", () -> setMultiselect(!multiSelect));
         addAction(VK_H, "H", "Toggle Show Help", ()->showHelp=!showHelp);
-        addAction(Utils.toIntArray(VK_DELETE, VK_BACK_SPACE), "DELETE", "Remove Selected Item", ()->deleteSelected());
-        addAction(VK_TAB, "TAB", "Toggle Pick Modes", ()-> setPickMode(Utils.incrementValue(pickMode, PickMode.values())));
-        addAction(VK_N, "N", "Toggle Show Numbers", ()->showNumbers = !showNumbers);
-        addAction(Utils.toIntArray(VK_PLUS, VK_EQUALS), "+", "Zoom in", ()->zoomIn());
-        addAction(VK_MINUS, "-", "Zoom out", ()->zoomOut());
-        addAction(VK_LEFT, "<", "Adjust Vertex Left", ()->moveVertex(-1, 0));
-        addAction(VK_RIGHT, ">", "Adjust Vertex Right", ()->moveVertex(1, 0));
-        addAction(VK_UP, "^", "Adjust Vertex Up", ()->moveVertex(0, -1));
-        addAction(VK_DOWN, "v", "Adjust Vertex Down", ()->moveVertex(0, 1));
+        addAction(Utils.toIntArray(VK_DELETE, VK_BACK_SPACE), "DELETE", "Remove Selected Item", () -> deleteSelected());
+        addAction(VK_TAB, "TAB", "Toggle Pick Modes", () -> setPickMode(Utils.incrementValue(pickMode, PickMode.values())));
+        addAction(VK_N, "N", "Toggle Show Numbers", () -> showNumbers = !showNumbers);
+        addAction(Utils.toIntArray(VK_PLUS, VK_EQUALS), "+", "Zoom in", () -> zoomIn());
+        addAction(VK_MINUS, "-", "Zoom out", () -> zoomOut());
+        addAction(VK_LEFT, "<", "Adjust Vertex Left", () -> moveVertex(-1, 0));
+        addAction(VK_RIGHT, ">", "Adjust Vertex Right", () -> moveVertex(1, 0));
+        addAction(VK_UP, "^", "Adjust Vertex Up", () -> moveVertex(0, -1));
+        addAction(VK_DOWN, "v", "Adjust Vertex Down", () -> moveVertex(0, 1));
+    }
+
+    void setShowNumbers(boolean show) {
+        showNumbers = show;
     }
 
     void zoomIn() {
@@ -894,8 +945,8 @@ public abstract class AWTBoardBuilder<V extends BVertex, E extends BEdge, C exte
 
     void zoomOut() {
         rect.scale(2);
-        rect.x=0;
-        rect.y=0;
+        rect.x = 0;
+        rect.y = 0;
         rect.w = Math.min(rect.w, getViewportWidth());
         rect.h=Math.min(rect.h, getViewportHeight());
         frame.setProperty("rect", rect);
@@ -945,13 +996,15 @@ public abstract class AWTBoardBuilder<V extends BVertex, E extends BEdge, C exte
 
     protected void moveVertex(float dx, float dy) {
         if (pickMode == PickMode.VERTEX && getSelectedIndex() >= 0) {
-            board.moveVertex(getSelectedIndex(), new Vector2D(dx, dy));
+            board.moveVertexBy(getSelectedIndex(), new Vector2D(dx, dy));
         }
     }
 
     @Override
     public final synchronized void keyPressed(KeyEvent evt) {
-        if (actions.containsKey(evt.getKeyCode())) {
+        if (tool != null && tool.onKeyTyped(evt.getKeyCode())) {
+            evt.consume();
+        } else if (actions.containsKey(evt.getKeyCode())) {
             actions.get(evt.getKeyCode()).action.run();
             evt.consume();
         } else if (actions.containsKey(evt.getExtendedKeyCode())) {
@@ -984,5 +1037,8 @@ public abstract class AWTBoardBuilder<V extends BVertex, E extends BEdge, C exte
         if (tools.contains(tool.name))
             throw new GException("A tool with name " + tool.name + " already exists");
         tools.add(tool);
+    }
+
+    protected void onCellAdded(C cell) {
     }
 }
