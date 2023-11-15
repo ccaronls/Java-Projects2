@@ -1,6 +1,5 @@
 package cc.lib.mirror.processor
 
-import com.google.devtools.ksp.KspExperimental
 import com.google.devtools.ksp.getClassDeclarationByName
 import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.*
@@ -18,16 +17,19 @@ class MirrorProcessor(
 
 	lateinit var resolver: Resolver
 
-	@OptIn(KspExperimental::class)
 	val collectionType by lazy {
 		resolver.getClassDeclarationByName("java.util.Collection")!!.asStarProjectedType()
 	}
 
-	@OptIn(KspExperimental::class)
 	val mirrorType by lazy {
 		resolver.getClassDeclarationByName(
 			"cc.lib.mirror.context.Mirrored")!!.asStarProjectedType().makeNullable()
 	}
+
+	val arrayType by lazy {
+		resolver.getClassDeclarationByName("kotlin.Array")!!.asStarProjectedType()
+	}
+
 
 	fun KSType.isMirrored(): Boolean {
 		return mirrorType.isAssignableFrom(this).also {
@@ -37,6 +39,18 @@ class MirrorProcessor(
 
 	fun KSType.isCollection(): Boolean {
 		return collectionType.isAssignableFrom(this)
+	}
+
+	fun KSType.isArray(): Boolean {
+		return arrayType.isAssignableFrom(this)
+	}
+
+	fun KSType.isEnum(): Boolean {
+		resolver.getClassDeclarationByName(this.declaration.qualifiedName!!)?.let {
+			return it.classKind == ClassKind.ENUM_CLASS
+		}
+		logger.error("cannot get Class Declaration for ${toString()}")
+		return false
 	}
 
 	fun getClassFileName(symbol: String): String {
@@ -50,16 +64,6 @@ class MirrorProcessor(
 	}
 
 	fun KSPropertyDeclaration.getName(): String = simpleName.asString()
-
-/*
-	private inline fun <reified T> KSType.isAssignableFrom(): Boolean {
-		val classDeclaration = requireNotNull(resolver.getClassDeclarationByName<T>()) {
-			"Unable to resolve ${KSClassDeclaration::class.simpleName} for type ${T::class.simpleName}"
-		}
-		val decl = classDeclaration.asStarProjectedType()
-		logger.warn("isAssignableFrom $this = $classDeclaration")
-		return isAssignableFrom(decl)
-	}*/
 
 	inner class Visitor(private val file: OutputStream) : KSVisitorVoid() {
 
@@ -133,8 +137,24 @@ class MirrorProcessor(
 				mapped.forEach { (prop, propType) ->
 					val nm = prop.simpleName.asString()
 					if (propType.isMirrored()) {
-						appendLn("writer.name(\"$nm\")")
-						appendLn("$nm?.toGson(writer)?:writer.nullValue()")
+						appendLns("""
+writer.name("$nm")
+$nm?.let {
+   writer.beginObject()
+   writer.name("type").value(getCanonicalName(it::class.java))
+   writer.name("value")
+   it.toGson(writer)
+   writer.endObject()
+}?:run {
+   writer.nullValue()
+}
+							""")
+					} else if (propType.isEnum()) {
+						if (propType.nullability != Nullability.NULLABLE) {
+							logger.error("enum property $nm must be nullable")
+							return@forEach
+						}
+						appendLn("writer.name(\"$nm\").value($nm?.name)")
 					} else {
 						val value = encode(nm, propType)
 						appendLn("writer.name(\"$nm\").value($value)")
@@ -156,20 +176,32 @@ class MirrorProcessor(
 				}
 
 				indent = i
-				mapped.forEach { prop, propType ->
+				mapped.forEach { (prop, propType) ->
 					val nm = prop.simpleName.asString()
 					if (propType.isMirrored()) {
-						appendLns("""
-"$nm" -> if (reader.peek() == JsonToken.NULL) {
+						appendLns(
+							""""$nm" -> if (reader.peek() == JsonToken.NULL) {
    $nm = null
    reader.nextNull()
 } else {
-   ${nm}?.fromGson(reader)?:run {
-      //$nm = ${propType.makeNotNullable()}().also {
-      //   it.fromGson(reader)
-      //}
-	  throw Exception("Not Implemented")
+   reader.beginObject()
+   reader.nextString("type")
+   val clazz = getClassForName(reader.nextString())
+   reader.nextString("value")
+   $nm?.fromGson(reader)?:run {
+	   $nm = (clazz.newInstance() as ${propType.makeNotNullable()}).also {
+		  it.fromGson(reader)
+	   }
    }
+   reader.endObject()
+}""")
+					} else if (propType.isEnum()) {
+						appendLns("""
+"$nm" -> if (reader.peek() == JsonToken.NULL) {
+   $nm = ${propType.defaultValue()}
+   reader.nextNull()
+} else {
+   $nm = enumValueOf<${propType.makeNotNullable()}>(reader.nextString())
 }""")
 					} else {
 						appendLns("""
@@ -229,11 +261,9 @@ ${printJsonReaderContent("              ")}
 		reader.endObject()
 	}
 	
-	fun toString(buffer: StringBuffer, indent: String) {
+	override fun toString(buffer: StringBuffer, indent: String) {
 ${printToStringContent("      ")}
 	}
-	
-	override fun toString() : String = StringBuffer().also { toString(it, "") }.toString()
 }				
 """)
 		}
@@ -258,10 +288,8 @@ ${printToStringContent("      ")}
 			// https://kotlinlang.org/docs/ksp-incremental.html
 			dependencies = Dependencies(false, *resolver.getAllFiles().toList().toTypedArray()),
 			packageName = options["package"] ?: "cc.mirror.impl",
-			fileName = "${getClassFileName(symbol.simpleName.asString())}"
+			fileName = getClassFileName(symbol.simpleName.asString())
 		)
-		//file.print("package cc.mirror\n")
-
 		symbol.accept(Visitor(file), Unit)
 		file.close()
 		return symbols

@@ -7,8 +7,16 @@ import com.google.gson.GsonBuilder
 import java.io.StringReader
 import java.io.StringWriter
 
+enum class TempEnum {
+	ONE,
+	TWO,
+	THREE
+}
+
 @Mirror("cc.library.mirrortest")
 interface IMirror : Mirrored {
+	var ee: TempEnum?
+	var ee2: TempEnum?
 	var a: Int?
 	var b: String?
 	var c: Float?
@@ -23,6 +31,9 @@ interface IMirror : Mirrored {
 	var l: Byte
 	val m: Short
 	var n: Char
+	//var arr: Array<Int>?
+//	var EE: TempEnum
+
 }
 
 @Mirror("cc.library.mirrortest")
@@ -43,6 +54,7 @@ class MirrorTest {
 
 			val mirror = MyMirror()
 			val writer = StringWriter()
+			mirror.ee2 = TempEnum.TWO
 			mirror.a = 100
 			mirror.b = "hello"
 			mirror.c = 2.5f
@@ -65,6 +77,19 @@ class MirrorTest {
 				newMirror.fromGson(this)
 				println("newMirror = $newMirror")
 			}
+
+			val mirror3 = object : Mirror2Impl() {}
+			mirror3.x = MyMirror()
+			println("mirror3 = $mirror3")
+
+			writer.buffer.setLength(0)
+			with(gson.newJsonWriter(writer)) {
+				mirror3.toGson(this)
+			}
+
+			println("buffer")
+			println(writer.buffer.toString())
+
 
 			val mirror2 = object : Mirror2Impl() {}
 			println("mirror2 = $mirror2")
