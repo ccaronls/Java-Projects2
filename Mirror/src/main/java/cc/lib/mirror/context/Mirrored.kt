@@ -6,11 +6,11 @@ import com.google.gson.stream.JsonWriter
 /**
  * Created by Chris Caron on 11/14/23.
  */
-abstract class Mirrored {
+interface Mirrored {
 
 //	abstract val isDirty : Boolean
 
-	abstract fun toGson(writer: JsonWriter)
+	fun toGson(writer: JsonWriter)
 
-	abstract fun fromGson(reader: JsonReader)
+	fun fromGson(reader: JsonReader)
 }

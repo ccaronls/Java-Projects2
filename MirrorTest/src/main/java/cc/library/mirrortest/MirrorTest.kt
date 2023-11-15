@@ -2,25 +2,35 @@ package cc.library.mirrortest
 
 import cc.lib.mirror.annotation.Mirror
 import cc.lib.mirror.context.MirrorContext
+import cc.lib.mirror.context.Mirrored
 import com.google.gson.GsonBuilder
 import java.io.StringReader
 import java.io.StringWriter
 
 @Mirror("cc.library.mirrortest")
-interface IMirror {
+interface IMirror : Mirrored {
 	var a: Int?
 	var b: String?
 	var c: Float?
 	var d: Long?
 	var e: Boolean?
+	var f: Byte?
+	var g: Int
+	var h: String
+	var i: Float
+	var j: Long
+	var k: Boolean
+	var l: Byte
+	val m: Short
+	var n: Char
 }
 
 @Mirror("cc.library.mirrortest")
-interface IMirror2 {
+interface IMirror2 : Mirrored {
 	var x: MirrorImpl?
 }
 
-class MyMirror(context: MirrorContext) : MirrorImpl(context)
+class MyMirror : MirrorImpl()
 
 class MirrorTest {
 	companion object {
@@ -31,7 +41,7 @@ class MirrorTest {
 
 			}
 
-			val mirror = MyMirror(context)
+			val mirror = MyMirror()
 			val writer = StringWriter()
 			mirror.a = 100
 			mirror.b = "hello"
@@ -51,12 +61,12 @@ class MirrorTest {
 			println(writer.buffer.toString())
 
 			with(gson.newJsonReader(StringReader(writer.buffer.toString()))) {
-				val newMirror = MyMirror(context)
+				val newMirror = MyMirror()
 				newMirror.fromGson(this)
 				println("newMirror = $newMirror")
 			}
 
-			val mirror2 = Mirror2Impl()
+			val mirror2 = object : Mirror2Impl() {}
 			println("mirror2 = $mirror2")
 
 			writer.buffer.setLength(0)
@@ -68,7 +78,7 @@ class MirrorTest {
 			println(writer.buffer.toString())
 
 			with(gson.newJsonReader(StringReader(writer.buffer.toString()))) {
-				val newMirror = Mirror2Impl(context)
+				val newMirror = object : Mirror2Impl() {}
 				newMirror.fromGson(this)
 				println("newMirror2 = $newMirror")
 			}
@@ -83,7 +93,7 @@ class MirrorTest {
 			println(writer.buffer.toString())
 
 			with(gson.newJsonReader(StringReader(writer.buffer.toString()))) {
-				val newMirror = Mirror2Impl(context)
+				val newMirror = object : Mirror2Impl() {}
 				newMirror.fromGson(this)
 				println("newMirror2 = $newMirror")
 			}

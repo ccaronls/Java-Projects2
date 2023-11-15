@@ -49,12 +49,8 @@ class MirrorProcessor(
 		write(s.toByteArray())
 	}
 
-	fun KSPropertyDeclaration.typeName(): String {
-		val nm = this.type.resolve().toString().trimEnd('?')
-		if (nm == "Float")
-			return "Double().toFloat"
-		return nm
-	}
+	fun KSPropertyDeclaration.getName(): String = simpleName.asString()
+
 /*
 	private inline fun <reified T> KSType.isAssignableFrom(): Boolean {
 		val classDeclaration = requireNotNull(resolver.getClassDeclarationByName<T>()) {
@@ -68,13 +64,12 @@ class MirrorProcessor(
 	inner class Visitor(private val file: OutputStream) : KSVisitorVoid() {
 
 		override fun visitClassDeclaration(classDeclaration: KSClassDeclaration, data: Unit) {
-			logger.warn("class declaration: $classDeclaration")
+			logger.warn("class declaration: $classDeclaration : ${classDeclaration.superTypes.joinToString()}")
 			if (classDeclaration.classKind != ClassKind.INTERFACE) {
 				logger.error("Only interface can be annotated with @Function", classDeclaration)
 				return
 			}
 
-			// Getting the @Function annotation object.
 			val annotation: KSAnnotation = classDeclaration.annotations.first {
 				it.shortName.asString() == "Mirror"
 			}
@@ -82,100 +77,165 @@ class MirrorProcessor(
 			val packageNameArgument: KSValueArgument = annotation.arguments
 				.first { arg -> arg.name?.asString() == "packageName" }
 
-			file.print("package ${packageNameArgument.value}\n\n")
-			file.print("import com.google.gson.*\n")
-			file.print("import com.google.gson.stream.*\n")
-			file.print("\n")
-			file.print("open class ${getClassFileName(classDeclaration.toString())}(var context : cc.lib.mirror.context.MirrorContext?=null) : ${classDeclaration}, cc.lib.mirror.context.Mirrored() {\n")
-
 			// Getting the list of member properties of the annotated interface.
 			val properties: Sequence<KSPropertyDeclaration> = classDeclaration.getAllProperties()
 				.filter { it.validate() }
 
-			properties.forEach { prop ->
-				visitPropertyDeclaration(prop, Unit)
-			}
-
 			val mapped = properties.map { Pair(it, it.type.resolve()) }.toMap()
 
-			file.print("\n   override fun toGson(writer: JsonWriter) {\n")
-			file.print("\n      writer.beginObject()\n")
-			mapped.forEach { prop, propType ->
-				val nm = prop.simpleName.asString()
-				if (propType.isMirrored()) {
-					file.print("\n     writer.name(\"$nm\")")
-					file.print("\n     $nm?.toGson(writer)?:writer.nullValue()")
-				} else
-					file.print("      writer.name(\"$nm\").value($nm)\n")
+			var indent = ""
+
+			fun StringBuffer.appendLn(txt: String) {
+				if (isNotEmpty())
+					append("\n")
+				append(indent).append(txt)
 			}
-			file.print("\n      writer.endObject()")
-			file.print("\n   }\n")
-			file.print("\n   override fun fromGson(reader: JsonReader) {")
-			file.print("\n      reader.beginObject()")
-			file.print("\n      while (reader.hasNext()) {")
-			file.print("\n         when (reader.nextName()) {\n")
-			mapped.forEach { prop, propType ->
-				val nm = prop.simpleName.asString()
-				if (propType.isMirrored()) {
-					file.print(
-						"""           "$nm" -> if (reader.peek() == JsonToken.NULL) {
-				$nm = null
-				reader.nextNull()
-			} else {
-				if ($nm == null) {
-					$nm = ${propType.makeNotNullable()}().also {
-						it.fromGson(reader)
+
+			fun StringBuffer.appendLns(txt: String) {
+				append(indent).append(txt.replace("\n", "\n$indent"))
+			}
+
+			fun KSType.defaultValue(): String {
+				if (nullability == Nullability.NULLABLE)
+					return "null"
+				when (toString()) {
+					"Byte",
+					"Short",
+					"Int" -> return "0"
+					"Long" -> return "0L"
+					"Float" -> return "0f"
+					"Double" -> return "0.0"
+					"Boolean" -> return "false"
+					"String" -> return "\"\""
+					"Char" -> return "'0'"
+				}
+				logger.error("No default type for $this")
+				return "error"
+			}
+
+			fun printDeclarations(i: String): String = StringBuffer().also {
+				indent = i
+				mapped.forEach { (prop, type) ->
+					//if (type.nullability != Nullability.NULLABLE)
+					//	logger.error("Only nullable properties allowed")
+					it.appendLn("override var ${prop.getName()} : ${type} = ${type.defaultValue()}")
+				}
+			}.toString()
+
+			fun printJsonWriterContent(i: String) = StringBuffer().apply {
+
+				fun encode(s: String, type: KSType): String = when (type.toString()) {
+					"Char" -> "\"$$s\""
+					else -> s
+				}
+
+				indent = i
+				mapped.forEach { (prop, propType) ->
+					val nm = prop.simpleName.asString()
+					if (propType.isMirrored()) {
+						appendLn("writer.name(\"$nm\")")
+						appendLn("$nm?.toGson(writer)?:writer.nullValue()")
+					} else {
+						val value = encode(nm, propType)
+						appendLn("writer.name(\"$nm\").value($value)")
 					}
 				}
+			}.toString()
+
+			fun printJsonReaderContent(i: String) = StringBuffer().apply {
+
+				fun KSType.typeName(): String {
+					val nm = toString().trimEnd('?')
+					return when (nm) {
+						"Float" -> "Double().toFloat"
+						"Short" -> "Int().toShort"
+						"Byte" -> "Int().toByte"
+						"Char" -> "String().first"
+						else -> nm
+					}
+				}
+
+				indent = i
+				mapped.forEach { prop, propType ->
+					val nm = prop.simpleName.asString()
+					if (propType.isMirrored()) {
+						appendLns("""
+"$nm" -> if (reader.peek() == JsonToken.NULL) {
+   $nm = null
+   reader.nextNull()
+} else {
+   ${nm}?.fromGson(reader)?:run {
+      //$nm = ${propType.makeNotNullable()}().also {
+      //   it.fromGson(reader)
+      //}
+	  throw Exception("Not Implemented")
+   }
+}""")
+					} else {
+						appendLns("""
+"$nm" -> if (reader.peek() == JsonToken.NULL) {
+   $nm = ${propType.defaultValue()}
+   reader.nextNull()
+} else {
+   $nm = reader.next${propType.typeName()}()
+}""")
+					}
+				}
+			}.toString()
+
+			fun printToStringContent(i: String): String = StringBuffer().apply {
+				indent = i
+				mapped.forEach { (prop, propType) ->
+					val nm = prop.simpleName.asString()
+					if (propType.isMirrored()) {
+						appendLn("buffer.append(indent).append(\"$nm = \")")
+						appendLn("if ($nm == null) buffer.append(\"null\")")
+						appendLn("else {")
+						appendLn("   buffer.append(\"{\\n\")")
+						appendLn("   $nm!!.toString(buffer, \"\$indent   \")")
+						appendLn("   buffer.append(indent).append(\"}\\n\")")
+						appendLn("}")
+					} else {
+						appendLn("buffer.append(indent).append(\"$nm = $$nm\\n\")")
+					}
+				}
+			}.toString()
+
+			file.print(
+				"""				
+package ${packageNameArgument.value}
+				
+import com.google.gson.*
+import com.google.gson.stream.*
+import cc.lib.mirror.context.*
+				
+abstract class ${getClassFileName(classDeclaration.toString())}() : MirrorImplBase(), ${classDeclaration} {				
+
+${printDeclarations("    ")}
+
+	override fun toGson(writer: JsonWriter) {
+		writer.beginObject()
+${printJsonWriterContent("        ")}		
+		writer.endObject()
+	}
+	
+	override fun fromGson(reader: JsonReader) {
+		reader.beginObject()
+		while (reader.hasNext()) {
+			when (reader.nextName()) {
+${printJsonReaderContent("              ")}			
 			}
+		}
+		reader.endObject()
+	}
+	
+	fun toString(buffer: StringBuffer, indent: String) {
+${printToStringContent("      ")}
+	}
+	
+	override fun toString() : String = StringBuffer().also { toString(it, "") }.toString()
+}				
 """)
-				} else {
-					//visitPropertyDeclaration(prop, Unit)
-					file.print("         \"$nm\" -> $nm = reader.next${prop.typeName()}()\n")
-				}
-			}
-			file.print("         }")
-			file.print("\n      }")
-			file.print("\n      reader.endObject()")
-			file.print("\n   }")
-			file.print("\n   fun toString(buffer: StringBuffer, indent: String) {")
-			mapped.forEach { prop, propType ->
-				//visitPropertyDeclaration(prop, Unit)
-				val nm = prop.simpleName.asString()
-				if (propType.isMirrored()) {
-					file.print("\n         buffer.append(indent).append(\"$nm = \")")
-					file.print("\n         if ($nm == null) buffer.append(\"null\")")
-					file.print("\n         else {")
-					file.print("\n            buffer.append(\"{\\n\")")
-					file.print("\n            $nm!!.toString(buffer, \"\$indent   \")")
-					file.print("\n            buffer.append(indent).append(\"}\\n\")")
-					file.print("\n         }")
-				} else {
-					file.print("\n         buffer.append(indent).append(\"$nm = $$nm\\n\")")
-				}
-			}
-			file.print("\n   }")
-			file.print("\n\n   override fun toString() : String = StringBuffer().also { toString(it, \"\") }.toString()")
-			file.print("\n}")
-
-		}
-
-		override fun visitTypeReference(typeReference: KSTypeReference, data: Unit) {
-			logger.warn("visitTypeReference $typeReference")
-		}
-
-		override fun visitPropertyDeclaration(property: KSPropertyDeclaration, data: Unit) {
-			if (property.type.resolve().nullability != Nullability.NULLABLE)
-				logger.error("Only nullable properties allowed")
-			file.print("   override var ${property.simpleName.asString()} : ${property.type}? = null\n")
-		}
-
-		override fun visitTypeArgument(typeArgument: KSTypeArgument, data: Unit) {
-			logger.warn("visitTypeArgument $typeArgument")
-		}
-
-		override fun visitDeclaration(declaration: KSDeclaration, data: Unit) {
-			logger.warn("visitDeclaration $declaration")
 		}
 	}
 
@@ -197,7 +257,7 @@ class MirrorProcessor(
 			// Learn more about incremental processing in KSP from the official docs:
 			// https://kotlinlang.org/docs/ksp-incremental.html
 			dependencies = Dependencies(false, *resolver.getAllFiles().toList().toTypedArray()),
-			packageName = "cc.mirror.impl",
+			packageName = options["package"] ?: "cc.mirror.impl",
 			fileName = "${getClassFileName(symbol.simpleName.asString())}"
 		)
 		//file.print("package cc.mirror\n")

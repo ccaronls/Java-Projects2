@@ -387,6 +387,7 @@ negamax(rootNode, depth, −1)
 		printMovesListToLog()
 	}
 
+
 	// Negamax with alpha - beta pruning simple
 	/*
     function negamax(node, depth, α, β, color) is
