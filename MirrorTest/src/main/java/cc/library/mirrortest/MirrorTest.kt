@@ -1,45 +1,8 @@
 package cc.library.mirrortest
 
-import cc.lib.mirror.annotation.Mirror
-import cc.lib.mirror.context.MirrorContext
-import cc.lib.mirror.context.Mirrored
 import com.google.gson.GsonBuilder
 import java.io.StringReader
 import java.io.StringWriter
-
-enum class TempEnum {
-	ONE,
-	TWO,
-	THREE
-}
-
-@Mirror("cc.library.mirrortest")
-interface IMirror : Mirrored {
-	var ee: TempEnum?
-	var ee2: TempEnum?
-	var a: Int?
-	var b: String?
-	var c: Float?
-	var d: Long?
-	var e: Boolean?
-	var f: Byte?
-	var g: Int
-	var h: String
-	var i: Float
-	var j: Long
-	var k: Boolean
-	var l: Byte
-	val m: Short
-	var n: Char
-	//var arr: Array<Int>?
-//	var EE: TempEnum
-
-}
-
-@Mirror("cc.library.mirrortest")
-interface IMirror2 : Mirrored {
-	var x: MirrorImpl?
-}
 
 class MyMirror : MirrorImpl()
 
@@ -47,10 +10,6 @@ class MirrorTest {
 	companion object {
 		@JvmStatic
 		fun main(args: Array<String>) {
-
-			val context = object : MirrorContext {
-
-			}
 
 			val mirror = MyMirror()
 			val writer = StringWriter()
@@ -122,6 +81,16 @@ class MirrorTest {
 				newMirror.fromGson(this)
 				println("newMirror2 = $newMirror")
 			}
+
+			mirror.markClean()
+			mirror.a = 1001
+			writer.buffer.setLength(0)
+			with(gson.newJsonWriter(writer)) {
+				mirror.toGson(this, true)
+			}
+
+			println("buffer")
+			println(writer.buffer.toString())
 
 		}
 	}

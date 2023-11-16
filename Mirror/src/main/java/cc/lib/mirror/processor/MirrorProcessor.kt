@@ -32,9 +32,7 @@ class MirrorProcessor(
 
 
 	fun KSType.isMirrored(): Boolean {
-		return mirrorType.isAssignableFrom(this).also {
-			logger.warn("isMirrored $this =?= $mirrorType is $it")
-		}
+		return mirrorType.isAssignableFrom(this)
 	}
 
 	fun KSType.isCollection(): Boolean {
@@ -64,6 +62,8 @@ class MirrorProcessor(
 	}
 
 	fun KSPropertyDeclaration.getName(): String = simpleName.asString()
+
+	fun KSPropertyDeclaration.getDirtyName(): String = "_${simpleName.asString()}DirtyFlag"
 
 	inner class Visitor(private val file: OutputStream) : KSVisitorVoid() {
 
@@ -122,7 +122,13 @@ class MirrorProcessor(
 				mapped.forEach { (prop, type) ->
 					//if (type.nullability != Nullability.NULLABLE)
 					//	logger.error("Only nullable properties allowed")
-					it.appendLn("override var ${prop.getName()} : ${type} = ${type.defaultValue()}")
+					val dirty = prop.getDirtyName()
+					it.appendLn("private var $dirty = true")
+					it.appendLn("override var ${prop.getName()} : $type = ${type.defaultValue()}")
+					it.appendLn("   set(value) {")
+					it.appendLn("      $dirty = $dirty || (value != field)")
+					it.appendLn("      field = value")
+					it.appendLn("   }")
 				}
 			}.toString()
 
@@ -137,27 +143,31 @@ class MirrorProcessor(
 				mapped.forEach { (prop, propType) ->
 					val nm = prop.simpleName.asString()
 					if (propType.isMirrored()) {
-						appendLns("""
-writer.name("$nm")
-$nm?.let {
-   writer.beginObject()
-   writer.name("type").value(getCanonicalName(it::class.java))
-   writer.name("value")
-   it.toGson(writer)
-   writer.endObject()
-}?:run {
-   writer.nullValue()
+						appendLns(
+							"""if (!dirtyOnly || ${prop.getDirtyName()}) {
+	writer.name("$nm")
+	$nm?.let {
+	   writer.beginObject()
+	   writer.name("type").value(getCanonicalName(it::class.java))
+	   writer.name("value")
+	   it.toGson(writer)
+	   writer.endObject()
+	}?:run {
+	   writer.nullValue()
+	}
 }
-							""")
+""")
 					} else if (propType.isEnum()) {
 						if (propType.nullability != Nullability.NULLABLE) {
 							logger.error("enum property $nm must be nullable")
 							return@forEach
 						}
-						appendLn("writer.name(\"$nm\").value($nm?.name)")
+						appendLn("if (!dirtyOnly || ${prop.getDirtyName()})")
+						appendLn("   writer.name(\"$nm\").value($nm?.name)")
 					} else {
 						val value = encode(nm, propType)
-						appendLn("writer.name(\"$nm\").value($value)")
+						appendLn("if (!dirtyOnly || ${prop.getDirtyName()})")
+						appendLn("   writer.name(\"$nm\").value($value)")
 					}
 				}
 			}.toString()
@@ -180,10 +190,7 @@ $nm?.let {
 					val nm = prop.simpleName.asString()
 					if (propType.isMirrored()) {
 						appendLns(
-							""""$nm" -> if (reader.peek() == JsonToken.NULL) {
-   $nm = null
-   reader.nextNull()
-} else {
+							""""$nm" -> $nm = checkForNullOr(reader, null) { reader ->
    reader.beginObject()
    reader.nextString("type")
    val clazz = getClassForName(reader.nextString())
@@ -194,22 +201,17 @@ $nm?.let {
 	   }
    }
    reader.endObject()
+   $nm
 }""")
 					} else if (propType.isEnum()) {
 						appendLns("""
-"$nm" -> if (reader.peek() == JsonToken.NULL) {
-   $nm = ${propType.defaultValue()}
-   reader.nextNull()
-} else {
-   $nm = enumValueOf<${propType.makeNotNullable()}>(reader.nextString())
+"$nm" -> $nm = checkForNullOr(reader, null) {
+   enumValueOf<${propType.makeNotNullable()}>(reader.nextString())
 }""")
 					} else {
 						appendLns("""
-"$nm" -> if (reader.peek() == JsonToken.NULL) {
-   $nm = ${propType.defaultValue()}
-   reader.nextNull()
-} else {
-   $nm = reader.next${propType.typeName()}()
+"$nm" -> $nm = checkForNullOr(reader, ${propType.defaultValue()}) {
+   reader.next${propType.typeName()}()
 }""")
 					}
 				}
@@ -224,13 +226,25 @@ $nm?.let {
 						appendLn("if ($nm == null) buffer.append(\"null\")")
 						appendLn("else {")
 						appendLn("   buffer.append(\"{\\n\")")
-						appendLn("   $nm!!.toString(buffer, \"\$indent   \")")
+						appendLn("   $nm!!.toString(buffer, \"\$indent\$INDENT\")")
 						appendLn("   buffer.append(indent).append(\"}\\n\")")
 						appendLn("}")
 					} else {
 						appendLn("buffer.append(indent).append(\"$nm = $$nm\\n\")")
 					}
 				}
+			}.toString()
+
+			fun printMarkCleanContent(i: String): String = StringBuffer().apply {
+				indent = i
+				mapped.keys.forEach {
+					appendLn("${it.getDirtyName()} = false")
+				}
+			}.toString()
+
+			fun printIsDirtyContent(i: String): String = StringBuffer().apply {
+				indent = i
+				appendLn("return " + mapped.keys.map { it.getDirtyName() }.toList().joinToString(" || "))
 			}.toString()
 
 			file.print(
@@ -245,7 +259,7 @@ abstract class ${getClassFileName(classDeclaration.toString())}() : MirrorImplBa
 
 ${printDeclarations("    ")}
 
-	override fun toGson(writer: JsonWriter) {
+	override fun toGson(writer: JsonWriter, dirtyOnly: Boolean) {
 		writer.beginObject()
 ${printJsonWriterContent("        ")}		
 		writer.endObject()
@@ -259,6 +273,14 @@ ${printJsonReaderContent("              ")}
 			}
 		}
 		reader.endObject()
+	}
+	
+	override fun markClean() {
+${printMarkCleanContent("      ")}
+	}
+	
+	override fun isDirty() : Boolean {
+${printIsDirtyContent("      ")}
 	}
 	
 	override fun toString(buffer: StringBuffer, indent: String) {

@@ -10,7 +10,11 @@ interface Mirrored {
 
 //	abstract val isDirty : Boolean
 
-	fun toGson(writer: JsonWriter)
+	fun toGson(writer: JsonWriter, dirtyOnly: Boolean = false)
 
 	fun fromGson(reader: JsonReader)
+
+	fun markClean()
+
+	fun isDirty(): Boolean
 }
