@@ -8,8 +8,6 @@ import com.google.gson.stream.JsonWriter
  */
 interface Mirrored {
 
-//	abstract val isDirty : Boolean
-
 	fun toGson(writer: JsonWriter, dirtyOnly: Boolean = false)
 
 	fun fromGson(reader: JsonReader)

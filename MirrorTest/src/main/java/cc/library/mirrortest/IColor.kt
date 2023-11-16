@@ -4,8 +4,10 @@ import cc.lib.mirror.annotation.DirtyType
 import cc.lib.mirror.annotation.Mirror
 import cc.lib.mirror.context.Mirrored
 
-@Mirror("cc.library.mirrortest", DirtyType.ANY)
-interface IMirror2 : Mirrored {
-	var x: MirrorImpl?
-	var y: String
+/**
+ * Created by Chris Caron on 11/16/23.
+ */
+@Mirror("cc.library.mirrortest", DirtyType.NEVER)
+interface IColor : Mirrored {
+	var argb: Int
 }

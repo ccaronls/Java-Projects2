@@ -1,5 +1,6 @@
 package cc.lib.mirror.processor
 
+import cc.lib.mirror.annotation.DirtyType
 import com.google.devtools.ksp.getClassDeclarationByName
 import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.*
@@ -63,14 +64,23 @@ class MirrorProcessor(
 
 	fun KSPropertyDeclaration.getName(): String = simpleName.asString()
 
-	fun KSPropertyDeclaration.getDirtyName(): String = "_${simpleName.asString()}DirtyFlag"
+//	fun KSPropertyDeclaration.getDirtyName(): String = "_${simpleName.asString()}DirtyFlag"
 
 	inner class Visitor(private val file: OutputStream) : KSVisitorVoid() {
 
 		override fun visitClassDeclaration(classDeclaration: KSClassDeclaration, data: Unit) {
-			logger.warn("class declaration: $classDeclaration : ${classDeclaration.superTypes.joinToString()}")
+			logger.warn("class declaration: $classDeclaration : ${
+				classDeclaration.superTypes.map {
+					it.resolve().toString()
+				}.joinToString()
+			}")
 			if (classDeclaration.classKind != ClassKind.INTERFACE) {
-				logger.error("Only interface can be annotated with @Function", classDeclaration)
+				logger.error("Only interface can be annotated with @Mirror", classDeclaration)
+				return
+			}
+
+			classDeclaration.superTypes.firstOrNull { it.resolve().isMirrored() } ?: run {
+				logger.error("Must have cc.lib.mirror.context.Mirrored as a supertype", classDeclaration)
 				return
 			}
 
@@ -78,9 +88,13 @@ class MirrorProcessor(
 				it.shortName.asString() == "Mirror"
 			}
 
-			val packageNameArgument: KSValueArgument = annotation.arguments
-				.first { arg -> arg.name?.asString() == "packageName" }
+			val packageName: String = annotation.arguments
+				.first { arg -> arg.name?.asString() == "packageName" }.value as String
 
+			val dirtyType: DirtyType = DirtyType.valueOf((annotation.arguments
+				.first { arg -> arg.name?.asString() == "dirtyType" }.value as KSType).toString().substringAfterLast('.'))
+
+			logger.warn("dirtyType = $dirtyType")
 			// Getting the list of member properties of the annotated interface.
 			val properties: Sequence<KSPropertyDeclaration> = classDeclaration.getAllProperties()
 				.filter { it.validate() }
@@ -117,18 +131,36 @@ class MirrorProcessor(
 				return "error"
 			}
 
+			val DIRTY_FLAG_FIELD = "_dirtyFlag"
+
 			fun printDeclarations(i: String): String = StringBuffer().also {
 				indent = i
-				mapped.forEach { (prop, type) ->
+				when (dirtyType) {
+					DirtyType.NEVER -> Unit
+					DirtyType.COMPLEX -> it.appendLn("private val $DIRTY_FLAG_FIELD = java.util.BitSet(${mapped.size})")
+					DirtyType.ANY -> it.append("private var $DIRTY_FLAG_FIELD = false")
+				}
+				mapped.toList().forEachIndexed { index, pair ->
+					val prop = pair.first
+					val type = pair.second
 					//if (type.nullability != Nullability.NULLABLE)
 					//	logger.error("Only nullable properties allowed")
-					val dirty = prop.getDirtyName()
-					it.appendLn("private var $dirty = true")
 					it.appendLn("override var ${prop.getName()} : $type = ${type.defaultValue()}")
-					it.appendLn("   set(value) {")
-					it.appendLn("      $dirty = $dirty || (value != field)")
-					it.appendLn("      field = value")
-					it.appendLn("   }")
+					when (dirtyType) {
+						DirtyType.NEVER -> Unit
+						DirtyType.COMPLEX -> {
+							it.appendLn("   set(value) {")
+							it.appendLn("      if (value != field) $DIRTY_FLAG_FIELD.set($index)")
+							it.appendLn("      field = value")
+							it.appendLn("   }")
+						}
+						DirtyType.ANY -> {
+							it.appendLn("   set(value) {")
+							it.appendLn("      $DIRTY_FLAG_FIELD = $DIRTY_FLAG_FIELD || (value != field)")
+							it.appendLn("      field = value")
+							it.appendLn("   }")
+						}
+					}
 				}
 			}.toString()
 
@@ -140,12 +172,19 @@ class MirrorProcessor(
 				}
 
 				indent = i
-				mapped.forEach { (prop, propType) ->
+				mapped.toList().forEachIndexed { index, pair ->
+					val prop = pair.first
+					val propType = pair.second
 					val nm = prop.simpleName.asString()
 					if (propType.isMirrored()) {
+						when (dirtyType) {
+							DirtyType.NEVER -> appendLn("if (true) {")
+							DirtyType.ANY -> appendLn("if (!dirtyOnly || $DIRTY_FLAG_FIELD || $nm?.isDirty() == true) {")
+							DirtyType.COMPLEX -> appendLn("if (!dirtyOnly || $DIRTY_FLAG_FIELD.get($index) || $nm?.isDirty() == true) {")
+						}
 						appendLns(
-							"""if (!dirtyOnly || ${prop.getDirtyName()}) {
-	writer.name("$nm")
+							"""
+    writer.name("$nm")
 	$nm?.let {
 	   writer.beginObject()
 	   writer.name("type").value(getCanonicalName(it::class.java))
@@ -160,13 +199,21 @@ class MirrorProcessor(
 					} else if (propType.isEnum()) {
 						if (propType.nullability != Nullability.NULLABLE) {
 							logger.error("enum property $nm must be nullable")
-							return@forEach
+							return@forEachIndexed
 						}
-						appendLn("if (!dirtyOnly || ${prop.getDirtyName()})")
+						when (dirtyType) {
+							DirtyType.NEVER -> Unit
+							DirtyType.ANY -> appendLn("if (!dirtyOnly || $DIRTY_FLAG_FIELD)")
+							DirtyType.COMPLEX -> appendLn("if (!dirtyOnly || $DIRTY_FLAG_FIELD.get($index))")
+						}
 						appendLn("   writer.name(\"$nm\").value($nm?.name)")
 					} else {
 						val value = encode(nm, propType)
-						appendLn("if (!dirtyOnly || ${prop.getDirtyName()})")
+						when (dirtyType) {
+							DirtyType.NEVER -> Unit
+							DirtyType.ANY -> appendLn("if (!dirtyOnly || $DIRTY_FLAG_FIELD)")
+							DirtyType.COMPLEX -> appendLn("if (!dirtyOnly || $DIRTY_FLAG_FIELD.get($index))")
+						}
 						appendLn("   writer.name(\"$nm\").value($value)")
 					}
 				}
@@ -175,8 +222,7 @@ class MirrorProcessor(
 			fun printJsonReaderContent(i: String) = StringBuffer().apply {
 
 				fun KSType.typeName(): String {
-					val nm = toString().trimEnd('?')
-					return when (nm) {
+					return when (val nm = toString().trimEnd('?')) {
 						"Float" -> "Double().toFloat"
 						"Short" -> "Int().toShort"
 						"Byte" -> "Int().toByte"
@@ -237,25 +283,51 @@ class MirrorProcessor(
 
 			fun printMarkCleanContent(i: String): String = StringBuffer().apply {
 				indent = i
-				mapped.keys.forEach {
-					appendLn("${it.getDirtyName()} = false")
+				when (dirtyType) {
+					DirtyType.NEVER -> Unit
+					DirtyType.ANY -> {
+						appendLn("$DIRTY_FLAG_FIELD = false")
+					}
+					DirtyType.COMPLEX -> {
+						appendLn("$DIRTY_FLAG_FIELD.clear()")
+					}
+				}
+				mapped.filter { it.value.isMirrored() }.keys.forEach {
+					appendLn("${it.getName()}?.markClean()")
 				}
 			}.toString()
 
 			fun printIsDirtyContent(i: String): String = StringBuffer().apply {
 				indent = i
-				appendLn("return " + mapped.keys.map { it.getDirtyName() }.toList().joinToString(" || "))
+				when (dirtyType) {
+					DirtyType.NEVER -> appendLn("return false")
+					DirtyType.ANY -> {
+						appendLn("if ($DIRTY_FLAG_FIELD) return true")
+						mapped.filter { it.value.isMirrored() }.keys.map {
+							appendLn("if (${it.getName()}?.isDirty() == true)")
+							appendLn("   $DIRTY_FLAG_FIELD = true")
+						}
+						appendLn("return $DIRTY_FLAG_FIELD")
+					}
+					DirtyType.COMPLEX -> {
+						append("${indent}return !$DIRTY_FLAG_FIELD.isEmpty()")
+						mapped.filter { it.value.isMirrored() }.keys.map {
+							append("|| ${it.getName()}?.isDirty() == true")
+						}
+						append("\n")
+					}
+				}
 			}.toString()
 
 			file.print(
 				"""				
-package ${packageNameArgument.value}
+package $packageName
 				
 import com.google.gson.*
 import com.google.gson.stream.*
 import cc.lib.mirror.context.*
 				
-abstract class ${getClassFileName(classDeclaration.toString())}() : MirrorImplBase(), ${classDeclaration} {				
+abstract class ${getClassFileName(classDeclaration.toString())}() : MirrorImplBase(), $classDeclaration {				
 
 ${printDeclarations("    ")}
 
