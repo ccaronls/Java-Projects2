@@ -46,5 +46,13 @@ abstract class MirrorImplBase {
 				return defaultValue
 			} else return orElse(reader)
 		}
+
+		fun isContentsEquals(m0: Mirrored?, m1: Any?): Boolean {
+			if (m0 === m1)
+				return true
+			if (m0 == null)
+				return false
+			return m0.contentEquals(m1)
+		}
 	}
 }
