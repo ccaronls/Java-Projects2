@@ -15,4 +15,10 @@ interface Mirrored {
 	fun markClean()
 
 	fun isDirty(): Boolean
+
+	fun toString(buffer: StringBuffer, indent: String) {
+		buffer.append(indent).append(toString())
+	}
+
+	fun contentEquals(other: Any?): Boolean
 }

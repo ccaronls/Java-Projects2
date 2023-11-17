@@ -34,12 +34,17 @@ class MirrorContextOwner : MirrorContext() {
 		receiver.notify(buffer.buffer)
 	}
 
-	fun push() {
+	fun push(dirtyOnly: Boolean = true) {
 		buffer.buffer.setLength(0)
-		write(gson.newJsonWriter(buffer), true)
+		write(gson.newJsonWriter(buffer), dirtyOnly)
+		markClean()
 		receivers.forEach {
 			it.notify(buffer.buffer)
 		}
+	}
+
+	override fun toString(): String {
+		return buffer.buffer.toString()
 	}
 
 }

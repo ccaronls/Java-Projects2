@@ -4,7 +4,7 @@ import com.google.gson.JsonParseException
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonWriter
 
-fun JsonReader.nextString(value: String) {
+fun JsonReader.nextName(value: String) {
 	val name = nextName()
 	if (name != value)
 		throw JsonParseException("Expecting '$value' but found '$name'")

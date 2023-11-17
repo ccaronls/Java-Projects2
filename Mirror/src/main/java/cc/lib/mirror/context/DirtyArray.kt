@@ -60,7 +60,7 @@ abstract class DirtyArray<T>(protected val array: Array<T>) {
 		var indices: Array<Int> = when (reader.nextString()) {
 			"size" -> {
 				val sz = reader.nextInt()
-				reader.nextString("indices")
+				reader.nextName("indices")
 				reader.beginArray()
 				Array(sz) { reader.nextInt() }.also {
 					reader.endArray()

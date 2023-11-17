@@ -21,6 +21,17 @@ interface IMirror : Mirrored {
 	var l: Byte
 	val m: Short
 	var n: Char
+	var enumList: MutableList<TempEnum>
+	var charList: MutableList<Char>
+	var intList: MutableList<Int>
+	var stringList: MutableList<String>
+	var floatList: MutableList<Float>
+	var doubleList: MutableList<Double>
+	var longList: MutableList<Long>
+	var boolList: MutableList<Boolean>
+	var byteList: MutableList<Byte>
+	var shortList: MutableList<Short>
+	var mirrorList: MutableList<Mirrored>
 	//var arr: Array<Int>?
 //	var EE: TempEnum
 
