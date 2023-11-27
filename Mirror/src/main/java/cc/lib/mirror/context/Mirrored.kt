@@ -21,4 +21,6 @@ interface Mirrored {
 	}
 
 	fun contentEquals(other: Any?): Boolean
+
+	fun getFunctionDelegate(): FunctionDelegate? = null
 }

@@ -4,11 +4,18 @@ import com.google.gson.JsonParseException
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonWriter
 
-fun JsonReader.nextName(value: String) {
+fun JsonReader.nextName(value: String): JsonReader {
 	val name = nextName()
 	if (name != value)
 		throw JsonParseException("Expecting '$value' but found '$name'")
+	return this
 }
+
+interface FunctionExecutor {
+	fun start(functionName: String): JsonWriter
+	fun end()
+}
+
 
 /**
  * Created by Chris Caron on 11/14/23.
@@ -19,7 +26,42 @@ open class MirrorContext {
 
 	fun registerSharedObject(name: String, obj: Mirrored) {
 		mirrors[name] = obj
+		if (isOwner()) {
+
+			obj.getFunctionDelegate()?.executor = object : FunctionExecutor {
+
+				lateinit var writer: JsonWriter
+
+				override fun start(functionName: String): JsonWriter {
+					writer = getFunctionWriter()
+					writer.beginObject()
+					writer.name("function").value(functionName)
+					writer.name("params")
+					writer.beginArray()
+					return writer
+				}
+
+				override fun end() {
+					writer.endArray()
+					writer.endObject()
+					executeFunction(name)
+				}
+			}
+		}
 	}
+
+	fun executeLocally(name: String, reader: JsonReader) {
+		reader.beginObject()
+		val function = reader.nextName("function").nextString()
+		reader.nextName("params")
+		reader.beginArray()
+		mirrors[name]?.getFunctionDelegate()?.executeLocally(function, reader) ?: run {
+			error("Cannot execute function on $name")
+		}
+		reader.endArray()
+		reader.endObject()
+	}
+
 
 	fun unregister(name: String) {
 		mirrors.remove(name)
@@ -49,6 +91,16 @@ open class MirrorContext {
 			it.markClean()
 		}
 	}
+
+	protected open fun getFunctionWriter(): JsonWriter {
+		TODO()
+	}
+
+	protected open fun executeFunction(name: String) {
+		TODO()
+	}
+
+	open fun isOwner() = false
 
 	fun clear() {
 		mirrors.clear()

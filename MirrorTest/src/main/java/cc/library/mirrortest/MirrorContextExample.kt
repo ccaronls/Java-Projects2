@@ -2,6 +2,7 @@ package cc.library.mirrortest
 
 import cc.lib.mirror.context.MirrorContext
 import com.google.gson.GsonBuilder
+import com.google.gson.stream.JsonWriter
 import java.io.StringReader
 import java.io.StringWriter
 
@@ -40,6 +41,20 @@ class MirrorContextOwner : MirrorContext() {
 		markClean()
 		receivers.forEach {
 			it.notify(buffer.buffer)
+		}
+	}
+
+	override fun isOwner() = true
+
+	override fun getFunctionWriter(): JsonWriter {
+		buffer.buffer.setLength(0)
+		return gson.newJsonWriter(buffer)
+	}
+
+	override fun executeFunction(name: String) {
+		println("buffer = $buffer")
+		receivers.forEach {
+			it.executeLocally(name, gson.newJsonReader(StringReader(buffer.toString())))
 		}
 	}
 

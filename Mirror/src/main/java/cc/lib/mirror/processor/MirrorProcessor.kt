@@ -27,10 +27,14 @@ class MirrorProcessor(
 			"cc.lib.mirror.context.Mirrored")!!.asStarProjectedType().makeNullable()
 	}
 
+	val mirroredArrayType by lazy {
+		resolver.getClassDeclarationByName(
+			"cc.lib.mirror.context.MirroredArray")!!.asStarProjectedType().makeNullable()
+	}
+
 	val arrayType by lazy {
 		resolver.getClassDeclarationByName("kotlin.Array")!!.asStarProjectedType()
 	}
-
 
 	fun KSType.isMirrored(): Boolean {
 		return mirrorType.isAssignableFrom(this)
@@ -42,6 +46,10 @@ class MirrorProcessor(
 
 	fun KSType.isArray(): Boolean {
 		return arrayType.isAssignableFrom(this)
+	}
+
+	fun KSType.isMirroredArray(): Boolean {
+		return mirroredArrayType.isAssignableFrom(this)
 	}
 
 	fun KSType.isEnum(): Boolean {
@@ -88,9 +96,6 @@ class MirrorProcessor(
 				it.shortName.asString() == "Mirror"
 			}
 
-			val packageName: String = annotation.arguments
-				.first { arg -> arg.name?.asString() == "packageName" }.value as String
-
 			val dirtyType: DirtyType = DirtyType.valueOf((annotation.arguments
 				.first { arg -> arg.name?.asString() == "dirtyType" }.value as KSType).toString().substringAfterLast('.'))
 
@@ -98,6 +103,23 @@ class MirrorProcessor(
 			// Getting the list of member properties of the annotated interface.
 			val properties: Sequence<KSPropertyDeclaration> = classDeclaration.getAllProperties()
 				.filter { it.validate() }
+
+			val methods = classDeclaration.getAllFunctions().filter {
+				it.annotations.firstOrNull { it.shortName.asString() == "MirroredFunction" } != null && it.validate()
+			}.toList()
+
+			methods.forEach { funcDecl ->
+				if (funcDecl.modifiers.contains(Modifier.SUSPEND)) {
+					logger.error("Function $funcDecl must not have suspend modifier")
+					return@forEach
+				}
+
+				val rt = funcDecl.returnType?.resolve()!!
+				if (rt.toString() != "Unit" && !rt.isMarkedNullable) {
+					logger.error("Function $funcDecl must have Unit or nullable return type")
+					return@forEach
+				}
+			}
 
 			val mapped = properties.map { Pair(it, it.type.resolve()) }.toMap()
 
@@ -113,6 +135,16 @@ class MirrorProcessor(
 				append(indent).append(txt.replace("\n", "\n$indent"))
 			}
 
+			fun KSType.gsonTypeName(): String {
+				return "next" + when (val nm = toString().trimEnd('?')) {
+					"Float" -> "Double().toFloat"
+					"Short" -> "Int().toShort"
+					"Byte" -> "Int().toByte"
+					"Char" -> "String().first"
+					else -> nm
+				}
+			}
+
 			fun KSType.defaultValue(): String {
 				if (nullability == Nullability.NULLABLE)
 					return "null"
@@ -126,15 +158,24 @@ class MirrorProcessor(
 					"Boolean" -> return "false"
 					"String" -> return "\"\""
 					"Char" -> return "'0'"
-					"MutableList<Int>" -> return "DirtyListInt()"
-					"MutableList<Long>" -> return "DirtyListLong()"
-					"MutableList<Float>" -> return "DirtyListFloat()"
-					"MutableList<Double>" -> return "DirtyListDouble()"
-					"MutableList<String>" -> return "DirtyListString()"
-					"MutableList<Char>" -> return "DirtyListChar()"
-					"MutableList<Byte>" -> return "DirtyListByte()"
-					"MutableList<Short>" -> return "DirtyListShort()"
-					"MutableList<Boolean>" -> return "DirtyListBoolean()"
+					"List<Int>", "List<Int>", "MutableList<Int>" -> return "DirtyListInt()"
+					"List<Long>", "MutableList<Long>" -> return "DirtyListLong()"
+					"List<Float>", "MutableList<Float>" -> return "DirtyListFloat()"
+					"List<Double>", "MutableList<Double>" -> return "DirtyListDouble()"
+					"List<String>", "MutableList<String>" -> return "DirtyListString()"
+					"List<Char>", "MutableList<Char>" -> return "DirtyListChar()"
+					"List<Byte>", "MutableList<Byte>" -> return "DirtyListByte()"
+					"List<Short>", "MutableList<Short>" -> return "DirtyListShort()"
+					"List<Boolean>", "MutableList<Boolean>" -> return "DirtyListBoolean()"
+					"MirroredArray<Int>" -> return "DirtyArrayInt()"
+					"MirroredArray<Long>" -> return "DirtyArrayLong()"
+					"MirroredArray<Float>" -> return "DirtyArrayFloat()"
+					"MirroredArray<Double>" -> return "DirtyArrayDouble()"
+					"MirroredArray<String>" -> return "DirtyArrayString()"
+					"MirroredArray<Char>" -> return "DirtyArrayChar()"
+					"MirroredArray<Byte>" -> return "DirtyArrayByte()"
+					"MirroredArray<Short>" -> return "DirtyArrayShort()"
+					"MirroredArray<Boolean>" -> return "DirtyArrayBoolean()"
 				}
 				logger.error("No default type for $this")
 				return "error"
@@ -152,26 +193,24 @@ class MirrorProcessor(
 				mapped.toList().forEachIndexed { index, pair ->
 					val prop = pair.first
 					val type = pair.second
-					if (type.isList()) {
-						logger.warn(
-							"""type: ${prop.getName()} 
-	is List with decl: ${type.declaration} and 
-	type params: ${type.arguments[0].type!!.resolve()}")
-	""")
+					val name = prop.getName()
+					if (type.isArray()) {
+						logger.error("standard Arrays not supported. Use MirroredArray")
+					} else if (type.isList()) {
 						val argType = type.arguments[0].type!!.resolve().starProjection()
 						logger.warn("list argType: $argType, isEnum=${argType.isEnum()}")
 						var field = "DirtyList$argType(value)"
 						if (argType.isEnum()) {
 							field = "DirtyListEnum($argType.values(), value)"
-							it.appendLn("override var ${prop.getName()} : $type = DirtyListEnum($argType.values())")
+							it.appendLn("override var $name : $type = DirtyListEnum($argType.values())")
 						} else if (argType.isMirrored()) {
 							field = "DirtyListMirrored(value)"
-							it.appendLn("override var ${prop.getName()} : $type = DirtyListMirrored()")
+							it.appendLn("override var $name : $type = DirtyListMirrored()")
 						} else if (argType.isList()) {
 							field = "DirtyListList(value)"
-							it.appendLn("override var ${prop.getName()} : $type = DirtyListList()")
+							it.appendLn("override var $name : $type = DirtyListList()")
 						} else {
-							it.appendLn("override var ${prop.getName()} : $type = ${type.defaultValue()}")
+							it.appendLn("override var $name : $type = ${type.defaultValue()}")
 						}
 						when (dirtyType) {
 							DirtyType.NEVER -> Unit
@@ -189,7 +228,7 @@ class MirrorProcessor(
 							}
 						}
 					} else {
-						it.appendLn("override var ${prop.getName()} : $type = ${type.defaultValue()}")
+						it.appendLn("override var $name : $type = ${type.defaultValue()}")
 						when (dirtyType) {
 							DirtyType.NEVER -> Unit
 							DirtyType.COMPLEX -> {
@@ -221,7 +260,7 @@ class MirrorProcessor(
 					val prop = pair.first
 					val propType = pair.second
 					val nm = prop.simpleName.asString()
-					if (propType.isMirrored()) {
+					if (propType.isMirrored() && !propType.isMirroredArray()) {
 						when (dirtyType) {
 							DirtyType.NEVER -> appendLn("if (true) {")
 							DirtyType.ANY -> appendLn("if (!dirtyOnly || $DIRTY_FLAG_FIELD || $nm?.isDirty() == true) {")
@@ -259,7 +298,11 @@ class MirrorProcessor(
 							DirtyType.ANY -> appendLn("if (!dirtyOnly || $DIRTY_FLAG_FIELD)")
 							DirtyType.COMPLEX -> appendLn("if (!dirtyOnly || $DIRTY_FLAG_FIELD.get($index))")
 						}
-						if (propType.isList()) {
+						if (propType.isMirroredArray()) {
+							appendLn("{   writer.name(\"$nm\")")
+							appendLn("   $nm.toGson(writer, dirtyOnly)")
+							appendLn("}")
+						} else if (propType.isList()) {
 							appendLn("{   writer.name(\"$nm\")")
 							appendLn("   ($nm as DirtyList).toGson(writer, dirtyOnly)")
 							appendLn("}")
@@ -272,20 +315,13 @@ class MirrorProcessor(
 
 			fun printJsonReaderContent(i: String) = StringBuffer().apply {
 
-				fun KSType.typeName(): String {
-					return when (val nm = toString().trimEnd('?')) {
-						"Float" -> "Double().toFloat"
-						"Short" -> "Int().toShort"
-						"Byte" -> "Int().toByte"
-						"Char" -> "String().first"
-						else -> nm
-					}
-				}
-
 				indent = i
 				mapped.forEach { (prop, propType) ->
 					val nm = prop.simpleName.asString()
-					if (propType.isMirrored()) {
+					if (propType.isMirroredArray()) {
+						appendLns("""
+		"$nm" -> $nm.fromGson(reader)""")
+					} else if (propType.isMirrored()) {
 						appendLns("""
 "$nm" -> $nm = checkForNullOr(reader, null) { reader ->
    reader.beginObject()
@@ -311,7 +347,7 @@ class MirrorProcessor(
 					} else {
 						appendLns("""
 "$nm" -> $nm = checkForNullOr(reader, ${propType.defaultValue()}) {
-   reader.next${propType.typeName()}()
+   reader.${propType.gsonTypeName()}()
 }""")
 					}
 				}
@@ -391,10 +427,103 @@ class MirrorProcessor(
 				}
 			}.toString()
 
+			fun printMethods(i: String): String = StringBuffer().apply {
+				indent = i
+				if (methods.isNotEmpty()) {
+					appendLns("""
+	override fun getFunctionDelegate() : FunctionDelegate? = _functionDelegate
+
+	private val _functionDelegate = object : FunctionDelegate() {
+		override fun executeLocally(function: String, reader: JsonReader) {
+			when (function) {""")
+					methods.forEach { funcDecl ->
+						appendLns("""
+				"$funcDecl" -> {
+					$funcDecl(""")
+						var comma = false
+						funcDecl.parameters.forEach {
+							if (comma) {
+								append(",")
+							} else {
+								comma = true
+							}
+							val t = it.type.resolve()!!
+							if (t.isMirroredArray()) {
+								TODO()
+							} else if (t.isMirrored()) {
+								val bangbang = if (t.isMarkedNullable) "" else "!!"
+								appendLns("""
+				   checkForNullOr(reader, null) { reader ->
+				      reader.beginObject()
+					  reader.nextName("type")
+					  (getClassForName(reader.nextString()).newInstance() as $t).apply {
+					     reader.nextName("value")
+						 fromGson(reader)
+						 reader.endObject()
+					  }
+				   }$bangbang
+""")
+							} else if (t.isEnum()) {
+								TODO()
+							} else if (t.isList()) {
+								TODO()
+							} else {
+								appendLns("""
+					reader.${t.gsonTypeName()}()""")
+							}
+						}
+						appendLns("""
+					)
+				 }
+""")
+					}
+
+					appendLns("""}
+		}
+	}
+""")
+					methods.forEach { funcDecl ->
+						val rt = funcDecl.returnType?.resolve() ?: "Unit"
+						val parameters: String = funcDecl.parameters.map { param ->
+							logger.warn("param: $param")
+							val nullability = if (param.type.resolve().isMarkedNullable) "?" else ""
+							"$param : ${param.type}$nullability"
+						}.joinToString(",")
+						appendLns("""
+	override fun $funcDecl($parameters) : $rt {
+		_functionDelegate.executor?.let {
+			with(it.start("$funcDecl")) {
+""")
+						funcDecl.parameters.forEach {
+							if (it.type.resolve().isMirrored()) {
+								appendLns("""
+				$it?.let {
+					beginObject()
+					name("type").value(getCanonicalName($it::class.java))
+					name("value")
+					$it.toGson(this, false)
+					endObject()
+				}?:run {
+					nullValue()
+				}""")
+							} else {
+								appendLns("""
+				value($it)""")
+							}
+						}
+						appendLns("""
+			}
+			it.end()
+		}
+	}""")
+					}
+				}
+			}.toString()
+
 			val classTypeName = getClassFileName(classDeclaration.toString())
 			file.print(
 				"""				
-package $packageName
+package ${classDeclaration.packageName.asString()}
 				
 import com.google.gson.*
 import com.google.gson.stream.*
@@ -414,7 +543,8 @@ ${printJsonWriterContent("        ")}
 		reader.beginObject()
 		while (reader.hasNext()) {
 			when (reader.nextName()) {
-${printJsonReaderContent("              ")}			
+${printJsonReaderContent("              ")}		
+				else -> reader.skipValue()
 			}
 		}
 		reader.endObject()
@@ -438,6 +568,8 @@ ${printToStringContent("      ")}
 ${printIsEqualsContent("        ")}
 		return true
 	}
+	
+${printMethods("   ")}
 }				
 """)
 		}

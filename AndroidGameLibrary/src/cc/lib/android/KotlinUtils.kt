@@ -1,5 +1,6 @@
 package cc.lib.android
 
+import android.content.SharedPreferences
 import androidx.lifecycle.*
 
 /**
@@ -99,4 +100,13 @@ fun <T> Collection<LiveData<T>>.combine(combiner : (List<T>) -> T) : LiveData<T>
 			forEach { it.removeObserver(this) }
 		}
 	}
+}
+
+inline fun <reified T : Enum<T>> SharedPreferences.getEnum(name: String, defaultValue: T): T {
+	try {
+		return enumValueOf(getString(name, defaultValue.name)!!)
+	} catch (e: Exception) {
+		e.printStackTrace()
+	}
+	return defaultValue
 }

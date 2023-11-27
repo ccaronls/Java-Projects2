@@ -236,7 +236,7 @@ abstract class DirtyList<T>(protected val list: MutableList<T>) : Mirrored, Muta
 	}
 }
 
-class DirtyListInt(list: MutableList<Int> = mutableListOf()) : DirtyList<Int>(list) {
+class DirtyListInt(list: List<Int> = mutableListOf()) : DirtyList<Int>(list.toMutableList()) {
 	override fun readValue(reader: JsonReader, index: Int) {
 		list.insertOrAdd(index, reader.nextInt())
 	}
@@ -246,7 +246,7 @@ class DirtyListInt(list: MutableList<Int> = mutableListOf()) : DirtyList<Int>(li
 	}
 }
 
-class DirtyListFloat(list: MutableList<Float> = mutableListOf()) : DirtyList<Float>(list) {
+class DirtyListFloat(list: List<Float> = mutableListOf()) : DirtyList<Float>(list.toMutableList()) {
 	override fun readValue(reader: JsonReader, index: Int) {
 		list.insertOrAdd(index, reader.nextDouble().toFloat())
 	}
@@ -256,7 +256,7 @@ class DirtyListFloat(list: MutableList<Float> = mutableListOf()) : DirtyList<Flo
 	}
 }
 
-class DirtyListLong(list: MutableList<Long> = mutableListOf()) : DirtyList<Long>(list) {
+class DirtyListLong(list: List<Long> = mutableListOf()) : DirtyList<Long>(list.toMutableList()) {
 	override fun readValue(reader: JsonReader, index: Int) {
 		list.insertOrAdd(index, reader.nextLong())
 	}
@@ -266,7 +266,7 @@ class DirtyListLong(list: MutableList<Long> = mutableListOf()) : DirtyList<Long>
 	}
 }
 
-class DirtyListDouble(list: MutableList<Double> = mutableListOf()) : DirtyList<Double>(list) {
+class DirtyListDouble(list: List<Double> = mutableListOf()) : DirtyList<Double>(list.toMutableList()) {
 	override fun readValue(reader: JsonReader, index: Int) {
 		list.insertOrAdd(index, reader.nextDouble())
 	}
@@ -276,7 +276,7 @@ class DirtyListDouble(list: MutableList<Double> = mutableListOf()) : DirtyList<D
 	}
 }
 
-class DirtyListBoolean(list: MutableList<Boolean> = mutableListOf()) : DirtyList<Boolean>(list) {
+class DirtyListBoolean(list: List<Boolean> = mutableListOf()) : DirtyList<Boolean>(list.toMutableList()) {
 	override fun readValue(reader: JsonReader, index: Int) {
 		list.insertOrAdd(index, reader.nextBoolean())
 	}
@@ -286,7 +286,7 @@ class DirtyListBoolean(list: MutableList<Boolean> = mutableListOf()) : DirtyList
 	}
 }
 
-class DirtyListByte(list: MutableList<Byte> = mutableListOf()) : DirtyList<Byte>(list) {
+class DirtyListByte(list: List<Byte> = mutableListOf()) : DirtyList<Byte>(list.toMutableList()) {
 	override fun readValue(reader: JsonReader, index: Int) {
 		list.insertOrAdd(index, reader.nextInt().toByte())
 	}
@@ -296,7 +296,7 @@ class DirtyListByte(list: MutableList<Byte> = mutableListOf()) : DirtyList<Byte>
 	}
 }
 
-class DirtyListChar(list: MutableList<Char> = mutableListOf()) : DirtyList<Char>(list) {
+class DirtyListChar(list: List<Char> = mutableListOf()) : DirtyList<Char>(list.toMutableList()) {
 	override fun readValue(reader: JsonReader, index: Int) {
 		list.insertOrAdd(index, reader.nextString()[0])
 	}
@@ -306,7 +306,7 @@ class DirtyListChar(list: MutableList<Char> = mutableListOf()) : DirtyList<Char>
 	}
 }
 
-class DirtyListString(list: MutableList<String> = mutableListOf()) : DirtyList<String>(list) {
+class DirtyListString(list: List<String> = mutableListOf()) : DirtyList<String>(list.toMutableList()) {
 	override fun readValue(reader: JsonReader, index: Int) {
 		list.insertOrAdd(index, reader.nextString())
 	}
@@ -316,7 +316,7 @@ class DirtyListString(list: MutableList<String> = mutableListOf()) : DirtyList<S
 	}
 }
 
-class DirtyListShort(list: MutableList<Short> = mutableListOf()) : DirtyList<Short>(list) {
+class DirtyListShort(list: List<Short> = mutableListOf()) : DirtyList<Short>(list.toMutableList()) {
 	override fun readValue(reader: JsonReader, index: Int) {
 		list.insertOrAdd(index, reader.nextInt().toShort())
 	}
@@ -326,7 +326,7 @@ class DirtyListShort(list: MutableList<Short> = mutableListOf()) : DirtyList<Sho
 	}
 }
 
-class DirtyListEnum<T : Enum<T>>(val values: Array<T>, list: MutableList<T> = mutableListOf()) : DirtyList<T>(list) {
+class DirtyListEnum<T : Enum<T>>(val values: Array<T>, list: List<T> = mutableListOf()) : DirtyList<T>(list.toMutableList()) {
 	override fun readValue(reader: JsonReader, index: Int) {
 		val name = reader.nextString()
 		list.insertOrAdd(index, values.first { it.name == name })
@@ -337,7 +337,7 @@ class DirtyListEnum<T : Enum<T>>(val values: Array<T>, list: MutableList<T> = mu
 	}
 }
 
-class DirtyListMirrored<T : Mirrored>(list: MutableList<T> = mutableListOf()) : DirtyList<T>(list) {
+class DirtyListMirrored<T : Mirrored>(list: List<T> = mutableListOf()) : DirtyList<T>(list.toMutableList()) {
 	override fun readValue(reader: JsonReader, index: Int) {
 		reader.beginObject()
 		reader.nextName("type")
@@ -385,7 +385,7 @@ class DirtyListMirrored<T : Mirrored>(list: MutableList<T> = mutableListOf()) : 
 
 }
 
-class DirtyListList<T>(list: MutableList<DirtyList<T>> = mutableListOf()) : DirtyList<DirtyList<T>>(list) {
+class DirtyListList<T>(list: List<DirtyList<T>> = mutableListOf()) : DirtyList<DirtyList<T>>(list.toMutableList()) {
 	override fun readValue(reader: JsonReader, index: Int) {
 		reader.beginObject()
 		reader.nextName("type")

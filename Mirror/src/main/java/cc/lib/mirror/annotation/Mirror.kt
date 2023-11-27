@@ -10,4 +10,7 @@ enum class DirtyType {
  * Created by Chris Caron on 11/14/23.
  */
 @Target(AnnotationTarget.CLASS)
-annotation class Mirror(val packageName: String, val dirtyType: DirtyType = DirtyType.COMPLEX)
+annotation class Mirror(val dirtyType: DirtyType = DirtyType.COMPLEX)
+
+@Target(AnnotationTarget.FUNCTION)
+annotation class MirroredFunction

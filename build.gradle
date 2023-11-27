@@ -52,6 +52,11 @@ allprojects {
 //            evaluationDependsOn(':GameLibrary')
 //            testCompile files(project(':GameLibrary').sourceSets.test.output)
         }
+
+        java {
+            sourceCompatibility = JavaVersion.toVersion(project.sourceCompatibility)
+            targetCompatibility = JavaVersion.toVersion(project.targetCompatibility)
+        }
     }
 
     plugins.withId("com.android.library") {

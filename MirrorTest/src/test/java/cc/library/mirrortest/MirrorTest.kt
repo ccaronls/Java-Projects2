@@ -1,9 +1,12 @@
 package cc.library.mirrortest
 
+import cc.lib.mirror.context.Mirrored
+import cc.lib.mirror.context.mirroredArrayOf
 import org.junit.Assert.*
 import org.junit.Test
 
-class Mirror1 : SmallMirrorImpl()
+open class Mirror1 : SmallMirrorImpl()
+open class Mirror2 : Mirror2Impl()
 
 /**
  * Created by Chris Caron on 11/16/23.
@@ -58,6 +61,9 @@ class MirrorTest {
 		owner.registerSharedObject("m", m)
 		val m2 = MyMirror()
 		receiver.registerSharedObject("m", m2)
+		m.intArray = mirroredArrayOf(0, 1, 2)
+		owner.push(false)
+		println(owner)
 		owner.add(receiver)
 		//owner.push(false)
 		print(m2)
@@ -160,5 +166,74 @@ class MirrorTest {
 			intList[1] = 20
 			assertTrue(isDirty())
 		}
+	}
+
+	@Test
+	fun test6() {
+		val ownerMirror = object : MyMirror() {
+			override fun doSomething1() {
+				super.doSomething1()
+				println("owner : doSomething1()")
+			}
+
+			override fun doSomething2(v: String) {
+				super.doSomething2(v)
+				println("owner : doSomething2($v)")
+			}
+
+			override fun doSomething3(m: IMirror2) {
+				super.doSomething3(m)
+				println("owner : doSomething3($m)")
+			}
+
+			override fun doSomething4(x: Int, y: Float, z: Mirrored?) {
+				super.doSomething4(x, y, z)
+				println("owner : doSomething4($x, $y, $z)")
+			}
+
+		}
+		val receiverMirror = object : MyMirror() {
+			var doSomething1Executed = false
+			override fun doSomething1() {
+				super.doSomething1()
+				println("receiver : doSomething1()")
+				doSomething1Executed = true
+			}
+
+			override fun doSomething2(v: String) {
+				super.doSomething2(v)
+				println("receiver : doSomething2($v)")
+				assertEquals("hello", v)
+			}
+
+			override fun doSomething3(m: IMirror2) {
+				super.doSomething3(m)
+				println("receiver : doSomething3($m)")
+				assertEquals("goodbye", m.y)
+			}
+
+			override fun doSomething4(x: Int, y: Float, z: Mirrored?) {
+				super.doSomething4(x, y, z)
+				println("receiver : doSomething4($x, $y, $z)")
+				assertEquals(10, x)
+				assertEquals(100f, y)
+				assertNull(z)
+			}
+		}
+
+		owner.registerSharedObject("mirror", ownerMirror)
+		receiver.registerSharedObject("mirror", receiverMirror)
+		owner.add(receiver)
+
+		ownerMirror.doSomething1()
+		ownerMirror.doSomething2("hello")
+		ownerMirror.doSomething3(Mirror2().apply {
+			y = "goodbye"
+		})
+		ownerMirror.doSomething4(10, 100f, null)
+
+		println(owner)
+
+		assertTrue(receiverMirror.doSomething1Executed)
 	}
 }

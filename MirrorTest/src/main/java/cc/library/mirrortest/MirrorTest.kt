@@ -4,7 +4,7 @@ import com.google.gson.GsonBuilder
 import java.io.StringReader
 import java.io.StringWriter
 
-class MyMirror : MirrorImpl()
+open class MyMirror : MirrorImpl()
 
 class MirrorTest {
 	companion object {

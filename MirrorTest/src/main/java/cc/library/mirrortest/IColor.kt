@@ -7,7 +7,7 @@ import cc.lib.mirror.context.Mirrored
 /**
  * Created by Chris Caron on 11/16/23.
  */
-@Mirror("cc.library.mirrortest", DirtyType.NEVER)
+@Mirror(DirtyType.NEVER)
 interface IColor : Mirrored {
 	var a: Byte
 	var r: Byte
