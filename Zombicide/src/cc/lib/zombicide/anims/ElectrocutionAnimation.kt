@@ -3,26 +3,24 @@ package cc.lib.zombicide.anims
 import cc.lib.game.AGraphics
 import cc.lib.game.GColor
 import cc.lib.game.GRectangle
-
 import cc.lib.math.MutableVector2D
 import cc.lib.math.Vector2D
 import cc.lib.utils.random
 import cc.lib.utils.randomSigned
 import cc.lib.zombicide.ZActor
 import cc.lib.zombicide.ZActorAnimation
-import java.util.*
 
-open class ElectrocutionAnimation(actor: ZActor<*>) : ZActorAnimation(actor, 1000) {
+open class ElectrocutionAnimation(actor: ZActor) : ZActorAnimation(actor, 1000) {
 	private val r: GRectangle = actor.getRect()
-    private val minStrands = 5
-    private val maxStrands = 7
-    private val minSections = 6
-    private val maxSections = 10
-    private val strands: MutableList<FloatArray> = ArrayList()
-    override fun draw(g: AGraphics, position: Float, dt: Float) {
-        g.pushMatrix()
-        g.translate(r.topLeft)
-        for (i in strands.indices) {
+	private val minStrands = 5
+	private val maxStrands = 7
+	private val minSections = 6
+	private val maxSections = 10
+	private val strands: MutableList<FloatArray> = ArrayList()
+	override fun draw(g: AGraphics, position: Float, dt: Float) {
+		g.pushMatrix()
+		g.translate(r.topLeft)
+		for (i in strands.indices) {
             val y = strands[i]
             val y0 = y[0] + position * y[2]
             val y1 = y[1] + position * y[3]

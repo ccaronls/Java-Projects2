@@ -1,5 +1,7 @@
 package cc.game.zombicide.android;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -10,7 +12,7 @@ import java.io.DataOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import cc.lib.net.ClientConnection;
+import cc.lib.net.AClientConnection;
 import cc.lib.net.GameCommand;
 import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZDir;
@@ -36,13 +38,42 @@ public class ZMPCommonTest {
 
         ZMPCommon.SVR svr = new ZMPCommon.SVR() {
             @Override
-            public void onChooseCharacter(ClientConnection conn, ZPlayerName name, boolean checked) {
+            public void parseCLCommand(@NotNull AClientConnection conn, @NotNull GameCommand cmd) {
+
+            }
+
+            @NotNull
+            @Override
+            public GameCommand newUpdateGameCommand(@NotNull ZGame game) {
+                return null;
+            }
+
+            @NotNull
+            @Override
+            public GameCommand newAssignPlayer(@NotNull Assignee assignee) {
+                return null;
+            }
+
+            @NotNull
+            @Override
+            public GameCommand newLoadQuest(@NotNull ZQuests quest) {
+                return null;
+            }
+
+            @Nullable
+            @Override
+            public GameCommand newInit(int clientColor, int maxCharacters, @NotNull List<Assignee> playerAssignments) {
+                return null;
+            }
+
+            @Override
+            public void onChooseCharacter(AClientConnection conn, ZPlayerName name, boolean checked) {
                 Assert.assertEquals(name, ZPlayerName.Ann);
                 Assert.assertEquals(checked, true);
             }
 
             @Override
-            public void onStartPressed(ClientConnection conn) {
+            public void onStartPressed(AClientConnection conn) {
 
             }
 
@@ -52,13 +83,36 @@ public class ZMPCommonTest {
             }
 
             @Override
-            public void onUndoPressed(ClientConnection conn) {
+            public void onUndoPressed(AClientConnection conn) {
 
             }
         };
 
 
         ZMPCommon.CL cl = new ZMPCommon.CL() {
+
+            @Override
+            public void parseSVRCommand(@NotNull GameCommand cmd) {
+
+            }
+
+            @NotNull
+            @Override
+            public GameCommand newUndoPressed() {
+                return null;
+            }
+
+            @NotNull
+            @Override
+            public GameCommand newStartPressed() {
+                return null;
+            }
+
+            @NotNull
+            @Override
+            public GameCommand newAssignCharacter(@NotNull ZPlayerName name, boolean checked) {
+                return null;
+            }
 
             @Override
             public void onLoadQuest(ZQuests quest) {
@@ -75,10 +129,10 @@ public class ZMPCommonTest {
             @Override
             public void onAssignPlayer(Assignee assignee) {
                 Assert.assertNotNull(assignee);
-                Assert.assertEquals(assignee.name, ZPlayerName.Baldric);
-                Assert.assertEquals(assignee.userName, "Chris");
-                Assert.assertEquals(assignee.color, 2);
-                Assert.assertEquals(assignee.checked, true);
+                Assert.assertEquals(assignee.getName(), ZPlayerName.Baldric);
+                Assert.assertEquals(assignee.getUserName(), "Chris");
+                Assert.assertEquals(assignee.getColor(), 2);
+                Assert.assertEquals(assignee.getChecked(), true);
             }
 
             @Override
@@ -93,12 +147,12 @@ public class ZMPCommonTest {
 
             @Override
             public void onGameUpdated(ZGame game) {
-                Assert.assertNotNull(game.getBoard());
+                Assert.assertNotNull(game.board);
                 System.out.println(game.toStringNumbered());
 
                 Assert.assertEquals(game.getAllCharacters().size(), 2);
-                for (ZCharacter c : game.getBoard().getAllCharacters()) {
-                    if (c.getPlayerName()==ZPlayerName.Baldric) {
+                for (ZCharacter c : game.board.getAllCharacters()) {
+                    if (c.getType() == ZPlayerName.Baldric) {
                         Assert.assertEquals(c.getExp(), 5);
                     }
                 }
@@ -147,7 +201,7 @@ public class ZMPCommonTest {
 
         ZGame copy = new ZGame();
         copy.loadQuest(ZQuests.The_Abomination);
-        copy.deserialize(game.toString(), true);
+        copy.deserialize(game.toString());
 
     }
 

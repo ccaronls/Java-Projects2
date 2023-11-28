@@ -26,10 +26,10 @@ class UIEventCardRenderer(component: UIComponent) : UIRenderer(component) {
 			val cardText = card.type.getNameId()
 			val helpText: String? = card.getHelpText(UISOC.instance.rules)
 			val production = card.production
-			ch = getComponent<UIComponent>().height.toFloat()
+			ch = getComponent<UIComponent>().getHeight().toFloat()
 			cw = ch * 2 / 3
-			if (cw > getComponent<UIComponent>().width / 2) {
-				cw = (getComponent<UIComponent>().width / 2).toFloat()
+			if (cw > getComponent<UIComponent>().getWidth() / 2) {
+				cw = (getComponent<UIComponent>().getWidth() / 2).toFloat()
 				ch = cw * 3 / 2
 			}
 			val tw = g.viewportWidth - cw - 3 * padding

@@ -1,12 +1,9 @@
 package cc.lib.net;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.EOFException;
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -55,7 +52,7 @@ import cc.lib.utils.Reflector;
  *       } else {
  *          return false; // tell caller we did not handle the command
  *       }
- *       
+ *
  *       return true;
  *    }
  * }
@@ -65,13 +62,19 @@ import cc.lib.utils.Reflector;
  */
 public class GameCommand {
 
+    interface Serializer {
+
+        void write(GameCommand cmd) throws Exception;
+
+        GameCommand read() throws Exception;
+    }
+
     private final static Logger log = LoggerFactory.getLogger(GameCommand.class);
 
     private final GameCommandType type;
     private final Map<String, Object> arguments = new NoDupesMap<>(new LinkedHashMap());
 
     /**
-     * 
      * @param commandType
      */
     public GameCommand(GameCommandType commandType) {
@@ -79,7 +82,13 @@ public class GameCommand {
     }
 
     /**
-     * 
+     * @return
+     */
+    public Map<String, Object> getArguments() {
+        return arguments;
+    }
+
+    /**
      * @return
      */
     public final GameCommandType getType() {
@@ -98,18 +107,21 @@ public class GameCommand {
     public final boolean getBoolean(String key, boolean defaultValue) {
         Object o = arguments.get(key);
         if (o != null) {
-            return (Boolean)o;
+            return (Boolean) o;
         }
         return defaultValue;
     }
 
+    public final boolean getBoolean(String key) {
+        return (Boolean) arguments.get(key);
+    }
+
     /**
-     * 
      * @param key
      * @return
      */
     public final int getInt(String key) {
-        return (Integer)arguments.get(key);
+        return (Integer) arguments.get(key);
     }
 
     public final long getLong(String key) {
@@ -117,28 +129,19 @@ public class GameCommand {
     }
 
     public final float getFloat(String key) {
-        return (Float)arguments.get(key);
+        return (Float) arguments.get(key);
     }
 
     public final double getDouble(String key) {
-        return (Double)arguments.get(key);
+        return (Double) arguments.get(key);
     }
 
-    public final <T extends Reflector> T parseReflector(String key, T object) throws Exception {
-        try (InputStream in = new ByteArrayInputStream((byte[]) arguments.get(key))) {
-            object.merge(in);
-            return object;
-        }
-    }
-
-    public final <T extends Reflector> T parseReflector(String key) throws Exception {
-        try (InputStream in = new ByteArrayInputStream((byte[]) arguments.get(key))) {
-            return Reflector.deserializeFromInputStream(in);
-        }
+    public final <T extends Reflector> T getReflector(String key, T object) throws Exception {
+        object.merge((String) arguments.get(key));
+        return object;
     }
 
     /**
-     *
      * @return
      */
     String getVersion() {
@@ -146,7 +149,7 @@ public class GameCommand {
     }
 
     /**
-     * 
+     *
      * @return
      */
     public final String getName() {
@@ -322,19 +325,8 @@ public class GameCommand {
                 case TYPE_STRING:
                     command.arguments.put(key, din.readUTF());
                     break;
-                case TYPE_BYTE_ARRAY: {
-                    int len = din.readInt();
-                    log.debug("Reading %d byes", len);
-                    byte[] arr = new byte[len];
-                    int read = din.read(arr);
-                    while (read < len) {
-                        int r = din.read(arr, read, len-read);
-                        if (r < 0)
-                            throw new EOFException();
-                        read += r;
-                    }
-                    log.debug("Read %d byes", len);
-                    command.arguments.put(key, arr);
+                case TYPE_REFLECTOR: {
+                    command.arguments.put(key, din.readUTF());
                     break;
                 }
                 default:
@@ -345,7 +337,7 @@ public class GameCommand {
     }
 
     /**
-     * 
+     *
      * @param dout
      * @throws Exception
      */
@@ -358,8 +350,8 @@ public class GameCommand {
             if (o == null) {
                 dout.writeByte(TYPE_NULL);
             } else if (o instanceof Boolean) {
-                dout.write(TYPE_BOOL);
-                dout.writeBoolean((Boolean)o);
+                dout.writeByte(TYPE_BOOL);
+                dout.writeBoolean((Boolean) o);
             } else if (o instanceof Integer) {
                 dout.writeByte(TYPE_INT);
                 dout.writeInt((Integer)o);
@@ -376,12 +368,10 @@ public class GameCommand {
                 dout.writeByte(TYPE_STRING);
                 dout.writeUTF((String)o);
             } else if (o instanceof Reflector) {
-                try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-                    ((Reflector) o).serialize(out);
-                    dout.writeByte(TYPE_BYTE_ARRAY);
-                    dout.writeInt(out.size());
-                    dout.write(out.toByteArray());
-                }
+                dout.writeByte(TYPE_REFLECTOR);
+                StringWriter buf = new StringWriter(256);
+                ((Reflector) o).serialize(new Reflector.MyPrintWriter(buf));
+                dout.writeUTF(buf.toString());
             } else {
                 dout.writeByte(TYPE_STRING);
                 dout.writeUTF(o.toString());
@@ -397,7 +387,7 @@ public class GameCommand {
     private final static int TYPE_FLOAT = 4;
     private final static int TYPE_DOUBLE = 5;
     private final static int TYPE_STRING = 6;
-    private final static int TYPE_BYTE_ARRAY = 7;
+    private final static int TYPE_REFLECTOR = 7;
 
     public String toString() {
         return type + ": " + arguments;

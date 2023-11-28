@@ -9,25 +9,28 @@ import cc.lib.utils.Reflector
 class ZDoor (val cellPosStart: Grid.Pos, val cellPosEnd: Grid.Pos, val moveDirection: ZDir, val lockedColor: GColor) : Reflector<ZDoor>() {
     companion object {
         init {
-            addAllFields(ZDoor::class.java)
+	        addAllFields(ZDoor::class.java)
         }
     }
 
-    constructor() : this(Grid.Pos(), Grid.Pos(), ZDir.NORTH, GColor.BLACK)
-    constructor(start: Grid.Pos, dir:ZDir, color:GColor):this(start, dir.getAdjacent(start)!!, dir, color)
+	constructor() : this(Grid.Pos(), Grid.Pos(), ZDir.NORTH, GColor.BLACK)
+	constructor(start: Grid.Pos, dir: ZDir, color: GColor) : this(start, dir.getAdjacent(start)!!, dir, color)
 
-    var isJammed = false
-        private set
+	var isJammed = false
+		private set
 
-    fun isLocked(b: ZBoard): Boolean {
-        return b.getDoor(this) === ZWallFlag.LOCKED
-    }
+	@Omit
+	var pickable = false
 
-    fun isClosed(board: ZBoard): Boolean {
-        return !board.getCell(cellPosStart).getWallFlag(moveDirection).opened
-    }
+	fun isLocked(b: ZBoard): Boolean {
+		return b.getDoor(this) === ZWallFlag.LOCKED
+	}
 
-    fun getRect(board: ZBoard): GRectangle {
+	fun isClosed(board: ZBoard): Boolean {
+		return !board.getCell(cellPosStart).getWallFlag(moveDirection).opened
+	}
+
+	fun getRect(board: ZBoard): GRectangle {
         return board.getCell(cellPosStart).getWallRect(moveDirection)
     }
 
@@ -36,7 +39,8 @@ class ZDoor (val cellPosStart: Grid.Pos, val cellPosEnd: Grid.Pos, val moveDirec
         val otherSide = otherSide
         when (board.getDoor(this)) {
             ZWallFlag.OPEN -> board.setDoor(this, ZWallFlag.CLOSED)
-            ZWallFlag.LOCKED, ZWallFlag.CLOSED -> board.setDoor(this, ZWallFlag.OPEN)
+	        ZWallFlag.LOCKED, ZWallFlag.CLOSED -> board.setDoor(this, ZWallFlag.OPEN)
+	        else -> Unit
         }
         otherSide.isJammed = jammed
         isJammed = otherSide.isJammed
@@ -47,7 +51,8 @@ class ZDoor (val cellPosStart: Grid.Pos, val cellPosEnd: Grid.Pos, val moveDirec
 
     fun canBeClosed(c: ZCharacter): Boolean {
         when (moveDirection) {
-            ZDir.DESCEND, ZDir.ASCEND -> return true
+	        ZDir.DESCEND, ZDir.ASCEND -> return true
+	        else -> Unit
         }
         for (sk in c.getAvailableSkills()) {
             if (sk.canCloseDoors()) return true

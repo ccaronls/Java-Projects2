@@ -6,8 +6,6 @@ import cc.lib.utils.Grid
 import cc.lib.utils.Table
 import cc.lib.zombicide.*
 import cc.lib.zombicide.ZTile.Companion.getQuadrant
-import cc.lib.zombicide.ui.UIZombicide
-import java.util.*
 
 /**
  * Created by Chris Caron on 8/24/21.
@@ -46,7 +44,7 @@ arrayOf("z36:blspw", "z37", "z38",                              "z39", "z40", "z
 	}
 
 	private fun getOccupiedZones(game: ZGame): List<Int> {
-		return game.allCharacters.map { it.character.occupiedZone }.toMutableList().also {
+		return game.allCharacters.map { it.occupiedZone }.toMutableList().also {
 			it.retainAll(occupyZones)
 		}
 	}
@@ -79,21 +77,19 @@ arrayOf("z36:blspw", "z37", "z38",                              "z39", "z40", "z
 	override val allVaultOptions: List<ZEquipmentType>
 		get() = listOf(ZWeaponType.CHAOS_LONGBOW, ZWeaponType.VAMPIRE_CROSSBOW, ZWeaponType.INFERNO, ZWeaponType.ORCISH_CROSSBOW, ZWeaponType.BASTARD_SWORD, ZWeaponType.EARTHQUAKE_HAMMER)
 
-	override fun getMaxNumZombiesOfType(type: ZZombieType?): Int {
-		when (type) {
-			ZZombieType.Necromancer -> return 3
-		}
-		return super.getMaxNumZombiesOfType(type)
+	override fun getMaxNumZombiesOfType(type: ZZombieType?): Int = when (type) {
+		ZZombieType.Necromancer -> 3
+		else -> super.getMaxNumZombiesOfType(type)
 	}
 
-	override fun drawQuest(game: UIZombicide, g: AGraphics) {
+	override fun drawQuest(board: ZBoard, g: AGraphics) {
 		for (zIdx in occupyZones) {
-			val zone = game.board.getZone(zIdx)
+			val zone = board.getZone(zIdx)
 			val rect = zone.rectangle.scaledBy(.25f, .25f)
 			g.color = GColor.GREEN //.withAlpha(.5f));
 			g.drawLine(rect.topLeft, rect.bottomRight, 10f)
 			g.drawLine(rect.topRight, rect.bottomLeft, 10f)
-			if (game.board.getActorsInZone(zIdx).count { it is ZCharacter } > 0) {
+			if (board.getActorsInZone(zIdx).count { it is ZCharacter } > 0) {
 				g.drawCircle(rect.center, rect.radius, 10f)
 			}
 		}

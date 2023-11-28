@@ -2,7 +2,6 @@ package cc.lib.risk
 
 import cc.lib.board.BCell
 import cc.lib.utils.appendedWith
-import java.util.*
 
 /**
  * Created by Chris Caron on 9/13/21.
@@ -14,9 +13,10 @@ class RiskCell(var region: Region = Region.AFRICA, verts:List<Int> = emptyList()
 		}
 	}
 
-	var connectedCells: List<Int> = ArrayList()
+	var connectedCells = ArrayList<Int>()
+
 	@JvmField
-    var occupier: Army? = null
+	var occupier: Army? = null
 	@JvmField
     var numArmies = 0
 	@JvmField

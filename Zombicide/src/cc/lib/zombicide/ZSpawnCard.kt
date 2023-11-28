@@ -85,6 +85,7 @@ class ZSpawnCard private constructor(val name: String, private val wolfburg: Boo
 					ZDifficulty.EASY -> weights[i] = card.easyCount
 					ZDifficulty.MEDIUM -> weights[i] = card.mediumCount
 					ZDifficulty.HARD -> weights[i] = card.hardCount
+					else -> Unit
 				}
 			}
 			for (i in weights.indices) {

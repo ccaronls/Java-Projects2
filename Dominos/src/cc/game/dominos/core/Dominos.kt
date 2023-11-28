@@ -8,7 +8,7 @@ import cc.lib.logger.LoggerFactory
 import cc.lib.math.Bezier
 import cc.lib.math.MutableVector2D
 import cc.lib.math.Vector2D
-import cc.lib.net.GameServer
+import cc.lib.net.AGameServer
 import cc.lib.utils.*
 import java.util.*
 import kotlin.math.ceil
@@ -42,7 +42,7 @@ import kotlin.math.sqrt
  * on drag end event
  * D.endDrag(mouseX, mouseY)
  */
-abstract class Dominos : Reflector<Dominos?>(), GameServer.Listener {
+abstract class Dominos : Reflector<Dominos?>(), AGameServer.Listener {
 	@Omit
 	private val log = LoggerFactory.getLogger(javaClass)
 

@@ -49,11 +49,9 @@ class UIPlayer : AIPlayer {
 	}
 
 	fun drawStatus(g: AGraphics, w: Float, h: Float) {
-		when (type) {
-			Type.AI -> if (isThinking) {
-				g.color = color.color
-				g.drawJustifiedStringOnBackground(w / 2, h / 2, Justify.CENTER, Justify.CENTER, "Thinking", GColor.TRANSLUSCENT_BLACK, 3f, 8f)
-			}
+		if (type == Type.AI && isThinking) {
+			g.color = color.color
+			g.drawJustifiedStringOnBackground(w / 2, h / 2, Justify.CENTER, Justify.CENTER, "Thinking", GColor.TRANSLUSCENT_BLACK, 3f, 8f)
 		}
 	}
 }

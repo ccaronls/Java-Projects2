@@ -2,9 +2,9 @@ package cc.game.zombicide.android
 
 import cc.game.zombicide.android.ZMPCommon.SVR
 import cc.lib.logger.LoggerFactory
-import cc.lib.net.ClientConnection
+import cc.lib.net.AClientConnection
+import cc.lib.net.AGameServer
 import cc.lib.net.GameCommand
-import cc.lib.net.GameServer
 import cc.lib.utils.rotate
 import cc.lib.zombicide.ZPlayerName
 import cc.lib.zombicide.ZUser
@@ -16,12 +16,13 @@ import java.util.concurrent.ConcurrentHashMap
 /**
  * Created by Chris Caron on 7/28/21.
  */
-class ZServerMgr(activity: ZombicideActivity, game: UIZombicide, maxCharacters: Int, val server: GameServer) : ZMPCommon(activity, game), GameServer.Listener, SVR {
+class ZServerMgr(activity: ZombicideActivity, game: UIZombicide, maxCharacters: Int, val server: AGameServer)
+	: SVR(activity, game), AGameServer.Listener, AClientConnection.Listener, ZMPCommon.SVRListener {
 	var colorAssigner = 0
-	val maxCharacters // max chars each player can be assigned
-		: Int
-	var playerAssignments: MutableMap<ZPlayerName, Assignee> = LinkedHashMap()
-	var clientToUserMap: MutableMap<ClientConnection, ZUser> = ConcurrentHashMap()
+	val maxCharacters: Int // max chars each player can be assigned
+	var numStarted = 0
+	var playerAssignments: MutableMap<ZPlayerName, Assignee> = Collections.synchronizedMap(LinkedHashMap())
+	var clientToUserMap: MutableMap<String, ZUser> = ConcurrentHashMap()
 	val playerChooser: CharacterChooserDialogMP
 	fun nextColor(): Int {
 		val color = colorAssigner
@@ -29,8 +30,19 @@ class ZServerMgr(activity: ZombicideActivity, game: UIZombicide, maxCharacters: 
 		return color
 	}
 
-	override fun onConnected(conn: ClientConnection) {
+	fun shutdown() {
+		server.removeListener(this)
+	}
+
+	override fun onConnected(conn: AClientConnection) {
+		if (game.isGameRunning()) {
+			conn.disconnect("Game in Progress")
+			return
+		}
+
 		// see if there is an existing user we can reuse
+		/*
+		conn.addListener(this)
 		for (c in clientToUserMap.keys) {
 			if (!c.isConnected) {
 				val user = clientToUserMap[c]
@@ -48,77 +60,94 @@ class ZServerMgr(activity: ZombicideActivity, game: UIZombicide, maxCharacters: 
 					return
 				}
 			}
-		}
+		}*/
+		conn.addListener(this)
 		val user: ZUser = ZUserMP(conn)
 		val color = nextColor()
-		user.setColor(color)
-		clientToUserMap[conn] = user
+		user.setColor(game.board, color)
+		clientToUserMap[conn.name] = user
 		conn.sendCommand(newLoadQuest(game.quest.quest))
-		conn.sendCommand(newInit(color, maxCharacters, ArrayList(playerAssignments.values)))
+		conn.sendCommand(newInit(color, maxCharacters, ArrayList(playerAssignments.values), true))
 		game.characterRenderer.addMessage(conn.displayName + " has joined", user.getColor())
 	}
 
-	override fun onReconnection(conn: ClientConnection) {
-		val user = clientToUserMap[conn]
+	override fun onReconnected(conn: AClientConnection) {
+		val user = clientToUserMap[conn.name]
+		log.debug("onReconnected user: $user")
 		if (user != null) {
 			game.addUser(user)
 			conn.sendCommand(newLoadQuest(game.quest.quest))
-			conn.sendCommand(newInit(user.colorId, maxCharacters, ArrayList(playerAssignments.values)))
+			conn.sendCommand(newInit(user.colorId, maxCharacters, ArrayList(playerAssignments.values), false))
 			game.characterRenderer.addMessage(conn.displayName + " has rejoined", user.getColor())
-			user.setCharactersHidden(false)
+			user.players.map { game.board.getCharacter(it) }.forEach {
+				it.isInvisible = false
+			}
 			game.boardRenderer.redraw()
 		}
 	}
 
-	override fun onClientDisconnected(conn: ClientConnection) {
-		// TODO: Put up a dialog waiting for client to reconnect otherwise set their charaters to invisible and to stop moving
-		val user = clientToUserMap[conn]
+	override fun onDisconnected(conn: AClientConnection, reason: String?) {
+		// TODO: Put up a dialog waiting for client to reconnect otherwise set their characters to invisible and to stop moving
+		val user = clientToUserMap[conn.name]
 		if (user != null) {
-			user.setCharactersHidden(true)
+			user.players.map { game.board.getCharacter(it) }.forEach {
+				it.isInvisible = true
+			}
 			game.removeUser(user)
-			game.characterRenderer.addMessage(conn.displayName + " has disconnected", user.getColor())
+			game.characterRenderer.addMessage("${conn.displayName} has disconnected because $reason", user.getColor())
 			game.boardRenderer.redraw()
 		}
 	}
 
-	override fun onCommand(conn: ClientConnection, cmd: GameCommand) {
+	override fun onCommand(conn: AClientConnection, cmd: GameCommand) {
 		parseCLCommand(conn, cmd)
 	}
 
-	override fun onChooseCharacter(conn: ClientConnection, name: ZPlayerName, checked: Boolean) {
-		synchronized(playerAssignments) {
-			val a = playerAssignments[name]
-			val user = clientToUserMap[conn]
-			if (a != null && user != null) {
-				a.checked = checked
-				a.isAssingedToMe = false
-				if (checked) {
-					a.userName = conn.displayName
-					a.color = user.colorId
-					game.addCharacter(name)
-					user.addCharacter(name)
-				} else {
-					a.color = -1
-					a.userName = "??"
-					game.removeCharacter(name)
-					user.removeCharacter(name)
+	override fun onChooseCharacter(conn: AClientConnection, name: ZPlayerName, checked: Boolean) {
+		val a = playerAssignments[name]
+		val user = clientToUserMap[conn.name]
+		log.debug("onChooseCharacter assignee: $a, user: ${user?.name}")
+		if (a != null && user != null) {
+			a.checked = checked
+			a.isAssingedToMe = false
+			if (checked) {
+				a.userName = conn.displayName
+				a.color = user.colorId
+				val c = game.addCharacter(name)
+				user.addCharacter(c)
+			} else {
+				a.color = -1
+				a.userName = "??"
+				game.removeCharacter(name)?.let {
+					user.removeCharacter(it)
 				}
-				server.broadcastCommand(newAssignPlayer(a))
-				playerChooser.postNotifyUpdateAssignee(a)
-				game.boardRenderer.redraw()
+			}
+			server.broadcastCommand(newAssignPlayer(a))
+			playerChooser.postNotifyUpdateAssignee(a)
+			game.boardRenderer.redraw()
+		}
+	}
+
+	override fun onStartPressed(conn: AClientConnection) {
+		val user = clientToUserMap[conn.name]
+		if (user != null) {
+			game.addUser(user)
+			broadcastPlayerStarted(user.name)
+		}
+	}
+
+	fun broadcastPlayerStarted(userName: String) {
+		server.broadcastCommand(newPlayerStartedCommand(userName, ++numStarted, game.getConnectedUsers().size))
+		if (numStarted > server.numConnectedClients) {
+			game.server = server
+			activity.runOnUiThread {
+				activity.startGame()
+				broadcastUpdateGame()
 			}
 		}
 	}
 
-	override fun onStartPressed(conn: ClientConnection) {
-		val user = clientToUserMap[conn]
-		if (user != null) {
-			game.addUser(user)
-			broadcastUpdateGame()
-		}
-	}
-
-	override fun onUndoPressed(conn: ClientConnection) {
+	override fun onUndoPressed(conn: AClientConnection) {
 		activity.runOnUiThread { game.undo() }
 	}
 
@@ -127,8 +156,8 @@ class ZServerMgr(activity: ZombicideActivity, game: UIZombicide, maxCharacters: 
 		game.addPlayerComponentMessage("Error:" + e.javaClass.simpleName + ":" + e.message)
 	}
 
-	override fun onClientHandleChanged(conn: ClientConnection, newHandle: String) {
-		val user = clientToUserMap[conn]
+	override fun onHandleChanged(conn: AClientConnection, newHandle: String) {
+		val user = clientToUserMap[conn.name]
 		if (user != null) {
 			user.name = newHandle
 		}
@@ -144,6 +173,7 @@ class ZServerMgr(activity: ZombicideActivity, game: UIZombicide, maxCharacters: 
 	}
 
 	init {
+		addListener(this)
 		server.addListener(this)
 		this.maxCharacters = maxCharacters
 		playerAssignments.clear()
@@ -151,7 +181,7 @@ class ZServerMgr(activity: ZombicideActivity, game: UIZombicide, maxCharacters: 
 			val a = Assignee(c)
 			playerAssignments[c.player] = a
 		}
-		activity.thisUser.setColor(nextColor())
+		activity.thisUser.setColor(game.board, nextColor())
 		val assignments: List<Assignee> = ArrayList(playerAssignments.values)
 		Collections.sort(assignments)
 		playerChooser = object : CharacterChooserDialogMP(activity, assignments, maxCharacters) {
@@ -162,14 +192,15 @@ class ZServerMgr(activity: ZombicideActivity, game: UIZombicide, maxCharacters: 
 						assignee.userName = activity.displayName
 						assignee.color = activity.thisUser.colorId
 						assignee.isAssingedToMe = true
-						game.addCharacter(assignee.name)
-						activity.thisUser.addCharacter(assignee.name)
+						val c = game.addCharacter(assignee.name)
+						activity.thisUser.addCharacter(c)
 					} else {
 						assignee.userName = "??"
 						assignee.color = -1
 						assignee.isAssingedToMe = false
-						activity.thisUser.removeCharacter(assignee.name)
-						game.removeCharacter(assignee.name)
+						game.removeCharacter(assignee.name)?.let {
+							activity.thisUser.removeCharacter(it)
+						}
 					}
 					postNotifyUpdateAssignee(assignee)
 					server.broadcastCommand(newAssignPlayer(assignee))
@@ -178,8 +209,8 @@ class ZServerMgr(activity: ZombicideActivity, game: UIZombicide, maxCharacters: 
 			}
 
 			override fun onStart() {
-				game.server = server
-				activity.startGame()
+				dialog.dismiss()
+				broadcastPlayerStarted(activity.thisUser.name)
 			}
 		}
 	}

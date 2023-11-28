@@ -131,21 +131,25 @@ class AWTRisk internal constructor(): AWTComponent() {
 	fun showHomeMenu() {
 		menu.removeAll()
 		menu.add(AWTButton("New Game") {
-			frame.showListChooserDialog(OnListItemChoosen { numPlayersChoice ->
-				frame.showListChooserDialog(OnListItemChoosen { index ->
-					val color = Army.choices()[index]
-					val colors = Army.choices().toMutableList().also { list ->
-						list.removeIf { it == color }
-						list.shuffle()
-					}
-					game.stopGameThread()
-					game.reset()
-					game.addPlayer(UIRiskPlayer(color))
-					for (i in 1 until numPlayersChoice+2) {
-						game.addPlayer(RiskPlayer(colors.removeFirst()))
-					}
-					game.startGameThread()
-				}, "Choose Army", *Army.choices().prettify())
+			frame.showListChooserDialog(object : OnListItemChoosen {
+				override fun itemChoose(index: Int) {
+					frame.showListChooserDialog(object : OnListItemChoosen {
+						override fun itemChoose(numPlayersChoice: Int) {
+							val color = Army.choices()[index]
+							val colors = Army.choices().toMutableList().also { list ->
+								list.removeIf { it == color }
+								list.shuffle()
+							}
+							game.stopGameThread()
+							game.reset()
+							game.addPlayer(UIRiskPlayer(color))
+							for (i in 1 until numPlayersChoice + 2) {
+								game.addPlayer(RiskPlayer(colors.removeFirst()))
+							}
+							game.startGameThread()
+						}
+					}, "Choose Army", *Army.choices().prettify())
+				}
 			}, "Choose Number Of Players", "2", "3", "4")
 		})
 		menu.add(AWTButton("Resume") {
@@ -166,13 +170,14 @@ class AWTRisk internal constructor(): AWTComponent() {
 	override fun init(g: AWTGraphics) {
 		g.addSearchPath("RiskAndroid/src/main/res/drawable")
 		bId = g.loadImage("risk_board.png")
-		with (g.loadImage("blowup_anim.png")) {
+		with(g.loadImage("blowup_anim.png")) {
 			game.loadExplodAnim(g, this)
 		}
 		progress = 1f
 	}
 
-	override fun getInitProgress(): Float = progress
+	override val initProgress: Float
+		get() = progress
 
 	override fun paint(g: AWTGraphics, mouseX: Int, mouseY: Int) {
 		game.onDraw(g)

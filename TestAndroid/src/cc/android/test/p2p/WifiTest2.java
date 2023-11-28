@@ -17,16 +17,17 @@ import java.util.LinkedList;
 import cc.android.test.R;
 import cc.lib.game.GColor;
 import cc.lib.mp.android.P2PActivity;
-import cc.lib.net.ClientConnection;
-import cc.lib.net.GameClient;
+import cc.lib.net.AClientConnection;
+import cc.lib.net.AGameClient;
+import cc.lib.net.AGameServer;
 import cc.lib.net.GameCommand;
 import cc.lib.net.GameCommandType;
-import cc.lib.net.GameServer;
 
 public class WifiTest2 extends P2PActivity implements
         View.OnClickListener,
-        GameClient.Listener,
-        GameServer.Listener,
+        AGameClient.Listener,
+        AGameServer.Listener,
+        AClientConnection.Listener,
         Runnable {
 
     ListView listView;
@@ -264,30 +265,31 @@ public class WifiTest2 extends P2PActivity implements
     // GameServer callbacks
 
     @Override
-    public synchronized void onConnected(ClientConnection conn) {
+    public synchronized void onConnected(AClientConnection conn) {
         addListEntry("Client Connected: " + conn.getDisplayName(), colors[curColor], false);
         conn.sendCommand(new GameCommand(ASSIGN_COLOR).setArg("color", colors[curColor]));
-        curColor = (curColor+1) % colors.length;
+        conn.addListener(this);
+        curColor = (curColor + 1) % colors.length;
     }
 
     @Override
-    public void onReconnection(ClientConnection conn) {
+    public void onReconnected(AClientConnection conn) {
         addListEntry("Client Reconnected: " + conn.getDisplayName(), Color.YELLOW, false);
     }
 
     @Override
-    public void onClientDisconnected(ClientConnection conn) {
-        addListEntry("Client Disconnected: " + conn.getDisplayName(), Color.RED, false);
+    public void onDisconnected(AClientConnection conn, String reason) {
+        addListEntry("Client Disconnected: " + conn.getDisplayName() + "\n  " + reason, Color.RED, false);
     }
 
     @Override
-    public void onCommand(ClientConnection conn, GameCommand cmd) {
+    public void onCommand(AClientConnection conn, GameCommand cmd) {
         if (cmd.getType() == TEXT_MSG) {
             int color = cmd.getInt("color");
             addListEntry(conn.getDisplayName() + ":" + cmd.getMessage(), color, false);
 
             cmd.setName(conn.getDisplayName());
-            for (ClientConnection c : getServer().getConnectionValues()) {
+            for (AClientConnection c : getServer().getConnectionValues()) {
                 if (c == conn)
                     continue;
                 c.sendCommand(cmd);

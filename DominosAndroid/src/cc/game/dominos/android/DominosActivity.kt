@@ -236,7 +236,7 @@ class DominosActivity : DroidActivity() {
                     v = new TextView(DominosActivity.this);
                 }
 
-                ClientConnection conn = server.getConnection(position);
+                AClientConnection conn = server.getConnection(position);
                 TextView tv = (TextView)v;
                 tv.setText(conn.getName());
                 tv.setTextColor(conn.isConnected() ? Color.GREEN : Color.RED);
@@ -266,7 +266,7 @@ class DominosActivity : DroidActivity() {
                 }).show();
         server.addListener(new GameServer.Listener() {
             @Override
-            public synchronized void onConnected(ClientConnection conn) {
+            public synchronized void onConnected(AClientConnection conn) {
                 int maxClients = dominos.getNumPlayers()-1;
 
                 runOnUiThread(new Runnable() {
@@ -287,7 +287,7 @@ class DominosActivity : DroidActivity() {
             }
 
             @Override
-            public void onReconnection(ClientConnection conn) {
+            public void onReconnection(AClientConnection conn) {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -297,7 +297,7 @@ class DominosActivity : DroidActivity() {
             }
 
             @Override
-            public void onClientDisconnected(ClientConnection conn) {
+            public void onClientDisconnected(AClientConnection conn) {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {

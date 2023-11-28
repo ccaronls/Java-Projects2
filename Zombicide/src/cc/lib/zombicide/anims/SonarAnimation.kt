@@ -10,12 +10,12 @@ import cc.lib.zombicide.ZBoard
 /**
  * Animate concentric arcs that have a start and end point
  */
-class SonarAnimation(actor: ZActor<*>, var start: Vector2D, var end: Vector2D, val numArcs: Int, val sweepAngle: Float) : ZActorAnimation(actor, 2000) {
+class SonarAnimation(actor: ZActor, var start: Vector2D, var end: Vector2D, val numArcs: Int, val sweepAngle: Float) : ZActorAnimation(actor, 2000) {
 	var dv: Vector2D
 	val startAngle: Float
 	val radius: Float
 
-	constructor(actor: ZActor<*>, board: ZBoard, targetZone: Int) : this(actor, actor.getRect().center, board.getZone(targetZone).center, 5, 20f) {}
+	constructor(actor: ZActor, board: ZBoard, targetZone: Int) : this(actor, actor.getRect().center, board.getZone(targetZone).center, 5, 20f) {}
 
 	override fun draw(g: AGraphics, position: Float, dt: Float) {
 		g.color = GColor.WHITE

@@ -1,9 +1,5 @@
 package cc.game.soc.core
 
-import cc.game.soc.core.DevelopmentArea
-import cc.game.soc.core.DistancesLandWater
-import cc.game.soc.core.ProgressCardType
-import cc.game.soc.core.TileType
 import cc.lib.game.Utils
 import cc.lib.logger.LoggerFactory
 import cc.lib.math.CMath
@@ -12,7 +8,6 @@ import cc.lib.utils.GException
 import java.io.File
 import java.io.IOException
 import java.io.PrintStream
-import java.lang.AssertionError
 import java.util.*
 import kotlin.math.absoluteValue
 
@@ -833,7 +828,10 @@ open class PlayerBot : Player() {
 					}
 					p.adjustResourcesForBuildable(BuildableType.PromoteKnight, 1)
 				}
-				MoveType.DEAL_EVENT_CARD, MoveType.ROLL_DICE, MoveType.ROLL_DICE_NEUTRAL_PLAYER -> root.properties.clear()
+				MoveType.DEAL_EVENT_CARD,
+				MoveType.ROLL_DICE,
+				MoveType.ROLL_DICE_NEUTRAL_PLAYER,
+				MoveType.DEAL_EVENT_CARD_NEUTRAL_PLAYER -> root.properties.clear()
 				MoveType.ALCHEMIST_CARD -> {
 
 					// cycle throught the 2nd die first, since this affects progress card distribution
@@ -1259,6 +1257,7 @@ open class PlayerBot : Player() {
 						r.type = RouteType.SHIP
 					}
 				}
+				MoveType.INVALID -> TODO("Why???")
 			}
 
 
@@ -1578,8 +1577,8 @@ open class PlayerBot : Player() {
 				// choose the card we are least likely to get
 				return values[Utils.chooseRandomFromSet(*chance)]
 			}
+			else -> throw AssertionError("Dont know how to handle this")
 		}
-		throw AssertionError("Dont know how to handle this")
 	}
 
 	override fun setDice(soc: SOC, die: List<Dice>, num: Int): Boolean {

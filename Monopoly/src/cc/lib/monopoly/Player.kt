@@ -22,37 +22,35 @@ open class Player(var piece: Piece = Piece.BOAT) : Reflector<Player>() {
 	var jailBond = 0
 		private set
 	private var jailedTimes = 0
-	var isBankrupt=false
-	var turnsLeftInJail=0 // player can only spend limited time in jail or they must pay fine or go bankrupt
+	var isBankrupt = false
+	var turnsLeftInJail = 0 // player can only spend limited time in jail or they must pay fine or go bankrupt
 
-	private fun getPropertyValue(sq: Square, cost: Int): Float {
-		when (sq.type) {
-			SquareType.PROPERTY -> {
+	private fun getPropertyValue(sq: Square, cost: Int): Float = when (sq.type) {
+		SquareType.PROPERTY -> {
 
-				// should we buy a property
-				// variables:
-				//  - do we already own one of this color (multiplier *= 1+howmany we own
-				//  - how valuable according to rating?
-				//  - how expensive vs. potential rent?
-				//  - how expensive vs. our value?
-				val sets = propertySets
-				val owned: List<Card> = sets[sq.color]?: emptyList()
-				var multiplier = (1 + owned.size).toFloat()
-				// y = mx+b
-				val b = 0.5f
-				val m: Float = (1.0f - b) / Square.maxRank
-				multiplier *= m * sq.rank + b
-				val rentCostRatio = 1.0f - sq.getRent(1) / cost
-				val costMoneyRatio = 1.0f - cost.toFloat() / money
-				multiplier += rentCostRatio + costMoneyRatio
-				return multiplier
-			}
-			SquareType.UTILITY -> {
-				return if (numUtilities > 0) 10f else 1f
-			}
-			SquareType.RAIL_ROAD -> return (1 + numRailroads * 2).toFloat()
+			// should we buy a property
+			// variables:
+			//  - do we already own one of this color (multiplier *= 1+howmany we own
+			//  - how valuable according to rating?
+			//  - how expensive vs. potential rent?
+			//  - how expensive vs. our value?
+			val sets = propertySets
+			val owned: List<Card> = sets[sq.color] ?: emptyList()
+			var multiplier = (1 + owned.size).toFloat()
+			// y = mx+b
+			val b = 0.5f
+			val m: Float = (1.0f - b) / Square.maxRank
+			multiplier *= m * sq.rank + b
+			val rentCostRatio = 1.0f - sq.getRent(1) / cost
+			val costMoneyRatio = 1.0f - cost.toFloat() / money
+			multiplier += rentCostRatio + costMoneyRatio
+			multiplier
 		}
-		return 0f
+		SquareType.UTILITY -> {
+			if (numUtilities > 0) 10f else 1f
+		}
+		SquareType.RAIL_ROAD -> (1 + numRailroads * 2).toFloat()
+		else -> 0f
 	}
 
 	open fun chooseMove(game: Monopoly, options: List<MoveType>): MoveType? {
@@ -88,6 +86,7 @@ open class Player(var piece: Piece = Piece.BOAT) : Reflector<Player>() {
 								weights[index] = 1
 							}
 							SquareType.RAIL_ROAD -> weights[index] = 2 + numRailroads * 2
+							else -> Unit
 						}
 					}
 				}
@@ -108,6 +107,7 @@ open class Player(var piece: Piece = Piece.BOAT) : Reflector<Player>() {
 							weights[index] = 1
 						}
 						SquareType.RAIL_ROAD -> weights[index] = 2 + numRailroads * 2
+						else -> Unit
 					}
 				}
 				MoveType.PAY_BOND -> weights[index] = 2
@@ -126,6 +126,7 @@ open class Player(var piece: Piece = Piece.BOAT) : Reflector<Player>() {
 				}
 				MoveType.FORFEIT -> {
 				}
+				else -> Unit
 			}
 		}
 		log.debug(

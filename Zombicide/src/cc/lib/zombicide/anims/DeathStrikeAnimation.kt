@@ -3,23 +3,21 @@ package cc.lib.zombicide.anims
 import cc.lib.game.AGraphics
 import cc.lib.game.GRectangle
 import cc.lib.utils.randomSigned
-
 import cc.lib.zombicide.ZActor
 import cc.lib.zombicide.ZActorAnimation
 import cc.lib.zombicide.ZIcon
-import java.util.*
 
-open class DeathStrikeAnimation(actor: ZActor<*>, targetRect: GRectangle, numDice: Int) : ZActorAnimation(actor, 1L) {
-    class Phase(val id: Int, val dur: Long, vararg rects: GRectangle) {
-        val rects = arrayOf(*rects)
-    }
+open class DeathStrikeAnimation(actor: ZActor, targetRect: GRectangle, numDice: Int) : ZActorAnimation(actor, 1L) {
+	class Phase(val id: Int, val dur: Long, vararg rects: GRectangle) {
+		val rects = arrayOf(*rects)
+	}
 
-    var phases: MutableList<Phase> = ArrayList()
-    fun drawPhase0(g: AGraphics, position: Float, vararg rects: GRectangle) {
-        val id = ZIcon.SKULL.imageIds.random()
-        val img = g.getImage(id)
-        g.setTransparencyFilter(position)
-        g.drawImage(id, rects[0].fit(img))
+	var phases: MutableList<Phase> = ArrayList()
+	fun drawPhase0(g: AGraphics, position: Float, vararg rects: GRectangle) {
+		val id = ZIcon.SKULL.imageIds.random()
+		val img = g.getImage(id)
+		g.setTransparencyFilter(position)
+		g.drawImage(id, rects[0].fit(img))
         g.removeFilter()
     }
 

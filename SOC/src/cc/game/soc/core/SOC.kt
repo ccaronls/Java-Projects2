@@ -1560,9 +1560,11 @@ open class SOC() : Reflector<SOC>(), StringResource {
 					var num = 0
 					for (d in dice) {
 						when (d.type) {
-							DiceType.Event -> {
-							}
-							DiceType.RedYellow, DiceType.WhiteBlack, DiceType.YellowRed -> num += d.num
+							DiceType.None,
+							DiceType.Event -> Unit
+							DiceType.RedYellow,
+							DiceType.WhiteBlack,
+							DiceType.YellowRed -> num += d.num
 						}
 					}
 					num
@@ -2214,6 +2216,7 @@ open class SOC() : Reflector<SOC>(), StringResource {
 				DiceType.RedYellow, DiceType.WhiteBlack, DiceType.YellowRed -> {
 					rolled = rolled.appendDelimited(", ", d.num)
 				}
+				else -> Unit
 			}
 		}
 		printinfo(getString("Rolled %s", rolled))
@@ -3603,6 +3606,7 @@ open class SOC() : Reflector<SOC>(), StringResource {
 		log.debug("processMove: %s", move)
 		printinfo(getString("%1\$s choose move %2\$s", curPlayer.name, move.getNameId()))
 		when (move) {
+			MoveType.INVALID -> TODO("Why???")
 			MoveType.ROLL_DICE -> {
 				if (rules.isCatanForTwo) {
 					pushStateFront(State.PROCESS_NEUTRAL_PLAYER)
@@ -3929,7 +3933,9 @@ open class SOC() : Reflector<SOC>(), StringResource {
 
 				// player gets 2 wheat for each structure on a field
 				val numGained = 2 * computeNumStructuresAdjacentToTileType(curPlayerNum, board, TileType.FIELDS)
-				putCardBackInDeck(curPlayer.removeCard(ProgressCardType.Irrigation))
+				curPlayer.removeCard(ProgressCardType.Irrigation)?.let {
+					putCardBackInDeck(it)
+				}
 				if (numGained > 0) {
 					curPlayer.incrementResource(ResourceType.Wheat, numGained)
 					onDistributeResources(curPlayerNum, ResourceType.Wheat, numGained)
@@ -3980,12 +3986,15 @@ open class SOC() : Reflector<SOC>(), StringResource {
 				if (numGained > 0) {
 					curPlayer.incrementResource(ResourceType.Ore, numGained)
 					onDistributeResources(curPlayerNum, ResourceType.Ore, numGained)
-					putCardBackInDeck(curPlayer.removeCard(ProgressCardType.Mining))
+					curPlayer.removeCard(ProgressCardType.Mining)?.let {
+						putCardBackInDeck(it)
+					}
 				}
 			}
 			MoveType.RESOURCE_MONOPOLY_CARD -> {
-				val remove = curPlayer.removeCard(ProgressCardType.ResourceMonopoly)
-				putCardBackInDeck(remove)
+				val remove = curPlayer.removeCard(ProgressCardType.ResourceMonopoly)?.also {
+					putCardBackInDeck(it)
+				}
 				pushStateFront(State.CHOOSE_RESOURCE_MONOPOLY, null, null, object : UndoAction {
 					override fun undo() {
 						remove?.let { remove ->
@@ -4013,7 +4022,9 @@ open class SOC() : Reflector<SOC>(), StringResource {
 					}
 				}
 				if (done) {
-					putCardBackInDeck(curPlayer.removeCard(ProgressCardType.Saboteur))
+					curPlayer.removeCard(ProgressCardType.Saboteur)?.let {
+						putCardBackInDeck(it)
+					}
 				}
 			}
 			MoveType.SMITH_CARD -> {
@@ -4021,8 +4032,9 @@ open class SOC() : Reflector<SOC>(), StringResource {
 				// promote 2 knights for free
 				val knights = computePromoteKnightVertexIndices(curPlayer, board)
 				if (knights.isNotEmpty()) {
-					val removed = curPlayer.removeCard(ProgressCardType.Smith)
-					putCardBackInDeck(removed)
+					val removed = curPlayer.removeCard(ProgressCardType.Smith)?.also {
+						putCardBackInDeck(it)
+					}
 					if (knights.size > 1) {
 						// remember the knights we have so that we can revert
 						val currentKnights = knights.map {
@@ -4073,14 +4085,18 @@ open class SOC() : Reflector<SOC>(), StringResource {
 					for (vIndex in knights) {
 						board.getVertex(vIndex).activateKnight()
 					}
-					putCardBackInDeck(curPlayer.removeCard(ProgressCardType.Warlord))
+					curPlayer.removeCard(ProgressCardType.Warlord)?.let {
+						putCardBackInDeck(it)
+					}
 				}
 			}
 			MoveType.WEDDING_CARD -> {
 				pushStateFront(State.SET_PLAYER, curPlayerNum)
 				val opponents = computeWeddingOpponents(this, curPlayer)
 				if (opponents.isNotEmpty()) {
-					putCardBackInDeck(curPlayer.removeCard(ProgressCardType.Wedding))
+					curPlayer.removeCard(ProgressCardType.Wedding)?.let {
+						putCardBackInDeck(it)
+					}
 					for (num in opponents) {
 						val p = getPlayerByPlayerNum(num)
 						// automatically give
@@ -4104,8 +4120,8 @@ open class SOC() : Reflector<SOC>(), StringResource {
 		}
 	}
 
-	private fun putCardBackInDeck(card: Card?) {
-		when (card?.cardType) {
+	private fun putCardBackInDeck(card: Card) {
+		when (card.cardType) {
 			CardType.Development -> mDevelopmentCards.add(card)
 			CardType.Progress -> {
 				val index: Int = ProgressCardType.values()[card.typeOrdinal].getData().ordinal
@@ -4114,12 +4130,14 @@ open class SOC() : Reflector<SOC>(), StringResource {
 			CardType.Commodity, CardType.Resource -> {
 			}
 //			else -> throw SOCException("Should not happen")
+			CardType.SpecialVictory -> TODO()
+			CardType.Event -> TODO()
+			CardType.BarbarianAttackDevelopment -> TODO()
 		}
 	}
 
 	private fun removeCardFromDeck(card: Card) {
-		var success = false
-		success = when (card.cardType) {
+		val success = when (card.cardType) {
 			CardType.Development -> mDevelopmentCards.remove(card)
 			CardType.Progress -> {
 				val index: Int = ProgressCardType.values()[card.typeOrdinal].getData().ordinal
@@ -4484,6 +4502,7 @@ open class SOC() : Reflector<SOC>(), StringResource {
 				DiceType.Event -> {
 				}
 				DiceType.RedYellow, DiceType.WhiteBlack, DiceType.YellowRed -> min = Math.min(min, d.num)
+				DiceType.None -> TODO()
 			}
 		}
 		val pirateStrength = min

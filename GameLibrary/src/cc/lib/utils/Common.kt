@@ -7,6 +7,7 @@ import java.lang.ref.WeakReference
 import java.util.*
 import kotlin.math.roundToInt
 import kotlin.properties.ReadWriteProperty
+import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KProperty
 
 fun <T> MutableMap<T, Int>.increment(obj: T, amt: Int) {
@@ -365,10 +366,12 @@ inline fun <reified T : Enum<T>> T.increment(amt: Int): T {
 	return values[(ordinal + amt + values.size) % values.size]
 }
 
-/*
-@kotlin.internal.HidesMembers public inline fun <T> kotlin.collections.Iterable<T>.forEach(action: (T) -> kotlin.Unit): kotlin.Unit { /* compiled code */ }
-
- */
 inline fun <T, S> Iterable<T>.forEachAs(action: (S) -> Unit) {
 	(this as Iterable<S>).forEach(action)
+}
+
+inline fun <T, S> T.transform(func: (T) -> S): S = func(this)
+
+inline fun KMutableProperty<Boolean>.toggle() {
+	setter.call(getter.call().not())
 }

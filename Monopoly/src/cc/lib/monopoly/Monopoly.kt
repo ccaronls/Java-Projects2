@@ -29,7 +29,7 @@ open class Monopoly : Reflector<Monopoly>() {
 		val data: IntArray = intArrayOf(*items)
 
 		override fun toString(): String {
-			return state.name + Arrays.toString(data)
+			return state.name + data.contentToString()
 		}
 	}
 
@@ -40,6 +40,8 @@ open class Monopoly : Reflector<Monopoly>() {
 	var die1 = 0
 		private set
 	var die2 = 0
+		private set
+	var doublesCount = 0
 		private set
 
 	/**
@@ -514,8 +516,15 @@ open class Monopoly : Reflector<Monopoly>() {
 	private fun rollDice() {
 		die1 = dice.popFirst(1 + random(6))
 		die2 = dice.popFirst(1 + random(6))
+		if (die1 == die2) {
+			doublesCount++
+		} else {
+			doublesCount = 0
+		}
 		onDiceRolled()
 	}
+
+	private fun isDoubles(): Boolean = die1 == die2
 
 	private fun getDice(): Int {
 		return die1 + die2
@@ -880,7 +889,14 @@ open class Monopoly : Reflector<Monopoly>() {
 	private fun nextPlayer(pop: Boolean) {
 		if (pop && state.size > 1) popState()
 		if (winner < 0) {
-			do {
+			if (isDoubles()) {
+				// user rolled a double so they get to go again
+				// unless they roll 3 in a row at which point they go to jail
+				if (doublesCount >= 3) {
+					doublesCount = 0
+					gotoJail()
+				}
+			} else do {
 				currentPlayerNum = currentPlayerNum.rotate(players.size)
 			} while (getCurrentPlayer().isBankrupt)
 			//state.clear();
@@ -943,10 +959,10 @@ open class Monopoly : Reflector<Monopoly>() {
 	 */
 	fun canCancel(): Boolean {
 		if (state.size == 0) return false
-		when (state.peek().state) {
-			State.CHOOSE_CARDS_FOR_SALE -> return false
+		return when (state.peek().state) {
+			State.CHOOSE_CARDS_FOR_SALE -> false
+			else -> state.size > 1
 		}
-		return state.size > 1
 	}
 
 	/**

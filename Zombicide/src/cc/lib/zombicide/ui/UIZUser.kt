@@ -4,7 +4,7 @@ import cc.lib.utils.Table
 import cc.lib.utils.prettify
 import cc.lib.zombicide.*
 
-class UIZUser : ZUser() {
+class UIZUser(name: String) : ZUser(name) {
 	fun <T> indexOrNull(item: T?, options: List<T>): Int? {
 		return if (item == null) null else options.indexOf(item)
 	}
@@ -120,13 +120,22 @@ class UIZUser : ZUser() {
 	override fun chooseStartingEquipment(playerName: ZPlayerName, list: List<ZEquipmentType>): ZEquipmentType? {
 		val table = Table().setNoBorder()
 		for (t in list) {
-			table.addColumnNoHeaderVarArg(t.create().getCardInfo(playerName.character, UIZombicide.instance))
+			table.addColumnNoHeaderVarArg(t.create().getCardInfo(UIZombicide.instance.board.getCharacter(playerName), UIZombicide.instance))
 		}
 		UIZombicide.instance.boardRenderer.setOverlay(Table().addColumn("Choose Starting Equipment", table))
 		return UIZombicide.instance.pickMenu(playerName, "Choose Starting Equipment", ZEquipmentType::class.java, list)
 	}
 
 	override fun chooseOrganize(playerName: ZPlayerName, list: List<ZMove>): ZMove? {
-		return UIZombicide.instance.updateOrganize(playerName.character, list)
+		return UIZombicide.instance.updateOrganize(UIZombicide.instance.board.getCharacter(playerName), list)
 	}
+
+	override fun organizeStart(primary: ZPlayerName, secondary: ZPlayerName?) {
+		UIZombicide.instance.showOrganizeDialog(primary, secondary)
+	}
+
+	override fun organizeEnd() {
+		UIZombicide.instance.closeOrganizeDialog()
+	}
+
 }

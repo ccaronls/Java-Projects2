@@ -11,10 +11,10 @@ import kotlin.math.min
 /**
  * Point mjolnir in dir of targets, charge up and fire
  */
-open class MjolnirLightningAnimation(actor: ZActor<*>, val targets: List<IInterpolator<Vector2D>>, val dir: ZDir) : ZActorAnimation(actor, 1500L, 1000L) {
+open class MjolnirLightningAnimation(actor: ZActor, val targets: List<IInterpolator<Vector2D>>, val dir: ZDir) : ZActorAnimation(actor, 1500L, 1000L) {
 
 
-	lateinit var start : Vector2D
+	lateinit var start: Vector2D
 	lateinit var imgRect: GRectangle
 	val actorRect = actor.getRect()
 	lateinit var shots: Array<LightningStrand>
@@ -37,6 +37,7 @@ open class MjolnirLightningAnimation(actor: ZActor<*>, val targets: List<IInterp
 				imgRect = GRectangle(actorRect).scaledBy(.5f).withCenter(actorRect.centerLeft)
 				start = imgRect.center.midPoint(imgRect.centerLeft)
 			}
+			else -> Unit
 		}
 		shots = Array(targets.size) {
 			LightningStrand(start, targets[it], 10, 15, .4f)

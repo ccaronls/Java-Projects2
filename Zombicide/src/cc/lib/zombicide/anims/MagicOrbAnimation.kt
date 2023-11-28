@@ -9,17 +9,17 @@ import kotlin.math.roundToLong
 /**
  * Created by Chris Caron on 8/18/21.
  */
-open class MagicOrbAnimation(actor: ZActor<*>, end: Vector2D) : ZActorAnimation(actor, 600L, 800L) {
-    val path: Vector2D
-    val start: Vector2D
-    val r: GRectangle = actor.getRect().scaledBy(.5f)
-    val strands: Array<LightningStrand>
-    val startAlpha = .9f
-    val endAlpha = .3f
-    val startRadius = .05f
-    val endRadius = .25f
-    val padding = .02f // padding between the lightning strands and the outer edge of orb
-    override fun drawPhase(g: AGraphics, positionInPhase: Float, positionInAnimation: Float, phase: Int) {
+open class MagicOrbAnimation(actor: ZActor, end: Vector2D) : ZActorAnimation(actor, 600L, 800L) {
+	val path: Vector2D
+	val start: Vector2D
+	val r: GRectangle = actor.getRect().scaledBy(.5f)
+	val strands: Array<LightningStrand>
+	val startAlpha = .9f
+	val endAlpha = .3f
+	val startRadius = .05f
+	val endRadius = .25f
+	val padding = .02f // padding between the lightning strands and the outer edge of orb
+	override fun drawPhase(g: AGraphics, positionInPhase: Float, positionInAnimation: Float, phase: Int) {
         val orbColor = GColor.MAGENTA
 	    val alpha = startAlpha + (endAlpha - startAlpha) * positionInAnimation
 	    val radius = startRadius + (endRadius - startRadius) * positionInAnimation

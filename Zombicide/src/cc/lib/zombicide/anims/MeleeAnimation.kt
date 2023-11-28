@@ -9,17 +9,17 @@ import cc.lib.zombicide.ZActorAnimation
 import cc.lib.zombicide.ZBoard
 import cc.lib.zombicide.ZIcon
 
-open class MeleeAnimation(actor: ZActor<*>, board: ZBoard) : ZActorAnimation(actor, 400) {
-    val id: Int = ZIcon.SLASH.imageIds.random()
+open class MeleeAnimation(actor: ZActor, board: ZBoard) : ZActorAnimation(actor, 400) {
+	val id: Int = ZIcon.SLASH.imageIds.random()
 
 	private val r: GRectangle = actor.getRect().scaledBy(1.3f).moveBy(Vector2D.newRandom(.1f))
 
 	override fun draw(g: AGraphics, position: Float, dt: Float) {
-        val img = g.getImage(id)
-        g.setTransparencyFilter(1f - position)
-        g.drawImage(id, r.fit(img))
-        g.removeFilter()
-    }
+		val img = g.getImage(id)
+		g.setTransparencyFilter(1f - position)
+		g.drawImage(id, r.fit(img))
+		g.removeFilter()
+	}
 
     override fun hidesActor(): Boolean {
         return false

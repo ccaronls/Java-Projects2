@@ -11,7 +11,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import android.widget.AdapterView.OnItemClickListener
-import cc.game.monopoly.android.databinding.*
+import cc.game.monopoly.android.databinding.GameConfigDialogBinding
 import cc.lib.android.CCNumberPicker
 import cc.lib.android.DroidActivity
 import cc.lib.android.DroidGraphics
@@ -398,32 +398,38 @@ class MonopolyActivity : DroidActivity() {
 	}
 
 	fun showGameSetupDialog() {
+		val rules = monopoly.rules
 		val startMoneyValues = resources.getIntArray(R.array.start_money_values)
 		val winMoneyValues = resources.getIntArray(R.array.win_money_values)
 		val taxPercentValues = resources.getIntArray(R.array.tax_scale_percent_values)
 		val maxJailTurnsValues = resources.getIntArray(R.array.max_turns_in_jail_values)
 		val binding = GameConfigDialogBinding.inflate(layoutInflater)
-		val startMoney = prefs.getInt("startMoney", 1000)
-		val winMoney = prefs.getInt("winMoney", 5000)
-		val taxPercent = prefs.getInt("taxPercent", 100)
-		val jailBump = prefs.getBoolean("jailBump", false)
-		val jailMulti = prefs.getBoolean("jailMulti", false)
-		val maxJainTurns = prefs.getInt("maxJailTurns", 3)
-		val rules = monopoly.rules
+		val startMoney = prefs.getInt("startMoney", rules.startMoney)
+		val winMoney = prefs.getInt("winMoney", rules.valueToWin)
+		val taxPercent = prefs.getInt("taxPercent", rules.taxScale.times(100).roundToInt())
+		val jailBump = prefs.getBoolean("jailBump", rules.jailBumpEnabled)
+		val jailMulti = prefs.getBoolean("jailMulti", rules.jailMultiplier)
+		val maxJailTurns = prefs.getInt("maxJailTurns", rules.maxTurnsInJail)
+		val doublesRules = prefs.getBoolean("doublesRule", rules.doublesRule)
 		binding.npStartMoney.init(startMoneyValues, startMoney, { value: Int -> "$${value}" }, { _: NumberPicker?, _: Int, newVal: Int -> prefs.edit().putInt("startMoney", startMoneyValues[newVal]).apply() })
 		binding.npWinMoney.init(winMoneyValues, winMoney, { value: Int -> "$$value" }, { _: NumberPicker?, _: Int, newVal: Int -> prefs.edit().putInt("winMoney", winMoneyValues[newVal]).apply() })
 		binding.npTaxScale.init(taxPercentValues, taxPercent, { value: Int -> "$value%" }, { _: NumberPicker?, _: Int, newVal: Int -> prefs.edit().putInt("taxPercent", taxPercentValues[newVal]).apply() })
-		binding.npJailMaxTurns.init(maxJailTurnsValues, maxJainTurns, { value: Int -> "$value" }, { _, _, newVal: Int -> prefs.edit().putInt("maxJailTurns", maxJailTurnsValues[newVal]).apply() })
+		binding.npJailMaxTurns.init(maxJailTurnsValues, maxJailTurns, { value: Int -> "$value" }, { _, _, newVal: Int -> prefs.edit().putInt("maxJailTurns", maxJailTurnsValues[newVal]).apply() })
 		binding.cbJailBumpEnabled.isChecked = jailBump
 		binding.cbJailBumpEnabled.setOnCheckedChangeListener { _, isChecked: Boolean -> prefs.edit().putBoolean("jailBump", isChecked).apply() }
 		binding.cbJailMultiplierEnabled.isChecked = jailMulti
-		binding.cbJailMultiplierEnabled.setOnCheckedChangeListener { _, isChecked:Boolean -> prefs.edit().putBoolean("jailMulti", isChecked).apply() }
+		binding.cbJailMultiplierEnabled.setOnCheckedChangeListener { _, isChecked: Boolean -> prefs.edit().putBoolean("jailMulti", isChecked).apply() }
+		binding.cbDoublesRuleEnabled.isChecked = doublesRules
+		binding.cbDoublesRuleEnabled.setOnCheckedChangeListener { _, isChecked -> prefs.edit().putBoolean("doublesRule", isChecked).apply() }
 		newDialogBuilder().setTitle("Configure").setView(binding.root)
 			.setPositiveButton("Setup Players") { _, _ ->
 				rules.startMoney = startMoneyValues[binding.npStartMoney.value]
 				rules.valueToWin = winMoneyValues[binding.npWinMoney.value]
 				rules.taxScale = 0.01f * taxPercentValues[binding.npTaxScale.value]
 				rules.jailBumpEnabled = binding.cbJailBumpEnabled.isChecked
+				rules.maxTurnsInJail = maxJailTurnsValues[binding.npJailMaxTurns.value]
+				rules.jailMultiplier = binding.cbJailMultiplierEnabled.isChecked
+				rules.doublesRule = binding.cbDoublesRuleEnabled.isChecked
 				showPlayerSetupMenu()
 			}.show().also {
 				val width = (resources.displayMetrics.widthPixels * 0.75).toInt()

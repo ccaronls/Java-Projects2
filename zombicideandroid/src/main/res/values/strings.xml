@@ -58,7 +58,7 @@ are fulfilled.
     <string name="char_lock_jain">Complete \'The Black Book\' in Hard difficulty</string>
     <string name="char_lock_benson">Complete \'The Evil Temple\' in Hard difficulty</string>
     <string name="char_lock_wolfz">Unlock Wolfzburg</string>
-
+    <string name="char_lock_empty_string"></string>
 
 
     <string name="popup_button_back">Back</string>

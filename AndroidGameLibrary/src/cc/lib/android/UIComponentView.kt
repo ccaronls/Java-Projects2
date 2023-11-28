@@ -32,8 +32,8 @@ abstract class UIComponentView<T : UIRenderer> : View, UIComponent, Runnable {
 	private val borderPaint = Paint()
 	private val CLICK_TIME = 700
 	private var downTime: Long = 0
-	private var touchDownX = 0f
-	private var touchDownY = 0f
+	private var touchDownX = 0
+	private var touchDownY = 0
 
 	constructor(context: Context, attrs: AttributeSet?) : super(context, attrs) {
 		init(context, attrs)
@@ -83,7 +83,7 @@ abstract class UIComponentView<T : UIRenderer> : View, UIComponent, Runnable {
 			g.setCanvas(canvas, width, height)
 		}
 		if (borderThickness > 0) {
-			canvas.drawRect(0f, 0f, getWidth().toFloat(), getHeight().toFloat(), borderPaint)
+			canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), borderPaint)
 			g.translate(borderThickness, borderThickness)
 		}
 		if (progress < 1) {
@@ -97,14 +97,14 @@ abstract class UIComponentView<T : UIRenderer> : View, UIComponent, Runnable {
 			g.color = GColor.RED
 			g.ortho()
 			val textWidth = g.getTextWidth(loadingString)
-			val rect: GRectangle = GRectangle(0f, 0f, GDimension(max(textWidth + 20, (getWidth() * 3 / 4).toFloat()), (getHeight() / 6).toFloat())).withCenter(Vector2D((getWidth() / 2).toFloat(), (getHeight() / 2).toFloat()))
+			val rect: GRectangle = GRectangle(0f, 0f, GDimension(max(textWidth + 20, (width * 3 / 4).toFloat()), (height / 6).toFloat())).withCenter(Vector2D((width / 2).toFloat(), (height / 2).toFloat()))
 			g.drawRect(rect, 3f)
 			rect.w *= progress
 			g.drawFilledRect(rect)
 			val hgt = g.textHeight
 			g.textHeight = rect.h * 3 / 4
 			g.color = GColor.WHITE
-			g.drawJustifiedString((getWidth() / 2).toFloat(), (getHeight() / 2).toFloat(), Justify.CENTER, Justify.CENTER, loadingString)
+			g.drawJustifiedString((width / 2).toFloat(), (height / 2).toFloat(), Justify.CENTER, Justify.CENTER, loadingString)
 			g.textHeight = hgt
 		} else if (!isInEditMode) {
 			loadAssetsRunnable = null
@@ -118,7 +118,7 @@ abstract class UIComponentView<T : UIRenderer> : View, UIComponent, Runnable {
 			if (next != prev) {
 				if (isResizable) {
 					requestLayout()
-					invalidate()
+					postInvalidate()
 				}
 			}
 		}
@@ -145,38 +145,39 @@ abstract class UIComponentView<T : UIRenderer> : View, UIComponent, Runnable {
 		when (event.action) {
 			MotionEvent.ACTION_DOWN -> {
 				downTime = SystemClock.uptimeMillis()
-				tx = Math.round(event.x.also { touchDownX = it })
-				ty = Math.round(event.y.also { touchDownY = it })
+				tx = event.x.roundToInt().also { touchDownX = it }
+				ty = event.y.roundToInt().also { touchDownY = it }
+				renderer.onTouch(tx, ty)
 				postDelayed(this, CLICK_TIME.toLong())
 			}
 			MotionEvent.ACTION_UP -> {
-				run {
-					ty = -1
-					tx = ty
-					touchDownY = tx.toFloat()
-					touchDownX = touchDownY
-				}
+				ty = -1
+				tx = -1
+				touchDownY = tx
+				touchDownX = ty
 				if (!dragging && SystemClock.uptimeMillis() - downTime < CLICK_TIME) {
 					renderer.onClick()
 				} else if (dragging) {
 					renderer.onDragEnd()
+				} else {
+					renderer.onTouchUp(event.x.roundToInt(), event.y.roundToInt())
 				}
 				dragging = false
 			}
 			MotionEvent.ACTION_MOVE -> {
-				tx = Math.round(event.x)
-				ty = Math.round(event.y)
+				tx = event.x.roundToInt()
+				ty = event.y.roundToInt()
 				if (!dragging) {
 					if (Utils.fastLen(event.x - touchDownX, event.y - touchDownY) > 10) {
 						dragging = true
-						renderer.onDragStart(event.x, event.y)
+						renderer.onDragStart(tx, ty)
 					}
 				} else {
-					renderer.onDragMove(event.x, event.y)
+					renderer.onDragMove(tx, ty)
 				}
 			}
 		}
-		invalidate()
+		postInvalidate()
 		return true
 	}
 

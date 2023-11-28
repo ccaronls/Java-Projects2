@@ -5,8 +5,6 @@ import cc.game.soc.core.DiceEvent
 import cc.game.soc.core.DiceType
 import cc.lib.game.*
 import cc.lib.ui.UIComponent
-import java.util.*
-import kotlin.coroutines.CoroutineContext
 
 class UIDiceRenderer(component: UIComponent, attach: Boolean) : UIRenderer(component, attach) {
 	private var diceRect: GDimension? = null
@@ -66,7 +64,8 @@ class UIDiceRenderer(component: UIComponent, attach: Boolean) : UIRenderer(compo
 	}
 
 	private val dim: GDimension
-		private get() = diceRect?:GDimension(getComponent<UIComponent>().width.toFloat(), getComponent<UIComponent>().height.toFloat())
+		private get() = diceRect ?: GDimension(getComponent<UIComponent>().getWidth().toFloat(),
+			getComponent<UIComponent>().getHeight().toFloat())
 
 	override fun draw(g: APGraphics, pickX: Int, pickY: Int) {
 		picked = -1
@@ -132,6 +131,7 @@ class UIDiceRenderer(component: UIComponent, attach: Boolean) : UIRenderer(compo
 			DiceType.RedYellow -> drawDie(g, dim, GColor.RED, GColor.YELLOW, num)
 			DiceType.WhiteBlack -> drawDie(g, dim, GColor.WHITE, GColor.BLACK, num)
 			DiceType.YellowRed -> drawDie(g, dim, GColor.YELLOW, GColor.RED, num)
+			else -> TODO("Unhandled case $type")
 		}
 	}
 

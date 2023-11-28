@@ -3,7 +3,6 @@ package cc.lib.zombicide.quests
 import cc.lib.utils.Grid
 import cc.lib.utils.Table
 import cc.lib.zombicide.*
-import java.util.*
 
 /**
  * Created by Chris Caron on 9/1/21.
@@ -112,6 +111,7 @@ class WolfTheZombieArmy : ZQuest(ZQuests.The_Zombie_Army) {
 					game.spawnZombies(zone)
 				}
 			}
+			else -> Unit
 		}
 	}
 }

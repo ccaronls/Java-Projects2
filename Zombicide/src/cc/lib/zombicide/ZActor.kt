@@ -6,35 +6,50 @@ import cc.lib.utils.Grid
 import cc.lib.utils.Reflector
 import cc.lib.zombicide.ui.UIZButton
 
-abstract class ZActor<E : Enum<E>> internal constructor(var occupiedZone: Int=-1) : Reflector<ZActor<E>>(), UIZButton, IRectangle, IVector2D, IInterpolator<Vector2D> {
-    companion object {
-        init {
-            addAllFields(ZActor::class.java)
-        }
-    }
+abstract class ZActor internal constructor(var occupiedZone: Int = -1) : Reflector<ZActor>(), UIZButton, IRectangle, IVector2D, IInterpolator<Vector2D> {
+	companion object {
+		init {
+			addAllFields(ZActor::class.java)
+		}
+	}
 
-    var priorZone:Int = -1
-        get() = if (field < 0) occupiedZone else field
+	var priorZone: Int = -1
+		get() = if (field < 0) occupiedZone else field
 
-    lateinit var occupiedCell: Grid.Pos
-    lateinit var occupiedQuadrant: ZCellQuadrant
-    @JvmField
-    var actionsLeftThisTurn = 0
-    private var rect = GRectangle()
+	lateinit var occupiedCell: Grid.Pos
+	lateinit var occupiedQuadrant: ZCellQuadrant
 
-    @JvmField
-    @Omit
-    var animation: ZActorAnimation? = null
+	fun isOccupying(): Boolean = ::occupiedQuadrant.isInitialized
 
-    fun getRect(b: ZBoard): GRectangle {
-        return b.getCell(occupiedCell)
-                .getQuadrant(occupiedQuadrant)
-                .fit(dimension)
-                .scaledBy(scale * b.getCell(occupiedCell).scale, Justify.CENTER, Justify.BOTTOM).also { rect = it }
-    }
+	@JvmField
+	var actionsLeftThisTurn = 0
+	private var rect = GRectangle()
 
-    override fun getRect(): GRectangle {
-        return animation?.rect?:rect
+	@JvmField
+	@Omit
+	var animation: ZActorAnimation? = null
+
+	private var id: String? = type?.let {
+		makeId()
+	}
+
+	fun getId(): String = id ?: makeId()
+
+	protected open fun makeId(): String {
+		return (type.name + Utils.genRandomString(8) + (System.currentTimeMillis() % 1000)).also {
+			id = it
+		}
+	}
+
+	fun getRect(b: ZBoard): GRectangle {
+		return b.getCell(occupiedCell)
+			.getQuadrant(occupiedQuadrant)
+			.fit(dimension)
+			.scaledBy(scale * b.getCell(occupiedCell).scale, Justify.CENTER, Justify.BOTTOM).also { rect = it }
+	}
+
+	override fun getRect(): GRectangle {
+		return animation?.rect ?: rect
     }
 
     open fun onBeginRound() {
@@ -58,26 +73,29 @@ abstract class ZActor<E : Enum<E>> internal constructor(var occupiedZone: Int=-1
 
     abstract fun drawInfo(g: AGraphics, game: ZGame, width: Float, height: Float): IDimension?
 
-    open val noise: Int
-        get() = 0
-    abstract val type: E
-    open val scale: Float
-        get() = 1f
-    abstract val imageId: Int
-    abstract val outlineImageId: Int
-    abstract override fun getDimension(): GDimension
-    open val isInvisible: Boolean
-        get() = false
+	open val noise: Int
+		get() = 0
+	abstract val type: Enum<*>
+	open val scale: Float
+		get() = 1f
+	abstract val imageId: Int
+	abstract val outlineImageId: Int
+	abstract override fun getDimension(): GDimension
+	open val isInvisible: Boolean
+		get() = false
 
-    fun addAnimation(anim: ZActorAnimation) {
-	    animation?.takeIf { !it.isDone }?.also {
-		    it.add(anim)
-	    }?:run {
-	    	animation = anim.start()
-	    }
-    }
+	@Omit
+	var pickable = false
 
-    open val moveSpeed: Long
+	fun addAnimation(anim: ZActorAnimation) {
+		animation?.takeIf { !it.isDone }?.also {
+			it.add(anim)
+		} ?: run {
+			animation = anim.start()
+		}
+	}
+
+	open val moveSpeed: Long
         get() = 1000
     val isAnimating: Boolean
 		get() = animation?.isDone?.not()?:false
@@ -153,13 +171,19 @@ abstract class ZActor<E : Enum<E>> internal constructor(var occupiedZone: Int=-1
         return rect.center
     }
 
-    val position: ZActorPosition
-        get() = ZActorPosition(occupiedCell, occupiedQuadrant)
-    open val isNoisy: Boolean
-        get() = false
+	val position: ZActorPosition
+		get() = ZActorPosition(occupiedCell, occupiedQuadrant, occupiedZone)
+	open val isNoisy: Boolean
+		get() = false
 
-	open val isVisible : Boolean
-		get () = isAlive || isAnimating
+	open val isVisible: Boolean
+		get() = isAlive || isAnimating
+
+	fun setPosition(position: ZActorPosition) {
+		occupiedQuadrant = position.quadrant
+		occupiedCell = position.pos
+		occupiedZone = position.zone
+	}
 
 	override fun toString(): String {
 		return "$label zone:$occupiedZone"

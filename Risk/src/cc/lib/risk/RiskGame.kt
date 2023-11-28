@@ -223,10 +223,11 @@ open class RiskGame(val board : RiskBoard = RiskBoard()) : Reflector<RiskGame>()
 								}
 							}
 						}
-						Action.END    -> {
+						Action.END -> {
 							state = State.BEGIN_TURN
 							nextPlayer()
 						}
+						else -> Unit
 					}
 				}
 			}

@@ -423,8 +423,8 @@ open class UIBoardRenderer(component: UIComponent) : UIRenderer(component) {
 	fun drawEdge(g: AGraphics, e: Route, type: RouteType?, playerNum: Int, outline: Boolean) {
 		if (playerNum > 0) g.color = getPlayerColor(playerNum)
 		when (type) {
-			RouteType.OPEN -> {
-			}
+			null,
+			RouteType.OPEN -> Unit
 			RouteType.DAMAGED_ROAD -> drawDamagedRoad(g, e, outline)
 			RouteType.ROAD -> drawRoad(g, e, outline)
 			RouteType.SHIP -> drawShip(g, e, outline)
@@ -508,6 +508,7 @@ open class UIBoardRenderer(component: UIComponent) : UIRenderer(component) {
 		when (type) {
 			RouteType.SHIP -> drawShip(g, v, angle, outline)
 			RouteType.WARSHIP -> drawWarShip(g, v, angle, outline)
+			else -> TODO("Unandled type $type")
 		}
 	}
 
@@ -670,8 +671,8 @@ open class UIBoardRenderer(component: UIComponent) : UIRenderer(component) {
 	}
 
 	override fun draw(g: APGraphics, pickX: Int, pickY: Int) {
-		val width = getComponent<UIComponent>().width
-		val height = getComponent<UIComponent>().height
+		val width = getComponent<UIComponent>().getWidth()
+		val height = getComponent<UIComponent>().getHeight()
 		if (width <= 10 || height <= 10) return  // avoid images getting resized excessively if the window is getting resized
 		g.ortho()
 		g.pushMatrix()

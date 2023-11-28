@@ -419,6 +419,8 @@ public class Reflector<T> {
                 if (line != null && !line.equals("null")) {
                     String s = decodeString(line.substring(1, line.length() - 1));
                     Array.set(arr, i, s);
+                } else {
+                    Array.set(arr, i, null);
                 }
             }
             if (readLineOrEOF(in) != null)
@@ -763,7 +765,9 @@ public class Reflector<T> {
         @Override
         public void set(Object o, Field field, String value, Reflector<?> a, boolean keepInstances) throws Exception {
             if (value != null && !value.equals("null")) {
-                field.set(a, getClassForName(value).newInstance());
+                if (o == null || !keepInstances)
+                    o = getClassForName(value).newInstance();
+                field.set(a, o);
             } else {
                 field.set(a, null);
             }
@@ -1853,9 +1857,9 @@ public class Reflector<T> {
             if (line == null)
                 throw new ParseException(in.lineNum, "Missing value from key/value pair in map");
             Object value = null;
-            if (line != null && !line.equals("null")) {
+            if (!line.equals("null")) {
                 clazz = getClassForName(line);
-                value = parse(null, clazz, in, keepInstances);
+                value = parse(c.get(key), clazz, in, keepInstances);
                 if (in.depth > startDepth) {
                     line = readLineOrEOF(in);
                     if (line != null)
@@ -1977,10 +1981,10 @@ public class Reflector<T> {
                         archiver.set(instance, field, parts[1], this, keepInstances);
                         if (field.get(Reflector.this) instanceof Reflector) {
                             Reflector<T> ref = (Reflector<T>) field.get(Reflector.this);
-                        if (keepInstances)
-                            ref.merge(in);
-                        else
-                            ref.deserialize(in);
+                            if (keepInstances)
+                                ref.merge(in);
+                            else
+                                ref.deserialize(in);
                         } else if (field.getType().isArray()) {
                             Object obj = field.get(this);
                             if (obj != null) {

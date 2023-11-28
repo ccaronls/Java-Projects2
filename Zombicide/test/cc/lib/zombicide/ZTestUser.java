@@ -10,9 +10,8 @@ import cc.lib.game.Utils;
 public class ZTestUser extends ZUser {
 
     public ZTestUser(ZPlayerName...names) {
-        for (ZPlayerName nm : names) {
-            addCharacter(nm);
-        }
+        super("test", names);
+
     }
 
     @Override

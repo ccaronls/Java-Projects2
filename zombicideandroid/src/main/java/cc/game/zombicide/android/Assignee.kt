@@ -4,7 +4,7 @@ import cc.game.zombicide.android.ZombicideActivity.CharLock
 import cc.lib.utils.Reflector
 import cc.lib.zombicide.ZPlayerName
 
-class Assignee(val name: ZPlayerName=ZPlayerName.Nelly, var userName: String="??", var color: Int=0, var checked: Boolean=false) : Reflector<Assignee>(), Comparable<Assignee> {
+class Assignee(val name: ZPlayerName = ZPlayerName.Nelly, var userName: String = "??", var color: Int = -1, var checked: Boolean = false) : Reflector<Assignee>(), Comparable<Assignee> {
 	companion object {
 		init {
 			addAllFields(Assignee::class.java)
@@ -12,7 +12,7 @@ class Assignee(val name: ZPlayerName=ZPlayerName.Nelly, var userName: String="??
 	}
 
 	@JvmField
-    @Omit
+	@Omit
 	var isAssingedToMe = false
 
 	@JvmField
@@ -28,7 +28,7 @@ class Assignee(val name: ZPlayerName=ZPlayerName.Nelly, var userName: String="??
 	}
 
 	val isUnlocked: Boolean
-		get() = (color < 0 || isAssingedToMe) && lock!!.isUnlocked
+		get() = (color < 0 || isAssingedToMe) && lock?.isUnlocked == true
 
 	override fun equals(o: Any?): Boolean {
 		if (this === o) return true

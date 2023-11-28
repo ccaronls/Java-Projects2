@@ -40,23 +40,19 @@ enum class PieceType(castleWith: Boolean, abbrev: String, points: Int, value: In
 	@JvmField
     val points: Int
 	@JvmField
-    val flag: Int
+	val flag: Int
 	val canCastleWith: Boolean
 	val isFlying: Boolean
-		get() {
-			when (this) {
-				FLYING_KING, DAMA_KING -> return true
-			}
-			return false
+		get() = when (this) {
+			FLYING_KING, DAMA_KING -> true
+			else -> false
 		}
 
 	constructor(abbrev: String, points: Int, value: Int, flag: Int) : this(false, abbrev, points, value, flag) {}
 
-	fun drawFlipped(): Boolean {
-		when (this) {
-			KNIGHT_R, DRAGON_IDLE_L, DRAGON_L -> return true
-		}
-		return false
+	fun drawFlipped(): Boolean = when (this) {
+		KNIGHT_R, DRAGON_IDLE_L, DRAGON_L -> true
+		else -> false
 	}
 
 	/**
@@ -68,46 +64,39 @@ enum class PieceType(castleWith: Boolean, abbrev: String, points: Int, value: In
 	 * @return the logical type
 	 */
 	val displayType: PieceType
-		get() {
-			when (this) {
-				PAWN, PAWN_IDLE, PAWN_ENPASSANT, PAWN_TOSWAP -> return PAWN
-				ROOK, ROOK_IDLE -> return ROOK
-				DRAGON_R, DRAGON_IDLE_R, DRAGON_L, DRAGON_IDLE_L -> return DRAGON_R
-				CHECKED_KING, CHECKED_KING_IDLE, UNCHECKED_KING, UNCHECKED_KING_IDLE, KING, FLYING_KING, DAMA_KING -> return KING
-				CHECKER, DAMA_MAN, CHIP_4WAY -> return CHECKER
-			}
-			return this
+		get() = when (this) {
+			PAWN, PAWN_IDLE, PAWN_ENPASSANT, PAWN_TOSWAP -> PAWN
+			ROOK, ROOK_IDLE -> ROOK
+			DRAGON_R, DRAGON_IDLE_R, DRAGON_L, DRAGON_IDLE_L -> DRAGON_R
+			CHECKED_KING, CHECKED_KING_IDLE, UNCHECKED_KING, UNCHECKED_KING_IDLE, KING, FLYING_KING, DAMA_KING -> KING
+			CHECKER, DAMA_MAN, CHIP_4WAY -> CHECKER
+			else -> this
 		}
 	val nonIdled: PieceType
-		get() {
-			when (this) {
-				PAWN_IDLE -> return PAWN
-				ROOK_IDLE -> return ROOK
-				CHECKED_KING_IDLE -> return CHECKED_KING
-				UNCHECKED_KING_IDLE -> return UNCHECKED_KING
-				DRAGON_IDLE_R -> return DRAGON_R
-				DRAGON_IDLE_L -> return DRAGON_L
-			}
-			throw AssertionError("Unhandled case $this")
+		get() = when (this) {
+			PAWN_IDLE -> PAWN
+			ROOK_IDLE -> ROOK
+			CHECKED_KING_IDLE -> CHECKED_KING
+			UNCHECKED_KING_IDLE -> UNCHECKED_KING
+			DRAGON_IDLE_R -> DRAGON_R
+			DRAGON_IDLE_L -> DRAGON_L
+			else -> TODO("Unhandled piece $this")
 		}
+
 	val idled: PieceType
-		get() {
-			when (this) {
-				PAWN -> return PAWN_IDLE
-				ROOK -> return ROOK_IDLE
-				CHECKED_KING -> return CHECKED_KING_IDLE
-				UNCHECKED_KING -> return UNCHECKED_KING_IDLE
-				DRAGON_R -> return DRAGON_IDLE_R
-				DRAGON_L -> return DRAGON_IDLE_L
-			}
-			throw AssertionError("Unhandled case $this")
+		get() = when (this) {
+			PAWN -> PAWN_IDLE
+			ROOK -> ROOK_IDLE
+			CHECKED_KING -> CHECKED_KING_IDLE
+			UNCHECKED_KING -> UNCHECKED_KING_IDLE
+			DRAGON_R -> DRAGON_IDLE_R
+			DRAGON_L -> DRAGON_IDLE_L
+			else -> TODO("Unhandled piece $this")
 		}
 	val isChecked: Boolean
-		get() {
-			when (this) {
-				CHECKED_KING, CHECKED_KING_IDLE -> return true
-			}
-			return false
+		get() = when (this) {
+			CHECKED_KING, CHECKED_KING_IDLE -> true
+			else -> false
 		}
 
 	companion object {

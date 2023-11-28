@@ -1206,24 +1206,28 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     public abstract void disableTexture();
 
     /**
-     * 
+     *
      * @param s
      * @param t
      */
     public abstract void texCoord(float s, float t);
-    
+
     /**
-     * 
+     *
      */
     public abstract void pushMatrix();
-    
+
+    public int getPushDepth() {
+        return 0;
+    }
+
     /**
-     * 
+     *
      */
     public abstract void popMatrix();
 
     /**
-     * 
+     *
      */
     public abstract void setIdentity();
 

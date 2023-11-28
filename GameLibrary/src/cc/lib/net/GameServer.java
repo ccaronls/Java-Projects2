@@ -11,19 +11,12 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 import cc.lib.crypt.Cypher;
 import cc.lib.crypt.EncryptionInputStream;
 import cc.lib.crypt.EncryptionOutputStream;
 import cc.lib.crypt.HuffmanEncoding;
 import cc.lib.game.Utils;
-import cc.lib.logger.Logger;
-import cc.lib.logger.LoggerFactory;
-import cc.lib.utils.Lock;
-import cc.lib.utils.WeakHashSet;
 
 /**
  * A Game server is a server that handles normal connection/handshaking and maintains
@@ -37,98 +30,26 @@ import cc.lib.utils.WeakHashSet;
  * - Managing older client versions.
  * - Managing Protocol Encryption
  * - Executing methods on a game object (see GameCommon)
- * 
+ *
  * Override protected methods to create custom behaviors
- * 
+ *
  * @author ccaron
  *
  */
-public class GameServer {
+public class GameServer extends AGameServer {
 
-    public final static int TIMEOUT = 30000;
-    public final static int PING_FREQ = 10000;
+    public int TIMEOUT = 20000;
+    public int PING_FREQ = 10000;
 
-    private final Logger log = LoggerFactory.getLogger("P2PGame", GameServer.class);
-    
-    /**
-     *
-     */
-    public interface Listener {
-        /**
-         *
-         * @param conn
-         */
-        default void onConnected(ClientConnection conn) {}
-
-        /**
-         *
-         * @param conn
-         */
-        default void onReconnection(ClientConnection conn) {}
-
-        /*
-         */
-        default void onClientDisconnected(ClientConnection conn) {}
-
-        /**
-         *
-         * @param conn
-         * @param cmd
-         */
-        default void onCommand(ClientConnection conn, GameCommand cmd) {}
-
-        /**
-         *
-         */
-        default void onServerStopped() {}
-
-        /**
-         *
-         * @param conn
-         * @param newHandle
-         */
-        default void onClientHandleChanged(ClientConnection conn, String newHandle) {}
-    }
-    
-    // keep sorted by alphabetical order 
-    private final Map<String,ClientConnection> clients = new LinkedHashMap<>();
     private SocketListener socketListener;
-    private final WeakHashSet<Listener> listeners = new WeakHashSet<>();
-    private final String mVersion;
     private final Cypher cypher;
-    private final int maxConnections;
-    private final int port;
-    private final String mServerName;
-    private String password = null;
     private HuffmanEncoding counter = null;
-    private final Lock disconnectingLock = new Lock();
 
     public String toString() {
         String r = "GameServer:" + mServerName + " v:" + mVersion;
         if (clients.size() > 0)
             r += " connected clients:" + clients.size();
         return r;
-    }
-
-    void removeClient(ClientConnection cl) {
-        log.debug("removing client " + cl.getName());
-        synchronized (clients) {
-            clients.remove(cl);
-        }
-        disconnectingLock.release();
-    }
-
-    public final String getName() {
-        return mServerName;
-    }
-
-    /**
-     * You can optionally require clients to enter a password to login to your server
-     *
-     * @param paswword
-     */
-    public final void setPassword(String paswword) {
-        this.password = paswword;
     }
 
     /**
@@ -144,14 +65,7 @@ public class GameServer {
      * @throws Exception
      */
     public GameServer(String serverName, int listenPort, String serverVersion, Cypher cypher, int maxConnections) {
-        this.mServerName = serverName; // null check
-        if (listenPort < 1000)
-            throw new RuntimeException("Invalid value for listener port/ Think higher.");
-        this.port = listenPort;
-        if (maxConnections < 2)
-            throw new RuntimeException("Value for maxConnections too small");
-        this.maxConnections = maxConnections;
-        this.mVersion = serverVersion.toString(); // null check
+        super(serverName, listenPort, serverVersion, maxConnections);
         this.cypher = cypher;
         if (cypher == null) {
             log.warn("NULL CYPHER NOT A GOOD IDEA FOR RELEASE!");
@@ -185,26 +99,6 @@ public class GameServer {
     }
 
     /**
-     *
-     * @param l
-     */
-    public final void addListener(Listener l) {
-        listeners.add(l);
-    }
-
-    /**
-     *
-     * @param l
-     */
-    public final void removeListener(Listener l) {
-        listeners.remove(l);
-    }
-
-    final Iterable<Listener> getListeners() {
-        return listeners;
-    }
-
-    /**
      * Disconnect all clients and stop listening.  Will block until all clients have closed their sockets.
      */
     public final void stop() {
@@ -214,15 +108,15 @@ public class GameServer {
             socketListener = null;
             disconnectingLock.reset();
             synchronized (clients) {
-                for (ClientConnection c : clients.values()) {
+                for (AClientConnection c : clients.values()) {
                     if (c.isConnected()) {
-                        c.disconnect("Server Stopping");
                         disconnectingLock.acquire();
+                        c.disconnect("Server Stopping");
                     }
                 }
             }
-            disconnectingLock.block(25000); // give clients a chance to disconnect from their end
-            clients.clear();
+            disconnectingLock.block(10000, () -> log.warn("Unclean stoppage")); // give clients a chance to disconnect from their end
+            clear();
         }
 
         if (counter != null) {
@@ -235,128 +129,10 @@ public class GameServer {
             log.info("------------------------------------------------------------------------------------------------------");
             counter = null;
         }
-    }
-    
-    /**
-     * Get iterable over all connection ids
-     * @return
-     */
-    public final Iterable<String> getConnectionKeys() {
-        return clients.keySet();
-    }
-    
-    /**
-     * Get iterable over all connection values
-     * @return
-     */
-    public final Iterable<ClientConnection> getConnectionValues() {
-        return clients.values();
-    }
-    
-    /**
-     * Get a specific connection by its id.
-     * @param id
-     * @return
-     */
-    public final ClientConnection getClientConnection(String id) {
-        return clients.get(id);
-    }
 
-    public final ClientConnection getConnection(int index) {
-        Iterator<ClientConnection> it = clients.values().iterator();
-        while (index-- > 0 && it.hasNext()) {
-            it.next();
-        }
-        return it.next();
-    }
-
-    /**
-     * 
-     * @return
-     */
-    public final int getNumClients() {
-        return clients.size();                
-    }
-
-    /**
-     *
-     * @return
-     */
-    public final int getNumConnectedClients() {
-        int num = 0;
-        for (ClientConnection c : clients.values()) {
-            if (c.isConnected())
-                num++;
-        }
-        return num;
-    }
-    
-    /**
-     * Broadcast a command to all connected clients
-     * @param cmd
-     */
-    public final void broadcastCommand(GameCommand cmd) {
-        if (isConnected()) {
-            synchronized (clients) {
-                for (ClientConnection c : clients.values()) {
-                    if (c.isConnected())
-                        try {
-                            c.sendCommand(cmd);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            log.error("ERROR Sending to client '" + c.getName() + "' " + e.getClass() + " " + e.getMessage());
-                        }
-                }
-            }
-        }
-    }
-
-    /**
-     * Send an execute command to all client using derived method. No return respose supported
-     * @param objId
-     * @param params
-     */
-    public final <T> void broadcastExecuteOnRemote(String objId, T ... params) {
-        if (isConnected()) {
-            StackTraceElement elem = new Exception().getStackTrace()[1];
-            broadcastExecuteMethodOnRemote(objId, elem.getMethodName(), params);
-        }
-    }
-
-    /**
-     * Send an execute command to all client using specific method. No return response supported.
-     * @param objId
-     * @param method
-     * @param params
-     */
-    public final void broadcastExecuteMethodOnRemote(String objId, String method, Object ... params) {
-        if (isConnected()) {
-            synchronized (clients) {
-                for (ClientConnection c : clients.values()) {
-                    if (c.isConnected())
-                        try {
-                            c.executeMethodOnRemote(objId, false, method, params);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            log.error("ERROR Sending to client '" + c.getName() + "' " + e.getClass() + " " + e.getMessage());
-                        }
-                }
-            }
-        }
-    }
-
-    public final boolean isConnected() {
-        return isRunning() && getNumConnectedClients() > 0;
-    }
-
-    /**
-     * Broadcast a command to all connected clients
-     * @param message
-     */
-    public final void broadcastMessage(String message) {
-        if (isConnected()) {
-            broadcastCommand(new GameCommand(GameCommandType.MESSAGE).setMessage(message));
-        }
+        notifyListeners((l) -> {
+            l.onServerStopped();
+        });
     }
 
     private class SocketListener implements Runnable {
@@ -411,15 +187,6 @@ public class GameServer {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-
-            for (Iterator<Listener> it = listeners.iterator(); it.hasNext(); ) {
-                try {
-                    it.next().onServerStopped();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    it.remove();
-                }
-            }
         }
     }
 
@@ -445,7 +212,7 @@ public class GameServer {
         
         HandshakeThread(Socket socket) throws Exception {
             this.socket = socket;
-            socket.setSoTimeout(TIMEOUT+10000); // give a few seconds latency
+            socket.setSoTimeout(TIMEOUT); // give a few seconds latency
             socket.setKeepAlive(true);
             socket.setTcpNoDelay(true);
         }
@@ -489,7 +256,7 @@ public class GameServer {
                 }
 
 
-                ClientConnection conn = null;
+                AClientConnection conn = null;
                 boolean reconnection = false;
                 synchronized (clients) {
                     if (cmd.getType() == GameCommandType.CL_CONNECT) {
@@ -511,7 +278,7 @@ public class GameServer {
                             }
                             conn = new ClientConnection(GameServer.this, name);
                         }
-                        conn.connect(socket, in, out);
+                        ((ClientConnection) conn).connect(socket, in, out);
                         clients.put(name, conn);
                     } else {
                         throw new ProtocolException("Handshake failed: Invalid client command: " + cmd);
@@ -527,16 +294,17 @@ public class GameServer {
                 log.debug("GameServer: Client " + name + " connected");
 
                 if (cmd.getType() == GameCommandType.CL_CONNECT) {
-                    for (Listener l : getListeners()) {
-                        if (reconnection)
-                            l.onReconnection(conn);
-                        else
-                            l.onConnected(conn);
+                    AClientConnection _conn = conn;
+                    if (reconnection) {
+                        _conn.notifyListeners((l) -> {
+                            l.onReconnected(_conn);
+                        });
+                    } else {
+                        notifyListeners((l) -> {
+                            l.onConnected(_conn);
+                        });
                     }
                 }
-
-                // process other listeners
-                cmd.getType().notifyListeners(cmd);
 
                 //new GameCommand(GameCommandType.SVR_CONNECTED).setArg("keepAlive", clientReadTimeout).write(out);
                 //log.debug("GameServer: Client " + name + " connected");
@@ -556,19 +324,4 @@ public class GameServer {
             }
         }
     }
-    
-    /**
-     * Override this method to perform any custom version compatibility test.
-     * If the clientVersion is compatible, do nothing.  Otherwise throw a 
-     * descriptive message. Default implementation throws an exception unless 
-     * clientVersion is exact match for @see getVersion.
-     * 
-     * @param clientVersion
-     * @throws Exception
-     */
-    protected void clientVersionCompatibilityTest(String clientVersion, String serverVersion) throws ProtocolException {
-        if (!clientVersion.equals(mVersion))
-            throw new ProtocolException("Incompatible client version '" + clientVersion + "'");
-    }
-    
 }

@@ -1,12 +1,12 @@
 package cc.lib.zombicide.p2p
 
-import cc.lib.net.ClientConnection
+import cc.lib.net.AClientConnection
 import cc.lib.zombicide.*
 
 /**
  * Created by Chris Caron on 7/17/21.
  */
-class ZUserMP(val connection: ClientConnection?) : ZUser() {
+class ZUserMP(val connection: AClientConnection) : ZUser(connection.displayName) {
 	/*
     @Override
     public void clearCharacters() {
@@ -130,6 +130,14 @@ class ZUserMP(val connection: ClientConnection?) : ZUser() {
 
 	override fun chooseOrganize(playerName: ZPlayerName, list: List<ZMove>): ZMove? {
 		return connection?.executeDerivedOnRemote(USER_ID, true, playerName, list)
+	}
+
+	override fun organizeStart(primary: ZPlayerName, secondary: ZPlayerName?) {
+		connection?.executeDerivedOnRemote<Void>(USER_ID, false, primary, secondary)
+	}
+
+	override fun organizeEnd() {
+		connection?.executeDerivedOnRemote<Void>(USER_ID, false)
 	}
 
 	companion object {

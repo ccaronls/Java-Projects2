@@ -3,22 +3,27 @@ package cc.lib.zombicide
 import cc.lib.game.*
 import cc.lib.utils.Table
 
-class ZZombie(override val type: ZZombieType = ZZombieType.Walker, val startZone: Int = -1) : ZActor<ZZombieType>(startZone) {
-    companion object {
-        init {
-            addAllFields(ZZombie::class.java)
-        }
-    }
+class ZZombie(override val type: ZZombieType = ZZombieType.Walker, val startZone: Int = -1) : ZActor(startZone) {
+	companion object {
+		init {
+			addAllFields(ZZombie::class.java)
+		}
+	}
 
-    private var imageIdx = -1
-    @JvmField
-    var destroyed = false
-    public override val actionsPerTurn: Int
-        get() = type.actionsPerTurn
-    private val idx: Int
-        private get() {
-            if (imageIdx < 0 || imageIdx >= type.imageOptions.size) imageIdx = Utils.rand() % type.imageOptions.size
-            return imageIdx
+	constructor(type: ZZombieType, position: ZActorPosition) : this(type) {
+		setPosition(position)
+	}
+
+	private var imageIdx = -1
+
+	@JvmField
+	var destroyed = false
+	public override val actionsPerTurn: Int
+		get() = type.actionsPerTurn
+	private val idx: Int
+		private get() {
+			if (imageIdx < 0 || imageIdx >= type.imageOptions.size) imageIdx = Utils.rand() % type.imageOptions.size
+			return imageIdx
         }
 
     override fun name(): String {

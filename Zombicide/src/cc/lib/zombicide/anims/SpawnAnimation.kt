@@ -6,7 +6,7 @@ import cc.lib.zombicide.ZActor
 import cc.lib.zombicide.ZActorAnimation
 import cc.lib.zombicide.ZBoard
 
-class SpawnAnimation(actor: ZActor<*>, board: ZBoard) : ZActorAnimation(actor, 1000) {
+class SpawnAnimation(actor: ZActor, board: ZBoard) : ZActorAnimation(actor, 1000) {
 	val r = actor.getRect(board)
 	override fun draw(g: AGraphics, position: Float, dt: Float) {
 		val dest = GRectangle(r)

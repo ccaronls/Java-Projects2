@@ -8,7 +8,7 @@ import cc.lib.zombicide.ZActorAnimation
 /**
  * Created by Chris Caron on 9/1/21.
  */
-class StaticAnimation @JvmOverloads constructor(actor: ZActor<*>, duration: Long, val imageId: Int, val r: GRectangle, val fadeOut: Boolean = false) : ZActorAnimation(actor, duration) {
+class StaticAnimation @JvmOverloads constructor(actor: ZActor, duration: Long, val imageId: Int, val r: GRectangle, val fadeOut: Boolean = false) : ZActorAnimation(actor, duration) {
 	override fun draw(g: AGraphics, position: Float, dt: Float) {
 		val img = g.getImage(imageId)
 		if (fadeOut) {

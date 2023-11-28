@@ -71,16 +71,14 @@ class WolfQuestTheEvilTwins : ZQuest(ZQuests.The_Evil_Twins) {
 		}
 	}
 
-	override fun getMaxNumZombiesOfType(type: ZZombieType?): Int {
-		when (type) {
-			ZZombieType.GreenTwin, ZZombieType.BlueTwin -> return 1
-			ZZombieType.Abomination, ZZombieType.Wolfbomination -> return 0
-		}
-		return super.getMaxNumZombiesOfType(type)
+	override fun getMaxNumZombiesOfType(type: ZZombieType?): Int = when (type) {
+		ZZombieType.GreenTwin, ZZombieType.BlueTwin -> 1
+		ZZombieType.Abomination, ZZombieType.Wolfbomination -> 0
+		else -> super.getMaxNumZombiesOfType(type)
 	}
 
 	override fun getObjectivesOverlay(game: ZGame): Table {
-		val chars: List<ZCharacter> = game.allCharacters.map { c -> c.character }
+		val chars: List<ZCharacter> = game.allCharacters
 		val totalChars = chars.size
 		val numInExit: Int = numPlayersInExitEvent(game)
 		val numAbominationsKilled = game.getNumKills(ZZombieType.BlueTwin, ZZombieType.GreenTwin)

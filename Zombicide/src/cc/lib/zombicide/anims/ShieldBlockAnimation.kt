@@ -6,8 +6,8 @@ import cc.lib.zombicide.ZActor
 import cc.lib.zombicide.ZActorAnimation
 import cc.lib.zombicide.ZIcon
 
-class ShieldBlockAnimation(actor: ZActor<*>) : ZActorAnimation(actor, 1000) {
-    private lateinit var r: GRectangle
+class ShieldBlockAnimation(actor: ZActor) : ZActorAnimation(actor, 1000) {
+	private lateinit var r: GRectangle
 
 	override fun onStarted(g: AGraphics) {
 		val id = ZIcon.SHIELD.imageIds[0]
@@ -15,8 +15,8 @@ class ShieldBlockAnimation(actor: ZActor<*>) : ZActorAnimation(actor, 1000) {
 		r = actor.getRect().fit(img).scaledBy(.5f)
 	}
 
-    override fun draw(g: AGraphics, position: Float, dt: Float) {
-        val id = ZIcon.SHIELD.imageIds[0]
+	override fun draw(g: AGraphics, position: Float, dt: Float) {
+		val id = ZIcon.SHIELD.imageIds[0]
         g.setTransparencyFilter(1f - position)
         g.drawImage(id, r)
         g.removeFilter()

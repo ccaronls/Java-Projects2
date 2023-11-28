@@ -93,18 +93,16 @@ enum class ZSkill(val description: String) : IButton {
         }
     },
     Plus1_free_Combat_Action("The Survivor has one extra free Combat Action. This Action may only be used for Melee, Ranged or Magic Actions.") {
-        override fun modifyActionsRemaining(character: ZCharacter, type: ZActionType, game: ZGame): Int {
-            when (type) {
-                ZActionType.MAGIC, ZActionType.RANGED, ZActionType.MELEE -> return 1
-            }
-            return super.modifyActionsRemaining(character, type, game)
-        }
+	    override fun modifyActionsRemaining(character: ZCharacter, type: ZActionType, game: ZGame): Int = when (type) {
+		    ZActionType.MAGIC, ZActionType.RANGED, ZActionType.MELEE -> 1
+		    else -> super.modifyActionsRemaining(character, type, game)
+	    }
 
-        override fun addSpecialMoves(game: ZGame, character: ZCharacter, moves: MutableCollection<ZMove>) {
-            Plus1_free_Melee_Action.addSpecialMoves(game, character, moves)
-            Plus1_free_Ranged_Action.addSpecialMoves(game, character, moves)
-            Plus1_free_Magic_Action.addSpecialMoves(game, character, moves)
-        }
+	    override fun addSpecialMoves(game: ZGame, character: ZCharacter, moves: MutableCollection<ZMove>) {
+		    Plus1_free_Melee_Action.addSpecialMoves(game, character, moves)
+		    Plus1_free_Ranged_Action.addSpecialMoves(game, character, moves)
+		    Plus1_free_Magic_Action.addSpecialMoves(game, character, moves)
+	    }
     },
     Plus1_free_Enchantment_Action("The Survivor has one extra free Enchantment Action. This Action may only be used for Enchantment Actions.") {
         override fun modifyActionsRemaining(character: ZCharacter, type: ZActionType, game: ZGame): Int {
@@ -193,7 +191,8 @@ enum class ZSkill(val description: String) : IButton {
     Plus1_max_Range("The Survivor’s Ranged weapons and Combat spells’ maximum Range is increased by 1.") {
         override fun modifyStat(stat: ZWeaponStat, actionType: ZActionType, character: ZCharacter, game: ZGame, targetZone: Int) {
             when (actionType) {
-                ZActionType.RANGED, ZActionType.MAGIC -> stat.maxRange++
+	            ZActionType.RANGED, ZActionType.MAGIC -> stat.maxRange++
+	            else -> Unit
             }
         }
     },
@@ -442,7 +441,8 @@ enum class ZSkill(val description: String) : IButton {
 
         override fun modifyStat(stat: ZWeaponStat, actionType: ZActionType, character: ZCharacter, game: ZGame, targetZone: Int) {
             when (actionType) {
-                ZActionType.RANGED, ZActionType.MAGIC -> stat.minRange = 0
+	            ZActionType.RANGED, ZActionType.MAGIC -> stat.minRange = 0
+	            else -> Unit
             }
         }
 
@@ -519,15 +519,13 @@ enum class ZSkill(val description: String) : IButton {
     },
     Regeneration("At the end of each Game Round, remove all Wounds the Survivor received. Regeneration does’nt work if the Survivor has been eliminated."),
     Roll_6_plus1_die_Combat("You may roll an additional die for each '6' rolled on any Combat Action (Melee, Ranged or Magic). Keep on rolling additional dice as long as you keep getting '6'. Game effects that allow re-rolls (the Plenty Of Arrows Equipment card, for example) must be used before rolling any additional dice for this Skill.") {
-        override fun onSixRolled(game: ZGame, c: ZCharacter, stat: ZWeaponStat): Boolean {
-            when (stat.actionType) {
-                ZActionType.MAGIC, ZActionType.MELEE, ZActionType.RANGED -> {
-                    game.onRollSixApplied(c.type, this)
-                    return true
-                }
-            }
-            return false
-        }
+	    override fun onSixRolled(game: ZGame, c: ZCharacter, stat: ZWeaponStat): Boolean = when (stat.actionType) {
+		    ZActionType.MAGIC, ZActionType.MELEE, ZActionType.RANGED -> {
+			    game.onRollSixApplied(c.type, this)
+			    true
+		    }
+		    else -> false
+	    }
     },
     Roll_6_plus1_die_Magic("You may roll an additional die for each '6' rolled on a Magic Action. Keep on rolling additional dice as long as you keep getting '6'. Game effects that allow re-rolls must be used before rolling any additional dice for this Skill.") {
         override fun onSixRolled(game: ZGame, c: ZCharacter, stat: ZWeaponStat): Boolean {
@@ -585,21 +583,19 @@ enum class ZSkill(val description: String) : IButton {
     },
     Spellbook("All Combat spells and Enchantments in the Survivor’s Inventory are considered equipped in Hand. With this Skill, a Survivor could effectively be considered as having several Combat spells and Enchantments cards equipped in Hand. For obvious reasons, he can only use two identical dual Combat Spells at any given time. Choose any combination of two before resolving Actions or rolls involving the Survivor."),
     Spellcaster("The Survivor has one extra free Action. This Action may only be used for a Magic Action or an Enchantment Action.") {
-        override fun modifyActionsRemaining(character: ZCharacter, type: ZActionType, game: ZGame): Int {
-            when (type) {
-                ZActionType.MAGIC, ZActionType.ENCHANTMENT -> return 1
-            }
-            return super.modifyActionsRemaining(character, type, game)
-        }
+	    override fun modifyActionsRemaining(character: ZCharacter, type: ZActionType, game: ZGame): Int = when (type) {
+		    ZActionType.MAGIC, ZActionType.ENCHANTMENT -> 1
+		    else -> super.modifyActionsRemaining(character, type, game)
+	    }
 
-        override fun addSpecialMoves(game: ZGame, character: ZCharacter, moves: MutableCollection<ZMove>) {
-            if (character.actionsLeftThisTurn == 0) {
-                val spells = character.spells
-                if (spells.size > 0) {
-                    moves.add(ZMove.newEnchantMove(spells))
-                }
-                val weapons = character.magicWeapons
-                if (weapons.size > 0) {
+	    override fun addSpecialMoves(game: ZGame, character: ZCharacter, moves: MutableCollection<ZMove>) {
+		    if (character.actionsLeftThisTurn == 0) {
+			    val spells = character.spells
+			    if (spells.size > 0) {
+				    moves.add(ZMove.newEnchantMove(spells))
+			    }
+			    val weapons = character.magicWeapons
+			    if (weapons.size > 0) {
                     moves.add(ZMove.newMagicAttackMove(weapons))
                 }
             }

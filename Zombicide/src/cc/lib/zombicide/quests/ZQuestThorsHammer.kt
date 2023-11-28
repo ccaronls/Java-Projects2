@@ -75,7 +75,7 @@ class ZQuestThorsHammer : ZQuest(ZQuests.Thors_Hammer) {
 		}
 	}
 
-	override fun drawBlackObjective(game: ZGame, g: AGraphics, cell: ZCell, zone: ZZone) {
+	override fun drawBlackObjective(board: ZBoard, g: AGraphics, cell: ZCell, zone: ZZone) {
 		g.drawImage(ZIcon.MJOLNIR.imageIds[ZDir.SOUTH.ordinal], GRectangle(cell).scaledBy(.5f))
 	}
 
@@ -117,16 +117,16 @@ class ZQuestThorsHammer : ZQuest(ZQuests.Thors_Hammer) {
 	}
 
 	fun isMjolnirFound(game: ZGame) : Boolean =
-		game.allCharacters.firstOrNull { it.character.isInPossession(ZWeaponType.MJOLNIR) } != null
+		game.allCharacters.firstOrNull { it.isInPossession(ZWeaponType.MJOLNIR) } != null
 
 	override fun getPercentComplete(game: ZGame): Int {
-		val maxSkillPlayer = game.allLivingCharacters.maxByOrNull { it.character.skillLevel }
+		val maxSkillPlayer = game.allLivingCharacters.maxByOrNull { it.skillLevel }
 		val greenKeyFound = greenKeyZone < 0 // 15%
 		val mjolnirFound = isMjolnirFound(game)
 		val numSpawnsClosed = numStartSpawns - game.board.getSpawnZones().size // 0-20%
 		val numZombies = if (game.getNumKills(ZZombieType.Walker) == 0) 100 else game.board.getAllZombies().filter { it.isAlive }.size // 5%
 		val skill = maxSkillPlayer?.let {
-			it.character.skillLevel.difficultyColor.ordinal
+			it.skillLevel.difficultyColor.ordinal
 		}?:0
 
 		return skill * 15 + // 0-45%
@@ -151,7 +151,7 @@ class ZQuestThorsHammer : ZQuest(ZQuests.Thors_Hammer) {
 
 	override fun getObjectivesOverlay(game: ZGame): Table {
 
-		val maxSkill = game.allLivingCharacters.maxByOrNull { it.character.skillLevel }?.character?.skillLevel?.difficultyColor
+		val maxSkill = game.allLivingCharacters.maxByOrNull { it.skillLevel }?.skillLevel?.difficultyColor
 		val greenKeyFound = greenKeyZone < 0 // 15%
 		val mjolnirFound = isMjolnirFound(game)
 		val numSpawns = game.board.getSpawnZones().size.coerceIn(0,4) // 0-20%

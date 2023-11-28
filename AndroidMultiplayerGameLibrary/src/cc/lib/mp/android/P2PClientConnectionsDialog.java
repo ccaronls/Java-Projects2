@@ -17,28 +17,28 @@ import java.net.InetAddress;
 import java.util.List;
 
 import cc.lib.android.SpinnerTask;
-import cc.lib.net.ClientConnection;
-import cc.lib.net.GameServer;
+import cc.lib.net.AClientConnection;
+import cc.lib.net.AGameServer;
 import cc.lib.utils.Lock;
 
 public class P2PClientConnectionsDialog extends BaseAdapter implements
         DialogInterface.OnClickListener,
-        GameServer.Listener,
         Runnable,
         DialogInterface.OnDismissListener,
         DialogInterface.OnCancelListener,
-        View.OnClickListener {
+        View.OnClickListener,
+        AClientConnection.Listener,
+        AGameServer.Listener {
 
     private final P2PActivity context;
-    private final GameServer server;
+    private final AGameServer server;
     private final P2PHelper helper;
     private Dialog dialog;
     private ListView lvPlayers;
 
-    public P2PClientConnectionsDialog(P2PActivity activity, GameServer server, String serverName) {
+    public P2PClientConnectionsDialog(P2PActivity activity, AGameServer server, String serverName) {
         this.context = activity;
         this.server = server;
-        server.addListener(this);
         Lock groupFormedLock = new Lock(1);
         helper = new P2PHelper(activity) {
             @Override
@@ -95,7 +95,7 @@ public class P2PClientConnectionsDialog extends BaseAdapter implements
                 Toast.makeText(activity, "Server started", Toast.LENGTH_LONG).show();
                 activity.onP2PServer(new P2PActivity.P2PServer() {
                     @Override
-                    public GameServer getServer() {
+                    public AGameServer getServer() {
                         return server;
                     }
 
@@ -144,19 +144,20 @@ public class P2PClientConnectionsDialog extends BaseAdapter implements
     }
 
     @Override
-    public final void onConnected(ClientConnection conn) {
+    public final void onConnected(AClientConnection conn) {
+        conn.addListener(this);
         if (lvPlayers != null)
             lvPlayers.post(this);
     }
 
     @Override
-    public final void onReconnection(ClientConnection conn) {
+    public final void onReconnected(AClientConnection conn) {
         if (lvPlayers != null)
             lvPlayers.post(this);
     }
 
     @Override
-    public final void onClientDisconnected(ClientConnection conn) {
+    public void onDisconnected(AClientConnection c, String reason) {
         if (lvPlayers != null)
             lvPlayers.post(this);
     }
@@ -197,7 +198,7 @@ public class P2PClientConnectionsDialog extends BaseAdapter implements
             v = View.inflate(context, R.layout.client_connections_dialog_item, null);
         }
 
-        ClientConnection conn = server.getConnection(position);
+        AClientConnection conn = server.getConnection(position);
 
         TextView tv = v.findViewById(R.id.tv_clientname);
         Button b_kick = v.findViewById(R.id.b_kickclient);
@@ -218,7 +219,7 @@ public class P2PClientConnectionsDialog extends BaseAdapter implements
 
     @Override
     public final void onClick(View v) {
-        ClientConnection conn = (ClientConnection)v.getTag();
+        AClientConnection conn = (AClientConnection) v.getTag();
         if (conn.isKicked()) {
             conn.unkick();
         } else {

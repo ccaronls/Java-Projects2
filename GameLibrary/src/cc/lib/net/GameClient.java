@@ -5,35 +5,25 @@ import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.Arrays;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import cc.lib.crypt.Cypher;
 import cc.lib.crypt.EncryptionInputStream;
 import cc.lib.crypt.EncryptionOutputStream;
 import cc.lib.game.Utils;
-import cc.lib.logger.Logger;
-import cc.lib.logger.LoggerFactory;
 import cc.lib.utils.GException;
-import cc.lib.utils.Reflector;
-import cc.lib.utils.WeakHashSet;
 
 /**
  * Base class for clients that want to connect to a GameServer
- * 
- * @author ccaron
  *
+ * @author ccaron
  */
-public class GameClient {
-
-    protected final static Logger log = LoggerFactory.getLogger("P2PGame", GameClient.class);
+public class GameClient extends AGameClient {
 
     private enum State {
         READY, // connect not called
@@ -42,42 +32,14 @@ public class GameClient {
         DISCONNECTED // all IO closed and threads stopped
     }
 
-    public interface Listener {
-        default void onCommand(GameCommand cmd) {}
-
-        default void onMessage(String msg) {}
-
-        default void onDisconnected(String reason, boolean serverInitiated) {}
-
-        default void onConnected() {}
-    }
-    
+    private State state = State.READY;
     private Socket socket;
     private DataInputStream in;
     private DataOutputStream out;
-    private State state = State.READY;
-    private final String version;
     private final Cypher cypher;
-    private final WeakHashSet<Listener> listeners = new WeakHashSet<>();
-    private String serverName = null;
-    private Map<String, Object> executorObjects = new HashMap<>();
-    private String passPhrase = null;
-    private String displayName;
-    private final String deviceName;
     private InetAddress connectAddress;
     private int connectPort;
 
-    // giving package access for JUnit tests ONLY!
-    final CommandQueueWriter outQueue = new CommandQueueWriter() {
-        @Override
-        protected void onTimeout() throws IOException {
-            if (isConnected()) {
-                new GameCommand(GameCommandType.CL_KEEPALIVE).write(out);
-            }
-        }
-
-    };
-    
     /**
      * Create a client that will connect to a given server using a given login name.  
      * The userName must be unique to the server for successful connect.
@@ -87,10 +49,7 @@ public class GameClient {
      * @param cypher
      */
     public GameClient(String deviceName, String version, Cypher cypher) {
-        if (Utils.isEmpty(deviceName))
-            throw new IllegalArgumentException("Device name cannot be empty");
-        this.deviceName = this.displayName = deviceName;
-        this.version = version;
+        super(deviceName, version);
         this.cypher = cypher;
     }
 
@@ -104,64 +63,8 @@ public class GameClient {
         this(userName, version, null);
     }
 
-    /**
-     * 
-     * @return
-     */
-    public final String getDisplayName() {
-        return displayName;
-    }
-
-    /**
-     *
-     * @return
-     */
-    public final String getServerName() {
-        return serverName;
-    }
-
     private boolean isIdle() {
         return state == State.READY || state == State.DISCONNECTED;
-    }
-
-    /**
-     *
-     * @param l
-     */
-    public final void addListener(Listener l) {
-        synchronized (listeners) {
-            listeners.add(l);
-        }
-    }
-
-    /**
-     *
-     * @param l
-     */
-    public final void removeListener(Listener l) {
-        synchronized (listeners) {
-            listeners.remove(l);
-        }
-    }
-
-    /**
-     * Spawn a thread and try to connect.  called on success
-     * @param address
-     * @param port
-     * @param connectCallback called with success or failure when connection complete
-     */
-    public final void connectAsync(InetAddress address, int port, Utils.Callback<Boolean> connectCallback) {
-        new Thread(() -> {
-            try {
-                connectBlocking(address, port);
-                if (connectCallback != null)
-                    connectCallback.onDone(true);
-            } catch (IOException e) {
-                e.printStackTrace();
-                if (connectCallback != null)
-                    connectCallback.onDone(false);
-            }
-        }).start();
     }
 
     /**
@@ -220,7 +123,7 @@ public class GameClient {
                 outQueue.start(out);
                 outQueue.add(new GameCommand(GameCommandType.CL_CONNECT).setName(deviceName).setVersion(version));
                 new Thread(new SocketReader()).start();
-                log.debug("Connection SUCCESS");
+                log.debug("Socket Connection Established");
                 connectAddress = address;
                 connectPort = port;
                 break;
@@ -250,10 +153,6 @@ public class GameClient {
      */
     public final boolean isConnected() {
         return state == State.CONNECTED || state == State.CONNECTING;
-    }
-
-    public final void disconnect() {
-        disconnect("player left session");
     }
 
     public final void disconnectAsync(String reason, Utils.Callback<Integer> onDone) {
@@ -330,56 +229,58 @@ public class GameClient {
     private class SocketReader implements Runnable {
         public void run() {
             log.debug("GameClient: Client Listener Thread starting");
-            
+
             state = State.CONNECTING;
             String disconnectedReason = null;
-            Listener [] larray = new Listener[0];
+
+            List<Listener> listenersList = new ArrayList<>();
 
             while (in != null && !isDisconnected()) {
                 try {
                     final GameCommand cmd = GameCommand.parse(in);
                     if (isDisconnected())
                         break;
-                    log.debug("Read command: " + cmd);
-                    cmd.getType().notifyListeners(cmd);
+                    listenersList.clear();
+                    listenersList.addAll(listeners);
 
-                    synchronized (listeners) {
-                        larray = listeners.toArray(new Listener[listeners.size()]);
-                    }
+                    log.debug("Read command: " + cmd);
 
                     if (cmd.getType() == GameCommandType.SVR_CONNECTED) {
                         serverName = cmd.getName();
                         int keepAliveFreqMS = cmd.getInt("keepAlive");
                         outQueue.setTimeout(keepAliveFreqMS);
                         state = State.CONNECTED;
-                        for (Listener l : larray) {
+                        for (Listener l : listenersList) {
                             l.onConnected();
                         }
-
+                    } else if (cmd.getType() == GameCommandType.PING) {
+                        long timeSent = cmd.getLong("time");
+                        long timeNow = System.currentTimeMillis();
+                        for (Listener l : listenersList) {
+                            l.onPing((int) (timeNow - timeSent));
+                        }
                     } else if (cmd.getType() == GameCommandType.MESSAGE) {
-                        for (Listener l : larray) {
+                        for (Listener l : listenersList) {
                             l.onMessage(cmd.getMessage());
                         }
                     } else if (cmd.getType() == GameCommandType.SVR_DISCONNECT) {
                         state = State.DISCONNECTED;
                         disconnectedReason = cmd.getMessage();
                         outQueue.clear();
-                        outQueue.add(GameCommandType.CL_DISCONNECT.make().setMessage(""));
                         break;
                     } else if (cmd.getType() == GameCommandType.SVR_EXECUTE_REMOTE) {
                         handleExecuteRemote(cmd);
                     } else if (cmd.getType() == GameCommandType.PASSWORD) {
+                        String passPhrase = getPassPhrase();
                         if (passPhrase != null) {
                             passPhrase = getPasswordFromUser();
                         }
                         outQueue.add(new GameCommand(GameCommandType.PASSWORD).setArg("password", passPhrase));
-                        passPhrase = null;
                     } else {
-                        for (Listener l : larray)
+                        for (Listener l : listenersList)
                             l.onCommand(cmd);
                     }
 
-                    cmd.getType().notifyListeners(cmd);
                 } catch (Exception e) {
                     if (!isDisconnected()) {
                         outQueue.clear();
@@ -393,7 +294,7 @@ public class GameClient {
             }
             close();
             if (disconnectedReason != null) {
-                for (Listener l : larray)
+                for (Listener l : listenersList)
                     l.onDisconnected(disconnectedReason, true);
             }
             log.debug("GameClient: Client Listener Thread exiting");
@@ -418,30 +319,6 @@ public class GameClient {
     }
 
     /**
-     *
-     * @param e
-     */
-    public final void sendError(Exception e) {
-        GameCommand cmd = new GameCommand(GameCommandType.CL_ERROR).setArg("msg", "ERROR: " + e.getMessage() + "\n" + Arrays.toString(e.getStackTrace()));
-        log.error("Sending error: " + cmd);
-        sendCommand(cmd);
-    }
-
-    /**
-     *
-     * @param err
-     */
-    public final void sendError(String err) {
-        GameCommand cmd = new GameCommand(GameCommandType.CL_ERROR).setArg("msg", "ERROR: " + err);
-        log.error("Sending error: " + cmd);
-        sendCommand(cmd);
-    }
-
-    public void setPassphrase(String passphrase) {
-        this.passPhrase = passphrase;
-    }
-
-    /**
      * Override this method to take input from user for password requests.
      * Default behavior throws a runtime exception, so dont super me.
      *
@@ -451,160 +328,5 @@ public class GameClient {
         throw new GException("Client does not overide the getPasswordFromUser method");
     }
 
-    /**
-     *
-     * @param displayName
-     */
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
-        sendCommand(new GameCommand(GameCommandType.CL_HANDLE).setName(displayName));
-    }
-
-    /**
-     * register an object with a specific id
-     * @param id
-     * @param o
-     */
-    public final void register(String id, Object o) {
-        log.debug("register '%s' -> %s", id, o.getClass());
-        executorObjects.put(id, o);
-    }
-
-    /**
-     * Unregister an object by its id
-     * @param id
-     */
-    public final void unregister(String id) {
-        log.debug("unregister %s", id);
-        executorObjects.remove(id);
-    }
-
-    /*
-     * Execute a method locally based on params provided by remote caller.
-     *
-     * @param cmd
-     * @throws IOException
-     */
-    private void handleExecuteRemote(GameCommand cmd) throws IOException {
-        log.debug("handleExecuteOnRemote %s", cmd);
-        String method = cmd.getString("method");
-        int numParams = cmd.getInt("numParams");
-        Class [] paramsTypes = new Class[numParams];
-        final Object [] params = new Object[numParams];
-        for (int i=0; i<numParams; i++) {
-            String param = cmd.getString("param" + i);
-            Object o = Reflector.deserializeFromString(param);
-            if (o != null) {
-                paramsTypes[i] = o.getClass();
-                params[i] = o;
-            } else {
-                paramsTypes[i] = Object.class;
-            }
-        }
-        String id = cmd.getString("target");
-        final Object obj = executorObjects.get(id);
-        if (obj == null)
-            throw new IOException("Unknown object id: " + id);
-        log.debug("id=%s -> %s", id, obj.getClass());
-        try {
-            final Method m = findMethod(method, obj, paramsTypes, params);
-            final String responseId = cmd.getString("responseId");
-            if (responseId != null) {
-                log.debug("responseId=%s waiting for result...", responseId);
-                Object result = m.invoke(obj, params);
-                log.debug("responseId=%s cancelled=" + cancelled + " result=" + result);
-                GameCommand resp = new GameCommand(GameCommandType.CL_REMOTE_RETURNS);
-                resp.setArg("target", responseId);
-                if (result != null)
-                    resp.setArg("returns", Reflector.serializeObject(result));
-                else
-                    resp.setArg("cancelled", cancelled);
-                cancelled = false;
-                sendCommand(resp);
-            } else {
-                m.invoke(obj, params);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new IOException(e);
-        }
-    }
-
-    private boolean cancelled = false;
-
-    public void cancelRemote() {
-        cancelled = true;
-    }
-
-    private Method findMethod(String method, Object obj, Class [] paramsTypes, Object [] params) throws Exception {
-        Method m = methodMap.get(method);
-        if (m == null) {
-            try {
-                m = obj.getClass().getDeclaredMethod(method, paramsTypes);
-            } catch (NoSuchMethodException e) {
-                // ignore
-            }
-            if (m == null)
-                m = searchMethods(obj, method, paramsTypes, params);
-            m.setAccessible(true);
-            methodMap.put(method, m);
-        }
-        return m;
-    }
-
-    private final Map<String, Method> methodMap = new HashMap<>();
-
-    public static Method searchMethods(Object execObj, String method, Class [] types, Object [] params) throws Exception {
-        Class clazz = execObj.getClass();
-        while (clazz!= null && !clazz.equals(Object.class)) {
-            for (Method m : clazz.getDeclaredMethods()) {
-                m.setAccessible(true);
-                if (!m.getName().equals(method))
-                    continue;
-                log.debug("testMethod:" + m.getName() + " with params:" + Arrays.toString(m.getParameterTypes()));
-                Class[] paramTypes = m.getParameterTypes();
-                if (paramTypes.length != types.length)
-                    continue;
-                boolean matchFound = true;
-                for (int i = 0; i < paramTypes.length; i++) {
-                    if (params[i] == null)
-                        continue;
-                    if (!isCompatiblePrimitives(paramTypes[i], types[i]) && !Reflector.isSubclassOf(types[i], paramTypes[i])) {
-                        matchFound = false;
-                        break;
-                    }
-                }
-                if (matchFound)
-                    return m;
-            }
-            clazz = clazz.getSuperclass();
-        }
-        throw new Exception("Failed to match method '" + method + "' types: " + Arrays.toString(types));
-    }
-
-    private final static Map<Class, List> primitiveCompatibilityMap = new HashMap<>();
-
-    static {
-        List c;
-        primitiveCompatibilityMap.put(boolean.class, c= Arrays.asList(boolean.class, Boolean.class));
-        primitiveCompatibilityMap.put(Boolean.class, c);
-        primitiveCompatibilityMap.put(byte.class, c=Arrays.asList(byte.class, Byte.class));
-        primitiveCompatibilityMap.put(Byte.class, c);
-        primitiveCompatibilityMap.put(int.class, c=Arrays.asList(int.class, Integer.class, byte.class, Byte.class));
-        primitiveCompatibilityMap.put(Integer.class, c);
-        primitiveCompatibilityMap.put(long.class, c=Arrays.asList(int.class, Integer.class, byte.class, Byte.class, long.class, Long.class));
-        primitiveCompatibilityMap.put(Long.class, c);
-        primitiveCompatibilityMap.put(float.class, c=Arrays.asList(int.class, Integer.class, byte.class, Byte.class, float.class, Float.class));
-        primitiveCompatibilityMap.put(Float.class, c);
-        primitiveCompatibilityMap.put(double.class, c=Arrays.asList(int.class, Integer.class, byte.class, Byte.class, float.class, Float.class, double.class, Double.class, long.class, Long.class));
-        primitiveCompatibilityMap.put(Double.class, c);
-
-    }
-
-    private static boolean isCompatiblePrimitives(Class a, Class b) {
-        if (primitiveCompatibilityMap.containsKey(a))
-            return b ==null || primitiveCompatibilityMap.get(a).contains(b);
-        return false;
-    }
 
 }

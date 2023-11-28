@@ -1,7 +1,6 @@
 package cc.lib.checkerboard
 
 import cc.lib.checkerboard.AIPlayer.Companion.cancel
-import cc.lib.checkerboard.UIPlayer
 import cc.lib.game.*
 import cc.lib.logger.LoggerFactory
 import cc.lib.math.Bezier
@@ -559,8 +558,9 @@ ${winner!!.color} Wins!"""
 		val color = getPlayer(playerNum)!!.color
 		g.pushMatrix()
 		when (pt) {
-			PieceType.EMPTY -> {
-			}
+			null,
+			PieceType.BLOCKED,
+			PieceType.EMPTY -> Unit
 			PieceType.PAWN, PieceType.PAWN_IDLE, PieceType.PAWN_ENPASSANT, PieceType.PAWN_TOSWAP -> drawPiece(g, PieceType.PAWN, color, d, d, null)
 			PieceType.BISHOP, PieceType.QUEEN, PieceType.KNIGHT_L, PieceType.KNIGHT_R -> drawPiece(g, pt, color, d, d, null)
 			PieceType.ROOK, PieceType.ROOK_IDLE -> drawPiece(g, PieceType.ROOK, color, d, d, null)
@@ -680,7 +680,7 @@ ${winner!!.color} Wins!"""
 	}
 
 	internal open inner class SlideAnim(start: Int, end: Int) : PieceAnim(start, end, 1000) {
-		protected override fun draw(g: AGraphics, position: Float, dt: Float) {
+		override fun draw(g: AGraphics, position: Float, dt: Float) {
 			val x = sx + (ex - sx) * position
 			val y = sy + (ey - sy) * position
 			g.pushMatrix()
@@ -692,7 +692,6 @@ ${winner!!.color} Wins!"""
 
 	internal inner class JumpAnim(start: Int, end: Int) : SlideAnim(start, end) {
 		val curve: Bezier
-		var upsidedown = false
 		private fun computeJumpPoints(playerNum: Int): Array<IVector2D> {
 			val midx1 = sx + (ex - sx) / 3
 			val midx2 = sx + (ex - sx) * 2 / 3

@@ -1,6 +1,9 @@
 package cc.game.soc.ui
 
-import cc.lib.game.*
+import cc.lib.game.AGraphics
+import cc.lib.game.APGraphics
+import cc.lib.game.GColor
+import cc.lib.game.GDimension
 import cc.lib.ui.UIComponent
 import cc.lib.utils.QueueRunner
 import java.util.*
@@ -45,20 +48,20 @@ class UIConsoleRenderer(component: UIComponent?) : UIRenderer(component) {
 
 	private fun drawPrivate(g: AGraphics) {
 		val txtHgt = g.textHeight.toInt()
-		maxVisibleLines = getComponent<UIComponent>().height / txtHgt
+		maxVisibleLines = getComponent<UIComponent>().getHeight() / txtHgt
 		var y = 0f
 		for (i in startLine until lines.size) {
 			val l = lines[i]
 			g.color = l.color
 			g.textHeight = RenderConstants.textSizeSmall
-			val dim = g.drawWrapString(0f, y, getComponent<UIComponent>().width.toFloat(), l.text)
+			val dim = g.drawWrapString(0f, y, getComponent<UIComponent>().getWidth().toFloat(), l.text)
 			y += dim.height
-			if (y > getComponent<UIComponent>().height) {
+			if (y > getComponent<UIComponent>().getHeight()) {
 				break
 			}
 		}
 		if (minVisibleLines > 0) {
-			minDimension = GDimension(getComponent<UIComponent>().width.toFloat(), (Math.max(minVisibleLines, lines.size) * txtHgt).toFloat())
+			minDimension = GDimension(getComponent<UIComponent>().getWidth().toFloat(), (Math.max(minVisibleLines, lines.size) * txtHgt).toFloat())
 		}
 	}
 
@@ -78,8 +81,8 @@ class UIConsoleRenderer(component: UIComponent?) : UIRenderer(component) {
 					override fun draw(g: AGraphics, position: Float, dt: Float) {
 						drawPrivate(g)
 						g.color = GColor.BLACK.withAlpha(0.5f - position)
-						val lines = g.generateWrappedLines(text, getComponent<UIComponent>().width.toFloat())
-						g.drawFilledRect(0f, 0f, getComponent<UIComponent>().width.toFloat(), lines.size * g.textHeight)
+						val lines = g.generateWrappedLines(text, getComponent<UIComponent>().getWidth().toFloat())
+						g.drawFilledRect(0f, 0f, getComponent<UIComponent>().getWidth().toFloat(), lines.size * g.textHeight)
 						g.color = color.withAlpha(1.0f - position / 3)
 						var y = 0f
 						for (l in lines) {
@@ -99,7 +102,7 @@ class UIConsoleRenderer(component: UIComponent?) : UIRenderer(component) {
 					override fun draw(g: AGraphics, position: Float, dt: Float) {
 						g.pushMatrix()
 						g.color = color.withAlpha(position)
-						val dim = g.drawWrapString(0f, 0f, getComponent<UIComponent>().width.toFloat(), text)
+						val dim = g.drawWrapString(0f, 0f, getComponent<UIComponent>().getWidth().toFloat(), text)
 						g.translate(0f, dim.height * position)
 						drawPrivate(g)
 						g.popMatrix()

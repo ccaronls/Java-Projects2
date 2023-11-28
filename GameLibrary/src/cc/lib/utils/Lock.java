@@ -1,10 +1,8 @@
 package cc.lib.utils;
 
-import cc.lib.game.Utils;
-
 /**
  * Counting lock. Allows for blocking a thread until some number of tasks are completed.
- *
+ * <p>
  * Aquire increments the count.
  * Release decrements a count.
  * When count gets to zero the blocked thread is notified.
@@ -12,6 +10,9 @@ import cc.lib.game.Utils;
 public class Lock {
 
     private int holders = 0;
+    // allows us to differentiate when a 'block' has released due to notify of timeout
+    private boolean notified = false;
+    private boolean blocking = false;
 
     private final Object monitor = new Object();
 
@@ -19,27 +20,35 @@ public class Lock {
         holders++;
     }
 
-    public Lock() {}
+    public synchronized void acquire(int num) {
+        if (holders != 0)
+            throw new IllegalArgumentException("Holders [" + holders + "] != 0");
+        holders = num;
+    }
+
+    public Lock() {
+    }
 
     public Lock(int holders) {
         this.holders = holders;
     }
 
-    public synchronized void block() {
-        if (holders > 0) {
-            try {
-                synchronized (monitor) {
-                    monitor.wait();
-                }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-        holders = 0;
+    public void block() {
+        block(0, null);
     }
 
-    public synchronized void block(long waitTimeMillis) {
+    public void block(long waitTimeMillis) {
+        block(waitTimeMillis, null);
+    }
+
+    public void block(long waitTimeMillis, Runnable onTimeout) {
+        if (onTimeout != null && waitTimeMillis <= 0)
+            throw new IllegalArgumentException("Cannot have timeout on infinite wait");
+        if (blocking)
+            throw new IllegalArgumentException("Already blocking");
+        notified = false;
         if (holders > 0) {
+            blocking = true;
             try {
                 synchronized (monitor) {
                     monitor.wait(waitTimeMillis);
@@ -47,53 +56,74 @@ public class Lock {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            holders--;
+            blocking = false;
+            holders = 0;
+            if (!notified && onTimeout != null) {
+                onTimeout.run();
+            }
         }
     }
 
-    public synchronized void acquireAndBlock() {
-        if (holders > 0)
-            throw new GException("Dead Lock");
-        holders++;
-        block();
+    public void acquireAndBlock() {
+        acquireAndBlock(0, null);
     }
 
-    public synchronized void acquireAndBlock(long timeout) {
-        if (holders > 0)
-            throw new GException("Dead Lock");
-        holders++;
-        block(timeout);
+    public void acquireAndBlock(long timeout) {
+        acquireAndBlock(timeout, null);
     }
 
-    public void release() {
+    public void acquireAndBlock(long timeout, Runnable onTimeout) {
+        synchronized (this) {
+            if (holders > 0)
+                throw new GException("Dead Lock");
+            holders++;
+        }
+        block(timeout, onTimeout);
+    }
+
+    public synchronized void release() {
         if (holders > 0)
-            holders --;
+            holders--;
         if (holders == 0) {
+            notified = true;
             synchronized (monitor) {
                 monitor.notify();
             }
         }
     }
 
-    public void releaseAll() {
+    public synchronized void releaseAll() {
         holders = 0;
+        notified = true;
         synchronized (monitor) {
             monitor.notify();
         }
     }
 
+    /*
     public void releaseDelayed(long ms) {
         new Thread(() -> {
             Utils.waitNoThrow(this, ms);
             release();
         }).start();
+    }*/
+
+    public synchronized final void reset() {
+        if (blocking)
+            throw new IllegalArgumentException("Cannot reset while blocking");
+        holders = 0;
+        notified = false;
     }
 
     public int getHolders() {
         return holders;
     }
 
-    public final void reset() {
-        holders = 0;
+    public boolean isNotified() {
+        return notified;
+    }
+
+    public boolean isBlocking() {
+        return blocking;
     }
 }

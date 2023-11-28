@@ -31,23 +31,28 @@ public abstract class APGraphics extends AGraphics {
     }
 
     @Override
-    public final  void ortho(float left, float right, float top, float bottom) {
+    public final void ortho(float left, float right, float top, float bottom) {
         R.setOrtho(left, right, top, bottom);
     }
 
     @Override
-    public final  void pushMatrix() {
+    public final void pushMatrix() {
         R.pushMatrix();
     }
 
-    public final  void pushAndRun(Runnable runner) {
+    @Override
+    public int getPushDepth() {
+        return R.getStackSize();
+    }
+
+    public final void pushAndRun(Runnable runner) {
         R.pushMatrix();
         runner.run();
         R.popMatrix();
     }
 
     @Override
-    public final  void popMatrix() {
+    public final void popMatrix() {
         R.popMatrix();
     }
 

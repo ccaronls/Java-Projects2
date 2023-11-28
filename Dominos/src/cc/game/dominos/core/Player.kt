@@ -3,9 +3,8 @@ package cc.game.dominos.core
 import cc.lib.annotation.Keep
 import cc.lib.game.GRectangle
 import cc.lib.game.Utils
-import cc.lib.net.ClientConnection
+import cc.lib.net.AClientConnection
 import cc.lib.utils.Reflector
-import cc.lib.utils.SyncList
 import java.util.*
 
 open class Player(var playerNum: Int=-1) : Reflector<Player>() {
@@ -41,7 +40,7 @@ open class Player(var playerNum: Int=-1) : Reflector<Player>() {
 	 * @return
 	 */
 	@Omit
-	var connection: ClientConnection? = null
+	var connection: AClientConnection? = null
 		private set
 
 	open fun getName(): String {
@@ -55,7 +54,7 @@ open class Player(var playerNum: Int=-1) : Reflector<Player>() {
 	 *
 	 * @param conn
 	 */
-	fun connect(conn: ClientConnection?) {
+	fun connect(conn: AClientConnection?) {
 		connection = conn
 	}
 

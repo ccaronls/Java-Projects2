@@ -75,7 +75,7 @@ arrayOf("z41:v:vd1:wn:ww", "z41:v:wn", "z41:v:wn:vd2:we",           "z42", "z43"
 	override fun getPercentComplete(game: ZGame): Int {
 		val ultraRed = ZSkillLevel(ZColor.RED, 1)
 		val numPlayers = game.allCharacters.size
-		val numAtUltraRed =game.allCharacters.count { it.character.skillLevel >= ultraRed }
+		val numAtUltraRed = game.allCharacters.count { it.skillLevel >= ultraRed }
 		val total = numPlayers + numStartObjectives
 		val completed = numAtUltraRed + numFoundObjectives
 		return completed * 100 / total
@@ -90,7 +90,7 @@ arrayOf("z41:v:vd1:wn:ww", "z41:v:wn", "z41:v:wn:vd2:we",           "z42", "z43"
 	override fun getObjectivesOverlay(game: ZGame): Table {
 		val ultraRed = ZSkillLevel(ZColor.RED, 1)
 		val numPlayers = game.allCharacters.size
-		val numAtUltraRed = game.allCharacters.count { pl -> pl.character.skillLevel >= ultraRed }
+		val numAtUltraRed = game.allCharacters.count { pl -> pl.skillLevel >= ultraRed }
 		return Table(name).addRow(Table().setNoBorder()
 			.addRow("1.", "Collect all objectives. Some of the objectives give a random vault item", String.format("%d of %d", numFoundObjectives, numStartObjectives))
 			.addRow("2.", "Get all survivors to ultra RED danger level", String.format("%d of %d", numAtUltraRed, numPlayers))

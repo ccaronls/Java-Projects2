@@ -104,7 +104,7 @@ arrayOf("z29:i:red:wn:de", "z30", "z31:i:dw:wn:ode",        "z32:i:red:wn:we", "
 			)
 	}
 
-	override fun drawBlackObjective(game: ZGame, g: AGraphics, cell: ZCell, zone: ZZone) {
+	override fun drawBlackObjective(board: ZBoard, g: AGraphics, cell: ZCell, zone: ZZone) {
 		g.drawImage(ZIcon.BLACKBOOK.imageIds[0], GRectangle(cell).scaledBy(.5f))
 	}
 }

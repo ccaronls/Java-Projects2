@@ -2,7 +2,6 @@ package cc.lib.zombicide
 
 import cc.lib.game.AGraphics
 import cc.lib.utils.*
-import cc.lib.zombicide.ui.UIZombicide
 import java.util.*
 
 abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQuest>() {
@@ -392,35 +391,33 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
      * @return
      */
     protected open fun getInitVaultItems(vaultZone: Int): List<ZEquipment<*>> {
-        val list: MutableList<ZEquipment<*>> = ArrayList()
-        if (vaultItemsRemaining.size > 0) {
-            val equip = vaultItemsRemaining.removeRandom()
-            equip.vaultItem = true
-            list.add(equip)
-        }
-        return list
+	    val list: MutableList<ZEquipment<*>> = ArrayList()
+	    if (vaultItemsRemaining.size > 0) {
+		    val equip = vaultItemsRemaining.removeRandom()
+		    equip.vaultItem = true
+		    list.add(equip)
+	    }
+	    return list
     }
 
-    open fun getMaxNumZombiesOfType(type: ZZombieType?): Int {
-        when (type) {
-            ZZombieType.GreenTwin, ZZombieType.BlueTwin -> return 0
-            ZZombieType.Abomination, ZZombieType.Wolfbomination -> return 1
-            ZZombieType.Necromancer -> return 2
-            ZZombieType.Wolfz -> return 22
-            ZZombieType.Walker -> return 35
-            ZZombieType.Fatty, ZZombieType.Runner -> return 14
-        }
-        return 20
-    }
+	open fun getMaxNumZombiesOfType(type: ZZombieType?): Int = when (type) {
+		ZZombieType.GreenTwin, ZZombieType.BlueTwin -> 0
+		ZZombieType.Abomination, ZZombieType.Wolfbomination -> 1
+		ZZombieType.Necromancer -> 2
+		ZZombieType.Wolfz -> 22
+		ZZombieType.Walker -> 35
+		ZZombieType.Fatty, ZZombieType.Runner -> 14
+		else -> 20
+	}
 
-    open fun onEquipmentFound(game: ZGame, equip: ZEquipment<*>) {
-        //
-    }
+	open fun onEquipmentFound(game: ZGame, equip: ZEquipment<*>) {
+		//
+	}
 
-    protected fun isAllPlayersInExit(game: ZGame): Boolean {
-        require(exitZone >= 0)
-        return game.board.getNumZombiesInZone(exitZone) == 0 && game.board.getAllCharacters().count { it.occupiedZone != exitZone } <= 0
-    }
+	protected fun isAllPlayersInExit(game: ZGame): Boolean {
+		require(exitZone >= 0)
+		return game.board.getNumZombiesInZone(exitZone) == 0 && game.board.getAllCharacters().count { it.occupiedZone != exitZone } <= 0
+	}
 
     /**
      * Perform any processing to the searchable. Called once on quest init
@@ -430,18 +427,19 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
     protected val numStartObjectives: Int
         get() = objectives.values.sumBy { it.found.size + it.objectives.size }
 
-    open fun onDragonBileExploded(c: ZCharacter, zoneIdx: Int) {}
-    open fun drawQuest(game: UIZombicide, g: AGraphics) {}
-    fun onNecromancerEscaped(game: ZGame, z: ZZombie) {
-        game.gameLost("Necromancer Escaped")
-    }
+	open fun onDragonBileExploded(c: ZCharacter, zoneIdx: Int) {}
+	open fun drawQuest(board: ZBoard, g: AGraphics) {}
+	fun onNecromancerEscaped(game: ZGame, z: ZZombie) {
+		game.gameLost("Necromancer Escaped")
+	}
 
     open fun onZombieSpawned(game: ZGame, zombie: ZZombie, zone: Int) {
         when (zombie.type) {
-            ZZombieType.Necromancer -> {
-                game.board.setSpawnZone(zone, ZIcon.SPAWN_GREEN, false, false, true)
-                game.spawnZombies(zone)
-            }
+	        ZZombieType.Necromancer -> {
+		        game.board.setSpawnZone(zone, ZIcon.SPAWN_GREEN, false, false, true)
+		        game.spawnZombies(zone)
+	        }
+	        else -> Unit
         }
     }
 
@@ -454,14 +452,14 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
      * @return
      */
     open fun drawSpawnCard(game: ZGame, targetZone: Int, dangerLevel: ZSkillLevel?): ZSpawnCard? {
-        return ZSpawnCard.drawSpawnCard(quest.isWolfBurg, game.canZoneSpawnNecromancers(targetZone), game.getDifficulty())
+	    return ZSpawnCard.drawSpawnCard(quest.isWolfBurg, game.board.canZoneSpawnNecromancers(targetZone), game.getDifficulty())
     }
 
     fun isExitClearedOfZombies(game: ZGame): Boolean {
         return game.board.getNumZombiesInZone(exitZone) == 0
     }
 
-	open fun drawBlackObjective(game: ZGame, g: AGraphics, cell: ZCell, zone: ZZone) {
+	open fun drawBlackObjective(board: ZBoard, g: AGraphics, cell: ZCell, zone: ZZone) {
 		throw Exception("Unhandled method drawBlackObjective")
 	}
 

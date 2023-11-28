@@ -11,7 +11,7 @@ import cc.lib.zombicide.ZDir
 import cc.lib.zombicide.ZDir.Companion.getFromVector
 import cc.lib.zombicide.ZIcon
 
-open class ShootAnimation(actor: ZActor<*>, duration: Long, center: IVector2D?, val icon: ZIcon) : ZActorAnimation(actor, duration) {
+open class ShootAnimation(actor: ZActor, duration: Long, center: IVector2D?, val icon: ZIcon) : ZActorAnimation(actor, duration) {
 	val dir: ZDir
 	val id: Int
 	lateinit var r: GRectangle

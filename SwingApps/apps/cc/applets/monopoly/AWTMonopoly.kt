@@ -32,12 +32,15 @@ class AWTMonopoly internal constructor() : AWTComponent() {
 		val rules = monopoly.rules
 		val popup = AWTFrame()
 		val content = AWTPanel(BorderLayout())
-		val npStart = AWTNumberPicker.Builder().setLabel("Start $").setMin(500).setMax(1500).setStep(100).setValue(rules.startMoney).build { _, value: Int -> rules.startMoney = value }
+		val npStart = AWTNumberPicker.Builder().setLabel("Start $").setMin(500).setMax(1500).setStep(100).setValue(rules.startMoney).build { _, value ->
+			rules.startMoney = value
+		}
 		val npWin = AWTNumberPicker.Builder().setLabel("Win $").setMin(2000).setMax(5000).setStep(500).setValue(rules.valueToWin).build(null)
 		val npTaxScale = AWTNumberPicker.Builder().setLabel("Tax Scale %").setMin(0).setMax(200).setStep(25).setValue((100f * rules.taxScale).roundToInt()).build(null)
 		val jailBump = AWTToggleButton("Jail Bump", rules.jailBumpEnabled)
 		val jailMulti = AWTToggleButton("Jail Multiplier", rules.jailMultiplier)
 		val jailMaxTurns = AWTNumberPicker.Builder().setLabel("Max Jail Turns").setMin(2).setMax(5).setValue(rules.maxTurnsInJail).build(null)
+		val doublesRule = AWTToggleButton("Extra Turn on Doubles", rules.doublesRule)
 		content.addTop(AWTLabel("RULES", 1, 20f, true))
 		val buttons = AWTPanel(0, 1)
 		val pickers = AWTPanel(1, 0)
@@ -49,6 +52,7 @@ class AWTMonopoly internal constructor() : AWTComponent() {
 		content.addRight(buttons)
 		buttons.add(jailBump)
 		buttons.add(jailMulti)
+		buttons.add(doublesRule)
 		buttons.add(object : AWTButton("Apply") {
 			override fun onAction() {
 				rules.valueToWin = npWin.value
@@ -57,6 +61,7 @@ class AWTMonopoly internal constructor() : AWTComponent() {
 				rules.jailBumpEnabled = jailBump.isSelected
 				rules.jailMultiplier = jailMulti.isSelected
 				rules.maxTurnsInJail = jailMaxTurns.value
+				rules.doublesRule = doublesRule.isSelected
 				popup.closePopup()
 				try {
 					Reflector.serializeToFile<Any>(rules, RULES_FILE)
@@ -134,18 +139,17 @@ ${e.javaClass.simpleName} ${e.message}""")
 
 		override fun showChooseMoveMenu(player: Player, moves: List<MoveType>): MoveType? {
 			val result = arrayOfNulls<MoveType>(1)
-			val strings = arrayOfNulls<String>(moves.size)
-			var index = 0
+			val strings = mutableListOf<String>()
 			for (mt in moves) {
 				when (mt) {
 					MoveType.PURCHASE_UNBOUGHT -> {
 						val sq = getPurchasePropertySquare()
-						strings[index++] = "Purchase " + prettify(sq.name) + " $" + sq.price
+						strings.add("Purchase ${prettify(sq.name)} \$${sq.price}")
 					}
 					MoveType.PAY_BOND -> {
-						strings[index++] = String.format("%s $%d", prettify(mt.name), player.jailBond)
+						strings.add(String.format("%s $%d", prettify(mt.name), player.jailBond))
 					}
-					else                       -> strings[index++] = prettify(mt.name)
+					else -> strings.add(prettify(mt.name))
 				}
 			}
 			trySaveToFile(SAVE_FILE)
@@ -182,20 +186,19 @@ ${e.javaClass.simpleName} ${e.message}""")
 						stopGameThread()
 					lock.withLock { cond.signal() }
 				}
-			}, "Choose Move " + player.piece, *strings)
+			}, "Choose Move " + player.piece, *strings.toTypedArray())
 			lock.withLock { cond.await() }
 			return result[0]
 		}
 
 		override fun showChooseCardMenu(player: Player, cards: List<Card>, type: CardChoiceType): Card? {
 			val result = arrayOfNulls<Card>(1)
-			val items = arrayOfNulls<String>(cards.size)
-			var index = 0
+			val items = mutableListOf<String>()
 			for (c in cards) {
 				when (type) {
-					CardChoiceType.CHOOSE_CARD_TO_MORTGAGE -> items[index++] = prettify(c.property.name) + " Mortgage $" + c.property.getMortgageValue(c.houses)
-					CardChoiceType.CHOOSE_CARD_TO_UNMORTGAGE -> items[index++] = prettify(c.property.name) + " Buyback $" + c.property.mortgageBuybackPrice
-					CardChoiceType.CHOOSE_CARD_FOR_NEW_UNIT -> items[index++] = prettify(c.property.name) + " Unit $" + c.property.unitPrice
+					CardChoiceType.CHOOSE_CARD_TO_MORTGAGE -> items.add(prettify(c.property.name) + " Mortgage $" + c.property.getMortgageValue(c.houses))
+					CardChoiceType.CHOOSE_CARD_TO_UNMORTGAGE -> items.add(prettify(c.property.name) + " Buyback $" + c.property.mortgageBuybackPrice)
+					CardChoiceType.CHOOSE_CARD_FOR_NEW_UNIT -> items.add(prettify(c.property.name) + " Unit $" + c.property.unitPrice)
 				}
 			}
 			frame.showListChooserDialog(object : OnListItemChoosen {
@@ -211,7 +214,7 @@ ${e.javaClass.simpleName} ${e.message}""")
 						stopGameThread()
 					lock.withLock { cond.signal() }
 				}
-			}, player.piece.toString() + " " + prettify(type.name), *items)
+			}, player.piece.toString() + " " + prettify(type.name), *items.toTypedArray())
 			lock.withLock { cond.await() }
 			return result[0]
 		}
@@ -266,7 +269,7 @@ ${e.javaClass.simpleName} ${e.message}""")
 		}
 	}
 
-	fun showPropertyPopup(title: String?, yesLabel: String?, sq: Square?, onBuyRunnable: Runnable, onDontBuyRunnble: Runnable): AWTFrame {
+	fun showPropertyPopup(title: String, yesLabel: String, sq: Square, onBuyRunnable: Runnable, onDontBuyRunnble: Runnable): AWTFrame {
 		val popup = AWTFrame()
 		val content = AWTPanel(BorderLayout())
 		content.add(AWTLabel(title, 1, 20f, true), BorderLayout.NORTH)
@@ -333,9 +336,8 @@ ${e.javaClass.simpleName} ${e.message}""")
 		pieceMap[Piece.WHEELBARROW] = Images.wheelbarrow.boardImageId
 	}
 
-	override fun getInitProgress(): Float {
-		return numImagesLoaded.toFloat() / Images.values().size
-	}
+	override val initProgress: Float
+		get() = numImagesLoaded.toFloat() / Images.values().size
 
 	override fun paint(g: AWTGraphics, mouseX: Int, mouseY: Int) {
 		monopoly.paint(g, mouseX, mouseY)
@@ -343,6 +345,7 @@ ${e.javaClass.simpleName} ${e.message}""")
 
 	companion object {
 		private val log = LoggerFactory.getLogger(AWTMonopoly::class.java)
+
 		@JvmStatic
 		fun main(args: Array<String>) {
 			AGraphics.DEBUG_ENABLED = true

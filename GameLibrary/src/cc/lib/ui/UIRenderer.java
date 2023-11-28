@@ -29,20 +29,30 @@ public abstract class UIRenderer implements IDimension {
 
     @NotNull
     public <T extends UIComponent> T getComponent() {
-        return (T)component;
+        return (T) component;
     }
 
     private GDimension min = new GDimension(32, 32);
 
     public abstract void draw(APGraphics g, int px, int py);
 
-    public void onClick() {}
+    public void onTouch(int x, int y) {
+    }
 
-    public void onDragStart(float x, float y) {}
+    public void onTouchUp(int x, int y) {
+    }
 
-    public void onDragMove(float x, float y) {}
+    public void onClick() {
+    }
 
-    public void onDragEnd() {}
+    public void onDragStart(int x, int y) {
+    }
+
+    public void onDragMove(int x, int y) {
+    }
+
+    public void onDragEnd() {
+    }
 
     public final GDimension getMinDimension() {
         return min;

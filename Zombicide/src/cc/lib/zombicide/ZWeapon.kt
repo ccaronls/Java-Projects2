@@ -234,9 +234,10 @@ class ZWeapon(override val type: ZWeaponType=ZWeaponType.AXE) : ZEquipment<ZWeap
     override fun onEndOfRound(game: ZGame) {
         when (type) {
             ZWeaponType.HAND_CROSSBOW -> if (!isLoaded) {
-                game.addLogMessage("$label auto reloaded")
-                reload()
+	            game.addLogMessage("$label auto reloaded")
+	            reload()
             }
+	        else -> Unit
         }
     }
 }

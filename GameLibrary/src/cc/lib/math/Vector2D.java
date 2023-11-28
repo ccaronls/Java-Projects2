@@ -29,23 +29,32 @@ public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializ
     
     public final static Vector2D MIN = new Vector2D(-Float.MAX_VALUE, -Float.MAX_VALUE);
     public final static Vector2D MAX = new Vector2D(Float.MAX_VALUE, Float.MAX_VALUE);
-    public final static Vector2D ZERO = new Vector2D(0,0);
-    
+    public final static Vector2D ZERO = new Vector2D(0, 0);
+
     protected float x, y;
-    
-    public Vector2D() {}
+
+    public Vector2D() {
+    }
+
     public Vector2D(float x, float y) {
-        this.x = x; this.y = y;
+        this.x = x;
+        this.y = y;
+    }
+
+    public Vector2D(int x, int y) {
+        this.x = x;
+        this.y = y;
     }
 
     public Vector2D(IVector2D v) {
-        this.x = v.getX(); this.y = v.getY();
+        this.x = v.getX();
+        this.y = v.getY();
     }
 
     public final float X() {
         return x;
     }
-    
+
     public final float Y() {
         return y;
     }

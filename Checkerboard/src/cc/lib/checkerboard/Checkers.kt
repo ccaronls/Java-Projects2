@@ -4,7 +4,6 @@ import cc.lib.game.Utils
 import cc.lib.math.CMath
 import cc.lib.utils.GException
 import cc.lib.utils.Table
-import java.util.*
 
 open class Checkers : Rules() {
 
@@ -50,6 +49,7 @@ open class Checkers : Rules() {
 						}
 						continue
 					}
+					else -> Unit
 				}
 				it.remove()
 			}
@@ -81,6 +81,7 @@ open class Checkers : Rules() {
 			for (m2 in moves) {
 				when (m2.moveType) {
 					MoveType.JUMP, MoveType.FLYING_JUMP -> max = Math.max(max, 1 + findMaxDepth(playerNum, game, m2))
+					else -> Unit
 				}
 			}
 		}
@@ -92,8 +93,7 @@ open class Checkers : Rules() {
 		val p = game.getPiece(rank, col)
 		if (p.playerNum != game.turn) throw GException("Logic Error: Should not be able to move opponent piece")
 		val startSize = moves.size
-		var numJumps = 0
-		numJumps = if (p.getType().isFlying) {
+		var numJumps = if (p.getType().isFlying) {
 			computeFlyingKingMoves(game, p, rank, col, parent, moves)
 		} else {
 			computeMenKingMoves(game, p, rank, col, parent, moves)
@@ -185,7 +185,7 @@ open class Checkers : Rules() {
 					jdc = dc
 				}
 			}
-			else -> throw GException("Invalid piece $p")
+			else -> TODO("Unhandled piece  $p")
 		}
 
 		// check for jumps
@@ -415,6 +415,7 @@ open class Checkers : Rules() {
 					endTurnPrivate(game)
 				}
 			}
+			else -> TODO("Unhandled piece ${move.moveType}")
 		}
 	}
 

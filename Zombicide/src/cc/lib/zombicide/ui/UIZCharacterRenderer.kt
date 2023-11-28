@@ -22,7 +22,13 @@ class UIZCharacterRenderer(component: UIComponent) : UIRenderer(component) {
 		}
 	}
 
-	private var actorInfo: ZActor<*>? = null
+	var actorInfo: ZActor? = null
+		set(value) {
+			if (field != value) {
+				field = value
+				redraw()
+			}
+		}
 	private val messages = LinkedList<IWrappable>()
 	private val game: ZGame
 		get() = UIZombicide.instance
@@ -64,13 +70,6 @@ class UIZCharacterRenderer(component: UIComponent) : UIRenderer(component) {
 		var info: IDimension? = null
 		g.color = textColor
 		when {
-			UIZombicide.instance.boardRenderer.highlightedActor != null -> {
-				actorInfo = UIZombicide.instance.boardRenderer.highlightedActor
-				info = actorInfo?.drawInfo(g, game, width, height)
-			}
-			game.currentCharacter != null -> {
-				info = game.currentCharacter?.character?.drawInfo(g, game, width, height)
-			}
 			actorInfo != null -> {
 				info = actorInfo?.drawInfo(g, game, width, height)
 			}
@@ -101,4 +100,5 @@ class UIZCharacterRenderer(component: UIComponent) : UIRenderer(component) {
 			setMinDimension(width, it.height.coerceAtLeast(y.toFloat()))
 		}
 	}
+
 }

@@ -42,8 +42,8 @@ arrayOf("z66:i:wn:ode:red", "z67:i:dn:we", "z68:sps",       "z75:i:dw:vd1:wn:we"
 		game.chooseEquipmentFromSearchables()
 	}
 
-	private fun numSurvivorsAtDangerRED(game: ZGame): Int = game.allLivingCharacters.count { it.character.skillLevel.difficultyColor === ZColor.RED }
-	private fun numREDinEXIT(game: ZGame): Int = game.allLivingCharacters.count { pl -> pl.character.skillLevel.difficultyColor === ZColor.RED && exitZone == pl.character.occupiedZone }
+	private fun numSurvivorsAtDangerRED(game: ZGame): Int = game.allLivingCharacters.count { it.skillLevel.difficultyColor === ZColor.RED }
+	private fun numREDinEXIT(game: ZGame): Int = game.allLivingCharacters.count { pl -> pl.skillLevel.difficultyColor === ZColor.RED && exitZone == pl.occupiedZone }
 
 	override fun getPercentComplete(game: ZGame): Int {
 		val needed = 2

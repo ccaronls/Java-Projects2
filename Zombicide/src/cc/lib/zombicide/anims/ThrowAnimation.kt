@@ -1,7 +1,6 @@
 package cc.lib.zombicide.anims
 
 import cc.lib.game.AGraphics
-import cc.lib.game.GRectangle
 import cc.lib.game.IInterpolator
 import cc.lib.game.IVector2D
 import cc.lib.math.Bezier
@@ -14,9 +13,9 @@ import cc.lib.zombicide.ZIcon
 import kotlin.math.roundToInt
 
 // TODO: Consider merging Fireball, Throw, Shoot animation types which all have similar features and special characteristics like: STATIC, SPIN, DIRECTIONAL, RANDOM
-open class ThrowAnimation(actor: ZActor<*>, target: IVector2D, val icon: ZIcon, arc:Float, duration:Long) : ZActorAnimation(actor, duration) {
+open class ThrowAnimation(actor: ZActor, target: IVector2D, val icon: ZIcon, arc: Float, duration: Long) : ZActorAnimation(actor, duration) {
 
-	constructor(actor: ZActor<*>, target: IVector2D, icon: ZIcon) : this(actor, target, icon, .5f, 1000)
+	constructor(actor: ZActor, target: IVector2D, icon: ZIcon) : this(actor, target, icon, .5f, 1000)
 
 	val curve: IInterpolator<Vector2D>
 	val dir: ZDir

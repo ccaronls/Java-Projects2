@@ -4,7 +4,7 @@ import cc.game.soc.core.*
 import cc.lib.annotation.Keep
 import cc.lib.game.GColor
 import cc.lib.game.Utils
-import cc.lib.net.ClientConnection
+import cc.lib.net.AClientConnection
 import cc.lib.net.GameCommand
 import cc.lib.ui.UIComponent
 import cc.lib.utils.GException
@@ -15,7 +15,7 @@ import cc.lib.utils.GException
  *
  * Base player type to interact with GUI
  */
-open class UIPlayer : PlayerBot, ClientConnection.Listener {
+open class UIPlayer : PlayerBot, AClientConnection.Listener {
 	companion object {
 		init {
 			addField(UIPlayer::class.java, "color")
@@ -23,9 +23,9 @@ open class UIPlayer : PlayerBot, ClientConnection.Listener {
 	}
 
 	@JvmField
-    @Omit
-	var connection: ClientConnection? = null // this is set when game is in server mode and this object represents a remote player
-	fun connect(conn: ClientConnection?) {
+	@Omit
+	var connection: AClientConnection? = null // this is set when game is in server mode and this object represents a remote player
+	fun connect(conn: AClientConnection?) {
 		if (connection != null && connection!!.isConnected) throw GException("Connection already assigned")
 		connection = conn
 		connection!!.addListener(this)
@@ -155,8 +155,7 @@ open class UIPlayer : PlayerBot, ClientConnection.Listener {
 		return UISOC.instance.chooseOptimalPath(optimal, leafs)
 	}
 
-	override fun onCommand(c: ClientConnection, cmd: GameCommand) {}
-	override fun onDisconnected(c: ClientConnection, reason: String) {}
-	override fun onConnected(c: ClientConnection) {}
-	override fun onCancelled(c: ClientConnection, id: String) {}
+	override fun onCommand(c: AClientConnection, cmd: GameCommand) {}
+	override fun onDisconnected(c: AClientConnection, reason: String) {}
+	override fun onCancelled(c: AClientConnection, id: String) {}
 }

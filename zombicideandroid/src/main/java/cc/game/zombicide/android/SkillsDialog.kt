@@ -13,7 +13,6 @@ import cc.lib.game.GColor
 import cc.lib.zombicide.ZColor
 import cc.lib.zombicide.ZPlayerName
 import cc.lib.zombicide.ZSkill
-import java.util.*
 
 /**
  * Created by Chris Caron on 8/9/21.
@@ -103,7 +102,7 @@ internal class SkillsDialog(val activity: ZombicideActivity) : PagerAdapter() {
 			for (lvl in ZColor.values()) {
 				items.add(Item(lvl.name + " " + lvl.dangerPts + " Danger Points", null, lvl.color, false))
 				for (skill in skills[lvl.ordinal]) {
-					val owned = pl.character != null && pl.character.hasSkill(skill)
+					val owned = activity.game.board.getCharacterOrNull(pl)?.hasSkill(skill) == true
 					items.add(Item(skill.label, skill.description, null, owned))
 				}
 			}
@@ -116,7 +115,7 @@ internal class SkillsDialog(val activity: ZombicideActivity) : PagerAdapter() {
 		val vb = ViewpagerDialogBinding.inflate(activity.layoutInflater)
 		vb.viewPager.adapter = this
 		if (activity.game.currentCharacter != null) {
-			vb.viewPager.currentItem = activity.game.currentCharacter!!.ordinal
+			vb.viewPager.currentItem = activity.game.currentCharacter!!.type.ordinal
 		}
 		activity.newDialogBuilder().setTitle("Skills").setView(vb.root).setNegativeButton("Close", null).show()
 	}

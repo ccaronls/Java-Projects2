@@ -3181,7 +3181,7 @@ frame=$frame"""
 		} else if (player.scale > 1.0f) {
 			player.scale -= PLAYER_HULK_GROW_SPEED
 		}
-		player.scale = Utils.clamp(player.scale, 1.0f, PLAYER_HULK_SCALE)
+		player.scale = player.scale.coerceIn(1.0f, PLAYER_HULK_SCALE)
 		var dx = 0f
 		var dy = 0f
 		if (player.state != PLAYER_STATE_EXPLODING) {

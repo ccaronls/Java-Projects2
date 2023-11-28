@@ -14,7 +14,7 @@ import cc.game.soc.ui.*
 import cc.lib.android.*
 import cc.lib.game.GColor
 import cc.lib.game.Utils
-import cc.lib.net.ClientConnection
+import cc.lib.net.AClientConnection
 import cc.lib.net.GameClient
 import cc.lib.net.GameCommand
 import cc.lib.net.GameServer
@@ -437,7 +437,7 @@ class SOCActivity() : CCActivityBase(), MenuItem.Action, View.OnClickListener, G
 				for (i in playerNum until num) {
 					soc.addPlayer(UIPlayer())
 				}
-				cmd.parseReflector("soc", soc)
+				cmd.getReflector("soc", soc)
 				runOnUiThread(object : Runnable {
 					override fun run() {
 						initGame()
@@ -956,15 +956,15 @@ class SOCActivity() : CCActivityBase(), MenuItem.Action, View.OnClickListener, G
 		}
 	}
 
-	override fun onConnected(conn: ClientConnection) {
+	override fun onConnected(conn: AClientConnection) {
 		log.info("Clinet connected: " + conn.displayName)
 	}
 
-	override fun onReconnection(conn: ClientConnection) {
+	override fun onReconnection(conn: AClientConnection) {
 		log.info("Clinet reconnected: " + conn.displayName)
 	}
 
-	override fun onClientDisconnected(conn: ClientConnection) {
+	override fun onClientDisconnected(conn: AClientConnection) {
 		log.info("Clinet disconnected: " + conn.displayName)
 		runOnUiThread(object : Runnable {
 			override fun run() {

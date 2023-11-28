@@ -158,28 +158,39 @@ public class HuffmanEncoding implements Cypher {
     }
     
     /*
-     * 
+     *
      */
-    private ByteCode [] counts = new ByteCode[COUNTS_ARRAY_SIZE];
+    private final ByteCode[] counts = new ByteCode[COUNTS_ARRAY_SIZE];
     
     /*
      * 
      */
     private ByteCode root = null;
-    
+
     /**
-     * 
      *
      */
     public HuffmanEncoding() {
         clear();
     }
 
-    public HuffmanEncoding(int [] counts) throws HuffmanException {
+    public HuffmanEncoding(String key) throws HuffmanException {
+        clear();
+        if (key == null || key.isEmpty())
+            throw new IllegalArgumentException("Empty key");
+        int idx = 0;
+        for (int i = 0; i < counts.length; i++) {
+            counts[i].setOccurance((key.charAt(idx) + 1579) % 1093);
+            idx = (idx + 1) % key.length();
+        }
+        generate();
+    }
+
+    public HuffmanEncoding(int[] counts) throws HuffmanException {
         clear();
         if (counts.length > this.counts.length)
             throw new AssertionError();
-        for (int i=0; i<counts.length; i++) {
+        for (int i = 0; i < counts.length; i++) {
             this.counts[i].setOccurance(counts[i]);
         }
         generate();

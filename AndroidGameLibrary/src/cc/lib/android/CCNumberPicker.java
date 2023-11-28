@@ -41,6 +41,7 @@ public class CCNumberPicker extends NumberPicker {
 	private void init(Context c, AttributeSet attrs) {
         TypedArray a = c.obtainStyledAttributes(attrs, R.styleable.CCNumberPicker);
         setWrapSelectorWheel(a.getBoolean(R.styleable.CCNumberPicker_wrap, true));
+
         a.recycle();
         init();
     }

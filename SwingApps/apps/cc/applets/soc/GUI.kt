@@ -1,7 +1,6 @@
 package cc.applets.soc
 
 import cc.game.soc.core.*
-import cc.game.soc.core.Variation
 import cc.game.soc.ui.*
 import cc.game.soc.ui.MenuItem
 import cc.lib.game.*
@@ -9,7 +8,6 @@ import cc.lib.logger.LoggerFactory
 import cc.lib.math.MutableVector2D
 import cc.lib.swing.*
 import cc.lib.utils.FileUtils
-import cc.lib.utils.Reflector
 import java.awt.*
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
@@ -154,14 +152,12 @@ class GUI(private val frame: AWTFrame, val props: UIProperties) : ActionListener
 					ids[0] = g.loadImage("dicesideship2.GIF")
 					progress = 0.25f
 					val cityId = g.loadImage("dicesidecity2.GIF")
-					val mgr = g.imageMgr
-					val i = mgr.getImage(cityId)
-					ids[1] = mgr.addImage(mgr.transform(i, AWTImageColorFilter(Color.WHITE, Color.RED)))
+					ids[1] = g.newTransformedImage(cityId, AWTImageColorFilter(GColor.WHITE, GColor.RED))
 					progress = 0.5f
-					ids[2] = mgr.addImage(mgr.transform(i, AWTImageColorFilter(Color.WHITE, Color.GREEN)))
+					ids[2] = g.newTransformedImage(cityId, AWTImageColorFilter(GColor.WHITE, GColor.GREEN))
 					progress = 0.75f
-					ids[3] = mgr.addImage(mgr.transform(i, AWTImageColorFilter(Color.WHITE, Color.BLUE)))
-					mgr.deleteImage(cityId)
+					ids[3] = g.newTransformedImage(cityId, AWTImageColorFilter(GColor.WHITE, GColor.BLUE))
+					g.deleteImage(cityId)
 					diceRenderers.initImages(ids[0], ids[1], ids[2], ids[3])
 					progress = 1f
 				}
@@ -1788,7 +1784,7 @@ class GUI(private val frame: AWTFrame, val props: UIProperties) : ActionListener
 				menu.add(refresh)
 				if (optimal != null) optimalIndex = leafs.indexOf(optimal) else optimal = leafs[optimalIndex]
 				optimalOptions = leafs
-				val g = boardComp.apGraphics
+				val g = boardComp.aPGraphics
 				val fontHeight = g.textHeight
 				val ypos = -leftPanelOffset[0] * fontHeight
 				val nodeRects = arrayOfNulls<NodeRect>(leafs.size)
@@ -2062,7 +2058,7 @@ class GUI(private val frame: AWTFrame, val props: UIProperties) : ActionListener
 		frame.add(westGridPanel, BorderLayout.WEST)
 		cntrBorderPanel.add(consoleComponent, BorderLayout.SOUTH)
 		helpText.border = BorderFactory.createLineBorder(helpText.background, 5)
-		frame.setBackground(GColor.LIGHT_GRAY)
+		frame.background = GColor.LIGHT_GRAY
 		initMenu()
 	}
 }

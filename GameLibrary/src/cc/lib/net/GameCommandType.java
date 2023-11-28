@@ -4,7 +4,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import cc.lib.utils.NoDupesMap;
-import cc.lib.utils.WeakHashSet;
 
 /**
  * <pre>
@@ -44,48 +43,7 @@ import cc.lib.utils.WeakHashSet;
  */
 public final class GameCommandType implements Comparable<GameCommandType> {
     
-    private final static Map<String, GameCommandType> instances = new NoDupesMap<>(new LinkedHashMap<String, GameCommandType>());
-
-    public synchronized void addListener(Listener l) {
-        if (listeners == null) {
-            listeners = new WeakHashSet<>();
-        }
-        listeners.add(l);
-    }
-
-    public synchronized void removeListener(Listener l) {
-        if (listeners != null) {
-            listeners.remove(l);
-        }
-    }
-
-    private WeakHashSet<Listener> listeners = null;
-
-    void notifyListeners(GameCommand cmd) {
-        if (listeners != null) {
-            Listener [] arr;
-            synchronized (this) {
-                arr = listeners.toArray(new Listener[listeners.size()]);
-            }
-            for (Listener l : arr) {
-                try {
-                    l.onCommand(cmd);
-                } catch (Exception e) {
-                    e.getStackTrace();
-                    synchronized (this) {
-                        listeners.remove(l);
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Listener can be used to listen for a specific type
-     */
-    public interface Listener {
-        void onCommand(GameCommand cmd);
-    }
+    private final static Map<String, GameCommandType> instances = new NoDupesMap<>(new LinkedHashMap<>());
 
     // These commands are all package access only and are handled internally.
 
@@ -98,9 +56,9 @@ public final class GameCommandType implements Comparable<GameCommandType> {
     // additional info is name and version
     static final GameCommandType CL_CONNECT = new GameCommandType("CL_CONNECT");
     // no additional info
-    static final GameCommandType CL_KEEPALIVE = new GameCommandType("CL_KEEPALIVE");
+    static final GameCommandType PING = new GameCommandType("PING");
     // report an error that occured on the client
-    static final GameCommandType CL_ERROR       = new GameCommandType("CL_ERROR");
+    static final GameCommandType CL_ERROR = new GameCommandType("CL_ERROR");
     // set the display name of this user. Includes a 'name' argument.
     static final GameCommandType CL_HANDLE      = new GameCommandType("CL_HANDLE");
     // client signals they are disconnecting
@@ -135,7 +93,7 @@ public final class GameCommandType implements Comparable<GameCommandType> {
         mOrdinal = instances.size();
         instances.put(name, this);
     }
-    
+
     private final int mOrdinal;
     private final String mName;
     

@@ -164,6 +164,7 @@ open class Game : Reflector<Game>(), IGame<Move> {
 				onGameOver(players[NEAR])
 				return
 			}
+			else -> Unit
 		}
 		val moves = getMoves()
 		if (moves.isEmpty()) {

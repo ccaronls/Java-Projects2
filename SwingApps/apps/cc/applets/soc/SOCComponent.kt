@@ -6,7 +6,6 @@ import cc.lib.swing.AWTComponent
 import cc.lib.swing.AWTGraphics
 import cc.lib.ui.UIComponent
 import cc.lib.ui.UIRenderer
-import kotlin.coroutines.coroutineContext
 
 /**
  * Created by chriscaron on 2/27/18.
@@ -34,7 +33,7 @@ open class SOCComponent internal constructor() : AWTComponent(), UIComponent {
 	}
 
 	override fun onDragStarted(x: Int, y: Int) {
-		delegate.onDragStart(x.toFloat(), y.toFloat())
+		delegate.onDragStart(x, y)
 	}
 
 	override fun onDragStopped() {
@@ -67,9 +66,7 @@ open class SOCComponent internal constructor() : AWTComponent(), UIComponent {
 		throw RuntimeException("onImagesLoaded not handled")
 	}
 
-	override fun getInitProgress(): Float {
-		return progress
-	}
+	override val initProgress: Float = progress
 
 	override fun getViewportLocation(): Vector2D {
 		val pt = super.getLocationOnScreen()

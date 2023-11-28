@@ -8,7 +8,8 @@ import cc.lib.annotation.Keep
 import cc.lib.game.*
 import cc.lib.logger.LoggerFactory
 import cc.lib.math.Vector2D
-import cc.lib.net.ClientConnection
+import cc.lib.net.AClientConnection
+import cc.lib.net.AGameServer
 import cc.lib.net.GameCommand
 import cc.lib.net.GameServer
 import cc.lib.ui.UIComponent
@@ -17,7 +18,7 @@ import cc.lib.utils.Lock
 /**
  * Created by chriscaron on 2/22/18.
  */
-abstract class UISOC protected constructor(playerComponents: Array<UIPlayerRenderer>, boardRenderer: UIBoardRenderer, diceRenderer: UIDiceRenderer, console: UIConsoleRenderer, eventCardRenderer: UIEventCardRenderer, barbarianRenderer: UIBarbarianRenderer) : SOC(), MenuItem.Action, GameServer.Listener, ClientConnection.Listener {
+abstract class UISOC protected constructor(playerComponents: Array<UIPlayerRenderer>, boardRenderer: UIBoardRenderer, diceRenderer: UIDiceRenderer, console: UIConsoleRenderer, eventCardRenderer: UIEventCardRenderer, barbarianRenderer: UIBarbarianRenderer) : SOC(), MenuItem.Action, AGameServer.Listener, AClientConnection.Listener {
 	val server = GameServer(serverName, NetCommon.PORT, NetCommon.VERSION, cypher, NetCommon.MAX_CONNECTIONS)
 	private val playerComponents: Array<UIPlayerRenderer>
 	val uIBoard: UIBoardRenderer
@@ -27,6 +28,7 @@ abstract class UISOC protected constructor(playerComponents: Array<UIPlayerRende
 	private val barbarianRenderer: UIBarbarianRenderer
 	private var returnValue: Any? = null
 	private val lock = Lock()
+
 	@Keep
 	fun setReturnValue(o: Any?) {
 		returnValue = o
@@ -104,10 +106,15 @@ abstract class UISOC protected constructor(playerComponents: Array<UIPlayerRende
 				val v = board.getVertex(highlightedIndex)
 				g.color = getPlayerColor(curPlayerNum)
 				when (choice) {
-					VertexChoice.SETTLEMENT                                                                                                                                               -> b.drawSettlement(g, v, v.player, true)
-					VertexChoice.CITY                                                                                                                                                     -> b.drawCity(g, v, v.player, true)
-					VertexChoice.CITY_WALL                                                                                                                                                -> b.drawWalledCity(g, v, v.player, true)
-					VertexChoice.KNIGHT_DESERTER, VertexChoice.KNIGHT_DISPLACED, VertexChoice.KNIGHT_MOVE_POSITION, VertexChoice.KNIGHT_TO_MOVE, VertexChoice.OPPONENT_KNIGHT_TO_DISPLACE -> {
+					null -> Unit
+					VertexChoice.SETTLEMENT -> b.drawSettlement(g, v, v.player, true)
+					VertexChoice.CITY -> b.drawCity(g, v, v.player, true)
+					VertexChoice.CITY_WALL -> b.drawWalledCity(g, v, v.player, true)
+					VertexChoice.KNIGHT_DESERTER,
+					VertexChoice.KNIGHT_DISPLACED,
+					VertexChoice.KNIGHT_MOVE_POSITION,
+					VertexChoice.KNIGHT_TO_MOVE,
+					VertexChoice.OPPONENT_KNIGHT_TO_DISPLACE -> {
 						var knightLevel = v.type.knightLevel
 						var active = v.type.isKnightActive
 						if (knightToMove != null) {
@@ -139,7 +146,8 @@ abstract class UISOC protected constructor(playerComponents: Array<UIPlayerRende
 				val color = getPlayerColor(curPlayerNum).withAlpha(RenderConstants.pickableAlpha)
 				g.color = color
 				when (choice) {
-					VertexChoice.SETTLEMENT                                                                                                                  -> b.drawSettlement(g, v, 0, false)
+					null -> Unit
+					VertexChoice.SETTLEMENT -> b.drawSettlement(g, v, 0, false)
 					VertexChoice.CITY                                                                                                                        -> b.drawCity(g, v, 0, false)
 					VertexChoice.CITY_WALL                                                                                                                   -> b.drawWalledCity(g, v, 0, false)
 					VertexChoice.KNIGHT_DESERTER, VertexChoice.KNIGHT_DISPLACED, VertexChoice.KNIGHT_MOVE_POSITION, VertexChoice.OPPONENT_KNIGHT_TO_DISPLACE -> {
@@ -206,10 +214,12 @@ abstract class UISOC protected constructor(playerComponents: Array<UIPlayerRende
 				val route = board.getRoute(highlightedIndex)
 				g.color = getPlayerColor(curPlayerNum)
 				when (choice) {
-					RouteChoice.OPPONENT_ROAD_TO_ATTACK          -> {
+					null -> Unit
+					RouteChoice.OPPONENT_ROAD_TO_ATTACK -> {
 						g.color = getPlayerColor(route.player)
 						b.drawEdge(g, route, route.type, 0, true)
 					}
+					RouteChoice.OPPONENT_SHIP_TO_ATTACK -> TODO()
 					RouteChoice.ROAD, RouteChoice.ROUTE_DIPLOMAT -> b.drawRoad(g, route, true)
 					RouteChoice.SHIP                             -> b.drawVessel(g, shipType, route, true)
 					RouteChoice.SHIP_TO_MOVE                     -> b.drawEdge(g, route, route.type, curPlayerNum, true)
@@ -221,14 +231,16 @@ abstract class UISOC protected constructor(playerComponents: Array<UIPlayerRende
 				val route = board.getRoute(index)
 				g.color = getPlayerColor(curPlayerNum).withAlpha(RenderConstants.pickableAlpha)
 				when (choice) {
-					RouteChoice.OPPONENT_ROAD_TO_ATTACK          -> {
+					null -> Unit
+					RouteChoice.OPPONENT_SHIP_TO_ATTACK,
+					RouteChoice.OPPONENT_ROAD_TO_ATTACK -> {
 						g.color = getPlayerColor(route.player).withAlpha(RenderConstants.pickableAlpha)
 						b.drawEdge(g, route, route.type, 0, false)
 					}
 					RouteChoice.ROAD, RouteChoice.ROUTE_DIPLOMAT -> b.drawRoad(g, route, false)
-					RouteChoice.SHIP                             -> b.drawVessel(g, shipType, route, false)
-					RouteChoice.SHIP_TO_MOVE                     -> b.drawEdge(g, route, route.type, 0, false)
-					RouteChoice.UPGRADE_SHIP                     -> b.drawWarShip(g, route, false)
+					RouteChoice.SHIP -> b.drawVessel(g, shipType, route, false)
+					RouteChoice.SHIP_TO_MOVE -> b.drawEdge(g, route, route.type, 0, false)
+					RouteChoice.UPGRADE_SHIP -> b.drawWarShip(g, route, false)
 				}
 			}
 
@@ -266,7 +278,8 @@ abstract class UISOC protected constructor(playerComponents: Array<UIPlayerRende
 			override fun onHighlighted(b: UIBoardRenderer, g: APGraphics, highlightedIndex: Int) {
 				val t = board.getTile(highlightedIndex)
 				when (choice) {
-					TileChoice.INVENTOR                  -> {
+					null -> Unit
+					TileChoice.INVENTOR -> {
 						g.color = GColor.YELLOW
 						b.drawTileOutline(g, t, RenderConstants.thickLineThickness)
 					}
@@ -278,6 +291,7 @@ abstract class UISOC protected constructor(playerComponents: Array<UIPlayerRende
 			override fun onDrawPickable(b: UIBoardRenderer, g: APGraphics, index: Int) {
 				val t = board.getTile(index)
 				when (choice) {
+					null -> Unit
 					TileChoice.ROBBER, TileChoice.PIRATE -> if (t.isWater) b.drawPirate(g, t, GColor.TRANSLUSCENT_BLACK) else b.drawRobber(g, t, GColor.LIGHT_GRAY.withAlpha(RenderConstants.pickableAlpha))
 					TileChoice.INVENTOR                  -> {
 						g.color = GColor.RED
@@ -557,21 +571,21 @@ abstract class UISOC protected constructor(playerComponents: Array<UIPlayerRende
 
 	protected fun addCardAnimation(playerNum: Int, text: String?) {
 		val comp = getRendererForPlayerNum(playerNum)
-		val cardHeight = (uIBoard.getComponent<UIComponent>().height / 5).toFloat()
+		val cardHeight = (uIBoard.getComponent<UIComponent>().getHeight() / 5).toFloat()
 		val cardWidth = cardHeight * 2 / 3
-		val compPt = comp.getComponent<UIComponent>().viewportLocation
-		val boardPt = uIBoard.getComponent<UIComponent>().viewportLocation
+		val compPt = comp.getComponent<UIComponent>().getViewportLocation()
+		val boardPt = uIBoard.getComponent<UIComponent>().getViewportLocation()
 		val dv: Vector2D = compPt.sub(boardPt)
 		val spacing = cardWidth / 4
 
 		// center the card vertically against its player getComponent()
-		var _y = compPt.y - boardPt.y + comp.getComponent<UIComponent>().height / 2 - cardHeight / 2
+		var _y = compPt.y - boardPt.y + comp.getComponent<UIComponent>().getHeight() / 2 - cardHeight / 2
 		val W = comp.numCardAnimations * cardWidth + spacing - (comp.numCardAnimations - 1) * spacing
-		val x = if (boardPt.X() < compPt.x) uIBoard.getComponent<UIComponent>().width - cardWidth - W else W
+		val x = if (boardPt.X() < compPt.x) uIBoard.getComponent<UIComponent>().getWidth() - cardWidth - W else W
 		if (_y < 0) {
 			_y = 0f
-		} else if (_y + cardHeight > uIBoard.getComponent<UIComponent>().height) {
-			_y = uIBoard.getComponent<UIComponent>().height - cardHeight
+		} else if (_y + cardHeight > uIBoard.getComponent<UIComponent>().getHeight()) {
+			_y = uIBoard.getComponent<UIComponent>().getHeight() - cardHeight
 		}
 		val y = _y
 		val color = (getPlayerByPlayerNum(playerNum) as UIPlayer).color
@@ -587,7 +601,7 @@ abstract class UISOC protected constructor(playerComponents: Array<UIPlayerRende
 				uIBoard.drawCard(color, g, text, x, y, cardWidth, cardHeight, alpha)
 			}
 
-			public override fun onDone() {
+			override fun onDone() {
 				super.onDone()
 				comp.numCardAnimations--
 			}
@@ -862,8 +876,8 @@ abstract class UISOC protected constructor(playerComponents: Array<UIPlayerRende
 		uIBoard.addAnimation(object : UIAnimation(5000) {
 			var dim: GDimension? = null
 			public override fun draw(g: AGraphics, position: Float, dt: Float) {
-				val width = uIBoard.getComponent<UIComponent>().width.toFloat()
-				val height = uIBoard.getComponent<UIComponent>().height.toFloat()
+				val width = uIBoard.getComponent<UIComponent>().getWidth().toFloat()
+				val height = uIBoard.getComponent<UIComponent>().getHeight().toFloat()
 				val margin = RenderConstants.textMargin
 				val m2 = margin * 2
 				if (dim == null) {
@@ -982,7 +996,7 @@ abstract class UISOC protected constructor(playerComponents: Array<UIPlayerRende
 		super.onGameOver(winnerNum)
 	}
 
-	override fun onConnected(conn: ClientConnection) {
+	override fun onConnected(conn: AClientConnection) {
 		var player: UIPlayer? = null
 		for (p in players) {
 			if (p !is UIPlayerUser) {
@@ -1022,14 +1036,13 @@ abstract class UISOC protected constructor(playerComponents: Array<UIPlayerRende
 		}
 	}
 
-	override fun onReconnection(conn: ClientConnection) {}
-	override fun onClientDisconnected(conn: ClientConnection) {
+	override fun onReconnected(conn: AClientConnection) {
 		printinfo(0, getString("Player %s has disconnected", conn.name))
 	}
 
-	override fun onCommand(c: ClientConnection, cmd: GameCommand) {}
-	override fun onDisconnected(c: ClientConnection, reason: String) {}
-	override fun onCancelled(c: ClientConnection, id: String) {
+	override fun onCommand(c: AClientConnection, cmd: GameCommand) {}
+	override fun onDisconnected(c: AClientConnection, reason: String) {}
+	override fun onCancelled(c: AClientConnection, id: String) {
 		cancel()
 	}
 
@@ -1078,7 +1091,8 @@ abstract class UISOC protected constructor(playerComponents: Array<UIPlayerRende
 					VertexType.WALLED_CITY         -> board.drawWalledCity(g, Vector2D.ZERO, playerNum, false)
 					VertexType.METROPOLIS_POLITICS -> board.drawMetropolisPolitics(g, Vector2D.ZERO, playerNum, false)
 					VertexType.METROPOLIS_SCIENCE  -> board.drawMetropolisScience(g, Vector2D.ZERO, playerNum, false)
-					VertexType.METROPOLIS_TRADE    -> board.drawMetropolisTrade(g, Vector2D.ZERO, playerNum, false)
+					VertexType.METROPOLIS_TRADE -> board.drawMetropolisTrade(g, Vector2D.ZERO, playerNum, false)
+					else -> TODO("Unhandled type $type")
 				}
 				g.popMatrix()
 			}

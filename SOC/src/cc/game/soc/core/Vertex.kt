@@ -215,14 +215,12 @@ class Vertex : Reflector<Vertex>, IVector2D {
 	val isStructure: Boolean
 		get() = type!!.isStructure
 
-	fun getPointsValue(rules: Rules): Int {
-		when (type) {
-			VertexType.SETTLEMENT -> return rules.pointsPerSettlement
-			VertexType.CITY, VertexType.WALLED_CITY -> return rules.pointsPerCity
-			VertexType.METROPOLIS_POLITICS, VertexType.METROPOLIS_SCIENCE, VertexType.METROPOLIS_TRADE -> return rules.pointsPerMetropolis
-			VertexType.OPEN, VertexType.BASIC_KNIGHT_ACTIVE, VertexType.BASIC_KNIGHT_INACTIVE, VertexType.MIGHTY_KNIGHT_ACTIVE, VertexType.MIGHTY_KNIGHT_INACTIVE, VertexType.STRONG_KNIGHT_ACTIVE, VertexType.STRONG_KNIGHT_INACTIVE, VertexType.PIRATE_FORTRESS -> return 0
-		}
-		throw RuntimeException("Ungandled case '$type'")
+	fun getPointsValue(rules: Rules): Int = when (type) {
+		VertexType.SETTLEMENT -> rules.pointsPerSettlement
+		VertexType.CITY, VertexType.WALLED_CITY -> rules.pointsPerCity
+		VertexType.METROPOLIS_POLITICS, VertexType.METROPOLIS_SCIENCE, VertexType.METROPOLIS_TRADE -> rules.pointsPerMetropolis
+		VertexType.OPEN, VertexType.BASIC_KNIGHT_ACTIVE, VertexType.BASIC_KNIGHT_INACTIVE, VertexType.MIGHTY_KNIGHT_ACTIVE, VertexType.MIGHTY_KNIGHT_INACTIVE, VertexType.STRONG_KNIGHT_ACTIVE, VertexType.STRONG_KNIGHT_INACTIVE, VertexType.PIRATE_FORTRESS -> 0
+		else -> TODO("Unhandled type $type")
 	}
 
 	override fun equals(o: Any?): Boolean {

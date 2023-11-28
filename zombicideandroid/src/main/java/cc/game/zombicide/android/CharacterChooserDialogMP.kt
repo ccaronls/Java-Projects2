@@ -28,7 +28,7 @@ abstract class CharacterChooserDialogMP(val activity: ZombicideActivity, val sel
 
 	override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder {
 		val ib = AssignDialogItemBinding.inflate(LayoutInflater.from(activity), parent, false)
-		return Holder(ib, this)
+		return Holder(ib)
 	}
 
 	override fun onBindViewHolder(holder: Holder, position: Int) {
@@ -49,7 +49,6 @@ abstract class CharacterChooserDialogMP(val activity: ZombicideActivity, val sel
 				if (numSelected <= 0) {
 					Toast.makeText(activity, "Please select at least one character", Toast.LENGTH_LONG).show()
 				} else {
-					dialog.dismiss()
 					onStart()
 				}
 				return
@@ -105,7 +104,7 @@ abstract class CharacterChooserDialogMP(val activity: ZombicideActivity, val sel
 		activity.runOnUiThread(this)
 	}
 
-	class Holder(val ib: AssignDialogItemBinding, listener: View.OnClickListener) : RecyclerView.ViewHolder(ib.root) {
+	class Holder(val ib: AssignDialogItemBinding) : RecyclerView.ViewHolder(ib.root) {
 		var assignee: Assignee? = null
 		fun bind(a: Assignee, cl: CharacterChooserDialogMP?) {
 			assignee = a

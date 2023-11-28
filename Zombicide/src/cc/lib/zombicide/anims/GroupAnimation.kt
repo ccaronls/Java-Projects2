@@ -2,27 +2,25 @@ package cc.lib.zombicide.anims
 
 import cc.lib.game.AAnimation
 import cc.lib.game.AGraphics
-
 import cc.lib.zombicide.ZActor
 import cc.lib.zombicide.ZActorAnimation
 import cc.lib.zombicide.ZAnimation
-import java.util.*
 
 /**
  * Allow for running multiple animations with some delay in between each starting position
  *
  */
-open class GroupAnimation(actor: ZActor<*>, val hidesActor:Boolean = false) : ZActorAnimation(actor, 1) {
-    private val group: MutableList<Pair<ZAnimation, Int>> = ArrayList()
+open class GroupAnimation(actor: ZActor, val hidesActor: Boolean = false) : ZActorAnimation(actor, 1) {
+	private val group: MutableList<Pair<ZAnimation, Int>> = ArrayList()
 
-    @Synchronized
-    fun addAnimation(animation: ZAnimation): GroupAnimation {
-        return addAnimation(0, animation)
-    }
+	@Synchronized
+	fun addAnimation(animation: ZAnimation): GroupAnimation {
+		return addAnimation(0, animation)
+	}
 
-    /**
-     * IMPORTANT!: Make sure to have all animations added before starting!
-     * @param animation
+	/**
+	 * IMPORTANT!: Make sure to have all animations added before starting!
+	 * @param animation
      */
     @Synchronized
     fun addAnimation(delay: Int, animation: ZAnimation): GroupAnimation {

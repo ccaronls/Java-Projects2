@@ -162,8 +162,7 @@ class Kaiser : Reflector<Kaiser>() {
 	 *
 	 * @return
 	 */
-	var state // current game state
-		: State? = null
+	var state: State = State.GAME_OVER
 		private set
 	private var numCards // number of cards in the deck
 		= 0
@@ -203,7 +202,7 @@ class Kaiser : Reflector<Kaiser>() {
 	}
 
 	private fun computeBidOptions(dealer: Boolean, hand: Hand): Array<Bid> {
-		var bid: Bid? = getCurBidTeam()?.bid
+		val bid: Bid? = getCurBidTeam()?.bid
 		return computeBidOptions(bid, dealer, hand.mCards)
 	}
 

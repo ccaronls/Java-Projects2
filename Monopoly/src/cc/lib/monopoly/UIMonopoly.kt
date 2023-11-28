@@ -590,6 +590,7 @@ abstract class UIMonopoly : Monopoly() {
 								v = Vector2D(r.x + r.w - houseScale, r.y + r.h / 2)
 								angle = 90 //, houseScale, houses);
 							}
+							else -> Unit
 						}
 						g.translate(v)
 						g.rotate(angle.toFloat())
@@ -1114,7 +1115,8 @@ abstract class UIMonopoly : Monopoly() {
 					Board.Position.TOP    -> g.drawImage(pcId, r.x + r.w / 2 - targetDim / 2, r.y + r.h - targetDim / 3, targetDim, targetDim)
 					Board.Position.RIGHT  -> g.drawImage(pcId, r.x - targetDim * 2 / 3, r.y + r.h / 2 - targetDim / 2, targetDim, targetDim)
 					Board.Position.BOTTOM -> g.drawImage(pcId, r.x + r.w / 2 - targetDim / 2, r.y - targetDim * 2 / 3, targetDim, targetDim)
-					Board.Position.LEFT   -> g.drawImage(pcId, r.x + r.w - targetDim / 3, r.y + r.h / 2 - targetDim / 2, targetDim, targetDim)
+					Board.Position.LEFT -> g.drawImage(pcId, r.x + r.w - targetDim / 3, r.y + r.h / 2 - targetDim / 2, targetDim, targetDim)
+					else -> Unit
 				}
 				val sp = spriteMap[c.property.name]
 				if (sp != null) {

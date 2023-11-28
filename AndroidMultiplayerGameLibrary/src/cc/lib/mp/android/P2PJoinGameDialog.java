@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cc.lib.android.SpinnerTask;
-import cc.lib.net.GameClient;
+import cc.lib.net.AGameClient;
 import cc.lib.net.GameCommand;
 import cc.lib.utils.Lock;
 
@@ -27,7 +27,7 @@ public class P2PJoinGameDialog extends BaseAdapter
         DialogInterface.OnClickListener,
         DialogInterface.OnCancelListener,
         Runnable,
-        GameClient.Listener {
+        AGameClient.Listener {
 
     final P2PActivity context;
     final ListView lvHost;
@@ -35,10 +35,10 @@ public class P2PJoinGameDialog extends BaseAdapter
     final Dialog dialog;
     final P2PHelper helper;
     final int connectPort;
-    final GameClient client;
+    final AGameClient client;
     final Lock connectLock = new Lock(1);
 
-    public P2PJoinGameDialog(P2PActivity activity, GameClient client, String clientName, int port) {
+    public P2PJoinGameDialog(P2PActivity activity, AGameClient client, String clientName, int port) {
         this.context = activity;
         this.connectPort = port;
         this.client = client;
@@ -62,8 +62,7 @@ public class P2PJoinGameDialog extends BaseAdapter
                     p2pDevices.clear();
                     p2pDevices.addAll(peers);
                 }
-                if (lvHost != null)
-                    lvHost.post(P2PJoinGameDialog.this); // notify dataset changed
+                lvHost.post(P2PJoinGameDialog.this); // notify dataset changed
             }
 
             @Override

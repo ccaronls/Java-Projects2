@@ -15,7 +15,7 @@ enum class State  // transition state
 	POSITION_CITY_NOCANCEL(false, "Upgrade one of your settlements to a City."),
 	CHOOSE_CITY_FOR_WALL(true, "Build a wall around one of your cites to protect against barbarian attack."),
 	POSITION_SHIP_CANCEL(true, "Place ship on the board."),
-	POSITION_NEUTRAL_SHIP_NOCANCEL(false, "Place a Ship on the board for the neutral player."),  // Player is position a moved ship.  Only one allowed per turn
+//	POSITION_NEUTRAL_SHIP_NOCANCEL(false, "Place a Ship on the board for the neutral player."),  // Player is position a moved ship.  Only one allowed per turn
 	POSITION_SHIP_AND_LOCK_CANCEL(true, "Choose from an open ended ship to reposition."),
 	UPGRADE_SHIP_CANCEL(true, "Choose a ship to upgrade to warship."),
 	POSITION_SHIP_NOCANCEL(false, "Place ship on the board."),
@@ -45,13 +45,15 @@ enum class State  // transition state
 	SET_VERTEX_TYPE(false, ""),
 	CHOOSE_KNIGHT_TO_ACTIVATE(true, "Choose from one of your knight to Activate.  This makes it possible to defend against Barbarians or reposition."),
 	POSITION_NEW_KNIGHT_CANCEL(true, "Place your new knight on the board."),
-	POSITION_NEW_NEUTRAL_KNIGHT_NOCANCEL(false, "Place your a new knight on the board for the neutral player."),
+
+	//	POSITION_NEW_NEUTRAL_KNIGHT_NOCANCEL(false, "Place your a new knight on the board for the neutral player."),
 	POSITION_KNIGHT_CANCEL(true, "Place your knight on the board.  Active knights can displace an opponents knight or chase the Robber."),
 	POSITION_KNIGHT_NOCANCEL(false, "Place the deserted knight on the board."),
 	POSITION_DISPLACED_KNIGHT(false, "Place your displaced knight on the board."),  // player's knight has been displaced
 	CHOOSE_KNIGHT_TO_MOVE(true, "Pick an Active knight to move."),
 	CHOOSE_KNIGHT_TO_PROMOTE(true, "Pick an Active knight to move."),
-	CHOOS_ENEUTRAL_KNIGHT_TO_PROMOTE(false, "Choose a neutral knight to Promote."),
+
+	//	CHOOSE_NEUTRAL_KNIGHT_TO_PROMOTE(false, "Choose a neutral knight to Promote."),
 	CHOOSE_PROGRESS_CARD_TYPE(false, "Choose from one of the Development Areas to pick a Progress Card."),  // player chooses from one Science, Trade or Politics
 	CHOOSE_METROPOLIS(false, "Choose from one of your Cities to upgrade to a Metropolis.  Metropolis cannot be pillaged by Barbarians."),
 	CHOOSE_CITY_IMPROVEMENT(true, "Choose from one of the City Improvement options."),

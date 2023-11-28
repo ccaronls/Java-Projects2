@@ -58,7 +58,9 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 	lateinit var statsFile: File
 	lateinit var savesMapFile: File
 	lateinit var game: UIZombicide
-	val thisUser: ZUser = UIZUser()
+	val thisUser: ZUser by lazy {
+		UIZUser(displayName)
+	}
 	var clientMgr: ZClientMgr? = null
 	var serverMgr: ZServerMgr? = null
 	lateinit var boardRenderer: UIZBoardRenderer
@@ -66,15 +68,15 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 	val stats = Stats()
 	val isWolfburgUnlocked: Boolean
 		get() = if (BuildConfig.DEBUG) true else stats.isQuestCompleted(ZQuests.Trial_by_Fire, ZDifficulty.MEDIUM)
-	var organizeDialog : OrganizeDialog? = null
+	var organizeDialog: OrganizeDialog? = null
 
 	val charLocks = arrayOf(
-		CharLock(ZPlayerName.Ann, 0),
-		CharLock(ZPlayerName.Baldric, 0),
-		CharLock(ZPlayerName.Clovis, 0),
-		CharLock(ZPlayerName.Samson, 0),
-		CharLock(ZPlayerName.Nelly, 0),
-		CharLock(ZPlayerName.Silas, 0),
+		CharLock(ZPlayerName.Ann, R.string.char_lock_empty_string),
+		CharLock(ZPlayerName.Baldric, R.string.char_lock_empty_string),
+		CharLock(ZPlayerName.Clovis, R.string.char_lock_empty_string),
+		CharLock(ZPlayerName.Samson, R.string.char_lock_empty_string),
+		CharLock(ZPlayerName.Nelly, R.string.char_lock_empty_string),
+		CharLock(ZPlayerName.Silas, R.string.char_lock_empty_string),
 		object : CharLock(ZPlayerName.Tucker, R.string.char_lock_tucker) {
 			override val isUnlocked: Boolean
 				get() = stats.isQuestCompleted(ZQuests.Big_Game_Hunting, ZDifficulty.MEDIUM)
@@ -151,7 +153,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 			}
 		}
 		boardRenderer.drawTiles = true
-		boardRenderer.miniMapMode = prefs.getInt("miniMapMode", 1)
+		boardRenderer.miniMapMode = prefs.getEnum("miniMapMode", MiniMapMode.UL)
 
 		val lock = Lock()
 
@@ -173,6 +175,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 					}
 					zb.boardView.postInvalidate()
 					zb.consoleView.postInvalidate()
+					characterRenderer.redraw()
 				} catch (e: Exception) {
 					e.printStackTrace()
 					stopGameThread()
@@ -215,8 +218,8 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 				runOnUiThread { initGameMenu() }
 			}
 
-			override fun onCurrentUserUpdated(user: ZUser) {
-				super.onCurrentUserUpdated(user)
+			override fun onCurrentUserUpdated(name: String) {
+				super.onCurrentUserUpdated(name)
 				runOnUiThread { initGameMenu() }
 			}
 
@@ -226,7 +229,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 
 			override val isOrganizeEnabled: Boolean = true
 
-			override fun onOrganizeStarted(primary : ZPlayerName, secondary : ZPlayerName?) {
+			override fun showOrganizeDialog(primary: ZPlayerName, secondary: ZPlayerName?) {
 				runOnUiThread {
 					if (organizeDialog?.isShowing != true) {
 						organizeDialog?.dismiss()
@@ -234,12 +237,12 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 							it.show()
 						}
 					}
-					organizeDialog?.viewModel?.primaryCharacter?.value = primary.character
-					organizeDialog?.viewModel?.secondaryCharacter?.value = secondary?.character
+					organizeDialog?.viewModel?.primaryCharacter?.value = board.getActor(primary.name) as ZCharacter?
+					organizeDialog?.viewModel?.secondaryCharacter?.value = board.getActor(secondary?.name) as ZCharacter?
 				}
 			}
 
-			override fun onOrganizeDone() {
+			override fun closeOrganizeDialog() {
 				runOnUiThread {
 					organizeDialog?.dismiss()
 					organizeDialog = null
@@ -257,17 +260,15 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 			}
 		}
 		val colorIdx = prefs.getInt("userColorIndex", 0)
-		thisUser.setColor(colorIdx)
+		thisUser.setColor(game.board, colorIdx)
 		game.addUser(thisUser)
 	}
 
 	fun loadCharacters(playersSet: Collection<String>) {
 		game.clearCharacters()
-		game.clearUsersCharacters()
 		val players = playersSet.map { ZPlayerName.valueOf(it) }
 		for (player in players) {
-			game.addCharacter(player)
-			thisUser.addCharacter(player)
+			thisUser.addCharacter(game.addCharacter(player))
 		}
 	}
 
@@ -291,6 +292,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 		//    showWelcomeDialog(true);
 		//} else
 		if (gameFile.exists() && game.tryLoadFromFile(gameFile)) {
+			thisUser.setCharacters(game.allCharacters)
 			game.showSummaryOverlay()
 		} else {
 			game.loadQuest(ZQuests.Tutorial)
@@ -348,23 +350,19 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 		EMAIL_REPORT,
 		MINIMAP_MODE;
 
-		fun isHomeButton(instance: ZombicideActivity): Boolean {
-			when (this) {
-				LOAD, SAVE, ASSIGN, CLEAR, UNDO, DIFFICULTY, CHOOSE_COLOR -> return BuildConfig.DEBUG
-				START, NEW_GAME, JOIN_GAME, SETUP_PLAYERS, SKILLS, LEGEND, EMAIL_REPORT, MINIMAP_MODE -> return true
-				CONNECTIONS -> return instance.serverControl != null
-				RESUME -> return instance.gameFile.exists()// && instance.game.isGameSetup
-			}
-			return false
+		fun isHomeButton(instance: ZombicideActivity): Boolean = when (this) {
+			LOAD, SAVE, ASSIGN, CLEAR, UNDO, DIFFICULTY, CHOOSE_COLOR -> BuildConfig.DEBUG
+			START, NEW_GAME, JOIN_GAME, SETUP_PLAYERS, SKILLS, LEGEND, EMAIL_REPORT, MINIMAP_MODE -> true
+			CONNECTIONS -> instance.serverControl != null
+			RESUME -> instance.gameFile.exists()
+			else -> false
 		}
 
-		fun isGameButton(instance: ZombicideActivity): Boolean {
-			when (this) {
-				LOAD, SAVE, START, ASSIGN, RESUME, NEW_GAME, JOIN_GAME, SETUP_PLAYERS, CLEAR -> return false
-				CONNECTIONS -> return instance.serverControl != null
-				UNDO, SEARCHABLES, CHOOSE_COLOR -> return BuildConfig.DEBUG
-			}
-			return true
+		fun isGameButton(instance: ZombicideActivity): Boolean = when (this) {
+			LOAD, SAVE, START, ASSIGN, RESUME, NEW_GAME, JOIN_GAME, SETUP_PLAYERS, CLEAR -> false
+			CONNECTIONS -> instance.serverControl != null
+			UNDO, SEARCHABLES, CHOOSE_COLOR -> BuildConfig.DEBUG
+			else -> true
 		}
 
 		override fun getRect(): GRectangle {
@@ -486,7 +484,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 	val storedCharacters: Set<String>
 		get() = prefs.getStringSet(PREF_PLAYERS, defaultPlayers)!!
 
-	fun processMainMenuItem(item: MenuItem?) {
+	fun processMainMenuItem(item: MenuItem) {
 		when (item) {
 			MenuItem.START -> if (game.roundNum > 0) {
 				newDialogBuilder().setTitle(R.string.popup_title_confirm).setMessage(R.string.popup_message_confirm_restart)
@@ -503,10 +501,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 				startGame()
 			}
 			MenuItem.RESUME -> {
-				thisUser.clearCharacters()
-				for (pl in game.allCharacters) {
-					if (thisUser.getColor() == pl.character.color) thisUser.addCharacter(pl) else pl.character.isInvisible = true
-				}
+				thisUser.setCharacters(game.allCharacters)
 				startGame()
 			}
 			MenuItem.QUIT -> if (client != null) {
@@ -621,7 +616,12 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 			}
 			MenuItem.UNDO -> {
 				if (client != null) {
-					object : CLSendCommandSpinnerTask(this, ZMPCommon.SVR_UPDATE_GAME) {
+					object : CLSendCommandSpinnerTask(this) {
+
+						override fun onGameUpdated(game: ZGame) {
+							release()
+						}
+
 						override fun onSuccess() {
 							zb.boardView.postInvalidate()
 						}
@@ -645,7 +645,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 				showChooseColorDialog()
 			}
 			MenuItem.MINIMAP_MODE -> {
-				prefs.edit().putInt("miniMapMode", boardRenderer.toggleDrawMinimap()).apply()
+				prefs.edit().putString("miniMapMode", boardRenderer.toggleDrawMinimap().name).apply()
 			}
 		}
 	}
@@ -663,30 +663,15 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 			startGame()
 	}
 
-	fun updateCharacters(quest: ZQuests?) {
-		serverMgr?.also { mgr ->
-			server.broadcastCommand(mgr.newLoadQuest(quest!!))
-			game.clearCharacters()
-			for (user in game.getUsers()) {
-				val newPlayers: MutableList<ZPlayerName> = ArrayList()
-				for (pl in user.players) {
-					game.addCharacter(pl)
-					newPlayers.add(pl)
-				}
-				user.setCharacters(newPlayers)
-			}
-			mgr.broadcastUpdateGame()
-		}?:run {
-			loadCharacters(storedCharacters)
-			game.trySaveToFile(gameFile)
-		}
+	fun updateCharacters(quest: ZQuests) {
+		loadCharacters(storedCharacters)
+		game.trySaveToFile(gameFile)
 		startGame()
-		zb.boardView.postInvalidate()
 	}
 
 	fun showLoadQuestDialog() {
 		newDialogBuilder().setTitle(R.string.popup_title_load_quest)
-			.setItems(ZQuests.values().map { prettify(it.name)}.toTypedArray()) { dialog: DialogInterface?, which: Int ->
+			.setItems(ZQuests.values().map { prettify(it.name) }.toTypedArray()) { dialog: DialogInterface?, which: Int ->
 				val q = ZQuests.values()[which]
 				game.loadQuest(q)
 				updateCharacters(q)
@@ -760,7 +745,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 		buf.append(" ").append(game.getDifficulty().name)
 		var delim = " "
 		for (c in game.allCharacters) {
-			buf.append(delim).append(c.name)
+			buf.append(delim).append(c.name())
 			delim = ","
 		}
 		val completePercent = game.quest.getPercentComplete(game)
@@ -789,7 +774,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 		newDialogBuilder().setTitle(R.string.popup_title_choose_color)
 			.setItems(ZUser.USER_COLOR_NAMES) { dialog: DialogInterface?, which: Int ->
 				prefs.edit().putInt("userColorIndex", which).apply()
-				thisUser.setColor(which)
+				thisUser.setColor(game.board, which, ZUser.USER_COLOR_NAMES[which])
 				game.refresh()
 			}.setNegativeButton(R.string.popup_button_cancel, null).show()
 	}
@@ -822,7 +807,6 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 
 	override fun p2pStart() {
 		game.clearCharacters()
-		game.clearUsersCharacters()
 		game.reload()
 		game.refresh()
 		super.p2pStart()
@@ -838,10 +822,12 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 	override fun onP2PServer(p2pServer: P2PServer) {
 		serverControl = p2pServer
 		serverMgr = ZServerMgr(this, game, 2, p2pServer.server)
-		thisUser.name = prefs.getString(PREF_P2P_NAME, null)
+		thisUser.name = prefs.getString(PREF_P2P_NAME, p2pServer.server.name)!!
 	}
 
 	override fun onP2PShutdown() {
+		clientMgr?.shutdown()
+		serverMgr?.shutdown()
 		clientMgr = null
 		clientControl = null
 		serverMgr = null
@@ -859,7 +845,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 			if (saved.contains(a.name.name)) {
 				a.checked = true
 				a.color = thisUser.colorId
-				a.userName = thisUser.name!!
+				a.userName = thisUser.name
 				a.isAssingedToMe = true
 			}
 			assignments.add(a)
@@ -869,7 +855,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 				a.checked = checked
 				if (a.checked) {
 					a.color = thisUser.colorId
-					a.userName = thisUser.name!!
+					a.userName = thisUser.name
 					a.isAssingedToMe = true
 				} else {
 					a.color = -1
@@ -880,12 +866,11 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 
 			override fun onStart() {
 				game.clearCharacters()
-				game.clearUsersCharacters()
 				val players: MutableSet<String> = HashSet()
 				for (a in assignments) {
 					if (a.checked) {
-						game.addCharacter(a.name)
-						thisUser.addCharacter(a.name)
+						val c = game.addCharacter(a.name)
+						thisUser.addCharacter(c)
 						players.add(a.name.name)
 					}
 				}
@@ -921,7 +906,8 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 			}
 
 			override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-				var convertView = convertView?:View.inflate(this@ZombicideActivity, R.layout.legend_list_item, null)
+				val convertView = convertView
+					?: View.inflate(this@ZombicideActivity, R.layout.legend_list_item, null)
 				val iv_image = convertView.findViewById<ImageView>(R.id.iv_image)
 				val tv_desc = convertView.findViewById<TextView>(R.id.tv_description)
 				with (legend[position]) {
@@ -1072,6 +1058,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 								zb.bVault.tag = move
 								zb.bVault.visibility = View.VISIBLE
 							}
+							else -> Unit
 						}
 						it.remove()
 					}
@@ -1087,6 +1074,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 								zb.bUseright.visibility = View.VISIBLE
 								it.remove()
 							}
+							else -> Unit
 						}
 					}
 					ZMoveType.SWITCH_ACTIVE_CHARACTER -> {
@@ -1094,6 +1082,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 						zb.bCenter.visibility = View.VISIBLE
 						it.remove()
 					}
+					else -> Unit
 				}
 			}
 		}
@@ -1124,11 +1113,12 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 					buttons.add(ListSeparator(this))
 				}
 				UIMode.PICK_MENU -> {
-					for (e:IButton in options as List<IButton>) {
+					for (e: IButton in options as List<IButton>) {
 						buttons.add(build(this, e, e.isEnabled))
 					}
 					buttons.add(ListSeparator(this))
 				}
+				else -> Unit
 			}
 		}
 		MenuItem.values().filter { it.isGameButton(this@ZombicideActivity) }.forEach { i->

@@ -3,9 +3,9 @@ package cc.game.soc.ui
 import cc.game.soc.core.*
 import cc.game.soc.ui.NetCommon.cypher
 import cc.lib.annotation.Keep
+import cc.lib.net.AGameClient
 import cc.lib.net.GameClient
 import cc.lib.net.GameCommand
-import java.util.*
 
 /**
  * A UI Plauer User is a player that required user feedback for choice callabcks. On any individual
@@ -14,7 +14,7 @@ import java.util.*
  * In a MP game, if the device is connected as a client, then the GameClient is connected to a game
  * server where this user is represented as a UIPlayer with an active clientConnection.
  */
-class UIPlayerUser : UIPlayer(), GameClient.Listener {
+class UIPlayerUser : UIPlayer(), AGameClient.Listener {
 	val client = GameClient(name, NetCommon.VERSION, cypher)
 	override fun chooseMove(soc: SOC, moves: Collection<MoveType>): MoveType? {
 		return (soc as UISOC).chooseMoveMenu(moves)

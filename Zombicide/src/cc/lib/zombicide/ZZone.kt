@@ -26,18 +26,21 @@ class ZZone(val zoneIndex: Int = -1) : Reflector<ZZone>(), IRectangle {
 
 	@JvmField
 	val doors: MutableList<ZDoor> = ArrayList()
-    var type = ZZoneType.OUTDOORS
-    var noiseLevel = 0
-    var isDragonBile = false
-    var isObjective = false
-    private var nextCell = 0
+	var type = ZZoneType.OUTDOORS
+	var noiseLevel = 0
+	var isDragonBile = false
+	var isObjective = false
+	private var nextCell = 0
 
 	@Omit
 	var isTargetForEscape = false
 
-    fun canSpawn(): Boolean {
-        return type === ZZoneType.BUILDING
-    }
+	@Omit
+	var pickable = false
+
+	fun canSpawn(): Boolean {
+		return type === ZZoneType.BUILDING
+	}
 
 	override fun getCenter(): MutableVector2D {
 		if (cells.size == 0) return MutableVector2D(Vector2D.ZERO)

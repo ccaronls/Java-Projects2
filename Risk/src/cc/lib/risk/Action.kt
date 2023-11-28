@@ -13,12 +13,10 @@ enum class Action {
 	THREE_ARMIES;
 
 	val armies: Int
-		get() {
-			when (this) {
-				ONE_ARMY -> return 1
-				TWO_ARMIES -> return 2
-				THREE_ARMIES -> return 3
-			}
-			return 0
+		get() = when (this) {
+			ONE_ARMY -> 1
+			TWO_ARMIES -> 2
+			THREE_ARMIES -> 3
+			else -> 0
 		}
 }

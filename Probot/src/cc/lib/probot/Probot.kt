@@ -4,7 +4,9 @@ import cc.lib.game.AGraphics
 import cc.lib.game.GColor
 import cc.lib.utils.Lock
 import cc.lib.utils.Reflector
+import cc.lib.utils.weakReference
 import java.util.*
+import kotlin.math.roundToInt
 
 interface Observer {
 	fun onChanged()
@@ -47,7 +49,8 @@ class ObservableArrayList<T>(initalCapacity: Int = 0) : ArrayList<T>(initalCapac
 open class Probot(private val program: ObservableArrayList<Command> = ObservableArrayList()) : Reflector<Probot>(), Comparator<Int>, Observer, MutableList<Command> by program {
 
 	init {
-		program.observer = this
+		val observer by weakReference(this)
+		program.observer = observer
 	}
 
 	companion object {
@@ -105,8 +108,7 @@ open class Probot(private val program: ObservableArrayList<Command> = Observable
 		isRunning = true
 		copy = Probot()
 		copy!!.copyFrom(this)
-		val run = runProgram(intArrayOf(0))
-		when (run) {
+		when (runProgram(intArrayOf(0))) {
 			1 -> onSuccess()
 			0 -> {
 				onFailed()
@@ -143,6 +145,7 @@ open class Probot(private val program: ObservableArrayList<Command> = Observable
 			when (c.type) {
 				CommandType.LoopStart -> nesting++
 				CommandType.LoopEnd -> nesting--
+				else -> Unit
 			}
 		}
 	}
@@ -221,6 +224,7 @@ open class Probot(private val program: ObservableArrayList<Command> = Observable
 					CommandType.Jump -> if (!advance(guy, 2, false)) {
 						return if (isRunning) 0 else -1
 					}
+					else -> Unit
 				}
 			}
 			linePtr[0]++
@@ -310,6 +314,7 @@ open class Probot(private val program: ObservableArrayList<Command> = Observable
 					Type.LB1 -> toggleLazers(1)
 					Type.LB2 -> toggleLazers(2)
 					Type.LB -> toggleLazers(0, 1, 2)
+					else -> Unit
 				}
 				if (lazer[ny][nx] != 0) {
 					onLazered(guy, 0) // lazer activated on guy
@@ -328,6 +333,7 @@ open class Probot(private val program: ObservableArrayList<Command> = Observable
 			Type.LB1 -> toggleLazers(1)
 			Type.LB2 -> toggleLazers(2)
 			Type.LB -> toggleLazers(0, 1, 2)
+			else -> Unit
 		}
 	}
 
@@ -401,6 +407,7 @@ open class Probot(private val program: ObservableArrayList<Command> = Observable
 						Type.LV2 -> if (laz == 2) {
 							initVertLazer(i, ii)
 						}
+						else -> Unit
 					}
 				}
 			}
@@ -417,18 +424,18 @@ open class Probot(private val program: ObservableArrayList<Command> = Observable
 	}
 
 	fun setLazerEnabled(num: Int, on: Boolean) {
-		println("lazerOrdering num = " + num + " ordering: " + Arrays.toString(lazerOrdering))
+		println("lazerOrdering num = " + num + " ordering: " + lazerOrdering.contentToString())
 		level.lazers[num] = on
 		initLazers()
-		println("lazerOrdering = " + Arrays.toString(lazerOrdering))
+		println("lazerOrdering = " + lazerOrdering.contentToString())
 	}
 
 	private fun canMoveToPos(y: Int, x: Int): Boolean {
 		if (x < 0 || y < 0 || y >= level.coins.size || x >= level.coins[y].size) return false
-		when (level.coins[y][x]) {
+		return when (level.coins[y][x]) {
 			Type.DD, Type.LB0, Type.LB1, Type.LB2, Type.LB -> return true
+			else -> false
 		}
-		return false
 	}
 
 	private fun turn(guy: Guy, d: Int) {
@@ -459,13 +466,11 @@ open class Probot(private val program: ObservableArrayList<Command> = Observable
 	 * @param t
 	 * @return
 	 */
-	fun getCommandTypeNumAvaialable(t: CommandType): Int {
-		when (t) {
-			CommandType.Jump -> return if (level.numJumps < 0) -1 else level.numJumps - getCommandCount(t)
-			CommandType.LoopStart -> return if (level.numLoops < 0) -1 else level.numLoops - getCommandCount(CommandType.LoopStart)
-			CommandType.TurnLeft, CommandType.TurnRight, CommandType.UTurn -> return if (level.numTurns < 0) -1 else level.numTurns - getCommandCount(CommandType.TurnLeft, CommandType.TurnRight, CommandType.UTurn)
-		}
-		return -1
+	fun getCommandTypeNumAvaialable(t: CommandType): Int = when (t) {
+		CommandType.Jump -> if (level.numJumps < 0) -1 else level.numJumps - getCommandCount(t)
+		CommandType.LoopStart -> if (level.numLoops < 0) -1 else level.numLoops - getCommandCount(CommandType.LoopStart)
+		CommandType.TurnLeft, CommandType.TurnRight, CommandType.UTurn -> if (level.numTurns < 0) -1 else level.numTurns - getCommandCount(CommandType.TurnLeft, CommandType.TurnRight, CommandType.UTurn)
+		else -> -1
 	}
 
 	/**
@@ -473,13 +478,11 @@ open class Probot(private val program: ObservableArrayList<Command> = Observable
 	 * @param t
 	 * @return
 	 */
-	fun getCommandTypeMaxAvailable(t: CommandType): Int {
-		when (t) {
-			CommandType.Jump -> return if (level.numJumps < 0) -1 else level.numJumps
-			CommandType.LoopStart -> return if (level.numLoops < 0) -1 else level.numLoops
-			CommandType.TurnLeft, CommandType.TurnRight, CommandType.UTurn -> return if (level.numTurns < 0) -1 else level.numTurns
-		}
-		return -1
+	fun getCommandTypeMaxAvailable(t: CommandType): Int = when (t) {
+		CommandType.Jump -> if (level.numJumps < 0) -1 else level.numJumps
+		CommandType.LoopStart -> if (level.numLoops < 0) -1 else level.numLoops
+		CommandType.TurnLeft, CommandType.TurnRight, CommandType.UTurn -> if (level.numTurns < 0) -1 else level.numTurns
+		else -> -1
 	}
 
 	fun isCommandTypeVisible(t: CommandType): Boolean {
@@ -510,14 +513,13 @@ open class Probot(private val program: ObservableArrayList<Command> = Observable
 		// get cell width/height
 		val cw = width / cols
 		val ch = height / rows
-		val radius = Math.round(0.2f * Math.min(cw, ch)).toFloat()
+		val radius = (0.2f * cw.coerceAtMost(ch)).roundToInt().toFloat()
 		var curColor = 0
 		for (i in 0 until rows) {
 			for (ii in 0 until cols) {
 				val x = ii * cw + cw / 2
 				val y = i * ch + ch / 2
-				val t = l.coins[i][ii]
-				when (t) {
+				when (val t = l.coins[i][ii]) {
 					Type.EM -> {
 					}
 					Type.DD -> {

@@ -3,10 +3,8 @@ package cc.lib.probot
 import cc.lib.game.AAnimation
 import cc.lib.game.AGraphics
 import cc.lib.game.GColor
-import cc.lib.game.Utils
 import cc.lib.math.Bezier
 import cc.lib.utils.StopWatch
-import java.util.*
 import kotlin.math.min
 import kotlin.math.roundToInt
 
@@ -410,8 +408,12 @@ abstract class UIProbot : Probot() {
 		}
 		setProgramLine(line)
 		when (get(line).type) {
-			CommandType.LoopStart, CommandType.LoopEnd, CommandType.IfElse, CommandType.IfEnd, CommandType.IfThen -> {
-			}
+			CommandType.LoopStart,
+			CommandType.LoopEnd,
+			CommandType.IfElse,
+			CommandType.IfEnd,
+			CommandType.IfThen -> Unit
+			else -> Unit
 		}
 	}
 

@@ -19,6 +19,7 @@ class Board(  // dimension of whole board
 			Square.GOTO_JAIL -> return GRectangle(dim - borderDim, 0f, borderDim, borderDim)
 			Square.GO -> return GRectangle(dim - borderDim, dim - borderDim, borderDim, borderDim)
 			Square.VISITING_JAIL -> return GRectangle(0f, dim - borderDim, borderDim, borderDim)
+			else -> Unit
 		}
 		if (index < Square.VISITING_JAIL.ordinal) {
 			return GRectangle(dim - borderDim - cellDim * index, dim - borderDim, cellDim, borderDim)
@@ -47,6 +48,7 @@ class Board(  // dimension of whole board
 			Square.GOTO_JAIL -> return Vector2D(dim - borderDim, borderDim)
 			Square.GO -> return Vector2D(dim - borderDim, dim - borderDim)
 			Square.VISITING_JAIL -> return Vector2D(borderDim, dim - borderDim)
+			else -> Unit
 		}
 		if (index < Square.VISITING_JAIL.ordinal) {
 			return Vector2D(dim - borderDim - cellDim * index + cellDim / 2, dim - borderDim)

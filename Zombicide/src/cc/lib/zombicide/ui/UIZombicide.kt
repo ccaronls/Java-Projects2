@@ -7,6 +7,7 @@ import cc.lib.ui.IButton
 import cc.lib.utils.Grid
 import cc.lib.utils.Lock
 import cc.lib.utils.Table
+import cc.lib.utils.forEachAs
 import cc.lib.zombicide.*
 import cc.lib.zombicide.anims.*
 import cc.lib.zombicide.p2p.ZGameMP
@@ -14,7 +15,7 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.thread
 import kotlin.concurrent.withLock
 
-abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRenderer: UIZBoardRenderer) : ZGameMP() {
+abstract class UIZombicide(val characterRenderer: UIZCharacterRenderer, val boardRenderer: UIZBoardRenderer) : ZGameMP(), UIZBoardRenderer.Listener {
 	enum class UIMode {
 		NONE,
 		PICK_CHARACTER,
@@ -25,25 +26,54 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 		PICK_ZOMBIE
 	}
 
+	init {
+		boardRenderer.listeners.add(this)
+		instance = this
+	}
+
 	private var gameRunning = false
 
-	open fun isGameRunning() : Boolean = gameRunning
+	open fun isGameRunning(): Boolean = gameRunning
 
 	var uiMode = UIMode.NONE
 		private set
 	var boardMessage: String? = null
 		protected set(msg) {
 			field = msg
-			boardRenderer.redraw()
+			boardRenderer.boardMessage = msg
 		}
 	var options: List<Any> = emptyList()
 		private set
 
+	fun setOptions(mode: UIMode, options: List<Any>) {
+		uiMode = mode
+		board.getAllActors().forEach {
+			it.pickable = false
+		}
+		board.zones.forEach {
+			it.pickable = false
+			it.doors.forEach {
+				it.pickable = false
+			}
+			it.cells.forEach {
+				board.getCell(it).spawns.forEach {
+					it?.pickable = false
+				}
+			}
+		}
+		when (uiMode) {
+			UIMode.PICK_ZOMBIE,
+			UIMode.PICK_CHARACTER -> options.forEachAs { a: ZActor -> a.pickable = true }
+			UIMode.PICK_ZONE -> options.forEachAs { z: ZZone -> z.pickable = true }
+			UIMode.PICK_DOOR -> options.forEachAs { d: ZDoor -> d.pickable = true }
+			UIMode.PICK_SPAWN -> options.forEachAs { s: ZSpawnArea -> s.pickable = true }
+			else -> Unit
+		}
+		this.options = options
+		boardRenderer.redraw()
+	}
+
 	private var result: Any? = null
-	@JvmField
-    val characterRenderer: UIZCharacterRenderer
-	@JvmField
-    val boardRenderer: UIZBoardRenderer
 	abstract val thisUser: ZUser
 	fun refresh() {
 		boardRenderer.redraw()
@@ -68,8 +98,8 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 		gameRunning = true
 		thread {
 			kotlin.runCatching {
-				boardRenderer.redraw()
 				while (gameRunning && !isGameOver) {
+					boardRenderer.currentCharacter = currentCharacter
 					runGame()
 				}
 			}.exceptionOrNull()?.let { e ->
@@ -86,6 +116,7 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 	private val condition = lock.newCondition()
 
 	open fun <T> waitForUser(expectedType: Class<T>): T? {
+		result = null
 		lock.withLock {
 			condition.await()
 		}
@@ -120,8 +151,7 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 
 	fun pickCharacter(message: String, characters: List<ZPlayerName>): ZPlayerName? {
 		synchronized(this) {
-			options = characters.map { it.character }
-			uiMode = UIMode.PICK_CHARACTER
+			setOptions(UIMode.PICK_CHARACTER, characters.map { it.toCharacter() })
 			boardMessage = message
 		}
 		return waitForUser(ZCharacter::class.java)?.type
@@ -129,9 +159,7 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 
 	fun pickZone(message: String, zones: List<Int>): Int? {
 		synchronized(this) {
-			options = zones
-			uiMode = UIMode.PICK_ZONE
-			boardRenderer.redraw()
+			setOptions(UIMode.PICK_ZONE, zones.map { board.getZone(it) })
 			boardMessage = message
 		}
 		return waitForUser(Int::class.javaObjectType)
@@ -139,9 +167,7 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 
 	fun pickSpawn(message: String, areas: List<ZSpawnArea>): Int? {
 		synchronized(this) {
-			options = areas
-			uiMode = UIMode.PICK_SPAWN
-			boardRenderer.redraw()
+			setOptions(UIMode.PICK_SPAWN, areas)
 			boardMessage = message
 		}
 		val area = waitForUser(ZSpawnArea::class.java) ?: return null
@@ -150,12 +176,11 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 
 	fun <T: IButton> pickMenu(name: ZPlayerName, message: String, expectedType: Class<T>, moves: List<T>): T? {
 		synchronized(this) {
-			options = moves
-			uiMode = UIMode.PICK_MENU
+			setOptions(UIMode.PICK_MENU, moves)
 			if (expectedType == ZMove::class.java)
-				boardRenderer.processMoveOptions(name.character, moves as List<ZMove>)
+				boardRenderer.processMoveOptions(name.toCharacter(), moves as List<ZMove>)
 			else
-				boardRenderer.processSubMenu(name.character, moves)
+				boardRenderer.processSubMenu(name.toCharacter(), moves)
 			boardMessage = message
 		}
 		return waitForUser(expectedType)
@@ -163,15 +188,21 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 
 	fun pickDoor(message: String, doors: List<ZDoor>): ZDoor? {
 		synchronized(this) {
-			options = doors
-			uiMode = UIMode.PICK_DOOR
-			boardRenderer.redraw()
+			setOptions(UIMode.PICK_DOOR, doors)
 			boardMessage = message
 		}
 		return waitForUser(ZDoor::class.java)
 	}
 
-	open fun updateOrganize(character : ZCharacter, list : List<ZMove>) : ZMove? {
+	open fun showOrganizeDialog(primary: ZPlayerName, secondary: ZPlayerName?) {
+		throw NotImplementedError()
+	}
+
+	open fun closeOrganizeDialog() {
+		throw NotImplementedError()
+	}
+
+	open fun updateOrganize(character: ZCharacter, list: List<ZMove>): ZMove? {
 		throw NotImplementedError()
 	}
 
@@ -191,7 +222,7 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 			}
 		})
 		for (t in list) {
-			table.addColumnNoHeaderVarArg(t.getCardInfo(player.character, this))
+			table.addColumnNoHeaderVarArg(t.getCardInfo(player.toCharacter(), this))
 		}
 		boardRenderer.setOverlay(table)
 	}
@@ -213,11 +244,19 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 		boardRenderer.clearTiles()
 	}
 
+	override fun onClick(obj: Any?) {
+		setResult(obj)
+	}
+
+	override fun onActorHighlighted(actor: ZActor?) {
+		characterRenderer.actorInfo = actor ?: currentCharacter
+	}
+
 	override fun onEquipmentThrown(actor: ZPlayerName, icon: ZIcon, zone: Int) {
 		super.onEquipmentThrown(actor, icon, zone)
 		val animLock = Lock(1)
-		if (actor.character.occupiedZone != zone) {
-			actor.character.addAnimation(object : ThrowAnimation(actor.character, board.getZone(zone).center, icon) {
+		actor.toCharacter().takeIf { it.occupiedZone != zone }?.let { actor ->
+			actor.addAnimation(object : ThrowAnimation(actor, board.getZone(zone).center, icon) {
 				override fun onDone() {
 					super.onDone()
 					animLock.release()
@@ -254,7 +293,7 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 
 	override fun onZombieDestroyed(c: ZPlayerName, deathType: ZAttackType, pos: ZActorPosition) {
 		super.onZombieDestroyed(c, deathType, pos)
-		val zombie = board.getActor<ZZombie>(pos)
+		val zombie = board.getActor(pos)
 		zombie.addAnimation(DeathAnimation(zombie))
 		/*
 		val lock = Lock()
@@ -288,9 +327,11 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 		}*/
 	}
 
-	override fun onActorMoved(actor: ZActor<*>, start: GRectangle, end: GRectangle, speed: Long) {
-		super.onActorMoved(actor, start, end, speed)
-		actor.addAnimation(MoveAnimation(actor, start, end, speed))
+	override fun onActorMoved(id: String, start: GRectangle, end: GRectangle, speed: Long) {
+		super.onActorMoved(id, start, end, speed)
+		board.getActor(id)?.let {
+			it.addAnimation(MoveAnimation(it, start, end, speed))
+		}
 		boardRenderer.redraw()
 	}
 
@@ -306,14 +347,15 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 				boardRenderer.addOverlay(OverlayTextAnimation("N E C R O M A N C E R ! !", boardRenderer.numOverlayTextAnimations))
 				Utils.waitNoThrow(this, 500)
 			}
+			else -> Unit
 		}
 		boardRenderer.redraw()
 	}
 
 	override fun onCharacterDefends(cur: ZPlayerName, attackerPosition: ZActorPosition) {
 		super.onCharacterDefends(cur, attackerPosition)
-		val actor = board.getActor<ZActor<*>>(attackerPosition)
-		actor.addAnimation(ShieldBlockAnimation(cur.character))
+		val actor = board.getActor(attackerPosition)
+		actor.addAnimation(ShieldBlockAnimation(cur.toCharacter()))
 		boardRenderer.redraw()
 	}
 
@@ -322,19 +364,21 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 		if (priorPlayer != null) {
 			val animLock = Lock(1)
 			// Add an animation to end of any existing animations to block until all are completed
-			priorPlayer.character.addAnimation(object : EmptyAnimation(priorPlayer.character) {
-				override fun onDone() {
-					super.onDone()
-					animLock.release()
-				}
-			})
+			priorPlayer.toCharacter().let { player ->
+				player.addAnimation(object : EmptyAnimation(player) {
+					override fun onDone() {
+						super.onDone()
+						animLock.release()
+					}
+				})
+			}
 			boardRenderer.redraw()
 			characterRenderer.redraw()
 			animLock.block()
 		}
 	}
 
-	open inner class ChargeAttackAnimation(source : ZActor<*>, dest: ZActor<*>) : ZActorAnimation(source, 150L, 600L, 0L) {
+	open inner class ChargeAttackAnimation(source: ZActor, dest: ZActor) : ZActorAnimation(source, 150L, 600L, 0L) {
 
 		val dv = dest.getRect().center.sub(source.getRect().center).scaledBy(.75f)
 
@@ -355,11 +399,11 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 	override fun onZombieAttack(zombiePos: ZActorPosition, victim: ZPlayerName, type: ZActionType) {
 		super.onZombieAttack(zombiePos, victim, type)
 		val lock = Lock()
-		val zombie = board.getActor<ZZombie>(zombiePos)
+		val zombie = board.getActor(zombiePos)
 		when (type) {
 			ZActionType.MELEE -> {
 				lock.acquire()
-				zombie.addAnimation(object : ChargeAttackAnimation(zombie, victim.character) {
+				zombie.addAnimation(object : ChargeAttackAnimation(zombie, victim.toCharacter()) {
 					override fun onPhaseStarted(g: AGraphics?, phase: Int) {
 						if (phase == 1) {
 							lock.release()
@@ -367,6 +411,7 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 					}
 				})
 			}
+			else -> Unit
 		}
 		boardRenderer.redraw()
 		lock.block()
@@ -374,9 +419,10 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 
 	override fun onCharacterAttacked(character: ZPlayerName, attackerPosition: ZActorPosition, attackType: ZAttackType, perished: Boolean) {
 		super.onCharacterAttacked(character, attackerPosition, attackType, perished)
-		val attacker = board.getActor<ZActor<*>>(attackerPosition)
+		val attacker = board.getActor(attackerPosition)
+		val ch = character.toCharacter()
 		when (attackType) {
-			ZAttackType.ELECTROCUTION -> attacker.addAnimation(ElectrocutionAnimation(character.character))
+			ZAttackType.ELECTROCUTION -> attacker.addAnimation(ElectrocutionAnimation(ch))
 			ZAttackType.NORMAL,
 			ZAttackType.FIRE,
 			ZAttackType.DISINTEGRATION,
@@ -386,12 +432,12 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 			ZAttackType.RANGED_BOLTS,
 			ZAttackType.RANGED_THROW,
 			ZAttackType.EARTHQUAKE,
-			ZAttackType.MENTAL_STRIKE -> attacker.addAnimation(SlashedAnimation(character.character))
-			else                                                                                                                                                                                                                                     -> attacker.addAnimation(SlashedAnimation(character.character))
+			ZAttackType.MENTAL_STRIKE -> attacker.addAnimation(SlashedAnimation(ch))
+			else -> attacker.addAnimation(SlashedAnimation(ch))
 		}
 		if (perished) {
 			val lock = Lock(1)
-			with (character.character) {
+			with(ch) {
 				val group = GroupAnimation(this, true)
 				group.addSequentially(AscendingAngelDeathAnimation(this))
 				group.addSequentially(object : ZActorAnimation(this, 2000) {
@@ -417,12 +463,12 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 
 	override fun onAhhhhhh(c: ZPlayerName) {
 		super.onAhhhhhh(c)
-		boardRenderer.addHoverMessage("AHHHHHH!", c.character)
+		boardRenderer.addHoverMessage("AHHHHHH!", c.toCharacter())
 	}
 
 	override fun onEquipmentFound(c: ZPlayerName, equipment: List<ZEquipment<*>>) {
 		super.onEquipmentFound(c, equipment)
-		if (thisUser.players.contains(c)) {
+		if (thisUser.hasPlayer(c)) {
 			val info = Table().setModel(object : Table.Model {
 				override fun getCornerRadius(): Float {
 					return 20f
@@ -432,18 +478,18 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 					return GColor.TRANSLUSCENT_BLACK
 				}
 			})
-			info.addRowList(Utils.map(equipment) { e: ZEquipment<*> -> e.getCardInfo(c.character, this) })
+			info.addRowList(Utils.map(equipment) { e: ZEquipment<*> -> e.getCardInfo(c.toCharacter(), this) })
 			boardRenderer.setOverlay(info)
 		} else {
 			for (e in equipment) {
-				boardRenderer.addPostActor(HoverMessage(boardRenderer, "+" + e.label, c.character))
+				boardRenderer.addPostActor(HoverMessage(boardRenderer, "+" + e.label, c.toCharacter()))
 			}
 		}
 	}
 
 	override fun onCharacterGainedExperience(c: ZPlayerName, points: Int) {
 		super.onCharacterGainedExperience(c, points)
-		boardRenderer.addPostActor(HoverMessage(boardRenderer, String.format("+%d EXP", points), c.character))
+		boardRenderer.addPostActor(HoverMessage(boardRenderer, String.format("+%d EXP", points), c.toCharacter()))
 	}
 
 	override fun onGameLost() {
@@ -476,7 +522,7 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 
 	override fun onNewSkillAquired(c: ZPlayerName, skill: ZSkill) {
 		super.onNewSkillAquired(c, skill)
-		boardRenderer.addPostActor(HoverMessage(boardRenderer, String.format("%s Acquired", skill.label), c.character))
+		boardRenderer.addPostActor(HoverMessage(boardRenderer, String.format("%s Acquired", skill.label), c.toCharacter()))
 		characterRenderer.addMessage(String.format("%s has acquired the %s skill", c.label, skill.label))
 	}
 
@@ -486,19 +532,19 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 		Utils.waitNoThrow(this, 500)
 	}
 
-	override fun onSkillKill(c: ZPlayerName, skill: ZSkill, z: ZZombie, attackType: ZAttackType) {
-		super.onSkillKill(c, skill, z, attackType)
-		boardRenderer.addPostActor(HoverMessage(boardRenderer, String.format("%s Kill!!", skill.label), z))
+	override fun onSkillKill(c: ZPlayerName, skill: ZSkill, zombiePostion: ZActorPosition, attackType: ZAttackType) {
+		super.onSkillKill(c, skill, zombiePostion, attackType)
+		boardRenderer.addPostActor(HoverMessage(boardRenderer, String.format("%s Kill!!", skill.label), board.getActor(zombiePostion)))
 	}
 
 	override fun onRollSixApplied(c: ZPlayerName, skill: ZSkill) {
 		super.onRollSixApplied(c, skill)
-		boardRenderer.addPostActor(HoverMessage(boardRenderer, String.format("Roll Six!! %s", skill.label), c.character))
+		boardRenderer.addPostActor(HoverMessage(boardRenderer, String.format("Roll Six!! %s", skill.label), c.toCharacter()))
 	}
 
 	override fun onWeaponReloaded(c: ZPlayerName, w: ZWeapon) {
 		super.onWeaponReloaded(c, w)
-		boardRenderer.addPostActor(HoverMessage(boardRenderer, String.format("%s Reloaded", w.label), c.character))
+		boardRenderer.addPostActor(HoverMessage(boardRenderer, String.format("%s Reloaded", w.label), c.toCharacter()))
 	}
 
 	override fun onNoiseAdded(zoneIndex: Int) {
@@ -517,7 +563,7 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 
 	override fun onWeaponGoesClick(c: ZPlayerName, weapon: ZWeapon) {
 		super.onWeaponGoesClick(c, weapon)
-		boardRenderer.addPostActor(HoverMessage(boardRenderer, "CLICK", c.character))
+		boardRenderer.addPostActor(HoverMessage(boardRenderer, "CLICK", c.toCharacter()))
 	}
 
 	override fun onBeginRound(roundNum: Int) {
@@ -527,7 +573,7 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 			showQuestTitleOverlay()
 	}
 
-	private fun onAttackMelee(attacker: ZCharacter, weapon: ZWeapon, actionType: ZActionType?, numDice: Int, hits: MutableList<ZActorPosition>, targetZone: Int) {
+	private fun onAttackMelee(attacker: ZCharacter, weapon: ZWeapon, actionType: ZActionType?, numDice: Int, hits: List<ZActorPosition>, targetZone: Int) {
 		when (weapon.type) {
 			ZWeaponType.EARTHQUAKE_HAMMER -> {
 				val animLock = Lock(numDice)
@@ -546,7 +592,7 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 					})
 					val g = GroupAnimation(attacker)
 					for (pos in hits) {
-						val z = board.getActor<ZActor<*>>(pos)
+						val z = board.getActor(pos)
 						if (pos.data == ACTOR_POS_DATA_DAMAGED)
 							g.addAnimation(0, EarthquakeAnimation(z, attacker, 300))
 						else
@@ -570,7 +616,7 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 				while (i < numDice) {
 					if (i < hits.size) {
 						val pos = hits[i]
-						val victim = board.getActor<ZActor<*>>(pos)
+						val victim = board.getActor(pos)
 						require(victim !== attacker)
 						attacker.addAnimation(object : MeleeAnimation(attacker, board) {
 							override fun onDone() {
@@ -603,7 +649,7 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 
 	}
 
-	private fun onAttackRanged(attacker: ZCharacter, weapon: ZWeapon, actionType: ZActionType?, numDice: Int, hits: MutableList<ZActorPosition>, targetZone: Int) {
+	private fun onAttackRanged(attacker: ZCharacter, weapon: ZWeapon, actionType: ZActionType?, numDice: Int, hits: List<ZActorPosition>, targetZone: Int) {
 		when (weapon.type) {
 			ZWeaponType.MJOLNIR -> {
 				val hammerSpeed = 600L
@@ -617,9 +663,9 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 					}.setOscillating<ShootAnimation>(true).setRepeats(1))
 				} else {
 					val group = GroupAnimation(attacker)
-					var prev : ZActor<*> = attacker
+					var prev: ZActor = attacker
 					hits.forEach {
-						val victim = board.getActor<ZActor<*>>(it)
+						val victim = board.getActor(it)
 						animLock.acquire()
 						group.addSequentially(object : ShootAnimation(prev, hammerSpeed, victim, ZIcon.MJOLNIR) {
 							override fun onDone() {
@@ -647,7 +693,7 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 				while (i < numDice) {
 					if (i < hits.size) {
 						val pos = hits[i]
-						val victim = board.getActor<ZActor<*>>(pos)
+						val victim = board.getActor(pos)
 						group.addAnimation(delay, object : ThrowAnimation(attacker, victim, ZIcon.DAGGER, .1f, 400) {
 							override fun onDone() {
 								if (pos.data == ACTOR_POS_DATA_DEFENDED) {
@@ -685,7 +731,7 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 				while (i < numDice) {
 					if (i < hits.size) {
 						val pos = hits[i]
-						val victim = board.getActor<ZActor<*>>(pos)
+						val victim = board.getActor(pos)
 						group.addAnimation(delay, object : ShootAnimation(attacker, 300, victim, ZIcon.ARROW) {
 							override fun onDone() {
 								val arrowId = ZIcon.ARROW.imageIds[dir.ordinal]
@@ -720,7 +766,8 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 
 	}
 
-	private fun onAttackMagic(attacker: ZCharacter, weapon: ZWeapon, actionType: ZActionType?, numDice: Int, hits: MutableList<ZActorPosition>, targetZone: Int) {
+	private fun onAttackMagic(attacker: ZCharacter, weapon: ZWeapon, actionType: ZActionType?, numDice: Int, _hits: List<ZActorPosition>, targetZone: Int) {
+		val hits = _hits.toMutableList()
 		when (weapon.type) {
 			ZWeaponType.DEATH_STRIKE -> {
 				val animLock = Lock(1)
@@ -756,7 +803,7 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 				while (i < numDice) {
 					if (hits.size > 0) {
 						val pos: ZActorPosition = hits.removeAt(0)
-						val victim = board.getActor<ZActor<*>>(pos)
+						val victim = board.getActor(pos)
 						group.addAnimation(delay, object : FireballAnimation(attacker, victim) {
 							override fun onDone() {
 								if (pos.data == ACTOR_POS_DATA_DEFENDED) {
@@ -803,7 +850,7 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 				var i = 0
 				while (i < numDice) {
 					if (i < hits.size) {
-						val actorRect = (board.getActor(hits[i]) as ZActor<*>).getRect().scaledBy(.5f)
+						val actorRect = (board.getActor(hits[i])).getRect().scaledBy(.5f)
 						targets.add(Vector2D.getLinearInterpolator(actorRect.randomPointInside, actorRect.randomPointInside))
 					} else {
 						val rect = board.getZone(targetZone).rectangle.scaledBy(.5f)
@@ -837,7 +884,7 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 				boardRenderer.redraw()
 				animLock1.block()
 				hits.forEach {
-					val victim = board.getActor<ZActor<*>>(it)
+					val victim = board.getActor(it)
 					if (it.data == ACTOR_POS_DATA_DEFENDED) {
 						victim.addAnimation(ShieldBlockAnimation(victim))
 					} else {
@@ -862,42 +909,43 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 				boardRenderer.redraw()
 				animLock.block()
 			}
+			else -> Unit
 		}
 
 	}
 
 	override fun onAttack(_attacker: ZPlayerName, weapon: ZWeapon, actionType: ZActionType?, numDice: Int, hits: List<ZActorPosition>, targetZone: Int) {
 		super.onAttack(_attacker, weapon, actionType, numDice, hits, targetZone)
-		val hits = hits.toMutableList()
-		val attacker = _attacker.character
+		val attacker = _attacker.toCharacter()
 		when (actionType) {
 			ZActionType.MELEE -> onAttackMelee(attacker, weapon, actionType, numDice, hits, targetZone)
 			ZActionType.RANGED -> onAttackRanged(attacker, weapon, actionType, numDice, hits, targetZone)
 			ZActionType.MAGIC -> onAttackMagic(attacker, weapon, actionType, numDice, hits, targetZone)
+			else -> Unit
 		}
 	}
 
-	protected override fun onZombiePath(zombie: ZZombie, path: List<ZDir>) {
-		super.onZombiePath(zombie, path)
-		/*
-        final Vector2D start = zombie.getRect().getCenter();
-        boardRenderer.addPostActor(new ZAnimation(1000) {
+	/*
+	protected override fun onZombiePath(posiiton: ZActorPosition, path: List<ZDir>) {
+	super.onZombiePath(posiiton, path)
+	final Vector2D start = zombie.getRect().getCenter();
+	boardRenderer.addPostActor(new ZAnimation(1000) {
 
-            @Override
-            protected void draw(AGraphics g, float position, float dt) {
-                GColor pathColor = GColor.YELLOW.withAlpha(1f-position);
-                g.setColor(pathColor);
-                g.begin();
-                g.vertex(start);
-                MutableVector2D next = new MutableVector2D(start);
-                for (ZDir dir : path) {
-                    next.addEq(dir.dx, dir.dy);
-                    g.vertex(next);
-                }
-                g.drawLineStrip(3);
-            }
-        });*/
-	}
+		@Override
+		protected void draw(AGraphics g, float position, float dt) {
+			GColor pathColor = GColor.YELLOW.withAlpha(1f-position);
+			g.setColor(pathColor);
+			g.begin();
+			g.vertex(start);
+			MutableVector2D next = new MutableVector2D(start);
+			for (ZDir dir : path) {
+				next.addEq(dir.dx, dir.dy);
+				g.vertex(next);
+			}
+			g.drawLineStrip(3);
+		}
+	});
+}*/
 
 	override fun onCharacterOpenedDoor(cur: ZPlayerName, door: ZDoor) {
 		super.onCharacterOpenedDoor(cur, door)
@@ -905,7 +953,7 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 
 	override fun onCharacterHealed(c: ZPlayerName, amt: Int) {
 		super.onCharacterHealed(c, amt)
-		boardRenderer.addHoverMessage(String.format("+%d wounds healed", amt), c.character)
+		boardRenderer.addHoverMessage(String.format("+%d wounds healed", amt), c.toCharacter())
 	}
 
 	override fun onCharacterDestroysSpawn(c: ZPlayerName, zoneIdx: Int) {
@@ -929,7 +977,7 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 
 	override fun onBonusAction(pl: ZPlayerName, action: ZSkill) {
 		super.onBonusAction(pl, action)
-		boardRenderer.addHoverMessage("BONUS ACTION " + action.label, pl.character)
+		boardRenderer.addHoverMessage("BONUS ACTION " + action.label, pl.toCharacter())
 	}
 
 	companion object {
@@ -942,9 +990,4 @@ abstract class UIZombicide(characterRenderer: UIZCharacterRenderer, boardRendere
 			get() = ::instance.isInitialized && instance.questInitialized
 	}
 
-	init {
-		instance = this
-		this.characterRenderer = characterRenderer
-		this.boardRenderer = boardRenderer
-	}
 }

@@ -10,6 +10,8 @@ import java.util.List;
 import cc.lib.android.CCActivityBase;
 import cc.lib.android.SpinnerTask;
 import cc.lib.crypt.Cypher;
+import cc.lib.net.AGameClient;
+import cc.lib.net.AGameServer;
 import cc.lib.net.GameClient;
 import cc.lib.net.GameServer;
 
@@ -21,11 +23,10 @@ import cc.lib.net.GameServer;
  * p2pInit() - Does permissions / availability checks. onP2PReady called when ready or error popup.
  * p2pStart() - Shows a start as server or client dialog. onP2PClient / onP2PServer called when user chooses
  */
-public abstract class P2PActivity extends CCActivityBase
-{
+public abstract class P2PActivity extends CCActivityBase {
 
-    private GameServer server = null;
-    private GameClient client = null;
+    private AGameServer server = null;
+    private AGameClient client = null;
     private P2PMode mode = P2PMode.DONT_KNOW;
 
     public enum P2PMode {
@@ -129,7 +130,7 @@ public abstract class P2PActivity extends CCActivityBase
      * Interface to functions available only when in host mode
      */
     public interface P2PServer {
-        GameServer getServer();
+        AGameServer getServer();
 
         void openConnections();
     }
@@ -138,7 +139,11 @@ public abstract class P2PActivity extends CCActivityBase
      * Interface to methods available only when in client mode
      */
     public interface P2PClient {
-        GameClient getClient();
+        AGameClient getClient();
+    }
+
+    protected AGameClient newGameClient() {
+        return new GameClient(getDeviceName(), getVersion(), getCypher());
     }
 
     public final void p2pInitAsClient() {
@@ -146,8 +151,8 @@ public abstract class P2PActivity extends CCActivityBase
             throw new IllegalArgumentException("P2P Mode already in progress. Call p2pShutdown first.");
         }
         server = null;
-        client = new GameClient(getDeviceName(), getVersion(), getCypher());
-        client.addListener(new GameClient.Listener() {
+        client = newGameClient();//getDeviceName(), getVersion(), getCypher());
+        client.addListener(new AGameClient.Listener() {
             @Override
             public void onDisconnected(String reason, boolean serverInitiated) {
                 runOnUiThread(() -> p2pShutdown());
@@ -156,7 +161,7 @@ public abstract class P2PActivity extends CCActivityBase
         new P2PJoinGameDialog(this, client, getDeviceName(), getConnectPort());
         onP2PClient(new P2PClient() {
             @Override
-            public GameClient getClient() {
+            public AGameClient getClient() {
                 return client;
             }
         });
@@ -164,13 +169,17 @@ public abstract class P2PActivity extends CCActivityBase
 
     protected abstract void onP2PClient(P2PClient p2pClient);
 
+    protected AGameServer newGameServer() {
+        return new GameServer(getDeviceName(), getConnectPort(), getVersion(), getCypher(), getMaxConnections());
+    }
+
     public final void p2pInitAsServer() {
         if (server != null || client != null) {
             throw new IllegalArgumentException("P2P Mode already in progress. Call p2pShutdown first.");
         }
 
         client = null;
-        server = new GameServer(getDeviceName(), getConnectPort(), getVersion(), getCypher(), getMaxConnections());
+        server = newGameServer();//getDeviceName(), getConnectPort(), getVersion(), getCypher(), getMaxConnections());
         P2PClientConnectionsDialog d = new P2PClientConnectionsDialog(this, server, getDeviceName());
     }
 
@@ -226,11 +235,11 @@ public abstract class P2PActivity extends CCActivityBase
         return null;
     }
 
-    public final GameClient getClient() {
+    public final AGameClient getClient() {
         return client;
     }
 
-    public final GameServer getServer() {
+    public final AGameServer getServer() {
         return server;
     }
 }

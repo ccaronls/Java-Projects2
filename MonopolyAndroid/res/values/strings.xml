@@ -8,6 +8,7 @@
     <string name="jail_bump_enabled">Jail Bump Enabled</string>
     <string name="jail_multiplier_enabled">Jail Multiplier Enabled</string>
     <string name="max_turns_nin_jail">Max Turns\nIn Jail</string>
+    <string name="doubles_rule_enabled">Doubles gives extra turn. 3 doubles sends to jail.</string>
 
 
 </resources>

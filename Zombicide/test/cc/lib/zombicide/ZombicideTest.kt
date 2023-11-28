@@ -227,8 +227,7 @@ Total Decompression Time:   49343
 		game.setUsers(ZTestUser())
 		game.clearCharacters()
 		game.loadQuest(ZQuests.The_Abomination)
-		game.addCharacter(ZPlayerName.Ann)
-		val ann = ZPlayerName.Ann.character
+		val ann = game.addCharacter(ZPlayerName.Ann)
 		ZSkillLevel.ULTRA_RED_MODE = true
 		val state = game.state
 		for (i in 0..999) {
@@ -339,5 +338,36 @@ Total Decompression Time:   49343
 		println()
 
 		println(weapon.getCardInfo(c0, game))
+	}
+
+	fun testBoardMerge() {
+
+		val quest = ZQuests.Tutorial.load()
+		val board = quest.loadBoard()
+		val board2 = board.deepCopy()
+
+		val player = ZPlayerName.Baldric.create()
+		assertTrue(board.addActor(player, 0, null))
+		val position = player.position.deepCopy()
+		val copy = board.deepCopy()
+
+		player.addAnimation(object : ZActorAnimation(player, 1000) {
+
+		}.start())
+
+		copy.moveActor(player, 1)
+		assert(player.position.zone == 1)
+
+		assertNotNull(board.getActorOrNull(position))
+		board.merge(copy.toString())
+		val player2 = board.getActor(player.position)
+		assertTrue(player2 === player)
+		assert(player.animation != null)
+
+		println(board.getCell(position.pos))
+
+		assertNull(board.getActorOrNull(position))
+
+		//println(board2.diff(copy))
 	}
 }

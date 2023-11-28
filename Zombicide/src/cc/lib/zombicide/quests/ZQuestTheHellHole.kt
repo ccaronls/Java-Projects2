@@ -6,8 +6,6 @@ import cc.lib.utils.Grid
 import cc.lib.utils.Table
 import cc.lib.zombicide.*
 import cc.lib.zombicide.ZTile.Companion.getQuadrant
-import cc.lib.zombicide.ui.UIZombicide
-import java.util.*
 
 class ZQuestTheHellHole : ZQuest(ZQuests.The_Hell_Hole) {
 	companion object {
@@ -83,16 +81,14 @@ arrayOf("z36:i:we", "z37", "z38",                                   "z39", "z40"
 		}
 	}
 
-	override fun drawQuest(game: UIZombicide, g: AGraphics) {
-		val hellhole = game.board.getZone(hellHoleZone)
+	override fun drawQuest(board: ZBoard, g: AGraphics) {
+		val hellhole = board.getZone(hellHoleZone)
 		g.color = GColor.RED.withAlpha(.2f)
 		hellhole.drawFilled(g)
 	}
 
-	override fun getMaxNumZombiesOfType(type: ZZombieType?): Int {
-		when (type) {
-			ZZombieType.Necromancer -> return 6
-		}
-		return super.getMaxNumZombiesOfType(type)
+	override fun getMaxNumZombiesOfType(type: ZZombieType?): Int = when (type) {
+		ZZombieType.Necromancer -> 6
+		else -> super.getMaxNumZombiesOfType(type)
 	}
 }

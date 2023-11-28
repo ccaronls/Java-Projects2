@@ -76,7 +76,7 @@ arrayOf("z38:i:wn:ode", "z39:i:dn:red:we", "z40:sps",                       "z41
 		val numTasks = numStartObjectives + game.allCharacters.size
 		var numCompleted = numFoundObjectives
 		for (c in game.allCharacters) {
-			if (c.character.occupiedZone == exitZone) numCompleted++
+			if (c.occupiedZone == exitZone) numCompleted++
 		}
 		var percentCompleted = numCompleted * 100 / numTasks
 		if (game.board.getZombiesInZone(exitZone).size > 0) percentCompleted--

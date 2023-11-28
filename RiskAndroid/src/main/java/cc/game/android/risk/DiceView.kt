@@ -36,7 +36,7 @@ class DiceView(context: Context, attrs: AttributeSet?) : DroidView(context, attr
 	fun setColors(dieColor: GColor, pipColor: GColor) {
 		this.dieColor = dieColor
 		this.pipColor = pipColor
-		invalidate()
+		postInvalidate()
 	}
 
 	@Synchronized
@@ -67,14 +67,14 @@ class DiceView(context: Context, attrs: AttributeSet?) : DroidView(context, attr
 				lock.release()
 			}
 		}
-		invalidate()
+		postInvalidate()
 	}
 
 	fun addPips() {
 		if (maxDieNums < dieNums.size - 1) {
 			maxDieNums++
 			dieNum = dieNums[maxDieNums]
-			invalidate()
+			postInvalidate()
 		}
 	}
 
@@ -82,7 +82,7 @@ class DiceView(context: Context, attrs: AttributeSet?) : DroidView(context, attr
 		if (maxDieNums > 0) {
 			maxDieNums--
 			dieNum = dieNums[maxDieNums]
-			invalidate()
+			postInvalidate()
 		}
 	}
 

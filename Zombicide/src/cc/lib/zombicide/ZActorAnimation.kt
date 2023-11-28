@@ -7,16 +7,16 @@ import cc.lib.game.GRectangle
 
 abstract class ZActorAnimation : ZAnimation {
     @JvmField
-    val actor: ZActor<*>
-    private var next: ZActorAnimation? = null
+    val actor: ZActor
+	private var next: ZActorAnimation? = null
 
-    constructor(actor: ZActor<*>, vararg durations: Long) : super(*durations) {
-        this.actor = actor
-    }
+	constructor(actor: ZActor, vararg durations: Long) : super(*durations) {
+		this.actor = actor
+	}
 
-    constructor(actor: ZActor<*>, durationMSecs: Long, repeats: Int) : super(durationMSecs, repeats) {
-        this.actor = actor
-    }
+	constructor(actor: ZActor, durationMSecs: Long, repeats: Int) : super(durationMSecs, repeats) {
+		this.actor = actor
+	}
 
     override fun onDone() {
         next?.let {

@@ -78,12 +78,13 @@ public abstract class AAnimation<T> {
      * @param delayMSecs
      */
     public final <A extends AAnimation<T>> A start(long delayMSecs) {
-    	if (delayMSecs < 0)
-    		delayMSecs = 0;
+        if (delayMSecs < 0) {
+            delayMSecs = 0;
+        }
         lastTime = startTime = getCurrentTimeMSecs() + delayMSecs;
         position = 0;
         state = State.STARTED;
-        return (A)this;
+        return (A) this;
     }
 
     /**

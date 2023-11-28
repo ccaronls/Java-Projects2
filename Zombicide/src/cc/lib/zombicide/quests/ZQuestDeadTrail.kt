@@ -7,7 +7,6 @@ import cc.lib.utils.Grid
 import cc.lib.utils.Table
 import cc.lib.zombicide.*
 import cc.lib.zombicide.ZTile.Companion.getQuadrant
-import cc.lib.zombicide.ui.UIZombicide
 
 class ZQuestDeadTrail : ZQuest(ZQuests.Dead_Trail) {
 	companion object {
@@ -109,14 +108,14 @@ arrayOf("", "", "",                                             "", "z49:v:vd1:w
 			)
 	}
 
-	override fun drawQuest(game: UIZombicide, g: AGraphics) {
+	override fun drawQuest(board: ZBoard, g: AGraphics) {
 		if (true) {
 			return
 		}
 		if (blueKeyZone >= 0) {
-			val z = game.board.getZone(blueKeyZone)
+			val z = board.getZone(blueKeyZone)
 			for (p in z.getCells()) {
-				val cell = game.board.getCell(p)
+				val cell = board.getCell(p)
 				if (cell.isCellType(ZCellType.OBJECTIVE_RED)) {
 					val redX = GRectangle(cell).scaledBy(.2f, .2f)
 					g.color = GColor.BLUE
@@ -126,9 +125,9 @@ arrayOf("", "", "",                                             "", "z49:v:vd1:w
 			}
 		}
 		if (greenKeyZone >= 0) {
-			val z = game.board.getZone(greenKeyZone)
+			val z = board.getZone(greenKeyZone)
 			for (p in z.getCells()) {
-				val cell = game.board.getCell(p)
+				val cell = board.getCell(p)
 				if (cell.isCellType(ZCellType.OBJECTIVE_RED)) {
 					val redX = GRectangle(cell).scaledBy(.2f, .2f)
 					g.color = GColor.GREEN

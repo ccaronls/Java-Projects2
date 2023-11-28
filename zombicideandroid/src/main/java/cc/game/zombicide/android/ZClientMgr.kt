@@ -3,7 +3,7 @@ package cc.game.zombicide.android
 import android.util.Log
 import cc.game.zombicide.android.ZMPCommon.CL
 import cc.lib.logger.LoggerFactory
-import cc.lib.net.GameClient
+import cc.lib.net.AGameClient
 import cc.lib.net.GameCommand
 import cc.lib.zombicide.ZGame
 import cc.lib.zombicide.ZQuests
@@ -11,14 +11,20 @@ import cc.lib.zombicide.ZUser
 import cc.lib.zombicide.p2p.ZGameMP
 import cc.lib.zombicide.p2p.ZUserMP
 import cc.lib.zombicide.ui.UIZombicide
-import java.util.*
 
 /**
  * Created by Chris Caron on 7/28/21.
  */
-class ZClientMgr(activity: ZombicideActivity, game: UIZombicide, val client: GameClient, val user: ZUser) : ZMPCommon(activity, game), GameClient.Listener, CL {
+class ZClientMgr(activity: ZombicideActivity, game: UIZombicide, val client: AGameClient, val user: ZUser) : CL(activity, game), AGameClient.Listener, ZMPCommon.CLListener {
+
 	var playerChooser: CharacterChooserDialogMP? = null
+
+	init {
+		addListener(this)
+	}
+
 	fun shutdown() {
+		removeListener(this)
 		client.removeListener(this)
 	}
 
@@ -31,10 +37,9 @@ class ZClientMgr(activity: ZombicideActivity, game: UIZombicide, val client: Gam
 		game.boardRenderer.redraw()
 	}
 
-	override fun onInit(color: Int, maxCharacters: Int, playerAssignments: List<Assignee>) {
-		user.setColor(color)
+	override fun onInit(color: Int, maxCharacters: Int, playerAssignments: List<Assignee>, showDialog: Boolean) {
+		user.setColor(game.board, color, ZUser.USER_COLOR_NAMES[color])
 		game.clearCharacters()
-		game.clearUsersCharacters()
 		val assignees: MutableList<Assignee> = ArrayList()
 		for (c in activity.charLocks) {
 			val a = Assignee(c)
@@ -46,18 +51,24 @@ class ZClientMgr(activity: ZombicideActivity, game: UIZombicide, val client: Gam
 			}
 			assignees.add(a)
 			if (a.checked) {
-				game.addCharacter(a.name)
+				val c = game.addCharacter(a.name)
 				if (a.isAssingedToMe) {
-					user.addCharacter(a.name)
+					user.addCharacter(c)
 				}
 			}
 		}
-		activity.runOnUiThread {
+		if (showDialog) activity.runOnUiThread {
 			playerChooser = object : CharacterChooserDialogMP(activity, assignees, maxCharacters) {
 				override fun onAssigneeChecked(assignee: Assignee, checked: Boolean) {
 					Log.d(TAG, "onAssigneeChecked: $assignee")
 					val cmd = activity.clientMgr!!.newAssignCharacter(assignee.name, checked)
-					object : CLSendCommandSpinnerTask(activity, SVR_ASSIGN_PLAYER) {
+					object : CLSendCommandSpinnerTask(activity) {
+
+						override fun onAssignPlayer(_assignee: Assignee) {
+							if (assignee.name == _assignee.name)
+								release()
+						}
+
 						override fun onSuccess() {
 							assignee.checked = checked
 							postNotifyUpdateAssignee(assignee)
@@ -67,9 +78,31 @@ class ZClientMgr(activity: ZombicideActivity, game: UIZombicide, val client: Gam
 
 				override fun onStart() {
 					game.client = client
-					client.sendCommand(newStartPressed())
-					activity.initGameMenu()
-					activity.game.showQuestTitleOverlay()
+					//client.sendCommand(newStartPressed())
+					dialog.dismiss()
+					object : CLSendCommandSpinnerTask(activity) {
+
+						override val timeout: Long = 30000L
+
+						override fun getProgressMessage(): String = "Starting Game ...."
+
+						override fun onPlayerPressedStart(userName: String, numStarted: Int, numTotal: Int) {
+							if (numStarted >= numTotal) {
+								release()
+								activity.runOnUiThread {
+									game.client = client
+									activity.initGameMenu()
+									activity.game.showQuestTitleOverlay()
+								}
+							} else
+								publishProgress(numStarted, numTotal)
+						}
+
+						override fun onProgressUpdate(vararg values: Int?) {
+							progressMessage = "${values[0]} of ${values[1]} have started"
+						}
+
+					}.execute(newStartPressed())
 				}
 			}
 			game.boardRenderer.redraw()
@@ -80,23 +113,21 @@ class ZClientMgr(activity: ZombicideActivity, game: UIZombicide, val client: Gam
 		Log.d("ZClientMgr", "onAssignPlayer: $assignee")
 		if (user.colorId == assignee.color) assignee.isAssingedToMe = true
 		if (assignee.checked) {
-			game.addCharacter(assignee.name)
-			if (assignee.isAssingedToMe) user.addCharacter(assignee.name)
+			val c = game.addCharacter(assignee.name)
+			if (assignee.isAssingedToMe) user.addCharacter(c)
 		} else {
-			game.removeCharacter(assignee.name)
-			user.removeCharacter(assignee.name)
+			game.removeCharacter(assignee.name)?.let {
+				user.removeCharacter(it)
+			}
 		}
 		game.boardRenderer.redraw()
 		playerChooser?.postNotifyUpdateAssignee(assignee)
 	}
 
-	override fun onError(e: Exception) {
+	override fun onNetError(e: Exception) {
 		log.error(e)
 		game.addPlayerComponentMessage("Error: ${e.javaClass.simpleName} :  + ${e.message}")
 	}
-
-	override val gameForUpdate: ZGame
-		get() = game
 
 	override fun onGameUpdated(game: ZGame) {
 		this.game.boardRenderer.redraw()
@@ -108,14 +139,17 @@ class ZClientMgr(activity: ZombicideActivity, game: UIZombicide, val client: Gam
 	}
 
 	override fun onDisconnected(reason: String, serverInitiated: Boolean) {
-		if (serverInitiated) {
-			activity.game.setResult(null)
-			playerChooser?.dialog?.dismiss()
-			activity.runOnUiThread {
+		activity.game.setResult(null)
+		playerChooser?.dialog?.dismiss()
+		activity.runOnUiThread {
+			if (serverInitiated) {
+				activity.p2pShutdown()
 				activity.newDialogBuilder().setTitle("Disconnected from Server")
-					.setMessage("Do you want to try and Reconnect?")
-					.setNegativeButton(R.string.popup_button_no) { dialog, which -> activity.p2pShutdown() }.setPositiveButton(R.string.popup_button_yes) { dialog, which -> client.reconnectAsync() }.show()
-			}
+					.setMessage("Server Stopped: $reason")
+					.setNegativeButton(R.string.popup_button_ok, null).show()
+			} else activity.newDialogBuilder().setTitle("Disconnected from Server")
+				.setMessage("Do you want to try and Reconnect?")
+				.setNegativeButton(R.string.popup_button_no) { dialog, which -> activity.p2pShutdown() }.setPositiveButton(R.string.popup_button_yes) { dialog, which -> client.reconnectAsync() }.show()
 		}
 	}
 

@@ -11,17 +11,17 @@ import cc.lib.zombicide.ZDir
 /**
  * Created by Chris Caron on 8/31/21.
  */
-class DeflectionAnimation(actor: ZActor<*>, val imageId: Int, dir: ZDir) : ZActorAnimation(actor, 500) {
-    val arc: IInterpolator<Vector2D>
-    override fun draw(g: AGraphics, position: Float, dt: Float) {
-        val img = g.getImage(imageId)
-        val pos = arc.getAtPosition(position)
-	    val rect = actor.getRect().scaledBy(.5f).fit(img)
-        g.drawImage(imageId, rect.fit(img).setCenter(pos))
-    }
+class DeflectionAnimation(actor: ZActor, val imageId: Int, dir: ZDir) : ZActorAnimation(actor, 500) {
+	val arc: IInterpolator<Vector2D>
+	override fun draw(g: AGraphics, position: Float, dt: Float) {
+		val img = g.getImage(imageId)
+		val pos = arc.getAtPosition(position)
+		val rect = actor.getRect().scaledBy(.5f).fit(img)
+		g.drawImage(imageId, rect.fit(img).setCenter(pos))
+	}
 
-    override fun hidesActor(): Boolean {
-        return false
+	override fun hidesActor(): Boolean {
+		return false
     }
 
     init {

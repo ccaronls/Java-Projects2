@@ -119,11 +119,11 @@ class UIPlayerRenderer(component: UIComponent?) : UIRenderer(component) {
 		}
 		val padding = RenderConstants.textMargin
 		g.color = player.color
-		val dim = g.drawWrapString(padding, padding, getComponent<UIComponent>().width.toFloat(), str.toString())
+		val dim = g.drawWrapString(padding, padding, getComponent<UIComponent>().getWidth().toFloat(), str.toString())
 		val min = GDimension(dim.width + padding * 2, dim.height + padding * 2)
 		minDimension = min
 		if (isCurrentPlayer) {
-			g.drawRect(0f, 0f, getComponent<UIComponent>().width - RenderConstants.thickLineThickness / 2, Math.max(min.height, getComponent<UIComponent>().height.toFloat()) - RenderConstants.thickLineThickness / 2, RenderConstants.thickLineThickness)
+			g.drawRect(0f, 0f, getComponent<UIComponent>().getWidth() - RenderConstants.thickLineThickness / 2, Math.max(min.height, getComponent<UIComponent>().getHeight().toFloat()) - RenderConstants.thickLineThickness / 2, RenderConstants.thickLineThickness)
 		}
 	}
 

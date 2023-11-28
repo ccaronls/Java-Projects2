@@ -13,7 +13,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -29,13 +28,14 @@ import cc.lib.android.CCActivityBase;
 import cc.lib.android.SpinnerTask;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
-import cc.lib.net.ClientConnection;
+import cc.lib.net.AClientConnection;
+import cc.lib.net.AGameServer;
 import cc.lib.net.GameClient;
 import cc.lib.net.GameCommand;
 import cc.lib.net.GameServer;
 
 @Deprecated
-public abstract class MPGameManager implements Application.ActivityLifecycleCallbacks {
+public abstract class MPGameManager extends BaseAdapter implements Application.ActivityLifecycleCallbacks, AGameServer.Listener, AClientConnection.Listener {
 
     private static Logger log = LoggerFactory.getLogger(MPGameManager.class);
 
@@ -46,6 +46,7 @@ public abstract class MPGameManager implements Application.ActivityLifecycleCall
     private final int port;
     private final int maxClients;
     private final String bonjourName;
+    private Dialog dialog;
 
     /**
      * New manager in client mode
@@ -158,112 +159,87 @@ public abstract class MPGameManager implements Application.ActivityLifecycleCall
         }.execute();
     }
 
-    protected void onMPGameKilled() {}
+    protected void onMPGameKilled() {
+    }
+
+    @Override
+    public int getCount() {
+        return server.getNumClients();
+    }
+
+    @Override
+    public Object getItem(int position) {
+        return null;
+    }
+
+    @Override
+    public long getItemId(int position) {
+        return 0;
+    }
+
+    @Override
+    public View getView(int position, View v, ViewGroup parent) {
+        if (v == null) {
+            v = new TextView(activity);
+        }
+
+        AClientConnection conn = server.getConnection(position);
+        TextView tv = (TextView) v;
+        tv.setText(conn.getName());
+        tv.setTextColor(conn.isConnected() ? Color.GREEN : Color.RED);
+        tv.setBackgroundColor(position % 2 == 0 ? Color.BLACK : Color.DKGRAY);
+
+        return v;
+    }
+
+    @Override
+    public synchronized void onConnected(AClientConnection conn) {
+        conn.addListener(this);
+        activity.runOnUiThread(() -> notifyDataSetChanged());
+
+        if (server.getNumConnectedClients() == maxClients) {
+            server.removeListener(this);
+            activity.runOnUiThread(() -> {
+                dialog.dismiss();
+                //helper.destroy();
+                //helper = null;
+                onAllClientsJoined();
+            });
+        } else {
+            int num = maxClients - server.getNumConnectedClients();
+            server.broadcastMessage(activity.getString(R.string.server_broadcast_waiting_for_n_more_players, num));
+        }
+    }
+
+    @Override
+    public void onReconnected(AClientConnection conn) {
+        activity.runOnUiThread(() -> notifyDataSetChanged());
+    }
+
+    @Override
+    public void onDisconnected(AClientConnection conn, String reason) {
+        activity.runOnUiThread(() -> notifyDataSetChanged());
+
+    }
 
     void showWaitingForPlayersDialog() {
         ListView lvPlayers = new ListView(activity);
-        final BaseAdapter playersAdapter = new BaseAdapter() {
-            @Override
-            public int getCount() {
-                return server.getNumClients();
-            }
-
-            @Override
-            public Object getItem(int position) {
-                return null;
-            }
-
-            @Override
-            public long getItemId(int position) {
-                return 0;
-            }
-
-            @Override
-            public View getView(int position, View v, ViewGroup parent) {
-                if (v == null) {
-                    v = new TextView(activity);
-                }
-
-                ClientConnection conn = server.getConnection(position);
-                TextView tv = (TextView)v;
-                tv.setText(conn.getName());
-                tv.setTextColor(conn.isConnected() ? Color.GREEN : Color.RED);
-                tv.setBackgroundColor(position % 2 == 0 ? Color.BLACK : Color.DKGRAY);
-
-                return v;
-            }
-        };
-        lvPlayers.setAdapter(playersAdapter);
-        final Dialog d = activity.newDialogBuilder().setTitle(R.string.popup_title_connected_clients)
+        lvPlayers.setAdapter(this);
+        dialog = activity.newDialogBuilder().setTitle(R.string.popup_title_connected_clients)
                 .setView(lvPlayers)
-                .setNegativeButton(cc.lib.android.R.string.popup_button_cancel, new DialogInterface.OnClickListener() {
+                .setNegativeButton(cc.lib.android.R.string.popup_button_cancel, (dialog, which) -> new SpinnerTask<String>(activity) {
                     @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        new SpinnerTask<String>(activity) {
-                            @Override
-                            protected void doIt(String ... args) throws Exception {
-                                killMPGame();
-                            }
-
-                            @Override
-                            protected void onSuccess() {
-                                onMPGameKilled();
-                            }
-                        }.execute();
+                    protected void doIt(String... args) throws Exception {
+                        killMPGame();
                     }
-                }).show();
-        server.addListener(new GameServer.Listener() {
-            @Override
-            public synchronized void onConnected(ClientConnection conn) {
-                activity.runOnUiThread(new Runnable() {
+
                     @Override
-                    public void run() {
-                        playersAdapter.notifyDataSetChanged();
+                    protected void onSuccess() {
+                        onMPGameKilled();
                     }
-                });
+                }.execute()).show();
+        server.addListener(this);
 
-                if (server.getNumConnectedClients() == maxClients) {
-                    server.removeListener(this);
-                    activity.runOnUiThread(new Runnable() {
-                        public void run() {
-                            d.dismiss();
-                            //helper.destroy();
-                            //helper = null;
-                            onAllClientsJoined();
-                        }
-                    });
-                } else {
-                    int num = maxClients - server.getNumConnectedClients();
-                    server.broadcastMessage("Waiting for " + num + " more players");//getString(R.string.server_broadcast_waiting_for_n_more_players, num));
-                }
-            }
-
-            @Override
-            public void onReconnection(ClientConnection conn) {
-                activity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        playersAdapter.notifyDataSetChanged();
-                    }
-                });
-            }
-
-            @Override
-            public void onClientDisconnected(ClientConnection conn) {
-                activity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        playersAdapter.notifyDataSetChanged();
-                    }
-                });
-
-            }
-
-            @Override
-            public void onCommand(ClientConnection conn, GameCommand cmd) {
-
-            }
-        });
     }
 
     public abstract void onAllClientsJoined();
@@ -340,12 +316,7 @@ public abstract class MPGameManager implements Application.ActivityLifecycleCall
                     devices.addAll(p2pDevices);
                     devices.addAll(dnsDevices);
                 }
-                activity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        adapter.notifyDataSetChanged();
-                    }
-                });
+                activity.runOnUiThread(() -> adapter.notifyDataSetChanged());
 
             }
 
@@ -384,22 +355,17 @@ public abstract class MPGameManager implements Application.ActivityLifecycleCall
                         connecting = false;
                         activity.newDialogBuilder().setTitle(cc.lib.android.R.string.popup_title_error)
                                 .setMessage("Failed to connect to server " + e.getMessage())
-                                .setNegativeButton(cc.lib.android.R.string.popup_button_ok, new DialogInterface.OnClickListener() {
+                                .setNegativeButton(cc.lib.android.R.string.popup_button_ok, (dialog, which) -> new SpinnerTask<String>(activity) {
                                     @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        new SpinnerTask<String>(activity) {
-                                            @Override
-                                            protected void doIt(String ... args) throws Exception {
-                                                killMPGame();
-                                            }
-
-                                            @Override
-                                            protected void onSuccess() {
-                                                onMPGameKilled();
-                                            }
-                                        }.execute();
+                                    protected void doIt(String... args) throws Exception {
+                                        killMPGame();
                                     }
-                                }).show();
+
+                                    @Override
+                                    protected void onSuccess() {
+                                        onMPGameKilled();
+                                    }
+                                }.execute()).show();
                     }
                 }.execute();
 
@@ -424,12 +390,7 @@ public abstract class MPGameManager implements Application.ActivityLifecycleCall
                     devices.addAll(dnsDevices);
                 }
 
-                activity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        adapter.notifyDataSetChanged();
-                    }
-                });
+                activity.runOnUiThread(() -> adapter.notifyDataSetChanged());
             }
 
             @Override
@@ -438,70 +399,67 @@ public abstract class MPGameManager implements Application.ActivityLifecycleCall
             }
         });
 
-        lvHost.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                final WifiP2pDevice d = (WifiP2pDevice)view.getTag();
-                new SpinnerTask<String>(activity) {
+        lvHost.setOnItemClickListener((parent, view, position, id) -> {
+            final WifiP2pDevice d = (WifiP2pDevice) view.getTag();
+            new SpinnerTask<String>(activity) {
 
-                    @Override
-                    protected String getProgressMessage() {
-                        return "Please wait for all players to connect";
-                    }
+                @Override
+                protected String getProgressMessage() {
+                    return "Please wait for all players to connect";
+                }
 
-                    @Override
-                    protected void onCancelButtonClicked() {
-                        new SpinnerTask<String>(activity) {
-                            @Override
-                            protected void doIt(String ... args) throws Exception {
-                                helper.cancelConnect();
-                                bonjour.detatch();
-                                killMPGame();
-                                synchronized (helper) {
-                                    helper.notify();
-                                }
+                @Override
+                protected void onCancelButtonClicked() {
+                    new SpinnerTask<String>(activity) {
+                        @Override
+                        protected void doIt(String... args) throws Exception {
+                            helper.cancelConnect();
+                            bonjour.detatch();
+                            killMPGame();
+                            synchronized (helper) {
+                                helper.notify();
                             }
-
-                            @Override
-                            protected void onSuccess() {
-                                onMPGameKilled();
-                            }
-                        }.execute();
-                    }
-
-                    @Override
-                    protected void doIt(String ... args) throws Exception {
-                        clientDialog.dismiss();
-                        if (d.status == WifiP2pDevice.CONNECTED)
-                            return;
-                        helper.connect(d);
-                        //synchronized (helper) {
-                        //    helper.wait();
-                        //}
-                    }
-
-                    @Override
-                    protected void onSuccess() {
-                        if (client.isConnected()) {
-                            //showWaitingForPlayersDialogClient(canceleble);
-                            Toast.makeText(activity, R.string.toast_connect_success, Toast.LENGTH_LONG).show();
-                            //helper.destroy();
-                            //helper = null;
-                            onAllClientsJoined();
-                        } else if (!isCancelled()) {
-                            activity.newDialogBuilder().setTitle(cc.lib.android.R.string.popup_title_error)
-                                    .setMessage(R.string.popup_msg_failed_connect_host)
-                                    .setNegativeButton(cc.lib.android.R.string.popup_button_ok, new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int which) {
-                                            killMPGame();
-                                            onMPGameKilled();
-                                        }
-                                    }).setCancelable(false).show();
                         }
+
+                        @Override
+                        protected void onSuccess() {
+                            onMPGameKilled();
+                        }
+                    }.execute();
+                }
+
+                @Override
+                protected void doIt(String... args) throws Exception {
+                    clientDialog.dismiss();
+                    if (d.status == WifiP2pDevice.CONNECTED)
+                        return;
+                    helper.connect(d);
+                    //synchronized (helper) {
+                    //    helper.wait();
+                    //}
+                }
+
+                @Override
+                protected void onSuccess() {
+                    if (client.isConnected()) {
+                        //showWaitingForPlayersDialogClient(canceleble);
+                        Toast.makeText(activity, R.string.toast_connect_success, Toast.LENGTH_LONG).show();
+                        //helper.destroy();
+                        //helper = null;
+                        onAllClientsJoined();
+                    } else if (!isCancelled()) {
+                        activity.newDialogBuilder().setTitle(cc.lib.android.R.string.popup_title_error)
+                                .setMessage(R.string.popup_msg_failed_connect_host)
+                                .setNegativeButton(cc.lib.android.R.string.popup_button_ok, new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        killMPGame();
+                                        onMPGameKilled();
+                                    }
+                                }).setCancelable(false).show();
                     }
-                }.execute();
-            }
+                }
+            }.execute();
         });
 
         new SpinnerTask<String>(activity) {
@@ -516,12 +474,9 @@ public abstract class MPGameManager implements Application.ActivityLifecycleCall
                 if (!client.isConnected()) {
                     clientDialog = activity.newDialogBuilder().setTitle("Hosts")
                             .setView(lvHost)
-                            .setNegativeButton(cc.lib.android.R.string.popup_button_cancel, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    killMPGame();
-                                    onMPGameKilled();
-                                }
+                            .setNegativeButton(cc.lib.android.R.string.popup_button_cancel, (dialog, which) -> {
+                                killMPGame();
+                                onMPGameKilled();
                             }).setCancelable(false).show();
                 }
             }
@@ -532,12 +487,9 @@ public abstract class MPGameManager implements Application.ActivityLifecycleCall
     void showWaitingForPlayersDialogClient(final boolean cancelable) {
         final AlertDialog d = activity.newDialogBuilder().setTitle(R.string.popup_title_waiting)
                 .setMessage(R.string.popup_msg_waiting_for_players)
-                .setNegativeButton(cc.lib.android.R.string.popup_button_cancel, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        client.disconnect();
-                        onMPGameKilled();
-                    }
+                .setNegativeButton(cc.lib.android.R.string.popup_button_cancel, (dialog, which) -> {
+                    client.disconnect();
+                    onMPGameKilled();
                 }).setCancelable(false).show();
         client.addListener(new GameClient.Listener() {
             @Override
@@ -554,12 +506,7 @@ public abstract class MPGameManager implements Application.ActivityLifecycleCall
             @Override
             public void onMessage(final String msg) {
                 client.removeListener(this);
-                activity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        d.setMessage(msg);
-                    }
-                });
+                activity.runOnUiThread(() -> d.setMessage(msg));
             }
 
             @Override

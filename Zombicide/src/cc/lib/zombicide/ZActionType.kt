@@ -27,47 +27,41 @@ enum class ZActionType {
     RELOAD,
     DROP_ITEM,
     PICKUP_ITEM,
-    MAKE_NOISE,
-    SHOVE,
-    DEFEND,
-    BEQUEATH_MOVE,
-    CLOSE_PORTAL {
-	    override fun costPerTurn(): Int {
-		    return 3
-	    }
-    };
+	MAKE_NOISE,
+	SHOVE,
+	DEFEND,
+	BEQUEATH_MOVE,
+	CLOSE_PORTAL {
+		override fun costPerTurn(): Int {
+			return 3
+		}
+	};
 
-    fun oncePerTurn(): Boolean {
-        when (this) {
-            SEARCH, SHOVE, ENCHANTMENT -> return true
-        }
-        return false
-    }
+	fun oncePerTurn(): Boolean = when (this) {
+		SEARCH, SHOVE, ENCHANTMENT -> true
+		else -> false
+	}
 
-    open fun costPerTurn(): Int {
-        return 1
-    }
+	open fun costPerTurn(): Int {
+		return 1
+	}
 
-    fun breaksInvisibility(): Boolean {
-        when (this) {
-            MELEE, RANGED, MAGIC, SHOVE, OPEN_DOOR, CLOSE_DOOR, BARRICADE_DOOR, MAKE_NOISE -> return true
-        }
-        return false
-    }
+	fun breaksInvisibility(): Boolean = when (this) {
+		MELEE, RANGED, MAGIC, SHOVE, OPEN_DOOR, CLOSE_DOOR, BARRICADE_DOOR, MAKE_NOISE -> true
+		else -> false
+	}
 
-    val isRanged: Boolean
-        get() = this === RANGED
-    val isMagic: Boolean
-        get() = this === MAGIC
-    val isProjectile: Boolean
-        get() {
-            when (this) {
-                RANGED, MAGIC, THROW_ITEM -> return true
-            }
-            return false
-        }
-    val isMelee: Boolean
-        get() = this === MELEE
+	val isRanged: Boolean
+		get() = this === RANGED
+	val isMagic: Boolean
+		get() = this === MAGIC
+	val isProjectile: Boolean
+		get() = when (this) {
+			RANGED, MAGIC, THROW_ITEM -> true
+			else -> false
+		}
+	val isMelee: Boolean
+		get() = this === MELEE
     val isMovement: Boolean
         get() = this === MOVE
     val label: String

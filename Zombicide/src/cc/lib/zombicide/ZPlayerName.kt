@@ -115,13 +115,8 @@ enum class ZPlayerName(@JvmField val characterClass: String, @JvmField val start
     @JvmField
     var imageDim: GDimension = GDimension.EMPTY
 
-    fun create(): ZCharacter {
-        val c = ZCharacter(this, skillOptions)
-        character = c
-        return c
-    }
+    fun create(): ZCharacter = ZCharacter(this, skillOptions)
 
-    lateinit var character: ZCharacter
     override fun getTooltipText(): String {
         return characterClass
     }

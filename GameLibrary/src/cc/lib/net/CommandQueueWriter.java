@@ -1,7 +1,6 @@
 package cc.lib.net;
 
 import java.io.DataOutputStream;
-import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -9,6 +8,7 @@ import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
 import cc.lib.utils.GException;
+import cc.lib.utils.Lock;
 
 /**
  * Allows for queueing of commands so we are never waiting for the network to write
@@ -17,29 +17,28 @@ import cc.lib.utils.GException;
  */
 class CommandQueueWriter implements Runnable {
 
-    private Logger log = LoggerFactory.getLogger(CommandQueueWriter.class);
-    
-    private Queue<GameCommand> queue = new LinkedList<GameCommand>();
+    private final Logger log;
+
+    private Queue<GameCommand> queue = new LinkedList<>();
     private boolean running;
     private int timeout = 10000;
     private DataOutputStream out;
-    private final Object lock = new Object();
-    
+    private Lock lock;
+
+    CommandQueueWriter(String logPrefix) {
+        log = LoggerFactory.getLogger(logPrefix, CommandQueueWriter.class);
+    }
+
     public void setTimeout(int timeout) {
         this.timeout = timeout;
-        synchronized (queue) {
-            queue.notify();
-        }
+        lock.release();
     }
-    
-    protected void log(String msg) {
-        System.out.println("CommandQueueWriter [" + Thread.currentThread().getId() + "]: " + msg);
-    }
-    
+
     synchronized void start(final DataOutputStream out) {
         if (!running) {
             this.out = out;
             running = true;
+            lock = new Lock();
             new Thread(this).start();
         }
     }
@@ -51,35 +50,22 @@ class CommandQueueWriter implements Runnable {
             GameCommand cmd = null;
             try {
                 if (queue.isEmpty()) {
-                    synchronized (lock) {
-                        if (timeout > 0) {
-                            log.debug("Wait for '" + timeout + "' msecs");
-                            lock.wait(timeout);
-                        }
-                        else
-                            lock.wait();
-                    }
+                    lock.acquire(1);
+                    lock.block(timeout, () -> onTimeout());
                 }
-                //log.debug("Wake up");
 
-                if (queue.isEmpty()) {
-                    log.debug("Q empty");
-                    if (running) {
-                        log.debug("Timeout");
-                        onTimeout();
-                    }
-                } else {
-
+                if (!queue.isEmpty()) {
                     synchronized (queue) {
                         cmd = queue.peek();
                     }
                     log.debug("Writing command: " + cmd.getType());
                     cmd.write(out);
+                    out.flush();
                     synchronized (queue) {
                         queue.remove();
                     }
+                    errors = 0;
                 }
-                errors = 0;
             } catch (Exception e) {
                 errors++;
                 log.error("ERROR: " + errors + " Problem sending command: " + cmd);
@@ -102,11 +88,8 @@ class CommandQueueWriter implements Runnable {
         try {
             // block for up to 5 seconds for the remaining commands to get sent
             if (queue.size() > 0) {
-                log.debug("out Q has elements, notifying...");
-                synchronized (lock) {
-                    lock.notify();
-                }
                 log.debug("Wait for queue to flush");
+                lock.release();
                 synchronized (this) {
                     wait(5000);
                 }
@@ -118,9 +101,8 @@ class CommandQueueWriter implements Runnable {
         synchronized (queue) {
             queue.clear();
         }
-        synchronized (lock) {
-            lock.notify();
-        }
+        if (lock != null)
+            lock.releaseAll();
         log.debug("Stopped");
     }
 
@@ -137,9 +119,7 @@ class CommandQueueWriter implements Runnable {
         synchronized (queue) {
             queue.add(cmd);
         }
-        synchronized (lock) {
-            lock.notify();
-        }
+        lock.release();
     }
 
     /**
@@ -150,10 +130,11 @@ class CommandQueueWriter implements Runnable {
             queue.clear();
         }
     }
-    
+
     /**
      * Called when the specified timeout has been reached without a command
      * being sent.  This could be used to support a keep-alive scheme.
      */
-    protected void onTimeout() throws IOException {}
+    protected void onTimeout() {
+    }
 }

@@ -9,6 +9,8 @@ import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.lang.ref.WeakReference;
 
 import androidx.annotation.NonNull;
@@ -29,8 +31,12 @@ public abstract class SpinnerTask<T> extends AsyncTask<T, Integer, Object>
         }
     }
 
+    public void setProgressMessage(String message) {
+        dialog.setMessage(message);
+    }
+
     public <T extends Context> T getContext() {
-        return (T)context.get();
+        return (T) context.get();
     }
 
     @Override
@@ -65,10 +71,15 @@ public abstract class SpinnerTask<T> extends AsyncTask<T, Integer, Object>
      */
     protected void onCompleted() {}
 
-    protected void onError(Exception e) {
+    protected void onError(@NotNull Exception e) {
         e.printStackTrace();
-        new AlertDialog.Builder(context.get()).setTitle("Error").setMessage("An error occured: " + e.getClass().getSimpleName() + "\n" + e.getMessage())
-                .setNegativeButton("Ok", null).show();
+        Activity c = context.get();
+        if (c != null) {
+            c.runOnUiThread(() -> {
+                new AlertDialog.Builder(c).setTitle("Error").setMessage("An error occured: " + e.getClass().getSimpleName() + "\n" + e.getMessage())
+                        .setNegativeButton("Ok", null).show();
+            });
+        }
     }
 
     @Override

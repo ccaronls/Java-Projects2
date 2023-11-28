@@ -118,10 +118,11 @@ open class Chess : Rules() {
 	}
 
 	override fun getWinner(game: Game): Int {
-		if (game.getMoves().size == 0) {
+		if (game.getMoves().isEmpty()) {
 			val p = findKing(game, game.turn)
 			when (p!!.getType()) {
 				PieceType.CHECKED_KING, PieceType.CHECKED_KING_IDLE -> return Game.getOpponent(p.playerNum)
+				else -> TODO("Unhandled type ${p.getType()}")
 			}
 		}
 		return -1

@@ -12,7 +12,7 @@ import cc.lib.zombicide.ZSpawnArea
  * For fist 1 sec start a strand from sky to each corner of the spawn area.
  * For last second scale down the spawn area to closed
  */
-open class HandOfGodAnimation(actor: ZActor<*>, val spawn: ZSpawnArea) : ZActorAnimation(actor, 500, 500, 500, 500, 1500, 800) {
+open class HandOfGodAnimation(actor: ZActor, val spawn: ZSpawnArea) : ZActorAnimation(actor, 500, 500, 500, 500, 1500, 800) {
 
 	companion object {
 		val minSec = 10

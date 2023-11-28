@@ -1,7 +1,9 @@
 package cc.game.soc.ui
 
 import cc.game.soc.core.SOC
-import cc.lib.game.*
+import cc.lib.game.AGraphics
+import cc.lib.game.APGraphics
+import cc.lib.game.GColor
 import cc.lib.math.Vector2D
 import cc.lib.ui.UIComponent
 
@@ -20,8 +22,8 @@ class UIBarbarianRenderer(component: UIComponent) : UIRenderer(component) {
 	private var shipDim = 0f
 	var textBorderPadding = 5f
 	override fun draw(g: APGraphics, pickX: Int, pickY: Int) {
-		val wid = getComponent<UIComponent>().width.toFloat()
-		val hgt = getComponent<UIComponent>().height.toFloat()
+		val wid = getComponent<UIComponent>().getWidth().toFloat()
+		val hgt = getComponent<UIComponent>().getHeight().toFloat()
 		g.drawImage(baseImage, 0f, 0f, wid, hgt)
 		//minShipDim = wid/9;
 		//maxShipDim = wid/7;
@@ -69,8 +71,8 @@ class UIBarbarianRenderer(component: UIComponent) : UIRenderer(component) {
 			anim = object : UIAnimation(2000) {
 				override fun draw(g: AGraphics, position: Float, dt: Float) {
 					val scale = 1f + 1f / (positions.size - 1)
-					val wid = getComponent<UIComponent>().width.toFloat()
-					val hgt = getComponent<UIComponent>().height.toFloat()
+					val wid = getComponent<UIComponent>().getWidth().toFloat()
+					val hgt = getComponent<UIComponent>().getHeight().toFloat()
 					val d0 = positions.size - 1 - distance
 					val d1 = positions.size - 1 - nextDistance
 

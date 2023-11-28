@@ -28,16 +28,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cc.lib.android.CCActivityBase;
-import cc.lib.net.GameClient;
-import cc.lib.net.GameServer;
+import cc.lib.net.AGameClient;
+import cc.lib.net.AGameServer;
 
 @SuppressLint("MissingPermission")
 abstract class P2PHelper extends BroadcastReceiver implements
         WifiP2pManager.PeerListListener,
         WifiP2pManager.ConnectionInfoListener,
         WifiP2pManager.GroupInfoListener,
-        Application.ActivityLifecycleCallbacks
-{
+        Application.ActivityLifecycleCallbacks {
 
     static final String TAG = "P2PGame" + P2PHelper.class.getSimpleName();
 
@@ -46,8 +45,8 @@ abstract class P2PHelper extends BroadcastReceiver implements
     private final IntentFilter p2pFilter;
     private final WifiP2pManager.Channel channel;
     private final List<WifiP2pDevice> peers = new ArrayList<>();
-    private GameServer server;
-    private GameClient client;
+    private AGameServer server;
+    private AGameClient client;
     private boolean registered = false;
 
     public static boolean isP2PAvailable(Context context) {
@@ -144,7 +143,7 @@ abstract class P2PHelper extends BroadcastReceiver implements
 
     protected abstract void onThisDeviceUpdated(WifiP2pDevice device);
 
-    public final void start(GameServer server) {
+    public final void start(AGameServer server) {
         if (client != null || this.server != null)
             throw new IllegalArgumentException("Already started");
         this.server = server;
@@ -176,7 +175,7 @@ abstract class P2PHelper extends BroadcastReceiver implements
         }
     }
 
-    public final void start(GameClient client) {
+    public final void start(AGameClient client) {
         if (this.client != null || server != null)
             throw new IllegalArgumentException("Already started");
         this.client = client;
@@ -213,12 +212,7 @@ abstract class P2PHelper extends BroadcastReceiver implements
         public void onFailure(int reason) {
             String msg = action + " Failure "+  getFailureReasonString(reason);
             Log.e(TAG, msg);
-            activity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    Toast.makeText(activity, msg, Toast.LENGTH_LONG).show();
-                }
-            });
+            activity.runOnUiThread(() -> Toast.makeText(activity, msg, Toast.LENGTH_LONG).show());
         }
     }
 

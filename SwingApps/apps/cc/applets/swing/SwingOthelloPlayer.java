@@ -7,7 +7,7 @@ public class SwingOthelloPlayer extends OthelloPlayer {
 
 	@Override
 	public boolean chooseCell(OthelloBoard board, int[] rowColCell) {
-		return OthelloApplet.getInstance().pickCell(rowColCell);
+		return OthelloApplet.instance.pickCell(rowColCell);
 	}
 
 }

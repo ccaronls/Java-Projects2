@@ -29,4 +29,20 @@ public class GridTest extends TestCase {
         System.out.println(grid.toStringNumbered());
 
     }
+
+    public void testDiffMerge() throws Exception {
+
+        Grid<Integer> a = new Grid(2, 2);
+        Grid<Integer> b = new Grid(2, 2);
+
+        System.out.println(a);
+
+        b.set(0, 0, 1);
+
+        System.out.println(a.diff(b));
+
+        a.merge(a.diff(b));
+
+        System.out.println(a);
+    }
 }

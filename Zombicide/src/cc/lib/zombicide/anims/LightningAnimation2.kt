@@ -5,17 +5,17 @@ import cc.lib.math.Vector2D
 import cc.lib.zombicide.ZActor
 import cc.lib.zombicide.ZActorAnimation
 
-open class LightningAnimation2(actor: ZActor<*>, targets: List<IInterpolator<Vector2D>>) : ZActorAnimation(actor, 700L, 1000L) {
-    val start0: Vector2D
-    val start1: Vector2D
+open class LightningAnimation2(actor: ZActor, targets: List<IInterpolator<Vector2D>>) : ZActorAnimation(actor, 700L, 1000L) {
+	val start0: Vector2D
+	val start1: Vector2D
 
-    // phase1 arcs between magicians hands to arc upward
-    val arcs: Array<LightningStrand>
-    val shots: Array<LightningStrand>
-    val minArc = 0f
-    val maxArc = .5f
+	// phase1 arcs between magicians hands to arc upward
+	val arcs: Array<LightningStrand>
+	val shots: Array<LightningStrand>
+	val minArc = 0f
+	val maxArc = .5f
 
-    override fun drawPhase(g: AGraphics, positionInPhase: Float, positionInAnimation: Float, phase: Int) {
+	override fun drawPhase(g: AGraphics, positionInPhase: Float, positionInAnimation: Float, phase: Int) {
         when (phase) {
             0 -> {
 

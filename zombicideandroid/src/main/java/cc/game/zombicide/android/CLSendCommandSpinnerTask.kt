@@ -1,39 +1,45 @@
 package cc.game.zombicide.android
 
 import cc.lib.android.SpinnerTask
-import cc.lib.net.GameClient
 import cc.lib.net.GameCommand
-import cc.lib.net.GameCommandType
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
+import cc.lib.utils.Lock
 
-internal open class CLSendCommandSpinnerTask(context: ZombicideActivity, private val responseType: GameCommandType) : SpinnerTask<GameCommand>(context), GameCommandType.Listener {
-	private val client: GameClient = context.client
-	private val lock = ReentrantLock()
-	private val cont = lock.newCondition()
+internal open class CLSendCommandSpinnerTask(val context: ZombicideActivity) : SpinnerTask<GameCommand>(context), ZMPCommon.CLListener {
+	private val clientMgr: ZClientMgr = context.clientMgr!!
+	private val lock = Lock()
 
 	override fun onPreExecute() {
 		super.onPreExecute()
-		responseType.addListener(this)
+		clientMgr.addListener(this)
 	}
+
+	open val timeout = 10000L
 
 	@Throws(Exception::class)
 	override fun doIt(vararg args: GameCommand) {
-		client.sendCommand(args[0])
-		lock.withLock {
-			cont.await(20, TimeUnit.SECONDS)
-		}
+		context.client.sendCommand(args[0])
+		if (timeout > 0)
+			lock.acquireAndBlock(timeout) {
+				throw Exception("timeout")
+			}
+		else
+			lock.acquireAndBlock()
 	}
 
-	override fun onCommand(cmd: GameCommand) {
-		lock.withLock {
-			cont.signal()
-		}
+	fun release() {
+		lock.release()
+	}
+
+	override fun onCancelButtonClicked() {
+		lock.release()
 	}
 
 	override fun onCompleted() {
-		responseType.removeListener(this)
+		clientMgr.removeListener(this)
+	}
+
+	override fun onNetError(e: Exception) {
+		onError(e)
 	}
 
 }
