@@ -121,7 +121,7 @@ public class GameClient extends AGameClient {
                 out.writeLong(87263450972L); // write out the magic number the servers are expecting
                 out.flush();
                 outQueue.start(out);
-                outQueue.add(new GameCommand(GameCommandType.CL_CONNECT).setName(deviceName).setVersion(version));
+                outQueue.add(new GameCommand(GameCommandType.CL_CONNECT).setArgs(properties));
                 new Thread(new SocketReader()).start();
                 log.debug("Socket Connection Established");
                 connectAddress = address;
@@ -327,6 +327,4 @@ public class GameClient extends AGameClient {
     protected String getPasswordFromUser() {
         throw new GException("Client does not overide the getPasswordFromUser method");
     }
-
-
 }

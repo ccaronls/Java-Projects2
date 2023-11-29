@@ -9,6 +9,7 @@ import cc.lib.game.TestGraphics
 import cc.lib.game.Utils
 import cc.lib.logger.LoggerFactory
 import cc.lib.utils.Grid
+import cc.lib.utils.Reflector.MyPrintWriter
 import cc.lib.zombicide.ZGame.Companion.initDice
 import cc.lib.zombicide.ZGame.MarksmanComparator
 import cc.lib.zombicide.ZGame.RangedComparator
@@ -346,25 +347,38 @@ Total Decompression Time:   49343
 		val board = quest.loadBoard()
 		val board2 = board.deepCopy()
 
+
 		val player = ZPlayerName.Baldric.create()
-		assertTrue(board.addActor(player, 0, null))
-		val position = player.position.deepCopy()
+		player.occupiedZone = board.getCell(0, 0).zoneIndex
+		assertTrue(board.spawnActor(player))
 		val copy = board.deepCopy()
+		val position = player.position
+		assertTrue(position.zone == 0)
+		assertTrue(copy.getActor(position).type == ZPlayerName.Baldric)
+		assertFalse(copy.getActor(position) === player)
 
 		player.addAnimation(object : ZActorAnimation(player, 1000) {
 
 		}.start())
 
-		copy.moveActor(player, 1)
-		assert(player.position.zone == 1)
+		println("player position before: " + player.position)
 
-		assertNotNull(board.getActorOrNull(position))
-		board.merge(copy.toString())
-		val player2 = board.getActor(player.position)
-		assertTrue(player2 === player)
-		assert(player.animation != null)
+		board.moveActor(player, 1)
+		assertTrue(player.position.zone == 1)
 
-		println(board.getCell(position.pos))
+		println("player position after: " + player.position)
+
+		assertNull(board.getActorOrNull(position))
+		val out = ByteArrayOutputStream()
+		board.serialize(MyPrintWriter(out))
+		copy.merge(String(out.toByteArray()))
+		assertNotNull(copy.getActor(player.position))
+		assertEquals(copy.getActor(player.position).position, player.position)
+		val player2 = copy.getActor(player.position)
+		println("player2 position after: " + player2.position)
+		assertTrue(player2.animation == null)
+		assertTrue(player.animation != null)
+
 
 		assertNull(board.getActorOrNull(position))
 

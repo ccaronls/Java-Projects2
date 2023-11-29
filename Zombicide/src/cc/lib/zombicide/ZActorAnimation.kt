@@ -35,8 +35,7 @@ abstract class ZActorAnimation : ZAnimation {
         }
     }
 
-    open val rect: GRectangle?
-        get() = null
+    var rect: GRectangle? = null
 
     open fun hidesActor(): Boolean {
         return true

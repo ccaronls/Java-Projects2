@@ -70,6 +70,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 
 	var currentCharacter: ZCharacter? = null
 		set(value) {
+			log.debug("Set current character $value")
 			field = value
 			redraw()
 		}
@@ -322,6 +323,12 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 					drawActor(g, a, outline)
 				}
 				g.removeFilter()
+				if (false) {
+					g.color = GColor.YELLOW.withAlpha(.5f)
+					g.drawRect(a.getRect(), 1f)
+					g.color = GColor.YELLOW
+					g.drawRect(a.position.toRect(board))
+				}
 			}
 		}
 
@@ -369,55 +376,6 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 			}
 		}
 		actor.draw(g)
-	}
-
-	/*
-	fun pickZone(g: AGraphics): Int {
-		for (cell in board.getCells()) {
-			if (cell.contains(mouseX.toFloat(), mouseY.toFloat())) {
-				return cell.zoneIndex
-			}
-		}
-		return -1
-	}
-
-	fun pickDoor(g: AGraphics): ZDoor? {
-		var picked: ZDoor? = null
-		for (door in doors) {
-			val doorRect = door.getRect(board).grow(.1f)
-			if (doorRect.contains(mouseX, mouseY)) {
-				g.color = GColor.RED
-				picked = door
-				// highlight the other side if this is a vault
-				g.drawRect(door.otherSide.getRect(board).grow(.1f), 2f)
-			} else {
-				g.color = GColor.YELLOW
-			}
-			g.drawRect(doorRect, 2f)
-		}
-		return picked
-	}
-
-	fun pickSpawn(g: AGraphics, mouseX: Float, mouseY: Float): ZSpawnArea? {
-		var picked: ZSpawnArea? = null
-		for (area in areas) {
-			val areaRect = area.rect.grownBy(.1f)
-			if (areaRect.contains(mouseX, mouseY)) {
-				g.color = GColor.RED
-				picked = area
-			} else {
-				g.color = GColor.YELLOW
-			}
-			g.drawRect(areaRect, 2f)
-		}
-		return picked
-	}*/
-
-	fun drawCellDebug(g: AGraphics, cell: ZCell) {
-		g.color = GColor.YELLOW
-		g.textHeight = 14f
-		if (cell.numOccupants > 0)
-			g.drawString("${cell.numOccupants}", cell.topLeft)
 	}
 
 	fun drawZoneOutline(g: AGraphics, zoneIndex: Int) {
@@ -588,22 +546,14 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 				if (zone.rectangle.contains(mouseV))
 					highlightedResult = zone.zoneIndex
 			}
-			/*
-			var picked: ZDoor? = null
-		for (door in doors) {
-			val doorRect = door.getRect(board).grow(.1f)
-			if (doorRect.contains(mouseX, mouseY)) {
-				g.color = GColor.RED
-				picked = door
-				// highlight the other side if this is a vault
-				g.drawRect(door.otherSide.getRect(board).grow(.1f), 2f)
-			} else {
-				g.color = GColor.YELLOW
+			if (zone.type == ZZoneType.VAULT) {
+				quest?.getVaultItems(zone.zoneIndex)?.takeIf { it.size > 0 }?.let { items ->
+					"?".repeat(items.size).apply {
+						g.color = GColor.WHITE
+						g.drawJustifiedString(zone.center, Justify.CENTER, Justify.CENTER, this)
+					}
+				}
 			}
-			g.drawRect(doorRect, 2f)
-		}
-		return picked
-			 */
 		}
 		return result
 	}
@@ -652,7 +602,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		return area.rect
 	}
 
-	fun drawCellWalls(g: AGraphics, cellPos: Grid.Pos, dirs: Array<ZDir>, scale: Float, miniMap: Boolean) {
+	fun drawCellWalls(g: AGraphics, cellPos: Pos, dirs: Array<ZDir>, scale: Float, miniMap: Boolean) {
 		val cell = board.getCell(cellPos)
 		g.pushMatrix()
 		val center: Vector2D = cell.center
@@ -1183,9 +1133,6 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 			highlightedActor = picked
 		}
 		if (drawDebugText) drawDebugText(g)
-		board.getCells().forEach {
-			drawCellDebug(g, it)
-		}
 		if (drawZombiePaths) {
 			highlightedActor?.let {
 				if (it is ZZombie) {

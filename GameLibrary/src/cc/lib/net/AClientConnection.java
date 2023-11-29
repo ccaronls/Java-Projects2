@@ -6,7 +6,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.function.Consumer;
 
 import cc.lib.game.Utils;
@@ -83,7 +82,7 @@ public abstract class AClientConnection {
         default void onCancelled(AClientConnection c, String id) {
         }
 
-        default void onHandleChanged(AClientConnection c, String newHandle) {
+        default void onPropertyChanged(AClientConnection c) {
         }
 
         default void onTimeout(AClientConnection c) {
@@ -92,10 +91,8 @@ public abstract class AClientConnection {
 
     ;
 
-    protected final String name;
-    private String handle; // dynamic display name. takes precedence over name when non-null
     protected final AGameServer server;
-    private Map<String, Object> attributes = new TreeMap<>();
+    private final Map<String, Object> attributes;
     private boolean kicked = false;
     private final Set<Listener> listeners = Collections.synchronizedSet(new HashSet());
     protected boolean disconnecting = false;
@@ -117,7 +114,7 @@ public abstract class AClientConnection {
     }
 
     public String toString() {
-        String r = "ClientConnection name=" + name;
+        String r = "ClientConnection name=" + getName();
         r += " connected=" + isConnected();
         if (attributes.size() > 0)
             r += " attribs=" + attributes;
@@ -128,11 +125,10 @@ public abstract class AClientConnection {
      * Only GameServer can create instances of ClientConnection
      *
      * @param server
-     * @param name
      * @throws Exception
      */
-    AClientConnection(AGameServer server, String name) throws Exception {
-        this.name = name;
+    AClientConnection(AGameServer server, Map<String, Object> attributes) {
+        this.attributes = attributes;
         this.server = server;
     }
 
@@ -169,19 +165,16 @@ public abstract class AClientConnection {
     public abstract boolean isConnected();
 
     /**
-     * @param key
-     * @param obj
+     * @param attributes
      */
-    @Deprecated
-    public final void setAttribute(String key, Object obj) {
-        this.attributes.put(key, obj);
+    final void setAttributes(Map<String, Object> attributes) {
+        this.attributes.putAll(attributes);
     }
 
     /**
      * @param key
      * @return
      */
-    @Deprecated
     public final Object getAttribute(String key) {
         return this.attributes.get(key);
     }
@@ -189,7 +182,6 @@ public abstract class AClientConnection {
     /**
      * @return
      */
-    @Deprecated
     public final Iterable<String> getAttributeKeys() {
         return this.attributes.keySet();
     }
@@ -197,16 +189,12 @@ public abstract class AClientConnection {
     /**
      * @return
      */
-    @Deprecated
     public final Iterable<Object> getAttributeValues() {
         return this.attributes.values();
     }
 
-    /**
-     * @return
-     */
     public final String getName() {
-        return name;
+        return (String) attributes.get("name");
     }
 
     /**
@@ -215,9 +203,9 @@ public abstract class AClientConnection {
      * @return
      */
     public final String getDisplayName() {
-        if (!Utils.isEmpty(handle))
-            return handle;
-        return name;
+        if (attributes.containsKey("displayName"))
+            return (String) attributes.get("displayName");
+        return getName();
     }
 
     /**
@@ -264,10 +252,10 @@ public abstract class AClientConnection {
             sendCommand(cmd);
         } else if (cmd.getType() == GameCommandType.CL_ERROR) {
             System.err.println("ERROR From client '" + getName() + "'\n" + cmd.getString("msg") + "\n" + cmd.getString("stack"));
-        } else if (cmd.getType() == GameCommandType.CL_HANDLE) {
-            this.handle = cmd.getName();
+        } else if (cmd.getType() == GameCommandType.CL_UPDATE) {
+            this.attributes.putAll(cmd.getArguments());
             notifyListeners((l) -> {
-                l.onHandleChanged(this, handle);
+                l.onPropertyChanged(this);
             });
         } else {
             notifyListeners((l) -> {
@@ -346,7 +334,7 @@ public abstract class AClientConnection {
      * @return
      */
     public final <T> T executeMethodOnRemote(String targetId, boolean returnsResult, String method, Object... params) { // <-- need [] array to disambiguate from above method
-        log.debug("executueMethodOnRemote: %s(%s, %s)", method, targetId, Arrays.toString(params));
+        log.debug("executeMethodOnRemote: %s(%s, %s)", method, targetId, Arrays.toString(params));
         if (!isConnected()) {
             log.warn("Not Connected");
             return null;

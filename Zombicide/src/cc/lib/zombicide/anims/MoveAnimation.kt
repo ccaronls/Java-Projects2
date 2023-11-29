@@ -8,7 +8,9 @@ import cc.lib.zombicide.ZActorAnimation
 
 class MoveAnimation(actor: ZActor, val start: GRectangle, val end: GRectangle, speed: Long) : ZActorAnimation(actor, speed) {
 
-	override var rect = actor.getRect()
+	init {
+		rect = actor.getRect()
+	}
 
 	override fun draw(g: AGraphics, position: Float, dt: Float) {
 		val dv0 = end.topLeft.sub(start.topLeft)
@@ -17,5 +19,5 @@ class MoveAnimation(actor: ZActor, val start: GRectangle, val end: GRectangle, s
 		val bottomRight: Vector2D = start.bottomRight.add(dv1.scaledBy(position))
 		rect = GRectangle(topLeft, bottomRight)
 		actor.draw(g)
-    }
+	}
 }

@@ -3,6 +3,7 @@ package cc.lib.net;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.net.Socket;
+import java.util.Map;
 
 import cc.lib.utils.GException;
 
@@ -96,11 +97,11 @@ public class ClientConnection extends AClientConnection implements Runnable {
      * Only GameServer can create instances of ClientConnection
      *
      * @param server
-     * @param name
+     * @param attributes
      * @throws Exception
      */
-    ClientConnection(GameServer server, String name) throws Exception {
-        super(server, name);
+    ClientConnection(GameServer server, Map<String, Object> attributes) {
+        super(server, attributes);
     }
 
     /**
@@ -113,6 +114,9 @@ public class ClientConnection extends AClientConnection implements Runnable {
             if (connected) {
                 log.info("ClientConnection: Disconnecting client '" + getName() + "'");
                 connected = false;
+                notifyListeners((l) -> {
+                    l.onDisconnected(this, reason);
+                });
                 synchronized (outQueue) {
                     outQueue.clear();
                     if (!disconnecting)
@@ -120,9 +124,6 @@ public class ClientConnection extends AClientConnection implements Runnable {
                 }
                 disconnecting = true;
                 outQueue.stop(); // <-- blocks until network flushed
-                notifyListeners((l) -> {
-                    l.onDisconnected(this, reason);
-                });
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -167,7 +168,7 @@ public class ClientConnection extends AClientConnection implements Runnable {
      */
     void connect(Socket socket, DataInputStream in, DataOutputStream out) throws Exception {
         if (isConnected()) {
-            throw new Exception("Client '" + name + "' is already connected");
+            throw new Exception("Client '" + getName() + "' is already connected");
         }
         log.debug("ClientConnection: " + getName() + " connection attempt ...");
         this.socket = socket;
@@ -216,7 +217,7 @@ public class ClientConnection extends AClientConnection implements Runnable {
             } catch (Exception e) {
                 if (isConnected()) {
                     e.printStackTrace();
-                    log.error("ClientConnection: Connection with client '" + name + "' dropped: " + e.getClass().getSimpleName() + " " + e.getMessage());
+                    log.error("ClientConnection: Connection with client '" + getName() + "' dropped: " + e.getClass().getSimpleName() + " " + e.getMessage());
                     disconnecting = true;
                     disconnect(e.getMessage());
                 }

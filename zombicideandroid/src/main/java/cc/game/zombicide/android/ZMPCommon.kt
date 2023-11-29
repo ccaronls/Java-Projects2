@@ -1,6 +1,5 @@
 package cc.game.zombicide.android
 
-import android.util.Log
 import cc.lib.net.AClientConnection
 import cc.lib.net.GameCommand
 import cc.lib.net.GameCommandType
@@ -87,7 +86,6 @@ open class ZMPCommon(val activity: ZombicideActivity, val game: UIZombicide) {
 		}
 
 		fun parseSVRCommand(cmd: GameCommand) {
-			Log.d("SVR", "parseCLCommand: $cmd")
 			try {
 				if (cmd.type == SVR_INIT) {
 					val color = cmd.getInt("color")
@@ -188,7 +186,6 @@ open class ZMPCommon(val activity: ZombicideActivity, val game: UIZombicide) {
 		}
 
 		fun parseCLCommand(conn: AClientConnection, cmd: GameCommand) {
-			Log.d("CL", "parseCLCommand: ${conn.name} -> $cmd")
 			try {
 				if (cmd.type == CL_CHOOSE_CHARACTER) {
 					notifyListeners {
@@ -199,9 +196,6 @@ open class ZMPCommon(val activity: ZombicideActivity, val game: UIZombicide) {
 						"START" -> notifyListeners { it.onStartPressed(conn) }
 						"UNDO" -> notifyListeners { it.onUndoPressed(conn) }
 					}
-				} else {
-					//throw new Exception("Unhandled cmd: " + cmd);
-					Log.w("ZMPCommon", "parseCLCommand:Unhandled command: $cmd")
 				}
 			} catch (e: Exception) {
 				e.printStackTrace()

@@ -25,7 +25,7 @@ import cc.lib.utils.Reflector;
  */
 public abstract class AGameClient {
 
-    protected final static Logger log = LoggerFactory.getLogger("P2P:CL", AGameClient.class);
+    protected final Logger log = LoggerFactory.getLogger("P2P:CL", AGameClient.class);
 
     public interface Listener {
         default void onCommand(GameCommand cmd) {
@@ -45,13 +45,13 @@ public abstract class AGameClient {
         }
     }
 
-    protected final String version;
     protected final Set<Listener> listeners = Collections.synchronizedSet(new HashSet<>());
     protected String serverName = null;
-    private Map<String, Object> executorObjects = new HashMap<>();
+    private final Map<String, Object> executorObjects = new HashMap<>();
     private String passPhrase = null;
-    private String displayName;
-    protected final String deviceName;
+    // properties are reflected on the server side in AClientConnection
+    protected final Map<String, Object> properties = new HashMap<>();
+
 
     // giving package access for JUnit tests ONLY!
     final CommandQueueWriter outQueue = new CommandQueueWriter("CL") {
@@ -75,8 +75,8 @@ public abstract class AGameClient {
     public AGameClient(String deviceName, String version) {
         if (Utils.isEmpty(deviceName))
             throw new IllegalArgumentException("Device name cannot be empty");
-        this.deviceName = this.displayName = deviceName;
-        this.version = version;
+        properties.put("version", version);
+        properties.put("name", deviceName);
     }
 
 
@@ -84,15 +84,7 @@ public abstract class AGameClient {
      * @return
      */
     public final String getDisplayName() {
-        return displayName;
-    }
-
-
-    /**
-     * @return
-     */
-    public String getDeviceName() {
-        return deviceName;
+        return (String) properties.get("displayName");
     }
 
     /**
@@ -246,8 +238,14 @@ public abstract class AGameClient {
      * @param displayName
      */
     public final void setDisplayName(String displayName) {
-        this.displayName = displayName;
-        sendCommand(new GameCommand(GameCommandType.CL_HANDLE).setName(displayName));
+        setProperty("displayName", displayName);
+    }
+
+    public void setProperty(String name, Object value) {
+        properties.put(name, value);
+        if (isConnected()) {
+            sendCommand(new GameCommand(GameCommandType.CL_UPDATE).setArg(name, value));
+        }
     }
 
     /**
@@ -269,6 +267,48 @@ public abstract class AGameClient {
     public final void unregister(String id) {
         log.debug("unregister %s", id);
         executorObjects.remove(id);
+    }
+
+    class ResponseThread extends Thread implements Listener {
+
+        final Method m;
+        final String responseId;
+        final Object obj;
+        final Object[] params;
+
+        ResponseThread(Method m, String responseId, Object obj, Object... params) {
+            this.m = m;
+            this.responseId = responseId;
+            this.obj = obj;
+            this.params = params;
+            addListener(this);
+        }
+
+        @Override
+        public void run() {
+            try {
+                log.debug("responseId=%s waiting for result...", responseId);
+                Object result = m.invoke(obj, params);
+                log.debug("responseId=%s cancelled=" + cancelled + " result=" + result);
+                GameCommand resp = new GameCommand(GameCommandType.CL_REMOTE_RETURNS);
+                resp.setArg("target", responseId);
+                if (result != null)
+                    resp.setArg("returns", Reflector.serializeObject(result));
+                else
+                    resp.setArg("cancelled", cancelled);
+                cancelled = false;
+                sendCommand(resp);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            removeListener(this);
+        }
+
+        @Override
+        public void onDisconnected(String reason, boolean serverInitiated) {
+            removeListener(this);
+            interrupt();
+        }
     }
 
     /*
@@ -302,17 +342,7 @@ public abstract class AGameClient {
             final Method m = findMethod(method, obj, paramsTypes, params);
             final String responseId = cmd.getString("responseId");
             if (responseId != null) {
-                log.debug("responseId=%s waiting for result...", responseId);
-                Object result = m.invoke(obj, params);
-                log.debug("responseId=%s cancelled=" + cancelled + " result=" + result);
-                GameCommand resp = new GameCommand(GameCommandType.CL_REMOTE_RETURNS);
-                resp.setArg("target", responseId);
-                if (result != null)
-                    resp.setArg("returns", Reflector.serializeObject(result));
-                else
-                    resp.setArg("cancelled", cancelled);
-                cancelled = false;
-                sendCommand(resp);
+                new ResponseThread(m, responseId, obj, params).start();
             } else {
                 m.invoke(obj, params);
             }
@@ -346,7 +376,7 @@ public abstract class AGameClient {
 
     private final Map<String, Method> methodMap = new HashMap<>();
 
-    public static Method searchMethods(Object execObj, String method, Class[] types, Object[] params) throws Exception {
+    public Method searchMethods(Object execObj, String method, Class[] types, Object[] params) throws Exception {
         Class clazz = execObj.getClass();
         while (clazz != null && !clazz.equals(Object.class)) {
             for (Method m : clazz.getDeclaredMethods()) {

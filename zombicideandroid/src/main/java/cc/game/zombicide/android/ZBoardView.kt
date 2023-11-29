@@ -7,7 +7,6 @@ import androidx.core.view.postDelayed
 import cc.lib.android.DroidGraphics
 import cc.lib.android.UIComponentView
 import cc.lib.game.GDimension
-import cc.lib.utils.trimmedToSize
 import cc.lib.zombicide.*
 import cc.lib.zombicide.ui.UIZBoardRenderer
 import cc.lib.zombicide.ui.UIZComponent
@@ -63,7 +62,7 @@ class ZBoardView(context: Context, attrs: AttributeSet) : UIComponentView<UIZBoa
 		numImages = tiles.size
 		deleteTiles(g)
 		try {
-			loadingString = "${quest.name.capitalize().trimmedToSize(10)}"
+			loadingString = "${quest.name.capitalize()}"
 			tileIds = IntArray(tiles.size)
 			for (i in tiles.indices) {
 				val id = g.loadImage("ztile_" + tiles[i].id + ".png")

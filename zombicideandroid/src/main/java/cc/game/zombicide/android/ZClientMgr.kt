@@ -21,6 +21,8 @@ class ZClientMgr(activity: ZombicideActivity, game: UIZombicide, val client: AGa
 
 	init {
 		addListener(this)
+		client.setProperty("name", user.name)
+		client.setProperty("color", user.colorId)
 	}
 
 	fun shutdown() {
@@ -38,7 +40,7 @@ class ZClientMgr(activity: ZombicideActivity, game: UIZombicide, val client: AGa
 	}
 
 	override fun onInit(color: Int, maxCharacters: Int, playerAssignments: List<Assignee>, showDialog: Boolean) {
-		user.setColor(game.board, color, ZUser.USER_COLOR_NAMES[color])
+		user.setColor(game.board, color, user.name)
 		game.clearCharacters()
 		val assignees: MutableList<Assignee> = ArrayList()
 		for (c in activity.charLocks) {
@@ -157,6 +159,10 @@ class ZClientMgr(activity: ZombicideActivity, game: UIZombicide, val client: AGa
 		client.register(ZUserMP.USER_ID, user)
 		client.register(ZGameMP.GAME_ID, game)
 		client.displayName = activity.displayName
+	}
+
+	fun setColorId(id: Int) {
+		client.setProperty("color", id)
 	}
 
 	companion object {

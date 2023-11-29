@@ -238,8 +238,7 @@ public class GameServer extends AGameServer {
                     throw new ProtocolException("Unknown client");
 
                 GameCommand cmd = GameCommand.parse(in);
-                //log.debug("Parsed incoming command: " + cmd);
-                String name = cmd.getName();
+                log.debug("Parsed incoming command: " + cmd);
                 String clientVersion = cmd.getVersion();
                 if (clientVersion == null) {
                     new GameCommand(GameCommandType.MESSAGE).setMessage("ERROR: Missing required 'version' attribute").write(out);
@@ -261,6 +260,7 @@ public class GameServer extends AGameServer {
                 synchronized (clients) {
                     if (cmd.getType() == GameCommandType.CL_CONNECT) {
                         conn = null;
+                        String name = cmd.getString("name");
                         if (clients.containsKey(name)) {
                             conn = clients.get(name);
                             if (conn.isConnected()) {
@@ -276,9 +276,10 @@ public class GameServer extends AGameServer {
                             if (clients.size() >= maxConnections) {
                                 throw new java.net.ProtocolException("Max client connections reached");
                             }
-                            conn = new ClientConnection(GameServer.this, name);
+                            conn = new ClientConnection(GameServer.this, cmd.getArguments());
                         }
                         ((ClientConnection) conn).connect(socket, in, out);
+                        conn.setAttributes(cmd.getArguments());
                         clients.put(name, conn);
                     } else {
                         throw new ProtocolException("Handshake failed: Invalid client command: " + cmd);
@@ -291,7 +292,7 @@ public class GameServer extends AGameServer {
 
                 // TODO: Add a password feature when server prompts for password before conn.connect is called.
 
-                log.debug("GameServer: Client " + name + " connected");
+                log.debug("GameServer: Client " + conn.getName() + " connected");
 
                 if (cmd.getType() == GameCommandType.CL_CONNECT) {
                     AClientConnection _conn = conn;
@@ -312,15 +313,18 @@ public class GameServer extends AGameServer {
                 // send the client the main menu
             } catch (ProtocolException e) {
                 try {
+                    e.printStackTrace();
                     log.error(e);
                     GameCommandType.SVR_DISCONNECT.make().setMessage(e.getMessage()).write(out);
+                    out.flush();
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
                 close(socket, in, out);
             } catch (Exception e) {
+                e.printStackTrace();
                 log.error(e);
-                close(socket, null, null);
+                close(socket, in, out);
             }
         }
     }

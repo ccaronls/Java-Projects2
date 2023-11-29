@@ -110,3 +110,7 @@ inline fun <reified T : Enum<T>> SharedPreferences.getEnum(name: String, default
 	}
 	return defaultValue
 }
+
+fun <T> MutableLiveData<T>.refresh() {
+	value = value
+}

@@ -60,7 +60,7 @@ public final class GameCommandType implements Comparable<GameCommandType> {
     // report an error that occured on the client
     static final GameCommandType CL_ERROR = new GameCommandType("CL_ERROR");
     // set the display name of this user. Includes a 'name' argument.
-    static final GameCommandType CL_HANDLE      = new GameCommandType("CL_HANDLE");
+    static final GameCommandType CL_UPDATE = new GameCommandType("CL_UPDATE");
     // client signals they are disconnecting
     static final GameCommandType CL_DISCONNECT = new GameCommandType("CL_DISCONNECT");
 

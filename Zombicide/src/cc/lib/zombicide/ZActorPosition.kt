@@ -1,5 +1,6 @@
 package cc.lib.zombicide
 
+import cc.lib.game.GRectangle
 import cc.lib.utils.Grid
 import cc.lib.utils.Reflector
 
@@ -22,4 +23,6 @@ class ZActorPosition internal constructor(@JvmField val pos: Grid.Pos, @JvmField
 		this.data = data
 		return this
 	}
+
+	fun toRect(board: ZBoard): GRectangle = board.getCell(pos).getQuadrant(quadrant)
 }

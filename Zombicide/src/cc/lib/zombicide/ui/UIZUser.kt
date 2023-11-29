@@ -4,13 +4,13 @@ import cc.lib.utils.Table
 import cc.lib.utils.prettify
 import cc.lib.zombicide.*
 
-class UIZUser(name: String) : ZUser(name) {
+open class UIZUser(name: String) : ZUser(name) {
 	fun <T> indexOrNull(item: T?, options: List<T>): Int? {
 		return if (item == null) null else options.indexOf(item)
 	}
 
 	override fun chooseCharacter(characters: List<ZPlayerName>): ZPlayerName? {
-		return UIZombicide.instance.pickCharacter("Pick character to play", characters)
+		return UIZombicide.instance.pickCharacter(null, "Pick character to play", characters)
 	}
 
 	override fun chooseMove(cur: ZPlayerName, moves: List<ZMove>): ZMove? {
@@ -44,11 +44,12 @@ class UIZUser(name: String) : ZUser(name) {
 	}
 
 	override fun chooseZoneToWalk(cur: ZPlayerName, zones: List<Int>): Int? {
-		return UIZombicide.instance.pickZone(cur.name + " Choose zone to Walk", zones)
+		return UIZombicide.instance.pickZone(cur, cur.name + " Choose zone to Walk", zones)
 	}
 
-	override fun chooseDoorToToggle(cur: ZPlayerName, doors: List<ZDoor>): Int? {
-		return indexOrNull(UIZombicide.instance.pickDoor(cur.name + " Choose door to open or close", doors), doors)
+	override fun chooseDoorToToggle(cur: ZPlayerName, _doors: List<ZDoor>): Int? {
+		val doors = _doors.map { UIZombicide.instance.board.findDoor(it.cellPosStart, it.moveDirection) }
+		return indexOrNull(UIZombicide.instance.pickDoor(cur, cur.name + " Choose door to open or close", doors), doors)
 	}
 
 	override fun chooseWeaponSlot(cur: ZPlayerName, weapons: List<ZWeapon>): Int? {
@@ -56,11 +57,11 @@ class UIZUser(name: String) : ZUser(name) {
 	}
 
 	override fun chooseTradeCharacter(cur: ZPlayerName, list: List<ZPlayerName>): ZPlayerName? {
-		return UIZombicide.instance.pickCharacter(cur.name + " Choose Character for Trade", list as List<ZPlayerName>)
+		return UIZombicide.instance.pickCharacter(cur, cur.name + " Choose Character for Trade", list as List<ZPlayerName>)
 	}
 
 	override fun chooseZoneForAttack(c: ZPlayerName, zones: List<Int>): Int? {
-		return UIZombicide.instance.pickZone("Choose Zone to Attack", zones)
+		return UIZombicide.instance.pickZone(c, "Choose Zone to Attack", zones)
 	}
 
 	override fun chooseItemToPickup(cur: ZPlayerName, list: List<ZEquipment<*>>): Int? {
@@ -80,11 +81,11 @@ class UIZUser(name: String) : ZUser(name) {
 
 	override fun chooseZoneToThrowEquipment(cur: ZPlayerName, toThrow: ZEquipment<*>, zones: List<Int>): Int? {
 		UIZombicide.instance.showEquipmentOverlay(cur, listOf(toThrow))
-		return UIZombicide.instance.pickZone("Choose Zone to throw the $toThrow", zones)
+		return UIZombicide.instance.pickZone(cur, "Choose Zone to throw the $toThrow", zones)
 	}
 
 	override fun chooseZoneToShove(cur: ZPlayerName, zones: List<Int>): Int? {
-		return UIZombicide.instance.pickZone("Choose Zone to shove zombies into", zones)
+		return UIZombicide.instance.pickZone(cur, "Choose Zone to shove zombies into", zones)
 	}
 
 	override fun chooseSpell(cur: ZPlayerName, spells: List<ZSpell>): ZSpell? {
@@ -94,23 +95,23 @@ class UIZUser(name: String) : ZUser(name) {
 
 	override fun chooseCharacterForSpell(cur: ZPlayerName, spell: ZSpell, targets: List<ZPlayerName>): ZPlayerName? {
 		UIZombicide.instance.showEquipmentOverlay(cur, listOf(spell))
-		return UIZombicide.instance.pickCharacter("Choose character to enchant with " + spell.type, targets)
+		return UIZombicide.instance.pickCharacter(cur, "Choose character to enchant with " + spell.type, targets)
 	}
 
 	override fun chooseCharacterToBequeathMove(cur: ZPlayerName, targets: List<ZPlayerName>): ZPlayerName? {
-		return UIZombicide.instance.pickCharacter("Choose character to bequeath an extra action", targets)
+		return UIZombicide.instance.pickCharacter(cur, "Choose character to bequeath an extra action", targets)
 	}
 
 	override fun chooseZoneForBloodlust(cur: ZPlayerName, list: List<Int>): Int? {
-		return UIZombicide.instance.pickZone("Choose Zone for Bloodlust", list)
+		return UIZombicide.instance.pickZone(cur, "Choose Zone for Bloodlust", list)
 	}
 
 	override fun chooseSpawnAreaToRemove(cur: ZPlayerName, list: List<ZSpawnArea>): Int? {
-		return UIZombicide.instance.pickSpawn("Choose SPAWN Area to Remove", list)
+		return UIZombicide.instance.pickSpawn(cur, "Choose SPAWN Area to Remove", list)
 	}
 
 	override fun chooseZoneToIgnite(playerName: ZPlayerName, ignitableZones: List<Int>): Int? {
-		return UIZombicide.instance.pickZone("Choose Zone to Ignite", ignitableZones)
+		return UIZombicide.instance.pickZone(playerName, "Choose Zone to Ignite", ignitableZones)
 	}
 
 	override fun chooseEquipmentClass(playerName: ZPlayerName, classes: List<ZEquipmentClass>): ZEquipmentClass? {

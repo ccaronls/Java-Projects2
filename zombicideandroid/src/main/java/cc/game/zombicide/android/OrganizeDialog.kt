@@ -21,10 +21,6 @@ import cc.lib.zombicide.ui.UIZombicide
 
 const val TAG = "ORGANIZE"
 
-fun <T> MutableLiveData<T>.refresh() {
-	value = value
-}
-
 @BindingAdapter("charBackpack", "viewModel")
 fun ListView.setBackpackItems(char : ZCharacter?, viewModel: OrganizeViewModel) {
 	adapter = object : BaseAdapter() {

@@ -149,24 +149,27 @@ abstract class UIZombicide(val characterRenderer: UIZCharacterRenderer, val boar
 			boardMessage = "$name's Turn"
 		}
 
-	fun pickCharacter(message: String, characters: List<ZPlayerName>): ZPlayerName? {
+	fun pickCharacter(name: ZPlayerName?, message: String, characters: List<ZPlayerName>): ZPlayerName? {
 		synchronized(this) {
+			boardRenderer.currentCharacter = name?.toCharacter()
 			setOptions(UIMode.PICK_CHARACTER, characters.map { it.toCharacter() })
 			boardMessage = message
 		}
 		return waitForUser(ZCharacter::class.java)?.type
 	}
 
-	fun pickZone(message: String, zones: List<Int>): Int? {
+	fun pickZone(name: ZPlayerName, message: String, zones: List<Int>): Int? {
 		synchronized(this) {
+			boardRenderer.currentCharacter = name.toCharacter()
 			setOptions(UIMode.PICK_ZONE, zones.map { board.getZone(it) })
 			boardMessage = message
 		}
 		return waitForUser(Int::class.javaObjectType)
 	}
 
-	fun pickSpawn(message: String, areas: List<ZSpawnArea>): Int? {
+	fun pickSpawn(name: ZPlayerName, message: String, areas: List<ZSpawnArea>): Int? {
 		synchronized(this) {
+			boardRenderer.currentCharacter = name.toCharacter()
 			setOptions(UIMode.PICK_SPAWN, areas)
 			boardMessage = message
 		}
@@ -176,6 +179,7 @@ abstract class UIZombicide(val characterRenderer: UIZCharacterRenderer, val boar
 
 	fun <T: IButton> pickMenu(name: ZPlayerName, message: String, expectedType: Class<T>, moves: List<T>): T? {
 		synchronized(this) {
+			boardRenderer.currentCharacter = name.toCharacter()
 			setOptions(UIMode.PICK_MENU, moves)
 			if (expectedType == ZMove::class.java)
 				boardRenderer.processMoveOptions(name.toCharacter(), moves as List<ZMove>)
@@ -186,8 +190,9 @@ abstract class UIZombicide(val characterRenderer: UIZCharacterRenderer, val boar
 		return waitForUser(expectedType)
 	}
 
-	fun pickDoor(message: String, doors: List<ZDoor>): ZDoor? {
+	fun pickDoor(name: ZPlayerName, message: String, doors: List<ZDoor>): ZDoor? {
 		synchronized(this) {
+			boardRenderer.currentCharacter = name.toCharacter()
 			setOptions(UIMode.PICK_DOOR, doors)
 			boardMessage = message
 		}

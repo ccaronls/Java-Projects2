@@ -94,18 +94,20 @@ abstract class UIComponentView<T : UIRenderer> : View, UIComponent, Runnable {
 					post { onLoaded() }
 				}
 			}
-			g.color = GColor.RED
 			g.ortho()
 			val textWidth = g.getTextWidth(loadingString)
 			val rect: GRectangle = GRectangle(0f, 0f, GDimension(max(textWidth + 20, (width * 3 / 4).toFloat()), (height / 6).toFloat())).withCenter(Vector2D((width / 2).toFloat(), (height / 2).toFloat()))
-			g.drawRect(rect, 3f)
-			rect.w *= progress
-			g.drawFilledRect(rect)
+
 			val hgt = g.textHeight
 			g.textHeight = rect.h * 3 / 4
 			g.color = GColor.WHITE
-			g.drawJustifiedString((width / 2).toFloat(), (height / 2).toFloat(), Justify.CENTER, Justify.CENTER, loadingString)
+			g.drawWrapString((width / 2f), (height / 2f) - rect.h / 2f, rect.w, Justify.CENTER, Justify.BOTTOM, loadingString)
 			g.textHeight = hgt
+
+			g.color = GColor.RED
+			g.drawRect(rect, 3f)
+			rect.w *= progress
+			g.drawFilledRect(rect)
 		} else if (!isInEditMode) {
 			loadAssetsRunnable = null
 			val prev = renderer.getMinDimension()

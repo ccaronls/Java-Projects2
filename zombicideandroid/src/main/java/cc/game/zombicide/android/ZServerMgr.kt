@@ -6,6 +6,7 @@ import cc.lib.net.AClientConnection
 import cc.lib.net.AGameServer
 import cc.lib.net.GameCommand
 import cc.lib.utils.rotate
+import cc.lib.utils.takeIfInstance
 import cc.lib.zombicide.ZPlayerName
 import cc.lib.zombicide.ZUser
 import cc.lib.zombicide.p2p.ZUserMP
@@ -16,14 +17,13 @@ import java.util.concurrent.ConcurrentHashMap
 /**
  * Created by Chris Caron on 7/28/21.
  */
-class ZServerMgr(activity: ZombicideActivity, game: UIZombicide, maxCharacters: Int, val server: AGameServer)
+class ZServerMgr(activity: ZombicideActivity, game: UIZombicide, val maxCharacters: Int, val server: AGameServer)
 	: SVR(activity, game), AGameServer.Listener, AClientConnection.Listener, ZMPCommon.SVRListener {
 	var colorAssigner = 0
-	val maxCharacters: Int // max chars each player can be assigned
 	var numStarted = 0
 	var playerAssignments: MutableMap<ZPlayerName, Assignee> = Collections.synchronizedMap(LinkedHashMap())
 	var clientToUserMap: MutableMap<String, ZUser> = ConcurrentHashMap()
-	val playerChooser: CharacterChooserDialogMP
+	var playerChooser: CharacterChooserDialogMP? = null
 	fun nextColor(): Int {
 		val color = colorAssigner
 		colorAssigner = colorAssigner.rotate(ZUser.USER_COLORS.size)
@@ -36,38 +36,50 @@ class ZServerMgr(activity: ZombicideActivity, game: UIZombicide, maxCharacters: 
 
 	override fun onConnected(conn: AClientConnection) {
 		if (game.isGameRunning()) {
+			conn.getAttribute("color")?.takeIfInstance<Int>()?.let { colorId ->
+				val color = ZUser.USER_COLORS[colorId]
+				var charsList = game.board.getAllCharacters().filter { it.color == color }
+				log.debug("color: $color, chars: ${charsList.joinToString()}")
+				if (charsList.isEmpty()) {
+					val allInvisible = game.board.getAllCharacters().filter { it.isInvisible }
+					val colors = allInvisible.map { it.color }.toSet().toList()
+					log.debug("allColors: ${colors.joinToString()}")
+					charsList = allInvisible.filter { it.color == colors[0] }
+				}
+				if (charsList.isNotEmpty()) {
+					conn.addListener(this)
+					val user: ZUser = ZUserMP(conn)
+					clientToUserMap[conn.name] = user
+					user.setColor(game.board, colorId)
+					conn.sendCommand(newLoadQuest(game.quest.quest))
+					val assignments = charsList.map {
+						Assignee(it.type, conn.name, colorId, true)
+					}
+					conn.sendCommand(newInit(colorId, maxCharacters, assignments, false))
+					game.characterRenderer.addMessage(conn.displayName + " has joined", user.getColor())
+					return
+				}
+			}
+
 			conn.disconnect("Game in Progress")
 			return
 		}
 
-		// see if there is an existing user we can reuse
-		/*
-		conn.addListener(this)
-		for (c in clientToUserMap.keys) {
-			if (!c.isConnected) {
-				val user = clientToUserMap[c]
-				if (user != null && user.players.size > 0) {
-					// reuse
-					clientToUserMap.remove(c)
-					clientToUserMap[conn] = user
-					game.addUser(user)
-					user.name = conn.displayName
-					conn.sendCommand(newLoadQuest(game.quest.quest))
-					conn.sendCommand(newInit(user.colorId, maxCharacters, ArrayList(playerAssignments.values)))
-					game.characterRenderer.addMessage(conn.displayName + " has joined", user.getColor())
-					user.setCharactersHidden(false)
-					game.boardRenderer.redraw()
-					return
-				}
-			}
-		}*/
 		conn.addListener(this)
 		val user: ZUser = ZUserMP(conn)
-		val color = nextColor()
-		user.setColor(game.board, color)
+		val usedColors = game.getUsers().map { it.colorId }
+		log.debug("Used colors: ${usedColors.map { ZUser.USER_COLOR_NAMES[it] }.joinToString()}")
+		if (usedColors.contains(user.colorId)) {
+			val availableColors = Array(ZUser.USER_COLORS.size) { it }.filter {
+				!usedColors.contains(it)
+			}
+			val color = availableColors[0]
+			log.debug("User ${user.name} is being reassigned color ${ZUser.USER_COLOR_NAMES[color]}")
+			user.setColor(game.board, color)
+		}
 		clientToUserMap[conn.name] = user
 		conn.sendCommand(newLoadQuest(game.quest.quest))
-		conn.sendCommand(newInit(color, maxCharacters, ArrayList(playerAssignments.values), true))
+		conn.sendCommand(newInit(user.colorId, maxCharacters, ArrayList(playerAssignments.values), true))
 		game.characterRenderer.addMessage(conn.displayName + " has joined", user.getColor())
 	}
 
@@ -123,7 +135,7 @@ class ZServerMgr(activity: ZombicideActivity, game: UIZombicide, maxCharacters: 
 				}
 			}
 			server.broadcastCommand(newAssignPlayer(a))
-			playerChooser.postNotifyUpdateAssignee(a)
+			playerChooser?.postNotifyUpdateAssignee(a)
 			game.boardRenderer.redraw()
 		}
 	}
@@ -156,13 +168,6 @@ class ZServerMgr(activity: ZombicideActivity, game: UIZombicide, maxCharacters: 
 		game.addPlayerComponentMessage("Error:" + e.javaClass.simpleName + ":" + e.message)
 	}
 
-	override fun onHandleChanged(conn: AClientConnection, newHandle: String) {
-		val user = clientToUserMap[conn.name]
-		if (user != null) {
-			user.name = newHandle
-		}
-	}
-
 	fun broadcastUpdateGame() {
 		server.broadcastCommand(newUpdateGameCommand(game))
 		//previous.copyFrom(game);
@@ -175,13 +180,17 @@ class ZServerMgr(activity: ZombicideActivity, game: UIZombicide, maxCharacters: 
 	init {
 		addListener(this)
 		server.addListener(this)
-		this.maxCharacters = maxCharacters
+		if (!game.isGameRunning())
+			showChooser()
+	}
+
+	fun showChooser() {
 		playerAssignments.clear()
 		for (c in activity.charLocks) {
 			val a = Assignee(c)
 			playerAssignments[c.player] = a
 		}
-		activity.thisUser.setColor(game.board, nextColor())
+//		activity.thisUser.setColor(game.board, nextColor())
 		val assignments: List<Assignee> = ArrayList(playerAssignments.values)
 		Collections.sort(assignments)
 		playerChooser = object : CharacterChooserDialogMP(activity, assignments, maxCharacters) {

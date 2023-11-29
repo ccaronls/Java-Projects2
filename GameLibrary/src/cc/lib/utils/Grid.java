@@ -72,11 +72,16 @@ public final class Grid<T> extends Reflector<Grid<T>> {
 
         public boolean isAdjacentTo(Pos pos) {
             if (row == pos.getRow()) {
-                return Math.abs(col-pos.getColumn()) == 1;
+                return Math.abs(col - pos.getColumn()) == 1;
             } else if (col == pos.getColumn()) {
                 return Math.abs(row - pos.getRow()) == 1;
             }
             return false;
+        }
+
+        @Override
+        protected boolean isImmutable() {
+            return true;
         }
     }
 

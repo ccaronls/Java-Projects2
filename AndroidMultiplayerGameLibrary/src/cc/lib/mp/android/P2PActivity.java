@@ -179,8 +179,8 @@ public abstract class P2PActivity extends CCActivityBase {
         }
 
         client = null;
-        server = newGameServer();//getDeviceName(), getConnectPort(), getVersion(), getCypher(), getMaxConnections());
-        P2PClientConnectionsDialog d = new P2PClientConnectionsDialog(this, server, getDeviceName());
+        server = newGameServer();
+        new P2PClientConnectionsDialog(this, server, getDeviceName());
     }
 
     protected abstract void onP2PServer(P2PServer p2pServer);

@@ -20,12 +20,11 @@ abstract class ZActor internal constructor(var occupiedZone: Int = -1) : Reflect
 	lateinit var occupiedQuadrant: ZCellQuadrant
 
 	fun isOccupying(): Boolean = ::occupiedQuadrant.isInitialized
-
-	@JvmField
 	var actionsLeftThisTurn = 0
+
+	@Omit
 	private var rect = GRectangle()
 
-	@JvmField
 	@Omit
 	var animation: ZActorAnimation? = null
 
@@ -112,6 +111,9 @@ abstract class ZActor internal constructor(var occupiedZone: Int = -1) : Reflect
 		    	it.start<AAnimation<AGraphics>>()
 		    it.update(g)
 	    }?:run {
+		    animation?.rect?.let {
+			    rect = it
+		    }
 		    animation = null
 		    draw(g)
 	    }

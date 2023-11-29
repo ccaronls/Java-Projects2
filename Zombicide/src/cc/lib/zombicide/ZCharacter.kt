@@ -624,21 +624,20 @@ class ZCharacter(override val type: ZPlayerName = ZPlayerName.Ann, skillz: Array
 		val ratings: MutableList<Int> = ArrayList()
 		var skillRating = 0
 		for (skill in getAvailableSkills()) {
-			skillRating = Math.max(skillRating, skill.getArmorRating(type))
+			skillRating = skillRating.coerceAtLeast(skill.getArmorRating(type))
 		}
 		for (slot in wearableValues()) {
-			val e = getSlot(slot)
-            if (e != null) {
-                var rating = e.type.getDieRollToBlock(type)
-                if (rating > 0) {
-                    if (e.type.isShield) {
-                        ratings.add(rating)
-                    } else {
-                        if (skillRating > 0) rating -= 1
-                        ratings.add(rating)
-                        skillRating = 0
-                    }
-                }
+			getSlot(slot)?.let { e ->
+				var rating = e.type.getDieRollToBlock(type)
+				if (rating > 0) {
+					if (e.type.isShield) {
+						ratings.add(rating)
+					} else {
+						if (skillRating > 0) rating -= 1
+						ratings.add(rating)
+						skillRating = 0
+					}
+				}
             }
         }
         if (skillRating > 0) {

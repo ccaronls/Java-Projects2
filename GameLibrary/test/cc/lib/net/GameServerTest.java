@@ -182,7 +182,7 @@ public class GameServerTest extends TestCase {
             assertTrue(listener1.connected);
             assertTrue(client.connected);
 
-            AClientConnection conn = server.getClientConnection(client.getDeviceName());
+            AClientConnection conn = server.getClientConnection(client.getDisplayName());
             assertNotNull(conn);
             waitLock.acquire(2);
             conn.kick();
@@ -234,7 +234,7 @@ public class GameServerTest extends TestCase {
             blockOrFail();
             assertTrue(listener1.connected);
             assertTrue(client.connected);
-            AClientConnection conn = server.getClientConnection(client.getDeviceName());
+            AClientConnection conn = server.getClientConnection(client.getDisplayName());
             assertNotNull(conn);
             /////////////////
 
@@ -388,7 +388,7 @@ public class GameServerTest extends TestCase {
             blockOrFail();
             assertTrue(client.isConnected());
 
-            AClientConnection conn = server.getClientConnection(client.getDeviceName());
+            AClientConnection conn = server.getClientConnection(client.getDisplayName());
             assertNotNull(conn);
 
             waitLock.acquire(20);
@@ -520,7 +520,7 @@ public class GameServerTest extends TestCase {
             assertTrue(listener1.connected);
             assertTrue(client.isConnected());
 
-            AClientConnection conn = server.getClientConnection(client.getDeviceName());
+            AClientConnection conn = server.getClientConnection(client.getDisplayName());
             Integer result = conn.executeMethodOnRemote(CLIENT_ID, true, "testMethod_returnsLongBlock");
 
             assertNotNull(result);

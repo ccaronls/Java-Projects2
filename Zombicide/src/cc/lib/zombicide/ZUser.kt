@@ -3,8 +3,13 @@ package cc.lib.zombicide
 import cc.lib.game.GColor
 
 abstract class ZUser(var name: String, vararg players: ZPlayerName) {
+
 	var colorId = 0
 		private set
+
+	protected open fun setColorId(id: Int) {
+		colorId = id
+	}
 
 	private val _players = mutableSetOf<ZPlayerName>().also {
 		it.addAll(players)
@@ -19,6 +24,7 @@ abstract class ZUser(var name: String, vararg players: ZPlayerName) {
 	fun addCharacter(c: ZCharacter) {
 		_players.add(c.type)
 		c.color = getColor()
+		c.isInvisible = false
 	}
 
 	fun removeCharacter(character: ZCharacter) {
@@ -33,9 +39,9 @@ abstract class ZUser(var name: String, vararg players: ZPlayerName) {
 		}
 	}
 
-	fun setColor(board: ZBoard, id: Int, nm: String = USER_COLOR_NAMES[id]) {
-		colorId = id
-		name = nm
+	fun setColor(board: ZBoard, id: Int, nm: String? = null) {
+		setColorId(id)
+		name = nm ?: USER_COLOR_NAMES[id]
 		_players.forEach {
 			board.getCharacterOrNull(it)?.color = USER_COLORS[id]
 		}

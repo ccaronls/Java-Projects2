@@ -1,9 +1,9 @@
 package cc.lib.net;
 
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -61,13 +61,6 @@ import cc.lib.utils.Reflector;
  *
  */
 public class GameCommand {
-
-    interface Serializer {
-
-        void write(GameCommand cmd) throws Exception;
-
-        GameCommand read() throws Exception;
-    }
 
     private final static Logger log = LoggerFactory.getLogger(GameCommand.class);
 
@@ -179,13 +172,15 @@ public class GameCommand {
      * @return
      */
     public final GameCommand setArg(String nm, Object val) {
+        if (nm == null)
+            throw new NullPointerException();
         if (val == null)
             arguments.remove(nm);
         else
-            arguments.put(nm,  val);
+            arguments.put(nm, val);
         return this;
     }
-    
+
     /**
      * 
      * @param name
@@ -214,24 +209,33 @@ public class GameCommand {
     }
 
     /**
-     * 
      * @param version
      * @return
      */
     public final GameCommand setVersion(String version) {
         return setArg("version", version);
     }
-    
+
     /**
-     * 
+     * @param args
+     * @return
+     */
+    public final GameCommand setArgs(Map<String, Object> args) {
+        for (Map.Entry<String, Object> e : args.entrySet()) {
+            setArg(e.getKey(), e.getValue());
+        }
+        return this;
+    }
+
+    /**
      * @param arg
      * @param items
      * @return
      */
     public final <T extends Enum<T>> GameCommand setEnumList(String arg, Collection<T> items) {
-        Integer [] list = new Integer[items.size()];
-        int index=0;
-        for (T item:items) {
+        Integer[] list = new Integer[items.size()];
+        int index = 0;
+        for (T item : items) {
             list[index++] = item.ordinal();
         }
         return setIntList(arg, list);
@@ -326,7 +330,10 @@ public class GameCommand {
                     command.arguments.put(key, din.readUTF());
                     break;
                 case TYPE_REFLECTOR: {
-                    command.arguments.put(key, din.readUTF());
+                    int len = din.readInt();
+                    byte[] data = new byte[len];
+                    din.readFully(data);
+                    command.arguments.put(key, new String(data, "UTF-8"));
                     break;
                 }
                 default:
@@ -369,9 +376,11 @@ public class GameCommand {
                 dout.writeUTF((String)o);
             } else if (o instanceof Reflector) {
                 dout.writeByte(TYPE_REFLECTOR);
-                StringWriter buf = new StringWriter(256);
-                ((Reflector) o).serialize(new Reflector.MyPrintWriter(buf));
-                dout.writeUTF(buf.toString());
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                ((Reflector) o).serialize(new Reflector.MyPrintWriter(out));
+                byte[] bytes = out.toByteArray();
+                dout.writeInt(bytes.length);
+                dout.write(bytes);
             } else {
                 dout.writeByte(TYPE_STRING);
                 dout.writeUTF(o.toString());
