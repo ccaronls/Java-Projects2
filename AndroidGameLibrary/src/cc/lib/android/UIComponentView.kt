@@ -7,6 +7,7 @@ import android.graphics.drawable.ColorDrawable
 import android.os.SystemClock
 import android.util.AttributeSet
 import android.view.MotionEvent
+import android.view.ScaleGestureDetector
 import android.view.View
 import android.view.ViewGroup
 import cc.lib.game.*
@@ -20,7 +21,10 @@ import kotlinx.coroutines.launch
 import kotlin.math.max
 import kotlin.math.roundToInt
 
-abstract class UIComponentView<T : UIRenderer> : View, UIComponent, Runnable {
+abstract class UIComponentView<T : UIRenderer> : View, UIComponent, Runnable, ScaleGestureDetector.OnScaleGestureListener {
+
+	private val TAG = this::class.java.simpleName
+
 	private lateinit var g: DroidGraphics
 	private var initialized = false
 	private var tx = -1
@@ -34,6 +38,8 @@ abstract class UIComponentView<T : UIRenderer> : View, UIComponent, Runnable {
 	private var downTime: Long = 0
 	private var touchDownX = 0
 	private var touchDownY = 0
+	private var scaleGestureDetector: ScaleGestureDetector? = null
+	private var scaling = false
 
 	constructor(context: Context, attrs: AttributeSet?) : super(context, attrs) {
 		init(context, attrs)
@@ -41,6 +47,10 @@ abstract class UIComponentView<T : UIRenderer> : View, UIComponent, Runnable {
 
 	constructor(context: Context) : super(context) {
 		init(context, null)
+	}
+
+	fun enablePinchZoom() {
+		scaleGestureDetector = ScaleGestureDetector(context, this)
 	}
 
 	protected fun init(context: Context, attrs: AttributeSet?) {
@@ -143,7 +153,13 @@ abstract class UIComponentView<T : UIRenderer> : View, UIComponent, Runnable {
 		}
 	}
 
-	override fun onTouchEvent(event: MotionEvent): Boolean {
+	final override fun onTouchEvent(event: MotionEvent): Boolean {
+		if (!::renderer.isInitialized)
+			return false
+		scaleGestureDetector?.onTouchEvent(event)
+		if (scaling)
+			return true
+
 		when (event.action) {
 			MotionEvent.ACTION_DOWN -> {
 				downTime = SystemClock.uptimeMillis()
@@ -225,5 +241,33 @@ abstract class UIComponentView<T : UIRenderer> : View, UIComponent, Runnable {
 	override fun onDetachedFromWindow() {
 		super.onDetachedFromWindow()
 		g.releaseBitmaps()
+	}
+
+	override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+		if (::renderer.isInitialized)
+			renderer.onSizeChanged(w, h)
+	}
+
+	final override fun onScaleBegin(detector: ScaleGestureDetector): Boolean {
+		if (dragging) {
+			renderer.onDragEnd()
+		}
+		renderer.onDragStart(detector.focusX.roundToInt(), detector.focusY.roundToInt())
+		scaling = true
+		return true
+	}
+
+	final override fun onScaleEnd(detector: ScaleGestureDetector) {
+		scaling = false
+		dragging = false
+		renderer.onDragEnd()
+	}
+
+	final override fun onScale(detector: ScaleGestureDetector): Boolean {
+		if (::renderer.isInitialized && detector.isInProgress && detector.scaleFactor > 0.1f) {
+			renderer.onDragMove(detector.focusX.roundToInt(), detector.focusY.roundToInt())
+			renderer.onZoom(1f / detector.scaleFactor)
+		}
+		return true
 	}
 }

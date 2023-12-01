@@ -56,7 +56,7 @@ class ZSkillLevel(val color: ZColor = ZColor.BLUE, val ultra: Int = -1) : Reflec
         } else if (color === ZColor.RED) return 0
         var idx = (color.ordinal + 1) % NUM_LEVELS
         if (idx == 0) idx++
-        return ZColor.values()[idx].dangerPts - curPts
+        return ZColor.values()[idx].dangerPts
     }
 
     val dangerPts: Int

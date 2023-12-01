@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import cc.lib.math.*;
+import cc.lib.math.Matrix3x3;
+import cc.lib.math.MutableVector2D;
+import cc.lib.math.Vector2D;
 import cc.lib.utils.GException;
 
 /**
@@ -216,25 +218,29 @@ public class Renderer {
     	return new MutableVector2D(s_vec);
     }
     /**
-     * 
+     *
      * @param x
      * @param y
      * @param v
      */
-    public final void transformXY(float x, float y, float [] v) {
-    	transformXY(x, y, s_vec);
-    	v[0] = s_vec.X(); v[1] = s_vec.Y();
+    public final void transformXY(float x, float y, float[] v) {
+        transformXY(x, y, s_vec);
+        v[0] = s_vec.X();
+        v[1] = s_vec.Y();
+    }
+
+    public final void setOrtho(IRectangle rect) {
+        setOrtho(rect.X(), rect.X() + rect.getWidth(), rect.Y(), rect.Y() + rect.getHeight());
     }
 
     /**
-     * 
      * @param left
      * @param right
      * @param top
      * @param bottom
      */
     public final void setOrtho(float left, float right, float top, float bottom) {
-        float xo = 2/(right-left);
+        float xo = 2 / (right - left);
         float yo = 2/(bottom - top);
         float tx = -(right + left) / (right -left);
         float ty = -(top + bottom) / (bottom-top);

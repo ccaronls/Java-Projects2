@@ -450,29 +450,29 @@ class ZCharacter(override val type: ZPlayerName = ZPlayerName.Ann, skillz: Array
         info.addColumn(ZEquipSlot.BACKPACK.label + if (isBackpackFull) " (full)" else "", listOf(slotInfo))
         val stats = Table(this).setNoBorder().setPadding(0)
         var armorRating = StringBuilder("none")
-        val ratings = getArmorRatings(ZZombieType.Walker)
-        if (ratings.isNotEmpty()) {
-            armorRating = StringBuilder("" + ratings[0] + "+")
-            for (i in 1 until ratings.size) {
-                armorRating.append("/").append(ratings[i]).append("+")
-            }
-        }
-        stats.addRow("Moves", String.format("%d of %d", actionsLeftThisTurn, actionsPerTurn))
-        stats.addRow("Wounds", String.format("%d of %d", woundBar, MAX_WOUNDS))
-        stats.addRow("Armor Rolls", armorRating.toString())
-        val sl = skillLevel
-        val ptsToNxt = sl.getPtsToNextLevel(exp)
-        stats.addRow("Skill", sl)
-        stats.addRow("Exp", exp)
-        stats.addRow("Next level", ptsToNxt)
-        stats.addRow("Dual\nWielding", isDualWielding)
-        info.addColumn("Stats", listOf(stats))
-        if (getAvailableSkills().isNotEmpty()) {
-            val skills = Table(this).setNoBorder().addColumnNoHeader(Utils.toStringArray(getAvailableSkills(), true))
-            info.addColumn("Skills", skills)
-        }
-        val main = Table(this).setNoBorder()
-        if (isDead) {
+	    val ratings = getArmorRatings(ZZombieType.Walker)
+	    if (ratings.isNotEmpty()) {
+		    armorRating = StringBuilder("" + ratings[0] + "+")
+		    for (i in 1 until ratings.size) {
+			    armorRating.append("/").append(ratings[i]).append("+")
+		    }
+	    }
+	    stats.addRow("Moves", String.format("%d of %d", actionsLeftThisTurn, actionsPerTurn))
+	    stats.addRow("Wounds", String.format("%d of %d", woundBar, MAX_WOUNDS))
+	    stats.addRow("Armor Rolls", armorRating.toString())
+	    val ptsToNxt = skillLevel.getPtsToNextLevel(exp)
+	    val ptsToNextDelta = ptsToNxt - exp
+	    stats.addRow("Skill", skillLevel)
+	    stats.addRow("Exp", exp)
+	    stats.addRow("Next level", "$ptsToNxt (+$ptsToNextDelta)")
+	    stats.addRow("Dual\nWielding", isDualWielding)
+	    info.addColumn("Stats", listOf(stats))
+	    if (getAvailableSkills().isNotEmpty()) {
+		    val skills = Table(this).setNoBorder().addColumnNoHeader(Utils.toStringArray(getAvailableSkills(), true))
+		    info.addColumn("Skills", skills)
+	    }
+	    val main = Table(this).setNoBorder()
+	    if (isDead) {
             main.addRow(String.format("%s (%s) Killed in Action",
                     type.label, type.characterClass))
         } else {

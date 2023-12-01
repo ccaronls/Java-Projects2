@@ -81,19 +81,27 @@ public class GRectangle extends Reflector<GRectangle> implements IRectangle {
     public void set(IVector2D v0, IVector2D v1) {
         x = Math.min(v0.getX(), v1.getX());
         y = Math.min(v0.getY(), v1.getY());
-        w = Math.abs(v0.getX()-v1.getX());
-        h = Math.abs(v0.getY()-v1.getY());
+        w = Math.abs(v0.getX() - v1.getX());
+        h = Math.abs(v0.getY() - v1.getY());
+    }
+
+    public void set(IRectangle r) {
+        x = r.X();
+        y = r.Y();
+        w = r.getWidth();
+        h = r.getHeight();
     }
 
     /**
      * Useful for mouse dragging rectangular bounds
+     *
      * @param v
      */
     public void setEnd(IVector2D v) {
         x = Math.min(x, v.getX());
         y = Math.min(y, v.getY());
-        w = Math.abs(x-v.getX());
-        h = Math.abs(y-v.getY());
+        w = Math.abs(x - v.getX());
+        h = Math.abs(y - v.getY());
     }
 
     public void set(float left, float top, float right, float bottom) {
@@ -310,8 +318,8 @@ public class GRectangle extends Reflector<GRectangle> implements IRectangle {
     }
 
     public GRectangle setPosition(IVector2D topLeft) {
-        x=topLeft.getX();
-        y=topLeft.getY();
+        x = topLeft.getX();
+        y = topLeft.getY();
         return this;
     }
 
@@ -321,8 +329,14 @@ public class GRectangle extends Reflector<GRectangle> implements IRectangle {
         return this;
     }
 
+    public GRectangle setDimension(float width, float height) {
+        w = width;
+        h = height;
+        return this;
+    }
+
     public GRectangle withCenter(IVector2D cntr) {
-        return new GRectangle(cntr.getX()-w/2, cntr.getY()-h/2, w, h);
+        return new GRectangle(cntr.getX() - w / 2, cntr.getY() - h / 2, w, h);
     }
 
     public GRectangle withPosition(IVector2D topLeft) {
@@ -451,5 +465,4 @@ public class GRectangle extends Reflector<GRectangle> implements IRectangle {
     public final boolean isEmpty() {
         return this == EMPTY || (getWidth() <= 0 && getHeight() <= 0);
     }
-
 }

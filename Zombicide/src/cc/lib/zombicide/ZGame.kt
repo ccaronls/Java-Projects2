@@ -83,6 +83,7 @@ open class ZGame() : Reflector<ZGame>() {
 
     @Omit
     private val users: MutableList<ZUser> = ArrayList()
+
     val questInitialized : Boolean
         get() = ::quest.isInitialized
     lateinit var quest: ZQuest
@@ -1260,9 +1261,10 @@ open class ZGame() : Reflector<ZGame>() {
                     if (move.integer != null) {
                         zoneIdx = move.integer
                     } else {
-	                    val zones = board.getAccessibleZones(cur.occupiedZone, slot.type.throwMinRange, slot.type.throwMaxRange, ZActionType.THROW_ITEM).toMutableList()
-                        zones.add(cur.occupiedZone)
-                        zoneIdx = getCurrentUser().chooseZoneToThrowEquipment(cur.type, slot, zones)
+	                    board.getAccessibleZones(cur.occupiedZone, slot.type.throwMinRange, slot.type.throwMaxRange, ZActionType.THROW_ITEM).toMutableList().apply {
+		                    add(cur.occupiedZone)
+		                    zoneIdx = getCurrentUser().chooseZoneToThrowEquipment(cur.type, slot, this)
+	                    }
                     }
                     if (zoneIdx != null) {
                         slot.type.onThrown(this, cur, zoneIdx)

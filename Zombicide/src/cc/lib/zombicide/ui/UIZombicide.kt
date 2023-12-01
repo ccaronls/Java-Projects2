@@ -27,7 +27,7 @@ abstract class UIZombicide(val characterRenderer: UIZCharacterRenderer, val boar
 	}
 
 	init {
-		boardRenderer.listeners.add(this)
+		boardRenderer.addListener(this)
 		instance = this
 	}
 
@@ -100,6 +100,7 @@ abstract class UIZombicide(val characterRenderer: UIZCharacterRenderer, val boar
 			kotlin.runCatching {
 				while (gameRunning && !isGameOver) {
 					boardRenderer.currentCharacter = currentCharacter
+					characterRenderer.actorInfo = currentCharacter
 					runGame()
 				}
 			}.exceptionOrNull()?.let { e ->
@@ -377,9 +378,13 @@ abstract class UIZombicide(val characterRenderer: UIZCharacterRenderer, val boar
 					}
 				})
 			}
-			boardRenderer.redraw()
-			characterRenderer.redraw()
 			animLock.block()
+		}
+		with(player?.toCharacter()) {
+			boardRenderer.currentCharacter = this
+			boardRenderer.redraw()
+			characterRenderer.actorInfo = this
+			characterRenderer.redraw()
 		}
 	}
 
@@ -582,11 +587,9 @@ abstract class UIZombicide(val characterRenderer: UIZCharacterRenderer, val boar
 		when (weapon.type) {
 			ZWeaponType.EARTHQUAKE_HAMMER -> {
 				val animLock = Lock(numDice)
-				val currentZoom = boardRenderer.zoomPercent
-				if (currentZoom < 1) {
-					attacker.addAnimation(EmptyAnimation(attacker, 500))
-					boardRenderer.addPreActor(ZoomAnimation(attacker.getRect(board).center, boardRenderer, 1f))
-				}
+				val currentZoom = boardRenderer.getZoomedRect()
+				attacker.addAnimation(EmptyAnimation(attacker, 500))
+				boardRenderer.addPreActor(ZoomAnimation(attacker.getRect(board), boardRenderer))
 				var i = 0
 				while (i < numDice) {
 					attacker.addAnimation(object : MeleeAnimation(attacker, board) {
@@ -612,11 +615,9 @@ abstract class UIZombicide(val characterRenderer: UIZCharacterRenderer, val boar
 			}
 			else                          -> {
 				val animLock = Lock(numDice)
-				val currentZoom = boardRenderer.zoomPercent
-				if (currentZoom < 1) {
-					attacker.addAnimation(EmptyAnimation(attacker, 500))
-					boardRenderer.addPreActor(ZoomAnimation(attacker.getRect(board).center, boardRenderer, 1f))
-				}
+				val currentZoomRect = boardRenderer.getZoomedRect()
+				attacker.addAnimation(EmptyAnimation(attacker, 500))
+				boardRenderer.addPreActor(ZoomAnimation(attacker.getRect(board), boardRenderer))
 				var i = 0
 				while (i < numDice) {
 					if (i < hits.size) {
@@ -647,7 +648,7 @@ abstract class UIZombicide(val characterRenderer: UIZCharacterRenderer, val boar
 				}
 				boardRenderer.redraw()
 				animLock.block()
-				boardRenderer.animateZoomTo(currentZoom)
+				boardRenderer.animateZoomTo(currentZoomRect)
 			}
 		}
 

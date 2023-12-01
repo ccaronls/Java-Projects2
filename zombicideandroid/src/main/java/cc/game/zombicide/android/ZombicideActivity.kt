@@ -148,6 +148,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 		zb.bLeft.setOnClickListener(this)
 		zb.bDown.setOnClickListener(this)
 		zb.bRight.setOnClickListener(this)
+		zb.boardView.enablePinchZoom()
 		characterRenderer = UIZCharacterRenderer(zb.consoleView)
 		boardRenderer = object : UIZBoardRenderer(zb.boardView) {
 			override fun onLoaded() {
@@ -405,16 +406,9 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 			game.boardRenderer.setOverlay(null)
 			when (v.id) {
 				R.id.b_zoom -> {
-					val curZoom = game.boardRenderer.zoomPercent
-					if (curZoom < 1) {
-						game.boardRenderer.animateZoomTo(curZoom + .5f)
-					} else {
-						game.boardRenderer.animateZoomTo(0f)
-					}
-					game.boardRenderer.redraw()
+					game.boardRenderer.toggleZoomType()
 				}
 				R.id.b_center -> {
-					game.boardRenderer.clearDragOffset()
 					if (v.tag != null) {
 						game.setResult(v.tag)
 						clearKeypad()
@@ -514,16 +508,21 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 				startGame()
 			}
 			MenuItem.RESUME -> {
-				newDialogBuilder().setMessage("Resume in Multiplayer mode?")
-					.setNegativeButton(R.string.popup_button_no) { _, _ ->
-						thisUser.setCharacters(game.allCharacters)
-						startGame()
-					}.setPositiveButton(R.string.popup_button_yes) { _, _ ->
-						game.allCharacters.filter { it.color == thisUser.getColor() }.apply {
-							thisUser.setCharacters(this)
-						}
-						p2pInit(P2PMode.SERVER)
-					}.show()
+				if (game.allCharacters.filter { it.isInvisible }.isNotEmpty()) {
+					newDialogBuilder().setMessage("Resume in Multiplayer mode?")
+						.setNegativeButton(R.string.popup_button_no) { _, _ ->
+							thisUser.setCharacters(game.allCharacters)
+							startGame()
+						}.setPositiveButton(R.string.popup_button_yes) { _, _ ->
+							game.allCharacters.filter { it.color == thisUser.getColor() }.apply {
+								thisUser.setCharacters(this)
+							}
+							p2pInit(P2PMode.SERVER)
+						}.show()
+				} else {
+					thisUser.setCharacters(game.allCharacters)
+					startGame()
+				}
 			}
 			MenuItem.QUIT -> if (client != null) {
 				newDialogBuilder().setTitle(R.string.popup_title_confirm)

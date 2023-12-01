@@ -5,13 +5,14 @@ import org.jetbrains.annotations.NotNull;
 import cc.lib.game.APGraphics;
 import cc.lib.game.GDimension;
 import cc.lib.game.IDimension;
+import cc.lib.game.Renderable;
 
 /**
  * Created by chriscaron on 2/27/18.
- *
+ * <p>
  * Provides a generalized interface for application ui elements that render
  */
-public abstract class UIRenderer implements IDimension {
+public abstract class UIRenderer implements IDimension, Renderable {
 
     private final UIComponent component;
 
@@ -54,6 +55,12 @@ public abstract class UIRenderer implements IDimension {
     public void onDragEnd() {
     }
 
+    public void onSizeChanged(int w, int h) {
+    }
+
+    public void onZoom(float scale) {
+    }
+
     public final GDimension getMinDimension() {
         return min;
     }
@@ -76,5 +83,19 @@ public abstract class UIRenderer implements IDimension {
 
     public void redraw() {
         component.redraw();
+    }
+
+    @Override
+    public int getViewportWidth() {
+        return component.getWidth();
+    }
+
+    @Override
+    public int getViewportHeight() {
+        return component.getHeight();
+    }
+
+    public float getViewportAspect() {
+        return (float) getViewportWidth() / getViewportHeight();
     }
 }

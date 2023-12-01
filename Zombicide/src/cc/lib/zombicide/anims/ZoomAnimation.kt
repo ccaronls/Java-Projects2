@@ -1,15 +1,15 @@
 package cc.lib.zombicide.anims
 
 import cc.lib.game.AGraphics
-import cc.lib.game.IVector2D
+import cc.lib.game.GRectangle
 import cc.lib.math.Vector2D
 import cc.lib.zombicide.ZAnimation
 import cc.lib.zombicide.ui.UIZBoardRenderer
 
-class ZoomAnimation(startCenter: IVector2D, val renderer: UIZBoardRenderer, targetZoomPercent: Float) : ZAnimation( 500) {
-	val startZoomPercent: Float = renderer.zoomPercent
+class ZoomAnimation(_endRect: GRectangle, val renderer: UIZBoardRenderer) : ZAnimation(800) {
+	val startRect = renderer.getZoomedRect()
 	val dv: Vector2D
-	val dz: Float
+	val endRect = renderer.clampRect(_endRect)
 
 	/**
 	 *
@@ -19,14 +19,13 @@ class ZoomAnimation(startCenter: IVector2D, val renderer: UIZBoardRenderer, targ
 	 * @param zoomPercent value between 0-1 where 0 is full zoom out and 1 is full zoom into the target rectangle
 	 */
 	init {
-		val cntr = Vector2D(renderer.center)
-		// we want the actor to be off to the left or right
-		dv = cntr.sub(startCenter)
-		dz = targetZoomPercent - startZoomPercent
+		dv = endRect.center.sub(startRect.center)
 	}
 
 	override fun draw(g: AGraphics, position: Float, dt: Float) {
-		renderer.zoomPercent = startZoomPercent + dz * position
+		val rect = startRect.getInterpolationTo(endRect, position)
+		renderer.setZoomedRect(rect)
+		renderer.redraw()
 	}
 
 }

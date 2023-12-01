@@ -48,7 +48,7 @@ class HoverMessage(val board: UIZBoardRenderer, private val msg: String, val cen
 	init {
 		val offset = .3f
 		val mag = .5f
-		when (Vector2D(center).sub(board.zoomedRect.center).angleOf().roundToInt()) {
+		when (Vector2D(center).sub(board.getZoomedRect().center).angleOf().roundToInt()) {
 			in 0..90 -> {
 				// UR quadrant
 				start = Vector2D(-offset, 0f)

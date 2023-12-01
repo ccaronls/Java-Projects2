@@ -3,7 +3,9 @@ package cc.lib.zombicide
 import cc.lib.game.GColor
 import cc.lib.game.GDimension
 import cc.lib.game.IDimension
+import cc.lib.game.IVector2D
 import cc.lib.logger.LoggerFactory
+import cc.lib.math.MutableVector2D
 import cc.lib.math.Vector2D
 import cc.lib.utils.*
 import cc.lib.zombicide.ZDir.Companion.compassValues
@@ -786,4 +788,27 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 		}
 	}
 
+	// return the center of all players, or the center of the start tile, or just the center
+	fun getLogicalCenter(): IVector2D {
+		with(getAllCharacters()) {
+			if (size > 0) {
+				val center = MutableVector2D()
+				forEach {
+					center.addEq(it.center)
+				}
+				return center.scaledBy(1.0f / size)
+			}
+		}
+
+		with(getCellsOfType(ZCellType.START)) {
+			if (size > 0) {
+				val center = MutableVector2D()
+				forEach {
+					center.addEq(it.center)
+				}
+				return center.scaledBy(1.0f / size)
+			}
+		}
+		return center
+	}
 }

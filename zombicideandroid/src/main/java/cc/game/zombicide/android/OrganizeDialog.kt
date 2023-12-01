@@ -133,15 +133,16 @@ class OrganizeViewModel : LifecycleViewModel(),
 	val descriptionBody : LiveData<String> = combine(descriptionItem, primaryCharacter, secondaryCharacter) { obj, primary, secondary ->
 		when (obj) {
 			is ZCharacter -> obj.getAllSkillsTable().toString()
-			is ZWeapon    -> secondary?.let {
+			is ZWeapon -> secondary?.let {
 				obj.getComparisonInfo(game, primary!!, it).toString()
-			}?:run {
+			} ?: run {
 				obj.getCardInfo(primary!!, game).toString()
 			}
-			is ZItem -> obj.type.description
-			is ZEquipment<*> -> obj.type.label
+			//is ZItem -> obj.type.description
+			//is ZEquipment<*> -> obj.tooltipText
 			is IButton -> obj.tooltipText
-			else -> ""
+			//is ZSpell -> obj.type.tooltipText
+			else -> "??"
 		}
 	}
 
