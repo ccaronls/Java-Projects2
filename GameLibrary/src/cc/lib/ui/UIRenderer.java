@@ -61,6 +61,9 @@ public abstract class UIRenderer implements IDimension, Renderable {
     public void onZoom(float scale) {
     }
 
+    public void onFocusChanged(boolean gained) {
+    }
+
     public final GDimension getMinDimension() {
         return min;
     }

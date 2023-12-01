@@ -361,9 +361,9 @@ fun String.padToFit(width: Int) : String {
 	return padStart(diff / 2).padEnd(diff / 2)
 }
 
-inline fun <reified T : Enum<T>> T.increment(amt: Int): T {
-	val values = enumValues<T>()
-	return values[(ordinal + amt + values.size) % values.size]
+inline fun <reified T : Enum<T>> T.increment(amt: Int, values: Array<T> = enumValues()): T {
+	val idx = values.indexOf(this).coerceAtLeast(0)
+	return values[(idx + amt + values.size) % values.size]
 }
 
 inline fun <T, S> Iterable<T>.forEachAs(action: (S) -> Unit) {
@@ -375,3 +375,5 @@ inline fun <T, S> T.transform(func: (T) -> S): S = func(this)
 inline fun KMutableProperty<Boolean>.toggle() {
 	setter.call(getter.call().not())
 }
+
+fun Float.formated(fmt: String): String = String.format(fmt, toString())

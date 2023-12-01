@@ -3,9 +3,8 @@ package cc.applets.zombicide
 import cc.lib.game.GDimension
 import cc.lib.game.Utils
 import cc.lib.logger.LoggerFactory
-import cc.lib.swing.AWTComponent
 import cc.lib.swing.AWTGraphics
-import cc.lib.ui.UIRenderer
+import cc.lib.swing.AWTRendererComponent
 import cc.lib.utils.Table
 import cc.lib.zombicide.*
 import cc.lib.zombicide.ui.MiniMapMode
@@ -17,10 +16,11 @@ import java.awt.event.WindowEvent
 import java.awt.event.WindowListener
 import kotlin.math.roundToInt
 
-internal class BoardComponent : AWTComponent(), UIZComponent<AWTGraphics>, WindowListener {
+internal class BoardComponent : AWTRendererComponent<UIZBoardRenderer>(), UIZComponent<AWTGraphics>, WindowListener {
 	val log = LoggerFactory.getLogger(javaClass)
 	override fun init(g: AWTGraphics) {
 		setMouseEnabled(true)
+		setGesturesEnabled()
 		object : Thread() {
 			override fun run() {
 				loadImages(g)
@@ -28,57 +28,17 @@ internal class BoardComponent : AWTComponent(), UIZComponent<AWTGraphics>, Windo
 		}.start()
 	}
 
-	override fun setRenderer(r: UIRenderer) {
-		renderer = r as UIZBoardRenderer
-	}
-
 	var numImagesLoaded = 0
 	var totalImagesToLoad = 1000
-	lateinit var renderer: UIZBoardRenderer
 
 	override val initProgress: Float
 		get() {
 			var progress = numImagesLoaded.toFloat() / totalImagesToLoad
-			if (progress >= 1 && loadedTiles.size > 0) {
+			if (progress >= 1 && loadedTiles.isNotEmpty()) {
 				progress = numTilesLoaded.toFloat() / (loadedTiles.size + 1)
 			}
 			return progress
 		}
-
-	override fun onDimensionChanged(g: AWTGraphics, width: Int, height: Int) {
-		//GDimension cellDim = getGame().getBoard().initCellRects(g, width-5, height-5);
-		// int newWidth = (int)cellDim.width * getGame().getBoard().getColumns();
-		// int newHeight = (int)cellDim.height * getGame().getBoard().getRows();
-		// setPreferredSize(newWidth, newHeight);
-	}
-
-	@Synchronized
-	override fun paint(g: AWTGraphics, mouseX: Int, mouseY: Int) {
-		g.clearScreen()
-		if (::renderer.isInitialized) {
-			renderer.draw(g, mouseX, mouseY)
-		}
-	}
-
-	override fun onFocusGained() {
-		if (::renderer.isInitialized) renderer.isFocussed = true
-	}
-
-	override fun onClick() {
-		renderer.onClick()
-	}
-
-	override fun onDragStarted(x: Int, y: Int) {
-		renderer.onDragStart(x, y)
-	}
-
-	override fun onDragStopped() {
-		renderer.onDragEnd()
-	}
-
-	override fun onDrag(x: Int, y: Int, dx: Int, dy: Int) {
-		renderer.onDragMove(x, y)
-	}
 
 	fun loadImages(g: AWTGraphics) {
 		g.addSearchPath("zombicideandroid/src/main/res/drawable")
@@ -249,19 +209,16 @@ internal class BoardComponent : AWTComponent(), UIZComponent<AWTGraphics>, Windo
 	override fun keyPressed(e: KeyEvent) {
 		val game = instance
 		when (e.keyCode) {
-			KeyEvent.VK_LEFT, KeyEvent.VK_RIGHT, KeyEvent.VK_UP, KeyEvent.VK_DOWN, KeyEvent.VK_SPACE, KeyEvent.VK_SLASH -> {
+			KeyEvent.VK_LEFT, KeyEvent.VK_RIGHT, KeyEvent.VK_UP, KeyEvent.VK_DOWN, KeyEvent.VK_SLASH -> {
 				val move = keyMap[e.keyCode]
 				if (move != null) {
 					game.setResult(move)
 					keyMap.clear()
-				} else if (e.keyCode == KeyEvent.VK_SPACE) {
-					renderer.clearDragOffset()
 				}
 			}
-			KeyEvent.VK_PLUS, KeyEvent.VK_EQUALS ->                 // zoom in
-				renderer.animateZoomTo(renderer.zoomPercent + 0.25f)
-			KeyEvent.VK_MINUS, KeyEvent.VK_UNDERSCORE ->                 // zoom out
-				renderer.animateZoomTo(renderer.zoomPercent - 0.25f)
+			KeyEvent.VK_SPACE -> renderer.toggleZoomType()
+			KeyEvent.VK_PLUS, KeyEvent.VK_EQUALS -> renderer.zoomAmt(.8f)
+			KeyEvent.VK_MINUS, KeyEvent.VK_UNDERSCORE -> renderer.zoomAmt(1.2f)
 			KeyEvent.VK_T -> ZombicideApplet.instance.setStringProperty("tiles", if (renderer.toggleDrawTiles()) "yes" else "no")
 			KeyEvent.VK_D -> ZombicideApplet.instance.setStringProperty("debugText", if (renderer.toggleDrawDebugText()) "yes" else "no")
 			KeyEvent.VK_R -> ZombicideApplet.instance.setStringProperty("rangedAccessibility", if (renderer.toggleDrawRangedAccessibility()) "yes" else "no")
@@ -270,8 +227,8 @@ internal class BoardComponent : AWTComponent(), UIZComponent<AWTGraphics>, Windo
 			KeyEvent.VK_M -> ZombicideApplet.instance.setEnumProperty("miniMapMode", renderer.toggleDrawMinimap())
 			KeyEvent.VK_C -> ZombicideApplet.instance.setStringProperty("drawScreenCenter", if (renderer.toggleDrawScreenCenter()) "yes" else "no")
 			KeyEvent.VK_L -> ZombicideApplet.instance.setStringProperty("drawClickable", if (renderer.toggleDrawClickables()) "yes" else "no")
-			KeyEvent.VK_BACK_QUOTE -> renderer.setOverlay(Table()
-				.addRow("+ / -", "Zoom in / out", String.format("%s%%", (100f * renderer.zoomPercent).roundToInt()))
+			else -> renderer.setOverlay(Table()
+				.addRow("+ / -", "Zoom in / out", (100 * renderer.zoomPercent).roundToInt())
 				.addRow("T", "Toggle draw Tiles", renderer.drawTiles)
 				.addRow("D", "Toggle draw Debug text", renderer.drawDebugText)
 				.addRow("R", "Toggle show Ranged Accessibility", renderer.drawRangedAccessibility)
@@ -280,7 +237,6 @@ internal class BoardComponent : AWTComponent(), UIZComponent<AWTGraphics>, Windo
 				.addRow("M", "Toggle Minimap mode", renderer.miniMapMode.name)
 				.addRow("C", "Toggle draw Center", renderer.drawScreenCenter)
 			)
-			else -> System.err.println("Got code " + e.keyCode)
 		}
 		repaint()
 	}
@@ -295,10 +251,6 @@ internal class BoardComponent : AWTComponent(), UIZComponent<AWTGraphics>, Windo
 		}
 	}
 
-	override fun onMouseWheel(rotation: Int) {
-		renderer.scroll(0f, -5f * rotation)
-	}
-
 	override fun windowOpened(e: WindowEvent) {}
 	override fun windowClosing(e: WindowEvent) {}
 	override fun windowClosed(e: WindowEvent) {}
@@ -310,11 +262,4 @@ internal class BoardComponent : AWTComponent(), UIZComponent<AWTGraphics>, Windo
 	}
 
 	override fun windowDeactivated(e: WindowEvent) {}
-	override fun onFocusLost() {
-		super.onFocusLost()
-		if (::renderer.isInitialized) {
-			renderer.setHighlightActor(null)
-			renderer.isFocussed = false
-		}
-	}
 }

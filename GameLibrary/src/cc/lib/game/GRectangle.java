@@ -324,9 +324,10 @@ public class GRectangle extends Reflector<GRectangle> implements IRectangle {
     }
 
     public GRectangle setDimension(IDimension dim) {
+        IVector2D cntr = getCenter();
         w = dim.getWidth();
         h = dim.getHeight();
-        return this;
+        return setCenter(cntr);
     }
 
     public GRectangle setDimension(float width, float height) {
@@ -434,7 +435,7 @@ public class GRectangle extends Reflector<GRectangle> implements IRectangle {
         return new GRectangle(nx, ny, w, h);
     }
 
-    public final void setAspect(float aspect) {
+    public final GRectangle setAspect(float aspect) {
         float a = getAspect();
         Vector2D cntr = getCenter();
         if (a > aspect) {
@@ -445,16 +446,31 @@ public class GRectangle extends Reflector<GRectangle> implements IRectangle {
             w = h * aspect;
         }
         setCenter(cntr);
+        return this;
     }
 
-    public GRectangle [] subDivide(int rows, int cols) {
-        GRectangle [] divisions = new GRectangle[rows*cols];
-        float wid = w/cols;
-        float hgt = h/rows;
+    public final GRectangle setAspectReduce(float aspect) {
+        float a = getAspect();
+        Vector2D cntr = getCenter();
+        if (a < aspect) {
+            // grow the height to meet the target aspect
+            h = w / aspect;
+        } else {
+            // grow the width to meet the target aspect
+            w = h * aspect;
+        }
+        setCenter(cntr);
+        return this;
+    }
+
+    public GRectangle[] subDivide(int rows, int cols) {
+        GRectangle[] divisions = new GRectangle[rows * cols];
+        float wid = w / cols;
+        float hgt = h / rows;
         int idx = 0;
-        for (int i=0; i<cols; i++) {
-            MutableVector2D tl = getTopLeft().addEq(wid*i, 0);
-            for (int ii=0; ii<rows; ii++) {
+        for (int i = 0; i < cols; i++) {
+            MutableVector2D tl = getTopLeft().addEq(wid * i, 0);
+            for (int ii = 0; ii < rows; ii++) {
                 divisions[idx++] = new GRectangle(tl, wid, hgt);
                 tl.addEq(0, hgt);
             }

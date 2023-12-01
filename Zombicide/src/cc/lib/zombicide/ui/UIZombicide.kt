@@ -617,7 +617,7 @@ abstract class UIZombicide(val characterRenderer: UIZCharacterRenderer, val boar
 				val animLock = Lock(numDice)
 				val currentZoomRect = boardRenderer.getZoomedRect()
 				attacker.addAnimation(EmptyAnimation(attacker, 500))
-				boardRenderer.addPreActor(ZoomAnimation(attacker.getRect(board), boardRenderer))
+				boardRenderer.animateZoomTo(attacker.getRect(board))
 				var i = 0
 				while (i < numDice) {
 					if (i < hits.size) {

@@ -1,15 +1,14 @@
 package cc.applets.zombicide
 
-import cc.lib.swing.AWTComponent
 import cc.lib.swing.AWTGraphics
+import cc.lib.swing.AWTRendererComponent
 import cc.lib.ui.UIComponent
-import cc.lib.ui.UIRenderer
 import cc.lib.zombicide.ui.UIZCharacterRenderer
 import java.awt.Dimension
 import java.awt.Rectangle
 import javax.swing.Scrollable
 
-internal class CharacterComponent : AWTComponent(), Scrollable, UIComponent {
+internal class CharacterComponent : AWTRendererComponent<UIZCharacterRenderer>(), Scrollable, UIComponent {
 	override fun init(g: AWTGraphics) {
 		//setMouseEnabled(true);
 		val minHeight = (g.textHeight * 30).toInt()
@@ -18,20 +17,9 @@ internal class CharacterComponent : AWTComponent(), Scrollable, UIComponent {
 		g.textHeight = 14f
 	}
 
-	lateinit var renderer: UIZCharacterRenderer
-
 	init {
 		setPreferredSize(300, 200)
 		autoscrolls = true
-	}
-
-	override fun setRenderer(renderer: UIRenderer) {
-		this.renderer = renderer as UIZCharacterRenderer
-	}
-
-	override fun paint(g: AWTGraphics, mouseX: Int, mouseY: Int) {
-		if (::renderer.isInitialized)
-			renderer.draw(g, mouseX, mouseY)
 	}
 
 	override fun getPreferredScrollableViewportSize(): Dimension {

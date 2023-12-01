@@ -48,6 +48,10 @@ abstract class AWTComponent : UIComponent, JComponent, Renderable, MouseListener
 		}
 	}
 
+	fun setGesturesEnabled() {
+		log.warn("Gestures not supported")
+	}
+
 	@Synchronized
 	override fun paint(g: Graphics) {
 		try {
@@ -201,6 +205,8 @@ abstract class AWTComponent : UIComponent, JComponent, Renderable, MouseListener
 			repaint()
 		}
 	}
+
+	protected open fun onZoom(scale: Float) {} // Future work
 
 	@Synchronized
 	override fun lostFocus(ev: Event, obj: Any): Boolean {

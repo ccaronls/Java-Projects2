@@ -20,6 +20,7 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.roundToInt
 
 enum class MiniMapMode {
 	OFF,
@@ -181,13 +182,26 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		}
 	}
 
-	fun toggleZoomType() {
+	fun zoomAmt(percent: Float) {
+		val targetRect = zoomedRect.scaledBy(percent)
+		currentZoomType = ZoomType.UNDEFINED
+		animateZoomTo(targetRect)
+	}
+
+	val zoomPercent: Float
+		get() {
+			if (viewport.area > 0) {
+				return zoomedRect.area / viewport.area
+			}
+			return 0f
+		}
+
+	fun toggleZoomType(increment: Int = 1) {
 		if (desiredZoomType == currentZoomType) {
-			currentZoomType.increment(1).also {
-				if (it == ZoomType.UNDEFINED)
-					desiredZoomType = ZoomType.CROP_FIT
-				else
-					desiredZoomType = it
+			currentZoomType.increment(increment, ZoomType.values().filter {
+				it != ZoomType.UNDEFINED
+			}.toTypedArray()).also {
+				desiredZoomType = it
 			}
 		}
 		val cntr = computeBoardCenter()
@@ -195,21 +209,19 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 			ZoomType.UNDEFINED -> TODO("This shouldn't happen")
 			ZoomType.CROP_FIT -> {
 				val d = max(board.width, board.height)
-				zoomedRect.set(viewport.cropFit(GRectangle(0f, 0f, d, d).withCenter(cntr)))
+				animateZoomTo(viewport.cropFit(GRectangle(0f, 0f, d, d).withCenter(cntr)))
 			}
 			ZoomType.X2 -> {
 				val d = .5f * (min(board.width, board.height) + 3f)
-				zoomedRect.set(viewport.fitInner(GRectangle(0f, 0f, d, d).withCenter(cntr)))
+				animateZoomTo(GRectangle(0f, 0f, d, d).setAspectReduce(viewportAspect).withCenter(cntr))
 			}
-			ZoomType.MAX -> zoomedRect.set(viewport.fitInner(GRectangle(0f, 0f, 3f, 3f).withCenter(cntr)))
+			ZoomType.MAX -> animateZoomTo(viewport.fitInner(GRectangle(0f, 0f, 3f, 3f).withCenter(cntr)))
 			ZoomType.FILL_FIT -> {
 				val d = max(board.width, board.height)
-				zoomedRect.set(viewport.fillFit(GRectangle(0f, 0f, d, d).withCenter(cntr)))
+				animateZoomTo(viewport.fillFit(GRectangle(0f, 0f, d, d).withCenter(cntr)))
 			}
 		}
 		currentZoomType = desiredZoomType
-		clampZoomRect()
-		redraw()
 	}
 
 	fun processSubMenu(cur: ZCharacter, options: List<IButton>) {
@@ -983,7 +995,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		}
 
 		logIf(6, "5:Using board center")
-		return board.center
+		return board.getLogicalCenter()
 	}
 
 	fun clearTiles() {
@@ -1007,6 +1019,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 	 */
 	@Synchronized
 	fun animateZoomTo(newRect: GRectangle) {
+		clampRect(newRect)
 		zoomAnimation = ZoomAnimation(newRect, this).start()
 		redraw()
 	}
@@ -1073,7 +1086,8 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		drawActors(g)?.let { picked ->
 			highlightedActor = picked
 		}
-		if (drawDebugText) drawDebugText(g)
+		if (drawDebugText)
+			drawDebugText(g)
 		if (drawZombiePaths) {
 			highlightedActor?.let {
 				if (it is ZZombie) {
@@ -1124,6 +1138,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 			drawZoneOutline(g, cell.zoneIndex)
 		}
 		drawMessage(g)
+		drawOverlay(g)
 
 		if (zoomAnimation?.isDone == true) {
 			zoomAnimation = null
@@ -1173,16 +1188,23 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 	}
 
 	protected fun drawMessage(g: AGraphics) {
+		g.pushMatrix()
+		g.setIdentity()
+		g.ortho()
+		g.color = GColor.WHITE
 		boardMessage?.let { message ->
-			g.pushMatrix()
-			g.setIdentity()
-			g.ortho()
-			g.color = GColor.WHITE
 			g.drawJustifiedStringOnBackground(10f, height - 10, Justify.LEFT, Justify.BOTTOM, message, GColor.TRANSLUSCENT_BLACK, borderThickness)
 			drawAnimations(overlayAnimations, g)
-			drawOverlay(g)
-			g.popMatrix()
 		}
+		if (drawDebugText) {
+			g.drawJustifiedStringOnBackground(width - 10, 10f, Justify.RIGHT, Justify.TOP,
+				"""$desiredZoomType/$currentZoomType/${(100f * zoomPercent).roundToInt()}
+				   ZoomRect: $zoomedRect
+				   Viewport: $viewport
+				   Board: ${board.width} x ${board.height}
+				""".trimMargin(), GColor.TRANSLUSCENT_BLACK, borderThickness)
+		}
+		g.popMatrix()
 	}
 
 	private fun drawOverlayObject(obj: Any?, g: AGraphics) {
@@ -1320,13 +1342,17 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 	fun clampRect(rect: GRectangle): GRectangle {
 		if (rect.w > viewport.width || rect.h >= viewport.height) {
 			rect.setDimension(viewport)
-		} else if (rect.w < 3 || rect.h < 3) {
-			rect.setDimension(GDimension(3f, 3f)).aspect = viewportAspect
+		} else if (rect.w < 2 || rect.h < 2) {
+			rect.setDimension(GDimension(2f, 2f)).aspect = viewportAspect
 		}
-		val minX = (board.width / 2 - zoomedRect.w / 2).coerceAtMost(0f)
-		val minY = (board.height / 2 - zoomedRect.h / 2).coerceAtMost(0f)
-		rect.x = rect.x.coerceIn(minX, viewport.width - rect.w)
-		rect.y = rect.y.coerceIn(minY, viewport.height - rect.h)
+		val minX = (board.width / 2 - rect.width / 2).coerceAtMost(0f)
+		val minY = (board.height / 2 - rect.height / 2).coerceAtMost(0f)
+		val maxX = (board.width / 2 + rect.width / 2).coerceAtLeast(board.width) - rect.w
+		val maxY = (board.height / 2 + rect.height / 2).coerceAtLeast(board.height) - rect.h
+		if (minX <= maxX)
+			rect.x = rect.x.coerceIn(minX, maxX)
+		if (minY <= maxY)
+			rect.y = rect.y.coerceIn(minY, maxY)
 		return rect
 	}
 
@@ -1383,6 +1409,13 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 
 		currentZoomType = ZoomType.UNDEFINED
 		toggleZoomType()
+	}
+
+	override fun onFocusChanged(focussed: Boolean) {
+		isFocussed = focussed
+		if (!isFocussed) {
+			setHighlightActor(null)
+		}
 	}
 
 	companion object {
