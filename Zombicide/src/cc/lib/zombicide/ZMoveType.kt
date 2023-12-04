@@ -58,7 +58,7 @@ enum class ZMoveType(val toolTipText: String?, val shortName: String = "") : IBu
 	;
 
     override fun getLabel(): String {
-        return prettify(name)
+        return name.prettify()
     }
 
     override fun getTooltipText(): String? {

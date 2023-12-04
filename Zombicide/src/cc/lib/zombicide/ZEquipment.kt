@@ -1,8 +1,8 @@
 package cc.lib.zombicide
 
 
+import cc.lib.reflector.Reflector
 import cc.lib.ui.IButton
-import cc.lib.utils.Reflector
 import cc.lib.utils.Table
 import cc.lib.utils.prettify
 
@@ -66,9 +66,9 @@ abstract class ZEquipment<T : ZEquipmentType> : Reflector<ZEquipment<T>>(), IBut
     abstract fun getCardInfo(c: ZCharacter, game: ZGame): Table
     override fun getTooltipText(): String? = type.tooltipText
 
-    override fun toString(): String  = prettify(type.name)
+	override fun toString(): String = type.name.prettify()
 
-    override fun getLabel(): String = prettify(type.name)
+	override fun getLabel(): String = type.name.prettify()
 
     open fun onEndOfRound(game: ZGame) {}
     override fun isImmutable(): Boolean = true

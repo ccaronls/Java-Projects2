@@ -2,8 +2,9 @@ package cc.lib.probot
 
 import cc.lib.game.AGraphics
 import cc.lib.game.GColor
+import cc.lib.reflector.Omit
+import cc.lib.reflector.Reflector
 import cc.lib.utils.Lock
-import cc.lib.utils.Reflector
 import cc.lib.utils.weakReference
 import java.util.*
 import kotlin.math.roundToInt

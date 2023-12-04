@@ -1,6 +1,6 @@
 package cc.lib.probot
 
-import cc.lib.utils.Reflector
+import cc.lib.reflector.Reflector
 
 class Level : Reflector<Level>() {
 	companion object {

@@ -1,7 +1,7 @@
 package cc.lib.probot
 
 import cc.lib.game.GColor
-import cc.lib.utils.Reflector
+import cc.lib.reflector.Reflector
 
 class Guy : Reflector<Guy> {
 	companion object {

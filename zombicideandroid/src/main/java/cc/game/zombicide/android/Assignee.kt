@@ -1,7 +1,8 @@
 package cc.game.zombicide.android
 
 import cc.game.zombicide.android.ZombicideActivity.CharLock
-import cc.lib.utils.Reflector
+import cc.lib.reflector.Omit
+import cc.lib.reflector.Reflector
 import cc.lib.zombicide.ZPlayerName
 
 class Assignee(val name: ZPlayerName = ZPlayerName.Nelly, var userName: String = "??", var color: Int = -1, var checked: Boolean = false) : Reflector<Assignee>(), Comparable<Assignee> {

@@ -1,7 +1,7 @@
 package cc.lib.checkerboard
 
 import cc.lib.game.Utils
-import cc.lib.utils.Reflector
+import cc.lib.reflector.Reflector
 
 open class Player(var playerNum: Int = -1, var color: Color = Color.BLACK) : Reflector<Player>() {
 	companion object {

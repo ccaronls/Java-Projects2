@@ -1,6 +1,6 @@
 package cc.lib.monopoly
 
-import cc.lib.utils.Reflector
+import cc.lib.reflector.Reflector
 
 class Rules : Reflector<Rules?>() {
 	companion object {

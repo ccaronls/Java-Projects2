@@ -1,7 +1,7 @@
 package cc.lib.yahtzee
 
 import cc.lib.game.Utils
-import cc.lib.utils.Reflector
+import cc.lib.reflector.Reflector
 import cc.lib.utils.random
 import java.util.*
 

@@ -2,7 +2,7 @@ package cc.lib.game;
 
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
-import cc.lib.utils.Reflector;
+import cc.lib.reflector.Reflector;
 
 public final class GDimension extends Reflector<GDimension> implements IDimension, IRectangle {
 
@@ -110,9 +110,6 @@ public final class GDimension extends Reflector<GDimension> implements IDimensio
 
     @Override
     public String toString() {
-        return "GDimension{" +
-                "width=" + width +
-                ", height=" + height +
-                '}';
+        return width + " x " + height;
     }
 }

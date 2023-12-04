@@ -1,7 +1,5 @@
 package cc.game.soc.core
 
-import cc.lib.utils.Reflector
-
 enum class CommodityType(val _nameId: String, val helpTextId: String) : ICardType<DevelopmentArea> {
 	Paper("Paper", "Can be exchanged for Science improvements"),
 	Cloth("Cloth", "Can be exchanged for Trade improvements"),

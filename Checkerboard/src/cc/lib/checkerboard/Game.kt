@@ -2,8 +2,8 @@ package cc.lib.checkerboard
 
 import cc.lib.game.IGame
 import cc.lib.logger.LoggerFactory
+import cc.lib.reflector.Reflector
 import cc.lib.utils.GException
-import cc.lib.utils.Reflector
 import java.util.*
 
 open class Game : Reflector<Game>(), IGame<Move> {

@@ -6,14 +6,13 @@ import cc.lib.game.AGraphics
 import cc.lib.game.GColor
 import cc.lib.game.Justify
 import cc.lib.game.Utils
+import cc.lib.reflector.Reflector
 import cc.lib.swing.AWTFrame
 import cc.lib.swing.AWTKeyboardAnimationApplet
 import cc.lib.utils.FileUtils
 import cc.lib.utils.Lock
-import cc.lib.utils.Reflector
 import java.awt.event.MouseEvent
 import java.io.File
-import java.util.*
 
 class KaiserApplet() : AWTKeyboardAnimationApplet() {
 	private var tableImageId = -1

@@ -1,7 +1,6 @@
 package cc.game.kaiser.core
 
-import cc.lib.utils.Reflector
-import java.util.*
+import cc.lib.reflector.Reflector
 
 class Hand internal constructor(val mCards: MutableList<Card> = mutableListOf()): Reflector<Hand>(), MutableList<Card> by mCards{
 	companion object {

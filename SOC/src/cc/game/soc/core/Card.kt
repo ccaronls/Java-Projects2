@@ -1,7 +1,9 @@
 package cc.game.soc.core
 
+import cc.lib.reflector.RBufferedReader
+import cc.lib.reflector.RPrintWriter
+import cc.lib.reflector.Reflector
 import cc.lib.utils.GException
-import cc.lib.utils.Reflector
 import java.io.IOException
 
 open class Card(var cardType: CardType, var typeOrdinal: Int, var cardStatus: CardStatus)
@@ -19,12 +21,12 @@ open class Card(var cardType: CardType, var typeOrdinal: Int, var cardStatus: Ca
 	constructor() : this(CardType.Resource, 0, CardStatus.UNUSABLE)
 
 	@Throws(IOException::class)
-	public override fun serialize(out: MyPrintWriter) {
+	public override fun serialize(out: RPrintWriter) {
 		out.println(cardType.toString() + "," + cardStatus + "," + cardType.dereferenceOrdinal(typeOrdinal).name)
 	}
 
 	@Throws(Exception::class)
-	override fun deserialize(`in`: MyBufferedReader) {
+	override fun deserialize(`in`: RBufferedReader) {
 		val parts = `in`.readLine().split(",".toRegex()).toTypedArray()
 		cardType = CardType.valueOf(parts[0])
 		cardStatus = CardStatus.valueOf(parts[1])

@@ -1,8 +1,6 @@
 package cc.game.soc.core
 
-import cc.game.soc.core.Scenario
-import cc.game.soc.core.SOC
-import cc.lib.utils.Reflector
+import cc.lib.reflector.Reflector
 
 /**
  * Created by chriscaron on 4/2/18.

@@ -1,5 +1,6 @@
 package cc.lib.zombicide.quests
 
+import cc.lib.reflector.Omit
 import cc.lib.utils.Grid
 import cc.lib.utils.Table
 import cc.lib.zombicide.*

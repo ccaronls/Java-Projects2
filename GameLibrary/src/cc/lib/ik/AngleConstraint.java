@@ -3,6 +3,7 @@ package cc.lib.ik;
 import cc.lib.math.CMath;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
+import cc.lib.reflector.Omit;
 
 /**
  * Constrain angle from a section to its previous hinge.

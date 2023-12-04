@@ -101,4 +101,8 @@ public interface IDimension {
         }
         return rect;
     }
+
+    default boolean isEmpty() {
+        return getWidth() <= 0 || getHeight() <= 0;
+    }
 }

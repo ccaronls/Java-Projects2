@@ -2,7 +2,7 @@ package cc.game.soc.core;
 
 import junit.framework.TestCase;
 
-import cc.lib.utils.Reflector;
+import cc.lib.reflector.Reflector;
 
 public class FixSaveFile extends TestCase {
 

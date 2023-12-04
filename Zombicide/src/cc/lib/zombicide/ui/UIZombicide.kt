@@ -247,7 +247,8 @@ abstract class UIZombicide(val characterRenderer: UIZCharacterRenderer, val boar
 	}
 
 	override fun initQuest(quest: ZQuest) {
-		boardRenderer.clearTiles()
+		boardRenderer.quest = quest
+		refresh()
 	}
 
 	override fun onClick(obj: Any?) {

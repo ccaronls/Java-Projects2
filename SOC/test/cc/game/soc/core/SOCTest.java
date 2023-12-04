@@ -19,8 +19,8 @@ import cc.lib.crypt.HuffmanEncoding;
 import cc.lib.game.GColor;
 import cc.lib.game.Utils;
 import cc.lib.net.GameClient;
+import cc.lib.reflector.Reflector;
 import cc.lib.utils.Profiler;
-import cc.lib.utils.Reflector;
 
 public class SOCTest extends TestCase {
 

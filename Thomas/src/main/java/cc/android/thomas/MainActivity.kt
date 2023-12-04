@@ -12,7 +12,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
-import android.widget.*
+import android.widget.EditText
+import android.widget.NumberPicker
+import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -27,7 +30,11 @@ import cc.lib.android.DragAndDropAdapter
 import cc.lib.android.EmailHelper
 import cc.lib.annotation.Keep
 import cc.lib.game.Utils
-import cc.lib.utils.*
+import cc.lib.reflector.Reflector
+import cc.lib.utils.FileUtils
+import cc.lib.utils.getOrSet
+import cc.lib.utils.prettify
+import cc.lib.utils.weakReference
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
@@ -36,7 +43,6 @@ import org.joda.time.DateTimeZone
 import java.io.File
 import java.io.FileNotFoundException
 import java.util.*
-import kotlin.Pair
 
 enum class WorkoutState {
 	STOPPED,
@@ -379,7 +385,7 @@ class MainActivity : CCActivityBase(),
 		val allStations = allKnownStations.map { it.name to it }.toMap().toMutableMap()
 		for (station in curWorkout.stations) {
 			if (station.lastDoneLocalSecs > 0) {
-				val s = allStations.getOrSet(station.name, station)
+				val s = allStations.getOrSet(station.name) { station }
 				// see if we need to 0 out the day, week, month counters
 				val prev = DateTime(s.lastDoneLocalSecs * 1000, dtz).withTimeAtStartOfDay()
 				if (prev.isBefore(today)) {
@@ -505,7 +511,7 @@ class MainActivity : CCActivityBase(),
             }
 
             override fun getItemName(item: StationType): String {
-                return prettify(item.name)
+	            return item.name.prettify()
             }
         }
 	    with (ob.vgButtons) {
@@ -709,6 +715,7 @@ class MainActivity : CCActivityBase(),
 	    when (vm.state.value) {
 	    	WorkoutState.PAUSED -> resume()
 		    WorkoutState.RUNNING -> pause()
+		    else -> Unit
 	    }
     }
 

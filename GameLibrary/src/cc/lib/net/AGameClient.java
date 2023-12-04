@@ -15,8 +15,8 @@ import java.util.Set;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
+import cc.lib.reflector.Reflector;
 import cc.lib.utils.GException;
-import cc.lib.utils.Reflector;
 
 /**
  * Base class for clients that want to connect to a GameServer

@@ -7,6 +7,8 @@ import cc.lib.game.IVector2D
 import cc.lib.logger.LoggerFactory
 import cc.lib.math.MutableVector2D
 import cc.lib.math.Vector2D
+import cc.lib.reflector.Omit
+import cc.lib.reflector.Reflector
 import cc.lib.utils.*
 import cc.lib.zombicide.ZDir.Companion.compassValues
 import cc.lib.zombicide.ZDir.Companion.getDirFrom
@@ -60,7 +62,7 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 
 	fun getActor(id: String?): ZActor? = actors[id ?: ""]
 
-	fun isEmpty(): Boolean = grid.isEmpty
+	override fun isEmpty(): Boolean = grid.isEmpty
 
 	/**
 	 * Get list of accessable zones

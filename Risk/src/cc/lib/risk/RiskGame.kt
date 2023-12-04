@@ -1,9 +1,12 @@
 package cc.lib.risk
 
 import cc.lib.logger.LoggerFactory
-import cc.lib.utils.*
+import cc.lib.reflector.Reflector
+import cc.lib.utils.GException
+import cc.lib.utils.Table
+import cc.lib.utils.prettify
+import cc.lib.utils.random
 import java.util.*
-import kotlin.Pair
 
 /**
  * Created by Chris Caron on 9/13/21.
@@ -116,12 +119,16 @@ open class RiskGame(val board : RiskBoard = RiskBoard()) : Reflector<RiskGame>()
 						cell.numArmies++
 						cur.decrementArmy()
 						when (state) {
-							State.PLACE_ARMY1           -> state = State.PLACE_ARMY2
-							State.PLACE_ARMY2           -> state = State.PLACE_NEUTRAL
-							State.PLACE_ARMY            -> nextPlayer()
+							State.PLACE_ARMY1 -> state = State.PLACE_ARMY2
+							State.PLACE_ARMY2 ->
+								if (numPlayers == 2)
+									state = State.PLACE_NEUTRAL
+								else
+									nextPlayer()
+							State.PLACE_ARMY -> nextPlayer()
 							State.BEGIN_TURN_PLACE_ARMY -> {
 							}
-							else                        -> throw GException("Unhandled case: $state")
+							else -> throw GException("Unhandled case: $state")
 						}
 					}
 				} else if (state == State.BEGIN_TURN_PLACE_ARMY) {
@@ -498,7 +505,7 @@ open class RiskGame(val board : RiskBoard = RiskBoard()) : Reflector<RiskGame>()
 			header.add("Army")
 			header.add("Troops")
 			for (r in Region.values()) {
-				header.add(prettify(r.name).replace(' ', '\n') + " +" + r.extraArmies)
+				header.add(r.name.prettify().replace(' ', '\n') + " +" + r.extraArmies)
 			}
 			val table = Table(header)
 			val armies = players.map { p: RiskPlayer -> p.army }.toMutableList()

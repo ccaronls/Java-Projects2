@@ -4,10 +4,10 @@ import cc.lib.game.AGraphics
 import cc.lib.logger.LoggerFactory
 import cc.lib.monopoly.*
 import cc.lib.monopoly.Player.CardChoiceType
+import cc.lib.reflector.Reflector
 import cc.lib.swing.*
 import cc.lib.swing.AWTFrame.OnListItemChoosen
 import cc.lib.utils.FileUtils
-import cc.lib.utils.Reflector
 import cc.lib.utils.prettify
 import java.awt.BorderLayout
 import java.awt.event.ActionEvent
@@ -144,12 +144,12 @@ ${e.javaClass.simpleName} ${e.message}""")
 				when (mt) {
 					MoveType.PURCHASE_UNBOUGHT -> {
 						val sq = getPurchasePropertySquare()
-						strings.add("Purchase ${prettify(sq.name)} \$${sq.price}")
+						strings.add("Purchase ${sq.name.prettify()} \$${sq.price}")
 					}
 					MoveType.PAY_BOND -> {
-						strings.add(String.format("%s $%d", prettify(mt.name), player.jailBond))
+						strings.add(String.format("%s $%d", mt.name.prettify(), player.jailBond))
 					}
-					else -> strings.add(prettify(mt.name))
+					else -> strings.add(mt.name.prettify())
 				}
 			}
 			trySaveToFile(SAVE_FILE)
@@ -196,9 +196,9 @@ ${e.javaClass.simpleName} ${e.message}""")
 			val items = mutableListOf<String>()
 			for (c in cards) {
 				when (type) {
-					CardChoiceType.CHOOSE_CARD_TO_MORTGAGE -> items.add(prettify(c.property.name) + " Mortgage $" + c.property.getMortgageValue(c.houses))
-					CardChoiceType.CHOOSE_CARD_TO_UNMORTGAGE -> items.add(prettify(c.property.name) + " Buyback $" + c.property.mortgageBuybackPrice)
-					CardChoiceType.CHOOSE_CARD_FOR_NEW_UNIT -> items.add(prettify(c.property.name) + " Unit $" + c.property.unitPrice)
+					CardChoiceType.CHOOSE_CARD_TO_MORTGAGE -> items.add(c.property.name.prettify() + " Mortgage $" + c.property.getMortgageValue(c.houses))
+					CardChoiceType.CHOOSE_CARD_TO_UNMORTGAGE -> items.add(c.property.name.prettify() + " Buyback $" + c.property.mortgageBuybackPrice)
+					CardChoiceType.CHOOSE_CARD_FOR_NEW_UNIT -> items.add(c.property.name.prettify() + " Unit $" + c.property.unitPrice)
 				}
 			}
 			frame.showListChooserDialog(object : OnListItemChoosen {
@@ -214,7 +214,7 @@ ${e.javaClass.simpleName} ${e.message}""")
 						stopGameThread()
 					lock.withLock { cond.signal() }
 				}
-			}, player.piece.toString() + " " + prettify(type.name), *items.toTypedArray())
+			}, player.piece.toString() + " " + type.name.prettify(), *items.toTypedArray())
 			lock.withLock { cond.await() }
 			return result[0]
 		}
@@ -225,7 +225,7 @@ ${e.javaClass.simpleName} ${e.message}""")
 				override fun itemChoose(index: Int) {
 					val t = trades[index]
 					val trader = t.trader
-					val title = "Buy " + prettify(t.card.property.name) + " from " + prettify(trader.piece.name)
+					val title = "Buy " + t.card.property.name.prettify() + " from " + trader.piece.name.prettify()
 					showPropertyPopup(title, "Buy for $" + t.price, t.card.property, {
 						result[0] = t
 						lock.withLock { cond.signal() }

@@ -1,7 +1,7 @@
 package cc.lib.ik;
 
 import cc.lib.math.MutableVector2D;
-import cc.lib.utils.Reflector;
+import cc.lib.reflector.Reflector;
 
 /**
  * Created by chriscaron on 10/20/17.

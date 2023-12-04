@@ -1,7 +1,7 @@
 package cc.lib.game;
 
 import cc.lib.math.MutableVector2D;
-import cc.lib.utils.Reflector;
+import cc.lib.reflector.Reflector;
 
 /**
  * A 2D Figure 

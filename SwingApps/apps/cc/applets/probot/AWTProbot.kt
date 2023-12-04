@@ -6,9 +6,9 @@ import cc.lib.probot.Command
 import cc.lib.probot.CommandType
 import cc.lib.probot.Level
 import cc.lib.probot.UIProbot
+import cc.lib.reflector.Reflector
 import cc.lib.swing.*
 import cc.lib.utils.FileUtils
-import cc.lib.utils.Reflector
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Cursor

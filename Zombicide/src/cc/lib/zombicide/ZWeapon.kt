@@ -212,13 +212,13 @@ class ZWeapon(override val type: ZWeaponType=ZWeaponType.AXE) : ZEquipment<ZWeap
 	            "no"
 	        }
             cardLower.addColumnNoHeader(Arrays.asList(
-                prettify(stats.attackType.name),
-                if (type.canTwoHand) "yes" else "no",
-                String.format("%d %s", stats.damagePerHit, if (type.attackIsNoisy) " loud" else " quiet"),
-                String.format("%d%% x %d", stats.dieRollToHitPercent, stats.numDice),
-                if (stats.minRange == stats.maxRange) stats.minRange.toString() else String.format("%d-%d", stats.minRange, stats.maxRange),
-                doorInfo,
-                if (stats.attackType.needsReload()) String.format("yes (%s)", if (isEmpty) "empty" else "loaded") else "no"
+	            stats.attackType.name.prettify(),
+	            if (type.canTwoHand) "yes" else "no",
+	            String.format("%d %s", stats.damagePerHit, if (type.attackIsNoisy) " loud" else " quiet"),
+	            String.format("%d%% x %d", stats.dieRollToHitPercent, stats.numDice),
+	            if (stats.minRange == stats.maxRange) stats.minRange.toString() else String.format("%d-%d", stats.minRange, stats.maxRange),
+	            doorInfo,
+	            if (stats.attackType.needsReload()) String.format("yes (%s)", if (isEmpty) "empty" else "loaded") else "no"
             ))
         }
         if (type.minColorToEquip.ordinal > 0) {

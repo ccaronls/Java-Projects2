@@ -111,7 +111,7 @@ class RiskActivity : DroidActivity(), OnItemClickListener {
 						?: View.inflate(this@RiskActivity, R.layout.list_item, null)
 					val b = convertView.findViewById<TextView>(R.id.text_view)
 					b.tag = buttons[position]
-					b.text = prettify(buttons[position] ?: "")
+					b.text = buttons[position]?.prettify() ?: ""
 					return b
 				}
 			}

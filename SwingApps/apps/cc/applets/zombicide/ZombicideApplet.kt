@@ -343,11 +343,11 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 					override fun mouseEntered(e: MouseEvent) {
 						boardComp.renderer.setHighlightActor(obj)
 						charComp.renderer.actorInfo = obj
-						t.stop()
-						t = AWTUtils.postDelayed(4000, false) {
-							boardComp.renderer.setOverlay(obj.getAllSkillsTableExpanded())
-						}
-						charComp.redraw()
+						//t.stop()
+						//t = AWTUtils.postDelayed(4000, false) {
+						//	boardComp.renderer.setOverlay(obj.getAllSkillsTableExpanded())
+						//}
+						//charComp.redraw()
 					}
 
 					override fun mouseExited(e: MouseEvent) {

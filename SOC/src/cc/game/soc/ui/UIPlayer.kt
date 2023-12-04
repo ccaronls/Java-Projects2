@@ -6,6 +6,7 @@ import cc.lib.game.GColor
 import cc.lib.game.Utils
 import cc.lib.net.AClientConnection
 import cc.lib.net.GameCommand
+import cc.lib.reflector.Omit
 import cc.lib.ui.UIComponent
 import cc.lib.utils.GException
 

@@ -6,9 +6,10 @@ import cc.lib.game.IRectangle
 import cc.lib.game.Utils
 import cc.lib.math.MutableVector2D
 import cc.lib.math.Vector2D
+import cc.lib.reflector.Omit
+import cc.lib.reflector.Reflector
 import cc.lib.utils.GException
 import cc.lib.utils.Grid
-import cc.lib.utils.Reflector
 import cc.lib.utils.rotate
 
 /**

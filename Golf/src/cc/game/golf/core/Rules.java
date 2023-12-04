@@ -1,6 +1,6 @@
 package cc.game.golf.core;
 
-import cc.lib.utils.Reflector;
+import cc.lib.reflector.Reflector;
 
 /**
  * Class to hold rules of the game tunable to achieve many variations.  

@@ -1,5 +1,6 @@
 package cc.lib.checkerboard
 
+import cc.lib.reflector.Omit
 import cc.lib.utils.GException
 import cc.lib.utils.Table
 

@@ -2,6 +2,7 @@ package cc.library.mirrortest
 
 import cc.lib.mirror.context.Mirrored
 import cc.lib.mirror.context.mirroredArrayOf
+import com.google.gson.GsonBuilder
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -235,5 +236,17 @@ class MirrorTest {
 		println(owner)
 
 		assertTrue(receiverMirror.doSomething1Executed)
+	}
+
+	@Test
+	fun test7() {
+		val data = TempData(1, 5f)
+		//Json.encodeToString(data)
+		val gson = GsonBuilder().setPrettyPrinting().create()
+		val json = gson.toJson(data)
+		println("json: $json")
+
+		val data2 = gson.fromJson(json, TempData::class.java)
+		println("data2: $data2")
 	}
 }

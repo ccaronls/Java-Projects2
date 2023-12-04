@@ -4,7 +4,8 @@ import cc.lib.annotation.Keep
 import cc.lib.game.GRectangle
 import cc.lib.game.Utils
 import cc.lib.net.AClientConnection
-import cc.lib.utils.Reflector
+import cc.lib.reflector.Omit
+import cc.lib.reflector.Reflector
 import java.util.*
 
 open class Player(var playerNum: Int=-1) : Reflector<Player>() {

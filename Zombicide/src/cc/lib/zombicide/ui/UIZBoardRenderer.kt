@@ -82,8 +82,15 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 	var currentZoomType = ZoomType.UNDEFINED
 	private val board: ZBoard
 		get() = UIZombicide.instance.board
-	private val quest: ZQuest?
-		get() = if (UIZombicide.instance.questInitialized) UIZombicide.instance.quest else null
+	var quest: ZQuest? = null
+		set(value) {
+			if (field?.quest != value?.quest) {
+				clearTiles()
+			}
+			field = value
+		}
+
+	//get() = if (UIZombicide.instance.questInitialized) UIZombicide.instance.quest else null
 	var boardMessage: String? = null
 		set(value) {
 			field = value
@@ -196,9 +203,9 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 			return 0f
 		}
 
-	fun toggleZoomType(increment: Int = 1) {
+	fun toggleZoomType(noAnimate: Boolean = false) {
 		if (desiredZoomType == currentZoomType) {
-			currentZoomType.increment(increment, ZoomType.values().filter {
+			currentZoomType.increment(1, ZoomType.values().filter {
 				it != ZoomType.UNDEFINED
 			}.toTypedArray()).also {
 				desiredZoomType = it
@@ -209,16 +216,24 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 			ZoomType.UNDEFINED -> TODO("This shouldn't happen")
 			ZoomType.CROP_FIT -> {
 				val d = max(board.width, board.height)
-				animateZoomTo(viewport.cropFit(GRectangle(0f, 0f, d, d).withCenter(cntr)))
+				viewport.cropFit(GRectangle(0f, 0f, d, d).withCenter(cntr))
 			}
 			ZoomType.X2 -> {
 				val d = .5f * (min(board.width, board.height) + 3f)
-				animateZoomTo(GRectangle(0f, 0f, d, d).setAspectReduce(viewportAspect).withCenter(cntr))
+				GRectangle(0f, 0f, d, d).setAspectReduce(viewportAspect).withCenter(cntr)
 			}
-			ZoomType.MAX -> animateZoomTo(viewport.fitInner(GRectangle(0f, 0f, 3f, 3f).withCenter(cntr)))
+			ZoomType.MAX -> viewport.fitInner(GRectangle(0f, 0f, 3f, 3f).withCenter(cntr))
 			ZoomType.FILL_FIT -> {
 				val d = max(board.width, board.height)
-				animateZoomTo(viewport.fillFit(GRectangle(0f, 0f, d, d).withCenter(cntr)))
+				viewport.fillFit(GRectangle(0f, 0f, d, d).withCenter(cntr))
+			}
+		}.let {
+			if (noAnimate) {
+				zoomedRect.set(it)
+				clampZoomRect()
+				redraw()
+			} else {
+				animateZoomTo(it)
 			}
 		}
 		currentZoomType = desiredZoomType
@@ -1067,11 +1082,13 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 
 		g.ortho(zoomedRect)
 		mouseV.set(g.screenToViewport(mx, my))
-		if (drawTiles && tiles.isEmpty() && quest?.tiles?.size != 0) {
-			tiles = quest!!.tiles
-			onLoading()
-			getComponent<UIZComponent<AGraphics>>().loadTiles(g, tiles, quest!!)
-			return
+		quest?.let {
+			if (drawTiles && tiles.isEmpty() && it.tiles.isNotEmpty()) {
+				tiles = it.tiles
+				onLoading()
+				getComponent<UIZComponent<AGraphics>>().loadTiles(g, tiles, it)
+				return
+			}
 		}
 		val cellPos = drawNoTiles(g)
 		if (drawTiles) {
@@ -1408,7 +1425,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		}
 
 		currentZoomType = ZoomType.UNDEFINED
-		toggleZoomType()
+		toggleZoomType(true)
 	}
 
 	override fun onFocusChanged(focussed: Boolean) {

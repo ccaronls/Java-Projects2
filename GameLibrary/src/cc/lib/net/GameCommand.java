@@ -13,8 +13,9 @@ import java.util.Map;
 
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
+import cc.lib.reflector.RPrintWriter;
+import cc.lib.reflector.Reflector;
 import cc.lib.utils.NoDupesMap;
-import cc.lib.utils.Reflector;
 
 /**
  * <pre>
@@ -377,7 +378,7 @@ public class GameCommand {
             } else if (o instanceof Reflector) {
                 dout.writeByte(TYPE_REFLECTOR);
                 ByteArrayOutputStream out = new ByteArrayOutputStream();
-                ((Reflector) o).serialize(new Reflector.MyPrintWriter(out));
+                ((Reflector) o).serialize(new RPrintWriter(out));
                 byte[] bytes = out.toByteArray();
                 dout.writeInt(bytes.length);
                 dout.write(bytes);

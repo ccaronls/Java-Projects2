@@ -2,10 +2,10 @@ package cc.applets.typing
 
 import cc.lib.game.*
 import cc.lib.math.Vector2D
+import cc.lib.reflector.Reflector
 import cc.lib.swing.AWTFrame
 import cc.lib.swing.AWTKeyboardAnimationApplet
 import cc.lib.utils.FileUtils
-import cc.lib.utils.Reflector
 import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import java.io.File

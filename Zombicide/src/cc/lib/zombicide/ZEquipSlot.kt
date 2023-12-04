@@ -17,7 +17,7 @@ enum class ZEquipSlot(val shorthand: String) : IButton {
     }
 
     override fun getLabel(): String {
-        return prettify(name)
+        return name.prettify()
     }
 
     companion object {

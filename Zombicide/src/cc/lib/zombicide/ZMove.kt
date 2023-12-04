@@ -1,8 +1,8 @@
 package cc.lib.zombicide
 
 
+import cc.lib.reflector.Reflector
 import cc.lib.ui.IButton
-import cc.lib.utils.Reflector
 
 data class ZMove constructor(
 	val type: ZMoveType = ZMoveType.END_TURN,

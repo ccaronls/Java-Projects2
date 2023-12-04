@@ -8,7 +8,7 @@ import java.util.Stack;
 
 import cc.lib.game.IGame;
 import cc.lib.game.Utils;
-import cc.lib.utils.Reflector;
+import cc.lib.reflector.Reflector;
 
 /**
  * Created by chriscaron on 10/10/17.

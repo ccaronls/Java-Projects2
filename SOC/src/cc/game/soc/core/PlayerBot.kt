@@ -1332,10 +1332,6 @@ open class PlayerBot : Player() {
 		copy.copyFrom(soc)
 		buildChooseMoveTreeR(copy, copy.getPlayerByPlayerNum(playerNum), copy.board, root, moves)
 		try {
-			val diff = copy.board.diff(soc.board)
-			if (!diff.isEmpty()) {
-				log.info("Board changes: $diff")
-			}
 
 			/*for (Player p : copy.getPlayers()) {
                 diff = p.diff(soc.getPlayerByPlayerNum(p.getPlayerNum()));

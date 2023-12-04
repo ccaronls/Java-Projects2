@@ -3,7 +3,7 @@ package cc.lib.dungeondice;
 import java.util.List;
 
 import cc.lib.game.IMove;
-import cc.lib.utils.Reflector;
+import cc.lib.reflector.Reflector;
 
 public class DMove extends Reflector<DMove> implements IMove {
 

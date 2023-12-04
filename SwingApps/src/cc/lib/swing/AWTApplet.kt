@@ -1,6 +1,6 @@
 package cc.lib.swing
 
-import cc.lib.utils.Reflector
+import cc.lib.reflector.Reflector
 import java.net.MalformedURLException
 import java.net.URL
 import javax.swing.JApplet

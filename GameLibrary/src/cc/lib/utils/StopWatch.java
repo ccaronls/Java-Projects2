@@ -1,5 +1,11 @@
 package cc.lib.utils;
 
+import java.io.IOException;
+
+import cc.lib.reflector.Omit;
+import cc.lib.reflector.RBufferedReader;
+import cc.lib.reflector.Reflector;
+
 public class StopWatch extends Reflector<StopWatch> {
 
     static {
@@ -102,7 +108,7 @@ public class StopWatch extends Reflector<StopWatch> {
     }
 
     @Override
-    protected void deserialize(MyBufferedReader in) throws Exception {
+    protected void deserialize(RBufferedReader in) throws IOException {
         super.deserialize(in);
         if (started) {
             pauseTime = startTime = getClockMiliseconds();

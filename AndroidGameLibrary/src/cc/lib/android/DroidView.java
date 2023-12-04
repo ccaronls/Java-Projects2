@@ -11,6 +11,8 @@ import android.view.ScaleGestureDetector;
 import android.view.View;
 
 import cc.lib.game.GColor;
+import cc.lib.game.GDimension;
+import cc.lib.game.IDimension;
 import cc.lib.game.Utils;
 
 public class DroidView extends View implements ScaleGestureDetector.OnScaleGestureListener {
@@ -73,13 +75,13 @@ public class DroidView extends View implements ScaleGestureDetector.OnScaleGestu
     private DroidGraphics g = null;
 
     @Override
-    protected void onDraw(Canvas canvas) {
-        int width = canvas.getWidth()-margin*2;
-        int height = canvas.getHeight()-margin*2;
+    protected final void onDraw(Canvas canvas) {
+        int width = canvas.getWidth() - margin * 2;
+        int height = canvas.getHeight() - margin * 2;
         if (g == null) {
             GColor BACK;
             if (getBackground() instanceof ColorDrawable) {
-                BACK = new GColor(((ColorDrawable)getBackground()).getColor());
+                BACK = new GColor(((ColorDrawable) getBackground()).getColor());
             } else {
                 BACK = GColor.LIGHT_GRAY;
             }
@@ -185,15 +187,29 @@ public class DroidView extends View implements ScaleGestureDetector.OnScaleGestu
         postInvalidate();
     }
 
-    protected void onTap(float x, float y) { ((DroidActivity)getContext()).onTap(x, y); }
+    public IDimension getDimension() {
+        return new GDimension(getWidth() - margin * 2, getHeight() - margin * 2);
+    }
 
-    protected void onTouchDown(float x, float y) { ((DroidActivity)getContext()).onTouchDown(x, y); }
+    protected void onTap(float x, float y) {
+        ((DroidActivity) getContext()).onTap(x, y);
+    }
 
-    protected void onTouchUp(float x, float y) { ((DroidActivity)getContext()).onTouchUp(x, y); }
+    protected void onTouchDown(float x, float y) {
+        ((DroidActivity) getContext()).onTouchDown(x, y);
+    }
 
-    protected void onDragStart(float x, float y) { ((DroidActivity)getContext()).onDragStart(x, y); }
+    protected void onTouchUp(float x, float y) {
+        ((DroidActivity) getContext()).onTouchUp(x, y);
+    }
 
-    protected void onDragStop(float x, float y) { ((DroidActivity)getContext()).onDragStop(x, y); }
+    protected void onDragStart(float x, float y) {
+        ((DroidActivity) getContext()).onDragStart(x, y);
+    }
+
+    protected void onDragStop(float x, float y) {
+        ((DroidActivity) getContext()).onDragStop(x, y);
+    }
 
     protected void onDrag(float x, float y) { ((DroidActivity)getContext()).onDrag(x, y); }
 

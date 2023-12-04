@@ -1,7 +1,6 @@
 package cc.lib.utils
 
 import cc.lib.game.Utils
-import cc.lib.math.Vector2D
 import java.io.File
 import java.lang.ref.WeakReference
 import java.util.*
@@ -45,8 +44,8 @@ fun Int.rotate(max: Int) : Int {
     return plus(1) % max
 }
 
-fun prettify(a: Any) : String {
-	return Utils.toPrettyString(a)
+fun Any?.prettify(): String {
+	return Utils.toPrettyString(toString())
 }
 
 fun String.wrap(maxChar: Int) : String {
@@ -136,7 +135,7 @@ fun <R, T> List<R>.join(elems: Iterator<T>) : List<Pair<R, T>> {
 }
 
 fun List<Any>.prettify() : Array<String> {
-	return map { prettify(it) }.toTypedArray()
+	return map { it.prettify() }.toTypedArray()
 }
 
 fun <T : Comparable<T>> T.increment(steps: Int, values: Array<T>) : T {
@@ -173,89 +172,6 @@ fun String.appendDelimited(delim: String, obj: Any) : String {
 
 fun <T : Collection<*>> takeIfNotEmpty(collection: T?) : T? {
 	return collection?.takeIf { it.isNotEmpty() }
-}
-
-open class DirtyReflector<T> : Reflector<T>() {
-
-	@Omit
-	val dirtyFields = mutableSetOf<KProperty<*>>()
-
-	override fun isDirty(reset: Boolean): Boolean {
-		return dirtyFields.isNotEmpty().also {
-			if (reset)
-				dirtyFields.clear()
-		}
-	}
-
-	override fun serializeDirty(out: MyPrintWriter) {
-		out.push()
-		dirtyFields.forEach { property ->
-			out.print("${property.name}=")
-			serializeObject(property.getter.call(this), out)
-		}
-		out.pop()
-	}
-}
-
-abstract class DirtyDelegate<V>(var value: V) {
-
-	operator fun getValue(ref: DirtyReflector<*>, prop: KProperty<*>) = value
-	operator fun setValue(ref: DirtyReflector<*>, prop: KProperty<*>, v: V) {
-		if (v != value) {
-			ref.dirtyFields.add(prop)
-		}
-		value = v
-	}
-
-	abstract fun setValueFromString(str: String)
-
-	override fun equals(other: Any?): Boolean {
-		return if (other is DirtyDelegate<*>) other.value == value else false
-	}
-
-	override fun toString(): String {
-		return value.toString()
-	}
-
-	override fun hashCode(): Int {
-		return value.hashCode()
-	}
-}
-
-class DirtyDelegateInt(value: Int) : DirtyDelegate<Int>(value) {
-	override fun setValueFromString(str: String) {
-		value = str.toInt()
-	}
-}
-
-class DirtyDelegateFloat(value: Float) : DirtyDelegate<Float>(value) {
-	override fun setValueFromString(str: String) {
-		value = str.toFloat()
-	}
-}
-
-class DirtyDelegateLong(value: Long) : DirtyDelegate<Long>(value) {
-	override fun setValueFromString(str: String) {
-		value = str.toLong()
-	}
-}
-
-class DirtyDelegateString(value: String) : DirtyDelegate<String>(value) {
-	override fun setValueFromString(str: String) {
-		value = str
-	}
-}
-
-class DirtyDelegateReflector<T : Reflector<T>>(value: T, val parser: (String) -> T) : DirtyDelegate<T>(value) {
-	override fun setValueFromString(str: String) {
-		value = parser(str)
-	}
-}
-
-class DirtyDelegateVector2D(value: Vector2D) : DirtyDelegate<Vector2D>(value) {
-	override fun setValueFromString(str: String) {
-		value = Vector2D.parse(str)
-	}
 }
 
 fun <T> weakReference(tIn : T? = null) : ReadWriteProperty<Any?, T?> = object : ReadWriteProperty<Any?, T?> {

@@ -2,7 +2,7 @@ package cc.lib.game;
 
 import java.util.ArrayList;
 
-import cc.lib.utils.Reflector;
+import cc.lib.reflector.Reflector;
 
 public final class Figures extends Reflector<Figures> {
 	

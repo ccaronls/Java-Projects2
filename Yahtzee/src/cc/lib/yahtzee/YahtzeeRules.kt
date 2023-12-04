@@ -1,6 +1,6 @@
 package cc.lib.yahtzee
 
-import cc.lib.utils.Reflector
+import cc.lib.reflector.Reflector
 
 /**
  * http://grail.sourceforge.net/demo/yahtzee/rules.html

@@ -1,8 +1,8 @@
 package marcos.games.hexes.core;
 
-import java.util.*;
+import java.util.LinkedList;
 
-import cc.lib.utils.Reflector;
+import cc.lib.reflector.Reflector;
 
 public class IdGenerator extends Reflector<IdGenerator> {
 

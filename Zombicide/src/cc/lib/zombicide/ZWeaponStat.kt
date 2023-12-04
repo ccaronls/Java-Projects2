@@ -1,6 +1,6 @@
 package cc.lib.zombicide
 
-import cc.lib.utils.Reflector
+import cc.lib.reflector.Reflector
 
 data class ZWeaponStat(var actionType: ZActionType = ZActionType.MOVE,
                        var attackType: ZAttackType = ZAttackType.BLADE,

@@ -1,6 +1,6 @@
 package cc.game.othello.core;
 
-import cc.lib.utils.Reflector;
+import cc.lib.reflector.Reflector;
 
 public abstract class OthelloPlayer extends Reflector<OthelloPlayer> {
 

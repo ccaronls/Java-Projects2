@@ -3,9 +3,9 @@ package cc.lib.swing
 import cc.lib.checkers.*
 import cc.lib.checkers.ACheckboardGame.BoardType
 import cc.lib.game.*
+import cc.lib.reflector.Reflector
 import cc.lib.utils.FileUtils
 import cc.lib.utils.GException
-import cc.lib.utils.Reflector
 import java.awt.event.KeyEvent
 import java.io.File
 import java.io.PrintWriter

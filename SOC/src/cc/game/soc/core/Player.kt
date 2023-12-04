@@ -1,8 +1,6 @@
 package cc.game.soc.core
 
-import cc.game.soc.core.DevelopmentArea
-import cc.lib.game.Utils
-import cc.lib.utils.Reflector
+import cc.lib.reflector.Reflector
 import java.util.*
 
 /**

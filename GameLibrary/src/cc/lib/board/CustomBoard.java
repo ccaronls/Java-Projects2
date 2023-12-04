@@ -23,7 +23,7 @@ import cc.lib.logger.LoggerFactory;
 import cc.lib.math.CMath;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
-import cc.lib.utils.Reflector;
+import cc.lib.reflector.Reflector;
 
 public class CustomBoard<V extends BVertex, E extends BEdge, C extends BCell> extends Reflector<CustomBoard> {
 

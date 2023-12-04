@@ -1,6 +1,6 @@
 package cc.game.soc.core
 
-import cc.lib.utils.Reflector
+import cc.lib.reflector.Reflector
 import java.lang.annotation.Retention
 import java.lang.annotation.RetentionPolicy
 

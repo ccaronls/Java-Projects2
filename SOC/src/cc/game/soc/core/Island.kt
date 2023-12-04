@@ -1,7 +1,6 @@
 package cc.game.soc.core
 
-import cc.lib.utils.Reflector
-import java.util.*
+import cc.lib.reflector.Reflector
 
 class Island internal constructor(  // starts at 1
 	var num: Int) : Reflector<Island>() {

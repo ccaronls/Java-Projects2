@@ -2,7 +2,7 @@ package cc.lib.zombicide
 
 import cc.lib.game.GRectangle
 import cc.lib.game.IRectangle
-import cc.lib.utils.Reflector
+import cc.lib.reflector.Reflector
 import cc.lib.zombicide.ZCellQuadrant.Companion.valuesForRender
 
 class ZCell internal constructor(private val x: Float, private val y: Float) : Reflector<ZCell>(), IRectangle {

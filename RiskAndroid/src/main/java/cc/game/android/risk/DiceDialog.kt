@@ -22,8 +22,8 @@ internal class DiceDialog(val context: RiskActivity, val attacker: Army, val def
 
 	override fun run() {
 		val binding = DiceDialogBinding.inflate(LayoutInflater.from(context))
-		binding.tvAttacker.text = prettify(attacker)
-		binding.tvDefender.text = prettify(defender)
+		binding.tvAttacker.text = attacker.prettify()
+		binding.tvDefender.text = defender.prettify()
 		val red = arrayOf(
 			binding.red1,
 			binding.red2,

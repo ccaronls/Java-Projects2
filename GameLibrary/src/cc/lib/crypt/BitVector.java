@@ -2,7 +2,7 @@ package cc.lib.crypt;
 
 import java.util.Arrays;
 
-import cc.lib.utils.Reflector;
+import cc.lib.reflector.Reflector;
 
 /**
  * Class for managing a set of bits

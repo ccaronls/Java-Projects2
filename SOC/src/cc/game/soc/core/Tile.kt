@@ -1,9 +1,8 @@
 package cc.game.soc.core
 
-import cc.game.soc.core.TileType
 import cc.lib.game.IVector2D
 import cc.lib.game.Utils
-import cc.lib.utils.Reflector
+import cc.lib.reflector.Reflector
 
 /**
  *

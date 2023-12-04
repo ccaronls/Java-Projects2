@@ -7,7 +7,7 @@ import cc.lib.game.IGame;
 import cc.lib.game.IMove;
 import cc.lib.game.MiniMaxTree;
 import cc.lib.game.Utils;
-import cc.lib.utils.Reflector;
+import cc.lib.reflector.Reflector;
 
 /**
  * Created by chriscaron on 10/5/17.

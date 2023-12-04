@@ -5,9 +5,23 @@ import java.util.Iterator;
 import java.util.List;
 
 import cc.lib.game.Utils;
-import cc.lib.utils.Reflector;
+import cc.lib.reflector.Omit;
 
-import static cc.lib.checkers.PieceType.*;
+import static cc.lib.checkers.PieceType.BISHOP;
+import static cc.lib.checkers.PieceType.CHECKED_KING;
+import static cc.lib.checkers.PieceType.CHECKED_KING_IDLE;
+import static cc.lib.checkers.PieceType.EMPTY;
+import static cc.lib.checkers.PieceType.KNIGHT;
+import static cc.lib.checkers.PieceType.PAWN;
+import static cc.lib.checkers.PieceType.PAWN_ENPASSANT;
+import static cc.lib.checkers.PieceType.PAWN_IDLE;
+import static cc.lib.checkers.PieceType.PAWN_TOSWAP;
+import static cc.lib.checkers.PieceType.QUEEN;
+import static cc.lib.checkers.PieceType.ROOK;
+import static cc.lib.checkers.PieceType.ROOK_IDLE;
+import static cc.lib.checkers.PieceType.UNAVAILABLE;
+import static cc.lib.checkers.PieceType.UNCHECKED_KING;
+import static cc.lib.checkers.PieceType.UNCHECKED_KING_IDLE;
 
 /**
  * Created by chriscaron on 10/10/17.
@@ -461,7 +475,7 @@ public class Chess extends ACheckboardGame {
 
     // precompute knight deltas for each square
 
-    @Reflector.Omit
+    @Omit
     private static int[][][][] knightDeltas = null;
 
     public final static int [][] ALL_KNIGHT_DELTAS = {

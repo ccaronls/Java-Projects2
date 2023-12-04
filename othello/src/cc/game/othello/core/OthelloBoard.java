@@ -2,7 +2,7 @@ package cc.game.othello.core;
 
 import java.util.Arrays;
 
-import cc.lib.utils.Reflector;
+import cc.lib.reflector.Reflector;
 
 public class OthelloBoard extends Reflector<OthelloBoard> {
 

@@ -2,7 +2,7 @@ package cc.lib.game;
 
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
-import cc.lib.utils.Reflector;
+import cc.lib.reflector.Reflector;
 
 public class GRectangle extends Reflector<GRectangle> implements IRectangle {
 

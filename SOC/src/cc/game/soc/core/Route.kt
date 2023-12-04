@@ -1,6 +1,6 @@
 package cc.game.soc.core
 
-import cc.lib.utils.Reflector
+import cc.lib.reflector.Reflector
 
 /**
  *

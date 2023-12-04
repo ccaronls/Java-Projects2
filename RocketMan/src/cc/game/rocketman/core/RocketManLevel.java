@@ -1,8 +1,7 @@
 package cc.game.rocketman.core;
 
-import cc.game.rocketman.core.RocketManLevel.CellType;
 import cc.lib.game.AGraphics;
-import cc.lib.utils.Reflector;
+import cc.lib.reflector.Reflector;
 
 public class RocketManLevel extends Reflector {
 

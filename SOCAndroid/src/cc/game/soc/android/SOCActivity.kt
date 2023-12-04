@@ -15,9 +15,9 @@ import cc.lib.android.*
 import cc.lib.game.GColor
 import cc.lib.game.Utils
 import cc.lib.net.AClientConnection
-import cc.lib.net.GameClient
+import cc.lib.net.AGameClient
+import cc.lib.net.AGameServer
 import cc.lib.net.GameCommand
-import cc.lib.net.GameServer
 import cc.lib.utils.FileUtils
 import java.io.File
 import java.io.IOException
@@ -27,7 +27,7 @@ import java.util.*
 /**
  * Created by chriscaron on 2/15/18.
  */
-class SOCActivity() : CCActivityBase(), MenuItem.Action, View.OnClickListener, GameServer.Listener, GameClient.Listener {
+class SOCActivity() : CCActivityBase(), MenuItem.Action, View.OnClickListener, AGameServer.Listener, AGameClient.Listener, AClientConnection.Listener {
 	lateinit var soc: UISOC
 	lateinit var rulesFile: File
 	lateinit var gameFile: File
@@ -957,15 +957,16 @@ class SOCActivity() : CCActivityBase(), MenuItem.Action, View.OnClickListener, G
 	}
 
 	override fun onConnected(conn: AClientConnection) {
-		log.info("Clinet connected: " + conn.displayName)
+		log.info("Client connected: " + conn.displayName)
+		conn.addListener(this)
 	}
 
-	override fun onReconnection(conn: AClientConnection) {
-		log.info("Clinet reconnected: " + conn.displayName)
+	override fun onReconnected(conn: AClientConnection) {
+		log.info("Client reconnected: " + conn.displayName)
 	}
 
-	override fun onClientDisconnected(conn: AClientConnection) {
-		log.info("Clinet disconnected: " + conn.displayName)
+	override fun onDisconnected(conn: AClientConnection, reason: String?) {
+		log.info("Client disconnected: " + conn.displayName)
 		runOnUiThread(object : Runnable {
 			override fun run() {
 				newDialog(false).setTitle("ERROR").setMessage("You have been disconnected")

@@ -850,7 +850,7 @@ abstract class UIMonopoly : Monopoly() {
 						bkColor = p.square.color
 						txtColor = chooseContrastColor(bkColor)
 					}
-					var sqStr = prettify(p.square.name)
+					var sqStr = p.square.name.prettify()
 					while (Character.isDigit(sqStr[sqStr.length - 1])) {
 						sqStr = sqStr.substring(0, sqStr.length - 1)
 					}
@@ -939,9 +939,9 @@ abstract class UIMonopoly : Monopoly() {
 		val txtLrg = g.textHeight
 		val txtMed = txtLrg * .75f
 		val table = Table().addColumn(
-			prettify(property.name), getPropertyDetails(property), buyerStr).setModel(object: Table.Model {
+			property.name.prettify(), getPropertyDetails(property), buyerStr).setModel(object : Table.Model {
 			override fun getCornerRadius(): Float {
-				return txtLrg/2
+				return txtLrg / 2
 			}
 
 			override fun getBorderColor(g: AGraphics?): GColor {

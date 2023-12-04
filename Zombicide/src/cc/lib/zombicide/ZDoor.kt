@@ -2,9 +2,9 @@ package cc.lib.zombicide
 
 import cc.lib.game.GColor
 import cc.lib.game.GRectangle
-
+import cc.lib.reflector.Omit
+import cc.lib.reflector.Reflector
 import cc.lib.utils.Grid
-import cc.lib.utils.Reflector
 
 class ZDoor (val cellPosStart: Grid.Pos, val cellPosEnd: Grid.Pos, val moveDirection: ZDir, val lockedColor: GColor) : Reflector<ZDoor>() {
     companion object {

@@ -10,7 +10,7 @@ import cc.android.game.probot.databinding.ProbotviewBinding
 import cc.lib.android.CCActivityBase
 import cc.lib.android.LayoutFactory
 import cc.lib.probot.*
-import cc.lib.utils.Reflector
+import cc.lib.reflector.Reflector
 import kotlin.math.max
 
 class ProbotViewModel : ViewModel() {
@@ -60,6 +60,7 @@ class ProbotActivity : CCActivityBase() {
 			when (get(line).type) {
 				CommandType.LoopStart,
 				CommandType.LoopEnd -> Thread.sleep(500)
+				else -> Unit
 			}
 		}
 

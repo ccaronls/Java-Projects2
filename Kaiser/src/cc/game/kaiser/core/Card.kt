@@ -1,6 +1,6 @@
 package cc.game.kaiser.core
 
-import cc.lib.utils.Reflector
+import cc.lib.reflector.Reflector
 
 data class Card(val rank: Rank=Rank.ACE, val suit: Suit=Suit.NOTRUMP) : Reflector<Card>() {
 	companion object {

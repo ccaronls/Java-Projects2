@@ -6,6 +6,10 @@ import java.io.StringWriter
 
 open class MyMirror : MirrorImpl()
 
+
+@kotlinx.serialization.Serializable
+data class TempData(val x: Int, val y: Float)
+
 class MirrorTest {
 	companion object {
 		@JvmStatic

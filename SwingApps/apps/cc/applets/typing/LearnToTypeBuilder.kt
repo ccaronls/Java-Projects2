@@ -5,10 +5,10 @@ import cc.lib.game.GColor
 import cc.lib.game.GRectangle
 import cc.lib.game.Justify
 import cc.lib.math.Vector2D
+import cc.lib.reflector.Reflector
 import cc.lib.swing.AWTFrame
 import cc.lib.swing.AWTGraphics
 import cc.lib.utils.FileUtils
-import cc.lib.utils.Reflector
 import java.awt.Graphics
 import java.awt.Point
 import java.awt.event.*

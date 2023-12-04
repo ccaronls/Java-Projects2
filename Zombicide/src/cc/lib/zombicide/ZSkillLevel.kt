@@ -1,7 +1,7 @@
 package cc.lib.zombicide
 
 
-import cc.lib.utils.Reflector
+import cc.lib.reflector.Reflector
 import cc.lib.utils.repeat
 
 class ZSkillLevel(val color: ZColor = ZColor.BLUE, val ultra: Int = -1) : Reflector<ZSkillLevel>(), Comparable<ZSkillLevel> {

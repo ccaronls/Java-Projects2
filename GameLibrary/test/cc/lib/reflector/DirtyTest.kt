@@ -1,4 +1,4 @@
-package cc.lib.utils
+package cc.lib.reflector
 
 import cc.lib.math.Vector2D
 import junit.framework.TestCase
@@ -12,14 +12,14 @@ class TestDirty : DirtyReflector<TestDirty>() {
 		}
 	}
 
-	var testInt : Int by DirtyDelegateInt(20)
-	var testLong : Long by DirtyDelegateLong(0L)
-	var testFloat : Float by DirtyDelegateFloat(10F)
-	var testStr: String by DirtyDelegateString("")
-	var testVec: Vector2D by DirtyDelegateReflector<Vector2D>(Vector2D(10f,20f)) { str -> Vector2D.parse(str) }
+	var testInt: Int by DirtyDelegate(20)
+	var testLong: Long by DirtyDelegate(0L)
+	var testFloat: Float by DirtyDelegate(10F)
+	var testStr: String by DirtyDelegate("")
+	var testVec: Vector2D by DirtyDelegate(Vector2D(10f, 20f))
 }
 
-class TestDirty2 : Reflector<TestDirty2>() {
+class TestDirty2 : DirtyReflector<TestDirty2>() {
 	companion object {
 		init {
 			addAllFields(TestDirty2::class.java)
@@ -37,19 +37,23 @@ class DirtyTest : TestCase() {
 	fun testDirty() {
 		val d = TestDirty2()
 		println("d1 = $d")
-		assertFalse(d.isDirty(true))
+		assertFalse(d.isDirty)
+		d.markClean()
 		d.dirty.testInt = 5
-		assertTrue(d.isDirty(true))
-		assertFalse(d.isDirty(true))
+		assertTrue(d.isDirty)
+		d.markClean()
+		assertFalse(d.isDirty)
+		d.markClean()
 		d.dirty.testStr = "Hello"
 		println("d1 = $d")
-		assertTrue(d.isDirty(false))
-		assertTrue(d.isDirty(true))
-		assertFalse(d.isDirty(false))
+		assertTrue(d.isDirty)
+		d.markClean()
+		assertFalse(d.isDirty)
 
 		val d2 = d.deepCopy()
 		println("d2 = $d2")
-		assertFalse(d2.isDirty(true))
+		assertFalse(d2.isDirty)
+		d.markClean()
 
 		val s = d2.toString()
 		println("s=$s")

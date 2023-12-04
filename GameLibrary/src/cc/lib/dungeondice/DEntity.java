@@ -1,6 +1,6 @@
 package cc.lib.dungeondice;
 
-import cc.lib.utils.Reflector;
+import cc.lib.reflector.Reflector;
 
 public abstract class DEntity extends Reflector<DEntity> {
 

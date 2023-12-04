@@ -11,7 +11,7 @@ import java.util.function.Consumer;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
-import cc.lib.utils.Reflector;
+import cc.lib.reflector.Reflector;
 
 /**
  * Created by chriscaron on 3/12/18.

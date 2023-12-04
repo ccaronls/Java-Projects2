@@ -28,6 +28,6 @@ enum class ZEquipmentClass : IButton {
     }
 
     override fun getLabel(): String {
-        return prettify(name)
+        return name.prettify()
     }
 }

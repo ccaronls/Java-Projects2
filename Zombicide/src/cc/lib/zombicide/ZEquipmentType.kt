@@ -11,7 +11,7 @@ interface ZEquipmentType : IButton {
 
     val name: String
     override fun getLabel(): String {
-        return prettify(name)
+        return name.prettify()
     }
 
     override fun getTooltipText(): String? {

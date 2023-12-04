@@ -1,6 +1,6 @@
 package marcos.games.hexes.core;
 
-import cc.lib.utils.Reflector;
+import cc.lib.reflector.Reflector;
 
 public class Edge extends Reflector<Edge> implements Comparable<Edge> {
 	

@@ -53,7 +53,7 @@ public final class DNSOutgoing extends DNSMessage {
             }
         }
 
-        void writeBytes(byte data[]) {
+        void writeBytes(byte data[]) throws IOException {
             if (data != null) {
                 writeBytes(data, 0, data.length);
             }

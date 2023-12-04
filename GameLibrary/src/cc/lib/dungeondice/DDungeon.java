@@ -10,7 +10,7 @@ import cc.lib.game.GRectangle;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
-import cc.lib.utils.Reflector;
+import cc.lib.reflector.Reflector;
 
 public class DDungeon extends Reflector<DDungeon> {
 

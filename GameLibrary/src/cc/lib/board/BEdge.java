@@ -2,8 +2,8 @@ package cc.lib.board;
 
 import java.util.Arrays;
 
+import cc.lib.reflector.Reflector;
 import cc.lib.utils.GException;
-import cc.lib.utils.Reflector;
 
 public class BEdge extends Reflector<BEdge> implements Comparable<BEdge> {
 

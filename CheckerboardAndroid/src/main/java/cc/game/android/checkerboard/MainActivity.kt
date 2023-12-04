@@ -34,10 +34,11 @@ class MainActivity : DroidActivity() {
 				PieceType.FLYING_KING -> {
 				}
 				PieceType.CHECKER, PieceType.DAMA_MAN, PieceType.DAMA_KING, PieceType.CHIP_4WAY -> return when (color) {
-					Color.RED   -> R.drawable.red_checker
+					Color.RED -> R.drawable.red_checker
 					Color.WHITE -> R.drawable.wt_checker
 					Color.BLACK -> R.drawable.blk_checker
 				}
+				else -> Unit
 			}
 			return 0
 		}

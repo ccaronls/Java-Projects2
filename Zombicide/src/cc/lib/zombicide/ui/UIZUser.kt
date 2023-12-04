@@ -24,7 +24,7 @@ open class UIZUser(name: String) : ZUser(name) {
 			}
 		})
 		for (t in list) {
-			table.addColumn(prettify(t.name), t.description)
+			table.addColumn(t.name.prettify(), t.description)
 		}
 		UIZombicide.instance.boardRenderer.setOverlay(table)
 		return UIZombicide.instance.pickMenu(cur, cur.name + " Choose New Skill", ZSkill::class.java, list)

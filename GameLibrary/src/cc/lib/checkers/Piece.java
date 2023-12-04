@@ -5,7 +5,8 @@ import java.util.Iterator;
 import java.util.List;
 
 import cc.lib.game.AAnimation;
-import cc.lib.utils.Reflector;
+import cc.lib.reflector.Omit;
+import cc.lib.reflector.Reflector;
 
 /**
  * Created by chriscaron on 9/14/17.

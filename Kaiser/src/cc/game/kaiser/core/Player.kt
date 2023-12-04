@@ -1,6 +1,6 @@
 package cc.game.kaiser.core
 
-import cc.lib.utils.Reflector
+import cc.lib.reflector.Reflector
 
 /**
  * base class for a KaiserPlayer

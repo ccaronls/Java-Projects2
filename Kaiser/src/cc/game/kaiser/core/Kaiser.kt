@@ -2,7 +2,7 @@ package cc.game.kaiser.core
 
 import cc.game.kaiser.ai.PlayerBot
 import cc.lib.game.Utils
-import cc.lib.utils.Reflector
+import cc.lib.reflector.Reflector
 import java.util.*
 
 /**

@@ -1,6 +1,6 @@
 package cc.lib.game;
 
-import cc.lib.utils.Reflector;
+import cc.lib.reflector.Reflector;
 
 /**
  * Abstract color class to support applet/android variations

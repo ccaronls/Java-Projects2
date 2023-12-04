@@ -1,9 +1,11 @@
 package marcos.games.hexes.core;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 import cc.lib.game.Utils;
-import cc.lib.utils.Reflector;
+import cc.lib.reflector.Omit;
+import cc.lib.reflector.Reflector;
 
 public class Hexes extends Reflector<Hexes> {
 

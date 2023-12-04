@@ -45,21 +45,12 @@ abstract class UISOC protected constructor(playerComponents: Array<UIPlayerRende
 		barbarianRenderer.reset()
 	}
 
-	private var copy: SOC? = null
 	override fun runGame() {
 		if (server.isConnected) {
-			if (copy == null) {
-				copy = SOC()
-				copy!!.copyFrom(this)
-			}
 			completeMenu()
 			super.runGame()
 			try {
-				val diff = copy!!.diff(this)
-				if (!diff.isEmpty()) {
-					server.broadcastCommand(GameCommand(NetCommon.SVR_TO_CL_UPDATE).setArg("diff", diff))
-					copy!!.merge(diff)
-				}
+				server.broadcastCommand(GameCommand(NetCommon.SVR_TO_CL_UPDATE).setArg("diff", toString()))
 			} catch (e: Exception) {
 				e.printStackTrace()
 			}
@@ -438,7 +429,6 @@ abstract class UISOC protected constructor(playerComponents: Array<UIPlayerRende
 		log.debug("Entering thread")
 		assert(!isRunning)
 		isRunning = true
-		copy = null
 		refreshComponents()
 		object : Thread() {
 			override fun run() {
@@ -474,7 +464,7 @@ abstract class UISOC protected constructor(playerComponents: Array<UIPlayerRende
 		}
 		setReturnValue(null)
 		uIBoard.reset()
-		console!!.clear()
+		console.clear()
 	}
 
 	protected open fun onRunError(e: Throwable) {
@@ -519,7 +509,7 @@ abstract class UISOC protected constructor(playerComponents: Array<UIPlayerRende
 	override fun printinfo(playerNum: Int, txt: String) {
 		server.broadcastExecuteOnRemote(NetCommon.SOC_ID, playerNum, txt)
 		super.printinfo(playerNum, txt)
-		console?.addText(getPlayerColor(playerNum), txt)
+		console.addText(getPlayerColor(playerNum), txt)
 	}
 
 	@Keep

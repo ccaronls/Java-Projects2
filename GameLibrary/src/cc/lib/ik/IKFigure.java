@@ -2,7 +2,7 @@ package cc.lib.ik;
 
 import cc.lib.game.AGraphics;
 import cc.lib.game.GColor;
-import cc.lib.utils.Reflector;
+import cc.lib.reflector.Reflector;
 
 public class IKFigure extends Reflector<IKFigure> {
 

@@ -2,8 +2,9 @@ package cc.lib.zombicide
 
 import cc.lib.game.*
 import cc.lib.math.Vector2D
+import cc.lib.reflector.Omit
+import cc.lib.reflector.Reflector
 import cc.lib.utils.Grid
-import cc.lib.utils.Reflector
 import cc.lib.zombicide.ui.UIZButton
 
 abstract class ZActor internal constructor(var occupiedZone: Int = -1) : Reflector<ZActor>(), UIZButton, IRectangle, IVector2D, IInterpolator<Vector2D> {

@@ -86,7 +86,7 @@ class AWTRisk internal constructor(): AWTComponent() {
 		private fun initMenuInternal(buttons: List<*>) {
 			menu.removeAll()
 			buttons.forEachIndexed { index, any ->
-				menu.add(AWTButton(prettify(any.toString())) {
+				menu.add(AWTButton(any.prettify()) {
 					setGameResult(buttons[index])
 				})
 			}

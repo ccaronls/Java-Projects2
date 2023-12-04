@@ -3,6 +3,10 @@ package cc.lib.zombicide
 import cc.lib.game.GColor
 import cc.lib.game.GRectangle
 import cc.lib.logger.LoggerFactory
+import cc.lib.reflector.Alternate
+import cc.lib.reflector.Omit
+import cc.lib.reflector.RBufferedReader
+import cc.lib.reflector.Reflector
 import cc.lib.utils.*
 import cc.lib.zombicide.ZDir.Companion.compassValues
 import cc.lib.zombicide.ZSpawnCard.ActionType
@@ -161,15 +165,21 @@ open class ZGame() : Reflector<ZGame>() {
 
     fun setUsers(vararg users: ZUser) {
         this.users.clear()
-        this.users.addAll(users)
+	    this.users.addAll(users)
     }
 
-    val isGameOver: Boolean
-	    get() = gameOverStatus != 0
+	val isGameOver: Boolean
+		get() = gameOverStatus != 0
 	val isGameWon: Boolean
 		get() = gameOverStatus == GAME_WON
 	val isGameLost: Boolean
 		get() = gameOverStatus == GAME_LOST
+
+
+	override fun deserialize(`in`: RBufferedReader) {
+		super.deserialize(`in`)
+		initQuest(quest)
+	}
 
 	fun reload() {
 		loadQuest(currentQuest)
@@ -219,8 +229,9 @@ open class ZGame() : Reflector<ZGame>() {
 		quest = newQuest.load()
 		synchronized(board) {
 			board = quest.loadBoard()
-			if (prevQuest == null || prevQuest.name != this.quest.name)
+			if (prevQuest == null || prevQuest.name != this.quest.name) {
 				initQuest(quest)
+			}
             initGame()
             val startCells: MutableList<ZCell> = ArrayList()
             val it: Grid.Iterator<ZCell> = board.getCellsIterator()
@@ -1082,12 +1093,11 @@ open class ZGame() : Reflector<ZGame>() {
 	                var idx = user.players.indexOfFirst { it == cur.type }
 	                var i = (idx + 1) % user.players.size
                     while (i != idx) {
-	                    val c = user.players[i].toCharacter()
-                        if (c.isAlive && c.actionsLeftThisTurn > 0) {
-                            popState()
-                            pushState(State(ZState.PLAYER_STAGE_CHOOSE_CHARACTER_ACTION, c.type))
-                            return true
-                        }
+	                    user.players[i].toCharacter().takeIf { it.isAlive && it.actionsLeftThisTurn > 0 }?.let {
+		                    popState()
+		                    pushState(State(ZState.PLAYER_STAGE_CHOOSE_CHARACTER_ACTION, it.type))
+		                    return true
+	                    }
                         i = (i + 1) % user.players.size
                     }
                 }
@@ -1144,9 +1154,9 @@ open class ZGame() : Reflector<ZGame>() {
                 }
                 when (selectedSlot) {
                     ZEquipSlot.BACKPACK -> if (selectedEquipment.isEquippable(cur)) {
-                        for (slot: ZEquipSlot in cur.getEquippableSlots(selectedEquipment)) {
-                            options.add(ZMove.newEquipMove(selectedEquipment, selectedSlot, slot, ZActionType.INVENTORY))
-                        }
+	                    for (slot: ZEquipSlot in cur.getEquippableSlots(selectedEquipment, false)) {
+		                    options.add(ZMove.newEquipMove(selectedEquipment, selectedSlot, slot, ZActionType.INVENTORY))
+	                    }
                     }
                     ZEquipSlot.RIGHT_HAND, ZEquipSlot.LEFT_HAND, ZEquipSlot.BODY -> {
                         if (!cur.isBackpackFull) {
@@ -1437,19 +1447,21 @@ open class ZGame() : Reflector<ZGame>() {
                 return true
             }
             ZMoveType.KEEP -> {
-                val equip = move.equipment!!
-                var slot = cur.getEmptyEquipSlotsFor(equip).firstOrNull()
-	            if (slot == null) {
-                    // need to make room
-                    val options: MutableList<ZMove> = ArrayList()
-                    for (e: ZEquipment<*> in cur.getBackpack()) {
-                        options.add(ZMove.newDisposeMove(e, ZEquipSlot.BACKPACK))
-                    }
-                    when (equip.slotType) {
-                        ZEquipSlotType.BODY -> options.add(ZMove.newDisposeMove(cur.getSlot(ZEquipSlot.BODY)!!, ZEquipSlot.BODY))
-	                    ZEquipSlotType.HAND -> {
-		                    options.add(ZMove.newDisposeMove(cur.getSlot(ZEquipSlot.LEFT_HAND)!!, ZEquipSlot.LEFT_HAND))
-		                    options.add(ZMove.newDisposeMove(cur.getSlot(ZEquipSlot.RIGHT_HAND)!!, ZEquipSlot.RIGHT_HAND))
+	            val equip = move.equipment!!
+	            cur.getEmptyEquipSlotsFor(equip).firstOrNull()?.let { slot ->
+		            cur.attachEquipment(equip, slot)
+		            return true
+	            } ?: run {
+		            // need to make room
+		            val options: MutableList<ZMove> = ArrayList()
+		            for (e: ZEquipment<*> in cur.getBackpack()) {
+			            options.add(ZMove.newDisposeMove(e, ZEquipSlot.BACKPACK))
+		            }
+		            when (equip.slotType) {
+			            ZEquipSlotType.BODY -> options.add(ZMove.newDisposeMove(cur.getSlot(ZEquipSlot.BODY)!!, ZEquipSlot.BODY))
+			            ZEquipSlotType.HAND -> {
+				            options.add(ZMove.newDisposeMove(cur.getSlot(ZEquipSlot.LEFT_HAND)!!, ZEquipSlot.LEFT_HAND))
+				            options.add(ZMove.newDisposeMove(cur.getSlot(ZEquipSlot.RIGHT_HAND)!!, ZEquipSlot.RIGHT_HAND))
 		                    if (cur.canEquipBody(equip)) {
 			                    options.add(ZMove.newDisposeMove(cur.getSlot(ZEquipSlot.BODY)!!, ZEquipSlot.BODY))
 		                    }
@@ -1459,12 +1471,8 @@ open class ZGame() : Reflector<ZGame>() {
 		            getCurrentUser().chooseMove(cur.type, options)?.let { move ->
 			            cur.removeEquipment(move.equipment!!, move.fromSlot!!)
 			            putBackInSearchables(move.equipment)
-			            slot = move.fromSlot
+			            //slot = move.fromSlot
 		            }
-                }
-                slot?.let {
-                    cur.attachEquipment(equip, it)
-                    return true
                 }
             }
             ZMoveType.CONSUME -> {
@@ -1624,7 +1632,7 @@ open class ZGame() : Reflector<ZGame>() {
 		if (cur.canDoAction(ZActionType.INVENTORY)) {
 			cur.allEquipment.forEach { equip ->
 				getListFor(cur.type, equip.slot!!).add(ZMove.newDisposeMove(equip, equip.slot))
-				cur.getEmptyEquipSlotsFor(equip).filter { it != equip.slot }.forEach { slot ->
+				cur.getEquippableSlots(equip, false).filter { it != equip.slot }.forEach { slot ->
 					getListFor(cur.type, equip.slot!!).add(ZMove.newEquipMove(equip, equip.slot, slot, ZActionType.INVENTORY, cur.type))
 				}
 			}

@@ -2,6 +2,7 @@ package cc.lib.checkerboard
 
 import cc.lib.game.Utils
 import cc.lib.logger.LoggerFactory
+import cc.lib.reflector.Omit
 import cc.lib.utils.GException
 import java.io.File
 import java.io.FileWriter

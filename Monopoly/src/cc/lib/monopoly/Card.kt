@@ -1,6 +1,6 @@
 package cc.lib.monopoly
 
-import cc.lib.utils.Reflector
+import cc.lib.reflector.Reflector
 
 class Card(val property: Square=Square.GO) : Reflector<Card>() {
 	companion object {

@@ -14,6 +14,7 @@ import cc.lib.game.GColor
 import cc.lib.math.Vector2D
 import cc.lib.ui.UIComponent
 import cc.lib.ui.UIRenderer
+import kotlin.math.roundToInt
 
 /**
  * Created by chriscaron on 3/2/18.
@@ -30,7 +31,7 @@ class SOCView<T : UIRenderer> : View, UIComponent {
 		val y: Float
 		override fun run() {
 			//onTouchDown(x, y);
-			_renderer.onDragStart(Math.round(x).toFloat(), Math.round(y).toFloat())
+			_renderer.onDragStart(x.roundToInt(), y.roundToInt())
 			touchDownRunnable = null
 		}
 
@@ -147,7 +148,7 @@ class SOCView<T : UIRenderer> : View, UIComponent {
 				tx = Math.round(event.x)
 				ty = Math.round(event.y)
 				if (touchDownRunnable == null) {
-					_renderer.onDragStart(event.x, event.y)
+					_renderer.onDragStart(event.x.roundToInt(), event.y.roundToInt())
 				}
 			}
 		}

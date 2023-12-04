@@ -719,7 +719,7 @@ enum class ZSkill(val description: String) : IButton {
     }
 
     override fun getLabel(): String {
-        return prettify(name)
+        return name.prettify()
     }
 
     /**

@@ -64,21 +64,21 @@ class MonopolyActivity : DroidActivity() {
 				when (moves[index]) {
 					MoveType.PURCHASE -> {
 						val sq = player.square
-						"Purchase ${prettify(sq.name)} for $${sq.price}"
+						"Purchase ${sq.name.prettify()} for $${sq.price}"
 					}
 					MoveType.PURCHASE_UNBOUGHT -> {
 						val sq = getPurchasePropertySquare()
-						"Purchase ${prettify(sq.name)} for $${sq.price}"
+						"Purchase ${sq.name.prettify()} for $${sq.price}"
 					}
-					MoveType.PAY_BOND -> "${prettify(moves[index])} \$${player.jailBond}"
-					else -> prettify(moves[index])
+					MoveType.PAY_BOND -> "${moves[index].prettify()} \$${player.jailBond}"
+					else -> moves[index].prettify()
 				}
 			}
 			suspendCoroutine { cont ->
 				runOnUiThread {
 					newDialogBuilderINGAME {
 						cont.resume(null)
-					}.setTitle("${prettify(player.piece.name)} Choose Move ")
+					}.setTitle("${player.piece.name.prettify()} Choose Move ")
 						.setItems(items) { _, which: Int ->
 							when (val mt: MoveType = moves[which]) {
 								MoveType.PURCHASE_UNBOUGHT -> {
@@ -113,7 +113,7 @@ class MonopolyActivity : DroidActivity() {
 			suspendCoroutine { cont ->
 				runOnUiThread {
 					val items = cards.prettify()
-					newDialogBuilderINGAME{ cont.resume(null) }.setTitle(player.piece.toString() + prettify(type.name))
+					newDialogBuilderINGAME { cont.resume(null) }.setTitle(player.piece.toString() + type.name.prettify())
 						.setItems(items) { _, which: Int ->
 							cont.resume(cards[which])
 						}.setNegativeButton(R.string.popup_button_cancel) { _, _: Int ->
@@ -136,7 +136,7 @@ class MonopolyActivity : DroidActivity() {
 						.setTitle("${player.piece} Choose Trade")
 						.setItems(items) { _, which: Int ->
 							val t: Trade = list[which]
-							showPurchasePropertyDialog("Buy ${prettify(t.card.property.name)} from ${prettify(t.trader.piece.name)}",
+							showPurchasePropertyDialog("Buy ${t.card.property.name.prettify()} from ${t.trader.piece.name.prettify()}",
 								"Buy for $${t.price}", t.card.property) {
 								cont.resume(if (it) t else null)
 							}
@@ -165,7 +165,7 @@ class MonopolyActivity : DroidActivity() {
 					val card: Card = list.get(position)
 					val tvLabel: TextView = v.findViewById(R.id.tvLabel)
 					val tvCost: TextView = v.findViewById(R.id.tvCost)
-					tvLabel.text = prettify(card.property.name)
+					tvLabel.text = card.property.name.prettify()
 					val cost: Int = playerUser.getSellableCardCost(card)
 					tvCost.text = if (cost <= 0) "Not For Sale" else cost.toString()
 					return v

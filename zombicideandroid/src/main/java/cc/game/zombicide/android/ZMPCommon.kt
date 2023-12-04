@@ -3,7 +3,7 @@ package cc.game.zombicide.android
 import cc.lib.net.AClientConnection
 import cc.lib.net.GameCommand
 import cc.lib.net.GameCommandType
-import cc.lib.utils.Reflector
+import cc.lib.reflector.Reflector
 import cc.lib.zombicide.ZGame
 import cc.lib.zombicide.ZPlayerName
 import cc.lib.zombicide.ZQuests

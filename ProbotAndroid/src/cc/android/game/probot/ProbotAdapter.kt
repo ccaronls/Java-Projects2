@@ -92,6 +92,7 @@ class ProbotAdapter(val probot: Probot, val listView: ListView) : DragAndDropAda
 				CommandType.TurnLeft -> iv.setImageResource(R.drawable.arrow_left)
 				CommandType.Jump -> iv.setImageResource(R.drawable.arrow_jump)
 				CommandType.UTurn -> iv.setImageResource(R.drawable.uturn)
+				else -> Unit
 			}
 		}
 

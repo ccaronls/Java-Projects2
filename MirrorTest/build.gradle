@@ -1,9 +1,8 @@
-plugins {
-    id 'com.google.devtools.ksp' version '1.9.20-1.0.14'
-}
-
 apply plugin: 'application'
 apply plugin: 'java-library'
+apply plugin: 'kotlin-kapt'
+apply plugin: 'org.jetbrains.kotlin.plugin.serialization'
+apply plugin: 'com.google.devtools.ksp'
 apply plugin: 'kotlin'
 
 sourceSets {
@@ -17,6 +16,7 @@ dependencies {
     implementation project(":Mirror")
     ksp(project(":Mirror"))
     implementation 'com.google.code.gson:gson:2.10.1'
+    implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0'
 }
 
 ksp {

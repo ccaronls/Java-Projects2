@@ -1,6 +1,6 @@
 package cc.lib.checkerboard
 
-import cc.lib.utils.Reflector
+import cc.lib.reflector.Reflector
 import cc.lib.utils.Table
 
 /**

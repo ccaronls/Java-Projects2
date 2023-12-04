@@ -6,7 +6,7 @@ import java.util.List;
 import cc.lib.game.IVector2D;
 import cc.lib.math.CMath;
 import cc.lib.math.Vector2D;
-import cc.lib.utils.Reflector;
+import cc.lib.reflector.Reflector;
 
 public class BVertex extends Reflector<BVertex> implements IVector2D {
 

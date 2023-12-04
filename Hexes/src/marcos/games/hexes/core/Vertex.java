@@ -1,7 +1,7 @@
 package marcos.games.hexes.core;
 
 import cc.lib.game.IVector2D;
-import cc.lib.utils.Reflector;
+import cc.lib.reflector.Reflector;
 
 public class Vertex extends Reflector<Vertex> implements IVector2D {
 

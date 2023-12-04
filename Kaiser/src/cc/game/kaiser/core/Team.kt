@@ -1,7 +1,7 @@
 package cc.game.kaiser.core
 
 import cc.game.kaiser.core.Bid.Companion.parseBid
-import cc.lib.utils.Reflector
+import cc.lib.reflector.Reflector
 import java.io.BufferedReader
 import java.io.EOFException
 

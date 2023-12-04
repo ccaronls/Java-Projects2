@@ -1,9 +1,9 @@
 package cc.lib.checkerboard
 
 import cc.lib.game.IMove
-import cc.lib.game.Utils
+import cc.lib.reflector.Omit
+import cc.lib.reflector.Reflector
 import cc.lib.utils.GException
-import cc.lib.utils.Reflector
 
 class Move @JvmOverloads constructor(val moveType: MoveType = MoveType.END, private val playerNum: Int = -1) : Reflector<Move>(), IMove, Comparable<Move> {
 	companion object {

@@ -1,7 +1,7 @@
 package cc.lib.checkers;
 
 import cc.lib.game.IMove;
-import cc.lib.utils.Reflector;
+import cc.lib.reflector.Reflector;
 
 /**
  * Created by chriscaron on 9/14/17.

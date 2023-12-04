@@ -29,6 +29,7 @@ import cc.game.zombicide.android.databinding.TooltippopupLayoutBinding
 import cc.lib.android.*
 import cc.lib.game.GRectangle
 import cc.lib.mp.android.P2PActivity
+import cc.lib.reflector.Reflector
 import cc.lib.ui.IButton
 import cc.lib.utils.*
 import cc.lib.zombicide.*
@@ -361,10 +362,11 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 		RULES,
 		CHOOSE_COLOR,
 		EMAIL_REPORT,
-		MINIMAP_MODE;
+		MINIMAP_MODE,
+		DEBUG_MENU;
 
 		fun isHomeButton(instance: ZombicideActivity): Boolean = when (this) {
-			LOAD, SAVE, ASSIGN, CLEAR, UNDO, DIFFICULTY, CHOOSE_COLOR -> BuildConfig.DEBUG
+			LOAD, SAVE, ASSIGN, CLEAR, UNDO, DIFFICULTY, CHOOSE_COLOR, DEBUG_MENU -> BuildConfig.DEBUG
 			START, NEW_GAME, JOIN_GAME, SETUP_PLAYERS, SKILLS, LEGEND, EMAIL_REPORT, MINIMAP_MODE -> true
 			CONNECTIONS -> instance.serverControl != null
 			RESUME -> instance.gameFile.exists()
@@ -388,7 +390,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 		}
 
 		override fun getLabel(): String {
-			return prettify(name)
+			return name.prettify()
 		}
 
 		fun isEnabled(z: ZombicideActivity): Boolean {
@@ -508,6 +510,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 				startGame()
 			}
 			MenuItem.RESUME -> {
+				game.tryLoadFromFile(gameFile)
 				if (game.allCharacters.filter { it.isInvisible }.isNotEmpty()) {
 					newDialogBuilder().setMessage("Resume in Multiplayer mode?")
 						.setNegativeButton(R.string.popup_button_no) { _, _ ->
@@ -661,6 +664,9 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 			MenuItem.MINIMAP_MODE -> {
 				prefs.edit().putString(PREF_MINIMAP_MODE_STRING, boardRenderer.toggleDrawMinimap().name).apply()
 			}
+			MenuItem.DEBUG_MENU -> {
+				showDebugDialog()
+			}
 		}
 	}
 
@@ -685,7 +691,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 
 	fun showLoadQuestDialog() {
 		newDialogBuilder().setTitle(R.string.popup_title_load_quest)
-			.setItems(ZQuests.values().map { prettify(it.name) }.toTypedArray()) { dialog: DialogInterface?, which: Int ->
+			.setItems(ZQuests.values().map { it.name.prettify() }.toTypedArray()) { dialog: DialogInterface?, which: Int ->
 				val q = ZQuests.values()[which]
 				game.loadQuest(q)
 				updateCharacters(q)
@@ -792,6 +798,58 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 				clientMgr?.setColorId(which);
 				game.refresh()
 			}.setNegativeButton(R.string.popup_button_cancel, null).show()
+	}
+
+	fun showDebugDialog() {
+
+		class Option(val text: String, val checked: Boolean, val toggleCb: () -> Unit)
+
+		val options = arrayOf(
+			Option("TILES", boardRenderer.drawTiles) {
+				boardRenderer.toggleDrawTiles()
+			},
+			Option("TEXT", boardRenderer.drawDebugText) {
+				boardRenderer.toggleDrawDebugText()
+			},
+			Option("TOWERS", boardRenderer.drawTowersHighlighted) {
+				boardRenderer.toggleDrawTowersHighlighted()
+			},
+			Option("CENTER", boardRenderer.drawScreenCenter) {
+				boardRenderer.toggleDrawScreenCenter()
+			},
+			Option("CLICKABLES", boardRenderer.drawClickable) {
+				boardRenderer.toggleDrawClickables()
+			},
+			Option("ZOMBIE PATHS", boardRenderer.drawZombiePaths) {
+				boardRenderer.toggleDrawZoombiePaths()
+			},
+			Option("RANGE", boardRenderer.drawRangedAccessibility) {
+				boardRenderer.toggleDrawRangedAccessibility()
+			}
+		)
+		val listView = ListView(this)
+		listView.adapter = object : BaseAdapter() {
+			override fun getCount(): Int = options.size
+			override fun getItem(position: Int): Any = options[position]
+			override fun getItemId(position: Int): Long = 0
+			override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
+				val button: ToggleButton = (convertView as ToggleButton?)
+					?: ToggleButton(this@ZombicideActivity)
+				with(options[position]) {
+					button.textOn = "$text On"
+					button.textOff = "$text Off"
+					button.isChecked = checked
+					button.setOnCheckedChangeListener { _, _ -> toggleCb() }
+				}
+				return button
+			}
+		}
+		newDialogBuilder()
+			.setTitle("DEBUG OPTIONS")
+			.setView(listView)
+			.setNegativeButton("Done") { _, _ ->
+				boardRenderer.redraw()
+			}.show()
 	}
 
 	val displayName: String
@@ -1019,7 +1077,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 	fun showSkillsDialog() {
 		val sorted = ZSkill.values().toMutableList().sortedWith { o1: ZSkill, o2: ZSkill -> o1.name.compareTo(o2.name) }
 		newDialogBuilder().setTitle(R.string.popup_title_skills)
-			.setItems(sorted.map { prettify(it.name) }.toTypedArray()) { dialog: DialogInterface?, which: Int ->
+			.setItems(sorted.map { it.name.prettify() }.toTypedArray()) { dialog: DialogInterface?, which: Int ->
 				val skill = sorted[which]
 				newDialogBuilder().setTitle(skill.label)
 					.setMessage(skill.description)

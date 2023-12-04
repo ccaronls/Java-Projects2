@@ -1,7 +1,11 @@
 package cc.lib.zombicide
 
 import cc.lib.game.AGraphics
-import cc.lib.utils.*
+import cc.lib.reflector.Reflector
+import cc.lib.utils.GException
+import cc.lib.utils.Grid
+import cc.lib.utils.Table
+import cc.lib.utils.removeRandom
 import java.util.*
 
 abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQuest>() {

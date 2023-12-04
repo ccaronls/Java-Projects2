@@ -1,7 +1,7 @@
 package cc.lib.zombicide
 
 import cc.lib.logger.LoggerFactory
-import cc.lib.utils.Reflector
+import cc.lib.reflector.Reflector
 import cc.lib.utils.randomWeighted
 import java.util.*
 

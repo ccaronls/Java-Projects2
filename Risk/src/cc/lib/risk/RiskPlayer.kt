@@ -1,7 +1,8 @@
 package cc.lib.risk
 
 import cc.lib.logger.LoggerFactory
-import cc.lib.utils.Reflector
+import cc.lib.reflector.Omit
+import cc.lib.reflector.Reflector
 import cc.lib.utils.random
 import kotlin.math.roundToInt
 

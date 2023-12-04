@@ -1,6 +1,6 @@
 package cc.game.dominos.core
 
-import cc.lib.utils.Reflector
+import cc.lib.reflector.Reflector
 
 class Tile @JvmOverloads constructor(val pip1: Int = 0, val pip2: Int = 0) : Reflector<Tile?>() {
 	companion object {

@@ -6,9 +6,14 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
-import cc.lib.game.*;
-import cc.lib.math.*;
-import cc.lib.utils.Reflector;
+import cc.lib.game.AGraphics;
+import cc.lib.game.GColor;
+import cc.lib.game.IVector2D;
+import cc.lib.game.Utils;
+import cc.lib.math.MutableVector2D;
+import cc.lib.math.Vector2D;
+import cc.lib.reflector.Omit;
+import cc.lib.reflector.Reflector;
 
 public class Board extends Reflector<Board> {
 

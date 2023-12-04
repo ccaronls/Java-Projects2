@@ -65,5 +65,5 @@ enum class ZActionType {
     val isMovement: Boolean
         get() = this === MOVE
     val label: String
-        get() = prettify(name)
+        get() = name.prettify()
 }
