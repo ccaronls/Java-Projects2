@@ -1,10 +1,11 @@
 package cc.library.mirrortest
 
-import cc.lib.mirror.context.Mirrored
-import cc.lib.mirror.context.mirroredArrayOf
+import cc.lib.mirror.context.*
 import com.google.gson.GsonBuilder
 import org.junit.Assert.*
 import org.junit.Test
+import java.io.StringReader
+import java.io.StringWriter
 
 open class Mirror1 : SmallMirrorImpl()
 open class Mirror2 : Mirror2Impl()
@@ -16,6 +17,9 @@ class MirrorTest {
 
 	val owner = MirrorContextOwner()
 	val receiver = MirrorContextReceiver()
+
+	val gson = GsonBuilder().setPrettyPrinting().serializeNulls().serializeNulls().create()
+	val writer = StringWriter()
 
 	@Test
 	fun test1() {
@@ -72,27 +76,26 @@ class MirrorTest {
 		assert(m !== m2)
 	}
 
-	/*
-		@Test
-		fun test3() {
-			val m = MyMirror()
-			m.colorList = mutableListOf(RED, GREEN, BLUE)
-			m.listList = mutableListOf(
-				listOf(1, 2, 3),
-				listOf(4, 5, 6)
-			)
-			print(m)
+	@Test
+	fun test3() {
+		val m = MyMirror()
+		m.colorList = mutableListOf(RED, GREEN, BLUE)
+		//m.listList = mutableListOf(
+		//	listOf(1, 2, 3),
+		//	listOf(4, 5, 6)
+		//)
+		print(m)
 
-			owner.registerSharedObject("m", m)
-			val m2 = MyMirror()
-			receiver.registerSharedObject("m", m2)
-			owner.add(receiver)
-			print(m2)
-			assertTrue(m.contentEquals(m2))
-			assert(m !== m2)
+		owner.registerSharedObject("m", m)
+		val m2 = MyMirror()
+		receiver.registerSharedObject("m", m2)
+		owner.add(receiver)
+		print(m2)
+		assertTrue(m.contentEquals(m2))
+		assert(m !== m2)
 
-		}
-	*/
+	}
+
 	@Test
 	fun test4() {
 		with(MyMirror()) {
@@ -182,7 +185,7 @@ class MirrorTest {
 				println("owner : doSomething2($v)")
 			}
 
-			override fun doSomething3(m: IMirror2) {
+			override fun doSomething3(m: IMirror2?) {
 				super.doSomething3(m)
 				println("owner : doSomething3($m)")
 			}
@@ -207,10 +210,10 @@ class MirrorTest {
 				assertEquals("hello", v)
 			}
 
-			override fun doSomething3(m: IMirror2) {
+			override fun doSomething3(m: IMirror2?) {
 				super.doSomething3(m)
 				println("receiver : doSomething3($m)")
-				assertEquals("goodbye", m.y)
+				assertEquals("goodbye", m?.y)
 			}
 
 			override fun doSomething4(x: Int, y: Float, z: Mirrored?) {
@@ -242,11 +245,243 @@ class MirrorTest {
 	fun test7() {
 		val data = TempData(1, 5f)
 		//Json.encodeToString(data)
-		val gson = GsonBuilder().setPrettyPrinting().create()
 		val json = gson.toJson(data)
 		println("json: $json")
 
 		val data2 = gson.fromJson(json, TempData::class.java)
 		println("data2: $data2")
 	}
+
+	@Test
+	fun `confirm unknown values are skipped`() {
+		val m = object : Mirror2Impl() {}
+		m.y = "hello"
+		val writer = StringWriter()
+		gson.newJsonWriter(writer).apply {
+			MirroredImpl.writeMirrored(m, this)
+		}
+		println(writer.buffer)
+
+		val extra =
+			"""{
+  "type": "cc.library.mirrortest.Mirror2Impl",
+  "values": {
+    "z": 100,
+    "y": "goodbye"
+  }
+}"""
+		val reader = gson.newJsonReader(StringReader(extra))
+		MirroredImpl.readMirrored(m, reader)
+		assertEquals(m.y, "goodbye")
+	}
+
+	@Test
+	fun `test int array`() {
+		val arr = arrayOf(4, 8, 10).toMirroredArray()
+		arr.toGson(gson.newJsonWriter(writer), false)
+		println(writer.buffer)
+		assertFalse(arr.isDirty())
+		val arr2 = arrayOf<Int>().toMirroredArray()
+		arr2.fromGson(gson.newJsonReader(StringReader(writer.buffer.toString())))
+		assertTrue(arr.contentEquals(arr2))
+		arr[1] = 20
+		assertTrue(arr.isDirty())
+		assertFalse(arr.contentEquals(arr2))
+		writer.buffer.setLength(0)
+		arr.toGson(gson.newJsonWriter(writer), true)
+		println(writer.buffer)
+		arr2.fromGson(gson.newJsonReader(StringReader(writer.buffer.toString())))
+		assertTrue(arr.contentEquals(arr2))
+	}
+
+	@Test
+	fun `test string array`() {
+		val arr = arrayOf("hello", "goodbye", "solong").toMirroredArray()
+		arr.toGson(gson.newJsonWriter(writer), false)
+		println(writer.buffer)
+		assertFalse(arr.isDirty())
+		val arr2 = arrayOf<String>().toMirroredArray()
+		arr2.fromGson(gson.newJsonReader(StringReader(writer.buffer.toString())))
+		assertTrue(arr.contentEquals(arr2))
+		arr[1] = "ooops"
+		assertTrue(arr.isDirty())
+		assertFalse(arr.contentEquals(arr2))
+		writer.buffer.setLength(0)
+		arr.toGson(gson.newJsonWriter(writer), true)
+		println(writer.buffer)
+		arr2.fromGson(gson.newJsonReader(StringReader(writer.buffer.toString())))
+		assertTrue(arr.contentEquals(arr2))
+	}
+
+	@Test
+	fun `test mirrored array`() {
+		val arr = arrayOf(RED, GREEN, BLUE).toMirroredArray()
+		arr.toGson(gson.newJsonWriter(writer), false)
+		println(writer.buffer)
+		assertFalse(arr.isDirty())
+		val arr2 = arrayOf<Mirrored>().toMirroredArray()
+		arr2.fromGson(gson.newJsonReader(StringReader(writer.buffer.toString())))
+		assertTrue(arr.contentEquals(arr2))
+		arr[1] = Color("YELLOW", 0, 127, 127)
+		assertTrue(arr.isDirty())
+		assertFalse(arr.contentEquals(arr2))
+		writer.buffer.setLength(0)
+		arr.toGson(gson.newJsonWriter(writer), true)
+		println(writer.buffer)
+		arr2.fromGson(gson.newJsonReader(StringReader(writer.buffer.toString())))
+		assertTrue(arr.contentEquals(arr2))
+	}
+
+	@Test
+	fun `test List toDirty variations`() {
+		val clazz = Class.forName("cc.library.mirrortest.Color")
+		assertTrue(Mirrored::class.java.isAssignableFrom(clazz))
+
+		run {
+			val list = MirroredList(listOf(3, 4, 5), Int::class.javaObjectType)
+			val mList = list.toMirroredList()
+			assertTrue(list === mList)
+		}
+
+		run {
+			val list = listOf(3, 4, 5)
+			val mList = list.toMirroredList()
+			assertTrue(mList is MirroredList)
+			assertTrue(mList.contentEquals(list))
+		}
+
+		run {
+			val list = listOf(3f, 4f, 5f)
+			val mList = list.toMirroredList()
+			assertTrue(mList is MirroredList)
+			assertTrue(mList.contentEquals(list))
+		}
+
+		run {
+			val list = listOf('a', 'b', 'c')
+			val mList = list.toMirroredList()
+			assertTrue(mList is MirroredList)
+			assertTrue(mList.contentEquals(list))
+		}
+
+		run {
+			val list = listOf(.1, .2, .3)
+			val mList = list.toMirroredList()
+			assertTrue(mList is MirroredList)
+			assertTrue(mList.contentEquals(list))
+		}
+
+
+		run {
+			val list = listOf(RED, GREEN, BLUE)
+			val mList = list.toMirroredList()
+			assertTrue(mList is MirroredList)
+			assertTrue(mList.contentEquals(list))
+		}
+
+		run {
+			val list = listOf(
+				listOf(1, 2, 3),
+				listOf(4, 5, 6)
+			)
+			val mList = list.toMirroredList()
+			assertTrue(mList is MirroredList)
+			assertTrue(mList.contentEquals(list))
+		}
+
+		run {
+			val list = listOf(TempEnum.THREE, TempEnum.ONE, TempEnum.TWO)
+			val mList = list.toMirroredList()
+			assertTrue(mList is MirroredList)
+			assertTrue(mList.contentEquals(list))
+		}
+
+	}
+
+	@Test
+	fun `test int list`() {
+		val list = listOf(5, 6, 7)
+		val mirroredList = list.toMirroredList()
+
+		assertFalse(mirroredList.isDirty())
+		assertTrue(mirroredList is MirroredList)
+		assertTrue(mirroredList.contentEquals(list))
+		mirroredList.toGson(gson.newJsonWriter(writer), false)
+		println(writer.buffer)
+		writer.buffer.setLength(0)
+
+		mirroredList.set(1, 10)
+		assertTrue(mirroredList.isDirty())
+		mirroredList.toGson(gson.newJsonWriter(writer), true)
+		println(writer.buffer)
+		mirroredList.markClean()
+		assertFalse(mirroredList.isDirty())
+		val mList2 = listOf(5, 6, 7).toMirroredList()
+		mList2.fromGson(gson.newJsonReader(StringReader(writer.buffer.toString())))
+		assertTrue(mirroredList.contentEquals(mList2))
+
+		writer.buffer.setLength(0)
+		mirroredList.toGson(gson.newJsonWriter(writer), false)
+
+		val copy = MirroredList(listOf(10, 100, 12), Int::class.javaObjectType)
+		copy.fromGson(gson.newJsonReader(StringReader(writer.buffer.toString())))
+		writer.buffer.setLength(0)
+		copy.toGson(gson.newJsonWriter(writer), false)
+		println(writer.buffer)
+
+		assertTrue(copy.contentEquals(mirroredList))
+		copy.markClean()
+		copy.add(1234)
+
+		assertTrue(copy.isDirty())
+		writer.buffer.setLength(0)
+		copy.toGson(gson.newJsonWriter(writer), true)
+		println(writer.buffer)
+		mirroredList.fromGson(gson.newJsonReader(StringReader(writer.buffer.toString())))
+		assertTrue(copy.contentEquals(mirroredList))
+	}
+
+	@Test
+	fun `test enum list`() {
+		val list = listOf(TempEnum.TWO, null, null)
+		val mirroredList = list.toMirroredList()
+
+		assertFalse(mirroredList.isDirty())
+		assertTrue(mirroredList is MirroredList)
+		assertTrue(mirroredList.contentEquals(list))
+		mirroredList.toGson(gson.newJsonWriter(writer), false)
+		println(writer.buffer)
+		writer.buffer.setLength(0)
+
+		mirroredList.set(1, TempEnum.THREE)
+		assertTrue(mirroredList.isDirty())
+		mirroredList.toGson(gson.newJsonWriter(writer), true)
+		println(writer.buffer)
+		mirroredList.markClean()
+		assertFalse(mirroredList.isDirty())
+		val mList2 = listOf(TempEnum.TWO, null, null).toMirroredList()
+		mList2.fromGson(gson.newJsonReader(StringReader(writer.buffer.toString())))
+		assertTrue(mirroredList.contentEquals(mList2))
+
+		writer.buffer.setLength(0)
+		mirroredList.toGson(gson.newJsonWriter(writer), false)
+
+		val copy = MirroredList(listOf(TempEnum.THREE), TempEnum::class.java)
+		copy.fromGson(gson.newJsonReader(StringReader(writer.buffer.toString())))
+		writer.buffer.setLength(0)
+		copy.toGson(gson.newJsonWriter(writer), false)
+		println(writer.buffer)
+
+		assertTrue(copy.contentEquals(mirroredList))
+		copy.markClean()
+		copy.add(TempEnum.ONE)
+
+		assertTrue(copy.isDirty())
+		writer.buffer.setLength(0)
+		copy.toGson(gson.newJsonWriter(writer), true)
+		println(writer.buffer)
+		mirroredList.fromGson(gson.newJsonReader(StringReader(writer.buffer.toString())))
+		assertTrue(copy.contentEquals(mirroredList))
+	}
+
 }

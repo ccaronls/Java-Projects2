@@ -3,13 +3,17 @@ package cc.lib.mirror.context
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonWriter
 
-fun mirroredArrayOf(vararg params: Int) = DirtyArrayInt(Array(params.size) { params[it] })
+inline fun <reified T : Number> mirroredArrayOf(vararg params: T) = MirroredArray(arrayOf(*params), T::class.javaObjectType)
+
+inline fun <reified T : Number> Array<T>.toMirroredArray() = MirroredArray(this, T::class.javaObjectType)
+
+inline fun <reified T> Array<T>.toMirroredArray() = MirroredArray(this, T::class.java)
 
 /**
  * Created by Chris Caron on 11/15/23.
  */
-abstract class MirroredArray<T>(var array: Array<T>) : Mirrored {
-	protected val dirty = Array(array.size) { false }
+class MirroredArray<T>(var array: Array<T>, type: Class<T>) : MirroredStructure<T>(type), Mirrored {
+	private var dirty = Array(array.size) { false }
 
 	val size: Int
 		get() = array.size
@@ -29,18 +33,11 @@ abstract class MirroredArray<T>(var array: Array<T>) : Mirrored {
 		dirty.fill(false)
 	}
 
-	protected abstract fun writeValue(writer: JsonWriter, index: Int)
-
-	protected abstract fun readValue(reader: JsonReader, index: Int)
-
-	protected abstract fun newArray(size: Int): Array<T>
-
 	override fun toGson(writer: JsonWriter, onlyDirty: Boolean) {
 		writer.beginObject()
 		writer.name("size").value(size)
 		if (!onlyDirty || isDirty()) {
 			if (onlyDirty) {
-				writer.name("indicesSize").value(dirty.size)
 				writer.name("indices")
 				writer.beginArray()
 				dirty.forEachIndexed { index, b ->
@@ -54,34 +51,43 @@ abstract class MirroredArray<T>(var array: Array<T>) : Mirrored {
 			writer.beginArray()
 			array.forEachIndexed { index, i ->
 				if (!onlyDirty || dirty[index])
-					writeValue(writer, index)
+					writeValue(writer, array[index], onlyDirty)
 			}
 			writer.endArray()
 		}
 		writer.endObject()
 	}
 
-	override fun fromGson(reader: JsonReader) {
+	fun fromGson(reader: JsonReader) {
 		reader.beginObject()
 		val sz = reader.nextName("size").nextInt()
 		if (sz != size) {
-			array = newArray(sz)
+			array = java.lang.reflect.Array.newInstance(type, sz) as Array<T>
+			dirty = Array(sz) { false }
 		}
-		var indices: Array<Int> = when (reader.nextName()) {
-			"indicesSize" -> {
-				val sz = reader.nextInt()
-				reader.nextName("indices")
+		val indices = mutableListOf<Int>()
+		val name = reader.nextName()
+		when (name) {
+			"indices" -> {
 				reader.beginArray()
-				Array(sz) { reader.nextInt() }.also {
-					reader.endArray()
+				while (reader.hasNext()) {
+					indices.add(reader.nextInt())
 				}
+				reader.endArray()
+				reader.nextName("values")
 			}
-			"values" -> Array(size) { it }
-			else -> Array(0) { 0 }
+			"values" -> Unit
+			else -> throw Exception("unexpected name '${name}'")
 		}
 		reader.beginArray()
-		indices.forEach {
-			readValue(reader, it)
+		if (indices.isEmpty()) {
+			for (idx in array.indices) {
+				array[idx] = readValue(reader, array[idx]) as T
+			}
+		} else {
+			indices.forEach {
+				array[it] = readValue(reader, array[it]) as T
+			}
 		}
 		reader.endArray()
 		reader.endObject()
@@ -92,7 +98,7 @@ abstract class MirroredArray<T>(var array: Array<T>) : Mirrored {
 		if (other !is MirroredArray<*>) return false
 		if (size != other.size) return false
 		repeat(size) {
-			if (array[it] != other.array[it])
+			if (!MirroredImpl.isEquals(array[it], other.array[it]))
 				return false
 		}
 		return true
@@ -100,7 +106,7 @@ abstract class MirroredArray<T>(var array: Array<T>) : Mirrored {
 
 
 }
-
+/*
 class DirtyArrayInt(array: Array<Int> = arrayOf()) : MirroredArray<Int>(array) {
 
 	override fun writeValue(writer: JsonWriter, index: Int) {
@@ -112,4 +118,4 @@ class DirtyArrayInt(array: Array<Int> = arrayOf()) : MirroredArray<Int>(array) {
 	}
 
 	override fun newArray(size: Int): Array<Int> = Array(size) { 0 }
-}
+}*/

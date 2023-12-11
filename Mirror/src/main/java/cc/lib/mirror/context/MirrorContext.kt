@@ -71,7 +71,7 @@ open class MirrorContext {
 		writer.beginObject()
 		mirrors.filter { !dirtyOnly || it.value.isDirty() }.forEach {
 			writer.name(it.key)
-			it.value.toGson(writer, dirtyOnly)
+			MirroredImpl.writeMirrored(it.value, writer, dirtyOnly)
 		}
 		writer.endObject()
 	}
@@ -79,7 +79,9 @@ open class MirrorContext {
 	fun update(reader: JsonReader) {
 		reader.beginObject()
 		while (reader.hasNext()) {
-			mirrors[reader.nextName()]?.fromGson(reader)
+			mirrors[reader.nextName()]?.let {
+				MirroredImpl.readMirrored(it, reader)
+			}
 		}
 		reader.endObject()
 	}

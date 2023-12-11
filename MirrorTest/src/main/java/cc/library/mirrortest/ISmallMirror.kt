@@ -13,5 +13,7 @@ interface ISmallMirror : Mirrored {
 
 @Mirror
 interface ILargeMirror : ISmallMirror {
-
+	var aa: Long?
+	var bb: Double?
+	var cc: IColor?
 }

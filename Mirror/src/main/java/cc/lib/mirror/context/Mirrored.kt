@@ -8,19 +8,33 @@ import com.google.gson.stream.JsonWriter
  */
 interface Mirrored {
 
-	fun toGson(writer: JsonWriter, dirtyOnly: Boolean = false)
+	/**
+	 * Implementors should serialize their fields and then call super.toGson to
+	 * serialize out fields they inherit
+	 */
+	fun toGson(writer: JsonWriter, dirtyOnly: Boolean = false) {}
 
-	fun fromGson(reader: JsonReader)
+	/**
+	 * Implementors should match the incoming name to theirs fields if possible
+	 * or cal super.fromGson
+	 */
+	fun fromGson(reader: JsonReader, name: String) {
+		reader.skipValue()
+	}
 
-	fun markClean()
+	fun markClean() {}
 
-	fun isDirty(): Boolean
+	fun isDirty(): Boolean = false
 
 	fun toString(buffer: StringBuffer, indent: String) {
 		buffer.append(indent).append(toString())
 	}
 
-	fun contentEquals(other: Any?): Boolean
+	fun asString(): String = StringBuffer().apply {
+		toString(this, "")
+	}.toString()
+
+	fun contentEquals(other: Any?): Boolean = true
 
 	fun getFunctionDelegate(): FunctionDelegate? = null
 }

@@ -9,14 +9,16 @@ import cc.lib.mirror.context.Mirrored
  */
 @Mirror(DirtyType.NEVER)
 interface IColor : Mirrored {
+	var nm: String
 	var a: Byte
 	var r: Byte
 	var g: Byte
 	var b: Byte
 }
 
-class Color(val x: String, red: Byte, grn: Byte, blu: Byte, alpha: Byte = 127) : ColorImpl() {
+class Color(name: String = "", red: Byte = -127, grn: Byte = -127, blu: Byte = -127, alpha: Byte = 127) : ColorImpl() {
 	init {
+		nm = name
 		r = red
 		g = grn
 		b = blu
@@ -24,7 +26,7 @@ class Color(val x: String, red: Byte, grn: Byte, blu: Byte, alpha: Byte = 127) :
 	}
 
 	override fun toString(buffer: StringBuffer, indent: String) {
-		buffer.append(indent).append(x).append("\n")
+		buffer.append(indent).append(nm).append("\n")
 	}
 }
 

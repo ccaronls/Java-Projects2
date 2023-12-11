@@ -77,7 +77,7 @@ interface IMirror : Mirrored {
 	fun doSomething2(v: String)
 
 	@MirroredFunction
-	fun doSomething3(m: IMirror2)
+	fun doSomething3(m: IMirror2?)
 
 	@MirroredFunction
 	fun doSomething4(x: Int, y: Float, z: Mirrored?)
