@@ -18,7 +18,7 @@ class MirrorTest {
 	val owner = MirrorContextOwner()
 	val receiver = MirrorContextReceiver()
 
-	val gson = GsonBuilder().setPrettyPrinting().serializeNulls().serializeNulls().create()
+	val gson = GsonBuilder().setPrettyPrinting().serializeNulls().create()
 	val writer = StringWriter()
 
 	@Test
@@ -484,4 +484,59 @@ class MirrorTest {
 		assertTrue(copy.contentEquals(mirroredList))
 	}
 
+	@Test
+	fun `test mirrored map`() {
+		val map = mapOf(
+			"A" to 100,
+			"B" to 54,
+			"C" to 99
+		)
+		val tMap = map.toMirroredMap()
+		assertEquals(tMap["A"], 100)
+		assertEquals(tMap["B"], 54)
+		assertEquals(tMap["C"], 99)
+		assertTrue(tMap.contentEquals(map))
+		assertFalse(tMap.isDirty())
+		tMap["B"] = 1
+		assertTrue(tMap.isDirty())
+		println(tMap.asString())
+		tMap.toGson(gson.newJsonWriter(writer), true)
+		println(writer.buffer)
+		tMap.markClean()
+		assertFalse(tMap.isDirty())
+		run {
+			val m = map.toMirroredMap()
+			assertFalse(m.contentEquals(tMap))
+			m.fromGson(gson.newJsonReader(StringReader(writer.buffer.toString())))
+			assertTrue(m.contentEquals(tMap))
+		}
+
+		val map2 = mapOf(
+			TempEnum.ONE to Mirror1(),
+			TempEnum.THREE to null
+		)
+
+		val tMap2 = map2.toMirroredMap()
+
+		println(tMap2.asString())
+		tMap2[TempEnum.TWO] = Mirror1()
+		assertTrue(tMap2.isDirty())
+		writer.buffer.setLength(0)
+		tMap2.toGson(gson.newJsonWriter(writer), true)
+		println(writer.buffer)
+		val tMap3 = mapOf<TempEnum, Mirror1>().toMirroredMap()
+		tMap3.fromGson(gson.newJsonReader(StringReader(writer.buffer.toString())))
+		assertTrue(tMap3.contentEquals(tMap2))
+		tMap3.markClean()
+
+		tMap3[TempEnum.TWO]!!.b = "goodnight"
+		writer.buffer.setLength(0)
+		tMap3.toGson(gson.newJsonWriter(writer), true)
+		println(writer.buffer)
+		assertTrue(tMap3.isDirty())
+
+		assertFalse(tMap2.contentEquals(tMap3))
+		tMap2.fromGson(gson.newJsonReader(StringReader(writer.buffer.toString())))
+		assertTrue(tMap2.contentEquals(tMap3))
+	}
 }

@@ -1,5 +1,7 @@
 package cc.lib.mirror
 
+import cc.lib.mirror.processor.MirrorProcessor
+import org.junit.Assert.assertNotNull
 import org.junit.Test
 
 @cc.lib.mirror.annotation.Mirror
@@ -12,8 +14,45 @@ interface MyMirroredThing {
 class MirrorTest {
 
 	@Test
-	fun testMirror() {
+	fun testRegex() {
 
+		val regex = "(Mutable)?List<(.+)>".toRegex()
+
+		var result = regex.matchEntire("List<Int>")
+		assertNotNull(result)
+		println("groupValues : ${result!!.groupValues}")
+
+		var output = "listOf<${result!!.groupValues[2]}>.toMirroredList()"
+		println("output : $output")
+
+		result = regex.matchEntire("List<List<Int>>")
+		assertNotNull(result)
+		println("groupValues : ${result!!.groupValues}")
+
+		output = "listOf<${result!!.groupValues[2]}>.toMirroredList()"
+		println("output : $output")
+
+		result = regex.matchEntire("MutableList<String>")
+		assertNotNull(result)
+		println("groupValues : ${result!!.groupValues}")
+
+		output = "listOf<${result!!.groupValues[2]}>.toMirroredList()"
+		println("output : $output")
+
+	}
+
+	@Test
+	fun test1() {
+
+		arrayOf(
+			"List<Int>",
+			"MutableList<Int>",
+			"MirroredArray<Char>",
+			"MirroredArray<Char>",
+			"MutableList<List<Int>>"
+		).forEach {
+			println("$it -> " + MirrorProcessor.match(it))
+		}
 	}
 
 }

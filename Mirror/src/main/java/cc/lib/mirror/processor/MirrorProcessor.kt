@@ -23,6 +23,10 @@ class MirrorProcessor(
 		resolver.getClassDeclarationByName("kotlin.collections.List")!!.asStarProjectedType()
 	}
 
+	val mapType by lazy {
+		resolver.getClassDeclarationByName("kotlin.collections.Map")!!.asStarProjectedType()
+	}
+
 	val mirrorType by lazy {
 		resolver.getClassDeclarationByName(
 			"cc.lib.mirror.context.Mirrored")!!.asStarProjectedType().makeNullable()
@@ -43,6 +47,10 @@ class MirrorProcessor(
 
 	fun KSType.isList(): Boolean {
 		return listType.isAssignableFrom(this)
+	}
+
+	fun KSType.isMap(): Boolean {
+		return mapType.isAssignableFrom(this)
 	}
 
 	fun KSType.isArray(): Boolean {
@@ -163,37 +171,9 @@ class MirrorProcessor(
 			fun KSType.defaultValue(): String {
 				if (nullability == Nullability.NULLABLE)
 					return "null"
-				when (toString()) {
-					"Byte",
-					"Short",
-					"Int" -> return "0"
-					"Long" -> return "0L"
-					"Float" -> return "0f"
-					"Double" -> return "0.0"
-					"Boolean" -> return "false"
-					"String" -> return "\"\""
-					"Char" -> return "'0'"
-					"List<Int>", "MutableList<Int>" -> return "mutableListOf<Int>().toMirroredList()"
-					"List<Long>", "MutableList<Long>" -> return "mutableListOf<Long>().toMirroredList()"
-					"List<Float>", "MutableList<Float>" -> return "mutableListOf<Float>().toMirroredList()"
-					"List<Double>", "MutableList<Double>" -> return "mutableListOf<Double>().toMirroredList()"
-					"List<String>", "MutableList<String>" -> return "mutableListOf<String>().toMirroredList()"
-					"List<Char>", "MutableList<Char>" -> return "mutableListOf<Char>().toMirroredList()"
-					"List<Byte>", "MutableList<Byte>" -> return "mutableListOf<Byte>().toMirroredList()"
-					"List<Short>", "MutableList<Short>" -> return "mutableListOf<Short>().toMirroredList()"
-					"List<Boolean>", "MutableList<Boolean>" -> return "mutableListOf<Boolean>().toMirroredList()"
-					"MirroredArray<Int>" -> return "MirroredArray(arrayOf(), Int::class.javaObjectType)"
-					"MirroredArray<Long>" -> return "DirtyArrayLong()"
-					"MirroredArray<Float>" -> return "DirtyArrayFloat()"
-					"MirroredArray<Double>" -> return "DirtyArrayDouble()"
-					"MirroredArray<String>" -> return "DirtyArrayString()"
-					"MirroredArray<Char>" -> return "DirtyArrayChar()"
-					"MirroredArray<Byte>" -> return "DirtyArrayByte()"
-					"MirroredArray<Short>" -> return "DirtyArrayShort()"
-					"MirroredArray<Boolean>" -> return "DirtyArrayBoolean()"
+				return match(toString()).also {
+					logger.warn("Matched ${toString()} to $it")
 				}
-				logger.error("No default type for $this")
-				return "error"
 			}
 
 			val DIRTY_FLAG_FIELD = "_dirtyFlag"
@@ -212,10 +192,8 @@ class MirrorProcessor(
 					if (type.isArray()) {
 						logger.error("standard Arrays not supported. Use MirroredArray")
 					} else if (type.isList()) {
-						val argType = type.arguments[0].type!!.resolve().starProjection()
-						logger.warn("list argType: $argType, isEnum=${argType.isEnum()}")
-						var field = "MirroredList$argType(value)"
-						it.appendLn("override var $name : $type = mutableListOf<$argType>().toMirroredList()")
+						it.appendLn("override var $name : $type = ${type.defaultValue()}")
+
 /*
 						if (argType.isEnum()) {
 							field = "DirtyListEnum($argType.values(), value)"
@@ -240,7 +218,7 @@ class MirrorProcessor(
 							DirtyType.ANY -> {
 								it.appendLn("   set(value) {")
 								it.appendLn("      $DIRTY_FLAG_FIELD = $DIRTY_FLAG_FIELD || (value != field)")
-								it.appendLn("      field = value")
+								it.appendLn("      field = value.toMirroredList()")
 								it.appendLn("   }")
 							}
 						}
@@ -307,13 +285,9 @@ class MirrorProcessor(
 							DirtyType.ANY -> appendLn("if (!dirtyOnly || $DIRTY_FLAG_FIELD)")
 							DirtyType.COMPLEX -> appendLn("if (!dirtyOnly || $DIRTY_FLAG_FIELD.get($index))")
 						}
-						if (propType.isMirroredArray()) {
+						if (propType.isMirrored() || propType.isList() || propType.isMap()) {
 							appendLn("{   writer.name(\"$nm\")")
-							appendLn("   $nm.toGson(writer, dirtyOnly)")
-							appendLn("}")
-						} else if (propType.isList()) {
-							appendLn("{   writer.name(\"$nm\")")
-							appendLn("   ($nm as MirroredList).toGson(writer, dirtyOnly)")
+							appendLn("   ($nm as Mirrored).toGson(writer, dirtyOnly)")
 							appendLn("}")
 						} else {
 							appendLn("   writer.name(\"$nm\").value($value)")
@@ -354,6 +328,9 @@ class MirrorProcessor(
 					} else if (propType.isList()) {
 						appendLns("""
 "$nm" -> ($nm as MirroredList).fromGson(reader)""")
+					} else if (propType.isMap()) {
+						appendLns("""
+"$nm" -> ($nm as MirrorMap).fromGson(reader)""")
 					} else {
 						appendLns("""
 "$nm" -> $nm = checkForNullOr(reader, ${propType.defaultValue()}) {
@@ -429,7 +406,7 @@ class MirrorProcessor(
 				indent = i
 				mapped.forEach {
 					val name = it.key.getName()
-					if (it.value.isList() || it.value.isMirrored()) {
+					if (it.value.isList() || it.value.isMirrored() || it.value.isMap()) {
 						appendLn("if (!isContentsEquals($name as Mirrored?, other.$name)) return false")
 					} else {
 						appendLn("if ($name != other.$name) return false")
@@ -596,5 +573,42 @@ ${printMethods("   ")}
 		symbol.accept(Visitor(file), Unit)
 		file.close()
 		return symbols
+	}
+
+	companion object {
+		val defaultValueRegExMap = mapOf(
+			"Byte" to "0",
+			"Short" to "0",
+			"Int" to "0",
+			"Long" to "0L",
+			"Float" to "0f",
+			"Double" to "0.0",
+			"Boolean" to "false",
+			"String" to "\"\"",
+			"Char" to "'0'",
+			"(Mutable|Mirrored)?List<(.+)>" to "listOf<$2>().toMirroredList()",
+			"(Mutable|Mirrored)?Map<(.+)>" to "mapOf<$2>().toMirroredMap()",
+			"MirroredArray<(.*)>" to "arrayOf<$1>().toMirroredArray()"
+		).map {
+			it.key.toRegex() to it.value
+		}
+
+		fun match(value: String): String {
+			val options = defaultValueRegExMap.map {
+				it.first.matchEntire(value) to it.second
+			}.filter { it.first != null }
+
+			if (options.size != 1) {
+				throw Exception("Expecting 1 option for $value but found: ${options.joinToString { it.first!!.value }}")
+			}
+
+			val matcher = options[0].first!!
+			var result = options[0].second
+			for (idx in 1 until matcher.groupValues.size) {
+				result = result.replace("$$idx", matcher.groupValues[idx])
+			}
+
+			return result
+		}
 	}
 }

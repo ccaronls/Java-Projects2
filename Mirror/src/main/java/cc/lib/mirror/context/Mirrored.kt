@@ -30,8 +30,9 @@ interface Mirrored {
 		buffer.append(indent).append(toString())
 	}
 
-	fun asString(): String = StringBuffer().apply {
-		toString(this, "")
+	fun asString(): String = StringBuffer().also {
+		it.append(toString())
+		toString(it, "")
 	}.toString()
 
 	fun contentEquals(other: Any?): Boolean = true

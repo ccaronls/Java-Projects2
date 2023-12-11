@@ -4,8 +4,8 @@ import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonToken
 import com.google.gson.stream.JsonWriter
 
-abstract class MirroredStructure<T>(val type: Class<T>) {
-	protected fun readValue(reader: JsonReader, defaultValue: T?): T? {
+abstract class MirroredStructure<T>(protected val type: Class<T>) {
+	fun readValue(reader: JsonReader, defaultValue: T?): T? {
 		return when (reader.peek()) {
 			JsonToken.STRING -> {
 				val str = reader.nextString()
@@ -51,7 +51,7 @@ abstract class MirroredStructure<T>(val type: Class<T>) {
 		}
 	}
 
-	protected fun writeValue(writer: JsonWriter, obj: T?, dirtyOnly: Boolean) {
+	fun writeValue(writer: JsonWriter, obj: T?, dirtyOnly: Boolean) {
 		when (obj) {
 			null -> writer.nullValue()
 			is Boolean -> writer.value(obj as Boolean)

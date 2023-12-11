@@ -5,8 +5,8 @@ import com.google.gson.stream.JsonWriter
 import java.util.function.Predicate
 
 inline fun <reified T> List<T>.toMirroredList(): MirroredList<T> {
-	if (this is MirroredList<*>)
-		return this as MirroredList<T>
+	if (this is MirroredList)
+		return this
 	return MirroredList(toMutableList(), T::class.java)
 }
 
@@ -228,11 +228,23 @@ class MirroredList<T>(list: List<T>, type: Class<T>) : MirroredStructure<T>(type
 	override fun subList(fromIndex: Int, toIndex: Int): MutableList<T> = MirroredList(list.subList(fromIndex, toIndex), type)
 
 	override fun isDirty(): Boolean {
-		return sizeChanged || dirty.indexOf(true) >= 0
+		if (sizeChanged)
+			return true
+		list.forEachIndexed { index, it ->
+			if (it is Mirrored && it.isDirty()) {
+				dirty[index] = true
+			}
+		}
+		return dirty.indexOf(true) >= 0
 	}
 
 	override fun markClean() {
 		dirty.clear()
+		list.forEach {
+			if (it is Mirrored) {
+				it.markClean()
+			}
+		}
 		repeat(list.size) {
 			dirty.add(false)
 		}

@@ -50,23 +50,32 @@ interface IMirror : Mirrored {
 	var colorList: MutableList<IColor>
 
 	//	var enumArray: Array<TempEnum>
-//	var charArray: Array<Char>
+	var charArray: MirroredArray<Char>
 	var intArray: MirroredArray<Int>
-	/*
-	var stringArray: Array<String>
-	var floatArray: Array<Float>
-	var doubleArray: Array<Double>
-	var longArray: Array<Long>
-	var boolArray: Array<Boolean>
-	var byteArray: Array<Byte>
-	var shortArray: Array<Short>
+	var stringArray: MirroredArray<String>
+	var floatArray: MirroredArray<Float>
+	var doubleArray: MirroredArray<Double>
+	var longArray: MirroredArray<Long>
+	var boolArray: MirroredArray<Boolean>
+	var byteArray: MirroredArray<Byte>
+	var shortArray: MirroredArray<Short>
 
-	 */
-//	var mirrorArray: Array<Mirrored>
-//	var colorArray: Array<IColor>
+	var mirrorArray: MirroredArray<Mirrored>
+	var colorArray: MirroredArray<IColor>
+	var enumArray: MirroredArray<TempEnum>
 
-	//val listList: MutableList<List<Int>>
-	//var arr: Array<Int>?
+	val listList: MutableList<List<Int>>
+
+	val map1: Map<String, String>
+	val map2: Map<Int, Mirrored?>
+	val map3: Map<Color, Short>
+	val map4: Map<TempEnum, Mirrored>
+	val map5: Map<String, TempEnum>
+	val map6: Map<Char, Boolean>
+	val map7: Map<String, List<String>>
+	val map8: Map<String, MirroredArray<Int>>
+//	val map9: Map<String, String>
+
 
 //	var EE: TempEnum
 

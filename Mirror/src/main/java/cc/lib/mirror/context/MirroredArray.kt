@@ -27,9 +27,21 @@ class MirroredArray<T>(var array: Array<T>, type: Class<T>) : MirroredStructure<
 
 	operator fun iterator(): Iterator<T> = array.iterator()
 
-	override fun isDirty(): Boolean = dirty.indexOfFirst { it } >= 0
+	override fun isDirty(): Boolean {
+		array.forEachIndexed { idx, it ->
+			if (it is Mirrored && it.isDirty()) {
+				dirty[idx] = true
+			}
+		}
+		return dirty.indexOfFirst { it } >= 0
+	}
 
 	override fun markClean() {
+		array.forEach {
+			if (it is Mirrored) {
+				it.markClean()
+			}
+		}
 		dirty.fill(false)
 	}
 
@@ -106,16 +118,3 @@ class MirroredArray<T>(var array: Array<T>, type: Class<T>) : MirroredStructure<
 
 
 }
-/*
-class DirtyArrayInt(array: Array<Int> = arrayOf()) : MirroredArray<Int>(array) {
-
-	override fun writeValue(writer: JsonWriter, index: Int) {
-		writer.value(array[index])
-	}
-
-	override fun readValue(reader: JsonReader, index: Int) {
-		array[index] = reader.nextInt()
-	}
-
-	override fun newArray(size: Int): Array<Int> = Array(size) { 0 }
-}*/
