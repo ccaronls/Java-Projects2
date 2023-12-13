@@ -65,8 +65,11 @@ class MirrorProcessor(
 		resolver.getClassDeclarationByName(this.declaration.qualifiedName!!)?.let {
 			return it.classKind == ClassKind.ENUM_CLASS
 		}
-		logger.error("cannot get Class Declaration for ${toString()}")
-		return false
+		throw Exception("cannot get Class Declaration for ${toString()}")
+	}
+
+	fun KSType.isUnit(): Boolean {
+		return toString() == "Unit"
 	}
 
 	fun getClassFileName(symbol: String): String {
@@ -92,13 +95,12 @@ class MirrorProcessor(
 				}.joinToString()
 			}")
 			if (classDeclaration.classKind != ClassKind.INTERFACE) {
-				logger.error("Only interface can be annotated with @Mirror", classDeclaration)
-				return
+				throw Exception("Invalid $classDeclaration, Only interface can be annotated with @Mirror")
 			}
 
 			logger.warn("$classDeclaration subClasses: ${classDeclaration.superTypes.map { it.resolve() }.joinToString()}")
 
-			var baseMirrorClass: KSType = classDeclaration.superTypes.firstOrNull { it.resolve().isMirrored() }?.resolve()
+			val baseMirrorClass: KSType = classDeclaration.superTypes.firstOrNull { it.resolve().isMirrored() }?.resolve()
 				?: run {
 					throw Exception("Must have cc.lib.mirror.context.Mirrored as a supertype $classDeclaration")
 				}
@@ -119,20 +121,18 @@ class MirrorProcessor(
 			val properties: Sequence<KSPropertyDeclaration> = classDeclaration.getDeclaredProperties()
 				.filter { it.validate() }
 
-			val methods = classDeclaration.getAllFunctions().filter {
-				it.annotations.firstOrNull { it.shortName.asString() == "MirroredFunction" } != null && it.validate()
+			val methods = classDeclaration.getAllFunctions().filter { decl ->
+				decl.annotations.firstOrNull { it.shortName.asString() == "MirroredFunction" } != null && decl.validate()
 			}.toList()
 
 			methods.forEach { funcDecl ->
-				if (funcDecl.modifiers.contains(Modifier.SUSPEND)) {
-					logger.error("Function $funcDecl must not have suspend modifier")
-					return@forEach
+				if (!funcDecl.modifiers.contains(Modifier.SUSPEND)) {
+					throw Exception("Function $funcDecl must have suspend modifier")
 				}
 
 				val rt = funcDecl.returnType?.resolve()!!
-				if (rt.toString() != "Unit" && !rt.isMarkedNullable) {
-					logger.error("Function $funcDecl must have Unit or nullable return type")
-					return@forEach
+				if (!rt.isUnit() && !rt.isMarkedNullable) {
+					throw Exception("Function $funcDecl must have Unit or nullable return type")
 				}
 
 				funcDecl.parameters.forEach {
@@ -143,6 +143,12 @@ class MirrorProcessor(
 					}
 				}
 			}
+
+			val filteredMethods = methods.map {
+				it to Pair(it.parameters.map {
+					Pair(it.name!!, it.type.resolve())
+				}.toList(), it.returnType!!.resolve())
+			}.toMap()
 
 			val mapped = properties.map { Pair(it, it.type.resolve()) }.toMap()
 
@@ -176,48 +182,34 @@ class MirrorProcessor(
 				}
 			}
 
-			val DIRTY_FLAG_FIELD = "_dirtyFlag"
+			val dirtyFlagFieldName = "_dirtyFlag"
 
 			fun printDeclarations(i: String): String = StringBuffer().also {
 				indent = i
 				when (dirtyType) {
 					DirtyType.NEVER -> Unit
-					DirtyType.COMPLEX -> it.appendLn("private val $DIRTY_FLAG_FIELD = java.util.BitSet(${mapped.size})")
-					DirtyType.ANY -> it.append("private var $DIRTY_FLAG_FIELD = false")
+					DirtyType.COMPLEX -> it.appendLn("private val $dirtyFlagFieldName = java.util.BitSet(${mapped.size})")
+					DirtyType.ANY -> it.append("private var $dirtyFlagFieldName = false")
 				}
 				mapped.toList().forEachIndexed { index, pair ->
 					val prop = pair.first
 					val type = pair.second
 					val name = prop.getName()
 					if (type.isArray()) {
-						logger.error("standard Arrays not supported. Use MirroredArray")
+						throw Exception("standard Arrays not supported. Use MirroredArray")
 					} else if (type.isList()) {
 						it.appendLn("override var $name : $type = ${type.defaultValue()}")
-
-/*
-						if (argType.isEnum()) {
-							field = "DirtyListEnum($argType.values(), value)"
-							it.appendLn("override var $name : $type = DirtyListEnum($argType.values())")
-						} else if (argType.isMirrored()) {
-							field = "DirtyListMirrored(value)"
-							it.appendLn("override var $name : $type = DirtyListMirrored()")
-						} else if (argType.isList()) {
-							field = "DirtyListList(value)"
-							it.appendLn("override var $name : $type = DirtyListList()")
-						} else {
-							it.appendLn("override var $name : $type = ${type.defaultValue()}")
-						}*/
 						when (dirtyType) {
 							DirtyType.NEVER -> Unit
 							DirtyType.COMPLEX -> {
 								it.appendLn("   set(value) {")
-								it.appendLn("      if (value != field) $DIRTY_FLAG_FIELD.set($index)")
+								it.appendLn("      if (value != field) $dirtyFlagFieldName.set($index)")
 								it.appendLn("      field = value.toMirroredList()")
 								it.appendLn("   }")
 							}
 							DirtyType.ANY -> {
 								it.appendLn("   set(value) {")
-								it.appendLn("      $DIRTY_FLAG_FIELD = $DIRTY_FLAG_FIELD || (value != field)")
+								it.appendLn("      $dirtyFlagFieldName = $dirtyFlagFieldName || (value != field)")
 								it.appendLn("      field = value.toMirroredList()")
 								it.appendLn("   }")
 							}
@@ -228,13 +220,13 @@ class MirrorProcessor(
 							DirtyType.NEVER -> Unit
 							DirtyType.COMPLEX -> {
 								it.appendLn("   set(value) {")
-								it.appendLn("      if (value != field) $DIRTY_FLAG_FIELD.set($index)")
+								it.appendLn("      if (value != field) $dirtyFlagFieldName.set($index)")
 								it.appendLn("      field = value")
 								it.appendLn("   }")
 							}
 							DirtyType.ANY -> {
 								it.appendLn("   set(value) {")
-								it.appendLn("      $DIRTY_FLAG_FIELD = $DIRTY_FLAG_FIELD || (value != field)")
+								it.appendLn("      $dirtyFlagFieldName = $dirtyFlagFieldName || (value != field)")
 								it.appendLn("      field = value")
 								it.appendLn("   }")
 							}
@@ -258,8 +250,8 @@ class MirrorProcessor(
 					if (propType.isMirrored() && !propType.isMirroredArray()) {
 						when (dirtyType) {
 							DirtyType.NEVER -> appendLn("if (true) {")
-							DirtyType.ANY -> appendLn("if (!dirtyOnly || $DIRTY_FLAG_FIELD || $nm?.isDirty() == true) {")
-							DirtyType.COMPLEX -> appendLn("if (!dirtyOnly || $DIRTY_FLAG_FIELD.get($index) || $nm?.isDirty() == true) {")
+							DirtyType.ANY -> appendLn("if (!dirtyOnly || $dirtyFlagFieldName || $nm?.isDirty() == true) {")
+							DirtyType.COMPLEX -> appendLn("if (!dirtyOnly || $dirtyFlagFieldName.get($index) || $nm?.isDirty() == true) {")
 						}
 						appendLns(
 							"""
@@ -269,21 +261,20 @@ class MirrorProcessor(
 """)
 					} else if (propType.isEnum()) {
 						if (propType.nullability != Nullability.NULLABLE) {
-							logger.error("enum property $nm must be nullable")
-							return@forEachIndexed
+							throw Exception("enum property $nm must be nullable")
 						}
 						when (dirtyType) {
 							DirtyType.NEVER -> Unit
-							DirtyType.ANY -> appendLn("if (!dirtyOnly || $DIRTY_FLAG_FIELD)")
-							DirtyType.COMPLEX -> appendLn("if (!dirtyOnly || $DIRTY_FLAG_FIELD.get($index))")
+							DirtyType.ANY -> appendLn("if (!dirtyOnly || $dirtyFlagFieldName)")
+							DirtyType.COMPLEX -> appendLn("if (!dirtyOnly || $dirtyFlagFieldName.get($index))")
 						}
 						appendLn("   writer.name(\"$nm\").value($nm?.name)")
 					} else {
 						val value = encode(nm, propType)
 						when (dirtyType) {
 							DirtyType.NEVER -> Unit
-							DirtyType.ANY -> appendLn("if (!dirtyOnly || $DIRTY_FLAG_FIELD)")
-							DirtyType.COMPLEX -> appendLn("if (!dirtyOnly || $DIRTY_FLAG_FIELD.get($index))")
+							DirtyType.ANY -> appendLn("if (!dirtyOnly || $dirtyFlagFieldName)")
+							DirtyType.COMPLEX -> appendLn("if (!dirtyOnly || $dirtyFlagFieldName.get($index))")
 						}
 						if (propType.isMirrored() || propType.isList() || propType.isMap()) {
 							appendLn("{   writer.name(\"$nm\")")
@@ -366,10 +357,10 @@ class MirrorProcessor(
 				when (dirtyType) {
 					DirtyType.NEVER -> Unit
 					DirtyType.ANY -> {
-						appendLn("$DIRTY_FLAG_FIELD = false")
+						appendLn("$dirtyFlagFieldName = false")
 					}
 					DirtyType.COMPLEX -> {
-						appendLn("$DIRTY_FLAG_FIELD.clear()")
+						appendLn("$dirtyFlagFieldName.clear()")
 					}
 				}
 				mapped.filter { it.value.isMirrored() || it.value.isList() }.keys.forEach {
@@ -382,15 +373,15 @@ class MirrorProcessor(
 				when (dirtyType) {
 					DirtyType.NEVER -> appendLn("return false")
 					DirtyType.ANY -> {
-						appendLn("if ($DIRTY_FLAG_FIELD) return true")
+						appendLn("if ($dirtyFlagFieldName) return true")
 						mapped.filter { it.value.isMirrored() || it.value.isList() }.keys.map {
 							appendLn("if ((${it.getName()} as Mirrored?)?.isDirty() == true)")
-							appendLn("   $DIRTY_FLAG_FIELD = true")
+							appendLn("   $dirtyFlagFieldName = true")
 						}
-						appendLn("return $DIRTY_FLAG_FIELD")
+						appendLn("return $dirtyFlagFieldName")
 					}
 					DirtyType.COMPLEX -> {
-						append("${indent}return !$DIRTY_FLAG_FIELD.isEmpty")
+						append("${indent}return !$dirtyFlagFieldName.isEmpty")
 						mapped.filter { it.value.isList() }.keys.map {
 							appendLn("    || (${it.getName()} as MirroredList<*>?)?.isDirty() == true")
 						}
@@ -421,28 +412,28 @@ class MirrorProcessor(
 	override fun getFunctionDelegate() : FunctionDelegate? = _functionDelegate
 
 	private val _functionDelegate = object : FunctionDelegate() {
-		override fun executeLocally(function: String, reader: JsonReader) {
-			when (function) {""")
-					methods.forEach { funcDecl ->
+		override suspend fun executeLocally(function: String, reader: JsonReader) : Boolean {
+			return when (function) {""")
+					filteredMethods.forEach { funcDecl, params ->
 						appendLns("""
 				"$funcDecl" -> {
 					$funcDecl(""")
 						var comma = false
+						// TODO: Simplify this
 						funcDecl.parameters.forEach {
 							if (comma) {
 								append(",")
 							} else {
 								comma = true
 							}
-							val t = it.type.resolve()!!
+							val t = it.type.resolve()
 							if (t.isMirroredArray()) {
 								TODO()
 							} else if (t.isMirrored()) {
 								appendLns("""
 				   checkForNullOr(reader, null) { reader ->
 				      readMirrored<${t.toString().trimEnd('?')}>(null, reader)
-				   }
-""")
+				   }""")
 							} else if (t.isEnum()) {
 								TODO()
 							} else if (t.isList()) {
@@ -452,46 +443,89 @@ class MirrorProcessor(
 					reader.${t.gsonTypeName()}()""")
 							}
 						}
+						append(")")
+
+						if (!params.second.isUnit()) {
+							val serializeResultStmt = if (params.second.isMirrored()) {
+								"writeMirrored(result, this, false)"
+							} else {
+								"value(result)"
+							}
+
+							appendLns(
+								""".also { result ->
+						getFunctionDelegate()?.serializerFactory?.newResponseSerializer()?.let { serializer ->
+						    serializer.start("$funcDecl").apply {
+
+							    if (result == null) {
+								    nullValue()
+							    } else {
+								    $serializeResultStmt
+							    }
+
+							    }
+							    serializer.end("$funcDecl")
+					        }
+					}""")
+						}
+
+
 						appendLns("""
-					)
+					true
 				 }
 """)
 					}
 
-					appendLns("""}
+					appendLns("""
+				else -> super.executeLocally(function, reader)
+			}
 		}
 	}
 """)
-					methods.forEach { funcDecl ->
+					filteredMethods.forEach { funcDecl, types ->
 						val rt = funcDecl.returnType?.resolve() ?: "Unit"
-						val parameters: String = funcDecl.parameters.map { param ->
-							logger.warn("param: $param")
-							val nullability = if (param.type.resolve().isMarkedNullable) "?" else ""
-							"$param : ${param.type}$nullability"
+						val parameters: String = types.first.map {
+							//	logger.warn("param: $param")
+							//	val nullability = if (param.type.resolve().isMarkedNullable) "?" else ""
+							//	"$param : ${param.type}$nullability"
+							"${it.first.asString()} : ${it.second}"
 						}.joinToString(",")
 						appendLns("""
-	override fun $funcDecl($parameters) : $rt {
-		_functionDelegate.executor?.let {
-			with(it.start("$funcDecl")) {
-""")
-						funcDecl.parameters.forEach {
-							if (it.type.resolve().isMirrored()) {
+	override suspend fun $funcDecl($parameters) : $rt {
+		getFunctionDelegate()?.let { delegate ->
+		    delegate.serializerFactory?.newFunctionSerializer()?.let { serializer ->
+				serializer.start("$funcDecl").apply {""")
+						types.first.forEach {
+							val name = it.first.asString()
+							if (it.second.isMirrored()) {
 								appendLns("""
-				if ($it == null) {
-					nullValue()
-				} else {
-					writeMirrored($it, this, false)
-				}""")
+					if ($name == null) {
+						nullValue()
+					} else {
+						writeMirrored($name, this, false)
+					}""")
 							} else {
 								appendLns("""
-				value($it)""")
+					value($name)""")
 							}
 						}
 						appendLns("""
-			}
-			it.end()
+				}
+				serializer.end("$funcDecl")
+			}""")
+						if (!types.second.isUnit()) {
+							appendLns("""
+		    return delegate.waitForResponse("doSomethingAndReturn") {
+				it.${types.second.gsonTypeName()}()
+		    }
+		}
+		return null
+	}""")
+						} else {
+							appendLns("""
 		}
 	}""")
+						}
 					}
 				}
 			}.toString()
@@ -504,6 +538,7 @@ package ${classDeclaration.packageName.asString()}
 import com.google.gson.*
 import com.google.gson.stream.*
 import cc.lib.mirror.context.*
+import kotlinx.coroutines.*
 				
 abstract class $classTypeName() : ${baseDeclaration}(), $classDeclaration {				
 

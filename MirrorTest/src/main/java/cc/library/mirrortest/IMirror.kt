@@ -80,15 +80,18 @@ interface IMirror : Mirrored {
 //	var EE: TempEnum
 
 	@MirroredFunction
-	fun doSomething1()
+	suspend fun doSomething1()
 
 	@MirroredFunction
-	fun doSomething2(v: String)
+	suspend fun doSomething2(v: String)
 
 	@MirroredFunction
-	fun doSomething3(m: IMirror2?)
+	suspend fun doSomething3(m: IMirror2?)
 
 	@MirroredFunction
-	fun doSomething4(x: Int, y: Float, z: Mirrored?)
+	suspend fun doSomething4(x: Int, y: Float, z: Mirrored?)
+
+	@MirroredFunction
+	suspend fun doSomethingAndReturn(m: IMirror2?): Int?
 
 }

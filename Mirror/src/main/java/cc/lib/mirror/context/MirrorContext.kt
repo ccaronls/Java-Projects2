@@ -11,9 +11,37 @@ fun JsonReader.nextName(value: String): JsonReader {
 	return this
 }
 
-interface FunctionExecutor {
-	fun start(functionName: String): JsonWriter
-	fun end()
+abstract class FunctionSerializer(val writer: JsonWriter, val mirrorId: String, val context: MirrorContext) {
+
+	suspend fun start(functionName: String): JsonWriter {
+		writer.beginObject()
+		writer.name("mirrorId").value(mirrorId)
+		writer.name("function").value(functionName)
+		writer.name("params")
+		writer.beginArray()
+		return writer
+	}
+
+	suspend fun end(functionName: String) {
+		writer.endArray()
+		writer.endObject()
+		context.executeFunction()
+	}
+}
+
+abstract class FunctionResponseSerializer(val writer: JsonWriter, val mirrorId: String, val context: MirrorContext) {
+	suspend fun start(functionName: String): JsonWriter {
+		writer.beginObject()
+		writer.name("mirrorId").value(mirrorId)
+		writer.name("function").value(functionName)
+		writer.name("result")
+		return writer
+	}
+
+	suspend fun end(functionName: String) {
+		writer.endObject()
+		context.deliverResult(writer)
+	}
 }
 
 
@@ -22,41 +50,46 @@ interface FunctionExecutor {
  */
 open class MirrorContext {
 
-	private val mirrors = mutableMapOf<String, Mirrored>()
+	protected val mirrors = mutableMapOf<String, Mirrored>()
 
 	fun registerSharedObject(name: String, obj: Mirrored) {
 		mirrors[name] = obj
 		if (isOwner()) {
+			obj.getFunctionDelegate()?.serializerFactory = object : SerializerFactory {
+				override fun newFunctionSerializer(): FunctionSerializer = object : FunctionSerializer(
+					getFunctionWriter(),
+					name,
+					this@MirrorContext
+				) {}
 
-			obj.getFunctionDelegate()?.executor = object : FunctionExecutor {
+				override fun newResponseSerializer(): FunctionResponseSerializer? = null
+			}
+		} else {
+			obj.getFunctionDelegate()?.serializerFactory = object : SerializerFactory {
+				override fun newResponseSerializer(): FunctionResponseSerializer = object : FunctionResponseSerializer(
+					getFunctionWriter(),
+					name,
+					this@MirrorContext
+				) {}
 
-				lateinit var writer: JsonWriter
-
-				override fun start(functionName: String): JsonWriter {
-					writer = getFunctionWriter()
-					writer.beginObject()
-					writer.name("function").value(functionName)
-					writer.name("params")
-					writer.beginArray()
-					return writer
-				}
-
-				override fun end() {
-					writer.endArray()
-					writer.endObject()
-					executeFunction(name)
-				}
+				override fun newFunctionSerializer(): FunctionSerializer? = null
 			}
 		}
 	}
 
-	fun executeLocally(name: String, reader: JsonReader) {
+	open fun getFunctionWriter(): JsonWriter {
+		TODO()
+	}
+
+	suspend fun executeLocally(reader: JsonReader) {
 		reader.beginObject()
+		val mirrorId = reader.nextName("mirrorId").nextString()
 		val function = reader.nextName("function").nextString()
 		reader.nextName("params")
 		reader.beginArray()
-		mirrors[name]?.getFunctionDelegate()?.executeLocally(function, reader) ?: run {
-			error("Cannot execute function on $name")
+		mirrors[mirrorId]?.getFunctionDelegate()?.executeLocally(function, reader)?.let {
+			if (!it)
+				error("Mirror $mirrorId does not have a function for $function")
 		}
 		reader.endArray()
 		reader.endObject()
@@ -94,11 +127,20 @@ open class MirrorContext {
 		}
 	}
 
-	protected open fun getFunctionWriter(): JsonWriter {
+	suspend fun responseArrived(response: JsonReader) {
+		response.beginObject()
+		val mirrorId = response.nextName("mirrorId").nextString()
+		val functionName = response.nextName("function").nextString()
+		response.nextName("result")
+		mirrors[mirrorId]?.getFunctionDelegate()?.responseArrived(functionName, response)
+		//response.endObject()
+	}
+
+	open suspend fun executeFunction() {
 		TODO()
 	}
 
-	protected open fun executeFunction(name: String) {
+	open fun deliverResult(response: JsonWriter) {
 		TODO()
 	}
 

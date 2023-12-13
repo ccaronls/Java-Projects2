@@ -2,6 +2,7 @@ package cc.library.mirrortest
 
 import cc.lib.mirror.context.*
 import com.google.gson.GsonBuilder
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
 import org.junit.Test
 import java.io.StringReader
@@ -173,55 +174,62 @@ class MirrorTest {
 	}
 
 	@Test
-	fun test6() {
+	fun `test mirrored functions`() = runBlocking {
 		val ownerMirror = object : MyMirror() {
-			override fun doSomething1() {
+			override suspend fun doSomething1() {
 				super.doSomething1()
 				println("owner : doSomething1()")
 			}
 
-			override fun doSomething2(v: String) {
+			override suspend fun doSomething2(v: String) {
 				super.doSomething2(v)
 				println("owner : doSomething2($v)")
 			}
 
-			override fun doSomething3(m: IMirror2?) {
+			override suspend fun doSomething3(m: IMirror2?) {
 				super.doSomething3(m)
 				println("owner : doSomething3($m)")
 			}
 
-			override fun doSomething4(x: Int, y: Float, z: Mirrored?) {
+			override suspend fun doSomething4(x: Int, y: Float, z: Mirrored?) {
 				super.doSomething4(x, y, z)
 				println("owner : doSomething4($x, $y, $z)")
 			}
 
+			override suspend fun doSomethingAndReturn(m: IMirror2?): Int? {
+				return super.doSomethingAndReturn(m).also { result ->
+					println("owner : doSomethingAndReturn($m) -> $result")
+				}
+			}
 		}
 		val receiverMirror = object : MyMirror() {
 			var doSomething1Executed = false
-			override fun doSomething1() {
-				super.doSomething1()
+			override suspend fun doSomething1() {
 				println("receiver : doSomething1()")
 				doSomething1Executed = true
 			}
 
-			override fun doSomething2(v: String) {
-				super.doSomething2(v)
+			override suspend fun doSomething2(v: String) {
 				println("receiver : doSomething2($v)")
 				assertEquals("hello", v)
 			}
 
-			override fun doSomething3(m: IMirror2?) {
-				super.doSomething3(m)
+			override suspend fun doSomething3(m: IMirror2?) {
 				println("receiver : doSomething3($m)")
 				assertEquals("goodbye", m?.y)
 			}
 
-			override fun doSomething4(x: Int, y: Float, z: Mirrored?) {
-				super.doSomething4(x, y, z)
+			override suspend fun doSomething4(x: Int, y: Float, z: Mirrored?) {
 				println("receiver : doSomething4($x, $y, $z)")
 				assertEquals(10, x)
 				assertEquals(100f, y)
 				assertNull(z)
+			}
+
+			override suspend fun doSomethingAndReturn(m: IMirror2?): Int? {
+				return 10.also { result ->
+					println("receiver : doSomethingAndReturn($m) -> $result")
+				}
 			}
 		}
 
@@ -235,6 +243,7 @@ class MirrorTest {
 			y = "goodbye"
 		})
 		ownerMirror.doSomething4(10, 100f, null)
+		assertEquals(ownerMirror.doSomethingAndReturn(null), 10)
 
 		println(owner)
 
