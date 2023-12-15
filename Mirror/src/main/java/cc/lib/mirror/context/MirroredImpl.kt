@@ -56,6 +56,13 @@ abstract class MirroredImpl : Mirrored {
 			} else orElse(reader)
 		}
 
+		inline fun <reified T> checkForNullOrNullable(reader: JsonReader, defaultValue: T?, orElse: (JsonReader) -> T): T? {
+			return if (reader.peek() == JsonToken.NULL) {
+				reader.nextNull()
+				defaultValue
+			} else orElse(reader)
+		}
+
 		fun isContentsEquals(m0: Mirrored?, m1: Any?): Boolean {
 			if (m0 === m1)
 				return true

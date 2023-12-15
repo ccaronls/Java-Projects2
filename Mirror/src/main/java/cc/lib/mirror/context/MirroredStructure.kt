@@ -4,7 +4,7 @@ import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonToken
 import com.google.gson.stream.JsonWriter
 
-abstract class MirroredStructure<T>(protected val type: Class<T>) {
+open class MirroredStructure<T>(protected val type: Class<T>) {
 	fun readValue(reader: JsonReader, defaultValue: T?): T? {
 		return when (reader.peek()) {
 			JsonToken.STRING -> {
@@ -79,5 +79,23 @@ abstract class MirroredStructure<T>(protected val type: Class<T>) {
 		Boolean::class.javaObjectType -> false as T
 		else -> null as T
 	}
+
+	fun serializeList(list: List<Any?>, writer: JsonWriter) {
+		writer.beginArray()
+		list.forEach {
+			writeValue(writer, it as T, false)
+		}
+		writer.endArray()
+	}
+
+	fun <T> deserializeList(reader: JsonReader, list: MutableList<T>): List<T> {
+		reader.beginArray()
+		while (reader.hasNext()) {
+			list.add(readValue(reader, null) as T)
+		}
+		reader.endArray()
+		return list
+	}
+
 }
 

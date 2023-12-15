@@ -94,4 +94,10 @@ interface IMirror : Mirrored {
 	@MirroredFunction
 	suspend fun doSomethingAndReturn(m: IMirror2?): Int?
 
+	@MirroredFunction
+	suspend fun doSomethingAndReturnEnum(e: TempEnum?): TempEnum?
+
+	@MirroredFunction
+	suspend fun doSomethingAndReturnList(l: List<ISmallMirror>, idx: Int): ISmallMirror?
+
 }

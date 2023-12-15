@@ -431,16 +431,23 @@ class MirrorProcessor(
 								TODO()
 							} else if (t.isMirrored()) {
 								appendLns("""
-				   checkForNullOr(reader, null) { reader ->
-				      readMirrored<${t.toString().trimEnd('?')}>(null, reader)
-				   }""")
+					   checkForNullOr(reader, null) { reader ->
+					      readMirrored<${t.makeNotNullable()}>(null, reader)
+					   }""")
 							} else if (t.isEnum()) {
-								TODO()
+								if (!t.isMarkedNullable)
+									throw Exception("Enum parameters must be nullable")
+								appendLns("""
+						checkForNullOrNullable(reader, null) {
+							enumValueOf<${t.makeNotNullable()}>(reader.nextString())
+						}""")
 							} else if (t.isList()) {
-								TODO()
+								appendLns("""
+								MirroredStructure(${t.arguments[0].type}::class.java).deserializeList(reader, mutableListOf())
+								""")
 							} else {
 								appendLns("""
-					reader.${t.gsonTypeName()}()""")
+						reader.${t.gsonTypeName()}()""")
 							}
 						}
 						append(")")
@@ -448,6 +455,8 @@ class MirrorProcessor(
 						if (!params.second.isUnit()) {
 							val serializeResultStmt = if (params.second.isMirrored()) {
 								"writeMirrored(result, this, false)"
+							} else if (params.second.isEnum()) {
+								"value(result.name)"
 							} else {
 								"value(result)"
 							}
@@ -463,9 +472,9 @@ class MirrorProcessor(
 								    $serializeResultStmt
 							    }
 
-							    }
-							    serializer.end("$funcDecl")
-					        }
+						    }
+						    serializer.end("$funcDecl")
+				        }
 					}""")
 						}
 
@@ -504,6 +513,17 @@ class MirrorProcessor(
 					} else {
 						writeMirrored($name, this, false)
 					}""")
+							} else if (it.second.isList()) {
+								appendLns("""
+					MirroredStructure(${it.second.arguments[0].type}::class.java).serializeList(${it.first.asString()}, this)
+									""")
+							} else if (it.second.isEnum()) {
+								appendLns("""
+					if ($name == null) {
+						nullValue()
+					} else {
+						value($name.name)
+					}""")
 							} else {
 								appendLns("""
 					value($name)""")
@@ -515,9 +535,22 @@ class MirrorProcessor(
 			}""")
 						if (!types.second.isUnit()) {
 							appendLns("""
-		    return delegate.waitForResponse("doSomethingAndReturn") {
-				it.${types.second.gsonTypeName()}()
-		    }
+		    return delegate.waitForResponse("$funcDecl") {""")
+							if (types.second.isEnum()) {
+								appendLns("""
+				checkForNullOr(it, null) {
+			        enumValueOf<${types.second.makeNotNullable()}>(it.nextString())
+		        }""")
+							} else if (types.second.isMirrored()) {
+								appendLns("""
+				checkForNullOr(it, null) {
+			        readMirrored<${types.second.makeNotNullable()}>(null, it)
+		        }""")
+							} else {
+								appendLns("""it.${types.second.gsonTypeName()}()""")
+							}
+							appendLns("""
+			}
 		}
 		return null
 	}""")

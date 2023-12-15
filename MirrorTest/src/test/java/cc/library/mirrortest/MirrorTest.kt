@@ -8,7 +8,13 @@ import org.junit.Test
 import java.io.StringReader
 import java.io.StringWriter
 
-open class Mirror1 : SmallMirrorImpl()
+open class Mirror1(a: Int = 0, b: String = "") : SmallMirrorImpl() {
+	init {
+		this.a = a
+		this.b = b
+	}
+}
+
 open class Mirror2 : Mirror2Impl()
 
 /**
@@ -231,6 +237,17 @@ class MirrorTest {
 					println("receiver : doSomethingAndReturn($m) -> $result")
 				}
 			}
+
+			override suspend fun doSomethingAndReturnEnum(e: TempEnum?): TempEnum? {
+				e?.let {
+					return TempEnum.values()[(e.ordinal + 1) % TempEnum.values().size]
+				}
+				return null
+			}
+
+			override suspend fun doSomethingAndReturnList(l: List<ISmallMirror>, idx: Int): ISmallMirror? {
+				return l[idx]
+			}
 		}
 
 		owner.registerSharedObject("mirror", ownerMirror)
@@ -248,6 +265,15 @@ class MirrorTest {
 		println(owner)
 
 		assertTrue(receiverMirror.doSomething1Executed)
+
+		assertEquals(ownerMirror.doSomethingAndReturnEnum(null), null)
+		assertEquals(ownerMirror.doSomethingAndReturnEnum(TempEnum.ONE), TempEnum.TWO)
+
+		val list = listOf(
+			Mirror1(0, "hello"), Mirror1(1, "X")
+		)
+
+		assertEquals(ownerMirror.doSomethingAndReturnList(list, 0)?.b, "hello")
 	}
 
 	@Test
