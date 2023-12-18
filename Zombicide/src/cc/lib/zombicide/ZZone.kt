@@ -33,6 +33,9 @@ class ZZone(val zoneIndex: Int = -1) : Reflector<ZZone>(), IRectangle {
 	var isObjective = false
 	private var nextCell = 0
 
+	val isBuilding: Boolean
+		get() = type == ZZoneType.BUILDING
+
 	@Omit
 	var isTargetForEscape = false
 
@@ -60,7 +63,7 @@ class ZZone(val zoneIndex: Int = -1) : Reflector<ZZone>(), IRectangle {
 	 * @return
 	 */
 	@delegate:Omit
-	val rectangle by lazy {
+	private val rectangle by lazy {
 		GRectangle().also {
 			for (p in cells) {
 				it.addEq(p.column.toFloat(), p.row.toFloat(), 1f, 1f)

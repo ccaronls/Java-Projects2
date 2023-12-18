@@ -2,14 +2,15 @@ package cc.lib.zombicide.anims
 
 import cc.lib.game.AGraphics
 import cc.lib.game.GRectangle
+import cc.lib.game.IRectangle
 import cc.lib.math.Vector2D
 import cc.lib.zombicide.ZAnimation
 import cc.lib.zombicide.ui.UIZBoardRenderer
 
-class ZoomAnimation(_endRect: GRectangle, val renderer: UIZBoardRenderer) : ZAnimation(800) {
+class ZoomAnimation(_endRect: IRectangle, val renderer: UIZBoardRenderer, speed: Long = 800) : ZAnimation(speed) {
 	val startRect = renderer.getZoomedRect()
 	val dv: Vector2D
-	val endRect = renderer.clampRect(_endRect)
+	val endRect = renderer.clampRect(GRectangle(_endRect))
 
 	/**
 	 *

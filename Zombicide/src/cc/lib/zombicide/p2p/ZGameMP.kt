@@ -145,6 +145,22 @@ open class ZGameMP : ZGame() {
 		server?.broadcastExecuteOnRemote(GAME_ID, zoneIndex)
 	}
 
+	override fun onZombieStageBegin() {
+		server?.broadcastExecuteOnRemote(GAME_ID)
+	}
+
+	override fun onZombieStageEnd() {
+		server?.broadcastExecuteOnRemote(GAME_ID)
+	}
+
+	override fun onSpawnZoneSpawning(zoneIdx: Int) {
+		server?.broadcastExecuteOnRemote(GAME_ID, zoneIdx)
+	}
+
+	override fun onSpawnZoneSpawned() {
+		server?.broadcastExecuteOnRemote(GAME_ID)
+	}
+
 	/*
     @Override
     protected void onZombiePath(ZZombie zombie, List<ZDir> path) {

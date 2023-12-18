@@ -1,13 +1,12 @@
 package cc.applets.zombicide
 
-import cc.lib.game.AGraphics
-import cc.lib.game.GColor
-import cc.lib.game.Utils
+import cc.lib.game.*
 import cc.lib.logger.Logger
 import cc.lib.logger.LoggerFactory
 import cc.lib.swing.*
 import cc.lib.ui.IButton
 import cc.lib.utils.FileUtils
+import cc.lib.utils.Table
 import cc.lib.utils.takeIfInstance
 import cc.lib.zombicide.*
 import cc.lib.zombicide.ui.UIZBoardRenderer
@@ -92,6 +91,7 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 
 			override fun <T> waitForUser(expectedType: Class<T>): T? {
 				initMenu(uiMode, options)
+				boardComp.requestFocus()
 				return super.waitForUser(expectedType)
 			}
 
@@ -117,6 +117,21 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 		}
 		game.setUsers(uiUser)
 		game.setDifficulty(ZDifficulty.valueOf(getStringProperty("difficulty", ZDifficulty.MEDIUM.name)))
+		val curRect = boardComp.renderer.getZoomedRect()
+		boardComp.renderer.setZoomedRect(GRectangle(
+			getFloatProperty("zoomX", curRect.x),
+			getFloatProperty("zoomY", curRect.y),
+			getFloatProperty("zoomW", curRect.w),
+			getFloatProperty("zoomH", curRect.h),
+		))
+		boardComp.renderer.addListener(object : UIZBoardRenderer.Listener {
+			override fun onAnimateZoomEnd(rect: IRectangle) {
+				setFloatProperty("zoomX", rect.X())
+				setFloatProperty("zoomY", rect.Y())
+				setFloatProperty("zoomW", rect.width)
+				setFloatProperty("zoomH", rect.height)
+			}
+		})
 		initHomeMenu()
 	}
 
@@ -311,7 +326,7 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 			override fun mousePressed(e: MouseEvent) {}
 			override fun mouseReleased(e: MouseEvent) {}
 			override fun mouseEntered(e: MouseEvent) {
-				game.currentCharacter?.let {
+				charComp.renderer.actorInfo?.takeIfInstance<ZCharacter>()?.let {
 					setCharacterSkillsOverlay(it)
 				} ?: boardComp.renderer.highlightedActor?.takeIfInstance<ZCharacter>()?.let {
 					setCharacterSkillsOverlay(it)
@@ -325,13 +340,17 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 	}
 
 	fun setCharacterSkillsOverlay(c: ZCharacter) {
-		boardComp.renderer.setOverlay(c.getSkillsTable())
+		val table = Table().addColumn("Skills", c.getSkillsTable().setNoBorder())
+			.addColumn("Backpack", c.getBackpackTable(game).setNoBorder())
+
+		boardComp.renderer.setOverlay(table)
 	}
 
 	internal inner class ZButton(obj: IButton) : AWTButton(obj) {
 		var obj: Any
 
 		init {
+			this.isFocusable = false
 			this.obj = obj
 			//            log.debug("created button for type " + obj.getClass());
 			if (obj is ZCharacter) {
@@ -366,6 +385,7 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 	}
 
 	fun initMenu(mode: UIMode, _options: List<*>) {
+
 		menu.removeAll()
 		val options = _options.toMutableList()
 		boardComp.initKeysPresses(options)
@@ -426,6 +446,14 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 
 				override fun getIntProperty(s: String, defaultValue: Int): Int {
 					return frame.getIntProperty(s, defaultValue)
+				}
+
+				override fun getFloatProperty(s: String, defaultValue: Float): Float {
+					return frame.getFloatProperty(s, defaultValue)
+				}
+
+				override fun setFloatProperty(s: String, value: Float) {
+					frame.setProperty(s, value)
 				}
 			}
 			val settings = FileUtils.getOrCreateSettingsDirectory(ZombicideApplet::class.java)

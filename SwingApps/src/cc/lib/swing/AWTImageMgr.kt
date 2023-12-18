@@ -87,9 +87,9 @@ class AWTImageMgr {
 	private fun loadImageFromSearchPaths(name: String): Image {
 		for (path in paths) {
 			try {
-				FileInputStream(File(path, name)).use { `in` ->
-					val buffer = ByteArray(`in`.available())
-					`in`.read(buffer)
+				FileInputStream(File(path, name)).use { reader ->
+					val buffer = ByteArray(reader.available())
+					reader.read(buffer)
 					return ImageIcon(buffer).image
 				}
 			} catch (e: FileNotFoundException) {
@@ -108,10 +108,10 @@ class AWTImageMgr {
 		//  return loadImageFromApplet(name);
 		val bytes = ByteArrayOutputStream()
 		try {
-			javaClass.classLoader.getResourceAsStream(name).use { `in` ->
+			javaClass.classLoader.getResourceAsStream(name).use { reader ->
 				val buffer = ByteArray(1024)
 				while (true) {
-					val len = `in`.read(buffer)
+					val len = reader.read(buffer)
 					if (len < 0) break
 					bytes.write(buffer, 0, len)
 				}

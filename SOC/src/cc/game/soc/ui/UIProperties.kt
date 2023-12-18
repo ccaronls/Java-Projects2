@@ -93,15 +93,15 @@ class UIProperties : Properties() {
 	fun load(fileName: String) {
 		this.fileName = fileName
 		log.debug("Loading properties '$fileName'")
-		var `in`: InputStream? = null
+		var reader: InputStream? = null
 		try {
-			`in` = FileInputStream(fileName)
-			this.load(`in`)
+			reader = FileInputStream(fileName)
+			this.load(reader)
 		} catch (e: IOException) {
 			log.error(e.message)
 		} finally {
 			try {
-				`in`!!.close()
+				reader!!.close()
 			} catch (e: Exception) {
 			}
 		}

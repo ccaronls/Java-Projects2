@@ -26,8 +26,8 @@ open class Card(var cardType: CardType, var typeOrdinal: Int, var cardStatus: Ca
 	}
 
 	@Throws(Exception::class)
-	override fun deserialize(`in`: RBufferedReader) {
-		val parts = `in`.readLine().split(",".toRegex()).toTypedArray()
+	override fun deserialize(reader: RBufferedReader) {
+		val parts = reader.readLine().split(",".toRegex()).toTypedArray()
 		cardType = CardType.valueOf(parts[0])
 		cardStatus = CardStatus.valueOf(parts[1])
 		typeOrdinal = when (cardType) {

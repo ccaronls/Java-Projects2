@@ -92,13 +92,13 @@ class AWTButtonLayout : LayoutManager2 {
 	override fun layoutContainer(target: Container) {
 		val nChildren = target.componentCount
 		val alloc = target.size
-		val `in` = target.insets
-		alloc.width -= `in`.left + `in`.right
-		alloc.height -= `in`.top + `in`.bottom
+		val reader = target.insets
+		alloc.width -= reader.left + reader.right
+		alloc.height -= reader.top + reader.bottom
 
 		// flush changes to the container
-		val x = `in`.left
-		var y = `in`.top
+		val x = reader.left
+		var y = reader.top
 		var i = 0
 		while (i < nChildren && i < heights.size) {
 			val c = target.getComponent(i)

@@ -33,7 +33,7 @@ enum class MiniMapMode {
 enum class ZoomType {
 	UNDEFINED, // the user has zoomed to an unknown position
 	CROP_FIT, // max amount of board is shown that fills screen
-	X2,  // zoom in half way between COP_FIT and MAX
+	X2,  // zoom in half way between CROP_FIT and MAX
 	MAX, // max zoom shows 3 cells square
 	FILL_FIT // whole board is shown with blank areas 'filled'
 }
@@ -43,6 +43,19 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 	private val postActor: MutableList<ZAnimation> = ArrayList()
 	private val overlayAnimations: MutableList<ZAnimation> = ArrayList()
 	private var zoomAnimation: ZAnimation? = null
+		set(value) {
+			if (value != null && field == null) {
+				listeners.forEach {
+					it.onAnimateZoomBegin()
+				}
+			} else if (value == null && field != null) {
+				listeners.forEach {
+					it.onAnimateZoomEnd(_zoomedRect)
+				}
+			}
+
+			field = value
+		}
 	private val clickables: MutableMap<IRectangle, MutableList<IButton>> = TreeMap()
 	private var highlightedCell: Pos? = null
 		private set
@@ -90,30 +103,64 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 			field = value
 		}
 
-	//get() = if (UIZombicide.instance.questInitialized) UIZombicide.instance.quest else null
 	var boardMessage: String? = null
 		set(value) {
 			field = value
 			redraw()
 		}
-	private val listeners = mutableListOf<Listener>()
+	private val listeners = ConcurrentHashSet<Listener>()
 	private val R = Renderer(this)
 
-	private val zoomedRect = GRectangle()
+	private val zoomRectStack = Stack<GRectangle>().also {
+		it.push(GRectangle())
+	}
+
+	private val _zoomedRect: GRectangle
+		get() = zoomRectStack.peek()!!
+
 	private var viewport = GDimension()
 
-	fun getZoomedRect(): GRectangle = GRectangle(zoomedRect)
+	fun pushZoomRect() {
+		zoomRectStack.push(_zoomedRect.deepCopy())
+	}
+
+	fun popZoomRect() {
+		if (zoomRectStack.size > 1) {
+			animateZoomTo(zoomRectStack[zoomRectStack.size - 2])
+			waitForAnimations()
+			zoomRectStack.pop()
+		}
+	}
+
+	fun popAllZoomRects() {
+		if (zoomRectStack.size > 1) {
+			animateZoomTo(zoomRectStack[0])
+			waitForAnimations()
+			while (zoomRectStack.size > 1)
+				zoomRectStack.pop()
+		}
+	}
+
+	fun getZoomedRect(): GRectangle = GRectangle(_zoomedRect)
+
 	fun setZoomedRect(rect: IRectangle) {
-		zoomedRect.set(rect)
+		_zoomedRect.set(rect)
 	}
 
 	fun addListener(listener: Listener) {
 		listeners.add(listener)
 	}
 
+	fun removeListener(listener: Listener) {
+		listeners.remove(listener)
+	}
+
 	var currentCharacter: ZCharacter? = null
 		set(value) {
 			log.debug("Set current character $value")
+			value?.let {
+				setHighlightActor(it)
+			}
 			field = value
 			redraw()
 		}
@@ -123,9 +170,13 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		get() = Utils.count(overlayAnimations) { a: ZAnimation? -> a is OverlayTextAnimation }
 
 	interface Listener {
-		fun onClick(obj: Any?)
+		fun onClick(obj: Any?) {}
 
-		fun onActorHighlighted(actor: ZActor?)
+		fun onActorHighlighted(actor: ZActor?) {}
+
+		fun onAnimateZoomBegin() {}
+
+		fun onAnimateZoomEnd(rect: IRectangle) {}
 	}
 
 	@get:Synchronized
@@ -141,8 +192,10 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 			log.debug("highlighted actor: $actor")
 			highlightedActor = actor
 			if (actor != null) {
-				zoomedRect.setCenter(actor)
-				clampZoomRect()
+				val rect = actor.getRect(board)
+				if (!_zoomedRect.contains(rect)) {
+					animateZoomDelta(_zoomedRect.getDeltaToContain(rect), 200)
+				}
 			}
 			redraw()
 		}
@@ -190,7 +243,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 	}
 
 	fun zoomAmt(percent: Float) {
-		val targetRect = zoomedRect.scaledBy(percent)
+		val targetRect = _zoomedRect.scaledBy(percent)
 		currentZoomType = ZoomType.UNDEFINED
 		animateZoomTo(targetRect)
 	}
@@ -198,10 +251,27 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 	val zoomPercent: Float
 		get() {
 			if (viewport.area > 0) {
-				return zoomedRect.area / viewport.area
+				return _zoomedRect.area / viewport.area
 			}
 			return 0f
 		}
+
+	private fun getZoomRectForType(type: ZoomType): GRectangle = when (type) {
+		ZoomType.UNDEFINED -> TODO("This shouldn't happen")
+		ZoomType.CROP_FIT -> {
+			val d = max(board.width, board.height)
+			viewport.cropFit(GRectangle(0f, 0f, d, d).withCenter(boardCenter))
+		}
+		ZoomType.X2 -> {
+			val d = .5f * (min(board.width, board.height) + 3f)
+			GRectangle(0f, 0f, d, d).setAspectReduce(viewportAspect).withCenter(boardCenter)
+		}
+		ZoomType.MAX -> viewport.fitInner(GRectangle(0f, 0f, 3f, 3f).withCenter(boardCenter))
+		ZoomType.FILL_FIT -> {
+			val d = max(board.width, board.height)
+			viewport.fillFit(GRectangle(0f, 0f, d, d).withCenter(boardCenter))
+		}
+	}
 
 	fun toggleZoomType(noAnimate: Boolean = false) {
 		if (desiredZoomType == currentZoomType) {
@@ -211,25 +281,9 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 				desiredZoomType = it
 			}
 		}
-		val cntr = computeBoardCenter()
-		when (desiredZoomType) {
-			ZoomType.UNDEFINED -> TODO("This shouldn't happen")
-			ZoomType.CROP_FIT -> {
-				val d = max(board.width, board.height)
-				viewport.cropFit(GRectangle(0f, 0f, d, d).withCenter(cntr))
-			}
-			ZoomType.X2 -> {
-				val d = .5f * (min(board.width, board.height) + 3f)
-				GRectangle(0f, 0f, d, d).setAspectReduce(viewportAspect).withCenter(cntr)
-			}
-			ZoomType.MAX -> viewport.fitInner(GRectangle(0f, 0f, 3f, 3f).withCenter(cntr))
-			ZoomType.FILL_FIT -> {
-				val d = max(board.width, board.height)
-				viewport.fillFit(GRectangle(0f, 0f, d, d).withCenter(cntr))
-			}
-		}.let {
+		getZoomRectForType(desiredZoomType).also {
 			if (noAnimate) {
-				zoomedRect.set(it)
+				_zoomedRect.set(it)
 				clampZoomRect()
 				redraw()
 			} else {
@@ -375,7 +429,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 	fun drawActors(g: AGraphics): ZActor? {
 		var picked: ZActor? = null
 		var distFromCenter = 0f
-		actorsAnimating = false
+		var numActorsAnimating = 0
 
 		fun drawActor(a: ZActor) {
 			val img = g.getImage(a.imageId)
@@ -397,7 +451,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 						g.color = GColor.MAGENTA
 						g.drawRect(a.getRect())
 					}
-					actorsAnimating = true
+					numActorsAnimating++
 				} else {
 					var outline: GColor = GColor.WHITE
 					highlightAnimationScale = 1f
@@ -447,6 +501,8 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 			it.onActorHighlighted(picked ?: highlightedActor)
 		}
 
+		actorsAnimating = numActorsAnimating > 0
+
 		return picked
 	}
 
@@ -478,10 +534,10 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 	fun drawZoneOutline(g: AGraphics, zoneIndex: Int) {
 		val zone = board.getZone(zoneIndex)
 		g.pushMatrix()
-		g.translate(zone.rectangle.center)
+		g.translate(zone.center)
 		g.scale(.95f)
-		g.translate(zone.rectangle.center.scaledBy(-1f))
-		g.drawRect(zone.rectangle, 2f)
+		g.translate(zone.center.scaledBy(-1f))
+		g.drawRect(zone, 2f)
 		g.popMatrix()
 	}
 
@@ -619,7 +675,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 			if (zone.pickable) {
 				g.color = GColor.YELLOW
 				drawZoneOutline(g, zone.zoneIndex)
-				if (zone.rectangle.contains(mouseV))
+				if (zone.contains(mouseV))
 					highlightedResult = zone.zoneIndex
 			}
 			if (zone.type == ZZoneType.VAULT) {
@@ -628,6 +684,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 						g.color = GColor.WHITE
 						g.drawJustifiedString(zone.center, Justify.CENTER, Justify.CENTER, this)
 					}
+					g.drawCircle(zone.center, .25f)
 				}
 			}
 		}
@@ -1021,7 +1078,8 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 	fun onTilesLoaded(ids: IntArray) {
 		tileIds = ids
 		savedCenter = null
-		zoomedRect.set(0f, 0f, board.width, board.height)
+		if (_zoomedRect.isEmpty)
+			_zoomedRect.set(0f, 0f, board.width, board.height)
 		onSizeChanged(viewportWidth, viewportHeight)
 	}
 
@@ -1032,10 +1090,20 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 	 *
 	 * @param targetZoomPercent 0 is fully zoomed out and 1 is fully zoomed in
 	 */
-	@Synchronized
-	fun animateZoomTo(newRect: GRectangle) {
-		clampRect(newRect)
-		zoomAnimation = ZoomAnimation(newRect, this).start()
+	fun animateZoomTo(newRect: IRectangle) {
+		zoomAnimation = ZoomAnimation(clampRect(GRectangle(newRect)), this).start()
+		redraw()
+	}
+
+	fun animateZoomTo(type: ZoomType) {
+		zoomAnimation = ZoomAnimation(clampRect(getZoomRectForType(type)), this).start()
+		redraw()
+	}
+
+	fun animateZoomDelta(delta: IVector2D, speed: Long) {
+		zoomAnimation = ZoomAnimation(
+			clampRect(getZoomedRect().moveBy(delta)),
+			this, speed).start()
 		redraw()
 	}
 
@@ -1071,6 +1139,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 	override fun draw(g: APGraphics, mx: Int, my: Int) {
 		mouseX = mx
 		mouseY = my
+		actorsAnimating = true
 
 		if (!UIZombicide.initialized) {
 			drawNoBoard(g)
@@ -1080,7 +1149,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		highlightedResult = null
 		g.setIdentity()
 
-		g.ortho(zoomedRect)
+		g.ortho(_zoomedRect)
 		mouseV.set(g.screenToViewport(mx, my))
 		quest?.let {
 			if (drawTiles && tiles.isEmpty() && it.tiles.isNotEmpty()) {
@@ -1127,7 +1196,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 					for (zoneIdx in visibleZones) {
 						val zone = board.getZone(zoneIdx)
 						g.color = GColor.YELLOW
-						zone.rectangle.drawOutlined(g, 2)
+						zone.drawOutlined(g, 2)
 					}
 				}
 			}
@@ -1162,9 +1231,9 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		} else {
 			zoomAnimation?.update(g)
 		}
-		if (isAnimating)
+		if (isAnimating) {
 			redraw()
-		else {
+		} else {
 			val d = g.pushDepth
 			drawMiniMap(g)
 			lock.withLock {
@@ -1192,12 +1261,12 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 	val condition = lock.newCondition()
 
 	fun waitForAnimations() {
-		if (isAnimating || null != board.getAllActors().firstOrNull { it.isAnimating }) {
+		redraw()
+		do {
 			lock.withLock {
-				condition.await(20, TimeUnit.SECONDS)
+				condition.await(1, TimeUnit.SECONDS)
 			}
-			//Utils.waitNoThrow(this, 20000)
-		}
+		} while (isAnimating)
 	}
 
 	protected fun drawOverlay(g: AGraphics) {
@@ -1216,7 +1285,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		if (drawDebugText) {
 			g.drawJustifiedStringOnBackground(width - 10, 10f, Justify.RIGHT, Justify.TOP,
 				"""$desiredZoomType/$currentZoomType/${(100f * zoomPercent).roundToInt()}
-				   ZoomRect: $zoomedRect
+				   ZoomRect: $_zoomedRect
 				   Viewport: $viewport
 				   Board: ${board.width} x ${board.height}
 				""".trimMargin(), GColor.TRANSLUSCENT_BLACK, borderThickness)
@@ -1353,14 +1422,17 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		}
 	*/
 	fun clampZoomRect() {
-		clampRect(zoomedRect)
+		clampRect(_zoomedRect)
 	}
 
 	fun clampRect(rect: GRectangle): GRectangle {
 		if (rect.w > viewport.width || rect.h >= viewport.height) {
 			rect.setDimension(viewport)
-		} else if (rect.w < 2 || rect.h < 2) {
-			rect.setDimension(GDimension(2f, 2f)).aspect = viewportAspect
+		} else if (rect.w < 3 && rect.h < 3) {
+			rect.setDimension(GDimension(3f, 3f)).aspect = viewportAspect
+		} else {
+			// grow rect to match the aspect ratio of viewPort
+			rect.aspect = viewportAspect
 		}
 		val minX = (board.width / 2 - rect.width / 2).coerceAtMost(0f)
 		val minY = (board.height / 2 - rect.height / 2).coerceAtMost(0f)
@@ -1389,7 +1461,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 
 	override fun onDragStart(x: Int, y: Int) {
 		if (highlightedShape == null) {
-			R.setOrtho(zoomedRect)
+			R.setOrtho(_zoomedRect)
 			dragStartV = R.untransform(x.toFloat(), y.toFloat())
 		}
 	}
@@ -1397,7 +1469,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 	override fun onDragMove(x: Int, y: Int) {
 		val v = R.untransform(x.toFloat(), y.toFloat())
 		val dv = dragStartV.sub(v)
-		zoomedRect.moveBy(dv)
+		_zoomedRect.moveBy(dv)
 		dragStartV = v
 		clampZoomRect()
 		currentZoomType = ZoomType.UNDEFINED
@@ -1405,7 +1477,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 	}
 
 	override fun onZoom(scale: Float) {
-		zoomedRect.scale(scale)
+		_zoomedRect.scale(scale)
 		clampZoomRect()
 		currentZoomType = ZoomType.UNDEFINED
 		redraw()

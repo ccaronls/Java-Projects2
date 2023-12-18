@@ -189,111 +189,6 @@ public class GRectangle extends Reflector<GRectangle> implements IRectangle {
         return this;
     }
 
-    /**
-     *
-     * @param s
-     * @return
-     */
-    public GRectangle scaledBy(float s) {
-        return scaledBy(s, s);
-    }
-
-    public GRectangle scaledBy(float s, Justify horz, Justify vert) {
-        float newWidth = w * s;
-        float newHeight = h * s;
-        float newX = x;
-        float newY = y;
-        switch (horz) {
-            case LEFT:
-                newX += (w-newWidth); break;
-            case RIGHT:
-                break;
-            case CENTER:
-                newX += (w-newWidth)/2; break;
-        }
-
-        switch (vert) {
-            case TOP:
-                break;
-            case BOTTOM:
-                newY += (h-newHeight); break;
-            case CENTER:
-                newY += (h-newHeight)/2; break;
-        }
-        return new GRectangle(newX, newY, newWidth, newHeight);
-    }
-
-    /**
-     *
-     * @param sx
-     * @param sy
-     * @return
-     */
-    public GRectangle scaledBy(float sx, float sy) {
-        float nw = w * sx;
-        float nh = h * sy;
-        float dw = nw-w;
-        float dh = nh-h;
-        return new GRectangle(x-dw/2, y-dh/2, nw, nh);
-    }
-
-    /**
-     * Return a rectangle of dimension not to exceed this dimension and
-     * whose aspect ratio is that of rectToFit and is centered inside this.
-     *
-     * @param rectToFit
-     * @return
-     */
-    public final GRectangle fit(IDimension rectToFit) {
-        return fit (rectToFit, Justify.CENTER, Justify.CENTER);
-    }
-
-    /**
-     * Return a rectangle that fits inside this rect and with same aspect.
-     * How to position inside this determined by horz/vert justifys.
-     *
-     * @param rectToFit
-     * @return
-     */
-    public final GRectangle fit(IDimension rectToFit, Justify horz, Justify vert) {
-        float targetAspect = rectToFit.getAspect();
-        float rectAspect = getAspect();
-        float tx=0, ty=0, tw=0, th=0;
-        if (targetAspect > rectAspect) {
-            // target is wider than rect, so fit lengthwise
-            tw = w;
-            th = w / targetAspect;
-            tx = x;
-            switch (vert) {
-                case CENTER:
-                    ty = y + h/2 - th/2;
-                    break;
-                case TOP:
-                    ty = y;
-                    break;
-                case BOTTOM:
-                    ty = y + h-th;
-                    break;
-            }
-        } else {
-            th = h;
-            tw = h * targetAspect;
-            ty = y;
-            switch (horz) {
-                case CENTER:
-                    tx = x + w/2 - tw/2;
-                    break;
-                case LEFT:
-                    tx = x;
-                    break;
-                case RIGHT:
-                    tx = x + w - tw;
-                    break;
-            }
-        }
-        return new GRectangle(tx, ty, tw, th);
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -387,27 +282,18 @@ public class GRectangle extends Reflector<GRectangle> implements IRectangle {
     }
 
     /**
-     *
      * @param g
      * @return
      */
-    public GRectangle addEq(GRectangle g) {
+    public GRectangle addEq(IRectangle g) {
         if (w == 0 || h == 0) {
-            copyFrom(g);
+            copyFrom(new GRectangle(g));
             return this;
         }
         Vector2D tl = getTopLeft().minEq(g.getTopLeft());
         Vector2D br = getBottomRight().maxEq(g.getBottomRight());
         set(tl, br);
         return this;
-    }
-
-    /**
-     *
-     * @return
-     */
-    public Vector2D getRandomPointInside() {
-        return new Vector2D(x+Utils.randFloat(w), y+Utils.randFloat(h));
     }
 
     /**
@@ -480,5 +366,29 @@ public class GRectangle extends Reflector<GRectangle> implements IRectangle {
 
     public final boolean isEmpty() {
         return this == EMPTY || (getWidth() <= 0 && getHeight() <= 0);
+    }
+
+    public final boolean isInside(IRectangle other) {
+        return (getTopLeft().getX() >= other.getTopLeft().X()
+                && getBottomRight().X() <= other.getBottomRight().getX()
+                && getTopLeft().getY() >= other.getTopLeft().getY()
+                && getBottomRight().getY() <= other.getBottomRight().getY());
+    }
+
+    public final Vector2D getDeltaToContain(IRectangle other) {
+        if (getWidth() < other.getWidth() || getHeight() < other.getHeight())
+            throw new IllegalArgumentException("Cannot contain a rect larger than self");
+        Vector2D delta = other.getCenter().sub(getCenter());
+        float x = other.getTopLeft().X() < getTopLeft().X() ? getTopLeft().X()
+                : other.getBottomRight().X() > getBottomRight().X() ? getBottomRight().X() - other.getWidth()
+                : other.getTopLeft().X();
+
+        float y = other.getTopLeft().Y() < getTopLeft().Y() ? getTopLeft().Y()
+                : other.getBottomRight().Y() > getBottomRight().Y() ? getBottomRight().Y() - other.getHeight()
+                : other.getTopLeft().Y();
+        GRectangle contained = new GRectangle(x, y, other.getWidth(), other.getHeight());
+
+        Vector2D delta2 = contained.getCenter().sub(getCenter());
+        return delta.sub(delta2);
     }
 }

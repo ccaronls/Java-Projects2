@@ -30,6 +30,12 @@ abstract class AWTApplet : JApplet() {
 		return defaultValue
 	}
 
+	open fun getFloatProperty(s: String, defaultValue: Float): Float {
+		return defaultValue
+	}
+
+	open fun setFloatProperty(s: String, value: Float) {}
+
 	open fun <T : Enum<T>> getEnumProperty(s: String, clazz: Class<T>, defaultValue: T): T {
 		return defaultValue
 	}

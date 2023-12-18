@@ -293,3 +293,5 @@ inline fun KMutableProperty<Boolean>.toggle() {
 }
 
 fun Float.formated(fmt: String): String = String.format(fmt, toString())
+
+fun String.trimQuotes(): String = trimStart(' ', '\"').trimEnd(' ', '\"')

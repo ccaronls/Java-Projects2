@@ -23,7 +23,7 @@ class RiskActivity : DroidActivity(), OnItemClickListener {
 
 	private val board by lazy {
 		RiskBoard().also {
-			assets.open("risk.board").use { `in` -> it.deserialize(`in`) }
+			assets.open("risk.board").use { reader -> it.deserialize(reader) }
 		}
 	}
 

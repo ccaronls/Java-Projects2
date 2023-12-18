@@ -2,8 +2,7 @@ package cc.lib.zombicide
 
 import cc.lib.game.*
 import cc.lib.logger.LoggerFactory
-import cc.lib.reflector.Omit
-import cc.lib.reflector.RBufferedReader
+import cc.lib.reflector.*
 import cc.lib.ui.IButton
 import cc.lib.utils.Table
 import cc.lib.utils.increment
@@ -53,6 +52,7 @@ class ZCharacter(override val type: ZPlayerName = ZPlayerName.Ann, skillz: Array
 		private set
 	var isStartingWeaponChosen = false
 		private set
+	val usedSpells = mutableMapOf<ZSpellType, Int>()
 
 	override fun getTooltipText(): String? {
 		return getAllSkillsTable().toString()
@@ -111,13 +111,14 @@ class ZCharacter(override val type: ZPlayerName = ZPlayerName.Ann, skillz: Array
         cachedSkills = null
         zonesMoved = 0
         fallen = isDead
-        super.onBeginRound()
+	    usedSpells.clear()
+	    super.onBeginRound()
     }
 
 	@Synchronized
 	@Throws(Exception::class)
-	override fun deserialize(`in`: RBufferedReader) {
-		super.deserialize(`in`)
+	override fun deserialize(reader: RBufferedReader) {
+		super.deserialize(reader)
 		cachedSkills = null
 	}
 
@@ -262,11 +263,13 @@ class ZCharacter(override val type: ZPlayerName = ZPlayerName.Ann, skillz: Array
     
     val spells: List<ZSpell>
         get() {
-            val spells = getEquipped().filterIsInstance<ZSpell>().toMutableList()
-            if (getAvailableSkills().contains(ZSkill.Spellbook)) {
-                spells.addAll(backpack.filterIsInstance<ZSpell>())
-            }
-            return spells
+	        val spells = getEquipped().filterIsInstance<ZSpell>().filter {
+		        usedSpells.getOrDefault(it.type, 0) < it.type.usesPerTurn
+	        }.toMutableList()
+	        if (getAvailableSkills().contains(ZSkill.Spellbook)) {
+		        spells.addAll(backpack.filterIsInstance<ZSpell>())
+	        }
+	        return spells
         }
 
     /**
@@ -300,25 +303,32 @@ class ZCharacter(override val type: ZPlayerName = ZPlayerName.Ann, skillz: Array
     }
 
     val numBackpackItems: Int
-        get() = backpack.size
+	    get() = backpack.size
 
-    fun getBackpackItem(index: Int): ZEquipment<*> {
-        return backpack[index]
-    }
+	fun getBackpackItem(index: Int): ZEquipment<*> {
+		return backpack[index]
+	}
 
-    fun getBackpack(): List<ZEquipment<*>> {
-        return backpack
-    }
+	fun getBackpack(): List<ZEquipment<*>> {
+		return backpack
+	}
 
-    fun getEmptyEquipSlotsFor(e: ZEquipment<*>): List<ZEquipSlot> = mutableListOf<ZEquipSlot>().also { list ->
-        if (e.isEquippable(this)) {
-            if (body == null && canEquipBody(e)) {
-                list.add(ZEquipSlot.BODY)
-            }
-            when (e.slotType) {
-                ZEquipSlotType.HAND -> {
-                    if (leftHand == null) {
-	                    list.add(ZEquipSlot.LEFT_HAND)
+	fun getBackpackTable(game: ZGame): Table = Table().apply {
+		backpack.forEach {
+			addRow(it.type, it.type.tooltipText ?: it.getCardInfo(this@ZCharacter, game))
+		}
+	}
+
+
+	fun getEmptyEquipSlotsFor(e: ZEquipment<*>): List<ZEquipSlot> = mutableListOf<ZEquipSlot>().also { list ->
+		if (e.isEquippable(this)) {
+			if (body == null && canEquipBody(e)) {
+				list.add(ZEquipSlot.BODY)
+			}
+			when (e.slotType) {
+				ZEquipSlotType.HAND -> {
+					if (leftHand == null) {
+						list.add(ZEquipSlot.LEFT_HAND)
                     }
                     if (rightHand == null) {
                         list.add(ZEquipSlot.RIGHT_HAND)
@@ -696,9 +706,9 @@ class ZCharacter(override val type: ZPlayerName = ZPlayerName.Ann, skillz: Array
 				}
             }
         }
-        if (skillRating > 0) {
-            ratings.add(skillRating)
-        }
+		if (!type.ignoresArmor && skillRating > 0) {
+			ratings.add(skillRating)
+		}
         return ratings
     }
 
@@ -1005,6 +1015,10 @@ class ZCharacter(override val type: ZPlayerName = ZPlayerName.Ann, skillz: Array
 				}
 			}
 		}
+	}
+
+	fun useSpell(type: ZSpellType) {
+		usedSpells.increment(type, 1)
 	}
 
 	override val isVisible: Boolean = true

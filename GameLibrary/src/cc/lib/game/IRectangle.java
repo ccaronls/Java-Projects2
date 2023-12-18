@@ -3,6 +3,7 @@ package cc.lib.game;
 import org.jetbrains.annotations.NotNull;
 
 import cc.lib.math.MutableVector2D;
+import cc.lib.math.Vector2D;
 
 public interface IRectangle extends IDimension, IShape, Comparable<IRectangle> {
 
@@ -92,7 +93,6 @@ public interface IRectangle extends IDimension, IShape, Comparable<IRectangle> {
     }
 
     /**
-     *
      * @param px
      * @param py
      * @return
@@ -102,7 +102,15 @@ public interface IRectangle extends IDimension, IShape, Comparable<IRectangle> {
     }
 
     /**
-     *
+     * @param other
+     * @return
+     */
+    default boolean contains(IRectangle other) {
+        return Utils.isPointInsideRect(other.getTopLeft().X(), other.getTopLeft().Y(), X(), Y(), getWidth(), getHeight())
+                && Utils.isPointInsideRect(other.getBottomRight().X(), other.getBottomRight().Y(), X(), Y(), getWidth(), getHeight());
+    }
+
+    /**
      * @param v
      * @return
      */
@@ -173,5 +181,124 @@ public interface IRectangle extends IDimension, IShape, Comparable<IRectangle> {
         if (X() != o.X())
             return Float.compare(X(), o.X());
         return Float.compare(Y(), o.Y());
+    }
+
+
+    /**
+     * @return
+     */
+    default Vector2D getRandomPointInside() {
+        return new Vector2D(X() + Utils.randFloat(getWidth()), Y() + Utils.randFloat(getHeight()));
+    }
+
+    /**
+     * @param s
+     * @return
+     */
+    default GRectangle scaledBy(float s) {
+        return scaledBy(s, s);
+    }
+
+    default GRectangle scaledBy(float s, Justify horz, Justify vert) {
+        float newWidth = getWidth() * s;
+        float newHeight = getHeight() * s;
+        float newX = X();
+        float newY = Y();
+        switch (horz) {
+            case LEFT:
+                newX += (getWidth() - newWidth);
+                break;
+            case RIGHT:
+                break;
+            case CENTER:
+                newX += (getWidth() - newWidth) / 2;
+                break;
+        }
+
+        switch (vert) {
+            case TOP:
+                break;
+            case BOTTOM:
+                newY += (getHeight() - newHeight);
+                break;
+            case CENTER:
+                newY += (getHeight() - newHeight) / 2;
+                break;
+        }
+        return new GRectangle(newX, newY, newWidth, newHeight);
+    }
+
+    /**
+     * @param sx
+     * @param sy
+     * @return
+     */
+    default GRectangle scaledBy(float sx, float sy) {
+        float nw = getWidth() * sx;
+        float nh = getHeight() * sy;
+        float dw = nw - getWidth();
+        float dh = nh - getHeight();
+        return new GRectangle(X() - dw / 2, Y() - dh / 2, nw, nh);
+    }
+
+    /**
+     * Return a rectangle of dimension not to exceed this dimension and
+     * whose aspect ratio is that of rectToFit and is centered inside this.
+     *
+     * @param rectToFit
+     * @return
+     */
+    default GRectangle fit(IDimension rectToFit) {
+        return fit(rectToFit, Justify.CENTER, Justify.CENTER);
+    }
+
+    /**
+     * Return a rectangle that fits inside this rect and with same aspect.
+     * How to position inside this determined by horz/vert justifys.
+     *
+     * @param rectToFit
+     * @return
+     */
+    default GRectangle fit(IDimension rectToFit, Justify horz, Justify vert) {
+        float targetAspect = rectToFit.getAspect();
+        float rectAspect = getAspect();
+        float tx = 0, ty = 0, tw = 0, th = 0;
+        if (targetAspect > rectAspect) {
+            // target is wider than rect, so fit lengthwise
+            tw = getWidth();
+            th = getWidth() / targetAspect;
+            tx = X();
+            switch (vert) {
+                case CENTER:
+                    ty = Y() + getHeight() / 2 - th / 2;
+                    break;
+                case TOP:
+                    ty = Y();
+                    break;
+                case BOTTOM:
+                    ty = Y() + getHeight() - th;
+                    break;
+            }
+        } else {
+            th = getHeight();
+            tw = getHeight() * targetAspect;
+            ty = Y();
+            switch (horz) {
+                case CENTER:
+                    tx = X() + getWidth() / 2 - tw / 2;
+                    break;
+                case LEFT:
+                    tx = X();
+                    break;
+                case RIGHT:
+                    tx = X() + getWidth() - tw;
+                    break;
+            }
+        }
+        return new GRectangle(tx, ty, tw, th);
+    }
+
+    default boolean canContain(IRectangle other) {
+        return getWidth() >= other.getWidth() && getHeight() >= other.getHeight();
     }
 }

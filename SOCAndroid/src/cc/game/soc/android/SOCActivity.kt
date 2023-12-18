@@ -280,11 +280,11 @@ class SOCActivity() : CCActivityBase(), MenuItem.Action, View.OnClickListener, A
 		}
 		val aiTuning = Properties()
 		try {
-			val `in` = assets.open("aituning.properties")
+			val reader = assets.open("aituning.properties")
 			try {
-				aiTuning.load(`in`)
+				aiTuning.load(reader)
 			} finally {
-				`in`.close()
+				reader.close()
 			}
 		} catch (e: Exception) {
 			e.printStackTrace()
@@ -582,13 +582,13 @@ class SOCActivity() : CCActivityBase(), MenuItem.Action, View.OnClickListener, A
 					object : SpinnerTask<String>(this@SOCActivity) {
 						@Throws(Exception::class)
 						override fun doIt(vararg args: String) {
-							val `in` = assets.open("scenarios/" + scenarios[which])
+							val reader = assets.open("scenarios/" + scenarios[which])
 							try {
 								val scenario = SOC()
-								scenario.deserialize(`in`)
+								scenario.deserialize(reader)
 								soc.copyFrom(scenario)
 							} finally {
-								`in`.close()
+								reader.close()
 							}
 						}
 
@@ -609,15 +609,15 @@ class SOCActivity() : CCActivityBase(), MenuItem.Action, View.OnClickListener, A
 			newDialog(true).setTitle("Load Board").setItems(boards, object : DialogInterface.OnClickListener {
 				override fun onClick(dialog: DialogInterface, which: Int) {
 					try {
-						val `in` = assets.open("boards/" + boards[which])
+						val reader = assets.open("boards/" + boards[which])
 						try {
 							val b = Board()
-							b.deserialize(`in`)
+							b.deserialize(reader)
 							soc.setBoard(b)
 							vBoard.getRenderer().clearCached()
 							vBoard.invalidate()
 						} finally {
-							`in`.close()
+							reader.close()
 						}
 					} catch (e: IOException) {
 						showError(e)

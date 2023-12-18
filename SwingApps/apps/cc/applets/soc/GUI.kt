@@ -2015,11 +2015,11 @@ class GUI(private val frame: AWTFrame, val props: UIProperties) : ActionListener
 			}
 		}
 		try {
-			val `in` = FileInputStream(AI_TUNING_FILE)
+			val reader = FileInputStream(AI_TUNING_FILE)
 			try {
-				aiTuning.load(`in`)
+				aiTuning.load(reader)
 			} finally {
-				`in`.close()
+				reader.close()
 			}
 		} catch (e: FileNotFoundException) {
 			AI_TUNING_FILE.createNewFile()

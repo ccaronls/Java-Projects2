@@ -82,8 +82,8 @@ open class AWTButton : JButton, ActionListener {
 
 		@Throws(Exception::class)
 		fun createWithImage(fileOrResource: String?): AWTButton {
-			FileUtils.openFileOrResource(fileOrResource).use { `in` ->
-				val img: Image = ImageIO.read(`in`)
+			FileUtils.openFileOrResource(fileOrResource).use { reader ->
+				val img: Image = ImageIO.read(reader)
 				return AWTButton(img)
 			}
 		}

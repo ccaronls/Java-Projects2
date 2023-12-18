@@ -8,6 +8,7 @@ import cc.lib.utils.GException
 import java.awt.*
 import java.awt.event.*
 import javax.swing.JComponent
+import javax.swing.SwingUtilities
 
 /**
  * Created by chriscaron on 2/21/18.
@@ -216,7 +217,7 @@ abstract class AWTComponent : UIComponent, JComponent, Renderable, MouseListener
 
 	@Synchronized
 	override fun mouseDragged(e: MouseEvent) {
-		Utils.println("mouseDragged")
+		//Utils.println("mouseDragged")
 		val x = e.x - padding
 		val y = e.y - padding
 		val dx = x - mouseX
@@ -344,7 +345,7 @@ abstract class AWTComponent : UIComponent, JComponent, Renderable, MouseListener
 	}
 
 	override fun redraw() {
-		repaint()
+		SwingUtilities.invokeLater { repaint() }
 	}
 
 	override fun getViewportLocation(): Vector2D {

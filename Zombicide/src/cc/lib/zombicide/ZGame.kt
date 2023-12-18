@@ -176,8 +176,8 @@ open class ZGame() : Reflector<ZGame>() {
 		get() = gameOverStatus == GAME_LOST
 
 
-	override fun deserialize(`in`: RBufferedReader) {
-		super.deserialize(`in`)
+	override fun deserialize(reader: RBufferedReader) {
+		super.deserialize(reader)
 		initQuest(quest)
 	}
 
@@ -315,17 +315,17 @@ open class ZGame() : Reflector<ZGame>() {
         }
     }
 
-    fun spawnZombies(_count: Int, _name: ZZombieType, zone: Int) {
-        var count = _count
-        var name = _name
-        if (count == 0) return
-        while (true) {
-            val _name = name
-            val numOnBoard = board.getAllZombies().count { it.type == _name }
-            log.debug("Num %s on board is %d and trying to spawn %d more", name, numOnBoard, count)
-            if (numOnBoard + count > quest.getMaxNumZombiesOfType(name)) {
-                when (name) {
-                    ZZombieType.Necromancer -> {
+	fun spawnZombies(_count: Int, _name: ZZombieType, zone: Int) {
+		var count = _count
+		var name = _name
+		if (count == 0) return
+		while (true) {
+			val _name = name
+			val numOnBoard = board.getAllZombies().count { it.type == _name }
+			log.debug("Num %s on board is %d and trying to spawn %d more", name, numOnBoard, count)
+			if (numOnBoard + count > quest.getMaxNumZombiesOfType(name)) {
+				when (name) {
+					ZZombieType.Necromancer -> {
                         name = ZZombieType.Abomination
                         continue
                     }
@@ -373,7 +373,6 @@ open class ZGame() : Reflector<ZGame>() {
 
     val state: ZState
         get() {
-            if (stateStack.empty()) pushState(State(ZState.BEGIN_ROUND))
             return stateStack.peek().state
         }
 
@@ -488,27 +487,30 @@ open class ZGame() : Reflector<ZGame>() {
         }
         if (isGameOver) 
             return false
-        quest.getQuestFailedReason(this)?.let {
-            gameLost(it)
-            return false
-        }
-        if (quest.getPercentComplete(this) >= 100) {
-            gameWon()
-            return false
-        }
-        val user = getCurrentUser()
-        removeDeadZombies()
-        when (state) {
-            ZState.INIT -> {
-                for (cell: ZCell in board.getCells()) {
-                    for (type: ZCellType in ZCellType.values()) {
-                        if (cell.isCellType(type)) {
-                            when (type) {
-                                ZCellType.WALKER      -> spawnZombies(1, ZZombieType.Walker, cell.zoneIndex)
-                                ZCellType.RUNNER      -> spawnZombies(1, ZZombieType.Runner, cell.zoneIndex)
-                                ZCellType.FATTY       -> spawnZombies(1, ZZombieType.Fatty, cell.zoneIndex)
-                                ZCellType.NECROMANCER -> spawnZombies(1, ZZombieType.Necromancer, cell.zoneIndex)
-	                            ZCellType.ABOMINATION -> spawnZombies(1, ZZombieType.Abomination, cell.zoneIndex)
+	    quest.getQuestFailedReason(this)?.let {
+		    gameLost(it)
+		    return false
+	    }
+	    if (quest.getPercentComplete(this) >= 100) {
+		    gameWon()
+		    return false
+	    }
+	    val user = getCurrentUser()
+	    removeDeadZombies()
+	    if (stateStack.empty())
+		    pushState(State(ZState.BEGIN_ROUND))
+
+	    when (state) {
+		    ZState.INIT -> {
+			    for (cell: ZCell in board.getCells()) {
+				    for (type: ZCellType in ZCellType.values()) {
+					    if (cell.isCellType(type)) {
+						    when (type) {
+							    ZCellType.WALKER -> spawnZombies(1, ZZombieType.Walker, cell.zoneIndex)
+							    ZCellType.RUNNER -> spawnZombies(1, ZZombieType.Runner, cell.zoneIndex)
+							    ZCellType.FATTY -> spawnZombies(1, ZZombieType.Fatty, cell.zoneIndex)
+							    ZCellType.NECROMANCER -> spawnZombies(1, ZZombieType.Necromancer, cell.zoneIndex)
+							    ZCellType.ABOMINATION -> spawnZombies(1, ZZombieType.Abomination, cell.zoneIndex)
 	                            else -> Unit
                             }
                         }
@@ -539,7 +541,9 @@ open class ZGame() : Reflector<ZGame>() {
                 var zIdx = 0
                 while (zIdx < board.getNumZones()) {
                     if (board.isZoneSpawnable(zIdx)) {
-                        spawnZombies(zIdx, highestSkill)
+	                    onSpawnZoneSpawning(zIdx)
+	                    spawnZombies(zIdx, highestSkill)
+	                    onSpawnZoneSpawned()
                     }
                     zIdx++
                 }
@@ -762,7 +766,7 @@ open class ZGame() : Reflector<ZGame>() {
 	            board.zones.forEach {
 		            it.reset()
 	            }
-	            doZombieStage_new()
+	            doZombieStage()
                 allLivingCharacters.forEach {
 	                it.onEndOfRound(this)
                 }
@@ -842,11 +846,11 @@ open class ZGame() : Reflector<ZGame>() {
         return false
     }
 
-	private fun doZombieStage_new() {
+	private fun doZombieStage() {
 		// for this version we take the approach of trying to move to open spaces
 		val pathMap = mutableMapOf<ZZombie, MutableList<ZDir>>()
 
-		fun getPathForZombie(zombie : ZZombie, cb : () -> List<ZDir>) : MutableList<ZDir> {
+		fun getPathForZombie(zombie: ZZombie, cb: () -> List<ZDir>): MutableList<ZDir> {
 			pathMap[zombie]?.let {
 				return it
 			}
@@ -873,13 +877,25 @@ open class ZGame() : Reflector<ZGame>() {
 		}
 
 		val zombies = board.getAllZombies().filter { !it.destroyed }.toMutableList()
+
+		if (zombies.isEmpty()) {
+			return
+		}
+
+		onZombieStageBegin()
+
+		// we want to perform all the attacks at the end so the animations work better
+		val attackList = mutableListOf<Pair<ZZombie, ZCharacter>>()
+
 		// sort?
 		while (zombies.isNotEmpty()) {
 			var numMoved = 0
 			zombies.removeAll { it.actionsLeftThisTurn == 0 }
 			// find a zombie who can move
 			zombies.forEach { zombie ->
-				if (!tryZombieAttack(zombie)) {
+				tryZombieAttack(zombie)?.let {
+					attackList.add(Pair(zombie, it))
+				} ?: run {
 					val path = if (zombie.type === ZZombieType.Necromancer) {
 						if (zombie.startZone != zombie.occupiedZone && board.isZoneEscapableForNecromancers(zombie.occupiedZone)) {
 							// necromancer is escaping!
@@ -907,72 +923,15 @@ open class ZGame() : Reflector<ZGame>() {
 				}
 			}
 
+			zombies.removeAll(attackList.map { it.first })
+
 			if (numMoved == 0)
 				zombies.clear()
 		}
-	}
 
-	private fun doZombieStage_old() : Boolean {
-		// sort them such that filled zones have their actions performed first
-		val zoneArr = Array(board.zones.size) { Pair(it, board.getActorsInZone(it)) }
-		zoneArr.sortWith { o0, o1 ->
-			val z0 = board.zones[o0.first]
-			val z1 = board.zones[o1.first]
-			val numZ0 = o0.second.size
-			val numZ1 = o1.second.size
-			val maxPerCell = ZCellQuadrant.values().size
-			val numEmptyZ0 = z0.cells.size * maxPerCell - numZ0
-			val numEmptyZ1 = z1.cells.size * maxPerCell - numZ1
-			// order such that zones with fewest empty slots have their zombies move first
-			numEmptyZ0.compareTo(numEmptyZ1)
-		}
-		for (p in zoneArr) {
-			val zombies = p.second.filterIsInstance<ZZombie>().filter { !it.destroyed }
-			for (zombie: ZZombie in zombies) {
-				var path: MutableList<ZDir>? = null
-				while (zombie.actionsLeftThisTurn > 0) {
-					if (!tryZombieAttack(zombie)) {
-						if (path == null) {
-							if (zombie.type === ZZombieType.Necromancer) {
-								if (zombie.startZone != zombie.occupiedZone && board.isZoneEscapableForNecromancers(zombie.occupiedZone)) {
-									// necromancer is escaping!
-									zombie.performAction(ZActionType.MOVE, this)
-									onNecromancerEscaped(zombie.position)
-									quest.onNecromancerEscaped(this, zombie)
-									board.removeActor(zombie)
-									continue
-								}
-								path = board.getZombiePathTowardNearestSpawn(zombie).toMutableList()
-							}
-							if (path == null)
-								path = board.getZombiePathTowardVisibleCharactersOrLoudestZone(zombie).toMutableList()
-							if (path.isEmpty()) {
-								// make zombies move around randomly
-								val zones = board.getAccessibleZones(zombie.occupiedZone, 1, zombie.actionsPerTurn, ZActionType.MOVE)
-								if (zones.isEmpty()) {
-									path = ArrayList()
-								} else {
-									val paths = board.getShortestPathOptions(zombie.occupiedCell, zones.random())
-									if (paths.isEmpty()) {
-										path = ArrayList()
-									} else {
-										path = paths.random().toMutableList()
-									}
-								}
-							} else {
-								onZombiePath(zombie.getId(), path)
-							}
-						}
-						if (path.isEmpty()) {
-							zombie.performAction(ZActionType.NOTHING, this)
-						} else {
-							moveActorInDirection(zombie, path.removeFirst(), ZActionType.MOVE)
-						}
-					}
-				}
-			}
-		}
-		return true
+		doZombieAttacks(attackList)
+
+		onZombieStageEnd()
 	}
 
 	open val isOrganizeEnabled = false
@@ -989,24 +948,17 @@ open class ZGame() : Reflector<ZGame>() {
         log.debug("%s acquires new skill %s", c, skill)
     }
 
-    private fun playerDefends(cur: ZCharacter, type: ZZombieType): Boolean {
-        for (rating: Int in cur.getArmorRatings(type)) {
-            addLogMessage("Defensive roll")
-            val dice = rollDice(1)
-            if (dice[0] >= rating) return true
-        }
-        return false
-    }
+	private fun playerDefends(cur: ZCharacter, type: ZZombieType): Boolean {
+		for (rating: Int in cur.getArmorRatings(type)) {
+			addLogMessage("Defensive roll")
+			val dice = rollDice(1)
+			if (dice[0] >= rating) return true
+		}
+		return false
+	}
 
-	private fun tryZombieAttack(zombie : ZZombie) : Boolean {
-		val victims = board.getCharactersInZone(zombie.occupiedZone).filter {
-			!it.isInvisible && it.isAlive
-		}
-		if (victims.size > 1) {
-			Collections.sort(victims, WoundingComparator(zombie.type))
-		}
-		if (victims.isNotEmpty()) {
-			val victim = victims[0]
+	private fun doZombieAttacks(list: List<Pair<ZZombie, ZCharacter>>) {
+		list.forEach { (zombie, victim) ->
 			onZombieAttack(zombie.position, victim.type, ZActionType.MELEE)
 			zombie.performAction(ZActionType.MELEE, this)
 			if (playerDefends(victim, zombie.type)) {
@@ -1015,26 +967,45 @@ open class ZGame() : Reflector<ZGame>() {
 			} else {
 				playerWounded(victim, zombie, ZAttackType.NORMAL, 1, zombie.type.name)
 			}
-			return true
 		}
-		return false
 	}
 
-	open protected fun onZombieAttack(zombiePos : ZActorPosition, victim : ZPlayerName, type : ZActionType) {
-
+	private fun tryZombieAttack(zombie: ZZombie): ZCharacter? {
+		val victims = board.getCharactersInZone(zombie.occupiedZone).filter {
+			!it.isInvisible && it.isAlive
+		}
+		if (victims.size > 1) {
+			Collections.sort(victims, WoundingComparator(zombie.type))
+		}
+		if (victims.isNotEmpty()) {
+			return victims[0]
+			/*
+			onZombieAttack(zombie.position, victim.type, ZActionType.MELEE)
+			zombie.performAction(ZActionType.MELEE, this)
+			if (playerDefends(victim, zombie.type)) {
+				addLogMessage("${victim.name()} defends against ${zombie.name()}")
+				onCharacterDefends(victim.type, zombie.position)
+			} else {
+				playerWounded(victim, zombie, ZAttackType.NORMAL, 1, zombie.type.name)
+			}
+			return true*/
+		}
+		return null
 	}
 
-    fun gameLost(msg: String) {
-        gameOverStatus = GAME_LOST
-        addLogMessage(("Game Lost $msg").trim { it <= ' ' })
-        onGameLost()
-    }
+	protected open fun onZombieAttack(zombiePos: ZActorPosition, victim: ZPlayerName, type: ZActionType) {}
 
-    fun gameWon() {
-        gameOverStatus = GAME_WON
-        addLogMessage("Game Won!!!")
-        onQuestComplete()
-    }
+	fun gameLost(msg: String) {
+		gameOverStatus = GAME_LOST
+		addLogMessage(("Game Lost $msg").trim { it <= ' ' })
+		onGameLost()
+	}
+
+	fun gameWon() {
+		gameOverStatus = GAME_WON
+		addLogMessage("Game Won!!!")
+		onQuestComplete()
+	}
 
     protected open fun onGameLost() {
         log.debug("GAME LOST")
@@ -1541,6 +1512,7 @@ open class ZGame() : Reflector<ZGame>() {
 		                user.chooseCharacterForSpell(cur.type, spell, targets)?.let { target ->
 			                spell.type.doEnchant(this, target.toCharacter()) //target.availableSkills.add(spell.type.skill);
 			                cur.performAction(ZActionType.ENCHANTMENT, this)
+			                cur.useSpell(spell.type)
 			                return true
 		                }
 	                }
@@ -1782,9 +1754,10 @@ open class ZGame() : Reflector<ZGame>() {
         }?.let { weapon ->
             if (zoneIdx == null) {
                 cur.getWeaponStat(weapon, actionType, this, -1)?.let { stat ->
-	                val zones = board.getAccessibleZones(cur.occupiedZone, stat.minRange, stat.maxRange, actionType)
-                    if (zones.isEmpty()) return false
-                    zoneIdx = user.chooseZoneForAttack(cur.type, zones)
+	                board.getAccessibleZones(cur.occupiedZone, stat.minRange, stat.maxRange, actionType)
+		                .takeIf { it.isNotEmpty() }?.let { zones ->
+			                zoneIdx = user.chooseZoneForAttack(cur.type, zones)
+		                }
                 }
             }
             zoneIdx?.let {
@@ -1803,7 +1776,8 @@ open class ZGame() : Reflector<ZGame>() {
 	    val cur = requireCurrentCharacter
         when (stat.actionType) {
             ZActionType.MELEE -> {
-                val zombies = board.getZombiesInZone(cur.occupiedZone).toMutableList()
+	            val zombies = board.getZombiesInZone(cur.occupiedZone).toMutableList()
+	            val numZombiesInZone = zombies.size
                 Collections.sort(zombies, MarksmanComparator(stat.damagePerHit))
                 val totalHits = resolveHits(cur, zombies.size, weapon.type, stat, zombies.size / 2 - 1, zombies.size / 2 + 1)
                 // when we attack with melee there will be some misses and some hits that are defended
@@ -1815,26 +1789,30 @@ open class ZGame() : Reflector<ZGame>() {
                     if (hits <= 0) break
                     val z = it.next()
                     val pos = z.position
-                    zombiesHit.add(pos)
-                    if (z.type.minDamageToDestroy <= stat.damagePerHit) {
-                        zombiesDestroyed.add(z)
-                        it.remove()
-                        hits--
-                        pos.setData(ACTOR_POS_DATA_DAMAGED)
-                    } else {
-                        pos.setData(ACTOR_POS_DATA_DEFENDED)
-                    }
+	                zombiesHit.add(pos)
+	                if (z.type.minDamageToDestroy <= stat.damagePerHit) {
+		                zombiesDestroyed.add(z)
+		                it.remove()
+		                hits--
+		                pos.setData(ACTOR_POS_DATA_DAMAGED)
+	                } else {
+		                pos.setData(ACTOR_POS_DATA_DEFENDED)
+	                }
                 }
-                onAttack(cur.type, weapon, stat.actionType, stat.numDice, zombiesHit, cur.occupiedZone)
-                for (z: ZZombie in zombiesDestroyed) {
-                    addExperience(cur, z.type.expProvided)
-                    destroyZombie(z, stat.attackType, cur, weapon.type)
-                }
-                if (weapon.isAttackNoisy) {
-                    addNoise(cur.occupiedZone, 1)
-                }
-	            addLogMessage(cur.name() + " Scored " + totalHits + " hits")
-                cur.getAvailableSkills().appendedWith(weapon.type.skillsWhenUsed).forEach { skill ->
+	            // if all the zombies in the zone are killed then dont need to show the misses
+	            val numDice = if (zombiesHit.size == numZombiesInZone) numZombiesInZone else stat.numDice
+	            onAttack(cur.type, weapon, stat.actionType, numDice, zombiesHit, cur.occupiedZone)
+	            var exp = 0
+	            for (z: ZZombie in zombiesDestroyed) {
+		            exp += z.type.expProvided
+		            addExperience(cur, z.type.expProvided)
+		            destroyZombie(z, stat.attackType, cur, weapon.type)
+	            }
+	            if (weapon.isAttackNoisy) {
+		            addNoise(cur.occupiedZone, 1)
+	            }
+	            addLogMessage(cur.name() + " Scored " + totalHits + " hits for +" + exp + " XP")
+	            cur.getAvailableSkills().appendedWith(weapon.type.skillsWhenUsed).forEach { skill ->
                     skill.onAttack(this, cur, weapon, stat.actionType, (stat), cur.occupiedZone, totalHits, zombiesDestroyed)
                 }
                 if (totalHits > 0)
@@ -1912,9 +1890,11 @@ open class ZGame() : Reflector<ZGame>() {
                             }
                         }
                         onAttack(cur.type, weapon, stat.actionType, stat.numDice, actorsHit, zoneIdx)
+	                    var exp = 0
                         for (zombie: ZZombie in zombiesDestroyed) {
                             destroyZombie(zombie, stat.attackType, cur, weapon.type)
                             addExperience(cur, zombie.type.expProvided)
+	                        exp += zombie.type.expProvided
                         }
                         cur.getAvailableSkills().appendedWith(weapon.type.skillsWhenUsed).forEach { skill ->
                             skill.onAttack(this, cur, weapon, stat.actionType, (stat), zoneIdx, hits, zombiesDestroyed)
@@ -1922,7 +1902,7 @@ open class ZGame() : Reflector<ZGame>() {
 	                    for (victim: ZCharacter in friendsHit) {
 		                    playerWounded(victim, cur, stat.attackType, stat.damagePerHit, "Friendly Fire!")
 	                    }
-	                    addLogMessage(cur.name() + " Scored " + hitsMade + " hits")
+	                    addLogMessage(cur.name() + " Scored " + hitsMade + " hits for +" + exp + " XP")
 	                    if (hitsMade > 0)
 		                    checkForHitAndRun(cur)
 	                    return true
@@ -1934,11 +1914,11 @@ open class ZGame() : Reflector<ZGame>() {
         return false
     }
 
-    fun performSkillKill(c: ZCharacter, skill: ZSkill, z: ZZombie, at: ZAttackType) {
-	    onSkillKill(c.type, skill, z.position, at)
-	    addExperience(c, z.type.expProvided)
-        destroyZombie(z, at, c, null)
-    }
+	fun performSkillKill(c: ZCharacter, skill: ZSkill, z: ZZombie, at: ZAttackType) {
+		onSkillKill(c.type, skill, z.position, at)
+		addExperience(c, z.type.expProvided)
+		destroyZombie(z, at, c, null)
+	}
 
     internal class WoundingComparator(val zType: ZZombieType) : Comparator<ZCharacter> {
         override fun compare(o1: ZCharacter, o2: ZCharacter): Int {
@@ -2042,17 +2022,17 @@ open class ZGame() : Reflector<ZGame>() {
 			} ?: ZSkillLevel.getLevel(0)
 		} ?: ZSkillLevel.getLevel(0)
 
-    fun addExperience(c: ZCharacter, pts: Int) {
-        if (pts <= 0) return
-        var sl = c.skillLevel
-        c.addExperience(pts)
-        onCharacterGainedExperience(c.type, pts)
-        // make so a user can level up multiple times in a single level up
-        // need to push state in reverse order so that the lowest new level choices are first
-        val states: MutableList<State> = ArrayList()
-        while (sl != c.skillLevel) {
-            sl = sl.nextLevel()
-            addLogMessage(c.name() + " has gained the " + sl.toString() + " skill level")
+	fun addExperience(c: ZCharacter, pts: Int) {
+		if (pts <= 0) return
+		var sl = c.skillLevel
+		c.addExperience(pts)
+		onCharacterGainedExperience(c.type, pts)
+		// make so a user can level up multiple times in a single level up
+		// need to push state in reverse order so that the lowest new level choices are first
+		val states: MutableList<State> = ArrayList()
+		while (sl != c.skillLevel) {
+			sl = sl.nextLevel()
+			addLogMessage(c.name() + " has gained the " + sl.toString() + " skill level")
             states.add(State(ZState.PLAYER_STAGE_CHOOSE_NEW_SKILL, c.type, null, sl))
         }
         states.reverse()
@@ -2063,43 +2043,43 @@ open class ZGame() : Reflector<ZGame>() {
         log.info("%s gained %d experence!", c, points)
     }
 
-    fun rollDiceWithRerollOption(numDice: Int, dieNumToHit: Int, _minHitsForAutoReroll: Int, _maxHitsForAutoNoReroll: Int): Array<Int> {
-        var minHitsForAutoReroll = _minHitsForAutoReroll
-        var maxHitsForAutoNoReroll = _maxHitsForAutoNoReroll
-        minHitsForAutoReroll = minHitsForAutoReroll.coerceAtLeast(0)
-        maxHitsForAutoNoReroll = maxHitsForAutoNoReroll.coerceAtMost(numDice)
-        val dice = rollDice(numDice)
-        var hits = 0
-        for (d: Int in dice) {
-            if (d >= dieNumToHit) hits++
-        }
-	    addLogMessage(requireCurrentCharacter.label + " Scored " + hits + " hits")
+	fun rollDiceWithRerollOption(numDice: Int, dieNumToHit: Int, _minHitsForAutoReroll: Int, _maxHitsForAutoNoReroll: Int): Array<Int> {
+		var minHitsForAutoReroll = _minHitsForAutoReroll
+		var maxHitsForAutoNoReroll = _maxHitsForAutoNoReroll
+		minHitsForAutoReroll = minHitsForAutoReroll.coerceAtLeast(0)
+		maxHitsForAutoNoReroll = maxHitsForAutoNoReroll.coerceAtMost(numDice)
+		val dice = rollDice(numDice)
+		var hits = 0
+		for (d: Int in dice) {
+			if (d >= dieNumToHit) hits++
+		}
+		addLogMessage(requireCurrentCharacter.label + " Scored " + hits + " hits")
         //onRollDice(dice);
         if (hits >= maxHitsForAutoNoReroll) {
             return dice
         }
         if (hits > minHitsForAutoReroll) {
-	        val plentyOMove = getCurrentUser().chooseMove(requireCurrentCharacter.type,
-		        listOf(ZMove.newReRollMove(), ZMove.newKeepRollMove()))
-            if (plentyOMove != null) {
-                if (plentyOMove.type === ZMoveType.KEEP_ROLL) return dice
-            }
+	        getCurrentUser().chooseMove(requireCurrentCharacter.type,
+		        listOf(ZMove.newReRollMove(), ZMove.newKeepRollMove()))?.let {
+		        if (it.type == ZMoveType.KEEP_ROLL)
+			        return dice
+	        }
         }
         addLogMessage("Bonus roll dice!")
         return rollDice(numDice)
     }
 
-    fun rollDice(num: Int): Array<Int> {
-        val result = Array(num) { dice[it] }
-        var dieStrEnd = "+"
-        var dieStrMid = "|"
-        for (i in 0 until num) {
-            dieStrMid += String.format(" %d |", result[i])
-            dieStrEnd += "---+"
-        }
-        for (i in 0 until dice.size - num) {
-            dice[i] = dice[i + num]
-        }
+	fun rollDice(num: Int): Array<Int> {
+		val result = Array(num) { dice[it] }
+		var dieStrEnd = "+"
+		var dieStrMid = "|"
+		for (i in 0 until num) {
+			dieStrMid += String.format(" %d |", result[i])
+			dieStrEnd += "---+"
+		}
+		for (i in 0 until dice.size - num) {
+			dice[i] = dice[i + num]
+		}
         for (i in 0 until num) {
             dice[i + dice.size - num] = (result[i])
         }
@@ -2114,14 +2094,14 @@ open class ZGame() : Reflector<ZGame>() {
         log.info("Rolling dice result is: %s", Arrays.toString(roll))
     }
 
-    fun destroyZombie(zombie: ZZombie, deathType: ZAttackType, killer: ZCharacter, type: ZEquipmentType?) {
-        killer.onKilledZombie(zombie, type)
-        onZombieDestroyed(killer.type, deathType, zombie.position)
-        zombie.destroyed = true //board.removeActor(zombie);
-	    if (zombie.type === ZZombieType.Necromancer) {
-		    pushState(State(ZState.PLAYER_STAGE_CHOOSE_SPAWN_AREA_TO_REMOVE, killer.type))
-	    }
-    }
+	fun destroyZombie(zombie: ZZombie, deathType: ZAttackType, killer: ZCharacter, type: ZEquipmentType?) {
+		killer.onKilledZombie(zombie, type)
+		onZombieDestroyed(killer.type, deathType, zombie.position)
+		zombie.destroyed = true //board.removeActor(zombie);
+		if (zombie.type === ZZombieType.Necromancer) {
+			pushState(State(ZState.PLAYER_STAGE_CHOOSE_SPAWN_AREA_TO_REMOVE, killer.type))
+		}
+	}
 
 	protected open fun onZombieDestroyed(c: ZPlayerName, deathType: ZAttackType, zombiePos: ZActorPosition) {
 		val zombie = board.getActor(zombiePos) as ZZombie
@@ -2161,9 +2141,9 @@ open class ZGame() : Reflector<ZGame>() {
         log.debug("Extra Activation %s", category)
     }
 
-    fun spawnZombies(zoneIdx: Int) {
-        spawnZombies(zoneIdx, highestSkillLevel)
-    }
+	fun spawnZombies(zoneIdx: Int) {
+		spawnZombies(zoneIdx, highestSkillLevel)
+	}
 
     private fun spawnZombies(zoneIdx: Int, level: ZSkillLevel) {
         //ZSpawnArea spawnType = quest.getSpawnType(this, board.getZone(zoneIdx));
@@ -2322,27 +2302,35 @@ open class ZGame() : Reflector<ZGame>() {
         lootDeck.shuffle()
     }
 
-    fun addNoise(zoneIdx: Int, noise: Int) {
-        onNoiseAdded(zoneIdx)
-        board.getZone(zoneIdx).addNoise(noise)
-        //        showMessage("Noise was made in zone " + zoneIdx);
-    }
+	fun addNoise(zoneIdx: Int, noise: Int) {
+		onNoiseAdded(zoneIdx)
+		board.getZone(zoneIdx).addNoise(noise)
+		//        showMessage("Noise was made in zone " + zoneIdx);
+	}
 
-    protected open fun onNoiseAdded(zoneIndex: Int) {
-        log.debug("Noise added at %d", zoneIndex)
-    }
+	protected open fun onNoiseAdded(zoneIndex: Int) {
+		log.debug("Noise added at %d", zoneIndex)
+	}
+
+	protected open fun onZombieStageBegin() {}
+
+	protected open fun onZombieStageEnd() {}
 
 	protected open fun onZombiePath(id: String, path: List<ZDir>) {}
 
-    val gameSummaryTable: Table
-        get() {
-            val summary = Table("PLAYER", "KILLS", "FAV WEAPONS", "STATUS", "EXP", "LEVEL").setNoBorder()
-            for (c: ZCharacter in board.getAllCharacters()) {
-                summary.addRow(c.type, c.killsTable, c.favoriteWeaponsTable, if (c.isDead) "KIA" else "Alive", c.exp, c.skillLevel)
-            }
-            val gameStatus: String?
-            when (gameOverStatus) {
-                GAME_LOST -> gameStatus = quest.getQuestFailedReason(this)
+	protected open fun onSpawnZoneSpawning(zoneIdx: Int) {}
+
+	protected open fun onSpawnZoneSpawned() {}
+
+	val gameSummaryTable: Table
+		get() {
+			val summary = Table("PLAYER", "KILLS", "FAV WEAPONS", "STATUS", "EXP", "LEVEL").setNoBorder()
+			for (c: ZCharacter in board.getAllCharacters()) {
+				summary.addRow(c.type, c.killsTable, c.favoriteWeaponsTable, if (c.isDead) "KIA" else "Alive", c.exp, c.skillLevel)
+			}
+			val gameStatus: String?
+			when (gameOverStatus) {
+				GAME_LOST -> gameStatus = quest.getQuestFailedReason(this)
                 GAME_WON -> gameStatus = String.format("Completed")
                 else      -> gameStatus = String.format("In Progress: %d%% Completed", quest.getPercentComplete(this).coerceIn(0 .. 100))
             }
@@ -2450,11 +2438,11 @@ open class ZGame() : Reflector<ZGame>() {
 	    pushState(State(ZState.PLAYER_STAGE_CHOOSE_VAULT_ITEM, currentCharacter?.type))
     }
 
-    fun giftRandomVaultArtifact(c: ZCharacter) {
-        quest.vaultItemsRemaining.takeIf { it.isNotEmpty() }?.let {
-            val equip = it.removeRandom()
-            addLogMessage("${c.label} has been gifted a ${equip.label}")
-            giftEquipment(c, equip)
-        }
-    }
+	fun giftRandomVaultArtifact(c: ZCharacter) {
+		quest.vaultItemsRemaining.takeIf { it.isNotEmpty() }?.let {
+			val equip = it.removeRandom()
+			addLogMessage("${c.label} has been gifted a ${equip.label}")
+			giftEquipment(c, equip)
+		}
+	}
 }

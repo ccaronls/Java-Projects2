@@ -52,7 +52,7 @@ class ZSkillLevel(val color: ZColor = ZColor.BLUE, val ultra: Int = -1) : Reflec
     fun getPtsToNextLevel(curPts: Int): Int {
         var curPts = curPts
         if (ULTRA_RED_MODE) {
-            curPts = curPts % ZColor.RED.dangerPts
+	        curPts %= ZColor.RED.dangerPts
         } else if (color === ZColor.RED) return 0
         var idx = (color.ordinal + 1) % NUM_LEVELS
         if (idx == 0) idx++

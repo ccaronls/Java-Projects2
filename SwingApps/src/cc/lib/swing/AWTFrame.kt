@@ -147,9 +147,9 @@ open class AWTFrame : JFrame, WindowListener, ComponentListener, MenuListener, M
 	fun setPropertiesFile(file: File) {
 		propertiesFile = file
 		try {
-			val `in`: InputStream = FileInputStream(propertiesFile)
+			val reader: InputStream = FileInputStream(propertiesFile)
 			try {
-				properties.load(`in`)
+				properties.load(reader)
 				val x = properties.getProperty("gui.x").toInt()
 				val y = properties.getProperty("gui.y").toInt()
 				val w = properties.getProperty("gui.w").toInt()
@@ -157,7 +157,7 @@ open class AWTFrame : JFrame, WindowListener, ComponentListener, MenuListener, M
 				setBounds(x, y, w, h)
 				this.isVisible = true
 			} finally {
-				`in`.close()
+				reader.close()
 			}
 		} catch (e: FileNotFoundException) {
 			System.err.println("File Not Found: $propertiesFile")
@@ -420,7 +420,7 @@ open class AWTFrame : JFrame, WindowListener, ComponentListener, MenuListener, M
 	 * @param defaultValue
 	 * @return
 	 */
-	fun getBooleanProperty(name: String?, defaultValue: Boolean): Boolean {
+	fun getBooleanProperty(name: String, defaultValue: Boolean): Boolean {
 		return try {
 			val prop = getProperties().getProperty(name) ?: return defaultValue
 			java.lang.Boolean.parseBoolean(prop)
@@ -435,7 +435,7 @@ open class AWTFrame : JFrame, WindowListener, ComponentListener, MenuListener, M
 	 * @param defaultValue
 	 * @return
 	 */
-	fun getIntProperty(name: String?, defaultValue: Int): Int {
+	fun getIntProperty(name: String, defaultValue: Int): Int {
 		val value = getProperties().getProperty(name)
 		try {
 			if (value != null) return value.toInt()
@@ -451,12 +451,28 @@ open class AWTFrame : JFrame, WindowListener, ComponentListener, MenuListener, M
 	 * @param defaultValue
 	 * @return
 	 */
-	fun getDoubleProperty(name: String?, defaultValue: Double): Double {
+	fun getDoubleProperty(name: String, defaultValue: Double): Double {
 		val value = getProperties().getProperty(name)
 		try {
 			if (value != null) return value.toDouble()
 		} catch (e: Exception) {
 			log.error("Cannot convert value '$value' to double")
+		}
+		return defaultValue
+	}
+
+	/**
+	 *
+	 * @param name
+	 * @param defaultValue
+	 * @return
+	 */
+	fun getFloatProperty(name: String, defaultValue: Float): Float {
+		val value = getProperties().getProperty(name)
+		try {
+			if (value != null) return value.toFloat()
+		} catch (e: Exception) {
+			log.error("Cannot convert value '$value' to float")
 		}
 		return defaultValue
 	}

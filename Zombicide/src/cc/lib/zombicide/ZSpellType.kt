@@ -34,14 +34,16 @@ enum class ZSpellType(val skill: ZSkill, val description: String) : ZEquipmentTy
         return type === ZActionType.ENCHANTMENT
     }
 
-    override fun getTooltipText(): String? {
-        return description
-    }
+	override fun getTooltipText(): String? {
+		return description
+	}
 
-    open fun doEnchant(game: ZGame, target: ZCharacter) {
-        target.addAvailableSkill(skill)
-    }
+	open fun doEnchant(game: ZGame, target: ZCharacter) {
+		target.addAvailableSkill(skill)
+	}
 
-    override val equipmentClass: ZEquipmentClass
-        get() = ZEquipmentClass.ENCHANTMENT
+	override val equipmentClass: ZEquipmentClass
+		get() = ZEquipmentClass.ENCHANTMENT
+
+	open val usesPerTurn = 1
 }
