@@ -6,7 +6,6 @@ import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.TextView
 import cc.game.zombicide.android.databinding.SaveGameDialogBinding
-import java.util.*
 
 /**
  * Created by Chris Caron on 8/17/21.
@@ -14,7 +13,7 @@ import java.util.*
 class SaveGameDialog(val activity: ZombicideActivity, val maxSaves: Int) : BaseAdapter(), View.OnClickListener {
 	val list: MutableList<Pair<String, String>> = ArrayList()
 	val dialog: Dialog
-	var sb: SaveGameDialogBinding = SaveGameDialogBinding.inflate(activity.layoutInflater)
+	val sb: SaveGameDialogBinding = SaveGameDialogBinding.inflate(activity.layoutInflater)
 
 	fun updateSaves() {
 		list.clear()
@@ -57,7 +56,7 @@ class SaveGameDialog(val activity: ZombicideActivity, val maxSaves: Int) : BaseA
 				activity.deleteSave(name)
 				updateSaves()
 				notifyDataSetChanged()
-				sb!!.bSave.isEnabled = true
+				sb.bSave.isEnabled = true
 			}
 			R.id.b_save -> {
 				run {

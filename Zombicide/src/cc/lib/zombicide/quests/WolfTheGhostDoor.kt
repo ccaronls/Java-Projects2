@@ -10,15 +10,15 @@ import cc.lib.zombicide.ZTile.Companion.getQuadrant
 class WolfTheGhostDoor : ZQuest(ZQuests.The_Ghost_Door) {
 	override fun loadBoard(): ZBoard {
 		val map = arrayOf(
-arrayOf("z0", "z1:spn", "z2:i:ww:ode",                      "z10:i:vd1:we", "z11", "z12:i:ww:ode",              "z20:i:we:ods", "z21", "z22"),
-arrayOf("z3:i:we:ods", "z4", "z2:i:ww:ws:we",               "z10:i:de:ws", "z13", "z12:i:dw:ws:we:red",         "z23:i:red:ws:we", "z24", "z25:i:dn:ww:ods"),
-arrayOf("z5:i:red:we:ods", "z6", "z7",                      "z14", "z15", "z16",                                "z26", "z27", "z28:i:ww:red:ods"),
-arrayOf("z30:i:ws:ode", "z31:i:wn:we:ds", "z32",            "z40:t3:rn:rw", "z40:t3:rn:re", "z41:t1:re",        "z50:i:dn:we:ods", "z51", "z52:i:ww:ws"),
-arrayOf("z33", "z34", "z35",                                "z49:t3:rw:exit", "z40:t3", "z42:t2:re:rs",         "z53:i:we", "z54", "z55:spe"),
-arrayOf("z36", "z37:i:wn:ww:ode:ws", "z38:i:wn:ods",        "z40:t3:rw:rs", "z40:t3:rs", "z40:t3:rs:re",        "z53:i:we:ods", "z56", "z57:i:wn:ww:ods:red"),
-arrayOf("z60", "z61:i:ww:ws:ode", "z62:i:ds:de",            "z70:i:ws", "z70:i:ws:ode", "z71:i:ode:ws",         "z80:i:ws:we", "z81", "z82:ww:ds"),
-arrayOf("z63", "z64", "z65",                                "z72:st", "z73", "z74",                             "z83", "z84", "z85"),
-arrayOf("z66:i:wn:ode:red", "z67:i:dn:we", "z68:sps",       "z75:i:dw:vd1:wn:we", "z76:sps", "z77:i:ww:dn:ode", "z86:i:wn:we:red", "z87", "z88:i:dn:ww:red"))
+			arrayOf("z0", "z1:spn", "z2:i:ww:ode", "z10:i:vd2:we", "z11", "z12:i:ww:ode", "z20:i:we:ods", "z21", "z22:we", ""),
+			arrayOf("z3:i:we:ods", "z4", "z2:i:ww:ws:we", "z10:i:de:ws", "z13", "z12:i:dw:ws:we:red", "z23:i:red:ws:we", "z24", "z25:i:dn:ww:we:ods", ""),
+			arrayOf("z5:i:red:we:ods", "z6", "z7", "z14", "z15", "z16", "z26", "z27", "z28:i:ww:red:ods:we", ""),
+			arrayOf("z30:i:ws:ode", "z31:i:wn:we:ds", "z32", "z40:t3:rn:rw", "z40:t3:rn:re", "z41:t1:re", "z50:i:dn:we:ods", "z51", "z52:i:ww:ws", "z90:v:vd2:ww:wn"),
+			arrayOf("z33", "z34", "z35", "z49:t3:rw:exit", "z40:t3", "z42:t2:re:rs", "z53:i:we", "z54", "z55:spe", "z90:v:ww"),
+			arrayOf("z36", "z37:i:wn:ww:ode:ws", "z38:i:wn:ods", "z40:t3:rw:rs", "z40:t3:rs", "z40:t3:rs:re", "z53:i:we:ods", "z56", "z57:i:wn:ww:ods:red", "z90:v:vd1:ww:ws"),
+			arrayOf("z60", "z61:i:ww:ws:ode", "z62:i:ds:de", "z70:i:ws", "z70:i:ws:ode", "z71:i:ode:ws", "z80:i:ws:we", "z81", "z82:i:ww:ds:we", ""),
+			arrayOf("z63", "z64", "z65", "z72:st", "z73", "z74", "z83", "z84", "z85:we", ""),
+			arrayOf("z66:i:wn:ode:red", "z67:i:dn:we", "z68:sps", "z75:i:dw:vd1:wn:we", "z76:sps", "z77:i:ww:dn:ode", "z86:i:wn:we:red", "z87", "z88:i:dn:ww:red:we", ""))
 		return load(map)
 	}
 

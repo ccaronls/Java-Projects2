@@ -15,9 +15,5 @@ enum class ZAttackType {
     RANGED_THROW,
     EARTHQUAKE,
     MENTAL_STRIKE,
-    DRAGON_FIRE;
-
-    fun needsReload(): Boolean {
-        return this == RANGED_BOLTS
-    }
+	DRAGON_FIRE
 }

@@ -1,8 +1,15 @@
 package cc.lib.zombicide
 
+import cc.lib.game.AGraphics
+import cc.lib.game.GColor
+import cc.lib.game.Justify
 import cc.lib.logger.LoggerFactory
 import cc.lib.reflector.Reflector
+import cc.lib.utils.Table
+import cc.lib.utils.Table.Model
+import cc.lib.utils.prettify
 import cc.lib.utils.randomWeighted
+import cc.lib.utils.wrap
 import java.util.*
 
 class ZSpawnCard private constructor(val name: String, private val wolfburg: Boolean, private val easyCount: Int, private val mediumCount: Int, private val hardCount: Int, vararg actions: Action) : Reflector<ZSpawnCard>() {
@@ -96,6 +103,24 @@ class ZSpawnCard private constructor(val name: String, private val wolfburg: Boo
 			return cards[cardIdx]
 		}
 
+		val model = object : Model {
+			override fun getCellColor(g: AGraphics?, row: Int, col: Int): GColor {
+				return ZColor.values()[row].color
+			}
+
+			override fun getBackgroundColor(): GColor = GColor.GRAY
+
+			override fun getHeaderColor(g: AGraphics?): GColor = GColor.BLACK
+
+			override fun getCornerRadius(): Float = 10f
+
+			override fun getBorderColor(g: AGraphics?): GColor = GColor.BLACK
+
+			override fun getHeaderJustify(col: Int): Justify = Justify.CENTER
+
+			override fun getCellVerticalPadding(): Float = 10f
+		}
+
 		init {
 			addAllFields(ZSpawnCard::class.java)
 			addAllFields(Action::class.java)
@@ -115,7 +140,7 @@ class ZSpawnCard private constructor(val name: String, private val wolfburg: Boo
 		override fun toString(): String {
 			return if (count > 0) {
 				String.format("%s %d X %s", action, count, type)
-			} else action.toString()
+			} else action.prettify()
 		}
 	}
 
@@ -138,4 +163,13 @@ class ZSpawnCard private constructor(val name: String, private val wolfburg: Boo
 			'}'
 	}
 
+	fun toTable(color: ZColor): Table = Table().setModel(model).also {
+		it.addColumn(name.wrap(20), *actions.mapIndexed { index: Int, action: Action ->
+			if (color.ordinal == index) {
+				"> $action <"
+			} else {
+				"- $action -"
+			}
+		}.reversed().toTypedArray())
+	}
 }

@@ -26,7 +26,7 @@ open class ShootAnimation(actor: ZActor, duration: Long, center: IVector2D?, val
 
 	override fun draw(g: AGraphics, position: Float, dt: Float) {
 		pos = path.getAtPosition(position)
-		g.drawImage(id, r.withCenter(pos))
+		g.drawImage(id, r.setCenter(pos))
 	}
 
 	override fun hidesActor(): Boolean {

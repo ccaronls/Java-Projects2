@@ -31,12 +31,20 @@
                 android:layout_height="wrap_content"
                 android:text="@{viewModel.descriptionHeader}"
                 tools:text="Water"/>
-
+<!--
+            <cc.lib.android.GTableView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:textColor="#fff"
+                android:textSize="14dp"
+                tools:text="This is an example"
+                table="@{viewModel.descriptionBody}"/>
+-->
             <TextView
                 style="@style/body"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@{viewModel.descriptionBody}"
+                android:text="@{viewModel.descriptionBody.toString()}"
                 android:fontFamily="monospace"
                 tools:text="Consume to gain EXP"/>
 
@@ -104,25 +112,6 @@
                 android:gravity="center"
                 android:padding="10dp"/>
         </LinearLayout>
-
-
-        <!--
-                <ImageView
-                    android:id="@+id/ivTrash"
-                    android:layout_width="0dp"
-                    android:layout_height="0dp"
-                    app:layout_constraintStart_toStartOf="@id/lvOptions"
-                    app:layout_constraintEnd_toEndOf="@id/lvOptions"
-                    app:layout_constraintTop_toTopOf="@id/lvOptions"
-                    app:layout_constraintDimensionRatio="1"
-                    android:src="@drawable/trash"
-                    android:background="@drawable/dragndrop_container_outline"
-                    android:padding="10dp"
-                    visibleIf="@{viewModel.dragging}"
-                    tagTrash="@{viewModel.allOptions}"
-                    android:onClick="@{() -> viewModel.tryUndo()}"
-                    android:layout_margin="5dp"/>
-        -->
         <include layout="@layout/organize_dialog_character"
             android:id="@+id/primaryCharacter"
             android:layout_width="0dp"

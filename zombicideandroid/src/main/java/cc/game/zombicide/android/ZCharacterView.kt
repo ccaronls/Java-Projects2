@@ -15,4 +15,6 @@ class ZCharacterView(context: Context, attrs: AttributeSet) : UIComponentView<UI
 			renderer.setTextColor(GColor(resources.getColor(R.color.text_color)))
 		}
 	}
+
+
 }

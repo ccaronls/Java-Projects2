@@ -7,7 +7,6 @@ import cc.lib.game.IVector2D
 import cc.lib.logger.LoggerFactory
 import cc.lib.math.MutableVector2D
 import cc.lib.math.Vector2D
-import cc.lib.reflector.Omit
 import cc.lib.reflector.Reflector
 import cc.lib.utils.*
 import cc.lib.utils.Grid.Pos
@@ -41,9 +40,6 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 		get() = grid.rows
 	val columns: Int
 		get() = grid.cols
-
-	@Omit
-	val doors = listOf<ZDoor>()
 
 	fun getZone(index: Int): ZZone {
 		return zones[index]
@@ -201,24 +197,6 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 		}
 		require(numIds == 2)
 		return ZDoor(ids[0], ids[1], ZDir.DESCEND, requireNotNull(color))
-	}
-
-	fun getAttachingZones(pos: Pos, zones: MutableSet<Int> = mutableSetOf(), visited: MutableSet<Pos> = mutableSetOf()): Set<Int> {
-		if (visited.contains(pos))
-			return zones
-		if (!grid.isOnGrid(pos))
-			return zones
-		val cell = getCell(pos)
-		if (!cell.isInside)
-			return zones
-		visited.add(pos)
-		zones.add(cell.zoneIndex)
-		for (dir in ZDir.compassValues) {
-			if (cell.getWallFlag(dir).opened) {
-				getAttachingZones(getAdjacent(pos, dir), zones, visited)
-			}
-		}
-		return zones
 	}
 
 	fun canSee(fromZone: Int, toZone: Int): Boolean {
@@ -609,9 +587,12 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 	fun addActor(actor: ZActor) {
 		actors[actor.getId()] = actor
 		getCell(actor.occupiedCell).setQuadrant(actor, actor.occupiedQuadrant)
+		actor.updateRect(this)
 	}
 
 	fun getUndiscoveredIndoorZones(startPos: Pos, undiscovered: MutableSet<Int>) {
+		if (!grid.isOnGrid(startPos))
+			return
 		val cell = getCell(startPos)
 		if (cell.discovered) return
 		cell.discovered = true
@@ -619,7 +600,8 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 		if (!zone.isSearchable) return
 		undiscovered.add(cell.zoneIndex)
 		for (dir in ZDir.values()) {
-			if (cell.getWallFlag(dir).opened) getUndiscoveredIndoorZones(getAdjacent(startPos, dir), undiscovered)
+			if (cell.getWallFlag(dir).opened)
+				getUndiscoveredIndoorZones(getAdjacent(startPos, dir), undiscovered)
 		}
 	}
 

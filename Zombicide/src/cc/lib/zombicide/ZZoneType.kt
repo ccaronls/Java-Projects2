@@ -4,7 +4,8 @@ import cc.lib.annotation.Keep
 
 @Keep
 enum class ZZoneType {
-    OUTDOORS,
+	UNSET,
+	OUTDOORS,
     BUILDING,
     VAULT,
     TOWER

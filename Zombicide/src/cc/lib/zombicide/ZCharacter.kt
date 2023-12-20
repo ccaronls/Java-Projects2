@@ -54,6 +54,17 @@ class ZCharacter(override val type: ZPlayerName = ZPlayerName.Ann, skillz: Array
 		private set
 	val usedSpells = mutableMapOf<ZSpellType, Int>()
 
+	@Omit
+	private var savedWounds = 0
+
+	fun saveWounds() {
+		savedWounds = woundBar
+	}
+
+	fun restoreWounds() {
+		woundBar = savedWounds
+	}
+
 	override fun getTooltipText(): String? {
 		return getAllSkillsTable().toString()
 	}

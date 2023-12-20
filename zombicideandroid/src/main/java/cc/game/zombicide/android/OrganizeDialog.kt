@@ -15,6 +15,7 @@ import cc.game.zombicide.android.databinding.OrganizeDialogBinding
 import cc.game.zombicide.android.databinding.OrganizeDialogListItemBinding
 import cc.lib.android.*
 import cc.lib.ui.IButton
+import cc.lib.utils.Table
 import cc.lib.utils.takeIfInstance
 import cc.lib.zombicide.*
 import cc.lib.zombicide.ui.UIZombicide
@@ -126,23 +127,30 @@ class OrganizeViewModel : LifecycleViewModel(),
 		when (it) {
 			is ZCharacter    -> it.name()
 			is ZEquipment<*> -> it.label // it.label
-			else             -> it?.javaClass?.simpleName ?: ""
+			else -> it?.javaClass?.simpleName ?: "INSTRUCTIONS"
 		}
 	}
 
-	val descriptionBody : LiveData<String> = combine(descriptionItem, primaryCharacter, secondaryCharacter) { obj, primary, secondary ->
+	val descriptionBody: LiveData<Table?> = combine(descriptionItem, primaryCharacter, secondaryCharacter) { obj, primary, secondary ->
 		when (obj) {
-			is ZCharacter -> obj.getAllSkillsTable().toString()
+			is ZCharacter -> Table().setNoBorder().also {
+				it.addRow(obj.getStatsTable().setNoBorder(), obj.getAllSkillsTable().setNoBorder())
+			}
 			is ZWeapon -> secondary?.let {
-				obj.getComparisonInfo(game, primary!!, it).toString()
+				obj.getComparisonInfo(game, primary!!, it)
 			} ?: run {
-				obj.getCardInfo(primary!!, game).toString()
+				obj.getCardInfo(primary!!, game)
 			}
 			//is ZItem -> obj.type.description
 			//is ZEquipment<*> -> obj.tooltipText
-			is IButton -> obj.tooltipText
+			is IButton -> Table().setNoBorder().addRow(obj.tooltipText)
 			//is ZSpell -> obj.type.tooltipText
-			else -> "??"
+			else -> Table().setNoBorder().addRow(
+				"""
+> Select an item to get more info on that item.
+> Long click on an item and drag to move equipment around your
+  inventory and with other characters you can trade with."""
+			)
 		}
 	}
 

@@ -39,17 +39,17 @@ enum class ZoomType {
 }
 
 open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) {
-	private val preActor: MutableList<ZAnimation> = ArrayList()
-	private val postActor: MutableList<ZAnimation> = ArrayList()
-	private val overlayAnimations: MutableList<ZAnimation> = ArrayList()
+	private val preActor: MutableList<ZAnimation> = Collections.synchronizedList(ArrayList())
+	private val postActor: MutableList<ZAnimation> = Collections.synchronizedList(ArrayList())
+	private val overlayAnimations: MutableList<ZAnimation> = Collections.synchronizedList(ArrayList())
 	private var zoomAnimation: ZAnimation? = null
 		set(value) {
 			if (value != null && field == null) {
-				listeners.forEach {
+				listeners.toList().forEach {
 					it.onAnimateZoomBegin()
 				}
 			} else if (value == null && field != null) {
-				listeners.forEach {
+				listeners.toList().forEach {
 					it.onAnimateZoomEnd(_zoomedRect)
 				}
 			}
@@ -108,7 +108,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 			field = value
 			redraw()
 		}
-	private val listeners = ConcurrentHashSet<Listener>()
+	private val listeners = HashSet<Listener>()
 	private val R = Renderer(this)
 
 	private val zoomRectStack = Stack<GRectangle>().also {
@@ -179,7 +179,6 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		fun onAnimateZoomEnd(rect: IRectangle) {}
 	}
 
-	@get:Synchronized
 	val isAnimating: Boolean
 		get() = actorsAnimating
 			|| postActor.size > 0
@@ -187,12 +186,22 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 			|| overlayAnimations.size > 0
 			|| zoomAnimation != null
 
+	fun stopAnimations() {
+		preActor.clear()
+		postActor.clear()
+		overlayAnimations.clear()
+		board.getAllActors().forEach {
+			it.stopAnimating()
+		}
+		zoomAnimation = null
+	}
+
 	fun setHighlightActor(actor: ZActor?) {
 		if (actor != highlightedActor) {
 			log.debug("highlighted actor: $actor")
 			highlightedActor = actor
 			if (actor != null) {
-				val rect = actor.getRect(board)
+				val rect = board.getZone(actor.occupiedZone)
 				if (!_zoomedRect.contains(rect)) {
 					animateZoomDelta(_zoomedRect.getDeltaToContain(rect), 200)
 				}
@@ -201,13 +210,11 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		}
 	}
 
-	@Synchronized
 	fun addPreActor(a: ZAnimation) {
 		preActor.add(a.start())
 		redraw()
 	}
 
-	@Synchronized
 	fun addPostActor(a: ZAnimation) {
 		postActor.add(a.start())
 		redraw()
@@ -230,7 +237,6 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		}
 	}
 
-	@Synchronized
 	fun addOverlay(a: ZAnimation) {
 		overlayAnimations.add(a)
 		redraw()
@@ -410,18 +416,13 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		}*/
 	}
 
-	@Synchronized
 	fun drawAnimations(anims: MutableList<ZAnimation>, g: AGraphics) {
-		synchronized(anims) {
-			val it = anims.iterator()
-			while (it.hasNext()) {
-				val a = it.next()
-				if (a.isDone) {
-					it.remove()
-				} else {
-					if (!a.isStarted) a.start<AAnimation<AGraphics>>()
-					a.update(g)
-				}
+		anims.toList().forEach { it ->
+			if (it.isDone) {
+				anims.remove(it)
+			} else {
+				if (!it.isStarted) it.start<AAnimation<AGraphics>>()
+				it.update(g)
 			}
 		}
 	}
@@ -434,7 +435,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		fun drawActor(a: ZActor) {
 			val img = g.getImage(a.imageId)
 			if (img != null) {
-				val rect = a.getRect(board)
+				val rect = a.getRect()
 				if (rect.contains(mouseV)) {
 					val dist = rect.center.sub(mouseV).magSquared()
 					if (picked == null || picked !is ZCharacter || dist < distFromCenter) {
@@ -464,11 +465,13 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 							outline = GColor.YELLOW
 					}
 
-					highlightedActor?.let {
-						if (it == a) {
-							highlightAnimation.update(g)
-							outline = g.color
-							redraw()
+					if (ANIMATE_HIGHLIGHTED_ACTOR) {
+						highlightedActor?.let {
+							if (it == a) {
+								highlightAnimation.update(g)
+								outline = g.color
+								redraw()
+							}
 						}
 					}
 					drawActor(g, a, outline)
@@ -493,11 +496,11 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 			}
 		}
 
-		picked?.let {
+		picked?.takeIf { !it.isAnimating }?.let {
 			drawActor(it) // draw the highlighted actor over the top to see its stats
 		}
 
-		listeners.forEach {
+		listeners.toList().forEach {
 			it.onActorHighlighted(picked ?: highlightedActor)
 		}
 
@@ -520,7 +523,11 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 			if (actor.outlineImageId > 0) {
 				g.pushMatrix()
 				g.setTintFilter(GColor.WHITE, outline)
-				g.drawImage(actor.outlineImageId, actor.getRect().scaledBy(highlightAnimationScale))
+				if (ANIMATE_HIGHLIGHTED_ACTOR) {
+					g.drawImage(actor.outlineImageId, actor.getRect().scaledBy(highlightAnimationScale))
+				} else {
+					g.drawImage(actor.outlineImageId, actor.getRect())
+				}
 				g.removeFilter()
 				g.popMatrix()
 			} else {
@@ -898,7 +905,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 				ZCell.ENV_TOWER -> "Tower "
 				ZCell.ENV_OUTDOORS -> "Outside "
 				else -> "??? "
-			} + cell.zoneIndex
+			} + "Z${cell.zoneIndex} [${cell.X()},${cell.Y()}]"
 			for (type in ZCellType.values()) {
 				if (cell.isCellType(type)) {
 					when (type) {
@@ -1095,6 +1102,15 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		redraw()
 	}
 
+	fun animateZoomToIfNotContained(newRect: IRectangle) {
+		clampRect(GRectangle(newRect)).also { rect ->
+			if (!getZoomedRect().contains(rect)) {
+				zoomAnimation = ZoomAnimation(rect, this).start()
+				waitForAnimations()
+			}
+		}
+	}
+
 	fun animateZoomTo(type: ZoomType) {
 		zoomAnimation = ZoomAnimation(clampRect(getZoomRectForType(type)), this).start()
 		redraw()
@@ -1240,7 +1256,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 				condition.signal()
 			}
 			if (d != g.pushDepth) {
-				throw GException("push depth out of sync oin drawMiniMap")
+				throw GException("push depth out of sync in drawMiniMap")
 			}
 		}
 
@@ -1261,6 +1277,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 	val condition = lock.newCondition()
 
 	fun waitForAnimations() {
+		actorsAnimating = true
 		redraw()
 		do {
 			lock.withLock {
@@ -1415,12 +1432,6 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		return miniMapMode
 	}
 
-	/*
-		fun mouseToZoomRect(mx: Int, my: Int) : Vector2D {
-			R.setOrtho(zoomedRect)
-			return R.untransform(mx.toFloat(), my.toFloat())
-		}
-	*/
 	fun clampZoomRect() {
 		clampRect(_zoomedRect)
 	}
@@ -1510,6 +1521,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 	companion object {
 		const val ENABLE_ONBOARD_MENU = false
 		const val ENABLE_ONBOARD_SUBMENU = false
+		const val ANIMATE_HIGHLIGHTED_ACTOR = false
 		val log = LoggerFactory.getLogger(UIZBoardRenderer::class.java)
 	}
 }

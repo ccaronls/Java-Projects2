@@ -53,11 +53,11 @@ class ZWeapon(override val type: ZWeaponType=ZWeaponType.AXE) : ZEquipment<ZWeap
         get() = !isEmpty
 
     fun fireWeapon(game: ZGame, cur: ZCharacter, stat: ZWeaponStat) {
-        if (stat.attackType.needsReload()) isEmpty = true
-        if (type === ZWeaponType.DAGGER) {
-            cur.removeEquipment(this)
-            game.putBackInSearchables(this)
-        }
+        if (type.needsReload) isEmpty = true
+	    if (type === ZWeaponType.DAGGER) {
+		    cur.removeEquipment(this)
+		    game.putBackInSearchables(this)
+	    }
     }
 
     override val isDualWieldCapable: Boolean
@@ -178,7 +178,7 @@ class ZWeapon(override val type: ZWeaponType=ZWeaponType.AXE) : ZEquipment<ZWeap
                 cardLower.addColumnNoHeader(Arrays.asList(at.label, String.format("%d %s", stats.damagePerHit, if (type.attackIsNoisy) " loud" else " quiet"), String.format("%d%% x %d", (7 - stats.dieRollToHit) * 100 / 6, stats.numDice),
                         if (stats.minRange == stats.maxRange) stats.minRange.toString() else String.format("%d-%d", stats.minRange, stats.maxRange),
                         doorInfo,
-                        if (stats.attackType.needsReload()) String.format("yes (%s)", if (isEmpty) "empty" else "loaded") else "no"
+	                if (type.needsReload) String.format("yes (%s)", if (isEmpty) "empty" else "loaded") else "no"
                 ))
             }
         }
@@ -218,7 +218,7 @@ class ZWeapon(override val type: ZWeaponType=ZWeaponType.AXE) : ZEquipment<ZWeap
 	            String.format("%d%% x %d", stats.dieRollToHitPercent, stats.numDice),
 	            if (stats.minRange == stats.maxRange) stats.minRange.toString() else String.format("%d-%d", stats.minRange, stats.maxRange),
 	            doorInfo,
-	            if (stats.attackType.needsReload()) String.format("yes (%s)", if (isEmpty) "empty" else "loaded") else "no"
+	            if (type.needsReload) String.format("yes (%s)", if (isEmpty) "empty" else "loaded") else "no"
             ))
         }
         if (type.minColorToEquip.ordinal > 0) {

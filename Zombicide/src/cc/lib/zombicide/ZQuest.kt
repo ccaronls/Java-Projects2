@@ -217,17 +217,17 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
         if (adj != null && grid.isOnGrid(adj)) grid[adj].setWallFlag(dir.opposite, flag)
     }
 
-    fun load(map: Array<Array<String>>): ZBoard {
-        val rows = map.size
-        val cols: Int = map[0].size
-        // make sure all cols the same length
-        for (i in 1 until rows) {
-            require(map[i].size == cols) { "Row $i is not same length as rest. Is ${map[i].size} expected $cols" }
-        }
-        val grid = Grid<ZCell>(rows, cols)
-        val zoneMap: MutableMap<Int, ZZone> = HashMap()
-        var maxZone = 0
-        for (row in map.indices) {
+    protected fun load(map: Array<Array<String>>): ZBoard {
+	    val rows = map.size
+	    val cols: Int = map[0].size
+	    // make sure all cols the same length
+	    for (i in 1 until rows) {
+		    require(map[i].size == cols) { "Row $i is not same length as rest. Is ${map[i].size} expected $cols" }
+	    }
+	    val grid = Grid<ZCell>(rows, cols)
+	    val zoneMap: MutableMap<Int, ZZone> = HashMap()
+	    var maxZone = 0
+	    for (row in map.indices) {
             for (col in map[row].indices) {
                 grid[row, col] = ZCell(col.toFloat(), row.toFloat())
             }

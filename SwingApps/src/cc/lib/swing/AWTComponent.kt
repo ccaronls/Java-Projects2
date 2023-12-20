@@ -8,7 +8,6 @@ import cc.lib.utils.GException
 import java.awt.*
 import java.awt.event.*
 import javax.swing.JComponent
-import javax.swing.SwingUtilities
 
 /**
  * Created by chriscaron on 2/21/18.
@@ -345,7 +344,7 @@ abstract class AWTComponent : UIComponent, JComponent, Renderable, MouseListener
 	}
 
 	override fun redraw() {
-		SwingUtilities.invokeLater { repaint() }
+		repaint()
 	}
 
 	override fun getViewportLocation(): Vector2D {

@@ -236,27 +236,30 @@ open class ZGame() : Reflector<ZGame>() {
             val startCells: MutableList<ZCell> = ArrayList()
             val it: Grid.Iterator<ZCell> = board.getCellsIterator()
             while (it.hasNext()) {
-                val cell: ZCell = it.next()
-                if (cell.isCellTypeEmpty) {
-                    continue
-                }
-                val zone: ZZone = board.zones[cell.zoneIndex]
-                when (cell.environment) {
-                    ZCell.ENV_OUTDOORS -> zone.type = ZZoneType.OUTDOORS
-                    ZCell.ENV_BUILDING -> zone.type = ZZoneType.BUILDING
-                    ZCell.ENV_VAULT -> zone.type = ZZoneType.VAULT
-                    ZCell.ENV_TOWER -> zone.type = ZZoneType.TOWER
-                }
-                // add doors for the zone
-                for (dir: ZDir in compassValues) {
-                    when (cell.getWallFlag(dir)) {
-	                    ZWallFlag.CLOSED, ZWallFlag.OPEN -> {
-		                    val pos: Grid.Pos = it.pos
-		                    val next: Grid.Pos = board.getAdjacent(pos, (dir))
-		                    zone.doors.add(ZDoor(pos, next, dir, GColor.RED))
-	                    }
-	                    else -> Unit
-                    }
+	            val cell: ZCell = it.next()
+	            if (cell.isCellTypeEmpty) {
+		            continue
+	            }
+	            val zone: ZZone = board.zones[cell.zoneIndex]
+	            val type = when (cell.environment) {
+		            ZCell.ENV_OUTDOORS -> ZZoneType.OUTDOORS
+		            ZCell.ENV_BUILDING -> ZZoneType.BUILDING
+		            ZCell.ENV_VAULT -> ZZoneType.VAULT
+		            ZCell.ENV_TOWER -> ZZoneType.TOWER
+		            else -> error("Unknown cell type ${cell.environment}")
+	            }
+	            require(zone.type == ZZoneType.UNSET || zone.type == type) { "Zone ${zone.zoneIndex} is not of uniform type" }
+	            zone.type = type
+	            // add doors for the zone
+	            for (dir: ZDir in compassValues) {
+		            when (cell.getWallFlag(dir)) {
+			            ZWallFlag.CLOSED, ZWallFlag.OPEN -> {
+				            val pos: Grid.Pos = it.pos
+				            val next: Grid.Pos = board.getAdjacent(pos, (dir))
+				            zone.doors.add(ZDoor(pos, next, dir, GColor.RED))
+			            }
+			            else -> Unit
+		            }
                 }
                 for (type: ZCellType in ZCellType.values()) {
                     if (cell.isCellType(type)) {
@@ -274,7 +277,7 @@ open class ZGame() : Reflector<ZGame>() {
                 }
             }
             if (startCells.size == 0) {
-                throw IllegalArgumentException("No start cells specified")
+	            error("No start cells specified")
             }
 
             // position all the characters here
@@ -288,7 +291,7 @@ open class ZGame() : Reflector<ZGame>() {
                     curCellIndex = curCellIndex.rotate(startCells.size)
                     c.occupiedZone = cell.zoneIndex
                     if (!board.spawnActor(c))
-                        throw GException("Failed to add $pl to board")
+	                    error("Failed to add $pl to board")
                 }
             }
             quest.init(this)
@@ -309,10 +312,15 @@ open class ZGame() : Reflector<ZGame>() {
                 continue
             }
             if (cell.vaultId == cell2.vaultId) {
-                zone.doors.add(ZDoor(pos, it2.pos, if (cell.environment == ZCell.ENV_VAULT) ZDir.ASCEND else ZDir.DESCEND, color))
-                break
+	            zone.doors.add(ZDoor(pos, it2.pos,
+		            if (cell.environment == ZCell.ENV_VAULT)
+			            ZDir.ASCEND
+		            else
+			            ZDir.DESCEND, color))
+	            return
             }
         }
+	    error("Unable to add vault door at $pos, zone: ${zone.zoneIndex}")
     }
 
 	fun spawnZombies(_count: Int, _name: ZZombieType, zone: Int) {
@@ -541,7 +549,7 @@ open class ZGame() : Reflector<ZGame>() {
                 var zIdx = 0
                 while (zIdx < board.getNumZones()) {
                     if (board.isZoneSpawnable(zIdx)) {
-	                    onSpawnZoneSpawning(zIdx)
+	                    onSpawnZoneSpawning(GRectangle(board.getZone(zIdx)))
 	                    spawnZombies(zIdx, highestSkill)
 	                    onSpawnZoneSpawned()
                     }
@@ -605,6 +613,7 @@ open class ZGame() : Reflector<ZGame>() {
                     } else {
                         ch.setStartingEquipment(ch.type.startingEquipment[0])
                     }
+	                onCurrentCharacterUpdated(null, ch.type)
                 }
                 val actionsLeft: Int = ch.actionsLeftThisTurn
                 val options = LinkedHashSet<ZMove>()
@@ -1061,7 +1070,7 @@ open class ZGame() : Reflector<ZGame>() {
             }
             ZMoveType.SWITCH_ACTIVE_CHARACTER -> {
                 if (canSwitchActivePlayer()) {
-	                var idx = user.players.indexOfFirst { it == cur.type }
+	                val idx = user.players.indexOfFirst { it == cur.type }
 	                var i = (idx + 1) % user.players.size
                     while (i != idx) {
 	                    user.players[i].toCharacter().takeIf { it.isAlive && it.actionsLeftThisTurn > 0 }?.let {
@@ -1283,13 +1292,19 @@ open class ZGame() : Reflector<ZGame>() {
                             // spawn zombies in the newly exposed zone and any adjacent
                             val otherSide = door.otherSide
                             if (board.getZone(board.getCell(otherSide.cellPosStart).zoneIndex).canSpawn()) {
-                                val highest = highestSkillLevel
-                                val spawnZones = HashSet<Int>()
-                                board.getUndiscoveredIndoorZones(otherSide.cellPosStart, spawnZones)
-                                log.debug("Zombie spawn zones: $spawnZones")
-                                for (zone: Int in spawnZones) {
-                                    spawnZombies(zone, highest)
-                                }
+	                            val highest = highestSkillLevel
+	                            val spawnZones = HashSet<Int>()
+	                            board.getUndiscoveredIndoorZones(otherSide.cellPosStart, spawnZones)
+	                            log.debug("Zombie spawn zones: $spawnZones")
+	                            onSpawnZoneSpawning(GRectangle().apply {
+		                            spawnZones.forEach {
+			                            addEq(board.getZone(it))
+		                            }
+	                            })
+	                            for (zone: Int in spawnZones) {
+		                            spawnZombies(zone, highest)
+	                            }
+	                            onSpawnZoneSpawned()
                             }
                         }
                         cur.performAction(ZActionType.OPEN_DOOR, this)
@@ -1862,32 +1877,41 @@ open class ZGame() : Reflector<ZGame>() {
                         // pre-process friendly fire actors here
                         val friendsHit: MutableList<ZCharacter> = ArrayList()
                         if (cur.canFriendlyFire()) {
-                            val misses = stat.numDice - hitsMade
-                            val friendlyFireOptions = board.getCharactersInZone(zoneIdx).filter { ch: ZCharacter -> ch !== cur && ch.canReceiveFriendlyFire() }.toMutableList()
-                            i = 0
-                            while (i < misses && friendlyFireOptions.isNotEmpty()) {
-                                if (friendlyFireOptions.size > 1) {
-                                    // sort them in same way we would sort zombie attacks
-                                    Collections.sort(friendlyFireOptions, WoundingComparator(ZZombieType.Walker))
-                                }
-                                // friendy fire!
-                                val victim = friendlyFireOptions[0]
-                                if (playerDefends(victim, ZZombieType.Walker)) {
+	                        val misses = stat.numDice - hitsMade
+	                        val friendlyFireOptions = board.getCharactersInZone(zoneIdx).filter { ch: ZCharacter ->
+		                        ch !== cur && ch.canReceiveFriendlyFire()
+	                        }.toMutableList()
+	                        friendlyFireOptions.forEach {
+		                        it.saveWounds()
+	                        }
+
+	                        i = 0
+	                        while (i < misses && friendlyFireOptions.isNotEmpty()) {
+		                        if (friendlyFireOptions.size > 1) {
+			                        // sort them in same way we would sort zombie attacks
+			                        Collections.sort(friendlyFireOptions, WoundingComparator(ZZombieType.Walker))
+		                        }
+		                        // friendy fire!
+		                        val victim = friendlyFireOptions[0]
+		                        if (playerDefends(victim, ZZombieType.Walker)) {
                                     addLogMessage(victim.name() + " defended thyself from friendly fire!")
                                     //onCharacterDefends(victim.type, cur.getPosition());
                                     actorsHit.add(victim.position.setData(ACTOR_POS_DATA_DEFENDED))
                                 } else {
-                                    friendsHit.add(victim)
-                                    actorsHit.add(victim.position.setData(ACTOR_POS_DATA_DAMAGED))
-                                    //playerWounded(victim, cur, stat.getAttackType(), stat.damagePerHit, "Friendly Fire!");
-                                    //if (victim.isDead())
-                                    if (victim.woundBar + stat.damagePerHit >= ZCharacter.MAX_WOUNDS) {
-                                        // killed em
-                                        friendlyFireOptions.removeAt(0)
-                                    }
-                                }
-                                i++
-                            }
+			                        friendsHit.add(victim)
+			                        actorsHit.add(victim.position.setData(ACTOR_POS_DATA_DAMAGED))
+			                        victim.wound(stat.damagePerHit)
+			                        if (victim.isDead) {
+				                        // killed em
+				                        friendlyFireOptions.removeAt(0)
+				                        victim.restoreWounds()
+			                        }
+		                        }
+		                        i++
+	                        }
+	                        friendlyFireOptions.forEach {
+		                        it.restoreWounds()
+	                        }
                         }
                         onAttack(cur.type, weapon, stat.actionType, stat.numDice, actorsHit, zoneIdx)
 	                    var exp = 0
@@ -2152,16 +2176,19 @@ open class ZGame() : Reflector<ZGame>() {
         if (card == null) {
             return
         }
-        val action = card.getAction(level.difficultyColor)
-        when (action.action) {
-            ActionType.NOTHING_IN_SIGHT -> addLogMessage("Nothing in Sight")
-            ActionType.SPAWN -> spawnZombiesInternal(action.type!!, action.count, zoneIdx)
-            ActionType.DOUBLE_SPAWN -> doubleSpawn()
-            ActionType.EXTRA_ACTIVATION_STANDARD -> extraActivation(ZZombieCategory.STANDARD)
-            ActionType.EXTRA_ACTIVATION_NECROMANCER -> extraActivation(ZZombieCategory.NECROMANCER)
-            ActionType.EXTRA_ACTIVATION_WOLFSBURG -> extraActivation(ZZombieCategory.WOLFSBURG)
-        }
+	    onSpawnCard(card, level.difficultyColor)
+	    val action = card.getAction(level.difficultyColor)
+	    when (action.action) {
+		    ActionType.NOTHING_IN_SIGHT -> addLogMessage("Nothing in Sight")
+		    ActionType.SPAWN -> spawnZombiesInternal(action.type!!, action.count, zoneIdx)
+		    ActionType.DOUBLE_SPAWN -> doubleSpawn()
+		    ActionType.EXTRA_ACTIVATION_STANDARD -> extraActivation(ZZombieCategory.STANDARD)
+		    ActionType.EXTRA_ACTIVATION_NECROMANCER -> extraActivation(ZZombieCategory.NECROMANCER)
+		    ActionType.EXTRA_ACTIVATION_WOLFSBURG -> extraActivation(ZZombieCategory.WOLFSBURG)
+	    }
     }
+
+	protected open fun onSpawnCard(card: ZSpawnCard, color: ZColor) {}
 
 	fun getCurrentUser(): ZUser {
 		return currentCharacter?.let { char ->
@@ -2318,7 +2345,7 @@ open class ZGame() : Reflector<ZGame>() {
 
 	protected open fun onZombiePath(id: String, path: List<ZDir>) {}
 
-	protected open fun onSpawnZoneSpawning(zoneIdx: Int) {}
+	protected open fun onSpawnZoneSpawning(rect: GRectangle) {}
 
 	protected open fun onSpawnZoneSpawned() {}
 

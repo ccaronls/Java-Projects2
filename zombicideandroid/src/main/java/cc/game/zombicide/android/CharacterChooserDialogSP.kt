@@ -17,17 +17,16 @@ import cc.game.zombicide.android.databinding.AssignDialogItemBinding
 import cc.game.zombicide.android.databinding.AssignDialogSpBinding
 import cc.game.zombicide.android.databinding.AssignDialogSpListviewItemBinding
 import cc.lib.zombicide.ZQuests
-import java.util.*
 
 /**
  * Created by Chris Caron on 3/22/22.
  */
-internal abstract class CharacterChooserDialogSP(val activity: ZombicideActivity, val quest: ZQuests) : BaseAdapter(), ViewPager.OnPageChangeListener {
+internal abstract class CharacterChooserDialogSP(val activity: ZombicideActivity, val quest: ZQuests?) : BaseAdapter(), ViewPager.OnPageChangeListener {
 	val inflater: LayoutInflater = LayoutInflater.from(activity)
 	val charLocks: Array<CharLock> = activity.charLocks
 
 	@JvmField
-    val selectedPlayers: MutableSet<String>
+	val selectedPlayers: MutableSet<String>
 	val binding: AssignDialogSpBinding
 	override fun getCount(): Int {
 		return charLocks.size
@@ -42,7 +41,7 @@ internal abstract class CharacterChooserDialogSP(val activity: ZombicideActivity
 	}
 
 	override fun getView(position: Int, view: View?, parent: ViewGroup): View {
-		var view = view?:AssignDialogSpListviewItemBinding.inflate(inflater).root
+		val view = view ?: AssignDialogSpListviewItemBinding.inflate(inflater).root
 		val charLocks = activity.charLocks
 		val lock = charLocks[position]
 		val cb = view.findViewById<CheckBox>(R.id.checkbox)
@@ -52,7 +51,7 @@ internal abstract class CharacterChooserDialogSP(val activity: ZombicideActivity
 		if (cb.isChecked || lock.isUnlocked) {
 			cb.isClickable = true
 			cb.isEnabled = true
-			cb.setOnTouchListener { v: View?, event: MotionEvent ->
+			cb.setOnTouchListener { v: View, event: MotionEvent ->
 				if (event.action != MotionEvent.ACTION_DOWN) return@setOnTouchListener false
 				if (cb.isChecked) {
 					selectedPlayers.remove(lock.player.name)
@@ -69,7 +68,7 @@ internal abstract class CharacterChooserDialogSP(val activity: ZombicideActivity
 			cb.isClickable = false
 			cb.isEnabled = false
 		}
-		view.setOnClickListener(View.OnClickListener { v: View? -> binding.viewPager.setCurrentItem(position, true) })
+		view.setOnClickListener { v: View? -> binding.viewPager.setCurrentItem(position, true) }
 		return view
 	}
 
@@ -130,7 +129,7 @@ internal abstract class CharacterChooserDialogSP(val activity: ZombicideActivity
 		binding.bClear.setOnClickListener { v: View? ->
 			selectedPlayers.clear()
 			notifyDataSetChanged()
-			binding.viewPager.adapter!!.notifyDataSetChanged()
+			binding.viewPager.adapter?.notifyDataSetChanged()
 		}
 		binding.bStart.setOnClickListener { v: View? ->
 			Log.d(TAG, "Selected players: $selectedPlayers")

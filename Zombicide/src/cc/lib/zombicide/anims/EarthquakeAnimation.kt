@@ -9,7 +9,7 @@ import cc.lib.zombicide.ZActorAnimation
 open class EarthquakeAnimation : ZActorAnimation {
     val target: ZActor
 
-	constructor(actor: ZActor) : super(actor, 2000) {
+	constructor(actor: ZActor, dur: Long = 2000) : super(actor, dur) {
 		target = actor
 	}
 

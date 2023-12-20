@@ -22,12 +22,9 @@ class ZZone(val zoneIndex: Int = -1) : Reflector<ZZone>(), IRectangle {
 		}
 	}
 
-	@JvmField
 	val cells: MutableList<Grid.Pos> = ArrayList()
-
-	@JvmField
 	val doors: MutableList<ZDoor> = ArrayList()
-	var type = ZZoneType.OUTDOORS
+	var type = ZZoneType.UNSET
 	var noiseLevel = 0
 	var isDragonBile = false
 	var isObjective = false
@@ -35,6 +32,9 @@ class ZZone(val zoneIndex: Int = -1) : Reflector<ZZone>(), IRectangle {
 
 	val isBuilding: Boolean
 		get() = type == ZZoneType.BUILDING
+
+	val isVault: Boolean
+		get() = type == ZZoneType.VAULT
 
 	@Omit
 	var isTargetForEscape = false

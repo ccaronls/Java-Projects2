@@ -20,5 +20,4 @@ class SlashedAnimation(actor: ZActor) : ZActorAnimation(actor, 1000) {
 	override fun hidesActor(): Boolean {
 		return false
 	}
-
 }

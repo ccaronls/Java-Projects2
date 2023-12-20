@@ -27,17 +27,6 @@ open class ZGameMP : ZGame() {
 
 	open var currentUserName: String? = null
 
-	/*
-	open var currentUserName: String? = null
-		protected set(name) {
-			server?.broadcastExecuteOnRemote(GAME_ID, name)?:run {
-				client?.also {
-					currentCharacter = null
-				}
-			}
-			field = name
-		}
-*/
 	override fun onCurrentCharacterUpdated(priorPlayer: ZPlayerName?, player: ZPlayerName?) {
 		server?.broadcastExecuteOnRemote(GAME_ID, priorPlayer, player)
 		client?.also {
@@ -45,6 +34,10 @@ open class ZGameMP : ZGame() {
 				currentCharacter = board.getCharacterOrNull(player)
 			}
 		}
+	}
+
+	override fun onSpawnCard(card: ZSpawnCard, color: ZColor) {
+		server?.broadcastExecuteOnRemote(GAME_ID, card, color)
 	}
 
 	override fun onZombieSpawned(zombie: ZZombie) {
@@ -153,8 +146,8 @@ open class ZGameMP : ZGame() {
 		server?.broadcastExecuteOnRemote(GAME_ID)
 	}
 
-	override fun onSpawnZoneSpawning(zoneIdx: Int) {
-		server?.broadcastExecuteOnRemote(GAME_ID, zoneIdx)
+	override fun onSpawnZoneSpawning(rect: GRectangle) {
+		server?.broadcastExecuteOnRemote(GAME_ID, rect)
 	}
 
 	override fun onSpawnZoneSpawned() {

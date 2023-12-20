@@ -6,8 +6,6 @@ import cc.lib.logger.LoggerFactory
 import cc.lib.swing.*
 import cc.lib.ui.IButton
 import cc.lib.utils.FileUtils
-import cc.lib.utils.Table
-import cc.lib.utils.takeIfInstance
 import cc.lib.zombicide.*
 import cc.lib.zombicide.ui.UIZBoardRenderer
 import cc.lib.zombicide.ui.UIZCharacterRenderer
@@ -112,8 +110,9 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 		uiUser.setColor(game.board, frame.getIntProperty("COLOR", 0))
 		val players = getEnumListProperty("players", ZPlayerName::class.java, Utils.toList(ZPlayerName.Baldric, ZPlayerName.Clovis))
 		for (pl in players) {
-			game.addCharacter(pl)
-			uiUser.addCharacter(game.addCharacter(pl))
+			game.addCharacter(pl)?.let {
+				uiUser.addCharacter(it)
+			}
 		}
 		game.setUsers(uiUser)
 		game.setDifficulty(ZDifficulty.valueOf(getStringProperty("difficulty", ZDifficulty.MEDIUM.name)))
@@ -326,24 +325,13 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 			override fun mousePressed(e: MouseEvent) {}
 			override fun mouseReleased(e: MouseEvent) {}
 			override fun mouseEntered(e: MouseEvent) {
-				charComp.renderer.actorInfo?.takeIfInstance<ZCharacter>()?.let {
-					setCharacterSkillsOverlay(it)
-				} ?: boardComp.renderer.highlightedActor?.takeIfInstance<ZCharacter>()?.let {
-					setCharacterSkillsOverlay(it)
-				}
+				game.showCharacterExpandedOverlay()
 			}
 
 			override fun mouseExited(e: MouseEvent) {
 				boardComp.renderer.setOverlay(null)
 			}
 		})
-	}
-
-	fun setCharacterSkillsOverlay(c: ZCharacter) {
-		val table = Table().addColumn("Skills", c.getSkillsTable().setNoBorder())
-			.addColumn("Backpack", c.getBackpackTable(game).setNoBorder())
-
-		boardComp.renderer.setOverlay(table)
 	}
 
 	internal inner class ZButton(obj: IButton) : AWTButton(obj) {

@@ -150,6 +150,9 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 		zb.bDown.setOnClickListener(this)
 		zb.bRight.setOnClickListener(this)
 		zb.boardView.enablePinchZoom()
+		zb.consoleView.setOnClickListener {
+			game.showCharacterExpandedOverlay()
+		}
 		characterRenderer = UIZCharacterRenderer(zb.consoleView)
 		boardRenderer = object : UIZBoardRenderer(zb.boardView) {
 			override fun onLoaded() {
@@ -583,7 +586,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 			MenuItem.JOIN_GAME -> {
 				p2pInit(P2PMode.CLIENT)
 			}
-			MenuItem.SETUP_PLAYERS -> showSetupPlayersDialog()
+			MenuItem.SETUP_PLAYERS -> showNewGameDialogChoosePlayers(null)
 			MenuItem.CONNECTIONS -> serverControl!!.openConnections()
 			MenuItem.CLEAR -> {
 //				prefs.edit().remove("completedQuests").apply()
@@ -762,12 +765,8 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 	fun saveGame() {
 		val buf = StringBuffer()
 		buf.append(game.quest.quest.displayName)
-		buf.append(" ").append(game.getDifficulty().name)
-		var delim = " "
-		for (c in game.allCharacters) {
-			buf.append(delim).append(c.name())
-			delim = ","
-		}
+		buf.append(" ").append(game.getDifficulty().name).append(" ")
+		buf.append(game.allCharacters.joinToString(",") { it.name() })
 		val completePercent = game.quest.getPercentComplete(game)
 		buf.append(String.format(" %d%% Completed", completePercent))
 		buf.append(" ").append(SimpleDateFormat("MMM dd").format(Date()))
@@ -909,7 +908,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 		game.client = null
 		initHomeMenu()
 	}
-
+/*
 	fun showSetupPlayersDialog() {
 		val saved = storedCharacters
 		val assignments: MutableList<Assignee> = ArrayList()
@@ -923,7 +922,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 			}
 			assignments.add(a)
 		}
-		object : CharacterChooserDialogMP(this@ZombicideActivity, assignments, 6) {
+		object : CharacterChooserDialogSP(this@ZombicideActivity, assignments, 6) {
 			override fun onAssigneeChecked(a: Assignee, checked: Boolean) {
 				a.checked = checked
 				if (a.checked) {
@@ -951,7 +950,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 				game.refresh()
 			}
 		}
-	}
+	}*/
 
 	fun showLegendDialog() {
 		val legend = arrayOf(
@@ -1058,13 +1057,15 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 	}
 
 	fun showNewGameDialogChoosePlayers(quest: ZQuests?) {
-		object : CharacterChooserDialogSP(this@ZombicideActivity, quest!!) {
+		object : CharacterChooserDialogSP(this@ZombicideActivity, quest) {
 			override fun onStarted() {
 				prefs.edit().putStringSet(PREF_PLAYERS_STRING_SET, selectedPlayers).apply()
-				game.loadQuest(quest!!)
-				loadCharacters(storedCharacters)
-				game.trySaveToFile(gameFile)
-				startGame()
+				quest?.let {
+					game.loadQuest(it)
+					loadCharacters(storedCharacters)
+					game.trySaveToFile(gameFile)
+					startGame()
+				}
 			}
 		}
 	}

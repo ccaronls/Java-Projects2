@@ -6,6 +6,7 @@ import cc.lib.reflector.Omit
 import cc.lib.reflector.Reflector
 import cc.lib.utils.Grid
 import cc.lib.zombicide.ui.UIZButton
+import java.util.*
 
 abstract class ZActor internal constructor(var occupiedZone: Int = -1) : Reflector<ZActor>(), UIZButton, IRectangle, IVector2D, IInterpolator<Vector2D> {
 	companion object {
@@ -22,15 +23,17 @@ abstract class ZActor internal constructor(var occupiedZone: Int = -1) : Reflect
 
 	fun isOccupying(): Boolean = ::occupiedQuadrant.isInitialized
 	var actionsLeftThisTurn = 0
-
-	@Omit
 	private var rect = GRectangle()
 
 	@Omit
-	var animation: ZActorAnimation? = null
+	val animations = LinkedList<ZActorAnimation>()
 
 	private var id: String? = type?.let {
 		makeId()
+	}
+
+	fun stopAnimating() {
+		animations.clear()
 	}
 
 	fun getId(): String = id ?: makeId()
@@ -45,16 +48,20 @@ abstract class ZActor internal constructor(var occupiedZone: Int = -1) : Reflect
 		return b.getCell(occupiedCell)
 			.getQuadrant(occupiedQuadrant)
 			.fit(dimension)
-			.scaledBy(scale * b.getCell(occupiedCell).scale, Justify.CENTER, Justify.BOTTOM).also { rect = it }
+			.scaledBy(scale * b.getCell(occupiedCell).scale, Justify.CENTER, Justify.BOTTOM)
+	}
+
+	fun updateRect(b: ZBoard) {
+		rect = getRect(b)
 	}
 
 	override fun getRect(): GRectangle {
-		return animation?.rect ?: rect
-    }
+		return animations.firstOrNull()?.rect ?: rect
+	}
 
-    open fun onBeginRound() {
-        actionsLeftThisTurn = actionsPerTurn
-    }
+	open fun onBeginRound() {
+		actionsLeftThisTurn = actionsPerTurn
+	}
 
     open fun getSpawnQuadrant(): ZCellQuadrant? = null
 
@@ -88,34 +95,28 @@ abstract class ZActor internal constructor(var occupiedZone: Int = -1) : Reflect
 	var pickable = false
 
 	fun addAnimation(anim: ZActorAnimation) {
-		animation?.takeIf { !it.isDone }?.also {
-			it.add(anim)
-		} ?: run {
-			animation = anim.start()
-		}
+		animations.add(anim)
 	}
 
 	open val moveSpeed: Long
         get() = 1000
     val isAnimating: Boolean
-		get() = animation?.isDone?.not()?:false
-
-    fun getAnimation(): ZAnimation? {
-        return animation
-    }
+	    get() = animations.isNotEmpty()
 
     fun drawOrAnimate(g: AGraphics) {
-	    animation?.takeIf { !it.isDone }?.also {
-		    if (!it.hidesActor())
-		    	draw(g)
-		    if (!it.isStarted)
-		    	it.start<AAnimation<AGraphics>>()
-		    it.update(g)
-	    }?:run {
-		    animation?.rect?.let {
+	    while (animations.size > 0 && animations.first.isDone) {
+		    animations.first.rect?.let {
 			    rect = it
 		    }
-		    animation = null
+		    animations.pop()
+	    }
+	    animations.firstOrNull()?.let {
+		    if (!it.hidesActor())
+			    draw(g)
+		    if (!it.isStarted)
+			    it.start<AAnimation<AGraphics>>()
+		    it.update(g)
+	    } ?: run {
 		    draw(g)
 	    }
     }
