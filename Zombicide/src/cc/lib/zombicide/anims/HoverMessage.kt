@@ -32,7 +32,6 @@ class HoverMessage(val board: UIZBoardRenderer, private val msg: String, val cen
 	}
 
 	override fun onDone() {
-		super.onDone()
 		if (center is ZActor)
 			board.fireNextHoverMessage(center)
 	}

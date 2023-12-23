@@ -1,9 +1,13 @@
 package cc.lib.utils
 
 import cc.lib.game.Utils
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.io.File
 import java.lang.ref.WeakReference
 import java.util.*
+import kotlin.coroutines.CoroutineContext
 import kotlin.math.roundToInt
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KMutableProperty
@@ -295,3 +299,7 @@ inline fun KMutableProperty<Boolean>.toggle() {
 fun Float.formated(fmt: String): String = String.format(fmt, toString())
 
 fun String.trimQuotes(): String = trimStart(' ', '\"').trimEnd(' ', '\"')
+
+fun launchIn(scope: CoroutineContext = Dispatchers.Default, block: suspend CoroutineScope.() -> Unit) {
+	CoroutineScope(scope).launch { block() }
+}

@@ -150,4 +150,29 @@ public class TestUtils extends TestCase {
         assertEquals("", lines[6]);
     }
 
+    public void testContains() {
+
+        GRectangle a = new GRectangle(-.5f, -.5f, 1, 1);
+        GRectangle b = new GRectangle(-1, -1, 2, 2);
+
+        assertTrue(b.contains(a));
+        assertFalse(a.contains(b));
+
+        System.out.println(b.getDeltaToContain(a));
+        System.out.println(b.getDeltaToContain(a.movedBy(1, 1)));
+        System.out.println(b.getDeltaToContain(a.movedBy(-1, 1)));
+        System.out.println(b.getDeltaToContain(a.movedBy(-1, -1)));
+        System.out.println(b.getDeltaToContain(a.movedBy(1, -1)));
+
+    }
+
+    public void testRectAddEq() {
+
+        GRectangle a = new GRectangle(0, 2, 1, 6);
+        System.out.println(a);
+        a.setAspect(10f / 6);
+        System.out.println(a);
+    }
+
+
 }

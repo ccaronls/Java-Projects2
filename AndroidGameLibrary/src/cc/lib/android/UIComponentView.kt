@@ -174,6 +174,7 @@ abstract class UIComponentView<T : UIRenderer> : View, UIComponent, Runnable, Sc
 				touchDownY = tx
 				touchDownX = ty
 				if (!dragging && SystemClock.uptimeMillis() - downTime < CLICK_TIME) {
+					performClick()
 					renderer.onClick()
 				} else if (dragging) {
 					renderer.onDragEnd()

@@ -18,10 +18,9 @@ class AscendingAngelDeathAnimation(a: ZCharacter) : DeathAnimation(a) {
 		return true
 	}
 
-    override fun onDone() {
-        super.onDone()
-        (actor as ZCharacter).setFallen(true)
-    }
+	override fun onDone() {
+		(actor as ZCharacter).setFallen(true)
+	}
 
     init {
         duration = 4000

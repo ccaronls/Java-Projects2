@@ -65,10 +65,6 @@ class ZCharacter(override val type: ZPlayerName = ZPlayerName.Ann, skillz: Array
 		woundBar = savedWounds
 	}
 
-	override fun getTooltipText(): String? {
-		return getAllSkillsTable().toString()
-	}
-
 	init {
 		val blueSkills = getRemainingSkillsForLevel(0)
 		allSkills.addAll(blueSkills)
@@ -473,7 +469,6 @@ class ZCharacter(override val type: ZPlayerName = ZPlayerName.Ann, skillz: Array
 		stats.addRow("Dual\nWielding", isDualWielding)
 	}
 
-	@Synchronized
 	fun getInfoTable(game: ZGame): Table {
 
 		/*
@@ -677,17 +672,17 @@ class ZCharacter(override val type: ZPlayerName = ZPlayerName.Ann, skillz: Array
     val throwableEquipment: List<ZEquipment<*>>
         get() = listOfNotNull(leftHand, rightHand, body).filter { it.isThrowable }
 
-    fun getWeaponStat(weapon: ZWeapon, actionType: ZActionType, game: ZGame, targetZone: Int): ZWeaponStat? {
-        return weapon.getStatForAction(actionType)?.let { _stat ->
-            val stat = _stat.copy()
-	        for (skill in Utils.mergeLists(getAvailableSkills(), weapon.type.skillsWhenUsed)) {
-		        skill.modifyStat(stat, actionType, this, game, targetZone)
-	        }
-	        if (weapon.slot !== ZEquipSlot.BODY && isDualWielding(weapon)) {
-		        stat.numDice *= 2
-	        }
-	        stat
-        }
+	fun getWeaponStat(weapon: ZWeapon, actionType: ZActionType, game: ZGame, targetZone: Int): ZWeaponStat? {
+		return weapon.getStatForAction(actionType)?.let { _stat ->
+			val stat = _stat.copy()
+			for (skill in Utils.mergeLists(getAvailableSkills(), weapon.type.skillsWhenUsed)) {
+				skill.modifyStat(stat, actionType, this, game, targetZone)
+			}
+			if (weapon.slot !== ZEquipSlot.BODY && isDualWielding(weapon)) {
+				stat.numDice *= 2
+			}
+			stat
+		}
     }
 
 	fun getSlot(slot: ZEquipSlot): ZEquipment<*>? = when (slot) {
@@ -757,17 +752,17 @@ class ZCharacter(override val type: ZPlayerName = ZPlayerName.Ann, skillz: Array
             forceInvisible = enable
         }
 
-    fun getSlotInfo(slot: ZEquipSlot, game: ZGame): Table? {
-        when (slot) {
-            ZEquipSlot.RIGHT_HAND -> {
-                return rightHand?.getCardInfo(this, game)
-            }
-            ZEquipSlot.LEFT_HAND -> {
-                return leftHand?.getCardInfo(this, game)
-            }
-            ZEquipSlot.BODY -> {
-                return body?.getCardInfo(this, game)
-            }
+	fun getSlotInfo(slot: ZEquipSlot, game: ZGame): Table? {
+		when (slot) {
+			ZEquipSlot.RIGHT_HAND -> {
+				return rightHand?.getCardInfo(this, game)
+			}
+			ZEquipSlot.LEFT_HAND -> {
+				return leftHand?.getCardInfo(this, game)
+			}
+			ZEquipSlot.BODY -> {
+				return body?.getCardInfo(this, game)
+			}
             ZEquipSlot.BACKPACK -> {
                 if (backpack.size == 0) return null
                 val table = Table().setNoBorder()
@@ -838,15 +833,15 @@ class ZCharacter(override val type: ZPlayerName = ZPlayerName.Ann, skillz: Array
 	    }
     }
 
-    fun onEndOfRound(game: ZGame) {
-        for (skill in getAvailableSkills()) {
-	        skill.onEndOfTurn(game, this)
-        }
-        availableSkills.clear()
-        listOfNotNull(leftHand, rightHand, body).forEach { it.onEndOfRound(game) }
-        availableSkills.addAll(allSkills)
-        cachedSkills = null
-    }
+	fun onEndOfRound(game: ZGame) {
+		for (skill in getAvailableSkills()) {
+			skill.onEndOfTurn(game, this)
+		}
+		availableSkills.clear()
+		listOfNotNull(leftHand, rightHand, body).forEach { it.onEndOfRound(game) }
+		availableSkills.addAll(allSkills)
+		cachedSkills = null
+	}
 
     override val moveSpeed: Long
     get() = MOVE_SPEED_MILLIS.toLong()
@@ -949,15 +944,15 @@ class ZCharacter(override val type: ZPlayerName = ZPlayerName.Ann, skillz: Array
         this.fallen = fallen
     }
 
-    fun heal(game: ZGame, amt: Int): Boolean {
-        if (woundBar > 0) {
-        	game.onCharacterHealed(type, amt)
-	        game.addLogMessage(String.format("%s has %d wounds healed.", name(), amt))
-	        woundBar = max(0, woundBar - amt)
-	        return true
-        }
-        return false
-    }
+	fun heal(game: ZGame, amt: Int): Boolean {
+		if (woundBar > 0) {
+			game.onCharacterHealed(type, amt)
+			game.addLogMessage(String.format("%s has %d wounds healed.", name(), amt))
+			woundBar = max(0, woundBar - amt)
+			return true
+		}
+		return false
+	}
 
     fun wound(amt: Int) {
         woundBar += amt

@@ -65,7 +65,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		private set
 
 	//	var highlightedDoor: ZDoor? = null
-	private var selectedCell: Grid.Pos? = null
+	private var selectedCell: Pos? = null
 	private var highlightedShape: IRectangle? = null
 
 	//	var highlightedMoves: List<IButton>? = null
@@ -156,14 +156,16 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 	}
 
 	var currentCharacter: ZCharacter? = null
-		set(value) {
-			log.debug("Set current character $value")
-			value?.let {
-				setHighlightActor(it)
-			}
-			field = value
-			redraw()
+		private set
+
+	fun setCurrentCharacter(c: ZCharacter?) {
+		log.debug("Set current character ${c?.name()}")
+		c?.let {
+			setHighlightActor(it)
 		}
+		currentCharacter = c
+		redraw()
+	}
 
 
 	val numOverlayTextAnimations: Int
@@ -194,6 +196,9 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 			it.stopAnimating()
 		}
 		zoomAnimation = null
+		launchIn {
+			condition.signalAll()
+		}
 	}
 
 	fun setHighlightActor(actor: ZActor?) {
@@ -463,6 +468,11 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 							outline = GColor.CYAN
 						else if (a.pickable)
 							outline = GColor.YELLOW
+
+					}
+
+					if (a == highlightedActor) {
+						outline = GColor.RED
 					}
 
 					if (ANIMATE_HIGHLIGHTED_ACTOR) {
@@ -728,6 +738,113 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		return area.rect
 	}
 
+	/*
+		inner class DoorAnimation(val pos : Pos, val dir : ZDir) : AAnimation<AGraphics>(1500) {
+
+			val cell = board.getCell(pos)
+			val center = cell.center
+			val v0 = cell.topLeft.subEq(center)
+			val v1 = cell.topRight.subEq(center)
+
+			override fun draw(g: AGraphics, position: Float, dt: Float) {
+				g.pushColor(GColor.ORANGE)
+				g.pushMatrix()
+				g.translate(center)
+				val dv: Vector2D = v1.sub(v0).scaleEq(.33f)
+				val dv0: Vector2D = v0.add(dv)
+				val dv1: Vector2D = dv0.add(dv)
+				g.rotate(dir.rotation.toFloat())
+				g.drawLine(v0, dv0, 3f)
+				g.drawLine(dv1, v1, 3f)
+				g.drawLine(dv0, dv0.add(dv.scaledBy(.5f).rotate(145f * position)), 4f)
+				g.drawLine(dv1, dv1.sub(dv.scaledBy(.5f).rotate(-145f * position)), 4f)
+				g.popMatrix()
+				g.popColor()
+			}
+		}
+
+		inner class VaultDoorAnimation(val pos : Pos, val dir : ZDir) : AAnimation<AGraphics>(2500) {
+
+			var door = board.findDoor(pos, dir)
+			val center = board.getCell(pos).center
+
+			override fun draw(g: AGraphics, position: Float, dt: Float) {
+				g.pushColor(GColor.BLACK)
+				g.pushMatrix()
+				g.translate(center)
+				val vaultRect = door.getRect(board)
+				vaultRect.drawFilled(g)
+				// draw the 'lid' opened
+				g.begin()
+				g.vertex(vaultRect.topRight)
+				g.vertex(vaultRect.topLeft)
+				val dh = position * vaultRect.h / 3
+				val dw = position * vaultRect.w / 5
+				if (dir === ZDir.ASCEND) {
+					// open 'up'
+					g.moveTo(-dw, -dh)
+					g.moveTo(vaultRect.w + dw * 2, 0f)
+				} else {
+					// open 'down
+					g.moveTo(dw, dh)
+					g.moveTo(vaultRect.w - dw * 2, 0f)
+				}
+				g.color = door.lockedColor
+				g.drawTriangleFan()
+				g.color = GColor.YELLOW
+				g.end()
+				vaultRect.drawOutlined(g, 2)
+				g.drawLineLoop(2f)
+				g.popMatrix()
+				g.popColor()
+			}
+		}
+
+		private val doorsMap = mutableMapOf<ZDoor, AAnimation<AGraphics>>()
+
+		fun openDoor(door : ZDoor) {
+			doorsMap[door]?.start<AAnimation<AGraphics>>()
+		}
+
+		fun closeDoor(door : ZDoor) {
+			doorsMap[door]?.startReverse<AAnimation<AGraphics>>()
+		}
+
+		fun drawDoors(g : AGraphics) {
+			doorsMap.values.forEach {
+				it.update(g)
+			}
+		}
+
+		fun initDoorAnimations() {
+			if (doorsMap.isEmpty()) {
+				board.zones.forEach { zone ->
+					zone.doors.forEach { door ->
+						when (door.moveDirection) {
+							ZDir.NORTH,
+							ZDir.SOUTH,
+							ZDir.EAST,
+							ZDir.WEST -> {
+								DoorAnimation(door.cellPosStart, door.moveDirection).apply {
+									if (!door.isClosed(board)) {
+										start<AAnimation<AGraphics>>()
+									} else {
+										startReverse()
+									}.apply {
+										doorsMap.getOrPut(door) { this }
+										doorsMap.getOrPut(door.otherSide) { this }
+									}
+								}
+							}
+							ZDir.ASCEND -> doorsMap.getOrDefault(door, VaultDoorAnimation(door.cellPosStart, door.moveDirection))
+							ZDir.DESCEND -> doorsMap.getOrDefault(door, VaultDoorAnimation(door.cellPosStart, door.moveDirection))
+						}
+					}
+				}
+			}
+
+		}
+	*/
 	fun drawCellWalls(g: AGraphics, cellPos: Pos, dirs: Array<ZDir>, scale: Float, miniMap: Boolean) {
 		val cell = board.getCell(cellPos)
 		g.pushMatrix()
@@ -935,9 +1052,9 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		}
 	}
 
-	fun drawNoTiles(g: AGraphics): Grid.Pos? {
+	fun drawNoTiles(g: AGraphics): Pos? {
 		g.clearScreen()
-		val returnCell: Grid.Pos? = null
+		val returnCell: Pos? = null
 		val it = board.getCellsIterator()
 		while (it.hasNext()) {
 			val cell = it.next()
@@ -1134,8 +1251,6 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 			g.setTextStyles(AGraphics.TextStyle.NORMAL)
 		}
 	}
-
-	fun drawPlayerName(name: String?) {}
 
 	private fun drawNoBoard(g: AGraphics) {
 		g.ortho()

@@ -105,7 +105,7 @@ class ZSpawnCard private constructor(val name: String, private val wolfburg: Boo
 
 		val model = object : Model {
 			override fun getCellColor(g: AGraphics?, row: Int, col: Int): GColor {
-				return ZColor.values()[row].color
+				return ZColor.values().reversed()[row].color
 			}
 
 			override fun getBackgroundColor(): GColor = GColor.GRAY

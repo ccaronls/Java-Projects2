@@ -61,15 +61,29 @@ public final class Table implements ITableItem {
             return GColor.TRANSLUSCENT_BLACK;
         }
 
-        default int getMaxCharsPerLine() { return 64; }
+        default int getMaxCharsPerLine() {
+            return 64;
+        }
 
-        default int getBorderWidth() { return 2; }
+        default int getBorderWidth() {
+            return 2;
+        }
 
-        default float getHeaderTextHeight(AGraphics g) { return g.getTextHeight(); }
+        default float getHeaderTextHeight(AGraphics g) {
+            return g.getTextHeight();
+        }
 
-        default float getCellTextHeight(AGraphics g) { return g.getTextHeight(); }
+        default float getCellTextHeight(AGraphics g) {
+            return g.getTextHeight();
+        }
 
-        default Justify getHeaderJustify(int col) { return Justify.LEFT; }
+        default Justify getHeaderJustify(int col) {
+            return Justify.LEFT;
+        }
+
+        default float getCellVerticalPadding() {
+            return 0f;
+        }
     }
 
     private final List<String> header;
@@ -222,10 +236,19 @@ public final class Table implements ITableItem {
     }
 
     private float getCellPadding(AGraphics g) {
-        return Math.max(4, padding*g.getTextHeight()/2);
+        return Math.max(4, padding * g.getTextHeight() / 2);
     }
 
     private GDimension cachedDimension = null;
+
+    public IDimension getCachedDimension() {
+        return cachedDimension;
+    }
+
+    public void reMeasure(AGraphics g) {
+        cachedDimension = null;
+        measure(g);
+    }
 
     public GDimension measure(AGraphics g) {
         if (cachedDimension != null)
@@ -270,11 +293,12 @@ public final class Table implements ITableItem {
                 } else {
                     g.pushTextHeight(model.getCellTextHeight(g));
                     String entry = model.getStringValue(o);
-                    String [] parts = Utils.wrapText(entry, model.getMaxCharsPerLine());
+                    String[] parts = Utils.wrapText(entry, model.getMaxCharsPerLine());
                     for (String s : parts) {
                         maxWidth[c] = Math.max(maxWidth[c], g.getTextWidth(s));
                     }
-                    maxHeight[r] = Math.max(maxHeight[r], g.getTextHeight() * parts.length);
+                    maxHeight[r] = Math.max(maxHeight[r], g.getTextHeight() * parts.length)
+                            + model.getCellVerticalPadding();
                     g.popTextHeight();
                 }
             }
@@ -286,26 +310,50 @@ public final class Table implements ITableItem {
         }
         if (borderWidth > 0 && maxWidth.length > 1) {
             maxWidth[0] += cellPadding/2;
-            maxWidth[maxWidth.length-1] += cellPadding/2;
+            maxWidth[maxWidth.length - 1] += cellPadding / 2;
         }
         float dimWidth = Utils.sum(maxWidth);
         float dimHeight = Utils.sum(maxHeight) + headerHeight;
-        dimWidth += borderWidth*2;
-        dimHeight += borderWidth*3;
+        dimWidth += borderWidth * 2;
+        dimHeight += borderWidth * 3;
 
-        return cachedDimension=new GDimension(dimWidth, dimHeight);
+        return cachedDimension = new GDimension(dimWidth, dimHeight);
+    }
+
+    public Table fit(AGraphics g, IDimension target) {
+        GDimension dim = measure(g);
+        if (!target.isEmpty() && !dim.isEmpty()) {
+            if (!dim.equals(target)) {
+                float ratio = target.getWidth() / dim.width;
+                for (int i = 0; i < getColumns(); i++) {
+                    maxWidth[i] *= ratio;
+                }
+                for (int i = 0; i < rows.size(); i++) {
+                    maxHeight[i] *= ratio;
+                }
+            }
+        }
+        float headerHeight = headerHeightLines * g.getTextHeight() + getCellPadding(g) * 2;
+        float dimWidth = Utils.sum(maxWidth);
+        float dimHeight = Utils.sum(maxHeight) + headerHeight;
+        dimWidth += borderWidth * 2;
+        dimHeight += borderWidth * 3;
+
+        cachedDimension = new GDimension(dimWidth, dimHeight);
+
+        return this;
     }
 
     /**
      * Draw with top/left corner at 0,0
+     *
      * @param g
      * @return
      */
     public IDimension draw(AGraphics g) {
         GDimension dim = measure(g);
-        if (dim == GDimension.EMPTY)
+        if (dim.isEmpty())
             return dim;
-
         g.pushMatrix();
         float outerPadding = 0;
         if (borderWidth > 0) {
@@ -313,7 +361,7 @@ public final class Table implements ITableItem {
             // if there is a border, then there is padding around between border and text
             g.pushColor(model.getBackgroundColor());
             float radius = model.getCornerRadius();
-            g.drawFilledRoundedRect(0, 0, dim.width, dim.height, radius);
+            g.drawFilledRoundedRect(0, 0, dim.getWidth(), dim.getHeight(), radius);
             g.setColor(model.getBorderColor(g));
             g.drawRoundedRect(dim, borderWidth, radius);
             g.translate(borderWidth, borderWidth);
@@ -328,7 +376,7 @@ public final class Table implements ITableItem {
             g.translate(-getCellPadding(g)/2, -borderWidth);
             for (int i = 0; i < maxWidth.length - 1; i++) {
                 g.translate(maxWidth[i], 0);
-                g.drawLine(0, 0, 0, dim.height);
+                g.drawLine(0, 0, 0, dim.getHeight());
             }
             g.popMatrix();
         }
@@ -351,8 +399,8 @@ public final class Table implements ITableItem {
             }
             g.popColor();
             g.pushTextHeight(model.getHeaderTextHeight(g));
-            g.translate(0, g.getTextHeight()*headerHeightLines + cellPadding);
-            g.drawLine(0, 0, dim.width-borderWidth, 0, borderWidth);
+            g.translate(0, g.getTextHeight() * headerHeightLines + cellPadding);
+            g.drawLine(0, 0, dim.getWidth() - borderWidth, 0, borderWidth);
             g.popTextHeight();
             g.translate(0, cellPadding);
         }
@@ -381,7 +429,7 @@ public final class Table implements ITableItem {
                             case CENTER: g.translate(maxWidth[ii]/2, 0); break;
                             case RIGHT:  g.translate(maxWidth[ii], 0); break;
                         }
-                        g.drawWrapString(0, 0, maxWidth[ii], hJust, Justify.TOP, txt);
+                        g.drawWrapString(0, model.getCellVerticalPadding() / 2, maxWidth[ii], hJust, Justify.TOP, txt);
                         g.popColor();
                         g.popTextHeight();
                         g.popMatrix();

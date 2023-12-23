@@ -211,8 +211,7 @@ open class ZGame() : Reflector<ZGame>() {
 		}
 		val c = pl.create()
 		c.occupiedZone = cell.zoneIndex
-		if (!board.spawnActor(c))
-			throw GException("Failed to add $pl to board")
+		require(board.spawnActor(c)) { "Failed to add $pl to board" }
 		return c
 	}
 
@@ -482,21 +481,21 @@ open class ZGame() : Reflector<ZGame>() {
         }
     }
 
-    /**
-     *
-     * @return true if something changed, false otherwise
-     */
-    open fun runGame(): Boolean {
-        log.debug("runGame %s", stateStack.joinToString())
-        if (!isGameSetup) {
-            log.error("Invalid Game")
-            require(false)
-            return false
-        }
-        if (isGameOver) 
-            return false
-	    quest.getQuestFailedReason(this)?.let {
-		    gameLost(it)
+	/**
+	 *
+	 * @return true if something changed, false otherwise
+	 */
+	open suspend fun runGame(): Boolean {
+		log.debug("runGame %s", stateStack.joinToString())
+		if (!isGameSetup) {
+			log.error("Invalid Game")
+			require(false)
+			return false
+		}
+		if (isGameOver)
+			return false
+		quest.getQuestFailedReason(this)?.let {
+			gameLost(it)
 		    return false
 	    }
 	    if (quest.getPercentComplete(this) >= 100) {
@@ -945,17 +944,17 @@ open class ZGame() : Reflector<ZGame>() {
 
 	open val isOrganizeEnabled = false
 
-    protected open fun onCharacterDestroysSpawn(c: ZPlayerName, zoneIdx: Int) {
-        log.debug("%s destroys spawn at %d", c, zoneIdx)
-    }
+	protected open fun onCharacterDestroysSpawn(c: ZPlayerName, zoneIdx: Int) {
+		log.debug("%s destroys spawn at %d", c, zoneIdx)
+	}
 
-    protected open fun onCharacterDefends(cur: ZPlayerName, attackerPosition: ZActorPosition) {
-        log.debug("%s defends from %s", cur, attackerPosition)
-    }
+	protected open fun onCharacterDefends(cur: ZPlayerName, attackerPosition: ZActorPosition) {
+		log.debug("%s defends from %s", cur, attackerPosition)
+	}
 
-    protected open fun onNewSkillAquired(c: ZPlayerName, skill: ZSkill) {
-        log.debug("%s acquires new skill %s", c, skill)
-    }
+	protected open fun onNewSkillAquired(c: ZPlayerName, skill: ZSkill) {
+		log.debug("%s acquires new skill %s", c, skill)
+	}
 
 	private fun playerDefends(cur: ZCharacter, type: ZZombieType): Boolean {
 		for (rating: Int in cur.getArmorRatings(type)) {
@@ -1002,6 +1001,26 @@ open class ZGame() : Reflector<ZGame>() {
 		return null
 	}
 
+	private fun tryZombieAttackNow(zombie: ZZombie) {
+		val victims = board.getCharactersInZone(zombie.occupiedZone).filter {
+			!it.isInvisible && it.isAlive
+		}
+		if (victims.size > 1) {
+			Collections.sort(victims, WoundingComparator(zombie.type))
+		}
+		if (victims.isNotEmpty()) {
+			val victim = victims[0]
+			onZombieAttack(zombie.position, victim.type, ZActionType.MELEE)
+			zombie.performAction(ZActionType.MELEE, this)
+			if (playerDefends(victim, zombie.type)) {
+				addLogMessage("${victim.name()} defends against ${zombie.name()}")
+				onCharacterDefends(victim.type, zombie.position)
+			} else {
+				playerWounded(victim, zombie, ZAttackType.NORMAL, 1, zombie.type.name)
+			}
+		}
+	}
+
 	protected open fun onZombieAttack(zombiePos: ZActorPosition, victim: ZPlayerName, type: ZActionType) {}
 
 	fun gameLost(msg: String) {
@@ -1016,9 +1035,9 @@ open class ZGame() : Reflector<ZGame>() {
 		onQuestComplete()
 	}
 
-    protected open fun onGameLost() {
-        log.debug("GAME LOST")
-    }
+	protected open fun onGameLost() {
+		log.debug("GAME LOST")
+	}
 
 	fun playerWounded(victim: ZCharacter, attacker: ZActor, attackType: ZAttackType, amount: Int, reason: String) {
 		if (!victim.isDead) {
@@ -1035,40 +1054,40 @@ open class ZGame() : Reflector<ZGame>() {
         }
     }
 
-    open fun onCharacterAttacked(character: ZPlayerName, attackerPosition: ZActorPosition, attackType: ZAttackType, characterPerished: Boolean) {
-        log.debug("%s attacked from %s with %s and %s", character, attackerPosition, attackType, if (characterPerished) "Died" else "Was Wounded")
-    }
+	protected open fun onCharacterAttacked(character: ZPlayerName, attackerPosition: ZActorPosition, attackType: ZAttackType, characterPerished: Boolean) {
+		log.debug("%s attacked from %s with %s and %s", character, attackerPosition, attackType, if (characterPerished) "Died" else "Was Wounded")
+	}
 
     open fun onEquipmentThrown(c: ZPlayerName, icon: ZIcon, zone: Int) {
         log.debug("%s throws %s into %d", c, icon, zone)
     }
 
+	protected open fun onStartRound(roundNum: Int) {}
 
-    protected fun onStartRound(roundNum: Int) {}
-    private fun useEquipment(c: ZCharacter, e: ZEquipment<*>): Boolean {
-        if (e.isMagic) {
-            return performMove(c, ZMove.newMagicAttackMove(listOf(e as ZWeapon)))
-        } else if (e.isMelee) {
-            return performMove(c, ZMove.newMeleeAttackMove(listOf(e as ZWeapon)))
-        } else if (e.isRanged) {
-            return performMove(c, ZMove.newRangedAttackMove(listOf(e as ZWeapon)))
-        } else if (e.isThrowable) {
-            return performMove(c, ZMove.newThrowEquipmentMove(listOf<ZEquipment<*>>(e as ZItem)))
-        }
-        return false
+	private suspend fun useEquipment(c: ZCharacter, e: ZEquipment<*>): Boolean {
+		if (e.isMagic) {
+			return performMove(c, ZMove.newMagicAttackMove(listOf(e as ZWeapon)))
+		} else if (e.isMelee) {
+			return performMove(c, ZMove.newMeleeAttackMove(listOf(e as ZWeapon)))
+		} else if (e.isRanged) {
+			return performMove(c, ZMove.newRangedAttackMove(listOf(e as ZWeapon)))
+		} else if (e.isThrowable) {
+			return performMove(c, ZMove.newThrowEquipmentMove(listOf<ZEquipment<*>>(e as ZItem)))
+		}
+		return false
     }
 
-    private fun performMove(cur: ZCharacter, _move: ZMove?): Boolean {
-        val move: ZMove = _move ?: return false
-        log.debug("performMove:%s", move)
-        val user = getCurrentUser()
-        when (move.type) {
-            ZMoveType.END_TURN -> {
-                cur.clearActions()
-                popState()
-	            return true
-            }
-            ZMoveType.SWITCH_ACTIVE_CHARACTER -> {
+	private suspend fun performMove(cur: ZCharacter, _move: ZMove?): Boolean {
+		val move: ZMove = _move ?: return false
+		log.debug("performMove:%s", move)
+		val user = getCurrentUser()
+		when (move.type) {
+			ZMoveType.END_TURN -> {
+				cur.clearActions()
+				popState()
+				return true
+			}
+			ZMoveType.SWITCH_ACTIVE_CHARACTER -> {
                 if (canSwitchActivePlayer()) {
 	                val idx = user.players.indexOfFirst { it == cur.type }
 	                var i = (idx + 1) % user.players.size
@@ -1288,6 +1307,7 @@ open class ZGame() : Reflector<ZGame>() {
                         if (tryOpenDoor(cur, door)) {
                         	quest.onDoorOpened(this, door, cur)
                             door.toggle(board)
+	                        onDoorToggled(cur.type, door)
                             //showMessage(currentCharacter.name() + " has opened a " + door.name());
                             // spawn zombies in the newly exposed zone and any adjacent
                             val otherSide = door.otherSide
@@ -1325,6 +1345,7 @@ open class ZGame() : Reflector<ZGame>() {
                     require(!door.isClosed(board))
 	                val barricade = requireNotNull(cur.getEquipmentOfType(ZItemType.BARRICADE))
                     door.toggle(board, true)
+	                onDoorToggled(cur.type, door)
                     cur.removeEquipment(barricade)
                     putBackInSearchables(barricade)
                     cur.performAction(ZActionType.BARRICADE_DOOR, this)
@@ -1345,7 +1366,7 @@ open class ZGame() : Reflector<ZGame>() {
                         // spawn zombie right here right now and give an activation
                         spawnZombies(1, ZZombieType.Walker, cur.occupiedZone)
 	                    board.getZombiesInZone(cur.occupiedZone).forEach {
-	                    	tryZombieAttack(it)
+		                    tryZombieAttackNow(it)
 	                    }
                         //spawnZombies(cur.occupiedZone)
                         putBackInSearchables(equip)
@@ -1578,11 +1599,11 @@ open class ZGame() : Reflector<ZGame>() {
     }
 
 	// TODO: Add 'incoming equipment' parameter to allow for the popup when items found, picked up, gifted etc.
-	private fun performOrganize(cur: ZCharacter, secondary: ZCharacter?) : Boolean {
+	private suspend fun performOrganize(cur: ZCharacter, secondary: ZCharacter?): Boolean {
 		// find all the players we can trade with
-		val moves : MutableMap<ZPlayerName, MutableMap<ZEquipSlot, MutableList<ZMove>>> = mutableMapOf()
-		
-		fun getListFor(name : ZPlayerName, slot : ZEquipSlot) : MutableList<ZMove> =
+		val moves: MutableMap<ZPlayerName, MutableMap<ZEquipSlot, MutableList<ZMove>>> = mutableMapOf()
+
+		fun getListFor(name: ZPlayerName, slot: ZEquipSlot): MutableList<ZMove> =
 			moves.getOrPut(
 				name
 			) { mutableMapOf() }.getOrPut(
@@ -1648,7 +1669,7 @@ open class ZGame() : Reflector<ZGame>() {
 		return false
 	}
 
-	open fun onCloseSpawnArea(c : ZCharacter, zone: Int, area: ZSpawnArea) {}
+	protected open fun onCloseSpawnArea(c: ZCharacter, zone: Int, area: ZSpawnArea) {}
 
 	private fun performCloseSpawnPortal(cur: ZCharacter, move: ZMove) : Boolean {
 		board.getZone(cur.occupiedZone).cells.forEach { pos ->
@@ -1689,17 +1710,17 @@ open class ZGame() : Reflector<ZGame>() {
 		}
 	}*/
 
-    private fun performBloodlust(cur: ZCharacter, move: ZMove): Boolean {
-        val weapons: List<ZWeapon>
-        val action = when (move.type) {
-            ZMoveType.BLOODLUST_MAGIC -> {
-                weapons = cur.magicWeapons
-                ZActionType.MAGIC
-            }
-            ZMoveType.BLOODLUST_MELEE -> {
-                weapons = cur.meleeWeapons
-                ZActionType.MELEE
-            }
+	private suspend fun performBloodlust(cur: ZCharacter, move: ZMove): Boolean {
+		val weapons: List<ZWeapon>
+		val action = when (move.type) {
+			ZMoveType.BLOODLUST_MAGIC -> {
+				weapons = cur.magicWeapons
+				ZActionType.MAGIC
+			}
+			ZMoveType.BLOODLUST_MELEE -> {
+				weapons = cur.meleeWeapons
+				ZActionType.MELEE
+			}
             ZMoveType.BLOODLUST_RANGED -> {
                 weapons = cur.rangedWeapons
                 ZActionType.RANGED
@@ -1759,17 +1780,17 @@ open class ZGame() : Reflector<ZGame>() {
 		log.debug("%s reloaded %s", c, w)
 	}
 
-    private fun performRangedOrMagicAttack(cur: ZCharacter, weapons: List<ZWeapon>, _zoneIdx: Int?, actionType: ZActionType): Boolean {
-        // rules same for both kinda
-        var zoneIdx: Int? = _zoneIdx
-        val user = getCurrentUser()
-        when (weapons.size) {
-            1 -> weapons[0]
-            else -> user.chooseWeaponSlotInternal(cur.type, weapons)
-        }?.let { weapon ->
-            if (zoneIdx == null) {
-                cur.getWeaponStat(weapon, actionType, this, -1)?.let { stat ->
-	                board.getAccessibleZones(cur.occupiedZone, stat.minRange, stat.maxRange, actionType)
+	private suspend fun performRangedOrMagicAttack(cur: ZCharacter, weapons: List<ZWeapon>, _zoneIdx: Int?, actionType: ZActionType): Boolean {
+		// rules same for both kinda
+		var zoneIdx: Int? = _zoneIdx
+		val user = getCurrentUser()
+		when (weapons.size) {
+			1 -> weapons[0]
+			else -> user.chooseWeaponSlotInternal(cur.type, weapons)
+		}?.let { weapon ->
+			if (zoneIdx == null) {
+				cur.getWeaponStat(weapon, actionType, this, -1)?.let { stat ->
+					board.getAccessibleZones(cur.occupiedZone, stat.minRange, stat.maxRange, actionType)
 		                .takeIf { it.isNotEmpty() }?.let { zones ->
 			                zoneIdx = user.chooseZoneForAttack(cur.type, zones)
 		                }
@@ -1787,17 +1808,17 @@ open class ZGame() : Reflector<ZGame>() {
         return false
     }
 
-    private fun performAttack(weapon: ZWeapon, stat: ZWeaponStat, zoneIdx: Int): Boolean {
-	    val cur = requireCurrentCharacter
-        when (stat.actionType) {
-            ZActionType.MELEE -> {
-	            val zombies = board.getZombiesInZone(cur.occupiedZone).toMutableList()
-	            val numZombiesInZone = zombies.size
-                Collections.sort(zombies, MarksmanComparator(stat.damagePerHit))
-                val totalHits = resolveHits(cur, zombies.size, weapon.type, stat, zombies.size / 2 - 1, zombies.size / 2 + 1)
-                // when we attack with melee there will be some misses and some hits that are defended
-                var hits = totalHits
-	            val zombiesHit: MutableList<ZActorPosition> = ArrayList()
+	private suspend fun performAttack(weapon: ZWeapon, stat: ZWeaponStat, zoneIdx: Int): Boolean {
+		val cur = requireCurrentCharacter
+		when (stat.actionType) {
+			ZActionType.MELEE -> {
+				val zombies = board.getZombiesInZone(cur.occupiedZone).toMutableList()
+				val numZombiesInZone = zombies.size
+				Collections.sort(zombies, MarksmanComparator(stat.damagePerHit))
+				val totalHits = resolveHits(cur, zombies.size, weapon.type, stat, zombies.size / 2 - 1, zombies.size / 2 + 1)
+				// when we attack with melee there will be some misses and some hits that are defended
+				var hits = totalHits
+				val zombiesHit: MutableList<ZActorPosition> = ArrayList()
                 val zombiesDestroyed: MutableList<ZZombie> = ArrayList()
                 val it = zombies.iterator()
                 while (it.hasNext()) {
@@ -1967,17 +1988,17 @@ open class ZGame() : Reflector<ZGame>() {
         }
     }
 
-    private fun resolveHits(cur: ZCharacter, maxHits: Int, type: ZWeaponType, stat: ZWeaponStat, minHitsForAutoReroll: Int, maxHitsForAutoNoReroll: Int): Int {
-        var result: Array<Int>
-        if (cur.canReroll(stat.attackType)) {
-            result = rollDiceWithRerollOption(stat.numDice, stat.dieRollToHit, minHitsForAutoReroll, maxHitsForAutoNoReroll)
-        } else {
-            result = rollDice(stat.numDice)
-        }
-        var hits = 0
-        //boolean isRoll6Plus1Die = cur.isRoll6Plus1Die(type, stat.actionType);
-        var keepGoing: Boolean
-        do {
+	private suspend fun resolveHits(cur: ZCharacter, maxHits: Int, type: ZWeaponType, stat: ZWeaponStat, minHitsForAutoReroll: Int, maxHitsForAutoNoReroll: Int): Int {
+		var result: Array<Int>
+		if (cur.canReroll(stat.attackType)) {
+			result = rollDiceWithRerollOption(stat.numDice, stat.dieRollToHit, minHitsForAutoReroll, maxHitsForAutoNoReroll)
+		} else {
+			result = rollDice(stat.numDice)
+		}
+		var hits = 0
+		//boolean isRoll6Plus1Die = cur.isRoll6Plus1Die(type, stat.actionType);
+		var keepGoing: Boolean
+		do {
             keepGoing = false
             for (i in result.indices) {
                 if (result[i] >= stat.dieRollToHit) {
@@ -2002,34 +2023,34 @@ open class ZGame() : Reflector<ZGame>() {
         return hits
     }
 
-    protected open fun onWeaponGoesClick(c: ZPlayerName, weapon: ZWeapon) {
-        log.debug("%s fired unloaded weapon %s", c, weapon)
-    }
+	protected open fun onWeaponGoesClick(c: ZPlayerName, weapon: ZWeapon) {
+		log.debug("%s fired unloaded weapon %s", c, weapon)
+	}
 
-    protected open fun onCharacterOpenedDoor(cur: ZPlayerName, door: ZDoor) {
-        log.debug("%s opened door %s", cur, door)
-    }
+	protected open fun onDoorToggled(cur: ZPlayerName, door: ZDoor) {
+		log.debug("%s opened door %s", cur, door)
+	}
 
-    protected open fun onCharacterOpenDoorFailed(cur: ZPlayerName, door: ZDoor) {
-        log.debug("%s failed to open door %s", cur, door)
-    }
+	protected open fun onCharacterOpenDoorFailed(cur: ZPlayerName, door: ZDoor) {
+		log.debug("%s failed to open door %s", cur, door)
+	}
 
-    /**
-     * Prior to processing damages and kills this iu
-     * @param attacker
-     * @param weapon
-     * @param actionType
-     * @param numDice
-     * @param actorsHit
-     * @param targetZone
-     */
-    protected open fun onAttack(attacker: ZPlayerName, weapon: ZWeapon, actionType: ZActionType?, numDice: Int, actorsHit: List<ZActorPosition>, targetZone: Int) {
-        log.debug("%s made %d hits in zone %d with %s action %s numDice %d", attacker, actorsHit.size, targetZone, weapon, actionType, numDice)
-    }
+	/**
+	 * Prior to processing damages and kills this iu
+	 * @param attacker
+	 * @param weapon
+	 * @param actionType
+	 * @param numDice
+	 * @param actorsHit
+	 * @param targetZone
+	 */
+	protected open fun onAttack(attacker: ZPlayerName, weapon: ZWeapon, actionType: ZActionType?, numDice: Int, actorsHit: List<ZActorPosition>, targetZone: Int) {
+		log.debug("%s made %d hits in zone %d with %s action %s numDice %d", attacker, actorsHit.size, targetZone, weapon, actionType, numDice)
+	}
 
-    protected open fun onBonusAction(pl: ZPlayerName, action: ZSkill) {
-        log.debug("%s got bonus action %s", pl, action)
-    }
+	protected open fun onBonusAction(pl: ZPlayerName, action: ZSkill) {
+		log.debug("%s got bonus action %s", pl, action)
+	}
 
     private fun checkForHitAndRun(cur: ZCharacter) {
         if (cur.hasAvailableSkill(ZSkill.Hit_and_run)) {
@@ -2063,11 +2084,11 @@ open class ZGame() : Reflector<ZGame>() {
         for (s: State in states) pushState(s)
     }
 
-    protected open fun onCharacterGainedExperience(c: ZPlayerName, points: Int) {
-        log.info("%s gained %d experence!", c, points)
-    }
+	protected open fun onCharacterGainedExperience(c: ZPlayerName, points: Int) {
+		log.info("%s gained %d experence!", c, points)
+	}
 
-	fun rollDiceWithRerollOption(numDice: Int, dieNumToHit: Int, _minHitsForAutoReroll: Int, _maxHitsForAutoNoReroll: Int): Array<Int> {
+	private suspend fun rollDiceWithRerollOption(numDice: Int, dieNumToHit: Int, _minHitsForAutoReroll: Int, _maxHitsForAutoNoReroll: Int): Array<Int> {
 		var minHitsForAutoReroll = _minHitsForAutoReroll
 		var maxHitsForAutoNoReroll = _maxHitsForAutoNoReroll
 		minHitsForAutoReroll = minHitsForAutoReroll.coerceAtLeast(0)
@@ -2114,9 +2135,9 @@ open class ZGame() : Reflector<ZGame>() {
         return result
     }
 
-    protected open fun onRollDice(roll: Array<Int>) {
-        log.info("Rolling dice result is: %s", Arrays.toString(roll))
-    }
+	protected open fun onRollDice(roll: Array<Int>) {
+		log.info("Rolling dice result is: %s", Arrays.toString(roll))
+	}
 
 	fun destroyZombie(zombie: ZZombie, deathType: ZAttackType, killer: ZCharacter, type: ZEquipmentType?) {
 		killer.onKilledZombie(zombie, type)
@@ -2161,9 +2182,9 @@ open class ZGame() : Reflector<ZGame>() {
         }
     }
 
-    protected open fun onExtraActivation(category: ZZombieCategory) {
-        log.debug("Extra Activation %s", category)
-    }
+	protected open fun onExtraActivation(category: ZZombieCategory) {
+		log.debug("Extra Activation %s", category)
+	}
 
 	fun spawnZombies(zoneIdx: Int) {
 		spawnZombies(zoneIdx, highestSkillLevel)
@@ -2384,15 +2405,15 @@ open class ZGame() : Reflector<ZGame>() {
         log.debug("%s unleashed iron rain at %d", c, targetZone)
     }
 
-    protected open fun onDoorUnlocked(door: ZDoor) {
-        log.debug("%s unlocked", door)
-    }
+	protected open fun onDoorUnlocked(door: ZDoor) {
+		log.debug("%s unlocked", door)
+	}
 
-    fun unlockDoor(door: ZDoor) {
-        require(board.getDoor(door) === ZWallFlag.LOCKED)
-        board.setDoor(door, ZWallFlag.CLOSED)
-        onDoorUnlocked(door)
-    }
+	fun unlockDoor(door: ZDoor) {
+		require(board.getDoor(door) === ZWallFlag.LOCKED)
+		board.setDoor(door, ZWallFlag.CLOSED)
+		onDoorUnlocked(door)
+	}
 
     fun lockDoor(door: ZDoor) {
         require(board.getDoor(door) !== ZWallFlag.LOCKED)
@@ -2407,17 +2428,17 @@ open class ZGame() : Reflector<ZGame>() {
         log.info(msg)
     }
 
-    fun performDragonFire(cur: ZCharacter, zoneIdx: Int) {
-        onDragonBileExploded(zoneIdx)
-        board.getZone(zoneIdx).isDragonBile = false
-        var exp = 0
-        var num = 0
-        addLogMessage(cur.name() + " ignited the dragon bile!")
-        board.getActorsInZone(zoneIdx).filter { a -> a.isAlive }.forEach { a ->
-            if (a is ZZombie) {
-                val z = a
-                exp += z.type.expProvided
-                destroyZombie(z, ZAttackType.FIRE, cur, ZItemType.DRAGON_BILE)
+	fun performDragonFire(cur: ZCharacter, zoneIdx: Int) {
+		onDragonBileExploded(zoneIdx)
+		board.getZone(zoneIdx).isDragonBile = false
+		var exp = 0
+		var num = 0
+		addLogMessage(cur.name() + " ignited the dragon bile!")
+		board.getActorsInZone(zoneIdx).filter { a -> a.isAlive }.forEach { a ->
+			if (a is ZZombie) {
+				val z = a
+				exp += z.type.expProvided
+				destroyZombie(z, ZAttackType.FIRE, cur, ZItemType.DRAGON_BILE)
                 num++
             } else if (a is ZCharacter) {
                 // characters caught in the zone get wounded
@@ -2433,37 +2454,37 @@ open class ZGame() : Reflector<ZGame>() {
         quest.onDragonBileExploded(cur, zoneIdx)
     }
 
-    fun giftEquipment(c: ZCharacter, e: ZEquipment<*>) {
-        onEquipmentFound(c.type, listOf(e))
-        quest.onEquipmentFound(this, e)
-        c.getEmptyEquipSlotsFor(e).firstOrNull()?.also { slot ->
-            c.attachEquipment((e), slot)
-        }?:run {
-            pushState(State(ZState.PLAYER_STAGE_CHOOSE_KEEP_EQUIPMENT, c.type, e))
-        }
-    }
+	fun giftEquipment(c: ZCharacter, e: ZEquipment<*>) {
+		onEquipmentFound(c.type, listOf(e))
+		quest.onEquipmentFound(this, e)
+		c.getEmptyEquipSlotsFor(e).firstOrNull()?.also { slot ->
+			c.attachEquipment((e), slot)
+		} ?: run {
+			pushState(State(ZState.PLAYER_STAGE_CHOOSE_KEEP_EQUIPMENT, c.type, e))
+		}
+	}
 
-    private fun tryOpenDoor(cur: ZCharacter, door: ZDoor): Boolean {
-        if (!door.isJammed) return true
-        if (cur.tryOpenDoor(this)) {
-            onCharacterOpenedDoor(cur.type, door)
-            return true
-        }
-        onCharacterOpenDoorFailed(cur.type, door)
-        return false
-    }
+	private fun tryOpenDoor(cur: ZCharacter, door: ZDoor): Boolean {
+		if (!door.isJammed) return true
+		if (cur.tryOpenDoor(this)) {
+			onDoorToggled(cur.type, door)
+			return true
+		}
+		onCharacterOpenDoorFailed(cur.type, door)
+		return false
+	}
 
-    protected open fun onDragonBileExploded(zoneIdx: Int) {
-        log.debug("Dragon bil eexploded in %d", zoneIdx)
-    }
+	protected open fun onDragonBileExploded(zoneIdx: Int) {
+		log.debug("Dragon bil eexploded in %d", zoneIdx)
+	}
 
-    fun chooseEquipmentFromSearchables() {
-	    pushState(State(ZState.PLAYER_STAGE_CHOOSE_WEAPON_FROM_DECK, currentCharacter?.type))
-    }
+	fun chooseEquipmentFromSearchables() {
+		pushState(State(ZState.PLAYER_STAGE_CHOOSE_WEAPON_FROM_DECK, currentCharacter?.type))
+	}
 
-    fun chooseVaultItem() {
-	    pushState(State(ZState.PLAYER_STAGE_CHOOSE_VAULT_ITEM, currentCharacter?.type))
-    }
+	fun chooseVaultItem() {
+		pushState(State(ZState.PLAYER_STAGE_CHOOSE_VAULT_ITEM, currentCharacter?.type))
+	}
 
 	fun giftRandomVaultArtifact(c: ZCharacter) {
 		quest.vaultItemsRemaining.takeIf { it.isNotEmpty() }?.let {

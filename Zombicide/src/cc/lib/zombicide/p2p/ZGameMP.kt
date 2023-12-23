@@ -31,7 +31,7 @@ open class ZGameMP : ZGame() {
 		server?.broadcastExecuteOnRemote(GAME_ID, priorPlayer, player)
 		client?.also {
 			with(UIZombicide.instance.boardRenderer) {
-				currentCharacter = board.getCharacterOrNull(player)
+				setCurrentCharacter(board.getCharacterOrNull(player))
 			}
 		}
 	}
@@ -91,7 +91,7 @@ open class ZGameMP : ZGame() {
 		server?.broadcastExecuteOnRemote(GAME_ID, c, weapon)
 	}
 
-	override fun onCharacterOpenedDoor(cur: ZPlayerName, door: ZDoor) {
+	override fun onDoorToggled(cur: ZPlayerName, door: ZDoor) {
 		server?.broadcastExecuteOnRemote(GAME_ID, cur, door)
 	}
 

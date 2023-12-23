@@ -301,4 +301,22 @@ public interface IRectangle extends IDimension, IShape, Comparable<IRectangle> {
     default boolean canContain(IRectangle other) {
         return getWidth() >= other.getWidth() && getHeight() >= other.getHeight();
     }
+
+    default Vector2D getDeltaToContain(IRectangle other) {
+        if (getWidth() < other.getWidth() || getHeight() < other.getHeight())
+            return Vector2D.ZERO;
+        Vector2D delta = other.getCenter().sub(getCenter());
+        float x = other.getTopLeft().X() < getTopLeft().X() ? getTopLeft().X()
+                : other.getBottomRight().X() > getBottomRight().X() ? getBottomRight().X() - other.getWidth()
+                : other.getTopLeft().X();
+
+        float y = other.getTopLeft().Y() < getTopLeft().Y() ? getTopLeft().Y()
+                : other.getBottomRight().Y() > getBottomRight().Y() ? getBottomRight().Y() - other.getHeight()
+                : other.getTopLeft().Y();
+        GRectangle contained = new GRectangle(x, y, other.getWidth(), other.getHeight());
+
+        Vector2D delta2 = contained.getCenter().sub(getCenter());
+        return delta.sub(delta2);
+    }
+
 }

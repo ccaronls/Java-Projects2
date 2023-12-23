@@ -34,7 +34,6 @@ class ZDoor (val cellPosStart: Grid.Pos, val cellPosEnd: Grid.Pos, val moveDirec
         return board.getCell(cellPosStart).getWallRect(moveDirection)
     }
 
-    @JvmOverloads
     fun toggle(board: ZBoard, jammed: Boolean = false) {
         val otherSide = otherSide
         when (board.getDoor(this)) {

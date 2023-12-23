@@ -6,17 +6,17 @@ import cc.lib.game.IDimension
 import cc.lib.ui.IButton
 
 @Keep
-enum class ZPlayerName(@JvmField val characterClass: String, @JvmField val startingEquipment: Array<ZEquipmentType>, @JvmField val alternateBodySlot: ZEquipmentClass, blueSkillOptions: Array<ZSkill>, yellowSkillOptions: Array<ZSkill>, orangeSkillOptions: Array<ZSkill>, redSkillOptions: Array<ZSkill>) : IButton, IDimension {
-    Ann("Angry Nun",
-            arrayOf(ZWeaponType.DAGGER, ZWeaponType.HAND_CROSSBOW),
-            ZEquipmentClass.DAGGER,
-            arrayOf(ZSkill.Bloodlust),
-            arrayOf(ZSkill.Plus1_Action),
-            arrayOf(ZSkill.Plus1_free_Magic_Action, ZSkill.Plus1_free_Melee_Action),
-            arrayOf(ZSkill.Plus1_free_Combat_Action, ZSkill.Plus1_to_dice_roll_Combat, ZSkill.Roll_6_plus1_die_Combat)),
-    Baldric("Magician",
-            arrayOf(ZWeaponType.MANA_BLAST),
-            ZEquipmentClass.SWORD,
+enum class ZPlayerName(val characterClass: String, val startingEquipment: Array<ZEquipmentType>, val alternateBodySlot: ZEquipmentClass, blueSkillOptions: Array<ZSkill>, yellowSkillOptions: Array<ZSkill>, orangeSkillOptions: Array<ZSkill>, redSkillOptions: Array<ZSkill>) : IButton, IDimension {
+	Ann("Angry Nun",
+		arrayOf(ZWeaponType.DAGGER, ZWeaponType.HAND_CROSSBOW),
+		ZEquipmentClass.DAGGER,
+		arrayOf(ZSkill.Bloodlust),
+		arrayOf(ZSkill.Plus1_Action),
+		arrayOf(ZSkill.Plus1_free_Magic_Action, ZSkill.Plus1_free_Melee_Action),
+		arrayOf(ZSkill.Plus1_free_Combat_Action, ZSkill.Plus1_to_dice_roll_Combat, ZSkill.Roll_6_plus1_die_Combat)),
+	Baldric("Magician",
+		arrayOf(ZWeaponType.MANA_BLAST),
+		ZEquipmentClass.SWORD,
             arrayOf(ZSkill.Spellcaster),
             arrayOf(ZSkill.Plus1_Action),
             arrayOf(ZSkill.Plus1_free_Magic_Action, ZSkill.Spellbook),
@@ -106,13 +106,9 @@ enum class ZPlayerName(@JvmField val characterClass: String, @JvmField val start
             redSkillOptions
     )
 
-    @JvmField
     var imageId = -1
-    @JvmField
     var cardImageId = -1
-    @JvmField
     var outlineImageId = -1
-    @JvmField
     var imageDim: GDimension = GDimension.EMPTY
 
     fun create(): ZCharacter = ZCharacter(this, skillOptions)

@@ -6,6 +6,7 @@ import cc.lib.logger.LoggerFactory
 import cc.lib.swing.*
 import cc.lib.ui.IButton
 import cc.lib.utils.FileUtils
+import cc.lib.utils.launchIn
 import cc.lib.zombicide.*
 import cc.lib.zombicide.ui.UIZBoardRenderer
 import cc.lib.zombicide.ui.UIZCharacterRenderer
@@ -22,7 +23,6 @@ import java.net.MalformedURLException
 import java.net.URL
 import java.util.*
 import javax.swing.*
-import javax.swing.Timer
 
 open class ZombicideApplet : AWTApplet(), ActionListener {
 	@Throws(MalformedURLException::class)
@@ -64,7 +64,7 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 			}
 		}
 		game = object : UIZombicide(UIZCharacterRenderer(charComp), renderer) {
-			override fun runGame(): Boolean {
+			override suspend fun runGame(): Boolean {
 				var changed = false
 				try {
 					changed = super.runGame()
@@ -87,7 +87,7 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 				return changed
 			}
 
-			override fun <T> waitForUser(expectedType: Class<T>): T? {
+			override suspend fun <T> waitForUser(expectedType: Class<T>): T? {
 				initMenu(uiMode, options)
 				boardComp.requestFocus()
 				return super.waitForUser(expectedType)
@@ -110,7 +110,7 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 		uiUser.setColor(game.board, frame.getIntProperty("COLOR", 0))
 		val players = getEnumListProperty("players", ZPlayerName::class.java, Utils.toList(ZPlayerName.Baldric, ZPlayerName.Clovis))
 		for (pl in players) {
-			game.addCharacter(pl)?.let {
+			game.addCharacter(pl).let {
 				uiUser.addCharacter(it)
 			}
 		}
@@ -343,24 +343,17 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 			//            log.debug("created button for type " + obj.getClass());
 			if (obj is ZCharacter) {
 				addMouseListener(object : MouseListener {
-					var t = Timer(1, null)
 					override fun mouseClicked(e: MouseEvent) {}
 					override fun mousePressed(e: MouseEvent) {}
 					override fun mouseReleased(e: MouseEvent) {}
 					override fun mouseEntered(e: MouseEvent) {
-						boardComp.renderer.setHighlightActor(obj)
-						charComp.renderer.actorInfo = obj
-						//t.stop()
-						//t = AWTUtils.postDelayed(4000, false) {
-						//	boardComp.renderer.setOverlay(obj.getAllSkillsTableExpanded())
-						//}
-						//charComp.redraw()
+						launchIn {
+							boardComp.renderer.setHighlightActor(obj)
+							charComp.renderer.actorInfo = obj
+						}
 					}
 
-					override fun mouseExited(e: MouseEvent) {
-						t.stop()
-						boardComp.renderer.setOverlay(null)
-					}
+					override fun mouseExited(e: MouseEvent) {}
 				})
 			}
 		}

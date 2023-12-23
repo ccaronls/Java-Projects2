@@ -246,10 +246,11 @@ abstract class UIProbot : Probot() {
 			return start()
 		}
 
-		override fun getCurrentTimeMSecs(): Long {
-			sw.capture()
-			return sw.time
-		}
+		override val currentTimeMSecs: Long
+			get() {
+				sw.capture()
+				return sw.time
+			}
 	}
 
 	internal open inner class JumpAnim @JvmOverloads constructor(val guy: Guy, val advanceAmt: Float = 1f, durMs: Long = 1000) : BaseAnim(durMs) {

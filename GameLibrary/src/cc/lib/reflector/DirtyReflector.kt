@@ -19,7 +19,6 @@ open class DirtyReflector<T> : Reflector<T>() {
 			val obj = it.get(this)
 			if (obj is IDirty) {
 				if (obj.isDirty) {
-					dirty = true
 					return true
 				}
 			}
@@ -40,8 +39,20 @@ open class DirtyReflector<T> : Reflector<T>() {
 	}
 
 	override fun serializeDirty(out: RPrintWriter) {
-		if (isDirty) {
+		if (dirty) {
 			serialize(out)
+		} else {
+			getValues(javaClass, false).keys.forEach {
+				val obj = it.get(this)
+				if (obj is IDirty) {
+					if (obj.isDirty) {
+						out.p(it.name).p("=").p(getCanonicalName(obj.javaClass))
+						out.push()
+						obj.serializeDirty(out)
+						out.pop()
+					}
+				}
+			}
 		}
 	}
 }

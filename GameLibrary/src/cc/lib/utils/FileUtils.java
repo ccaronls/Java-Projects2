@@ -20,7 +20,7 @@ import cc.lib.logger.LoggerFactory;
 
 public class FileUtils {
 
-    private final static Logger log = LoggerFactory.getLogger(FileUtils.class);
+    final static Logger log = LoggerFactory.getLogger(FileUtils.class);
 
 	/**
 	 * 

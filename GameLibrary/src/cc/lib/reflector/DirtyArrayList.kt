@@ -1,6 +1,6 @@
 package cc.lib.reflector
 
-class DirtyArrayList<T> : ArrayList<T>(), IDirty {
+class DirtyArrayList<T>(capacity: Int = 0) : ArrayList<T>(capacity), IDirty {
 
 	private var dirty = false
 

@@ -37,12 +37,10 @@ class UIZCharacterRenderer(component: UIComponent) : UIRenderer(component) {
 		this.textColor = textColor
 	}
 
-	@Synchronized
 	fun addMessage(msg: String) {
 		addMessage(msg, textColor)
 	}
 
-	@Synchronized
 	fun addMessage(msg: String, color: GColor) {
 		messages.addFirst(StringLine(color, msg))
 		while (messages.size > 32) {
@@ -51,7 +49,6 @@ class UIZCharacterRenderer(component: UIComponent) : UIRenderer(component) {
 		redraw()
 	}
 
-	@Synchronized
 	fun addWrappable(line: IWrappable) {
 		messages.addFirst(line)
 		while (messages.size > 32) {
@@ -60,12 +57,10 @@ class UIZCharacterRenderer(component: UIComponent) : UIRenderer(component) {
 		redraw()
 	}
 
-	@Synchronized
 	fun clearMessages() {
 		messages.clear()
 	}
 
-	@Synchronized
 	override fun draw(g: APGraphics, px: Int, py: Int) {
 		var info: IDimension? = null
 		g.color = textColor

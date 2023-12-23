@@ -205,7 +205,6 @@ internal class BoardComponent : AWTRendererComponent<UIZBoardRenderer>(), UIZCom
 		setPreferredSize(250, 250)
 	}
 
-	@Synchronized
 	override fun keyPressed(e: KeyEvent) {
 		val game = instance
 		when (e.keyCode) {

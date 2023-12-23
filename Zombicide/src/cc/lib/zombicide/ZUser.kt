@@ -53,56 +53,56 @@ abstract class ZUser(var name: String, vararg players: ZPlayerName) {
 		return _players.contains(name)
 	}
 
-	abstract fun chooseCharacter(options: List<ZPlayerName>): ZPlayerName?
-	abstract fun chooseMove(cur: ZPlayerName, options: List<ZMove>): ZMove?
+	abstract suspend fun chooseCharacter(options: List<ZPlayerName>): ZPlayerName?
+	abstract suspend fun chooseMove(cur: ZPlayerName, options: List<ZMove>): ZMove?
 
-	abstract fun chooseNewSkill(character: ZPlayerName, skillOptions: List<ZSkill>): ZSkill?
-	abstract fun chooseSlotToOrganize(cur: ZPlayerName, slots: List<ZEquipSlot>): ZEquipSlot?
-	abstract fun chooseEquipment(cur: ZPlayerName, equipOptions: List<ZEquipment<*>>): Int?
-	fun chooseEquipmentInternal(cur: ZPlayerName, equipOptions: List<ZEquipment<*>>): ZEquipment<*>? {
+	abstract suspend fun chooseNewSkill(character: ZPlayerName, skillOptions: List<ZSkill>): ZSkill?
+	abstract suspend fun chooseSlotToOrganize(cur: ZPlayerName, slots: List<ZEquipSlot>): ZEquipSlot?
+	abstract suspend fun chooseEquipment(cur: ZPlayerName, equipOptions: List<ZEquipment<*>>): Int?
+	suspend fun chooseEquipmentInternal(cur: ZPlayerName, equipOptions: List<ZEquipment<*>>): ZEquipment<*>? {
 		return chooseEquipment(cur, equipOptions)?.let { equipOptions[it] }
 	}
 
-    abstract fun chooseSlotForEquip(cur: ZPlayerName, equipableSlots: List<ZEquipSlot>): ZEquipSlot?
-    abstract fun chooseZoneToWalk(cur: ZPlayerName, zones: List<Int>): Int?
-    abstract fun chooseDoorToToggle(cur: ZPlayerName, doors: List<ZDoor>): Int?
-    fun chooseDoorToToggleInternal(cur: ZPlayerName, doors: List<ZDoor>): ZDoor? {
-        return chooseDoorToToggle(cur, doors)?.let { doors[it] }
-    }
+	abstract suspend fun chooseSlotForEquip(cur: ZPlayerName, equipableSlots: List<ZEquipSlot>): ZEquipSlot?
+	abstract suspend fun chooseZoneToWalk(cur: ZPlayerName, zones: List<Int>): Int?
+	abstract suspend fun chooseDoorToToggle(cur: ZPlayerName, doors: List<ZDoor>): Int?
+	suspend fun chooseDoorToToggleInternal(cur: ZPlayerName, doors: List<ZDoor>): ZDoor? {
+		return chooseDoorToToggle(cur, doors)?.let { doors[it] }
+	}
 
-    abstract fun chooseWeaponSlot(c: ZPlayerName, weapons: List<ZWeapon>): Int?
-    fun chooseWeaponSlotInternal(c: ZPlayerName, weapons: List<ZWeapon>): ZWeapon? {
-        return chooseWeaponSlot(c, weapons)?.let { weapons[it] }
-    }
+	abstract suspend fun chooseWeaponSlot(c: ZPlayerName, weapons: List<ZWeapon>): Int?
+	suspend fun chooseWeaponSlotInternal(c: ZPlayerName, weapons: List<ZWeapon>): ZWeapon? {
+		return chooseWeaponSlot(c, weapons)?.let { weapons[it] }
+	}
 
-    abstract fun chooseTradeCharacter(c: ZPlayerName, list: List<ZPlayerName>): ZPlayerName?
-    abstract fun chooseZoneForAttack(c: ZPlayerName, zones: List<Int>): Int?
-    abstract fun chooseItemToPickup(cur: ZPlayerName, list: List<ZEquipment<*>>): Int?
-    fun chooseItemToPickupInternal(cur: ZPlayerName, list: List<ZEquipment<*>>): ZEquipment<*>? {
-        return chooseItemToPickup(cur, list)?.let { list[it] }
-    }
+	abstract suspend fun chooseTradeCharacter(c: ZPlayerName, list: List<ZPlayerName>): ZPlayerName?
+	abstract suspend fun chooseZoneForAttack(c: ZPlayerName, zones: List<Int>): Int?
+	abstract suspend fun chooseItemToPickup(cur: ZPlayerName, list: List<ZEquipment<*>>): Int?
+	suspend fun chooseItemToPickupInternal(cur: ZPlayerName, list: List<ZEquipment<*>>): ZEquipment<*>? {
+		return chooseItemToPickup(cur, list)?.let { list[it] }
+	}
 
-    abstract fun chooseItemToDrop(cur: ZPlayerName, list: List<ZEquipment<*>>): Int?
-    fun chooseItemToDropInternal(cur: ZPlayerName, list: List<ZEquipment<*>>): ZEquipment<*>? {
-        return chooseItemToDrop(cur, list)?.let { list[it] }
-    }
+	abstract suspend fun chooseItemToDrop(cur: ZPlayerName, list: List<ZEquipment<*>>): Int?
+	suspend fun chooseItemToDropInternal(cur: ZPlayerName, list: List<ZEquipment<*>>): ZEquipment<*>? {
+		return chooseItemToDrop(cur, list)?.let { list[it] }
+	}
 
-    abstract fun chooseEquipmentToThrow(cur: ZPlayerName, slots: List<ZEquipment<*>>): Int?
-    fun chooseEquipmentToThrowInternal(cur: ZPlayerName, slots: List<ZEquipment<*>>): ZEquipment<*>? {
-        return chooseEquipmentToThrow(cur, slots)?.let { slots[it] }
-    }
+	abstract suspend fun chooseEquipmentToThrow(cur: ZPlayerName, slots: List<ZEquipment<*>>): Int?
+	suspend fun chooseEquipmentToThrowInternal(cur: ZPlayerName, slots: List<ZEquipment<*>>): ZEquipment<*>? {
+		return chooseEquipmentToThrow(cur, slots)?.let { slots[it] }
+	}
 
-    abstract fun chooseZoneToThrowEquipment(cur: ZPlayerName, toThrow: ZEquipment<*>, zones: List<Int>): Int?
-    abstract fun chooseZoneToShove(cur: ZPlayerName, list: List<Int>): Int?
-	abstract fun chooseSpell(cur: ZPlayerName, spells: List<ZSpell>): ZSpell?
-	abstract fun chooseCharacterForSpell(cur: ZPlayerName, spell: ZSpell, targets: List<ZPlayerName>): ZPlayerName?
-	abstract fun chooseCharacterToBequeathMove(cur: ZPlayerName, list: List<ZPlayerName>): ZPlayerName?
-	abstract fun chooseZoneForBloodlust(cur: ZPlayerName, list: List<Int>): Int?
-	abstract fun chooseSpawnAreaToRemove(cur: ZPlayerName, list: List<ZSpawnArea>): Int?
-	abstract fun chooseZoneToIgnite(playerName: ZPlayerName, ignitableZones: List<Int>): Int?
-	abstract fun chooseEquipmentClass(playerName: ZPlayerName, classes: List<ZEquipmentClass>): ZEquipmentClass?
-	abstract fun chooseStartingEquipment(playerName: ZPlayerName, list: List<ZEquipmentType>): ZEquipmentType?
-	abstract fun chooseOrganize(playerName: ZPlayerName, list: List<ZMove>): ZMove?
+	abstract suspend fun chooseZoneToThrowEquipment(cur: ZPlayerName, toThrow: ZEquipment<*>, zones: List<Int>): Int?
+	abstract suspend fun chooseZoneToShove(cur: ZPlayerName, list: List<Int>): Int?
+	abstract suspend fun chooseSpell(cur: ZPlayerName, spells: List<ZSpell>): ZSpell?
+	abstract suspend fun chooseCharacterForSpell(cur: ZPlayerName, spell: ZSpell, targets: List<ZPlayerName>): ZPlayerName?
+	abstract suspend fun chooseCharacterToBequeathMove(cur: ZPlayerName, list: List<ZPlayerName>): ZPlayerName?
+	abstract suspend fun chooseZoneForBloodlust(cur: ZPlayerName, list: List<Int>): Int?
+	abstract suspend fun chooseSpawnAreaToRemove(cur: ZPlayerName, list: List<ZSpawnArea>): Int?
+	abstract suspend fun chooseZoneToIgnite(playerName: ZPlayerName, ignitableZones: List<Int>): Int?
+	abstract suspend fun chooseEquipmentClass(playerName: ZPlayerName, classes: List<ZEquipmentClass>): ZEquipmentClass?
+	abstract suspend fun chooseStartingEquipment(playerName: ZPlayerName, list: List<ZEquipmentType>): ZEquipmentType?
+	abstract suspend fun chooseOrganize(playerName: ZPlayerName, list: List<ZMove>): ZMove?
 
 	/**
 	 * This may be called more than once. Need to handle if a dialog is already open

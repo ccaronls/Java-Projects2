@@ -40,7 +40,7 @@ open class ShootAnimation(actor: ZActor, duration: Long, center: IVector2D?, val
 		dir = getFromVector(dv)
 		path = Vector2D.getLinearInterpolator(start, end)
 		pos = path.getAtPosition(0f)
-		setDuration(Math.round(dv.mag() * duration).toLong())
+		this.duration = (dv.mag() * duration).toLong()
 		id = icon.imageIds[dir.ordinal]
 	}
 }

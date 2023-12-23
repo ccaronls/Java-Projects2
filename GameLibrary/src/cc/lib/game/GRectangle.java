@@ -374,21 +374,4 @@ public class GRectangle extends Reflector<GRectangle> implements IRectangle {
                 && getTopLeft().getY() >= other.getTopLeft().getY()
                 && getBottomRight().getY() <= other.getBottomRight().getY());
     }
-
-    public final Vector2D getDeltaToContain(IRectangle other) {
-        if (getWidth() < other.getWidth() || getHeight() < other.getHeight())
-            throw new IllegalArgumentException("Cannot contain a rect larger than self");
-        Vector2D delta = other.getCenter().sub(getCenter());
-        float x = other.getTopLeft().X() < getTopLeft().X() ? getTopLeft().X()
-                : other.getBottomRight().X() > getBottomRight().X() ? getBottomRight().X() - other.getWidth()
-                : other.getTopLeft().X();
-
-        float y = other.getTopLeft().Y() < getTopLeft().Y() ? getTopLeft().Y()
-                : other.getBottomRight().Y() > getBottomRight().Y() ? getBottomRight().Y() - other.getHeight()
-                : other.getTopLeft().Y();
-        GRectangle contained = new GRectangle(x, y, other.getWidth(), other.getHeight());
-
-        Vector2D delta2 = contained.getCenter().sub(getCenter());
-        return delta.sub(delta2);
-    }
 }
