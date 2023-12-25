@@ -64,30 +64,30 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 	/**
 	 * Get list of accessable zones
 	 *
-	 * @param zoneIndex
+	 * @param fromZoneIndex
 	 * @param minDist
 	 * @param maxDist
 	 * @return
-     */
-    fun getAccessibleZones(zoneIndex: Int, minDist: Int, maxDist: Int, action: ZActionType): List<Int> {
-	    if (maxDist == 0) return listOf(zoneIndex)
-	    val result: MutableSet<Int> = HashSet()
-	    val options = if (action === ZActionType.MOVE) ZDir.values() else compassValues
-	    if (getZone(zoneIndex).type === ZZoneType.TOWER && action.isProjectile) {
-		    // special case here
-		    // buildings do not block from being able to see beyond
-		    // can see into buildings with open door but only for a single zone
-		    for (cellPos in zones[zoneIndex].cells) {
-			    for (dir in compassValues) {
-				    var pos = cellPos
-				    var lastIndoorZone = -1
-				    if (grid[pos].getWallFlag(dir).openForProjectile) {
-					    for (i in 0 until minDist) {
-						    pos = getAdjacent(pos, dir)
-						    if (!grid.isOnGrid(pos)) {
-							    break
-						    }
-					    }
+	 */
+	fun getAccessibleZones(fromZoneIndex: Int, minDist: Int, maxDist: Int, action: ZActionType): List<Int> {
+		if (maxDist == 0) return listOf(fromZoneIndex)
+		val result: MutableSet<Int> = HashSet()
+		val options = if (action === ZActionType.MOVE) ZDir.values() else compassValues
+		if (getZone(fromZoneIndex).type === ZZoneType.TOWER && action.isProjectile) {
+			// special case here
+			// buildings do not block from being able to see beyond
+			// can see into buildings with open door but only for a single zone
+			for (cellPos in zones[fromZoneIndex].cells) {
+				for (dir in compassValues) {
+					var pos = cellPos
+					var lastIndoorZone = -1
+					if (grid[pos].getWallFlag(dir).openForProjectile) {
+						for (i in 0 until minDist) {
+							pos = getAdjacent(pos, dir)
+							if (!grid.isOnGrid(pos)) {
+								break
+							}
+						}
 					    for (i in minDist..maxDist) {
                             if (!grid.isOnGrid(pos)) break
                             val cell = grid[pos]
@@ -111,17 +111,17 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 			    }
             }
         } else {
-            for (cellPos in zones[zoneIndex].cells) {
-                // fan out in all direction to given distance
-                //for (int dir = 0; dir <4; dir++) {
-	            outer@ for (dir in options) {
-		            var pos = cellPos
-		            var dist = 0
-		            var buildingZoneIdx = -1
-		            while (dist < minDist) {
-			            val cell = grid[pos]
-			            if (!cell.getWallFlag(dir).opened) {
-				            continue@outer
+			for (cellPos in zones[fromZoneIndex].cells) {
+				// fan out in all direction to given distance
+				//for (int dir = 0; dir <4; dir++) {
+				outer@ for (dir in options) {
+					var pos = cellPos
+					var dist = 0
+					var buildingZoneIdx = -1
+					while (dist < minDist) {
+						val cell = grid[pos]
+						if (!cell.getWallFlag(dir).opened) {
+							continue@outer
 			            }
 			            pos = getAdjacent(pos, dir)
 			            dist++

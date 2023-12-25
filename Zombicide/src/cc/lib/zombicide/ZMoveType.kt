@@ -50,7 +50,7 @@ enum class ZMoveType(val toolTipText: String?, val shortName: String = "") : IBu
     ORGANIZE_DONE("Completed"),
 	ORGANIZE_TRADE(null) {
 		override fun getLabel(): String {
-			return TRADE.label
+			return TRADE.getLabel()
 		}
 	},
 	ORGANIZE_TAKE(null),

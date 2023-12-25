@@ -40,7 +40,7 @@ class ZArmor(override val type: ZArmorType=ZArmorType.CHAIN_MAIL) : ZEquipment<Z
         for (type in listOf(ZZombieType.Walker, ZZombieType.Fatty, ZZombieType.Runner, ZZombieType.Necromancer, ZZombieType.Abomination)) {
             ratings.addRow(type, this.type.getDieRollToBlock(type))
         }
-        val main = Table(label).setNoBorder().addRow(ratings)
+        val main = Table(getLabel()).setNoBorder().addRow(ratings)
         type.specialAbilityDescription?.let {
             main.addRow(it.wrap( 24))
         }

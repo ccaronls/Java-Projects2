@@ -120,13 +120,13 @@ abstract class UIComponentView<T : UIRenderer> : View, UIComponent, Runnable, Sc
 			g.drawFilledRect(rect)
 		} else if (!isInEditMode) {
 			loadAssetsRunnable = null
-			val prev = renderer.getMinDimension()
+			val prev = renderer.minDimension
 			try {
 				renderer.draw(g, tx, ty)
 			} catch (e: Exception) {
 				e.printStackTrace()
 			}
-			val next = renderer.getMinDimension()
+			val next = renderer.minDimension
 			if (next != prev) {
 				if (isResizable) {
 					requestLayout()
@@ -223,7 +223,7 @@ abstract class UIComponentView<T : UIRenderer> : View, UIComponent, Runnable, Sc
 		var height = MeasureSpec.getSize(heightMeasureSpec)
 		val wSpec = MeasureSpec.getMode(widthMeasureSpec)
 		val hSpec = MeasureSpec.getMode(heightMeasureSpec)
-		val dim = renderer.getMinDimension()
+		val dim = renderer.minDimension
 		when (wSpec) {
 			MeasureSpec.AT_MOST -> width = Math.min(width, Math.round(dim.width))
 			MeasureSpec.UNSPECIFIED -> width = Math.round(dim.width)

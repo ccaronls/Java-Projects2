@@ -46,8 +46,10 @@ class WolfTheGhostDoor : ZQuest(ZQuests.The_Ghost_Door) {
 	private fun numREDinEXIT(game: ZGame): Int = game.allLivingCharacters.count { pl -> pl.skillLevel.difficultyColor === ZColor.RED && exitZone == pl.occupiedZone }
 
 	override fun getPercentComplete(game: ZGame): Int {
-		val needed = 2
-		val total = if (numREDinEXIT(game) > 0) 1 else if (0 + numSurvivorsAtDangerRED(game) > 0) 1 else 0
+		val needed = numStartObjectives + 2
+		var total = (numStartObjectives - numRemainingObjectives)
+		if (numSurvivorsAtDangerRED(game) > 0) total++
+		if (numREDinEXIT(game) > 0) total++
 		return total * 100 / needed
 	}
 
@@ -55,7 +57,7 @@ class WolfTheGhostDoor : ZQuest(ZQuests.The_Ghost_Door) {
 		return Table(name).addRow(Table().setNoBorder()
 			.addRow("1.", "Get at least one survivor to RED danger level.", numSurvivorsAtDangerRED(game) > 0)
 			.addRow("2.", "Get at least one survor at danger level RED to the EXIT. The EXIT but be clear on zombies.", numREDinEXIT(game) > 0)
-			.addRow("3.", "Each OBJECTIVE grants " + getObjectiveExperience(0, 0) + " points and allow survivor to take an equipment card of their choice form the deck as well as reorganize their inventory for free", String.format("%d of %d", numRemainingObjectives, numStartObjectives))
+			.addRow("3.", "Each OBJECTIVE grants " + getObjectiveExperience(0, 0) + " points and allow survivor to take an equipment card of their choice form the deck as well as reorganize their inventory for free", String.format("%d of %d", (numStartObjectives - numRemainingObjectives), numStartObjectives))
 		)
 	}
 }

@@ -725,7 +725,7 @@ abstract class UIMonopoly : Monopoly() {
 		override fun onDone() {
 			if (jumps != 0) {
 				init()
-				start()
+				start<AAnimation<Sprite>>()
 			} else {
 				lock.withLock { cond.signal() }
 			}
@@ -944,11 +944,11 @@ abstract class UIMonopoly : Monopoly() {
 				return txtLrg / 2
 			}
 
-			override fun getBorderColor(g: AGraphics?): GColor {
+			override fun getBorderColor(g: AGraphics): GColor {
 				return property.color
 			}
 
-			override fun getHeaderColor(g: AGraphics?): GColor {
+			override fun getHeaderColor(g: AGraphics): GColor {
 				return if (property.color != GColor.WHITE) property.color else GColor.BLACK
 			}
 
@@ -974,11 +974,11 @@ abstract class UIMonopoly : Monopoly() {
 				}
 			}
 
-			override fun getHeaderTextHeight(g: AGraphics?): Float {
+			override fun getHeaderTextHeight(g: AGraphics): Float {
 				return txtLrg
 			}
 
-			override fun getCellTextHeight(g: AGraphics?): Float {
+			override fun getCellTextHeight(g: AGraphics): Float {
 				return txtMed
 			}
 

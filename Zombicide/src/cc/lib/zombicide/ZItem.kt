@@ -3,7 +3,6 @@ package cc.lib.zombicide
 
 import cc.lib.utils.Table
 import cc.lib.utils.wrap
-import java.util.*
 
 class ZItem(override val type: ZItemType=ZItemType.APPLES) : ZEquipment<ZItemType>() {
     companion object {
@@ -30,7 +29,7 @@ class ZItem(override val type: ZItemType=ZItemType.APPLES) : ZEquipment<ZItemTyp
 
     override fun getCardInfo(c: ZCharacter, game: ZGame): Table {
         val card = Table().setNoBorder()
-        card.addColumn(label, listOf(type.description.wrap(24)))
+        card.addColumn(getLabel(), listOf(type.description.wrap(24)))
         return card
     }
 

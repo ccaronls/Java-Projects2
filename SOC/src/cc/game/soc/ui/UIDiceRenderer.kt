@@ -70,13 +70,14 @@ class UIDiceRenderer(component: UIComponent, attach: Boolean) : UIRenderer(compo
 	override fun draw(g: APGraphics, pickX: Int, pickY: Int) {
 		picked = -1
 		if (Utils.isEmpty(dice)) return
-		if (spinAnim != null) {
-			spinAnim = if (spinAnim!!.isDone) {
+		spinAnim?.let {
+			spinAnim = if (it.isDone) {
 				null
 			} else {
-				spinAnim!!.update(g)
+				it.update(g)
 				return
 			}
+
 		}
 		drawPrivate(g, pickX, pickY, dice)
 

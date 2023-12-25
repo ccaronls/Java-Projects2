@@ -8,8 +8,8 @@ import javax.swing.JCheckBox
 open class AWTToggleButton @JvmOverloads constructor(text: String?, selected: Boolean = false) : JCheckBox(text), ActionListener {
 	private var ignore = false
 
-	constructor(button: IButton) : this(button.label, false) {
-		toolTipText = button.tooltipText
+	constructor(button: IButton) : this(button.getLabel(), false) {
+		toolTipText = button.getTooltipText()
 	}
 
 	init {

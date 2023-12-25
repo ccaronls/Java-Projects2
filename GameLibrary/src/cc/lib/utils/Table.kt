@@ -1,679 +1,595 @@
-package cc.lib.utils;
+package cc.lib.utils
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Vector;
-
-import cc.lib.game.AGraphics;
-import cc.lib.game.AImage;
-import cc.lib.game.GColor;
-import cc.lib.game.GDimension;
-import cc.lib.game.IDimension;
-import cc.lib.game.IVector2D;
-import cc.lib.game.Justify;
-import cc.lib.game.Utils;
+import cc.lib.game.*
+import cc.lib.math.MutableVector2D
+import cc.lib.ui.IButton
+import java.util.*
 
 /**
- * Usefull for printing out tables of data
+ * Useful for printing out tables of data
  *
  * TODO: Add AImage references
  */
-public final class Table implements ITableItem {
-
-    public interface Model {
-        /**
-         * Return 0 for LEFT, 1 for CENTER and 2 for RIGHT
-         * @param row
-         * @param col
-         * @return
-         */
-        default Justify getTextAlignment(int row, int col) {
-            return Justify.LEFT;
-        }
-
-        default String getStringValue(Object obj) {
-            if (obj == null)
-                return "";
-            if (obj instanceof Boolean) {
-                return (Boolean) obj ? "yes" : "no";
-            }
-            return obj.toString();
-        }
-
-        default float getCornerRadius() {
-            return 5;
-        }
-
-        default GColor getBorderColor(AGraphics g) {
-            return g.getColor();
-        }
-
-        default GColor getHeaderColor(AGraphics g) {
-            return g.getColor();
-        }
-
-        default GColor getCellColor(AGraphics g, int row, int col) {
-            return g.getColor();
-        }
-
-        default GColor getBackgroundColor() {
-            return GColor.TRANSLUSCENT_BLACK;
-        }
-
-        default int getMaxCharsPerLine() {
-            return 64;
-        }
-
-        default int getBorderWidth() {
-            return 2;
-        }
-
-        default float getHeaderTextHeight(AGraphics g) {
-            return g.getTextHeight();
-        }
-
-        default float getCellTextHeight(AGraphics g) {
-            return g.getTextHeight();
-        }
-
-        default Justify getHeaderJustify(int col) {
-            return Justify.LEFT;
-        }
-
-        default float getCellVerticalPadding() {
-            return 0f;
-        }
-    }
-
-    private final List<String> header;
-    private final List<Vector<Object>> rows = new ArrayList<>();
-    private Model model;
-    private int totalWidthChars =0;
-    private int totalHeightChars =0;
-    private int padding = 1;
-    private int borderWidth = 2; // TODO:  Make this apart of the model
-    private float[] maxWidth;
-    private float[] maxHeight;
-    private int headerHeightLines = 0;
-
-    public Table() {
-        this(new Model() {});
-    }
-
-    public Table(Model model) {
-        header = new ArrayList<>();
-        this.model=model;
-    }
-
-    public Table setModel(Model model) {
-        this.model = model;
-        return this;
-    }
-
-    public Table(String ... header) {
-        this(header, new Model() {});
-    }
-
-    public Table(List<String> header) {
-        this.header = header;
-        this.model = new Model() {};
-    }
-
-    public Table(String [] header, Model model) {
-        this.header = new ArrayList<>(Arrays.asList(header));
-        this.model = model;
-    }
-
-    public Table(Object [][] data) {
-        this(data, new Model() {});
-    }
-    public Table(Object [][] data, Model model) {
-        this.header = new ArrayList<>();
-        for (Object [] d : data) {
-            addRow(d);
-        }
-        this.model = model;
-    }
-
-    public Table setPadding(int padding) {
-        this.padding = padding;
-        return this;
-    }
-
-    public Table setNoBorder() {
-        this.borderWidth = 0;
-        return this;
-    }
-
-    public Table(String [] header, Object [][] data) {
-        this(header, data, new Model() {});
-    }
-
-    public Table(String [] header, Object [][] data, Model model) {
-        this.header = new ArrayList<>(Arrays.asList(header));
-        for (Object [] d : data) {
-            addRow(d);
-        }
-        this.model = model;
-    }
-
-    @Override
-    public String toString() {
-        return toString(0);
-    }
-
-    public int getColumns() {
-        int columns = header.size();
-        for (List row : rows) {
-            columns = Math.max(columns, row.size());
-        }
-        return columns;
-    }
-
-    public Table addRow(Object ... row) {
-        rows.add(new Vector(Arrays.asList(row)));
-        return this;
-    }
-
-    public Table addRowList(List row) {
-        Vector v = new Vector();
-        v.addAll(row);
-        rows.add(v);
-        return this;
-    }
-
-    public Table addRow(String label, Object ... items) {
-        Vector nv = new Vector();
-        nv.add(label);
-        nv.addAll(Utils.toList(items));
-        rows.add(nv);
-        return this;
-    }
-
-    public Table addColumn(String header, Object ... items) {
-        return addColumn(header, Arrays.asList(items));
-    }
-
-    public Table addColumn(String header, List column) {
-
-        int col = this.header.size();
-        this.header.add(header);
-        for (int i=0; i<column.size(); i++) {
-            if (i>=rows.size()) {
-                // add a row with
-                rows.add(new Vector());
-            }
-            while (rows.get(i).size()<=col) {
-                rows.get(i).add(null);
-            }
-            rows.get(i).set(col, column.get(i));
-        }
-        return this;
-    }
-
-    public Table addColumnNoHeaderVarArg(Object ... items) {
-        return addColumnNoHeader(Arrays.asList(items));
-    }
-
-    public Table addColumnNoHeader(Object [] items) {
-        return addColumnNoHeader(Arrays.asList(items));
-    }
-
-    public Table addColumnNoHeader(List column) {
-        int col = Math.max(header.size(), rows.size() > 0 ? rows.get(0).size() : 0);
-        for (int i=0; i<column.size(); i++) {
-            if (i>=rows.size()) {
-                // add a row with
-                rows.add(new Vector());
-            }
-            while (rows.get(i).size()<=col) {
-                rows.get(i).add(null);
-            }
-            rows.get(i).set(col, column.get(i));
-        }
-        return this;
-    }
-
-    private float getCellPadding(AGraphics g) {
-        return Math.max(4, padding * g.getTextHeight() / 2);
-    }
-
-    private GDimension cachedDimension = null;
-
-    public IDimension getCachedDimension() {
-        return cachedDimension;
-    }
-
-    public void reMeasure(AGraphics g) {
-        cachedDimension = null;
-        measure(g);
-    }
-
-    public GDimension measure(AGraphics g) {
-        if (cachedDimension != null)
-            return cachedDimension;
-        if (header.size() == 0 && rows.isEmpty())
-            return GDimension.EMPTY;
-
-        final int columns = getColumns();
-        if (columns == 0)
-            return GDimension.EMPTY;
-
-        maxWidth = new float[columns];
-        maxHeight = new float[rows.size()];
-        float cellPadding = getCellPadding(g);
-
-        headerHeightLines = 0;
-        float saveTxtHgt = g.setTextHeight(model.getHeaderTextHeight(g));
-        if (header.size() > 0) {
-            for (int i = 0; i < columns && i < header.size(); i++) {
-                String [] parts = header.get(i).split("\n");
-                int lines = parts.length;
-                for (String part : parts) {
-                    maxWidth[i] = Math.max(maxWidth[i], g.getTextWidth(part) + cellPadding);
-                }
-                headerHeightLines = Math.max(headerHeightLines, lines);
-            }
-        }
-        float headerHeight = headerHeightLines * g.getTextHeight() + cellPadding*2;
-        g.setTextHeight(saveTxtHgt);
-        for (int r = 0; r < rows.size(); r++) {
-            for (int c = 0; c < rows.get(r).size(); c++) {
-                Object o = rows.get(r).get(c);
-                if (o instanceof ITableItem) {
-                    ITableItem t = (ITableItem) o;
-                    IDimension d2 = t.measure(g);
-                    maxHeight[r] = Math.max(maxHeight[r], d2.getHeight());
-                    maxWidth[c] = Math.max(maxWidth[c], d2.getWidth());
-                    if (t.getBorderWidth() != 0)
-                        maxHeight[r] += 2 * cellPadding;
-                } else if (o instanceof AImage) {
-                    // TODO: Implement this
-                } else {
-                    g.pushTextHeight(model.getCellTextHeight(g));
-                    String entry = model.getStringValue(o);
-                    String[] parts = Utils.wrapText(entry, model.getMaxCharsPerLine());
-                    for (String s : parts) {
-                        maxWidth[c] = Math.max(maxWidth[c], g.getTextWidth(s));
-                    }
-                    maxHeight[r] = Math.max(maxHeight[r], g.getTextHeight() * parts.length)
-                            + model.getCellVerticalPadding();
-                    g.popTextHeight();
-                }
-            }
-        }
-        maxWidth[0] += cellPadding;
-        //maxWidth[maxWidth.length-1] += cellPadding/2;
-        for (int i=1; i<maxWidth.length-1; i++) {
-            maxWidth[i] += cellPadding;
-        }
-        if (borderWidth > 0 && maxWidth.length > 1) {
-            maxWidth[0] += cellPadding/2;
-            maxWidth[maxWidth.length - 1] += cellPadding / 2;
-        }
-        float dimWidth = Utils.sum(maxWidth);
-        float dimHeight = Utils.sum(maxHeight) + headerHeight;
-        dimWidth += borderWidth * 2;
-        dimHeight += borderWidth * 3;
-
-        return cachedDimension = new GDimension(dimWidth, dimHeight);
-    }
-
-    public Table fit(AGraphics g, IDimension target) {
-        GDimension dim = measure(g);
-        if (!target.isEmpty() && !dim.isEmpty()) {
-            if (!dim.equals(target)) {
-                float ratio = target.getWidth() / dim.width;
-                for (int i = 0; i < getColumns(); i++) {
-                    maxWidth[i] *= ratio;
-                }
-                for (int i = 0; i < rows.size(); i++) {
-                    maxHeight[i] *= ratio;
-                }
-            }
-        }
-        float headerHeight = headerHeightLines * g.getTextHeight() + getCellPadding(g) * 2;
-        float dimWidth = Utils.sum(maxWidth);
-        float dimHeight = Utils.sum(maxHeight) + headerHeight;
-        dimWidth += borderWidth * 2;
-        dimHeight += borderWidth * 3;
-
-        cachedDimension = new GDimension(dimWidth, dimHeight);
-
-        return this;
-    }
-
-    /**
-     * Draw with top/left corner at 0,0
-     *
-     * @param g
-     * @return
-     */
-    public IDimension draw(AGraphics g) {
-        GDimension dim = measure(g);
-        if (dim.isEmpty())
-            return dim;
-        g.pushMatrix();
-        float outerPadding = 0;
-        if (borderWidth > 0) {
-            outerPadding = getCellPadding(g) / 2;
-            // if there is a border, then there is padding around between border and text
-            g.pushColor(model.getBackgroundColor());
-            float radius = model.getCornerRadius();
-            g.drawFilledRoundedRect(0, 0, dim.getWidth(), dim.getHeight(), radius);
-            g.setColor(model.getBorderColor(g));
-            g.drawRoundedRect(dim, borderWidth, radius);
-            g.translate(borderWidth, borderWidth);
-            g.popColor();
-        } else {
-            // if there is no border then no padding
-        }
-
-        // TODO: Draw vertical divider lines
-        {
-            g.pushMatrix();
-            g.translate(-getCellPadding(g)/2, -borderWidth);
-            for (int i = 0; i < maxWidth.length - 1; i++) {
-                g.translate(maxWidth[i], 0);
-                g.drawLine(0, 0, 0, dim.getHeight());
-            }
-            g.popMatrix();
-        }
-
-        // check for header. if so render and draw a divider line
-        float cellPadding = Math.max(4, padding*g.getTextHeight()/2);
-        if (header != null && header.size() > 0) {
-            g.pushColor(model.getHeaderColor(g));
-            float x=outerPadding;
-            for (int i=0; i<header.size(); i++) {
-                switch (model.getHeaderJustify(i)) {
-                    case LEFT:
-                        g.drawJustifiedString(x, 0, Justify.LEFT, header.get(i)); break;
-                    case CENTER:
-                        g.drawJustifiedString(x+maxWidth[i]/2, 0, Justify.CENTER, header.get(i)); break;
-                    case RIGHT:
-                        g.drawJustifiedString(x+maxWidth[i], 0, Justify.CENTER, header.get(i)); break;
-                }
-                x += maxWidth[i];
-            }
-            g.popColor();
-            g.pushTextHeight(model.getHeaderTextHeight(g));
-            g.translate(0, g.getTextHeight() * headerHeightLines + cellPadding);
-            g.drawLine(0, 0, dim.getWidth() - borderWidth, 0, borderWidth);
-            g.popTextHeight();
-            g.translate(0, cellPadding);
-        }
-
-        // draw the rows
-        g.translate(outerPadding, 0);
-        for (int i=0; i<rows.size(); i++) {
-            g.pushMatrix();
-            for (int ii=0; ii<rows.get(i).size(); ii++) {
-                Object o = rows.get(i).get(ii);
-                if (o != null) {
-                    if (o instanceof ITableItem) {
-                        ITableItem t = (ITableItem) o;
-                        if (t.getBorderWidth() > 0)
-                            g.translate(0, cellPadding);
-                        t.draw(g);
-                    } else if (o instanceof AImage) {
-                        // TODO:
-                    } else {
-                        String txt = model.getStringValue(o);
-                        Justify hJust = model.getTextAlignment(i, ii);
-                        g.pushColor(model.getCellColor(g, i, ii));
-                        g.pushTextHeight(model.getCellTextHeight(g));
-                        g.pushMatrix();
-                        switch (hJust) {
-                            case CENTER: g.translate(maxWidth[ii]/2, 0); break;
-                            case RIGHT:  g.translate(maxWidth[ii], 0); break;
-                        }
-                        g.drawWrapString(0, model.getCellVerticalPadding() / 2, maxWidth[ii], hJust, Justify.TOP, txt);
-                        g.popColor();
-                        g.popTextHeight();
-                        g.popMatrix();
-                    }
-                }
-                g.translate(maxWidth[ii], 0);
-            }
-            g.popMatrix();
-            g.translate(0, maxHeight[i]);
-        }
-
-        g.popMatrix();
-        return dim;
-    }
-
-    public void draw(AGraphics g, IVector2D cntr, Justify horz, Justify vert) {
-        draw(g, cntr.getX(), cntr.getY(), horz, vert);
-    }
-
-    /**
-     * Draw table centered at a point
-     *
-     * @param g
-     * @param cntr
-     */
-    public void draw(AGraphics g, IVector2D cntr) {
-        draw(g, cntr.getX(), cntr.getY(), Justify.CENTER, Justify.CENTER);
-    }
-
-    /**
-     *
-     * @param g
-     * @param horz
-     * @param vert
-     */
-    public void draw(AGraphics g, float x, float y, Justify horz, Justify vert) {
-        GDimension dim = measure(g);
-        g.pushMatrix();
-        g.translate(x,y);
-        switch (horz) {
-            case CENTER:
-                g.translate(-dim.getWidth()/2, 0);
-                break;
-            case RIGHT:
-                g.translate(-dim.getWidth(), 0);
-                break;
-        }
-        switch (vert) {
-            case CENTER:
-                g.translate(0, -dim.getHeight()/2);
-                break;
-            case BOTTOM:
-                g.translate(0, -dim.getHeight());
-                break;
-        }
-        draw(g);
-        g.popMatrix();
-    }
-
-    /**
-     *
-     * @param indent
-     * @return
-     */
-    public String toString(int indent) {
-        if (header.size() == 0 && rows.isEmpty())
-            return "";
-
-        final int columns = getColumns();
-        if (columns == 0)
-            return "";
-        final int [] maxWidth = new int [columns];
-        final int [] maxHeight = new int[rows.size()];
-        headerHeightLines = 0;
-        for (int i=0; i<columns && i<header.size(); i++) {
-            String [] parts = header.get(i).split("\n");
-            for (int ii=0; ii<parts.length; ii++) {
-                maxWidth[i] = Math.max(maxWidth[i], parts[ii].length());
-            }
-            headerHeightLines = Math.max(headerHeightLines, parts.length);
-        }
-
-        for (int r=0; r<rows.size(); r++) {
-            for (int c=0; c<rows.get(r).size(); c++) {
-                String entry =  model.getStringValue(rows.get(r).get(c));
-                if (entry.contains("\n")) {
-                    String [] parts = entry.split("[\n]+");
-                    for (String s : parts) {
-                        maxWidth[c] = Math.max(maxWidth[c], s.length());
-                    }
-                    maxHeight[r] = Math.max(maxHeight[r], parts.length);
-                    // split up the string into lines for
-                } else {
-                    maxWidth[c] = Math.max(maxWidth[c], entry.length());
-                    maxHeight[r] = Math.max(maxHeight[r], 1);
-                }
-            }
-        }
-
-        final boolean border = borderWidth > 0;
-        final StringBuffer buf = new StringBuffer();
-        final String paddingChars = Utils.getRepeatingChars(' ', padding);
-        final String divider= paddingChars + (padding > 0 ? "|" : " ") + paddingChars;
-        final String indentStr = Utils.getRepeatingChars(' ', indent);
-        final String borderStrFront = (border ? "|" : "") + paddingChars;
-        final String borderStrEnd   = paddingChars + (border ? "|" : "");
-
-        // Divider under header
-        final String headerPadding = Utils.getRepeatingChars('-', padding);
-        final String headerDivFront = (border ? "+" : "") + headerPadding;
-        final String headerDivMid = headerPadding + "+" + headerPadding;
-        final String headerDivEnd = headerPadding + (border ? "+" : "");
-        buf.append(indentStr).append(headerDivFront);
-        for (int i = 0; i < columns - 1; i++) {
-            buf.append(Utils.getRepeatingChars('-', maxWidth[i])).append(headerDivMid);
-        }
-        final int last = columns - 1;
-        buf.append(Utils.getRepeatingChars('-', maxWidth[last])).append(headerDivEnd);
-        final String horzDivider = buf.toString();
-        if (border) {
-            buf.append("\n");
-        } else {
-            buf.setLength(0);
-        }
-        String delim = "";
-        if (header.size() > 0) {
-            // Header
-            for (int ii=0; ii<headerHeightLines; ii++) {
-                buf.append(indentStr).append(borderStrFront);
-                for (int i = 0; i < columns - 1; i++) {
-                    if (i < header.size()) {
-                        String[] parts = header.get(i).split("\n");
-                        if (ii < parts.length)
-                            buf.append(getJustifiedString(parts[ii], Justify.CENTER, maxWidth[i]));
-                        else
-                            buf.append(Utils.getRepeatingChars(' ', maxWidth[i]));
-                    } else {
-                        buf.append(Utils.getRepeatingChars(' ', maxWidth[i]));
-                    }
-                    buf.append(divider);
-                }
-                if (last < header.size()) {
-                    String[] parts = header.get(last).split("\n");
-                    if (ii < parts.length)
-                        buf.append(getJustifiedString(parts[ii], Justify.CENTER, maxWidth[last]));
-                    else
-                        buf.append(Utils.getRepeatingChars(' ', maxWidth[last]));
-                } else {
-                    buf.append(Utils.getRepeatingChars(' ', maxWidth[last]));
-                }
-                buf.append(borderStrEnd).append("\n");
-            }
-
-            buf.append(horzDivider);
-            delim = "\n";
-        }
-        // Cell
-        for (int r=0; r<rows.size(); r++) {
-            for (int h=0; h<maxHeight[r]; h++) {
-                buf.append(delim).append(indentStr).append(borderStrFront);
-                delim = "\n";
-                for (int c = 0; c < columns-1; c++) {
-                    buf.append(getJustifiedCellString(r, c, h, maxWidth[c]));
-                    buf.append(divider);
-                }
-                int col = columns-1;
-                buf.append(getJustifiedCellString(r, col, h, maxWidth[col]))
-                    .append(borderStrEnd);
-            }
-        }
-        if (border) {
-            buf.append("\n").append(horzDivider);
-        }
-
-        String str = buf.toString();
-
-        totalWidthChars = Utils.sum(maxWidth) + (getColumns()-1) * (padding*2+1) + (border ? 2 + padding*2 : 0);
-        totalHeightChars = 1;
-        int newline = str.indexOf('\n');
-        while (newline >= 0) {
-            totalHeightChars++;
-            newline = str.indexOf('\n', newline+1);
-        }
-
-        return str;
-    }
-
-    private String getJustifiedString(String s, Justify justify, int cellWidth) {
-        switch (justify) {
-            case LEFT: {
-                if (cellWidth == 0)
-                    return "";
-                return String.format("%-" + cellWidth + "s", s);
-            }
-            case CENTER: {
-                int frontPadding = (cellWidth - s.length()) / 2;
-                int frontWidth = (cellWidth - frontPadding);
-                int backPadding = cellWidth - frontWidth;
-                return String.format("%" + frontWidth + "s", s) + Utils.getRepeatingChars(' ', backPadding);
-            }
-            case RIGHT:
-                return String.format("%" + cellWidth + "s", s);
-        }
-        throw new RuntimeException("Invalid justify: " + justify);
-    }
-
-    private String getJustifiedCellString(int r, int c, int h, int maxWidth) {
-        String str = getCellString(r, c, h);
-        return getJustifiedString(str, model.getTextAlignment(r, c), maxWidth);
-    }
-
-    private String getCellString(int r, int c, int h) {
-        if (r >= 0 && r < rows.size() && c >= 0 && c < rows.get(r).size()) {
-            Object o = rows.get(r).get(c);
-            String s = model.getStringValue(o);
-            if (s.indexOf('\n') < 0) {
-                if (h == 0)
-                    return s;
-                return "";
-            }
-            String[] parts = s.split("[\n]+");
-            if (parts.length > h)
-                return parts[h];
-        }
-        return "";
-    }
-
-    /**
-     * Only valid after call to toString
-     * @return
-     */
-    public int getTotalWidthChars() {
-        return totalWidthChars;
-    }
-
-    /**
-     * Only valid after call to toString
-     * @return
-     */
-    public int getTotalHeightChars() {
-        return totalHeightChars;
-    };
-
-    public int getBorderWidth() {
-        return borderWidth;
-    }
+class Table(var model: Model = object : Model {}) : ITableItem, IButton {
+	interface Model {
+		/**
+		 * Return 0 for LEFT, 1 for CENTER and 2 for RIGHT
+		 * @param row
+		 * @param col
+		 * @return
+		 */
+		fun getTextAlignment(row: Int, col: Int): Justify {
+			return Justify.LEFT
+		}
+
+		fun getStringValue(obj: Any?): String {
+			if (obj == null) return ""
+			return if (obj is Boolean) {
+				if (obj) "yes" else "no"
+			} else obj.toString()
+		}
+
+		fun getCornerRadius(): Float = 5f
+
+		fun getBorderColor(g: AGraphics): GColor = g.color
+
+		fun getHeaderColor(g: AGraphics): GColor = g.color
+
+		fun getCellColor(g: AGraphics, row: Int, col: Int): GColor = g.color
+
+		fun getBackgroundColor(): GColor = GColor.TRANSLUSCENT_BLACK
+		fun getMaxCharsPerLine(): Int = 64
+
+		fun getBorderWidth(): Int {
+			return 2
+		}
+
+		fun getHeaderTextHeight(g: AGraphics): Float {
+			return g.textHeight
+		}
+
+		fun getCellTextHeight(g: AGraphics): Float {
+			return g.textHeight
+		}
+
+		fun getHeaderJustify(col: Int): Justify? {
+			return Justify.LEFT
+		}
+
+		fun getCellVerticalPadding(): Float = 0f
+	}
+
+	private val header: MutableList<String> = ArrayList()
+	private val rows: MutableList<Vector<Any?>> = ArrayList()
+
+	/**
+	 * Only valid after call to toString
+	 * @return
+	 */
+	var totalWidthChars = 0
+		private set
+
+	/**
+	 * Only valid after call to toString
+	 * @return
+	 */
+	var totalHeightChars = 0
+		private set
+	private var padding = 1
+	private var borderWidth = 2 // TODO:  Make this apart of the model
+	private lateinit var maxWidth: FloatArray
+	private lateinit var maxHeight: FloatArray
+	private var headerHeightLines = 0
+
+	fun setModel(model: Model): Table {
+		this.model = model
+		return this
+	}
+
+	constructor(vararg header: String) : this() {
+		this.header.addAll(header)
+	}
+
+	constructor(header: List<String>) : this() {
+		this.header.addAll(header)
+	}
+
+	constructor(header: Array<String>, model: Model) : this(model) {
+		this.header.addAll(header)
+	}
+
+	constructor(data: Array<Array<Any?>>, model: Model = object : Model {}) : this(model) {
+		for (d in data) {
+			addRow(d)
+		}
+	}
+
+	fun setPadding(padding: Int): Table {
+		this.padding = padding
+		return this
+	}
+
+	fun setNoBorder(): Table {
+		borderWidth = 0
+		return this
+	}
+
+	constructor(header: Array<String>, data: Array<Array<Any?>>, model: Model = object : Model {}) : this(model) {
+		this.header.addAll(header)
+		for (d in data) {
+			addRow(d)
+		}
+	}
+
+	override fun toString(): String {
+		return toString(0)
+	}
+
+	val columns: Int
+		get() {
+			var columns = header.size
+			for (row in rows) {
+				columns = columns.coerceAtLeast(row.size)
+			}
+			return columns
+		}
+
+	fun addRow(vararg row: Any): Table {
+		rows.add(Vector<Any?>().also {
+			it.addAll(row.toList())
+		})
+		return this
+	}
+
+	fun addRowList(row: List<*>): Table {
+		rows.add(Vector(row))
+		return this
+	}
+
+	fun addRow(label: String, vararg items: Any): Table {
+		rows.add(Vector<Any?>().also {
+			it.add(label)
+			it.addAll(items)
+		})
+		return this
+	}
+
+	fun addColumn(header: String, vararg items: Any?): Table {
+		return addColumn(header, items.toList())
+	}
+
+	fun addColumn(header: String, column: List<*>): Table {
+		val col = this.header.size
+		this.header.add(header)
+		for (i in column.indices) {
+			if (i >= rows.size) {
+				// add a row with
+				rows.add(Vector())
+			}
+			while (rows[i].size <= col) {
+				rows[i].add(null)
+			}
+			rows[i][col] = column[i]
+		}
+		return this
+	}
+
+	fun addColumnNoHeaderVarArg(vararg items: Any?): Table {
+		return addColumnNoHeader(items.toList())
+	}
+
+	fun addColumnNoHeader(items: Array<Any?>): Table {
+		return addColumnNoHeader(items.toList())
+	}
+
+	fun addColumnNoHeader(column: List<*>): Table {
+		val col = header.size.coerceAtLeast(if (rows.size > 0) rows[0].size else 0)
+		for (i in column.indices) {
+			if (i >= rows.size) {
+				// add a row with
+				rows.add(Vector())
+			}
+			while (rows[i].size <= col) {
+				rows[i].add(null)
+			}
+			rows[i][col] = column[i]
+		}
+		return this
+	}
+
+	private fun getCellPadding(g: AGraphics): Float {
+		return 4f.coerceAtLeast(padding * g.textHeight / 2)
+	}
+
+	private var cachedLocation = MutableVector2D()
+	private var cachedDimension: GDimension? = null
+
+	fun reMeasure(g: AGraphics) {
+		cachedDimension = null
+		measure(g)
+	}
+
+	override fun measure(g: AGraphics): GDimension {
+		cachedDimension?.let {
+			return it
+		}
+		if (header.size == 0 && rows.isEmpty()) return GDimension.EMPTY
+		val columns = columns
+		if (columns == 0) return GDimension.EMPTY
+		maxWidth = FloatArray(columns)
+		maxHeight = FloatArray(rows.size)
+		val cellPadding = getCellPadding(g)
+		headerHeightLines = 0
+		val saveTxtHgt = g.setTextHeight(model.getHeaderTextHeight(g))
+		if (header.size > 0) {
+			var i = 0
+			while (i < columns && i < header.size) {
+				val parts = header[i].split("\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+				val lines = parts.size
+				for (part in parts) {
+					maxWidth[i] = maxWidth[i].coerceAtLeast(g.getTextWidth(part) + cellPadding)
+				}
+				headerHeightLines = headerHeightLines.coerceAtLeast(lines)
+				i++
+			}
+		}
+		val headerHeight = headerHeightLines * g.textHeight + cellPadding * 2
+		g.textHeight = saveTxtHgt
+		for (r in rows.indices) {
+			for (c in rows[r].indices) {
+				val o = rows[r][c]
+				if (o is ITableItem) {
+					val d2 = o.measure(g)
+					maxHeight[r] = maxHeight[r].coerceAtLeast(d2.height)
+					maxWidth[c] = maxWidth[c].coerceAtLeast(d2.width)
+					if (o.borderWidth != 0) maxHeight[r] += 2 * cellPadding
+				} else if (o is AImage) {
+					// TODO: Implement this
+				} else {
+					g.pushTextHeight(model.getCellTextHeight(g))
+					val entry = model.getStringValue(o)
+					val parts = Utils.wrapText(entry, model.getMaxCharsPerLine())
+					for (s in parts) {
+						maxWidth[c] = maxWidth[c].coerceAtLeast(g.getTextWidth(s))
+					}
+					maxHeight[r] = (maxHeight[r].coerceAtLeast(g.textHeight * parts.size)
+						+ model.getCellVerticalPadding())
+					g.popTextHeight()
+				}
+			}
+		}
+		maxWidth[0] += cellPadding
+		//maxWidth[maxWidth.length-1] += cellPadding/2;
+		for (i in 1 until maxWidth.size - 1) {
+			maxWidth[i] += cellPadding
+		}
+		if (borderWidth > 0 && maxWidth.size > 1) {
+			maxWidth[0] += cellPadding / 2
+			maxWidth[maxWidth.size - 1] += cellPadding / 2
+		}
+		var dimWidth = Utils.sum(maxWidth)
+		var dimHeight = Utils.sum(maxHeight) + headerHeight
+		dimWidth += (borderWidth * 2).toFloat()
+		dimHeight += (borderWidth * 3).toFloat()
+		return GDimension(dimWidth, dimHeight).also { cachedDimension = it }
+	}
+
+	fun fit(g: AGraphics, target: IDimension): Table {
+		val dim = measure(g)
+		if (!target.isEmpty && !dim.isEmpty) {
+			if (dim != target) {
+				val ratio = target.width / dim.width
+				for (i in 0 until columns) {
+					maxWidth[i] *= ratio
+				}
+				for (i in rows.indices) {
+					maxHeight[i] *= ratio
+				}
+
+			}
+		}
+		val headerHeight = headerHeightLines * g.textHeight + getCellPadding(g) * 2
+		var dimWidth = Utils.sum(maxWidth)
+		var dimHeight = Utils.sum(maxHeight) + headerHeight
+		dimWidth += (borderWidth * 2).toFloat()
+		dimHeight += (borderWidth * 3).toFloat()
+		cachedDimension = GDimension(dimWidth, dimHeight)
+		return this
+	}
+
+	/**
+	 * Draw with top/left corner at 0,0
+	 *
+	 * @param g
+	 * @return
+	 */
+	override fun draw(g: AGraphics): IDimension {
+		cachedLocation.set(g.transform(0f, 0f))
+		val dim = measure(g)
+		if (dim.isEmpty) return dim
+		g.pushMatrix()
+		var outerPadding = 0f
+		if (borderWidth > 0) {
+			outerPadding = getCellPadding(g) / 2
+			// if there is a border, then there is padding around between border and text
+			g.pushColor(model.getBackgroundColor())
+			val radius = model.getCornerRadius()
+			g.drawFilledRoundedRect(0f, 0f, dim.getWidth(), dim.getHeight(), radius)
+			g.color = model.getBorderColor(g)
+			g.drawRoundedRect(dim, borderWidth.toFloat(), radius)
+			g.translate(borderWidth.toFloat(), borderWidth.toFloat())
+			g.popColor()
+		} else {
+			// if there is no border then no padding
+		}
+
+		// TODO: Draw vertical divider lines
+		run {
+			g.pushMatrix()
+			g.translate(-getCellPadding(g) / 2, -borderWidth.toFloat())
+			for (i in 0 until maxWidth.size - 1) {
+				g.translate(maxWidth[i], 0f)
+				g.drawLine(0f, 0f, 0f, dim.getHeight())
+			}
+			g.popMatrix()
+		}
+
+		// check for header. if so render and draw a divider line
+		val cellPadding = 4f.coerceAtLeast(padding * g.textHeight / 2)
+		if (header.size > 0) {
+			g.pushColor(model.getHeaderColor(g))
+			var x = outerPadding
+			for (i in header.indices) {
+				when (val case = model.getHeaderJustify(i)) {
+					Justify.LEFT -> g.drawJustifiedString(x, 0f, Justify.LEFT, header[i])
+					Justify.CENTER -> g.drawJustifiedString(x + maxWidth[i] / 2, 0f, Justify.CENTER, header[i])
+					Justify.RIGHT -> g.drawJustifiedString(x + maxWidth[i], 0f, Justify.CENTER, header[i])
+					else -> error("Unhandled case $case")
+				}
+				x += maxWidth[i]
+			}
+			g.popColor()
+			g.pushTextHeight(model.getHeaderTextHeight(g))
+			g.translate(0f, g.textHeight * headerHeightLines + cellPadding)
+			g.drawLine(0f, 0f, dim.getWidth() - borderWidth, 0f, borderWidth.toFloat())
+			g.popTextHeight()
+			g.translate(0f, cellPadding)
+		}
+
+		// draw the rows
+		g.translate(outerPadding, 0f)
+		for (i in rows.indices) {
+			g.pushMatrix()
+			for (ii in rows[i].indices) {
+				val o = rows[i][ii]
+				if (o != null) {
+					if (o is ITableItem) {
+						if (o.borderWidth > 0) g.translate(0f, cellPadding)
+						o.draw(g)
+					} else if (o is AImage) {
+						// TODO:
+					} else {
+						val txt = model.getStringValue(o)
+						val hJust = model.getTextAlignment(i, ii)
+						g.pushColor(model.getCellColor(g, i, ii))
+						g.pushTextHeight(model.getCellTextHeight(g))
+						g.pushMatrix()
+						when (hJust) {
+							Justify.LEFT -> Unit
+							Justify.CENTER -> g.translate(maxWidth[ii] / 2, 0f)
+							Justify.RIGHT -> g.translate(maxWidth[ii], 0f)
+							else -> error("Unhandled case $hJust")
+						}
+						g.drawWrapString(0f, model.getCellVerticalPadding() / 2, maxWidth[ii], hJust, Justify.TOP, txt)
+						g.popColor()
+						g.popTextHeight()
+						g.popMatrix()
+					}
+				}
+				g.translate(maxWidth[ii], 0f)
+			}
+			g.popMatrix()
+			g.translate(0f, maxHeight[i])
+		}
+		g.popMatrix()
+		return dim
+	}
+
+	fun draw(g: AGraphics, cntr: IVector2D, horz: Justify?, vert: Justify?) {
+		draw(g, cntr.x, cntr.y, horz, vert)
+	}
+
+	/**
+	 * Draw table centered at a point
+	 *
+	 * @param g
+	 * @param cntr
+	 */
+	fun draw(g: AGraphics, cntr: IVector2D) {
+		draw(g, cntr.x, cntr.y, Justify.CENTER, Justify.CENTER)
+	}
+
+	/**
+	 *
+	 * @param g
+	 * @param horz
+	 * @param vert
+	 */
+	fun draw(g: AGraphics, x: Float, y: Float, horz: Justify?, vert: Justify?) {
+		val dim = measure(g)
+		g.pushMatrix()
+		g.translate(x, y)
+		when (horz) {
+			Justify.LEFT -> Unit
+			Justify.CENTER -> g.translate(-dim.getWidth() / 2, 0f)
+			Justify.RIGHT -> g.translate(-dim.getWidth(), 0f)
+			else -> error("Unhandled case $horz")
+		}
+		when (vert) {
+			Justify.LEFT -> Unit
+			Justify.CENTER -> g.translate(0f, -dim.getHeight() / 2)
+			Justify.BOTTOM -> g.translate(0f, -dim.getHeight())
+			else -> error("Unhandled case $horz")
+		}
+		draw(g)
+		g.popMatrix()
+	}
+
+	/**
+	 *
+	 * @param indent
+	 * @return
+	 */
+	fun toString(indent: Int): String {
+		if (header.size == 0 && rows.isEmpty()) return ""
+		val columns = columns
+		if (columns == 0) return ""
+		val maxWidth = IntArray(columns)
+		val maxHeight = IntArray(rows.size)
+		headerHeightLines = 0
+		run {
+			var i = 0
+			while (i < columns && i < header.size) {
+				val parts = header[i].split("\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+				for (ii in parts.indices) {
+					maxWidth[i] = maxWidth[i].coerceAtLeast(parts[ii].length)
+				}
+				headerHeightLines = headerHeightLines.coerceAtLeast(parts.size)
+				i++
+			}
+		}
+		for (r in rows.indices) {
+			for (c in rows[r].indices) {
+				val entry = model.getStringValue(rows[r][c])
+				if (entry.contains("\n")) {
+					val parts = entry.split("[\n]+".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+					for (s in parts) {
+						maxWidth[c] = maxWidth[c].coerceAtLeast(s.length)
+					}
+					maxHeight[r] = maxHeight[r].coerceAtLeast(parts.size)
+					// split up the string into lines for
+				} else {
+					maxWidth[c] = maxWidth[c].coerceAtLeast(entry.length)
+					maxHeight[r] = maxHeight[r].coerceAtLeast(1)
+				}
+			}
+		}
+		val border = borderWidth > 0
+		val buf = StringBuffer()
+		val paddingChars = Utils.getRepeatingChars(' ', padding)
+		val divider = paddingChars + (if (padding > 0) "|" else " ") + paddingChars
+		val indentStr = Utils.getRepeatingChars(' ', indent)
+		val borderStrFront = (if (border) "|" else "") + paddingChars
+		val borderStrEnd = paddingChars + if (border) "|" else ""
+
+		// Divider under header
+		val headerPadding = Utils.getRepeatingChars('-', padding)
+		val headerDivFront = (if (border) "+" else "") + headerPadding
+		val headerDivMid = "$headerPadding+$headerPadding"
+		val headerDivEnd = headerPadding + if (border) "+" else ""
+		buf.append(indentStr).append(headerDivFront)
+		for (i in 0 until columns - 1) {
+			buf.append(Utils.getRepeatingChars('-', maxWidth[i])).append(headerDivMid)
+		}
+		val last = columns - 1
+		buf.append(Utils.getRepeatingChars('-', maxWidth[last])).append(headerDivEnd)
+		val horzDivider = buf.toString()
+		if (border) {
+			buf.append("\n")
+		} else {
+			buf.setLength(0)
+		}
+		var delim = ""
+		if (header.size > 0) {
+			// Header
+			for (ii in 0 until headerHeightLines) {
+				buf.append(indentStr).append(borderStrFront)
+				for (i in 0 until columns - 1) {
+					if (i < header.size) {
+						val parts = header[i].split("\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+						if (ii < parts.size) buf.append(getJustifiedString(parts[ii], Justify.CENTER, maxWidth[i])) else buf.append(Utils.getRepeatingChars(' ', maxWidth[i]))
+					} else {
+						buf.append(Utils.getRepeatingChars(' ', maxWidth[i]))
+					}
+					buf.append(divider)
+				}
+				if (last < header.size) {
+					val parts = header[last].split("\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+					if (ii < parts.size) buf.append(getJustifiedString(parts[ii], Justify.CENTER, maxWidth[last])) else buf.append(Utils.getRepeatingChars(' ', maxWidth[last]))
+				} else {
+					buf.append(Utils.getRepeatingChars(' ', maxWidth[last]))
+				}
+				buf.append(borderStrEnd).append("\n")
+			}
+			buf.append(horzDivider)
+			delim = "\n"
+		}
+		// Cell
+		for (r in rows.indices) {
+			for (h in 0 until maxHeight[r]) {
+				buf.append(delim).append(indentStr).append(borderStrFront)
+				delim = "\n"
+				for (c in 0 until columns - 1) {
+					buf.append(getJustifiedCellString(r, c, h, maxWidth[c]))
+					buf.append(divider)
+				}
+				val col = columns - 1
+				buf.append(getJustifiedCellString(r, col, h, maxWidth[col]))
+					.append(borderStrEnd)
+			}
+		}
+		if (border) {
+			buf.append("\n").append(horzDivider)
+		}
+		val str = buf.toString()
+		totalWidthChars = Utils.sum(maxWidth) + (this.columns - 1) * (padding * 2 + 1) + if (border) 2 + padding * 2 else 0
+		totalHeightChars = 1
+		var newline = str.indexOf('\n')
+		while (newline >= 0) {
+			totalHeightChars++
+			newline = str.indexOf('\n', newline + 1)
+		}
+		return str
+	}
+
+	private fun getJustifiedString(s: String, justify: Justify, cellWidth: Int): String {
+		when (justify) {
+			Justify.LEFT -> {
+				return if (cellWidth == 0) "" else String.format("%-" + cellWidth + "s", s)
+			}
+			Justify.CENTER -> {
+				val frontPadding = (cellWidth - s.length) / 2
+				val frontWidth = cellWidth - frontPadding
+				val backPadding = cellWidth - frontWidth
+				return String.format("%" + frontWidth + "s", s) + Utils.getRepeatingChars(' ', backPadding)
+			}
+			Justify.RIGHT -> return String.format("%" + cellWidth + "s", s)
+			else -> error("Unhandled case $justify")
+		}
+	}
+
+	private fun getJustifiedCellString(r: Int, c: Int, h: Int, maxWidth: Int): String {
+		val str = getCellString(r, c, h)
+		return getJustifiedString(str, model.getTextAlignment(r, c), maxWidth)
+	}
+
+	private fun getCellString(r: Int, c: Int, h: Int): String {
+		if (r >= 0 && r < rows.size && c >= 0 && c < rows[r].size) {
+			val o = rows[r][c]
+			val s = model.getStringValue(o)
+			if (s.indexOf('\n') < 0) {
+				return if (h == 0) s else ""
+			}
+			val parts = s.split("[\n]+".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+			if (parts.size > h) return parts[h]
+		}
+		return ""
+	}
+
+	override fun getBorderWidth(): Int {
+		return borderWidth
+	}
+
+	override fun getRect(): IRectangle = GRectangle(cachedLocation, cachedDimension
+		?: GDimension.EMPTY)
 }

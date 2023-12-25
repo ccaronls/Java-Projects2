@@ -94,4 +94,6 @@
         <attr name="divider_drawable" format="reference" />
     </declare-styleable>
 
+    <declare-styleable name="GTableView"></declare-styleable>
+
 </resources>

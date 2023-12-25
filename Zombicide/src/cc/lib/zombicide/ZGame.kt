@@ -1289,10 +1289,10 @@ open class ZGame() : Reflector<ZGame>() {
 	            val weapon = move.equipment as ZWeapon
 	            if (cur.isDualWielding(weapon)) {
 		            cur.weapons.filter { it.type == weapon.type }.forEach { it.reload() }
-		            addLogMessage("${requireCurrentCharacter.type} Reloaded all their ${weapon.label}s")
+		            addLogMessage("${requireCurrentCharacter.type} Reloaded all their ${weapon.getLabel()}s")
 	            } else {
 		            weapon.reload()
-		            addLogMessage("${requireCurrentCharacter.type} Reloaded their ${weapon.label}")
+		            addLogMessage("${requireCurrentCharacter.type} Reloaded their ${weapon.getLabel()}")
 	            }
 	            cur.performAction(ZActionType.RELOAD, this)
 	            return true
@@ -1585,16 +1585,27 @@ open class ZGame() : Reflector<ZGame>() {
 	        ZMoveType.ORGANIZE_TRADE -> {
 		        setState(State(state = ZState.PLAYER_STAGE_ORGANIZE, player = currentCharacter?.type, target = move.character))
 	        }
-	        ZMoveType.ORGANIZE_TAKE -> {
-		        stateData.target?.toCharacter()?.let { char ->
-			        char.removeEquipment(move.equipment!!)
-			        cur.attachEquipment(move.equipment, move.toSlot)
-			        cur.performAction(ZActionType.INVENTORY, this)
-			        return true
-		        }
-	        }
-            else -> log.error("Unhandled move: %s", move.type)
-        }
+			ZMoveType.ORGANIZE_TAKE -> {
+				stateData.target?.toCharacter()?.let { char ->
+					char.removeEquipment(move.equipment!!)
+					cur.attachEquipment(move.equipment, move.toSlot)
+					cur.performAction(ZActionType.INVENTORY, this)
+					return true
+				}
+			}
+			ZMoveType.CHARGE -> {
+				board.getAccessibleZones(cur.occupiedZone, 1, 2, ZActionType.MOVE).filter {
+					board.getNumZombiesInZone(it) > 0
+				}.takeIf { it.isNotEmpty() }?.let {
+					(if (it.size == 1) it[0] else getCurrentUser().chooseZoneToWalk(cur.type, it))?.let { zone ->
+						moveActor(cur, zone, cur.moveSpeed / 2, null)
+						return true
+						// free action
+					}
+				}
+			}
+			else -> log.error("Unhandled move: %s", move.type)
+		}
         return false
     }
 
@@ -2055,8 +2066,8 @@ open class ZGame() : Reflector<ZGame>() {
     private fun checkForHitAndRun(cur: ZCharacter) {
         if (cur.hasAvailableSkill(ZSkill.Hit_and_run)) {
             cur.addAvailableSkill(ZSkill.Plus1_free_Move_Action)
-            addLogMessage(cur.label + " used Hit and Run for a free move action")
-            onBonusAction(cur.type, ZSkill.Plus1_free_Move_Action)
+	        addLogMessage(cur.getLabel() + " used Hit and Run for a free move action")
+	        onBonusAction(cur.type, ZSkill.Plus1_free_Move_Action)
         }
     }
 
@@ -2098,7 +2109,7 @@ open class ZGame() : Reflector<ZGame>() {
 		for (d: Int in dice) {
 			if (d >= dieNumToHit) hits++
 		}
-		addLogMessage(requireCurrentCharacter.label + " Scored " + hits + " hits")
+		addLogMessage(requireCurrentCharacter.getLabel() + " Scored " + hits + " hits")
         //onRollDice(dice);
         if (hits >= maxHitsForAutoNoReroll) {
             return dice
@@ -2285,6 +2296,7 @@ open class ZGame() : Reflector<ZGame>() {
             onActorMoved(actor, fromRect, toRect, speed)
 		}
 		if (toZone != fromZone && actionType != null) {
+			// TODO: Why not pass actionType here?
 			actor.performAction(ZActionType.MOVE, this)
 		}
 	}
@@ -2489,7 +2501,7 @@ open class ZGame() : Reflector<ZGame>() {
 	fun giftRandomVaultArtifact(c: ZCharacter) {
 		quest.vaultItemsRemaining.takeIf { it.isNotEmpty() }?.let {
 			val equip = it.removeRandom()
-			addLogMessage("${c.label} has been gifted a ${equip.label}")
+			addLogMessage("${c.getLabel()} has been gifted a ${equip.getLabel()}")
 			giftEquipment(c, equip)
 		}
 	}

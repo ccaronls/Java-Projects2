@@ -136,7 +136,7 @@ class ZWeapon(override val type: ZWeaponType=ZWeaponType.AXE) : ZEquipment<ZWeap
 			}
 		}
 
-		return Table(c0.label, c1.label).setNoBorder().addRow(c0StatsTab, c1StatsTab)
+		return Table(c0.getLabel(), c1.getLabel()).setNoBorder().addRow(c0StatsTab, c1StatsTab)
 	}
 
     override fun getCardInfo(c: ZCharacter, game: ZGame): Table {
@@ -182,8 +182,8 @@ class ZWeapon(override val type: ZWeaponType=ZWeaponType.AXE) : ZEquipment<ZWeap
                 ))
             }
         }
-        val card = Table(String.format("%s%s %s", type.label, if (type.canTwoHand) " (DW)" else "", type.minColorToEquip))
-                .addRow(cardLower).setNoBorder()
+	    val card = Table(String.format("%s%s %s", type.getLabel(), if (type.canTwoHand) " (DW)" else "", type.minColorToEquip))
+		    .addRow(cardLower).setNoBorder()
         if (type.specialInfo != null) {
             card.addRow("*${type.specialInfo}".wrap( 32))
         } else {
@@ -226,7 +226,7 @@ class ZWeapon(override val type: ZWeaponType=ZWeaponType.AXE) : ZEquipment<ZWeap
         }
         val skills = type.skillsWhileEquipped.appendedWith(type.skillsWhenUsed)
         for (skill in skills) {
-            cardLower.addRow(skill.label)
+	        cardLower.addRow(skill.getLabel())
         }
         return cardLower.toString()
     }
@@ -234,7 +234,7 @@ class ZWeapon(override val type: ZWeaponType=ZWeaponType.AXE) : ZEquipment<ZWeap
     override fun onEndOfRound(game: ZGame) {
         when (type) {
             ZWeaponType.HAND_CROSSBOW -> if (!isLoaded) {
-	            game.addLogMessage("$label auto reloaded")
+	            game.addLogMessage("${getLabel()} auto reloaded")
 	            reload()
             }
 	        else -> Unit

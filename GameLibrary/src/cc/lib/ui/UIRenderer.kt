@@ -1,104 +1,129 @@
-package cc.lib.ui;
+package cc.lib.ui
 
-import org.jetbrains.annotations.NotNull;
+import cc.lib.game.*
+import cc.lib.math.MutableVector2D
 
-import cc.lib.game.APGraphics;
-import cc.lib.game.GDimension;
-import cc.lib.game.IDimension;
-import cc.lib.game.Renderable;
+abstract class ButtonHandler {
+	open fun onClick(): Boolean = false
+	open fun onHoverEnter() {}
+	open fun onHoverExit() {}
+	open fun onLongClick(): Boolean = false
+
+	var entered = false
+}
 
 /**
  * Created by chriscaron on 2/27/18.
- * <p>
- * Provides a generalized interface for application ui elements that render
+ *
+ * Provides a generalized interface for application ui elements
  */
-public abstract class UIRenderer implements IDimension, Renderable {
+abstract class UIRenderer protected constructor(private val component: UIComponent, attach: Boolean = true) : IDimension, Renderable {
 
-    private final UIComponent component;
+	companion object {
+		val buttonComparator = Comparator<IButton> { b1, b2 ->
+			if (b1.getZOrder() != b2.getZOrder()) {
+				b1.getZOrder().compareTo(b2.getZOrder())
+			} else if (b1.getRect().area != b2.getRect().area) {
+				b1.getRect().area.compareTo(b2.getRect().area)
+			} else {
+				b1.hashCode().compareTo(b2.hashCode())
+			}
+		}
+	}
 
-    protected UIRenderer(UIComponent component) {
-        this(component, true);
-    }
+	fun <T : UIComponent> getComponent(): T {
+		return component as T
+	}
 
-    protected UIRenderer(UIComponent component, boolean attach) {
-        this.component = component;
-        if (component == null)
-            throw new NullPointerException("Component cannot be null");
-        if (attach)
-            component.setRenderer(this);
-    }
+	var minDimension = GDimension(32f, 32f)
+	private val buttons = sortedMapOf<IButton, ButtonHandler>(buttonComparator)
 
-    @NotNull
-    public <T extends UIComponent> T getComponent() {
-        return (T) component;
-    }
+	init {
+		if (attach)
+			component.setRenderer(this)
+	}
 
-    private GDimension min = new GDimension(32, 32);
+	abstract fun draw(g: APGraphics, px: Int, py: Int)
+	open fun onTouch(x: Int, y: Int) {}
+	open fun onTouchUp(x: Int, y: Int) {}
+	open fun onClick() {}
+	open fun onDragStart(x: Int, y: Int) {}
+	open fun onDragMove(x: Int, y: Int) {}
+	fun onDragEnd() {}
+	open fun onSizeChanged(w: Int, h: Int) {}
+	open fun onZoom(scale: Float) {}
+	open fun onFocusChanged(gained: Boolean) {}
+	fun setMinDimension(w: Float, h: Float) {
+		minDimension = GDimension(w, h)
+	}
 
-    public abstract void draw(APGraphics g, int px, int py);
+	override fun getWidth(): Float {
+		return component.getWidth().toFloat()
+	}
 
-    public void onTouch(int x, int y) {
-    }
+	override fun getHeight(): Float {
+		return component.getHeight().toFloat()
+	}
 
-    public void onTouchUp(int x, int y) {
-    }
+	fun redraw() {
+		component.redraw()
+	}
 
-    public void onClick() {
-    }
+	override fun getViewportWidth(): Int {
+		return component.getWidth()
+	}
 
-    public void onDragStart(int x, int y) {
-    }
+	override fun getViewportHeight(): Int {
+		return component.getHeight()
+	}
 
-    public void onDragMove(int x, int y) {
-    }
+	val viewportAspect: Float
+		get() = viewportWidth.toFloat() / viewportHeight
 
-    public void onDragEnd() {
-    }
+	fun transformMouseXY(mouseXY: MutableVector2D, zOrder: Int): IVector2D = mouseXY
 
-    public void onSizeChanged(int w, int h) {
-    }
+	fun addButton(button: IButton, handler: ButtonHandler) {
+		buttons[button] = handler
+	}
 
-    public void onZoom(float scale) {
-    }
+	fun removeButton(button: IButton) {
+		buttons.remove(button)
+	}
 
-    public void onFocusChanged(boolean gained) {
-    }
+	fun clearButtons() {
+		buttons.clear()
+	}
 
-    public final GDimension getMinDimension() {
-        return min;
-    }
+	fun processMousePosition(mouseXY: MutableVector2D) {
+		buttons.forEach { (button, handler) ->
+			with(transformMouseXY(mouseXY, button.getZOrder())) {
+				if (button.getRect().contains(this)) {
+					if (handler.entered)
+						return
+					handler.entered = true
+					handler.onHoverEnter()
+				} else {
+					if (handler.entered) {
+						handler.entered = false
+						handler.onHoverExit()
+					}
+				}
+			}
+		}
+	}
 
-    public void setMinDimension(GDimension dim) {
-        this.min = dim;
-    }
+	fun processMouseClick(mouseXY: MutableVector2D): Boolean {
+		buttons.forEach { (button, handler) ->
+			with(transformMouseXY(mouseXY, button.getZOrder())) {
+				if (button.getRect().contains(this)) {
+					return handler.onClick()
+				}
+			}
+		}
+		return false
+	}
 
-    public void setMinDimension(float w, float h) {
-        this.min = new GDimension(w, h);
-    }
-
-    public float getWidth() {
-        return component.getWidth();
-    }
-
-    public float getHeight() {
-        return component.getHeight();
-    }
-
-    public void redraw() {
-        component.redraw();
-    }
-
-    @Override
-    public int getViewportWidth() {
-        return component.getWidth();
-    }
-
-    @Override
-    public int getViewportHeight() {
-        return component.getHeight();
-    }
-
-    public float getViewportAspect() {
-        return (float) getViewportWidth() / getViewportHeight();
-    }
+	fun findTouchable(mouseXY: MutableVector2D): IButton? {
+		return buttons.keys.firstOrNull { it.getRect().contains(transformMouseXY(mouseXY, it.getZOrder())) }
+	}
 }

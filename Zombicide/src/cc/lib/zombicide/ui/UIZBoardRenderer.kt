@@ -196,9 +196,6 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 			it.stopAnimating()
 		}
 		zoomAnimation = null
-		launchIn {
-			condition.signalAll()
-		}
 	}
 
 	fun setHighlightActor(actor: ZActor?) {
@@ -324,7 +321,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		for (move in options) {
 			when (move.type) {
 				ZMoveType.TRADE -> move.list?.map { board.getCharacter(it as ZPlayerName) }?.forEach { c: ZCharacter ->
-					addClickable(c.getRect(), ZMove(move, c, "Trade ${c.label}"))
+					addClickable(c.getRect(), ZMove(move, c, "Trade ${c.getLabel()}"))
 				}
 				ZMoveType.WALK -> move.list?.forEachAs { zoneIdx: Int ->
 					addClickable(board.getZone(zoneIdx), ZMove(move, zoneIdx, zoneIdx))
@@ -332,7 +329,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 				ZMoveType.MELEE_ATTACK, ZMoveType.RANGED_ATTACK, ZMoveType.MAGIC_ATTACK -> move.list?.forEachAs { w: ZWeapon ->
 					for (stat in w.type.stats.filter { it.actionType == move.action }) {
 						for (zoneIdx in board.getAccessibleZones(cur.occupiedZone, stat.minRange, stat.maxRange, stat.actionType)) {
-							addClickable(board.getZone(zoneIdx), ZMove(move, w, zoneIdx, "${move.type.shortName} ${w.label}"))
+							addClickable(board.getZone(zoneIdx), ZMove(move, w, zoneIdx, "${move.type.shortName} ${w.getLabel()}"))
 						}
 					}
 				}
@@ -340,7 +337,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 					val zones = board.getAccessibleZones(cur.occupiedZone, 0, 1, ZActionType.THROW_ITEM)
 					move.list?.forEachAs { item: ZEquipment<*> ->
 						for (zoneIdx in zones) {
-							addClickable(cur.getRect(), ZMove(move, item, zoneIdx, "Throw ${item.label}"))
+							addClickable(cur.getRect(), ZMove(move, item, zoneIdx, "Throw ${item.getLabel()}"))
 						}
 					}
 				}
@@ -382,7 +379,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 						it.isAlive && board.canSee(cur.occupiedZone, it.occupiedZone)
 					}.forEach { c ->
 						move.list?.forEachAs { spell: ZSpell ->
-							addClickable(c.getRect(), ZMove(move, spell, c.type, spell.label))
+							addClickable(c.getRect(), ZMove(move, spell, c.type, spell.getLabel()))
 						}
 					}
 				}
@@ -391,17 +388,17 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 //				}
 				ZMoveType.BLOODLUST_MELEE -> for (w in cur.meleeWeapons) {
 					move.list?.forEachAs { zoneIdx: Int ->
-						addClickable(board.getZone(zoneIdx), ZMove(move, zoneIdx, w, "Bloodlust ${w.label}"))
+						addClickable(board.getZone(zoneIdx), ZMove(move, zoneIdx, w, "Bloodlust ${w.getLabel()}"))
 					}
 				}
 				ZMoveType.BLOODLUST_RANGED -> for (w in cur.rangedWeapons) {
 					move.list?.forEachAs { zoneIdx: Int ->
-						addClickable(board.getZone(zoneIdx), ZMove(move, zoneIdx, w, "Bloodlust ${w.label}"))
+						addClickable(board.getZone(zoneIdx), ZMove(move, zoneIdx, w, "Bloodlust ${w.getLabel()}"))
 					}
 				}
 				ZMoveType.BLOODLUST_MAGIC -> for (w in cur.magicWeapons) {
 					move.list?.forEachAs { zoneIdx: Int ->
-						addClickable(board.getZone(zoneIdx), ZMove(move, zoneIdx, w, "Bloodlust ${w.label}"))
+						addClickable(board.getZone(zoneIdx), ZMove(move, zoneIdx, w, "Bloodlust ${w.getLabel()}"))
 					}
 				}
 				else -> addClickable(cur.getRect(), move)
@@ -1081,7 +1078,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		var move: IButton? = null
 		val buttonHeight = g.textHeight * 2
 		val padding = g.textHeight / 2
-		val buttonWidth = moves.maxOf { g.getTextWidth(it.label) } + (padding * 2)
+		val buttonWidth = moves.maxOf { g.getTextWidth(it.getLabel()) } + (padding * 2)
 		if (top.x + buttonWidth > g.viewportWidth) {
 			top.x = g.viewportWidth - buttonWidth
 		}
@@ -1099,7 +1096,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 				g.drawRoundedRect(button, 1f, this)
 			}
 			button.drawRounded(g, buttonHeight / 4)
-			g.drawJustifiedString(button.x + padding, button.y + buttonHeight / 2, Justify.LEFT, Justify.CENTER, m.label)
+			g.drawJustifiedString(button.x + padding, button.y + buttonHeight / 2, Justify.LEFT, Justify.CENTER, m.getLabel())
 			button.y += buttonHeight
 		}
 		return move

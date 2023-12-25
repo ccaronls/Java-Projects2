@@ -152,6 +152,7 @@ class ZQuestThorsHammer : ZQuest(ZQuests.Thors_Hammer) {
 	override fun getObjectivesOverlay(game: ZGame): Table {
 
 		val maxSkill = game.allLivingCharacters.maxByOrNull { it.skillLevel }?.skillLevel?.difficultyColor
+			?: ZColor.BLUE
 		val greenKeyFound = greenKeyZone < 0 // 15%
 		val mjolnirFound = isMjolnirFound(game)
 		val numSpawns = game.board.getSpawnZones().size.coerceIn(0,4) // 0-20%

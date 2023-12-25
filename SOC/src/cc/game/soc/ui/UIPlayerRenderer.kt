@@ -13,12 +13,14 @@ import cc.lib.ui.UIComponent
  *
  * Base player type to interact with GUI
  */
-class UIPlayerRenderer(component: UIComponent?) : UIRenderer(component) {
+class UIPlayerRenderer(component: UIComponent) : UIRenderer(component) {
 	var color = GColor.BLACK
+
 	@JvmField
-    var numCardAnimations = 0
+	var numCardAnimations = 0
+
 	@JvmField
-    var playerNum = 0
+	var playerNum = 0
 	fun setPlayer(playerNum: Int) {
 		this.playerNum = playerNum
 		getComponent<UIComponent>().redraw()

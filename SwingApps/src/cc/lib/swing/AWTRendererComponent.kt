@@ -1,7 +1,12 @@
 package cc.lib.swing
 
+import cc.lib.math.MutableVector2D
 import cc.lib.ui.UIComponent
 import cc.lib.ui.UIRenderer
+import java.awt.event.MouseEvent
+
+fun MouseEvent.toMutableVector2D() = MutableVector2D(x.toFloat(), y.toFloat())
+
 
 /**
  * Created by Chris Caron on 11/30/23.
@@ -71,4 +76,21 @@ abstract class AWTRendererComponent<R : UIRenderer>() : AWTComponent(), UICompon
 			renderer.onZoom(scale)
 		}
 	}
+
+	override fun mouseClicked(e: MouseEvent) {
+		if (::renderer.isInitialized) {
+			if (renderer.processMouseClick(e.toMutableVector2D()))
+				return
+		}
+		super.mouseClicked(e)
+	}
+
+	override fun mouseMoved(e: MouseEvent) {
+		if (::renderer.isInitialized) {
+			renderer.processMousePosition(e.toMutableVector2D())
+		}
+
+		super.mouseMoved(e)
+	}
+
 }

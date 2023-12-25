@@ -1,46 +1,37 @@
-package cc.lib.dungeondice;
+package cc.lib.dungeondice
 
-import cc.lib.game.APGraphics;
-import cc.lib.game.GColor;
-import cc.lib.ui.UIComponent;
-import cc.lib.ui.UIRenderer;
+import cc.lib.game.APGraphics
+import cc.lib.game.GColor
+import cc.lib.ui.UIComponent
+import cc.lib.ui.UIRenderer
 
-public class UIPlayerRenderer extends UIRenderer {
+class UIPlayerRenderer(component: UIComponent) : UIRenderer(component) {
+	var player: DPlayer? = null
+	var color = GColor.RED
+	override fun draw(g: APGraphics, px: Int, py: Int) {
+		if (player == null) return
+		if (UI.getInstance().turn == player!!.playerNum) {
+			g!!.color = color
+			g.setLineWidth(5f)
+			g.drawRect(0f, 0f, g.viewportWidth.toFloat(), g.viewportHeight.toFloat())
+		}
+		val txt = StringBuffer()
+		txt.append(player!!.name)
+		txt.append("\n").append(String.format("%-5s %d", "STR", player!!.str))
+		txt.append("\n").append(String.format("%-5s %d", "DEX", player!!.dex))
+		txt.append("\n").append(String.format("%-5s %d", "ATT", player!!.attack))
+		txt.append("\n").append(String.format("%-5s %d", "DEF", player!!.defense))
+		g!!.color = GColor.BLACK
+		g.drawString(txt.toString(), 10f, 10f)
+		if (player!!.hasKey()) {
+			if (keyAsset < 0) {
+				keyAsset = g.loadImage("images/key.png", GColor.BLACK)
+			}
+			g.drawImage(keyAsset, (g.viewportWidth - 30).toFloat(), 5f, 25f, 25f)
+		}
+	}
 
-    DPlayer player = null;
-    GColor color = GColor.RED;
-    static int keyAsset = -1;
-
-    public UIPlayerRenderer(UIComponent component) {
-        super(component);
-    }
-
-    @Override
-    public void draw(APGraphics g, int px, int py) {
-        if (player == null)
-            return;
-
-        if (UI.getInstance().getTurn() == player.playerNum) {
-            g.setColor(color);
-            g.setLineWidth(5);
-            g.drawRect(0, 0, g.getViewportWidth(), g.getViewportHeight());
-        }
-
-        StringBuffer txt = new StringBuffer();
-        txt.append(player.getName());
-        txt.append("\n").append(String.format("%-5s %d", "STR", player.str));
-        txt.append("\n").append(String.format("%-5s %d", "DEX", player.dex));
-        txt.append("\n").append(String.format("%-5s %d", "ATT", player.attack));
-        txt.append("\n").append(String.format("%-5s %d", "DEF", player.defense));
-
-        g.setColor(GColor.BLACK);
-        g.drawString(txt.toString(), 10, 10);
-
-        if (player.hasKey()) {
-            if (keyAsset < 0) {
-                keyAsset = g.loadImage("images/key.png", GColor.BLACK);
-            }
-            g.drawImage(keyAsset, g.getViewportWidth()-30, 5, 25, 25);
-        }
-    }
+	companion object {
+		var keyAsset = -1
+	}
 }

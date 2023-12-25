@@ -213,25 +213,25 @@ data class ZMove constructor(
 	}
 
     override fun getTooltipText(): String? {
-        return equipment?.tooltipText?:run {
-            skill?.tooltipText?:run {
-                character?.tooltipText?:type.toolTipText
-            }
-        }
+	    return equipment?.getTooltipText() ?: run {
+		    skill?.getTooltipText() ?: run {
+			    character?.getTooltipText() ?: type.toolTipText
+		    }
+	    }
     }
 
     override fun getLabel(): String {
 	    if (text != null)
 		    return text
-	    var label = type.label
+	    var label = type.getLabel()
 	    equipment?.let {
-		    label += " ${it.label}"
+		    label += " ${it.getLabel()}"
 	    }
 	    if (fromSlot != null) {
-		    label += " from ${fromSlot.label}"
+		    label += " from ${fromSlot.getLabel()}"
 	    }
 	    if (toSlot != null)
-		    label += " to ${toSlot.label}"
+		    label += " to ${toSlot.getLabel()}"
 	    if (type == ZMoveType.ORGANIZE_TRADE) {
 	    	character?.name?.let {
 			    label += " with $it"

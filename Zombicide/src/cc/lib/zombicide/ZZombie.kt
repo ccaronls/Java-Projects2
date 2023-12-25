@@ -1,7 +1,6 @@
 package cc.lib.zombicide
 
 import cc.lib.game.*
-import cc.lib.utils.Table
 
 class ZZombie(override val type: ZZombieType = ZZombieType.Walker, val startZone: Int = -1) : ZActor(startZone) {
 	companion object {
@@ -36,18 +35,6 @@ class ZZombie(override val type: ZZombieType = ZZombieType.Walker, val startZone
         ZZombieType.BlueTwin,
         ZZombieType.GreenTwin -> ZCellQuadrant.CENTER
         else -> super.getSpawnQuadrant()
-    }
-
-    override fun drawInfo(g: AGraphics, game: ZGame, width: Float, height: Float): IDimension {
-	    val info = Table(label).setNoBorder()
-	    info.addRow("Min Hits", type.minDamageToDestroy)
-	    info.addRow("Actions", type.actionsPerTurn)
-	    info.addRow("Experience", type.expProvided)
-	    info.addRow("Ignores Armor", type.ignoresArmor)
-	    info.addRow("Ranged Priority", type.rangedPriority)
-	    val outer = Table().setNoBorder()
-	    outer.addRow(info, type.description)
-	    return outer.draw(g) //g.drawString(outer.toString(), 0, 0);
     }
 
     override val scale: Float

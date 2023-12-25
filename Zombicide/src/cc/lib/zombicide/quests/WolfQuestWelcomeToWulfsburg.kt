@@ -62,11 +62,11 @@ arrayOf("z38:i:wn:ode", "z39:i:dn:red:we", "z40:sps",                       "z41
 	override fun processObjective(game: ZGame, c: ZCharacter) {
 		super.processObjective(game, c)
 		if (c.occupiedZone == blueKeyZone) {
-			game.addLogMessage(c.label + " has found the BLUE key")
+			game.addLogMessage(c.getLabel() + " has found the BLUE key")
 			game.giftRandomVaultArtifact(c)
 			blueKeyZone = -1
 		} else if (c.occupiedZone == greenKeyZone) {
-			game.addLogMessage(c.label + " has found the GREEN key")
+			game.addLogMessage(c.getLabel() + " has found the GREEN key")
 			game.giftRandomVaultArtifact(c)
 			greenKeyZone = -1
 		}
@@ -79,7 +79,7 @@ arrayOf("z38:i:wn:ode", "z39:i:dn:red:we", "z40:sps",                       "z41
 			if (c.occupiedZone == exitZone) numCompleted++
 		}
 		var percentCompleted = numCompleted * 100 / numTasks
-		if (game.board.getZombiesInZone(exitZone).size > 0) percentCompleted--
+		if (game.board.getZombiesInZone(exitZone).isNotEmpty()) percentCompleted--
 		return percentCompleted
 	}
 

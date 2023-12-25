@@ -21,10 +21,10 @@ open class AWTButton : JButton, ActionListener {
 		addActionListener(this)
 	}
 
-	constructor(source: IButton, listener: ActionListener?) : super(HTML_PREFIX + source.label + HTML_SUFFIX) {
-		actionCommand = source.label
+	constructor(source: IButton, listener: ActionListener?) : super(HTML_PREFIX + source.getLabel() + HTML_SUFFIX) {
+		actionCommand = source.getLabel()
 		listener?.let { addActionListener(it) }
-		var ttt = source.tooltipText
+		var ttt = source.getTooltipText()
 		if (ttt != null) {
 			if (ttt.length >= 64) {
 				ttt = Utils.wrapTextWithNewlines(ttt, 64)

@@ -54,7 +54,7 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 	}
 
 	fun onAllImagesLoaded() {
-		val renderer: UIZBoardRenderer = object : UIZBoardRenderer(boardComp) {
+		val boardRenderer: UIZBoardRenderer = object : UIZBoardRenderer(boardComp) {
 			override fun drawActor(g: AGraphics, actor: ZActor, outline: GColor?) {
 				if (actor.isAlive && actor.outlineImageId > 0) {
 					// for AWT to need to render the outline in white fist otherwise the tinting looks messed up
@@ -63,7 +63,7 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 				super.drawActor(g, actor, outline)
 			}
 		}
-		game = object : UIZombicide(UIZCharacterRenderer(charComp), renderer) {
+		game = object : UIZombicide(UIZCharacterRenderer(charComp), boardRenderer) {
 			override suspend fun runGame(): Boolean {
 				var changed = false
 				try {
@@ -293,7 +293,9 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 		val menuScrollContainer = JScrollPane()
 		charScrollContainer.horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
 		menuScrollContainer.horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
-		charScrollContainer.viewport.add(CharacterComponent().also { charComp = it })
+		charScrollContainer.viewport.add(CharacterComponent().also {
+			charComp = it
+		})
 		charScrollContainer.preferredSize = Dimension(400, 200)
 		charScrollContainer.maximumSize = Dimension(10000, 200)
 		add(charScrollContainer, BorderLayout.SOUTH)
@@ -325,7 +327,7 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 			override fun mousePressed(e: MouseEvent) {}
 			override fun mouseReleased(e: MouseEvent) {}
 			override fun mouseEntered(e: MouseEvent) {
-				game.showCharacterExpandedOverlay()
+				//game.showCharacterExpandedOverlay()
 			}
 
 			override fun mouseExited(e: MouseEvent) {

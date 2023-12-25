@@ -554,7 +554,7 @@ open class Checkers : Rules() {
 				.addRow(description)
 				.addRow(tab)
 		}
-	open val description: String?
+	open val description: String
 		get() = "Objective to capture all other player's pieces or prevent them from bieing able to move."
 
 	companion object {

@@ -155,13 +155,13 @@ class ZCharacter(override val type: ZPlayerName = ZPlayerName.Ann, skillz: Array
             val tab = Table(this).setNoBorder().setPadding(0)
             val list = favoriteWeapons.toList().sortedByDescending { it.second }
             for (p in list) {
-                tab.addRow(p.first.label + " x " + p.second)
+                tab.addRow(p.first.getLabel() + " x " + p.second)
             }
             return tab
         }
 
     override fun name(): String {
-        return type.label
+	    return type.getLabel()
     }
 
     fun onKilledZombie(zombie: ZZombie, type: ZEquipmentType?) {
@@ -179,11 +179,11 @@ class ZCharacter(override val type: ZPlayerName = ZPlayerName.Ann, skillz: Array
             when (skill.modifyActionsRemaining(this, action, game)) {
                 1 -> {
                     removeAvailableSkill(skill)
-                    game.addLogMessage(name() + " used " + skill.label)
+	                game.addLogMessage(name() + " used " + skill.getLabel())
 	                return
                 }
                 -1 -> {
-                    game.addLogMessage(name() + " used " + skill.label)
+	                game.addLogMessage(name() + " used " + skill.getLabel())
 	                return
                 }
             }
@@ -322,7 +322,7 @@ class ZCharacter(override val type: ZPlayerName = ZPlayerName.Ann, skillz: Array
 
 	fun getBackpackTable(game: ZGame): Table = Table().apply {
 		backpack.forEach {
-			addRow(it.type, it.type.tooltipText ?: it.getCardInfo(this@ZCharacter, game))
+			addRow(it.type, it.type.getTooltipText() ?: it.getCardInfo(this@ZCharacter, game))
 		}
 	}
 
@@ -462,11 +462,22 @@ class ZCharacter(override val type: ZPlayerName = ZPlayerName.Ann, skillz: Array
 		stats.addRow("Wounds", String.format("%d of %d", woundBar, MAX_WOUNDS))
 		stats.addRow("Armor Rolls", armorRating.toString())
 		val ptsToNxt = skillLevel.getPtsToNextLevel(exp)
-		val ptsToNextDelta = ptsToNxt - exp
 		stats.addRow("Skill", skillLevel)
-		stats.addRow("Exp", exp)
-		stats.addRow("Next level", "$ptsToNxt (+$ptsToNextDelta)")
+		stats.addRow("Exp/Next", "$exp / $ptsToNxt")
 		stats.addRow("Dual\nWielding", isDualWielding)
+	}
+
+	fun getEquippedTable(game: ZGame): Table {
+		val info = Table(this)
+		if (isDualWielding) {
+			info.addColumn("Each Hand(DW)", getSlotInfo(ZEquipSlot.LEFT_HAND, game))
+			info.addColumn(ZEquipSlot.BODY.getLabel(), getSlotInfo(ZEquipSlot.BODY, game))
+		} else {
+			info.addColumn(ZEquipSlot.LEFT_HAND.getLabel(), getSlotInfo(ZEquipSlot.LEFT_HAND, game))
+			info.addColumn(ZEquipSlot.BODY.getLabel(), getSlotInfo(ZEquipSlot.BODY, game))
+			info.addColumn(ZEquipSlot.RIGHT_HAND.getLabel(), getSlotInfo(ZEquipSlot.RIGHT_HAND, game))
+		}
+		return info
 	}
 
 	fun getInfoTable(game: ZGame): Table {
@@ -480,49 +491,24 @@ class ZCharacter(override val type: ZPlayerName = ZPlayerName.Ann, skillz: Array
 
 
 		 */
-        val info = Table(this).setNoBorder().setPadding(0)
-		if (isDualWielding) {
-			info.addColumn("Each Hand(DW)", listOf(getSlotInfo(ZEquipSlot.LEFT_HAND, game)))
-			info.addColumn(ZEquipSlot.BODY.label, listOf(getSlotInfo(ZEquipSlot.BODY, game)))
-		} else {
-			info.addColumn(ZEquipSlot.LEFT_HAND.label, listOf(getSlotInfo(ZEquipSlot.LEFT_HAND, game)))
-			info.addColumn(ZEquipSlot.BODY.label, listOf(getSlotInfo(ZEquipSlot.BODY, game)))
-			info.addColumn(ZEquipSlot.RIGHT_HAND.label, listOf(getSlotInfo(ZEquipSlot.RIGHT_HAND, game)))
-		}
+		val info = getEquippedTable(game).setNoBorder().setPadding(0)
 		val slotInfo = getSlotInfo(ZEquipSlot.BACKPACK, game)
-		info.addColumn(ZEquipSlot.BACKPACK.label + if (isBackpackFull) " (full)" else "", listOf(slotInfo))
+		info.addColumn(ZEquipSlot.BACKPACK.getLabel() + if (isBackpackFull) " (full)" else "", slotInfo)
 		val stats = getStatsTable().setNoBorder().setPadding(0)
-		/*
-		val stats = Table(this).setNoBorder().setPadding(0)
-        var armorRating = StringBuilder("none")
-	    val ratings = getArmorRatings(ZZombieType.Walker)
-	    if (ratings.isNotEmpty()) {
-		    armorRating = StringBuilder("" + ratings[0] + "+")
-		    for (i in 1 until ratings.size) {
-			    armorRating.append("/").append(ratings[i]).append("+")
-		    }
-	    }
-	    stats.addRow("Moves", String.format("%d of %d", actionsLeftThisTurn, actionsPerTurn))
-	    stats.addRow("Wounds", String.format("%d of %d", woundBar, MAX_WOUNDS))
-	    stats.addRow("Armor Rolls", armorRating.toString())
-	    val ptsToNxt = skillLevel.getPtsToNextLevel(exp)
-	    val ptsToNextDelta = ptsToNxt - exp
-	    stats.addRow("Skill", skillLevel)
-	    stats.addRow("Exp", exp)
-	    stats.addRow("Next level", "$ptsToNxt (+$ptsToNextDelta)")
-	    stats.addRow("Dual\nWielding", isDualWielding)*/
-	    info.addColumn("Stats", listOf(stats))
+		info.addColumn("Stats", stats)
 	    if (getAvailableSkills().isNotEmpty()) {
-		    val skills = Table(this).setNoBorder().addColumnNoHeader(Utils.toStringArray(getAvailableSkills(), true))
+		    val skills = Table(this).setNoBorder().addColumnNoHeader(getAvailableSkills().map {
+			    it.prettify()
+		    })
 		    info.addColumn("Skills", skills)
 	    }
 	    val main = Table(this).setNoBorder()
 	    if (isDead) {
             main.addRow(String.format("%s (%s) Killed in Action",
-                    type.label, type.characterClass))
+	            type.getLabel(), type.characterClass))
         } else {
             main.addRow(String.format("%s (%s) Body:%s",
-                    type.label, type.characterClass, type.alternateBodySlot
+	            type.getLabel(), type.characterClass, type.alternateBodySlot
             ))
         }
         main.addRow(info)
@@ -533,16 +519,12 @@ class ZCharacter(override val type: ZPlayerName = ZPlayerName.Ann, skillz: Array
 		setOf(*allSkills.toTypedArray(), *getAvailableSkills().toTypedArray()).forEachIndexed { index, it ->
 			if (index > 0)
 				table.addRow("", "")
-			table.addRow(it.label, it.description)
+			table.addRow(it.getLabel(), it.description)
 		}
 	}
 
     val isBackpackFull: Boolean
         get() = backpack.size == MAX_BACKPACK_SIZE
-
-	override fun drawInfo(g: AGraphics, game: ZGame, width: Float, height: Float): IDimension {
-		return getInfoTable(game).draw(g)
-	}
 
     fun canTrade(): Boolean {
         return allEquipment.size > 0
@@ -1013,11 +995,11 @@ class ZCharacter(override val type: ZPlayerName = ZPlayerName.Ann, skillz: Array
 
 	fun getAllSkillsTableExpanded() : Table {
 		return Table().also { table ->
-			table.addRow(label)
+			table.addRow(getLabel())
 			ZColor.values().forEach { color ->
 				table.addRow(color.name)
 				type.getSkillOptions(color).forEach {
-					table.addRow(hasSkill(it), it.label, it.description)
+					table.addRow(hasSkill(it), it.getLabel(), it.description)
 				}
 			}
 		}

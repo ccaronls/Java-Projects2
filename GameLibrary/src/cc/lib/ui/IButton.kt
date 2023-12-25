@@ -1,17 +1,17 @@
-package cc.lib.ui;
+package cc.lib.ui
+
+import cc.lib.game.GRectangle
+import cc.lib.game.IRectangle
 
 /**
  * AWTButton and other buttons can look for these types to add tooltip 'mouse hover' text to buttons
  *
  *
  */
-public interface IButton {
-
-    String getTooltipText();
-
-    String getLabel();
-
-    default int getZOrder() { return 0; }
-
-    default boolean isEnabled() { return true; }
+interface IButton {
+	fun getTooltipText(): String? = null
+	fun getLabel(): String? = null
+	fun getZOrder(): Int = 0
+	fun isEnabled(): Boolean = true
+	fun getRect(): IRectangle = GRectangle()
 }

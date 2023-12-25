@@ -107,9 +107,9 @@ class SOCView<T : UIRenderer> : View, UIComponent {
 		} else {
 			g?.setCanvas(canvas, width, height)
 		}
-		val prev = _renderer.getMinDimension()
+		val prev = _renderer.minDimension
 		_renderer.draw(g, tx, ty)
-		val next = _renderer.getMinDimension()
+		val next = _renderer.minDimension
 		if (next != prev) {
 			if (isResizable) {
 				requestLayout()

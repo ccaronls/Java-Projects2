@@ -8,7 +8,7 @@ import cc.lib.ui.UIComponent
 import cc.lib.utils.QueueRunner
 import java.util.*
 
-class UIConsoleRenderer(component: UIComponent?) : UIRenderer(component) {
+class UIConsoleRenderer(component: UIComponent) : UIRenderer(component) {
 	internal class Line(val text: String, val color: GColor)
 
 	private var startLine = 0

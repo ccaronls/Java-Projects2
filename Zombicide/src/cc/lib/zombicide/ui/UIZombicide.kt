@@ -159,7 +159,8 @@ abstract class UIZombicide(val characterRenderer: UIZCharacterRenderer, val boar
 	}
 
 	open fun setResult(result: Any?) {
-		boardRenderer.setOverlay(null)
+		if (result != null)
+			boardRenderer.setOverlay(null)
 		this.result = result
 		continuation?.resume(result)
 		continuation = null
@@ -513,7 +514,7 @@ abstract class UIZombicide(val characterRenderer: UIZCharacterRenderer, val boar
 			boardRenderer.setOverlay(info)
 		} else {
 			for (e in equipment) {
-				boardRenderer.addPostActor(HoverMessage(boardRenderer, "+" + e.label, c.toCharacter()))
+				boardRenderer.addPostActor(HoverMessage(boardRenderer, "+" + e.getLabel(), c.toCharacter()))
 			}
 		}
 	}
@@ -531,6 +532,7 @@ abstract class UIZombicide(val characterRenderer: UIZCharacterRenderer, val boar
 				showSummaryOverlay()
 			}
 		})
+		boardRenderer.waitForAnimations()
 	}
 
 	override fun onQuestComplete() {
@@ -541,6 +543,7 @@ abstract class UIZombicide(val characterRenderer: UIZCharacterRenderer, val boar
 				showSummaryOverlay()
 			}
 		})
+		boardRenderer.waitForAnimations()
 	}
 
 	override fun onDoubleSpawn(multiplier: Int) {
@@ -551,8 +554,8 @@ abstract class UIZombicide(val characterRenderer: UIZCharacterRenderer, val boar
 
 	override fun onNewSkillAquired(c: ZPlayerName, skill: ZSkill) {
 		super.onNewSkillAquired(c, skill)
-		boardRenderer.addPostActor(HoverMessage(boardRenderer, String.format("%s Acquired", skill.label), c.toCharacter()))
-		characterRenderer.addMessage(String.format("%s has acquired the %s skill", c.label, skill.label))
+		boardRenderer.addPostActor(HoverMessage(boardRenderer, String.format("%s Acquired", skill.getLabel()), c.toCharacter()))
+		characterRenderer.addMessage(String.format("%s has acquired the %s skill", c.getLabel(), skill.getLabel()))
 	}
 
 	override fun onExtraActivation(category: ZZombieCategory) {
@@ -563,17 +566,17 @@ abstract class UIZombicide(val characterRenderer: UIZCharacterRenderer, val boar
 
 	override fun onSkillKill(c: ZPlayerName, skill: ZSkill, zombiePostion: ZActorPosition, attackType: ZAttackType) {
 		super.onSkillKill(c, skill, zombiePostion, attackType)
-		boardRenderer.addPostActor(HoverMessage(boardRenderer, String.format("%s Kill!!", skill.label), board.getActor(zombiePostion)))
+		boardRenderer.addPostActor(HoverMessage(boardRenderer, String.format("%s Kill!!", skill.getLabel()), board.getActor(zombiePostion)))
 	}
 
 	override fun onRollSixApplied(c: ZPlayerName, skill: ZSkill) {
 		super.onRollSixApplied(c, skill)
-		boardRenderer.addPostActor(HoverMessage(boardRenderer, String.format("Roll Six!! %s", skill.label), c.toCharacter()))
+		boardRenderer.addPostActor(HoverMessage(boardRenderer, String.format("Roll Six!! %s", skill.getLabel()), c.toCharacter()))
 	}
 
 	override fun onWeaponReloaded(c: ZPlayerName, w: ZWeapon) {
 		super.onWeaponReloaded(c, w)
-		boardRenderer.addPostActor(HoverMessage(boardRenderer, String.format("%s Reloaded", w.label), c.toCharacter()))
+		boardRenderer.addPostActor(HoverMessage(boardRenderer, String.format("%s Reloaded", w.getLabel()), c.toCharacter()))
 	}
 
 	override fun onNoiseAdded(zoneIndex: Int) {
@@ -1010,7 +1013,7 @@ abstract class UIZombicide(val characterRenderer: UIZCharacterRenderer, val boar
 
 	override fun onBonusAction(pl: ZPlayerName, action: ZSkill) {
 		super.onBonusAction(pl, action)
-		boardRenderer.addHoverMessage("BONUS ACTION " + action.label, pl.toCharacter())
+		boardRenderer.addHoverMessage("BONUS ACTION " + action.getLabel(), pl.toCharacter())
 	}
 
 	companion object {

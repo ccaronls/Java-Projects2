@@ -212,7 +212,7 @@ internal class BoardComponent : AWTRendererComponent<UIZBoardRenderer>(), UIZCom
 				val move = keyMap[e.keyCode]
 				if (move != null) {
 					game.setResult(move)
-					keyMap.clear()
+					//keyMap.clear()
 				}
 			}
 			KeyEvent.VK_SPACE -> renderer.toggleZoomType()

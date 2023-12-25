@@ -78,8 +78,6 @@ abstract class ZActor internal constructor(var occupiedZone: Int = -1) : Reflect
         actionsLeftThisTurn++
     }
 
-    abstract fun drawInfo(g: AGraphics, game: ZGame, width: Float, height: Float): IDimension?
-
 	open val noise: Int
 		get() = 0
 	abstract val type: Enum<*>
@@ -190,7 +188,7 @@ abstract class ZActor internal constructor(var occupiedZone: Int = -1) : Reflect
 	}
 
 	override fun toString(): String {
-		return "$label zone:$occupiedZone"
+		return "${getLabel()} zone:$occupiedZone"
 	}
 
 }

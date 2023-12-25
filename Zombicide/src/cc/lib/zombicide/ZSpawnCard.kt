@@ -104,17 +104,17 @@ class ZSpawnCard private constructor(val name: String, private val wolfburg: Boo
 		}
 
 		val model = object : Model {
-			override fun getCellColor(g: AGraphics?, row: Int, col: Int): GColor {
+			override fun getCellColor(g: AGraphics, row: Int, col: Int): GColor {
 				return ZColor.values().reversed()[row].color
 			}
 
 			override fun getBackgroundColor(): GColor = GColor.GRAY
 
-			override fun getHeaderColor(g: AGraphics?): GColor = GColor.BLACK
+			override fun getHeaderColor(g: AGraphics): GColor = GColor.BLACK
 
 			override fun getCornerRadius(): Float = 10f
 
-			override fun getBorderColor(g: AGraphics?): GColor = GColor.BLACK
+			override fun getBorderColor(g: AGraphics): GColor = GColor.BLACK
 
 			override fun getHeaderJustify(col: Int): Justify = Justify.CENTER
 

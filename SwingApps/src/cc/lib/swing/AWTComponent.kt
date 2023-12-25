@@ -52,7 +52,6 @@ abstract class AWTComponent : UIComponent, JComponent, Renderable, MouseListener
 		log.warn("Gestures not supported")
 	}
 
-	@Synchronized
 	override fun paint(g: Graphics) {
 		try {
 			if (width > 0 && height > 0) {
@@ -140,13 +139,11 @@ abstract class AWTComponent : UIComponent, JComponent, Renderable, MouseListener
 	protected open val initProgress: Float
 		protected get() = 1f
 
-	@Synchronized
 	override fun mouseClicked(e: MouseEvent) {
 		//Utils.println("mouseClicked");
 		onClick()
 	}
 
-	@Synchronized
 	override fun mousePressed(e: MouseEvent) {
 		Utils.println("mousePressed")
 		grabFocus()
@@ -233,7 +230,6 @@ abstract class AWTComponent : UIComponent, JComponent, Renderable, MouseListener
 		repaint()
 	}
 
-	@Synchronized
 	override fun mouseMoved(e: MouseEvent) {
 		//log.info("mouse %d,%d", e.getX(), e.getY());
 		//Utils.println("mouseMoved");
@@ -245,15 +241,12 @@ abstract class AWTComponent : UIComponent, JComponent, Renderable, MouseListener
 
 	protected open fun onMouseMoved(mouseX: Int, mouseY: Int) {}
 
-	@Synchronized
 	override fun keyTyped(evt: KeyEvent) {
 	}
 
-	@Synchronized
 	override fun keyPressed(evt: KeyEvent) {
 	}
 
-	@Synchronized
 	override fun keyReleased(evt: KeyEvent) {
 	}
 

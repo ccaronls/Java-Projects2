@@ -53,7 +53,7 @@ abstract class ZEquipment<T : ZEquipmentType> : Reflector<ZEquipment<T>>(), IBut
 
     override fun compareTo(o: ZEquipment<*>): Int {
         // Consider not using this. Causes a problem when multiple of same equipment for user to choose from
-        val comp = label.compareTo(o.label)
+        val comp = getLabel().compareTo(o.getLabel())
         return if (comp != 0) {
             comp
         } else compareValues(slot, o.slot)
@@ -63,8 +63,8 @@ abstract class ZEquipment<T : ZEquipmentType> : Reflector<ZEquipment<T>>(), IBut
         return type.hashCode()
     }
 
-    abstract fun getCardInfo(c: ZCharacter, game: ZGame): Table
-    override fun getTooltipText(): String? = type.tooltipText
+	abstract fun getCardInfo(c: ZCharacter, game: ZGame): Table
+	override fun getTooltipText(): String? = type.getTooltipText()
 
 	override fun toString(): String = type.name.prettify()
 

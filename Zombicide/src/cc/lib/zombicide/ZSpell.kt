@@ -11,18 +11,18 @@ class ZSpell(override val type: ZSpellType=ZSpellType.HEALING) : ZEquipment<ZSpe
         }
     }
 
-    override val slotType: ZEquipSlotType
-        get() = ZEquipSlotType.HAND
+	override val slotType: ZEquipSlotType
+		get() = ZEquipSlotType.HAND
 
-    override fun isEquippable(c: ZCharacter): Boolean {
-        return true
-    }
+	override fun isEquippable(c: ZCharacter): Boolean {
+		return true
+	}
 
-    override val isEnchantment: Boolean
-        get() = true
+	override val isEnchantment: Boolean
+		get() = true
 
-    override fun getCardInfo(c: ZCharacter, game: ZGame): Table {
-        val t = Table(label).setNoBorder()
-        return t.addRow(type.description.wrap( 20))
-    }
+	override fun getCardInfo(c: ZCharacter, game: ZGame): Table = Table(getLabel()).apply {
+		setNoBorder()
+		addRow(type.description.wrap(20))
+	}
 }

@@ -333,8 +333,8 @@ enum class ZSkill(val description: String) : IButton {
             // reload all of the players wielded weapons
             for (w in c.weapons) {
                 if (!w.isLoaded) {
-                    game.addLogMessage("Weapon " + w.type.label + " is reloaded!")
-                    w.reload()
+                    game.addLogMessage("Weapon " + w.type.getLabel() + " is reloaded!")
+	                w.reload()
                 }
             }
         }
@@ -397,8 +397,8 @@ enum class ZSkill(val description: String) : IButton {
             if (actionType === ZActionType.RANGED) {
                 val numInZone = game.board.getNumZombiesInZone(targetZone)
                 if (numInZone > stat.numDice) {
-                    game.addLogMessage(String.format("%s applied Iron Rain!", character.label))
-                    game.onIronRain(character.type, targetZone)
+	                game.addLogMessage(String.format("%s applied Iron Rain!", character.getLabel()))
+	                game.onIronRain(character.type, targetZone)
                     stat.numDice = numInZone
                 }
             }
@@ -656,26 +656,32 @@ enum class ZSkill(val description: String) : IButton {
             if (stat.damagePerHit < 3) {
                 game.addLogMessage("+1 Damage Applied!")
                 game.onRollSixApplied(c.type, this)
-                stat.damagePerHit++
+	            stat.damagePerHit++
             }
-            return false
+	        return false
         }
     },
-    Hit_Heals("A successful hit results in healing of a single wound.") {
-        override fun onAttack(game: ZGame, c: ZCharacter, weapon: ZWeapon, actionType: ZActionType, stat: ZWeaponStat, targetZone: Int, hits: Int, destroyedZombies: List<ZZombie>) {
-            c.heal(game, destroyedZombies.size)
-        }
-    },
-    Hit_4_Dragon_Fire("If an attack results in 4 successful hits then dragon fire in the target zone") {
-        override fun onAttack(game: ZGame, c: ZCharacter, weapon: ZWeapon, actionType: ZActionType, stat: ZWeaponStat, targetZone: Int, hits: Int, destroyedZombies: List<ZZombie>) {
-            if (hits >= 4) {
-                game.performDragonFire(c, targetZone)
-            }
-        }
-    },
-    Ignite_Dragon_Fire("Can ignite dragon fire without torch at range 0-1") {
-        override fun addSpecialMoves(game: ZGame, character: ZCharacter, moves: MutableCollection<ZMove>) {
-	        game.board.getAccessibleZones(character.occupiedZone, 1, 1, ZActionType.THROW_ITEM)
+	Hit_Heals("A successful hit results in healing of a single wound.") {
+		override fun onAttack(game: ZGame, c: ZCharacter, weapon: ZWeapon, actionType: ZActionType, stat: ZWeaponStat, targetZone: Int, hits: Int, destroyedZombies: List<ZZombie>) {
+			c.heal(game, destroyedZombies.size)
+		}
+	},
+	Roll_6_Hit_Heals("A successful hit results in healing of a single wound.") {
+		override fun onSixRolled(game: ZGame, c: ZCharacter, stat: ZWeaponStat): Boolean {
+			c.heal(game, 1)
+			return false
+		}
+	},
+	Hit_4_Dragon_Fire("If an attack results in 4 successful hits then dragon fire in the target zone") {
+		override fun onAttack(game: ZGame, c: ZCharacter, weapon: ZWeapon, actionType: ZActionType, stat: ZWeaponStat, targetZone: Int, hits: Int, destroyedZombies: List<ZZombie>) {
+			if (hits >= 4) {
+				game.performDragonFire(c, targetZone)
+			}
+		}
+	},
+	Ignite_Dragon_Fire("Can ignite dragon fire without torch at range 0-1") {
+		override fun addSpecialMoves(game: ZGame, character: ZCharacter, moves: MutableCollection<ZMove>) {
+			game.board.getAccessibleZones(character.occupiedZone, 1, 1, ZActionType.THROW_ITEM)
 	            .filter { game.board.getZone(it).isDragonBile }
 	            .takeIf { it.isNotEmpty() }
 	            ?.let { ignitableZones ->
