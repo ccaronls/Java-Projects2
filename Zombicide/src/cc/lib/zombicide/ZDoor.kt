@@ -14,10 +14,20 @@ class ZDoor (val cellPosStart: Grid.Pos, val cellPosEnd: Grid.Pos, val moveDirec
     }
 
 	constructor() : this(Grid.Pos(), Grid.Pos(), ZDir.NORTH, GColor.BLACK)
-	constructor(start: Grid.Pos, dir: ZDir, color: GColor) : this(start, dir.getAdjacent(start)!!, dir, color)
+	constructor(start: Grid.Pos, dir: ZDir, color: GColor) : this(
+		start,
+		dir.getAdjacent(start)!!,
+		dir,
+		color
+	)
 
 	var isJammed = false
 		private set
+
+	@delegate:Omit
+	val isVault: Boolean by lazy {
+		ZDir.elevationValues.contains(moveDirection)
+	}
 
 	@Omit
 	var pickable = false
@@ -27,7 +37,7 @@ class ZDoor (val cellPosStart: Grid.Pos, val cellPosEnd: Grid.Pos, val moveDirec
 	}
 
 	fun isClosed(board: ZBoard): Boolean {
-		return !board.getCell(cellPosStart).getWallFlag(moveDirection).opened
+		return board.getCell(cellPosStart).getWallFlag(moveDirection).closed
 	}
 
 	fun getRect(board: ZBoard): GRectangle {

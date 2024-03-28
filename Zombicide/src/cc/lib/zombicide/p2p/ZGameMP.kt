@@ -3,7 +3,25 @@ package cc.lib.zombicide.p2p
 import cc.lib.game.GRectangle
 import cc.lib.net.AGameClient
 import cc.lib.net.AGameServer
-import cc.lib.zombicide.*
+import cc.lib.zombicide.ZActionType
+import cc.lib.zombicide.ZActorPosition
+import cc.lib.zombicide.ZAttackType
+import cc.lib.zombicide.ZCharacter
+import cc.lib.zombicide.ZColor
+import cc.lib.zombicide.ZDoor
+import cc.lib.zombicide.ZEquipment
+import cc.lib.zombicide.ZGame
+import cc.lib.zombicide.ZIcon
+import cc.lib.zombicide.ZPlayerName
+import cc.lib.zombicide.ZSkill
+import cc.lib.zombicide.ZSpawnArea
+import cc.lib.zombicide.ZSpawnCard
+import cc.lib.zombicide.ZUser
+import cc.lib.zombicide.ZWeapon
+import cc.lib.zombicide.ZWeaponType
+import cc.lib.zombicide.ZZombie
+import cc.lib.zombicide.ZZombieCategory
+import cc.lib.zombicide.ZZombieType
 import cc.lib.zombicide.ui.UIZombicide
 
 /**
@@ -87,6 +105,10 @@ open class ZGameMP : ZGame() {
 		server?.broadcastExecuteOnRemote(GAME_ID, c, equipment)
 	}
 
+	override fun onZoneFrozen(freezer: ZPlayerName, zoneIdx: Int) {
+		server?.broadcastExecuteOnRemote(GAME_ID, freezer, zoneIdx)
+	}
+
 	override fun onWeaponGoesClick(c: ZPlayerName, weapon: ZWeapon) {
 		server?.broadcastExecuteOnRemote(GAME_ID, c, weapon)
 	}
@@ -99,8 +121,23 @@ open class ZGameMP : ZGame() {
 		server?.broadcastExecuteOnRemote(GAME_ID, cur, door)
 	}
 
-	override fun onAttack(attacker: ZPlayerName, weapon: ZWeapon, actionType: ZActionType?, numDice: Int, hits: List<ZActorPosition>, targetZone: Int) {
-		server?.broadcastExecuteOnRemote(GAME_ID, attacker, weapon, actionType, numDice, hits, targetZone)
+	override fun onAttack(
+		attacker: ZPlayerName,
+		weapon: ZWeaponType,
+		actionType: ZActionType?,
+		numDice: Int,
+		hits: List<ZActorPosition>,
+		targetZone: Int
+	) {
+		server?.broadcastExecuteOnRemote(
+			GAME_ID,
+			attacker,
+			weapon,
+			actionType,
+			numDice,
+			hits,
+			targetZone
+		)
 	}
 
 	override fun onCharacterGainedExperience(c: ZPlayerName, points: Int) {
@@ -111,8 +148,8 @@ open class ZGameMP : ZGame() {
 		server?.broadcastExecuteOnRemote(GAME_ID, roll as Any)
 	}
 
-	override fun onZombieDestroyed(c: ZPlayerName, deathType: ZAttackType, pos: ZActorPosition) {
-		server?.broadcastExecuteOnRemote(GAME_ID, c, deathType, pos)
+	override fun onZombieDestroyed(deathType: ZAttackType, pos: ZActorPosition) {
+		server?.broadcastExecuteOnRemote(GAME_ID, deathType, pos)
 	}
 
 	override fun onDoubleSpawn(multiplier: Int) {
@@ -139,6 +176,10 @@ open class ZGameMP : ZGame() {
 	}
 
 	override fun onZombieStageBegin() {
+		server?.broadcastExecuteOnRemote(GAME_ID)
+	}
+
+	override fun onZombieStageMoveDone() {
 		server?.broadcastExecuteOnRemote(GAME_ID)
 	}
 
@@ -212,6 +253,18 @@ open class ZGameMP : ZGame() {
 
 	override fun onCloseSpawnArea(c: ZCharacter, zone: Int, area: ZSpawnArea) {
 		server?.broadcastExecuteOnRemote(GAME_ID, c, zone, area)
+	}
+
+	override fun onCatapultFired(pl: ZPlayerName, fromZone: Int, toZone: Int, type: ZWeaponType) {
+		server?.broadcastExecuteOnRemote(GAME_ID, pl, fromZone, toZone, type)
+	}
+
+	override fun onZombieHoardAttacked(player: ZPlayerName, hits: List<ZZombieType>) {
+		server?.broadcastExecuteOnRemote(GAME_ID, player, hits)
+	}
+
+	override fun onNothingInSight(zone: Int) {
+		server?.broadcastExecuteOnRemote(GAME_ID, zone)
 	}
 
 	companion object {

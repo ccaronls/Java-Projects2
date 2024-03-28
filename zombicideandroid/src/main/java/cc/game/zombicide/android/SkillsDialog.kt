@@ -28,14 +28,14 @@ internal class SkillsDialog(val activity: ZombicideActivity) : PagerAdapter() {
 		var idx = 0
 		for (pl in ZPlayerName.values()) {
 			skills[idx] = arrayOfNulls(ZColor.values().size)
-			labels[idx] = pl.label
+			labels[idx] = pl.getLabel()
 			for (lvl in ZColor.values()) {
 				skills[idx][lvl.ordinal] = pl.getSkillOptions(lvl)
 			}
 			idx++
 		}
 	}*/
-	val labels = ZPlayerName.values().map { it.label }
+	val labels = ZPlayerName.values().map { it.getLabel() }
 
 	override fun getCount(): Int {
 		return skills.size
@@ -103,7 +103,7 @@ internal class SkillsDialog(val activity: ZombicideActivity) : PagerAdapter() {
 				items.add(Item(lvl.name + " " + lvl.dangerPts + " Danger Points", null, lvl.color, false))
 				for (skill in skills[lvl.ordinal]) {
 					val owned = activity.game.board.getCharacterOrNull(pl)?.hasSkill(skill) == true
-					items.add(Item(skill.label, skill.description, null, owned))
+					items.add(Item(skill.getLabel(), skill.description, null, owned))
 				}
 			}
 		}

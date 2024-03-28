@@ -1,9 +1,18 @@
 package cc.lib.utils
 
-import cc.lib.game.*
+import cc.lib.game.AGraphics
+import cc.lib.game.AImage
+import cc.lib.game.GColor
+import cc.lib.game.GDimension
+import cc.lib.game.GRectangle
+import cc.lib.game.IDimension
+import cc.lib.game.IRectangle
+import cc.lib.game.IVector2D
+import cc.lib.game.Justify
+import cc.lib.game.Utils
 import cc.lib.math.MutableVector2D
 import cc.lib.ui.IButton
-import java.util.*
+import java.util.Vector
 
 /**
  * Useful for printing out tables of data
@@ -57,10 +66,13 @@ class Table(var model: Model = object : Model {}) : ITableItem, IButton {
 		}
 
 		fun getCellVerticalPadding(): Float = 0f
+
+		fun getBorderScaleHighlighted(): Float = 1.1f
 	}
 
 	private val header: MutableList<String> = ArrayList()
 	private val rows: MutableList<Vector<Any?>> = ArrayList()
+	var highlighted = false
 
 	/**
 	 * Only valid after call to toString
@@ -314,13 +326,19 @@ class Table(var model: Model = object : Model {}) : ITableItem, IButton {
 			// if there is a border, then there is padding around between border and text
 			g.pushColor(model.getBackgroundColor())
 			val radius = model.getCornerRadius()
+			g.pushMatrix()
+			if (highlighted) {
+				g.translate(dim.getWidth() / 2, dim.getHeight() / 2)
+				g.scale(model.getBorderScaleHighlighted())
+			}
 			g.drawFilledRoundedRect(0f, 0f, dim.getWidth(), dim.getHeight(), radius)
+			g.popMatrix()
 			g.color = model.getBorderColor(g)
 			g.drawRoundedRect(dim, borderWidth.toFloat(), radius)
 			g.translate(borderWidth.toFloat(), borderWidth.toFloat())
 			g.popColor()
-		} else {
-			// if there is no border then no padding
+		} else if (highlighted) {
+			g.drawRect(dim, 1f)
 		}
 
 		// TODO: Draw vertical divider lines

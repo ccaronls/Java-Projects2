@@ -13,9 +13,23 @@ import cc.lib.zombicide.ZIcon
 import kotlin.math.roundToInt
 
 // TODO: Consider merging Fireball, Throw, Shoot animation types which all have similar features and special characteristics like: STATIC, SPIN, DIRECTIONAL, RANDOM
-open class ThrowAnimation(actor: ZActor, target: IVector2D, val icon: ZIcon, arc: Float, duration: Long) : ZActorAnimation(actor, duration) {
+open class ThrowAnimation(
+	actor: ZActor,
+	target: IVector2D,
+	val icon: ZIcon,
+	arc: Float,
+	duration: Long,
+	val scale: Float
+) : ZActorAnimation(actor, duration) {
 
-	constructor(actor: ZActor, target: IVector2D, icon: ZIcon) : this(actor, target, icon, .5f, 1000)
+	constructor(actor: ZActor, target: IVector2D, icon: ZIcon) : this(
+		actor,
+		target,
+		icon,
+		.5f,
+		1000,
+		.5f
+	)
 
 	val curve: IInterpolator<Vector2D>
 	val dir: ZDir
@@ -24,7 +38,7 @@ open class ThrowAnimation(actor: ZActor, target: IVector2D, val icon: ZIcon, arc
 		val idx = (position * (icon.imageIds.size - 1)).roundToInt()
 		val id = icon.imageIds[idx]
 		val img = g.getImage(id)
-		val rect = actor.getRect().scaledBy(.5f).fit(img)
+		val rect = actor.getRect().scaledBy(scale).fit(img)
 		rect.setCenter(curve.getAtPosition(position))
 		g.drawImage(id, rect)
 	}

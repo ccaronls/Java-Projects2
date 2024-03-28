@@ -258,13 +258,22 @@ public class GRectangle extends Reflector<GRectangle> implements IRectangle {
     }
 
     public GRectangle moveBy(IVector2D dv) {
-        x+=dv.getX();
-        y+=dv.getY();
+        x += dv.getX();
+        y += dv.getY();
         return this;
     }
 
     public GRectangle movedBy(IVector2D dv) {
         return movedBy(dv.getX(), dv.getY());
+    }
+
+    public GRectangle add(IRectangle other) {
+        return new GRectangle(
+                Math.min(x, other.X()),
+                Math.min(y, other.Y()),
+                Math.max(getWidth(), other.getWidth()),
+                Math.max(getHeight(), other.getHeight())
+        );
     }
 
     /**
@@ -279,6 +288,16 @@ public class GRectangle extends Reflector<GRectangle> implements IRectangle {
      */
     public GRectangle addEq(float x, float y, float w, float h) {
         return addEq(new GRectangle(x, y, w, h));
+    }
+
+    /**
+     * @param dv
+     * @param w
+     * @param h
+     * @return
+     */
+    public GRectangle addEq(IVector2D dv, float w, float h) {
+        return addEq(dv.getX(), dv.getY(), w, h);
     }
 
     /**

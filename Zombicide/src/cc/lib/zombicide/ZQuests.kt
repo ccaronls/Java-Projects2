@@ -2,22 +2,52 @@ package cc.lib.zombicide
 
 import cc.lib.annotation.Keep
 import cc.lib.ui.IButton
-
-import cc.lib.zombicide.quests.*
+import cc.lib.zombicide.quests.GreenHoardTheEvilShrine
+import cc.lib.zombicide.quests.WolfACoinForTheFerryman
+import cc.lib.zombicide.quests.WolfBloodRed
+import cc.lib.zombicide.quests.WolfQuestImmortal
+import cc.lib.zombicide.quests.WolfQuestKnowYourEnemy
+import cc.lib.zombicide.quests.WolfQuestTheAmbush
+import cc.lib.zombicide.quests.WolfQuestTheEvilTwins
+import cc.lib.zombicide.quests.WolfQuestWelcomeToWulfsburg
+import cc.lib.zombicide.quests.WolfTheGhostDoor
+import cc.lib.zombicide.quests.WolfTheZombieArmy
+import cc.lib.zombicide.quests.WolfZombieCourt
+import cc.lib.zombicide.quests.ZQuestBigGameHunting
+import cc.lib.zombicide.quests.ZQuestDeadTrail
+import cc.lib.zombicide.quests.ZQuestFamine
+import cc.lib.zombicide.quests.ZQuestHoardTest
+import cc.lib.zombicide.quests.ZQuestInCaligineAbditus
+import cc.lib.zombicide.quests.ZQuestTheAbomination
+import cc.lib.zombicide.quests.ZQuestTheBlackBook
+import cc.lib.zombicide.quests.ZQuestTheCommandry
+import cc.lib.zombicide.quests.ZQuestTheEvilTemple
+import cc.lib.zombicide.quests.ZQuestTheHellHole
+import cc.lib.zombicide.quests.ZQuestTheNecromancer
+import cc.lib.zombicide.quests.ZQuestTheShepherds
+import cc.lib.zombicide.quests.ZQuestThorsHammer
+import cc.lib.zombicide.quests.ZQuestTrialByFire
+import cc.lib.zombicide.quests.ZQuestTutorial
 
 const val FLAG_BLACK_PLAGUE = 1
 const val FLAG_WOLFBURG = 2
-const val FLAG_DEBUG = 4
+const val FLAG_GREEN_HOARD = 4
+const val FLAG_DEBUG = 8
 
 @Keep
 enum class ZQuests(val flag: Int, val displayName: String, val description: String) : IButton {
 	The_Abomination(FLAG_DEBUG, "The Abomination", "Test Abomination!"),
 	The_Necromancer(FLAG_DEBUG, "The Necromancer", "Test Necromancer!"),
 	Hoard_Test(FLAG_DEBUG, "Hoard Movement Test", "Test Hoard!"),
-	Thors_Hammer(FLAG_DEBUG, "Thor's Hammer", "Obtain Mjolnir and destroy all zombies and spawn zones"),
-    Tutorial(FLAG_BLACK_PLAGUE, "TUTORIAL:DANSE MACABRE", "War is nothing new for us. Our counts " +
-            "and dukes are always fighting amongst " +
-            "themselves. For the peasantry, it usually just " +
+	Thors_Hammer(
+		FLAG_DEBUG,
+		"Thor's Hammer",
+		"Obtain Mjolnir and destroy all zombies and spawn zones"
+	),
+	Tutorial(
+		FLAG_BLACK_PLAGUE, "TUTORIAL:DANSE MACABRE", "War is nothing new for us. Our counts " +
+			"and dukes are always fighting amongst " +
+			"themselves. For the peasantry, it usually just " +
             "involves a change in taxes and rents, assuming you " +
             "survive. But this time, the duke and his army went " +
             "off and were never seen again. Well, not until the " +
@@ -258,27 +288,42 @@ enum class ZQuests(val flag: Int, val displayName: String, val description: Stri
                     "spotted us. Even now, their hordes encircle us. But " +
                     "by now, we’re all experienced survivors. We’ve faced " +
                     "worse than just this petty army, right? Zombicide!"),
-    A_Coin_For_The_Ferryman(FLAG_WOLFBURG, "A Coin for the Ferryman",
-            "Turns out the Necromancers are human " +
-                    "after all. They’ve been using the towers " +
-                    "to boost their egos and pile up plundered treasure, " +
-                    "just like their former owners did. But, the " +
-                    "Necromancers have also opened magical gates " +
-                    "leading to some hidden place! The next step in their " +
-                    "invasion, perhaps? Who knows? Finding these " +
-                    "towers and sealing the gates will trap them here " +
-                    "in Wulfsburg with us. Then we finish it, once and " +
-                    "for all!");
+	A_Coin_For_The_Ferryman(
+		FLAG_WOLFBURG, "A Coin for the Ferryman",
+		"Turns out the Necromancers are human " +
+			"after all. They’ve been using the towers " +
+			"to boost their egos and pile up plundered treasure, " +
+			"just like their former owners did. But, the " +
+			"Necromancers have also opened magical gates " +
+			"leading to some hidden place! The next step in their " +
+			"invasion, perhaps? Who knows? Finding these " +
+			"towers and sealing the gates will trap them here " +
+			"in Wulfsburg with us. Then we finish it, once and " +
+			"for all!"
+	),
+	The_Evil_Shrine(
+		FLAG_GREEN_HOARD, "Tutorial: The Evil Shrine",
+		"Looking for fresh water, we stumbled across a " +
+			"desecrated druidic shrine, now vibrating with " +
+			"dark energies. Zombies are lured to the area like " +
+			"moths to a flame, threatening everyone in the vicinity. " +
+			"We are survivors and zombie hunters: putting this " +
+			"necromancer plot to an end is our duty. " +
+			"\n\nAaaand our pleasure. Yeah, I admit it. Sorry mom!!"
+	)
 
-    fun load(): ZQuest {
-        return when (this) {
-            Tutorial -> ZQuestTutorial()
-            Big_Game_Hunting -> ZQuestBigGameHunting()
-            The_Black_Book -> ZQuestTheBlackBook()
-            The_Abomination -> ZQuestTheAbomination()
-            The_Necromancer -> ZQuestTheNecromancer()
-	        Hoard_Test -> ZQuestHoardTest()
-	        Thors_Hammer -> ZQuestThorsHammer()
+
+	;
+
+	fun load(): ZQuest {
+		return when (this) {
+			Tutorial -> ZQuestTutorial()
+			Big_Game_Hunting -> ZQuestBigGameHunting()
+			The_Black_Book -> ZQuestTheBlackBook()
+			The_Abomination -> ZQuestTheAbomination()
+			The_Necromancer -> ZQuestTheNecromancer()
+			Hoard_Test -> ZQuestHoardTest()
+			Thors_Hammer -> ZQuestThorsHammer()
             The_Shepherds -> ZQuestTheShepherds()
             Famine -> ZQuestFamine()
             The_Commandry -> ZQuestTheCommandry()
@@ -294,28 +339,42 @@ enum class ZQuests(val flag: Int, val displayName: String, val description: Stri
             Immortal -> WolfQuestImmortal()
             Zombie_Court -> WolfZombieCourt()
             Blood_Red -> WolfBloodRed()
-            The_Ghost_Door -> WolfTheGhostDoor()
-            The_Zombie_Army -> WolfTheZombieArmy()
-            A_Coin_For_The_Ferryman -> WolfACoinForTheFerryman()
-        }
-    }
+			The_Ghost_Door -> WolfTheGhostDoor()
+			The_Zombie_Army -> WolfTheZombieArmy()
+			A_Coin_For_The_Ferryman -> WolfACoinForTheFerryman()
+			The_Evil_Shrine -> GreenHoardTheEvilShrine()
+		}
+	}
 
-    val isWolfBurg: Boolean
-        get() = 0 != flag and FLAG_WOLFBURG
+	val isWolfBurg: Boolean
+		get() = 0 != flag and FLAG_WOLFBURG
 
-    companion object {
-        @JvmStatic
-        fun questsBlackPlague(): List<ZQuests> {
-            return values().filter { quest: ZQuests -> 0 != quest.flag and FLAG_BLACK_PLAGUE }
-        }
+	val isGreenHoard: Boolean
+		get() = 0 != flag and FLAG_GREEN_HOARD
 
-        @JvmStatic
-        fun questsWolfsburg(): List<ZQuests> {
-            return values().filter { quest: ZQuests -> 0 != quest.flag and FLAG_WOLFBURG }
-        }
-    }
+	companion object {
+		fun questsBlackPlague(): List<ZQuests> {
+			return values().filter { quest -> 0 != quest.flag and FLAG_BLACK_PLAGUE }
+		}
+
+		fun questsWolfsburg(): List<ZQuests> {
+			return values().filter { quest -> 0 != quest.flag and FLAG_WOLFBURG }
+		}
+
+		fun questsGreenHoard(): List<ZQuests> {
+			return values().filter { quest -> 0 != quest.flag and FLAG_GREEN_HOARD }
+		}
+	}
 
 	override fun getTooltipText(): String = description
 
 	override fun getLabel(): String = name.replace('_', ' ')
+
+	fun getDeckType(): ZDeckType {
+		if (0 != flag and FLAG_GREEN_HOARD)
+			return ZDeckType.GREEN_HOARD
+		if (0 != flag and FLAG_WOLFBURG)
+			return ZDeckType.WOLFSBURF
+		return ZDeckType.BLACK_PLAGUE
+	}
 }

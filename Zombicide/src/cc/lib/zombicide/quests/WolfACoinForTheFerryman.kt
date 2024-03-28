@@ -3,10 +3,19 @@ package cc.lib.zombicide.quests
 import cc.lib.game.GColor
 import cc.lib.utils.Grid
 import cc.lib.utils.Table
-import cc.lib.zombicide.*
+import cc.lib.zombicide.ZBoard
+import cc.lib.zombicide.ZCell
+import cc.lib.zombicide.ZCellType
+import cc.lib.zombicide.ZCharacter
+import cc.lib.zombicide.ZDir
+import cc.lib.zombicide.ZDoor
+import cc.lib.zombicide.ZGame
+import cc.lib.zombicide.ZMove
 import cc.lib.zombicide.ZMove.Companion.newObjectiveMove
+import cc.lib.zombicide.ZQuest
+import cc.lib.zombicide.ZQuests
+import cc.lib.zombicide.ZTile
 import cc.lib.zombicide.ZTile.Companion.getQuadrant
-import java.util.*
 
 /**
  * Created by Chris Caron on 9/1/21.
@@ -91,7 +100,7 @@ class WolfACoinForTheFerryman : ZQuest(ZQuests.A_Coin_For_The_Ferryman) {
 
 	override fun addMoves(game: ZGame, cur: ZCharacter, options: MutableCollection<ZMove>) {
 		super.addMoves(game, cur, options)
-		blueKeyPos?.let {
+		blueKeyPos.let {
 			val idx = game.board.getCell(it).zoneIndex
 			if (idx == cur.occupiedZone) {
 				options.add(newObjectiveMove(idx))
@@ -100,7 +109,7 @@ class WolfACoinForTheFerryman : ZQuest(ZQuests.A_Coin_For_The_Ferryman) {
 	}
 
 	fun isExitZoneOccupied(game: ZGame): Boolean {
-		return numPlayersInExitEvent(game) > 0
+		return numPlayersInExit(game) > 0
 	}
 
 	override fun getPercentComplete(game: ZGame): Int {

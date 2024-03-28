@@ -5,7 +5,6 @@ import cc.lib.game.GRectangle
 import cc.lib.game.IRectangle
 import cc.lib.game.Utils
 import cc.lib.math.MutableVector2D
-import cc.lib.math.Vector2D
 import cc.lib.reflector.Omit
 import cc.lib.reflector.Reflector
 import cc.lib.utils.GException
@@ -36,8 +35,8 @@ class ZZone(val zoneIndex: Int = -1) : Reflector<ZZone>(), IRectangle {
 	val isVault: Boolean
 		get() = type == ZZoneType.VAULT
 
-	@Omit
-	var isTargetForEscape = false
+	val isOutside: Boolean
+		get() = type == ZZoneType.OUTDOORS
 
 	@Omit
 	var pickable = false
@@ -46,15 +45,7 @@ class ZZone(val zoneIndex: Int = -1) : Reflector<ZZone>(), IRectangle {
 		return type === ZZoneType.BUILDING
 	}
 
-	override fun getCenter(): MutableVector2D {
-		if (cells.size == 0) return MutableVector2D(Vector2D.ZERO)
-		val v = MutableVector2D()
-		for (p in cells) {
-			v.addEq(.5f + p.column, .5f + p.row)
-		}
-		v.scaleEq(1f / cells.size)
-		return v
-	}
+	override fun getCenter(): MutableVector2D = rectangle.center
 
 	override fun getArea(): Float = rectangle.area
 
@@ -63,7 +54,7 @@ class ZZone(val zoneIndex: Int = -1) : Reflector<ZZone>(), IRectangle {
 	 * @return
 	 */
 	@delegate:Omit
-	private val rectangle by lazy {
+	val rectangle by lazy {
 		GRectangle().also {
 			for (p in cells) {
 				it.addEq(p.column.toFloat(), p.row.toFloat(), 1f, 1f)
@@ -120,10 +111,6 @@ class ZZone(val zoneIndex: Int = -1) : Reflector<ZZone>(), IRectangle {
 	        throw GException("Zone $zoneIndex is INSANE!! Not all positions are adjacent:$cells")
         }
     }
-
-	fun reset() {
-		isTargetForEscape = false
-	}
 
 	override fun getWidth(): Float = rectangle.w
 

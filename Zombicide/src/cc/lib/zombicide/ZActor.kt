@@ -1,14 +1,23 @@
 package cc.lib.zombicide
 
-import cc.lib.game.*
+import cc.lib.game.AAnimation
+import cc.lib.game.AGraphics
+import cc.lib.game.GDimension
+import cc.lib.game.GRectangle
+import cc.lib.game.IInterpolator
+import cc.lib.game.IRectangle
+import cc.lib.game.IVector2D
+import cc.lib.game.Justify
+import cc.lib.game.Utils
 import cc.lib.math.Vector2D
 import cc.lib.reflector.Omit
 import cc.lib.reflector.Reflector
 import cc.lib.utils.Grid
 import cc.lib.zombicide.ui.UIZButton
-import java.util.*
+import java.util.LinkedList
 
-abstract class ZActor internal constructor(var occupiedZone: Int = -1) : Reflector<ZActor>(), UIZButton, IRectangle, IVector2D, IInterpolator<Vector2D> {
+abstract class ZActor internal constructor(var occupiedZone: Int) : Reflector<ZActor>(), UIZButton,
+	IRectangle, IVector2D, IInterpolator<Vector2D> {
 	companion object {
 		init {
 			addAllFields(ZActor::class.java)
@@ -27,6 +36,8 @@ abstract class ZActor internal constructor(var occupiedZone: Int = -1) : Reflect
 
 	@Omit
 	val animations = LinkedList<ZActorAnimation>()
+
+	open val drawPathsOnHighlight = false
 
 	private var id: String? = type?.let {
 		makeId()
@@ -69,7 +80,7 @@ abstract class ZActor internal constructor(var occupiedZone: Int = -1) : Reflect
     abstract fun name(): String
     open fun performAction(action: ZActionType, game: ZGame) {
         if (isAlive) {
-            actionsLeftThisTurn -= action.costPerTurn()
+	        actionsLeftThisTurn -= action.costPerTurn
             require(actionsLeftThisTurn >= 0)
         }
     }
@@ -181,6 +192,9 @@ abstract class ZActor internal constructor(var occupiedZone: Int = -1) : Reflect
 	open val isVisible: Boolean
 		get() = isAlive || isAnimating
 
+	open val isSiegeEngine: Boolean
+		get() = false
+
 	fun setPosition(position: ZActorPosition) {
 		occupiedQuadrant = position.quadrant
 		occupiedCell = position.pos
@@ -191,4 +205,7 @@ abstract class ZActor internal constructor(var occupiedZone: Int = -1) : Reflect
 		return "${getLabel()} zone:$occupiedZone"
 	}
 
+	open fun getMoveOptions(name: ZPlayerName, game: ZGame): List<ZMove> = emptyList()
+
+	open fun hasSkill(skill: ZSkill): Boolean = false
 }

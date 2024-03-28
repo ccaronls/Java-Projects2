@@ -11,20 +11,16 @@ class ZSkillLevel private constructor(val color: ZColor, val ultra: Int) : Refle
 	val pts = color.dangerPts + ZColor.RED.dangerPts * ultra
 
 	companion object {
-		@JvmField
-		var ULTRA_RED_MODE = true
-
-		@JvmField
 		val NUM_LEVELS = ZColor.values().size
 
 		@JvmStatic
-		fun getLevel(expPts: Int): ZSkillLevel {
+		fun getLevel(expPts: Int, rules: ZRules): ZSkillLevel {
 			var level = ZSkillLevel()
-			var next = level.nextLevel()
+			var next = level.nextLevel(rules)
 			while (expPts >= next.pts) {
 				level = next
-				next = level.nextLevel()
-				if (!ULTRA_RED_MODE && level.color == ZColor.RED)
+				next = level.nextLevel(rules)
+				if (!rules.ultraRed && level.color == ZColor.RED)
 					break
 			}
 			return level
@@ -45,28 +41,28 @@ class ZSkillLevel private constructor(val color: ZColor, val ultra: Int) : Refle
 		    color.compareTo(other.color)
     }
 
-    fun nextLevel(): ZSkillLevel = when (color) {
-	    ZColor.BLUE -> ZSkillLevel(ZColor.YELLOW, ultra)
-	    ZColor.YELLOW -> ZSkillLevel(ZColor.ORANGE, ultra)
-	    ZColor.ORANGE -> ZSkillLevel(ZColor.RED, ultra)
-	    else -> if (ULTRA_RED_MODE)
-		    ZSkillLevel(ZColor.YELLOW, ultra + 1)
-	    else
-		    ZSkillLevel(ZColor.RED, 0)
-    }
+	fun nextLevel(rules: ZRules): ZSkillLevel = when (color) {
+		ZColor.BLUE -> ZSkillLevel(ZColor.YELLOW, ultra)
+		ZColor.YELLOW -> ZSkillLevel(ZColor.ORANGE, ultra)
+		ZColor.ORANGE -> ZSkillLevel(ZColor.RED, ultra)
+		else -> if (rules.ultraRed)
+			ZSkillLevel(ZColor.YELLOW, ultra + 1)
+		else
+			ZSkillLevel(ZColor.RED, 0)
+	}
 
-    fun getPtsToNextLevel(curPts: Int): Int {
-	    if (!ULTRA_RED_MODE && color == ZColor.RED)
-		    return 0
-	    return nextLevel().pts - curPts
-    }
+	fun getPtsToNextLevel(curPts: Int, rules: ZRules): Int {
+		if (!rules.ultraRed && color == ZColor.RED)
+			return 0
+		return nextLevel(rules).pts - curPts
+	}
 
-    val dangerPts: Int
-        get() = color.dangerPts
+	val dangerPts: Int
+		get() = color.dangerPts
 
-    override fun toString(): String {
-        return "${color.name} ${'+'.repeat(ultra)}"
-    }
+	override fun toString(): String {
+		return "${color.name} ${'+'.repeat(ultra)}"
+	}
 
     override fun equals(o: Any?): Boolean {
 	    if (this === o) return true

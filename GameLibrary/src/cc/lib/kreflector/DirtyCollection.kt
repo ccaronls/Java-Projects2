@@ -5,7 +5,8 @@ import java.io.IOException
 /**
  * Created by Chris Caron on 12/7/23.
  */
-class DirtyCollection<T>(override val backing: MutableCollection<T>) : Collection<T>, IDirtyCollection<MutableCollection<T>> {
+open class DirtyCollection<T>(override val backing: MutableCollection<T>) : MutableCollection<T>,
+	IDirtyCollection<MutableCollection<T>> {
 
 	private var dirty = false
 
@@ -32,7 +33,7 @@ class DirtyCollection<T>(override val backing: MutableCollection<T>) : Collectio
 	}
 
 	@Throws(IOException::class)
-	override fun serializeDirty(out: cc.lib.kreflector.RPrintWriter) {
+	override fun serializeDirty(out: RPrintWriter) {
 		/*
 			if (isDirty) {
 				Reflector.serializeList(this, out, true)
@@ -64,4 +65,30 @@ class DirtyCollection<T>(override val backing: MutableCollection<T>) : Collectio
 
 	override fun iterator(): MutableIterator<T> = backing.iterator()
 
+	override fun add(element: T): Boolean = backing.add(element).also {
+		dirty = dirty || it
+	}
+
+	override fun addAll(elements: Collection<T>): Boolean = backing.addAll(elements).also {
+		dirty = dirty || it
+	}
+
+	override fun clear() {
+		dirty = dirty || size > 0
+		backing.clear()
+	}
+
+	override fun remove(element: T): Boolean = backing.remove(element).also {
+		dirty = dirty || it
+	}
+
+	override fun removeAll(elements: Collection<T>): Boolean =
+		backing.removeAll(elements.toSet()).also {
+			dirty = dirty || it
+		}
+
+	override fun retainAll(elements: Collection<T>): Boolean =
+		backing.retainAll(elements.toSet()).also {
+			dirty = dirty || it
+		}
 }

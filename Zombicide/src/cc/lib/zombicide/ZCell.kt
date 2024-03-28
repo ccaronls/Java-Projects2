@@ -1,40 +1,55 @@
 package cc.lib.zombicide
 
+import cc.lib.annotation.Keep
+import cc.lib.game.GColor
 import cc.lib.game.GRectangle
 import cc.lib.game.IRectangle
 import cc.lib.reflector.Reflector
 import cc.lib.zombicide.ZCellQuadrant.Companion.valuesForRender
 
-class ZCell internal constructor(private val x: Float, private val y: Float) : Reflector<ZCell>(), IRectangle {
-    companion object {
-        const val ENV_OUTDOORS = 0
-        const val ENV_BUILDING = 1
-        const val ENV_VAULT = 2
-        const val ENV_TOWER = 4
+@Keep
+enum class ZCellEnvironment(val color: GColor) {
+	OUTDOORS(GColor.LIGHT_GRAY),
+	BUILDING(GColor.DARK_GRAY),
+	VAULT(GColor.BROWN),
+	TOWER(GColor.LIGHT_GRAY),
+	WATER(GColor.SKY_BLUE),
+	HOARD(GColor.ORANGE), // cell marked as a place where players cannot travel, accumulates hoard and can be targeted by catapult
+	;
 
-        init {
-            addAllFields(ZCell::class.java)
-            require(ZCellType.values().size < 32) // Bit flag can only handle 32 values
-        }
-    }
+	fun getVaultDirection(): ZDir = when (this) {
+		VAULT -> ZDir.ASCEND
+		else -> ZDir.DESCEND
+	}
+}
 
-    private val walls = arrayOf(ZWallFlag.NONE, ZWallFlag.NONE, ZWallFlag.NONE, ZWallFlag.NONE, ZWallFlag.WALL, ZWallFlag.WALL)
-    @JvmField
-    var environment = ENV_OUTDOORS // 0 == outdoors, 1 == building, 2 == vault
-    @JvmField
-    var zoneIndex = 0
-    @JvmField
+
+class ZCell internal constructor(private val x: Float, private val y: Float) : Reflector<ZCell>(),
+	IRectangle {
+	companion object {
+		init {
+			addAllFields(ZCell::class.java)
+			require(ZCellType.values().size < 32) // Bit flag can only handle 32 values
+		}
+	}
+
+	private val walls = arrayOf(
+		ZWallFlag.NONE,
+		ZWallFlag.NONE,
+		ZWallFlag.NONE,
+		ZWallFlag.NONE,
+		ZWallFlag.WALL,
+		ZWallFlag.WALL
+	)
+	var environment = ZCellEnvironment.OUTDOORS // 0 == outdoors, 1 == building, 2 == vault
+	var zoneIndex = 0
     var vaultId = 0
     private var cellFlag = 0
-    @JvmField
     var discovered = false
-    @JvmField
     var scale = 1f
 	private val occupied = arrayOfNulls<String?>(ZCellQuadrant.values().size)
 
-	@JvmField
 	var spawns = arrayOfNulls<ZSpawnArea>(2)
-    @JvmField
     var numSpawns = 0
 
     constructor() : this(-1f, -1f) {}
@@ -69,7 +84,7 @@ class ZCell internal constructor(private val x: Float, private val y: Float) : R
         }
 
     val isVault: Boolean
-        get() = environment == ENV_VAULT
+	    get() = environment == ZCellEnvironment.VAULT
 
     val isCellTypeEmpty: Boolean
         get() = cellFlag == 0
@@ -120,7 +135,7 @@ class ZCell internal constructor(private val x: Float, private val y: Float) : R
     }
 
     val isInside: Boolean
-        get() = environment == ENV_BUILDING
+	    get() = environment == ZCellEnvironment.BUILDING
 
     fun getWallFlag(dir: ZDir): ZWallFlag {
         return walls[dir.ordinal]

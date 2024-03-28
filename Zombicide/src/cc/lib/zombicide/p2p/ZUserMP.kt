@@ -1,7 +1,20 @@
 package cc.lib.zombicide.p2p
 
 import cc.lib.net.AClientConnection
-import cc.lib.zombicide.*
+import cc.lib.zombicide.ZDoor
+import cc.lib.zombicide.ZEquipSlot
+import cc.lib.zombicide.ZEquipment
+import cc.lib.zombicide.ZEquipmentClass
+import cc.lib.zombicide.ZEquipmentType
+import cc.lib.zombicide.ZFamiliarType
+import cc.lib.zombicide.ZMove
+import cc.lib.zombicide.ZPlayerName
+import cc.lib.zombicide.ZSkill
+import cc.lib.zombicide.ZSpawnArea
+import cc.lib.zombicide.ZSpell
+import cc.lib.zombicide.ZUser
+import cc.lib.zombicide.ZWeapon
+import cc.lib.zombicide.ZWeaponType
 import cc.lib.zombicide.ui.UIZombicide
 
 /**
@@ -124,6 +137,21 @@ class ZUserMP(val connection: AClientConnection) : ZUser(connection.displayName)
 
 	override fun organizeEnd() {
 		connection.executeDerivedOnRemote<Void>(USER_ID, false)
+	}
+
+	override suspend fun chooseZoneForCatapult(
+		playerName: ZPlayerName,
+		ammoType: ZWeaponType,
+		zones: List<Int>
+	): Int? {
+		return connection.executeDerivedOnRemote(USER_ID, true, playerName, ammoType, zones)
+	}
+
+	override suspend fun chooseFamiliar(
+		playerName: ZPlayerName,
+		list: List<ZFamiliarType>
+	): ZFamiliarType? {
+		return connection.executeDerivedOnRemote(USER_ID, true, playerName, list)
 	}
 
 	companion object {

@@ -2,7 +2,20 @@ package cc.lib.zombicide.quests
 
 import cc.lib.utils.Grid
 import cc.lib.utils.Table
-import cc.lib.zombicide.*
+import cc.lib.zombicide.ZBoard
+import cc.lib.zombicide.ZCell
+import cc.lib.zombicide.ZCharacter
+import cc.lib.zombicide.ZDifficulty
+import cc.lib.zombicide.ZDir
+import cc.lib.zombicide.ZGame
+import cc.lib.zombicide.ZIcon
+import cc.lib.zombicide.ZQuest
+import cc.lib.zombicide.ZQuests
+import cc.lib.zombicide.ZSkill
+import cc.lib.zombicide.ZSpawnArea
+import cc.lib.zombicide.ZTile
+import cc.lib.zombicide.ZZombie
+import cc.lib.zombicide.ZZombieType
 
 /**
  * Created by Chris Caron on 9/1/21.
@@ -19,7 +32,7 @@ class WolfTheZombieArmy : ZQuest(ZQuests.The_Zombie_Army) {
 	var blueObjZone = -1
 	var greenObjZone = -1
 	var startDeckSize = 0
-	var spawnDeck: MutableList<ZSpawnCard> = ArrayList()
+
 	override fun loadBoard(): ZBoard {
 		val map = arrayOf(
 			arrayOf("z0", "z1", "z2:st",                            "z10:i:ww", "z10:i:xspn", "z10:i"),
@@ -60,17 +73,17 @@ class WolfTheZombieArmy : ZQuest(ZQuests.The_Zombie_Army) {
 			ZDifficulty.MEDIUM -> 30
 			ZDifficulty.HARD -> 40
 		}
-		for (i in 0 until startDeckSize) spawnDeck.add(ZSpawnCard.drawSpawnCard(true, true, game.getDifficulty()))
+//		for (i in 0 until startDeckSize) spawnDeck.add(ZSpawnCard.drawSpawnCard(true, true, game.getDifficulty()))
 	}
 
-	override fun drawSpawnCard(game: ZGame, targetZone: Int, dangerLevel: ZSkillLevel?): ZSpawnCard? {
-		return if (spawnDeck.isEmpty()) null else spawnDeck.removeAt(spawnDeck.size - 1)
-	}
+//	override fun drawSpawnCard(game: ZGame, targetZone: Int, dangerLevel: ZSkillLevel?): ZSpawnCard? {
+//		return if (spawnDeck.isEmpty()) null else spawnDeck.removeAt(spawnDeck.size - 1)
+//	}
 
 	override fun getPercentComplete(game: ZGame): Int {
 		val numZombies = game.board.getAllZombies().size
 		val total = 4 * startDeckSize + numZombies
-		val completed = 4 * (startDeckSize - spawnDeck.size)
+		val completed = 4 * (startDeckSize - game.spawnDeckSize)
 		return completed * 100 / total
 	}
 
@@ -94,8 +107,17 @@ class WolfTheZombieArmy : ZQuest(ZQuests.The_Zombie_Army) {
 
 	override fun getObjectivesOverlay(game: ZGame): Table {
 		return Table(name)
-			.addRow(Table().setNoBorder()
-				.addRow("1.", "Destroy the Zombie Army. All Spawn cards must be depleted and all zombies destroyed in order to complete the quest", String.format("%d of %d cards left", startDeckSize - spawnDeck.size, startDeckSize))
+			.addRow(
+				Table().setNoBorder()
+					.addRow(
+						"1.",
+						"Destroy the Zombie Army. All Spawn cards must be depleted and all zombies destroyed in order to complete the quest",
+						String.format(
+							"%d of %d cards left",
+							startDeckSize - game.spawnDeckSize,
+							startDeckSize
+						)
+					)
 				.addRow("2.", "Find the GREEN objective hidden among the RED objetives. Choose a Vault item of your choice", greenObjZone < 0)
 				.addRow("3.", "Find the BLUE objective hidden among the RED objetives. Choose a Vault item of your choice", blueObjZone < 0)
 				.addRow("4.", "Taking a RED objectives allows survivor to take and item from deck and reorganize their inventory for free")

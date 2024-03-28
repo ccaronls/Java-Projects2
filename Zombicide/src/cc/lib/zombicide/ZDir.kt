@@ -2,47 +2,55 @@ package cc.lib.zombicide
 
 import cc.lib.annotation.Keep
 import cc.lib.game.Justify
-
 import cc.lib.math.Vector2D
-import cc.lib.utils.GException
 import cc.lib.utils.Grid
 import kotlin.math.abs
 
 @Keep
-enum class ZDir(@JvmField val dx: Int, @JvmField val dy: Int, @JvmField val dz: Int, @JvmField val rotation: Int, @JvmField val horz: Justify, @JvmField val vert: Justify) {
-    NORTH(0, -1, 0, 0, Justify.CENTER, Justify.TOP),
-    SOUTH(0, 1, 0, 180, Justify.CENTER, Justify.BOTTOM),
-    EAST(1, 0, 0, 90, Justify.RIGHT, Justify.CENTER),
-    WEST(-1, 0, 0, 270, Justify.LEFT, Justify.CENTER),
-    ASCEND(0, 0, 1, 0, Justify.CENTER, Justify.CENTER),
-    DESCEND(0, 0, -1, 0, Justify.CENTER, Justify.CENTER);
+enum class ZDir(
+	val dx: Int,
+	val dy: Int,
+	val dz: Int,
+	val rotation: Int,
+	val horz: Justify,
+	val vert: Justify
+) {
+	NORTH(0, -1, 0, 0, Justify.CENTER, Justify.TOP),
+	SOUTH(0, 1, 0, 180, Justify.CENTER, Justify.BOTTOM),
+	EAST(1, 0, 0, 90, Justify.RIGHT, Justify.CENTER),
+	WEST(-1, 0, 0, 270, Justify.LEFT, Justify.CENTER),
+	ASCEND(0, 0, 1, 0, Justify.CENTER, Justify.CENTER),
+	DESCEND(0, 0, -1, 0, Justify.CENTER, Justify.CENTER);
 
-    val opposite: ZDir
-        get() {
-            return when (this) {
+	val opposite: ZDir
+		get() {
+			return when (this) {
                 NORTH -> SOUTH
                 SOUTH -> NORTH
                 EAST -> WEST
                 WEST -> EAST
-                ASCEND -> DESCEND
-                DESCEND -> ASCEND
-            }
-        }
+				ASCEND -> DESCEND
+				DESCEND -> ASCEND
+			}
+		}
 
-    fun getAdjacent(pos: Grid.Pos): Grid.Pos? = when (this) {
-            NORTH, WEST, EAST, SOUTH -> Grid.Pos(pos.row + dy, pos.column + dx)
-            else -> null
-        }
+	fun getAdjacent(pos: Grid.Pos): Grid.Pos? = when (this) {
+		NORTH, WEST, EAST, SOUTH -> Grid.Pos(pos.row + dy, pos.column + dx)
+		else -> null
+	}
 
-    companion object {
-        @JvmStatic
-        fun getDirFrom(from: Grid.Pos, to: Grid.Pos): ZDir? {
-            if (from.column != to.column && from.row != to.row) return null
-            if (from.column == to.column && from.row == to.row) return null
-            val dx = if (to.column > from.column) 1 else if (from.column > to.column) -1 else 0
-            val dy = if (to.row > from.row) 1 else if (from.row > to.row) -1 else 0
-            if (dx != 0 && dy != 0) {
-                //throw new AssertionError("No direction for diagonals");
+	val dv: Vector2D
+		get() = Vector2D(dx, dy)
+
+	companion object {
+		@JvmStatic
+		fun getDirFrom(from: Grid.Pos, to: Grid.Pos): ZDir? {
+			if (from.column != to.column && from.row != to.row) return null
+			if (from.column == to.column && from.row == to.row) return null
+			val dx = if (to.column > from.column) 1 else if (from.column > to.column) -1 else 0
+			val dy = if (to.row > from.row) 1 else if (from.row > to.row) -1 else 0
+			if (dx != 0 && dy != 0) {
+				//throw new AssertionError("No direction for diagonals");
                 return null
             }
             if (dx < 0) return WEST else if (dx > 0) return EAST else if (dy < 0) return NORTH

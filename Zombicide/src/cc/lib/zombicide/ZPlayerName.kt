@@ -87,27 +87,50 @@ enum class ZPlayerName(val characterClass: String, val startingEquipment: Array<
     Karl("Monk",
             arrayOf(ZWeaponType.SWORD, ZWeaponType.MANA_BLAST),
             ZEquipmentClass.MAGIC,
-            arrayOf(ZSkill.Plus1_die_Magic),
-            arrayOf(ZSkill.Plus1_Action),
-            arrayOf(ZSkill.Plus1_free_Combat_Action, ZSkill.Spellcaster),
-            arrayOf(ZSkill.Plus1_free_Combat_Action, ZSkill.Plus1_max_Range, ZSkill.Marksman)),
-    Ariane("Thief",
-            arrayOf(ZWeaponType.CROSSBOW),
-            ZEquipmentClass.CROSSBOW,
-            arrayOf(ZSkill.Jump),
-            arrayOf(ZSkill.Plus1_Action),
-            arrayOf(ZSkill.Plus1_free_Move_Action, ZSkill.Plus1_free_Melee_Action),
-            arrayOf(ZSkill.Plus1_die_Combat, ZSkill.Plus1_die_Ranged, ZSkill.Spellcaster));
+	    arrayOf(ZSkill.Plus1_die_Magic),
+	    arrayOf(ZSkill.Plus1_Action),
+	    arrayOf(ZSkill.Plus1_free_Combat_Action, ZSkill.Spellcaster),
+	    arrayOf(ZSkill.Plus1_free_Combat_Action, ZSkill.Plus1_max_Range, ZSkill.Marksman)
+    ),
+	Ariane(
+		"Thief",
+		arrayOf(ZWeaponType.CROSSBOW),
+		ZEquipmentClass.CROSSBOW,
+		arrayOf(ZSkill.Jump),
+		arrayOf(ZSkill.Plus1_Action),
+		arrayOf(ZSkill.Plus1_free_Move_Action, ZSkill.Plus1_free_Melee_Action),
+		arrayOf(ZSkill.Plus1_die_Combat, ZSkill.Plus1_die_Ranged, ZSkill.Spellcaster)
+	),
+	Arnaud(
+		"Forager",
+		arrayOf(ZWeaponType.SHORT_SWORD, ZItemType.TORCH),
+		ZEquipmentClass.THROWABLE,
+		arrayOf(ZSkill.Plus1_free_Search_Action),
+		arrayOf(ZSkill.Plus1_Action),
+		arrayOf(ZSkill.Plus1_die_Melee, ZSkill.Plus1_free_Move_Action),
+		arrayOf(ZSkill.Plus1_free_Combat_Action, ZSkill.Iron_hide, ZSkill.Reaper_Combat)
+	),
+	Seli(
+		"Elf",
+		arrayOf(ZWeaponType.DAGGER),
+		ZEquipmentClass.DAGGER,
+		arrayOf(ZSkill.Jump),
+		arrayOf(ZSkill.Plus1_Action),
+		arrayOf(ZSkill.Plus1_free_Melee_Action, ZSkill.Hit_and_run),
+		arrayOf(ZSkill.Plus1_free_Move_Action, ZSkill.Roll_6_plus1_die_Combat, ZSkill.Zombie_link)
+	)
 
-    private val skillOptions: Array<Array<ZSkill>> = arrayOf(
-            blueSkillOptions,
-            yellowSkillOptions,
-            orangeSkillOptions,
-            redSkillOptions
-    )
+	;
 
-    var imageId = -1
-    var cardImageId = -1
+	private val skillOptions: Array<Array<ZSkill>> = arrayOf(
+		blueSkillOptions,
+		yellowSkillOptions,
+		orangeSkillOptions,
+		redSkillOptions
+	)
+
+	var imageId = -1
+	var cardImageId = -1
     var outlineImageId = -1
     var imageDim: GDimension = GDimension.EMPTY
 

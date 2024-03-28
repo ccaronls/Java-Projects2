@@ -1,20 +1,61 @@
 package cc.lib.zombicide.ui
 
-import cc.lib.game.*
+import cc.lib.game.AAnimation
+import cc.lib.game.AGraphics
+import cc.lib.game.AImage
+import cc.lib.game.APGraphics
+import cc.lib.game.GColor
+import cc.lib.game.GDimension
+import cc.lib.game.GRectangle
+import cc.lib.game.IDimension
+import cc.lib.game.IMeasurable
+import cc.lib.game.IRectangle
+import cc.lib.game.IVector2D
+import cc.lib.game.Justify
+import cc.lib.game.Renderer
+import cc.lib.game.Utils
 import cc.lib.logger.LoggerFactory
 import cc.lib.math.MutableVector2D
 import cc.lib.math.Vector2D
 import cc.lib.ui.IButton
 import cc.lib.ui.UIRenderer
-import cc.lib.utils.*
+import cc.lib.utils.GException
 import cc.lib.utils.Grid.Pos
-import cc.lib.zombicide.*
+import cc.lib.utils.Table
+import cc.lib.utils.forEachAs
+import cc.lib.utils.getOrSet
+import cc.lib.utils.increment
+import cc.lib.utils.transform
+import cc.lib.zombicide.ZActionType
+import cc.lib.zombicide.ZActor
+import cc.lib.zombicide.ZAnimation
+import cc.lib.zombicide.ZBoard
+import cc.lib.zombicide.ZCell
+import cc.lib.zombicide.ZCellType
+import cc.lib.zombicide.ZCharacter
+import cc.lib.zombicide.ZDir
 import cc.lib.zombicide.ZDir.Companion.compassValues
 import cc.lib.zombicide.ZDir.Companion.elevationValues
+import cc.lib.zombicide.ZDoor
+import cc.lib.zombicide.ZEquipment
+import cc.lib.zombicide.ZIcon
+import cc.lib.zombicide.ZMove
+import cc.lib.zombicide.ZMoveType
+import cc.lib.zombicide.ZPlayerName
+import cc.lib.zombicide.ZQuest
+import cc.lib.zombicide.ZSpawnArea
+import cc.lib.zombicide.ZSpell
+import cc.lib.zombicide.ZTile
+import cc.lib.zombicide.ZWallFlag
+import cc.lib.zombicide.ZWeapon
+import cc.lib.zombicide.ZZombie
+import cc.lib.zombicide.ZZombieType
+import cc.lib.zombicide.ZZoneType
 import cc.lib.zombicide.anims.HoverMessage
 import cc.lib.zombicide.anims.OverlayTextAnimation
 import cc.lib.zombicide.anims.ZoomAnimation
-import java.util.*
+import java.util.Collections
+import java.util.Stack
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -56,7 +97,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 
 			field = value
 		}
-	private val clickables: MutableMap<IRectangle, MutableList<IButton>> = TreeMap()
+//	private val clickables: MutableMap<IRectangle, MutableList<IButton>> = TreeMap()
 	private var highlightedCell: Pos? = null
 		private set
 	private var highlightedResult: Any? = null
@@ -71,6 +112,9 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 	//	var highlightedMoves: List<IButton>? = null
 //	var highlightedMovesPos: Vector2D? = null
 	private var actorsAnimating = false
+		set(value) {
+			field = value
+		}
 	private var overlayToDraw: Any? = null
 	var drawTiles = false
 	var drawDebugText = false
@@ -93,8 +137,12 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 	private val actorMap = mutableMapOf<ZActor, MutableList<HoverMessage>>()
 	var desiredZoomType = ZoomType.CROP_FIT
 	var currentZoomType = ZoomType.UNDEFINED
-	private val board: ZBoard
-		get() = UIZombicide.instance.board
+	var board: ZBoard = ZBoard()
+		set(value) {
+			field = value
+			initViewport()
+		}
+
 	var quest: ZQuest? = null
 		set(value) {
 			if (field?.quest != value?.quest) {
@@ -244,12 +292,6 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		redraw()
 	}
 
-	private fun addClickable(rect: IRectangle, move: IButton) {
-		with(clickables.getOrSet(rect) { ArrayList() }) {
-			add(move)
-		}
-	}
-
 	fun zoomAmt(percent: Float) {
 		val targetRect = _zoomedRect.scaledBy(percent)
 		currentZoomType = ZoomType.UNDEFINED
@@ -316,25 +358,42 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 	}
 
 	fun processMoveOptions(cur: ZCharacter, options: List<ZMove>) {
+		clearButtons()
+		val clickables = mutableMapOf<IRectangle, MutableList<ZMove>>()
+
+		fun addClickable(rect: IRectangle, move: ZMove) {
+			clickables.getOrSet(rect) { ArrayList() }.add(move)
+		}
+
 		clickables.clear()
 		if (!ENABLE_ONBOARD_MENU) return
 		for (move in options) {
 			when (move.type) {
-				ZMoveType.TRADE -> move.list?.map { board.getCharacter(it as ZPlayerName) }?.forEach { c: ZCharacter ->
-					addClickable(c.getRect(), ZMove(move, c, "Trade ${c.getLabel()}"))
-				}
+				ZMoveType.TRADE -> move.list?.map { board.getCharacter(it as ZPlayerName) }
+					?.forEach { c: ZCharacter ->
+						addClickable(c.getRect(), ZMove(move, c, "Trade ${c.getLabel()}"))
+					}
+
 				ZMoveType.WALK -> move.list?.forEachAs { zoneIdx: Int ->
 					addClickable(board.getZone(zoneIdx), ZMove(move, zoneIdx, zoneIdx))
 				}
 				ZMoveType.MELEE_ATTACK, ZMoveType.RANGED_ATTACK, ZMoveType.MAGIC_ATTACK -> move.list?.forEachAs { w: ZWeapon ->
 					for (stat in w.type.stats.filter { it.actionType == move.action }) {
-						for (zoneIdx in board.getAccessibleZones(cur.occupiedZone, stat.minRange, stat.maxRange, stat.actionType)) {
-							addClickable(board.getZone(zoneIdx), ZMove(move, w, zoneIdx, "${move.type.shortName} ${w.getLabel()}"))
+						for (zoneIdx in board.getAccessibleZones(
+							cur,
+							stat.minRange,
+							stat.maxRange,
+							stat.actionType
+						)) {
+							addClickable(
+								board.getZone(zoneIdx),
+								ZMove(move, w, zoneIdx, "${move.type.shortName} ${w.getLabel()}")
+							)
 						}
 					}
 				}
 				ZMoveType.THROW_ITEM -> {
-					val zones = board.getAccessibleZones(cur.occupiedZone, 0, 1, ZActionType.THROW_ITEM)
+					val zones = board.getAccessibleZones(cur, 0, 1, ZActionType.THROW_ITEM)
 					move.list?.forEachAs { item: ZEquipment<*> ->
 						for (zoneIdx in zones) {
 							addClickable(cur.getRect(), ZMove(move, item, zoneIdx, "Throw ${item.getLabel()}"))
@@ -369,11 +428,17 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 				ZMoveType.SHOVE -> move.list?.forEachAs { zoneIdx: Int ->
 					addClickable(board.getZone(zoneIdx), ZMove(move, zoneIdx, "Shove"))
 				}
+
+				ZMoveType.CHARGE -> move.list?.forEachAs { zoneIdx: Int ->
+					addClickable(board.getZone(zoneIdx), ZMove(move, zoneIdx, "Charge"))
+				}
+
 				ZMoveType.BORN_LEADER, // Born leader can be a spell?
 				ZMoveType.WALK_DIR,
 					//ZMoveType.REROLL,
 					//ZMoveType.KEEP_ROLL,
 				ZMoveType.USE_SLOT -> Unit
+
 				ZMoveType.ENCHANT -> {
 					board.getAllCharacters().filter {
 						it.isAlive && board.canSee(cur.occupiedZone, it.occupiedZone)
@@ -416,6 +481,9 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 			highlightedMoves = null
 			highlightedMovesPos = null
 		}*/
+		//clickables.forEach { (rect, list) ->
+		//	addButton(MenuButton(rect, list))
+		//}
 	}
 
 	fun drawAnimations(anims: MutableList<ZAnimation>, g: AGraphics) {
@@ -566,8 +634,17 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		g.color = GColor.BLACK
 		for (zone in board.zones) {
 			if (zone.noiseLevel > 0) {
-				g.color = GColor.BLACK
-				g.drawJustifiedString(zone.center, Justify.CENTER, Justify.CENTER, java.lang.String.valueOf(zone.noiseLevel))
+				val iconRect = GRectangle(zone.rectangle.topLeft, .2f, .2f)
+				g.drawImage(ZIcon.NOISE.imageIds[0], iconRect)
+				if (zone.noiseLevel > 1) {
+					g.color = GColor.WHITE
+					g.drawJustifiedString(
+						iconRect.topRight,
+						Justify.LEFT,
+						Justify.TOP,
+						"X ${zone.noiseLevel}"
+					)
+				}
 			}
 		}
 		board.getMaxNoiseLevelZones().forEach { maxNoise ->
@@ -596,8 +673,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 	 * return zone highlighted by mouseX, mouseY
 	 *
 	 * @param g
-	 * @param mouseX
-	 * @param mouseY
+	 * @param miniMap
 	 * @return
 	 */
 	fun drawZones(g: AGraphics, miniMap: Boolean): Pos? {
@@ -608,7 +684,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 				if (cell.isCellTypeEmpty) continue
 				when (zone.type) {
 					ZZoneType.TOWER -> if (miniMap || drawTowersHighlighted) {
-						g.color = GColor.SKY_BLUE.withAlpha((cell.scale - 1) * 3)
+						g.color = GColor.SKY_BLUE.withAlpha(cell.scale / 3)
 						g.drawFilledRect(cell)
 					}
 					else -> Unit
@@ -631,7 +707,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 				}
 				var text = ""
 				val lineThickness = if (miniMap) 2f else 10f
-				for (type in ZCellType.values()) {
+				for (type in ZCellType.entries) {
 					if (cell.isCellType(type)) {
 						when (type) {
 							ZCellType.OBJECTIVE_BLACK -> {
@@ -646,14 +722,16 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 							ZCellType.OBJECTIVE_BLUE, ZCellType.OBJECTIVE_GREEN, ZCellType.OBJECTIVE_RED -> if (zone.isObjective) {
 								drawObjectiveX(g, type.color, lineThickness, cell)
 							}
+
 							ZCellType.EXIT -> text += "EXIT"
+							ZCellType.RUBBLE -> g.drawImage(ZIcon.RUBBLE.imageIds[0], cell)
 							else -> Unit
 						}
 					}
 				}
 				for (area in cell.spawnAreas) {
 					with (drawSpawn(g, cell, area)) {
-						if (zone.isTargetForEscape && area.isEscapableForNecromancers) {
+						board.getAllZombies().firstOrNull { it.escapeZone == area }?.let {
 							g.color = GColor.RED
 							g.drawRect(this, 2f)
 						}
@@ -667,11 +745,31 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 				}
 				if (!miniMap && text.isNotEmpty()) {
 					g.color = GColor.YELLOW
-					g.drawJustifiedStringOnBackground(cell.center, Justify.CENTER, Justify.CENTER, text, GColor.TRANSLUSCENT_BLACK, 10f, 2f)
+					g.drawJustifiedStringOnBackground(
+						cell.center,
+						Justify.CENTER,
+						Justify.CENTER,
+						text,
+						GColor.TRANSLUSCENT_BLACK,
+						10f,
+						2f
+					)
 				}
 				if (!miniMap && zone.pickable) {
 					g.color = GColor.TRANSLUSCENT_BLACK
 					g.drawFilledRect(cell)
+				}
+				if (!miniMap && zone.type == ZZoneType.HOARD) {
+					g.color = GColor.WHITE
+					val msg: String = board.getHoard().let {
+						if (it.isEmpty()) {
+							"EMPTY"
+						} else it.map { (type, count) ->
+							"$type X $count"
+						}.joinToString("\n")
+					}
+
+					g.drawJustifiedString(zone.center, Justify.CENTER, Justify.CENTER, msg)
 				}
 			}
 			zone.doors.filter { it.pickable }.forEach { door ->
@@ -878,18 +976,44 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 						g.color = door.lockedColor
 						g.drawLine(dv0, dv1, (wallThickness + 1).toFloat())
 						if (!miniMap) {
-							val padlock = GRectangle(0f, 0f, .2f, .2f).withCenter(dv1.add(dv0).scaleEq(.5f))
-							val img = g.getImage(ZIcon.PADLOCK.imageIds[0])
-							g.drawImage(ZIcon.PADLOCK.imageIds[0], padlock.fit(img))
+							val padlock =
+								GRectangle(0f, 0f, .2f, .2f).withCenter(dv1.add(dv0).scaleEq(.5f))
+							drawPadlock(g, padlock)
+//							val img = g.getImage(ZIcon.PADLOCK.imageIds[0])
+//							g.drawImage(ZIcon.PADLOCK.imageIds[0], padlock.fit(img))
 						}
 					}
 				}
+
 				ZWallFlag.CLOSED -> if (dir === ZDir.SOUTH || dir === ZDir.WEST) {
 					g.drawLine(v0, v1, wallThickness.toFloat())
 					g.color = doorColor
 					g.drawLine(dv0, dv1, (wallThickness + 1).toFloat())
 				}
-				else -> Unit
+
+				ZWallFlag.HEDGE -> if (dir === ZDir.SOUTH || dir === ZDir.WEST) {
+					g.color = GColor.GREEN
+					g.drawLine(v0, v1, wallThickness.toFloat() * 2)
+				}
+
+				ZWallFlag.LEDGE -> {
+					if (board.getZone(cell.zoneIndex).type == ZZoneType.WATER) {
+						// draw a 'ledge' down into the water
+						g.begin()
+						g.pushMatrix()
+						g.vertex(v0)
+						g.vertex(v1)
+						g.translate(0.1f, 0.1f)
+						g.vertex(v0)
+						g.translate(0.8f, 0f)
+						g.vertex(v0)
+						g.drawQuadStrip()
+						g.popMatrix()
+						g.end()
+					}
+				}
+
+				ZWallFlag.NONE -> Unit
 			}
 			g.popMatrix()
 		}
@@ -906,9 +1030,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 					g.color = GColor.RED
 					vaultRect.drawOutlined(g, vaultLineThickness)
 					if (!miniMap) {
-						val rect = door.getRect(board).scale(.7f)
-						val img = g.getImage(ZIcon.PADLOCK.imageIds[0])
-						g.drawImage(ZIcon.PADLOCK.imageIds[0], rect.fit(img))
+						drawPadlock(g, door.getRect(board).scale(.7f))
 					}
 				}
 				ZWallFlag.CLOSED -> {
@@ -994,10 +1116,10 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 			}
 			// draw the actors
 			for (a in board.getAllActors()) {
-				if (a is ZCharacter) {
-					g.color = a.color ?: GColor.BLACK
-				} else if (a is ZZombie) {
-					g.color = GColor.LIGHT_GRAY
+				g.color = when (a) {
+					is ZCharacter -> a.color ?: GColor.BLACK
+					is ZZombie -> GColor.LIGHT_GRAY
+					else -> GColor.BLACK
 				}
 				val rect = a.getRect(board)
 				g.drawFilledOval(rect.scale(.8f))
@@ -1008,25 +1130,26 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		}
 	}
 
+	fun drawPadlock(g: AGraphics, rect: IRectangle) {
+		val img = g.getImage(ZIcon.PADLOCK.imageIds[0])
+		g.drawImage(ZIcon.PADLOCK.imageIds[0], rect.fit(img))
+	}
+
 	fun drawDebugText(g: AGraphics) {
 		val it = board.getCellsIterator()
 		while (it.hasNext()) {
 			val cell = it.next()
 			if (cell.isCellTypeEmpty) continue
-			var text: String = when (cell.environment) {
-				ZCell.ENV_BUILDING -> "Building "
-				ZCell.ENV_VAULT -> "Vault "
-				ZCell.ENV_TOWER -> "Tower "
-				ZCell.ENV_OUTDOORS -> "Outside "
-				else -> "??? "
-			} + "Z${cell.zoneIndex} [${cell.X()},${cell.Y()}]"
-			for (type in ZCellType.values()) {
+			var text: String = "${cell.environment} Z${cell.zoneIndex} [${cell.X()},${cell.Y()}]"
+			for (type in ZCellType.entries) {
 				if (cell.isCellType(type)) {
 					when (type) {
 						ZCellType.NONE, ZCellType.VAULT_DOOR_VIOLET, ZCellType.VAULT_DOOR_GOLD -> {
 						}
+
 						ZCellType.OBJECTIVE_RED, ZCellType.OBJECTIVE_BLUE, ZCellType.OBJECTIVE_GREEN, ZCellType.OBJECTIVE_BLACK ->
 							text += "\n\n${type.name.substring(10)}\n".trimIndent()
+
 						else -> text += "\n\n$type\n".trimIndent()
 					}
 				}
@@ -1056,11 +1179,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		while (it.hasNext()) {
 			val cell = it.next()
 			if (cell.isCellTypeEmpty) continue
-			when (cell.environment) {
-				ZCell.ENV_BUILDING -> g.color = GColor.DARK_GRAY
-				ZCell.ENV_OUTDOORS, ZCell.ENV_TOWER -> g.color = GColor.LIGHT_GRAY
-				ZCell.ENV_VAULT -> g.color = GColor.BROWN
-			}
+			g.color = cell.environment.color
 			g.drawFilledRect(cell)
 		}
 		return returnCell
@@ -1209,12 +1328,17 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 
 	/**
 	 *
-	 * @param targetZoomPercent 0 is fully zoomed out and 1 is fully zoomed in
 	 */
 	fun animateZoomTo(newRect: IRectangle) {
 		zoomAnimation = ZoomAnimation(clampRect(GRectangle(newRect)), this).start()
 		redraw()
 	}
+
+	fun isZoomRectContains(rect: IRectangle): Boolean = getZoomedRect().contains(
+		clampRect(
+			GRectangle(rect)
+		)
+	)
 
 	fun animateZoomToIfNotContained(newRect: IRectangle) {
 		clampRect(GRectangle(newRect)).also { rect ->
@@ -1265,14 +1389,20 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 	val mouseV = MutableVector2D(-1f, -1f)
 
 	override fun draw(g: APGraphics, mx: Int, my: Int) {
+
 		mouseX = mx
 		mouseY = my
-		actorsAnimating = true
+		//actorsAnimating = false
 
 		if (!UIZombicide.initialized) {
 			drawNoBoard(g)
+			drawAnimations(overlayAnimations, g)
+			if (overlayAnimations.isNotEmpty())
+				redraw()
+
 			return
 		}
+		//actorsAnimating = UIZombicide.instance.isGameRunning()
 		highlightedCell = null
 		highlightedResult = null
 		g.setIdentity()
@@ -1302,25 +1432,17 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		}
 		if (drawDebugText)
 			drawDebugText(g)
-		if (drawZombiePaths) {
+		if (drawZombiePaths || highlightedActor?.drawPathsOnHighlight == true) {
 			highlightedActor?.let {
 				if (it is ZZombie) {
 					val path = when (it.type) {
 						ZZombieType.Necromancer -> board.getZombiePathTowardNearestSpawn(it)
 						else -> board.getZombiePathTowardVisibleCharactersOrLoudestZone(it)
 					}
-					g.begin()
 					g.color = GColor.YELLOW
-					val start: Vector2D = it.getRect().center
-					g.vertex(start)
-					val next = MutableVector2D(start)
-					for (dir in path) {
-						next.addEq(dir.dx.toFloat(), dir.dy.toFloat())
-						g.vertex(next)
-					}
-					g.drawLineStrip(3f)
+					drawPath(g, it, path)
 				} else if (highlightedActor is ZCharacter) {
-					val visibleZones = board.getAccessibleZones(it.occupiedZone, 0, 4, ZActionType.RANGED)
+					val visibleZones = board.getAccessibleZones(it, 0, 4, ZActionType.RANGED)
 					for (zoneIdx in visibleZones) {
 						val zone = board.getZone(zoneIdx)
 						g.color = GColor.YELLOW
@@ -1329,13 +1451,16 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 				}
 			}
 		}
-		highlightedCell?.transform { board.getZone(it) }?.let { zone: ZZone ->
+		highlightedActor?.let { actor ->
 			if (drawRangedAccessibility) {
 				g.color = GColor.BLUE.withAlpha(.5f)
-				for (zIndex in board.getAccessibleZones(zone.zoneIndex, 1, 5, ZActionType.RANGED)) {
+				for (zIndex in board.getAccessibleZones(actor, 1, 5, ZActionType.RANGED)) {
 					drawZoneFilled(g, zIndex)
 				}
 			}
+		}
+
+		highlightedCell?.transform { board.getZone(it) }?.let { zone ->
 			if (zone.pickable) {
 				highlightedResult = zone.zoneIndex
 			}
@@ -1351,7 +1476,20 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 			g.color = GColor.RED.withAlpha(32)
 			drawZoneOutline(g, cell.zoneIndex)
 		}
-		drawMessage(g)
+
+		if (drawScreenCenter) {
+			g.color = GColor.RED
+			g.drawCircle(boardCenter, .25f)
+		}
+
+		/*
+		if (drawClickable) {
+			g.color = GColor.RED
+			clickables.keys.forEach() { shape ->
+				shape.drawOutlined(g)
+			}
+		}*/
+
 		drawOverlay(g)
 
 		if (zoomAnimation?.isDone == true) {
@@ -1362,64 +1500,157 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		if (isAnimating) {
 			redraw()
 		} else {
-			val d = g.pushDepth
 			drawMiniMap(g)
 			lock.withLock {
 				condition.signal()
 			}
-			if (d != g.pushDepth) {
-				throw GException("push depth out of sync in drawMiniMap")
-			}
 		}
+	}
 
-		if (drawScreenCenter) {
-			g.color = GColor.RED
-			g.drawCircle(boardCenter, .25f)
-		}
+	inner class MenuButton : IButton {
 
-		if (drawClickable) {
-			g.color = GColor.RED
-			clickables.keys.forEach() { shape ->
-				shape.drawOutlined(g)
-			}
-		}
 	}
 
 	val lock = ReentrantLock()
 	val condition = lock.newCondition()
 
-	fun waitForAnimations() {
-		actorsAnimating = true
+	fun waitForAnimations(maxWaitSecs: Int = 4) {
 		redraw()
-		do {
+		for (i in 0 until maxWaitSecs) {
 			lock.withLock {
 				condition.await(1, TimeUnit.SECONDS)
 			}
-		} while (isAnimating)
+			if (!isAnimating)
+				break
+			redraw()
+		}
+	}
+
+	fun wait(msecs: Int) {
+		lock.withLock {
+			condition.await(msecs.toLong(), TimeUnit.MILLISECONDS)
+		}
+	}
+
+	fun drawPath(g: AGraphics, actor: ZActor, path: List<ZDir>) {
+		g.begin()
+		val start: Vector2D = actor.getRect().center
+		var curCell = actor.occupiedCell
+		g.vertex(start)
+		val next = MutableVector2D(start)
+		for (dir in path) {
+			when (dir) {
+				ZDir.ASCEND,
+				ZDir.DESCEND -> {
+					val cell = board.getCell(curCell)
+					g.vertex(cell.center)
+					g.drawLineStrip(3f)
+					g.begin()
+					board.getZone(cell.zoneIndex).doors.first {
+						it.isVault && it.cellPosStart == curCell
+					}.apply {
+						val nextCell = board.getCell(cellPosEnd)
+						next.set(nextCell.center)
+						curCell = cellPosEnd
+						g.vertex(next)
+					}
+				}
+
+				else -> {
+					curCell = Pos(curCell.row + dir.dy, curCell.column + dir.dx)
+					next.addEq(dir.dx.toFloat(), dir.dy.toFloat())
+					g.vertex(next)
+				}
+			}
+		}
+		g.drawLineStrip(3f)
 	}
 
 	protected fun drawOverlay(g: AGraphics) {
+		g.setIdentity()
+		g.ortho()
+		drawMessage(g)
+		drawAnimations(overlayAnimations, g)
 		drawOverlayObject(overlayToDraw, g)
+		if (UIZombicide.instance.isGameRunning())
+			drawDeckInfo(g)
+	}
+
+	protected fun drawDeckInfo(g: AGraphics) {
+		g.pushTextHeight(20f)
+		val padding = 5f
+		val radius = 5f
+		val dim = GDimension(30f, 50f)
+		g.pushMatrix()
+		g.translate(viewportWidth - padding - dim.width, padding)
+		drawDeck(g, dim, radius, GColor.RED, UIZombicide.instance.spawnDeckSize, "SPAWN")
+		g.translate(0f, dim.height + padding)
+		drawDeck(g, dim, radius, GColor.BLUE, UIZombicide.instance.lootDeckSize, "LOOT")
+		g.translate(0f, dim.height + padding)
+		UIZombicide.instance.hoardSize.takeIf { it > 0 }?.let { count ->
+			drawDeck(g, dim, radius, GColor.GREEN, count, "HOARD")
+		}
+		g.popMatrix()
+		g.popTextHeight()
+	}
+
+	private fun drawDeck(
+		g: AGraphics,
+		dimension: IDimension,
+		radius: Float,
+		color: GColor,
+		count: Int,
+		description: String
+	) {
+		val c = g.color
+		val w = dimension.width
+		val h = dimension.height
+		g.color = color
+		g.drawFilledRoundedRect(0f, 0f, w, h, radius)
+		g.color = GColor.WHITE
+		g.setLineWidth(2f)
+		g.drawRoundedRect(0f, 0f, w, h, radius)
+		g.pushMatrix()
+		g.translate(w / 2, h / 2)
+		g.drawJustifiedString(0f, 0f, Justify.CENTER, Justify.CENTER, "$count")
+		g.popMatrix()
+		g.pushMatrix()
+		g.translate(-radius, h / 2)
+		g.drawJustifiedStringOnBackground(
+			0f,
+			0f,
+			Justify.RIGHT,
+			Justify.CENTER,
+			description,
+			GColor.TRANSLUSCENT_BLACK,
+			radius
+		)
+		g.popMatrix()
+		g.color = c
 	}
 
 	protected fun drawMessage(g: AGraphics) {
-		g.pushMatrix()
-		g.setIdentity()
-		g.ortho()
 		g.color = GColor.WHITE
 		boardMessage?.let { message ->
-			g.drawJustifiedStringOnBackground(10f, height - 10, Justify.LEFT, Justify.BOTTOM, message, GColor.TRANSLUSCENT_BLACK, borderThickness)
-			drawAnimations(overlayAnimations, g)
+			g.drawJustifiedStringOnBackground(
+				10f,
+				height - 10,
+				Justify.LEFT,
+				Justify.BOTTOM,
+				message,
+				GColor.TRANSLUSCENT_BLACK,
+				borderThickness
+			)
 		}
 		if (drawDebugText) {
-			g.drawJustifiedStringOnBackground(width - 10, 10f, Justify.RIGHT, Justify.TOP,
+			g.drawJustifiedStringOnBackground(
+				width - 10, 10f, Justify.RIGHT, Justify.TOP,
 				"""$desiredZoomType/$currentZoomType/${(100f * zoomPercent).roundToInt()}
 				   ZoomRect: $_zoomedRect
 				   Viewport: $viewport
 				   Board: ${board.width} x ${board.height}
 				""".trimMargin(), GColor.TRANSLUSCENT_BLACK, borderThickness)
 		}
-		g.popMatrix()
 	}
 
 	private fun drawOverlayObject(obj: Any?, g: AGraphics) {
@@ -1435,13 +1666,11 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 				g.drawImage(id, rect)
 			}
 		} else if (obj is Table) {
-			g.pushMatrix()
-			g.setIdentity()
-			g.ortho()
 			g.color = GColor.YELLOW
 			val cntr: IVector2D = Vector2D(width / 2, height / 2)
+			g.pushTextHeight(24f)
 			obj.draw(g, cntr, Justify.CENTER, Justify.CENTER)
-			g.popMatrix()
+			g.popTextHeight()
 			/*
             g.setColor(GColor.RED);
             GRectangle r = new GRectangle(d).withCenter(cntr);
@@ -1461,6 +1690,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 				redraw()
 			}
 		} else if (obj is AImage) {
+			obj.draw(g, viewport.width / 2 - obj.width / 2, viewport.height / 2 - obj.height / 2)
 		} else if (obj is List<*>) {
 			drawOverlayList(obj.filterIsInstance<IMeasurable>(), g)
 		}
@@ -1469,13 +1699,10 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 	private fun drawOverlayList(list: List<IMeasurable>, g: AGraphics) {
 		var width = 0f
 		var height = 0f
-		g.pushMatrix()
-		g.setIdentity()
-		g.ortho()
 		for (m in list) {
 			val dim = m.measure(g)
 			width += dim.width
-			height = Math.max(height, dim.height)
+			height = height.coerceAtLeast(dim.height)
 		}
 		val padding = 20f
 		width += padding * (list.size - 1)
@@ -1483,7 +1710,6 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		for (m in list) {
 			drawOverlayObject(m, g)
 		}
-		g.popMatrix()
 	}
 
 	val borderThickness: Float
@@ -1607,20 +1833,24 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 	}
 
 	override fun onSizeChanged(w: Int, h: Int) {
-		if (board.isEmpty())
+		if (board.isEmpty)
 			return
 
 		if (viewportAspect <= 0)
 			return
 
+		initViewport()
+
+		currentZoomType = ZoomType.UNDEFINED
+		toggleZoomType(true)
+	}
+
+	private fun initViewport() {
 		if (board.aspect < viewportAspect) {
 			viewport = GDimension(viewportAspect * board.height, board.height)
 		} else {
 			viewport = GDimension(board.width, board.width / viewportAspect)
 		}
-
-		currentZoomType = ZoomType.UNDEFINED
-		toggleZoomType(true)
 	}
 
 	override fun onFocusChanged(focussed: Boolean) {

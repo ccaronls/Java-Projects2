@@ -1,8 +1,14 @@
 package cc.lib.zombicide.quests
 
 import cc.lib.utils.Table
-import cc.lib.zombicide.*
+import cc.lib.zombicide.ZBoard
+import cc.lib.zombicide.ZCharacter
+import cc.lib.zombicide.ZGame
+import cc.lib.zombicide.ZQuest
+import cc.lib.zombicide.ZQuests
+import cc.lib.zombicide.ZTile
 import cc.lib.zombicide.ZTile.Companion.getQuadrant
+import cc.lib.zombicide.ZZombieType
 
 /**
  * Created by Chris Caron on 8/24/21.
@@ -71,16 +77,10 @@ class WolfQuestTheEvilTwins : ZQuest(ZQuests.The_Evil_Twins) {
 		}
 	}
 
-	override fun getMaxNumZombiesOfType(type: ZZombieType?): Int = when (type) {
-		ZZombieType.GreenTwin, ZZombieType.BlueTwin -> 1
-		ZZombieType.Abomination, ZZombieType.Wolfbomination -> 0
-		else -> super.getMaxNumZombiesOfType(type)
-	}
-
 	override fun getObjectivesOverlay(game: ZGame): Table {
 		val chars: List<ZCharacter> = game.allCharacters
 		val totalChars = chars.size
-		val numInExit: Int = numPlayersInExitEvent(game)
+		val numInExit: Int = numPlayersInExit(game)
 		val numAbominationsKilled = game.getNumKills(ZZombieType.BlueTwin, ZZombieType.GreenTwin)
 		return Table(name)
 			.addRow(Table().setNoBorder()

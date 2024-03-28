@@ -32,16 +32,16 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
         private set
 
 	init {
-        for (et in allVaultOptions) {
-            vaultItemsRemaining.add(et.create())
-        }
-        vaultItemsRemaining.shuffle()
+		vaultItemsRemaining.addAll(allVaultOptions.map { it.create() })
+		vaultItemsRemaining.shuffle()
     }
 
     private val objectives: MutableMap<ZCellType, ZObjective> = HashMap()
 
-	fun numPlayersInExitEvent(game: ZGame) : Int = game.board.getAllCharacters().count {it.occupiedZone == exitZone }
-	fun numDeadPlayers(game: ZGame) : Int = game.board.getAllCharacters().count { it.isDead }
+	fun numPlayersInExit(game: ZGame): Int =
+		game.board.getAllCharacters().count { it.occupiedZone == exitZone }
+
+	fun numDeadPlayers(game: ZGame): Int = game.board.getAllCharacters().count { it.isDead }
 
     abstract fun loadBoard(): ZBoard
 
@@ -128,13 +128,6 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
             listOf(ZWeaponType.CHAOS_LONGBOW, ZWeaponType.VAMPIRE_CROSSBOW, ZWeaponType.EARTHQUAKE_HAMMER, ZWeaponType.DRAGON_FIRE_BLADE)
         } else listOf(ZWeaponType.INFERNO, ZWeaponType.ORCISH_CROSSBOW)
 
-    fun getDirectionForEnvironment(env: Int): ZDir {
-        when (env) {
-            ZCell.ENV_VAULT -> return ZDir.ASCEND
-        }
-        return ZDir.DESCEND
-    }
-
     protected fun setVaultDoor(cell: ZCell, grid: Grid<ZCell>, pos: Grid.Pos, type: ZCellType, vaultFlag: Int) {
         setVaultDoor(cell, grid, pos, type, vaultFlag, ZWallFlag.CLOSED)
     }
@@ -142,7 +135,7 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
     protected fun setVaultDoor(cell: ZCell, grid: Grid<ZCell>, pos: Grid.Pos, type: ZCellType, vaultFlag: Int, wallFlag: ZWallFlag) {
         cell.setCellType(type, true)
         cell.vaultId = vaultFlag
-        setCellWall(grid, pos, getDirectionForEnvironment(cell.environment), wallFlag)
+	    setCellWall(grid, pos, cell.environment.getVaultDirection(), wallFlag)
     }
 
     protected fun setSpawnArea(cell: ZCell, area: ZSpawnArea?) {
@@ -152,69 +145,103 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
 
     protected open fun loadCmd(grid: Grid<ZCell>, pos: Grid.Pos, cmd: String) {
         val cell = grid[pos]
-        when (cmd) {
-            "i" -> cell.environment = ZCell.ENV_BUILDING
-            "v" -> cell.environment = ZCell.ENV_VAULT
-            "t1", "t2", "t3" -> {
-                when (cmd.substring(1).toInt()) {
-                    1    -> cell.scale = 1.05f
-                    2    -> cell.scale = 1.1f
-                    3    -> cell.scale = 1.15f
-                    else -> throw GException("Unhandled case")
-                }
-                cell.environment = ZCell.ENV_TOWER
-            }
-            "vd1" -> setVaultDoor(cell, grid, pos, ZCellType.VAULT_DOOR_VIOLET, 1)
-            "vd2" -> setVaultDoor(cell, grid, pos, ZCellType.VAULT_DOOR_VIOLET, 2)
-            "vd3" -> setVaultDoor(cell, grid, pos, ZCellType.VAULT_DOOR_VIOLET, 3)
-            "vd4" -> setVaultDoor(cell, grid, pos, ZCellType.VAULT_DOOR_VIOLET, 4)
-            "gvd1" -> setVaultDoor(cell, grid, pos, ZCellType.VAULT_DOOR_GOLD, 1)
-            "gvd2" -> setVaultDoor(cell, grid, pos, ZCellType.VAULT_DOOR_GOLD, 2)
-            "gvd3" -> setVaultDoor(cell, grid, pos, ZCellType.VAULT_DOOR_GOLD, 3)
+	    when (cmd) {
+		    "i" -> cell.environment = ZCellEnvironment.BUILDING
+		    "v" -> cell.environment = ZCellEnvironment.VAULT
+		    "r" -> cell.setCellType(ZCellType.RUBBLE, true)
+		    "w" -> {
+			    cell.scale = .85f
+			    cell.environment = ZCellEnvironment.WATER
+		    }
+
+		    "h", "hoard" -> cell.environment = ZCellEnvironment.HOARD
+		    "t1", "t2", "t3" -> {
+			    with(cmd.substring(1).toInt()) {
+				    cell.scale = 1f + 0.5f * this
+			    }
+			    cell.environment = ZCellEnvironment.TOWER
+		    }
+
+		    "vd1" -> setVaultDoor(cell, grid, pos, ZCellType.VAULT_DOOR_VIOLET, 1)
+		    "vd2" -> setVaultDoor(cell, grid, pos, ZCellType.VAULT_DOOR_VIOLET, 2)
+		    "vd3" -> setVaultDoor(cell, grid, pos, ZCellType.VAULT_DOOR_VIOLET, 3)
+		    "vd4" -> setVaultDoor(cell, grid, pos, ZCellType.VAULT_DOOR_VIOLET, 4)
+		    "gvd1" -> setVaultDoor(cell, grid, pos, ZCellType.VAULT_DOOR_GOLD, 1)
+		    "gvd2" -> setVaultDoor(cell, grid, pos, ZCellType.VAULT_DOOR_GOLD, 2)
+		    "gvd3" -> setVaultDoor(cell, grid, pos, ZCellType.VAULT_DOOR_GOLD, 3)
             "gvd4" -> setVaultDoor(cell, grid, pos, ZCellType.VAULT_DOOR_GOLD, 4)
             "wn" -> setCellWall(grid, pos, ZDir.NORTH, ZWallFlag.WALL)
             "ws" -> setCellWall(grid, pos, ZDir.SOUTH, ZWallFlag.WALL)
-            "we" -> setCellWall(grid, pos, ZDir.EAST, ZWallFlag.WALL)
-            "ww" -> setCellWall(grid, pos, ZDir.WEST, ZWallFlag.WALL)
-            "dn" -> setCellWall(grid, pos, ZDir.NORTH, ZWallFlag.CLOSED)
-            "ds" -> setCellWall(grid, pos, ZDir.SOUTH, ZWallFlag.CLOSED)
-            "de" -> setCellWall(grid, pos, ZDir.EAST, ZWallFlag.CLOSED)
-            "dw" -> setCellWall(grid, pos, ZDir.WEST, ZWallFlag.CLOSED)
-            "odn" -> setCellWall(grid, pos, ZDir.NORTH, ZWallFlag.OPEN)
-            "ods" -> setCellWall(grid, pos, ZDir.SOUTH, ZWallFlag.OPEN)
-            "ode" -> setCellWall(grid, pos, ZDir.EAST, ZWallFlag.OPEN)
-            "odw" -> setCellWall(grid, pos, ZDir.WEST, ZWallFlag.OPEN)
-            "spn" -> setSpawnArea(cell, createSpawnAreas(pos, ZDir.NORTH))
-            "sps" -> setSpawnArea(cell, createSpawnAreas(pos, ZDir.SOUTH))
-            "spe" -> setSpawnArea(cell, createSpawnAreas(pos, ZDir.EAST))
-            "spw" -> setSpawnArea(cell, createSpawnAreas(pos, ZDir.WEST))
-            "st", "start" -> cell.setCellType(ZCellType.START, true)
-            "exit" -> cell.setCellType(ZCellType.EXIT, true)
-            "walker" -> cell.setCellType(ZCellType.WALKER, true)
-            "runner" -> cell.setCellType(ZCellType.RUNNER, true)
-            "fatty" -> cell.setCellType(ZCellType.FATTY, true)
-            "necro" -> cell.setCellType(ZCellType.NECROMANCER, true)
-            "abom", "abomination" -> cell.setCellType(ZCellType.ABOMINATION, true)
-            "red" -> {
-                addObjective(ZCellType.OBJECTIVE_RED, cell.zoneIndex)
-                cell.setCellType(ZCellType.OBJECTIVE_RED, true)
-            }
-            "rn" -> setCellWall(grid, pos, ZDir.NORTH, ZWallFlag.RAMPART)
-            "rs" -> setCellWall(grid, pos, ZDir.SOUTH, ZWallFlag.RAMPART)
-            "re" -> setCellWall(grid, pos, ZDir.EAST, ZWallFlag.RAMPART)
-            "rw" -> setCellWall(grid, pos, ZDir.WEST, ZWallFlag.RAMPART)
-            else                  -> throw RuntimeException("Invalid command '$cmd'")
-        }
+		    "we" -> setCellWall(grid, pos, ZDir.EAST, ZWallFlag.WALL)
+		    "ww" -> setCellWall(grid, pos, ZDir.WEST, ZWallFlag.WALL)
+		    "dn" -> setCellWall(grid, pos, ZDir.NORTH, ZWallFlag.CLOSED)
+		    "ds" -> setCellWall(grid, pos, ZDir.SOUTH, ZWallFlag.CLOSED)
+		    "de" -> setCellWall(grid, pos, ZDir.EAST, ZWallFlag.CLOSED)
+		    "dw" -> setCellWall(grid, pos, ZDir.WEST, ZWallFlag.CLOSED)
+		    "odn" -> setCellWall(grid, pos, ZDir.NORTH, ZWallFlag.OPEN)
+		    "ods" -> setCellWall(grid, pos, ZDir.SOUTH, ZWallFlag.OPEN)
+		    "ode" -> setCellWall(grid, pos, ZDir.EAST, ZWallFlag.OPEN)
+		    "odw" -> setCellWall(grid, pos, ZDir.WEST, ZWallFlag.OPEN)
+		    "redspn", "spn" -> setSpawnArea(cell, createSpawnAreas(pos, ZDir.NORTH))
+		    "redsps", "sps" -> setSpawnArea(cell, createSpawnAreas(pos, ZDir.SOUTH))
+		    "redspe", "spe" -> setSpawnArea(cell, createSpawnAreas(pos, ZDir.EAST))
+		    "redspw", "spw" -> setSpawnArea(cell, createSpawnAreas(pos, ZDir.WEST))
+		    /*
+			"bluspn" -> setSpawnArea(cell, createSpawnAreas(pos, ZDir.NORTH))
+			"blusps" -> setSpawnArea(cell, createSpawnAreas(pos, ZDir.SOUTH))
+			"bluspe" -> setSpawnArea(cell, createSpawnAreas(pos, ZDir.EAST))
+			"bluspw" -> setSpawnArea(cell, createSpawnAreas(pos, ZDir.WEST))
+			"grnspn" -> setSpawnArea(cell, createSpawnAreas(pos, ZDir.NORTH))
+			"grnsps" -> setSpawnArea(cell, createSpawnAreas(pos, ZDir.SOUTH))
+			"grnspe" -> setSpawnArea(cell, createSpawnAreas(pos, ZDir.EAST))
+			"grnspw" -> setSpawnArea(cell, createSpawnAreas(pos, ZDir.WEST))*/
+		    "st", "start" -> cell.setCellType(ZCellType.START, true)
+		    "exit" -> cell.setCellType(ZCellType.EXIT, true)
+		    "walker" -> cell.setCellType(ZCellType.WALKER, true)
+		    "runner" -> cell.setCellType(ZCellType.RUNNER, true)
+		    "fatty" -> cell.setCellType(ZCellType.FATTY, true)
+		    "necro" -> cell.setCellType(ZCellType.NECROMANCER, true)
+		    "abom", "abomination" -> cell.setCellType(ZCellType.ABOMINATION, true)
+		    "red" -> {
+			    addObjective(ZCellType.OBJECTIVE_RED, cell.zoneIndex)
+			    cell.setCellType(ZCellType.OBJECTIVE_RED, true)
+		    }
+
+		    "blue" -> {
+			    addObjective(ZCellType.OBJECTIVE_BLUE, cell.zoneIndex)
+			    cell.setCellType(ZCellType.OBJECTIVE_BLUE, true)
+		    }
+
+		    "green" -> {
+			    addObjective(ZCellType.OBJECTIVE_GREEN, cell.zoneIndex)
+			    cell.setCellType(ZCellType.OBJECTIVE_GREEN, true)
+		    }
+
+		    "rn" -> setCellWall(grid, pos, ZDir.NORTH, ZWallFlag.RAMPART)
+		    "rs" -> setCellWall(grid, pos, ZDir.SOUTH, ZWallFlag.RAMPART)
+		    "re" -> setCellWall(grid, pos, ZDir.EAST, ZWallFlag.RAMPART)
+		    "rw" -> setCellWall(grid, pos, ZDir.WEST, ZWallFlag.RAMPART)
+		    "ln" -> setCellWall(grid, pos, ZDir.NORTH, ZWallFlag.LEDGE)
+		    "ls" -> setCellWall(grid, pos, ZDir.SOUTH, ZWallFlag.LEDGE)
+		    "le" -> setCellWall(grid, pos, ZDir.EAST, ZWallFlag.LEDGE)
+		    "lw" -> setCellWall(grid, pos, ZDir.WEST, ZWallFlag.LEDGE)
+		    "hn" -> setCellWall(grid, pos, ZDir.NORTH, ZWallFlag.HEDGE)
+		    "hs" -> setCellWall(grid, pos, ZDir.SOUTH, ZWallFlag.HEDGE)
+		    "he" -> setCellWall(grid, pos, ZDir.EAST, ZWallFlag.HEDGE)
+		    "hw" -> setCellWall(grid, pos, ZDir.WEST, ZWallFlag.HEDGE)
+		    "catapult" -> cell.setCellType(ZCellType.CATAPULT, true)
+		    else -> error("Invalid command '$cmd'")
+	    }
     }
 
 	open fun createSpawnAreas(pos: Grid.Pos, dir : ZDir) : ZSpawnArea {
-		return ZSpawnArea(cellPos = pos, dir = dir)
+		return ZSpawnArea(cellPos = pos, dir = dir, isEscapableForNecromancers = true)
 	}
 
     protected fun setCellWall(grid: Grid<ZCell>, pos: Grid.Pos, dir: ZDir, flag: ZWallFlag) {
         grid[pos].setWallFlag(dir, flag)
         val adj = dir.getAdjacent(pos)
-        if (adj != null && grid.isOnGrid(adj)) grid[adj].setWallFlag(dir.opposite, flag)
+	    if (adj != null && grid.isOnGrid(adj)) grid[adj].setWallFlag(dir.opposite, flag.opposite)
     }
 
     protected fun load(map: Array<Array<String>>): ZBoard {
@@ -404,16 +431,6 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
 	    return list
     }
 
-	open fun getMaxNumZombiesOfType(type: ZZombieType?): Int = when (type) {
-		ZZombieType.GreenTwin, ZZombieType.BlueTwin -> 0
-		ZZombieType.Abomination, ZZombieType.Wolfbomination -> 1
-		ZZombieType.Necromancer -> 2
-		ZZombieType.Wolfz -> 22
-		ZZombieType.Walker -> 35
-		ZZombieType.Fatty, ZZombieType.Runner -> 14
-		else -> 20
-	}
-
 	open fun onEquipmentFound(game: ZGame, equip: ZEquipment<*>) {
 		//
 	}
@@ -431,43 +448,53 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
     protected val numStartObjectives: Int
         get() = objectives.values.sumBy { it.found.size + it.objectives.size }
 
-	open fun onDragonBileExploded(c: ZCharacter, zoneIdx: Int) {}
+	open fun onDragonBileExploded(c: ZSurvivor, zoneIdx: Int) {}
 	open fun drawQuest(board: ZBoard, g: AGraphics) {}
 	fun onNecromancerEscaped(game: ZGame, z: ZZombie) {
 		game.gameLost("Necromancer Escaped")
 	}
 
     open fun onZombieSpawned(game: ZGame, zombie: ZZombie, zone: Int) {
-        when (zombie.type) {
-	        ZZombieType.Necromancer -> {
-		        game.board.setSpawnZone(zone, ZIcon.SPAWN_GREEN, false, false, true)
-		        game.spawnZombies(zone)
-	        }
-	        else -> Unit
-        }
+	    when (zombie.type) {
+		    ZZombieType.Necromancer -> {
+			    game.board.setSpawnZone(zone, ZIcon.SPAWN_GREEN, false, false, true)
+			    game.spawnZombies(zone)
+		    }
+
+		    ZZombieType.RatKing -> {
+			    game.spawnZombies(1, ZZombieType.Ratz, zone)
+		    }
+
+		    else -> Unit
+	    }
     }
 
-    /**
-     * Return a spawn card or null if none left. Default behavior is infinite spawn cards
-     *
-     * @param game
-     * @param targetZone
-     * @param dangerLevel
-     * @return
-     */
-    open fun drawSpawnCard(game: ZGame, targetZone: Int, dangerLevel: ZSkillLevel?): ZSpawnCard? {
-	    return ZSpawnCard.drawSpawnCard(quest.isWolfBurg, game.board.canZoneSpawnNecromancers(targetZone), game.getDifficulty())
-    }
+	/**
+	 * Return a spawn card or null if none left. Default behavior is infinite spawn cards
+	 *
+	 * @param game
+	 * @param targetZone
+	 * @param dangerLevel
+	 * @return
+	 *
+	open fun drawSpawnCard(game: ZGame, targetZone: Int, dangerLevel: ZSkillLevel?): ZSpawnCard? {
+	return ZSpawnCard.drawSpawnCard(quest.isWolfBurg, game.board.canZoneSpawnNecromancers(targetZone), game.getDifficulty())
+	}*/
 
-    fun isExitClearedOfZombies(game: ZGame): Boolean {
-        return game.board.getNumZombiesInZone(exitZone) == 0
-    }
+	fun isExitClearedOfZombies(game: ZGame): Boolean {
+		return game.board.getNumZombiesInZone(exitZone) == 0
+	}
+
+	open fun buildDeck(difficulty: ZDifficulty, rules: ZRules): List<ZSpawnCard> =
+		ZSpawnCard.buildDeck(quest.getDeckType(), difficulty, rules)
 
 	open fun drawBlackObjective(board: ZBoard, g: AGraphics, cell: ZCell, zone: ZZone) {
 		throw Exception("Unhandled method drawBlackObjective")
 	}
 
-	open fun onDoorOpened(game: ZGame, door: ZDoor, c:ZCharacter) {}
+	open fun onDoorOpened(game: ZGame, door: ZDoor, c: ZCharacter) {}
 
-	open fun onSpawnZoneRemoved(game: ZGame, spawnArea : ZSpawnArea) {}
+	open fun onSpawnZoneRemoved(game: ZGame, spawnArea: ZSpawnArea) {}
+
+	open fun handleSpawnForZone(game: ZGame, zoneIdx: Int): Boolean = false
 }

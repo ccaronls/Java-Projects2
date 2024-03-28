@@ -82,7 +82,7 @@ abstract class CharacterChooserDialogMP(val activity: ZombicideActivity, val sel
 			if (it is Assignee) {
 				val iv = ImageView(activity)
 				iv.setImageResource(it.name.cardImageId)
-				activity.newDialogBuilder().setTitle(it.name.label)
+				activity.newDialogBuilder().setTitle(it.name.getLabel())
 					.setView(iv).setNegativeButton(R.string.popup_button_cancel, null).show()
 			}
 		}

@@ -173,7 +173,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 		val lock = Lock()
 
 		game = object : UIZombicide(characterRenderer, boardRenderer) {
-			override fun runGame(): Boolean {
+			override suspend fun runGame(): Boolean {
 				var changed = false
 				try {
 					// block here until the save game is completed
@@ -204,7 +204,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 			override val thisUser: ZUser
 				get() = this@ZombicideActivity.thisUser
 
-			override fun <T> waitForUser(expectedType: Class<T>): T? {
+			override suspend fun <T> waitForUser(expectedType: Class<T>): T? {
 				zb.boardView.post { initMenu(uiMode, options) }
 				return super.waitForUser(expectedType)
 			}
@@ -220,7 +220,6 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 
 			override fun setResult(result: Any?) {
 				Log.i(TAG, "setResult $result")
-				game.boardRenderer.setOverlay(null)
 				super.setResult(result)
 			}
 
@@ -264,7 +263,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 				}
 			}
 
-			override fun updateOrganize(character: ZCharacter, list: List<ZMove>): ZMove? {
+			override suspend fun updateOrganize(character: ZCharacter, list: List<ZMove>): ZMove? {
 				Log.d(TAG, "updateOrganize moves: ${list.joinToString(separator = "\n")}")
 				runOnUiThread {
 					organizeDialog?.let {
@@ -362,6 +361,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 		QUIT,
 		CLEAR,
 		SEARCHABLES,
+		ABOUT,
 		RULES,
 		CHOOSE_COLOR,
 		EMAIL_REPORT,
@@ -447,15 +447,15 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 	}
 
 	fun showToolTipTextPopup(view: View, button: IButton) {
-		button.tooltipText?.takeIf { it.isNotEmpty() }?.let { ttText ->
-			val d : Dialog = with (TooltippopupLayoutBinding.inflate(LayoutInflater.from(this))) {
-				header.text = button.label
+		button.getTooltipText()?.takeIf { it.isNotEmpty() }?.let { ttText ->
+			val d: Dialog = with(TooltippopupLayoutBinding.inflate(LayoutInflater.from(this))) {
+				header.text = button.getLabel()
 				text.text = ttText
 				AlertDialog.Builder(this@ZombicideActivity, R.style.ZTooltipDialogTheme)
 					.setView(root).create()
 			}
 			//val popup = View.inflate(this, R.layout.tooltippopup_layout, null)
-			//(popup.findViewById<View>(R.id.header) as TextView).text = button.label
+			//(popup.findViewById<View>(R.id.header) as TextView).text = button.getLabel()
 			//(popup.findViewById<View>(R.id.text) as TextView).text = text
 			//val d: Dialog = AlertDialog.Builder(this, R.style.ZTooltipDialogTheme)
 			//	.setView(popup).create()
@@ -513,21 +513,24 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 				startGame()
 			}
 			MenuItem.RESUME -> {
-				game.tryLoadFromFile(gameFile)
-				if (game.allCharacters.filter { it.isInvisible }.isNotEmpty()) {
-					newDialogBuilder().setMessage("Resume in Multiplayer mode?")
-						.setNegativeButton(R.string.popup_button_no) { _, _ ->
-							thisUser.setCharacters(game.allCharacters)
-							startGame()
-						}.setPositiveButton(R.string.popup_button_yes) { _, _ ->
-							game.allCharacters.filter { it.color == thisUser.getColor() }.apply {
-								thisUser.setCharacters(this)
-							}
-							p2pInit(P2PMode.SERVER)
-						}.show()
-				} else {
-					thisUser.setCharacters(game.allCharacters)
-					startGame()
+				if (game.tryLoadFromFile(gameFile)) {
+					boardRenderer.board = game.board
+					if (game.allCharacters.filter { it.isInvisible }.isNotEmpty()) {
+						newDialogBuilder().setMessage("Resume in Multiplayer mode?")
+							.setNegativeButton(R.string.popup_button_no) { _, _ ->
+								thisUser.setCharacters(game.allCharacters)
+								startGame()
+							}.setPositiveButton(R.string.popup_button_yes) { _, _ ->
+								game.allCharacters.filter { it.color == thisUser.getColor() }
+									.apply {
+										thisUser.setCharacters(this)
+									}
+								p2pInit(P2PMode.SERVER)
+							}.show()
+					} else {
+						thisUser.setCharacters(game.allCharacters)
+						startGame()
+					}
 				}
 			}
 			MenuItem.QUIT -> if (client != null) {
@@ -608,7 +611,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 
 					override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
 						val convertView = convertView?:TextView(this@ZombicideActivity)
-						(convertView as TextView).text = searchables[position].label
+						(convertView as TextView).text = searchables[position].getLabel()
 						return convertView
 					}
 				}
@@ -652,18 +655,27 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 					tryUndo()
 				}
 			}
+
 			MenuItem.LEGEND -> {
 				showLegendDialog()
 			}
-			MenuItem.RULES -> {
+
+			MenuItem.ABOUT -> {
 				showWelcomeDialog(false)
 			}
+
+			MenuItem.RULES -> {
+				showRulesDialog()
+			}
+
 			MenuItem.EMAIL_REPORT -> {
 				showEmailReportDialog()
 			}
+
 			MenuItem.CHOOSE_COLOR -> {
 				showChooseColorDialog()
 			}
+
 			MenuItem.MINIMAP_MODE -> {
 				prefs.edit().putString(PREF_MINIMAP_MODE_STRING, boardRenderer.toggleDrawMinimap().name).apply()
 			}
@@ -980,11 +992,11 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 			override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
 				val convertView = convertView
 					?: View.inflate(this@ZombicideActivity, R.layout.legend_list_item, null)
-				val iv_image = convertView.findViewById<ImageView>(R.id.iv_image)
-				val tv_desc = convertView.findViewById<TextView>(R.id.tv_description)
-				with (legend[position]) {
-					iv_image.setImageResource(first)
-					tv_desc.text = second
+				val ivImage = convertView.findViewById<ImageView>(R.id.iv_image)
+				val tvDesc = convertView.findViewById<TextView>(R.id.tv_description)
+				with(legend[position]) {
+					ivImage.setImageResource(first)
+					tvDesc.text = second
 				}
 				return convertView
 			}
@@ -1080,7 +1092,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 		newDialogBuilder().setTitle(R.string.popup_title_skills)
 			.setItems(sorted.map { it.name.prettify() }.toTypedArray()) { dialog: DialogInterface?, which: Int ->
 				val skill = sorted[which]
-				newDialogBuilder().setTitle(skill.label)
+				newDialogBuilder().setTitle(skill.getLabel())
 					.setMessage(skill.description)
 					.setNegativeButton(R.string.popup_button_cancel, null)
 					.setPositiveButton(R.string.popup_button_back) { dialog1: DialogInterface?, which1: Int -> showSkillsDialog() }.show()
@@ -1182,13 +1194,13 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 				UIMode.PICK_CHARACTER -> {
 					zb.bCenter.tag = options[0]
 					for (e:IButton in options as List<IButton>) {
-						buttons.add(build(this, e, e.isEnabled))
+						buttons.add(build(this, e, e.isEnabled()))
 					}
 					buttons.add(ListSeparator(this))
 				}
 				UIMode.PICK_MENU -> {
 					for (e: IButton in options as List<IButton>) {
-						buttons.add(build(this, e, e.isEnabled))
+						buttons.add(build(this, e, e.isEnabled()))
 					}
 					buttons.add(ListSeparator(this))
 				}
@@ -1276,16 +1288,26 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 			.setNegativeButton(R.string.popup_button_cancel, null)
 			.setPositiveButton(R.string.popup_button_send) { dialog: DialogInterface?, which: Int ->
 				//char [] pw = { 'z', '0', 'm', 'b', '1', '3', '$', '4', 'e', 'v', 'a' };
-				EmailTask(this@ZombicideActivity,
+				EmailTask(
+					this@ZombicideActivity,
 					message.editableText.toString() //, new String(pw)
 				).execute(gameFile)
 			}.show()
 	}
 
-	internal class EmailTask(private val context: CCActivityBase, private val message: String) : AsyncTask<File, Void, Exception>() {
+	fun showRulesDialog() {
+
+	}
+
+	internal class EmailTask(private val context: CCActivityBase, private val message: String) :
+		AsyncTask<File, Void, Exception>() {
 		private var progress: Dialog? = null
 		override fun onPreExecute() {
-			progress = ProgressDialog.show(context, null, context.getString(R.string.popup_message_sending_report))
+			progress = ProgressDialog.show(
+				context,
+				null,
+				context.getString(R.string.popup_message_sending_report)
+			)
 		}
 
 		override fun doInBackground(vararg inFile: File): Exception? {

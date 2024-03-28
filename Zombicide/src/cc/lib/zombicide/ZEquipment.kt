@@ -38,8 +38,6 @@ abstract class ZEquipment<T : ZEquipmentType> : Reflector<ZEquipment<T>>(), IBut
         get() = type.isActionType(ZActionType.THROW_ITEM)
     open val isDualWieldCapable: Boolean
         get() = false
-    open val isAttackNoisy: Boolean
-        get() = false
     open val isOpenDoorsNoisy: Boolean
         get() = false
     abstract val type: T

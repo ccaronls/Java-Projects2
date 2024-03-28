@@ -30,7 +30,7 @@ public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializ
     public final static Vector2D MIN = new Vector2D(-Float.MAX_VALUE, -Float.MAX_VALUE);
     public final static Vector2D MAX = new Vector2D(Float.MAX_VALUE, Float.MAX_VALUE);
     public final static Vector2D ZERO = new Vector2D(0, 0);
-
+    public final static Vector2D NAN = new Vector2D(Float.NaN, Float.NaN);
     protected float x, y;
 
     public Vector2D() {

@@ -2,7 +2,13 @@ package cc.lib.zombicide.quests
 
 import cc.lib.utils.Grid
 import cc.lib.utils.Table
-import cc.lib.zombicide.*
+import cc.lib.zombicide.ZBoard
+import cc.lib.zombicide.ZCell
+import cc.lib.zombicide.ZGame
+import cc.lib.zombicide.ZQuest
+import cc.lib.zombicide.ZQuests
+import cc.lib.zombicide.ZTile
+import cc.lib.zombicide.ZZombieType
 
 /**
  * Created by Chris Caron on 4/22/23.
@@ -31,8 +37,6 @@ class ZQuestHoardTest : ZQuest(ZQuests.Hoard_Test) {
 			game.spawnZombies(6, ZZombieType.Walker, it.zoneIndex)
 		}
 	}
-
-	override fun getMaxNumZombiesOfType(type: ZZombieType?): Int = 99
 
 	override fun getPercentComplete(game: ZGame): Int = 0
 

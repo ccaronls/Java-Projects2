@@ -1,6 +1,11 @@
 package cc.lib.zombicide.ui
 
-import cc.lib.game.*
+import cc.lib.game.AGraphics
+import cc.lib.game.APGraphics
+import cc.lib.game.GColor
+import cc.lib.game.GDimension
+import cc.lib.game.IDimension
+import cc.lib.game.Justify
 import cc.lib.ui.ButtonHandler
 import cc.lib.ui.UIComponent
 import cc.lib.ui.UIRenderer
@@ -9,8 +14,10 @@ import cc.lib.utils.prettify
 import cc.lib.zombicide.ZActor
 import cc.lib.zombicide.ZCharacter
 import cc.lib.zombicide.ZEquipSlot
+import cc.lib.zombicide.ZSiegeEngine
 import cc.lib.zombicide.ZZombie
-import java.util.*
+import java.util.Collections
+import java.util.LinkedList
 
 class UIZCharacterRenderer(component: UIComponent) : UIRenderer(component) {
 	interface IWrappable {
@@ -33,7 +40,7 @@ class UIZCharacterRenderer(component: UIComponent) : UIRenderer(component) {
 				redraw()
 			}
 		}
-	private val messages = LinkedList<IWrappable>()
+	private val messages = Collections.synchronizedList(LinkedList<IWrappable>())
 	private val game: UIZombicide
 		get() = UIZombicide.instance
 
@@ -46,21 +53,23 @@ class UIZCharacterRenderer(component: UIComponent) : UIRenderer(component) {
 	}
 
 	fun addMessage(msg: String, color: GColor) {
-		messages.addFirst(StringLine(color, msg))
+		messages.add(0, StringLine(color, msg))
 		while (messages.size > 32) {
 			messages.removeLast()
 		}
 		redraw()
 	}
 
+	@Synchronized
 	fun addWrappable(line: IWrappable) {
-		messages.addFirst(line)
+		messages.add(0, line)
 		while (messages.size > 32) {
 			messages.removeLast()
 		}
 		redraw()
 	}
 
+	@Synchronized
 	fun clearMessages() {
 		messages.clear()
 	}
@@ -71,11 +80,15 @@ class UIZCharacterRenderer(component: UIComponent) : UIRenderer(component) {
 		info.addRow("Actions", type.actionsPerTurn)
 		info.addRow("Experience", type.expProvided)
 		info.addRow("Ignores Armor", type.ignoresArmor)
-		info.addRow("Ranged Priority", type.rangedPriority)
+		info.addRow("Ranged Priority", type.targetingPriority)
 		val outer = Table().setNoBorder()
 		outer.addRow(info, type.description)
 		outer.draw(g)
 	}
+
+	fun drawCatapultInfo(g: AGraphics, catapult: ZSiegeEngine): IDimension = Table()
+		.setNoBorder()
+		.addColumn("CATAPULT", catapult.getInfo(game)).draw(g)
 
 	fun drawCharacterInfo(g: AGraphics, char: ZCharacter): IDimension = with(char) {
 		clearButtons()
@@ -87,7 +100,7 @@ class UIZCharacterRenderer(component: UIComponent) : UIRenderer(component) {
 			}
 		})
 		info.addColumn(ZEquipSlot.BACKPACK.getLabel() + if (isBackpackFull) " (full)" else "", slotInfo)
-		val stats = getStatsTable().setNoBorder().setPadding(0)
+		val stats = getStatsTable(game.rules).setNoBorder().setPadding(0)
 		info.addColumn("Stats", stats)
 		if (getAvailableSkills().isNotEmpty()) {
 			val skills = Table(this).setNoBorder().addColumnNoHeader(getAvailableSkills().map {
@@ -121,6 +134,7 @@ class UIZCharacterRenderer(component: UIComponent) : UIRenderer(component) {
 		when {
 			actorInfo is ZZombie -> info = drawZombieInfo(g, actorInfo as ZZombie)
 			actorInfo is ZCharacter -> info = drawCharacterInfo(g, actorInfo as ZCharacter)
+			actorInfo is ZSiegeEngine -> info = drawCatapultInfo(g, actorInfo as ZSiegeEngine)
 			game.questInitialized -> {
 				val quest = game.quest
 				val table = Table(object : Table.Model {
@@ -135,7 +149,7 @@ class UIZCharacterRenderer(component: UIComponent) : UIRenderer(component) {
 		var y = 0
 		val maxWidth: Float = g.viewportWidth - (info?.width ?: 0f)
 		var dimmed = false
-		for (msg in messages) {
+		for (msg in messages.toList()) {
 			g.pushMatrix()
 			g.translate(g.viewportWidth.toFloat(), y.toFloat())
 			val d = msg.drawWrapped(g, maxWidth, dimmed)

@@ -11,13 +11,19 @@ internal class CollectionArchiver : Archiver {
 	@Throws(Exception::class)
 	override operator fun get(field: Field, a: Reflector<*>): String {
 		val c = field[a] as Collection<*>
-		return Reflector.getCanonicalName(c.javaClass)
+		return Reflector.getCanonicalName(
+			if (c is IDirtyCollection<*>) {
+				c.backing!!.javaClass
+			} else {
+				c.javaClass
+			}
+		)
 	}
 
 	@Throws(Exception::class)
 	override operator fun set(o: Any?, field: Field, value: String, a: Reflector<*>, keepInstances: Boolean) {
 		if (value != null && value != "null") {
-			if (!keepInstances || o == null) field[a] = Reflector.newCollectionInstance(value)
+			if (!keepInstances || o == null) field[a] = a.newCollectionInstance(value)
 		} else {
 			field[a] = null
 		}

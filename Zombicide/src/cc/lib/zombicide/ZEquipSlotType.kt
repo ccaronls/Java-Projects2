@@ -9,6 +9,6 @@ enum class ZEquipSlotType {
     BACKPACK;
 
     fun canEquip(): Boolean {
-        return this != BACKPACK
+        return this == HAND || this == BODY
     }
 }

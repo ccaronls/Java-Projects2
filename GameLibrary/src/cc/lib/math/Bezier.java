@@ -40,22 +40,30 @@ public final class Bezier implements IInterpolator<Vector2D> {
 	public Vector2D getAtPosition(float t) {
 		if (numCtrl < 4)
 			throw new cc.lib.utils.GException();
-        float fW = 1 - t; 
+        float fW = 1 - t;
         float fA = fW * fW * fW;
-        float fB = 3 * t * fW * fW; 
+        float fB = 3 * t * fW * fW;
         float fC = 3 * t * t * fW;
         float fD = t * t * t;
-        float fX = fA * ctrl[0].getX() + fB * ctrl[1].getX() + fC * ctrl[2].getX() + fD * ctrl[3].getX(); 
+        float fX = fA * ctrl[0].getX() + fB * ctrl[1].getX() + fC * ctrl[2].getX() + fD * ctrl[3].getX();
         float fY = fA * ctrl[0].getY() + fB * ctrl[1].getY() + fC * ctrl[2].getY() + fD * ctrl[3].getY();
         return new Vector2D(fX, fY);
-	}
+    }
 
-	public static IInterpolator<Vector2D> build(Vector2D r0, Vector2D r1, float arc) {
+    /**
+     * Construct a curve
+     *
+     * @param r0  start of curve
+     * @param r1  end of curve
+     * @param arc fraction of distance between r0 and r1 to arc. 0 is same as no arc and .5 would be a perfect half-circle
+     * @return
+     */
+    public static IInterpolator<Vector2D> build(Vector2D r0, Vector2D r1, float arc) {
 
-	    if (Math.abs(arc) < 0.001)
-	        return Vector2D.getLinearInterpolator(r0, r1);
+        if (Math.abs(arc) < 0.001)
+            return Vector2D.getLinearInterpolator(r0, r1);
 
-	    Bezier curve = new Bezier();
+        Bezier curve = new Bezier();
         curve.addPoint(r0);
         Vector2D dv = r1.sub(r0);
         MutableVector2D N = dv.norm().scaledBy(arc);

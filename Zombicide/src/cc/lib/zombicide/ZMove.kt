@@ -14,7 +14,9 @@ data class ZMove constructor(
 	val list: List<*>? = null,
 	val skill: ZSkill? = null,
 	val action: ZActionType? = null,
-	val text: String? = null) : Reflector<ZMove>(), IButton {
+	val text: String? = null,
+	val familiar: ZFamiliarType? = null
+) : Reflector<ZMove>(), IButton {
 	companion object {
 		fun newEndTurn(): ZMove {
 			return ZMove(type = ZMoveType.END_TURN)
@@ -176,13 +178,60 @@ data class ZMove constructor(
 		    return ZMove(type = ZMoveType.ORGANIZE_DONE)
 	    }
 
-	    fun newOrganizeTrade(player : ZPlayerName) : ZMove {
-		    return ZMove(type = ZMoveType.ORGANIZE_TRADE, character = player)
-	    }
+		fun newOrganizeTrade(player: ZPlayerName): ZMove {
+			return ZMove(type = ZMoveType.ORGANIZE_TRADE, character = player)
+		}
 
 		fun newOrganizeSlot(player: ZPlayerName, slot: ZEquipSlot?, moves: List<ZMove>): ZMove {
-			return ZMove(type = ZMoveType.ORGANIZE_SLOT, fromSlot = slot, character = player, list = moves)
+			return ZMove(
+				type = ZMoveType.ORGANIZE_SLOT,
+				fromSlot = slot,
+				character = player,
+				list = moves
+			)
 		}
+
+		fun newMoveSiegeEngine(player: ZPlayerName, zoneOptions: List<Int>): ZMove {
+			return ZMove(type = ZMoveType.SIEGE_ENGINE_MOVE, character = player, list = zoneOptions)
+		}
+
+		fun newFireCatapultScatterShot(player: ZPlayerName, zoneOptions: List<Int>): ZMove {
+			return ZMove(
+				type = ZMoveType.CATAPULT_FIRE_SCATTERSHOT,
+				character = player,
+				list = zoneOptions
+			)
+		}
+
+		fun newFireCatapultGrapeShot(player: ZPlayerName, zoneOptions: List<Int>): ZMove {
+			return ZMove(
+				type = ZMoveType.CATAPULT_FIRE_GRAPESHOT,
+				character = player,
+				list = zoneOptions
+			)
+		}
+
+		fun newFireCatapultBoulder(player: ZPlayerName, zoneOptions: List<Int>): ZMove {
+			return ZMove(
+				type = ZMoveType.CATAPULT_FIRE_BOULDER,
+				character = player,
+				list = zoneOptions
+			)
+		}
+
+
+		fun newFireBallistaBolt(player: ZPlayerName, directionOptions: List<ZDir>): ZMove {
+			return ZMove(
+				type = ZMoveType.BALLISTA_FIRE_BOLT,
+				character = player,
+				list = directionOptions
+			)
+		}
+
+		fun newFamiliarMove(player: ZPlayerName, familiar: ZFamiliar): ZMove {
+			return ZMove(ZMoveType.FAMILIAR_MOVE, character = player, familiar = familiar.type)
+		}
+
 
 		init {
 			addAllFields(ZMove::class.java)

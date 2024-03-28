@@ -11,23 +11,24 @@ import cc.lib.utils.prettify
 @Keep
 enum class ZEquipmentClass : IButton {
     AHHHH,
-    THROWABLE,
-    CONSUMABLE,
-    DAGGER,
-    SWORD,
-    AXE,
-    BOW,
-    CROSSBOW,
-    MAGIC,
-    ENCHANTMENT,
-    ARMOR,
-    SHIELD;
+	THROWABLE,
+	CONSUMABLE,
+	DAGGER,
+	SWORD,
+	AXE,
+	BOW,
+	CROSSBOW,
+	MAGIC,
+	ENCHANTMENT,
+	ARMOR,
+	SHIELD,
+	FAMILIAR;
 
-    override fun getTooltipText(): String? {
-        return null
-    }
+	override fun getTooltipText(): String? {
+		return null
+	}
 
-    override fun getLabel(): String {
-        return name.prettify()
-    }
+	override fun getLabel(): String {
+		return name.prettify()
+	}
 }

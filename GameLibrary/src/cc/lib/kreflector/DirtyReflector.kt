@@ -56,4 +56,12 @@ open class DirtyReflector<T> : Reflector<T>() {
 			}
 		}
 	}
+
+	override fun newCollectionInstance(name: String): MutableCollection<Any> {
+		return DirtyCollection(super.newCollectionInstance(name))
+	}
+
+	override fun newMapInstance(name: String): MutableMap<Any, Any> {
+		return DirtyMap(super.newMapInstance(name))
+	}
 }

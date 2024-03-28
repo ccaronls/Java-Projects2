@@ -2,8 +2,17 @@ package cc.lib.zombicide.quests
 
 import cc.lib.utils.Grid
 import cc.lib.utils.Table
-import cc.lib.zombicide.*
+import cc.lib.zombicide.ZCell
+import cc.lib.zombicide.ZCharacter
+import cc.lib.zombicide.ZDoor
+import cc.lib.zombicide.ZEquipment
+import cc.lib.zombicide.ZGame
+import cc.lib.zombicide.ZItemType
+import cc.lib.zombicide.ZQuest
+import cc.lib.zombicide.ZQuests
+import cc.lib.zombicide.ZTile
 import cc.lib.zombicide.ZTile.Companion.getQuadrant
+import cc.lib.zombicide.ZZombieType
 
 class ZQuestTheEvilTemple : ZQuest(ZQuests.The_Evil_Temple) {
 	companion object {
@@ -23,9 +32,10 @@ class ZQuestTheEvilTemple : ZQuest(ZQuests.The_Evil_Temple) {
 			ZTile("8R", 180, getQuadrant(0, 0)),
 			ZTile("9V", 180, getQuadrant(0, 3)),
 			ZTile("1V", 270, getQuadrant(0, 6)),
-			ZTile("5V", 180, getQuadrant(3, 0)),
+			ZTile("5R", 180, getQuadrant(3, 0)),
 			ZTile("4R", 90, getQuadrant(3, 3)),
-			ZTile("2R", 90, getQuadrant(3, 6)))
+			ZTile("2R", 90, getQuadrant(3, 6))
+		)
 
 	override fun loadBoard() = load(arrayOf(
 arrayOf("z0:i:ds", "z0:i:ws:ode", "z1:i:red:ws:ode",            "z2:i:ws", "z2:i:ws:de", "z3:spn",                      "z4:i:dw", "z4:i:lvd2", "z4:i"),

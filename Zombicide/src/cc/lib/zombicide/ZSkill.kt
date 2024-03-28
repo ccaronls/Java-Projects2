@@ -78,24 +78,53 @@ enum class ZSkill(val description: String) : IButton {
             }
         }
     },
-    Plus1_die_Melee("The Survivor’s Melee weapons roll an extra die for Melee Actions. Dual Melee weapons gain a die each, for a total of +2 dice per Dual Melee Action.") {
-        override fun modifyStat(stat: ZWeaponStat, actionType: ZActionType, character: ZCharacter, game: ZGame, targetZone: Int) {
-            if (actionType === ZActionType.MELEE) {
-                stat.numDice++
-            }
-        }
-    },
-    Plus1_die_Ranged("The Survivor’s Ranged weapons roll an extra die for Ranged Actions. Dual Ranged weapons gain a die each, for a total of +2 dice per Dual Ranged Action.") {
-        override fun modifyStat(stat: ZWeaponStat, actionType: ZActionType, character: ZCharacter, game: ZGame, targetZone: Int) {
-            if (actionType === ZActionType.RANGED) {
-                stat.numDice++
-            }
-        }
-    },
-    Plus1_free_Combat_Action("The Survivor has one extra free Combat Action. This Action may only be used for Melee, Ranged or Magic Actions.") {
-	    override fun modifyActionsRemaining(character: ZCharacter, type: ZActionType, game: ZGame): Int = when (type) {
-		    ZActionType.MAGIC, ZActionType.RANGED, ZActionType.MELEE -> 1
-		    else -> super.modifyActionsRemaining(character, type, game)
+	Plus1_die_Melee("The Survivor’s Melee weapons roll an extra die for Melee Actions. Dual Melee weapons gain a die each, for a total of +2 dice per Dual Melee Action.") {
+		override fun modifyStat(
+			stat: ZWeaponStat,
+			actionType: ZActionType,
+			character: ZCharacter,
+			game: ZGame,
+			targetZone: Int
+		) {
+			if (actionType === ZActionType.MELEE) {
+				stat.numDice++
+			}
+		}
+	},
+	Plus2_die_Melee("The Survivor’s Melee weapons roll 2 extra dice for Melee Actions. Dual Melee weapons 2 dice each, for a total of +4 dice per Dual Melee Action.") {
+		override fun modifyStat(
+			stat: ZWeaponStat,
+			actionType: ZActionType,
+			character: ZCharacter,
+			game: ZGame,
+			targetZone: Int
+		) {
+			if (actionType === ZActionType.MELEE) {
+				stat.numDice += 2
+			}
+		}
+	},
+	Plus1_die_Ranged("The Survivor’s Ranged weapons roll an extra die for Ranged Actions. Dual Ranged weapons gain a die each, for a total of +2 dice per Dual Ranged Action.") {
+		override fun modifyStat(
+			stat: ZWeaponStat,
+			actionType: ZActionType,
+			character: ZCharacter,
+			game: ZGame,
+			targetZone: Int
+		) {
+			if (actionType === ZActionType.RANGED) {
+				stat.numDice++
+			}
+		}
+	},
+	Plus1_free_Combat_Action("The Survivor has one extra free Combat Action. This Action may only be used for Melee, Ranged or Magic Actions.") {
+		override fun modifyActionsRemaining(
+			character: ZCharacter,
+			type: ZActionType,
+			game: ZGame
+		): Int = when (type) {
+			ZActionType.MAGIC, ZActionType.RANGED, ZActionType.MELEE -> 1
+			else -> super.modifyActionsRemaining(character, type, game)
 	    }
 
 	    override fun addSpecialMoves(game: ZGame, character: ZCharacter, moves: MutableCollection<ZMove>) {
@@ -157,12 +186,6 @@ enum class ZSkill(val description: String) : IButton {
             return if (type === ZActionType.MOVE) {
                 1
             } else super.modifyActionsRemaining(character, type, game)
-        }
-
-        override fun addSpecialMoves(game: ZGame, character: ZCharacter, moves: MutableCollection<ZMove>) {
-            if (character.actionsLeftThisTurn == 0) {
-                game.addWalkOptions(character, moves, null)
-            }
         }
     },
     Plus1_free_Ranged_Action("The Survivor has one extra free Ranged Action. This Action may only be used as a Ranged Action.") {
@@ -227,7 +250,7 @@ enum class ZSkill(val description: String) : IButton {
     Bloodlust("Spend one Action with the Survivor: He Moves up to two Zones to a Zone containing at least one Zombie. He then gains one free Combat Action (Melee, Ranged or Magic).") {
         override fun addSpecialMoves(game: ZGame, character: ZCharacter, moves: MutableCollection<ZMove>) {
             if (character.actionsLeftThisTurn > 0) {
-                game.board.getAccessibleZones(character.occupiedZone, 1, 2, ZActionType.MOVE)
+	            game.board.getAccessibleZones(character, 1, 2, ZActionType.MOVE)
 	                .filter { game.board.getNumZombiesInZone(it) > 0 }
 	                .takeIf { it.isNotEmpty()}?.let { zones ->
 	                    if (character.meleeWeapons.isNotEmpty()) moves.add(ZMove.newBloodlustMeleeMove(zones, this))
@@ -240,7 +263,7 @@ enum class ZSkill(val description: String) : IButton {
     Bloodlust_Magic("Spend one Action with the Survivor: He Moves up to two Zones to a Zone containing at least one Zombie. He then gains one free Magic Action, to use immediately.") {
         override fun addSpecialMoves(game: ZGame, character: ZCharacter, moves: MutableCollection<ZMove>) {
             if (character.actionsLeftThisTurn > 0 && character.magicWeapons.isNotEmpty()) {
-	            game.board.getAccessibleZones(character.occupiedZone, 1, 2, ZActionType.MOVE)
+	            game.board.getAccessibleZones(character, 1, 2, ZActionType.MOVE)
 	                .filter { game.board.getNumZombiesInZone(it) > 0 }
 	                .takeIf { it.isNotEmpty() }?.let { zones ->
 		                moves.add(ZMove.newBloodlustMagicMove(zones, this))
@@ -251,7 +274,7 @@ enum class ZSkill(val description: String) : IButton {
     Bloodlust_Melee("Spend one Action with the Survivor: He Moves up to two Zones to a Zone containing at least one Zombie. He then gains one free Melee Action, to use immediately.") {
         override fun addSpecialMoves(game: ZGame, character: ZCharacter, moves: MutableCollection<ZMove>) {
             if (character.actionsLeftThisTurn > 0 && character.meleeWeapons.size > 0) {
-	            game.board.getAccessibleZones(character.occupiedZone, 1, 2, ZActionType.MOVE)
+	            game.board.getAccessibleZones(character, 1, 2, ZActionType.MOVE)
 		            .filter { game.board.getNumZombiesInZone(it) > 0 }
 		            .takeIf { it.isNotEmpty() }?.let { zones ->
 			            moves.add(ZMove.newBloodlustMeleeMove(zones, this))
@@ -262,7 +285,7 @@ enum class ZSkill(val description: String) : IButton {
     Bloodlust_Ranged("Spend one Action with the Survivor: He Moves up to two Zones to a Zone containing at least one Zombie. He then gains one free Ranged Action, to use immediately.") {
         override fun addSpecialMoves(game: ZGame, character: ZCharacter, moves: MutableCollection<ZMove>) {
             if (character.actionsLeftThisTurn > 0 && character.rangedWeapons.size > 0) {
-	            game.board.getAccessibleZones(character.occupiedZone, 1, 2, ZActionType.MOVE)
+	            game.board.getAccessibleZones(character, 1, 2, ZActionType.MOVE)
 		            .filter { game.board.getNumZombiesInZone(it) > 0 }
 		            .takeIf { it.isNotEmpty() }?.let { zones ->
 			            moves.add(ZMove.newBloodlustRangedMove(zones, this))
@@ -292,7 +315,7 @@ enum class ZSkill(val description: String) : IButton {
     },
     Charge("The Survivor can use this Skill for free, as often as he pleases, during each of his Turns: He moves up to two Zones to a Zone containing at least one Zombie. Normal Movement rules still apply. Entering a Zone containing Zombies ends the Survivor’s Move Action.") {
         override fun addSpecialMoves(game: ZGame, character: ZCharacter, moves: MutableCollection<ZMove>) {
-	        game.board.getAccessibleZones(character.occupiedZone, 1, 2, ZActionType.MOVE).filter {
+	        game.board.getAccessibleZones(character, 1, 2, ZActionType.MOVE).filter {
 		        game.board.getNumZombiesInZone(it) > 0
 	        }.takeIf { it.isNotEmpty() }?.let { zones ->
 	            moves.add(ZMove.newChargeMove(zones))
@@ -322,12 +345,21 @@ enum class ZSkill(val description: String) : IButton {
         }
     },
     Free_reload("The Survivor reloads reloadable weapons (Hand Crossbows, Orcish Crossbow, etc.) for free. ") {
-        override fun onAttack(game: ZGame, c: ZCharacter, weapon: ZWeapon, actionType: ZActionType, stat: ZWeaponStat, targetZone: Int, hits: Int, destroyedZombies: List<ZZombie>) {
-            if (!weapon.isLoaded) {
-                game.addLogMessage("Free Reload!")
-                weapon.reload()
-            }
-        }
+	    override fun onAttack(
+		    game: ZGame,
+		    c: ZSurvivor,
+		    weapon: ZWeapon,
+		    actionType: ZActionType,
+		    stat: ZWeaponStat,
+		    targetZone: Int,
+		    hits: Int,
+		    destroyedZombies: List<ZZombie>
+	    ) {
+		    if (!weapon.isLoaded) {
+			    game.addLogMessage("Free Reload!")
+			    weapon.reload()
+		    }
+	    }
 
         override fun onAcquired(game: ZGame, c: ZCharacter) {
             // reload all of the players wielded weapons
@@ -406,8 +438,10 @@ enum class ZSkill(val description: String) : IButton {
     },  //    Is_that_all_you_got("You can use this Skill any time the Survivor is about to get Wounds. Discard one Equipment card in your Survivor’s inventory for each Wound he’s about to receive. Negate a Wound per discarded Equipment card."),
     Jump("The Survivor can use this Skill once during each Activation. The Survivor spends one Action: He moves two Zones into a Zone to which he has Line of Sight. Movement related Skills (like +1 Zone per Move Action or Slippery) are ignored, but Movement penalties (like having Zombies in the starting Zone) apply. Ignore everything in the intervening Zone.") {
         override fun addSpecialMoves(game: ZGame, character: ZCharacter, moves: MutableCollection<ZMove>) {
-	        val zones = game.board.getAccessibleZones(character.occupiedZone, 2, 2, ZActionType.MOVE)
-            if (zones.isNotEmpty()) moves.add(ZMove.newJumpMove(zones))
+	        game.board.getAccessibleZones(character, 2, 2, ZActionType.MOVE)
+		        .takeIf { it.isNotEmpty() }?.let {
+		        moves.add(ZMove.newJumpMove(it))
+	        }
         }
     },
     Lifesaver("The Survivor can use this Skill, for free, once during each of his Turns. Select a Zone containing at least one Zombie at Range 1 from your Survivor. Choose Survivors in the selected Zone to be dragged to your Survivor’s Zone without penalty. This is not a Move Action. A Survivor can decline the rescue and stay in the selected Zone if his controller chooses. Both Zones need to share a clear path. A Survivor can’t cross closed doors or walls, and can’t be extracted into or out of a Vault."),
@@ -451,67 +485,103 @@ enum class ZSkill(val description: String) : IButton {
         }
     },
     Reaper_Combat("Use this Skill when assigning hits while resolving a Combat Action (Melee, Ranged or Magic). One of these hits can freely kill an additional identical Zombie in the same Zone. Only a single additional Zombie can be killed per Action when using this Skill. The Survivor gains the experience for the additional Zombie.") {
-        override fun onAttack(game: ZGame, c: ZCharacter, weapon: ZWeapon, actionType: ZActionType, stat: ZWeaponStat, targetZone: Int, hits: Int, destroyedZombies: List<ZZombie>) {
-            val zombiesLeftInZone = game.board.getZombiesInZone(targetZone).toMutableList()
-            for (zombieKilled in destroyedZombies) {
-                val it = zombiesLeftInZone.iterator()
-                while (it.hasNext()) {
-                    val z = it.next()
-                    if (z.type === zombieKilled.type) {
-                        game.performSkillKill(c, this, z, stat.attackType)
-                        it.remove()
-                        break
-                    }
+	    override fun onAttack(
+		    game: ZGame,
+		    c: ZSurvivor,
+		    weapon: ZWeapon,
+		    actionType: ZActionType,
+		    stat: ZWeaponStat,
+		    targetZone: Int,
+		    hits: Int,
+		    destroyedZombies: List<ZZombie>
+	    ) {
+		    val zombiesLeftInZone = game.board.getZombiesInZone(targetZone).toMutableList()
+		    for (zombieKilled in destroyedZombies) {
+			    val it = zombiesLeftInZone.iterator()
+			    while (it.hasNext()) {
+				    val z = it.next()
+				    if (z.type === zombieKilled.type) {
+					    game.performSkillKill(c, this, z, stat.attackType)
+					    it.remove()
+					    break
+				    }
                 }
             }
         }
     },
     Reaper_Magic("Use this Skill when assigning hits while resolving a Magic Action. One of these hits can freely kill an additional identical Zombie in the same Zone. Only a single additional Zombie can be killed per Action when using this Skill. The Survivor gains the experience for the additional Zombie.") {
-        override fun onAttack(game: ZGame, c: ZCharacter, weapon: ZWeapon, actionType: ZActionType, stat: ZWeaponStat, targetZone: Int, hits: Int, destroyedZombies: List<ZZombie>) {
-            if (actionType !== ZActionType.MAGIC) return
-            val zombiesLeftInZone = game.board.getZombiesInZone(targetZone).toMutableList()
-            for (zombieKilled in destroyedZombies) {
-                val it = zombiesLeftInZone.iterator()
-                while (it.hasNext()) {
-                    val z = it.next()
-                    if (z.type === zombieKilled.type) {
-                        game.performSkillKill(c, this, z, stat.attackType)
-                        it.remove()
-                        break
+	    override fun onAttack(
+		    game: ZGame,
+		    c: ZSurvivor,
+		    weapon: ZWeapon,
+		    actionType: ZActionType,
+		    stat: ZWeaponStat,
+		    targetZone: Int,
+		    hits: Int,
+		    destroyedZombies: List<ZZombie>
+	    ) {
+		    if (actionType !== ZActionType.MAGIC) return
+		    val zombiesLeftInZone = game.board.getZombiesInZone(targetZone).toMutableList()
+		    for (zombieKilled in destroyedZombies) {
+			    val it = zombiesLeftInZone.iterator()
+			    while (it.hasNext()) {
+				    val z = it.next()
+				    if (z.type === zombieKilled.type) {
+					    game.performSkillKill(c, this, z, stat.attackType)
+					    it.remove()
+					    break
                     }
                 }
             }
         }
     },
     Reaper_Melee("Use this Skill when assigning hits while resolving a Melee Action. One of these hits can freely kill an additional identical Zombie in the same Zone. Only a single additional Zombie can be killed per Action when using this Skill. The Survivor gains the experience for the additional Zombie.") {
-        override fun onAttack(game: ZGame, c: ZCharacter, weapon: ZWeapon, actionType: ZActionType, stat: ZWeaponStat, targetZone: Int, hits: Int, destroyedZombies: List<ZZombie>) {
-            if (actionType !== ZActionType.MELEE) return
-            val zombiesLeftInZone = game.board.getZombiesInZone(targetZone).toMutableList()
-            for (zombieKilled in destroyedZombies) {
-                val it = zombiesLeftInZone.iterator()
-                while (it.hasNext()) {
-                    val z = it.next()
-                    if (z.type === zombieKilled.type) {
-                        game.performSkillKill(c, this, z, stat.attackType)
-                        it.remove()
-                        break
+	    override fun onAttack(
+		    game: ZGame,
+		    c: ZSurvivor,
+		    weapon: ZWeapon,
+		    actionType: ZActionType,
+		    stat: ZWeaponStat,
+		    targetZone: Int,
+		    hits: Int,
+		    destroyedZombies: List<ZZombie>
+	    ) {
+		    if (actionType !== ZActionType.MELEE) return
+		    val zombiesLeftInZone = game.board.getZombiesInZone(targetZone).toMutableList()
+		    for (zombieKilled in destroyedZombies) {
+			    val it = zombiesLeftInZone.iterator()
+			    while (it.hasNext()) {
+				    val z = it.next()
+				    if (z.type === zombieKilled.type) {
+					    game.performSkillKill(c, this, z, stat.attackType)
+					    it.remove()
+					    break
                     }
                 }
             }
         }
     },
     Reaper_Ranged("Use this Skill when assigning hits while resolving a Ranged Action. One of these hits can freely kill an additional identical Zombie in the same Zone. Only a single additional Zombie can be killed per Action when using this Skill. The Survivor gains the experience for the additional Zombie.") {
-        override fun onAttack(game: ZGame, c: ZCharacter, weapon: ZWeapon, actionType: ZActionType, stat: ZWeaponStat, targetZone: Int, hits: Int, destroyedZombies: List<ZZombie>) {
-            if (actionType !== ZActionType.RANGED) return
-            val zombiesLeftInZone = game.board.getZombiesInZone(targetZone).toMutableList()
-            for (zombieKilled in destroyedZombies) {
-                val it = zombiesLeftInZone.iterator()
-                while (it.hasNext()) {
-                    val z = it.next()
-                    if (z.type === zombieKilled.type) {
-                        game.performSkillKill(c, this, z, stat.attackType)
-                        it.remove()
-                        break
+	    override fun onAttack(
+		    game: ZGame,
+		    c: ZSurvivor,
+		    weapon: ZWeapon,
+		    actionType: ZActionType,
+		    stat: ZWeaponStat,
+		    targetZone: Int,
+		    hits: Int,
+		    destroyedZombies: List<ZZombie>
+	    ) {
+		    if (actionType !== ZActionType.RANGED) return
+		    val zombiesLeftInZone = game.board.getZombiesInZone(targetZone).toMutableList()
+		    for (zombieKilled in destroyedZombies) {
+			    val it = zombiesLeftInZone.iterator()
+			    while (it.hasNext()) {
+				    val z = it.next()
+				    if (z.type === zombieKilled.type) {
+					    game.performSkillKill(c, this, z, stat.attackType)
+					    it.remove()
+					    break
                     }
                 }
             }
@@ -519,54 +589,80 @@ enum class ZSkill(val description: String) : IButton {
     },
     Regeneration("At the end of each Game Round, remove all Wounds the Survivor received. Regeneration does’nt work if the Survivor has been eliminated."),
     Roll_6_plus1_die_Combat("You may roll an additional die for each '6' rolled on any Combat Action (Melee, Ranged or Magic). Keep on rolling additional dice as long as you keep getting '6'. Game effects that allow re-rolls (the Plenty Of Arrows Equipment card, for example) must be used before rolling any additional dice for this Skill.") {
-	    override fun onSixRolled(game: ZGame, c: ZCharacter, stat: ZWeaponStat): Boolean = when (stat.actionType) {
+	    override fun onSixRolled(
+		    game: ZGame,
+		    c: ZSurvivor,
+		    stat: ZWeaponStat,
+		    targetzone: Int
+	    ): Boolean = when (stat.actionType) {
 		    ZActionType.MAGIC, ZActionType.MELEE, ZActionType.RANGED -> {
-			    game.onRollSixApplied(c.type, this)
+			    game.onRollSixApplied(c.playerType, this)
 			    true
 		    }
+
 		    else -> false
 	    }
     },
     Roll_6_plus1_die_Magic("You may roll an additional die for each '6' rolled on a Magic Action. Keep on rolling additional dice as long as you keep getting '6'. Game effects that allow re-rolls must be used before rolling any additional dice for this Skill.") {
-        override fun onSixRolled(game: ZGame, c: ZCharacter, stat: ZWeaponStat): Boolean {
-            if (stat.actionType === ZActionType.MAGIC) {
-                game.onRollSixApplied(c.type, this)
-                return true
-            }
-            return false
-        }
+	    override fun onSixRolled(
+		    game: ZGame,
+		    c: ZSurvivor,
+		    stat: ZWeaponStat,
+		    targetzone: Int
+	    ): Boolean {
+		    if (stat.actionType === ZActionType.MAGIC) {
+			    game.onRollSixApplied(c.playerType, this)
+			    return true
+		    }
+		    return false
+	    }
     },
     Roll_6_plus1_die_Melee("You may roll an additional die for each '6' rolled on a Melee Action. Keep on rolling additional dice as long as you keep getting '6'. Game effects that allow re-rolls must be used before rolling any additional dice for this Skill.") {
-        override fun onSixRolled(game: ZGame, c: ZCharacter, stat: ZWeaponStat): Boolean {
-            if (stat.actionType === ZActionType.MELEE) {
-                game.onRollSixApplied(c.type, this)
-                return true
-            }
-            return false
-        }
+	    override fun onSixRolled(
+		    game: ZGame,
+		    c: ZSurvivor,
+		    stat: ZWeaponStat,
+		    targetzone: Int
+	    ): Boolean {
+		    if (stat.actionType === ZActionType.MELEE) {
+			    game.onRollSixApplied(c.playerType, this)
+			    return true
+		    }
+		    return false
+	    }
     },
     Roll_6_plus1_die_Ranged("You may roll an additional die for each '6' rolled on a Ranged Action. Keep on rolling additional dice as long as you keep getting '6'. Game effects that allow re-rolls (the Plenty Of Arrows Equipment card, for example) must be used before rolling any additional dice for this Skill.") {
-        override fun onSixRolled(game: ZGame, c: ZCharacter, stat: ZWeaponStat): Boolean {
-            if (stat.actionType === ZActionType.RANGED) {
-                game.onRollSixApplied(c.type, this)
-                return true
-            }
-            return false
-        }
+	    override fun onSixRolled(
+		    game: ZGame,
+		    c: ZSurvivor,
+		    stat: ZWeaponStat,
+		    targetzone: Int
+	    ): Boolean {
+		    if (stat.actionType === ZActionType.RANGED) {
+			    game.onRollSixApplied(c.playerType, this)
+			    return true
+		    }
+		    return false
+	    }
     },
-    Invisible("At the end of his Turn, if the Survivor has not resolved a Combat Action (Melee, Ranged or Magic) and not produced a Noise token, place a Rotten token next to his base. As long as he has this token, he is totally ignored by all Zombies and is not considered a Noise token. Zombies don’t attack him and will even walk past him. The Survivor loses his Rotten token if he resolves any kind of Combat Action (Melee, Ranged or Magic) or makes noise. Even with the Rotten token, the Survivor still has to spend extra Actions to move out of a Zone crowded with Zombies."),
-    Scavenger("The Survivor can Search in any Zone. This includes street Zones, Vault Zones, etc."),
-    Search_plus1_card("Draw an extra card when Searching with the Survivor."),
-    Shove("The Survivor can use this Skill, for free, once during each of his Turns. Select a Zone at Range 1 from your Survivor. All Zombies standing in your Survivor’s Zone are pushed to the selected Zone. This is not a Movement. Both Zones need to share a clear path. A Zombie can’t cross closed doors, ramparts (see the Wulfsburg expansion) or walls, but can be shoved in or out of a Vault.") {
-        override fun addSpecialMoves(game: ZGame, character: ZCharacter, moves: MutableCollection<ZMove>) {
-            // if zombies stand in zone with character they can be shoved away
-            if (game.board.getNumZombiesInZone(character.occupiedZone) > 0) {
-	            val shovable = game.board.getAccessibleZones(character.occupiedZone, 1, 1, ZActionType.MOVE)
-                if (shovable.size > 0) {
-                    moves.add(ZMove.newShoveMove(shovable))
-                }
-            }
-        }
+	Invisible("At the end of his Turn, if the Survivor has not resolved a Combat Action (Melee, Ranged or Magic) and not produced a Noise token, place a Rotten token next to his base. As long as he has this token, he is totally ignored by all Zombies and is not considered a Noise token. Zombies don’t attack him and will even walk past him. The Survivor loses his Rotten token if he resolves any kind of Combat Action (Melee, Ranged or Magic) or makes noise. Even with the Rotten token, the Survivor still has to spend extra Actions to move out of a Zone crowded with Zombies."),
+	Scavenger("The Survivor can Search in any Zone. This includes street Zones, Vault Zones, etc."),
+	Search("The survivor can peform a search"),
+	Search_plus1_card("Draw an extra card when Searching with the Survivor."),
+	Shove("The Survivor can use this Skill, for free, once during each of his Turns. Select a Zone at Range 1 from your Survivor. All Zombies standing in your Survivor’s Zone are pushed to the selected Zone. This is not a Movement. Both Zones need to share a clear path. A Zombie can’t cross closed doors, ramparts (see the Wulfsburg expansion) or walls, but can be shoved in or out of a Vault.") {
+		override fun addSpecialMoves(
+			game: ZGame,
+			character: ZCharacter,
+			moves: MutableCollection<ZMove>
+		) {
+			// if zombies stand in zone with character they can be shoved away
+			if (game.board.getNumZombiesInZone(character.occupiedZone) > 0) {
+				game.board.getAccessibleZones(character, 1, 1, ZActionType.MOVE)
+					.takeIf { it.isNotEmpty() }?.let {
+					moves.add(ZMove.newShoveMove(it))
+				}
+			}
+		}
 
         override fun modifyActionsRemaining(character: ZCharacter, type: ZActionType, game: ZGame): Int {
             return if (type === ZActionType.SHOVE) {
@@ -619,12 +715,6 @@ enum class ZSkill(val description: String) : IButton {
             }
             return super.modifyActionsRemaining(character, type, game)
         }
-
-        override fun addSpecialMoves(game: ZGame, character: ZCharacter, moves: MutableCollection<ZMove>) {
-            if (character.actionsLeftThisTurn == 0 && character.zonesMoved < 3 && game.board.getNumZombiesInZone(character.occupiedZone) == 0) {
-                game.addWalkOptions(character, moves, null)
-            }
-        }
     },
     Super_strength("Consider the Damage value of Melee weapons used by the Survivor to be 3.") {
         override fun modifyStat(stat: ZWeaponStat, actionType: ZActionType, character: ZCharacter, game: ZGame, targetZone: Int) {
@@ -652,28 +742,56 @@ enum class ZSkill(val description: String) : IButton {
     Trick_shot("When the Survivor is equipped with Dual Combat spells or Ranged weapons, he can aim at different Zones with each spell/weapon in the same Action."),
     Zombie_link("The Survivor plays an extra Turn each time an Extra Activation card is drawn from the Zombie pile. He plays before the extra-activated Zombies. If several Survivors benefit from this Skill at the same time, choose their Turn order."),
     Roll_6_Plus1_Damage("If any one of the die rolled is a 6 then add 1 to the damage. Additional sixes to not increase beyond 1.") {
-        override fun onSixRolled(game: ZGame, c: ZCharacter, stat: ZWeaponStat): Boolean {
-            if (stat.damagePerHit < 3) {
-                game.addLogMessage("+1 Damage Applied!")
-                game.onRollSixApplied(c.type, this)
-	            stat.damagePerHit++
-            }
-	        return false
-        }
+	    override fun onSixRolled(
+		    game: ZGame,
+		    c: ZSurvivor,
+		    stat: ZWeaponStat,
+		    targetzone: Int
+	    ): Boolean {
+		    if (stat.damagePerHit < 3) {
+			    game.addLogMessage("+1 Damage Applied!")
+			    game.onRollSixApplied(c.playerType, this)
+			    stat.damagePerHit++
+		    }
+		    return false
+	    }
     },
 	Hit_Heals("A successful hit results in healing of a single wound.") {
-		override fun onAttack(game: ZGame, c: ZCharacter, weapon: ZWeapon, actionType: ZActionType, stat: ZWeaponStat, targetZone: Int, hits: Int, destroyedZombies: List<ZZombie>) {
+		override fun onAttack(
+			game: ZGame,
+			c: ZSurvivor,
+			weapon: ZWeapon,
+			actionType: ZActionType,
+			stat: ZWeaponStat,
+			targetZone: Int,
+			hits: Int,
+			destroyedZombies: List<ZZombie>
+		) {
 			c.heal(game, destroyedZombies.size)
 		}
 	},
 	Roll_6_Hit_Heals("A successful hit results in healing of a single wound.") {
-		override fun onSixRolled(game: ZGame, c: ZCharacter, stat: ZWeaponStat): Boolean {
+		override fun onSixRolled(
+			game: ZGame,
+			c: ZSurvivor,
+			stat: ZWeaponStat,
+			targetzone: Int
+		): Boolean {
 			c.heal(game, 1)
 			return false
 		}
 	},
 	Hit_4_Dragon_Fire("If an attack results in 4 successful hits then dragon fire in the target zone") {
-		override fun onAttack(game: ZGame, c: ZCharacter, weapon: ZWeapon, actionType: ZActionType, stat: ZWeaponStat, targetZone: Int, hits: Int, destroyedZombies: List<ZZombie>) {
+		override fun onAttack(
+			game: ZGame,
+			c: ZSurvivor,
+			weapon: ZWeapon,
+			actionType: ZActionType,
+			stat: ZWeaponStat,
+			targetZone: Int,
+			hits: Int,
+			destroyedZombies: List<ZZombie>
+		) {
 			if (hits >= 4) {
 				game.performDragonFire(c, targetZone)
 			}
@@ -681,7 +799,7 @@ enum class ZSkill(val description: String) : IButton {
 	},
 	Ignite_Dragon_Fire("Can ignite dragon fire without torch at range 0-1") {
 		override fun addSpecialMoves(game: ZGame, character: ZCharacter, moves: MutableCollection<ZMove>) {
-			game.board.getAccessibleZones(character.occupiedZone, 1, 1, ZActionType.THROW_ITEM)
+			game.board.getAccessibleZones(character, 0, 1, ZActionType.THROW_ITEM)
 	            .filter { game.board.getZone(it).isDragonBile }
 	            .takeIf { it.isNotEmpty() }
 	            ?.let { ignitableZones ->
@@ -695,38 +813,98 @@ enum class ZSkill(val description: String) : IButton {
         }
     },
     Two_For_One_Melee("Each Successful hit generates two hits in the target zone. Similar to reaper but without the condition the zombie type must be the same") {
-        override fun onAttack(game: ZGame, c: ZCharacter, weapon: ZWeapon, actionType: ZActionType, stat: ZWeaponStat, targetZone: Int, hits: Int, destroyedZombies: List<ZZombie>) {
-            var hits = hits
-            val zombiesLeftInZone = game.board.getZombiesInZone(targetZone)
-	            .filter { z -> z.type.minDamageToDestroy <= stat.damagePerHit }
-	            .toMutableList()
-            while (zombiesLeftInZone.size > 0 && hits-- > 0) {
-                val z = zombiesLeftInZone.removeAt(0)
-                game.performSkillKill(c, this, z, stat.attackType)
-            }
-        }
-    },
-    Hand_of_God("Survivor has ability to close a spawn zone thus destroying it") {
-	    override fun addSpecialMoves(game: ZGame, character: ZCharacter, moves: MutableCollection<ZMove>) {
-		    if (character.actionsLeftThisTurn >= ZActionType.CLOSE_PORTAL.costPerTurn()) {
-			    game.board.getCell(character.occupiedCell).spawnAreas.forEach {
-				    if (it.isCanBeRemovedFromBoard) {
-					    moves.add(ZMove.newCloseSpawnPortal(character.occupiedZone))
-				    }
-			    }
+	    override fun onAttack(
+		    game: ZGame,
+		    c: ZSurvivor,
+		    weapon: ZWeapon,
+		    actionType: ZActionType,
+		    stat: ZWeaponStat,
+		    targetZone: Int,
+		    hits: Int,
+		    destroyedZombies: List<ZZombie>
+	    ) {
+		    var hits = hits
+		    val zombiesLeftInZone = game.board.getZombiesInZone(targetZone)
+			    .filter { z -> z.type.minDamageToDestroy <= stat.damagePerHit }
+			    .toMutableList()
+		    while (zombiesLeftInZone.size > 0 && hits-- > 0) {
+			    val z = zombiesLeftInZone.removeAt(0)
+			    game.performSkillKill(c, this, z, stat.attackType)
 		    }
 	    }
-    }
+    },
+	Hand_of_God("Survivor has ability to close a spawn zone thus destroying it") {
+		override fun addSpecialMoves(
+			game: ZGame,
+			character: ZCharacter,
+			moves: MutableCollection<ZMove>
+		) {
+			if (character.actionsLeftThisTurn >= ZActionType.CLOSE_PORTAL.costPerTurn) {
+				game.board.getCell(character.occupiedCell).spawnAreas.forEach {
+					if (it.isCanBeRemovedFromBoard) {
+						moves.add(ZMove.newCloseSpawnPortal(character.occupiedZone))
+					}
+				}
+			}
+		}
+	},
+	Kings_Mace("For each friendly Survivor at range 0-1 and within line-of-sight, get +1 die for melee actions") {
+		override fun modifyStat(
+			stat: ZWeaponStat,
+			actionType: ZActionType,
+			character: ZCharacter,
+			game: ZGame,
+			targetZone: Int
+		) {
+			if (actionType != ZActionType.MELEE)
+				return
+			val additionalDice =
+				game.board.getAccessibleZones(character, 0, 1, ZActionType.MOVE).sumOf {
+					game.board.getActorsInZone(it).filterIsInstance<ZCharacter>()
+						.filter { it.type != character.type }.size
+				}
+			stat.numDice += additionalDice
+		}
+	},
+	Roll_6_Freeze("Rolling a six will immobilize all zombies in target zone for one turn") {
+		override fun onSixRolled(
+			game: ZGame,
+			c: ZSurvivor,
+			stat: ZWeaponStat,
+			targetzone: Int
+		): Boolean {
+			game.board.getActorsInZone(targetzone).filterIsInstance<ZZombie>().forEach {
+				it.frozen = true
+			}
+			game.onZoneFrozen(c.playerType, targetzone)
+			return false
+		}
+	},
+	Plus1_to_die_roll_observed("Subtract 1 from die roll to hit when target zone is observed by any player") {
+		override fun modifyStat(
+			stat: ZWeaponStat,
+			actionType: ZActionType,
+			character: ZCharacter,
+			game: ZGame,
+			targetZone: Int
+		) {
+			if (game.board.isZoneObserved(targetZone)) {
+				stat.dieRollToHit--
+			}
+		}
+	},
+	Birds_eye_view("Trace lines of sight over buildings and hedges to perform attacks.") {
+	}
 
-    ;
+	;
 
-    override fun getTooltipText(): String {
-        return description
-    }
+	override fun getTooltipText(): String {
+		return description
+	}
 
-    override fun getLabel(): String {
-        return name.prettify()
-    }
+	override fun getLabel(): String {
+		return name.prettify()
+	}
 
     /**
      *
@@ -798,17 +976,27 @@ enum class ZSkill(val description: String) : IButton {
         return 0
     }
 
-    open fun onAttack(game: ZGame, c: ZCharacter, weapon: ZWeapon, actionType: ZActionType, stat: ZWeaponStat, targetZone: Int, hits: Int, destroyedZombies: List<ZZombie>) {}
+	open fun onAttack(
+		game: ZGame,
+		c: ZSurvivor,
+		weapon: ZWeapon,
+		actionType: ZActionType,
+		stat: ZWeaponStat,
+		targetZone: Int,
+		hits: Int,
+		destroyedZombies: List<ZZombie>
+	) {
+	}
 
-    /**
-     * Return true to re-roll
-     * Modify stat does not require returning true
-     * @param stat
-     * @return
-     */
-    open fun onSixRolled(game: ZGame, c: ZCharacter, stat: ZWeaponStat): Boolean {
-        return false
-    }
+	/**
+	 * Return true to re-roll
+	 * Modify stat does not require returning true
+	 * @param stat
+	 * @return
+	 */
+	open fun onSixRolled(game: ZGame, c: ZSurvivor, stat: ZWeaponStat, targetZone: Int): Boolean {
+		return false
+	}
 
     open fun useMarksmanForSorting(playerZone: Int, targetZone: Int): Boolean {
         return false

@@ -4,23 +4,27 @@ import cc.lib.annotation.Keep
 
 @Keep
 enum class ZIcon {
-    DRAGON_BILE,
-    CLAWS,
-    SHIELD,
-    SLIME,
-    TORCH,
-    FIRE,
-    ARROW,
-    SPAWN_RED,
-    SPAWN_BLUE,
-    SPAWN_GREEN,
-    SLASH,
-    FIREBALL,
-    GRAVESTONE,
-    PADLOCK,
-    SKULL,
-    DAGGER,
-    SWORD,
+	DRAGON_BILE,
+	CLAWS,
+	SHIELD,
+	SLIME,
+	RUBBLE,
+	TORCH,
+	FIRE,
+	ARROW, // all ranged
+	BOLT, // ballista
+	SPAWN_RED,
+	SPAWN_BLUE,
+	SPAWN_GREEN,
+	SLASH,
+	FIREBALL,
+	GRAVESTONE,
+	PADLOCK,
+	NOISE,
+	SKULL,
+	DAGGER,
+	BOULDER, // catapult
+	SWORD,
     MJOLNIR,
     BLACKBOOK;
 

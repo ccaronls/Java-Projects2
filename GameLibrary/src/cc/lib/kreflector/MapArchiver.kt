@@ -11,12 +11,18 @@ internal class MapArchiver : Archiver {
 	@Throws(Exception::class)
 	override fun get(field: Field, a: Reflector<*>): String {
 		val m = field[a] as Map<*, *>
-		return Reflector.getCanonicalName(m.javaClass)
+		return Reflector.getCanonicalName(
+			if (m is IDirtyCollection<*>) {
+				m.backing!!.javaClass
+			} else {
+				m.javaClass
+			}
+		)
 	}
 
 	@Throws(Exception::class)
 	override operator fun set(o: Any?, field: Field, value: String, a: Reflector<*>, keepInstances: Boolean) {
-		field[a] = o?.takeIf { !keepInstances } ?: Reflector.getClassForName(value).newInstance()
+		field[a] = o?.takeIf { !keepInstances } ?: a.newMapInstance(value)
 	}
 
 	@Throws(IOException::class)

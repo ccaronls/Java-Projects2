@@ -9,9 +9,9 @@ import cc.lib.game.IRectangle
  *
  */
 interface IButton {
+
 	fun getTooltipText(): String? = null
 	fun getLabel(): String? = null
-	fun getZOrder(): Int = 0
 	fun isEnabled(): Boolean = true
 	fun getRect(): IRectangle = GRectangle()
 }

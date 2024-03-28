@@ -1,6 +1,7 @@
 package cc.lib.zombicide
 
 import cc.lib.annotation.Keep
+import cc.lib.utils.Table
 
 @Keep
 enum class ZItemType(override val equipmentClass: ZEquipmentClass, val actionType: ZActionType, val slot: ZEquipSlotType, val description: String) : ZEquipmentType {
@@ -49,25 +50,56 @@ enum class ZItemType(override val equipmentClass: ZEquipmentClass, val actionTyp
 		    }
 	    }
     },
-    PLENTY_OF_ARROWS(ZEquipmentClass.BOW, ZActionType.NOTHING, ZEquipSlotType.BACKPACK, "You may re-roll all ranged attacked involving bows. The new result takes place of old."),  // user can reroll ranged arrow attacks if they want
-    PLENTY_OF_BOLTS(ZEquipmentClass.CROSSBOW, ZActionType.NOTHING, ZEquipSlotType.BACKPACK, "You may re-roll all ranged attacked involving bolts. The new result takes place of old."),
-    BARRICADE(ZEquipmentClass.CONSUMABLE, ZActionType.BARRICADE_DOOR, ZEquipSlotType.HAND, "Close and barricade a door. Takes 3 turns to execute."),
-	AHHHH(ZEquipmentClass.AHHHH, ZActionType.NOTHING, ZEquipSlotType.BACKPACK, "Stop Searching and place a zombie in the room being searched."),
+	PLENTY_OF_ARROWS(
+		ZEquipmentClass.BOW,
+		ZActionType.NOTHING,
+		ZEquipSlotType.BACKPACK,
+		"You may re-roll all ranged attacked involving bows. The new result takes place of old."
+	),  // user can reroll ranged arrow attacks if they want
+	PLENTY_OF_BOLTS(
+		ZEquipmentClass.CROSSBOW,
+		ZActionType.NOTHING,
+		ZEquipSlotType.BACKPACK,
+		"You may re-roll all ranged attacked involving bolts. The new result takes place of old."
+	),
+	BARRICADE(
+		ZEquipmentClass.CONSUMABLE,
+		ZActionType.BARRICADE_DOOR,
+		ZEquipSlotType.HAND,
+		"Close and barricade a door. Takes 3 turns to execute."
+	),
+	PLAGUE_MASK(
+		ZEquipmentClass.ARMOR,
+		ZActionType.NOTHING,
+		ZEquipSlotType.BACKPACK,
+		"Immunity from tainted blood spray"
+	),
+
+	AHHHH(
+		ZEquipmentClass.AHHHH,
+		ZActionType.NOTHING,
+		ZEquipSlotType.BACKPACK,
+		"Stop Searching and place a zombie in the room being searched."
+	),
 	;
 
-    override fun create(): ZItem {
-        return ZItem(this)
-    }
+	override fun create(): ZItem {
+		return ZItem(this)
+	}
 
-    override fun isActionType(type: ZActionType): Boolean {
-        return type === actionType
-    }
+	override fun isActionType(type: ZActionType): Boolean {
+		return type === actionType
+	}
 
-	open fun consume(char : ZCharacter, game : ZGame) {
+	open fun consume(char: ZCharacter, game: ZGame) {
 		throw NotImplementedError()
 	}
 
-    override fun getTooltipText(): String? {
-        return description
-    }
+	override fun getTooltipText(): String? {
+		return description
+	}
+
+	override fun getInfoTable(): Table? = Table().also {
+		it.addColumn(getLabel(), description)
+	}
 }

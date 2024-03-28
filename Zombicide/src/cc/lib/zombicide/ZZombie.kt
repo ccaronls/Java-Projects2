@@ -1,6 +1,11 @@
 package cc.lib.zombicide
 
-import cc.lib.game.*
+import cc.lib.game.AGraphics
+import cc.lib.game.GColor
+import cc.lib.game.GDimension
+import cc.lib.game.Justify
+import cc.lib.game.Utils
+import cc.lib.reflector.Omit
 
 class ZZombie(override val type: ZZombieType = ZZombieType.Walker, val startZone: Int = -1) : ZActor(startZone) {
 	companion object {
@@ -15,17 +20,19 @@ class ZZombie(override val type: ZZombieType = ZZombieType.Walker, val startZone
 
 	private var imageIdx = -1
 
-	@JvmField
 	var destroyed = false
+	var frozen = false
+
 	public override val actionsPerTurn: Int
 		get() = type.actionsPerTurn
 	private val idx: Int
 		private get() {
-			if (imageIdx < 0 || imageIdx >= type.imageOptions.size) imageIdx = Utils.rand() % type.imageOptions.size
+			if (imageIdx < 0 || imageIdx >= type.imageOptions.size) imageIdx =
+				Utils.rand() % type.imageOptions.size
 			return imageIdx
-        }
+		}
 
-    override fun name(): String {
+	override fun name(): String {
         return type.name
     }
 
@@ -74,18 +81,34 @@ class ZZombie(override val type: ZZombieType = ZZombieType.Walker, val startZone
         if (isAlive || isAnimating) {
             super.draw(g)
             if (actionsLeftThisTurn > 1) {
-                g.color = GColor.WHITE
-                val oldHgt = g.setTextHeight(10f)
-                g.drawJustifiedString(getRect().centerBottom, Justify.CENTER, Justify.BOTTOM, java.lang.String.valueOf(actionsLeftThisTurn))
-                g.textHeight = oldHgt
+	            val oldHgt = g.setTextHeight(10f)
+	            g.color = GColor.TRANSLUSCENT_BLACK
+	            val oldWdth = g.setLineWidth(0f)
+	            g.drawFilledCircle(getRect().center, .05f)
+	            g.color = GColor.WHITE
+	            g.drawCircle(getRect().center, 0.05f)
+	            g.drawJustifiedString(
+		            getRect().center,
+		            Justify.CENTER,
+		            Justify.CENTER,
+		            "$actionsLeftThisTurn"
+	            )
+	            g.textHeight = oldHgt
+	            g.setLineWidth(oldWdth)
             }
         }
     }
 
-    override val isAlive: Boolean
-        get() = !destroyed
+	@Omit
+	var escapeZone: ZSpawnArea? = null
 
-    init {
-        onBeginRound()
-    }
+	override val isAlive: Boolean
+		get() = !destroyed
+
+	override val drawPathsOnHighlight: Boolean
+		get() = type.isNecromancer
+
+	init {
+		onBeginRound()
+	}
 }

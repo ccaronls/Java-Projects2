@@ -45,23 +45,29 @@ enum class ZMoveType(val toolTipText: String?, val shortName: String = "") : IBu
 	BLOODLUST_MAGIC("Spend an action to move up to 2 spaces and perform magic."),
 	IGNITE("Ignite a Dragon Bile within range"),
     BARRICADE("Close and barricade a door"),
-    CLOSE_SPAWN_PORTAL("Destroy all spawns in the occupied zone"),
-    ORGANIZE("View inventory. The first change of inventory cost an action. You can perform as many subsequent inventory actions for free for the rest of the round."),  // equip things, drop things, etc.
-    ORGANIZE_DONE("Completed"),
+	CLOSE_SPAWN_PORTAL("Destroy all spawns in the occupied zone"),
+	ORGANIZE("View inventory. The first change of inventory cost an action. You can perform as many subsequent inventory actions for free for the rest of the round."),  // equip things, drop things, etc.
+	ORGANIZE_DONE("Completed"),
 	ORGANIZE_TRADE(null) {
 		override fun getLabel(): String {
 			return TRADE.getLabel()
 		}
 	},
 	ORGANIZE_TAKE(null),
-    ORGANIZE_SLOT("Choose Slot to Organize"),
+	ORGANIZE_SLOT("Choose Slot to Organize"),
+	SIEGE_ENGINE_MOVE("Move the siege engine"),
+	CATAPULT_FIRE_SCATTERSHOT("Fire a scatter shot. Six dice 3/4+ to hit and 1 damage"),
+	CATAPULT_FIRE_GRAPESHOT("Fire a grape shot. Three dice 3/4+ to hit and 2 damage"),
+	CATAPULT_FIRE_BOULDER("Fire a boulder. One die 3/4+ to hit and 3 damage"),
+	BALLISTA_FIRE_BOLT("Fire a bolt that damages all zones in its path"),
+	FAMILIAR_MOVE("View move options for your familiar"),
 	;
 
-    override fun getLabel(): String {
-        return name.prettify()
-    }
+	override fun getLabel(): String {
+		return name.prettify()
+	}
 
-    override fun getTooltipText(): String? {
-        return toolTipText
-    }
+	override fun getTooltipText(): String? {
+		return toolTipText
+	}
 }

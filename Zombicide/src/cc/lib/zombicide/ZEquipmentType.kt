@@ -3,6 +3,7 @@ package cc.lib.zombicide
 
 import cc.lib.ui.IButton
 import cc.lib.utils.GException
+import cc.lib.utils.Table
 import cc.lib.utils.prettify
 
 interface ZEquipmentType : IButton {
@@ -51,14 +52,16 @@ interface ZEquipmentType : IButton {
     }
 
     val throwMinRange: Int
-        get() = 0
-    val throwMaxRange: Int
-        get() = 1
+	    get() = 0
+	val throwMaxRange: Int
+		get() = 1
 
-    fun getDieRollToBlock(type: ZZombieType): Int {
-        return 0
-    }
+	fun getDieRollToBlock(type: ZZombieType): Int {
+		return 0
+	}
 
-    val isShield: Boolean
-        get() = false
+	val isShield: Boolean
+		get() = false
+
+	open fun getInfoTable(): Table? = null
 }

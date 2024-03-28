@@ -18,7 +18,7 @@ class HoverMessage(val board: UIZBoardRenderer, private val msg: String, val cen
 	private lateinit var hJust: Justify
 
 	override fun onStarted(g: AGraphics) {
-		val old = g.setTextHeight(18f)
+		val old = g.setTextHeight(24f)
 		val tv: Vector2D = g.transform(center)
 		val width = g.getTextWidth(msg) / 2
 		hJust = if (tv.X() + width > g.viewportWidth) {
@@ -37,7 +37,7 @@ class HoverMessage(val board: UIZBoardRenderer, private val msg: String, val cen
 	}
 
 	override fun draw(g: AGraphics, position: Float, dt: Float) {
-		val old = g.setTextHeight(18f)
+		val old = g.setTextHeight(20f)
 		val v: Vector2D = Vector2D(center).add(start).add(dv.scaledBy(position))
 		g.color = GColor.YELLOW.withAlpha(1f - position)
 		g.drawJustifiedString(v, hJust, Justify.CENTER, msg)

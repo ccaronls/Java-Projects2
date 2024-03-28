@@ -70,14 +70,9 @@ fun View.setTagFromMoves(moves : List<ZMove>, _character : ZCharacter?, slot : Z
 		val options = moves.filter {
 			it.character == character.type && ((it.toSlot == null && it.fromSlot == slot) || it.toSlot == slot)
 		}
-		if (options.size == 1) {
+		if (options.isNotEmpty()) {
 			tag = options[0]
 			Log.i(TAG, "tag for ${character.name()}:${slot} -> $tag")
-		} else {
-			tag = null
-			if (options.size > 1) {
-				Log.e(TAG, "ERROR: too many options for tag: ${options.joinToString()}")
-			}
 		}
 
 		if (dragging) {
@@ -125,8 +120,8 @@ class OrganizeViewModel : LifecycleViewModel(),
 	val descriptionItem = MutableLiveData<Any>(null)
 	val descriptionHeader = TransformedLiveData(descriptionItem) {
 		when (it) {
-			is ZCharacter    -> it.name()
-			is ZEquipment<*> -> it.label // it.label
+			is ZCharacter -> it.name()
+			is ZEquipment<*> -> it.getLabel() // it.label
 			else -> it?.javaClass?.simpleName ?: "INSTRUCTIONS"
 		}
 	}
@@ -134,7 +129,10 @@ class OrganizeViewModel : LifecycleViewModel(),
 	val descriptionBody: LiveData<Table?> = combine(descriptionItem, primaryCharacter, secondaryCharacter) { obj, primary, secondary ->
 		when (obj) {
 			is ZCharacter -> Table().setNoBorder().also {
-				it.addRow(obj.getStatsTable().setNoBorder(), obj.getAllSkillsTable().setNoBorder())
+				it.addRow(
+					obj.getStatsTable(game.rules).setNoBorder(),
+					obj.getAllSkillsTable(game.rules).setNoBorder()
+				)
 			}
 			is ZWeapon -> secondary?.let {
 				obj.getComparisonInfo(game, primary!!, it)
@@ -143,7 +141,7 @@ class OrganizeViewModel : LifecycleViewModel(),
 			}
 			//is ZItem -> obj.type.description
 			//is ZEquipment<*> -> obj.tooltipText
-			is IButton -> Table().setNoBorder().addRow(obj.tooltipText)
+			is IButton -> Table().setNoBorder().addRow(obj.getTooltipText() ?: "")
 			//is ZSpell -> obj.type.tooltipText
 			else -> Table().setNoBorder().addRow(
 				"""
@@ -198,7 +196,7 @@ class OrganizeViewModel : LifecycleViewModel(),
 			return false
 		allOptions.value = options
 		dragging.value = true
-		val name = equip.label
+		val name = equip.getLabel()
 		return view.startDrag(
 			ClipData.newPlainText(name, name),
 			View.DragShadowBuilder(view),

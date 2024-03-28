@@ -7,7 +7,13 @@ import androidx.core.view.postDelayed
 import cc.lib.android.DroidGraphics
 import cc.lib.android.UIComponentView
 import cc.lib.game.GDimension
-import cc.lib.zombicide.*
+import cc.lib.zombicide.ZDir
+import cc.lib.zombicide.ZIcon
+import cc.lib.zombicide.ZPlayerName
+import cc.lib.zombicide.ZQuest
+import cc.lib.zombicide.ZSiegeTypeEngineType
+import cc.lib.zombicide.ZTile
+import cc.lib.zombicide.ZZombieType
 import cc.lib.zombicide.ui.UIZBoardRenderer
 import cc.lib.zombicide.ui.UIZComponent
 import kotlinx.coroutines.delay
@@ -40,11 +46,28 @@ class ZBoardView(context: Context, attrs: AttributeSet) : UIComponentView<UIZBoa
 		super.preDrawInit(g)
 	}
 
-	fun initCharacter(g: DroidGraphics, pl: ZPlayerName, cardImageId: Int, charImageId: Int, outlineImageId: Int) {
+	fun initCharacter(
+		g: DroidGraphics,
+		pl: ZPlayerName,
+		cardImageId: Int,
+		charImageId: Int,
+		outlineImageId: Int
+	) {
 		pl.imageId = charImageId
 		pl.cardImageId = cardImageId
 		pl.imageDim = GDimension(g.getImage(charImageId))
 		pl.outlineImageId = outlineImageId
+	}
+
+	fun initCatapult(
+		g: DroidGraphics,
+		cat: ZSiegeTypeEngineType,
+		charImageId: Int,
+		outlineImageId: Int
+	) {
+		cat.imageId = charImageId
+		cat.dimension = GDimension(g.getImage(charImageId))
+		cat.imageOutlineId = outlineImageId
 	}
 
 	var tileIds = IntArray(0)
@@ -87,34 +110,223 @@ class ZBoardView(context: Context, attrs: AttributeSet) : UIComponentView<UIZBoa
 		initCharacter(g, ZPlayerName.Baldric, R.drawable.zcard_baldric, R.drawable.zchar_baldric, R.drawable.zchar_baldric_outline)
 		initCharacter(g, ZPlayerName.Benson, R.drawable.zcard_benson, R.drawable.zchar_benson, R.drawable.zchar_benson_outline)
 		initCharacter(g, ZPlayerName.Jain, R.drawable.zcard_jain, R.drawable.zchar_jain, R.drawable.zchar_jain_outline)
-		initCharacter(g, ZPlayerName.Tucker, R.drawable.zcard_tucker, R.drawable.zchar_tucker, R.drawable.zchar_tucker_outline)
-		initCharacter(g, ZPlayerName.Silas, R.drawable.zcard_silas, R.drawable.zchar_silas, R.drawable.zchar_silas_outline)
-		initCharacter(g, ZPlayerName.Samson, R.drawable.zcard_samson, R.drawable.zchar_samson, R.drawable.zchar_samson_outline)
-		initCharacter(g, ZPlayerName.Nelly, R.drawable.zcard_nelly, R.drawable.zchar_nelly, R.drawable.zchar_nelly_outline)
-		initCharacter(g, ZPlayerName.Ann, R.drawable.zcard_ann, R.drawable.zchar_ann, R.drawable.zchar_ann_outline)
-		initCharacter(g, ZPlayerName.Clovis, R.drawable.zcard_clovis, R.drawable.zchar_clovis, R.drawable.zchar_clovis_outline)
-		initCharacter(g, ZPlayerName.Karl, R.drawable.zcard_karl, R.drawable.zchar_karl, R.drawable.zchar_karl_outline)
-		initCharacter(g, ZPlayerName.Ariane, R.drawable.zcard_ariane, R.drawable.zchar_ariane, R.drawable.zchar_ariane_outline)
-		initCharacter(g, ZPlayerName.Morrigan, R.drawable.zcard_morrigan, R.drawable.zchar_morrigan, R.drawable.zchar_morrigan_outline)
-		initCharacter(g, ZPlayerName.Theo, R.drawable.zcard_theo, R.drawable.zchar_theo, R.drawable.zchar_theo_outline)
-		initZombieImages(g, ZZombieType.Walker,
+		initCharacter(
+			g,
+			ZPlayerName.Tucker,
+			R.drawable.zcard_tucker,
+			R.drawable.zchar_tucker,
+			R.drawable.zchar_tucker_outline
+		)
+		initCharacter(
+			g,
+			ZPlayerName.Silas,
+			R.drawable.zcard_silas,
+			R.drawable.zchar_silas,
+			R.drawable.zchar_silas_outline
+		)
+		initCharacter(
+			g,
+			ZPlayerName.Samson,
+			R.drawable.zcard_samson,
+			R.drawable.zchar_samson,
+			R.drawable.zchar_samson_outline
+		)
+		initCharacter(
+			g,
+			ZPlayerName.Nelly,
+			R.drawable.zcard_nelly,
+			R.drawable.zchar_nelly,
+			R.drawable.zchar_nelly_outline
+		)
+		initCharacter(
+			g,
+			ZPlayerName.Ann,
+			R.drawable.zcard_ann,
+			R.drawable.zchar_ann,
+			R.drawable.zchar_ann_outline
+		)
+		initCharacter(
+			g,
+			ZPlayerName.Clovis,
+			R.drawable.zcard_clovis,
+			R.drawable.zchar_clovis,
+			R.drawable.zchar_clovis_outline
+		)
+		initCharacter(
+			g,
+			ZPlayerName.Karl,
+			R.drawable.zcard_karl,
+			R.drawable.zchar_karl,
+			R.drawable.zchar_karl_outline
+		)
+		initCharacter(
+			g,
+			ZPlayerName.Ariane,
+			R.drawable.zcard_ariane,
+			R.drawable.zchar_ariane,
+			R.drawable.zchar_ariane_outline
+		)
+		initCharacter(
+			g,
+			ZPlayerName.Morrigan,
+			R.drawable.zcard_morrigan,
+			R.drawable.zchar_morrigan,
+			R.drawable.zchar_morrigan_outline
+		)
+		initCharacter(
+			g,
+			ZPlayerName.Theo,
+			R.drawable.zcard_theo,
+			R.drawable.zchar_theo,
+			R.drawable.zchar_theo_outline
+		)
+		initCharacter(
+			g,
+			ZPlayerName.Arnaud,
+			R.drawable.zcard_arnaud,
+			R.drawable.zchar_arnaud,
+			R.drawable.zchar_arnaud_outline
+		)
+		initCharacter(
+			g,
+			ZPlayerName.Seli,
+			R.drawable.zcard_seli,
+			R.drawable.zchar_seli,
+			R.drawable.zchar_seli_outline
+		)
+
+
+		initZombieImages(
+			g, ZZombieType.Walker,
 			R.drawable.zwalker1, R.drawable.zwalker1_outline,
 			R.drawable.zwalker2, R.drawable.zwalker2_outline,
 			R.drawable.zwalker3, R.drawable.zwalker3_outline,
 			R.drawable.zwalker4, R.drawable.zwalker4_outline,
-			R.drawable.zwalker5, R.drawable.zwalker5_outline)
-		initZombieImages(g, ZZombieType.Abomination, R.drawable.zabomination, R.drawable.zabomination_outline)
-		initZombieImages(g, ZZombieType.BlueTwin, R.drawable.zbluetwin, R.drawable.zabomination_outline)
-		initZombieImages(g, ZZombieType.GreenTwin, R.drawable.zgreentwin, R.drawable.zabomination_outline)
+			R.drawable.zwalker5, R.drawable.zwalker5_outline
+		)
+		initZombieImages(
+			g,
+			ZZombieType.Abomination,
+			R.drawable.zabomination,
+			R.drawable.zabomination_outline
+		)
+		initZombieImages(
+			g,
+			ZZombieType.BlueTwin,
+			R.drawable.zbluetwin,
+			R.drawable.zabomination_outline
+		)
+		initZombieImages(
+			g,
+			ZZombieType.GreenTwin,
+			R.drawable.zgreentwin,
+			R.drawable.zabomination_outline
+		)
 		initZombieImages(g, ZZombieType.Necromancer, R.drawable.znecro, R.drawable.znecro_outline)
-		initZombieImages(g, ZZombieType.Runner, R.drawable.zrunner1, R.drawable.zrunner1_outline, R.drawable.zrunner2, R.drawable.zrunner2_outline)
-		initZombieImages(g, ZZombieType.Fatty, R.drawable.zfatty1, R.drawable.zfatty1_outline, R.drawable.zfatty2, R.drawable.zfatty2_outline)
-		initZombieImages(g, ZZombieType.Wolfz, R.drawable.zwulf1, R.drawable.zwulf1_outline, R.drawable.zwulf2, R.drawable.zwulf2_outline)
-		initZombieImages(g, ZZombieType.Wolfbomination, R.drawable.zwolfabom, R.drawable.zwolfabom_outline)
-		initZombieImages(g, ZZombieType.Wolfz, R.drawable.zwulf1, R.drawable.zwulf1_outline, R.drawable.zwulf2, R.drawable.zwulf2_outline)
+		initZombieImages(
+			g,
+			ZZombieType.Runner,
+			R.drawable.zrunner1,
+			R.drawable.zrunner1_outline,
+			R.drawable.zrunner2,
+			R.drawable.zrunner2_outline
+		)
+		initZombieImages(
+			g,
+			ZZombieType.Fatty,
+			R.drawable.zfatty1,
+			R.drawable.zfatty1_outline,
+			R.drawable.zfatty2,
+			R.drawable.zfatty2_outline
+		)
+		initZombieImages(
+			g,
+			ZZombieType.Wolfz,
+			R.drawable.zwulf1,
+			R.drawable.zwulf1_outline,
+			R.drawable.zwulf2,
+			R.drawable.zwulf2_outline
+		)
+		initZombieImages(
+			g,
+			ZZombieType.Wolfbomination,
+			R.drawable.zwolfabom,
+			R.drawable.zwolfabom_outline
+		)
+		initZombieImages(
+			g,
+			ZZombieType.Wolfz,
+			R.drawable.zwulf1,
+			R.drawable.zwulf1_outline,
+			R.drawable.zwulf2,
+			R.drawable.zwulf2_outline
+		)
+		initZombieImages(
+			g, ZZombieType.OrcWalker,
+			R.drawable.zorc_walker1, R.drawable.zorc_walker1_outline,
+			R.drawable.zorc_walker2, R.drawable.zorc_walker2_outline,
+			R.drawable.zorc_walker3, R.drawable.zorc_walker3_outline,
+			R.drawable.zorc_walker4, R.drawable.zorc_walker4_outline,
+			R.drawable.zorc_walker5, R.drawable.zorc_walker5_outline
+		)
+		initZombieImages(
+			g,
+			ZZombieType.OrcAbomination,
+			R.drawable.zorc_abomination,
+			R.drawable.zorc_abomination_outline
+		)
+		initZombieImages(
+			g,
+			ZZombieType.OrcNecromancer,
+			R.drawable.zorc_necro,
+			R.drawable.zorc_necro_outline
+		)
+		initZombieImages(
+			g,
+			ZZombieType.OrcRunner,
+			R.drawable.zorc_runner1,
+			R.drawable.zorc_runner1_outline,
+			R.drawable.zorc_runner2,
+			R.drawable.zorc_runner2_outline
+		)
+		initZombieImages(
+			g,
+			ZZombieType.OrcFatty,
+			R.drawable.zorc_fatty1,
+			R.drawable.zorc_fatty1_outline,
+			R.drawable.zorc_fatty2,
+			R.drawable.zorc_fatty2_outline
+		)
+		initZombieImages(
+			g,
+			ZZombieType.Crowz,
+			R.drawable.zmurder_crowz,
+			R.drawable.zmurder_crowz_outline
+		)
+		initZombieImages(g, ZZombieType.Ratz, R.drawable.zrats, R.drawable.zrats_outline)
+
+		initCatapult(
+			g,
+			ZSiegeTypeEngineType.CATAPULT,
+			R.drawable.catapult,
+			R.drawable.catapult_outline
+		)
+		initCatapult(
+			g,
+			ZSiegeTypeEngineType.BALLISTA,
+			R.drawable.ballista,
+			R.drawable.ballista_outline
+		)
 
 		// Fire images are extracted from larger main image
-		val cells = arrayOf(intArrayOf(0, 0, 56, 84), intArrayOf(56, 0, 131 - 56, 84), intArrayOf(131, 0, 196 - 131, 84), intArrayOf(0, 84, 60, 152 - 84), intArrayOf(60, 84, 122 - 60, 152 - 84), intArrayOf(122, 84, 196 - 122, 152 - 84))
+		val cells = arrayOf(
+			intArrayOf(0, 0, 56, 84),
+			intArrayOf(56, 0, 131 - 56, 84),
+			intArrayOf(131, 0, 196 - 131, 84),
+			intArrayOf(0, 84, 60, 152 - 84),
+			intArrayOf(60, 84, 122 - 60, 152 - 84),
+			intArrayOf(122, 84, 196 - 122, 152 - 84)
+		)
 		numImages = ZIcon.values().size
 		ZIcon.FIRE.imageIds = g.loadImageCells(R.drawable.zfire_icons, cells)
 		publishProgress(++progress)
@@ -141,7 +353,9 @@ class ZBoardView(context: Context, attrs: AttributeSet) : UIComponentView<UIZBoa
 			Pair(ZIcon.DRAGON_BILE, R.drawable.zdragonbile_icon),
 			Pair(ZIcon.TORCH, R.drawable.ztorch_icon),
 			Pair(ZIcon.DAGGER, R.drawable.zdagger_icon),
-			Pair(ZIcon.SWORD, R.drawable.zsword_icon))) {
+			Pair(ZIcon.BOULDER, R.drawable.zboulder_icon),
+			Pair(ZIcon.SWORD, R.drawable.zsword_icon)
+		)) {
 			pair.first.imageIds = IntArray(8)
 			val ids = pair.first.imageIds
 			ids[0] = pair.second
@@ -156,9 +370,11 @@ class ZBoardView(context: Context, attrs: AttributeSet) : UIComponentView<UIZBoa
 		for (pair in arrayOf(
 			Pair(ZIcon.SHIELD, R.drawable.zshield_icon),
 			Pair(ZIcon.SLIME, R.drawable.zslime_icon),
+			Pair(ZIcon.RUBBLE, R.drawable.zrubble_icon),
 			Pair(ZIcon.FIREBALL, R.drawable.zfireball),
 			Pair(ZIcon.GRAVESTONE, R.drawable.zgravestone),
 			Pair(ZIcon.PADLOCK, R.drawable.zpadlock3),
+			Pair(ZIcon.NOISE, R.drawable.znoise_icon),
 			Pair(ZIcon.SKULL, R.drawable.zskull),
 			Pair(ZIcon.BLACKBOOK, R.drawable.zblack_book)
 		)) {
@@ -169,7 +385,8 @@ class ZBoardView(context: Context, attrs: AttributeSet) : UIComponentView<UIZBoa
 		// Directional, like projectiles
 		for (pair in arrayOf(
 			Pair(ZIcon.ARROW, R.drawable.zarrow_icon),
-			Pair(ZIcon.MJOLNIR, R.drawable.zmjolnir)
+			Pair(ZIcon.MJOLNIR, R.drawable.zmjolnir),
+			Pair(ZIcon.BOLT, R.drawable.zbolt_icon)
 		)) {
 			pair.first.imageIds = IntArray(4)
 			val ids = pair.first.imageIds
@@ -192,6 +409,7 @@ class ZBoardView(context: Context, attrs: AttributeSet) : UIComponentView<UIZBoa
 			publishProgress(++progress)
 		}
 		Log.i("IMAGES", "Loaded total of $progress")
+
 		publishProgress(numImages)
 	}
 

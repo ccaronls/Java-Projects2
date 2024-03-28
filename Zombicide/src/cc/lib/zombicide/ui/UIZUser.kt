@@ -1,8 +1,22 @@
 package cc.lib.zombicide.ui
 
+import cc.lib.ui.ButtonHandler
 import cc.lib.utils.Table
 import cc.lib.utils.prettify
-import cc.lib.zombicide.*
+import cc.lib.zombicide.ZDoor
+import cc.lib.zombicide.ZEquipSlot
+import cc.lib.zombicide.ZEquipment
+import cc.lib.zombicide.ZEquipmentClass
+import cc.lib.zombicide.ZEquipmentType
+import cc.lib.zombicide.ZFamiliarType
+import cc.lib.zombicide.ZMove
+import cc.lib.zombicide.ZPlayerName
+import cc.lib.zombicide.ZSkill
+import cc.lib.zombicide.ZSpawnArea
+import cc.lib.zombicide.ZSpell
+import cc.lib.zombicide.ZUser
+import cc.lib.zombicide.ZWeapon
+import cc.lib.zombicide.ZWeaponType
 
 open class UIZUser(name: String) : ZUser(name) {
 	fun <T> indexOrNull(item: T?, options: List<T>): Int? {
@@ -121,7 +135,28 @@ open class UIZUser(name: String) : ZUser(name) {
 	override suspend fun chooseStartingEquipment(playerName: ZPlayerName, list: List<ZEquipmentType>): ZEquipmentType? {
 		val table = Table().setNoBorder()
 		for (t in list) {
-			table.addColumnNoHeaderVarArg(t.create().getCardInfo(UIZombicide.instance.board.getCharacter(playerName), UIZombicide.instance))
+			table.addColumnNoHeaderVarArg(
+				t.create().getCardInfo(
+					UIZombicide.instance.board.getCharacter(playerName),
+					UIZombicide.instance
+				).also {
+					UIZombicide.instance.boardRenderer.addButton(it, object : ButtonHandler() {
+						override fun onClick(): Boolean {
+							UIZombicide.instance.setResult(t)
+							return true
+						}
+
+						override fun onHoverEnter() {
+							it.highlighted = true
+						}
+
+						override fun onHoverExit() {
+							it.highlighted = false
+						}
+					})
+				}
+
+			)
 		}
 		UIZombicide.instance.boardRenderer.setOverlay(Table().addColumn("Choose Starting Equipment", table))
 		return UIZombicide.instance.pickMenu(playerName, "Choose Starting Equipment", ZEquipmentType::class.java, list)
@@ -139,4 +174,27 @@ open class UIZUser(name: String) : ZUser(name) {
 		UIZombicide.instance.closeOrganizeDialog()
 	}
 
+	override suspend fun chooseZoneForCatapult(
+		playerName: ZPlayerName,
+		ammoType: ZWeaponType,
+		zones: List<Int>
+	): Int? {
+		return UIZombicide.instance.pickZone(
+			playerName,
+			"Pick Zone for ${ammoType.prettify()}",
+			zones
+		)
+	}
+
+	override suspend fun chooseFamiliar(
+		playerName: ZPlayerName,
+		list: List<ZFamiliarType>
+	): ZFamiliarType? {
+		return UIZombicide.instance.pickMenu(
+			playerName,
+			"Choose Familiar",
+			ZFamiliarType::class.java,
+			list
+		)
+	}
 }

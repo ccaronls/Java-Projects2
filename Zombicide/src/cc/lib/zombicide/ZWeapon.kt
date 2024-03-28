@@ -1,8 +1,9 @@
 package cc.lib.zombicide
 
 
-import cc.lib.utils.*
-import java.util.*
+import cc.lib.utils.Table
+import cc.lib.utils.toInt
+import cc.lib.utils.wrap
 
 class ZWeapon(override val type: ZWeaponType=ZWeaponType.AXE) : ZEquipment<ZWeaponType>() {
     companion object {
@@ -62,8 +63,6 @@ class ZWeapon(override val type: ZWeaponType=ZWeaponType.AXE) : ZEquipment<ZWeap
 
     override val isDualWieldCapable: Boolean
         get() = type.canTwoHand
-    override val isAttackNoisy: Boolean
-        get() = type.attackIsNoisy
     override val isOpenDoorsNoisy: Boolean
         get() = type.openDoorsIsNoisy
 
@@ -171,15 +170,39 @@ class ZWeapon(override val type: ZWeaponType=ZWeaponType.AXE) : ZEquipment<ZWeap
         for (at in ZActionType.values()) {
             c.getWeaponStat(this, at, game, -1)?.let { stats ->
 	            val doorInfo: String = if (stats.dieRollToOpenDoor > 0) {
-	                String.format("%s %d%%", if (type.openDoorsIsNoisy) "noisy" else "quiet", stats.dieRollToOpenDoorPercent)
+		            String.format(
+			            "%s %d%%",
+			            if (type.openDoorsIsNoisy) "noisy" else "quiet",
+			            stats.dieRollToOpenDoorPercent
+		            )
 	            } else {
-	                "no"
+		            "no"
 	            }
-                cardLower.addColumnNoHeader(Arrays.asList(at.label, String.format("%d %s", stats.damagePerHit, if (type.attackIsNoisy) " loud" else " quiet"), String.format("%d%% x %d", (7 - stats.dieRollToHit) * 100 / 6, stats.numDice),
-                        if (stats.minRange == stats.maxRange) stats.minRange.toString() else String.format("%d-%d", stats.minRange, stats.maxRange),
-                        doorInfo,
-	                if (type.needsReload) String.format("yes (%s)", if (isEmpty) "empty" else "loaded") else "no"
-                ))
+	            cardLower.addColumnNoHeader(
+		            listOf(
+			            at.label,
+			            String.format(
+				            "%d %s",
+				            stats.damagePerHit,
+				            if (type.attackIsNoisy) " loud" else " quiet"
+			            ),
+			            String.format(
+				            "%d%% x %d",
+				            (7 - stats.dieRollToHit) * 100 / 6,
+				            stats.numDice
+			            ),
+			            if (stats.minRange == stats.maxRange) stats.minRange.toString() else String.format(
+				            "%d-%d",
+				            stats.minRange,
+				            stats.maxRange
+			            ),
+			            doorInfo,
+			            if (type.needsReload) String.format(
+				            "yes (%s)",
+				            if (isEmpty) "empty" else "loaded"
+			            ) else "no"
+		            )
+	            )
             }
         }
 	    val card = Table(String.format("%s%s %s", type.getLabel(), if (type.canTwoHand) " (DW)" else "", type.minColorToEquip))
@@ -195,41 +218,7 @@ class ZWeapon(override val type: ZWeaponType=ZWeaponType.AXE) : ZEquipment<ZWeap
         return card
     }
 
-    override fun getTooltipText(): String {
-        val cardLower = Table().setNoBorder()
-        cardLower.addColumnNoHeader(Arrays.asList(
-                "Attack Type",
-                "Dual Wield",
-                "Damage",
-                "Hit %",
-                "Range",
-                "Doors",
-                "Reloads"))
-        for (stats in type.stats) {
-	        var doorInfo: String = if (stats.dieRollToOpenDoor > 0) {
-	            String.format("%s %d%%", if (type.openDoorsIsNoisy) "noisy" else "quiet", stats.dieRollToOpenDoorPercent)
-	        } else {
-	            "no"
-	        }
-            cardLower.addColumnNoHeader(Arrays.asList(
-	            stats.attackType.name.prettify(),
-	            if (type.canTwoHand) "yes" else "no",
-	            String.format("%d %s", stats.damagePerHit, if (type.attackIsNoisy) " loud" else " quiet"),
-	            String.format("%d%% x %d", stats.dieRollToHitPercent, stats.numDice),
-	            if (stats.minRange == stats.maxRange) stats.minRange.toString() else String.format("%d-%d", stats.minRange, stats.maxRange),
-	            doorInfo,
-	            if (type.needsReload) String.format("yes (%s)", if (isEmpty) "empty" else "loaded") else "no"
-            ))
-        }
-        if (type.minColorToEquip.ordinal > 0) {
-            cardLower.addRow(type.minColorToEquip.toString() + " Required")
-        }
-        val skills = type.skillsWhileEquipped.appendedWith(type.skillsWhenUsed)
-        for (skill in skills) {
-	        cardLower.addRow(skill.getLabel())
-        }
-        return cardLower.toString()
-    }
+	override fun getTooltipText(): String = type.getStatsTable(isEmpty).toString()
 
     override fun onEndOfRound(game: ZGame) {
         when (type) {

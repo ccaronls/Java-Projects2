@@ -46,7 +46,7 @@ internal abstract class CharacterChooserDialogSP(val activity: ZombicideActivity
 		val lock = charLocks[position]
 		val cb = view.findViewById<CheckBox>(R.id.checkbox)
 		val tv = view.findViewById<TextView>(R.id.textview)
-		tv.text = lock.player.label
+		tv.text = lock.player.getLabel()
 		cb.isChecked = selectedPlayers.contains(lock.player.name)
 		if (cb.isChecked || lock.isUnlocked) {
 			cb.isClickable = true

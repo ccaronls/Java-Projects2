@@ -17,13 +17,28 @@ data class ZWeaponStat(var actionType: ZActionType = ZActionType.MOVE,
         }
     }
 
-    fun copy(): ZWeaponStat {
-        return ZWeaponStat(actionType, attackType, dieRollToOpenDoor, minRange, maxRange, numDice, dieRollToHit, damagePerHit)
-    }
+	fun copy(): ZWeaponStat {
+		return ZWeaponStat(
+			actionType,
+			attackType,
+			dieRollToOpenDoor,
+			minRange,
+			maxRange,
+			numDice,
+			dieRollToHit,
+			damagePerHit
+		)
+	}
 
-	val dieRollToOpenDoorPercent : Int
+	val dieRollToOpenDoorPercent: Int
 		get() = if (dieRollToOpenDoor == 0) 0 else (7 - dieRollToOpenDoor) * 100 / 6
 
-	val dieRollToHitPercent : Int
+	val dieRollToHitPercent: Int
 		get() = (7 - dieRollToHit) * 100 / 6
+
+	val rangeString: String = when (maxRange) {
+		minRange -> "$minRange"
+		Int.MAX_VALUE -> "$minRange+"
+		else -> "$minRange-$maxRange"
+	}
 }

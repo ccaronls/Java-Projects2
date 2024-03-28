@@ -4,8 +4,19 @@ import cc.lib.game.AGraphics
 import cc.lib.game.GColor
 import cc.lib.utils.Grid
 import cc.lib.utils.Table
-import cc.lib.zombicide.*
+import cc.lib.zombicide.ZBoard
+import cc.lib.zombicide.ZCell
+import cc.lib.zombicide.ZCharacter
+import cc.lib.zombicide.ZDir
+import cc.lib.zombicide.ZEquipmentType
+import cc.lib.zombicide.ZGame
+import cc.lib.zombicide.ZIcon
+import cc.lib.zombicide.ZQuest
+import cc.lib.zombicide.ZQuests
+import cc.lib.zombicide.ZSpawnArea
+import cc.lib.zombicide.ZTile
 import cc.lib.zombicide.ZTile.Companion.getQuadrant
+import cc.lib.zombicide.ZWeaponType
 
 /**
  * Created by Chris Caron on 8/24/21.
@@ -76,11 +87,6 @@ arrayOf("z36:blspw", "z37", "z38",                              "z39", "z40", "z
 
 	override val allVaultOptions: List<ZEquipmentType>
 		get() = listOf(ZWeaponType.CHAOS_LONGBOW, ZWeaponType.VAMPIRE_CROSSBOW, ZWeaponType.INFERNO, ZWeaponType.ORCISH_CROSSBOW, ZWeaponType.BASTARD_SWORD, ZWeaponType.EARTHQUAKE_HAMMER)
-
-	override fun getMaxNumZombiesOfType(type: ZZombieType?): Int = when (type) {
-		ZZombieType.Necromancer -> 3
-		else -> super.getMaxNumZombiesOfType(type)
-	}
 
 	override fun drawQuest(board: ZBoard, g: AGraphics) {
 		for (zIdx in occupyZones) {

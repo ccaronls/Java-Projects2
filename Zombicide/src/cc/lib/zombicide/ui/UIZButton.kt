@@ -9,16 +9,8 @@ interface UIZButton : IButton {
 		UIZombicide.instance.setResult(this)
 	}
 
-	fun getInfo(g: AGraphics?, width: Int, height: Int): Table? {
+	fun getInfo(g: AGraphics, width: Int, height: Int): Table? {
 		return null
 	}
 
-	/**
-	 * Higher numbers have priority when buttons overlapp
-	 *
-	 * @return
-	 */
-	override fun getZOrder(): Int {
-		return 0
-	}
 }

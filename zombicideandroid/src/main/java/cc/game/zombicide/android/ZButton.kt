@@ -24,8 +24,8 @@ class ZButton : ConstraintLayout {
 	private fun init(button: IButton, enabled: Boolean) {
 		val tv = findViewById<TextView>(R.id.text)
 		val arrow = findViewById<View>(R.id.ivInfo)
-		tv.text = button.label
-		if (button.tooltipText == null) {
+		tv.text = button.getLabel()
+		if (button.getTooltipText() == null) {
 			arrow.visibility = GONE
 		} else {
 			arrow.visibility = VISIBLE

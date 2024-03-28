@@ -1,7 +1,11 @@
 package cc.lib.zombicide.quests
 
 import cc.lib.utils.Table
-import cc.lib.zombicide.*
+import cc.lib.zombicide.ZBoard
+import cc.lib.zombicide.ZGame
+import cc.lib.zombicide.ZQuest
+import cc.lib.zombicide.ZQuests
+import cc.lib.zombicide.ZTile
 import cc.lib.zombicide.ZTile.Companion.getQuadrant
 
 class WolfQuestKnowYourEnemy : ZQuest(ZQuests.Know_Your_Enemy) {
@@ -42,7 +46,7 @@ arrayOf("z38:i:odn:we", "z39", "z40",                       "z41", "z42", "z43")
 	override fun init(game: ZGame) {}
 	override fun getObjectivesOverlay(game: ZGame): Table {
 		val totalChars = game.allCharacters.size
-		val numInZone = numPlayersInExitEvent(game)
+		val numInZone = numPlayersInExit(game)
 		return Table(name)
 			.addRow(Table().setNoBorder()
 				.addRow("", "Use the Towers for cover to execute ranged attacks on enemies")

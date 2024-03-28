@@ -1,7 +1,12 @@
 package cc.lib.zombicide.quests
 
 import cc.lib.utils.Table
-import cc.lib.zombicide.*
+import cc.lib.zombicide.ZBoard
+import cc.lib.zombicide.ZCharacter
+import cc.lib.zombicide.ZGame
+import cc.lib.zombicide.ZQuest
+import cc.lib.zombicide.ZQuests
+import cc.lib.zombicide.ZTile
 import cc.lib.zombicide.ZTile.Companion.getQuadrant
 
 class WolfQuestWelcomeToWulfsburg : ZQuest(ZQuests.Welcome_to_Wulfsberg) {
@@ -46,7 +51,7 @@ arrayOf("z38:i:wn:ode", "z39:i:dn:red:we", "z40:sps",                       "z41
 
 	override fun getObjectivesOverlay(game: ZGame): Table {
 		val totalChars = game.allCharacters.size
-		val numInZone = numPlayersInExitEvent(game)
+		val numInZone = numPlayersInExit(game)
 		return Table(name)
 			.addRow(Table().setNoBorder()
 				.addRow("", "Use the Towers for cover to execute ranged attacks on enemies")
