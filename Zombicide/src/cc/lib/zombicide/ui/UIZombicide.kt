@@ -71,9 +71,6 @@ import cc.lib.zombicide.p2p.ZGameMP
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-import kotlin.coroutines.Continuation
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 abstract class UIZombicide(val characterRenderer: UIZCharacterRenderer, val boardRenderer: UIZBoardRenderer) : ZGameMP(), UIZBoardRenderer.Listener {
 	enum class UIMode {
@@ -211,13 +208,15 @@ abstract class UIZombicide(val characterRenderer: UIZCharacterRenderer, val boar
 
 	open fun undo() {}
 
-	var continuation: Continuation<Any?>? = null
+	val lock = Lock()
+//	var continuation: Continuation<Any?>? = null
 
-	open suspend fun <T> waitForUser(expectedType: Class<T>): T? {
+	open fun <T> waitForUser(expectedType: Class<T>): T? {
 		log.debug("waitForUser type: ${expectedType.simpleName}")
-		result = suspendCoroutine {
-			continuation = it
-		}
+		//result = suspendCoroutine {
+		//	continuation = it
+		//}
+		lock.acquireAndBlock()
 		log.debug("waitForUser resumed result: $result")
 		uiMode = UIMode.NONE
 		result?.let {
@@ -232,10 +231,12 @@ abstract class UIZombicide(val characterRenderer: UIZCharacterRenderer, val boar
 			boardRenderer.setOverlay(null)
 		}
 		boardRenderer.popAllZoomRects()
-		continuation?.let {
-			it.resume(result)
-			continuation = null
-		} ?: log.error("continuation is null")
+		this.result = result
+		lock.release()
+//		continuation?.let {
+//			it.resume(result)
+//			continuation = null
+//		} ?: log.error("continuation is null")
 		refresh()
 	}
 
@@ -251,7 +252,11 @@ abstract class UIZombicide(val characterRenderer: UIZCharacterRenderer, val boar
 			boardMessage = "$name's Turn"
 		}
 
-	suspend fun pickCharacter(name: ZPlayerName?, message: String, characters: List<ZPlayerName>): ZPlayerName? {
+	fun pickCharacter(
+		name: ZPlayerName?,
+		message: String,
+		characters: List<ZPlayerName>
+	): ZPlayerName? {
 		name?.toCharacter().apply {
 			boardRenderer.setCurrentCharacter(this)
 			characterRenderer.actorInfo = this
@@ -261,7 +266,7 @@ abstract class UIZombicide(val characterRenderer: UIZCharacterRenderer, val boar
 		return waitForUser(ZCharacter::class.java)?.type
 	}
 
-	suspend fun pickZone(name: ZPlayerName, message: String, zones: List<Int>): Int? {
+	fun pickZone(name: ZPlayerName, message: String, zones: List<Int>): Int? {
 		name.toCharacter().apply {
 			boardRenderer.setCurrentCharacter(this)
 			characterRenderer.actorInfo = this
@@ -271,7 +276,7 @@ abstract class UIZombicide(val characterRenderer: UIZCharacterRenderer, val boar
 		return waitForUser(Int::class.javaObjectType)
 	}
 
-	suspend fun pickSpawn(name: ZPlayerName, message: String, areas: List<ZSpawnArea>): Int? {
+	fun pickSpawn(name: ZPlayerName, message: String, areas: List<ZSpawnArea>): Int? {
 		name.toCharacter().apply {
 			boardRenderer.setCurrentCharacter(this)
 			characterRenderer.actorInfo = this
@@ -282,7 +287,12 @@ abstract class UIZombicide(val characterRenderer: UIZCharacterRenderer, val boar
 		return areas.indexOf(area)
 	}
 
-	suspend fun <T : IButton> pickMenu(name: ZPlayerName, message: String, expectedType: Class<T>, moves: List<T>): T? {
+	fun <T : IButton> pickMenu(
+		name: ZPlayerName,
+		message: String,
+		expectedType: Class<T>,
+		moves: List<T>
+	): T? {
 		name.toCharacter().apply {
 			boardRenderer.setCurrentCharacter(this)
 			characterRenderer.actorInfo = this
@@ -296,7 +306,7 @@ abstract class UIZombicide(val characterRenderer: UIZCharacterRenderer, val boar
 		return waitForUser(expectedType)
 	}
 
-	suspend fun pickDoor(name: ZPlayerName, message: String, doors: List<ZDoor>): ZDoor? {
+	fun pickDoor(name: ZPlayerName, message: String, doors: List<ZDoor>): ZDoor? {
 		name.toCharacter().apply {
 			boardRenderer.setCurrentCharacter(this)
 			characterRenderer.actorInfo = this
@@ -314,7 +324,7 @@ abstract class UIZombicide(val characterRenderer: UIZCharacterRenderer, val boar
 		throw NotImplementedError()
 	}
 
-	open suspend fun updateOrganize(character: ZCharacter, list: List<ZMove>): ZMove? {
+	open fun updateOrganize(character: ZCharacter, list: List<ZMove>): ZMove? {
 		throw NotImplementedError()
 	}
 

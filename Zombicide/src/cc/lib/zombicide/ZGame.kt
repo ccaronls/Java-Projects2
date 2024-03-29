@@ -12,6 +12,7 @@ import cc.lib.utils.Grid
 import cc.lib.utils.Grid.Pos
 import cc.lib.utils.Table
 import cc.lib.utils.appendedWith
+import cc.lib.utils.getOrNull
 import cc.lib.utils.midPointOrNull
 import cc.lib.utils.random
 import cc.lib.utils.removeRandom
@@ -113,6 +114,12 @@ open class ZGame() : Reflector<ZGame>() {
 
 	@Omit
 	var currentUser = 0
+		set(value) {
+			if (field != value) {
+				field = value
+				onCurrentUserUpdated(getCurrentUser().name)
+			}
+		}
 	private var startUser = 0
 
 	@Alternate(variations = ["searchables"])
@@ -589,10 +596,7 @@ open class ZGame() : Reflector<ZGame>() {
                 roundNum++
                 addLogMessage("Begin Round $roundNum")
                 onStartRound(roundNum)
-                if (currentUser != startUser) {
-                    currentUser = startUser
-	                onCurrentUserUpdated(getCurrentUser().name)
-                }
+	            currentUser = startUser
 	            for (a: ZActor in board.getAllActors()) a.onBeginRound()
             }
             ZState.SPAWN -> {
@@ -634,15 +638,10 @@ open class ZGame() : Reflector<ZGame>() {
 	                })
                 }
 
-                //if (options.size() > 0) {
-                // add characters who have organized and can do so again
-                //    options.addAll(Utils.filter(getAllLivingCharacters(), object -> object.actionsLeftThisTurn == 0 && object.inventoryThisTurn));
-                //}
                 var currentCharacter: ZPlayerName? = null
                 if (options.size == 0) {
                     if (users.size > 1) {
                         currentUser = (currentUser + 1) % users.size
-	                    onCurrentUserUpdated(getCurrentUser().name)
                     }
                     if (currentUser == startUser) {
                         if (users.size > 2) startUser = (startUser + 1) % users.size
@@ -1276,16 +1275,23 @@ open class ZGame() : Reflector<ZGame>() {
 			}
 			ZMoveType.SWITCH_ACTIVE_CHARACTER -> {
                 if (canSwitchActivePlayer()) {
-	                val idx = user.players.indexOfFirst { it == cur.type }
-	                var i = (idx + 1) % user.players.size
-                    while (i != idx) {
-	                    user.players[i].toCharacter().takeIf { it.isAlive && it.actionsLeftThisTurn > 0 }?.let {
-		                    popState()
-		                    pushState(State(ZState.PLAYER_STAGE_CHOOSE_CHARACTER_ACTION, it.type))
-		                    return true
-	                    }
-                        i = (i + 1) % user.players.size
-                    }
+	                val map = users.mapIndexed { index, user ->
+		                user.players.map {
+			                Pair(it.toCharacter(), index)
+		                }
+	                }.flatten()
+		                .filter { it.first.type == currentCharacter?.type || it.first.isAlive && it.first.actionsLeftThisTurn > 0 }
+	                if (map.isEmpty())
+		                return false
+	                val idx =
+		                (map.indexOfFirst { it.first.type == currentCharacter?.type } + 1) % map.size
+	                if (idx < 0)
+		                return false
+	                map.getOrNull(idx)?.let {
+		                popState()
+		                currentUser = it.second
+		                pushState(State(ZState.PLAYER_STAGE_CHOOSE_CHARACTER_ACTION, it.first.type))
+	                }
                 }
                 return false
             }

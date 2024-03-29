@@ -204,7 +204,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 			override val thisUser: ZUser
 				get() = this@ZombicideActivity.thisUser
 
-			override suspend fun <T> waitForUser(expectedType: Class<T>): T? {
+			override fun <T> waitForUser(expectedType: Class<T>): T? {
 				zb.boardView.post { initMenu(uiMode, options) }
 				return super.waitForUser(expectedType)
 			}
@@ -227,7 +227,10 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 				return super.isGameRunning() || clientMgr != null
 			}
 
-			override fun onCurrentCharacterUpdated(priorPlayer: ZPlayerName?, player: ZPlayerName?) {
+			override fun onCurrentCharacterUpdated(
+				priorPlayer: ZPlayerName?,
+				player: ZPlayerName?
+			) {
 				super.onCurrentCharacterUpdated(priorPlayer, player)
 				runOnUiThread { initGameMenu() }
 			}
@@ -235,6 +238,11 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 			override fun onCurrentUserUpdated(name: String) {
 				super.onCurrentUserUpdated(name)
 				runOnUiThread { initGameMenu() }
+			}
+
+			override fun onZombieStageMoveDone() {
+				super.onZombieStageMoveDone()
+				serverMgr?.broadcastUpdateGame()
 			}
 
 			override fun undo() {
@@ -263,7 +271,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 				}
 			}
 
-			override suspend fun updateOrganize(character: ZCharacter, list: List<ZMove>): ZMove? {
+			override fun updateOrganize(character: ZCharacter, list: List<ZMove>): ZMove? {
 				Log.d(TAG, "updateOrganize moves: ${list.joinToString(separator = "\n")}")
 				runOnUiThread {
 					organizeDialog?.let {
@@ -515,16 +523,22 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 			MenuItem.RESUME -> {
 				if (game.tryLoadFromFile(gameFile)) {
 					boardRenderer.board = game.board
-					if (game.allCharacters.filter { it.isInvisible }.isNotEmpty()) {
+					log.debug(game.allCharacters.joinToString("\n") {
+						it.name() + " " + ZUser.getColorName(it.color) + " invisible:" + it.isInvisible
+					})
+					if (game.allCharacters.map { it.color }.toSet().size > 1) {
 						newDialogBuilder().setMessage("Resume in Multiplayer mode?")
 							.setNegativeButton(R.string.popup_button_no) { _, _ ->
 								thisUser.setCharacters(game.allCharacters)
 								startGame()
 							}.setPositiveButton(R.string.popup_button_yes) { _, _ ->
+								log.debug("this user color: ${thisUser.getColorName()}")
 								game.allCharacters.filter { it.color == thisUser.getColor() }
 									.apply {
+										log.debug("Assigning ${joinToString { it.name() }} to host user")
 										thisUser.setCharacters(this)
 									}
+								startGame()
 								p2pInit(P2PMode.SERVER)
 							}.show()
 					} else {
@@ -890,9 +904,11 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 	}
 
 	override fun p2pStart() {
-		game.clearCharacters()
-		game.reload()
-		game.refresh()
+		if (!game.isGameRunning()) {
+			game.clearCharacters()
+			game.reload()
+			game.refresh()
+		}
 		super.p2pStart()
 	}
 

@@ -11,7 +11,7 @@ import cc.lib.zombicide.ZPlayerName
 import cc.lib.zombicide.ZUser
 import cc.lib.zombicide.p2p.ZUserMP
 import cc.lib.zombicide.ui.UIZombicide
-import java.util.*
+import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -50,13 +50,23 @@ class ZServerMgr(activity: ZombicideActivity, game: UIZombicide, val maxCharacte
 					conn.addListener(this)
 					val user: ZUser = ZUserMP(conn)
 					clientToUserMap[conn.name] = user
+					game.server = server
+					charsList.forEach {
+						it.isInvisible = false
+						user.addCharacter(it)
+					}
+					game.addUser(user)
+					broadcastPlayerStarted(user.name)
 					user.setColor(game.board, colorId)
 					conn.sendCommand(newLoadQuest(game.quest.quest))
 					val assignments = charsList.map {
 						Assignee(it.type, conn.name, colorId, true)
 					}
 					conn.sendCommand(newInit(colorId, maxCharacters, assignments, false))
-					game.characterRenderer.addMessage(conn.displayName + " has joined", user.getColor())
+					game.characterRenderer.addMessage(
+						conn.displayName + " has joined",
+						user.getColor()
+					)
 					return
 				}
 			}

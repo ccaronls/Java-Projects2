@@ -81,16 +81,20 @@ public class GL10Graphics extends AGraphics {
 			return width;
 		}
 
-		@Override
-		public float getHeight() {
-			return height;
-		}
+        @Override
+        public float getHeight() {
+            return height;
+        }
 
-		@Override
-		public int[] getPixels() {
-			throw new RuntimeException("Not implemented");
-		}
-    	
+        @Override
+        public int[] getPixels() {
+            throw new RuntimeException("Not implemented");
+        }
+
+        @Override
+        public void draw(AGraphics g, float x, float y) {
+            throw new RuntimeException("Not implemented");
+        }
     }
     
     /**

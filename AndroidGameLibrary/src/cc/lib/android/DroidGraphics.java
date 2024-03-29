@@ -22,19 +22,20 @@ import android.util.Log;
 
 import java.util.Vector;
 
+import cc.lib.game.AGraphics;
 import cc.lib.game.AImage;
 import cc.lib.game.APGraphics;
 import cc.lib.game.GColor;
 import cc.lib.game.GRectangle;
 import cc.lib.game.IImageFilter;
-import cc.lib.game.IVector2D;
 import cc.lib.game.Justify;
 import cc.lib.math.CMath;
+import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 
 /**
  * Created by chriscaron on 2/12/18.
- *
+ * <p>
  * Create a graphics interface based on Android Canvas
  */
 
@@ -42,8 +43,8 @@ public abstract class DroidGraphics extends APGraphics {
 
     private final Context context;
     private Canvas canvas;
-    private final Paint paint = new Paint();
-    private final TextPaint textPaint = new TextPaint();
+    private final Paint paint;
+    private final TextPaint textPaint;
     private final Path path = new Path();
     private final RectF rectf = new RectF();
     private final Rect rect = new Rect();
@@ -54,9 +55,15 @@ public abstract class DroidGraphics extends APGraphics {
     private float curStrokeWidth = 1;
 
     public DroidGraphics(Context context, Canvas canvas, int width, int height) {
+        this(context, canvas, width, height, new Paint(), new TextPaint());
+    }
+
+    public DroidGraphics(Context context, Canvas canvas, int width, int height, Paint paint, TextPaint textPaint) {
         super(width, height);
         this.context = context;
         this.canvas = canvas;
+        this.textPaint = textPaint;
+        this.paint = paint;
         R.setOrtho(0, width, 0, height);
         paint.setStrokeWidth(1);
         textPaint.setStrokeWidth(1);
@@ -584,6 +591,12 @@ public abstract class DroidGraphics extends APGraphics {
             bm.getPixels(pixels, 0, bm.getWidth(), 0, 0, bm.getWidth(), bm.getHeight());
             return pixels;
         }
+
+        @Override
+        public void draw(AGraphics g, float x, float y) {
+            DroidGraphics G = (DroidGraphics) g;
+            G.canvas.drawBitmap(bm, x, y, null);
+        }
     }
 
     @Override
@@ -815,7 +828,7 @@ public abstract class DroidGraphics extends APGraphics {
 
     @Override
     public void drawOval(float x, float y, float w, float h) {
-        push(x, y, x+w, y+h);
+        push(x, y, x+w, y+ h);
         paint.setStyle(Paint.Style.STROKE);
         canvas.drawOval(rectf, paint);
 
@@ -826,10 +839,17 @@ public abstract class DroidGraphics extends APGraphics {
         M.setValues(Marr);
     }
 
+    private MutableVector2D vCache[] = new MutableVector2D[]{
+            new MutableVector2D(),
+            new MutableVector2D()
+    };
+
     private void push(float l, float t, float r, float b) {
-        IVector2D tl = R.transformXY(l, t);
-        IVector2D br = R.transformXY(r, b);
-        rectf.set(tl.getX(), tl.getY(), br.getX(), br.getY());
+        vCache[0].set(l, t);
+        vCache[1].set(r, b);
+        R.transformXY(vCache[0]);
+        R.transformXY(vCache[1]);
+        rectf.set(vCache[0].getX(), vCache[0].getY(), vCache[1].getX(), vCache[1].getY());
     }
 
     private void renderRoundRect(float x, float y, float w, float h, float radius) {

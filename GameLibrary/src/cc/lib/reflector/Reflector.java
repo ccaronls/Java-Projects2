@@ -195,6 +195,8 @@ public class Reflector<T> implements IDirty {
         switch (name) {
             case "java.util.Collections.SynchronizedRandomAccessList":
                 return Collections.synchronizedList(new ArrayList());
+            case "java.util.Collections.SingletonList":
+                return new ArrayList();
         }
         return (Collection) getClassForName(name).newInstance();
     }
@@ -861,6 +863,41 @@ public class Reflector<T> implements IDirty {
         return parse(null, clazz, in, keepInstances);
     }
 
+    static void serializeCollection(Collection<?> c, RPrintWriter out) throws IOException {
+        out.push();
+        for (Object o : c) {
+            if (o != null && o.getClass().isArray()) {
+                int len = Array.getLength(o);
+                out.p(o.getClass().getComponentType().getName()).p(" ").p(len);
+            } else {
+                if (o == null) {
+                    out.println("null");
+                    continue;
+                }
+                out.p(getCanonicalName(o.getClass()));
+            }
+            serializeObject(o, out, true);
+        }
+        out.pop();
+    }
+
+    static void serializeMap(Map<?, ?> m, RPrintWriter out) throws IOException {
+        out.push();
+        for (Map.Entry<?, ?> entry : m.entrySet()) {
+            Object o = entry.getKey();
+            out.print(getCanonicalName(o.getClass()));
+            serializeObject(o, out, true);
+            o = entry.getValue();
+            if (o == null) {
+                out.println("null");
+            } else {
+                out.print(getCanonicalName(o.getClass()));
+                serializeObject(o, out, true);
+            }
+        }
+        out.pop();
+    }
+
     /**
      * @param obj
      * @param out
@@ -870,43 +907,18 @@ public class Reflector<T> implements IDirty {
     static void serializeObject(Object obj, RPrintWriter out, boolean printObjects) throws IOException {
         if (obj == null) {
             out.println("null");
+        } else if (obj instanceof DirtyDelegate<?>) {
+            ((DirtyDelegate<?>) obj).serialize(out, printObjects);
         } else if (obj instanceof Reflector) {
             out.push();
             ((Reflector<?>) obj).serialize(out);
             out.pop();
         } else if (obj instanceof Collection) {
             Collection<?> c = (Collection<?>) obj;
-            out.push();
-            for (Object o : c) {
-                if (o != null && o.getClass().isArray()) {
-                    int len = Array.getLength(o);
-                    out.p(o.getClass().getComponentType().getName()).p(" ").p(len);
-                } else {
-                    if (o == null) {
-                        out.println("null");
-                        continue;
-                    }
-                    out.p(getCanonicalName(o.getClass()));
-                }
-                serializeObject(o, out, true);
-            }
-            out.pop();
+            serializeCollection(c, out);
         } else if (obj instanceof Map) {
             Map<?, ?> m = (Map<?, ?>) obj;
-            out.push();
-            for (Map.Entry<?, ?> entry : m.entrySet()) {
-                Object o = entry.getKey();
-                out.print(getCanonicalName(o.getClass()));
-                serializeObject(o, out, true);
-                o = entry.getValue();
-                if (o == null) {
-                    out.println("null");
-                } else {
-                    out.print(getCanonicalName(o.getClass()));
-                    serializeObject(o, out, true);
-                }
-            }
-            out.pop();
+            serializeMap(m, out);
         } else if (obj.getClass().isArray()) {
             Archiver compArchiver = getArchiverForType(obj.getClass().getComponentType());
             out.push();
@@ -1342,24 +1354,26 @@ public class Reflector<T> implements IDirty {
                     Archiver archiver = values.get(field);
                     Object instance = field.get(this);
                     archiver.set(instance, field, parts[1], this, keepInstances);
-                    if (field.get(Reflector.this) instanceof Reflector) {
-                        Reflector<T> ref = (Reflector<T>) field.get(Reflector.this);
+                    Object obj = field.get(this);
+                    if (obj instanceof Reflector) {
+                        Reflector<T> ref = (Reflector<T>) obj;
                         if (keepInstances)
                             ref.merge(in);
                         else
                             ref.deserialize(in);
+                    } else if (field.get(Reflector.this) instanceof DirtyDelegate<?>) {
+                        ((DirtyDelegate<?>) obj).deserialize(in, keepInstances);
                     } else if (field.getType().isArray()) {
-                        Object obj = field.get(this);
                         if (obj != null) {
                             Archiver arrayArchiver = getArchiverForType(obj.getClass().getComponentType());
                             arrayArchiver.deserializeArray(obj, in, keepInstances);
                         }
                     } else if (isSubclassOf(field.getType(), Collection.class)) {
-                        Collection<?> collection = (Collection<?>) field.get(this);
+                        Collection<?> collection = (Collection<?>) obj;
                         if (collection != null)
                             deserializeCollection(collection, in, keepInstances);
                     } else if (isSubclassOf(field.getType(), Map.class)) {
-                        Map<?, ?> map = (Map<?, ?>) field.get(this);
+                        Map<?, ?> map = (Map<?, ?>) obj;
                         if (map != null)
                             deserializeMap(map, in, keepInstances);
                     }
@@ -1743,7 +1757,7 @@ public class Reflector<T> implements IDirty {
      * @return
      */
     public boolean isDirty() {
-        return true;
+        return false;
     }
 
     @Override
@@ -1767,8 +1781,18 @@ public class Reflector<T> implements IDirty {
         return buf.toString();
     }
 
+
+    public final String serializeToString() throws IOException {
+        StringWriter buf = new StringWriter();
+        try (RPrintWriter out = new RPrintWriter(buf)) {
+            serialize(out);
+        }
+        return buf.toString();
+    }
+
     /**
      * CRC32 Checksum
+     *
      * @return
      */
     public final long getChecksum() {

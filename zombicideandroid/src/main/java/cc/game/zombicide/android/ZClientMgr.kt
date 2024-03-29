@@ -42,24 +42,24 @@ class ZClientMgr(activity: ZombicideActivity, game: UIZombicide, val client: AGa
 	override fun onInit(color: Int, maxCharacters: Int, playerAssignments: List<Assignee>, showDialog: Boolean) {
 		user.setColor(game.board, color, user.name)
 		game.clearCharacters()
-		val assignees: MutableList<Assignee> = ArrayList()
-		for (c in activity.charLocks) {
-			val a = Assignee(c)
-			val idx = playerAssignments.indexOf(a)
-			if (idx >= 0) {
-				val aa = playerAssignments[idx]
-				a.copyFrom(aa)
-				if (color == a.color) a.isAssingedToMe = true
-			}
-			assignees.add(a)
-			if (a.checked) {
-				val c = game.addCharacter(a.name)
-				if (a.isAssingedToMe) {
-					user.addCharacter(c)
+		if (showDialog) activity.runOnUiThread {
+			val assignees: MutableList<Assignee> = ArrayList()
+			for (c in activity.charLocks) {
+				val a = Assignee(c)
+				val idx = playerAssignments.indexOf(a)
+				if (idx >= 0) {
+					val aa = playerAssignments[idx]
+					a.copyFrom(aa)
+					if (color == a.color) a.isAssingedToMe = true
+				}
+				assignees.add(a)
+				if (a.checked) {
+					val c = game.addCharacter(a.name)
+					if (a.isAssingedToMe) {
+						user.addCharacter(c)
+					}
 				}
 			}
-		}
-		if (showDialog) activity.runOnUiThread {
 			playerChooser = object : CharacterChooserDialogMP(activity, assignees, maxCharacters) {
 				override fun onAssigneeChecked(assignee: Assignee, checked: Boolean) {
 					Log.d(TAG, "onAssigneeChecked: $assignee")
@@ -108,6 +108,8 @@ class ZClientMgr(activity: ZombicideActivity, game: UIZombicide, val client: AGa
 				}
 			}
 			game.boardRenderer.redraw()
+		} else {
+			game.client = client
 		}
 	}
 

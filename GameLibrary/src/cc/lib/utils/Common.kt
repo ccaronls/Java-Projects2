@@ -1,17 +1,21 @@
 package cc.lib.utils
 
+import cc.lib.game.IRectangle
+import cc.lib.game.IVector2D
 import cc.lib.game.Utils
+import cc.lib.math.MutableVector2D
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
 import java.lang.ref.WeakReference
-import java.util.*
+import java.util.Stack
 import kotlin.coroutines.CoroutineContext
 import kotlin.math.roundToInt
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KProperty
+import kotlin.system.exitProcess
 
 fun <T> MutableMap<T, Int>.increment(obj: T, amt: Int) {
     when (val count = get(obj)) {
@@ -296,10 +300,38 @@ inline fun KMutableProperty<Boolean>.toggle() {
 	setter.call(getter.call().not())
 }
 
-fun Float.formated(fmt: String): String = String.format(fmt, toString())
+fun Float.formatted(fmt: String): String = String.format(fmt, toString())
 
 fun String.trimQuotes(): String = trimStart(' ', '\"').trimEnd(' ', '\"')
 
-fun launchIn(scope: CoroutineContext = Dispatchers.Default, block: suspend CoroutineScope.() -> Unit) {
+fun launchIn(
+	scope: CoroutineContext = Dispatchers.Default,
+	block: suspend CoroutineScope.() -> Unit
+) {
 	CoroutineScope(scope).launch { block() }
+}
+
+fun List<IRectangle>.midPointOrNull(): IVector2D? {
+	if (isEmpty())
+		return null
+	val v = MutableVector2D()
+	forEach {
+		v.addEq(it.center)
+	}
+	v.scaleEq(size.toFloat())
+	return v
+}
+
+@Throws
+inline fun fatal(msg: String): Nothing {
+	exitProcess(1)
+	error(msg)
+}
+
+fun <T> Array<T>.containsAny(other: Iterable<T>): Boolean {
+	other.forEach {
+		if (contains(it))
+			return true
+	}
+	return false
 }
