@@ -224,28 +224,29 @@ class MainActivity : CCActivityBase(),
                 Station(getString(R.string.pushups), StationType.Upper_Body),
                 Station(getString(R.string.plank), StationType.Upper_Body),
                 Station(getString(R.string.plank_updowns), StationType.Upper_Body),
-                Station(getString(R.string.curls), StationType.Upper_Body),
-                Station(getString(R.string.bicycles), StationType.Core),
-                Station(getString(R.string.situps), StationType.Core),
-                Station(getString(R.string.boat), StationType.Core),
-                Station(getString(R.string.leg_lifts), StationType.Core),
-                Station(getString(R.string.bridge), StationType.Core),
-                Station(getString(R.string.chair_sit), StationType.Lower_Body),
-                Station(getString(R.string.lunges), StationType.Lower_Body),
-                Station(getString(R.string.squats), StationType.Lower_Body))
+	        Station(getString(R.string.curls), StationType.Upper_Body),
+	        Station(getString(R.string.bicycles), StationType.Core),
+	        Station(getString(R.string.situps), StationType.Core),
+	        Station(getString(R.string.boat), StationType.Core),
+	        Station(getString(R.string.leg_lifts), StationType.Core),
+	        Station(getString(R.string.bridge), StationType.Core),
+	        Station(getString(R.string.chair_sit), StationType.Lower_Body),
+	        Station(getString(R.string.lunges), StationType.Lower_Body),
+	        Station(getString(R.string.squats), StationType.Lower_Body)
+        )
 
-    override fun onCreate(bundle: Bundle?) {
-	    super.onCreate(bundle)
-	    binding = ActivityMainBinding.inflate(LayoutInflater.from(this))
-	    binding.lifecycleOwner = this
-	    binding.viewModel = vm
-	    setContentView(binding.root)
-	    loadWorkouts()
-	    val values = arrayOfNulls<String>(30)
-	    for (i in 0..29) {
-		    var seconds = 10 + i * 10
-		    val minutes = seconds / 60
-		    seconds -= minutes * 60
+	override fun onCreate(savedInstanceState: Bundle?) {
+		super.onCreate(savedInstanceState)
+		binding = ActivityMainBinding.inflate(LayoutInflater.from(this))
+		binding.lifecycleOwner = this
+		binding.viewModel = vm
+		setContentView(binding.root)
+		loadWorkouts()
+		val values = arrayOfNulls<String>(30)
+		for (i in 0..29) {
+			var seconds = 10 + i * 10
+			val minutes = seconds / 60
+			seconds -= minutes * 60
 		    if (minutes > 0) {
 			    values[i] = getString(R.string.time_format, minutes, seconds)
 		    } else {

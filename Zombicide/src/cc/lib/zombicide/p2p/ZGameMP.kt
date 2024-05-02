@@ -35,15 +35,26 @@ open class ZGameMP : ZGame() {
 		server?.broadcastExecuteOnRemote(GAME_ID, msg)
 	}
 
-	override fun onCurrentUserUpdated(userName: String) {
+	override fun onCurrentUserUpdated(userName: String, colorId: Int) {
+		log.debug(
+			"onCurrentUserUpdated $userName, colorId: $colorId, colorName: ${
+				ZUser.getColorName(
+					colorId
+				)
+			}"
+		)
+		server?.broadcastExecuteOnRemote(GAME_ID, userName, colorId)
 		currentUserName = userName
+		currentUserColorId = colorId
 	}
 
 	fun getConnectedUsers(): List<ZUser> {
 		return getUsers().filter { it !is ZUserMP || it.connection.isConnected }
 	}
 
-	open var currentUserName: String? = null
+	var currentUserColorId: Int = -1
+	var currentUserName: String? = null
+		private set
 
 	override fun onCurrentCharacterUpdated(priorPlayer: ZPlayerName?, player: ZPlayerName?) {
 		server?.broadcastExecuteOnRemote(GAME_ID, priorPlayer, player)
@@ -265,6 +276,10 @@ open class ZGameMP : ZGame() {
 
 	override fun onNothingInSight(zone: Int) {
 		server?.broadcastExecuteOnRemote(GAME_ID, zone)
+	}
+
+	open fun setBoardMessage(colorId: Int, message: String?) {
+		server?.broadcastExecuteOnRemote(GAME_ID, colorId, message)
 	}
 
 	companion object {

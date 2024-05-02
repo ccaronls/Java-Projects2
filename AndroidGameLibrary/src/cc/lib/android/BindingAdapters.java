@@ -1,14 +1,15 @@
 package cc.lib.android;
 
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.CompoundButton;
+import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
-import android.widget.NumberPicker;
+import android.widget.TextView;
 
 import androidx.databinding.BindingAdapter;
-import androidx.databinding.InverseBindingAdapter;
-import androidx.databinding.InverseBindingListener;
+import cc.lib.game.Utils;
 
 /**
  * Created by Chris Caron on 12/14/21.
@@ -75,49 +76,22 @@ public final class BindingAdapters {
         view.setEnabled(!predicate);
     }
 
+    @BindingAdapter("enableAllIf")
+    public static void setAllEnabledIf(View view, boolean predicate) {
+        view.setEnabled(predicate);
+        if (view instanceof ViewGroup) {
+            ViewGroup vg = (ViewGroup) view;
+            for (int i = 0; i < vg.getChildCount(); i++) {
+                setAllEnabledIf(vg.getChildAt(i), predicate);
+            }
+        }
+    }
+
     @BindingAdapter("adapter")
     public static void setAdapter(ListView view, ListAdapter adapter) {
         view.setAdapter(adapter);
     }
 
-    @BindingAdapter("bind:minValue")
-    public static void setNPMinValue(NumberPicker np, int minValue) {
-        np.setMinValue(minValue);
-    }
-
-    @BindingAdapter("bind:maxValue")
-    public static void setNPMaxValue(NumberPicker np, int maxValue) {
-        np.setMaxValue(maxValue);
-    }
-
-    @BindingAdapter("bind:formatter")
-    public static void setNPFormatter(NumberPicker np, NumberPicker.Formatter formatter) {
-        int num = np.getMaxValue()+1-np.getMinValue();
-        int idx = 0;
-        String [] values = new String[num];
-        for (int i=np.getMinValue(); i<= np.getMaxValue(); i++) {
-            values[idx++] = formatter.format(i);
-        }
-        np.setDisplayedValues(values);
-        //np.setFormatter(formatter); <-- this way causes visual glitches
-    }
-
-    @BindingAdapter("bind:value")
-    public static void setNPValue(NumberPicker np, int value) {
-        if (np.getValue() != value) { // break inf loops
-            np.setValue(value);
-        }
-    }
-
-    @InverseBindingAdapter(attribute = "bind:value")
-    public static int getNPValue(NumberPicker np) {
-        return np.getValue();
-    }
-
-    @BindingAdapter("valueAttrChanged")
-    public static void setNPAttrListeners(NumberPicker np, InverseBindingListener attrChange) {
-        np.setOnValueChangedListener((picker, oldVal, newVal) -> attrChange.onChange());
-    }
 
     @BindingAdapter("onLongClick")
     public static void setOnLongClickListener(View view, View.OnClickListener listener) {
@@ -128,5 +102,33 @@ public final class BindingAdapters {
                 return true;
             }
         });
+    }
+
+    @BindingAdapter(value = {"textOrAlternate", "alternate"}, requireAll = true)
+    public static void setTextOrAlternate(TextView tv, String text, String alternateText) {
+        tv.setText(Utils.isEmpty(text) ? alternateText : text);
+    }
+
+    @BindingAdapter("imageResId")
+    public static void setImageResId(ImageView iv, int id) {
+        if (id > 0) {
+            iv.setImageResource(id);
+        } else {
+            iv.setImageDrawable(null);
+        }
+    }
+
+    @BindingAdapter("textResId")
+    public static void setTextResId(TextView iv, int id) {
+        if (id > 0) {
+            iv.setText(id);
+        } else {
+            iv.setText(null);
+        }
+    }
+
+    @BindingAdapter("clickableIf")
+    public static void setClickableIf(View view, boolean clickable) {
+        view.setClickable(clickable);
     }
 }

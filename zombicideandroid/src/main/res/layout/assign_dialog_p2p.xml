@@ -5,8 +5,16 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        >
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvSelected"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            tools:text="@string/p2p_select_x_characters"
+            android:gravity="center"
+            android:textSize="20dp"
+            android:text="@string/p2p_select_x_characters" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerView"
@@ -15,7 +23,7 @@
             app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
             android:layout_weight="1"
             app:spanCount="3"
-            tools:listitem="@layout/assign_dialog_item"/>
+            tools:listitem="@layout/assign_dialog_item" />
 
         <LinearLayout
             android:id="@+id/vg_buttons"
@@ -29,14 +37,44 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Start"/>
+                android:text="Start" />
+
+            <LinearLayout
+                android:id="@+id/layoutCharacterCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <Button
+                    android:id="@+id/bMinus"
+                    android:layout_width="40dp"
+                    android:layout_height="wrap_content"
+                    android:text="-"
+                    android:textSize="20dp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvCount"
+                    android:layout_width="40dp"
+                    android:layout_height="wrap_content"
+                    android:textSize="30dp"
+                    android:gravity="center"
+                    android:text="N" />
+
+                <Button
+                    android:id="@+id/bPlus"
+                    android:layout_width="40dp"
+                    android:layout_height="wrap_content"
+                    android:text="+"
+                    android:textSize="20dp"
+                    android:textStyle="bold" />
+            </LinearLayout>
 
             <Button
                 android:id="@+id/bDisconnect"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Cancel"/>
+                android:text="@string/popup_button_cancel" />
 
         </LinearLayout>
 

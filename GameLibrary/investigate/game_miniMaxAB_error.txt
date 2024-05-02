@@ -1,0 +1,3256 @@
+board=cc.lib.checkerboard.Piece[] 6 {
+   cc.lib.checkerboard.Piece 6 {
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=0
+         playerNum=-1
+         rank=0
+         stack=null
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=1
+         playerNum=-1
+         rank=0
+         stack=null
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=2
+         playerNum=-1
+         rank=0
+         stack=null
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=3
+         playerNum=-1
+         rank=0
+         stack=null
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=4
+         playerNum=-1
+         rank=0
+         stack=null
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=5
+         playerNum=-1
+         rank=0
+         stack=null
+         type=EMPTY
+         value=0
+      }
+   }
+   cc.lib.checkerboard.Piece 6 {
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=0
+         playerNum=-1
+         rank=1
+         stack=null
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=1
+         playerNum=-1
+         rank=1
+         stack=null
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=2
+         playerNum=-1
+         rank=1
+         stack=null
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=3
+         playerNum=-1
+         rank=1
+         stack=null
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=4
+         playerNum=-1
+         rank=1
+         stack=null
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=5
+         playerNum=1
+         rank=1
+         stack=null
+         type=DAMA_MAN
+         value=0
+      }
+   }
+   cc.lib.checkerboard.Piece 6 {
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=0
+         playerNum=-1
+         rank=2
+         stack=null
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=1
+         playerNum=0
+         rank=2
+         stack=null
+         type=DAMA_MAN
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=2
+         playerNum=0
+         rank=2
+         stack=null
+         type=DAMA_MAN
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=3
+         playerNum=1
+         rank=2
+         stack=null
+         type=DAMA_MAN
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=4
+         playerNum=1
+         rank=2
+         stack=null
+         type=DAMA_MAN
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=5
+         playerNum=-1
+         rank=2
+         stack=null
+         type=EMPTY
+         value=0
+      }
+   }
+   cc.lib.checkerboard.Piece 6 {
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=0
+         playerNum=0
+         rank=3
+         stack=null
+         type=DAMA_MAN
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=1
+         playerNum=0
+         rank=3
+         stack=null
+         type=DAMA_MAN
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=2
+         playerNum=0
+         rank=3
+         stack=null
+         type=DAMA_MAN
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=3
+         playerNum=1
+         rank=3
+         stack=null
+         type=DAMA_MAN
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=4
+         playerNum=-1
+         rank=3
+         stack=null
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=5
+         playerNum=1
+         rank=3
+         stack=null
+         type=DAMA_MAN
+         value=0
+      }
+   }
+   cc.lib.checkerboard.Piece 6 {
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=0
+         playerNum=-1
+         rank=4
+         stack=null
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=1
+         playerNum=-1
+         rank=4
+         stack=null
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=2
+         playerNum=0
+         rank=4
+         stack=null
+         type=DAMA_MAN
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=3
+         playerNum=-1
+         rank=4
+         stack=null
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=4
+         playerNum=-1
+         rank=4
+         stack=null
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=5
+         playerNum=1
+         rank=4
+         stack=null
+         type=DAMA_MAN
+         value=0
+      }
+   }
+   cc.lib.checkerboard.Piece 6 {
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=0
+         playerNum=-1
+         rank=5
+         stack=null
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=1
+         playerNum=-1
+         rank=5
+         stack=null
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=2
+         playerNum=-1
+         rank=5
+         stack=null
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=3
+         playerNum=-1
+         rank=5
+         stack=null
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=4
+         playerNum=-1
+         rank=5
+         stack=null
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         col=5
+         playerNum=-1
+         rank=5
+         stack=null
+         type=EMPTY
+         value=0
+      }
+   }
+}
+cols=6
+gameState=PLAYING
+initialized=true
+moves=null
+numPieces=int 2 {
+   6 6 
+}
+players=cc.lib.checkerboard.Player 2 {
+   cc.lib.checkerboard.UIPlayer {
+      color=WHITE
+      maxSearchDepth=2
+      playerNum=0
+      type=USER
+   }
+   cc.lib.checkerboard.UIPlayer {
+      color=BLACK
+      maxSearchDepth=2
+      playerNum=1
+      type=AI
+   }
+}
+ranks=6
+rules=cc.lib.checkerboard.Ugolki {
+}
+selectedPiece=null
+turn=0
+undoStack=java.util.Stack {
+   cc.lib.checkerboard.State {
+      index=0
+      moves=java.util.ArrayList {
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 3 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               0 3 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               0 2 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               0 3 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 4 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               0 4 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               0 2 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               0 4 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 5 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               0 5 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 3 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 3 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               1 2 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 3 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               1 2 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 4 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 4 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 4 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 5 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 5 
+            }
+            startType=DAMA_MAN
+         }
+      }
+   }
+   cc.lib.checkerboard.State {
+      index=5
+      moves=java.util.ArrayList {
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 0 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               4 0 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 3 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               4 1 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 1 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               4 1 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 2 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               4 2 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 3 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               4 2 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 0 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 0 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 1 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 1 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               5 3 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 1 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 2 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 2 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               5 3 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 2 
+            }
+            startType=DAMA_MAN
+         }
+      }
+   }
+   cc.lib.checkerboard.State {
+      index=7
+      moves=java.util.ArrayList {
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 4 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               0 4 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               0 3 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               0 4 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 5 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               0 5 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               0 3 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               0 5 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 3 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 3 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               1 2 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 3 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               1 2 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 4 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 4 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 4 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 5 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 5 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 3 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 3 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 2 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 3 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 4 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 3 
+            }
+            startType=DAMA_MAN
+         }
+      }
+   }
+   cc.lib.checkerboard.State {
+      index=7
+      moves=java.util.ArrayList {
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 0 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               3 0 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 1 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               3 0 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 0 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               4 0 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 3 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               4 1 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 1 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               4 1 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 2 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               4 2 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 3 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               4 2 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 1 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 1 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               5 3 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 1 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               5 0 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 1 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 2 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 2 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               5 0 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 2 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               5 3 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 2 
+            }
+            startType=DAMA_MAN
+         }
+      }
+   }
+   cc.lib.checkerboard.State {
+      index=2
+      moves=java.util.ArrayList {
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               1 4 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               0 4 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               0 3 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               0 4 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 5 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               0 5 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               0 3 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               0 5 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 3 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 3 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               1 2 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 3 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               1 4 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 3 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 5 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 5 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               1 4 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 5 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 5 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 3 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 3 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 3 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 2 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 3 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 2 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 4 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 4 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 4 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 5 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 4 
+            }
+            startType=DAMA_MAN
+         }
+      }
+   }
+   cc.lib.checkerboard.State {
+      index=9
+      moves=java.util.ArrayList {
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 2 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               3 0 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 0 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               3 0 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 1 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               3 1 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 2 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               3 1 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 0 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               4 0 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 1 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               4 1 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 3 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               4 1 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 2 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               4 2 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 3 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               4 2 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 2 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 2 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               5 1 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 2 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               5 3 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               5 2 
+            }
+            startType=DAMA_MAN
+         }
+      }
+   }
+   cc.lib.checkerboard.State {
+      index=12
+      moves=java.util.ArrayList {
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               1 4 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               0 4 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               0 3 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               0 4 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               0 5 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               0 4 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 3 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 3 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               1 2 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 3 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               1 4 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 3 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 5 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 5 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               1 4 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 5 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 3 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 3 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 2 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 3 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 2 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 4 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 4 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 4 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 5 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 5 
+            }
+            startType=DAMA_MAN
+         }
+      }
+   }
+   cc.lib.checkerboard.State {
+      index=5
+      moves=java.util.ArrayList {
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 0 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               3 0 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 3 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               3 1 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 1 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               3 1 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 2 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               3 2 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 3 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               3 2 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 0 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               4 0 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 1 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               4 1 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 3 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               4 1 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 2 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               4 2 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 3 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               4 2 
+            }
+            startType=DAMA_MAN
+         }
+      }
+   }
+   cc.lib.checkerboard.State {
+      index=2
+      moves=java.util.ArrayList {
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               1 4 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               0 4 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               0 3 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               0 4 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               0 5 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               0 4 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 3 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 3 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               1 2 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 3 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               1 4 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 3 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 5 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 5 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               1 4 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 5 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 5 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 3 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 3 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 3 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 2 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 3 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 2 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 4 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 4 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 4 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 5 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 4 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 5 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               3 5 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 4 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               3 5 
+            }
+            startType=DAMA_MAN
+         }
+      }
+   }
+   cc.lib.checkerboard.State {
+      index=7
+      moves=java.util.ArrayList {
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               1 0 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               2 0 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 1 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               2 0 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               1 0 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               3 0 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 3 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               3 1 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 1 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               3 1 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 2 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               3 2 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 3 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               3 2 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 1 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               4 1 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 3 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               4 1 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 0 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               4 1 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 2 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               4 2 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 0 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               4 2 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 3 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               4 2 
+            }
+            startType=DAMA_MAN
+         }
+      }
+   }
+   cc.lib.checkerboard.State {
+      index=0
+      moves=java.util.ArrayList {
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 5 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               0 5 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               0 4 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               0 5 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 3 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 3 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               1 2 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 3 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               1 4 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 3 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 5 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 5 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               1 4 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 5 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 5 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 3 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 3 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 3 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 2 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 3 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 2 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 4 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 4 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 4 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 5 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 4 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 5 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               3 5 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 4 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               3 5 
+            }
+            startType=DAMA_MAN
+         }
+      }
+   }
+   cc.lib.checkerboard.State {
+      index=0
+      moves=java.util.ArrayList {
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 5 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 5 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=null
+            endType=null
+            enpassant=null
+            moveType=END
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 5 
+            }
+            startType=DAMA_MAN
+         }
+      }
+   }
+   cc.lib.checkerboard.State {
+      index=0
+      moves=java.util.ArrayList {
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 2 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               2 0 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               1 0 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               2 0 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               1 1 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               2 1 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 2 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               2 1 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               1 0 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               3 0 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               1 1 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               3 1 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 3 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               3 1 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 2 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               3 2 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 3 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               3 2 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 2 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               4 2 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 1 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               4 2 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 3 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=0
+            start=int 2 {
+               4 2 
+            }
+            startType=DAMA_MAN
+         }
+      }
+   }
+   cc.lib.checkerboard.State {
+      index=0
+      moves=java.util.ArrayList {
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 3 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 3 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               1 2 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 3 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               1 4 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 3 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 5 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 5 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               1 4 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               1 5 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 5 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 3 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 3 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 3 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 4 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 4 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               2 5 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               2 4 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               5 5 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=JUMP
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               3 5 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               3 4 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               3 5 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               5 5 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               4 5 
+            }
+            startType=DAMA_MAN
+         }
+         cc.lib.checkerboard.Move {
+            captured=null
+            castleRookEnd=null
+            castleRookStart=null
+            end=int 2 {
+               4 4 
+            }
+            endType=DAMA_MAN
+            enpassant=null
+            moveType=SLIDE
+            opponentKing=null
+            playerNum=1
+            start=int 2 {
+               4 5 
+            }
+            startType=DAMA_MAN
+         }
+      }
+   }
+}

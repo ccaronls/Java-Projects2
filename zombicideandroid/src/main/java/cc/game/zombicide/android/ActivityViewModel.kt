@@ -5,7 +5,6 @@ import android.view.ViewGroup
 import android.widget.BaseAdapter
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import java.util.*
 
 /**
  * Created by Chris Caron on 12/13/21.
@@ -14,6 +13,7 @@ class ActivityViewModel : ViewModel() {
     val consoleVisible = MutableLiveData(true)
     val loading = MutableLiveData(false)
     val playing = MutableLiveData(false)
+	val processingMove = MutableLiveData(false)
 
 	// TODO: Move this to ViewModel
 	class ButtonAdapter internal constructor() : BaseAdapter() {

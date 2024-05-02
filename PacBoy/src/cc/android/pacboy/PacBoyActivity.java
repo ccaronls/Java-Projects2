@@ -3,6 +3,7 @@ package cc.android.pacboy;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
+
 import cc.lib.android.CCActivityBase;
 
 public class PacBoyActivity extends CCActivityBase {
@@ -19,13 +20,13 @@ public class PacBoyActivity extends CCActivityBase {
 	private int highScore = 0;
 	
 	@Override
-	protected void onCreate(Bundle bundle) {
-		super.onCreate(bundle);
-		setContentView(R.layout.pacboy_activity);
-		pbv = (PacBoyView)findViewById(R.id.pacBoyView);
-		tvScore = (TextView)findViewById(R.id.textViewScore);
-		tvHighScore = (TextView)findViewById(R.id.textViewHighScore);
-	}
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.pacboy_activity);
+        pbv = (PacBoyView) findViewById(R.id.pacBoyView);
+        tvScore = (TextView) findViewById(R.id.textViewScore);
+        tvHighScore = (TextView) findViewById(R.id.textViewHighScore);
+    }
 
 	@Override
 	protected void onResume() {

@@ -189,7 +189,7 @@ abstract class ZActor internal constructor(var occupiedZone: Int) : Reflector<ZA
 	open val isNoisy: Boolean
 		get() = false
 
-	open val isVisible: Boolean
+	open val isRendered: Boolean
 		get() = isAlive || isAnimating
 
 	open val isSiegeEngine: Boolean

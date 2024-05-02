@@ -5,6 +5,8 @@ import com.google.gson.stream.JsonWriter
 
 /**
  * Created by Chris Caron on 11/14/23.
+ *
+ * Interfaces that are to be mirrored extend this class.
  */
 interface Mirrored {
 

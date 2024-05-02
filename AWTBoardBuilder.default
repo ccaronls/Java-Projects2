@@ -1,0 +1,258 @@
+cells=java.util.Vector {
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            1
+         }
+         java.lang.Integer {
+            3
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            1
+         }
+         java.lang.Integer {
+            3
+         }
+         java.lang.Integer {
+            5
+         }
+      }
+      cx=162.66667
+      cy=168.66667
+      radius=100.5098
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            2
+         }
+         java.lang.Integer {
+            0
+         }
+         java.lang.Integer {
+            3
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            1
+         }
+         java.lang.Integer {
+            2
+         }
+         java.lang.Integer {
+            3
+         }
+      }
+      cx=218.66667
+      cy=206.66666
+      radius=125.52112
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            1
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            1
+         }
+         java.lang.Integer {
+            4
+         }
+         java.lang.Integer {
+            2
+         }
+      }
+      cx=278.0
+      cy=209.33334
+      radius=137.15361
+   }
+   cc.lib.board.BCell {
+      adjCells=java.util.ArrayList {
+         java.lang.Integer {
+            1
+         }
+         java.lang.Integer {
+            0
+         }
+      }
+      adjVerts=java.util.ArrayList {
+         java.lang.Integer {
+            2
+         }
+         java.lang.Integer {
+            5
+         }
+         java.lang.Integer {
+            3
+         }
+      }
+      cx=170.66667
+      cy=250.0
+      radius=107.184135
+   }
+}
+dimension=cc.lib.game.GDimension {
+   height=416.0
+   width=620.0
+}
+edges=java.util.Vector {
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         0 0 
+      }
+      from=0
+      numAdjCells=0
+      to=1
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         0 0 
+      }
+      from=0
+      numAdjCells=0
+      to=2
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         1 2 
+      }
+      from=1
+      numAdjCells=2
+      to=2
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         0 1 
+      }
+      from=1
+      numAdjCells=2
+      to=3
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         2 0 
+      }
+      from=1
+      numAdjCells=1
+      to=4
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         0 0 
+      }
+      from=1
+      numAdjCells=1
+      to=5
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         1 3 
+      }
+      from=2
+      numAdjCells=2
+      to=3
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         2 0 
+      }
+      from=2
+      numAdjCells=1
+      to=4
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         3 0 
+      }
+      from=2
+      numAdjCells=1
+      to=5
+   }
+   cc.lib.board.BEdge {
+      adjacentCells=int 2 {
+         0 3 
+      }
+      from=3
+      numAdjCells=2
+      to=5
+   }
+}
+verts=java.util.Vector {
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         0 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         1 2 0 0 0 0 0 0 
+      }
+      numAdjCells=0
+      numAdjVerts=2
+      x=554.0
+      y=200.99998
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         0 1 2 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         0 2 3 4 5 0 0 0 
+      }
+      numAdjCells=3
+      numAdjVerts=5
+      x=218.0
+      y=86.0
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         1 2 3 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         0 1 3 4 5 0 0 0 
+      }
+      numAdjCells=3
+      numAdjVerts=5
+      x=242.0
+      y=329.99997
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         0 1 3 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         1 2 5 0 0 0 0 0 
+      }
+      numAdjCells=3
+      numAdjVerts=3
+      x=196.0
+      y=203.99998
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         2 0 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         1 2 0 0 0 0 0 0 
+      }
+      numAdjCells=1
+      numAdjVerts=2
+      x=374.00003
+      y=211.99998
+   }
+   cc.lib.board.BVertex {
+      adjacentCells=int 8 {
+         0 3 0 0 0 0 0 0 
+      }
+      adjacentVerts=int 8 {
+         1 2 3 0 0 0 0 0 
+      }
+      numAdjCells=2
+      numAdjVerts=3
+      x=74.00001
+      y=216.0
+   }
+}

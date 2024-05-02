@@ -20,15 +20,18 @@ import cc.lib.zombicide.ui.UIZombicide
 /**
  * Created by Chris Caron on 7/17/21.
  */
-class ZUserMP(val connection: AClientConnection) : ZUser(connection.displayName), AClientConnection.Listener {
+class ZUserMP(val connection: AClientConnection) :
+	ZUser(connection.displayName, connection.getAttribute("color") as Int),
+	AClientConnection.Listener {
 
 	init {
 		connection.addListener(this)
-		setColor(UIZombicide.instance.board, connection.getAttribute("color") as Int, name)
+		UIZombicide.instance.setUserColorId(this, colorId)
 	}
 
 	override fun onPropertyChanged(c: AClientConnection) {
-		setColor(UIZombicide.instance.board, c.getAttribute("color") as Int, c.name)
+		UIZombicide.instance.setUserColorId(this, c.getAttribute("color") as Int)
+		UIZombicide.instance.setUserName(this, c.displayName)
 	}
 
 	override fun chooseCharacter(options: List<ZPlayerName>): ZPlayerName? {

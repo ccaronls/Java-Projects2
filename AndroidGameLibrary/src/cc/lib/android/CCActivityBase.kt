@@ -73,8 +73,8 @@ open class CCActivityBase : AppCompatActivity() {
 		throw GException("If you override getLayoutFactory then you must handle this callback")
 	}
 
-	override fun onCreate(bundle: Bundle?) {
-		super.onCreate(bundle)
+	override fun onCreate(savedInstanceState: Bundle?) {
+		super.onCreate(savedInstanceState)
 		getSdCardPaths(this, true)?.forEach { volumePath ->
 			Log.d("CCActivityBase", "volumePath:$volumePath")
 		}

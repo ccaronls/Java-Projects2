@@ -168,16 +168,21 @@ open class LinearRecyclerView(context: Context, attrs: AttributeSet? = null) : R
 				smoothScrollToPosition((centerPositionIndex + num / 2).coerceIn(0 until size()))
 		}
 	}
-}
 
-@BindingAdapter("linearRecyclerViewListener")
-fun addListener(recyclerView: LinearRecyclerView, listener: LinearRecyclerView.Listener) {
-	recyclerView.addListener(listener)
-}
+	companion object {
+		@JvmStatic
+		@BindingAdapter("linearRecyclerViewListener")
+		fun addListener(recyclerView: LinearRecyclerView, listener: Listener) {
+			recyclerView.addListener(listener)
+		}
 
-@BindingAdapter("centerPosition")
-fun LinearRecyclerView.setCenterPosition(position: Int) {
-	centerPositionIndex = position
-	scrollToCenterPosition()
+		@JvmStatic
+		@BindingAdapter("centerPosition")
+		fun setCenterPosition(recyclerView: LinearRecyclerView, position: Int) {
+			recyclerView.centerPositionIndex = position
+			recyclerView.scrollToCenterPosition()
+		}
+
+	}
 }
 

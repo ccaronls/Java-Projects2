@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:bind="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 
     <data>
@@ -35,11 +34,10 @@
             app:layout_constraintEnd_toEndOf="@id/tv_timeperiod"
             app:layout_constraintTop_toBottomOf="@id/tv_timeperiod"
             android:layout_marginVertical="@dimen/margin"
-            bind:minValue="@{0}"
-            bind:maxValue="@{29}"
-            bind:value="@={viewModel.npTimePeriod}"
-            bind:formatter="@{viewModel.npPeriodFormatter}"
-            />
+            minValue="@{0}"
+            maxValue="@{29}"
+            value="@={viewModel.npTimePeriod}"
+            formatter="@{viewModel.npPeriodFormatter}" />
 
         <TextView
             android:id="@+id/tv_stations"
@@ -61,9 +59,9 @@
             app:layout_constraintEnd_toEndOf="@id/tv_stations"
             app:layout_constraintTop_toBottomOf="@id/tv_stations"
             android:layout_marginVertical="@dimen/margin"
-            bind:minValue="@{BuildConfig.DEBUG ? 2 : 5}"
-            bind:maxValue="@{60}"
-            bind:value="@={viewModel.npStations}"/>
+            minValue="@{BuildConfig.DEBUG ? 2 : 5}"
+            maxValue="@{60}"
+            value="@={viewModel.npStations}" />
 
         <TextView
             android:id="@+id/tv_circuits"
@@ -85,9 +83,9 @@
             app:layout_constraintEnd_toEndOf="@id/tv_circuits"
             app:layout_constraintTop_toBottomOf="@id/tv_circuits"
             android:layout_marginVertical="@dimen/margin"
-            bind:minValue="@{1}"
-            bind:maxValue="@{10}"
-            bind:value="@={viewModel.npCircuits}"/>
+            minValue="@{1}"
+            maxValue="@{10}"
+            value="@={viewModel.npCircuits}" />
 
         <cc.lib.android.VerticalViewPager
             android:id="@+id/pager_workouts"

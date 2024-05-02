@@ -45,13 +45,13 @@ public class AWTGraphics2 extends AWTGraphics {
     @Override
     public void drawLineStrip() {
         int n = getPolyPts();
-        G2.drawPolyline(x, y, n);
+        G2.drawPolyline(getX(), getY(), n);
     }
 
     @Override
     public void drawLineLoop() {
         int n = getPolyPts();
-        G2.drawPolygon(x, y, n);
+        G2.drawPolygon(getX(), getY(), n);
     }
 
     Composite old = null;
@@ -75,24 +75,24 @@ public class AWTGraphics2 extends AWTGraphics {
     @Override
     protected void drawImage(int imageKey, int x, int y, int w, int h) {
         //super.drawImage(imageKey, x, y, w, h);
-        Image img = images.getImage(imageKey);
-        float xScale = (float)w/img.getWidth(comp);
-        float yScale = (float)h/img.getHeight(comp);
+        Image img = Companion.getImageMgr().getImage(imageKey);
+        float xScale = (float) w / img.getWidth(getComp());
+        float yScale = (float) h / img.getHeight(getComp());
         AffineTransform t = new AffineTransform();
         t.translate(x, y);
         t.scale(xScale, yScale);
 //        t.translate(-w/2, -h/2);
-        G2.drawImage(img, t, comp);
+        G2.drawImage(img, t, getComp());
     }
 
     @Override
     public void drawImage(int imageKey) {
-        double [][] M = R.getCurrentTransform().get();
+        double[][] M = R.getCurrentTransform().get();
         AffineTransform t = new AffineTransform(M[0][0], M[1][0]
-                ,M[0][1], M[1][1]
-                ,M[0][2], M[1][2]);
-        Image img = images.getImage(imageKey);
-        G2.drawImage(img, t, comp);
+                , M[0][1], M[1][1]
+                , M[0][2], M[1][2]);
+        Image img = Companion.getImageMgr().getImage(imageKey);
+        G2.drawImage(img, t, getComp());
     }
 
     /*

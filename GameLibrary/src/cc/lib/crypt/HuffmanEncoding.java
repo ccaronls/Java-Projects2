@@ -434,11 +434,11 @@ public class HuffmanEncoding implements Cypher {
         StringBuffer buf = new StringBuffer(256);
         buf.append("int [] counts = {");
         int n = COUNTS_ARRAY_SIZE;
-        while (counts[--n].occurances == 0) {
-
+        while (n > 0 && counts[--n].occurances == 0) {
         }
-        if (n <= 0)
-            throw new RuntimeException("nothing counted");
+        if (n <= 0) {
+            System.err.println("nothing counted");
+        }
         for (int i = 0; i <= n; i++) {
             if (i > 0) {
                 buf.append(",");

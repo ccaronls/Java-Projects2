@@ -39,10 +39,16 @@ public abstract class P2PActivity extends CCActivityBase {
         p2pShutdown();
     }
 
+    /**
+     * Call this before anything else to make sure the system can run p2p
+     */
     public final void p2pInit() {
         p2pInit(P2PMode.DONT_KNOW);
     }
 
+    /**
+     * Call this before anything else to make sure the system can run p2p
+     */
     public final void p2pInit(P2PMode mode) {
         client = null;
         server = null;
@@ -167,6 +173,11 @@ public abstract class P2PActivity extends CCActivityBase {
         });
     }
 
+    /**
+     * Called when the client mode is initialized
+     *
+     * @param p2pClient
+     */
     protected abstract void onP2PClient(P2PClient p2pClient);
 
     protected AGameServer newGameServer() {
@@ -183,6 +194,11 @@ public abstract class P2PActivity extends CCActivityBase {
         new P2PClientConnectionsDialog(this, server, getDeviceName());
     }
 
+    /**
+     * Called when the server context is ready
+     *
+     * @param p2pServer
+     */
     protected abstract void onP2PServer(P2PServer p2pServer);
 
     /**

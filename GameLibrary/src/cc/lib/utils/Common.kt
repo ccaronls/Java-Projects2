@@ -142,15 +142,17 @@ fun <R, T> List<R>.join(elems: Iterator<T>) : List<Pair<R, T>> {
 	return list
 }
 
-fun List<Any>.prettify() : Array<String> {
+fun List<Any>.prettify(): Array<String> {
 	return map { it.prettify() }.toTypedArray()
 }
 
-fun <T : Comparable<T>> T.increment(steps: Int, values: Array<T>) : T {
+fun <T : Comparable<T>> T.increment(steps: Int, values: Array<T>): T {
 	var idx = Utils.linearSearch(values, this)
 	idx = (idx + steps) % values.size
 	return values[idx]
 }
+
+fun Int.increment(max: Int, amt: Int = 1): Int = plus(amt).mod(max)
 
 fun <K, V> MutableMap<K, V>.removeAll(predicate: (entry: MutableMap.MutableEntry<K, V>) -> Boolean) {
 	with(iterator()) {

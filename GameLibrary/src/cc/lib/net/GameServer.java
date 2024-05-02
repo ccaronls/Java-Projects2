@@ -229,8 +229,8 @@ public class GameServer extends AGameServer {
                     out = new DataOutputStream(new EncryptionOutputStream(new BufferedOutputStream(socket.getOutputStream()), cypher));
                 } else {
                     counter = new HuffmanEncoding();
-                    in = new DataInputStream(new BufferedInputStream(new HuffmanByteCounterInputStream(socket.getInputStream(), counter)));
-                    out = new DataOutputStream(new BufferedOutputStream(new HuffmanByteCounterOutputStream(socket.getOutputStream(), counter)));
+                    in = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
+                    out = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
                 }
 
                 final long magic = in.readLong();

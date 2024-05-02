@@ -254,6 +254,7 @@ public class Reflector<T> implements IDirty {
         classMap.put("[[[Z", boolean[][][].class);
 
         classMap.put("java.util.Arrays.ArrayList", ArrayList.class);
+        classMap.put("java.util.Collections.SingletonList", ArrayList.class);
 
         classMap.put("java.lang.String[]", String[].class);
         classMap.put("java.lang.String[][]", String[][].class);

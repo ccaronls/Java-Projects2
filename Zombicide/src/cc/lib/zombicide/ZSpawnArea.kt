@@ -21,6 +21,14 @@ data class ZSpawnArea(
 		}
 	}
 
+	override fun equals(other: Any?): Boolean {
+		if (other !is ZSpawnArea)
+			return false
+		if (other === this)
+			return true
+		return cellPos == other.cellPos && dir == other.dir
+	}
+
 	var rect = GRectangle()
 
 	@Omit

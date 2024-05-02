@@ -9,6 +9,8 @@ import cc.lib.game.IVector2D
 import cc.lib.game.Utils
 import cc.lib.logger.LoggerFactory
 import cc.lib.math.Vector2D
+import cc.lib.net.ConnectionStatus
+import cc.lib.reflector.Reflector
 import cc.lib.ui.IButton
 import cc.lib.utils.Grid
 import cc.lib.utils.Lock
@@ -72,7 +74,24 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 
-abstract class UIZombicide(val characterRenderer: UIZCharacterRenderer, val boardRenderer: UIZBoardRenderer) : ZGameMP(), UIZBoardRenderer.Listener {
+class ConnectedUser(
+	val name: String = "",
+	val color: GColor = GColor.BLACK,
+	val connected: Boolean = false,
+	val status: ConnectionStatus = ConnectionStatus.UNKNOWN,
+	val startUser: Boolean = false
+) : Reflector<ConnectedUser>() {
+	companion object {
+		init {
+			addAllFields(ConnectedUser::class.java)
+		}
+	}
+}
+
+abstract class UIZombicide(
+	val characterRenderer: UIZCharacterRenderer,
+	val boardRenderer: UIZBoardRenderer
+) : ZGameMP(), UIZBoardRenderer.Listener {
 	enum class UIMode {
 		NONE,
 		PICK_CHARACTER,
@@ -90,7 +109,7 @@ abstract class UIZombicide(val characterRenderer: UIZCharacterRenderer, val boar
 
 	private var gameRunning = false
 
-	open fun isGameRunning(): Boolean = gameRunning
+	open fun isGameRunning(): Boolean = gameRunning || client?.isConnected == true
 
 	var uiMode = UIMode.NONE
 		private set
@@ -99,6 +118,9 @@ abstract class UIZombicide(val characterRenderer: UIZCharacterRenderer, val boar
 			field = msg
 			boardRenderer.boardMessage = msg
 		}
+
+	open val connectedUsersInfo = listOf<ConnectedUser>()
+
 	var options: List<Any> = emptyList()
 		private set
 
@@ -185,12 +207,18 @@ abstract class UIZombicide(val characterRenderer: UIZCharacterRenderer, val boar
 		setResult(null)
 	}
 
+	fun isReady(): Boolean = allCharacters.firstOrNull { !it.isReady } == null
+
 	@Synchronized
 	fun startGameThread() {
 		if (isGameRunning())
 			return
 		gameRunning = true
 		CoroutineScope(Dispatchers.Default).async {
+			while (!isReady()) {
+				setBoardMessage(-1, "Not Ready")
+				readyLock.acquireAndBlock()
+			}
 			characterRenderer.clearMessages()
 			try {
 				while (gameRunning && !isGameOver) {
@@ -209,10 +237,12 @@ abstract class UIZombicide(val characterRenderer: UIZCharacterRenderer, val boar
 	open fun undo() {}
 
 	val lock = Lock()
+	val readyLock = Lock()
 //	var continuation: Continuation<Any?>? = null
 
 	open fun <T> waitForUser(expectedType: Class<T>): T? {
 		log.debug("waitForUser type: ${expectedType.simpleName}")
+		// TODO: Put suspend back in when we have migrated network code to kotlin so we can call invokeSuspend
 		//result = suspendCoroutine {
 		//	continuation = it
 		//}
@@ -245,12 +275,10 @@ abstract class UIZombicide(val characterRenderer: UIZCharacterRenderer, val boar
 			super.pushState(state)
 	}
 
-	override var currentUserName: String? = null
-		get() = super.currentUserName
-		set(name) {
-			field = name
-			boardMessage = "$name's Turn"
-		}
+	override fun onCurrentUserUpdated(userName: String, colorId: Int) {
+		super.onCurrentUserUpdated(userName, colorId)
+		boardMessage = "$userName's Turn"
+	}
 
 	fun pickCharacter(
 		name: ZPlayerName?,
@@ -281,7 +309,10 @@ abstract class UIZombicide(val characterRenderer: UIZCharacterRenderer, val boar
 			boardRenderer.setCurrentCharacter(this)
 			characterRenderer.actorInfo = this
 		}
-		setOptions(UIMode.PICK_SPAWN, areas)
+		val _areas = areas.map { spawn ->
+			board.getCell(spawn.cellPos).spawns.firstOrNull { it?.dir == spawn.dir }
+		}.filterNotNull()
+		setOptions(UIMode.PICK_SPAWN, _areas)
 		boardMessage = message
 		val area = waitForUser(ZSpawnArea::class.java) ?: return null
 		return areas.indexOf(area)
@@ -693,6 +724,7 @@ abstract class UIZombicide(val characterRenderer: UIZCharacterRenderer, val boar
 
 	override fun onGameLost() {
 		super.onGameLost()
+		boardMessage = "GAME LOST"
 		boardRenderer.waitForAnimations()
 		boardRenderer.addOverlay(object : OverlayTextAnimation("Y O U   L O S T", boardRenderer.numOverlayTextAnimations) {
 			override fun onDone() {
@@ -704,6 +736,7 @@ abstract class UIZombicide(val characterRenderer: UIZCharacterRenderer, val boar
 
 	override fun onQuestComplete() {
 		super.onQuestComplete()
+		boardMessage = "QUEST COMPLETED"
 		boardRenderer.waitForAnimations()
 		boardRenderer.addOverlay(object : OverlayTextAnimation("C O M P L E T E D", 0) {
 			override fun onDone() {

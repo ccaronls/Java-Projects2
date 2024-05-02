@@ -113,8 +113,8 @@ public class WifiTest2 extends P2PActivity implements
     }
 
     @Override
-    protected void onCreate(Bundle bundle) {
-        super.onCreate(bundle);
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         setContentView(R.layout.wifi2_activity);
         (bStart = findViewById(R.id.bStart)).setOnClickListener(this);
         (bShowClients = findViewById(R.id.bClients)).setOnClickListener(this);

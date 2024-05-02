@@ -4,8 +4,10 @@ import cc.lib.swing.AWTGraphics
 import cc.lib.swing.AWTRendererComponent
 import cc.lib.ui.UIComponent
 import cc.lib.zombicide.ui.UIZCharacterRenderer
+import cc.lib.zombicide.ui.UIZombicide
 import java.awt.Dimension
 import java.awt.Rectangle
+import java.awt.event.MouseEvent
 import javax.swing.Scrollable
 
 internal class CharacterComponent : AWTRendererComponent<UIZCharacterRenderer>(), Scrollable, UIComponent {
@@ -41,5 +43,15 @@ internal class CharacterComponent : AWTRendererComponent<UIZCharacterRenderer>()
 
 	override fun getScrollableTracksViewportHeight(): Boolean {
 		return false
+	}
+
+	override fun mouseExited(e: MouseEvent) {
+		UIZombicide.instance.boardRenderer.setOverlay(null)
+	}
+
+	override fun mouseEntered(e: MouseEvent) {
+		UIZombicide.instance.currentCharacter?.let {
+			renderer.actorInfo = it
+		}
 	}
 }

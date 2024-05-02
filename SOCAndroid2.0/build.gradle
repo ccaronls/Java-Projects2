@@ -8,16 +8,16 @@ dependencies {
 }
 
 android {
-    compileSdkVersion 18
-    buildToolsVersion "25.0.2"
+    compileSdk 18
+    //buildToolsVersion "25.0.2"
 
     sourceSets {
         main {
             manifest.srcFile 'AndroidManifest.xml'
-            java.srcDirs = ['src','SOC','Golf','Kaiser','Yahtzee']
-            resources.srcDirs = ['src','SOC','Golf','Kaiser','Yahtzee']
-            aidl.srcDirs = ['src','SOC','Golf','Kaiser','Yahtzee']
-            renderscript.srcDirs = ['src','SOC','Golf','Kaiser','Yahtzee']
+            java.srcDirs = ['src', 'SOC', 'Golf', 'Kaiser', 'Yahtzee']
+            resources.srcDirs = ['src', 'SOC', 'Golf', 'Kaiser', 'Yahtzee']
+            aidl.srcDirs = ['src', 'SOC', 'Golf', 'Kaiser', 'Yahtzee']
+            renderscript.srcDirs = ['src', 'SOC', 'Golf', 'Kaiser', 'Yahtzee']
             res.srcDirs = ['res']
             assets.srcDirs = ['assets']
         }

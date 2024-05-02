@@ -10,7 +10,11 @@ import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.View
 import android.view.ViewGroup
-import cc.lib.game.*
+import cc.lib.game.GColor
+import cc.lib.game.GDimension
+import cc.lib.game.GRectangle
+import cc.lib.game.Justify
+import cc.lib.game.Utils
 import cc.lib.math.Vector2D
 import cc.lib.ui.UIComponent
 import cc.lib.ui.UIRenderer
@@ -105,19 +109,31 @@ abstract class UIComponentView<T : UIRenderer> : View, UIComponent, Runnable, Sc
 				}
 			}
 			g.ortho()
+
 			val textWidth = g.getTextWidth(loadingString)
-			val rect: GRectangle = GRectangle(0f, 0f, GDimension(max(textWidth + 20, (width * 3 / 4).toFloat()), (height / 6).toFloat())).withCenter(Vector2D((width / 2).toFloat(), (height / 2).toFloat()))
+			val rect: GRectangle = GRectangle(
+				0f,
+				0f,
+				GDimension(max(textWidth + 20, (width * 3 / 4).toFloat()), (height / 6).toFloat())
+			).withCenter(Vector2D((width / 2).toFloat(), (height / 2).toFloat()))
+
+			g.color = GColor.RED
+			g.drawRect(rect, 3f)
+			g.drawFilledRect(rect.scaledBy(progress, 1f))
 
 			val hgt = g.textHeight
 			g.textHeight = rect.h * 3 / 4
 			g.color = GColor.WHITE
-			g.drawWrapString((width / 2f), (height / 2f) - rect.h / 2f, rect.w, Justify.CENTER, Justify.BOTTOM, loadingString)
+			g.drawWrapString(
+				(width / 2f),
+				(height / 2f) - rect.h / 2f,
+				rect.w,
+				Justify.CENTER,
+				Justify.BOTTOM,
+				loadingString
+			)
 			g.textHeight = hgt
 
-			g.color = GColor.RED
-			g.drawRect(rect, 3f)
-			rect.w *= progress
-			g.drawFilledRect(rect)
 		} else if (!isInEditMode) {
 			loadAssetsRunnable = null
 			val prev = renderer.minDimension

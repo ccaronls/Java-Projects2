@@ -140,4 +140,16 @@ public class ZTestUser extends ZUser {
     public ZMove chooseOrganize(@NotNull ZPlayerName playerName, @NotNull List<ZMove> list) {
         return list.get(0);
     }
+
+    @Nullable
+    @Override
+    public ZFamiliarType chooseFamiliar(@NotNull ZPlayerName playerName, @NotNull List<? extends ZFamiliarType> list) {
+        return Utils.randItem(list);
+    }
+
+    @Nullable
+    @Override
+    public Integer chooseZoneForCatapult(@NotNull ZPlayerName playerName, @NotNull ZWeaponType ammoType, @NotNull List<Integer> zones) {
+        return Utils.randItem(zones);
+    }
 }

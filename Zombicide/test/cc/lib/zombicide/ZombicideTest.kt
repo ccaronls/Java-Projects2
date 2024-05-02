@@ -210,38 +210,47 @@ Total Decompression Time:   49343
 	}
 
 	fun testLevels() {
-		ZSkillLevel.ULTRA_RED_MODE = false
+		val rules = ZRules()
+		rules.ultraRed = false
 		for (i in 0 until ZColor.YELLOW.dangerPts)
-			assertTrue(ZSkillLevel.getLevel(i).color == ZColor.BLUE)
+			assertTrue(ZSkillLevel.getLevel(i, rules).color == ZColor.BLUE)
 		for (i in ZColor.YELLOW.dangerPts until ZColor.ORANGE.dangerPts)
-			assertTrue(ZSkillLevel.getLevel(i).color == ZColor.YELLOW)
+			assertTrue(ZSkillLevel.getLevel(i, rules).color == ZColor.YELLOW)
 		for (i in ZColor.ORANGE.dangerPts until ZColor.RED.dangerPts)
-			assertTrue(ZSkillLevel.getLevel(i).color == ZColor.ORANGE)
+			assertTrue(ZSkillLevel.getLevel(i, rules).color == ZColor.ORANGE)
 		for (i in ZColor.RED.dangerPts until 1000)
-			assertTrue(ZSkillLevel.getLevel(i).color == ZColor.RED)
+			assertTrue(ZSkillLevel.getLevel(i, rules).color == ZColor.RED)
 
-		ZSkillLevel.ULTRA_RED_MODE = true
-		val ultraRed = ZSkillLevel.getLevel(1000)
+		rules.ultraRed = true
+		val ultraRed = ZSkillLevel.getLevel(1000, rules)
 		assertTrue(ultraRed.isUltra)
 
-		val red = ZSkillLevel.getLevel(ZColor.RED.dangerPts)
-		val next = red.nextLevel()
+		val red = ZSkillLevel.getLevel(ZColor.RED.dangerPts, rules)
+		val next = red.nextLevel(rules)
 		val pts = next.pts - red.pts
-		assertEquals(pts, red.getPtsToNextLevel(ZColor.RED.dangerPts))
+		assertEquals(pts, red.getPtsToNextLevel(ZColor.RED.dangerPts, rules))
 
 		for (i in 0..99) {
-			println("For exp " + i + " level is " + getLevel(i) + " and next level in " + getLevel(i).getPtsToNextLevel(i))
+			println(
+				"For exp $i level is ${getLevel(i, rules)} and next level in ${
+					getLevel(
+						i,
+						rules
+					).getPtsToNextLevel(i, rules)
+				}"
+			)
 		}
 	}
 
 	fun testUltraRed() = runBlocking {
-		ZSkillLevel.ULTRA_RED_MODE = false
+		val rules = ZRules()
+		rules.ultraRed = false
 		val game = ZGame()
 		game.setUsers(ZTestUser())
 		game.clearCharacters()
 		game.loadQuest(ZQuests.The_Abomination)
 		val ann = game.addCharacter(ZPlayerName.Ann)
-		ZSkillLevel.ULTRA_RED_MODE = true
+		rules.ultraRed = true
 		val state = game.state
 		for (i in 0..999) {
 			game.addExperience(ann, 1)
@@ -255,9 +264,11 @@ Total Decompression Time:   49343
 	}
 
 	fun testUltraLevelStr() {
+		val rules = ZRules()
+		rules.ultraRed = true
 		var i = 0
 		while (i < 150) {
-			println("Exp=" + i + "    -> " + getLevel(i))
+			println("Exp=" + i + "    -> " + getLevel(i, rules))
 			i += 3
 		}
 	}
@@ -271,7 +282,14 @@ Total Decompression Time:   49343
 		Utils.shuffle(zombies)
 		println("----------------------------------------------------")
 		for (z in zombies) {
-			println(String.format("%-20s hits:%d  priority:%d", z.type, z.type.minDamageToDestroy, z.type.rangedPriority))
+			println(
+				String.format(
+					"%-20s hits:%d  priority:%d",
+					z.type,
+					z.type.minDamageToDestroy,
+					z.type.targetingPriority
+				)
+			)
 		}
 		println("----------------------------------------------------")
 		for (i in 1..3) {
@@ -280,7 +298,14 @@ Total Decompression Time:   49343
 			println("MELEE SORTING $i")
 			println("----------------------------------------------------")
 			for (z in meleeList) {
-				println(String.format("%-20s hits:%d  priority:%d", z.type, z.type.minDamageToDestroy, z.type.rangedPriority))
+				println(
+					String.format(
+						"%-20s hits:%d  priority:%d",
+						z.type,
+						z.type.minDamageToDestroy,
+						z.type.targetingPriority
+					)
+				)
 			}
 		}
 		println("----------------------------------------------------")
@@ -290,7 +315,14 @@ Total Decompression Time:   49343
 			println("RANGED SORTING $i")
 			println("----------------------------------------------------")
 			for (z in rangedList) {
-				println(String.format("%-20s hits:%d  priority:%d", z.type, z.type.minDamageToDestroy, z.type.rangedPriority))
+				println(
+					String.format(
+						"%-20s hits:%d  priority:%d",
+						z.type,
+						z.type.minDamageToDestroy,
+						z.type.targetingPriority
+					)
+				)
 			}
 		}
 		for (i in 1..3) {
@@ -299,7 +331,14 @@ Total Decompression Time:   49343
 			println("MARKSMAN SORTING $i")
 			println("----------------------------------------------------")
 			for (z in marksmanList) {
-				println(String.format("%-20s hits:%d  priority:%d", z.type, z.type.minDamageToDestroy, z.type.rangedPriority))
+				println(
+					String.format(
+						"%-20s hits:%d  priority:%d",
+						z.type,
+						z.type.minDamageToDestroy,
+						z.type.targetingPriority
+					)
+				)
 			}
 		}
 	}
@@ -322,21 +361,25 @@ Total Decompression Time:   49343
 	}
 
 	fun testUltraExp() {
+		val rules = ZRules()
+		rules.ultraRed = true
 		var skill = ZSkillLevel()
 		var pts = 0
 		for (i in 0..9) {
-			val nextLvl = skill.getPtsToNextLevel(pts)
+			val nextLvl = skill.getPtsToNextLevel(pts, rules)
 			assertTrue(nextLvl > 0)
 			println("Cur level=$skill")
 			println("Next Level=$nextLvl")
 			pts += nextLvl
-			skill = skill.nextLevel()
+			skill = skill.nextLevel(rules)
 		}
 	}
 
 	fun testWeaponComparision() {
+		val game = ZGame()
+		game.rules.ultraRed = true
 		val c0 = ZPlayerName.Ann.create()
-		c0.exp = ZColor.RED.dangerPts
+		c0.addExperience(game, ZColor.RED.dangerPts)
 		c0.addAvailableSkill(ZSkill.Plus1_Damage_Melee)
 		c0.addAvailableSkill(ZSkill.Plus1_die_Ranged)
 		c0.addAvailableSkill(ZSkill.Plus1_max_Range)
@@ -344,7 +387,6 @@ Total Decompression Time:   49343
 		c1.addAvailableSkill(ZSkill.Plus1_die_Melee)
 		c1.addAvailableSkill(ZSkill.Zombie_link)
 		val weapon = ZWeaponType.ORCISH_CROSSBOW.create()
-		val game = ZGame()
 
 		println(weapon.getComparisonInfo(game, c0, c1))
 
@@ -395,5 +437,40 @@ Total Decompression Time:   49343
 		assertNull(board.getActorOrNull(position))
 
 		//println(board2.diff(copy))
+	}
+
+	fun testUserCharacterSorting() {
+
+		val userSize = 3
+
+		val map = listOf(
+			Pair(ZPlayerName.Ann.create().also {
+				it.actionsLeftThisTurn = 3
+			}, 0),
+			Pair(ZPlayerName.Baldric.create().also {
+				it.actionsLeftThisTurn = 0
+			}, 0),
+			Pair(ZPlayerName.Ariane.create().also {
+				it.actionsLeftThisTurn = 3
+			}, 1),
+			Pair(ZPlayerName.Clovis.create().also {
+				it.actionsLeftThisTurn = 2
+			}, 1),
+			Pair(ZPlayerName.Nelly.create().also {
+				it.actionsLeftThisTurn = 0
+			}, 2),
+			Pair(ZPlayerName.Baldric.create().also {
+				it.actionsLeftThisTurn = 0
+			}, 2)
+		).filter { it.first.actionsLeftThisTurn > 0 }.shuffled()
+
+		var currentUser = 1
+
+		val sorted = map.sortedBy {
+			(it.second - currentUser + userSize) % userSize
+		}
+
+		println("sorted: " + sorted.joinToString("\n") { "${it.second} -> ${it.first.type}" })
+
 	}
 }

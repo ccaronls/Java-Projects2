@@ -17,6 +17,7 @@ import cc.lib.game.Utils
 import cc.lib.logger.LoggerFactory
 import cc.lib.math.MutableVector2D
 import cc.lib.math.Vector2D
+import cc.lib.net.ConnectionStatus
 import cc.lib.ui.IButton
 import cc.lib.ui.UIRenderer
 import cc.lib.utils.GException
@@ -141,6 +142,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		set(value) {
 			field = value
 			initViewport()
+			redraw()
 		}
 
 	var quest: ZQuest? = null
@@ -151,6 +153,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 			field = value
 		}
 
+	var boardMessageColor = GColor.WHITE
 	var boardMessage: String? = null
 		set(value) {
 			field = value
@@ -167,6 +170,8 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		get() = zoomRectStack.peek()!!
 
 	private var viewport = GDimension()
+
+	open fun getTextSizePixels(size: Float) = size
 
 	fun pushZoomRect() {
 		zoomRectStack.push(_zoomedRect.deepCopy())
@@ -325,7 +330,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 
 	fun toggleZoomType(noAnimate: Boolean = false) {
 		if (desiredZoomType == currentZoomType) {
-			currentZoomType.increment(1, ZoomType.values().filter {
+			currentZoomType.increment(1, ZoomType.entries.filter {
 				it != ZoomType.UNDEFINED
 			}.toTypedArray()).also {
 				desiredZoomType = it
@@ -561,7 +566,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 			}
 		}
 
-		with (board.getAllActors().filter { it.isVisible }) {
+		with(board.getAllActors().filter { it.isRendered }) {
 			filter { !it.isAnimating }.forEach {
 				drawActor(it)
 			}
@@ -825,7 +830,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 			if (area.isCanBeRemovedFromBoard) txt += "\nDestroyable"
 			//String txt = String.format("spawnsNecros:%s\nEscapable:%s\nRemovable:%s\n", area.isCanSpawnNecromancers(), area.isEscapableForNecromancers(), area.isCanBeRemovedFromBoard());
 			g.color = GColor.YELLOW
-			val oldHeight = g.setTextHeight(10f)
+			val oldHeight = g.setTextHeight(getTextSizePixels(10f))
 			g.drawString(txt.trim { it <= ' ' }, area.rect.topLeft)
 			g.textHeight = oldHeight
 		}
@@ -1136,6 +1141,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 	}
 
 	fun drawDebugText(g: AGraphics) {
+		g.pushTextHeight(getTextSizePixels(14f))
 		val it = board.getCellsIterator()
 		while (it.hasNext()) {
 			val cell = it.next()
@@ -1170,6 +1176,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 			}
 			g.drawJustifiedStringOnBackground(cell.center, Justify.CENTER, Justify.CENTER, text, GColor.TRANSLUSCENT_BLACK, 10f, 3f)
 		}
+		g.popTextHeight()
 	}
 
 	fun drawNoTiles(g: AGraphics): Pos? {
@@ -1365,9 +1372,15 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		g.color = GColor.BLACK
 		if (quest != null) {
 			val height = g.textHeight
-			g.textHeight = 24f //setFont(bigFont);
+			g.textHeight = getTextSizePixels(24f) //setFont(bigFont);
 			g.setTextStyles(AGraphics.TextStyle.BOLD, AGraphics.TextStyle.ITALIC)
-			g.drawJustifiedString(10f, getHeight() - 10 - g.textHeight, Justify.LEFT, Justify.BOTTOM, quest!!.name)
+			g.drawJustifiedString(
+				10f,
+				getHeight() - 10 - g.textHeight,
+				Justify.LEFT,
+				Justify.BOTTOM,
+				quest!!.name
+			)
 			g.textHeight = height
 			g.setTextStyles(AGraphics.TextStyle.NORMAL)
 		}
@@ -1577,7 +1590,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 	}
 
 	protected fun drawDeckInfo(g: AGraphics) {
-		g.pushTextHeight(20f)
+		g.pushTextHeight(getTextSizePixels(20f))
 		val padding = 5f
 		val radius = 5f
 		val dim = GDimension(30f, 50f)
@@ -1592,6 +1605,65 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		}
 		g.popMatrix()
 		g.popTextHeight()
+	}
+
+	protected fun drawConnectedUsers(g: AGraphics) {
+		g.pushMatrix()
+		val padding = 5f
+		val barWidth = 10f
+		g.translate(viewportWidth - padding, viewportHeight - padding)
+		UIZombicide.instance.connectedUsersInfo.reversed().forEach { user ->
+			g.pushMatrix()
+			g.translate(-barWidth, 0f)
+			drawConnectionStatus(g, user.status, barWidth, g.textHeight, 2f)
+			g.translate(-padding, 0f)
+			g.color = user.color
+			g.drawJustifiedStringOnBackground(
+				0f,
+				0f,
+				Justify.RIGHT,
+				Justify.BOTTOM,
+				user.name,
+				GColor.TRANSLUSCENT_BLACK,
+				3f
+			).also {
+				if (user.startUser) {
+					it.moveBy(-(g.textHeight + padding), 0f)
+					it.setDimension(g.textHeight, g.textHeight)
+					g.pushColor(GColor.RED)
+					g.drawFilledCircle(it.center, g.textHeight / 2)
+					g.popColor()
+				}
+			}
+			g.popMatrix()
+			g.translate(0f, -g.textHeight + padding)
+		}
+		g.popMatrix()
+	}
+
+	fun ConnectionStatus.toColor(barNum: Int): GColor = when (this) {
+		ConnectionStatus.RED -> if (barNum == 1) GColor.RED else GColor.LIGHT_GRAY
+		ConnectionStatus.YELLOW -> if (barNum <= 2) GColor.YELLOW else GColor.LIGHT_GRAY
+		ConnectionStatus.GREEN -> GColor.GREEN
+		ConnectionStatus.UNKNOWN -> GColor.LIGHT_GRAY
+	}
+
+	fun drawConnectionStatus(
+		g: AGraphics,
+		status: ConnectionStatus,
+		width: Float,
+		height: Float,
+		padding: Float
+	) {
+		val barHeight = (height / 3) - (padding / 2)
+		// first bar
+		g.pushMatrix()
+		for (bar in 1..3) {
+			g.color = status.toColor(bar)
+			g.drawFilledRect(0f, 0f, width, barHeight)
+			g.translate(0f, -barHeight)
+		}
+		g.popMatrix()
 	}
 
 	private fun drawDeck(
@@ -1643,12 +1715,14 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 			)
 		}
 		if (drawDebugText) {
+			val game = UIZombicide.instance
 			g.drawJustifiedStringOnBackground(
 				width - 10, 10f, Justify.RIGHT, Justify.TOP,
 				"""$desiredZoomType/$currentZoomType/${(100f * zoomPercent).roundToInt()}
 				   ZoomRect: $_zoomedRect
 				   Viewport: $viewport
 				   Board: ${board.width} x ${board.height}
+				   User: ${game.currentUserName} [${game.currentUserColorId}]
 				""".trimMargin(), GColor.TRANSLUSCENT_BLACK, borderThickness)
 		}
 	}
@@ -1668,7 +1742,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		} else if (obj is Table) {
 			g.color = GColor.YELLOW
 			val cntr: IVector2D = Vector2D(width / 2, height / 2)
-			g.pushTextHeight(24f)
+			g.pushTextHeight(getTextSizePixels(20f))
 			obj.draw(g, cntr, Justify.CENTER, Justify.CENTER)
 			g.popTextHeight()
 			/*
@@ -1787,10 +1861,16 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		val minY = (board.height / 2 - rect.height / 2).coerceAtMost(0f)
 		val maxX = (board.width / 2 + rect.width / 2).coerceAtLeast(board.width) - rect.w
 		val maxY = (board.height / 2 + rect.height / 2).coerceAtLeast(board.height) - rect.h
+		log.debug("clampRect rect: $rect, board: ${board.width}x${board.height} minX:$minX, maxX:$maxX, minY:$minY, maxY:$maxY")
 		if (minX <= maxX)
 			rect.x = rect.x.coerceIn(minX, maxX)
+		else
+			rect.x = minX
 		if (minY <= maxY)
 			rect.y = rect.y.coerceIn(minY, maxY)
+		else
+			rect.y = minY
+		//log.debug("rect after: $rect")
 		return rect
 	}
 

@@ -57,6 +57,7 @@ public final class GameCommandType implements Comparable<GameCommandType> {
     static final GameCommandType CL_CONNECT = new GameCommandType("CL_CONNECT");
     // no additional info
     static final GameCommandType PING = new GameCommandType("PING");
+    static final GameCommandType CL_CONNECTION_SPEED = new GameCommandType("CL_CONNECTION_SPEED");
     // report an error that occured on the client
     static final GameCommandType CL_ERROR = new GameCommandType("CL_ERROR");
     // set the display name of this user. Includes a 'name' argument.

@@ -50,11 +50,14 @@
         <item name="android:layout_margin">10dp</item>
     </style>
 
-    <style name="ZDPadButton" parent="@style/Widget.AppCompat.Button">
+    <style name="ZButton" parent="@style/Widget.AppCompat.Button">
         <item name="android:tint">@color/dpad_color</item>
         <item name="android:textColor">@color/dpad_color</item>
-        <item name="android:textStyle">bold</item>
         <item name="android:background">@drawable/zbutton_background</item>
+    </style>
+
+    <style name="ZDPadButton" parent="ZButton">
+        <item name="android:textStyle">bold</item>
         <item name="android:minHeight">48dip</item>
         <item name="android:minWidth">32dip</item>
         <item name="android:layout_rowWeight">1</item>

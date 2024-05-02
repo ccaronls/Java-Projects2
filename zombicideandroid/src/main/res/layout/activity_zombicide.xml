@@ -26,7 +26,18 @@
             app:adapter="@{viewModel.listAdapter}"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/buttons_layout"
-            app:layout_constraintBottom_toBottomOf="parent"/>
+            app:layout_constraintBottom_toTopOf="@id/b_game_menu" />
+
+        <Button
+            style="@style/ZButton"
+            android:id="@+id/b_game_menu"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/b_options"
+            goneIfNot="@{viewModel.playing}"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="@id/list_menu"
+            app:layout_constraintBottom_toBottomOf="parent" />
 
         <GridLayout
             android:id="@+id/buttons_layout"
@@ -35,6 +46,7 @@
             android:rowCount="3"
             android:columnCount="3"
             goneIfNot="@{viewModel.playing}"
+            enableAllIf="@{!viewModel.processingMove}"
             app:layout_constraintTop_toBottomOf="@id/sv_console"
             app:layout_constraintBottom_toTopOf="@id/list_menu"
             app:layout_constraintStart_toStartOf="parent"

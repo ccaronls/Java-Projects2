@@ -11,8 +11,8 @@ android {
         targetCompatibility project.targetCompatibility
     }
 
-    compileSdkVersion project.myCompileSdkVersion.toInteger()
-    buildToolsVersion project.myBuildToolsVersion
+    compileSdk project.myCompileSdkVersion.toInteger()
+    //buildToolsVersion project.myBuildToolsVersion
 
     sourceSets {
         main {

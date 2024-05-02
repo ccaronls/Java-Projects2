@@ -60,9 +60,15 @@ class ZCharacter(
 	val usedSpells = mutableMapOf<ZSpellType, Int>()
 	override var skillLevel = ZSkillLevel()
 		private set
+	var hasMovedThisTurn = false
+		private set
 
 	@Omit
 	private var savedWounds = 0
+
+	@Omit
+	var isReady = true
+		get() = field || !isInvisible
 
 	fun saveWounds() {
 		savedWounds = woundBar
@@ -129,6 +135,7 @@ class ZCharacter(
         zonesMoved = 0
         fallen = isDead
 	    usedSpells.clear()
+	    hasMovedThisTurn = false
 	    super.onBeginRound()
     }
 
@@ -182,6 +189,7 @@ class ZCharacter(
 	}
 
     override fun performAction(action: ZActionType, game: ZGame) {
+	    hasMovedThisTurn = true
         if (action === ZActionType.MOVE) {
             zonesMoved++
         }
@@ -1042,5 +1050,5 @@ class ZCharacter(
 		usedSpells.increment(type, 1)
 	}
 
-	override val isVisible: Boolean = true
+	override val isRendered: Boolean = true
 }

@@ -256,9 +256,11 @@ public class GameClient extends AGameClient {
                     } else if (cmd.getType() == GameCommandType.PING) {
                         long timeSent = cmd.getLong("time");
                         long timeNow = System.currentTimeMillis();
+                        int speed = (int) (timeNow - timeSent);
                         for (Listener l : listenersList) {
-                            l.onPing((int) (timeNow - timeSent));
+                            l.onPing(speed);
                         }
+                        sendCommand(new GameCommand(GameCommandType.CL_CONNECTION_SPEED).setArg("speed", speed));
                     } else if (cmd.getType() == GameCommandType.MESSAGE) {
                         for (Listener l : listenersList) {
                             l.onMessage(cmd.getMessage());

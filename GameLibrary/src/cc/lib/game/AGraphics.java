@@ -495,7 +495,6 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     }
 
     /**
-     *
      * @param x
      * @param y
      * @param hJust
@@ -503,7 +502,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param text
      * @param bkColor
      * @param border
-     * @return
+     * @return the rectangle enclosing the text
      */
     public final GRectangle drawJustifiedStringOnBackground(float x, float y, Justify hJust, Justify vJust, String text, GColor bkColor, float border, float cornerRadius) {
         GRectangle r = drawJustifiedStringR(x, y, hJust, vJust, text);
@@ -547,7 +546,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param text
      * @param bkColor
      * @param border
-     * @return
+     * @return the rectangle enclosing the text
      */
     public final GRectangle drawJustifiedStringOnBackground(float x, float y, Justify hJust, Justify vJust, String text, GColor bkColor, float border) {
         return drawJustifiedStringOnBackground(x, y, hJust, vJust, text, bkColor, border, 0);

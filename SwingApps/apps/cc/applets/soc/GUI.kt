@@ -1424,18 +1424,18 @@ class GUI(private val frame: AWTFrame, val props: UIProperties) : ActionListener
 		g.popMatrix()
 	}
 
-	fun showPopup(pop: JFrame?) {
-		if (popup != null) popup!!.isVisible = false
+	fun showPopup(pop: JFrame) {
+		popup?.isVisible = false
 		popup = pop
-		popup!!.isUndecorated = true
+		pop.isUndecorated = true
 		frame.isEnabled = false
-		popup!!.minimumSize = Dimension(160, 120)
-		popup!!.pack()
-		val x = frame.x + frame.width / 2 - popup!!.width / 2
-		val y = frame.y + frame.height / 2 - popup!!.height / 2
-		popup!!.setLocation(x, y)
-		popup!!.isResizable = false
-		popup!!.isVisible = true
+		pop.minimumSize = Dimension(160, 120)
+		pop.pack()
+		val x = frame.x + frame.width / 2 - pop.width / 2
+		val y = frame.y + frame.height / 2 - pop.height / 2
+		pop.setLocation(x, y)
+		pop.isResizable = false
+		pop.isVisible = true
 	}
 
 	fun showPopup(title: String?, view: JComponent?, button: Array<PopupButton?>) {
@@ -1531,8 +1531,6 @@ class GUI(private val frame: AWTFrame, val props: UIProperties) : ActionListener
 			for (f in fields) {
 				val anno = f.annotations
 				for (a in anno) {
-					val k = a.annotationClass
-					val kk = Rules.Rule::class
 					if (a.annotationClass == Rules.Rule::class) {
 						cons.gridx = 0
 						f.isAccessible = true

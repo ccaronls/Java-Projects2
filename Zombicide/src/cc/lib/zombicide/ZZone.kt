@@ -28,6 +28,8 @@ class ZZone(val zoneIndex: Int = -1) : Reflector<ZZone>(), IRectangle {
 	var isDragonBile = false
 	var isObjective = false
 	private var nextCell = 0
+	// TODO: Assign indoor zones spawn cards on setup so we get consistent results
+	//var spawnCard : ZSpawnCard? = null
 
 	val isBuilding: Boolean
 		get() = type == ZZoneType.BUILDING

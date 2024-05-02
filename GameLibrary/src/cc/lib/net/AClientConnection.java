@@ -87,6 +87,9 @@ public abstract class AClientConnection {
 
         default void onTimeout(AClientConnection c) {
         }
+
+        default void onConnectionStatusChanged(AClientConnection c, ConnectionStatus status) {
+        }
     }
 
     ;
@@ -96,6 +99,17 @@ public abstract class AClientConnection {
     private boolean kicked = false;
     private final Set<Listener> listeners = Collections.synchronizedSet(new HashSet());
     protected boolean disconnecting = false;
+
+    private int connectionSpeed = 0;
+    private ConnectionStatus status = ConnectionStatus.UNKNOWN;
+
+    public int getConnectionSpeed() {
+        return connectionSpeed;
+    }
+
+    public ConnectionStatus getStatus() {
+        return status;
+    }
 
     public final void addListener(Listener listener) {
         listeners.add(listener);
@@ -250,6 +264,13 @@ public abstract class AClientConnection {
         } else if (cmd.getType() == GameCommandType.PING) {
             // client should do this at regular intervals to prevent getting dropped
             sendCommand(cmd);
+        } else if (cmd.getType() == GameCommandType.CL_CONNECTION_SPEED) {
+            connectionSpeed = cmd.getInt("speed");
+            ConnectionStatus newStatus = ConnectionStatus.from(connectionSpeed);
+            if (status != newStatus) {
+                status = newStatus;
+                notifyListeners((l) -> l.onConnectionStatusChanged(this, status));
+            }
         } else if (cmd.getType() == GameCommandType.CL_ERROR) {
             System.err.println("ERROR From client '" + getName() + "'\n" + cmd.getString("msg") + "\n" + cmd.getString("stack"));
         } else if (cmd.getType() == GameCommandType.CL_UPDATE) {

@@ -124,7 +124,8 @@ internal abstract class CharacterChooserDialogSP(val activity: ZombicideActivity
 			}
 		}
 		binding.viewPager.addOnPageChangeListener(this)
-		val d: Dialog = activity.newDialogBuilder().setTitle(R.string.popup_title_choose_players).setView(binding.root).show()
+		val d: Dialog = activity.pushDialog().setTitle(R.string.popup_title_choose_players)
+			.setView(binding.root).show()
 		binding.bCancel.setOnClickListener { v: View? -> d.dismiss() }
 		binding.bClear.setOnClickListener { v: View? ->
 			selectedPlayers.clear()

@@ -18,7 +18,7 @@ import cc.lib.zombicide.ZUser
 import cc.lib.zombicide.ZWeapon
 import cc.lib.zombicide.ZWeaponType
 
-open class UIZUser(name: String) : ZUser(name) {
+open class UIZUser(name: String?, colorId: Int) : ZUser(name, colorId) {
 	fun <T> indexOrNull(item: T?, options: List<T>): Int? {
 		return if (item == null) null else options.indexOf(item)
 	}

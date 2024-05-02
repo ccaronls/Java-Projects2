@@ -1,0 +1,558 @@
+board=cc.lib.checkerboard.Piece[] 8 {
+   cc.lib.checkerboard.Piece 8 {
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=0
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=1
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=2
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=3
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=4
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=5
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=6
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=7
+         stack=1
+         stackSize=1
+         type=UNCHECKED_KING
+         value=0
+      }
+   }
+   cc.lib.checkerboard.Piece 8 {
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=256
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=257
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=258
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=259
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=260
+         stack=0
+         stackSize=1
+         type=QUEEN
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=261
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=262
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=263
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+   }
+   cc.lib.checkerboard.Piece 8 {
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=512
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=513
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=514
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=515
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=516
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=517
+         stack=0
+         stackSize=1
+         type=UNCHECKED_KING
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=518
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=519
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+   }
+   cc.lib.checkerboard.Piece 8 {
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=768
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=769
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=770
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=771
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=772
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=773
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=774
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=775
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+   }
+   cc.lib.checkerboard.Piece 8 {
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=1024
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=1025
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=1026
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=1027
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=1028
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=1029
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=1030
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=1031
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+   }
+   cc.lib.checkerboard.Piece 8 {
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=1280
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=1281
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=1282
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=1283
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=1284
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=1285
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=1286
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=1287
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+   }
+   cc.lib.checkerboard.Piece 8 {
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=1536
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=1537
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=1538
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=1539
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=1540
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=1541
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=1542
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=1543
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+   }
+   cc.lib.checkerboard.Piece 8 {
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=1792
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=1793
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=1794
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=1795
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=1796
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=1797
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=1798
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         isCaptured=false
+         position=1799
+         stack=0
+         stackSize=0
+         type=EMPTY
+         value=0
+      }
+   }
+}
+gameState=PLAYING
+movesCache=null
+numPieces=int 2 {
+   2 1 
+}
+players=cc.lib.checkerboard.Player 2 {
+   cc.lib.checkerboard.AIPlayer {
+      color=BLACK
+      maxSearchDepth=3
+      playerNum=0
+   }
+   cc.lib.checkerboard.AIPlayer {
+      color=WHITE
+      maxSearchDepth=3
+      playerNum=1
+   }
+}
+rules=cc.lib.checkerboard.Chess {
+   castleRookCols=null
+   timerFar=0
+   timerLength=0
+   timerNear=0
+   whiteSide=1
+}
+selectedPos=-1
+turn=0
+undoStack=java.util.Stack {
+}

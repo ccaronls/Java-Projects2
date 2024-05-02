@@ -27,7 +27,6 @@ import cc.game.zombicide.android.databinding.ActivityZombicideBinding
 import cc.game.zombicide.android.databinding.AssignDialogItemBinding
 import cc.game.zombicide.android.databinding.TooltippopupLayoutBinding
 import cc.lib.android.*
-import cc.lib.game.GRectangle
 import cc.lib.mp.android.P2PActivity
 import cc.lib.reflector.Reflector
 import cc.lib.ui.IButton
@@ -60,17 +59,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 	lateinit var savesMapFile: File
 	lateinit var game: UIZombicide
 	val thisUser: ZUser by lazy {
-		object : UIZUser(displayName) {
-
-			init {
-				setColor(game.board, prefs.getInt(PREF_COLOR_ID_INT, 0), prefs.getString(PREF_P2P_NAME_STRING, null))
-			}
-
-			override fun setColorId(id: Int) {
-				super.setColorId(id)
-				prefs.edit().putInt(PREF_COLOR_ID_INT, id).apply()
-			}
-		}
+		UIZUser(displayName, colorId)
 	}
 	var clientMgr: ZClientMgr? = null
 	var serverMgr: ZServerMgr? = null
@@ -153,8 +142,16 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 		zb.consoleView.setOnClickListener {
 			game.showCharacterExpandedOverlay()
 		}
+		zb.bGameMenu.setOnClickListener {
+			showGameMenuDialog()
+		}
 		characterRenderer = UIZCharacterRenderer(zb.consoleView)
 		boardRenderer = object : UIZBoardRenderer(zb.boardView) {
+
+			override fun getTextSizePixels(size: Float): Float {
+				return DroidUtils.convertDipsToPixels(this@ZombicideActivity, size).toFloat()
+			}
+
 			override fun onLoaded() {
 				zb.vgTop.layoutTransition = LayoutTransition()
 				zb.listMenu.visibility = View.VISIBLE
@@ -166,6 +163,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 				zb.listMenu.visibility = View.GONE
 				vm.loading.postValue(true)
 			}
+
 		}
 		boardRenderer.drawTiles = true
 		boardRenderer.miniMapMode = prefs.getEnum(PREF_MINIMAP_MODE_STRING, MiniMapMode.UL)
@@ -195,7 +193,9 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 					e.printStackTrace()
 					stopGameThread()
 					runOnUiThread {
-						newDialogBuilder().setTitle("ERROR").setMessage(" ${e.javaClass.simpleName}:${e.message}").setNegativeButton("Ok", null).show()
+						newDialogBuilder().setTitle("ERROR")
+							.setMessage(" ${e.javaClass.simpleName}:${e.message}")
+							.setNegativeButton("Ok", null).show()
 					}
 				}
 				return changed
@@ -204,9 +204,26 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 			override val thisUser: ZUser
 				get() = this@ZombicideActivity.thisUser
 
+			override val connectedUsersInfo: List<ConnectedUser>
+				get() = serverMgr?.getConnectedUsers()?.map {
+					ConnectedUser(
+						it.second.name,
+						it.second.getColor(),
+						it.first.isConnected,
+						it.first.status,
+						game.getStartUser().colorId == it.second.colorId
+					)
+				} ?: clientMgr?.connectedPlayers ?: emptyList()
+
 			override fun <T> waitForUser(expectedType: Class<T>): T? {
+				vm.processingMove.postValue(false)
 				zb.boardView.post { initMenu(uiMode, options) }
-				return super.waitForUser(expectedType)
+				return super.waitForUser(expectedType).also {
+					zb.boardView.post {
+						if (isGameRunning())
+							initMenu(UIMode.NONE, null)
+					}
+				}
 			}
 
 			override fun onQuestComplete() {
@@ -220,6 +237,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 
 			override fun setResult(result: Any?) {
 				Log.i(TAG, "setResult $result")
+				vm.processingMove.postValue(true)
 				super.setResult(result)
 			}
 
@@ -235,8 +253,8 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 				runOnUiThread { initGameMenu() }
 			}
 
-			override fun onCurrentUserUpdated(name: String) {
-				super.onCurrentUserUpdated(name)
+			override fun onCurrentUserUpdated(userName: String, colorId: Int) {
+				super.onCurrentUserUpdated(userName, colorId)
 				runOnUiThread { initGameMenu() }
 			}
 
@@ -281,12 +299,8 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 				return waitForUser(ZMove::class.java)
 			}
 		}
-		val colorIdx = getColorPreference()
-		thisUser.setColor(game.board, colorIdx)
 		game.addUser(thisUser)
 	}
-
-	fun getColorPreference(): Int = prefs.getInt(PREF_COLOR_ID_INT, 0)
 
 	fun loadCharacters(playersSet: Collection<String>) {
 		game.clearCharacters()
@@ -337,82 +351,44 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 		stopGame()
 	}
 
+	var currentDialog: AlertDialog? = null
+	val dialogStack = Stack<Dialog>()
+
 	override fun newDialogBuilder(): AlertDialog.Builder {
-		val b: AlertDialog.Builder = object : AlertDialog.Builder(ContextThemeWrapper(this, android.R.style.Theme_Holo_Dialog)) {
+		val b: AlertDialog.Builder = object :
+			AlertDialog.Builder(ContextThemeWrapper(this, android.R.style.Theme_Holo_Dialog)) {
 			override fun show(): AlertDialog {
-				val d = super.show()
-				d.setCanceledOnTouchOutside(false)
-				return d
+				with(super.show()) {
+					currentDialog = this
+					setCanceledOnTouchOutside(false)
+					return this
+				}
 			}
+		}
+		b.setOnCancelListener {
+			currentDialog = null
+			dialogStack.clear()
 		}
 		if (!BuildConfig.DEBUG) b.setCancelable(false)
 		return b
 	}
 
-	enum class MenuItem : UIZButton {
-		RESUME,
-		CANCEL,
-		LOAD,
-		SAVE,
-		NEW_GAME,
-		JOIN_GAME,
-		SETUP_PLAYERS,
-		CONNECTIONS,
-		START,
-		ASSIGN,
-		SUMMARY,
-		UNDO,
-		DIFFICULTY,
-		OBJECTIVES,
-		SKILLS,
-		LEGEND,
-		QUIT,
-		CLEAR,
-		SEARCHABLES,
-		ABOUT,
-		RULES,
-		CHOOSE_COLOR,
-		EMAIL_REPORT,
-		MINIMAP_MODE,
-		DEBUG_MENU;
-
-		fun isHomeButton(instance: ZombicideActivity): Boolean = when (this) {
-			LOAD, SAVE, ASSIGN, CLEAR, UNDO, DIFFICULTY, CHOOSE_COLOR, DEBUG_MENU -> BuildConfig.DEBUG
-			START, NEW_GAME, JOIN_GAME, SETUP_PLAYERS, SKILLS, LEGEND, EMAIL_REPORT, MINIMAP_MODE -> true
-			CONNECTIONS -> instance.serverControl != null
-			RESUME -> instance.gameFile.exists()
-			else -> false
+	fun pushDialog(): AlertDialog.Builder {
+		currentDialog?.let {
+			dialogStack.push(it)
 		}
-
-		fun isGameButton(instance: ZombicideActivity): Boolean = when (this) {
-			LOAD, SAVE, START, ASSIGN, RESUME, NEW_GAME, JOIN_GAME, SETUP_PLAYERS, CLEAR -> false
-			CONNECTIONS -> instance.serverControl != null
-			UNDO, SEARCHABLES -> BuildConfig.DEBUG
-			CHOOSE_COLOR -> instance.clientMgr == null
-			else -> true
-		}
-
-		override fun getRect(): GRectangle {
-			return GRectangle.EMPTY
-		}
-
-		override fun getTooltipText(): String? {
-			return null
-		}
-
-		override fun getLabel(): String {
-			return name.prettify()
-		}
-
-		fun isEnabled(z: ZombicideActivity): Boolean {
-			return if (this == UNDO) {
-				z.client != null || FileUtils.hasBackupFile(z.gameFile)
-			} else true
+		return newDialogBuilder().setNeutralButton(R.string.popup_button_back) { _, _ ->
+			dialogStack.takeIf { it.isNotEmpty() }?.pop()?.show()
 		}
 	}
 
 	val savedDifficulty: ZDifficulty
-		get() = ZDifficulty.valueOf(prefs.getString(PREF_DIFFICULTY_STRING, ZDifficulty.MEDIUM.name)!!)
+		get() = ZDifficulty.valueOf(
+			prefs.getString(
+				PREF_DIFFICULTY_STRING,
+				ZDifficulty.MEDIUM.name
+			)!!
+		)
 
 	override fun onClick(v: View) {
 		try {
@@ -538,6 +514,13 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 										log.debug("Assigning ${joinToString { it.name() }} to host user")
 										thisUser.setCharacters(this)
 									}
+								// make remaining characters invisible to show they are waiting to join
+								game.allCharacters.filter { it.color != thisUser.getColor() }
+									.forEach {
+										it.isInvisible = true
+										it.isReady = false
+									}
+								// game thread will wait for all users to be ready
 								startGame()
 								p2pInit(P2PMode.SERVER)
 							}.show()
@@ -551,7 +534,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 				newDialogBuilder().setTitle(R.string.popup_title_confirm)
 					.setMessage(R.string.popup_message_confirm_disconnect)
 					.setNegativeButton(R.string.popup_button_cancel, null)
-					.setPositiveButton(R.string.popup_button_disconnect) { dialog: DialogInterface?, which: Int ->
+					.setPositiveButton(R.string.popup_button_disconnect) { _, _ ->
 						object : SpinnerTask<Int>(this@ZombicideActivity) {
 							@Throws(Exception::class)
 							override fun doIt(vararg args: Int?) {
@@ -568,7 +551,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 				newDialogBuilder().setTitle(R.string.popup_title_confirm)
 					.setMessage(R.string.popup_message_confirm_disconnect)
 					.setNegativeButton(R.string.popup_button_cancel, null)
-					.setPositiveButton(R.string.popup_button_disconnect) { dialog: DialogInterface?, which: Int ->
+					.setPositiveButton(R.string.popup_button_disconnect) { _, _ ->
 						object : SpinnerTask<Int>(this@ZombicideActivity) {
 							@Throws(Exception::class)
 							override fun doIt(vararg args: Int?) {
@@ -583,7 +566,6 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 					}.show()
 			} else {
 				stopGame()
-				game.setResult(null)
 			}
 			MenuItem.CANCEL -> if (game.isGameRunning()) {
 				game.setResult(null)
@@ -597,14 +579,15 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 				game.showSummaryOverlay()
 			}
 			MenuItem.NEW_GAME -> {
-				shutdownMP()
+				//shutdownMP()
 				showNewGameDialog()
 			}
 			MenuItem.JOIN_GAME -> {
 				p2pInit(P2PMode.CLIENT)
 			}
+
 			MenuItem.SETUP_PLAYERS -> showNewGameDialogChoosePlayers(null)
-			MenuItem.CONNECTIONS -> serverControl!!.openConnections()
+			MenuItem.CONNECTIONS -> serverControl?.openConnections()
 			MenuItem.CLEAR -> {
 //				prefs.edit().remove("completedQuests").apply()
 				val byteDeleted = FileUtils.deleteFileAndBackups(gameFile)
@@ -641,9 +624,15 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 			MenuItem.SAVE -> showSaveGameDialog()
 			MenuItem.ASSIGN -> showAssignDialog()
 			MenuItem.DIFFICULTY -> {
-				newDialogBuilder().setTitle(getString(R.string.popup_title_difficulty, savedDifficulty))
-					.setItems(ZDifficulty.values().map { it.name }.toTypedArray()) { dialog: DialogInterface?, which: Int ->
-						val difficulty = ZDifficulty.values()[which]
+				newDialogBuilder().setTitle(
+					getString(
+						R.string.popup_title_difficulty,
+						savedDifficulty
+					)
+				)
+					.setItems(ZDifficulty.entries.map { it.name }
+						.toTypedArray()) { dialog: DialogInterface?, which: Int ->
+						val difficulty = ZDifficulty.entries[which]
 						game.setDifficulty(difficulty)
 						prefs.edit().putString(PREF_DIFFICULTY_STRING, difficulty.name).apply()
 					}.setNegativeButton(R.string.popup_button_cancel, null).show()
@@ -691,10 +680,17 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 			}
 
 			MenuItem.MINIMAP_MODE -> {
-				prefs.edit().putString(PREF_MINIMAP_MODE_STRING, boardRenderer.toggleDrawMinimap().name).apply()
+				prefs.edit()
+					.putString(PREF_MINIMAP_MODE_STRING, boardRenderer.toggleDrawMinimap().name)
+					.apply()
 			}
+
 			MenuItem.DEBUG_MENU -> {
 				showDebugDialog()
+			}
+
+			MenuItem.DISCONNECT -> {
+				p2pShutdown()
 			}
 		}
 	}
@@ -720,8 +716,9 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 
 	fun showLoadQuestDialog() {
 		newDialogBuilder().setTitle(R.string.popup_title_load_quest)
-			.setItems(ZQuests.values().map { it.name.prettify() }.toTypedArray()) { dialog: DialogInterface?, which: Int ->
-				val q = ZQuests.values()[which]
+			.setItems(ZQuests.entries.map { it.name.prettify() }
+				.toTypedArray()) { dialog: DialogInterface?, which: Int ->
+				val q = ZQuests.entries[which]
 				game.loadQuest(q)
 				updateCharacters(q)
 			}.setNegativeButton(R.string.popup_button_cancel, null).show()
@@ -770,14 +767,12 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 
 	val saves: MutableMap<String, String>
 		get() {
-			var saves: MutableMap<String, String>
-			try {
-				saves = Reflector.deserializeFromFile(savesMapFile)
+			return try {
+				Reflector.deserializeFromFile(savesMapFile)
 			} catch (e: Exception) {
 				e.printStackTrace()
-				saves = LinkedHashMap()
+				LinkedHashMap()
 			}
-			return saves
 		}
 
 	fun pushGameState() {
@@ -816,13 +811,37 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 	}
 
 	fun showChooseColorDialog() {
-		newDialogBuilder().setTitle(R.string.popup_title_choose_color)
-			.setItems(ZUser.USER_COLOR_NAMES) { _, which: Int ->
-				prefs.edit().putInt(PREF_COLOR_ID_INT, which).apply()
-				thisUser.setColor(game.board, which, ZUser.USER_COLOR_NAMES[which])
-				clientMgr?.setColorId(which);
-				game.refresh()
-			}.setNegativeButton(R.string.popup_button_cancel, null).show()
+		if (clientMgr?.client?.isConnected == true) {
+			object : CLSendCommandSpinnerTask(this) {
+
+
+				override fun onColorOptions(colorIdOptions: List<Int>) {
+					runOnUiThread {
+						newDialogBuilder().setTitle(R.string.popup_title_choose_color)
+							.setNegativeButton(R.string.popup_button_cancel, null)
+							.setItems(colorIdOptions.map { ZUser.USER_COLOR_NAMES[it] }
+								.toTypedArray()) { _, which: Int ->
+								//prefs.edit().putInt(PREF_COLOR_ID_INT, which).apply()
+								//thisUser.setColor(game.board, which, ZUser.USER_COLOR_NAMES[which])
+								clientMgr?.setColorId(colorIdOptions[which])
+								//game.refresh()
+							}.show()
+					}
+					release()
+				}
+
+				override fun onSuccess() {
+				}
+			}.execute(clientMgr!!.newColorPickerPressed())
+		} else {
+			newDialogBuilder().setTitle(R.string.popup_title_choose_color)
+				.setItems(ZUser.USER_COLOR_NAMES) { _, which: Int ->
+					prefs.edit().putInt(PREF_COLOR_ID_INT, which).apply()
+					game.setUserColorId(thisUser, which)
+					clientMgr?.setColorId(which)
+					game.refresh()
+				}.setNegativeButton(R.string.popup_button_cancel, null).show()
+		}
 	}
 
 	fun showDebugDialog() {
@@ -878,7 +897,10 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 	}
 
 	val displayName: String
-		get() = prefs.getString(PREF_P2P_NAME_STRING, "Unnamed")!!
+		get() = prefs.getString(PREF_P2P_NAME_STRING, null) ?: ZUser.USER_COLOR_NAMES[colorId]
+
+	val colorId: Int
+		get() = prefs.getInt(PREF_COLOR_ID_INT, 0)
 
 	override fun onP2PReady() {
 		val p2pName = prefs.getString(PREF_P2P_NAME_STRING, null)
@@ -980,12 +1002,34 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 		}
 	}*/
 
+	fun showGameMenuDialog() {
+		val options = MenuItem.entries.filter { it.isMenuButton() }
+		newDialogBuilder()
+			.setTitle("Main Menu")
+			.setNegativeButton(R.string.popup_button_cancel, null)
+			.setItems(options.map { it.name.prettify() }.toTypedArray()) { d, i ->
+				processMainMenuItem(options[i])
+			}.show()
+	}
+
 	fun showLegendDialog() {
 		val legend = arrayOf(
-			Pair(R.drawable.legend_chars, "CHARACTERS\nChoose your characters. Some are unlockable. Players can operate in any order but must execute all of their actions before switching to another player."),
-			Pair(R.drawable.legend_gamepad, "GAMEPAD\nUse gamepad to perform common actions.\nLH / RH - Use Item in Left/Right hand.\nO - Toggle active player.\nZM - Zoom in/out."),
-			Pair(R.drawable.legend_obj, "OBJECTIVES\nObjectives give player EXP, unlock doors, reveal special items and other things related to the Quest."),
-			Pair(R.drawable.legend_vault, "VAULTS\nVaults are very handy. You can find special loot or drop loot to be pickup up later. You can also close zombies in or out of the vault. Also they can sometimes be shortcuts across the map. The only limitation is you cannot fire ranged weapons or magic into the vault from the outside or fire outside of vault from inside of it."),
+			Pair(
+				R.drawable.legend_chars,
+				"CHARACTERS\nChoose your characters. Some are unlockable. Players can operate in any order but must execute all of their actions before switching to another player."
+			),
+			Pair(
+				R.drawable.legend_gamepad,
+				"GAMEPAD\nUse gamepad to perform common actions.\nLH / RH - Use Item in Left/Right hand.\nO - Toggle active player.\nZM - Zoom in/out."
+			),
+			Pair(
+				R.drawable.legend_obj,
+				"OBJECTIVES\nObjectives give player EXP, unlock doors, reveal special items and other things related to the Quest."
+			),
+			Pair(
+				R.drawable.legend_vault,
+				"VAULTS\nVaults are very handy. You can find special loot or drop loot to be pickup up later. You can also close zombies in or out of the vault. Also they can sometimes be shortcuts across the map. The only limitation is you cannot fire ranged weapons or magic into the vault from the outside or fire outside of vault from inside of it."
+			),
 			Pair(R.drawable.zwalker1, "WALKER\n${ZZombieType.Walker.description}".trimIndent()),
 			Pair(R.drawable.zfatty1, "FATTY\n${ZZombieType.Fatty.description}".trimIndent()),
 			Pair(R.drawable.zrunner1, "RUNNER\n${ZZombieType.Runner.description}".trimIndent()),
@@ -1037,13 +1081,22 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 
 	fun showNewGameDialog() {
 		newDialogBuilder().setTitle(R.string.popup_title_choose_version)
-			.setItems(resources.getStringArray(if (BuildConfig.DEBUG) R.array.popup_message_choose_game_version_debug else R.array.popup_message_choose_game_version)) { dialog: DialogInterface?, which: Int ->
+			.setItems(resources.getStringArray(if (BuildConfig.DEBUG) R.array.popup_message_choose_game_version_debug else R.array.popup_message_choose_game_version)) { _, which ->
 				when (which) {
-					0 -> showNewGameChooseQuestDialog(questsBlackPlague(), stats.getCompletedQuests())
-					1 -> if (isWolfburgUnlocked) showNewGameChooseQuestDialog(questsWolfsburg(), stats.getCompletedQuests()) else newDialogBuilder().setTitle(R.string.popup_title_wolflocked)
+					0 -> showNewGameChooseQuestDialog(
+						questsBlackPlague(),
+						stats.getCompletedQuests()
+					)
+
+					1 -> if (isWolfburgUnlocked) showNewGameChooseQuestDialog(
+						questsWolfsburg(),
+						stats.getCompletedQuests()
+					) else newDialogBuilder().setTitle(R.string.popup_title_wolflocked)
 						.setMessage(R.string.popup_message_unlock_wolfburg)
-						.setPositiveButton(R.string.popup_button_ok) { dialog1: DialogInterface?, which1: Int -> showNewGameDialog() }.show()
-					2 -> showNewGameChooseQuestDialog(Arrays.asList(*ZQuests.values()), HashSet(Arrays.asList(*ZQuests.values())))
+						.setPositiveButton(R.string.popup_button_ok) { _, _ -> showNewGameDialog() }
+						.show()
+
+					2 -> showNewGameChooseQuestDialog(ZQuests.entries, HashSet(ZQuests.entries))
 				}
 			}.setNegativeButton(R.string.popup_button_cancel, null).show()
 	}
@@ -1053,13 +1106,19 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 	}
 
 	fun showNewGameDialogChooseDifficulty(quest: ZQuests) {
-		newDialogBuilder().setTitle(getString(R.string.popup_title_quest, quest.ordinal, quest.displayName))
-			.setItems(ZDifficulty.values().map { it.name }.toTypedArray()) { dialog: DialogInterface?, which: Int ->
-				val difficulty = ZDifficulty.values()[which]
+		pushDialog().setTitle(
+			getString(
+				R.string.popup_title_quest,
+				quest.ordinal,
+				quest.displayName
+			)
+		)
+			.setItems(ZDifficulty.entries.map { it.name }.toTypedArray()) { _, which: Int ->
+				val difficulty = ZDifficulty.entries[which]
 				prefs.edit().putString(PREF_DIFFICULTY_STRING, difficulty.name).apply()
 				game.setDifficulty(difficulty)
 				showChooseGameModeDialog(quest)
-			}.setNegativeButton(R.string.popup_button_back) { dialog: DialogInterface?, which: Int -> showNewGameDialog() }.show()
+			}.setNegativeButton(R.string.popup_button_cancel, null).show()
 	}
 
 	fun showChooseGameModeDialog(quest: ZQuests) {
@@ -1067,7 +1126,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 			"Single Player",
 			"Multi-player Host"
 		)
-		newDialogBuilder().setTitle("Choose Mode")
+		pushDialog().setTitle("Choose Mode")
 			.setItems(modes) { _, which: Int ->
 				when (which) {
 					0 -> showNewGameDialogChoosePlayers(quest)
@@ -1076,8 +1135,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 						p2pInit(P2PMode.SERVER)
 					}
 				}
-			}.setNegativeButton(R.string.popup_button_back) { _, _ -> showNewGameDialogChooseDifficulty(quest) }
-			.show()
+			}.setNegativeButton(R.string.popup_button_cancel, null).show()
 	}
 
 	open class CharLock(val player: ZPlayerName, val unlockMessageId: Int) {
@@ -1104,21 +1162,23 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 
 	// TODO: Make this more organized. Should be able to order by character, danger level or all POSSIBLE
 	fun showSkillsDialog() {
-		val sorted = ZSkill.values().toMutableList().sortedWith { o1: ZSkill, o2: ZSkill -> o1.name.compareTo(o2.name) }
+		val sorted = ZSkill.entries.toMutableList()
+			.sortedWith { o1: ZSkill, o2: ZSkill -> o1.name.compareTo(o2.name) }
 		newDialogBuilder().setTitle(R.string.popup_title_skills)
 			.setItems(sorted.map { it.name.prettify() }.toTypedArray()) { dialog: DialogInterface?, which: Int ->
 				val skill = sorted[which]
 				newDialogBuilder().setTitle(skill.getLabel())
 					.setMessage(skill.description)
 					.setNegativeButton(R.string.popup_button_cancel, null)
-					.setPositiveButton(R.string.popup_button_back) { dialog1: DialogInterface?, which1: Int -> showSkillsDialog() }.show()
+					.setPositiveButton(R.string.popup_button_back) { _, _ -> showSkillsDialog() }
+					.show()
 			}.setNegativeButton(R.string.popup_button_cancel, null).show()
 	}
 
 	fun initHomeMenu() {
 		vm.playing.postValue(false)
 		val buttons: MutableList<View> = ArrayList()
-		MenuItem.values().filter { it.isHomeButton(this@ZombicideActivity) }.forEach { i ->
+		MenuItem.entries.filter { it.isHomeButton(this@ZombicideActivity) }.forEach { i ->
 			buttons.add(build(this, i, i.isEnabled(this)))
 		}
 		initMenuItems(buttons)
@@ -1138,15 +1198,17 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 				val move = o
 				when (move.type) {
 					ZMoveType.WALK_DIR -> {
-						when (ZDir.values()[move.integer!!]) {
+						when (ZDir.entries[move.integer!!]) {
 							ZDir.NORTH -> {
 								zb.bUp.tag = move
 								zb.bUp.visibility = View.VISIBLE
 							}
+
 							ZDir.SOUTH -> {
 								zb.bDown.tag = move
 								zb.bDown.visibility = View.VISIBLE
 							}
+
 							ZDir.EAST -> {
 								zb.bRight.tag = move
 								zb.bRight.visibility = View.VISIBLE
@@ -1202,20 +1264,22 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 	}
 
 	fun initMenu(mode: UIMode, options: List<Any>?) {
+		log.debug("current colorId: ${game.currentUserColorId} thisUserColorId: ${thisUser.colorId}")
 		val buttons: MutableList<View> = ArrayList()
 		clearKeypad()
-		options?.toMutableList()?.also { options ->
-			initKeypad(options)
+		options?.toMutableList()?.also {
+			initKeypad(it)
 			when (mode) {
 				UIMode.PICK_CHARACTER -> {
-					zb.bCenter.tag = options[0]
-					for (e:IButton in options as List<IButton>) {
+					zb.bCenter.tag = it[0]
+					for (e: IButton in it as List<IButton>) {
 						buttons.add(build(this, e, e.isEnabled()))
 					}
 					buttons.add(ListSeparator(this))
 				}
+
 				UIMode.PICK_MENU -> {
-					for (e: IButton in options as List<IButton>) {
+					for (e: IButton in it as List<IButton>) {
 						buttons.add(build(this, e, e.isEnabled()))
 					}
 					buttons.add(ListSeparator(this))
@@ -1223,7 +1287,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 				else -> Unit
 			}
 		}
-		MenuItem.values().filter { it.isGameButton(this@ZombicideActivity) }.forEach { i->
+		MenuItem.entries.filter { it.isGameButton(this@ZombicideActivity) }.forEach { i ->
 			buttons.add(build(this, i, i.isEnabled(this)))
 		}
 		initMenuItems(buttons)
@@ -1265,7 +1329,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 			}
 
 			override fun onBindViewHolder(holder: Holder, position: Int) {
-				val player = ZPlayerName.values()[position]
+				val player = ZPlayerName.entries[position]
 				holder.ab.image.setImageResource(player.cardImageId)
 				holder.ab.image.tag = player.name
 				holder.ab.checkbox.isChecked = selectedPlayers.contains(player.name)
@@ -1282,10 +1346,11 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 			}
 
 			override fun getItemCount(): Int {
-				return ZPlayerName.values().size
+				return ZPlayerName.entries.size
 			}
 		}
-		newDialogBuilder().setTitle(R.string.popup_title_assign).setView(recyclerView).setNegativeButton(R.string.popup_button_cancel, null)
+		newDialogBuilder().setTitle(R.string.popup_title_assign).setView(recyclerView)
+			.setNegativeButton(R.string.popup_button_cancel, null)
 			.setPositiveButton(R.string.popup_button_ok) { dialog: DialogInterface?, which: Int ->
 				Log.d(TAG, "Selected players: $selectedPlayers")
 				prefs.edit().putStringSet(PREF_PLAYERS_STRING_SET, selectedPlayers).apply()
@@ -1317,7 +1382,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 
 	internal class EmailTask(private val context: CCActivityBase, private val message: String) :
 		AsyncTask<File, Void, Exception>() {
-		private var progress: Dialog? = null
+		private lateinit var progress: Dialog
 		override fun onPreExecute() {
 			progress = ProgressDialog.show(
 				context,
@@ -1343,7 +1408,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 		}
 
 		override fun onPostExecute(e: Exception?) {
-			progress!!.dismiss()
+			progress.dismiss()
 			if (e != null) {
 				context.newDialogBuilder().setTitle(R.string.popup_title_error)
 					.setMessage("""An error occurred trying to send report: ${e.javaClass.simpleName} ${e.message}""")

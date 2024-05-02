@@ -1,0 +1,38 @@
+#
+# A fatal error has been detected by the Java Runtime Environment:
+#
+#  SIGSEGV (0xb) at pc=0x0000000108a76181, pid=22441, tid=0x0000000000002f03
+#
+# JRE version: Java(TM) SE Runtime Environment (8.0_101-b13) (build 1.8.0_101-b13)
+# Java VM: Java HotSpot(TM) 64-Bit Server VM (25.101-b13 mixed mode bsd-amd64 compressed oops)
+# Problematic frame:
+# V  [libjvm.dylib+0x276181]
+#
+# Failed to write core dump. Core dumps have been disabled. To enable core dumping, try "ulimit -c unlimited" before starting Java again
+#
+# If you would like to submit a bug report, please visit:
+#   http://bugreport.java.com/bugreport/crash.jsp
+#
+
+---------------  T H R E A D  ---------------
+
+Current thread (0x00007fddc301b800):  VMThread [stack: 0x000070000b2a8000,0x000070000b3a8000] [id=12035]
+
+siginfo: si_signo: 11 (SIGSEGV), si_code: 1 (SEGV_MAPERR), si_addr: 0x0000000000000000
+
+Registers:
+RAX=0x0000000000000000, RBX=0x0000000109103aa8, RCX=0x000625a822cc2ab1, RDX=0x000070000b3a79b8
+RSP=0x000070000b3a7630, RBP=0x000070000b3a7630, RSI=0x000070000b3a79b8, RDI=0x00000001090ee190
+R8 =0x000000000000005f, R9 =0x0000000000000400, R10=0x0000000000002000, R11=0x0000000000000246
+R12=0x000000000000000c, R13=0x0000000000000000, R14=0x00007fddc0510ad0, R15=0x00007fddc05120e0
+RIP=0x0000000108a76181, EFLAGS=0x0000000000010206, ERR=0x0000000000000006
+  TRAPNO=0x000000000000000e
+
+Top of Stack: (sp=0x000070000b3a7630)
+0x000070000b3a7630:   000070000b3a7ac0 0000000108cc7190
+0x000070000b3a7640:   00000000c0000000 0000000108e08de2
+0x000070000b3a7650:   00000006c0000000 0000000000000000
+0x000070000b3a7660:   0000000000000037 000070000b3a7c08
+0x000070000b3a7670:   ffffffffffffffff 0000000208de5c6a
+0x000070000b3a7680:   000070000b3a7ca8 00007fff9f1206b8
+0x000070000b3a7690:   0000000000000005 0000000000587bf8

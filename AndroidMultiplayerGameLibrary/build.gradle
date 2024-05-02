@@ -1,9 +1,19 @@
 apply plugin: 'com.android.library'
 
+repositories {
+    maven {
+        url 'https://www.hive2hive.org'
+    }
+}
+
 dependencies {
 //    implementation files('../DnsAndroid/mdnsjava-2.1.6-SNAPSHOT.jar', '../DnsAndroid/dnsjava-2.1.7.jar')
-    implementation project (':GameLibrary')
-    implementation project (':AndroidGameLibrary')
+    implementation project(':GameLibrary')
+    implementation project(':AndroidGameLibrary')
+//    implementation('io.socket:socket.io-client:2.1.0')
+//    implementation 'org.hive2hive:org.hive2hive.core:1.2.4'
+    implementation 'com.github.jhg023:SimpleNet:1.6.6'
+//    compile fileTree(include: ['*.jar'], dir: 'libs')
 }
 
 android {
@@ -20,8 +30,8 @@ android {
         targetCompatibility project.targetCompatibility
     }
 
-    compileSdkVersion project.myCompileSdkVersion.toInteger()
-    buildToolsVersion project.myBuildToolsVersion
+    compileSdk project.myCompileSdkVersion.toInteger()
+    //buildToolsVersion project.myBuildToolsVersion
 
     sourceSets {
         main {

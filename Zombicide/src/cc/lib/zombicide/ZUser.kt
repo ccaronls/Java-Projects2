@@ -2,18 +2,20 @@ package cc.lib.zombicide
 
 import cc.lib.game.GColor
 
-abstract class ZUser(var name: String, vararg players: ZPlayerName) {
+abstract class ZUser(_name: String?, var colorId: Int, vararg players: ZPlayerName) {
 
-	var colorId = 0
-		private set
-
-	protected open fun setColorId(id: Int) {
-		colorId = id
+	init {
+		if (colorId !in USER_COLORS.indices)
+			throw IllegalArgumentException("colorId out of bounds")
 	}
+
+	var name = _name ?: USER_COLOR_NAMES[colorId]
+
 
 	private val _players = mutableSetOf<ZPlayerName>().also {
 		it.addAll(players)
 	}
+
 	val players: List<ZPlayerName>
 		get() = _players.toList()
 
@@ -36,14 +38,6 @@ abstract class ZUser(var name: String, vararg players: ZPlayerName) {
 		_players.clear()
 		for (nm in chars) {
 			addCharacter(nm)
-		}
-	}
-
-	fun setColor(board: ZBoard, id: Int, nm: String? = null) {
-		setColorId(id)
-		name = nm ?: USER_COLOR_NAMES[id]
-		_players.forEach {
-			board.getCharacterOrNull(it)?.color = USER_COLORS[id]
 		}
 	}
 
@@ -178,9 +172,13 @@ abstract class ZUser(var name: String, vararg players: ZPlayerName) {
 		)
 
 		fun getColorName(color: GColor): String {
-			return USER_COLORS.indexOfFirst { color == it }?.takeIf { it >= 0 }?.let {
+			return USER_COLORS.indexOfFirst { color == it }.takeIf { it >= 0 }?.let {
 				USER_COLOR_NAMES[it]
 			} ?: "Unknown $color"
 		}
+
+		fun getColorName(id: Int): String = if (id in USER_COLORS.indices) {
+			USER_COLOR_NAMES[id]
+		} else "None($id)"
 	}
 }

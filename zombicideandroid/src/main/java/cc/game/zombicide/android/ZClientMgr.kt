@@ -10,6 +10,7 @@ import cc.lib.zombicide.ZQuests
 import cc.lib.zombicide.ZUser
 import cc.lib.zombicide.p2p.ZGameMP
 import cc.lib.zombicide.p2p.ZUserMP
+import cc.lib.zombicide.ui.ConnectedUser
 import cc.lib.zombicide.ui.UIZombicide
 
 /**
@@ -18,6 +19,7 @@ import cc.lib.zombicide.ui.UIZombicide
 class ZClientMgr(activity: ZombicideActivity, game: UIZombicide, val client: AGameClient, val user: ZUser) : CL(activity, game), AGameClient.Listener, ZMPCommon.CLListener {
 
 	var playerChooser: CharacterChooserDialogMP? = null
+	val connectedPlayers = mutableListOf<ConnectedUser>()
 
 	init {
 		addListener(this)
@@ -39,37 +41,50 @@ class ZClientMgr(activity: ZombicideActivity, game: UIZombicide, val client: AGa
 		game.boardRenderer.redraw()
 	}
 
-	override fun onInit(color: Int, maxCharacters: Int, playerAssignments: List<Assignee>, showDialog: Boolean) {
-		user.setColor(game.board, color, user.name)
-		game.clearCharacters()
-		if (showDialog) activity.runOnUiThread {
+	override fun onInit(color: Int, quest: ZQuests) {
+		//game.clearCharacters()
+		game.setUserColorId(user, color)
+		game.loadQuest(quest)
+		activity.runOnUiThread {
+			activity.initGameMenu()
+		}
+	}
+
+	override fun onOpenAssignments(maxChars: Int, assignments: List<Assignee>) {
+		showPlayerChooserDialog(maxChars, assignments)
+	}
+
+	override fun onMaxCharactersPerPlayerUpdated(max: Int) {
+		activity.runOnUiThread {
+			playerChooser?.updateMaxPlayers(max)
+		}
+	}
+
+	fun showPlayerChooserDialog(maxCharacters: Int, playerAssignments: List<Assignee>) {
+		activity.runOnUiThread {
 			val assignees: MutableList<Assignee> = ArrayList()
-			for (c in activity.charLocks) {
-				val a = Assignee(c)
-				val idx = playerAssignments.indexOf(a)
-				if (idx >= 0) {
-					val aa = playerAssignments[idx]
-					a.copyFrom(aa)
-					if (color == a.color) a.isAssingedToMe = true
-				}
-				assignees.add(a)
-				if (a.checked) {
-					val c = game.addCharacter(a.name)
-					if (a.isAssingedToMe) {
-						user.addCharacter(c)
-					}
+			playerAssignments.forEach { assignee ->
+				activity.charLocks.firstOrNull { assignee.name == it.player }?.let {
+					assignee.lock = it
+					assignees.add(assignee)
+					if (assignee.isAssingedToMe)
+						user.addCharacter(game.addCharacter(assignee.name))
+				} ?: run {
+					if (assignee.checked)
+						game.addCharacter(assignee.name)
 				}
 			}
-			playerChooser = object : CharacterChooserDialogMP(activity, assignees, maxCharacters) {
-				override fun onAssigneeChecked(assignee: Assignee, checked: Boolean) {
-					Log.d(TAG, "onAssigneeChecked: $assignee")
-					val cmd = activity.clientMgr!!.newAssignCharacter(assignee.name, checked)
-					object : CLSendCommandSpinnerTask(activity) {
+			playerChooser =
+				object : CharacterChooserDialogMP(activity, assignees, false, maxCharacters) {
+					override fun onAssigneeChecked(assignee: Assignee, checked: Boolean) {
+						Log.d(TAG, "onAssigneeChecked: $assignee")
+						val cmd = activity.clientMgr!!.newAssignCharacter(assignee.name, checked)
+						object : CLSendCommandSpinnerTask(activity) {
 
-						override fun onAssignPlayer(_assignee: Assignee) {
-							if (assignee.name == _assignee.name)
-								release()
-						}
+							override fun onAssignPlayer(_assignee: Assignee) {
+								if (assignee.name == _assignee.name)
+									release()
+							}
 
 						override fun onSuccess() {
 							assignee.checked = checked
@@ -92,7 +107,6 @@ class ZClientMgr(activity: ZombicideActivity, game: UIZombicide, val client: AGa
 							if (numStarted >= numTotal) {
 								release()
 								activity.runOnUiThread {
-									game.client = client
 									activity.initGameMenu()
 									activity.game.showQuestTitleOverlay()
 								}
@@ -108,8 +122,6 @@ class ZClientMgr(activity: ZombicideActivity, game: UIZombicide, val client: AGa
 				}
 			}
 			game.boardRenderer.redraw()
-		} else {
-			game.client = client
 		}
 	}
 
@@ -153,7 +165,9 @@ class ZClientMgr(activity: ZombicideActivity, game: UIZombicide, val client: AGa
 					.setNegativeButton(R.string.popup_button_ok, null).show()
 			} else activity.newDialogBuilder().setTitle("Disconnected from Server")
 				.setMessage("Do you want to try and Reconnect?")
-				.setNegativeButton(R.string.popup_button_no) { dialog, which -> activity.p2pShutdown() }.setPositiveButton(R.string.popup_button_yes) { dialog, which -> client.reconnectAsync() }.show()
+				.setNegativeButton(R.string.popup_button_no) { dialog, which -> activity.p2pShutdown() }
+				.setPositiveButton(R.string.popup_button_yes) { dialog, which -> client.reconnectAsync() }
+				.show()
 		}
 	}
 
@@ -161,6 +175,12 @@ class ZClientMgr(activity: ZombicideActivity, game: UIZombicide, val client: AGa
 		client.register(ZUserMP.USER_ID, user)
 		client.register(ZGameMP.GAME_ID, game)
 		client.displayName = activity.displayName
+	}
+
+	override fun onConnectionsInfo(connections: List<ConnectedUser>) {
+		connectedPlayers.clear()
+		connectedPlayers.addAll(connections)
+		activity.game.boardRenderer.redraw()
 	}
 
 	fun setColorId(id: Int) {

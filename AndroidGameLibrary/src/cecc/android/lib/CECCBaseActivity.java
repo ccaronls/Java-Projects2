@@ -143,13 +143,13 @@ public abstract class CECCBaseActivity extends BillingActivity {
 	private final AmbientListener ambientListener = new AmbientListener();
 	
 	@TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
-	@Override
-	public void onCreate(Bundle bundle) {
-		super.onCreate(bundle);
-		ambientSensor = (SensorManager)getSystemService(SENSOR_SERVICE);
-		if (ambientSensor != null) {
-			temp = ambientSensor.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE);
-		}
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        ambientSensor = (SensorManager) getSystemService(SENSOR_SERVICE);
+        if (ambientSensor != null) {
+            temp = ambientSensor.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE);
+        }
 		/*
 		 * TODO: Call this from splash only if this is first launch from fresh install
 		if (getPrefs().getString(PREF_PURCHASE_SKU, null) == null) {

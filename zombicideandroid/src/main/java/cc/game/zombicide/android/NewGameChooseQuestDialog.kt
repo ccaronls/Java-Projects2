@@ -114,7 +114,7 @@ internal class NewGameChooseQuestDialog(val activity: ZombicideActivity, val all
 		val pager: ViewPager = view.findViewById(R.id.view_pager)
 		pager.adapter = this
 		pager.currentItem = firstPage
-		dialog = activity.newDialogBuilder().setTitle(R.string.popup_title_choose_quest)
+		dialog = activity.pushDialog().setTitle(R.string.popup_title_choose_quest)
 			.setView(view).setPositiveButton(R.string.popup_button_next) { dialog, which ->
 				val q = allQuests[pager.currentItem]
 				if (playable.contains(q)) {
@@ -122,6 +122,8 @@ internal class NewGameChooseQuestDialog(val activity: ZombicideActivity, val all
 				} else {
 					Toast.makeText(activity, "Quest Locked", Toast.LENGTH_LONG).show()
 				}
-			}.setNegativeButton(R.string.popup_button_back) { dialog, which -> activity.showNewGameDialog() }.show()
+			}
+			.setNegativeButton(R.string.popup_button_back) { dialog, which -> activity.showNewGameDialog() }
+			.show()
 	}
 }

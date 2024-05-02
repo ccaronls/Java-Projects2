@@ -151,6 +151,11 @@ public class TestGraphics extends APGraphics {
         public float getHeight() {
             return height;
         }
+
+        @Override
+        public void draw(AGraphics g, float x, float y) {
+
+        }
     }
 
     @Override

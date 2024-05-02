@@ -7,12 +7,20 @@ import cc.lib.swing.*
 import cc.lib.ui.IButton
 import cc.lib.utils.FileUtils
 import cc.lib.utils.launchIn
+import cc.lib.utils.takeIfInstance
 import cc.lib.zombicide.*
+import cc.lib.zombicide.anims.OverlayTextAnimation
 import cc.lib.zombicide.ui.UIZBoardRenderer
 import cc.lib.zombicide.ui.UIZCharacterRenderer
 import cc.lib.zombicide.ui.UIZUser
 import cc.lib.zombicide.ui.UIZombicide
 import cc.lib.zombicide.ui.UIZombicide.UIMode
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.InternalCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import java.awt.*
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
@@ -31,7 +39,7 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 	}
 
 	val uiUser: ZUser by lazy {
-		UIZUser(System.getenv("USER") ?: "User")
+		UIZUser(System.getenv("USER") ?: "User", getIntProperty("COLOR", 0))
 	}
 
 	lateinit var game: UIZombicide
@@ -48,6 +56,7 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 	private lateinit var boardComp: BoardComponent
 	private lateinit var charComp: CharacterComponent
 	var gameFile: File? = null
+	lateinit var rulesFile: File
 
 	init {
 		instance = this
@@ -87,9 +96,11 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 				return changed
 			}
 
-			override suspend fun <T> waitForUser(expectedType: Class<T>): T? {
-				initMenu(uiMode, options)
-				boardComp.requestFocus()
+			override fun <T> waitForUser(expectedType: Class<T>): T? {
+				SwingUtilities.invokeLater {
+					initMenu(uiMode, options)
+					boardComp.requestFocus()
+				}
 				return super.waitForUser(expectedType)
 			}
 
@@ -101,14 +112,46 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 			override val thisUser: ZUser
 				get() = uiUser
 		}
+		initIntro()
+	}
+
+	@OptIn(InternalCoroutinesApi::class)
+	fun initIntro() {
+		with(boardComp.renderer) {
+			val job: Job = CoroutineScope(Dispatchers.Main).async {
+				addOverlay(OverlayTextAnimation("Z O M B I C I D E", 1))
+				delay(2000)
+				addOverlay(OverlayTextAnimation("B L A C K   P L A G U E", 2))
+				delay(4000)
+			}
+			val listener = object : AWTMouseListener() {
+				override fun mouseClicked(p0: MouseEvent) {
+					job.cancel()
+				}
+			}
+			boardComp.addMouseListener(listener)
+			job.invokeOnCompletion(true) {
+				boardComp.renderer.stopAnimations()
+				boardComp.removeMouseListener(listener)
+				initHome()
+			}
+		}
+
+	}
+
+	fun initHome() {
 		try {
 			game.loadQuest(ZQuests.valueOf(getStringProperty("quest", ZQuests.Tutorial.name)))
 		} catch (e: Exception) {
 			e.printStackTrace()
 			game.loadQuest(ZQuests.Tutorial)
 		}
-		uiUser.setColor(game.board, frame.getIntProperty("COLOR", 0))
-		val players = getEnumListProperty("players", ZPlayerName::class.java, Utils.toList(ZPlayerName.Baldric, ZPlayerName.Clovis))
+		//uiUser.setColor(game.board, frame.getIntProperty("COLOR", 0))
+		val players = getEnumListProperty(
+			"players",
+			ZPlayerName::class.java,
+			Utils.toList(ZPlayerName.Baldric, ZPlayerName.Clovis)
+		)
 		for (pl in players) {
 			game.addCharacter(pl).let {
 				uiUser.addCharacter(it)
@@ -134,6 +177,7 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 		initHomeMenu()
 	}
 
+
 	enum class MenuItem {
 		START,
 		RESUME,
@@ -145,10 +189,11 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 		COLOR,
 		DIFFICULTY,
 		UNDO,
-		OBJECTIVES;
+		OBJECTIVES,
+		RULES;
 
 		fun isHomeButton(instance: ZombicideApplet): Boolean = when (this) {
-			LOAD, START, COLOR, ASSIGN, DIFFICULTY, UNDO -> true
+			LOAD, START, COLOR, ASSIGN, DIFFICULTY, UNDO, RULES -> true
 			RESUME -> instance.gameFile?.exists() == true
 			else -> false
 		}
@@ -184,6 +229,7 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 			MenuItem.RESUME -> if (game.tryLoadFromFile(gameFile)) {
 				uiUser.setCharacters(game.board.getAllCharacters())
 				game.startGameThread()
+				game.refresh()
 			}
 			MenuItem.QUIT -> {
 				game.stopGameThread()
@@ -216,14 +262,18 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 			}
 			MenuItem.ASSIGN -> {
 				menu.removeAll()
-				val buttons: MutableMap<ZPlayerName, AWTToggleButton> = EnumMap(ZPlayerName::class.java)
+				val buttons: MutableMap<ZPlayerName, AWTToggleButton> =
+					EnumMap(ZPlayerName::class.java)
+				val currentPlayers =
+					getEnumListProperty("players", ZPlayerName::class.java, listOf())
 				for (player in ZPlayerName.values()) {
-					val btn: AWTToggleButton = object : AWTToggleButton(player.name) {
-						override fun actionPerformed(e: ActionEvent) {
-							// override this since parent class has method that causes our layout to resize badly
-							onToggle(isSelected)
+					val btn: AWTToggleButton =
+						object : AWTToggleButton(player.name, currentPlayers.contains(player)) {
+							override fun actionPerformed(e: ActionEvent) {
+								// override this since parent class has method that causes our layout to resize badly
+								onToggle(isSelected)
+							}
 						}
-					}
 					buttons[player] = btn
 					menu.add(btn)
 					btn.addMouseListener(object : MouseListener {
@@ -259,10 +309,13 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 				menuContainer.revalidate()
 			}
 			MenuItem.DIFFICULTY -> {
-				val difficulty = JOptionPane.showInputDialog(this, "Set Difficulty", "DIFFICULTY", JOptionPane.PLAIN_MESSAGE, null,
-					ZDifficulty.values(), game.getDifficulty()) as ZDifficulty
-				game.setDifficulty(difficulty)
-				setStringProperty("difficulty", difficulty.name)
+				JOptionPane.showInputDialog(
+					this, "Set Difficulty", "DIFFICULTY", JOptionPane.PLAIN_MESSAGE, null,
+					ZDifficulty.values(), game.getDifficulty()
+				)?.takeIfInstance<ZDifficulty>()?.let { difficulty ->
+					game.setDifficulty(difficulty)
+					setStringProperty("difficulty", difficulty.name)
+				}
 			}
 			MenuItem.UNDO -> if (FileUtils.restoreFile(gameFile)) {
 				val running = game.isGameRunning()
@@ -271,14 +324,20 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 				game.refresh()
 				if (running) game.startGameThread()
 			}
+
 			MenuItem.COLOR -> {
-				val color = frame.showItemChooserDialog("Choose Color", null, ZUser.USER_COLOR_NAMES[frame.getIntProperty("COLOR", 0)],
+				val color = frame.showItemChooserDialog(
+					"Choose Color", null, ZUser.USER_COLOR_NAMES[frame.getIntProperty("COLOR", 0)],
 					*ZUser.USER_COLOR_NAMES
 				)
 				if (color >= 0) {
 					frame.setProperty("COLOR", color)
-					uiUser.setColor(game.board, color)
+					game.setUserColorId(uiUser, color)
 				}
+			}
+
+			MenuItem.RULES -> {
+				AWTRulesPopup(frame, game.rules, rulesFile).show("EDIT RULES", true);
 			}
 			//else -> log.error("Unhandled action: " + e.actionCommand)
 		}
@@ -322,18 +381,6 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 		add(menuScrollContainer, BorderLayout.LINE_START)
 		add(BoardComponent().also { boardComp = it }, BorderLayout.CENTER)
 		frame.addWindowListener(boardComp)
-		charComp.addMouseListener(object : MouseListener {
-			override fun mouseClicked(e: MouseEvent) {}
-			override fun mousePressed(e: MouseEvent) {}
-			override fun mouseReleased(e: MouseEvent) {}
-			override fun mouseEntered(e: MouseEvent) {
-				//game.showCharacterExpandedOverlay()
-			}
-
-			override fun mouseExited(e: MouseEvent) {
-				boardComp.renderer.setOverlay(null)
-			}
-		})
 	}
 
 	internal inner class ZButton(obj: IButton) : AWTButton(obj) {
@@ -442,6 +489,7 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 			val settings = FileUtils.getOrCreateSettingsDirectory(ZombicideApplet::class.java)
 			frame.setPropertiesFile(File(settings, "application.properties"))
 			instance.gameFile = File(settings, "savegame.txt")
+			instance.rulesFile = File(settings, "rules.txt")
 			frame.add(instance)
 			instance.initApp()
 			instance.start()

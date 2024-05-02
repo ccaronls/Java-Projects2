@@ -95,6 +95,7 @@ are fulfilled.
     <string name="dpad_lh">LH</string>
     <string name="dpad_rh">RH</string>
     <string name="dpad_zm">ZM</string>
+    <string name="b_options">MENU</string>
 
     <string-array name="popup_message_choose_game_types">
         <item>LEVEL</item>
@@ -117,5 +118,17 @@ are fulfilled.
     <string name="label_right_hand">Right Hand</string>
     <string name="label_body">Body</string>
     <string name="label_backpack">Backpack</string>
+
+    <string name="p2p_select_x_characters">%1$d of %2$d characters selected</string>
+
+    <plurals name="p2p_button_text_too_many">
+        <item quantity="one">Deselect one character</item>
+        <item quantity="other">Deselect %d characters</item>
+    </plurals>
+
+    <plurals name="p2p_button_text_too_few">
+        <item quantity="one">Select one more character</item>
+        <item quantity="other">Select %d more characters</item>
+    </plurals>
 
 </resources>

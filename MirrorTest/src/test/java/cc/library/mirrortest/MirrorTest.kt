@@ -1,9 +1,18 @@
 package cc.library.mirrortest
 
-import cc.lib.mirror.context.*
+import cc.lib.mirror.context.Mirrored
+import cc.lib.mirror.context.MirroredImpl
+import cc.lib.mirror.context.MirroredList
+import cc.lib.mirror.context.mirroredArrayOf
+import cc.lib.mirror.context.toMirroredArray
+import cc.lib.mirror.context.toMirroredList
+import cc.lib.mirror.context.toMirroredMap
 import com.google.gson.GsonBuilder
 import kotlinx.coroutines.runBlocking
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.StringReader
 import java.io.StringWriter
@@ -12,6 +21,7 @@ open class Mirror1(a: Int = 0, b: String = "") : SmallMirrorImpl() {
 	init {
 		this.a = a
 		this.b = b
+		markClean()
 	}
 }
 

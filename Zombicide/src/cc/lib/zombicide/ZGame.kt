@@ -13,6 +13,7 @@ import cc.lib.utils.Grid.Pos
 import cc.lib.utils.Table
 import cc.lib.utils.appendedWith
 import cc.lib.utils.getOrNull
+import cc.lib.utils.increment
 import cc.lib.utils.midPointOrNull
 import cc.lib.utils.random
 import cc.lib.utils.removeRandom
@@ -28,10 +29,10 @@ import java.util.Stack
 @Suppress("UNCHECKED_CAST")
 open class ZGame() : Reflector<ZGame>() {
     companion object {
-        @JvmField
-        var DEBUG = false
-        private val log = LoggerFactory.getLogger(ZGame::class.java)
-        val GAME_LOST = 2
+	    @JvmField
+	    var DEBUG = false
+	    val log = LoggerFactory.getLogger(ZGame::class.java)
+	    val GAME_LOST = 2
         val GAME_WON = 1
         @JvmStatic
         fun initDice(difficulty: ZDifficulty): IntArray {
@@ -113,11 +114,14 @@ open class ZGame() : Reflector<ZGame>() {
         private set
 
 	@Omit
-	var currentUser = 0
-		set(value) {
+	var currentUser = -1
+		private set(value) {
 			if (field != value) {
 				field = value
-				onCurrentUserUpdated(getCurrentUser().name)
+				with(users[value]) {
+					onCurrentUserUpdated(name, colorId)
+				}
+
 			}
 		}
 	private var startUser = 0
@@ -144,6 +148,8 @@ open class ZGame() : Reflector<ZGame>() {
 
 	fun ZPlayerName.toCharacter(): ZCharacter = board.getCharacter(this)
 
+	fun getStartUser(): ZUser = users[startUser]
+
 	open fun pushState(state: State) {
 		val oldPlayer = currentCharacter?.type
 		if (state.player != oldPlayer)
@@ -160,8 +166,8 @@ open class ZGame() : Reflector<ZGame>() {
 		}
 	}
 
-	protected open fun onCurrentUserUpdated(userName: String) {
-		log.debug("%s updated", userName)
+	protected open fun onCurrentUserUpdated(userName: String, colorId: Int) {
+		log.debug("%s updated colorID: $colorId", userName)
 	}
 
 	protected open fun onCurrentCharacterUpdated(priorPlayer: ZPlayerName?, player: ZPlayerName?) {
@@ -553,7 +559,7 @@ open class ZGame() : Reflector<ZGame>() {
 		    gameWon()
 		    return false
 	    }
-	    val user = getCurrentUser()
+
 	    removeDeadZombies()
 	    if (stateStack.empty())
 		    pushState(State(ZState.BEGIN_ROUND))
@@ -586,8 +592,8 @@ open class ZGame() : Reflector<ZGame>() {
                         }
                     }
                 }
-	            setState(State(ZState.BEGIN_ROUND))
-	            onCurrentUserUpdated(getCurrentUser().name)
+			    setState(State(ZState.BEGIN_ROUND))
+			    onCurrentUserUpdated(getCurrentUser().name, getCurrentUser().colorId)
                 return true
             }
             ZState.BEGIN_ROUND -> {
@@ -618,44 +624,37 @@ open class ZGame() : Reflector<ZGame>() {
 	            return true
             }
             ZState.PLAYER_STAGE_CHOOSE_CHARACTER -> {
-
-	            // for each user, they choose each of their characters in any order and have them
-	            // perform all of their actions
-                val options: MutableList<ZPlayerName> = ArrayList()
-
-                // any player who has done a move and is not a tactician must continue to move
-	            for (c in currentUserCharacters) {
-		            if ((c.actionsLeftThisTurn > 0) && (c.actionsLeftThisTurn < c.actionsPerTurn) && !c.hasAvailableSkill(ZSkill.Tactician)) {
-			            options.add(c.type)
-			            break
+	            // get a pair list of all remaining movable characters and their users
+	            val map = users.mapIndexed { index: Int, user: ZUser ->
+		            user.players.map {
+			            Pair(it.toCharacter(), index)
 		            }
+	            }.flatten().filter {
+		            it.first.isAlive && it.first.actionsLeftThisTurn > 0
+	            }.sortedBy {
+		            // we want to first elems in the list to be currentUser or its closest neightbor that is greater in value
+		            // example: if there are 3 players and the current is 1, then the ordering should be:
+		            // 1, 2, 0 if the current still
+		            (it.second - currentUser + users.size) % users.size
 	            }
-                if (options.size == 0) {
-	                options.addAll(currentUserCharacters.filter {
-		                it.actionsLeftThisTurn > 0
-	                }.map {
-		                it.type
-	                })
-                }
-
-                var currentCharacter: ZPlayerName? = null
-                if (options.size == 0) {
-                    if (users.size > 1) {
-                        currentUser = (currentUser + 1) % users.size
-                    }
-                    if (currentUser == startUser) {
-                        if (users.size > 2) startUser = (startUser + 1) % users.size
-                        setState(State(ZState.ZOMBIE_STAGE))
-                    }
-                } else if (options.size == 1) {
-                    currentCharacter = options[0]
-                } else {
-                    currentCharacter = getCurrentUser().chooseCharacter(options)
-                }
-                if (currentCharacter != null) {
-                    pushState(State(ZState.PLAYER_STAGE_CHOOSE_CHARACTER_ACTION, currentCharacter))
-	                return true
-                }
+	            log.debug("remaining characters are: ${map.joinToString("\n") { "${it.second} -> ${it.first.type}" }}")
+	            // no characters left?
+	            if (map.isEmpty()) {
+		            startUser = startUser.increment(users.size)
+		            setState(State(ZState.ZOMBIE_STAGE))
+		            return true
+	            }
+	            currentUser = map[0].second
+	            val options = map.filter { it.second == currentUser }.map { it.first.type }
+	            if (options.size == 1) {
+		            options[0]
+	            } else {
+		            getCurrentUser().chooseCharacter(options)
+	            }?.let {
+		            pushState(State(ZState.PLAYER_STAGE_CHOOSE_CHARACTER_ACTION, it))
+		            return true
+	            }
+	            return false
             }
             ZState.PLAYER_STAGE_CHOOSE_CHARACTER_ACTION -> {
 	            val ch = requireCurrentCharacter
@@ -876,7 +875,7 @@ open class ZGame() : Reflector<ZGame>() {
 	                it.onEndOfRound(this)
                 }
                 setState(State(ZState.BEGIN_ROUND))
-                return true
+	            return false
             }
             ZState.PLAYER_ENCHANT_SPEED_MOVE -> {
 
@@ -901,7 +900,7 @@ open class ZGame() : Reflector<ZGame>() {
                 }
                 if (areas.isNotEmpty()) {
 	                val cur = requireCurrentCharacter
-	                user.chooseSpawnAreaToRemove(cur.type, areas)?.let { zIdx ->
+	                getCurrentUser().chooseSpawnAreaToRemove(cur.type, areas)?.let { zIdx ->
 		                board.removeSpawn(areas[zIdx])
 		                quest.onSpawnZoneRemoved(this, areas[zIdx])
 		                onCharacterDestroysSpawn(cur.type, zIdx)
@@ -916,25 +915,29 @@ open class ZGame() : Reflector<ZGame>() {
             ZState.PLAYER_STAGE_CHOOSE_WEAPON_FROM_DECK -> {
 	            val allClasses = allSearchables.map { it.type.equipmentClass }.filter { it != ZEquipmentClass.AHHHH }.toSet()
 	            val ch = requireCurrentCharacter
-	            user.chooseEquipmentClass(ch.type, allClasses.toList())?.let { clazz ->
-		            val choices = allSearchables.filter { e: ZEquipment<*> -> e.type.equipmentClass === clazz }.toSet()
-		            user.chooseEquipmentInternal(ch.type, choices.toList())?.let { equip ->
-			            popState()
-			            lootDeck.remove(equip)
-			            giftEquipment(ch, equip)
-			            return true
-		            }
+	            getCurrentUser().chooseEquipmentClass(ch.type, allClasses.toList())?.let { clazz ->
+		            val choices =
+			            allSearchables.filter { e: ZEquipment<*> -> e.type.equipmentClass === clazz }
+				            .toSet()
+		            getCurrentUser().chooseEquipmentInternal(ch.type, choices.toList())
+			            ?.let { equip ->
+				            popState()
+				            lootDeck.remove(equip)
+				            giftEquipment(ch, equip)
+				            return true
+			            }
 	            }
 	            return false
             }
             ZState.PLAYER_STAGE_CHOOSE_VAULT_ITEM -> {
                 quest.vaultItemsRemaining.takeIf { it.isNotEmpty() }?.also { items ->
-	                user.chooseEquipmentInternal(requireCurrentCharacter.type, items)?.let {
-		                popState()
-		                items.remove(it)
-		                giftEquipment(requireCurrentCharacter, it)
-		                return true
-	                }
+	                getCurrentUser().chooseEquipmentInternal(requireCurrentCharacter.type, items)
+		                ?.let {
+			                popState()
+			                items.remove(it)
+			                giftEquipment(requireCurrentCharacter, it)
+			                return true
+		                }
 
                 }?:run {
                     popState()
@@ -952,7 +955,7 @@ open class ZGame() : Reflector<ZGame>() {
 					    target = secondary?.type
 				    )
 			    )
-			    user.organizeStart(ch.type, secondary?.type)
+			    getCurrentUser().organizeStart(ch.type, secondary?.type)
 			    return performOrganize(ch, secondary)
 		    }
 
@@ -2670,13 +2673,7 @@ open class ZGame() : Reflector<ZGame>() {
 
 	protected open fun onSpawnCard(card: ZSpawnCard, color: ZColor) {}
 
-	fun getCurrentUser(): ZUser {
-		return currentCharacter?.let { char ->
-			users.firstOrNull { it.hasPlayer(char.type) }?.let {
-				return it
-			}
-		} ?: users[currentUser.coerceIn(0 until users.size)]
-	}
+	fun getCurrentUser(): ZUser = users[currentUser.coerceIn(0 until users.size)]
 
 	open val currentCharacter: ZCharacter?
 		get() = if (stateStack.isEmpty()) null
@@ -2912,7 +2909,7 @@ open class ZGame() : Reflector<ZGame>() {
 
     private fun canSwitchActivePlayer(): Boolean {
         val cur = currentCharacter ?: return false
-	    if (cur.actionsLeftThisTurn == cur.actionsPerTurn)
+	    if (!cur.hasMovedThisTurn)
 		    return true
 	    return cur.hasAvailableSkill(ZSkill.Tactician)
     }
@@ -3012,4 +3009,17 @@ open class ZGame() : Reflector<ZGame>() {
 		}
 	}
 
+	fun setUserName(user: ZUser, name: String?) {
+		user.name = name ?: ZUser.USER_COLOR_NAMES[user.colorId]
+	}
+
+	fun setUserColorId(user: ZUser, colorId: Int) {
+		if (colorId !in ZUser.USER_COLORS.indices)
+			throw IllegalArgumentException("color Id out of range")
+		user.colorId = colorId
+		user.players.forEach {
+			board.getCharacterOrNull(it)?.color = ZUser.USER_COLORS[colorId]
+		}
+
+	}
 }

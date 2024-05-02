@@ -16,18 +16,18 @@ public class HomeActivity extends CCActivityBase implements OnClickListener {
 	//private GoogleApiClient mGAPI;
 	
 	@Override
-	protected void onCreate(Bundle bundle) {
-		super.onCreate(bundle);
-		setContentView(R.layout.home_activity);
-		findViewById(R.id.buttonSmallEasy).setOnClickListener(this);
-		findViewById(R.id.buttonSmallHard).setOnClickListener(this);
-		findViewById(R.id.buttonSmallVeryHard).setOnClickListener(this);
-		findViewById(R.id.buttonMedEasy).setOnClickListener(this);
-		findViewById(R.id.buttonMedHard).setOnClickListener(this);
-		findViewById(R.id.buttonMedVeryHard).setOnClickListener(this);
-		findViewById(R.id.buttonLargeEasy).setOnClickListener(this);
-		findViewById(R.id.buttonLargeHard).setOnClickListener(this);
-		findViewById(R.id.buttonLargeVeryHard).setOnClickListener(this);
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.home_activity);
+        findViewById(R.id.buttonSmallEasy).setOnClickListener(this);
+        findViewById(R.id.buttonSmallHard).setOnClickListener(this);
+        findViewById(R.id.buttonSmallVeryHard).setOnClickListener(this);
+        findViewById(R.id.buttonMedEasy).setOnClickListener(this);
+        findViewById(R.id.buttonMedHard).setOnClickListener(this);
+        findViewById(R.id.buttonMedVeryHard).setOnClickListener(this);
+        findViewById(R.id.buttonLargeEasy).setOnClickListener(this);
+        findViewById(R.id.buttonLargeHard).setOnClickListener(this);
+        findViewById(R.id.buttonLargeVeryHard).setOnClickListener(this);
 		findViewById(R.id.buttonHugeEasy).setOnClickListener(this);
 		findViewById(R.id.buttonHugeHard).setOnClickListener(this);
 		findViewById(R.id.buttonHugeVeryHard).setOnClickListener(this);

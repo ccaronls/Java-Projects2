@@ -1,5 +1,6 @@
 package cc.lib.swing
 
+import cc.lib.game.AGraphics
 import cc.lib.game.AImage
 import java.awt.Component
 import java.awt.Graphics
@@ -10,6 +11,7 @@ import java.awt.image.ImageFilter
 import java.awt.image.ImageProducer
 import java.awt.image.PixelGrabber
 import javax.swing.Icon
+import kotlin.math.roundToInt
 
 class AWTImage constructor(val image: Image, val comp: Component) : AImage(), Icon {
 	private val _pixels: IntArray by lazy {
@@ -54,5 +56,11 @@ class AWTImage constructor(val image: Image, val comp: Component) : AImage(), Ic
 	fun transform(filter: ImageFilter): AWTImage {
 		val p: ImageProducer = FilteredImageSource(image.source, filter)
 		return AWTImage(Toolkit.getDefaultToolkit().createImage(p), comp)
+	}
+
+	override fun draw(g: AGraphics, x: Float, y: Float) {
+		with(g as AWTGraphics2) {
+			g.graphics.drawImage(image, x.roundToInt(), y.roundToInt(), null)
+		}
 	}
 }
