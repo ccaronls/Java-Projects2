@@ -21,9 +21,9 @@ internal class SimpleGameServer(serverName: String, listenPort: Int, serverVersi
 	override fun listen() {
 	}
 
-	override fun isRunning(): Boolean {
-		return false
-	}
+	override val isRunning: Boolean
+		get() = false
+
 
 	override fun stop() {}
 }

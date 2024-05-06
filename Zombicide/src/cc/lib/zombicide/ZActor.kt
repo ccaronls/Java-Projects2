@@ -39,9 +39,7 @@ abstract class ZActor internal constructor(var occupiedZone: Int) : Reflector<ZA
 
 	open val drawPathsOnHighlight = false
 
-	private var id: String? = type?.let {
-		makeId()
-	}
+	private var id: String? = null
 
 	fun stopAnimating() {
 		animations.clear()

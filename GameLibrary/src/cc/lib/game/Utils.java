@@ -1086,7 +1086,7 @@ public class Utils {
                     result += "...";
                     break;
                 case INFO:
-                    result += "\n  truncated to " + maxLines + " lines " + " (" + len + ") bytes";
+                    result += "\n  truncated (" + len + ") bytes to " + maxLines + " lines";
                     break;
             }
         }

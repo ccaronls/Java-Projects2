@@ -7,4 +7,6 @@ package cc.lib.rem.annotation
 annotation class Remote
 
 @Target(AnnotationTarget.FUNCTION)
-annotation class RemoteFunction
+annotation class RemoteFunction(
+	val callSuper: Boolean = false
+)

@@ -16,6 +16,7 @@ import java.io.StringWriter;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -26,6 +27,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.zip.CRC32;
@@ -848,7 +850,7 @@ public class Reflector<T> implements IDirty {
 
     private static Object _deserializeObject(RBufferedReader in, boolean keepInstances) throws Exception {
         String line = in.readLineOrEOF();
-        if (line.equals("null"))
+        if (line == null || line.equals("null"))
             return null;
         String[] parts = line.split(" ");
         if (parts.length < 1)
@@ -1815,6 +1817,58 @@ public class Reflector<T> implements IDirty {
         log.info("classMap=" + classMap.toString().replace(',', '\n'));
         log.info("classValues=" + classValues.toString().replace(',', '\n'));
         log.info("canonicalNameCache=" + canonicalNameCache.toString().replace(',', '\n'));
+    }
 
+    public static Method searchMethods(Object execObj, String method, Class[] types, Object[] params) throws Exception {
+        Class clazz = execObj.getClass();
+        while (clazz != null && !clazz.equals(Object.class)) {
+            for (Method m : clazz.getDeclaredMethods()) {
+                m.setAccessible(true);
+                if (!m.getName().equals(method))
+                    continue;
+                log.debug("testMethod:" + m.getName() + " with params:" + Arrays.toString(m.getParameterTypes()));
+                Class[] paramTypes = m.getParameterTypes();
+                if (paramTypes.length != types.length)
+                    continue;
+                boolean matchFound = true;
+                for (int i = 0; i < paramTypes.length; i++) {
+                    if (params[i] == null)
+                        continue;
+                    if (!isCompatiblePrimitives(paramTypes[i], types[i]) && !Reflector.isSubclassOf(types[i], paramTypes[i])) {
+                        matchFound = false;
+                        break;
+                    }
+                }
+                if (matchFound)
+                    return m;
+            }
+            clazz = clazz.getSuperclass();
+        }
+        throw new Exception("Failed to match method '" + method + "' types: " + Arrays.toString(types));
+    }
+
+    private final static Map<Class, List> primitiveCompatibilityMap = new HashMap<>();
+
+    static {
+        List c;
+        primitiveCompatibilityMap.put(boolean.class, c = Arrays.asList(boolean.class, Boolean.class));
+        primitiveCompatibilityMap.put(Boolean.class, c);
+        primitiveCompatibilityMap.put(byte.class, c = Arrays.asList(byte.class, Byte.class));
+        primitiveCompatibilityMap.put(Byte.class, c);
+        primitiveCompatibilityMap.put(int.class, c = Arrays.asList(int.class, Integer.class, byte.class, Byte.class));
+        primitiveCompatibilityMap.put(Integer.class, c);
+        primitiveCompatibilityMap.put(long.class, c = Arrays.asList(int.class, Integer.class, byte.class, Byte.class, long.class, Long.class));
+        primitiveCompatibilityMap.put(Long.class, c);
+        primitiveCompatibilityMap.put(float.class, c = Arrays.asList(int.class, Integer.class, byte.class, Byte.class, float.class, Float.class));
+        primitiveCompatibilityMap.put(Float.class, c);
+        primitiveCompatibilityMap.put(double.class, c = Arrays.asList(int.class, Integer.class, byte.class, Byte.class, float.class, Float.class, double.class, Double.class, long.class, Long.class));
+        primitiveCompatibilityMap.put(Double.class, c);
+
+    }
+
+    private static boolean isCompatiblePrimitives(Class a, Class b) {
+        if (primitiveCompatibilityMap.containsKey(a))
+            return b == null || primitiveCompatibilityMap.get(a).contains(b);
+        return false;
     }
 }

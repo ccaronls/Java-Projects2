@@ -12,14 +12,16 @@ import cc.lib.zombicide.p2p.ZGameMP
 import cc.lib.zombicide.p2p.ZUserMP
 import cc.lib.zombicide.ui.ConnectedUser
 import cc.lib.zombicide.ui.UIZombicide
+import java.util.Collections
 
 /**
  * Created by Chris Caron on 7/28/21.
  */
-class ZClientMgr(activity: ZombicideActivity, game: UIZombicide, val client: AGameClient, val user: ZUser) : CL(activity, game), AGameClient.Listener, ZMPCommon.CLListener {
+class ZClientMgr(activity: ZombicideActivity, game: UIZombicide, override val client: AGameClient, val user: ZUser) :
+	CL(activity, game), AGameClient.Listener, ZMPCommon.CLListener {
 
 	var playerChooser: CharacterChooserDialogMP? = null
-	val connectedPlayers = mutableListOf<ConnectedUser>()
+	val connectedPlayers = Collections.synchronizedList(mutableListOf<ConnectedUser>())
 
 	init {
 		addListener(this)
@@ -42,7 +44,7 @@ class ZClientMgr(activity: ZombicideActivity, game: UIZombicide, val client: AGa
 	}
 
 	override fun onInit(color: Int, quest: ZQuests) {
-		//game.clearCharacters()
+		game.client = client
 		game.setUserColorId(user, color)
 		game.loadQuest(quest)
 		activity.runOnUiThread {
@@ -94,8 +96,6 @@ class ZClientMgr(activity: ZombicideActivity, game: UIZombicide, val client: AGa
 				}
 
 				override fun onStart() {
-					game.client = client
-					//client.sendCommand(newStartPressed())
 					dialog.dismiss()
 					object : CLSendCommandSpinnerTask(activity) {
 
@@ -126,8 +126,8 @@ class ZClientMgr(activity: ZombicideActivity, game: UIZombicide, val client: AGa
 	}
 
 	override fun onAssignPlayer(assignee: Assignee) {
-		Log.d("ZClientMgr", "onAssignPlayer: $assignee")
-		if (user.colorId == assignee.color) assignee.isAssingedToMe = true
+		Log.d("ZClientMgr", "user.colorId: ${user.colorId} onAssignPlayer: $assignee")
+		assignee.isAssingedToMe = user.colorId == assignee.color
 		if (assignee.checked) {
 			val c = game.addCharacter(assignee.name)
 			if (assignee.isAssingedToMe) user.addCharacter(c)

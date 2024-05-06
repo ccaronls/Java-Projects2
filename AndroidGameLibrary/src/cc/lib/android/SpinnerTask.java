@@ -82,6 +82,10 @@ public abstract class SpinnerTask<T> extends AsyncTask<T, Integer, Object>
         }
     }
 
+    public void postExecute(final T... args) {
+        context.get().runOnUiThread(() -> execute(args));
+    }
+
     @Override
     protected void onPreExecute() {
         if (!context.get().isFinishing() && !context.get().isDestroyed()) {

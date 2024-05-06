@@ -17,7 +17,7 @@ internal open class CLSendCommandSpinnerTask(val context: ZombicideActivity) : S
 
 	@Throws(Exception::class)
 	override fun doIt(vararg args: GameCommand) {
-		context.client.sendCommand(args[0])
+		requireNotNull(context.client).sendCommand(args[0])
 		if (timeout > 0)
 			lock.acquireAndBlock(timeout) {
 				throw Exception("timeout")

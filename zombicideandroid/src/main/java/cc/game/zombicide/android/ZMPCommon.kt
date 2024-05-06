@@ -1,6 +1,7 @@
 package cc.game.zombicide.android
 
 import cc.lib.net.AClientConnection
+import cc.lib.net.AGameClient
 import cc.lib.net.GameCommand
 import cc.lib.net.GameCommandType
 import cc.lib.reflector.Reflector
@@ -69,7 +70,7 @@ open class ZMPCommon(val activity: ZombicideActivity, val game: UIZombicide) {
 		fun onMaxCharactersPerPlayerUpdated(max: Int) {}
 	}
 
-	open class CL(activity: ZombicideActivity, game: UIZombicide) : ZMPCommon(activity, game) {
+	abstract class CL(activity: ZombicideActivity, game: UIZombicide) : ZMPCommon(activity, game) {
 
 		private val listeners = Collections.synchronizedSet(HashSet<CLListener>())
 
@@ -123,6 +124,9 @@ open class ZMPCommon(val activity: ZombicideActivity, val game: UIZombicide) {
 				} else if (cmd.type == SVR_UPDATE_GAME) {
 					cmd.getReflector("board", game.board)
 					cmd.getReflector("quest", game.quest)
+					client.setLocalProperty("numSpawn", cmd.getInt("spawnDeckSize", -1))
+					client.setLocalProperty("numLoot", cmd.getInt("lootDeckSize", -1))
+					client.setLocalProperty("numHoard", cmd.getInt("hoardSize", -1))
 					notifyListeners { it.onGameUpdated(game) }
 				} else if (cmd.type == SVR_PLAYER_STARTED) {
 					val user = cmd.getString("userName")
@@ -148,6 +152,8 @@ open class ZMPCommon(val activity: ZombicideActivity, val game: UIZombicide) {
 				notifyListeners { it.onNetError(e) }
 			}
 		}
+
+		abstract val client: AGameClient
 	}
 
 	interface SVRListener {
@@ -184,15 +190,10 @@ open class ZMPCommon(val activity: ZombicideActivity, val game: UIZombicide) {
 			}
 		}
 
-		fun newInit(clientColor: Int, quest: ZQuests): GameCommand? {
-			return try {
-				GameCommand(SVR_INIT)
-					.setArg("color", clientColor)
-					.setArg("quest", quest)
-			} catch (e: Exception) {
-				notifyListeners { it.onError(e) }
-				null
-			}
+		fun newInit(clientColor: Int, quest: ZQuests): GameCommand {
+			return GameCommand(SVR_INIT)
+				.setArg("color", clientColor)
+				.setArg("quest", quest)
 		}
 
 		fun newLoadQuest(quest: ZQuests): GameCommand {
@@ -217,6 +218,9 @@ open class ZMPCommon(val activity: ZombicideActivity, val game: UIZombicide) {
 			return GameCommand(SVR_UPDATE_GAME)
 				.setArg("board", game.board)
 				.setArg("quest", game.quest)
+				.setArg("lootDeckSize", game.lootDeckSize)
+				.setArg("spawnDeckSize", game.spawnDeckSize)
+				.setArg("hoardSize", game.hoardSize)
 		}
 
 		fun newPlayerStartedCommand(userName: String, numStarted: Int, numTotal: Int): GameCommand {

@@ -19,7 +19,7 @@ public class AndroidLogger implements Logger {
 
     final String name;
     public static int maxLen = 1024;
-    public static int maxLines = 20;
+    public static int maxLines = 30;
     private static PrintStream out = null;
 
     private synchronized void writeFile(String level, String msg) {

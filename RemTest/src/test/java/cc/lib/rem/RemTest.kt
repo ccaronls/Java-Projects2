@@ -44,7 +44,7 @@ class RemTest : TestCase() {
 }
 
 @Remote
-abstract class TRemote : IRemote {
+abstract class TRemote(val x: Int, val y: String?) : IRemote {
 
 	@RemoteFunction
 	open fun remote1() {
@@ -65,8 +65,8 @@ abstract class TRemote : IRemote {
 	}
 }
 
-open class TRemoteImpl(val name: String, val other: TRemote?) : TRemoteRemote() {
-	override fun executeRemotely(method: String, vararg args: Any?): Any? {
+open class TRemoteImpl(val name: String, val other: TRemote?) : TRemoteRemote(0, null) {
+	override fun executeRemotely(method: String, resultType: Class<*>?, vararg args: Any?): Any? {
 		return other?.executeLocally(method, *args)
 	}
 
@@ -89,4 +89,12 @@ open class TRemoteImpl(val name: String, val other: TRemote?) : TRemoteRemote() 
 		println("$name:remote4: ${list?.joinToString()}")
 		return super.remote4(list)
 	}
+}
+
+class X<T>()
+
+@Remote
+abstract class TRemote2(x: Int, y: String?, xy: X<Int?>?, xxyy: X<Int>?, xyxy: X<Int?>, yyxx: X<*>, yxyx: X<Int>) : IRemote {
+	@RemoteFunction
+	abstract fun fooBar(x: X<*>)
 }

@@ -1,8 +1,12 @@
 apply plugin: 'java-library'
 apply plugin: 'kotlin'
+apply plugin: 'com.google.devtools.ksp'
 
 dependencies {
     implementation project(':GameLibrary')
+    implementation project(":Rem")
+    ksp(project(":Rem"))
+
     evaluationDependsOn(':GameLibrary')
     testImplementation files(project(':GameLibrary').sourceSets.test.output)
 }
@@ -19,4 +23,9 @@ sourceSets {
             srcDirs = ['test']
         }
     }
+}
+
+ksp {
+    arg("imports", "cc.lib.game.*")
+    arg("package", "cc.lib.zombicide")
 }

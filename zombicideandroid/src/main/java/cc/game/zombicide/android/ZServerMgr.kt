@@ -112,7 +112,7 @@ class ZServerMgr(activity: ZombicideActivity, game: UIZombicide, val maxCharacte
 		}
 	}
 
-	override fun onDisconnected(conn: AClientConnection, reason: String?) {
+	override fun onDisconnected(conn: AClientConnection, reason: String) {
 		// TODO: Put up a dialog waiting for client to reconnect otherwise set their characters to invisible and to stop moving
 		val user = clientToUserMap[conn.name]
 		if (user != null) {
@@ -217,15 +217,12 @@ class ZServerMgr(activity: ZombicideActivity, game: UIZombicide, val maxCharacte
 			}
 			triple.first.sendCommand(newConnectionsInfo(connectionsForClient))
 		}
+		UIZombicide.instance.boardRenderer.redraw()
 	}
 
 	fun broadcastUpdateGame() {
 		server.broadcastCommand(newUpdateGameCommand(game))
 		//previous.copyFrom(game);
-	}
-
-	fun broadcastShowChooser(assignments: List<Assignee>) {
-		server.broadcastCommand(newOpenAssignmentsDialog(maxCharacters, assignments))
 	}
 
 	companion object {
@@ -261,15 +258,15 @@ class ZServerMgr(activity: ZombicideActivity, game: UIZombicide, val maxCharacte
 							val c = game.addCharacter(assignee.name)
 							activity.thisUser.addCharacter(c)
 						} else {
-						assignee.userName = "??"
-						assignee.color = -1
-						assignee.isAssingedToMe = false
-						game.removeCharacter(assignee.name)?.let {
-							activity.thisUser.removeCharacter(it)
+							assignee.userName = "??"
+							assignee.color = -1
+							assignee.isAssingedToMe = false
+							game.removeCharacter(assignee.name)?.let {
+								activity.thisUser.removeCharacter(it)
+							}
 						}
-					}
-					postNotifyUpdateAssignee(assignee)
-					server.broadcastCommand(newAssignPlayer(assignee))
+						postNotifyUpdateAssignee(assignee)
+						server.broadcastCommand(newAssignPlayer(assignee))
 						game.boardRenderer.redraw()
 					}
 				}

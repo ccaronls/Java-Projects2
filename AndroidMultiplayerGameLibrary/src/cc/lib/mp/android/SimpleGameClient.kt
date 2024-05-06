@@ -10,7 +10,7 @@ import java.net.InetAddress
 /**
  * Created by Chris Caron on 10/20/23.
  */
-internal class SimpleGameClient(version: String?, name: String?, val port: Int) : AGameClient(version, name) {
+internal class SimpleGameClient(version: String, name: String, val port: Int) : AGameClient(version, name) {
 	private val client = Client()
 	private var connected = false
 	private val connectLock = Lock()
@@ -28,7 +28,7 @@ internal class SimpleGameClient(version: String?, name: String?, val port: Int) 
 
 	}
 
-	override fun connectBlocking(address: InetAddress?, port: Int) {
+	override fun connectBlocking(address: InetAddress, port: Int) {
 		client.connect(address.toString(), port)
 		this.address = address.toString()
 		connectLock.acquireAndBlock()
@@ -38,11 +38,10 @@ internal class SimpleGameClient(version: String?, name: String?, val port: Int) 
 		client.connect(address, port)
 	}
 
-	override fun isConnected(): Boolean {
-		return connected
-	}
+	override val isConnected: Boolean
+		get() = connected
 
-	override fun disconnectAsync(reason: String, onDone: Utils.Callback<Int>) {
+	override fun disconnectAsync(reason: String, onDone: Utils.Callback<Int>?) {
 		client.close()
 		connected = false
 	}
@@ -54,6 +53,10 @@ internal class SimpleGameClient(version: String?, name: String?, val port: Int) 
 
 	override fun reset() {}
 	override fun sendCommand(cmd: GameCommand) {
-		//Packet.builder().
+		TODO("Not yet implemented")
+	}
+
+	override fun close() {
+		TODO("Not yet implemented")
 	}
 }

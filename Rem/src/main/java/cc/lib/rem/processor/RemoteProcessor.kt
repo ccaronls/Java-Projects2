@@ -1,5 +1,8 @@
 package cc.lib.rem.processor
 
+import cc.lib.rem.annotation.RemoteFunction
+import com.google.devtools.ksp.KspExperimental
+import com.google.devtools.ksp.getAnnotationsByType
 import com.google.devtools.ksp.getClassDeclarationByName
 import com.google.devtools.ksp.isAbstract
 import com.google.devtools.ksp.isOpen
@@ -10,6 +13,7 @@ import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
+import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSType
 import com.google.devtools.ksp.symbol.KSTypeReference
 import com.google.devtools.ksp.symbol.KSVisitorVoid
@@ -50,6 +54,8 @@ class RemoteProcessor(
 		return symbol + "Remote"
 	}
 
+	val imports = mutableListOf<String>()
+
 	override fun process(resolver: Resolver): List<KSAnnotated> {
 		this.resolver = resolver
 		val symbols = resolver
@@ -58,6 +64,10 @@ class RemoteProcessor(
 
 		logger.warn("options=$options")
 		logger.warn("symbols=${symbols.joinToString()}")
+
+		options["imports"]?.let {
+			imports.addAll(it.split("[, ]"))
+		}
 
 		if (symbols.isEmpty()) return emptyList()
 
@@ -81,8 +91,28 @@ class RemoteProcessor(
 		write(s.toByteArray())
 	}
 
+	fun getTypeTemplates(ref: KSTypeReference): String {
+		logger.warn("getTypeTemplates $ref->${ref.resolve()}")
+		with(ref.resolve().arguments) {
+			if (isEmpty()) return ""
+			return "<${joinToString { it.type.toString() }}>"
+		}
+	}
+
+	fun getMethodSignature(decl: KSFunctionDeclaration): String {
+		return decl.parameters.joinToString { "${it.name!!.asString()} : ${it.type.resolve()}" }
+
+		/*
+	return decl.parameters.joinToString {
+		"${it.name?.asString()}:${it.type}${
+			getTypeTemplates(it.type)
+		}${it.type.resolve().getNullable()}"
+	}*/
+	}
+
 	inner class Visitor(private val file: OutputStream) : KSVisitorVoid() {
 
+		@OptIn(KspExperimental::class)
 		override fun visitClassDeclaration(classDeclaration: KSClassDeclaration, data: Unit) {
 
 			logger.warn("Process class: $classDeclaration")
@@ -92,16 +122,21 @@ class RemoteProcessor(
 			}
 
 			val classTypeName = getClassFileName(classDeclaration.toString())
+			val classArgs = getMethodSignature(classDeclaration.primaryConstructor!!)
 
 			val baseMirrorClass: KSType =
 				classDeclaration.superTypes.firstOrNull { it.resolve().isRemote() }?.resolve()
 					?: throw Exception("$classDeclaration does not extend cc.lib.rem.context.Remote interface")
 
+			val classDeclarationParams = "${classDeclaration.primaryConstructor!!.parameters.joinToString()}"
+
 			val baseDeclaration = getClassFileName(baseMirrorClass.toString())
 
-			val methods = classDeclaration.getAllFunctions().filter { decl ->
-				decl.annotations.firstOrNull { it.shortName.asString() == "RemoteFunction" } != null && decl.validate()
-			}.toList()
+			val methods = classDeclaration.getAllFunctions().map { decl ->
+				decl to //decl.getAnnotationsByType(RemoteFunction::class).firstOrNull()
+					decl.annotations.firstOrNull { it.shortName.asString() == "RemoteFunction" }
+			}.filter { it.second != null && it.first.validate() }
+				.map { it.first to it.first.getAnnotationsByType(RemoteFunction::class).first() }.toList()
 
 			/*			val filteredMethods = methods.map {
 							it to Pair(it.parameters.map {
@@ -109,38 +144,32 @@ class RemoteProcessor(
 							}.toList(), it.returnType!!.resolve())
 						}.toMap()*/
 
-			fun getTypeTemplates(ref: KSTypeReference): String {
-				with(ref.resolve().arguments) {
-					if (isEmpty()) return ""
-					return "<${joinToString { it.type.toString() }}>"
-				}
-			}
-
 			file.print(
 				"""package ${classDeclaration.packageName.asString()}
 				
-import cc.lib.rem.context.*
-import kotlinx.coroutines.*
-				
-abstract class $classTypeName() : $classDeclaration() {	
 """
 			)
-			methods.forEach {
+			imports.forEach {
+				file.print("import $it\n")
+			}
+			file.print(
+				"""
+			
+abstract class $classTypeName($classArgs) : $classDeclaration($classDeclarationParams) {	
+"""
+			)
+			methods.forEach { (m, a) ->
 
-				logger.warn("process method $it")
+				logger.warn("process method $m, $a")
 
-				val paramSignature = it.parameters.joinToString {
-					"${it.name?.asString()}:${it.type}${
-						getTypeTemplates(it.type)
-					}${it.type.resolve().getNullable()}"
-				}
+				val paramSignature = getMethodSignature(m)
 
 				logger.warn("- param signature: $paramSignature")
 
 				val params =
-					if (it.parameters.isNotEmpty()) ", ${it.parameters.joinToString()}" else ""
+					if (m.parameters.isNotEmpty()) ", ${m.parameters.joinToString()}" else ""
 
-				val retType = it.returnType!!
+				val retType = m.returnType!!
 				val retTypeResolved = retType.resolve()
 				if (!(retTypeResolved.isMarkedNullable || retTypeResolved.isUnit())) {
 					logger.error("Invalid return type $retType. RemoteMethods must be Unit or nullable")
@@ -148,14 +177,25 @@ abstract class $classTypeName() : $classDeclaration() {
 				}
 
 				val ret = if (retTypeResolved.isUnit()) "" else "return"
+				val result = if (retTypeResolved.isUnit()) "null" else "${m.returnType}::class.java"
 				val cast =
 					if (retTypeResolved.isUnit()) "" else " as $retType${getTypeTemplates(retType)}?"
 				val retStr = if (retTypeResolved.isUnit()) "" else " : $retType?"
+				val funName = m.simpleName.asString()
 
 				file.print(
 					"""
-	override fun ${it.simpleName.asString()}($paramSignature)$retStr {
-	   $ret executeRemotely("${it.simpleName.asString()}"$params)$cast
+	override fun $funName($paramSignature)$retStr {
+	   $ret executeRemotely("$funName", $result$params)$cast"""
+				)
+				if (a.callSuper) {
+					file.print(
+						"""
+		super.$funName(${params.trimStart(',')})"""
+					)
+				}
+				file.print(
+					"""
 	}
 """
 				)
@@ -167,16 +207,16 @@ abstract class $classTypeName() : $classDeclaration() {
       return when (method) {
 """
 			)
-			methods.forEach {
-				val args = it.parameters.mapIndexed { index, param ->
+			methods.forEach { (m, a) ->
+				val args = m.parameters.mapIndexed { index, param ->
 					"args[$index] as ${param.type}${
 						getTypeTemplates(param.type)
 					}${param.type.resolve().getNullable()}"
 				}
+				val funName = m.simpleName.asString()
 				file.print(
 					"""
-         "${it.simpleName.asString()}" -> ${it.simpleName.asString()}(${args.joinToString()})	   
-"""
+         "$funName" -> $funName(${args.joinToString()})"""
 				)
 			}
 			file.print(

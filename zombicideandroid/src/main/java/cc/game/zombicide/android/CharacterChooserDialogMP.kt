@@ -156,7 +156,7 @@ abstract class CharacterChooserDialogMP(
 							return
 						}
 						onAssigneeChecked(it, !it.checked)
-						notifyDataSetChanged()
+						updateMaxPlayers(maxPlayers)
 					}
 				}
 			}
@@ -187,7 +187,9 @@ abstract class CharacterChooserDialogMP(
 			c.copyFrom(a)
 			c.isAssingedToMe = a.isAssingedToMe
 		}
-		handler.post { notifyDataSetChanged() }
+		handler.post {
+			updateMaxPlayers(maxPlayers)
+		}
 	}
 
 	companion object {

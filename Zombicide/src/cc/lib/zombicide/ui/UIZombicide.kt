@@ -477,6 +477,7 @@ abstract class UIZombicide(
 	}
 
 	override fun onZombieSpawned(zombie: ZZombie) {
+		log.debug("onSpawnZoneSpawned <<<<< ----")
 		super.onZombieSpawned(zombie)
 
 		zombie.addAnimation(SpawnAnimation(zombie, board))
@@ -579,18 +580,15 @@ abstract class UIZombicide(
 		boardRenderer.redraw()
 	}
 
-	override fun onCurrentCharacterUpdated(priorPlayer: ZPlayerName?, player: ZPlayerName?) {
-		super.onCurrentCharacterUpdated(priorPlayer, player)
+	override fun onCurrentCharacterUpdated(priorPlayer: ZPlayerName?, character: ZCharacter?) {
+		super.onCurrentCharacterUpdated(priorPlayer, character)
 		priorPlayer?.toCharacter()?.let { player ->
 			player.addAnimation(EmptyAnimation(player))
 			boardRenderer.waitForAnimations()
 		}
-		with(player?.toCharacter()) {
-			boardRenderer.setCurrentCharacter(this)
-			boardRenderer.redraw()
-			characterRenderer.actorInfo = this
-			characterRenderer.redraw()
-		}
+		boardRenderer.setCurrentCharacter(character)
+		characterRenderer.actorInfo = character
+		characterRenderer.redraw()
 	}
 
 	open inner class ChargeAttackAnimation(source: ZActor, dest: ZActor) : ZActorAnimation(source, 150L, 600L, 0L) {
@@ -1256,22 +1254,22 @@ abstract class UIZombicide(
 	}
 
 	override fun onAttack(
-		_attacker: ZPlayerName,
+		attacker: ZPlayerName,
 		weapon: ZWeaponType,
 		actionType: ZActionType?,
 		numDice: Int,
-		hits: List<ZActorPosition>,
+		actorsHit: List<ZActorPosition>,
 		targetZone: Int
 	) {
-		super.onAttack(_attacker, weapon, actionType, numDice, hits, targetZone)
-		val attacker = _attacker.toCharacter()
+		super.onAttack(attacker, weapon, actionType, numDice, actorsHit, targetZone)
+		val attacker = attacker.toCharacter()
 		when (actionType) {
 			ZActionType.MELEE -> onAttackMelee(
 				attacker,
 				weapon,
 				actionType,
 				numDice,
-				hits,
+				actorsHit,
 				targetZone
 			)
 
@@ -1281,7 +1279,7 @@ abstract class UIZombicide(
 				weapon,
 				actionType,
 				numDice,
-				hits,
+				actorsHit,
 				targetZone
 			)
 
@@ -1290,7 +1288,7 @@ abstract class UIZombicide(
 				weapon,
 				actionType,
 				numDice,
-				hits,
+				actorsHit,
 				targetZone
 			)
 

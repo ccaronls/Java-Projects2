@@ -141,6 +141,8 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 	var board: ZBoard = ZBoard()
 		set(value) {
 			field = value
+			//zoomRectStack.clear()
+			//zoomRectStack.push(GRectangle(value))
 			initViewport()
 			redraw()
 		}
@@ -167,7 +169,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 	}
 
 	private val _zoomedRect: GRectangle
-		get() = zoomRectStack.peek()!!
+		get() = if (zoomRectStack.isEmpty()) GRectangle(0f, 0f, 5f, 5f) else zoomRectStack.peek()
 
 	private var viewport = GDimension()
 
@@ -1587,6 +1589,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		drawOverlayObject(overlayToDraw, g)
 		if (UIZombicide.instance.isGameRunning())
 			drawDeckInfo(g)
+		drawConnectedUsers(g)
 	}
 
 	protected fun drawDeckInfo(g: AGraphics) {
@@ -1861,7 +1864,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		val minY = (board.height / 2 - rect.height / 2).coerceAtMost(0f)
 		val maxX = (board.width / 2 + rect.width / 2).coerceAtLeast(board.width) - rect.w
 		val maxY = (board.height / 2 + rect.height / 2).coerceAtLeast(board.height) - rect.h
-		log.debug("clampRect rect: $rect, board: ${board.width}x${board.height} minX:$minX, maxX:$maxX, minY:$minY, maxY:$maxY")
+		//log.debug("clampRect rect: $rect, board: ${board.width}x${board.height} minX:$minX, maxX:$maxX, minY:$minY, maxY:$maxY")
 		if (minX <= maxX)
 			rect.x = rect.x.coerceIn(minX, maxX)
 		else

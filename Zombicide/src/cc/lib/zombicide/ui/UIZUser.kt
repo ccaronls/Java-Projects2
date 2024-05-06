@@ -14,11 +14,11 @@ import cc.lib.zombicide.ZPlayerName
 import cc.lib.zombicide.ZSkill
 import cc.lib.zombicide.ZSpawnArea
 import cc.lib.zombicide.ZSpell
-import cc.lib.zombicide.ZUser
+import cc.lib.zombicide.ZUserRemote
 import cc.lib.zombicide.ZWeapon
 import cc.lib.zombicide.ZWeaponType
 
-open class UIZUser(name: String?, colorId: Int) : ZUser(name, colorId) {
+open class UIZUser(name: String?, colorId: Int) : ZUserRemote(name, colorId) {
 	fun <T> indexOrNull(item: T?, options: List<T>): Int? {
 		return if (item == null) null else options.indexOf(item)
 	}

@@ -54,6 +54,7 @@ enum class MenuItem : UIZButton {
 		CONNECTIONS -> instance.server?.isConnected == true
 		DISCONNECT -> instance.server?.isRunning == true || instance.client != null
 		RESUME -> instance.gameFile.exists()
+		UNDO -> BuildConfig.DEBUG
 
 		//LOAD, SAVE, ASSIGN, CLEAR, UNDO, DIFFICULTY, CHOOSE_COLOR, DEBUG_MENU -> BuildConfig.DEBUG
 		//START, NEW_GAME, JOIN_GAME, SETUP_PLAYERS, SKILLS, LEGEND, EMAIL_REPORT, MINIMAP_MODE -> true

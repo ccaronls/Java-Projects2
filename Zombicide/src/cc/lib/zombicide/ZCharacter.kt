@@ -70,6 +70,9 @@ class ZCharacter(
 	var isReady = true
 		get() = field || !isInvisible
 
+	var deathType: ZAttackType? = null
+		private set
+
 	fun saveWounds() {
 		savedWounds = woundBar
 	}
@@ -96,6 +99,7 @@ class ZCharacter(
 		cachedSkills = null
 		exp = 0
 		woundBar = 0
+		deathType = null
 		isStartingWeaponChosen = false
 		isStartingFamiliarChosen = false
 		favoriteWeapons.clear()
@@ -759,6 +763,7 @@ class ZCharacter(
      */
     override val isAlive: Boolean
         get() = woundBar < MAX_WOUNDS
+
     override val noise: Int
         get() = if (isInvisible) 0 else 1
     override var isInvisible: Boolean
@@ -976,9 +981,12 @@ class ZCharacter(
 		return false
 	}
 
-    fun wound(amt: Int) {
-        woundBar += amt
-    }
+	fun wound(amt: Int, type: ZAttackType) {
+		woundBar += amt
+		if (isDead) {
+			deathType = type
+		}
+	}
 
     fun getKills(type: ZZombieType): Int {
         return kills[type.ordinal]

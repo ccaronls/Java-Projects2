@@ -106,17 +106,9 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 				get() = isWolfburgUnlocked
 		})
 
-	override fun getConnectPort(): Int {
-		return ZMPCommon.CONNECT_PORT
-	}
-
-	override fun getVersion(): String {
-		return ZMPCommon.VERSION
-	}
-
-	override fun getMaxConnections(): Int {
-		return 2
-	}
+	override val connectPort: Int = ZMPCommon.CONNECT_PORT
+	override val version: String = ZMPCommon.VERSION
+	override val maxConnections: Int = 2
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
@@ -247,9 +239,9 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 
 			override fun onCurrentCharacterUpdated(
 				priorPlayer: ZPlayerName?,
-				player: ZPlayerName?
+				character: ZCharacter?
 			) {
-				super.onCurrentCharacterUpdated(priorPlayer, player)
+				super.onCurrentCharacterUpdated(priorPlayer, character)
 				runOnUiThread { initGameMenu() }
 			}
 
@@ -538,7 +530,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 						object : SpinnerTask<Int>(this@ZombicideActivity) {
 							@Throws(Exception::class)
 							override fun doIt(vararg args: Int?) {
-								client.disconnect("Quit Game")
+								client?.disconnect("Quit Game")
 							}
 
 							override fun onCompleted() {
@@ -555,7 +547,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 						object : SpinnerTask<Int>(this@ZombicideActivity) {
 							@Throws(Exception::class)
 							override fun doIt(vararg args: Int?) {
-								server.stop()
+								server?.stop()
 							}
 
 							override fun onCompleted() {
@@ -726,10 +718,6 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 
 	fun showSaveGameDialog() {
 		SaveGameDialog(this, MAX_SAVES)
-	}
-
-	fun showOrganizeDialog() {
-		OrganizeDialog(this).show()
 	}
 
 	fun showLoadSavedGameDialog() {
@@ -937,13 +925,13 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 	var clientControl: P2PClient? = null
 	override fun onP2PClient(p2pClient: P2PClient) {
 		clientControl = p2pClient
-		clientMgr = ZClientMgr(this, game, p2pClient.client, thisUser)
+		clientMgr = ZClientMgr(this, game, p2pClient.getClient(), thisUser)
 	}
 
 	var serverControl: P2PServer? = null
 	override fun onP2PServer(p2pServer: P2PServer) {
 		serverControl = p2pServer
-		serverMgr = ZServerMgr(this, game, 2, p2pServer.server)
+		serverMgr = ZServerMgr(this, game, 2, p2pServer.getServer())
 //		thisUser.name = prefs.getString(PREF_P2P_NAME, p2pServer.server.name)!!
 	}
 

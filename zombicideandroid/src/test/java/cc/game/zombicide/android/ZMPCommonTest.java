@@ -12,7 +12,9 @@ import java.io.DataOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import androidx.annotation.NonNull;
 import cc.lib.net.AClientConnection;
+import cc.lib.net.AGameClient;
 import cc.lib.net.GameCommand;
 import cc.lib.zombicide.ZCharacter;
 import cc.lib.zombicide.ZDir;
@@ -156,6 +158,12 @@ public class ZMPCommonTest {
                         Assert.assertEquals(c.getExp(), 5);
                     }
                 }
+            }
+
+            @NonNull
+            @Override
+            public AGameClient getClient() {
+                return null;
             }
         };
 
