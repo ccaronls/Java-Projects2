@@ -66,13 +66,15 @@ fun ListView.setListOptions(list : List<ZMove>, viewModel : OrganizeViewModel) {
 @BindingAdapter("tagMove", "character", "slot", "dragging", "equipped")
 fun View.setTagFromMoves(moves : List<ZMove>, _character : ZCharacter?, slot : ZEquipSlot, dragging : Boolean, equipped : Boolean) {
 	_character?.let { character ->
-		Log.d(TAG, "setTagFromMoves: char: $_character, slot:$slot, equipped: $equipped, moves: ${moves.joinToString(separator = "\n") { it.toStringAbbrev() }}")
+		Log.d(
+			TAG,
+			"setTagFromMoves: char: $_character, slot:$slot, equipped: $equipped, moves: ${moves.joinToString(separator = "\n") { it.toStringAbbrev() }}"
+		)
 		val options = moves.filter {
 			it.character == character.type && ((it.toSlot == null && it.fromSlot == slot) || it.toSlot == slot)
 		}
-		if (options.isNotEmpty()) {
-			tag = options[0]
-			Log.i(TAG, "tag for ${character.name()}:${slot} -> $tag")
+		tag = options.firstOrNull()?.also {
+			Log.d(TAG, "tag for ${character.name()}:${slot} -> $tag")
 		}
 
 		if (dragging) {
@@ -160,6 +162,7 @@ class OrganizeViewModel : LifecycleViewModel(),
 
 	private var currentSelectedView : View? = null
 	val game by lazy { UIZombicide.instance }
+	val loading = MutableLiveData(false)
 
 	fun onGameSaved() {
 		undoPushes.increment(1)
@@ -207,7 +210,8 @@ class OrganizeViewModel : LifecycleViewModel(),
 	// and the 'parent' adapter view holds the move options
 	override fun onItemLongClick(parent: AdapterView<*>, view: View, position: Int, id: Long): Boolean {
 		val equip = view.tag as ZEquipment<*>?
-		return parent.tag?.takeIfInstance<ZMove>()?.let { move ->
+		Log.d(TAG, "onItemLongClick equip: $equip parent.tag: ${parent.tag}")
+		return parent.tag?.takeIfInstance<ZMove>()?.takeIf { it.list != null }?.let { move ->
 			val options = move.list as List<ZMove>
 			startDrag(view, options.filter {
 				it.equipment == equip
@@ -240,6 +244,7 @@ class OrganizeViewModel : LifecycleViewModel(),
 				}
 			}
 			DragEvent.ACTION_DROP -> {
+				loading.value = true
 				// perform the move associated with the
 				Log.d(TAG, "Drag drop ${v.tag}")
 				dragging.value = false
@@ -309,6 +314,7 @@ class OrganizeDialog(context : ZombicideActivity) : LifecycleDialog<OrganizeView
 			}
 			viewModel.primaryCharacter.refresh()
 			viewModel.secondaryCharacter.refresh()
+			viewModel.loading.value = false
 		}
 	}
 

@@ -1,9 +1,8 @@
 package cc.library.mirrortest
 
-import cc.lib.mirror.annotation.Mirror
-import cc.lib.mirror.annotation.MirroredFunction
-import cc.lib.mirror.context.Mirrored
-import cc.lib.mirror.context.MirroredArray
+import cc.lib.ksp.mirror.Mirror
+import cc.lib.ksp.mirror.Mirrored
+import cc.lib.ksp.mirror.MirroredArray
 
 @Mirror
 interface IMirror : Mirrored {
@@ -74,30 +73,5 @@ interface IMirror : Mirrored {
 	val map6: Map<Char, Boolean>
 	val map7: Map<String, List<String>>
 	val map8: Map<String, MirroredArray<Int>>
-//	val map9: Map<String, String>
-
-
-//	var EE: TempEnum
-
-	@MirroredFunction
-	suspend fun doSomething1()
-
-	@MirroredFunction
-	suspend fun doSomething2(v: String)
-
-	@MirroredFunction
-	suspend fun doSomething3(m: IMirror2?)
-
-	@MirroredFunction
-	suspend fun doSomething4(x: Int, y: Float, z: Mirrored?)
-
-	@MirroredFunction
-	suspend fun doSomethingAndReturn(m: IMirror2?): Int?
-
-	@MirroredFunction
-	suspend fun doSomethingAndReturnEnum(e: TempEnum?): TempEnum?
-
-	@MirroredFunction
-	suspend fun doSomethingAndReturnList(l: List<ISmallMirror>, idx: Int): ISmallMirror?
 
 }

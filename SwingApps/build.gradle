@@ -16,7 +16,7 @@ dependencies {
 
     // TODO: Should eb able to isolate the game lib for each swing app
     implementation project(':GameLibrary')
-    implementation project(':Rem')
+    implementation project(':KSPCommon')
     implementation project(':Dominos')
     implementation project(':othello')
     implementation project(':Zombicide')

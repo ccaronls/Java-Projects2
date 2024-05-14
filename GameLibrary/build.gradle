@@ -3,10 +3,11 @@ apply plugin: 'com.google.devtools.ksp'
 apply plugin: 'kotlin'
 
 dependencies {
-    implementation project(':Rem')
     implementation group: 'org.json', name: 'json', version: '20090211'
     implementation group: 'net.sourceforge.jaadec', name: 'jaad', version: '0.8.5'
     implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+    implementation(project(':KSPCommon'))
+    ksp(project(':KSPRem'))
     ksp(project(':KSPReflector'))
 }
 

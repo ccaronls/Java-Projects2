@@ -1,7 +1,7 @@
 package cc.library.mirrortest
 
-import cc.lib.mirror.annotation.Mirror
-import cc.lib.mirror.context.Mirrored
+import cc.lib.ksp.mirror.Mirror
+import cc.lib.ksp.mirror.Mirrored
 
 @Mirror
 interface ISmallMirror : Mirrored {

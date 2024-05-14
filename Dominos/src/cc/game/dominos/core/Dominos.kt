@@ -3,7 +3,12 @@ package cc.game.dominos.core
 import cc.game.dominos.core.Board.Companion.drawDie
 import cc.game.dominos.core.Board.Companion.drawTile
 import cc.lib.annotation.Keep
-import cc.lib.game.*
+import cc.lib.game.AAnimation
+import cc.lib.game.AGraphics
+import cc.lib.game.APGraphics
+import cc.lib.game.GColor
+import cc.lib.game.Justify
+import cc.lib.game.Utils
 import cc.lib.logger.LoggerFactory
 import cc.lib.math.Bezier
 import cc.lib.math.MutableVector2D
@@ -11,8 +16,13 @@ import cc.lib.math.Vector2D
 import cc.lib.net.AGameServer
 import cc.lib.reflector.Omit
 import cc.lib.reflector.Reflector
-import cc.lib.utils.*
-import java.util.*
+import cc.lib.utils.GException
+import cc.lib.utils.Lock
+import cc.lib.utils.random
+import cc.lib.utils.randomSigned
+import cc.lib.utils.removeAll
+import java.util.Collections
+import java.util.LinkedList
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.roundToInt
@@ -44,7 +54,7 @@ import kotlin.math.sqrt
  * on drag end event
  * D.endDrag(mouseX, mouseY)
  */
-abstract class Dominos : Reflector<Dominos?>(), AGameServer.Listener {
+abstract class Dominos : Reflector<Dominos>(), AGameServer.Listener {
 	@Omit
 	private val log = LoggerFactory.getLogger(javaClass)
 
@@ -106,9 +116,9 @@ abstract class Dominos : Reflector<Dominos?>(), AGameServer.Listener {
 	}
 
 	fun setPlayers(vararg players: Player) {
-		if (isGameRunning) 
+		if (isGameRunning)
 			throw GException("Cant assign while game running")
-		if (players.size <= 0 || players.size > 4) 
+		if (players.size !in 0..4)
 			throw GException("Range of players can be 1 to 4")
 		this.players = arrayOf(*players)
 	}
@@ -125,7 +135,7 @@ abstract class Dominos : Reflector<Dominos?>(), AGameServer.Listener {
 	}
 
 	fun startNewGame() {
-		if (players.size == 0) throw RuntimeException("No players!")
+		if (players.isEmpty()) throw RuntimeException("No players!")
 		stopGameThread()
 		newGame()
 		//        server.broadcastCommand(new GameCommand(MPConstants.SVR_TO_CL_INIT_ROUND)

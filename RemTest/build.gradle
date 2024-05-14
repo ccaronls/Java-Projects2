@@ -19,8 +19,8 @@ sourceSets {
     }
 }
 dependencies {
-    implementation project(":Rem")
-    ksp(project(":Rem"))
+    implementation(project(':KSPCommon'))
+    ksp(project(":KSPRem"))
 }
 
 ksp {

@@ -1,17 +1,17 @@
 package cc.library.mirrortest
 
-import cc.lib.mirror.context.Mirrored
-import cc.lib.mirror.context.MirroredImpl
-import cc.lib.mirror.context.MirroredList
-import cc.lib.mirror.context.mirroredArrayOf
-import cc.lib.mirror.context.toMirroredArray
-import cc.lib.mirror.context.toMirroredList
-import cc.lib.mirror.context.toMirroredMap
+import cc.lib.ksp.mirror.Mirrored
+import cc.lib.ksp.mirror.MirroredImpl
+import cc.lib.ksp.mirror.MirroredList
+import cc.lib.ksp.mirror.mirroredArrayOf
+import cc.lib.ksp.mirror.toMirroredArray
+import cc.lib.ksp.mirror.toMirroredList
+import cc.lib.ksp.mirror.toMirroredMap
 import com.google.gson.GsonBuilder
-import kotlinx.coroutines.runBlocking
+import com.google.gson.stream.JsonReader
+import com.google.gson.stream.JsonWriter
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.StringReader
@@ -27,24 +27,44 @@ open class Mirror1(a: Int = 0, b: String = "") : SmallMirrorImpl() {
 
 open class Mirror2 : Mirror2Impl()
 
+open class Mixed : MixedImpl()
+
 /**
  * Created by Chris Caron on 11/16/23.
  */
 class MirrorTest {
 
-	val owner = MirrorContextOwner()
-	val receiver = MirrorContextReceiver()
-
 	val gson = GsonBuilder().setPrettyPrinting().serializeNulls().create()
 	val writer = StringWriter()
+
+	fun newWriter(): JsonWriter {
+		writer.buffer.setLength(0)
+		return gson.newJsonWriter(writer)
+	}
+
+	fun newReader(): JsonReader {
+		return gson.newJsonReader(StringReader(writer.toString()))
+	}
+
+	fun transfer(m0: MirroredImpl, m1: MirroredImpl, dirtyOnly: Boolean) {
+		writer.buffer.setLength(0)
+		MirroredImpl.writeMirrored(m0, gson.newJsonWriter(writer), dirtyOnly)
+		println("transfered ----------")
+		println(writer.buffer)
+		//m0.toGson(gson.newJsonWriter(writer), dirtyOnly)
+		//m1.fromGson(gson.newJsonReader(StringReader(writer.toString())))
+		MirroredImpl.readMirrored(m1, gson.newJsonReader(StringReader(writer.toString())))
+		m0.markClean()
+		writer.buffer.setLength(0)
+		println("transfered after ----------")
+		MirroredImpl.writeMirrored(m0, gson.newJsonWriter(writer), true)
+		println(writer.buffer)
+	}
 
 	@Test
 	fun test1() {
 		val ownerMirror = Mirror1()
 		val receiverMirror = Mirror1()
-
-		owner.registerSharedObject("mirror", ownerMirror)
-		receiver.registerSharedObject("mirror", receiverMirror)
 
 		assertFalse(ownerMirror.isDirty())
 		ownerMirror.a = 100
@@ -52,17 +72,17 @@ class MirrorTest {
 
 		println("owner: $ownerMirror")
 		println("receiver: $receiverMirror")
-		owner.add(receiver)
+		transfer(ownerMirror, receiverMirror, false)
 		println("receiver: $receiverMirror")
 		assertEquals(100, receiverMirror.a)
 		ownerMirror.b = "hello"
 		assertTrue(ownerMirror.isDirty())
 		println("owner: $ownerMirror")
 		println("receiver: $receiverMirror")
-		owner.push()
+		transfer(ownerMirror, receiverMirror, true)
 		println("receiver: $receiverMirror")
 		assert(receiverMirror.b == "hello")
-		assertFalse(owner.isDirty())
+		assertFalse(ownerMirror.isDirty())
 		assertTrue(ownerMirror.contentEquals(receiverMirror))
 		assert(ownerMirror !== receiverMirror)
 	}
@@ -80,14 +100,10 @@ class MirrorTest {
 		m.mirrorList.add(Mirror1())
 		println(m)
 
-		owner.registerSharedObject("m", m)
 		val m2 = MyMirror()
-		receiver.registerSharedObject("m", m2)
 		m.intArray = mirroredArrayOf(0, 1, 2)
-		owner.push(false)
-		println(owner)
-		owner.add(receiver)
-		//owner.push(false)
+		transfer(m, m2, false)
+		println(m2)
 		print(m2)
 		assertTrue(m.contentEquals(m2))
 		assert(m !== m2)
@@ -103,10 +119,8 @@ class MirrorTest {
 		//)
 		print(m)
 
-		owner.registerSharedObject("m", m)
 		val m2 = MyMirror()
-		receiver.registerSharedObject("m", m2)
-		owner.add(receiver)
+		transfer(m, m2, false)
 		print(m2)
 		assertTrue(m.contentEquals(m2))
 		assert(m !== m2)
@@ -189,102 +203,6 @@ class MirrorTest {
 		}
 	}
 
-	@Test
-	fun `test mirrored functions`() = runBlocking {
-		val ownerMirror = object : MyMirror() {
-			override suspend fun doSomething1() {
-				super.doSomething1()
-				println("owner : doSomething1()")
-			}
-
-			override suspend fun doSomething2(v: String) {
-				super.doSomething2(v)
-				println("owner : doSomething2($v)")
-			}
-
-			override suspend fun doSomething3(m: IMirror2?) {
-				super.doSomething3(m)
-				println("owner : doSomething3($m)")
-			}
-
-			override suspend fun doSomething4(x: Int, y: Float, z: Mirrored?) {
-				super.doSomething4(x, y, z)
-				println("owner : doSomething4($x, $y, $z)")
-			}
-
-			override suspend fun doSomethingAndReturn(m: IMirror2?): Int? {
-				return super.doSomethingAndReturn(m).also { result ->
-					println("owner : doSomethingAndReturn($m) -> $result")
-				}
-			}
-		}
-		val receiverMirror = object : MyMirror() {
-			var doSomething1Executed = false
-			override suspend fun doSomething1() {
-				println("receiver : doSomething1()")
-				doSomething1Executed = true
-			}
-
-			override suspend fun doSomething2(v: String) {
-				println("receiver : doSomething2($v)")
-				assertEquals("hello", v)
-			}
-
-			override suspend fun doSomething3(m: IMirror2?) {
-				println("receiver : doSomething3($m)")
-				assertEquals("goodbye", m?.y)
-			}
-
-			override suspend fun doSomething4(x: Int, y: Float, z: Mirrored?) {
-				println("receiver : doSomething4($x, $y, $z)")
-				assertEquals(10, x)
-				assertEquals(100f, y)
-				assertNull(z)
-			}
-
-			override suspend fun doSomethingAndReturn(m: IMirror2?): Int? {
-				return 10.also { result ->
-					println("receiver : doSomethingAndReturn($m) -> $result")
-				}
-			}
-
-			override suspend fun doSomethingAndReturnEnum(e: TempEnum?): TempEnum? {
-				e?.let {
-					return TempEnum.values()[(e.ordinal + 1) % TempEnum.values().size]
-				}
-				return null
-			}
-
-			override suspend fun doSomethingAndReturnList(l: List<ISmallMirror>, idx: Int): ISmallMirror? {
-				return l[idx]
-			}
-		}
-
-		owner.registerSharedObject("mirror", ownerMirror)
-		receiver.registerSharedObject("mirror", receiverMirror)
-		owner.add(receiver)
-
-		ownerMirror.doSomething1()
-		ownerMirror.doSomething2("hello")
-		ownerMirror.doSomething3(Mirror2().apply {
-			y = "goodbye"
-		})
-		ownerMirror.doSomething4(10, 100f, null)
-		assertEquals(ownerMirror.doSomethingAndReturn(null), 10)
-
-		println(owner)
-
-		assertTrue(receiverMirror.doSomething1Executed)
-
-		assertEquals(ownerMirror.doSomethingAndReturnEnum(null), null)
-		assertEquals(ownerMirror.doSomethingAndReturnEnum(TempEnum.ONE), TempEnum.TWO)
-
-		val list = listOf(
-			Mirror1(0, "hello"), Mirror1(1, "X")
-		)
-
-		assertEquals(ownerMirror.doSomethingAndReturnList(list, 0)?.b, "hello")
-	}
 
 	@Test
 	fun test7() {
@@ -583,5 +501,50 @@ class MirrorTest {
 		assertFalse(tMap2.contentEquals(tMap3))
 		tMap2.fromGson(gson.newJsonReader(StringReader(writer.buffer.toString())))
 		assertTrue(tMap2.contentEquals(tMap3))
+	}
+
+	@Test
+	fun testMixed() {
+
+		val d0 = MyData(10, .5f, "hello", listOf(10, 20, 30))
+		val d1 = MyData(20, 1.5f, "goodbye", listOf(5, 15, 25))
+
+		val m0 = Mixed()
+		m0.a = mirroredArrayOf(d0, d1)
+		m0.m = mapOf("d0" to d0, "d1" to d1).toMirroredMap()
+		m0.s = "some string"
+		m0.x = listOf(d0, d1).toMirroredList()
+		m0.d2 = d0
+
+		println("RAW ------------------")
+		println(m0)
+		val json = newWriter()
+		println("JSON ------------------")
+		MirroredImpl.writeMirrored(m0, json, false)
+		println(writer.buffer)
+
+		val m01 = Mixed()
+		val m1 = MirroredImpl.readMirrored(m01, newReader())
+		m0.markClean()
+
+		println("RAW ------------------")
+		println(m1)
+
+		assertTrue(m0.contentEquals(m1))
+		m1.markClean()
+
+		m0.d2 = MyData(5, 0f, "nope", emptyList())
+		assertTrue(m0.isDirty())
+		assertFalse(m0.contentEquals(m1))
+		transfer(m0, m1, true)
+		assertTrue(m0.contentEquals(m1))
+		assertFalse(m0.isDirty())
+
+		m0.m.toMirroredMap().remove("d0")
+		assertTrue(m0.isDirty())
+		assertFalse(m0.contentEquals(m1))
+		transfer(m0, m1, true)
+		assertTrue(m0.contentEquals(m1))
+
 	}
 }

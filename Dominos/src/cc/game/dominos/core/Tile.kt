@@ -2,7 +2,7 @@ package cc.game.dominos.core
 
 import cc.lib.reflector.Reflector
 
-class Tile @JvmOverloads constructor(val pip1: Int = 0, val pip2: Int = 0) : Reflector<Tile?>() {
+class Tile @JvmOverloads constructor(val pip1: Int = 0, val pip2: Int = 0) : Reflector<Tile>() {
 	companion object {
 		init {
 			addAllFields(Tile::class.java)
@@ -10,7 +10,7 @@ class Tile @JvmOverloads constructor(val pip1: Int = 0, val pip2: Int = 0) : Ref
 	}
 
 	@JvmField
-    var openPips = pip1
+	var openPips = pip1
 
 	@JvmField
     var placement = 0

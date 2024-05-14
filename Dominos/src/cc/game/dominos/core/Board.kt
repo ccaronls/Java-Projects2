@@ -1,13 +1,19 @@
 package cc.game.dominos.core
 
-import cc.lib.game.*
+import cc.lib.game.AAnimation
+import cc.lib.game.AGraphics
+import cc.lib.game.APGraphics
+import cc.lib.game.GColor
+import cc.lib.game.IVector2D
+import cc.lib.game.Utils
 import cc.lib.logger.LoggerFactory
 import cc.lib.math.Matrix3x3
 import cc.lib.math.MutableVector2D
 import cc.lib.math.Vector2D
 import cc.lib.reflector.Omit
 import cc.lib.reflector.Reflector
-import java.util.*
+import java.util.Collections
+import java.util.LinkedList
 
 /**
  * Created by chriscaron on 2/1/18.
@@ -15,7 +21,7 @@ import java.util.*
  * Representation of a Dominos board.
  *
  */
-class Board : Reflector<Board?>() {
+class Board : Reflector<Board>() {
 	@Omit
 	private val log = LoggerFactory.getLogger(javaClass)
 

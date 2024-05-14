@@ -85,8 +85,8 @@ open class Player(var playerNum: Int=-1) : Reflector<Player>() {
 	 */
 	@Keep
 	open fun chooseMove(game: Dominos, moves: List<Move>): Move? {
-		if (connection != null && connection!!.isConnected) {
-			return connection!!.executeDerivedOnRemote(MPConstants.USER_ID, true, moves)
+		connection?.takeIf { it.isConnected }?.let {
+			return it.executeDerivedOnRemote(MPConstants.USER_ID, true, moves)
 		}
 		if (smart) {
 			var best: Move? = null

@@ -49,10 +49,10 @@ public class MPPlayerUser extends PlayerUser implements GameClient.Listener {
     @Override
     public void onCommand(GameCommand cmd) {
         if (cmd.getType() == MPConstants.SVR_TO_CL_INIT_GAME) {
-            int numPlayers = cmd.getInt("numPlayers");
+            int numPlayers = cmd.getInt("numPlayers", -1);
             if (numPlayers < 2 || numPlayers > 4)
                 throw new cc.lib.utils.GException("invalid numPlayers: " + numPlayers);
-            int playerNum = cmd.getInt("playerNum");
+            int playerNum = cmd.getInt("playerNum", -1);
             if (playerNum < 0 || playerNum >= numPlayers)
                 throw new cc.lib.utils.GException("invalid playerNum: " + playerNum);
             Player[] players = new Player[numPlayers];
@@ -79,7 +79,6 @@ public class MPPlayerUser extends PlayerUser implements GameClient.Listener {
             }
         } else {
             client.sendError("Dont know how to handle cmd: '" + cmd + "'");
-            client.disconnect("Error: dont understand command: " + cmd.getType());
         }
     }
 
