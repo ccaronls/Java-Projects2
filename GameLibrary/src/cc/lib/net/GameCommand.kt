@@ -55,7 +55,10 @@ import java.io.IOException
  */
 class GameCommand(val type: GameCommandType) {
 
-	val arguments: MutableMap<String, Any> = NoDupesMap(LinkedHashMap())
+	private val _arguments: MutableMap<String, Any> = NoDupesMap(LinkedHashMap())
+
+	val arguments: Map<String, Any>
+		get() = _arguments
 
 	/**
 	 *
@@ -90,10 +93,11 @@ class GameCommand(val type: GameCommandType) {
 	fun getFilter(): String = getString("filter", "???")
 
 	fun setArg(nm: String, value: Any?): GameCommand {
-		if (value == null)
-			arguments.remove(nm)
-		else
-			arguments[nm] = value
+		value?.let {
+			_arguments[nm] = value
+		} ?: run {
+			_arguments.remove(nm)
+		}
 		return this
 	}
 
@@ -106,12 +110,12 @@ class GameCommand(val type: GameCommandType) {
 	fun setVersion(version: String) = setArg("version", version)
 
 	fun setArgs(args: Map<String, Any>): GameCommand {
-		arguments.putAll(args)
+		_arguments.putAll(args)
 		return this
 	}
 
 	fun <T : Enum<T>> setEnumList(arg: String, items: Iterable<T>) {
-		arguments[arg] = items.joinToString { it.name }
+		_arguments[arg] = items.joinToString { it.name }
 	}
 
 	/**
@@ -135,7 +139,7 @@ class GameCommand(val type: GameCommandType) {
 	 * @return
 	 */
 	fun setIntList(arg: String, items: Iterable<Int>): GameCommand {
-		arguments[arg] = items.map { it.toString() }.joinToString()
+		_arguments[arg] = items.map { it.toString() }.joinToString()
 		return this
 	}
 
@@ -197,7 +201,7 @@ class GameCommand(val type: GameCommandType) {
 				}
 			}
 		}
-		dout.flush();
+		dout.flush()
 	}
 
 	companion object {
@@ -221,17 +225,17 @@ class GameCommand(val type: GameCommandType) {
 				val itype = din.readUnsignedByte()
 				when (itype) {
 					TYPE_NULL -> Unit
-					TYPE_BOOL -> command.arguments[key] = din.readBoolean()
-					TYPE_INT -> command.arguments[key] = din.readInt()
-					TYPE_LONG -> command.arguments[key] = din.readLong()
-					TYPE_FLOAT -> command.arguments[key] = din.readFloat()
-					TYPE_DOUBLE -> command.arguments[key] = din.readDouble()
-					TYPE_STRING -> command.arguments[key] = din.readUTF()
+					TYPE_BOOL -> command.setArg(key, din.readBoolean())
+					TYPE_INT -> command.setArg(key, din.readInt())
+					TYPE_LONG -> command.setArg(key, din.readLong())
+					TYPE_FLOAT -> command.setArg(key, din.readFloat())
+					TYPE_DOUBLE -> command.setArg(key, din.readDouble())
+					TYPE_STRING -> command.setArg(key, din.readUTF())
 					TYPE_REFLECTOR -> {
 						val len = din.readInt()
 						val data = ByteArray(len)
 						din.readFully(data);
-						command.arguments.put(key, String(data, Charsets.UTF_8));
+						command.setArg(key, String(data, Charsets.UTF_8));
 					}
 
 					else -> throw GException("Unhandled type $itype")

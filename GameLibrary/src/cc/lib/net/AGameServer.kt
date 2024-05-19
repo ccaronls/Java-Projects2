@@ -69,9 +69,11 @@ abstract class AGameServer(
 	protected var password: String? = null
 	protected val disconnectingLock = Lock()
 	private val listeners = Collections.synchronizedSet(HashSet<Listener>())
+
 	fun clear() {
 		clients.clear()
 		listeners.clear()
+		GameCommandType.resetStats()
 	}
 
 	/**

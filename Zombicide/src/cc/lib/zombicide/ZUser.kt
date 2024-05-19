@@ -1,9 +1,9 @@
 package cc.lib.zombicide
 
 import cc.lib.game.GColor
-import cc.lib.rem.annotation.Remote
-import cc.lib.rem.annotation.RemoteFunction
-import cc.lib.rem.context.IRemote
+import cc.lib.ksp.remote.IRemote
+import cc.lib.ksp.remote.Remote
+import cc.lib.ksp.remote.RemoteFunction
 
 @Remote
 abstract class ZUser(_name: String?, var colorId: Int) : IRemote {

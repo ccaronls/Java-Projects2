@@ -1289,7 +1289,7 @@ open class Reflector<T> : IDirty {
 			out.push()
 			for (entry in m.entries) {
 				var o = entry.key
-				out.print(getCanonicalName(o!!.javaClass))
+				out.print(getCanonicalName(o.javaClass))
 				serializeObject(o, out, true)
 				o = entry.value
 				if (o == null) {
@@ -1330,7 +1330,7 @@ open class Reflector<T> : IDirty {
 			} else if (printObjects) {
 				out.push()
 				if (obj is String) {
-					out.p("\"").p(encodeString(obj as String)).println("\"")
+					out.p("\"").p(encodeString(obj)).println("\"")
 				} else {
 					out.println(obj)
 				}
@@ -1355,11 +1355,10 @@ open class Reflector<T> : IDirty {
 		}
 
 		private fun isEnum(clazz: Class<*>): Class<*>? {
-			var clazz = clazz
-			if (clazz!!.isEnum) return clazz
-			clazz = clazz.superclass
-			return if (clazz != null && clazz.isEnum()) {
+			return if (clazz.isEnum) {
 				clazz
+			} else if (clazz.superclass != null) {
+				isEnum(clazz.superclass!!)
 			} else null
 		}
 
@@ -1368,26 +1367,26 @@ open class Reflector<T> : IDirty {
 			return try {
 				val enumClazz = isEnum(clazz)
 				if (enumClazz != null) return findEnumEntry(enumClazz, reader!!.readLineOrEOF())
-				if (clazz!!.isArray) {
-					throw ParseException(reader!!.lineNum, "This method not to be called for array types")
+				if (clazz.isArray) {
+					throw ParseException(reader.lineNum, "This method not to be called for array types")
 				}
 				if (isSubclassOf(clazz, Int::class.java)) {
-					return reader!!.readLineAndClosedParen().toInt()
+					return reader.readLineAndClosedParen().toInt()
 				}
 				if (isSubclassOf(clazz, Float::class.java)) {
-					return reader!!.readLineAndClosedParen().toFloat()
+					return reader.readLineAndClosedParen().toFloat()
 				}
 				if (isSubclassOf(clazz, Long::class.java)) {
-					return reader!!.readLineAndClosedParen().toLong()
+					return reader.readLineAndClosedParen().toLong()
 				}
 				if (isSubclassOf(clazz, Double::class.java)) {
-					return reader!!.readLineAndClosedParen().toDouble()
+					return reader.readLineAndClosedParen().toDouble()
 				}
 				if (isSubclassOf(clazz, Boolean::class.java)) {
-					return java.lang.Boolean.parseBoolean(reader!!.readLineAndClosedParen())
+					return java.lang.Boolean.parseBoolean(reader.readLineAndClosedParen())
 				}
 				if (isSubclassOf(clazz, Char::class.java)) {
-					return reader!!.readLineAndClosedParen().trim { it <= ' ' }[0]
+					return reader.readLineAndClosedParen().trim { it <= ' ' }[0]
 				}
 				if (isSubclassOf(clazz, Reflector::class.java)) {
 					val a: Reflector<*>
@@ -1401,21 +1400,21 @@ open class Reflector<T> : IDirty {
 					return map
 				}
 				if (isSubclassOf(clazz, MutableCollection::class.java)) {
-					var c = current as MutableCollection<Any>?
-					if (!keepInstances || current == null) c = clazz.newInstance() as MutableCollection<Any>
-					deserializeCollection(c!!, reader, keepInstances)
+					var c = current as? MutableCollection<Any>?
+					c = if (!keepInstances || c == null) clazz.newInstance() as MutableCollection<Any> else c
+					deserializeCollection(c, reader, keepInstances)
 					return c
 				}
 				if (isSubclassOf(clazz, String::class.java)) {
-					val sin = reader!!.readLineAndClosedParen() ?: return null
+					val sin = reader.readLineAndClosedParen() ?: return null
 					return decodeString(sin.substring(1, sin.length - 1))
 				}
 				// try to create from a string constructor
 				val cons = clazz.getConstructor(String::class.java)
-				val arg = reader!!.readLineOrEOF()
+				val arg = reader.readLineOrEOF()
 				cons.newInstance(arg)
 			} catch (e: Exception) {
-				throw ParseException(reader!!.lineNum, e)
+				throw ParseException(reader.lineNum, e)
 			}
 		}
 
@@ -1426,9 +1425,9 @@ open class Reflector<T> : IDirty {
 
 		@Throws(IOException::class)
 		fun deserializeCollection(c: MutableCollection<Any>, reader: RBufferedReader, keepInstances: Boolean) {
-			val startDepth = reader!!.depth
+			val startDepth = reader.depth
 			var it: MutableIterator<*>? = null
-			if (!keepInstances || c!!.size == 0 || isImmutable(c!!.iterator().next()!!)) c!!.clear() else {
+			if (!keepInstances || c.size == 0 || isImmutable(c.iterator().next())) c.clear() else {
 				it = c.iterator()
 			}
 			while (true) {
@@ -1521,7 +1520,7 @@ open class Reflector<T> : IDirty {
 
 		@Throws(IOException::class)
 		fun deserializeMap(c: MutableMap<Any, Any?>, reader: RBufferedReader, keepInstances: Boolean) {
-			val startDepth = reader!!.depth
+			val startDepth = reader.depth
 			while (true) {
 				var line = reader.readLineOrEOF()
 				if (line == null || line == "null") break
@@ -1606,7 +1605,7 @@ open class Reflector<T> : IDirty {
 					val len = java.lang.reflect.Array.getLength(o)
 					val arr = java.lang.reflect.Array.newInstance(o.javaClass.componentType, len)
 					for (i in 0 until len) {
-						val oo = deepCopy(java.lang.reflect.Array.get(o, i))!!
+						val oo = deepCopy(java.lang.reflect.Array.get(o, i))
 						java.lang.reflect.Array.set(arr, i, oo)
 					}
 					return arr as T
@@ -1615,14 +1614,14 @@ open class Reflector<T> : IDirty {
 					val oldCollection = o as Collection<Any>
 					val newCollection = newCollectionInstance(getCanonicalName(o.backing.javaClass))
 					for (oo in oldCollection) {
-						newCollection.add(deepCopy(oo)!!)
+						newCollection.add(deepCopy(oo))
 					}
 					return DirtyCollection(newCollection) as T
 				} else if (o is Collection<*>) {
 					val oldCollection = o as Collection<Any>
 					val newCollection = newCollectionInstance(getCanonicalName(o.javaClass))
 					for (oo in oldCollection) {
-						newCollection.add(deepCopy(oo)!!)
+						newCollection.add(deepCopy(oo))
 					}
 					return newCollection as T
 				} else if (o is DirtyMap<*, *>) {
@@ -1630,8 +1629,8 @@ open class Reflector<T> : IDirty {
 					val newMap = o.backing.javaClass.newInstance() as MutableMap<Any, Any>
 					val it: Iterator<*> = map.entries.iterator()
 					while (it.hasNext()) {
-						val (key, value) = it.next() as MutableMap.MutableEntry<*, *>
-						newMap[deepCopy(key)!!] = deepCopy(value)!!
+						val (key, value) = it.next() as MutableMap.MutableEntry<Any, Any>
+						newMap[deepCopy(key)] = deepCopy(value)
 					}
 					return DirtyMap(newMap) as T
 				} else if (o is MutableMap<*, *>) {
@@ -1639,8 +1638,8 @@ open class Reflector<T> : IDirty {
 					val newMap = o.javaClass.newInstance() as MutableMap<Any, Any>
 					val it: Iterator<*> = map.entries.iterator()
 					while (it.hasNext()) {
-						val (key, value) = it.next() as MutableMap.MutableEntry<*, *>
-						newMap[deepCopy(key)!!] = deepCopy(value)!!
+						val (key, value) = it.next() as MutableMap.MutableEntry<Any, Any>
+						newMap[deepCopy(key)] = deepCopy(value)
 					}
 					return newMap as T
 				}

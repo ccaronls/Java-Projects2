@@ -11,6 +11,8 @@ inline fun <reified K, reified V> Map<K, V>.toMirroredMap(): MirroredMap<K, V> {
 
 /**
  * Created by Chris Caron on 12/10/23.
+ *
+ * MirroredMap initialize to 'dirty' if there are any elements
  */
 class MirroredMap<K, V>(map: Map<K, V>, keyType: Class<K>, valueType: Class<V>) : Mirrored, MutableMap<K, V> {
 
@@ -121,6 +123,8 @@ class MirroredMap<K, V>(map: Map<K, V>, keyType: Class<K>, valueType: Class<V>) 
 
 	override fun isDirty(): Boolean {
 		if (sizeChanged)
+			return true
+		if (changedKeys.isNotEmpty())
 			return true
 		entries.forEach {
 			if (it.value is Mirrored) {

@@ -2,14 +2,14 @@ package cc.lib.zombicide
 
 import cc.lib.game.GColor
 import cc.lib.game.GRectangle
+import cc.lib.ksp.remote.IRemote
+import cc.lib.ksp.remote.Remote
+import cc.lib.ksp.remote.RemoteFunction
 import cc.lib.logger.LoggerFactory
 import cc.lib.reflector.Alternate
 import cc.lib.reflector.Omit
 import cc.lib.reflector.RBufferedReader
 import cc.lib.reflector.Reflector
-import cc.lib.rem.annotation.Remote
-import cc.lib.rem.annotation.RemoteFunction
-import cc.lib.rem.context.IRemote
 import cc.lib.utils.GException
 import cc.lib.utils.Grid
 import cc.lib.utils.Grid.Pos

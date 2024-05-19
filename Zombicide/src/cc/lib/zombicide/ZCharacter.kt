@@ -713,10 +713,9 @@ class ZCharacter(
 
 	fun getArmorRatings(type: ZZombieType): List<Int> {
 		val ratings: MutableList<Int> = ArrayList()
-		var skillRating = 0
-		for (skill in getAvailableSkills()) {
-			skillRating = skillRating.coerceAtLeast(skill.getArmorRating(type))
-		}
+		var skillRating = getAvailableSkills().map {
+			it.getArmorRating(this, type)
+		}.filter { it > 0 }.takeIf { it.isNotEmpty() }?.min() ?: 0
 		for (slot in wearableValues()) {
 			getSlot(slot)?.let { e ->
 				var rating = e.type.getDieRollToBlock(type)

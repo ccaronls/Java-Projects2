@@ -1,6 +1,9 @@
 package cc.lib.net
 
 import cc.lib.utils.NoDupesMap
+import cc.lib.utils.Table
+import kotlin.math.max
+import kotlin.math.min
 
 /**
  * <pre>
@@ -38,14 +41,50 @@ import cc.lib.utils.NoDupesMap
  * @author ccaron
  */
 class GameCommandType(private val mName: String) : Comparable<GameCommandType> {
-	private val mOrdinal: Int
+	private val mOrdinal = instances.size
 
-	/**
-	 *
-	 * @param name
-	 */
+	private class Stat {
+		var min = 0L
+			private set
+		var max = 0L
+			private set
+		var avg = 0.0
+			private set
+		var total = 0L
+			private set
+		var num = 0L
+			private set
+
+
+		fun reset() {
+			min = 0
+			max = 0
+			avg = 0.0
+			total = 0
+			num = 0
+		}
+
+		fun add(sizeBytes: Long) {
+			if (total + sizeBytes < 0)
+				return
+			total += sizeBytes
+			if (min == 0L)
+				min = sizeBytes
+			else
+				min = min(min, sizeBytes)
+			max = max(max, sizeBytes)
+			num++
+			avg = total.toDouble() / num
+		}
+	}
+
+	private val stats = Stat()
+
+	fun addStat(sizeBytes: Long) {
+		stats.add(sizeBytes)
+	}
+
 	init {
-		mOrdinal = instances.size
 		instances[mName] = this
 	}
 
@@ -57,8 +96,8 @@ class GameCommandType(private val mName: String) : Comparable<GameCommandType> {
 		return mOrdinal
 	}
 
-	override operator fun compareTo(arg0: GameCommandType): Int {
-		return mOrdinal.compareTo(arg0.mOrdinal)
+	override operator fun compareTo(other: GameCommandType): Int {
+		return mOrdinal.compareTo(other.mOrdinal)
 	}
 
 	/**
@@ -99,7 +138,7 @@ class GameCommandType(private val mName: String) : Comparable<GameCommandType> {
 		@JvmField
 		val CL_CONNECTION_SPEED = GameCommandType("CL_CONNECTION_SPEED")
 
-		// report an error that occured on the client
+		// report an error that occurred on the client
 		@JvmField
 		val CL_ERROR = GameCommandType("CL_ERROR")
 
@@ -151,7 +190,24 @@ class GameCommandType(private val mName: String) : Comparable<GameCommandType> {
 		@JvmStatic
 		@Throws(IllegalArgumentException::class)
 		fun valueOf(id: String): GameCommandType {
-			return instances[id] ?: throw java.lang.IllegalArgumentException("Unknown GameComamndType '$id'")
+			return instances[id] ?: throw java.lang.IllegalArgumentException("Unknown GameCommandType '$id'")
+		}
+
+		fun getStatsTable(): Table {
+			val stats = instances.map { it.value to it.value.stats }.toMap()
+			return Table()
+				.addColumn("TYPE", stats.keys.toList())
+				.addColumn("NUM", stats.values.map { it.num })
+				.addColumn("TOTAL", stats.values.map { it.total })
+				.addColumn("MIN", stats.values.map { it.min })
+				.addColumn("MAX", stats.values.map { it.max })
+				.addColumn("AVG", stats.values.map { String.format("%0.2f", it.avg) })
+		}
+
+		fun resetStats() {
+			instances.forEach {
+				it.value.stats.reset()
+			}
 		}
 	}
 }

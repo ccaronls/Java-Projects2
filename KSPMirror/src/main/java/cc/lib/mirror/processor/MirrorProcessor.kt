@@ -527,11 +527,19 @@ class MirrorProcessor(
 				indent = i
 				mapped.forEach {
 					val name = it.key.getName()
-					if (it.value.isList() || it.value.isMirrored() || it.value.isMap()) {
+					if (it.value.isList() || it.value.isMirrored() || it.value.isMap() || it.value.isArray()) {
 						appendLn("if (!isContentsEquals($name as Mirrored?, other.$name)) return false")
 					} else {
 						appendLn("if ($name != other.$name) return false")
 					}
+				}
+			}.toString()
+
+			fun printCopyContent(i: String): String = StringBuffer().apply {
+				indent = i
+				mapped.forEach {
+					val name = it.key.getName()
+					appendLn("$name = other.$name")
 				}
 			}.toString()
 
@@ -584,9 +592,21 @@ ${printIsEqualsContent("        ")}
 		return super<$baseDeclaration>.contentEquals(other)
 	}
 }				
-""")
+"""
+			)
 		}
 	}
+
+	/*
+
+	override fun copy(other : Any) {
+		if (other !is $classDeclaration)
+			throw IllegalArgumentException("Call only copy classes of type $classDeclaration")
+${printCopyContent("          ")}
+		super<$baseDeclaration>.copy(other)
+	}
+
+	 */
 
 	override fun process(resolver: Resolver): List<KSAnnotated> {
 		this.resolver = resolver

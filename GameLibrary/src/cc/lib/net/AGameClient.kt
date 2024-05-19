@@ -1,9 +1,9 @@
 package cc.lib.net
 
 import cc.lib.game.Utils
+import cc.lib.ksp.remote.IRemote
 import cc.lib.logger.LoggerFactory
 import cc.lib.reflector.Reflector
-import cc.lib.rem.context.IRemote
 import cc.lib.utils.GException
 import java.io.IOException
 import java.lang.reflect.Method
@@ -308,7 +308,7 @@ abstract class AGameClient(deviceName: String, version: String) {
 					obj.executeLocally(method, *params.map { it.second }.toTypedArray())
 				}
 			} else {
-				log.warn("!!!!Using deprecated method to execute method!!!")
+				log.warn("!!!!Using deprecated reflector to execute method!!!")
 				// TODO: Deprecate Reflector
 				val m = findMethod(method, obj, params.map { it.first }.toTypedArray(), params.map { it.second }.toTypedArray())
 				ExecutorThread(responseId) {
