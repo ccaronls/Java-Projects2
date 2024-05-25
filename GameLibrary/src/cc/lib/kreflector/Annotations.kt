@@ -32,6 +32,3 @@ annotation class Omit
 @Target(AnnotationTarget.FIELD)
 @Retention(value = RetentionPolicy.RUNTIME)
 annotation class Alternate(val variations: Array<String>)
-
-@Target(AnnotationTarget.CLASS)
-annotation class Reflect()

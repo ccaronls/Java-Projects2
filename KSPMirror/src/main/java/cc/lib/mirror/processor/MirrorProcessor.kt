@@ -1,17 +1,14 @@
 package cc.lib.mirror.processor
 
+import cc.lib.ksp.helper.BaseProcessor
+import cc.lib.ksp.helper.print
 import cc.lib.ksp.mirror.DirtyType
-import cc.lib.ksp.mirror.IData
 import cc.lib.ksp.mirror.Mirror
-import cc.lib.ksp.mirror.Mirrored
-import cc.lib.ksp.mirror.MirroredArray
-import com.google.devtools.ksp.getClassDeclarationByName
 import com.google.devtools.ksp.getDeclaredProperties
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.Dependencies
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
-import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.symbol.ClassKind
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSAnnotation
@@ -19,7 +16,6 @@ import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import com.google.devtools.ksp.symbol.KSType
 import com.google.devtools.ksp.symbol.KSVisitorVoid
-import com.google.devtools.ksp.symbol.Modifier
 import com.google.devtools.ksp.symbol.Nullability
 import com.google.devtools.ksp.validate
 import java.io.OutputStream
@@ -28,131 +24,17 @@ import java.io.OutputStream
  * Created by Chris Caron on 11/14/23.
  */
 class MirrorProcessor(
-	private val codeGenerator: CodeGenerator,
-	private val logger: KSPLogger,
-	private val options: Map<String, String>
-) : SymbolProcessor {
+	codeGenerator: CodeGenerator,
+	logger: KSPLogger,
+	options: Map<String, String>
+) : BaseProcessor(codeGenerator, logger, options) {
 
-	lateinit var resolver: Resolver
-
-	val listType by lazy {
-		resolver.getClassDeclarationByName(List::class.qualifiedName!!)!!.asStarProjectedType()
-	}
-
-	val mapType by lazy {
-		resolver.getClassDeclarationByName(Map::class.qualifiedName!!)!!.asStarProjectedType()
-	}
-
-	val mirrorType by lazy {
-		resolver.getClassDeclarationByName(
-			Mirrored::class.qualifiedName!!
-		)!!.asStarProjectedType().makeNullable()
-	}
-
-	val idataType by lazy {
-		resolver.getClassDeclarationByName(
-			IData::class.qualifiedName!!
-		)!!.asStarProjectedType().makeNullable()
-	}
-
-	val mirroredArrayType by lazy {
-		resolver.getClassDeclarationByName(
-			MirroredArray::class.qualifiedName!!
-		)!!.asStarProjectedType().makeNullable()
-	}
-
-	val arrayType by lazy {
-		resolver.getClassDeclarationByName(Array::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
-	}
-
-	val booleanType by lazy {
-		resolver.getClassDeclarationByName(Boolean::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
-	}
-
-	val byteType by lazy {
-		resolver.getClassDeclarationByName(Byte::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
-	}
-
-	val charType by lazy {
-		resolver.getClassDeclarationByName(Char::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
-	}
-
-	val shortType by lazy {
-		resolver.getClassDeclarationByName(Short::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
-	}
-
-	val intType by lazy {
-		resolver.getClassDeclarationByName(Int::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
-	}
-
-	val floatType by lazy {
-		resolver.getClassDeclarationByName(Float::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
-	}
-
-	val doubleType by lazy {
-		resolver.getClassDeclarationByName(Double::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
-	}
-
-	val stringType by lazy {
-		resolver.getClassDeclarationByName(String::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
-	}
-
-	val longType by lazy {
-		resolver.getClassDeclarationByName(Long::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
-	}
-
-	fun KSType.isMirrored(): Boolean {
-		return mirrorType.isAssignableFrom(this)
-	}
-
-	fun KSType.isIData(): Boolean {
-		return idataType.isAssignableFrom(this)
-	}
-
-	fun KSType.isPrimitive(): Boolean {
-		return booleanType.isAssignableFrom(this) ||
-			intType.isAssignableFrom(this) ||
-			stringType.isAssignableFrom(this) ||
-			longType.isAssignableFrom(this) ||
-			floatType.isAssignableFrom(this) ||
-			byteType.isAssignableFrom(this) ||
-			charType.isAssignableFrom(this) ||
-			shortType.isAssignableFrom(this) ||
-			doubleType.isAssignableFrom(this)
-	}
-
-	fun KSType.isList(): Boolean {
-		return listType.isAssignableFrom(this)
-	}
-
-	fun KSType.isMap(): Boolean {
-		return mapType.isAssignableFrom(this)
-	}
-
-	fun KSType.isArray(): Boolean {
-		return arrayType.isAssignableFrom(this)
-	}
-
-	fun KSType.isMirroredArray(): Boolean {
-		return mirroredArrayType.isAssignableFrom(this)
-	}
-
-	fun KSType.isEnum(): Boolean {
-		return resolver.getClassDeclarationByName(this.declaration.qualifiedName!!)!!.classKind == ClassKind.ENUM_CLASS
-	}
-
-	fun KSType.isUnit(): Boolean {
-		return toString() == "Unit"
-	}
+	override lateinit var resolver: Resolver
 
 	fun getClassFileName(symbol: String): String {
 		if (symbol.startsWith("I"))
 			return symbol.substring(1) + "Impl"
 		return symbol + "Impl"
-	}
-
-	fun OutputStream.print(s: String) {
-		write(s.toByteArray())
 	}
 
 	fun KSPropertyDeclaration.getName(): String = simpleName.asString()
@@ -193,36 +75,36 @@ class MirrorProcessor(
 			// Getting the list of member properties of the annotated interface.
 			val properties: Sequence<KSPropertyDeclaration> = classDeclaration.getDeclaredProperties()
 				.filter { it.validate() }
+			/*
+						val methods = classDeclaration.getAllFunctions().filter { decl ->
+							decl.annotations.firstOrNull { it.shortName.asString() == "MirroredFunction" } != null && decl.validate()
+						}.toList()
 
-			val methods = classDeclaration.getAllFunctions().filter { decl ->
-				decl.annotations.firstOrNull { it.shortName.asString() == "MirroredFunction" } != null && decl.validate()
-			}.toList()
+						methods.forEach { funcDecl ->
+							if (!funcDecl.modifiers.contains(Modifier.SUSPEND)) {
+								throw Exception("Function $funcDecl must have suspend modifier")
+							}
 
-			methods.forEach { funcDecl ->
-				if (!funcDecl.modifiers.contains(Modifier.SUSPEND)) {
-					throw Exception("Function $funcDecl must have suspend modifier")
-				}
+							val rt = funcDecl.returnType?.resolve()!!
+							if (!rt.isUnit() && !rt.isMarkedNullable) {
+								throw Exception("Function $funcDecl must have Unit or nullable return type")
+							}
 
-				val rt = funcDecl.returnType?.resolve()!!
-				if (!rt.isUnit() && !rt.isMarkedNullable) {
-					throw Exception("Function $funcDecl must have Unit or nullable return type")
-				}
-
-				funcDecl.parameters.forEach {
-					with(it.type.resolve()) {
-						if (isMirrored() && !isMarkedNullable) {
-							throw Exception("Mirrored function params must be nullable")
+							funcDecl.parameters.forEach {
+								with(it.type.resolve()) {
+									if (isMirrored() && !isMarkedNullable) {
+										throw Exception("Mirrored function params must be nullable")
+									}
+								}
+							}
 						}
-					}
-				}
-			}
 
-			val filteredMethods = methods.map {
-				it to Pair(it.parameters.map {
-					Pair(it.name!!, it.type.resolve())
-				}.toList(), it.returnType!!.resolve())
-			}.toMap()
-
+						val filteredMethods = methods.map {
+							it to Pair(it.parameters.map {
+								Pair(it.name!!, it.type.resolve())
+							}.toList(), it.returnType!!.resolve())
+						}.toMap()
+			*/
 			val mapped = properties.map { Pair(it, it.type.resolve()) }.toMap()
 
 			var indent = ""

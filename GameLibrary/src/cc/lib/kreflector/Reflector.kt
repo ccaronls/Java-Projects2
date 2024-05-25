@@ -1686,8 +1686,8 @@ open class Reflector<T> : IDirty {
 			log.info("canonicalNameCache=" + canonicalNameCache.toString().replace(',', '\n'))
 		}
 
-		init {
-			ReflectionLoader.loadClasses()
-		}
+//		init {
+//			ReflectionLoader.loadClasses()
+//		}
 	}
 }

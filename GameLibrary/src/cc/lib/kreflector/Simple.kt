@@ -1,7 +1,6 @@
 package cc.lib.kreflector
 
-import cc.lib.utils.DirtyGrid
-
+/*
 @Reflect
 class Simple(var x: Int = 0, var y: Int = 0) : Reflector<Simple>()
 
@@ -31,3 +30,4 @@ class TestDirty3 : DirtyReflector<TestDirty2>() {
 	val dirty = TestDirty()
 	val dirty2 = TestDirty2()
 }
+*/
