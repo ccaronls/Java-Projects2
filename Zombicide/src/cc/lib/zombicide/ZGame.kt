@@ -335,7 +335,7 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
             for (u: ZUser in users) {
                 for (pl: ZPlayerName in u.players) {
 	                val c: ZCharacter = pl.create()
-	                c.color = u.getColor()
+	                c.colorId = u.colorId
 	                val cell: ZCell = startCells[curCellIndex]
 	                curCellIndex = curCellIndex.rotate(startCells.size)
 	                c.occupiedZone = cell.zoneIndex
@@ -846,7 +846,7 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 		            else -> getCurrentUser().chooseNewSkill(ch.type, options)
 	            }?.let { skill ->
 		            log.debug("New Skill Chosen: $skill")
-		            onNewSkillAquired(ch.type, skill)
+		            onNewSkillAcquired(ch.type, skill)
                     ch.addSkill(skill)
                     skill.onAcquired(this, ch)
                     options.remove(skill)
@@ -993,9 +993,10 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 						    ZMoveType.SEARCH -> {
 							    val equip = lootDeck.removeLast()
 							    if (equip.type == ZItemType.AHHHH) {
-
+								    TODO()
 							    } else if (familiar.occupiedZone == ch.occupiedZone) {
 								    // treat this like the user searched
+								    TODO()
 							    } else {
 								    familiar.equipment = equip
 							    }
@@ -1137,7 +1138,7 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 	}
 
 	@RemoteFunction
-	protected open fun onNewSkillAquired(c: ZPlayerName, skill: ZSkill) {
+	protected open fun onNewSkillAcquired(c: ZPlayerName, skill: ZSkill) {
 		log.debug("%s acquires new skill %s", c, skill)
 	}
 
@@ -2711,9 +2712,12 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
     }
 
 	@RemoteFunction
-	protected open fun onSpawnCard(card: ZSpawnCard, color: ZColor) {}
+	protected open fun onSpawnCard(card: ZSpawnCard, color: ZColor) {
+	}
 
 	fun getCurrentUser(): ZUser = users[currentUser.coerceIn(0 until users.size)]
+
+	fun getUserForCharacter(character: ZCharacter): ZUser? = users.firstOrNull { it.colorId == character.colorId }
 
 	open val currentCharacter: ZCharacter?
 		get() = if (stateStack.isEmpty()) null
@@ -3070,7 +3074,7 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 			throw IllegalArgumentException("color Id out of range")
 		user.colorId = colorId
 		user.players.forEach {
-			board.getCharacterOrNull(it)?.color = ZUser.USER_COLORS[colorId]
+			board.getCharacterOrNull(it)?.colorId = colorId
 		}
 
 	}

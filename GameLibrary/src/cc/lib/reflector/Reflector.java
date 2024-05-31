@@ -1003,6 +1003,10 @@ public class Reflector<T> implements IDirty {
         return null;
     }
 
+    protected static <T> T parse(Class<T> clazz, RBufferedReader in) throws IOException {
+        return (T) parse(null, clazz, in, false);
+    }
+
     private static Object parse(Object current, Class<?> clazz, RBufferedReader in, boolean keepInstances) throws IOException {
         try {
             Class<?> enumClazz = isEnum(clazz);
@@ -1385,15 +1389,19 @@ public class Reflector<T> implements IDirty {
                 }
             }
             if (parts != null) {
-                if (THROW_ON_UNKNOWN)
-                    throw new ParseException(in.lineNum, "Unknown field: " + name + " not in fields: " + values.keySet());
-                log.error("Unknown field: " + name + " not found in class: " + getClass());// + " not in fields: " + values.keySet());
+                parseUnknownField(name, parts[1], in);
                 // skip ahead until depth matches current depth
                 while (in.depth > depth) {
                     in.readLineOrEOF();
                 }
             }
         }
+    }
+
+    protected void parseUnknownField(String name, String value, RBufferedReader in) throws Exception {
+        if (THROW_ON_UNKNOWN)
+            throw new ParseException(in.lineNum, "Unknown field: " + name + " not in fields: " + getValues(getClass(), false).keySet());
+        log.error("Unknown field: " + name + " not found in class: " + getClass());// + " not in fields: " + values.keySet());
     }
 
     private static boolean isArraysEqual(Object a, Object b) {

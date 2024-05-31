@@ -22,7 +22,6 @@ sourceSets {
 dependencies {
     implementation(project(":KSPCommon"))
     ksp(project(":KSPReflector"))
-    implementation "com.google.code.gson:gson:${google_json_version}"
 //    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0"
 }
 

@@ -39,14 +39,13 @@ class ZServerMgr(activity: ZombicideActivity, game: UIZombicide, val maxCharacte
 	override fun onConnected(conn: AClientConnection) {
 		if (game.isGameRunning()) {
 			conn.getAttribute("color")?.takeIfInstance<Int>()?.let { colorId ->
-				val color = ZUser.USER_COLORS[colorId]
-				var charsList = game.board.getAllCharacters().filter { it.color == color }
-				log.debug("color: $color, chars: ${charsList.joinToString()}")
+				var charsList = game.board.getAllCharacters().filter { it.colorId == colorId }
+				log.debug("colorId: $colorId (${ZUser.USER_COLOR_NAMES[colorId]}, chars: ${charsList.joinToString()}")
 				if (charsList.isEmpty()) {
 					val allInvisible = game.board.getAllCharacters().filter { it.isInvisible }
-					val colors = allInvisible.map { it.color }.toSet().toList()
-					log.debug("allColors: ${colors.joinToString()}")
-					charsList = allInvisible.filter { it.color == colors[0] }
+					val colors = allInvisible.map { it.colorId }.distinct().toList()
+					log.debug("allColors: ${colors.joinToString { ZUser.getColorName(it) }}")
+					charsList = allInvisible.filter { it.colorId == colors[0] }
 				}
 				if (charsList.isNotEmpty()) {
 					conn.addListener(this)
@@ -62,9 +61,6 @@ class ZServerMgr(activity: ZombicideActivity, game: UIZombicide, val maxCharacte
 					broadcastPlayerStarted(user.name)
 					game.setUserColorId(user, colorId)
 					conn.sendCommand(newLoadQuest(game.quest.quest))
-					val assignments = charsList.map {
-						Assignee(it.type, conn.name, colorId, true)
-					}
 					conn.sendCommand(newInit(colorId, game.quest.quest))
 					conn.sendCommand(newUpdateGameCommand(game))
 					game.characterRenderer.addMessage(

@@ -4,6 +4,7 @@ import cc.lib.reflector.RPrintWriter
 import cc.lib.reflector.Reflector
 import cc.lib.utils.GException
 import cc.lib.utils.NoDupesMap
+import cc.lib.utils.takeIfInstance
 import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
 import java.io.DataOutputStream
@@ -114,8 +115,9 @@ class GameCommand(val type: GameCommandType) {
 		return this
 	}
 
-	fun <T : Enum<T>> setEnumList(arg: String, items: Iterable<T>) {
+	fun <T : Enum<T>> setEnumList(arg: String, items: Iterable<T>): GameCommand {
 		_arguments[arg] = items.joinToString { it.name }
+		return this
 	}
 
 	/**
@@ -130,6 +132,12 @@ class GameCommand(val type: GameCommandType) {
 				enumValueOf(it.trim())
 			}
 		} ?: emptyList()
+	}
+
+	inline fun <reified T : Enum<T>> getEnum(arg: String, defaultValue: T? = null): T? {
+		return arguments[arg]?.takeIfInstance<String>()?.let {
+			enumValueOf<T>(it)
+		} ?: defaultValue
 	}
 
 	/**

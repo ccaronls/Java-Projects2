@@ -283,11 +283,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 
 			override fun updateOrganize(character: ZCharacter, list: List<ZMove>): ZMove? {
 				Log.d(TAG, "updateOrganize moves: ${list.joinToString(separator = "\n")}")
-				runOnUiThread {
-					organizeDialog?.let {
-						it.viewModel.allOptions.value = list
-					}
-				}
+				organizeDialog?.viewModel?.allOptions?.postValue(list)
 				return waitForUser(ZMove::class.java)
 			}
 		}
@@ -492,22 +488,22 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 				if (game.tryLoadFromFile(gameFile)) {
 					boardRenderer.board = game.board
 					log.debug(game.allCharacters.joinToString("\n") {
-						it.name() + " " + ZUser.getColorName(it.color) + " invisible:" + it.isInvisible
+						it.name() + " " + ZUser.getColorName(it.colorId) + " invisible:" + it.isInvisible
 					})
-					if (game.allCharacters.map { it.color }.toSet().size > 1) {
+					if (game.allCharacters.map { it.colorId }.toSet().size > 1) {
 						newDialogBuilder().setMessage("Resume in Multiplayer mode?")
 							.setNegativeButton(R.string.popup_button_no) { _, _ ->
 								thisUser.setCharacters(game.allCharacters)
 								startGame()
 							}.setPositiveButton(R.string.popup_button_yes) { _, _ ->
 								log.debug("this user color: ${thisUser.getColorName()}")
-								game.allCharacters.filter { it.color == thisUser.getColor() }
+								game.allCharacters.filter { it.colorId == thisUser.colorId }
 									.apply {
 										log.debug("Assigning ${joinToString { it.name() }} to host user")
 										thisUser.setCharacters(this)
 									}
 								// make remaining characters invisible to show they are waiting to join
-								game.allCharacters.filter { it.color != thisUser.getColor() }
+								game.allCharacters.filter { it.colorId != thisUser.colorId }
 									.forEach {
 										it.isInvisible = true
 										it.isReady = false

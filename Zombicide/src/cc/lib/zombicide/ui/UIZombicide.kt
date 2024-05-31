@@ -757,8 +757,8 @@ abstract class UIZombicide(
 		boardRenderer.wait(500)
 	}
 
-	override fun onNewSkillAquired(c: ZPlayerName, skill: ZSkill) {
-		super.onNewSkillAquired(c, skill)
+	override fun onNewSkillAcquired(c: ZPlayerName, skill: ZSkill) {
+		super.onNewSkillAcquired(c, skill)
 		boardRenderer.addPostActor(HoverMessage(boardRenderer, String.format("%s Acquired", skill.getLabel()), c.toCharacter()))
 		characterRenderer.addMessage(String.format("%s has acquired the %s skill", c.getLabel(), skill.getLabel()))
 	}

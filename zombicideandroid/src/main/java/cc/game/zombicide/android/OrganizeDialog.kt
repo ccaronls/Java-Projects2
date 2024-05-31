@@ -64,17 +64,17 @@ fun ListView.setListOptions(list : List<ZMove>, viewModel : OrganizeViewModel) {
 }
 
 @BindingAdapter("tagMove", "character", "slot", "dragging", "equipped")
-fun View.setTagFromMoves(moves : List<ZMove>, _character : ZCharacter?, slot : ZEquipSlot, dragging : Boolean, equipped : Boolean) {
-	_character?.let { character ->
+fun View.setTagFromMoves(moves: List<ZMove>, character: ZCharacter?, slot: ZEquipSlot, dragging: Boolean, equipped: Boolean) {
+	character?.let { ch ->
 		Log.d(
 			TAG,
-			"setTagFromMoves: char: $_character, slot:$slot, equipped: $equipped, moves: ${moves.joinToString(separator = "\n") { it.toStringAbbrev() }}"
+			"setTagFromMoves: char: $character, slot:$slot, equipped: $equipped, moves: ${moves.joinToString(separator = "\n") { it.toStringAbbrev() }}"
 		)
 		val options = moves.filter {
-			it.character == character.type && ((it.toSlot == null && it.fromSlot == slot) || it.toSlot == slot)
+			it.character == ch.type && ((it.toSlot == null && it.fromSlot == slot) || it.toSlot == slot)
 		}
 		tag = options.firstOrNull()?.also {
-			Log.d(TAG, "tag for ${character.name()}:${slot} -> $tag")
+			Log.d(TAG, "tag for ${ch.name()}:${slot} -> $tag")
 		}
 
 		if (dragging) {

@@ -6,7 +6,6 @@ dependencies {
     implementation(project(':KSPHelper'))
     implementation(project(':KSPCommon'))
     implementation "com.google.devtools.ksp:symbol-processing-api:${kotlin_version}-1.0.+"
-    implementation "com.google.code.gson:gson:${google_json_version}"
 }
 
 sourceSets {

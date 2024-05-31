@@ -27,13 +27,13 @@ abstract class ZUser(_name: String?, var colorId: Int) : IRemote {
 
 	fun addCharacter(c: ZCharacter) {
 		_players.add(c.type)
-		c.color = getColor()
+		c.colorId = colorId
 		c.isInvisible = false
 	}
 
 	fun removeCharacter(character: ZCharacter) {
 		_players.remove(character.type)
-		character.color = GColor.TRANSLUSCENT_BLACK
+		character.colorId = -1
 	}
 
 	fun setCharacters(chars: List<ZCharacter>) {
@@ -211,12 +211,6 @@ abstract class ZUser(_name: String?, var colorId: Int) : IRemote {
 		val USER_COLOR_NAMES = arrayOf(
 			"YELLOW", "RED", "GREEN", "ORANGE", "BLUE", "MAGENTA"
 		)
-
-		fun getColorName(color: GColor): String {
-			return USER_COLORS.indexOfFirst { color == it }.takeIf { it >= 0 }?.let {
-				USER_COLOR_NAMES[it]
-			} ?: "Unknown $color"
-		}
 
 		fun getColorName(id: Int): String = if (id in USER_COLORS.indices) {
 			USER_COLOR_NAMES[id]

@@ -4,7 +4,7 @@ import cc.lib.android.SpinnerTask
 import cc.lib.net.GameCommand
 import cc.lib.utils.Lock
 
-internal open class CLSendCommandSpinnerTask(val context: ZombicideActivity) : SpinnerTask<GameCommand>(context), ZMPCommon.CLListener {
+open class CLSendCommandSpinnerTask(val context: ZombicideActivity) : SpinnerTask<GameCommand>(context), ZMPCommon.CLListener {
 	private val clientMgr: ZClientMgr = context.clientMgr!!
 	private val lock = Lock()
 

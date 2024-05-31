@@ -1124,7 +1124,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 			// draw the actors
 			for (a in board.getAllActors()) {
 				g.color = when (a) {
-					is ZCharacter -> a.color ?: GColor.BLACK
+					is ZCharacter -> a.color
 					is ZZombie -> GColor.LIGHT_GRAY
 					else -> GColor.BLACK
 				}

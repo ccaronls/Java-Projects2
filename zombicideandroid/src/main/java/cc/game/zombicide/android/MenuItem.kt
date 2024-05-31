@@ -16,7 +16,7 @@ enum class MenuItem : UIZButton {
 			return with(UIZombicide.instance) {
 				"""${quest.name}
 					round: $roundNum
-					players: ${allCharacters.map { it.color }.distinct().size}
+					players: ${allCharacters.map { it.colorId }.distinct().size}
 					Completed %${quest.getPercentComplete(this)}
 					""".trimMargin()
 			}

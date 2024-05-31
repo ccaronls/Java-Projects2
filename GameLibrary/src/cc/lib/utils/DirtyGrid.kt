@@ -124,14 +124,14 @@ class DirtyGrid<T> : DirtyReflector<DirtyGrid<T>> {
 	 * @return
 	 */
 	val rows: Int
-		get() = if (grid == null) 0 else grid!!.size
+		get() = grid?.size ?: 0
 
 	/**
 	 *
 	 * @return
 	 */
 	val cols: Int
-		get() = if (grid == null || grid!!.size == 0) 0 else grid!![0]!!.size
+		get() = grid?.firstOrNull()?.size ?: 0
 
 	/**
 	 *

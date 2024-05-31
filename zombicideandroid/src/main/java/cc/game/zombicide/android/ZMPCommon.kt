@@ -21,6 +21,9 @@ open class ZMPCommon(val activity: ZombicideActivity, val game: UIZombicide) {
 		const val CONNECT_PORT = 31314
 		const val VERSION = BuildConfig.VERSION_NAME
 
+		// common
+		val CANCEL = GameCommandType("CANCEL")
+
 		// commands that originate from server are marked SVR
 		val SVR_INIT = GameCommandType("SVR_INIT")
 		val SVR_LOAD_QUEST = GameCommandType("SVR_LOAD_QUEST")
@@ -41,7 +44,11 @@ open class ZMPCommon(val activity: ZombicideActivity, val game: UIZombicide) {
 		}
 	}
 
-	interface CLListener {
+	interface ComListener {
+		fun onCancel() {}
+	}
+
+	interface CLListener : ComListener {
 		fun onLoadQuest(quest: ZQuests) {
 		}
 
@@ -70,17 +77,39 @@ open class ZMPCommon(val activity: ZombicideActivity, val game: UIZombicide) {
 		fun onMaxCharactersPerPlayerUpdated(max: Int) {}
 	}
 
-	abstract class CL(activity: ZombicideActivity, game: UIZombicide) : ZMPCommon(activity, game) {
+	abstract class COM<T : ComListener>(activity: ZombicideActivity, game: UIZombicide) : ZMPCommon(activity, game) {
 
-		private val listeners = Collections.synchronizedSet(HashSet<CLListener>())
+		private val listeners = Collections.synchronizedSet(HashSet<T>())
 
-		fun addListener(listener: CLListener) {
+		fun addListener(listener: T) {
 			listeners.add(listener)
 		}
 
-		fun removeListener(listener: CLListener) {
+		fun removeListener(listener: T) {
 			listeners.remove(listener)
 		}
+
+
+		fun notifyListeners(callback: (l: T) -> Unit) {
+			HashSet(listeners).forEach {
+				callback(it)
+			}
+		}
+
+		fun newCancel() = GameCommand(CANCEL)
+
+		fun parseCommand(cmd: GameCommand) {
+			when (cmd.type) {
+				CANCEL -> {
+					notifyListeners {
+						it.onCancel()
+					}
+				}
+			}
+		}
+	}
+
+	abstract class CL(activity: ZombicideActivity, game: UIZombicide) : COM<CLListener>(activity, game) {
 
 		fun newAssignCharacter(name: ZPlayerName, checked: Boolean): GameCommand {
 			return GameCommand(CL_CHOOSE_CHARACTER).setArg("name", name.name).setArg("checked", checked)
@@ -98,54 +127,66 @@ open class ZMPCommon(val activity: ZombicideActivity, val game: UIZombicide) {
 			return GameCommand(CL_BUTTON_PRESSED).setArg("button", "COLOR_PICKER")
 		}
 
-		fun notifyListeners(callback: (l: CLListener) -> Unit) {
-			HashSet(listeners).forEach {
-				callback(it)
-			}
-		}
-
 		fun parseSVRCommand(cmd: GameCommand) {
 			try {
-				if (cmd.type == SVR_INIT) {
-					val color = cmd.getInt("color")
-					val quest = ZQuests.valueOf(cmd.getString("quest"))
-					notifyListeners { it.onInit(color, quest) }
-				} else if (cmd.type == SVR_LOAD_QUEST) {
-					val quest = ZQuests.valueOf(cmd.getString("quest"))
-					notifyListeners { it.onLoadQuest(quest) }
-				} else if (cmd.type == SVR_OPEN_ASSIGNMENTS) {
-					val maxCharacters = cmd.getInt("maxCharacters")
-					val list: List<Assignee> =
-						Reflector.deserializeFromString(cmd.getString("assignments"))
-					notifyListeners { it.onOpenAssignments(maxCharacters, list) }
-				} else if (cmd.type == SVR_ASSIGN_PLAYER) {
-					val a = cmd.getReflector("assignee", Assignee())
-					notifyListeners { it.onAssignPlayer(a) }
-				} else if (cmd.type == SVR_UPDATE_GAME) {
-					cmd.getReflector("board", game.board)
-					cmd.getReflector("quest", game.quest)
-					client.setLocalProperty("numSpawn", cmd.getInt("spawnDeckSize", -1))
-					client.setLocalProperty("numLoot", cmd.getInt("lootDeckSize", -1))
-					client.setLocalProperty("numHoard", cmd.getInt("hoardSize", -1))
-					notifyListeners { it.onGameUpdated(game) }
-				} else if (cmd.type == SVR_PLAYER_STARTED) {
-					val user = cmd.getString("userName")
-					val numStarted = cmd.getInt("numStarted")
-					val numTotal = cmd.getInt("numTotal")
-					notifyListeners { it.onPlayerPressedStart(user, numStarted, numTotal) }
-				} else if (cmd.type == SVR_COLOR_OPTIONS) {
-					val options: List<Int> =
-						Reflector.deserializeFromString(cmd.getString("options"))
-					notifyListeners { it.onColorOptions(options) }
-				} else if (cmd.type == SVR_CONNECTIONS_INFO) {
-					val connections: List<ConnectedUser> =
-						Reflector.deserializeFromString(cmd.getString("connections"))
-					notifyListeners { it.onConnectionsInfo(connections) }
-				} else if (cmd.type == SVR_MAX_CHARS) {
-					val max = cmd.getInt("max")
-					notifyListeners { it.onMaxCharactersPerPlayerUpdated(max) }
-				} else {
-					throw Exception("Unhandled cmd: $cmd")
+				when (cmd.type) {
+					SVR_INIT -> {
+						val color = cmd.getInt("color")
+						val quest = ZQuests.valueOf(cmd.getString("quest"))
+						notifyListeners { it.onInit(color, quest) }
+					}
+
+					SVR_LOAD_QUEST -> {
+						val quest = ZQuests.valueOf(cmd.getString("quest"))
+						notifyListeners { it.onLoadQuest(quest) }
+					}
+
+					SVR_OPEN_ASSIGNMENTS -> {
+						val maxCharacters = cmd.getInt("maxCharacters")
+						val list: List<Assignee> =
+							Reflector.deserializeFromString(cmd.getString("assignments"))
+						notifyListeners { it.onOpenAssignments(maxCharacters, list) }
+					}
+
+					SVR_ASSIGN_PLAYER -> {
+						val a = cmd.getReflector("assignee", Assignee())
+						notifyListeners { it.onAssignPlayer(a) }
+					}
+
+					SVR_UPDATE_GAME -> {
+						cmd.getReflector("board", game.board)
+						cmd.getReflector("quest", game.quest)
+						client.setLocalProperty("numSpawn", cmd.getInt("spawnDeckSize", -1))
+						client.setLocalProperty("numLoot", cmd.getInt("lootDeckSize", -1))
+						client.setLocalProperty("numHoard", cmd.getInt("hoardSize", -1))
+						notifyListeners { it.onGameUpdated(game) }
+					}
+
+					SVR_PLAYER_STARTED -> {
+						val user = cmd.getString("userName")
+						val numStarted = cmd.getInt("numStarted")
+						val numTotal = cmd.getInt("numTotal")
+						notifyListeners { it.onPlayerPressedStart(user, numStarted, numTotal) }
+					}
+
+					SVR_COLOR_OPTIONS -> {
+						val options: List<Int> =
+							Reflector.deserializeFromString(cmd.getString("options"))
+						notifyListeners { it.onColorOptions(options) }
+					}
+
+					SVR_CONNECTIONS_INFO -> {
+						val connections: List<ConnectedUser> =
+							Reflector.deserializeFromString(cmd.getString("connections"))
+						notifyListeners { it.onConnectionsInfo(connections) }
+					}
+
+					SVR_MAX_CHARS -> {
+						val max = cmd.getInt("max")
+						notifyListeners { it.onMaxCharactersPerPlayerUpdated(max) }
+					}
+
+					else -> parseCommand(cmd)
 				}
 			} catch (e: Exception) {
 				e.printStackTrace()
@@ -156,7 +197,7 @@ open class ZMPCommon(val activity: ZombicideActivity, val game: UIZombicide) {
 		abstract val client: AGameClient
 	}
 
-	interface SVRListener {
+	interface SVRListener : ComListener {
 		fun onChooseCharacter(conn: AClientConnection, name: ZPlayerName, checked: Boolean) {
 		}
 
@@ -172,23 +213,7 @@ open class ZMPCommon(val activity: ZombicideActivity, val game: UIZombicide) {
 		}
 	}
 
-	open class SVR(activity: ZombicideActivity, game: UIZombicide) : ZMPCommon(activity, game) {
-
-		private val listeners = Collections.synchronizedSet(HashSet<SVRListener>())
-
-		fun addListener(listener: SVRListener) {
-			listeners.add(listener)
-		}
-
-		fun removeListener(listener: SVRListener) {
-			listeners.remove(listener)
-		}
-
-		fun notifyListeners(callback: (l: SVRListener) -> Unit) {
-			HashSet(listeners).forEach {
-				callback(it)
-			}
-		}
+	open class SVR(activity: ZombicideActivity, game: UIZombicide) : COM<SVRListener>(activity, game) {
 
 		fun newInit(clientColor: Int, quest: ZQuests): GameCommand {
 			return GameCommand(SVR_INIT)
@@ -247,20 +272,26 @@ open class ZMPCommon(val activity: ZombicideActivity, val game: UIZombicide) {
 
 		fun parseCLCommand(conn: AClientConnection, cmd: GameCommand) {
 			try {
-				if (cmd.type == CL_CHOOSE_CHARACTER) {
-					notifyListeners {
-						it.onChooseCharacter(
-							conn,
-							ZPlayerName.valueOf(cmd.getString("name")),
-							cmd.getBoolean("checked", false)
-						)
+				when (cmd.type) {
+					CL_CHOOSE_CHARACTER -> {
+						notifyListeners {
+							it.onChooseCharacter(
+								conn,
+								ZPlayerName.valueOf(cmd.getString("name")),
+								cmd.getBoolean("checked", false)
+							)
+						}
 					}
-				} else if (cmd.type == CL_BUTTON_PRESSED) {
-					when (cmd.getString("button")) {
-						"START" -> notifyListeners { it.onStartPressed(conn) }
-						"UNDO" -> notifyListeners { it.onUndoPressed(conn) }
-						"COLOR_PICKER" -> notifyListeners { it.onColorPickerPressed(conn) }
+
+					CL_BUTTON_PRESSED -> {
+						when (cmd.getString("button")) {
+							"START" -> notifyListeners { it.onStartPressed(conn) }
+							"UNDO" -> notifyListeners { it.onUndoPressed(conn) }
+							"COLOR_PICKER" -> notifyListeners { it.onColorPickerPressed(conn) }
+						}
 					}
+
+					else -> parseCommand(cmd)
 				}
 			} catch (e: Exception) {
 				e.printStackTrace()

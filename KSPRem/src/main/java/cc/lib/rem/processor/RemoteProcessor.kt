@@ -55,7 +55,7 @@ class RemoteProcessor(
 		return symbol + "Remote"
 	}
 
-	val imports = mutableListOf<String>()
+	val imports = mutableSetOf<String>()
 
 	override fun process(resolver: Resolver): List<KSAnnotated> {
 		this.resolver = resolver
@@ -222,7 +222,7 @@ abstract class $classTypeName($classArgs) : $classDeclaration($classDeclarationP
 			}
 			file.print(
 				"""	
-	     else -> null
+	     else -> throw NoSuchMethodError(method)
 	  }
    }
 

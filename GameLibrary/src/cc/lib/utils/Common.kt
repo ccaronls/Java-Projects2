@@ -337,3 +337,29 @@ fun <T> Array<T>.containsAny(other: Iterable<T>): Boolean {
 	}
 	return false
 }
+
+fun <T> Iterable<T>.splitFilter(predicate: (T) -> Boolean): kotlin.Pair<Iterable<T>, Iterable<T>> {
+	val positive = mutableListOf<T>()
+	val negative = mutableListOf<T>()
+	forEach {
+		if (predicate(it)) {
+			positive.add(it)
+		} else {
+			negative.add(it)
+		}
+	}
+	return kotlin.Pair(positive, negative)
+}
+
+fun <T> Iterable<T>.splitFilterIndexed(predicate: (Int, T) -> Boolean): kotlin.Pair<Iterable<T>, Iterable<T>> {
+	val positive = mutableListOf<T>()
+	val negative = mutableListOf<T>()
+	forEachIndexed { index, it ->
+		if (predicate(index, it)) {
+			positive.add(it)
+		} else {
+			negative.add(it)
+		}
+	}
+	return kotlin.Pair(positive, negative)
+}

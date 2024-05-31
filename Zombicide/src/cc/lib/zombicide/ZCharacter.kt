@@ -40,17 +40,21 @@ class ZCharacter(
     private var cachedSkills: MutableList<ZSkill>? = null // cached from getAvailableSkills() - includes skills given by weapons or armor
     private val skillsRemaining: Array<MutableList<ZSkill>> = skillz.map { it.toMutableList() }.toTypedArray()
     private val backpack: MutableList<ZEquipment<*>> = ArrayList()
-    var leftHand: ZEquipment<*>? = null
-        private set
-    var rightHand: ZEquipment<*>? = null
-        private set
+	var leftHand: ZEquipment<*>? = null
+		private set
+	var rightHand: ZEquipment<*>? = null
+		private set
 	var body: ZEquipment<*>? = null
 		private set
 	private val kills = IntArray(ZZombieType.values().size)
 	private val favoriteWeapons: MutableMap<ZEquipmentType, Int> = HashMap()
 	private var fallen = false
 	private var forceInvisible = false
-	var color = GColor.WHITE
+	var colorId = -1
+
+	val color: GColor
+		get() = ZUser.USER_COLORS.getOrNull(colorId) ?: GColor.WHITE
+
 	var zonesMoved = 0
 		private set
 	var isStartingWeaponChosen = false
@@ -87,13 +91,20 @@ class ZCharacter(
 		blueSkills.clear()
 	}
 
+	override fun parseUnknownField(name: String?, value: String?, `in`: RBufferedReader?) {
+		when (name) {
+			"color" -> colorId = ZUser.USER_COLORS.indexOf(parse(GColor::class.java, `in`))
+			else -> super.parseUnknownField(name, value, `in`)
+		}
+	}
+
 	@Synchronized
 	fun clear() {
 		Arrays.fill(kills, 0)
-        body = null
-        rightHand = body
-        leftHand = rightHand
-        backpack.clear()
+		body = null
+		rightHand = body
+		leftHand = rightHand
+		backpack.clear()
 		allSkills.clear()
 		availableSkills.clear()
 		cachedSkills = null
@@ -110,7 +121,8 @@ class ZCharacter(
 		backpack.add(type.create())
 	}
 
-	override val playerType: ZPlayerName = type
+	override val playerType: ZPlayerName
+		get() = type
 
 	override fun equals(other: Any?): Boolean {
 		if (this === other) return true
@@ -892,17 +904,15 @@ class ZCharacter(
     }
 
     protected fun drawPedestal(g: AGraphics) {
-        val hgt = 0.04f
-        val rect = getRect()
-        if (color != null) {
-	        g.color = color!!.darkened(.5f)
-	        val x = rect.x + 0.02f
-	        val w = rect.w - 0.04f
-	        g.drawFilledRect(x, rect.y + rect.h - hgt / 4, w, hgt)
-	        g.drawFilledOval(x, rect.y + rect.h + hgt / 4, w, hgt)
-	        g.color = color
-	        g.drawFilledOval(x, rect.y + rect.h - hgt / 2, w, hgt)
-        }
+	    val hgt = 0.04f
+	    val rect = getRect()
+	    g.color = color.darkened(.5f)
+	    val x = rect.x + 0.02f
+	    val w = rect.w - 0.04f
+	    g.drawFilledRect(x, rect.y + rect.h - hgt / 4, w, hgt)
+	    g.drawFilledOval(x, rect.y + rect.h + hgt / 4, w, hgt)
+	    g.color = color
+	    g.drawFilledOval(x, rect.y + rect.h - hgt / 2, w, hgt)
     }
 
 	override fun getAvailableSkills(): List<ZSkill> {
