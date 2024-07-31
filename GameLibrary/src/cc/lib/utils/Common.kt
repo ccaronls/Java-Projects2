@@ -363,3 +363,5 @@ fun <T> Iterable<T>.splitFilterIndexed(predicate: (Int, T) -> Boolean): kotlin.P
 	}
 	return kotlin.Pair(positive, negative)
 }
+
+fun CharArray.asString() = String(this)

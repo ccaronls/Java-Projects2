@@ -14,4 +14,6 @@ interface IButton {
 	fun getLabel(): String? = null
 	fun isEnabled(): Boolean = true
 	fun getRect(): IRectangle = GRectangle()
+
+	fun shouldGrabSelection(): Boolean = false
 }

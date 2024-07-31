@@ -61,6 +61,7 @@ enum class ZMoveType(val toolTipText: String?, val shortName: String = "") : IBu
 	CATAPULT_FIRE_BOULDER("Fire a boulder. One die 3/4+ to hit and 3 damage"),
 	BALLISTA_FIRE_BOLT("Fire a bolt that damages all zones in its path"),
 	FAMILIAR_MOVE("View move options for your familiar"),
+	UNDO("Roll back game state"),
 	;
 
 	override fun getLabel(): String {

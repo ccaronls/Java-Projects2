@@ -4,7 +4,7 @@ package cc.lib.zombicide
 import cc.lib.reflector.Reflector
 import cc.lib.ui.IButton
 
-data class ZMove constructor(
+data class ZMove(
 	val type: ZMoveType = ZMoveType.END_TURN,
 	val integer: Int? = null,
 	val character: ZPlayerName? = null,
@@ -46,29 +46,29 @@ data class ZMove constructor(
 			return ZMove(type = ZMoveType.BARRICADE, list = doors)
 		}
 
-        fun newSearchMove(zoneIndex: Int): ZMove {
-            return ZMove(type = ZMoveType.SEARCH, integer = zoneIndex)
-        }
+		fun newSearchMove(zoneIndex: Int): ZMove {
+			return ZMove(type = ZMoveType.SEARCH, integer = zoneIndex)
+		}
 
-        fun newMeleeAttackMove(weapons: List<ZWeapon>): ZMove {
-	        return ZMove(type = ZMoveType.MELEE_ATTACK, list = weapons, action = ZActionType.MELEE)
-        }
+		fun newMeleeAttackMove(weapons: List<ZWeapon>): ZMove {
+			return ZMove(type = ZMoveType.MELEE_ATTACK, list = weapons, action = ZActionType.MELEE)
+		}
 
-        fun newRangedAttackMove(weapons: List<ZWeapon>): ZMove {
-	        return ZMove(type = ZMoveType.RANGED_ATTACK, list = weapons, action = ZActionType.RANGED)
-        }
+		fun newRangedAttackMove(weapons: List<ZWeapon>, zoneIdx: Int? = null): ZMove {
+			return ZMove(type = ZMoveType.RANGED_ATTACK, list = weapons, action = ZActionType.RANGED, integer = zoneIdx)
+		}
 
-        fun newMagicAttackMove(weapons: List<ZWeapon>): ZMove {
-	        return ZMove(type = ZMoveType.MAGIC_ATTACK, list = weapons, action = ZActionType.MAGIC)
-        }
+		fun newMagicAttackMove(weapons: List<ZWeapon>, zoneIdx: Int? = null): ZMove {
+			return ZMove(type = ZMoveType.MAGIC_ATTACK, list = weapons, action = ZActionType.MAGIC, integer = zoneIdx)
+		}
 
-        fun newThrowEquipmentMove(slots: List<ZEquipment<*>?>): ZMove {
-            return ZMove(type = ZMoveType.THROW_ITEM, list = slots)
-        }
+		fun newThrowEquipmentMove(slots: List<ZEquipment<*>?>): ZMove {
+			return ZMove(type = ZMoveType.THROW_ITEM, list = slots)
+		}
 
-        fun newTradeMove(tradeOptions: List<ZPlayerName>): ZMove {
-            return ZMove(type = ZMoveType.TRADE, list = tradeOptions)
-        }
+		fun newTradeMove(tradeOptions: List<ZPlayerName>): ZMove {
+			return ZMove(type = ZMoveType.TRADE, list = tradeOptions)
+		}
 
         fun newConsumeMove(equip: ZEquipment<*>, slot: ZEquipSlot?): ZMove {
             return ZMove(type = ZMoveType.CONSUME, equipment = equip, fromSlot = slot)
@@ -232,6 +232,7 @@ data class ZMove constructor(
 			return ZMove(ZMoveType.FAMILIAR_MOVE, character = player, familiar = familiar.type)
 		}
 
+		fun newUndoMove() = ZMove(ZMoveType.UNDO)
 
 		init {
 			addAllFields(ZMove::class.java)
@@ -255,29 +256,26 @@ data class ZMove constructor(
 			&& fromSlot === zMove.fromSlot
 			&& toSlot === zMove.toSlot
 			&& skill === zMove.skill)
-    }
+	}
 
 	override fun hashCode(): Int {
 		return type.hashCode()
 	}
 
-    override fun getTooltipText(): String? {
-	    return equipment?.getTooltipText() ?: run {
-		    skill?.getTooltipText() ?: run {
-			    character?.getTooltipText() ?: type.toolTipText
-		    }
-	    }
-    }
+	override fun getTooltipText(): String? = equipment?.getTooltipText()
+		?: skill?.getTooltipText()
+		?: type.toolTipText
+		?: character?.getTooltipText()
 
-    override fun getLabel(): String {
-	    if (text != null)
-		    return text
-	    var label = type.getLabel()
-	    equipment?.let {
-		    label += " ${it.getLabel()}"
-	    }
-	    if (fromSlot != null) {
-		    label += " from ${fromSlot.getLabel()}"
+	override fun getLabel(): String {
+		if (text != null)
+			return text
+		var label = type.getLabel()
+		equipment?.let {
+			label += " ${it.getLabel()}"
+		}
+		if (fromSlot != null) {
+			label += " from ${fromSlot.getLabel()}"
 	    }
 	    if (toSlot != null)
 		    label += " to ${toSlot.getLabel()}"

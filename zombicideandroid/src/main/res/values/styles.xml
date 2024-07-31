@@ -54,6 +54,8 @@
         <item name="android:tint">@color/dpad_color</item>
         <item name="android:textColor">@color/dpad_color</item>
         <item name="android:background">@drawable/zbutton_background</item>
+        <item name="android:textAllCaps">false</item>
+
     </style>
 
     <style name="ZDPadButton" parent="ZButton">

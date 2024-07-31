@@ -25,6 +25,7 @@ class ZZombie(override val type: ZZombieType = ZZombieType.Walker, val startZone
 
 	public override val actionsPerTurn: Int
 		get() = type.actionsPerTurn
+
 	private val idx: Int
 		private get() {
 			if (imageIdx < 0 || imageIdx >= type.imageOptions.size) imageIdx =
@@ -99,6 +100,13 @@ class ZZombie(override val type: ZZombieType = ZZombieType.Walker, val startZone
         }
     }
 
+	override fun onBeginRound(game: ZGame) {
+		super.onBeginRound(game)
+		if (type == ZZombieType.Ratz) {
+			actionsLeftThisTurn = 1 + game.board.getAllZombies().count { it.type == ZZombieType.Ratz }
+		}
+	}
+
 	@Omit
 	var escapeZone: ZSpawnArea? = null
 
@@ -108,7 +116,4 @@ class ZZombie(override val type: ZZombieType = ZZombieType.Walker, val startZone
 	override val drawPathsOnHighlight: Boolean
 		get() = type.isNecromancer
 
-	init {
-		onBeginRound()
-	}
 }

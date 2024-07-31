@@ -24,5 +24,6 @@ enum class ZCellType(
 	FATTY(isZombie = true),
 	NECROMANCER(isZombie = true),
 	ABOMINATION(isZombie = true),
+	RATZ(isZombie = true),
 	CATAPULT;
 }

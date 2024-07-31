@@ -16,8 +16,9 @@ enum class ZWallFlag(
 	RAMPART(0, true, false),
 	LEDGE(2, true, false),
 	HEDGE(1, false, false) {
-		override fun openedForAction(action: ZActionType): Boolean {
-			return action == ZActionType.BALLISTA_FIRE
+		override fun openedForAction(action: ZActionType): Boolean = when (action) {
+			ZActionType.BALLISTA_FIRE -> true
+			else -> super.openedForAction(action)
 		}
 	},
 	;

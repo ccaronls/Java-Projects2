@@ -213,6 +213,13 @@ class ZSpawnCard private constructor(
 				Action(ActionType.ASSEMBLE_HOARD, 7, ZZombieType.OrcRunner)
 			),
 			ZSpawnCard(
+				ZZombieCategory.GREEN_HOARD_ENTER, 2, 3, 4,
+				NOTHING_IN_SIGHT,
+				Action(ActionType.ENTER_THE_HOARD),
+				Action(ActionType.ENTER_THE_HOARD),
+				Action(ActionType.ENTER_THE_HOARD),
+			),
+			ZSpawnCard(
 				ZZombieCategory.SWAMPTROLL, 1, 2, 3,
 				NOTHING_IN_SIGHT,
 				Action(ActionType.SPAWN, 1, ZZombieType.SwampTroll),

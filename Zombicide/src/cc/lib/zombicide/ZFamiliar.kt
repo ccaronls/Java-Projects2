@@ -26,8 +26,8 @@ class ZFamiliar(override val type: ZFamiliarType = ZFamiliarType.NUCIFER, occupi
 
 	override fun makeId(): String = name()
 
-	override fun onBeginRound() {
-		super.onBeginRound()
+	override fun onBeginRound(game: ZGame) {
+		super.onBeginRound(game)
 		zoneMovesRemaining = ZONES_TO_WALK_PER_TURN
 		availableSkills.clear()
 		availableSkills.addAll(type.skills)

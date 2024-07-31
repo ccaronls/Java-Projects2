@@ -1,6 +1,8 @@
 apply plugin: 'application'
 apply plugin: 'java'
 apply plugin: 'kotlin'
+apply plugin: 'com.google.devtools.ksp'
+apply plugin: 'org.jetbrains.kotlin.plugin.serialization'
 
 mainClassName = 'cc.game.swing.AWTBoardBuilder'
 
@@ -13,6 +15,7 @@ dependencies {
     implementation group: 'org.json', name: 'json', version: '20090211'
     implementation group: 'net.sourceforge.jaadec', name: 'jaad', version: '0.8.5'
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.3.9")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 
     // TODO: Should eb able to isolate the game lib for each swing app
     implementation project(':GameLibrary')
@@ -84,19 +87,16 @@ task runCheckers(type: JavaExec) {
 task runCheckerboard(type: JavaExec) {
     description = 'Run the Checkerboard Applet'
     main = "cc.lib.swing.AWTCheckerboard"
-//    args "arg1", "arg2"
 }
 
 task runBoardBuilder(type: JavaExec) {
     description = 'Run the Custum Board Builder App'
     main = "cc.lib.swing.AWTBoardBuilder"
-//    args "arg1", "arg2"
 }
 
 task runDungeonBuilder(type: JavaExec) {
     description = 'Run the Dungeon Builder Applet App'
     main = "cc.applets.dungeonbb.AWTDungeonBuilder"
-//    args "arg1", "arg2"
 }
 
 task runMonopoly(type: JavaExec) {
@@ -107,55 +107,51 @@ task runMonopoly(type: JavaExec) {
 task runProbotLevelBuilder(type: JavaExec) {
     description = 'Run Probot Level Editor App'
     main = "cc.applets.probotbb.AWTProbotLevelBuilder"
-//    args "arg1", "arg2"
 }
 
 task runYahtzeeConsole(type: JavaExec) {
-    description = 'Run Probot Level Editor App'
+    description = 'Run Yahtzee Console version'
     main = "cc.console.YahtzeeConsole"
-//    args "arg1", "arg2"
+}
+
+task runMasterMindConsole(type: JavaExec) {
+    description = 'Run Master Mind Consoel version'
+    main = "cc.console.MasterMindConsole"
 }
 
 task runProbot(type: JavaExec) {
     description = 'Run Probot Desktop App'
     main = "cc.applets.probot.AWTProbot"
-//    args "arg1", "arg2"
 }
 
 task runAudioClient(type: JavaExec) {
     description = 'Run the audio client'
     main = "cc.audio.stream.server.AudioClient"
-//    args "arg1", "arg2"
 }
 
 task runZombicide(type: JavaExec) {
     description = 'Play Zombicide!'
     main = "cc.applets.zombicide.ZombicideApplet"
-//    args "arg1", "arg2"
 }
 
 task runDominos(type: JavaExec) {
     description = 'Run the Dominos App'
     main = "cc.applets.dominos.DominosApplet"
-//    args "arg1", "arg2"
 }
 
 task runKaiserConsole(type: JavaExec) {
     description = 'Run Kaiser Console'
     main = "cc.console.KaiserConsole"
-//    args "arg1", "arg2"
 }
 
 task runKaiser(type: JavaExec) {
     description = 'Run Kaiser Applet'
     main = "cc.capplets.kaiser.KaiserApplet"
-//    args "arg1", "arg2"
 }
 
 task runRisk(type: JavaExec) {
     description = 'Run Risk Applet'
     main = "cc.applets.risk.AWTRisk"
-//    args "arg1", "arg2"
 }
 
 task deployLearnToTypeApplet {

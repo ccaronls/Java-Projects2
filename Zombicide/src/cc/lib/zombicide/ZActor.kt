@@ -16,11 +16,11 @@ import cc.lib.utils.Grid
 import cc.lib.zombicide.ui.UIZButton
 import java.util.LinkedList
 
-abstract class ZActor internal constructor(var occupiedZone: Int) : Reflector<ZActor>(), UIZButton,
+abstract class ZActor internal constructor(var occupiedZone: Int) : ZObject(), UIZButton,
 	IRectangle, IVector2D, IInterpolator<Vector2D> {
 	companion object {
 		init {
-			addAllFields(ZActor::class.java)
+			Reflector.addAllFields(ZActor::class.java)
 		}
 	}
 
@@ -53,7 +53,7 @@ abstract class ZActor internal constructor(var occupiedZone: Int) : Reflector<ZA
 		}
 	}
 
-	fun getRect(b: ZBoard): GRectangle {
+	override fun getRect(b: ZBoard): GRectangle {
 		return b.getCell(occupiedCell)
 			.getQuadrant(occupiedQuadrant)
 			.fit(dimension)
@@ -68,7 +68,7 @@ abstract class ZActor internal constructor(var occupiedZone: Int) : Reflector<ZA
 		return animations.firstOrNull()?.rect ?: rect
 	}
 
-	open fun onBeginRound() {
+	open fun onBeginRound(game: ZGame) {
 		actionsLeftThisTurn = actionsPerTurn
 	}
 
@@ -78,8 +78,8 @@ abstract class ZActor internal constructor(var occupiedZone: Int) : Reflector<ZA
     abstract fun name(): String
     open fun performAction(action: ZActionType, game: ZGame) {
         if (isAlive) {
+	        require(actionsLeftThisTurn + action.costPerTurn >= 0)
 	        actionsLeftThisTurn -= action.costPerTurn
-            require(actionsLeftThisTurn >= 0)
         }
     }
 
@@ -97,9 +97,6 @@ abstract class ZActor internal constructor(var occupiedZone: Int) : Reflector<ZA
 	abstract override fun getDimension(): GDimension
 	open val isInvisible: Boolean
 		get() = false
-
-	@Omit
-	var pickable = false
 
 	fun addAnimation(anim: ZActorAnimation) {
 		animations.add(anim)

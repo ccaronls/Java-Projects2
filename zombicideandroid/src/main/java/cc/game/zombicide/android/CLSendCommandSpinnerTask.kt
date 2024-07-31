@@ -2,11 +2,11 @@ package cc.game.zombicide.android
 
 import cc.lib.android.SpinnerTask
 import cc.lib.net.GameCommand
-import cc.lib.utils.Lock
+import cc.lib.utils.KLock
 
 open class CLSendCommandSpinnerTask(val context: ZombicideActivity) : SpinnerTask<GameCommand>(context), ZMPCommon.CLListener {
 	private val clientMgr: ZClientMgr = context.clientMgr!!
-	private val lock = Lock()
+	private val lock = KLock()
 
 	override fun onPreExecute() {
 		super.onPreExecute()
@@ -15,9 +15,8 @@ open class CLSendCommandSpinnerTask(val context: ZombicideActivity) : SpinnerTas
 
 	open val timeout = 10000L
 
-	@Throws(Exception::class)
-	override fun doIt(vararg args: GameCommand) {
-		requireNotNull(context.client).sendCommand(args[0])
+	override suspend fun doIt(args: GameCommand?) {
+		requireNotNull(context.client).sendCommand(requireNotNull(args))
 		if (timeout > 0)
 			lock.acquireAndBlock(timeout) {
 				throw Exception("timeout")

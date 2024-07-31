@@ -24,6 +24,7 @@ import cc.lib.zombicide.quests.ZQuestTheCommandry
 import cc.lib.zombicide.quests.ZQuestTheEvilTemple
 import cc.lib.zombicide.quests.ZQuestTheHellHole
 import cc.lib.zombicide.quests.ZQuestTheNecromancer
+import cc.lib.zombicide.quests.ZQuestTheRatz
 import cc.lib.zombicide.quests.ZQuestTheShepherds
 import cc.lib.zombicide.quests.ZQuestThorsHammer
 import cc.lib.zombicide.quests.ZQuestTrialByFire
@@ -38,6 +39,7 @@ const val FLAG_DEBUG = 8
 enum class ZQuests(val flag: Int, val displayName: String, val description: String) : IButton {
 	The_Abomination(FLAG_DEBUG, "The Abomination", "Test Abomination!"),
 	The_Necromancer(FLAG_DEBUG, "The Necromancer", "Test Necromancer!"),
+	The_Ratz(FLAG_DEBUG, "The Ratz", "Test Ratz"),
 	Hoard_Test(FLAG_DEBUG, "Hoard Movement Test", "Test Hoard!"),
 	Thors_Hammer(
 		FLAG_DEBUG,
@@ -317,18 +319,19 @@ enum class ZQuests(val flag: Int, val displayName: String, val description: Stri
 
 	fun load(): ZQuest {
 		return when (this) {
+			The_Abomination -> ZQuestTheAbomination()
+			The_Necromancer -> ZQuestTheNecromancer()
+			The_Ratz -> ZQuestTheRatz()
 			Tutorial -> ZQuestTutorial()
 			Big_Game_Hunting -> ZQuestBigGameHunting()
 			The_Black_Book -> ZQuestTheBlackBook()
-			The_Abomination -> ZQuestTheAbomination()
-			The_Necromancer -> ZQuestTheNecromancer()
 			Hoard_Test -> ZQuestHoardTest()
 			Thors_Hammer -> ZQuestThorsHammer()
-            The_Shepherds -> ZQuestTheShepherds()
-            Famine -> ZQuestFamine()
-            The_Commandry -> ZQuestTheCommandry()
-            In_Caligine_Abditus -> ZQuestInCaligineAbditus()
-            Dead_Trail -> ZQuestDeadTrail()
+			The_Shepherds -> ZQuestTheShepherds()
+			Famine -> ZQuestFamine()
+			The_Commandry -> ZQuestTheCommandry()
+			In_Caligine_Abditus -> ZQuestInCaligineAbditus()
+			Dead_Trail -> ZQuestDeadTrail()
             The_Evil_Temple -> ZQuestTheEvilTemple()
             The_Hell_Hole -> ZQuestTheHellHole()
             Trial_by_Fire -> ZQuestTrialByFire()

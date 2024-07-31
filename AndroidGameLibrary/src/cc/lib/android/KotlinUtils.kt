@@ -1,6 +1,8 @@
 package cc.lib.android
 
 import android.content.SharedPreferences
+import android.view.View
+import androidx.databinding.BindingAdapter
 import androidx.lifecycle.*
 
 /**
@@ -113,4 +115,9 @@ inline fun <reified T : Enum<T>> SharedPreferences.getEnum(name: String, default
 
 fun <T> MutableLiveData<T>.refresh() {
 	value = value
+}
+
+@BindingAdapter("focusableIf")
+fun View.setFocusableIf(condition: Boolean) {
+	focusable = if (condition) View.FOCUSABLE else View.NOT_FOCUSABLE
 }

@@ -35,23 +35,9 @@ class GreenHoardTheEvilShrine : ZQuest(ZQuests.The_Evil_Shrine) {
 			arrayOf("z0:he:hs", "z1:w:bluspn:he", "z2:ws", "z3:ws", "z4:st:we", "z5:i:ods"),
 			arrayOf("z6:hs", "z7:w:we", "z8:i:we:ws", "z9:i:we:ws", "z10:de", "z11:i:blue:ods"),
 			arrayOf("z12:he:catapult:ds", "z13:w:le", "z14:ds", "z15:ds", "z16:we", "z17:i:ods"),
-			arrayOf(
-				"z18:i:red:we:ds",
-				"z19:w:we",
-				"z20:i:ws:ode",
-				"z21:i:we:ws",
-				"z22:we",
-				"z23:i:ws"
-			),
+			arrayOf("z18:i:red:we:ds", "z19:w:we", "z20:i:ws:ode", "z21:i:we:ws", "z22:we", "z23:i:ws"),
 			arrayOf("z24:ds", "z25:w:ls:lw", "z26:w:ws", "z27:w:ws", "z28:w", "z29:grnspe:ws"),
-			arrayOf(
-				"z30:i:red:de",
-				"z31:sps:de",
-				"z32:exit:i:ode",
-				"z33:i:we",
-				"z34:w:we",
-				"z35:i:hoard"
-			)
+			arrayOf("z30:i:red:de", "z31:sps:de", "z32:exit:i:ode", "z33:i:we", "z34:w:we", "z35:i:hoard")
 		)
 	)
 

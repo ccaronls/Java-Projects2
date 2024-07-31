@@ -119,10 +119,6 @@ open class ZMPCommon(val activity: ZombicideActivity, val game: UIZombicide) {
 			return GameCommand(CL_BUTTON_PRESSED).setArg("button", "START")
 		}
 
-		fun newUndoPressed(): GameCommand {
-			return GameCommand(CL_BUTTON_PRESSED).setArg("button", "UNDO")
-		}
-
 		fun newColorPickerPressed(): GameCommand {
 			return GameCommand(CL_BUTTON_PRESSED).setArg("button", "COLOR_PICKER")
 		}
@@ -286,7 +282,6 @@ open class ZMPCommon(val activity: ZombicideActivity, val game: UIZombicide) {
 					CL_BUTTON_PRESSED -> {
 						when (cmd.getString("button")) {
 							"START" -> notifyListeners { it.onStartPressed(conn) }
-							"UNDO" -> notifyListeners { it.onUndoPressed(conn) }
 							"COLOR_PICKER" -> notifyListeners { it.onColorPickerPressed(conn) }
 						}
 					}

@@ -35,11 +35,10 @@ class UIZCharacterRenderer(component: UIComponent) : UIRenderer(component) {
 
 	var actorInfo: ZActor? = null
 		set(value) {
-			if (field != value) {
-				field = value
-				redraw()
-			}
+			field = value
+			redraw()
 		}
+
 	private val messages = Collections.synchronizedList(LinkedList<IWrappable>())
 	private val game: UIZombicide
 		get() = UIZombicide.instance
@@ -76,8 +75,9 @@ class UIZCharacterRenderer(component: UIComponent) : UIRenderer(component) {
 
 	fun drawZombieInfo(g: AGraphics, zombie: ZZombie): IDimension = with(zombie) {
 		val info = Table(getLabel()).setNoBorder()
+		info.addRow("Damage Per hit", type.damagePerHit)
 		info.addRow("Min Hits", type.minDamageToDestroy)
-		info.addRow("Actions", type.actionsPerTurn)
+		info.addRow("Actions", zombie.actionsLeftThisTurn)
 		info.addRow("Experience", type.expProvided)
 		info.addRow("Ignores Armor", type.ignoresArmor)
 		info.addRow("Ranged Priority", type.targetingPriority)

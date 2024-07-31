@@ -133,7 +133,8 @@ class WolfTheZombieArmy : ZQuest(ZQuests.The_Zombie_Army) {
 					game.spawnZombies(zone)
 				}
 			}
-			else -> Unit
+
+			else -> super.onZombieSpawned(game, zombie, zone)
 		}
 	}
 }

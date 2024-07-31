@@ -3,7 +3,58 @@ package cc.console
 import cc.lib.utils.FileUtils
 import cc.lib.utils.asString
 import cc.lib.utils.trimmedToSize
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
+import kotlinx.serialization.Serializable
 import java.io.File
+import java.text.SimpleDateFormat
+import kotlin.random.Random
+
+@Serializable
+data class Score(
+	val initials: String,
+	val score: Int,
+	val level: Int,
+	val date: Long
+)
+
+@Serializable
+data class SaveData(
+	val scores: MutableList<Score> = mutableListOf(),
+	var validChars: String = "12345",
+	var numChars: Int = 4
+) {
+
+	val highScore: Int
+		get() = scores.sortedBy { it.score }.firstOrNull()?.score ?: 1000
+
+	val level: Int
+		get() = numChars * validChars.length
+
+	fun print(max: Int) {
+		val format = SimpleDateFormat("MMM dd,yy")
+		val sep = "+-----------------------+"
+		println(sep)
+		println("+     HIGH   SCORES     +")
+		println(sep)
+		scores.map {
+			it.level to it
+		}.groupBy {
+			it.first
+		}.toSortedMap(compareByDescending { it }).entries.forEach {
+			println(String.format("+ Level             %3d +", it.key))
+			println(sep)
+			it.value.map { it.second }.sortedBy {
+				it.score
+			}.take(max).forEach {
+				println(String.format("+ %-3s     %3d|%-8s +", it.initials, it.score, format.format(it.date)))
+			}
+			println(sep)
+		}
+
+	}
+}
+
 
 /**
  * Created by Chris Caron on 6/4/24.
@@ -14,40 +65,26 @@ class MasterMindConsole {
 		@JvmStatic
 		fun main(args: Array<String>) {
 			MasterMindConsole().go()
-
 		}
 	}
 
 	val settings: File
 	val saveFile: File
-	val scores = mutableListOf<Pair<String, Int>>()
-	var highScore = 0
+	var saveData = SaveData()
+	val gson: Gson
+	val random = Random(System.currentTimeMillis())
 
 	init {
 		settings = FileUtils.getOrCreateSettingsDirectory(MasterMindConsole::class.java)
-		saveFile = File(settings, "hs.properties")
+		saveFile = File(settings, "game.save")
+		gson = GsonBuilder().setPrettyPrinting().create()
 		try {
-			saveFile.bufferedReader().lines().forEach {
-				it.split("=").takeIf { it.size == 2 && it[1].toIntOrNull() != null }?.let {
-					scores.add(it.first() to it[1].toInt())
-				}
+			saveFile.bufferedReader().use {
+				saveData = gson.fromJson(it, SaveData::class.java)
 			}
 		} catch (e: Exception) {
 			saveFile.delete()
 		}
-		highScore = scores.sortedBy { it.second }.firstOrNull()?.second ?: 1000
-	}
-
-	fun top10() {
-		println("+-------------+")
-		println("+ HIGH SCORES +")
-		println("+             +")
-		scores.sortedBy {
-			it.second
-		}.take(10).forEach { (nm, score) ->
-			println(String.format("+ %-3s     %3d +", nm, score))
-		}
-		println("+-------------+")
 	}
 
 	fun go() {
@@ -59,16 +96,20 @@ class MasterMindConsole {
 		println("o = a character is correct in the correct position")
 		println("x = a character is correct in the wrong position")
 		println()
-		println("Valid Chars: 12345")
+		println("Valid Chars: ${saveData.validChars}")
 		print("Press enter to accept or provide: ")
-		val chars = readlnOrNull()?.takeIf { it.isNotBlank() } ?: "12345"
-		println("Guess length: 4")
+		readlnOrNull()?.takeIf { it.isNotBlank() }?.let {
+			saveData.validChars = it
+		}
+		println("Guess length: ${saveData.numChars}")
 		print("Press enter to accept or provide: ")
-		val len = readlnOrNull()?.toIntOrNull()?.takeIf { it in 1..10 } ?: 4
+		readlnOrNull()?.toIntOrNull()?.takeIf { it in 1..10 }?.let {
+			saveData.numChars = it
+		}
 		do {
-			top10()
+			saveData.print(10)
 			println()
-			run(chars, len)
+			run(saveData.validChars, saveData.numChars)
 			println()
 			println("Play again? y/n")
 		} while (readlnOrNull()?.startsWith("y") == true)
@@ -76,10 +117,11 @@ class MasterMindConsole {
 	}
 
 	fun run(validChars: String, guessLen: Int) {
-		val solutionStr = String(CharArray(guessLen) { validChars.random() })
+		val solutionStr = String(CharArray(guessLen) { validChars.random(random) })
 
 		var guesses = 0
 		var guess = ""
+		println("Level : ${saveData.level}")
 		println("Guess my number:")
 		start@ do {
 			val solution = solutionStr.toCharArray()
@@ -132,19 +174,15 @@ class MasterMindConsole {
 		} while (guess != solutionStr)
 
 		println("You guessed in $guesses tries")
-		if (guesses < highScore) {
-			highScore = guesses
+		if (guesses < saveData.highScore) {
 			println("New high score!")
 		}
 
 		print("Enter your initials: ")
-		val initials = readlnOrNull()?.toUpperCase()?.trimmedToSize(3) ?: "AAA"
-		scores.add(initials to guesses)
-		saveFile.bufferedWriter().use { writer ->
-			scores.forEach { (nm, score) ->
-				writer.write("$nm=$score")
-				writer.newLine()
-			}
+		val initials = readlnOrNull()?.takeIf { it.isNotBlank() }?.toUpperCase()?.trimmedToSize(3) ?: "AAA"
+		saveData.scores.add(Score(initials, guesses, saveData.level, System.currentTimeMillis()))
+		saveFile.bufferedWriter().use {
+			gson.toJson(saveData, it)
 		}
 	}
 }

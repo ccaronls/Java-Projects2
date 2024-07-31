@@ -112,7 +112,7 @@ open class AWTRulesPopup<T : Reflector<T>>(
 							view.add(JLabel("" + f.getInt(rules)), cons)
 						}
 					} else {
-						System.err.println("Dont know how to handle field type:" + f.type)
+						System.err.println("Don't know how to handle field type:" + f.type)
 					}
 					cons.gridx = 1
 					cons.gridwidth = numCols - 1

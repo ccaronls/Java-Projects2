@@ -205,7 +205,7 @@ enum class ZZombieType(
 				""".trimIndent()
 	),
 	Ratz(
-		ZZombieCategory.ALL, 1, 1, 1, 3, false, PRIORITY_SWARMS, false,
+		ZZombieCategory.ALL, 1, 1, 1, -1 /* SPECIAL CASE */, false, PRIORITY_SWARMS, false,
 		"""
 				From the point of view of many,
 				rats are pests to be killed at first

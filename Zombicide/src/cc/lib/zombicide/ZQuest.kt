@@ -202,6 +202,7 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
 		    "fatty" -> cell.setCellType(ZCellType.FATTY, true)
 		    "necro" -> cell.setCellType(ZCellType.NECROMANCER, true)
 		    "abom", "abomination" -> cell.setCellType(ZCellType.ABOMINATION, true)
+		    "ratz" -> cell.setCellType(ZCellType.RATZ, true)
 		    "red" -> {
 			    addObjective(ZCellType.OBJECTIVE_RED, cell.zoneIndex)
 			    cell.setCellType(ZCellType.OBJECTIVE_RED, true)
@@ -221,10 +222,10 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
 		    "rs" -> setCellWall(grid, pos, ZDir.SOUTH, ZWallFlag.RAMPART)
 		    "re" -> setCellWall(grid, pos, ZDir.EAST, ZWallFlag.RAMPART)
 		    "rw" -> setCellWall(grid, pos, ZDir.WEST, ZWallFlag.RAMPART)
-		    "ln" -> setCellWall(grid, pos, ZDir.NORTH, ZWallFlag.LEDGE)
-		    "ls" -> setCellWall(grid, pos, ZDir.SOUTH, ZWallFlag.LEDGE)
-		    "le" -> setCellWall(grid, pos, ZDir.EAST, ZWallFlag.LEDGE)
-		    "lw" -> setCellWall(grid, pos, ZDir.WEST, ZWallFlag.LEDGE)
+		    "ln" -> setCellWall(grid, pos, ZDir.NORTH, ZWallFlag.LEDGE, false)
+		    "ls" -> setCellWall(grid, pos, ZDir.SOUTH, ZWallFlag.LEDGE, false)
+		    "le" -> setCellWall(grid, pos, ZDir.EAST, ZWallFlag.LEDGE, false)
+		    "lw" -> setCellWall(grid, pos, ZDir.WEST, ZWallFlag.LEDGE, false)
 		    "hn" -> setCellWall(grid, pos, ZDir.NORTH, ZWallFlag.HEDGE)
 		    "hs" -> setCellWall(grid, pos, ZDir.SOUTH, ZWallFlag.HEDGE)
 		    "he" -> setCellWall(grid, pos, ZDir.EAST, ZWallFlag.HEDGE)
@@ -238,11 +239,12 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
 		return ZSpawnArea(cellPos = pos, dir = dir, isEscapableForNecromancers = true)
 	}
 
-    protected fun setCellWall(grid: Grid<ZCell>, pos: Grid.Pos, dir: ZDir, flag: ZWallFlag) {
-        grid[pos].setWallFlag(dir, flag)
-        val adj = dir.getAdjacent(pos)
-	    if (adj != null && grid.isOnGrid(adj)) grid[adj].setWallFlag(dir.opposite, flag.opposite)
-    }
+	protected fun setCellWall(grid: Grid<ZCell>, pos: Grid.Pos, dir: ZDir, flag: ZWallFlag, assignOpposite: Boolean = true) {
+		grid[pos].setWallFlag(dir, flag)
+		if (assignOpposite) dir.getAdjacent(pos)?.takeIf { grid.isOnGrid(it) }?.let {
+			grid[it].setWallFlag(dir.opposite, flag.opposite)
+		}
+	}
 
     protected fun load(map: Array<Array<String>>): ZBoard {
 	    val rows = map.size
@@ -460,11 +462,6 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
 			    game.board.setSpawnZone(zone, ZIcon.SPAWN_GREEN, false, false, true)
 			    game.spawnZombies(zone)
 		    }
-
-		    ZZombieType.RatKing -> {
-			    game.spawnZombies(1, ZZombieType.Ratz, zone)
-		    }
-
 		    else -> Unit
 	    }
     }

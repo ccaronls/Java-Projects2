@@ -131,4 +131,7 @@ are fulfilled.
         <item quantity="other">Select %d more characters</item>
     </plurals>
 
+    <string name="button_undo">Undo</string>
+    <string name="button_repeat">Repeat</string>
+
 </resources>

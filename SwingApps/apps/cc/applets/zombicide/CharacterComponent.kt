@@ -25,33 +25,25 @@ internal class CharacterComponent : AWTRendererComponent<UIZCharacterRenderer>()
 		autoscrolls = true
 	}
 
-	override fun getPreferredScrollableViewportSize(): Dimension {
-		return Dimension(width, Math.max(height, 200))
-	}
+	override fun getPreferredScrollableViewportSize() = Dimension(width, height.coerceAtLeast(200))
 
-	override fun getScrollableUnitIncrement(visibleRect: Rectangle, orientation: Int, direction: Int): Int {
-		return 10
-	}
+	override fun getScrollableUnitIncrement(visibleRect: Rectangle, orientation: Int, direction: Int) = 10
 
-	override fun getScrollableBlockIncrement(visibleRect: Rectangle, orientation: Int, direction: Int): Int {
-		return 10
-	}
+	override fun getScrollableBlockIncrement(visibleRect: Rectangle, orientation: Int, direction: Int) = 10
 
-	override fun getScrollableTracksViewportWidth(): Boolean {
-		return true
-	}
+	override fun getScrollableTracksViewportWidth() = true
 
-	override fun getScrollableTracksViewportHeight(): Boolean {
-		return false
-	}
+	override fun getScrollableTracksViewportHeight() = false
 
 	override fun mouseExited(e: MouseEvent) {
-		UIZombicide.instance.boardRenderer.setOverlay(null)
+		if (UIZombicide.initialized)
+			UIZombicide.instance.boardRenderer.setOverlay(null)
 	}
 
 	override fun mouseEntered(e: MouseEvent) {
-		UIZombicide.instance.currentCharacter?.let {
-			renderer.actorInfo = it
-		}
+		if (UIZombicide.initialized)
+			UIZombicide.instance.currentCharacter.let {
+				renderer.actorInfo = it
+			}
 	}
 }
