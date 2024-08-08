@@ -203,6 +203,14 @@ public class Reflector<T> implements IDirty {
         return (Collection) getClassForName(name).newInstance();
     }
 
+    static Map newMapInstance(String name) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+        switch (name) {
+            case "java.util.Collections.SynchronizedMap":
+                return Collections.synchronizedMap(new HashMap());
+        }
+        return (Map) getClassForName(name).newInstance();
+    }
+
     // TODO: Support more than 3D arrays?
     // TODO: byte?
     static {
@@ -961,7 +969,7 @@ public class Reflector<T> implements IDirty {
                 Object obj = field.get(Reflector.this);
                 String name = getName(field);
                 if (obj == null) {
-                    out.p(name).println("=null");
+                    out.writeNull(name);
                     continue;
                 }
                 out.p(name).p("=").p(archiver.get(field, this));
@@ -1221,11 +1229,10 @@ public class Reflector<T> implements IDirty {
     }
 
     /**
-     *
      * @param text
      * @throws IOException
      */
-    public synchronized final void deserialize(String text) throws IOException {
+    public final void deserialize(String text) throws IOException {
 
         RBufferedReader reader = new RBufferedReader(new StringReader(text));
         try {
@@ -1254,7 +1261,7 @@ public class Reflector<T> implements IDirty {
      * @param in
      * @throws IOException
      */
-    public synchronized final void deserialize(InputStream in) throws IOException {
+    public final void deserialize(InputStream in) throws IOException {
         RBufferedReader reader = new RBufferedReader(new InputStreamReader(in));
         try {
             deserializeInternal(reader, false);
@@ -1341,7 +1348,7 @@ public class Reflector<T> implements IDirty {
         }
     }
 
-    private void deserializeInternal(RBufferedReader in, boolean keepInstances) throws Exception {
+    private synchronized void deserializeInternal(RBufferedReader in, boolean keepInstances) throws Exception {
 
         Map<Field, Archiver> values = getValues(getClass(), false);
         final int depth = in.depth;
@@ -1496,8 +1503,8 @@ public class Reflector<T> implements IDirty {
     @Override
     public String toString() {
         StringWriter buf = new StringWriter();
-        try (RPrintWriter in = new RPrintWriter(buf)) {
-            serialize(in);
+        try (RPrintWriter out = new RPrintWriter(buf, false, false)) {
+            serialize(out);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1506,7 +1513,7 @@ public class Reflector<T> implements IDirty {
 
     public String toStringNumbered() {
         StringWriter buf = new StringWriter();
-        try (RPrintWriter in = new RPrintWriter(buf, true)) {
+        try (RPrintWriter in = new RPrintWriter(buf, true, false)) {
             serialize(in);
         } catch (Exception e) {
             e.printStackTrace();
@@ -1541,7 +1548,7 @@ public class Reflector<T> implements IDirty {
             }
             if (o instanceof Map) {
                 Map map = (Map) o;
-                Map newMap = (Map) o.getClass().newInstance();
+                Map newMap = newMapInstance(getCanonicalName(o.getClass()));
                 Iterator it = map.entrySet().iterator();
                 while (it.hasNext()) {
                     Map.Entry entry = (Map.Entry) it.next();

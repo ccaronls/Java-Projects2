@@ -28,7 +28,7 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 	var zones: List<ZZone> = emptyList()
 		private set
 
-	private val actors = HashMap<String, ZActor>()
+	private val actors = Collections.synchronizedMap(HashMap<String, ZActor>())
 
 	constructor()
 	constructor(grid: Grid<ZCell>, zones: List<ZZone>) {
@@ -185,9 +185,22 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 		throw GException("No door found at $pos, $dir")
 	}
 
+	private fun findDoor(zone: ZZone, dir: ZDir): ZDoor {
+		for (door in zone.doors) {
+			if (door.moveDirection === dir) {
+				return door
+			}
+		}
+		throw GException("No door found at zone ${zone.zoneIndex}, $dir")
+	}
+
 	fun findDoorOrNull(pos: Pos, dir: ZDir): ZDoor? = zones[getCell(pos).zoneIndex].doors.firstOrNull {
 		it.cellPosStart == pos && it.moveDirection === dir
 	}
+
+	fun getDoors(): List<ZDoor> = zones.map {
+		it.doors
+	}.flatten()
 
 	fun findVault(id: Int): ZDoor {
 		var numIds = 0
@@ -333,17 +346,26 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 	            curPath.removeLast()
             }
         }
-    }
+	}
 
 	fun getCell(pos: Pos): ZCell {
 		return grid[pos]
 	}
+
+	fun getCellOrNull(pos: Pos): ZCell? = if (grid.isOnGrid(pos) && !grid[pos].isCellTypeEmpty)
+		grid[pos]
+	else
+		null
 
 	fun getZone(pos: Pos): ZZone? = grid[pos]?.takeIf {
 		it.zoneIndex >= 0
 	}?.transform {
 		getZone(it.zoneIndex)
 	}
+
+	fun getAllDoors(): List<ZDoor> = zones.map {
+		it.doors
+	}.flatten()
 
 	fun setObjective(pos: Pos, type: ZCellType) {
 		val cell = getCell(pos)
@@ -493,14 +515,14 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 			val toZone = zones[toZoneIndex]
 			if (toZone.type === ZZoneType.VAULT) {
 				// moving into a vault
-				findDoor(actor.occupiedCell, ZDir.DESCEND).also {
+				findDoor(fromZone, ZDir.DESCEND).also {
 					targetPos = it.cellPosEnd
 				}
             } else if (fromZone.type === ZZoneType.VAULT) {
                 // moving out of a vault
-                findDoor(actor.occupiedCell, ZDir.ASCEND).also {
-                    targetPos = it.cellPosStart
-                }
+				findDoor(fromZone, ZDir.ASCEND).also {
+					targetPos = it.cellPosStart
+				}
             }
         }
         val fromCell = getCell(actor.occupiedCell)
@@ -572,7 +594,7 @@ class ZBoard : Reflector<ZBoard>, IDimension {
     }
 
 	fun getActorsInZone(zoneIndex: Int): List<ZActor> {
-		if (zoneIndex < 0)
+		if (zoneIndex !in zones.indices)
 			return emptyList()
 		val actors: MutableList<ZActor> = ArrayList()
 		for (cellPos in zones[zoneIndex].cells) {
@@ -585,8 +607,12 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 
 	fun getAllActors(): List<ZActor> = actors.values.toList()
 
-	fun getAllZombies(): List<ZZombie> {
-		return getAllActors().filterIsInstance<ZZombie>()
+	fun getAllZombies(vararg types: ZZombieType): List<ZZombie> {
+		val all = getAllActors().filterIsInstance<ZZombie>()
+		if (types.isNotEmpty()) {
+			return all.filter { types.contains(it.type) }
+		}
+		return all
 	}
 
 	fun getAllCharacters(): List<ZCharacter> {

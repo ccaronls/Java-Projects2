@@ -17,7 +17,7 @@ import cc.lib.android.SpinnerTask
 import cc.lib.mp.android.P2PHelper.Companion.statusToString
 import cc.lib.net.AGameClient
 import cc.lib.net.GameCommand
-import cc.lib.utils.Lock
+import cc.lib.utils.KLock
 import java.net.InetAddress
 
 class P2PJoinGameDialog(
@@ -27,14 +27,13 @@ class P2PJoinGameDialog(
 	val connectPort: Int
 ) : BaseAdapter(), OnItemClickListener, DialogInterface.OnClickListener,
 	DialogInterface.OnCancelListener, Runnable, AGameClient.Listener {
-	val lvHost: ListView
+	val lvHost: ListView = ListView(context)
 	val p2pDevices: MutableList<WifiP2pDevice> = ArrayList()
 	val dialog: Dialog
 	val helper: P2PHelper
-	val connectLock = Lock(1)
+	val connectLock = KLock(1)
 
 	init {
-		lvHost = ListView(context)
 		lvHost.adapter = this
 		lvHost.onItemClickListener = this
 		helper = object : P2PHelper(context) {
@@ -91,19 +90,20 @@ class P2PJoinGameDialog(
 		return 0
 	}
 
-	override fun getView(position: Int, _v: View?, parent: ViewGroup): View {
-		val v = _v ?: View.inflate(context, R.layout.list_item_peer, null)
-		var device: WifiP2pDevice
-		synchronized(p2pDevices) { device = p2pDevices[position] }
-		v.tag = device
-		val tvPeer = v.findViewById<TextView>(R.id.tvPeer)
-		tvPeer.text = context.getString(
-			R.string.join_game_dialog_client_label,
-			device.deviceName,
-			statusToString(device.status, context)
-		)
-		tvPeer.setBackgroundColor(if (position % 2 == 0) Color.BLACK else Color.DKGRAY)
-		return v
+	override fun getView(position: Int, v: View?, parent: ViewGroup): View {
+		with(v ?: View.inflate(context, R.layout.list_item_peer, null)) {
+			var device: WifiP2pDevice
+			synchronized(p2pDevices) { device = p2pDevices[position] }
+			tag = device
+			val tvPeer = findViewById<TextView>(R.id.tvPeer)
+			tvPeer.text = context.getString(
+				R.string.join_game_dialog_client_label,
+				device.deviceName,
+				statusToString(device.status, context)
+			)
+			tvPeer.setBackgroundColor(if (position % 2 == 0) Color.BLACK else Color.DKGRAY)
+			return this
+		}
 	}
 
 	override fun onClick(dialog: DialogInterface, which: Int) {
@@ -114,12 +114,12 @@ class P2PJoinGameDialog(
 	override fun onItemClick(parent: AdapterView<*>?, view: View, position: Int, id: Long) {
 		val d = view.tag as WifiP2pDevice
 		object : SpinnerTask<Void>(context) {
-			override fun getProgressMessage(): String {
-				return context.getString(R.string.popup_progress_msg_pleasewait_for_invite)
+
+			init {
+				progressMessage = context.getString(R.string.popup_progress_msg_pleasewait_for_invite)
 			}
 
-			@Throws(Throwable::class)
-			override fun doIt(vararg args: Void) {
+			override suspend fun doIt(args: Void?) {
 				helper.connect(d)
 				connectLock.block(30000)
 			}

@@ -5,6 +5,8 @@ import android.app.AlertDialog
 import android.app.Dialog
 import android.app.ProgressDialog
 import android.content.DialogInterface
+import android.media.AudioManager
+import android.media.SoundPool
 import android.os.AsyncTask
 import android.os.Bundle
 import android.text.format.DateFormat
@@ -14,9 +16,17 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.*
+import android.widget.AdapterView
 import android.widget.AdapterView.OnItemClickListener
 import android.widget.AdapterView.OnItemLongClickListener
+import android.widget.BaseAdapter
+import android.widget.CheckBox
+import android.widget.EditText
+import android.widget.ImageView
+import android.widget.ListView
+import android.widget.TextView
+import android.widget.Toast
+import android.widget.ToggleButton
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
@@ -26,24 +36,49 @@ import cc.game.zombicide.android.ZButton.Companion.build
 import cc.game.zombicide.android.databinding.ActivityZombicideBinding
 import cc.game.zombicide.android.databinding.AssignDialogItemBinding
 import cc.game.zombicide.android.databinding.TooltippopupLayoutBinding
-import cc.lib.android.*
+import cc.lib.android.CCActivityBase
+import cc.lib.android.DroidUtils
+import cc.lib.android.EmailHelper
+import cc.lib.android.SpinnerTask
+import cc.lib.android.getEnum
 import cc.lib.mp.android.P2PActivity
 import cc.lib.reflector.Reflector
 import cc.lib.ui.IButton
-import cc.lib.utils.*
-import cc.lib.zombicide.*
+import cc.lib.utils.FileUtils
+import cc.lib.utils.KLock
+import cc.lib.utils.isEmpty
+import cc.lib.utils.prettify
+import cc.lib.zombicide.ZCharacter
+import cc.lib.zombicide.ZDifficulty
+import cc.lib.zombicide.ZDir
+import cc.lib.zombicide.ZEquipSlot
+import cc.lib.zombicide.ZGame
+import cc.lib.zombicide.ZMove
+import cc.lib.zombicide.ZMoveType
+import cc.lib.zombicide.ZPlayerName
+import cc.lib.zombicide.ZQuests
 import cc.lib.zombicide.ZQuests.Companion.questsBlackPlague
 import cc.lib.zombicide.ZQuests.Companion.questsWolfsburg
-import cc.lib.zombicide.ui.*
+import cc.lib.zombicide.ZSkill
+import cc.lib.zombicide.ZUser
+import cc.lib.zombicide.ZZombieType
+import cc.lib.zombicide.ui.ConnectedUser
+import cc.lib.zombicide.ui.MiniMapMode
+import cc.lib.zombicide.ui.UIZBoardRenderer
+import cc.lib.zombicide.ui.UIZCharacterRenderer
+import cc.lib.zombicide.ui.UIZUser
+import cc.lib.zombicide.ui.UIZombicide
 import cc.lib.zombicide.ui.UIZombicide.Companion.instance
 import cc.lib.zombicide.ui.UIZombicide.UIMode
-import kotlinx.coroutines.GlobalScope
+import cc.lib.zombicide.ui.ZSound
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
-import java.util.*
-import kotlin.Pair
+import java.util.Date
+import java.util.Stack
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -110,6 +145,19 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 	override val version: String = ZMPCommon.VERSION
 	override val maxConnections: Int = 2
 
+	val soundPool: SoundPool by lazy {
+		SoundPool(8, AudioManager.STREAM_MUSIC, 0)
+	}
+
+	private fun loadSound(pool: SoundPool, sound: ZSound, resId: Int) {
+		sound.id = pool.load(this, resId, 1)
+		Log.d("SOUND_POOL", "Loaded $sound = ${sound.id}")
+	}
+
+	private fun loadSounds() {
+		loadSound(soundPool, ZSound.SWORD_SLASH, R.raw.sword_swing1)
+	}
+
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
 		ZGame.DEBUG = BuildConfig.DEBUG
@@ -130,6 +178,8 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 		zb.bLeft.setOnClickListener(this)
 		zb.bDown.setOnClickListener(this)
 		zb.bRight.setOnClickListener(this)
+		zb.bUndo.setOnClickListener(this)
+		zb.bRepeat.setOnClickListener(this)
 		zb.boardView.enablePinchZoom()
 		zb.consoleView.setOnClickListener {
 			game.showCharacterExpandedOverlay()
@@ -160,7 +210,8 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 		boardRenderer.drawTiles = true
 		boardRenderer.miniMapMode = prefs.getEnum(PREF_MINIMAP_MODE_STRING, MiniMapMode.UL)
 
-		val lock = Lock()
+		val lock = KLock()
+		loadSounds()
 
 		game = object : UIZombicide(characterRenderer, boardRenderer) {
 			override suspend fun runGame(): Boolean {
@@ -172,10 +223,8 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 					log.debug("runGame changed=$changed")
 
 					if (changed) {
-						GlobalScope.launch {
-							lock.acquire()
+						CoroutineScope(Dispatchers.IO).launch {
 							pushGameState()
-							lock.release()
 						}
 					}
 					zb.boardView.postInvalidate()
@@ -283,9 +332,19 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 
 			override fun updateOrganize(character: ZCharacter, list: List<ZMove>): ZMove? {
 				Log.d(TAG, "updateOrganize moves: ${list.joinToString(separator = "\n")}")
-				organizeDialog?.viewModel?.allOptions?.postValue(list)
+				runOnUiThread {
+					organizeDialog?.viewModel?.allOptions?.value = list
+				}
 				return waitForUser(ZMove::class.java)
 			}
+
+			override fun canUndo(): Boolean = FileUtils.hasBackupFile(gameFile)
+
+			override fun playSound(sound: ZSound) {
+				if (sound.id >= 0)
+					soundPool.play(sound.id, 1f, 1f, 1, 0, 1f)
+			}
+
 		}
 		game.addUser(thisUser)
 	}
@@ -524,8 +583,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 					.setNegativeButton(R.string.popup_button_cancel, null)
 					.setPositiveButton(R.string.popup_button_disconnect) { _, _ ->
 						object : SpinnerTask<Int>(this@ZombicideActivity) {
-							@Throws(Exception::class)
-							override fun doIt(vararg args: Int?) {
+							override suspend fun doIt(args: Int?) {
 								client?.disconnect("Quit Game")
 							}
 
@@ -541,8 +599,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 					.setNegativeButton(R.string.popup_button_cancel, null)
 					.setPositiveButton(R.string.popup_button_disconnect) { _, _ ->
 						object : SpinnerTask<Int>(this@ZombicideActivity) {
-							@Throws(Exception::class)
-							override fun doIt(vararg args: Int?) {
+							override suspend fun doIt(args: Int?) {
 								server?.stop()
 							}
 
@@ -629,22 +686,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 				showSkillsDialog2()
 			}
 			MenuItem.UNDO -> {
-				if (client != null) {
-					object : CLSendCommandSpinnerTask(this) {
-
-						override fun onGameUpdated(game: ZGame) {
-							release()
-						}
-
-						override fun onSuccess() {
-							zb.boardView.postInvalidate()
-						}
-					}.execute(clientMgr!!.newUndoPressed())
-					//getClient().sendCommand(clientMgr.newUndoPressed());
-					game.setResult(null)
-				} else {
-					tryUndo()
-				}
+				tryUndo()
 			}
 
 			MenuItem.LEGEND -> {
@@ -686,14 +728,16 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 	fun tryUndo() {
 		val isRunning = game.isGameRunning()
 		stopGame()
-		if (FileUtils.restoreFile(gameFile)) {
-			game.tryLoadFromFile(gameFile)
-			game.refresh()
-			serverMgr?.broadcastUpdateGame()
-			organizeDialog?.viewModel?.onUndo()
+		runOnUiThread {
+			if (FileUtils.restoreFile(gameFile)) {
+				game.tryLoadFromFile(gameFile)
+				game.refresh()
+				serverMgr?.broadcastUpdateGame()
+				organizeDialog?.viewModel?.onUndo()
+			}
+			if (isRunning)
+				startGame()
 		}
-		if (isRunning)
-			startGame()
 	}
 
 	fun updateCharacters(quest: ZQuests) {
@@ -796,20 +840,13 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 
 	fun showChooseColorDialog() {
 		if (clientMgr?.client?.isConnected == true) {
-			object : CLSendCommandSpinnerTask(this) {
-
+			object : CLSendCommandSpinnerTask(this@ZombicideActivity) {
 
 				override fun onColorOptions(colorIdOptions: List<Int>) {
 					runOnUiThread {
-						newDialogBuilder().setTitle(R.string.popup_title_choose_color)
-							.setNegativeButton(R.string.popup_button_cancel, null)
-							.setItems(colorIdOptions.map { ZUser.USER_COLOR_NAMES[it] }
-								.toTypedArray()) { _, which: Int ->
-								//prefs.edit().putInt(PREF_COLOR_ID_INT, which).apply()
-								//thisUser.setColor(game.board, which, ZUser.USER_COLOR_NAMES[which])
-								clientMgr?.setColorId(colorIdOptions[which])
-								//game.refresh()
-							}.show()
+						showColorChooser(colorIdOptions) {
+							clientMgr?.setColorId(it)
+						}
 					}
 					release()
 				}
@@ -818,14 +855,49 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 				}
 			}.execute(clientMgr!!.newColorPickerPressed())
 		} else {
-			newDialogBuilder().setTitle(R.string.popup_title_choose_color)
-				.setItems(ZUser.USER_COLOR_NAMES) { _, which: Int ->
-					prefs.edit().putInt(PREF_COLOR_ID_INT, which).apply()
-					game.setUserColorId(thisUser, which)
-					clientMgr?.setColorId(which)
-					game.refresh()
-				}.setNegativeButton(R.string.popup_button_cancel, null).show()
+			showColorChooser(IntArray(ZUser.USER_COLORS.size) { it }.toList()) { id ->
+				prefs.edit().putInt(PREF_COLOR_ID_INT, id).apply()
+				game.setUserColorId(thisUser, id)
+				clientMgr?.setColorId(id)
+				game.refresh()
+			}
 		}
+	}
+
+	fun showColorChooser(options: List<Int>, callback: (Int) -> Unit) {
+		val listView = ListView(this)
+		var colorId = thisUser.colorId
+		listView.adapter = object : BaseAdapter() {
+			override fun getCount(): Int = options.size
+
+			override fun getItem(position: Int): Any = options[position]
+
+			override fun getItemId(position: Int): Long = options[position].toLong()
+
+			override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
+				val view = (convertView as CheckBox?) ?: CheckBox(this@ZombicideActivity)
+				view.setOnCheckedChangeListener(null)
+				val id = options[position]
+				view.isChecked = colorId == id
+				view.isEnabled = !view.isChecked
+				view.text = ZUser.getColorName(id)
+				view.setTextColor(ZUser.USER_COLORS[id].toARGB())
+				view.setOnCheckedChangeListener { _, isChecked ->
+					if (isChecked) {
+						colorId = id
+						notifyDataSetChanged()
+					}
+				}
+				return view
+			}
+		}
+		newDialogBuilder()
+			.setTitle("Choose Color")
+			.setView(listView)
+			.setNegativeButton(R.string.popup_button_cancel, null)
+			.setPositiveButton(R.string.popup_button_ok) { _, _ ->
+				callback(colorId)
+			}.show()
 	}
 
 	fun showDebugDialog() {

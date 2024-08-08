@@ -16,7 +16,7 @@ import cc.lib.android.SpinnerTask
 import cc.lib.mp.android.P2PActivity.P2PServer
 import cc.lib.net.AClientConnection
 import cc.lib.net.AGameServer
-import cc.lib.utils.Lock
+import cc.lib.utils.KLock
 import java.net.InetAddress
 
 abstract class P2PClientConnectionsDialog(
@@ -31,7 +31,7 @@ abstract class P2PClientConnectionsDialog(
 	private var lvPlayers: ListView? = null
 
 	init {
-		val groupFormedLock = Lock(1)
+		val groupFormedLock = KLock(1)
 		helper = object : P2PHelper(context) {
 			override fun onP2PEnabled(enabled: Boolean) {
 				if (!enabled) {
@@ -53,15 +53,16 @@ abstract class P2PClientConnectionsDialog(
 				}
 			}
 		}
-		helper.setDeviceName(serverName!!)
+		helper.setDeviceName(serverName)
 		helper.start(server)
 		object : SpinnerTask<Void>(context) {
-			override fun getProgressMessage(): String {
-				return context.getString(R.string.popup_title_starting_server)
+
+			init {
+				progressMessage = context.getString(R.string.popup_title_starting_server)
 			}
 
 			@Throws(Exception::class)
-			override fun doIt(vararg args: Void) {
+			override suspend fun doIt(args: Void?) {
 				groupFormedLock.block(20000)
 				if (!server.isRunning) throw Exception("Timeout trying to start server")
 			}

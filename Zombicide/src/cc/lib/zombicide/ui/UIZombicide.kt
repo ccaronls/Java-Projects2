@@ -16,6 +16,7 @@ import cc.lib.utils.Grid
 import cc.lib.utils.Lock
 import cc.lib.utils.Table
 import cc.lib.utils.forEachAs
+import cc.lib.utils.prettify
 import cc.lib.utils.takeIfInstance
 import cc.lib.zombicide.ZActionType
 import cc.lib.zombicide.ZActor
@@ -234,7 +235,7 @@ abstract class UIZombicide(
 		}
 	}
 
-	open fun undo() {}
+	override fun undo() {}
 
 	val lock = Lock()
 	val readyLock = Lock()
@@ -387,6 +388,8 @@ abstract class UIZombicide(
 			}
 		})
 	}
+
+	open fun playSound(sound: ZSound) {}
 
 	fun showSummaryOverlay() {
 		boardRenderer.setOverlay(gameSummaryTable)
@@ -638,19 +641,31 @@ abstract class UIZombicide(
 		)
 	}
 
-	override fun onSpawnZoneSpawning(rect: GRectangle) {
-		super.onSpawnZoneSpawning(rect)
+	override fun onSpawnZoneSpawning(rect: GRectangle, nth: Int, num: Int) {
+		super.onSpawnZoneSpawning(rect, nth, num)
+		if (nth == 0) {
+			boardRenderer.pushZoomRect()
+		} else {
+			boardRenderer.waitForAnimations()
+		}
 		boardRenderer.animateZoomTo(rect)
 		boardRenderer.waitForAnimations()
 	}
 
-	override fun onSpawnZoneSpawned() {
-		super.onSpawnZoneSpawned()
+	override fun onSpawnZoneSpawned(nth: Int, num: Int) {
+		super.onSpawnZoneSpawned(nth, num)
 		boardRenderer.waitForAnimations()
+		if (nth == num - 1)
+			boardRenderer.popZoomRect()
 		boardRenderer.setOverlay(null)
 	}
 
-	override fun onCharacterAttacked(character: ZPlayerName, attackerPosition: ZActorPosition, attackType: ZAttackType, perished: Boolean) {
+	override fun onCharacterAttacked(
+		character: ZPlayerName,
+		attackerPosition: ZActorPosition,
+		attackType: ZAttackType,
+		perished: Boolean
+	) {
 		super.onCharacterAttacked(character, attackerPosition, attackType, perished)
 		val attacker = board.getActor(attackerPosition)
 		val ch = character.toCharacter()
@@ -710,14 +725,14 @@ abstract class UIZombicide(
 			boardRenderer.setOverlay(info)
 		} else {
 			for (e in equipment) {
-				boardRenderer.addPostActor(HoverMessage(boardRenderer, "+" + e.getLabel(), c.toCharacter()))
+				boardRenderer.addHoverMessage("+" + e.getLabel(), c.toCharacter())
 			}
 		}
 	}
 
 	override fun onCharacterGainedExperience(c: ZPlayerName, points: Int) {
 		super.onCharacterGainedExperience(c, points)
-		boardRenderer.addPostActor(HoverMessage(boardRenderer, String.format("+%d EXP", points), c.toCharacter()))
+		boardRenderer.addHoverMessage(String.format("+%d EXP", points), c.toCharacter())
 	}
 
 	override fun onGameLost() {
@@ -769,7 +784,7 @@ abstract class UIZombicide(
 			OverlayTextAnimation(
 				String.format(
 					"EXTRA ACTIVATION %s",
-					category
+					category.prettify()
 				), boardRenderer.numOverlayTextAnimations
 			)
 		)
@@ -859,6 +874,7 @@ abstract class UIZombicide(
 						val pos = hits[i]
 						val victim = board.getActor(pos)
 						require(victim !== attacker)
+						playSound(ZSound.SWORD_SLASH)
 						attacker.addAnimation(object : MeleeAnimation(attacker, board) {
 							override fun onDone() {
 								if (pos.data == ACTOR_POS_DATA_DEFENDED) {
@@ -869,6 +885,7 @@ abstract class UIZombicide(
 							}
 						})
 					} else {
+						playSound(ZSound.SWORD_SLASH)
 						attacker.addAnimation(object : MeleeAnimation(attacker, board) {
 							override fun onDone() {
 								boardRenderer.addHoverMessage("MISS!!", attacker)

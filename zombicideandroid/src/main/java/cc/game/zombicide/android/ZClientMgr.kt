@@ -101,7 +101,9 @@ class ZClientMgr(activity: ZombicideActivity, game: UIZombicide, override val cl
 
 						override val timeout: Long = 30000L
 
-						override fun getProgressMessage(): String = "Starting Game ...."
+						init {
+							progressMessage = "Starting Game ...."
+						}
 
 						override fun onPlayerPressedStart(userName: String, numStarted: Int, numTotal: Int) {
 							if (numStarted >= numTotal) {
@@ -111,10 +113,10 @@ class ZClientMgr(activity: ZombicideActivity, game: UIZombicide, override val cl
 									activity.game.showQuestTitleOverlay()
 								}
 							} else
-								publishProgress(numStarted, numTotal)
+								publishProgress(arrayOf(numStarted, numTotal))
 						}
 
-						override fun onProgressUpdate(vararg values: Int?) {
+						override fun onProgressUpdate(values: Array<Int>) {
 							progressMessage = "${values[0]} of ${values[1]} have started"
 						}
 

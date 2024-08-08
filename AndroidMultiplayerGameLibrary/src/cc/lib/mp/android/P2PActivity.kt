@@ -193,12 +193,13 @@ abstract class P2PActivity : CCActivityBase() {
 	 */
 	fun p2pShutdown() {
 		log.debug("p2pShutdown")
-		object : SpinnerTask<Void>(this) {
-			override fun getProgressMessage(): String {
-				return getString(R.string.p2p_progress_message_disconnecting)
+		object : SpinnerTask<Void>(this@P2PActivity) {
+
+			init {
+				progressMessage = getString(R.string.p2p_progress_message_disconnecting)
 			}
 
-			override fun doIt(vararg args: Void) {
+			override suspend fun doIt(args: Void?) {
 				server?.stop()
 				client?.disconnect()
 			}

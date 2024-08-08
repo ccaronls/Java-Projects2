@@ -13,6 +13,8 @@ public class RPrintWriter extends PrintWriter {
     int lineNum = 0;
     boolean indented = false;
 
+    boolean writeNulls = true;
+
     static {
         indents = new String[32];
         String indent = "";
@@ -22,22 +24,24 @@ public class RPrintWriter extends PrintWriter {
         }
     }
 
-    public RPrintWriter(Writer out, boolean numbered) {
+    public RPrintWriter(Writer out, boolean numbered, boolean writeNulls) {
         super(out, true);
         this.numbered = numbered;
+        this.writeNulls = writeNulls;
     }
 
     public RPrintWriter(Writer out) {
-        this(out, false);
+        this(out, false, true);
     }
 
-    public RPrintWriter(OutputStream out, boolean numbered) {
+    public RPrintWriter(OutputStream out, boolean numbered, boolean writeNulls) {
         super(out, true);
         this.numbered = numbered;
+        this.writeNulls = writeNulls;
     }
 
     public RPrintWriter(OutputStream out) {
-        this(out, false);
+        this(out, false, true);
     }
 
     private int currentIndent = 0;
@@ -77,4 +81,9 @@ public class RPrintWriter extends PrintWriter {
         return this;
     }
 
+    public void writeNull(String name) {
+        if (writeNulls) {
+            p(name).println("=null");
+        }
+    }
 }

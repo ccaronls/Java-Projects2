@@ -39,28 +39,35 @@
             app:layout_constraintEnd_toEndOf="@id/list_menu"
             app:layout_constraintBottom_toBottomOf="parent" />
 
-        <GridLayout
+        <LinearLayout
             android:id="@+id/buttons_layout"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:rowCount="3"
-            android:columnCount="3"
-            goneIfNot="@{viewModel.playing}"
-            enableAllIf="@{!viewModel.processingMove}"
+            android:background="@drawable/outline"
             app:layout_constraintTop_toBottomOf="@id/sv_console"
             app:layout_constraintBottom_toTopOf="@id/list_menu"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="@id/list_menu">
+            app:layout_constraintEnd_toEndOf="@id/list_menu"
+            android:orientation="vertical"
+            goneIfNot="@{viewModel.playing}"
+            enabledIf="@{!viewModel.processingMove}"
+            android:clickable="@{viewModel.processingMove}">
 
-            <Button
-                style="@style/ZDPadButton"
-                android:id="@+id/b_useleft"
-                android:text="@string/dpad_lh"/>
+            <GridLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:rowCount="3"
+                android:columnCount="3">
 
-            <ImageButton
-                style="@style/ZDPadButton"
-                android:id="@+id/b_up"
-                android:src="@drawable/button_up"/>
+                <Button
+                    style="@style/ZDPadButton"
+                    android:id="@+id/b_useleft"
+                    android:text="@string/dpad_lh" />
+
+                <ImageButton
+                    style="@style/ZDPadButton"
+                    android:id="@+id/b_up"
+                    android:src="@drawable/button_up" />
 
             <Button
                 style="@style/ZDPadButton"
@@ -91,15 +98,40 @@
             <ImageButton
                 style="@style/ZDPadButton"
                 android:id="@+id/b_down"
-                android:src="@drawable/button_down"/>
+                android:src="@drawable/button_down" />
 
-            <ImageButton
-                style="@style/ZDPadButton"
-                android:id="@+id/b_vault"
-                android:src="@drawable/stairs_icon" />
+                <ImageButton
+                    style="@style/ZDPadButton"
+                    android:id="@+id/b_vault"
+                    android:src="@drawable/stairs_icon" />
 
 
-        </GridLayout>
+            </GridLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/outline">
+
+                <Button
+                    style="@style/ZButton"
+                    android:id="@+id/b_undo"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:text="@string/button_undo" />
+
+                <Button
+                    style="@style/ZButton"
+                    android:id="@+id/b_repeat"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:drawableRight="@drawable/repeat"
+                    android:paddingRight="5dp"
+                    android:text="@string/button_repeat" />
+            </LinearLayout>
+        </LinearLayout>
 
         <ScrollView
             android:id="@+id/sv_console"
@@ -108,20 +140,22 @@
             app:layout_constraintTop_toTopOf="parent"
             android:scrollbarAlwaysDrawVerticalTrack="true"
             goneIf="@{!viewModel.consoleVisible || viewModel.loading}"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:background="@drawable/outline">
+
             <cc.game.zombicide.android.ZCharacterView
                 android:id="@+id/console_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:borderThickness="0dp"
-                app:borderColor="@color/black_overlay"/>
+                app:borderColor="@color/black_overlay" />
         </ScrollView>
 
         <cc.game.zombicide.android.ZBoardView
             android:id="@+id/board_view"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:background="@color/background"
+            android:background="@drawable/outline"
             app:layout_constraintStart_toEndOf="@id/list_menu"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@id/sv_console"

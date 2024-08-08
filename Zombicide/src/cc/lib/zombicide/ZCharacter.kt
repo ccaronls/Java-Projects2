@@ -143,16 +143,16 @@ class ZCharacter(
 		return type.imageDim
 	}
 
-    override fun onBeginRound() {
-        actionsDoneThisTurn.clear()
-        availableSkills.clear()
-        availableSkills.addAll(allSkills)
-        cachedSkills = null
-        zonesMoved = 0
-        fallen = isDead
+    override fun onBeginRound(game: ZGame) {
+	    actionsDoneThisTurn.clear()
+	    availableSkills.clear()
+	    availableSkills.addAll(allSkills)
+	    cachedSkills = null
+	    zonesMoved = 0
+	    fallen = isDead
 	    usedSpells.clear()
 	    hasMovedThisTurn = false
-	    super.onBeginRound()
+	    super.onBeginRound(game)
     }
 
 	@Synchronized

@@ -16,11 +16,11 @@ import cc.lib.utils.Grid
 import cc.lib.zombicide.ui.UIZButton
 import java.util.LinkedList
 
-abstract class ZActor internal constructor(var occupiedZone: Int) : ZObject(), UIZButton,
+abstract class ZActor internal constructor(var occupiedZone: Int) : Reflector<ZActor>(), UIZButton,
 	IRectangle, IVector2D, IInterpolator<Vector2D> {
 	companion object {
 		init {
-			Reflector.addAllFields(ZActor::class.java)
+			addAllFields(ZActor::class.java)
 		}
 	}
 
@@ -53,7 +53,7 @@ abstract class ZActor internal constructor(var occupiedZone: Int) : ZObject(), U
 		}
 	}
 
-	override fun getRect(b: ZBoard): GRectangle {
+	fun getRect(b: ZBoard): GRectangle {
 		return b.getCell(occupiedCell)
 			.getQuadrant(occupiedQuadrant)
 			.fit(dimension)
@@ -98,14 +98,17 @@ abstract class ZActor internal constructor(var occupiedZone: Int) : ZObject(), U
 	open val isInvisible: Boolean
 		get() = false
 
+	@Omit
+	var pickable = false
+
 	fun addAnimation(anim: ZActorAnimation) {
 		animations.add(anim)
 	}
 
 	open val moveSpeed: Long
-        get() = 1000
-    val isAnimating: Boolean
-	    get() = animations.isNotEmpty()
+		get() = 1000
+	val isAnimating: Boolean
+		get() = animations.isNotEmpty()
 
     fun drawOrAnimate(g: AGraphics) {
 	    while (animations.size > 0 && animations.first.isDone) {

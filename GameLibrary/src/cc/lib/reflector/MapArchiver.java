@@ -20,7 +20,7 @@ class MapArchiver implements Archiver {
     public void set(Object o, Field field, String value, Reflector<?> a, boolean keepInstances) throws Exception {
         if (value != null && !value.equals("null")) {
             if (o == null || !keepInstances)
-                o = Reflector.getClassForName(value).newInstance();
+                o = Reflector.newMapInstance(value);
             field.set(a, o);
         } else {
             field.set(a, null);
