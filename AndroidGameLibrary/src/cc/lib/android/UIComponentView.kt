@@ -79,15 +79,14 @@ abstract class UIComponentView<T : UIRenderer> : View, UIComponent, Runnable, Sc
 		val width = (width - borderThickness * 2).roundToInt()
 		val height = (height - borderThickness * 2).roundToInt()
 		if (!initialized) {
-			val BACK: GColor
-			BACK = if (background is ColorDrawable) {
+			val bkColor = if (background is ColorDrawable) {
 				GColor((background as ColorDrawable).color)
 			} else {
-				GColor.LIGHT_GRAY
+				GColor.TRANSPARENT
 			}
 			g = object : DroidGraphics(context, canvas, width, height) {
 				override fun getBackgroundColor(): GColor {
-					return BACK
+					return bkColor
 				}
 			}
 			g.setCaptureModeSupported(!isInEditMode)

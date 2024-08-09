@@ -198,7 +198,7 @@ internal class BoardComponent : AWTRendererComponent<UIZBoardRenderer>(), UIZCom
 			arrayOf<Any>(ZIcon.CLAWS, "zclaws6_icon.png"),
 			arrayOf<Any>(ZIcon.SHIELD, "zshield_icon.png"),
 			arrayOf<Any>(ZIcon.SLIME, "zslime_icon.png"),
-			arrayOf<Any>(ZIcon.RUBBLE, "zrubble_icon.png"),
+			arrayOf<Any>(ZIcon.RUBBLE, "zrubble_icon3.png"),
 			arrayOf<Any>(ZIcon.TORCH, "ztorch_icon.png"),
 			arrayOf<Any>(ZIcon.ARROW, "zarrow_icon.png"),
 			arrayOf<Any>(ZIcon.BOLT, "zbolt_icon.png"),

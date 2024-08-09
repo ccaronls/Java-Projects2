@@ -370,7 +370,7 @@ class ZBoardView(context: Context, attrs: AttributeSet) : UIComponentView<UIZBoa
 		for (pair in arrayOf(
 			Pair(ZIcon.SHIELD, R.drawable.zshield_icon),
 			Pair(ZIcon.SLIME, R.drawable.zslime_icon),
-			Pair(ZIcon.RUBBLE, R.drawable.zrubble_icon),
+			Pair(ZIcon.RUBBLE, R.drawable.zrubble_icon3),
 			Pair(ZIcon.FIREBALL, R.drawable.zfireball),
 			Pair(ZIcon.GRAVESTONE, R.drawable.zgravestone),
 			Pair(ZIcon.PADLOCK, R.drawable.zpadlock3),
