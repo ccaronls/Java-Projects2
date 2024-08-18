@@ -172,13 +172,30 @@ abstract class UIZombicide(
 			boardRenderer.popAllZoomRects()
 		}
 
+		boardRenderer.pickableRects = emptyList()
 		when (uiMode) {
 			UIMode.PICK_ZOMBIE,
-			UIMode.PICK_CHARACTER -> options.forEachAs { a: ZActor -> a.pickable = true }
-			UIMode.PICK_ZONE -> options.forEachAs { z: ZZone -> z.pickable = true }
-			UIMode.PICK_DOOR -> options.forEachAs { d: ZDoor -> d.pickable = true }
-			UIMode.PICK_SPAWN -> options.forEachAs { s: ZSpawnArea -> s.pickable = true }
-			else -> Unit
+			UIMode.PICK_CHARACTER -> {
+				options.forEachAs { a: ZActor -> a.pickable = true }
+				boardRenderer.pickableRects = options as List<UIZButton>
+			}
+
+			UIMode.PICK_ZONE -> {
+				options.forEachAs { z: ZZone -> z.pickable = true }
+				boardRenderer.pickableRects = options as List<UIZButton>
+			}
+
+			UIMode.PICK_DOOR -> {
+				options.forEachAs { d: ZDoor -> d.pickable = true }
+				boardRenderer.pickableRects = options as List<UIZButton>
+			}
+
+			UIMode.PICK_SPAWN -> {
+				options.forEachAs { s: ZSpawnArea -> s.pickable = true }
+				boardRenderer.pickableRects = options as List<UIZButton>
+			}
+
+			else -> focusOnMainMenu()
 		}
 		this.options = options
 		boardRenderer.redraw()
@@ -186,6 +203,9 @@ abstract class UIZombicide(
 
 	private var result: Any? = null
 	abstract val thisUser: ZUser
+
+	abstract fun focusOnMainMenu()
+
 	fun refresh() {
 		boardRenderer.board = board
 		boardRenderer.redraw()
@@ -410,13 +430,9 @@ abstract class UIZombicide(
 	fun showCharacterExpandedOverlay() {
 		characterRenderer.actorInfo?.takeIfInstance<ZCharacter>()?.let {
 			setCharacterSkillsOverlay(it)
-		} ?: boardRenderer.highlightedActor?.takeIfInstance<ZCharacter>()?.let {
+		} ?: boardRenderer.highlightedResult?.takeIfInstance<ZCharacter>()?.let {
 			setCharacterSkillsOverlay(it)
 		}
-	}
-
-	override fun onClick(obj: Any?) {
-		setResult(obj)
 	}
 
 	override fun onActorHighlighted(actor: ZActor?) {

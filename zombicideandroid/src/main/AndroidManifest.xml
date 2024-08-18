@@ -10,28 +10,12 @@
         android:roundIcon="@drawable/zicon"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat">
-        <activity android:name=".Splash"
-            android:theme="@style/ZAppTheme"
-            android:screenOrientation="sensorLandscape">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
         <activity
+            android:theme="@style/ZAppTheme"
             android:name=".ZombicideActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
-            android:screenOrientation="sensorLandscape"
-            android:theme="@style/ZAppTheme">
-            <!--
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-            -->
-        </activity>
+            android:screenOrientation="sensorLandscape"></activity>
     </application>
 
 </manifest>

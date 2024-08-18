@@ -21,8 +21,8 @@ open class HandOfGodAnimation(actor: ZActor, val spawn: ZSpawnArea) : ZActorAnim
 		val bend = 0f
 	}
 
-	val start = spawn.rect.center.toMutable().setY(0f)
-	val spawnRect = spawn.rect
+	val start = spawn.getRect().center.toMutable().setY(0f)
+	val spawnRect = spawn.getRect()
 	val interps = arrayOf(
 		start.linearInterpolateTo(spawnRect.topLeft),
 		start.linearInterpolateTo(spawnRect.bottomRight),
@@ -36,7 +36,7 @@ open class HandOfGodAnimation(actor: ZActor, val spawn: ZSpawnArea) : ZActorAnim
 		val spawnScale : Float = if (phase == 4) (1f - positionInPhase) else 1f
 		val dir = spawn.dir
 		val id = spawn.icon.imageIds[dir.ordinal]
-		val scaledRect = spawn.rect.scaledBy(spawnScale)
+		val scaledRect = spawn.getRect().scaledBy(spawnScale)
 		if (phase < 5)
 			g.drawImage(id, scaledRect)
 

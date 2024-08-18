@@ -6,7 +6,6 @@ import cc.lib.game.GColor
 import cc.lib.game.GDimension
 import cc.lib.game.GRectangle
 import cc.lib.game.IDimension
-import cc.lib.game.IRectangle
 import cc.lib.game.IVector2D
 import cc.lib.game.Justify
 import cc.lib.game.Utils
@@ -608,6 +607,8 @@ class Table(var model: Model = object : Model {}) : ITableItem, IButton {
 		return borderWidth
 	}
 
-	override fun getRect(): IRectangle = GRectangle(cachedLocation, cachedDimension
-		?: GDimension.EMPTY)
+	override fun getRect() = GRectangle(
+		cachedLocation, cachedDimension
+			?: GDimension.EMPTY
+	)
 }

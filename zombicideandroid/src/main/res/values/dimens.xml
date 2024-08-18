@@ -4,4 +4,10 @@
     <dimen name="chars_view_text_size">14dp</dimen>
     <dimen name="list_sep_padding">5dp</dimen>
     <dimen name="default_line_width">5dp</dimen>
+    <dimen name="text_size">16dp</dimen>
+    <dimen name="menu_text_margin">15dp</dimen>
+    <dimen name="menu_width">140dp</dimen>
+    <dimen name="dpad_min_width">32dip</dimen>
+    <dimen name="dpad_min_height">48dip</dimen>
+    <dimen name="dpad_image_dimen">20dp</dimen>
 </resources>

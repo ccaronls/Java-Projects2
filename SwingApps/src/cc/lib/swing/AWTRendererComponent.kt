@@ -2,6 +2,7 @@ package cc.lib.swing
 
 import cc.lib.math.MutableVector2D
 import cc.lib.ui.UIComponent
+import cc.lib.ui.UIKeyCode
 import cc.lib.ui.UIRenderer
 import java.awt.event.MouseEvent
 
@@ -93,4 +94,11 @@ abstract class AWTRendererComponent<R : UIRenderer>() : AWTComponent(), UICompon
 		super.mouseMoved(e)
 	}
 
+	override fun onKeyEvent(down: Boolean, code: UIKeyCode): Boolean {
+		if (::renderer.isInitialized) {
+			return renderer.onKeyEvent(down, code)
+		}
+
+		return super.onKeyEvent(down, code)
+	}
 }

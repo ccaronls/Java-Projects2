@@ -2,13 +2,12 @@ package cc.lib.zombicide.anims
 
 import cc.lib.game.AGraphics
 import cc.lib.game.GColor
-
 import cc.lib.math.Vector2D
 import cc.lib.utils.randomSigned
 import cc.lib.zombicide.ZActor
 import cc.lib.zombicide.ZActorAnimation
 import cc.lib.zombicide.ZBoard
-import java.util.*
+import java.util.LinkedList
 
 class LightningAnimation(actor: ZActor, start: Vector2D, end: Vector2D, sections: Int, strands: Int) : ZActorAnimation(actor, 150, 3) {
 	var dv: Vector2D
@@ -19,7 +18,14 @@ class LightningAnimation(actor: ZActor, start: Vector2D, end: Vector2D, sections
 	val sectionLen: Float
 	val numSections: Int
 
-	constructor(actor: ZActor, board: ZBoard, targetZone: Int, strands: Int) : this(actor, actor.getRect().center, board.getZone(targetZone).center.add(Vector2D.newRandom(.3f)), 4, strands) {}
+	constructor(actor: ZActor, board: ZBoard, targetZone: Int, strands: Int) : this(
+		actor,
+		actor.getRect().center,
+		board.getZone(targetZone).getRect().center.add(Vector2D.newRandom(.3f)),
+		4,
+		strands
+	) {
+	}
 
 	override fun onRepeat(n: Int) {
 		for (l in sections) {

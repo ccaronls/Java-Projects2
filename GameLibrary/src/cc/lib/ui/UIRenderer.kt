@@ -8,6 +8,15 @@ import cc.lib.game.IVector2D
 import cc.lib.game.Renderable
 import cc.lib.math.MutableVector2D
 
+enum class UIKeyCode {
+	UP,
+	DOWN,
+	LEFT,
+	RIGHT,
+	CENTER,
+	BACK
+}
+
 abstract class ButtonHandler(val zOrder: Int = 0) {
 	open fun onClick(): Boolean = false
 	open fun onHoverEnter() {}
@@ -43,7 +52,7 @@ abstract class UIRenderer protected constructor(private val component: UICompone
 	}
 
 	var minDimension = GDimension(32f, 32f)
-	private val buttons = sortedSetOf<Pair<IButton, ButtonHandler>>(buttonComparator)
+	private val buttons = sortedSetOf(buttonComparator)
 
 	fun getButtons(): List<IButton> = buttons.map { it.first }.toList()
 
@@ -62,6 +71,11 @@ abstract class UIRenderer protected constructor(private val component: UICompone
 	open fun onSizeChanged(w: Int, h: Int) {}
 	open fun onZoom(scale: Float) {}
 	open fun onFocusChanged(gained: Boolean) {}
+
+	open fun onKeyEvent(down: Boolean, code: UIKeyCode): Boolean {
+		return false
+	}
+
 	fun setMinDimension(w: Float, h: Float) {
 		minDimension = GDimension(w, h)
 	}

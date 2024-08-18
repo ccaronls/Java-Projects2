@@ -231,49 +231,14 @@ public class GRectangle extends Reflector<GRectangle> implements IRectangle {
         return this;
     }
 
-    public GRectangle withCenter(IVector2D cntr) {
-        return new GRectangle(cntr.getX() - w / 2, cntr.getY() - h / 2, w, h);
-    }
-
-    public GRectangle withPosition(IVector2D topLeft) {
-        return new GRectangle(topLeft, this);
-    }
-
-    public GRectangle withDimension(IDimension dim) {
-        return new GRectangle(x, y, dim.getWidth(), dim.getHeight());
-    }
-
-    public GRectangle withDimension(float w, float h) {
-        return new GRectangle(x, y, w, h);
-    }
-
     public GRectangle moveBy(float dx, float dy) {
         x+=dx;
         y+=dy;
         return this;
     }
 
-    public GRectangle movedBy(float dx, float dy) {
-        return new GRectangle(x+dx, y+dy, w, h);
-    }
-
     public GRectangle moveBy(IVector2D dv) {
-        x += dv.getX();
-        y += dv.getY();
-        return this;
-    }
-
-    public GRectangle movedBy(IVector2D dv) {
-        return movedBy(dv.getX(), dv.getY());
-    }
-
-    public GRectangle add(IRectangle other) {
-        return new GRectangle(
-                Math.min(x, other.X()),
-                Math.min(y, other.Y()),
-                Math.max(getWidth(), other.getWidth()),
-                Math.max(getHeight(), other.getHeight())
-        );
+        return moveBy(dv.getX(), dv.getY());
     }
 
     /**
@@ -315,31 +280,6 @@ public class GRectangle extends Reflector<GRectangle> implements IRectangle {
         return this;
     }
 
-    /**
-     *
-     * @return
-     */
-    public IInterpolator<Vector2D> getRandomInterpolator() {
-        return new IInterpolator<Vector2D>() {
-            @Override
-            public Vector2D getAtPosition(float position) {
-                return getRandomPointInside();
-            }
-        };
-    }
-
-    public GRectangle shaked(float factor) {
-        float nx = x + w*Utils.randFloatX(factor);
-        float ny = y + h*Utils.randFloatX(factor);
-        return new GRectangle(nx, ny, w, h);
-    }
-
-    public GRectangle shaked(float xfactor, float yfactor) {
-        float nx = x + w*Utils.randFloatX(xfactor);
-        float ny = y + h*Utils.randFloatX(yfactor);
-        return new GRectangle(nx, ny, w, h);
-    }
-
     public final GRectangle setAspect(float aspect) {
         float a = getAspect();
         Vector2D cntr = getCenter();
@@ -366,31 +306,5 @@ public class GRectangle extends Reflector<GRectangle> implements IRectangle {
         }
         setCenter(cntr);
         return this;
-    }
-
-    public GRectangle[] subDivide(int rows, int cols) {
-        GRectangle[] divisions = new GRectangle[rows * cols];
-        float wid = w / cols;
-        float hgt = h / rows;
-        int idx = 0;
-        for (int i = 0; i < cols; i++) {
-            MutableVector2D tl = getTopLeft().addEq(wid * i, 0);
-            for (int ii = 0; ii < rows; ii++) {
-                divisions[idx++] = new GRectangle(tl, wid, hgt);
-                tl.addEq(0, hgt);
-            }
-        }
-        return divisions;
-    }
-
-    public final boolean isEmpty() {
-        return this == EMPTY || (getWidth() <= 0 && getHeight() <= 0);
-    }
-
-    public final boolean isInside(IRectangle other) {
-        return (getTopLeft().getX() >= other.getTopLeft().X()
-                && getBottomRight().X() <= other.getBottomRight().getX()
-                && getTopLeft().getY() >= other.getTopLeft().getY()
-                && getBottomRight().getY() <= other.getBottomRight().getY());
     }
 }

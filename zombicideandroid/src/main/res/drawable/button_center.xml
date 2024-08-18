@@ -3,7 +3,9 @@
     <item>
         <shape android:shape="oval">
             <stroke android:width="5dp" android:color="#fff"/>
-            <size android:width="20dp" android:height="20dp"/>
+            <size
+                android:width="@dimen/dpad_image_dimen"
+                android:height="@dimen/dpad_image_dimen" />
         </shape>
     </item>
 </layer-list>

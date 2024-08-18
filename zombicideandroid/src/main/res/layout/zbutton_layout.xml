@@ -3,6 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:minHeight="@dimen/dpad_min_height"
     android:layout_weight="1"
     android:background="@drawable/zbutton_background"
     xmlns:app="http://schemas.android.com/apk/res-auto">
@@ -12,15 +13,14 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textColor="#000"
-        android:textSize="16dp"
+        android:textSize="@dimen/text_size"
         android:text="This is some really long text to determine how this element will look"
-        android:layout_marginTop="15dp"
-        android:layout_marginBottom="15dp"
-        android:layout_marginLeft="15dp"
-        android:layout_marginRight="23dp"
+        android:layout_marginTop="@dimen/menu_text_margin"
+        android:layout_marginBottom="@dimen/menu_text_margin"
+        android:layout_marginLeft="@dimen/menu_text_margin"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"/>
+        app:layout_constraintStart_toStartOf="parent" />
 
     <ImageView
         android:id="@+id/ivInfo"

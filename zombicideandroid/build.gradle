@@ -10,17 +10,39 @@ android {
         versionName "1.0"
     }
 
+    flavorDimensions "version"
+    productFlavors {
+        tablet {
+            // Assigns this product flavor to the "version" flavor dimension.
+            // If you are using only one dimension, this property is optional,
+            // and the plugin automatically assigns all the module's flavors to
+            // that dimension.
+            dimension "version"
+            applicationIdSuffix ".tablet"
+            versionNameSuffix "-tablet"
+        }
+        tv {
+            dimension "version"
+            applicationIdSuffix ".tv"
+            versionNameSuffix "-tv"
+            minSdk = 21
+        }
+    }
 
     applicationVariants.all {
-        variant -> variant.outputs.all {
-            outputFileName = "zombieshide-${variant.buildType.name}-${android.defaultConfig.versionName}.${android.defaultConfig.versionCode}.apk"
-        }
+        variant ->
+            variant.outputs.all {
+                outputFileName = "zombieshide-${variant.buildType.name}-${android.defaultConfig.versionName}.${android.defaultConfig.versionCode}.apk"
+            }
     }
 
 
     sourceSets {
-        main {
-            assets.srcDirs = [ 'assets' ]
+        tablet {
+            manifest.srcFile 'src/tablet/AndroidManifest.xml'
+        }
+        tv {
+            manifest.srcFile 'src/tv/AndroidManifest.xml'
         }
     }
 

@@ -15,7 +15,14 @@ class SonarAnimation(actor: ZActor, var start: Vector2D, var end: Vector2D, val 
 	val startAngle: Float
 	val radius: Float
 
-	constructor(actor: ZActor, board: ZBoard, targetZone: Int) : this(actor, actor.getRect().center, board.getZone(targetZone).center, 5, 20f) {}
+	constructor(actor: ZActor, board: ZBoard, targetZone: Int) : this(
+		actor,
+		actor.getRect().center,
+		board.getZone(targetZone).getRect().center,
+		5,
+		20f
+	) {
+	}
 
 	override fun draw(g: AGraphics, position: Float, dt: Float) {
 		g.color = GColor.WHITE

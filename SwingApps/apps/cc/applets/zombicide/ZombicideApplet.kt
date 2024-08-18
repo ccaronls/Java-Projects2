@@ -111,6 +111,10 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 
 			override val thisUser: ZUser
 				get() = uiUser
+
+			override fun focusOnMainMenu() {
+				menuContainer.grabFocus()
+			}
 		}
 		initIntro()
 	}

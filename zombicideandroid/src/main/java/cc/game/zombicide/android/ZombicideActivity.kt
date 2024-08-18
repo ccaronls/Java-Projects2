@@ -206,6 +206,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 				vm.loading.postValue(true)
 			}
 
+			override val touchOrMouseSupported = BuildConfig.FLAVOR != "tv"
 		}
 		boardRenderer.drawTiles = true
 		boardRenderer.miniMapMode = prefs.getEnum(PREF_MINIMAP_MODE_STRING, MiniMapMode.UL)
@@ -345,6 +346,11 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 					soundPool.play(sound.id, 1f, 1f, 1, 0, 1f)
 			}
 
+			override fun focusOnMainMenu() {
+				runOnUiThread {
+					zb.bGameMenu.requestFocus()
+				}
+			}
 		}
 		game.addUser(thisUser)
 	}

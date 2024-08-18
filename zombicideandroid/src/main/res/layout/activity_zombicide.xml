@@ -20,7 +20,7 @@
 
         <ListView
             android:id="@+id/list_menu"
-            android:layout_width="140dp"
+            android:layout_width="@dimen/menu_width"
             android:layout_height="0dp"
             tools:listitem="@layout/zbutton_layout"
             app:adapter="@{viewModel.listAdapter}"
@@ -43,7 +43,6 @@
             android:id="@+id/buttons_layout"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:background="@drawable/outline"
             app:layout_constraintTop_toBottomOf="@id/sv_console"
             app:layout_constraintBottom_toTopOf="@id/list_menu"
             app:layout_constraintStart_toStartOf="parent"
@@ -69,36 +68,36 @@
                     android:id="@+id/b_up"
                     android:src="@drawable/button_up" />
 
-            <Button
-                style="@style/ZDPadButton"
-                android:id="@+id/b_useright"
-                android:text="@string/dpad_rh"/>
+                <Button
+                    style="@style/ZDPadButton"
+                    android:id="@+id/b_useright"
+                    android:text="@string/dpad_rh" />
 
-            <ImageButton
-                style="@style/ZDPadButton"
-                android:id="@+id/b_left"
-                android:src="@drawable/button_left"/>
+                <ImageButton
+                    style="@style/ZDPadButton"
+                    android:id="@+id/b_left"
+                    android:src="@drawable/button_left" />
 
-            <ImageButton
-                style="@style/ZDPadButton"
-                android:id="@+id/b_center"
-                android:gravity="center"
-                android:src="@drawable/button_center"/>
+                <ImageButton
+                    style="@style/ZDPadButton"
+                    android:id="@+id/b_center"
+                    android:gravity="center"
+                    android:src="@drawable/button_center" />
 
-            <ImageButton
-                style="@style/ZDPadButton"
-                android:id="@+id/b_right"
-                android:src="@drawable/button_right"/>
+                <ImageButton
+                    style="@style/ZDPadButton"
+                    android:id="@+id/b_right"
+                    android:src="@drawable/button_right" />
 
-            <Button
-                style="@style/ZDPadButton"
-                android:id="@+id/b_zoom"
-                android:text="@string/dpad_zm"/>
+                <Button
+                    style="@style/ZDPadButton"
+                    android:id="@+id/b_zoom"
+                    android:text="@string/dpad_zm" />
 
-            <ImageButton
-                style="@style/ZDPadButton"
-                android:id="@+id/b_down"
-                android:src="@drawable/button_down" />
+                <ImageButton
+                    style="@style/ZDPadButton"
+                    android:id="@+id/b_down"
+                    android:src="@drawable/button_down" />
 
                 <ImageButton
                     style="@style/ZDPadButton"
@@ -110,8 +109,7 @@
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/outline">
+                android:layout_height="wrap_content">
 
                 <Button
                     style="@style/ZButton"
@@ -129,6 +127,9 @@
                     android:layout_height="wrap_content"
                     android:drawableRight="@drawable/repeat"
                     android:paddingRight="5dp"
+                    android:paddingLeft="3dp"
+                    android:maxLines="1"
+                    android:ellipsize="end"
                     android:text="@string/button_repeat" />
             </LinearLayout>
         </LinearLayout>
@@ -140,13 +141,13 @@
             app:layout_constraintTop_toTopOf="parent"
             android:scrollbarAlwaysDrawVerticalTrack="true"
             goneIf="@{!viewModel.consoleVisible || viewModel.loading}"
-            android:orientation="vertical"
-            android:background="@drawable/outline">
+            android:orientation="vertical">
 
             <cc.game.zombicide.android.ZCharacterView
                 android:id="@+id/console_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_margin="2dp"
                 app:borderThickness="0dp"
                 app:borderColor="@color/black_overlay" />
         </ScrollView>
@@ -159,7 +160,8 @@
             app:layout_constraintStart_toEndOf="@id/list_menu"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@id/sv_console"
-            app:layout_constraintBottom_toBottomOf="parent"/>
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:focusable="@{viewModel.playing}" />
 
         <ToggleButton
             android:id="@+id/b_toggleConsole"

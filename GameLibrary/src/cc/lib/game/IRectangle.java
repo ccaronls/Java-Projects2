@@ -1,11 +1,9 @@
 package cc.lib.game;
 
-import org.jetbrains.annotations.NotNull;
-
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
 
-public interface IRectangle extends IDimension, IShape, Comparable<IRectangle> {
+public interface IRectangle extends IDimension, IShape {
 
     float X();
 
@@ -173,17 +171,6 @@ public interface IRectangle extends IDimension, IShape, Comparable<IRectangle> {
         return getWidth() * getHeight();
     }
 
-    @Override
-    default int compareTo(@NotNull IRectangle o) {
-        int c = Float.compare(getArea(), o.getArea());
-        if (c != 0)
-            return c;
-        if (X() != o.X())
-            return Float.compare(X(), o.X());
-        return Float.compare(Y(), o.Y());
-    }
-
-
     /**
      * @return
      */
@@ -317,6 +304,87 @@ public interface IRectangle extends IDimension, IShape, Comparable<IRectangle> {
 
         Vector2D delta2 = contained.getCenter().sub(getCenter());
         return delta.sub(delta2);
+    }
+
+    default GRectangle withCenter(IVector2D cntr) {
+        return new GRectangle(cntr.getX() - getWidth() / 2, cntr.getY() - getHeight() / 2, getWidth(), getHeight());
+    }
+
+    default GRectangle withPosition(IVector2D topLeft) {
+        return new GRectangle(topLeft, this);
+    }
+
+    default GRectangle withDimension(IDimension dim) {
+        return new GRectangle(X(), Y(), dim.getWidth(), dim.getHeight());
+    }
+
+    default GRectangle withDimension(float w, float h) {
+        return new GRectangle(X(), Y(), w, h);
+    }
+
+    default GRectangle movedBy(float dx, float dy) {
+        return new GRectangle(X() + dx, Y() + dy, getWidth(), getHeight());
+    }
+
+    default GRectangle movedBy(IVector2D dv) {
+        return movedBy(dv.getX(), dv.getY());
+    }
+
+    default GRectangle add(IRectangle other) {
+        return new GRectangle(
+                Math.min(X(), other.X()),
+                Math.min(Y(), other.Y()),
+                Math.max(getWidth(), other.getWidth()),
+                Math.max(getHeight(), other.getHeight())
+        );
+    }
+
+    /**
+     * @return
+     */
+    default IInterpolator<Vector2D> getRandomInterpolator() {
+        return new IInterpolator<Vector2D>() {
+            @Override
+            public Vector2D getAtPosition(float position) {
+                return getRandomPointInside();
+            }
+        };
+    }
+
+    default GRectangle shaked(float factor) {
+        return shaked(factor, factor);
+    }
+
+    default GRectangle shaked(float xfactor, float yfactor) {
+        float nx = X() + getWidth() * Utils.randFloatX(xfactor);
+        float ny = Y() + getHeight() * Utils.randFloatX(yfactor);
+        return new GRectangle(nx, ny, getWidth(), getHeight());
+    }
+
+    default GRectangle[] subDivide(int rows, int cols) {
+        GRectangle[] divisions = new GRectangle[rows * cols];
+        float wid = getWidth() / cols;
+        float hgt = getHeight() / rows;
+        int idx = 0;
+        for (int i = 0; i < cols; i++) {
+            MutableVector2D tl = getTopLeft().addEq(wid * i, 0);
+            for (int ii = 0; ii < rows; ii++) {
+                divisions[idx++] = new GRectangle(tl, wid, hgt);
+                tl.addEq(0, hgt);
+            }
+        }
+        return divisions;
+    }
+
+    default boolean isEmpty() {
+        return this == GRectangle.EMPTY || (getWidth() <= 0 && getHeight() <= 0);
+    }
+
+    default boolean isInside(IRectangle other) {
+        return (getTopLeft().getX() >= other.getTopLeft().X()
+                && getBottomRight().X() <= other.getBottomRight().getX()
+                && getTopLeft().getY() >= other.getTopLeft().getY()
+                && getBottomRight().getY() <= other.getBottomRight().getY());
     }
 
 }

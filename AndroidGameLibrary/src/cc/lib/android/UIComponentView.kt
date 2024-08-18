@@ -6,6 +6,7 @@ import android.graphics.Paint
 import android.graphics.drawable.ColorDrawable
 import android.os.SystemClock
 import android.util.AttributeSet
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.View
@@ -17,6 +18,7 @@ import cc.lib.game.Justify
 import cc.lib.game.Utils
 import cc.lib.math.Vector2D
 import cc.lib.ui.UIComponent
+import cc.lib.ui.UIKeyCode
 import cc.lib.ui.UIRenderer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -25,7 +27,8 @@ import kotlinx.coroutines.launch
 import kotlin.math.max
 import kotlin.math.roundToInt
 
-abstract class UIComponentView<T : UIRenderer> : View, UIComponent, Runnable, ScaleGestureDetector.OnScaleGestureListener {
+abstract class UIComponentView<T : UIRenderer>
+	: View, UIComponent, Runnable, ScaleGestureDetector.OnScaleGestureListener, View.OnKeyListener, View.OnFocusChangeListener {
 
 	private val TAG = this::class.java.simpleName
 
@@ -64,6 +67,8 @@ abstract class UIComponentView<T : UIRenderer> : View, UIComponent, Runnable, Sc
 		borderPaint.style = Paint.Style.STROKE
 		borderPaint.strokeWidth = borderThickness
 		borderPaint.color = borderColor
+		setOnKeyListener(this)
+		setOnFocusChangeListener(this)
 		a.recycle()
 	}
 
@@ -141,6 +146,10 @@ abstract class UIComponentView<T : UIRenderer> : View, UIComponent, Runnable, Sc
 			} catch (e: Exception) {
 				e.printStackTrace()
 			}
+			if (isFocused) {
+				g.setColor(GColor.RED)
+				g.drawRect(g.viewport, 3f)
+			}
 			val next = renderer.minDimension
 			if (next != prev) {
 				if (isResizable) {
@@ -152,7 +161,25 @@ abstract class UIComponentView<T : UIRenderer> : View, UIComponent, Runnable, Sc
 		g.translate(-borderThickness, -borderThickness)
 	}
 
-	open val loadingString : String
+	override fun onKey(v: View?, keyCode: Int, event: KeyEvent): Boolean {
+		val result = when (keyCode) {
+			KeyEvent.KEYCODE_DPAD_DOWN -> renderer.onKeyEvent(event.action == KeyEvent.ACTION_DOWN, UIKeyCode.DOWN)
+			KeyEvent.KEYCODE_DPAD_UP -> renderer.onKeyEvent(event.action == KeyEvent.ACTION_DOWN, UIKeyCode.UP)
+			KeyEvent.KEYCODE_DPAD_RIGHT -> renderer.onKeyEvent(event.action == KeyEvent.ACTION_DOWN, UIKeyCode.RIGHT)
+			KeyEvent.KEYCODE_DPAD_LEFT -> renderer.onKeyEvent(event.action == KeyEvent.ACTION_DOWN, UIKeyCode.LEFT)
+			KeyEvent.KEYCODE_DPAD_CENTER -> renderer.onKeyEvent(event.action == KeyEvent.ACTION_DOWN, UIKeyCode.CENTER)
+			KeyEvent.KEYCODE_BACK -> renderer.onKeyEvent(event.action == KeyEvent.ACTION_DOWN, UIKeyCode.BACK)
+			else -> false
+		}
+		renderer.redraw()
+		return result
+	}
+
+	override fun onFocusChange(v: View?, hasFocus: Boolean) {
+		renderer.onFocusChanged(hasFocus)
+	}
+
+	open val loadingString: String
 		get() = "LOADING"
 
 	val isResizable: Boolean
