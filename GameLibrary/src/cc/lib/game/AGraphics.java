@@ -1403,7 +1403,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param rect
      */
     public final void drawRect(IRectangle rect) {
-        drawRect(rect.X(), rect.Y(), rect.getWidth(), rect.getHeight());
+        drawRect(rect.getLeft(), rect.getTop(), rect.getWidth(), rect.getHeight());
     }
 
     /**
@@ -1412,7 +1412,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param thickness
      */
     public final void drawRect(IRectangle rect, float thickness) {
-        drawRect(rect.X(), rect.Y(), rect.getWidth(), rect.getHeight(), thickness);
+        drawRect(rect.getLeft(), rect.getTop(), rect.getWidth(), rect.getHeight(), thickness);
     }
 
     /**
@@ -1461,7 +1461,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param radius
      */
     public final void drawRoundedRect(IRectangle rect, float thickness, float radius) {
-        drawRoundedRect(rect.X(), rect.Y(), rect.getWidth(), rect.getHeight(), thickness, radius);
+        drawRoundedRect(rect.getLeft(), rect.getTop(), rect.getWidth(), rect.getHeight(), thickness, radius);
     }
 
     /**
@@ -1489,7 +1489,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param radius
      */
     public final void drawFilledRoundedRect(IRectangle rect, float radius) {
-        drawFilledRoundedRect(rect.X(), rect.Y(), rect.getWidth(), rect.getHeight(), radius);
+        drawFilledRoundedRect(rect.getLeft(), rect.getTop(), rect.getWidth(), rect.getHeight(), radius);
     }
     
     /**
@@ -1544,7 +1544,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param rect
      */
     public final void drawFilledRect(IRectangle rect) {
-        drawFilledRect(rect.X(), rect.Y(), rect.getWidth(), rect.getHeight());
+        drawFilledRect(rect.getLeft(), rect.getTop(), rect.getWidth(), rect.getHeight());
     }
 
     /**
@@ -1666,7 +1666,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param thickness
      */
     public void drawOval(IRectangle r, float thickness) {
-        drawOval(r.X(), r.Y(), r.getWidth(), r.getHeight(), thickness);
+        drawOval(r.getLeft(), r.getTop(), r.getWidth(), r.getHeight(), thickness);
     }
 
     /**
@@ -1859,7 +1859,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param rect
      */
     public final void drawImage(int imageKey, IRectangle rect) {
-        drawImage(imageKey, rect.X(), rect.Y(), rect.getWidth(), rect.getHeight());
+        drawImage(imageKey, rect.getLeft(), rect.getTop(), rect.getWidth(), rect.getHeight());
     }
 
     /**
@@ -1954,7 +1954,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param rect
      */
     public final void ortho(IRectangle rect) {
-        ortho(rect.X(), rect.X()+rect.getWidth(), rect.Y(), rect.Y()+rect.getHeight());
+        ortho(rect.getLeft(), rect.getLeft() + rect.getWidth(), rect.getTop(), rect.getTop() + rect.getHeight());
     }
 
     /**
@@ -1999,7 +1999,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param rect
      */
 	public final void setClipRect(IRectangle rect) {
-	    setClipRect(rect.X(), rect.Y(), rect.getWidth(), rect.Y());
+        setClipRect(rect.getLeft(), rect.getTop(), rect.getWidth(), rect.getTop());
     }
 
     /**

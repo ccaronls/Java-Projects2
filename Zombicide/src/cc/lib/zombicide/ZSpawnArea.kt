@@ -5,6 +5,7 @@ import cc.lib.game.IRectangle
 import cc.lib.reflector.Omit
 import cc.lib.reflector.Reflector
 import cc.lib.utils.Grid
+import cc.lib.zombicide.ui.UIZButton
 
 data class ZSpawnArea(
 	val cellPos: Grid.Pos = Grid.Pos(),
@@ -14,7 +15,7 @@ data class ZSpawnArea(
 	var isEscapableForNecromancers: Boolean = false,
 	var isCanBeRemovedFromBoard: Boolean = false,
 	var isCanBeDestroyedByCatapult: Boolean = false
-) : Reflector<ZSpawnArea>(), IRectangle {
+) : Reflector<ZSpawnArea>(), UIZButton {
 	companion object {
 		init {
 			addAllFields(ZSpawnArea::class.java)
@@ -29,15 +30,14 @@ data class ZSpawnArea(
 		return cellPos == other.cellPos && dir == other.dir
 	}
 
-	var rect = GRectangle()
+	private var rect = GRectangle()
 
 	@Omit
 	var pickable = false
 
-	override fun getWidth(): Float = rect.width
+	override fun getRect(): IRectangle = rect
 
-	override fun getHeight(): Float = rect.height
-
-	override fun X(): Float = rect.x
-	override fun Y(): Float = rect.y
+	fun setRect(rect: IRectangle) {
+		this.rect = GRectangle(rect)
+	}
 }

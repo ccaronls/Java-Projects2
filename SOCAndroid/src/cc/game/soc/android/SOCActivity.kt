@@ -8,10 +8,39 @@ import android.os.Bundle
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
-import android.widget.*
-import cc.game.soc.core.*
-import cc.game.soc.ui.*
-import cc.lib.android.*
+import android.widget.BaseAdapter
+import android.widget.Button
+import android.widget.CompoundButton
+import android.widget.ListView
+import android.widget.ScrollView
+import android.widget.TableLayout
+import android.widget.TableRow
+import android.widget.TextView
+import android.widget.Toast
+import cc.game.soc.core.AITuning
+import cc.game.soc.core.Board
+import cc.game.soc.core.BuildableType
+import cc.game.soc.core.ResourceType
+import cc.game.soc.core.Rules
+import cc.game.soc.core.SOC
+import cc.game.soc.core.Variation
+import cc.game.soc.ui.MenuItem
+import cc.game.soc.ui.NetCommon
+import cc.game.soc.ui.RenderConstants
+import cc.game.soc.ui.UIBarbarianRenderer
+import cc.game.soc.ui.UIBoardRenderer
+import cc.game.soc.ui.UIConsoleRenderer
+import cc.game.soc.ui.UIDiceRenderer
+import cc.game.soc.ui.UIEventCardRenderer
+import cc.game.soc.ui.UIPlayer
+import cc.game.soc.ui.UIPlayerRenderer
+import cc.game.soc.ui.UIPlayerUser
+import cc.game.soc.ui.UISOC
+import cc.lib.android.ArrayListAdapter
+import cc.lib.android.CCActivityBase
+import cc.lib.android.CCNumberPicker
+import cc.lib.android.EmailHelper
+import cc.lib.android.SpinnerTask
 import cc.lib.game.GColor
 import cc.lib.game.Utils
 import cc.lib.net.AClientConnection
@@ -22,7 +51,10 @@ import cc.lib.utils.FileUtils
 import java.io.File
 import java.io.IOException
 import java.lang.reflect.Field
-import java.util.*
+import java.util.Collections
+import java.util.Properties
+import java.util.Stack
+import java.util.Vector
 
 /**
  * Created by chriscaron on 2/15/18.
@@ -111,7 +143,7 @@ class SOCActivity() : CCActivityBase(), MenuItem.Action, View.OnClickListener, A
 					tvTitle.text = title
 					tvHelp.text = helpText
 					bAction.setOnClickListener {
-						mi.action?.onAction(mi, extra)
+						mi.action.onAction(mi, extra)
 					}
 					tvHelp.visibility = if (helpItem == position) View.VISIBLE else View.GONE
 					if (!Utils.isEmpty(helpText)) {
@@ -354,9 +386,9 @@ class SOCActivity() : CCActivityBase(), MenuItem.Action, View.OnClickListener, A
 						fixed.delete()
 					}
 				}
-				object : SpinnerTask<String>(this) {
-					@Throws(Exception::class)
-					override fun doIt(vararg args: String) {
+				object : SpinnerTask<String>(this@SOCActivity) {
+
+					override suspend fun doIt(args: String?) {
 						soc.loadFromFile(gameFile)
 					}
 
@@ -488,9 +520,9 @@ class SOCActivity() : CCActivityBase(), MenuItem.Action, View.OnClickListener, A
 	}
 
 	fun showResumeMultiPlayerDialog() {
-		object : SpinnerTask<String>(this) {
-			@Throws(Exception::class)
-			override fun doIt(vararg args: String) {
+		object : SpinnerTask<String>(this@SOCActivity) {
+
+			override suspend fun doIt(args: String?) {
 				soc.loadFromFile(gameFile)
 			}
 
@@ -580,8 +612,8 @@ class SOCActivity() : CCActivityBase(), MenuItem.Action, View.OnClickListener, A
 			newDialog(true).setTitle("Load Scenario").setItems(scenarios, object : DialogInterface.OnClickListener {
 				override fun onClick(dialog: DialogInterface, which: Int) {
 					object : SpinnerTask<String>(this@SOCActivity) {
-						@Throws(Exception::class)
-						override fun doIt(vararg args: String) {
+
+						override suspend fun doIt(args: String?) {
 							val reader = assets.open("scenarios/" + scenarios[which])
 							try {
 								val scenario = SOC()
@@ -965,18 +997,16 @@ class SOCActivity() : CCActivityBase(), MenuItem.Action, View.OnClickListener, A
 		log.info("Client reconnected: " + conn.displayName)
 	}
 
-	override fun onDisconnected(conn: AClientConnection, reason: String?) {
+	override fun onDisconnected(conn: AClientConnection, reason: String) {
 		log.info("Client disconnected: " + conn.displayName)
-		runOnUiThread(object : Runnable {
-			override fun run() {
-				newDialog(false).setTitle("ERROR").setMessage("You have been disconnected")
-					.setPositiveButton("Exit", object : DialogInterface.OnClickListener {
-						override fun onClick(dialog: DialogInterface, which: Int) {
-							quitGame()
-						}
-					}).show()
-			}
-		})
+		runOnUiThread {
+			newDialog(false).setTitle("ERROR").setMessage("You have been disconnected")
+				.setPositiveButton("Exit", object : DialogInterface.OnClickListener {
+					override fun onClick(dialog: DialogInterface, which: Int) {
+						quitGame()
+					}
+				}).show()
+		}
 	}
 
 	override fun onAllPermissionsGranted(code: Int) {

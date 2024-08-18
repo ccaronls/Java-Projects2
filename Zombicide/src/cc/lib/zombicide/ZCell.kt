@@ -54,13 +54,13 @@ class ZCell internal constructor(private val x: Float, private val y: Float) : R
 
     constructor() : this(-1f, -1f) {}
 
-    override fun X(): Float {
-        return x
+    override fun getLeft(): Float {
+	    return x
     }
 
-    override fun Y(): Float {
-        return y
-    }
+	override fun getTop(): Float {
+		return y
+	}
 
     override fun getWidth(): Float {
         return 1f
@@ -157,17 +157,17 @@ class ZCell internal constructor(private val x: Float, private val y: Float) : R
     }
 
     fun getQuadrant(quadrant: ZCellQuadrant): GRectangle {
-        when (quadrant) {
-            ZCellQuadrant.UPPERLEFT -> return GRectangle(topLeft, center)
-            ZCellQuadrant.LOWERRIGHT -> return GRectangle(center, bottomRight)
-            ZCellQuadrant.UPPERRIGHT -> return GRectangle(center, topRight)
-            ZCellQuadrant.LOWERLEFT -> return GRectangle(center, bottomLeft)
-            ZCellQuadrant.CENTER -> return GRectangle(X() + width / 4, Y() + height / 4, width / 2, height / 2)
-            ZCellQuadrant.TOP -> return GRectangle(X() + width / 4, Y(), width / 2, height / 2)
-            ZCellQuadrant.LEFT -> return GRectangle(X(), Y() + height / 4, width / 2, height / 2)
-            ZCellQuadrant.RIGHT -> return GRectangle(X() + width / 2, Y() + height / 4, width / 2, height / 2)
-            ZCellQuadrant.BOTTOM -> return GRectangle(X() + width / 4, Y() + height / 2, width / 2, height / 2)
-        }
+	    when (quadrant) {
+		    ZCellQuadrant.UPPERLEFT -> return GRectangle(topLeft, center)
+		    ZCellQuadrant.LOWERRIGHT -> return GRectangle(center, bottomRight)
+		    ZCellQuadrant.UPPERRIGHT -> return GRectangle(center, topRight)
+		    ZCellQuadrant.LOWERLEFT -> return GRectangle(center, bottomLeft)
+		    ZCellQuadrant.CENTER -> return GRectangle(getLeft() + width / 4, getTop() + height / 4, width / 2, height / 2)
+		    ZCellQuadrant.TOP -> return GRectangle(getLeft() + width / 4, getTop(), width / 2, height / 2)
+		    ZCellQuadrant.LEFT -> return GRectangle(getLeft(), getTop() + height / 4, width / 2, height / 2)
+		    ZCellQuadrant.RIGHT -> return GRectangle(getLeft() + width / 2, getTop() + height / 4, width / 2, height / 2)
+		    ZCellQuadrant.BOTTOM -> return GRectangle(getLeft() + width / 4, getTop() + height / 2, width / 2, height / 2)
+	    }
     }
 
     val isFull: Boolean

@@ -316,7 +316,7 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 			            ZWallFlag.CLOSED, ZWallFlag.OPEN -> {
 				            val pos: Pos = it.pos
 				            val next: Pos = board.getAdjacent(pos, (dir))
-				            zone.doors.add(ZDoor(pos, next, dir, GColor.RED))
+				            zone.addDoorIfNeeded(board, ZDoor(pos, next, dir, GColor.RED))
 			            }
 
 			            else -> Unit
@@ -376,7 +376,7 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 				continue
 			}
 			if (cell.vaultId == cell2.vaultId) {
-				zone.doors.add(ZDoor(pos, it2.pos, cell.environment.getVaultDirection(), color))
+				zone.addDoorIfNeeded(board, ZDoor(pos, it2.pos, cell.environment.getVaultDirection(), color))
 				return
 			}
 		}
@@ -397,9 +397,11 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 			when (type) {
 				ZZombieType.SwampTroll -> {
 					// special case spawns in a water closest to noisiest zone
-					val noisiest = board.getMaxNoiseLevelZones().midPointOrNull() ?: board.center
+					val noisiest = board.getMaxNoiseLevelZones().map {
+						it.getRect()
+					}.midPointOrNull() ?: board.center
 					board.getZonesOfType(ZZoneType.WATER).minByOrNull { wz ->
-						wz.center.sub(noisiest).magSquared()
+						wz.getRect().center.sub(noisiest).magSquared()
 					}?.let {
 						zone = it.zoneIndex
 					} ?: continue
@@ -649,7 +651,7 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 		            board.isZoneSpawnable(idx)
 	            }
 	            spawnableZones.forEachIndexed { index, zZone ->
-		            onSpawnZoneSpawning(GRectangle(zZone), index, spawnableZones.size)
+		            onSpawnZoneSpawning(GRectangle(zZone.getRect()), index, spawnableZones.size)
 		            spawnZombies(zZone.zoneIndex, highestSkill)
 		            onSpawnZoneSpawned(index, spawnableZones.size)
 	            }
@@ -1559,7 +1561,7 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 	                        onDoorToggled(cur.type, door)
                             //showMessage(currentCharacter.name() + " has opened a " + door.name());
                             // spawn zombies in the newly exposed zone and any adjacent
-                            val otherSide = door.otherSide
+	                        val otherSide = door.getOtherSide(board)
                             if (board.getZone(board.getCell(otherSide.cellPosStart).zoneIndex).canSpawn()) {
 	                            val highest = highestSkillLevel
 	                            val spawnZones = HashSet<Int>()

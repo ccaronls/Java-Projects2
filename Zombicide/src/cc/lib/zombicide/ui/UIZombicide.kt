@@ -1391,7 +1391,7 @@ abstract class UIZombicide(
 
 	override fun onCharacterOpenDoorFailed(cur: ZPlayerName, door: ZDoor) {
 		super.onCharacterOpenDoorFailed(cur, door)
-		boardRenderer.addPostActor(HoverMessage(boardRenderer, "Open Failed", door.getRect(board).center))
+		boardRenderer.addPostActor(HoverMessage(boardRenderer, "Open Failed", door.center))
 	}
 
 	override fun onIronRain(c: ZPlayerName, targetZone: Int) {
@@ -1402,17 +1402,17 @@ abstract class UIZombicide(
 	override fun onDoorUnlocked(door: ZDoor) {
 		super.onDoorUnlocked(door)
 		boardRenderer.pushZoomRect()
-		boardRenderer.animateZoomTo(door.getRect(board))
+		boardRenderer.animateZoomTo(door.getRect())
 		boardRenderer.waitForAnimations()
 		boardRenderer.addPostActor(
 			HoverMessage(
 				boardRenderer,
 				"DOOR UNLOCKED",
-				door.getRect(board).center
+				door.getRect().center
 			)
 		)
 		boardRenderer.addPostActor(object : ZAnimation(1000) {
-			val rect = door.getRect(board)
+			val rect = door.getRect()
 			override fun draw(g: AGraphics, position: Float, dt: Float) {
 				g.setTransparencyFilter(1f - position)
 				boardRenderer.drawPadlock(g, rect)

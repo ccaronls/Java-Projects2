@@ -278,7 +278,7 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
                             zone = ZZone(index)
                             zoneMap[index] = zone
                         }
-                        zone.cells.add(Grid.Pos(row, col))
+                        zone.addCell(Grid.Pos(row, col))
                         cell.zoneIndex = index
                         cell.setCellType(ZCellType.NONE, true)
                         continue

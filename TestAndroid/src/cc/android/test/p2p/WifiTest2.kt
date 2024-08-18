@@ -111,11 +111,11 @@ class WifiTest2 : P2PActivity(), View.OnClickListener, AGameClient.Listener, AGa
 
 	override fun onP2PClient(p2pClient: P2PClient) {
 		p2pClient.getClient().addListener(this)
-		p2pClient.getClient().setDisplayName(prefs.getString("handle", "Unknown")!!)
+		p2pClient.getClient().displayName = prefs.getString("handle", "Unknown")
 		runOnUiThread(UpdateButtonsRunnable(State.CLIENT))
 	}
 
-	override fun onP2PServer(p2pServer: P2PServer?) {
+	override fun onP2PServer(p2pServer: P2PServer) {
 		p2pServer!!.openConnections()
 		p2pServer.getServer().addListener(this)
 		serverController = p2pServer

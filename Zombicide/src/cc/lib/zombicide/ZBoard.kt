@@ -34,6 +34,30 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 	constructor(grid: Grid<ZCell>, zones: List<ZZone>) {
 		this.grid = grid
 		this.zones = zones
+		/*
+		// collect all the doors
+		val vaults = mutableMapOf<Int, MutableList<Pos>>()
+		zones.forEach { zone ->
+			zone.cells.forEach { pos ->
+				grid[pos].takeIf { it.vaultId > 0 }?.let { cell ->
+					vaults.getOrPut(cell.vaultId) { mutableListOf() }.add(pos)
+				}
+				ZDir.compassValues.forEach { dir ->
+					if (grid[pos].getWallFlag(dir).isDoor) {
+						zone.addDoorIfNeeded(this, ZDoor(pos, dir.getAdjacent(pos)!!, dir, GColor.BLACK))
+					}
+				}
+			}
+		}
+		this.vaults = vaults.map { (id, list) ->
+			require(list.size == 2)
+			list.sortBy {
+				grid[it].environment.getVaultDirection().ordinal
+			}
+			val ascending = ZDoor(list[0], list[1], ZDir.ASCEND, grid[list[0]].vaultType.color)
+			val descending = ZDoor(list[1], list[0], ZDir.DESCEND, grid[list[1]].vaultType.color)
+			id to Pair(ascending, descending)
+		}.toMap()*/
 	}
 
 	val rows: Int
@@ -174,13 +198,10 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 		ZDir.ASCEND, ZDir.DESCEND -> findDoorOrNull(from, dir)?.cellPosEnd ?: Pos(-1, -1)
 	}
 
-	@Synchronized
 	fun findDoor(pos: Pos, dir: ZDir): ZDoor {
 		val zone = zones[getCell(pos).zoneIndex]
-		for (door in zone.doors) {
-			if (door.cellPosStart == pos && door.moveDirection === dir) {
-				return door
-			}
+		zone.doors.firstOrNull { door -> door.cellPosStart == pos && door.moveDirection === dir }?.let {
+			return it
 		}
 		throw GException("No door found at $pos, $dir")
 	}
@@ -383,22 +404,25 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 
     fun setDoor(door: ZDoor, flag: ZWallFlag) {
         getCell(door.cellPosStart).setWallFlag(door.moveDirection, flag)
-        with (door.otherSide) {
-            getCell(cellPosStart).setWallFlag(moveDirection, flag)
-        }
+	    with(door.getOtherSide(this)) {
+		    getCell(cellPosStart).setWallFlag(moveDirection, flag)
+	    }
     }
 
     fun setDoorLocked(door: ZDoor) {
-        addLockedDoor(door)
-        addLockedDoor(door.otherSide)
+	    addLockedDoor(door)
+	    val other = ZDoor(door.cellPosEnd, door.cellPosStart, door.moveDirection.opposite, door.lockedColor)
+	    addLockedDoor(other)
     }
 
     private fun addLockedDoor(door: ZDoor) {
-        val cell = getCell(door.cellPosStart)
-        val zone = zones[cell.zoneIndex]
-        require (!zone.doors.contains(door))
-        cell.setWallFlag(door.moveDirection, ZWallFlag.LOCKED)
-        zone.doors.add(door)
+	    val cell = getCell(door.cellPosStart)
+	    val zone = zones[cell.zoneIndex]
+	    require(!zone.doors.contains(door))
+	    cell.setWallFlag(door.moveDirection, ZWallFlag.LOCKED)
+	    getCell(door.cellPosEnd).setWallFlag(door.moveDirection.opposite, ZWallFlag.LOCKED)
+	    zone.addDoorIfNeeded(this, door)
+	    require(door in zone.doors)
     }
 
     fun setSpawnZone(zoneIdx: Int, icon: ZIcon, canSpawnNecromancers: Boolean, isEscapableForNecromancers: Boolean, canBeRemovedFromBoard: Boolean) {
@@ -870,8 +894,8 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 	fun getDistanceBetweenZones(z0: Int, z1: Int): Int {
 		val r0 = getZone(z0)
 		val r1 = getZone(z1)
-		var dx = (r0.X() - r1.X()).roundToInt()
-		var dy = (r0.Y() - r1.Y()).roundToInt()
+		var dx = (r0.getLeft() - r1.getLeft()).roundToInt()
+		var dy = (r0.getTop() - r1.getTop()).roundToInt()
 		if (dx < 0)
 			dx = abs(dx) - r0.width.roundToInt()
 		else

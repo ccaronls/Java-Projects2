@@ -873,7 +873,7 @@ public class GolfSwing extends AWTKeyboardAnimationApplet {
         final Card card;
         
         public MoveCardAnimation(Card card, float sx, float sy, float ex, float ey, Angle angle, long duration) {
-            super(duration, 0);
+            super(duration, 0, false);
             this.card = card;
             this.sx = sx;
             this.sy = sy;
@@ -923,7 +923,7 @@ public class GolfSwing extends AWTKeyboardAnimationApplet {
         final int [] images;
         
         TurnOverCardAnimation(long duration, int x, int y, Card card, Angle angle) {
-            super (duration, 0);
+            super(duration, 0, false);
             this.x = x;
             this.y = y;
             this.card = card;

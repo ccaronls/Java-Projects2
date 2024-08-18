@@ -8,7 +8,12 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import cc.game.soc.core.Board
-import cc.game.soc.ui.*
+import cc.game.soc.ui.UIBarbarianRenderer
+import cc.game.soc.ui.UIBoardRenderer
+import cc.game.soc.ui.UIConsoleRenderer
+import cc.game.soc.ui.UIDiceRenderer
+import cc.game.soc.ui.UIEventCardRenderer
+import cc.game.soc.ui.UIPlayerRenderer
 import cc.lib.android.DroidGraphics
 import cc.lib.game.GColor
 import cc.lib.math.Vector2D
@@ -108,7 +113,7 @@ class SOCView<T : UIRenderer> : View, UIComponent {
 			g?.setCanvas(canvas, width, height)
 		}
 		val prev = _renderer.minDimension
-		_renderer.draw(g, tx, ty)
+		_renderer.draw(g!!, tx, ty)
 		val next = _renderer.minDimension
 		if (next != prev) {
 			if (isResizable) {

@@ -230,7 +230,7 @@ public class Renderer {
     }
 
     public final void setOrtho(IRectangle rect) {
-        setOrtho(rect.X(), rect.X() + rect.getWidth(), rect.Y(), rect.Y() + rect.getHeight());
+        setOrtho(rect.getLeft(), rect.getLeft() + rect.getWidth(), rect.getTop(), rect.getTop() + rect.getHeight());
     }
 
     /**

@@ -4,25 +4,26 @@ import cc.lib.game.AGraphics
 import cc.lib.game.GRectangle
 import cc.lib.game.IRectangle
 import cc.lib.game.Utils
-import cc.lib.math.MutableVector2D
 import cc.lib.reflector.Omit
 import cc.lib.reflector.Reflector
 import cc.lib.utils.GException
-import cc.lib.utils.Grid
+import cc.lib.utils.Grid.Pos
 import cc.lib.utils.rotate
+import cc.lib.zombicide.ui.UIZButton
+import cc.lib.zombicide.ui.UIZombicide
 
 /**
  * Zones are sets of adjacent cells that comprise rooms or streets separated by doors and walls
  */
-class ZZone(val zoneIndex: Int = -1) : Reflector<ZZone>(), IRectangle {
+class ZZone(val zoneIndex: Int = -1) : Reflector<ZZone>(), UIZButton {
 	companion object {
 		init {
 			addAllFields(ZZone::class.java)
 		}
 	}
 
-	val cells: MutableList<Grid.Pos> = ArrayList()
-	val doors: MutableList<ZDoor> = ArrayList()
+	val cells: List<Pos> = ArrayList()
+	val doors: List<ZDoor> = ArrayList()
 	var type = ZZoneType.UNSET
 	var noiseLevel = 0
 	var isDragonBile = false
@@ -47,16 +48,24 @@ class ZZone(val zoneIndex: Int = -1) : Reflector<ZZone>(), IRectangle {
 		return type === ZZoneType.BUILDING
 	}
 
-	override fun getCenter(): MutableVector2D = rectangle.center
+	fun addDoorIfNeeded(board: ZBoard, door: ZDoor) {
+		if (door !in doors)
+			(doors as MutableList<ZDoor>).add(door)
+		door.setRect(board)
+	}
 
-	override fun getArea(): Float = rectangle.area
+	fun addCell(pos: Pos) {
+		(cells as MutableList<Pos>).add(pos)
+	}
+
+	override fun getRect(): IRectangle = rectangle
 
 	/**
 	 *
 	 * @return
 	 */
 	@delegate:Omit
-	val rectangle by lazy {
+	private val rectangle by lazy {
 		GRectangle().also {
 			for (p in cells) {
 				it.addEq(p.column.toFloat(), p.row.toFloat(), 1f, 1f)
@@ -79,16 +88,16 @@ class ZZone(val zoneIndex: Int = -1) : Reflector<ZZone>(), IRectangle {
     val isSearchable: Boolean
         get() = type === ZZoneType.BUILDING
 
-    fun getCells(): Iterable<Grid.Pos> {
-        return cells
-    }
+	fun getCells(): Iterable<Pos> {
+		return cells
+	}
 
-    override fun contains(x: Float, y: Float): Boolean {
-        for (pos in cells) {
-            if (Utils.isPointInsideRect(x, y, pos.column.toFloat(), pos.row.toFloat(), 1f, 1f)) return true
-        }
-        return false
-    }
+	override fun contains(x: Float, y: Float): Boolean {
+		for (pos in cells) {
+			if (Utils.isPointInsideRect(x, y, pos.column.toFloat(), pos.row.toFloat(), 1f, 1f)) return true
+		}
+		return false
+	}
 
     fun addNoise(amt: Int) {
         noiseLevel += amt
@@ -104,20 +113,17 @@ class ZZone(val zoneIndex: Int = -1) : Reflector<ZZone>(), IRectangle {
     fun checkSanity() {
         if (cells.size > 1) {
             for (i in 0 until cells.size - 1) {
-                for (ii in i + 1 until cells.size) {
-                    if (cells[i].isAdjacentTo(cells[ii])) {
-                        return  // zone is sane
-                    }
-                }
+	            for (ii in i + 1 until cells.size) {
+		            if (cells[i].isAdjacentTo(cells[ii])) {
+			            return  // zone is sane
+		            }
+	            }
             }
 	        throw GException("Zone $zoneIndex is INSANE!! Not all positions are adjacent:$cells")
         }
     }
 
-	override fun getWidth(): Float = rectangle.w
-
-	override fun getHeight(): Float = rectangle.h
-	override fun X(): Float = rectangle.x
-
-	override fun Y(): Float = rectangle.y
+	override fun onClick() {
+		UIZombicide.instance.setResult(zoneIndex)
+	}
 }

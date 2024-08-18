@@ -17,7 +17,7 @@ import cc.lib.zombicide.ui.UIZButton
 import java.util.LinkedList
 
 abstract class ZActor internal constructor(var occupiedZone: Int) : Reflector<ZActor>(), UIZButton,
-	IRectangle, IVector2D, IInterpolator<Vector2D> {
+	IVector2D, IInterpolator<Vector2D> {
 	companion object {
 		init {
 			addAllFields(ZActor::class.java)
@@ -64,7 +64,7 @@ abstract class ZActor internal constructor(var occupiedZone: Int) : Reflector<ZA
 		rect = getRect(b)
 	}
 
-	override fun getRect(): GRectangle {
+	override fun getRect(): IRectangle {
 		return animations.firstOrNull()?.rect ?: rect
 	}
 
@@ -154,32 +154,16 @@ abstract class ZActor internal constructor(var occupiedZone: Int) : Reflector<ZA
     open val isAlive: Boolean
         get() = true
 
-    override fun X(): Float {
-        return rect.x
-    }
-
-    override fun Y(): Float {
-        return rect.y
-    }
-
-    override fun getWidth(): Float {
-        return rect.w
-    }
-
-    override fun getHeight(): Float {
-        return rect.h
-    }
-
     override fun getX(): Float {
-        return getRect().center.X()
+	    return center.X()
     }
 
     override fun getY(): Float {
-        return getRect().center.Y()
+	    return center.Y()
     }
 
     override fun getAtPosition(position: Float): Vector2D {
-        return rect.center
+	    return center
     }
 
 	val position: ZActorPosition

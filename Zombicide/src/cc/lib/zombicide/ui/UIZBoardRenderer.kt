@@ -774,7 +774,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 				}
 			}
 			zone.doors.filter { it.pickable }.forEach { door ->
-				val doorRect = door.getRect(board).grow(.1f)
+				val doorRect = GRectangle(door.getRect()).grow(.1f)
 				if (doorRect.contains(mouseV)) {
 					g.color = GColor.RED
 					highlightedResult = door
@@ -783,7 +783,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 				} else {
 					g.color = GColor.YELLOW
 				}
-				g.drawRect(doorRect.grow(.1f), 2f)
+				g.drawRect(doorRect, 2f)
 			}
 			if (zone.pickable) {
 				g.color = GColor.YELLOW
@@ -1027,19 +1027,19 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 				ZWallFlag.LOCKED -> {
 					val door = board.findDoor(cellPos, dir)
 					g.color = GColor.BLACK
-					val vaultRect = door.getRect(board)
+					val vaultRect = door.getRect()
 					g.color = door.lockedColor
 					vaultRect.drawFilled(g)
 					g.color = GColor.RED
 					vaultRect.drawOutlined(g, vaultLineThickness)
 					if (!miniMap) {
-						drawPadlock(g, door.getRect(board).scale(.7f))
+						drawPadlock(g, door.getRect().scaledBy(.7f))
 					}
 				}
 				ZWallFlag.CLOSED -> {
 					board.findDoorOrNull(cellPos, dir)?.let { door ->
 						g.color = GColor.BLACK
-						val vaultRect = door.getRect(board)
+						val vaultRect = door.getRect()
 						g.color = door.lockedColor
 						vaultRect.drawFilled(g)
 						g.color = GColor.YELLOW
@@ -1049,22 +1049,22 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 				ZWallFlag.OPEN -> {
 					board.findDoorOrNull(cellPos, dir)?.let { door ->
 						g.color = GColor.BLACK
-						val vaultRect = door.getRect(board)
+						val vaultRect = door.getRect()
 						vaultRect.drawFilled(g)
 						// draw the 'lid' opened
 						g.begin()
 						g.vertex(vaultRect.topRight)
 						g.vertex(vaultRect.topLeft)
-						val dh = vaultRect.h / 3
-						val dw = vaultRect.w / 5
+						val dh = vaultRect.height / 3
+						val dw = vaultRect.width / 5
 						if (dir === ZDir.ASCEND) {
 							// open 'up'
 							g.moveTo(-dw, -dh)
-							g.moveTo(vaultRect.w + dw * 2, 0f)
+							g.moveTo(vaultRect.width + dw * 2, 0f)
 						} else {
 							// open 'down
 							g.moveTo(dw, dh)
-							g.moveTo(vaultRect.w - dw * 2, 0f)
+							g.moveTo(vaultRect.width - dw * 2, 0f)
 						}
 						g.color = door.lockedColor
 						g.drawTriangleFan()
@@ -1144,7 +1144,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		while (it.hasNext()) {
 			val cell = it.next()
 			if (cell.isCellTypeEmpty) continue
-			var text: String = "${cell.environment} Z${cell.zoneIndex} [${cell.X()},${cell.Y()}]"
+			var text = "${cell.environment} Z${cell.zoneIndex} [${cell.getLeft()},${cell.getTop()}]"
 			for (type in ZCellType.entries) {
 				if (cell.isCellType(type)) {
 					when (type) {
@@ -1441,7 +1441,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		drawActors(g)?.let { picked ->
 			highlightedResult = picked
 		}
-		val highlightedActor = highlightedResult as ZActor?
+		val highlightedActor = highlightedResult as? ZActor?
 		if (drawDebugText)
 			drawDebugText(g)
 		if (drawZombiePaths || highlightedActor?.drawPathsOnHighlight == true) {

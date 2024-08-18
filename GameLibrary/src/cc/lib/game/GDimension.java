@@ -99,12 +99,12 @@ public final class GDimension extends Reflector<GDimension> implements IDimensio
     }
 
     @Override
-    public float X() {
+    public float getLeft() {
         return 0;
     }
 
     @Override
-    public float Y() {
+    public float getTop() {
         return 0;
     }
 

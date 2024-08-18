@@ -14,9 +14,9 @@ interface UIZButton : IButton, IRectangle {
 		return null
 	}
 
-	override fun X() = getRect().X()
+	override fun getLeft() = getRect().getLeft()
 
-	override fun Y() = getRect().Y()
+	override fun getTop() = getRect().getTop()
 
 	override fun getWidth() = getRect().width
 

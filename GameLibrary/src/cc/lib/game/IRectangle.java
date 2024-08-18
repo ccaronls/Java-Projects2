@@ -5,15 +5,23 @@ import cc.lib.math.Vector2D;
 
 public interface IRectangle extends IDimension, IShape {
 
-    float X();
+    float getLeft();
 
-    float Y();
+    float getTop();
+
+    default float getRight() {
+        return getLeft() + getWidth();
+    }
+
+    default float getBottom() {
+        return getTop() + getHeight();
+    }
 
     /**
      * @return
      */
     default MutableVector2D getCenter() {
-        return new MutableVector2D(X() + getWidth() / 2, Y() + getHeight() / 2);
+        return new MutableVector2D(getLeft() + getWidth() / 2, getTop() + getHeight() / 2);
     }
 
     /**
@@ -21,7 +29,7 @@ public interface IRectangle extends IDimension, IShape {
      * @return
      */
     default MutableVector2D getTopLeft() {
-        return new MutableVector2D(X(), Y());
+        return new MutableVector2D(getLeft(), getTop());
     }
 
     /**
@@ -29,7 +37,7 @@ public interface IRectangle extends IDimension, IShape {
      * @return
      */
     default MutableVector2D getTopRight() {
-        return new MutableVector2D(X()+ getWidth(), Y());
+        return new MutableVector2D(getLeft() + getWidth(), getTop());
     }
 
     /**
@@ -37,7 +45,7 @@ public interface IRectangle extends IDimension, IShape {
      * @return
      */
     default MutableVector2D getBottomLeft() {
-        return new MutableVector2D(X(), Y()+ getHeight());
+        return new MutableVector2D(getLeft(), getTop() + getHeight());
     }
 
     /**
@@ -45,7 +53,7 @@ public interface IRectangle extends IDimension, IShape {
      * @return
      */
     default MutableVector2D getBottomRight() {
-        return new MutableVector2D(X()+ getWidth(), Y()+ getHeight());
+        return new MutableVector2D(getLeft() + getWidth(), getTop() + getHeight());
     }
 
     /**
@@ -53,7 +61,7 @@ public interface IRectangle extends IDimension, IShape {
      * @return
      */
     default MutableVector2D getCenterLeft() {
-        return new MutableVector2D(X(), Y()+ getHeight()/2);
+        return new MutableVector2D(getLeft(), getTop() + getHeight() / 2);
     }
 
     /**
@@ -61,7 +69,7 @@ public interface IRectangle extends IDimension, IShape {
      * @return
      */
     default MutableVector2D getCenterRight() {
-        return new MutableVector2D(X()+ getWidth(), Y()+ getHeight()/2);
+        return new MutableVector2D(getLeft() + getWidth(), getTop() + getHeight() / 2);
     }
 
     /**
@@ -69,7 +77,7 @@ public interface IRectangle extends IDimension, IShape {
      * @return
      */
     default MutableVector2D getCenterTop() {
-        return new MutableVector2D(X()+ getWidth()/2, Y());
+        return new MutableVector2D(getLeft() + getWidth() / 2, getTop());
     }
 
     /**
@@ -77,7 +85,7 @@ public interface IRectangle extends IDimension, IShape {
      * @return
      */
     default MutableVector2D getCenterBottom() {
-        return new MutableVector2D(X()+ getWidth()/2, Y()+ getHeight());
+        return new MutableVector2D(getLeft() + getWidth() / 2, getTop() + getHeight());
     }
 
 
@@ -87,7 +95,7 @@ public interface IRectangle extends IDimension, IShape {
      * @return
      */
     default boolean isIntersectingWidth(IRectangle other) {
-        return Utils.isBoxesOverlapping(X(), Y(), getWidth(), getHeight(), other.X(), other.Y(), other.getWidth(), other.getHeight());
+        return Utils.isBoxesOverlapping(getLeft(), getTop(), getWidth(), getHeight(), other.getLeft(), other.getTop(), other.getWidth(), other.getHeight());
     }
 
     /**
@@ -96,7 +104,7 @@ public interface IRectangle extends IDimension, IShape {
      * @return
      */
     default boolean contains(float px, float py) {
-        return Utils.isPointInsideRect(px, py, X(), Y(), getWidth(), getHeight());
+        return Utils.isPointInsideRect(px, py, getLeft(), getTop(), getWidth(), getHeight());
     }
 
     /**
@@ -104,8 +112,8 @@ public interface IRectangle extends IDimension, IShape {
      * @return
      */
     default boolean contains(IRectangle other) {
-        return Utils.isPointInsideRect(other.getTopLeft().X(), other.getTopLeft().Y(), X(), Y(), getWidth(), getHeight())
-                && Utils.isPointInsideRect(other.getBottomRight().X(), other.getBottomRight().Y(), X(), Y(), getWidth(), getHeight());
+        return Utils.isPointInsideRect(other.getTopLeft().X(), other.getTopLeft().Y(), getLeft(), getTop(), getWidth(), getHeight())
+                && Utils.isPointInsideRect(other.getBottomRight().X(), other.getBottomRight().Y(), getLeft(), getTop(), getWidth(), getHeight());
     }
 
     /**
@@ -136,7 +144,7 @@ public interface IRectangle extends IDimension, IShape {
      * @param radius
      */
     default void drawRounded(AGraphics g, float radius) {
-        g.drawRoundedRect(X(), Y(), getWidth(), getHeight(), radius);
+        g.drawRoundedRect(getLeft(), getTop(), getWidth(), getHeight(), radius);
     }
 
     /**
@@ -145,11 +153,11 @@ public interface IRectangle extends IDimension, IShape {
      * @param thickness
      */
     default void drawOutlined(AGraphics g, int thickness) {
-        g.drawRect(X(), Y(), getWidth(), getHeight(), thickness);
+        g.drawRect(getLeft(), getTop(), getWidth(), getHeight(), thickness);
     }
 
     default void drawOutlined(AGraphics g) {
-        g.drawRect(X(), Y(), getWidth(), getHeight());
+        g.drawRect(getLeft(), getTop(), getWidth(), getHeight());
     }
 
     default GDimension getDimension() {
@@ -175,7 +183,7 @@ public interface IRectangle extends IDimension, IShape {
      * @return
      */
     default Vector2D getRandomPointInside() {
-        return new Vector2D(X() + Utils.randFloat(getWidth()), Y() + Utils.randFloat(getHeight()));
+        return new Vector2D(getLeft() + Utils.randFloat(getWidth()), getTop() + Utils.randFloat(getHeight()));
     }
 
     /**
@@ -189,8 +197,8 @@ public interface IRectangle extends IDimension, IShape {
     default GRectangle scaledBy(float s, Justify horz, Justify vert) {
         float newWidth = getWidth() * s;
         float newHeight = getHeight() * s;
-        float newX = X();
-        float newY = Y();
+        float newX = getLeft();
+        float newY = getTop();
         switch (horz) {
             case LEFT:
                 newX += (getWidth() - newWidth);
@@ -225,7 +233,7 @@ public interface IRectangle extends IDimension, IShape {
         float nh = getHeight() * sy;
         float dw = nw - getWidth();
         float dh = nh - getHeight();
-        return new GRectangle(X() - dw / 2, Y() - dh / 2, nw, nh);
+        return new GRectangle(getLeft() - dw / 2, getTop() - dh / 2, nw, nh);
     }
 
     /**
@@ -254,31 +262,31 @@ public interface IRectangle extends IDimension, IShape {
             // target is wider than rect, so fit lengthwise
             tw = getWidth();
             th = getWidth() / targetAspect;
-            tx = X();
+            tx = getLeft();
             switch (vert) {
                 case CENTER:
-                    ty = Y() + getHeight() / 2 - th / 2;
+                    ty = getTop() + getHeight() / 2 - th / 2;
                     break;
                 case TOP:
-                    ty = Y();
+                    ty = getTop();
                     break;
                 case BOTTOM:
-                    ty = Y() + getHeight() - th;
+                    ty = getTop() + getHeight() - th;
                     break;
             }
         } else {
             th = getHeight();
             tw = getHeight() * targetAspect;
-            ty = Y();
+            ty = getTop();
             switch (horz) {
                 case CENTER:
-                    tx = X() + getWidth() / 2 - tw / 2;
+                    tx = getLeft() + getWidth() / 2 - tw / 2;
                     break;
                 case LEFT:
-                    tx = X();
+                    tx = getLeft();
                     break;
                 case RIGHT:
-                    tx = X() + getWidth() - tw;
+                    tx = getLeft() + getWidth() - tw;
                     break;
             }
         }
@@ -315,15 +323,15 @@ public interface IRectangle extends IDimension, IShape {
     }
 
     default GRectangle withDimension(IDimension dim) {
-        return new GRectangle(X(), Y(), dim.getWidth(), dim.getHeight());
+        return new GRectangle(getLeft(), getTop(), dim.getWidth(), dim.getHeight());
     }
 
     default GRectangle withDimension(float w, float h) {
-        return new GRectangle(X(), Y(), w, h);
+        return new GRectangle(getLeft(), getTop(), w, h);
     }
 
     default GRectangle movedBy(float dx, float dy) {
-        return new GRectangle(X() + dx, Y() + dy, getWidth(), getHeight());
+        return new GRectangle(getLeft() + dx, getTop() + dy, getWidth(), getHeight());
     }
 
     default GRectangle movedBy(IVector2D dv) {
@@ -332,8 +340,8 @@ public interface IRectangle extends IDimension, IShape {
 
     default GRectangle add(IRectangle other) {
         return new GRectangle(
-                Math.min(X(), other.X()),
-                Math.min(Y(), other.Y()),
+                Math.min(getLeft(), other.getLeft()),
+                Math.min(getTop(), other.getTop()),
                 Math.max(getWidth(), other.getWidth()),
                 Math.max(getHeight(), other.getHeight())
         );
@@ -356,8 +364,8 @@ public interface IRectangle extends IDimension, IShape {
     }
 
     default GRectangle shaked(float xfactor, float yfactor) {
-        float nx = X() + getWidth() * Utils.randFloatX(xfactor);
-        float ny = Y() + getHeight() * Utils.randFloatX(yfactor);
+        float nx = getLeft() + getWidth() * Utils.randFloatX(xfactor);
+        float ny = getTop() + getHeight() * Utils.randFloatX(yfactor);
         return new GRectangle(nx, ny, getWidth(), getHeight());
     }
 

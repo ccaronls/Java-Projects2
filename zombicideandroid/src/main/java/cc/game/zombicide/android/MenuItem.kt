@@ -1,6 +1,7 @@
 package cc.game.zombicide.android
 
 import cc.lib.game.GRectangle
+import cc.lib.game.IRectangle
 import cc.lib.utils.FileUtils
 import cc.lib.utils.prettify
 import cc.lib.zombicide.ui.UIZButton
@@ -108,7 +109,7 @@ enum class MenuItem : UIZButton {
 		else -> false
 	}
 
-	override fun getRect(): GRectangle {
+	override fun getRect(): IRectangle {
 		return GRectangle.EMPTY
 	}
 

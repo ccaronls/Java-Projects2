@@ -2,16 +2,19 @@ package cc.lib.zombicide
 
 import cc.lib.game.GColor
 import cc.lib.game.GRectangle
+import cc.lib.game.IRectangle
 import cc.lib.reflector.Omit
 import cc.lib.reflector.Reflector
 import cc.lib.utils.Grid
+import cc.lib.zombicide.ui.UIZButton
 
-class ZDoor (val cellPosStart: Grid.Pos, val cellPosEnd: Grid.Pos, val moveDirection: ZDir, val lockedColor: GColor) : Reflector<ZDoor>() {
-    companion object {
-        init {
-	        addAllFields(ZDoor::class.java)
-        }
-    }
+class ZDoor(val cellPosStart: Grid.Pos, val cellPosEnd: Grid.Pos, val moveDirection: ZDir, val lockedColor: GColor) :
+	Reflector<ZDoor>(), UIZButton {
+	companion object {
+		init {
+			addAllFields(ZDoor::class.java)
+		}
+	}
 
 	constructor() : this(Grid.Pos(), Grid.Pos(), ZDir.NORTH, GColor.BLACK)
 	constructor(start: Grid.Pos, dir: ZDir, color: GColor) : this(
@@ -20,6 +23,8 @@ class ZDoor (val cellPosStart: Grid.Pos, val cellPosEnd: Grid.Pos, val moveDirec
 		dir,
 		color
 	)
+
+	private val rect = GRectangle()
 
 	var isJammed = false
 		private set
@@ -40,33 +45,36 @@ class ZDoor (val cellPosStart: Grid.Pos, val cellPosEnd: Grid.Pos, val moveDirec
 		return board.getCell(cellPosStart).getWallFlag(moveDirection).closed
 	}
 
-	fun getRect(board: ZBoard): GRectangle {
-        return board.getCell(cellPosStart).getWallRect(moveDirection)
-    }
+	override fun getRect(): IRectangle = rect
 
-    fun toggle(board: ZBoard, jammed: Boolean = false) {
-        val otherSide = otherSide
-        when (board.getDoor(this)) {
-            ZWallFlag.OPEN -> board.setDoor(this, ZWallFlag.CLOSED)
-	        ZWallFlag.LOCKED, ZWallFlag.CLOSED -> board.setDoor(this, ZWallFlag.OPEN)
-	        else -> Unit
-        }
-        otherSide.isJammed = jammed
-        isJammed = otherSide.isJammed
-    }
+	fun setRect(board: ZBoard) {
+		rect.set(board.getCell(cellPosStart).getWallRect(moveDirection))
+	}
 
-    val otherSide: ZDoor
-        get() = ZDoor(cellPosEnd, cellPosStart, moveDirection.opposite, lockedColor)
+	fun toggle(board: ZBoard, jammed: Boolean = false) {
+		val otherSide = getOtherSide(board)
+		when (board.getDoor(this)) {
+			ZWallFlag.OPEN -> board.setDoor(this, ZWallFlag.CLOSED)
+			ZWallFlag.LOCKED, ZWallFlag.CLOSED -> board.setDoor(this, ZWallFlag.OPEN)
+			else -> Unit
+		}
+		otherSide.isJammed = jammed
+		isJammed = otherSide.isJammed
+	}
 
-    fun canBeClosed(c: ZCharacter): Boolean {
-        when (moveDirection) {
-	        ZDir.DESCEND, ZDir.ASCEND -> return true
-	        else -> Unit
-        }
-        for (sk in c.getAvailableSkills()) {
-            if (sk.canCloseDoors()) return true
-        }
-        return false
+	fun getOtherSide(board: ZBoard): ZDoor {
+		return board.findDoor(cellPosEnd, moveDirection.opposite)
+	}
+
+	fun canBeClosed(c: ZCharacter): Boolean {
+		when (moveDirection) {
+			ZDir.DESCEND, ZDir.ASCEND -> return true
+			else -> Unit
+		}
+		for (sk in c.getAvailableSkills()) {
+			if (sk.canCloseDoors()) return true
+		}
+		return false
     }
 
     override fun equals(o: Any?): Boolean {

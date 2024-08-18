@@ -172,8 +172,8 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 		))
 		boardComp.renderer.addListener(object : UIZBoardRenderer.Listener {
 			override fun onAnimateZoomEnd(rect: IRectangle) {
-				setFloatProperty("zoomX", rect.X())
-				setFloatProperty("zoomY", rect.Y())
+				setFloatProperty("zoomX", rect.getLeft())
+				setFloatProperty("zoomY", rect.getTop())
 				setFloatProperty("zoomW", rect.width)
 				setFloatProperty("zoomH", rect.height)
 			}

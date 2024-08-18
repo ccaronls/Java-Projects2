@@ -10,8 +10,8 @@ enum class ZCellType(
 	val isZombie: Boolean = false
 ) {
 	NONE,
-	VAULT_DOOR_VIOLET,
-	VAULT_DOOR_GOLD,
+	VAULT_DOOR_VIOLET(GColor.MAGENTA),
+	VAULT_DOOR_GOLD(GColor.GOLD),
 	OBJECTIVE_RED(GColor.RED, true, false),
 	OBJECTIVE_BLUE(GColor.BLUE, true, false),
 	OBJECTIVE_GREEN(GColor.GREEN, true, false),

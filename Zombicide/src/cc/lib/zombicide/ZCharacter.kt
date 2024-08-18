@@ -907,12 +907,12 @@ class ZCharacter(
 	    val hgt = 0.04f
 	    val rect = getRect()
 	    g.color = color.darkened(.5f)
-	    val x = rect.x + 0.02f
-	    val w = rect.w - 0.04f
-	    g.drawFilledRect(x, rect.y + rect.h - hgt / 4, w, hgt)
-	    g.drawFilledOval(x, rect.y + rect.h + hgt / 4, w, hgt)
+	    val x = rect.getLeft() + 0.02f
+	    val w = rect.width - 0.04f
+	    g.drawFilledRect(x, rect.top + rect.height - hgt / 4, w, hgt)
+	    g.drawFilledOval(x, rect.top + rect.height + hgt / 4, w, hgt)
 	    g.color = color
-	    g.drawFilledOval(x, rect.y + rect.h - hgt / 2, w, hgt)
+	    g.drawFilledOval(x, rect.top + rect.height - hgt / 2, w, hgt)
     }
 
 	override fun getAvailableSkills(): List<ZSkill> {
