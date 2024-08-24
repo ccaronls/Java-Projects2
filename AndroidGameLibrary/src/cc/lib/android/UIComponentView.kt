@@ -145,9 +145,10 @@ abstract class UIComponentView<T : UIRenderer>
 				renderer.draw(g, tx, ty)
 			} catch (e: Exception) {
 				e.printStackTrace()
+				g.resetMatrices()
 			}
 			if (isFocused) {
-				g.setColor(GColor.RED)
+				g.color = GColor.RED
 				g.drawRect(g.viewport, 3f)
 			}
 			val next = renderer.minDimension

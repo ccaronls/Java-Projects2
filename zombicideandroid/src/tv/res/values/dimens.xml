@@ -6,5 +6,5 @@
     <dimen name="dpad_min_width">10dip</dimen>
     <dimen name="dpad_min_height">25dip</dimen>
     <dimen name="dpad_image_dimen">10dp</dimen>
-
+    <dimen name="org_dialog_min_height">500dp</dimen>
 </resources>

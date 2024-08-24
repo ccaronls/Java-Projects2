@@ -1,10 +1,21 @@
 package cc.lib.swing
 
-import cc.lib.game.*
+import cc.lib.game.AImage
+import cc.lib.game.APGraphics
+import cc.lib.game.GColor
+import cc.lib.game.GRectangle
+import cc.lib.game.IImageFilter
+import cc.lib.game.Justify
 import cc.lib.math.MutableVector2D
 import cc.lib.math.Vector2D
 import cc.lib.utils.GException
-import java.awt.*
+import java.awt.AlphaComposite
+import java.awt.Color
+import java.awt.Component
+import java.awt.Composite
+import java.awt.Font
+import java.awt.Graphics
+import java.awt.Image
 import java.awt.image.RGBImageFilter
 import java.io.File
 import kotlin.math.abs
@@ -17,8 +28,8 @@ open class AWTGraphics : APGraphics {
 	//private int textureId = -1;
 	private var mLineThickness = 1f
 	private var mPointSize = 1f
-	public var x = IntArray(32)
-	public var y = IntArray(32)
+	private var x = IntArray(32)
+	private var y = IntArray(32)
 	private val currentFontHeight: Int
 		get() = g.fontMetrics.font.size
 	val polyPts: Int

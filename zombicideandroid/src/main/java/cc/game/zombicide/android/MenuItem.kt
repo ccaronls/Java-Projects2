@@ -2,7 +2,6 @@ package cc.game.zombicide.android
 
 import cc.lib.game.GRectangle
 import cc.lib.game.IRectangle
-import cc.lib.utils.FileUtils
 import cc.lib.utils.prettify
 import cc.lib.zombicide.ui.UIZButton
 import cc.lib.zombicide.ui.UIZombicide
@@ -33,7 +32,6 @@ enum class MenuItem : UIZButton {
 	START,
 	ASSIGN,
 	SUMMARY,
-	UNDO,
 	DIFFICULTY,
 	OBJECTIVES,
 	SKILLS,
@@ -55,7 +53,6 @@ enum class MenuItem : UIZButton {
 		CONNECTIONS -> instance.server?.isConnected == true
 		DISCONNECT -> instance.server?.isRunning == true || instance.client != null
 		RESUME -> instance.gameFile.exists()
-		UNDO -> BuildConfig.DEBUG
 
 		//LOAD, SAVE, ASSIGN, CLEAR, UNDO, DIFFICULTY, CHOOSE_COLOR, DEBUG_MENU -> BuildConfig.DEBUG
 		//START, NEW_GAME, JOIN_GAME, SETUP_PLAYERS, SKILLS, LEGEND, EMAIL_REPORT, MINIMAP_MODE -> true
@@ -68,7 +65,7 @@ enum class MenuItem : UIZButton {
 		//LOAD, SAVE, START, ASSIGN, RESUME, NEW_GAME, JOIN_GAME, SETUP_PLAYERS, CLEAR -> false
 		//CONNECTIONS -> instance.serverControl != null
 		//SEARCHABLES -> BuildConfig.DEBUG
-		UNDO, CANCEL -> instance.game.currentUserColorId == instance.thisUser.colorId
+		CANCEL -> instance.game.currentUserColorId == instance.thisUser.colorId
 		//CHOOSE_COLOR -> instance.clientMgr == null
 		SUMMARY, OBJECTIVES, SKILLS, MINIMAP_MODE -> true
 		else -> false
@@ -121,9 +118,5 @@ enum class MenuItem : UIZButton {
 		return name.prettify()
 	}
 
-	fun isEnabled(z: ZombicideActivity): Boolean {
-		return if (this == UNDO) {
-			z.client != null || FileUtils.hasBackupFile(z.gameFile)
-		} else true
-	}
+	fun isEnabled(z: ZombicideActivity): Boolean = true
 }

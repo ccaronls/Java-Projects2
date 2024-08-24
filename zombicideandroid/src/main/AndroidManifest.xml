@@ -3,16 +3,15 @@
     package="cc.game.zombicide.android">
 
     <application
+        android:theme="@style/ZAppTheme"
         android:allowBackup="true"
         android:icon="@drawable/zicon"
         android:label="@string/app_name"
         android:configChanges="orientation|keyboardHidden|screenSize"
         android:roundIcon="@drawable/zicon"
-        android:supportsRtl="true"
-        android:theme="@style/Theme.AppCompat">
+        android:supportsRtl="true">
 
         <activity
-            android:theme="@style/ZAppTheme"
             android:name=".ZombicideActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:screenOrientation="sensorLandscape"></activity>

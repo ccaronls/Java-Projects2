@@ -1225,13 +1225,14 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      */
     public abstract void popMatrix();
 
+    public abstract void resetMatrices();
+
     /**
      *
      */
     public abstract void setIdentity();
 
     /**
-     *
      * @param m
      */
     public abstract void multMatrix(Matrix3x3 m);

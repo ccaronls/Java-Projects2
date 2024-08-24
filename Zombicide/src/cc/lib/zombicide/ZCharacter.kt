@@ -586,9 +586,9 @@ class ZCharacter(
     }
 
 
-	fun getEquippableSlots(equip: ZEquipment<*>, newEquipment: Boolean): List<ZEquipSlot> {
+	fun getEquippableSlots(equip: ZEquipment<*>, includeBackpack: Boolean): List<ZEquipSlot> {
 		val options: MutableList<ZEquipSlot> = ArrayList()
-		val canEquip = !newEquipment || !isBackpackFull || null != backpack.firstOrNull { e: ZEquipment<*>? -> e === equip }
+		val canEquip = !includeBackpack || !isBackpackFull || null != backpack.firstOrNull { e: ZEquipment<*>? -> e === equip }
 		val canWield = equip.isEquippable(this)
 		when (equip.slotType) {
 			ZEquipSlotType.BODY -> if (canWield && (body == null || canEquip)) options.add(ZEquipSlot.BODY)
@@ -601,63 +601,16 @@ class ZCharacter(
 					}
 				}
 			}
+
 			ZEquipSlotType.BACKPACK -> if (!isBackpackFull) {
 				options.add(ZEquipSlot.BACKPACK)
 			}
 		}
-		if (newEquipment && !options.contains(ZEquipSlot.BACKPACK) && !isBackpackFull) {
+		if (includeBackpack && !options.contains(ZEquipSlot.BACKPACK) && !isBackpackFull) {
 			options.add(ZEquipSlot.BACKPACK)
 		}
 		return options
 	}
-
-/*
-	fun getEquippableSlots(equip: ZEquipment<*>, includeBackpack : Boolean = false): List<ZEquipSlot> {
-        val options: MutableList<ZEquipSlot> = ArrayList()
-        val canEquip = !isBackpackFull || null != backpack.firstOrNull { e: ZEquipment<*>? -> e === equip }
-        val canWield = equip.isEquippable(this)
-        when (equip.slotType) {
-            ZEquipSlotType.BODY -> if (canWield && (body == null || canEquip)) options.add(ZEquipSlot.BODY)
-            ZEquipSlotType.HAND -> if (canWield) {
-                if (leftHand == null || canEquip) options.add(ZEquipSlot.LEFT_HAND)
-                if (rightHand == null || canEquip) options.add(ZEquipSlot.RIGHT_HAND)
-                if (body == null || canEquip) {
-                    if (canEquipBody(equip)) {
-                        options.add(ZEquipSlot.BODY)
-                    }
-                }
-            }
-            ZEquipSlotType.BACKPACK -> if (!isBackpackFull) {
-                options.add(ZEquipSlot.BACKPACK)
-            }
-        }
-	    if (includeBackpack && !options.contains(ZEquipSlot.BACKPACK) && !isBackpackFull) {
-		    options.add(ZEquipSlot.BACKPACK)
-	    }
-        return options
-    }
-
-	fun getEquippableSlots2(equip: ZEquipment<*>): List<ZEquipSlot> {
-		val options: MutableList<ZEquipSlot> = ArrayList()
-		when (equip.slotType) {
-			ZEquipSlotType.HAND -> if (equip.isEquippable(this)) {
-				options.add(ZEquipSlot.LEFT_HAND)
-				options.add(ZEquipSlot.RIGHT_HAND)
-				if (canEquipBody(equip)) {
-					options.add(ZEquipSlot.BODY)
-				}
-			}
-			ZEquipSlotType.BODY -> if (equip.isEquippable(this)) {
-				options.add(ZEquipSlot.BODY)
-			}
-			ZEquipSlotType.BACKPACK -> {
-
-			}
-		}
-		options.add(ZEquipSlot.BACKPACK)
-		return options
-	}*/
-
 
 	fun canEquipBody(equip: ZEquipment<*>): Boolean {
         return type.alternateBodySlot == equip.type.equipmentClass

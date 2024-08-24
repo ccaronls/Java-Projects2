@@ -1,17 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:state_selected="true">
+    <!-- for TV, checked means we are relocating an item (dragging) -->
+    <item android:state_checked="true">
         <shape android:shape="rectangle">
-            <corners android:radius="5dp"/>
-            <stroke android:color="#0f0" android:width="3dp"/>
-            <padding android:bottom="3dp" android:left="3dp" android:right="3dp" android:top="3dp"/>
+            <corners android:radius="5dp" />
+            <stroke android:color="#0f0" android:width="3dp" />
+            <padding android:bottom="3dp" android:left="3dp" android:right="3dp" android:top="3dp" />
         </shape>
     </item>
+    <!-- for TV, selected same as focussed -->
+    <item android:state_selected="true">
+        <inset android:inset="3dp">
+            <shape android:shape="rectangle">
+                <corners android:radius="5dp" />
+                <stroke android:color="#f00" android:width="3dp" />
+            </shape>
+        </inset>
+    </item>
+    <!-- for TV, focussed means this is current DPAD chosen element -->
+    <item android:state_focused="true">
+        <inset android:inset="3dp">
+            <shape android:shape="rectangle">
+                <corners android:radius="5dp" />
+                <stroke android:color="#f00" android:width="3dp" />
+            </shape>
+        </inset>
+    </item>
+    <!-- for TV, activted means this is a focusable slot we can move item to -->
     <item android:state_activated="true">
         <inset android:inset="3dp">
             <shape android:shape="rectangle">
-                <corners android:radius="5dp"/>
-                <stroke android:color="#ff0" android:width="3dp"/>
+                <corners android:radius="5dp" />
+                <stroke android:color="#ff0" android:width="3dp" />
             </shape>
         </inset>
     </item>
@@ -19,7 +39,7 @@
         <inset android:inset="3dp">
             <shape android:shape="rectangle">
                 <corners android:radius="5dp"/>
-                <stroke android:color="#f00" android:width="3dp"/>
+                <stroke android:color="#888" android:width="3dp" />
             </shape>
         </inset>
     </item>

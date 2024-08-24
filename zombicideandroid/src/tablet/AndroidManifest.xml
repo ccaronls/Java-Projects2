@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="cc.game.zombicide.android">
 
-    <application android:theme="@style/AppTheme">
+    <application>
         <activity
             android:name=".Splash"
             android:screenOrientation="sensorLandscape">

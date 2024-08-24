@@ -173,7 +173,7 @@ abstract class ZUser(_name: String?, var colorId: Int) : IRemote {
 	): ZFamiliarType?
 
 	@RemoteFunction
-	abstract fun chooseOrganize(playerName: ZPlayerName, list: List<ZMove>): ZMove?
+	abstract fun chooseOrganize(playerName: ZPlayerName, list: List<ZMove>, undos: Int): ZMove?
 
 	@RemoteFunction
 	abstract fun chooseZoneForCatapult(
@@ -186,7 +186,7 @@ abstract class ZUser(_name: String?, var colorId: Int) : IRemote {
 	 * This may be called more than once. Need to handle if a dialog is already open
 	 */
 	@RemoteFunction
-	open fun organizeStart(primary: ZPlayerName, secondary: ZPlayerName?) {
+	open fun organizeStart(primary: ZPlayerName, secondary: ZPlayerName?, undos: Int) {
 		throw NotImplementedError()
 	}
 

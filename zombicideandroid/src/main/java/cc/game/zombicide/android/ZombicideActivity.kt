@@ -47,6 +47,7 @@ import cc.lib.ui.IButton
 import cc.lib.utils.FileUtils
 import cc.lib.utils.KLock
 import cc.lib.utils.isEmpty
+import cc.lib.utils.launchIn
 import cc.lib.utils.prettify
 import cc.lib.zombicide.ZCharacter
 import cc.lib.zombicide.ZDifficulty
@@ -63,7 +64,6 @@ import cc.lib.zombicide.ZSkill
 import cc.lib.zombicide.ZUser
 import cc.lib.zombicide.ZZombieType
 import cc.lib.zombicide.ui.ConnectedUser
-import cc.lib.zombicide.ui.MiniMapMode
 import cc.lib.zombicide.ui.UIZBoardRenderer
 import cc.lib.zombicide.ui.UIZCharacterRenderer
 import cc.lib.zombicide.ui.UIZUser
@@ -79,6 +79,8 @@ import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Stack
+
+inline fun isTV(): Boolean = BuildConfig.FLAVOR == "tv"
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -206,10 +208,10 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 				vm.loading.postValue(true)
 			}
 
-			override val touchOrMouseSupported = BuildConfig.FLAVOR != "tv"
+			override val touchOrMouseSupported = !isTV()
 		}
 		boardRenderer.drawTiles = true
-		boardRenderer.miniMapMode = prefs.getEnum(PREF_MINIMAP_MODE_STRING, MiniMapMode.UL)
+		boardRenderer.miniMapMode = prefs.getEnum(PREF_MINIMAP_MODE_STRING, boardRenderer.miniMapMode)
 
 		val lock = KLock()
 		loadSounds()
@@ -311,7 +313,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 
 			override val isOrganizeEnabled: Boolean = true
 
-			override fun showOrganizeDialog(primary: ZPlayerName, secondary: ZPlayerName?) {
+			override fun showOrganizeDialog(primary: ZPlayerName, secondary: ZPlayerName?, undos: Int) {
 				runOnUiThread {
 					if (organizeDialog?.isShowing != true) {
 						organizeDialog?.dismiss()
@@ -319,6 +321,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 							it.show()
 						}
 					}
+					organizeDialog?.viewModel?.undoPushes?.value = undos
 					organizeDialog?.viewModel?.primaryCharacter?.value = board.getActor(primary.name) as ZCharacter?
 					organizeDialog?.viewModel?.secondaryCharacter?.value = board.getActor(secondary?.name) as ZCharacter?
 				}
@@ -331,7 +334,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 				}
 			}
 
-			override fun updateOrganize(character: ZCharacter, list: List<ZMove>): ZMove? {
+			override fun updateOrganize(character: ZCharacter, list: List<ZMove>, undos: Int): ZMove? {
 				Log.d(TAG, "updateOrganize moves: ${list.joinToString(separator = "\n")}")
 				runOnUiThread {
 					organizeDialog?.viewModel?.allOptions?.value = list
@@ -348,7 +351,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 
 			override fun focusOnMainMenu() {
 				runOnUiThread {
-					zb.bGameMenu.requestFocus()
+					zb.listMenu.requestFocus()
 				}
 			}
 		}
@@ -450,15 +453,19 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 				R.id.b_zoom -> {
 					game.boardRenderer.toggleZoomType()
 				}
+
 				R.id.b_center -> {
 					if (v.tag != null) {
 						game.setResult(v.tag)
 						clearKeypad()
 					}
 				}
-				R.id.b_useleft, R.id.b_useright, R.id.b_vault, R.id.b_up, R.id.b_left, R.id.b_down, R.id.b_right -> if (v.tag != null) {
-					game.setResult(v.tag)
-					clearKeypad()
+
+				else -> {
+					if (v.tag is ZMove) {
+						game.setResult(v.tag)
+						clearKeypad()
+					}
 				}
 			}
 		} catch (e: Exception) {
@@ -691,9 +698,6 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 			MenuItem.SKILLS -> {
 				showSkillsDialog2()
 			}
-			MenuItem.UNDO -> {
-				tryUndo()
-			}
 
 			MenuItem.LEGEND -> {
 				showLegendDialog()
@@ -739,7 +743,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 				game.tryLoadFromFile(gameFile)
 				game.refresh()
 				serverMgr?.broadcastUpdateGame()
-				organizeDialog?.viewModel?.onUndo()
+				organizeDialog?.refresh()
 			}
 			if (isRunning)
 				startGame()
@@ -811,7 +815,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 
 	fun pushGameState() {
 		serverMgr?.broadcastUpdateGame()
-		organizeDialog?.viewModel?.onGameSaved()
+		organizeDialog?.refresh()
 		log.debug("Backing up ... ")
 		FileUtils.backupFile(gameFile, 32)
 		game.trySaveToFile(gameFile)
@@ -1238,12 +1242,14 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 	}
 
 	fun initHomeMenu() {
-		vm.playing.postValue(false)
-		val buttons: MutableList<View> = ArrayList()
-		MenuItem.entries.filter { it.isHomeButton(this@ZombicideActivity) }.forEach { i ->
-			buttons.add(build(this, i, i.isEnabled(this)))
+		runOnUiThread {
+			vm.playing.postValue(false)
+			val buttons: MutableList<View> = ArrayList()
+			MenuItem.entries.filter { it.isHomeButton(this@ZombicideActivity) }.forEach { i ->
+				buttons.add(build(this, i, i.isEnabled(this)))
+			}
+			initMenuItems(buttons)
 		}
-		initMenuItems(buttons)
 	}
 
 	fun initGameMenu() {
@@ -1263,26 +1269,26 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 						when (ZDir.entries[move.integer!!]) {
 							ZDir.NORTH -> {
 								zb.bUp.tag = move
-								zb.bUp.visibility = View.VISIBLE
+								zb.bUp.isEnabled = true
 							}
 
 							ZDir.SOUTH -> {
 								zb.bDown.tag = move
-								zb.bDown.visibility = View.VISIBLE
+								zb.bDown.isEnabled = true
 							}
 
 							ZDir.EAST -> {
 								zb.bRight.tag = move
-								zb.bRight.visibility = View.VISIBLE
+								zb.bRight.isEnabled = true
 							}
 							ZDir.WEST -> {
 								zb.bLeft.tag = move
-								zb.bLeft.visibility = View.VISIBLE
+								zb.bLeft.isEnabled = true
 							}
 							ZDir.ASCEND,
 							ZDir.DESCEND -> {
 								zb.bVault.tag = move
-								zb.bVault.visibility = View.VISIBLE
+								zb.bVault.isEnabled = true
 							}
 							else -> Unit
 						}
@@ -1292,37 +1298,55 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 						when (move.fromSlot) {
 							ZEquipSlot.LEFT_HAND -> {
 								zb.bUseleft.tag = move
-								zb.bUseleft.visibility = View.VISIBLE
+								zb.bUseleft.isEnabled = true
 								it.remove()
 							}
+
 							ZEquipSlot.RIGHT_HAND -> {
 								zb.bUseright.tag = move
-								zb.bUseright.visibility = View.VISIBLE
+								zb.bUseright.isEnabled = true
 								it.remove()
 							}
+
 							else -> Unit
 						}
 					}
+
 					ZMoveType.SWITCH_ACTIVE_CHARACTER -> {
 						zb.bCenter.tag = move
-						zb.bCenter.visibility = View.VISIBLE
+						zb.bCenter.isEnabled = true
 						it.remove()
 					}
+
+					ZMoveType.UNDO -> {
+						zb.bUndo.tag = move
+						zb.bUndo.isEnabled = true
+						it.remove()
+					}
+
 					else -> Unit
 				}
 			}
 		}
+		game.repeatableMove?.takeIf { game.repeatableMovePlayer != null && game.repeatableMovePlayer == game.currentCharacter?.type }
+			?.let {
+				zb.bRepeat.visibility = View.VISIBLE
+				zb.bRepeat.text = it.action?.label ?: "Repeat"
+				zb.bRepeat.tag = it
+			}
 	}
 
 	fun clearKeypad() {
-		zb.bUseleft.visibility = View.INVISIBLE
-		zb.bUseright.visibility = View.INVISIBLE
-		zb.bUp.visibility = View.INVISIBLE
-		zb.bDown.visibility = View.INVISIBLE
-		zb.bLeft.visibility = View.INVISIBLE
-		zb.bRight.visibility = View.INVISIBLE
-		zb.bVault.visibility = View.INVISIBLE
+		zb.bUseleft.isEnabled = false
+		zb.bUseright.isEnabled = false
+		zb.bUp.isEnabled = false
+		zb.bDown.isEnabled = false
+		zb.bLeft.isEnabled = false
+		zb.bRight.isEnabled = false
+		zb.bVault.isEnabled = false
 		zb.bCenter.tag = null
+		zb.bUndo.isEnabled = false
+		zb.bRepeat.visibility = View.GONE
 	}
 
 	fun initMenu(mode: UIMode, options: List<Any>?) {
@@ -1356,7 +1380,9 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 	}
 
 	fun initMenuItems(buttons: List<View>) {
-		vm.listAdapter.update(buttons)
+		launchIn(Dispatchers.Main) {
+			vm.listAdapter.update(buttons)
+		}
 	}
 
 	val defaultPlayers: Set<String>

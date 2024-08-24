@@ -261,16 +261,16 @@ open class UIZUser(name: String?, colorId: Int) : ZUserRemote(name, colorId) {
 		return UIZombicide.instance.pickMenu(playerName, "Choose Starting Equipment", ZEquipmentType::class.java, list)
 	}
 
-	override fun chooseOrganize(playerName: ZPlayerName, list: List<ZMove>): ZMove? {
+	override fun chooseOrganize(playerName: ZPlayerName, list: List<ZMove>, undos: Int): ZMove? {
 		return UIZombicide.instance.updateOrganize(
 			UIZombicide.instance.board.getCharacter(
 				playerName
-			), list
+			), list, undos
 		)
 	}
 
-	override fun organizeStart(primary: ZPlayerName, secondary: ZPlayerName?) {
-		UIZombicide.instance.showOrganizeDialog(primary, secondary)
+	override fun organizeStart(primary: ZPlayerName, secondary: ZPlayerName?, undos: Int) {
+		UIZombicide.instance.showOrganizeDialog(primary, secondary, undos)
 	}
 
 	override fun organizeEnd() {

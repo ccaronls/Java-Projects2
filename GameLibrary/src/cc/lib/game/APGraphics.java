@@ -52,12 +52,18 @@ public abstract class APGraphics extends AGraphics {
     }
 
     @Override
+    public void resetMatrices() {
+        while (R.getStackSize() > 0)
+            R.popMatrix();
+    }
+
+    @Override
     public final void popMatrix() {
         R.popMatrix();
     }
 
     @Override
-    public final  void translate(float x, float y) {
+    public final void translate(float x, float y) {
         R.translate(x, y);
     }
 

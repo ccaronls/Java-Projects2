@@ -117,6 +117,7 @@ allprojects {
                 targetSdkVersion project.myTargetSdkVersion
                 testInstrumentationRunner project.androidTestRunner
                 multiDexEnabled true
+                vectorDrawables.useSupportLibrary true
             }
 
             compileOptions {

@@ -21,7 +21,7 @@ class ZButton : ConstraintLayout {
 		inflate(context, R.layout.zbutton_layout, this)
 	}
 
-	private fun init(button: IButton, enabled: Boolean) {
+	fun init(button: IButton, enabled: Boolean) {
 		val tv = findViewById<TextView>(R.id.text)
 		val arrow = findViewById<View>(R.id.ivInfo)
 		tv.text = button.getLabel()

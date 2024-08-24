@@ -12,35 +12,34 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         enableAllIf="@{!viewModel.loading}"
-        android:minHeight="550dp">
+        android:minHeight="@dimen/org_dialog_min_height">
 
         <LinearLayout
-            style="@style/container"
+            style="@style/ZOrganizeDetailsHeader"
             android:id="@+id/vgDescription"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintHeight_percent=".4"
             android:orientation="vertical"
-            android:padding="10dp">
+            android:padding="10dp"
+            android:focusable="false">
 
             <TextView
                 style="@style/h1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@{viewModel.descriptionHeader}"
-                tools:text="Water"/>
-<!--
-            <cc.lib.android.GTableView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:textColor="#fff"
-                android:textSize="14dp"
-                tools:text="This is an example"
-                table="@{viewModel.descriptionBody}"/>
--->
+                tools:text="Water" />
+            <!--
+                        <cc.lib.android.GTableView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:textColor="#fff"
+                            android:textSize="14dp"
+                            tools:text="This is an example"
+                            table="@{viewModel.descriptionBody}"/>
+            -->
             <TextView
                 style="@style/body"
                 android:layout_width="match_parent"
@@ -53,83 +52,98 @@
 
         <ListView
             android:id="@+id/lvOptions"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            app:layout_constraintTop_toBottomOf="@id/vgDescription"
-            app:layout_constraintBottom_toTopOf="@+id/bUndo"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintWidth_percent=".2"
             listOptions="@{viewModel.listOptions}"
             viewModel="@{viewModel}"
             visibleIfNot="@{viewModel.dragging}"
+            android:listSelector="@android:color/transparent"
+            android:layout_width="@dimen/menu_width"
+            android:layout_height="0dp"
+            android:nextFocusRight="@id/primaryCharacter"
+            android:nextFocusDown="@id/bUndo"
+            app:layout_constraintBottom_toTopOf="@+id/bUndo"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/vgDescription"
+            app:layout_constraintWidth_percent=".2"
             tools:listitem="@layout/zbutton_layout"
-            tools:visibility="invisible"
-            />
+            tools:visibility="invisible" />
 
-        <cc.game.zombicide.android.ZButton
+        <Button
+            style="@style/ZButton"
             android:id="@+id/bUndo"
             android:layout_width="0dp"
-            android:layout_height="40dp"
+            android:layout_height="wrap_content"
             app:layout_constraintTop_toBottomOf="@id/lvOptions"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="@id/lvOptions"
             app:layout_constraintEnd_toEndOf="@id/lvOptions"
             goneIf="@{viewModel.undoPushes == 0 || viewModel.dragging}"
-            buttonText="@{`UNDO`}"
-            android:onClick="@{() -> viewModel.tryUndo()}"/>
+            android:nextFocusUp="@id/lvOptions"
+            android:text="UNDO"
+            android:onClick="@{() -> viewModel.tryUndo()}" />
 
         <LinearLayout
+            style="@style/ZOrganizeContainer"
             android:id="@+id/tvConsume"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             app:layout_constraintStart_toStartOf="@id/lvOptions"
             app:layout_constraintEnd_toEndOf="@id/lvOptions"
             app:layout_constraintTop_toTopOf="@id/lvOptions"
+            android:focusable="true"
             visibleIf="@{viewModel.dragging}"
-            tagConsume="@{viewModel.allOptions}">
+            tagConsume="@{viewModel.allOptions}"
+            android:onClick="@{(view) -> viewModel.dropItem(view)}">
+
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="CONSUME"
-                style="@style/container"
                 android:gravity="center"
-                android:padding="10dp"/>
+                android:padding="10dp"
+                android:focusable="false" />
         </LinearLayout>
 
         <LinearLayout
+            style="@style/ZOrganizeContainer"
             android:id="@+id/tvTrash"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             app:layout_constraintStart_toStartOf="@id/lvOptions"
             app:layout_constraintEnd_toEndOf="@id/lvOptions"
             app:layout_constraintTop_toBottomOf="@id/tvConsume"
+            android:focusable="true"
             visibleIf="@{viewModel.dragging}"
-            tagTrash="@{viewModel.allOptions}" >
+            tagTrash="@{viewModel.allOptions}"
+            android:onClick="@{(view) -> viewModel.dropItem(view)}">
+
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="TRASH"
-                style="@style/container"
                 android:gravity="center"
-                android:padding="10dp"/>
+                android:padding="10dp"
+                android:focusable="false" />
         </LinearLayout>
-        <include layout="@layout/organize_dialog_character"
+
+        <include
+            layout="@layout/organize_dialog_character"
             android:id="@+id/primaryCharacter"
             android:layout_width="0dp"
             android:layout_height="0dp"
             app:layout_constraintTop_toTopOf="@id/lvOptions"
             app:layout_constraintStart_toEndOf="@id/lvOptions"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintWidth_percent=".4"/>
+            app:layout_constraintEnd_toStartOf="@id/secondaryCharacter"
+            app:layout_constraintBottom_toBottomOf="parent" />
 
-        <include layout="@layout/organize_dialog_character"
+        <include
+            layout="@layout/organize_dialog_character"
             android:id="@+id/secondaryCharacter"
             android:layout_width="0dp"
             android:layout_height="0dp"
             app:layout_constraintTop_toTopOf="@id/lvOptions"
             app:layout_constraintStart_toEndOf="@id/primaryCharacter"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintWidth_percent=".4"/>
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

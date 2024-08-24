@@ -10,4 +10,5 @@
     <dimen name="dpad_min_width">32dip</dimen>
     <dimen name="dpad_min_height">48dip</dimen>
     <dimen name="dpad_image_dimen">20dp</dimen>
+    <dimen name="org_dialog_min_height">550dp</dimen>
 </resources>

@@ -131,4 +131,15 @@ public final class BindingAdapters {
     public static void setClickableIf(View view, boolean clickable) {
         view.setClickable(clickable);
     }
+
+    @BindingAdapter("onFocussed")
+    public static void setOnFocussedListener(View view, View.OnClickListener listener) {
+        view.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (hasFocus)
+                    listener.onClick(view);
+            }
+        });
+    }
 }

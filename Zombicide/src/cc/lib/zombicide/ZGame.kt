@@ -18,6 +18,7 @@ import cc.lib.utils.appendedWith
 import cc.lib.utils.getOrNull
 import cc.lib.utils.increment
 import cc.lib.utils.midPointOrNull
+import cc.lib.utils.peekOrNull
 import cc.lib.utils.random
 import cc.lib.utils.removeRandom
 import cc.lib.utils.rotate
@@ -104,8 +105,14 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 		val equipment: ZEquipment<*>? = null,
 		val skillLevel: ZSkillLevel? = null,
 		val target: ZPlayerName? = null,
-		val familiar: ZFamiliarType? = null
-	) : Reflector<State>()
+		val familiar: ZFamiliarType? = null,
+		var undoPushes: Int = 0
+	) : Reflector<State>() {
+		fun decrementUndos() {
+			if (undoPushes > 0)
+				undoPushes--
+		}
+	}
 
     private val stateStack = Stack<State>()
     @JvmField
@@ -991,14 +998,16 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 		    ZState.PLAYER_STAGE_ORGANIZE -> {
 			    val ch = requireCurrentCharacter
 			    val secondary: ZCharacter? = board.getActor(stateData.target?.name) as ZCharacter?
+			    val undos = stateStack.peek().undoPushes
 			    setState(
 				    State(
 					    state = ZState.PLAYER_STAGE_ORGANIZE,
 					    player = ch.type,
-					    target = secondary?.type
+					    target = secondary?.type,
+					    undoPushes = undos + 1
 				    )
 			    )
-			    getCurrentUser().organizeStart(ch.type, secondary?.type)
+			    getCurrentUser().organizeStart(ch.type, secondary?.type, undos)
 			    return performOrganize(ch, secondary)
 		    }
 
@@ -1833,11 +1842,15 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 		        if (state == ZState.PLAYER_STAGE_ORGANIZE)
 			        popState()
 		        user.organizeEnd()
-		        return true
+		        return false
 	        }
 	        ZMoveType.ORGANIZE_SLOT -> {
-		        getCurrentUser().chooseOrganize(cur.type, move.list as List<ZMove>)?.let {
-			        return performMove(cur, it)
+		        getCurrentUser().chooseOrganize(cur.type, move.list as List<ZMove>, stateStack.peek().undoPushes)?.let {
+			        return performMove(cur, it).also {
+				        if (it) {
+					        stateStack.peek().undoPushes++
+				        }
+			        }
 		        }
 	        }
 	        ZMoveType.ORGANIZE_TRADE -> {
@@ -1848,6 +1861,7 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 					char.removeEquipment(move.equipment!!)
 					cur.attachEquipment(move.equipment, move.toSlot)
 					cur.performAction(ZActionType.INVENTORY, this)
+					stateStack.peek().undoPushes++
 					return true
 				}
 			}
@@ -1927,6 +1941,7 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 			ZMoveType.REROLL -> log.error("Unhandled move: %s", move.type)
 
 			ZMoveType.UNDO -> {
+				stateStack.peekOrNull()?.decrementUndos()
 				undo()
 			}
 		}
@@ -2044,8 +2059,17 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 		if (cur.canDoAction(ZActionType.INVENTORY)) {
 			cur.allEquipment.forEach { equip ->
 				getListFor(cur.type, equip.slot!!).add(ZMove.newDisposeMove(equip, equip.slot))
-				cur.getEquippableSlots(equip, false).filter { it != equip.slot }.forEach { slot ->
-					getListFor(cur.type, equip.slot!!).add(ZMove.newEquipMove(equip, equip.slot, slot, ZActionType.INVENTORY, cur.type))
+				// TODO: Understand why we had 'includeBackpack' here set to false
+				cur.getEquippableSlots(equip, true).filter { it != equip.slot }.forEach { slot ->
+					getListFor(cur.type, equip.slot!!).add(
+						ZMove.newEquipMove(
+							equip,
+							equip.slot,
+							slot,
+							ZActionType.INVENTORY,
+							cur.type
+						)
+					)
 				}
 			}
 		}
@@ -2066,7 +2090,7 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 			it.addAll(extraMoves)
 		}
 
-		getCurrentUser().chooseOrganize(cur.type, allMoves)?.let { move ->
+		getCurrentUser().chooseOrganize(cur.type, allMoves, stateStack.peek().undoPushes)?.let { move ->
 			return performMove(cur, move)
 		}
 

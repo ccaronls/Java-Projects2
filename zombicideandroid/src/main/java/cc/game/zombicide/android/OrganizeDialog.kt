@@ -2,11 +2,17 @@ package cc.game.zombicide.android
 
 import android.annotation.SuppressLint
 import android.content.ClipData
+import android.content.Context
+import android.content.DialogInterface
+import android.graphics.Canvas
 import android.os.Bundle
+import android.util.AttributeSet
 import android.util.Log
 import android.view.*
 import android.widget.AdapterView
 import android.widget.BaseAdapter
+import android.widget.Checkable
+import android.widget.FrameLayout
 import android.widget.ListView
 import androidx.databinding.BindingAdapter
 import androidx.lifecycle.LiveData
@@ -16,51 +22,135 @@ import cc.game.zombicide.android.databinding.OrganizeDialogListItemBinding
 import cc.lib.android.*
 import cc.lib.ui.IButton
 import cc.lib.utils.Table
+import cc.lib.utils.launchIn
 import cc.lib.utils.takeIfInstance
 import cc.lib.zombicide.*
 import cc.lib.zombicide.ui.UIZombicide
+import kotlinx.coroutines.Dispatchers
 
 const val TAG = "ORGANIZE"
 
-@BindingAdapter("charBackpack", "viewModel")
-fun ListView.setBackpackItems(char : ZCharacter?, viewModel: OrganizeViewModel) {
-	adapter = object : BaseAdapter() {
-		override fun getCount(): Int = char?.getBackpack()?.size?:0
+/**
+ * Support 'dragging' drawable state
+ */
+class OrganizeLayout(context: Context, attrs: AttributeSet) : FrameLayout(context, attrs), Checkable {
 
-		override fun getItem(position: Int): Any? = char?.getBackpackItem(position)
+	companion object {
+		private val STATE_CHECKED = intArrayOf(android.R.attr.state_checked)
+	}
 
-		override fun getItemId(position: Int): Long = 0
+	private var checked = false
 
-		@SuppressLint("ViewHolder")
-		override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
-			return OrganizeDialogListItemBinding.inflate(LayoutInflater.from(context)).also {
-				it.viewModel = viewModel
-				it.lifecycleOwner = viewModel
-				it.position = position
-				it.character = char
-			}.root.also {
-				it.tag = getItem(position)
-				Log.d(TAG, "${char?.type} Backpack at position $position has tag: $tag")
-			}
+	override fun onCreateDrawableState(extraSpace: Int): IntArray {
+		return if (checked) {
+			// We are going to add 1 extra state.
+			val drawableState = super.onCreateDrawableState(extraSpace + 1)
+			mergeDrawableStates(drawableState, STATE_CHECKED)
+		} else {
+			super.onCreateDrawableState(extraSpace)
 		}
+	}
+
+	override fun setChecked(checked: Boolean) {
+		if (this.checked != checked) {
+			this.checked = checked
+			refreshDrawableState()
+		}
+	}
+
+	override fun isChecked(): Boolean = checked
+
+	override fun toggle() {
+		setChecked(!checked)
+	}
+
+	override fun onDraw(canvas: Canvas?) {
+		super.onDraw(canvas)
 	}
 }
 
-@BindingAdapter("listOptions", "viewModel")
-fun ListView.setListOptions(list : List<ZMove>, viewModel : OrganizeViewModel) {
-	adapter = object : BaseAdapter() {
-		override fun getCount(): Int = list.size
+/*
+@BindingAdapter("draggingIf")
+fun View.setDraggingState(dragging : Boolean) {
+	if (this is ImageView) {
+		setImageState(intArrayOf(if (dragging) R.attr.state_dragging else -R.attr.state_dragging), true)
+		invalidate()
+	}
+	if (background.isStateful) {
+		val newState = mergeDrawableStates(
+			background.state,
+			intArrayOf(if (dragging) R.attr.state_dragging else -R.attr.state_dragging)
+		)
+		background.state = newState
+		invalidate()
+	}
+}*/
 
-		override fun getItem(position: Int): Any = list[position]
+@BindingAdapter("charBackpack", "viewModel")
+fun ListView.setBackpackItems(char: ZCharacter?, viewModel: OrganizeViewModel) {
+	if (char == null)
+		return
+	if (adapter == null)
+		adapter = object : BaseAdapter() {
+			override fun getCount(): Int {
+				return char.getBackpack().size
+			}
 
-		override fun getItemId(position: Int): Long = 0
+			override fun getItem(position: Int) = char.getBackpackItem(position)
 
-		override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
-			return ZButton.build(context, list[position], true).also {
-				it.setOnClickListener { viewModel.game.setResult(list[position]) }
+			override fun getItemId(position: Int): Long = 0
+
+			@SuppressLint("ViewHolder")
+			override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
+				return OrganizeDialogListItemBinding.inflate(LayoutInflater.from(context)).also {
+					it.viewModel = viewModel
+					it.lifecycleOwner = viewModel
+					it.position = position
+					it.character = char
+				}.root.also {
+					it.tag = getItem(position)
+
+					Log.d(TAG, "${char.type} Backpack at position $position has tag: $tag")
+				}
+			}
+		}
+	else
+		(adapter as BaseAdapter).notifyDataSetChanged()
+}
+
+class ListOptionsAdapter(val context: Context, val viewModel: OrganizeViewModel) : BaseAdapter() {
+
+	var list = emptyList<ZMove>()
+		set(value) {
+			field = value
+			notifyDataSetChanged()
+		}
+
+	override fun getCount(): Int = list.size
+
+	override fun getItem(position: Int): Any = list[position]
+
+	override fun getItemId(position: Int): Long = 0
+
+	override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
+		if (convertView != null) {
+			(convertView as ZButton).init(list[position], true)
+			return convertView
+		}
+		return ZButton.build(context, list[position], true).also {
+			it.setOnClickListener {
+				viewModel.game.setResult(list[position])
 			}
 		}
 	}
+
+}
+
+@BindingAdapter("listOptions", "viewModel")
+fun ListView.setListOptions(list: List<ZMove>, viewModel: OrganizeViewModel) {
+	if (adapter == null)
+		adapter = ListOptionsAdapter(context, viewModel)
+	(adapter as ListOptionsAdapter).list = list
 }
 
 @BindingAdapter("tagMove", "character", "slot", "dragging", "equipped")
@@ -78,10 +168,12 @@ fun View.setTagFromMoves(moves: List<ZMove>, character: ZCharacter?, slot: ZEqui
 		}
 
 		if (dragging) {
+			//isFocusable = tag != null
 			isEnabled = tag != null
 			isActivated = tag != null
 			isSelected = false
 		} else {
+			//isFocusable = equipped
 			isEnabled = equipped
 			isActivated = false
 			isSelected = false
@@ -92,6 +184,8 @@ fun View.setTagFromMoves(moves: List<ZMove>, character: ZCharacter?, slot: ZEqui
 @BindingAdapter("tagTrash")
 fun View.setTagTrash(moves : List<ZMove>) {
 	tag = moves.firstOrNull { it.type == ZMoveType.DISPOSE }
+	isEnabled = tag != null
+	isActivated = tag != null
 	Log.i(TAG, "tag for TRASH -> $tag")
 }
 
@@ -114,7 +208,8 @@ fun View.setBackpackTag(char : ZCharacter?, position : Int) {
 class OrganizeViewModel : LifecycleViewModel(),
 	View.OnDragListener,
 	AdapterView.OnItemLongClickListener,
-	AdapterView.OnItemClickListener {
+	AdapterView.OnItemClickListener,
+	AdapterView.OnItemSelectedListener {
 
 	val primaryCharacter = MutableLiveData<ZCharacter?>(null)
 	val secondaryCharacter = MutableLiveData<ZCharacter?>(null)
@@ -131,6 +226,9 @@ class OrganizeViewModel : LifecycleViewModel(),
 	val descriptionBody: LiveData<Table?> = combine(descriptionItem, primaryCharacter, secondaryCharacter) { obj, primary, secondary ->
 		when (obj) {
 			is ZCharacter -> Table().setNoBorder().also {
+				it.setModel(object : Table.Model {
+
+				})
 				it.addRow(
 					obj.getStatsTable(game.rules).setNoBorder(),
 					obj.getAllSkillsTable(game.rules).setNoBorder()
@@ -160,50 +258,95 @@ class OrganizeViewModel : LifecycleViewModel(),
 	val dropTarget = MutableLiveData<View?>(null)
 	val undoPushes = MutableLiveData(0)
 
-	private var currentSelectedView : View? = null
+	private var currentSelectedView: View? = null
+	var currentDraggedView: OrganizeLayout? = null
 	val game by lazy { UIZombicide.instance }
 	val loading = MutableLiveData(false)
 
-	fun onGameSaved() {
-		undoPushes.increment(1)
-	}
-
-	fun onUndo() {
-		undoPushes.increment(-1)
-		primaryCharacter.refresh()
-		secondaryCharacter.refresh()
+	init {
+		dragging.observe(this) {
+			currentDraggedView?.isChecked = it
+		}
 	}
 
 	fun tryUndo() {
 		game.undo()
 	}
 
-	fun setSelected(view : View, _obj : Any?) {
-		val obj = _obj?:return
-		currentSelectedView?.isSelected = false
-		currentSelectedView = view
-		view.isSelected = true
-		descriptionItem.value = obj
+	fun cancelDragging(): Boolean {
+		if (dragging.value == true) {
+			loading.value = true
+			dragging.value = false
+			game.setResult(null)
+			return true
+		}
+		return false
+	}
+
+	fun setSelected(view: View, _obj: Any?) {
+		if (isTV()) {
+			if (dragging.value == true) {
+				loading.value = true
+				// perform the move associated with the
+				Log.d(TAG, "Drag drop ${view.tag}")
+				dragging.value = false
+				game.setResult(view.tag)
+			} else if (_obj is ZEquipment<*>) {
+				if (startDrag(view, _obj)) {
+					dragging.value = true
+				}
+			}
+		} else {
+			val obj = _obj ?: return
+			currentSelectedView?.isSelected = false
+			currentSelectedView = view
+			view.isSelected = true
+			descriptionItem.value = obj
+		}
+	}
+
+	fun showInfo(obj: Any?) {
+		Log.d(TAG, "showInfo $obj ")
+		obj?.let {
+			descriptionItem.value = it
+		}
+	}
+
+	fun dropItem(view: View) {
+		if (isTV() && dragging.value == true) {
+			loading.value = true
+			// perform the move associated with the
+			Log.d(TAG, "Drag drop ${view.tag}")
+			dragging.value = false
+			game.setResult(view.tag)
+		}
 	}
 
 	@SuppressWarnings("unchecked")
-	fun startDrag(view : View, equip : ZEquipment<*>?) : Boolean {
+	fun startDrag(view: View, equip: ZEquipment<*>?): Boolean {
 		view.tag?.takeIfInstance<ZMove>()?.let {
 			return startDrag(view, it.list as List<ZMove>, equip)
 		}
 		return false
 	}
-	fun startDrag(view : View, options: List<ZMove>, equip : ZEquipment<*>?) : Boolean {
+
+	fun startDrag(view: View, options: List<ZMove>, equip: ZEquipment<*>?): Boolean {
 		Log.d(TAG, "startDrag equip:$equip tag:${view.tag}")
 		if (equip == null || options.isEmpty())
 			return false
 		allOptions.value = options
+		if (view is OrganizeLayout) {
+			currentDraggedView = view
+		}
 		dragging.value = true
 		val name = equip.getLabel()
+		if (isTV())
+			return true
 		return view.startDrag(
 			ClipData.newPlainText(name, name),
 			View.DragShadowBuilder(view),
-			equip, 0)
+			equip, 0
+		)
 	}
 
 	// Long click on a backpack item. The item has the equipment
@@ -216,11 +359,17 @@ class OrganizeViewModel : LifecycleViewModel(),
 			startDrag(view, options.filter {
 				it.equipment == equip
 			}, equip)
+
 		} ?: false
 	}
 
 	override fun onItemClick(parent: AdapterView<*>, view: View, position: Int, id: Long) {
-		setSelected(view, view.tag)
+		if (isTV()) {
+			onItemLongClick(parent, view, position, id)
+//			(parent as ListView).setItemChecked(position, true)
+		} else {
+			setSelected(view, view.tag)
+		}
 	}
 
 	// A view state has
@@ -271,11 +420,23 @@ class OrganizeViewModel : LifecycleViewModel(),
 		}
 		return true
 	}
+
+	override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
+		Log.d(TAG, "onItemSelected ${view.tag}")
+//		TODO("Not yet implemented")
+	}
+
+	override fun onNothingSelected(parent: AdapterView<*>) {
+		Log.d(TAG, "onNothingSelected")
+//		TODO("Not yet implemented")
+	}
 }
 
-class OrganizeDialog(context : ZombicideActivity) : LifecycleDialog<OrganizeViewModel>(context, OrganizeViewModel::class.java) {
+class OrganizeDialog(context: ZombicideActivity) :
+	LifecycleDialog<OrganizeViewModel>(context, OrganizeViewModel::class.java),
+	DialogInterface.OnKeyListener {
 
-	lateinit var binding : OrganizeDialogBinding
+	lateinit var binding: OrganizeDialogBinding
 	val game = UIZombicide.instance
 
 	override fun onCreate(savedInstanceState: Bundle?) {
@@ -285,7 +446,6 @@ class OrganizeDialog(context : ZombicideActivity) : LifecycleDialog<OrganizeView
 			binding = it
 			it.viewModel = viewModel
 			it.lifecycleOwner = this
-			//it.ivTrash.setOnDragListener(viewModel)
 			it.tvConsume.setOnDragListener(viewModel)
 			it.tvTrash.setOnDragListener(viewModel)
 			listOf(Pair(it.primaryCharacter, viewModel.primaryCharacter), Pair(it.secondaryCharacter, viewModel.secondaryCharacter)).forEach { pair ->
@@ -298,12 +458,25 @@ class OrganizeDialog(context : ZombicideActivity) : LifecycleDialog<OrganizeView
 				pair.first.vgBackpack.setOnDragListener(viewModel)
 				pair.first.lvBackpack.onItemLongClickListener = viewModel
 				pair.first.lvBackpack.onItemClickListener = viewModel
+				pair.first.lvBackpack.onItemSelectedListener = viewModel
 			}
 			setContentView(it.root)
+			binding.lvOptions.itemsCanFocus = false
+			binding.lvOptions.onItemSelectedListener = viewModel
+			binding.lvOptions.setOnItemClickListener { _, view, _, _ ->
+				view.performClick()
+			}
+			setOnKeyListener(this)
 			window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
 			setOnCancelListener {
 				game.setResult(ZMove.newOrganizeDone())
 			}
+			setOnDismissListener {
+				game.setResult(ZMove.newOrganizeDone())
+			}
+			binding.primaryCharacter.root.nextFocusLeftId = binding.lvOptions.id
+			binding.primaryCharacter.root.nextFocusRightId = binding.secondaryCharacter.root.id
+			binding.secondaryCharacter.root.nextFocusLeftId = binding.primaryCharacter.root.id
 		}
 
 		viewModel.allOptions.observe(this) { list ->
@@ -312,9 +485,46 @@ class OrganizeDialog(context : ZombicideActivity) : LifecycleDialog<OrganizeView
 				it.add(ZMove.newOrganizeDone())
 				viewModel.listOptions.postValue(it)
 			}
+			refresh()
+			viewModel.loading.value = false
+		}
+
+		binding.lvOptions.requestFocus()
+		viewModel.dragging.observe(this) {
+			if (!it) {
+				binding.primaryCharacter.lvBackpack.clearChoices()
+				binding.secondaryCharacter.lvBackpack.clearChoices()
+			}
+		}
+		binding.root.viewTreeObserver.addOnGlobalFocusChangeListener { oldFocus, newFocus ->
+			Log.d(TAG, "focus changed from ${oldFocus?.javaClass?.simpleName} to ${newFocus?.javaClass?.simpleName}")
+		}
+	}
+
+	override fun onKey(dialog: DialogInterface?, keyCode: Int, event: KeyEvent): Boolean {
+		if (event.action != KeyEvent.ACTION_DOWN)
+			return false
+		when (keyCode) {
+			//KeyEvent.KEYCODE_DPAD_CENTER -> {}
+			KeyEvent.KEYCODE_BACK -> {
+				if (!viewModel.cancelDragging()) {
+					if (!binding.lvOptions.hasFocus()) {
+						binding.lvOptions.requestFocus()
+					} else {
+						dismiss()
+					}
+				}
+			}
+
+			else -> return false
+		}
+		return true
+	}
+
+	fun refresh() {
+		launchIn(Dispatchers.Main) {
 			viewModel.primaryCharacter.refresh()
 			viewModel.secondaryCharacter.refresh()
-			viewModel.loading.value = false
 		}
 	}
 

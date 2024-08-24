@@ -24,6 +24,10 @@ class ActivityViewModel : ViewModel() {
 			notifyDataSetChanged()
 		}
 
+		override fun isEnabled(position: Int): Boolean {
+			return buttons[position].isEnabled
+		}
+
 		override fun getCount(): Int {
 			return buttons.size
 		}
@@ -39,6 +43,8 @@ class ActivityViewModel : ViewModel() {
 		override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
 			return buttons[position]
 		}
+
+		override fun areAllItemsEnabled(): Boolean = false
 
 		init {
 			buttons = ArrayList()

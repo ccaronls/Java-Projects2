@@ -834,22 +834,28 @@ for (int pix : pixels) {
     }
 
     /**
-     * 
+     *
      */
     public final void pushMatrix() {
         sGl.glPushMatrix();
-        viewportScale[pushDepth+1][0] = getViewportScaleX();
-        viewportScale[pushDepth+1][1] = getViewportScaleY();
+        viewportScale[pushDepth + 1][0] = getViewportScaleX();
+        viewportScale[pushDepth + 1][1] = getViewportScaleY();
         pushDepth++;
     }
-    
+
+    @Override
+    public void resetMatrices() {
+        while (pushDepth > 0)
+            popMatrix();
+    }
+
     /**
-     * 
+     *
      */
     public final void popMatrix() {
         sGl.glPopMatrix();
         pushDepth--;
-        DroidUtils.debugAssert(pushDepth>=0, "pushDepth invalid: " + pushDepth);
+        DroidUtils.debugAssert(pushDepth >= 0, "pushDepth invalid: " + pushDepth);
     }
 
     @Override

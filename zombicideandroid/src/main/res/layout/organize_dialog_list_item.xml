@@ -15,10 +15,13 @@
             name="position"
             type="Integer" />
     </data>
-    <LinearLayout
-        style="@style/container"
+
+    <cc.game.zombicide.android.OrganizeLayout
+        style="@style/ZOrganizeContainer"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        backpackPosition="@{position}"
+        tagBackpackItem="@{character}">
 
         <TextView
             android:id="@+id/tvItemName"
@@ -26,10 +29,9 @@
             android:gravity="center"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:paddingVertical="3dp"
             android:text="@{character.backpack.get(position).label}"
-            backpackPosition="@{position}"
-            tagBackpackItem="@{character}"
-            tools:text="WATER"/>
+            tools:text="WATER" />
 
-    </LinearLayout>
+    </cc.game.zombicide.android.OrganizeLayout>
 </layout>

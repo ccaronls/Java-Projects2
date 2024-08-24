@@ -368,7 +368,7 @@ abstract class UIZombicide(
 		return waitForUser(ZDoor::class.java)
 	}
 
-	open fun showOrganizeDialog(primary: ZPlayerName, secondary: ZPlayerName?) {
+	open fun showOrganizeDialog(primary: ZPlayerName, secondary: ZPlayerName?, undos: Int) {
 		throw NotImplementedError()
 	}
 
@@ -376,7 +376,7 @@ abstract class UIZombicide(
 		throw NotImplementedError()
 	}
 
-	open fun updateOrganize(character: ZCharacter, list: List<ZMove>): ZMove? {
+	open fun updateOrganize(character: ZCharacter, list: List<ZMove>, undos: Int): ZMove? {
 		throw NotImplementedError()
 	}
 
