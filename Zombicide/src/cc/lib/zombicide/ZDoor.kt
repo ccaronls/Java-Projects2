@@ -34,9 +34,6 @@ class ZDoor(val cellPosStart: Grid.Pos, val cellPosEnd: Grid.Pos, val moveDirect
 		ZDir.elevationValues.contains(moveDirection)
 	}
 
-	@Omit
-	var pickable = false
-
 	fun isLocked(b: ZBoard): Boolean {
 		return b.getDoor(this) === ZWallFlag.LOCKED
 	}

@@ -953,7 +953,7 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 	                getCurrentUser().chooseSpawnAreaToRemove(cur.type, areas)?.let { zIdx ->
 		                board.removeSpawn(areas[zIdx])
 		                quest.onSpawnZoneRemoved(this, areas[zIdx])
-		                onCharacterDestroysSpawn(cur.type, zIdx)
+		                onCharacterDestroysSpawn(cur.type, zIdx, areas[zIdx])
 		                popState()
 		                return true
 	                }
@@ -1171,8 +1171,8 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 	open val isOrganizeEnabled = false
 
 	@RemoteFunction
-	protected open fun onCharacterDestroysSpawn(c: ZPlayerName, zoneIdx: Int) {
-		log.debug("%s destroys spawn at %d", c, zoneIdx)
+	protected open fun onCharacterDestroysSpawn(c: ZPlayerName, zoneIdx: Int, area: ZSpawnArea) {
+		log.debug("%s destroys spawn at %d", c, zoneIdx, area)
 	}
 
 	@RemoteFunction
@@ -1576,15 +1576,17 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 	                            val spawnZones = HashSet<Int>()
 	                            board.getUndiscoveredIndoorZones(otherSide.cellPosStart, spawnZones)
 	                            log.debug("Zombie spawn zones: $spawnZones")
-	                            onSpawnZoneSpawning(GRectangle().apply {
-		                            spawnZones.forEach {
-			                            addEq(board.getZone(it))
+	                            if (spawnZones.isNotEmpty()) {
+		                            onSpawnZoneSpawning(GRectangle().apply {
+			                            spawnZones.forEach {
+				                            addEq(board.getZone(it))
+			                            }
+		                            }, 0, 1)
+		                            for (zone: Int in spawnZones) {
+			                            spawnZombies(zone, highest)
 		                            }
-	                            }, 0, 1)
-	                            for (zone: Int in spawnZones) {
-		                            spawnZombies(zone, highest)
+		                            onSpawnZoneSpawned(0, 1)
 	                            }
-	                            onSpawnZoneSpawned(0, 1)
                             }
                         }
                         cur.performAction(ZActionType.OPEN_DOOR, this)

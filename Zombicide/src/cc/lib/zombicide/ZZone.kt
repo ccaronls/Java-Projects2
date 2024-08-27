@@ -41,9 +41,6 @@ class ZZone(val zoneIndex: Int = -1) : Reflector<ZZone>(), UIZButton {
 	val isOutside: Boolean
 		get() = type == ZZoneType.OUTDOORS
 
-	@Omit
-	var pickable = false
-
 	fun canSpawn(): Boolean {
 		return type === ZZoneType.BUILDING
 	}

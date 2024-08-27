@@ -1,8 +1,8 @@
 package cc.lib.zombicide
 
+import cc.lib.game.AGraphics
 import cc.lib.game.GRectangle
 import cc.lib.game.IRectangle
-import cc.lib.reflector.Omit
 import cc.lib.reflector.Reflector
 import cc.lib.utils.Grid
 import cc.lib.zombicide.ui.UIZButton
@@ -32,12 +32,13 @@ data class ZSpawnArea(
 
 	private var rect = GRectangle()
 
-	@Omit
-	var pickable = false
-
 	override fun getRect(): IRectangle = rect
 
 	fun setRect(rect: IRectangle) {
 		this.rect = GRectangle(rect)
+	}
+
+	fun draw(g: AGraphics, r: IRectangle = rect) {
+		g.drawImage(icon.imageIds[dir.ordinal], r)
 	}
 }

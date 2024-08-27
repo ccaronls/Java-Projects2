@@ -13,6 +13,7 @@ import android.text.format.DateFormat
 import android.text.format.Formatter
 import android.util.Log
 import android.view.Gravity
+import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -183,6 +184,19 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 		zb.bUndo.setOnClickListener(this)
 		zb.bRepeat.setOnClickListener(this)
 		zb.boardView.enablePinchZoom()
+		if (isTV()) {
+			zb.boardView.setOnKeyListener { v, keyCode, event ->
+				if (event.action == KeyEvent.ACTION_DOWN) {
+					when (keyCode) {
+						KeyEvent.KEYCODE_BACK -> {
+							zb.listMenu.requestFocus()
+							true
+						}
+					}
+				}
+				false
+			}
+		}
 		zb.consoleView.setOnClickListener {
 			game.showCharacterExpandedOverlay()
 		}

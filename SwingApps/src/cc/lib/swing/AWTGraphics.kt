@@ -28,8 +28,8 @@ open class AWTGraphics : APGraphics {
 	//private int textureId = -1;
 	private var mLineThickness = 1f
 	private var mPointSize = 1f
-	private var x = IntArray(32)
-	private var y = IntArray(32)
+	protected var x = IntArray(32)
+	protected var y = IntArray(32)
 	private val currentFontHeight: Int
 		get() = g.fontMetrics.font.size
 	val polyPts: Int

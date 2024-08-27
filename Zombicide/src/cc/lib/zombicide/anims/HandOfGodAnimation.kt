@@ -33,16 +33,25 @@ open class HandOfGodAnimation(actor: ZActor, val spawn: ZSpawnArea) : ZActorAnim
 
 	override fun drawPhase(g: AGraphics, positionInPhase: Float, positionInAnimation: Float, phase: Int) {
 
-		val spawnScale : Float = if (phase == 4) (1f - positionInPhase) else 1f
-		val dir = spawn.dir
-		val id = spawn.icon.imageIds[dir.ordinal]
+		val spawnScale: Float = if (phase == 4) (1f - positionInPhase) else 1f
+		//val dir = spawn.dir
+		//val id = spawn.icon.imageIds[dir.ordinal]
 		val scaledRect = spawn.getRect().scaledBy(spawnScale)
 		if (phase < 5)
-			g.drawImage(id, scaledRect)
+			spawn.draw(g, scaledRect)
 
 		g.setLineWidth(1f)
 		when (phase) {
-			0 -> LightningStrand.drawLightning(g, start, interps[0].getAtPosition(positionInPhase), minSec, maxSec, excite, bend)
+			0 -> LightningStrand.drawLightning(
+				g,
+				start,
+				interps[0].getAtPosition(positionInPhase),
+				minSec,
+				maxSec,
+				excite,
+				bend
+			)
+
 			1 -> {
 				LightningStrand.drawLightning(g, start, interps[0].getAtPosition(1f), minSec, maxSec, excite, bend)
 				LightningStrand.drawLightning(g, start, interps[1].getAtPosition(positionInPhase), minSec, maxSec, excite, bend)

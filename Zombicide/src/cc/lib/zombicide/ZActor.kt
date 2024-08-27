@@ -98,9 +98,6 @@ abstract class ZActor internal constructor(var occupiedZone: Int) : Reflector<ZA
 	open val isInvisible: Boolean
 		get() = false
 
-	@Omit
-	var pickable = false
-
 	fun addAnimation(anim: ZActorAnimation) {
 		animations.add(anim)
 	}

@@ -463,10 +463,12 @@ class OrganizeDialog(context: ZombicideActivity) :
 			setContentView(it.root)
 			binding.lvOptions.itemsCanFocus = false
 			binding.lvOptions.onItemSelectedListener = viewModel
-			binding.lvOptions.setOnItemClickListener { _, view, _, _ ->
-				view.performClick()
+			if (isTV()) {
+				binding.lvOptions.setOnItemClickListener { _, view, _, _ ->
+					view.performClick()
+				}
+				setOnKeyListener(this)
 			}
-			setOnKeyListener(this)
 			window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
 			setOnCancelListener {
 				game.setResult(ZMove.newOrganizeDone())

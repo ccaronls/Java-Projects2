@@ -264,16 +264,7 @@ class ZCharacter(
         return false
     }
 
-    // TODO: consider implementing modifyActionsRemaining for Plus1_Action
-    public override val actionsPerTurn: Int
-        get() {
-            var actions = 3
-            for (s in getAvailableSkills()) {
-                if (s === ZSkill.Plus1_Action) // TODO: consider implementing modifyActionsRemaining for Plus1_Action
-                    actions++
-            }
-            return actions
-        }
+    public override val actionsPerTurn = 3
 
     fun canUnjamDoor(): Boolean {
         for (w in weapons) {
@@ -477,7 +468,7 @@ class ZCharacter(
 				armorRating.append("/").append(ratings[i]).append("+")
 			}
 		}
-		stats.addRow("Moves", String.format("%d of %d", actionsLeftThisTurn, actionsPerTurn))
+		stats.addRow("Moves", String.format("%d of %d", (actionsPerTurn - actionsLeftThisTurn), actionsPerTurn))
 		stats.addRow("Wounds", String.format("%d of %d", woundBar, MAX_WOUNDS))
 		stats.addRow("Armor Rolls", armorRating.toString())
 		val ptsToNxt = skillLevel.getPtsToNextLevel(exp, rules)

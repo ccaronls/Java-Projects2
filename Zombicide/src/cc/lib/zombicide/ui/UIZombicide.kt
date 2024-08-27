@@ -15,7 +15,6 @@ import cc.lib.ui.IButton
 import cc.lib.utils.Grid
 import cc.lib.utils.Lock
 import cc.lib.utils.Table
-import cc.lib.utils.forEachAs
 import cc.lib.utils.prettify
 import cc.lib.utils.takeIfInstance
 import cc.lib.zombicide.ZActionType
@@ -43,7 +42,6 @@ import cc.lib.zombicide.ZWeaponType
 import cc.lib.zombicide.ZZombie
 import cc.lib.zombicide.ZZombieCategory
 import cc.lib.zombicide.ZZombieType
-import cc.lib.zombicide.ZZone
 import cc.lib.zombicide.anims.AscendingAngelDeathAnimation
 import cc.lib.zombicide.anims.DeathAnimation
 import cc.lib.zombicide.anims.DeathStrikeAnimation
@@ -127,20 +125,6 @@ abstract class UIZombicide(
 
 	fun setOptions(mode: UIMode, options: List<Any>) {
 		uiMode = mode
-		board.getAllActors().forEach {
-			it.pickable = false
-		}
-		board.zones.forEach {
-			it.pickable = false
-			it.doors.forEach {
-				it.pickable = false
-			}
-			it.cells.forEach {
-				board.getCell(it).spawns.forEach {
-					it?.pickable = false
-				}
-			}
-		}
 		val enclosingRect = GRectangle()
 		options.forEach {
 			if (it is IRectangle) {
@@ -175,23 +159,10 @@ abstract class UIZombicide(
 		boardRenderer.pickableRects = emptyList()
 		when (uiMode) {
 			UIMode.PICK_ZOMBIE,
-			UIMode.PICK_CHARACTER -> {
-				options.forEachAs { a: ZActor -> a.pickable = true }
-				boardRenderer.pickableRects = options as List<UIZButton>
-			}
-
-			UIMode.PICK_ZONE -> {
-				options.forEachAs { z: ZZone -> z.pickable = true }
-				boardRenderer.pickableRects = options as List<UIZButton>
-			}
-
-			UIMode.PICK_DOOR -> {
-				options.forEachAs { d: ZDoor -> d.pickable = true }
-				boardRenderer.pickableRects = options as List<UIZButton>
-			}
-
+			UIMode.PICK_CHARACTER,
+			UIMode.PICK_ZONE,
+			UIMode.PICK_DOOR,
 			UIMode.PICK_SPAWN -> {
-				options.forEachAs { s: ZSpawnArea -> s.pickable = true }
 				boardRenderer.pickableRects = options as List<UIZButton>
 			}
 
@@ -460,12 +431,6 @@ abstract class UIZombicide(
 			boardRenderer.addPreActor(InfernoAnimation(this))
 		}
 		boardRenderer.wait(1000)
-	}
-
-	override fun onCloseSpawnArea(c: ZCharacter, zone: Int, area: ZSpawnArea) {
-		super.onCloseSpawnArea(c, zone, area)
-		boardRenderer.addPreActor(HandOfGodAnimation(c, area))
-		boardRenderer.waitForAnimations()
 	}
 
 	override fun onZombieDestroyed(deathType: ZAttackType, pos: ZActorPosition) {
@@ -1385,8 +1350,22 @@ abstract class UIZombicide(
 		boardRenderer.addHoverMessage(String.format("+%d wounds healed", amt), c.toCharacter())
 	}
 
-	override fun onCharacterDestroysSpawn(c: ZPlayerName, zoneIdx: Int) {
-		super.onCharacterDestroysSpawn(c, zoneIdx)
+	override fun onCharacterDestroysSpawn(c: ZPlayerName, zoneIdx: Int, area: ZSpawnArea) {
+		super.onCharacterDestroysSpawn(c, zoneIdx, area)
+		boardRenderer.addPreActor(object : ZAnimation(1500) {
+			val r = GRectangle()
+			override fun drawPhase(g: AGraphics, positionInPhase: Float, positionInAnimation: Float, phase: Int) {
+				r.set(area.getRect())
+				r.scale(1f - positionInPhase)
+				area.draw(g, r)
+			}
+		})
+	}
+
+	override fun onCloseSpawnArea(c: ZCharacter, zone: Int, area: ZSpawnArea) {
+		super.onCloseSpawnArea(c, zone, area)
+		boardRenderer.addPreActor(HandOfGodAnimation(c, area))
+		boardRenderer.waitForAnimations()
 	}
 
 	override fun onCharacterOpenDoorFailed(cur: ZPlayerName, door: ZDoor) {
