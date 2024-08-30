@@ -11,12 +11,11 @@ import cc.lib.game.Justify
 import cc.lib.game.Utils
 import cc.lib.math.Vector2D
 import cc.lib.reflector.Omit
-import cc.lib.reflector.Reflector
 import cc.lib.utils.Grid
 import cc.lib.zombicide.ui.UIZButton
 import java.util.LinkedList
 
-abstract class ZActor internal constructor(var occupiedZone: Int) : Reflector<ZActor>(), UIZButton,
+abstract class ZActor internal constructor(var occupiedZone: Int) : UIZButton(),
 	IVector2D, IInterpolator<Vector2D> {
 	companion object {
 		init {
@@ -52,6 +51,8 @@ abstract class ZActor internal constructor(var occupiedZone: Int) : Reflector<ZA
 			id = it
 		}
 	}
+
+	abstract fun isBlockedBy(wallType: ZWallFlag): Boolean
 
 	fun getRect(b: ZBoard): GRectangle {
 		return b.getCell(occupiedCell)

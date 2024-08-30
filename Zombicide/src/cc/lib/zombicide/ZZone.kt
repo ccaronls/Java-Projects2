@@ -5,17 +5,15 @@ import cc.lib.game.GRectangle
 import cc.lib.game.IRectangle
 import cc.lib.game.Utils
 import cc.lib.reflector.Omit
-import cc.lib.reflector.Reflector
 import cc.lib.utils.GException
 import cc.lib.utils.Grid.Pos
 import cc.lib.utils.rotate
 import cc.lib.zombicide.ui.UIZButton
-import cc.lib.zombicide.ui.UIZombicide
 
 /**
  * Zones are sets of adjacent cells that comprise rooms or streets separated by doors and walls
  */
-class ZZone(val zoneIndex: Int = -1) : Reflector<ZZone>(), UIZButton {
+class ZZone(val zoneIndex: Int = -1) : UIZButton() {
 	companion object {
 		init {
 			addAllFields(ZZone::class.java)
@@ -120,7 +118,6 @@ class ZZone(val zoneIndex: Int = -1) : Reflector<ZZone>(), UIZButton {
         }
     }
 
-	override fun onClick() {
-		UIZombicide.instance.setResult(zoneIndex)
-	}
+	override val resultObject = zoneIndex
+
 }

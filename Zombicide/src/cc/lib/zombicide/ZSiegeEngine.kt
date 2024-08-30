@@ -62,6 +62,8 @@ class ZSiegeEngine(
 	override val scale: Float
 		get() = 2f
 
+	override fun isBlockedBy(wallType: ZWallFlag): Boolean = !wallType.catapultCrossable
+
 	fun getInfo(game: ZGame): Table = Table().setNoBorder().also { table ->
 		table.addColumnNoHeader(
 			listOf(

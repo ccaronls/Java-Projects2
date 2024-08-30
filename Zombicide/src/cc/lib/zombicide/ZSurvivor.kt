@@ -14,4 +14,6 @@ abstract class ZSurvivor(occupiedZone: Int) : ZActor(occupiedZone) {
 
 	abstract val skillLevel: ZSkillLevel
 	abstract val playerType: ZPlayerName
+
+	override fun isBlockedBy(wallType: ZWallFlag): Boolean = !wallType.openedForWalk
 }

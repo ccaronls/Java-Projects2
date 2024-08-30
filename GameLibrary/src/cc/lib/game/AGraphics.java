@@ -273,17 +273,30 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @return
      */
     public final GDimension getTextDimension(String string, float maxWidth) {
-        String [] lines = generateWrappedLines(string, maxWidth);
+        String[] lines = generateWrappedLines(string, maxWidth);
         float width = 0;
         float height = getTextHeight() * lines.length;
         for (String s : lines) {
             width = Math.max(width, getTextWidth(s));
         }
-        return new GDimension((int)(width+0.9f), height);
+        return new GDimension((int) (width + 0.9f), height);
+    }
+
+    /**
+     * Gives the enclosing rectangle given the current transform
+     *
+     * @param text
+     * @return
+     */
+    public final GRectangle getTextRectangle(String text) {
+        GRectangle rect = new GRectangle(0, 0, getTextWidth(text), getTextHeight());
+        screenToViewport(rect);
+        return rect;
     }
 
     /**
      * Return true if screen capture functionality is available. Default false
+     *
      * @return
      */
     public boolean isCaptureAvailable() {
@@ -326,7 +339,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     public abstract void setTextStyles(TextStyle ... styles);
 
     /**
-     * 
+     * Apply all transforms to x, y
      * @param x
      * @param y
      * @param result
@@ -386,6 +399,14 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
 
     public final void screenToViewport(MutableVector2D mouse) {
         mouse.set(untransform(mouse.getX(), mouse.getY()));
+    }
+
+    public final void screenToViewport(GRectangle rect) {
+        MutableVector2D tl = rect.getTopLeft();
+        screenToViewport(tl);
+        MutableVector2D br = rect.getBottomRight();
+        screenToViewport(br);
+        rect.set(tl, br);
     }
 
     protected abstract MutableVector2D untransform(float x, float y);

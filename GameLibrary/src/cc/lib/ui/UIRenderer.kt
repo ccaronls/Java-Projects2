@@ -63,7 +63,6 @@ abstract class UIRenderer protected constructor(private val component: UICompone
 
 	abstract fun draw(g: APGraphics, px: Int, py: Int)
 	open fun onTouch(x: Int, y: Int) {}
-	open fun onTouchUp(x: Int, y: Int) {}
 	open fun onClick() {}
 	open fun onDragStart(x: Int, y: Int) {}
 	open fun onDragMove(x: Int, y: Int) {}

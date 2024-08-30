@@ -365,3 +365,5 @@ fun <T> Iterable<T>.splitFilterIndexed(predicate: (Int, T) -> Boolean): kotlin.P
 }
 
 fun CharArray.asString() = String(this)
+
+fun <T> test(expr: Boolean, ifTrue: T, ifFalse: T): T = if (expr) ifTrue else ifFalse

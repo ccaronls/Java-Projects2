@@ -1,15 +1,19 @@
 package cc.lib.zombicide
 
+import cc.lib.game.AGraphics
 import cc.lib.game.GColor
 import cc.lib.game.GRectangle
 import cc.lib.game.IRectangle
 import cc.lib.reflector.Omit
-import cc.lib.reflector.Reflector
 import cc.lib.utils.Grid
 import cc.lib.zombicide.ui.UIZButton
 
-class ZDoor(val cellPosStart: Grid.Pos, val cellPosEnd: Grid.Pos, val moveDirection: ZDir, val lockedColor: GColor) :
-	Reflector<ZDoor>(), UIZButton {
+class ZDoor(
+	val cellPosStart: Grid.Pos,
+	val cellPosEnd: Grid.Pos,
+	val moveDirection: ZDir,
+	val lockedColor: GColor
+) : UIZButton() {
 	companion object {
 		init {
 			addAllFields(ZDoor::class.java)
@@ -44,8 +48,15 @@ class ZDoor(val cellPosStart: Grid.Pos, val cellPosEnd: Grid.Pos, val moveDirect
 
 	override fun getRect(): IRectangle = rect
 
+	override fun draw(g: AGraphics, game: ZGame, selected: Boolean) {
+		super.draw(g, game, selected)
+		if (selected && isVault) {
+			getOtherSide(game.board).getRect().drawOutlined(g)
+		}
+	}
+
 	fun setRect(board: ZBoard) {
-		rect.set(board.getCell(cellPosStart).getWallRect(moveDirection))
+		rect.set(board.getCell(cellPosStart).getWallRect(moveDirection).grownBy(.1f))
 	}
 
 	fun toggle(board: ZBoard, jammed: Boolean = false) {

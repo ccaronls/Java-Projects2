@@ -1086,8 +1086,7 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 					path = ArrayList()
 				} else {
 					val paths = board.getShortestPathOptions(
-						zombie.type,
-						zombie.occupiedCell,
+						zombie,
 						zones.random()
 					)
 					if (paths.isEmpty()) {
@@ -1163,6 +1162,7 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 
 		onZombieStageMoveDone()
 
+		attackList.sortBy { it.first.occupiedZone }
 		doZombieAttacks(attackList)
 
 		onZombieStageEnd()
@@ -1762,17 +1762,20 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
                 return true
             }
             ZMoveType.PICKUP_ITEM -> {
-                val equip = getCurrentUser().chooseItemToPickupInternal(cur.type, move.list as List<ZEquipment<*>>)
-                if (equip != null) {
-                    if (cur.tryEquip(equip) == null) {
-                        val keep = ZMove.newKeepMove(equip)
-                        if (!performMove(cur, keep)) return false
-                    }
-                    quest.pickupItem(cur.occupiedZone, equip)
-                    cur.performAction(ZActionType.PICKUP_ITEM, this)
-                    return true
-                }
-                return false
+	            val equip = move.list?.firstOrNull()
+		            ?.takeIfInstance<ZEquipment<*>>()
+		            ?.takeIf { move.list.size == 1 }
+		            ?: getCurrentUser().chooseItemToPickupInternal(cur.type, move.list as List<ZEquipment<*>>)
+	            if (equip != null) {
+		            if (cur.tryEquip(equip) == null) {
+			            val keep = ZMove.newKeepMove(equip)
+			            if (!performMove(cur, keep)) return false
+		            }
+		            quest.pickupItem(cur.occupiedZone, equip)
+		            cur.performAction(ZActionType.PICKUP_ITEM, this)
+		            return true
+	            }
+	            return false
             }
             ZMoveType.DROP_ITEM -> {
                 val equip = getCurrentUser().chooseItemToDropInternal(cur.type, move.list as List<ZEquipment<*>>)
@@ -1810,19 +1813,20 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 	                1 -> move.list[0] as ZSpell
 	                else -> getCurrentUser().chooseSpell(cur.type, move.list as List<ZSpell>)
                 }?.let { spell ->
-	                allLivingCharacters.filter { board.canSee(cur.occupiedZone, it.occupiedZone) }.map {
-		                it.type
-	                }.let { targets ->
-		                user.chooseCharacterForSpell(cur.type, spell, targets)?.let { target ->
-			                spell.type.doEnchant(this, target.toCharacter()) //target.availableSkills.add(spell.type.skill);
-			                cur.performAction(ZActionType.ENCHANTMENT, this)
-			                cur.useSpell(spell.type)
-			                return true
-		                }
+	                val target = move.character ?: user.chooseCharacterForSpell(cur.type, spell,
+		                allLivingCharacters.filter { board.canSee(cur.occupiedZone, it.occupiedZone) }.map {
+			                it.type
+		                })
+	                target?.let {
+		                spell.type.doEnchant(this, target.toCharacter()) //target.availableSkills.add(spell.type.skill);
+		                cur.performAction(ZActionType.ENCHANTMENT, this)
+		                cur.useSpell(spell.type)
+		                return true
 	                }
                 }
                 return false
             }
+
             ZMoveType.BORN_LEADER -> {
 	            move.character
 		            ?: getCurrentUser().chooseCharacterToBequeathMove(cur.type, move.list as List<ZPlayerName>)?.toCharacter()?.let { chosen ->
@@ -2816,11 +2820,17 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 		get() = requireNotNull(currentCharacter)
 
 	protected fun moveActor(actor: ZActor, toZone: Int, speed: Long, actionType: ZActionType?) {
+		board.getShortestPathOptions(actor, toZone).firstOrNull()?.forEach {
+			moveActorInDirection(actor, it, actionType)
+		}
+	}
+
+	private fun moveActorPrivate(actor: ZActor, toZone: Int, speed: Long, actionType: ZActionType?) {
 		val fromZone = actor.occupiedZone
 		val fromPos = actor.occupiedCell
 		val fromRect = actor.getRect(board)
 		board.moveActor(actor, toZone)
-		doMove(actor, fromZone, fromPos, fromRect, speed, actionType)
+		doAnimatedMove(actor, fromZone, fromPos, fromRect, speed, actionType)
 	}
 
 	protected open fun moveActorInDirection(actor: ZActor, dir: ZDir, action: ZActionType?) {
@@ -2829,7 +2839,7 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 		val fromRect = actor.getRect(board)
 		val next = board.getAdjacent(fromPos, dir)
 		board.moveActor(actor, next)
-		doMove(actor, fromZone, fromPos, fromRect, actor.moveSpeed, action)
+		doAnimatedMove(actor, fromZone, fromPos, fromRect, actor.moveSpeed, action)
 	}
 
 	protected open fun moveActorInDirectionIfPossible(actor: ZActor, dir: ZDir, action: ZActionType?): Boolean {
@@ -2842,19 +2852,11 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 		if (board.getCell(next).isFull)
 			return false
 		board.moveActor(actor, next)
-		doMove(actor, fromZone, fromPos, fromRect, actor.moveSpeed, action)
+		doAnimatedMove(actor, fromZone, fromPos, fromRect, actor.moveSpeed, action)
 		return true
 	}
 
-	fun moveActorInDirectionDebug(actor: ZActor, dir: ZDir) {
-		val fromPos = actor.occupiedCell
-		//GRectangle fromRect = actor.getRect(board);
-		val next = board.getAdjacent(fromPos, dir)
-		board.moveActor(actor, next)
-		//doMove(actor, fromZone, fromPos, fromRect, actor.getMoveSpeed());
-	}
-
-	private fun doMove(
+	private fun doAnimatedMove(
 		actor: ZActor,
 		fromZone: Int,
 		fromPos: Pos,

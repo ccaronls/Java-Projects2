@@ -6,6 +6,7 @@ import cc.lib.game.GRectangle
 import cc.lib.game.IInterpolator
 import cc.lib.game.IRectangle
 import cc.lib.game.IVector2D
+import cc.lib.game.Justify
 import cc.lib.game.Utils
 import cc.lib.logger.LoggerFactory
 import cc.lib.math.Vector2D
@@ -15,8 +16,10 @@ import cc.lib.ui.IButton
 import cc.lib.utils.Grid
 import cc.lib.utils.Lock
 import cc.lib.utils.Table
+import cc.lib.utils.forEachAs
 import cc.lib.utils.prettify
 import cc.lib.utils.takeIfInstance
+import cc.lib.utils.test
 import cc.lib.zombicide.ZActionType
 import cc.lib.zombicide.ZActor
 import cc.lib.zombicide.ZActorAnimation
@@ -28,20 +31,24 @@ import cc.lib.zombicide.ZColor
 import cc.lib.zombicide.ZDir
 import cc.lib.zombicide.ZDoor
 import cc.lib.zombicide.ZEquipment
+import cc.lib.zombicide.ZGame
 import cc.lib.zombicide.ZIcon
 import cc.lib.zombicide.ZMove
+import cc.lib.zombicide.ZMoveType
 import cc.lib.zombicide.ZPlayerName
 import cc.lib.zombicide.ZQuest
 import cc.lib.zombicide.ZQuests
 import cc.lib.zombicide.ZSkill
 import cc.lib.zombicide.ZSpawnArea
 import cc.lib.zombicide.ZSpawnCard
+import cc.lib.zombicide.ZSpell
 import cc.lib.zombicide.ZUser
 import cc.lib.zombicide.ZWeapon
 import cc.lib.zombicide.ZWeaponType
 import cc.lib.zombicide.ZZombie
 import cc.lib.zombicide.ZZombieCategory
 import cc.lib.zombicide.ZZombieType
+import cc.lib.zombicide.ZZone
 import cc.lib.zombicide.anims.AscendingAngelDeathAnimation
 import cc.lib.zombicide.anims.DeathAnimation
 import cc.lib.zombicide.anims.DeathStrikeAnimation
@@ -52,7 +59,6 @@ import cc.lib.zombicide.anims.EmptyAnimation
 import cc.lib.zombicide.anims.FireballAnimation
 import cc.lib.zombicide.anims.GroupAnimation
 import cc.lib.zombicide.anims.HandOfGodAnimation
-import cc.lib.zombicide.anims.HoverMessage
 import cc.lib.zombicide.anims.InfernoAnimation
 import cc.lib.zombicide.anims.LightningAnimation2
 import cc.lib.zombicide.anims.MagicOrbAnimation
@@ -123,53 +129,203 @@ abstract class UIZombicide(
 	var options: List<Any> = emptyList()
 		private set
 
+	var buttonRoot: UIZButton? = null
+
 	fun setOptions(mode: UIMode, options: List<Any>) {
 		uiMode = mode
-		val enclosingRect = GRectangle()
-		options.forEach {
-			if (it is IRectangle) {
-				enclosingRect.addEq(it)
-			}
-		}
-/*
-		log.debug("options: " + options.joinToString {
-			if (it is ZZone) {
-				"""${it.cells.joinToString()}
-				${it.X()}, ${it.Y()}, ${it.width}, ${it.height}
-				""".trimIndent()
-			} else {
-				toString()
-			}
-		})*/
+		buttonRoot?.clearTree()
+		buttonRoot = null
+		/*
+				log.debug("options: " + options.joinToString {
+					if (it is ZZone) {
+						"""${it.cells.joinToString()}
+						${it.X()}, ${it.Y()}, ${it.width}, ${it.height}
+						""".trimIndent()
+					} else {
+						toString()
+					}
+				})*/
 
 //		boardRenderer.waitForAnimations()
 		boardRenderer.popAllZoomRects()
+		boardRenderer.pickableStack.clear()
 
-		if (!enclosingRect.isEmpty && !boardRenderer.getZoomedRect().contains(enclosingRect)) {
-			if (boardRenderer.getZoomedRect().canContain(enclosingRect)) {
-				boardRenderer.animateZoomDelta(boardRenderer.getZoomedRect().getDeltaToContain(enclosingRect), 400)
-			} else {
-				boardRenderer.animateZoomTo(enclosingRect)
-			}
-		} else {
-			boardRenderer.waitForAnimations()
-			boardRenderer.popAllZoomRects()
-		}
-
-		boardRenderer.pickableRects = emptyList()
 		when (uiMode) {
 			UIMode.PICK_ZOMBIE,
 			UIMode.PICK_CHARACTER,
 			UIMode.PICK_ZONE,
 			UIMode.PICK_DOOR,
 			UIMode.PICK_SPAWN -> {
-				boardRenderer.pickableRects = options as List<UIZButton>
+				boardRenderer.pickableStack.push(options as List<UIZButton>)
+			}
+
+			UIMode.PICK_MENU -> {
+				buttonRoot = processMoves(options.filterIsInstance<ZMove>()).takeIf { it.first != null }?.also {
+					boardRenderer.pickableStack.push(it.getChildren())
+				}
+
 			}
 
 			else -> focusOnMainMenu()
 		}
 		this.options = options
 		boardRenderer.redraw()
+	}
+
+	internal class BoardButton(val move: ZMove) : UIZButton() {
+
+		var rectangle = GRectangle()
+
+		override val resultObject = move
+
+		override fun getRect() = rectangle
+
+		override fun onAttached(parent: UIZButton) {
+			rectangle.setPosition(parent.topRight)
+		}
+
+		override fun draw(g: AGraphics, game: ZGame, selected: Boolean) {
+			g.color = test(selected, GColor.RED, GColor.YELLOW)
+			g.drawJustifiedString(getRect().topRight, Justify.RIGHT, move.getLabel())
+		}
+	}
+
+	fun processMoves(options: List<ZMove>): UIZButton {
+
+		var root: UIZButton = object : UIZButton() {}
+
+		fun addButton(zone: ZZone, move: ZMove) {
+			if (zone.parent == null)
+				root.addChild(zone)
+			zone.addChild(BoardButton(move))
+		}
+
+		fun addButton(character: ZCharacter, move: ZMove) {
+			if (character == currentCharacter) {
+				addButton(board.getZone(currentCharacter!!.occupiedZone), move)
+				return
+			} else if (character.parent == null) {
+				board.getZone(character.occupiedZone).addChild(character)
+			}
+			character.addChild(BoardButton(move))
+		}
+
+		fun addButton(door: ZDoor, move: ZMove) {
+			if (door.parent == null) {
+				val cellPos = test(
+					requireCurrentCharacter.occupiedZone == board.getZone(door.cellPosStart)?.zoneIndex,
+					door.cellPosStart, door.cellPosEnd
+				)
+				board.getZone(cellPos)?.addChild(door)
+			}
+			door.addChild(BoardButton(move))
+		}
+
+		for (move in options) {
+			when (move.type) {
+				ZMoveType.TRADE -> move.list?.map { board.getCharacter(it as ZPlayerName) }
+					?.forEach { c: ZCharacter ->
+						addButton(c, ZMove(move, c, "Trade ${c.getLabel()}"))
+					}
+
+				ZMoveType.WALK -> move.list?.forEachAs { zoneIdx: Int ->
+					addButton(board.getZone(zoneIdx), ZMove(move, zoneIdx, zoneIdx))
+				}
+
+				ZMoveType.MELEE_ATTACK, ZMoveType.RANGED_ATTACK, ZMoveType.MAGIC_ATTACK -> move.list?.forEachAs { w: ZWeapon ->
+					for (stat in w.type.stats.filter { it.actionType == move.action }) {
+						for (zoneIdx in board.getAccessibleZones(
+							requireCurrentCharacter,
+							stat.minRange,
+							stat.maxRange,
+							stat.actionType
+						)) {
+							addButton(board.getZone(zoneIdx), ZMove(move, w, zoneIdx, "${move.type.shortName} ${w.getLabel()}"))
+						}
+					}
+				}
+
+				ZMoveType.THROW_ITEM -> {
+					val zones = board.getAccessibleZones(requireCurrentCharacter, 0, 1, ZActionType.THROW_ITEM)
+					move.list?.forEachAs { item: ZEquipment<*> ->
+						for (zoneIdx in zones) {
+							addButton(board.getZone(zoneIdx), ZMove(move, item, zoneIdx, "Throw ${item.getLabel()}"))
+						}
+					}
+				}
+
+				ZMoveType.OPERATE_DOOR -> move.list?.forEachAs { door: ZDoor ->
+					addButton(
+						door, ZMove(
+							move, door,
+							if (door.isClosed(board))
+								"Open"
+							else
+								"Close"
+						)
+					)
+				}
+
+				ZMoveType.BARRICADE -> move.list?.forEachAs { door: ZDoor ->
+					addButton(door, ZMove(move, door, "Barricade"))
+				}
+				//ZMoveType.SEARCH, ZMoveType.CONSUME, ZMoveType.EQUIP, ZMoveType.UNEQUIP, ZMoveType.GIVE, ZMoveType.TAKE, ZMoveType.DISPOSE -> addClickable(cur.getRect(), move)
+				ZMoveType.TAKE_OBJECTIVE -> board.getZone(requireCurrentCharacter.occupiedZone).addChild(BoardButton(move))
+				//ZMoveType.DROP_ITEM -> move.list?.forEachAs { e :ZEquipment<*> ->
+				//	addClickable(cur.getRect(), ZMove(move, e, "Drop ${e.label}"))
+				//}
+				ZMoveType.PICKUP_ITEM -> move.list?.forEachAs { e: ZEquipment<*> ->
+					addButton(requireCurrentCharacter, ZMove(move, e, "Pickup ${e.getLabel()}"))
+				}
+
+				ZMoveType.SHOVE -> move.list?.forEachAs { zoneIdx: Int ->
+					addButton(board.getZone(zoneIdx), ZMove(move, zoneIdx, "Shove"))
+				}
+
+				ZMoveType.CHARGE -> move.list?.forEachAs { zoneIdx: Int ->
+					addButton(board.getZone(zoneIdx), ZMove(move, zoneIdx, "Charge"))
+				}
+
+				ZMoveType.BORN_LEADER, // Born leader can be a spell?
+				ZMoveType.WALK_DIR,
+				ZMoveType.USE_SLOT -> Unit
+
+				ZMoveType.ENCHANT -> {
+					board.getAllCharacters().filter {
+						it.isAlive && board.canSee(requireCurrentCharacter.occupiedZone, it.occupiedZone)
+					}.forEach { c ->
+						move.list?.forEachAs { spell: ZSpell ->
+							addButton(c, ZMove(move, spell, c.type, spell.getLabel()))
+						}
+					}
+				}
+//				ZMoveType.BORN_LEADER -> for (c in (move.list as List<ZCharacter>)) {
+//					addClickable(c.getRect(), ZMove(move, c.type, c.type, "))
+//				}
+				ZMoveType.BLOODLUST_MELEE -> for (w in requireCurrentCharacter.meleeWeapons) {
+					move.list?.forEachAs { zoneIdx: Int ->
+						addButton(board.getZone(zoneIdx), ZMove(move, zoneIdx, w, "Bloodlust ${w.getLabel()}"))
+					}
+				}
+
+				ZMoveType.BLOODLUST_RANGED -> for (w in requireCurrentCharacter.rangedWeapons) {
+					move.list?.forEachAs { zoneIdx: Int ->
+						addButton(board.getZone(zoneIdx), ZMove(move, zoneIdx, w, "Bloodlust ${w.getLabel()}"))
+					}
+				}
+
+				ZMoveType.BLOODLUST_MAGIC -> for (w in requireCurrentCharacter.magicWeapons) {
+					move.list?.forEachAs { zoneIdx: Int ->
+						addButton(board.getZone(zoneIdx), ZMove(move, zoneIdx, w, "Bloodlust ${w.getLabel()}"))
+					}
+				}
+
+				else -> addButton(requireCurrentCharacter, move)
+
+			}
+		}
+
+		return root
 	}
 
 	private var result: Any? = null
@@ -253,6 +409,7 @@ abstract class UIZombicide(
 			boardRenderer.setOverlay(null)
 		}
 		boardRenderer.popAllZoomRects()
+		boardRenderer.pickableStack.clear()
 		this.result = result
 		lock.release()
 //		continuation?.let {
@@ -321,10 +478,6 @@ abstract class UIZombicide(
 			characterRenderer.actorInfo = this
 		}
 		setOptions(UIMode.PICK_MENU, moves)
-		if (expectedType == ZMove::class.java)
-			boardRenderer.processMoveOptions(name.toCharacter(), moves as List<ZMove>)
-		else
-			boardRenderer.processSubMenu(name.toCharacter(), moves)
 		boardMessage = message
 		return waitForUser(expectedType)
 	}
@@ -448,8 +601,7 @@ abstract class UIZombicide(
 				}
 			})*/
 			if (it is ZCharacter) {
-				val both = start.add(end)
-				boardRenderer.animateZoomToIfNotContained(both)
+				boardRenderer.animateZoomToIfNotContained(start, end)
 				// animate the window to keep the player on the screen
 				boardRenderer.animateZoomDelta(end.center.sub(start.center), it.moveSpeed + 100)
 				it.addAnimation(MoveAnimation(it, start, end, speed))
@@ -608,18 +760,11 @@ abstract class UIZombicide(
 		}
 		boardRenderer.redraw()
 		boardRenderer.waitForAnimations()
-		boardRenderer.popZoomRect()
 	}
 
 	override fun onNothingInSight(zone: Int) {
 		super.onNothingInSight(zone)
-		boardRenderer.addPostActor(
-			HoverMessage(
-				boardRenderer,
-				"Nothing In Sight",
-				board.getZone(zone).center
-			)
-		)
+		boardRenderer.addHoverMessage("Nothing In Sight", board.getZone(zone))
 	}
 
 	override fun onSpawnZoneSpawning(rect: GRectangle, nth: Int, num: Int) {
@@ -755,7 +900,7 @@ abstract class UIZombicide(
 
 	override fun onNewSkillAcquired(c: ZPlayerName, skill: ZSkill) {
 		super.onNewSkillAcquired(c, skill)
-		boardRenderer.addPostActor(HoverMessage(boardRenderer, String.format("%s Acquired", skill.getLabel()), c.toCharacter()))
+		boardRenderer.addHoverMessage(String.format("%s Acquired", skill.getLabel()), c.toCharacter())
 		characterRenderer.addMessage(String.format("%s has acquired the %s skill", c.getLabel(), skill.getLabel()))
 	}
 
@@ -774,17 +919,17 @@ abstract class UIZombicide(
 
 	override fun onSkillKill(c: ZPlayerName, skill: ZSkill, zombiePostion: ZActorPosition, attackType: ZAttackType) {
 		super.onSkillKill(c, skill, zombiePostion, attackType)
-		boardRenderer.addPostActor(HoverMessage(boardRenderer, String.format("%s Kill!!", skill.getLabel()), board.getActor(zombiePostion)))
+		boardRenderer.addHoverMessage(String.format("%s Kill!!", skill.getLabel()), board.getActor(zombiePostion))
 	}
 
 	override fun onRollSixApplied(c: ZPlayerName, skill: ZSkill) {
 		super.onRollSixApplied(c, skill)
-		boardRenderer.addPostActor(HoverMessage(boardRenderer, String.format("Roll Six!! %s", skill.getLabel()), c.toCharacter()))
+		boardRenderer.addHoverMessage(String.format("Roll Six!! %s", skill.getLabel()), c.toCharacter())
 	}
 
 	override fun onWeaponReloaded(c: ZPlayerName, w: ZWeapon) {
 		super.onWeaponReloaded(c, w)
-		boardRenderer.addPostActor(HoverMessage(boardRenderer, String.format("%s Reloaded", w.getLabel()), c.toCharacter()))
+		boardRenderer.addHoverMessage(String.format("%s Reloaded", w.getLabel()), c.toCharacter())
 	}
 
 	override fun onNoiseAdded(zoneIndex: Int) {
@@ -797,7 +942,7 @@ abstract class UIZombicide(
 
 	override fun onWeaponGoesClick(c: ZPlayerName, weapon: ZWeapon) {
 		super.onWeaponGoesClick(c, weapon)
-		boardRenderer.addPostActor(HoverMessage(boardRenderer, "CLICK", c.toCharacter()))
+		boardRenderer.addHoverMessage("CLICK", c.toCharacter())
 	}
 
 	override fun onBeginRound(roundNum: Int) {
@@ -1309,6 +1454,7 @@ abstract class UIZombicide(
 
 	override fun onZombieStageEnd() {
 		super.onZombieStageEnd()
+		boardRenderer.waitForAnimations()
 		boardRenderer.popZoomRect()
 		boardRenderer.waitForAnimations()
 	}
@@ -1370,12 +1516,12 @@ abstract class UIZombicide(
 
 	override fun onCharacterOpenDoorFailed(cur: ZPlayerName, door: ZDoor) {
 		super.onCharacterOpenDoorFailed(cur, door)
-		boardRenderer.addPostActor(HoverMessage(boardRenderer, "Open Failed", door.center))
+		boardRenderer.addHoverMessage("Open Failed", door)
 	}
 
 	override fun onIronRain(c: ZPlayerName, targetZone: Int) {
 		super.onIronRain(c, targetZone)
-		boardRenderer.addPostActor(HoverMessage(boardRenderer, "LET IT RAIN!!", board.getZone(targetZone).center))
+		boardRenderer.addHoverMessage("LET IT RAIN!!", board.getZone(targetZone))
 	}
 
 	override fun onDoorUnlocked(door: ZDoor) {
@@ -1383,13 +1529,7 @@ abstract class UIZombicide(
 		boardRenderer.pushZoomRect()
 		boardRenderer.animateZoomTo(door.getRect())
 		boardRenderer.waitForAnimations()
-		boardRenderer.addPostActor(
-			HoverMessage(
-				boardRenderer,
-				"DOOR UNLOCKED",
-				door.getRect().center
-			)
-		)
+		boardRenderer.addHoverMessage("DOOR UNLOCKED", door.getRect())
 		boardRenderer.addPostActor(object : ZAnimation(1000) {
 			val rect = door.getRect()
 			override fun draw(g: AGraphics, position: Float, dt: Float) {

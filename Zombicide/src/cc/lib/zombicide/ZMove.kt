@@ -276,16 +276,19 @@ data class ZMove(
 		}
 		if (fromSlot != null) {
 			label += " from ${fromSlot.getLabel()}"
-	    }
-	    if (toSlot != null)
-		    label += " to ${toSlot.getLabel()}"
-	    if (type == ZMoveType.ORGANIZE_TRADE) {
-	    	character?.name?.let {
-			    label += " with $it"
-		    }
-	    }
-        return label
-    }
+		}
+		if (toSlot != null)
+			label += " to ${toSlot.getLabel()}"
+		if (type == ZMoveType.ORGANIZE_TRADE) {
+			character?.name?.let {
+				label += " with $it"
+			}
+		}
+		if (type == ZMoveType.PICKUP_ITEM && list?.size == 1) {
+			label = "Pickup ${list?.get(0)}"
+		}
+		return label
+	}
 
 	fun toStringAbbrev(): String {
 		return "$type, " +

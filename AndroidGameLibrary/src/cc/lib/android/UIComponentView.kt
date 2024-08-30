@@ -221,8 +221,6 @@ abstract class UIComponentView<T : UIRenderer>
 					renderer.onClick()
 				} else if (dragging) {
 					renderer.onDragEnd()
-				} else {
-					renderer.onTouchUp(event.x.roundToInt(), event.y.roundToInt())
 				}
 				dragging = false
 			}

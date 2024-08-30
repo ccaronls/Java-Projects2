@@ -3,7 +3,6 @@ package cc.lib.zombicide
 import cc.lib.game.AGraphics
 import cc.lib.game.GRectangle
 import cc.lib.game.IRectangle
-import cc.lib.reflector.Reflector
 import cc.lib.utils.Grid
 import cc.lib.zombicide.ui.UIZButton
 
@@ -15,7 +14,7 @@ data class ZSpawnArea(
 	var isEscapableForNecromancers: Boolean = false,
 	var isCanBeRemovedFromBoard: Boolean = false,
 	var isCanBeDestroyedByCatapult: Boolean = false
-) : Reflector<ZSpawnArea>(), UIZButton {
+) : UIZButton() {
 	companion object {
 		init {
 			addAllFields(ZSpawnArea::class.java)

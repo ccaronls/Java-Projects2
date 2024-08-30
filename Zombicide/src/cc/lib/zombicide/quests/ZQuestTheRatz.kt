@@ -1,6 +1,5 @@
 package cc.lib.zombicide.quests
 
-import cc.lib.kreflector.Reflector
 import cc.lib.utils.Grid
 import cc.lib.utils.Grid.Pos
 import cc.lib.utils.Table
@@ -16,7 +15,7 @@ class ZQuestTheRatz : ZQuest(ZQuests.The_Ratz) {
 
 	companion object {
 		init {
-			Reflector.addAllFields(ZQuestTheRatz::class.java)
+			addAllFields(ZQuestTheRatz::class.java)
 		}
 	}
 

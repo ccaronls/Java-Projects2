@@ -1,10 +1,21 @@
 package cc.lib.zombicide.quests
 
-import cc.lib.reflector.Omit
 import cc.lib.utils.Grid
+import cc.lib.utils.Grid.Pos
 import cc.lib.utils.Table
-import cc.lib.zombicide.*
+import cc.lib.zombicide.ZCell
+import cc.lib.zombicide.ZCellType
+import cc.lib.zombicide.ZCharacter
+import cc.lib.zombicide.ZEquipmentType
+import cc.lib.zombicide.ZGame
+import cc.lib.zombicide.ZItemType
+import cc.lib.zombicide.ZQuest
+import cc.lib.zombicide.ZQuests
+import cc.lib.zombicide.ZTile
 import cc.lib.zombicide.ZTile.Companion.getQuadrant
+import cc.lib.zombicide.ZWeaponType
+import cc.lib.zombicide.ZZombieType
+import cc.lib.zombicide.ZZone
 
 class ZQuestBigGameHunting : ZQuest(ZQuests.Big_Game_Hunting) {
 	companion object {
@@ -13,30 +24,58 @@ class ZQuestBigGameHunting : ZQuest(ZQuests.Big_Game_Hunting) {
 		}
 	}
 
-	@Omit
-	var map = arrayOf(
-arrayOf("z0:i:wn:ww:ds:gvd1", "z29:i:wn:de:ws:red:odw", "z1:spn:wn:de",             "z2:i:wn:ode:ws", "z3:i:wn:ode:ws", "z9:i:vd2:wn:we",           "z28:v:wn:we:vd2"),
-arrayOf("z5:ww", "z6", "z7",                                                        "z8:we", "z9:i:ods", "z9:i:ods:we:red",                         "z28:v:we"),
-arrayOf("z10:ww:we:start", "z11:i:ww:wn::ws:red:ode", "z12:i:wn:ds:ode",            "z13:i:wn:red:ds:ode", "z14:i:ws:we:odn", "z15:i:ds:we:odn",    "z28:v:we:ws:vd3"),
-arrayOf("z16:ww:ds", "z17", "z18",                                                  "z19", "z20", "z21:we:spe:dn:ds",                               "z27:v:we:gvd1"),
-arrayOf("z22:i:ww:we:vd3", "z23", "z24:i:wn:ww:we",                                 "z25:i:wn", "z25:i:wn", "z25:i:dn:we",                          "z27:v:we"),
-arrayOf("z22:i:ww:red:ws:de", "z26:ws:sps:de", "z24:i:red:ww:we:ws:dw",             "z25:i:ws", "z25:i:blue:ws", "z25:i:ws:gvd4:we",                "z27:v:we:ws:gvd4"))
-
-	var blueObjZone = -1
+	lateinit var blueObjCell: Pos
 	var blueRevealZone = -1
 	var skipKillAbomination = false
 
-	override fun loadBoard() = load(map)
+	override fun loadBoard() = load(
+		arrayOf(
+			arrayOf(
+				"z0:i:wn:ww:ds:gvd1",
+				"z29:i:wn:de:ws:red:odw",
+				"z1:spn:wn:de",
+				"z2:i:wn:ode:ws",
+				"z3:i:wn:ode:ws",
+				"z9:i:vd2:wn:we",
+				"z28:v:wn:we:vd2"
+			),
+			arrayOf("z5:ww", "z6", "z7", "z8:we", "z9:i:ods", "z9:i:ods:we:red", "z28:v:we"),
+			arrayOf(
+				"z10:ww:we:start",
+				"z11:i:ww:wn::ws:red:ode",
+				"z12:i:wn:ds:ode",
+				"z13:i:wn:red:ds:ode",
+				"z14:i:ws:we:odn",
+				"z15:i:ds:we:odn",
+				"z28:v:we:ws:vd3"
+			),
+			arrayOf("z16:ww:ds", "z17", "z18", "z19", "z20", "z21:we:spe:dn:ds", "z27:v:we:gvd1"),
+			arrayOf("z22:i:ww:we:vd3", "z23", "z24:i:wn:ww:we", "z25:i:wn", "z25:i:wn", "z25:i:dn:we", "z27:v:we"),
+			arrayOf(
+				"z22:i:ww:red:ws:de",
+				"z26:ws:sps:de",
+				"z24:i:red:ww:we:ws:dw",
+				"z25:i:ws",
+				"z25:i:blue:ws",
+				"z25:i:ws:gvd4:we",
+				"z27:v:we:ws:gvd4"
+			)
+		)
+	)
 
 	override fun processObjective(game: ZGame, c: ZCharacter) {
 		super.processObjective(game, c)
 		// check for necro / abom in special spawn places
 		game.board.getZone(c.occupiedZone).isObjective = false
 		if (c.occupiedZone == blueRevealZone) {
-			redObjectives.add(blueObjZone)
-			game.addLogMessage("The Labratory objective is revealed!")
-			game.board.getZone(blueObjZone).isObjective = true
-			game.spawnZombies(1, ZZombieType.Necromancer, blueObjZone)
+			game.addLogMessage("The Laboratory objective is revealed!")
+			val blueObjZone = game.board.getZone(blueObjCell)!!
+			blueObjZone.isObjective = true
+			game.board.getCell(blueObjCell).apply {
+				setCellType(ZCellType.OBJECTIVE_BLUE, true)
+				addObjective(ZCellType.OBJECTIVE_BLUE, zoneIndex)
+				game.spawnZombies(1, ZZombieType.Necromancer, zoneIndex)
+			}
 			blueRevealZone = -1
 		}
 		if (redObjectives.size == 0 && game.getNumKills(ZZombieType.Abomination) == 0) {
@@ -53,21 +92,18 @@ arrayOf("z22:i:ww:red:ws:de", "z26:ws:sps:de", "z24:i:red:ww:we:ws:dw",         
 		}
 	}
 
-	override fun loadCmd(grid: Grid<ZCell>, pos: Grid.Pos, cmd: String) {
-		val cell = grid[pos]
+	override fun loadCmd(grid: Grid<ZCell>, pos: Pos, cmd: String) {
 		when (cmd) {
 			"blue" -> {
-				blueObjZone = cell.zoneIndex
-				cell.setCellType(ZCellType.OBJECTIVE_BLUE, true)
-				addObjective(ZCellType.OBJECTIVE_BLUE, cell.zoneIndex)
+				blueObjCell = pos
 			}
-			else   -> super.loadCmd(grid, pos, cmd)
+
+			else -> super.loadCmd(grid, pos, cmd)
 		}
 	}
 
 	override fun init(game: ZGame) {
 		blueRevealZone = redObjectives.random()
-		game.board.getZone(blueObjZone).isObjective = false // this does not get revealed until the blueRevealZone found
 	}
 
 	override val tiles: Array<ZTile>

@@ -208,13 +208,19 @@ public class GRectangle extends Reflector<GRectangle> implements IRectangle {
 
     public GRectangle setCenter(IVector2D cntr) {
         x=cntr.getX()-w/2;
-        y=cntr.getY()-h/2;
+        y = cntr.getY() - h / 2;
         return this;
     }
 
     public GRectangle setPosition(IVector2D topLeft) {
         x = topLeft.getX();
         y = topLeft.getY();
+        return this;
+    }
+
+    public GRectangle setTopRightPosition(IVector2D topRight) {
+        x = topRight.getX() - getWidth();
+        y = topRight.getY();
         return this;
     }
 
@@ -231,9 +237,35 @@ public class GRectangle extends Reflector<GRectangle> implements IRectangle {
         return this;
     }
 
+    public GRectangle setDimensionJustified(float width, float height, Justify horz, Justify vert) {
+        w = width;
+        h = height;
+        switch (horz) {
+            case LEFT:
+                break;
+            case RIGHT:
+                moveBy(-width, 0);
+                break;
+            case CENTER:
+                moveBy(-width / 2, 0);
+                break;
+        }
+        switch (vert) {
+            case TOP:
+                break;
+            case BOTTOM:
+                moveBy(0, -height);
+                break;
+            case CENTER:
+                moveBy(0, -height / 2);
+                break;
+        }
+        return this;
+    }
+
     public GRectangle moveBy(float dx, float dy) {
-        x+=dx;
-        y+=dy;
+        x += dx;
+        y += dy;
         return this;
     }
 

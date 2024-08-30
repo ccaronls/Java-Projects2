@@ -287,51 +287,47 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 	 * @return
 	 */
 	fun getShortestPathOptions(
-		type: ZZombieType,
-		fromPos: Pos,
+		actor: ZActor,
 		toZoneIndex: Int
 	): List<List<ZDir>> {
+		val fromPos = actor.occupiedCell
 		if (grid[fromPos].zoneIndex == toZoneIndex) return emptyList()
 		val toZone = zones[toZoneIndex]
 		val allPaths: MutableList<List<ZDir>> = ArrayList()
 		var maxDist = (grid.rows + grid.cols)
 		val visited: MutableSet<Pos> = HashSet()
-		for (bCellPos in toZone.cells) {
-			val paths = getShortestPathOptions(type, fromPos, bCellPos, visited, maxDist)
+		getShortestPathOptions(actor, fromPos, getZone(toZoneIndex), visited, maxDist).also { paths ->
 			for (l in paths) {
-				maxDist = Math.min(maxDist, l.size)
+				maxDist = maxDist.coerceAtMost(l.size)
 			}
-            allPaths.addAll(paths)
-        }
-        val it = allPaths.iterator()
-        while (it.hasNext()) {
-            if (it.next().size > maxDist) it.remove()
-        }
-        return allPaths
-    }
+			allPaths.addAll(paths)
+		}
+		allPaths.removeIf { it.size > maxDist }
+		return allPaths.sortedBy { it.size }
+	}
 
 	private fun getShortestPathOptions(
-		type: ZZombieType,
+		actor: ZActor,
 		fromCell: Pos,
-		toCell: Pos,
+		toZone: ZZone,
 		visited: MutableSet<Pos>,
 		maxDist: Int
 	): List<List<ZDir>> {
 		val paths: MutableList<List<ZDir>> = ArrayList()
-		searchPathsR(type, fromCell, toCell, intArrayOf(maxDist), LinkedList(), paths, visited)
+		searchPathsR(actor, fromCell, toZone, intArrayOf(maxDist), LinkedList(), paths, visited)
 		return paths
 	}
 
 	private fun searchPathsR(
-		type: ZZombieType,
+		actor: ZActor,
 		fromPos: Pos,
-		toPos: Pos,
+		toZone: ZZone,
 		maxDist: IntArray,
 		curPath: LinkedList<ZDir>,
 		paths: MutableList<List<ZDir>>,
 		visited: MutableSet<Pos>
 	) {
-		if (fromPos == toPos) {
+		if (getCell(fromPos).zoneIndex == toZone.zoneIndex) {
 			if (curPath.size > 0) {
 				paths.add(ArrayList(curPath))
 				maxDist[0] = Math.min(maxDist[0], curPath.size)
@@ -341,21 +337,22 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 		if (curPath.size >= maxDist[0]) {
 			if (paths.isEmpty()) {
 				paths.add(ArrayList(curPath))
-	        }
+			}
         	return
         }
         if (visited.contains(fromPos)) return
         visited.add(fromPos)
-        val fromCell = grid[fromPos]
+		val fromCell = grid[fromPos]
+		val toPos = toZone.cells.first()
         for (dir in valuesSorted(fromPos, toPos)) {
-	        if (!type.isBlockedBy(fromCell.getWallFlag(dir))) {
+	        if (!actor.isBlockedBy(fromCell.getWallFlag(dir))) {
 		        val nextPos = getAdjacent(fromPos, dir)
 		        if (visited.contains(nextPos)) continue
 
 		        // is the cell full?
 		        if (getCell(nextPos).isFull) continue
 		        curPath.addLast(dir)
-		        searchPathsR(type, nextPos, toPos, maxDist, curPath, paths, visited)
+		        searchPathsR(actor, nextPos, toZone, maxDist, curPath, paths, visited)
 		        curPath.removeLast()
 	        }
         }
@@ -363,7 +360,7 @@ class ZBoard : Reflector<ZBoard>, IDimension {
         for (door in fromZone.doors) {
             if (door.cellPosStart == fromPos && !door.isClosed(this)) {
                 curPath.addLast(door.moveDirection)
-	            searchPathsR(type, door.cellPosEnd, toPos, maxDist, curPath, paths, visited)
+	            searchPathsR(actor, door.cellPosEnd, toZone, maxDist, curPath, paths, visited)
 	            curPath.removeLast()
             }
         }
@@ -537,18 +534,15 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 		val fromZone = zones[actor.occupiedZone]
 		if (fromZoneIndex != toZoneIndex) {
 			val toZone = zones[toZoneIndex]
-			if (toZone.type === ZZoneType.VAULT) {
-				// moving into a vault
-				findDoor(fromZone, ZDir.DESCEND).also {
-					targetPos = it.cellPosEnd
-				}
-            } else if (fromZone.type === ZZoneType.VAULT) {
-                // moving out of a vault
-				findDoor(fromZone, ZDir.ASCEND).also {
+			if (toZone.type === ZZoneType.VAULT || fromZone.type == ZZoneType.VAULT) {
+				val dir = test(toZone.type === ZZoneType.VAULT, ZDir.ASCEND, ZDir.DESCEND)
+				toZone.doors.first {
+					it.moveDirection == dir && getCell(it.cellPosEnd).zoneIndex == fromZoneIndex
+				}.also {
 					targetPos = it.cellPosStart
 				}
-            }
-        }
+			}
+		}
         val fromCell = getCell(actor.occupiedCell)
         fromCell.setQuadrant(null, actor.occupiedQuadrant)
         fromZone.addNoise(-actor.noise)
@@ -818,7 +812,7 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 			)
 		}.forEach { zone ->
 			val paths: List<List<ZDir>> =
-				getShortestPathOptions(zombie.type, zombie.occupiedCell, zone.zoneIndex)
+				getShortestPathOptions(zombie, zone.zoneIndex)
 			if (paths.isNotEmpty()) {
 				pathsMap[zone.zoneIndex] = paths[0]
 				if (shortestPath == null || paths.size < pathsMap[shortestPath]!!.size) {
@@ -852,10 +846,10 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 		val paths: MutableList<List<ZDir>> = mutableListOf()
 		if (targetZone < 0) {
 			getMaxNoiseLevelZones().forEach {
-				paths.addAll(getShortestPathOptions(zombie.type, zombie.occupiedCell, it.zoneIndex))
+				paths.addAll(getShortestPathOptions(zombie, it.zoneIndex))
 			}
 		} else {
-			paths.addAll(getShortestPathOptions(zombie.type, zombie.occupiedCell, targetZone))
+			paths.addAll(getShortestPathOptions(zombie, targetZone))
 		}
 		return when (paths.size) {
 			0 -> emptyList()

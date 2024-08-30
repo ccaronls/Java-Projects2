@@ -60,27 +60,30 @@ class ZZombie(override val type: ZZombieType = ZZombieType.Walker, val startZone
 
     override val moveSpeed: Long
         get() = if (type === ZZombieType.Runner) {
-            500
+	        500
         } else super.moveSpeed
 
-    override val priority: Int
-        get() = if (destroyed) -1 else type.ordinal
+	override val priority: Int
+		get() = if (destroyed) -1 else type.ordinal
 
-    fun getDescription(): String {
-        return type.description
-    }
+	fun getDescription(): String {
+		return type.description
+	}
 
-    override fun performAction(action: ZActionType, game: ZGame) {
-        when (action) {
+	override fun isBlockedBy(wallType: ZWallFlag): Boolean = type.isBlockedBy(wallType)
+
+	override fun performAction(action: ZActionType, game: ZGame) {
+		when (action) {
 			ZActionType.MELEE,
 			ZActionType.NOTHING -> actionsLeftThisTurn = 0
-            else -> super.performAction(action, game)
-        }
-    }
 
-    override fun draw(g: AGraphics) {
-        if (isAlive || isAnimating) {
-            super.draw(g)
+			else -> super.performAction(action, game)
+		}
+	}
+
+	override fun draw(g: AGraphics) {
+		if (isAlive || isAnimating) {
+			super.draw(g)
             if (actionsLeftThisTurn > 1) {
 	            val oldHgt = g.setTextHeight(10f)
 	            g.color = GColor.TRANSLUSCENT_BLACK
