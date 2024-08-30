@@ -6,6 +6,10 @@ public interface IShape {
 
     boolean contains(float x, float y);
 
+    default boolean contains(IVector2D v) {
+        return contains(v.getX(), v.getY());
+    }
+
     void drawOutlined(AGraphics g);
 
     void drawFilled(AGraphics g);
@@ -13,4 +17,6 @@ public interface IShape {
     MutableVector2D getCenter();
 
     float getArea();
+
+    IRectangle enclosingRect();
 }

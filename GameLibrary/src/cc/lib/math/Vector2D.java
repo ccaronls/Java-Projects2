@@ -541,7 +541,7 @@ public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializ
         return newPolar(Utils.randFloat(360), magnitude);
     }
 
-    public static IInterpolator<Vector2D> getLinearInterpolator(Vector2D start, Vector2D end) {
+    public static IInterpolator<Vector2D> getLinearInterpolator(IVector2D start, IVector2D end) {
         return position -> start.add(end.sub(start).scaleEq(position));
     }
 

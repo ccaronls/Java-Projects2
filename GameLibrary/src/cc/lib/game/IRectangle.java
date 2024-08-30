@@ -395,4 +395,8 @@ public interface IRectangle extends IDimension, IShape {
                 && getBottomRight().getY() <= other.getBottomRight().getY());
     }
 
+    @Override
+    default IRectangle enclosingRect() {
+        return this;
+    }
 }

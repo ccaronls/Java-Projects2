@@ -17,11 +17,11 @@ import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KProperty
 import kotlin.system.exitProcess
 
-fun <T> MutableMap<T, Int>.increment(obj: T, amt: Int) {
-    when (val count = get(obj)) {
-	    null -> put(obj, amt)
-        else -> put(obj, count + amt)
-    }
+fun <T> MutableMap<T, Int>.increment(obj: T, amt: Int = 1) {
+	when (val count = get(obj)) {
+		null -> put(obj, amt)
+		else -> put(obj, count + amt)
+	}
 }
 
 fun Char.repeat(times: Int) : String {
