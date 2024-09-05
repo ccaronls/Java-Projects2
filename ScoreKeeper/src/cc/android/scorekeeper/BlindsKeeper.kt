@@ -1,5 +1,6 @@
 package cc.android.scorekeeper
 
+import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -34,6 +35,10 @@ const val KEY_BLINDS = "blinds"
 const val KEY_PERIODS = "periods"
 const val KEY_TIMER = "timer"
 const val KEY_BIG_BLIND = "bigBlind"
+const val KEY_BEHAVIOR = "behavior"
+
+const val BEHAVIOR_DOUBLE = 0
+const val BEHAVIOR_ADDITIVE = 1
 
 /**
  * Created by Chris Caron on 9/3/24.
@@ -46,6 +51,8 @@ class BlindsKeeper : CCActivityBase(), Runnable {
 	val periodValues = intArrayOf(10, 15, 20, 30, 45, 60, 75, 90, 120)
 
 	val handler = Handler(Looper.getMainLooper())
+
+	val defaultBlind = blindValues[0]
 
 	override fun run() {
 		if (viewModel.running.value == true) {
@@ -67,6 +74,10 @@ class BlindsKeeper : CCActivityBase(), Runnable {
 		binding.bReset.setOnClickListener {
 			reset()
 		}
+		binding.bScore.setOnClickListener {
+			startActivity(Intent(this, ScoreKeeper::class.java))
+			finish()
+		}
 		if (BuildConfig.DEBUG) {
 			binding.tvTimer.setOnClickListener {
 				viewModel.timerProgress.value = (viewModel.timerProgress.value ?: 0) / 2
@@ -85,14 +96,22 @@ class BlindsKeeper : CCActivityBase(), Runnable {
 		viewModel.timerProgress.observe(this) {
 			prefs.edit().putInt(KEY_TIMER, it ?: 0).apply()
 			if (it == 0) {
-				viewModel.bigBlind.value = (viewModel.bigBlind.value ?: 50) * 2
-				prefs.edit().putInt(KEY_BIG_BLIND, viewModel.bigBlind.value ?: 50).apply()
+				viewModel.bigBlind.value = increaseBlinds(viewModel.bigBlind.value ?: defaultBlind)
+				prefs.edit().putInt(KEY_BIG_BLIND, viewModel.bigBlind.value ?: defaultBlind).apply()
 				viewModel.running.value = false
 				viewModel.timerProgress.value = viewModel.timerMax.value
 			}
 		}
 
 		restore()
+	}
+
+	fun increaseBlinds(bigBlind: Int): Int {
+		return when (prefs.getInt(KEY_BEHAVIOR, 0)) {
+			BEHAVIOR_DOUBLE -> bigBlind * 2
+			BEHAVIOR_ADDITIVE -> bigBlind + prefs.getInt(KEY_BLINDS, defaultBlind)
+			else -> throw IllegalArgumentException()
+		}
 	}
 
 	override fun onPause() {
@@ -115,6 +134,20 @@ class BlindsKeeper : CCActivityBase(), Runnable {
 		}, NumberPicker.OnValueChangeListener { picker, oldVal, newVal ->
 			edit.putInt(KEY_PERIODS, newVal)
 		})
+		val rbMap = mapOf(
+			BEHAVIOR_ADDITIVE to R.id.rbAdditive,
+			BEHAVIOR_DOUBLE to R.id.rbDouble
+		)
+
+		val rbMapInverse = rbMap.map {
+			it.value to it.key
+		}.toMap()
+
+		settings.rgBlindsBehavior.check(rbMap[prefs.getInt(KEY_BEHAVIOR, BEHAVIOR_DOUBLE)] ?: 0)
+		settings.rgBlindsBehavior.setOnCheckedChangeListener { _, checkedId ->
+			edit.putInt(KEY_BEHAVIOR, rbMapInverse[checkedId] ?: 0)
+		}
+
 		newDialogBuilder()
 			.setView(settings.root)
 			.setPositiveButton(R.string.popup_button_ok) { _, _ -> edit.commit() }

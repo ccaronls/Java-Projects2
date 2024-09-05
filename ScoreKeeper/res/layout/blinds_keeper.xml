@@ -22,15 +22,27 @@
             android:orientation="vertical"
             app:layout_constraintGuide_percent=".5" />
 
-        <ImageButton
+        <Button
+            android:id="@+id/bScore"
+            style="@style/BlindsText.Button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_margin="10dp"
+            android:text="Score"
+            goneIf="@{viewModel.running}" />
+
+        <Button
+            style="@style/BlindsText.Button"
             android:id="@+id/bSettings"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_margin="10dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            android:src="@android:drawable/ic_menu_manage"
-            enabledIfNot="@{viewModel.running}" />
+            android:text="Settings"
+            goneIf="@{viewModel.running}" />
 
         <TextView
             style="@style/BlindsText"
