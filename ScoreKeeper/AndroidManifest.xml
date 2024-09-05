@@ -11,19 +11,26 @@
 
     <activity android:name=".Splash"
               android:theme="@style/CustomSplashTheme">
-      <intent-filter>
-        <action android:name="android.intent.action.MAIN" />
-        <category android:name="android.intent.category.LAUNCHER" />
-      </intent-filter>
+        <intent-filter>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent-filter>
 
     </activity>
 
-    <activity android:name=".ScoreKeeper"
-              android:screenOrientation="sensor"
-              android:launchMode="singleTask"
-              android:configChanges="orientation">
+      <activity
+          android:name=".ScoreKeeper"
+          android:screenOrientation="sensor"
+          android:launchMode="singleTask"
+          android:configChanges="orientation" />
 
-    </activity>
+      <activity
+          android:name=".BlindsKeeper"
+          android:screenOrientation="sensor"
+          android:launchMode="singleTask"
+          android:configChanges="orientation">
+
+      </activity>
 
   </application>
 

@@ -1,54 +1,41 @@
-package cc.android.scorekeeper;
+package cc.android.scorekeeper
 
-import android.app.Activity;
-import android.content.Intent;
-import android.os.Bundle;
+import android.content.Intent
+import android.os.Bundle
+import cc.lib.android.CCActivityBase
+import cc.lib.utils.launchIn
+import cc.lib.utils.test
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 
-public class Splash extends Activity {
+const val KEY_START_ACTIVITY = "startActivity"
 
-    long startTime = System.currentTimeMillis();
+class Splash : CCActivityBase() {
+	var startTime = System.currentTimeMillis()
+	override fun onCreate(savedInstanceState: Bundle?) {
+		super.onCreate(savedInstanceState)
+		startTime = System.currentTimeMillis()
+	}
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        startTime = System.currentTimeMillis();
-    }
-
-    @Override
-    protected void onPostResume() {
-        super.onPostResume();
-
-        int splashTimeMSecs = 5000;
-
-        int timeShown = (int)(System.currentTimeMillis()-startTime);
-
-        final int timeLeft = splashTimeMSecs - timeShown;
-        final Intent i = new Intent(this, ScoreKeeper.class);
-        if (timeLeft <= 0) {
-            startActivity(i);
-            finish();
-        }
-        else
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        synchronized (this) {
-                            wait(timeLeft);
-                        }
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                startActivity(i);
-                                finish();
-                            }
-                        });
-                    } catch (Exception e) {
-                        e.printStackTrace();
-
-                    }
-                }
-            }).start();
-
-    }
+	override fun onPostResume() {
+		super.onPostResume()
+		val splashTimeMSecs = test(BuildConfig.DEBUG, 1000, 5000)
+		val timeShown = (System.currentTimeMillis() - startTime).toInt()
+		val timeLeft = splashTimeMSecs - timeShown
+		val launchActivity = "$packageName." + prefs.getString(KEY_START_ACTIVITY, "ScoreKeeper")
+		val clazz = Splash::class.java.classLoader.loadClass(launchActivity)
+		val i = Intent(this, clazz)
+		if (timeLeft <= 0) {
+			startActivity(i)
+			finish()
+		} else {
+			launchIn {
+				delay(timeLeft.toLong())
+				if (isActive) {
+					startActivity(i)
+					finish()
+				}
+			}
+		}
+	}
 }

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <variable
+            name="viewModel"
+            type="cc.android.scorekeeper.BlindsKeeperViewModel" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#000">
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/centerVertical"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:orientation="vertical"
+            app:layout_constraintGuide_percent=".5" />
+
+        <ImageButton
+            android:id="@+id/bSettings"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_margin="10dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:src="@android:drawable/ic_menu_manage"
+            enabledIfNot="@{viewModel.running}" />
+
+        <TextView
+            style="@style/BlindsText"
+            android:id="@+id/tvTimer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintVertical_bias=".2"
+            android:textColor="#FFF"
+            android:textSize="128dp"
+            android:text="@{viewModel.timeLeft}"
+            tools:text="99:99" />
+
+        <ProgressBar
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="440dp"
+            android:layout_height="0dp"
+            android:progressDrawable="@drawable/progress_circle"
+            android:background="@drawable/progress_circle_background"
+            android:max="@{viewModel.timerMax}"
+            android:progress="@{viewModel.timerProgress}"
+            tools:max="60"
+            app:layout_constraintDimensionRatio="1"
+            app:layout_constraintTop_toTopOf="@id/tvTimer"
+            app:layout_constraintBottom_toBottomOf="@id/tvTimer"
+            app:layout_constraintStart_toStartOf="@id/tvTimer"
+            app:layout_constraintEnd_toEndOf="@id/tvTimer"
+            tools:progress="30" />
+
+        <TextView
+            style="@style/BlindsText"
+            android:id="@+id/tvBlinds"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@id/tvTimer"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:textSize="64dp"
+            android:text="@{viewModel.blindsText}"
+            tools:text="100 / 50" />
+
+        <ToggleButton
+            style="@style/BlindsText.Button"
+            android:id="@+id/tbPaused"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvBlinds"
+            app:layout_constraintEnd_toStartOf="@id/centerVertical"
+            android:checked="@={viewModel.running}"
+            android:textOn="Pause"
+            android:textOff="Resume" />
+
+        <Button
+            style="@style/BlindsText.Button"
+            android:id="@+id/bReset"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Reset"
+            app:layout_constraintStart_toEndOf="@id/centerVertical"
+            app:layout_constraintTop_toTopOf="@id/tbPaused"
+            app:layout_constraintBottom_toBottomOf="@id/tbPaused"
+            enabledIf="@{!viewModel.running}" />
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>
