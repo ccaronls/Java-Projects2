@@ -181,7 +181,9 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 		zb.bLeft.setOnClickListener(this)
 		zb.bDown.setOnClickListener(this)
 		zb.bRight.setOnClickListener(this)
-		zb.bUndo.setOnClickListener(this)
+		zb.bUndo.setOnClickListener {
+			tryUndo()
+		}
 		zb.bRepeat.setOnClickListener(this)
 		zb.boardView.enablePinchZoom()
 		if (isTV()) {
@@ -273,9 +275,11 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 					)
 				} ?: clientMgr?.connectedPlayers ?: emptyList()
 
+
 			override fun <T> waitForUser(expectedType: Class<T>): T? {
 				vm.processingMove.postValue(false)
 				zb.boardView.post { initMenu(uiMode, options) }
+				organizeDialog?.refresh()
 				return super.waitForUser(expectedType).also {
 					zb.boardView.post {
 						if (isGameRunning())
@@ -321,13 +325,10 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 				serverMgr?.broadcastUpdateGame()
 			}
 
-			override fun undo() {
-				tryUndo()
-			}
-
 			override val isOrganizeEnabled: Boolean = true
 
 			override fun showOrganizeDialog(primary: ZPlayerName, secondary: ZPlayerName?, undos: Int) {
+				Log.d(TAG, "showOrganizeDialog undos: $undos")
 				runOnUiThread {
 					if (organizeDialog?.isShowing != true) {
 						organizeDialog?.dismiss()
@@ -356,8 +357,6 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 				return waitForUser(ZMove::class.java)
 			}
 
-			override fun canUndo(): Boolean = FileUtils.hasBackupFile(gameFile)
-
 			override fun playSound(sound: ZSound) {
 				if (sound.id >= 0)
 					soundPool.play(sound.id, 1f, 1f, 1, 0, 1f)
@@ -367,6 +366,10 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 				runOnUiThread {
 					zb.listMenu.requestFocus()
 				}
+			}
+
+			override fun undo() {
+				tryUndo()
 			}
 		}
 		game.addUser(thisUser)
@@ -752,16 +755,13 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 	fun tryUndo() {
 		val isRunning = game.isGameRunning()
 		stopGame()
-		runOnUiThread {
-			if (FileUtils.restoreFile(gameFile)) {
-				game.tryLoadFromFile(gameFile)
-				game.refresh()
-				serverMgr?.broadcastUpdateGame()
-				organizeDialog?.refresh()
-			}
-			if (isRunning)
-				startGame()
+		if (FileUtils.restoreFile(gameFile)) {
+			game.tryLoadFromFile(gameFile)
+			game.refresh()
+			serverMgr?.broadcastUpdateGame()
 		}
+		if (isRunning)
+			startGame()
 	}
 
 	fun updateCharacters(quest: ZQuests) {
@@ -1332,12 +1332,6 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 						it.remove()
 					}
 
-					ZMoveType.UNDO -> {
-						zb.bUndo.tag = move
-						zb.bUndo.isEnabled = true
-						it.remove()
-					}
-
 					else -> Unit
 				}
 			}
@@ -1384,14 +1378,18 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 					}
 					buttons.add(ListSeparator(this))
 				}
+
 				else -> Unit
 			}
 		}
 		MenuItem.entries.filter { it.isGameButton(this@ZombicideActivity) }.forEach { i ->
 			buttons.add(build(this, i, i.isEnabled(this)))
 		}
+		zb.bUndo.isEnabled = canUndo()
 		initMenuItems(buttons)
 	}
+
+	fun canUndo(): Boolean = FileUtils.hasBackupFile(gameFile)
 
 	fun initMenuItems(buttons: List<View>) {
 		launchIn(Dispatchers.Main) {

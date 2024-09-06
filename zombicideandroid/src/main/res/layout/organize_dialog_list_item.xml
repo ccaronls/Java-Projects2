@@ -8,20 +8,16 @@
             type="cc.game.zombicide.android.OrganizeViewModel" />
 
         <variable
-            name="character"
-            type="cc.lib.zombicide.ZCharacter" />
+            name="equip"
+            type="cc.lib.zombicide.ZEquipment" />
 
-        <variable
-            name="position"
-            type="Integer" />
     </data>
 
     <cc.game.zombicide.android.OrganizeLayout
         style="@style/ZOrganizeContainer"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        backpackPosition="@{position}"
-        tagBackpackItem="@{character}">
+        android:layout_height="wrap_content"
+        android:tag="@{equip}">
 
         <TextView
             android:id="@+id/tvItemName"
@@ -30,8 +26,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingVertical="3dp"
-            android:text="@{character.backpack.get(position).label}"
-            tools:text="WATER" />
+            android:text="@{equip.label}"
+            textColorInt="@{equip.color.toARGB()}"
+            tools:text="ORCISH\nCROSSBOW" />
 
     </cc.game.zombicide.android.OrganizeLayout>
 </layout>

@@ -185,21 +185,19 @@
                 android:text="BACKPACK" />
 
             <ListView
+                style="@style/ZOrganizeListView"
                 android:id="@+id/lvBackpack"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 tools:listitem="@layout/organize_dialog_list_item"
                 android:focusable="@{!viewModel.dragging}"
-                android:listSelector="@android:color/transparent"
-                android:choiceMode="singleChoice"
                 equipped="@{character.backpack.size() &gt; 0}"
                 dragging="@{viewModel.dragging}"
                 slot="@{ZEquipSlot.BACKPACK}"
                 character="@{character}"
                 tagMove="@{viewModel.allOptions}"
                 viewModel="@{viewModel}"
-                charBackpack="@{character}"
-                android:addStatesFromChildren="true" />
+                charBackpack="@{character}" />
 
         </LinearLayout>
 

@@ -69,53 +69,46 @@ class OrganizeLayout(context: Context, attrs: AttributeSet) : FrameLayout(contex
 	}
 }
 
-/*
-@BindingAdapter("draggingIf")
-fun View.setDraggingState(dragging : Boolean) {
-	if (this is ImageView) {
-		setImageState(intArrayOf(if (dragging) R.attr.state_dragging else -R.attr.state_dragging), true)
-		invalidate()
+class ListMovesAdapter(val context: Context, val viewModel: OrganizeViewModel, val equipList: List<ZEquipment<*>>) :
+	BaseAdapter() {
+
+	override fun getCount(): Int {
+		return equipList.size
 	}
-	if (background.isStateful) {
-		val newState = mergeDrawableStates(
-			background.state,
-			intArrayOf(if (dragging) R.attr.state_dragging else -R.attr.state_dragging)
-		)
-		background.state = newState
-		invalidate()
+
+	override fun getItem(position: Int) = equipList.get(position)
+
+	override fun getItemId(position: Int): Long = 0
+
+	@SuppressLint("ViewHolder")
+	override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
+		return OrganizeDialogListItemBinding.inflate(LayoutInflater.from(context)).also {
+			it.viewModel = viewModel
+			it.lifecycleOwner = viewModel
+			it.equip = equipList[position]
+		}.root.also {
+			it.tag = getItem(position)
+		}
 	}
-}*/
+}
+
 
 @BindingAdapter("charBackpack", "viewModel")
 fun ListView.setBackpackItems(char: ZCharacter?, viewModel: OrganizeViewModel) {
 	if (char == null)
 		return
-	if (adapter == null)
-		adapter = object : BaseAdapter() {
-			override fun getCount(): Int {
-				return char.getBackpack().size
-			}
+	Log.d(TAG, "setBackpackItems")
+	adapter = ListMovesAdapter(context, viewModel, char.getBackpack())
+}
 
-			override fun getItem(position: Int) = char.getBackpackItem(position)
-
-			override fun getItemId(position: Int): Long = 0
-
-			@SuppressLint("ViewHolder")
-			override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
-				return OrganizeDialogListItemBinding.inflate(LayoutInflater.from(context)).also {
-					it.viewModel = viewModel
-					it.lifecycleOwner = viewModel
-					it.position = position
-					it.character = char
-				}.root.also {
-					it.tag = getItem(position)
-
-					Log.d(TAG, "${char.type} Backpack at position $position has tag: $tag")
-				}
-			}
-		}
-	else
-		(adapter as BaseAdapter).notifyDataSetChanged()
+@BindingAdapter("vaultItems", "viewModel", "tagPickupMoves")
+fun ListView.setVaultItems(game: ZGame?, viewModel: OrganizeViewModel, moves: List<ZMove>) {
+	if (game == null)
+		return
+	Log.d(TAG, "setVaultItems")
+	val list = game.quest.getVaultItems(game.requireCurrentCharacter.occupiedZone)
+	adapter = ListMovesAdapter(context, viewModel, list)
+	tag = moves.filter { it.type == ZMoveType.ORGANIZE_PICKUP }.firstOrNull()
 }
 
 class ListOptionsAdapter(val context: Context, val viewModel: OrganizeViewModel) : BaseAdapter() {
@@ -148,6 +141,7 @@ class ListOptionsAdapter(val context: Context, val viewModel: OrganizeViewModel)
 
 @BindingAdapter("listOptions", "viewModel")
 fun ListView.setListOptions(list: List<ZMove>, viewModel: OrganizeViewModel) {
+	Log.d(TAG, "setListOptions")
 	if (adapter == null)
 		adapter = ListOptionsAdapter(context, viewModel)
 	(adapter as ListOptionsAdapter).list = list
@@ -158,14 +152,15 @@ fun View.setTagFromMoves(moves: List<ZMove>, character: ZCharacter?, slot: ZEqui
 	character?.let { ch ->
 		Log.d(
 			TAG,
-			"setTagFromMoves: char: $character, slot:$slot, equipped: $equipped, moves: ${moves.joinToString(separator = "\n") { it.toStringAbbrev() }}"
+			"setTagFromMoves: char: $character, slot:$slot, equipped: $equipped, moves: ${moves.joinToString(separator = "\n")}"
 		)
 		val options = moves.filter {
 			it.character == ch.type && ((it.toSlot == null && it.fromSlot == slot) || it.toSlot == slot)
 		}
-		tag = options.firstOrNull()?.also {
-			Log.d(TAG, "tag for ${ch.name()}:${slot} -> $tag")
-		}
+		tag = options.firstOrNull()
+		tag?.let {
+			Log.d(TAG, "tag for ${ch.name()}:${slot} -> $it")
+		} ?: Log.d(TAG, "No move for slot $slot")
 
 		if (dragging) {
 			//isFocusable = tag != null
@@ -181,11 +176,33 @@ fun View.setTagFromMoves(moves: List<ZMove>, character: ZCharacter?, slot: ZEqui
 	}
 }
 
+@BindingAdapter("tagVault", "dragging")
+fun View.setVaultTagFromMoves(moves: List<ZMove>, dragging: Boolean) {
+	Log.d(
+		TAG,
+		"setTagFromMoves: moves: ${moves.joinToString(separator = "\n")}"
+	)
+	tag = moves.filter { it.type == ZMoveType.DROP_ITEM }.firstOrNull()
+
+	if (dragging) {
+		//isFocusable = tag != null
+		isEnabled = tag != null
+		isActivated = tag != null
+		isSelected = false
+	} else {
+		//isFocusable = equipped
+		isEnabled = true
+		isActivated = false
+		isSelected = false
+	}
+}
+
 @BindingAdapter("tagTrash")
-fun View.setTagTrash(moves : List<ZMove>) {
+fun View.setTagTrash(moves: List<ZMove>) {
 	tag = moves.firstOrNull { it.type == ZMoveType.DISPOSE }
 	isEnabled = tag != null
 	isActivated = tag != null
+	isSelected = false
 	Log.i(TAG, "tag for TRASH -> $tag")
 }
 
@@ -193,13 +210,9 @@ fun View.setTagTrash(moves : List<ZMove>) {
 fun View.setTagConsume(moves : List<ZMove>) {
 	tag = moves.firstOrNull { it.type == ZMoveType.CONSUME }
 	isEnabled = tag!=null
-	isActivated = tag!=null
+	isActivated = tag != null
+	isSelected = false
 	Log.i(TAG, "tag for CONSUME -> $tag")
-}
-
-@BindingAdapter("tagBackpackItem", "backpackPosition")
-fun View.setBackpackTag(char : ZCharacter?, position : Int) {
-	tag = char?.getBackpackItem(position)
 }
 
 /**
@@ -252,6 +265,20 @@ class OrganizeViewModel : LifecycleViewModel(),
 		}
 	}
 
+	val instructionalText: String
+		get() = if (isTV()) {
+			"""
+> Use DPAD to select an item. Info on the item will be shown.
+> Center click on DPAD to choose item for relocating. DPAD will
+  be used to select to to relocate. Center DPAD to relocate the item.
+  BACK button cancels the relocate."""
+		} else {
+			"""
+> Select an item to get more info on that item.
+> Long click on an item and drag to move equipment around your
+  inventory and with other characters you can trade with."""
+		}
+
 	val allOptions = MutableLiveData<List<ZMove>>(emptyList())
 	val listOptions = MutableLiveData<List<ZMove>>(emptyList())
 	val dragging = MutableLiveData(false)
@@ -262,6 +289,12 @@ class OrganizeViewModel : LifecycleViewModel(),
 	var currentDraggedView: OrganizeLayout? = null
 	val game by lazy { UIZombicide.instance }
 	val loading = MutableLiveData(false)
+	val inVault = MutableLiveData(false)
+	val vaultOptions = MutableLiveData<List<ZMove>>(emptyList())
+
+	val undoButtonShowing = combine(undoPushes, dragging) { undo, drag ->
+		((undo ?: 0) > 0) && drag == false
+	}
 
 	init {
 		dragging.observe(this) {
@@ -301,6 +334,7 @@ class OrganizeViewModel : LifecycleViewModel(),
 			currentSelectedView?.isSelected = false
 			currentSelectedView = view
 			view.isSelected = true
+			(view as? Checkable?)?.isChecked = false
 			descriptionItem.value = obj
 		}
 	}
@@ -360,7 +394,7 @@ class OrganizeViewModel : LifecycleViewModel(),
 				it.equipment == equip
 			}, equip)
 
-		} ?: false
+		} ?: true
 	}
 
 	override fun onItemClick(parent: AdapterView<*>, view: View, position: Int, id: Long) {
@@ -433,7 +467,7 @@ class OrganizeViewModel : LifecycleViewModel(),
 }
 
 class OrganizeDialog(context: ZombicideActivity) :
-	LifecycleDialog<OrganizeViewModel>(context, OrganizeViewModel::class.java),
+	LifecycleDialog<OrganizeViewModel>(context, OrganizeViewModel::class.java, R.style.ZOrganizeDialogTheme),
 	DialogInterface.OnKeyListener {
 
 	lateinit var binding: OrganizeDialogBinding
@@ -463,6 +497,11 @@ class OrganizeDialog(context: ZombicideActivity) :
 			setContentView(it.root)
 			binding.lvOptions.itemsCanFocus = false
 			binding.lvOptions.onItemSelectedListener = viewModel
+			binding.lvVault.itemsCanFocus = false
+			binding.lvVault.onItemClickListener = viewModel
+			binding.lvVault.onItemLongClickListener = viewModel
+			binding.lvVault.onItemSelectedListener = viewModel
+			binding.vgVault.setOnDragListener(viewModel)
 			if (isTV()) {
 				binding.lvOptions.setOnItemClickListener { _, view, _, _ ->
 					view.performClick()
@@ -487,6 +526,9 @@ class OrganizeDialog(context: ZombicideActivity) :
 				it.add(ZMove.newOrganizeDone())
 				viewModel.listOptions.postValue(it)
 			}
+			list.filter { it.type == ZMoveType.PICKUP_ITEM }.also {
+				viewModel.vaultOptions.postValue(it)
+			}
 			refresh()
 			viewModel.loading.value = false
 		}
@@ -496,10 +538,21 @@ class OrganizeDialog(context: ZombicideActivity) :
 			if (!it) {
 				binding.primaryCharacter.lvBackpack.clearChoices()
 				binding.secondaryCharacter.lvBackpack.clearChoices()
+				binding.lvVault.clearChoices()
 			}
 		}
 		binding.root.viewTreeObserver.addOnGlobalFocusChangeListener { oldFocus, newFocus ->
 			Log.d(TAG, "focus changed from ${oldFocus?.javaClass?.simpleName} to ${newFocus?.javaClass?.simpleName}")
+		}
+
+		game.board.getZone(game.currentCharacter!!.occupiedZone).takeIf { it.isVault }?.let { zone ->
+			viewModel.inVault.value = true
+		} ?: run {
+			viewModel.inVault.value = false
+		}
+
+		viewModel.allOptions.observe(this) {
+			refresh()
 		}
 	}
 
@@ -524,6 +577,7 @@ class OrganizeDialog(context: ZombicideActivity) :
 	}
 
 	fun refresh() {
+		Log.d(TAG, "refresh")
 		launchIn(Dispatchers.Main) {
 			viewModel.primaryCharacter.refresh()
 			viewModel.secondaryCharacter.refresh()

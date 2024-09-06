@@ -55,28 +55,72 @@
             listOptions="@{viewModel.listOptions}"
             viewModel="@{viewModel}"
             visibleIfNot="@{viewModel.dragging}"
+            tools:layout_height="100dp"
             android:listSelector="@android:color/transparent"
             android:layout_width="@dimen/menu_width"
-            android:layout_height="0dp"
+            android:layout_height="wrap_content"
             android:nextFocusRight="@id/primaryCharacter"
             android:nextFocusDown="@id/bUndo"
-            app:layout_constraintBottom_toTopOf="@+id/bUndo"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/vgDescription"
             app:layout_constraintWidth_percent=".2"
-            tools:listitem="@layout/zbutton_layout"
-            tools:visibility="invisible" />
+            tools:listitem="@layout/zbutton_layout" />
+
+        <androidx.constraintlayout.widget.Barrier
+            android:id="@+id/barrier"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toStartOf="parent"
+            app:barrierDirection="bottom"
+            app:constraint_referenced_ids="lvOptions,tvTrash" />
+
+        <LinearLayout
+            style="@style/ZOrganizeContainer"
+            android:id="@+id/vgVault"
+            android:layout_width="@dimen/menu_width"
+            android:layout_height="0dp"
+            android:orientation="vertical"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/barrier"
+            app:layout_constraintBottom_toTopOf="@id/bUndo"
+            app:layout_constraintVertical_bias="1"
+            goneIfNot="@{viewModel.inVault}"
+            tagVault="@{viewModel.allOptions}"
+            dragging="@{viewModel.dragging}"
+            android:focusable="@{viewModel.dragging}">
+
+            <TextView
+                android:id="@+id/tvVault"
+                style="@style/h1"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:text="VAULT"
+                android:gravity="center"
+                android:fontFamily="monospace" />
+
+            <ListView
+                style="@style/ZOrganizeListView"
+                android:id="@+id/lvVault"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                tools:listitem="@layout/organize_dialog_list_item"
+                android:focusable="@{!viewModel.dragging}"
+                vaultItems="@{viewModel.game}"
+                viewModel="@{viewModel}"
+                tagPickupMoves="@{viewModel.allOptions}" />
+
+        </LinearLayout>
 
         <Button
             style="@style/ZButton"
             android:id="@+id/bUndo"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            app:layout_constraintTop_toBottomOf="@id/lvOptions"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="@id/lvOptions"
             app:layout_constraintEnd_toEndOf="@id/lvOptions"
-            goneIf="@{viewModel.undoPushes == 0 || viewModel.dragging}"
+            goneIfNot="@{viewModel.undoButtonShowing}"
             android:nextFocusUp="@id/lvOptions"
             android:text="UNDO"
             android:onClick="@{() -> viewModel.tryUndo()}" />
@@ -112,7 +156,7 @@
             app:layout_constraintEnd_toEndOf="@id/lvOptions"
             app:layout_constraintTop_toBottomOf="@id/tvConsume"
             android:focusable="true"
-            visibleIf="@{viewModel.dragging}"
+            goneIfNot="@{viewModel.dragging}"
             tagTrash="@{viewModel.allOptions}"
             android:onClick="@{(view) -> viewModel.dropItem(view)}">
 

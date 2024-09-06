@@ -399,7 +399,9 @@ class ZBoardView(context: Context, attrs: AttributeSet) : UIComponentView<UIZBoa
 		for (pair in arrayOf(
 			Pair(ZIcon.SPAWN_RED, R.drawable.zspawn_red),
 			Pair(ZIcon.SPAWN_BLUE, R.drawable.zspawn_blue),
-			Pair(ZIcon.SPAWN_GREEN, R.drawable.zspawn_green))) {
+			Pair(ZIcon.SPAWN_GREEN, R.drawable.zspawn_green),
+			Pair(ZIcon.SPAWN_NECRO, R.drawable.zspawn_necro)
+		)) {
 			pair.first.imageIds = IntArray(4)
 			val ids = pair.first.imageIds
 			ids[ZDir.NORTH.ordinal] = pair.second

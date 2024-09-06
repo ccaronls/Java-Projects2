@@ -2,15 +2,15 @@ package cc.game.zombicide.android
 
 import cc.lib.game.GRectangle
 import cc.lib.game.IRectangle
+import cc.lib.ui.IButton
 import cc.lib.utils.prettify
-import cc.lib.zombicide.ui.UIZButton
 import cc.lib.zombicide.ui.UIZombicide
 
 /**
  * Created by Chris Caron on 4/10/24.
  */
 
-enum class MenuItem : UIZButton {
+enum class MenuItem : IButton {
 	RESUME {
 		override fun getTooltipText(): String? {
 			return with(UIZombicide.instance) {
@@ -54,7 +54,7 @@ enum class MenuItem : UIZButton {
 		DISCONNECT -> instance.server?.isRunning == true || instance.client != null
 		RESUME -> instance.gameFile.exists()
 
-		//LOAD, SAVE, ASSIGN, CLEAR, UNDO, DIFFICULTY, CHOOSE_COLOR, DEBUG_MENU -> BuildConfig.DEBUG
+		LOAD, START, SAVE, ASSIGN, CLEAR, DIFFICULTY, CHOOSE_COLOR, DEBUG_MENU -> BuildConfig.DEBUG
 		//START, NEW_GAME, JOIN_GAME, SETUP_PLAYERS, SKILLS, LEGEND, EMAIL_REPORT, MINIMAP_MODE -> true
 		//CONNECTIONS -> instance.serverControl != null
 		//RESUME -> instance.gameFile.exists()
