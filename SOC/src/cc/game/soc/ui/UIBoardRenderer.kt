@@ -1,12 +1,26 @@
 package cc.game.soc.ui
 
-import cc.game.soc.core.*
-import cc.lib.game.*
+import cc.game.soc.core.Board
+import cc.game.soc.core.Island
+import cc.game.soc.core.Route
+import cc.game.soc.core.RouteType
+import cc.game.soc.core.Tile
+import cc.game.soc.core.TileType
+import cc.game.soc.core.Vertex
+import cc.game.soc.core.VertexType
+import cc.lib.game.AAnimation
+import cc.lib.game.AGraphics
+import cc.lib.game.APGraphics
+import cc.lib.game.GColor
+import cc.lib.game.IVector2D
+import cc.lib.game.Justify
+import cc.lib.game.Utils
 import cc.lib.math.CMath
 import cc.lib.math.MutableVector2D
 import cc.lib.math.Vector2D
 import cc.lib.ui.UIComponent
-import java.util.*
+import java.util.Arrays
+import java.util.LinkedList
 
 open class UIBoardRenderer(component: UIComponent) : UIRenderer(component) {
 
@@ -604,7 +618,7 @@ open class UIBoardRenderer(component: UIComponent) : UIRenderer(component) {
 
 	private fun drawTilesTextured(g: AGraphics) {
 		val cellD: Vector2D = Vector2D(board.tileWidth, board.tileHeight).scaledBy(0.5f)
-		g.textHeight = RenderConstants.textSizeSmall
+		g.setTextHeight(RenderConstants.textSizeSmall, false)
 		g.setTextStyles(AGraphics.TextStyle.BOLD)
 		for (i in 0 until board.numTiles) {
 			val cell = board.getTile(i)

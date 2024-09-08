@@ -95,7 +95,9 @@ open class AWTGraphics : APGraphics {
 		return currentFontHeight.toFloat()
 	}
 
-	override fun setTextHeight(height: Float): Float {
+	override fun setTextHeight(height: Float, pixles: Boolean): Float {
+		if (height.toInt() == currentFontHeight)
+			return height
 		val oldHeight = currentFontHeight
 		val newFont = g.font.deriveFont(height.toInt().toFloat())
 		g.font = newFont

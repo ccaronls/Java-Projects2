@@ -24,11 +24,10 @@ open class OverlayTextAnimation(
 		val maxHeight = 48f
 		val alpha = position * position * -4 + position * 4
 		g.color = textColor.withAlpha(alpha)
-		val curHeight = g.textHeight
-		g.textHeight = minHeight + (maxHeight - minHeight) * position
+		g.pushTextHeight(minHeight + (maxHeight - minHeight) * position, false)
 		val cy = cy0 + (cy1 - cy0) * position
 		g.drawJustifiedString(cx, cy, Justify.CENTER, Justify.BOTTOM, text)
-		g.textHeight = curHeight
+		g.popTextHeight()
 	}
 
 }

@@ -1,11 +1,39 @@
 package cc.game.soc.ui
 
-import cc.game.soc.core.*
+import cc.game.soc.core.Board
+import cc.game.soc.core.BotNode
+import cc.game.soc.core.Card
+import cc.game.soc.core.CardType
+import cc.game.soc.core.CommodityType
+import cc.game.soc.core.DevelopmentArea
 import cc.game.soc.core.Dice
-import cc.game.soc.core.Player.*
+import cc.game.soc.core.EventCard
+import cc.game.soc.core.ICardType
+import cc.game.soc.core.ILocalized
+import cc.game.soc.core.MoveType
+import cc.game.soc.core.Player.PlayerChoice
+import cc.game.soc.core.Player.RouteChoice
+import cc.game.soc.core.Player.RouteChoiceType
+import cc.game.soc.core.Player.TileChoice
+import cc.game.soc.core.Player.VertexChoice
+import cc.game.soc.core.ProgressCardType
+import cc.game.soc.core.ResourceType
+import cc.game.soc.core.Route
+import cc.game.soc.core.RouteType
+import cc.game.soc.core.SOC
+import cc.game.soc.core.SpecialVictoryType
+import cc.game.soc.core.Trade
+import cc.game.soc.core.Vertex
+import cc.game.soc.core.VertexType
 import cc.game.soc.ui.NetCommon.cypher
 import cc.lib.annotation.Keep
-import cc.lib.game.*
+import cc.lib.game.AGraphics
+import cc.lib.game.APGraphics
+import cc.lib.game.GColor
+import cc.lib.game.GDimension
+import cc.lib.game.IVector2D
+import cc.lib.game.Justify
+import cc.lib.game.Utils
 import cc.lib.logger.LoggerFactory
 import cc.lib.math.Vector2D
 import cc.lib.net.AClientConnection
@@ -968,18 +996,17 @@ abstract class UISOC protected constructor(playerComponents: Array<UIPlayerRende
 				val txt = getString("%s WINS!!!", player.name)
 				val width = g.getTextWidth(txt)
 				val ratio = g.viewportWidth / (width * 2)
-				val oldHgt = g.textHeight
-				val targetHeight = ratio * oldHgt
+				val targetHeight = ratio * g.textHeight
 				val minHeight = targetHeight * 0.8f
 				val maxHeight = targetHeight * 1.2f
-				g.textHeight = minHeight + (maxHeight - minHeight) * position
+				g.pushTextHeight(minHeight + (maxHeight - minHeight) * position, true)
 				g.color = player.color
 				g.pushMatrix()
 				g.setIdentity()
 				g.translate((g.viewportWidth / 2).toFloat(), (g.viewportHeight / 2).toFloat())
 				g.drawJustifiedString(0f, 0f, Justify.CENTER, Justify.CENTER, txt)
 				g.popMatrix()
-				g.textHeight = oldHgt
+				g.popTextHeight()
 			}
 		}, false)
 		isRunning = false

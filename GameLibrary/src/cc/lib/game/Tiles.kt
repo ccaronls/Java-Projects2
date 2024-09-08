@@ -16,17 +16,19 @@ class Tiles(private val rects: List<IRectangle> = emptyList()) : IShape {
 
 	inner class Edge(val start: Vector2D, val end: Vector2D) {
 		override fun equals(other: Any?): Boolean {
+			if (start === end)
+				return true
 			(other as Edge).let {
-				return (start.equalsWithinRange(it.start, THRESHOLD) && end.equalsWithinRange(
-					it.end,
-					THRESHOLD
-				)) || (start.equalsWithinRange(it.end, THRESHOLD) && end.equalsWithinRange(it.start, THRESHOLD))
+				return (start.equalsWithinRange(it.start, THRESHOLD) && end.equalsWithinRange(it.end, THRESHOLD))
+					|| (start.equalsWithinRange(it.end, THRESHOLD) && end.equalsWithinRange(it.start, THRESHOLD))
 			}
 		}
 
 		override fun hashCode(): Int {
-			return 71 * start.hashCode() + 13 * end.hashCode()
+			return 13 * start.hashCode() + 13 * end.hashCode()
 		}
+
+		override fun toString(): String = "[$start,$end]"
 	}
 
 	override fun contains(x: Float, y: Float): Boolean = rects.firstOrNull { it.contains(x, y) } != null
@@ -34,18 +36,22 @@ class Tiles(private val rects: List<IRectangle> = emptyList()) : IShape {
 	private val edges by lazy {
 		val edges = mutableMapOf<Edge, Int>()
 		rects.forEach {
-			edges.increment(Edge(it.topLeft, it.topLeft))
+			edges.increment(Edge(it.topLeft, it.topRight))
 			edges.increment(Edge(it.topRight, it.bottomRight))
 			edges.increment(Edge(it.bottomRight, it.bottomLeft))
-			edges.increment(Edge(it.topRight, it.bottomLeft))
+			edges.increment(Edge(it.topLeft, it.bottomLeft))
 		}
 		edges.removeAll { it.value > 1 }
 		edges.keys
 	}
 
 	override fun drawOutlined(g: AGraphics) {
-		edges.forEach {
-			g.drawLine(it.start, it.end)
+		if (rects.size == 1) {
+			rects[0].drawOutlined(g)
+		} else if (rects.size > 1) {
+			edges.forEach {
+				g.drawLine(it.start, it.end)
+			}
 		}
 	}
 
@@ -55,7 +61,7 @@ class Tiles(private val rects: List<IRectangle> = emptyList()) : IShape {
 		}
 	}
 
-	private val center by lazy {
+	private val _center by lazy {
 		MutableVector2D().also {
 			rects.forEach { rect ->
 				it.addEq(rect.center)
@@ -63,15 +69,15 @@ class Tiles(private val rects: List<IRectangle> = emptyList()) : IShape {
 		}.scaleEq(1f / rects.size.toFloat())
 	}
 
-	override fun getCenter(): MutableVector2D = center
+	override fun getCenter(): MutableVector2D = _center
 
-	private val area by lazy {
+	private val _area by lazy {
 		rects.sumOf { it.area.toDouble() }.toFloat()
 	}
 
-	override fun getArea(): Float = area
+	override fun getArea(): Float = _area
 
-	private val enclosing by lazy {
+	private val _enclosingRect by lazy {
 		GRectangle().also {
 			rects.forEach { rect ->
 				it.addEq(rect)
@@ -79,5 +85,7 @@ class Tiles(private val rects: List<IRectangle> = emptyList()) : IShape {
 		}
 	}
 
-	override fun enclosingRect(): IRectangle = enclosing
+	override fun enclosingRect(): IRectangle = _enclosingRect
+
+	override fun getRadius(): Float = enclosingRect().radius
 }

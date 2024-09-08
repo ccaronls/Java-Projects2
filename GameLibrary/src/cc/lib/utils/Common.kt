@@ -6,6 +6,7 @@ import cc.lib.game.Utils
 import cc.lib.math.MutableVector2D
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.io.File
 import java.lang.ref.WeakReference
@@ -309,9 +310,7 @@ fun String.trimQuotes(): String = trimStart(' ', '\"').trimEnd(' ', '\"')
 fun launchIn(
 	scope: CoroutineContext = Dispatchers.Default,
 	block: suspend CoroutineScope.() -> Unit
-) {
-	CoroutineScope(scope).launch { block() }
-}
+): Job = CoroutineScope(scope).launch { block() }
 
 fun List<IRectangle>.midPointOrNull(): IVector2D? {
 	if (isEmpty())
@@ -367,3 +366,8 @@ fun <T> Iterable<T>.splitFilterIndexed(predicate: (Int, T) -> Boolean): kotlin.P
 fun CharArray.asString() = String(this)
 
 fun <T> test(expr: Boolean, ifTrue: T, ifFalse: T): T = if (expr) ifTrue else ifFalse
+
+fun <T> MutableList<T>.clearAndAddAll(items: Iterable<T>) {
+	clear()
+	addAll(items)
+}

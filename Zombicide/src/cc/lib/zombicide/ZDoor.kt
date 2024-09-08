@@ -28,7 +28,7 @@ class ZDoor(
 		color
 	)
 
-	private val rect = GRectangle()
+	private val rect: GRectangle = GRectangle()
 
 	var isJammed = false
 		private set

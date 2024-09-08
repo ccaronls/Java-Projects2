@@ -1,6 +1,7 @@
 package cc.lib.zombicide
 
 
+import cc.lib.game.GColor
 import cc.lib.utils.Table
 import cc.lib.utils.toInt
 import cc.lib.utils.wrap
@@ -208,25 +209,28 @@ class ZWeapon(override val type: ZWeaponType=ZWeaponType.AXE) : ZEquipment<ZWeap
 	    val card = Table(String.format("%s%s %s", type.getLabel(), if (type.canTwoHand) " (DW)" else "", type.minColorToEquip))
 		    .addRow(cardLower).setNoBorder()
         if (type.specialInfo != null) {
-            card.addRow("*${type.specialInfo}".wrap( 32))
+	        card.addRow("*${type.specialInfo}".wrap(32))
         } else {
-            val skills = type.skillsWhileEquipped
-            if (skills.isNotEmpty()) {
-                card.addRow("Equipped", skills)
-            }
+	        val skills = type.skillsWhileEquipped
+	        if (skills.isNotEmpty()) {
+		        card.addRow("Equipped", skills)
+	        }
         }
-        return card
+	    return card
     }
+
+	override fun getColor(): GColor = type.minColorToEquip.color
 
 	override fun getTooltipText(): String = type.getStatsTable(isEmpty).toString()
 
-    override fun onEndOfRound(game: ZGame) {
-        when (type) {
-            ZWeaponType.HAND_CROSSBOW -> if (!isLoaded) {
-	            game.addLogMessage("${getLabel()} auto reloaded")
-	            reload()
-            }
-	        else -> Unit
+	override fun onEndOfRound(game: ZGame) {
+		when (type) {
+			ZWeaponType.HAND_CROSSBOW -> if (!isLoaded) {
+				game.addLogMessage("${getLabel()} auto reloaded")
+				reload()
+			}
+
+			else -> Unit
         }
     }
 }

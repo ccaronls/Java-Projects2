@@ -34,6 +34,7 @@ public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializ
     protected float x, y;
 
     public Vector2D() {
+        x = y = 0;
     }
 
     public Vector2D(float x, float y) {

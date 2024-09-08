@@ -60,7 +60,7 @@
             android:layout_width="@dimen/menu_width"
             android:layout_height="wrap_content"
             android:nextFocusRight="@id/primaryCharacter"
-            android:nextFocusDown="@id/bUndo"
+            android:nextFocusDown="@id/lvVault"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/vgDescription"
             app:layout_constraintWidth_percent=".2"
@@ -72,7 +72,7 @@
             android:layout_height="wrap_content"
             app:layout_constraintStart_toStartOf="parent"
             app:barrierDirection="bottom"
-            app:constraint_referenced_ids="lvOptions,tvTrash" />
+            app:constraint_referenced_ids="lvOptions,tvTrash,tvConsume" />
 
         <LinearLayout
             style="@style/ZOrganizeContainer"
@@ -87,6 +87,8 @@
             goneIfNot="@{viewModel.inVault}"
             tagVault="@{viewModel.allOptions}"
             dragging="@{viewModel.dragging}"
+            android:nextFocusDown="@id/bUndo"
+            android:onClick="@{(view) -> viewModel.dropItem(view)}"
             android:focusable="@{viewModel.dragging}">
 
             <TextView
@@ -121,7 +123,7 @@
             app:layout_constraintStart_toStartOf="@id/lvOptions"
             app:layout_constraintEnd_toEndOf="@id/lvOptions"
             goneIfNot="@{viewModel.undoButtonShowing}"
-            android:nextFocusUp="@id/lvOptions"
+            android:nextFocusUp="@id/lvVault"
             android:text="UNDO"
             android:onClick="@{() -> viewModel.tryUndo()}" />
 
@@ -133,8 +135,7 @@
             app:layout_constraintStart_toStartOf="@id/lvOptions"
             app:layout_constraintEnd_toEndOf="@id/lvOptions"
             app:layout_constraintTop_toTopOf="@id/lvOptions"
-            android:focusable="true"
-            visibleIf="@{viewModel.dragging}"
+            goneIfNot="@{viewModel.dragging}"
             tagConsume="@{viewModel.allOptions}"
             android:onClick="@{(view) -> viewModel.dropItem(view)}">
 

@@ -126,13 +126,14 @@ abstract class UIZombicide(
 
 	open val connectedUsersInfo = listOf<ConnectedUser>()
 
-	var options: List<Any> = emptyList()
+	var options: List<Any> = ArrayList()
 		private set
 
 	var buttonRoot: UIZButton? = null
 
 	fun setOptions(mode: UIMode, options: List<Any>) {
 		uiMode = mode
+		this.options = options
 		buttonRoot?.clearTree()
 		buttonRoot = null
 		/*
@@ -168,7 +169,7 @@ abstract class UIZombicide(
 
 			else -> focusOnMainMenu()
 		}
-		this.options = options
+
 		boardRenderer.redraw()
 	}
 
@@ -178,16 +179,16 @@ abstract class UIZombicide(
 
 		override val resultObject = move
 
-		override fun getRect() = rectangle
-
 		override fun onAttached(parent: UIZButton) {
-			rectangle.setPosition(parent.topRight)
+			rectangle.setPosition(parent.getRect().topRight)
 		}
 
 		override fun draw(g: AGraphics, game: ZGame, selected: Boolean) {
 			g.color = test(selected, GColor.RED, GColor.YELLOW)
 			g.drawJustifiedString(getRect().topRight, Justify.RIGHT, move.getLabel())
 		}
+
+		override fun getRect(): IRectangle = rectangle
 	}
 
 	fun processMoves(options: List<ZMove>): UIZButton {
@@ -333,6 +334,8 @@ abstract class UIZombicide(
 
 	abstract fun focusOnMainMenu()
 
+	abstract fun focusOnBoard()
+
 	fun refresh() {
 		boardRenderer.board = board
 		boardRenderer.redraw()
@@ -382,7 +385,7 @@ abstract class UIZombicide(
 		}
 	}
 
-	override fun undo() {}
+	abstract fun undo()
 
 	val lock = Lock()
 	val readyLock = Lock()
@@ -568,7 +571,7 @@ abstract class UIZombicide(
 	override fun onEquipmentThrown(actor: ZPlayerName, icon: ZIcon, zone: Int) {
 		super.onEquipmentThrown(actor, icon, zone)
 		actor.toCharacter().takeIf { it.occupiedZone != zone }?.let { actor ->
-			actor.addAnimation(ThrowAnimation(actor, board.getZone(zone).center, icon))
+			actor.addAnimation(ThrowAnimation(actor, board.getZone(zone).getRect().center, icon))
 			boardRenderer.waitForAnimations()
 		}
 	}
@@ -700,7 +703,10 @@ abstract class UIZombicide(
 					override fun draw(g: AGraphics, position: Float, dt: Float) {
 						g.color = GColor.YELLOW.withAlpha(position)
 						boardRenderer.drawPath(g, necro, path)
-						g.drawRect(escapeZone.scaledBy(1.1f + position * .1f), 2f)
+						g.pushMatrix()
+						g.scale(1.1f + position * .1f)
+						escapeZone.drawOutlined(g)
+						g.popMatrix()
 					}
 				})
 				boardRenderer.waitForAnimations()
@@ -1044,7 +1050,7 @@ abstract class UIZombicide(
 					attacker.addAnimation(object : ShootAnimation(
 						attacker,
 						hammerSpeed,
-						board.getZone(targetZone).randomPointInside,
+						board.getZone(targetZone).getRandomPointInside(),
 						ZIcon.MJOLNIR
 					) {
 						override fun onDone() {
@@ -1057,7 +1063,7 @@ abstract class UIZombicide(
 					hits.forEach {
 						val victim = board.getActor(it)
 						animLock.acquire()
-						group.addSequentially(object : ShootAnimation(prev, hammerSpeed, victim, ZIcon.MJOLNIR) {
+						group.addSequentially(object : ShootAnimation(prev, hammerSpeed, victim.center, ZIcon.MJOLNIR) {
 							override fun onDone() {
 								animLock.release()
 							}
@@ -1065,7 +1071,7 @@ abstract class UIZombicide(
 						prev = victim
 					}
 					animLock.acquire()
-					group.addSequentially(object: ShootAnimation(prev, hammerSpeed, attacker, ZIcon.MJOLNIR) {
+					group.addSequentially(object : ShootAnimation(prev, hammerSpeed, attacker.center, ZIcon.MJOLNIR) {
 						override fun onDone() {
 							super.onDone()
 							animLock.release()
@@ -1132,7 +1138,7 @@ abstract class UIZombicide(
 						val victim = board.getActor(pos)
 						group.addAnimation(
 							delay,
-							object : ShootAnimation(attacker, 300, victim, ZIcon.ARROW) {
+							object : ShootAnimation(attacker, 300, victim.center, ZIcon.ARROW) {
 								override fun onDone() {
 									super.onDone()
 									val arrowId = ZIcon.ARROW.imageIds[dir.ordinal]
@@ -1163,7 +1169,7 @@ abstract class UIZombicide(
 								}
 							})
 					} else if (actionType != ZActionType.CATAPULT_FIRE) {
-						val center: IVector2D = board.getZone(targetZone).randomPointInside
+						val center: IVector2D = board.getZone(targetZone).getRandomPointInside()
 						group.addAnimation(
 							delay,
 							object : ShootAnimation(attacker, 300, center, ZIcon.ARROW) {
@@ -1204,7 +1210,7 @@ abstract class UIZombicide(
 				val victim = board.getActor(pos)
 				group.addAnimation(
 					delay,
-					object : ThrowAnimation(attacker, victim, icon, arc, duration, scale) {
+					object : ThrowAnimation(attacker, victim.center, icon, arc, duration, scale) {
 						override fun onDone() {
 							super.onDone()
 							if (pos.data == ACTOR_POS_DATA_DEFENDED) {
@@ -1225,7 +1231,7 @@ abstract class UIZombicide(
 						}
 					})
 			} else {
-				val center: IVector2D = board.getZone(targetZone).randomPointInside
+				val center: IVector2D = board.getZone(targetZone).getRandomPointInside()
 				group.addAnimation(
 					delay,
 					object : ThrowAnimation(attacker, center, icon, arc, duration, scale) {
@@ -1254,8 +1260,8 @@ abstract class UIZombicide(
 		when (weapon) {
 			ZWeaponType.DEATH_STRIKE -> {
 				val animLock = Lock(1)
-				val zoneRect = GRectangle(board.getZone(targetZone))
-				val targetRect = zoneRect.scaledBy(.5f) //.moveBy(0, -1);
+				val targetRect =
+					board.getCell(attacker.occupiedCell).scaledBy(.5f)//board.getZone(targetZone).getRandomPointInside(.5f)
 				attacker.addAnimation(object : DeathStrikeAnimation(attacker, targetRect, numDice) {
 					override fun onDone() {
 						super.onDone()
@@ -1280,7 +1286,7 @@ abstract class UIZombicide(
 					if (hits.size > 0) {
 						val pos: ZActorPosition = hits.removeAt(0)
 						val victim = board.getActor(pos)
-						group.addAnimation(delay, object : FireballAnimation(attacker, victim) {
+						group.addAnimation(delay, object : FireballAnimation(attacker, victim.center) {
 							override fun onDone() {
 								super.onDone()
 								if (pos.data == ACTOR_POS_DATA_DEFENDED) {
@@ -1331,8 +1337,9 @@ abstract class UIZombicide(
 						val actorRect = (board.getActor(hits[i])).getRect().scaledBy(.5f)
 						targets.add(Vector2D.getLinearInterpolator(actorRect.randomPointInside, actorRect.randomPointInside))
 					} else {
-						val rect = board.getZone(targetZone).scaledBy(.5f)
-						targets.add(Vector2D.getLinearInterpolator(rect.randomPointInside, rect.randomPointInside))
+						board.getZone(targetZone).apply {
+							targets.add(Vector2D.getLinearInterpolator(getRandomPointInside(.5f), getRandomPointInside(.5f)))
+						}
 					}
 					i++
 				}

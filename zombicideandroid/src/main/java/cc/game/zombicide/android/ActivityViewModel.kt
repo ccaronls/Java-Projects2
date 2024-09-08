@@ -25,7 +25,9 @@ class ActivityViewModel : ViewModel() {
 		}
 
 		override fun isEnabled(position: Int): Boolean {
-			return buttons[position].isEnabled
+			if (position in buttons.indices)
+				return buttons[position].isEnabled
+			return false
 		}
 
 		override fun getCount(): Int {

@@ -12,13 +12,13 @@ import cc.lib.math.Vector2D;
 import cc.lib.utils.GException;
 
 public abstract class AGraphics implements Utils.VertexList, Renderable {
-    
+
     public static boolean DEBUG_ENABLED = false;
-    
+
     private int mViewportWidth, mViewportHeight;
-    private float [] textHeightStack = new float[32];
+    private float[] textHeightStack = new float[32];
     private int textHeightIndex = 0;
-    private GColor [] colorStack = new GColor[32];
+    private GColor[] colorStack = new GColor[32];
     private int colorStackIndex = 0;
 
     /**
@@ -29,7 +29,6 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     }
 
     /**
-     * 
      * @param viewportWidth
      * @param viewportHeight
      */
@@ -37,36 +36,31 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
         this.mViewportWidth = viewportWidth;
         this.mViewportHeight = viewportHeight;
     }
-    
+
     /**
-     * 
      * @param color
      */
     public abstract void setColor(GColor color);
 
     /**
-     * 
      * @param argb
      */
-	public abstract void setColorARGB(int argb);
+    public abstract void setColorARGB(int argb);
 
     /**
-     *
      * @param r
      * @param g
      * @param b
      * @param a
      */
-	public abstract void setColor(int r, int g, int b, int a);
-	
+    public abstract void setColor(int r, int g, int b, int a);
+
     /**
-     * 
      * @return
      */
     public abstract GColor getColor();
 
     /**
-     *
      * @param color
      */
     public final void pushColor(GColor color) {
@@ -82,37 +76,35 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     }
 
     /**
-     *
      * @param height
      */
-    public final void pushTextHeight(float height) {
+    public final void pushTextHeight(float height, boolean pixels) {
         textHeightStack[textHeightIndex++] = getTextHeight();
-        setTextHeight(height);
+        setTextHeight(height, pixels);
     }
 
     /**
      *
      */
     public final void popTextHeight() {
-        setTextHeight(textHeightStack[--textHeightIndex]);
+        setTextHeight(textHeightStack[--textHeightIndex], true);
     }
 
     /**
-     * 
+     *
      */
     public final int getViewportWidth() {
         return mViewportWidth;
     }
-    
+
     /**
-     * 
+     *
      */
     public final int getViewportHeight() {
         return mViewportHeight;
     }
 
     /**
-     *
      * @return
      */
     public final GDimension getViewport() {
@@ -121,6 +113,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
 
     /**
      * Convenience method to draw with LEFT/TOP Justification
+     *
      * @param x
      * @param y
      * @param text
@@ -131,7 +124,6 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     }
 
     /**
-     *
      * @param pos
      * @param text
      * @return
@@ -142,6 +134,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
 
     /**
      * Convenience to draw with TOP Justification
+     *
      * @param x
      * @param y
      * @param hJust
@@ -153,7 +146,6 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     }
 
     /**
-     *
      * @param pos
      * @param hJust
      * @param text
@@ -165,6 +157,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
 
     /**
      * Render test with LEFT/TOP Justification
+     *
      * @param text
      * @param x
      * @param y
@@ -175,7 +168,6 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     }
 
     /**
-     *
      * @param text
      * @param pos
      * @return
@@ -185,18 +177,16 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     }
 
     /**
-     *
      * @param text
      * @param x
      * @param y
      * @return
      */
     public final GDimension drawAnnotatedString(String text, float x, float y) {
-        return drawAnnotatedString(text, x,y, Justify.LEFT);
+        return drawAnnotatedString(text, x, y, Justify.LEFT);
     }
 
     /**
-     *
      * @param text
      * @param pos
      * @return
@@ -206,16 +196,16 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     }
 
     /**
-    * Annotated string can have annotations in the string (ala html) to control color, underline etc.
-    *
-    * annotated color pattern:
-    * [(a,)?r,g,b]
-    *
-    * @param text
-    * @param x
-    * @param y
-    * @return the enclosing rect of the text
-    */
+     * Annotated string can have annotations in the string (ala html) to control color, underline etc.
+     * <p>
+     * annotated color pattern:
+     * [(a,)?r,g,b]
+     *
+     * @param text
+     * @param x
+     * @param y
+     * @return the enclosing rect of the text
+     */
     public final GDimension drawAnnotatedString(String text, float x, float y, Justify hJust) {
 
         Matcher m = ANNOTATION_PATTERN.matcher(text);
@@ -249,33 +239,41 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     final static Pattern ANNOTATION_PATTERN = Pattern.compile("(ARGB)?\\[([0-9]{1,3},)?[0-9]{1,3},[0-9]{1,3},[0-9]{1,3}\\]");
 
     /**
-     * 
      * @return
      */
     public abstract float getTextHeight();
 
     /**
+     * Set the text height. If the value is a system type (like dp on android)
+     * then 'pixels' param should be false
      *
      * @param height
+     * @param pixels
      */
-    public abstract float setTextHeight(float height);
+    public abstract float setTextHeight(float height, boolean pixels);
 
     /**
-     * 
+     * Width of text string in pixels
+     *
      * @param string
      * @return
      */
     public abstract float getTextWidth(String string);
 
     /**
-     *
      * @param string
      * @return
      */
     public final GDimension getTextDimension(String string, float maxWidth) {
-        String[] lines = generateWrappedLines(string, maxWidth);
+        List<String> lines = new ArrayList();
+        return getTextDimension(string, maxWidth, lines);
+    }
+
+    public final GDimension getTextDimension(String string, float maxWidth, List<String> lines) {
+        lines.clear();
+        lines.addAll(generateWrappedLines(string, maxWidth));
         float width = 0;
-        float height = getTextHeight() * lines.length;
+        float height = getTextHeight() * lines.size();
         for (String s : lines) {
             width = Math.max(width, getTextWidth(s));
         }
@@ -407,6 +405,12 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
         MutableVector2D br = rect.getBottomRight();
         screenToViewport(br);
         rect.set(tl, br);
+    }
+
+    public final void screenToViewport(GDimension dim) {
+        GRectangle r = new GRectangle(dim);
+        screenToViewport(r);
+        dim.set(r.w, r.h);
     }
 
     protected abstract MutableVector2D untransform(float x, float y);
@@ -650,15 +654,14 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     }
 
     /**
-     * 
      * @param str
      * @param maxWidth
      * @return
      */
-    public final String [] generateWrappedLines(String str, float maxWidth) {
+    public final List<String> generateWrappedLines(String str, float maxWidth) {
         List<String> lines = new ArrayList<>(32);
         generateWrappedText(str, maxWidth, lines, null);
-        return lines.toArray(new String[lines.size()]);
+        return lines;
     }
 
     /**
@@ -674,7 +677,6 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
         if (text.isEmpty())
             return GDimension.EMPTY;
         float maxLineWidth = 0;
-        //List<String> lines = new ArrayList<String>(32);
         while (text.length() > 0 && resultLines.size() < 256) {
             int endl = text.indexOf('\n');
             if (endl >= 0) {
@@ -795,17 +797,26 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      */
     public final GDimension drawWrapString(float x, float y, float maxWidth, String text) {
         MutableVector2D tv = transform(x, y);
-        String [] lines = generateWrappedLines(text, maxWidth);
+        List<String> lines = generateWrappedLines(text, maxWidth);
         float mw = 0;
-        for (int i=0; i<lines.length; i++) {
-            mw = Math.max(mw, drawStringLine(tv.X(), tv.Y(), Justify.LEFT, lines[i]));
+        for (String line : lines) {
+            mw = Math.max(mw, drawStringLine(tv.X(), tv.Y(), Justify.LEFT, line));
             tv.addEq(0, getTextHeight());
         }
-        return new GDimension(mw, lines.length*getTextHeight());
-    }    
-    
+        return new GDimension(mw, lines.size() * getTextHeight());
+    }
+
     /**
-     * 
+     * @param pos
+     * @param maxWidth
+     * @param text
+     * @return
+     */
+    public final GDimension drawWrapString(IVector2D pos, float maxWidth, String text) {
+        return drawWrapString(pos.getX(), pos.getY(), maxWidth, text);
+    }
+
+    /**
      * @param x
      * @param y
      * @param maxWidth
@@ -815,25 +826,43 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @return the enclosing rect of the text
      */
     public final GDimension drawWrapString(float x, float y, float maxWidth, Justify hJust, Justify vJust, String text) {
-        String [] lines = generateWrappedLines(text, maxWidth);
+        List<String> lines = generateWrappedLines(text, maxWidth);
         switch (vJust) {
-            case TOP: break;
-            case BOTTOM: y -= lines.length * getTextHeight(); break;
-            case CENTER: y -= lines.length * getTextHeight() / 2; break;
-            default: 
+            case TOP:
+                break;
+            case BOTTOM:
+                y -= lines.size() * getTextHeight();
+                break;
+            case CENTER:
+                y -= lines.size() * getTextHeight() / 2;
+                break;
+            default:
                 throw new GException("Unhandled case: " + vJust);
         }
         MutableVector2D tv = transform(x, y);
         float mw = 0;
-        for (int i=0; i<lines.length; i++) {
-            mw = Math.max(mw, drawStringLine(tv.X(), tv.Y(), hJust, lines[i]));
+        for (int i = 0; i < lines.size(); i++) {
+            mw = Math.max(mw, drawStringLine(tv.X(), tv.Y(), hJust, lines.get(i)));
             tv.addEq(0, getTextHeight());
         }
-        return new GDimension(mw, lines.length*getTextHeight());
+        return new GDimension(mw, lines.size() * getTextHeight());
+    }
+
+    /**
+     * @param pos
+     * @param maxWidth
+     * @param hJust
+     * @param vJust
+     * @param text
+     * @return
+     */
+    public final GDimension drawWrapString(IVector2D pos, float maxWidth, Justify hJust, Justify vJust, String text) {
+        return drawWrapString(pos.getX(), pos.getY(), maxWidth, hJust, vJust, text);
     }
 
     /**
      * Draws the string with background and makes sure it is completely on the screen
+     *
      * @param x
      * @param y
      * @param maxWidth
@@ -846,11 +875,11 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
         List<String> lines = new ArrayList<>();
         GDimension dim = generateWrappedText(text, maxWidth, lines, null);
         MutableVector2D tv = transform(x, y);
-        if (tv.getX() + dim.width + border > getViewportWidth()) {
-            tv.setX(getViewportWidth() - dim.width - border);
+        if (tv.getX() + dim.getWidth() + border > getViewportWidth()) {
+            tv.setX(getViewportWidth() - dim.getWidth() - border);
         }
-        if (tv.getY() + dim.height + border > getViewportHeight()) {
-            tv.setY(getViewportHeight() - dim.height - border);
+        if (tv.getY() + dim.getHeight() + border > getViewportHeight()) {
+            tv.setY(getViewportHeight() - dim.getHeight() - border);
         }
 
         pushMatrix();
@@ -876,26 +905,26 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
 
         switch (horz) {
             case CENTER:
-                tv.addEq(-dim.width/2, 0);
+                tv.addEq(-dim.getWidth() / 2, 0);
                 break;
             case RIGHT:
-                tv.addEq(-dim.width, 0);
+                tv.addEq(-dim.getHeight(), 0);
         }
 
         switch (vert) {
             case CENTER:
-                tv.addEq(0, -dim.height/2);
+                tv.addEq(0, -dim.getHeight() / 2);
                 break;
             case BOTTOM:
-                tv.addEq(0, dim.height/2);
+                tv.addEq(0, dim.getHeight() / 2);
                 break;
         }
 
-        if (tv.getX() + dim.width + border > getViewportWidth()) {
-            tv.setX(getViewportWidth() - dim.width - border);
+        if (tv.getX() + dim.getWidth() + border > getViewportWidth()) {
+            tv.setX(getViewportWidth() - dim.getWidth() - border);
         }
-        if (tv.getY() + dim.height + border > getViewportHeight()) {
-            tv.setY(getViewportHeight() - dim.height - border);
+        if (tv.getY() + dim.getHeight() + border > getViewportHeight()) {
+            tv.setY(getViewportHeight() - dim.getHeight() - border);
         }
 
         pushMatrix();
@@ -1891,7 +1920,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param dimension
      */
     public final void drawImage(int imageKey, IVector2D center, GDimension dimension) {
-        drawImage(imageKey, center.getX()-dimension.width/2, center.getY()-dimension.height/2, dimension.width, dimension.height);
+        drawImage(imageKey, center.getX() - dimension.getWidth() / 2, center.getY() - dimension.getHeight() / 2, dimension.getWidth(), dimension.getHeight());
     }
 
     /**

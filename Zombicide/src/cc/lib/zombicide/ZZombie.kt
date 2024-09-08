@@ -85,7 +85,7 @@ class ZZombie(override val type: ZZombieType = ZZombieType.Walker, val startZone
 		if (isAlive || isAnimating) {
 			super.draw(g)
             if (actionsLeftThisTurn > 1) {
-	            val oldHgt = g.setTextHeight(10f)
+	            g.pushTextHeight(10f, false)
 	            g.color = GColor.TRANSLUSCENT_BLACK
 	            val oldWdth = g.setLineWidth(0f)
 	            g.drawFilledCircle(getRect().center, .05f)
@@ -97,7 +97,7 @@ class ZZombie(override val type: ZZombieType = ZZombieType.Walker, val startZone
 		            Justify.CENTER,
 		            "$actionsLeftThisTurn"
 	            )
-	            g.textHeight = oldHgt
+	            g.popTextHeight()
 	            g.setLineWidth(oldWdth)
             }
         }

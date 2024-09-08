@@ -68,6 +68,8 @@ class Table(var model: Model = object : Model {}) : ITableItem, IButton {
 		fun getCellVerticalPadding(): Float = 0f
 
 		fun getBorderScaleHighlighted(): Float = 1.1f
+
+		fun textHeightInPixels() = true
 	}
 
 	private val header: MutableList<String> = ArrayList()
@@ -232,7 +234,7 @@ class Table(var model: Model = object : Model {}) : ITableItem, IButton {
 		maxHeight = FloatArray(rows.size)
 		val cellPadding = getCellPadding(g)
 		headerHeightLines = 0
-		val saveTxtHgt = g.setTextHeight(model.getHeaderTextHeight(g))
+		g.pushTextHeight(model.getHeaderTextHeight(g), model.textHeightInPixels())
 		if (header.size > 0) {
 			var i = 0
 			while (i < columns && i < header.size) {
@@ -246,7 +248,7 @@ class Table(var model: Model = object : Model {}) : ITableItem, IButton {
 			}
 		}
 		val headerHeight = headerHeightLines * g.textHeight + cellPadding * 2
-		g.textHeight = saveTxtHgt
+		g.popTextHeight()
 		for (r in rows.indices) {
 			for (c in rows[r].indices) {
 				val o = rows[r][c]
@@ -258,7 +260,7 @@ class Table(var model: Model = object : Model {}) : ITableItem, IButton {
 				} else if (o is AImage) {
 					// TODO: Implement this
 				} else {
-					g.pushTextHeight(model.getCellTextHeight(g))
+					g.pushTextHeight(model.getCellTextHeight(g), model.textHeightInPixels())
 					val entry = model.getStringValue(o)
 					val parts = Utils.wrapText(entry, model.getMaxCharsPerLine())
 					for (s in parts) {
@@ -367,7 +369,7 @@ class Table(var model: Model = object : Model {}) : ITableItem, IButton {
 				x += maxWidth[i]
 			}
 			g.popColor()
-			g.pushTextHeight(model.getHeaderTextHeight(g))
+			g.pushTextHeight(model.getHeaderTextHeight(g), model.textHeightInPixels())
 			g.translate(0f, g.textHeight * headerHeightLines + cellPadding)
 			g.drawLine(0f, 0f, dim.getWidth() - borderWidth, 0f, borderWidth.toFloat())
 			g.popTextHeight()
@@ -390,7 +392,7 @@ class Table(var model: Model = object : Model {}) : ITableItem, IButton {
 						val txt = model.getStringValue(o)
 						val hJust = model.getTextAlignment(i, ii)
 						g.pushColor(model.getCellColor(g, i, ii))
-						g.pushTextHeight(model.getCellTextHeight(g))
+						g.pushTextHeight(model.getCellTextHeight(g), model.textHeightInPixels())
 						g.pushMatrix()
 						when (hJust) {
 							Justify.LEFT -> Unit

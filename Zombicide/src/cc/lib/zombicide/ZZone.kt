@@ -3,7 +3,10 @@ package cc.lib.zombicide
 import cc.lib.game.AGraphics
 import cc.lib.game.GRectangle
 import cc.lib.game.IRectangle
-import cc.lib.game.Utils
+import cc.lib.game.IVector2D
+import cc.lib.game.Tiles
+import cc.lib.math.MutableVector2D
+import cc.lib.math.Vector2D
 import cc.lib.reflector.Omit
 import cc.lib.utils.GException
 import cc.lib.utils.Grid.Pos
@@ -53,45 +56,11 @@ class ZZone(val zoneIndex: Int = -1) : UIZButton() {
 		(cells as MutableList<Pos>).add(pos)
 	}
 
-	override fun getRect(): IRectangle = rectangle
-
-	/**
-	 *
-	 * @return
-	 */
-	@delegate:Omit
-	private val rectangle by lazy {
-		GRectangle().also {
-			for (p in cells) {
-				it.addEq(p.column.toFloat(), p.row.toFloat(), 1f, 1f)
-			}
-		}
-	}
-
-    override fun drawFilled(g: AGraphics) {
-        for (p in cells) {
-            g.drawFilledRect(p.column.toFloat(), p.row.toFloat(), 1f, 1f)
-        }
-    }
-
-    override fun drawOutlined(g: AGraphics) {
-        for (p in cells) {
-            g.drawRect(p.column.toFloat(), p.row.toFloat(), 1f, 1f)
-        }
-    }
-
     val isSearchable: Boolean
         get() = type === ZZoneType.BUILDING
 
 	fun getCells(): Iterable<Pos> {
 		return cells
-	}
-
-	override fun contains(x: Float, y: Float): Boolean {
-		for (pos in cells) {
-			if (Utils.isPointInsideRect(x, y, pos.column.toFloat(), pos.row.toFloat(), 1f, 1f)) return true
-		}
-		return false
 	}
 
     fun addNoise(amt: Int) {
@@ -120,4 +89,30 @@ class ZZone(val zoneIndex: Int = -1) : UIZButton() {
 
 	override val resultObject = zoneIndex
 
+	fun Pos.toRectangle(): GRectangle = GRectangle(column.toFloat(), row.toFloat(), 1f, 1f)
+
+	override fun getRect(): IRectangle = cells.firstOrNull()?.toRectangle() ?: GRectangle()
+
+	fun getRandomPointInside(factor: Float = 1f): IVector2D {
+		return cells.map {
+			it.toRectangle()
+		}.randomOrNull()?.scaledBy(factor)?.randomPointInside ?: Vector2D.ZERO
+	}
+
+	@delegate:Omit
+	private val tiles by lazy {
+		Tiles(cells.map { it.toRectangle() })
+	}
+
+	override fun drawOutlined(g: AGraphics) {
+		tiles.drawOutlined(g)
+	}
+
+	override fun contains(px: Float, py: Float): Boolean {
+		return tiles.contains(px, py)
+	}
+
+	override fun getCenter(): MutableVector2D {
+		return tiles.center
+	}
 }

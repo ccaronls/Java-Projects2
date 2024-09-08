@@ -560,7 +560,7 @@ abstract class Dominos : Reflector<Dominos>(), AGameServer.Listener {
 			override fun draw(g: AGraphics, position: Float, dt: Float) {
 				val hgtStart = boardDim / 12
 				val hgtStop = boardDim / 6
-				g.textHeight = hgtStart + (hgtStop - hgtStart) * position
+				g.setTextHeight(hgtStart + (hgtStop - hgtStart) * position, true)
 				g.color = GColor.MAGENTA.withAlpha(1.0f - position)
 				g.drawJustifiedString(boardDim / 2, boardDim / 2, Justify.CENTER, Justify.CENTER, "+$pts")
 			}
@@ -688,7 +688,7 @@ abstract class Dominos : Reflector<Dominos>(), AGameServer.Listener {
 		drawMenuButton(g, boardDim, boardDim, pickX, pickY)
 		//g.clearClip();
 		g.pushMatrix()
-		g.textHeight = TEXT_SIZE
+		g.setTextHeight(TEXT_SIZE, false)
 		if (portrait) {
 			// draw the non-visible player stuff on lower LHS and visible player stuff on lower RHS
 			g.translate(0f, boardDim)
@@ -749,7 +749,7 @@ abstract class Dominos : Reflector<Dominos>(), AGameServer.Listener {
 			run {
 				if (width > w) {
 					val saveth = g.textHeight
-					g.textHeight = saveth / 2
+					g.setTextHeight(saveth / 2, true)
 					g.pushAndRun()
 					{
 						g.scale(tileDim, tileDim)
@@ -766,7 +766,7 @@ abstract class Dominos : Reflector<Dominos>(), AGameServer.Listener {
 					}
 					g.color = GColor.BLUE
 					g.drawJustifiedString(0f, tileDim / 2, Justify.LEFT, Justify.CENTER, "x $numTiles")
-					g.setTextHeight(saveth)
+					g.setTextHeight(saveth, true)
 				} else {
 					for (t in 0 until numTiles) {
 						g.pushAndRun()
@@ -834,7 +834,7 @@ abstract class Dominos : Reflector<Dominos>(), AGameServer.Listener {
 		g.color = GColor.WHITE
 		val x = w - menuButtonPadding
 		val y = menuButtonPadding.toFloat()
-		g.textHeight = TEXT_SIZE
+		g.setTextHeight(TEXT_SIZE, false)
 		var tw = g.drawJustifiedString(x, y, Justify.RIGHT, infoStr).width
 		val rx = w - tw - menuButtonPadding * 2
 		val ry = 0f
@@ -1162,8 +1162,14 @@ abstract class Dominos : Reflector<Dominos>(), AGameServer.Listener {
 									g.popMatrix()
 									g.setIdentity()
 									g.color = GColor.CYAN
-									g.textHeight = board.boardHeight / 20
-									g.drawJustifiedString(board.boardWidth / 2, board.boardHeight / 2, Justify.CENTER, Justify.CENTER, "SHUFFLING")
+									g.setTextHeight(board.boardHeight / 20, true)
+									g.drawJustifiedString(
+										board.boardWidth / 2,
+										board.boardHeight / 2,
+										Justify.CENTER,
+										Justify.CENTER,
+										"SHUFFLING"
+									)
 								}
 
 								override fun onDone() {

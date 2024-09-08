@@ -11,7 +11,13 @@ import cc.lib.swing.AWTGraphics
 import cc.lib.utils.FileUtils
 import java.awt.Graphics
 import java.awt.Point
-import java.awt.event.*
+import java.awt.event.FocusEvent
+import java.awt.event.FocusListener
+import java.awt.event.KeyEvent
+import java.awt.event.KeyListener
+import java.awt.event.MouseEvent
+import java.awt.event.MouseListener
+import java.awt.event.MouseMotionListener
 import java.awt.image.BufferedImage
 import java.io.File
 import java.io.FileNotFoundException
@@ -75,7 +81,7 @@ class LearnToTypeBuilder : JApplet(), MouseListener, MouseMotionListener, KeyLis
 			g.drawRect(rect)
 		}
 		if (pressed != null) {
-			g.textHeight = 32f
+			g.setTextHeight(32f, false)
 			g.color = GColor.BLUE
 			g.setTextStyles(AGraphics.TextStyle.BOLD)
 			g.drawJustifiedString((g.viewportWidth / 2).toFloat(), (g.viewportHeight * 3 / 4).toFloat(), KeyEvent.getKeyText(pressed!!.keyCode))

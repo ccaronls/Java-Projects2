@@ -1,10 +1,23 @@
 package cc.lib.monopoly
 
-import cc.lib.game.*
+import cc.lib.game.AAnimation
+import cc.lib.game.AGraphics
+import cc.lib.game.APGraphics
+import cc.lib.game.GColor
+import cc.lib.game.GRectangle
+import cc.lib.game.Justify
 import cc.lib.logger.LoggerFactory
-import cc.lib.math.*
-import cc.lib.utils.*
-import java.util.*
+import cc.lib.math.Bezier
+import cc.lib.math.CMath
+import cc.lib.math.Matrix3x3
+import cc.lib.math.MutableVector2D
+import cc.lib.math.Vector2D
+import cc.lib.utils.GException
+import cc.lib.utils.Table
+import cc.lib.utils.increment
+import cc.lib.utils.prettify
+import cc.lib.utils.random
+import java.util.LinkedList
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -531,7 +544,7 @@ abstract class UIMonopoly : Monopoly() {
 		spriteMap[Square.FREE_PARKING.name] = object : Sprite() {
 			override fun draw(g: AGraphics, w: Float, h: Float) {
 				if (kitty > 0 || isAnimating) {
-					g.pushTextHeight(TEXT_HEIGHT_SM)
+					g.pushTextHeight(TEXT_HEIGHT_SM, false)
 					g.pushColor(GColor.TRANSPARENT)
 					val dim = g.drawWrapString(0f, 0f, w, Justify.CENTER, Justify.CENTER, """
 					    Kitty
@@ -830,9 +843,9 @@ abstract class UIMonopoly : Monopoly() {
 			sp.M.setTranslate(w - PADDING, dim / 2)
 			sp.color = GColor.BLACK
 			sp.animateAndDraw(g, 0f, 0f)
-			g.pushTextHeight(TEXT_HEIGHT_MED)
+			g.pushTextHeight(TEXT_HEIGHT_MED, false)
 			if (p.isBankrupt) {
-				g.pushTextHeight(TEXT_HEIGHT_LARGE)
+				g.pushTextHeight(TEXT_HEIGHT_LARGE, false)
 				g.color = GColor.TRANSLUSCENT_BLACK
 				g.drawFilledRect(0f, 0f, w, h)
 				g.color = GColor.RED

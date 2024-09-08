@@ -19,4 +19,6 @@ public interface IShape {
     float getArea();
 
     IRectangle enclosingRect();
+
+    float getRadius();
 }

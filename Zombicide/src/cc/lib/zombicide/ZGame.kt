@@ -18,7 +18,6 @@ import cc.lib.utils.appendedWith
 import cc.lib.utils.getOrNull
 import cc.lib.utils.increment
 import cc.lib.utils.midPointOrNull
-import cc.lib.utils.peekOrNull
 import cc.lib.utils.random
 import cc.lib.utils.removeRandom
 import cc.lib.utils.rotate
@@ -107,12 +106,7 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 		val target: ZPlayerName? = null,
 		val familiar: ZFamiliarType? = null,
 		var undoPushes: Int = 0
-	) : Reflector<State>() {
-		fun decrementUndos() {
-			if (undoPushes > 0)
-				undoPushes--
-		}
-	}
+	) : Reflector<State>()
 
     private val stateStack = Stack<State>()
     @JvmField
@@ -181,12 +175,6 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 			if (curPlayer != it.type)
 				onCurrentCharacterUpdated(curPlayer, it)
 		}
-	}
-
-	open fun canUndo() = false
-
-	open fun undo() {
-		throw NotImplementedError()
 	}
 
 	@RemoteFunction
@@ -664,7 +652,7 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 	            }
 	            board.resetNoise()
 	            setState(State(ZState.PLAYER_STAGE_CHOOSE_CHARACTER))
-	            return true
+	            return false
             }
             ZState.PLAYER_STAGE_CHOOSE_CHARACTER -> {
 	            // get a pair list of all remaining movable characters and their users
@@ -867,8 +855,6 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
                     }
 	                i++
                 }
-	            if (canUndo())
-		            optionsList.add(ZMove.newUndoMove())
 	            if (optionsList.firstOrNull { it.action == repeatableMove?.action } == null)
 		            repeatableMove = null
 	            val move = getCurrentUser().chooseMove(ch.type, optionsList)
@@ -999,14 +985,6 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 			    val ch = requireCurrentCharacter
 			    val secondary: ZCharacter? = board.getActor(stateData.target?.name) as ZCharacter?
 			    val undos = stateStack.peek().undoPushes
-			    setState(
-				    State(
-					    state = ZState.PLAYER_STAGE_ORGANIZE,
-					    player = ch.type,
-					    target = secondary?.type,
-					    undoPushes = undos + 1
-				    )
-			    )
 			    getCurrentUser().organizeStart(ch.type, secondary?.type, undos)
 			    return performOrganize(ch, secondary)
 		    }
@@ -1579,7 +1557,7 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 	                            if (spawnZones.isNotEmpty()) {
 		                            onSpawnZoneSpawning(GRectangle().apply {
 			                            spawnZones.forEach {
-				                            addEq(board.getZone(it))
+				                            addEq(board.getZone(it).enclosingRect())
 			                            }
 		                            }, 0, 1)
 		                            for (zone: Int in spawnZones) {
@@ -1762,27 +1740,30 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
                 return true
             }
             ZMoveType.PICKUP_ITEM -> {
-	            val equip = move.list?.firstOrNull()
+	            val equip = move.equipment ?: move.list?.firstOrNull()
 		            ?.takeIfInstance<ZEquipment<*>>()
 		            ?.takeIf { move.list.size == 1 }
-		            ?: getCurrentUser().chooseItemToPickupInternal(cur.type, move.list as List<ZEquipment<*>>)
+	            ?: getCurrentUser().chooseItemToPickupInternal(cur.type, move.list as List<ZEquipment<*>>)
 	            if (equip != null) {
-		            if (cur.tryEquip(equip) == null) {
+		            if (move.toSlot != null) {
+			            cur.attachEquipment(equip, move.toSlot!!)
+		            } else if (cur.tryEquip(equip) == null) {
 			            val keep = ZMove.newKeepMove(equip)
 			            if (!performMove(cur, keep)) return false
 		            }
 		            quest.pickupItem(cur.occupiedZone, equip)
-		            cur.performAction(ZActionType.PICKUP_ITEM, this)
+		            cur.performAction(ZActionType.INVENTORY, this)
 		            return true
 	            }
 	            return false
             }
             ZMoveType.DROP_ITEM -> {
-                val equip = getCurrentUser().chooseItemToDropInternal(cur.type, move.list as List<ZEquipment<*>>)
+	            val equip =
+		            move.equipment ?: getCurrentUser().chooseItemToDropInternal(cur.type, move.list as List<ZEquipment<*>>)
                 if (equip != null) {
                     quest.dropItem(cur.occupiedZone, equip)
-                    cur.removeEquipment(equip)
-                    cur.performAction(ZActionType.DROP_ITEM, this)
+	                cur.removeEquipment(equip)
+	                cur.performAction(ZActionType.INVENTORY, this)
                     return true
                 }
                 return false
@@ -1844,30 +1825,35 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
             ZMoveType.BLOODLUST_MAGIC,
             ZMoveType.BLOODLUST_RANGED -> return performBloodlust(cur, move)
 	        ZMoveType.CLOSE_SPAWN_PORTAL -> return performCloseSpawnPortal(cur, move)
-	        ZMoveType.ORGANIZE_DONE -> {
-		        if (state == ZState.PLAYER_STAGE_ORGANIZE)
-			        popState()
-		        user.organizeEnd()
-		        return false
-	        }
-	        ZMoveType.ORGANIZE_SLOT -> {
-		        getCurrentUser().chooseOrganize(cur.type, move.list as List<ZMove>, stateStack.peek().undoPushes)?.let {
-			        return performMove(cur, it).also {
-				        if (it) {
-					        stateStack.peek().undoPushes++
-				        }
-			        }
-		        }
-	        }
-	        ZMoveType.ORGANIZE_TRADE -> {
-		        setState(State(state = ZState.PLAYER_STAGE_ORGANIZE, player = currentCharacter?.type, target = move.character))
-	        }
+			ZMoveType.ORGANIZE_DONE -> {
+				if (state == ZState.PLAYER_STAGE_ORGANIZE)
+					popState()
+				user.organizeEnd()
+				return false
+			}
+
+			ZMoveType.ORGANIZE_PICKUP,
+			ZMoveType.ORGANIZE_SLOT -> {
+				getCurrentUser().chooseOrganize(cur.type, move.list as List<ZMove>, stateStack.peek().undoPushes)?.let {
+					return performMove(cur, it)
+				}
+			}
+
+			ZMoveType.ORGANIZE_TRADE -> {
+				setState(
+					State(
+						state = ZState.PLAYER_STAGE_ORGANIZE,
+						player = currentCharacter?.type,
+						target = move.character,
+						undoPushes = stateStack.peek().undoPushes
+					)
+				)
+			}
 			ZMoveType.ORGANIZE_TAKE -> {
 				stateData.target?.toCharacter()?.let { char ->
 					char.removeEquipment(move.equipment!!)
 					cur.attachEquipment(move.equipment, move.toSlot)
 					cur.performAction(ZActionType.INVENTORY, this)
-					stateStack.peek().undoPushes++
 					return true
 				}
 			}
@@ -1945,11 +1931,6 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 
 			ZMoveType.KEEP_ROLL,
 			ZMoveType.REROLL -> log.error("Unhandled move: %s", move.type)
-
-			ZMoveType.UNDO -> {
-				stateStack.peekOrNull()?.decrementUndos()
-				undo()
-			}
 		}
 		return false
 	}
@@ -2078,6 +2059,26 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 					)
 				}
 			}
+			// if player standing in vault then vault items, drop / pickup available
+			if (board.getZone(cur.occupiedZone).isVault) {
+				cur.allEquipment.forEach { equip ->
+					getListFor(cur.type, equip.slot!!).add(ZMove.newDropItemMove(equip))
+				}
+				quest.getVaultItems(cur.occupiedZone).takeIf { it.isNotEmpty() }?.let { list ->
+					val moves = ArrayList<ZMove>()
+					list.forEach { equip ->
+						moves.addAll(requireCurrentCharacter.getEquippableSlots(equip, true)
+							.filter { requireCurrentCharacter.getSlot(it) == null }
+							.map { slot ->
+								ZMove.newPickupItemMove(requireCurrentCharacter.type, equip, slot)
+							})
+					}
+					if (moves.isNotEmpty()) {
+						extraMoves.add(ZMove.newOrganizePickupMove(moves))
+					}
+				}
+			}
+
 		}
 
 		if (cur.canDoAction(ZActionType.CONSUME)) {
@@ -2087,17 +2088,21 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 				}
 			}
 		}
-		
-		val allMoves : List<ZMove> = moves.flatMap { entry -> 
-			entry.value.map { 
-				ZMove.newOrganizeSlot(entry.key, it.key, it.value)
+
+		val allMoves: List<ZMove> = moves.flatMap { (player, map) ->
+			map.map { (slot, moves) ->
+				ZMove.newOrganizeSlot(player, slot, moves)
 			}.toList()
 		}.toMutableList().also {
 			it.addAll(extraMoves)
 		}
 
 		getCurrentUser().chooseOrganize(cur.type, allMoves, stateStack.peek().undoPushes)?.let { move ->
-			return performMove(cur, move)
+			return performMove(cur, move).also {
+				if (it) {
+					stateData.undoPushes++
+				}
+			}
 		}
 
 		return false

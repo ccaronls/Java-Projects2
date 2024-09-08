@@ -15,6 +15,9 @@ data class ZSpawnArea(
 	var isCanBeRemovedFromBoard: Boolean = false,
 	var isCanBeDestroyedByCatapult: Boolean = false
 ) : UIZButton() {
+
+	private var rect: GRectangle = GRectangle()
+
 	companion object {
 		init {
 			addAllFields(ZSpawnArea::class.java)
@@ -28,8 +31,6 @@ data class ZSpawnArea(
 			return true
 		return cellPos == other.cellPos && dir == other.dir
 	}
-
-	private var rect = GRectangle()
 
 	override fun getRect(): IRectangle = rect
 

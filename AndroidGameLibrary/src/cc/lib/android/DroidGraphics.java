@@ -134,14 +134,13 @@ public abstract class DroidGraphics extends APGraphics {
     }
 
     @Override
-    public final float setTextHeight(float height) {
+    public final float setTextHeight(float height, boolean pixels) {
         float curHeight = textPaint.getTextSize();
+        if (!pixels) {
+            height = convertDipsToPixels(height);
+        }
         textPaint.setTextSize(height);
         return curHeight;
-    }
-
-    public final void setTextHeightDips(float dips) {
-        setTextHeight(convertDipsToPixels(dips));
     }
 
     @Override

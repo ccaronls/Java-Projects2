@@ -9,7 +9,6 @@ import cc.lib.game.Utils
 import cc.lib.logger.LoggerFactory
 import cc.lib.math.Vector2D
 import cc.lib.ui.UIComponent
-import cc.lib.ui.UIKeyCode
 import cc.lib.utils.GException
 import java.awt.Color
 import java.awt.Dimension
@@ -109,14 +108,14 @@ abstract class AWTComponent : UIComponent, JComponent, Renderable, MouseListener
 						val f = g.font
 						G.clearScreen(GColor.CYAN)
 						G.color = GColor.WHITE
-						G.textHeight = (height / 10).toFloat()
+						G.setTextHeight((height / 10).toFloat(), true)
 						val x = (width / 2).toFloat()
 						var y = (height / 3).toFloat()
 						val txt = "INITIALIZING"
 						val tw = G.getTextWidth(txt)
 						val th = G.textHeight
 						while (tw > width && G.textHeight > 8) {
-							G.textHeight = G.textHeight - 2
+							G.setTextHeight(G.textHeight - 2, true)
 						}
 						G.drawJustifiedString(x - tw / 2, y, txt)
 						y += th
@@ -261,40 +260,15 @@ abstract class AWTComponent : UIComponent, JComponent, Renderable, MouseListener
 	}
 
 	override fun keyPressed(evt: KeyEvent) {
-		when (evt.keyCode) {
-			KeyEvent.VK_RIGHT -> onKeyEvent(true, UIKeyCode.RIGHT)
-			KeyEvent.VK_LEFT -> onKeyEvent(true, UIKeyCode.LEFT)
-			KeyEvent.VK_DOWN -> onKeyEvent(true, UIKeyCode.DOWN)
-			KeyEvent.VK_UP -> onKeyEvent(true, UIKeyCode.UP)
-			KeyEvent.VK_ENTER -> onKeyEvent(true, UIKeyCode.CENTER)
-			KeyEvent.VK_ESCAPE,
-			KeyEvent.VK_DELETE -> onKeyEvent(true, UIKeyCode.BACK)
-		}
 	}
 
 	override fun keyReleased(evt: KeyEvent) {
-		when (evt.keyCode) {
-			KeyEvent.VK_RIGHT -> onKeyEvent(false, UIKeyCode.RIGHT)
-			KeyEvent.VK_LEFT -> onKeyEvent(false, UIKeyCode.LEFT)
-			KeyEvent.VK_DOWN -> onKeyEvent(false, UIKeyCode.DOWN)
-			KeyEvent.VK_UP -> onKeyEvent(false, UIKeyCode.UP)
-			KeyEvent.VK_ENTER -> onKeyEvent(false, UIKeyCode.CENTER)
-			KeyEvent.VK_ESCAPE,
-			KeyEvent.VK_DELETE -> onKeyEvent(false, UIKeyCode.BACK)
-		}
 	}
 
 	protected open fun onDragStarted(x: Int, y: Int) {}
 	protected open fun onDragStopped() {}
 	protected open fun onDrag(x: Int, y: Int, dx: Int, dy: Int) {}
 	protected open fun onClick() {}
-
-	/**
-	 * Return true is consumed
-	 */
-	protected open fun onKeyEvent(down: Boolean, code: UIKeyCode): Boolean {
-		return false
-	}
 
 	override fun getX(): Int {
 		return super.getX() + padding

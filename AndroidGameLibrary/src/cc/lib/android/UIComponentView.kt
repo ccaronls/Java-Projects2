@@ -28,7 +28,7 @@ import kotlin.math.max
 import kotlin.math.roundToInt
 
 abstract class UIComponentView<T : UIRenderer>
-	: View, UIComponent, Runnable, ScaleGestureDetector.OnScaleGestureListener, View.OnKeyListener, View.OnFocusChangeListener {
+	: View, UIComponent, Runnable, ScaleGestureDetector.OnScaleGestureListener, View.OnFocusChangeListener {
 
 	private val TAG = this::class.java.simpleName
 
@@ -67,8 +67,7 @@ abstract class UIComponentView<T : UIRenderer>
 		borderPaint.style = Paint.Style.STROKE
 		borderPaint.strokeWidth = borderThickness
 		borderPaint.color = borderColor
-		setOnKeyListener(this)
-		setOnFocusChangeListener(this)
+		onFocusChangeListener = this
 		a.recycle()
 	}
 
@@ -125,8 +124,7 @@ abstract class UIComponentView<T : UIRenderer>
 			g.drawRect(rect, 3f)
 			g.drawFilledRect(rect.scaledBy(progress, 1f))
 
-			val hgt = g.textHeight
-			g.textHeight = rect.h * 3 / 4
+			g.pushTextHeight(rect.h * 3 / 4, true)
 			g.color = GColor.WHITE
 			g.drawWrapString(
 				(width / 2f),
@@ -136,7 +134,7 @@ abstract class UIComponentView<T : UIRenderer>
 				Justify.BOTTOM,
 				loadingString
 			)
-			g.textHeight = hgt
+			g.popTextHeight()
 
 		} else if (!isInEditMode) {
 			loadAssetsRunnable = null
@@ -162,18 +160,40 @@ abstract class UIComponentView<T : UIRenderer>
 		g.translate(-borderThickness, -borderThickness)
 	}
 
-	override fun onKey(v: View?, keyCode: Int, event: KeyEvent): Boolean {
-		val result = when (keyCode) {
-			KeyEvent.KEYCODE_DPAD_DOWN -> renderer.onKeyEvent(event.action == KeyEvent.ACTION_DOWN, UIKeyCode.DOWN)
-			KeyEvent.KEYCODE_DPAD_UP -> renderer.onKeyEvent(event.action == KeyEvent.ACTION_DOWN, UIKeyCode.UP)
-			KeyEvent.KEYCODE_DPAD_RIGHT -> renderer.onKeyEvent(event.action == KeyEvent.ACTION_DOWN, UIKeyCode.RIGHT)
-			KeyEvent.KEYCODE_DPAD_LEFT -> renderer.onKeyEvent(event.action == KeyEvent.ACTION_DOWN, UIKeyCode.LEFT)
-			KeyEvent.KEYCODE_DPAD_CENTER -> renderer.onKeyEvent(event.action == KeyEvent.ACTION_DOWN, UIKeyCode.CENTER)
-			KeyEvent.KEYCODE_BACK -> renderer.onKeyEvent(event.action == KeyEvent.ACTION_DOWN, UIKeyCode.BACK)
-			else -> false
+	private var inLongPress = false
+
+	final override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean {
+		keyCodeMap[keyCode]?.let {
+			if (inLongPress) {
+				renderer.onKeyLongPressRelease(it)
+				inLongPress = false
+				redraw()
+			} else if (renderer.onKeyTyped(it).also {
+					redraw()
+				}) {
+				return true
+			}
 		}
-		renderer.redraw()
-		return result
+		return super.onKeyUp(keyCode, event)
+	}
+
+	final override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
+		keyCodeMap[keyCode]?.let {
+			event.startTracking()
+			return true
+		}
+		return super.onKeyDown(keyCode, event)
+	}
+
+	final override fun onKeyLongPress(keyCode: Int, event: KeyEvent): Boolean {
+		keyCodeMap[keyCode]?.let {
+			if (renderer.onKeyLongPress(it)) {
+				redraw()
+				inLongPress = true
+				return true
+			}
+		}
+		return super.onKeyLongPress(keyCode, event)
 	}
 
 	override fun onFocusChange(v: View?, hasFocus: Boolean) {
@@ -311,5 +331,16 @@ abstract class UIComponentView<T : UIRenderer>
 			renderer.onZoom(1f / detector.scaleFactor)
 		}
 		return true
+	}
+
+	companion object {
+		private val keyCodeMap = mapOf(
+			KeyEvent.KEYCODE_DPAD_DOWN to UIKeyCode.DOWN,
+			KeyEvent.KEYCODE_DPAD_UP to UIKeyCode.UP,
+			KeyEvent.KEYCODE_DPAD_RIGHT to UIKeyCode.RIGHT,
+			KeyEvent.KEYCODE_DPAD_LEFT to UIKeyCode.LEFT,
+			KeyEvent.KEYCODE_DPAD_CENTER to UIKeyCode.CENTER,
+			KeyEvent.KEYCODE_BACK to UIKeyCode.BACK
+		)
 	}
 }

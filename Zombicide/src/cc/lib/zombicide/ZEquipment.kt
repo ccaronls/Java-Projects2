@@ -1,6 +1,7 @@
 package cc.lib.zombicide
 
 
+import cc.lib.game.GColor
 import cc.lib.reflector.Reflector
 import cc.lib.ui.IButton
 import cc.lib.utils.Table
@@ -58,7 +59,7 @@ abstract class ZEquipment<T : ZEquipmentType> : Reflector<ZEquipment<T>>(), IBut
     }
 
     override fun hashCode(): Int {
-        return type.hashCode()
+	    return type.hashCode()
     }
 
 	abstract fun getCardInfo(c: ZCharacter, game: ZGame): Table
@@ -68,6 +69,9 @@ abstract class ZEquipment<T : ZEquipmentType> : Reflector<ZEquipment<T>>(), IBut
 
 	override fun getLabel(): String = type.name.prettify()
 
-    open fun onEndOfRound(game: ZGame) {}
-    override fun isImmutable(): Boolean = true
+	open fun getColor(): GColor = GColor.WHITE
+
+	open fun onEndOfRound(game: ZGame) {}
+
+	override fun isImmutable(): Boolean = true
 }

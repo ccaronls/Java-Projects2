@@ -1,7 +1,12 @@
 package cc.game.soc.ui
 
 import cc.game.soc.core.EventCard
-import cc.lib.game.*
+import cc.lib.game.AAnimation
+import cc.lib.game.AGraphics
+import cc.lib.game.APGraphics
+import cc.lib.game.GColor
+import cc.lib.game.GDimension
+import cc.lib.game.Justify
 import cc.lib.logger.LoggerFactory
 import cc.lib.ui.UIComponent
 
@@ -21,7 +26,7 @@ class UIEventCardRenderer(component: UIComponent) : UIRenderer(component) {
 	@Synchronized
 	override fun draw(g: APGraphics, px: Int, py: Int) {
 		eventCard?.let { card ->
-			g.textHeight = RenderConstants.textSizeSmall
+			g.setTextHeight(RenderConstants.textSizeSmall, false)
 			g.setTextStyles(AGraphics.TextStyle.NORMAL)
 			val cardText = card.type.getNameId()
 			val helpText: String? = card.getHelpText(UISOC.instance.rules)

@@ -71,9 +71,15 @@ abstract class UIRenderer protected constructor(private val component: UICompone
 	open fun onZoom(scale: Float) {}
 	open fun onFocusChanged(gained: Boolean) {}
 
-	open fun onKeyEvent(down: Boolean, code: UIKeyCode): Boolean {
+	open fun onKeyTyped(code: UIKeyCode): Boolean {
 		return false
 	}
+
+	open fun onKeyLongPress(code: UIKeyCode): Boolean {
+		return false
+	}
+
+	open fun onKeyLongPressRelease(code: UIKeyCode) {}
 
 	fun setMinDimension(w: Float, h: Float) {
 		minDimension = GDimension(w, h)

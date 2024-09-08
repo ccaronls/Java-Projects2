@@ -72,7 +72,7 @@ abstract class UIZButton : Reflector<UIZButton>(), IButton, IRectangle, Comparab
 		val menuRect = GRectangle()
 		var node = first
 		val topRight = topRight
-		g.pushTextHeight(16f)
+		g.pushTextHeight(12f, false)
 		while (node != null) {
 			(node as? UIZombicide.BoardButton?)?.let {
 				val textRect = g.getTextRectangle(it.move.getLabel())
@@ -88,22 +88,24 @@ abstract class UIZButton : Reflector<UIZButton>(), IButton, IRectangle, Comparab
 	}
 
 	open fun draw(g: AGraphics, game: ZGame, selected: Boolean) {
-		if (menuRect == null && !UIZombicide.instance.boardRenderer.isAnimating) {
-			menuRect = computeMenuRect(g)
-		} else if (UIZombicide.instance.boardRenderer.isAnimating) {
+		if (UIZombicide.instance.boardRenderer.isAnimating) {
 			menuRect = null
+		} else {
+			if (menuRect == null) {
+				menuRect = computeMenuRect(g)
+			}
+			g.color = test(selected, GColor.RED, GColor.YELLOW)
+			drawOutlined(g)
 		}
-		g.color = test(selected, GColor.RED, GColor.YELLOW)
-		g.drawRect(getRect())
 	}
 
-	override fun getLeft() = getRect().getLeft()
+	final override fun compareTo(other: UIZButton): Int = getRect().area.compareTo(other.getRect().area)
 
-	override fun getTop() = getRect().getTop()
+	override fun getWidth(): Float = getRect().width
 
-	override fun getWidth() = getRect().width
+	override fun getHeight(): Float = getRect().height
 
-	override fun getHeight() = getRect().height
+	override fun getLeft(): Float = getRect().left
 
-	final override fun compareTo(other: UIZButton): Int = area.compareTo(other.area)
+	override fun getTop(): Float = getRect().top
 }

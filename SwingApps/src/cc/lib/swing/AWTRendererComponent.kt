@@ -4,6 +4,10 @@ import cc.lib.math.MutableVector2D
 import cc.lib.ui.UIComponent
 import cc.lib.ui.UIKeyCode
 import cc.lib.ui.UIRenderer
+import cc.lib.utils.launchIn
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 
 fun MouseEvent.toMutableVector2D() = MutableVector2D(x.toFloat(), y.toFloat())
@@ -94,11 +98,50 @@ abstract class AWTRendererComponent<R : UIRenderer>() : AWTComponent(), UICompon
 		super.mouseMoved(e)
 	}
 
-	override fun onKeyEvent(down: Boolean, code: UIKeyCode): Boolean {
-		if (::renderer.isInitialized) {
-			return renderer.onKeyEvent(down, code)
-		}
+	private val keyMap = mapOf(
+		KeyEvent.VK_RIGHT to UIKeyCode.RIGHT,
+		KeyEvent.VK_LEFT to UIKeyCode.LEFT,
+		KeyEvent.VK_DOWN to UIKeyCode.DOWN,
+		KeyEvent.VK_UP to UIKeyCode.UP,
+		KeyEvent.VK_ENTER to UIKeyCode.CENTER,
+		KeyEvent.VK_ESCAPE to UIKeyCode.BACK,
+		KeyEvent.VK_DELETE to UIKeyCode.BACK
+	)
 
-		return super.onKeyEvent(down, code)
+	private var primaryKey: UIKeyCode? = null
+	private var keyJob: Job? = null
+	private var inLongPress = false
+
+	override fun keyPressed(evt: KeyEvent) {
+		if (primaryKey != null)
+			return
+		keyMap[evt.keyCode]?.let { code ->
+			primaryKey = code
+			keyJob = launchIn {
+				delay(1000)
+				inLongPress = true
+				renderer.onKeyLongPress(code)
+			}
+		}
+		super.keyPressed(evt)
+	}
+
+	override fun keyReleased(evt: KeyEvent) {
+		primaryKey?.let { code ->
+			if (inLongPress) {
+				renderer.onKeyLongPressRelease(code)
+			} else {
+				keyJob?.cancel()
+				renderer.onKeyTyped(code)
+			}
+			keyJob = null
+			inLongPress = false
+			primaryKey = null
+		}
+		super.keyReleased(evt)
+	}
+
+	override fun keyTyped(evt: KeyEvent) {
+		super.keyTyped(evt)
 	}
 }

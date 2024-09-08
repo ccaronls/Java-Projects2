@@ -104,31 +104,43 @@ data class ZMove(
 
 	    fun newObjectiveMove(zone: Int): ZMove {
             return ZMove(type = ZMoveType.TAKE_OBJECTIVE, integer = zone)
-        }
+	    }
 
-        fun newReloadMove(slot: ZWeapon): ZMove {
-            return ZMove(type = ZMoveType.RELOAD, equipment = slot)
-        }
+		fun newReloadMove(slot: ZWeapon): ZMove {
+			return ZMove(type = ZMoveType.RELOAD, equipment = slot)
+		}
 
-        fun newPickupItemMove(takables: List<ZEquipment<*>>): ZMove {
-            return ZMove(type = ZMoveType.PICKUP_ITEM, list = takables)
-        }
+		fun newPickupItemMove(takables: List<ZEquipment<*>>): ZMove {
+			return ZMove(type = ZMoveType.PICKUP_ITEM, list = takables)
+		}
 
-        fun newDropItemMove(items: List<ZEquipment<*>>): ZMove {
-            return ZMove(type = ZMoveType.DROP_ITEM, list = items)
-        }
+		fun newPickupItemMove(character: ZPlayerName, equip: ZEquipment<*>, toSlot: ZEquipSlot): ZMove {
+			return ZMove(character = character, type = ZMoveType.PICKUP_ITEM, equipment = equip, toSlot = toSlot)
+		}
 
-        fun newWalkDirMove(dir: ZDir, action: ZActionType?): ZMove {
-            return ZMove(type = ZMoveType.WALK_DIR, integer = dir.ordinal, action = action)
-        }
+		fun newOrganizePickupMove(moves: List<ZMove>): ZMove {
+			return ZMove(type = ZMoveType.ORGANIZE_PICKUP, list = moves)
+		}
 
-        fun newSwitchActiveCharacter(): ZMove {
-            return ZMove(type = ZMoveType.SWITCH_ACTIVE_CHARACTER)
-        }
+		fun newDropItemMove(items: List<ZEquipment<*>>): ZMove {
+			return ZMove(type = ZMoveType.DROP_ITEM, list = items)
+		}
 
-        fun newMakeNoiseMove(occupiedZone: Int): ZMove {
-            return ZMove(type = ZMoveType.MAKE_NOISE, integer = occupiedZone)
-        }
+		fun newDropItemMove(item: ZEquipment<*>): ZMove {
+			return ZMove(type = ZMoveType.DROP_ITEM, equipment = item)
+		}
+
+		fun newWalkDirMove(dir: ZDir, action: ZActionType?): ZMove {
+			return ZMove(type = ZMoveType.WALK_DIR, integer = dir.ordinal, action = action)
+		}
+
+		fun newSwitchActiveCharacter(): ZMove {
+			return ZMove(type = ZMoveType.SWITCH_ACTIVE_CHARACTER)
+		}
+
+		fun newMakeNoiseMove(occupiedZone: Int): ZMove {
+			return ZMove(type = ZMoveType.MAKE_NOISE, integer = occupiedZone)
+		}
 
         fun newShoveMove(toZones: List<Int>): ZMove {
             return ZMove(type = ZMoveType.SHOVE, list = toZones)
@@ -232,8 +244,6 @@ data class ZMove(
 			return ZMove(ZMoveType.FAMILIAR_MOVE, character = player, familiar = familiar.type)
 		}
 
-		fun newUndoMove() = ZMove(ZMoveType.UNDO)
-
 		init {
 			addAllFields(ZMove::class.java)
 		}
@@ -290,13 +300,7 @@ data class ZMove(
 		return label
 	}
 
-	fun toStringAbbrev(): String {
-		return "$type, " +
-			(if (integer != null) " int:$integer" else "") +
-			(if (character != null) " char:$character" else "") +
-			(if (equipment != null) " equip:${equipment.type}" else "") +
-			(if (fromSlot != null) " from:$fromSlot" else "") +
-			(if (toSlot != null) " to:$toSlot" else "") +
-			(if (skill != null) " skill:$skill" else "")
+	override fun toString(): String {
+		return super.toString()
 	}
 }

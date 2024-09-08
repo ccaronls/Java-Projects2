@@ -44,8 +44,6 @@ enum class ZActionType {
 	CONSUME,
 	OBJECTIVE,
 	RELOAD,
-	DROP_ITEM,
-	PICKUP_ITEM,
 	MAKE_NOISE {
 		override val breaksInvisibility = true
 	},

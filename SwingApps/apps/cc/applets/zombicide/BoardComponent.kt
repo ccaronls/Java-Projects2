@@ -205,6 +205,7 @@ internal class BoardComponent : AWTRendererComponent<UIZBoardRenderer>(), UIZCom
 			arrayOf<Any>(ZIcon.SPAWN_RED, "zspawn_red.png"),
 			arrayOf<Any>(ZIcon.SPAWN_BLUE, "zspawn_blue.png"),
 			arrayOf<Any>(ZIcon.SPAWN_GREEN, "zspawn_green.png"),
+			arrayOf<Any>(ZIcon.SPAWN_NECRO, "zspawn_necro.png"),
 			arrayOf<Any>(ZIcon.SLASH, "zslash1.png"),
 			arrayOf<Any>(ZIcon.SLASH, "zslash2.png"),
 			arrayOf<Any>(ZIcon.SLASH, "zslash3.png"),
@@ -418,6 +419,7 @@ internal class BoardComponent : AWTRendererComponent<UIZBoardRenderer>(), UIZCom
 						ZDir.EAST -> keyMap[KeyEvent.VK_RIGHT] = move
 						ZDir.WEST -> keyMap[KeyEvent.VK_LEFT] = move
 						ZDir.DESCEND, ZDir.ASCEND -> keyMap[KeyEvent.VK_SLASH] = move
+						else -> Unit
 					}
 					it.remove()
 				}
@@ -437,6 +439,7 @@ internal class BoardComponent : AWTRendererComponent<UIZBoardRenderer>(), UIZCom
 	}
 
 	override fun keyPressed(e: KeyEvent) {
+		super.keyPressed(e)
 		val game = UIZombicide.instance
 		keyMap[e.keyCode]?.let { move ->
 			game.setResult(move)

@@ -13,7 +13,6 @@ import android.text.format.DateFormat
 import android.text.format.Formatter
 import android.util.Log
 import android.view.Gravity
-import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -186,31 +185,18 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 		}
 		zb.bRepeat.setOnClickListener(this)
 		zb.boardView.enablePinchZoom()
-		if (isTV()) {
-			zb.boardView.setOnKeyListener { v, keyCode, event ->
-				if (event.action == KeyEvent.ACTION_DOWN) {
-					when (keyCode) {
-						KeyEvent.KEYCODE_BACK -> {
-							zb.listMenu.requestFocus()
-							true
-						}
-					}
-				}
-				false
-			}
-		}
 		zb.consoleView.setOnClickListener {
 			game.showCharacterExpandedOverlay()
 		}
 		zb.bGameMenu.setOnClickListener {
 			showGameMenuDialog()
 		}
-		characterRenderer = UIZCharacterRenderer(zb.consoleView)
-		boardRenderer = object : UIZBoardRenderer(zb.boardView) {
-
-			override fun getTextSizePixels(size: Float): Float {
-				return DroidUtils.convertDipsToPixels(this@ZombicideActivity, size).toFloat()
+		characterRenderer = object : UIZCharacterRenderer(zb.consoleView) {
+			override fun scrollToTop() {
+				zb.svConsole.smoothScrollTo(0, 0)
 			}
+		}
+		boardRenderer = object : UIZBoardRenderer(zb.boardView) {
 
 			override fun onLoaded() {
 				zb.vgTop.layoutTransition = LayoutTransition()
@@ -365,6 +351,12 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 			override fun focusOnMainMenu() {
 				runOnUiThread {
 					zb.listMenu.requestFocus()
+				}
+			}
+
+			override fun focusOnBoard() {
+				runOnUiThread {
+					zb.boardView.requestFocus()
 				}
 			}
 

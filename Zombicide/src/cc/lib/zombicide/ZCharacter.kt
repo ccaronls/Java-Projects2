@@ -223,9 +223,11 @@ class ZCharacter(
             }
         }
         when (action) {
-	        ZActionType.INVENTORY, ZActionType.CONSUME -> if (!hasAvailableSkill(ZSkill.Inventory)) {
+	        ZActionType.INVENTORY,
+	        ZActionType.CONSUME -> if (!hasAvailableSkill(ZSkill.Inventory)) {
 		        addAvailableSkill(ZSkill.Inventory)
 	        }
+
 	        else -> Unit
         }
 	    if (action.oncePerTurn) {
@@ -851,7 +853,7 @@ class ZCharacter(
 	    val hgt = 0.04f
 	    val rect = getRect()
 	    g.color = color.darkened(.5f)
-	    val x = rect.getLeft() + 0.02f
+	    val x = rect.left + 0.02f
 	    val w = rect.width - 0.04f
 	    g.drawFilledRect(x, rect.top + rect.height - hgt / 4, w, hgt)
 	    g.drawFilledOval(x, rect.top + rect.height + hgt / 4, w, hgt)

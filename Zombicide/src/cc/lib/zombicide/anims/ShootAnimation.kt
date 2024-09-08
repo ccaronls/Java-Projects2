@@ -34,7 +34,7 @@ open class ShootAnimation(actor: ZActor, duration: Long, center: IVector2D?, val
 	}
 
 	init {
-		val start = Vector2D(actor)
+		val start = Vector2D(actor.center)
 		val end = Vector2D(center)
 		val dv: Vector2D = end.sub(start)
 		dir = getFromVector(dv)

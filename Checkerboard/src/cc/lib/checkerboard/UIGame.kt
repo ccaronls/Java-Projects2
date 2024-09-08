@@ -1,14 +1,20 @@
 package cc.lib.checkerboard
 
 import cc.lib.checkerboard.AIPlayer.Companion.cancel
-import cc.lib.game.*
+import cc.lib.game.AAnimation
+import cc.lib.game.AGraphics
+import cc.lib.game.GColor
+import cc.lib.game.GDimension
+import cc.lib.game.IVector2D
+import cc.lib.game.Justify
+import cc.lib.game.Utils
 import cc.lib.logger.LoggerFactory
 import cc.lib.math.Bezier
 import cc.lib.math.Vector2D
 import cc.lib.utils.Lock
 import cc.lib.utils.Table
 import java.io.File
-import java.util.*
+import java.util.Collections
 
 abstract class UIGame : Game() {
 	lateinit var saveFile: File
@@ -605,10 +611,10 @@ ${winner!!.color} Wins!"""
 		} else {
 			g.color = color.color
 			g.drawFilledCircle(0f, -h / 2, w / 2)
-			val curHeight = g.setTextHeight(SQ_DIM / 2)
+			g.pushTextHeight(SQ_DIM / 2, true)
 			g.color = color.color.inverted()
 			g.drawJustifiedString(0f, -h / 2, Justify.CENTER, Justify.CENTER, p.abbrev)
-			g.textHeight = curHeight
+			g.popTextHeight()
 		}
 		if (outlineColor != null) {
 			g.color = outlineColor

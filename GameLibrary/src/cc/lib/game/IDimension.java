@@ -105,4 +105,59 @@ public interface IDimension {
     default boolean isEmpty() {
         return getWidth() <= 0 || getHeight() <= 0;
     }
+
+    /**
+     * @return
+     */
+    default float getArea() {
+        return getWidth() * getHeight();
+    }
+
+    /**
+     * Return the rectangular region that encompasses this rectangle if it were to be rotated.
+     * For instance, if a 4x2 rect were rotated 45 degrees, then the resulting rectangle would be approx 4.2x4.2
+     *
+     * @param degrees
+     * @return
+     */
+    default GDimension rotated(float degrees) {
+        Vector2D tl = new Vector2D(-getWidth() / 2, -getHeight() / 2).rotate(degrees);
+        Vector2D tr = new Vector2D(getWidth() / 2, -getHeight() / 2).rotate(degrees);
+
+        float newWidth = Math.max(Math.abs(tl.getX()), Math.abs(tr.getX())) * 2;
+        float newHeight = Math.max(Math.abs(tl.getY()), Math.abs(tr.getY())) * 2;
+
+        return new GDimension(newWidth, newHeight);
+    }
+
+    default GDimension adjustedBy(float dw, float dh) {
+        return new GDimension(getWidth() + dw, getHeight() + dh);
+    }
+
+    default GDimension interpolateTo(GDimension other, float factor) {
+        float w = getWidth() + (other.getWidth() - getWidth()) * factor;
+        float h = getHeight() + (other.getHeight() - getHeight()) * factor;
+        return new GDimension(w, h);
+    }
+
+    default GDimension addVert(GDimension d) {
+        return new GDimension(Math.max(getWidth(), d.getWidth()), getHeight() + d.getHeight());
+    }
+
+    default GDimension addHorz(GDimension d) {
+        return new GDimension(getWidth() + d.getWidth(), Math.max(getHeight(), d.getHeight()));
+    }
+
+    default Float minLength() {
+        return Math.min(getWidth(), getHeight());
+    }
+
+    default GDimension scaledTo(float sx, float sy) {
+        return new GDimension(getWidth() * sx, getHeight() * sy);
+    }
+
+    default GDimension scaledTo(float s) {
+        return scaledTo(s, s);
+    }
+
 }

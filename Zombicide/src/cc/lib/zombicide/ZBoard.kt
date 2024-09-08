@@ -886,10 +886,10 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 	}
 
 	fun getDistanceBetweenZones(z0: Int, z1: Int): Int {
-		val r0 = getZone(z0)
-		val r1 = getZone(z1)
-		var dx = (r0.getLeft() - r1.getLeft()).roundToInt()
-		var dy = (r0.getTop() - r1.getTop()).roundToInt()
+		val r0 = getZone(z0).enclosingRect()
+		val r1 = getZone(z1).enclosingRect()
+		var dx = (r0.left - r1.left).roundToInt()
+		var dy = (r0.top - r1.top).roundToInt()
 		if (dx < 0)
 			dx = abs(dx) - r0.width.roundToInt()
 		else

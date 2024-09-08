@@ -34,6 +34,7 @@ enum class ZMoveType(val toolTipText: String?, val shortName: String = "") : IBu
 	TAKE_OBJECTIVE("Zones that contain an 'X' are objectives. Take an objective to claim its EXP and whatever else might be associated with it like keys ot special loot.", "Take"),  // drop or collect items from vault
 	DROP_ITEM("Dropping an item in the vault allows anyone to pick it up later.", "Drop"),
 	PICKUP_ITEM("Take an item from the vault into your inventory or open slot.", "Pickup"),
+	ORGANIZE_PICKUP("Choose Item to Pickup"),
 	MAKE_NOISE("Spend an action to draw zombies toward you. Zombies that have line of sight to a different player will not be affected by make noise."),
 	SHOVE("Push all zombies in your zone to a neighboring zone.", "Shove"),
 	REROLL(null),
@@ -60,8 +61,7 @@ enum class ZMoveType(val toolTipText: String?, val shortName: String = "") : IBu
 	CATAPULT_FIRE_GRAPESHOT("Fire a grape shot. Three dice 3/4+ to hit and 2 damage"),
 	CATAPULT_FIRE_BOULDER("Fire a boulder. One die 3/4+ to hit and 3 damage"),
 	BALLISTA_FIRE_BOLT("Fire a bolt that damages all zones in its path"),
-	FAMILIAR_MOVE("View move options for your familiar"),
-	UNDO("Roll back game state"),
+	FAMILIAR_MOVE("View move options for your familiar")
 	;
 
 	override fun getLabel(): String {

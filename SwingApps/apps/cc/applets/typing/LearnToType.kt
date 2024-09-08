@@ -1,6 +1,10 @@
 package cc.applets.typing
 
-import cc.lib.game.*
+import cc.lib.game.AGraphics
+import cc.lib.game.GColor
+import cc.lib.game.GRectangle
+import cc.lib.game.Justify
+import cc.lib.game.Utils
 import cc.lib.math.Vector2D
 import cc.lib.reflector.Reflector
 import cc.lib.swing.AWTFrame
@@ -31,7 +35,7 @@ class LearnToType : AWTKeyboardAnimationApplet() {
 		val h = Math.round(w.toFloat() / aspect)
 		val x = 0
 		val y = 0
-		g.textHeight = 28f
+		g.setTextHeight(28f, false)
 		g.drawImage(keyboardId, x.toFloat(), y.toFloat(), w.toFloat(), h.toFloat())
 	}
 
@@ -68,7 +72,7 @@ class LearnToType : AWTKeyboardAnimationApplet() {
 					g.drawRoundedRect(r, 1f, 10f)
 				}
 			}
-			g.textHeight = 56f
+			g.setTextHeight(56f, false)
 			if (typeThis == null) {
 				val chars = "abcdefghijklmnopqrstuvwxyz"
 				typeThis = chars[Utils.rand() % chars.length]
@@ -84,7 +88,7 @@ class LearnToType : AWTKeyboardAnimationApplet() {
 	}
 
 	fun drawKeyboardKeys(g: AGraphics) {
-		g.textHeight = 20f
+		g.setTextHeight(20f, false)
 		//        g.setTextStyles(AGraphics.TextStyle.BOLD);
 		for ((key1, value) in keys) {
 			g.color = GColor.WHITE

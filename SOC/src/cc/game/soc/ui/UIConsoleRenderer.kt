@@ -6,7 +6,7 @@ import cc.lib.game.GColor
 import cc.lib.game.GDimension
 import cc.lib.ui.UIComponent
 import cc.lib.utils.QueueRunner
-import java.util.*
+import java.util.LinkedList
 
 class UIConsoleRenderer(component: UIComponent) : UIRenderer(component) {
 	internal class Line(val text: String, val color: GColor)
@@ -53,7 +53,7 @@ class UIConsoleRenderer(component: UIComponent) : UIRenderer(component) {
 		for (i in startLine until lines.size) {
 			val l = lines[i]
 			g.color = l.color
-			g.textHeight = RenderConstants.textSizeSmall
+			g.setTextHeight(RenderConstants.textSizeSmall, false)
 			val dim = g.drawWrapString(0f, y, getComponent<UIComponent>().getWidth().toFloat(), l.text)
 			y += dim.height
 			if (y > getComponent<UIComponent>().getHeight()) {

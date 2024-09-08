@@ -4,7 +4,12 @@ import android.content.Intent
 import android.os.Bundle
 import cc.lib.android.DroidActivity
 import cc.lib.android.DroidGraphics
-import cc.lib.game.*
+import cc.lib.game.AAnimation
+import cc.lib.game.AGraphics
+import cc.lib.game.GColor
+import cc.lib.game.GDimension
+import cc.lib.game.GRectangle
+import cc.lib.game.Justify
 import cc.lib.math.Vector2D
 
 class Splash : DroidActivity() {
@@ -41,8 +46,14 @@ class Splash : DroidActivity() {
 							position = 1f
 							g.color = GColor.WHITE
 							val yPos = (g.viewportHeight / 6).toFloat()
-							g.textHeight = yPos / 2
-							g.drawJustifiedString((g.viewportWidth / 2).toFloat(), yPos, Justify.CENTER, Justify.CENTER, getString(R.string.app_name))
+							g.setTextHeight(yPos / 2, true)
+							g.drawJustifiedString(
+								(g.viewportWidth / 2).toFloat(),
+								yPos,
+								Justify.CENTER,
+								Justify.CENTER,
+								getString(R.string.app_name)
+							)
 						}
 						//g.clearScreen(GColor.BLACK);
 						val handRect = GRectangle(rect)

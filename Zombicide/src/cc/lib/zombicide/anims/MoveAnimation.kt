@@ -9,7 +9,7 @@ import cc.lib.zombicide.ZActorAnimation
 class MoveAnimation(actor: ZActor, val start: GRectangle, val end: GRectangle, speed: Long) : ZActorAnimation(actor, speed) {
 
 	init {
-		rect = GRectangle(actor)
+		rect = GRectangle(actor.enclosingRect())
 	}
 
 	override fun draw(g: AGraphics, position: Float, dt: Float) {

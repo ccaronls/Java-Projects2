@@ -16,7 +16,7 @@ internal class CharacterComponent : AWTRendererComponent<UIZCharacterRenderer>()
 		val minHeight = (g.textHeight * 30).toInt()
 		setPreferredSize(minHeight * 2, minHeight)
 		setMinimumSize(minHeight * 2, minHeight)
-		g.textHeight = 14f
+		g.setTextHeight(14f, false)
 		setMouseEnabled(true)
 	}
 

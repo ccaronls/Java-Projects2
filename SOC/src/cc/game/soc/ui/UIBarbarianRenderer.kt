@@ -50,7 +50,7 @@ class UIBarbarianRenderer(component: UIComponent) : UIRenderer(component) {
 		val text = String.format("%-10s %d\n%-10s %d", "Settlers:", catanStr, "Barbarians:", barbStr)
 		val tb2 = textBorderPadding * 2
 		val dim = g.getTextDimension(text, wid - tb2)
-		g.textHeight = RenderConstants.textSizeSmall
+		g.setTextHeight(RenderConstants.textSizeSmall, false)
 		if (distance < positions.size / 2) {
 			// upper left hand corner
 			g.color = GColor.TRANSLUSCENT_BLACK

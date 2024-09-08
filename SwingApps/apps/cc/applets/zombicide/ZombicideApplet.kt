@@ -72,7 +72,12 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 				super.drawActor(g, actor, outline)
 			}
 		}
-		game = object : UIZombicide(UIZCharacterRenderer(charComp), boardRenderer) {
+		val charRenderer = object : UIZCharacterRenderer(charComp) {
+			override fun scrollToTop() {
+				charComp.scrollRectToVisible(Rectangle(0, 0, 1, 1))
+			}
+		}
+		game = object : UIZombicide(charRenderer, boardRenderer) {
 			override suspend fun runGame(): Boolean {
 				var changed = false
 				try {
@@ -114,6 +119,18 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 
 			override fun focusOnMainMenu() {
 				menuContainer.grabFocus()
+			}
+
+			override fun focusOnBoard() {
+				boardComp.grabFocus()
+			}
+
+			override fun undo() {
+				val running = isGameRunning()
+				stopGameThread()
+				tryLoadFromFile(gameFile)
+				refresh()
+				if (running) startGameThread()
 			}
 		}
 		initIntro()
@@ -322,11 +339,7 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 				}
 			}
 			MenuItem.UNDO -> if (FileUtils.restoreFile(gameFile)) {
-				val running = game.isGameRunning()
-				game.stopGameThread()
-				game.tryLoadFromFile(gameFile)
-				game.refresh()
-				if (running) game.startGameThread()
+				game.undo()
 			}
 
 			MenuItem.COLOR -> {

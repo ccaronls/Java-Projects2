@@ -16,6 +16,7 @@
     <cc.game.zombicide.android.OrganizeLayout
         style="@style/ZOrganizeContainer"
         android:layout_width="match_parent"
+        tools:layout_width="120dp"
         android:layout_height="wrap_content"
         android:tag="@{equip}">
 
@@ -25,10 +26,10 @@
             android:gravity="center"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingVertical="3dp"
+            android:padding="5dp"
             android:text="@{equip.label}"
             textColorInt="@{equip.color.toARGB()}"
-            tools:text="ORCISH\nCROSSBOW" />
+            tools:text="ORCISH CROSSBOW" />
 
     </cc.game.zombicide.android.OrganizeLayout>
 </layout>

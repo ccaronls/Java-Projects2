@@ -31,7 +31,7 @@ public interface IVector2D {
     }
 
     default MutableVector2D add(float x, float y) {
-        return new MutableVector2D(this.getX() + x, this.getY() + y);
+        return new MutableVector2D(getX() + x, getY() + y);
     }
 
     default MutableVector2D sub(IVector2D v) {

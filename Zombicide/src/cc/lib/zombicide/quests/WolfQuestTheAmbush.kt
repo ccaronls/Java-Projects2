@@ -91,7 +91,7 @@ arrayOf("z36:blspw", "z37", "z38",                              "z39", "z40", "z
 	override fun drawQuest(board: ZBoard, g: AGraphics) {
 		for (zIdx in occupyZones) {
 			val zone = board.getZone(zIdx)
-			val rect = zone.scaledBy(.25f, .25f)
+			val rect = zone.enclosingRect().scaledBy(.25f, .25f)
 			g.color = GColor.GREEN //.withAlpha(.5f));
 			g.drawLine(rect.topLeft, rect.bottomRight, 10f)
 			g.drawLine(rect.topRight, rect.bottomLeft, 10f)

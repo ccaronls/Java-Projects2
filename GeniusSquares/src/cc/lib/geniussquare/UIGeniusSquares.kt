@@ -1,6 +1,10 @@
 package cc.lib.geniussquare
 
-import cc.lib.game.*
+import cc.lib.game.AAnimation
+import cc.lib.game.AGraphics
+import cc.lib.game.APGraphics
+import cc.lib.game.GColor
+import cc.lib.game.Justify
 import cc.lib.math.MutableVector2D
 import cc.lib.math.Vector2D
 import cc.lib.utils.Grid
@@ -96,7 +100,7 @@ abstract class UIGeniusSquares : GeniusSquares() {
 				g.popMatrix()
 			}
 			g.popMatrix()
-			g.textHeight = (CELL_DIM / 2).toFloat()
+			g.setTextHeight((CELL_DIM / 2).toFloat(), true)
 			timer.capture()
 			var timeSecs = (timer.time / 1000).toInt()
 			val timeMins = timeSecs / 60
@@ -138,7 +142,7 @@ abstract class UIGeniusSquares : GeniusSquares() {
 	var endgameAnim: AAnimation<AGraphics> = object : AAnimation<AGraphics>(2000, -1, true) {
 		override fun draw(g: AGraphics, position: Float, dt: Float) {
 			val hgt = g.viewport.height/5
-			g.textHeight = hgt + position * hgt
+			g.setTextHeight(hgt + position * hgt, true)
 			g.color = GColor.MAGENTA
 			g.drawJustifiedString((WIDTH / 2).toFloat(), (HEIGHT / 2).toFloat(), Justify.CENTER, Justify.CENTER, "COMPLETED")
 		}

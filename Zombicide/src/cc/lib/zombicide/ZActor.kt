@@ -2,21 +2,16 @@ package cc.lib.zombicide
 
 import cc.lib.game.AAnimation
 import cc.lib.game.AGraphics
-import cc.lib.game.GDimension
 import cc.lib.game.GRectangle
-import cc.lib.game.IInterpolator
 import cc.lib.game.IRectangle
-import cc.lib.game.IVector2D
 import cc.lib.game.Justify
 import cc.lib.game.Utils
-import cc.lib.math.Vector2D
 import cc.lib.reflector.Omit
 import cc.lib.utils.Grid
 import cc.lib.zombicide.ui.UIZButton
 import java.util.LinkedList
 
-abstract class ZActor internal constructor(var occupiedZone: Int) : UIZButton(),
-	IVector2D, IInterpolator<Vector2D> {
+abstract class ZActor internal constructor(var occupiedZone: Int) : UIZButton() {
 	companion object {
 		init {
 			addAllFields(ZActor::class.java)
@@ -63,6 +58,7 @@ abstract class ZActor internal constructor(var occupiedZone: Int) : UIZButton(),
 
 	fun updateRect(b: ZBoard) {
 		rect = getRect(b)
+		require(!rect.isNan)
 	}
 
 	override fun getRect(): IRectangle {
@@ -95,7 +91,6 @@ abstract class ZActor internal constructor(var occupiedZone: Int) : UIZButton(),
 		get() = 1f
 	abstract val imageId: Int
 	abstract val outlineImageId: Int
-	abstract override fun getDimension(): GDimension
 	open val isInvisible: Boolean
 		get() = false
 
@@ -151,18 +146,6 @@ abstract class ZActor internal constructor(var occupiedZone: Int) : UIZButton(),
 
     open val isAlive: Boolean
         get() = true
-
-    override fun getX(): Float {
-	    return center.X()
-    }
-
-    override fun getY(): Float {
-	    return center.Y()
-    }
-
-    override fun getAtPosition(position: Float): Vector2D {
-	    return center
-    }
 
 	val position: ZActorPosition
 		get() = ZActorPosition(occupiedCell, occupiedQuadrant, occupiedZone)

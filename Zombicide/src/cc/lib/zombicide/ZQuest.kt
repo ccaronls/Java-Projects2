@@ -404,17 +404,15 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
      * @return
      */
     fun getVaultItems(vaultZone: Int): MutableList<ZEquipment<*>> {
-        var list = vaultMap[vaultZone]
-        if (list == null) {
-            list = ArrayList()
-            if (vaultItemsRemaining.size > 0) {
-                val equip = vaultItemsRemaining.removeRandom()
-                equip.vaultItem = true
-                list.add(equip)
-            }
-            vaultMap[vaultZone] = list
-        }
-        return list
+	    return vaultMap.getOrPut(vaultZone) {
+		    ArrayList<ZEquipment<*>>().also {
+			    if (vaultItemsRemaining.size > 0) {
+				    it.add(vaultItemsRemaining.removeRandom().also { item ->
+					    item.vaultItem = true
+				    })
+			    }
+		    }
+	    }
     }
 
     /**
@@ -459,7 +457,7 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
     open fun onZombieSpawned(game: ZGame, zombie: ZZombie, zone: Int) {
 	    when (zombie.type) {
 		    ZZombieType.Necromancer -> {
-			    game.board.setSpawnZone(zone, ZIcon.SPAWN_GREEN, false, false, true)
+			    game.board.setSpawnZone(zone, ZIcon.SPAWN_NECRO, false, false, true)
 			    game.spawnZombies(zone)
 		    }
 		    else -> Unit

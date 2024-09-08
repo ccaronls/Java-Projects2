@@ -17,6 +17,10 @@ public interface IRectangle extends IDimension, IShape {
         return getTop() + getHeight();
     }
 
+    default boolean isNan() {
+        return getWidth() == Float.NaN || getHeight() == Float.NaN || getTop() == Float.NaN || getLeft() == Float.NaN;
+    }
+
     /**
      * @return
      */
@@ -168,15 +172,11 @@ public interface IRectangle extends IDimension, IShape {
      * Return half of min(W,H)
      * @return
      */
+    @Override
     default float getRadius() {
         double w = getWidth();
         double h = getHeight();
         return (float) Math.sqrt(w * w + h * h) / 2;
-    }
-
-    @Override
-    default float getArea() {
-        return getWidth() * getHeight();
     }
 
     /**
@@ -398,5 +398,10 @@ public interface IRectangle extends IDimension, IShape {
     @Override
     default IRectangle enclosingRect() {
         return this;
+    }
+
+    @Override
+    default float getArea() {
+        return IDimension.super.getArea();
     }
 }

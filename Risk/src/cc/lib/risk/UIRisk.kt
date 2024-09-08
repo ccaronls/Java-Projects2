@@ -1,6 +1,16 @@
 package cc.lib.risk
 
-import cc.lib.game.*
+import cc.lib.game.AAnimation
+import cc.lib.game.AGraphics
+import cc.lib.game.ChainInterpolator
+import cc.lib.game.GColor
+import cc.lib.game.GRectangle
+import cc.lib.game.IInterpolator
+import cc.lib.game.IVector2D
+import cc.lib.game.InterpolatorUtils
+import cc.lib.game.Justify
+import cc.lib.game.RomanNumeral
+import cc.lib.game.Utils
 import cc.lib.logger.LoggerFactory
 import cc.lib.math.Bezier
 import cc.lib.math.MutableVector2D
@@ -30,9 +40,9 @@ class ExpandingTextOverlayAnimation(val text: String, color: GColor) : RiskAnim(
 	val textSizeInterp: IInterpolator<Float>
 	override fun draw(g: AGraphics, position: Float, dt: Float) {
 		g.color = colorInterp.getAtPosition(position)
-		val old = g.setTextHeight(textSizeInterp.getAtPosition(position))
+		g.pushTextHeight(textSizeInterp.getAtPosition(position), true)
 		g.drawJustifiedString(g.viewport.center, Justify.CENTER, Justify.CENTER, text)
-		g.textHeight = old
+		g.popTextHeight()
 	}
 
 	init {
@@ -361,7 +371,7 @@ abstract class UIRisk(board : RiskBoard) : RiskGame(board) {
 		g.popMatrix()
 		g.ortho()
 		g.color = GColor.CYAN
-		g.textHeight = textHeightInfo
+		g.setTextHeight(textHeightInfo, false)
 		if (numPlayers > 0)
 			summary.draw(g, 10f, (g.viewportHeight - 10).toFloat(), Justify.LEFT, Justify.BOTTOM)
 		if (message.isNotEmpty()) {
@@ -418,10 +428,10 @@ abstract class UIRisk(board : RiskBoard) : RiskGame(board) {
 			AGraphics.Border(AGraphics.BORDER_FLAG_SOUTH, thickness, thickness, 0f, -thickness / 2, 0f))
 		g.color = GColor.BLACK
 		val th = textHeightRoman
-		g.textHeight = th + 4
+		g.setTextHeight(th + 4, false)
 		g.setTextStyles(AGraphics.TextStyle.BOLD)
 		g.drawJustifiedStringBordered(cell, Justify.CENTER, Justify.CENTER, numerals, *borders)
-		g.textHeight = th
+		g.setTextHeight(th, false)
 		g.setTextStyles(AGraphics.TextStyle.NORMAL)
 		g.color = army.color
 		g.drawJustifiedStringBordered(cell, Justify.CENTER, Justify.CENTER, numerals, *borders)

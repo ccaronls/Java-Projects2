@@ -49,8 +49,7 @@ public abstract class BaseRenderer implements GLSurfaceView.Renderer {
                     g.setIdentity();
                     g.ortho();
                     String fpsStr = String.valueOf(fps);
-                    int txtHeight = 32;//(int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 12, metrics);
-                    g.setTextHeight(txtHeight);
+                    g.setTextHeight(32f, false);
                     float wid = g.getTextWidth(fpsStr);
                     float x = g.getViewportWidth()-5;
                     float y = 5;

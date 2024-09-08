@@ -1,6 +1,12 @@
 package cc.game.soc.ui
 
-import cc.game.soc.core.*
+import cc.game.soc.core.CardStatus
+import cc.game.soc.core.CardType
+import cc.game.soc.core.CommodityType
+import cc.game.soc.core.DevelopmentArea
+import cc.game.soc.core.DevelopmentCardType
+import cc.game.soc.core.ResourceType
+import cc.game.soc.core.SpecialVictoryType
 import cc.lib.game.APGraphics
 import cc.lib.game.GColor
 import cc.lib.game.GDimension
@@ -30,7 +36,7 @@ class UIPlayerRenderer(component: UIComponent) : UIRenderer(component) {
 		if (playerNum < 1) return
 		val soc = UISOC.instance
 		val player = soc.getPlayerByPlayerNum(playerNum) as UIPlayer
-		g.textHeight = RenderConstants.textSizeBig
+		g.setTextHeight(RenderConstants.textSizeBig, false)
 		//g.setTextStyles(AGraphics.TextStyle.BOLD);
 		val str = StringBuffer()
 		str.append(String.format("%1\$s %2\$d Points\nCards %3\$d(%4\$d)", player.name, player.points, player.totalCardsLeftInHand, soc.rules.getMaxSafeCardsForPlayer(player.playerNum, soc.board)))
