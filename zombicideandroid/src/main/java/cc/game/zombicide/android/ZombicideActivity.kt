@@ -37,6 +37,7 @@ import cc.game.zombicide.android.databinding.ActivityZombicideBinding
 import cc.game.zombicide.android.databinding.AssignDialogItemBinding
 import cc.game.zombicide.android.databinding.TooltippopupLayoutBinding
 import cc.lib.android.CCActivityBase
+import cc.lib.android.ConfigDialogBuilder
 import cc.lib.android.DroidUtils
 import cc.lib.android.EmailHelper
 import cc.lib.android.SpinnerTask
@@ -46,6 +47,7 @@ import cc.lib.reflector.Reflector
 import cc.lib.ui.IButton
 import cc.lib.utils.FileUtils
 import cc.lib.utils.KLock
+import cc.lib.utils.enumValueOfOrNull
 import cc.lib.utils.isEmpty
 import cc.lib.utils.launchIn
 import cc.lib.utils.prettify
@@ -171,6 +173,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 		setContentView(zb.root)
 		zb.listMenu.onItemClickListener = this
 		zb.listMenu.onItemLongClickListener = this
+		zb.listMenu.itemsCanFocus = false
 		zb.bZoom.setOnClickListener(this)
 		zb.bUp.setOnClickListener(this)
 		zb.bUseleft.setOnClickListener(this)
@@ -550,6 +553,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 		get() = prefs.getStringSet(PREF_PLAYERS_STRING_SET, defaultPlayers)!!
 
 	fun processMainMenuItem(item: MenuItem) {
+		prefs.edit().putString("lastMenuItem", item.name).apply()
 		when (item) {
 			MenuItem.START -> if (game.roundNum > 0) {
 				newDialogBuilder().setTitle(R.string.popup_title_confirm).setMessage(R.string.popup_message_confirm_restart)
@@ -1251,10 +1255,15 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 		runOnUiThread {
 			vm.playing.postValue(false)
 			val buttons: MutableList<View> = ArrayList()
-			MenuItem.entries.filter { it.isHomeButton(this@ZombicideActivity) }.forEach { i ->
-				buttons.add(build(this, i, i.isEnabled(this)))
+			val focussed = enumValueOfOrNull<MenuItem>(prefs.getString("lastMenuItem", MenuItem.RESUME.name))
+			var selectedPosition = 0
+			MenuItem.entries.filter { it.isHomeButton(this@ZombicideActivity) }.forEachIndexed { index, menuItem ->
+				buttons.add(build(this, menuItem, menuItem.isEnabled(this)).also {
+					if (menuItem == focussed)
+						selectedPosition = index
+				})
 			}
-			initMenuItems(buttons)
+			initMenuItems(buttons, selectedPosition)
 		}
 	}
 
@@ -1383,9 +1392,10 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 
 	fun canUndo(): Boolean = FileUtils.hasBackupFile(gameFile)
 
-	fun initMenuItems(buttons: List<View>) {
+	fun initMenuItems(buttons: List<View>, selectedPosition: Int = 0) {
 		launchIn(Dispatchers.Main) {
 			vm.listAdapter.update(buttons)
+			zb.listMenu.setSelection(selectedPosition)
 		}
 	}
 
@@ -1469,7 +1479,12 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 	}
 
 	fun showRulesDialog() {
-
+		val rules = game.rules.deepCopy()
+		object : ConfigDialogBuilder(this) {
+			override fun onApplyRules() {
+				game.rules.copyFrom(rules)
+			}
+		}.show(rules, true)
 	}
 
 	internal class EmailTask(private val context: CCActivityBase, private val message: String) :

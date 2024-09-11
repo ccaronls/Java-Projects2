@@ -20,7 +20,7 @@ class ZRules : Reflector<ZRules>() {
 	/**
 	 * Enables ULTRA RED mode
 	 */
-	@RuleMeta("Enable Ultra Red", "Wolfzburg")
+	@RuleMeta("Enable Ultra Red", "Black Plague")
 	var ultraRed = true
 
 	/**
@@ -44,13 +44,13 @@ class ZRules : Reflector<ZRules>() {
 	/**
 	 * Add some Rat King Necromancer cards to the deck
 	 */
-	@RuleMeta("Enable Rat King Necromancer", "Rat King")
+	@RuleMeta("Enable Rat King Necromancer", "Black Plague")
 	var ratKing = false
 
 	/**
 	 * Add some swampTroll Abomination cards to the deck
 	 */
-	@RuleMeta("Enable Swamp Troll Abomination", "Swamp Troll")
+	@RuleMeta("Enable Swamp Troll Abomination", "Black Plague")
 	var swampTroll = false
 
 	/**
@@ -64,5 +64,4 @@ class ZRules : Reflector<ZRules>() {
 	 */
 	@RuleMeta("Enable Murder of Crowz", "No Rest for the Wicked")
 	var murderOfCrowz = false
-
 }

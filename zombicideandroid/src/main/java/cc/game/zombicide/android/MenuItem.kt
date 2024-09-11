@@ -54,7 +54,7 @@ enum class MenuItem : IButton {
 		DISCONNECT -> instance.server?.isRunning == true || instance.client != null
 		RESUME -> instance.gameFile.exists()
 
-		LOAD, START, SAVE, ASSIGN, CLEAR, DIFFICULTY, CHOOSE_COLOR, DEBUG_MENU -> BuildConfig.DEBUG
+		LOAD, START, SAVE, ASSIGN, RULES, CLEAR, DIFFICULTY, CHOOSE_COLOR, DEBUG_MENU -> BuildConfig.DEBUG
 		//START, NEW_GAME, JOIN_GAME, SETUP_PLAYERS, SKILLS, LEGEND, EMAIL_REPORT, MINIMAP_MODE -> true
 		//CONNECTIONS -> instance.serverControl != null
 		//RESUME -> instance.gameFile.exists()

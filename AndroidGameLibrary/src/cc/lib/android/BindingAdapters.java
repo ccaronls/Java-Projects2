@@ -142,4 +142,9 @@ public final class BindingAdapters {
             }
         });
     }
+
+    @BindingAdapter("textColorInt")
+    public static void setTextColor(TextView view, int color) {
+        view.setTextColor(color);
+    }
 }

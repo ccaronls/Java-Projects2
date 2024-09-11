@@ -371,3 +371,13 @@ fun <T> MutableList<T>.clearAndAddAll(items: Iterable<T>) {
 	clear()
 	addAll(items)
 }
+
+inline fun <reified T : Enum<T>> enumValueOfOrNull(name: String?): T? {
+	return try {
+		name?.let {
+			java.lang.Enum.valueOf(T::class.java, it)
+		}
+	} catch (e: IllegalArgumentException) {
+		null
+	}
+}

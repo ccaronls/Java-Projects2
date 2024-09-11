@@ -6,6 +6,7 @@ dependencies {
     implementation files('../DnsAndroid/mdnsjava-2.1.6-SNAPSHOT.jar', '../DnsAndroid/dnsjava-2.1.7.jar')
     implementation project (':GameLibrary')
     implementation "androidx.preference:preference:1.0.0"
+    implementation 'com.google.android.material:material:1.2.0-alpha02'
 }
 
 android {
@@ -50,5 +51,6 @@ android {
 
     buildFeatures {
         dataBinding true
+        viewBinding true
     }
 }

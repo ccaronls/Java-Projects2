@@ -26,6 +26,7 @@
     <string name="popup_button_not_now">Not Now</string>
     <string name="popup_button_purchase_options">Purchase Options</string>
     <string name="popup_button_close">Close</string>
+    <string name="popup_button_apply">Apply</string>
 
     <string name="popup_billing_purchases_row_description">DESCRIPTION</string>
     <string name="popup_billing_purchases_row_buy">BUY</string>

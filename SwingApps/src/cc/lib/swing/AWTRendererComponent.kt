@@ -98,16 +98,6 @@ abstract class AWTRendererComponent<R : UIRenderer>() : AWTComponent(), UICompon
 		super.mouseMoved(e)
 	}
 
-	private val keyMap = mapOf(
-		KeyEvent.VK_RIGHT to UIKeyCode.RIGHT,
-		KeyEvent.VK_LEFT to UIKeyCode.LEFT,
-		KeyEvent.VK_DOWN to UIKeyCode.DOWN,
-		KeyEvent.VK_UP to UIKeyCode.UP,
-		KeyEvent.VK_ENTER to UIKeyCode.CENTER,
-		KeyEvent.VK_ESCAPE to UIKeyCode.BACK,
-		KeyEvent.VK_DELETE to UIKeyCode.BACK
-	)
-
 	private var primaryKey: UIKeyCode? = null
 	private var keyJob: Job? = null
 	private var inLongPress = false
@@ -143,5 +133,17 @@ abstract class AWTRendererComponent<R : UIRenderer>() : AWTComponent(), UICompon
 
 	override fun keyTyped(evt: KeyEvent) {
 		super.keyTyped(evt)
+	}
+
+	companion object {
+		private val keyMap = mapOf(
+			KeyEvent.VK_RIGHT to UIKeyCode.RIGHT,
+			KeyEvent.VK_LEFT to UIKeyCode.LEFT,
+			KeyEvent.VK_DOWN to UIKeyCode.DOWN,
+			KeyEvent.VK_UP to UIKeyCode.UP,
+			KeyEvent.VK_ENTER to UIKeyCode.CENTER,
+			KeyEvent.VK_ESCAPE to UIKeyCode.BACK,
+			KeyEvent.VK_DELETE to UIKeyCode.BACK
+		)
 	}
 }
