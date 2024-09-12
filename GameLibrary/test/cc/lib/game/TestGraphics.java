@@ -36,11 +36,6 @@ public class TestGraphics extends APGraphics {
     }
 
     @Override
-    public float setTextHeight(float height) {
-        return 0;
-    }
-
-    @Override
     public float getTextWidth(String string) {
         return 0;
     }
@@ -291,5 +286,10 @@ public class TestGraphics extends APGraphics {
     @Override
     public void setTintFilter(GColor inColor, GColor outColor) {
 
+    }
+
+    @Override
+    public float setTextHeight(float height, boolean pixels) {
+        return 0;
     }
 }

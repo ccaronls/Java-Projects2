@@ -282,10 +282,10 @@ fun String.padToFit(width: Int) : String {
 		return this
 	// for odd remainders, give more padding to the front
 	if (diff % 2 == 1) {
-		return padStart(1 + diff / 2).padEnd(diff / 2)
+		return " ".repeat(1 + diff / 2) + this + " ".repeat(diff / 2)
 	}
 
-	return padStart(diff / 2).padEnd(diff / 2)
+	return " ".repeat(diff / 2) + this + " ".repeat(diff / 2)
 }
 
 inline fun <reified T : Enum<T>> T.increment(amt: Int, values: Array<T> = enumValues()): T {

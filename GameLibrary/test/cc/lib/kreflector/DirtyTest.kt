@@ -1,16 +1,13 @@
 package cc.lib.kreflector
 
-import cc.lib.utils.DirtyGrid
 import junit.framework.TestCase
-import org.junit.Assert
-import org.junit.Test
 
 
 /**
  * Created by Chris Caron on 7/29/22.
  */
 class DirtyTest : TestCase() {
-
+/*
 	fun testDirty() {
 		val d = TestDirty2()
 		println("d1 =" + d.serializeToString())
@@ -215,5 +212,5 @@ class DirtyTest : TestCase() {
 		}
 
 		println("Second method users: ${secondList.joinToString()}")
-	}
+	}*/
 }

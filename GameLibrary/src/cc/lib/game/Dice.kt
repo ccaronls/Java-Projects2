@@ -114,41 +114,56 @@ class Dice(val numPips : Int,
 		}
 	}
 
-	override fun toString() : String {
-		return "+-----+\n" + when (numPips) {
-		 0 -> """|     |
-			     |     |
-			     |     |"""
-		 1 -> """|     |
-			     |  o  |
-			     |     |"""
-		 2 -> """|o    |
-			     |     |
-			     |    o|"""
-		 3 -> """|o    |
-			     |  o  |
-			     |    o|"""
-		 4 -> """|o   o|
-			     |     |
-			     |o   o|"""
-		 5 -> """|o   o|
-			     |  o  |
-			     |o   o|"""
-		 6 -> """|o   o|
-			     |o   o|
-			     |o   o|"""
-		 7 -> """|o   o|
-			     |o o o|
-			     |o   o|"""
-		 8 -> """|o o o|
-			     |o   o|
-			     |o o o|"""
-		 9 -> """|o o o|
-			     |o o o|
-			     |o o o|"""
-		 else -> """|     |
-			        |${numPips.toString().padToFit(5)}|
-					|     |"""
+	override fun toString(): String {
+		return "$CAP\n" +
+			getPipString(numPips, 0) + "\n" +
+			getPipString(numPips, 1) + "\n" +
+			getPipString(numPips, 2) + "\n" +
+			"$CAP"
+
+	}
+
+	companion object {
+		private const val WIDTH = 7
+		private val CAP = "+" + ("-".repeat(WIDTH)) + "+"
+		private val BLANK = "|" + (" ".repeat(WIDTH)) + "|"
+
+		// lookup by row/pips
+		private val pipLookup by lazy {
+			arrayOf(
+				arrayOf(BLANK, BLANK, BLANK),
+				arrayOf(BLANK, "|   o   |", BLANK),
+				arrayOf("| o     |", BLANK, "|     o |"),
+				arrayOf("| o     |", "|   o   |", "|     o |"),
+				arrayOf("| o   o |", BLANK, "| o   o |"),
+				arrayOf("| o   o |", "|   o   |", "| o   o |"),
+				arrayOf("| o   o |", "| o   o |", "| o   o |"),
+				arrayOf("| o   o |", "| o o o |", "| o   o |"),
+				arrayOf("| o o o |", "| o   o |", "| o o o |"),
+				arrayOf("| o o o |", "| o o o |", "| o o o |"),
+			)
 		}
+
+		private fun getDefaultPipString(numPips: Int, row: Int): String = if (row == 1) {
+			"|${numPips.toString().padToFit(WIDTH)}|"
+		} else {
+			BLANK
+		}
+
+		private fun getPipString(numPips: Int, row: Int): String =
+			pipLookup.getOrNull(numPips)?.getOrNull(row) ?: getDefaultPipString(numPips, row)
+
+		fun toString(gap: Int = 0, vararg dice: Dice): String = StringBuffer().also { buffer ->
+			val gap = " ".repeat(gap)
+			repeat(dice.size) { buffer.append(CAP).append(gap) }
+			buffer.append("\n")
+			dice.forEach { buffer.append(getPipString(it.numPips, 0)).append(gap) }
+			buffer.append("\n")
+			dice.forEach { buffer.append(getPipString(it.numPips, 1)).append(gap) }
+			buffer.append("\n")
+			dice.forEach { buffer.append(getPipString(it.numPips, 2)).append(gap) }
+			buffer.append("\n")
+			repeat(dice.size) { buffer.append(CAP).append(gap) }
+		}.toString()
 	}
 }
