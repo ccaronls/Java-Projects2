@@ -5,6 +5,7 @@ import cc.lib.ui.UIComponent
 import cc.lib.ui.UIKeyCode
 import cc.lib.ui.UIRenderer
 import cc.lib.utils.launchIn
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import java.awt.event.KeyEvent
@@ -102,22 +103,26 @@ abstract class AWTRendererComponent<R : UIRenderer>() : AWTComponent(), UICompon
 	private var keyJob: Job? = null
 	private var inLongPress = false
 
-	override fun keyPressed(evt: KeyEvent) {
-		if (primaryKey != null)
+	override fun onKeyPressed(evt: KeyEvent) {
+		println("keyPressed ${keyMap[evt.keyCode]} primary:${primaryKey}")
+		if (primaryKey != null) {
+			//evt.consume()
 			return
+		}
 		keyMap[evt.keyCode]?.let { code ->
 			primaryKey = code
-			keyJob = launchIn {
-				delay(1000)
+			keyJob = launchIn(Dispatchers.Main) {
+				delay(1500)
 				inLongPress = true
 				renderer.onKeyLongPress(code)
 			}
 		}
-		super.keyPressed(evt)
 	}
 
-	override fun keyReleased(evt: KeyEvent) {
+	override fun onKeyReleased(evt: KeyEvent) {
+		println("keyPressed $evt: primary: $primaryKey")
 		primaryKey?.let { code ->
+//			evt.consume()
 			if (inLongPress) {
 				renderer.onKeyLongPressRelease(code)
 			} else {
@@ -128,11 +133,10 @@ abstract class AWTRendererComponent<R : UIRenderer>() : AWTComponent(), UICompon
 			inLongPress = false
 			primaryKey = null
 		}
-		super.keyReleased(evt)
 	}
 
-	override fun keyTyped(evt: KeyEvent) {
-		super.keyTyped(evt)
+	override fun onKeyTyped(evt: KeyEvent) {
+		println("keyTyped")
 	}
 
 	companion object {

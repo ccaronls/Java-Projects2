@@ -4,7 +4,12 @@ import cc.lib.board.BCell
 import cc.lib.board.BEdge
 import cc.lib.board.BVertex
 import cc.lib.board.CustomBoard
-import cc.lib.game.*
+import cc.lib.game.AGraphics
+import cc.lib.game.APGraphics
+import cc.lib.game.GColor
+import cc.lib.game.GRectangle
+import cc.lib.game.Justify
+import cc.lib.game.Utils
 import cc.lib.logger.LoggerFactory
 import cc.lib.math.MutableVector2D
 import cc.lib.math.Vector2D
@@ -14,7 +19,8 @@ import cc.lib.utils.Table
 import java.awt.BorderLayout
 import java.awt.event.KeyEvent
 import java.io.File
-import java.util.*
+import java.util.Collections
+import java.util.LinkedList
 
 abstract class AWTBoardBuilder<V : BVertex, E : BEdge, C : BCell, T : CustomBoard<V, E, C>> : AWTComponent() {
 	private val log = LoggerFactory.getLogger(javaClass)
@@ -835,7 +841,7 @@ abstract class AWTBoardBuilder<V : BVertex, E : BEdge, C : BCell, T : CustomBoar
 	}
 
 	@Synchronized
-	override fun keyTyped(evt: KeyEvent) {
+	override fun onKeyTyped(evt: KeyEvent) {
 	}
 
 	protected fun moveVertex(dx: Float, dy: Float) {
@@ -845,7 +851,7 @@ abstract class AWTBoardBuilder<V : BVertex, E : BEdge, C : BCell, T : CustomBoar
 	}
 
 	@Synchronized
-	override fun keyPressed(evt: KeyEvent) {
+	override fun onKeyPressed(evt: KeyEvent) {
 		if (tool.onKeyTyped(evt.keyCode)) {
 			evt.consume()
 		} else if (actions.containsKey(evt.keyCode)) {

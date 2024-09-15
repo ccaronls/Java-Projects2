@@ -165,15 +165,15 @@ public class BitmapOutlineTest extends AWTComponent {
     }
 
     @Override
-    public synchronized void keyReleased(KeyEvent evt) {
+    public synchronized void onKeyReleased(KeyEvent evt) {
         //curComposite = (curComposite+1) % all.length;
         switch (evt.getKeyCode()) {
             case KeyEvent.VK_A:
-                curAComposite = (curAComposite+1) % allAlpha.length;
+                curAComposite = (curAComposite + 1) % allAlpha.length;
                 frame.setProperty("curA", curAComposite);
                 break;
             case KeyEvent.VK_B:
-                curBComposite = (curBComposite+1) % allBlend.length;
+                curBComposite = (curBComposite + 1) % allBlend.length;
                 frame.setProperty("curB", curBComposite);
                 break;
             case KeyEvent.VK_C:

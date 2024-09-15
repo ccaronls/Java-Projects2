@@ -256,13 +256,27 @@ abstract class AWTComponent : UIComponent, JComponent, Renderable, MouseListener
 
 	protected open fun onMouseMoved(mouseX: Int, mouseY: Int) {}
 
-	override fun keyTyped(evt: KeyEvent) {
+	open fun onKeyTyped(evt: KeyEvent) {}
+	final override fun keyTyped(evt: KeyEvent?) {
+		evt?.let {
+			onKeyTyped(it)
+		}
 	}
 
-	override fun keyPressed(evt: KeyEvent) {
+	open fun onKeyPressed(evt: KeyEvent) {}
+
+	final override fun keyPressed(evt: KeyEvent?) {
+		evt?.let {
+			onKeyPressed(it)
+		}
 	}
 
-	override fun keyReleased(evt: KeyEvent) {
+	open fun onKeyReleased(evt: KeyEvent) {}
+
+	final override fun keyReleased(evt: KeyEvent?) {
+		evt?.let {
+			onKeyReleased(it)
+		}
 	}
 
 	protected open fun onDragStarted(x: Int, y: Int) {}

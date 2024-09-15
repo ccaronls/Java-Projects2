@@ -315,14 +315,16 @@ class AWTProbotLevelBuilder internal constructor() : AWTComponent() {
 	}
 
 	@Synchronized
-	override fun keyPressed(evt: KeyEvent) {
+	override fun onKeyPressed(evt: KeyEvent) {
 		if (!grid.isValid(pickCol, pickRow)) return
 		var t = grid[pickRow, pickRow]
 		var values = arrayOf<Type?>()
 		when (t) {
 			Type.EM, Type.DD -> values = Utils.toArray(Type.EM, Type.DD)
 			Type.SE, Type.SS, Type.SW, Type.SN -> values = Utils.toArray(Type.SE, Type.SS, Type.SW, Type.SN)
-			Type.LH0, Type.LV0, Type.LH1, Type.LV1, Type.LH2, Type.LV2 -> values = Utils.toArray(Type.LH0, Type.LV0, Type.LH1, Type.LV1, Type.LH2, Type.LV2)
+			Type.LH0, Type.LV0, Type.LH1, Type.LV1, Type.LH2, Type.LV2 -> values =
+				Utils.toArray(Type.LH0, Type.LV0, Type.LH1, Type.LV1, Type.LH2, Type.LV2)
+
 			Type.LB0, Type.LB1, Type.LB2, Type.LB -> values = Utils.toArray(Type.LB0, Type.LB1, Type.LB2, Type.LB)
 		}
 		when (evt.keyCode) {

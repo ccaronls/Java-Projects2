@@ -1,8 +1,20 @@
 package cc.lib.swing
 
-import cc.lib.checkers.*
+import cc.lib.checkers.ACheckboardGame
 import cc.lib.checkers.ACheckboardGame.BoardType
-import cc.lib.game.*
+import cc.lib.checkers.Checkers
+import cc.lib.checkers.Dama
+import cc.lib.checkers.Draughts
+import cc.lib.checkers.Move
+import cc.lib.checkers.MoveType
+import cc.lib.checkers.Piece
+import cc.lib.checkers.PieceType
+import cc.lib.checkers.Robot
+import cc.lib.game.AGraphics
+import cc.lib.game.DescisionTree
+import cc.lib.game.GColor
+import cc.lib.game.Justify
+import cc.lib.game.Utils
 import cc.lib.reflector.Reflector
 import cc.lib.utils.FileUtils
 import cc.lib.utils.GException
@@ -434,7 +446,7 @@ class AWTCheckers internal constructor() : AWTComponent() {
 		repaint()
 	}
 
-	override fun keyPressed(e: KeyEvent) {
+	override fun onKeyPressed(e: KeyEvent) {
 		if (game.turn == 1 && robot != null) return
 		when (e.keyCode) {
 			KeyEvent.VK_B -> if (game.canUndo()) game.undo()

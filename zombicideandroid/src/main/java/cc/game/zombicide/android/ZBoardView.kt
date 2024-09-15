@@ -303,6 +303,13 @@ class ZBoardView(context: Context, attrs: AttributeSet) : UIComponentView<UIZBoa
 			R.drawable.zmurder_crowz_outline
 		)
 		initZombieImages(g, ZZombieType.Ratz, R.drawable.zrats, R.drawable.zrats_outline)
+		initZombieImages(g, ZZombieType.LordOfSkulls, R.drawable.zlordofskulls, R.drawable.zlordofskulls_outline)
+		initZombieImages(
+			g,
+			ZZombieType.Ogre,
+			R.drawable.zdoom_abom, R.drawable.zdoom_abom_outline,
+			R.drawable.zgloom_abom, R.drawable.zgloom_abom_outline
+		)
 
 		initCatapult(
 			g,

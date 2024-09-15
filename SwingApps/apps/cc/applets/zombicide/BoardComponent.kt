@@ -51,124 +51,82 @@ internal class BoardComponent : AWTRendererComponent<UIZBoardRenderer>(), UIZCom
 		g.addSearchPath("zombicideandroid/src/main/res/drawable")
 		val files = arrayOf(
 			// abominations
-			arrayOf<Any>(ZZombieType.Abomination, "zabomination.png"),
-			arrayOf<Any>(ZZombieType.Abomination, "zabomination_outline.png"),
-			arrayOf<Any>(ZZombieType.GreenTwin, "zgreentwin.png"),
-			arrayOf<Any>(ZZombieType.GreenTwin, "zabomination_outline.png"),
-			arrayOf<Any>(ZZombieType.BlueTwin, "zbluetwin.png"),
-			arrayOf<Any>(ZZombieType.BlueTwin, "zabomination_outline.png"),
-			arrayOf<Any>(ZZombieType.Wolfbomination, "zwolfabom.png"),
-			arrayOf<Any>(ZZombieType.Wolfbomination, "zwolfabom_outline.png"),
-			arrayOf<Any>(ZZombieType.OrcAbomination, "zorc_abomination.png"),
-			arrayOf<Any>(ZZombieType.OrcAbomination, "zorc_abomination_outline.png")
+			arrayOf<Any>(ZZombieType.Abomination, "zabomination.png", "zabomination_outline.png"),
+			arrayOf<Any>(ZZombieType.GreenTwin, "zgreentwin.png", "zabomination_outline.png"),
+			arrayOf<Any>(ZZombieType.BlueTwin, "zbluetwin.png", "zabomination_outline.png"),
+			arrayOf<Any>(ZZombieType.Wolfbomination, "zwolfabom.png", "zwolfabom_outline.png"),
+			arrayOf<Any>(ZZombieType.OrcAbomination, "zorc_abomination.png", "zorc_abomination_outline.png")
 			// necromancers
 			,
-			arrayOf<Any>(ZZombieType.Necromancer, "znecro.png"),
-			arrayOf<Any>(ZZombieType.Necromancer, "znecro_outline.png"),
-			arrayOf<Any>(ZZombieType.OrcNecromancer, "zorc_necro.png"),
-			arrayOf<Any>(ZZombieType.OrcNecromancer, "zorc_necro_outline.png"),
-			arrayOf<Any>(ZZombieType.RatKing, "zrat_king.png"),
-			arrayOf<Any>(ZZombieType.RatKing, "zrat_king_outline.png")
+			arrayOf<Any>(ZZombieType.Necromancer, "znecro.png", "znecro_outline.png"),
+			arrayOf<Any>(ZZombieType.OrcNecromancer, "zorc_necro.png", "zorc_necro_outline.png"),
+			arrayOf<Any>(ZZombieType.RatKing, "zrat_king.png", "zrat_king_outline.png")
 			// dragons
 			,
-			arrayOf<Any>(ZZombieType.NecromanticDragon, "znecro_dragon.png"),
-			arrayOf<Any>(ZZombieType.NecromanticDragon, "znecro_dragon_outline.png")
+			arrayOf<Any>(ZZombieType.NecromanticDragon, "znecro_dragon.png", "znecro_dragon_outline.png"),
+			// lord of skulls
+			arrayOf<Any>(ZZombieType.LordOfSkulls, "zlordofskulls.png", "zlordofskulls_outline.png"),
+			arrayOf<Any>(
+				ZZombieType.Ogre,
+				"zgloom_abom.png",
+				"zgloom_abom_outline.png",
+				"zdoom_abom.png",
+				"zdoom_abom_outline.png"
+			)
+
 			// walkers
 			,
-			arrayOf<Any>(ZZombieType.Walker, "zwalker1.png"),
-			arrayOf<Any>(ZZombieType.Walker, "zwalker1_outline.png"),
-			arrayOf<Any>(ZZombieType.Walker, "zwalker2.png"),
-			arrayOf<Any>(ZZombieType.Walker, "zwalker2_outline.png"),
-			arrayOf<Any>(ZZombieType.Walker, "zwalker3.png"),
-			arrayOf<Any>(ZZombieType.Walker, "zwalker3_outline.png"),
-			arrayOf<Any>(ZZombieType.Walker, "zwalker4.png"),
-			arrayOf<Any>(ZZombieType.Walker, "zwalker4_outline.png"),
-			arrayOf<Any>(ZZombieType.Walker, "zwalker5.png"),
-			arrayOf<Any>(ZZombieType.Walker, "zwalker5_outline.png"),
-			arrayOf<Any>(ZZombieType.OrcWalker, "zorc_walker1.png"),
-			arrayOf<Any>(ZZombieType.OrcWalker, "zorc_walker1_outline.png"),
-			arrayOf<Any>(ZZombieType.OrcWalker, "zorc_walker2.png"),
-			arrayOf<Any>(ZZombieType.OrcWalker, "zorc_walker2_outline.png"),
-			arrayOf<Any>(ZZombieType.OrcWalker, "zorc_walker3.png"),
-			arrayOf<Any>(ZZombieType.OrcWalker, "zorc_walker3_outline.png"),
-			arrayOf<Any>(ZZombieType.OrcWalker, "zorc_walker4.png"),
-			arrayOf<Any>(ZZombieType.OrcWalker, "zorc_walker4_outline.png"),
-			arrayOf<Any>(ZZombieType.OrcWalker, "zorc_walker5.png"),
-			arrayOf<Any>(ZZombieType.OrcWalker, "zorc_walker5_outline.png"),
-			arrayOf<Any>(ZZombieType.SpectralWalker, "zspectral_walker1.png"),
-			arrayOf<Any>(ZZombieType.SpectralWalker, "zspectral_walker1_outline.png"),
-			arrayOf<Any>(ZZombieType.SpectralWalker, "zspectral_walker2.png"),
-			arrayOf<Any>(ZZombieType.SpectralWalker, "zspectral_walker2_outline.png"),
-			arrayOf<Any>(ZZombieType.SpectralWalker, "zspectral_walker3.png"),
-			arrayOf<Any>(ZZombieType.SpectralWalker, "zspectral_walker3_outline.png")
+			arrayOf<Any>(ZZombieType.Walker, "zwalker1.png", "zwalker1_outline.png"),
+			arrayOf<Any>(ZZombieType.Walker, "zwalker2.png", "zwalker2_outline.png"),
+			arrayOf<Any>(ZZombieType.Walker, "zwalker3.png", "zwalker3_outline.png"),
+			arrayOf<Any>(ZZombieType.Walker, "zwalker4.png", "zwalker4_outline.png"),
+			arrayOf<Any>(ZZombieType.Walker, "zwalker5.png", "zwalker5_outline.png"),
+			arrayOf<Any>(ZZombieType.OrcWalker, "zorc_walker1.png", "zorc_walker1_outline.png"),
+			arrayOf<Any>(ZZombieType.OrcWalker, "zorc_walker2.png", "zorc_walker2_outline.png"),
+			arrayOf<Any>(ZZombieType.OrcWalker, "zorc_walker3.png", "zorc_walker3_outline.png"),
+			arrayOf<Any>(ZZombieType.OrcWalker, "zorc_walker4.png", "zorc_walker4_outline.png"),
+			arrayOf<Any>(ZZombieType.OrcWalker, "zorc_walker5.png", "zorc_walker5_outline.png"),
+			arrayOf<Any>(ZZombieType.SpectralWalker, "zspectral_walker1.png", "zspectral_walker1_outline.png"),
+			arrayOf<Any>(ZZombieType.SpectralWalker, "zspectral_walker2.png", "zspectral_walker2_outline.png"),
+			arrayOf<Any>(ZZombieType.SpectralWalker, "zspectral_walker3.png", "zspectral_walker3_outline.png")
 			// runners
 			,
-			arrayOf<Any>(ZZombieType.Runner, "zrunner1.png"),
-			arrayOf<Any>(ZZombieType.Runner, "zrunner1_outline.png"),
-			arrayOf<Any>(ZZombieType.Runner, "zrunner2.png"),
-			arrayOf<Any>(ZZombieType.Runner, "zrunner2_outline.png"),
-			arrayOf<Any>(ZZombieType.OrcRunner, "zorc_runner1.png"),
-			arrayOf<Any>(ZZombieType.OrcRunner, "zorc_runner1_outline.png"),
-			arrayOf<Any>(ZZombieType.OrcRunner, "zorc_runner2.png"),
-			arrayOf<Any>(ZZombieType.OrcRunner, "zorc_runner2_outline.png")
+			arrayOf<Any>(ZZombieType.Runner, "zrunner1.png", "zrunner1_outline.png"),
+			arrayOf<Any>(ZZombieType.Runner, "zrunner2.png", "zrunner2_outline.png"),
+			arrayOf<Any>(ZZombieType.OrcRunner, "zorc_runner1.png", "zorc_runner1_outline.png"),
+			arrayOf<Any>(ZZombieType.OrcRunner, "zorc_runner2.png", "zorc_runner2_outline.png")
 			// fattys
 			,
-			arrayOf<Any>(ZZombieType.Fatty, "zfatty1.png"),
-			arrayOf<Any>(ZZombieType.Fatty, "zfatty1_outline.png"),
-			arrayOf<Any>(ZZombieType.Fatty, "zfatty2.png"),
-			arrayOf<Any>(ZZombieType.Fatty, "zfatty2_outline.png"),
-			arrayOf<Any>(ZZombieType.OrcFatty, "zorc_fatty1.png"),
-			arrayOf<Any>(ZZombieType.OrcFatty, "zorc_fatty1_outline.png"),
-			arrayOf<Any>(ZZombieType.OrcFatty, "zorc_fatty2.png"),
-			arrayOf<Any>(ZZombieType.OrcFatty, "zorc_fatty2_outline.png")
+			arrayOf<Any>(ZZombieType.Fatty, "zfatty1.png", "zfatty1_outline.png"),
+			arrayOf<Any>(ZZombieType.Fatty, "zfatty2.png", "zfatty2_outline.png"),
+			arrayOf<Any>(ZZombieType.OrcFatty, "zorc_fatty1.png", "zorc_fatty1_outline.png"),
+			arrayOf<Any>(ZZombieType.OrcFatty, "zorc_fatty2.png", "zorc_fatty2_outline.png")
 			// wolfz
 			,
-			arrayOf<Any>(ZZombieType.Wolfz, "zwulf1.png"),
-			arrayOf<Any>(ZZombieType.Wolfz, "zwulf1_outline.png"),
-			arrayOf<Any>(ZZombieType.Wolfz, "zwulf2.png"),
-			arrayOf<Any>(ZZombieType.Wolfz, "zwulf2_outline.png")
+			arrayOf<Any>(ZZombieType.Wolfz, "zwulf1.png", "zwulf1_outline.png"),
+			arrayOf<Any>(ZZombieType.Wolfz, "zwulf2.png", "zwulf2_outline.png")
 			// crowz, ratz
 			,
-			arrayOf<Any>(ZZombieType.Ratz, "zrats.png"),
-			arrayOf<Any>(ZZombieType.Ratz, "zrats_outline.png"),
-			arrayOf<Any>(ZZombieType.Crowz, "zmurder_crowz.png"),
-			arrayOf<Any>(ZZombieType.Crowz, "zmurder_crowz_outline.png"),
-			arrayOf<Any>(ZZombieType.SwampTroll, "zswamp_troll.png"),
-			arrayOf<Any>(ZZombieType.SwampTroll, "zswamp_troll_outline.png")
+			arrayOf<Any>(ZZombieType.Ratz, "zrats.png", "zrats_outline.png"),
+			arrayOf<Any>(ZZombieType.Crowz, "zmurder_crowz.png", "zmurder_crowz_outline.png"),
+			arrayOf<Any>(ZZombieType.SwampTroll, "zswamp_troll.png", "zswamp_troll_outline.png")
 			// characters
 			,
-			arrayOf<Any>(ZPlayerName.Clovis, "zchar_clovis.png"),
-			arrayOf<Any>(ZPlayerName.Baldric, "zchar_baldric.png"),
-			arrayOf<Any>(ZPlayerName.Ann, "zchar_ann.png"),
-			arrayOf<Any>(ZPlayerName.Nelly, "zchar_nelly.png"),
-			arrayOf<Any>(ZPlayerName.Samson, "zchar_samson.png"),
-			arrayOf<Any>(ZPlayerName.Silas, "zchar_silas.png"),
-			arrayOf<Any>(ZPlayerName.Tucker, "zchar_tucker.png"),
-			arrayOf<Any>(ZPlayerName.Jain, "zchar_jain.png"),
-			arrayOf<Any>(ZPlayerName.Benson, "zchar_benson.png"),
-			arrayOf<Any>(ZPlayerName.Theo, "zchar_theo.png"),
-			arrayOf<Any>(ZPlayerName.Morrigan, "zchar_morrigan.png"),
-			arrayOf<Any>(ZPlayerName.Karl, "zchar_karl.png"),
-			arrayOf<Any>(ZPlayerName.Ariane, "zchar_ariane.png"),
-			arrayOf<Any>(ZPlayerName.Arnaud, "zchar_arnaud.png"),
-			arrayOf<Any>(ZPlayerName.Seli, "zchar_seli.png")
-			// characters outline
-			,
-			arrayOf<Any>(ZPlayerName.Clovis, "zchar_clovis_outline.png"),
-			arrayOf<Any>(ZPlayerName.Baldric, "zchar_baldric_outline.png"),
-			arrayOf<Any>(ZPlayerName.Ann, "zchar_ann_outline.png"),
-			arrayOf<Any>(ZPlayerName.Nelly, "zchar_nelly_outline.png"),
-			arrayOf<Any>(ZPlayerName.Samson, "zchar_samson_outline.png"),
-			arrayOf<Any>(ZPlayerName.Silas, "zchar_silas_outline.png"),
-			arrayOf<Any>(ZPlayerName.Tucker, "zchar_tucker_outline.png"),
-			arrayOf<Any>(ZPlayerName.Jain, "zchar_jain_outline.png"),
-			arrayOf<Any>(ZPlayerName.Benson, "zchar_benson_outline.png"),
-			arrayOf<Any>(ZPlayerName.Theo, "zchar_theo_outline.png"),
-			arrayOf<Any>(ZPlayerName.Morrigan, "zchar_morrigan_outline.png"),
-			arrayOf<Any>(ZPlayerName.Karl, "zchar_karl_outline.png"),
-			arrayOf<Any>(ZPlayerName.Ariane, "zchar_ariane_outline.png"),
-			arrayOf<Any>(ZPlayerName.Arnaud, "zchar_arnaud_outline.png"),
-			arrayOf<Any>(ZPlayerName.Seli, "zchar_seli_outline.png")
+			arrayOf<Any>(ZPlayerName.Clovis, "zchar_clovis.png", "zchar_clovis_outline.png"),
+			arrayOf<Any>(ZPlayerName.Baldric, "zchar_baldric.png", "zchar_baldric_outline.png"),
+			arrayOf<Any>(ZPlayerName.Ann, "zchar_ann.png", "zchar_ann_outline.png"),
+			arrayOf<Any>(ZPlayerName.Nelly, "zchar_nelly.png", "zchar_nelly_outline.png"),
+			arrayOf<Any>(ZPlayerName.Samson, "zchar_samson.png", "zchar_samson_outline.png"),
+			arrayOf<Any>(ZPlayerName.Silas, "zchar_silas.png", "zchar_silas_outline.png"),
+			arrayOf<Any>(ZPlayerName.Tucker, "zchar_tucker.png", "zchar_tucker_outline.png"),
+			arrayOf<Any>(ZPlayerName.Jain, "zchar_jain.png", "zchar_jain_outline.png"),
+			arrayOf<Any>(ZPlayerName.Benson, "zchar_benson.png", "zchar_benson_outline.png"),
+			arrayOf<Any>(ZPlayerName.Theo, "zchar_theo.png", "zchar_theo_outline.png"),
+			arrayOf<Any>(ZPlayerName.Morrigan, "zchar_morrigan.png", "zchar_morrigan_outline.png"),
+			arrayOf<Any>(ZPlayerName.Karl, "zchar_karl.png", "zchar_karl_outline.png"),
+			arrayOf<Any>(ZPlayerName.Ariane, "zchar_ariane.png", "zchar_ariane_outline.png"),
+			arrayOf<Any>(ZPlayerName.Arnaud, "zchar_arnaud.png", "zchar_arnaud_outline.png"),
+			arrayOf<Any>(ZPlayerName.Seli, "zchar_seli.png", "zchar_seli_outline.png")
 
 			// characters card
 			,
@@ -232,15 +190,13 @@ internal class BoardComponent : AWTRendererComponent<UIZBoardRenderer>(), UIZCom
 		totalImagesToLoad = files.size
 		for (entry in files) {
 			val key = entry[0]
-			val file = entry[1] as String
-			val id = g.loadImage(file, null, 1)
-			if (id >= 0) {
-				if (!objectToImageMap.containsKey(key)) {
-					objectToImageMap[key] = ArrayList()
-				}
-				objectToImageMap[key]?.add(id) ?: error("Missing key $key")
+			for (i in 1 until entry.size) {
+				val file = entry[i] as String
+				val id = g.loadImage(file, null, 1)
+				require(id >= 0)
+				objectToImageMap.getOrPut(key) { ArrayList() }.add(id)
+				numImagesLoaded++
 			}
-			numImagesLoaded++
 			repaint()
 		}
 		for (type in ZZombieType.values()) {
@@ -303,7 +259,7 @@ internal class BoardComponent : AWTRendererComponent<UIZBoardRenderer>(), UIZCom
 			numImagesLoaded++
 			repaint()
 		}
-		for (icon in arrayOf(ZIcon.SPAWN_RED, ZIcon.SPAWN_GREEN, ZIcon.SPAWN_BLUE)) {
+		for (icon in arrayOf(ZIcon.SPAWN_RED, ZIcon.SPAWN_GREEN, ZIcon.SPAWN_BLUE, ZIcon.SPAWN_NECRO)) {
 			val ids = IntArray(4)
 			val northId = objectToImageMap[icon]?.get(0) ?: error("Missing icon $icon")
 			ids[ZDir.NORTH.ordinal] = northId
@@ -438,8 +394,7 @@ internal class BoardComponent : AWTRendererComponent<UIZBoardRenderer>(), UIZCom
 		setPreferredSize(250, 250)
 	}
 
-	override fun keyPressed(e: KeyEvent) {
-		super.keyPressed(e)
+	override fun onKeyTyped(e: KeyEvent) {
 		val game = UIZombicide.instance
 		keyMap[e.keyCode]?.let { move ->
 			game.setResult(move)
@@ -490,6 +445,11 @@ internal class BoardComponent : AWTRendererComponent<UIZBoardRenderer>(), UIZCom
 			)
 
 			KeyEvent.VK_ESCAPE -> renderer.setOverlay(null)
+			KeyEvent.VK_BACK_QUOTE -> {
+				renderer.setOverlay(null)
+				repaint()
+			}
+
 			else -> renderer.setOverlay(
 				Table()
 					.addRow("Z", "Toggle Zoom Type")
@@ -508,16 +468,6 @@ internal class BoardComponent : AWTRendererComponent<UIZBoardRenderer>(), UIZCom
 			)
 		}
 		repaint()
-	}
-
-	@Synchronized
-	override fun keyReleased(evt: KeyEvent) {
-		when (evt.keyCode) {
-			KeyEvent.VK_BACK_QUOTE -> {
-				renderer.setOverlay(null)
-				repaint()
-			}
-		}
 	}
 
 	override fun windowOpened(e: WindowEvent) {}

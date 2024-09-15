@@ -1,6 +1,22 @@
 package cc.lib.swing
 
-import cc.lib.checkerboard.*
+import cc.lib.checkerboard.AIPlayer
+import cc.lib.checkerboard.CanadianDraughts
+import cc.lib.checkerboard.Checkers
+import cc.lib.checkerboard.Chess
+import cc.lib.checkerboard.Color
+import cc.lib.checkerboard.Columns
+import cc.lib.checkerboard.Dama
+import cc.lib.checkerboard.DragonChess
+import cc.lib.checkerboard.Draughts
+import cc.lib.checkerboard.Game
+import cc.lib.checkerboard.KingsCourt
+import cc.lib.checkerboard.PieceType
+import cc.lib.checkerboard.Shashki
+import cc.lib.checkerboard.Suicide
+import cc.lib.checkerboard.UIGame
+import cc.lib.checkerboard.UIPlayer
+import cc.lib.checkerboard.Ugolki
 import cc.lib.game.AGraphics
 import cc.lib.game.Utils
 import cc.lib.utils.EventQueue
@@ -209,12 +225,13 @@ class AWTCheckerboard internal constructor() : AWTComponent() {
 		game.draw(g, mouseX, mouseY)
 	}
 
-	override fun keyReleased(e: KeyEvent) {
+	override fun onKeyReleased(e: KeyEvent) {
 		when (e.keyCode) {
 			KeyEvent.VK_U -> {
 				game.stopGameThread()
 				game.undoAndRefresh()
 			}
+
 			KeyEvent.VK_E -> {
 				val m = game.moveHistory[0]
 				val value = game.getRules().evaluate(game)

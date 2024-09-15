@@ -211,35 +211,6 @@ fun Int.toHMS() : IntArray = toLong().toHMS()
  */
 fun Float.toPercentString() : String = String.format("%d%%", (100f*this).roundToInt())
 
-fun computeFloydWarshallDistanceMatrix(numCells : Int, predicate : (from: Int, to: Int) -> Boolean): Array<IntArray> {
-	val numV = numCells
-	val INF = Int.MAX_VALUE / 2 - 1
-	val dist = Array(numV) { IntArray(numV) }
-	for (i in 0 until numV) {
-		for (ii in 0 until numV) {
-			dist[i][ii] = INF
-		}
-		dist[i][i] = 0
-	}
-	for (i in 0 until numCells) {
-		for (ii in i+1 until numCells) {
-			require (i != ii)
-			if (predicate.invoke(i, ii)) {
-				dist[i][ii] = 1
-				dist[ii][i] = 1
-			}
-		}
-	}
-	for (k in 0 until numV) {
-		for (i in 0 until numV) {
-			for (j in 0 until numV) {
-				dist[i][j] = Math.min(dist[i][k] + dist[k][j], dist[i][j])
-			}
-		}
-	}
-	return dist
-}
-
 fun <T> Stack<T>.peekOrNull() : T? {
 	if (size == 0)
 		return null
@@ -329,6 +300,11 @@ inline fun fatal(msg: String): Nothing {
 	error(msg)
 }
 
+/**
+ * Return whether any of elements of other exist in this array
+ *
+ * [0,1,2,3,4].containsAny([5,5,5,5,5,0]) -> true
+ */
 fun <T> Array<T>.containsAny(other: Iterable<T>): Boolean {
 	other.forEach {
 		if (contains(it))
@@ -337,6 +313,13 @@ fun <T> Array<T>.containsAny(other: Iterable<T>): Boolean {
 	return false
 }
 
+/**
+ * Splits a collection into 2 parts. Result is a pair with positive results in first and negative results in second
+ *
+ * [0,1,2,3,4,5,6,7].splitFilter {
+ *    it < 5
+ * } -> Pair([0,1,2,3,4], [5,6,7]]
+ */
 fun <T> Iterable<T>.splitFilter(predicate: (T) -> Boolean): kotlin.Pair<Iterable<T>, Iterable<T>> {
 	val positive = mutableListOf<T>()
 	val negative = mutableListOf<T>()
@@ -380,4 +363,26 @@ inline fun <reified T : Enum<T>> enumValueOfOrNull(name: String?): T? {
 	} catch (e: IllegalArgumentException) {
 		null
 	}
+}
+
+/**
+ * Returns all elements that represent the max from an unordered collection
+ *
+ * for items [1,2,3,3,3] -> [3,3,3]
+ */
+inline fun <T, R : Comparable<R>> Collection<T>.allMaxOf(selector: (T) -> R): List<T> {
+	val s: Map<R, List<T>> = groupBy(selector)
+	val max = s.maxOfOrNull { it.key } ?: return emptyList()
+	return s[max]!!
+}
+
+/**
+ * Returns all elements that represent the min from an unordered collection
+ *
+ * for items [1,1,1,2,2,3] -> [1,1,1]
+ */
+inline fun <T, R : Comparable<R>> Collection<T>.allMinOf(selector: (T) -> R): List<T> {
+	val s: Map<R, List<T>> = groupBy(selector)
+	val min = s.minOfOrNull { it.key } ?: return emptyList()
+	return s[min]!!
 }
