@@ -258,7 +258,7 @@ enum class ZWeaponType(
 		),
 		"Throw (Discard) at range 0-1 to create a dragon fire."
 	) {
-		override fun onThrown(game: ZGame, thrower: ZCharacter, targetZoneIdx: Int) {
+		override suspend fun onThrown(game: ZGame, thrower: ZCharacter, targetZoneIdx: Int) {
 			game.onEquipmentThrown(thrower.type, ZIcon.SWORD, targetZoneIdx)
 			game.performDragonFire(thrower, targetZoneIdx)
 		}

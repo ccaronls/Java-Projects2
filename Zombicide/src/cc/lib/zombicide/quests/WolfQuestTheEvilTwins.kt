@@ -65,7 +65,7 @@ class WolfQuestTheEvilTwins : ZQuest(ZQuests.The_Evil_Twins) {
 		}
 	}
 
-	override fun processObjective(game: ZGame, c: ZCharacter) {
+	override suspend fun processObjective(game: ZGame, c: ZCharacter) {
 		super.processObjective(game, c)
 		game.giftRandomVaultArtifact(c)
 		if (c.occupiedZone == blueObjective) {

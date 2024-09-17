@@ -2,8 +2,19 @@ package cc.lib.zombicide.quests
 
 import cc.lib.utils.Grid
 import cc.lib.utils.Table
-import cc.lib.zombicide.*
+import cc.lib.zombicide.ZBoard
+import cc.lib.zombicide.ZCell
+import cc.lib.zombicide.ZCharacter
+import cc.lib.zombicide.ZDir
+import cc.lib.zombicide.ZGame
+import cc.lib.zombicide.ZIcon
+import cc.lib.zombicide.ZQuest
+import cc.lib.zombicide.ZQuests
+import cc.lib.zombicide.ZSpawnArea
+import cc.lib.zombicide.ZTile
 import cc.lib.zombicide.ZTile.Companion.getQuadrant
+import cc.lib.zombicide.ZZombie
+import cc.lib.zombicide.ZZombieType
 
 /**
  * Created by Chris Caron on 8/27/21.
@@ -60,7 +71,7 @@ class WolfQuestImmortal : ZQuest(ZQuests.Immortal) {
 		numStartImmortals = immortals.size
 	}
 
-	override fun onZombieSpawned(game: ZGame, zombie: ZZombie, zone: Int) {
+	override suspend fun onZombieSpawned(game: ZGame, zombie: ZZombie, zone: Int) {
 		if (zombie.type == ZZombieType.Necromancer) {
 			// dont create a new spawn zone
 			game.spawnZombies(zone)
@@ -88,12 +99,12 @@ class WolfQuestImmortal : ZQuest(ZQuests.Immortal) {
 			)
 	}
 
-	override fun processObjective(game: ZGame, c: ZCharacter) {
+	override suspend fun processObjective(game: ZGame, c: ZCharacter) {
 		super.processObjective(game, c)
 		game.giftRandomVaultArtifact(c)
 	}
 
-	override fun onSpawnZoneRemoved(game: ZGame, spawnArea : ZSpawnArea) {
+	override suspend fun onSpawnZoneRemoved(game: ZGame, spawnArea: ZSpawnArea) {
 		immortals.removeAll {
 			it == spawnArea
 		}

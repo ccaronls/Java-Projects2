@@ -2,6 +2,7 @@ package cc.lib.zombicide
 
 import cc.lib.annotation.Keep
 import cc.lib.ui.IButton
+import cc.lib.utils.launchIn
 import cc.lib.utils.prettify
 
 @Keep
@@ -195,9 +196,9 @@ enum class ZSkill(val description: String) : IButton {
         override fun addSpecialMoves(game: ZGame, character: ZCharacter, moves: MutableCollection<ZMove>) {
             if (character.actionsLeftThisTurn == 0) {
                 val spells = character.spells
-                if (spells.size > 0) {
-                    moves.add(ZMove.newEnchantMove(spells))
-                }
+	            if (spells.isNotEmpty()) {
+		            moves.add(ZMove.newEnchantMove(spells))
+	            }
             }
         }
     },
@@ -211,9 +212,9 @@ enum class ZSkill(val description: String) : IButton {
         override fun addSpecialMoves(game: ZGame, character: ZCharacter, moves: MutableCollection<ZMove>) {
             if (character.actionsLeftThisTurn == 0) {
                 val magic = character.magicWeapons
-                if (magic.size > 0) {
-                    moves.add(ZMove.newMagicAttackMove(magic))
-                }
+	            if (magic.isNotEmpty()) {
+		            moves.add(ZMove.newMagicAttackMove(magic))
+	            }
             }
         }
     },
@@ -415,7 +416,7 @@ enum class ZSkill(val description: String) : IButton {
         }
     },
     Free_reload("The Survivor reloads reloadable weapons (Hand Crossbows, Orcish Crossbow, etc.) for free. ") {
-	    override fun onAttack(
+	    override suspend fun onAttack(
 		    game: ZGame,
 		    c: ZSurvivor,
 		    weapon: ZWeapon,
@@ -431,15 +432,15 @@ enum class ZSkill(val description: String) : IButton {
 		    }
 	    }
 
-        override fun onAcquired(game: ZGame, c: ZCharacter) {
-            // reload all of the players wielded weapons
-            for (w in c.weapons) {
-                if (!w.isLoaded) {
-                    game.addLogMessage("Weapon " + w.type.getLabel() + " is reloaded!")
-	                w.reload()
-                }
-            }
-        }
+	    override suspend fun onAcquired(game: ZGame, c: ZCharacter) {
+		    // reload all of the players wielded weapons
+		    for (w in c.weapons) {
+			    if (!w.isLoaded) {
+				    game.addLogMessage("Weapon " + w.type.getLabel() + " is reloaded!")
+				    w.reload()
+			    }
+		    }
+	    }
     },
     Frenzy_Combat("All weapons and Combat spells the Survivor carries gain +1 die per Wound the Survivor suffers. Dual weapons gain a die each, for a total of +2 dice per Wound and per Dual Combat Action (Melee, Ranged or Magic).") {
         override fun modifyStat(stat: ZWeaponStat, actionType: ZActionType, character: ZCharacter, game: ZGame, targetZone: Int) {
@@ -468,7 +469,7 @@ enum class ZSkill(val description: String) : IButton {
         }
     },
 	Healing("At end of turn you have a wound healed.") {
-		override fun onEndOfTurn(game: ZGame, c: ZCharacter): Boolean {
+		override suspend fun onEndOfTurn(game: ZGame, c: ZCharacter): Boolean {
 			if (c.heal(game, 1)) {
 				game.addLogMessage(c.name() + " has a wound healed.")
 				game.onCharacterHealed(c.type, 1)
@@ -505,9 +506,11 @@ enum class ZSkill(val description: String) : IButton {
 			if (actionType === ZActionType.RANGED) {
 				val numInZone = game.board.getNumZombiesInZone(targetZone)
 				if (numInZone > stat.numDice) {
-					game.addLogMessage(String.format("%s applied Iron Rain!", character.getLabel()))
-					game.onIronRain(character.type, targetZone)
 					stat.numDice = numInZone
+					launchIn {
+						game.addLogMessage(String.format("%s applied Iron Rain!", character.getLabel()))
+						game.onIronRain(character.type, targetZone)
+					}
 				}
 			}
 		}
@@ -567,7 +570,7 @@ enum class ZSkill(val description: String) : IButton {
         }
     },
     Reaper_Combat("Use this Skill when assigning hits while resolving a Combat Action (Melee, Ranged or Magic). One of these hits can freely kill an additional identical Zombie in the same Zone. Only a single additional Zombie can be killed per Action when using this Skill. The Survivor gains the experience for the additional Zombie.") {
-	    override fun onAttack(
+	    override suspend fun onAttack(
 		    game: ZGame,
 		    c: ZSurvivor,
 		    weapon: ZWeapon,
@@ -592,7 +595,7 @@ enum class ZSkill(val description: String) : IButton {
         }
     },
     Reaper_Magic("Use this Skill when assigning hits while resolving a Magic Action. One of these hits can freely kill an additional identical Zombie in the same Zone. Only a single additional Zombie can be killed per Action when using this Skill. The Survivor gains the experience for the additional Zombie.") {
-	    override fun onAttack(
+	    override suspend fun onAttack(
 		    game: ZGame,
 		    c: ZSurvivor,
 		    weapon: ZWeapon,
@@ -618,7 +621,7 @@ enum class ZSkill(val description: String) : IButton {
         }
     },
     Reaper_Melee("Use this Skill when assigning hits while resolving a Melee Action. One of these hits can freely kill an additional identical Zombie in the same Zone. Only a single additional Zombie can be killed per Action when using this Skill. The Survivor gains the experience for the additional Zombie.") {
-	    override fun onAttack(
+	    override suspend fun onAttack(
 		    game: ZGame,
 		    c: ZSurvivor,
 		    weapon: ZWeapon,
@@ -644,7 +647,7 @@ enum class ZSkill(val description: String) : IButton {
         }
     },
     Reaper_Ranged("Use this Skill when assigning hits while resolving a Ranged Action. One of these hits can freely kill an additional identical Zombie in the same Zone. Only a single additional Zombie can be killed per Action when using this Skill. The Survivor gains the experience for the additional Zombie.") {
-	    override fun onAttack(
+	    override suspend fun onAttack(
 		    game: ZGame,
 		    c: ZSurvivor,
 		    weapon: ZWeapon,
@@ -671,7 +674,7 @@ enum class ZSkill(val description: String) : IButton {
     },
     Regeneration("At the end of each Game Round, remove all Wounds the Survivor received. Regeneration does’nt work if the Survivor has been eliminated."),
     Roll_6_plus1_die_Combat("You may roll an additional die for each '6' rolled on any Combat Action (Melee, Ranged or Magic). Keep on rolling additional dice as long as you keep getting '6'. Game effects that allow re-rolls (the Plenty Of Arrows Equipment card, for example) must be used before rolling any additional dice for this Skill.") {
-	    override fun onSixRolled(
+	    override suspend fun onSixRolled(
 		    game: ZGame,
 		    c: ZSurvivor,
 		    stat: ZWeaponStat,
@@ -686,7 +689,7 @@ enum class ZSkill(val description: String) : IButton {
 	    }
     },
     Roll_6_plus1_die_Magic("You may roll an additional die for each '6' rolled on a Magic Action. Keep on rolling additional dice as long as you keep getting '6'. Game effects that allow re-rolls must be used before rolling any additional dice for this Skill.") {
-	    override fun onSixRolled(
+	    override suspend fun onSixRolled(
 		    game: ZGame,
 		    c: ZSurvivor,
 		    stat: ZWeaponStat,
@@ -700,7 +703,7 @@ enum class ZSkill(val description: String) : IButton {
 	    }
     },
     Roll_6_plus1_die_Melee("You may roll an additional die for each '6' rolled on a Melee Action. Keep on rolling additional dice as long as you keep getting '6'. Game effects that allow re-rolls must be used before rolling any additional dice for this Skill.") {
-	    override fun onSixRolled(
+	    override suspend fun onSixRolled(
 		    game: ZGame,
 		    c: ZSurvivor,
 		    stat: ZWeaponStat,
@@ -714,7 +717,7 @@ enum class ZSkill(val description: String) : IButton {
 	    }
     },
     Roll_6_plus1_die_Ranged("You may roll an additional die for each '6' rolled on a Ranged Action. Keep on rolling additional dice as long as you keep getting '6'. Game effects that allow re-rolls (the Plenty Of Arrows Equipment card, for example) must be used before rolling any additional dice for this Skill.") {
-	    override fun onSixRolled(
+	    override suspend fun onSixRolled(
 		    game: ZGame,
 		    c: ZSurvivor,
 		    stat: ZWeaponStat,
@@ -824,7 +827,7 @@ enum class ZSkill(val description: String) : IButton {
 	Trick_shot("When the Survivor is equipped with Dual Combat spells or Ranged weapons, they can aim at different Zones with each spell/weapon in the same Action."),
 	Zombie_link("The Survivor plays an extra Turn each time an Extra Activation card is drawn from the Zombie pile. They play before the extra-activated Zombies. If several Survivors benefit from this Skill at the same time, choose their Turn order."),
 	Roll_6_Plus1_Damage("If any one of the die rolled is a 6 then add 1 to the damage. Additional sixes to not increase beyond 1.") {
-		override fun onSixRolled(
+		override suspend fun onSixRolled(
 			game: ZGame,
 			c: ZSurvivor,
 			stat: ZWeaponStat,
@@ -833,13 +836,13 @@ enum class ZSkill(val description: String) : IButton {
 			if (stat.damagePerHit < 3) {
 				game.addLogMessage("+1 Damage Applied!")
 				game.onRollSixApplied(c.playerType, this)
-			    stat.damagePerHit++
-		    }
+				stat.damagePerHit++
+			}
 		    return false
 	    }
     },
 	Hit_Heals("A successful hit results in healing of a single wound.") {
-		override fun onAttack(
+		override suspend fun onAttack(
 			game: ZGame,
 			c: ZSurvivor,
 			weapon: ZWeapon,
@@ -853,7 +856,7 @@ enum class ZSkill(val description: String) : IButton {
 		}
 	},
 	Roll_6_Hit_Heals("A successful hit results in healing of a single wound.") {
-		override fun onSixRolled(
+		override suspend fun onSixRolled(
 			game: ZGame,
 			c: ZSurvivor,
 			stat: ZWeaponStat,
@@ -864,7 +867,7 @@ enum class ZSkill(val description: String) : IButton {
 		}
 	},
 	Hit_4_Dragon_Fire("If an attack results in 4 successful hits then dragon fire in the target zone") {
-		override fun onAttack(
+		override suspend fun onAttack(
 			game: ZGame,
 			c: ZSurvivor,
 			weapon: ZWeapon,
@@ -890,12 +893,9 @@ enum class ZSkill(val description: String) : IButton {
         }
     },
     Auto_Reload("Auto reloads a ranged weapon at the end of turn") {
-        override fun onEndOfTurn(game: ZGame, c: ZCharacter): Boolean {
-            return super.onEndOfTurn(game, c)
-        }
     },
     Two_For_One_Melee("Each Successful hit generates two hits in the target zone. Similar to reaper but without the condition the zombie type must be the same") {
-	    override fun onAttack(
+	    override suspend fun onAttack(
 		    game: ZGame,
 		    c: ZSurvivor,
 		    weapon: ZWeapon,
@@ -949,7 +949,7 @@ enum class ZSkill(val description: String) : IButton {
 		}
 	},
 	Roll_6_Freeze("Rolling a six will immobilize all zombies in target zone for one turn") {
-		override fun onSixRolled(
+		override suspend fun onSixRolled(
 			game: ZGame,
 			c: ZSurvivor,
 			stat: ZWeaponStat,
@@ -1008,7 +1008,7 @@ enum class ZSkill(val description: String) : IButton {
         return 0
     }
 
-    open fun onAcquired(game: ZGame, c: ZCharacter) {}
+	open suspend fun onAcquired(game: ZGame, c: ZCharacter) {}
 
     /**
      *
@@ -1035,16 +1035,16 @@ enum class ZSkill(val description: String) : IButton {
      */
     open fun addSpecialMoves(game: ZGame, character: ZCharacter, moves: MutableCollection<ZMove>) {}
 
-    /**
-     * Return true if skill was applied
-     *
-     * @param game
-     * @param c
-     * @return
-     */
-    open fun onEndOfTurn(game: ZGame, c: ZCharacter): Boolean {
-        return false
-    }
+	/**
+	 * Return true if skill was applied
+	 *
+	 * @param game
+	 * @param c
+	 * @return
+	 */
+	open suspend fun onEndOfTurn(game: ZGame, c: ZCharacter): Boolean {
+		return false
+	}
 
     open fun avoidsInflictingFriendlyFire(): Boolean {
         return false
@@ -1058,7 +1058,7 @@ enum class ZSkill(val description: String) : IButton {
 		return 0
 	}
 
-	open fun onAttack(
+	open suspend fun onAttack(
 		game: ZGame,
 		c: ZSurvivor,
 		weapon: ZWeapon,
@@ -1076,7 +1076,7 @@ enum class ZSkill(val description: String) : IButton {
 	 * @param stat
 	 * @return
 	 */
-	open fun onSixRolled(game: ZGame, c: ZSurvivor, stat: ZWeaponStat, targetZone: Int): Boolean {
+	open suspend fun onSixRolled(game: ZGame, c: ZSurvivor, stat: ZWeaponStat, targetZone: Int): Boolean {
 		return false
 	}
 

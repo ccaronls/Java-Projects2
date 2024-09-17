@@ -8,6 +8,7 @@ import cc.lib.game.IDimension
 import cc.lib.game.Justify
 import cc.lib.ui.ButtonHandler
 import cc.lib.ui.UIComponent
+import cc.lib.ui.UIKeyCode
 import cc.lib.ui.UIRenderer
 import cc.lib.utils.Table
 import cc.lib.utils.prettify
@@ -19,7 +20,7 @@ import cc.lib.zombicide.ZZombie
 import java.util.Collections
 import java.util.LinkedList
 
-class UIZCharacterRenderer(component: UIComponent) : UIRenderer(component) {
+abstract class UIZCharacterRenderer(component: UIComponent) : UIRenderer(component) {
 	interface IWrappable {
 		fun drawWrapped(g: AGraphics, maxWidth: Float, dimmed: Boolean): GDimension
 	}
@@ -156,11 +157,27 @@ class UIZCharacterRenderer(component: UIComponent) : UIRenderer(component) {
 			//GDimension d = g.drawWrapString(g.getViewportWidth(), y, maxWidth, Justify.RIGHT, Justify.TOP, msg);
 			g.popMatrix()
 			dimmed = true
-			y += d.getHeight().toInt()
+			y += d.height.toInt()
 		}
 		info?.let {
 			setMinDimension(width, it.height.coerceAtLeast(y.toFloat()))
 		}
 	}
 
+	abstract fun scrollToTop()
+
+	override fun onKeyTyped(code: UIKeyCode): Boolean {
+		when (code) {
+			UIKeyCode.BACK -> UIZombicide.instance.focusOnMainMenu()
+			UIKeyCode.RIGHT -> UIZombicide.instance.focusOnBoard()
+			else -> return false
+		}
+		scrollToTop()
+		return true
+	}
+
+	override fun onFocusChanged(gained: Boolean) {
+		if (!gained)
+			scrollToTop()
+	}
 }

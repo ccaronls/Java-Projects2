@@ -1,7 +1,11 @@
 package cc.lib.zombicide.quests
 
 import cc.lib.utils.Table
-import cc.lib.zombicide.*
+import cc.lib.zombicide.ZCharacter
+import cc.lib.zombicide.ZGame
+import cc.lib.zombicide.ZQuest
+import cc.lib.zombicide.ZQuests
+import cc.lib.zombicide.ZTile
 import cc.lib.zombicide.ZTile.Companion.getQuadrant
 
 class ZQuestTheShepherds : ZQuest(ZQuests.The_Shepherds) {
@@ -22,7 +26,7 @@ arrayOf("z31:spw", "z32", "z33",                                "z34", "z35", "z
 arrayOf("z40:i:red:wn:ode:ws", "z51:i:wn:ws:de", "z41:ws",      "z42:i:dw:wn:gvd3:we", "z43:st", "z44:i:dw:wn:vd2:ode", "z45:i:wn:ode", "z46:i:wn", "z46:i:red:wn"),
 arrayOf("", "", "",                                             "z47:v:gvd3:ww:wn", "z47:v:wn", "z47:v:wn:we:gvd1", "z48:v:vd2:wn", "z48:v:wn", "z48:v:vd4:wn")))
 
-	override fun processObjective(game: ZGame, c: ZCharacter) {
+	override suspend fun processObjective(game: ZGame, c: ZCharacter) {
 		super.processObjective(game, c)
 		if (c.occupiedZone == blueSpawnZone) {
 			game.spawnZombies(blueSpawnZone)

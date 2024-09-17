@@ -3,8 +3,22 @@ package cc.lib.zombicide.quests
 import cc.lib.game.GColor
 import cc.lib.utils.Grid
 import cc.lib.utils.Table
-import cc.lib.zombicide.*
+import cc.lib.zombicide.ZCell
+import cc.lib.zombicide.ZCellType
+import cc.lib.zombicide.ZCharacter
+import cc.lib.zombicide.ZDir
+import cc.lib.zombicide.ZDoor
+import cc.lib.zombicide.ZEquipment
+import cc.lib.zombicide.ZEquipmentType
+import cc.lib.zombicide.ZGame
+import cc.lib.zombicide.ZIcon
+import cc.lib.zombicide.ZItemType
+import cc.lib.zombicide.ZQuest
+import cc.lib.zombicide.ZQuests
+import cc.lib.zombicide.ZTile
 import cc.lib.zombicide.ZTile.Companion.getQuadrant
+import cc.lib.zombicide.ZWallFlag
+import cc.lib.zombicide.ZWeaponType
 
 class ZQuestTutorial : ZQuest(ZQuests.Tutorial) {
 	companion object {
@@ -41,7 +55,7 @@ arrayOf("", "", "", "z16:v:wn:ww:gvd1", "z16:v:wn", "z16:v:wn:gvd2")))
 		}
 	}
 
-	override fun processObjective(game: ZGame, c: ZCharacter) {
+	override suspend fun processObjective(game: ZGame, c: ZCharacter) {
 		super.processObjective(game, c)
 		if (c.occupiedZone == blueKeyZone) {
 			game.unlockDoor(blueDoor)

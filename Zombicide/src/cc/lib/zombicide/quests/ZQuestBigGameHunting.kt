@@ -63,7 +63,7 @@ class ZQuestBigGameHunting : ZQuest(ZQuests.Big_Game_Hunting) {
 		)
 	)
 
-	override fun processObjective(game: ZGame, c: ZCharacter) {
+	override suspend fun processObjective(game: ZGame, c: ZCharacter) {
 		super.processObjective(game, c)
 		// check for necro / abom in special spawn places
 		game.board.getZone(c.occupiedZone).isObjective = false

@@ -78,7 +78,7 @@ arrayOf("", "", "",                                             "", "", "z41:v:w
 		return if (game.getNumKills(ZZombieType.Abomination) > 0) 100 else 0
 	}
 
-	override fun processObjective(game: ZGame, c: ZCharacter) {
+	override suspend fun processObjective(game: ZGame, c: ZCharacter) {
 		super.processObjective(game, c)
 		if (c.occupiedZone == greenObjZone) {
 			game.addLogMessage(c.name() + " has found the GREEN objective and opened the GOLD vault")

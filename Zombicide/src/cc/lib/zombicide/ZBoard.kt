@@ -133,18 +133,18 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 						for (i in minDist..maxDist) {
 							if (!grid.isOnGrid(pos)) break
 							val cell = grid[pos]
-							val zone = getZone(cell.zoneIndex)
-						    when (zone.type) {
-							    ZZoneType.TOWER, ZZoneType.OUTDOORS -> {
-								    lastIndoorZone = -1
-								    result.add(cell.zoneIndex)
-							    }
-							    ZZoneType.BUILDING -> if (lastIndoorZone < 0) {
-								    lastIndoorZone = cell.zoneIndex
-								    if (cell.getWallFlag(dir.opposite).openedForAction(action)) {
-									    result.add(cell.zoneIndex)
-								    }
-							    }
+							when (getZone(cell.zoneIndex).type) {
+								ZZoneType.TOWER, ZZoneType.OUTDOORS -> {
+									lastIndoorZone = -1
+									result.add(cell.zoneIndex)
+								}
+
+								ZZoneType.BUILDING -> if (lastIndoorZone < 0) {
+									lastIndoorZone = cell.zoneIndex
+									if (cell.getWallFlag(dir.opposite).openedForAction(action)) {
+										result.add(cell.zoneIndex)
+									}
+								}
 							    else -> Unit
 						    }
 						    pos = getAdjacent(pos, dir)
@@ -921,7 +921,7 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 		return false
 	}
 
-	fun spawnHoardZombies(zoneIdx: Int, game: ZGame) {
+	suspend fun spawnHoardZombies(zoneIdx: Int, game: ZGame) {
 		while (hoard.isNotEmpty()) {
 			hoard.forEach { (type, _) ->
 				val zombie = ZZombie(type, zoneIdx)

@@ -1,7 +1,16 @@
 package cc.lib.zombicide.quests
 
 import cc.lib.utils.Table
-import cc.lib.zombicide.*
+import cc.lib.zombicide.ZBoard
+import cc.lib.zombicide.ZCharacter
+import cc.lib.zombicide.ZEquipmentType
+import cc.lib.zombicide.ZGame
+import cc.lib.zombicide.ZItemType
+import cc.lib.zombicide.ZQuest
+import cc.lib.zombicide.ZQuests
+import cc.lib.zombicide.ZTile
+import cc.lib.zombicide.ZWeaponType
+import cc.lib.zombicide.ZZombieType
 
 class ZQuestTheAbomination : ZQuest(ZQuests.The_Abomination) {
 	companion object {
@@ -32,7 +41,7 @@ arrayOf("z20:i:red:st:dn:ode", "z21", "z22", "z23", "z24:i:red:st:dn:odw"))
 		return 20
 	}
 
-	override fun processObjective(game: ZGame, c: ZCharacter) {
+	override suspend fun processObjective(game: ZGame, c: ZCharacter) {
 		super.processObjective(game, c)
 		if (vaultItemsRemaining.size > 0) {
 			game.giftEquipment(c, vaultItemsRemaining.removeAt(0))

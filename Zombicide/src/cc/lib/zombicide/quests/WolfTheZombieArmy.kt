@@ -87,7 +87,7 @@ class WolfTheZombieArmy : ZQuest(ZQuests.The_Zombie_Army) {
 		return completed * 100 / total
 	}
 
-	override fun processObjective(game: ZGame, c: ZCharacter) {
+	override suspend fun processObjective(game: ZGame, c: ZCharacter) {
 		super.processObjective(game, c)
 		if (c.occupiedZone == greenObjZone) {
 			greenObjZone = -1
@@ -125,7 +125,7 @@ class WolfTheZombieArmy : ZQuest(ZQuests.The_Zombie_Army) {
 			)
 	}
 
-	override fun onZombieSpawned(game: ZGame, zombie: ZZombie, zone: Int) {
+	override suspend fun onZombieSpawned(game: ZGame, zombie: ZZombie, zone: Int) {
 		when (zombie.type) {
 			ZZombieType.Necromancer -> {
 				if (getNumSpawnZones(game) < MAX_SPAWN_ZONES) {

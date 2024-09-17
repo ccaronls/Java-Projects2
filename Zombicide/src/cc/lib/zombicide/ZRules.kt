@@ -64,4 +64,7 @@ class ZRules : Reflector<ZRules>() {
 	 */
 	@RuleMeta("Enable Murder of Crowz", "No Rest for the Wicked")
 	var murderOfCrowz = false
+
+	@RuleMeta("Enable Lord of Skulls", "Black Plague")
+	var lordOfSkulls = false
 }

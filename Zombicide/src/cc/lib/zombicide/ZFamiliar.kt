@@ -47,7 +47,7 @@ class ZFamiliar(override val type: ZFamiliarType = ZFamiliarType.NUCIFER, occupi
 	val weapon = type.weaponType.create()
 	var equipment: ZEquipment<*>? = null
 
-	override fun performAction(action: ZActionType, game: ZGame) {
+	override suspend fun performAction(action: ZActionType, game: ZGame) {
 		when (action) {
 			ZActionType.MOVE -> {
 				actionsLeftThisTurn = 0
@@ -63,13 +63,13 @@ class ZFamiliar(override val type: ZFamiliarType = ZFamiliarType.NUCIFER, occupi
 
 	override fun getAvailableSkills(): List<ZSkill> = availableSkills
 
-	override fun onKilledZombie(game: ZGame, zombie: ZZombie, type: ZEquipmentType?) {
+	override suspend fun onKilledZombie(game: ZGame, zombie: ZZombie, type: ZEquipmentType?) {
 		game.board.getCharacter(handler).onKilledZombie(game, zombie, type)
 	}
 
-	override fun heal(game: ZGame, i: Int) = game.board.getCharacter(handler).heal(game, i)
+	override suspend fun heal(game: ZGame, i: Int) = game.board.getCharacter(handler).heal(game, i)
 
-	override fun addExperience(game: ZGame, pts: Int) {
+	override suspend fun addExperience(game: ZGame, pts: Int) {
 		game.board.getCharacter(handler).addExperience(game, pts)
 	}
 

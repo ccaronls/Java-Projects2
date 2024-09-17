@@ -42,7 +42,7 @@ class ZQuestTheRatz : ZQuest(ZQuests.The_Ratz) {
 		}
 	}
 
-	override fun handleSpawnForZone(game: ZGame, zoneIdx: Int): Boolean {
+	override suspend fun handleSpawnForZone(game: ZGame, zoneIdx: Int): Boolean {
 		game.board.getZone(zoneIdx).getCells().forEach {
 			if (ratz.contains(it)) {
 				game.spawnZombies(1, ZZombieType.Ratz, zoneIdx)

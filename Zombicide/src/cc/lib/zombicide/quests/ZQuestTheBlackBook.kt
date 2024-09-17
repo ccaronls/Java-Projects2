@@ -5,8 +5,21 @@ import cc.lib.game.GColor
 import cc.lib.game.GRectangle
 import cc.lib.utils.Grid
 import cc.lib.utils.Table
-import cc.lib.zombicide.*
+import cc.lib.zombicide.ZBoard
+import cc.lib.zombicide.ZCell
+import cc.lib.zombicide.ZCellType
+import cc.lib.zombicide.ZCharacter
+import cc.lib.zombicide.ZColor
+import cc.lib.zombicide.ZDir
+import cc.lib.zombicide.ZDoor
+import cc.lib.zombicide.ZGame
+import cc.lib.zombicide.ZIcon
+import cc.lib.zombicide.ZQuest
+import cc.lib.zombicide.ZQuests
+import cc.lib.zombicide.ZTile
 import cc.lib.zombicide.ZTile.Companion.getQuadrant
+import cc.lib.zombicide.ZWallFlag
+import cc.lib.zombicide.ZZone
 
 class ZQuestTheBlackBook : ZQuest(ZQuests.The_Black_Book) {
 	companion object {
@@ -57,7 +70,7 @@ arrayOf("z29:i:red:wn:de", "z30", "z31:i:dw:wn:ode",        "z32:i:red:wn:we", "
 		game.board.setDoorLocked(greenDoor)
 	}
 
-	override fun processObjective(game: ZGame, c: ZCharacter) {
+	override suspend fun processObjective(game: ZGame, c: ZCharacter) {
 		super.processObjective(game, c)
 		if (c.occupiedZone == blueObjZone) {
 			game.unlockDoor(blueDoor)

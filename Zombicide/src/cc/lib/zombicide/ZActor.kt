@@ -73,12 +73,12 @@ abstract class ZActor internal constructor(var occupiedZone: Int) : UIZButton() 
 
     protected abstract val actionsPerTurn: Int
     abstract fun name(): String
-    open fun performAction(action: ZActionType, game: ZGame) {
-        if (isAlive) {
-	        require(actionsLeftThisTurn + action.costPerTurn >= 0)
-	        actionsLeftThisTurn -= action.costPerTurn
-        }
-    }
+	open suspend fun performAction(action: ZActionType, game: ZGame) {
+		if (isAlive) {
+			require(actionsLeftThisTurn + action.costPerTurn >= 0)
+			actionsLeftThisTurn -= action.costPerTurn
+		}
+	}
 
     fun addExtraAction() {
         actionsLeftThisTurn++

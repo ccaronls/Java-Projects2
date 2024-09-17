@@ -152,7 +152,7 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 
 	fun getStartUser(): ZUser = users[startUser.coerceIn(0 until users.size)]
 
-	private fun updateCurrentUser(idx: Int) {
+	private suspend fun updateCurrentUser(idx: Int) {
 		if (idx != currentUserIdx) {
 			currentUserIdx = idx
 			with(users[idx]) {
@@ -161,14 +161,14 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 		}
 	}
 
-	open fun pushState(state: State) {
+	open suspend fun pushState(state: State) {
 		val oldPlayer = currentCharacter?.type
 		if (state.player != oldPlayer)
 			onCurrentCharacterUpdated(oldPlayer, state.player?.toCharacter())
 		stateStack.push(state)
 	}
 
-	fun popState() {
+	suspend fun popState() {
 		val curPlayer = currentCharacter?.type
 		stateStack.pop()
 		currentCharacter?.let {
@@ -178,12 +178,12 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 	}
 
 	@RemoteFunction
-	protected open fun onCurrentUserUpdated(userName: String, colorId: Int) {
+	protected open suspend fun onCurrentUserUpdated(userName: String, colorId: Int) {
 		log.debug("%s updated colorID: $colorId", userName)
 	}
 
 	@RemoteFunction
-	protected open fun onCurrentCharacterUpdated(priorPlayer: ZPlayerName?, character: ZCharacter?) {
+	protected open suspend fun onCurrentCharacterUpdated(priorPlayer: ZPlayerName?, character: ZCharacter?) {
 		log.debug("%s updated too %s", priorPlayer ?: "none", character?.type)
 	}
 
@@ -281,82 +281,80 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 		log.debug("Loading quest: $newQuest")
 		val prevQuest: ZQuest? = if (questInitialized) this.quest else null
 		quest = newQuest.load()
-		synchronized(board) {
-			board = quest.loadBoard()
-			if (prevQuest == null || prevQuest.name != this.quest.name) {
-				initQuest(quest)
+		board = quest.loadBoard()
+		if (prevQuest == null || prevQuest.name != this.quest.name) {
+			initQuest(quest)
+		}
+		initGame()
+		val startCells: MutableList<ZCell> = ArrayList()
+		val it: Grid.Iterator<ZCell> = board.getCellsIterator()
+		while (it.hasNext()) {
+			val cell: ZCell = it.next()
+			if (cell.isCellTypeEmpty) {
+				continue
 			}
-			initGame()
-			val startCells: MutableList<ZCell> = ArrayList()
-            val it: Grid.Iterator<ZCell> = board.getCellsIterator()
-            while (it.hasNext()) {
-	            val cell: ZCell = it.next()
-	            if (cell.isCellTypeEmpty) {
-		            continue
-	            }
-	            val zone: ZZone = board.zones[cell.zoneIndex]
-	            val type = when (cell.environment) {
-		            ZCellEnvironment.OUTDOORS -> ZZoneType.OUTDOORS
-		            ZCellEnvironment.BUILDING -> ZZoneType.BUILDING
-		            ZCellEnvironment.VAULT -> ZZoneType.VAULT
-		            ZCellEnvironment.TOWER -> ZZoneType.TOWER
-		            ZCellEnvironment.WATER -> ZZoneType.WATER
-		            ZCellEnvironment.HOARD -> ZZoneType.HOARD
-	            }
-	            require(zone.type == ZZoneType.UNSET || zone.type == type) { "Zone ${zone.zoneIndex} is not of uniform type" }
-	            zone.type = type
-	            // add doors for the zone
-	            for (dir: ZDir in compassValues) {
-		            when (cell.getWallFlag(dir)) {
-			            ZWallFlag.CLOSED, ZWallFlag.OPEN -> {
-				            val pos: Pos = it.pos
-				            val next: Pos = board.getAdjacent(pos, (dir))
-				            zone.addDoorIfNeeded(board, ZDoor(pos, next, dir, GColor.RED))
-			            }
+			val zone: ZZone = board.zones[cell.zoneIndex]
+			val type = when (cell.environment) {
+				ZCellEnvironment.OUTDOORS -> ZZoneType.OUTDOORS
+				ZCellEnvironment.BUILDING -> ZZoneType.BUILDING
+				ZCellEnvironment.VAULT -> ZZoneType.VAULT
+				ZCellEnvironment.TOWER -> ZZoneType.TOWER
+				ZCellEnvironment.WATER -> ZZoneType.WATER
+				ZCellEnvironment.HOARD -> ZZoneType.HOARD
+			}
+			require(zone.type == ZZoneType.UNSET || zone.type == type) { "Zone ${zone.zoneIndex} is not of uniform type" }
+			zone.type = type
+			// add doors for the zone
+			for (dir: ZDir in compassValues) {
+				when (cell.getWallFlag(dir)) {
+					ZWallFlag.CLOSED, ZWallFlag.OPEN -> {
+						val pos: Pos = it.pos
+						val next: Pos = board.getAdjacent(pos, (dir))
+						zone.addDoorIfNeeded(board, ZDoor(pos, next, dir, GColor.RED))
+					}
 
-			            else -> Unit
-		            }
-	            }
-	            for (type: ZCellType in ZCellType.entries) {
-		            if (cell.isCellType(type)) {
-			            when (type) {
-				            ZCellType.START -> startCells.add(cell)
-				            ZCellType.OBJECTIVE_BLACK,
-				            ZCellType.OBJECTIVE_RED,
-				            ZCellType.OBJECTIVE_BLUE,
-				            ZCellType.OBJECTIVE_GREEN -> zone.isObjective = true
+					else -> Unit
+				}
+			}
+			for (type: ZCellType in ZCellType.entries) {
+				if (cell.isCellType(type)) {
+					when (type) {
+						ZCellType.START -> startCells.add(cell)
+						ZCellType.OBJECTIVE_BLACK,
+						ZCellType.OBJECTIVE_RED,
+						ZCellType.OBJECTIVE_BLUE,
+						ZCellType.OBJECTIVE_GREEN -> zone.isObjective = true
 
-				            ZCellType.VAULT_DOOR_VIOLET -> addVaultDoor(cell, zone, it.pos, GColor.MAGENTA)
-				            ZCellType.VAULT_DOOR_GOLD -> addVaultDoor(cell, zone, it.pos, GColor.GOLD)
-				            else -> Unit
-                        }
-                    }
-                }
-            }
-            if (startCells.size == 0) {
-	            error("No start cells specified")
-            }
+						ZCellType.VAULT_DOOR_VIOLET -> addVaultDoor(cell, zone, it.pos, GColor.MAGENTA)
+						ZCellType.VAULT_DOOR_GOLD -> addVaultDoor(cell, zone, it.pos, GColor.GOLD)
+						else -> Unit
+					}
+				}
+			}
+		}
+		if (startCells.size == 0) {
+			error("No start cells specified")
+		}
 
-            // position all the characters here
-            board.removeCharacters()
-            var curCellIndex = 0
-            for (u: ZUser in users) {
-                for (pl: ZPlayerName in u.players) {
-	                val c: ZCharacter = pl.create()
-	                c.colorId = u.colorId
-	                val cell: ZCell = startCells[curCellIndex]
-	                curCellIndex = curCellIndex.rotate(startCells.size)
-	                c.occupiedZone = cell.zoneIndex
-	                if (!board.spawnActor(c))
-		                error("Failed to add $pl to board")
-                }
-            }
-			quest.init(this)
-			deck.clear()
-			deck.addAll(quest.buildDeck(difficulty, rules))
-        }
-        currentQuest = newQuest
-    }
+		// position all the characters here
+		board.removeCharacters()
+		var curCellIndex = 0
+		for (u: ZUser in users) {
+			for (pl: ZPlayerName in u.players) {
+				val c: ZCharacter = pl.create()
+				c.colorId = u.colorId
+				val cell: ZCell = startCells[curCellIndex]
+				curCellIndex = curCellIndex.rotate(startCells.size)
+				c.occupiedZone = cell.zoneIndex
+				if (!board.spawnActor(c))
+					error("Failed to add $pl to board")
+			}
+		}
+		quest.init(this)
+		deck.clear()
+		deck.addAll(quest.buildDeck(difficulty, rules))
+		currentQuest = newQuest
+	}
 
 	private fun addVaultDoor(cell: ZCell, zone: ZZone, pos: Pos, color: GColor) {
 		// add a vault door leading to the cell specified by vaultFlag
@@ -378,7 +376,7 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 		error("Unable to add vault door at $pos, zone: ${zone.zoneIndex}")
 	}
 
-	fun spawnZombies(_count: Int, type: ZZombieType, _zone: Int) {
+	suspend fun spawnZombies(_count: Int, type: ZZombieType, _zone: Int) {
 		var zone = _zone
 		var count = _count
 		log.debug("spawn zombies %s X %d in zone %d", type, count, zone)
@@ -441,7 +439,7 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 		}
 	}
 
-	private fun performDragonStomp(zoneIdx: Int) {
+	private suspend fun performDragonStomp(zoneIdx: Int) {
 		board.getAllActors().filterIsInstance<ZZombie>().filter { it.occupiedZone == zoneIdx }
 			.forEach {
 				destroyZombie(it, ZAttackType.CRUSH, null, null)
@@ -449,7 +447,8 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 	}
 
 	@RemoteFunction
-	open fun onZombieSpawned(zombie: ZZombie) {}
+	open suspend fun onZombieSpawned(zombie: ZZombie) {
+	}
 
 	val state: ZState
 		get() {
@@ -468,14 +467,14 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 	val stateData: State
 		get() = stateStack.peek()
 
-    private fun setState(state: State) {
-        if (stateStack.size > 0)
-        	stateStack.pop()
-        pushState(state)
-    }
+	private suspend fun setState(state: State) {
+		if (stateStack.size > 0)
+			stateStack.pop()
+		pushState(state)
+	}
 
 	@RemoteFunction
-	protected open fun onQuestComplete() {
+	protected open suspend fun onQuestComplete() {
 		addLogMessage("Quest Complete")
 	}
 
@@ -1048,11 +1047,11 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
         return false
     }
 
-	private fun performZombieStage() {
+	private suspend fun performZombieStage() {
 		// for this version we take the approach of trying to move to open spaces
 		val pathMap = mutableMapOf<ZZombie, MutableList<ZDir>>()
 
-		fun getPathForZombie(zombie: ZZombie, cb: () -> List<ZDir>): MutableList<ZDir> {
+		suspend fun getPathForZombie(zombie: ZZombie, cb: () -> List<ZDir>): MutableList<ZDir> {
 			pathMap[zombie]?.let {
 				return it
 			}
@@ -1149,21 +1148,21 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 	open val isOrganizeEnabled = false
 
 	@RemoteFunction
-	protected open fun onCharacterDestroysSpawn(c: ZPlayerName, zoneIdx: Int, area: ZSpawnArea) {
+	protected open suspend fun onCharacterDestroysSpawn(c: ZPlayerName, zoneIdx: Int, area: ZSpawnArea) {
 		log.debug("%s destroys spawn at %d", c, zoneIdx, area)
 	}
 
 	@RemoteFunction
-	protected open fun onCharacterDefends(cur: ZPlayerName, attackerPosition: ZActorPosition) {
+	protected open suspend fun onCharacterDefends(cur: ZPlayerName, attackerPosition: ZActorPosition) {
 		log.debug("%s defends from %s", cur, attackerPosition)
 	}
 
 	@RemoteFunction
-	protected open fun onNewSkillAcquired(c: ZPlayerName, skill: ZSkill) {
+	protected open suspend fun onNewSkillAcquired(c: ZPlayerName, skill: ZSkill) {
 		log.debug("%s acquires new skill %s", c, skill)
 	}
 
-	private fun playerDefends(cur: ZCharacter, type: ZZombieType): Boolean {
+	private suspend fun playerDefends(cur: ZCharacter, type: ZZombieType): Boolean {
 		for (rating: Int in cur.getArmorRatings(type)) {
 			addLogMessage("Defensive roll")
 			val dice = rollDice(1)
@@ -1172,7 +1171,7 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 		return false
 	}
 
-	private fun doZombieAttacks(list: List<Pair<ZZombie, ZCharacter>>) {
+	private suspend fun doZombieAttacks(list: List<Pair<ZZombie, ZCharacter>>) {
 		list.forEach { (zombie, victim) ->
 			onZombieAttack(zombie.position, victim.type, ZActionType.MELEE)
 			zombie.performAction(ZActionType.MELEE, this)
@@ -1204,7 +1203,7 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 		return null
 	}
 
-	private fun tryZombieAttackNow(zombie: ZZombie) {
+	private suspend fun tryZombieAttackNow(zombie: ZZombie) {
 		val victims = board.getCharactersInZone(zombie.occupiedZone).filter {
 			!it.isInvisible && it.isAlive
 		}
@@ -1231,26 +1230,27 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 	}
 
 	@RemoteFunction
-	protected open fun onZombieAttack(zombiePos: ZActorPosition, victim: ZPlayerName, type: ZActionType) {}
+	protected open suspend fun onZombieAttack(zombiePos: ZActorPosition, victim: ZPlayerName, type: ZActionType) {
+	}
 
-	fun gameLost(msg: String) {
+	suspend fun gameLost(msg: String) {
 		gameOverStatus = GAME_LOST
 		addLogMessage(("Game Lost $msg").trim { it <= ' ' })
 		onGameLost()
 	}
 
-	fun gameWon() {
+	suspend fun gameWon() {
 		gameOverStatus = GAME_WON
 		addLogMessage("Game Won!!!")
 		onQuestComplete()
 	}
 
 	@RemoteFunction
-	protected open fun onGameLost() {
+	protected open suspend fun onGameLost() {
 		log.debug("GAME LOST")
 	}
 
-	fun playerWounded(victim: ZCharacter, attacker: ZActor, attackType: ZAttackType, amount: Int, reason: String) {
+	suspend fun playerWounded(victim: ZCharacter, attacker: ZActor, attackType: ZAttackType, amount: Int, reason: String) {
 		if (!victim.isDead) {
 			victim.wound(amount, attackType)
 			if (victim.isDead) {
@@ -1266,17 +1266,29 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
     }
 
 	@RemoteFunction
-	protected open fun onCharacterAttacked(character: ZPlayerName, attackerPosition: ZActorPosition, attackType: ZAttackType, characterPerished: Boolean) {
-		log.debug("%s attacked from %s with %s and %s", character, attackerPosition, attackType, if (characterPerished) "Died" else "Was Wounded")
+	protected open suspend fun onCharacterAttacked(
+		character: ZPlayerName,
+		attackerPosition: ZActorPosition,
+		attackType: ZAttackType,
+		characterPerished: Boolean
+	) {
+		log.debug(
+			"%s attacked from %s with %s and %s",
+			character,
+			attackerPosition,
+			attackType,
+			if (characterPerished) "Died" else "Was Wounded"
+		)
 	}
 
 	@RemoteFunction
-	open fun onEquipmentThrown(c: ZPlayerName, icon: ZIcon, zone: Int) {
+	open suspend fun onEquipmentThrown(c: ZPlayerName, icon: ZIcon, zone: Int) {
 		log.debug("%s throws %s into %d", c, icon, zone)
 	}
 
 	@RemoteFunction
-	protected open fun onStartRound(roundNum: Int) {}
+	protected open suspend fun onStartRound(roundNum: Int) {
+	}
 
 	private suspend fun useEquipment(c: ZCharacter, e: ZEquipment<*>): Boolean {
 		if (e.isMagic) {
@@ -1936,7 +1948,7 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 	}
 
 	@RemoteFunction
-	protected open fun onCatapultFired(
+	protected open suspend fun onCatapultFired(
 		pl: ZPlayerName,
 		fromZone: Int,
 		toZone: Int,
@@ -1961,7 +1973,7 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 		return false
 	}
 
-	private fun performHoardAttack(zoneIdx: Int, weapon: ZWeaponType) {
+	private suspend fun performHoardAttack(zoneIdx: Int, weapon: ZWeaponType) {
 		val hoardZombies: MutableList<ZZombieType> =
 			board.getHoard().map { (type, count) -> Array(count) { type }.toList() }.flatten()
 				.sortedBy {
@@ -2001,7 +2013,8 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 	}
 
 	@RemoteFunction
-	protected open fun onZombieHoardAttacked(player: ZPlayerName, hits: List<ZZombieType>) {}
+	protected open suspend fun onZombieHoardAttacked(player: ZPlayerName, hits: List<ZZombieType>) {
+	}
 
 	// TODO: Add 'incoming equipment' parameter to allow for the popup when items found, picked up, gifted etc.
 	private suspend fun performOrganize(cur: ZCharacter, secondary: ZCharacter?): Boolean {
@@ -2109,9 +2122,10 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 	}
 
 	@RemoteFunction
-	protected open fun onCloseSpawnArea(c: ZCharacter, zone: Int, area: ZSpawnArea) {}
+	protected open suspend fun onCloseSpawnArea(c: ZCharacter, zone: Int, area: ZSpawnArea) {
+	}
 
-	private fun performCloseSpawnPortal(cur: ZCharacter, move: ZMove) : Boolean {
+	private suspend fun performCloseSpawnPortal(cur: ZCharacter, move: ZMove): Boolean {
 		board.getZone(cur.occupiedZone).cells.forEach { pos ->
 			board.getCell(pos).spawnAreas.forEach {
 				if (it.isCanBeRemovedFromBoard) {
@@ -2193,37 +2207,37 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
     }
 
 	@RemoteFunction
-	protected open fun onAhhhhhh(c: ZPlayerName) {
+	protected open suspend fun onAhhhhhh(c: ZPlayerName) {
 		log.debug("AHHHHHHH!")
 	}
 
 	@RemoteFunction
-	protected open fun onNecromancerEscaped(position: ZActorPosition) {
+	protected open suspend fun onNecromancerEscaped(position: ZActorPosition) {
 		log.debug("necromancer %s escaped", board.getActor(position))
 	}
 
 	@RemoteFunction
-	protected open fun onEquipmentFound(c: ZPlayerName, equipment: List<ZEquipment<*>>) {
+	protected open suspend fun onEquipmentFound(c: ZPlayerName, equipment: List<ZEquipment<*>>) {
 		log.debug("%s found %d eqipments", c, equipment.size)
 	}
 
 	@RemoteFunction
-	open fun onCharacterHealed(c: ZPlayerName, amt: Int) {
+	open suspend fun onCharacterHealed(c: ZPlayerName, amt: Int) {
 		log.debug("%s healed %d pts", c, amt)
 	}
 
 	@RemoteFunction
-	protected open fun onSkillKill(c: ZPlayerName, skill: ZSkill, z: ZActorPosition, attackType: ZAttackType) {
+	protected open suspend fun onSkillKill(c: ZPlayerName, skill: ZSkill, z: ZActorPosition, attackType: ZAttackType) {
 		log.debug("%s skill kill on %s with %s", c, board.getActor(z), attackType)
 	}
 
 	@RemoteFunction
-	open fun onRollSixApplied(c: ZPlayerName, skill: ZSkill) {
+	open suspend fun onRollSixApplied(c: ZPlayerName, skill: ZSkill) {
 		log.debug("%s roll six applied to %s", c, skill)
 	}
 
 	@RemoteFunction
-	protected open fun onWeaponReloaded(c: ZPlayerName, w: ZWeapon) {
+	protected open suspend fun onWeaponReloaded(c: ZPlayerName, w: ZWeapon) {
 		log.debug("%s reloaded %s", c, w)
 	}
 
@@ -2482,7 +2496,7 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 		return false
 	}
 
-	fun performSkillKill(c: ZSurvivor, skill: ZSkill, z: ZZombie, at: ZAttackType) {
+	suspend fun performSkillKill(c: ZSurvivor, skill: ZSkill, z: ZZombie, at: ZAttackType) {
 		onSkillKill(c.playerType, skill, z.position, at)
 		addExperience(c, z.type.expProvided)
 		destroyZombie(z, at, c, null)
@@ -2590,7 +2604,7 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 	 * @param targetZone
 	 */
 	@RemoteFunction
-	protected open fun onAttack(
+	protected open suspend fun onAttack(
 		attacker: ZPlayerName,
 		weapon: ZWeaponType,
 		actionType: ZActionType?,
@@ -2610,11 +2624,11 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 	}
 
 	@RemoteFunction
-	protected open fun onBonusAction(pl: ZPlayerName, action: ZSkill) {
+	protected open suspend fun onBonusAction(pl: ZPlayerName, action: ZSkill) {
 		log.debug("%s got bonus action %s", pl, action)
 	}
 
-	private fun checkForHitAndRun(cur: ZSurvivor) {
+	private suspend fun checkForHitAndRun(cur: ZSurvivor) {
 		if (cur.hasAvailableSkill(ZSkill.Hit_and_run)) {
 			cur.addAvailableSkill(ZSkill.Plus1_free_Move_Action)
 			addLogMessage(cur.getLabel() + " used Hit and Run for a free move action")
@@ -2629,7 +2643,7 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 			} ?: ZSkillLevel.getLevel(0, rules)
 		} ?: ZSkillLevel.getLevel(0, rules)
 
-	fun addExperience(c: ZSurvivor, pts: Int) {
+	suspend fun addExperience(c: ZSurvivor, pts: Int) {
 		if (pts <= 0) return
 		var sl = c.skillLevel
 		c.addExperience(this, pts)
@@ -2647,7 +2661,7 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
     }
 
 	@RemoteFunction
-	protected open fun onCharacterGainedExperience(c: ZPlayerName, points: Int) {
+	protected open suspend fun onCharacterGainedExperience(c: ZPlayerName, points: Int) {
 		log.info("%s gained %d experence!", c, points)
 	}
 
@@ -2677,7 +2691,7 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
         return rollDice(numDice)
     }
 
-	fun rollDice(num: Int): Array<Int> {
+	suspend fun rollDice(num: Int): Array<Int> {
 		val result = Array(num) { dice[it] }
 		var dieStrEnd = "+"
 		var dieStrMid = "|"
@@ -2699,11 +2713,11 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 	}
 
 	@RemoteFunction
-	protected open fun onRollDice(roll: Array<Int>) {
+	protected open suspend fun onRollDice(roll: Array<Int>) {
 		log.info("Rolling dice result is: %s", Arrays.toString(roll))
 	}
 
-	fun destroyZombie(
+	suspend fun destroyZombie(
 		zombie: ZZombie,
 		deathType: ZAttackType,
 		killer: ZSurvivor?,
@@ -2718,7 +2732,8 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 	}
 
 	@RemoteFunction
-	protected open fun onZombieDestroyed(deathType: ZAttackType, zombiePos: ZActorPosition) {}
+	protected open suspend fun onZombieDestroyed(deathType: ZAttackType, zombiePos: ZActorPosition) {
+	}
 
 	val allCharacters: List<ZCharacter>
 		get() = board.getAllCharacters()
@@ -2732,22 +2747,22 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 	}
 
 	@RemoteFunction
-	protected open fun onDoubleSpawn(multiplier: Int) {
+	protected open suspend fun onDoubleSpawn(multiplier: Int) {
 		log.debug("Double spawn X %d", multiplier)
 	}
 
 	@RemoteFunction
-	protected open fun onNothingInSight(zone: Int) {
+	protected open suspend fun onNothingInSight(zone: Int) {
 		addLogMessage("Nothing in Sight")
 	}
 
-	private fun doubleSpawn() {
+	private suspend fun doubleSpawn() {
 		spawnMultiplier *= 2
 		addLogMessage("DOUBLE SPAWN!")
 		onDoubleSpawn(spawnMultiplier)
 	}
 
-	private fun extraActivation(category: ZZombieCategory) {
+	private suspend fun extraActivation(category: ZZombieCategory) {
 		onExtraActivation(category)
 		addLogMessage("EXTRA ACTIVATION!")
 		for (z: ZZombie in board.getAllZombies()) {
@@ -2760,25 +2775,25 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 	}
 
 	@RemoteFunction
-	protected open fun onExtraActivation(category: ZZombieCategory) {
+	protected open suspend fun onExtraActivation(category: ZZombieCategory) {
 		log.debug("Extra Activation %s", category)
 	}
 
-	fun spawnZombies(zoneIdx: Int) {
+	suspend fun spawnZombies(zoneIdx: Int) {
 		spawnZombies(zoneIdx, highestSkillLevel)
 	}
 
-    private fun spawnZombies(zoneIdx: Int, level: ZSkillLevel) {
-	    if (quest.handleSpawnForZone(this, zoneIdx))
-		    return
-	    //ZSpawnArea spawnType = quest.getSpawnType(this, board.getZone(zoneIdx));
-	    if (deck.isEmpty()) {
-		    extraActivation(ZZombieCategory.ALL)
-		    return
-	    }
-	    val card = deck.removeLast()
-	    log.debug("Draw spawn card: $card")
-	    val action = card.getAction(level.difficultyColor)
+	private suspend fun spawnZombies(zoneIdx: Int, level: ZSkillLevel) {
+		if (quest.handleSpawnForZone(this, zoneIdx))
+			return
+		//ZSpawnArea spawnType = quest.getSpawnType(this, board.getZone(zoneIdx));
+		if (deck.isEmpty()) {
+			extraActivation(ZZombieCategory.ALL)
+			return
+		}
+		val card = deck.removeLast()
+		log.debug("Draw spawn card: $card")
+		val action = card.getAction(level.difficultyColor)
 	    if (action.action == ActionType.SPAWN && action.type?.isNecromancer == true && !board.canZoneSpawnNecromancers(
 			    zoneIdx
 		    )
@@ -2810,7 +2825,7 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
     }
 
 	@RemoteFunction
-	protected open fun onSpawnCard(card: ZSpawnCard, color: ZColor) {
+	protected open suspend fun onSpawnCard(card: ZSpawnCard, color: ZColor) {
 	}
 
 	fun getCurrentUser(): ZUser = users[currentUserIdx.coerceIn(0 until users.size)]
@@ -2824,13 +2839,13 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 	val requireCurrentCharacter: ZCharacter
 		get() = requireNotNull(currentCharacter)
 
-	protected fun moveActor(actor: ZActor, toZone: Int, speed: Long, actionType: ZActionType?) {
+	protected suspend fun moveActor(actor: ZActor, toZone: Int, speed: Long, actionType: ZActionType?) {
 		board.getShortestPathOptions(actor, toZone).firstOrNull()?.forEach {
 			moveActorInDirection(actor, it, actionType)
 		}
 	}
 
-	private fun moveActorPrivate(actor: ZActor, toZone: Int, speed: Long, actionType: ZActionType?) {
+	private suspend fun moveActorPrivate(actor: ZActor, toZone: Int, speed: Long, actionType: ZActionType?) {
 		val fromZone = actor.occupiedZone
 		val fromPos = actor.occupiedCell
 		val fromRect = actor.getRect(board)
@@ -2838,7 +2853,7 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 		doAnimatedMove(actor, fromZone, fromPos, fromRect, speed, actionType)
 	}
 
-	protected open fun moveActorInDirection(actor: ZActor, dir: ZDir, action: ZActionType?) {
+	protected open suspend fun moveActorInDirection(actor: ZActor, dir: ZDir, action: ZActionType?) {
 		val fromZone = actor.occupiedZone
 		val fromPos = actor.occupiedCell
 		val fromRect = actor.getRect(board)
@@ -2847,7 +2862,7 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 		doAnimatedMove(actor, fromZone, fromPos, fromRect, actor.moveSpeed, action)
 	}
 
-	protected open fun moveActorInDirectionIfPossible(actor: ZActor, dir: ZDir, action: ZActionType?): Boolean {
+	protected open suspend fun moveActorInDirectionIfPossible(actor: ZActor, dir: ZDir, action: ZActionType?): Boolean {
 		val fromZone = actor.occupiedZone
 		val fromPos = actor.occupiedCell
 		val fromRect = actor.getRect(board)
@@ -2861,7 +2876,7 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 		return true
 	}
 
-	private fun doAnimatedMove(
+	private suspend fun doAnimatedMove(
 		actor: ZActor,
 		fromZone: Int,
 		fromPos: Pos,
@@ -2924,16 +2939,16 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 	}
 
 	@RemoteFunction
-	protected open fun onBeginRound(roundNum: Int) {
+	protected open suspend fun onBeginRound(roundNum: Int) {
 		log.debug("Begin round %d", roundNum)
 	}
 
-	private fun onActorMoved(actor: ZActor, start: GRectangle, end: GRectangle, speed: Long) {
+	private suspend fun onActorMoved(actor: ZActor, start: GRectangle, end: GRectangle, speed: Long) {
 		onActorMoved(actor.getId(), start, end, speed)
 	}
 
 	@RemoteFunction
-	protected open fun onActorMoved(id: String, start: GRectangle, end: GRectangle, speed: Long) {
+	protected open suspend fun onActorMoved(id: String, start: GRectangle, end: GRectangle, speed: Long) {
 		log.debug(
 			"actor %s moved from %s to %s with speed %d",
 			board.getActor(id),
@@ -2996,34 +3011,37 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 		lootDeck.shuffle()
 	}
 
-	fun addNoise(zoneIdx: Int, noise: Int) {
+	suspend fun addNoise(zoneIdx: Int, noise: Int) {
 		onNoiseAdded(zoneIdx)
 		board.getZone(zoneIdx).addNoise(noise)
 		//        showMessage("Noise was made in zone " + zoneIdx);
 	}
 
 	@RemoteFunction
-	protected open fun onNoiseAdded(zoneIndex: Int) {
+	protected open suspend fun onNoiseAdded(zoneIndex: Int) {
 		log.debug("Noise added at %d", zoneIndex)
 	}
 
 	@RemoteFunction
-	protected open fun onZombieStageBegin() {}
-
-	@RemoteFunction
-	protected open fun onZombieStageMoveDone() {}
-
-	@RemoteFunction
-	protected open fun onZombieStageEnd() {}
-
-	protected open fun onZombiePath(id: String, path: List<ZDir>) {}
-
-	@RemoteFunction
-	protected open fun onSpawnZoneSpawning(rect: GRectangle, nth: Int, num: Int) {
+	protected open suspend fun onZombieStageBegin() {
 	}
 
 	@RemoteFunction
-	protected open fun onSpawnZoneSpawned(nth: Int, num: Int) {
+	protected open suspend fun onZombieStageMoveDone() {
+	}
+
+	@RemoteFunction
+	protected open suspend fun onZombieStageEnd() {
+	}
+
+	protected open suspend fun onZombiePath(id: String, path: List<ZDir>) {}
+
+	@RemoteFunction
+	protected open suspend fun onSpawnZoneSpawning(rect: GRectangle, nth: Int, num: Int) {
+	}
+
+	@RemoteFunction
+	protected open suspend fun onSpawnZoneSpawned(nth: Int, num: Int) {
 	}
 
 	val gameSummaryTable: Table
@@ -3068,16 +3086,16 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
         get() = Collections.unmodifiableList(lootDeck)
 
 	@RemoteFunction
-	open fun onIronRain(c: ZPlayerName, targetZone: Int) {
+	open suspend fun onIronRain(c: ZPlayerName, targetZone: Int) {
 		log.debug("%s unleashed iron rain at %d", c, targetZone)
 	}
 
 	@RemoteFunction
-	protected open fun onDoorUnlocked(door: ZDoor) {
+	protected open suspend fun onDoorUnlocked(door: ZDoor) {
 		log.debug("%s unlocked", door)
 	}
 
-	fun unlockDoor(door: ZDoor) {
+	suspend fun unlockDoor(door: ZDoor) {
 		require(board.getDoor(door) === ZWallFlag.LOCKED)
 		board.setDoor(door, ZWallFlag.CLOSED)
 		onDoorUnlocked(door)
@@ -3093,11 +3111,11 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
     }
 
 	@RemoteFunction(callSuper = true)
-	open fun addLogMessage(msg: String) {
+	open suspend fun addLogMessage(msg: String) {
 		log.info(msg)
 	}
 
-	fun performDragonFire(cur: ZSurvivor, zoneIdx: Int) {
+	suspend fun performDragonFire(cur: ZSurvivor, zoneIdx: Int) {
 		onDragonBileExploded(zoneIdx)
 		board.getZone(zoneIdx).isDragonBile = false
 		var exp = 0
@@ -3122,7 +3140,7 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
         quest.onDragonBileExploded(cur, zoneIdx)
     }
 
-	fun giftEquipment(c: ZCharacter, e: ZEquipment<*>) {
+	suspend fun giftEquipment(c: ZCharacter, e: ZEquipment<*>) {
 		onEquipmentFound(c.type, listOf(e))
 		quest.onEquipmentFound(this, e)
 		c.getEmptyEquipSlotsFor(e).firstOrNull()?.also { slot ->
@@ -3132,7 +3150,7 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 		}
 	}
 
-	private fun tryOpenDoor(cur: ZCharacter, door: ZDoor): Boolean {
+	private suspend fun tryOpenDoor(cur: ZCharacter, door: ZDoor): Boolean {
 		if (!door.isJammed) return true
 		if (cur.tryOpenDoor(this)) {
 			onDoorToggled(cur.type, door)
@@ -3143,19 +3161,19 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 	}
 
 	@RemoteFunction
-	protected open fun onDragonBileExploded(zoneIdx: Int) {
+	protected open suspend fun onDragonBileExploded(zoneIdx: Int) {
 		log.debug("Dragon bil eexploded in %d", zoneIdx)
 	}
 
-	fun chooseEquipmentFromSearchables() {
+	suspend fun chooseEquipmentFromSearchables() {
 		pushState(State(ZState.PLAYER_STAGE_CHOOSE_WEAPON_FROM_DECK, currentCharacter?.type))
 	}
 
-	fun chooseVaultItem() {
+	suspend fun chooseVaultItem() {
 		pushState(State(ZState.PLAYER_STAGE_CHOOSE_VAULT_ITEM, currentCharacter?.type))
 	}
 
-	fun giftRandomVaultArtifact(c: ZCharacter) {
+	suspend fun giftRandomVaultArtifact(c: ZCharacter) {
 		quest.vaultItemsRemaining.takeIf { it.isNotEmpty() }?.let {
 			val equip = it.removeRandom()
 			addLogMessage("${c.getLabel()} has been gifted a ${equip.getLabel()}")
@@ -3178,7 +3196,7 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 	}
 
 	@RemoteFunction
-	open fun setBoardMessage(colorId: Int, message: String?) {
+	open suspend fun setBoardMessage(colorId: Int, message: String?) {
 	}
 
 }

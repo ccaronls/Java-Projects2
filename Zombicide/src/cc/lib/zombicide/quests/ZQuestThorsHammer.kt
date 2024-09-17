@@ -5,7 +5,24 @@ import cc.lib.game.GColor
 import cc.lib.game.GRectangle
 import cc.lib.utils.Grid
 import cc.lib.utils.Table
-import cc.lib.zombicide.*
+import cc.lib.zombicide.ZArmorType
+import cc.lib.zombicide.ZBoard
+import cc.lib.zombicide.ZCell
+import cc.lib.zombicide.ZCellType
+import cc.lib.zombicide.ZCharacter
+import cc.lib.zombicide.ZColor
+import cc.lib.zombicide.ZDir
+import cc.lib.zombicide.ZDoor
+import cc.lib.zombicide.ZEquipmentType
+import cc.lib.zombicide.ZGame
+import cc.lib.zombicide.ZIcon
+import cc.lib.zombicide.ZQuest
+import cc.lib.zombicide.ZQuests
+import cc.lib.zombicide.ZSpawnArea
+import cc.lib.zombicide.ZTile
+import cc.lib.zombicide.ZWeaponType
+import cc.lib.zombicide.ZZombieType
+import cc.lib.zombicide.ZZone
 import kotlin.math.roundToInt
 
 @Suppress("SpellCheckingInspection")
@@ -47,7 +64,7 @@ class ZQuestThorsHammer : ZQuest(ZQuests.Thors_Hammer) {
 	override val allVaultOptions: List<ZEquipmentType>
 		get() = listOf(ZWeaponType.INFERNO, ZWeaponType.ORCISH_CROSSBOW, ZWeaponType.DEFLECTING_DAGGER, ZWeaponType.FLAMING_GREAT_SWORD, ZWeaponType.AXE_OF_CARNAGE, ZArmorType.DWARVEN_SHIELD, ZArmorType.SHIELD_OF_AGES)
 
-	override fun processObjective(game: ZGame, c: ZCharacter) {
+	override suspend fun processObjective(game: ZGame, c: ZCharacter) {
 		if (c.occupiedZone == mjolnirZone) {
 			game.addLogMessage("MJOLNIR ACQUIRED!!")
 			game.giftEquipment(c, ZWeaponType.MJOLNIR.create())
@@ -65,7 +82,7 @@ class ZQuestThorsHammer : ZQuest(ZQuests.Thors_Hammer) {
 		}
 	}
 
-	override fun onDoorOpened(game: ZGame, door: ZDoor, c: ZCharacter) {
+	override suspend fun onDoorOpened(game: ZGame, door: ZDoor, c: ZCharacter) {
 		greenDoors.firstOrNull { it == door }?.let {
 			// when a character open a green door, spawn a abomination right in front of them!!
 			abomZones[door.moveDirection]?.let {
@@ -99,7 +116,7 @@ class ZQuestThorsHammer : ZQuest(ZQuests.Thors_Hammer) {
 		}
 	}
 
-	override fun canCharacterTakeObjective(game: ZGame, cur: ZCharacter, zone: Int): Boolean {
+	override suspend fun canCharacterTakeObjective(game: ZGame, cur: ZCharacter, zone: Int): Boolean {
 		if (zone == mjolnirZone) {
 			if (cur.skillLevel.difficultyColor >= ZColor.RED) {
 				game.addLogMessage("${cur.name()} IS WORTHY!")

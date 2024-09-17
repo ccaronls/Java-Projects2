@@ -890,7 +890,7 @@ abstract class UISOC protected constructor(playerComponents: Array<UIPlayerRende
 		super.onPlayerKnightDemoted(player, knightIndex)
 	}
 
-	fun addFloatingTextAnimation(p: UIPlayer, v: IVector2D?, msg: String?) {
+	fun addFloatingTextAnimation(p: UIPlayer, v: IVector2D, msg: String?) {
 		uIBoard.addAnimation(object : UIAnimation(5000) {
 			var dim: GDimension? = null
 			public override fun draw(g: AGraphics, position: Float, dt: Float) {
@@ -904,7 +904,7 @@ abstract class UISOC protected constructor(playerComponents: Array<UIPlayerRende
 
 				// draw a rectangle in either upper half of screen or lower half of screen
 				// with an arrow pointing to the vertex to be modified.
-				val mv: Vector2D = g.transform(v)
+				val mv: Vector2D = v.toViewport(g)
 				g.pushMatrix()
 				g.setIdentity()
 				g.color = GColor.LIGHT_GRAY

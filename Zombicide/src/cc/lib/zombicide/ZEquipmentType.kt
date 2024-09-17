@@ -47,9 +47,9 @@ interface ZEquipmentType : IButton {
      * @return
      */
     fun isActionType(type: ZActionType): Boolean
-    fun onThrown(game: ZGame, thrower: ZCharacter, targetZoneIdx: Int) {
-        throw GException("Not a throwable item '$this'")
-    }
+	suspend fun onThrown(game: ZGame, thrower: ZCharacter, targetZoneIdx: Int) {
+		throw GException("Not a throwable item '$this'")
+	}
 
     val throwMinRange: Int
 	    get() = 0

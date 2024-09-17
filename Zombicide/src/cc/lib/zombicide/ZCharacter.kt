@@ -197,24 +197,24 @@ class ZCharacter(
 	    return type.getLabel()
     }
 
-	override fun onKilledZombie(game: ZGame, zombie: ZZombie, type: ZEquipmentType?) {
+	override suspend fun onKilledZombie(game: ZGame, zombie: ZZombie, type: ZEquipmentType?) {
 		kills[zombie.type.ordinal]++
 		type?.let {
 			favoriteWeapons.increment(it, 1)
 		}
 	}
 
-    override fun performAction(action: ZActionType, game: ZGame) {
-	    hasMovedThisTurn = true
-        if (action === ZActionType.MOVE) {
-            zonesMoved++
-        }
-        for (skill in getAvailableSkills()) {
-            when (skill.modifyActionsRemaining(this, action, game)) {
-                1 -> {
-                    removeAvailableSkill(skill)
-	                game.addLogMessage(name() + " used " + skill.getLabel())
-	                return
+	override suspend fun performAction(action: ZActionType, game: ZGame) {
+		hasMovedThisTurn = true
+		if (action === ZActionType.MOVE) {
+			zonesMoved++
+		}
+		for (skill in getAvailableSkills()) {
+			when (skill.modifyActionsRemaining(this, action, game)) {
+				1 -> {
+					removeAvailableSkill(skill)
+					game.addLogMessage(name() + " used " + skill.getLabel())
+					return
                 }
                 -1 -> {
 	                game.addLogMessage(name() + " used " + skill.getLabel())
@@ -239,17 +239,17 @@ class ZCharacter(
         super.performAction(action, game)
     }
 
-    fun tryOpenDoor(game: ZGame): Boolean {
-        val weapons = weapons
-        // order the weapons so that the best choice for door is in the front
-        weapons.sortedWith { o1: ZWeapon, o2: ZWeapon ->
-            // first order by % to open
-            val v1 = o1.openDoorValue
-            val v2 = o2.openDoorValue
-            v2.compareTo(v1)
-        }
-        for (w in weapons) {
-            val openDoorStat = w.openDoorStat
+	suspend fun tryOpenDoor(game: ZGame): Boolean {
+		val weapons = weapons
+		// order the weapons so that the best choice for door is in the front
+		weapons.sortedWith { o1: ZWeapon, o2: ZWeapon ->
+			// first order by % to open
+			val v1 = o1.openDoorValue
+			val v2 = o2.openDoorValue
+			v2.compareTo(v1)
+		}
+		for (w in weapons) {
+			val openDoorStat = w.openDoorStat
             if (openDoorStat != null) {
                 if (w.type.openDoorsIsNoisy) game.addNoise(occupiedZone, 1)
                 if (openDoorStat.dieRollToOpenDoor > 1) {
@@ -810,7 +810,7 @@ class ZCharacter(
 		}
 	}
 
-	fun onEndOfRound(game: ZGame) {
+	suspend fun onEndOfRound(game: ZGame) {
 		for (skill in getAvailableSkills()) {
 			skill.onEndOfTurn(game, this)
 		}
@@ -926,7 +926,7 @@ class ZCharacter(
         this.fallen = fallen
     }
 
-	override fun heal(game: ZGame, amt: Int): Boolean {
+	override suspend fun heal(game: ZGame, amt: Int): Boolean {
 		if (woundBar > 0) {
 			game.onCharacterHealed(type, amt)
 			game.addLogMessage(String.format("%s has %d wounds healed.", name(), amt))
@@ -947,7 +947,7 @@ class ZCharacter(
         return kills[type.ordinal]
     }
 
-	override fun addExperience(game: ZGame, pts: Int) {
+	override suspend fun addExperience(game: ZGame, pts: Int) {
 		exp += pts
 		skillLevel = ZSkillLevel.getLevel(exp, game.rules)
 	}

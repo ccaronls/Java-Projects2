@@ -20,7 +20,11 @@ open class ZGameMP : ZGameRemote() {
 		return server?.broadcastExecuteMethodOnRemote(GAME_ID, method, *args)
 	}
 
-	override fun onCurrentUserUpdated(userName: String, colorId: Int) {
+	override suspend fun executeRemotelySuspend(method: String, resultType: Class<*>?, vararg args: Any?): Any? {
+		return server?.broadcastExecuteMethodOnRemote(GAME_ID, method, *args)
+	}
+
+	override suspend fun onCurrentUserUpdated(userName: String, colorId: Int) {
 		super.onCurrentUserUpdated(userName, colorId)
 		log.debug(
 			"onCurrentUserUpdated $userName, colorId: $colorId, colorName: ${
@@ -50,7 +54,7 @@ open class ZGameMP : ZGameRemote() {
 	override val hoardSize: Int
 		get() = client?.getProperty("hoardSize", 0) ?: super.hoardSize
 
-	override fun onCurrentCharacterUpdated(priorPlayer: ZPlayerName?, character: ZCharacter?) {
+	override suspend fun onCurrentCharacterUpdated(priorPlayer: ZPlayerName?, character: ZCharacter?) {
 		super.onCurrentCharacterUpdated(priorPlayer, character)
 		client?.also {
 			with(UIZombicide.instance.boardRenderer) {
@@ -62,7 +66,7 @@ open class ZGameMP : ZGameRemote() {
 		}
 	}
 
-	override fun onZombieSpawned(zombie: ZZombie) {
+	override suspend fun onZombieSpawned(zombie: ZZombie) {
 		super.onZombieSpawned(zombie)
 		client?.let {
 			board.addActor(zombie)

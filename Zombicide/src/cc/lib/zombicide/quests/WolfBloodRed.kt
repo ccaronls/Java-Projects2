@@ -2,8 +2,19 @@ package cc.lib.zombicide.quests
 
 import cc.lib.utils.Grid
 import cc.lib.utils.Table
-import cc.lib.zombicide.*
+import cc.lib.zombicide.ZBoard
+import cc.lib.zombicide.ZCell
+import cc.lib.zombicide.ZCharacter
+import cc.lib.zombicide.ZDir
+import cc.lib.zombicide.ZEquipmentType
+import cc.lib.zombicide.ZGame
+import cc.lib.zombicide.ZIcon
+import cc.lib.zombicide.ZQuest
+import cc.lib.zombicide.ZQuests
+import cc.lib.zombicide.ZSpawnArea
+import cc.lib.zombicide.ZTile
 import cc.lib.zombicide.ZTile.Companion.getQuadrant
+import cc.lib.zombicide.ZWeaponType
 
 /**
  * Created by Chris Caron on 9/1/21.
@@ -58,7 +69,7 @@ arrayOf("z41:v:vd1:wn:ww", "z41:v:wn", "z41:v:wn:vd2:we",           "z42", "z43"
 		}
 	}
 
-	override fun processObjective(game: ZGame, c: ZCharacter) {
+	override suspend fun processObjective(game: ZGame, c: ZCharacter) {
 		super.processObjective(game, c)
 		if (c.occupiedZone == greenObjZone) {
 			greenObjZone = -1

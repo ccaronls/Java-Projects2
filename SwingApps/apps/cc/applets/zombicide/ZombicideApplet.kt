@@ -101,7 +101,7 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 				return changed
 			}
 
-			override fun <T> waitForUser(expectedType: Class<T>): T? {
+			override suspend fun <T> waitForUser(expectedType: Class<T>): T? {
 				SwingUtilities.invokeLater {
 					initMenu(uiMode, options)
 					boardComp.requestFocus()

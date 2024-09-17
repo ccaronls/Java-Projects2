@@ -265,4 +265,9 @@ public interface IVector2D {
         return Vector2D.getLinearInterpolator(this, other.toMutable());
     }
 
+    default MutableVector2D toViewport(AGraphics g) {
+        MutableVector2D v = new MutableVector2D(this);
+        g.transform(v);
+        return v;
+    }
 }

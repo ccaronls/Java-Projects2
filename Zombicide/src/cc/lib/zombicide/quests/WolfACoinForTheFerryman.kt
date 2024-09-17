@@ -79,7 +79,7 @@ class WolfACoinForTheFerryman : ZQuest(ZQuests.A_Coin_For_The_Ferryman) {
 		for (door in lockedDoors) game.board.setDoorLocked(door)
 	}
 
-	override fun processObjective(game: ZGame, c: ZCharacter) {
+	override suspend fun processObjective(game: ZGame, c: ZCharacter) {
 		val zIdx = game.board.getCell(blueKeyPos).zoneIndex
 		if (zIdx == c.occupiedZone) {
 			game.addLogMessage("The PORTAL is unlocked!!")
@@ -98,7 +98,7 @@ class WolfACoinForTheFerryman : ZQuest(ZQuests.A_Coin_For_The_Ferryman) {
 		}
 	}
 
-	override fun addMoves(game: ZGame, cur: ZCharacter, options: MutableCollection<ZMove>) {
+	override suspend fun addMoves(game: ZGame, cur: ZCharacter, options: MutableCollection<ZMove>) {
 		super.addMoves(game, cur, options)
 		blueKeyPos.let {
 			val idx = game.board.getCell(it).zoneIndex

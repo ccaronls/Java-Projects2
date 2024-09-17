@@ -2,10 +2,24 @@ package cc.lib.zombicide.quests
 
 import cc.lib.utils.Grid
 import cc.lib.utils.Table
-import cc.lib.zombicide.*
+import cc.lib.zombicide.ZCell
+import cc.lib.zombicide.ZCellType
+import cc.lib.zombicide.ZCharacter
+import cc.lib.zombicide.ZDoor
+import cc.lib.zombicide.ZEquipment
+import cc.lib.zombicide.ZEquipmentType
+import cc.lib.zombicide.ZGame
+import cc.lib.zombicide.ZItemType
+import cc.lib.zombicide.ZMove
 import cc.lib.zombicide.ZMove.Companion.newObjectiveMove
+import cc.lib.zombicide.ZQuest
+import cc.lib.zombicide.ZQuests
+import cc.lib.zombicide.ZTile
 import cc.lib.zombicide.ZTile.Companion.getQuadrant
-import java.util.*
+import cc.lib.zombicide.ZWallFlag
+import cc.lib.zombicide.ZWeapon
+import cc.lib.zombicide.ZWeaponType
+import cc.lib.zombicide.ZZombieType
 
 class ZQuestTrialByFire : ZQuest(ZQuests.Trial_by_Fire) {
 	companion object {
@@ -62,7 +76,7 @@ arrayOf("z59:i:we:red", "z60", "z61",                           "z62", "z63", "z
 	override val allVaultOptions: List<ZEquipmentType>
 		get() = ArrayList<ZEquipmentType>(listOf(ZItemType.DRAGON_BILE, ZItemType.DRAGON_BILE, ZItemType.DRAGON_BILE, ZItemType.DRAGON_BILE))
 
-	override fun processObjective(game: ZGame, c: ZCharacter) {
+	override suspend fun processObjective(game: ZGame, c: ZCharacter) {
 		if (c.occupiedZone == blueObjZone) {
 			game.giftEquipment(c, blueObjTreasure)
 		}
@@ -73,7 +87,7 @@ arrayOf("z59:i:we:red", "z60", "z61",                           "z62", "z63", "z
 		}
 	}
 
-	override fun addMoves(game: ZGame, cur: ZCharacter, options: MutableCollection<ZMove>) {
+	override suspend fun addMoves(game: ZGame, cur: ZCharacter, options: MutableCollection<ZMove>) {
 		super.addMoves(game, cur, options)
 		if (cur.occupiedZone == blueObjZone && !redObjectives.contains(blueObjZone)) {
 			options.add(newObjectiveMove(cur.occupiedZone))

@@ -64,7 +64,7 @@ arrayOf("z38:i:wn:ode", "z39:i:dn:red:we", "z40:sps",                       "z41
 			)
 	}
 
-	override fun processObjective(game: ZGame, c: ZCharacter) {
+	override suspend fun processObjective(game: ZGame, c: ZCharacter) {
 		super.processObjective(game, c)
 		if (c.occupiedZone == blueKeyZone) {
 			game.addLogMessage(c.getLabel() + " has found the BLUE key")

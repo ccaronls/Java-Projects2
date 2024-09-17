@@ -1,7 +1,14 @@
 package cc.lib.zombicide.quests
 
 import cc.lib.utils.Table
-import cc.lib.zombicide.*
+import cc.lib.zombicide.ZBoard
+import cc.lib.zombicide.ZCharacter
+import cc.lib.zombicide.ZColor
+import cc.lib.zombicide.ZGame
+import cc.lib.zombicide.ZQuest
+import cc.lib.zombicide.ZQuests
+import cc.lib.zombicide.ZSkill
+import cc.lib.zombicide.ZTile
 import cc.lib.zombicide.ZTile.Companion.getQuadrant
 
 /**
@@ -36,7 +43,7 @@ class WolfTheGhostDoor : ZQuest(ZQuests.The_Ghost_Door) {
 		)
 
 	override fun init(game: ZGame) {}
-	override fun processObjective(game: ZGame, c: ZCharacter) {
+	override suspend fun processObjective(game: ZGame, c: ZCharacter) {
 		super.processObjective(game, c)
 		c.addAvailableSkill(ZSkill.Inventory)
 		game.chooseEquipmentFromSearchables()

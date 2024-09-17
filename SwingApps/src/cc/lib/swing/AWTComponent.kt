@@ -256,11 +256,8 @@ abstract class AWTComponent : UIComponent, JComponent, Renderable, MouseListener
 
 	protected open fun onMouseMoved(mouseX: Int, mouseY: Int) {}
 
-	open fun onKeyTyped(evt: KeyEvent) {}
 	final override fun keyTyped(evt: KeyEvent?) {
-		evt?.let {
-			onKeyTyped(it)
-		}
+		// ignore. keyTyped not very useful as it does not give key keyCode
 	}
 
 	open fun onKeyPressed(evt: KeyEvent) {}

@@ -54,6 +54,9 @@ enum class ZZombieCategory(val label: String, vararg _decks: ZDeckType) {
 	},
 	TOXIC_ORCS("Toxic Orcs", ZDeckType.GREEN_HOARD) {
 		override fun isEnabled(rules: ZRules): Boolean = rules.toxicOrcs
+	},
+	LORD_OF_SKULLS("Lord of Skulls", ZDeckType.BLACK_PLAGUE) {
+		override fun isEnabled(rules: ZRules): Boolean = rules.lordOfSkulls
 	}
 	;
 

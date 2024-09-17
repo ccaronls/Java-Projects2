@@ -78,7 +78,7 @@ arrayOf("z36:blspw", "z37", "z38",                              "z39", "z40", "z
 		)
 
 	override fun init(game: ZGame) {}
-	override fun processObjective(game: ZGame, c: ZCharacter) {
+	override suspend fun processObjective(game: ZGame, c: ZCharacter) {
 		super.processObjective(game, c)
 		if (vaultItemsRemaining.size > 0) {
 			game.giftEquipment(c, vaultItemsRemaining.removeAt(0))

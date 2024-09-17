@@ -99,44 +99,44 @@ abstract class AWTRendererComponent<R : UIRenderer>() : AWTComponent(), UICompon
 		super.mouseMoved(e)
 	}
 
-	private var primaryKey: UIKeyCode? = null
+	private var keyDownEvent: KeyEvent? = null
 	private var keyJob: Job? = null
 	private var inLongPress = false
 
-	override fun onKeyPressed(evt: KeyEvent) {
-		println("keyPressed ${keyMap[evt.keyCode]} primary:${primaryKey}")
-		if (primaryKey != null) {
-			//evt.consume()
+	final override fun onKeyPressed(evt: KeyEvent) {
+		if (keyDownEvent != null)
 			return
-		}
-		keyMap[evt.keyCode]?.let { code ->
-			primaryKey = code
-			keyJob = launchIn(Dispatchers.Main) {
-				delay(1500)
-				inLongPress = true
-				renderer.onKeyLongPress(code)
+		keyDownEvent = evt
+		keyJob = launchIn(Dispatchers.Main) {
+			delay(1500)
+			inLongPress = true
+			keyMap[evt.keyCode]?.let {
+				renderer.onKeyLongPress(it)
 			}
 		}
 	}
 
-	override fun onKeyReleased(evt: KeyEvent) {
-		println("keyPressed $evt: primary: $primaryKey")
-		primaryKey?.let { code ->
+	open fun onKeyTyped(evt: KeyEvent) {}
+
+	final override fun onKeyReleased(_evt: KeyEvent) {
+		keyDownEvent?.let { evt ->
 //			evt.consume()
+			val code = keyMap[evt.keyCode]
 			if (inLongPress) {
-				renderer.onKeyLongPressRelease(code)
+				code?.let {
+					renderer.onKeyLongPressRelease(it)
+				}
 			} else {
 				keyJob?.cancel()
-				renderer.onKeyTyped(code)
+				onKeyTyped(evt)
+				code?.let {
+					renderer.onKeyTyped(it)
+				}
 			}
 			keyJob = null
 			inLongPress = false
-			primaryKey = null
+			keyDownEvent = null
 		}
-	}
-
-	override fun onKeyTyped(evt: KeyEvent) {
-		println("keyTyped")
 	}
 
 	companion object {

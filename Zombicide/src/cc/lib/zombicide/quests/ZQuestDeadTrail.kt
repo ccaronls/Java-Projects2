@@ -5,7 +5,15 @@ import cc.lib.game.GColor
 import cc.lib.game.GRectangle
 import cc.lib.utils.Grid
 import cc.lib.utils.Table
-import cc.lib.zombicide.*
+import cc.lib.zombicide.ZBoard
+import cc.lib.zombicide.ZCell
+import cc.lib.zombicide.ZCellType
+import cc.lib.zombicide.ZCharacter
+import cc.lib.zombicide.ZDoor
+import cc.lib.zombicide.ZGame
+import cc.lib.zombicide.ZQuest
+import cc.lib.zombicide.ZQuests
+import cc.lib.zombicide.ZTile
 import cc.lib.zombicide.ZTile.Companion.getQuadrant
 
 class ZQuestDeadTrail : ZQuest(ZQuests.Dead_Trail) {
@@ -66,7 +74,7 @@ arrayOf("", "", "",                                             "", "z49:v:vd1:w
 		game.lockDoor(goldVault!!)
 	}
 
-	override fun processObjective(game: ZGame, c: ZCharacter) {
+	override suspend fun processObjective(game: ZGame, c: ZCharacter) {
 		super.processObjective(game, c)
 		if (c.occupiedZone == blueKeyZone) {
 			game.addLogMessage(c.name() + " has found the BLUE key. Violet Vault doos UNLOCKED!")

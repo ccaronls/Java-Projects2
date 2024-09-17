@@ -199,7 +199,7 @@ internal class BoardComponent : AWTRendererComponent<UIZBoardRenderer>(), UIZCom
 			}
 			repaint()
 		}
-		for (type in ZZombieType.values()) {
+		for (type in ZZombieType.entries) {
 //            type.imageOptions = Utils.toIntArray(objectToImageMap.get(type));
 			//          type.imageDims = new GDimension[type.imageOptions.length];
 			val ids: List<Int> = objectToImageMap[type] ?: error("Missing key $type")
@@ -219,7 +219,7 @@ internal class BoardComponent : AWTRendererComponent<UIZBoardRenderer>(), UIZCom
 				i += 2
 			}
 		}
-		for (pl in ZPlayerName.values()) {
+		for (pl in ZPlayerName.entries) {
 			objectToImageMap[pl]?.let {
 				pl.imageId = it[0]
 				pl.outlineImageId = it[1]
@@ -304,7 +304,7 @@ internal class BoardComponent : AWTRendererComponent<UIZBoardRenderer>(), UIZCom
 			numImagesLoaded++
 			repaint()
 		}
-		for (type in ZSiegeTypeEngineType.values()) {
+		for (type in ZSiegeTypeEngineType.entries) {
 			objectToImageMap[type]?.let {
 				type.imageId = it[0]
 				type.imageOutlineId = it[1]
@@ -369,7 +369,7 @@ internal class BoardComponent : AWTRendererComponent<UIZBoardRenderer>(), UIZCom
 			val move = it.next() as? ZMove ?: continue
 			when (move.type) {
 				ZMoveType.WALK_DIR -> {
-					when (ZDir.values()[move.integer!!]) {
+					when (ZDir.entries[move.integer!!]) {
 						ZDir.NORTH -> keyMap[KeyEvent.VK_UP] = move
 						ZDir.SOUTH -> keyMap[KeyEvent.VK_DOWN] = move
 						ZDir.EAST -> keyMap[KeyEvent.VK_RIGHT] = move
@@ -386,6 +386,7 @@ internal class BoardComponent : AWTRendererComponent<UIZBoardRenderer>(), UIZCom
 				else -> Unit
 			}
 		}
+		log.debug("initKeyPressed: $keyMap")
 	}
 
 	var keyMap: MutableMap<Int, ZMove> = HashMap()
@@ -395,6 +396,7 @@ internal class BoardComponent : AWTRendererComponent<UIZBoardRenderer>(), UIZCom
 	}
 
 	override fun onKeyTyped(e: KeyEvent) {
+		log.debug("onKeyTyped: ${e.keyChar}:${e.keyCode}")
 		val game = UIZombicide.instance
 		keyMap[e.keyCode]?.let { move ->
 			game.setResult(move)

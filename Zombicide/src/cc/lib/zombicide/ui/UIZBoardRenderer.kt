@@ -48,11 +48,12 @@ import cc.lib.zombicide.ZZombieType
 import cc.lib.zombicide.ZZoneType
 import cc.lib.zombicide.anims.OverlayTextAnimation
 import cc.lib.zombicide.anims.ZoomAnimation
-import java.util.Collections
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withTimeoutOrNull
 import java.util.Stack
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -86,12 +87,13 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 
 		private val start: Vector2D
 		private val dv: Vector2D
+		private var nextFired = false
 
 		private lateinit var hJust: Justify
 
 		override fun onStarted(g: AGraphics) {
-			g.pushTextHeight(24f, false)
-			val tv: Vector2D = g.transform(rect.center)
+			g.pushTextHeight(HOVER_TEXT_HEIGHT, false)
+			val tv: Vector2D = rect.center.toViewport(g)
 			val width = g.getTextWidth(msg) / 2
 			hJust = if (tv.X() + width > g.viewportWidth) {
 				Justify.RIGHT
@@ -104,21 +106,27 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		}
 
 		override fun onDone() {
-			fireNextHoverMessage(rect)
+			if (!nextFired)
+				fireNextHoverMessage(rect)
 		}
 
 		override fun draw(g: AGraphics, position: Float, dt: Float) {
-			g.pushTextHeight(20f, false)
+			g.pushTextHeight(HOVER_TEXT_HEIGHT, false)
 			val v: Vector2D = rect.center.add(start).add(dv.scaledBy(position))
 			g.color = GColor.YELLOW.withAlpha(1f - position)
 			g.drawJustifiedString(v, hJust, Justify.CENTER, msg)
 			g.popTextHeight()
+			if (!nextFired && position > .5f) {
+				fireNextHoverMessage(rect)
+				nextFired = true
+			}
 		}
 
 		init {
 			val offset = .3f
-			val mag = .2f
-			when (rect.center.sub(getZoomedRect().center).angleOf().roundToInt()) {
+			val mag = .5f
+			val angle = rect.center.sub(getZoomedRect().center).angleOf().roundToInt()
+			when (angle) {
 				in 0..90 -> {
 					// UR quadrant
 					start = Vector2D(-offset, 0f)
@@ -146,9 +154,9 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		}
 	}
 
-	private val preActor: MutableList<ZAnimation> = Collections.synchronizedList(ArrayList())
-	private val postActor: MutableList<ZAnimation> = Collections.synchronizedList(ArrayList())
-	private val overlayAnimations: MutableList<ZAnimation> = Collections.synchronizedList(ArrayList())
+	private val preActor: MutableList<ZAnimation> = ArrayList()
+	private val postActor: MutableList<ZAnimation> = ArrayList()
+	private val overlayAnimations: MutableList<ZAnimation> = ArrayList()
 	private var zoomAnimation: ZAnimation? = null
 		set(value) {
 			if (value != null && field == null) {
@@ -297,16 +305,13 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 
 	open val touchOrMouseSupported: Boolean = true
 
-	private val lock = ReentrantLock()
-	private val condition = lock.newCondition()
-
 	private var dragStartV = Vector2D()
 
 	fun pushZoomRect() {
 		zoomRectStack.push(_zoomedRect.deepCopy())
 	}
 
-	fun popZoomRect() {
+	suspend fun popZoomRect() {
 		if (zoomRectStack.size > 1) {
 			animateZoomTo(zoomRectStack[zoomRectStack.size - 2])
 			waitForAnimations()
@@ -314,7 +319,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		}
 	}
 
-	fun popAllZoomRects() {
+	suspend fun popAllZoomRects() {
 		if (zoomRectStack.size > 1) {
 			animateZoomTo(zoomRectStack[0])
 			waitForAnimations()
@@ -381,7 +386,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 	}
 
 	fun addHoverMessage(txt: String, rect: IShape) {
-		val list = hoverMap.getOrPut(rect) { Collections.synchronizedList(mutableListOf()) }
+		val list = hoverMap.getOrPut(rect) { mutableListOf() }
 		list.add(HoverMessage(txt, rect))
 		fireNextHoverMessage(rect)
 	}
@@ -389,9 +394,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 	private fun fireNextHoverMessage(rect: IShape) {
 		hoverMap[rect]?.let { list ->
 			list.firstOrNull()?.let {
-				if (it.isRunning)
-					return
-				else if (it.isDone) {
+				if (it.isRunning || it.isDone) {
 					list.removeFirstOrNull()
 					fireNextHoverMessage(rect)
 					return
@@ -544,8 +547,22 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 			drawActor(it) // draw the highlighted actor over the top to see its stats
 		}
 
-		listeners.toList().forEach {
-			it.onActorHighlighted(picked ?: highlightedResult as? ZActor)
+		picked?.let { actor ->
+			listeners.toList().forEach {
+				it.onActorHighlighted(actor)
+			}
+			if (drawDebugText) {
+				g.color = GColor.YELLOW
+				g.pushTextHeight(DEBUG_TEXT_HEIGHT, false)
+				g.drawStringOnBackground(
+					actor.topLeft, """
+					name: ${actor.type}
+					zone: ${actor.occupiedZone}
+					pos: ${actor.occupiedCell}
+					""".trimIndent(), GColor.TRANSLUSCENT_BLACK, 3f, 0f
+				)
+				g.popTextHeight()
+			}
 		}
 
 		actorsAnimating = numActorsAnimating > 0
@@ -756,7 +773,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 			if (area.isCanBeRemovedFromBoard) txt += "\nDestroyable"
 			//String txt = String.format("spawnsNecros:%s\nEscapable:%s\nRemovable:%s\n", area.isCanSpawnNecromancers(), area.isEscapableForNecromancers(), area.isCanBeRemovedFromBoard());
 			g.color = GColor.YELLOW
-			g.pushTextHeight(10f, false)
+			g.pushTextHeight(DEBUG_TEXT_HEIGHT, false)
 			g.drawString(txt.trim { it <= ' ' }, area.getRect().topLeft)
 			g.popTextHeight()
 		}
@@ -1066,35 +1083,33 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		g.drawImage(ZIcon.PADLOCK.imageIds[0], rect.fit(img))
 	}
 
-	fun drawDebugText(g: AGraphics) {
-		g.pushTextHeight(14f, false)
-		val it = board.getCellsIterator()
-		while (it.hasNext()) {
-			val cell = it.next()
-			if (cell.isCellTypeEmpty) continue
-			var text = "${cell.environment} Z${cell.zoneIndex} [${cell.getLeft()},${cell.getTop()}]"
-			for (type in ZCellType.entries) {
-				if (cell.isCellType(type)) {
-					when (type) {
-						ZCellType.NONE, ZCellType.VAULT_DOOR_VIOLET, ZCellType.VAULT_DOOR_GOLD -> {
-						}
-
-						ZCellType.OBJECTIVE_RED, ZCellType.OBJECTIVE_BLUE, ZCellType.OBJECTIVE_GREEN, ZCellType.OBJECTIVE_BLACK ->
-							text += "\n\n${type.name.substring(10)}\n".trimIndent()
-
-						else -> text += "\n\n$type\n".trimIndent()
+	fun drawDebugText(g: AGraphics, pos: Pos) {
+		val cell = board.getCell(pos)
+		if (cell.isCellTypeEmpty)
+			return
+		g.pushTextHeight(DEBUG_TEXT_HEIGHT, false)
+		var text = "${cell.environment} Z${cell.zoneIndex} [${cell.getLeft()},${cell.getTop()}]"
+		for (type in ZCellType.entries) {
+			if (cell.isCellType(type)) {
+				when (type) {
+					ZCellType.NONE, ZCellType.VAULT_DOOR_VIOLET, ZCellType.VAULT_DOOR_GOLD -> {
 					}
+
+					ZCellType.OBJECTIVE_RED, ZCellType.OBJECTIVE_BLUE, ZCellType.OBJECTIVE_GREEN, ZCellType.OBJECTIVE_BLACK ->
+						text += "\n\n${type.name.substring(10)}\n".trimIndent()
+
+					else -> text += "\n\n$type\n".trimIndent()
 				}
 			}
-			g.color = GColor.CYAN
-			for (a in cell.getOccupants(board)) {
-				text += "\n\n${a.name()}".trimIndent()
-			}
-			if (cell.vaultId > 0) {
-				text += "\n\nvaultFlag ${cell.vaultId}".trimIndent()
-			}
-			g.drawJustifiedStringOnBackground(cell.center, Justify.CENTER, Justify.CENTER, text, GColor.TRANSLUSCENT_BLACK, 10f, 3f)
 		}
+		g.color = GColor.CYAN
+		for (a in cell.getOccupants(board)) {
+			text += "\n\n${a.name()}".trimIndent()
+		}
+		if (cell.vaultId > 0) {
+			text += "\n\nvaultFlag ${cell.vaultId}".trimIndent()
+		}
+		g.drawJustifiedStringOnBackground(cell.center, Justify.CENTER, Justify.CENTER, text, GColor.TRANSLUSCENT_BLACK, 10f, 3f)
 		g.popTextHeight()
 	}
 
@@ -1181,11 +1196,11 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		)
 	)
 
-	fun animateZoomToIfNotContained(vararg rects: IShape) {
+	suspend fun animateZoomToIfNotContained(vararg rects: IShape) {
 		animateZoomToIfNotContained(rects.toList())
 	}
 
-	fun animateZoomToIfNotContained(rects: List<IShape>) {
+	suspend fun animateZoomToIfNotContained(rects: List<IShape>) {
 		if (rects.isEmpty())
 			return
 		val newRect = GRectangle()
@@ -1219,7 +1234,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 			g.setTextStyles(AGraphics.TextStyle.BOLD, AGraphics.TextStyle.ITALIC)
 			g.drawJustifiedString(
 				10f,
-				getHeight() - 10 - g.textHeight,
+				height - 10 - g.textHeight,
 				Justify.LEFT,
 				Justify.BOTTOM,
 				quest!!.name
@@ -1276,10 +1291,12 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		quest?.drawQuest(board, g)
 		drawNoise(g)
 		drawAnimations(preActor, g)
+		if (drawDebugText)
+			highlightedCell?.let {
+				drawDebugText(g, it)
+			}
 		drawActors(g)
 		val highlightedActor = highlightedResult as? ZActor?
-		if (drawDebugText)
-			drawDebugText(g)
 		if (drawZombiePaths || highlightedActor?.drawPathsOnHighlight == true) {
 			highlightedActor?.let {
 				if (it is ZZombie) {
@@ -1311,7 +1328,6 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		}
 
 		drawAnimations(postActor, g)
-		drawQuestLabel(g)
 
 		highlightedCell?.let {
 			val cell = board.getCell(it)
@@ -1347,28 +1363,28 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 			redraw()
 		} else {
 			drawMiniMap(g)
-			lock.withLock {
-				condition.signal()
-			}
+			animDoneContinue?.resume(null)
 		}
 	}
 
-	fun waitForAnimations(maxWaitSecs: Int = 4) {
+	private var animDoneContinue: Continuation<Any?>? = null
+
+	suspend fun waitForAnimations(maxWaitSecs: Int = 4) {
+		val t = System.currentTimeMillis()
+		log.debug("waitForAnimations start $t")
 		redraw()
-		for (i in 0 until maxWaitSecs) {
-			lock.withLock {
-				condition.await(1, TimeUnit.SECONDS)
+		withTimeoutOrNull(maxWaitSecs * 1000L) {
+			suspendCoroutine {
+				animDoneContinue = it
 			}
-			if (!isAnimating)
-				break
-			redraw()
 		}
+		animDoneContinue = null
+		val done = System.currentTimeMillis() - t
+		log.debug("waitForAnimations done after $done millis")
 	}
 
-	fun wait(msecs: Int) {
-		lock.withLock {
-			condition.await(msecs.toLong(), TimeUnit.MILLISECONDS)
-		}
+	suspend fun wait(msecs: Int) {
+		delay(msecs.toLong())
 	}
 
 	fun drawPath(g: AGraphics, actor: ZActor, path: List<ZDir>) {
@@ -1414,13 +1430,16 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		if (UIZombicide.instance.isGameRunning())
 			drawDeckInfo(g)
 		drawConnectedUsers(g)
+		drawQuestLabel(g)
 	}
 
 	protected fun drawDeckInfo(g: AGraphics) {
 		g.pushTextHeight(18f, false)
 		val padding = 5f
 		val radius = 5f
-		val dim = GDimension(g.getTextWidth("00"), g.textHeight).scaleBy(1.1f, 1.3f)
+		val dim = GDimension(g.getTextWidth("00"), g.textHeight)
+			.scaleBy(1.1f, 1.3f)
+			.withAspect(1f / 1.5f)
 		g.pushMatrix()
 		g.translate(viewportWidth - padding - dim.width, padding)
 		drawDeck(g, dim, radius, GColor.RED, UIZombicide.instance.spawnDeckSize, "SPAWN")
@@ -1839,6 +1858,8 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 	}
 
 	companion object {
+		const val HOVER_TEXT_HEIGHT = 20f
+		const val DEBUG_TEXT_HEIGHT = 10f
 		const val ANIMATE_HIGHLIGHTED_ACTOR = false
 		val log = LoggerFactory.getLogger(UIZBoardRenderer::class.java)
 	}

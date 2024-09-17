@@ -160,4 +160,15 @@ public interface IDimension {
         return scaledTo(s, s);
     }
 
+    default GDimension withAspect(float newAspect) {
+        float aspect = getAspect();
+        if (newAspect < aspect && newAspect > 0.001f) {
+            // grow height
+            return new GDimension(getWidth(), getWidth() / newAspect);
+        } else if (newAspect > aspect) {
+            // grow width
+            return new GDimension(getHeight() * newAspect, getHeight());
+        }
+        return new GDimension(this);
+    }
 }

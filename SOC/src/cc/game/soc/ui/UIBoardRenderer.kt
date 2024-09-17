@@ -249,7 +249,7 @@ open class UIBoardRenderer(component: UIComponent) : UIRenderer(component) {
 	       	2:1
 	       	${t.resource!!.getNameId()}
 	       	""".trimIndent()
-		val v: Vector2D = g.transform(t)
+		val v: Vector2D = t.toViewport(g)
 		g.drawJustifiedString((v.Xi() - 2).toFloat(), v.Yi() - 2 - g.textHeight * 2, Justify.CENTER, Justify.TOP, txt)
 	}
 
@@ -296,7 +296,7 @@ open class UIBoardRenderer(component: UIComponent) : UIRenderer(component) {
 	}
 
 	fun drawPirateFortress(g: AGraphics, v: Vertex, outline: Boolean) {
-		val mv = g.transform(v)
+		val mv = v.toViewport(g)
 		var x = mv.Xi() - 10
 		var y = mv.Yi() - 10
 		for (i in 0 until v.pirateHealth) {
@@ -325,10 +325,8 @@ open class UIBoardRenderer(component: UIComponent) : UIRenderer(component) {
 		if (faces == null) {
 			val a = ArrayList<Face>()
 			for (i in structureFaces.indices) {
-				if (structureFaces[i].structures != null) {
-					if (Arrays.binarySearch(structureFaces[i].structures, s) >= 0) {
-						a.add(structureFaces[i])
-					}
+				if (Arrays.binarySearch(structureFaces[i].structures, s) >= 0) {
+					a.add(structureFaces[i])
 				}
 			}
 			faces = a.toTypedArray()

@@ -8,10 +8,14 @@ import cc.lib.utils.removeAll
 /**
  * Created by Chris Caron on 8/30/24.
  */
-class Tiles(private val rects: List<IRectangle> = emptyList()) : IShape {
+class Tiles(private val rects: List<IRectangle> = listOf(GRectangle())) : IShape {
 
 	companion object {
 		var THRESHOLD = 0.02f
+	}
+
+	init {
+		require(rects.isNotEmpty())
 	}
 
 	inner class Edge(val start: Vector2D, val end: Vector2D) {

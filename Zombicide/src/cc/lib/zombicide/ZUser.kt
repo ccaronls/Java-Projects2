@@ -52,64 +52,64 @@ abstract class ZUser(_name: String?, var colorId: Int) : IRemote {
 	}
 
 	@RemoteFunction
-	abstract fun chooseCharacter(options: List<ZPlayerName>): ZPlayerName?
+	abstract suspend fun chooseCharacter(options: List<ZPlayerName>): ZPlayerName?
 
 	@RemoteFunction
-	abstract fun chooseMove(cur: ZPlayerName, options: List<ZMove>): ZMove?
+	abstract suspend fun chooseMove(cur: ZPlayerName, options: List<ZMove>): ZMove?
 
 	@RemoteFunction
-	abstract fun chooseNewSkill(character: ZPlayerName, skillOptions: List<ZSkill>): ZSkill?
+	abstract suspend fun chooseNewSkill(character: ZPlayerName, skillOptions: List<ZSkill>): ZSkill?
 
 	@RemoteFunction
-	abstract fun chooseSlotToOrganize(cur: ZPlayerName, slots: List<ZEquipSlot>): ZEquipSlot?
+	abstract suspend fun chooseSlotToOrganize(cur: ZPlayerName, slots: List<ZEquipSlot>): ZEquipSlot?
 
 	@RemoteFunction
-	abstract fun chooseEquipment(cur: ZPlayerName, equipOptions: List<ZEquipment<*>>): Int?
-	fun chooseEquipmentInternal(cur: ZPlayerName, equipOptions: List<ZEquipment<*>>): ZEquipment<*>? {
+	abstract suspend fun chooseEquipment(cur: ZPlayerName, equipOptions: List<ZEquipment<*>>): Int?
+	suspend fun chooseEquipmentInternal(cur: ZPlayerName, equipOptions: List<ZEquipment<*>>): ZEquipment<*>? {
 		return chooseEquipment(cur, equipOptions)?.let { equipOptions[it] }
 	}
 
 	@RemoteFunction
-	abstract fun chooseSlotForEquip(cur: ZPlayerName, equipableSlots: List<ZEquipSlot>): ZEquipSlot?
+	abstract suspend fun chooseSlotForEquip(cur: ZPlayerName, equipableSlots: List<ZEquipSlot>): ZEquipSlot?
 
 	@RemoteFunction
-	abstract fun chooseZoneToWalk(cur: ZPlayerName, zones: List<Int>): Int?
+	abstract suspend fun chooseZoneToWalk(cur: ZPlayerName, zones: List<Int>): Int?
 
 	@RemoteFunction
-	abstract fun chooseDoorToToggle(cur: ZPlayerName, doors: List<ZDoor>): Int?
+	abstract suspend fun chooseDoorToToggle(cur: ZPlayerName, doors: List<ZDoor>): Int?
 
-	fun chooseDoorToToggleInternal(cur: ZPlayerName, doors: List<ZDoor>): ZDoor? {
+	suspend fun chooseDoorToToggleInternal(cur: ZPlayerName, doors: List<ZDoor>): ZDoor? {
 		return chooseDoorToToggle(cur, doors)?.let { doors[it] }
 	}
 
 	@RemoteFunction
-	abstract fun chooseWeaponSlot(c: ZPlayerName, weapons: List<ZWeapon>): Int?
-	fun chooseWeaponSlotInternal(c: ZPlayerName, weapons: List<ZWeapon>): ZWeapon? {
+	abstract suspend fun chooseWeaponSlot(c: ZPlayerName, weapons: List<ZWeapon>): Int?
+	suspend fun chooseWeaponSlotInternal(c: ZPlayerName, weapons: List<ZWeapon>): ZWeapon? {
 		return chooseWeaponSlot(c, weapons)?.let { weapons[it] }
 	}
 
 	@RemoteFunction
-	abstract fun chooseTradeCharacter(c: ZPlayerName, list: List<ZPlayerName>): ZPlayerName?
+	abstract suspend fun chooseTradeCharacter(c: ZPlayerName, list: List<ZPlayerName>): ZPlayerName?
 
 	@RemoteFunction
-	abstract fun chooseZoneForAttack(c: ZPlayerName, zones: List<Int>): Int?
+	abstract suspend fun chooseZoneForAttack(c: ZPlayerName, zones: List<Int>): Int?
 
 	@RemoteFunction
-	abstract fun chooseItemToPickup(cur: ZPlayerName, list: List<ZEquipment<*>>): Int?
-	fun chooseItemToPickupInternal(cur: ZPlayerName, list: List<ZEquipment<*>>): ZEquipment<*>? {
+	abstract suspend fun chooseItemToPickup(cur: ZPlayerName, list: List<ZEquipment<*>>): Int?
+	suspend fun chooseItemToPickupInternal(cur: ZPlayerName, list: List<ZEquipment<*>>): ZEquipment<*>? {
 		return chooseItemToPickup(cur, list)?.let { list[it] }
 	}
 
 	@RemoteFunction
-	abstract fun chooseItemToDrop(cur: ZPlayerName, list: List<ZEquipment<*>>): Int?
+	abstract suspend fun chooseItemToDrop(cur: ZPlayerName, list: List<ZEquipment<*>>): Int?
 
-	fun chooseItemToDropInternal(cur: ZPlayerName, list: List<ZEquipment<*>>): ZEquipment<*>? {
+	suspend fun chooseItemToDropInternal(cur: ZPlayerName, list: List<ZEquipment<*>>): ZEquipment<*>? {
 		return chooseItemToDrop(cur, list)?.let { list[it] }
 	}
 
 	@RemoteFunction
-	abstract fun chooseEquipmentToThrow(cur: ZPlayerName, slots: List<ZEquipment<*>>): Int?
-	fun chooseEquipmentToThrowInternal(
+	abstract suspend fun chooseEquipmentToThrow(cur: ZPlayerName, slots: List<ZEquipment<*>>): Int?
+	suspend fun chooseEquipmentToThrowInternal(
 		cur: ZPlayerName,
 		slots: List<ZEquipment<*>>
 	): ZEquipment<*>? {
@@ -117,66 +117,66 @@ abstract class ZUser(_name: String?, var colorId: Int) : IRemote {
 	}
 
 	@RemoteFunction
-	abstract fun chooseZoneToThrowEquipment(
+	abstract suspend fun chooseZoneToThrowEquipment(
 		cur: ZPlayerName,
 		toThrow: ZEquipment<*>,
 		zones: List<Int>
 	): Int?
 
 	@RemoteFunction
-	abstract fun chooseZoneToShove(cur: ZPlayerName, list: List<Int>): Int?
+	abstract suspend fun chooseZoneToShove(cur: ZPlayerName, list: List<Int>): Int?
 
 	@RemoteFunction
-	abstract fun chooseSpell(cur: ZPlayerName, spells: List<ZSpell>): ZSpell?
+	abstract suspend fun chooseSpell(cur: ZPlayerName, spells: List<ZSpell>): ZSpell?
 
 	@RemoteFunction
-	abstract fun chooseCharacterForSpell(
+	abstract suspend fun chooseCharacterForSpell(
 		cur: ZPlayerName,
 		spell: ZSpell,
 		targets: List<ZPlayerName>
 	): ZPlayerName?
 
 	@RemoteFunction
-	abstract fun chooseCharacterToBequeathMove(
+	abstract suspend fun chooseCharacterToBequeathMove(
 		cur: ZPlayerName,
 		list: List<ZPlayerName>
 	): ZPlayerName?
 
 	@RemoteFunction
-	abstract fun chooseZoneForBloodlust(cur: ZPlayerName, list: List<Int>): Int?
+	abstract suspend fun chooseZoneForBloodlust(cur: ZPlayerName, list: List<Int>): Int?
 
 	@RemoteFunction
-	abstract fun chooseSpawnAreaToRemove(cur: ZPlayerName, list: List<ZSpawnArea>): Int?
+	abstract suspend fun chooseSpawnAreaToRemove(cur: ZPlayerName, list: List<ZSpawnArea>): Int?
 
 	@RemoteFunction
-	abstract fun chooseZoneToIgnite(
+	abstract suspend fun chooseZoneToIgnite(
 		playerName: ZPlayerName,
 		ignitableZones: List<Int>
 	): Int?
 
 	@RemoteFunction
-	abstract fun chooseEquipmentClass(
+	abstract suspend fun chooseEquipmentClass(
 		playerName: ZPlayerName,
 		classes: List<ZEquipmentClass>
 	): ZEquipmentClass?
 
 	@RemoteFunction
-	abstract fun chooseStartingEquipment(
+	abstract suspend fun chooseStartingEquipment(
 		playerName: ZPlayerName,
 		list: List<ZEquipmentType>
 	): ZEquipmentType?
 
 	@RemoteFunction
-	abstract fun chooseFamiliar(
+	abstract suspend fun chooseFamiliar(
 		playerName: ZPlayerName,
 		list: List<ZFamiliarType>
 	): ZFamiliarType?
 
 	@RemoteFunction
-	abstract fun chooseOrganize(playerName: ZPlayerName, list: List<ZMove>, undos: Int): ZMove?
+	abstract suspend fun chooseOrganize(playerName: ZPlayerName, list: List<ZMove>, undos: Int): ZMove?
 
 	@RemoteFunction
-	abstract fun chooseZoneForCatapult(
+	abstract suspend fun chooseZoneForCatapult(
 		playerName: ZPlayerName,
 		ammoType: ZWeaponType,
 		zones: List<Int>
@@ -186,12 +186,12 @@ abstract class ZUser(_name: String?, var colorId: Int) : IRemote {
 	 * This may be called more than once. Need to handle if a dialog is already open
 	 */
 	@RemoteFunction
-	open fun organizeStart(primary: ZPlayerName, secondary: ZPlayerName?, undos: Int) {
+	open suspend fun organizeStart(primary: ZPlayerName, secondary: ZPlayerName?, undos: Int) {
 		throw NotImplementedError()
 	}
 
 	@RemoteFunction
-	open fun organizeEnd() {
+	open suspend fun organizeEnd() {
 		throw NotImplementedError()
 	}
 

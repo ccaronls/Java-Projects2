@@ -223,7 +223,7 @@ class ZWeapon(override val type: ZWeaponType=ZWeaponType.AXE) : ZEquipment<ZWeap
 
 	override fun getTooltipText(): String = type.getStatsTable(isEmpty).toString()
 
-	override fun onEndOfRound(game: ZGame) {
+	override suspend fun onEndOfRound(game: ZGame) {
 		when (type) {
 			ZWeaponType.HAND_CROSSBOW -> if (!isLoaded) {
 				game.addLogMessage("${getLabel()} auto reloaded")
@@ -231,6 +231,6 @@ class ZWeapon(override val type: ZWeaponType=ZWeaponType.AXE) : ZEquipment<ZWeap
 			}
 
 			else -> Unit
-        }
-    }
+		}
+	}
 }

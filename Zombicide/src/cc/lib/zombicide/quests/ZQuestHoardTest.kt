@@ -2,6 +2,7 @@ package cc.lib.zombicide.quests
 
 import cc.lib.utils.Grid
 import cc.lib.utils.Table
+import cc.lib.utils.launchIn
 import cc.lib.zombicide.ZBoard
 import cc.lib.zombicide.ZCell
 import cc.lib.zombicide.ZGame
@@ -33,8 +34,10 @@ class ZQuestHoardTest : ZQuest(ZQuests.Hoard_Test) {
 	override val tiles: Array<ZTile> = arrayOf()
 
 	override fun init(game: ZGame) {
-		spawns.forEach {
-			game.spawnZombies(6, ZZombieType.Walker, it.zoneIndex)
+		launchIn {
+			spawns.forEach {
+				game.spawnZombies(6, ZZombieType.Walker, it.zoneIndex)
+			}
 		}
 	}
 

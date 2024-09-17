@@ -840,8 +840,7 @@ abstract class AWTBoardBuilder<V : BVertex, E : BEdge, C : BCell, T : CustomBoar
 		selected.clear()
 	}
 
-	@Synchronized
-	override fun onKeyTyped(evt: KeyEvent) {
+	open fun onKeyTyped(evt: KeyEvent) {
 	}
 
 	protected fun moveVertex(dx: Float, dy: Float) {

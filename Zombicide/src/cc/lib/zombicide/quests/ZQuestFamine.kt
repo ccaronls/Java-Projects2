@@ -2,9 +2,20 @@ package cc.lib.zombicide.quests
 
 import cc.lib.utils.Grid
 import cc.lib.utils.Table
-import cc.lib.zombicide.*
+import cc.lib.zombicide.ZBoard
+import cc.lib.zombicide.ZCell
+import cc.lib.zombicide.ZCharacter
+import cc.lib.zombicide.ZDir
+import cc.lib.zombicide.ZDoor
+import cc.lib.zombicide.ZEquipment
+import cc.lib.zombicide.ZGame
+import cc.lib.zombicide.ZItemType
+import cc.lib.zombicide.ZQuest
+import cc.lib.zombicide.ZQuests
+import cc.lib.zombicide.ZTile
 import cc.lib.zombicide.ZTile.Companion.getQuadrant
-import java.util.*
+import cc.lib.zombicide.ZWallFlag
+import cc.lib.zombicide.ZZoneType
 
 class ZQuestFamine : ZQuest(ZQuests.Famine) {
 	companion object {
@@ -53,7 +64,7 @@ arrayOf("", "", "",                                             "z49:v:gvd1:ww",
 		blueKeyZone = redObjectives.random()
 	}
 
-	override fun processObjective(game: ZGame, c: ZCharacter) {
+	override suspend fun processObjective(game: ZGame, c: ZCharacter) {
 		super.processObjective(game, c)
 		if (c.occupiedZone == blueKeyZone) {
 			game.addLogMessage("Blue key found. Vault unlocked")
@@ -115,7 +126,7 @@ arrayOf("", "", "",                                             "z49:v:gvd1:ww",
 		return true
 	}
 
-	override fun onEquipmentFound(game: ZGame, equip: ZEquipment<*>) {
+	override suspend fun onEquipmentFound(game: ZGame, equip: ZEquipment<*>) {
 		if (equip.type === ZItemType.APPLES) {
 			numApplesFound++
 		} else if (equip.type === ZItemType.SALTED_MEAT) {

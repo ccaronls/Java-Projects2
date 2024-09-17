@@ -538,7 +538,7 @@ class GUI(private val frame: AWTFrame, val props: UIProperties) : ActionListener
 					val v = bc.board.getVertex(vIndex)
 					g.color = GColor.LIGHT_GRAY
 					bc.drawSettlement(g, v, 0, false)
-					val mv = g.transform(v)
+					val mv = v.toViewport(g)
 					g.color = GColor.YELLOW
 					val text = index++.toString()
 					g.drawJustifiedString(mv.X(), mv.Y(), Justify.CENTER, Justify.CENTER, text)

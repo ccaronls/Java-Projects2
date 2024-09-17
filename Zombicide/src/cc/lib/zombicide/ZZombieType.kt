@@ -318,6 +318,40 @@ enum class ZZombieType(
 				by this monstrosity (if he weren’t already
 				soaking wet from the waterhole).				
 				""".trimIndent()
+	),
+	LordOfSkulls(
+		ZZombieCategory.ALL, 1, 2, 5, 1, false, PRIORITY_NECROMANCER, false,
+		"""
+				The Lord of Skullz may well be among the 
+				initial cabal that conceived and executed 
+				the black plague. His mastery of necromantic 
+				energies is virtually unmatched, and he commands 
+				his countless minions with as much skill as any 
+				general. Rumors say that to even look him in 
+				the eye is to see your own death, and it will 
+				be soon. In the fight against the green horde, 
+				the Lord of Skullz represents one of the greatest
+				challenges the survivors must endure, not the
+				least for the pair of hulking abominations 
+				he keeps by his aside as bodyguards.
+			""".trimIndent()
+	),
+	Ogre(
+		ZZombieCategory.ALL, 2, 3, 5, 1, true, PRIORITY_FATTY, false,
+		"""
+				Ogres are fearsome creatures by nature. But ogres
+				turned into undead abominations are truly terrifying. 
+				The necromancer known as the Lord of Skulls knew any 
+				survivors of the black plague would try to interfere 
+				with his rituals, and so he created the perfect 
+				bodyguards. He took a pair of the strongest ogres he 
+				could find and turned them into abominations. Doom 
+				and Gloom, as they are known, retain only enough 
+				thought in their shriveled brains to follow their 
+				master anywhere he goes. However, they do tend to 
+				charge toward any survivors they see, smashing them 
+				to a pulp.
+			""".trimIndent()
 	)
 	;
 

@@ -23,11 +23,11 @@ open class UIZUser(name: String?, colorId: Int) : ZUserRemote(name, colorId) {
 		return if (item == null) null else options.indexOf(item)
 	}
 
-	override fun chooseCharacter(characters: List<ZPlayerName>): ZPlayerName? {
+	override suspend fun chooseCharacter(characters: List<ZPlayerName>): ZPlayerName? {
 		return UIZombicide.instance.pickCharacter(null, "Pick character to play", characters)
 	}
 
-	override fun chooseMove(cur: ZPlayerName, moves: List<ZMove>): ZMove? {
+	override suspend fun chooseMove(cur: ZPlayerName, moves: List<ZMove>): ZMove? {
 		return UIZombicide.instance.pickMenu(
 			cur,
 			cur.name + " Choose Move",
@@ -36,7 +36,7 @@ open class UIZUser(name: String?, colorId: Int) : ZUserRemote(name, colorId) {
 		)
 	}
 
-	override fun chooseNewSkill(cur: ZPlayerName, list: List<ZSkill>): ZSkill? {
+	override suspend fun chooseNewSkill(cur: ZPlayerName, list: List<ZSkill>): ZSkill? {
 		val table = Table(object : Table.Model {
 			override fun getMaxCharsPerLine(): Int {
 				return 32
@@ -54,7 +54,7 @@ open class UIZUser(name: String?, colorId: Int) : ZUserRemote(name, colorId) {
 		)
 	}
 
-	override fun chooseSlotToOrganize(cur: ZPlayerName, slots: List<ZEquipSlot>): ZEquipSlot? {
+	override suspend fun chooseSlotToOrganize(cur: ZPlayerName, slots: List<ZEquipSlot>): ZEquipSlot? {
 		return UIZombicide.instance.pickMenu(
 			cur,
 			cur.name + " Choose Slot to Organize",
@@ -63,7 +63,7 @@ open class UIZUser(name: String?, colorId: Int) : ZUserRemote(name, colorId) {
 		)
 	}
 
-	override fun chooseEquipment(cur: ZPlayerName, list: List<ZEquipment<*>>): Int? {
+	override suspend fun chooseEquipment(cur: ZPlayerName, list: List<ZEquipment<*>>): Int? {
 		UIZombicide.instance.showEquipmentOverlay(cur, list)
 		return indexOrNull(
 			UIZombicide.instance.pickMenu(
@@ -75,7 +75,7 @@ open class UIZUser(name: String?, colorId: Int) : ZUserRemote(name, colorId) {
 		)
 	}
 
-	override fun chooseSlotForEquip(
+	override suspend fun chooseSlotForEquip(
 		cur: ZPlayerName,
 		equipableSlots: List<ZEquipSlot>
 	): ZEquipSlot? {
@@ -87,11 +87,11 @@ open class UIZUser(name: String?, colorId: Int) : ZUserRemote(name, colorId) {
 		)
 	}
 
-	override fun chooseZoneToWalk(cur: ZPlayerName, zones: List<Int>): Int? {
+	override suspend fun chooseZoneToWalk(cur: ZPlayerName, zones: List<Int>): Int? {
 		return UIZombicide.instance.pickZone(cur, cur.name + " Choose zone to Walk", zones)
 	}
 
-	override fun chooseDoorToToggle(cur: ZPlayerName, _doors: List<ZDoor>): Int? {
+	override suspend fun chooseDoorToToggle(cur: ZPlayerName, _doors: List<ZDoor>): Int? {
 		val doors =
 			_doors.map { UIZombicide.instance.board.findDoor(it.cellPosStart, it.moveDirection) }
 		return indexOrNull(
@@ -103,7 +103,7 @@ open class UIZUser(name: String?, colorId: Int) : ZUserRemote(name, colorId) {
 		)
 	}
 
-	override fun chooseWeaponSlot(cur: ZPlayerName, weapons: List<ZWeapon>): Int? {
+	override suspend fun chooseWeaponSlot(cur: ZPlayerName, weapons: List<ZWeapon>): Int? {
 		return indexOrNull(
 			UIZombicide.instance.pickMenu(
 				cur,
@@ -114,7 +114,7 @@ open class UIZUser(name: String?, colorId: Int) : ZUserRemote(name, colorId) {
 		)
 	}
 
-	override fun chooseTradeCharacter(cur: ZPlayerName, list: List<ZPlayerName>): ZPlayerName? {
+	override suspend fun chooseTradeCharacter(cur: ZPlayerName, list: List<ZPlayerName>): ZPlayerName? {
 		return UIZombicide.instance.pickCharacter(
 			cur,
 			cur.name + " Choose Character for Trade",
@@ -122,11 +122,11 @@ open class UIZUser(name: String?, colorId: Int) : ZUserRemote(name, colorId) {
 		)
 	}
 
-	override fun chooseZoneForAttack(c: ZPlayerName, zones: List<Int>): Int? {
+	override suspend fun chooseZoneForAttack(c: ZPlayerName, zones: List<Int>): Int? {
 		return UIZombicide.instance.pickZone(c, "Choose Zone to Attack", zones)
 	}
 
-	override fun chooseItemToPickup(cur: ZPlayerName, list: List<ZEquipment<*>>): Int? {
+	override suspend fun chooseItemToPickup(cur: ZPlayerName, list: List<ZEquipment<*>>): Int? {
 		UIZombicide.instance.showEquipmentOverlay(cur, list)
 		return indexOrNull(
 			UIZombicide.instance.pickMenu(
@@ -138,7 +138,7 @@ open class UIZUser(name: String?, colorId: Int) : ZUserRemote(name, colorId) {
 		)
 	}
 
-	override fun chooseItemToDrop(cur: ZPlayerName, list: List<ZEquipment<*>>): Int? {
+	override suspend fun chooseItemToDrop(cur: ZPlayerName, list: List<ZEquipment<*>>): Int? {
 		UIZombicide.instance.showEquipmentOverlay(cur, list)
 		return indexOrNull(
 			UIZombicide.instance.pickMenu(
@@ -150,7 +150,7 @@ open class UIZUser(name: String?, colorId: Int) : ZUserRemote(name, colorId) {
 		)
 	}
 
-	override fun chooseEquipmentToThrow(cur: ZPlayerName, list: List<ZEquipment<*>>): Int? {
+	override suspend fun chooseEquipmentToThrow(cur: ZPlayerName, list: List<ZEquipment<*>>): Int? {
 		UIZombicide.instance.showEquipmentOverlay(cur, list)
 		return indexOrNull(
 			UIZombicide.instance.pickMenu(
@@ -162,7 +162,7 @@ open class UIZUser(name: String?, colorId: Int) : ZUserRemote(name, colorId) {
 		)
 	}
 
-	override fun chooseZoneToThrowEquipment(
+	override suspend fun chooseZoneToThrowEquipment(
 		cur: ZPlayerName,
 		toThrow: ZEquipment<*>,
 		zones: List<Int>
@@ -171,16 +171,16 @@ open class UIZUser(name: String?, colorId: Int) : ZUserRemote(name, colorId) {
 		return UIZombicide.instance.pickZone(cur, "Choose Zone to throw the $toThrow", zones)
 	}
 
-	override fun chooseZoneToShove(cur: ZPlayerName, zones: List<Int>): Int? {
+	override suspend fun chooseZoneToShove(cur: ZPlayerName, zones: List<Int>): Int? {
 		return UIZombicide.instance.pickZone(cur, "Choose Zone to shove zombies into", zones)
 	}
 
-	override fun chooseSpell(cur: ZPlayerName, spells: List<ZSpell>): ZSpell? {
+	override suspend fun chooseSpell(cur: ZPlayerName, spells: List<ZSpell>): ZSpell? {
 		UIZombicide.instance.showEquipmentOverlay(cur, spells)
 		return UIZombicide.instance.pickMenu(cur, "Choose Spell", ZSpell::class.java, spells)
 	}
 
-	override fun chooseCharacterForSpell(
+	override suspend fun chooseCharacterForSpell(
 		cur: ZPlayerName,
 		spell: ZSpell,
 		targets: List<ZPlayerName>
@@ -193,7 +193,7 @@ open class UIZUser(name: String?, colorId: Int) : ZUserRemote(name, colorId) {
 		)
 	}
 
-	override fun chooseCharacterToBequeathMove(
+	override suspend fun chooseCharacterToBequeathMove(
 		cur: ZPlayerName,
 		targets: List<ZPlayerName>
 	): ZPlayerName? {
@@ -204,19 +204,19 @@ open class UIZUser(name: String?, colorId: Int) : ZUserRemote(name, colorId) {
 		)
 	}
 
-	override fun chooseZoneForBloodlust(cur: ZPlayerName, list: List<Int>): Int? {
+	override suspend fun chooseZoneForBloodlust(cur: ZPlayerName, list: List<Int>): Int? {
 		return UIZombicide.instance.pickZone(cur, "Choose Zone for Bloodlust", list)
 	}
 
-	override fun chooseSpawnAreaToRemove(cur: ZPlayerName, list: List<ZSpawnArea>): Int? {
+	override suspend fun chooseSpawnAreaToRemove(cur: ZPlayerName, list: List<ZSpawnArea>): Int? {
 		return UIZombicide.instance.pickSpawn(cur, "Choose SPAWN Area to Remove", list)
 	}
 
-	override fun chooseZoneToIgnite(playerName: ZPlayerName, ignitableZones: List<Int>): Int? {
+	override suspend fun chooseZoneToIgnite(playerName: ZPlayerName, ignitableZones: List<Int>): Int? {
 		return UIZombicide.instance.pickZone(playerName, "Choose Zone to Ignite", ignitableZones)
 	}
 
-	override fun chooseEquipmentClass(
+	override suspend fun chooseEquipmentClass(
 		playerName: ZPlayerName,
 		classes: List<ZEquipmentClass>
 	): ZEquipmentClass? {
@@ -228,7 +228,7 @@ open class UIZUser(name: String?, colorId: Int) : ZUserRemote(name, colorId) {
 		)
 	}
 
-	override fun chooseStartingEquipment(
+	override suspend fun chooseStartingEquipment(
 		playerName: ZPlayerName,
 		list: List<ZEquipmentType>
 	): ZEquipmentType? {
@@ -261,7 +261,7 @@ open class UIZUser(name: String?, colorId: Int) : ZUserRemote(name, colorId) {
 		return UIZombicide.instance.pickMenu(playerName, "Choose Starting Equipment", ZEquipmentType::class.java, list)
 	}
 
-	override fun chooseOrganize(playerName: ZPlayerName, list: List<ZMove>, undos: Int): ZMove? {
+	override suspend fun chooseOrganize(playerName: ZPlayerName, list: List<ZMove>, undos: Int): ZMove? {
 		return UIZombicide.instance.updateOrganize(
 			UIZombicide.instance.board.getCharacter(
 				playerName
@@ -269,15 +269,15 @@ open class UIZUser(name: String?, colorId: Int) : ZUserRemote(name, colorId) {
 		)
 	}
 
-	override fun organizeStart(primary: ZPlayerName, secondary: ZPlayerName?, undos: Int) {
+	override suspend fun organizeStart(primary: ZPlayerName, secondary: ZPlayerName?, undos: Int) {
 		UIZombicide.instance.showOrganizeDialog(primary, secondary, undos)
 	}
 
-	override fun organizeEnd() {
+	override suspend fun organizeEnd() {
 		UIZombicide.instance.closeOrganizeDialog()
 	}
 
-	override fun chooseZoneForCatapult(
+	override suspend fun chooseZoneForCatapult(
 		playerName: ZPlayerName,
 		ammoType: ZWeaponType,
 		zones: List<Int>
@@ -289,7 +289,7 @@ open class UIZUser(name: String?, colorId: Int) : ZUserRemote(name, colorId) {
 		)
 	}
 
-	override fun chooseFamiliar(
+	override suspend fun chooseFamiliar(
 		playerName: ZPlayerName,
 		list: List<ZFamiliarType>
 	): ZFamiliarType? {

@@ -71,7 +71,7 @@ abstract class ZEquipment<T : ZEquipmentType> : Reflector<ZEquipment<T>>(), IBut
 
 	open fun getColor(): GColor = GColor.WHITE
 
-	open fun onEndOfRound(game: ZGame) {}
+	open suspend fun onEndOfRound(game: ZGame) {}
 
 	override fun isImmutable(): Boolean = true
 }

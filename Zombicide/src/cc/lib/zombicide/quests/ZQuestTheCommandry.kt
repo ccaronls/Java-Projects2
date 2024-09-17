@@ -120,7 +120,7 @@ open class ZQuestTheCommandry(quests: ZQuests = ZQuests.The_Commandry) : ZQuest(
 		}
 	}
 
-	override fun processObjective(game: ZGame, c: ZCharacter) {
+	override suspend fun processObjective(game: ZGame, c: ZCharacter) {
 		super.processObjective(game, c)
 		if (c.occupiedZone == blueDoorKeyZone) {
 			game.addLogMessage(c.name() + " has unlocked the Blue Door")
@@ -162,7 +162,7 @@ open class ZQuestTheCommandry(quests: ZQuests = ZQuests.The_Commandry) : ZQuest(
 		game.board.setDoorLocked(greenDoor)
 	}
 
-	override fun handleSpawnForZone(game: ZGame, zoneIdx: Int): Boolean {
+	override suspend fun handleSpawnForZone(game: ZGame, zoneIdx: Int): Boolean {
 		if (zoneIdx == exitZone) {
 			game.spawnZombies(1, ZZombieType.Abomination, zoneIdx)
 			return true

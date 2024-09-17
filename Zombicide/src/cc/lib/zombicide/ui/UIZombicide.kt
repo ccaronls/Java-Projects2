@@ -14,9 +14,11 @@ import cc.lib.net.ConnectionStatus
 import cc.lib.reflector.Reflector
 import cc.lib.ui.IButton
 import cc.lib.utils.Grid
+import cc.lib.utils.KLock
 import cc.lib.utils.Lock
 import cc.lib.utils.Table
 import cc.lib.utils.forEachAs
+import cc.lib.utils.launchIn
 import cc.lib.utils.prettify
 import cc.lib.utils.takeIfInstance
 import cc.lib.utils.test
@@ -75,9 +77,11 @@ import cc.lib.zombicide.anims.StaticAnimation
 import cc.lib.zombicide.anims.ThrowAnimation
 import cc.lib.zombicide.anims.ZoomAnimation
 import cc.lib.zombicide.p2p.ZGameMP
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
+import kotlinx.coroutines.asCoroutineDispatcher
+import java.util.concurrent.Executors
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 class ConnectedUser(
 	val name: String = "",
@@ -131,7 +135,7 @@ abstract class UIZombicide(
 
 	var buttonRoot: UIZButton? = null
 
-	fun setOptions(mode: UIMode, options: List<Any>) {
+	suspend fun setOptions(mode: UIMode, options: List<Any>) {
 		uiMode = mode
 		this.options = options
 		buttonRoot?.clearTree()
@@ -351,7 +355,6 @@ abstract class UIZombicide(
 		characterRenderer.addMessage(message)
 	}
 
-	@Synchronized
 	fun stopGameThread() {
 		boardRenderer.stopAnimations()
 		gameRunning = false
@@ -360,12 +363,12 @@ abstract class UIZombicide(
 
 	fun isReady(): Boolean = allCharacters.firstOrNull { !it.isReady } == null
 
-	@Synchronized
 	fun startGameThread() {
 		if (isGameRunning())
 			return
+		val gameDispatcher = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
 		gameRunning = true
-		CoroutineScope(Dispatchers.Default).async {
+		launchIn(gameDispatcher) {
 			while (!isReady()) {
 				setBoardMessage(-1, "Not Ready")
 				readyLock.acquireAndBlock()
@@ -387,17 +390,15 @@ abstract class UIZombicide(
 
 	abstract fun undo()
 
-	val lock = Lock()
-	val readyLock = Lock()
-//	var continuation: Continuation<Any?>? = null
+	val readyLock = KLock()
+	var continuation: Continuation<Any?>? = null
 
-	open fun <T> waitForUser(expectedType: Class<T>): T? {
+	open suspend fun <T> waitForUser(expectedType: Class<T>): T? {
 		log.debug("waitForUser type: ${expectedType.simpleName}")
 		// TODO: Put suspend back in when we have migrated network code to kotlin so we can call invokeSuspend
-		//result = suspendCoroutine {
-		//	continuation = it
-		//}
-		lock.acquireAndBlock()
+		result = suspendCoroutine {
+			continuation = it
+		}
 		log.debug("waitForUser resumed result: $result")
 		uiMode = UIMode.NONE
 		result?.let {
@@ -408,31 +409,33 @@ abstract class UIZombicide(
 	}
 
 	open fun setResult(result: Any?) {
-		if (result != null) {
-			boardRenderer.setOverlay(null)
-		}
-		boardRenderer.popAllZoomRects()
-		boardRenderer.pickableStack.clear()
-		this.result = result
-		lock.release()
-//		continuation?.let {
-//			it.resume(result)
-//			continuation = null
-//		} ?: log.error("continuation is null")
-		refresh()
+		log.debug("set result $result")
+		continuation?.let {
+			if (result != null) {
+				boardRenderer.setOverlay(null)
+			}
+			launchIn {
+				boardRenderer.popAllZoomRects()
+			}
+			boardRenderer.pickableStack.clear()
+			this.result = result
+			it.resume(result)
+			continuation = null
+			refresh()
+		} ?: log.error("continuation is null")
 	}
 
-	override fun pushState(state: State) {
+	override suspend fun pushState(state: State) {
 		if (isGameRunning())
 			super.pushState(state)
 	}
 
-	override fun onCurrentUserUpdated(userName: String, colorId: Int) {
+	override suspend fun onCurrentUserUpdated(userName: String, colorId: Int) {
 		super.onCurrentUserUpdated(userName, colorId)
 		boardMessage = "$userName's Turn"
 	}
 
-	fun pickCharacter(
+	suspend fun pickCharacter(
 		name: ZPlayerName?,
 		message: String,
 		characters: List<ZPlayerName>
@@ -446,7 +449,7 @@ abstract class UIZombicide(
 		return waitForUser(ZCharacter::class.java)?.type
 	}
 
-	fun pickZone(name: ZPlayerName, message: String, zones: List<Int>): Int? {
+	suspend fun pickZone(name: ZPlayerName, message: String, zones: List<Int>): Int? {
 		name.toCharacter().apply {
 			boardRenderer.setCurrentCharacter(this)
 			characterRenderer.actorInfo = this
@@ -456,7 +459,7 @@ abstract class UIZombicide(
 		return waitForUser(Int::class.javaObjectType)
 	}
 
-	fun pickSpawn(name: ZPlayerName, message: String, areas: List<ZSpawnArea>): Int? {
+	suspend fun pickSpawn(name: ZPlayerName, message: String, areas: List<ZSpawnArea>): Int? {
 		name.toCharacter().apply {
 			boardRenderer.setCurrentCharacter(this)
 			characterRenderer.actorInfo = this
@@ -470,7 +473,7 @@ abstract class UIZombicide(
 		return areas.indexOf(area)
 	}
 
-	fun <T : IButton> pickMenu(
+	suspend fun <T : IButton> pickMenu(
 		name: ZPlayerName,
 		message: String,
 		expectedType: Class<T>,
@@ -485,7 +488,7 @@ abstract class UIZombicide(
 		return waitForUser(expectedType)
 	}
 
-	fun pickDoor(name: ZPlayerName, message: String, doors: List<ZDoor>): ZDoor? {
+	suspend fun pickDoor(name: ZPlayerName, message: String, doors: List<ZDoor>): ZDoor? {
 		name.toCharacter().apply {
 			boardRenderer.setCurrentCharacter(this)
 			characterRenderer.actorInfo = this
@@ -507,7 +510,7 @@ abstract class UIZombicide(
 		throw NotImplementedError()
 	}
 
-	override fun addLogMessage(msg: String) {
+	override suspend fun addLogMessage(msg: String) {
 		super.addLogMessage(msg)
 		addPlayerComponentMessage(msg)
 	}
@@ -568,7 +571,7 @@ abstract class UIZombicide(
 		}
 	}
 
-	override fun onEquipmentThrown(actor: ZPlayerName, icon: ZIcon, zone: Int) {
+	override suspend fun onEquipmentThrown(actor: ZPlayerName, icon: ZIcon, zone: Int) {
 		super.onEquipmentThrown(actor, icon, zone)
 		actor.toCharacter().takeIf { it.occupiedZone != zone }?.let { actor ->
 			actor.addAnimation(ThrowAnimation(actor, board.getZone(zone).getRect().center, icon))
@@ -576,12 +579,12 @@ abstract class UIZombicide(
 		}
 	}
 
-	override fun onRollDice(roll: Array<Int>) {
+	override suspend fun onRollDice(roll: Array<Int>) {
 		super.onRollDice(roll)
 		characterRenderer.addWrappable(ZDiceWrappable(roll))
 	}
 
-	override fun onDragonBileExploded(zone: Int) {
+	override suspend fun onDragonBileExploded(zone: Int) {
 		super.onDragonBileExploded(zone)
 		board.getZone(zone).getCells().map { board.getCell(it) }.apply {
 			boardRenderer.addPreActor(InfernoAnimation(this))
@@ -589,13 +592,13 @@ abstract class UIZombicide(
 		boardRenderer.wait(1000)
 	}
 
-	override fun onZombieDestroyed(deathType: ZAttackType, pos: ZActorPosition) {
+	override suspend fun onZombieDestroyed(deathType: ZAttackType, pos: ZActorPosition) {
 		super.onZombieDestroyed(deathType, pos)
 		val zombie = board.getActor(pos)
 		zombie.addAnimation(DeathAnimation(zombie))
 	}
 
-	override fun onActorMoved(id: String, start: GRectangle, end: GRectangle, speed: Long) {
+	override suspend fun onActorMoved(id: String, start: GRectangle, end: GRectangle, speed: Long) {
 		super.onActorMoved(id, start, end, speed)
 		board.getActor(id)?.let {
 /*			it.addAnimation(object : EmptyAnimation(it, 1) {
@@ -615,7 +618,7 @@ abstract class UIZombicide(
 		}
 	}
 
-	override fun onZombieSpawned(zombie: ZZombie) {
+	override suspend fun onZombieSpawned(zombie: ZZombie) {
 		log.debug("onSpawnZoneSpawned <<<<< ----")
 		super.onZombieSpawned(zombie)
 
@@ -688,7 +691,7 @@ abstract class UIZombicide(
 		boardRenderer.redraw()
 	}
 
-	private fun animateNecromancerEscapeRoute(necro: ZZombie) {
+	private suspend fun animateNecromancerEscapeRoute(necro: ZZombie) {
 		board.getZombiePathTowardNearestSpawn(necro).takeIf { it.isNotEmpty() }?.let { path ->
 			necro.escapeZone?.let { escapeZone ->
 				boardRenderer.pushZoomRect()
@@ -715,14 +718,14 @@ abstract class UIZombicide(
 		}
 	}
 
-	override fun onCharacterDefends(cur: ZPlayerName, attackerPosition: ZActorPosition) {
+	override suspend fun onCharacterDefends(cur: ZPlayerName, attackerPosition: ZActorPosition) {
 		super.onCharacterDefends(cur, attackerPosition)
 		val actor = board.getActor(attackerPosition)
 		actor.addAnimation(ShieldBlockAnimation(cur.toCharacter()))
 		boardRenderer.redraw()
 	}
 
-	override fun onCurrentCharacterUpdated(priorPlayer: ZPlayerName?, character: ZCharacter?) {
+	override suspend fun onCurrentCharacterUpdated(priorPlayer: ZPlayerName?, character: ZCharacter?) {
 		super.onCurrentCharacterUpdated(priorPlayer, character)
 		priorPlayer?.toCharacter()?.let { player ->
 			player.addAnimation(EmptyAnimation(player))
@@ -751,7 +754,7 @@ abstract class UIZombicide(
 		}
 	}
 
-	override fun onZombieAttack(zombiePos: ZActorPosition, victim: ZPlayerName, type: ZActionType) {
+	override suspend fun onZombieAttack(zombiePos: ZActorPosition, victim: ZPlayerName, type: ZActionType) {
 		super.onZombieAttack(zombiePos, victim, type)
 		boardRenderer.waitForAnimations()
 		val zombie = board.getActor(zombiePos)
@@ -768,12 +771,12 @@ abstract class UIZombicide(
 		boardRenderer.waitForAnimations()
 	}
 
-	override fun onNothingInSight(zone: Int) {
+	override suspend fun onNothingInSight(zone: Int) {
 		super.onNothingInSight(zone)
 		boardRenderer.addHoverMessage("Nothing In Sight", board.getZone(zone))
 	}
 
-	override fun onSpawnZoneSpawning(rect: GRectangle, nth: Int, num: Int) {
+	override suspend fun onSpawnZoneSpawning(rect: GRectangle, nth: Int, num: Int) {
 		super.onSpawnZoneSpawning(rect, nth, num)
 		if (nth == 0) {
 			boardRenderer.pushZoomRect()
@@ -784,7 +787,7 @@ abstract class UIZombicide(
 		boardRenderer.waitForAnimations()
 	}
 
-	override fun onSpawnZoneSpawned(nth: Int, num: Int) {
+	override suspend fun onSpawnZoneSpawned(nth: Int, num: Int) {
 		super.onSpawnZoneSpawned(nth, num)
 		boardRenderer.waitForAnimations()
 		if (nth == num - 1)
@@ -792,7 +795,7 @@ abstract class UIZombicide(
 		boardRenderer.setOverlay(null)
 	}
 
-	override fun onCharacterAttacked(
+	override suspend fun onCharacterAttacked(
 		character: ZPlayerName,
 		attackerPosition: ZActorPosition,
 		attackType: ZAttackType,
@@ -836,12 +839,12 @@ abstract class UIZombicide(
 		boardRenderer.redraw()
 	}
 
-	override fun onAhhhhhh(c: ZPlayerName) {
+	override suspend fun onAhhhhhh(c: ZPlayerName) {
 		super.onAhhhhhh(c)
 		boardRenderer.addHoverMessage("AHHHHHH!", c.toCharacter())
 	}
 
-	override fun onEquipmentFound(c: ZPlayerName, equipment: List<ZEquipment<*>>) {
+	override suspend fun onEquipmentFound(c: ZPlayerName, equipment: List<ZEquipment<*>>) {
 		super.onEquipmentFound(c, equipment)
 		if (thisUser.hasPlayer(c)) {
 			val info = Table().setModel(object : Table.Model {
@@ -862,12 +865,12 @@ abstract class UIZombicide(
 		}
 	}
 
-	override fun onCharacterGainedExperience(c: ZPlayerName, points: Int) {
+	override suspend fun onCharacterGainedExperience(c: ZPlayerName, points: Int) {
 		super.onCharacterGainedExperience(c, points)
 		boardRenderer.addHoverMessage(String.format("+%d EXP", points), c.toCharacter())
 	}
 
-	override fun onGameLost() {
+	override suspend fun onGameLost() {
 		super.onGameLost()
 		boardMessage = "GAME LOST"
 		boardRenderer.waitForAnimations()
@@ -879,7 +882,7 @@ abstract class UIZombicide(
 		boardRenderer.waitForAnimations()
 	}
 
-	override fun onQuestComplete() {
+	override suspend fun onQuestComplete() {
 		super.onQuestComplete()
 		boardMessage = "QUEST COMPLETED"
 		boardRenderer.waitForAnimations()
@@ -891,7 +894,7 @@ abstract class UIZombicide(
 		boardRenderer.waitForAnimations()
 	}
 
-	override fun onDoubleSpawn(multiplier: Int) {
+	override suspend fun onDoubleSpawn(multiplier: Int) {
 		super.onDoubleSpawn(multiplier)
 		boardRenderer.addOverlay(
 			OverlayTextAnimation(
@@ -904,13 +907,13 @@ abstract class UIZombicide(
 		boardRenderer.wait(500)
 	}
 
-	override fun onNewSkillAcquired(c: ZPlayerName, skill: ZSkill) {
+	override suspend fun onNewSkillAcquired(c: ZPlayerName, skill: ZSkill) {
 		super.onNewSkillAcquired(c, skill)
 		boardRenderer.addHoverMessage(String.format("%s Acquired", skill.getLabel()), c.toCharacter())
 		characterRenderer.addMessage(String.format("%s has acquired the %s skill", c.getLabel(), skill.getLabel()))
 	}
 
-	override fun onExtraActivation(category: ZZombieCategory) {
+	override suspend fun onExtraActivation(category: ZZombieCategory) {
 		super.onExtraActivation(category)
 		boardRenderer.addOverlay(
 			OverlayTextAnimation(
@@ -923,22 +926,22 @@ abstract class UIZombicide(
 		boardRenderer.wait(500)
 	}
 
-	override fun onSkillKill(c: ZPlayerName, skill: ZSkill, zombiePostion: ZActorPosition, attackType: ZAttackType) {
+	override suspend fun onSkillKill(c: ZPlayerName, skill: ZSkill, zombiePostion: ZActorPosition, attackType: ZAttackType) {
 		super.onSkillKill(c, skill, zombiePostion, attackType)
 		boardRenderer.addHoverMessage(String.format("%s Kill!!", skill.getLabel()), board.getActor(zombiePostion))
 	}
 
-	override fun onRollSixApplied(c: ZPlayerName, skill: ZSkill) {
+	override suspend fun onRollSixApplied(c: ZPlayerName, skill: ZSkill) {
 		super.onRollSixApplied(c, skill)
 		boardRenderer.addHoverMessage(String.format("Roll Six!! %s", skill.getLabel()), c.toCharacter())
 	}
 
-	override fun onWeaponReloaded(c: ZPlayerName, w: ZWeapon) {
+	override suspend fun onWeaponReloaded(c: ZPlayerName, w: ZWeapon) {
 		super.onWeaponReloaded(c, w)
 		boardRenderer.addHoverMessage(String.format("%s Reloaded", w.getLabel()), c.toCharacter())
 	}
 
-	override fun onNoiseAdded(zoneIndex: Int) {
+	override suspend fun onNoiseAdded(zoneIndex: Int) {
 		super.onNoiseAdded(zoneIndex)
 		val zone = board.getZone(zoneIndex)
 		boardRenderer.animateZoomToIfNotContained(zone)
@@ -951,18 +954,18 @@ abstract class UIZombicide(
 		boardRenderer.addHoverMessage("CLICK", c.toCharacter())
 	}
 
-	override fun onBeginRound(roundNum: Int) {
+	override suspend fun onBeginRound(roundNum: Int) {
 		super.onBeginRound(roundNum)
 		if (roundNum == 0)
 			showQuestTitleOverlay()
 	}
 
-	override fun onSpawnCard(card: ZSpawnCard, color: ZColor) {
+	override suspend fun onSpawnCard(card: ZSpawnCard, color: ZColor) {
 		super.onSpawnCard(card, color)
 		//boardRenderer.setOverlay(card.toTable(color))
 	}
 
-	private fun onAttackMelee(
+	private suspend fun onAttackMelee(
 		attacker: ZCharacter,
 		weapon: ZWeaponType,
 		actionType: ZActionType?,
@@ -1033,7 +1036,7 @@ abstract class UIZombicide(
 
 	}
 
-	private fun onAttackRanged(
+	private suspend fun onAttackRanged(
 		attacker: ZCharacter,
 		weapon: ZWeaponType,
 		actionType: ZActionType?,
@@ -1191,7 +1194,7 @@ abstract class UIZombicide(
 
 	}
 
-	private fun doThrowAnimation(
+	private suspend fun doThrowAnimation(
 		attacker: ZActor,
 		numDice: Int,
 		hits: List<ZActorPosition>,
@@ -1248,7 +1251,7 @@ abstract class UIZombicide(
 		boardRenderer.waitForAnimations()
 	}
 
-	private fun onAttackMagic(
+	private suspend fun onAttackMagic(
 		attacker: ZCharacter,
 		weapon: ZWeaponType,
 		actionType: ZActionType?,
@@ -1403,7 +1406,7 @@ abstract class UIZombicide(
 
 	}
 
-	override fun onAttack(
+	override suspend fun onAttack(
 		attacker: ZPlayerName,
 		weapon: ZWeaponType,
 		actionType: ZActionType?,
@@ -1446,20 +1449,20 @@ abstract class UIZombicide(
 		}
 	}
 
-	override fun onZombieStageBegin() {
+	override suspend fun onZombieStageBegin() {
 		super.onZombieStageBegin()
 		boardRenderer.pushZoomRect()
 		boardRenderer.animateZoomTo(ZoomType.FILL_FIT)
 		boardRenderer.waitForAnimations()
 	}
 
-	override fun onZombieStageMoveDone() {
+	override suspend fun onZombieStageMoveDone() {
 		super.onZombieStageMoveDone()
 		boardRenderer.wait(500)
 		boardRenderer.waitForAnimations()
 	}
 
-	override fun onZombieStageEnd() {
+	override suspend fun onZombieStageEnd() {
 		super.onZombieStageEnd()
 		boardRenderer.waitForAnimations()
 		boardRenderer.popZoomRect()
@@ -1498,12 +1501,12 @@ abstract class UIZombicide(
 		 */
 	}
 
-	override fun onCharacterHealed(c: ZPlayerName, amt: Int) {
+	override suspend fun onCharacterHealed(c: ZPlayerName, amt: Int) {
 		super.onCharacterHealed(c, amt)
 		boardRenderer.addHoverMessage(String.format("+%d wounds healed", amt), c.toCharacter())
 	}
 
-	override fun onCharacterDestroysSpawn(c: ZPlayerName, zoneIdx: Int, area: ZSpawnArea) {
+	override suspend fun onCharacterDestroysSpawn(c: ZPlayerName, zoneIdx: Int, area: ZSpawnArea) {
 		super.onCharacterDestroysSpawn(c, zoneIdx, area)
 		boardRenderer.addPreActor(object : ZAnimation(1500) {
 			val r = GRectangle()
@@ -1515,7 +1518,7 @@ abstract class UIZombicide(
 		})
 	}
 
-	override fun onCloseSpawnArea(c: ZCharacter, zone: Int, area: ZSpawnArea) {
+	override suspend fun onCloseSpawnArea(c: ZCharacter, zone: Int, area: ZSpawnArea) {
 		super.onCloseSpawnArea(c, zone, area)
 		boardRenderer.addPreActor(HandOfGodAnimation(c, area))
 		boardRenderer.waitForAnimations()
@@ -1526,12 +1529,12 @@ abstract class UIZombicide(
 		boardRenderer.addHoverMessage("Open Failed", door)
 	}
 
-	override fun onIronRain(c: ZPlayerName, targetZone: Int) {
+	override suspend fun onIronRain(c: ZPlayerName, targetZone: Int) {
 		super.onIronRain(c, targetZone)
 		boardRenderer.addHoverMessage("LET IT RAIN!!", board.getZone(targetZone))
 	}
 
-	override fun onDoorUnlocked(door: ZDoor) {
+	override suspend fun onDoorUnlocked(door: ZDoor) {
 		super.onDoorUnlocked(door)
 		boardRenderer.pushZoomRect()
 		boardRenderer.animateZoomTo(door.getRect())
@@ -1549,12 +1552,12 @@ abstract class UIZombicide(
 		boardRenderer.popZoomRect()
 	}
 
-	override fun onBonusAction(pl: ZPlayerName, action: ZSkill) {
+	override suspend fun onBonusAction(pl: ZPlayerName, action: ZSkill) {
 		super.onBonusAction(pl, action)
 		boardRenderer.addHoverMessage("BONUS ACTION " + action.getLabel(), pl.toCharacter())
 	}
 
-	override fun onZombieHoardAttacked(player: ZPlayerName, hits: List<ZZombieType>) {
+	override suspend fun onZombieHoardAttacked(player: ZPlayerName, hits: List<ZZombieType>) {
 		characterRenderer.addMessage("$player destroyed ${hits.size} in the hoard")
 	}
 

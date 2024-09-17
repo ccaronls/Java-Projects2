@@ -345,12 +345,12 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     public abstract void transform(float x, float y, float [] result);
     
     /**
-     * 
      * @param v
      */
-    public final MutableVector2D transform(MutableVector2D v) {
-    	v.set(transform((IVector2D)v));
-    	return v;
+    public final void transform(MutableVector2D v) {
+        float[] result = new float[2];
+        transform(v.getX(), v.getY(), result);
+        v.set(result[0], result[1]);
     }
 
     /**
@@ -360,16 +360,16 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @return
      */
     public final MutableVector2D transform(float x, float y) {
-        MutableVector2D mv = new MutableVector2D(x, y);
-        transform(mv);
-        return mv;
+        float[] result = new float[2];
+        transform(x, y, result);
+        return new MutableVector2D(result[0], result[1]);
     }
 
     /**
      * 
      * @param v
      * @return
-     */
+     *
 	public final MutableVector2D transform(IVector2D v) {
 		float [] result = new float[2];
 		transform(v.getX(), v.getY(), result);
@@ -517,6 +517,14 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      */
     public final GDimension drawJustifiedString(IVector2D pos, Justify hJust, Justify vJust, String text) {
         return drawJustifiedString(pos.getX(), pos.getY(), hJust, vJust, text);
+    }
+
+    public final GRectangle drawStringOnBackground(float x, float y, String text, GColor bkColor, float border, float cornerRadius) {
+        return drawJustifiedStringOnBackground(x, y, Justify.LEFT, Justify.TOP, text, bkColor, border, cornerRadius);
+    }
+
+    public final GRectangle drawStringOnBackground(IVector2D v, String text, GColor bkColor, float border, float cornerRadius) {
+        return drawStringOnBackground(v.getX(), v.getY(), text, bkColor, border, cornerRadius);
     }
 
     /**

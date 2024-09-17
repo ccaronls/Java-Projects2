@@ -328,19 +328,19 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
      * @param cur
      * @param options
      */
-    open fun addMoves(game: ZGame, cur: ZCharacter, options: MutableCollection<ZMove>) {
-        allObjectives.filter {
-	        game.board.getNumZombiesInZone(it) == 0
-        }.firstOrNull {
-	        it == cur.occupiedZone
-        }?.takeIf {
-        	canCharacterTakeObjective(game, cur, it)
-        }?.let {
-            options.add(ZMove.newObjectiveMove(it))
-        }
+    open suspend fun addMoves(game: ZGame, cur: ZCharacter, options: MutableCollection<ZMove>) {
+	    allObjectives.filter {
+		    game.board.getNumZombiesInZone(it) == 0
+	    }.firstOrNull {
+		    it == cur.occupiedZone
+	    }?.takeIf {
+		    canCharacterTakeObjective(game, cur, it)
+	    }?.let {
+		    options.add(ZMove.newObjectiveMove(it))
+	    }
     }
 
-	open fun canCharacterTakeObjective(game: ZGame, cur: ZCharacter, zone: Int) : Boolean = true
+	open suspend fun canCharacterTakeObjective(game: ZGame, cur: ZCharacter, zone: Int): Boolean = true
 
     fun findObjectiveForZone(zoneIdx: Int): ZObjective? {
         for (obj in objectives.values) {
@@ -349,19 +349,19 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
         return null
     }
 
-    /**
-     *
-     * @param game
-     * @param c
-     */
-    open fun processObjective(game: ZGame, c: ZCharacter) {
-        findObjectiveForZone(c.occupiedZone)?.let { obj ->
-	        if (obj.objectives.remove(c.occupiedZone as Any)) {
-		        obj.found.add(c.occupiedZone)
-		        game.addExperience(c, getObjectiveExperience(c.occupiedZone, numFoundObjectives))
-	        }
-        }
-    }
+	/**
+	 *
+	 * @param game
+	 * @param c
+	 */
+	open suspend fun processObjective(game: ZGame, c: ZCharacter) {
+		findObjectiveForZone(c.occupiedZone)?.let { obj ->
+			if (obj.objectives.remove(c.occupiedZone as Any)) {
+				obj.found.add(c.occupiedZone)
+				game.addExperience(c, getObjectiveExperience(c.occupiedZone, numFoundObjectives))
+			}
+		}
+	}
 
     protected open fun getObjectiveExperience(zoneIdx: Int, nthFound: Int): Int {
         return 5
@@ -431,7 +431,7 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
 	    return list
     }
 
-	open fun onEquipmentFound(game: ZGame, equip: ZEquipment<*>) {
+	open suspend fun onEquipmentFound(game: ZGame, equip: ZEquipment<*>) {
 		//
 	}
 
@@ -448,21 +448,22 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
     protected val numStartObjectives: Int
         get() = objectives.values.sumBy { it.found.size + it.objectives.size }
 
-	open fun onDragonBileExploded(c: ZSurvivor, zoneIdx: Int) {}
+	open suspend fun onDragonBileExploded(c: ZSurvivor, zoneIdx: Int) {}
 	open fun drawQuest(board: ZBoard, g: AGraphics) {}
-	fun onNecromancerEscaped(game: ZGame, z: ZZombie) {
+	suspend fun onNecromancerEscaped(game: ZGame, z: ZZombie) {
 		game.gameLost("Necromancer Escaped")
 	}
 
-    open fun onZombieSpawned(game: ZGame, zombie: ZZombie, zone: Int) {
-	    when (zombie.type) {
-		    ZZombieType.Necromancer -> {
-			    game.board.setSpawnZone(zone, ZIcon.SPAWN_NECRO, false, false, true)
-			    game.spawnZombies(zone)
-		    }
-		    else -> Unit
-	    }
-    }
+	open suspend fun onZombieSpawned(game: ZGame, zombie: ZZombie, zone: Int) {
+		when (zombie.type) {
+			ZZombieType.Necromancer -> {
+				game.board.setSpawnZone(zone, ZIcon.SPAWN_NECRO, false, false, true)
+				game.spawnZombies(zone)
+			}
+
+			else -> Unit
+		}
+	}
 
 	/**
 	 * Return a spawn card or null if none left. Default behavior is infinite spawn cards
@@ -487,9 +488,9 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
 		throw Exception("Unhandled method drawBlackObjective")
 	}
 
-	open fun onDoorOpened(game: ZGame, door: ZDoor, c: ZCharacter) {}
+	open suspend fun onDoorOpened(game: ZGame, door: ZDoor, c: ZCharacter) {}
 
-	open fun onSpawnZoneRemoved(game: ZGame, spawnArea: ZSpawnArea) {}
+	open suspend fun onSpawnZoneRemoved(game: ZGame, spawnArea: ZSpawnArea) {}
 
-	open fun handleSpawnForZone(game: ZGame, zoneIdx: Int): Boolean = false
+	open suspend fun handleSpawnForZone(game: ZGame, zoneIdx: Int): Boolean = false
 }

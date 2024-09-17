@@ -7,7 +7,7 @@ import cc.lib.game.Justify
 import cc.lib.game.Utils
 import cc.lib.reflector.Omit
 
-class ZZombie(override val type: ZZombieType = ZZombieType.Walker, val startZone: Int = -1) : ZActor(startZone) {
+open class ZZombie(override val type: ZZombieType = ZZombieType.Walker, val startZone: Int = -1) : ZActor(startZone) {
 	companion object {
 		init {
 			addAllFields(ZZombie::class.java)
@@ -72,7 +72,7 @@ class ZZombie(override val type: ZZombieType = ZZombieType.Walker, val startZone
 
 	override fun isBlockedBy(wallType: ZWallFlag): Boolean = type.isBlockedBy(wallType)
 
-	override fun performAction(action: ZActionType, game: ZGame) {
+	override suspend fun performAction(action: ZActionType, game: ZGame) {
 		when (action) {
 			ZActionType.MELEE,
 			ZActionType.NOTHING -> actionsLeftThisTurn = 0
