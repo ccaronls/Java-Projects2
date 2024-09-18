@@ -134,4 +134,7 @@ are fulfilled.
     <string name="button_undo">Undo</string>
     <string name="button_repeat">Repeat</string>
 
+    <string name="popup_message_confirmexit">A game is in progress. Are you sure you want to exit?</string>
+    <string name="popup_botton_quitgame">Quit Game</string>
+
 </resources>

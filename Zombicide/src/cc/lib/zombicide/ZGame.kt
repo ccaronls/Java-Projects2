@@ -2575,22 +2575,22 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 	}
 
 	@RemoteFunction
-	open fun onZoneFrozen(freezer: ZPlayerName, zoneIdx: Int) {
+	open suspend fun onZoneFrozen(freezer: ZPlayerName, zoneIdx: Int) {
 		log.debug("$freezer froze zone $zoneIdx")
 	}
 
 	@RemoteFunction
-	protected open fun onWeaponGoesClick(c: ZPlayerName, weapon: ZWeapon) {
+	protected open suspend fun onWeaponGoesClick(c: ZPlayerName, weapon: ZWeapon) {
 		log.debug("%s fired unloaded weapon %s", c, weapon)
 	}
 
 	@RemoteFunction
-	protected open fun onDoorToggled(cur: ZPlayerName, door: ZDoor) {
+	protected open suspend fun onDoorToggled(cur: ZPlayerName, door: ZDoor) {
 		log.debug("%s opened door %s", cur, door)
 	}
 
 	@RemoteFunction
-	protected open fun onCharacterOpenDoorFailed(cur: ZPlayerName, door: ZDoor) {
+	protected open suspend fun onCharacterOpenDoorFailed(cur: ZPlayerName, door: ZDoor) {
 		log.debug("%s failed to open door %s", cur, door)
 	}
 

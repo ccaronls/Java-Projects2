@@ -95,6 +95,10 @@ class ConnectedUser(
 			addAllFields(ConnectedUser::class.java)
 		}
 	}
+
+	override fun toString(): String {
+		return "ConnectedUser color: ${ZUser.getColorName(color)} connected: $connected name:$name status:$status start:$startUser"
+	}
 }
 
 abstract class UIZombicide(
@@ -498,15 +502,15 @@ abstract class UIZombicide(
 		return waitForUser(ZDoor::class.java)
 	}
 
-	open fun showOrganizeDialog(primary: ZPlayerName, secondary: ZPlayerName?, undos: Int) {
+	open suspend fun showOrganizeDialog(primary: ZPlayerName, secondary: ZPlayerName?, undos: Int) {
 		throw NotImplementedError()
 	}
 
-	open fun closeOrganizeDialog() {
+	open suspend fun closeOrganizeDialog() {
 		throw NotImplementedError()
 	}
 
-	open fun updateOrganize(character: ZCharacter, list: List<ZMove>, undos: Int): ZMove? {
+	open suspend fun updateOrganize(character: ZCharacter, list: List<ZMove>, undos: Int): ZMove? {
 		throw NotImplementedError()
 	}
 
@@ -949,7 +953,7 @@ abstract class UIZombicide(
 		boardRenderer.waitForAnimations()
 	}
 
-	override fun onWeaponGoesClick(c: ZPlayerName, weapon: ZWeapon) {
+	override suspend fun onWeaponGoesClick(c: ZPlayerName, weapon: ZWeapon) {
 		super.onWeaponGoesClick(c, weapon)
 		boardRenderer.addHoverMessage("CLICK", c.toCharacter())
 	}
@@ -1491,7 +1495,7 @@ abstract class UIZombicide(
 	});
 }*/
 
-	override fun onDoorToggled(cur: ZPlayerName, door: ZDoor) {
+	override suspend fun onDoorToggled(cur: ZPlayerName, door: ZDoor) {
 		super.onDoorToggled(cur, door)
 		/*
 		if (door.isClosed(board))
@@ -1524,7 +1528,7 @@ abstract class UIZombicide(
 		boardRenderer.waitForAnimations()
 	}
 
-	override fun onCharacterOpenDoorFailed(cur: ZPlayerName, door: ZDoor) {
+	override suspend fun onCharacterOpenDoorFailed(cur: ZPlayerName, door: ZDoor) {
 		super.onCharacterOpenDoorFailed(cur, door)
 		boardRenderer.addHoverMessage("Open Failed", door)
 	}

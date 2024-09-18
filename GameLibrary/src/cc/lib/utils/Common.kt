@@ -386,3 +386,7 @@ inline fun <T, R : Comparable<R>> Collection<T>.allMinOf(selector: (T) -> R): Li
 	val min = s.minOfOrNull { it.key } ?: return emptyList()
 	return s[min]!!
 }
+
+inline fun <T0, T1> notNull(t0: T0?, t1: T1?, block: (T0, T1) -> Unit) {
+	if (t0 != null && t1 != null) block(t0, t1)
+}

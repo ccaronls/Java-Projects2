@@ -215,5 +215,9 @@ abstract class ZUser(_name: String?, var colorId: Int) : IRemote {
 		fun getColorName(id: Int): String = if (id in USER_COLORS.indices) {
 			USER_COLOR_NAMES[id]
 		} else "None($id)"
+
+		fun getColorName(color: GColor): String = USER_COLORS.indexOfFirst { it == color }.takeIf { it >= 0 }?.let {
+			USER_COLOR_NAMES[it]
+		} ?: "Unknown($color)"
 	}
 }

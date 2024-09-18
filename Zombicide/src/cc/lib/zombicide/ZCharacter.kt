@@ -1,14 +1,18 @@
 package cc.lib.zombicide
 
-import cc.lib.game.*
+import cc.lib.game.AGraphics
+import cc.lib.game.GColor
+import cc.lib.game.GDimension
+import cc.lib.game.Utils
 import cc.lib.logger.LoggerFactory
-import cc.lib.reflector.*
+import cc.lib.reflector.Omit
+import cc.lib.reflector.RBufferedReader
 import cc.lib.ui.IButton
 import cc.lib.utils.Table
 import cc.lib.utils.increment
 import cc.lib.utils.prettify
 import cc.lib.zombicide.ZEquipSlot.Companion.wearableValues
-import java.util.*
+import java.util.Arrays
 import kotlin.math.max
 
 class ZCharacter(
@@ -36,8 +40,6 @@ class ZCharacter(
     private val allSkills: MutableList<ZSkill> = ArrayList() // all skills based on the characters level and choices
     private val availableSkills: MutableSet<ZSkill> = HashSet() // skills from all skills minus ones used that are once per turn
 
-    @Omit
-    private var cachedSkills: MutableList<ZSkill>? = null // cached from getAvailableSkills() - includes skills given by weapons or armor
     private val skillsRemaining: Array<MutableList<ZSkill>> = skillz.map { it.toMutableList() }.toTypedArray()
     private val backpack: MutableList<ZEquipment<*>> = ArrayList()
 	var leftHand: ZEquipment<*>? = null
@@ -107,7 +109,6 @@ class ZCharacter(
 		backpack.clear()
 		allSkills.clear()
 		availableSkills.clear()
-		cachedSkills = null
 		exp = 0
 		woundBar = 0
 		deathType = null
@@ -147,20 +148,12 @@ class ZCharacter(
 	    actionsDoneThisTurn.clear()
 	    availableSkills.clear()
 	    availableSkills.addAll(allSkills)
-	    cachedSkills = null
 	    zonesMoved = 0
 	    fallen = isDead
 	    usedSpells.clear()
 	    hasMovedThisTurn = false
 	    super.onBeginRound(game)
     }
-
-	@Synchronized
-	@Throws(Exception::class)
-	override fun deserialize(reader: RBufferedReader) {
-		super.deserialize(reader)
-		cachedSkills = null
-	}
 
 	override fun getMaxCharsPerLine(): Int {
 		return 256
@@ -376,27 +369,23 @@ class ZCharacter(
             if (body == null && canEquipBody(e)) {
                 body = e
                 e.slot = ZEquipSlot.BODY
-                cachedSkills = null
                 return ZEquipSlot.BODY
             }
             when (e.slotType) {
                 ZEquipSlotType.HAND -> {
                     if (leftHand == null) {
                         leftHand = e
-                        cachedSkills = null
                         e.slot = ZEquipSlot.LEFT_HAND
                         return e.slot
                     }
                     if (rightHand == null) {
                         rightHand = e
-                        cachedSkills = null
                         e.slot = ZEquipSlot.RIGHT_HAND
                         return e.slot
                     }
                 }
 	            ZEquipSlotType.BODY -> if (body == null) {
 		            body = e
-		            cachedSkills = null
 		            e.slot = ZEquipSlot.BODY
 		            return e.slot
 	            }
@@ -432,7 +421,6 @@ class ZCharacter(
                 rightHand = null
             }
         }
-        cachedSkills = null
         removed?.slot = null
         return removed
     }
@@ -457,7 +445,6 @@ class ZCharacter(
             }
 	        ZEquipSlot.BACKPACK -> backpack.add(equipment)
         }
-	    cachedSkills = null
 	    return prev
     }
 
@@ -766,21 +753,17 @@ class ZCharacter(
 			ZEquipSlot.LEFT_HAND -> {
 				require(leftHand === equip)
 				leftHand = null
-				cachedSkills = null
 			}
 			ZEquipSlot.RIGHT_HAND -> {
 				require(rightHand === equip)
 				rightHand = null
-				cachedSkills = null
 			}
 			ZEquipSlot.BODY -> {
 				require(body === equip)
 				body = null
-				cachedSkills = null
 			}
 			else -> Unit
 		}
-		cachedSkills = null
 		equip.slot = null
 		return slot
 	}
@@ -817,7 +800,6 @@ class ZCharacter(
 		availableSkills.clear()
 		listOfNotNull(leftHand, rightHand, body).forEach { it.onEndOfRound(game) }
 		availableSkills.addAll(allSkills)
-		cachedSkills = null
 	}
 
     override val moveSpeed: Long
@@ -862,9 +844,6 @@ class ZCharacter(
     }
 
 	override fun getAvailableSkills(): List<ZSkill> {
-		cachedSkills?.also {
-			return it
-		}
 		return availableSkills.toMutableList().also { skills ->
 			listOfNotNull(leftHand, rightHand, body).forEach {
 				skills.addAll(it.type.skillsWhileEquipped)
@@ -873,8 +852,6 @@ class ZCharacter(
 			familiars.filter { it.familiar?.occupiedZone == occupiedZone }.forEach {
 				skills.addAll(it.type.skillsWhileEquipped)
 			}
-	    }.also {
-	    	cachedSkills = it
 	    }
     }
 
@@ -908,12 +885,10 @@ class ZCharacter(
 	 */
 	override fun addAvailableSkill(skill: ZSkill) {
 		availableSkills.add(skill)
-		cachedSkills = null
 	}
 
 	fun removeAvailableSkill(skill: ZSkill) {
 		availableSkills.remove(skill)
-		cachedSkills = null
 	}
 
 	fun getRemainingSkillsForLevel(level: Int): MutableList<ZSkill> {
@@ -979,7 +954,7 @@ class ZCharacter(
 
 	fun getAllSkillsTable(rules: ZRules): Table {
 		return Table().also { table ->
-			ZColor.values().forEach { color ->
+			ZColor.entries.forEach { color ->
 				var colorTxt = color.name
 				if (skillLevel.difficultyColor == color)
 					colorTxt = ">$colorTxt<"

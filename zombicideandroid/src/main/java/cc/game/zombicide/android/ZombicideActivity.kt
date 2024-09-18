@@ -73,9 +73,7 @@ import cc.lib.zombicide.ui.UIZombicide
 import cc.lib.zombicide.ui.UIZombicide.Companion.instance
 import cc.lib.zombicide.ui.UIZombicide.UIMode
 import cc.lib.zombicide.ui.ZSound
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
@@ -229,12 +227,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 					lock.block()
 					changed = super.runGame()
 					log.debug("runGame changed=$changed")
-
-					if (changed) {
-						CoroutineScope(Dispatchers.IO).launch {
-							pushGameState()
-						}
-					}
+					pushGameState(changed)
 					zb.boardView.postInvalidate()
 					zb.consoleView.postInvalidate()
 					characterRenderer.redraw()
@@ -265,7 +258,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 				} ?: clientMgr?.connectedPlayers ?: emptyList()
 
 
-			override fun <T> waitForUser(expectedType: Class<T>): T? {
+			override suspend fun <T> waitForUser(expectedType: Class<T>): T? {
 				vm.processingMove.postValue(false)
 				zb.boardView.post { initMenu(uiMode, options) }
 				organizeDialog?.refresh()
@@ -277,7 +270,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 				}
 			}
 
-			override fun onQuestComplete() {
+			override suspend fun onQuestComplete() {
 				super.onQuestComplete()
 				runOnUiThread {
 					stopGame()
@@ -296,7 +289,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 				return super.isGameRunning() || clientMgr != null
 			}
 
-			override fun onCurrentCharacterUpdated(
+			override suspend fun onCurrentCharacterUpdated(
 				priorPlayer: ZPlayerName?,
 				character: ZCharacter?
 			) {
@@ -304,19 +297,20 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 				runOnUiThread { initGameMenu() }
 			}
 
-			override fun onCurrentUserUpdated(userName: String, colorId: Int) {
+			override suspend fun onCurrentUserUpdated(userName: String, colorId: Int) {
 				super.onCurrentUserUpdated(userName, colorId)
 				runOnUiThread { initGameMenu() }
+				serverMgr?.updateConnectionStatus()
 			}
 
-			override fun onZombieStageMoveDone() {
+			override suspend fun onZombieStageMoveDone() {
 				super.onZombieStageMoveDone()
 				serverMgr?.broadcastUpdateGame()
 			}
 
 			override val isOrganizeEnabled: Boolean = true
 
-			override fun showOrganizeDialog(primary: ZPlayerName, secondary: ZPlayerName?, undos: Int) {
+			override suspend fun showOrganizeDialog(primary: ZPlayerName, secondary: ZPlayerName?, undos: Int) {
 				Log.d(TAG, "showOrganizeDialog undos: $undos")
 				runOnUiThread {
 					if (organizeDialog?.isShowing != true) {
@@ -331,14 +325,14 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 				}
 			}
 
-			override fun closeOrganizeDialog() {
+			override suspend fun closeOrganizeDialog() {
 				runOnUiThread {
 					organizeDialog?.dismiss()
 					organizeDialog = null
 				}
 			}
 
-			override fun updateOrganize(character: ZCharacter, list: List<ZMove>, undos: Int): ZMove? {
+			override suspend fun updateOrganize(character: ZCharacter, list: List<ZMove>, undos: Int): ZMove? {
 				Log.d(TAG, "updateOrganize moves: ${list.joinToString(separator = "\n")}")
 				runOnUiThread {
 					organizeDialog?.viewModel?.allOptions?.value = list
@@ -417,6 +411,18 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 	override fun onStop() {
 		super.onStop()
 		stopGame()
+	}
+
+	override fun onBackPressed() {
+		if (game.isGameRunning() || clientMgr?.client?.isConnected == true) {
+			newDialogBuilder().setTitle(R.string.popup_title_confirm)
+				.setMessage(R.string.popup_message_confirmexit)
+				.setNegativeButton(R.string.popup_button_cancel, null)
+				.setPositiveButton(R.string.popup_botton_quitgame) { _, _ ->
+					super.onBackPressed()
+				}
+				.show()
+		}
 	}
 
 	var currentDialog: AlertDialog? = null
@@ -823,12 +829,14 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 			}
 		}
 
-	fun pushGameState() {
+	fun pushGameState(file: Boolean) {
 		serverMgr?.broadcastUpdateGame()
 		organizeDialog?.refresh()
-		log.debug("Backing up ... ")
-		FileUtils.backupFile(gameFile, 32)
-		game.trySaveToFile(gameFile)
+		if (file) {
+			log.debug("Backing up ... ")
+			FileUtils.backupFile(gameFile, 32)
+			game.trySaveToFile(gameFile)
+		}
 	}
 
 	fun saveGame() {

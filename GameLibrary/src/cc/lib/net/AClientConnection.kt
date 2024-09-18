@@ -4,7 +4,7 @@ import cc.lib.game.Utils
 import cc.lib.logger.LoggerFactory
 import cc.lib.net.ConnectionStatus.Companion.from
 import cc.lib.reflector.Reflector
-import cc.lib.utils.Lock
+import cc.lib.utils.KLock
 import java.util.Arrays
 import java.util.Collections
 import java.util.function.Consumer
@@ -79,15 +79,36 @@ import java.util.function.Consumer
  */
 abstract class AClientConnection(val server: AGameServer, private val attributes: MutableMap<String, Any>) {
 
-	protected var log = LoggerFactory.getLogger("SVR", javaClass)
+	companion object {
+		@JvmStatic
+		protected var log = LoggerFactory.getLogger("SVR", javaClass)
+	}
 
 	interface Listener {
-		fun onCommand(c: AClientConnection, cmd: GameCommand) {}
-		fun onDisconnected(c: AClientConnection, reason: String) {}
-		fun onReconnected(c: AClientConnection) {}
-		fun onCancelled(c: AClientConnection, id: String) {}
-		fun onPropertyChanged(c: AClientConnection) {}
-		fun onTimeout(c: AClientConnection) {}
+		fun onCommand(c: AClientConnection, cmd: GameCommand) {
+			log.debug("onCommand c:${c.name} cmd: ${cmd.type}")
+		}
+
+		fun onDisconnected(c: AClientConnection, reason: String) {
+			log.debug("onDisconnected c:${c.name} $reason")
+		}
+
+		fun onReconnected(c: AClientConnection) {
+			log.debug("onReconnected c:${c.name}")
+		}
+
+		fun onCancelled(c: AClientConnection, id: String) {
+			log.debug("onCancelled c:${c.name}")
+		}
+
+		fun onPropertyChanged(c: AClientConnection) {
+			log.debug("onPropertyChanged c:${c.name}")
+		}
+
+		fun onTimeout(c: AClientConnection) {
+			log.debug("onTimeout c:${c.name}")
+		}
+
 		fun onConnectionStatusChanged(c: AClientConnection, status: ConnectionStatus) {}
 	}
 
@@ -238,7 +259,7 @@ abstract class AClientConnection(val server: AGameServer, private val attributes
 		return true
 	}
 
-	private inner class ResponseListener<T> constructor(private val id: String) :
+	private inner class ResponseListener<T>(private val id: String) :
 		Listener {
 		var response: T? = null
 			private set(value) {
@@ -246,7 +267,7 @@ abstract class AClientConnection(val server: AGameServer, private val attributes
 				lock.release()
 			}
 		var cancelled = false
-		val lock = Lock()
+		val lock = KLock()
 		override fun onCommand(conn: AClientConnection, cmd: GameCommand) {
 			if (id == cmd.getString("target")) {
 				try {
@@ -274,7 +295,7 @@ abstract class AClientConnection(val server: AGameServer, private val attributes
 	 * @param <T>
 	 * @return
 	</T> */
-	fun <T> executeDerivedOnRemote(objId: String, returnsResult: Boolean, vararg params: Any?): T? {
+	suspend fun <T> executeDerivedOnRemote(objId: String, returnsResult: Boolean, vararg params: Any?): T? {
 		if (!isConnected) {
 			log.warn("Not Connected")
 			return null
@@ -292,7 +313,8 @@ abstract class AClientConnection(val server: AGameServer, private val attributes
 	 * @param <T>
 	 * @return
 	</T> */
-	fun <T> executeMethodOnRemote(
+	// TODO: Make this a suspend method
+	suspend fun <T> executeMethodOnRemote(
 		targetId: String,
 		returnsResult: Boolean,
 		method: String,
@@ -319,13 +341,11 @@ abstract class AClientConnection(val server: AGameServer, private val attributes
 				addListener(listener)
 				sendCommand(cmd)
 				log.debug("Waiting for response")
-				try {
-					listener.lock.acquireAndBlock()
-				} finally {
-					removeListener(listener)
-				}
+				listener.lock.acquireAndBlock()
+				removeListener(listener)
 				log.debug("Response: %s", listener.response)
-				if (listener.cancelled) onCancelled(id)
+				if (listener.cancelled)
+					onCancelled(id)
 				return listener.response
 			} else {
 				sendCommand(cmd)

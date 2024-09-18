@@ -5,11 +5,14 @@ import cc.lib.ksp.remote.IRemote
 import cc.lib.logger.LoggerFactory
 import cc.lib.reflector.Reflector
 import cc.lib.utils.GException
+import cc.lib.utils.launchIn
+import kotlinx.coroutines.asCoroutineDispatcher
 import java.io.IOException
 import java.lang.reflect.Method
 import java.net.InetAddress
 import java.util.Arrays
 import java.util.Collections
+import java.util.concurrent.Executors
 
 /**
  * Base class for clients that want to connect to a GameServer
@@ -71,14 +74,16 @@ abstract class AGameClient(deviceName: String, version: String) {
 	/**
 	 * @param l
 	 */
-	fun addListener(l: Listener) {
+	fun addListener(l: Listener, name: String) {
+		log.info("Adding listener: $name")
 		synchronized(listeners) { listeners.add(l) }
 	}
 
 	/**
 	 * @param l
 	 */
-	fun removeListener(l: Listener) {
+	fun removeListener(l: Listener, name: String) {
+		log.info("Removing listener: $name")
 		synchronized(listeners) { listeners.remove(l) }
 	}
 	/**
@@ -236,21 +241,19 @@ abstract class AGameClient(deviceName: String, version: String) {
 		executorObjects.remove(id)
 	}
 
-	internal inner class ExecutorThread(
-		val responseId: String,
-		val invoker: () -> Any?
-	) : Thread(), Listener {
+	internal abstract inner class AExecutor(val responseId: String) : Listener {
 
 		init {
-			addListener(this)
+			addListener(this, "AExecutor:$responseId")
 		}
 
-		override fun run() {
+		abstract suspend fun invoke(): Any?
+
+		val job = launchIn {
 			try {
-				log.debug("invoking method...")
-				val result = invoker()
+				val result = invoke()
 				if (responseId.isEmpty()) {
-					return
+					return@launchIn
 				}
 				log.debug("responseId=%s cancelled=$cancelled result=$result")
 				val resp = GameCommand(GameCommandType.CL_REMOTE_RETURNS)
@@ -265,17 +268,94 @@ abstract class AGameClient(deviceName: String, version: String) {
 				e.printStackTrace()
 				sendError(e)
 			} finally {
-				removeThread()
-				removeListener(this)
+				removeListener(this@AExecutor, "AExecutor:$responseId")
+			}
+		}
+
+		override fun onDisconnected(reason: String, serverInitiated: Boolean) {
+			removeListener(this, "AExecutor:$responseId")
+			job.cancel()
+		}
+	}
+	/*
+	internal inner class ExecutorJob(
+		val responseId: String,
+		val invoker: suspend () -> Any?
+	) : Listener {
+
+		init {
+			addListener(this)
+		}
+
+		val job = launchIn {
+			try {
+				log.debug("invoking method...")
+				val result = invoker()
+				if (responseId.isEmpty()) {
+					return@launchIn
+				}
+				log.debug("responseId=%s cancelled=$cancelled result=$result")
+				val resp = GameCommand(GameCommandType.CL_REMOTE_RETURNS)
+				resp.setArg("target", responseId)
+				if (result != null) resp.setArg(
+					"returns",
+					Reflector.serializeObject(result)
+				) else resp.setArg("cancelled", cancelled)
+				cancelled = false
+				sendCommand(resp)
+			} catch (e: Exception) {
+				e.printStackTrace()
+				sendError(e)
+			} finally {
+				removeListener(this@ExecutorJob)
 			}
 		}
 
 		override fun onDisconnected(reason: String, serverInitiated: Boolean) {
 			removeListener(this)
-			interrupt()
-			threads.clear()
+			job.cancel()
 		}
 	}
+
+
+	internal inner class ExecutorThread(
+		val responseId: String,
+		val invoker: () -> Any?
+	) : Listener {
+
+		init {
+			addListener(this)
+		}
+
+		val job = launchIn {
+			try {
+				log.debug("invoking method...")
+				val result = invoker()
+				if (responseId.isEmpty()) {
+					return@launchIn
+				}
+				log.debug("responseId=%s cancelled=$cancelled result=$result")
+				val resp = GameCommand(GameCommandType.CL_REMOTE_RETURNS)
+				resp.setArg("target", responseId)
+				if (result != null) resp.setArg(
+					"returns",
+					Reflector.serializeObject(result)
+				) else resp.setArg("cancelled", cancelled)
+				cancelled = false
+				sendCommand(resp)
+			} catch (e: Exception) {
+				e.printStackTrace()
+				sendError(e)
+			} finally {
+				removeListener(this@ExecutorThread)
+			}
+		}
+
+		override fun onDisconnected(reason: String, serverInitiated: Boolean) {
+			removeListener(this)
+			job.cancel()
+		}
+	}*/
 
 	/*
      * Execute a method locally based on params provided by remote caller.
@@ -302,40 +382,23 @@ abstract class AGameClient(deviceName: String, version: String) {
 		val obj = executorObjects[id] ?: throw IOException("Unknown object id: $id")
 		log.debug("id=%s -> %s", id, obj.javaClass)
 		val responseId = cmd.getString("responseId")
-		addThread(
+		launchIn(jobContext) {
 			if (obj is IRemote) {
-				ExecutorThread(responseId) {
-					obj.executeLocally(method, *params.map { it.second }.toTypedArray())
+				object : AExecutor(responseId) {
+					override suspend fun invoke(): Any? = obj.executeLocally(method, *params.map { it.second }.toTypedArray())
 				}
 			} else {
 				log.warn("!!!!Using deprecated reflector to execute method!!!")
 				// TODO: Deprecate Reflector
 				val m = findMethod(method, obj, params.map { it.first }.toTypedArray(), params.map { it.second }.toTypedArray())
-				ExecutorThread(responseId) {
-					m.invoke(obj, *(params.map { it.second }.toTypedArray()))
+				object : AExecutor(responseId) {
+					override suspend fun invoke(): Any? = m.invoke(obj, *(params.map { it.second }.toTypedArray()))
 				}
-			})
-	}
-
-	private val threads = Collections.synchronizedList(mutableListOf<Thread>())
-
-	private fun addThread(thread: Thread) {
-		if (threads.isEmpty()) {
-			log.debug("Starting thread")
-			thread.start()
-		}
-		threads.add(thread)
-	}
-
-	private fun removeThread() {
-		if (threads.isNotEmpty())
-			threads.removeAt(0)
-		if (threads.isNotEmpty()) {
-			log.debug("Starting queued thread")
-			threads[0].start()
+			}
 		}
 	}
 
+	private val jobContext = Executors.newSingleThreadExecutor().asCoroutineDispatcher()//newSingleThreadContext("AGameClient")
 
 	private var cancelled = false
 	fun cancelRemote() {

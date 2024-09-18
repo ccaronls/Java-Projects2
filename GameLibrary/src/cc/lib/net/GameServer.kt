@@ -280,7 +280,7 @@ class GameServer(
 
 				// TODO: Add a password feature when server prompts for password before conn.connect is called.
 				conn?.let {
-					log.debug("GameServer: Client " + it.name + " connected")
+					log.debug("GameServer: Client ${it.name} " + if (reconnection) "reconnected" else "connected")
 					if (reconnection) {
 						it.notifyListeners { l: AClientConnection.Listener ->
 							l.onReconnected(it)

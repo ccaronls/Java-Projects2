@@ -21,7 +21,7 @@ class ZUserMP(val connection: AClientConnection) :
 		UIZombicide.instance.setUserName(this, c.displayName)
 	}
 
-	override fun executeRemotely(method: String, resultType: Class<*>?, vararg args: Any?): Any? {
+	override suspend fun executeRemotely(method: String, resultType: Class<*>?, vararg args: Any?): Any? {
 		return connection.executeMethodOnRemote(USER_ID, resultType != null, method, *args)
 	}
 

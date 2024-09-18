@@ -207,7 +207,7 @@ abstract class AGameServer(
 	 * @param objId
 	 * @param params
 	 */
-	fun broadcastExecuteOnRemote(objId: String, vararg params: Any?) {
+	suspend fun broadcastExecuteOnRemote(objId: String, vararg params: Any?) {
 		if (isConnected) {
 			val elem = Exception().stackTrace[1]
 			broadcastExecuteMethodOnRemote(objId, elem.methodName, *params)
@@ -221,17 +221,15 @@ abstract class AGameServer(
 	 * @param method
 	 * @param params
 	 */
-	fun broadcastExecuteMethodOnRemote(objId: String, method: String, vararg params: Any?) {
+	suspend fun broadcastExecuteMethodOnRemote(objId: String, method: String, vararg params: Any?) {
 		if (isConnected) {
-			synchronized(clients) {
-				for (c in clients.values) {
-					if (c.isConnected) try {
-						log.debug("executeMethodOnRemote $objId'$method': $params")
-						c.executeMethodOnRemote<Any>(objId, false, method, *params)
-					} catch (e: Exception) {
-						e.printStackTrace()
-						log.error("ERROR Sending to client '" + c.name + "' " + e.javaClass + " " + e.message)
-					}
+			for (c in clients.values) {
+				if (c.isConnected) try {
+					log.debug("executeMethodOnRemote $objId'$method': $params")
+					c.executeMethodOnRemote<Any>(objId, false, method, *params)
+				} catch (e: Exception) {
+					e.printStackTrace()
+					log.error("ERROR Sending to client '" + c.name + "' " + e.javaClass + " " + e.message)
 				}
 			}
 		}

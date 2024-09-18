@@ -31,7 +31,7 @@ class ZClientMgr(activity: ZombicideActivity, game: UIZombicide, override val cl
 
 	fun shutdown() {
 		removeListener(this)
-		client.removeListener(this)
+		client.removeListener(this, "ZClientMgr")
 	}
 
 	override fun onCommand(cmd: GameCommand) {
@@ -194,6 +194,6 @@ class ZClientMgr(activity: ZombicideActivity, game: UIZombicide, override val cl
 	}
 
 	init {
-		client.addListener(this)
+		client.addListener(this, "ZClientMgr")
 	}
 }

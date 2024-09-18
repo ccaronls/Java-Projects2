@@ -150,7 +150,7 @@ abstract class P2PActivity : CCActivityBase() {
 				override fun onDisconnected(reason: String, serverInitiated: Boolean) {
 					runOnUiThread { p2pShutdown() }
 				}
-			})
+			}, "p2pInitAsClient")
 			P2PJoinGameDialog(this, it, deviceName, connectPort)
 			onP2PClient(object : P2PClient {
 				override fun getClient(): AGameClient {

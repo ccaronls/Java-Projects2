@@ -2,6 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="cc.game.zombicide.android">
 
+    <uses-feature
+        android:name="android.hardware.touchscreen"
+        android:required="true" />
+
     <application>
         <activity
             android:name=".Splash"

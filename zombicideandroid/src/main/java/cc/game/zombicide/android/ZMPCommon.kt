@@ -150,8 +150,10 @@ open class ZMPCommon(val activity: ZombicideActivity, val game: UIZombicide) {
 					}
 
 					SVR_UPDATE_GAME -> {
-						cmd.getReflector("board", game.board)
-						cmd.getReflector("quest", game.quest)
+						synchronized(UIZombicide.instance.boardRenderer) {
+							cmd.getReflector("board", game.board)
+							cmd.getReflector("quest", game.quest)
+						}
 						client.setLocalProperty("numSpawn", cmd.getInt("spawnDeckSize", -1))
 						client.setLocalProperty("numLoot", cmd.getInt("lootDeckSize", -1))
 						client.setLocalProperty("numHoard", cmd.getInt("hoardSize", -1))

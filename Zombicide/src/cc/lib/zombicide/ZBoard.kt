@@ -28,7 +28,7 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 	var zones: List<ZZone> = emptyList()
 		private set
 
-	private val actors = Collections.synchronizedMap(HashMap<String, ZActor>())
+	private val actors = HashMap<String, ZActor>()
 
 	constructor()
 	constructor(grid: Grid<ZCell>, zones: List<ZZone>) {

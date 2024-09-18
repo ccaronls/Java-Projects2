@@ -4,7 +4,7 @@ import cc.lib.reflector.Reflector;
 
 /**
  * Abstract color class to support applet/android variations
- * 
+ *
  * @author ccaron
  *
  */
@@ -14,44 +14,56 @@ public final class GColor extends Reflector<GColor> {
         addAllFields(GColor.class);
     }
 
-    public final static GColor BLACK       = new GColor(0f,0,0,1);
-    public final static GColor WHITE       = new GColor(1f,1,1,1);
-    public final static GColor RED         = new GColor(1f,0,0,1);
-    public final static GColor BLUE        = new GColor(0f,0,1,1);
-    public final static GColor GREEN       = new GColor(0f,1,0,1);
-    public final static GColor CYAN        = new GColor(0f,1,1,1);
-    public final static GColor MAGENTA     = new GColor(1f,0,1,1);
-    public final static GColor YELLOW      = new GColor(1f,1,0,1);
-    public final static GColor ORANGE      = new GColor(1f,0.4f,0,1);
-    public final static GColor GRAY      	= new GColor(0.6f, 0.6f, 0.6f, 1);
-    public final static GColor LIGHT_GRAY 	= new GColor(0.8f, 0.8f, 0.8f, 1);
-    public final static GColor DARK_GRAY 	= new GColor(0.4f, 0.4f, 0.4f, 1);
-    public final static GColor PINK         = new GColor(255, 175, 175);
-    public final static GColor BROWN        = new GColor(165,42,42);
-    public final static GColor CHOCOLATE    = new GColor(210,105,30);
-    public final static GColor TRANSPARENT = new GColor(0f,0,0,0);
-    public final static GColor TRANSLUSCENT_BLACK = BLACK.withAlpha(128);
-    public final static GColor DARK_OLIVE   = new GColor(0xff808000);
-    public final static GColor LIGHT_OLIVE  = new GColor(0xffcdcd00);
-    public final static GColor GOLD         = new GColor(0xFFFFD700);
-    public final static GColor SLIME_GREEN  = new GColor(0xffa1e203);
-    public final static GColor SKY_BLUE = new GColor(0xff87ceeb);
-    public final static GColor TRUE_BLUE = new GColor(0xff0073cf);
+    public final static GColor BLACK = new GColor(0f, 0, 0, 1, "BLACK");
+    public final static GColor WHITE = new GColor(1f, 1, 1, 1, "WHITE");
+    public final static GColor RED = new GColor(1f, 0, 0, 1, "RED");
+    public final static GColor BLUE = new GColor(0f, 0, 1, 1, "BLUE");
+    public final static GColor GREEN = new GColor(0f, 1, 0, 1, "GREEN");
+    public final static GColor CYAN = new GColor(0f, 1, 1, 1, "CYAN");
+    public final static GColor MAGENTA = new GColor(1f, 0, 1, 1, "MAGENTA");
+    public final static GColor YELLOW = new GColor(1f, 1, 0, 1, "YELLOW");
+    public final static GColor ORANGE = new GColor(1f, 0.4f, 0, 1, "ORANGE");
+    public final static GColor GRAY = new GColor(0.6f, 0.6f, 0.6f, 1, "GRAY");
+    public final static GColor LIGHT_GRAY = new GColor(0.8f, 0.8f, 0.8f, 1, "LIGHT_GRAY");
+    public final static GColor DARK_GRAY = new GColor(0.4f, 0.4f, 0.4f, 1, "DARK_GRAY");
+    public final static GColor PINK = new GColor(255, 175, 175, "PINK");
+    public final static GColor BROWN = new GColor(165, 42, 42, "BROWN");
+    public final static GColor CHOCOLATE = new GColor(210, 105, 30, "CHOCOLATE");
+    public final static GColor TRANSPARENT = new GColor(0f, 0, 0, 0, "TRANSPARENT");
+    public final static GColor TRANSLUSCENT_BLACK = new GColor(0f, 0f, 0f, .5f, "TRANSLUCENT_BLACK");
+    public final static GColor DARK_OLIVE = new GColor(0xff808000, "DARK_OLIVE");
+    public final static GColor LIGHT_OLIVE = new GColor(0xffcdcd00, "LIGHT_OLIVE");
+    public final static GColor GOLD = new GColor(0xFFFFD700, "GOLD");
+    public final static GColor SLIME_GREEN = new GColor(0xffa1e203, "SLLIME_GREEN");
+    public final static GColor SKY_BLUE = new GColor(0xff87ceeb, "SKY_BLLUE");
+    public final static GColor TRUE_BLUE = new GColor(0xff0073cf, "TRUE_BLUE");
 
     private int argb = 0;
+    private String name = null;
 
-    public GColor() { }
+    public GColor() {
+    }
 
     public GColor(int r, int g, int b, int a) {
         set(r, g, b, a);
     }
 
     public GColor(int r, int g, int b) {
-        this(r, g,b, 255);
+        this(r, g, b, 255);
+    }
+
+    public GColor(int r, int g, int b, String name) {
+        this(r, g, b);
+        this.name = name;
     }
 
     public GColor(int argb) {
         this.argb = argb;
+    }
+
+    public GColor(int argb, String name) {
+        this(argb);
+        this.name = name;
     }
 
     public static GColor fromRGB(int rgb) {
@@ -67,16 +79,22 @@ public final class GColor extends Reflector<GColor> {
     }
 
     public GColor(float r, float g, float b, float a) {
-        set(Math.round(Utils.clamp(r, 0, 1)*255),
-                Math.round(Utils.clamp(g, 0, 1)*255),
-                Math.round(Utils.clamp(b, 0, 1)*255),
-                Math.round(Utils.clamp(a, 0, 1)*255));
+        this(g, g, b, a, null);
     }
 
-	/**
-	 * Return red component value between 0-1
-	 * @return
-	 */
+    public GColor(float r, float g, float b, float a, String name) {
+        this.name = name;
+        set(Math.round(Utils.clamp(r, 0, 1) * 255),
+                Math.round(Utils.clamp(g, 0, 1) * 255),
+                Math.round(Utils.clamp(b, 0, 1) * 255),
+                Math.round(Utils.clamp(a, 0, 1) * 255));
+    }
+
+    /**
+     * Return red component value between 0-1
+     *
+     * @return
+     */
     public float getRed() {
         return ((float)red())/255;
     }
@@ -220,6 +238,8 @@ public final class GColor extends Reflector<GColor> {
 
     @Override
     public final String toString() {
+        if (name != null)
+            return name;
         return String.format("ARGB[%d,%d,%d,%d]", alpha(), red(), green(), blue());
     }
 

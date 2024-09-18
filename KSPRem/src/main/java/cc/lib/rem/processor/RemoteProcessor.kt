@@ -18,6 +18,7 @@ import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSType
 import com.google.devtools.ksp.symbol.KSTypeReference
 import com.google.devtools.ksp.symbol.KSVisitorVoid
+import com.google.devtools.ksp.symbol.Modifier
 import com.google.devtools.ksp.validate
 import java.io.OutputStream
 
@@ -177,6 +178,11 @@ abstract class $classTypeName($classArgs) : $classDeclaration($classDeclarationP
 					return
 				}
 
+				if (!m.modifiers.contains(Modifier.SUSPEND)) {
+					logger.error("${m.simpleName.asString()} must be a suspend type")
+					return
+				}
+
 				val ret = if (retTypeResolved.isUnit()) "" else "return"
 				val result = if (retTypeResolved.isUnit()) "null" else "${m.returnType}::class.java"
 				val cast =
@@ -186,7 +192,7 @@ abstract class $classTypeName($classArgs) : $classDeclaration($classDeclarationP
 
 				file.print(
 					"""
-	override fun $funName($paramSignature)$retStr {
+	override suspend fun $funName($paramSignature)$retStr {
 	   $ret executeRemotely("$funName", $result$params)$cast"""
 				)
 				if (a.callSuper) {
@@ -204,7 +210,7 @@ abstract class $classTypeName($classArgs) : $classDeclaration($classDeclarationP
 
 			file.print(
 				"""
-   final override fun executeLocally(method : String, vararg args : Any?) : Any? {
+   final override suspend fun executeLocally(method : String, vararg args : Any?) : Any? {
       return when (method) {
 """
 			)

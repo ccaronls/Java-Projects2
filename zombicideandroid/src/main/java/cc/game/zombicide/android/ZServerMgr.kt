@@ -38,14 +38,17 @@ class ZServerMgr(activity: ZombicideActivity, game: UIZombicide, val maxCharacte
 
 	override fun onConnected(conn: AClientConnection) {
 		if (game.isGameRunning()) {
-			conn.getAttribute("color")?.takeIfInstance<Int>()?.let { colorId ->
-				var charsList = game.board.getAllCharacters().filter { it.colorId == colorId }
-				log.debug("colorId: $colorId (${ZUser.USER_COLOR_NAMES[colorId]}, chars: ${charsList.joinToString()}")
+			conn.getAttribute("color")?.takeIfInstance<Int>()?.let { _colorId ->
+				var colorId = _colorId
+				var charsList = game.board.getAllCharacters().filter { it.colorId == colorId && it.isInvisible }
+				log.debug("onConnected: colorId: $colorId (${ZUser.USER_COLOR_NAMES[colorId]}, chars: ${charsList.joinToString()}")
 				if (charsList.isEmpty()) {
 					val allInvisible = game.board.getAllCharacters().filter { it.isInvisible }
 					val colors = allInvisible.map { it.colorId }.distinct().toList()
 					log.debug("allColors: ${colors.joinToString { ZUser.getColorName(it) }}")
 					charsList = allInvisible.filter { it.colorId == colors[0] }
+					colorId = colors[0]
+					log.debug("assigning color: $colorId")
 				}
 				if (charsList.isNotEmpty()) {
 					conn.addListener(this)
@@ -185,33 +188,34 @@ class ZServerMgr(activity: ZombicideActivity, game: UIZombicide, val maxCharacte
 	}
 
 	override fun onConnectionStatusChanged(c: AClientConnection, status: ConnectionStatus) {
-		val connections = getConnectedUsers().map {
-			Triple(
-				it.first, it.second,
-				ConnectedUser(
-					it.second.name,
-					it.second.getColor(),
-					it.first.isConnected,
-					ConnectionStatus.from(it.first.connectionSpeed),
-					game.getStartUser().colorId == it.second.colorId
-				)
-			)
-		}
-		// each client gets all the players including the server and minus themselves
-		connections.forEach { triple ->
-			// the server player takes the connection status of the target client
-			val connectionsForClient = mutableListOf(
-				ConnectedUser(
-					game.thisUser.name,
-					game.thisUser.getColor(),
-					true,
-					triple.third.status,
-					triple.third.startUser
-				)
-			).also {
-				it.addAll(connections.filter { it != triple.second }.map { it.third })
-			}
-			triple.first.sendCommand(newConnectionsInfo(connectionsForClient))
+		updateConnectionStatus()
+	}
+
+	fun updateConnectionStatus() {
+		getConnectedUsers().forEach { conn ->
+			conn.first.sendCommand(newConnectionsInfo(
+				getConnectedUsers().filter {
+					it.second.colorId != conn.second.colorId
+				}.map {
+					ConnectedUser(
+						it.second.name,
+						it.second.getColor(),
+						it.first.isConnected,
+						ConnectionStatus.from(it.first.connectionSpeed),
+						game.getStartUser().colorId == it.second.colorId
+					)
+				}.toMutableList().also {
+					it.add(
+						ConnectedUser(
+							game.thisUser.name,
+							game.thisUser.getColor(),
+							true,
+							conn.first.status,
+							game.getStartUser().colorId == game.thisUser.colorId
+						)
+					)
+				}
+			))
 		}
 		UIZombicide.instance.boardRenderer.redraw()
 	}

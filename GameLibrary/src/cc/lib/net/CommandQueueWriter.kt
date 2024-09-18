@@ -102,7 +102,6 @@ open class CommandQueueWriter(logPrefix: String) : Runnable {
 	 * @throws Exception
 	 */
 	fun add(cmd: GameCommand) {
-		log.debug("add command: $cmd")
 		if (!running) throw GException("commandQueue is not running")
 		synchronized(queue) { queue.add(cmd) }
 		lock.release()

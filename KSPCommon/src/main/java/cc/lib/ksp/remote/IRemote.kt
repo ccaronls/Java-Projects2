@@ -8,7 +8,7 @@ interface IRemote {
 	/**
 	 * Auto generated. Do not implement
 	 */
-	fun executeLocally(method: String, vararg args: Any?): Any? {
+	suspend fun executeLocally(method: String, vararg args: Any?): Any? {
 		TODO("This method to be implemented by processor")
 	}
 
@@ -19,8 +19,7 @@ interface IRemote {
 	 * @param args: The list of arguments to pass
 	 * @return the result from remotely executed method. Author will likely need to block until remote process has completed
 	 */
-	fun executeRemotely(method: String, resultType: Class<*>?, vararg args: Any?): Any? {
+	suspend fun executeRemotely(method: String, resultType: Class<*>?, vararg args: Any?): Any? {
 		TODO("Implement or override")
 	}
-
 }

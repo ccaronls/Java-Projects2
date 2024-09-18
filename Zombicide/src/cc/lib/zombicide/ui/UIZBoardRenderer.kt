@@ -1255,16 +1255,8 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		g.drawImage(ZIcon.GRAVESTONE.imageIds[0], rect.fit(img))
 	}
 
+	@Synchronized
 	override fun draw(g: APGraphics, mx: Int, my: Int) {
-
-		if (!UIZombicide.initialized) {
-			drawNoBoard(g)
-			drawAnimations(overlayAnimations, g)
-			if (overlayAnimations.isNotEmpty())
-				redraw()
-
-			return
-		}
 
 		g.setIdentity()
 		g.ortho(_zoomedRect)
@@ -1460,27 +1452,19 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		g.translate(viewportWidth - padding, viewportHeight - padding)
 		UIZombicide.instance.connectedUsersInfo.reversed().forEach { user ->
 			g.pushMatrix()
-			g.translate(-barWidth, 0f)
+			g.translate(-barWidth, -padding)
 			drawConnectionStatus(g, user.status, barWidth, g.textHeight, 2f)
-			g.translate(-padding, 0f)
+			g.translate(-padding, padding)
 			g.color = user.color
 			g.drawJustifiedStringOnBackground(
 				0f,
 				0f,
 				Justify.RIGHT,
 				Justify.BOTTOM,
-				user.name,
+				if (user.startUser) ">> ${user.name}" else user.name,
 				GColor.TRANSLUSCENT_BLACK,
 				3f
-			).also {
-				if (user.startUser) {
-					it.moveBy(-(g.textHeight + padding), 0f)
-					it.setDimension(g.textHeight, g.textHeight)
-					g.pushColor(GColor.RED)
-					g.drawFilledCircle(it.center, g.textHeight / 2)
-					g.popColor()
-				}
-			}
+			)
 			g.popMatrix()
 			g.translate(0f, -g.textHeight + padding)
 		}

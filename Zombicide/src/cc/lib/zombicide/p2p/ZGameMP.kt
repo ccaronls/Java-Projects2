@@ -16,11 +16,7 @@ open class ZGameMP : ZGameRemote() {
 	var server: AGameServer? = null
 	var client: AGameClient? = null
 
-	override fun executeRemotely(method: String, resultType: Class<*>?, vararg args: Any?): Any? {
-		return server?.broadcastExecuteMethodOnRemote(GAME_ID, method, *args)
-	}
-
-	override suspend fun executeRemotelySuspend(method: String, resultType: Class<*>?, vararg args: Any?): Any? {
+	override suspend fun executeRemotely(method: String, resultType: Class<*>?, vararg args: Any?): Any? {
 		return server?.broadcastExecuteMethodOnRemote(GAME_ID, method, *args)
 	}
 
@@ -36,6 +32,9 @@ open class ZGameMP : ZGameRemote() {
 		currentUserName = userName
 		currentUserColorId = colorId
 	}
+
+	override val currentCharacter: ZCharacter?
+		get() = super.currentCharacter ?: UIZombicide.instance.boardRenderer.currentCharacter
 
 	fun getConnectedUsers(): List<ZUser> {
 		return getUsers().filter { it !is ZUserMP || it.connection.isConnected }
@@ -59,7 +58,9 @@ open class ZGameMP : ZGameRemote() {
 		client?.also {
 			with(UIZombicide.instance.boardRenderer) {
 				character?.let {
-					board.getCharacterOrNull(it.type)?.copyFrom(it)
+					board.getCharacterOrNull(it.type)?.let { ch ->
+						ch.copyFrom(it)
+					}
 				}
 				setCurrentCharacter(character)
 			}

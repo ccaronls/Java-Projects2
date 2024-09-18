@@ -25,8 +25,13 @@ class P2PJoinGameDialog(
 	val client: AGameClient,
 	clientName: String?,
 	val connectPort: Int
-) : BaseAdapter(), OnItemClickListener, DialogInterface.OnClickListener,
-	DialogInterface.OnCancelListener, Runnable, AGameClient.Listener {
+) : BaseAdapter(),
+	OnItemClickListener,
+	DialogInterface.OnClickListener,
+	DialogInterface.OnCancelListener,
+	DialogInterface.OnDismissListener,
+	Runnable,
+	AGameClient.Listener {
 	val lvHost: ListView = ListView(context)
 	val p2pDevices: MutableList<WifiP2pDevice> = ArrayList()
 	val dialog: Dialog
@@ -63,11 +68,16 @@ class P2PJoinGameDialog(
 				}
 			}
 		}
-		client.addListener(this)
+		client.addListener(this, "P2PJoinGameDialog")
 		helper.setDeviceName(clientName!!)
 		helper.start(client)
 		dialog = context.newDialogBuilder().setTitle(R.string.popup_title_join_game).setView(lvHost)
 			.setNegativeButton(R.string.popup_button_cancel, this).setOnCancelListener(this).show()
+		dialog.setOnDismissListener(this)
+	}
+
+	override fun onDismiss(dialog: DialogInterface?) {
+		client.removeListener(this, "P2PJoinGameDialog")
 	}
 
 	override fun onCancel(dialog: DialogInterface) {
@@ -140,7 +150,6 @@ class P2PJoinGameDialog(
 	override fun onMessage(msg: String) {}
 	override fun onDisconnected(reason: String, serverInitiated: Boolean) {}
 	override fun onConnected() {
-		client.removeListener(this) // TODO: We could stay alive and throw up dialog again if disconnected
 		helper.stop()
 		dialog.dismiss()
 	}
