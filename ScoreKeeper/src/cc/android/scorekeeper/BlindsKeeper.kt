@@ -1,6 +1,8 @@
 package cc.android.scorekeeper
 
 import android.content.Intent
+import android.media.AudioManager
+import android.media.SoundPool
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -54,6 +56,12 @@ class BlindsKeeper : CCActivityBase(), Runnable {
 
 	val defaultBlind = blindValues[0]
 
+	val soundPool: SoundPool by lazy {
+		SoundPool(8, AudioManager.STREAM_MUSIC, 0)
+	}
+
+	var ding: Int = 0
+
 	override fun run() {
 		if (viewModel.running.value == true) {
 			viewModel.timerProgress.increment(-1)
@@ -100,9 +108,10 @@ class BlindsKeeper : CCActivityBase(), Runnable {
 				prefs.edit().putInt(KEY_BIG_BLIND, viewModel.bigBlind.value ?: defaultBlind).apply()
 				viewModel.running.value = false
 				viewModel.timerProgress.value = viewModel.timerMax.value
+				soundPool.play(ding, 1f, 1f, 1, 0, 1f)
 			}
 		}
-
+		ding = soundPool.load(this, R.raw.ding, 1)
 		restore()
 	}
 
@@ -123,7 +132,7 @@ class BlindsKeeper : CCActivityBase(), Runnable {
 		val settings = BlindsSettingsBinding.inflate(layoutInflater)
 		val edit = prefs.edit()
 		settings.npBlinds.init(blindValues, prefs.getInt(KEY_BLINDS, 0), NumberPicker.Formatter {
-			String.format("%.2f", it.toFloat() / 100)
+			String.format("%.2f / %.2f", it.toFloat() / 100, it.toFloat() / 200)
 		}, NumberPicker.OnValueChangeListener { picker, oldVal, newVal ->
 			edit.putInt(KEY_BLINDS, newVal)
 		})
