@@ -247,15 +247,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 				get() = this@ZombicideActivity.thisUser
 
 			override val connectedUsersInfo: List<ConnectedUser>
-				get() = serverMgr?.getConnectedUsers()?.map {
-					ConnectedUser(
-						it.second.name,
-						it.second.getColor(),
-						it.first.isConnected,
-						it.first.status,
-						game.getStartUser().colorId == it.second.colorId
-					)
-				} ?: clientMgr?.connectedPlayers ?: emptyList()
+				get() = serverMgr?.connectionInfo ?: clientMgr?.connectedPlayers ?: emptyList()
 
 
 			override suspend fun <T> waitForUser(expectedType: Class<T>): T? {
@@ -416,9 +408,9 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 	override fun onBackPressed() {
 		if (game.isGameRunning() || clientMgr?.client?.isConnected == true) {
 			newDialogBuilder().setTitle(R.string.popup_title_confirm)
-				.setMessage(R.string.popup_message_confirmexit)
+				.setMessage(R.string.popup_message_confirm_exit)
 				.setNegativeButton(R.string.popup_button_cancel, null)
-				.setPositiveButton(R.string.popup_botton_quitgame) { _, _ ->
+				.setPositiveButton(R.string.popup_button_quit_game) { _, _ ->
 					super.onBackPressed()
 				}
 				.show()
@@ -561,6 +553,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 	fun processMainMenuItem(item: MenuItem) {
 		prefs.edit().putString("lastMenuItem", item.name).apply()
 		when (item) {
+			MenuItem.UNDO -> tryUndo()
 			MenuItem.START -> if (game.roundNum > 0) {
 				newDialogBuilder().setTitle(R.string.popup_title_confirm).setMessage(R.string.popup_message_confirm_restart)
 					.setNegativeButton(R.string.popup_button_cancel, null)
@@ -611,7 +604,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 			}
 			MenuItem.QUIT -> if (client != null) {
 				newDialogBuilder().setTitle(R.string.popup_title_confirm)
-					.setMessage(R.string.popup_message_confirm_disconnect)
+					.setMessage(R.string.popup_message_confirm_client_disconnect)
 					.setNegativeButton(R.string.popup_button_cancel, null)
 					.setPositiveButton(R.string.popup_button_disconnect) { _, _ ->
 						object : SpinnerTask<Int>(this@ZombicideActivity) {
@@ -627,8 +620,11 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 					}.show()
 			} else if (server != null) {
 				newDialogBuilder().setTitle(R.string.popup_title_confirm)
-					.setMessage(R.string.popup_message_confirm_disconnect)
+					.setMessage(R.string.popup_message_confirm_server_disconnect)
 					.setNegativeButton(R.string.popup_button_cancel, null)
+					.setNeutralButton(R.string.popup_button_stop) { _, _ ->
+						stopGame()
+					}
 					.setPositiveButton(R.string.popup_button_disconnect) { _, _ ->
 						object : SpinnerTask<Int>(this@ZombicideActivity) {
 							override suspend fun doIt(args: Int?) {
@@ -751,6 +747,26 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 			MenuItem.DISCONNECT -> {
 				p2pShutdown()
 			}
+
+			MenuItem.CHANGE_NAME -> {
+				val et = EditText(this)
+				et.hint = displayName
+				newDialogBuilder()
+					.setTitle("Change name")
+					.setView(et)
+					.setNegativeButton(R.string.popup_button_cancel, null)
+					.setPositiveButton(R.string.popup_button_ok) { _, _ ->
+						updateDisplayName(et.toString())
+					}.show()
+			}
+		}
+	}
+
+	fun updateDisplayName(name: String) {
+		if (name.isNotEmpty()) {
+			prefs.edit().putString(PREF_P2P_NAME_STRING, name).commit()
+			clientMgr?.client?.setProperty("name", name)
+			thisUser.name = name
 		}
 	}
 
@@ -758,7 +774,9 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 		val isRunning = game.isGameRunning()
 		stopGame()
 		if (FileUtils.restoreFile(gameFile)) {
-			game.tryLoadFromFile(gameFile)
+			synchronized(game.synchronizeLock) {
+				game.tryLoadFromFile(gameFile)
+			}
 			game.refresh()
 			serverMgr?.broadcastUpdateGame()
 		}
@@ -778,8 +796,17 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 				.toTypedArray()) { dialog: DialogInterface?, which: Int ->
 				val q = ZQuests.entries[which]
 				game.loadQuest(q)
-				updateCharacters(q)
+				setupLoadedGame(q)
 			}.setNegativeButton(R.string.popup_button_cancel, null).show()
+	}
+
+	fun setupLoadedGame(q: ZQuests) {
+		serverMgr?.takeIf { it.server.isConnected }?.let { mgr ->
+			mgr.getConnectedUsers().forEach { (conn, user) ->
+				conn.sendCommand(mgr.newLoadQuest(q))
+			}
+			mgr.showChooser()
+		} ?: updateCharacters(q)
 	}
 
 	fun showSaveGameDialog() {
@@ -795,7 +822,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 					val fileName = saves[items[which]]
 					val file = File(filesDir, fileName)
 					if (game.tryLoadFromFile(file)) {
-						updateCharacters(game.quest.quest)
+						setupLoadedGame(game.quest.quest)
 					} else {
 						newDialogBuilder().setTitle(R.string.popup_title_error)
 							.setMessage(getString(R.string.popup_message_err_fileopen, fileName))
@@ -1027,7 +1054,10 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 	var serverControl: P2PServer? = null
 	override fun onP2PServer(p2pServer: P2PServer) {
 		serverControl = p2pServer
-		serverMgr = ZServerMgr(this, game, 2, p2pServer.getServer())
+		serverMgr = ZServerMgr(this, game, 2, p2pServer.getServer()).also {
+			if (!game.isGameRunning())
+				it.showChooser()
+		}
 //		thisUser.name = prefs.getString(PREF_P2P_NAME, p2pServer.server.name)!!
 	}
 

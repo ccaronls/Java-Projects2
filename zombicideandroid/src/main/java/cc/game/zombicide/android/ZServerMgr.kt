@@ -6,6 +6,7 @@ import cc.lib.net.AClientConnection
 import cc.lib.net.AGameServer
 import cc.lib.net.ConnectionStatus
 import cc.lib.net.GameCommand
+import cc.lib.utils.clearAndAddAll
 import cc.lib.utils.rotate
 import cc.lib.utils.takeIfInstance
 import cc.lib.zombicide.ZPlayerName
@@ -26,6 +27,8 @@ class ZServerMgr(activity: ZombicideActivity, game: UIZombicide, val maxCharacte
 	var playerAssignments: MutableMap<ZPlayerName, Assignee> = Collections.synchronizedMap(LinkedHashMap())
 	var clientToUserMap: MutableMap<String, ZUser> = ConcurrentHashMap()
 	var playerChooser: CharacterChooserDialogMP? = null
+	val connectionInfo = Collections.synchronizedList(ArrayList<ConnectedUser>())
+
 	fun nextColor(): Int {
 		val color = colorAssigner
 		colorAssigner = colorAssigner.rotate(ZUser.USER_COLORS.size)
@@ -192,30 +195,29 @@ class ZServerMgr(activity: ZombicideActivity, game: UIZombicide, val maxCharacte
 	}
 
 	fun updateConnectionStatus() {
+		val info = getConnectedUsers().map {
+			ConnectedUser(
+				it.second.name,
+				it.second.getColor(),
+				it.first.isConnected,
+				ConnectionStatus.from(it.first.connectionSpeed),
+				game.getStartUser().colorId == it.second.colorId
+			)
+		}.toMutableList().also {
+			it.add(
+				ConnectedUser(
+					game.thisUser.name,
+					game.thisUser.getColor(),
+					true,
+					ConnectionStatus.UNKNOWN,
+					game.getStartUser().colorId == game.thisUser.colorId
+				)
+			)
+		}.also {
+			connectionInfo.clearAndAddAll(it)
+		}
 		getConnectedUsers().forEach { conn ->
-			conn.first.sendCommand(newConnectionsInfo(
-				getConnectedUsers().filter {
-					it.second.colorId != conn.second.colorId
-				}.map {
-					ConnectedUser(
-						it.second.name,
-						it.second.getColor(),
-						it.first.isConnected,
-						ConnectionStatus.from(it.first.connectionSpeed),
-						game.getStartUser().colorId == it.second.colorId
-					)
-				}.toMutableList().also {
-					it.add(
-						ConnectedUser(
-							game.thisUser.name,
-							game.thisUser.getColor(),
-							true,
-							conn.first.status,
-							game.getStartUser().colorId == game.thisUser.colorId
-						)
-					)
-				}
-			))
+			conn.first.sendCommand(newConnectionsInfo(info))
 		}
 		UIZombicide.instance.boardRenderer.redraw()
 	}
@@ -232,9 +234,6 @@ class ZServerMgr(activity: ZombicideActivity, game: UIZombicide, val maxCharacte
 	init {
 		addListener(this)
 		server.addListener(this)
-		if (!game.isGameRunning()) {
-			showChooser()
-		}
 	}
 
 	fun showChooser() {
@@ -243,6 +242,11 @@ class ZServerMgr(activity: ZombicideActivity, game: UIZombicide, val maxCharacte
 			val a = Assignee(c)
 			playerAssignments[c.player] = a
 		}
+		getConnectedUsers().forEach { (conn, user) ->
+			conn.sendCommand(newOpenAssignmentsDialog(maxCharacters, playerAssignments.values.toList()))
+		}
+		if (playerChooser?.dialog?.isShowing == true)
+			return
 //		activity.thisUser.setColor(game.board, nextColor())
 		val assignments: List<Assignee> = ArrayList(playerAssignments.values)
 		Collections.sort(assignments)

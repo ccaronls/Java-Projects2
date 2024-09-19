@@ -85,7 +85,9 @@ are fulfilled.
 
     <string name="popup_message_sending_report">Sending report</string>
     <string name="popup_message_confirm_restart">Are you sure you want to start a new game?</string>
-    <string name="popup_message_confirm_disconnect">Are you sure you want to Disconnect?</string>
+    <string name="popup_message_confirm_client_disconnect">Are you sure you want to Disconnect?</string>
+    <string name="popup_message_confirm_server_disconnect">Do you want Disconnect or just stop the game?</string>
+    <string name="popup_button_stop">Stop</string>
     <string name="popup_message_unlock_wolfburg">Finish last level of Black Plague at Medium difficulty to unlock</string>
     <string name="popup_message_err_fileopen">Failed to open %s</string>
     <string name="popup_message_err_nonemptyname">Please set non empty name for display</string>
@@ -134,7 +136,7 @@ are fulfilled.
     <string name="button_undo">Undo</string>
     <string name="button_repeat">Repeat</string>
 
-    <string name="popup_message_confirmexit">A game is in progress. Are you sure you want to exit?</string>
-    <string name="popup_botton_quitgame">Quit Game</string>
+    <string name="popup_message_confirm_exit">A game is in progress. Are you sure you want to exit?</string>
+    <string name="popup_button_quit_game">Quit Game</string>
 
 </resources>

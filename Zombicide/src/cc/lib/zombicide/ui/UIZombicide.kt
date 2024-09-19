@@ -134,6 +134,8 @@ abstract class UIZombicide(
 
 	open val connectedUsersInfo = listOf<ConnectedUser>()
 
+	val synchronizeLock = Object()
+
 	var options: List<Any> = ArrayList()
 		private set
 

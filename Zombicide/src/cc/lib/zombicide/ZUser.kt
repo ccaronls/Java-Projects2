@@ -15,7 +15,6 @@ abstract class ZUser(_name: String?, var colorId: Int) : IRemote {
 
 	var name = _name ?: USER_COLOR_NAMES[colorId]
 
-
 	private val _players = mutableSetOf<ZPlayerName>()
 
 	val players: List<ZPlayerName>

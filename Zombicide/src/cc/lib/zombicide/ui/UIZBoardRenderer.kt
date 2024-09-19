@@ -1255,8 +1255,13 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		g.drawImage(ZIcon.GRAVESTONE.imageIds[0], rect.fit(img))
 	}
 
-	@Synchronized
 	override fun draw(g: APGraphics, mx: Int, my: Int) {
+		synchronized(UIZombicide.instance.synchronizeLock) {
+			drawPrivate(g, mx, my)
+		}
+	}
+
+	private fun drawPrivate(g: APGraphics, mx: Int, my: Int) {
 
 		g.setIdentity()
 		g.ortho(_zoomedRect)
@@ -1466,7 +1471,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 				3f
 			)
 			g.popMatrix()
-			g.translate(0f, -g.textHeight + padding)
+			g.translate(0f, -g.textHeight - padding)
 		}
 		g.popMatrix()
 	}
@@ -1491,7 +1496,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		for (bar in 1..3) {
 			g.color = status.toColor(bar)
 			g.drawFilledRect(0f, 0f, width, barHeight)
-			g.translate(0f, -barHeight)
+			g.translate(0f, -barHeight - padding)
 		}
 		g.popMatrix()
 	}
@@ -1703,15 +1708,11 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 	}
 
 	override fun onDragStart(x: Int, y: Int) {
-		if (highlightedResult == null) {
-			R.setOrtho(_zoomedRect)
-			dragStartV = R.untransform(x.toFloat(), y.toFloat())
-		}
+		R.setOrtho(_zoomedRect)
+		dragStartV = R.untransform(x.toFloat(), y.toFloat())
 	}
 
 	override fun onDragMove(x: Int, y: Int) {
-		if (highlightedResult != null)
-			return
 		val v = R.untransform(x.toFloat(), y.toFloat())
 		if (v.isNaN)
 			return

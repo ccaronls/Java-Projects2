@@ -150,7 +150,7 @@ open class ZMPCommon(val activity: ZombicideActivity, val game: UIZombicide) {
 					}
 
 					SVR_UPDATE_GAME -> {
-						synchronized(UIZombicide.instance.boardRenderer) {
+						synchronized(UIZombicide.instance.synchronizeLock) {
 							cmd.getReflector("board", game.board)
 							cmd.getReflector("quest", game.quest)
 						}

@@ -998,7 +998,7 @@ public class Reflector<T> implements IDirty {
      * @throws IOException
      */
     public final void serialize(PrintWriter out) throws IOException {
-        serialize(new RPrintWriter(out, false, false));
+        serialize(new RPrintWriter(out));
     }
 
     private static Class<?> isEnum(Class<?> clazz) {

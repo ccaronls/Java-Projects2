@@ -63,6 +63,8 @@ class ZClientMgr(activity: ZombicideActivity, game: UIZombicide, override val cl
 	}
 
 	fun showPlayerChooserDialog(maxCharacters: Int, playerAssignments: List<Assignee>) {
+		if (playerChooser?.dialog?.isShowing == true)
+			return
 		activity.runOnUiThread {
 			val assignees: MutableList<Assignee> = ArrayList()
 			playerAssignments.forEach { assignee ->
@@ -110,7 +112,6 @@ class ZClientMgr(activity: ZombicideActivity, game: UIZombicide, override val cl
 								release()
 								activity.runOnUiThread {
 									activity.initGameMenu()
-									activity.game.showQuestTitleOverlay()
 								}
 							} else
 								publishProgress(arrayOf(numStarted, numTotal))

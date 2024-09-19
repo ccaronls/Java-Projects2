@@ -20,7 +20,7 @@ dependencies {
     // TODO: Should eb able to isolate the game lib for each swing app
     implementation project(':GameLibrary')
     implementation project(':KSPCommon')
-    implementation project(':Dominos')
+//    implementation project(':Dominos')
     implementation project(':othello')
     implementation project(':Zombicide')
     implementation project(':Monopoly')
@@ -31,14 +31,16 @@ dependencies {
     implementation project(':Checkerboard')
     implementation project(':Kaiser')
     implementation project(':SuperRobotron')
-    implementation project(':SOC')
+//    implementation project(':SOC')
     implementation project(':Risk')
 }
 
 sourceSets {
     main {
         java {
-            srcDirs = [ 'src', 'apps' ]
+            srcDirs = ['src', 'apps']
+            exclude '**/dominos/**'
+            exclude '**/soc/**'
         }
         resources {
             srcDirs = [ 'resources', 'images', 'gifs', 'zpngs', 'playingCards' ]

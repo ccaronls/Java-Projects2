@@ -586,25 +586,27 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 		quest.getQuestFailedReason(this)?.let {
 			gameLost(it)
 		    return false
-	    }
-	    if (quest.getPercentComplete(this) >= 100) {
-		    gameWon()
-		    return false
-	    }
+		}
+		if (quest.getPercentComplete(this) >= 100) {
+			gameWon()
+			return false
+		}
 
-	    removeDeadZombies()
-	    if (stateStack.empty())
-		    pushState(State(ZState.BEGIN_ROUND))
+		removeDeadZombies()
+		if (stateStack.empty())
+			pushState(State(ZState.BEGIN_ROUND))
 
-	    when (state) {
-		    ZState.INIT -> {
-			    for (cell: ZCell in board.getCells()) {
-				    for (type: ZCellType in ZCellType.entries) {
-					    if (cell.isCellType(type)) {
-						    when (type) {
-							    ZCellType.WALKER -> spawnZombies(1, ZZombieType.Walker, cell.zoneIndex)
-							    ZCellType.RUNNER -> spawnZombies(1, ZZombieType.Runner, cell.zoneIndex)
-							    ZCellType.FATTY -> spawnZombies(1, ZZombieType.Fatty, cell.zoneIndex)
+		startUser = startUser.coerceIn(0, users.size - 1)
+
+		when (state) {
+			ZState.INIT -> {
+				for (cell: ZCell in board.getCells()) {
+					for (type: ZCellType in ZCellType.entries) {
+						if (cell.isCellType(type)) {
+							when (type) {
+								ZCellType.WALKER -> spawnZombies(1, ZZombieType.Walker, cell.zoneIndex)
+								ZCellType.RUNNER -> spawnZombies(1, ZZombieType.Runner, cell.zoneIndex)
+								ZCellType.FATTY -> spawnZombies(1, ZZombieType.Fatty, cell.zoneIndex)
 							    ZCellType.NECROMANCER -> spawnZombies(1, ZZombieType.Necromancer, cell.zoneIndex)
 							    ZCellType.ABOMINATION -> spawnZombies(1, ZZombieType.Abomination, cell.zoneIndex)
 							    ZCellType.RATZ -> spawnZombies(1, ZZombieType.Ratz, cell.zoneIndex)

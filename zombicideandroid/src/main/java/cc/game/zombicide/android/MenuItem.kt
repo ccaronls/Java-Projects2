@@ -22,6 +22,7 @@ enum class MenuItem : IButton {
 			}
 		}
 	},
+	UNDO,
 	CANCEL,
 	LOAD,
 	SAVE,
@@ -45,16 +46,17 @@ enum class MenuItem : IButton {
 	CHOOSE_COLOR,
 	EMAIL_REPORT,
 	MINIMAP_MODE,
+	CHANGE_NAME,
 	DEBUG_MENU;
 
 	fun isHomeButton(instance: ZombicideActivity): Boolean = when (this) {
-		NEW_GAME, LOAD -> true
+		NEW_GAME, LOAD, CHANGE_NAME -> true
 		JOIN_GAME -> instance.server?.isRunning != true
 		CONNECTIONS -> instance.server?.isConnected == true
 		DISCONNECT -> instance.server?.isRunning == true || instance.client != null
 		RESUME -> instance.gameFile.exists()
 
-		LOAD, START, SAVE, ASSIGN, RULES, CLEAR, DIFFICULTY, CHOOSE_COLOR, EMAIL_REPORT, DEBUG_MENU -> BuildConfig.DEBUG
+		UNDO, LOAD, START, SAVE, ASSIGN, RULES, CLEAR, DIFFICULTY, CHOOSE_COLOR, EMAIL_REPORT, DEBUG_MENU -> BuildConfig.DEBUG
 		//START, NEW_GAME, JOIN_GAME, SETUP_PLAYERS, SKILLS, LEGEND, EMAIL_REPORT, MINIMAP_MODE -> true
 		//CONNECTIONS -> instance.serverControl != null
 		//RESUME -> instance.gameFile.exists()
