@@ -237,8 +237,11 @@ open class GameClient : AGameClient {
 			var disconnectedReason: String? = null
 			val listenersList: MutableList<Listener> = ArrayList()
 			while (dIn != null && !isDisconnected) {
+				var _cmd: GameCommand? = null
 				try {
-					val cmd = GameCommand.parse(dIn!!)
+					val cmd = GameCommand.parse(dIn!!).also {
+						_cmd = it
+					}
 					if (isDisconnected) break
 					listenersList.clear()
 					listenersList.addAll(listeners)
@@ -294,7 +297,7 @@ open class GameClient : AGameClient {
 						sendError(e)
 						e.printStackTrace()
 						disconnectedReason =
-							"Exception: " + e.javaClass.simpleName + " " + e.message
+							"Exception parsing cmd: $_cmd" + e.javaClass.simpleName + " " + e.message
 						state = State.DISCONNECTED
 					}
 					break

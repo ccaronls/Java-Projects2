@@ -2,13 +2,12 @@ package cc.lib.zombicide.anims
 
 import cc.lib.game.AGraphics
 import cc.lib.game.GRectangle
-import cc.lib.game.IRectangle
-import cc.lib.utils.randomSigned
+import cc.lib.math.MutableVector2D
 import cc.lib.zombicide.ZActor
 import cc.lib.zombicide.ZActorAnimation
 import cc.lib.zombicide.ZIcon
 
-open class DeathStrikeAnimation(actor: ZActor, targetRect: IRectangle, numDice: Int) : ZActorAnimation(actor, 1L) {
+open class DeathStrikeAnimation(actor: ZActor, targetRects: List<GRectangle>) : ZActorAnimation(actor, 1L) {
 	class Phase(val id: Int, val dur: Long, vararg rects: GRectangle) {
 		val rects = arrayOf(*rects)
 	}
@@ -76,21 +75,27 @@ open class DeathStrikeAnimation(actor: ZActor, targetRect: IRectangle, numDice: 
     }
 
     init {
+	    val mid = MutableVector2D()
+	    targetRects.forEach {
+		    mid.addEq(it.center)
+	    }
+	    mid.scaleEq(1f / targetRects.size)
+	    val targetRect = targetRects[0].withCenter(mid)
 	    val startRect = targetRect.movedBy(0f, -targetRect.height)
 	    val endRect = targetRect.movedBy(0f, -targetRect.height / 2)
 	    phases.add(Phase(0, phaseFadeInDur, startRect))
 	    var target = endRect
 	    var start = startRect
-	    for (i in 0 until numDice) {
-		    target = targetRect.movedBy((targetRect.width / 2).randomSigned(), 0f)
+	    targetRects.forEachIndexed { index, target ->
+//		    target = targetRect.movedBy((targetRect.width / 2).randomSigned(), 0f)
 		    phases.add(Phase(1, phaseDropDur, start, target))
 		    start = endRect
 		    phases.add(Phase(2, phaseShakeDur, target))
-		    if (i < numDice - 1) {
+		    if (index < targetRects.size - 1) {
 			    phases.add(Phase(3, phaseRiseDur, target, endRect))
-            }
-        }
-        phases.add(Phase(4, phaseFadeOutDur, target, endRect))
-        setDurations(phases.map { it.dur })
+		    }
+	    }
+	    phases.add(Phase(4, phaseFadeOutDur, target, endRect))
+	    setDurations(phases.map { it.dur })
     }
 }

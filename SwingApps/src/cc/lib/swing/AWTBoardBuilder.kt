@@ -283,7 +283,7 @@ abstract class AWTBoardBuilder<V : BVertex, E : BEdge, C : BCell, T : CustomBoar
 	}
 
 	@Synchronized
-	override fun paint(g: AWTGraphics, mouseX: Int, mouseY: Int) {
+	override fun paint(g: AWTGraphics) {
 		if (rect == null) {
 			rect = GRectangle(0f, 0f, g.viewportWidth.toFloat(), g.viewportHeight.toFloat())
 			board.dimension = rect!!.dimension

@@ -1,7 +1,6 @@
 package cc.lib.zombicide.ui
 
 import cc.lib.game.AGraphics
-import cc.lib.game.APGraphics
 import cc.lib.game.GColor
 import cc.lib.game.GDimension
 import cc.lib.game.IDimension
@@ -15,19 +14,20 @@ import cc.lib.utils.prettify
 import cc.lib.zombicide.ZActor
 import cc.lib.zombicide.ZCharacter
 import cc.lib.zombicide.ZEquipSlot
+import cc.lib.zombicide.ZOgre
 import cc.lib.zombicide.ZSiegeEngine
 import cc.lib.zombicide.ZZombie
 import java.util.Collections
 import java.util.LinkedList
 
 abstract class UIZCharacterRenderer(component: UIComponent) : UIRenderer(component) {
-	interface IWrappable {
+	interface IWrapped {
 		fun drawWrapped(g: AGraphics, maxWidth: Float, dimmed: Boolean): GDimension
 	}
 
 	private var textColor = GColor.BLACK
 
-	internal class StringLine(val color: GColor, val msg: String) : IWrappable {
+	internal class StringLine(val color: GColor, val msg: String) : IWrapped {
 		override fun drawWrapped(g: AGraphics, maxWidth: Float, dimmed: Boolean): GDimension {
 			g.color = if (dimmed) color.withAlpha(.5f) else color
 			return g.drawWrapString(0f, 0f, maxWidth, Justify.RIGHT, Justify.TOP, msg)
@@ -40,7 +40,7 @@ abstract class UIZCharacterRenderer(component: UIComponent) : UIRenderer(compone
 			redraw()
 		}
 
-	private val messages = Collections.synchronizedList(LinkedList<IWrappable>())
+	private val messages = Collections.synchronizedList(LinkedList<IWrapped>())
 	private val game: UIZombicide
 		get() = UIZombicide.instance
 
@@ -61,7 +61,7 @@ abstract class UIZCharacterRenderer(component: UIComponent) : UIRenderer(compone
 	}
 
 	@Synchronized
-	fun addWrappable(line: IWrappable) {
+	fun addWrapped(line: IWrapped) {
 		messages.add(0, line)
 		while (messages.size > 32) {
 			messages.removeLast()
@@ -78,10 +78,13 @@ abstract class UIZCharacterRenderer(component: UIComponent) : UIRenderer(compone
 		val info = Table(getLabel()).setNoBorder()
 		info.addRow("Damage Per hit", type.damagePerHit)
 		info.addRow("Min Hits", type.minDamageToDestroy)
-		info.addRow("Actions", zombie.actionsLeftThisTurn)
+		info.addRow("Actions", "${zombie.actionsPerTurn}/${zombie.actionsLeftThisTurn}")
 		info.addRow("Experience", type.expProvided)
 		info.addRow("Ignores Armor", type.ignoresArmor)
 		info.addRow("Ranged Priority", type.targetingPriority)
+		(zombie as? ZOgre)?.let {
+			info.addRow("Aggressive", it.aggressive)
+		}
 		val outer = Table().setNoBorder()
 		outer.addRow(info, type.description)
 		outer.draw(g)
@@ -128,7 +131,7 @@ abstract class UIZCharacterRenderer(component: UIComponent) : UIRenderer(compone
 	}
 
 
-	override fun draw(g: APGraphics, px: Int, py: Int) {
+	override fun draw(g: AGraphics) {
 		var info: IDimension? = null
 		g.color = textColor
 		clearButtons()

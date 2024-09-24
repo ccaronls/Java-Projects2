@@ -221,7 +221,7 @@ class AWTCheckerboard internal constructor() : AWTComponent() {
 		game.stopDrag()
 	}
 
-	override fun paint(g: AWTGraphics, mouseX: Int, mouseY: Int) {
+	override fun paint(g: AWTGraphics) {
 		game.draw(g, mouseX, mouseY)
 	}
 

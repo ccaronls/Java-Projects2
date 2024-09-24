@@ -48,7 +48,7 @@ open class ThrowAnimation(
 	}
 
 	init {
-		val start: Vector2D = actor.getRect().center
+		val start: Vector2D = actor.getRect().center.toImmutable()
 		val end = Vector2D(target)
 		dir = getFromVector(end.sub(start))
 		curve = Bezier.build(start, end, arc)

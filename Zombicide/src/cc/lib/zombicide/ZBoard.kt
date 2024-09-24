@@ -4,6 +4,7 @@ import cc.lib.game.*
 import cc.lib.logger.LoggerFactory
 import cc.lib.math.MutableVector2D
 import cc.lib.math.Vector2D
+import cc.lib.reflector.Omit
 import cc.lib.reflector.Reflector
 import cc.lib.utils.*
 import cc.lib.utils.Grid.Pos
@@ -248,13 +249,29 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 		return ZDoor(ids[0], ids[1], ZDir.DESCEND, requireNotNull(color))
 	}
 
+	@Omit
+	private var canSeeCache: Array<Array<Boolean?>>? = null
+
 	fun canSee(fromZone: Int, toZone: Int): Boolean {
 		if (fromZone == toZone) return true
-		for (pos0 in zones[fromZone].cells) {
+		canSeeCache?.get(fromZone)?.get(toZone)?.let {
+			return it
+		}
+
+		if (canSeeCache == null) {
+			canSeeCache = Array(getNumZones()) { Array(getNumZones()) { null } }
+		}
+
+		var canSee = false
+		outer@ for (pos0 in zones[fromZone].cells) {
 			for (pos1 in zones[toZone].cells) {
-				if (canSeeCell(pos0, pos1)) return true
+				if (canSeeCell(pos0, pos1)) {
+					canSee = true
+					break@outer
+				}
 			}
 		}
+		canSeeCache!![fromZone][toZone] = canSee
 		return false
 	}
 
@@ -286,13 +303,12 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 	 * @param toZoneIndex
 	 * @return
 	 */
-	fun getShortestPathOptions(
+	fun getShortestPath(
 		actor: ZActor,
 		toZoneIndex: Int
-	): List<List<ZDir>> {
+	): List<ZDir> {
 		val fromPos = actor.occupiedCell
 		if (grid[fromPos].zoneIndex == toZoneIndex) return emptyList()
-		val toZone = zones[toZoneIndex]
 		val allPaths: MutableList<List<ZDir>> = ArrayList()
 		var maxDist = (grid.rows + grid.cols)
 		val visited: MutableSet<Pos> = HashSet()
@@ -303,7 +319,15 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 			allPaths.addAll(paths)
 		}
 		allPaths.removeIf { it.size > maxDist }
-		return allPaths.sortedBy { it.size }
+		return when (allPaths.size) {
+			0 -> emptyList()
+			1 -> allPaths.first()
+			else -> {
+				allPaths.allMinOf {
+					it.size
+				}.random()
+			}
+		}
 	}
 
 	private fun getShortestPathOptions(
@@ -445,30 +469,35 @@ class ZBoard : Reflector<ZBoard>, IDimension {
         }
     }
 
-    fun getMaxNoiseLevel(): Int {
-        var maxNoise = 0
-        for (z in zones) {
-            if (z.noiseLevel > maxNoise) {
-                maxNoise = z.noiseLevel
-            }
-        }
-        return maxNoise
-    }
+	fun getMaxNoiseLevel(): Int {
+		var maxNoise = 0
+		for (z in zones) {
+			if (z.noiseLevel > maxNoise) {
+				maxNoise = z.noiseLevel
+			}
+		}
+		return maxNoise
+	}
 
-    fun getMaxNoiseLevelZones(): List<ZZone> {
-	    val result = mutableListOf<ZZone>()
-        var maxNoise = 1
-        for (z in zones) {
-            if (z.noiseLevel > maxNoise) {
-                result.clear()
-	            result.add(z)
-                maxNoise = z.noiseLevel
-            } else if (z.noiseLevel == maxNoise) {
-                result.add(z)
-            }
-        }
-        return result
-    }
+	fun clearCaches() {
+		maxNoiseLevelZoneCache.clear()
+		canSeeCache = null
+	}
+
+	@Omit
+	private val maxNoiseLevelZoneCache = mutableListOf<ZZone>()
+
+	fun getMaxNoiseLevelZones(): List<ZZone> {
+		maxNoiseLevelZoneCache.takeIf { it.isNotEmpty() }?.let {
+			return it
+		}
+		maxNoiseLevelZoneCache.addAll(zones.filter {
+			it.noiseLevel > 0
+		}.allMaxOf {
+			it.noiseLevel
+		})
+		return maxNoiseLevelZoneCache
+	}
 
 	fun spawnActor(actor: ZActor): Boolean {
 		val zone = zones[actor.occupiedZone]
@@ -667,18 +696,17 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 		actor.updateRect(this)
 	}
 
-	fun getUndiscoveredIndoorZones(startPos: Pos, undiscovered: MutableSet<Int>) {
+	fun getUndiscoveredZones(startPos: Pos, undiscovered: MutableSet<Int>) {
 		if (!grid.isOnGrid(startPos))
 			return
 		val cell = getCell(startPos)
 		if (cell.discovered) return
 		cell.discovered = true
 		val zone = zones[cell.zoneIndex]
-		if (!zone.isSearchable) return
 		undiscovered.add(cell.zoneIndex)
 		for (dir in ZDir.entries) {
 			if (cell.getWallFlag(dir).openedForWalk)
-				getUndiscoveredIndoorZones(getAdjacent(startPos, dir), undiscovered)
+				getUndiscoveredZones(getAdjacent(startPos, dir), undiscovered)
 		}
 	}
 
@@ -811,11 +839,11 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 				z.zoneIndex
 			)
 		}.forEach { zone ->
-			val paths: List<List<ZDir>> =
-				getShortestPathOptions(zombie, zone.zoneIndex)
-			if (paths.isNotEmpty()) {
-				pathsMap[zone.zoneIndex] = paths[0]
-				if (shortestPath == null || paths.size < pathsMap[shortestPath]!!.size) {
+			val path: List<ZDir> =
+				getShortestPath(zombie, zone.zoneIndex)
+			if (path.isNotEmpty()) {
+				pathsMap[zone.zoneIndex] = path
+				if (shortestPath == null || path.size < pathsMap[shortestPath]!!.size) {
 					shortestPath = zone.zoneIndex
 				}
 			}
@@ -832,33 +860,15 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 
 	fun getZombiePathTowardVisibleCharactersOrLoudestZone(zombie: ZZombie): List<ZDir> {
 		// zombie will move toward players it can see first and then noisy areas second
-		var maxNoise = 0
-		var targetZone = -1
-		getAllCharacters().filter { ch: ZCharacter -> !ch.isInvisible && ch.isAlive }.forEach { c ->
-			if (canSee(zombie.occupiedZone, c.occupiedZone)) {
-				val noiseLevel = getZone(c.occupiedZone).noiseLevel
-				if (maxNoise < noiseLevel) {
-					targetZone = c.occupiedZone
-					maxNoise = noiseLevel
-				}
-			}
-		}
-		val paths: MutableList<List<ZDir>> = mutableListOf()
-		if (targetZone < 0) {
-			getMaxNoiseLevelZones().forEach {
-				paths.addAll(getShortestPathOptions(zombie, it.zoneIndex))
-			}
-		} else {
-			paths.addAll(getShortestPathOptions(zombie, targetZone))
-		}
-		return when (paths.size) {
-			0 -> emptyList()
-			1 -> paths.first()
-			else -> {
-				val min = paths.minOf { it.size }
-				paths.filter { it.size == min }.random()
-			}
-		}
+		return getAllCharacters().filter { ch: ZCharacter ->
+			!ch.isInvisible && ch.isAlive && canSee(zombie.occupiedZone, ch.occupiedZone)
+		}.maxByOrNull {
+			getZone(it.occupiedZone).noiseLevel
+		}?.let {
+			getShortestPath(zombie, it.occupiedZone)
+		} ?: getMaxNoiseLevelZones().map {
+			getShortestPath(zombie, it.zoneIndex)
+		}.minBy { it.size }
 	}
 
 	// return the center of all players, or the center of the start tile, or just the center
@@ -924,7 +934,7 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 	suspend fun spawnHoardZombies(zoneIdx: Int, game: ZGame) {
 		while (hoard.isNotEmpty()) {
 			hoard.forEach { (type, _) ->
-				val zombie = ZZombie(type, zoneIdx)
+				val zombie = type.spawn(zoneIdx)
 				if (spawnActor(zombie))
 					game.onZombieSpawned(zombie)
 				else

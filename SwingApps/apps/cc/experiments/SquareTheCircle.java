@@ -24,17 +24,18 @@ public class SquareTheCircle extends AWTComponent {
 
         };
         frame.add(new SquareTheCircle());
-        frame.centerToScreen(600,500);
+        frame.centerToScreen(600, 500);
     }
+
     @Override
-    protected void paint(AWTGraphics g, int mouseX, int mouseY) {
+    protected void paint(AWTGraphics g) {
         float D = Math.min(g.getViewportWidth(), g.getViewportHeight());
 
-        float SQRT_PI = (float)Math.sqrt(Math.PI);
+        float SQRT_PI = (float) Math.sqrt(Math.PI);
 
         g.pushMatrix();
-        g.translate(g.getViewportWidth()/2, g.getViewportHeight()/2);
-        g.scale(D/3);
+        g.translate(g.getViewportWidth() / 2, g.getViewportHeight() / 2);
+        g.scale(D / 3);
         g.setColor(GColor.BLUE);
         g.drawCircle(0, 0, 1, 100);
         g.setColor(GColor.RED);

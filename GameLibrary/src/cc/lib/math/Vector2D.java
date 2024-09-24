@@ -578,4 +578,9 @@ public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializ
     public IInterpolator<Vector2D> linearInterpolateTo(IVector2D other) {
         return getLinearInterpolator(this, other.toMutable());
     }
+
+    @Override
+    public Vector2D toImmutable() {
+        return this;
+    }
 }

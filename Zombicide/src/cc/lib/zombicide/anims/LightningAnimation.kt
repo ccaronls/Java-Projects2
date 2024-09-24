@@ -20,7 +20,7 @@ class LightningAnimation(actor: ZActor, start: Vector2D, end: Vector2D, sections
 
 	constructor(actor: ZActor, board: ZBoard, targetZone: Int, strands: Int) : this(
 		actor,
-		actor.getRect().center,
+		actor.getRect().center.toMutable(),
 		board.getZone(targetZone).getRect().center.add(Vector2D.newRandom(.3f)),
 		4,
 		strands

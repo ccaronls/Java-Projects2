@@ -5,6 +5,9 @@ import cc.lib.crypt.EncryptionInputStream
 import cc.lib.crypt.EncryptionOutputStream
 import cc.lib.crypt.HuffmanEncoding
 import cc.lib.game.Utils
+import cc.lib.utils.launchIn
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.io.DataInputStream
@@ -13,10 +16,10 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.lang.Exception
-import java.net.InetAddress
 import java.net.ServerSocket
 import java.net.Socket
 import java.net.SocketException
+import java.net.SocketTimeoutException
 
 /**
  * A Game server is a server that handles normal connection/handshaking and maintains
@@ -50,6 +53,7 @@ class GameServer(
 
 	private var socketListener: SocketListener? = null
 	private var counter: HuffmanEncoding? = null
+	private var listenJob: Job? = null
 
 	/**
 	 * Create a server and start listening.  When cypher is not null, then then server will only
@@ -76,17 +80,11 @@ class GameServer(
 	@Throws(IOException::class)
 	override fun listen() {
 		val socket = ServerSocket(port)
-		Thread(SocketListener(socket).also { socketListener = it }).start()
-	}
-
-	/**
-	 * Start listening for connections
-	 * @throws IOException
-	 */
-	@Throws(IOException::class)
-	fun listen(addr: InetAddress) {
-		val socket = ServerSocket(port, 50, addr)
-		Thread(SocketListener(socket).also { socketListener = it }).start()
+		socket.soTimeout = 5000
+		socketListener = SocketListener(socket)
+		listenJob = launchIn(Dispatchers.IO) {
+			socketListener!!.run()
+		}
 	}
 
 	/**
@@ -110,13 +108,19 @@ class GameServer(
 				for (c in clients.values) {
 					if (c.isConnected) {
 						disconnectingLock.acquire()
-						c.disconnect("Game Stopped")
+						try {
+							c.disconnect("Game Stopped")
+						} catch (e: Throwable) {
+							e.printStackTrace()
+						}
 					}
 				}
 			}
 			disconnectingLock.block(10000) { log.warn("Unclean stoppage") } // give clients a chance to disconnect from their end
 			clear()
 		}
+		listenJob?.cancel()
+		listenJob = null
 		if (counter != null) {
 			log.info("------------------------------------------------------------------------------------------------------")
 			log.info("******************************************************************************************************")
@@ -130,20 +134,23 @@ class GameServer(
 		notifyListeners { l: Listener -> l.onServerStopped() }
 	}
 
-	private inner class SocketListener internal constructor(var socket: ServerSocket) : Runnable {
+	private inner class SocketListener(var socket: ServerSocket) {
 		var running = true
 		fun stop() {
 			running = false
 			try {
 				socket.close()
-			} catch (e: Exception) {
+			} catch (e: Throwable) {
+				e.printStackTrace()
 			}
 		}
 
-		override fun run() {
-			try {
-				log.info("GameServer: Thread started listening for connections")
-				while (running) {
+		suspend fun run() {
+			log.info("GameServer: Thread started listening for connections")
+			running = true
+			while (running) {
+				try {
+					log.debug("accepting connections")
 					val client = socket.accept()
 					log.debug(
 						"""New Client connect:
@@ -168,44 +175,47 @@ class GameServer(
 						client.soTimeout,
 						client.soLinger
 					)
-					Thread(HandshakeThread(client)).start()
+					launchIn(Dispatchers.IO) {
+						HandshakeThread(client).run()
+					}
+				} catch (e: SocketTimeoutException) {
+					// ignore
+					log.debug("Timeout")
+				} catch (e: SocketException) {
+					if (running)
+						log.error(e)
+				} catch (e: Exception) {
+					e.printStackTrace()
 				}
-			} catch (e: SocketException) {
-				log.warn("GameServer: Thread Exiting since socket is closed")
-			} catch (e: Exception) {
-				e.printStackTrace()
 			}
+			log.info("SocketListener thread exiting")
 		}
 	}
 
-	fun close(socket: Socket, _in: InputStream?, out: OutputStream?) {
-		var `in` = _in
-		var out = out
+
+	fun close(socket: Socket, input: InputStream, output: OutputStream) {
 		try {
-			if (out == null) out = socket.getOutputStream()
-			out?.flush()
-			out?.close()
-		} catch (ex: Exception) {
+			input.close()
+		} catch (ex: Throwable) {
 		}
 		try {
-			if (`in` == null) `in` = socket.getInputStream()
-			`in`?.close()
-		} catch (ex: Exception) {
+			output.close()
+		} catch (ex: Throwable) {
 		}
 		try {
 			socket.close()
-		} catch (ex: Exception) {
+		} catch (ex: Throwable) {
 		}
 	}
 
-	private inner class HandshakeThread internal constructor(val socket: Socket) : Runnable {
+	private inner class HandshakeThread(val socket: Socket) {
 		init {
 			socket.soTimeout = TIMEOUT // give a few seconds latency
 			socket.keepAlive = true
 			socket.tcpNoDelay = true
 		}
 
-		override fun run() {
+		suspend fun run() {
 			var dIn: DataInputStream? = null
 			var out: DataOutputStream? = null
 			try {
@@ -305,11 +315,11 @@ class GameServer(
 				} catch (ex: Exception) {
 					ex.printStackTrace()
 				}
-				close(socket, dIn, out)
-			} catch (e: Exception) {
+				close(socket, dIn ?: socket.getInputStream(), out ?: socket.getOutputStream())
+			} catch (e: Throwable) {
 				e.printStackTrace()
 				log.error(e)
-				close(socket, dIn, out)
+				close(socket, dIn ?: socket.getInputStream(), out ?: socket.getOutputStream())
 			}
 		}
 	}

@@ -33,9 +33,12 @@ class ZombicideTest : TestCase() {
 
 	fun testLoadBoards() {
 		val game = ZGame()
-		ZQuests.values().forEach {
-			println(">>>>>>>>>>>>>>>>> Loading quest: $it")
-			game.loadQuest(it)
+		ZQuests.values().forEach { quest ->
+			println(">>>>>>>>>>>>>>>>> Loading quest: $quest")
+			game.loadQuest(quest)
+			game.board.zones.forEach {
+				assertTrue("Zone ${it.zoneIndex} of ${quest.name} has no cells", it.cells.isNotEmpty())
+			}
 		}
 	}
 
@@ -204,7 +207,7 @@ Total Decompression Time:   49343
 		game.loadQuest(ZQuests.The_Evil_Twins)
 		val gvd1 = game.board.findDoor(Grid.Pos(0, 0), ZDir.DESCEND)
 		assertNotNull(gvd1)
-		val other = gvd1.otherSide
+		val other = gvd1.getOtherSide(game.board)
 		assertNotNull(other)
 		assertEquals(Grid.Pos(9, 6), other.cellPosStart)
 	}
@@ -375,7 +378,7 @@ Total Decompression Time:   49343
 		}
 	}
 
-	fun testWeaponComparision() {
+	fun testWeaponComparision() = runBlocking {
 		val game = ZGame()
 		game.rules.ultraRed = true
 		val c0 = ZPlayerName.Ann.create()

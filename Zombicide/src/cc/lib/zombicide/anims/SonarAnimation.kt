@@ -17,8 +17,8 @@ class SonarAnimation(actor: ZActor, var start: Vector2D, var end: Vector2D, val 
 
 	constructor(actor: ZActor, board: ZBoard, targetZone: Int) : this(
 		actor,
-		actor.getRect().center,
-		board.getZone(targetZone).getRect().center,
+		actor.getRect().center.toImmutable(),
+		board.getZone(targetZone).getRect().center.toImmutable(),
 		5,
 		20f
 	) {

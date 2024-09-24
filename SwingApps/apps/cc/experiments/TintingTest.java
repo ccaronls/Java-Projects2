@@ -107,9 +107,9 @@ public class TintingTest extends AWTComponent implements ChangeListener {
     };
 
     @Override
-    protected void paint(AWTGraphics g, int mouseX, int mouseY) {
+    protected void paint(AWTGraphics g) {
 
-        GRectangle rect = new GRectangle(0,0,getWidth(),getHeight());
+        GRectangle rect = new GRectangle(0, 0, getWidth(), getHeight());
         AImage imagesrc = g.getImage(image);
         AImage outlineSrc = g.getImage(outline);
 

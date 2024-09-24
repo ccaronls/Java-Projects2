@@ -14,10 +14,6 @@ class Tiles(private val rects: List<IRectangle> = listOf(GRectangle())) : IShape
 		var THRESHOLD = 0.02f
 	}
 
-	init {
-		require(rects.isNotEmpty())
-	}
-
 	inner class Edge(val start: Vector2D, val end: Vector2D) {
 		override fun equals(other: Any?): Boolean {
 			if (start === end)
@@ -66,14 +62,16 @@ class Tiles(private val rects: List<IRectangle> = listOf(GRectangle())) : IShape
 	}
 
 	private val _center by lazy {
-		MutableVector2D().also {
+		if (rects.isEmpty())
+			Vector2D()
+		else MutableVector2D().also {
 			rects.forEach { rect ->
 				it.addEq(rect.center)
 			}
 		}.scaleEq(1f / rects.size.toFloat())
 	}
 
-	override fun getCenter(): MutableVector2D = _center
+	override fun getCenter() = _center
 
 	private val _area by lazy {
 		rects.sumOf { it.area.toDouble() }.toFloat()

@@ -292,7 +292,7 @@ class AWTProbotLevelBuilder internal constructor() : AWTComponent() {
 	}
 
 	@Synchronized
-	override fun paint(g: AWTGraphics, mouseX: Int, mouseY: Int) {
+	override fun paint(g: AWTGraphics) {
 		if (levels.size == 0) return
 		// draw a grid
 		val cellDim = Math.min(g.viewportWidth, g.viewportHeight) / 20

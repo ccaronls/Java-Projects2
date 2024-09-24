@@ -113,5 +113,10 @@ public class MutableVector2D extends Vector2D {
         }
         return this;
     }
+
+    @Override
+    public MutableVector2D toMutable() {
+        return this;
+    }
 }
 

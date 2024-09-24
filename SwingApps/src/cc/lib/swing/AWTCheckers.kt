@@ -185,7 +185,7 @@ class AWTCheckers internal constructor() : AWTComponent() {
 	}
 
 	@Synchronized
-	override fun paint(g: AWTGraphics, mouseX: Int, mouseY: Int) {
+	override fun paint(g: AWTGraphics) {
 		//Utils.println("RENDER");
 		var mouseX = mouseX
 		var mouseY = mouseY

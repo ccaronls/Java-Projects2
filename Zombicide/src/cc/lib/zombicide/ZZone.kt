@@ -5,7 +5,6 @@ import cc.lib.game.GRectangle
 import cc.lib.game.IRectangle
 import cc.lib.game.IVector2D
 import cc.lib.game.Tiles
-import cc.lib.math.MutableVector2D
 import cc.lib.math.Vector2D
 import cc.lib.reflector.Omit
 import cc.lib.utils.GException
@@ -112,7 +111,7 @@ class ZZone(val zoneIndex: Int = -1) : UIZButton() {
 		return tiles.contains(px, py)
 	}
 
-	override fun getCenter(): MutableVector2D {
+	override fun getCenter(): IVector2D {
 		return tiles.center
 	}
 }

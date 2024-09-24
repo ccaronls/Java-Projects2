@@ -98,13 +98,6 @@ fun random(range: IntRange) : Int {
 }
 
 /**
- *
- */
-fun <T> List<T>.random() : T {
-	return get(random(size))
-}
-
-/**
  * Return a random number between [0-size) where the likelyhood of a number is based on the weight value
  * at that index. Example: for array[0,1,2], the possible results and their probability are:
  * 0 -> 0 out of 3
@@ -390,3 +383,8 @@ inline fun <T, R : Comparable<R>> Collection<T>.allMinOf(selector: (T) -> R): Li
 inline fun <T0, T1> notNull(t0: T0?, t1: T1?, block: (T0, T1) -> Unit) {
 	if (t0 != null && t1 != null) block(t0, t1)
 }
+
+fun <T> List<T>.randomIndex() = random(indices)
+
+fun <T> List<T>.randomIndexOrNull() = if (isNotEmpty()) random(indices) else null
+

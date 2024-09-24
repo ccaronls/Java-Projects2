@@ -7,7 +7,12 @@ import cc.lib.probot.CommandType
 import cc.lib.probot.Level
 import cc.lib.probot.UIProbot
 import cc.lib.reflector.Reflector
-import cc.lib.swing.*
+import cc.lib.swing.AWTButton
+import cc.lib.swing.AWTComponent
+import cc.lib.swing.AWTFrame
+import cc.lib.swing.AWTGraphics
+import cc.lib.swing.AWTLabel
+import cc.lib.swing.AWTPanel
 import cc.lib.utils.FileUtils
 import java.awt.BorderLayout
 import java.awt.Color
@@ -16,10 +21,15 @@ import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
 import java.io.File
 import java.io.FileNotFoundException
-import java.util.*
+import java.util.Arrays
 import java.util.regex.Pattern
 import javax.imageio.ImageIO
-import javax.swing.*
+import javax.swing.BorderFactory
+import javax.swing.JButton
+import javax.swing.JEditorPane
+import javax.swing.JLabel
+import javax.swing.JScrollPane
+import javax.swing.KeyStroke
 import javax.swing.text.html.HTML
 import javax.swing.text.html.HTMLDocument
 import javax.swing.text.html.HTMLEditorKit
@@ -93,7 +103,7 @@ class AWTProbot internal constructor() : AWTComponent() {
 		)
 	}
 
-	override fun paint(g: AWTGraphics, mouseX: Int, mouseY: Int) {
+	override fun paint(g: AWTGraphics) {
 		probot.paint(g, mouseX, mouseY)
 	}
 

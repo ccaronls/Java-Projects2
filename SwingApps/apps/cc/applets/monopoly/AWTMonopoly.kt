@@ -2,11 +2,26 @@ package cc.applets.monopoly
 
 import cc.lib.game.AGraphics
 import cc.lib.logger.LoggerFactory
-import cc.lib.monopoly.*
+import cc.lib.monopoly.Card
+import cc.lib.monopoly.MoveType
+import cc.lib.monopoly.Piece
+import cc.lib.monopoly.Player
 import cc.lib.monopoly.Player.CardChoiceType
+import cc.lib.monopoly.PlayerUser
+import cc.lib.monopoly.Rules
+import cc.lib.monopoly.Square
+import cc.lib.monopoly.Trade
+import cc.lib.monopoly.UIMonopoly
 import cc.lib.reflector.Reflector
-import cc.lib.swing.*
+import cc.lib.swing.AWTButton
+import cc.lib.swing.AWTComponent
+import cc.lib.swing.AWTFrame
 import cc.lib.swing.AWTFrame.OnListItemChoosen
+import cc.lib.swing.AWTGraphics
+import cc.lib.swing.AWTLabel
+import cc.lib.swing.AWTNumberPicker
+import cc.lib.swing.AWTPanel
+import cc.lib.swing.AWTToggleButton
 import cc.lib.utils.FileUtils
 import cc.lib.utils.prettify
 import java.awt.BorderLayout
@@ -274,7 +289,7 @@ ${e.javaClass.simpleName} ${e.message}""")
 		val content = AWTPanel(BorderLayout())
 		content.add(AWTLabel(title, 1, 20f, true), BorderLayout.NORTH)
 		val sqPanel: AWTComponent = object : AWTComponent() {
-			override fun paint(g: AWTGraphics, mouseX: Int, mouseY: Int) {
+			override fun paint(g: AWTGraphics) {
 				monopoly.drawPropertyCard(g, g.viewportWidth.toFloat(), 0f, sq!!, null)
 			}
 		}
@@ -339,7 +354,7 @@ ${e.javaClass.simpleName} ${e.message}""")
 	override val initProgress: Float
 		get() = numImagesLoaded.toFloat() / Images.values().size
 
-	override fun paint(g: AWTGraphics, mouseX: Int, mouseY: Int) {
+	override fun paint(g: AWTGraphics) {
 		monopoly.paint(g, mouseX, mouseY)
 	}
 

@@ -1,6 +1,11 @@
 package cc.lib.zombicide.anims
 
-import cc.lib.game.*
+import cc.lib.game.AGraphics
+import cc.lib.game.GColor
+import cc.lib.game.GRectangle
+import cc.lib.game.IVector2D
+import cc.lib.game.LightningStrand
+import cc.lib.game.Utils
 import cc.lib.math.Vector2D
 import cc.lib.zombicide.ZActor
 import cc.lib.zombicide.ZActorAnimation
@@ -9,7 +14,7 @@ import kotlin.math.roundToLong
 /**
  * Created by Chris Caron on 8/18/21.
  */
-open class MagicOrbAnimation(actor: ZActor, end: Vector2D) : ZActorAnimation(actor, 600L, 800L) {
+open class MagicOrbAnimation(actor: ZActor, end: IVector2D) : ZActorAnimation(actor, 600L, 800L) {
 	val path: Vector2D
 	val start: Vector2D
 	val r: GRectangle = actor.getRect().scaledBy(.5f)

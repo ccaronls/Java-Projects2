@@ -8,10 +8,11 @@ import cc.lib.math.Vector2D
 import cc.lib.zombicide.ZActor
 import cc.lib.zombicide.ZActorAnimation
 import cc.lib.zombicide.ZIcon
+import kotlin.math.roundToLong
 
-open class FireballAnimation(actor: ZActor, end: IVector2D?) : ZActorAnimation(actor, 500) {
-	val path: Vector2D
-	val start: Vector2D
+open class FireballAnimation(actor: ZActor, end: IVector2D) : ZActorAnimation(actor, 500) {
+	val path: IVector2D
+	val start: IVector2D
 	val r: GRectangle = actor.getRect().scaledBy(.5f)
 	override fun draw(g: AGraphics, position: Float, dt: Float) {
 		val id = ZIcon.FIREBALL.imageIds.random()
@@ -20,7 +21,7 @@ open class FireballAnimation(actor: ZActor, end: IVector2D?) : ZActorAnimation(a
 		val pos: Vector2D = start.add(path.scaledBy(position))
 		val r = r.fit(img).setCenter(pos)
 		g.drawImage(id, r)
-    }
+	}
 
     override fun hidesActor(): Boolean {
         return false
@@ -28,7 +29,7 @@ open class FireballAnimation(actor: ZActor, end: IVector2D?) : ZActorAnimation(a
 
     init {
 	    start = r.center
-        path = Vector2D(end).sub(start)
-        duration = Math.round(path.mag() * 700).toLong()
+	    path = end.sub(start)
+	    duration = (path.mag() * 700).roundToLong()
     }
 }

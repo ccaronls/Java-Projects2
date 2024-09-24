@@ -5,6 +5,7 @@ import cc.lib.game.AGraphics
 import cc.lib.game.APGraphics
 import cc.lib.game.GColor
 import cc.lib.game.GRectangle
+import cc.lib.game.IVector2D
 import cc.lib.game.Justify
 import cc.lib.logger.LoggerFactory
 import cc.lib.math.Bezier
@@ -1141,7 +1142,7 @@ abstract class UIMonopoly : Monopoly() {
 					g.color = GColor.TRANSLUSCENT_BLACK
 					g.drawFilledRect(r)
 					g.color = GColor.RED
-					val v: Vector2D = r.center
+					val v: IVector2D = r.center
 					g.drawWrapString(v.x, v.y, r.w, Justify.CENTER, Justify.CENTER,
 						"MORTGAGED")
 				}

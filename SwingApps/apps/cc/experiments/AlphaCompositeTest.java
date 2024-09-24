@@ -103,7 +103,7 @@ public class AlphaCompositeTest extends AWTComponent implements ChangeListener {
     };
 
     @Override
-    protected void paint(AWTGraphics g, int mouseX, int mouseY) {
+    protected void paint(AWTGraphics g) {
 /*
         GRectangle r = new GRectangle(0,0,getWidth(),getHeight()).scaledBy(.5f);
         g.setColor(GColor.RED);//.inverted());//.withAlpha(.5f));

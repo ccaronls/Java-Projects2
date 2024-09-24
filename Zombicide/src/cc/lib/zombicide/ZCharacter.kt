@@ -706,24 +706,29 @@ class ZCharacter(
      * @return
      */
     override val isAlive: Boolean
-        get() = woundBar < MAX_WOUNDS
+	    get() = woundBar < MAX_WOUNDS
 
-    override val noise: Int
-        get() = if (isInvisible) 0 else 1
-    override var isInvisible: Boolean
-        get() = forceInvisible || getAvailableSkills().contains(ZSkill.Invisible)
-        set(enable) {
-            forceInvisible = enable
-        }
+	override val noise: Int
+		get() = if (isInvisible) 0 else 1
+	override var isInvisible: Boolean
+		get() = forceInvisible || getAvailableSkills().contains(ZSkill.Invisible)
+		set(enable) {
+			forceInvisible = enable
+		}
+
+	val isVisible: Boolean
+		get() = !isInvisible && isAlive
 
 	fun getSlotInfo(slot: ZEquipSlot, game: ZGame): Table? {
 		when (slot) {
 			ZEquipSlot.RIGHT_HAND -> {
 				return rightHand?.getCardInfo(this, game)
 			}
+
 			ZEquipSlot.LEFT_HAND -> {
 				return leftHand?.getCardInfo(this, game)
 			}
+
 			ZEquipSlot.BODY -> {
 				return body?.getCardInfo(this, game)
 			}

@@ -67,6 +67,9 @@ abstract class AWTComponent : UIComponent, JComponent, Renderable, MouseListener
 		log.warn("Gestures not supported")
 	}
 
+	override fun setMouseOrTouch(g: APGraphics, mx: Int, my: Int) {
+	}
+
 	override fun paint(g: Graphics) {
 		try {
 			if (width > 0 && height > 0) {
@@ -90,11 +93,11 @@ abstract class AWTComponent : UIComponent, JComponent, Renderable, MouseListener
 						if (scrollStartY != 0) {
 							G.pushMatrix()
 							G.translate(0f, scrollStartY.toFloat())
-							paint(G, mouseX, mouseY)
+							paint(G)
 							G.popMatrix()
 						} else {
 							try {
-								paint(G, mouseX, mouseY)
+								paint(G)
 							} catch (e: Exception) {
 								log.error("Error: %s", e)
 								e.printStackTrace()
@@ -139,7 +142,7 @@ abstract class AWTComponent : UIComponent, JComponent, Renderable, MouseListener
 		}
 	}
 
-	protected abstract fun paint(g: AWTGraphics, mouseX: Int, mouseY: Int)
+	protected abstract fun paint(g: AWTGraphics)
 
 	/**
 	 * Called on first call from paint
@@ -220,13 +223,11 @@ abstract class AWTComponent : UIComponent, JComponent, Renderable, MouseListener
 
 	protected open fun onZoom(scale: Float) {} // Future work
 
-	@Synchronized
 	override fun lostFocus(ev: Event, obj: Any): Boolean {
 		repaint()
 		return super.lostFocus(ev, obj)
 	}
 
-	@Synchronized
 	override fun mouseDragged(e: MouseEvent) {
 		//Utils.println("mouseDragged")
 		val x = e.x - padding
@@ -235,6 +236,7 @@ abstract class AWTComponent : UIComponent, JComponent, Renderable, MouseListener
 		val dy = y - mouseY
 		mouseX = x
 		mouseY = y
+		setMouseOrTouch(G, mouseX, mouseY)
 		if (!dragging) {
 			onDragStarted(mouseX, mouseY)
 			dragging = true
@@ -250,6 +252,7 @@ abstract class AWTComponent : UIComponent, JComponent, Renderable, MouseListener
 		//Utils.println("mouseMoved");
 		mouseX = e.x - padding
 		mouseY = e.y - padding
+		setMouseOrTouch(G, mouseX, mouseY)
 		onMouseMoved(mouseX, mouseY)
 		repaint()
 	}
@@ -331,7 +334,7 @@ abstract class AWTComponent : UIComponent, JComponent, Renderable, MouseListener
 		this.padding = padding
 	}
 
-	var background: GColor?
+	var clearColor: GColor?
 		get() = with(super.getBackground()) {
 			GColor(red, green, blue, alpha)
 		}

@@ -314,7 +314,7 @@ public class GRectangle extends Reflector<GRectangle> implements IRectangle {
 
     public final GRectangle setAspect(float aspect) {
         float a = getAspect();
-        Vector2D cntr = getCenter();
+        IVector2D cntr = getCenter();
         if (a > aspect) {
             // grow the height to meet the target aspect
             h = w / aspect;
@@ -328,7 +328,7 @@ public class GRectangle extends Reflector<GRectangle> implements IRectangle {
 
     public final GRectangle setAspectReduce(float aspect) {
         float a = getAspect();
-        Vector2D cntr = getCenter();
+        IVector2D cntr = getCenter();
         if (a < aspect) {
             // grow the height to meet the target aspect
             h = w / aspect;

@@ -11,6 +11,7 @@ import cc.lib.zombicide.ZCell
 import cc.lib.zombicide.ZCellType
 import cc.lib.zombicide.ZCharacter
 import cc.lib.zombicide.ZColor
+import cc.lib.zombicide.ZDifficulty
 import cc.lib.zombicide.ZDir
 import cc.lib.zombicide.ZDoor
 import cc.lib.zombicide.ZEquipmentType
@@ -86,7 +87,12 @@ class ZQuestThorsHammer : ZQuest(ZQuests.Thors_Hammer) {
 		greenDoors.firstOrNull { it == door }?.let {
 			// when a character open a green door, spawn a abomination right in front of them!!
 			abomZones[door.moveDirection]?.let {
-				game.spawnZombies(1, ZZombieType.Abomination, it)
+				if (game.getDifficulty() == ZDifficulty.HARD) {
+					game.spawnZombies(1, ZZombieType.LordOfSkulls, it)
+					game.spawnZombies(2, ZZombieType.Ogre, it)
+				} else {
+					game.spawnZombies(1, ZZombieType.Abomination, it)
+				}
 			}
 			abomZones.clear()
 		}

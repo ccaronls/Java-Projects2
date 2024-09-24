@@ -1,11 +1,11 @@
 package cc.lib.utils
 
+import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 /**
  * Counting lock. Allows for blocking a thread until some number of tasks are completed.
@@ -22,10 +22,8 @@ class KLock {
 	// allows us to differentiate when a 'block' has released due to notify of timeout
 	var isNotified = false
 		private set
-	var isBlocking = false
-		private set
 
-	private var continuation: Continuation<Any?>? = null
+	private var continuation: CancellableContinuation<Any?>? = null
 	private val mutex = Mutex()
 
 	fun acquire() {
@@ -44,14 +42,19 @@ class KLock {
 
 	suspend fun block(waitTimeMillis: Long = 0, onTimeout: (() -> Unit)? = null) {
 		require(!(onTimeout != null && waitTimeMillis <= 0)) { "Cannot have timeout on infinite wait" }
-		require(!isBlocking) { "Already blocking" }
+		//require(!isBlocking) { "Already blocking" }
 		isNotified = false
 		if (holders > 0) {
-			isBlocking = true
-			suspendCoroutine {
+			suspendCancellableCoroutine {
+				it.invokeOnCancellation {
+					continuation = null
+					holders = 0
+					isNotified = false
+					if (mutex.isLocked)
+						mutex.unlock()
+				}
 				continuation = it
 			}
-			isBlocking = false
 			holders = 0
 			if (!isNotified) {
 				onTimeout?.invoke()
@@ -61,10 +64,16 @@ class KLock {
 
 	suspend fun acquireAndBlock(timeout: Long = 0, onTimeout: (() -> Unit)? = null) {
 		mutex.withLock {
-			if (holders > 0) throw GException("Dead Lock")
 			holders++
 		}
 		block(timeout, onTimeout)
+	}
+
+	fun releaseAll() {
+		holders = 0
+		isNotified = true
+		continuation?.resume(null)
+		continuation = null
 	}
 
 	fun release() = runBlocking {
@@ -78,16 +87,7 @@ class KLock {
 		}
 	}
 
-	fun releaseAll() {
-		holders = 0
-		isNotified = true
-		continuation?.resume(null)
-		continuation = null
-	}
-
 	fun reset() {
-		require(!isBlocking) { "Cannot reset while blocking" }
-		holders = 0
-		isNotified = false
+		continuation?.cancel()
 	}
 }

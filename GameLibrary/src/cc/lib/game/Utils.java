@@ -3282,13 +3282,20 @@ public class Utils {
     }
 
     /**
-     *
      * @param c
      * @param filter
      * @param <T>
      * @return
      */
     public static <T> T findFirstOrNull(Collection<T> c, Filter<T> filter) {
+        for (T t : c) {
+            if (filter.keep(t))
+                return t;
+        }
+        return null;
+    }
+
+    public static <T> T findFirstOrNull(T[] c, Filter<T> filter) {
         for (T t : c) {
             if (filter.keep(t))
                 return t;

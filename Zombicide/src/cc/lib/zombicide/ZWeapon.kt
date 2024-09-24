@@ -55,7 +55,8 @@ class ZWeapon(override val type: ZWeaponType=ZWeaponType.AXE) : ZEquipment<ZWeap
         get() = !isEmpty
 
     fun fireWeapon(game: ZGame, cur: ZCharacter, stat: ZWeaponStat) {
-        if (type.needsReload) isEmpty = true
+	    if (type.needsReload)
+		    isEmpty = true
 	    if (type === ZWeaponType.DAGGER) {
 		    cur.removeEquipment(this)
 		    game.putBackInSearchables(this)
@@ -206,16 +207,24 @@ class ZWeapon(override val type: ZWeaponType=ZWeaponType.AXE) : ZEquipment<ZWeap
 	            )
             }
         }
-	    val card = Table(String.format("%s%s %s", type.getLabel(), if (type.canTwoHand) " (DW)" else "", type.minColorToEquip))
+	    val card = Table(
+		    String.format(
+			    "%s%s%s %s",
+			    if (c.isDualWielding(this)) "2X " else "",
+			    type.getLabel(),
+			    if (type.canTwoHand) " (DW)" else "",
+			    type.minColorToEquip
+		    )
+	    )
 		    .addRow(cardLower).setNoBorder()
-        if (type.specialInfo != null) {
-	        card.addRow("*${type.specialInfo}".wrap(32))
-        } else {
-	        val skills = type.skillsWhileEquipped
-	        if (skills.isNotEmpty()) {
-		        card.addRow("Equipped", skills)
-	        }
-        }
+	    if (type.specialInfo != null) {
+		    card.addRow("*${type.specialInfo}".wrap(32))
+	    } else {
+		    val skills = type.skillsWhileEquipped
+		    if (skills.isNotEmpty()) {
+			    card.addRow("Equipped", skills)
+		    }
+	    }
 	    return card
     }
 

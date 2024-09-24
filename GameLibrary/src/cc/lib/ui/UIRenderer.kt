@@ -61,8 +61,7 @@ abstract class UIRenderer protected constructor(private val component: UICompone
 			component.setRenderer(this)
 	}
 
-	abstract fun draw(g: APGraphics, px: Int, py: Int)
-	open fun onTouch(x: Int, y: Int) {}
+	abstract fun draw(g: AGraphics)
 	open fun onClick() {}
 	open fun onDragStart(x: Int, y: Int) {}
 	open fun onDragMove(x: Int, y: Int) {}
@@ -70,6 +69,7 @@ abstract class UIRenderer protected constructor(private val component: UICompone
 	open fun onSizeChanged(w: Int, h: Int) {}
 	open fun onZoom(scale: Float) {}
 	open fun onFocusChanged(gained: Boolean) {}
+	open fun updateMouseOrTouch(g: APGraphics, mx: Int, my: Int) {}
 
 	open fun onKeyTyped(code: UIKeyCode): Boolean {
 		return false

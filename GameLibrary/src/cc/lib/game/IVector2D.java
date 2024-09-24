@@ -14,6 +14,10 @@ public interface IVector2D {
         return new MutableVector2D(this);
     }
 
+    default Vector2D toImmutable() {
+        return new Vector2D(this);
+    }
+
     default float radians() {
         return (float) Math.atan2(getY(), getX());
     }

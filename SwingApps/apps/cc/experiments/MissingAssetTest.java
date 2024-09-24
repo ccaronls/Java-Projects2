@@ -32,7 +32,7 @@ public class MissingAssetTest extends AWTComponent {
     List<Integer> images = new ArrayList<>();
 
     @Override
-    protected void paint(AWTGraphics g, int mouseX, int mouseY) {
+    protected void paint(AWTGraphics g) {
         g.drawImage(0, 0, 0, getWidth(), getHeight());
     }
 }

@@ -1,6 +1,6 @@
 package cc.lib.dungeondice
 
-import cc.lib.game.APGraphics
+import cc.lib.game.AGraphics
 import cc.lib.game.GColor
 import cc.lib.ui.UIComponent
 import cc.lib.ui.UIRenderer
@@ -8,7 +8,7 @@ import cc.lib.ui.UIRenderer
 class UIPlayerRenderer(component: UIComponent) : UIRenderer(component) {
 	var player: DPlayer? = null
 	var color = GColor.RED
-	override fun draw(g: APGraphics, px: Int, py: Int) {
+	override fun draw(g: AGraphics) {
 		if (player == null) return
 		if (UI.getInstance().turn == player!!.playerNum) {
 			g!!.color = color

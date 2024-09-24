@@ -2,6 +2,7 @@ package cc.lib.monopoly
 
 import cc.lib.game.GColor
 import cc.lib.game.GRectangle
+import cc.lib.game.IVector2D
 import cc.lib.math.Vector2D
 
 class Board(  // dimension of whole board
@@ -71,23 +72,23 @@ class Board(  // dimension of whole board
 	fun getPiecePlacement(player: Int, sq: Square): GRectangle {
 		val dim = pieceDimension
 		val rect = getSqaureBounds(sq)
-		val cntr: Vector2D = rect.center
+		val cntr: IVector2D = rect.center
 		if (sq == Square.VISITING_JAIL) {
 			// special case to place around the outer edge
 			when (player) {
-				0 -> return GRectangle(rect.x, cntr.Y() - dim, dim, dim)
-				1 -> return GRectangle(cntr.X() - dim, rect.y + rect.h - dim, dim, dim)
+				0 -> return GRectangle(rect.x, cntr.y - dim, dim, dim)
+				1 -> return GRectangle(cntr.x - dim, rect.y + rect.h - dim, dim, dim)
 				2 -> return GRectangle(rect.x, cntr.y, dim, dim)
 			}
 			// bottom right
-			return GRectangle(cntr.X(), rect.y + rect.h - dim, dim, dim)
+			return GRectangle(cntr.x, rect.y + rect.h - dim, dim, dim)
 		}
 		when (player) {
-			0 -> return GRectangle(cntr.X() - dim, cntr.Y() - dim, dim, dim)
-			1 -> return GRectangle(cntr.X(), cntr.Y(), dim, dim)
-			2 -> return GRectangle(cntr.X(), cntr.Y() - dim, dim, dim)
+			0 -> return GRectangle(cntr.x - dim, cntr.y - dim, dim, dim)
+			1 -> return GRectangle(cntr.x, cntr.y, dim, dim)
+			2 -> return GRectangle(cntr.x, cntr.y - dim, dim, dim)
 		}
-		return GRectangle(cntr.X() - dim, cntr.Y(), dim, dim)
+		return GRectangle(cntr.x - dim, cntr.y, dim, dim)
 	}
 
 	fun getPiecePlacementJail(playerNum: Int): GRectangle {

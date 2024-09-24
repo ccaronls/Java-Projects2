@@ -307,7 +307,6 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
         }
 
         // do another pass ans make sure all the zone cells are adjacent
-        //MergableVector<ZZone> zones = new MergableVector<>();
         val zones = Vector<ZZone>()
         zones.setSize(maxZone + 1)
         for ((key, value) in zoneMap) {
@@ -491,6 +490,8 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
 	open suspend fun onDoorOpened(game: ZGame, door: ZDoor, c: ZCharacter) {}
 
 	open suspend fun onSpawnZoneRemoved(game: ZGame, spawnArea: ZSpawnArea) {}
+
+	open suspend fun onZonesDiscovered(game: ZGame, zones: Collection<Int>) {}
 
 	open suspend fun handleSpawnForZone(game: ZGame, zoneIdx: Int): Boolean = false
 }

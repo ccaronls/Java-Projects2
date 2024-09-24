@@ -82,8 +82,8 @@ data class ZMove(
             return ZMove(type = ZMoveType.KEEP, equipment = equip)
         }
 
-        fun newUnequipMove(equip: ZEquipment<*>, slot: ZEquipSlot): ZMove {
-            return ZMove(type = ZMoveType.UNEQUIP, equipment = equip, fromSlot = slot)
+        fun newUnequippedMove(equip: ZEquipment<*>, slot: ZEquipSlot): ZMove {
+	        return ZMove(type = ZMoveType.UNEQUIP, equipment = equip, fromSlot = slot)
         }
 
         fun newDisposeMove(equip: ZEquipment<*>, slot: ZEquipSlot?=null): ZMove {
@@ -295,7 +295,10 @@ data class ZMove(
 			}
 		}
 		if (type == ZMoveType.PICKUP_ITEM && list?.size == 1) {
-			label = "Pickup ${list?.get(0)}"
+			label = "Pickup ${list[0]}"
+		}
+		if (type == ZMoveType.ENCHANT && list?.size == 1) {
+			label = list[0].toString()
 		}
 		return label
 	}

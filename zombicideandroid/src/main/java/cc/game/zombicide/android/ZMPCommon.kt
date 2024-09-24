@@ -123,6 +123,10 @@ open class ZMPCommon(val activity: ZombicideActivity, val game: UIZombicide) {
 			return GameCommand(CL_BUTTON_PRESSED).setArg("button", "COLOR_PICKER")
 		}
 
+		fun newUndoPressed(): GameCommand {
+			return GameCommand(CL_BUTTON_PRESSED).setArg("button", "UNDO")
+		}
+
 		fun parseSVRCommand(cmd: GameCommand) {
 			try {
 				when (cmd.type) {
@@ -154,6 +158,8 @@ open class ZMPCommon(val activity: ZombicideActivity, val game: UIZombicide) {
 							cmd.getReflector("board", game.board)
 							cmd.getReflector("quest", game.quest)
 						}
+						game.boardRenderer.board = game.board
+						game.boardRenderer.quest = game.quest
 						client.setLocalProperty("numSpawn", cmd.getInt("spawnDeckSize", -1))
 						client.setLocalProperty("numLoot", cmd.getInt("lootDeckSize", -1))
 						client.setLocalProperty("numHoard", cmd.getInt("hoardSize", -1))
@@ -285,6 +291,7 @@ open class ZMPCommon(val activity: ZombicideActivity, val game: UIZombicide) {
 						when (cmd.getString("button")) {
 							"START" -> notifyListeners { it.onStartPressed(conn) }
 							"COLOR_PICKER" -> notifyListeners { it.onColorPickerPressed(conn) }
+							"UNDO" -> notifyListeners { it.onUndoPressed(conn) }
 						}
 					}
 

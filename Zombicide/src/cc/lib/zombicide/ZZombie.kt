@@ -6,6 +6,9 @@ import cc.lib.game.GDimension
 import cc.lib.game.Justify
 import cc.lib.game.Utils
 import cc.lib.reflector.Omit
+import cc.lib.utils.allMaxOf
+import cc.lib.utils.allMinOf
+import cc.lib.utils.transform
 
 open class ZZombie(override val type: ZZombieType = ZZombieType.Walker, val startZone: Int = -1) : ZActor(startZone) {
 	companion object {
@@ -119,4 +122,25 @@ open class ZZombie(override val type: ZZombieType = ZZombieType.Walker, val star
 	override val drawPathsOnHighlight: Boolean
 		get() = type.isNecromancer
 
+	open fun isEscaping(board: ZBoard): Boolean = false
+
+	open fun findTargetZone(board: ZBoard): ZZone? {
+		return board.getAllCharacters().filter {
+			it.isVisible && board.canSee(occupiedZone, it.occupiedZone)
+		}.takeIf {
+			it.isNotEmpty()
+		}?.map {
+			board.getZone(it.occupiedZone)
+		}?.allMaxOf {
+			it.noiseLevel
+		}?.random() ?: board.getMaxNoiseLevelZones().takeIf {
+			it.isNotEmpty()
+		}?.allMinOf {
+			board.getShortestPath(this, it.zoneIndex).size
+		}?.random() ?: board.getAccessibleZones(this, 1, 1, ZActionType.MOVE).takeIf {
+			it.isNotEmpty()
+		}?.random()?.transform {
+			board.getZone(it)
+		}
+	}
 }

@@ -45,7 +45,7 @@ public class ProjectionTest extends AWTComponent {
 
 
     @Override
-    protected void paint(AWTGraphics g, int mouseX, int mouseY) {
+    protected void paint(AWTGraphics g) {
 
         GRectangle rect = new GRectangle(new GDimension(4, 4)).withCenter(new Vector2D(-1, -1));
         g.ortho(rect);//-5,0,-5,0);

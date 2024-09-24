@@ -24,7 +24,7 @@ public interface IRectangle extends IDimension, IShape {
     /**
      * @return
      */
-    default MutableVector2D getCenter() {
+    default IVector2D getCenter() {
         return new MutableVector2D(getLeft() + getWidth() / 2, getTop() + getHeight() / 2);
     }
 

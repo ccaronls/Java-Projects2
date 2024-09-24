@@ -210,8 +210,6 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 				zb.listMenu.visibility = View.GONE
 				vm.loading.postValue(true)
 			}
-
-			override val touchOrMouseSupported = !isTV()
 		}
 		boardRenderer.drawTiles = true
 		boardRenderer.miniMapMode = prefs.getEnum(PREF_MINIMAP_MODE_STRING, boardRenderer.miniMapMode)
@@ -289,10 +287,14 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 				runOnUiThread { initGameMenu() }
 			}
 
+			override suspend fun onBeginRound(roundNum: Int) {
+				super.onBeginRound(roundNum)
+				serverMgr?.updateConnectionStatus()
+			}
+
 			override suspend fun onCurrentUserUpdated(userName: String, colorId: Int) {
 				super.onCurrentUserUpdated(userName, colorId)
 				runOnUiThread { initGameMenu() }
-				serverMgr?.updateConnectionStatus()
 			}
 
 			override suspend fun onZombieStageMoveDone() {
@@ -771,6 +773,10 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 	}
 
 	fun tryUndo() {
+		clientMgr?.let {
+			it.client.sendCommand(it.newUndoPressed())
+			return
+		}
 		val isRunning = game.isGameRunning()
 		stopGame()
 		if (FileUtils.restoreFile(gameFile)) {
@@ -1428,7 +1434,12 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 		initMenuItems(buttons)
 	}
 
-	fun canUndo(): Boolean = FileUtils.hasBackupFile(gameFile)
+	fun canUndo(): Boolean {
+		clientMgr?.let {
+			return it.user.colorId == game.currentUserColorId
+		}
+		return FileUtils.hasBackupFile(gameFile)
+	}
 
 	fun initMenuItems(buttons: List<View>, selectedPosition: Int = 0) {
 		launchIn(Dispatchers.Main) {

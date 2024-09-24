@@ -13,11 +13,12 @@ import cc.lib.math.Vector2D
 import cc.lib.net.ConnectionStatus
 import cc.lib.reflector.Reflector
 import cc.lib.ui.IButton
-import cc.lib.utils.Grid
+import cc.lib.utils.Grid.Pos
 import cc.lib.utils.KLock
 import cc.lib.utils.Lock
 import cc.lib.utils.Table
 import cc.lib.utils.forEachAs
+import cc.lib.utils.getOrNull
 import cc.lib.utils.launchIn
 import cc.lib.utils.prettify
 import cc.lib.utils.takeIfInstance
@@ -158,7 +159,7 @@ abstract class UIZombicide(
 				})*/
 
 //		boardRenderer.waitForAnimations()
-		boardRenderer.popAllZoomRects()
+		boardRenderer.pushZoomRect()
 		boardRenderer.pickableStack.clear()
 
 		when (uiMode) {
@@ -203,7 +204,7 @@ abstract class UIZombicide(
 
 	fun processMoves(options: List<ZMove>): UIZButton {
 
-		var root: UIZButton = object : UIZButton() {}
+		val root: UIZButton = object : UIZButton() {}
 
 		fun addButton(zone: ZZone, move: ZMove) {
 			if (zone.parent == null)
@@ -374,6 +375,7 @@ abstract class UIZombicide(
 			return
 		val gameDispatcher = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
 		gameRunning = true
+		readyLock.reset()
 		launchIn(gameDispatcher) {
 			while (!isReady()) {
 				setBoardMessage(-1, "Not Ready")
@@ -522,7 +524,7 @@ abstract class UIZombicide(
 	}
 
 	fun showObjectivesOverlay() {
-		boardRenderer.setOverlay(quest.getObjectivesOverlay(this))
+		boardRenderer.hideOrSetOverlay(quest.getObjectivesOverlay(this))
 	}
 
 	fun <T : ZEquipment<*>> showEquipmentOverlay(player: ZPlayerName, list: List<T>) {
@@ -548,7 +550,7 @@ abstract class UIZombicide(
 	open fun playSound(sound: ZSound) {}
 
 	fun showSummaryOverlay() {
-		boardRenderer.setOverlay(gameSummaryTable)
+		boardRenderer.hideOrSetOverlay(gameSummaryTable)
 	}
 
 	override fun initQuest(quest: ZQuest) {
@@ -587,7 +589,7 @@ abstract class UIZombicide(
 
 	override suspend fun onRollDice(roll: Array<Int>) {
 		super.onRollDice(roll)
-		characterRenderer.addWrappable(ZDiceWrappable(roll))
+		characterRenderer.addWrapped(ZDiceWrapped(roll))
 	}
 
 	override suspend fun onDragonBileExploded(zone: Int) {
@@ -640,6 +642,7 @@ abstract class UIZombicide(
 				boardRenderer.wait(500)
 			}
 
+			ZZombieType.OrcNecromancer,
 			ZZombieType.Necromancer -> {
 				boardRenderer.addOverlay(
 					OverlayTextAnimation(
@@ -686,6 +689,30 @@ abstract class UIZombicide(
 				boardRenderer.addOverlay(
 					OverlayTextAnimation(
 						"W O L F B O M I N A T I O N ! !",
+						boardRenderer.numOverlayTextAnimations
+					)
+				)
+				boardRenderer.wait(500)
+			}
+
+			ZZombieType.LordOfSkulls -> {
+				boardRenderer.addOverlay(
+					OverlayTextAnimation(
+						"L O R D   O F   S K U L L S ! !",
+						boardRenderer.numOverlayTextAnimations
+					)
+				)
+				boardRenderer.wait(500)
+				boardRenderer.addOverlay(
+					OverlayTextAnimation(
+						"G L O O M ! !",
+						boardRenderer.numOverlayTextAnimations
+					)
+				)
+				boardRenderer.wait(500)
+				boardRenderer.addOverlay(
+					OverlayTextAnimation(
+						"D O O M ! !",
 						boardRenderer.numOverlayTextAnimations
 					)
 				)
@@ -953,11 +980,6 @@ abstract class UIZombicide(
 		boardRenderer.animateZoomToIfNotContained(zone)
 		boardRenderer.addPreActor(MakeNoiseAnimation(zone.center))
 		boardRenderer.waitForAnimations()
-	}
-
-	override suspend fun onWeaponGoesClick(c: ZPlayerName, weapon: ZWeapon) {
-		super.onWeaponGoesClick(c, weapon)
-		boardRenderer.addHoverMessage("CLICK", c.toCharacter())
 	}
 
 	override suspend fun onBeginRound(roundNum: Int) {
@@ -1257,6 +1279,8 @@ abstract class UIZombicide(
 		boardRenderer.waitForAnimations()
 	}
 
+	fun Pos.toRect() = GRectangle(column.toFloat(), row.toFloat(), 1f, 1f)
+
 	private suspend fun onAttackMagic(
 		attacker: ZCharacter,
 		weapon: ZWeaponType,
@@ -1269,9 +1293,13 @@ abstract class UIZombicide(
 		when (weapon) {
 			ZWeaponType.DEATH_STRIKE -> {
 				val animLock = Lock(1)
-				val targetRect =
-					board.getCell(attacker.occupiedCell).scaledBy(.5f)//board.getZone(targetZone).getRandomPointInside(.5f)
-				attacker.addAnimation(object : DeathStrikeAnimation(attacker, targetRect, numDice) {
+				val targetRects = mutableListOf<GRectangle>()
+				repeat(numDice) { index ->
+					targetRects.add(
+						_hits.getOrNull(index)?.toRect(board) ?: board.getZone(targetZone).cells.random().toRect().scaledBy(.5f)
+					)
+				}
+				attacker.addAnimation(object : DeathStrikeAnimation(attacker, targetRects) {
 					override fun onDone() {
 						super.onDone()
 						animLock.release()
@@ -1325,7 +1353,8 @@ abstract class UIZombicide(
 			}
 			ZWeaponType.INFERNO -> {
 				val lock = Lock(1)
-				val rects = Utils.map<Grid.Pos, IRectangle>(board.getZone(targetZone).getCells()) { pos: Grid.Pos? -> board.getCell(pos!!) }
+				val rects =
+					Utils.map<Pos, IRectangle>(board.getZone(targetZone).getCells()) { pos: Pos? -> board.getCell(pos!!) }
 				boardRenderer.addPreActor(object : InfernoAnimation(rects) {
 					override fun onDone() {
 						super.onDone()

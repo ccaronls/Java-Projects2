@@ -5,6 +5,7 @@ import cc.lib.game.AGraphics
 import cc.lib.game.GColor
 import cc.lib.game.Justify
 import cc.lib.logger.LoggerFactory
+import cc.lib.reflector.RBufferedReader
 import cc.lib.reflector.Reflector
 import cc.lib.utils.Table
 import cc.lib.utils.Table.Model
@@ -29,12 +30,12 @@ class ZSpawnCard private constructor(
 	companion object {
 
 		val log = LoggerFactory.getLogger(ZSpawnCard::class.java)
-		val NOTHING_IN_SIGHT = Action(ActionType.NOTHING_IN_SIGHT, 0, null)
-		val DOUBLE_SPAWN = Action(ActionType.DOUBLE_SPAWN, 0, null)
-		val EXTRA_ACTIVATION = Action(ActionType.EXTRA_ACTIVATION_STANDARD, 0, null)
+		val NOTHING_IN_SIGHT = Action(ActionType.NOTHING_IN_SIGHT)
+		val DOUBLE_SPAWN = Action(ActionType.DOUBLE_SPAWN)
+		val EXTRA_ACTIVATION = Action(ActionType.EXTRA_ACTIVATION_STANDARD)
 		val NECROMANCER = Action(ActionType.SPAWN, 1, ZZombieType.Necromancer)
 		val ORC_NECROMANCER = Action(ActionType.SPAWN, 1, ZZombieType.OrcNecromancer)
-		val ENTER_THE_HOARD = Action(ActionType.ENTER_THE_HOARD, 0, null)
+		val ENTER_THE_HOARD = Action(ActionType.ENTER_THE_HOARD, 0)
 
 		val cards = arrayOf(
 			ZSpawnCard(
@@ -253,6 +254,13 @@ class ZSpawnCard private constructor(
 				Action(ActionType.SPAWN, 1, ZZombieType.NecromanticDragon),
 				Action(ActionType.SPAWN, 1, ZZombieType.NecromanticDragon),
 				Action(ActionType.SPAWN, 1, ZZombieType.NecromanticDragon)
+			),
+			ZSpawnCard(
+				ZZombieCategory.NECROMANCER, 1, 2, 3,
+				NOTHING_IN_SIGHT,
+				Action(ActionType.SPAWN, 1, ZZombieType.LordOfSkulls, ZZombieType.Ogre, ZZombieType.Ogre),
+				Action(ActionType.SPAWN, 1, ZZombieType.LordOfSkulls, ZZombieType.Ogre, ZZombieType.Ogre),
+				Action(ActionType.SPAWN, 1, ZZombieType.LordOfSkulls, ZZombieType.Ogre, ZZombieType.Ogre)
 			)
 
 		)
@@ -327,11 +335,40 @@ class ZSpawnCard private constructor(
 		ENTER_THE_HOARD
 	}
 
-	class Action(val action: ActionType=ActionType.NOTHING_IN_SIGHT, val count: Int = 0, val type: ZZombieType?=null) : Reflector<Action>() {
+	class Action() : Reflector<Action>() {
+
+		constructor(actionType: ActionType) : this() {
+			this.action = actionType
+		}
+
+		constructor(actionType: ActionType, count: Int, type: ZZombieType) : this() {
+			this.action = actionType
+			this.count = count
+			this.types = arrayOf(type)
+		}
+
+		constructor(actionType: ActionType, count: Int, vararg types: ZZombieType) : this() {
+			this.action = actionType
+			this.count = count
+			this.types = arrayOf(*types)
+		}
+
+		var action: ActionType = ActionType.NOTHING_IN_SIGHT
+		var count: Int = 0
+		var types: Array<ZZombieType> = emptyArray()
+
+
 		override fun toString(): String {
 			return if (count > 0) {
-				String.format("%s %d X %s", action, count, type)
+				String.format("%s %d X %s", action, count, types.joinToString() ?: "")
 			} else action.prettify()
+		}
+
+		override fun parseUnknownField(name: String, value: String, `in`: RBufferedReader) {
+			if (name == "type") {
+				types = arrayOf(ZZombieType.valueOf(value))
+			}
+			super.parseUnknownField(name, value, `in`)
 		}
 	}
 

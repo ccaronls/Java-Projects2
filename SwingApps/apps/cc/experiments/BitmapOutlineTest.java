@@ -130,7 +130,7 @@ public class BitmapOutlineTest extends AWTComponent {
     int curOutlineColor = 0;
 
     @Override
-    protected void paint(AWTGraphics g, int mouseX, int mouseY) {
+    protected void paint(AWTGraphics g) {
 
         if (outlineid == 0) {
             build(g);
@@ -138,7 +138,7 @@ public class BitmapOutlineTest extends AWTComponent {
 
         g.setBackgroundColor(GColor.LIGHT_GRAY);
         g.clearScreen();
-        Vector2D center = new Vector2D(getWidth()/2, getHeight()/2);
+        Vector2D center = new Vector2D(getWidth() / 2, getHeight() / 2);
         g.clearScreen();
         AImage img = g.getImage(outlineid);
         GRectangle rect = new GRectangle(img).withCenter(center);

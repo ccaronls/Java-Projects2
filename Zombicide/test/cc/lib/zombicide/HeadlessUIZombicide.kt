@@ -1,84 +1,57 @@
-package cc.lib.zombicide;
+package cc.lib.zombicide
 
-import cc.lib.game.AGraphics;
-import cc.lib.math.Vector2D;
-import cc.lib.ui.UIComponent;
-import cc.lib.ui.UIRenderer;
-import cc.lib.zombicide.ui.UIZBoardRenderer;
-import cc.lib.zombicide.ui.UIZCharacterRenderer;
-import cc.lib.zombicide.ui.UIZComponent;
-import cc.lib.zombicide.ui.UIZombicide;
+import cc.lib.game.AGraphics
+import cc.lib.math.Vector2D
+import cc.lib.zombicide.ui.UIZBoardRenderer
+import cc.lib.zombicide.ui.UIZCharacterRenderer
+import cc.lib.zombicide.ui.UIZComponent
+import cc.lib.zombicide.ui.UIZombicide
+
+class HeadlessComponent : UIZComponent<AGraphics> {
+	override fun getWidth(): Int {
+		TODO("Not yet implemented")
+	}
+
+	override fun getHeight(): Int {
+		TODO("Not yet implemented")
+	}
+
+	override fun redraw() {
+		TODO("Not yet implemented")
+	}
+
+	override fun getViewportLocation(): Vector2D {
+		TODO("Not yet implemented")
+	}
+
+	override fun loadTiles(g: AGraphics, tiles: Array<ZTile>, quest: ZQuest) {
+		TODO("Not yet implemented")
+	}
+}
 
 /**
  * Created by Chris Caron on 3/7/22.
  */
-public class HeadlessUIZombicide extends UIZombicide {
-    public HeadlessUIZombicide() {
-        super(new UIZCharacterRenderer(new UIComponent() {
-            @Override
-            public int getWidth() {
-                return 1000;
-            }
+class HeadlessUIZombicide : UIZombicide(
+	object : UIZCharacterRenderer(HeadlessComponent()) {
+		override fun scrollToTop() {
+			TODO("Not yet implemented")
+		}
 
-            @Override
-            public int getHeight() {
-                return 200;
-            }
+	}, object : UIZBoardRenderer(HeadlessComponent()) {
+	}) {
+	override val thisUser: ZUser
+		get() = TODO("Not yet implemented")
 
-            @Override
-            public void redraw() {
+	override fun focusOnMainMenu() {
+		TODO("Not yet implemented")
+	}
 
-            }
+	override fun focusOnBoard() {
+		TODO("Not yet implemented")
+	}
 
-            @Override
-            public void setRenderer(UIRenderer r) {
-
-            }
-
-            @Override
-            public Vector2D getViewportLocation() {
-                return Vector2D.ZERO;
-            }
-        }), new UIZBoardRenderer(new UIZComponent() {
-            @Override
-            public void loadTiles(AGraphics g, ZTile[] tiles, ZQuest quest) {
-
-            }
-
-            @Override
-            public int getWidth() {
-                return 1000;
-            }
-
-            @Override
-            public int getHeight() {
-                return 800;
-            }
-
-            @Override
-            public void redraw() {
-
-            }
-
-            @Override
-            public void setRenderer(UIRenderer r) {
-
-            }
-
-            @Override
-            public Vector2D getViewportLocation() {
-                return Vector2D.ZERO;
-            }
-        }));
-    }
-
-
-    @Override
-    public ZUser getThisUser() {
-        return new ZTestUser();
-    }
-
-    @Override
-    protected void onBeginRound(int roundNum) {
-    }
+	override fun undo() {
+		TODO("Not yet implemented")
+	}
 }

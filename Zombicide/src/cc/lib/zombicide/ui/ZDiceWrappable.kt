@@ -4,9 +4,9 @@ import cc.lib.game.AGraphics
 import cc.lib.game.Dice
 import cc.lib.game.GColor
 import cc.lib.game.GDimension
-import cc.lib.zombicide.ui.UIZCharacterRenderer.IWrappable
+import cc.lib.zombicide.ui.UIZCharacterRenderer.IWrapped
 
-class ZDiceWrappable(val dieNums: Array<Int>) : IWrappable {
+class ZDiceWrapped(val dieNums: Array<Int>) : IWrapped {
 	private val whiteDimmed = GColor.WHITE.withAlpha(.5f)
 	override fun drawWrapped(g: AGraphics, _maxWidth: Float, dimmed: Boolean): GDimension {
 		var maxWidth = _maxWidth

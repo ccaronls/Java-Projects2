@@ -57,12 +57,12 @@ public class ImageRotateTest extends AWTComponent {
     int idx = 0;
 
     @Override
-    protected void paint(AWTGraphics g, int mouseX, int mouseY) {
+    protected void paint(AWTGraphics g) {
 
-        Vector2D center = new Vector2D(getWidth()/2, getHeight()/2);
+        Vector2D center = new Vector2D(getWidth() / 2, getHeight() / 2);
         g.clearScreen();
         g.drawImage(images.get(idx), center);
-        idx = (idx+1) % images.size();
+        idx = (idx + 1) % images.size();
         new Thread(new Runnable() {
             @Override
             public void run() {

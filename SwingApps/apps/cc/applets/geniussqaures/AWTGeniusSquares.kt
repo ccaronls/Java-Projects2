@@ -16,7 +16,7 @@ class AWTGeniusSquares internal constructor() : AWTComponent() {
 			this@AWTGeniusSquares.repaint()
 		}
 	}
-	override fun paint(g: AWTGraphics, mouseX: Int, mouseY: Int) {
+	override fun paint(g: AWTGraphics) {
 		game.paint(g, mouseX, mouseY)
 	}
 

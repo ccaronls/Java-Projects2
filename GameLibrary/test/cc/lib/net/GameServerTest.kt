@@ -4,8 +4,9 @@ import cc.lib.crypt.Cypher
 import cc.lib.crypt.HuffmanEncoding
 import cc.lib.game.GColor
 import cc.lib.game.Utils
-import cc.lib.utils.Lock
+import cc.lib.utils.KLock
 import junit.framework.TestCase
+import kotlinx.coroutines.runBlocking
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
@@ -21,12 +22,12 @@ import java.util.LinkedList
  */
 class GameServerTest : TestCase() {
 	var result: Throwable? = null
-	var waitLock = Lock()
-	var testMonitor = Lock()
+	var waitLock = KLock()
+	var testMonitor = KLock()
 	var listener1: MyConnectionListener? = null
 	lateinit var server: GameServer
 	lateinit var client: MyGameClient
-	private fun blockOrFail() {
+	private suspend fun blockOrFail() {
 		waitLock.block(3000) { fail("timeout") }
 	}
 
@@ -90,49 +91,45 @@ class GameServerTest : TestCase() {
 
 	fun interface RunnableThrowing {
 		@Throws(Exception::class)
-		fun run()
+		suspend fun run()
 	}
 
 	@Throws(Exception::class)
-	fun runTest(test: RunnableThrowing) {
-		Thread {
-			try {
-				println(
-					"""
-	---------------------------------------
-	RUNNING Test: $name
-	---------------------------------------
-	
-	""".trimIndent()
-				)
-				test.run()
-				println(
-					"""
-	---------------------------------------
-	RUN TEST COMPLETE Test: $name
-	---------------------------------------
-	
-	""".trimIndent()
-				)
-				waitLock.acquire()
-				server.stop()
-				blockOrFail()
-			} catch (e: Throwable) {
-				println(
-					"""
-	---------------------------------------
-	TEST ERROR Test: $name
-	${e.javaClass.simpleName}:${e.message}---------------------------------------
-	
-	""".trimIndent()
-				)
-				result = e
-			} finally {
-				synchronized(testMonitor) { testMonitor.release() }
-			}
-		}.start()
-		synchronized(testMonitor) { testMonitor.acquireAndBlock() }
-		Utils.waitNoThrow(1000)
+	fun runTest(test: RunnableThrowing) = runBlocking {
+		try {
+			println(
+				"""
+---------------------------------------
+RUNNING Test: $name
+---------------------------------------
+
+""".trimIndent()
+			)
+			test.run()
+			println(
+				"""
+---------------------------------------
+RUN TEST COMPLETE Test: $name
+---------------------------------------
+
+""".trimIndent()
+			)
+			waitLock.acquire()
+			server.stop()
+			blockOrFail()
+		} catch (e: Throwable) {
+			println(
+				"""
+---------------------------------------
+TEST ERROR Test: $name
+${e.javaClass.simpleName}:${e.message}---------------------------------------
+
+""".trimIndent()
+			)
+			result = e
+		} finally {
+			synchronized(testMonitor) { testMonitor.release() }
+		}
 	}
 
 	@Throws(Exception::class)
@@ -682,7 +679,7 @@ class GameServerTest : TestCase() {
 
 		init {
 			numClients++
-			addListener(this)
+			addListener(this, "Test")
 		}
 	}
 

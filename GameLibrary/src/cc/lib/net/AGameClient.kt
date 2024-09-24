@@ -178,7 +178,7 @@ abstract class AGameClient(deviceName: String, version: String) {
  	""".trimIndent()
 		)
 		log.error("Sending error: $cmd")
-		sendCommand(cmd)
+		//sendCommand(cmd)
 	}
 
 	/**
@@ -187,7 +187,7 @@ abstract class AGameClient(deviceName: String, version: String) {
 	fun sendError(err: String) {
 		val cmd = GameCommand(GameCommandType.CL_ERROR).setArg("msg", "ERROR: $err")
 		log.error("Sending error: $cmd")
-		sendCommand(cmd)
+		//sendCommand(cmd)
 	}
 
 	fun setPassphrase(passphrase: String) {

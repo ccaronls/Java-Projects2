@@ -5,7 +5,6 @@ import cc.lib.ui.IButton
 
 @Keep
 enum class ZSpellType(val skill: ZSkill, val description: String) : ZEquipmentType, IButton {
-    // TODO: Do we really need spell type?
     HEALING(ZSkill.Healing, "Once per turn targeted survivor recovers a wound point") {
         override suspend fun doEnchant(game: ZGame, target: ZCharacter) {
 	        target.heal(game, 1)

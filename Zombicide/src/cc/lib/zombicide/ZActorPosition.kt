@@ -7,7 +7,7 @@ import cc.lib.utils.Grid
 /**
  * Created by Chris Caron on 8/30/21.
  */
-class ZActorPosition internal constructor(@JvmField val pos: Grid.Pos, @JvmField val quadrant: ZCellQuadrant, val zone: Int) : Reflector<ZActorPosition>() {
+class ZActorPosition(val pos: Grid.Pos, val quadrant: ZCellQuadrant, val zone: Int) : Reflector<ZActorPosition>() {
 	companion object {
 		init {
 			addAllFields(ZActorPosition::class.java)

@@ -5,6 +5,7 @@ import cc.lib.logger.LoggerFactory
 import cc.lib.swing.AWTGraphics
 import cc.lib.swing.AWTRendererComponent
 import cc.lib.utils.Table
+import cc.lib.utils.launchIn
 import cc.lib.zombicide.ZDir
 import cc.lib.zombicide.ZIcon
 import cc.lib.zombicide.ZMove
@@ -28,11 +29,9 @@ internal class BoardComponent : AWTRendererComponent<UIZBoardRenderer>(), UIZCom
 	override fun init(g: AWTGraphics) {
 		setMouseEnabled(true)
 		setGesturesEnabled()
-		object : Thread() {
-			override fun run() {
-				loadImages(g)
-			}
-		}.start()
+		launchIn {
+			loadImages(g)
+		}
 	}
 
 	var numImagesLoaded = 0
@@ -361,7 +360,6 @@ internal class BoardComponent : AWTRendererComponent<UIZBoardRenderer>(), UIZCom
 		repaint()
 	}
 
-	@Synchronized
 	fun initKeysPresses(options: MutableList<*>) {
 		keyMap.clear()
 		val it = options.iterator()
@@ -403,6 +401,7 @@ internal class BoardComponent : AWTRendererComponent<UIZBoardRenderer>(), UIZCom
 			return
 		}
 		when (e.keyCode) {
+			KeyEvent.VK_LEFT, KeyEvent.VK_RIGHT, KeyEvent.VK_DOWN, KeyEvent.VK_UP -> {}
 			KeyEvent.VK_Z -> renderer.toggleZoomType()
 			KeyEvent.VK_PLUS, KeyEvent.VK_EQUALS -> renderer.zoomAmt(.8f)
 			KeyEvent.VK_MINUS, KeyEvent.VK_UNDERSCORE -> renderer.zoomAmt(1.2f)

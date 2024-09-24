@@ -26,6 +26,8 @@ abstract class ZActor internal constructor(var occupiedZone: Int) : UIZButton() 
 
 	fun isOccupying(): Boolean = ::occupiedQuadrant.isInitialized
 	var actionsLeftThisTurn = 0
+
+
 	private var rect = GRectangle()
 
 	@Omit

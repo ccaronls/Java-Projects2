@@ -1,5 +1,6 @@
 package cc.lib.swing
 
+import cc.lib.game.APGraphics
 import cc.lib.math.MutableVector2D
 import cc.lib.ui.UIComponent
 import cc.lib.ui.UIKeyCode
@@ -51,10 +52,16 @@ abstract class AWTRendererComponent<R : UIRenderer>() : AWTComponent(), UICompon
 			renderer.onSizeChanged(width, height)
 	}
 
-	final override fun paint(g: AWTGraphics, mouseX: Int, mouseY: Int) {
+	final override fun paint(g: AWTGraphics) {
 		g.clearScreen()
 		if (::renderer.isInitialized)
-			renderer.draw(g, mouseX, mouseY)
+			renderer.draw(g)
+	}
+
+	override fun setMouseOrTouch(g: APGraphics, mx: Int, my: Int) {
+		if (::renderer.isInitialized) {
+			renderer.updateMouseOrTouch(g, mx, my)
+		}
 	}
 
 	final override fun onMouseWheel(rotation: Int) {

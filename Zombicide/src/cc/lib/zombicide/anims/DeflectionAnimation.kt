@@ -25,8 +25,8 @@ class DeflectionAnimation(actor: ZActor, val imageId: Int, dir: ZDir) : ZActorAn
     }
 
     init {
-        val start: Vector2D = actor.getRect().center
-        val end: Vector2D = actor.getRect().centerBottom.add(.5f * dir.dx, 0f)
+        val start: Vector2D = actor.getRect().center.toImmutable()
+	    val end: Vector2D = actor.getRect().centerBottom.add(.5f * dir.dx, 0f)
         arc = Bezier.build(start, end, .5f)
     }
 }

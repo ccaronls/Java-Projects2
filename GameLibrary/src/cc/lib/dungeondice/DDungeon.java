@@ -5,7 +5,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import cc.lib.game.AGraphics;
-import cc.lib.game.APGraphics;
 import cc.lib.game.GRectangle;
 import cc.lib.game.Utils;
 import cc.lib.logger.Logger;
@@ -346,9 +345,9 @@ public class DDungeon extends Reflector<DDungeon> {
         }
     }
 
-    public void draw(APGraphics g) {
+    public void draw(AGraphics g) {
         board.drawCells(g, 1);
-        for (int i=0; i<numPlayers; i++) {
+        for (int i = 0; i < numPlayers; i++) {
             drawPlayer(g, players[i]);
         }
     }

@@ -84,7 +84,7 @@ public class MixedColorGenerationsSimulation extends AWTComponent {
     }
 
     @Override
-    protected void paint(AWTGraphics g, int mouseX, int mouseY) {
+    protected void paint(AWTGraphics g) {
 
         final long startT = System.currentTimeMillis();
 

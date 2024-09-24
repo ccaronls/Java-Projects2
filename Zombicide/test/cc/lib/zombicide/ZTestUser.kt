@@ -1,155 +1,59 @@
-package cc.lib.zombicide;
+package cc.lib.zombicide
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import cc.lib.utils.randomIndex
 
-import java.util.List;
+class ZTestUser(vararg names: ZPlayerName?) : ZUser("test", 0) {
 
-import cc.lib.game.Utils;
+	override suspend fun chooseCharacter(options: List<ZPlayerName>) = options.random()
 
-public class ZTestUser extends ZUser {
+	override suspend fun chooseMove(cur: ZPlayerName, options: List<ZMove>) = options.random()
 
-    public ZTestUser(ZPlayerName...names) {
-        super("test", names);
+	override suspend fun chooseNewSkill(character: ZPlayerName, skillOptions: List<ZSkill>) = skillOptions.random()
 
-    }
+	override suspend fun chooseSlotToOrganize(cur: ZPlayerName, slots: List<ZEquipSlot>) = slots.random()
 
-    @Override
-    public ZPlayerName chooseCharacter(List<? extends ZPlayerName> options) {
-        return Utils.randItem(options);
-    }
+	override suspend fun chooseEquipment(cur: ZPlayerName, equipOptions: List<ZEquipment<*>>) = equipOptions.randomIndex()
 
-    @Override
-    public ZMove chooseMove(ZPlayerName cur, List<ZMove> options) {
-        return Utils.randItem(options);
-    }
+	override suspend fun chooseSlotForEquip(cur: ZPlayerName, equipableSlots: List<ZEquipSlot>) = equipableSlots.random()
+	override suspend fun chooseZoneToWalk(cur: ZPlayerName, zones: List<Int>) = zones.random()
 
-    @Override
-    public ZSkill chooseNewSkill(ZPlayerName character, List<? extends ZSkill> skillOptions) {
-        return Utils.randItem(skillOptions);
-    }
+	override suspend fun chooseDoorToToggle(cur: ZPlayerName, doors: List<ZDoor>) = doors.randomIndex()
 
-    @Override
-    public ZEquipSlot chooseSlotToOrganize(ZPlayerName cur, List<? extends ZEquipSlot> slots) {
-        return Utils.randItem(slots);
-    }
+	override suspend fun chooseWeaponSlot(c: ZPlayerName, weapons: List<ZWeapon>) = weapons.randomIndex()
 
-    @Override
-    public Integer chooseEquipment(ZPlayerName cur, List<? extends ZEquipment<?>> equipOptions) {
-        return Utils.rand() % equipOptions.size();
-    }
+	override suspend fun chooseTradeCharacter(c: ZPlayerName, list: List<ZPlayerName>) = list.random()
 
-    @Override
-    public ZEquipSlot chooseSlotForEquip(ZPlayerName cur, List<? extends ZEquipSlot> equipableSlots) {
-        return Utils.randItem(equipableSlots);
-    }
+	override suspend fun chooseZoneForAttack(c: ZPlayerName, zones: List<Int>) = zones.random()
 
-    @Override
-    public Integer chooseZoneToWalk(ZPlayerName cur, List<Integer> zones) {
-        return Utils.randItem(zones);
-    }
+	override suspend fun chooseItemToPickup(cur: ZPlayerName, list: List<ZEquipment<*>>) = list.randomIndex()
+	override suspend fun chooseItemToDrop(cur: ZPlayerName, list: List<ZEquipment<*>>) = list.randomIndex()
 
-    @Override
-    public Integer chooseDoorToToggle(ZPlayerName cur, List<ZDoor> doors) {
-        return Utils.rand() % doors.size();
-    }
+	override suspend fun chooseEquipmentToThrow(cur: ZPlayerName, slots: List<ZEquipment<*>>) = slots.randomIndex()
 
-    @Override
-    public Integer chooseWeaponSlot(ZPlayerName c, List<ZWeapon> weapons) {
-        return Utils.rand() % weapons.size();
-    }
+	override suspend fun chooseZoneToThrowEquipment(cur: ZPlayerName, toThrow: ZEquipment<*>, zones: List<Int>) = zones.random()
 
-    @Override
-    public ZPlayerName chooseTradeCharacter(ZPlayerName c, List<? extends ZPlayerName> list) {
-        return Utils.randItem(list);
-    }
+	override suspend fun chooseZoneToShove(cur: ZPlayerName, list: List<Int>) = list.random()
 
-    @Override
-    public Integer chooseZoneForAttack(ZPlayerName c, List<Integer> zones) {
-        return Utils.randItem(zones);
-    }
+	override suspend fun chooseSpell(cur: ZPlayerName, spells: List<ZSpell>) = spells.random()
 
-    @Override
-    public Integer chooseItemToPickup(ZPlayerName cur, List<? extends ZEquipment<?>> list) {
-        return Utils.rand() % list.size();
-    }
+	override suspend fun chooseCharacterForSpell(cur: ZPlayerName, spell: ZSpell, targets: List<ZPlayerName>) = targets.random()
 
-    @Override
-    public Integer chooseItemToDrop(ZPlayerName cur, List<? extends ZEquipment<?>> list) {
-        return Utils.rand() % list.size();
-    }
+	override suspend fun chooseCharacterToBequeathMove(cur: ZPlayerName, list: List<ZPlayerName>) = list.random()
 
-    @Override
-    public Integer chooseZoneToShove(ZPlayerName cur, List<Integer> list) {
-        return Utils.randItem(list);
-    }
+	override suspend fun chooseZoneForBloodlust(cur: ZPlayerName, list: List<Int>) = list.random()
 
-    @Override
-    public ZSpell chooseSpell(ZPlayerName cur, List<ZSpell> spells) {
-        return Utils.randItem(spells);
-    }
+	override suspend fun chooseSpawnAreaToRemove(cur: ZPlayerName, list: List<ZSpawnArea>) = list.randomIndex()
 
-    @Override
-    public ZPlayerName chooseCharacterForSpell(ZPlayerName cur, ZSpell spell, List<? extends ZPlayerName> targets) {
-        return Utils.randItem(targets);
-    }
+	override suspend fun chooseZoneToIgnite(playerName: ZPlayerName, ignitableZones: List<Int>) = ignitableZones.random()
 
-    @Override
-    public ZPlayerName chooseCharacterToBequeathMove(ZPlayerName cur, List<? extends ZPlayerName> list) {
-        return Utils.randItem(list);
-    }
+	override suspend fun chooseEquipmentClass(playerName: ZPlayerName, classes: List<ZEquipmentClass>) = classes.random()
 
-    @Override
-    public Integer chooseZoneForBloodlust(ZPlayerName cur, List<Integer> list) {
-        return Utils.randItem(list);
-    }
+	override suspend fun chooseStartingEquipment(playerName: ZPlayerName, list: List<ZEquipmentType>) = list.random()
 
-    @Override
-    public Integer chooseSpawnAreaToRemove(ZPlayerName cur, List<ZSpawnArea> list) {
-        int idx = Utils.rand() % list.size();
-        return idx;
-    }
+	override suspend fun chooseFamiliar(playerName: ZPlayerName, list: List<ZFamiliarType>) = list.random()
 
-    @Override
-    public Integer chooseEquipmentToThrow(ZPlayerName cur, List<? extends ZEquipment<?>> slots) {
-        return Utils.rand() % slots.size();
-    }
+	override suspend fun chooseOrganize(playerName: ZPlayerName, list: List<ZMove>, undos: Int) = list.random()
 
-    @Override
-    public Integer chooseZoneToThrowEquipment(ZPlayerName cur, ZEquipment toThrow, List zones) {
-        return Utils.randItem((List<Integer>)zones);
-    }
-
-    @Override
-    public Integer chooseZoneToIgnite(ZPlayerName playerName, List<Integer> ignitableZones) {
-        return Utils.randItem(ignitableZones);
-    }
-
-    @Override
-    public ZEquipmentClass chooseEquipmentClass(ZPlayerName playerName, List<? extends ZEquipmentClass> classes) {
-        return Utils.randItem(classes);
-    }
-
-    @Override
-    public ZEquipmentType chooseStartingEquipment(ZPlayerName playerName, List<? extends ZEquipmentType> list) {
-        return list.get(0);
-    }
-
-    @Nullable
-    @Override
-    public ZMove chooseOrganize(@NotNull ZPlayerName playerName, @NotNull List<ZMove> list) {
-        return list.get(0);
-    }
-
-    @Nullable
-    @Override
-    public ZFamiliarType chooseFamiliar(@NotNull ZPlayerName playerName, @NotNull List<? extends ZFamiliarType> list) {
-        return Utils.randItem(list);
-    }
-
-    @Nullable
-    @Override
-    public Integer chooseZoneForCatapult(@NotNull ZPlayerName playerName, @NotNull ZWeaponType ammoType, @NotNull List<Integer> zones) {
-        return Utils.randItem(zones);
-    }
+	override suspend fun chooseZoneForCatapult(playerName: ZPlayerName, ammoType: ZWeaponType, zones: List<Int>) =
+		zones.random()
 }

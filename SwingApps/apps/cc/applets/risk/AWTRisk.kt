@@ -4,9 +4,20 @@ import cc.lib.game.AGraphics
 import cc.lib.game.Dice
 import cc.lib.game.GColor
 import cc.lib.logger.LoggerFactory
-import cc.lib.risk.*
-import cc.lib.swing.*
+import cc.lib.risk.Army
+import cc.lib.risk.RiskBoard
+import cc.lib.risk.RiskGame
+import cc.lib.risk.RiskPlayer
+import cc.lib.risk.UIRisk
+import cc.lib.risk.UIRiskPlayer
+import cc.lib.swing.AWTButton
+import cc.lib.swing.AWTButtonLayout
+import cc.lib.swing.AWTComponent
+import cc.lib.swing.AWTFrame
 import cc.lib.swing.AWTFrame.OnListItemChoosen
+import cc.lib.swing.AWTGraphics
+import cc.lib.swing.AWTPanel
+import cc.lib.swing.AWTWrapLabel
 import cc.lib.utils.FileUtils
 import cc.lib.utils.Table
 import cc.lib.utils.prettify
@@ -53,10 +64,10 @@ class AWTRisk internal constructor(): AWTComponent() {
 			val content = AWTPanel(BorderLayout())
 			val panel = object : AWTComponent() {
 
-				override fun paint(g: AWTGraphics, mouseX: Int, mouseY: Int) {
-					with (table.measure(g)) {
+				override fun paint(g: AWTGraphics) {
+					with(table.measure(g)) {
 						g.pushMatrix()
-						g.translate(g.viewportWidth/2 - width/2, g.viewportHeight/2 - height/2)
+						g.translate(g.viewportWidth / 2 - width / 2, g.viewportHeight / 2 - height / 2)
 						table.draw(g)
 						g.popMatrix()
 					}
@@ -179,7 +190,7 @@ class AWTRisk internal constructor(): AWTComponent() {
 	override val initProgress: Float
 		get() = progress
 
-	override fun paint(g: AWTGraphics, mouseX: Int, mouseY: Int) {
+	override fun paint(g: AWTGraphics) {
 		game.onDraw(g)
 	}
 

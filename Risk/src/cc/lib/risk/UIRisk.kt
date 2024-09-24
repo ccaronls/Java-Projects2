@@ -178,16 +178,16 @@ abstract class UIRisk(board : RiskBoard) : RiskGame(board) {
 		val all = start.getAllConnectedCells()
 		for (idx in all) {
 			val rect2 = board.getCellBoundingRect(idx)
-			val dv: Vector2D = rect2.center.subEq(start)
-			if (dv.x < -board.dimension.getWidth() / 2) {
-				rect2.moveBy(board.dimension.getWidth(), 0f)
-			} else if (dv.x > board.dimension.getWidth() / 2) {
-				rect2.moveBy(-board.dimension.getWidth(), 0f)
+			val dv: Vector2D = rect2.center.sub(start)
+			if (dv.x < -board.dimension.width / 2) {
+				rect2.moveBy(board.dimension.width, 0f)
+			} else if (dv.x > board.dimension.width / 2) {
+				rect2.moveBy(-board.dimension.width, 0f)
 			}
-			if (dv.y < -board.dimension.getHeight() / 2) {
-				rect2.moveBy(0f, board.dimension.getHeight())
-			} else if (dv.y > board.dimension.getHeight() / 2) {
-				rect2.moveBy(0f, -board.dimension.getHeight())
+			if (dv.y < -board.dimension.height / 2) {
+				rect2.moveBy(0f, board.dimension.height)
+			} else if (dv.y > board.dimension.height / 2) {
+				rect2.moveBy(0f, -board.dimension.height)
 			}
 			zoom.addEq(rect2)
 		}

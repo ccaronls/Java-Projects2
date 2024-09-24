@@ -11,6 +11,7 @@ import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.View
 import android.view.ViewGroup
+import cc.lib.game.APGraphics
 import cc.lib.game.GColor
 import cc.lib.game.GDimension
 import cc.lib.game.GRectangle
@@ -140,7 +141,7 @@ abstract class UIComponentView<T : UIRenderer>
 			loadAssetsRunnable = null
 			val prev = renderer.minDimension
 			try {
-				renderer.draw(g, tx, ty)
+				renderer.draw(g)
 			} catch (e: Exception) {
 				e.printStackTrace()
 				g.resetMatrices()
@@ -216,6 +217,12 @@ abstract class UIComponentView<T : UIRenderer>
 		}
 	}
 
+	final override fun setMouseOrTouch(g: APGraphics, mx: Int, my: Int) {
+		if (::renderer.isInitialized) {
+			renderer.updateMouseOrTouch(g, mx, my)
+		}
+	}
+
 	final override fun onTouchEvent(event: MotionEvent): Boolean {
 		if (!::renderer.isInitialized)
 			return false
@@ -228,7 +235,7 @@ abstract class UIComponentView<T : UIRenderer>
 				downTime = SystemClock.uptimeMillis()
 				tx = event.x.roundToInt().also { touchDownX = it }
 				ty = event.y.roundToInt().also { touchDownY = it }
-				renderer.onTouch(tx, ty)
+				setMouseOrTouch(g, tx, ty)
 				postDelayed(this, CLICK_TIME.toLong())
 			}
 			MotionEvent.ACTION_UP -> {

@@ -23,6 +23,7 @@ import cc.lib.ui.UIKeyCode
 import cc.lib.ui.UIRenderer
 import cc.lib.utils.GException
 import cc.lib.utils.Grid.Pos
+import cc.lib.utils.KLock
 import cc.lib.utils.Table
 import cc.lib.utils.increment
 import cc.lib.utils.launchIn
@@ -49,11 +50,7 @@ import cc.lib.zombicide.ZZoneType
 import cc.lib.zombicide.anims.OverlayTextAnimation
 import cc.lib.zombicide.anims.ZoomAnimation
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.withTimeoutOrNull
 import java.util.Stack
-import kotlin.coroutines.Continuation
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -216,6 +213,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 				clearTiles()
 			}
 			field = value
+			redraw()
 		}
 
 	var boardMessageColor = GColor.WHITE
@@ -250,7 +248,8 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 			launchIn {
 				animateZoomToIfNotContained(list)
 				list.firstOrNull()?.let {
-					mouseV.set(it.center)
+					if (isFocussed)
+						mouseV.set(it.center)
 					redraw()
 				}
 			}
@@ -263,7 +262,8 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 					launchIn {
 						animateZoomToIfNotContained(list)
 						list.firstOrNull()?.let {
-							mouseV.set(it.center)
+							if (isFocussed)
+								mouseV.set(it.center)
 							redraw()
 						}
 					}
@@ -302,8 +302,6 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		}
 
 	val mouseV = MutableVector2D(-1f, -1f)
-
-	open val touchOrMouseSupported: Boolean = true
 
 	private var dragStartV = Vector2D()
 
@@ -365,7 +363,8 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		if (highlightedResult != actor) {
 			log.debug("highlighted actor: $actor")
 			highlightedResult = actor
-			if (actor != null) {
+			actor?.let {
+				mouseV.set(it.center)
 				val rect = board.getZone(actor.occupiedZone)
 				if (!_zoomedRect.contains(rect.enclosingRect())) {
 					animateZoomDelta(_zoomedRect.getDeltaToContain(rect.enclosingRect()), 200)
@@ -498,14 +497,12 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 				} else {
 					var outline: GColor = GColor.WHITE
 					highlightAnimationScale = 1f
-					currentCharacter?.let {
-						if (a == it) {
-							outline = GColor.GREEN
-						} else if (a === picked)
-							outline = GColor.CYAN
-						else if (a in pickableRects)
-							outline = GColor.YELLOW
-
+					if (currentCharacter == a) {
+						outline = GColor.GREEN
+					} else if (a === picked) {
+						outline = GColor.CYAN
+					} else if (a in pickableRects) {
+						outline = GColor.YELLOW
 					}
 
 					if (a == highlightedResult) {
@@ -545,6 +542,9 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 
 		picked?.takeIf { !it.isAnimating }?.let {
 			drawActor(it) // draw the highlighted actor over the top to see its stats
+			if ((it as? ZZombie)?.type?.isNecromancer == true) {
+				drawPath(g, it, board.getZombiePathTowardNearestSpawn(it))
+			}
 		}
 
 		picked?.let { actor ->
@@ -891,7 +891,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 	fun drawCellWalls(g: AGraphics, cellPos: Pos, dirs: Array<ZDir>, scale: Float, miniMap: Boolean) {
 		val cell = board.getCell(cellPos)
 		g.pushMatrix()
-		val center: Vector2D = cell.center
+		val center = cell.center
 		g.translate(center)
 		val v0: Vector2D = cell.topLeft.subEq(center)
 		val v1: Vector2D = cell.topRight.subEq(center)
@@ -1255,21 +1255,24 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		g.drawImage(ZIcon.GRAVESTONE.imageIds[0], rect.fit(img))
 	}
 
-	override fun draw(g: APGraphics, mx: Int, my: Int) {
+	override fun draw(g: AGraphics) {
 		synchronized(UIZombicide.instance.synchronizeLock) {
-			drawPrivate(g, mx, my)
+			drawPrivate(g)
 		}
 	}
 
-	private fun drawPrivate(g: APGraphics, mx: Int, my: Int) {
+	override fun updateMouseOrTouch(g: APGraphics, mx: Int, my: Int) {
+		g.setIdentity()
+		g.ortho(_zoomedRect)
+		highlightedCell = null
+		highlightedResult = null
+		mouseV.set(g.screenToViewport(mx, my))
+	}
+
+	private fun drawPrivate(g: AGraphics) {
 
 		g.setIdentity()
 		g.ortho(_zoomedRect)
-		if (touchOrMouseSupported) {
-			highlightedCell = null
-			highlightedResult = null
-			mouseV.set(g.screenToViewport(mx, my))
-		}
 		quest?.let {
 			if (drawTiles && tiles.isEmpty() && it.tiles.isNotEmpty()) {
 				tiles = it.tiles
@@ -1337,7 +1340,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 			g.drawCircle(boardCenter, .25f)
 		}
 
-		highlightedResult = pickableRects.firstOrNull { it.contains(mouseV) } ?: pickableRects.firstOrNull()
+		highlightedResult = pickableRects.firstOrNull { it.contains(mouseV) } //?: pickableRects.firstOrNull()
 		pickableRects.firstOrNull()?.let {
 			g.color = GColor.TRANSLUSCENT_BLACK
 			it.parent?.menuRect?.drawFilled(g)
@@ -1360,22 +1363,18 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 			redraw()
 		} else {
 			drawMiniMap(g)
-			animDoneContinue?.resume(null)
+			animLock.releaseAll()
 		}
 	}
 
-	private var animDoneContinue: Continuation<Any?>? = null
+	private val animLock = KLock()
+	//private var animDoneContinue: Continuation<Any?>? = null
 
 	suspend fun waitForAnimations(maxWaitSecs: Int = 4) {
 		val t = System.currentTimeMillis()
 		log.debug("waitForAnimations start $t")
 		redraw()
-		withTimeoutOrNull(maxWaitSecs * 1000L) {
-			suspendCoroutine {
-				animDoneContinue = it
-			}
-		}
-		animDoneContinue = null
+		animLock.acquireAndBlock(4000)
 		val done = System.currentTimeMillis() - t
 		log.debug("waitForAnimations done after $done millis")
 	}
@@ -1386,7 +1385,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 
 	fun drawPath(g: AGraphics, actor: ZActor, path: List<ZDir>) {
 		g.begin()
-		val start: Vector2D = actor.getRect().center
+		val start = actor.getRect().center
 		var curCell = actor.occupiedCell
 		g.vertex(start)
 		val next = MutableVector2D(start)
@@ -1620,11 +1619,21 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 	val borderThickness: Float
 		get() = 5f
 
+	fun hideOrSetOverlay(obj: Any?) {
+		if (overlayToDraw != null) {
+			overlayToDraw = null
+		} else if (obj != null) {
+			setOverlay(obj)
+		}
+		redraw()
+	}
+
 	fun setOverlay(obj: Any?) {
 		overlayToDraw = when (obj) {
 			null,
 			is AImage,
 			is Table -> obj
+
 			is ZPlayerName -> obj.cardImageId
 			is ZAnimation -> {
 				addOverlay(obj)
@@ -1703,10 +1712,6 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		return rect
 	}
 
-	override fun onTouch(x: Int, y: Int) {
-		overlayToDraw = null
-	}
-
 	override fun onDragStart(x: Int, y: Int) {
 		R.setOrtho(_zoomedRect)
 		dragStartV = R.untransform(x.toFloat(), y.toFloat())
@@ -1753,6 +1758,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 	}
 
 	override fun onFocusChanged(focussed: Boolean) {
+		log.debug("onFocusChanged $focussed")
 		isFocussed = focussed
 		if (!isFocussed) {
 			setHighlightActor(null)
@@ -1818,6 +1824,8 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 					}?.let {
 						mouseV.set(it.center)
 					} ?: return false
+				} ?: run {
+					highlightedResult = pickableRects.firstOrNull()
 				}
 			}
 
