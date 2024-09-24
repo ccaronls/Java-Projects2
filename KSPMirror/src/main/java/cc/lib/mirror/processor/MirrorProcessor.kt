@@ -37,6 +37,8 @@ class MirrorProcessor(
 		return symbol + "Impl"
 	}
 
+	fun KSType.isMirroredOrStructure() = isMirrored() || isList() || isMap()
+
 	fun KSPropertyDeclaration.getName(): String = simpleName.asString()
 
 //	fun KSPropertyDeclaration.getDirtyName(): String = "_${simpleName.asString()}DirtyFlag"
@@ -44,8 +46,9 @@ class MirrorProcessor(
 	inner class Visitor(private val file: OutputStream) : KSVisitorVoid() {
 
 		override fun visitClassDeclaration(classDeclaration: KSClassDeclaration, data: Unit) {
-			logger.warn("class declaration: $classDeclaration : ${
-				classDeclaration.superTypes.map {
+			logger.warn(
+				"class declaration: $classDeclaration : ${
+					classDeclaration.superTypes.map {
 					it.resolve().toString()
 				}.joinToString()
 			}")
@@ -75,38 +78,8 @@ class MirrorProcessor(
 			// Getting the list of member properties of the annotated interface.
 			val properties: Sequence<KSPropertyDeclaration> = classDeclaration.getDeclaredProperties()
 				.filter { it.validate() }
-			/*
-						val methods = classDeclaration.getAllFunctions().filter { decl ->
-							decl.annotations.firstOrNull { it.shortName.asString() == "MirroredFunction" } != null && decl.validate()
-						}.toList()
 
-						methods.forEach { funcDecl ->
-							if (!funcDecl.modifiers.contains(Modifier.SUSPEND)) {
-								throw Exception("Function $funcDecl must have suspend modifier")
-							}
-
-							val rt = funcDecl.returnType?.resolve()!!
-							if (!rt.isUnit() && !rt.isMarkedNullable) {
-								throw Exception("Function $funcDecl must have Unit or nullable return type")
-							}
-
-							funcDecl.parameters.forEach {
-								with(it.type.resolve()) {
-									if (isMirrored() && !isMarkedNullable) {
-										throw Exception("Mirrored function params must be nullable")
-									}
-								}
-							}
-						}
-
-						val filteredMethods = methods.map {
-							it to Pair(it.parameters.map {
-								Pair(it.name!!, it.type.resolve())
-							}.toList(), it.returnType!!.resolve())
-						}.toMap()
-			*/
 			val mapped = properties.map { Pair(it, it.type.resolve()) }.toMap()
-
 			var indent = ""
 
 			fun StringBuffer.appendLn(txt: String) {
@@ -251,7 +224,7 @@ class MirrorProcessor(
 							DirtyType.ANY -> appendLn("if (!dirtyOnly || $dirtyFlagFieldName)")
 							DirtyType.COMPLEX -> appendLn("if (!dirtyOnly || $dirtyFlagFieldName.get($index))")
 						}
-						if (propType.isMirrored() || propType.isList() || propType.isMap()) {
+						if (propType.isMirroredOrStructure()) {
 							appendLn("{   writer.name(\"$nm\")")
 							appendLn("   ($nm as Mirrored).toGson(writer, dirtyOnly)")
 							appendLn("}")
@@ -343,7 +316,6 @@ class MirrorProcessor(
 						appendLn("($nm as MirroredArray).toString(buffer, \"\$indent\$INDENT\")")
 					} else if (propType.isMirrored()) {
 						appendLn("buffer.append(indent).append(\"$nm:\")")
-						//appendLn("if ($nm == null) buffer.append(\"null\")")
 						appendLn("$nm?.let {")
 						appendLn("   buffer.append(\"{\\n\")")
 						appendLn("   it.toString(buffer, \"\$indent\$INDENT\")")
@@ -362,11 +334,13 @@ class MirrorProcessor(
 					DirtyType.ANY -> {
 						appendLn("$dirtyFlagFieldName = false")
 					}
+
 					DirtyType.COMPLEX -> {
 						appendLn("$dirtyFlagFieldName.clear()")
 					}
 				}
-				mapped.filter { it.value.isMirrored() || it.value.isList() }.keys.forEach {
+
+				mapped.filter { it.value.isMirroredOrStructure() }.keys.forEach {
 					appendLn("(${it.getName()} as Mirrored?)?.markClean()")
 				}
 			}.toString()
@@ -377,7 +351,7 @@ class MirrorProcessor(
 					DirtyType.NEVER -> appendLn("return false")
 					DirtyType.ANY -> {
 						appendLn("if ($dirtyFlagFieldName) return true")
-						mapped.filter { it.value.isMirrored() || it.value.isList() }.keys.map {
+						mapped.filter { it.value.isMirroredOrStructure() }.keys.map {
 							appendLn("if ((${it.getName()} as Mirrored?)?.isDirty() == true)")
 							appendLn("   $dirtyFlagFieldName = true")
 						}
@@ -409,7 +383,7 @@ class MirrorProcessor(
 				indent = i
 				mapped.forEach {
 					val name = it.key.getName()
-					if (it.value.isList() || it.value.isMirrored() || it.value.isMap() || it.value.isArray()) {
+					if (it.value.isMirroredOrStructure() || it.value.isArray()) {
 						appendLn("if (!isContentsEquals($name as Mirrored?, other.$name)) return false")
 					} else {
 						appendLn("if ($name != other.$name) return false")

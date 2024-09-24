@@ -29,7 +29,7 @@ class MirroredList<T>(list: List<T>, type: Class<T>) : MirroredStructure<T>(type
 
 	private var list = list.toMutableList()
 	private val dirty = mutableListOf<Boolean>()
-	private var sizeChanged = false
+	private var sizeChanged = list.isNotEmpty()
 
 	init {
 		repeat(list.size) {

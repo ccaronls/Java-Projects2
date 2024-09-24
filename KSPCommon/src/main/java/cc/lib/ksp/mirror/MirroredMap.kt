@@ -17,7 +17,7 @@ inline fun <reified K, reified V> Map<K, V>.toMirroredMap(): MirroredMap<K, V> {
 class MirroredMap<K, V>(map: Map<K, V>, keyType: Class<K>, valueType: Class<V>) : Mirrored, MutableMap<K, V> {
 
 	private val map = map.toMutableMap()
-	private var sizeChanged = false
+	private var sizeChanged = map.isNotEmpty()
 	private val changedKeys = map.keys.toMutableSet()
 	private val keyStructure = object : MirroredStructure<K>(keyType) {}
 	private val valueStructure = object : MirroredStructure<V>(valueType) {}
@@ -68,7 +68,7 @@ class MirroredMap<K, V>(map: Map<K, V>, keyType: Class<K>, valueType: Class<V>) 
 	override fun toGson(writer: JsonWriter, dirtyOnly: Boolean) {
 		writer.beginObject()
 		if (!dirtyOnly || isDirty()) {
-			writer.name("sizeChanged").value(sizeChanged)
+			writer.name("sizeChanged").value(sizeChanged || !dirtyOnly)
 			val keys = if (dirtyOnly && !sizeChanged) changedKeys else map.keys
 			writer.name("values")
 			writer.beginArray()

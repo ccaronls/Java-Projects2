@@ -243,7 +243,7 @@ class MirrorTest {
 		val arr = arrayOf(4, 8, 10).toMirroredArray()
 		arr.toGson(gson.newJsonWriter(writer), false)
 		println(writer.buffer)
-		assertFalse(arr.isDirty())
+		assertTrue(arr.isDirty())
 		val arr2 = arrayOf<Int>().toMirroredArray()
 		arr2.fromGson(gson.newJsonReader(StringReader(writer.buffer.toString())))
 		assertTrue(arr.contentEquals(arr2))
@@ -262,7 +262,7 @@ class MirrorTest {
 		val arr = arrayOf("hello", "goodbye", "solong").toMirroredArray()
 		arr.toGson(gson.newJsonWriter(writer), false)
 		println(writer.buffer)
-		assertFalse(arr.isDirty())
+		assertTrue(arr.isDirty())
 		val arr2 = arrayOf<String>().toMirroredArray()
 		arr2.fromGson(gson.newJsonReader(StringReader(writer.buffer.toString())))
 		assertTrue(arr.contentEquals(arr2))
@@ -281,7 +281,7 @@ class MirrorTest {
 		val arr = arrayOf(RED, GREEN, BLUE).toMirroredArray()
 		arr.toGson(gson.newJsonWriter(writer), false)
 		println(writer.buffer)
-		assertFalse(arr.isDirty())
+		assertTrue(arr.isDirty())
 		val arr2 = arrayOf<Mirrored>().toMirroredArray()
 		arr2.fromGson(gson.newJsonReader(StringReader(writer.buffer.toString())))
 		assertTrue(arr.contentEquals(arr2))
@@ -366,7 +366,7 @@ class MirrorTest {
 		val list = listOf(5, 6, 7)
 		val mirroredList = list.toMirroredList()
 
-		assertFalse(mirroredList.isDirty())
+		assertTrue(mirroredList.isDirty())
 		assertTrue(mirroredList is MirroredList)
 		assertTrue(mirroredList.contentEquals(list))
 		mirroredList.toGson(gson.newJsonWriter(writer), false)
@@ -406,10 +406,12 @@ class MirrorTest {
 
 	@Test
 	fun `test enum list`() {
+		assertFalse(listOf<TempEnum>().toMirroredList().isDirty())
+
 		val list = listOf(TempEnum.TWO, null, null)
 		val mirroredList = list.toMirroredList()
 
-		assertFalse(mirroredList.isDirty())
+		assertTrue(mirroredList.isDirty())
 		assertTrue(mirroredList is MirroredList)
 		assertTrue(mirroredList.contentEquals(list))
 		mirroredList.toGson(gson.newJsonWriter(writer), false)
@@ -459,7 +461,7 @@ class MirrorTest {
 		assertEquals(tMap["B"], 54)
 		assertEquals(tMap["C"], 99)
 		assertTrue(tMap.contentEquals(map))
-		assertFalse(tMap.isDirty())
+		assertTrue(tMap.isDirty())
 		tMap["B"] = 1
 		assertTrue(tMap.isDirty())
 		println(tMap.asString())
