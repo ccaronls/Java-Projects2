@@ -7,8 +7,6 @@ import cc.lib.game.Justify
 import cc.lib.game.Utils
 import cc.lib.reflector.Omit
 import cc.lib.utils.allMaxOf
-import cc.lib.utils.allMinOf
-import cc.lib.utils.transform
 
 open class ZZombie(override val type: ZZombieType = ZZombieType.Walker, val startZone: Int = -1) : ZActor(startZone) {
 	companion object {
@@ -108,23 +106,27 @@ open class ZZombie(override val type: ZZombieType = ZZombieType.Walker, val star
 
 	override fun onBeginRound(game: ZGame) {
 		super.onBeginRound(game)
+		targetZone = null
 		if (type == ZZombieType.Ratz) {
 			actionsLeftThisTurn = 1 + game.board.getAllZombies().count { it.type == ZZombieType.Ratz }
 		}
 	}
 
 	@Omit
-	var escapeZone: ZSpawnArea? = null
+	private var targetZone: ZZone? = null
+
+	fun getTargetZone(board: ZBoard): ZZone? {
+		return targetZone ?: findTargetZone(board)?.also {
+			targetZone = it
+		}
+	}
 
 	override val isAlive: Boolean
 		get() = !destroyed
 
-	override val drawPathsOnHighlight: Boolean
-		get() = type.isNecromancer
-
 	open fun isEscaping(board: ZBoard): Boolean = false
 
-	open fun findTargetZone(board: ZBoard): ZZone? {
+	protected open fun findTargetZone(board: ZBoard): ZZone? {
 		return board.getAllCharacters().filter {
 			it.isVisible && board.canSee(occupiedZone, it.occupiedZone)
 		}.takeIf {
@@ -135,12 +137,8 @@ open class ZZombie(override val type: ZZombieType = ZZombieType.Walker, val star
 			it.noiseLevel
 		}?.random() ?: board.getMaxNoiseLevelZones().takeIf {
 			it.isNotEmpty()
-		}?.allMinOf {
-			board.getShortestPath(this, it.zoneIndex).size
-		}?.random() ?: board.getAccessibleZones(this, 1, 1, ZActionType.MOVE).takeIf {
-			it.isNotEmpty()
-		}?.random()?.transform {
-			board.getZone(it)
-		}
+		}?.filter {
+			board.isZoneReachable(this, it.zoneIndex)
+		}?.randomOrNull()
 	}
 }

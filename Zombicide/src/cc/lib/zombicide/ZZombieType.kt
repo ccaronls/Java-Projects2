@@ -352,9 +352,7 @@ enum class ZZombieType(
 				charge toward any survivors they see, smashing them 
 				to a pulp.
 			""".trimIndent()
-	) {
-		override fun spawn(zone: Int): ZZombie = ZOgre(zone)
-	}
+	)
 	;
 
 	val scale: Float
@@ -377,7 +375,14 @@ enum class ZZombieType(
 
 	open fun isDamagedBy(weaponType: ZWeaponType): Boolean = true
 
-	open fun spawn(zone: Int): ZZombie = ZZombie(this, zone)
+	fun spawn(zone: Int): ZZombie {
+		return when (this) {
+			Ogre -> ZOgre(zone)
+			else -> if (category == ZZombieCategory.NECROMANCER) {
+				ZNecromancer(this, zone)
+			} else ZZombie(this, zone)
+		}
+	}
 
 	val isNecromancer: Boolean
 		get() = targetingPriority == PRIORITY_NECROMANCER

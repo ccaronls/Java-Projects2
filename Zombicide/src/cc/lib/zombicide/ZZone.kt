@@ -90,7 +90,7 @@ class ZZone(val zoneIndex: Int = -1) : UIZButton() {
 
 	fun Pos.toRectangle(): GRectangle = GRectangle(column.toFloat(), row.toFloat(), 1f, 1f)
 
-	override fun getRect(): IRectangle = cells.firstOrNull()?.toRectangle() ?: GRectangle()
+	override fun getRect(): IRectangle = tiles.enclosingRect()
 
 	fun getRandomPointInside(factor: Float = 1f): IVector2D {
 		return cells.map {
@@ -113,5 +113,11 @@ class ZZone(val zoneIndex: Int = -1) : UIZButton() {
 
 	override fun getCenter(): IVector2D {
 		return tiles.center
+	}
+
+	fun getEscapeSpawnArea(board: ZBoard): ZSpawnArea? {
+		return cells.map {
+			board.getCell(it).spawnAreas
+		}.flatten().firstOrNull { it.isEscapableForNecromancers }
 	}
 }

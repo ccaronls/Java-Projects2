@@ -50,7 +50,7 @@ enum class MenuItem : IButton {
 	DEBUG_MENU;
 
 	fun isHomeButton(instance: ZombicideActivity): Boolean = when (this) {
-		NEW_GAME, LOAD, CHANGE_NAME -> true
+		NEW_GAME, LOAD, CHANGE_NAME, SUMMARY, OBJECTIVES -> true
 		JOIN_GAME -> instance.server?.isRunning != true
 		CONNECTIONS -> instance.server?.isConnected == true
 		DISCONNECT -> instance.server?.isRunning == true || instance.client != null

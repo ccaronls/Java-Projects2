@@ -45,7 +45,6 @@ import cc.lib.zombicide.ZSpawnArea
 import cc.lib.zombicide.ZTile
 import cc.lib.zombicide.ZWallFlag
 import cc.lib.zombicide.ZZombie
-import cc.lib.zombicide.ZZombieType
 import cc.lib.zombicide.ZZoneType
 import cc.lib.zombicide.anims.OverlayTextAnimation
 import cc.lib.zombicide.anims.ZoomAnimation
@@ -540,10 +539,13 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 			}
 		}
 
-		picked?.takeIf { !it.isAnimating }?.let {
-			drawActor(it) // draw the highlighted actor over the top to see its stats
-			if ((it as? ZZombie)?.type?.isNecromancer == true) {
-				drawPath(g, it, board.getZombiePathTowardNearestSpawn(it))
+		picked?.takeIf { !it.isAnimating }?.let { actor ->
+			drawActor(actor) // draw the highlighted actor over the top to see its stats
+			(actor as? ZZombie)?.let { zombie ->
+				zombie.getTargetZone(board)?.let {
+					g.color = GColor.YELLOW
+					drawPath(g, zombie, board.getShortestPath(zombie, it.zoneIndex))
+				}
 			}
 		}
 
@@ -710,10 +712,10 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 				}
 				for (area in cell.spawnAreas) {
 					with (drawSpawn(g, cell, area)) {
-						board.getAllZombies().firstOrNull { it.escapeZone == area }?.let {
-							g.color = GColor.RED
-							g.drawRect(this, 2f)
-						}
+						//board.getAllZombies().firstOrNull { it.escapeZone == area }?.let {
+						//	g.color = GColor.RED
+						//	g.drawRect(this, 2f)
+						//}
 					}
 				}
 				if (zone.isDragonBile) {
@@ -1297,27 +1299,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 			}
 		drawActors(g)
 		val highlightedActor = highlightedResult as? ZActor?
-		if (drawZombiePaths || highlightedActor?.drawPathsOnHighlight == true) {
-			highlightedActor?.let {
-				if (it is ZZombie) {
-					val path = when (it.type) {
-						ZZombieType.Necromancer -> board.getZombiePathTowardNearestSpawn(it)
-						else -> board.getZombiePathTowardVisibleCharactersOrLoudestZone(it)
-					}
-					g.color = GColor.YELLOW
-					drawPath(g, it, path)
-				} else if (highlightedActor is ZCharacter) {
-					val visibleZones = board.getAccessibleZones(it, 0, 4, ZActionType.RANGED)
-					for (zoneIdx in visibleZones) {
-						val zone = board.getZone(zoneIdx)
-						g.color = GColor.YELLOW
-						val lw = g.setLineWidth(2f)
-						zone.drawOutlined(g)
-						g.setLineWidth(lw)
-					}
-				}
-			}
-		}
+
 		highlightedActor?.let { actor ->
 			if (drawRangedAccessibility) {
 				g.color = GColor.BLUE.withAlpha(.5f)

@@ -440,16 +440,20 @@ class Table(var model: Model = object : Model {}) : ITableItem, IButton {
 		g.pushMatrix()
 		g.translate(x, y)
 		when (horz) {
+			null,
 			Justify.LEFT -> Unit
-			Justify.CENTER -> g.translate(-dim.getWidth() / 2, 0f)
-			Justify.RIGHT -> g.translate(-dim.getWidth(), 0f)
+
+			Justify.CENTER -> g.translate(-dim.width / 2, 0f)
+			Justify.RIGHT -> g.translate(-dim.width, 0f)
 			else -> error("Unhandled case $horz")
 		}
 		when (vert) {
-			Justify.LEFT -> Unit
-			Justify.CENTER -> g.translate(0f, -dim.getHeight() / 2)
-			Justify.BOTTOM -> g.translate(0f, -dim.getHeight())
-			else -> error("Unhandled case $horz")
+			null,
+			Justify.TOP -> Unit
+
+			Justify.CENTER -> g.translate(0f, -dim.height / 2)
+			Justify.BOTTOM -> g.translate(0f, -dim.height)
+			else -> error("Unhandled case $vert")
 		}
 		draw(g)
 		g.popMatrix()

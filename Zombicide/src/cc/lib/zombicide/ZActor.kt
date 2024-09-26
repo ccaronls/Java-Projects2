@@ -33,8 +33,6 @@ abstract class ZActor internal constructor(var occupiedZone: Int) : UIZButton() 
 	@Omit
 	val animations = LinkedList<ZActorAnimation>()
 
-	open val drawPathsOnHighlight = false
-
 	private var id: String? = null
 
 	fun stopAnimating() {

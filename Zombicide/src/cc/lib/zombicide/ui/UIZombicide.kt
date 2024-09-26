@@ -725,29 +725,31 @@ abstract class UIZombicide(
 	}
 
 	private suspend fun animateNecromancerEscapeRoute(necro: ZZombie) {
-		board.getZombiePathTowardNearestSpawn(necro).takeIf { it.isNotEmpty() }?.let { path ->
-			necro.escapeZone?.let { escapeZone ->
-				boardRenderer.pushZoomRect()
-				val rect = GRectangle(necro.getRect())
-				path.forEach {
-					rect.addEq(it.dv, 1f, 1f)
-				}
-				rect.addEq(board.getCell(escapeZone.cellPos))
-				boardRenderer.animateZoomTo(rect)
-				boardRenderer.waitForAnimations()
-				boardRenderer.addPostActor(object : ZAnimation(500, 6, true) {
-					override fun draw(g: AGraphics, position: Float, dt: Float) {
-						g.color = GColor.YELLOW.withAlpha(position)
-						boardRenderer.drawPath(g, necro, path)
-						g.pushMatrix()
-						g.scale(1.1f + position * .1f)
-						escapeZone.drawOutlined(g)
-						g.popMatrix()
-					}
-				})
-				boardRenderer.waitForAnimations()
-				boardRenderer.popZoomRect()
+		necro.getTargetZone(board)?.let { escapeZone ->
+			val path = board.getShortestPath(necro, escapeZone.zoneIndex)
+			boardRenderer.pushZoomRect()
+			val rect = GRectangle(necro.getRect())
+			path.forEach {
+				rect.addEq(it.dv, 1f, 1f)
 			}
+			rect.addEq(escapeZone.getRect())
+			boardRenderer.animateZoomTo(rect)
+			boardRenderer.waitForAnimations()
+			boardRenderer.addPostActor(object : ZAnimation(500, 6, true) {
+				override fun draw(g: AGraphics, position: Float, dt: Float) {
+					g.color = GColor.YELLOW.withAlpha(position)
+					boardRenderer.drawPath(g, necro, path)
+					g.pushMatrix()
+					g.scale(1.1f + position * .1f)
+					escapeZone
+						.getEscapeSpawnArea(board)
+						?.drawOutlined(g)
+						?: escapeZone.drawOutlined(g)
+					g.popMatrix()
+				}
+			})
+			boardRenderer.waitForAnimations()
+			boardRenderer.popZoomRect()
 		}
 	}
 

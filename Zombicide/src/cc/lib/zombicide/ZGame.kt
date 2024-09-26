@@ -1088,9 +1088,9 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 				}
 
 				val path = pathMap.getOrPut(zombie) {
-					zombie.findTargetZone(board)?.let {
+					zombie.getTargetZone(board)?.let {
 						board.getShortestPath(zombie, it.zoneIndex).toMutableList()
-					} ?: ArrayList()
+					} ?: mutableListOf(ZDir.entries.filter { board.canMove(zombie, it) }.random())
 				}
 
 				if (path.isEmpty()) {

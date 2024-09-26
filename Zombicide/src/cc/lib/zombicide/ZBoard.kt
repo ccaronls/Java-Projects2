@@ -272,7 +272,7 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 			}
 		}
 		canSeeCache!![fromZone][toZone] = canSee
-		return false
+		return canSee
 	}
 
 	fun canSeeCell(fromCell: Pos, toCell: Pos): Boolean {
@@ -290,10 +290,13 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 			if (!cell.getWallFlag(dir).lineOfSight) {
 				return false
 			}
-            fromCell = getAdjacent(fromCell, dir)
-        }
-        return true
-    }
+			fromCell = getAdjacent(fromCell, dir)
+		}
+		return true
+	}
+
+	@Omit
+	private val shortestPathCache = mutableMapOf<Pos, MutableMap<Int, List<List<ZDir>>>>()
 
 	/**
 	 * Returns a list of directions the zombie can move
@@ -309,16 +312,22 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 	): List<ZDir> {
 		val fromPos = actor.occupiedCell
 		if (grid[fromPos].zoneIndex == toZoneIndex) return emptyList()
-		val allPaths: MutableList<List<ZDir>> = ArrayList()
-		var maxDist = (grid.rows + grid.cols)
-		val visited: MutableSet<Pos> = HashSet()
-		getShortestPathOptions(actor, fromPos, getZone(toZoneIndex), visited, maxDist).also { paths ->
-			for (l in paths) {
-				maxDist = maxDist.coerceAtMost(l.size)
+		val allPaths = shortestPathCache.getOrPut(fromPos) {
+			mutableMapOf()
+		}.getOrPut(toZoneIndex) {
+			val allPaths: MutableList<List<ZDir>> = ArrayList()
+			var maxDist = (grid.rows + grid.cols)
+			val visited: MutableSet<Pos> = HashSet()
+			getShortestPathOptions(actor, fromPos, getZone(toZoneIndex), visited, maxDist).also { paths ->
+				for (l in paths) {
+					maxDist = maxDist.coerceAtMost(l.size)
+				}
+				allPaths.addAll(paths)
 			}
-			allPaths.addAll(paths)
+			allPaths.removeIf { it.size > maxDist }
+			allPaths
 		}
-		allPaths.removeIf { it.size > maxDist }
+
 		return when (allPaths.size) {
 			0 -> emptyList()
 			1 -> allPaths.first()
@@ -329,6 +338,13 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 			}
 		}
 	}
+
+	fun getShortestPathOrNull(
+		actor: ZActor,
+		toZoneIndex: Int
+	): List<ZDir>? = getShortestPath(actor, toZoneIndex).takeIf { it.isNotEmpty() }
+
+	fun isZoneReachable(actor: ZActor, targetZone: Int): Boolean = getShortestPathOrNull(actor, targetZone) != null
 
 	private fun getShortestPathOptions(
 		actor: ZActor,
@@ -482,6 +498,7 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 	fun clearCaches() {
 		maxNoiseLevelZoneCache.clear()
 		canSeeCache = null
+		shortestPathCache.clear()
 	}
 
 	@Omit
@@ -829,46 +846,6 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 				return false
 		}
 		return true
-	}
-
-	fun getZombiePathTowardNearestSpawn(zombie: ZZombie): List<ZDir> {
-		val pathsMap: MutableMap<Int, List<ZDir>> = HashMap()
-		var shortestPath: Int? = null
-		zones.filter { z: ZZone ->
-			zombie.startZone != z.zoneIndex && isZoneEscapableForNecromancers(
-				z.zoneIndex
-			)
-		}.forEach { zone ->
-			val path: List<ZDir> =
-				getShortestPath(zombie, zone.zoneIndex)
-			if (path.isNotEmpty()) {
-				pathsMap[zone.zoneIndex] = path
-				if (shortestPath == null || path.size < pathsMap[shortestPath]!!.size) {
-					shortestPath = zone.zoneIndex
-				}
-			}
-		}
-		return shortestPath?.let { zoneIdx ->
-			pathsMap[zoneIdx]?.also { list ->
-				getZone(zoneIdx).getCells().forEach {
-					zombie.escapeZone =
-						getCell(it).spawnAreas.firstOrNull { it.isEscapableForNecromancers }
-				}
-			} ?: emptyList()
-		} ?: emptyList()
-	}
-
-	fun getZombiePathTowardVisibleCharactersOrLoudestZone(zombie: ZZombie): List<ZDir> {
-		// zombie will move toward players it can see first and then noisy areas second
-		return getAllCharacters().filter { ch: ZCharacter ->
-			!ch.isInvisible && ch.isAlive && canSee(zombie.occupiedZone, ch.occupiedZone)
-		}.maxByOrNull {
-			getZone(it.occupiedZone).noiseLevel
-		}?.let {
-			getShortestPath(zombie, it.occupiedZone)
-		} ?: getMaxNoiseLevelZones().map {
-			getShortestPath(zombie, it.zoneIndex)
-		}.minBy { it.size }
 	}
 
 	// return the center of all players, or the center of the start tile, or just the center
