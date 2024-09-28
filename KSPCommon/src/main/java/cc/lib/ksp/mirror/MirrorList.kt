@@ -14,14 +14,6 @@ inline fun <reified T> Array<T>.toMirroredList(): MirroredList<T> {
 	return MirroredList(toMutableList(), T::class.java)
 }
 
-fun <T> MutableList<T>.insertOrAdd(idx: Int, element: T) {
-	if (idx == size) {
-		add(element)
-	} else {
-		set(idx, element)
-	}
-}
-
 /**
  * Created by Chris Caron on 11/15/23.
  */
@@ -84,7 +76,7 @@ class MirroredList<T>(list: List<T>, type: Class<T>) : MirroredStructure<T>(type
 
 	}
 
-	fun fromGson(reader: JsonReader) {
+	override fun fromGson(reader: JsonReader) {
 		reader.beginObject()
 		val indices = mutableListOf<Int>()
 		while (reader.hasNext()) {
@@ -92,6 +84,7 @@ class MirroredList<T>(list: List<T>, type: Class<T>) : MirroredStructure<T>(type
 				"size" -> if (reader.nextInt() != size) {
 					clear()
 				}
+
 				"indices" -> {
 					reader.beginArray()
 					while (reader.hasNext()) {

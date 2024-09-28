@@ -38,4 +38,6 @@ interface Mirrored {
 	}.toString()
 
 	fun contentEquals(other: Any?): Boolean
+
+	fun isImmutable(): Boolean = false
 }

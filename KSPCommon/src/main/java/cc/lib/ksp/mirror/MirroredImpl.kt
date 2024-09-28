@@ -78,12 +78,16 @@ abstract class MirroredImpl : Mirrored {
 			reader.nextName("type")
 			val clazz = reader.nextString()
 			reader.nextName("values")
-			reader.beginObject()
 			val obj = _obj ?: getClassForName(clazz).newInstance() as T
-			while (reader.hasNext()) {
-				obj.fromGson(reader, reader.nextName())
+			if (obj is MirroredStructure<*>) {
+				obj.fromGson(reader)
+			} else {
+				reader.beginObject()
+				while (reader.hasNext()) {
+					obj.fromGson(reader, reader.nextName())
+				}
+				reader.endObject()
 			}
-			reader.endObject()
 			reader.endObject()
 			return obj
 		}
@@ -95,9 +99,13 @@ abstract class MirroredImpl : Mirrored {
 				writer.beginObject()
 				writer.name("type").value(getCanonicalName(obj.javaClass))
 				writer.name("values")
-				writer.beginObject()
-				obj.toGson(writer, dirtyOnly)
-				writer.endObject()
+				if (obj is MirroredStructure<*>) {
+					obj.toGson(writer, dirtyOnly)
+				} else {
+					writer.beginObject()
+					obj.toGson(writer, dirtyOnly)
+					writer.endObject()
+				}
 				writer.endObject()
 			}
 		}

@@ -7,7 +7,7 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 
-open class MirroredStructure<T>(protected val type: Class<T>) {
+abstract class MirroredStructure<T>(protected val type: Class<T>) {
 	fun readValue(reader: JsonReader, defaultValue: T?): T? {
 		return when (reader.peek()) {
 			JsonToken.STRING -> {
@@ -109,5 +109,8 @@ open class MirroredStructure<T>(protected val type: Class<T>) {
 		return list
 	}
 
+	open fun fromGson(reader: JsonReader) {
+		TODO()
+	}
 }
 

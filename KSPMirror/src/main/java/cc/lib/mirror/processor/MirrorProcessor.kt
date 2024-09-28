@@ -49,18 +49,23 @@ class MirrorProcessor(
 			logger.warn(
 				"class declaration: $classDeclaration : ${
 					classDeclaration.superTypes.map {
-					it.resolve().toString()
-				}.joinToString()
-			}")
+						it.resolve().toString()
+					}.joinToString()
+				}"
+			)
 			if (classDeclaration.classKind != ClassKind.INTERFACE) {
-				throw Exception("Invalid $classDeclaration, Only interface can be annotated with @Mirror")
+				throw Exception("$classDeclaration must be an interface")
+			}
+
+			if (classDeclaration.typeParameters.isNotEmpty()) {
+				throw Exception("$classDeclaration cannot have template parameters")
 			}
 
 			logger.warn("$classDeclaration subClasses: ${classDeclaration.superTypes.map { it.resolve() }.joinToString()}")
 
 			val baseMirrorClass: KSType = classDeclaration.superTypes.firstOrNull { it.resolve().isMirrored() }?.resolve()
 				?: run {
-					throw Exception("Must have cc.lib.mirror.context.Mirrored as a supertype $classDeclaration")
+					throw Exception("$classDeclaration must have cc.lib.mirror.context.Mirrored as one if its supertypes")
 				}
 
 			val baseDeclaration = getClassFileName(baseMirrorClass.toString())
@@ -117,11 +122,12 @@ class MirrorProcessor(
 				when (dirtyType) {
 					DirtyType.NEVER -> Unit
 					DirtyType.COMPLEX -> it.appendLn("private val $dirtyFlagFieldName = java.util.BitSet(${mapped.size})")
-					DirtyType.ANY -> it.append("private var $dirtyFlagFieldName = false")
+					DirtyType.ANY -> it.appendLn("private var $dirtyFlagFieldName = false")
 				}
 				mapped.toList().forEachIndexed { index, pair ->
 					val prop = pair.first
 					val type = pair.second
+					val nullable = if (type.nullability == Nullability.NULLABLE) "?" else ""
 					val name = prop.getName()
 					if (type.isArray()) {
 						throw Exception("standard Arrays not supported. Use MirroredArray")
@@ -132,14 +138,14 @@ class MirrorProcessor(
 							DirtyType.COMPLEX -> {
 								it.appendLn("   set(value) {")
 								it.appendLn("      if (value != field) $dirtyFlagFieldName.set($index)")
-								it.appendLn("      field = value.toMirroredList()")
+								it.appendLn("      field = value$nullable.toMirroredList()")
 								it.appendLn("   }")
 							}
 
 							DirtyType.ANY -> {
 								it.appendLn("   set(value) {")
 								it.appendLn("      $dirtyFlagFieldName = $dirtyFlagFieldName || (value != field)")
-								it.appendLn("      field = value.toMirroredList()")
+								it.appendLn("      field = value$nullable.toMirroredList()")
 								it.appendLn("   }")
 							}
 						}
@@ -150,14 +156,14 @@ class MirrorProcessor(
 							DirtyType.COMPLEX -> {
 								it.appendLn("   set(value) {")
 								it.appendLn("      if (value != field) $dirtyFlagFieldName.set($index)")
-								it.appendLn("      field = value.toMirroredMap()")
+								it.appendLn("      field = value$nullable.toMirroredMap()")
 								it.appendLn("   }")
 							}
 
 							DirtyType.ANY -> {
 								it.appendLn("   set(value) {")
 								it.appendLn("      $dirtyFlagFieldName = $dirtyFlagFieldName || (value != field)")
-								it.appendLn("      field = value.toMirroredMap()")
+								it.appendLn("      field = value$nullable.toMirroredMap()")
 								it.appendLn("   }")
 							}
 						}

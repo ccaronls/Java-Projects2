@@ -73,7 +73,7 @@ class MirroredArray<T>(var array: Array<T>, type: Class<T>) : MirroredStructure<
 		writer.endObject()
 	}
 
-	fun fromGson(reader: JsonReader) {
+	override fun fromGson(reader: JsonReader) {
 		reader.beginObject()
 		val sz = reader.nextName("size").nextInt()
 		if (sz != size) {
@@ -130,5 +130,4 @@ class MirroredArray<T>(var array: Array<T>, type: Class<T>) : MirroredStructure<
 				.append(indent).append("\n$indent}\n")
 		}
 	}
-
 }
