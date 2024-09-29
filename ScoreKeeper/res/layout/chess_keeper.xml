@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <variable
+            name="viewModel"
+            type="cc.android.scorekeeper.ChessKeeperViewModel" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                activatedIf="@{viewModel.leftSideActive}"
+                android:background="@drawable/active_background"
+                android:onClick="@{() -> viewModel.setLeftSideActive(false)}">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:padding="20dp"
+                    android:rotation="90">
+
+                    <cc.lib.android.CCNumberPicker
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:minValue="0"
+                        app:maxValue="60"
+                        app:wrap="false"
+                        value="@={viewModel.minutesRemainingLeft}"
+                        touchableIf="@{!viewModel.running}" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:textSize="20dp"
+                        android:text=":" />
+
+                    <cc.lib.android.CCNumberPicker
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:minValue="0"
+                        app:maxValue="59"
+                        app:wrap="false"
+                        value="@={viewModel.secondsRemainingLeft}"
+                        touchableIf="@{!viewModel.running}" />
+
+                </LinearLayout>
+
+            </FrameLayout>
+
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:background="@drawable/active_background"
+                android:onClick="@{() -> viewModel.setLeftSideActive(true)}"
+                activatedIf="@{!viewModel.leftSideActive}">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:rotation="270"
+                    android:padding="20dp">
+
+                    <cc.lib.android.CCNumberPicker
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:minValue="0"
+                        app:maxValue="60"
+                        app:wrap="false"
+                        value="@={viewModel.minutesRemainingRight}"
+                        touchableIf="@{!viewModel.running}" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:textSize="20dp"
+                        android:text=":" />
+
+                    <cc.lib.android.CCNumberPicker
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:minValue="0"
+                        app:maxValue="59"
+                        app:wrap="false"
+                        value="@={viewModel.secondsRemainingRight}"
+                        touchableIf="@{!viewModel.running}" />
+
+                </LinearLayout>
+            </FrameLayout>
+
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/bScore"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            minValue="{0}"
+            maxValue="{60}"
+            android:text="Score" />
+
+        <Button
+            android:id="@+id/bPause"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:text="@{viewModel.running ? `Pause` : `Resume`}"
+            tools:text="Pause" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

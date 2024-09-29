@@ -82,8 +82,8 @@ class BlindsKeeper : CCActivityBase(), Runnable {
 		binding.bReset.setOnClickListener {
 			reset()
 		}
-		binding.bScore.setOnClickListener {
-			startActivity(Intent(this, ScoreKeeper::class.java))
+		binding.bChess.setOnClickListener {
+			startActivity(Intent(this, ChessKeeper::class.java))
 			finish()
 		}
 		if (BuildConfig.DEBUG) {

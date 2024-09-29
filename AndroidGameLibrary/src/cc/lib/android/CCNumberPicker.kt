@@ -3,6 +3,7 @@ package cc.lib.android
 import android.content.Context
 import android.os.Build
 import android.util.AttributeSet
+import android.view.MotionEvent
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.NumberPicker
@@ -11,6 +12,8 @@ import androidx.databinding.InverseBindingAdapter
 import androidx.databinding.InverseBindingListener
 
 class CCNumberPicker(context: Context, attrs: AttributeSet? = null) : NumberPicker(context, attrs) {
+
+	var touchable = true
 
 	private fun findET(V: ViewGroup): EditText? {
 		for (i in 0 until V.childCount) {
@@ -55,6 +58,12 @@ class CCNumberPicker(context: Context, attrs: AttributeSet? = null) : NumberPick
 				if (formatter == null) values[i].toString() else formatter.format(values[i])
 		}
 		displayedValues = display
+	}
+
+	override fun onTouchEvent(event: MotionEvent?): Boolean {
+		if (!touchable)
+			return false
+		return super.onTouchEvent(event)
 	}
 
 	companion object {
@@ -109,45 +118,55 @@ class CCNumberPicker(context: Context, attrs: AttributeSet? = null) : NumberPick
 			np.setOnValueChangedListener(listener)
 			return np
 		}
+
+
+		@BindingAdapter("valueAttrChanged")
+		@JvmStatic
+		fun setAttrListeners(np: CCNumberPicker, attrChange: InverseBindingListener) {
+			np.setOnValueChangedListener { picker: NumberPicker?, oldVal: Int, newVal: Int ->
+				attrChange.onChange()
+			}
+		}
+
+
 	}
+}
+
+@BindingAdapter("touchableIf")
+fun CCNumberPicker.setTouchableIf(touchable: Boolean) {
+	this.touchable = touchable
 }
 
 @BindingAdapter("minValue")
-fun setMinValue(np: NumberPicker, minValue: Int) {
-	np.minValue = minValue
+fun NumberPicker.setMinValue(minValue: Int) {
+	this.minValue = minValue
 }
 
 @BindingAdapter("maxValue")
-fun setMaxValue(np: NumberPicker, maxValue: Int) {
-	np.maxValue = maxValue
+fun NumberPicker.setMaxValue(maxValue: Int) {
+	this.maxValue = maxValue
 }
 
 @BindingAdapter("formatter")
-fun setFormatter(np: NumberPicker, formatter: NumberPicker.Formatter) {
-	val num = np.maxValue + 1 - np.minValue
+fun NumberPicker.setFormatter(formatter: NumberPicker.Formatter) {
+	val num = maxValue + 1 - minValue
 	var idx = 0
 	val values = arrayOfNulls<String>(num)
-	for (i in np.minValue..np.maxValue) {
+	for (i in minValue..maxValue) {
 		values[idx++] = formatter.format(i)
 	}
-	np.displayedValues = values
+	displayedValues = values
 	//np.setFormatter(formatter); <-- this way causes visual glitches
 }
 
 @BindingAdapter("value")
-fun setValue(np: NumberPicker, value: Int) {
-	if (np.value != value) { // break inf loops
-		np.value = value
+fun CCNumberPicker.setValue(value: Int) {
+	if (this.value != value) { // break inf loops
+		this.value = value
 	}
 }
 
 @InverseBindingAdapter(attribute = "value")
-fun getValue(np: NumberPicker): Int {
-	return np.value
+fun CCNumberPicker.getValue(): Int {
+	return value
 }
-
-@BindingAdapter("valueAttrChanged")
-fun setAttrListeners(np: NumberPicker, attrChange: InverseBindingListener) {
-	np.setOnValueChangedListener { picker: NumberPicker?, oldVal: Int, newVal: Int -> attrChange.onChange() }
-}
-

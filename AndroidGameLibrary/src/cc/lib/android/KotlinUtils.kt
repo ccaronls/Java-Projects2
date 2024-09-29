@@ -65,8 +65,10 @@ fun <IN1, IN2, IN3, OUT> combine(in1 : LiveData<IN1>, in2 : LiveData<IN2>, in3 :
 	}
 }
 
-fun MutableLiveData<Int>.increment(amt : Int) {
-	postValue((value?:0) + amt)
+fun MutableLiveData<Int>.increment(amt: Int): Int {
+	val newValue = (value ?: 0) + amt
+	postValue(newValue)
+	return newValue
 }
 
 class TransformedLiveData<IN, OUT>(data : LiveData<IN>, converter : (v : IN) -> OUT) : MediatorLiveData<OUT>() {
@@ -120,4 +122,8 @@ fun <T> MutableLiveData<T>.refresh() {
 @BindingAdapter("focusableIf")
 fun View.setFocusableIf(condition: Boolean) {
 	focusable = if (condition) View.FOCUSABLE else View.NOT_FOCUSABLE
+}
+
+fun MutableLiveData<Boolean>.toggle() {
+	value = value != true
 }

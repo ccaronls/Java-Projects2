@@ -23,14 +23,14 @@
             app:layout_constraintGuide_percent=".5" />
 
         <Button
-            android:id="@+id/bScore"
+            android:id="@+id/bChess"
             style="@style/BlindsText.Button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             android:layout_margin="10dp"
-            android:text="Score"
+            android:text="Chess"
             goneIf="@{viewModel.running}" />
 
         <Button
