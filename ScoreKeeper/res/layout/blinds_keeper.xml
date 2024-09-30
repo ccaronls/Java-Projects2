@@ -24,7 +24,7 @@
 
         <Button
             android:id="@+id/bChess"
-            style="@style/BlindsText.Button"
+            style="@style/KeeperText.Button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:layout_constraintEnd_toEndOf="parent"
@@ -34,7 +34,7 @@
             goneIf="@{viewModel.running}" />
 
         <Button
-            style="@style/BlindsText.Button"
+            style="@style/KeeperText.Button"
             android:id="@+id/bSettings"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -45,7 +45,7 @@
             goneIf="@{viewModel.running}" />
 
         <TextView
-            style="@style/BlindsText"
+            style="@style/KeeperText"
             android:id="@+id/tvTimer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -76,7 +76,7 @@
             tools:progress="30" />
 
         <TextView
-            style="@style/BlindsText"
+            style="@style/KeeperText"
             android:id="@+id/tvBlinds"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -89,26 +89,26 @@
             tools:text="100 / 50" />
 
         <ToggleButton
-            style="@style/BlindsText.Button"
+            style="@style/KeeperText.Button"
             android:id="@+id/tbPaused"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvBlinds"
-            app:layout_constraintEnd_toStartOf="@id/centerVertical"
+            app:layout_constraintStart_toStartOf="parent"
             android:checked="@={viewModel.running}"
+            android:layout_margin="10dp"
             android:textOn="Pause"
             android:textOff="Resume" />
 
         <Button
-            style="@style/BlindsText.Button"
+            style="@style/KeeperText.Button"
             android:id="@+id/bReset"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Reset"
-            app:layout_constraintStart_toEndOf="@id/centerVertical"
-            app:layout_constraintTop_toTopOf="@id/tbPaused"
-            app:layout_constraintBottom_toBottomOf="@id/tbPaused"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_margin="10dp"
             enabledIf="@{!viewModel.running}" />
 
 
