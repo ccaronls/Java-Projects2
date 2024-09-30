@@ -62,6 +62,7 @@
         <attr name="wrap" format="boolean" />
         <attr name="minValue" format="integer" />
         <attr name="maxValue" format="integer" />
+        <attr name="scale" format="float" />
     </declare-styleable>
 
     <declare-styleable name="UIComponentView">

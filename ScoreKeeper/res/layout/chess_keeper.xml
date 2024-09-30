@@ -24,14 +24,15 @@
                 android:layout_height="match_parent"
                 activatedIf="@{viewModel.leftSideActive}"
                 android:background="@drawable/active_background"
-                android:onClick="@{() -> viewModel.setLeftSideActive(false)}">
+                android:onClick="@{() -> viewModel.setLeftSideActive(false)}"
+                android:clipChildren="false">
 
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:padding="20dp"
-                    android:rotation="90">
+                    android:rotation="90"
+                    android:clipToPadding="false">
 
                     <cc.lib.android.CCNumberPicker
                         android:layout_width="wrap_content"
@@ -39,6 +40,7 @@
                         app:minValue="0"
                         app:maxValue="60"
                         app:wrap="false"
+                        app:scale="@dimen/np_scale"
                         value="@={viewModel.minutesRemainingLeft}"
                         touchableIf="@{!viewModel.running}" />
 
@@ -46,7 +48,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
-                        android:textSize="20dp"
+                        android:textSize="60dp"
+                        android:layout_marginHorizontal="60dp"
                         android:text=":" />
 
                     <cc.lib.android.CCNumberPicker
@@ -54,7 +57,8 @@
                         android:layout_height="wrap_content"
                         app:minValue="0"
                         app:maxValue="59"
-                        app:wrap="false"
+                        app:scale="@dimen/np_scale"
+                        formatter="@{viewModel.secondFormatter}"
                         value="@={viewModel.secondsRemainingLeft}"
                         touchableIf="@{!viewModel.running}" />
 
@@ -68,14 +72,15 @@
                 android:layout_height="match_parent"
                 android:background="@drawable/active_background"
                 android:onClick="@{() -> viewModel.setLeftSideActive(true)}"
-                activatedIf="@{!viewModel.leftSideActive}">
+                activatedIf="@{!viewModel.leftSideActive}"
+                android:clipChildren="false">
 
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:rotation="270"
-                    android:padding="20dp">
+                    android:clipToPadding="false">
 
                     <cc.lib.android.CCNumberPicker
                         android:layout_width="wrap_content"
@@ -83,6 +88,7 @@
                         app:minValue="0"
                         app:maxValue="60"
                         app:wrap="false"
+                        app:scale="@dimen/np_scale"
                         value="@={viewModel.minutesRemainingRight}"
                         touchableIf="@{!viewModel.running}" />
 
@@ -90,7 +96,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
-                        android:textSize="20dp"
+                        android:textSize="60dp"
+                        android:layout_marginHorizontal="60dp"
                         android:text=":" />
 
                     <cc.lib.android.CCNumberPicker
@@ -98,7 +105,8 @@
                         android:layout_height="wrap_content"
                         app:minValue="0"
                         app:maxValue="59"
-                        app:wrap="false"
+                        app:scale="@dimen/np_scale"
+                        formatter="@{viewModel.secondFormatter}"
                         value="@={viewModel.secondsRemainingRight}"
                         touchableIf="@{!viewModel.running}" />
 
@@ -127,6 +135,16 @@
             app:layout_constraintEnd_toEndOf="parent"
             android:text="@{viewModel.running ? `Pause` : `Resume`}"
             tools:text="Pause" />
+
+        <Button
+            android:id="@+id/bTimer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toTopOf="@id/bPause"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            goneIf="@{viewModel.running}"
+            android:text="Timer" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

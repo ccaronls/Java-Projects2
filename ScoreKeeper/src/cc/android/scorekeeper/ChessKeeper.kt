@@ -6,11 +6,13 @@ import android.media.SoundPool
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.widget.NumberPicker
 import androidx.activity.viewModels
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.observe
 import cc.android.scorekeeper.databinding.ChessKeeperBinding
 import cc.lib.android.CCActivityBase
+import cc.lib.android.CCNumberPicker
 import cc.lib.android.LifecycleViewModel
 import cc.lib.android.increment
 import cc.lib.android.toggle
@@ -26,8 +28,21 @@ class ChessKeeperViewModel : LifecycleViewModel() {
 	val running = MutableLiveData(false)
 	val leftSideActive = MutableLiveData(false)
 
+	val secondFormatter = NumberPicker.Formatter {
+		String.format("%02d", it)
+	}
+
 	fun setLeftSideActive(active: Boolean) {
-		leftSideActive.value = active
+		if (leftSideActive.value != active) {
+			leftSideActive.value = active
+			if (running.value == true) {
+				if (active) {
+					secondsRemainingLeft.increment(1)
+				} else {
+					secondsRemainingRight.increment(1)
+				}
+			}
+		}
 	}
 }
 
@@ -54,11 +69,14 @@ class ChessKeeper : CCActivityBase(), Runnable {
 		binding.viewModel = viewModel
 		setContentView(binding.root)
 		binding.bScore.setOnClickListener {
-			startActivity(Intent(this, ChessKeeper::class.java))
+			startActivity(Intent(this, ScoreKeeper::class.java))
 			finish()
 		}
 		binding.bPause.setOnClickListener {
 			viewModel.running.toggle()
+		}
+		binding.bTimer.setOnClickListener {
+			showTimerDialog()
 		}
 		viewModel.running.observe(this) {
 			handler.removeCallbacks(this)
@@ -126,5 +144,28 @@ class ChessKeeper : CCActivityBase(), Runnable {
 		viewModel.secondsRemainingRight.value = prefs.getInt("rss", 0)
 		viewModel.minutesRemainingRight.value = prefs.getInt("rsm", 30)
 		viewModel.leftSideActive.value = prefs.getBoolean("lsa", false)
+	}
+
+	fun showTimerDialog() {
+		val np = CCNumberPicker(this)
+		np.minValue = 1
+		np.maxValue = 60
+		np.value = prefs.getInt("timer", 10)
+		np.setFormatter {
+			"$it:00 minutes"
+		}
+		np.setOnValueChangedListener { _, _, v ->
+			prefs.edit().putInt("timer", v).apply()
+		}
+		newDialogBuilder()
+			.setTitle("Set Timer")
+			.setView(np)
+			.setNeutralButton(R.string.popup_button_cancel, null)
+			.setPositiveButton(R.string.popup_button_ok) { _, _ ->
+				viewModel.secondsRemainingLeft.value = 0
+				viewModel.secondsRemainingRight.value = 0
+				viewModel.minutesRemainingLeft.value = np.value
+				viewModel.minutesRemainingRight.value = np.value
+			}.show()
 	}
 }

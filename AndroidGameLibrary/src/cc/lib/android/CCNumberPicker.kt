@@ -37,6 +37,8 @@ class CCNumberPicker(context: Context, attrs: AttributeSet? = null) : NumberPick
 			wrapSelectorWheel = getBoolean(R.styleable.CCNumberPicker_wrap, true)
 			minValue = getInt(R.styleable.CCNumberPicker_minValue, minValue)
 			maxValue = getInt(R.styleable.CCNumberPicker_maxValue, maxValue)
+			scaleX = getFloat(R.styleable.CCNumberPicker_scale, 1f)
+			scaleY = getFloat(R.styleable.CCNumberPicker_scale, 1f)
 			recycle()
 		}
 	}
@@ -54,15 +56,14 @@ class CCNumberPicker(context: Context, attrs: AttributeSet? = null) : NumberPick
 		val display = arrayOfNulls<String>(values.size)
 		for (i in values.indices) {
 			if (startValue >= values[i]) value = i
-			display[i] =
-				if (formatter == null) values[i].toString() else formatter.format(values[i])
+			display[i] = formatter?.format(values[i]) ?: values[i].toString()
 		}
 		displayedValues = display
 	}
 
-	override fun onTouchEvent(event: MotionEvent?): Boolean {
+	override fun onTouchEvent(event: MotionEvent): Boolean {
 		if (!touchable)
-			return false
+			return true
 		return super.onTouchEvent(event)
 	}
 
@@ -118,17 +119,6 @@ class CCNumberPicker(context: Context, attrs: AttributeSet? = null) : NumberPick
 			np.setOnValueChangedListener(listener)
 			return np
 		}
-
-
-		@BindingAdapter("valueAttrChanged")
-		@JvmStatic
-		fun setAttrListeners(np: CCNumberPicker, attrChange: InverseBindingListener) {
-			np.setOnValueChangedListener { picker: NumberPicker?, oldVal: Int, newVal: Int ->
-				attrChange.onChange()
-			}
-		}
-
-
 	}
 }
 
@@ -160,13 +150,21 @@ fun NumberPicker.setFormatter(formatter: NumberPicker.Formatter) {
 }
 
 @BindingAdapter("value")
-fun CCNumberPicker.setValue(value: Int) {
+fun NumberPicker.setValue(value: Int) {
 	if (this.value != value) { // break inf loops
 		this.value = value
 	}
 }
 
 @InverseBindingAdapter(attribute = "value")
-fun CCNumberPicker.getValue(): Int {
+fun NumberPicker.getValue(): Int {
 	return value
+}
+
+
+@BindingAdapter("valueAttrChanged")
+fun NumberPicker.setAttrListeners(attrChange: InverseBindingListener) {
+	setOnValueChangedListener { picker: NumberPicker?, oldVal: Int, newVal: Int ->
+		attrChange.onChange()
+	}
 }

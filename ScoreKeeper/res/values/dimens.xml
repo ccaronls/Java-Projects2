@@ -2,4 +2,5 @@
 <resources>
     <dimen name="button_padding">8dp</dimen>
     <dimen name="progress_circle_thickness">10dp</dimen>
+    <dimen name="np_scale">3</dimen>
 </resources>
