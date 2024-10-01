@@ -530,13 +530,63 @@ class MirrorTest : MirroredTestBase() {
 		val m0 = MyMirror()
 		m0.m = 10
 
-		val m1 = m0.deepCopy<Mirror1>()
+		val m1 = m0.deepCopy<MyMirror>()
 
 		assertTrue(m0.contentEquals(m1))
 		m1.a = 20
 		assertFalse(m0.contentEquals(m1))
 		m1.copyFrom(m0)
 		assertTrue(m0.contentEquals(m1))
+
+		m0.intList = listOf(1, 2, 3).toMirroredList()
+		assertFalse(m0.contentEquals(m1))
+		m1.copyFrom(m0)
+		assertTrue(m0.contentEquals(m1))
+		m0.intList[1] = 10
+		assertFalse(m0.contentEquals(m1))
+		m1.copyFrom(m0)
+		assertTrue(m0.contentEquals(m1))
+
+		m0.stringArray = arrayOf("a", "b", "c").toMirroredArray()
+		assertFalse(m0.contentEquals(m1))
+		m1.copyFrom(m0)
+		assertTrue(m0.contentEquals(m1))
+
+		m0.stringArray[2] = "hello"
+		assertFalse(m0.contentEquals(m1))
+		m1.copyFrom(m0)
+		assertTrue(m0.contentEquals(m1))
+
+		m0.map9 = mapOf(
+			TempEnum.ONE to Mirror1(),
+			TempEnum.TWO to Mirror1(),
+			TempEnum.THREE to Mirror1(),
+		).toMirroredMap()
+		assertTrue(m0.isDirty())
+		assertFalse(m0.contentEquals(m1))
+		m1.copyFrom(m0)
+		assertTrue(m0.contentEquals(m1))
+		m0.map9.remove(TempEnum.TWO)
+		assertTrue(m0.isDirty())
+		assertFalse(m0.contentEquals(m1))
+		m1.copyFrom(m0)
+		assertTrue(m0.contentEquals(m1))
+		assertTrue(m0.isDirty())
+		m0.map9[TempEnum.ONE] = null
+		assertFalse(m0.contentEquals(m1))
+		m1.copyFrom(m0)
+		assertTrue(m0.contentEquals(m1))
+		(m0.map9[TempEnum.THREE] as Mirror1).a = 10
+		assertTrue(m0.isDirty())
+		assertFalse(m0.contentEquals(m1))
+		m1.copyFrom(m0)
+		assertTrue(m0.contentEquals(m1))
+
+		m0.map9.clear()
+		assertFalse(m0.contentEquals(m1))
+		m1.copyFrom(m0)
+		assertTrue(m0.contentEquals(m1))
+
 
 	}
 }

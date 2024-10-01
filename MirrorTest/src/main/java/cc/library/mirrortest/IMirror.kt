@@ -73,5 +73,6 @@ interface IMirror : Mirrored {
 	val map6: Map<Char, Boolean>
 	val map7: Map<String, List<String>>
 	val map8: Map<String, MirroredArray<Int>>
+	val map9: MutableMap<TempEnum, Mirrored?>
 
 }
