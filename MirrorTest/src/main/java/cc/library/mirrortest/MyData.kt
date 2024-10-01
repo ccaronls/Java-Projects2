@@ -10,7 +10,9 @@ import kotlinx.serialization.Serializable
  * Created by Chris Caron on 5/9/24.
  */
 @Serializable
-data class MyData(val x: Int, val y: Float, val z: String, val l: List<Int>) : IData
+data class MyData(val x: Int, val y: Float, val z: String, val l: List<Int>) : IData<MyData> {
+	override fun deepCopy(): MyData = copy()
+}
 
 @Mirror
 interface IMixed : Mirrored {

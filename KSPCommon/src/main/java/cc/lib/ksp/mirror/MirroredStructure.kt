@@ -70,7 +70,7 @@ abstract class MirroredStructure<T>(protected val type: Class<T>) {
 				MirroredImpl.writeMirrored(obj as Mirrored, writer, dirtyOnly)
 			}
 
-			is IData -> {
+			is IData<*> -> {
 				val serializer: KSerializer<Any> = serializer(type)
 				writer.value(Json.encodeToString(serializer, obj))
 			}

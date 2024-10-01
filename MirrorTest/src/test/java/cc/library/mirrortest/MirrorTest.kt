@@ -503,20 +503,39 @@ class MirrorTest : MirroredTestBase() {
 		println("RAW ------------------")
 		println(m1)
 
-		assertTrue(m0.contentEquals(m1))
+		assertTrue(m01.contentEquals(m1))
 		m1.markClean()
+		m0.markClean()
 
+		val m2 = m0.deepCopy<Mixed>()
 		m0.d2 = MyData(5, 0f, "nope", emptyList())
 		assertTrue(m0.isDirty())
-		assertFalse(m0.contentEquals(m1))
-		transfer(m0, m1, true)
-		assertTrue(m0.contentEquals(m1))
+		assertFalse(m0.contentEquals(m2))
+		transfer(m0, m2, true)
+		assertTrue(m0.contentEquals(m2))
 		assertFalse(m0.isDirty())
+		m1.copyFrom(m0)
+		assertTrue(m0.contentEquals(m1))
 
 		m0.m.toMirroredMap().remove("d0")
 		assertTrue(m0.isDirty())
 		assertFalse(m0.contentEquals(m1))
 		transfer(m0, m1, true)
+		assertTrue(m0.contentEquals(m1))
+
+	}
+
+	@Test
+	fun testCopy() {
+		val m0 = MyMirror()
+		m0.m = 10
+
+		val m1 = m0.deepCopy<Mirror1>()
+
+		assertTrue(m0.contentEquals(m1))
+		m1.a = 20
+		assertFalse(m0.contentEquals(m1))
+		m1.copyFrom(m0)
 		assertTrue(m0.contentEquals(m1))
 
 	}

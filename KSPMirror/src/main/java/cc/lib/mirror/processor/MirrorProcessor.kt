@@ -107,6 +107,8 @@ class MirrorProcessor(
 				}
 			}
 
+			fun KSType.isNullable(): Boolean = nullability == Nullability.NULLABLE
+
 			fun KSType.defaultValue(): String {
 				if (nullability == Nullability.NULLABLE)
 					return "null"
@@ -116,6 +118,7 @@ class MirrorProcessor(
 			}
 
 			val dirtyFlagFieldName = "_dirtyFlag"
+			val classTypeName = getClassFileName(classDeclaration.toString())
 
 			fun printDeclarations(i: String): String = StringBuffer().also {
 				indent = i
@@ -397,15 +400,25 @@ class MirrorProcessor(
 				}
 			}.toString()
 
-			fun printCopyContent(i: String): String = StringBuffer().apply {
+			fun printCopyFromContent(i: String): String = StringBuffer().apply {
 				indent = i
+				appendLn("(other as $classTypeName).let {")
 				mapped.forEach {
 					val name = it.key.getName()
-					appendLn("$name = other.$name")
+					if (it.value.isMirrored() || it.value.isList() || it.value.isMap()) {
+						if (it.value.isNullable()) {
+							appendLn("\t$name = (other.$name as Mirrored?)?.deepCopy()")
+						} else {
+							appendLn("\t$name = (other.$name as Mirrored).deepCopy()")
+						}
+					} else {
+						appendLn("\t$name = other.$name")
+					}
 				}
+				appendLn("}")
+				appendLn("super<$baseDeclaration>.copyFrom(other)")
 			}.toString()
 
-			val classTypeName = getClassFileName(classDeclaration.toString())
 			file.print(
 				"""				
 package ${classDeclaration.packageName.asString()}
@@ -416,42 +429,46 @@ import cc.lib.ksp.mirror.*
 import kotlinx.coroutines.*
 import kotlinx.serialization.json.*
 				
-abstract class $classTypeName() : ${baseDeclaration}(), $classDeclaration {				
+abstract class $classTypeName() : $baseDeclaration(), $classDeclaration {				
 
-${printDeclarations("    ")}
+${printDeclarations("\t")}
 
 	override fun toGson(writer: JsonWriter, dirtyOnly: Boolean) {
-${printJsonWriterContent("     ")}
+${printJsonWriterContent("\t\t")}
 	  super<$baseDeclaration>.toGson(writer, dirtyOnly)
 	}
 	
 	override fun fromGson(reader: JsonReader, name : String) {
 	   when (name) {
-${printJsonReaderContent("         ")}		
+${printJsonReaderContent("\t\t")}		
 		  else -> super<$baseDeclaration>.fromGson(reader, name)
 	   }
 	}
 	
 	override fun markClean() {
 	   super<$baseDeclaration>.markClean()
-${printMarkCleanContent("      ")}
+${printMarkCleanContent("\t\t")}
 	}
 	
 	override fun isDirty() : Boolean {
-${printIsDirtyContent("      ")}
+${printIsDirtyContent("\t\t")}
 		 || super<$baseDeclaration>.isDirty()
 	}
 	
 	override fun toString(buffer: StringBuffer, indent: String) {
-${printToStringContent("      ")}
+${printToStringContent("\t\t")}
        super<$baseDeclaration>.toString(buffer, indent)
 	}
 	
 	override fun contentEquals(other : Any?) : Boolean {
 		if (other == null) return false
 		if (other !is $classDeclaration) return false
-${printIsEqualsContent("        ")}
+${printIsEqualsContent("\t\t")}
 		return super<$baseDeclaration>.contentEquals(other)
+	}
+		
+	override fun <T> copyFrom(other : T) {
+${printCopyFromContent("\t\t")}
 	}
 }				
 """

@@ -130,4 +130,16 @@ class MirroredArray<T>(var array: Array<T>, type: Class<T>) : MirroredStructure<
 				.append(indent).append("\n$indent}\n")
 		}
 	}
+
+	override fun <A> deepCopy(): A {
+		val newArray = array.copyOf()
+		array.forEachIndexed { index, it ->
+			if (it is Mirrored) {
+				newArray[index] = it.deepCopy()
+			} else if (it is IData<*>) {
+				newArray[index] = it.deepCopy() as T
+			} else newArray[index] = it
+		}
+		return MirroredArray(newArray, type) as A
+	}
 }

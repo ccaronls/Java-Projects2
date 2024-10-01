@@ -40,4 +40,7 @@ interface Mirrored {
 	fun contentEquals(other: Any?): Boolean
 
 	fun isImmutable(): Boolean = false
+
+	fun <T> deepCopy(): T
+
 }

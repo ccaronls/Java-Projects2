@@ -13,10 +13,13 @@ inline fun <reified K, reified V> Map<K, V>.toMirroredMap(): MirroredMap<K, V> {
  * Created by Chris Caron on 12/10/23.
  *
  * MirroredMap initialize to 'dirty' if there are any elements
+ * Backed by concurrent safe map due to assumption net changes
  */
-class MirroredMap<K, V>(map: Map<K, V>, keyType: Class<K>, valueType: Class<V>) : Mirrored, MutableMap<K, V> {
+class MirroredMap<K, V>(map: Map<K, V>, private val keyType: Class<K>, private val valueType: Class<V>) : Mirrored,
+	MutableMap<K, V> {
 
-	private val map = map.toMutableMap()
+	private val map = HashMap(map)
+	private var safeEntries = map.toMutableMap().entries.toTypedArray()
 	private var sizeChanged = map.isNotEmpty()
 	private val changedKeys = map.keys.toMutableSet()
 	private val keyStructure = object : MirroredStructure<K>(keyType) {}
@@ -34,42 +37,53 @@ class MirroredMap<K, V>(map: Map<K, V>, keyType: Class<K>, valueType: Class<V>) 
 	override fun isEmpty(): Boolean = map.isEmpty()
 
 	override val entries: MutableSet<MutableMap.MutableEntry<K, V>>
-		get() = map.entries
+		get() = safeEntries.toMutableSet()
 	override val keys: MutableSet<K>
-		get() = map.keys
+		get() = safeEntries.map { it.key }.toMutableSet()
 	override val values: MutableCollection<V>
-		get() = map.values
+		get() = safeEntries.map { it.value }.toMutableList()
 
+	private fun refreshSafeEntries() {
+		safeEntries = map.entries.toTypedArray()
+	}
+
+	@Synchronized
 	override fun clear() {
 		sizeChanged = sizeChanged || size > 0
 		map.clear()
-		changedKeys.clear()
+		refreshSafeEntries()
 	}
 
+	@Synchronized
 	override fun put(key: K, value: V): V? = map.put(key, value).also {
 		when (it) {
 			null -> sizeChanged = true
 			value -> Unit
 			else -> changedKeys.add(key)
 		}
+		refreshSafeEntries()
 	}
 
+	@Synchronized
 	override fun putAll(from: Map<out K, V>) {
 		from.entries.forEach {
 			put(it.key, it.value)
 		}
+		refreshSafeEntries()
 	}
 
+	@Synchronized
 	override fun remove(key: K): V? = map.remove(key).also {
 		sizeChanged = it != null
 		changedKeys.remove(key)
+		refreshSafeEntries()
 	}
 
 	override fun toGson(writer: JsonWriter, dirtyOnly: Boolean) {
 		writer.beginObject()
 		if (!dirtyOnly || isDirty()) {
 			writer.name("sizeChanged").value(sizeChanged || !dirtyOnly)
-			val keys = if (dirtyOnly && !sizeChanged) changedKeys else map.keys
+			val keys = if (dirtyOnly && !sizeChanged) changedKeys else safeEntries.map { it.key }
 			writer.name("values")
 			writer.beginArray()
 			keys.forEach {
@@ -83,8 +97,10 @@ class MirroredMap<K, V>(map: Map<K, V>, keyType: Class<K>, valueType: Class<V>) 
 			writer.endArray()
 		}
 		writer.endObject()
+		refreshSafeEntries()
 	}
 
+	@Synchronized
 	fun fromGson(reader: JsonReader) {
 		reader.beginObject()
 		while (reader.hasNext()) {
@@ -109,8 +125,10 @@ class MirroredMap<K, V>(map: Map<K, V>, keyType: Class<K>, valueType: Class<V>) 
 			}
 		}
 		reader.endObject()
+		refreshSafeEntries()
 	}
 
+	@Synchronized
 	override fun markClean() {
 		sizeChanged = false
 		map.values.forEach {
@@ -177,5 +195,24 @@ class MirroredMap<K, V>(map: Map<K, V>, keyType: Class<K>, valueType: Class<V>) 
 				return false
 		}
 		return true
+	}
+
+	@Synchronized
+	override fun <T> deepCopy(): T {
+		val newMap = HashMap<K, V>()
+		safeEntries.forEach { (key, value) ->
+			val k = if (key is Mirrored) {
+				key.deepCopy() as K
+			} else if (key is IData<*>) {
+				key.deepCopy() as K
+			} else key
+			val v = if (value is Mirrored) {
+				value.deepCopy() as V
+			} else if (value is IData<*>) {
+				value.deepCopy() as V
+			} else value
+			newMap[k] = v
+		}
+		return MirroredMap(newMap, keyType, valueType) as T
 	}
 }

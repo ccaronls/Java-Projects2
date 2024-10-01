@@ -2,16 +2,17 @@ package cc.lib.ksp.mirror
 
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonWriter
+import java.util.concurrent.CopyOnWriteArrayList
 import java.util.function.Predicate
 
 inline fun <reified T> List<T>.toMirroredList(): MirroredList<T> {
 	if (this is MirroredList)
 		return this
-	return MirroredList(toMutableList(), T::class.java)
+	return MirroredList(this, T::class.java)
 }
 
 inline fun <reified T> Array<T>.toMirroredList(): MirroredList<T> {
-	return MirroredList(toMutableList(), T::class.java)
+	return MirroredList(toList(), T::class.java)
 }
 
 /**
@@ -19,7 +20,7 @@ inline fun <reified T> Array<T>.toMirroredList(): MirroredList<T> {
  */
 class MirroredList<T>(list: List<T>, type: Class<T>) : MirroredStructure<T>(type), Mirrored, MutableList<T> {
 
-	private var list = list.toMutableList()
+	private var list = CopyOnWriteArrayList(list)
 	private val dirty = mutableListOf<Boolean>()
 	private var sizeChanged = list.isNotEmpty()
 
@@ -271,5 +272,19 @@ class MirroredList<T>(list: List<T>, type: Class<T>) : MirroredStructure<T>(type
 				return false
 		}
 		return true
+	}
+
+	override fun <L> deepCopy(): L {
+		val newList = ArrayList<T>()
+		list.forEach {
+			if (it is Mirrored) {
+				newList.add(it.deepCopy())
+			} else if (it is IData<*>) {
+				newList.add(it.deepCopy() as T)
+			} else {
+				newList.add(it)
+			}
+		}
+		return MirroredList(newList, type) as L
 	}
 }

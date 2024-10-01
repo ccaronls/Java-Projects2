@@ -123,4 +123,13 @@ abstract class MirroredImpl : Mirrored {
 	}
 
 	override fun contentEquals(other: Any?): Boolean = true
+
+	override fun <T> deepCopy(): T {
+		return javaClass.newInstance().also {
+			it.copyFrom(this)
+		} as T
+	}
+
+	open fun <T> copyFrom(other: T) {}
+
 }
