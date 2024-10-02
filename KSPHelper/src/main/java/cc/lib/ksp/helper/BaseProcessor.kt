@@ -10,6 +10,7 @@ import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.symbol.ClassKind
 import com.google.devtools.ksp.symbol.KSType
+import com.google.devtools.ksp.symbol.Nullability
 import java.io.OutputStream
 
 abstract class BaseProcessor(
@@ -137,6 +138,8 @@ abstract class BaseProcessor(
 	fun KSType.getNullable(): String {
 		return if (isMarkedNullable) "?" else ""
 	}
+
+	fun KSType.isNullable(): Boolean = nullability == Nullability.NULLABLE
 
 }
 

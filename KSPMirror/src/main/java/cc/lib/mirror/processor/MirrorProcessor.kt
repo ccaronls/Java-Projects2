@@ -107,8 +107,6 @@ class MirrorProcessor(
 				}
 			}
 
-			fun KSType.isNullable(): Boolean = nullability == Nullability.NULLABLE
-
 			fun KSType.defaultValue(): String {
 				if (nullability == Nullability.NULLABLE)
 					return "null"
@@ -406,11 +404,8 @@ class MirrorProcessor(
 				mapped.forEach {
 					val name = it.key.getName()
 					if (it.value.isMirrored() || it.value.isList() || it.value.isMap()) {
-						if (it.value.isNullable()) {
-							appendLn("\t$name = (other.$name as Mirrored?)?.deepCopy()")
-						} else {
-							appendLn("\t$name = (other.$name as Mirrored).deepCopy()")
-						}
+						val nullable = it.value.getNullable()
+						appendLn("\t$name = (other.$name as Mirrored$nullable)$nullable.deepCopy()")
 					} else {
 						appendLn("\t$name = other.$name")
 					}
