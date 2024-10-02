@@ -1,4 +1,4 @@
-package cc.library.mirrortest
+package cc.library.rem2test
 
 import cc.lib.ksp.remote.IRemote2
 import cc.lib.ksp.remote.Remote
@@ -27,4 +27,10 @@ abstract class RemoteType : IRemote2 {
 	open suspend fun fun4(s: String?): String? {
 		TODO()
 	}
+
+	@RemoteFunction
+	open suspend fun fun5(m: Color2?): String? {
+		TODO()
+	}
+
 }

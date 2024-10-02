@@ -3,5 +3,5 @@ apply plugin: 'kotlin'
 
 dependencies {
     implementation(project('::KSPCommon'))
-    implementation "com.google.devtools.ksp:symbol-processing-api:${kotlin_version}-1.0.+"
+    implementation "com.google.devtools.ksp:symbol-processing-api:${ksp_version}"
 }

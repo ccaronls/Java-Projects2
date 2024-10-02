@@ -1,4 +1,4 @@
-package cc.library.mirrortest
+package cc.library.rem2test
 
 import cc.lib.ksp.remote.RemoteContext
 import com.google.gson.stream.JsonReader
@@ -54,6 +54,10 @@ class Remote2Test : MirroredTestBase() {
 		override suspend fun fun4(s: String?): String? {
 			return "you said :$s"
 		}
+
+		override suspend fun fun5(m: Color2?): String? {
+			return "color is: ${m?.nm}"
+		}
 	}
 
 	inner class LocalObj : RemoteTypeRemote() {
@@ -94,6 +98,12 @@ class Remote2Test : MirroredTestBase() {
 				println("local fun4($s) -> $it")
 			}
 		}
+
+		override suspend fun fun5(m: Color2?): String? {
+			return super.fun5(m).also {
+				println("local fun5($m) -> $it")
+			}
+		}
 	}
 
 	@Test
@@ -117,7 +127,7 @@ class Remote2Test : MirroredTestBase() {
 	fun test3() = runBlocking {
 		val r = RemoteObj()
 		val l = LocalObj()
-		var result = async {
+		val result = async {
 			l.fun3()
 		}
 		delay(100)
@@ -129,12 +139,48 @@ class Remote2Test : MirroredTestBase() {
 	fun test4() = runBlocking {
 		val r = RemoteObj()
 		val l = LocalObj()
-		var result = async {
+		val result = async {
 			l.fun4("hello")
 		}
 		delay(100)
 		r.executeLocally()
 		Assert.assertEquals("you said :hello", result.await())
+	}
+
+	@Test
+	fun test4_2() = runBlocking {
+		val r = RemoteObj()
+		val l = LocalObj()
+		val result = async {
+			l.fun4("null")
+		}
+		delay(100)
+		r.executeLocally()
+		Assert.assertEquals("you said :null", result.await())
+	}
+
+	@Test
+	fun test5() = runBlocking {
+		val r = RemoteObj()
+		val l = LocalObj()
+		val result = async {
+			l.fun5(Color2("RED", 1, 0, 0, 0))
+		}
+		delay(100)
+		r.executeLocally()
+		Assert.assertEquals("color is: RED", result.await())
+	}
+
+	@Test
+	fun test6() = runBlocking {
+		val r = RemoteObj()
+		val l = LocalObj()
+		val result = async {
+			l.fun5(null)
+		}
+		delay(100)
+		r.executeLocally()
+		Assert.assertEquals("color is: null", result.await())
 	}
 
 }

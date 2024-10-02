@@ -15,6 +15,7 @@
 captures
 ./*.txt
 *.save
+**/.run*
 **/android.jks
 local.properties
 /todelete/

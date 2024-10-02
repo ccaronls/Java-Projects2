@@ -13,7 +13,6 @@ configurations {
 dependencies {
     // https://mvnrepository.com/artifact/org.json/json
     implementation group: 'org.json', name: 'json', version: '20090211'
-    implementation group: 'net.sourceforge.jaadec', name: 'jaad', version: '0.8.5'
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.3.9")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 
@@ -60,19 +59,20 @@ sourceSets {
 
     swingLib {
         java {
-            srcDirs = [ 'src ']
+            srcDirs = ['src ']
         }
     }
 }
 
-task swingLibJar(type: Jar) {
-    from sourceSets.swingLib.output.classesDirs
-    archiveName("SwingLib.jar")
-}
+// TODO: Do we need this? Is there a new version in gradle to do this?
+//task swingLibJar(type: Jar) {
+//    from sourceSets.swingLib.output.classesDirs
+//    archiveName("SwingLib.jar")
+//}
 
-artifacts {
-    swingLib swingLibJar
-}
+//artifacts {
+//    swingLib swingLibJar
+//}
 
 tasks.withType(JavaExec) {
     workingDir = "${rootDir}"

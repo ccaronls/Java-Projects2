@@ -10,7 +10,6 @@ dependencies {
 }
 
 android {
-
     defaultConfig {
         minSdkVersion project.myMinSdkVersion
         targetSdkVersion project.myTargetSdkVersion

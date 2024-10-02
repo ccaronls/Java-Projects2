@@ -1,8 +1,9 @@
-package cc.lib.rem.processor
+package cc.lib.rem2.processor
 
 import cc.lib.ksp.helper.BaseProcessor
 import cc.lib.ksp.remote.Remote
 import cc.lib.ksp.remote.RemoteFunction
+import cc.lib.utils.streamTo
 import com.google.devtools.ksp.KspExperimental
 import com.google.devtools.ksp.getAnnotationsByType
 import com.google.devtools.ksp.getClassDeclarationByName
@@ -20,9 +21,13 @@ import com.google.devtools.ksp.symbol.KSTypeReference
 import com.google.devtools.ksp.symbol.KSVisitorVoid
 import com.google.devtools.ksp.symbol.Modifier
 import com.google.devtools.ksp.validate
+import java.io.File
+import java.io.FileOutputStream
 import java.io.OutputStream
 
-class RemoteProcessor(
+class DeferException : Exception()
+
+class Remote2Processor(
 	codeGenerator: CodeGenerator,
 	logger: KSPLogger,
 	options: Map<String, String>
@@ -61,18 +66,29 @@ class RemoteProcessor(
 
 		if (symbols.isEmpty()) return emptyList()
 
-		val symbol = symbols.removeAt(0)
+		val symbol = symbols[0]
 
-		val file = codeGenerator.createNewFile(
-			// Make sure to associate the generated file with sources to keep/maintain it across incremental builds.
-			// Learn more about incremental processing in KSP from the official docs:
-			// https://kotlinlang.org/docs/ksp-incremental.html
-			dependencies = Dependencies(false, *resolver.getAllFiles().toList().toTypedArray()),
-			packageName = options["package"] ?: "cc.lib.remote.impl",
-			fileName = getClassFileName(symbol.simpleName.asString())
-		)
-		symbol.accept(Visitor(file), Unit)
-		file.close()
+		// TODO: Copy this process to base processor
+		val tmpFile = File.createTempFile("/tmp/", "kspXXXXX.kt")
+		try {
+			FileOutputStream(tmpFile).use { os ->
+				symbol.accept(Visitor(os), Unit)
+			}
+			symbols.removeFirst()
+			val file = codeGenerator.createNewFile(
+				// Make sure to associate the generated file with sources to keep/maintain it across incremental builds.
+				// Learn more about incremental processing in KSP from the official docs:
+				// https://kotlinlang.org/docs/ksp-incremental.html
+				dependencies = Dependencies(false, *resolver.getAllFiles().toList().toTypedArray()),
+				packageName = options["package"] ?: "cc.lib.remote2.impl",
+				fileName = getClassFileName(symbol.simpleName.asString())
+			)
+			tmpFile.streamTo(file)
+		} catch (e: DeferException) {
+			// try again next time
+		}
+		tmpFile.delete()
+
 		return symbols
 
 	}
@@ -91,13 +107,6 @@ class RemoteProcessor(
 
 	fun getMethodSignature(decl: KSFunctionDeclaration): String {
 		return decl.parameters.joinToString { "${it.name!!.asString()} : ${it.type.resolve()}" }
-
-		/*
-	return decl.parameters.joinToString {
-		"${it.name?.asString()}:${it.type}${
-			getTypeTemplates(it.type)
-		}${it.type.resolve().getNullable()}"
-	}*/
 	}
 
 	inner class Visitor(private val file: OutputStream) : KSVisitorVoid() {
@@ -128,12 +137,6 @@ class RemoteProcessor(
 			}.filter { it.second != null && it.first.validate() }
 				.map { it.first to it.first.getAnnotationsByType(RemoteFunction::class).first() }.toList()
 
-			/*			val filteredMethods = methods.map {
-							it to Pair(it.parameters.map {
-								Pair(it.name!!, it.type.resolve())
-							}.toList(), it.returnType!!.resolve())
-						}.toMap()*/
-
 			file.print(
 				"""package ${classDeclaration.packageName.asString()}
 					
@@ -159,9 +162,6 @@ abstract class $classTypeName($classArgs) : $classDeclaration($classDeclarationP
 
 				logger.warn("- param signature: $paramSignature")
 
-				val params =
-					if (m.parameters.isNotEmpty()) ", ${m.parameters.joinToString()}" else ""
-
 				val retType = m.returnType!!
 				val retTypeResolved = retType.resolve()
 				if (!(retTypeResolved.isMarkedNullable || retTypeResolved.isUnit())) {
@@ -174,18 +174,9 @@ abstract class $classTypeName($classArgs) : $classDeclaration($classDeclarationP
 					return
 				}
 
-				val ret = if (retTypeResolved.isUnit()) "" else "return"
-				val result: String? = if (retTypeResolved.isUnit()) null else "${m.returnType}::class.java"
-				val cast =
-					if (retTypeResolved.isUnit()) "" else " as $retType${getTypeTemplates(retType)}?"
 				val retStr = if (retTypeResolved.isUnit()) "" else " : $retType?"
 				val funName = m.simpleName.asString()
 
-				/*
-				override suspend fun $funName($paramSignature)$retStr {
-	   $ret executeRemotely("$funName", $result$params)$cast"""
-				)
-				 */
 				file.print(
 					"""
 	override suspend fun $funName($paramSignature)$retStr {
@@ -227,19 +218,27 @@ abstract class $classTypeName($classArgs) : $classDeclaration($classDeclarationP
 
 			file.print(
 				"""
+	@Throws(Exception::class)
 	final override suspend fun executeLocally() {
 		context?.reader?.let { r ->
 			r.beginObject()
 			val method = r.nextName("method").nextString()
 			r.nextName("params").beginArray()
-			val result = when (method) {"""
+			val result : Any? = when (method) {"""
 			)
 			methods.forEach { (m, a) ->
 				val args = m.parameters.map { param ->
-					if (param.type.resolve().isNullable()) {
-						"r.next${param.type}OrNull()"
+					val resolved = param.type.resolve()
+					(resolved.declaration as? KSClassDeclaration)?.superTypes?.forEach {
+						if (it.resolve().isError)
+							throw DeferException()
+					}
+
+					val nullStr = if (resolved.isNullable()) "OrNull" else ""
+					if (resolved.isMirrored()) {
+						"r.nextMirrored$nullStr()"
 					} else {
-						"r.next${param.type}()"
+						"r.next${param.type}$nullStr()"
 					}
 				}
 				val funName = m.simpleName.asString()
