@@ -3,37 +3,27 @@ package cc.lib.rem2.processor
 import cc.lib.ksp.helper.BaseProcessor
 import cc.lib.ksp.remote.Remote
 import cc.lib.ksp.remote.RemoteFunction
-import cc.lib.utils.streamTo
 import com.google.devtools.ksp.KspExperimental
 import com.google.devtools.ksp.getAnnotationsByType
 import com.google.devtools.ksp.getClassDeclarationByName
 import com.google.devtools.ksp.isAbstract
 import com.google.devtools.ksp.isOpen
 import com.google.devtools.ksp.processing.CodeGenerator
-import com.google.devtools.ksp.processing.Dependencies
 import com.google.devtools.ksp.processing.KSPLogger
-import com.google.devtools.ksp.processing.Resolver
-import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSType
-import com.google.devtools.ksp.symbol.KSTypeReference
 import com.google.devtools.ksp.symbol.KSVisitorVoid
 import com.google.devtools.ksp.symbol.Modifier
 import com.google.devtools.ksp.validate
-import java.io.File
-import java.io.FileOutputStream
 import java.io.OutputStream
-
-class DeferException : Exception()
+import kotlin.reflect.KClass
 
 class Remote2Processor(
 	codeGenerator: CodeGenerator,
 	logger: KSPLogger,
 	options: Map<String, String>
 ) : BaseProcessor(codeGenerator, logger, options) {
-
-	override lateinit var resolver: Resolver
 
 	val remoteType by lazy {
 		resolver.getClassDeclarationByName(
@@ -45,68 +35,19 @@ class Remote2Processor(
 		return remoteType.isAssignableFrom(this)
 	}
 
-	fun getClassFileName(symbol: String): String {
+	override fun getClassFileName(symbol: String): String {
 		return symbol + "Remote"
 	}
 
-	val imports = mutableSetOf<String>()
+	override val annotationClass: KClass<*> = Remote::class
+	override val packageName: String = "cc.lib.remote2.impl"
 
-	override fun process(resolver: Resolver): List<KSAnnotated> {
-		this.resolver = resolver
-		val symbols = resolver
-			.getSymbolsWithAnnotation(Remote::class.qualifiedName!!)
-			.filterIsInstance<KSClassDeclaration>().toMutableList()
-
-		logger.warn("options=$options")
-		logger.warn("symbols=${symbols.joinToString()}")
-
-		options["imports"]?.let {
-			imports.addAll(it.split("[, ]"))
-		}
-
-		if (symbols.isEmpty()) return emptyList()
-
-		val symbol = symbols[0]
-
-		// TODO: Copy this process to base processor
-		val tmpFile = File.createTempFile("/tmp/", "kspXXXXX.kt")
-		try {
-			FileOutputStream(tmpFile).use { os ->
-				symbol.accept(Visitor(os), Unit)
-			}
-			symbols.removeFirst()
-			val file = codeGenerator.createNewFile(
-				// Make sure to associate the generated file with sources to keep/maintain it across incremental builds.
-				// Learn more about incremental processing in KSP from the official docs:
-				// https://kotlinlang.org/docs/ksp-incremental.html
-				dependencies = Dependencies(false, *resolver.getAllFiles().toList().toTypedArray()),
-				packageName = options["package"] ?: "cc.lib.remote2.impl",
-				fileName = getClassFileName(symbol.simpleName.asString())
-			)
-			tmpFile.streamTo(file)
-		} catch (e: DeferException) {
-			// try again next time
-		}
-		tmpFile.delete()
-
-		return symbols
-
-	}
-
-	fun OutputStream.print(s: String) {
-		write(s.toByteArray())
-	}
-
-	fun getTypeTemplates(ref: KSTypeReference): String {
-		logger.warn("getTypeTemplates $ref->${ref.resolve()}")
-		with(ref.resolve().arguments) {
-			if (isEmpty()) return ""
-			return "<${joinToString { it.type.toString() }}>"
-		}
+	override fun process(symbol: KSClassDeclaration, file: OutputStream) {
+		symbol.accept(Visitor(file), Unit)
 	}
 
 	fun getMethodSignature(decl: KSFunctionDeclaration): String {
-		return decl.parameters.joinToString { "${it.name!!.asString()} : ${it.type.resolve()}" }
+		return decl.parameters.joinToString { "${it.name!!.asString()} : ${it.type.resolve().toFullyQualifiedName()}" }
 	}
 
 	inner class Visitor(private val file: OutputStream) : KSVisitorVoid() {
@@ -125,7 +66,7 @@ class Remote2Processor(
 
 			val baseMirrorClass: KSType =
 				classDeclaration.superTypes.firstOrNull { it.resolve().isRemote() }?.resolve()
-					?: throw Exception("$classDeclaration does not extend cc.lib.rem.context.Remote interface")
+					?: throw IllegalArgumentException("$classDeclaration does not extend cc.lib.rem.context.Remote interface")
 
 			val classDeclarationParams = "${classDeclaration.primaryConstructor!!.parameters.joinToString()}"
 
@@ -164,17 +105,21 @@ abstract class $classTypeName($classArgs) : $classDeclaration($classDeclarationP
 
 				val retType = m.returnType!!
 				val retTypeResolved = retType.resolve()
+				retTypeResolved.validateOrThrowDeferred()
+				val retTypeQualified = retTypeResolved.makeNotNullable().toFullyQualifiedName()
+				val retNextStr = if (retTypeResolved.isMirrored()) {
+					"nextMirroredOrNull<$retTypeQualified>"
+				} else "next${retType}OrNull"
+
 				if (!(retTypeResolved.isMarkedNullable || retTypeResolved.isUnit())) {
-					logger.error("Invalid return type $retType. RemoteMethods must be Unit or nullable")
-					return
+					throw IllegalArgumentException("Invalid return type $retType. RemoteMethods must be Unit or nullable")
 				}
 
 				if (!m.modifiers.contains(Modifier.SUSPEND)) {
-					logger.error("${m.simpleName.asString()} must be a suspend type")
-					return
+					throw IllegalArgumentException("${m.simpleName.asString()} must be a suspend type")
 				}
 
-				val retStr = if (retTypeResolved.isUnit()) "" else " : $retType?"
+				val retStr = if (retTypeResolved.isUnit()) "" else " : $retTypeQualified?"
 				val funName = m.simpleName.asString()
 
 				file.print(
@@ -188,7 +133,7 @@ abstract class $classTypeName($classArgs) : $classDeclaration($classDeclarationP
 """
 				)
 				m.parameters.forEach { param ->
-					file.print("\t\t\tw.valueOrNull($param)")
+					file.print("\t\t\tw.valueOrNull($param)\n")
 				}
 				file.print(
 					"""
@@ -202,7 +147,7 @@ abstract class $classTypeName($classArgs) : $classDeclaration($classDeclarationP
 						"""
 		return context?.waitForResult()?.let { w->
 			w.beginObject()
-			val result = w.nextName("result").next${retType}OrNull()
+			val result = w.nextName("result").$retNextStr()
 			w.endObject()
 			result
 		}
@@ -229,10 +174,7 @@ abstract class $classTypeName($classArgs) : $classDeclaration($classDeclarationP
 			methods.forEach { (m, a) ->
 				val args = m.parameters.map { param ->
 					val resolved = param.type.resolve()
-					(resolved.declaration as? KSClassDeclaration)?.superTypes?.forEach {
-						if (it.resolve().isError)
-							throw DeferException()
-					}
+					resolved.validateOrThrowDeferred()
 
 					val nullStr = if (resolved.isNullable()) "OrNull" else ""
 					if (resolved.isMirrored()) {
@@ -256,7 +198,7 @@ abstract class $classTypeName($classArgs) : $classDeclaration($classDeclarationP
 			if (result !is Unit) {
 				context?.setResult {
 					it.beginObject()
-					it.name("result")?.valueOrNull(result)
+					it.name("result").valueOrNull(result)
 					it.endObject()
 				}
 			}

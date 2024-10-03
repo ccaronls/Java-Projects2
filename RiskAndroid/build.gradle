@@ -2,6 +2,7 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 
 android {
+    namespace = "cc.game.android.risk"
     defaultConfig {
         applicationId "cc.game.android.risk"
         versionCode 1

@@ -9,7 +9,7 @@ dependencies {
 }
 
 android {
-
+    namespace = "cc.android.test"
     sourceSets {
         main {
             manifest.srcFile 'AndroidManifest.xml'

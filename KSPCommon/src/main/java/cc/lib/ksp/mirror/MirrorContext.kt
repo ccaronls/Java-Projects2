@@ -29,6 +29,42 @@ fun JsonReader.nextIntOrNull(): Int? {
 	} else nextInt()
 }
 
+fun JsonReader.nextLongOrNull(): Long? {
+	return if (peek() == JsonToken.NULL) {
+		skipNull()
+	} else nextLong()
+}
+
+fun JsonReader.nextDoubleOrNull(): Double? {
+	return if (peek() == JsonToken.NULL) {
+		skipNull()
+	} else nextDouble()
+}
+
+fun JsonReader.nextFloatOrNull(): Float? = nextDoubleOrNull()?.toFloat()
+
+fun JsonReader.nextBooleanOrNull(): Boolean? {
+	return if (peek() == JsonToken.NULL) {
+		skipNull()
+	} else nextBoolean()
+}
+
+fun JsonReader.nextCharOrNull(): Char? = nextStringOrNull()?.getOrNull(0)
+
+fun JsonReader.nextShortOrNull(): Short? = nextIntOrNull()?.toShort()
+
+fun JsonReader.nextFloat(): Float = nextDouble().toFloat()
+fun JsonReader.nextChar(): Char = nextString()[0]
+fun JsonReader.nextShort(): Short = nextInt().toShort()
+
+fun JsonReader.nextByteOrNull(): Byte? {
+	return if (peek() == JsonToken.NULL) {
+		skipNull()
+	} else nextInt().toByte()
+}
+
+fun JsonReader.nextByte(): Byte = nextInt().toByte()
+
 inline fun <reified T : Mirrored> JsonReader.nextMirrored(): T {
 	beginObject()
 	val value = MirroredImpl.readMirrored(T::class.java.newInstance(), this)
@@ -57,12 +93,17 @@ fun JsonWriter.valueOrNull(v: Any?) {
 		is Float -> value(v)
 		is Double -> value(v)
 		is String -> value(v)
+		is Byte -> value(v.toInt())
+		is Short -> value(v.toInt())
+		is Char -> value("$v")
+		is Long -> value(v)
+		is Boolean -> value(v)
 		is Mirrored -> {
 			beginObject()
 			v.toGson(this, false)
 			endObject()
 		}
 
-		else -> throw IllegalArgumentException("dont know how to serialize $v, ${v::class.java}")
+		else -> throw IllegalArgumentException("don't know how to serialize $v, ${v::class.java}")
 	}
 }

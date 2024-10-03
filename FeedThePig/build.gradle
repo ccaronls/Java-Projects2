@@ -7,6 +7,7 @@ dependencies {
 }
 
 android {
+    namespace = "cc.game.ftp.android"
 
     sourceSets {
         main {

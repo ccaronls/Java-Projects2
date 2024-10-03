@@ -9,6 +9,7 @@ dependencies {
 }
 
 android {
+    namespace = "cc.android.sebigames.tictactoe"
 
     sourceSets {
         main {

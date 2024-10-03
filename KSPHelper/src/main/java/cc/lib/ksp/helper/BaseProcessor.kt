@@ -3,15 +3,24 @@ package cc.lib.ksp.helper
 import cc.lib.ksp.mirror.IData
 import cc.lib.ksp.mirror.Mirrored
 import cc.lib.ksp.mirror.MirroredArray
+import cc.lib.utils.streamTo
 import com.google.devtools.ksp.getClassDeclarationByName
 import com.google.devtools.ksp.processing.CodeGenerator
+import com.google.devtools.ksp.processing.Dependencies
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.symbol.ClassKind
+import com.google.devtools.ksp.symbol.KSAnnotated
+import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSType
 import com.google.devtools.ksp.symbol.Nullability
+import java.io.File
+import java.io.FileOutputStream
 import java.io.OutputStream
+import kotlin.reflect.KClass
+
+class DeferException : Exception()
 
 abstract class BaseProcessor(
 	val codeGenerator: CodeGenerator,
@@ -19,7 +28,7 @@ abstract class BaseProcessor(
 	val options: Map<String, String>
 ) : SymbolProcessor {
 
-	abstract val resolver: Resolver
+	lateinit var resolver: Resolver
 
 	val listType by lazy {
 		resolver.getClassDeclarationByName(List::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
@@ -140,6 +149,89 @@ abstract class BaseProcessor(
 	}
 
 	fun KSType.isNullable(): Boolean = nullability == Nullability.NULLABLE
+
+	fun KSType.getTypeArguments(): String {
+		if (arguments.isEmpty()) return ""
+		return "<${arguments.joinToString { it.type.toString() }}>"
+	}
+
+	fun KSType.toFullyQualifiedName(): String {
+		var name = (declaration as? KSClassDeclaration)?.qualifiedName?.asString()
+			?: throw IllegalArgumentException("Cannot get fully qualified name for $this")
+		if (isNullable())
+			name = "$name?"
+		name = name + getTypeArguments()
+		logger.warn("Fully qualified name for $this : $name")
+		return name
+	}
+
+	fun KSType.validateOrThrowDeferred() {
+		(declaration as? KSClassDeclaration)?.superTypes?.forEach {
+			if (it.resolve().isError)
+				throw DeferException()
+		}
+	}
+
+	fun OutputStream.print(s: String) {
+		write(s.toByteArray())
+	}
+
+	protected val imports = mutableSetOf<String>()
+
+	abstract val annotationClass: KClass<*>
+
+	abstract val packageName: String
+
+	@Throws
+	abstract fun process(symbol: KSClassDeclaration, file: OutputStream)
+
+	abstract fun getClassFileName(symbol: String): String
+
+	final override fun process(resolver: Resolver): List<KSAnnotated> {
+		this.resolver = resolver
+		val symbols = resolver
+			.getSymbolsWithAnnotation(annotationClass.qualifiedName!!)
+			.filterIsInstance<KSClassDeclaration>().toMutableList()
+
+		logger.warn("options=$options")
+		logger.warn("symbols=${symbols.joinToString()}")
+
+		options["imports"]?.let {
+			imports.addAll(it.split("[, ]"))
+		}
+
+		if (symbols.isEmpty()) return emptyList()
+
+		val symbol = symbols[0]
+
+		// TODO: Copy this process to base processor
+		val tmpFile = File.createTempFile("/tmp/", "kspXXXXX.kt")
+		try {
+			FileOutputStream(tmpFile).use { os ->
+				//symbol.accept(Visitor(os), Unit)
+				process(symbol, os)
+			}
+			symbols.removeFirst()
+			val file = codeGenerator.createNewFile(
+				// Make sure to associate the generated file with sources to keep/maintain it across incremental builds.
+				// Learn more about incremental processing in KSP from the official docs:
+				// https://kotlinlang.org/docs/ksp-incremental.html
+				dependencies = Dependencies(false, *resolver.getAllFiles().toList().toTypedArray()),
+				packageName = options["package"] ?: packageName,
+				fileName = getClassFileName(symbol.simpleName.asString())
+			)
+			tmpFile.streamTo(file)
+		} catch (e: DeferException) {
+			// try again next time
+		} catch (e: IllegalArgumentException) {
+			logger.error(e.message!!)
+			return emptyList()
+		}
+		tmpFile.delete()
+
+		return symbols
+
+	}
 
 }
 

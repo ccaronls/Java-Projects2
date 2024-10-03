@@ -1,16 +1,12 @@
 package cc.lib.mirror.processor
 
 import cc.lib.ksp.helper.BaseProcessor
-import cc.lib.ksp.helper.print
 import cc.lib.ksp.mirror.DirtyType
 import cc.lib.ksp.mirror.Mirror
 import com.google.devtools.ksp.getDeclaredProperties
 import com.google.devtools.ksp.processing.CodeGenerator
-import com.google.devtools.ksp.processing.Dependencies
 import com.google.devtools.ksp.processing.KSPLogger
-import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.ClassKind
-import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
@@ -19,6 +15,7 @@ import com.google.devtools.ksp.symbol.KSVisitorVoid
 import com.google.devtools.ksp.symbol.Nullability
 import com.google.devtools.ksp.validate
 import java.io.OutputStream
+import kotlin.reflect.KClass
 
 /**
  * Created by Chris Caron on 11/14/23.
@@ -29,9 +26,7 @@ class MirrorProcessor(
 	options: Map<String, String>
 ) : BaseProcessor(codeGenerator, logger, options) {
 
-	override lateinit var resolver: Resolver
-
-	fun getClassFileName(symbol: String): String {
+	override fun getClassFileName(symbol: String): String {
 		if (symbol.startsWith("I"))
 			return symbol.substring(1) + "Impl"
 		return symbol + "Impl"
@@ -54,18 +49,18 @@ class MirrorProcessor(
 				}"
 			)
 			if (classDeclaration.classKind != ClassKind.INTERFACE) {
-				throw Exception("$classDeclaration must be an interface")
+				throw IllegalArgumentException("$classDeclaration must be an interface")
 			}
 
 			if (classDeclaration.typeParameters.isNotEmpty()) {
-				throw Exception("$classDeclaration cannot have template parameters")
+				throw IllegalArgumentException("$classDeclaration cannot have template parameters")
 			}
 
 			logger.warn("$classDeclaration subClasses: ${classDeclaration.superTypes.map { it.resolve() }.joinToString()}")
 
 			val baseMirrorClass: KSType = classDeclaration.superTypes.firstOrNull { it.resolve().isMirrored() }?.resolve()
 				?: run {
-					throw Exception("$classDeclaration must have cc.lib.mirror.context.Mirrored as one if its supertypes")
+					throw IllegalArgumentException("$classDeclaration must have cc.lib.mirror.context.Mirrored as one if its supertypes")
 				}
 
 			val baseDeclaration = getClassFileName(baseMirrorClass.toString())
@@ -98,13 +93,10 @@ class MirrorProcessor(
 			}
 
 			fun KSType.gsonTypeName(): String {
-				return "next" + when (val nm = toString().trimEnd('?')) {
-					"Float" -> "Double().toFloat"
-					"Short" -> "Int().toShort"
-					"Byte" -> "Int().toByte"
-					"Char" -> "String().first"
-					else -> nm
+				if (isNullable()) {
+					return makeNotNullable().gsonTypeName() + "OrNull"
 				}
+				return "next$this"
 			}
 
 			fun KSType.defaultValue(): String {
@@ -131,7 +123,7 @@ class MirrorProcessor(
 					val nullable = if (type.nullability == Nullability.NULLABLE) "?" else ""
 					val name = prop.getName()
 					if (type.isArray()) {
-						throw Exception("standard Arrays not supported. Use MirroredArray")
+						throw IllegalArgumentException("standard Arrays not supported. Use MirroredArray")
 					} else if (type.isList()) {
 						it.appendLn("override var $name : $type = ${type.defaultValue()}")
 						when (dirtyType) {
@@ -169,7 +161,7 @@ class MirrorProcessor(
 							}
 						}
 					} else {
-						it.appendLn("override var $name : $type = ${type.defaultValue()}")
+						it.appendLn("override var $name : ${type.toFullyQualifiedName()} = ${type.defaultValue()}")
 						when (dirtyType) {
 							DirtyType.NEVER -> Unit
 							DirtyType.COMPLEX -> {
@@ -216,14 +208,14 @@ class MirrorProcessor(
 """)
 					} else if (propType.isEnum()) {
 						if (propType.nullability != Nullability.NULLABLE) {
-							throw Exception("enum property $nm must be nullable")
+							throw IllegalArgumentException("enum property $nm must be nullable")
 						}
 						when (dirtyType) {
 							DirtyType.NEVER -> Unit
 							DirtyType.ANY -> appendLn("if (!dirtyOnly || $dirtyFlagFieldName)")
 							DirtyType.COMPLEX -> appendLn("if (!dirtyOnly || $dirtyFlagFieldName.get($index))")
 						}
-						appendLn("   writer.name(\"$nm\").value($nm?.name)")
+						appendLn("   writer.name(\"$nm\").valueOrNull($nm?.name)")
 					} else {
 						val value = encode(nm, propType)
 						when (dirtyType) {
@@ -247,7 +239,7 @@ class MirrorProcessor(
 }"""
 							)
 						} else {
-							appendLn("   writer.name(\"$nm\").value($value)")
+							appendLn("   writer.name(\"$nm\").valueOrNull($value)")
 						}
 					}
 				}
@@ -262,14 +254,15 @@ class MirrorProcessor(
 						appendLns("""
 "$nm" -> $nm.fromGson(reader)""")
 					} else if (propType.isMirrored()) {
-						appendLns("""
+						appendLns(
+							"""
 "$nm" -> $nm = checkForNullOr(reader, null) { reader ->
    reader.beginObject()
    reader.nextName("type")
    val clazz = getClassForName(reader.nextString())
    reader.nextName("value")
    reader.beginObject()
-   val obj = $nm?:clazz.newInstance() as ${propType.makeNotNullable()}
+   val obj = $nm?:clazz.newInstance() as ${propType.makeNotNullable().toFullyQualifiedName()}
    while (reader.hasNext()) {
       obj.fromGson(reader, reader.nextName())
    }
@@ -433,10 +426,10 @@ ${printJsonWriterContent("\t\t")}
 	  super<$baseDeclaration>.toGson(writer, dirtyOnly)
 	}
 	
-	override fun fromGson(reader: JsonReader, name : String) {
-	   when (name) {
+	override fun fromGson(reader: JsonReader, __name : String) {
+	   when (__name) {
 ${printJsonReaderContent("\t\t")}		
-		  else -> super<$baseDeclaration>.fromGson(reader, name)
+		  else -> super<$baseDeclaration>.fromGson(reader, __name)
 	   }
 	}
 	
@@ -471,41 +464,11 @@ ${printCopyFromContent("\t\t")}
 		}
 	}
 
-	/*
+	override val annotationClass: KClass<*> = Mirror::class
+	override val packageName: String = "cc.mirror.impl"
 
-	override fun copy(other : Any) {
-		if (other !is $classDeclaration)
-			throw IllegalArgumentException("Call only copy classes of type $classDeclaration")
-${printCopyContent("          ")}
-		super<$baseDeclaration>.copy(other)
-	}
-
-	 */
-
-	override fun process(resolver: Resolver): List<KSAnnotated> {
-		this.resolver = resolver
-		val symbols = resolver
-			.getSymbolsWithAnnotation(Mirror::class.qualifiedName!!)
-			.filterIsInstance<KSClassDeclaration>().toMutableList()
-
-		logger.warn("options=$options")
-		logger.warn("symbols=${symbols.joinToString()}")
-
-		if (symbols.isEmpty()) return emptyList()
-
-		val symbol = symbols.removeAt(0)
-
-		val file = codeGenerator.createNewFile(
-			// Make sure to associate the generated file with sources to keep/maintain it across incremental builds.
-			// Learn more about incremental processing in KSP from the official docs:
-			// https://kotlinlang.org/docs/ksp-incremental.html
-			dependencies = Dependencies(false, *resolver.getAllFiles().toList().toTypedArray()),
-			packageName = options["package"] ?: "cc.mirror.impl",
-			fileName = getClassFileName(symbol.simpleName.asString())
-		)
+	override fun process(symbol: KSClassDeclaration, file: OutputStream) {
 		symbol.accept(Visitor(file), Unit)
-		file.close()
-		return symbols
 	}
 
 	companion object {
@@ -532,9 +495,9 @@ ${printCopyContent("          ")}
 			}.filter { it.first != null }
 
 			if (options.isEmpty())
-				throw Exception("Expecting 1 option for $value but found none")
+				throw IllegalArgumentException("Expecting 1 option for $value but found none")
 			if (options.size != 1) {
-				throw Exception("Expecting 1 option for $value but found: ${options.joinToString { it.first!!.value }}")
+				throw IllegalArgumentException("Expecting 1 option for $value but found: ${options.joinToString { it.first!!.value }}")
 			}
 
 			val matcher = options[0].first!!

@@ -10,20 +10,7 @@ dependencies {
 }
 
 android {
-    defaultConfig {
-        minSdkVersion project.myMinSdkVersion
-        targetSdkVersion project.myTargetSdkVersion
-        testInstrumentationRunner project.androidTestRunner
-    }
-
-    compileOptions {
-        sourceCompatibility project.sourceCompatibility
-        targetCompatibility project.targetCompatibility
-    }
-
-    compileSdk project.myCompileSdkVersion.toInteger()
-    //buildToolsVersion project.myBuildToolsVersion
-
+/*
     sourceSets {
         main {
             manifest.srcFile 'AndroidManifest.xml'
@@ -40,7 +27,7 @@ android {
         }
 
     }
-
+*/
     defaultConfig {
 	    minSdkVersion project.myMinSdkVersion.toInteger()
         targetSdkVersion project.myTargetSdkVersion

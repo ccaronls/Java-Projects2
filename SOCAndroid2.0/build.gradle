@@ -8,7 +8,8 @@ dependencies {
 }
 
 android {
-    compileSdk 18
+    namespace = "cc.game.android"
+    //compileSdk 18
     //buildToolsVersion "25.0.2"
 
     sourceSets {

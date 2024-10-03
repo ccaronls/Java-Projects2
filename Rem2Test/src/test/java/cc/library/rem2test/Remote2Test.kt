@@ -1,6 +1,8 @@
 package cc.library.rem2test
 
 import cc.lib.ksp.remote.RemoteContext
+import cc.library.mirrortest.Color
+import cc.library.mirrortest.MirroredTestBase
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonWriter
 import kotlinx.coroutines.async
@@ -55,8 +57,12 @@ class Remote2Test : MirroredTestBase() {
 			return "you said :$s"
 		}
 
-		override suspend fun fun5(m: Color2?): String? {
+		override suspend fun fun5(m: Color?): String? {
 			return "color is: ${m?.nm}"
+		}
+
+		override suspend fun fun6(r: Byte, g: Byte, b: Byte, nm: String): Color? {
+			return Color(nm, r, g, b)
 		}
 	}
 
@@ -73,37 +79,8 @@ class Remote2Test : MirroredTestBase() {
 				}
 				return newReader()
 			}
-
 		}
 
-		override suspend fun fun1() {
-			super.fun1()
-			println("local fun1()")
-		}
-
-		override suspend fun fun2(i: Int) {
-			super.fun2(i)
-			println("local fun2($i)")
-
-		}
-
-		override suspend fun fun3(): Int? {
-			return super.fun3().also {
-				println("local fun3() -> $it")
-			}
-		}
-
-		override suspend fun fun4(s: String?): String? {
-			return super.fun4(s).also {
-				println("local fun4($s) -> $it")
-			}
-		}
-
-		override suspend fun fun5(m: Color2?): String? {
-			return super.fun5(m).also {
-				println("local fun5($m) -> $it")
-			}
-		}
 	}
 
 	@Test
@@ -164,7 +141,7 @@ class Remote2Test : MirroredTestBase() {
 		val r = RemoteObj()
 		val l = LocalObj()
 		val result = async {
-			l.fun5(Color2("RED", 1, 0, 0, 0))
+			l.fun5(Color("RED", 1, 0, 0, 0))
 		}
 		delay(100)
 		r.executeLocally()
@@ -183,4 +160,16 @@ class Remote2Test : MirroredTestBase() {
 		Assert.assertEquals("color is: null", result.await())
 	}
 
+	@Test
+	fun test7() = runBlocking {
+		val r = RemoteObj()
+		val l = LocalObj()
+		val result = async {
+			l.fun6(-80, 23, 99, "barf")
+		}
+		delay(100)
+		r.executeLocally()
+		val color = result.await()!!
+		Assert.assertTrue(color.contentEquals(Color("barf", -80, 23, 99)))
+	}
 }

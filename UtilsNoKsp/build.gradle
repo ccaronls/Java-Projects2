@@ -5,7 +5,7 @@ apply plugin: 'kotlin'
 dependencies {
     implementation group: 'org.json', name: 'json', version: '20090211'
 //    implementation group: 'net.sourceforge.jaadec', name: 'jaad', version: '0.8.5'
-    implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+//    implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0"
 }
 

@@ -1,5 +1,4 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="cc.android.scorekeeper"
           android:versionCode="1"
           android:versionName="1.0" >
 
@@ -11,7 +10,8 @@
 
       <activity
           android:name=".Splash"
-          android:theme="@style/CustomSplashTheme">
+          android:theme="@style/CustomSplashTheme"
+          android:exported="true">
           <intent-filter>
               <action android:name="android.intent.action.MAIN" />
               <category android:name="android.intent.category.LAUNCHER" />

@@ -16,6 +16,7 @@ dependencies {
     implementation(project(":KSPCommon"))
     ksp(project(":KSPMirror"))
     ksp(project(":KSPRem2"))
+    implementation(project(":MirrorTest"))
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0"
 }
 

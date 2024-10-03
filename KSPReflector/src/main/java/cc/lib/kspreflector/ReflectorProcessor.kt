@@ -21,6 +21,7 @@ import com.google.devtools.ksp.symbol.KSType
 import com.google.devtools.ksp.symbol.KSVisitorVoid
 import com.google.devtools.ksp.symbol.Modifier
 import java.io.OutputStream
+import kotlin.reflect.KClass
 
 /**
  * Created by Chris Caron on 11/14/23.
@@ -30,8 +31,6 @@ class ReflectorProcessor(
 	logger: KSPLogger,
 	options: Map<String, String>,
 ) : BaseProcessor(codeGenerator, logger, options) {
-
-	override lateinit var resolver: Resolver
 
 	val reflectorType by lazy {
 		resolver.getClassDeclarationByName(
@@ -220,31 +219,15 @@ ${printFromGsonContent("         ")}
 		}
 
 	}
-	override fun process(resolver: Resolver): List<KSAnnotated> {
-		this.resolver = resolver
-		val symbols = resolver
-			.getSymbolsWithAnnotation(Reflect::class.qualifiedName!!)
-			.filterIsInstance<KSClassDeclaration>().toMutableList()
 
-		logger.warn("processing Reflector annotations")
-		logger.warn("options=$options")
-		logger.warn("symbols=${symbols.joinToString()}")
+	override val annotationClass: KClass<*> = Reflect::class
+	override val packageName: String = "cc.mirror.impl"
 
-		if (symbols.isEmpty())
-			return emptyList()
-
-		val symbol = symbols.removeAt(0)
-
-		val file = codeGenerator.createNewFile(
-			// Make sure to associate the generated file with sources to keep/maintain it across incremental builds.
-			// Learn more about incremental processing in KSP from the official docs:
-			// https://kotlinlang.org/docs/ksp-incremental.html
-			dependencies = Dependencies(false, *resolver.getAllFiles().toList().toTypedArray()),
-			packageName = options["package"] ?: "cc.mirror.impl",
-			fileName = symbol.simpleName.asString() + "Reflector"
-		)
+	override fun process(symbol: KSClassDeclaration, file: OutputStream) {
 		symbol.accept(Visitor(file), Unit)
-		file.close()
-		return symbols
+	}
+
+	override fun getClassFileName(symbol: String): String {
+		TODO("Not yet implemented")
 	}
 }

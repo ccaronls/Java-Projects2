@@ -19,6 +19,7 @@ dependencies {
 
 android {
 
+    namespace = "cc.lib.mp.android"
     defaultConfig {
         targetSdkVersion project.myTargetSdkVersion
         minSdkVersion project.myMinSdkVersion

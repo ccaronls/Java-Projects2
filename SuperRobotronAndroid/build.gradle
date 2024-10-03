@@ -9,6 +9,8 @@ dependencies {
 
 android {
 
+    namespace = "cc.android.game.superrobotron"
+
     defaultConfig {
         versionCode 1
         versionName "1.0"

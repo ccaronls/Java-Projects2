@@ -8,6 +8,7 @@ dependencies {
 }
 
 android {
+    namespace = "cc.game.dominos.android"
 
     sourceSets {
         main {

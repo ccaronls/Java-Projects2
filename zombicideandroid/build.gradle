@@ -3,7 +3,7 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 
 android {
-
+    namespace = "cc.game.zombicide.android"
     defaultConfig {
         applicationId "cc.game.zombicide.android"
         versionCode 2
@@ -25,7 +25,6 @@ android {
             dimension "version"
             applicationIdSuffix ".tv"
             versionNameSuffix "-tv"
-            minSdk = 21
         }
     }
 
