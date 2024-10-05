@@ -199,7 +199,7 @@ class MirrorTest : MirroredTestBase() {
 		val extra =
 			"""{
   "type": "cc.library.mirrortest.Mirror2Impl",
-  "values": {
+  "value": {
     "z": 100,
     "y": "goodbye"
   }

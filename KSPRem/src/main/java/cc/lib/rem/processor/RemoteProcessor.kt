@@ -1,5 +1,6 @@
 package cc.lib.rem.processor
 
+import cc.lib.ksp.helper.BaseProcessor
 import cc.lib.ksp.remote.Remote
 import cc.lib.ksp.remote.RemoteFunction
 import com.google.devtools.ksp.KspExperimental
@@ -8,11 +9,7 @@ import com.google.devtools.ksp.getClassDeclarationByName
 import com.google.devtools.ksp.isAbstract
 import com.google.devtools.ksp.isOpen
 import com.google.devtools.ksp.processing.CodeGenerator
-import com.google.devtools.ksp.processing.Dependencies
 import com.google.devtools.ksp.processing.KSPLogger
-import com.google.devtools.ksp.processing.Resolver
-import com.google.devtools.ksp.processing.SymbolProcessor
-import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSType
@@ -21,14 +18,13 @@ import com.google.devtools.ksp.symbol.KSVisitorVoid
 import com.google.devtools.ksp.symbol.Modifier
 import com.google.devtools.ksp.validate
 import java.io.OutputStream
+import kotlin.reflect.KClass
 
 class RemoteProcessor(
-	private val codeGenerator: CodeGenerator,
-	private val logger: KSPLogger,
-	private val options: Map<String, String>
-) : SymbolProcessor {
-
-	lateinit var resolver: Resolver
+	codeGenerator: CodeGenerator,
+	logger: KSPLogger,
+	options: Map<String, String>
+) : BaseProcessor(codeGenerator, logger, options) {
 
 	val remoteType by lazy {
 		resolver.getClassDeclarationByName(
@@ -36,61 +32,19 @@ class RemoteProcessor(
 		)!!.asStarProjectedType().makeNullable()
 	}
 
-	val unitType by lazy {
-		resolver.getClassDeclarationByName("kotlin.Unit")!!.asStarProjectedType()
-	}
-
 	fun KSType.isRemote(): Boolean {
 		return remoteType.isAssignableFrom(this)
 	}
 
-	fun KSType.isUnit(): Boolean {
-		return unitType.isAssignableFrom(this)
-	}
-
-	fun KSType.getNullable(): String {
-		return if (isMarkedNullable) "?" else ""
-	}
-
-	fun getClassFileName(symbol: String): String {
+	override fun getClassFileName(symbol: String): String {
 		return symbol + "Remote"
 	}
 
-	val imports = mutableSetOf<String>()
+	override val annotationClass: KClass<*> = Remote::class
+	override val packageName: String = "cc.lib.remote.impl"
 
-	override fun process(resolver: Resolver): List<KSAnnotated> {
-		this.resolver = resolver
-		val symbols = resolver
-			.getSymbolsWithAnnotation(Remote::class.qualifiedName!!)
-			.filterIsInstance<KSClassDeclaration>().toMutableList()
-
-		logger.warn("options=$options")
-		logger.warn("symbols=${symbols.joinToString()}")
-
-		options["imports"]?.let {
-			imports.addAll(it.split("[, ]"))
-		}
-
-		if (symbols.isEmpty()) return emptyList()
-
-		val symbol = symbols.removeAt(0)
-
-		val file = codeGenerator.createNewFile(
-			// Make sure to associate the generated file with sources to keep/maintain it across incremental builds.
-			// Learn more about incremental processing in KSP from the official docs:
-			// https://kotlinlang.org/docs/ksp-incremental.html
-			dependencies = Dependencies(false, *resolver.getAllFiles().toList().toTypedArray()),
-			packageName = options["package"] ?: "cc.lib.remote.impl",
-			fileName = getClassFileName(symbol.simpleName.asString())
-		)
+	override fun process(symbol: KSClassDeclaration, file: OutputStream) {
 		symbol.accept(Visitor(file), Unit)
-		file.close()
-		return symbols
-
-	}
-
-	fun OutputStream.print(s: String) {
-		write(s.toByteArray())
 	}
 
 	fun getTypeTemplates(ref: KSTypeReference): String {
@@ -103,13 +57,6 @@ class RemoteProcessor(
 
 	fun getMethodSignature(decl: KSFunctionDeclaration): String {
 		return decl.parameters.joinToString { "${it.name!!.asString()} : ${it.type.resolve()}" }
-
-		/*
-	return decl.parameters.joinToString {
-		"${it.name?.asString()}:${it.type}${
-			getTypeTemplates(it.type)
-		}${it.type.resolve().getNullable()}"
-	}*/
 	}
 
 	inner class Visitor(private val file: OutputStream) : KSVisitorVoid() {
@@ -139,13 +86,6 @@ class RemoteProcessor(
 					decl.annotations.firstOrNull { it.shortName.asString() == "RemoteFunction" }
 			}.filter { it.second != null && it.first.validate() }
 				.map { it.first to it.first.getAnnotationsByType(RemoteFunction::class).first() }.toList()
-
-			/*			val filteredMethods = methods.map {
-							it to Pair(it.parameters.map {
-								Pair(it.name!!, it.type.resolve())
-							}.toList(), it.returnType!!.resolve())
-						}.toMap()*/
-
 			file.print(
 				"""package ${classDeclaration.packageName.asString()}
 				

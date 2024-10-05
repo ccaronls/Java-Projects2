@@ -20,6 +20,7 @@ sourceSets {
 }
 dependencies {
     implementation(project(':KSPCommon'))
+    implementation(project(':KSPMirror'))
     ksp(project(":KSPRem"))
 }
 

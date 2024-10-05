@@ -1,9 +1,10 @@
 package cc.lib.rem
 
-import cc.lib.rem.annotation.Remote
-import cc.lib.rem.annotation.RemoteFunction
-import cc.lib.rem.context.IRemote
+import cc.lib.ksp.remote.IRemote
+import cc.lib.ksp.remote.Remote
+import cc.lib.ksp.remote.RemoteFunction
 import junit.framework.TestCase
+import kotlinx.coroutines.runBlocking
 
 /**
  * Created by Chris Caron on 5/4/24.
@@ -16,13 +17,13 @@ class RemTest : TestCase() {
 		println("--------------------------------------------")
 	}
 
-	fun test1() {
+	fun test1() = runBlocking {
 		val remote = object : TRemoteImpl("remote", null) {
-			override fun remote3(name: String): String? {
+			override suspend fun remote3(name: String): String? {
 				return "$name:goodbye"
 			}
 
-			override fun remote5(a: Int, b: String?, c: Long?, d: Float) {
+			override suspend fun remote5(a: Int, b: String?, c: Long?, d: Float) {
 				println("$name: a:$a, b:$b, c:$c, d:$d")
 			}
 		}
@@ -47,45 +48,45 @@ class RemTest : TestCase() {
 abstract class TRemote(val x: Int, val y: String?) : IRemote {
 
 	@RemoteFunction
-	open fun remote1() {
+	open suspend fun remote1() {
 	}
 
 	@RemoteFunction
-	open fun remote2(num: Int) {
+	open suspend fun remote2(num: Int) {
 	}
 
 	@RemoteFunction
-	open fun remote3(name: String): String? = "return:$name"
+	open suspend fun remote3(name: String): String? = "return:$name"
 
 	@RemoteFunction
-	open fun remote4(list: List<Int>?): Int? = list?.firstOrNull()
+	open suspend fun remote4(list: List<Int>?): Int? = list?.firstOrNull()
 
 	@RemoteFunction
-	open fun remote5(a: Int, b: String?, c: Long?, d: Float) {
+	open suspend fun remote5(a: Int, b: String?, c: Long?, d: Float) {
 	}
 }
 
 open class TRemoteImpl(val name: String, val other: TRemote?) : TRemoteRemote(0, null) {
-	override fun executeRemotely(method: String, resultType: Class<*>?, vararg args: Any?): Any? {
+	override suspend fun executeRemotely(method: String, resultType: Class<*>?, vararg args: Any?): Any? {
 		return other?.executeLocally(method, *args)
 	}
 
-	override fun remote1() {
+	override suspend fun remote1() {
 		println("$name:remote1")
 		super.remote1()
 	}
 
-	override fun remote2(num: Int) {
+	override suspend fun remote2(num: Int) {
 		println("$name:remote2: $num")
 		super.remote2(num)
 	}
 
-	override fun remote3(name: String): String? {
+	override suspend fun remote3(name: String): String? {
 		println("$name:remote3: $name")
 		return super.remote3(name)
 	}
 
-	override fun remote4(list: List<Int>?): Int? {
+	override suspend fun remote4(list: List<Int>?): Int? {
 		println("$name:remote4: ${list?.joinToString()}")
 		return super.remote4(list)
 	}
@@ -96,5 +97,5 @@ class X<T>()
 @Remote
 abstract class TRemote2(x: Int, y: String?, xy: X<Int?>?, xxyy: X<Int>?, xyxy: X<Int?>, yyxx: X<*>, yxyx: X<Int>) : IRemote {
 	@RemoteFunction
-	abstract fun fooBar(x: X<*>)
+	abstract suspend fun fooBar(x: X<*>)
 }
