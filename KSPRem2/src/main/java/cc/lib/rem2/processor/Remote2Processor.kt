@@ -83,7 +83,9 @@ class Remote2Processor(
 					
 import cc.lib.ksp.mirror.*
 import com.google.gson.*
-import com.google.gson.stream.*				
+import com.google.gson.stream.*		
+import kotlinx.serialization.json.Json
+
 """
 			)
 			imports.forEach {
@@ -109,6 +111,10 @@ abstract class $classTypeName($classArgs) : $classDeclaration($classDeclarationP
 				val retTypeQualified = retTypeResolved.makeNotNullable().toFullyQualifiedName()
 				val retNextStr = if (retTypeResolved.isMirrored()) {
 					"nextMirroredOrNull<$retTypeQualified>"
+				} else if (retTypeResolved.isEnum()) {
+					"enumValueOf(r.nextString())"
+				} else if (retTypeResolved.isIData()) {
+					"nextDataOrNull<$retTypeQualified>"
 				} else "next${retType}OrNull"
 
 				if (!(retTypeResolved.isMarkedNullable || retTypeResolved.isUnit())) {
@@ -133,7 +139,12 @@ abstract class $classTypeName($classArgs) : $classDeclaration($classDeclarationP
 """
 				)
 				m.parameters.forEach { param ->
-					file.print("\t\t\tw.valueOrNull($param)\n")
+					val resolvedType = param.type.resolve()
+					if (resolvedType.isIData()) {
+						file.print("\t\t\tw.value(Json.encodeToString(${resolvedType.makeNotNullable()}.serializer(), $param))\n")
+					} else {
+						file.print("\t\t\tw.valueOrNull($param)\n")
+					}
 				}
 				file.print(
 					"""
@@ -176,11 +187,15 @@ abstract class $classTypeName($classArgs) : $classDeclaration($classDeclarationP
 					val resolved = param.type.resolve()
 					resolved.validateOrThrowDeferred()
 
-					val nullStr = if (resolved.isNullable()) "OrNull" else ""
+					val OrNull = if (resolved.isNullable()) "OrNull" else ""
 					if (resolved.isMirrored()) {
-						"r.nextMirrored$nullStr()"
+						"r.nextMirrored$OrNull()"
+					} else if (resolved.isEnum()) {
+						"enumValueOf(r.nextString())"
+					} else if (resolved.isIData()) {
+						"r.nextData$OrNull<${resolved.toFullyQualifiedName()}>()"
 					} else {
-						"r.next${param.type}$nullStr()"
+						"r.next${param.type}$OrNull()"
 					}
 				}
 				val funName = m.simpleName.asString()

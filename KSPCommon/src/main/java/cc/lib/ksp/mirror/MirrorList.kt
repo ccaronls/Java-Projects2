@@ -6,7 +6,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 import java.util.function.Predicate
 
 inline fun <reified T> List<T>.toMirroredList(): MirroredList<T> {
-	if (this is MirroredList)
+	if (this is MirroredList<T>)
 		return this
 	return MirroredList(this, T::class.java)
 }
@@ -286,5 +286,9 @@ class MirroredList<T>(list: List<T>, type: Class<T>) : MirroredStructure<T>(type
 			}
 		}
 		return MirroredList(newList, type) as L
+	}
+
+	override fun hashCode(): Int {
+		return list.hashCode()
 	}
 }

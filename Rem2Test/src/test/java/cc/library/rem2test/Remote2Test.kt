@@ -3,6 +3,7 @@ package cc.library.rem2test
 import cc.lib.ksp.remote.RemoteContext
 import cc.library.mirrortest.Color
 import cc.library.mirrortest.MirroredTestBase
+import cc.library.mirrortest.TempEnum
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonWriter
 import kotlinx.coroutines.async
@@ -63,6 +64,43 @@ class Remote2Test : MirroredTestBase() {
 
 		override suspend fun fun6(r: Byte, g: Byte, b: Byte, nm: String): Color? {
 			return Color(nm, r, g, b)
+		}
+
+		override suspend fun fun7(colorEnum: TempEnum): Color? {
+			return when (colorEnum) {
+				TempEnum.ONE -> Color("ONE")
+				TempEnum.TWO -> Color("TWO")
+				TempEnum.THREE -> Color("THREE")
+			}
+		}
+
+		override suspend fun fun8(list: List<Int>): String? {
+			return list.joinToString { "$it" }
+		}
+
+		override suspend fun fun9(list1: List<Int>?, list2: List<TempEnum>): String? {
+			return list1?.joinToString { "$it" } ?: list2.joinToString { "${it.name}" }
+		}
+
+		override suspend fun fun10(map: Map<String, Int>): Int? {
+			return map.size
+		}
+
+		override suspend fun fun11(array: IntArray): Int? {
+			return array.sum()
+		}
+
+		override suspend fun fun12(array: Array<String>): String? {
+			return array.joinToString(" ")
+		}
+
+		override suspend fun fun13(
+			d: RemoteData,
+			array: Array<RemoteData>,
+			list: List<RemoteData>,
+			map: Map<String, RemoteData?>
+		): RemoteData? {
+			return d
 		}
 	}
 
@@ -149,7 +187,7 @@ class Remote2Test : MirroredTestBase() {
 	}
 
 	@Test
-	fun test6() = runBlocking {
+	fun test5_2() = runBlocking {
 		val r = RemoteObj()
 		val l = LocalObj()
 		val result = async {
@@ -161,7 +199,7 @@ class Remote2Test : MirroredTestBase() {
 	}
 
 	@Test
-	fun test7() = runBlocking {
+	fun test6() = runBlocking {
 		val r = RemoteObj()
 		val l = LocalObj()
 		val result = async {
@@ -172,4 +210,105 @@ class Remote2Test : MirroredTestBase() {
 		val color = result.await()!!
 		Assert.assertTrue(color.contentEquals(Color("barf", -80, 23, 99)))
 	}
+
+	@Test
+	fun test7() = runBlocking {
+		val r = RemoteObj()
+		val l = LocalObj()
+		val result = async {
+			l.fun7(TempEnum.TWO)
+		}
+		delay(100)
+		r.executeLocally()
+		Assert.assertEquals("TWO", result.await()?.nm)
+	}
+
+	@Test
+	fun test8() = runBlocking {
+		val r = RemoteObj()
+		val l = LocalObj()
+		val result = async {
+			l.fun8(listOf(1, 2, 3))
+		}
+		delay(100)
+		r.executeLocally()
+		Assert.assertEquals("1, 2, 3", result.await())
+	}
+
+	@Test
+	fun test9() = runBlocking {
+		val r = RemoteObj()
+		val l = LocalObj()
+		val result = async {
+			l.fun9(null, listOf(TempEnum.THREE, TempEnum.TWO))
+		}
+		delay(100)
+		r.executeLocally()
+		Assert.assertEquals("THREE, TWO", result.await())
+	}
+
+	@Test
+	fun test10() = runBlocking {
+		val r = RemoteObj()
+		val l = LocalObj()
+		val result = async {
+			l.fun10(
+				mapOf(
+					"a" to 1,
+					"b" to 2,
+					"c" to 3
+				)
+			)
+		}
+		delay(100)
+		r.executeLocally()
+		Assert.assertEquals(3, result.await())
+	}
+
+	@Test
+	fun test11() = runBlocking {
+		val r = RemoteObj()
+		val l = LocalObj()
+		val result = async {
+			l.fun11(intArrayOf(1, 2, 3))
+		}
+		delay(100)
+		r.executeLocally()
+		Assert.assertEquals(6, result.await())
+	}
+
+	@Test
+	fun test12() = runBlocking {
+		val r = RemoteObj()
+		val l = LocalObj()
+		val result = async {
+			l.fun12(arrayOf("Hello", "goodbye"))
+		}
+		delay(100)
+		r.executeLocally()
+		Assert.assertEquals("Hello goodbye", result.await())
+	}
+
+	@Test
+	fun test13() = runBlocking {
+		val r = RemoteObj()
+		val l = LocalObj()
+		val remote = RemoteData("hello", 1, TempEnum.ONE)
+		val result = async {
+			l.fun13(
+				remote,
+				arrayOf(RemoteData("gb", 2, TempEnum.TWO)),
+				listOf(RemoteData("gb", 2, TempEnum.TWO)),
+				mapOf("nope" to RemoteData("gb", 2, TempEnum.TWO))
+			)
+		}
+		delay(100)
+		try {
+			r.executeLocally()
+		} catch (e: Throwable) {
+			e.printStackTrace()
+		}
+		Assert.assertEquals(remote, result.await())
+	}
+
 }

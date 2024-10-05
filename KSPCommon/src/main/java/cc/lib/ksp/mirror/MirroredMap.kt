@@ -4,7 +4,7 @@ import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonWriter
 
 inline fun <reified K, reified V> Map<K, V>.toMirroredMap(): MirroredMap<K, V> {
-	if (this is MirroredMap)
+	if (this is MirroredMap<K, V>)
 		return this
 	return MirroredMap(toMutableMap(), K::class.java, V::class.java)
 }
@@ -22,6 +22,7 @@ class MirroredMap<K, V>(map: Map<K, V>, private val keyType: Class<K>, private v
 	private var safeEntries = map.toMutableMap().entries.toTypedArray()
 	private var sizeChanged = map.isNotEmpty()
 	private val changedKeys = map.keys.toMutableSet()
+
 	private val keyStructure = object : MirroredStructure<K>(keyType) {}
 	private val valueStructure = object : MirroredStructure<V>(valueType) {}
 
@@ -103,10 +104,11 @@ class MirroredMap<K, V>(map: Map<K, V>, private val keyType: Class<K>, private v
 	@Synchronized
 	fun fromGson(reader: JsonReader) {
 		reader.beginObject()
+		val keysToDelete = mutableSetOf<K>()
 		while (reader.hasNext()) {
 			when (reader.nextName()) {
 				"sizeChanged" -> if (reader.nextBoolean()) {
-					clear()
+					keysToDelete.addAll(map.keys)
 				}
 
 				"values" -> {
@@ -115,6 +117,7 @@ class MirroredMap<K, V>(map: Map<K, V>, private val keyType: Class<K>, private v
 						reader.beginObject()
 						reader.nextName("key")
 						val key = keyStructure.readValue(reader, null)!!
+						keysToDelete.remove(key)
 						reader.nextName("value")
 						val value = valueStructure.readValue(reader, map[key]) as V
 						map[key] = value
@@ -123,6 +126,9 @@ class MirroredMap<K, V>(map: Map<K, V>, private val keyType: Class<K>, private v
 					reader.endArray()
 				}
 			}
+		}
+		keysToDelete.forEach {
+			map.remove(it)
 		}
 		reader.endObject()
 		refreshSafeEntries()
@@ -214,5 +220,9 @@ class MirroredMap<K, V>(map: Map<K, V>, private val keyType: Class<K>, private v
 			newMap[k] = v
 		}
 		return MirroredMap(newMap, keyType, valueType) as T
+	}
+
+	override fun hashCode(): Int {
+		return map.hashCode()
 	}
 }

@@ -92,18 +92,13 @@ class MirrorProcessor(
 				append(indent).append(txt.replace("\n", "\n$indent"))
 			}
 
-			fun KSType.gsonTypeName(): String {
-				if (isNullable()) {
-					return makeNotNullable().gsonTypeName() + "OrNull"
-				}
-				return "next$this"
-			}
-
-			fun KSType.defaultValue(): String {
+			fun KSType.defaultValue(decl: KSPropertyDeclaration): String {
 				if (nullability == Nullability.NULLABLE)
 					return "null"
-				return match(toString()).also {
-					logger.warn("Matched ${toString()} to $it")
+				try {
+					return match(toString())
+				} catch (e: Exception) {
+					throw IllegalArgumentException("No default value for '${decl.getName()} : ${toString()}'. Please mark this property as nullable.")
 				}
 			}
 
@@ -125,7 +120,7 @@ class MirrorProcessor(
 					if (type.isArray()) {
 						throw IllegalArgumentException("standard Arrays not supported. Use MirroredArray")
 					} else if (type.isList()) {
-						it.appendLn("override var $name : $type = ${type.defaultValue()}")
+						it.appendLn("final override var $name : $type = ${type.defaultValue(prop)}")
 						when (dirtyType) {
 							DirtyType.NEVER -> Unit
 							DirtyType.COMPLEX -> {
@@ -143,7 +138,7 @@ class MirrorProcessor(
 							}
 						}
 					} else if (type.isMap()) {
-						it.appendLn("override var $name : $type = ${type.defaultValue()}")
+						it.appendLn("final override var $name : $type = ${type.defaultValue(prop)}")
 						when (dirtyType) {
 							DirtyType.NEVER -> Unit
 							DirtyType.COMPLEX -> {
@@ -161,7 +156,7 @@ class MirrorProcessor(
 							}
 						}
 					} else {
-						it.appendLn("override var $name : ${type.toFullyQualifiedName()} = ${type.defaultValue()}")
+						it.appendLn("final override var $name : ${type.toFullyQualifiedName()} = ${type.defaultValue(prop)}")
 						when (dirtyType) {
 							DirtyType.NEVER -> Unit
 							DirtyType.COMPLEX -> {
@@ -246,57 +241,44 @@ class MirrorProcessor(
 			}.toString()
 
 			fun printJsonReaderContent(i: String) = StringBuffer().apply {
-
 				indent = i
 				mapped.forEach { (prop, propType) ->
 					val nm = prop.simpleName.asString()
+					val OrNull = if (propType.isNullable()) "OrNull" else ""
 					if (propType.isMirroredArray()) {
-						appendLns("""
-"$nm" -> $nm.fromGson(reader)""")
-					} else if (propType.isMirrored()) {
-						appendLns(
-							"""
-"$nm" -> $nm = checkForNullOr(reader, null) { reader ->
-   reader.beginObject()
-   reader.nextName("type")
-   val clazz = getClassForName(reader.nextString())
-   reader.nextName("value")
-   reader.beginObject()
-   val obj = $nm?:clazz.newInstance() as ${propType.makeNotNullable().toFullyQualifiedName()}
-   while (reader.hasNext()) {
-      obj.fromGson(reader, reader.nextName())
-   }
-   reader.endObject()
-   reader.endObject()
-   obj
-}""")
-					} else if (propType.isEnum()) {
-						appendLns("""
-"$nm" -> $nm = checkForNullOr(reader, null) {
-   enumValueOf<${propType.makeNotNullable()}>(reader.nextString())
-}""")
+						appendLn("\t\"$nm\" -> $nm = reader.nextMirroredArray$OrNull($nm) as ${propType.makeNotNullable()}")
 					} else if (propType.isList()) {
-						appendLns("""
-"$nm" -> ($nm as MirroredList).fromGson(reader)""")
+						appendLn("\t\"$nm\" -> $nm = reader.nextMirroredList$OrNull($nm) as ${propType.makeNotNullable()}")
 					} else if (propType.isMap()) {
+						appendLn("\t\"$nm\" -> $nm = reader.nextMirroredMap$OrNull($nm) as ${propType.makeNotNullable()}")
+					} else if (propType.isMirrored()) {
+//						appendLn("\t\"$nm\" -> $nm = reader.nextMirrored$OrNull($nm)")
+
 						appendLns(
 							"""
-"$nm" -> ($nm as MirroredMap).fromGson(reader)"""
+	"$nm" -> $nm = checkForNullOr(reader, null) { reader ->
+	   reader.beginObject()
+	   reader.nextName("type")
+	   val clazz = getClassForName(reader.nextString())
+	   reader.nextName("value")
+	   reader.beginObject()
+	   val obj = $nm?:clazz.newInstance() as ${propType.makeNotNullable().toFullyQualifiedName()}
+	   while (reader.hasNext()) {
+	      obj.fromGson(reader, reader.nextName())
+	   }
+	   reader.endObject()
+	   reader.endObject()
+	   obj
+	}"""
 						)
+
+
+					} else if (propType.isEnum()) {
+						appendLn("\t\"$nm\" -> $nm = enumValueOf$OrNull<${propType.makeNotNullable()}>(reader.nextString$OrNull())")
 					} else if (propType.isIData()) {
-						appendLns(
-							"""
-"$nm" -> $nm = checkForNullOr(reader, null) {
-   Json.decodeFromString(reader.nextString())
-}"""
-						)
+						appendLn("\t\"$nm\" -> $nm = reader.nextData$OrNull()")
 					} else {
-						appendLns(
-							"""
-"$nm" -> $nm = checkForNullOr(reader, ${propType.defaultValue()}) {
-   reader.${propType.gsonTypeName()}()
-}"""
-						)
+						appendLn("\t\"$nm\" -> $nm = reader.next${propType.makeNotNullable()}$OrNull()")
 					}
 				}
 			}.toString()
@@ -407,6 +389,12 @@ class MirrorProcessor(
 				appendLn("super<$baseDeclaration>.copyFrom(other)")
 			}.toString()
 
+			fun printhashCodeContent(i: String): String = StringBuffer().apply {
+				indent = i
+				val params = mapped.keys.joinToString { "${it.getName()}" }
+				appendLn("return Objects.hash($params)")
+			}.toString()
+
 			file.print(
 				"""				
 package ${classDeclaration.packageName.asString()}
@@ -416,6 +404,7 @@ import com.google.gson.stream.*
 import cc.lib.ksp.mirror.*
 import kotlinx.coroutines.*
 import kotlinx.serialization.json.*
+import java.util.Objects
 				
 abstract class $classTypeName() : $baseDeclaration(), $classDeclaration {				
 
@@ -458,6 +447,11 @@ ${printIsEqualsContent("\t\t")}
 	override fun <T> copyFrom(other : T) {
 ${printCopyFromContent("\t\t")}
 	}
+	
+	override fun hashCode(): Int {
+${printhashCodeContent("\t\t")}
+	}
+
 }				
 """
 			)

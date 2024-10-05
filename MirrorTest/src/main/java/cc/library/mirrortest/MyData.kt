@@ -12,6 +12,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class MyData(val x: Int, val y: Float, val z: String, val l: List<Int>) : IData<MyData> {
 	override fun deepCopy(): MyData = copy()
+
+	override fun getSerializer() = serializer()
 }
 
 @Mirror

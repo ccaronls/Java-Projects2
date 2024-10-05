@@ -71,8 +71,7 @@ abstract class MirroredStructure<T>(protected val type: Class<T>) {
 			}
 
 			is IData<*> -> {
-				val serializer: KSerializer<Any> = serializer(type)
-				writer.value(Json.encodeToString(serializer, obj))
+				writer.value(Json.encodeToString(obj.getSerializer() as KSerializer<T>, obj))
 			}
 
 			else -> throw Exception("Dont know how to write objects '${obj}")

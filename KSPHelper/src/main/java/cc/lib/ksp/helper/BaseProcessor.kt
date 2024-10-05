@@ -152,15 +152,18 @@ abstract class BaseProcessor(
 
 	fun KSType.getTypeArguments(): String {
 		if (arguments.isEmpty()) return ""
-		return "<${arguments.joinToString { it.type.toString() }}>"
+		return "<${arguments.joinToString { it.type!!.resolve().toFullyQualifiedName() }}>"
 	}
 
 	fun KSType.toFullyQualifiedName(): String {
-		var name = (declaration as? KSClassDeclaration)?.qualifiedName?.asString()
+		var qualifiedName = (declaration as? KSClassDeclaration)?.qualifiedName?.asString()
 			?: throw IllegalArgumentException("Cannot get fully qualified name for $this")
+		var name = if (qualifiedName.startsWith("kotlin")) {
+			(declaration as? KSClassDeclaration)?.simpleName?.asString()!!
+		} else qualifiedName
+		name += getTypeArguments()
 		if (isNullable())
 			name = "$name?"
-		name = name + getTypeArguments()
 		logger.warn("Fully qualified name for $this : $name")
 		return name
 	}
@@ -223,8 +226,9 @@ abstract class BaseProcessor(
 			tmpFile.streamTo(file)
 		} catch (e: DeferException) {
 			// try again next time
-		} catch (e: IllegalArgumentException) {
-			logger.error(e.message!!)
+			logger.warn("Deferring symbol: $symbol")
+		} catch (e: Exception) {
+			logger.error("${symbol.location}:" + e.message!!)
 			return emptyList()
 		}
 		tmpFile.delete()

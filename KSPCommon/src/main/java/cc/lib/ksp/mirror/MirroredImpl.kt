@@ -45,7 +45,9 @@ abstract class MirroredImpl : Mirrored {
 		@Throws(ClassNotFoundException::class)
 		fun getClassForName(forName: String): Class<*> = classMap[forName] ?: run {
 			try {
-				return MirroredImpl::class.java.classLoader.loadClass(forName)
+				return MirroredImpl::class.java.classLoader.loadClass(forName).also {
+					classMap[forName] = it
+				}
 			} catch (e: ClassNotFoundException) {
 				throw e
 			}
@@ -76,9 +78,9 @@ abstract class MirroredImpl : Mirrored {
 		fun <T : Mirrored> readMirrored(_obj: T?, reader: JsonReader): T {
 			reader.beginObject()
 			reader.nextName("type")
-			val clazz = reader.nextString()
-			reader.nextName("values")
-			val obj = _obj ?: getClassForName(clazz).newInstance() as T
+			val clazz = getClassForName(reader.nextString())
+			reader.nextName("value")
+			val obj = _obj?.takeIf { clazz.isAssignableFrom(it.javaClass) } ?: clazz.newInstance() as T
 			if (obj is MirroredStructure<*>) {
 				obj.fromGson(reader)
 			} else {
@@ -98,7 +100,7 @@ abstract class MirroredImpl : Mirrored {
 			} else {
 				writer.beginObject()
 				writer.name("type").value(getCanonicalName(obj.javaClass))
-				writer.name("values")
+				writer.name("value")
 				if (obj is MirroredStructure<*>) {
 					obj.toGson(writer, dirtyOnly)
 				} else {

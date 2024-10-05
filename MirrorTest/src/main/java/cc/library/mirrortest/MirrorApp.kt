@@ -2,15 +2,18 @@ package cc.library.mirrortest
 
 import cc.lib.ksp.mirror.IData
 import com.google.gson.GsonBuilder
+import kotlinx.serialization.Serializable
 import java.io.StringReader
 import java.io.StringWriter
 
 open class MyMirror : MirrorImpl()
 
 
-@kotlinx.serialization.Serializable
+@Serializable
 data class TempData(val x: Int, val y: Float) : IData<TempData> {
-	override fun deepCopy(): TempData = copy()
+	override fun deepCopy() = copy()
+
+	override fun getSerializer() = serializer()
 }
 
 class MirrorTest {

@@ -10,7 +10,7 @@ inline fun <reified T> mirroredArrayOf(vararg params: T) = MirroredArray(arrayOf
 
 inline fun <reified T : Number> Array<T>.toMirroredArray() = MirroredArray(this, T::class.javaObjectType)
 
-inline fun <reified T> Array<T>.toMirroredArray() = MirroredArray(this, T::class.java)
+inline fun <reified T> Array<T>.toMirroredArray(): MirroredArray<T> = MirroredArray(this, T::class.java)
 
 /**
  * Created by Chris Caron on 11/15/23.
@@ -141,5 +141,9 @@ class MirroredArray<T>(var array: Array<T>, type: Class<T>) : MirroredStructure<
 			} else newArray[index] = it
 		}
 		return MirroredArray(newArray, type) as A
+	}
+
+	override fun hashCode(): Int {
+		return array.contentHashCode()
 	}
 }
