@@ -4,30 +4,12 @@ apply plugin: 'kotlin-kapt'
 
 dependencies {
     implementation files('../DnsAndroid/mdnsjava-2.1.6-SNAPSHOT.jar', '../DnsAndroid/dnsjava-2.1.7.jar')
-    implementation project (':GameLibrary')
-    implementation "androidx.preference:preference:1.0.0"
-    implementation 'com.google.android.material:material:1.2.0-alpha02'
+    implementation project(':GameLibrary')
+    implementation "androidx.preference:preference:1.2.1"
+    implementation 'com.google.android.material:material:1.12.0'
 }
 
 android {
-/*
-    sourceSets {
-        main {
-            manifest.srcFile 'AndroidManifest.xml'
-            java {
-                srcDirs = ['src']
-            }
-            res.srcDirs = ['res']
-            assets.srcDirs = ['assets']
-            aidl.srcDirs = ['src']
-        }
-
-        androidTest {
-            java.srcDirs = ['androidTest']
-        }
-
-    }
-*/
     defaultConfig {
 	    minSdkVersion project.myMinSdkVersion.toInteger()
         targetSdkVersion project.myTargetSdkVersion

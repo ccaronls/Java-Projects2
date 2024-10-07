@@ -26,7 +26,7 @@ class PlayerChooserDialog internal constructor(val context: RiskActivity) : Recy
 	var players: MutableList<PL> = ArrayList()
 
 	override fun onCreateViewHolder(parent: ViewGroup, viewType: Int):
-		PlayerViewHolder = PlayerViewHolder(PlayerListItemBinding.inflate(LayoutInflater.from(parent.context)))
+		PlayerViewHolder = PlayerViewHolder(PlayerListItemBinding.inflate(LayoutInflater.from(parent.context), parent, false))
 
 	override fun onBindViewHolder(holder: PlayerViewHolder, position: Int) {
 		holder.binding.pl = players[position]

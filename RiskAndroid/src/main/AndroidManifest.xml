@@ -10,7 +10,8 @@
         android:theme="@style/Theme.AppCompat.Dark.FullScreen">
         <activity
             android:name=".RiskActivity"
-            android:screenOrientation="sensorLandscape">
+            android:screenOrientation="sensorLandscape"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

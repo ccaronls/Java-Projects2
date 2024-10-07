@@ -6,7 +6,8 @@ import cc.lib.utils.GException
 import cc.lib.utils.Table
 import cc.lib.utils.prettify
 import cc.lib.utils.random
-import java.util.*
+import java.util.Arrays
+import java.util.LinkedList
 
 /**
  * Created by Chris Caron on 9/13/21.
@@ -24,6 +25,9 @@ open class RiskGame(val board : RiskBoard = RiskBoard()) : Reflector<RiskGame>()
 	private val players = mutableListOf<RiskPlayer>()
 	private var currentPlayer = 0
 	private var state = State.INIT
+
+	val allPlayers: List<RiskPlayer>
+		get() = players
 
 	/**
 	 * Must Call Super if override

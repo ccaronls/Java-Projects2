@@ -11,13 +11,18 @@ import android.widget.ListView
 import android.widget.TextView
 import cc.lib.android.DroidActivity
 import cc.lib.android.DroidGraphics
-import cc.lib.game.Utils
+import cc.lib.reflector.RBufferedReader
 import cc.lib.risk.Action
 import cc.lib.risk.Army
 import cc.lib.risk.RiskBoard
+import cc.lib.risk.RiskGame
 import cc.lib.risk.UIRisk
+import cc.lib.risk.UIRisk.Buttons
+import cc.lib.utils.FileUtils
 import cc.lib.utils.prettify
 import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
 
 class RiskActivity : DroidActivity(), OnItemClickListener {
 
@@ -31,16 +36,51 @@ class RiskActivity : DroidActivity(), OnItemClickListener {
 		object : UIRisk(board) {
 			override val saveGame: File = File(filesDir, "save.game")
 
-			override fun showDiceDialog(attacker: Army, attackingDice: IntArray, defender: Army, defendingDice: IntArray, result: BooleanArray) {
+			override val storedGames: Map<String, File>
+				get() = filesDir.listFiles { file ->
+					file.extension == "saved"
+				}.map {
+					FileUtils.stripExtension(it.name) to it
+				}.toMap()
+
+			override fun showDiceDialog(
+				attacker: Army,
+				attackingDice: IntArray,
+				defender: Army,
+				defendingDice: IntArray,
+				result: BooleanArray
+			) {
 				DiceDialog(this@RiskActivity, attacker, defender, attackingDice, defendingDice, result)
 			}
 
-			override fun initMenu(buttons: List<*>) = _initMenu(buttons)
+			override fun initMenu(buttons: List<*>) {
+				runOnUiThread {
+					listView.adapter = object : BaseAdapter() {
+						override fun getCount(): Int = buttons.size
+						override fun getItem(position: Int): Any? = null
+						override fun getItemId(position: Int): Long = 0
+
+						override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+							val convertView = convertView
+								?: View.inflate(this@RiskActivity, R.layout.list_item, null)
+							val b = convertView.findViewById<TextView>(R.id.text_view)
+							b.tag = buttons[position]
+							b.text = buttons[position]?.prettify() ?: ""
+							return b
+						}
+					}
+				}
+			}
 
 			override val boardImageId = R.drawable.risk_board
 
 			override fun redraw() {
 				this@RiskActivity.redraw()
+			}
+
+			override fun deserialize(`in`: RBufferedReader?) {
+				super.deserialize(`in`)
+				redraw()
 			}
 		}
 	}
@@ -51,16 +91,14 @@ class RiskActivity : DroidActivity(), OnItemClickListener {
 		super.onCreate(savedInstanceState)
 		listView = findViewById(R.id.list_view)
 		listView.onItemClickListener = this
-		hideNavigationBar()
+		game.tryLoadFromFile(game.saveGame)
 	}
 
-	override fun getContentViewId(): Int {
-		return R.layout.activity_main
-	}
+	override val contentViewId: Int = R.layout.activity_main
 
 	override fun onStart() {
 		super.onStart()
-		initHomeMenu()
+		game.initHomeMenu()
 	}
 
 	override fun onStop() {
@@ -68,52 +106,56 @@ class RiskActivity : DroidActivity(), OnItemClickListener {
 		super.onStop()
 	}
 
-	internal enum class Buttons {
-		NEW_GAME,
-		RESUME,
-		ABOUT
-	}
-
-	fun initHomeMenu() {
-		if (game.saveGame.exists()) {
-			_initMenu(Utils.toList(*Buttons.values()))
-		} else {
-			_initMenu(Utils.toList(Buttons.NEW_GAME, Buttons.ABOUT))
-		}
-	}
-
 	override fun onItemClick(parent: AdapterView<*>?, view: View, position: Int, id: Long) {
 		Log.d(TAG, "onItemClick: ${view.tag}")
 		when (view.tag) {
 			is Action -> game.setGameResult(view.tag)
 			Buttons.NEW_GAME -> PlayerChooserDialog(this)
-			Buttons.ABOUT    -> newDialogBuilder().setTitle("About")
-					.setMessage("Game written by Chris Caron")
+			Buttons.ABOUT -> newDialogBuilder().setTitle("About")
+				.setMessage("Game written by Chris Caron")
 				.setNegativeButton(R.string.popup_button_close, null)
 				.show()
+
 			Buttons.RESUME -> {
 				if (game.tryLoadFromFile(game.saveGame)) {
 					game.startGameThread()
 				}
 			}
-		}
-	}
 
-	fun _initMenu(buttons: List<*>) {
-		runOnUiThread {
-			listView.adapter = object : BaseAdapter() {
-				override fun getCount(): Int = buttons.size
-				override fun getItem(position: Int): Any? = null
-				override fun getItemId(position: Int): Long = 0
-
-				override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-					val convertView = convertView
-						?: View.inflate(this@RiskActivity, R.layout.list_item, null)
-					val b = convertView.findViewById<TextView>(R.id.text_view)
-					b.tag = buttons[position]
-					b.text = buttons[position]?.prettify() ?: ""
-					return b
+			Buttons.SAVE -> {
+				if (game.saveGame.exists()) {
+					val g = RiskGame()
+					if (g.tryLoadFromFile(game.saveGame)) {
+						val fileName = g.allPlayers.joinToString("_") {
+							it.army.name
+						} + SimpleDateFormat("MMM_dd_yy").format(Date())
+						newEditTextDialog("Save current game as", "", fileName) {
+							val target = File(filesDir, "$it.saved")
+							if (target.exists()) {
+								newDialogBuilder().setTitle(R.string.popup_title_error)
+									.setMessage("File already exists")
+									.setNegativeButton(R.string.popup_button_ok, null)
+									.show()
+							} else {
+								game.saveGame.copyTo(target)
+								game.tryLoadFromFile(game.saveGame)
+							}
+						}
+					}
 				}
+			}
+
+			Buttons.LOAD -> {
+				val files = game.storedGames.map {
+					it.key
+				}.toTypedArray()
+				newDialogBuilder()
+					.setTitle("Load Game")
+					.setItems(files) { _, fileIdx ->
+						val file = game.storedGames[files[fileIdx]]
+						game.tryLoadFromFile(file)
+					}.setNegativeButton(R.string.popup_button_cancel, null)
+					.show()
 			}
 		}
 	}

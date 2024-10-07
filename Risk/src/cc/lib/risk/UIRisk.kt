@@ -16,11 +16,10 @@ import cc.lib.math.Bezier
 import cc.lib.math.MutableVector2D
 import cc.lib.math.Vector2D
 import cc.lib.utils.Lock
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
+import cc.lib.utils.launchIn
+import kotlinx.coroutines.asCoroutineDispatcher
 import java.io.File
+import java.util.concurrent.Executors
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 import kotlin.math.roundToInt
@@ -40,7 +39,7 @@ class ExpandingTextOverlayAnimation(val text: String, color: GColor) : RiskAnim(
 	val textSizeInterp: IInterpolator<Float>
 	override fun draw(g: AGraphics, position: Float, dt: Float) {
 		g.color = colorInterp.getAtPosition(position)
-		g.pushTextHeight(textSizeInterp.getAtPosition(position), true)
+		g.pushTextHeight(textSizeInterp.getAtPosition(position), false)
 		g.drawJustifiedString(g.viewport.center, Justify.CENTER, Justify.CENTER, text)
 		g.popTextHeight()
 	}
@@ -100,23 +99,28 @@ abstract class UIRisk(board : RiskBoard) : RiskGame(board) {
 	}
 
 	private val log = LoggerFactory.getLogger(UIRisk::class.java)
-	
+
 	private val roman = RomanNumeral()
 	private val animations: MutableList<RiskAnim> = ArrayList()
 	private val highlightedCells: MutableList<Pair<Int, GColor>> = ArrayList()
 	private val pickableTerritories: MutableList<Int> = ArrayList()
-	val running : Boolean
-		get() = runJob?.isActive == true
+	var running: Boolean = false
+		private set
 	private var result: Any? = null
 	private var zoomRect = GRectangle.EMPTY
 	private val lock = ReentrantLock()
 	private val cond = lock.newCondition()
 	private var message: String = ""
-	private var runJob: Job? = null
 
 	abstract val saveGame: File
-
-	override fun onDiceRolled(attacker: Army, attackingDice: IntArray, defender: Army, defendingDice: IntArray, result: BooleanArray) {
+	abstract val storedGames: Map<String, File>
+	override fun onDiceRolled(
+		attacker: Army,
+		attackingDice: IntArray,
+		defender: Army,
+		defendingDice: IntArray,
+		result: BooleanArray
+	) {
 		super.onDiceRolled(attacker, attackingDice, defender, defendingDice, result)
 		if (getPlayerOrNull(attacker) is UIRiskPlayer || getPlayerOrNull(defender) is UIRiskPlayer) {
 			showDiceDialog(attacker, attackingDice, defender, defendingDice, result)
@@ -297,18 +301,28 @@ abstract class UIRisk(board : RiskBoard) : RiskGame(board) {
 		result = null
 	}
 
-	internal enum class Buttons {
-		NEW_GAME,
-		RESUME,
-		ABOUT
+	enum class Buttons {
+		NEW_GAME {
+			override fun isEnabled(game: UIRisk): Boolean = true
+		},
+		RESUME {
+			override fun isEnabled(game: UIRisk): Boolean = game.saveGame.exists()
+		},
+		SAVE {
+			override fun isEnabled(game: UIRisk): Boolean = game.saveGame.exists()
+		},
+		LOAD {
+			override fun isEnabled(game: UIRisk): Boolean = game.storedGames.isNotEmpty()
+		},
+		ABOUT {
+			override fun isEnabled(game: UIRisk): Boolean = true
+		};
+
+		open fun isEnabled(game: UIRisk): Boolean = false
 	}
 
 	fun initHomeMenu() {
-		if (saveGame.exists()) {
-			initMenu(Utils.toList(*Buttons.values()))
-		} else {
-			initMenu(Utils.toList(Buttons.NEW_GAME, Buttons.ABOUT))
-		}
+		initMenu(Buttons.values().filter { it.isEnabled(this) })
 	}
 
 	abstract fun initMenu(buttons: List<*>)
@@ -331,7 +345,6 @@ abstract class UIRisk(board : RiskBoard) : RiskGame(board) {
 	abstract val boardImageId : Int
 
 	fun onDraw(g: AGraphics) {
-		//        g.getPaint().setStrokeWidth(getResources().getDimension(R.dimen.roman_number_thickness));
 		val imageRect = GRectangle(board.dimension)
 		val boardRect = if (zoomRect.isEmpty()) imageRect else zoomRect
 		g.ortho(boardRect)
@@ -420,15 +433,20 @@ abstract class UIRisk(board : RiskBoard) : RiskGame(board) {
 		}
 	}
 
+	val circleColor = GColor(255, 255, 255, 64)
+
 	fun drawArmy(g: AGraphics, cell: IVector2D?, army: Army, numTroops: Int) {
 		val numerals = roman.toRoman(numTroops)
-		val thickness = romanNumerThickness
+		val thickness = romanNumberThickness
 		val borders = arrayOf(
 			AGraphics.Border(AGraphics.BORDER_FLAG_NORTH, thickness, thickness, 0f, -thickness / 2, thickness * 2 / 3),
-			AGraphics.Border(AGraphics.BORDER_FLAG_SOUTH, thickness, thickness, 0f, -thickness / 2, 0f))
-		g.color = GColor.BLACK
+			AGraphics.Border(AGraphics.BORDER_FLAG_SOUTH, thickness, thickness, 0f, -thickness / 2, 0f)
+		)
 		val th = textHeightRoman
-		g.setTextHeight(th + 4, false)
+		val htPix = g.setTextHeight(th + 4, false)
+		g.color = circleColor
+		g.drawFilledCircle(cell, htPix / 2)
+		g.color = GColor.BLACK
 		g.setTextStyles(AGraphics.TextStyle.BOLD)
 		g.drawJustifiedStringBordered(cell, Justify.CENTER, Justify.CENTER, numerals, *borders)
 		g.setTextHeight(th, false)
@@ -506,7 +524,7 @@ abstract class UIRisk(board : RiskBoard) : RiskGame(board) {
 	}
 
 	fun stopGameThread() {
-		runJob?.cancel()
+		running = false
 		setGameResult(null)
 		onGameThreadStopped()
 	}
@@ -518,7 +536,9 @@ abstract class UIRisk(board : RiskBoard) : RiskGame(board) {
 		if (running) return
 		init()
 		initMenu(emptyList<Any>())
-		runJob = CoroutineScope(Dispatchers.IO).async {
+		val gameDispatcher = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
+		running = true
+		launchIn(gameDispatcher) {
 			while (running && !isDone) {
 				try {
 					runGame()
@@ -535,11 +555,15 @@ abstract class UIRisk(board : RiskBoard) : RiskGame(board) {
 	}
 
 	override fun onNextPlayer(currentPlayer: Int) {
-		trySaveToFile(saveGame)
+		if (!running) return
+		zoomRect = GRectangle.EMPTY
+		highlightedCells.clear()
+		val army = getPlayer(currentPlayer).army
+		addOverlayAnimation(ExpandingTextOverlayAnimation("$army's Turn", army.color))
+		Thread.sleep(1000)
 	}
 
 	fun <T> waitForUser(expectedType: Class<T>): T? {
-
 		result = null
 		redraw()
 		lock.withLock {
@@ -571,6 +595,7 @@ abstract class UIRisk(board : RiskBoard) : RiskGame(board) {
 	}
 
 	fun pickAction(options: List<Action>, msg: String): Action? {
+		trySaveToFile(saveGame)
 		message = msg
 		initMenu(options)
 		return waitForUser(Action::class.java)
@@ -587,9 +612,9 @@ abstract class UIRisk(board : RiskBoard) : RiskGame(board) {
 
 	open val textHeightOverlaySmall : Float = 10f
 	open val textHeightOverlayLarge : Float = 20f
-	open val textHeightInfo : Float = 12f
-	open val romanNumerThickness : Float = 3f
-	open val textHeightRoman : Float = 12f
+	open val textHeightInfo: Float = 12f
+	open val romanNumberThickness: Float = 3f
+	open val textHeightRoman: Float = 12f
 	open val cellLineThickness : Float = 3f
 
 	companion object {

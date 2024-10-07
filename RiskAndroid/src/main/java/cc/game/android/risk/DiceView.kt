@@ -97,7 +97,7 @@ class DiceView(context: Context, attrs: AttributeSet?) : DroidView(context, attr
 		val dotSize = dim / 8
 		val oldDotSize = g.setPointSize(dotSize)
 		if (dieNums[maxDieNums] > 9) {
-			g.textHeight = dim / 2
+			g.setTextHeight(dim / 2, true)
 			g.drawJustifiedString(dd2, dd2, Justify.CENTER, Justify.CENTER, pips.toString())
 			return
 		}

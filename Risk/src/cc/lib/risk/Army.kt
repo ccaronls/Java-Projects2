@@ -9,7 +9,7 @@ enum class Army(val color: GColor) {
 	BLUE(GColor(.3f, .3f, 1f, 1f)),
 	RED(GColor.RED),
 	ORANGE(GColor.ORANGE),
-	GREEN(GColor(.3f, 1f, .3f, 1f)),
+	GREEN(GColor(78, 91, 49)), // Army Green
 	MAGENTA(GColor.MAGENTA),
 	NEUTRAL(GColor.LIGHT_GRAY);
 

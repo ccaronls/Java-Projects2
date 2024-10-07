@@ -1,9 +1,10 @@
-package cc.lib.android;
+package cc.lib.android
 
-import android.app.AlertDialog;
-import android.app.Dialog;
-import android.os.Bundle;
-import android.view.ViewGroup;
+import android.app.AlertDialog
+import android.app.Dialog
+import android.content.DialogInterface
+import android.os.Bundle
+import android.view.ViewGroup
 
 /**
  * Created by chriscaron on 2/13/18.
@@ -13,144 +14,112 @@ import android.view.ViewGroup;
  * Just override the draw method
  *
  */
+abstract class DroidActivity : CCActivityBase() {
+	val graphics: DroidGraphics? = null
+	override lateinit var content: DroidView
 
-public abstract class DroidActivity extends CCActivityBase {
+	/**
+	 * Called after onCreate
+	 * @return
+	 */
+	var topBar: ViewGroup? = null
+		private set
+	private var margin = 0
+	private var initialized = false
 
-    private DroidGraphics g = null;
-    private DroidView content = null;
-    private ViewGroup topBar = null;
-    private int margin = 0;
-    private boolean initialized = false;
+	/**
+	 *
+	 * @param margin
+	 */
+	fun setMargin(margin: Int) {
+		this.margin = margin
+		content!!.postInvalidate()
+	}
 
-    /**
-     *
-     * @param margin
-     */
-    public void setMargin(int margin) {
-        this.margin = margin;
-        content.postInvalidate();
-    }
+	override fun onCreate(savedInstanceState: Bundle?) {
+		super.onCreate(savedInstanceState)
+		setContentView(contentViewId)
+		content = findViewById(R.id.droid_view)
+		topBar = findViewById(R.id.top_bar_layout)
+	}
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(getContentViewId());
-        content = findViewById(R.id.droid_view);
-        topBar = findViewById(R.id.top_bar_layout);
-    }
+	protected open val contentViewId: Int
+		protected get() = R.layout.droid_activity
 
-    protected int getContentViewId() {
-        return R.layout.droid_activity;
-    }
+	override fun onPause() {
+		super.onPause()
+	}
 
-    /**
-     * Called after onCreate
-     * @return
-     */
-    public ViewGroup getTopBar() {
-        return topBar;
-    }
+	override fun onDestroy() {
+		if (graphics != null) graphics.releaseBitmaps()
+		initialized = false
+		super.onDestroy()
+	}
 
-    public DroidView getContent() {
-        return content;
-    }
+	override fun onBackPressed() {
+		super.onBackPressed()
+	}
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-    }
+	fun onDrawInternal(g: DroidGraphics) {
+		if (!isFinishing) {
+			if (initialized) {
+				onDraw(g)
+			} else {
+				onInit(g)
+				initialized = true
+				redraw()
+			}
+		}
+	}
 
-    @Override
-    protected void onDestroy() {
-        if (g != null)
-            g.releaseBitmaps();
-        initialized = false;
-        super.onDestroy();
-    }
+	protected abstract fun onDraw(g: DroidGraphics)
+	protected open fun onInit(g: DroidGraphics) {}
+	open fun onTap(x: Float, y: Float) {}
+	open fun onTouchDown(x: Float, y: Float) {}
+	open fun onTouchUp(x: Float, y: Float) {}
+	open fun onDrag(x: Float, y: Float) {}
+	open fun onDragStart(x: Float, y: Float) {}
+	open fun onDragStop(x: Float, y: Float) {}
+	private var currentDialog: AlertDialog? = null
+	protected open val dialogTheme: Int
+		protected get() = R.style.DialogTheme
 
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-    }
+	override fun newDialogBuilder(): AlertDialog.Builder {
+		val previous = currentDialog
+		val builder = object : AlertDialog.Builder(this, dialogTheme) {
+			override fun show(): AlertDialog {
+				currentDialog?.dismiss()
+				return super.show().also {
+					currentDialog = it
+					onDialogShown(currentDialog)
+				}
+			}
+		}.setCancelable(false)
+		if (shouldDialogAddBackButton() && currentDialog != null && currentDialog!!.isShowing) {
+			builder.setNeutralButton(R.string.popup_button_back) { dialog: DialogInterface?, which: Int ->
+				currentDialog = previous
+				previous!!.show()
+			}
+		}
+		return builder
+	}
 
-    void onDrawInternal(DroidGraphics g) {
-        if (!isFinishing()) {
-            if (initialized) {
-                onDraw(g);
-            } else {
-                onInit(g);
-                initialized = true;
-                redraw();
-            }
-        }
-    }
+	protected open fun shouldDialogAddBackButton(): Boolean {
+		return true
+	}
 
-    protected abstract void onDraw(DroidGraphics g);
+	protected open fun onDialogShown(d: Dialog?) {}
+	fun dismissCurrentDialog() {
+		if (currentDialog != null) {
+			currentDialog!!.dismiss()
+			currentDialog = null
+		}
+	}
 
-    protected void onInit(DroidGraphics g) {}
+	val isCurrentDialogShowing: Boolean
+		get() = currentDialog != null && currentDialog!!.isShowing
 
-    protected void onTap(float x, float y) {}
-
-    protected void onTouchDown(float x, float y) {}
-
-    protected void onTouchUp(float x, float y) {}
-
-    protected void onDrag(float x, float y) {}
-
-    protected void onDragStart(float x, float y) {}
-
-    protected void onDragStop(float x, float y) {}
-
-    private AlertDialog currentDialog = null;
-
-    protected int getDialogTheme() {
-        return R.style.DialogTheme;
-    }
-
-    public final AlertDialog.Builder newDialogBuilder() {
-        final AlertDialog previous = currentDialog;
-        AlertDialog.Builder builder = new AlertDialog.Builder(this, getDialogTheme()) {
-            @Override
-            public AlertDialog show() {
-                if (currentDialog != null) {
-                    currentDialog.dismiss();
-                }
-                currentDialog = super.show();
-                onDialogShown(currentDialog);
-                return currentDialog;
-            }
-        }.setCancelable(false);
-        if (shouldDialogAddBackButton() && currentDialog != null && currentDialog.isShowing()) {
-                builder.setNeutralButton(R.string.popup_button_back, (dialog, which) -> {
-                currentDialog = previous;
-                previous.show();
-                });
-            }
-        return builder;
-    }
-
-    protected boolean shouldDialogAddBackButton() {
-        return true;
-    }
-
-    protected void onDialogShown(Dialog d) {}
-
-    public void dismissCurrentDialog() {
-        if (currentDialog != null) {
-            currentDialog.dismiss();
-            currentDialog = null;
-        }
-    }
-
-    public boolean isCurrentDialogShowing() {
-        return currentDialog != null && currentDialog.isShowing();
-    }
-
-    public void redraw() {
-        getContent().postInvalidate();
-    }
-
-    public DroidGraphics getGraphics() {
-        return g;
-    }
+	fun redraw() {
+		content!!.postInvalidate()
+	}
 }

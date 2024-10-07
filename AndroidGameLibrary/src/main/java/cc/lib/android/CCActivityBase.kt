@@ -234,6 +234,25 @@ open class CCActivityBase : AppCompatActivity() {
 		}
 	}
 
+	fun newEditTextDialog(
+		title: String,
+		hintText: String?,
+		defaultText: String,
+		onTextAccepted: (String) -> Unit
+	): AlertDialog {
+		val et = EditText(this)
+		et.hint = hintText
+		et.text.insert(0, defaultText ?: "")
+		return newDialogBuilder()
+			.setTitle(title)
+			.setView(et)
+			.setNegativeButton(R.string.popup_button_cancel, null)
+			.setPositiveButton(R.string.popup_button_ok) { _, _ ->
+				onTextAccepted(et.text.toString())
+			}.show()
+	}
+
+
 	override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
 		super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 		val permissionsNotGranted: MutableList<String> = ArrayList()
@@ -285,11 +304,27 @@ open class CCActivityBase : AppCompatActivity() {
 			}.show()
 	}
 
+	private var hideBar = false
+
 	fun hideNavigationBar() {
+		hideBar = true
 		val decorView = window.decorView
-		val uiOptions = (View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-			or View.SYSTEM_UI_FLAG_FULLSCREEN)
+		val uiOptions = (
+			View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+				or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+				or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+				or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+				or View.SYSTEM_UI_FLAG_FULLSCREEN
+				or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+			)
 		decorView.systemUiVisibility = uiOptions
+	}
+
+	override fun onWindowFocusChanged(hasFocus: Boolean) {
+		super.onWindowFocusChanged(hasFocus)
+		if (hideBar) {
+			hideNavigationBar()
+		}
 	}
 
 	val externalStorageDirectory: File
@@ -297,7 +332,7 @@ open class CCActivityBase : AppCompatActivity() {
 			arrayOf(
 				"sdcard"
 			).forEach { folder ->
-				with (folder.toFile()) {
+				with(folder.toFile()) {
 					if (exists() && isDirectory)
 						return this
 				}
