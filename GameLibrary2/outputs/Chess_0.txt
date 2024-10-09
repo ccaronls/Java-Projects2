@@ -1,0 +1,901 @@
+board=cc.lib.checkerboard.Piece[] 8 {
+   cc.lib.checkerboard.Piece 8 {
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=1
+         position=0
+         stack=1
+         type=ROOK_IDLE
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=1
+         position=1
+         stack=1
+         type=KNIGHT_R
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=1
+         position=2
+         stack=1
+         type=BISHOP
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=1
+         position=3
+         stack=1
+         type=QUEEN
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=1
+         position=4
+         stack=1
+         type=UNCHECKED_KING_IDLE
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=1
+         position=5
+         stack=1
+         type=BISHOP
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=1
+         position=6
+         stack=1
+         type=KNIGHT_L
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=1
+         position=7
+         stack=1
+         type=ROOK_IDLE
+         value=0
+      }
+   }
+   cc.lib.checkerboard.Piece 8 {
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=1
+         position=256
+         stack=1
+         type=PAWN_IDLE
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=1
+         position=257
+         stack=1
+         type=PAWN_IDLE
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=1
+         position=258
+         stack=1
+         type=PAWN_IDLE
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=1
+         position=259
+         stack=1
+         type=PAWN_IDLE
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=1
+         position=260
+         stack=1
+         type=PAWN_IDLE
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=1
+         position=261
+         stack=1
+         type=PAWN_IDLE
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=1
+         position=262
+         stack=1
+         type=PAWN_IDLE
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=1
+         position=263
+         stack=1
+         type=PAWN_IDLE
+         value=0
+      }
+   }
+   cc.lib.checkerboard.Piece 8 {
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=0
+         position=512
+         stack=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=0
+         position=513
+         stack=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=0
+         position=514
+         stack=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=0
+         position=515
+         stack=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=0
+         position=516
+         stack=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=0
+         position=517
+         stack=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=0
+         position=518
+         stack=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=0
+         position=519
+         stack=0
+         type=EMPTY
+         value=0
+      }
+   }
+   cc.lib.checkerboard.Piece 8 {
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=0
+         position=768
+         stack=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=0
+         position=769
+         stack=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=0
+         position=770
+         stack=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=0
+         position=771
+         stack=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=0
+         position=772
+         stack=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=0
+         position=773
+         stack=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=0
+         position=774
+         stack=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=0
+         position=775
+         stack=0
+         type=EMPTY
+         value=0
+      }
+   }
+   cc.lib.checkerboard.Piece 8 {
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=0
+         position=1024
+         stack=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=0
+         position=1025
+         stack=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=0
+         position=1026
+         stack=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=0
+         position=1027
+         stack=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=0
+         position=1028
+         stack=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=0
+         position=1029
+         stack=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=0
+         position=1030
+         stack=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=0
+         position=1031
+         stack=0
+         type=EMPTY
+         value=0
+      }
+   }
+   cc.lib.checkerboard.Piece 8 {
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=0
+         position=1280
+         stack=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=0
+         position=1281
+         stack=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=0
+         position=1282
+         stack=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=0
+         position=1283
+         stack=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=0
+         position=1284
+         stack=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=0
+         position=1285
+         stack=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=0
+         position=1286
+         stack=0
+         type=EMPTY
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=0
+         position=1287
+         stack=0
+         type=EMPTY
+         value=0
+      }
+   }
+   cc.lib.checkerboard.Piece 8 {
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=1
+         position=1536
+         stack=0
+         type=PAWN_IDLE
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=1
+         position=1537
+         stack=0
+         type=PAWN_IDLE
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=1
+         position=1538
+         stack=0
+         type=PAWN_IDLE
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=1
+         position=1539
+         stack=0
+         type=PAWN_IDLE
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=1
+         position=1540
+         stack=0
+         type=PAWN_IDLE
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=1
+         position=1541
+         stack=0
+         type=PAWN_IDLE
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=1
+         position=1542
+         stack=0
+         type=PAWN_IDLE
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=1
+         position=1543
+         stack=0
+         type=PAWN_IDLE
+         value=0
+      }
+   }
+   cc.lib.checkerboard.Piece 8 {
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=1
+         position=1792
+         stack=0
+         type=ROOK_IDLE
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=1
+         position=1793
+         stack=0
+         type=KNIGHT_R
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=1
+         position=1794
+         stack=0
+         type=BISHOP
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=1
+         position=1795
+         stack=0
+         type=QUEEN
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=1
+         position=1796
+         stack=0
+         type=UNCHECKED_KING_IDLE
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=1
+         position=1797
+         stack=0
+         type=BISHOP
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=1
+         position=1798
+         stack=0
+         type=KNIGHT_L
+         value=0
+      }
+      cc.lib.checkerboard.Piece {
+         captured=false
+         numStacks=1
+         position=1799
+         stack=0
+         type=ROOK_IDLE
+         value=0
+      }
+   }
+}
+cols=8
+gameState=PLAYING
+initialized=true
+moves=java.util.ArrayList {
+   cc.lib.checkerboard.Move {
+      captured=-1
+      capturedType=null
+      castleRookEnd=-1
+      castleRookStart=-1
+      end=1280
+      endType=KNIGHT_R
+      enpassant=-1
+      jumped=-1
+      moveType=JUMP
+      opponentKing=4
+      opponentKingTypeEnd=UNCHECKED_KING_IDLE
+      opponentKingTypeStart=UNCHECKED_KING_IDLE
+      playerNum=0
+      start=1793
+      startType=KNIGHT_R
+   }
+   cc.lib.checkerboard.Move {
+      captured=-1
+      capturedType=null
+      castleRookEnd=-1
+      castleRookStart=-1
+      end=1282
+      endType=KNIGHT_R
+      enpassant=-1
+      jumped=-1
+      moveType=JUMP
+      opponentKing=4
+      opponentKingTypeEnd=UNCHECKED_KING_IDLE
+      opponentKingTypeStart=UNCHECKED_KING_IDLE
+      playerNum=0
+      start=1793
+      startType=KNIGHT_R
+   }
+   cc.lib.checkerboard.Move {
+      captured=-1
+      capturedType=null
+      castleRookEnd=-1
+      castleRookStart=-1
+      end=1285
+      endType=KNIGHT_L
+      enpassant=-1
+      jumped=-1
+      moveType=JUMP
+      opponentKing=4
+      opponentKingTypeEnd=UNCHECKED_KING_IDLE
+      opponentKingTypeStart=UNCHECKED_KING_IDLE
+      playerNum=0
+      start=1798
+      startType=KNIGHT_L
+   }
+   cc.lib.checkerboard.Move {
+      captured=-1
+      capturedType=null
+      castleRookEnd=-1
+      castleRookStart=-1
+      end=1287
+      endType=KNIGHT_L
+      enpassant=-1
+      jumped=-1
+      moveType=JUMP
+      opponentKing=4
+      opponentKingTypeEnd=UNCHECKED_KING_IDLE
+      opponentKingTypeStart=UNCHECKED_KING_IDLE
+      playerNum=0
+      start=1798
+      startType=KNIGHT_L
+   }
+   cc.lib.checkerboard.Move {
+      captured=-1
+      capturedType=null
+      castleRookEnd=-1
+      castleRookStart=-1
+      end=1280
+      endType=PAWN
+      enpassant=-1
+      jumped=-1
+      moveType=SLIDE
+      opponentKing=4
+      opponentKingTypeEnd=UNCHECKED_KING_IDLE
+      opponentKingTypeStart=UNCHECKED_KING_IDLE
+      playerNum=0
+      start=1536
+      startType=PAWN_IDLE
+   }
+   cc.lib.checkerboard.Move {
+      captured=-1
+      capturedType=null
+      castleRookEnd=-1
+      castleRookStart=-1
+      end=1024
+      endType=PAWN_ENPASSANT
+      enpassant=-1
+      jumped=-1
+      moveType=SLIDE
+      opponentKing=4
+      opponentKingTypeEnd=UNCHECKED_KING_IDLE
+      opponentKingTypeStart=UNCHECKED_KING_IDLE
+      playerNum=0
+      start=1536
+      startType=PAWN_IDLE
+   }
+   cc.lib.checkerboard.Move {
+      captured=-1
+      capturedType=null
+      castleRookEnd=-1
+      castleRookStart=-1
+      end=1281
+      endType=PAWN
+      enpassant=-1
+      jumped=-1
+      moveType=SLIDE
+      opponentKing=4
+      opponentKingTypeEnd=UNCHECKED_KING_IDLE
+      opponentKingTypeStart=UNCHECKED_KING_IDLE
+      playerNum=0
+      start=1537
+      startType=PAWN_IDLE
+   }
+   cc.lib.checkerboard.Move {
+      captured=-1
+      capturedType=null
+      castleRookEnd=-1
+      castleRookStart=-1
+      end=1025
+      endType=PAWN_ENPASSANT
+      enpassant=-1
+      jumped=-1
+      moveType=SLIDE
+      opponentKing=4
+      opponentKingTypeEnd=UNCHECKED_KING_IDLE
+      opponentKingTypeStart=UNCHECKED_KING_IDLE
+      playerNum=0
+      start=1537
+      startType=PAWN_IDLE
+   }
+   cc.lib.checkerboard.Move {
+      captured=-1
+      capturedType=null
+      castleRookEnd=-1
+      castleRookStart=-1
+      end=1282
+      endType=PAWN
+      enpassant=-1
+      jumped=-1
+      moveType=SLIDE
+      opponentKing=4
+      opponentKingTypeEnd=UNCHECKED_KING_IDLE
+      opponentKingTypeStart=UNCHECKED_KING_IDLE
+      playerNum=0
+      start=1538
+      startType=PAWN_IDLE
+   }
+   cc.lib.checkerboard.Move {
+      captured=-1
+      capturedType=null
+      castleRookEnd=-1
+      castleRookStart=-1
+      end=1026
+      endType=PAWN_ENPASSANT
+      enpassant=-1
+      jumped=-1
+      moveType=SLIDE
+      opponentKing=4
+      opponentKingTypeEnd=UNCHECKED_KING_IDLE
+      opponentKingTypeStart=UNCHECKED_KING_IDLE
+      playerNum=0
+      start=1538
+      startType=PAWN_IDLE
+   }
+   cc.lib.checkerboard.Move {
+      captured=-1
+      capturedType=null
+      castleRookEnd=-1
+      castleRookStart=-1
+      end=1283
+      endType=PAWN
+      enpassant=-1
+      jumped=-1
+      moveType=SLIDE
+      opponentKing=4
+      opponentKingTypeEnd=UNCHECKED_KING_IDLE
+      opponentKingTypeStart=UNCHECKED_KING_IDLE
+      playerNum=0
+      start=1539
+      startType=PAWN_IDLE
+   }
+   cc.lib.checkerboard.Move {
+      captured=-1
+      capturedType=null
+      castleRookEnd=-1
+      castleRookStart=-1
+      end=1027
+      endType=PAWN_ENPASSANT
+      enpassant=-1
+      jumped=-1
+      moveType=SLIDE
+      opponentKing=4
+      opponentKingTypeEnd=UNCHECKED_KING_IDLE
+      opponentKingTypeStart=UNCHECKED_KING_IDLE
+      playerNum=0
+      start=1539
+      startType=PAWN_IDLE
+   }
+   cc.lib.checkerboard.Move {
+      captured=-1
+      capturedType=null
+      castleRookEnd=-1
+      castleRookStart=-1
+      end=1284
+      endType=PAWN
+      enpassant=-1
+      jumped=-1
+      moveType=SLIDE
+      opponentKing=4
+      opponentKingTypeEnd=UNCHECKED_KING_IDLE
+      opponentKingTypeStart=UNCHECKED_KING_IDLE
+      playerNum=0
+      start=1540
+      startType=PAWN_IDLE
+   }
+   cc.lib.checkerboard.Move {
+      captured=-1
+      capturedType=null
+      castleRookEnd=-1
+      castleRookStart=-1
+      end=1028
+      endType=PAWN_ENPASSANT
+      enpassant=-1
+      jumped=-1
+      moveType=SLIDE
+      opponentKing=4
+      opponentKingTypeEnd=UNCHECKED_KING_IDLE
+      opponentKingTypeStart=UNCHECKED_KING_IDLE
+      playerNum=0
+      start=1540
+      startType=PAWN_IDLE
+   }
+   cc.lib.checkerboard.Move {
+      captured=-1
+      capturedType=null
+      castleRookEnd=-1
+      castleRookStart=-1
+      end=1285
+      endType=PAWN
+      enpassant=-1
+      jumped=-1
+      moveType=SLIDE
+      opponentKing=4
+      opponentKingTypeEnd=UNCHECKED_KING_IDLE
+      opponentKingTypeStart=UNCHECKED_KING_IDLE
+      playerNum=0
+      start=1541
+      startType=PAWN_IDLE
+   }
+   cc.lib.checkerboard.Move {
+      captured=-1
+      capturedType=null
+      castleRookEnd=-1
+      castleRookStart=-1
+      end=1029
+      endType=PAWN_ENPASSANT
+      enpassant=-1
+      jumped=-1
+      moveType=SLIDE
+      opponentKing=4
+      opponentKingTypeEnd=UNCHECKED_KING_IDLE
+      opponentKingTypeStart=UNCHECKED_KING_IDLE
+      playerNum=0
+      start=1541
+      startType=PAWN_IDLE
+   }
+   cc.lib.checkerboard.Move {
+      captured=-1
+      capturedType=null
+      castleRookEnd=-1
+      castleRookStart=-1
+      end=1286
+      endType=PAWN
+      enpassant=-1
+      jumped=-1
+      moveType=SLIDE
+      opponentKing=4
+      opponentKingTypeEnd=UNCHECKED_KING_IDLE
+      opponentKingTypeStart=UNCHECKED_KING_IDLE
+      playerNum=0
+      start=1542
+      startType=PAWN_IDLE
+   }
+   cc.lib.checkerboard.Move {
+      captured=-1
+      capturedType=null
+      castleRookEnd=-1
+      castleRookStart=-1
+      end=1030
+      endType=PAWN_ENPASSANT
+      enpassant=-1
+      jumped=-1
+      moveType=SLIDE
+      opponentKing=4
+      opponentKingTypeEnd=UNCHECKED_KING_IDLE
+      opponentKingTypeStart=UNCHECKED_KING_IDLE
+      playerNum=0
+      start=1542
+      startType=PAWN_IDLE
+   }
+   cc.lib.checkerboard.Move {
+      captured=-1
+      capturedType=null
+      castleRookEnd=-1
+      castleRookStart=-1
+      end=1287
+      endType=PAWN
+      enpassant=-1
+      jumped=-1
+      moveType=SLIDE
+      opponentKing=4
+      opponentKingTypeEnd=UNCHECKED_KING_IDLE
+      opponentKingTypeStart=UNCHECKED_KING_IDLE
+      playerNum=0
+      start=1543
+      startType=PAWN_IDLE
+   }
+   cc.lib.checkerboard.Move {
+      captured=-1
+      capturedType=null
+      castleRookEnd=-1
+      castleRookStart=-1
+      end=1031
+      endType=PAWN_ENPASSANT
+      enpassant=-1
+      jumped=-1
+      moveType=SLIDE
+      opponentKing=4
+      opponentKingTypeEnd=UNCHECKED_KING_IDLE
+      opponentKingTypeStart=UNCHECKED_KING_IDLE
+      playerNum=0
+      start=1543
+      startType=PAWN_IDLE
+   }
+}
+numPieces=int 2 {
+   16 16 
+}
+players=cc.lib.checkerboard.Player 2 {
+   cc.lib.checkerboard.AIPlayer {
+      color=WHITE
+      maxSearchDepth=3
+      playerNum=0
+   }
+   cc.lib.checkerboard.AIPlayer {
+      color=BLACK
+      maxSearchDepth=3
+      playerNum=1
+   }
+}
+ranks=8
+rules=cc.lib.checkerboard.Chess {
+   timerFar=0
+   timerLength=0
+   timerNear=0
+   whiteSide=0
+}
+selectedPos=-1
+turn=0
+undoStack=java.util.Stack {
+}
