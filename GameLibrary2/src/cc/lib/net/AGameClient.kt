@@ -1,24 +1,32 @@
 package cc.lib.net
 
-import cc.lib.ksp.remote.IRemote
+import cc.lib.ksp.remote.IRemote2
+import cc.lib.ksp.remote.RemoteContext
 import cc.lib.logger.LoggerFactory
+import cc.lib.net.api.AConnection
 import cc.lib.utils.GException
-import cc.lib.utils.isEmpty
 import cc.lib.utils.launchIn
+import com.google.gson.stream.JsonReader
+import com.google.gson.stream.JsonWriter
 import kotlinx.coroutines.asCoroutineDispatcher
 import java.io.IOException
+import java.io.StringReader
+import java.io.StringWriter
 import java.lang.reflect.Method
 import java.net.InetAddress
 import java.util.Arrays
 import java.util.Collections
 import java.util.concurrent.Executors
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 /**
  * Base class for clients that want to connect to a GameServer
  *
  * @author ccaron
  */
-abstract class AGameClient(deviceName: String, version: String) {
+abstract class AGameClient(deviceName: String, version: String) : AConnection() {
 
 	interface Listener {
 		fun onCommand(cmd: GameCommand) {}
@@ -240,26 +248,40 @@ abstract class AGameClient(deviceName: String, version: String) {
 		executorObjects.remove(id)
 	}
 
-	internal abstract inner class AExecutor(val responseId: String) : Listener {
+	internal inner class Executor(obj: IRemote2, val responseId: String, val params: String) : Listener {
 
 		init {
 			addListener(this, "AExecutor:$responseId")
 		}
 
-		abstract suspend fun invoke(): Any?
+		lateinit var cont: Continuation<String>
 
 		val job = launchIn {
 			try {
-				val result = invoke()
+				obj.context = object : RemoteContext {
+
+					override suspend fun executeLocally(cb: suspend (JsonReader) -> Unit) {
+						cb(gson.newJsonReader(StringReader(params)))
+					}
+
+					override fun setResult(cb: (JsonWriter) -> Unit) {
+						val writer = StringWriter()
+						cb(gson.newJsonWriter(writer))
+						cont.resume(writer.buffer.toString())
+					}
+				}
+				obj.executeLocally()
 				if (responseId.isEmpty()) {
 					return@launchIn
+				}
+				val result = suspendCoroutine {
+					cont = it
 				}
 				log.debug("responseId=%s cancelled=$cancelled result=$result")
 				val resp = GameCommand(GameCommandType.CL_REMOTE_RETURNS)
 				resp.setArg("target", responseId)
-				if (result != null) resp.setArg(
-					"returns", TODO()
-					//Reflector.serializeObject(result)
+				if (result.isNotBlank()) resp.setArg(
+					"returns", result
 				) else resp.setArg("cancelled", cancelled)
 				cancelled = false
 				sendCommand(resp)
@@ -267,7 +289,7 @@ abstract class AGameClient(deviceName: String, version: String) {
 				e.printStackTrace()
 				sendError(e)
 			} finally {
-				removeListener(this@AExecutor, "AExecutor:$responseId")
+				removeListener(this@Executor, "Executor:$responseId")
 			}
 		}
 
@@ -286,32 +308,17 @@ abstract class AGameClient(deviceName: String, version: String) {
 	@Throws(IOException::class)
 	fun handleExecuteRemote(cmd: GameCommand) {
 		log.debug("handleExecuteOnRemote %s", cmd)
-		val method = cmd.getString("method")
-		val numParams = cmd.getInt("numParams")
-		val params = Array<Pair<Class<*>, Any?>>(numParams) {
-			val param = cmd.getString("param$it")
-			val o: Any? = null//Reflector.deserializeFromString<Any>(param)
-
-			if (o != null) {
-				Pair(o.javaClass, o)
-			} else {
-				Pair(Any::class.java, null)
-			}
-		}
 		val id = cmd.getString("target")
+		val json = cmd.getString("json")
 		val obj = executorObjects[id] ?: throw IOException("Unknown object id: $id")
 		log.debug("id=%s -> %s", id, obj.javaClass)
 		val responseId = cmd.getString("responseId")
 		launchIn(jobContext) {
-			if (obj is IRemote) {
-				object : AExecutor(responseId) {
-					override suspend fun invoke(): Any? = obj.executeLocally(method, *params.map { it.second }.toTypedArray())
-				}
-			}
+			Executor(obj as IRemote2, responseId, json)
 		}
 	}
 
-	private val jobContext = Executors.newSingleThreadExecutor().asCoroutineDispatcher()//newSingleThreadContext("AGameClient")
+	private val jobContext = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
 
 	private var cancelled = false
 	fun cancelRemote() {

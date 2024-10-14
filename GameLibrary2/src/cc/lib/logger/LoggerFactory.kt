@@ -1,7 +1,6 @@
 package cc.lib.logger
 
 import cc.lib.utils.GException
-import cc.lib.utils.isEmpty
 import java.io.File
 import java.io.FileWriter
 import java.io.IOException
@@ -34,21 +33,21 @@ abstract class LoggerFactory {
 					override fun error(msg: String, vararg args: Any) {
 						var msg = msg
 						if (LogLevel.ERROR.isSilent) return
-						if (args.size > 0) msg = String.format(msg, *args)
+						if (args.isNotEmpty()) msg = String.format(msg, *args)
 						System.err.println("E[$name]:$msg")
 					}
 
 					override fun debug(msg: String, vararg args: Any) {
 						var msg = msg
 						if (LogLevel.DEBUG.isSilent) return
-						if (args.size > 0) msg = String.format(msg, *args)
+						if (args.isNotEmpty()) msg = String.format(msg, *args)
 						println("D[$name]:$msg")
 					}
 
 					override fun info(msg: String, vararg args: Any) {
 						var msg = msg
 						if (LogLevel.INFO.isSilent) return
-						if (args.size > 0) msg = String.format(msg, *args)
+						if (args.isNotEmpty()) msg = String.format(msg, *args)
 						println("I[$name]:$msg")
 					}
 
@@ -63,14 +62,14 @@ abstract class LoggerFactory {
 					override fun warn(msg: String, vararg args: Any) {
 						var msg = msg
 						if (LogLevel.INFO.isSilent) return
-						if (args.size > 0) msg = String.format(msg, *args)
+						if (args.isNotEmpty()) msg = String.format(msg, *args)
 						System.err.println("W[$name]:$msg")
 					}
 
 					override fun verbose(msg: String, vararg args: Any) {
 						var msg = msg
 						if (LogLevel.VERBOSE.isSilent) return
-						if (args.size > 0) msg = String.format(msg, *args)
+						if (args.isNotEmpty()) msg = String.format(msg, *args)
 						System.err.println("V[$name]:$msg")
 					}
 				}

@@ -96,7 +96,7 @@ class MirrorProcessor(
 				if (nullability == Nullability.NULLABLE)
 					return "null"
 				try {
-					return match(toString())
+					return match(toString()) ?: (decl.type.resolve().toFullyQualifiedName() + "()")
 				} catch (e: Exception) {
 					throw IllegalArgumentException("No default value for '${decl.getName()} : ${toString()}'. Please mark this property as nullable.")
 				}
@@ -116,58 +116,59 @@ class MirrorProcessor(
 					val prop = pair.first
 					val type = pair.second
 					val nullable = if (type.nullability == Nullability.NULLABLE) "?" else ""
+					val protected = if (!prop.isMutable) "protected " else ""
 					val name = prop.getName()
 					if (type.isArray()) {
 						throw IllegalArgumentException("standard Arrays not supported. Use MirroredArray")
 					} else if (type.isList()) {
-						it.appendLn("final override var $name : $type = ${type.defaultValue(prop)}")
+						it.appendLn("override var $name : $type = ${type.defaultValue(prop)}")
 						when (dirtyType) {
 							DirtyType.NEVER -> Unit
 							DirtyType.COMPLEX -> {
-								it.appendLn("   set(value) {")
+								it.appendLn("   ${protected}set(value) {")
 								it.appendLn("      if (value != field) $dirtyFlagFieldName.set($index)")
 								it.appendLn("      field = value$nullable.toMirroredList()")
 								it.appendLn("   }")
 							}
 
 							DirtyType.ANY -> {
-								it.appendLn("   set(value) {")
+								it.appendLn("   ${protected}set(value) {")
 								it.appendLn("      $dirtyFlagFieldName = $dirtyFlagFieldName || (value != field)")
 								it.appendLn("      field = value$nullable.toMirroredList()")
 								it.appendLn("   }")
 							}
 						}
 					} else if (type.isMap()) {
-						it.appendLn("final override var $name : $type = ${type.defaultValue(prop)}")
+						it.appendLn("override var $name : $type = ${type.defaultValue(prop)}")
 						when (dirtyType) {
 							DirtyType.NEVER -> Unit
 							DirtyType.COMPLEX -> {
-								it.appendLn("   set(value) {")
+								it.appendLn("   ${protected}set(value) {")
 								it.appendLn("      if (value != field) $dirtyFlagFieldName.set($index)")
 								it.appendLn("      field = value$nullable.toMirroredMap()")
 								it.appendLn("   }")
 							}
 
 							DirtyType.ANY -> {
-								it.appendLn("   set(value) {")
+								it.appendLn("   s${protected}et(value) {")
 								it.appendLn("      $dirtyFlagFieldName = $dirtyFlagFieldName || (value != field)")
 								it.appendLn("      field = value$nullable.toMirroredMap()")
 								it.appendLn("   }")
 							}
 						}
 					} else {
-						it.appendLn("final override var $name : ${type.toFullyQualifiedName()} = ${type.defaultValue(prop)}")
+						it.appendLn("override var $name : ${type.toFullyQualifiedName()} = ${type.defaultValue(prop)}")
 						when (dirtyType) {
 							DirtyType.NEVER -> Unit
 							DirtyType.COMPLEX -> {
-								it.appendLn("   set(value) {")
+								it.appendLn("   ${protected}set(value) {")
 								it.appendLn("      if (value != field) $dirtyFlagFieldName.set($index)")
 								it.appendLn("      field = value")
 								it.appendLn("   }")
 							}
 
 							DirtyType.ANY -> {
-								it.appendLn("   set(value) {")
+								it.appendLn("   ${protected}set(value) {")
 								it.appendLn("      $dirtyFlagFieldName = $dirtyFlagFieldName || (value != field)")
 								it.appendLn("      field = value")
 								it.appendLn("   }")
@@ -244,6 +245,7 @@ class MirrorProcessor(
 				indent = i
 				mapped.forEach { (prop, propType) ->
 					val nm = prop.simpleName.asString()
+					val defaultValue = if (propType.isNullable()) "null" else propType.defaultValue(prop)
 					val OrNull = if (propType.isNullable()) "OrNull" else ""
 					if (propType.isMirroredArray()) {
 						appendLn("\t\"$nm\" -> $nm = reader.nextMirroredArray$OrNull($nm) as ${propType.makeNotNullable()}")
@@ -256,7 +258,7 @@ class MirrorProcessor(
 
 						appendLns(
 							"""
-	"$nm" -> $nm = checkForNullOr(reader, null) { reader ->
+	"$nm" -> $nm = checkForNullOr(reader, $defaultValue) { reader ->
 	   reader.beginObject()
 	   reader.nextName("type")
 	   val clazz = getClassForName(reader.nextString())
@@ -396,8 +398,7 @@ class MirrorProcessor(
 			}.toString()
 
 			file.print(
-				"""				
-package ${classDeclaration.packageName.asString()}
+				"""package ${classDeclaration.packageName.asString()}
 				
 import com.google.gson.*
 import com.google.gson.stream.*
@@ -405,6 +406,8 @@ import cc.lib.ksp.mirror.*
 import kotlinx.coroutines.*
 import kotlinx.serialization.json.*
 import java.util.Objects
+
+${imports.joinToString("\n") { "import $it" }}
 				
 abstract class $classTypeName() : $baseDeclaration(), $classDeclaration {				
 
@@ -434,7 +437,7 @@ ${printIsDirtyContent("\t\t")}
 	
 	override fun toString(buffer: StringBuffer, indent: String) {
 ${printToStringContent("\t\t")}
-       super<$baseDeclaration>.toString(buffer, indent)
+		super<$baseDeclaration>.toString(buffer, indent)
 	}
 	
 	override fun contentEquals(other : Any?) : Boolean {
@@ -483,13 +486,13 @@ ${printhashCodeContent("\t\t")}
 			it.key.toRegex() to it.value
 		}
 
-		fun match(value: String): String {
+		fun match(value: String): String? {
 			val options = defaultValueRegExMap.map {
 				it.first.matchEntire(value) to it.second
 			}.filter { it.first != null }
 
 			if (options.isEmpty())
-				throw IllegalArgumentException("Expecting 1 option for $value but found none")
+				return null
 			if (options.size != 1) {
 				throw IllegalArgumentException("Expecting 1 option for $value but found: ${options.joinToString { it.first!!.value }}")
 			}

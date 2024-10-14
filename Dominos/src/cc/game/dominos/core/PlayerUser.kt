@@ -1,7 +1,5 @@
 package cc.game.dominos.core
 
-import java.util.*
-
 /**
  * Created by chriscaron on 2/14/18.
  */
@@ -13,7 +11,7 @@ open class PlayerUser : Player {
 	constructor() {}
 	constructor(playerNum: Int) : super(playerNum) {}
 
-	override fun chooseMove(game: Dominos, moves: List<Move>): Move? {
+	override suspend fun chooseMove(game: Dominos, moves: List<Move>): Move? {
 		clearMoves()
 		this.moves.addAll(moves)
 		for (m in moves) {

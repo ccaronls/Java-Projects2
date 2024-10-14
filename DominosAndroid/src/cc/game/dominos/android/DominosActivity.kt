@@ -6,9 +6,10 @@ import android.widget.RadioGroup
 import cc.game.dominos.core.Dominos
 import cc.lib.android.DroidActivity
 import cc.lib.android.DroidGraphics
-import cc.lib.annotation.Keep
-import cc.lib.utils.FileUtils
+import cc.lib.ksp.remote.RemoteContext
+import cc.lib.utils.copyFile
 import java.io.File
+import kotlin.math.roundToInt
 
 /**
  * Created by chriscaron on 2/15/18.
@@ -20,17 +21,19 @@ class DominosActivity : DroidActivity() {
 		super.onCreate(savedInstanceState)
 		//AndroidLogger.setLogFile(new File(Environment.getExternalStorageDirectory(), "dominos.log"));
 		val padding = resources.getDimensionPixelSize(R.dimen.border_padding)
-		setMargin(padding)
+		//setMargin(padding)
 		saveFile = File(externalStorageDirectory, "dominos.save")
 		Dominos.SPACING = resources.getDimension(R.dimen.element_spacing)
-		Dominos.TEXT_SIZE = resources.getDimension(R.dimen.info_txt_size)
+		//Dominos.TEXT_SIZE = resources.getDimension(R.dimen.info_txt_size)
 		dominos = object : Dominos() {
+
+			override var context: RemoteContext? = null
+
 			override fun redraw() {
 				this@DominosActivity.redraw()
 			}
 
-			@Keep
-			override fun onGameOver(winner: Int) {
+			override suspend fun onGameOver(winner: Int) {
 				super.onGameOver(winner)
 				content.postDelayed({ showNewGameDialog() }, 5000)
 			}
@@ -38,13 +41,18 @@ class DominosActivity : DroidActivity() {
 			override fun onMenuClicked() {
 				showNewGameDialog()
 			}
+
+			override suspend fun onNewRound() {
+				super.onNewRound()
+				trySaveToFile(saveFile)
+			}
 		}
 		dominos.startDominosIntroAnimation { if (!isCurrentDialogShowing) showNewGameDialog() }
 	}
 
 	fun copyFileToExt() {
 		try {
-			FileUtils.copyFile(saveFile, externalStorageDirectory)
+			saveFile.copyFile(externalStorageDirectory)
 		} catch (e: Exception) {
 			e.printStackTrace()
 		}
@@ -64,7 +72,8 @@ class DominosActivity : DroidActivity() {
 	var ty = -1
 	var dragging = false
 	override fun onDraw(g: DroidGraphics) {
-		synchronized(this) { dominos.draw(g, tx, ty) }
+		DroidGraphics.USE_ANDROID_RECTS = false
+		dominos.draw(g, tx, ty)
 	}
 
 	override fun onTouchDown(x: Float, y: Float) {
@@ -94,8 +103,8 @@ class DominosActivity : DroidActivity() {
 	}
 
 	override fun onTap(x: Float, y: Float) {
-		tx = Math.round(x)
-		ty = Math.round(y)
+		tx = x.roundToInt()
+		ty = y.roundToInt()
 		redraw()
 		content.postDelayed({
 			ty = -1
@@ -109,7 +118,9 @@ class DominosActivity : DroidActivity() {
 		val b = newDialogBuilder().setTitle(R.string.popup_title_choose_game_type)
 			.setView(v).setNegativeButton(R.string.popup_button_cancel, null)
 		if (dominos.isInitialized()) {
-			b.setNegativeButton(R.string.popup_button_cancel) { dialog, which -> if (!dominos.isGameRunning) dominos.startGameThread() }
+			b.setNegativeButton(R.string.popup_button_cancel) { dialog, which ->
+				dominos.startGameThread()
+			}
 		}
 		b.show()
 		v.findViewById<View>(R.id.bSinglePlayer).setOnClickListener { showNewSinglePlayerSetupDialog() }

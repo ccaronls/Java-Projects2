@@ -283,11 +283,11 @@ class Renderer(private var window: Renderable) {
 		cur_name = name
 	}
 
+	/**
+	 * Return the top level matrix
+	 * @return
+	 */
 	val currentTransform: Matrix3x3
-		/**
-		 * Return the top level matrix
-		 * @return
-		 */
 		get() = Matrix3x3(cur_mat)
 
 	/**

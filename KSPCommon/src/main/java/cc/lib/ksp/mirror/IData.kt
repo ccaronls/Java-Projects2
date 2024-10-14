@@ -29,5 +29,5 @@ interface IData<T> {
 	 *
 	 * Like 'copy' serializer is g
 	 */
-	fun getSerializer(): KSerializer<*>
+	fun getSerializer(): KSerializer<T>
 }

@@ -2,7 +2,6 @@ package cc.lib.game
 
 import cc.lib.utils.ITableItem
 import cc.lib.utils.Table
-import cc.lib.utils.padToFit
 
 /**
  * Created by Chris Caron on 5/8/23.
@@ -156,7 +155,8 @@ class Dice(
 		}
 
 		private fun getDefaultPipString(numPips: Int, row: Int): String = if (row == 1) {
-			"|${numPips.toString().padToFit(WIDTH)}|"
+			//"|${numPips.toString().padToFit(WIDTH)}|"
+			String.format("|%${WIDTH / 2 + 1}d%${WIDTH / 2}s|", numPips, "")
 		} else {
 			BLANK
 		}

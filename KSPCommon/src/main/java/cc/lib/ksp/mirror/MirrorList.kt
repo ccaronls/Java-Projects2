@@ -2,7 +2,6 @@ package cc.lib.ksp.mirror
 
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonWriter
-import java.util.concurrent.CopyOnWriteArrayList
 import java.util.function.Predicate
 
 inline fun <reified T> List<T>.toMirroredList(): MirroredList<T> {
@@ -20,7 +19,7 @@ inline fun <reified T> Array<T>.toMirroredList(): MirroredList<T> {
  */
 class MirroredList<T>(list: List<T>, type: Class<T>) : MirroredStructure<T>(type), Mirrored, MutableList<T> {
 
-	private var list = CopyOnWriteArrayList(list)
+	private var list = ArrayList(list)
 	private val dirty = mutableListOf<Boolean>()
 	private var sizeChanged = list.isNotEmpty()
 
@@ -227,6 +226,12 @@ class MirroredList<T>(list: List<T>, type: Class<T>) : MirroredStructure<T>(type
 	override fun listIterator(index: Int): MutableListIterator<T> = MirroredListIterator(list.listIterator(index))
 
 	override fun subList(fromIndex: Int, toIndex: Int): MutableList<T> = MirroredList(list.subList(fromIndex, toIndex), type)
+
+	fun last(): T = get(size - 1)
+
+	fun addLast(obj: T) {
+		add(size, obj)
+	}
 
 	override fun isDirty(): Boolean {
 		if (sizeChanged)

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="dnd_icon_dim_sm">48dp</dimen>
+</resources>

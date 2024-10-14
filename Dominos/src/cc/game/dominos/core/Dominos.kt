@@ -2,27 +2,36 @@ package cc.game.dominos.core
 
 import cc.game.dominos.core.Board.Companion.drawDie
 import cc.game.dominos.core.Board.Companion.drawTile
-import cc.lib.annotation.Keep
 import cc.lib.game.AAnimation
 import cc.lib.game.AGraphics
 import cc.lib.game.APGraphics
 import cc.lib.game.GColor
+import cc.lib.game.IVector2D
 import cc.lib.game.Justify
-import cc.lib.game.Utils
+import cc.lib.ksp.mirror.Mirror
+import cc.lib.ksp.mirror.Mirrored
+import cc.lib.ksp.remote.IRemote2
+import cc.lib.ksp.remote.Remote
+import cc.lib.ksp.remote.RemoteFunction
 import cc.lib.logger.LoggerFactory
 import cc.lib.math.Bezier
 import cc.lib.math.MutableVector2D
 import cc.lib.math.Vector2D
 import cc.lib.net.AGameServer
-import cc.lib.reflector.Omit
-import cc.lib.reflector.Reflector
 import cc.lib.utils.GException
-import cc.lib.utils.Lock
-import cc.lib.utils.random
-import cc.lib.utils.randomSigned
+import cc.lib.utils.KLock
+import cc.lib.utils.clearAndAddAll
+import cc.lib.utils.flipCoin
+import cc.lib.utils.launchIn
+import cc.lib.utils.randRange
+import cc.lib.utils.randomPositive
+import cc.lib.utils.randomPositiveOrNegative
 import cc.lib.utils.removeAll
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import java.util.Collections
-import java.util.LinkedList
+import java.util.concurrent.Executors
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.roundToInt
@@ -54,47 +63,69 @@ import kotlin.math.sqrt
  * on drag end event
  * D.endDrag(mouseX, mouseY)
  */
-abstract class Dominos : Reflector<Dominos>(), AGameServer.Listener {
-	@Omit
+@Mirror
+interface IDominos : Mirrored {
+
+	val players: MutableList<Player>
+	val pool: MutableList<Tile>
+	val maxPips: Int
+	val maxScore: Int
+	val turn: Int
+	val difficulty: Int
+	var board: Board
+
+}
+
+@Remote
+abstract class RDominos : DominosImpl(), IRemote2 {
+
+	@RemoteFunction
+	abstract suspend fun setTurn(player: Int)
+
+	@RemoteFunction
+	abstract suspend fun onGameOver(winner: Int)
+
+	@RemoteFunction
+	abstract suspend fun onKnock(player: Int)
+
+	@RemoteFunction
+	abstract suspend fun onNewRound()
+
+	@RemoteFunction
+	abstract suspend fun onPlaceFirstTile(player: Int, tile: Tile)
+
+	@RemoteFunction
+	abstract suspend fun onPlayerEndRoundPoints(player: Int, pts: Int)
+
+	@RemoteFunction
+	abstract suspend fun onPlayerPoints(player: Int, pts: Int)
+
+	@RemoteFunction
+	abstract suspend fun onTileFromPool(player: Int, tile: Tile)
+
+	@RemoteFunction
+	abstract suspend fun onTilePlaced(player: Int, tile: Tile, endpoint: Int, placement: Int)
+}
+
+abstract class Dominos : RDominosRemote(), AGameServer.Listener {
+
 	private val log = LoggerFactory.getLogger(javaClass)
 
 	companion object {
 		var SPACING = 6f
-		var TEXT_SIZE = 20f
+		const val TEXT_SIZE = 20f
 		const val DELAY_BETWEEN = 700
-
-		init {
-			addAllFields(Dominos::class.java)
-		}
 	}
 
-	private var players: Array<Player> = arrayOf(PlayerUser(1))
-	private val pool: LinkedList<Tile> = LinkedList()
-	var maxPips = 0
-		private set
-	var maxScore = 0
-		private set
-	private var turn = 0
-	var difficulty = 0
-		private set
-	var board = Board()
 
-	@Omit
 	private var selectedPlayerTile = -1
-
-	@Omit
 	private var highlightedPlayerTile = -1
-
-	@Omit
-	val gameLock = Lock()
-
-	@Omit
+	val gameLock = KLock()
 	private var dragging = false
 
 	/**
 	 * Clear out tiles and board but keep playre instances with restted scores
 	 */
-	@Synchronized
 	fun reset() {
 		stopGameThread()
 		clearHighlghts()
@@ -109,10 +140,10 @@ abstract class Dominos : Reflector<Dominos>(), AGameServer.Listener {
 	/**
 	 * Same as reset but also set players count to 0
 	 */
-	@Synchronized
+
 	fun clear() {
 		reset()
-		players = arrayOf()
+		players.clear()
 	}
 
 	fun setPlayers(vararg players: Player) {
@@ -120,10 +151,12 @@ abstract class Dominos : Reflector<Dominos>(), AGameServer.Listener {
 			throw GException("Cant assign while game running")
 		if (players.size !in 0..4)
 			throw GException("Range of players can be 1 to 4")
-		this.players = arrayOf(*players)
+		this.players.clear()
+		players.forEach {
+			this.players.add(it)
+		}
 	}
 
-	@Omit
 	var isGameRunning = false
 		private set
 
@@ -151,24 +184,24 @@ abstract class Dominos : Reflector<Dominos>(), AGameServer.Listener {
 		}
 	}
 
-	@Keep
-	protected open fun onGameOver(playerNum: Int) {
+	override suspend fun onGameOver(winner: Int) {
+		super.onGameOver(winner)
 		//server.broadcastExecuteOnRemote(MPConstants.DOMINOS_ID, playerNum);
-		val winner = players[playerNum]
-		addAnimation(winner.getName() + "WINNER", object : AAnimation<AGraphics>(1000, -1, true) {
+		val winner = players[winner]
+		addAnimation(winner.name + "WINNER", object : AAnimation<AGraphics>(1000, -1, true) {
 			override fun draw(g: AGraphics, position: Float, dt: Float) {
 				val c = GColor(position, 1 - position, position, position)
 				g.color = c
-				if (repeat % 4 < 2) 
-					g.drawJustifiedString(0f, 0f, Justify.LEFT, "WINNER!") 
-				else 
-					g.drawJustifiedString(0f, 0f, Justify.LEFT, winner.getName())
+				if (repeat % 4 < 2)
+					g.drawJustifiedString(0f, 0f, Justify.LEFT, "WINNER!")
+				else
+					g.drawJustifiedString(0f, 0f, Justify.LEFT, winner.name)
 			}
 		}, false)
 	}
 
-	private fun startPlayerPtsAnim(p: Player, pts: Int) {
-		addAnimation(p.getName() + "PTS", object : AAnimation<AGraphics>(2000) {
+	private fun startPlayerPtsAnim(p: Player, pts: Int) = runBlocking {
+		addAnimation(p.name + "PTS", object : AAnimation<AGraphics>(2000) {
 			override fun draw(g: AGraphics, position: Float, dt: Float) {
 				val curPts = p.score + (position * pts).roundToInt()
 				g.drawJustifiedString(0f, 0f, Justify.RIGHT, curPts.toString())
@@ -182,7 +215,7 @@ abstract class Dominos : Reflector<Dominos>(), AGameServer.Listener {
 
 	// return the height of used area (numLines * textHgt)
 	private fun drawPlayerInfo(g: AGraphics, p: Player, maxWidth: Float): Float {
-		var a = anims[p.getName() + "PTS"]
+		var a = anims[p.name + "PTS"]
 		g.color = GColor.BLACK
 		if (a != null) {
 			g.translate(maxWidth, 0f)
@@ -191,16 +224,16 @@ abstract class Dominos : Reflector<Dominos>(), AGameServer.Listener {
 			g.color = GColor.TRANSPARENT
 		}
 		var dim = g.drawJustifiedString(maxWidth, 0f, Justify.RIGHT, "${p.score}")
-		anims[p.getName() + "WINNER"]?.let { a ->
+		anims[p.name + "WINNER"]?.let { a ->
 			a.update(g)
 			return dim.height
 		}
-		anims[p.getName() + "KNOCK"]?.let { a ->
+		anims[p.name + "KNOCK"]?.let { a ->
 			a.update(g)
 			return dim.height
 		}
 		g.color = GColor.BLUE
-		dim = g.drawWrapString(0f, 0f, maxWidth - dim.width - SPACING, p.getName())
+		dim = g.drawWrapString(0f, 0f, maxWidth - dim.width - SPACING, p.name)
 		return dim.height
 	}
 
@@ -210,36 +243,33 @@ abstract class Dominos : Reflector<Dominos>(), AGameServer.Listener {
 		return getWinner() < 0
 	}
 
-	@Synchronized
+
 	fun startGameThread() {
-		if (isGameRunning) 
+		if (isGameRunning)
 			return
 		isGameRunning = true
-		if (!isInitialized()) 
+		if (!isInitialized())
 			throw GException("Game not initialized")
 		log.debug("startGameThread, currently running=$isGameRunning")
-		object : Thread() {
-			override fun run() {
-				log.debug("Thread starting.")
-				isGameRunning = true
-				while (isGameRunning && !isGameOver()) {
-					synchronized(gameLock) {
-						runGame()
-						redraw()
-						if (isGameRunning) {
-							sleep(100)
-						}
-					}
+		val dispatcher = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
+		launchIn(dispatcher) {
+			log.debug("Thread starting.")
+			isGameRunning = true
+			while (isGameRunning && !isGameOver()) {
+				runGame()
+				redraw()
+				if (isGameRunning) {
+					delay(100)
 				}
-				log.debug("Thread done.")
-				val w = getWinner()
-				if (isGameRunning && w >= 0) {
-					onGameOver(w)
-				}
-				isGameRunning = false
-				gameLock.releaseAll()
 			}
-		}.start()
+			log.debug("Thread done.")
+			val w = getWinner()
+			if (isGameRunning && w >= 0) {
+				onGameOver(w)
+			}
+			isGameRunning = false
+			gameLock.releaseAll()
+		}
 	}
 
 	private fun initPool() {
@@ -261,14 +291,8 @@ abstract class Dominos : Reflector<Dominos>(), AGameServer.Listener {
 		initPool()
 	}
 
-	fun getTurn(): Int {
-		return turn
-	}
-
-	@Keep
-	@Synchronized
-	fun setTurn(turn: Int) {
-		//server.broadcastExecuteOnRemote(MPConstants.DOMINOS_ID, turn);
+	override suspend fun setTurn(turn: Int) {
+		super.setTurn(turn)
 		if (turn >= 0 && turn < players.size) {
 			val fromPlayer = players[this.turn]
 			val toPlayer = players[turn]
@@ -292,12 +316,12 @@ abstract class Dominos : Reflector<Dominos>(), AGameServer.Listener {
 		if (isGameRunning) 
 			throw GException()
 		var d = difficulty
-		players = Array(num) {
+		players.clearAndAddAll(Array(num) {
 			when (it) {
 				0 -> PlayerUser(0)
 				else -> Player(it).also { it.smart = true }
 			}
-		}
+		}.toList())
 	}
 
 	fun getPlayer(num: Int): Player {
@@ -306,16 +330,12 @@ abstract class Dominos : Reflector<Dominos>(), AGameServer.Listener {
 
 	fun getCurPlayer() : Player = players[turn]
 
-	fun getPool(): List<Tile> {
-		return pool
-	}
-
-	private fun newRound() {
+	private suspend fun newRound() {
 		pool.shuffle()
 		val numPerPlayer = if (players.size == 2) 7 else 5
 		for (p in players) {
 			for (i in 0 until numPerPlayer) {
-				val t = pool.first
+				val t = pool.first()
 				onTileFromPool(p.playerNum, t)
 			}
 		}
@@ -326,11 +346,11 @@ abstract class Dominos : Reflector<Dominos>(), AGameServer.Listener {
 		}
 	}
 
-	private fun nextTurn() {
+	private suspend fun nextTurn() {
 		setTurn((turn + 1) % players.size)
 	}
 
-	private fun placeFirstTile(): Boolean {
+	private suspend fun placeFirstTile(): Boolean {
 		for (i in maxPips downTo 1) {
 			for (p in players.indices) {
 				val t = players[p].findTile(i, i)
@@ -353,14 +373,13 @@ abstract class Dominos : Reflector<Dominos>(), AGameServer.Listener {
 		return moves
 	}
 
-	@Keep
-	protected fun onPlaceFirstTile(player: Int, t: Tile) {
-		//server.broadcastExecuteOnRemote(MPConstants.DOMINOS_ID, player, t);
-		players[player].tiles.remove(t)
-		board.placeRootPiece(t)
+	override suspend fun onPlaceFirstTile(player: Int, tile: Tile) {
+		super.onPlaceFirstTile(player, tile)
+		players[player].tiles.remove(tile)
+		board.placeRootPiece(tile)
 	}
 
-	fun runGame() {
+	suspend fun runGame() {
 
 		// make sure players are numbered corrcetly
 		for (i in players.indices)
@@ -390,7 +409,7 @@ abstract class Dominos : Reflector<Dominos>(), AGameServer.Listener {
 					break
 				}
 			}
-			val pc = pool.first
+			val pc = pool.first()
 			onTileFromPool(turn, pc)
 			moves.addAll(board.findMovesForPiece(pc))
 		}
@@ -398,7 +417,7 @@ abstract class Dominos : Reflector<Dominos>(), AGameServer.Listener {
 			if (moves.size > 0) {
 				val mv = p.chooseMove(this, moves)
 				if (mv == null || !isGameRunning) return
-				onTilePlaced(turn, mv.piece, mv.endpoint, mv.placment)
+				onTilePlaced(turn, mv.piece, mv.endpoint, mv.placement)
 				val pts = board.computeEndpointsTotal()
 				if (pts > 0 && pts % 5 == 0) {
 					onPlayerPoints(turn, pts)
@@ -433,20 +452,18 @@ abstract class Dominos : Reflector<Dominos>(), AGameServer.Listener {
 
 	fun isGameOver(): Boolean = getWinner() >= 0
 
-	@Keep
-	protected fun onTilePlaced(player: Int, tile: Tile, endpoint: Int, placement: Int) {
-		//server.broadcastExecuteOnRemote(MPConstants.DOMINOS_ID, player, tile, endpoint, placement);
+	override suspend fun onTilePlaced(player: Int, tile: Tile, endpoint: Int, placement: Int) {
+		super.onTilePlaced(player, tile, endpoint, placement)
 		board.doMove(tile, endpoint, placement)
 		players[player].tiles.remove(tile)
 		redraw()
 	}
 
-	@Keep
-	protected fun onTileFromPool(player: Int, pc: Tile) {
-		//server.broadcastExecuteOnRemote(MPConstants.DOMINOS_ID, player, pc);
+	override suspend fun onTileFromPool(player: Int, pc: Tile) {
+		super.onTileFromPool(player, pc)
 		val p = players[player]
 		pool.remove(pc)
-		addAnimation(p.getName() + "POOL", object : AAnimation<AGraphics>(700) {
+		addAnimation(p.name + "POOL", object : AAnimation<AGraphics>(700) {
 			protected override fun draw(g: AGraphics, position: Float, dt: Float) {
 				g.pushMatrix()
 				g.translate(0f, 0.5f)
@@ -468,11 +485,10 @@ abstract class Dominos : Reflector<Dominos>(), AGameServer.Listener {
 		redraw()
 	}
 
-	@Keep
-	protected fun onKnock(player: Int) {
-		//server.broadcastExecuteOnRemote(MPConstants.DOMINOS_ID, player);
+	override suspend fun onKnock(player: Int) {
+		super.onKnock(player)
 		val p = players[player]
-		addAnimation(p.getName() + "KNOCK", object : AAnimation<AGraphics>(1000) {
+		addAnimation(p.name + "KNOCK", object : AAnimation<AGraphics>(1000) {
 			protected override fun draw(g: AGraphics, position: Float, dt: Float) {
 				g.color = GColor.YELLOW.withAlpha(1f - position)
 				g.drawJustifiedString(0f, 0f, Justify.CENTER, "KNOCK")
@@ -481,9 +497,8 @@ abstract class Dominos : Reflector<Dominos>(), AGameServer.Listener {
 		redraw()
 	}
 
-	@Omit
 	private val anims = Collections.synchronizedMap(HashMap<String, AAnimation<AGraphics>>())
-	fun addAnimation(id: String, a: AAnimation<AGraphics>, block: Boolean) {
+	suspend fun addAnimation(id: String, a: AAnimation<AGraphics>, block: Boolean) {
 		anims[id] = a
 		a.start<AAnimation<AGraphics>>()
 		redraw()
@@ -533,15 +548,19 @@ abstract class Dominos : Reflector<Dominos>(), AGameServer.Listener {
 		}
 
 		override fun onDone() {
-			addAnimation("TILES", object : AAnimation<AGraphics>(1000) {
-				override fun draw(g: AGraphics, position: Float, dt: Float) {
-					drawTiles(g, num, position)
-				}
+			launchIn {
+				addAnimation("TILES", object : AAnimation<AGraphics>(1000) {
+					override fun draw(g: AGraphics, position: Float, dt: Float) {
+						drawTiles(g, num, position)
+					}
 
-				override fun onDone() {
-					startPlayerPtsBoardGraphicAnim(p, pts)
-				}
-			}, false)
+					override fun onDone() {
+						launchIn {
+							startPlayerPtsBoardGraphicAnim(p, pts)
+						}
+					}
+				}, false)
+			}
 		}
 
 		init {
@@ -555,7 +574,7 @@ abstract class Dominos : Reflector<Dominos>(), AGameServer.Listener {
 		}
 	}
 
-	private fun startPlayerPtsBoardGraphicAnim(p: Player, pts: Int) {
+	suspend fun startPlayerPtsBoardGraphicAnim(p: Player, pts: Int) {
 		addAnimation("TILES", object : AAnimation<AGraphics>(2000) {
 			override fun draw(g: AGraphics, position: Float, dt: Float) {
 				val hgtStart = boardDim / 12
@@ -571,9 +590,8 @@ abstract class Dominos : Reflector<Dominos>(), AGameServer.Listener {
 		}, false)
 	}
 
-	@Keep
-	protected fun onPlayerEndRoundPoints(player: Int, pts: Int) {
-		//server.broadcastExecuteOnRemote(MPConstants.DOMINOS_ID, player, pts);
+	override suspend fun onPlayerEndRoundPoints(player: Int, pts: Int) {
+		super.onPlayerEndRoundPoints(player, pts)
 		val p = players[player]
 
 		// figure out how many pieces are left
@@ -615,9 +633,8 @@ abstract class Dominos : Reflector<Dominos>(), AGameServer.Listener {
 	 * @param player
 	 * @param pts
 	 */
-	@Keep
-	protected fun onPlayerPoints(player: Int, pts: Int) {
-		//server.broadcastExecuteOnRemote(MPConstants.DOMINOS_ID, player,pts);
+	override suspend fun onPlayerPoints(player: Int, pts: Int) {
+		super.onPlayerPoints(player, pts)
 		val p = players[player]
 		var delay: Long = 0
 		for (i in 0..3) {
@@ -625,7 +642,9 @@ abstract class Dominos : Reflector<Dominos>(), AGameServer.Listener {
 			if (board.getOpenPips(i) > 0) {
 				board.addAnimation(object : GlowEndpointAnimation(i) {
 					public override fun onDone() {
-						if (isFirst) startPlayerPtsBoardGraphicAnim(p, pts)
+						if (isFirst) launchIn {
+							startPlayerPtsBoardGraphicAnim(p, pts)
+						}
 					}
 				}.start(delay))
 				delay += 300
@@ -636,19 +655,18 @@ abstract class Dominos : Reflector<Dominos>(), AGameServer.Listener {
 		p.score += pts
 	}
 
-	protected fun onNewRound() {
+	override suspend fun onNewRound() {
 		log.debug("onNewRound")
 		for (p in players) {
 			p.tiles.clear()
 		}
 		board.clear()
 		initPool()
-		//server.broadcastCommand(new GameCommand(MPConstants.SVR_TO_CL_INIT_ROUND).setArg("dominos", this));
+		super.onNewRound()
 		startShuffleAnimation()
 		newRound()
 	}
 
-	@Omit
 	private var boardDim = 0f
 
 	fun init(g: APGraphics) {
@@ -658,7 +676,7 @@ abstract class Dominos : Reflector<Dominos>(), AGameServer.Listener {
 		boardDim = if (portrait) w else h
 	}
 
-	@Synchronized
+
 	fun draw(g: APGraphics, pickX: Int, pickY: Int) {
 		val w = g.viewportWidth.toFloat()
 		val h = g.viewportHeight.toFloat()
@@ -680,7 +698,7 @@ abstract class Dominos : Reflector<Dominos>(), AGameServer.Listener {
 		} else {
 			var dragging: Tile? = null
 			if (this.dragging && selectedPlayerTile >= 0) {
-				dragging = getUser().tiles[selectedPlayerTile]
+				dragging = getUser()?.tiles?.getOrNull(selectedPlayerTile)
 			}
 			drawDragged = true
 			if (board.draw(g, boardDim, boardDim, pickX, pickY, dragging) >= 0) drawDragged = false
@@ -733,14 +751,14 @@ abstract class Dominos : Reflector<Dominos>(), AGameServer.Listener {
 			if (p.isPiecesVisible()) continue
 			g.color = bk[index]
 			index = (index + 1) % bk.size
-			g.drawFilledRect(0f, 0f, p.outlineRect.w, p.outlineRect.h)
+			g.drawFilledRect(0f, 0f, p.outlineRect.width, p.outlineRect.height)
 			val outline1: Vector2D = g.transform(0f, 0f)
 			val dy = drawPlayerInfo(g, p, w)
 			g.translate(0f, dy)
 			g.translate(0f, SPACING)
 			val numTiles = p.tiles.size
 			val tileDim = g.textHeight / 2
-			val anim = anims[p.getName() + "POOL"]
+			val anim = anims[p.name + "POOL"]
 			var width = tileDim * 2 * numTiles + (numTiles - 1) * SPACING
 			if (anim != null) {
 				width += tileDim * 2 + SPACING
@@ -787,7 +805,7 @@ abstract class Dominos : Reflector<Dominos>(), AGameServer.Listener {
 			g.popMatrix()
 			g.translate(0f, tileDim + SPACING)
 			val outline2: Vector2D = g.transform(w, 0f)
-			p.outlineRect[outline1] = outline2
+			p.outlineRect.assign(outline1, outline2)
 		}
 		g.popMatrix()
 		if (isInitialized()) {
@@ -813,7 +831,7 @@ abstract class Dominos : Reflector<Dominos>(), AGameServer.Listener {
 		for (i in players.indices) {
 			if (players[i].isPiecesVisible()) {
 				val p = players[i]
-				p.outlineRect[g.transform(0f, 0f)] = g.transform(w, h)
+				p.outlineRect.assign(g.transform(0f, 0f), g.transform(w, h))
 				var dy = drawPlayerInfo(g, p, w)
 				dy += SPACING
 				g.translate(0f, dy)
@@ -858,9 +876,8 @@ abstract class Dominos : Reflector<Dominos>(), AGameServer.Listener {
 		}
 	}
 
-	@Omit
 	private var menuHighlighted = false
-	private fun getUser() : PlayerUser = players[0] as PlayerUser
+	private fun getUser(): PlayerUser? = players.getOrNull(0) as? PlayerUser
 
 	private fun drawPlayerTiles(g: APGraphics, p: Player, w: Float, h: Float, pickX: Int, pickY: Int, drawDragged: Boolean) {
 		val numPlayerTiles = p.tiles.size
@@ -868,7 +885,7 @@ abstract class Dominos : Reflector<Dominos>(), AGameServer.Listener {
 		var numDrawnTiles = numPlayerTiles
 		var playertiles: List<Tile>
 		synchronized(p.tiles) { playertiles = ArrayList(p.tiles) }
-		val poolAnim = anims[p.getName() + "POOL"]
+		val poolAnim = anims[p.name + "POOL"]
 		if (poolAnim != null) {
 			numDrawnTiles++
 		}
@@ -894,7 +911,7 @@ abstract class Dominos : Reflector<Dominos>(), AGameServer.Listener {
 					if (!anim) {
 						val t = playertiles[tile]
 						var available = false
-						getUser().takeIf { it.usable.contains(t) }?.let { user ->
+						getUser()?.takeIf { it.usable.contains(t) }?.let { user ->
 							available = true
 							g.setName(tile)
 							g.vertex(0f, 0f)
@@ -965,13 +982,13 @@ abstract class Dominos : Reflector<Dominos>(), AGameServer.Listener {
 		board.highlightMoves(null)
 	}
 
-	@Synchronized
+
 	fun onClick() {
 		if (menuHighlighted) {
 			onMenuClicked()
 			clearHighlghts()
 		}
-		getUser().let { user ->
+		getUser()?.let { user ->
 			if (highlightedPlayerTile >= 0) {
 				selectedPlayerTile = highlightedPlayerTile
 				val highlightedMoves: MutableList<Move> = ArrayList()
@@ -993,11 +1010,11 @@ abstract class Dominos : Reflector<Dominos>(), AGameServer.Listener {
 		}
 	}
 
-	@Synchronized
+
 	fun startDrag() {
 		dragging = true
 		if (selectedPlayerTile < 0 && highlightedPlayerTile >= 0) {
-			getUser().let { user ->
+			getUser()?.let { user ->
 				selectedPlayerTile = highlightedPlayerTile
 				val highlightedMoves: MutableList<Move> = ArrayList()
 				for (m in user.moves) {
@@ -1011,11 +1028,11 @@ abstract class Dominos : Reflector<Dominos>(), AGameServer.Listener {
 		redraw()
 	}
 
-	@Synchronized
+
 	fun stopDrag() {
 		if (dragging) {
 			if (selectedPlayerTile >= 0 && board.selectedMove != null) {
-				getUser().let { user ->
+				getUser()?.let { user ->
 					user.chosenMove = board.selectedMove
 					gameLock.releaseAll()
 				}
@@ -1028,7 +1045,7 @@ abstract class Dominos : Reflector<Dominos>(), AGameServer.Listener {
 		redraw()
 	}
 
-	fun startShuffleAnimation() {
+	suspend fun startShuffleAnimation() {
 		val gamePool: MutableList<Tile> = ArrayList(pool)
 		addAnimation("POOL", object : AAnimation<AGraphics>(1000, -1) {
 			override fun draw(g: AGraphics, position: Float, dt: Float) {
@@ -1123,10 +1140,10 @@ abstract class Dominos : Reflector<Dominos>(), AGameServer.Listener {
 						if (isLast) {
 							// start an animation of the tiles bouncing around the board edges
 							val velocities = Array(positions.size) {
-								val speed = 25f.random() + 25f
+								val speed = 25f.randomPositive() + 25f
 								MutableVector2D(
-									if (Utils.flipCoin()) -speed else speed,
-									if (Utils.flipCoin()) -speed else speed
+									if (flipCoin()) -speed else speed,
+									if (flipCoin()) -speed else speed
 								)
 							}
 							board.addAnimation(object : AAnimation<AGraphics>(5000) {
@@ -1207,8 +1224,8 @@ abstract class Dominos : Reflector<Dominos>(), AGameServer.Listener {
 												g.setIdentity()
 												g.scale(DIM, DIM)
 												g.translate(1f, 0.5f)
-												val dv: Vector2D = boneyard.sub(pos)
-												val p: Vector2D = pos.add(dv.scaledBy(position))
+												val dv: Vector2D = boneyard - pos
+												val p: Vector2D = pos + dv * position
 												g.translate(p)
 												g.scale(1 - position, 1 - position)
 												g.translate(-1f, -0.5f)
@@ -1340,29 +1357,29 @@ abstract class Dominos : Reflector<Dominos>(), AGameServer.Listener {
 			starts = Array(dominosPositions.size) { n ->
 				Bezier().also {
 					if (n < dominosPositions.size / 4)
-						it.addPoint(-1f, dim.random())
-							.addPoint(dim / 2 + (dim /2).random(), (dim /2).random())
-							.addPoint(dim / 2 + (dim /2).random(), dim / 2 + (dim /2).random())
-							.addPoint((dominosPositions[n][0] as Vector2D).add(offset))
+						it.addPoint(-1f, dim.randomPositive())
+							.addPoint(dim / 2 + (dim / 2).randomPositive(), (dim / 2).randomPositive())
+							.addPoint(dim / 2 + (dim / 2).randomPositive(), dim / 2 + (dim / 2).randomPositive())
+							.addPoint((dominosPositions[n][0] as Vector2D).plus(offset))
 					else if (n < dominosPositions.size / 2)
-						it.addPoint(dim.random(), -1f)
-							.addPoint(dim / 2 + (dim /2).random(), dim / 2 + (dim /2).random())
-							.addPoint((dim /2).random(), dim / 2 + (dim /2).random())
-							.addPoint((dominosPositions[n][0] as Vector2D).add(offset))
+						it.addPoint(dim.randomPositive(), -1f)
+							.addPoint(dim / 2 + (dim / 2).randomPositive(), dim / 2 + (dim / 2).randomPositive())
+							.addPoint((dim / 2).randomPositive(), dim / 2 + (dim / 2).randomPositive())
+							.addPoint((dominosPositions[n][0] as Vector2D).plus(offset))
 					else if (n < dominosPositions.size * 3 / 4)
-						it.addPoint(dim + 1, dim.random())
-							.addPoint((dim /2).random(), dim / 2 + (dim /2).random())
-							.addPoint((dim /2).random(), (dim /2).random())
-							.addPoint((dominosPositions[n][0] as Vector2D).add(offset))
+						it.addPoint(dim + 1, dim.randomPositive())
+							.addPoint((dim / 2).randomPositive(), dim / 2 + (dim / 2).randomPositive())
+							.addPoint((dim / 2).randomPositive(), (dim / 2).randomPositive())
+							.addPoint((dominosPositions[n][0] as Vector2D).plus(offset))
 					else
-						it.addPoint((dim).random(), dim + 1)
-							.addPoint((dim / 2).random(), (dim / 2).random())
-							.addPoint(dim / 2 + (dim / 2).random(), dim.random())
-							.addPoint((dominosPositions[n][0] as Vector2D).add(offset))
+						it.addPoint((dim).randomPositive(), dim + 1)
+							.addPoint((dim / 2).randomPositive(), (dim / 2).randomPositive())
+							.addPoint(dim / 2 + (dim / 2).randomPositive(), dim.randomPositive())
+							.addPoint((dominosPositions[n][0] as Vector2D).plus(offset))
 				}
 			}
 			angSpeeds = FloatArray(dominosPositions.size) {
-				100 * 50f.randomSigned()
+				100 * 50f.randomPositiveOrNegative()
 			}
 			angles = FloatArray(dominosPositions.size) {
 				(dominosPositions[it][1] as Int).toFloat() - angSpeeds[it]
@@ -1371,16 +1388,16 @@ abstract class Dominos : Reflector<Dominos>(), AGameServer.Listener {
 				val o = dominosPositions[i]
 				val pip1 = o[2] as Int
 				val pip2 = o[3] as Int
-				if (pip1 < 0) o[2] = random(1..6)
-				if (pip2 < 0) o[3] = random(1..6)
+				if (pip1 < 0) o[2] = randRange(1..6)
+				if (pip2 < 0) o[3] = randRange(1..6)
 			}
 		}
 
 		var dim: Float = 0f
 
 		override fun onStarted(g: AGraphics) {
-			val min = MutableVector2D(Vector2D.MAX)
-			val max = MutableVector2D(Vector2D.MIN)
+			val min = MutableVector2D(IVector2D.MAX)
+			val max = MutableVector2D(IVector2D.MIN)
 			dominosPositions.forEach {
 				val v = it[0] as Vector2D
 				min.minEq(v)

@@ -55,7 +55,7 @@ interface IRectangle : IDimension, IShape {
 
 	/**
 	 * @param other
-	 * @return
+	 * @return true if other rect is entirely contained by this
 	 */
 	operator fun contains(other: IRectangle): Boolean {
 		return (isPointInsideRect(other.topLeft.x, other.topLeft.y, left, top, width, height)
@@ -64,7 +64,7 @@ interface IRectangle : IDimension, IShape {
 
 	/**
 	 * @param v
-	 * @return
+	 * @return true if point v is inside this
 	 */
 	override fun contains(v: IVector2D): Boolean {
 		return contains(v.x, v.y)

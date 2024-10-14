@@ -263,18 +263,12 @@ abstract class AGraphics : VertexList, Renderable {
 		return rect
 	}
 
-	val isCaptureAvailable: Boolean
-		/**
-		 * Return true if screen capture functionality is available. Default false
-		 *
-		 * @return
-		 */
-		get() = false
+	open val isCaptureAvailable: Boolean = false
 
 	/**
 	 * Start a screen capture operation. the next call to captureScreen will end the operation
 	 */
-	fun beginScreenCapture() {
+	open fun beginScreenCapture() {
 		throw GException("Not implemented")
 	}
 
@@ -288,7 +282,7 @@ abstract class AGraphics : VertexList, Renderable {
 	 *
 	 * @return image id of the captured image
 	 */
-	fun captureScreen(x: Int, y: Int, w: Int, h: Int): Int {
+	open fun captureScreen(x: Int, y: Int, w: Int, h: Int): Int {
 		throw GException("Not implemented")
 	}
 
@@ -1348,8 +1342,7 @@ abstract class AGraphics : VertexList, Renderable {
 	 * @param x1
 	 * @param y1
 	 */
-	@JvmOverloads
-	fun drawLine(x0: Float, y0: Float, x1: Float, y1: Float, thickness: Float = 1f) {
+	open fun drawLine(x0: Float, y0: Float, x1: Float, y1: Float, thickness: Float = 1f) {
 		begin()
 		val oldWidth = setLineWidth(thickness)
 		vertex(x0, y0)
@@ -1468,14 +1461,14 @@ abstract class AGraphics : VertexList, Renderable {
 	 * @param v0
 	 * @param v1
 	 * @param thickness
-	 */
+	 *
 	fun drawRect(v0: IVector2D, v1: IVector2D, thickness: Float) {
-		val X = Math.min(v0.x, v1.x)
-		val Y = Math.min(v0.y, v1.y)
-		val W = Math.abs(v0.x - v1.x)
-		val H = Math.abs(v0.y - v1.y)
-		drawRect(X, Y, W, H, thickness)
-	}
+	val X = Math.min(v0.x, v1.x)
+	val Y = Math.min(v0.y, v1.y)
+	val W = Math.abs(v0.x - v1.x)
+	val H = Math.abs(v0.y - v1.y)
+	drawRect(X, Y, W, H, thickness)
+	}*/
 
 	/**
 	 *
@@ -1564,6 +1557,10 @@ abstract class AGraphics : VertexList, Renderable {
 		drawTriangleStrip()
 	}
 
+	fun drawQuad(rect: IRectangle) {
+		drawQuad(rect.left, rect.top, rect.right, rect.bottom)
+	}
+
 	/**
 	 * alias for drawQuad.  Here for compatibility with AWT Graphics
 	 * @param x
@@ -1571,7 +1568,7 @@ abstract class AGraphics : VertexList, Renderable {
 	 * @param w
 	 * @param h
 	 */
-	fun drawFilledRect(x: Float, y: Float, w: Float, h: Float) {
+	open fun drawFilledRect(x: Float, y: Float, w: Float, h: Float) {
 		drawQuad(x, y, x + w, y + h)
 	}
 
@@ -1645,7 +1642,7 @@ abstract class AGraphics : VertexList, Renderable {
 	 * @param y
 	 * @param radius
 	 */
-	fun drawCircle(x: Float, y: Float, radius: Float) {
+	open fun drawCircle(x: Float, y: Float, radius: Float) {
 		drawOval(x - radius, y - radius, radius * 2, radius * 2)
 	}
 
@@ -1756,7 +1753,7 @@ abstract class AGraphics : VertexList, Renderable {
 	 * @param y
 	 * @param r
 	 */
-	fun drawFilledCircle(x: Float, y: Float, r: Float) {
+	open fun drawFilledCircle(x: Float, y: Float, r: Float) {
 		drawFilledOval(x - r, y - r, r * 2, r * 2)
 	}
 
@@ -1961,19 +1958,6 @@ abstract class AGraphics : VertexList, Renderable {
 	 * @param color
 	 */
 	abstract fun clearScreen(color: GColor)
-
-	/**
-	 *
-	 */
-	fun clearScreen() {
-		clearScreen(backgroundColor)
-	}
-
-	/**
-	 *
-	 * @return
-	 */
-	abstract val backgroundColor: GColor
 
 	/**
 	 *

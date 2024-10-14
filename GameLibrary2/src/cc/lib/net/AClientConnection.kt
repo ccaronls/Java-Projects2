@@ -1,9 +1,19 @@
 package cc.lib.net
 
+import cc.lib.ksp.remote.RemoteContext
 import cc.lib.logger.LoggerFactory
 import cc.lib.net.ConnectionStatus.Companion.from
+import cc.lib.net.api.AConnection
+import cc.lib.utils.KLock
+import com.google.gson.stream.JsonReader
+import com.google.gson.stream.JsonWriter
+import java.io.StringReader
+import java.io.StringWriter
 import java.util.Collections
 import java.util.function.Consumer
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 /**
  * Created by chriscaron on 3/12/18.
@@ -73,7 +83,8 @@ import java.util.function.Consumer
  * }
  * Only GameServer can create instances of ClientConnection
  */
-abstract class AClientConnection(val server: AGameServer, private val attributes: MutableMap<String, Any>) {
+abstract class AClientConnection(val server: AGameServer, private val attributes: MutableMap<String, Any>) : AConnection(),
+	RemoteContext {
 
 	companion object {
 		@JvmStatic
@@ -117,6 +128,8 @@ abstract class AClientConnection(val server: AGameServer, private val attributes
 		private set
 	var status = ConnectionStatus.UNKNOWN
 		private set
+
+	val waitLock = KLock()
 
 	fun addListener(listener: Listener) {
 		listeners.add(listener)
@@ -219,6 +232,25 @@ abstract class AClientConnection(val server: AGameServer, private val attributes
 	 * internal
 	 */
 	abstract fun start()
+
+	override suspend fun executeRemotely(cb: (JsonWriter) -> Unit) {
+		val writer = StringWriter()
+		cb(gson.newJsonWriter(writer))
+		sendCommand(
+			GameCommand(GameCommandType.SVR_EXECUTE_REMOTE)
+				.setArg("json", writer.buffer.toString())
+		)
+	}
+
+	lateinit var cont: Continuation<String?>
+
+	override suspend fun waitForResult(): JsonReader {
+		val result = suspendCoroutine {
+			cont = it
+		}
+		return gson.newJsonReader(StringReader(result))
+	}
+
 	protected fun processCommand(cmd: GameCommand): Boolean {
 		log.debug("processCommand: $cmd")
 		if (!isConnected) return false
@@ -249,15 +281,19 @@ abstract class AClientConnection(val server: AGameServer, private val attributes
 		} else if (cmd.type == GameCommandType.PROPERTIES) {
 			attributes.putAll(cmd.arguments)
 			notifyListeners { l: Listener -> l.onPropertyChanged(this) }
+		} else if (cmd.type == GameCommandType.CL_REMOTE_RETURNS) {
+			if (cmd.getBoolean("cancelled", false)) {
+				cont.resume(null)
+			} else {
+				cont.resume(cmd.getString("result", "").takeIf { it.isNotBlank() })
+			}
 		} else {
 			notifyListeners { l: Listener -> l.onCommand(this, cmd) }
 		}
 		return true
 	}
-
 	/*
-		private inner class ResponseListener<T>(private val id: String) :
-			Listener {
+		private inner class ResponseListener<T>(private val id: String) : Listener {
 			var response: T? = null
 				private set(value) {
 					field = value

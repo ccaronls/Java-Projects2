@@ -39,7 +39,11 @@ interface Mirrored {
 
 	fun contentEquals(other: Any?): Boolean
 
-	fun isImmutable(): Boolean = false
+	/**
+	 * Generally want to always to be true, but there are situations when we always
+	 * want a new instance to be created instead of overwriting an existing one.
+	 */
+	fun isMutable(): Boolean = true
 
 	fun <T> deepCopy(): T
 

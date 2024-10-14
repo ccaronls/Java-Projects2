@@ -16,73 +16,74 @@ import cc.lib.utils.copyFrom
  */
 abstract class APGraphics protected constructor(viewportWidth: Int, viewportHeight: Int) :
 	AGraphics(viewportWidth, viewportHeight) {
-	protected val R: Renderer = Renderer(this)
+	val renderer: Renderer = Renderer(this)
+
 	override fun begin() {
-		R.clearVerts()
+		renderer.clearVerts()
 	}
 
 	override fun end() {
-		R.clearVerts()
+		renderer.clearVerts()
 	}
 
 	override fun ortho(left: Float, right: Float, top: Float, bottom: Float) {
-		R.setOrtho(left, right, top, bottom)
+		renderer.setOrtho(left, right, top, bottom)
 	}
 
 	override fun pushMatrix() {
-		R.pushMatrix()
+		renderer.pushMatrix()
 	}
 
 	override val pushDepth: Int
-		get() = R.stackSize
+		get() = renderer.stackSize
 
 	fun pushAndRun(runner: Runnable) {
-		R.pushMatrix()
+		renderer.pushMatrix()
 		runner.run()
-		R.popMatrix()
+		renderer.popMatrix()
 	}
 
 	override fun resetMatrices() {
-		while (R.stackSize > 0) R.popMatrix()
+		while (renderer.stackSize > 0) renderer.popMatrix()
 	}
 
 	override fun popMatrix() {
-		R.popMatrix()
+		renderer.popMatrix()
 	}
 
 	override fun translate(x: Float, y: Float) {
-		R.translate(x, y)
+		renderer.translate(x, y)
 	}
 
 	override fun rotate(degrees: Float) {
-		R.rotate(degrees)
+		renderer.rotate(degrees)
 	}
 
 	override fun scale(x: Float, y: Float) {
-		R.scale(x, y)
+		renderer.scale(x, y)
 	}
 
 	override fun setIdentity() {
-		R.makeIdentity()
+		renderer.makeIdentity()
 	}
 
 	override fun multMatrix(m: Matrix3x3) {
-		R.multiply(m)
+		renderer.multiply(m)
 	}
 
 	override fun transform(x: Float, y: Float, result: FloatArray) {
-		R.transformXY(x, y, result)
+		renderer.transformXY(x, y, result)
 	}
 
 	override fun untransform(x: Float, y: Float): MutableVector2D {
-		return R.untransform(x, y)
+		return renderer.untransform(x, y)
 	}
 
 	var lastVertex = FloatArray(2)
 
 	override fun vertex(x: Float, y: Float) {
 		lastVertex.copyFrom(x, y)
-		R.addVertex(x, y)
+		renderer.addVertex(x, y)
 	}
 
 	override fun moveTo(dx: Float, dy: Float) {
@@ -99,13 +100,13 @@ abstract class APGraphics protected constructor(viewportWidth: Int, viewportHeig
 	fun pickPoints(x: Int, y: Int, size: Int): Int {
 		var picked = -1
 		var bestD = Int.MAX_VALUE
-		for (i in 0 until R.numVerts) {
-			val dx = x - Math.round(R.getX(i))
-			val dy = y - Math.round(R.getY(i))
+		for (i in 0 until renderer.numVerts) {
+			val dx = x - Math.round(renderer.getX(i))
+			val dy = y - Math.round(renderer.getY(i))
 			val d = fastLen(dx, dy)
 			if (d <= size) {
 				if (picked < 0 || d < bestD) {
-					picked = R.getName(i)
+					picked = renderer.getName(i)
 					bestD = d
 				}
 			}
@@ -116,13 +117,13 @@ abstract class APGraphics protected constructor(viewportWidth: Int, viewportHeig
 	fun pickPoints(m: IVector2D, size: Int): Int {
 		var picked = -1
 		var bestD = Float.MAX_VALUE
-		for (i in 0 until R.numVerts) {
-			val dx = m.x - R.getX(i)
-			val dy = m.y - R.getY(i)
+		for (i in 0 until renderer.numVerts) {
+			val dx = m.x - renderer.getX(i)
+			val dy = m.y - renderer.getY(i)
 			val d = fastLen(dx, dy)
 			if (d <= size) {
 				if (picked < 0 || d < bestD) {
-					picked = R.getName(i)
+					picked = renderer.getName(i)
 					bestD = d
 				}
 			}
@@ -140,11 +141,11 @@ abstract class APGraphics protected constructor(viewportWidth: Int, viewportHeig
 	fun pickLines(x: Int, y: Int, thickness: Int): Int {
 		var picked = -1
 		var i = 0
-		while (i < R.numVerts) {
-			val x0 = R.getX(i)
-			val y0 = R.getY(i)
-			val x1 = R.getX(i + 1)
-			val y1 = R.getY(i + 1)
+		while (i < renderer.numVerts) {
+			val x0 = renderer.getX(i)
+			val y0 = renderer.getY(i)
+			val x1 = renderer.getX(i + 1)
+			val y1 = renderer.getY(i + 1)
 			val d0 = distSqPointLine(x.toFloat(), y.toFloat(), x0, y0, x1, y1)
 			if (d0 > thickness) {
 				i += 2
@@ -158,7 +159,7 @@ abstract class APGraphics protected constructor(viewportWidth: Int, viewportHeig
 				i += 2
 				continue
 			}
-			picked = R.getName(i)
+			picked = renderer.getName(i)
 			i += 2
 		}
 		return picked
@@ -167,13 +168,13 @@ abstract class APGraphics protected constructor(viewportWidth: Int, viewportHeig
 	fun pickLines(m: IVector2D, thickness: Int): Int {
 		var picked = -1
 		var i = 0
-		while (i < R.numVerts) {
+		while (i < renderer.numVerts) {
 			val mx = m.x
 			val my = m.y
-			val x0 = R.getX(i)
-			val y0 = R.getY(i)
-			val x1 = R.getX(i + 1)
-			val y1 = R.getY(i + 1)
+			val x0 = renderer.getX(i)
+			val y0 = renderer.getY(i)
+			val x1 = renderer.getX(i + 1)
+			val y1 = renderer.getY(i + 1)
 			val d0 = distSqPointLine(mx, my, x0, y0, x1, y1)
 			if (d0 > thickness) {
 				i += 2
@@ -187,7 +188,7 @@ abstract class APGraphics protected constructor(viewportWidth: Int, viewportHeig
 				i += 2
 				continue
 			}
-			picked = R.getName(i)
+			picked = renderer.getName(i)
 			i += 2
 		}
 		return picked
@@ -202,10 +203,10 @@ abstract class APGraphics protected constructor(viewportWidth: Int, viewportHeig
 	fun pickRects(x: Int, y: Int): Int {
 		var picked = -1
 		var i = 0
-		while (i <= R.numVerts - 2) {
-			val v0: IVector2D = R.getVertex(i)
-			val v1: IVector2D = R.getVertex(i + 1)
-			if (R.getName(i) < 0) {
+		while (i <= renderer.numVerts - 2) {
+			val v0: IVector2D = renderer.getVertex(i)
+			val v1: IVector2D = renderer.getVertex(i + 1)
+			if (renderer.getName(i) < 0) {
 				i += 2
 				continue
 			}
@@ -216,7 +217,7 @@ abstract class APGraphics protected constructor(viewportWidth: Int, viewportHeig
 
 			//Utils.println("pick rect[%d] m[%d,%d] r[%3.1f,%3.1f,%3.1f,%3.1f]", getName(i),x, y, X, Y, W, H);
 			if (isPointInsideRect(x.toFloat(), y.toFloat(), X, Y, W, H)) {
-				picked = R.getName(i)
+				picked = renderer.getName(i)
 				break
 			}
 			i += 2
@@ -233,14 +234,14 @@ abstract class APGraphics protected constructor(viewportWidth: Int, viewportHeig
 	fun pickClosest(x: Int, y: Int): Int {
 		var picked = -1
 		var closest = Float.MAX_VALUE
-		for (i in 0 until R.numVerts) {
-			if (R.getName(i) < 0) continue
-			val v = R.getVertex(i)
+		for (i in 0 until renderer.numVerts) {
+			if (renderer.getName(i) < 0) continue
+			val v = renderer.getVertex(i)
 			val dv: Vector2D? = v.sub(x.toFloat(), y.toFloat())
 			val d = dv!!.magSquared()
 			if (d < closest) {
 				closest = d
-				picked = R.getName(i)
+				picked = renderer.getName(i)
 			}
 		}
 		return picked
@@ -255,19 +256,19 @@ abstract class APGraphics protected constructor(viewportWidth: Int, viewportHeig
 	fun pickQuads(x: Int, y: Int): Int {
 		var picked = -1
 		var i = 0
-		while (i <= R.numVerts - 4) {
+		while (i <= renderer.numVerts - 4) {
 			if (isPointInsidePolygon(
 					x.toFloat(),
 					y.toFloat(),
 					arrayOf(
-						R.getVertex(i),
-						R.getVertex(i + 1),
-						R.getVertex(i + 2),
-						R.getVertex(i + 3)
+						renderer.getVertex(i),
+						renderer.getVertex(i + 1),
+						renderer.getVertex(i + 2),
+						renderer.getVertex(i + 3)
 					)
 				)
 			) {
-				picked = R.getName(i)
+				picked = renderer.getName(i)
 			}
 			i += 4
 		}
@@ -279,7 +280,7 @@ abstract class APGraphics protected constructor(viewportWidth: Int, viewportHeig
 	 * @param index
 	 */
 	fun setName(index: Int) {
-		R.setName(index)
+		renderer.setName(index)
 	}
 
 	/**
@@ -288,19 +289,19 @@ abstract class APGraphics protected constructor(viewportWidth: Int, viewportHeig
 	 * @return
 	 */
 	fun getVerticesForName(name: Int): List<IVector2D> {
-		return R.getVerticesForName(name)
+		return renderer.getVerticesForName(name)
 	}
 
 	override fun clearMinMax() {
-		R.clearBoundingRect()
+		renderer.clearBoundingRect()
 	}
 
 	override val minBoundingRect: Vector2D
-		get() = R.min
+		get() = renderer.min
 	override val maxBoundingRect: Vector2D
-		get() = R.max
+		get() = renderer.max
 
 	override fun getTransform(result: Matrix3x3) {
-		result!!.assign(R.currentTransform)
+		result!!.assign(renderer.currentTransform)
 	}
 }

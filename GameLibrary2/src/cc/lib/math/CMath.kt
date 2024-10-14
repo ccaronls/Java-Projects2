@@ -640,7 +640,7 @@ fun isLineSegsIntersecting(
  * @return
  */
 fun isPointInsideRect(px: Float, py: Float, rx: Float, ry: Float, rw: Float, rh: Float): Boolean {
-	return if (px >= rx && py >= ry && px <= rx + rw && py <= ry + rh) true else false
+	return px >= rx && py >= ry && px <= rx + rw && py <= ry + rh
 }
 
 /**

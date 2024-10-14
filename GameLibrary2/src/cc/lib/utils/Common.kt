@@ -9,6 +9,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
 import java.util.Locale
+import java.util.MissingFormatArgumentException
 import java.util.Objects
 import java.util.Stack
 import java.util.regex.Pattern
@@ -111,18 +112,20 @@ fun IntArray.randomWeighted(vararg items: Any): Any {
  *
  * @param o
  * @return
- */
+ *
 fun Any?.isEmpty(): Boolean {
-	if (this == null) return true
-	if (this is String) return trim { it <= ' ' }.isEmpty()
-	if (this is Collection<*>) return this.isEmpty()
-	if (javaClass.isArray) return java.lang.reflect.Array.getLength(this) == 0
-	assert(false) { "isEmpty not compatible of object of type: $javaClass" }
-	System.err.println("isEmpty does not know about class $javaClass")
-	return false
+if (this == null) return true
+if (this is String) return isBlank()
+if (this is Collection<*>) return isEmpty()
+if (javaClass.isArray) return java.lang.reflect.Array.getLength(this) == 0
+assert(false) { "isEmpty not compatible of object of type: $javaClass" }
+System.err.println("isEmpty does not know about class $javaClass")
+return false
 }
 
+
 fun Any?.isNotEmpty() = !isEmpty()
+ */
 
 /**
  * Shift all array elements to the left and return item shifted off the front (zeroth element)
@@ -644,8 +647,68 @@ fun <T> Array<T>.rotate(shift: Int): Array<T> {
 	while (shift < 0)
 		shift += size
 	while (shift > 0) {
-		for (i in 0 until size - 1)
-			swap(i, i + 1)
+		for (i in lastIndex downTo 1)
+			swap(i - 1, i)
+		shift--
 	}
 	return this
+}
+
+fun String.formatSafe(vararg args: Any?): String {
+	return try {
+		if (args.isEmpty()) this else String.format(this, *args)
+	} catch (e: MissingFormatArgumentException) {
+		this + " ERR: " + e.message
+	} catch (e: Exception) {
+		e.printStackTrace()
+		e.javaClass.simpleName + ":" + e.message
+	}
+}
+
+
+enum class EllipsisStyle {
+	NONE,
+	MIDDLE,
+	END,
+	INFO
+}
+
+fun Any?.truncate(maxChars: Int, maxLines: Int, eStyle: EllipsisStyle = EllipsisStyle.NONE): String {
+	if (this == null) return "null"
+	var charsLeft = maxChars
+	var s = toString()
+	val len = s.length
+	var result = ""
+	for (i in 0 until maxLines) {
+		if (s.isEmpty()) break
+		if (result.isNotEmpty()) result += "\n"
+		val endl = s.indexOf('\n')
+		if (endl > charsLeft) {
+			result += s.substring(0, charsLeft)
+			break
+		} else if (endl >= 0) {
+			result += s.substring(0, endl)
+			s = s.substring(endl + 1)
+			charsLeft -= endl
+		} else if (s.length > charsLeft) {
+			result += s.substring(0, charsLeft)
+			break
+		} else {
+			result += s
+			s = ""
+			break
+		}
+	}
+	if (s.isNotEmpty()) {
+		when (eStyle) {
+			EllipsisStyle.NONE -> {}
+			EllipsisStyle.MIDDLE -> if (maxLines == 1 && result.length > 3) {
+				result = result.substring(0, result.length / 2 - 1) + "..." + result.substring(result.length / 2 + 1)
+			}
+
+			EllipsisStyle.END -> result += "..."
+			EllipsisStyle.INFO -> result += "\n  truncated ($len) bytes to $maxLines lines"
+		}
+	}
+	return result
 }

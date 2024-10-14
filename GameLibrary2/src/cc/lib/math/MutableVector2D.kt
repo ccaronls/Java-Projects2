@@ -7,7 +7,9 @@ import kotlin.math.sin
 class MutableVector2D(x: Float = 0f, y: Float = 0f) : Vector2D(x, y) {
 
 	override var x: Float = x
+		public set
 	override var y: Float = y
+		public set
 
 	constructor(v: IVector2D) : this(v.x, v.y)
 

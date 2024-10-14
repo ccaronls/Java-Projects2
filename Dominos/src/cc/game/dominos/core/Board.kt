@@ -4,16 +4,31 @@ import cc.lib.game.AAnimation
 import cc.lib.game.AGraphics
 import cc.lib.game.APGraphics
 import cc.lib.game.GColor
+import cc.lib.game.GRectangle
 import cc.lib.game.IVector2D
-import cc.lib.game.Utils
+import cc.lib.ksp.mirror.Mirror
+import cc.lib.ksp.mirror.Mirrored
+import cc.lib.ksp.mirror.MirroredArray
+import cc.lib.ksp.mirror.MirroredList
+import cc.lib.ksp.mirror.toMirroredArray
+import cc.lib.ksp.mirror.toMirroredList
 import cc.lib.logger.LoggerFactory
 import cc.lib.math.Matrix3x3
 import cc.lib.math.MutableVector2D
 import cc.lib.math.Vector2D
-import cc.lib.reflector.Omit
-import cc.lib.reflector.Reflector
 import java.util.Collections
-import java.util.LinkedList
+
+@Mirror
+interface IBoard : Mirrored {
+	// all the data we want to serialize here
+	var endpoints: MirroredArray<MirroredList<Tile>>
+	var endpointTransforms: MirroredArray<Matrix3x3>
+
+	val rects: MutableList<GRectangle>
+	val saveMinV: MutableVector2D
+	val saveMaxV: MutableVector2D
+
+}
 
 /**
  * Created by chriscaron on 2/1/18.
@@ -21,8 +36,13 @@ import java.util.LinkedList
  * Representation of a Dominos board.
  *
  */
-class Board : Reflector<Board>() {
-	@Omit
+class Board : BoardImpl() {
+
+	init {
+		endpoints = Array(4) { emptyList<Tile>().toMirroredList() }.toMirroredArray()
+		endpointTransforms = Array(4) { Matrix3x3.newIdentity() }.toMirroredArray()
+	}
+
 	private val log = LoggerFactory.getLogger(javaClass)
 
 	companion object {
@@ -30,11 +50,11 @@ class Board : Reflector<Board>() {
 		const val EP_RIGHT = 1
 		const val EP_UP = 2
 		const val EP_DOWN = 3
-		const val PLACMENT_FWD = 0
-		const val PLACMENT_FWD_RIGHT = 1
-		const val PLACMENT_FWD_LEFT = 2
-		const val PLACMENT_RIGHT = 3
-		const val PLACMENT_LEFT = 4
+		const val PLACEMENT_FWD = 0
+		const val PLACEMENT_FWD_RIGHT = 1
+		const val PLACEMENT_FWD_LEFT = 2
+		const val PLACEMENT_RIGHT = 3
+		const val PLACEMENT_LEFT = 4
 		const val PLACEMENT_COUNT = 5
 
 		/**
@@ -44,8 +64,7 @@ class Board : Reflector<Board>() {
 		 * @param pips2
 		 * @param alpha [0-1] inclusive
 		 */
-        @JvmStatic
-        fun drawTile(g: AGraphics, pips1: Int, pips2: Int, alpha: Float) {
+		fun drawTile(g: AGraphics, pips1: Int, pips2: Int, alpha: Float) {
 			g.pushMatrix()
 			g.color = GColor.WHITE.withAlpha(alpha)
 			// draw solid white round rect behind black to achieve outline effect
@@ -70,7 +89,6 @@ class Board : Reflector<Board>() {
 			g.popMatrix()
 		}
 
-		@JvmStatic
         fun drawDie(g: AGraphics, x: Float, y: Float, numDots: Int) {
 			val dd2 = 0.5f
 			val dd4 = 0.25f
@@ -187,29 +205,14 @@ class Board : Reflector<Board>() {
 			g.drawPoints()
 			g.end()
 		}
-
-		init {
-			addAllFields(Board::class.java)
-		}
 	}
 
 	var root: Tile? = null
 		private set
 
-	private val endpoints: Array<LinkedList<Tile>>
-	private val endpointTransforms: Array<Matrix3x3>
-	@Omit
-	private val highlightedMoves: Array<MutableList<Move>>
-
-	@JvmField
-    @Omit
+	private val highlightedMoves: Array<MutableList<Move>> = Array(4) { ArrayList() }
 	var selectedMove: Move? = null
-
-	@Omit
 	private var boardImageId = -1
-	private val rects: MutableList<Array<Vector2D>> = ArrayList()
-	private val saveMinV = MutableVector2D()
-	private val saveMaxV = MutableVector2D()
 
 	private inner class PlaceTileAnim internal constructor(val tile: Tile, startPlayerPosition: Int, endPoint: Int) : AAnimation<AGraphics>(2000) {
 		var start: IVector2D
@@ -222,14 +225,14 @@ class Board : Reflector<Board>() {
 				EP_LEFT -> Vector2D(0f, 0.5f)
 				EP_RIGHT -> Vector2D(1f, 0.5f)
 				EP_UP -> Vector2D(0.5f, 0f)
-				else     -> Vector2D.ZERO
+				else -> IVector2D.ZERO
 			}
 			end = when (endPoint) {
 				EP_DOWN -> Vector2D(0f, 0.5f + 2 * endpoints[EP_DOWN].size)
 				EP_LEFT -> Vector2D(1f + 2 * endpoints[EP_DOWN].size, 0f)
 				EP_RIGHT -> Vector2D(1f + 2 * endpoints[EP_DOWN].size, 0f)
 				EP_UP -> Vector2D(0f, -0.5f - 2 * endpoints[EP_DOWN].size)
-				else     -> Vector2D.ZERO
+				else -> IVector2D.ZERO
 			}
 		}
 	}
@@ -238,14 +241,11 @@ class Board : Reflector<Board>() {
 		boardImageId = id
 	}
 
-	@JvmField
-    @Omit
 	val animations = Collections.synchronizedList(ArrayList<AAnimation<AGraphics>>())
 	fun addAnimation(a: AAnimation<AGraphics>) {
 		synchronized(animations) { animations.add(a) }
 	}
 
-	@Synchronized
 	fun clear() {
 		root = null
 		for (l in endpoints) {
@@ -254,11 +254,11 @@ class Board : Reflector<Board>() {
 		clearSelection()
 		rects.clear()
 		for (i in 0..3) {
-			endpointTransforms[i].identityEq()
+			endpointTransforms[i].setIdentityMatrix()
 			transformEndpoint(endpointTransforms[i], i)
 		}
-		saveMaxV.zero()
-		saveMinV.zero()
+		saveMaxV?.zero()
+		saveMinV?.zero()
 		animations.clear()
 	}
 
@@ -267,11 +267,10 @@ class Board : Reflector<Board>() {
 		selectedMove = null
 	}
 
-	@Synchronized
 	fun collectPieces(): List<Tile> {
 		val pieces: MutableList<Tile> = ArrayList()
-		if (root != null) {
-			pieces.add(root!!)
+		root?.let {
+			pieces.add(it)
 			root = null
 		}
 		for (i in 0..3) {
@@ -284,10 +283,12 @@ class Board : Reflector<Board>() {
 	@Synchronized
 	fun placeRootPiece(pc: Tile?) {
 		root = pc
-		rects.add(arrayOf(
-			Vector2D(-1f, -0.5f),
-			Vector2D(1f,0.5f)
-		))
+		rects.add(
+			GRectangle(
+				Vector2D(-1f, -0.5f),
+				Vector2D(1f, 0.5f)
+			)
+		)
 	}
 
 	fun findMovesForPiece(p: Tile): List<Move> {
@@ -295,20 +296,20 @@ class Board : Reflector<Board>() {
 		for (i in 0..3) {
 			if (endpoints[i].size == 0) {
 				if (canPieceTouch(p, root?.pip1?:0)) {
-					moves.add(Move(p, i, PLACMENT_FWD))
+					moves.add(Move(p, i, PLACEMENT_FWD))
 				}
 			} else {
-				if (canPieceTouch(p, endpoints[i].last.openPips)) {
-					if (endpoints[i].size < 2) moves.add(Move(p, i, PLACMENT_FWD)) else {
+				if (canPieceTouch(p, endpoints[i].last().openPips)) {
+					if (endpoints[i].size < 2) moves.add(Move(p, i, PLACEMENT_FWD)) else {
 						val m = Matrix3x3()
 						for (ii in 0 until PLACEMENT_COUNT) {
 							m.assign(endpointTransforms[i])
 							transformPlacement(m, ii)
 							var v = Vector2D(0.6f, 0.3f)
-							v = m.multiply(v)
+							v = m * v
 							if (isInsideRects(v)) continue
 							v = Vector2D(1.6f, 0.6f)
-							v = m.multiply(v)
+							v = m * v
 							if (isInsideRects(v)) continue
 							moves.add(Move(p, i, ii))
 						}
@@ -330,7 +331,7 @@ class Board : Reflector<Board>() {
 		open = if (endpoints[endpoint].size == 0) {
 			root?.openPips?:0
 		} else {
-			endpoints[endpoint].last.openPips
+			endpoints[endpoint].last()?.openPips ?: 0
 		}
 		if (piece.pip1 == open) {
 			piece.openPips = piece.pip2
@@ -340,13 +341,15 @@ class Board : Reflector<Board>() {
 		endpoints[endpoint].addLast(piece)
 		piece.placement = placement
 		transformPlacement(endpointTransforms[endpoint], placement)
-		val v0 = Vector2D.ZERO
+		val v0 = IVector2D.ZERO
 		val v1 = Vector2D(2f, 1f)
-		rects.add(arrayOf(
-			endpointTransforms[endpoint].multiply(v0),
-			endpointTransforms[endpoint].multiply(v1)
-		))
-		endpointTransforms[endpoint].multiplyEq(Matrix3x3().setTranslate(2f, 0f))
+		rects.add(
+			GRectangle(
+				endpointTransforms[endpoint] * v0,
+				endpointTransforms[endpoint] * v1
+			)
+		)
+		endpointTransforms[endpoint].timesAssign(Matrix3x3.newTranslate(2.0, 0.0))
 	}
 
 	private fun transformPlacement(g: AGraphics, placement: Int) {
@@ -357,34 +360,38 @@ class Board : Reflector<Board>() {
 		g.multMatrix(t)
 	}
 
-	private fun transformPlacement(m: Matrix3x3?, placement: Int) {
+	private fun transformPlacement(m: Matrix3x3, placement: Int) {
 		val t = Matrix3x3()
 		when (placement) {
-			PLACMENT_FWD -> {
+			PLACEMENT_FWD -> {
 			}
-			PLACMENT_FWD_LEFT -> {
-				t.setTranslate(1f, 0f)
-				m!!.multiplyEq(t)
-				t.setRotation(90f)
-				m.multiplyEq(t)
+
+			PLACEMENT_FWD_LEFT -> {
+				t.setTranslationMatrix(1f, 0f)
+				m.timesAssign(t)
+				t.setRotationMatrix(90f)
+				m.timesAssign(t)
 			}
-			PLACMENT_LEFT -> {
-				t.setTranslate(0f, 1f)
-				m!!.multiplyEq(t)
-				t.setRotation(90f)
-				m.multiplyEq(t)
+
+			PLACEMENT_LEFT -> {
+				t.setTranslationMatrix(0f, 1f)
+				m.timesAssign(t)
+				t.setRotationMatrix(90f)
+				m.timesAssign(t)
 			}
-			PLACMENT_FWD_RIGHT -> {
-				t.setTranslate(0f, 1f)
-				m!!.multiplyEq(t)
-				t.setRotation(-90f)
-				m.multiplyEq(t)
+
+			PLACEMENT_FWD_RIGHT -> {
+				t.setTranslationMatrix(0f, 1f)
+				m.timesAssign(t)
+				t.setRotationMatrix(-90f)
+				m.timesAssign(t)
 			}
-			PLACMENT_RIGHT -> {
-				t.setTranslate(-1f, 0f)
-				m!!.multiplyEq(t)
-				t.setRotation(-90f)
-				m.multiplyEq(t)
+
+			PLACEMENT_RIGHT -> {
+				t.setTranslationMatrix(-1f, 0f)
+				m.timesAssign(t)
+				t.setRotationMatrix(-90f)
+				m.timesAssign(t)
 			}
 		}
 	}
@@ -401,23 +408,24 @@ class Board : Reflector<Board>() {
 
 	private fun placementIndexToString(index: Int): String {
 		when (index) {
-			PLACMENT_FWD -> return "FWD"
-			PLACMENT_FWD_LEFT -> return "FWD_LEFT"
-			PLACMENT_FWD_RIGHT -> return "FWD_RIGHT"
-			PLACMENT_LEFT -> return "LEFT"
-			PLACMENT_RIGHT -> return "RIGHT"
+			PLACEMENT_FWD -> return "FWD"
+			PLACEMENT_FWD_LEFT -> return "FWD_LEFT"
+			PLACEMENT_FWD_RIGHT -> return "FWD_RIGHT"
+			PLACEMENT_LEFT -> return "LEFT"
+			PLACEMENT_RIGHT -> return "RIGHT"
 		}
 		throw AssertionError()
 	}
 
 	private fun drawHighlighted(g: APGraphics, endpoint: Int, mouseX: Int, mouseY: Int, dragged: Tile?): Int {
+		var root = this.root ?: return 0
 		val mv = MutableVector2D()
 		g.color = GColor.CYAN
 		g.begin()
 		for (move in highlightedMoves[endpoint]) {
 			g.pushMatrix()
-			transformPlacement(g, move.placment)
-			mv[1f] = 0.5f
+			transformPlacement(g, move.placement)
+			mv.assign(1f, 0.5f)
 			g.transform(mv)
 			g.vertex(0f, 0f)
 			g.vertex(2f, 1f)
@@ -429,9 +437,9 @@ class Board : Reflector<Board>() {
 		g.begin()
 		for (move in highlightedMoves[endpoint]) {
 			g.pushMatrix()
-			transformPlacement(g, move.placment)
+			transformPlacement(g, move.placement)
 			g.setName(moveIndex++)
-			mv[1f] = 0.5f
+			mv.assign(1f, 0.5f)
 			g.transform(mv)
 			// use larger pick rects so easier to place on android (finger covers whole of piece)
 			g.vertex(0f, -0.5f)
@@ -441,44 +449,50 @@ class Board : Reflector<Board>() {
 		val picked = g.pickRects(mouseX, mouseY)
 		g.end()
 		if (picked >= 0) {
-			selectedMove = highlightedMoves[endpoint][picked]
-			val selectedEndpoint = selectedMove!!.endpoint
-			var newTotal = computeEndpointsTotal()
-			var openPips = root!!.pip1
-			if (endpoints[selectedEndpoint].size > 0) {
-				openPips = endpoints[selectedEndpoint].last.openPips
-				newTotal -= openPips
-			} else if (selectedEndpoint == EP_LEFT || selectedEndpoint == EP_RIGHT) {
-				newTotal -= root!!.pip1
-			}
-			newTotal += if (selectedMove!!.piece.pip1 == openPips) {
-				selectedMove!!.piece.pip2
-			} else {
-				selectedMove!!.piece.pip1
-			}
-			log.debug("Endpoint total:$newTotal")
-			g.begin()
-			g.pushMatrix()
-			g.color = GColor.RED
-			transformPlacement(g, selectedMove!!.placment)
-			if (dragged != null) {
-				var pip1 = dragged.pip1
-				var pip2 = dragged.pip2
-				if (pip2 == openPips) {
-					val t = pip1
-					pip1 = pip2
-					pip2 = t
+			highlightedMoves[endpoint][picked].let { move ->
+				selectedMove = move
+				val selectedEndpoint = move.endpoint
+				var newTotal = computeEndpointsTotal()
+				var openPips = root.pip1
+				if (endpoints[selectedEndpoint].size > 0) {
+					openPips = endpoints[selectedEndpoint].last()?.openPips ?: 0
+					newTotal -= openPips
+				} else if (selectedEndpoint == EP_LEFT || selectedEndpoint == EP_RIGHT) {
+					newTotal -= root.pip1
 				}
+				newTotal += if (move.piece.pip1 == openPips) {
+					move.piece.pip2
+				} else {
+					move.piece.pip1
+				}
+				log.debug("Endpoint total:$newTotal")
 				g.begin()
-				drawTile(g, pip1, pip2, 1f)
+				g.pushMatrix()
+				g.color = GColor.RED
+				transformPlacement(g, move.placement)
+				if (dragged != null) {
+					var pip1 = dragged.pip1
+					var pip2 = dragged.pip2
+					if (pip2 == openPips) {
+						val t = pip1
+						pip1 = pip2
+						pip2 = t
+					}
+					g.begin()
+					drawTile(g, pip1, pip2, 1f)
+					g.end()
+				}
+				g.vertex(0f, 0f)
+				g.vertex(2f, 1f)
+				g.drawRects(3f)
+				g.popMatrix()
 				g.end()
+				log.debug(
+					"selected endpoint = " + epIndexToString(selectedEndpoint) + " placement = " + placementIndexToString(
+						move.placement
+					)
+				)
 			}
-			g.vertex(0f, 0f)
-			g.vertex(2f, 1f)
-			g.drawRects(3f)
-			g.popMatrix()
-			g.end()
-			log.debug("selected endpoint = " + epIndexToString(selectedEndpoint) + " placement = " + placementIndexToString(selectedMove!!.placment))
 		}
 		return picked
 	}
@@ -491,32 +505,33 @@ class Board : Reflector<Board>() {
 		g.multMatrix(t)
 	}
 
-	private fun transformEndpoint(m: Matrix3x3?, endpoint: Int) {
+	private fun transformEndpoint(m: Matrix3x3, endpoint: Int) {
 		val t = Matrix3x3()
 		when (endpoint) {
 			EP_LEFT -> {
-				t.setScale(-1f, -1f)
-				m!!.multiplyEq(t)
-				t.setTranslate(1f, -0.5f)
-				m.multiplyEq(t)
+				t.setScaleMatrix(-1f, -1f)
+				m.timesAssign(t)
+				t.setTranslationMatrix(1f, -0.5f)
+				m.timesAssign(t)
 			}
+
 			EP_RIGHT -> {
-				t.setTranslate(1f, -0.5f)
-				m!!.multiplyEq(t)
+				t.setTranslationMatrix(1f, -0.5f)
+				m.timesAssign(t)
 			}
 			EP_DOWN -> {
-				t.setScale(-1f, -1f)
-				m!!.multiplyEq(t)
-				t.setTranslate(0.5f, 0.5f)
-				m.multiplyEq(t)
-				t.setRotation(90f)
-				m.multiplyEq(t)
+				t.setScaleMatrix(-1f, -1f)
+				m.timesAssign(t)
+				t.setTranslationMatrix(0.5f, 0.5f)
+				m.timesAssign(t)
+				t.setRotationMatrix(90f)
+				m.timesAssign(t)
 			}
 			EP_UP -> {
-				t.setTranslate(0.5f, 0.5f)
-				m!!.multiplyEq(t)
-				t.setRotation(90f)
-				m.multiplyEq(t)
+				t.setTranslationMatrix(0.5f, 0.5f)
+				m.timesAssign(t)
+				t.setRotationMatrix(90f)
+				m.timesAssign(t)
 			}
 		}
 	}
@@ -553,14 +568,9 @@ class Board : Reflector<Board>() {
 		}
 	}
 
-	@JvmField
-    @Omit
 	var boardWidth = 1f
-
-	@JvmField
-    @Omit
 	var boardHeight = 1f
-	@Synchronized
+
 	fun draw(g: APGraphics, vpWidth: Float, vpHeight: Float, pickX: Int, pickY: Int, dragging: Tile?): Int {
 		// choose an ortho that keeps the root in the middle and an edge around
 		// that allows for a piece to be placed
@@ -592,7 +602,7 @@ class Board : Reflector<Board>() {
 			// DEBUG outline the min/max bounding box
 			if (false && AGraphics.DEBUG_ENABLED) {
 				g.color = GColor.YELLOW
-				g.drawRect(minBR, maxBR, 1f)
+				g.drawRect(GRectangle(minBR, maxBR), 1f)
 			}
 
 			// DEBUG draw pickX, pickY in viewport coords
@@ -623,7 +633,7 @@ class Board : Reflector<Board>() {
 			if (false && AGraphics.DEBUG_ENABLED) {
 				g.color = GColor.ORANGE
 				for (r in rects) {
-					g.drawRect(r[0], r[1], 3f)
+					g.drawRect(r, 3f)
 				}
 			}
 		}
@@ -644,15 +654,15 @@ class Board : Reflector<Board>() {
 		var score = 0
 		for (i in 0..3) {
 			if (endpoints[i].size > 0) {
-				score += endpoints[i].last.openPips
+				score += endpoints[i].last().openPips
 			}
 		}
-		if (root != null) {
+		root?.let {
 			if (endpoints[EP_LEFT].size == 0) {
-				score += root!!.pip1
+				score += it.pip1
 			}
 			if (endpoints[EP_RIGHT].size == 0) {
-				score += root!!.pip2
+				score += it.pip2
 			}
 		}
 		return score
@@ -667,22 +677,12 @@ class Board : Reflector<Board>() {
 		}
 	}
 
-	private fun isInsideRects(v: IVector2D): Boolean {
-		for (r in rects) {
-			if (Utils.isPointInsideRect(v, r[0], r[1])) return true
-		}
-		return false
-	}
+	private fun isInsideRects(v: IVector2D): Boolean = rects.firstOrNull { it.contains(v) } != null
 
 	fun getOpenPips(ep: Int): Int {
 		return if (endpoints[ep].size == 0) {
-			if (ep == EP_LEFT || ep == EP_RIGHT) root!!.pip1 else 0
-		} else endpoints[ep].last.openPips
-	}
-
-	init {
-		endpoints = Array(4) { LinkedList() }
-		endpointTransforms = Array(4) { Matrix3x3().identityEq() }
-		highlightedMoves = Array(4) { ArrayList() }
+			if (ep == EP_LEFT || ep == EP_RIGHT)
+				root?.pip1 ?: 0 else 0
+		} else endpoints[ep].last().openPips
 	}
 }

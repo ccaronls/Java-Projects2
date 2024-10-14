@@ -1,21 +1,21 @@
 apply plugin: 'java-library'
-apply plugin: 'application'
+apply plugin: 'com.google.devtools.ksp'
 apply plugin: 'kotlin'
 
-mainClassName = 'cc.game.dominos.swing.DominosApplet'
-
-configurations {
-    javaLib.extendsFrom(main)
-}
-
 dependencies {
-    implementation project(':GameLibrary')
+    implementation project(':GameLibrary2')
+    implementation(project(':KSPCommon'))
+    ksp(project(':KSPMirror'))
+    ksp(project(':KSPRem2'))
+    implementation group: 'org.json', name: 'json', version: '20090211'
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0"
+
 }
 
 sourceSets {
     main {
         java {
-            srcDirs = ['src' ]
+            srcDirs = ['src']
         }
     }
 
@@ -24,4 +24,9 @@ sourceSets {
             srcDirs = ['test']
         }
     }
+}
+
+ksp {
+    arg("package", "cc.game.dominos.core")
+    arg("imports", "cc.lib.game.*;cc.lib.math.*")
 }

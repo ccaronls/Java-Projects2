@@ -10,17 +10,27 @@ interface IStopWatch : Mirrored {
 	val isStarted: Boolean
 }
 
-class StopWatch : StopWatchImpl() {
+open class StopWatch(
+	startTime: Long = 0,
+	pauseTime: Long = 0,
+	curTime: Long = 0,
+	deltaTime: Long = 0,
+	lastCaptureTime: Long = 0
+) : StopWatchImpl() {
 
-	var startTime: Long = 0
+	var startTime: Long = startTime
 		private set
-	var pauseTime: Long = 0
+	var pauseTime: Long = pauseTime
 		private set
-	var deltaTime: Long = 0
+	var deltaTime: Long = deltaTime
 		get() = if (isStarted) deltaTime else 0
 		private set
-	var lastCaptureTime: Long = 0
+	var lastCaptureTime: Long = lastCaptureTime
 		private set
+
+	init {
+		this.curTime = curTime
+	}
 
 	/**
 	 * Start the stopwatch.  MUST be the first call
@@ -78,7 +88,7 @@ class StopWatch : StopWatchImpl() {
 		 */
 		get() = if (isStarted) curTime else 0
 
-	protected val clockMiliseconds: Long
+	protected open val clockMiliseconds: Long
 		/**
 		 * Override this to use a different clock mechanism if desired.
 		 * Default uses System.currentTimeMillis()

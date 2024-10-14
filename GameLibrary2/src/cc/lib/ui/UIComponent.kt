@@ -1,5 +1,6 @@
 package cc.lib.ui
 
+import cc.lib.game.APGraphics
 import cc.lib.math.Vector2D
 
 /**
@@ -37,4 +38,9 @@ interface UIComponent {
 	 * @return
 	 */
 	fun getViewportLocation(): Vector2D
+
+	/**
+	 * Called on user input events
+	 */
+	fun setMouseOrTouch(g: APGraphics, mx: Int, my: Int)
 }

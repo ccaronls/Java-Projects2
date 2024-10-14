@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="wifi_conn_status_available">Available</string>
+    <string name="wifi_conn_status_connected">Connected</string>
+    <string name="wifi_conn_status_failed">Failed</string>
+    <string name="wifi_conn_status_invited">Invited</string>
+    <string name="wifi_conn_status_unavailable">Unavailable</string>
+    <string name="wifi_conn_status_unknown">Unknown</string>
+
+    <string name="wifi_failure_reason_error">Error. Is WiFi On?</string>
+    <string name="wifi_failure_reason_busy">Busy</string>
+    <string name="wifi_failure_reason_p2p_unsupported">Peer 2 Peer connections unsupported</string>
+    <string name="wifi_failure_reason_unknown">Unknown</string>
+
+    <string name="wifi_popup_title_channel_disconnected">Channel Disconnected</string>
+    <string name="wifi_popup_msg_channel_auto_reconnect">Attempt to re-connect?</string>
+
+    <string name="popup_title_choose_game_type">Choose Game Type</string>
+    <string name="popup_title_clients">Clients</string>
+    <string name="popup_title_client_name">Client %s</string>
+    <string name="popup_title_confirm">Confirm</string>
+    <string name="popup_title_client_session">Client Session</string>
+    <string name="popup_title_notice">Notice</string>
+    <string name="popup_title_connected_clients">Connected Clients</string>
+    <string name="popup_title_connecting">Connecting</string>
+    <string name="popup_title_hosts">Hosts</string>
+    <string name="popup_title_waiting">Waiting</string>
+    <string name="popup_title_new_mp_game">New Multi Player Game</string>
+    <string name="popup_title_new_sp_game">New Single Player Game</string>
+    <string name="popup_title_mp_hosts">Multiplayer Host</string>
+    <string name="popup_title_game_over">Game Over</string>
+    <string name="popup_title_starting_server">Starting Server ...</string>
+
+    <string name="popup_button_kick">Kick</string>
+    <string name="popup_button_unkick">Unkick</string>
+    <string name="popup_button_start">Start</string>
+    <string name="popup_button_forfiet">Forfiet</string>
+    <string name="popup_button_continue_without">Continue Without</string>
+    <string name="popup_button_proceed">Proceed anyway</string>
+    <string name="popup_button_disconnect">Disconnect</string>
+
+    <string name="list_item_player_status_connected">%s connected</string>
+    <string name="list_item_player_status_disconnected">%s disconnected</string>
+
+    <string name="popup_msg_kick_client">Kick this client off?</string>
+    <string name="popup_msg_exit_mp">End multiplayer session?</string>
+    <string name="popup_msg_start_new_game">Start a new Game?</string>
+    <string name="popup_msg_confirm_forfeit">Are you sure you want to forfeit? A new game will get started if you do.</string>
+    <string name="popup_msg_confirm_disconnect">Disconnect from server?</string>
+    <string name="popup_msg_failed_to_load">Failed to load from save file</string>
+    <string name="popup_msg_player_disconnect_reason">Client %1$s has disconnected because %2$s. You can choose to continue without or wait for them to reconnect.</string>
+    <string name="popup_msg_failed_to_start_server">Failed to start server</string>
+    <string name="popup_msg_failed_to_connect_reason">Failed to connect %s</string>
+    <string name="popup_msg_please_wait_forconnect_accept">Please wait while your connect request is accepted</string>
+    <string name="popup_msg_failed_connect_host">Failed to connect to host</string>
+    <string name="popup_msg_waiting_for_players">Waiting for more players</string>
+    <string name="popup_msg_standby_for_next_game">Standby for next game!</string>
+    <string name="popup_msg_error_occured">"An error occured: %s</string>
+
+    <string name="popup_item_forfeit">Forfeit</string>
+    <string name="popup_item_exit_mp">Exit Multiplayer</string>
+    <string name="popup_item_view_clients">View Clients</string>
+    <string name="popup_item_new_game">New Game</string>
+    <string name="popup_item_stop_session">Stop Session</string>
+
+    <string name="toast_connect_success">Connection SUCCESS!</string>
+    <string name="toast_allow_write_external_storage">Write External Storage permission allows us to do store images. Please allow this permission in App Settings.</string>
+
+    <string name="server_broadcast_player_forfieted">"Player %s has forfeited the game."</string>
+    <string name="server_broadcast_waiting_for_n_more_players">Waiting for %d more players</string>
+    <string name="server_broadcast_starting_new_game">Starting a new game</string>
+
+    <string name="client_disconnected_reason_kicked_out">Kicked out</string>
+    <string name="client_disconnected_reason_dropped">Dropped</string>
+
+    <string name="p2p_popup_title_unsupported">Unsupported</string>
+    <string name="p2p_popup_message_unsupported">P2P Not Supported on this device</string>
+    <string name="p2p_popup_title_missing_permissions">Missing Permissions</string>
+    <string name="p2p_popup_message_missing_permissions">
+        P2P Not available unless following permissions granted:
+        %s
+        Go to Settings to enable these permissions.
+    </string>
+    <string name="p2p_popup_title_choose_mode">Choose P2P Mode</string>
+    <string-array name="p2p_popup_choose_mode_items">
+        <item>Search Hosts</item>
+        <item>Start as Host</item>
+    </string-array>
+    <string name="p2p_progress_message_disconnecting">Disconnecting...</string>
+    <string name="popup_title_join_game">Join Game</string>
+    <string name="popup_progress_msg_pleasewait_for_invite">Please wait for your invite to be accepted</string>
+    <string name="popup_error_msg_failed_to_connect">Failed to client connect</string>
+    <string name="join_game_dialog_client_label">%1$s %2$s</string>
+
+</resources>

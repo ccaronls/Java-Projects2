@@ -1,12 +1,17 @@
 package cc.lib.math
 
 import cc.lib.game.IVector2D
+import cc.lib.ksp.mirror.IData
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.serializer
 import kotlin.math.cos
 import kotlin.math.sin
 
 /**
  * A 3x3 matrix implementation
  */
+@Serializable
 data class Matrix3x3(
 	private var a11: Double = 0.0,
 	private var a12: Double = 0.0,
@@ -17,8 +22,11 @@ data class Matrix3x3(
 	private var a31: Double = 0.0,
 	private var a32: Double = 0.0,
 	private var a33: Double = 0.0
-) {
+) : IData<Matrix3x3> {
 
+	override fun deepCopy() = copy()
+
+	override fun getSerializer(): KSerializer<Matrix3x3> = serializer()
 
 	/**
 	 * Assign the zero matrix to this matrix

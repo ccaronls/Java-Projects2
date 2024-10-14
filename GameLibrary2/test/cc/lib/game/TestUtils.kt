@@ -71,9 +71,22 @@ class TestUtils : TestCase() {
 	}
 
 	fun testRotateArray() {
-		val array = arrayOf(1, 2, 3, 4, 5, 6)
+		var array = arrayOf(1, 2, 3, 4, 5, 6)
 
-		assertEquals(array.rotate(1), arrayOf(2, 3, 4, 5, 6, 1))
+		assertTrue(Arrays.equals(array.rotate(-1), arrayOf(2, 3, 4, 5, 6, 1)))
+
+		array = arrayOf(1, 2, 3, 4, 5, 6)
+
+		assertTrue(Arrays.equals(array.rotate(1), arrayOf(6, 1, 2, 3, 4, 5)))
+
+		array = arrayOf(1, 2, 3, 4, 5, 6)
+
+		assertTrue(Arrays.equals(array.rotate(2), arrayOf(5, 6, 1, 2, 3, 4)))
+
+		array = arrayOf(1, 2, 3, 4, 5, 6)
+
+		assertTrue(Arrays.equals(array.rotate(-2), arrayOf(3, 4, 5, 6, 1, 2)))
+
 	}
 
 	@Throws(Exception::class)

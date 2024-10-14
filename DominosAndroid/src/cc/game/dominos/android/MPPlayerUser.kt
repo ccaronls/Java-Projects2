@@ -6,11 +6,11 @@ import cc.game.dominos.core.MPConstants
 import cc.game.dominos.core.Move
 import cc.game.dominos.core.Player
 import cc.game.dominos.core.PlayerUser
-import cc.lib.annotation.Keep
 import cc.lib.net.AGameClient
 import cc.lib.net.GameClient
 import cc.lib.net.GameCommand
 import cc.lib.utils.GException
+import cc.lib.utils.launchIn
 
 /**
  * Created by chriscaron on 3/14/18.
@@ -25,15 +25,12 @@ class MPPlayerUser internal constructor(
 	init {
 		client.register(MPConstants.USER_ID, this)
 		client.register(MPConstants.DOMINOS_ID, dominoes)
-		client.addListener(this)
+		client.addListener(this, "PlayerUser")
 	}
 
-	override fun getName(): String {
-		return "P" + (playerNum + 1) + " " + client.displayName
-	}
+	override var name: String = "P" + (playerNum + 1) + " " + client.displayName
 
-	@Keep
-	fun chooseMove(options: List<Move>): Move? {
+	override suspend fun chooseMove(options: List<Move>): Move? {
 		// TODO: we should be able to apply the move our self to prevent the visual glitch that happens
 		//    while waiting for the server to process our move
 		return chooseMove(dominoes, options)
@@ -54,11 +51,13 @@ class MPPlayerUser internal constructor(
 			dominoes.setPlayers(*players)
 		} else if (cmd.type == MPConstants.SVR_TO_CL_INIT_ROUND) {
 			try {
-				dominoes.reset()
-				cmd.getReflector("dominos", dominoes)
+				//dominoes.reset()
+				cmd.getMirrored("dominos", dominoes)
 				activity.dismissCurrentDialog()
 				if (dominoes.board.root == null) {
-					dominoes.startShuffleAnimation()
+					launchIn {
+						dominoes.startShuffleAnimation()
+					}
 				}
 			} catch (e: Exception) {
 				client.sendError(e)
@@ -74,7 +73,7 @@ class MPPlayerUser internal constructor(
 	}
 
 	override fun onDisconnected(reason: String, serverInitiated: Boolean) {
-		client.removeListener(this)
+		client.removeListener(this, "MPPlayerUer")
 		client.unregister(MPConstants.USER_ID)
 		client.unregister(MPConstants.DOMINOS_ID)
 		activity.runOnUiThread {

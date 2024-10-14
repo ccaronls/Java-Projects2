@@ -1,7 +1,14 @@
 package cc.lib.math
 
 import cc.lib.game.IVector2D
-import java.io.Serializable
+import cc.lib.ksp.mirror.Mirror
+import cc.lib.ksp.mirror.Mirrored
+
+@Mirror
+interface IMirroredVector : IVector2D, Mirrored {
+	override val x: Float
+	override val y: Float
+}
 
 /**
  * Immutable.  Use MutableVector2D for mutator operations.
@@ -10,10 +17,12 @@ import java.io.Serializable
  *
  * @author chriscaron
  */
-open class Vector2D(x: Float = 0f, y: Float = 0f) : IVector2D, Serializable {
+open class Vector2D(x: Float = 0f, y: Float = 0f) : MirroredVectorImpl() {
 
-	override val x: Float = x
-	override val y: Float = y
+	init {
+		this.x = x
+		this.y = y
+	}
 
 	constructor(v: IVector2D) : this(v.x, v.y)
 }

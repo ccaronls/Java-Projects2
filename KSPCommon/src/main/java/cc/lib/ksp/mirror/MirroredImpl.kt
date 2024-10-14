@@ -1,8 +1,12 @@
 package cc.lib.ksp.mirror
 
+import com.google.gson.GsonBuilder
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonToken
 import com.google.gson.stream.JsonWriter
+import java.io.File
+import java.io.FileReader
+import java.io.FileWriter
 
 /**
  * Created by Chris Caron on 11/15/23.
@@ -25,6 +29,36 @@ abstract class MirroredImpl : Mirrored {
 			fromGson(reader, reader.nextName())
 		}
 		reader.endObject()
+	}
+
+	override fun equals(other: Any?): Boolean = contentEquals(other)
+
+	override fun contentEquals(other: Any?): Boolean = true
+
+	override fun <T> deepCopy(): T {
+		return javaClass.newInstance().also {
+			it.copyFrom(this)
+		} as T
+	}
+
+	open fun <T> copyFrom(other: T) {}
+
+	fun tryLoadFromFile(file: File): Boolean {
+		try {
+			fromGson(gson.newJsonReader(FileReader(file)))
+		} catch (e: Exception) {
+			return false
+		}
+		return true
+	}
+
+	fun trySaveToFile(file: File): Boolean {
+		try {
+			toGson(gson.newJsonWriter(FileWriter(file)), false)
+		} catch (e: Exception) {
+			return false
+		}
+		return true
 	}
 
 	companion object {
@@ -80,7 +114,7 @@ abstract class MirroredImpl : Mirrored {
 			reader.nextName("type")
 			val clazz = getClassForName(reader.nextString())
 			reader.nextName("value")
-			val obj = _obj?.takeIf { clazz.isAssignableFrom(it.javaClass) } ?: clazz.newInstance() as T
+			val obj = _obj?.takeIf { it.isMutable() && clazz.isAssignableFrom(it.javaClass) } ?: clazz.newInstance() as T
 			if (obj is MirroredStructure<*>) {
 				obj.fromGson(reader)
 			} else {
@@ -122,16 +156,7 @@ abstract class MirroredImpl : Mirrored {
 			}
 			return a.equals(b)
 		}
+
+		val gson = GsonBuilder().setPrettyPrinting().serializeNulls().create()
 	}
-
-	override fun contentEquals(other: Any?): Boolean = true
-
-	override fun <T> deepCopy(): T {
-		return javaClass.newInstance().also {
-			it.copyFrom(this)
-		} as T
-	}
-
-	open fun <T> copyFrom(other: T) {}
-
 }

@@ -131,7 +131,7 @@ abstract class $classTypeName($classArgs) : $classDeclaration($classDeclarationP
 				file.print(
 					"""
 	override suspend fun $funName($paramSignature)$retStr {
-		context?.writer?.let { w ->
+		context?.executeRemotely { w ->
 			w.beginObject()
 			w.name("method").value("$funName")
 			w.name("params")
@@ -176,7 +176,7 @@ abstract class $classTypeName($classArgs) : $classDeclaration($classDeclarationP
 				"""
 	@Throws(Exception::class)
 	final override suspend fun executeLocally() {
-		context?.reader?.let { r ->
+		context?.executeLocally { r ->
 			r.beginObject()
 			val method = r.nextName("method").nextString()
 			r.nextName("params").beginArray()

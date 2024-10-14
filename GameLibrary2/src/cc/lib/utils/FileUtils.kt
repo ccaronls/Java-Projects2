@@ -13,13 +13,15 @@ import java.util.zip.ZipOutputStream
 
 
 @Throws(IOException::class)
-fun String.toFile(dest: File) {
+fun String.streamToFile(dest: File) {
 	if (dest.isDirectory) throw IOException("stringToFile writing to an existing directory '$dest'")
 	val out = FileOutputStream(dest)
 	out.use { out ->
 		out.write(toByteArray())
 	}
 }
+
+fun String.toFile(): File = File(this)
 
 /**
  *

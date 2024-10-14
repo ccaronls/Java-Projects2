@@ -20,7 +20,7 @@ import java.io.FileOutputStream
 import java.io.OutputStream
 import kotlin.reflect.KClass
 
-class DeferException : Exception()
+class DeferException(msg: String) : Exception(msg)
 
 abstract class BaseProcessor(
 	val codeGenerator: CodeGenerator,
@@ -171,7 +171,7 @@ abstract class BaseProcessor(
 	fun KSType.validateOrThrowDeferred() {
 		(declaration as? KSClassDeclaration)?.superTypes?.forEach {
 			if (it.resolve().isError)
-				throw DeferException()
+				throw DeferException("Class $it is an error")
 		}
 	}
 
@@ -200,7 +200,7 @@ abstract class BaseProcessor(
 		logger.warn("symbols=${symbols.joinToString()}")
 
 		options["imports"]?.let {
-			imports.addAll(it.split("[, ]"))
+			imports.addAll(it.split(";"))
 		}
 
 		if (symbols.isEmpty()) return emptyList()
@@ -226,7 +226,7 @@ abstract class BaseProcessor(
 			tmpFile.streamTo(file)
 		} catch (e: DeferException) {
 			// try again next time
-			logger.warn("Deferring symbol: $symbol")
+			logger.warn("Deferring symbol: $symbol because ${e.message}")
 		} catch (e: Exception) {
 			logger.error("${symbol.location}:" + e.message!!)
 			return emptyList()

@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+
+    <declare-styleable name="SpringSlider">
+
+        <attr name="buttonRadius" format="dimension" description="define the radius of the button" />
+        <attr name="horizontal" format="boolean" description="Whether to render horizontally" />
+        <attr name="buttonIcon" format="reference" description="Id of resource to use for button" />
+        <attr name="buttonThickness" format="dimension" description="thickness of button (only used if buttonIcon not specified)" />
+        <attr name="backgroundColor" format="color" description="color to use for back ground (only used if no background image specified)" />
+        <attr name="buttonColor" format="color" description="color of button (only ised when buttonIcon not specified)" />
+
+    </declare-styleable>
+
+    <declare-styleable name="SortButton">
+        <attr name="sortAscending" format="boolean" />
+        <attr name="sortField" format="string" />
+    </declare-styleable>
+
+    <declare-styleable name="StatusMeterView">
+        <attr name="direction" format="enum" description="direction to draw (default left-to-right)">
+            <enum name="left_to_right" value="0" />
+            <enum name="right_to_left" value="1" />
+            <enum name="top_to_bottom" value="2" />
+            <enum name="bottom_to_top" value="3" />
+        </attr>
+        <attr name="meterColor" format="color|reference" description="default bar color to render the bars when not part of the meter.  default black." />
+        <attr name="meterTotal" format="integer" description="total number of bars in the meter.  default 8" />
+        <attr name="meterPoor" format="integer" description="number of bars for low.  renders in poorColor.  default 1/3 of total." />
+        <attr name="poorColor" format="color|reference" description="color to render when poor. default red" />
+        <attr name="meterFair" format="integer" description="number of bars for fair.  renders in fairColor.  default 2/3 of total" />
+        <attr name="fairColor" format="color|reference" description="color to render when fair.  default yellow" />
+        <attr name="goodColor" format="color|reference" description="color to render when good (bars > fair).  default green" />
+        <attr name="textView" format="reference" description="optional id to text view to show precise meter value" />
+        <attr name="meterMaxValue" format="float" description="max value of meter.  default 1.0" />
+        <attr name="meterValue" format="float" description="initial value for the meter.  default 0" />
+        <attr name="rounded" format="boolean" description="set to true to render bars with rounded edges.  default is false." />
+        <attr name="drawable" format="reference" description="drawable to use for bars.  Overrides rounded.  default is none" />
+        <attr name="meterThickness" format="dimension" description="thickness of a single meter bar" />
+        <attr name="meterSpacing" format="dimension" description="Space inbetween bars" />
+        <attr name="meterStyle" format="enum" description="All bars are rendered in the same color depending on meter value default (onecolor)">
+            <enum name="onecolor" value="0" />
+            <enum name="multicolor" value="1" />
+        </attr>
+        <attr name="animatePeaks" format="boolean" description="When true, peaks are animated, meaning they fall off gradually" />
+    </declare-styleable>
+
+    <declare-styleable name="SquareLinearLayout">
+        <attr name="dominantSide" format="enum" description="choose how to compute the square">
+            <enum name="height_matches_width" value="0" />
+            <enum name="width_matches_height" value="1" />
+            <enum name="fill_fit" value="2" />
+        </attr>
+    </declare-styleable>
+
+    <declare-styleable name="MyScrollView">
+        <attr name="scrollY" format="integer" />
+    </declare-styleable>
+
+    <declare-styleable name="CCNumberPicker">
+        <attr name="wrap" format="boolean" />
+        <attr name="minValue" format="integer" />
+        <attr name="maxValue" format="integer" />
+        <attr name="scale" format="float" />
+    </declare-styleable>
+
+    <declare-styleable name="UIComponentView">
+        <attr name="borderColor" format="color" />
+        <attr name="borderThickness" format="dimension" />
+    </declare-styleable>
+
+    <declare-styleable name="CircleTextView">
+        <attr name="textCenterAngle" format="integer" description="angle in degrees of the center of the text along the circle" />
+        <attr name="textDirectionReverse" format="boolean" description="Render the text from RtoL" />
+    </declare-styleable>
+
+    <declare-styleable name="PageIndicatorView">
+        <attr name="dotDimension" format="dimension" description="The width/height of a dot.  If not set then the dimension is computed based on layout constraints." />
+        <attr name="pageCount" format="integer" description="Indicate the number of pages to represent" />
+        <attr name="pagePadding" format="float" description="Spacing as a fraction of the indicator dimension.  Defaults to 0.5 (one half of the indicator dimension)" />
+        <attr name="pageColorOn" format="color" description="Color to use to draw indicator when on, or tint the drawable when present.  Default to white." />
+        <attr name="pageColorOff" format="color" description="Color to use to draw indicator when off, or tint the drawable when present.  Default to %50 alpha of pageColorOn" />
+        <attr name="viewPagerId" format="reference" description="Reference to the view pager to track (default empty - must be done in code)" />
+    </declare-styleable>
+
+    <declare-styleable name="LinearRecyclerView">
+        <attr name="layout_orientation" format="enum">
+            <enum name="horizontal" value="0" />
+            <enum name="vertical" value="1" />
+        </attr>
+        <attr name="item_spacing_omit_endpoints" format="boolean" />
+        <attr name="item_spacing_left" format="dimension" />
+        <attr name="item_spacing_right" format="dimension" />
+        <attr name="item_spacing_top" format="dimension" />
+        <attr name="item_spacing_bottom" format="dimension" />
+        <attr name="divider_drawable" format="reference" />
+    </declare-styleable>
+
+    <declare-styleable name="GTableView"></declare-styleable>
+
+</resources>
