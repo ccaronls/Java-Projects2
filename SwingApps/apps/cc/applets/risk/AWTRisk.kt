@@ -120,6 +120,12 @@ class AWTRisk internal constructor(): AWTComponent() {
 			File(settingsDir, "save.game")
 		}
 
+		override val storedGames: Map<String, File>
+			get() = settingsDir.listFiles().filter { it.extension == "game" }.associateBy {
+				it.name
+			}
+
+
 		override fun onGameThreadStopped() {
 			SwingUtilities.invokeLater {
 				showHomeMenu()

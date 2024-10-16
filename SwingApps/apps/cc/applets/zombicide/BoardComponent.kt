@@ -177,7 +177,8 @@ internal class BoardComponent : AWTRendererComponent<UIZBoardRenderer>(), UIZCom
 			arrayOf<Any>(ZIcon.BOULDER, "zboulder_icon.png"),
 			arrayOf<Any>(ZIcon.SWORD, "zsword_icon.png"),
 			arrayOf<Any>(ZIcon.MJOLNIR, "zmjolnir.png"),
-			arrayOf<Any>(ZIcon.BLACKBOOK, "zblack_book.png")
+			arrayOf<Any>(ZIcon.BLACKBOOK, "zblack_book.png"),
+			arrayOf<Any>(ZIcon.SPEAR, "zspear.png")
 			//,arrayOf<Any>(ZIcon.FIRE, "zfire_icons.png") <-- TODO: Handle special case cell loader
 			,
 			arrayOf<Any>(ZSiegeTypeEngineType.CATAPULT, "catapult.png"),
@@ -247,7 +248,7 @@ internal class BoardComponent : AWTRendererComponent<UIZBoardRenderer>(), UIZCom
 		}
 
 		// Icons that shoot
-		for (icon in arrayOf(ZIcon.ARROW, ZIcon.MJOLNIR, ZIcon.BOLT)) {
+		for (icon in arrayOf(ZIcon.ARROW, ZIcon.MJOLNIR, ZIcon.BOLT, ZIcon.SPEAR)) {
 			val ids = IntArray(4)
 			val eastId = objectToImageMap[icon]?.get(0) ?: error("Missing icon $icon")
 			ids[ZDir.EAST.ordinal] = eastId

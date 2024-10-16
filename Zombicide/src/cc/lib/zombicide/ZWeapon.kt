@@ -57,7 +57,7 @@ class ZWeapon(override val type: ZWeaponType=ZWeaponType.AXE) : ZEquipment<ZWeap
     fun fireWeapon(game: ZGame, cur: ZCharacter, stat: ZWeaponStat) {
 	    if (type.needsReload)
 		    isEmpty = true
-	    if (type === ZWeaponType.DAGGER) {
+	    else { // anything else is a one-shot
 		    cur.removeEquipment(this)
 		    game.putBackInSearchables(this)
 	    }

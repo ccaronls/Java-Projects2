@@ -38,6 +38,7 @@ enum class ZWallFlag(
 			ZActionType.CATAPULT_MOVE -> catapultCrossable
 			ZActionType.MAGIC,
 			ZActionType.RANGED,
+			ZActionType.MELEE,
 			ZActionType.THROW_ITEM -> lineOfSight
 
 			else -> false

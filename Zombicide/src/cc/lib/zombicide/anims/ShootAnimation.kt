@@ -19,7 +19,7 @@ open class ShootAnimation(actor: ZActor, duration: Long, center: IVector2D?, val
 	val path: IInterpolator<Vector2D>
 	var pos: IVector2D
 
-	override fun onStarted(g: AGraphics) {
+	override fun onStarted(g: AGraphics, reversed: Boolean) {
 		val img = g.getImage(id)
 		r = actor.getRect().scaledBy(.5f).fit(img)
 	}

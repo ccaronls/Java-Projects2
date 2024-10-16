@@ -131,6 +131,7 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 				tryLoadFromFile(gameFile)
 				refresh()
 				if (running) startGameThread()
+				super.undo()
 			}
 		}
 		initIntro()

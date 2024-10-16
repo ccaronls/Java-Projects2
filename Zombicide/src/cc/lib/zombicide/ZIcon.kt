@@ -24,6 +24,7 @@ enum class ZIcon {
 	NOISE,
 	SKULL,
 	DAGGER,
+	SPEAR,
 	BOULDER, // catapult
 	SWORD,
     MJOLNIR,

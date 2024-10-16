@@ -976,6 +976,20 @@ enum class ZSkill(val description: String) : IButton {
 		}
 	},
 	Birds_eye_view("Trace lines of sight over buildings and hedges to perform attacks.") {
+	},
+	Long_Reach("When no enemies are in the current zone, player can melee attack in adjacent zones") {
+		override fun modifyStat(
+			stat: ZWeaponStat,
+			actionType: ZActionType,
+			character: ZCharacter,
+			game: ZGame,
+			targetZone: Int
+		) {
+			if (game.board.getNumZombiesInZone(targetZone) == 0) {
+				stat.minRange = 1
+				stat.maxRange = 1
+			}
+		}
 	}
 
 	;

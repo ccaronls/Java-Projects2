@@ -7,20 +7,24 @@ import cc.lib.ui.IButton
 
 @Keep
 enum class ZPlayerName(val characterClass: String, val startingEquipment: Array<ZEquipmentType>, val alternateBodySlot: ZEquipmentClass, blueSkillOptions: Array<ZSkill>, yellowSkillOptions: Array<ZSkill>, orangeSkillOptions: Array<ZSkill>, redSkillOptions: Array<ZSkill>) : IButton, IDimension {
-	Ann("Angry Nun",
-		arrayOf(ZWeaponType.DAGGER, ZWeaponType.HAND_CROSSBOW),
+	Ann(
+		"Angry Nun",
+		arrayOf(ZWeaponType.DAGGER, ZWeaponType.HAND_CROSSBOW, ZWeaponType.SPEAR),
 		ZEquipmentClass.DAGGER,
 		arrayOf(ZSkill.Bloodlust),
 		arrayOf(ZSkill.Plus1_Action),
 		arrayOf(ZSkill.Plus1_free_Magic_Action, ZSkill.Plus1_free_Melee_Action),
-		arrayOf(ZSkill.Plus1_free_Combat_Action, ZSkill.Plus1_to_dice_roll_Combat, ZSkill.Roll_6_plus1_die_Combat)),
-	Baldric("Magician",
-		arrayOf(ZWeaponType.MANA_BLAST),
+		arrayOf(ZSkill.Plus1_free_Combat_Action, ZSkill.Plus1_to_dice_roll_Combat, ZSkill.Roll_6_plus1_die_Combat)
+	),
+	Baldric(
+		"Magician",
+		arrayOf(ZWeaponType.MANA_BLAST, ZSpellType.INVISIBILITY),
 		ZEquipmentClass.SWORD,
-            arrayOf(ZSkill.Spellcaster),
-            arrayOf(ZSkill.Plus1_Action),
-            arrayOf(ZSkill.Plus1_free_Magic_Action, ZSkill.Spellbook),
-            arrayOf(ZSkill.Plus1_die_Magic, ZSkill.Plus1_free_Combat_Action, ZSkill.Plus1_to_dice_roll_Melee)),
+		arrayOf(ZSkill.Spellcaster),
+		arrayOf(ZSkill.Plus1_Action),
+		arrayOf(ZSkill.Plus1_free_Magic_Action, ZSkill.Spellbook),
+		arrayOf(ZSkill.Plus1_die_Magic, ZSkill.Plus1_free_Combat_Action, ZSkill.Plus1_to_dice_roll_Melee)
+	),
     Clovis("Warrior",
             arrayOf(ZWeaponType.SHORT_SWORD, ZWeaponType.CROSSBOW),
             ZEquipmentClass.SHIELD,

@@ -15,7 +15,6 @@ import cc.lib.reflector.Reflector
 import cc.lib.ui.IButton
 import cc.lib.utils.Grid.Pos
 import cc.lib.utils.KLock
-import cc.lib.utils.Lock
 import cc.lib.utils.Table
 import cc.lib.utils.forEachAs
 import cc.lib.utils.getOrNull
@@ -34,6 +33,7 @@ import cc.lib.zombicide.ZColor
 import cc.lib.zombicide.ZDir
 import cc.lib.zombicide.ZDoor
 import cc.lib.zombicide.ZEquipment
+import cc.lib.zombicide.ZEquipmentClass
 import cc.lib.zombicide.ZGame
 import cc.lib.zombicide.ZIcon
 import cc.lib.zombicide.ZMove
@@ -59,6 +59,7 @@ import cc.lib.zombicide.anims.DeflectionAnimation
 import cc.lib.zombicide.anims.EarthquakeAnimation
 import cc.lib.zombicide.anims.ElectrocutionAnimation
 import cc.lib.zombicide.anims.EmptyAnimation
+import cc.lib.zombicide.anims.FadeAnimation
 import cc.lib.zombicide.anims.FireballAnimation
 import cc.lib.zombicide.anims.GroupAnimation
 import cc.lib.zombicide.anims.HandOfGodAnimation
@@ -76,6 +77,7 @@ import cc.lib.zombicide.anims.SlashedAnimation
 import cc.lib.zombicide.anims.SpawnAnimation
 import cc.lib.zombicide.anims.StaticAnimation
 import cc.lib.zombicide.anims.ThrowAnimation
+import cc.lib.zombicide.anims.ThrustAnimation
 import cc.lib.zombicide.anims.ZoomAnimation
 import cc.lib.zombicide.p2p.ZGameMP
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -396,7 +398,11 @@ abstract class UIZombicide(
 		}
 	}
 
-	abstract fun undo()
+	open fun undo() {
+		launchIn {
+			boardRenderer.popAllZoomRects()
+		}
+	}
 
 	val readyLock = KLock()
 	var continuation: Continuation<Any?>? = null
@@ -1003,66 +1009,108 @@ abstract class UIZombicide(
 		hits: List<ZActorPosition>,
 		targetZone: Int
 	) {
-		when (weapon) {
-			ZWeaponType.EARTHQUAKE_HAMMER -> {
-				val animLock = Lock(numDice)
-				val currentZoom = boardRenderer.getZoomedRect()
-				attacker.addAnimation(EmptyAnimation(attacker, 500))
-				boardRenderer.addPreActor(ZoomAnimation(attacker.getRect(board), boardRenderer))
-				var i = 0
-				while (i < numDice) {
+		if (weapon == ZWeaponType.EARTHQUAKE_HAMMER) {
+			val animLock = KLock(numDice)
+			val currentZoom = boardRenderer.getZoomedRect()
+			attacker.addAnimation(EmptyAnimation(attacker, 500))
+			boardRenderer.addPreActor(ZoomAnimation(attacker.getRect(board), boardRenderer))
+			var i = 0
+			while (i < numDice) {
+				attacker.addAnimation(object : MeleeAnimation(attacker, board) {
+					override fun onDone() {
+						animLock.release()
+					}
+				})
+				val g = GroupAnimation(attacker)
+				for (pos in hits) {
+					val z = board.getActor(pos)
+					if (pos.data == ACTOR_POS_DATA_DAMAGED)
+						g.addAnimation(0, EarthquakeAnimation(z, attacker, 300))
+					else
+						g.addAnimation(0, ShieldBlockAnimation(z))
+				}
+				attacker.addAnimation(g)
+				i++
+			}
+			boardRenderer.redraw()
+			animLock.block()
+			boardRenderer.animateZoomTo(currentZoom)
+		} else if (weapon.equipmentClass == ZEquipmentClass.SPEAR && targetZone != attacker.occupiedZone) {
+			val animLock = KLock()
+			// fade in spear
+			// for each thrust, do a oscilating shoot of the spear icon
+			// fade out
+			val zStart = board.getZone(attacker.occupiedZone)
+			val zEnd = board.getZone(targetZone)
+			board.getZone(targetZone)
+			boardRenderer.pushZoomRect()
+			boardRenderer.animateZoomTo(zStart, zEnd)
+			boardRenderer.waitForAnimations()
+			log.info("!!!!!!!!!!! Made it here")
+			val icon = ZIcon.SPEAR
+			val id = icon.imageIds[ZDir.getFromVector(zEnd.center.sub(zStart.center)).ordinal]
+
+			attacker.addAnimation(FadeAnimation(attacker, 700, id))
+			var numDice = numDice
+			hits.forEach { pos ->
+				val victim = board.getActor(pos)
+				attacker.addAnimation(object : ThrustAnimation(attacker, victim.center, icon) {
+					override fun onPhaseStarted(g: AGraphics, phase: Int) {
+						if (phase == 1) {
+							if (pos.data == ACTOR_POS_DATA_DEFENDED) {
+								victim.addAnimation(ShieldBlockAnimation(victim))
+							} else {
+								victim.addAnimation(SlashedAnimation(victim))
+							}
+						}
+					}
+				})
+				numDice--
+			}
+			while (numDice-- > 0) {
+				attacker.addAnimation(ThrustAnimation(attacker, zEnd.randomPointInside, icon))
+			}
+
+			attacker.addAnimation(object : FadeAnimation(attacker, 700, id) {
+				override fun onDone() {
+					animLock.release()
+				}
+			}.startReverse())
+			boardRenderer.redraw()
+			animLock.acquireAndBlock()
+			log.info("!!!!!!!!!!!!!!! made it here")
+			boardRenderer.popZoomRect()
+		} else {
+			boardRenderer.pushZoomRect()
+			boardRenderer.animateZoomTo(board.getZone(attacker.occupiedZone))
+			boardRenderer.waitForAnimations()
+			for (i in 0 until numDice) {
+				if (i < hits.size) {
+					val pos = hits[i]
+					val victim = board.getActor(pos)
+					require(victim !== attacker)
+					playSound(ZSound.SWORD_SLASH)
 					attacker.addAnimation(object : MeleeAnimation(attacker, board) {
 						override fun onDone() {
-							animLock.release()
+							if (pos.data == ACTOR_POS_DATA_DEFENDED) {
+								victim.addAnimation(ShieldBlockAnimation(victim))
+							} else {
+								victim.addAnimation(SlashedAnimation(victim))
+							}
 						}
 					})
-					val g = GroupAnimation(attacker)
-					for (pos in hits) {
-						val z = board.getActor(pos)
-						if (pos.data == ACTOR_POS_DATA_DAMAGED)
-							g.addAnimation(0, EarthquakeAnimation(z, attacker, 300))
-						else
-							g.addAnimation(0, ShieldBlockAnimation(z))
-					}
-					attacker.addAnimation(g)
-					i++
+				} else {
+					playSound(ZSound.SWORD_SLASH)
+					attacker.addAnimation(object : MeleeAnimation(attacker, board) {
+						override fun onDone() {
+							boardRenderer.addHoverMessage("MISS!!", attacker)
+						}
+					})
 				}
-				boardRenderer.redraw()
-				animLock.block()
-				boardRenderer.animateZoomTo(currentZoom)
 			}
-			else -> {
-				boardRenderer.pushZoomRect()
-				boardRenderer.animateZoomToIfNotContained(board.getZone(attacker.occupiedZone))
-				for (i in 0 until numDice) {
-					if (i < hits.size) {
-						val pos = hits[i]
-						val victim = board.getActor(pos)
-						require(victim !== attacker)
-						playSound(ZSound.SWORD_SLASH)
-						attacker.addAnimation(object : MeleeAnimation(attacker, board) {
-							override fun onDone() {
-								if (pos.data == ACTOR_POS_DATA_DEFENDED) {
-									victim.addAnimation(ShieldBlockAnimation(victim))
-								} else {
-									victim.addAnimation(SlashedAnimation(victim))
-								}
-							}
-						})
-					} else {
-						playSound(ZSound.SWORD_SLASH)
-						attacker.addAnimation(object : MeleeAnimation(attacker, board) {
-							override fun onDone() {
-								boardRenderer.addHoverMessage("MISS!!", attacker)
-							}
-						})
-					}
-				}
-				boardRenderer.waitForAnimations()
-				boardRenderer.popZoomRect()
-			}
+			boardRenderer.waitForAnimations()
+			boardRenderer.popZoomRect()
 		}
-
 
 	}
 
@@ -1077,7 +1125,7 @@ abstract class UIZombicide(
 		when (weapon) {
 			ZWeaponType.MJOLNIR -> {
 				val hammerSpeed = 600L
-				val animLock = Lock()
+				val animLock = KLock()
 				if (hits.isEmpty()) {
 					animLock.acquire()
 					attacker.addAnimation(object : ShootAnimation(
@@ -1160,68 +1208,88 @@ abstract class UIZombicide(
 				400
 			)
 
+			ZWeaponType.SPEAR -> doShootAnimation(
+				attacker,
+				numDice,
+				hits,
+				actionType,
+				targetZone,
+				ZIcon.SPEAR
+			)
+
 			else -> {
-				val group = GroupAnimation(attacker)
-				val animLock = Lock(numDice)
-				var delay = 0
-				var i = 0
-				while (i < numDice) {
-					if (i < hits.size) {
-						val pos = hits[i]
-						val victim = board.getActor(pos)
-						group.addAnimation(
-							delay,
-							object : ShootAnimation(attacker, 300, victim.center, ZIcon.ARROW) {
-								override fun onDone() {
-									super.onDone()
-									val arrowId = ZIcon.ARROW.imageIds[dir.ordinal]
-									if (pos.data == ACTOR_POS_DATA_DEFENDED) {
-										victim.addAnimation(
-											GroupAnimation(victim)
-												.addAnimation(ShieldBlockAnimation(victim))
-												.addAnimation(
-													DeflectionAnimation(
-														victim,
-														arrowId,
-														dir.opposite
-													)
-												)
-										)
-									} else {
-										victim.addAnimation(
-											StaticAnimation(
-												victim,
-												800,
-												arrowId,
-												r,
-												true
-											)
-										)
-									}
-									animLock.release()
-								}
-							})
-					} else if (actionType != ZActionType.CATAPULT_FIRE) {
-						val center: IVector2D = board.getZone(targetZone).getRandomPointInside()
-						group.addAnimation(
-							delay,
-							object : ShootAnimation(attacker, 300, center, ZIcon.ARROW) {
-								override fun onDone() {
-									super.onDone()
-									boardRenderer.addHoverMessage("MISS!!", attacker)
-									animLock.release()
-								}
-							})
-					}
-					delay += 100
-					i++
-				}
-				attacker.addAnimation(group)
-				boardRenderer.redraw()
-				animLock.block()
+				doShootAnimation(attacker, numDice, hits, actionType, targetZone, ZIcon.ARROW)
 			}
 		}
 
+	}
+
+	private suspend fun doShootAnimation(
+		attacker: ZActor,
+		numDice: Int,
+		hits: List<ZActorPosition>,
+		actionType: ZActionType?,
+		targetZone: Int,
+		icon: ZIcon
+	) {
+		val group = GroupAnimation(attacker)
+		val animLock = KLock(numDice)
+		var delay = 0
+		var i = 0
+		while (i < numDice) {
+			if (i < hits.size) {
+				val pos = hits[i]
+				val victim = board.getActor(pos)
+				group.addAnimation(
+					delay,
+					object : ShootAnimation(attacker, 300, victim.center, icon) {
+						override fun onDone() {
+							super.onDone()
+							val arrowId = ZIcon.ARROW.imageIds[dir.ordinal]
+							if (pos.data == ACTOR_POS_DATA_DEFENDED) {
+								victim.addAnimation(
+									GroupAnimation(victim)
+										.addAnimation(ShieldBlockAnimation(victim))
+										.addAnimation(
+											DeflectionAnimation(
+												victim,
+												arrowId,
+												dir.opposite
+											)
+										)
+								)
+							} else {
+								victim.addAnimation(
+									StaticAnimation(
+										victim,
+										800,
+										arrowId,
+										r,
+										true
+									)
+								)
+							}
+							animLock.release()
+						}
+					})
+			} else if (actionType != ZActionType.CATAPULT_FIRE) {
+				val center: IVector2D = board.getZone(targetZone).randomPointInside
+				group.addAnimation(
+					delay,
+					object : ShootAnimation(attacker, 300, center, ZIcon.ARROW) {
+						override fun onDone() {
+							super.onDone()
+							boardRenderer.addHoverMessage("MISS!!", attacker)
+							animLock.release()
+						}
+					})
+			}
+			delay += 100
+			i++
+		}
+		attacker.addAnimation(group)
+		boardRenderer.redraw()
+		animLock.block()
 	}
 
 	private suspend fun doThrowAnimation(
@@ -1294,7 +1362,7 @@ abstract class UIZombicide(
 		val hits = _hits.toMutableList()
 		when (weapon) {
 			ZWeaponType.DEATH_STRIKE -> {
-				val animLock = Lock(1)
+				val animLock = KLock(1)
 				val targetRects = mutableListOf<GRectangle>()
 				repeat(numDice) { index ->
 					targetRects.add(
@@ -1318,7 +1386,7 @@ abstract class UIZombicide(
 			}
 			ZWeaponType.FIREBALL -> {
 				val group = GroupAnimation(attacker)
-				val animLock = Lock(numDice)
+				val animLock = KLock(numDice)
 				var delay = 0
 				var i = 0
 				while (i < numDice) {
@@ -1354,7 +1422,7 @@ abstract class UIZombicide(
 				animLock.block()
 			}
 			ZWeaponType.INFERNO -> {
-				val lock = Lock(1)
+				val lock = KLock(1)
 				val rects =
 					Utils.map<Pos, IRectangle>(board.getZone(targetZone).getCells()) { pos: Pos? -> board.getCell(pos!!) }
 				boardRenderer.addPreActor(object : InfernoAnimation(rects) {
@@ -1368,8 +1436,8 @@ abstract class UIZombicide(
 			}
 			ZWeaponType.MJOLNIR,
 			ZWeaponType.LIGHTNING_BOLT -> {
-				val animLock1 = Lock(1)
-				val animLock2 = Lock(1)
+				val animLock1 = KLock(1)
+				val animLock2 = KLock(1)
 				val targets: MutableList<IInterpolator<Vector2D>> = ArrayList()
 				var i = 0
 				while (i < numDice) {
@@ -1425,7 +1493,7 @@ abstract class UIZombicide(
 				print("")
 			}
 			ZWeaponType.EARTHQUAKE -> {
-				val animLock = Lock()
+				val animLock = KLock()
 				for (z in board.getZombiesInZone(targetZone)) {
 					animLock.acquire()
 					z.addAnimation(object : EarthquakeAnimation(z) {

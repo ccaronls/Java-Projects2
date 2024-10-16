@@ -101,7 +101,7 @@ abstract class UIMonopoly : Monopoly() {
 			var delay: Long = 10
 			var die1 = random(1..6)
 			var die2 = random(1..6)
-			override fun onStarted(g: AGraphics) {
+			override fun onStarted(g: AGraphics, reversed: Boolean) {
 				object : Thread() {
 					override fun run() {
 						while (!isDone) {
@@ -192,8 +192,7 @@ abstract class UIMonopoly : Monopoly() {
 	internal inner class TurnOverCardAnim(val start: Array<Vector2D>, val color: GColor, val title: String, val msg: String) : AAnimation<AGraphics>(1500) {
 		lateinit var dest: Array<Vector2D>
 
-		override fun onStarted(g: AGraphics) {
-			super.onStarted(g)
+		override fun onStarted(g: AGraphics, reversed: Boolean) {
 			val r = renderMessage(g, title, msg, false)
 			dest = arrayOf(
 				Vector2D(r.x, r.y + r.h),
@@ -261,7 +260,7 @@ abstract class UIMonopoly : Monopoly() {
 		addAnimation("PLAYER$playerNum", JailedAnim(playerInfoWidth, playerInfoHeight).start<AAnimation<AGraphics>>())
 		setSpriteAnim(p.piece.name, object : AAnimation<Sprite>(2000) {
 			val curve = Bezier()
-			override fun onStarted(g: Sprite) {
+			override fun onStarted(g: Sprite, reversed: Boolean) {
 				val s = start.topLeft
 				val e = end.topLeft
 				curve.addPoint(s)
@@ -290,7 +289,7 @@ abstract class UIMonopoly : Monopoly() {
 			lateinit var start: Vector2D
 			lateinit var end: Vector2D
 
-			override fun onStarted(g: Sprite) {
+			override fun onStarted(g: Sprite, reversed: Boolean) {
 				start = board.getPiecePlacementJail(playerNum).topLeft
 				end = board.getPiecePlacement(playerNum, Square.VISITING_JAIL).topLeft
 			}
@@ -350,7 +349,7 @@ abstract class UIMonopoly : Monopoly() {
 		addAnimation("BOARD", object : AAnimation<AGraphics>(HOUSE_PAUSE) {
 			lateinit var v0: Vector2D
 			lateinit var v1: Vector2D
-			override fun onStarted(g: AGraphics) {
+			override fun onStarted(g: AGraphics, reversed: Boolean) {
 				v0 = Vector2D((DIM / 2).toFloat(), (DIM / 2).toFloat())
 				v1 = board.getInnerEdge(property)
 			}
@@ -379,7 +378,7 @@ abstract class UIMonopoly : Monopoly() {
 		addAnimation("BOARD", object : AAnimation<AGraphics>(HOUSE_PAUSE) {
 			lateinit var v0: Vector2D
 			lateinit var v1: Vector2D
-			override fun onStarted(g: AGraphics) {
+			override fun onStarted(g: AGraphics, reversed: Boolean) {
 				v0 = Vector2D((DIM / 2).toFloat(), (DIM / 2).toFloat())
 				v1 = board.getInnerEdge(property)
 			}

@@ -181,9 +181,9 @@ abstract class AAnimation<T>(durationMSecs: Long, repeats: Int = 0, oscillateOnR
 				state = State.RUNNING
 				lastTime = t
 				if (isStartDirectionReverse) {
-					onStartedReversed(g)
+					onStarted(g, true)
 				} else {
-					onStarted(g)
+					onStarted(g, false)
 				}
 			}
 			val delta = ((t - startTime) % duration).toFloat()
@@ -263,8 +263,7 @@ abstract class AAnimation<T>(durationMSecs: Long, repeats: Int = 0, oscillateOnR
 	 * Called from update thread when animation is started. base method does nothing
 	 * If there is an initial delay then this will indicate the delay has expired.
 	 */
-	protected open fun onStarted(g: T) {}
-	protected open fun onStartedReversed(g: T) {}
+	protected open fun onStarted(g: T, revered: Boolean) {}
 	protected open fun onRepeat(n: Int) {}
 
 	val elapsedTime: Long

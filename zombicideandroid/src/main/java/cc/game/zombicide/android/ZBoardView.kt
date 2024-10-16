@@ -392,7 +392,8 @@ class ZBoardView(context: Context, attrs: AttributeSet) : UIComponentView<UIZBoa
 		for (pair in arrayOf(
 			Pair(ZIcon.ARROW, R.drawable.zarrow_icon),
 			Pair(ZIcon.MJOLNIR, R.drawable.zmjolnir),
-			Pair(ZIcon.BOLT, R.drawable.zbolt_icon)
+			Pair(ZIcon.BOLT, R.drawable.zbolt_icon),
+			Pair(ZIcon.SPEAR, R.drawable.zspear)
 		)) {
 			pair.first.imageIds = IntArray(4)
 			val ids = pair.first.imageIds

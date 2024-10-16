@@ -14,6 +14,7 @@ enum class ZEquipmentClass : IButton {
 	THROWABLE,
 	CONSUMABLE,
 	DAGGER,
+	SPEAR,
 	SWORD,
 	AXE,
 	BOW,

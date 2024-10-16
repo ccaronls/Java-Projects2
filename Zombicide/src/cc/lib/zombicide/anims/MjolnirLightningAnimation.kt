@@ -1,6 +1,10 @@
 package cc.lib.zombicide.anims
 
-import cc.lib.game.*
+import cc.lib.game.AGraphics
+import cc.lib.game.GColor
+import cc.lib.game.GRectangle
+import cc.lib.game.IInterpolator
+import cc.lib.game.LightningStrand
 import cc.lib.math.Vector2D
 import cc.lib.zombicide.ZActor
 import cc.lib.zombicide.ZActorAnimation
@@ -19,16 +23,18 @@ open class MjolnirLightningAnimation(actor: ZActor, val targets: List<IInterpola
 	val actorRect = actor.getRect()
 	lateinit var shots: Array<LightningStrand>
 
-	override fun onStarted(g: AGraphics) {
+	override fun onStarted(g: AGraphics, reversed: Boolean) {
 		when (dir) {
 			ZDir.NORTH -> {
 				imgRect = GRectangle(actorRect).scaledBy(.5f).withCenter(actorRect.centerTop)
 				start = imgRect.center.midPoint(imgRect.centerTop)
 			}
+
 			ZDir.SOUTH -> {
 				imgRect = GRectangle(actorRect).scaledBy(.5f).withCenter(actorRect.centerBottom)
 				start = imgRect.center.midPoint(imgRect.centerBottom)
 			}
+
 			ZDir.EAST -> {
 				imgRect = GRectangle(actorRect).scaledBy(.5f).withCenter(actorRect.centerRight)
 				start = imgRect.center.midPoint(imgRect.centerRight)

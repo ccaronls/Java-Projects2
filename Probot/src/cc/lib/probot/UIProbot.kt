@@ -232,7 +232,7 @@ abstract class UIProbot : Probot() {
 		}
 
 		private var startedCorrectly = false
-		override fun onStarted(g: AGraphics) {
+		override fun onStarted(g: AGraphics, reversed: Boolean) {
 			assert(startedCorrectly)
 		}
 

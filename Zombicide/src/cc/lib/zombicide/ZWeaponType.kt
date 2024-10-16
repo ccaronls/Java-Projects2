@@ -11,7 +11,6 @@ enum class ZWeaponType(
 	val weaponClass: ZWeaponClass,
 	override val equipmentClass: ZEquipmentClass,
 	val minColorToEquip: ZColor,
-	val needsReload: Boolean,
 	val canTwoHand: Boolean,
 	val attackIsNoisy: Boolean,
 	val openDoorsIsNoisy: Boolean,
@@ -22,7 +21,7 @@ enum class ZWeaponType(
 	// BLUE WEAPONS
 	// MELEE
 	DAGGER(
-		ZWeaponClass.NORMAL, ZEquipmentClass.DAGGER, ZColor.BLUE, false, true, false, true, arrayOf(
+		ZWeaponClass.NORMAL, ZEquipmentClass.DAGGER, ZColor.BLUE, true, false, true, arrayOf(
 			ZWeaponStat(ZActionType.MELEE, ZAttackType.BLADE, 4, 0, 0, 1, 4, 1),
 			ZWeaponStat(ZActionType.RANGED, ZAttackType.RANGED_THROW, 0, 0, 1, 1, 3, 2)
 		),
@@ -31,8 +30,33 @@ enum class ZWeaponType(
 		override val skillsWhenUsed: List<ZSkill>
 			get() = listOf(ZSkill.Plus1_die_Melee_Weapon)
 	},
+	HALBERD(
+		ZWeaponClass.NORMAL, ZEquipmentClass.SPEAR, ZColor.BLUE, false, false, true, arrayOf(
+			ZWeaponStat(ZActionType.MELEE, ZAttackType.THRUST, 5, 0, 0, 4, 5, 1),
+		),
+		"If there is no Zombie in the Zone, you can perform a Melee action in an adjacent zone"
+	) {
+		override val skillsWhileEquipped: List<ZSkill> = listOf(ZSkill.Long_Reach)
+	},
+	LUCERN(
+		ZWeaponClass.NORMAL, ZEquipmentClass.SPEAR, ZColor.BLUE, false, false, false, arrayOf(
+			ZWeaponStat(ZActionType.MELEE, ZAttackType.THRUST, 0, 0, 0, 2, 4, 2),
+		),
+		"If there is no Zombie in the Zone, you can perform a Melee action in an adjacent zone"
+	) {
+		override val skillsWhileEquipped: List<ZSkill> = listOf(ZSkill.Long_Reach)
+	},
+	SPEAR(
+		ZWeaponClass.NORMAL, ZEquipmentClass.SPEAR, ZColor.BLUE, false, false, false, arrayOf(
+			ZWeaponStat(ZActionType.MELEE, ZAttackType.THRUST, 0, 0, 1, 1, 4, 1),
+			ZWeaponStat(ZActionType.RANGED, ZAttackType.RANGED_THROW, 0, 0, 0, 1, 4, 2)
+		),
+		"If there is no Zombie in the Zone, you can perform a Melee action in an adjacent zone"
+	) {
+		override val skillsWhenUsed: List<ZSkill> = listOf(ZSkill.Long_Reach)
+	},
 	HEAVY_DAGGER(
-		ZWeaponClass.NORMAL, ZEquipmentClass.DAGGER, ZColor.BLUE, false, true, false, true, arrayOf(
+		ZWeaponClass.NORMAL, ZEquipmentClass.DAGGER, ZColor.BLUE, true, false, true, arrayOf(
 			ZWeaponStat(ZActionType.MELEE, ZAttackType.BLADE, 4, 0, 0, 1, 4, 2)
 		),
 		"Gain +1 die with another equipped melee weapon"
@@ -41,125 +65,88 @@ enum class ZWeaponType(
 			get() = listOf(ZSkill.Plus1_die_Melee_Weapon)
 	},
 	AXE(
-		ZWeaponClass.NORMAL, ZEquipmentClass.AXE, ZColor.BLUE, false, true, false, true, arrayOf(
+		ZWeaponClass.NORMAL, ZEquipmentClass.AXE, ZColor.BLUE, true, false, true, arrayOf(
 			ZWeaponStat(ZActionType.MELEE, ZAttackType.BLADE, 1, 0, 0, 1, 4, 1)
 		), null
 	),
 	HAMMER(
-		ZWeaponClass.NORMAL, ZEquipmentClass.AXE, ZColor.BLUE, false, false, false, true, arrayOf(
+		ZWeaponClass.NORMAL, ZEquipmentClass.AXE, ZColor.BLUE, false, false, true, arrayOf(
 			ZWeaponStat(ZActionType.MELEE, ZAttackType.CRUSH, 4, 0, 0, 1, 3, 2)
 		), null
 	),
 	SHORT_SWORD(
-		ZWeaponClass.NORMAL, ZEquipmentClass.SWORD, ZColor.BLUE, false, true, false, true, arrayOf(
+		ZWeaponClass.NORMAL, ZEquipmentClass.SWORD, ZColor.BLUE, true, false, true, arrayOf(
 			ZWeaponStat(ZActionType.MELEE, ZAttackType.BLADE, 3, 0, 0, 1, 4, 1)
 		), null
 	),
 	SWORD(
-		ZWeaponClass.NORMAL, ZEquipmentClass.SWORD, ZColor.BLUE, false, true, false, true, arrayOf(
+		ZWeaponClass.NORMAL, ZEquipmentClass.SWORD, ZColor.BLUE, true, false, true, arrayOf(
 			ZWeaponStat(ZActionType.MELEE, ZAttackType.BLADE, 3, 0, 0, 2, 4, 1)
 		), null
 	),
 	HEAVY_SWORD(
-		ZWeaponClass.NORMAL, ZEquipmentClass.SWORD, ZColor.BLUE, false, true, false, true, arrayOf(
+		ZWeaponClass.NORMAL, ZEquipmentClass.SWORD, ZColor.BLUE, true, false, true, arrayOf(
 			ZWeaponStat(ZActionType.MELEE, ZAttackType.BLADE, 3, 0, 0, 2, 4, 2)
 		), null
 	),
 	GREAT_SWORD(
-		ZWeaponClass.NORMAL, ZEquipmentClass.SWORD, ZColor.BLUE, false, false, false, true, arrayOf(
+		ZWeaponClass.NORMAL, ZEquipmentClass.SWORD, ZColor.BLUE, false, false, true, arrayOf(
 			ZWeaponStat(ZActionType.MELEE, ZAttackType.BLADE, 4, 0, 0, 5, 5, 1)
 		), null
 	),  // BOWS
 	SHORT_BOW(
-		ZWeaponClass.NORMAL, ZEquipmentClass.BOW, ZColor.BLUE, false, false, false, false, arrayOf(
+		ZWeaponClass.NORMAL, ZEquipmentClass.BOW, ZColor.BLUE, false, false, false, arrayOf(
 			ZWeaponStat(ZActionType.RANGED, ZAttackType.RANGED_ARROWS, 0, 0, 1, 1, 3, 1)
 		), null
 	),
 	LONG_BOW(
-		ZWeaponClass.NORMAL, ZEquipmentClass.BOW, ZColor.BLUE, false, false, false, false, arrayOf(
+		ZWeaponClass.NORMAL, ZEquipmentClass.BOW, ZColor.BLUE, false, false, false, arrayOf(
 			ZWeaponStat(ZActionType.RANGED, ZAttackType.RANGED_ARROWS, 0, 1, 3, 1, 3, 1)
 		), null
 	),  // CROSSBOWS
 	CROSSBOW(
-		ZWeaponClass.NORMAL,
-		ZEquipmentClass.CROSSBOW,
-		ZColor.BLUE,
-		true,
-		false,
-		false,
-		false,
-		arrayOf(
+		ZWeaponClass.NORMAL, ZEquipmentClass.CROSSBOW, ZColor.BLUE, false, false, false, arrayOf(
 			ZWeaponStat(ZActionType.RANGED, ZAttackType.RANGED_BOLTS, 0, 1, 2, 2, 4, 2)
-		),
-		null
+		), null
 	),
 	REPEATING_CROSSBOW(
-		ZWeaponClass.NORMAL,
-		ZEquipmentClass.CROSSBOW,
-		ZColor.BLUE,
-		true,
-		true,
-		false,
-		false,
-		arrayOf(
+		ZWeaponClass.NORMAL, ZEquipmentClass.CROSSBOW, ZColor.BLUE, true, false, false, arrayOf(
 			ZWeaponStat(ZActionType.RANGED, ZAttackType.RANGED_BOLTS, 0, 0, 1, 3, 5, 1)
-		),
-		null
+		), null
 	),
 	HAND_CROSSBOW(
-		ZWeaponClass.NORMAL,
-		ZEquipmentClass.CROSSBOW,
-		ZColor.BLUE,
-		true,
-		true,
-		false,
-		false,
-		arrayOf(
+		ZWeaponClass.NORMAL, ZEquipmentClass.CROSSBOW, ZColor.BLUE, true, false, false, arrayOf(
 			ZWeaponStat(ZActionType.RANGED, ZAttackType.RANGED_BOLTS, 0, 0, 3, 2, 3, 1)
 		),
 		"Auto reload at end of turn"
 	),
 	ORCISH_CROSSBOW(
-		ZWeaponClass.VAULT,
-		ZEquipmentClass.CROSSBOW,
-		ZColor.BLUE,
-		true,
-		false,
-		false,
-		false,
-		arrayOf(
+		ZWeaponClass.VAULT, ZEquipmentClass.CROSSBOW, ZColor.BLUE, false, false, false, arrayOf(
 			ZWeaponStat(ZActionType.MELEE, ZAttackType.CRUSH, 0, 0, 0, 2, 3, 2),
 			ZWeaponStat(ZActionType.RANGED, ZAttackType.RANGED_BOLTS, 0, 1, 2, 2, 3, 2)
 		),
 		null
 	),
 	ORCISH_BOW(
-		ZWeaponClass.VAULT, ZEquipmentClass.BOW, ZColor.BLUE, false, false, false, false, arrayOf(
+		ZWeaponClass.VAULT, ZEquipmentClass.BOW, ZColor.BLUE, false, false, false, arrayOf(
 			ZWeaponStat(ZActionType.MELEE, ZAttackType.BLADE, 0, 0, 0, 2, 3, 1),
 			ZWeaponStat(ZActionType.RANGED, ZAttackType.RANGED_ARROWS, 0, 1, 3, 2, 3, 1)
 		), null
 	),
 
 	HEAVY_CROSSBOW(
-		ZWeaponClass.NORMAL,
-		ZEquipmentClass.CROSSBOW,
-		ZColor.BLUE,
-		true,
-		false,
-		false,
-		false,
-		arrayOf(
+		ZWeaponClass.NORMAL, ZEquipmentClass.CROSSBOW, ZColor.BLUE, false, false, false, arrayOf(
 			ZWeaponStat(ZActionType.RANGED, ZAttackType.RANGED_BOLTS, 0, 1, 2, 2, 4, 3)
 		),
 		null
 	),  // MAGIC
 	DEATH_STRIKE(
-		ZWeaponClass.NORMAL, ZEquipmentClass.MAGIC, ZColor.BLUE, false, true, true, false, arrayOf(
+		ZWeaponClass.NORMAL, ZEquipmentClass.MAGIC, ZColor.BLUE, true, true, false, arrayOf(
 			ZWeaponStat(ZActionType.MAGIC, ZAttackType.MENTAL_STRIKE, 0, 0, 1, 1, 4, 2)
 		), null
 	),
 	DISINTEGRATE(
-		ZWeaponClass.NORMAL, ZEquipmentClass.MAGIC, ZColor.BLUE, false, true, true, false, arrayOf(
+		ZWeaponClass.NORMAL, ZEquipmentClass.MAGIC, ZColor.BLUE, true, true, false, arrayOf(
 			ZWeaponStat(ZActionType.MAGIC, ZAttackType.DISINTEGRATION, 0, 0, 1, 3, 5, 2)
 		), null
 	) {
@@ -167,44 +154,37 @@ enum class ZWeaponType(
 			get() = listOf(ZSkill.Roll_6_Plus1_Damage)
 	},
 	EARTHQUAKE(
-		ZWeaponClass.NORMAL, ZEquipmentClass.MAGIC, ZColor.BLUE, false, true, true, false, arrayOf(
+		ZWeaponClass.NORMAL, ZEquipmentClass.MAGIC, ZColor.BLUE, true, true, false, arrayOf(
 			ZWeaponStat(ZActionType.MAGIC, ZAttackType.EARTHQUAKE, 0, 0, 1, 3, 4, 1)
 		), null
 	),
 	FIREBALL(
-		ZWeaponClass.NORMAL, ZEquipmentClass.MAGIC, ZColor.BLUE, false, true, true, false, arrayOf(
+		ZWeaponClass.NORMAL, ZEquipmentClass.MAGIC, ZColor.BLUE, true, true, false, arrayOf(
 			ZWeaponStat(ZActionType.MAGIC, ZAttackType.FIRE, 0, 0, 1, 3, 4, 1)
 		), null
 	),
 	MANA_BLAST(
-		ZWeaponClass.NORMAL, ZEquipmentClass.MAGIC, ZColor.BLUE, false, true, true, false, arrayOf(
+		ZWeaponClass.NORMAL, ZEquipmentClass.MAGIC, ZColor.BLUE, true, true, false, arrayOf(
 			ZWeaponStat(ZActionType.MAGIC, ZAttackType.MENTAL_STRIKE, 0, 0, 2, 1, 4, 1)
 		), null
 	),
 	INFERNO(
-		ZWeaponClass.VAULT, ZEquipmentClass.MAGIC, ZColor.BLUE, false, false, true, false, arrayOf(
+		ZWeaponClass.VAULT, ZEquipmentClass.MAGIC, ZColor.BLUE, false, true, false, arrayOf(
 			ZWeaponStat(ZActionType.MAGIC, ZAttackType.FIRE, 0, 0, 1, 4, 4, 2)
 		), null
 	),
 	LIGHTNING_BOLT(
-		ZWeaponClass.NORMAL, ZEquipmentClass.MAGIC, ZColor.BLUE, false, true, true, false, arrayOf(
+		ZWeaponClass.NORMAL, ZEquipmentClass.MAGIC, ZColor.BLUE, true, true, false, arrayOf(
 			ZWeaponStat(ZActionType.MAGIC, ZAttackType.ELECTROCUTION, 0, 0, 3, 1, 4, 1)
 		), null
 	),  // WOLFBERG
 	BASTARD_SWORD(
-		ZWeaponClass.NORMAL, ZEquipmentClass.SWORD, ZColor.BLUE, false, false, false, true, arrayOf(
+		ZWeaponClass.NORMAL, ZEquipmentClass.SWORD, ZColor.BLUE, false, false, true, arrayOf(
 			ZWeaponStat(ZActionType.MELEE, ZAttackType.BLADE, 4, 0, 0, 2, 4, 2)
 		), null
 	),  // YELLOW
 	DEFLECTING_DAGGER(
-		ZWeaponClass.VAULT,
-		ZEquipmentClass.DAGGER,
-		ZColor.YELLOW,
-		false,
-		true,
-		false,
-		true,
-		arrayOf(
+		ZWeaponClass.VAULT, ZEquipmentClass.DAGGER, ZColor.YELLOW, true, false, true, arrayOf(
 			ZWeaponStat(ZActionType.MELEE, ZAttackType.BLADE, 4, 0, 0, 1, 4, 1)
 		),
 		"Gain +1 die from another equipped melee weapon. Acts as a shield with 4+ armor roll"
@@ -219,7 +199,7 @@ enum class ZWeaponType(
 		}
 	},
 	FLAMING_GREAT_SWORD(
-		ZWeaponClass.VAULT, ZEquipmentClass.SWORD, ZColor.YELLOW, false, false, false, true,
+		ZWeaponClass.VAULT, ZEquipmentClass.SWORD, ZColor.YELLOW, false, false, true,
 		arrayOf(ZWeaponStat(ZActionType.MELEE, ZAttackType.BLADE, 5, 0, 0, 5, 5, 2)),
 		"Can ignite Dragon Fire at range 0-1"
 	) {
@@ -227,7 +207,7 @@ enum class ZWeaponType(
 			get() = listOf(ZSkill.Ignite_Dragon_Fire)
 	},
 	VAMPIRE_CROSSBOW(
-		ZWeaponClass.VAULT, ZEquipmentClass.CROSSBOW, ZColor.YELLOW, true, false, false, false,
+		ZWeaponClass.VAULT, ZEquipmentClass.CROSSBOW, ZColor.YELLOW, false, false, false,
 		arrayOf(ZWeaponStat(ZActionType.RANGED, ZAttackType.RANGED_BOLTS, 0, 1, 2, 2, 4, 3)),
 		"Heal 1 wound each time you kill a zombie."
 	) {
@@ -235,7 +215,7 @@ enum class ZWeaponType(
 			get() = listOf(ZSkill.Hit_Heals)
 	},  // ORANGE
 	EARTHQUAKE_HAMMER(
-		ZWeaponClass.VAULT, ZEquipmentClass.AXE, ZColor.ORANGE, false, false, false, true,
+		ZWeaponClass.VAULT, ZEquipmentClass.AXE, ZColor.ORANGE, false, false, true,
 		arrayOf(ZWeaponStat(ZActionType.MELEE, ZAttackType.EARTHQUAKE, 3, 0, 0, 3, 3, 2)),
 		"Roll 6: +1 die and +1 damage"
 	) {
@@ -243,7 +223,7 @@ enum class ZWeaponType(
 			get() = listOf(ZSkill.Roll_6_Plus1_Damage, ZSkill.Roll_6_plus1_die_Melee)
 	},
 	AXE_OF_CARNAGE(
-		ZWeaponClass.VAULT, ZEquipmentClass.AXE, ZColor.ORANGE, false, false, false, true,
+		ZWeaponClass.VAULT, ZEquipmentClass.AXE, ZColor.ORANGE, false, false, true,
 		arrayOf(ZWeaponStat(ZActionType.MELEE, ZAttackType.BLADE, 1, 0, 0, 4, 4, 2)),
 		"Add an additional success with each melee action resolved."
 	) {
@@ -251,7 +231,7 @@ enum class ZWeaponType(
 			get() = listOf(ZSkill.Two_For_One_Melee)
 	},
 	DRAGON_FIRE_BLADE(
-		ZWeaponClass.VAULT, ZEquipmentClass.SWORD, ZColor.ORANGE, false, false, false, true,
+		ZWeaponClass.VAULT, ZEquipmentClass.SWORD, ZColor.ORANGE, false, false, true,
 		arrayOf(
 			ZWeaponStat(ZActionType.MELEE, ZAttackType.BLADE, 3, 0, 0, 2, 3, 2),
 			ZWeaponStat(ZActionType.THROW_ITEM, ZAttackType.DRAGON_FIRE, 0, 0, 1, 1, 1, 3)
@@ -264,7 +244,7 @@ enum class ZWeaponType(
 		}
 	},
 	CHAOS_LONGBOW(
-		ZWeaponClass.VAULT, ZEquipmentClass.BOW, ZColor.ORANGE, false, false, false, false,
+		ZWeaponClass.VAULT, ZEquipmentClass.BOW, ZColor.ORANGE, false, false, false,
 		arrayOf(ZWeaponStat(ZActionType.RANGED, ZAttackType.RANGED_ARROWS, 0, 0, 3, 4, 4, 2)),
 		"4 or more hits on a ranged action causes dragon fire in the targeted zone."
 	) {
@@ -272,8 +252,7 @@ enum class ZWeaponType(
 			get() = listOf(ZSkill.Hit_4_Dragon_Fire)
 	},
 	MJOLNIR(
-		ZWeaponClass.SPECIAL, ZEquipmentClass.AXE, ZColor.RED, false, false, true, true,
-		arrayOf(
+		ZWeaponClass.SPECIAL, ZEquipmentClass.AXE, ZColor.RED, false, true, true, arrayOf(
 			ZWeaponStat(ZActionType.MELEE, ZAttackType.CRUSH, 1, 0, 0, 2, 4, 3),
 			ZWeaponStat(ZActionType.MAGIC, ZAttackType.ELECTROCUTION, 0, 1, 4, 4, 5, 1),
 			ZWeaponStat(ZActionType.RANGED, ZAttackType.RANGED_THROW, 0, 1, 2, 4, 5, 2)
@@ -284,111 +263,85 @@ enum class ZWeaponType(
 			get() = listOf(ZSkill.Hand_of_God)
 	},
 	SWORD_OF_LIFE(
-		ZWeaponClass.VAULT, ZEquipmentClass.SWORD, ZColor.ORANGE, false, false, false, true,
-		arrayOf(ZWeaponStat(ZActionType.MELEE, ZAttackType.BLADE, 4, 0, 0, 3, 4, 2)),
+		ZWeaponClass.VAULT, ZEquipmentClass.SWORD, ZColor.ORANGE, false, false, true, arrayOf(
+			ZWeaponStat(ZActionType.MELEE, ZAttackType.BLADE, 4, 0, 0, 3, 4, 2)
+		),
 		"Rolling a six heals a point"
 	) {
 		override val skillsWhenUsed: List<ZSkill>
 			get() = listOf(ZSkill.Roll_6_Hit_Heals)
 	},
 	WAR_CLEAVER(
-		ZWeaponClass.VAULT, ZEquipmentClass.AXE, ZColor.ORANGE, false, false, false, true,
-		arrayOf(ZWeaponStat(ZActionType.MELEE, ZAttackType.CRUSH, 1, 0, 0, 4, 4, 2)),
+		ZWeaponClass.VAULT, ZEquipmentClass.AXE, ZColor.ORANGE, false, false, true, arrayOf(
+			ZWeaponStat(ZActionType.MELEE, ZAttackType.CRUSH, 1, 0, 0, 4, 4, 2)
+		),
 		"Roll 6 +1 Die Melee"
 	) {
 		override val skillsWhenUsed: List<ZSkill>
 			get() = listOf(ZSkill.Roll_6_plus1_die_Melee)
 	},
 	TELEKINETIC_BLAST(
-		ZWeaponClass.VAULT, ZEquipmentClass.MAGIC, ZColor.BLUE, false, true, true, true,
-		arrayOf(ZWeaponStat(ZActionType.MAGIC, ZAttackType.MENTAL_STRIKE, 1, 0, 1, 1, 4, 1)), null
+		ZWeaponClass.VAULT, ZEquipmentClass.MAGIC, ZColor.BLUE, true, true, true, arrayOf(
+			ZWeaponStat(ZActionType.MAGIC, ZAttackType.MENTAL_STRIKE, 1, 0, 1, 1, 4, 1)
+		), null
 	),
 	KINGS_MACE(
-		ZWeaponClass.VAULT, ZEquipmentClass.AXE, ZColor.BLUE, false, false, false, false,
-		arrayOf(ZWeaponStat(ZActionType.MELEE, ZAttackType.CRUSH, 0, 0, 0, 1, 4, 2)),
+		ZWeaponClass.VAULT, ZEquipmentClass.AXE, ZColor.BLUE, false, false, false, arrayOf(
+			ZWeaponStat(ZActionType.MELEE, ZAttackType.CRUSH, 0, 0, 0, 1, 4, 2)
+		),
 		"Get +1 Die for each survivor in vicinity"
 	) {
 		override val skillsWhenUsed: List<ZSkill>
 			get() = listOf(ZSkill.Kings_Mace)
 	},
 	QUICKSILVER_SWORD(
-		ZWeaponClass.VAULT, ZEquipmentClass.SWORD, ZColor.YELLOW, false, false, false, true,
-		arrayOf(ZWeaponStat(ZActionType.MELEE, ZAttackType.BLADE, 4, 0, 0, 4, 4, 1)),
+		ZWeaponClass.VAULT, ZEquipmentClass.SWORD, ZColor.YELLOW, false, false, true, arrayOf(
+			ZWeaponStat(ZActionType.MELEE, ZAttackType.BLADE, 4, 0, 0, 4, 4, 1)
+		),
 		"Gain the Lucky Skill"
 	) {
 		override val skillsWhileEquipped: List<ZSkill>
 			get() = listOf(ZSkill.Lucky)
 	},
 	STORM_BOW(
-		ZWeaponClass.VAULT, ZEquipmentClass.BOW, ZColor.YELLOW, false, false, false, false,
-		arrayOf(ZWeaponStat(ZActionType.RANGED, ZAttackType.RANGED_ARROWS, 0, 0, 3, 1, 3, 1)),
+		ZWeaponClass.VAULT, ZEquipmentClass.BOW, ZColor.YELLOW, false, false, false, arrayOf(
+			ZWeaponStat(ZActionType.RANGED, ZAttackType.RANGED_ARROWS, 0, 0, 3, 1, 3, 1)
+		),
 		"Roll 6 +1 Die"
 	) {
 		override val skillsWhenUsed: List<ZSkill>
 			get() = listOf(ZSkill.Roll_6_plus1_die_Ranged)
 	},
 	CHAIN_LIGHTNING(
-		ZWeaponClass.VAULT, ZEquipmentClass.MAGIC, ZColor.BLUE, false, true, true, false,
-		arrayOf(ZWeaponStat(ZActionType.MAGIC, ZAttackType.ELECTROCUTION, 0, 0, 1, 3, 5, 1)),
+		ZWeaponClass.VAULT, ZEquipmentClass.MAGIC, ZColor.BLUE, true, true, false, arrayOf(
+			ZWeaponStat(ZActionType.MAGIC, ZAttackType.ELECTROCUTION, 0, 0, 1, 3, 5, 1)
+		),
 		"Roll 6 +1 Die"
 	) {
 		override val skillsWhenUsed: List<ZSkill>
 			get() = listOf(ZSkill.Roll_6_plus1_die_Magic)
 	},
 	ICE_BLAST(
-		ZWeaponClass.VAULT, ZEquipmentClass.MAGIC, ZColor.BLUE, false, true, false, false,
-		arrayOf(ZWeaponStat(ZActionType.MAGIC, ZAttackType.FREEZE, 0, 0, 2, 3, 4, 1)),
+		ZWeaponClass.VAULT, ZEquipmentClass.MAGIC, ZColor.BLUE, true, false, false, arrayOf(
+			ZWeaponStat(ZActionType.MAGIC, ZAttackType.FREEZE, 0, 0, 2, 3, 4, 1)
+		),
 		"Roll 6 will freeze zombies in zone for 1 turn"
 	) {
 		override val skillsWhenUsed: List<ZSkill>
 			get() = listOf(ZSkill.Roll_6_Freeze)
 	},
 	SCATTERSHOT(
-		ZWeaponClass.SIEGE_ENGINE,
-		ZEquipmentClass.THROWABLE,
-		ZColor.BLUE,
-		false,
-		false,
-		true,
-		false,
-		arrayOf(
-			ZWeaponStat(
-				ZActionType.CATAPULT_FIRE,
-				ZAttackType.CRUSH,
-				0,
-				2,
-				Int.MAX_VALUE,
-				6,
-				4,
-				1
-			)
-		),
-		null
+		ZWeaponClass.SIEGE_ENGINE, ZEquipmentClass.THROWABLE, ZColor.BLUE, false, true, false, arrayOf(
+			ZWeaponStat(ZActionType.CATAPULT_FIRE, ZAttackType.CRUSH, 0, 2, Int.MAX_VALUE, 6, 4, 1)
+		), null
 	) {
 		override val skillsWhenUsed: List<ZSkill>
 			get() = listOf(ZSkill.Plus1_to_die_roll_observed)
 	},
 	GRAPESHOT(
-		ZWeaponClass.SIEGE_ENGINE,
-		ZEquipmentClass.THROWABLE,
-		ZColor.BLUE,
-		false,
-		false,
-		true,
-		false,
-		arrayOf(
-			ZWeaponStat(
-				ZActionType.CATAPULT_FIRE,
-				ZAttackType.CRUSH,
-				0,
-				2,
-				Int.MAX_VALUE,
-				3,
-				4,
-				2
-			)
-		),
-		null
+		ZWeaponClass.SIEGE_ENGINE, ZEquipmentClass.THROWABLE, ZColor.BLUE, false, true, false, arrayOf(
+			ZWeaponStat(ZActionType.CATAPULT_FIRE, ZAttackType.CRUSH, 0, 2, Int.MAX_VALUE, 3, 4, 2)
+		), null
 	) {
 		override val skillsWhenUsed: List<ZSkill>
 			get() = listOf(ZSkill.Plus1_to_die_roll_observed)
@@ -397,7 +350,6 @@ enum class ZWeaponType(
 		ZWeaponClass.SIEGE_ENGINE,
 		ZEquipmentClass.THROWABLE,
 		ZColor.BLUE,
-		false,
 		false,
 		true,
 		false,
@@ -424,7 +376,6 @@ enum class ZWeaponType(
 		ZColor.BLUE,
 		false,
 		false,
-		false,
 		false, // true?
 		arrayOf(
 			ZWeaponStat(
@@ -443,7 +394,7 @@ enum class ZWeaponType(
 			get() = listOf(ZSkill.Plus1_to_die_roll_observed)
 	},
 	FAMILIAR_HOUND(
-		ZWeaponClass.NORMAL, ZEquipmentClass.FAMILIAR, ZColor.BLUE, false, false, true, false,
+		ZWeaponClass.NORMAL, ZEquipmentClass.FAMILIAR, ZColor.BLUE, false, true, false,
 		arrayOf(ZWeaponStat(ZActionType.MELEE, ZAttackType.FAMILIAR, 0, 0, 0, 3, 4, 1)),
 		null
 	) {
@@ -451,7 +402,7 @@ enum class ZWeaponType(
 			get() = listOf(ZSkill.Plus1_die_Melee)
 	},
 	FAMILIAR_FLYING_CAT(
-		ZWeaponClass.NORMAL, ZEquipmentClass.FAMILIAR, ZColor.BLUE, false, false, true, false,
+		ZWeaponClass.NORMAL, ZEquipmentClass.FAMILIAR, ZColor.BLUE, false, true, false,
 		arrayOf(ZWeaponStat(ZActionType.MELEE, ZAttackType.FAMILIAR, 0, 0, 0, 2, 3, 1)),
 		null
 	) {
@@ -459,7 +410,7 @@ enum class ZWeaponType(
 			get() = listOf(ZSkill.Plus1_max_Range, ZSkill.Birds_eye_view)
 	},
 	FAMILIAR_WOLF(
-		ZWeaponClass.NORMAL, ZEquipmentClass.FAMILIAR, ZColor.BLUE, false, false, true, false,
+		ZWeaponClass.NORMAL, ZEquipmentClass.FAMILIAR, ZColor.BLUE, false, true, false,
 		arrayOf(ZWeaponStat(ZActionType.MELEE, ZAttackType.FAMILIAR, 0, 0, 0, 1, 3, 2)),
 		null
 	) {
@@ -546,7 +497,10 @@ enum class ZWeaponType(
 			else -> false
 		}
 
-    override fun isActionType(type: ZActionType): Boolean {
-        return weaponStats.count { stat: ZWeaponStat -> stat.actionType === type } > 0
-    }
+	val needsReload: Boolean
+		get() = equipmentClass == ZEquipmentClass.CROSSBOW
+
+	override fun isActionType(type: ZActionType): Boolean {
+		return weaponStats.count { stat: ZWeaponStat -> stat.actionType === type } > 0
+	}
 }

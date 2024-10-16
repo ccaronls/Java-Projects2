@@ -353,6 +353,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 
 			override fun undo() {
 				tryUndo()
+				super.undo()
 			}
 		}
 		game.addUser(thisUser)
@@ -751,15 +752,9 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 			}
 
 			MenuItem.CHANGE_NAME -> {
-				val et = EditText(this)
-				et.hint = displayName
-				newDialogBuilder()
-					.setTitle("Change name")
-					.setView(et)
-					.setNegativeButton(R.string.popup_button_cancel, null)
-					.setPositiveButton(R.string.popup_button_ok) { _, _ ->
-						updateDisplayName(et.toString())
-					}.show()
+				newEditTextDialog("Change Name", displayName, "") {
+					updateDisplayName(it)
+				}
 			}
 		}
 	}

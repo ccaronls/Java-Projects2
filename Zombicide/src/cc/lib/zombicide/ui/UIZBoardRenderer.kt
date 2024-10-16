@@ -87,7 +87,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 
 		private lateinit var hJust: Justify
 
-		override fun onStarted(g: AGraphics) {
+		override fun onStarted(g: AGraphics, revered: Boolean) {
 			g.pushTextHeight(HOVER_TEXT_HEIGHT, false)
 			val tv: Vector2D = rect.center.toViewport(g)
 			val width = g.getTextWidth(msg) / 2
@@ -318,6 +318,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 
 	suspend fun popAllZoomRects() {
 		if (zoomRectStack.size > 1) {
+			waitForAnimations()
 			animateZoomTo(zoomRectStack[0])
 			waitForAnimations()
 			while (zoomRectStack.size > 1)
@@ -1187,8 +1188,13 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 	/**
 	 *
 	 */
-	fun animateZoomTo(newRect: IRectangle) {
-		zoomAnimation = ZoomAnimation(clampRect(GRectangle(newRect)), this).start()
+	fun animateZoomTo(vararg newRects: IRectangle) {
+		zoomAnimation = ZoomAnimation(clampRect(GRectangle().also { rect ->
+			newRects.forEach {
+				rect.addEq(it)
+			}
+
+		}), this).start()
 		redraw()
 	}
 

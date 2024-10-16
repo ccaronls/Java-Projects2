@@ -1465,7 +1465,18 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 		        }?.let { weapon ->
 			        cur.getWeaponStat(weapon, ZActionType.MELEE, this, cur.occupiedZone)
 				        ?.let { stat ->
-					        if (performAttack(cur, weapon, stat, cur.occupiedZone)) {
+					        var zone = cur.occupiedZone
+					        if (stat.maxRange > 0) {
+						        val zones = board.getAccessibleZones(cur, stat.minRange, stat.maxRange, ZActionType.MELEE)
+						        if (zones.size > 1) {
+							        user.chooseZoneForAttack(cur.type, zones)?.let {
+								        zone = it
+							        } ?: return false
+						        } else if (zones.size == 1) {
+							        zone = zones.first()
+						        }
+					        }
+					        if (performAttack(cur, weapon, stat, zone)) {
 						        cur.performAction(ZActionType.MELEE, this)
 						        return true
 					        }
@@ -2404,7 +2415,7 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 			stat.actionType,
 			numDice,
 			zombiesHit,
-			cur.occupiedZone
+			zoneIdx
 		)
 		var exp = 0
 		for (z: ZZombie in zombiesDestroyed) {
@@ -2425,7 +2436,7 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 				weapon,
 				stat.actionType,
 				(stat),
-				cur.occupiedZone,
+				zoneIdx,
 				totalHits,
 				zombiesDestroyed
 			)

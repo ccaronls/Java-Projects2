@@ -9,7 +9,7 @@ import cc.lib.zombicide.ZIcon
 class ShieldBlockAnimation(actor: ZActor) : ZActorAnimation(actor, 1000) {
 	private lateinit var r: GRectangle
 
-	override fun onStarted(g: AGraphics) {
+	override fun onStarted(g: AGraphics, reversed: Boolean) {
 		val id = ZIcon.SHIELD.imageIds[0]
 		val img = g.getImage(id)
 		r = actor.getRect().fit(img).scaledBy(.5f)
