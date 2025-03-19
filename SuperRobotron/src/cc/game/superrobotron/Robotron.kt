@@ -3171,7 +3171,7 @@ frame=$frame"""
 
 	// -----------------------------------------------------------------------------------------------
 	private fun isWallActive(info: Wall): Boolean {
-		return if (info.v0 != info.v1) false
+		return if (info.v0 == info.v1) false
 		else when (info.type) {
 			in -1..WALL_TYPE_NONE -> false
 			WALL_TYPE_ELECTRIC -> info.frame <= frameNumber
@@ -3344,8 +3344,8 @@ frame=$frame"""
 		} else {
 			player.movement = 0
 		}
-		screen_x = (player.x - screen_width / 2).coerceIn(-MAZE_VERTEX_NOISE..screen_width + MAZE_VERTEX_NOISE)
-		screen_y = (player.y - screen_height / 2).coerceIn(-MAZE_VERTEX_NOISE..screen_height + MAZE_VERTEX_NOISE)
+		screen_x = (player.x - screen_width / 2).coerceIn(-MAZE_VERTEX_NOISE..MAZE_WIDTH - screen_width + MAZE_VERTEX_NOISE)
+		screen_y = (player.y - screen_height / 2).coerceIn(-MAZE_VERTEX_NOISE..MAZE_HEIGHT - screen_height + MAZE_VERTEX_NOISE)
 
 		if (game_type == GAME_TYPE_CLASSIC) {
 			if (total_enemies == 0 && num_particles == 0) {
