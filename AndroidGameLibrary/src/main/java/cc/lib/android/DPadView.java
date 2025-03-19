@@ -7,13 +7,21 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.widget.ImageView;
 
+import org.jetbrains.annotations.NotNull;
+
 import cc.lib.game.GColor;
 
 public class DPadView extends ImageView {
 
     public interface OnDpadListener {
-        void dpadPressed(DPadView view, PadDir dir);
-        void dpadReleased(DPadView view, PadDir dir);
+        default void dpadMoved(@NotNull DPadView view, float dx, float dy) {
+        }
+
+        default void dpadPressed(@NotNull DPadView view, @NotNull PadDir dir) {
+        }
+
+        default void dpadReleased(@NotNull DPadView view) {
+        }
     }
     
     private float cx, cy, tx, ty, dx, dy;
@@ -150,8 +158,11 @@ public class DPadView extends ImageView {
         init();
     }
 
-    public void doTouch(MotionEvent event, float x, float y) {
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
         boolean touched = false;
+        float x = event.getX();
+        float y = event.getY();
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
             case MotionEvent.ACTION_MOVE:
@@ -161,25 +172,28 @@ public class DPadView extends ImageView {
             case MotionEvent.ACTION_CANCEL:
                 break;
             default:
-                return;
+                return false;
         }
         if (!touched) {
             dx = dy = 0;
+            listener.dpadReleased(this);
         } else {
-            tx = x; 
+            tx = x;
             ty = y;
-            cx = getWidth()/2; // + view.getLeft()
-            cy = getHeight()/2; // + view.getTop()
+            cx = getWidth() / 2; // + view.getLeft()
+            cy = getHeight() / 2; // + view.getTop()
             dx = tx - cx;
             dy = ty - cy;
 
             int flag = 0;
-            
-            float x0 = getWidth()/3;
-            float x1 = x0*2;
-            float y0 = getHeight()/2 - getWidth()/3;
-            float y1 = getHeight()/2 + getWidth()/3;
-    
+
+            listener.dpadMoved(this, dx, dy);
+
+            float x0 = getWidth() / 3;
+            float x1 = x0 * 2;
+            float y0 = getHeight() / 2 - getWidth() / 3;
+            float y1 = getHeight() / 2 + getWidth() / 3;
+
             if (tx < x0) {
                 flag |= PadDir.LEFT.flag;
             } else if (tx > x1) {
@@ -196,33 +210,21 @@ public class DPadView extends ImageView {
                 if ((flag & PadDir.LEFT.flag) != 0) {
                     if ((downFlag & PadDir.LEFT.flag) == 0)
                         listener.dpadPressed(this, PadDir.LEFT);
-                } else {
-                    if ((downFlag & PadDir.LEFT.flag) != 0)
-                        listener.dpadReleased(this, PadDir.LEFT);
                 }
     
                 if ((flag & PadDir.RIGHT.flag) != 0) {
                     if ((downFlag & PadDir.RIGHT.flag) == 0)
                         listener.dpadPressed(this, PadDir.RIGHT);
-                } else {
-                    if ((downFlag & PadDir.RIGHT.flag) != 0)
-                        listener.dpadReleased(this, PadDir.RIGHT);
                 }
                 
                 if ((flag & PadDir.UP.flag) != 0) {
                     if ((downFlag & PadDir.UP.flag) == 0)
                         listener.dpadPressed(this, PadDir.UP);
-                } else {
-                    if ((downFlag & PadDir.UP.flag) != 0)
-                        listener.dpadReleased(this, PadDir.UP);
                 }
                 
                 if ((flag & PadDir.DOWN.flag) != 0) {
                     if ((downFlag & PadDir.DOWN.flag) == 0)
                         listener.dpadPressed(this, PadDir.DOWN);
-                } else {
-                    if ((downFlag & PadDir.DOWN.flag) != 0)
-                        listener.dpadReleased(this, PadDir.DOWN);
                 }
             }        
             
@@ -230,6 +232,7 @@ public class DPadView extends ImageView {
         }
         
         invalidate();
+        return true;
     }
     
     
