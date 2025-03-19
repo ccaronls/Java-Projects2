@@ -4,16 +4,22 @@ import cc.lib.game.AGraphics
 import cc.lib.game.GColor
 import cc.lib.game.Justify
 import cc.lib.game.Utils
+import cc.lib.logger.LoggerFactory
 import cc.lib.math.CMath
 import cc.lib.utils.random
-import java.util.*
+import java.util.Arrays
+import java.util.LinkedList
 import kotlin.math.roundToInt
+import kotlin.math.sqrt
+
 
 // Independent transferable
 abstract class Robotron() {
-	
+
 	companion object {
 		var GAME_VISIBILITY = false
+		val MAX_PLAYERS = 8
+		val log = LoggerFactory.getLogger(Robotron::class.java)
 	}
 	
 	// ---------------------------------------------------------//
@@ -44,7 +50,7 @@ abstract class Robotron() {
 		}
 	}
 
-	private open inner class MissleFloat {
+	open inner class MissleFloat {
 		var x = 0f
 		var y = 0f
 		var dx = 0f
@@ -67,7 +73,7 @@ abstract class Robotron() {
 		}
 	}
 
-	private inner class MissleSnake {
+	inner class MissleSnake {
 		var x = 0
 		var y // position of head
 			= 0
@@ -92,7 +98,7 @@ abstract class Robotron() {
 		}
 	}
 
-	private inner class Powerup : MissleFloat() {
+	inner class Powerup : MissleFloat() {
 		var type = 0
 		fun copy(c: Powerup) {
 			super.copy(c)
@@ -105,7 +111,7 @@ abstract class Robotron() {
 		}
 	}
 
-	private inner class Wall {
+	inner class Wall {
 		var v0 = 0
 		var v1 = 0
 		var type // all
@@ -208,6 +214,8 @@ frame=$frame"""
 		var path: MutableList<IntArray> = LinkedList()
 		var last_shot_frame = 0
 
+		var collision_info: Wall? = null
+
 		init {
 			for (i in 0 until PLAYER_MAX_MISSLES) missles[i] = MissleInt()
 		}
@@ -236,124 +244,124 @@ frame=$frame"""
 	// ---------------------------------------------------------//
 	// CONSTANTS //
 	// ---------------------------------------------------------//
-	private val PLAYER_STATE_SPAWNING = 0
-	private val PLAYER_STATE_ALIVE = 1
-	private val PLAYER_STATE_EXPLODING = 2
-	private val PLAYER_STATE_TELEPORTED = 3
-	private val PLAYER_STATE_SPECTATOR = 4
+	val PLAYER_STATE_SPAWNING = 0
+	val PLAYER_STATE_ALIVE = 1
+	val PLAYER_STATE_EXPLODING = 2
+	val PLAYER_STATE_TELEPORTED = 3
+	val PLAYER_STATE_SPECTATOR = 4
 
 	// enum
-	private val SNAKE_STATE_CHASE = 0
-	private val SNAKE_STATE_CLIMB_WALL = 1 // slowly climb a wall
-	private val SNAKE_STATE_CREST_WALL = 2 // crest the wall, start to
-	private val SNAKE_STATE_DESCEND_WALL = 3
-	private val SNAKE_STATE_ATTACHED = 4
-	private val SNAKE_STATE_DYING = 5
+	val SNAKE_STATE_CHASE = 0
+	val SNAKE_STATE_CLIMB_WALL = 1 // slowly climb a wall
+	val SNAKE_STATE_CREST_WALL = 2 // crest the wall, start to
+	val SNAKE_STATE_DESCEND_WALL = 3
+	val SNAKE_STATE_ATTACHED = 4
+	val SNAKE_STATE_DYING = 5
 
 	// game types
-	private val GAME_TYPE_CLASSIC = 0 // No maze
-	private val GAME_TYPE_ROBOCRAZE = 1
-	private val WORLD_WIDTH_CLASSIC = 1000
-	private val WORLD_HEIGHT_CLASSIC = 1000
+	val GAME_TYPE_CLASSIC = 0 // No maze
+	val GAME_TYPE_ROBOCRAZE = 1
+	val WORLD_WIDTH_CLASSIC = 1000
+	val WORLD_HEIGHT_CLASSIC = 1000
 
 	//  final int GAME_TYPE_ROBOCRAZE = 1; // Use Maze, level over when
 	// player gets to exit (X)
 	// possible game states
-	private val GAME_STATE_INTRO = 0
-	private val GAME_STATE_PLAY = 1
+	val GAME_STATE_INTRO = 0
+	val GAME_STATE_PLAY = 1
 
 	//private final int   GAME_STATE_PLAYER_HIT = 2;
-	private val GAME_STATE_GAME_OVER = 3
-	private val MAZE_CELL_WIDTH = 160
-	private val MAZE_CELL_HEIGHT = 160
-	private val MAZE_NUMCELLS_X = 10
-	private val MAZE_NUMCELLS_Y = 10
-	private val MAZE_NUM_VERTS = (MAZE_NUMCELLS_X + 1) * (MAZE_NUMCELLS_Y + 1)
-	private val MAZE_VERTEX_NOISE = 20 //30 // random noise in placement of
+	val GAME_STATE_GAME_OVER = 3
+	val MAZE_CELL_WIDTH = 160
+	val MAZE_CELL_HEIGHT = 160
+	val MAZE_NUMCELLS_X = 10
+	val MAZE_NUMCELLS_Y = 10
+	val MAZE_NUM_VERTS = (MAZE_NUMCELLS_X + 1) * (MAZE_NUMCELLS_Y + 1)
+	val MAZE_VERTEX_NOISE = 20 //30 // random noise in placement of
 
 	//private final int     MAZE_CELL_X = 14;
 	//private final int     MAZE_CELL_Y = 14;
 	// vertices
-	private val MAZE_WALL_THICKNESS = 3
-	private val MAZE_WIDTH = MAZE_CELL_WIDTH * MAZE_NUMCELLS_X //1440; // width of world
-	private val MAZE_HEIGHT = MAZE_CELL_HEIGHT * MAZE_NUMCELLS_Y //1240; // height of world
+	val MAZE_WALL_THICKNESS = 3
+	val MAZE_WIDTH = MAZE_CELL_WIDTH * MAZE_NUMCELLS_X //1440; // width of world
+	val MAZE_HEIGHT = MAZE_CELL_HEIGHT * MAZE_NUMCELLS_Y //1240; // height of world
 
 	// used to make comparisons close to zero
-	private val EPSILON = 0.00001f
-	private val PLAYER_SPEED = 8 // pixels per frame
-	private val PLAYER_SUPER_SPEED_BONUS = 3
-	private val PLAYER_RADIUS = 16
-	private val PLAYER_RADIUS_BARRIER = 25
-	private val PLAYER_MAX_MISSLES = 16 // max player missles on screen at one time
-	private val PLAYER_DEATH_FRAMES = 70 // number of frames to do the 'death' sequence
-	private val PLAYER_START_LIVES = 3 // number of lives player starts with
-	private val PLAYER_NEW_LIVE_SCORE = 25000 // number of points to give an extra player
-	private val PLAYER_SHOT_FREQ = 4 // number of frames between adjacent
-	private val PLAYER_SHOT_FREQ_MEGAGUN = 3 // missle shots
-	private val PLAYER_MISSLE_SPEED = 20 // distance missle travels per frame
-	private val PLAYER_MISSLE_DURATION = 50 // number of frames a missle exists for
-	private val PLAYER_SPAWN_FRAMES = 30 // number of frames at beginning of level where player is safe
-	private val PLAYER_HULK_GROW_SPEED = 0.05f
-	private val PLAYER_HULK_SCALE = 1.6f
-	private val PLAYER_HULK_CHARGE_SPEED_BONUS = PLAYER_SPEED
-	private val PLAYER_POWERUP_DURATION = 500 // frames
-	private val PLAYER_POWERUP_WARNING_FRAMES = 50 //
-	private val PLAYER_SUPERSPEED_NUM_TRACERS = 4 // used for POWERUP_SPEED mode
-	private val MAX_ENEMIES = 64 // max number of enemies on the screen per frame
-	private val MAX_ENEMY_MISSLES = 16 // max number of enemy missles on screen per frame
+	val EPSILON = 0.00001f
+	val PLAYER_SPEED = 8 // pixels per frame
+	val PLAYER_SUPER_SPEED_BONUS = 3
+	val PLAYER_RADIUS = 16
+	val PLAYER_RADIUS_BARRIER = 25
+	val PLAYER_MAX_MISSLES = 16 // max player missles on screen at one time
+	val PLAYER_DEATH_FRAMES = 70 // number of frames to do the 'death' sequence
+	val PLAYER_START_LIVES = 3 // number of lives player starts with
+	val PLAYER_NEW_LIVE_SCORE = 25000 // number of points to give an extra player
+	val PLAYER_SHOT_FREQ = 4 // number of frames between adjacent
+	val PLAYER_SHOT_FREQ_MEGAGUN = 3 // missle shots
+	val PLAYER_MISSLE_SPEED = 20 // distance missle travels per frame
+	val PLAYER_MISSLE_DURATION = 50 // number of frames a missle exists for
+	val PLAYER_SPAWN_FRAMES = 30 // number of frames at beginning of level where player is safe
+	val PLAYER_HULK_GROW_SPEED = 0.05f
+	val PLAYER_HULK_SCALE = 1.6f
+	val PLAYER_HULK_CHARGE_SPEED_BONUS = PLAYER_SPEED
+	val PLAYER_POWERUP_DURATION = 500 // frames
+	val PLAYER_POWERUP_WARNING_FRAMES = 50 //
+	val PLAYER_SUPERSPEED_NUM_TRACERS = 4 // used for POWERUP_SPEED mode
+	val MAX_ENEMIES = 64 // max number of enemies on the screen per frame
+	val MAX_ENEMY_MISSLES = 16 // max number of enemy missles on screen per frame
 
 	// Snake type projectiles
-	private val MAX_SNAKE_MISSLES = 8 // max number deployed at one time
-	private val SNAKE_MAX_SECTIONS = 10 // max number of section
-	private val SNAKE_SECTION_LENGTH = 20 // pixels, should be even multiple of SNAKE_SPEED
-	private val SNAKE_THICKNESS = 3 // pixels
-	private val SNAKE_DURATION = 1000 // frames
-	private val SNAKE_SPEED = 4 // pixels of advancement per frame
-	private val SNAKE_HEURISTIC_FACTOR = 0.4f
+	val MAX_SNAKE_MISSLES = 8 // max number deployed at one time
+	val SNAKE_MAX_SECTIONS = 10 // max number of section
+	val SNAKE_SECTION_LENGTH = 20 // pixels, should be even multiple of SNAKE_SPEED
+	val SNAKE_THICKNESS = 3 // pixels
+	val SNAKE_DURATION = 1000 // frames
+	val SNAKE_SPEED = 4 // pixels of advancement per frame
+	val SNAKE_HEURISTIC_FACTOR = 0.4f
 
 	// time
-	private val MAX_PARTICLES = 8 // maximum explosions on the screen
-	private val PARTICLE_TYPE_BLOOD = 0
-	private val PARTICLE_TYPE_DYING_ROBOT = 1
-	private val PARTICLE_TYPE_DYING_TANK = 2
-	private val PARTICLE_TYPE_PLAYER_STUN = 3
+	val MAX_PARTICLES = 8 // maximum explosions on the screen
+	val PARTICLE_TYPE_BLOOD = 0
+	val PARTICLE_TYPE_DYING_ROBOT = 1
+	val PARTICLE_TYPE_DYING_TANK = 2
+	val PARTICLE_TYPE_PLAYER_STUN = 3
 
 	// if any more particle types are added, then the update funciton
 	// will need to get fixed
-	private val PARTICLES_NUM_TYPES = 4 // MUST BE LAST!
-	private val PARTICLE_DYING_ROBOT_DURATION = 5
-	private val PARTICLE_DYING_TANK_DURATION = 9
-	private val PARTICLE_BLOOD_DURATION = 60
-	private val PARTICLE_BLOOD_RADIUS = 13
-	private val PARTICLE_LINES_DURATION = 8
+	val PARTICLES_NUM_TYPES = 4 // MUST BE LAST!
+	val PARTICLE_DYING_ROBOT_DURATION = 5
+	val PARTICLE_DYING_TANK_DURATION = 9
+	val PARTICLE_BLOOD_DURATION = 60
+	val PARTICLE_BLOOD_RADIUS = 13
+	val PARTICLE_LINES_DURATION = 8
 
 	// enum of enemy types
-	private val ENEMY_INDEX_GEN = 0 // generator
-	private val ENEMY_INDEX_ROBOT_N = 1 // always moves toward player
-	private val ENEMY_INDEX_ROBOT_E = 2
-	private val ENEMY_INDEX_ROBOT_S = 3
-	private val ENEMY_INDEX_ROBOT_W = 4
-	private val ENEMY_INDEX_THUG_N = 5 // indistructable idiot, walks north
-	private val ENEMY_INDEX_THUG_E = 6 // walks east
-	private val ENEMY_INDEX_THUG_S = 7 // walks south
-	private val ENEMY_INDEX_THUG_W = 8 // walks west
-	private val ENEMY_INDEX_BRAIN = 9 // The evil brain
-	private val ENEMY_INDEX_ZOMBIE_N = 10 // a brain turns people into zombies
-	private val ENEMY_INDEX_ZOMBIE_E = 11
-	private val ENEMY_INDEX_ZOMBIE_S = 12
-	private val ENEMY_INDEX_ZOMBIE_W = 13
-	private val ENEMY_INDEX_TANK_NE = 14 // Tanks only move diagonally and
-	private val ENEMY_INDEX_TANK_SE = 15
-	private val ENEMY_INDEX_TANK_SW = 16
-	private val ENEMY_INDEX_TANK_NW = 17
-	private val ENEMY_INDEX_TANK_GEN_NE = 18 // TankGens only move diagonally
-	private val ENEMY_INDEX_TANK_GEN_SE = 19
-	private val ENEMY_INDEX_TANK_GEN_SW = 20
-	private val ENEMY_INDEX_TANK_GEN_NW = 21
-	private val ENEMY_INDEX_JAWS = 22
-	private val ENEMY_INDEX_LAVA = 23
-	private val ENEMY_INDEX_NUM = 24 // MUST BE LAST
-	private val ENEMY_NAMES = arrayOf(
+	val ENEMY_INDEX_GEN = 0 // generator
+	val ENEMY_INDEX_ROBOT_N = 1 // always moves toward player
+	val ENEMY_INDEX_ROBOT_E = 2
+	val ENEMY_INDEX_ROBOT_S = 3
+	val ENEMY_INDEX_ROBOT_W = 4
+	val ENEMY_INDEX_THUG_N = 5 // indistructable idiot, walks north
+	val ENEMY_INDEX_THUG_E = 6 // walks east
+	val ENEMY_INDEX_THUG_S = 7 // walks south
+	val ENEMY_INDEX_THUG_W = 8 // walks west
+	val ENEMY_INDEX_BRAIN = 9 // The evil brain
+	val ENEMY_INDEX_ZOMBIE_N = 10 // a brain turns people into zombies
+	val ENEMY_INDEX_ZOMBIE_E = 11
+	val ENEMY_INDEX_ZOMBIE_S = 12
+	val ENEMY_INDEX_ZOMBIE_W = 13
+	val ENEMY_INDEX_TANK_NE = 14 // Tanks only move diagonally and
+	val ENEMY_INDEX_TANK_SE = 15
+	val ENEMY_INDEX_TANK_SW = 16
+	val ENEMY_INDEX_TANK_NW = 17
+	val ENEMY_INDEX_TANK_GEN_NE = 18 // TankGens only move diagonally
+	val ENEMY_INDEX_TANK_GEN_SE = 19
+	val ENEMY_INDEX_TANK_GEN_SW = 20
+	val ENEMY_INDEX_TANK_GEN_NW = 21
+	val ENEMY_INDEX_JAWS = 22
+	val ENEMY_INDEX_LAVA = 23
+	val ENEMY_INDEX_NUM = 24 // MUST BE LAST
+	val ENEMY_NAMES = arrayOf(
 		"generator",
 		"robot", "robot", "robot", "robot",
 		"thug", "thug", "thug", "thug",
@@ -364,93 +372,93 @@ frame=$frame"""
 		"jaws",
 		"lavapit"
 	)
-	private val ENEMY_SPAWN_SCATTER = 30 // used to scatter thugs and brains around generators
-	private val ENEMY_ROBOT_RADIUS = 12
-	private val ENEMY_ROBOT_SPEED = 7
-	private val ENEMY_ROBOT_SPEED_INCREASE = 200 // number of player moves to increase robot speed
-	private val ENEMY_ROBOT_MAX_SPEED = PLAYER_SPEED //12;
-	private val ENEMY_ROBOT_HEURISTIC_FACTOR = 0.0f // likelyhood the robot will choose direction toward player
-	private val ENEMY_ROBOT_ATTACK_DIST = 300 // max distance a guy will try to shoot from
-	private val ENEMY_ROBOT_FORCE = 10.0f // stun force from a robot
-	private val ENEMY_PROJECTILE_FREQ = 2 // used to determine frequency of guy fires
-	private val ENEMY_PROJECTILE_RADIUS = 4
-	private val ENEMY_PROJECTILE_FORCE = 5.0f
-	private val ENEMY_PROJECTILE_DURATION = 60
-	private val ENEMY_PROJECTILE_GRAVITY = 0.3f
-	private val ENEMY_GEN_INITIAL = 15 // starting generators for level 1
-	private val ENEMY_GEN_SPAWN_MIN = 3 // minimum to spawn when hit
-	private val ENEMY_GEN_SPAWN_MAX = 10 // maximum to spawn when hit
-	private val ENEMY_GEN_RADIUS = 10
-	private val ENEMY_GEN_PULSE_FACTOR = 3 // gen will pulse +- this
-	private val ENEMY_TANK_GEN_RADIUS = 15
+	val ENEMY_SPAWN_SCATTER = 30 // used to scatter thugs and brains around generators
+	val ENEMY_ROBOT_RADIUS = 12
+	val ENEMY_ROBOT_SPEED = 7
+	val ENEMY_ROBOT_SPEED_INCREASE = 200 // number of player moves to increase robot speed
+	val ENEMY_ROBOT_MAX_SPEED = PLAYER_SPEED //12;
+	val ENEMY_ROBOT_HEURISTIC_FACTOR = 0.0f // likelyhood the robot will choose direction toward player
+	val ENEMY_ROBOT_ATTACK_DIST = 300 // max distance a guy will try to shoot from
+	val ENEMY_ROBOT_FORCE = 10.0f // stun force from a robot
+	val ENEMY_PROJECTILE_FREQ = 2 // used to determine frequency of guy fires
+	val ENEMY_PROJECTILE_RADIUS = 4
+	val ENEMY_PROJECTILE_FORCE = 5.0f
+	val ENEMY_PROJECTILE_DURATION = 60
+	val ENEMY_PROJECTILE_GRAVITY = 0.3f
+	val ENEMY_GEN_INITIAL = 15 // starting generators for level 1
+	val ENEMY_GEN_SPAWN_MIN = 3 // minimum to spawn when hit
+	val ENEMY_GEN_SPAWN_MAX = 10 // maximum to spawn when hit
+	val ENEMY_GEN_RADIUS = 10
+	val ENEMY_GEN_PULSE_FACTOR = 3 // gen will pulse +- this
+	val ENEMY_TANK_GEN_RADIUS = 15
 
 	// amount from GEN_RADIUS
 	// NOTE: on HEURISTIC_FACTOR, 0.0 values make a bot move toward player, 1.0
 	// makes move totally random
-	private val ENEMY_THUG_UPDATE_FREQ = 4
-	private val ENEMY_THUG_SPEED = 6
-	private val ENEMY_THUG_PUSHBACK = 8.0f // number of units to push the thug on a hit
-	private val ENEMY_THUG_RADIUS = 17
-	private val ENEMY_THUG_HEURISTICE_FACTOR = 0.9f
+	val ENEMY_THUG_UPDATE_FREQ = 4
+	val ENEMY_THUG_SPEED = 6
+	val ENEMY_THUG_PUSHBACK = 8.0f // number of units to push the thug on a hit
+	val ENEMY_THUG_RADIUS = 17
+	val ENEMY_THUG_HEURISTICE_FACTOR = 0.9f
 
 	// ENEMY BRAIN
-	private val ENEMY_BRAIN_RADIUS = 15
-	private val ENEMY_BRAIN_SPEED = 7
-	private val ENEMY_BRAIN_ZOMBIFY_FRAMES = 80 // frames taken to zombify a person
-	private val ENEMY_BRAIN_FIRE_CHANCE = 10 // chance = 1-10-difficulty
-	private val ENEMY_BRAIN_FIRE_FREQ = 100 // frames
-	private val ENEMY_BRAIN_UPDATE_SPACING = 10 // frames between updates (with some noise)
+	val ENEMY_BRAIN_RADIUS = 15
+	val ENEMY_BRAIN_SPEED = 7
+	val ENEMY_BRAIN_ZOMBIFY_FRAMES = 80 // frames taken to zombify a person
+	val ENEMY_BRAIN_FIRE_CHANCE = 10 // chance = 1-10-difficulty
+	val ENEMY_BRAIN_FIRE_FREQ = 100 // frames
+	val ENEMY_BRAIN_UPDATE_SPACING = 10 // frames between updates (with some noise)
 
 	// ZOMBIE
-	private val ENEMY_ZOMBIE_SPEED = 10
-	private val ENEMY_ZOMBIE_RADIUS = 10
-	private val ENEMY_ZOMBIE_UPDATE_FREQ = 2 // number of frames between updates
-	private val ENEMY_ZOMBIE_HEURISTIC_FACTOR = 0.2f //
-	private val ENEMY_ZOMBIE_TRACER_FADE = 3 // higher means slower fade
-	private val MAX_ZOMBIE_TRACERS = 32
+	val ENEMY_ZOMBIE_SPEED = 10
+	val ENEMY_ZOMBIE_RADIUS = 10
+	val ENEMY_ZOMBIE_UPDATE_FREQ = 2 // number of frames between updates
+	val ENEMY_ZOMBIE_HEURISTIC_FACTOR = 0.2f //
+	val ENEMY_ZOMBIE_TRACER_FADE = 3 // higher means slower fade
+	val MAX_ZOMBIE_TRACERS = 32
 
 	// TANK
-	private val ENEMY_TANK_RADIUS = 24
-	private val ENEMY_TANK_SPEED = 5
-	private val ENEMY_TANK_UPDATE_FREQ = 4 // frames between movement and update
-	private val ENEMY_TANK_FIRE_FREQ = 5 // updates between shots fired
-	private val MAX_TANK_MISSLES = 16
+	val ENEMY_TANK_RADIUS = 24
+	val ENEMY_TANK_SPEED = 5
+	val ENEMY_TANK_UPDATE_FREQ = 4 // frames between movement and update
+	val ENEMY_TANK_FIRE_FREQ = 5 // updates between shots fired
+	val MAX_TANK_MISSLES = 16
 
 	// TANK MISSLE
-	private val TANK_MISSLE_SPEED = 8
-	private val TANK_MISSLE_DURATION = 300
-	private val TANK_MISSLE_RADIUS = 8
+	val TANK_MISSLE_SPEED = 8
+	val TANK_MISSLE_DURATION = 300
+	val TANK_MISSLE_RADIUS = 8
 
 	// -- POINTS --
-	private val ENEMY_GEN_POINTS = 100
-	private val ENEMY_ROBOT_POINTS = 10
-	private val ENEMY_BRAIN_POINTS = 50
-	private val ENEMY_TANK_POINTS = 100
-	private val ENEMY_TANK_GEN_POINTS = 100
-	private val POWERUP_POINTS_SCALE = 100
-	private val POWERUP_BONUS_POINTS_MAX = 50
+	val ENEMY_GEN_POINTS = 100
+	val ENEMY_ROBOT_POINTS = 10
+	val ENEMY_BRAIN_POINTS = 50
+	val ENEMY_TANK_POINTS = 100
+	val ENEMY_TANK_GEN_POINTS = 100
+	val POWERUP_POINTS_SCALE = 100
+	val POWERUP_BONUS_POINTS_MAX = 50
 
 	// -- PEOPLE --
-	private val MAX_PEOPLE = 32
-	private val PEOPLE_NUM_TYPES = 3
-	private val PEOPLE_RADIUS = 10
-	private val PEOPLE_SPEED = 4
-	private val PEOPLE_START_POINTS = 500
-	private val PEOPLE_INCREASE_POINTS = 100 // * game_level
-	private val PEOPLE_MAX_POINTS = 10000
+	val MAX_PEOPLE = 32
+	val PEOPLE_NUM_TYPES = 3
+	val PEOPLE_RADIUS = 10
+	val PEOPLE_SPEED = 4
+	val PEOPLE_START_POINTS = 500
+	val PEOPLE_INCREASE_POINTS = 100 // * game_level
+	val PEOPLE_MAX_POINTS = 10000
 
 	// -- MESSGAES --
-	private val THROBBING_SPEED = 2 // Affects throbbing_white. higher is slower.
-	private val MESSAGE_FADE = 3 // Affects instaMsgs, higher is slower
-	private val MESSAGES_MAX = 4 // max number of inst msgs
+	val THROBBING_SPEED = 2 // Affects throbbing_white. higher is slower.
+	val MESSAGE_FADE = 3 // Affects instaMsgs, higher is slower
+	val MESSAGES_MAX = 4 // max number of inst msgs
 
 	// -- lava pit --
-	private val ENEMY_LAVA_CLOSED_FRAMES = 30
-	private val ENEMY_LAVA_DIM = 64
-	private val ENEMY_JAWS_DIM = 32
-	private val DIFFICULTY_EASY = 0
-	private val DIFFICULTY_MEDIUM = 1
-	private val DIFFICULTY_HARD = 2
+	val ENEMY_LAVA_CLOSED_FRAMES = 30
+	val ENEMY_LAVA_DIM = 64
+	val ENEMY_JAWS_DIM = 32
+	val DIFFICULTY_EASY = 0
+	val DIFFICULTY_MEDIUM = 1
+	val DIFFICULTY_HARD = 2
 
 	// -- BUTTONS ON INTRO SCREEN --
 	internal enum class Button {
@@ -462,27 +470,27 @@ frame=$frame"""
 		START
 	}
 
-	private val BUTTONS_NUM = Button.values().size
-	private val BUTTON_WIDTH = 130
-	private val BUTTON_HEIGHT = 40
+	val BUTTONS_NUM = Button.values().size
+	val BUTTON_WIDTH = 130
+	val BUTTON_HEIGHT = 40
 
 	// for other info on intro screen
-	private val TEXT_PADDING = 5 // pixels between hud text lines and border
+	val TEXT_PADDING = 5 // pixels between hud text lines and border
 
 	// -- POWERUPS --
 	// ENUM
-	private val POWERUP_SUPER_SPEED = 0
-	private val POWERUP_GHOST = 1
-	private val POWERUP_BARRIER = 2
-	private val POWERUP_MEGAGUN = 3
-	private val POWERUP_HULK = 4
-	private val POWERUP_BONUS_POINTS = 5
-	private val POWERUP_BONUS_PLAYER = 6
-	private val POWERUP_KEY = 7
-	private val POWERUP_NUM_TYPES = 8 // MUST BE LAST!
+	val POWERUP_SUPER_SPEED = 0
+	val POWERUP_GHOST = 1
+	val POWERUP_BARRIER = 2
+	val POWERUP_MEGAGUN = 3
+	val POWERUP_HULK = 4
+	val POWERUP_BONUS_POINTS = 5
+	val POWERUP_BONUS_PLAYER = 6
+	val POWERUP_KEY = 7
+	val POWERUP_NUM_TYPES = 8 // MUST BE LAST!
 
 	// must be NUM_POWERUP_TYPES elems
-	private val POWERUP_CHANCE = intArrayOf(
+	val POWERUP_CHANCE = intArrayOf(
 		2,
 		1,
 		2,
@@ -496,7 +504,7 @@ frame=$frame"""
 	// The first letter is used as the indicator, unless special
 	// handling is associated with a powerup
 	// (as of this writing: POWERUP_BONUS_PLAYER)
-	private val powerup_names = arrayOf(
+	val powerup_names = arrayOf(
 		"SPEEEEEEED",
 		"GHOST",
 		"BARRIER",
@@ -511,45 +519,45 @@ frame=$frame"""
 		return powerup_names[type]
 	}
 
-	private val MAX_POWERUPS = 8
-	private val POWERUP_MAX_DURATION = 500
-	private val POWERUP_RADIUS = 10
-	private val POWERUP_CHANCE_BASE = 1000
-	private val POWERUP_CHANCE_ODDS = 10 // 10+currentLevel in 1000
+	val MAX_POWERUPS = 8
+	val POWERUP_MAX_DURATION = 500
+	val POWERUP_RADIUS = 10
+	val POWERUP_CHANCE_BASE = 1000
+	val POWERUP_CHANCE_ODDS = 10 // 10+currentLevel in 1000
 
 	// Rubber Walls
-	private val RUBBER_WALL_MAX_FREQUENCY = 0.15f
-	private val RUBBER_WALL_FREQENCY_INCREASE_MISSLE = 0.03f
-	private val RUBBER_WALL_FREQENCY_COOLDOWN = 0.002f
+	val RUBBER_WALL_MAX_FREQUENCY = 0.15f
+	val RUBBER_WALL_FREQENCY_INCREASE_MISSLE = 0.03f
+	val RUBBER_WALL_FREQENCY_COOLDOWN = 0.002f
 
 	// chance
 	// -- STATIC FIELD --
 	// TODO: Why cant I increase this number w/out wierd results?
-	private val STATIC_FIELD_SECTIONS = 8
-	private val STATIC_FIELD_COS_T = CMath.cosine(360.0f / STATIC_FIELD_SECTIONS)
-	private val STATIC_FIELD_SIN_T = CMath.sine(360.0f / STATIC_FIELD_SECTIONS)
+	val STATIC_FIELD_SECTIONS = 8
+	val STATIC_FIELD_COS_T = CMath.cosine(360.0f / STATIC_FIELD_SECTIONS)
+	val STATIC_FIELD_SIN_T = CMath.sine(360.0f / STATIC_FIELD_SECTIONS)
 
 	// number of repeated shots from megagun required to break wall
-	private val WALL_NORMAL_HEALTH = 30
-	private val WALL_BREAKING_MAX_RECURSION = 3
+	val WALL_NORMAL_HEALTH = 30
+	val WALL_BREAKING_MAX_RECURSION = 3
 
 	// when a megagun hits an electric wall, the wall is disabled for some time
-	private val WALL_ELECTRIC_DISABLE_FRAMES = 200
-	private val WALL_TYPE_NONE = 0
-	private val WALL_TYPE_NORMAL = 1 // normal wall
-	private val WALL_TYPE_ELECTRIC = 2 // electric walls cant be destroyed? (temp disabled)
-	private val WALL_TYPE_INDESTRUCTABLE = 3 // used for perimiter
-	private val WALL_TYPE_PORTAL = 4 // teleport to other portal walls
-	private val WALL_TYPE_RUBBER = 5 // ?
-	private val WALL_TYPE_DOOR = 6 // need a key too open
-	private val WALL_TYPE_PHASE_DOOR = 7 // door opens and closes at random intervals
-	private val WALL_NUM_TYPES = 8 // MUST BE LAST!
-	private val DARKEN_AMOUNT = 0.2f
-	private val LIGHTEN_AMOUNT = 0.2f
+	val WALL_ELECTRIC_DISABLE_FRAMES = 200
+	val WALL_TYPE_NONE = 0
+	val WALL_TYPE_NORMAL = 1 // normal wall
+	val WALL_TYPE_ELECTRIC = 2 // electric walls cant be destroyed? (temp disabled)
+	val WALL_TYPE_INDESTRUCTABLE = 3 // used for perimiter
+	val WALL_TYPE_PORTAL = 4 // teleport to other portal walls
+	val WALL_TYPE_RUBBER = 5 // ?
+	val WALL_TYPE_DOOR = 6 // need a key too open
+	val WALL_TYPE_PHASE_DOOR = 7 // door opens and closes at random intervals
+	val WALL_NUM_TYPES = 8 // MUST BE LAST!
+	val DARKEN_AMOUNT = 0.2f
+	val LIGHTEN_AMOUNT = 0.2f
 
 	// - this.game_level,
 	private val wallChanceForLevel: IntArray
-		private get() = intArrayOf(
+		get() = intArrayOf(
 			0,
 			80,  // - this.game_level,
 			2 + gameLevel,
@@ -559,7 +567,7 @@ frame=$frame"""
 			0 + gameLevel,
 			0
 		)
-	private val wall_type_strings = arrayOf(
+	val wall_type_strings = arrayOf(
 		"NONE",
 		"Normal",
 		"Electric",
@@ -567,24 +575,29 @@ frame=$frame"""
 		"Portal",
 		"Rubber",
 		"Door",
-		"Phase Door")
+		"Phase Door"
+	)
+
+	open val instructions = "Use 'WASD' keys to move\nUse mouse to fire"
 
 	private fun getWallTypeString(type: Int): String {
-		return wall_type_strings[type]
+		if (type in wall_type_strings.indices)
+			return wall_type_strings[type]
+		return "UNKNOWN"
 	}
 
-	private val DOOR_STATE_LOCKED = 0
-	private val DOOR_STATE_CLOSED = 1
-	private val DOOR_STATE_CLOSING = 2
-	private val DOOR_STATE_OPENING = 3
-	private val DOOR_STATE_OPEN = 4
-	private val DOOR_SPEED_FRAMES = 50
-	private val DOOR_SPEED_FRAMES_INV = 1.0f / DOOR_SPEED_FRAMES
-	private val DOOR_OPEN_FRAMES = 100
-	private val DOOR_OPEN_FRAMES_INV = 1.0f / DOOR_OPEN_FRAMES
-	private var DOOR_COLOR: GColor? = null
-	private val DOOR_THICKNESS = 2
-	private val door_state_strings = arrayOf(
+	val DOOR_STATE_LOCKED = 0
+	val DOOR_STATE_CLOSED = 1
+	val DOOR_STATE_CLOSING = 2
+	val DOOR_STATE_OPENING = 3
+	val DOOR_STATE_OPEN = 4
+	val DOOR_SPEED_FRAMES = 50
+	val DOOR_SPEED_FRAMES_INV = 1.0f / DOOR_SPEED_FRAMES
+	val DOOR_OPEN_FRAMES = 100
+	val DOOR_OPEN_FRAMES_INV = 1.0f / DOOR_OPEN_FRAMES
+	private var DOOR_COLOR = GColor.CYAN
+	val DOOR_THICKNESS = 2
+	val door_state_strings = arrayOf(
 		"LOCKED",
 		"CLOSED",
 		"CLOSING",
@@ -614,15 +627,17 @@ frame=$frame"""
 	val WALL_SOUTH = 4
 	val WALL_WEST = 8
 	private lateinit var maze_cells: Array<IntArray>
-	private val maze_verts_x = IntArray(MAZE_NUM_VERTS) // array of x components
-	private val maze_verts_y = IntArray(MAZE_NUM_VERTS) // array of y components
+	val maze_verts_x = IntArray(MAZE_NUM_VERTS) // array of x components
+	val maze_verts_y = IntArray(MAZE_NUM_VERTS) // array of y components
 	private val wall_lookup: Array<Array<Wall>> = Array(MAZE_NUM_VERTS) {
 		Array(MAZE_NUM_VERTS) { Wall() }
 	}
 
 	// Rectangle of visible maze
-	private var screen_x = 0
-	private var screen_y = 0
+	var screen_x = 0
+		private set
+	var screen_y = 0
+		private set
 
 	// rectangle of maze dimension
 	private var verts_min_x = 0
@@ -635,7 +650,6 @@ frame=$frame"""
 	private var end_y = 0
 
 	// PLAYER DATA
-	private val MAX_PLAYERS = 8
 	val players = Array(MAX_PLAYERS) { Player() }
 	var num_players = 0
 	var this_player = 0
@@ -664,41 +678,41 @@ frame=$frame"""
 	private var collision_info_wallinfo: Wall? = null
 
 	// General use arrays
-	private val vec = FloatArray(2)
-	private val transform = FloatArray(4)
-	private val int_array = IntArray(4)
-	private val enemy_missle = Array(MAX_ENEMY_MISSLES) { MissleFloat() }
-	private val tank_missle = Array(MAX_TANK_MISSLES) { MissleInt() }
-	private val snake_missle = Array(MAX_SNAKE_MISSLES) { MissleSnake() }
-	private val powerups = Array(MAX_POWERUPS) { Powerup() } 
+	val vec = FloatArray(2)
+	val transform = FloatArray(4)
+	val int_array = IntArray(4)
+	val enemy_missle = Array(MAX_ENEMY_MISSLES) { MissleFloat() }
+	val tank_missle = Array(MAX_TANK_MISSLES) { MissleInt() }
+	val snake_missle = Array(MAX_SNAKE_MISSLES) { MissleSnake() }
+	val powerups = Array(MAX_POWERUPS) { Powerup() }
 
 	// ENEMIES ----------------------------
-	private val enemy_x = IntArray(MAX_ENEMIES)
-	private val enemy_y = IntArray(MAX_ENEMIES)
-	private val enemy_type = IntArray(MAX_ENEMIES)
-	private val enemy_next_update = IntArray(MAX_ENEMIES)
-	private val enemy_spawned_frame = IntArray(MAX_ENEMIES)
-	private val enemy_killable = BooleanArray(MAX_ENEMIES)
-	private val enemy_radius = IntArray(ENEMY_INDEX_NUM)
+	val enemy_x = IntArray(MAX_ENEMIES)
+	val enemy_y = IntArray(MAX_ENEMIES)
+	val enemy_type = IntArray(MAX_ENEMIES)
+	val enemy_next_update = IntArray(MAX_ENEMIES)
+	val enemy_spawned_frame = IntArray(MAX_ENEMIES)
+	val enemy_killable = BooleanArray(MAX_ENEMIES)
+	val enemy_radius = IntArray(ENEMY_INDEX_NUM)
 	private var enemy_robot_speed = 0
 
 	// EXPLOSIN EFFECTS --------------------
 	var particles = Array(MAX_PARTICLES) { Particle() }
 
 	// MSGS that drift away ---------------------------
-	private val msg_x = IntArray(MESSAGES_MAX)
-	private val msg_y = IntArray(MESSAGES_MAX)
-	private val msg_string = Array<String>(MESSAGES_MAX) { "" }
+	val msg_x = IntArray(MESSAGES_MAX)
+	val msg_y = IntArray(MESSAGES_MAX)
+	val msg_string = Array(MESSAGES_MAX) { "" }
 	private var cursor_x = 0
 	private var cursor_y = 0
 
-	private val msg_color = Array<GColor>(MESSAGES_MAX) { GColor.TRANSPARENT }
+	val msg_color = Array<GColor>(MESSAGES_MAX) { GColor.TRANSPARENT }
 
 	// PEOPLE ------------------------------
-	private val people_x = IntArray(MAX_PEOPLE)
-	private val people_y = IntArray(MAX_PEOPLE)
-	private val people_state = IntArray(MAX_PEOPLE) // 0 = unused, 1 =
-	private val people_type = IntArray(MAX_PEOPLE)
+	val people_x = IntArray(MAX_PEOPLE)
+	val people_y = IntArray(MAX_PEOPLE)
+	val people_state = IntArray(MAX_PEOPLE) // 0 = unused, 1 =
+	val people_type = IntArray(MAX_PEOPLE)
 
 	// north, 2 = east, 3 =
 	// south, 4 = west
@@ -706,17 +720,17 @@ frame=$frame"""
 	private var people_picked_up = 0
 
 	// Zombie tracers ----------------------
-	private val zombie_tracer_x = IntArray(MAX_ZOMBIE_TRACERS)
-	private val zombie_tracer_y = IntArray(MAX_ZOMBIE_TRACERS)
-	private val zombie_tracer_color = Array(MAX_ZOMBIE_TRACERS) { GColor.TRANSPARENT }
+	val zombie_tracer_x = IntArray(MAX_ZOMBIE_TRACERS)
+	val zombie_tracer_y = IntArray(MAX_ZOMBIE_TRACERS)
+	val zombie_tracer_color = Array(MAX_ZOMBIE_TRACERS) { GColor.TRANSPARENT }
 
 	// Player tracers ----------------------
 	// Other lookups
 	// Maps N=0,E,S,W to a 4 dim array lookup
-	private val move_dx = intArrayOf(0, 1, 0, -1)
-	private val move_dy = intArrayOf(-1, 0, 1, 0)
-	private val move_diag_dx = intArrayOf(1, -1, 1, -1)
-	private val move_diag_dy = intArrayOf(-1, 1, -1, 1)
+	val move_dx = intArrayOf(0, 1, 0, -1)
+	val move_dy = intArrayOf(-1, 0, 1, 0)
+	val move_diag_dx = intArrayOf(1, -1, 1, -1)
+	val move_diag_dy = intArrayOf(-1, 1, -1, 1)
 	private var throbbing_white = GColor.WHITE.deepCopy()
 	private var throbbing_dir = 0 // 0 == darker(), 1 == lighter()
 	private var insta_msg_color: GColor = GColor.YELLOW
@@ -733,21 +747,18 @@ frame=$frame"""
 	private var num_msgs = 0
 	private var num_particles = 0
 	private var num_powerups = 0
-	private val button_x = IntArray(BUTTONS_NUM)
-	private val button_y = IntArray(BUTTONS_NUM)
+	val button_x = IntArray(BUTTONS_NUM)
+	val button_y = IntArray(BUTTONS_NUM)
 	private var button_active = -1 // -1 == none, 1 == button 1, 2 == button 2,
 
 	// ...
 	private var difficulty = DIFFICULTY_EASY // Easy == 0, Med == 1, Hard == 2
-	private var screen_width = 0
-	private var screen_height = 0
+	var screen_width = 0
+		private set
+	var screen_height = 0
+		private set
 	private var frameNumber = 0
 	lateinit var G: AGraphics
-
-	private fun initColors(g: AGraphics) {
-		DOOR_COLOR = GColor.CYAN
-		throbbing_white = GColor.WHITE
-	}
 
 	fun setDimension(screenWidth: Int, screenHeight: Int) {
 		screen_height = screenHeight
@@ -835,8 +846,21 @@ frame=$frame"""
 				x = maze_verts_x[v] - screen_x
 				y = maze_verts_y[v] - screen_y
 				g.drawFilledCircle(x, y, radius)
-				radius = 5
+				radius = 7
 				g.drawString(v.toString(), (x + 15).toFloat(), (y + 15).toFloat())
+			}
+			for (i in 1 until verts.size) {
+				val info = getWall(verts[i], verts[0])
+				if (info.type < 0)
+					continue
+				val x0 = maze_verts_x[info.v0] - screen_x
+				val y0 = maze_verts_y[info.v0] - screen_y
+				val x1 = maze_verts_x[info.v1] - screen_x
+				val y1 = maze_verts_y[info.v1] - screen_y
+				val mx = (x0 + x1) / 2
+				val my = (y0 + y1) / 2
+				g.color = GColor.WHITE
+				g.drawString(info.toString(), mx.toFloat(), my.toFloat())
 			}
 			g.color = GColor.ORANGE
 			computePrimaryQuadrant(player.x, player.y, verts)
@@ -845,7 +869,15 @@ frame=$frame"""
 				if (v < 0 || v >= MAZE_NUM_VERTS) continue
 				x = maze_verts_x[v] - screen_x
 				y = maze_verts_y[v] - screen_y
-				g.drawFilledCircle(x, y, 5)
+				g.drawFilledCircle(x, y, 4)
+			}
+			player.collision_info?.let { collision ->
+				val x0 = maze_verts_x[collision.v0] - screen_x
+				val y0 = maze_verts_y[collision.v0] - screen_y
+				val x1 = maze_verts_x[collision.v1] - screen_x
+				val y1 = maze_verts_y[collision.v1] - screen_y
+				g.color = GColor.RED
+				g.drawLine(x0.toFloat(), y0.toFloat(), x1.toFloat(), y1.toFloat(), 5f)
 			}
 		}
 		if (isDebugEnabled(Debug.PATH) && player.path.size > 1) {
@@ -878,8 +910,8 @@ frame=$frame"""
 	}
 
 	// -----------------------------------------------------------------------------------------------
-	private val numSnakesAttached: Int
-		private get() {
+	val numSnakesAttached: Int
+		get() {
 			var num = 0
 			for (i in 0 until num_snake_missles) {
 				if (snake_missle[i].state == SNAKE_STATE_ATTACHED) num++
@@ -889,13 +921,12 @@ frame=$frame"""
 
 	// -----------------------------------------------------------------------------------------------
 	private fun addPowerup(x: Int, y: Int, type: Int): Int {
-		var p: Powerup? = null
-		p = if (num_powerups < MAX_POWERUPS) {
-			if (Utils.isDebugEnabled()) Utils.println("addPowerup x[" + x + "] y[" + y + "] type [" + getPowerupTypeString(type) + "]")
+		val p = if (num_powerups < MAX_POWERUPS) {
+			log.debug("addPowerup x[" + x + "] y[" + y + "] type [" + getPowerupTypeString(type) + "]")
 			powerups[num_powerups++]
 		} else {
 			val index = random(MAX_POWERUPS)
-			if (Utils.isDebugEnabled()) Utils.println("replace Powerup [" + index + "] with x[" + x + "] y[" + y + "] type [" + getPowerupTypeString(type) + "]")
+			log.debug("replace Powerup [" + index + "] with x[" + x + "] y[" + y + "] type [" + getPowerupTypeString(type) + "]")
 			powerups[index]
 		}
 		p.init(x.toFloat(), y.toFloat(), Utils.randFloatX(1f), Utils.randFloatX(1f), 0, type)
@@ -995,7 +1026,7 @@ frame=$frame"""
 
 	// -----------------------------------------------------------------------------------------------
 	private fun addRandomPowerup(x: Int, y: Int, radius: Int) {
-		Utils.println("addRandomPowerup x[$x] y[$y] radius + [$radius]")
+		log.debug("addRandomPowerup x[$x] y[$y] radius + [$radius]")
 		val powerup = Utils.chooseRandomFromSet(*POWERUP_CHANCE)
 
 		// final int range = radius * 10;
@@ -1084,7 +1115,7 @@ frame=$frame"""
 	// -----------------------------------------------------------------------------------------------
 	// replace the snake at index with tail elem, and decrement
 	private fun removeSnakeMissle(index: Int) {
-		Utils.println("Removing snake missle [$index]")
+		log.debug("Removing snake missle [$index]")
 		num_snake_missles--
 		val m0 = snake_missle[index]
 		val m1 = snake_missle[num_snake_missles]
@@ -1135,12 +1166,12 @@ frame=$frame"""
 					val touchSection = collisionMissleSnakeRect(ms, px.toFloat(), py.toFloat(), pw.toFloat(), ph.toFloat())
 					if (ms.state == SNAKE_STATE_CHASE) {
 						if (touchSection == 0 && playerHit(player, HIT_TYPE_SNAKE_MISSLE, i)) {
-							Utils.println("Snake [$i] got the player")
+							log.debug("Snake [$i] got the player")
 							ms.state = SNAKE_STATE_ATTACHED
 						}
 					} else {
 						if (touchSection < 0 || !playerHit(player, HIT_TYPE_SNAKE_MISSLE, i)) {
-							Utils.println("Snake [$i] lost hold of the player")
+							log.debug("Snake [$i] lost hold of the player")
 							ms.state = SNAKE_STATE_CHASE
 						}
 					}
@@ -1209,7 +1240,7 @@ frame=$frame"""
 			val ww = Math.abs(x0 - x1)
 			val hh = Math.abs(y0 - y1)
 			if (Utils.isBoxesOverlapping(x, y, w, h, xx.toFloat(), yy.toFloat(), ww.toFloat(), hh.toFloat())) {
-				// Utils.println("Snake Collision [" + i + "]");
+				// log.debug("Snake Collision [" + i + "]");
 				return i
 			}
 			x0 = x1
@@ -1591,7 +1622,7 @@ frame=$frame"""
 	private fun drawPerson(g: AGraphics, index: Int) {
 		val type = people_type[index]
 		val dir = people_state[index] - 1
-		if (dir >= 0 && dir < 4) {
+		if (dir in 0..3) {
 			val dim = 32
 			val x = people_x[index] - screen_x
 			val y = people_y[index] - screen_y
@@ -1600,10 +1631,16 @@ frame=$frame"""
 	}
 
 	private fun drawPerson(g: AGraphics, x: Int, y: Int, dimension: Int, type: Int, dir: Int) {
-		if (dir >= 0 && dir < 4) {
+		if (dir in 0..3) {
 			val animIndex = dir * 4 + frameNumber / 8 % 4
 			g.color = GColor.WHITE
-			g.drawImage(animPeople[type][animIndex], (x - dimension / 2).toFloat(), (y - dimension / 2).toFloat(), dimension.toFloat(), dimension.toFloat())
+			g.drawImage(
+				animPeople[type][animIndex],
+				(x - dimension / 2).toFloat(),
+				(y - dimension / 2).toFloat(),
+				dimension.toFloat(),
+				dimension.toFloat()
+			)
 		}
 	}
 
@@ -1668,7 +1705,7 @@ frame=$frame"""
 	// Add a a message to the table if possible
 	private fun addMsg(x: Int, y: Int, str: String) {
 		if (num_msgs == MESSAGES_MAX) {
-			Utils.println("TOO MANY MESSAGES")
+			log.debug("TOO MANY MESSAGES")
 			return
 		}
 		msg_x[num_msgs] = x
@@ -1702,7 +1739,7 @@ frame=$frame"""
 		}
 	}
 
-	private val particle_stars = arrayOf("*", "!", "?", "@")
+	val particle_stars = arrayOf("*", "!", "?", "@")
 
 	// -----------------------------------------------------------------------------------------------
 	// add an explosion if possible
@@ -1817,7 +1854,7 @@ frame=$frame"""
 		}
 	}
 
-	private val WALL_FLAG_VISITED = 256
+	val WALL_FLAG_VISITED = 256
 
 	/**
 	 * Compute the distance in maze coordinates between to points
@@ -1922,7 +1959,7 @@ frame=$frame"""
 			// if this is closer to the end than the player start, then make this the start
 			//int distGen = Utils.fastLen(enemy_x[e] - end_x, enemy_y[e] - end_x);
 			//int distStart = Utils.fastLen(player.start_x - end_x, player.start_y - end_y);
-			println("distGen = $distGen, distStart = $distStart")
+			log.debug("distGen = $distGen, distStart = $distStart")
 			if (distGen < distStart) {
 				player.start_x = enemy_x[e]
 				player.start_y = enemy_y[e]
@@ -2122,15 +2159,19 @@ frame=$frame"""
            Utils.drawFilledOval(x - radius, y - radius, radius * 2, radius * 2);*/
 	}
 
-	private val brain_pts_x = intArrayOf(15, 13, 13, 8, 7, 6, 4, 2, 2, 3, 3, 4, 4, 8, 11, 12, 14, 17, 20, 21, 21, 23, 25, 27, 29, 29, 28, 29, 25, 24, 22, 20,
-		20, 18)
-	private val brain_pts_y = intArrayOf(16, 19, 21, 21, 20, 21, 21, 19, 15, 14, 11, 9, 7, 4, 4, 2, 1, 2, 2, 3, 3, 4, 8, 7, 8, 13, 14, 16, 21, 20, 21, 20, 18,
-		19)
-	private val brain_nerves_x = intArrayOf(8, 6, 10, 11, 13, 17, 15, 17, 16, 16, 18, 19, 21, 21, 23, 22, 23, 25, 26, 28)
-	private val brain_nerves_y = intArrayOf(7, 10, 10, 12, 12, 2, 4, 7, 9, 10, 10, 11, 9, 7, 8, 20, 18, 18, 17, 19)
-	private val brain_legs_x = intArrayOf(15, 13, 13, 10, 14, 16, 18, 22, 20, 20, 18)
-	private val brain_legs_y = intArrayOf(16, 19, 21, 29, 29, 24, 29, 29, 20, 18, 19)
-	private val brain_nerves_len = intArrayOf(5, 4, 6, 5)
+	val brain_pts_x = intArrayOf(
+		15, 13, 13, 8, 7, 6, 4, 2, 2, 3, 3, 4, 4, 8, 11, 12, 14, 17, 20, 21, 21, 23, 25, 27, 29, 29, 28, 29, 25, 24, 22, 20,
+		20, 18
+	)
+	val brain_pts_y = intArrayOf(
+		16, 19, 21, 21, 20, 21, 21, 19, 15, 14, 11, 9, 7, 4, 4, 2, 1, 2, 2, 3, 3, 4, 8, 7, 8, 13, 14, 16, 21, 20, 21, 20, 18,
+		19
+	)
+	val brain_nerves_x = intArrayOf(8, 6, 10, 11, 13, 17, 15, 17, 16, 16, 18, 19, 21, 21, 23, 22, 23, 25, 26, 28)
+	val brain_nerves_y = intArrayOf(7, 10, 10, 12, 12, 2, 4, 7, 9, 10, 10, 11, 9, 7, 8, 20, 18, 18, 17, 19)
+	val brain_legs_x = intArrayOf(15, 13, 13, 10, 14, 16, 18, 22, 20, 20, 18)
+	val brain_legs_y = intArrayOf(16, 19, 21, 29, 29, 24, 29, 29, 20, 18, 19)
+	val brain_nerves_len = intArrayOf(5, 4, 6, 5)
 
 	// -----------------------------------------------------------------------------------------------
 	// Draw the Evil Brain
@@ -2171,13 +2212,23 @@ frame=$frame"""
 		val dx = Math.round(5.0f * CMath.cosine(degrees))
 		val dy = Math.round(5.0f * CMath.sine(degrees))
 		g.color = GColor.GREEN
-		g.drawRect((x0 - ENEMY_TANK_GEN_RADIUS + dx).toFloat(), (y0 - ENEMY_TANK_GEN_RADIUS + dy).toFloat(), (ENEMY_TANK_GEN_RADIUS * 2).toFloat(), (ENEMY_TANK_GEN_RADIUS * 2).toFloat())
+		g.drawRect(
+			(x0 - ENEMY_TANK_GEN_RADIUS + dx).toFloat(),
+			(y0 - ENEMY_TANK_GEN_RADIUS + dy).toFloat(),
+			(ENEMY_TANK_GEN_RADIUS * 2).toFloat(),
+			(ENEMY_TANK_GEN_RADIUS * 2).toFloat()
+		)
 		g.color = GColor.BLUE
-		g.drawRect((x0 - ENEMY_TANK_GEN_RADIUS - dx).toFloat(), (y0 - ENEMY_TANK_GEN_RADIUS - dy).toFloat(), (ENEMY_TANK_GEN_RADIUS * 2).toFloat(), (ENEMY_TANK_GEN_RADIUS * 2).toFloat())
+		g.drawRect(
+			(x0 - ENEMY_TANK_GEN_RADIUS - dx).toFloat(),
+			(y0 - ENEMY_TANK_GEN_RADIUS - dy).toFloat(),
+			(ENEMY_TANK_GEN_RADIUS * 2).toFloat(),
+			(ENEMY_TANK_GEN_RADIUS * 2).toFloat()
+		)
 	}
 
-	private val tank_pts_x = intArrayOf(12, 6, 6, 18, 32, 41, 41, 36, 36, 12)
-	private val tank_pts_y = intArrayOf(10, 10, 26, 38, 38, 26, 10, 10, 4, 4)
+	val tank_pts_x = intArrayOf(12, 6, 6, 18, 32, 41, 41, 36, 36, 12)
+	val tank_pts_y = intArrayOf(10, 10, 26, 38, 38, 26, 10, 10, 4, 4)
 
 	// -----------------------------------------------------------------------------------------------
 	private fun drawTank(g: AGraphics, x0: Int, y0: Int, dir: Int) {
@@ -2539,7 +2590,7 @@ frame=$frame"""
 					vx = ENEMY_ZOMBIE_SPEED * move_dx[enemy_type[i] - ENEMY_INDEX_ZOMBIE_N]
 					vy = ENEMY_ZOMBIE_SPEED * move_dy[enemy_type[i] - ENEMY_INDEX_ZOMBIE_N]
 					if (collisionScanCircle(enemy_x[i] + vx, enemy_y[i] + vy, ENEMY_ZOMBIE_RADIUS)) {
-						if (isPerimiterWall(collision_info_v0, collision_info_v1)) {
+						if (isPerimeterWall(collision_info_v0, collision_info_v1)) {
 							// dont remove the edge, this is a perimiter edge,
 							// reverse direction of zombie
 							if (enemy_type[i] < ENEMY_INDEX_ZOMBIE_S) enemy_type[i] += 2 else enemy_type[i] -= 2
@@ -2556,7 +2607,7 @@ frame=$frame"""
 					vy = ENEMY_TANK_SPEED * move_diag_dy[enemy_type[i] - ENEMY_INDEX_TANK_NE]
 					if (collisionScanCircle(enemy_x[i] + vx, enemy_y[i] + vy, ENEMY_TANK_RADIUS)) {
 						wall_lookup[collision_info_v0][collision_info_v1]?.let { info ->
-							if (info.type != WALL_TYPE_NORMAL || isPerimiterWall(collision_info_v0, collision_info_v1)) {
+							if (info.type != WALL_TYPE_NORMAL || isPerimeterWall(collision_info_v0, collision_info_v1)) {
 								// reverse direction of tank
 								if (enemy_type[i] < ENEMY_INDEX_TANK_SW) enemy_type[i] += 2 else enemy_type[i] -= 2
 							} else {
@@ -2579,7 +2630,7 @@ frame=$frame"""
 	}
 
 	// -----------------------------------------------------------------------------------------------
-	private fun isPerimiterWall(v0: Int, v1: Int): Boolean {
+	private fun isPerimeterWall(v0: Int, v1: Int): Boolean {
 		return isPerimiterVertex(v0) && isPerimiterVertex(v1)
 	}
 
@@ -3102,11 +3153,9 @@ frame=$frame"""
 			}
 			DOOR_STATE_CLOSING -> {
 				door.state = DOOR_STATE_OPENING
-				run {
-					var framesElapsed = frameNumber - door.frame
-					framesElapsed = this.DOOR_SPEED_FRAMES - framesElapsed
-					door.frame = frameNumber - framesElapsed
-				}
+				var framesElapsed = frameNumber - door.frame
+				framesElapsed = this.DOOR_SPEED_FRAMES - framesElapsed
+				door.frame = frameNumber - framesElapsed
 			}
 			DOOR_STATE_CLOSED  -> {
 				door.state = DOOR_STATE_OPENING
@@ -3121,10 +3170,13 @@ frame=$frame"""
 	}
 
 	// -----------------------------------------------------------------------------------------------
-	private fun isWallActive(info: Wall): Boolean = when (info.type) {
-		in -1 .. WALL_TYPE_NONE -> false
-		WALL_TYPE_ELECTRIC -> info.frame <= frameNumber
-		else -> true
+	private fun isWallActive(info: Wall): Boolean {
+		return if (info.v0 != info.v1) false
+		else when (info.type) {
+			in -1..WALL_TYPE_NONE -> false
+			WALL_TYPE_ELECTRIC -> info.frame <= frameNumber
+			else -> true
+		}
 	}
 
 	// -----------------------------------------------------------------------------------------------
@@ -3135,10 +3187,8 @@ frame=$frame"""
 		if (player.next_state_frame <= frameNumber) {
 			when (player.state) {
 				PLAYER_STATE_TELEPORTED -> {
-					run {
-						player.dy = 0
-						player.dx = player.dy
-					}
+					player.dy = 0
+					player.dx = 0
 					player.state = PLAYER_STATE_ALIVE
 				}
 				PLAYER_STATE_SPAWNING   -> player.state = PLAYER_STATE_ALIVE
@@ -3207,23 +3257,25 @@ frame=$frame"""
 				}
 			}
 		}
+		player.collision_info = null
 		if (dx != 0f || dy != 0f) {
 			if (GAME_VISIBILITY) updatePlayerVisibility(player)
 			player.movement++
 			player.dir = getPlayerDir(dx, dy)
-			var px = Math.round(player.x + dx)
-			var py = Math.round(player.y + dy)
+			var px = (player.x + dx).roundToInt()
+			var py = (player.y + dy).roundToInt()
 
 			// do collision detect against walls
 			// working good
 			var collision = collisionScanCircle(px, py, playerRadius)
-			if (!isPerimiterWall(collision_info_v0, collision_info_v1)) {
+			log.debug("primary verts: ${collision_verts.joinToString()}")
+			if (!isPerimeterWall(collision_info_v0, collision_info_v1)) {
 				if (canPassThroughWalls(player)) collision = false
 			}
 			if (collision) {
-
-				//out.println("Player hit wall type [" + getWallTypeString(collision_info_wall_type) + "] info [" + collision_info_wall_info + "]");
 				var info = wall_lookup[collision_info_v0][collision_info_v1]
+				player.collision_info = info
+				log.debug("Player hit wall type [" + getWallTypeString(info.type) + "] info [" + info + "]");
 				if (info.type == WALL_TYPE_ELECTRIC && isBarrierActive(player)) {
 					// no collision
 				} else {
@@ -3233,7 +3285,14 @@ frame=$frame"""
 					val wallx1 = maze_verts_x[collision_info_v1]
 					val wally1 = maze_verts_y[collision_info_v1]
 					val pos = floatArrayOf(px.toFloat(), py.toFloat())
-					fixPositionFromWall(pos, wallx0.toFloat(), wally0.toFloat(), wallx1.toFloat(), wally1.toFloat(), playerRadius.toFloat())
+					fixPositionFromWall(
+						pos,
+						wallx0.toFloat(),
+						wally0.toFloat(),
+						wallx1.toFloat(),
+						wally1.toFloat(),
+						playerRadius.toFloat()
+					)
 
 					// reassign
 					px = Math.round(pos[0])
@@ -3285,8 +3344,9 @@ frame=$frame"""
 		} else {
 			player.movement = 0
 		}
-		screen_x = player.x - screen_width / 2
-		screen_y = player.y - screen_height / 2
+		screen_x = (player.x - screen_width / 2).coerceIn(-MAZE_VERTEX_NOISE..screen_width + MAZE_VERTEX_NOISE)
+		screen_y = (player.y - screen_height / 2).coerceIn(-MAZE_VERTEX_NOISE..screen_height + MAZE_VERTEX_NOISE)
+
 		if (game_type == GAME_TYPE_CLASSIC) {
 			if (total_enemies == 0 && num_particles == 0) {
 				gameLevel++
@@ -3394,7 +3454,7 @@ frame=$frame"""
 		player.hulk_charge_dy = 0
 		player.hulk_charge_dx = player.hulk_charge_dy
 		if (player.dx != 0 || player.dy != 0) {
-			//Utils.println("*** CHARGING ***");
+			//log.debug("*** CHARGING ***");
 			if (player.dx != 0) {
 				if (player.dx < 0) player.hulk_charge_dx = player.dx - PLAYER_HULK_CHARGE_SPEED_BONUS else player.hulk_charge_dx = player.dx + PLAYER_HULK_CHARGE_SPEED_BONUS
 			}
@@ -3413,7 +3473,7 @@ frame=$frame"""
 		}
 	}
 
-	private val PLAYER_HULK_CHARGE_FRAMES = 20
+	val PLAYER_HULK_CHARGE_FRAMES = 20
 	private fun isHulkActiveCharging(player: Player): Boolean {
 		return isHulkActive(player) && frameNumber - player.hulk_charge_frame < PLAYER_HULK_CHARGE_FRAMES
 	}
@@ -3444,7 +3504,7 @@ frame=$frame"""
 
 	// -----------------------------------------------------------------------------------------------
 	private fun playerTeleport(player: Player, v0: Int, v1: Int) {
-		Utils.println("PLAYER TELEPORT v0 = $v0 v1 = $v1")
+		log.debug("PLAYER TELEPORT v0 = $v0 v1 = $v1")
 		//player.teleported = true;
 		player.state = PLAYER_STATE_TELEPORTED
 		player.next_state_frame = frameNumber + 1
@@ -3487,11 +3547,11 @@ frame=$frame"""
 	}
 
 	// enum
-	private val HIT_TYPE_ENEMY = 0
-	private val HIT_TYPE_TANK_MISSLE = 1
-	private val HIT_TYPE_SNAKE_MISSLE = 2
-	private val HIT_TYPE_ROBOT_MISSLE = 3
-	private val HIT_TYPE_ELECTRIC_WALL = 4
+	val HIT_TYPE_ENEMY = 0
+	val HIT_TYPE_TANK_MISSLE = 1
+	val HIT_TYPE_SNAKE_MISSLE = 2
+	val HIT_TYPE_ROBOT_MISSLE = 3
+	val HIT_TYPE_ELECTRIC_WALL = 4
 
 	// -----------------------------------------------------------------------------------------------
 	// Player hit event
@@ -3606,10 +3666,10 @@ frame=$frame"""
 		return isDebugEnabled(Debug.HULK) || player.powerup == POWERUP_HULK
 	}
 
-	private val DIR_UP = 0
-	private val DIR_RIGHT = 1
-	private val DIR_DOWN = 2
-	private val DIR_LEFT = 3
+	val DIR_UP = 0
+	val DIR_RIGHT = 1
+	val DIR_DOWN = 2
+	val DIR_LEFT = 3
 
 	// -----------------------------------------------------------------------------------------------
 	// return 0,1,2,3 for player direction [NESW]
@@ -3620,7 +3680,7 @@ frame=$frame"""
 	}
 
 	// -----------------------------------------------------------------------------------------------
-	private fun getPlayerRadius(player: Player): Int {
+	fun getPlayerRadius(player: Player): Int {
 		return Math.round(player.scale * PLAYER_RADIUS)
 	}
 
@@ -3901,7 +3961,7 @@ frame=$frame"""
 				y0 = y1
 				r0 = r1
 			}
-			drawElectricWall_r(g, bx0, by0, wx0, wy0, 2)
+			//drawElectricWall_r(g, bx0, by0, wx0, wy0, 2)
 			drawElectricWall_r(g, bx1, by1, wx1, wy1, 2)
 		}
 	}
@@ -4175,7 +4235,18 @@ frame=$frame"""
 			ny = vx * factor
 			x2 = x0 + vx + nx
 			y2 = y0 + vy + ny
-			Utils.computeBezierCurvePoints(bezier_pts_x, bezier_pts_y, x0.toFloat(), y0.toFloat(), x2, y2, x2, y2, x1.toFloat(), y1.toFloat())
+			Utils.computeBezierCurvePoints(
+				bezier_pts_x,
+				bezier_pts_y,
+				x0.toFloat(),
+				y0.toFloat(),
+				x2,
+				y2,
+				x2,
+				y2,
+				x1.toFloat(),
+				y1.toFloat()
+			)
 			g.drawLineStrip(bezier_pts_x, bezier_pts_y, thickness)
 			if (Utils.isDebugEnabled()) {
 				val x = Math.round(x2)
@@ -4185,8 +4256,8 @@ frame=$frame"""
 		}
 	}
 
-	private val bezier_pts_x = IntArray(10)
-	private val bezier_pts_y = IntArray(10)
+	val bezier_pts_x = IntArray(10)
+	val bezier_pts_y = IntArray(10)
 
 	// -----------------------------------------------------------------------------------------------
 	private fun drawDoor(g: AGraphics, door: Wall, x0: Int, y0: Int, x1: Int, y1: Int) {
@@ -4277,12 +4348,12 @@ frame=$frame"""
 				if (info.health < WALL_NORMAL_HEALTH) {
 					// give a number between 0-1 that is how much health we have
 					val health = 1.0f / WALL_NORMAL_HEALTH * info.health
-					val c = Math.round(255.0f * health)
+					val c = (255.0f * health).roundToInt()
 					g.color = GColor(255, c, c)
 					// if wall is healthy, num==0
 					// if wall is med, num 1
 					// if wall is about to break, num = 2
-					val num = Math.round((1.0f - health) * WALL_BREAKING_MAX_RECURSION)
+					val num = ((1.0f - health) * WALL_BREAKING_MAX_RECURSION).roundToInt()
 					// make these values consistent based on garbage input
 					//int xoff = (info.v0 * (-1 * info.v1 % 2) % 30);
 					//int yoff = (info.v1 * (-1 * info.v0 % 2) % 30);
@@ -4293,6 +4364,7 @@ frame=$frame"""
 				}
 			WALL_TYPE_ELECTRIC       -> {
 				g.color = GColor.YELLOW
+				g.setLineWidth(1f)
 				var done = false
 				var i = 0
 				while (i < num_players) {
@@ -4350,7 +4422,7 @@ frame=$frame"""
 						return@let
 					if (GAME_VISIBILITY) {
 						val player = player
-						if (info.visible == false) {
+						if (!info.visible) {
 							// see if player can 'see' the wall
 							val mx = (x0 + x1) / 2
 							val my = (y0 + y1) / 2
@@ -4376,15 +4448,21 @@ frame=$frame"""
 						// edge
 						vec[0] = (x1 - x0).toFloat()
 						vec[1] = (y1 - y0).toFloat()
-						val mag = Math.sqrt((vec[0] * vec[0] + vec[1] * vec[1]).toDouble()).toFloat()
+						val mag = sqrt((vec[0] * vec[0] + vec[1] * vec[1]).toDouble()).toFloat()
 						if (mag > EPSILON) {
 							vec[0] *= 10 / mag
 							vec[1] *= 10 / mag
 							CMath.rotateVector(vec, 150f)
-							g.drawLine(x1.toFloat(), y1.toFloat(), (x1 + Math.round(vec[0])).toFloat(), (y1 + Math.round(vec[1])).toFloat(), MAZE_WALL_THICKNESS.toFloat())
+							g.drawLine(
+								x1.toFloat(),
+								y1.toFloat(),
+								(x1 + vec[0].roundToInt()).toFloat(),
+								(y1 + vec[1].roundToInt()).toFloat(),
+								MAZE_WALL_THICKNESS.toFloat()
+							)
 							CMath.rotateVector(vec, 60f)
-							val x2 = x1 + Math.round(vec[0])
-							val y2 = y1 + Math.round(vec[1])
+							val x2 = x1 + vec[0].roundToInt()
+							val y2 = y1 + vec[1].roundToInt()
 							g.drawLine(x1.toFloat(), y1.toFloat(), x2.toFloat(), y2.toFloat(), MAZE_WALL_THICKNESS.toFloat())
 						}
 					}
@@ -4423,9 +4501,10 @@ frame=$frame"""
 	// -----------------------------------------------------------------------------------------------
 	// delete all edges in the maze graph and digraph
 	private fun clearAllWalls() {
-		wall_lookup.forEach {
-			it.forEach {
-				it.clear()
+		for (i in 0 until MAZE_NUM_VERTS - 1) {
+			for (ii in i until MAZE_NUM_VERTS) {
+				wall_lookup[i][ii] = wall_lookup[ii][i]
+				wall_lookup[ii][i].clear()
 			}
 		}
 	}
@@ -4433,7 +4512,7 @@ frame=$frame"""
 	// -----------------------------------------------------------------------------------------------
 	// add an edge to the wall_lookup
 	private fun addWall(v0: Int, v1: Int) {
-		//println("Add wall between " + v0 + " and " + v1);
+		log.debug("Add wall between " + v0 + " and " + v1);
 		val wall = getWall(v0, v1)
 		wall.clear()
 		wall.v0 = v0
@@ -4443,18 +4522,20 @@ frame=$frame"""
 
 	// -----------------------------------------------------------------------------------------------
 	private fun getWall(v0: Int, v1: Int): Wall {
-		//assert(wall_lookup[v0][v1] == wall_lookup[v1][v0])
-		return wall_lookup[v0][v1]
+		if (v0 in 0 until wall_lookup.size && v1 in 0 until wall_lookup[0].size)
+			return wall_lookup[v0][v1]
+		return Wall().also {
+			it.clear()
+		}
 	}
 
 	// -----------------------------------------------------------------------------------------------
 	private fun initWall(v0: Int, v1: Int) {
-		var wall = getWall(v0, v1)
-		wall_lookup[v1][v0] = Wall()
+		val wall = wall_lookup[v1][v0]
 		wall_lookup[v0][v1] = wall_lookup[v1][v0]
-		wall = wall_lookup[v0][v1]
-		addWall(v0, v1)
-		wall_lookup[v0][v1].type = WALL_TYPE_NORMAL
+		wall.v0 = v0
+		wall.v1 = v1
+		wall.type = WALL_TYPE_NORMAL
 	}
 
 	// -----------------------------------------------------------------------------------------------
@@ -4740,8 +4821,7 @@ frame=$frame"""
 		// now that we have a maze organized as a group of cells, convert to
 		// graph
 		clearAllWalls()
-		val vertex_wall_count = IntArray(MAZE_NUM_VERTS)
-		Arrays.fill(vertex_wall_count, 0)
+		val vertex_wall_count = IntArray(MAZE_NUM_VERTS) { 0 }
 		i = 0
 		while (i < MAZE_NUMCELLS_X) {
 			j = 0
@@ -4753,8 +4833,8 @@ frame=$frame"""
 				val downleft = i + (j + 1) * (MAZE_NUMCELLS_X + 1)
 				val downright = i + 1 + (j + 1) * (MAZE_NUMCELLS_X + 1)
 
-				//.println("cells[i][j]=" + cells[i][j] + ", i=" + i + ", j=" + j + ", upleft=" + upleft + ", upright=" + upright + ", downleft=" + downleft + ", downright=" + downright);
-				//.println("wall count=" + Arrays.toString(vertex_wall_count));
+				//.log.debug("cells[i][j]=" + cells[i][j] + ", i=" + i + ", j=" + j + ", upleft=" + upleft + ", upright=" + upright + ", downleft=" + downleft + ", downright=" + downright);
+				//.log.debug("wall count=" + Arrays.toString(vertex_wall_count));
 				if (maze_cells[i][j] and WALL_NORTH != 0) {
 					addWall(upleft, upright)
 					addWallCount(vertex_wall_count, upleft, upright)
@@ -4777,7 +4857,7 @@ frame=$frame"""
 		}
 
 		//if (Utils.isDebugEnabled())
-		//  Utils.println("vertex wall count : " + Utils.toString(vertex_wall_count));
+		//  log.debug("vertex wall count : " + Utils.toString(vertex_wall_count));
 
 		// now visit all the wall again and set the 'ending' flag for those walls
 		// with a vertex that has a wall_count == 1.
@@ -4897,6 +4977,8 @@ frame=$frame"""
 		for (v0 in 1 until MAZE_NUM_VERTS) {
 			for (v1 in 0 until v0) {
 				val wall = wall_lookup[v0][v1]
+				if (wall.v0 == wall.v1)
+					continue
 				val perim = isPerimiterVertex(v0) && isPerimiterVertex(v1)
 				if (perim) {
 					wall.type = WALL_TYPE_INDESTRUCTABLE
@@ -4925,11 +5007,8 @@ frame=$frame"""
 					} else {
 						wall.p0 = pv0
 						wall.p1 = pv1
-						val other = wall_lookup[pv0][pv1]
-						other.p0 = v0
-						other.p1 = v1
 						pv1 = -1
-						pv0 = pv1
+						pv0 = -1
 					}
 				}
 			}
@@ -4979,7 +5058,7 @@ frame=$frame"""
 		// this check isnt really neccessary
 		if (x < 0 || y < 0 || x >= MAZE_NUMCELLS_X || y >= MAZE_NUMCELLS_Y) return
 
-		// .println("Searching " + x + " " + y + " " + direction);
+		// .log.debug("Searching " + x + " " + y + " " + direction);
 
 		// get an array of directions in descending order of priority
 		val dir_list = directionHeuristic(x, y, end_x, end_y)
@@ -5012,7 +5091,7 @@ frame=$frame"""
 	private fun isPerimiterVertex(vertex: Int): Boolean {
 		val x = vertex % (MAZE_NUMCELLS_X + 1)
 		val y = vertex / (MAZE_NUMCELLS_X + 1)
-		return if (x == 0 || x == MAZE_NUMCELLS_X || y == 0 || y == MAZE_NUMCELLS_Y) true else false
+		return x == 0 || x == MAZE_NUMCELLS_X || y == 0 || y == MAZE_NUMCELLS_Y
 	}
 
 	// -----------------------------------------------------------------------------------------------
@@ -5102,7 +5181,7 @@ frame=$frame"""
 		}
 	}
 
-	private val cell_dv = intArrayOf(-(MAZE_NUMCELLS_X + 1), 1, MAZE_NUMCELLS_X + 1, -1)
+	val cell_dv = intArrayOf(-(MAZE_NUMCELLS_X + 1), 1, MAZE_NUMCELLS_X + 1, -1)
 
 	// -----------------------------------------------------------------------------------------------
 	private fun canSeeThroughWall(info: Wall): Boolean {
@@ -5318,7 +5397,7 @@ frame=$frame"""
 		return true
 	}
 
-	private val collision_verts = IntArray(5)
+	val collision_verts = IntArray(5)
 
 	// -----------------------------------------------------------------------------------------------
 	// return true when a line intersects any edge in the graph
@@ -5416,8 +5495,8 @@ frame=$frame"""
 		assert(v0 >= 0)
 		for (i in 1 until collision_verts.size) {
 			val v1 = collision_verts[i]
-			if (v1 < 0 || v1 >= MAZE_NUM_VERTS) continue
-			val info = wall_lookup[v0][v1]
+//			if (v1 < 0 || v1 >= MAZE_NUM_VERTS) continue
+			val info = getWall(v0, v1)//wall_lookup[v0][v1]
 			if (!isWallActive(info)) continue
 			val x0 = maze_verts_x[v0]
 			val y0 = maze_verts_y[v0]
@@ -5477,7 +5556,6 @@ frame=$frame"""
 
 	open fun initGraphics(g: AGraphics) {
 		G = g
-		initColors(g)
 	}
 
 	abstract val imageKey: Int
@@ -5703,9 +5781,8 @@ frame=$frame"""
 		}
 		y += BUTTON_HEIGHT + 20
 		val x = button_x[0]
-		val details = "Use 'WASD' keys to move\nUse mouse to fire"
 		g.color = GColor.CYAN
-		g.drawString(details, x.toFloat(), y.toFloat())
+		g.drawString(instructions, x.toFloat(), y.toFloat())
 	}
 
 	private fun drawIntro_old(g: AGraphics) {
@@ -5825,12 +5902,10 @@ frame=$frame"""
 				updateEnemies()
 				updatePowerups()
 				updateAndDrawZombieTracers(g)
-				run {
-					var i = 0
-					while (i < num_players) {
-						updateAndDrawPlayerTracers(players[i], g)
-						i++
-					}
+				var i = 0
+				while (i < num_players) {
+					updateAndDrawPlayerTracers(players[i], g)
+					i++
 				}
 				drawMaze(g)
 				updateAndDrawMessages(g)
@@ -5838,7 +5913,7 @@ frame=$frame"""
 				drawEnemies(g)
 				drawPeople(g)
 				drawPowerups(g)
-				var i = 0
+				i = 0
 				while (i < num_players) {
 					val player = players[i]
 					when (player.state) {
@@ -5989,11 +6064,7 @@ frame=$frame"""
 	}
 
 	var baseTime = System.nanoTime()
-	private val clock: Long
-		private get() {
-			val t = System.nanoTime() - baseTime
-			return t / 1000000
-		}
+	abstract val clock: Long
 	private var downTime: Long = 0
 	fun setCursorPressed(pressed: Boolean) {
 		if (pressed) {
@@ -6066,11 +6137,16 @@ frame=$frame"""
 					i++
 				}
 			}
+
 			GAME_STATE_PLAY, GAME_STATE_GAME_OVER -> {
 				players[0].target_dx = (screen_x + x).toFloat().roundToInt() - player.x
 				players[0].target_dy = (screen_y + y).toFloat().roundToInt() - player.y
 			}
 		}
+	}
+
+	fun setGameStateIntro() {
+		game_state = GAME_STATE_INTRO
 	}
 
 	init {
