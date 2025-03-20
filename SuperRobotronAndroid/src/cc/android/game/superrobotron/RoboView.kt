@@ -5,6 +5,7 @@ import android.graphics.Canvas
 import android.os.SystemClock
 import android.util.AttributeSet
 import cc.game.superrobotron.Robotron
+import cc.lib.android.CCActivityBase
 import cc.lib.android.DroidGraphics
 import cc.lib.android.UIComponentView
 import cc.lib.game.AGraphics
@@ -17,6 +18,8 @@ const val SCREEN_WIDTH = 600
 const val SCREEN_HEIGHT = 600
 
 class RoboRenderer(component: UIComponent) : UIRenderer(component) {
+
+	val activity = (component as RoboView).context as CCActivityBase
 
 	val robotron = object : Robotron() {
 		override val imageKey: Int
@@ -40,11 +43,21 @@ class RoboRenderer(component: UIComponent) : UIRenderer(component) {
 			get() = SystemClock.elapsedRealtime()
 
 		override val instructions = "Use 'D' pads to move and fire"
+
+		override var high_score: Int = 0
+			set(value) {
+				if (field != value) {
+					field = value
+					activity.prefs.edit().putInt("high_score", value).apply()
+				}
+			}
+
+		init {
+			high_score = activity.prefs.getInt("high_score", 0)
+		}
 	}
 
 	override fun draw(g: AGraphics) {
-		g.ortho(0f, SCREEN_WIDTH.toFloat(), 0f, SCREEN_HEIGHT.toFloat())
-		g.setTextHeight(16f, false)
 		robotron.drawGame(g)
 	}
 
@@ -66,6 +79,7 @@ class RoboView(context: Context, attrs: AttributeSet) : UIComponentView<RoboRend
 	override fun preDrawInit(g: DroidGraphics) {
 		renderer.robotron.initGraphics(g)
 		renderer.robotron.setDimension(SCREEN_WIDTH, SCREEN_HEIGHT)
+		g.setTextHeight(16f, false)
 		g.setLineThicknessModePixels(false)
 		g.setTextStyles(AGraphics.TextStyle.MONOSPACE)
 	}

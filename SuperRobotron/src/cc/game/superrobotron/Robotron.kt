@@ -657,7 +657,7 @@ frame=$frame"""
 		get() {
 			return players[this_player]
 		}
-	private var high_score = 0
+	open var high_score = 0
 
 	// down on mouse button and false
 	// when released
@@ -896,8 +896,8 @@ frame=$frame"""
 		g.color = GColor.WHITE
 		//String msg = "frame: " + getFrameNumber();
 		//g.drawJustifiedString(5, screen_height-5, Justify.LEFT, Justify.BOTTOM, msg);
-		val dx = g.drawStringLine(5f, (screen_height - 5).toFloat(), Justify.LEFT, "frame: ")
-		drawNumberString(g, Math.round(5 + dx), Math.round((screen_height - 5).toFloat()), Justify.LEFT, frameNumber)
+		//val dx = g.drawJustifiedString(5f, (screen_height - 5).toFloat(), Justify.LEFT, "frame: ").height
+		//drawNumberString(g, 5f + dx, screen_height.toFloat() - 5, Justify.LEFT, frameNumber)
 	}
 
 	// -----------------------------------------------------------------------------------------------
@@ -920,7 +920,7 @@ frame=$frame"""
 		}
 
 	// -----------------------------------------------------------------------------------------------
-	private fun addPowerup(x: Int, y: Int, type: Int): Int {
+	fun addPowerup(x: Int, y: Int, type: Int): Int {
 		val p = if (num_powerups < MAX_POWERUPS) {
 			log.debug("addPowerup x[" + x + "] y[" + y + "] type [" + getPowerupTypeString(type) + "]")
 			powerups[num_powerups++]
@@ -1124,11 +1124,11 @@ frame=$frame"""
 
 	// -----------------------------------------------------------------------------------------------
 	// append a snake missle at x,y
-	private fun addSnakeMissle(x: Int, y: Int): Int {
+	fun addSnakeMissle(x: Int, y: Int): Int {
 		if (num_snake_missles == MAX_SNAKE_MISSLES) return -1
 		val m = snake_missle[num_snake_missles]
 		m.init(x, y, 0, SNAKE_STATE_CHASE)
-		m.dir[1] = random(0.. 3)
+		m.dir[1] = random(0..3)
 		m.dir[0] = m.dir[1]
 
 		// init the section with -1 as a flag to not draw
@@ -1416,14 +1416,15 @@ frame=$frame"""
 
 	// -----------------------------------------------------------------------------------------------
 	// Add points to the player's score and update highscore and players lives
-	private fun addPoints(player: Player, amount: Int) {
+	open fun addPoints(player: Player, amount: Int) {
 		val before = player.score / PLAYER_NEW_LIVE_SCORE
 		if ((player.score + amount) / PLAYER_NEW_LIVE_SCORE > before) {
 			setInstaMsg("EXTRA MAN!")
 			player.lives++
 		}
 		player.score += amount
-		if (player.score > high_score) high_score = player.score
+		if (player.score > high_score)
+			high_score = player.score
 	}
 
 	// -----------------------------------------------------------------------------------------------
@@ -1456,51 +1457,31 @@ frame=$frame"""
 		insta_msg_str = s
 	}
 
-	private fun drawNumberString(g: AGraphics, x: Int, y: Int, hJust: Justify, number: Int): Int {
-		var x = x
-		val s = number.toString()
-		for (i in 0 until s.length) {
-			val w = g.drawJustifiedString(x.toFloat(), y.toFloat(), hJust, s[i].toString()).width
-			x += Math.round(w)
-		}
-		return x
-	}
-
 	// -----------------------------------------------------------------------------------------------
 	// draw the score, high score, and number of remaining players
 	private fun drawPlayerInfo(player: Player, g: AGraphics) {
-		val text_height = g.textHeight
+		val text_height = 16f
 		// draw the score
-		var x = TEXT_PADDING
-		var y = TEXT_PADDING
+		var x = TEXT_PADDING.toFloat()
+		var y = TEXT_PADDING.toFloat()
 		val x0 = x
 		var hJust = Justify.LEFT
 		g.color = GColor.WHITE
-		x += g.drawStringLine(x.toFloat(), y.toFloat(), hJust, "Score    ").toInt()
-		x += drawNumberString(g, x, y, hJust, player.score)
-		y += text_height.toInt()
-		x = x0
-		x += g.drawStringLine(x.toFloat(), y.toFloat(), hJust, "Lives  X ").toInt()
-		x += drawNumberString(g, x, y, hJust, player.lives)
-		y += text_height.toInt()
-		x = x0
-		x += g.drawStringLine(x.toFloat(), y.toFloat(), hJust, "People X ").toInt()
-		x += drawNumberString(g, x, y, hJust, people_picked_up)
-		y += text_height.toInt()
-		x = x0
-		x += g.drawStringLine(x.toFloat(), y.toFloat(), hJust, "Keys   X ").toInt()
-		x += drawNumberString(g, x, y, hJust, player.keys)
-		x = screen_width / 2
-		y = TEXT_PADDING
+		g.drawJustifiedString(x, y, hJust, String.format("Score %d", player.score))
+		y += text_height
+		g.drawJustifiedString(x, y, hJust, String.format("Lives X %d", player.lives))
+		y += text_height
+		g.drawJustifiedString(x, y, hJust, String.format("People X %d", people_picked_up))
+		y += text_height
+		g.drawJustifiedString(x, y, hJust, String.format("Keys X %d", player.keys))
+		x = screen_width.toFloat() / 2
+		y = TEXT_PADDING.toFloat()
 		hJust = Justify.CENTER
-		x += g.drawStringLine(x.toFloat(), y.toFloat(), hJust, "High Score ").toInt()
-		x += drawNumberString(g, x, y, hJust, high_score)
-		x = screen_width - TEXT_PADDING
-		y = TEXT_PADDING
+		g.drawJustifiedString(x, y, hJust, String.format("High Score %d", high_score))
+		x = screen_width.toFloat()
+		y = TEXT_PADDING.toFloat()
 		hJust = Justify.RIGHT
-		x += g.drawStringLine(x.toFloat(), y.toFloat(), hJust, "Level   ").toInt()
-		x -= 20
-		drawNumberString(g, x, y, hJust, gameLevel)
+		g.drawJustifiedString(x, y, hJust, String.format("Level %d", gameLevel))
 
 		// draw the instmsg
 		insta_msg_str?.let { str ->
@@ -3275,7 +3256,7 @@ frame=$frame"""
 			if (collision) {
 				var info = wall_lookup[collision_info_v0][collision_info_v1]
 				player.collision_info = info
-				log.debug("Player hit wall type [" + getWallTypeString(info.type) + "] info [" + info + "]");
+				log.debug("Player hit wall type [" + getWallTypeString(info.type) + "] info [" + info + "]")
 				if (info.type == WALL_TYPE_ELECTRIC && isBarrierActive(player)) {
 					// no collision
 				} else {
@@ -3349,15 +3330,23 @@ frame=$frame"""
 
 		if (game_type == GAME_TYPE_CLASSIC) {
 			if (total_enemies == 0 && num_particles == 0) {
-				gameLevel++
-				buildAndPopulateLevel()
+				nextLevel()
 			}
 		} else {
 			if (Utils.isPointInsideCircle(player.x, player.y, end_x, end_y, playerRadius + 10)) {
-				gameLevel++
-				buildAndPopulateLevel()
+				nextLevel()
 			}
 		}
+	}
+
+	fun nextLevel() {
+		gameLevel++
+		buildAndPopulateLevel()
+	}
+
+	fun prevLevel() {
+		gameLevel = (gameLevel - 1).coerceAtLeast(1)
+		buildAndPopulateLevel()
 	}
 
 	private fun getPlayerIndex(player: Player): Int {
@@ -3452,7 +3441,7 @@ frame=$frame"""
 		//addPlayerMsg("HULK SMASH!");
 		player.firing = false
 		player.hulk_charge_dy = 0
-		player.hulk_charge_dx = player.hulk_charge_dy
+		player.hulk_charge_dx = 0
 		if (player.dx != 0 || player.dy != 0) {
 			//log.debug("*** CHARGING ***");
 			if (player.dx != 0) {
@@ -5891,6 +5880,7 @@ frame=$frame"""
 
 	// -----------------------------------------------------------------------------------------------
 	fun drawGame(g: AGraphics) {
+		g.ortho(0f, screen_width.toFloat(), 0f, screen_height.toFloat())
 		frameNumber += 1
 		g.clearScreen(GColor.BLACK)
 		when (game_state) {
@@ -6086,12 +6076,12 @@ frame=$frame"""
 	}
 
 	fun setPlayerMissleVector(dx: Int, dy: Int) {
-		players[0].target_dx = dx
-		players[0].target_dy = dy
+		player.target_dx = dx
+		player.target_dy = dy
 	}
 
 	fun setPlayerFiring(firing: Boolean) {
-		players[0].firing = firing
+		player.firing = firing
 	}
 
 	private fun newPlayerGame(player: Player) {

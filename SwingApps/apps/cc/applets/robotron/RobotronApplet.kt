@@ -5,9 +5,11 @@ import cc.lib.game.AGraphics
 import cc.lib.game.GColor
 import cc.lib.game.Justify
 import cc.lib.game.Utils
+import cc.lib.logger.LoggerFactory
 import cc.lib.swing.AWTFrame
 import cc.lib.swing.AWTGraphics
 import cc.lib.swing.AWTKeyboardAnimationApplet
+import cc.lib.utils.random
 import java.awt.Font
 import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
@@ -43,10 +45,13 @@ class RobotronApplet : AWTKeyboardAnimationApplet() {
 
 			override fun initGraphics(g: AGraphics) {
 				super.initGraphics(g)
-				with (g as AWTGraphics) {
+				with(g as AWTGraphics) {
 					//addSearchPath()
 				}
 			}
+
+			override val clock: Long
+				get() = System.currentTimeMillis()
 		}
 	}
 
@@ -72,7 +77,6 @@ class RobotronApplet : AWTKeyboardAnimationApplet() {
 	override fun onDimensionsChanged(g: AGraphics, width: Int, height: Int) {
 		robotron.initGraphics(g)
 		robotron.setDimension(width, height)
-		g.ortho()
 	}
 
 	var showHelp = false
@@ -96,19 +100,58 @@ class RobotronApplet : AWTKeyboardAnimationApplet() {
 				key_down_flag = key_down_flag or KEY_FLAG_LEFT
 				playerDx = -1
 			}
+
 			KeyEvent.VK_DOWN, KeyEvent.VK_S -> {
 				key_down_flag = key_down_flag or KEY_FLAG_DOWN
 				playerDy = 1
 			}
+
 			KeyEvent.VK_UP, KeyEvent.VK_W -> {
 				key_down_flag = key_down_flag or KEY_FLAG_UP
 				playerDy = -1
 			}
+
+			KeyEvent.VK_M -> with(robotron) {
+				addSnakeMissle(random(screen_x..screen_x + screen_width), random(screen_y..screen_y + screen_height))
+			}
+
+			KeyEvent.VK_L -> with(robotron) {
+				addPowerup(
+					random(screen_x..screen_x + screen_width),
+					random(screen_y..screen_y + screen_height),
+					random(0 until POWERUP_NUM_TYPES)
+				)
+			}
+
 			KeyEvent.VK_H -> showHelp = true
+			KeyEvent.VK_R -> robotron.setGameStateIntro()
+			KeyEvent.VK_N -> robotron.nextLevel()
+			KeyEvent.VK_P -> robotron.prevLevel()
+			KeyEvent.VK_V -> Robotron.GAME_VISIBILITY = !Robotron.GAME_VISIBILITY
+			/*
+			val strHelp = """
+	        	HELP:
+	        	M   - add snake missle
+	        	L   - add powerup
+	        	H   - help screen
+	        	R   - return to intro
+	        	N   - goto next level [${robotron.gameLevel + 1}]
+	        	P   - goto previous level [${robotron.gameLevel - 1}
+	        	V   - toggle visibility mode [${Robotron.GAME_VISIBILITY}]
+			 */
+			/*
+			M   - add snake missle
+	        	L   - add powerup
+	        	H   - help screen
+	        	R   - return to intro
+	        	N   - goto next level [${robotron.gameLevel + 1}]
+	        	P   - goto previous level [${robotron.gameLevel - 1}
+	        	V   - toggle visibility mode [${Robotron.GAME_VISIBILITY}]
+			 */
 		}
-		println("keyPressed $playerDx, $playerDy")
+		//println("keyPressed $playerDx, $playerDy")
 		if (Utils.isDebugEnabled()) {
-			val index = evt.keyChar - '0'
+			val index = evt.keyChar - '1'
 			if (index >= 0 && index < Robotron.Debug.values().size) {
 				val enabled = robotron.isDebugEnabled(Robotron.Debug.values()[index])
 				robotron.setDebugEnabled(Robotron.Debug.values()[index], !enabled)
@@ -178,7 +221,8 @@ class RobotronApplet : AWTKeyboardAnimationApplet() {
 	companion object {
 		@JvmStatic
 		fun main(args: Array<String>) {
-			AGraphics.DEBUG_ENABLED = true
+			AGraphics.DEBUG_ENABLED = false
+			LoggerFactory.logLevel = LoggerFactory.LogLevel.SILENT
 			//Utils.DEBUG_ENABLED = true;
 			//Golf.DEBUG_ENABLED = true;
 			//PlayerBot.DEBUG_ENABLED = true;

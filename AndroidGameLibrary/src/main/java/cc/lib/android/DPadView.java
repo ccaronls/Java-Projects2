@@ -17,28 +17,49 @@ public class DPadView extends ImageView {
         default void dpadMoved(@NotNull DPadView view, float dx, float dy) {
         }
 
-        default void dpadPressed(@NotNull DPadView view, @NotNull PadDir dir) {
+        default void dpadPressed(@NotNull DPadView view, @NotNull int dirFlag) {
         }
 
         default void dpadReleased(@NotNull DPadView view) {
         }
     }
-    
-    private float cx, cy, tx, ty, dx, dy;
-    
+
+    private float cx = 0, cy = 0, tx = 0, ty = 0, dx = 0, dy = 0;
+
     private boolean touched = false;
-    
+
     public enum PadDir {
-        LEFT(1), 
-        RIGHT(2), 
-        UP(4), 
+        LEFT(1),
+        RIGHT(2),
+        UP(4),
         DOWN(8);
-        
-        PadDir (int flag) {
+
+        PadDir(int flag) {
             this.flag = flag;
         }
-        
+
         private final int flag;
+
+        boolean isFlagged(int flag) {
+            return (flag & this.flag) != 0;
+        }
+
+        public static int toDx(int flag) {
+            if (LEFT.isFlagged(flag))
+                return -1;
+            if (RIGHT.isFlagged(flag))
+                return 1;
+            return 0;
+        }
+
+        public static int toDy(int flag) {
+            if (UP.isFlagged(flag))
+                return -1;
+            if (DOWN.isFlagged(flag))
+                return 1;
+            return 0;
+        }
+
     }
     
     private Paint paint = new Paint();
@@ -78,14 +99,17 @@ public class DPadView extends ImageView {
     
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        final int width =  MeasureSpec.getSize(widthMeasureSpec);
-        final int height =  MeasureSpec.getSize(heightMeasureSpec);
+        final int width = MeasureSpec.getSize(widthMeasureSpec);
+        final int height = MeasureSpec.getSize(heightMeasureSpec);
 
         int dim = (width > height ? height : width);
         int max = (width > height ? heightMeasureSpec : widthMeasureSpec);
-        
+
         dim = roundUpToTile(dim, 1, max);
-        
+
+        cx = width / 2;
+        cy = height / 2;
+
         setMeasuredDimension(dim, dim);
     }
     
@@ -139,23 +163,16 @@ public class DPadView extends ImageView {
         canvas.drawLine(cx, cy, cx + dx, cy + dy, paint);
     }
 
-    private void init() {
-        //setOnTouchListener(this);
-    }
-    
     public DPadView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        init();
     }
 
     public DPadView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        init();
     }
 
     public DPadView(Context context) {
         super(context);
-        init();
     }
 
     @Override
@@ -180,8 +197,6 @@ public class DPadView extends ImageView {
         } else {
             tx = x;
             ty = y;
-            cx = getWidth() / 2; // + view.getLeft()
-            cy = getHeight() / 2; // + view.getTop()
             dx = tx - cx;
             dy = ty - cy;
 
@@ -189,17 +204,21 @@ public class DPadView extends ImageView {
 
             listener.dpadMoved(this, dx, dy);
 
-            float x0 = getWidth() / 3;
-            float x1 = x0 * 2;
-            float y0 = getHeight() / 2 - getWidth() / 3;
-            float y1 = getHeight() / 2 + getWidth() / 3;
+            float sensitivity = 4f;
+            float horzRange = getWidth() / (sensitivity * 2);
+            float vertRange = getHeight() / (sensitivity * 2);
+
+            float x0 = cx - horzRange;
+            float x1 = cx + horzRange;
+            float y0 = cy - vertRange;
+            float y1 = cy + vertRange;
 
             if (tx < x0) {
                 flag |= PadDir.LEFT.flag;
             } else if (tx > x1) {
                 flag |= PadDir.RIGHT.flag;
             }
-            
+
             if (ty < y0) {
                 flag |= PadDir.UP.flag;
             } else if (ty > y1) {
@@ -207,27 +226,8 @@ public class DPadView extends ImageView {
             }
     
             if (listener != null) {
-                if ((flag & PadDir.LEFT.flag) != 0) {
-                    if ((downFlag & PadDir.LEFT.flag) == 0)
-                        listener.dpadPressed(this, PadDir.LEFT);
-                }
-    
-                if ((flag & PadDir.RIGHT.flag) != 0) {
-                    if ((downFlag & PadDir.RIGHT.flag) == 0)
-                        listener.dpadPressed(this, PadDir.RIGHT);
-                }
-                
-                if ((flag & PadDir.UP.flag) != 0) {
-                    if ((downFlag & PadDir.UP.flag) == 0)
-                        listener.dpadPressed(this, PadDir.UP);
-                }
-                
-                if ((flag & PadDir.DOWN.flag) != 0) {
-                    if ((downFlag & PadDir.DOWN.flag) == 0)
-                        listener.dpadPressed(this, PadDir.DOWN);
-                }
-            }        
-            
+                listener.dpadPressed(this, flag);
+            }
             downFlag = flag;
         }
         

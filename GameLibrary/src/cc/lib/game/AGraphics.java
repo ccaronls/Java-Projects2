@@ -364,18 +364,6 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
         transform(x, y, result);
         return new MutableVector2D(result[0], result[1]);
     }
-
-    /**
-     * 
-     * @param v
-     * @return
-     *
-	public final MutableVector2D transform(IVector2D v) {
-		float [] result = new float[2];
-		transform(v.getX(), v.getY(), result);
-		return new MutableVector2D(result[0], result[1]);
-	}
-
     
     /**
      * Convert screen coordinates (like from a mouse) to view port coordinates
@@ -953,13 +941,14 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
 
     /**
      * Draw a single line of top justified text and return the width of the text
-     * @param x position in screen coordinates
-     * @param y position in screen coordinates
+     *
+     * @param x     position in screen coordinates
+     * @param y     position in screen coordinates
      * @param hJust
      * @param text
      * @return the width of the line in pixels
      */
-    public abstract float drawStringLine(float x, float y, Justify hJust, String text);
+    protected abstract float drawStringLine(float x, float y, Justify hJust, String text);
     
     /**
      * 

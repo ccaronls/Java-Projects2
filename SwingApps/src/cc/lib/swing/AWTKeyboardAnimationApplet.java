@@ -53,32 +53,47 @@ package cc.lib.swing;
     Small modifications 18 February 2000
 */
 
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.util.Arrays;
 
 import javax.swing.JApplet;
 
-import cc.lib.game.GColor;
 import cc.lib.game.AGraphics;
+import cc.lib.game.GColor;
 import cc.lib.game.Justify;
 import cc.lib.game.Renderable;
 import cc.lib.game.Utils;
+import cc.lib.logger.Logger;
+import cc.lib.logger.LoggerFactory;
 
 public abstract class AWTKeyboardAnimationApplet extends JApplet implements
-		KeyListener, FocusListener, MouseListener,
-		MouseMotionListener, MouseWheelListener, Renderable {
-	static final long serialVersionUID = 20003;
+        KeyListener, FocusListener, MouseListener,
+        MouseMotionListener, MouseWheelListener, Renderable {
+    static final long serialVersionUID = 20003;
 
-	/**
-	 * This routine is called once when the applet is first created.
-	 * You can override it to do initialzation of your instance
-	 * variables.  It's also a good place to call setFrameCount()
-	 * and setMillisecondsPerFrame(), if you want to customize these
-	 * values.  The parameters tell the size of the drawing area
-	 * at the time the applet is created.
-	 */
-	protected abstract void doInitialization();
+    static final Logger log = LoggerFactory.getLogger(AWTKeyboardAnimationApplet.class);
+
+    /**
+     * This routine is called once when the applet is first created.
+     * You can override it to do initialzation of your instance
+     * variables.  It's also a good place to call setFrameCount()
+     * and setMillisecondsPerFrame(), if you want to customize these
+     * values.  The parameters tell the size of the drawing area
+     * at the time the applet is created.
+     */
+    protected abstract void doInitialization();
 
 	/**
 	 * This routine should be overridden in any subclass of AWTAWTKeyboardAnimationApplet.
@@ -538,7 +553,7 @@ public abstract class AWTKeyboardAnimationApplet extends JApplet implements
 	 * @see java.awt.event.FocusListener#focusGained(java.awt.event.FocusEvent)
 	 */
 	synchronized public final void focusGained(FocusEvent evt) {
-	    System.out.println("focusGained");
+        log.info("focusGained");
 		// The applet now has the input focus. Set focussed = true and repaint.
 		// Also, if both (focussed && status == GO), the animation will start,
 		// so we have to restart the timing utility by setting startTime = -1;
@@ -551,7 +566,7 @@ public abstract class AWTKeyboardAnimationApplet extends JApplet implements
 	 * @see java.awt.event.FocusListener#focusLost(java.awt.event.FocusEvent)
 	 */
 	synchronized public final void focusLost(FocusEvent evt) {
-        System.out.println("focusLost");
+        log.info("focusLost");
 		// The applet has lostthe input focus. Set focussed = false and repaint.
 		// Also, if both (focussed && status == GO) were previously true, then
 		// the animation will be stopped at this point, so we should record the time.
