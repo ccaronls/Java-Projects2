@@ -151,6 +151,11 @@ task runKaiser(type: JavaExec) {
     main = "cc.capplets.kaiser.KaiserApplet"
 }
 
+task runRobotron(type: JavaExec) {
+    description = 'Run Robotron Applet'
+    main = "cc.applets.robotron.RobotronApplet"
+}
+
 task runRisk(type: JavaExec) {
     description = 'Run Risk Applet'
     main = "cc.applets.risk.AWTRisk"

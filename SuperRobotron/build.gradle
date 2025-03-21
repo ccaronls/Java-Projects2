@@ -1,8 +1,11 @@
 apply plugin: 'java'
+apply plugin: 'com.google.devtools.ksp'
 apply plugin: 'kotlin'
 
 dependencies {
     implementation project(':GameLibrary')
+    implementation(project(":KSPCommon"))
+    ksp(project(":KSPBinarySerializer"))
 }
 
 sourceSets {

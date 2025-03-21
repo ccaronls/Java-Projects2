@@ -1,5 +1,6 @@
 package cc.applets.robotron
 
+import cc.game.superrobotron.POWERUP_NUM_TYPES
 import cc.game.superrobotron.Robotron
 import cc.lib.game.AGraphics
 import cc.lib.game.GColor

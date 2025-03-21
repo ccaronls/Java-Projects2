@@ -9,8 +9,10 @@ import cc.lib.math.CMath
 import cc.lib.utils.random
 import java.util.Arrays
 import java.util.LinkedList
+import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
+
 
 
 // Independent transferable
@@ -27,533 +29,6 @@ abstract class Robotron() {
 	// ---------------------------------------------------------//
 	// DATA for projectiles -----------------------------
 	// TODO: Decide! Objects or arrays!
-	open inner class MissleInt {
-		var x = 0
-		var y = 0
-		var dx = 0
-		var dy = 0
-		var duration = 0
-		fun copy(c: MissleInt) {
-			x = c.x
-			y = c.y
-			dx = c.dx
-			dy = c.dy
-			duration = c.duration
-		}
-
-		fun init(x: Int, y: Int, dx: Int, dy: Int, duration: Int) {
-			this.x = x
-			this.y = y
-			this.dx = dx
-			this.dy = dy
-			this.duration = duration
-		}
-	}
-
-	open inner class MissleFloat {
-		var x = 0f
-		var y = 0f
-		var dx = 0f
-		var dy = 0f
-		var duration = 0
-		fun copy(c: MissleFloat) {
-			x = c.x
-			y = c.y
-			dx = c.dx
-			dy = c.dy
-			duration = c.duration
-		}
-
-		fun init(x: Float, y: Float, dx: Float, dy: Float, duration: Int) {
-			this.x = x
-			this.y = y
-			this.dx = dx
-			this.dy = dy
-			this.duration = duration
-		}
-	}
-
-	inner class MissleSnake {
-		var x = 0
-		var y // position of head
-			= 0
-		var duration // counter
-			= 0
-		var state = 0
-		var dir = IntArray(SNAKE_MAX_SECTIONS) // direction of each section
-		fun copy(c: MissleSnake) {
-			x = c.x
-			y = c.y
-			duration = c.duration
-			state = c.state
-			//Utils.copyElems(dir, c.dir);
-			System.arraycopy(c.dir, 0, dir, 0, SNAKE_MAX_SECTIONS)
-		}
-
-		fun init(x: Int, y: Int, duration: Int, state: Int) {
-			this.x = x
-			this.y = y
-			this.duration = duration
-			this.state = state
-		}
-	}
-
-	inner class Powerup : MissleFloat() {
-		var type = 0
-		fun copy(c: Powerup) {
-			super.copy(c)
-			type = c.type
-		}
-
-		fun init(x: Float, y: Float, dx: Float, dy: Float, duration: Int, type: Int) {
-			super.init(x, y, dx, dy, duration)
-			this.type = type
-		}
-	}
-
-	inner class Wall {
-		var v0 = 0
-		var v1 = 0
-		var type // all
-			= 0
-		var state // door
-			= 0
-		var frame // door, electric
-			= 0
-		var health // normal
-			= 0
-		var p0 = 0
-		var p1 // portal
-			= 0
-		var frequency // for rubber walls
-			= 0f
-		var visible = false
-		var ending = false
-		fun clear() {
-			health = 0
-			frame = health
-			state = frame
-			type = -1
-			v1 = 0
-			v0 = 0
-			visible = false
-			ending = false
-			frequency = 0f
-		}
-
-		fun initDoor(state: Int, v0: Int, v1: Int) {
-			type = WALL_TYPE_DOOR
-			this.state = state
-			this.v0 = v0
-			this.v1 = v1
-		}
-
-		fun init(type: Int, v0: Int, v1: Int) {
-			this.type = type
-			this.v0 = v0
-			this.v1 = v1
-		}
-
-		override fun toString(): String {
-			var str = getWallTypeString(type) + " [" + v0 + ", " + v1 + "]"
-			if (ending) str += "\nEND"
-			when (type) {
-				WALL_TYPE_NORMAL   -> str += "\nhealth=$health"
-				WALL_TYPE_ELECTRIC -> str += "\nframe=$frame"
-				WALL_TYPE_DOOR     -> str += """
- state=${getDoorStateString(state)}
-frame=$frame"""
-				WALL_TYPE_PORTAL   -> str += "\np0=$p0, p1=$p1]"
-				WALL_TYPE_RUBBER   -> str += "\nfreq=$frequency"
-			}
-			return str
-		}
-	}
-
-	inner class Player {
-		var x = 0
-		var y = 0
-		var dx = 0
-		var dy = 0
-		var dir = DIR_DOWN
-		var scale = 1f
-		var score = 0
-		var lives = 0
-		var target_dx = 0
-		var target_dy = 0
-		var start_x = 0
-		var start_y = 0
-		var powerup = -1
-		var powerup_duration = 0
-		var keys = 0
-		var movement = 0
-		var firing = false
-		var primary_verts = intArrayOf(-1, -1, -1, -1)
-
-		//int killed_frame = 0; // the frame the player was killed
-		var missles = Array(PLAYER_MAX_MISSLES) { MissleInt() }
-		var num_missles = 0
-		var hulk_charge_dx = 0
-		var hulk_charge_dy = 0
-		var hulk_charge_frame = 0
-
-		//boolean teleported = false;
-		var state = PLAYER_STATE_SPAWNING
-		var next_state_frame = 0
-		var stun_dx = 0f
-		var stun_dy = 0f
-		var tracer_x = IntArray(PLAYER_SUPERSPEED_NUM_TRACERS)
-		var tracer_y = IntArray(PLAYER_SUPERSPEED_NUM_TRACERS)
-		var num_tracers = 0
-		var tracer_color = Array(PLAYER_SUPERSPEED_NUM_TRACERS) { GColor.TRANSPARENT }
-		var tracer_dir = IntArray(PLAYER_SUPERSPEED_NUM_TRACERS)
-		var barrier_electric_wall = intArrayOf(-1, -1, -1, -1)
-		var hit_type = -1 // these are the 'reset' values
-		var hit_index = -1
-		var cellXY = IntArray(2)
-		var path: MutableList<IntArray> = LinkedList()
-		var last_shot_frame = 0
-
-		var collision_info: Wall? = null
-
-		init {
-			for (i in 0 until PLAYER_MAX_MISSLES) missles[i] = MissleInt()
-		}
-	}
-
-	inner class Particle {
-		var x = 0
-		var y = 0
-		var type = 0
-		var duration = 0
-		var start_frame = 0
-		var star = 0
-		var angle = 0
-		var playerIndex = 0
-		fun copy(p: Particle) {
-			x = p.x
-			y = p.y
-			type = p.type
-			start_frame = p.start_frame
-			star = p.star
-			playerIndex = p.playerIndex
-			angle = p.angle
-		}
-	}
-
-	// ---------------------------------------------------------//
-	// CONSTANTS //
-	// ---------------------------------------------------------//
-	val PLAYER_STATE_SPAWNING = 0
-	val PLAYER_STATE_ALIVE = 1
-	val PLAYER_STATE_EXPLODING = 2
-	val PLAYER_STATE_TELEPORTED = 3
-	val PLAYER_STATE_SPECTATOR = 4
-
-	// enum
-	val SNAKE_STATE_CHASE = 0
-	val SNAKE_STATE_CLIMB_WALL = 1 // slowly climb a wall
-	val SNAKE_STATE_CREST_WALL = 2 // crest the wall, start to
-	val SNAKE_STATE_DESCEND_WALL = 3
-	val SNAKE_STATE_ATTACHED = 4
-	val SNAKE_STATE_DYING = 5
-
-	// game types
-	val GAME_TYPE_CLASSIC = 0 // No maze
-	val GAME_TYPE_ROBOCRAZE = 1
-	val WORLD_WIDTH_CLASSIC = 1000
-	val WORLD_HEIGHT_CLASSIC = 1000
-
-	//  final int GAME_TYPE_ROBOCRAZE = 1; // Use Maze, level over when
-	// player gets to exit (X)
-	// possible game states
-	val GAME_STATE_INTRO = 0
-	val GAME_STATE_PLAY = 1
-
-	//private final int   GAME_STATE_PLAYER_HIT = 2;
-	val GAME_STATE_GAME_OVER = 3
-	val MAZE_CELL_WIDTH = 160
-	val MAZE_CELL_HEIGHT = 160
-	val MAZE_NUMCELLS_X = 10
-	val MAZE_NUMCELLS_Y = 10
-	val MAZE_NUM_VERTS = (MAZE_NUMCELLS_X + 1) * (MAZE_NUMCELLS_Y + 1)
-	val MAZE_VERTEX_NOISE = 20 //30 // random noise in placement of
-
-	//private final int     MAZE_CELL_X = 14;
-	//private final int     MAZE_CELL_Y = 14;
-	// vertices
-	val MAZE_WALL_THICKNESS = 3
-	val MAZE_WIDTH = MAZE_CELL_WIDTH * MAZE_NUMCELLS_X //1440; // width of world
-	val MAZE_HEIGHT = MAZE_CELL_HEIGHT * MAZE_NUMCELLS_Y //1240; // height of world
-
-	// used to make comparisons close to zero
-	val EPSILON = 0.00001f
-	val PLAYER_SPEED = 8 // pixels per frame
-	val PLAYER_SUPER_SPEED_BONUS = 3
-	val PLAYER_RADIUS = 16
-	val PLAYER_RADIUS_BARRIER = 25
-	val PLAYER_MAX_MISSLES = 16 // max player missles on screen at one time
-	val PLAYER_DEATH_FRAMES = 70 // number of frames to do the 'death' sequence
-	val PLAYER_START_LIVES = 3 // number of lives player starts with
-	val PLAYER_NEW_LIVE_SCORE = 25000 // number of points to give an extra player
-	val PLAYER_SHOT_FREQ = 4 // number of frames between adjacent
-	val PLAYER_SHOT_FREQ_MEGAGUN = 3 // missle shots
-	val PLAYER_MISSLE_SPEED = 20 // distance missle travels per frame
-	val PLAYER_MISSLE_DURATION = 50 // number of frames a missle exists for
-	val PLAYER_SPAWN_FRAMES = 30 // number of frames at beginning of level where player is safe
-	val PLAYER_HULK_GROW_SPEED = 0.05f
-	val PLAYER_HULK_SCALE = 1.6f
-	val PLAYER_HULK_CHARGE_SPEED_BONUS = PLAYER_SPEED
-	val PLAYER_POWERUP_DURATION = 500 // frames
-	val PLAYER_POWERUP_WARNING_FRAMES = 50 //
-	val PLAYER_SUPERSPEED_NUM_TRACERS = 4 // used for POWERUP_SPEED mode
-	val MAX_ENEMIES = 64 // max number of enemies on the screen per frame
-	val MAX_ENEMY_MISSLES = 16 // max number of enemy missles on screen per frame
-
-	// Snake type projectiles
-	val MAX_SNAKE_MISSLES = 8 // max number deployed at one time
-	val SNAKE_MAX_SECTIONS = 10 // max number of section
-	val SNAKE_SECTION_LENGTH = 20 // pixels, should be even multiple of SNAKE_SPEED
-	val SNAKE_THICKNESS = 3 // pixels
-	val SNAKE_DURATION = 1000 // frames
-	val SNAKE_SPEED = 4 // pixels of advancement per frame
-	val SNAKE_HEURISTIC_FACTOR = 0.4f
-
-	// time
-	val MAX_PARTICLES = 8 // maximum explosions on the screen
-	val PARTICLE_TYPE_BLOOD = 0
-	val PARTICLE_TYPE_DYING_ROBOT = 1
-	val PARTICLE_TYPE_DYING_TANK = 2
-	val PARTICLE_TYPE_PLAYER_STUN = 3
-
-	// if any more particle types are added, then the update funciton
-	// will need to get fixed
-	val PARTICLES_NUM_TYPES = 4 // MUST BE LAST!
-	val PARTICLE_DYING_ROBOT_DURATION = 5
-	val PARTICLE_DYING_TANK_DURATION = 9
-	val PARTICLE_BLOOD_DURATION = 60
-	val PARTICLE_BLOOD_RADIUS = 13
-	val PARTICLE_LINES_DURATION = 8
-
-	// enum of enemy types
-	val ENEMY_INDEX_GEN = 0 // generator
-	val ENEMY_INDEX_ROBOT_N = 1 // always moves toward player
-	val ENEMY_INDEX_ROBOT_E = 2
-	val ENEMY_INDEX_ROBOT_S = 3
-	val ENEMY_INDEX_ROBOT_W = 4
-	val ENEMY_INDEX_THUG_N = 5 // indistructable idiot, walks north
-	val ENEMY_INDEX_THUG_E = 6 // walks east
-	val ENEMY_INDEX_THUG_S = 7 // walks south
-	val ENEMY_INDEX_THUG_W = 8 // walks west
-	val ENEMY_INDEX_BRAIN = 9 // The evil brain
-	val ENEMY_INDEX_ZOMBIE_N = 10 // a brain turns people into zombies
-	val ENEMY_INDEX_ZOMBIE_E = 11
-	val ENEMY_INDEX_ZOMBIE_S = 12
-	val ENEMY_INDEX_ZOMBIE_W = 13
-	val ENEMY_INDEX_TANK_NE = 14 // Tanks only move diagonally and
-	val ENEMY_INDEX_TANK_SE = 15
-	val ENEMY_INDEX_TANK_SW = 16
-	val ENEMY_INDEX_TANK_NW = 17
-	val ENEMY_INDEX_TANK_GEN_NE = 18 // TankGens only move diagonally
-	val ENEMY_INDEX_TANK_GEN_SE = 19
-	val ENEMY_INDEX_TANK_GEN_SW = 20
-	val ENEMY_INDEX_TANK_GEN_NW = 21
-	val ENEMY_INDEX_JAWS = 22
-	val ENEMY_INDEX_LAVA = 23
-	val ENEMY_INDEX_NUM = 24 // MUST BE LAST
-	val ENEMY_NAMES = arrayOf(
-		"generator",
-		"robot", "robot", "robot", "robot",
-		"thug", "thug", "thug", "thug",
-		"brain",
-		"zombie", "zombie", "zombie", "zombie",
-		"tank", "tank", "tank", "tank",
-		"tankgen", "tankgen", "tankgen", "tankgen",
-		"jaws",
-		"lavapit"
-	)
-	val ENEMY_SPAWN_SCATTER = 30 // used to scatter thugs and brains around generators
-	val ENEMY_ROBOT_RADIUS = 12
-	val ENEMY_ROBOT_SPEED = 7
-	val ENEMY_ROBOT_SPEED_INCREASE = 200 // number of player moves to increase robot speed
-	val ENEMY_ROBOT_MAX_SPEED = PLAYER_SPEED //12;
-	val ENEMY_ROBOT_HEURISTIC_FACTOR = 0.0f // likelyhood the robot will choose direction toward player
-	val ENEMY_ROBOT_ATTACK_DIST = 300 // max distance a guy will try to shoot from
-	val ENEMY_ROBOT_FORCE = 10.0f // stun force from a robot
-	val ENEMY_PROJECTILE_FREQ = 2 // used to determine frequency of guy fires
-	val ENEMY_PROJECTILE_RADIUS = 4
-	val ENEMY_PROJECTILE_FORCE = 5.0f
-	val ENEMY_PROJECTILE_DURATION = 60
-	val ENEMY_PROJECTILE_GRAVITY = 0.3f
-	val ENEMY_GEN_INITIAL = 15 // starting generators for level 1
-	val ENEMY_GEN_SPAWN_MIN = 3 // minimum to spawn when hit
-	val ENEMY_GEN_SPAWN_MAX = 10 // maximum to spawn when hit
-	val ENEMY_GEN_RADIUS = 10
-	val ENEMY_GEN_PULSE_FACTOR = 3 // gen will pulse +- this
-	val ENEMY_TANK_GEN_RADIUS = 15
-
-	// amount from GEN_RADIUS
-	// NOTE: on HEURISTIC_FACTOR, 0.0 values make a bot move toward player, 1.0
-	// makes move totally random
-	val ENEMY_THUG_UPDATE_FREQ = 4
-	val ENEMY_THUG_SPEED = 6
-	val ENEMY_THUG_PUSHBACK = 8.0f // number of units to push the thug on a hit
-	val ENEMY_THUG_RADIUS = 17
-	val ENEMY_THUG_HEURISTICE_FACTOR = 0.9f
-
-	// ENEMY BRAIN
-	val ENEMY_BRAIN_RADIUS = 15
-	val ENEMY_BRAIN_SPEED = 7
-	val ENEMY_BRAIN_ZOMBIFY_FRAMES = 80 // frames taken to zombify a person
-	val ENEMY_BRAIN_FIRE_CHANCE = 10 // chance = 1-10-difficulty
-	val ENEMY_BRAIN_FIRE_FREQ = 100 // frames
-	val ENEMY_BRAIN_UPDATE_SPACING = 10 // frames between updates (with some noise)
-
-	// ZOMBIE
-	val ENEMY_ZOMBIE_SPEED = 10
-	val ENEMY_ZOMBIE_RADIUS = 10
-	val ENEMY_ZOMBIE_UPDATE_FREQ = 2 // number of frames between updates
-	val ENEMY_ZOMBIE_HEURISTIC_FACTOR = 0.2f //
-	val ENEMY_ZOMBIE_TRACER_FADE = 3 // higher means slower fade
-	val MAX_ZOMBIE_TRACERS = 32
-
-	// TANK
-	val ENEMY_TANK_RADIUS = 24
-	val ENEMY_TANK_SPEED = 5
-	val ENEMY_TANK_UPDATE_FREQ = 4 // frames between movement and update
-	val ENEMY_TANK_FIRE_FREQ = 5 // updates between shots fired
-	val MAX_TANK_MISSLES = 16
-
-	// TANK MISSLE
-	val TANK_MISSLE_SPEED = 8
-	val TANK_MISSLE_DURATION = 300
-	val TANK_MISSLE_RADIUS = 8
-
-	// -- POINTS --
-	val ENEMY_GEN_POINTS = 100
-	val ENEMY_ROBOT_POINTS = 10
-	val ENEMY_BRAIN_POINTS = 50
-	val ENEMY_TANK_POINTS = 100
-	val ENEMY_TANK_GEN_POINTS = 100
-	val POWERUP_POINTS_SCALE = 100
-	val POWERUP_BONUS_POINTS_MAX = 50
-
-	// -- PEOPLE --
-	val MAX_PEOPLE = 32
-	val PEOPLE_NUM_TYPES = 3
-	val PEOPLE_RADIUS = 10
-	val PEOPLE_SPEED = 4
-	val PEOPLE_START_POINTS = 500
-	val PEOPLE_INCREASE_POINTS = 100 // * game_level
-	val PEOPLE_MAX_POINTS = 10000
-
-	// -- MESSGAES --
-	val THROBBING_SPEED = 2 // Affects throbbing_white. higher is slower.
-	val MESSAGE_FADE = 3 // Affects instaMsgs, higher is slower
-	val MESSAGES_MAX = 4 // max number of inst msgs
-
-	// -- lava pit --
-	val ENEMY_LAVA_CLOSED_FRAMES = 30
-	val ENEMY_LAVA_DIM = 64
-	val ENEMY_JAWS_DIM = 32
-	val DIFFICULTY_EASY = 0
-	val DIFFICULTY_MEDIUM = 1
-	val DIFFICULTY_HARD = 2
-
-	// -- BUTTONS ON INTRO SCREEN --
-	internal enum class Button {
-		Classic,
-		RoboCraze,
-		Easy,
-		Medium,
-		Hard,
-		START
-	}
-
-	val BUTTONS_NUM = Button.values().size
-	val BUTTON_WIDTH = 130
-	val BUTTON_HEIGHT = 40
-
-	// for other info on intro screen
-	val TEXT_PADDING = 5 // pixels between hud text lines and border
-
-	// -- POWERUPS --
-	// ENUM
-	val POWERUP_SUPER_SPEED = 0
-	val POWERUP_GHOST = 1
-	val POWERUP_BARRIER = 2
-	val POWERUP_MEGAGUN = 3
-	val POWERUP_HULK = 4
-	val POWERUP_BONUS_POINTS = 5
-	val POWERUP_BONUS_PLAYER = 6
-	val POWERUP_KEY = 7
-	val POWERUP_NUM_TYPES = 8 // MUST BE LAST!
-
-	// must be NUM_POWERUP_TYPES elems
-	val POWERUP_CHANCE = intArrayOf(
-		2,
-		1,
-		2,
-		2,
-		1,
-		4,
-		1,
-		3
-	)
-
-	// The first letter is used as the indicator, unless special
-	// handling is associated with a powerup
-	// (as of this writing: POWERUP_BONUS_PLAYER)
-	val powerup_names = arrayOf(
-		"SPEEEEEEED",
-		"GHOST",
-		"BARRIER",
-		"MEGAGUN",
-		"HULK MODE!",
-		"$$",
-		"EXTRA MAN!",
-		"KEY"
-	)
-
-	private fun getPowerupTypeString(type: Int): String {
-		return powerup_names[type]
-	}
-
-	val MAX_POWERUPS = 8
-	val POWERUP_MAX_DURATION = 500
-	val POWERUP_RADIUS = 10
-	val POWERUP_CHANCE_BASE = 1000
-	val POWERUP_CHANCE_ODDS = 10 // 10+currentLevel in 1000
-
-	// Rubber Walls
-	val RUBBER_WALL_MAX_FREQUENCY = 0.15f
-	val RUBBER_WALL_FREQENCY_INCREASE_MISSLE = 0.03f
-	val RUBBER_WALL_FREQENCY_COOLDOWN = 0.002f
-
-	// chance
-	// -- STATIC FIELD --
-	// TODO: Why cant I increase this number w/out wierd results?
-	val STATIC_FIELD_SECTIONS = 8
-	val STATIC_FIELD_COS_T = CMath.cosine(360.0f / STATIC_FIELD_SECTIONS)
-	val STATIC_FIELD_SIN_T = CMath.sine(360.0f / STATIC_FIELD_SECTIONS)
-
-	// number of repeated shots from megagun required to break wall
-	val WALL_NORMAL_HEALTH = 30
-	val WALL_BREAKING_MAX_RECURSION = 3
-
-	// when a megagun hits an electric wall, the wall is disabled for some time
-	val WALL_ELECTRIC_DISABLE_FRAMES = 200
-	val WALL_TYPE_NONE = 0
-	val WALL_TYPE_NORMAL = 1 // normal wall
-	val WALL_TYPE_ELECTRIC = 2 // electric walls cant be destroyed? (temp disabled)
-	val WALL_TYPE_INDESTRUCTABLE = 3 // used for perimiter
-	val WALL_TYPE_PORTAL = 4 // teleport to other portal walls
-	val WALL_TYPE_RUBBER = 5 // ?
-	val WALL_TYPE_DOOR = 6 // need a key too open
-	val WALL_TYPE_PHASE_DOOR = 7 // door opens and closes at random intervals
-	val WALL_NUM_TYPES = 8 // MUST BE LAST!
-	val DARKEN_AMOUNT = 0.2f
-	val LIGHTEN_AMOUNT = 0.2f
 
 	// - this.game_level,
 	private val wallChanceForLevel: IntArray
@@ -567,47 +42,9 @@ frame=$frame"""
 			0 + gameLevel,
 			0
 		)
-	val wall_type_strings = arrayOf(
-		"NONE",
-		"Normal",
-		"Electric",
-		"Indestructable",
-		"Portal",
-		"Rubber",
-		"Door",
-		"Phase Door"
-	)
 
 	open val instructions = "Use 'WASD' keys to move\nUse mouse to fire"
 
-	private fun getWallTypeString(type: Int): String {
-		if (type in wall_type_strings.indices)
-			return wall_type_strings[type]
-		return "UNKNOWN"
-	}
-
-	val DOOR_STATE_LOCKED = 0
-	val DOOR_STATE_CLOSED = 1
-	val DOOR_STATE_CLOSING = 2
-	val DOOR_STATE_OPENING = 3
-	val DOOR_STATE_OPEN = 4
-	val DOOR_SPEED_FRAMES = 50
-	val DOOR_SPEED_FRAMES_INV = 1.0f / DOOR_SPEED_FRAMES
-	val DOOR_OPEN_FRAMES = 100
-	val DOOR_OPEN_FRAMES_INV = 1.0f / DOOR_OPEN_FRAMES
-	private var DOOR_COLOR = GColor.CYAN
-	val DOOR_THICKNESS = 2
-	val door_state_strings = arrayOf(
-		"LOCKED",
-		"CLOSED",
-		"CLOSING",
-		"OPENING",
-		"OPEN"
-	)
-
-	private fun getDoorStateString(state: Int): String {
-		return door_state_strings[state]
-	}
 
 	// ---------------------------------------------------------//
 	// GLOBAL DATA //
@@ -622,10 +59,10 @@ frame=$frame"""
 	// cells means removing the SOUTH cell from A and the NORTH cell from B.
 	// wall flags organized in CCW order, this is important DO NOT
 	// REORGANIZE!
-	val WALL_NORTH = 1
-	val WALL_EAST = 2
-	val WALL_SOUTH = 4
-	val WALL_WEST = 8
+	private val WALL_NORTH = 1
+	private val WALL_EAST = 2
+	private val WALL_SOUTH = 4
+	private val WALL_WEST = 8
 	private lateinit var maze_cells: Array<IntArray>
 	val maze_verts_x = IntArray(MAZE_NUM_VERTS) // array of x components
 	val maze_verts_y = IntArray(MAZE_NUM_VERTS) // array of y components
@@ -681,9 +118,9 @@ frame=$frame"""
 	val vec = FloatArray(2)
 	val transform = FloatArray(4)
 	val int_array = IntArray(4)
-	val enemy_missle = Array(MAX_ENEMY_MISSLES) { MissleFloat() }
-	val tank_missle = Array(MAX_TANK_MISSLES) { MissleInt() }
-	val snake_missle = Array(MAX_SNAKE_MISSLES) { MissleSnake() }
+	val enemy_missle = Array(MAX_ENEMY_MISSLES) { MissileFloat() }
+	val tank_missle = Array(MAX_TANK_MISSLES) { MissileInt() }
+	val snake_missle = Array(MAX_SNAKE_MISSLES) { MissileSnake() }
 	val powerups = Array(MAX_POWERUPS) { Powerup() }
 
 	// ENEMIES ----------------------------
@@ -777,7 +214,6 @@ frame=$frame"""
 		var y: Int
 		val player = player
 
-		//g.glCsetColor(GColor.GREEN);
 		g.color = GColor.GREEN
 		val verts = IntArray(5)
 		if (isDebugEnabled(Debug.DRAW_MAZE_INFO)) {
@@ -1128,13 +564,6 @@ frame=$frame"""
 		if (num_snake_missles == MAX_SNAKE_MISSLES) return -1
 		val m = snake_missle[num_snake_missles]
 		m.init(x, y, 0, SNAKE_STATE_CHASE)
-		m.dir[1] = random(0..3)
-		m.dir[0] = m.dir[1]
-
-		// init the section with -1 as a flag to not draw
-		for (i in 1 until SNAKE_MAX_SECTIONS) {
-			m.dir[i] = -1
-		}
 		return num_snake_missles++
 	}
 
@@ -1163,13 +592,12 @@ frame=$frame"""
 					val dy = move_dy[ms.dir[0]] * SNAKE_SPEED
 					ms.x += dx
 					ms.y += dy
-					val touchSection = collisionMissleSnakeRect(ms, px.toFloat(), py.toFloat(), pw.toFloat(), ph.toFloat())
+					val touchSection = collisionMissileSnakeRect(ms, px.toFloat(), py.toFloat(), pw.toFloat(), ph.toFloat())
 					if (ms.state == SNAKE_STATE_CHASE) {
 						if (touchSection == 0 && playerHit(player, HIT_TYPE_SNAKE_MISSLE, i)) {
 							log.debug("Snake [$i] got the player")
 							ms.state = SNAKE_STATE_ATTACHED
 						}
-					} else {
 						if (touchSection < 0 || !playerHit(player, HIT_TYPE_SNAKE_MISSLE, i)) {
 							log.debug("Snake [$i] lost hold of the player")
 							ms.state = SNAKE_STATE_CHASE
@@ -1184,6 +612,8 @@ frame=$frame"""
 							ms.dir[d] = ms.dir[d - 1]
 							d--
 						}
+						if (ms.num_sections < SNAKE_MAX_SECTIONS)
+							ms.num_sections++
 
 						// choose a new direction that is not a reverse (it looks
 						// bad
@@ -1203,13 +633,11 @@ frame=$frame"""
 				}
 				SNAKE_STATE_DYING                       -> {
 					// shift elems over
-					var ii = 0
-					while (ii < MAX_SNAKE_MISSLES - 1) {
+					for (ii in 0 until ms.num_sections - 1) {
 						ms.dir[ii] = ms.dir[ii + 1]
-						ii++
 					}
-					ms.dir[MAX_SNAKE_MISSLES - 1] = -1
-					if (ms.dir[0] == -1) {
+					ms.num_sections--
+					if (ms.num_sections == 0) {
 						removeSnakeMissle(i)
 						continue
 					}
@@ -1222,30 +650,28 @@ frame=$frame"""
 
 	// -----------------------------------------------------------------------------------------------
 	// return the section that touched or -1 for no collision
-	private fun collisionMissleSnakeRect(ms: MissleSnake, x: Float, y: Float, w: Float, h: Float): Int {
+	private fun collisionMissileSnakeRect(ms: MissileSnake, x: Float, y: Float, w: Float, h: Float): Int {
 		val framesPerSection = SNAKE_SECTION_LENGTH / SNAKE_SPEED
 		val headLen = ms.duration % framesPerSection
 		val tailLen = framesPerSection - headLen
 		var x0 = ms.x
 		var y0 = ms.y
-		var i = 0
-		while (i < SNAKE_MAX_SECTIONS && ms.dir[i] >= 0) {
+		for (i in 0 until ms.num_sections) {
 			var len = SNAKE_SECTION_LENGTH
 			if (i == 0) len = headLen else if (i == SNAKE_MAX_SECTIONS - 1) len = tailLen
 			val rDir = (ms.dir[i] + 2) % 4
 			val x1 = x0 + move_dx[rDir] * len
 			val y1 = y0 + move_dy[rDir] * len
-			val xx = Math.min(x0, x1)
-			val yy = Math.min(y0, y1)
-			val ww = Math.abs(x0 - x1)
-			val hh = Math.abs(y0 - y1)
+			val xx = x0.coerceAtMost(x1)
+			val yy = y0.coerceAtMost(y1)
+			val ww = abs(x0 - x1)
+			val hh = abs(y0 - y1)
 			if (Utils.isBoxesOverlapping(x, y, w, h, xx.toFloat(), yy.toFloat(), ww.toFloat(), hh.toFloat())) {
 				// log.debug("Snake Collision [" + i + "]");
 				return i
 			}
 			x0 = x1
 			y0 = y1
-			i++
 		}
 		return -1
 	}
@@ -1269,20 +695,17 @@ frame=$frame"""
 			drawBar(g, x0, y0, x1, y1, SNAKE_THICKNESS, 0)
 
 			// draw the middle sections
-			var ii = 1
-			while (ii < SNAKE_MAX_SECTIONS - 1 && m.dir[ii] >= 0) {
+			for (ii in 1 until m.num_sections) {
 				x0 = x1
 				y0 = y1
 				d = (m.dir[ii] + 2) % 4
 				x1 = x0 + move_dx[d] * SNAKE_SPEED * framesPerSection
 				y1 = y0 + move_dy[d] * SNAKE_SPEED * framesPerSection
 				drawBar(g, x0, y0, x1, y1, SNAKE_THICKNESS, ii)
-				ii++
 			}
 
 			// draw the tail if we are at max sections
-			d = m.dir[SNAKE_MAX_SECTIONS - 1]
-			if (d >= 0) {
+			if (m.num_sections == SNAKE_MAX_SECTIONS) {
 				d = (d + 2) % 4
 				frames = framesPerSection - frames
 				x0 = x1
@@ -2312,9 +1735,9 @@ frame=$frame"""
 		for (i in 0 until MAX_PARTICLES) {
 			particles[i] = Particle()
 		}
-		for (i in 0 until MAX_ENEMY_MISSLES) enemy_missle[i] = MissleFloat()
-		for (i in 0 until MAX_TANK_MISSLES) tank_missle[i] = MissleInt()
-		for (i in 0 until MAX_SNAKE_MISSLES) snake_missle[i] = MissleSnake()
+		for (i in 0 until MAX_ENEMY_MISSLES) enemy_missle[i] = MissileFloat()
+		for (i in 0 until MAX_TANK_MISSLES) tank_missle[i] = MissileInt()
+		for (i in 0 until MAX_SNAKE_MISSLES) snake_missle[i] = MissileSnake()
 		for (i in 0 until MAX_POWERUPS) {
 			powerups[i] = Powerup()
 		}
@@ -2510,7 +1933,8 @@ frame=$frame"""
 					enemy_next_update[i] = frame_num + ENEMY_THUG_UPDATE_FREQ + random(-2.. 2)
 				}
 				ENEMY_INDEX_BRAIN                                                                      -> {
-					if (frameNumber % ENEMY_BRAIN_FIRE_FREQ == 0 && random(0 .. ENEMY_BRAIN_FIRE_CHANCE) <= (1 + difficulty) * gameLevel) addSnakeMissle(enemy_x[i], enemy_y[i])
+					if (frameNumber % ENEMY_BRAIN_FIRE_FREQ == 0 && random(0..ENEMY_BRAIN_FIRE_CHANCE) <= (1 + difficulty) * gameLevel)
+						addSnakeMissle(enemy_x[i], enemy_y[i])
 
 					// search for a person to walk toward
 					closest = -1
@@ -2711,8 +2135,8 @@ frame=$frame"""
 		var y0: Int
 		var x1: Int
 		var y1: Int
-		var m: MissleInt?
-		var m2: MissleInt?
+		var m: MissileInt?
+		var m2: MissileInt?
 		var i = 0
 		while (i < player.num_missles /* increment later */) {
 			m = player.missles[i]
@@ -2872,7 +2296,7 @@ frame=$frame"""
 					e++
 					continue
 				}
-				val cResult = collisionMissleSnakeRect(s, mx, my, mw, mh)
+				val cResult = collisionMissileSnakeRect(s, mx, my, mw, mh)
 				if (cResult == 0 || isMegaGunActive(player)) {
 					killSnakeMissle(e)
 					removePlayerMissle(player, i)
@@ -2881,18 +2305,16 @@ frame=$frame"""
 				} else if (cResult > 0) {
 					// split the snakle
 					// removeSnakeMissle(e);
-					val nIndex = addSnakeMissle(Math.round(mx + mw / 2), Math.round(my + mh / 2))
+					val nIndex = addSnakeMissle((mx + mw / 2).roundToInt(), (my + mh / 2).roundToInt())
 					if (nIndex < 0) break
 					val newSnake = snake_missle[nIndex]
 
 					// assign
 					var cc = 0
-					var ii = cResult
-					while (ii < MAX_SNAKE_MISSLES && s.dir[ii] >= 0) {
+					for (ii in cResult until s.num_sections) {
 						newSnake.dir[cc++] = s.dir[ii]
-						s.dir[ii] = -1
-						ii++
 					}
+					s.num_sections = cResult
 
 					// The missle lives on!
 					// removePlayerMissle(e);
@@ -2965,7 +2387,7 @@ frame=$frame"""
 		var y0: Int
 		var x1: Int
 		var y1: Int
-		var m: MissleInt?
+		var m: MissileInt?
 
 		// update Tank Missles
 		var i = 0
@@ -3135,7 +2557,7 @@ frame=$frame"""
 			DOOR_STATE_CLOSING -> {
 				door.state = DOOR_STATE_OPENING
 				var framesElapsed = frameNumber - door.frame
-				framesElapsed = this.DOOR_SPEED_FRAMES - framesElapsed
+				framesElapsed = DOOR_SPEED_FRAMES - framesElapsed
 				door.frame = frameNumber - framesElapsed
 			}
 			DOOR_STATE_CLOSED  -> {
@@ -3654,11 +3076,6 @@ frame=$frame"""
 	private fun isHulkActive(player: Player): Boolean {
 		return isDebugEnabled(Debug.HULK) || player.powerup == POWERUP_HULK
 	}
-
-	val DIR_UP = 0
-	val DIR_RIGHT = 1
-	val DIR_DOWN = 2
-	val DIR_LEFT = 3
 
 	// -----------------------------------------------------------------------------------------------
 	// return 0,1,2,3 for player direction [NESW]
