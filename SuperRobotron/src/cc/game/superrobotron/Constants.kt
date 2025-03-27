@@ -298,8 +298,8 @@ val STATIC_FIELD_SIN_T = CMath.sine(360.0f / STATIC_FIELD_SECTIONS)
 const val WALL_NORMAL_HEALTH = 30
 const val WALL_BREAKING_MAX_RECURSION = 3
 
-const val DARKEN_AMOUNT = 0.2f
-const val LIGHTEN_AMOUNT = 0.2f
+const val DARKEN_AMOUNT = 0.1f
+const val LIGHTEN_AMOUNT = 0.1f
 
 const val DOOR_STATE_LOCKED = 0
 const val DOOR_STATE_CLOSED = 1
@@ -310,7 +310,7 @@ const val DOOR_SPEED_FRAMES = 50
 const val DOOR_SPEED_FRAMES_INV = 1.0f / DOOR_SPEED_FRAMES
 const val DOOR_OPEN_FRAMES = 100
 const val DOOR_OPEN_FRAMES_INV = 1.0f / DOOR_OPEN_FRAMES
-var DOOR_COLOR = GColor.CYAN
+val DOOR_COLOR: GColor by lazy { GColor.CYAN }
 const val DOOR_THICKNESS = 2f
 
 // when a megagun hits an electric wall, the wall is disabled for some time

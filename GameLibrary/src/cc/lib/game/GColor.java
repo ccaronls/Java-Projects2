@@ -157,23 +157,15 @@ public final class GColor extends Reflector<GColor> {
      * @return
      */
     public GColor darkened(float amount) {
-        if (amount < 0.01f)
+        if (amount < 0.0001f)
             return this;
-        GColor copy = new GColor(this);
-        copy.darken(amount);
-        return copy;
-    }
-
-    public void darken(float amount) {
-        if (amount < 0.01f)
-            return;
-        float R = amount * getRed();
-        float G = amount * getGreen();
-        float B = amount * getBlue();
-        R = Utils.clamp(getRed() - R, 0, 255);
-        G = Utils.clamp(getGreen() - G, 0, 255);
-        B = Utils.clamp(getBlue() - B, 0, 255);
-        set(Math.round(R), Math.round(G), Math.round(B), alpha());
+        float R = getRed();
+        float G = getGreen();
+        float B = getBlue();
+        R = Utils.clamp(R - amount, 0f, 1f);
+        G = Utils.clamp(G - amount, 0, 1);
+        B = Utils.clamp(B - amount, 0, 1);
+        return new GColor(Math.round(R * 255f), Math.round(G * 255f), Math.round(B * 255f), alpha());
     }
 
     /**
@@ -183,23 +175,15 @@ public final class GColor extends Reflector<GColor> {
      * @return
      */
     public GColor lightened(float amount) {
-        if (amount < 0.01f)
+        if (amount < 0.0011f)
             return this;
-        GColor copy = new GColor(this);
-        copy.lighten(amount);
-        return copy;
-    }
-
-    public void lighten(float amount) {
-        if (amount < 0.01f)
-            return;
-        float R = amount * getRed();
-        float G = amount * getGreen();
-        float B = amount * getBlue();
-        R = Utils.clamp(getRed() + R, 0, 255);
-        G = Utils.clamp(getGreen() + G, 0, 255);
-        B = Utils.clamp(getBlue() + B, 0, 255);
-        set(Math.round(R), Math.round(G), Math.round(B), alpha());
+        float R = getRed();
+        float G = getGreen();
+        float B = getBlue();
+        R = Utils.clamp(R + amount, 0f, 1f);
+        G = Utils.clamp(G + amount, 0, 1);
+        B = Utils.clamp(B + amount, 0, 1);
+        return new GColor(Math.round(R * 255f), Math.round(G * 255f), Math.round(B * 255f), alpha());
     }
 
     /**

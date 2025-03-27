@@ -11,10 +11,8 @@ import cc.lib.utils.random
 import cc.lib.utils.randomFloat
 import java.util.Arrays
 import kotlin.math.abs
-import kotlin.math.cos
 import kotlin.math.min
 import kotlin.math.roundToInt
-import kotlin.math.sin
 import kotlin.math.sqrt
 
 /**
@@ -136,7 +134,7 @@ abstract class Robotron {
 	val players = ManagedArray(Array(MAX_PLAYERS) { Player() }).also {
 		it.add()
 	}
-	var this_player = 0
+	private var this_player = 0
 	val player: Player
 		get() {
 			return players[this_player]
@@ -201,17 +199,17 @@ abstract class Robotron {
 	// Player tracers ----------------------
 	// Other lookups
 	// Maps N=0,E,S,W to a 4 dim array lookup
-	val move_dx = floatArrayOf(0f, 1f, 0f, -1f)
-	val move_dy = floatArrayOf(-1f, 0f, 1f, 0f)
-	val move_diag_dx = floatArrayOf(1f, -1f, 1f, -1f)
-	val move_diag_dy = floatArrayOf(-1f, 1f, -1f, 1f)
-	private var throbbing_white = GColor.WHITE.deepCopy()
+	private val move_dx = floatArrayOf(0f, 1f, 0f, -1f)
+	private val move_dy = floatArrayOf(-1f, 0f, 1f, 0f)
+	private val move_diag_dx = floatArrayOf(1f, -1f, 1f, -1f)
+	private val move_diag_dy = floatArrayOf(-1f, 1f, -1f, 1f)
+	private var throbbing_white = GColor.WHITE
 	private var throbbing_dir = 0 // 0 == darker(), 1 == lighter()
-	private var insta_msg_color: GColor = GColor.YELLOW
+	private var insta_msg_color = GColor.YELLOW
 	private var insta_msg_str: String? = null
 
-	val button_x = FloatArray(BUTTONS_NUM)
-	val button_y = FloatArray(BUTTONS_NUM)
+	private val button_x = FloatArray(BUTTONS_NUM)
+	private val button_y = FloatArray(BUTTONS_NUM)
 	private var button_active = -1 // -1 == none, 1 == button 1, 2 == button 2,
 
 	// ...
@@ -252,23 +250,19 @@ abstract class Robotron {
 					player x: ${player.x}
 					player y: ${player.y}""".trimIndent()
 			)
-			g.pushMatrix()
-			g.translate(-screen_x, -screen_y)
 			for (v in 0 until MAZE_NUM_VERTS) {
 				g.drawString("$v", maze_verts_x[v], maze_verts_y[v])
 			}
 			computeBaseQuad(player.x, player.y).forEach {
 				g.drawFilledCircle(maze_verts_x[it], maze_verts_y[it], 5f)
 			}
-
-			g.popMatrix()
 		}
 		if (isDebugEnabled(Debug.DRAW_PLAYER_INFO)) {
 			computeWallCandidates(player.x, player.y, false).forEach {
-				val x0 = maze_verts_x[it.nearV] - screen_x
-				val y0 = maze_verts_y[it.nearV] - screen_y
-				val x1 = maze_verts_x[it.farV] - screen_x
-				val y1 = maze_verts_y[it.farV] - screen_y
+				val x0 = maze_verts_x[it.nearV]
+				val y0 = maze_verts_y[it.nearV]
+				val x1 = maze_verts_x[it.farV]
+				val y1 = maze_verts_y[it.farV]
 				val mpx = (x0 + x1) / 2
 				val mpy = (y0 + y1) / 2
 				g.color = GColor.BLUE
@@ -285,10 +279,10 @@ abstract class Robotron {
 			var s = player.path[0]
 			for (i in 1 until player.path.size) {
 				val n = player.path[i]
-				val x0 = s[0] * MAZE_CELL_DIM + MAZE_CELL_DIM / 2 - screen_x
-				val y0 = s[1] * MAZE_CELL_DIM + MAZE_CELL_DIM / 2 - screen_y
-				val x1 = n[0] * MAZE_CELL_DIM + MAZE_CELL_DIM / 2 - screen_x
-				val y1 = n[1] * MAZE_CELL_DIM + MAZE_CELL_DIM / 2 - screen_y
+				val x0 = s[0] * MAZE_CELL_DIM + MAZE_CELL_DIM / 2
+				val y0 = s[1] * MAZE_CELL_DIM + MAZE_CELL_DIM / 2
+				val x1 = n[0] * MAZE_CELL_DIM + MAZE_CELL_DIM / 2
+				val y1 = n[1] * MAZE_CELL_DIM + MAZE_CELL_DIM / 2
 				s = n
 				g.color = GColor.GREEN
 				g.drawLine(x0, y0, x1, y1, 3f)
@@ -338,12 +332,9 @@ abstract class Robotron {
 
 	// -----------------------------------------------------------------------------------------------
 	private fun drawPowerups(g: AGraphics) {
-		g.pushMatrix()
-		g.translate(-screen_x, -screen_y)
 		powerups.filter { it.isOnscreen() }.forEach {
 			drawPowerUp(g, it.type, it.x, it.y)
 		}
-		g.popMatrix()
 	}
 
 	// -----------------------------------------------------------------------------------------------
@@ -568,8 +559,8 @@ abstract class Robotron {
 	private fun drawSnakeMissiles(g: AGraphics) {
 		val framesPerSection = SNAKE_SECTION_LENGTH / SNAKE_SPEED
 		snake_missiles.filter { it.isOnscreen() }.forEach { m ->
-			var x0 = m.x - screen_x
-			var y0 = m.y - screen_y
+			var x0 = m.x
+			var y0 = m.y
 
 			// draw the first section
 			var d = (m.dir[0] + 2) % 4 // get reverse direction
@@ -603,8 +594,8 @@ abstract class Robotron {
 			// draw the head
 			g.color = throbbing_white
 			g.drawFilledRect(
-				(m.x - screen_x - SNAKE_THICKNESS),
-				(m.y - screen_y - SNAKE_THICKNESS),
+				(m.x - SNAKE_THICKNESS),
+				(m.y - SNAKE_THICKNESS),
 				(SNAKE_THICKNESS * 2f),
 				(SNAKE_THICKNESS * 2f)
 			)
@@ -645,7 +636,7 @@ abstract class Robotron {
 		zombie_tracers.removeIf { !it.isOnscreen() }
 		zombie_tracers.forEach { z ->
 			g.color = z.color
-			drawStickFigure(g, z.x - screen_x, z.y - screen_y, ENEMY_ZOMBIE_RADIUS)
+			drawStickFigure(g, z.x, z.y, ENEMY_ZOMBIE_RADIUS)
 			if (update)
 				z.color = z.color.darkened(DARKEN_AMOUNT)
 		}
@@ -658,8 +649,8 @@ abstract class Robotron {
 		player.tracer.forEach { t ->
 			drawPlayerBody(
 				player, g,
-				t.x - screen_x,
-				t.y - screen_y,
+				t.x,
+				t.y,
 				t.dir,
 				t.color
 			)
@@ -670,13 +661,13 @@ abstract class Robotron {
 	// -----------------------------------------------------------------------------------------------
 	// this draws the collapsing indicator box a the beginning of play
 	private fun drawPlayerHighlight(player: Player, g: AGraphics) {
-		val frame = frameNumber - game_start_frame
-		val left = (player.x - screen_x) * frame / PLAYER_SPAWN_FRAMES
-		val top = (player.y - screen_y) * frame / PLAYER_SPAWN_FRAMES
-		val w = screen_width - screen_width * frame / PLAYER_SPAWN_FRAMES
-		val h = screen_height - screen_height * frame / PLAYER_SPAWN_FRAMES
+		val scale = (1f - (frameNumber - game_start_frame).toFloat() / PLAYER_SPAWN_FRAMES).coerceIn(0f..1f)
+		val left = player.x - screen_width / 2 * scale
+		val top = player.y - screen_height / 2 * scale
+		val width = screen_width * scale
+		val height = screen_height * scale
 		g.color = GColor.RED
-		g.drawRect(left, top, w, h, 1f)
+		g.drawRect(left, top, width, height, 1f)
 	}
 
 	// -----------------------------------------------------------------------------------------------
@@ -698,10 +689,12 @@ abstract class Robotron {
 		if (frameNumber % THROBBING_SPEED == 0) {
 			if (throbbing_dir == 0) {
 				throbbing_white = throbbing_white.darkened(DARKEN_AMOUNT)
-				if (throbbing_white == GColor.BLACK) throbbing_dir = 1
+				if (throbbing_white == GColor.BLACK)
+					throbbing_dir = 1
 			} else {
 				throbbing_white = throbbing_white.lightened(LIGHTEN_AMOUNT)
-				if (throbbing_white == GColor.WHITE) throbbing_dir = 0
+				if (throbbing_white == GColor.WHITE)
+					throbbing_dir = 0
 			}
 		}
 	}
@@ -754,7 +747,8 @@ abstract class Robotron {
 			} else {
 				g.color = insta_msg_color
 				g.drawString(insta_msg_str, TEXT_PADDING, (TEXT_PADDING + text_height) * 3)
-				if (frameNumber % 3 == 0) insta_msg_color = insta_msg_color.darkened(DARKEN_AMOUNT)
+				if (frameNumber % 3 == 0)
+					insta_msg_color = insta_msg_color.darkened(DARKEN_AMOUNT)
 			}
 		}
 	}
@@ -762,8 +756,8 @@ abstract class Robotron {
 	// -----------------------------------------------------------------------------------------------
 	// draw the player exploding after being killed
 	private fun drawPlayerExploding(player: Player, g: AGraphics) {
-		val x = player.x - screen_x + random(-5 .. 5)
-		val y = player.y - screen_y + random(-5 .. 5)
+		val x = player.x + random(-5..5)
+		val y = player.y + random(-5..5)
 		// drawPlayer(g, x, y, 2);
 		drawPlayerBody(player, g, x, y, player.dir, GColor.RED)
 
@@ -772,23 +766,23 @@ abstract class Robotron {
 		g.color = GColor.YELLOW
 		val rad: Float
 		when (player.hit_type) {
-			HIT_TYPE_ENEMY        -> {
+			HIT_TYPE_ENEMY -> {
 				val enemy = enemies[player.hit_index]
 				rad = enemy.radius()
 				g.drawOval(
-					(enemy.x - screen_x - rad),
-					(enemy.y - screen_y - rad), (rad * 2), (rad * 2)
+					(enemy.x - rad),
+					(enemy.y - rad), (rad * 2), (rad * 2)
 				)
 			}
 			HIT_TYPE_ROBOT_MISSLE -> {
 				rad = ENEMY_PROJECTILE_RADIUS + 5
 				val em = enemy_missiles[player.hit_index]
-				g.drawOval(em.x - screen_x - rad, em.y - screen_y - rad, (rad * 2), (rad * 2))
+				g.drawOval(em.x - rad, em.y - rad, (rad * 2), (rad * 2))
 			}
 			HIT_TYPE_TANK_MISSLE  -> {
 				rad = TANK_MISSLE_RADIUS + 5
 				val tm = tank_missiles[player.hit_index]
-				g.drawOval(tm.x - screen_x - rad, tm.y - screen_y - rad, (rad * 2), (rad * 2))
+				g.drawOval(tm.x - rad, tm.y - rad, (rad * 2), (rad * 2))
 			}
 			else                  -> {
 			}
@@ -867,8 +861,8 @@ abstract class Robotron {
 		val dir = p.state - 1
 		if (dir in 0..3) {
 			val dim = 32f
-			val x = p.x - screen_x
-			val y = p.y - screen_y
+			val x = p.x
+			val y = p.y
 			drawPerson(g, x, y, dim, p.type, dir)
 		}
 	}
@@ -893,7 +887,7 @@ abstract class Robotron {
 		people.forEach { p ->
 			if (p.state < 0) {
 				g.color = GColor.WHITE
-				drawStickFigure(g, p.x - screen_x, p.y - screen_y + random(-2..2), PEOPLE_RADIUS)
+				drawStickFigure(g, p.x, p.y + random(-2..2), PEOPLE_RADIUS)
 			} else {
 				drawPerson(g, p)
 			}
@@ -947,10 +941,10 @@ abstract class Robotron {
 			}
 
 			g.color = msg.color
-			g.drawString(msg.msg, (msg.x - screen_x), (msg.y - screen_y))
+			g.drawString(msg.msg, (msg.x), (msg.y))
 			msg.y -= 1f
 			if (frameNumber % MESSAGE_FADE == 0) {
-				msg.color.darken(DARKEN_AMOUNT)
+				msg.color = msg.color.darkened(DARKEN_AMOUNT)
 				if (msg.color == GColor.BLACK) {
 					iter.remove()
 					continue
@@ -1000,10 +994,10 @@ abstract class Robotron {
 				iter.remove()
 				continue
 			}
-			x = p.x - screen_x
-			y = p.y - screen_y
+			x = p.x
+			y = p.y
 			when (p.type) {
-				PARTICLE_TYPE_BLOOD       -> {
+				PARTICLE_TYPE_BLOOD -> {
 					val pd2 = p.duration / 2
 					// draw a missile command type expl
 					if (duration <= pd2) {
@@ -1056,12 +1050,12 @@ abstract class Robotron {
 					val rad = player.radius
 
 					// draw swirling ?
-					val px = (player.x - screen_x)
-					val py = player.y - screen_y - rad * 2
+					val px = (player.x)
+					val py = player.y - rad * 2
 					val ry = rad * 0.5f
 					val deg = p.angle
-					val tx = px + rad * cos(deg)
-					val ty = py + ry * sin(deg)
+					val tx = px + rad * CMath.cosine(deg)
+					val ty = py + ry * CMath.sine(deg)
 					p.angle += 25
 					val star = particle_stars[p.star]
 					g.drawString(star, tx, ty)
@@ -1206,8 +1200,8 @@ abstract class Robotron {
 	private fun drawEnemies(g: AGraphics) {
 		var debugEnemyDrawn = false
 		enemies.filter { it.isOnscreen() }.forEachIndexed { enemyIndex, e ->
-			val x0 = e.x - screen_x
-			val y0 = e.y - screen_y
+			val x0 = e.x
+			val y0 = e.y
 			when (e.type) {
 				ENEMY_INDEX_GEN -> drawGenerator(g, x0, y0)
 				ENEMY_INDEX_ROBOT_N, ENEMY_INDEX_ROBOT_E, ENEMY_INDEX_ROBOT_S, ENEMY_INDEX_ROBOT_W -> drawRobot(
@@ -1422,8 +1416,8 @@ abstract class Robotron {
 	// -----------------------------------------------------------------------------------------------
 	private fun drawTankGen(g: AGraphics, x0: Float, y0: Float) {
 		val degrees = (frameNumber % 360).toFloat()
-		val dx = 5.0f * cos(degrees)
-		val dy = 5.0f * sin(degrees)
+		val dx = 5.0f * CMath.cosine(degrees)
+		val dy = 5.0f * CMath.sine(degrees)
 		g.color = GColor.GREEN
 		g.drawRect(
 			x0 - ENEMY_TANK_GEN_RADIUS + dx,
@@ -2131,8 +2125,8 @@ abstract class Robotron {
 		}
 
 		player.missles.forEach { m ->
-			val x = m.x - screen_x
-			val y = m.y - screen_y
+			val x = m.x
+			val y = m.y
 			g.drawLine(x, y, (x + m.dx), (y + m.dy), thickness)
 		}
 	}
@@ -2143,13 +2137,13 @@ abstract class Robotron {
 		// Draw the enemy missiles as orange dots
 		g.color = GColor.ORANGE
 		enemy_missiles.forEach { m ->
-			val x = m.x - ENEMY_PROJECTILE_RADIUS - screen_x
-			val y = m.y - ENEMY_PROJECTILE_RADIUS - screen_y
+			val x = m.x - ENEMY_PROJECTILE_RADIUS
+			val y = m.y - ENEMY_PROJECTILE_RADIUS
 			g.drawFilledOval(x, y, (ENEMY_PROJECTILE_RADIUS * 2), (ENEMY_PROJECTILE_RADIUS * 2))
 		}
 		tank_missiles.forEach { m ->
-			val x = m.x - TANK_MISSLE_RADIUS - screen_x
-			val y = m.y - TANK_MISSLE_RADIUS - screen_y
+			val x = m.x - TANK_MISSLE_RADIUS
+			val y = m.y - TANK_MISSLE_RADIUS
 			g.color = GColor.GREEN
 			g.drawOval(x, y, (TANK_MISSLE_RADIUS * 2), (TANK_MISSLE_RADIUS * 2))
 			g.color = GColor.YELLOW
@@ -3255,7 +3249,7 @@ abstract class Robotron {
 		if (frequency < EPSILON) {
 			g.drawLine(x0, y0, x1, y1, thickness)
 		} else {
-			val factor = sin(frameNumber * 50f) * frequency
+			val factor = CMath.sine(frameNumber * 50f) * frequency
 			nx = -vy * factor
 			ny = vx * factor
 			x2 = x0 + vx + nx
@@ -3281,8 +3275,8 @@ abstract class Robotron {
 		}
 	}
 
-	val bezier_pts_x = FloatArray(10)
-	val bezier_pts_y = FloatArray(10)
+	private val bezier_pts_x = FloatArray(10)
+	private val bezier_pts_y = FloatArray(10)
 
 	// -----------------------------------------------------------------------------------------------
 	private fun drawDoor(g: AGraphics, door: Wall, x0: Float, y0: Float, x1: Float, y1: Float) {
@@ -3352,37 +3346,14 @@ abstract class Robotron {
 		}
 	}
 
-	private fun _drawOnScreenWalls(g: AGraphics, cb: (AGraphics, Wall, Float, Float) -> Unit) {
-		var topV = computeTopLeftCornerVertex()
-		while (topV < MAZE_NUM_VERTS) {
-			var v = topV
-			val y = maze_verts_y[v]
-			if (y > screen_y + screen_height)
-				break
-			here@ while (v < MAZE_NUM_VERTS) {
-				val x = maze_verts_x[v]
-				if (x > screen_x + screen_width)
-					break
-				for (dir in renderDirs) {
-					getWall(v, dir)?.let {
-						it.nearV = v
-						cb(g, it, x, y)
-					} ?: break@here
-				}
-				v++
-			}
-			topV += MAZE_NUMCELLS_X + 1
-		}
-	}
-
 	// -----------------------------------------------------------------------------------------------
 	private fun drawDebugWallInfo(g: AGraphics) {
 		drawOnScreenWalls(g) { g, it, x, y ->
 			val x0 = maze_verts_x[it.farV]
 			val y0 = maze_verts_y[it.farV]
 			g.color = GColor.CYAN
-			val cx = (x + x0) / 2 - screen_x
-			val cy = (y + y0) / 2 - screen_y
+			val cx = (x + x0) / 2
+			val cy = (y + y0) / 2
 			g.drawString(getWallTypeString(it.type), cx, cy)
 		}
 	}
@@ -3419,8 +3390,8 @@ abstract class Robotron {
 							y0,
 							x1,
 							y1,
-							player.x - screen_x,
-							player.y - screen_y,
+							player.x,
+							player.y,
 							PLAYER_RADIUS_BARRIER
 						)
 					) {
@@ -3477,10 +3448,10 @@ abstract class Robotron {
 				}
 			}
 			if (!done) {
-				x0 -= screen_x
-				y0 -= screen_y
-				x1 -= screen_x
-				y1 -= screen_y
+				x0
+				y0
+				x1
+				y1
 				drawWall(g, info, x0, y0, x1, y1)
 				if (info.frequency > 0) {
 					info.frequency -= RUBBER_WALL_FREQENCY_COOLDOWN
@@ -4727,6 +4698,8 @@ abstract class Robotron {
 		when (game_state) {
 			GAME_STATE_INTRO     -> drawIntro(g)
 			GAME_STATE_PLAY      -> {
+				g.pushMatrix()
+				g.translate(-screen_x, -screen_y)
 				updatePlayers()
 				updatePeople()
 				updateMissiles()
@@ -4745,15 +4718,15 @@ abstract class Robotron {
 				players.forEach { player ->
 					when (player.state) {
 						PLAYER_STATE_SPAWNING -> {
-							drawPlayerHighlight(players[0], g)
-							drawPlayer(player, g, player.x - screen_x, player.y - screen_y, player.dir)
+							drawPlayerHighlight(player, g)
+							drawPlayer(player, g, player.x, player.y, player.dir)
 						}
 
 						PLAYER_STATE_ALIVE, PLAYER_STATE_TELEPORTED -> drawPlayer(
 							player,
 							g,
-							player.x - screen_x,
-							player.y - screen_y,
+							player.x,
+							player.y,
 							player.dir
 						)
 
@@ -4765,21 +4738,26 @@ abstract class Robotron {
 				drawMissiles(g)
 				if (game_type != GAME_TYPE_CLASSIC) {
 					val pos = cellToMazeCoords(end_cell)
-					drawEnd(g, pos[0] - screen_x, pos[1] - screen_y)
+					drawEnd(g, pos[0], pos[1])
 				}
-				drawPlayerInfo(players[0], g)
+				drawDebug(g)
+				g.popMatrix()
+				drawPlayerInfo(player, g)
 				if (Utils.isDebugEnabled()) {
-					drawDebug(g)
 					drawDebugButtons(g)
 				}
 			}
 			GAME_STATE_GAME_OVER -> {
+				g.pushMatrix()
+				g.translate(-screen_x, -screen_y)
 				drawMaze(g)
 				drawEnemies(g)
 				drawPeople(g)
 				drawMissiles(g)
 				val pos = cellToMazeCoords(end_cell)
-				if (game_type != GAME_TYPE_CLASSIC) drawEnd(g, pos[0] - screen_x, pos[1] - screen_y)
+				if (game_type != GAME_TYPE_CLASSIC)
+					drawEnd(g, pos[0], pos[1])
+				g.popMatrix()
 				drawPlayerInfo(players[0], g)
 				drawGameOver(g)
 			}
@@ -4881,18 +4859,19 @@ abstract class Robotron {
 	fun setCursorPressed(pressed: Boolean) {
 		if (pressed) {
 			when (game_state) {
-				GAME_STATE_INTRO                      -> downTime = clock
-				GAME_STATE_PLAY, GAME_STATE_GAME_OVER -> players[0].firing = true
+				GAME_STATE_INTRO -> downTime = clock
+				GAME_STATE_PLAY -> players[0].firing = true
 			}
 		} else {
 			when (game_state) {
-				GAME_STATE_INTRO                      -> {
+				GAME_STATE_INTRO -> {
 					if (downTime > 0 && clock - downTime < 1000) {
 						newGame()
 					}
 					downTime = 0
 				}
-				GAME_STATE_PLAY, GAME_STATE_GAME_OVER -> players[0].firing = false
+
+				GAME_STATE_PLAY -> players[0].firing = false
 			}
 		}
 	}
@@ -4948,7 +4927,7 @@ abstract class Robotron {
 				}
 			}
 
-			GAME_STATE_PLAY, GAME_STATE_GAME_OVER -> {
+			GAME_STATE_PLAY -> {
 				players[0].target_dx = (screen_x + x).roundToInt() - player.x
 				players[0].target_dy = (screen_y + y).roundToInt() - player.y
 			}
@@ -4957,5 +4936,9 @@ abstract class Robotron {
 
 	fun setGameStateIntro() {
 		game_state = GAME_STATE_INTRO
+	}
+
+	fun gameOver() {
+		game_state = GAME_STATE_GAME_OVER
 	}
 }

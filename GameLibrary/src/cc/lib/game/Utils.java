@@ -79,6 +79,13 @@ public class Utils {
     }
 
     /**
+     * @param expr
+     */
+    public static void assertFalse(boolean expr, String expression) {
+        assertTrue(!expr, expression);
+    }
+
+    /**
      * @param obj
      */
     public static void assertNull(Object obj) {

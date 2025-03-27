@@ -14,9 +14,9 @@ open class SOCComponent internal constructor() : AWTComponent(), UIComponent {
 	private lateinit var delegate: UIRenderer
 	@JvmField
     protected var progress = 1f
-	override fun paint(g: AWTGraphics, mouseX: Int, mouseY: Int) {
+	override fun paint(g: AWTGraphics) {
 		//g.clearScreen(GColor.DARK_GRAY);
-		delegate.draw(g, mouseX, mouseY)
+		delegate.draw(g)
 		setMinimumSize(delegate.minDimension)
 	}
 

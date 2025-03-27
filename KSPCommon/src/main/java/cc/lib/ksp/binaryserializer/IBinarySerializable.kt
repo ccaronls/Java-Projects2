@@ -80,7 +80,7 @@ interface IBinarySerializable<T> {
 	fun deserialize(input: DataInputStream)
 
 	companion object {
-		private fun toByteArrayOutputStream(instance: IBinarySerializable<*>): ByteArrayOutputStream {
+		fun toByteArrayOutputStream(instance: IBinarySerializable<*>): ByteArrayOutputStream {
 			val byteArrayStream = ByteArrayOutputStream()
 			val dataOutputStream = DataOutputStream(byteArrayStream)
 

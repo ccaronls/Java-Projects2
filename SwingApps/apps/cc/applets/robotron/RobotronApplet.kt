@@ -63,13 +63,14 @@ class RobotronApplet : AWTKeyboardAnimationApplet() {
 			g.color = GColor.YELLOW
 			val strHelp = """
 	        	HELP:
-	        	M   - add snake missle
-	        	L   - add powerup
-	        	H   - help screen
-	        	R   - return to intro
-	        	N   - goto next level [${robotron.gameLevel + 1}]
-	        	P   - goto previous level [${robotron.gameLevel - 1}
-	        	V   - toggle visibility mode [${Robotron.GAME_VISIBILITY}]
+	        	M   - Add snake missle
+	        	L   - Add powerup
+	        	H   - Help screen
+	        	Q   - Return to intro
+	        	N   - Goto next level [${robotron.gameLevel + 1}]
+	        	P   - Goto previous level [${robotron.gameLevel - 1}
+			    G   - Game Over
+	        	V   - Toggle visibility mode [${Robotron.GAME_VISIBILITY}]
 
 	        	""".trimIndent()
 			g.drawJustifiedString(20f, (screenHeight / 2).toFloat(), Justify.LEFT, Justify.CENTER, strHelp)
@@ -129,10 +130,11 @@ class RobotronApplet : AWTKeyboardAnimationApplet() {
 			}
 
 			KeyEvent.VK_H -> showHelp = true
-			KeyEvent.VK_R -> robotron.setGameStateIntro()
+			KeyEvent.VK_Q -> robotron.setGameStateIntro()
 			KeyEvent.VK_N -> robotron.nextLevel()
 			KeyEvent.VK_P -> robotron.prevLevel()
 			KeyEvent.VK_V -> Robotron.GAME_VISIBILITY = !Robotron.GAME_VISIBILITY
+			KeyEvent.VK_G -> robotron.gameOver()
 			/*
 			val strHelp = """
 	        	HELP:
