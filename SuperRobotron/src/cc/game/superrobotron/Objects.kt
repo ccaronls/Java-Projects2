@@ -4,28 +4,16 @@ import cc.lib.game.GColor
 import cc.lib.ksp.binaryserializer.BinarySerializable
 import cc.lib.utils.random
 import java.util.LinkedList
+import kotlin.math.max
+import kotlin.math.min
 
-@BinarySerializable("MissileInt")
-abstract class AMissileInt {
-	var x: Int = 0
-	var y: Int = 0
-	var dx: Int = 0
-	var dy: Int = 0
-	var duration: Int = 0
-
-	fun init(x: Int, y: Int, dx: Int, dy: Int, duration: Int) {
-		this.x = x
-		this.y = y
-		this.dx = dx
-		this.dy = dy
-		this.duration = duration
-	}
+abstract class Object {
+	var x = 0f
+	var y = 0f
 }
 
-@BinarySerializable("MissileFloat")
-abstract class AMissileFloat {
-	var x: Float = 0f
-	var y: Float = 0f
+@BinarySerializable("Missile")
+abstract class AMissileFloat : Object() {
 	var dx: Float = 0f
 	var dy: Float = 0f
 	var duration: Int = 0
@@ -40,10 +28,7 @@ abstract class AMissileFloat {
 }
 
 @BinarySerializable("MissileSnake")
-abstract class AMissileSnake {
-	// position of head
-	var x: Int = 0
-	var y: Int = 0
+abstract class AMissileSnake : Object() {
 
 	// counter
 	var duration: Int = 0
@@ -53,7 +38,7 @@ abstract class AMissileSnake {
 	var dir: IntArray = IntArray(SNAKE_MAX_SECTIONS)
 	var num_sections = 0
 
-	fun init(x: Int, y: Int, duration: Int, state: Int) {
+	fun init(x: Float, y: Float, duration: Int, state: Int) {
 		this.x = x
 		this.y = y
 		this.duration = duration
@@ -75,13 +60,8 @@ abstract class AMissileSnake {
 		return dir.contentEquals(other.dir)
 	}
 
-	override fun hashCode(): Int {
-		var result = x
-		result = 31 * result + y
-		result = 31 * result + duration
-		result = 31 * result + state
-		result = 31 * result + dir.contentHashCode()
-		return result
+	fun kill() {
+		state = SNAKE_STATE_DYING
 	}
 }
 
@@ -110,6 +90,20 @@ abstract class AWall {
 	var visible: Boolean = false
 	var ending: Boolean = false
 
+	// populated by last collision check with the vertex used as nearest
+	@Transient
+	var nearV: Int = 0
+		set(value) {
+			field = value
+			farV = if (value == v0) v1 else v0
+		}
+	@Transient
+	var farV: Int = -1
+		private set
+	@Transient
+	var adjacent: Wall? = null
+
+
 	fun clear() {
 		health = 0
 		frame = health
@@ -120,6 +114,9 @@ abstract class AWall {
 		visible = false
 		ending = false
 		frequency = 0f
+		nearV = -1
+		farV = -1
+		adjacent = null
 	}
 
 	fun initDoor(state: Int, v0: Int, v1: Int) {
@@ -150,36 +147,40 @@ frame=$frame"""
 		}
 		return str
 	}
+
+	override fun equals(other: Any?): Boolean {
+		(other as? Wall)?.let {
+			return min(v0, v1) == min(it.v0, it.v1) && max(v0, v1) == max(it.v0, it.v1)
+		}
+		return super.equals(other)
+	}
 }
 
 @BinarySerializable("Player")
-abstract class APlayer {
-	var x = 0
-	var y = 0
-	var dx = 0
-	var dy = 0
+abstract class APlayer : Object() {
+	var dx = 0f
+	var dy = 0f
 	var dir = DIR_DOWN
 	var scale = 1f
 	var score = 0
 	var lives = 0
-	var target_dx = 0
-	var target_dy = 0
-	var start_x = 0
-	var start_y = 0
+	var target_dx = 0f
+	var target_dy = 0f
+	var start_cell = intArrayOf(0, 0)
 	var powerup = -1
 	var powerup_duration = 0
 	var keys = 0
 	var movement = 0
 	var firing = false
-	@Transient
-	var primary_verts = intArrayOf(-1, -1, -1, -1)
+	var start_x: Float = 0f
+	var start_y: Float = 0f
 
 	//int killed_frame = 0; // the frame the player was killed
 	@Transient
-	var missles = Array(PLAYER_MAX_MISSLES) { MissileInt() }
+	var missles = ManagedArray(Array(PLAYER_MAX_MISSLES) { Missile() })
 	var num_missles = 0
-	var hulk_charge_dx = 0
-	var hulk_charge_dy = 0
+	var hulk_charge_dx = 0f
+	var hulk_charge_dy = 0f
 	var hulk_charge_frame = 0
 
 	//boolean teleported = false;
@@ -187,42 +188,95 @@ abstract class APlayer {
 	var next_state_frame = 0
 	var stun_dx = 0f
 	var stun_dy = 0f
+
 	@Transient
-	var tracer_x = IntArray(PLAYER_SUPERSPEED_NUM_TRACERS)
+	val tracer = ManagedArray(Array(PLAYER_SUPERSPEED_NUM_TRACERS) { Tracer() })
+
 	@Transient
-	var tracer_y = IntArray(PLAYER_SUPERSPEED_NUM_TRACERS)
-	var num_tracers = 0
-	@Transient
-	var tracer_color = Array(PLAYER_SUPERSPEED_NUM_TRACERS) { GColor.TRANSPARENT }
-	@Transient
-	var tracer_dir = IntArray(PLAYER_SUPERSPEED_NUM_TRACERS)
-	@Transient
-	var barrier_electric_wall = intArrayOf(-1, -1, -1, -1)
+	var barrier_electric_wall = floatArrayOf(-1f, -1f, -1f, -1f)
 	var hit_type = -1 // these are the 'reset' values
 	var hit_index = -1
-	var cellXY = IntArray(2)
+	var cur_cell = IntArray(2) { -1 }
+
 	@Transient
 	var path: MutableList<IntArray> = LinkedList()
 	var last_shot_frame = 0
 
-	@Transient
-	var collision_info: AWall? = null
+	val radius: Float
+		get() = (scale * PLAYER_RADIUS)
 
-	init {
-		//for (i in 0 until PLAYER_MAX_MISSLES) missles[i] = MissileInt()
+	val isAlive: Boolean
+		get() = state == PLAYER_STATE_ALIVE
+
+	fun reset(frameNumber: Int) {
+		missles.clear()
+		tracer.clear()
+		x = start_x
+		y = start_y
+		powerup = -1
+		scale = 1.0f
+		last_shot_frame = 0
+		stun_dy = 0f
+		stun_dx = 0f
+		hit_index = -1
+		hit_type = -1
+		next_state_frame = frameNumber + PLAYER_SPAWN_FRAMES
+		state = PLAYER_STATE_SPAWNING
+		barrier_electric_wall.fill(-1f)
 	}
 }
 
 @BinarySerializable("Particle")
-abstract class AParticle {
-	var x: Int = 0
-	var y: Int = 0
+abstract class AParticle : Object() {
 	var type: Int = 0
 	var duration: Int = 0
 	var start_frame: Int = 0
 	var star: Int = 0
-	var angle: Int = 0
+	var angle: Float = 0f
 	var playerIndex: Int = 0
+}
+
+@BinarySerializable("Tracer")
+abstract class ATracer() : Object() {
+	var color = GColor.TRANSPARENT
+	var dir = 0
+
+	fun init(x: Float, y: Float, color: GColor, dir: Int = 0) {
+		this.x = x
+		this.y = y
+		this.color = color
+		this.dir = dir
+	}
+
+}
+
+@BinarySerializable("People")
+abstract class APeople : Object() {
+	var type: Int = 0
+	var state: Int = 0
+}
+
+@BinarySerializable("Enemy")
+abstract class AEnemy : Object() {
+	var type: Int = 0
+	var next_update: Int = 0
+	var spawned_frame = 0
+	var killable: Boolean = true
+}
+
+@BinarySerializable("Message")
+abstract class AMessage : Object() {
+
+	var msg = ""
+	var color = GColor.TRANSPARENT
+
+	fun init(x: Float, y: Float, str: String, color: GColor = GColor.WHITE) {
+		this.x = x
+		this.y = y
+		this.msg = str
+		this.color = color
+	}
+
 }
 
 // -- BUTTONS ON INTRO SCREEN --

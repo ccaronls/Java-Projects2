@@ -936,7 +936,7 @@ abstract class AGraphics : VertexList, Renderable {
 	 * @param text
 	 * @return the width of the line in pixels
 	 */
-	abstract fun drawStringLine(x: Float, y: Float, hJust: Justify, text: String): Float
+	protected abstract fun drawStringLine(x: Float, y: Float, hJust: Justify, text: String): Float
 
 	/**
 	 *

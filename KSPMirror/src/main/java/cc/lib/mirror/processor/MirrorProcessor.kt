@@ -34,8 +34,6 @@ class MirrorProcessor(
 
 	fun KSType.isMirroredOrStructure() = isMirrored() || isList() || isMap()
 
-	fun KSPropertyDeclaration.getName(): String = simpleName.asString()
-
 //	fun KSPropertyDeclaration.getDirtyName(): String = "_${simpleName.asString()}DirtyFlag"
 
 	inner class Visitor(private val file: OutputStream) : KSVisitorVoid() {
@@ -90,16 +88,6 @@ class MirrorProcessor(
 
 			fun StringBuffer.appendLns(txt: String) {
 				append(indent).append(txt.replace("\n", "\n$indent"))
-			}
-
-			fun KSType.defaultValue(decl: KSPropertyDeclaration): String {
-				if (nullability == Nullability.NULLABLE)
-					return "null"
-				try {
-					return match(toString()) ?: (decl.type.resolve().toFullyQualifiedName() + "()")
-				} catch (e: Exception) {
-					throw IllegalArgumentException("No default value for '${decl.getName()} : ${toString()}'. Please mark this property as nullable.")
-				}
 			}
 
 			val dirtyFlagFieldName = "_dirtyFlag"
@@ -468,42 +456,4 @@ ${printhashCodeContent("\t\t")}
 		symbol.accept(Visitor(file), Unit)
 	}
 
-	companion object {
-		val defaultValueRegExMap = mapOf(
-			"Byte" to "0",
-			"Short" to "0",
-			"Int" to "0",
-			"Long" to "0L",
-			"Float" to "0f",
-			"Double" to "0.0",
-			"Boolean" to "false",
-			"String" to "\"\"",
-			"Char" to "'0'",
-			"(Mutable|Mirrored)?List<(in|out)?(.+)>" to "listOf<$3>().toMirroredList()",
-			"(Mutable|Mirrored)?Map<(in|out)?(.+)>" to "mapOf<$3>().toMirroredMap()",
-			"MirroredArray<(in|out)?(.*)>" to "arrayOf<$2>().toMirroredArray()"
-		).map {
-			it.key.toRegex() to it.value
-		}
-
-		fun match(value: String): String? {
-			val options = defaultValueRegExMap.map {
-				it.first.matchEntire(value) to it.second
-			}.filter { it.first != null }
-
-			if (options.isEmpty())
-				return null
-			if (options.size != 1) {
-				throw IllegalArgumentException("Expecting 1 option for $value but found: ${options.joinToString { it.first!!.value }}")
-			}
-
-			val matcher = options[0].first!!
-			var result = options[0].second
-			for (idx in 1 until matcher.groupValues.size) {
-				result = result.replace("$$idx", matcher.groupValues[idx])
-			}
-
-			return result
-		}
-	}
 }

@@ -583,4 +583,5 @@ public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializ
     public Vector2D toImmutable() {
         return this;
     }
+
 }

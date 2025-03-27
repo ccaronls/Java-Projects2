@@ -1407,25 +1407,42 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     }
     
     /**
-     * 
+     *
      * @param x_pts
      * @param y_pts
      * @param thickness
      */
-    public final void drawLineStrip(int [] x_pts, int [] y_pts, int thickness) {
+    public final void drawLineStrip(int[] x_pts, int[] y_pts, int thickness) {
         Utils.assertTrue(x_pts.length == y_pts.length);
         float oldWidth = setLineWidth(thickness);
         begin();
-        for (int i=0; i<x_pts.length-1; i++) {
+        for (int i = 0; i < x_pts.length - 1; i++) {
             vertex(x_pts[i], y_pts[i]);
-            vertex(x_pts[i+1], y_pts[i+1]);
+            vertex(x_pts[i + 1], y_pts[i + 1]);
         }
         drawLines();
         setLineWidth(oldWidth);
     }
-    
+
     /**
-     * draw an empty rectangle 
+     * @param x_pts
+     * @param y_pts
+     * @param thickness
+     */
+    public final void drawLineStrip(float[] x_pts, float[] y_pts, float thickness) {
+        Utils.assertTrue(x_pts.length == y_pts.length);
+        float oldWidth = setLineWidth(thickness);
+        begin();
+        for (int i = 0; i < x_pts.length - 1; i++) {
+            vertex(x_pts[i], y_pts[i]);
+            vertex(x_pts[i + 1], y_pts[i + 1]);
+        }
+        drawLines();
+        setLineWidth(oldWidth);
+    }
+
+    /**
+     * draw an empty rectangle
      */
     public final void drawRect(float x, float y, float w, float h, float thickness) {
         begin();

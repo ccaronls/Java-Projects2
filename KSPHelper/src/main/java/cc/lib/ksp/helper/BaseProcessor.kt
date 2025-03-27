@@ -13,6 +13,7 @@ import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.symbol.ClassKind
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
+import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import com.google.devtools.ksp.symbol.KSType
 import com.google.devtools.ksp.symbol.Nullability
 import java.io.File
@@ -60,6 +61,10 @@ abstract class BaseProcessor(
 		resolver.getClassDeclarationByName(Array::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
 	}
 
+	val collectionType by lazy {
+		resolver.getClassDeclarationByName(Collection::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
+	}
+
 	val booleanType by lazy {
 		resolver.getClassDeclarationByName(Boolean::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
 	}
@@ -100,6 +105,10 @@ abstract class BaseProcessor(
 		return mirrorType.isAssignableFrom(this)
 	}
 
+	fun KSType.isString(): Boolean {
+		return stringType.isAssignableFrom(this)
+	}
+
 	fun KSType.isIData(): Boolean {
 		return idataType.isAssignableFrom(this)
 	}
@@ -126,6 +135,15 @@ abstract class BaseProcessor(
 
 	fun KSType.isArray(): Boolean {
 		return arrayType.isAssignableFrom(this)
+	}
+
+	fun KSType.isCollection(): Boolean {
+		return collectionType.isAssignableFrom(this)
+	}
+
+	fun KSType.isArrayType(): Boolean {
+		return declaration.qualifiedName?.asString()?.startsWith("kotlin.Array") == true ||
+			declaration.qualifiedName?.asString()?.endsWith("Array") == true
 	}
 
 	fun KSType.isMirroredArray(): Boolean {
@@ -155,6 +173,9 @@ abstract class BaseProcessor(
 		return "<${arguments.joinToString { it.type!!.resolve().toFullyQualifiedName() }}>"
 	}
 
+	/**
+	 * Gets string version of the type with nullability qualifier and template arguments
+	 */
 	fun KSType.toFullyQualifiedName(): String {
 		var qualifiedName = (declaration as? KSClassDeclaration)?.qualifiedName?.asString()
 			?: throw IllegalArgumentException("Cannot get fully qualified name for $this")
@@ -174,6 +195,30 @@ abstract class BaseProcessor(
 				throw DeferException("Class $it is an error")
 		}
 	}
+
+	fun KSPropertyDeclaration.getName(): String = simpleName.asString()
+
+	fun KSType.arrayElementType(): String {
+		return if (declaration.qualifiedName?.asString()?.startsWith("kotlin.Array") == true) {
+			arguments[0].type?.resolve()?.declaration?.qualifiedName?.asString()
+				?: throw IllegalArgumentException("Unknown array type")
+		} else if (declaration.qualifiedName?.asString()?.endsWith("Array") == true) {
+			"kotlin." + declaration.simpleName.asString().removeSuffix("Array")
+		} else {
+			throw IllegalArgumentException("Not an array type")
+		}
+	}
+
+	fun KSType.defaultValue(decl: KSPropertyDeclaration): String {
+		if (nullability == Nullability.NULLABLE)
+			return "null"
+		try {
+			return match(toString()) ?: (decl.type.resolve().toFullyQualifiedName() + "()")
+		} catch (e: Exception) {
+			throw IllegalArgumentException("No default value for '${decl.getName()} : ${toString()}'. Please mark this property as nullable.")
+		}
+	}
+
 
 	fun OutputStream.print(s: String) {
 		write(s.toByteArray())
@@ -237,8 +282,43 @@ abstract class BaseProcessor(
 
 	}
 
-}
+	companion object {
+		private val defaultValueRegExMap = mapOf(
+			"Byte" to "0",
+			"Short" to "0",
+			"Int" to "0",
+			"Long" to "0L",
+			"Float" to "0f",
+			"Double" to "0.0",
+			"Boolean" to "false",
+			"String" to "\"\"",
+			"Char" to "'0'",
+			"(Mutable|Mirrored)?List<(in|out)?(.+)>" to "listOf<$3>().toMirroredList()",
+			"(Mutable|Mirrored)?Map<(in|out)?(.+)>" to "mapOf<$3>().toMirroredMap()",
+			"MirroredArray<(in|out)?(.*)>" to "arrayOf<$2>().toMirroredArray()"
+		).map {
+			it.key.toRegex() to it.value
+		}
 
-fun OutputStream.print(s: String) {
-	write(s.toByteArray())
+		private fun match(value: String): String? {
+			val options = defaultValueRegExMap.map {
+				it.first.matchEntire(value) to it.second
+			}.filter { it.first != null }
+
+			if (options.isEmpty())
+				return null
+			if (options.size != 1) {
+				throw IllegalArgumentException("Expecting 1 option for $value but found: ${options.joinToString { it.first!!.value }}")
+			}
+
+			val matcher = options[0].first!!
+			var result = options[0].second
+			for (idx in 1 until matcher.groupValues.size) {
+				result = result.replace("$$idx", matcher.groupValues[idx])
+			}
+
+			return result
+		}
+	}
+
 }

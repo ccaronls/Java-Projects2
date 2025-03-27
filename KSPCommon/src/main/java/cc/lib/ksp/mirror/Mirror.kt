@@ -35,4 +35,5 @@ enum class DirtyType {
  * Created by Chris Caron on 11/14/23.
  */
 @Target(AnnotationTarget.CLASS)
+@Retention(AnnotationRetention.SOURCE)
 annotation class Mirror(val dirtyType: DirtyType = DirtyType.COMPLEX)

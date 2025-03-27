@@ -388,3 +388,6 @@ fun <T> List<T>.randomIndex() = random(indices)
 
 fun <T> List<T>.randomIndexOrNull() = if (isNotEmpty()) random(indices) else null
 
+fun randomFloat(max: Float): Float = random((max * 1000).roundToInt()) / 1000f
+
+fun randomFloat(min: Float, max: Float) = random(((max - min) * 1000).roundToInt()) / 1000f

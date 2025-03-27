@@ -1,5 +1,11 @@
 package cc.lib.game;
 
+import org.jetbrains.annotations.NotNull;
+
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+
 import cc.lib.reflector.Reflector;
 
 /**
@@ -98,7 +104,7 @@ public final class GColor extends Reflector<GColor> {
     public float getRed() {
         return ((float)red())/255;
     }
-    
+
     /**
      * Return green component value between 0-1
      * @return
@@ -106,7 +112,7 @@ public final class GColor extends Reflector<GColor> {
     public float getGreen() {
         return ((float)green())/255;
     }
-    
+
     /**
      * Return blue component value between 0-1
      * @return
@@ -147,20 +153,27 @@ public final class GColor extends Reflector<GColor> {
     }
 
     /**
-     * 
      * @param amount value between 0-1 to indcate amount of RGB to remove
      * @return
      */
-    public final GColor darkened(float amount) {
+    public GColor darkened(float amount) {
         if (amount < 0.01f)
             return this;
+        GColor copy = new GColor(this);
+        copy.darken(amount);
+        return copy;
+    }
+
+    public void darken(float amount) {
+        if (amount < 0.01f)
+            return;
         float R = amount * getRed();
         float G = amount * getGreen();
         float B = amount * getBlue();
         R = Utils.clamp(getRed() - R, 0, 255);
         G = Utils.clamp(getGreen() - G, 0, 255);
         B = Utils.clamp(getBlue() - B, 0, 255);
-        return new GColor(R, G, B, getAlpha());
+        set(Math.round(R), Math.round(G), Math.round(B), alpha());
     }
 
     /**
@@ -169,31 +182,38 @@ public final class GColor extends Reflector<GColor> {
      * @param amount value between 0-1 to indcate amount of RGB to add
      * @return
      */
-    public final GColor lightened(float amount) {
+    public GColor lightened(float amount) {
         if (amount < 0.01f)
             return this;
+        GColor copy = new GColor(this);
+        copy.lighten(amount);
+        return copy;
+    }
+
+    public void lighten(float amount) {
+        if (amount < 0.01f)
+            return;
         float R = amount * getRed();
         float G = amount * getGreen();
         float B = amount * getBlue();
         R = Utils.clamp(getRed() + R, 0, 255);
         G = Utils.clamp(getGreen() + G, 0, 255);
         B = Utils.clamp(getBlue() + B, 0, 255);
-        return new GColor(R, G, B, getAlpha());
+        set(Math.round(R), Math.round(G), Math.round(B), alpha());
     }
 
     /**
-     * 
      * @return
      */
-    public final int toARGB() {
+    public int toARGB() {
         return argb;
     }
 
     /**
-     * 
+     *
      * @return
      */
-    public final int toRGB() {
+    public int toRGB() {
         return 0xff000000 | argb;
     }
 
@@ -204,7 +224,7 @@ public final class GColor extends Reflector<GColor> {
      * @return
      */
     @Deprecated
-    public final int toRGBA() {
+    public int toRGBA() {
         int alpha = (argb >>> 24) & 0xff;
         return (argb << 8) | alpha;
     }
@@ -237,34 +257,34 @@ public final class GColor extends Reflector<GColor> {
     }
 
     @Override
-    public final String toString() {
+    public String toString() {
         if (name != null)
             return name;
         return String.format("ARGB[%d,%d,%d,%d]", alpha(), red(), green(), blue());
     }
 
     @Override
-    public final boolean equals(Object o) {
+    public boolean equals(Object o) {
         if (o == null)
             return false;
         if (!(o instanceof GColor))
             return false;
         if (o == this)
-        	return true;
-        GColor c = (GColor)o;
+            return true;
+        GColor c = (GColor) o;
         return argb == c.argb;
     }
 
-    public final boolean equalsWithinThreshold(GColor c, int threshold) {
+    public boolean equalsWithinThreshold(GColor c, int threshold) {
         if (c == null)
             return false;
         if (c == this)
             return true;
-        if (Math.abs(alpha()-c.alpha())>threshold)
+        if (Math.abs(alpha() - c.alpha()) > threshold)
             return false;
-        if (Math.abs(red()-c.red())>threshold)
+        if (Math.abs(red() - c.red()) > threshold)
             return false;
-        if (Math.abs(green()-c.green())>threshold)
+        if (Math.abs(green() - c.green()) > threshold)
             return false;
         if (Math.abs(blue()-c.blue())>threshold)
             return false;
@@ -277,18 +297,18 @@ public final class GColor extends Reflector<GColor> {
      * @param factor
      * @return
      */
-    public final GColor interpolateTo(GColor target, float factor) {
+    public GColor interpolateTo(GColor target, float factor) {
 
         if (factor > 0.99)
             return this;
         if (factor < 0.01)
             return target;
 
-        float R = Utils.clamp(getRed()   * factor + target.getRed() * (1.0f - factor), 0, 1);
+        float R = Utils.clamp(getRed() * factor + target.getRed() * (1.0f - factor), 0, 1);
         float G = Utils.clamp(getGreen() * factor + target.getGreen() * (1.0f - factor), 0, 1);
-        float B = Utils.clamp(getBlue()  * factor + target.getBlue() * (1.0f - factor), 0, 1);
+        float B = Utils.clamp(getBlue() * factor + target.getBlue() * (1.0f - factor), 0, 1);
         float A = Utils.clamp(getAlpha() * factor + target.getAlpha() * (1.0f - factor), 0, 1);
-        
+
         return new GColor(R, G, B, A);
     }
 
@@ -298,8 +318,8 @@ public final class GColor extends Reflector<GColor> {
      * @param alpha
      * @return
      */
-	public final GColor withAlpha(float alpha) {
-	    return new GColor(red(), green(), blue(), Math.round(alpha*255));
+    public GColor withAlpha(float alpha) {
+        return new GColor(red(), green(), blue(), Math.round(alpha * 255));
     }
 
     /**
@@ -308,22 +328,22 @@ public final class GColor extends Reflector<GColor> {
      * @param alpha
      * @return
      */
-    public final GColor withAlpha(int alpha) {
+    public GColor withAlpha(int alpha) {
         return new GColor(red(), green(), blue(), alpha);
     }
 
     /**
-	 * return a color with its components summed.
-	 * 
-	 * @param other
-	 * @return
-	 */
-	public final GColor add(GColor other) {
-		return new GColor(Math.min(1, getRed() + other.getRed()),
-    		Math.min(1, getGreen() + other.getGreen()),
-    		Math.min(1, getBlue() + other.getBlue()),
-    		Math.min(1, getAlpha() + other.getAlpha()));
-	}
+     * return a color with its components summed.
+     *
+     * @param other
+     * @return
+     */
+    public GColor add(GColor other) {
+        return new GColor(Math.min(1, getRed() + other.getRed()),
+                Math.min(1, getGreen() + other.getGreen()),
+                Math.min(1, getBlue() + other.getBlue()),
+                Math.min(1, getAlpha() + other.getAlpha()));
+    }
 
     @Override
     protected boolean isImmutable() {
@@ -334,11 +354,19 @@ public final class GColor extends Reflector<GColor> {
      * Return color with RGB components equal to 1-RGB. [.5,.5,.5] will be unchanged.
      * @return
      */
-    public final GColor inverted() {
-	    return new GColor(1f-getRed(), 1f-getGreen(), 1f-getBlue(), getAlpha());
+    public GColor inverted() {
+        return new GColor(1f - getRed(), 1f - getGreen(), 1f - getBlue(), getAlpha());
     }
 
-    public final IInterpolator<GColor> getInterpolator(GColor target) {
+    public IInterpolator<GColor> getInterpolator(GColor target) {
         return position -> interpolateTo(target, position);
+    }
+
+    public void serialize(@NotNull DataOutputStream output) throws IOException {
+        output.writeInt(argb);
+    }
+
+    public void deserialize(@NotNull DataInputStream input) throws IOException {
+        argb = input.readInt();
     }
 }

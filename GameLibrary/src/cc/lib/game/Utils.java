@@ -78,6 +78,13 @@ public class Utils {
         assertTrue(!expr, "Expression is true");
     }
 
+    /**
+     * @param obj
+     */
+    public static void assertNull(Object obj) {
+        assertTrue(obj == null, "Expected null got " + obj);
+    }
+
     public static void assertContains(Object o, Collection c) {
         if (DEBUG_ENABLED && !c.contains(o)) {
             throw new cc.lib.utils.GException("Object '" + o + "' is not contained by: " + c);
@@ -176,7 +183,7 @@ public class Utils {
      * @param radius
      * @return
      */
-    public static boolean isCircleIntersectingLineSeg(int x0, int y0, int x1, int y1, int px, int py, int radius) {
+    public static boolean isCircleIntersectingLineSeg(float x0, float y0, float x1, float y1, float px, float py, float radius) {
         float d2 = Utils.distSqPointSegment(px, py, x0, y0, x1, y1);
         float r2 = radius * radius;
         if (d2 < r2)
@@ -489,6 +496,21 @@ public class Utils {
      * @param radius
      * @return
      */
+    public static boolean isPointInsideCircle(float px, float py, float cx, float cy, float radius) {
+        float dx = px - cx;
+        float dy = py - cy;
+        float dist2 = dx * dx + dy * dy;
+        return dist2 <= (radius * radius);
+    }
+
+    /**
+     * @param px
+     * @param py
+     * @param cx
+     * @param cy
+     * @param radius
+     * @return
+     */
     public static boolean isPointInsideCircle(int px, int py, int cx, int cy, int radius) {
         int dx = px - cx;
         int dy = py - cy;
@@ -505,7 +527,7 @@ public class Utils {
      * @param r1
      * @return
      */
-    public static boolean isCirclesOverlapping(int px0, int py0, int r0, int px1, int py1, int r1) {
+    public static boolean isCirclesOverlapping(float px0, float py0, float r0, float px1, float py1, float r1) {
         float d = Utils.distSqPointPoint(px0, py0, px1, py1);
         float d2 = r0 + r1;
         d2 *= d2;
@@ -1138,6 +1160,34 @@ public class Utils {
 
         x_pts[pt] = Math.round(ctrl_x3);
         y_pts[pt] = Math.round(ctrl_y3);
+
+        pt++;
+    }
+
+    public static void computeBezierCurvePoints(float[] x_pts, float[] y_pts, float ctrl_x0, float ctrl_y0, float ctrl_x1, float ctrl_y1, float ctrl_x2, float ctrl_y2, float ctrl_x3, float ctrl_y3) {
+        Utils.assertTrue(x_pts.length == y_pts.length);
+
+        // construct the matrix for a beizer curve
+        int steps = x_pts.length - 1;
+        //Point [] points = new Point[steps+1];
+
+        float step = 1.0f / steps;
+        int pt = 0;
+        for (float t = 0; t < 1.0f; t += step) {
+            float fW = 1 - t;
+            float fA = fW * fW * fW;
+            float fB = 3 * t * fW * fW;
+            float fC = 3 * t * t * fW;
+            float fD = t * t * t;
+            float fX = fA * ctrl_x0 + fB * ctrl_x1 + fC * ctrl_x2 + fD * ctrl_x3;
+            float fY = fA * ctrl_y0 + fB * ctrl_y1 + fC * ctrl_y2 + fD * ctrl_y3;
+            x_pts[pt] = fX;
+            y_pts[pt] = fY;
+            pt++;
+        }
+
+        x_pts[pt] = ctrl_x3;
+        y_pts[pt] = ctrl_y3;
 
         pt++;
     }

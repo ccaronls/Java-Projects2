@@ -180,11 +180,7 @@ abstract class AAnimation<T>(durationMSecs: Long, repeats: Int = 0, oscillateOnR
 			} else if (state == State.STARTED) {
 				state = State.RUNNING
 				lastTime = t
-				if (isStartDirectionReverse) {
-					onStartedReversed(g)
-				} else {
-					onStarted(g)
-				}
+				onStarted(g, isStartDirectionReverse)
 			}
 			val delta = ((t - startTime) % duration).toFloat()
 			val repeats = (t - startTime) / duration

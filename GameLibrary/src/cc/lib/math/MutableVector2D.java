@@ -1,5 +1,11 @@
 package cc.lib.math;
 
+import org.jetbrains.annotations.NotNull;
+
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+
 import cc.lib.game.IVector2D;
 
 
@@ -118,5 +124,16 @@ public class MutableVector2D extends Vector2D {
     public MutableVector2D toMutable() {
         return this;
     }
+
+    public void serialize(@NotNull DataOutputStream output) throws IOException {
+        output.writeFloat(x);
+        output.writeFloat(y);
+    }
+
+    public void deserialize(@NotNull DataInputStream input) throws IOException {
+        x = input.readFloat();
+        y = input.readFloat();
+    }
+
 }
 
