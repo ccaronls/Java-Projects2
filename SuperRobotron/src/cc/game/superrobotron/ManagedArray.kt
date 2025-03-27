@@ -2,6 +2,7 @@ package cc.game.superrobotron
 
 import cc.lib.ksp.binaryserializer.IBinarySerializable
 import kotlin.math.max
+import kotlin.math.min
 
 /**
  * Wrapper for an array with a fixed size. Returned size is determined by number of adds.
@@ -10,6 +11,9 @@ import kotlin.math.max
 class ManagedArray<T : IBinarySerializable<T>>(private val array: Array<T>) : MutableCollection<T>, MutableIterable<T> {
 	override var size = 0
 		private set
+
+	val capacity: Int
+		get() = array.size
 
 	fun add(): T {
 		return array[size++]
@@ -20,7 +24,8 @@ class ManagedArray<T : IBinarySerializable<T>>(private val array: Array<T>) : Mu
 	}
 
 	fun remove(idx: Int) {
-		array[idx].copy(array[--size])
+		if (idx in 0 until size)
+			array[idx].copy(array[--size])
 	}
 
 	operator fun get(idx: Int) = array[idx]
@@ -33,14 +38,15 @@ class ManagedArray<T : IBinarySerializable<T>>(private val array: Array<T>) : Mu
 
 	inner class ManagedArrayIterator : MutableIterator<T> {
 		private var pos = 0
-		override fun hasNext(): Boolean = pos < size
+		private val max = size
+		override fun hasNext(): Boolean = pos < min(max, size)
 
 		override fun next(): T {
 			return array[pos++]
 		}
 
 		override fun remove() {
-			remove(pos)
+			remove(pos - 1)
 		}
 
 		val index: Int

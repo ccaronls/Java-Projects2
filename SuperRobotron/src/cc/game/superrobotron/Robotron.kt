@@ -6,19 +6,30 @@ import cc.lib.game.Justify
 import cc.lib.game.Utils
 import cc.lib.logger.LoggerFactory
 import cc.lib.math.CMath
-import cc.lib.utils.MutablePair
 import cc.lib.utils.increment
 import cc.lib.utils.random
 import cc.lib.utils.randomFloat
 import java.util.Arrays
-import kotlin.math.*
+import kotlin.math.abs
+import kotlin.math.cos
+import kotlin.math.min
+import kotlin.math.roundToInt
+import kotlin.math.sin
+import kotlin.math.sqrt
 
-// Independent transferable
+/**
+ * Variation on the great robotron game from 1982
+ *
+ * The robotron traverses a maze to escape through the portal
+ * all the while battling bot, brains, tanks and thugs.
+ *
+ * But this time our hero has some new tricks up his sleeve!
+ */
 abstract class Robotron {
 
 	companion object {
 		var GAME_VISIBILITY = false
-		val MAX_PLAYERS = 8
+		val MAX_PLAYERS = 4
 		val log = LoggerFactory.getLogger(Robotron::class.java)
 	}
 
@@ -79,25 +90,27 @@ abstract class Robotron {
 		val arr = Array(MAZE_NUM_VERTS) { Array<Wall?>(4) { null } }
 		fun addWall(v0: Int, v1: Int, dir: WallDir) {
 			Utils.assertFalse(v0 == v1)
-			Utils.assertTrue(v0 in 0 until MAZE_NUM_VERTS)
-			Utils.assertTrue(v1 in 0 until MAZE_NUM_VERTS)
+			//Utils.assertTrue(v0 in 0 until MAZE_NUM_VERTS)
+			//Utils.assertTrue(v1 in 0 until MAZE_NUM_VERTS, "Index $v1 out of range $MAZE_NUM_VERTS,$dir")
 			if (v0 in 0 until MAZE_NUM_VERTS && v1 in 0 until MAZE_NUM_VERTS) {
 				val wall = Wall()
 				wall.v0 = v0
 				wall.v1 = v1
 				wall.type = WALL_TYPE_NONE
-				Utils.assertFalse(arr[v0].contains(wall))
+				Utils.assertFalse(arr[v0].contains(wall), "Vertex $v0 already has $wall")
 				Utils.assertFalse(arr[v1].contains(wall))
 				arr[v0][dir.ordinal] = wall
 				arr[v1][dir.increment(2).ordinal] = wall
 			}
 		}
 
-		for (i in 0 until MAZE_NUMCELLS_Y) {
-			for (ii in 0 until MAZE_NUMCELLS_X) {
+		for (i in 0..MAZE_NUMCELLS_Y) {
+			for (ii in 0..MAZE_NUMCELLS_X) {
 				val v = i * (MAZE_NUMCELLS_X + 1) + ii
-				addWall(v, v + 1, WallDir.RIGHT)
-				addWall(v, v + MAZE_NUMCELLS_X + 1, WallDir.BOTTOM)
+				if (ii < MAZE_NUMCELLS_X)
+					addWall(v, v + 1, WallDir.RIGHT)
+				if (i < MAZE_NUMCELLS_Y)
+					addWall(v, v + MAZE_NUMCELLS_X + 1, WallDir.BOTTOM)
 			}
 		}
 
@@ -149,7 +162,18 @@ abstract class Robotron {
 	val snake_missiles = ManagedArray(Array(MAX_SNAKE_MISSLES) { MissileSnake() })
 	val powerups = ManagedArray(Array(MAX_POWERUPS) { Powerup() })
 
-	private val enemy_radius = FloatArray(ENEMY_INDEX_NUM) { 0f }
+	private val enemy_radius = floatArrayOf(
+		ENEMY_GEN_RADIUS,
+		ENEMY_ROBOT_RADIUS, ENEMY_ROBOT_RADIUS, ENEMY_ROBOT_RADIUS, ENEMY_ROBOT_RADIUS,
+		ENEMY_THUG_RADIUS, ENEMY_THUG_RADIUS, ENEMY_THUG_RADIUS, ENEMY_THUG_RADIUS,
+		ENEMY_BRAIN_RADIUS,
+		ENEMY_ZOMBIE_RADIUS, ENEMY_ZOMBIE_RADIUS, ENEMY_ZOMBIE_RADIUS, ENEMY_ZOMBIE_RADIUS,
+		ENEMY_TANK_RADIUS, ENEMY_TANK_RADIUS, ENEMY_TANK_RADIUS, ENEMY_TANK_RADIUS,
+		ENEMY_JAWS_DIM / 2 - 2,
+		ENEMY_LAVA_DIM / 2 - 5
+	).also {
+		Utils.assertTrue(it.size == ENEMY_INDEX_NUM)
+	}
 
 	// ENEMIES ----------------------------
 	val enemies = ManagedArray(Array(MAX_ENEMIES) { Enemy() })
@@ -220,7 +244,13 @@ abstract class Robotron {
 				screen_height / 2,
 				Justify.LEFT,
 				Justify.CENTER,
-				"TOP V: ${computeTopLeftCornerVertex()}"
+				"""TOP V: ${computeTopLeftCornerVertex()}
+					screen x: $screen_x
+					screen y: $screen_y
+					maze w: ${verts_max_x - verts_min_x}
+					maze_h: ${verts_max_y - verts_min_y}
+					player x: ${player.x}
+					player y: ${player.y}""".trimIndent()
 			)
 			g.pushMatrix()
 			g.translate(-screen_x, -screen_y)
@@ -287,7 +317,7 @@ abstract class Robotron {
 	}
 
 	// -----------------------------------------------------------------------------------------------
-	private fun drawPowerup(g: AGraphics, type: Int, x: Float, y: Float) {
+	private fun drawPowerUp(g: AGraphics, type: Int, x: Float, y: Float) {
 		if (type == POWERUP_KEY) {
 			val dim = 20f
 			g.color = GColor.WHITE
@@ -308,9 +338,12 @@ abstract class Robotron {
 
 	// -----------------------------------------------------------------------------------------------
 	private fun drawPowerups(g: AGraphics) {
+		g.pushMatrix()
+		g.translate(-screen_x, -screen_y)
 		powerups.filter { it.isOnscreen() }.forEach {
-			drawPowerup(g, it.type, it.x, it.y)
+			drawPowerUp(g, it.type, it.x, it.y)
 		}
+		g.popMatrix()
 	}
 
 	// -----------------------------------------------------------------------------------------------
@@ -595,13 +628,7 @@ abstract class Robotron {
 	// -----------------------------------------------------------------------------------------------
 	// Add an enemy. If the table is full, replace the oldest GUY.
 	private fun addEnemy(x: Float, y: Float, type: Int, killable: Boolean) {
-		(enemies.addOrNull() ?: enemies.filterNot {
-			it.isOnscreen()
-		}.filter {
-			it.type in ENEMY_INDEX_ROBOT_N..ENEMY_INDEX_ROBOT_W
-		}.minByOrNull {
-			it.next_update
-		})?.let { e ->
+		enemies.addOrNull()?.let { e ->
 			e.x = x
 			e.y = y
 			e.type = type
@@ -702,7 +729,6 @@ abstract class Robotron {
 		// draw the score
 		var x = TEXT_PADDING
 		var y = TEXT_PADDING
-		val x0 = x
 		var hJust = Justify.LEFT
 		g.color = GColor.WHITE
 		g.drawJustifiedString(x, y, hJust, String.format("Score %d", player.score))
@@ -883,8 +909,8 @@ abstract class Robotron {
 		g.drawLine((x0 - 1), y0, (x0 + radius / 2 - 1), (y0 + radius))
 		g.drawLine((x0 - 1), y0, (x0 - radius / 2 - 1), (y0 + radius))
 		// draw the body
-		var x1 = x0
-		var y1 = y0 - radius * 2 / 3
+		val x1 = x0
+		val y1 = y0 - radius * 2 / 3
 		g.drawLine(x0, y0, x1, y1)
 		g.drawLine((x0 - 1), y0, (x1 - 1), y1)
 
@@ -1052,10 +1078,8 @@ abstract class Robotron {
 	 * Compute the distance in maze coordinates between two points
 	 * using the path between the 2 cells
 	 *
-	 * @param x0
-	 * @param y0
-	 * @param x1
-	 * @param y1
+	 * @param c0
+	 * @param c1
 	 * @return
 	 */
 	private fun computeCellDistance(c0: IntArray, c1: IntArray): Int {
@@ -1065,6 +1089,8 @@ abstract class Robotron {
 
 	fun findPath(c0: IntArray, c1: IntArray, path: MutableList<IntArray> = mutableListOf()): MutableList<IntArray> {
 		fun findPath_r(cells: Array<IntArray>, cx0: Int, cy0: Int, cx1: Int, cy1: Int): Boolean {
+			if (cx0 !in cells.indices || cy0 !in cells[0].indices)
+				return false
 			var found = false
 			if (cx0 == cx1 && cy0 == cy1) {
 				found = true
@@ -1109,78 +1135,68 @@ abstract class Robotron {
 	//
 	// DO NOT CALL playerHit from this func, inf loop possible!
 	private fun enemyHit(player: Player, enemy: Enemy, dx: Float, dy: Float): Boolean {
-		when (enemy.type) {
-			ENEMY_INDEX_GEN -> {
-				// spawn a bunch of guys in my place
-				val count = random(ENEMY_GEN_SPAWN_MIN..ENEMY_GEN_SPAWN_MAX)
-				for (i in 0 until count) {
-					addEnemy(
-						enemy.x + random(-10..10),
-						enemy.y + random(-10..10),
-						random(ENEMY_INDEX_ROBOT_N..ENEMY_INDEX_ROBOT_W),
-						true
-					)
-				}
-				val cell = intArrayOf(0, 0)
-				computeCell(enemy.x, enemy.y, cell)
-				val distGen = computeCellDistance(cell, end_cell)
-				val distStart = computeCellDistance(player.start_cell, end_cell)
-
-				// if this is closer to the end than the player start, then make this the start
-				//int distGen = Utils.fastLen(enemy.x - end_x, enemy.y - end_x);
-				//int distStart = Utils.fastLen(player.start_x - end_x, player.start_y - end_y);
-				log.debug("distGen = $distGen, distStart = $distStart")
-				if (distGen < distStart) {
-					player.start_x = enemy.x
-					player.start_y = enemy.y
-				}
-				addRandomPowerup(enemy.x, enemy.y, enemy.radius())
-				addPoints(player, ENEMY_GEN_POINTS)
-				return true
-			}
-
-			ENEMY_INDEX_ROBOT_W -> {
-				addPoints(player, ENEMY_ROBOT_POINTS)
-				addParticle(enemy.x, enemy.y, PARTICLE_TYPE_DYING_ROBOT, 5, -1, 0f)
-				return true
-			}
-
-			ENEMY_INDEX_THUG_W -> {
-				collisionScanCircle(enemy.x + dx, enemy.y + dy, ENEMY_THUG_RADIUS) ?: run {
-					enemy.x += dx
-					enemy.y += dy
-				}
-				return false
-			}
-
-			ENEMY_INDEX_BRAIN -> {
-				// chance for powerup
-				addRandomPowerup(enemy.x, enemy.y, enemy.radius())
-				// spawn some blood
-				addPoints(player, ENEMY_BRAIN_POINTS)
-				addParticle(
-					enemy.x + randomFloat(-ENEMY_BRAIN_RADIUS / 2, ENEMY_BRAIN_RADIUS / 2),
-					enemy.y + randomFloat(-ENEMY_BRAIN_RADIUS / 2, ENEMY_BRAIN_RADIUS / 2),
-					PARTICLE_TYPE_BLOOD, PARTICLE_BLOOD_DURATION, -1, 0f
+		if (enemy.type == ENEMY_INDEX_GEN) {
+			// spawn a bunch of guys in my place
+			val count = random(ENEMY_GEN_SPAWN_MIN..ENEMY_GEN_SPAWN_MAX + gameLevel)
+			for (i in 0 until count) {
+				addEnemy(
+					enemy.x + random(-10..10),
+					enemy.y + random(-10..10),
+					random(ENEMY_INDEX_ROBOT_N..ENEMY_INDEX_ROBOT_W),
+					true
 				)
-				addParticle(
-					enemy.x + randomFloat(-ENEMY_BRAIN_RADIUS / 2, ENEMY_BRAIN_RADIUS / 2),
-					enemy.y + randomFloat(-ENEMY_BRAIN_RADIUS / 2, ENEMY_BRAIN_RADIUS / 2),
-					PARTICLE_TYPE_BLOOD, PARTICLE_BLOOD_DURATION, -1, 0f
-				)
-				addParticle(
-					enemy.x + randomFloat(-ENEMY_BRAIN_RADIUS / 2, ENEMY_BRAIN_RADIUS / 2),
-					enemy.y + randomFloat(-ENEMY_BRAIN_RADIUS / 2, ENEMY_BRAIN_RADIUS / 2),
-					PARTICLE_TYPE_BLOOD, PARTICLE_BLOOD_DURATION, -1, 0f
-				)
-				return true
 			}
+			val cell = intArrayOf(0, 0)
+			computeCell(enemy.x, enemy.y, cell)
+			val distGen = computeCellDistance(cell, end_cell)
+			val distStart = computeCellDistance(player.start_cell, end_cell)
 
-			ENEMY_INDEX_TANK_NW -> {
-				addPoints(player, ENEMY_TANK_POINTS)
-				addParticle(enemy.x, enemy.y, PARTICLE_TYPE_DYING_TANK, 8, -1, 0f)
-				return true
+			// if this is closer to the end than the player start, then make this the start
+			//int distGen = Utils.fastLen(enemy.x - end_x, enemy.y - end_x);
+			//int distStart = Utils.fastLen(player.start_x - end_x, player.start_y - end_y);
+			log.debug("distGen = $distGen, distStart = $distStart")
+			if (distGen < distStart) {
+				player.start_x = enemy.x
+				player.start_y = enemy.y
 			}
+			addRandomPowerup(enemy.x, enemy.y, enemy.radius())
+			addPoints(player, ENEMY_GEN_POINTS)
+			return true
+		} else if (enemy.type <= ENEMY_INDEX_ROBOT_W) {
+			addPoints(player, ENEMY_ROBOT_POINTS)
+			addParticle(enemy.x, enemy.y, PARTICLE_TYPE_DYING_ROBOT, 5, -1, 0f)
+			return true
+		} else if (enemy.type <= ENEMY_INDEX_THUG_W) {
+			collisionScanCircle(enemy.x + dx, enemy.y + dy, ENEMY_THUG_RADIUS) ?: run {
+				enemy.x += dx
+				enemy.y += dy
+			}
+			return false
+		} else if (enemy.type == ENEMY_INDEX_BRAIN) {
+			// chance for powerup
+			addRandomPowerup(enemy.x, enemy.y, enemy.radius())
+			// spawn some blood
+			addPoints(player, ENEMY_BRAIN_POINTS)
+			addParticle(
+				enemy.x + randomFloat(-ENEMY_BRAIN_RADIUS / 2, ENEMY_BRAIN_RADIUS / 2),
+				enemy.y + randomFloat(-ENEMY_BRAIN_RADIUS / 2, ENEMY_BRAIN_RADIUS / 2),
+				PARTICLE_TYPE_BLOOD, PARTICLE_BLOOD_DURATION, -1, 0f
+			)
+			addParticle(
+				enemy.x + randomFloat(-ENEMY_BRAIN_RADIUS / 2, ENEMY_BRAIN_RADIUS / 2),
+				enemy.y + randomFloat(-ENEMY_BRAIN_RADIUS / 2, ENEMY_BRAIN_RADIUS / 2),
+				PARTICLE_TYPE_BLOOD, PARTICLE_BLOOD_DURATION, -1, 0f
+			)
+			addParticle(
+				enemy.x + randomFloat(-ENEMY_BRAIN_RADIUS / 2, ENEMY_BRAIN_RADIUS / 2),
+				enemy.y + randomFloat(-ENEMY_BRAIN_RADIUS / 2, ENEMY_BRAIN_RADIUS / 2),
+				PARTICLE_TYPE_BLOOD, PARTICLE_BLOOD_DURATION, -1, 0f
+			)
+			return true
+		} else if (enemy.type <= ENEMY_INDEX_TANK_NW) {
+			addPoints(player, ENEMY_TANK_POINTS)
+			addParticle(enemy.x, enemy.y, PARTICLE_TYPE_DYING_TANK, 8, -1, 0f)
+			return true
 		}
 		return false
 	}
@@ -1188,14 +1204,8 @@ abstract class Robotron {
 	// -----------------------------------------------------------------------------------------------
 	// draw all enemies
 	private fun drawEnemies(g: AGraphics) {
-		// int radius;
-		// int mod;
 		var debugEnemyDrawn = false
-		enemies.filter { it.isOnscreen() }.forEachIndexed { index, e ->
-			//if (isVisibilityEnabled()) {
-			//    if (!canSee(player.x, player.y, e.x, e.y))
-			//        continue;
-			//}
+		enemies.filter { it.isOnscreen() }.forEachIndexed { enemyIndex, e ->
 			val x0 = e.x - screen_x
 			val y0 = e.y - screen_y
 			when (e.type) {
@@ -1255,12 +1265,11 @@ abstract class Robotron {
 				val y = y0 - r
 				val w = r * 2
 				val h = r * 2
-				val player = player
 				if (Utils.isPointInsideRect(cursor_x.toFloat(), cursor_y.toFloat(), x, y, w, h)) {
 					g.color = GColor.YELLOW
 					g.drawOval(x, y, w, h)
 					val msg = """
-	                	index [$index]
+	                	index [$enemyIndex]
 	                	radius [${e.radius()}]
 	                	type   [${getEnemyTypeString(e.type)}]
 	                	""".trimIndent()
@@ -1452,12 +1461,10 @@ abstract class Robotron {
 
 	// -----------------------------------------------------------------------------------------------
 	private fun drawJaws(g: AGraphics, x0: Float, y0: Float, index: Int) {
-		var index = index
-		index %= animJaws.size
 		val jw = 32f
 		val jh = 32f
 		g.color = GColor.WHITE
-		g.drawImage(animJaws[index], (x0 - jw / 2), (y0 - jh / 2), jw, jh)
+		g.drawImage(animJaws[index % animJaws.size], (x0 - jw / 2), (y0 - jh / 2), jw, jh)
 	}
 
 	// -----------------------------------------------------------------------------------------------
@@ -1527,33 +1534,6 @@ abstract class Robotron {
 			r0 = r1
 		}
 		g.drawLine(x + x0 * r0, y + y0 * r0, x + 1.0f * sr, y + 0 * sr)
-	}
-
-	// -----------------------------------------------------------------------------------------------
-	// do any one time table inits here
-	private fun initTables() {
-		if (players.isEmpty())
-			players.add()
-		enemy_radius[ENEMY_INDEX_GEN] = ENEMY_GEN_RADIUS
-		enemy_radius[ENEMY_INDEX_ROBOT_W] = ENEMY_ROBOT_RADIUS
-		enemy_radius[ENEMY_INDEX_ROBOT_S] = enemy_radius[ENEMY_INDEX_ROBOT_W]
-		enemy_radius[ENEMY_INDEX_ROBOT_E] = enemy_radius[ENEMY_INDEX_ROBOT_S]
-		enemy_radius[ENEMY_INDEX_ROBOT_N] = enemy_radius[ENEMY_INDEX_ROBOT_E]
-		enemy_radius[ENEMY_INDEX_THUG_W] = ENEMY_THUG_RADIUS
-		enemy_radius[ENEMY_INDEX_THUG_S] = enemy_radius[ENEMY_INDEX_THUG_W]
-		enemy_radius[ENEMY_INDEX_THUG_E] = enemy_radius[ENEMY_INDEX_THUG_S]
-		enemy_radius[ENEMY_INDEX_THUG_N] = enemy_radius[ENEMY_INDEX_THUG_E]
-		enemy_radius[ENEMY_INDEX_BRAIN] = ENEMY_BRAIN_RADIUS
-		enemy_radius[ENEMY_INDEX_ZOMBIE_W] = ENEMY_ZOMBIE_RADIUS
-		enemy_radius[ENEMY_INDEX_ZOMBIE_S] = enemy_radius[ENEMY_INDEX_ZOMBIE_W]
-		enemy_radius[ENEMY_INDEX_ZOMBIE_E] = enemy_radius[ENEMY_INDEX_ZOMBIE_S]
-		enemy_radius[ENEMY_INDEX_ZOMBIE_N] = enemy_radius[ENEMY_INDEX_ZOMBIE_E]
-		enemy_radius[ENEMY_INDEX_TANK_NW] = ENEMY_TANK_RADIUS
-		enemy_radius[ENEMY_INDEX_TANK_SE] = enemy_radius[ENEMY_INDEX_TANK_NW]
-		enemy_radius[ENEMY_INDEX_TANK_SW] = enemy_radius[ENEMY_INDEX_TANK_SE]
-		enemy_radius[ENEMY_INDEX_TANK_NE] = enemy_radius[ENEMY_INDEX_TANK_SW]
-		enemy_radius[ENEMY_INDEX_JAWS] = ENEMY_JAWS_DIM / 2 - 2
-		enemy_radius[ENEMY_INDEX_LAVA] = ENEMY_LAVA_DIM / 2 - 5
 	}
 
 	fun Enemy.radius(): Float {
@@ -1727,7 +1707,7 @@ abstract class Robotron {
 					val vx = ENEMY_ZOMBIE_SPEED * move_dx[e.type - ENEMY_INDEX_ZOMBIE_N]
 					val vy = ENEMY_ZOMBIE_SPEED * move_dy[e.type - ENEMY_INDEX_ZOMBIE_N]
 					collisionScanCircle(e.x + vx, e.y + vy, ENEMY_ZOMBIE_RADIUS)?.let { wall ->
-						if (wall.isPerimiter()) {
+						if (wall.isPerimeter()) {
 							// dont remove the edge, this is a perimiter edge,
 							// reverse direction of zombie
 							if (e.type < ENEMY_INDEX_ZOMBIE_S) e.type += 2 else e.type -= 2
@@ -1743,7 +1723,7 @@ abstract class Robotron {
 					val vx = ENEMY_TANK_SPEED * move_diag_dx[e.type - ENEMY_INDEX_TANK_NE]
 					val vy = ENEMY_TANK_SPEED * move_diag_dy[e.type - ENEMY_INDEX_TANK_NE]
 					collisionScanCircle(e.x + vx, e.y + vy, ENEMY_TANK_RADIUS)?.let { wall ->
-						if (wall.type != WALL_TYPE_NORMAL || wall.isPerimiter()) {
+						if (wall.type != WALL_TYPE_NORMAL || wall.isPerimeter()) {
 							// reverse direction of tank
 							if (e.type < ENEMY_INDEX_TANK_SW) e.type += 2 else e.type -= 2
 						} else {
@@ -1848,14 +1828,14 @@ abstract class Robotron {
 			// look for collision with walls
 			val info = collisionScanLine(m.x, m.y, m.x + m.dx, m.y + m.dy)
 			if (info != null) {
-				val x0 = maze_verts_x[info!!.v0]
+				val x0 = maze_verts_x[info.v0]
 				val y0 = maze_verts_y[info.v0]
 				val x1 = maze_verts_x[info.v1]
 				val y1 = maze_verts_y[info.v1]
 				val dx = x1 - x0
 				val dy = y1 - y0
 				var bounceVariation = 0f
-				val isPerimiterWall = info.isPerimiter()
+				val isPerimiterWall = info.isPerimeter()
 
 				var doBounce = false // flag to indicate bounce the missile
 				when (info.type) {
@@ -1953,7 +1933,9 @@ abstract class Robotron {
 					val dy = m.dy * factor
 					if (enemyHit(player, enemy, dx, dy)) {
 						enemyIter.remove()
-					} else {
+					}
+
+					if (!isMegaGunActive(player)) {
 						playerMissleIter.remove()
 						continue@here
 					}
@@ -1961,9 +1943,9 @@ abstract class Robotron {
 			}
 
 			// look for collisions with enemy_tank_missiles
-			val tankMissleIter = tank_missiles.iterator()
-			while (tankMissleIter.hasNext()) {
-				val m2 = tankMissleIter.next()
+			val tankMissileIter = tank_missiles.iterator()
+			while (tankMissileIter.hasNext()) {
+				val m2 = tankMissileIter.next()
 				if (!m2.isOnscreen()) {
 					continue
 				}
@@ -1971,7 +1953,7 @@ abstract class Robotron {
 					|| Utils.isPointInsideCircle(m.x + m.dx, m.y + m.dy, m2.x, m2.y, TANK_MISSLE_RADIUS)
 				) {
 					playerMissleIter.remove()
-					tankMissleIter.remove()
+					tankMissileIter.remove()
 					continue@here
 				}
 			}
@@ -1981,9 +1963,9 @@ abstract class Robotron {
 			val my = min(m.y, m.y + m.dy) - 2
 			val mw = abs(m.dx) + 4
 			val mh = abs(m.dy) + 4
-			val snakeMissleIter = snake_missiles.iterator()
-			while (snakeMissleIter.hasNext()) {
-				val s = snakeMissleIter.next()
+			val snakeMissileIter = snake_missiles.iterator()
+			while (snakeMissileIter.hasNext()) {
+				val s = snakeMissileIter.next()
 				if (!s.isOnscreen()) {
 					continue
 				}
@@ -2341,12 +2323,11 @@ abstract class Robotron {
 
 			// do collision detect against walls
 			// working good
-			var info = collisionScanCircle(px, py, playerRadius)
-			//log.debug("primary verts: ${collision_verts.joinToString()}")
-			if (info?.isPerimiter() == false && canPassThroughWalls(player))
-				info = null
-			info?.let { info ->
-				log.debug("Player hit wall type [" + getWallTypeString(info.type) + "] info [" + info + "]")
+			var wall = collisionScanCircle(px, py, playerRadius)
+			if (wall?.isPerimeter() == false && canPassThroughWalls(player))
+				wall = null
+			wall?.let { info ->
+				//log.debug("Player hit wall type [" + getWallTypeString(info.type) + "] info [" + info + "]")
 				if (info.type == WALL_TYPE_ELECTRIC && isBarrierActive(player)) {
 					// no collision
 				} else {
@@ -2423,8 +2404,10 @@ abstract class Robotron {
 		} else {
 			player.movement = 0
 		}
-		screen_x = (player.x - screen_width / 2).coerceIn(-MAZE_VERTEX_NOISE..MAZE_WIDTH - screen_width + MAZE_VERTEX_NOISE)
-		screen_y = (player.y - screen_height / 2).coerceIn(-MAZE_VERTEX_NOISE..MAZE_HEIGHT - screen_height + MAZE_VERTEX_NOISE)
+
+		val margin = 25f
+		screen_x = (player.x - screen_width / 2).coerceIn(verts_min_x - margin..verts_max_x - screen_width + margin)
+		screen_y = (player.y - screen_height / 2).coerceIn(verts_min_y - margin..verts_max_y - screen_height + margin)
 
 		if (game_type == GAME_TYPE_CLASSIC) {
 			if (total_enemies == 0 && particles.isEmpty()) {
@@ -2778,7 +2761,7 @@ abstract class Robotron {
 	// -----------------------------------------------------------------------------------------------
 	// Draw the Player
 	private fun drawPlayer(player: Player, g: AGraphics, px: Float, py: Float, dir: Int) {
-		var color = if (player.scale == PLAYER_HULK_SCALE) {
+		val color = if (player.scale == PLAYER_HULK_SCALE) {
 			GColor.GREEN
 		} else if (player.scale > 1.0f) {
 			val invScale = (255.0f * 1.0f - (player.scale - 1.0f)).toInt()
@@ -2845,45 +2828,51 @@ abstract class Robotron {
 		g.drawFilledRect((px - f8), (py - f12), f16, f8)
 		// draw body
 		g.drawFilledRect((px - f4), (py - f14), f8, f22)
-		if (dir == 0 || dir == 2) {
-			g.drawFilledRect((px - f6), (py - f2), f12, f6)
-			g.drawFilledRect((px - f12), py, f24, f4)
-			// draw arms
-			g.drawFilledRect((px - f12), (py + f4), f4, f6)
-			g.drawFilledRect((px + f8), (py + f4), f4, f6)
-			// draw legs
-			g.drawFilledRect((px - f6), (py + f6 + walk), f4, f10)
-			g.drawFilledRect((px + f2), (py + f6 - walk), f4, f10)
-			g.drawFilledRect((px - f8), (py + f12 + walk), f2, f4)
-			g.drawFilledRect((px + f6), (py + f12 - walk), f2, f4)
-		} else if (dir == 1) {
-			// body
-			g.drawFilledRect((px - f6), (py - f2), f10, f10)
-			// legs
-			g.drawFilledRect((px - f6), (py + f8 + walk), f4, f8)
-			g.drawFilledRect((px - f2), (py + f12 + walk), f2, f4)
-			g.color = secColor
-			g.drawFilledRect((px + f1), (py + f8 - walk), f4, f8)
-			g.drawFilledRect((px + f3), (py + f12 - walk), f2, f4)
-			// arm
-			g.color = priColor
-			g.drawFilledRect((px - f4), (py - f2), f4, f6)
-			g.drawFilledRect((px - f2), (py + f2), f4, f4)
-			g.drawFilledRect(px, (py + f4), f4, f4)
-		} else {
-			// body
-			g.drawFilledRect((px - f4), (py - f2), f10, f10)
-			// legs
-			g.drawFilledRect((px + f2), (py + f8 + walk), f4, f8)
-			g.drawFilledRect(px, (py + f12 + walk), f2, f4)
-			g.color = secColor
-			g.drawFilledRect((px - f6), (py + f6 - walk), f4, f8)
-			g.drawFilledRect((px - f8), (py + f10 - walk), f2, f4)
-			// arm
-			g.color = priColor
-			g.drawFilledRect(px, (py - f2), f4, f6)
-			g.drawFilledRect((px - f2), (py + f2), f4, f4)
-			g.drawFilledRect((px - f4), (py + f4), f4, f4)
+		when (dir) {
+			0, 2 -> {
+				g.drawFilledRect((px - f6), (py - f2), f12, f6)
+				g.drawFilledRect((px - f12), py, f24, f4)
+				// draw arms
+				g.drawFilledRect((px - f12), (py + f4), f4, f6)
+				g.drawFilledRect((px + f8), (py + f4), f4, f6)
+				// draw legs
+				g.drawFilledRect((px - f6), (py + f6 + walk), f4, f10)
+				g.drawFilledRect((px + f2), (py + f6 - walk), f4, f10)
+				g.drawFilledRect((px - f8), (py + f12 + walk), f2, f4)
+				g.drawFilledRect((px + f6), (py + f12 - walk), f2, f4)
+			}
+
+			1 -> {
+				// body
+				g.drawFilledRect((px - f6), (py - f2), f10, f10)
+				// legs
+				g.drawFilledRect((px - f6), (py + f8 + walk), f4, f8)
+				g.drawFilledRect((px - f2), (py + f12 + walk), f2, f4)
+				g.color = secColor
+				g.drawFilledRect((px + f1), (py + f8 - walk), f4, f8)
+				g.drawFilledRect((px + f3), (py + f12 - walk), f2, f4)
+				// arm
+				g.color = priColor
+				g.drawFilledRect((px - f4), (py - f2), f4, f6)
+				g.drawFilledRect((px - f2), (py + f2), f4, f4)
+				g.drawFilledRect(px, (py + f4), f4, f4)
+			}
+
+			else -> {
+				// body
+				g.drawFilledRect((px - f4), (py - f2), f10, f10)
+				// legs
+				g.drawFilledRect((px + f2), (py + f8 + walk), f4, f8)
+				g.drawFilledRect(px, (py + f12 + walk), f2, f4)
+				g.color = secColor
+				g.drawFilledRect((px - f6), (py + f6 - walk), f4, f8)
+				g.drawFilledRect((px - f8), (py + f10 - walk), f2, f4)
+				// arm
+				g.color = priColor
+				g.drawFilledRect(px, (py - f2), f4, f6)
+				g.drawFilledRect((px - f2), (py + f2), f4, f4)
+				g.drawFilledRect((px - f4), (py + f4), f4, f4)
+			}
 		}
 
 		// yell: "HULK SMASH!" when run over people, robot and walls (not thugs,
@@ -3254,58 +3243,6 @@ abstract class Robotron {
 	}
 
 	// -----------------------------------------------------------------------------------------------
-	/*
-    private void drawRubberWall(AGraphics g, int x0, int y0, int x1, int y1) {
-        float x2=0, y2=0;
-        float vx = (x1-x0)*0.5f;
-        float vy = (y1-y0)*0.5f;
-        float nx = 0, ny = 0;
-        g.setColor(GColor.BLUE);
-
-        float factor1 = 0.1f;
-        float factor2 = 0.15f;
-
-        int iterations = 9;
-        int thickness = 2;
-
-        switch (getFrameNumber()%8) {
-        case 0:
-        case 4:
-            g.drawLine(x0, y0, x1, y1, thickness);
-            return;
-        case 1:
-        case 3:
-            nx = -vy*factor1;
-            ny =  vx*factor1;
-            break;
-        case 2:
-            nx = -vy*factor2;
-            ny =  vx*factor2;
-            break;
-        case 7:
-        case 5:
-            nx =  vy*factor1;
-            ny = -vx*factor1;
-            break;
-        case 6:
-            nx =  vy*factor2;
-            ny = -vx*factor2;
-            break;
-        }
-
-        x2 = x0 + vx + nx;
-        y2 = y0 + vy + ny;
-
-        Utils.computeBezierCurvePoints(bezier_pts_x, bezier_pts_y,x0,y0,x2,y2,x2,y2,x1,y1);
-
-        g.drawLineStrip(bezier_pts_x, bezier_pts_y, thickness);
-        if (Utils.isDebugEnabled()) {
-            int x = x2;
-            int y = y2;
-            g.drawRect(x,y,1,1);
-        }
-    }*/
-	// -----------------------------------------------------------------------------------------------
 	private fun drawRubberWall(g: AGraphics, x0: Float, y0: Float, x1: Float, y1: Float, frequency: Float) {
 		var x2 = 0f
 		var y2 = 0f
@@ -3405,6 +3342,17 @@ abstract class Robotron {
 	private val renderDirs = arrayOf(WallDir.RIGHT, WallDir.BOTTOM)
 
 	private fun drawOnScreenWalls(g: AGraphics, cb: (AGraphics, Wall, Float, Float) -> Unit) {
+		for (v in 0 until MAZE_NUM_VERTS) {
+			for (dir in renderDirs) {
+				getWall(v, dir)?.takeIf { it.isOnScreen() }?.let {
+					it.nearV = v
+					cb(g, it, maze_verts_x[it.v0], maze_verts_y[it.v0])
+				}
+			}
+		}
+	}
+
+	private fun _drawOnScreenWalls(g: AGraphics, cb: (AGraphics, Wall, Float, Float) -> Unit) {
 		var topV = computeTopLeftCornerVertex()
 		while (topV < MAZE_NUM_VERTS) {
 			var v = topV
@@ -3547,10 +3495,6 @@ abstract class Robotron {
 		var x = 0f
 		var y = 0f
 		var index: Int
-		verts_min_x = 0f
-		verts_min_y = 0f
-		verts_max_x = 0f
-		verts_max_y = 0f
 		for (i in 0 until MAZE_NUMCELLS_Y + 1) {
 			for (j in 0 until MAZE_NUMCELLS_X + 1) {
 				index = i * (MAZE_NUMCELLS_X + 1) + j
@@ -3558,68 +3502,22 @@ abstract class Robotron {
 				maze_verts_y[index] = y + randomFloat(-noise, noise)
 				x += MAZE_CELL_DIM
 				// compute the actual world dimension
-				if (verts_min_x > maze_verts_x[index]) verts_min_x = maze_verts_x[index]
-				if (verts_max_x < maze_verts_x[index]) verts_max_x = maze_verts_x[index]
-				if (verts_min_y > maze_verts_y[index]) verts_min_y = maze_verts_y[index]
-				if (verts_max_y < maze_verts_y[index]) verts_max_y = maze_verts_y[index]
 			}
 			x = 0f
 			y += MAZE_CELL_DIM
 		}
+		verts_min_x = maze_verts_x.min()
+		verts_max_x = maze_verts_x.max()
+		verts_min_y = maze_verts_y.min()
+		verts_max_y = maze_verts_y.max()
 	}
-
-	// -----------------------------------------------------------------------------------------------
-	/*
-		init {
-			fun addWall(v0: Int, v1: Int) {
-				Utils.assertTrue(v0 != v1)
-				if (v0 !in 0 .. MAZE_NUM_VERTS)
-					return
-				if (v1 !in 0 .. MAZE_NUM_VERTS)
-					return
-				if (walls[v0][v1] != null)
-					return
-				Utils.assertTrue(walls[v1][v0] == null)
-				val wall = Wall()
-				wall.v0 = v0
-				wall.v1 = v1
-				wall.type = WALL_TYPE_NONE
-				walls[v0][v1] = wall
-				walls[v1][v0] = wall
-			}
-
-			for (i in 0 until MAZE_NUM_VERTS) {
-				val stride = MAZE_NUMCELLS_X
-				val x = i % stride
-				val x_right = x+1
-				val x_left = x-1
-				val x_top = x - stride
-				val x_bottom = x + stride
-				addWall(x, x_right)
-				addWall(x, x_left)
-				addWall(x, x_top)
-				addWall(x, x_bottom)
-			}
-
-			for (x in 0 until MAZE_NUMCELLS_X-1) {
-				for (y in 0 until MAZE_NUMCELLS_Y - 1) {
-					addWall(x, x+1)
-					addWall(x, x+ MAZE_NUMCELLS_X+1)
-				}
-				addWall(x, x+MAZE_NUMCELLS_X+1)
-			}
-			for (i in 0 until MAZE_NUMCELLS_X-1) {
-				val x = MAZE_NUMCELLS_Y + i
-				addWall(x, x+1)
-			}
-		}*/
 
 	// -----------------------------------------------------------------------------------------------
 	// delete all edges in the maze graph and digraph
 	private fun clearAllWalls() {
 		walls.forEach {
 			it.filterNotNull().forEach {
-				if (it.isPerimiter()) {
+				if (it.isPerimeter()) {
 					it.type = WALL_TYPE_INDESTRUCTIBLE
 				} else {
 					it.type = WALL_TYPE_NONE
@@ -3683,56 +3581,9 @@ abstract class Robotron {
 		players.forEach {
 			it.reset(frameNumber)
 		}
-
-		//setFrameNumber(0);
-		//game_start_frame = 0;
 		game_start_frame = frameNumber
 	}
 
-	// -----------------------------------------------------------------------------------------------
-	// this func is called after a player dies to remove missiles, msgs and so forth
-	// also called to initialize the level. this contains the data initialization in
-	// one place.
-	/*
-    private void resetLevel(boolean clearEnemies) {
-        // remove any existing enemies and missiles
-        num_tank_missiles = 0;
-        for (int i=0; i<num_players; i++) {
-            players[i].num_missiles = 0;
-            players[i].num_tracers = 0;
-            players[i].x = players[i].start_x;
-            players[i].y = players[i].start_y;
-            players[i].powerup = -1;
-            players[i].scale = 1.0f;
-            players[i].last_shot_frame = 0;
-        }
-        num_enemy_missiles = 0;
-        num_snake_missiles = 0;
-        num_powerups = 0;
-
-        if (clearEnemies)
-            num_enemies = 0;
-
-        num_zombie_tracers = 0;
-
-        num_particles = 0;
-        num_msgs = 0;
-
-        people_points = PEOPLE_START_POINTS;
-
-        enemy_robot_speed = ENEMY_ROBOT_SPEED + difficulty + (game_level / 4);
-
-        for (int i=0; i<num_players; i++) {
-            players[i].hit_index = -1;
-            players[i].hit_type = -1;
-            players[i].next_state_frame = getFrameNumber() + this.PLAYER_SPAWN_FRAMES;
-            players[i].state = PLAYER_STATE_SPAWNING;
-        }
-
-        //setFrameNumber(0);
-        //game_start_frame = 0;
-        game_start_frame = getFrameNumber();
-    }*/
 	// -----------------------------------------------------------------------------------------------
 	private fun buildAndPopulateClassic() {
 		val wid = WORLD_WIDTH_CLASSIC
@@ -4061,7 +3912,7 @@ abstract class Robotron {
 			for (v1 in 0 until v0) {
 				getWall(v0, v1)?.let { wall ->
 					Utils.assertTrue(wall.v0 != wall.v1)
-					if (wall.isPerimiter()) {
+					if (wall.isPerimeter()) {
 						wall.type = WALL_TYPE_INDESTRUCTIBLE
 						return@let
 					}
@@ -4097,7 +3948,7 @@ abstract class Robotron {
 	}
 
 	// this version picks cells at random and makes the mazes much more difficult
-	private fun mazeSearch_r2(cells: Array<IntArray>, x: Int, y: Int, end_x: Int, end_y: Int) {
+	private fun mazeSearch_r2(cells: Array<IntArray>, x: Int, y: Int, ex: Int, ey: Int) {
 		var x = x
 		var y = y
 		val list = ArrayList<IntArray>(256)
@@ -4109,7 +3960,7 @@ abstract class Robotron {
 			y = xy[1]
 
 			// get an array of directions in descending order of priority
-			val dir_list = directionHeuristic(x, y, end_x, end_y)
+			val dir_list = directionHeuristic(x, y, ex, ey)
 			for (i in 0..3) {
 				val nx = x + move_dx[dir_list[i]].toInt()
 				val ny = y + move_dy[dir_list[i]].toInt()
@@ -4165,31 +4016,30 @@ abstract class Robotron {
 		return x == 0 || x == MAZE_NUMCELLS_X || y == 0 || y == MAZE_NUMCELLS_Y
 	}
 
-	private fun Wall.isPerimiter(): Boolean = isPerimiterVertex(v0) && isPerimiterVertex(v1)
+	private fun Wall.isPerimeter(): Boolean = isPerimiterVertex(v0) && isPerimiterVertex(v1)
+
+	private fun Wall.isOnScreen(): Boolean = isOnScreen(v0) || isOnScreen(v1)
 
 	// -----------------------------------------------------------------------------------------------
 	// return 4 dim array of ints in range 0-3, each elem occurs only once
+	//   the heuristic will repulse the start end end cells causing a
+	//   longer path solution
 	private fun directionHeuristic(x1: Int, y1: Int, x2: Int, y2: Int): IntArray {
 		// resulting list
-		val h = Array(4) { MutablePair(it, .5f) }
+		val h = Array(4) { 5f }
 
 		if (y1 < y2) // tend to move north
-			h[0].second += randomFloat(0.4f) - 0.1f
+			h[0] += randomFloat(0.4f) - 0.1f
 		else if (y1 > y2) // tend to move south
-			h[2].second += randomFloat(0.4f) - 0.1f
+			h[2] += randomFloat(0.4f) - 0.1f
 		if (x1 < x2) // tend to move west
-			h[3].second += randomFloat(0.4f) - 0.1f
+			h[3] += randomFloat(0.4f) - 0.1f
 		else if (x1 > x2) // tend to move east
-			h[1].second += randomFloat(0.4f) - 0.1f
+			h[1] += randomFloat(0.4f) - 0.1f
 
-		// Now bubble sort the list (descending) using our weights to determine order.
-		// Elems that have the same weight will be determined by a coin flip
-
-		h.sortWith { a, b ->
+		return h.mapIndexed { index, fl -> Pair(index, fl) }.sortedWith { a, b ->
 			if (a.second < b.second || a.second == b.second && Utils.flipCoin()) -1 else 1
-		}
-
-		return h.map { it.first }.toIntArray()
+		}.map { it.first }.toIntArray()
 	}
 
 	// -----------------------------------------------------------------------------------------------
@@ -4199,9 +4049,9 @@ abstract class Robotron {
 		return !(x < screen_x || y < screen_y || x > screen_x + screen_width || y > screen_y + screen_height)
 	}
 
-	private fun Object.isOnscreen(): Boolean {
-		return isOnScreen(x, y)
-	}
+	private fun isOnScreen(v: Int): Boolean = isOnScreen(maze_verts_x[v], maze_verts_y[v])
+
+	private fun Object.isOnscreen(): Boolean = isOnScreen(x, y)
 
 	// -----------------------------------------------------------------------------------------------
 	private fun updatePlayerVisibility_r(verts: IntArray, d: Int) {
@@ -4279,10 +4129,6 @@ abstract class Robotron {
 			val dx = ex - sx
 			val dy = ey - sy
 
-			//d = (dx*dx) + (dy*dy);
-
-			//if (d < 100*100)
-			//  return true;
 			if (abs(dx) < max && abs(dy) < max)
 				return true
 			val d = getDirection(dx, dy)
@@ -4314,8 +4160,8 @@ abstract class Robotron {
 
 	// for any given point in the maze, get the top left corver vertex from that point
 	private fun computeTopLeftCornerVertex(x: Float = screen_x, y: Float = screen_y): Int {
-		val cx = (MAZE_NUMCELLS_X * (x / (verts_max_x - verts_min_x))).toInt().coerceIn(0..MAZE_NUMCELLS_X)
-		val cy = (MAZE_NUMCELLS_Y * (y / (verts_max_y - verts_min_y))).toInt().coerceIn(0..MAZE_NUMCELLS_Y)
+		val cx = (MAZE_NUMCELLS_X * (x / (verts_max_x - verts_min_x))).toInt().coerceIn(0 until MAZE_NUMCELLS_X)
+		val cy = (MAZE_NUMCELLS_Y * (y / (verts_max_y - verts_min_y))).toInt().coerceIn(0 until MAZE_NUMCELLS_Y)
 		return (cx + cy * (MAZE_NUMCELLS_X + 1)).coerceIn(0 until MAZE_NUM_VERTS)
 	}
 
@@ -4334,8 +4180,6 @@ abstract class Robotron {
 	// P can be anywhere inside the rect
 	// -----------------------------------------------------------------------------------------------
 	private fun computeBaseQuad(px: Float, py: Float, result: IntArray = IntArray(4)): IntArray {
-		val cx = px * MAZE_NUMCELLS_X / (verts_max_x - verts_min_x)
-		val cy = py * MAZE_NUMCELLS_Y / (verts_max_y - verts_min_y)
 		result[0] = computeTopLeftCornerVertex(px, py)
 		result[1] = result[0] + 1
 		result[3] = result[1] + MAZE_NUMCELLS_X
@@ -4418,112 +4262,6 @@ abstract class Robotron {
 		return wall_candidates
 	}
 
-	// -----------------------------------------------------------------------------------------------
-	// Put into result the set of vertices that represent the quadrant the point P is inside
-	//
-	//        r[0]            r[1]
-	//
-	//
-	//
-	//
-	//
-	//        r[2]            r[3]
-	//
-	// r[4] is not used.
-	// P can be any point inside the quadrant
-	/*
-	private fun computePrimaryQuadrant(px: Float, py: Float, result: IntArray) {
-		var px = px
-		var py = py
-		computePrimaryVerts(px, py, result)
-		val x0 = maze_verts_x[result[0]]
-		val y0 = maze_verts_y[result[0]]
-		val pdx = px - x0
-		val pdy = py - y0
-
-		// determine what quadrant inside the 'wheel' P is in
-		for (i in 1..4) {
-			var ii = i + 1
-			if (ii > 4) ii = 1
-			val v1 = result[i]
-			val v2 = result[ii]
-			if (v1 < 0 || v2 < 0 || v1 >= MAZE_NUM_VERTS || v2 >= MAZE_NUM_VERTS) continue
-			val x1 = maze_verts_x[v1]
-			val y1 = maze_verts_y[v1]
-			val x2 = maze_verts_x[v2]
-			val y2 = maze_verts_y[v2]
-			val dx1 = x1 - x0
-			val dy1 = y1 - y0
-			val dx2 = x2 - x0
-			val dy2 = y2 - y0
-			val nx1 = -dy1
-			val nx2 = -dy2
-			val d1 = nx1 * pdx + dx1 * pdy
-			val d2 = nx2 * pdx + dx2 * pdy
-			if (d1 >= 0 && d2 <= 0) {
-				px = x0 + (dx1 + dx2) / 2
-				py = y0 + (dy1 + dy2) / 2
-				break
-			}
-		}
-		computeBaseQuad(px, py, result)
-	}
-
-	// -----------------------------------------------------------------------------------------------
-	// Put into result to set of vertices that represent a 'wheel'
-	//           r[4]
-	//            ^
-	//            |
-	//            |
-	//   r[3]<- -r[0]- ->r[1]
-	//            |
-	//            |
-	//            v
-	//           r[2]
-	//
-	// P can be and coord such that dist(P-r[0]) is less than dist(P-r[1,2,3,4])
-	//
-	// if any point lies outside the world rect, it is < 0
-	private fun computePrimaryVerts(px: Float, py: Float, result: IntArray) {
-		Utils.assertTrue(result.size == 5)
-		computeBaseQuad(px, py, result)
-
-		// these are the four in our region, find the closest
-		val nearest = computeClosestPrimaryVertex(px, py, result)
-		Arrays.fill(result, -1)
-
-		// now build a tree where the closest is elem[0] and elems[1-3] are the 4
-		// possible walls that extend from [0].  Set too -1 for those where wall not available
-		result[0] = nearest
-		// if nearest is on the left edge
-		val x = nearest % (MAZE_NUMCELLS_X + 1)
-		if (x > 0) {
-			result[3] = nearest - 1
-		}
-		if (x < MAZE_NUMCELLS_X) {
-			result[1] = nearest + 1
-		}
-		result[0] = nearest
-		result[2] = nearest + MAZE_NUMCELLS_X + 1
-		if (result[2] >= MAZE_NUM_VERTS) result[2] = -1
-		result[4] = nearest - (MAZE_NUMCELLS_X + 1) // no test because will automatically be negative
-	}
-
-	// -----------------------------------------------------------------------------------------------
-	// put the 4 primary verticies associated with this world point into result
-	// this is an optimization to reduce time for collision scans
-	// we take advanrage of the cell based maze to only scan for collisions in
-	// the emediate vicinity of an object. There can only be 4 points in the
-	// vicinity, we call these the 'primary vertices'
-	private fun computeClosestPrimaryVertex(px: Float, py: Float): Int {
-		val result = IntArray(4)
-		computeBaseQuad(px, py, result)
-		return result.minBy {
-			val dx = (px - maze_verts_x[result[it]]).toLong()
-			val dy = (py - maze_verts_y[result[it]]).toLong()
-			dx * dx + dy * dy
-		}
-	}*/
 
 	// -----------------------------------------------------------------------------------------------
 	// return true when a line intersects any edge in the graph
@@ -4539,39 +4277,6 @@ abstract class Robotron {
 			}
 		}
 	}
-	/*
-		private fun collisionBreakingWallLine(info: Wall, lx0: Float, ly0: Float, lx1: Float, ly1: Float, wx0: Float, wy0: Float, wx1: Float, wy1: Float, newDelta: FloatArray): Boolean {
-
-			// -----------------------------------------------------------------------------------------------
-			fun collisionBreakingWallLine_r(lx0: Float, ly0: Float, lx1: Float, ly1: Float, wx0: Float, wy0: Float, wx1: Float, wy1: Float, num: Int, f: Int, newDelta: FloatArray): Boolean {
-				if (num > 0) {
-					val xoff = getBreakingWallOffset(f, num)
-					val yoff = getBreakingWallOffset(f, num)
-					val mx = (wx0 + wx1) / 2 + xoff
-					val my = (wy0 + wy1) / 2 + yoff
-					if (collisionBreakingWallLine_r(lx0, ly0, lx1, ly1, wx0, wy0, mx, my, num - 1, f, newDelta)) return true
-					if (collisionBreakingWallLine_r(lx0, ly0, lx1, ly1, mx, my, wx1, wy1, num - 1, f, newDelta)) return true
-				} else {
-					if (Utils.isLineSegsIntersecting(lx0, ly0, lx1, ly1, wx0, wy1, wx1, wy1) != 0) {
-						newDelta[0] = wx1 - wx0
-						newDelta[1] = wy1 - wy0
-					}
-				}
-				return false
-			}
-
-
-
-			val health = 1f / WALL_NORMAL_HEALTH * info.health
-			// if wall is healthy, num==0
-			// if wall is med, num 1
-			// if wall is about to break, num = 2
-			val num = (1.0f - health * WALL_BREAKING_MAX_RECURSION)
-			// make these values consistent based on garbage input
-			//int xoff = (info.v0 * (-1 * info.v1 % 2) % 30);
-			//int yoff = (info.v1 * (-1 * info.v0 % 2) % 30);
-			return collisionBreakingWallLine_r(lx0, ly0, lx1, ly1, wx0, wy0, wx1, wy1, num, info.v0 + info.v1, newDelta)
-		}*/
 
 	// -----------------------------------------------------------------------------------------------
 	private fun collisionDoorLine(
@@ -4715,35 +4420,6 @@ abstract class Robotron {
 	abstract val animPeople: Array<IntArray>
 
 	// -----------------------------------------------------------------------------------------------
-	//abstract fun initImages(g: AGraphics)
-
-	/*
-	{
-		if (imageKey >= 0) return
-		imageKey = g.loadImage("key.gif", GColor.BLACK)
-		imageLogo = g.loadImage("logo.gif", GColor.BLACK)
-		animJaws = g.loadImageCells("jaws.gif", 32, 32, 8, 9, true, GColor.BLACK)
-		animLava = g.loadImageCells("lavapit.gif", 32, 32, 8, 25, true, GColor.BLACK)
-		animPeople = arrayOf(
-			g.loadImageCells("people.gif", 32, 32, 4, 16, true, GColor.BLACK),
-			g.loadImageCells("people2.gif", 32, 32, 4, 16, true, GColor.BLACK),
-			g.loadImageCells("people3.gif", 32, 32, 4, 16, true, GColor.BLACK)
-		)
-	}
-
-	private fun initImages_png(g: AGraphics) {
-		imageKey = g.loadImage("pngs/key.png", GColor.BLACK)
-		imageLogo = g.loadImage("pngs/logo.png", GColor.BLACK)
-		animJaws = g.loadImageCells("pngs/jaws.png", 32, 32, 8, 9, true, GColor.BLACK)
-		animLava = g.loadImageCells("pngs/lavapit.png", 32, 32, 8, 25, true, GColor.BLACK)
-		animPeople = arrayOf(
-			g.loadImageCells("pngs/people.png", 32, 32, 4, 16, true, GColor.BLACK),
-			g.loadImageCells("pngs/people2.png", 32, 32, 4, 16, true, GColor.BLACK),
-			g.loadImageCells("pngs/people3.png", 32, 32, 4, 16, true, GColor.BLACK)
-		)
-	}*/
-
-	// -----------------------------------------------------------------------------------------------
 	private fun drawIntroPlayers(g: AGraphics) {
 
 		// draw the player modes
@@ -4805,7 +4481,7 @@ abstract class Robotron {
 	}
 
 	// -----------------------------------------------------------------------------------------------
-	private fun drawIntroPowerups(g: AGraphics, frame: Int) {
+	private fun drawIntroPowerUps(g: AGraphics, frame: Int) {
 
 		// draw the player modes
 		val x1 = screen_width / 3
@@ -4824,7 +4500,7 @@ abstract class Robotron {
 		g.drawString("HUMAN", x2, sy)
 		sy += dy
 		for (i in 0 until POWERUP_NUM_TYPES) {
-			drawPowerup(g, i, x1, sy)
+			drawPowerUp(g, i, x1, sy)
 			g.color = textColor
 			g.drawString(getPowerupTypeString(i), x2, sy)
 			sy += dy
@@ -4887,7 +4563,7 @@ abstract class Robotron {
 		} else if (frame < 2 * introSpacingFrames) {
 			drawIntroWallTypes(g)
 		} else if (frame < 3 * introSpacingFrames) {
-			drawIntroPowerups(g, frame - 2 * introSpacingFrames)
+			drawIntroPowerUps(g, frame - 2 * introSpacingFrames)
 		} else if (frame < 4 * introSpacingFrames) {
 			drawIntroEnemies(g, frame - 3 * introSpacingFrames)
 		}
@@ -5109,34 +4785,8 @@ abstract class Robotron {
 			}
 		}
 		updateThrobbingWhite()
-		//updateFPS(g);
 	}
 
-	/*
-    private int frameCount = 0;
-    private long frameStartTime = 0;
-    private int FPS = 0;
-
-    private void updateFPS(AGraphics g) {
-        long t = getClock();
-        if (frameStartTime == 0) {
-            frameStartTime = t;
-            frameCount = 1;
-        } else {
-            long dt = t - frameStartTime;
-            if (dt >= 1000) {
-                FPS = frameCount;
-                frameStartTime = t;
-                frameCount = 0;
-            }
-            frameCount++;
-        }
-        g.setColor(GColor.WHITE);
-        float x = screen_width - 30;
-        int y = 10;
-        float w = g.drawJustifiedString(x, y, Justify.RIGHT, "FPS:");
-        this.drawNumberString(g, x+w, y, Justify.RIGHT, FPS);
-    }*/
 	// -----------------------------------------------------------------------------------------------
 	private fun isInMaze(x: Float, y: Float): Boolean {
 		val padding = 10f
@@ -5307,9 +4957,5 @@ abstract class Robotron {
 
 	fun setGameStateIntro() {
 		game_state = GAME_STATE_INTRO
-	}
-
-	init {
-		initTables()
 	}
 }

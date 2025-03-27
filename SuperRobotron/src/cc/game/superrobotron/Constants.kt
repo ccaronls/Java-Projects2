@@ -124,13 +124,9 @@ const val ENEMY_INDEX_TANK_NE = 14 // Tanks only move diagonally and
 const val ENEMY_INDEX_TANK_SE = 15
 const val ENEMY_INDEX_TANK_SW = 16
 const val ENEMY_INDEX_TANK_NW = 17
-const val ENEMY_INDEX_TANK_GEN_NE = 18 // TankGens only move diagonally
-const val ENEMY_INDEX_TANK_GEN_SE = 19
-const val ENEMY_INDEX_TANK_GEN_SW = 20
-const val ENEMY_INDEX_TANK_GEN_NW = 21
-const val ENEMY_INDEX_JAWS = 22
-const val ENEMY_INDEX_LAVA = 23
-const val ENEMY_INDEX_NUM = 24 // MUST BE LAST
+const val ENEMY_INDEX_JAWS = 18
+const val ENEMY_INDEX_LAVA = 19
+const val ENEMY_INDEX_NUM = 20 // MUST BE LAST
 val ENEMY_NAMES = arrayOf(
 	"generator",
 	"robot", "robot", "robot", "robot",
@@ -156,8 +152,8 @@ const val ENEMY_PROJECTILE_FORCE = 5.0f
 const val ENEMY_PROJECTILE_DURATION = 60
 const val ENEMY_PROJECTILE_GRAVITY = 0.3f
 const val ENEMY_GEN_INITIAL = 15 // starting generators for level 1
-const val ENEMY_GEN_SPAWN_MIN = 3 // minimum to spawn when hit
-const val ENEMY_GEN_SPAWN_MAX = 10 // maximum to spawn when hit
+const val ENEMY_GEN_SPAWN_MIN = 2 // minimum to spawn when hit
+const val ENEMY_GEN_SPAWN_MAX = 4 // maximum to spawn when hit
 const val ENEMY_GEN_RADIUS = 10f
 const val ENEMY_GEN_PULSE_FACTOR = 3 // gen will pulse +- this
 const val ENEMY_TANK_GEN_RADIUS = 15f
