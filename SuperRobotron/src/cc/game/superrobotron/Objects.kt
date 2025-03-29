@@ -1,15 +1,18 @@
 package cc.game.superrobotron
 
 import cc.lib.game.GColor
+import cc.lib.kreflector.Reflector
 import cc.lib.ksp.binaryserializer.BinarySerializable
+import cc.lib.math.Vector2D
 import cc.lib.utils.random
 import java.util.LinkedList
-import kotlin.math.max
-import kotlin.math.min
 
 abstract class Object {
 	var x = 0f
 	var y = 0f
+
+	val v: Vector2D
+		get() = Vector2D(x, y)
 }
 
 @BinarySerializable("Missile")
@@ -77,18 +80,17 @@ abstract class APowerup : AMissileFloat() {
 }
 
 @BinarySerializable("Wall")
-abstract class AWall {
+abstract class AWall(@Transient val id: Int) : Reflector<AWall>() { // Wall ids start at 1
 	var v0: Int = 0
 	var v1: Int = 0
 	var type: Int = 0 // all
 	var state: Int = 0   // door
 	var frame: Int = 0   // door, electric
 	var health: Int = 0   // normal
-	var p0: Int = 0
-	var p1: Int = 0 // portal
 	var frequency: Float = 0f   // for rubber walls
 	var visible: Boolean = false
 	var ending: Boolean = false
+	var portalId: Int = 0
 
 	// populated by last collision check with the vertex used as nearest
 	@Transient
@@ -133,8 +135,8 @@ abstract class AWall {
 	}
 
 	override fun toString(): String {
-		var str = getWallTypeString(type) + " [" + v0 + ", " + v1 + "]"
-		if (ending) str += "\nEND"
+		var str = getWallTypeString(type) + "[$id] " + v0 + "->" + v1
+		if (ending) str += "END"
 		when (type) {
 			WALL_TYPE_NORMAL -> str += "\nhealth=$health"
 			WALL_TYPE_ELECTRIC -> str += "\nframe=$frame"
@@ -142,7 +144,7 @@ abstract class AWall {
  state=${getDoorStateString(state)}
 frame=$frame"""
 
-			WALL_TYPE_PORTAL -> str += "\np0=$p0, p1=$p1]"
+			WALL_TYPE_PORTAL -> str += "\nportal id:$portalId]"
 			WALL_TYPE_RUBBER -> str += "\nfreq=$frequency"
 		}
 		return str
@@ -150,9 +152,13 @@ frame=$frame"""
 
 	override fun equals(other: Any?): Boolean {
 		(other as? Wall)?.let {
-			return min(v0, v1) == min(it.v0, it.v1) && max(v0, v1) == max(it.v0, it.v1)
+			return id == other.id
 		}
 		return super.equals(other)
+	}
+
+	override fun hashCode(): Int {
+		return id.hashCode()
 	}
 }
 

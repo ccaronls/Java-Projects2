@@ -328,13 +328,13 @@ const val WALL_NUM_TYPES = 8 // MUST BE LAST!
 
 val wall_type_strings = arrayOf(
 	"NONE",
-	"Normal",
-	"Electric",
-	"Indestructible",
-	"Portal",
-	"Rubber",
-	"Door",
-	"Phase Door"
+	"NORM",
+	"ELEC",
+	"INDS",
+	"PORT",
+	"RUBR",
+	"DOOR",
+	"PHAZ"
 )
 
 fun getWallTypeString(type: Int): String {

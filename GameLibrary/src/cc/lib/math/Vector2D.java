@@ -187,22 +187,24 @@ public class Vector2D extends Reflector<Vector2D> implements IVector2D, Serializ
     }
 
     /**
-     *
      * @param v
      * @return
      */
     public static float mag(IVector2D v) {
-    	final float x = v.getX();
-    	final float y = v.getY();
-    	return (float)Math.sqrt(x*x+y*y);
+        final float x = v.getX();
+        final float y = v.getY();
+        return (float) Math.sqrt(x * x + y * y);
+    }
+
+    public float magFast() {
+        return Utils.fastLen(x, y);
     }
 
     /**
-     *
      * @return
      */
     public final float mag() {
-        return (float)Math.sqrt(magSquared());
+        return (float) Math.sqrt(magSquared());
     }
 
     /**

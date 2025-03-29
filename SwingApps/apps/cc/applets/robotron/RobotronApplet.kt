@@ -7,6 +7,7 @@ import cc.lib.game.GColor
 import cc.lib.game.Justify
 import cc.lib.game.Utils
 import cc.lib.logger.LoggerFactory
+import cc.lib.logger.LoggerFactory.LogLevel
 import cc.lib.swing.AWTFrame
 import cc.lib.swing.AWTGraphics
 import cc.lib.swing.AWTKeyboardAnimationApplet
@@ -24,6 +25,7 @@ class RobotronApplet : AWTKeyboardAnimationApplet() {
 	lateinit var robotron: Robotron
 	override fun doInitialization() {
 		Utils.setDebugEnabled()
+		LoggerFactory.logLevel = LogLevel.DEBUG
 		robotron = object : Robotron() {
 			override val imageKey: Int by lazy {
 				G.loadImage("key.gif", GColor.BLACK)
