@@ -1,10 +1,15 @@
 package cc.game.superrobotron
 
 import cc.lib.game.GColor
+import cc.lib.game.GRectangle
 import cc.lib.kreflector.Reflector
 import cc.lib.ksp.binaryserializer.BinarySerializable
+import cc.lib.ksp.binaryserializer.BinaryType
+import cc.lib.ksp.binaryserializer.IBinarySerializable
 import cc.lib.math.Vector2D
 import cc.lib.utils.random
+import java.io.DataInputStream
+import java.io.DataOutputStream
 import java.util.LinkedList
 
 abstract class Object {
@@ -16,9 +21,10 @@ abstract class Object {
 }
 
 @BinarySerializable("Missile")
-abstract class AMissileFloat : Object() {
+abstract class AMissile : Object() {
 	var dx: Float = 0f
 	var dy: Float = 0f
+	@BinaryType(UByte::class)
 	var duration: Int = 0
 
 	fun init(x: Float, y: Float, dx: Float, dy: Float, duration: Int) {
@@ -34,11 +40,14 @@ abstract class AMissileFloat : Object() {
 abstract class AMissileSnake : Object() {
 
 	// counter
+	@BinaryType(UByte::class)
 	var duration: Int = 0
+	@BinaryType(UByte::class)
 	var state: Int = 0
 
 	// direction of each section
 	var dir: IntArray = IntArray(SNAKE_MAX_SECTIONS)
+	@BinaryType(UByte::class)
 	var num_sections = 0
 
 	fun init(x: Float, y: Float, duration: Int, state: Int) {
@@ -70,7 +79,8 @@ abstract class AMissileSnake : Object() {
 
 
 @BinarySerializable("Powerup")
-abstract class APowerup : AMissileFloat() {
+abstract class APowerup : AMissile() {
+	@BinaryType(UByte::class)
 	var type: Int = 0
 
 	fun init(x: Float, y: Float, dx: Float, dy: Float, duration: Int, type: Int) {
@@ -79,59 +89,36 @@ abstract class APowerup : AMissileFloat() {
 	}
 }
 
-@BinarySerializable("Wall")
-abstract class AWall(@Transient val id: Int) : Reflector<AWall>() { // Wall ids start at 1
-	var v0: Int = 0
-	var v1: Int = 0
-	var type: Int = 0 // all
-	var state: Int = 0   // door
-	var frame: Int = 0   // door, electric
-	var health: Int = 0   // normal
+/*
+Wall size: 34
+Player size: 129
+Missile size: 20
+Powerup size: 24
+Enemy size: 21
+ */
+
+class Wall(val id: Int, val v0: Int, val v1: Int) : Reflector<Wall>(), IBinarySerializable<Wall> { // Wall ids start at 1
+	var type = 0 // all
+	var state = 0   // door
+	var frame = 0   // door, electric
+	var health = 0   // normal
 	var frequency: Float = 0f   // for rubber walls
 	var visible: Boolean = false
 	var ending: Boolean = false
-	var portalId: Int = 0
+	var portalId = 0 // id of the wall this portal teleports us to
 
-	// populated by last collision check with the vertex used as nearest
-	@Transient
 	var nearV: Int = 0
 		set(value) {
 			field = value
 			farV = if (value == v0) v1 else v0
 		}
-	@Transient
 	var farV: Int = -1
 		private set
-	@Transient
 	var adjacent: Wall? = null
 
-
-	fun clear() {
-		health = 0
-		frame = health
-		state = frame
-		type = -1
-		v1 = 0
-		v0 = 0
-		visible = false
-		ending = false
-		frequency = 0f
-		nearV = -1
-		farV = -1
-		adjacent = null
-	}
-
-	fun initDoor(state: Int, v0: Int, v1: Int) {
-		type = WALL_TYPE_DOOR
-		this.state = state
-		this.v0 = v0
-		this.v1 = v1
-	}
-
-	fun init(type: Int, v0: Int, v1: Int) {
-		this.type = type
-		this.v0 = v0
-		this.v1 = v1
+	fun initPortal(target: Wall) {
+		portalId = target.id
+		target.portalId = id
 	}
 
 	override fun toString(): String {
@@ -140,9 +127,10 @@ abstract class AWall(@Transient val id: Int) : Reflector<AWall>() { // Wall ids 
 		when (type) {
 			WALL_TYPE_NORMAL -> str += "\nhealth=$health"
 			WALL_TYPE_ELECTRIC -> str += "\nframe=$frame"
+			WALL_TYPE_BROKEN_DOOR,
 			WALL_TYPE_DOOR -> str += """
- state=${getDoorStateString(state)}
-frame=$frame"""
+                                    state=${getDoorStateString(state)}
+									frame=$frame""".trimIndent()
 
 			WALL_TYPE_PORTAL -> str += "\nportal id:$portalId]"
 			WALL_TYPE_RUBBER -> str += "\nfreq=$frequency"
@@ -160,36 +148,85 @@ frame=$frame"""
 	override fun hashCode(): Int {
 		return id.hashCode()
 	}
+
+	override fun copy(other: Wall) {
+		TODO("Not yet implemented")
+	}
+
+	override fun serialize(output: DataOutputStream) {
+		output.writeByte(type)
+		when (type) {
+			WALL_TYPE_NONE,
+			WALL_TYPE_PORTAL,
+			WALL_TYPE_INDESTRUCTIBLE -> Unit
+
+			WALL_TYPE_NORMAL -> output.writeShort(health)
+			WALL_TYPE_ELECTRIC -> output.writeInt(frame) // electric walls cant be destroyed? (temp disabled)
+			WALL_TYPE_RUBBER -> output.writeFloat(frequency)
+			WALL_TYPE_DOOR,
+			WALL_TYPE_BROKEN_DOOR -> {
+				output.writeByte(state)
+				output.writeInt(frame.toInt())
+			}
+		}
+	}
+
+	override fun deserialize(input: DataInputStream) {
+		type = input.readUnsignedByte()
+		when (type) {
+			WALL_TYPE_NONE,
+			WALL_TYPE_PORTAL,
+			WALL_TYPE_INDESTRUCTIBLE -> Unit
+
+			WALL_TYPE_NORMAL -> health = input.readUnsignedShort()
+			WALL_TYPE_ELECTRIC -> frame = input.readInt()
+			WALL_TYPE_RUBBER -> frequency = input.readFloat()
+			WALL_TYPE_DOOR,
+			WALL_TYPE_BROKEN_DOOR -> {
+				state = input.readUnsignedByte()
+				frame = input.readInt()
+			}
+		}
+	}
 }
 
 @BinarySerializable("Player")
 abstract class APlayer : Object() {
 	var dx = 0f
 	var dy = 0f
+
+	// Rectangle of visible maze
+	@Transient
+	val screen = GRectangle()
+	@BinaryType(UByte::class)
 	var dir = DIR_DOWN
 	var scale = 1f
 	var score = 0
+	@BinaryType(UByte::class)
 	var lives = 0
 	var target_dx = 0f
 	var target_dy = 0f
 	var start_cell = intArrayOf(0, 0)
+	@BinaryType(java.lang.Byte::class)
 	var powerup = -1
+	@BinaryType(UShort::class)
 	var powerup_duration = 0
+	@BinaryType(UByte::class)
 	var keys = 0
+	@BinaryType(UShort::class)
 	var movement = 0
 	var firing = false
 	var start_x: Float = 0f
 	var start_y: Float = 0f
 
 	//int killed_frame = 0; // the frame the player was killed
-	@Transient
-	var missles = ManagedArray(Array(PLAYER_MAX_MISSLES) { Missile() })
-	var num_missles = 0
+	var missles = ManagedArray(Array(MAX_PLAYER_MISSLES) { Missile() })
 	var hulk_charge_dx = 0f
 	var hulk_charge_dy = 0f
 	var hulk_charge_frame = 0
 
 	//boolean teleported = false;
+	@BinaryType(UByte::class)
 	var state = PLAYER_STATE_SPAWNING
 	var next_state_frame = 0
 	var stun_dx = 0f
@@ -200,7 +237,9 @@ abstract class APlayer : Object() {
 
 	@Transient
 	var barrier_electric_wall = floatArrayOf(-1f, -1f, -1f, -1f)
+	@BinaryType(java.lang.Byte::class)
 	var hit_type = -1 // these are the 'reset' values
+	@BinaryType(java.lang.Byte::class)
 	var hit_index = -1
 	var cur_cell = IntArray(2) { -1 }
 
@@ -234,17 +273,23 @@ abstract class APlayer : Object() {
 
 @BinarySerializable("Particle")
 abstract class AParticle : Object() {
+	@BinaryType(UByte::class)
 	var type: Int = 0
-	var duration: Int = 0
-	var start_frame: Int = 0
+	@BinaryType(UByte::class)
+	var duration = 0
+	var start_frame = 0
+	@BinaryType(UByte::class)
 	var star: Int = 0
-	var angle: Float = 0f
+	@BinaryType(UShort::class)
+	var angle: Int = 0
+	@BinaryType(UByte::class)
 	var playerIndex: Int = 0
 }
 
 @BinarySerializable("Tracer")
 abstract class ATracer() : Object() {
 	var color = GColor.TRANSPARENT
+	@BinaryType(UByte::class)
 	var dir = 0
 
 	fun init(x: Float, y: Float, color: GColor, dir: Int = 0) {
@@ -258,16 +303,18 @@ abstract class ATracer() : Object() {
 
 @BinarySerializable("People")
 abstract class APeople : Object() {
+	@BinaryType(UByte::class)
 	var type: Int = 0
+	@BinaryType(java.lang.Byte::class)
 	var state: Int = 0
 }
 
 @BinarySerializable("Enemy")
 abstract class AEnemy : Object() {
+	@BinaryType(UByte::class)
 	var type: Int = 0
-	var next_update: Int = 0
+	var next_update = 0
 	var spawned_frame = 0
-	var killable: Boolean = true
 }
 
 @BinarySerializable("Message")

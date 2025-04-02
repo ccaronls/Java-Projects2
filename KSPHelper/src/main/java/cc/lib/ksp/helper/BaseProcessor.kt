@@ -73,6 +73,10 @@ abstract class BaseProcessor(
 		resolver.getClassDeclarationByName(Byte::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
 	}
 
+	val ubyteType by lazy {
+		resolver.getClassDeclarationByName(UByte::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
+	}
+
 	val charType by lazy {
 		resolver.getClassDeclarationByName(Char::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
 	}
@@ -81,8 +85,16 @@ abstract class BaseProcessor(
 		resolver.getClassDeclarationByName(Short::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
 	}
 
+	val ushortType by lazy {
+		resolver.getClassDeclarationByName(UShort::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
+	}
+
 	val intType by lazy {
 		resolver.getClassDeclarationByName(Int::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
+	}
+
+	val uintType by lazy {
+		resolver.getClassDeclarationByName(UInt::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
 	}
 
 	val floatType by lazy {
@@ -101,6 +113,12 @@ abstract class BaseProcessor(
 		resolver.getClassDeclarationByName(Long::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
 	}
 
+	val ulongType by lazy {
+		resolver.getClassDeclarationByName(ULong::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
+	}
+
+	fun KSType.isA(decl: KSType) = decl.isAssignableFrom(this)
+
 	fun KSType.isMirrored(): Boolean {
 		return mirrorType.isAssignableFrom(this)
 	}
@@ -109,20 +127,28 @@ abstract class BaseProcessor(
 		return stringType.isAssignableFrom(this)
 	}
 
+	fun KSType.isBoolean(): Boolean {
+		return booleanType.isAssignableFrom(this)
+	}
+
 	fun KSType.isIData(): Boolean {
 		return idataType.isAssignableFrom(this)
 	}
 
 	fun KSType.isPrimitive(): Boolean {
 		return booleanType.isAssignableFrom(this) ||
-			intType.isAssignableFrom(this) ||
-			stringType.isAssignableFrom(this) ||
-			longType.isAssignableFrom(this) ||
-			floatType.isAssignableFrom(this) ||
-			byteType.isAssignableFrom(this) ||
 			charType.isAssignableFrom(this) ||
+			byteType.isAssignableFrom(this) ||
+			ubyteType.isAssignableFrom(this) ||
 			shortType.isAssignableFrom(this) ||
-			doubleType.isAssignableFrom(this)
+			ushortType.isAssignableFrom(this) ||
+			intType.isAssignableFrom(this) ||
+			uintType.isAssignableFrom(this) ||
+			longType.isAssignableFrom(this) ||
+			ulongType.isAssignableFrom(this) ||
+			floatType.isAssignableFrom(this) ||
+			doubleType.isAssignableFrom(this) ||
+			stringType.isAssignableFrom(this)
 	}
 
 	fun KSType.isList(): Boolean {
@@ -198,7 +224,7 @@ abstract class BaseProcessor(
 
 	fun KSPropertyDeclaration.getName(): String = simpleName.asString()
 
-	fun KSType.arrayElementType(): String {
+	fun KSType.arrayElementTypeString(): String {
 		return if (declaration.qualifiedName?.asString()?.startsWith("kotlin.Array") == true) {
 			arguments[0].type?.resolve()?.declaration?.qualifiedName?.asString()
 				?: throw IllegalArgumentException("Unknown array type")
@@ -206,6 +232,21 @@ abstract class BaseProcessor(
 			"kotlin." + declaration.simpleName.asString().removeSuffix("Array")
 		} else {
 			throw IllegalArgumentException("Not an array type")
+		}
+	}
+
+	fun KSType.arrayElementType(): KSType {
+		try {
+			return if (declaration.qualifiedName?.asString()?.startsWith("kotlin.Array") == true) {
+				resolver.getClassDeclarationByName(arguments[0].type!!.resolve()!!.declaration!!.qualifiedName!!)?.asType(emptyList())
+					?: throw IllegalArgumentException("Unknown array type")
+			} else if (declaration.qualifiedName?.asString()?.endsWith("Array") == true) {
+				resolver.getClassDeclarationByName("kotlin." + declaration.simpleName.asString().removeSuffix("Array"))!!.asType(emptyList())
+			} else {
+				throw IllegalArgumentException("Not an array type")
+			}
+		} catch (e: Exception) {
+			throw IllegalArgumentException("Cannot determine array type from ${toFullyQualifiedName()}")
 		}
 	}
 

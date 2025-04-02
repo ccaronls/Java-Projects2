@@ -7,10 +7,10 @@ import com.google.devtools.ksp.processing.SymbolProcessorProvider
 /**
  * Created by Chris Caron on 11/14/23.
  */
-class ProcessorProvider : SymbolProcessorProvider {
+class BinarySerializerProcessorProvider : SymbolProcessorProvider {
 
 	override fun create(environment: SymbolProcessorEnvironment): SymbolProcessor {
-		return Processor(
+		return BinarySerializerProcessor(
 			codeGenerator = environment.codeGenerator,
 			logger = environment.logger,
 			options = environment.options

@@ -56,7 +56,7 @@ public class MixedColorGenerationsSimulation extends AWTComponent {
         while (true) {
             Ball ball = new Ball();
             ball.p.set(x, y);
-            ball.v.set(3*Utils.randFloatX(1), 3*Utils.randFloatX(1));
+            ball.v.set(3 * Utils.randFloatPlusOrMinus(1), 3 * Utils.randFloatPlusOrMinus(1));
             ball.color = GColor.WHITE;
             balls.add(ball);
 

@@ -1,1 +1,1 @@
-cc.lib.binaryserializable.processor.ProcessorProvider
+cc.lib.binaryserializable.processor.BinarySerializerProcessorProvider

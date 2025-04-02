@@ -574,6 +574,21 @@ public class Utils {
     }
 
     /**
+     * @param v0
+     * @param w0
+     * @param h0
+     * @param v1
+     * @param w1
+     * @param h1
+     * @return
+     */
+    public static boolean isBoxesOverlapping(IVector2D v0, float w0, float h0,
+                                             IVector2D v1, float w1, float h1) {
+        return isBoxesOverlapping(v0.getX(), v0.getY(), w0, h0, v1.getX(), v1.getY(), w1, h1);
+    }
+
+
+    /**
      * return random value in range (min,max) inclusive
      *
      * @param min
@@ -621,8 +636,8 @@ public class Utils {
      * @param scale
      * @return
      */
-    public static float randFloatX(float scale) {
-        return (float) (randGen.nextDouble() * (scale * 2) - scale);
+    public static float randFloatPlusOrMinus(float scale) {
+        return randFloat(scale * 2) - scale;
     }
 
     /**
@@ -1201,19 +1216,6 @@ public class Utils {
 
     /**
      * @param out
-     * @param start
-     * @param num
-     * @param ctrl0
-     * @param ctrl1
-     * @param ctrl2
-     * @param ctrl3
-     */
-    public static void computeBezierCurvePoints(Vector2D[] out, int start, int num, IVector2D ctrl0, IVector2D ctrl1, IVector2D ctrl2, IVector2D ctrl3) {
-        computeBezierCurvePoints(out, 0, out.length, ctrl0, ctrl1, ctrl2, ctrl3);
-    }
-
-    /**
-     * @param out
      * @param ctrl0
      * @param ctrl1
      * @param ctrl2
@@ -1232,7 +1234,7 @@ public class Utils {
      * @param ctrl3
      */
     public static void computeBezierCurvePoints(Vector2D[] out, int num, IVector2D ctrl0, IVector2D ctrl1, IVector2D ctrl2, IVector2D ctrl3) {
-        int steps = out.length - 1;
+        int steps = Math.min(out.length, num) - 1;
         float step = 1.0f / steps;
         int pt = 0;
         for (float t = 0; t < 1.0f; t += step) {

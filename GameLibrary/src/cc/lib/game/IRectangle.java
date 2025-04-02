@@ -364,8 +364,8 @@ public interface IRectangle extends IDimension, IShape {
     }
 
     default GRectangle shaked(float xfactor, float yfactor) {
-        float nx = getLeft() + getWidth() * Utils.randFloatX(xfactor);
-        float ny = getTop() + getHeight() * Utils.randFloatX(yfactor);
+        float nx = getLeft() + getWidth() * Utils.randFloatPlusOrMinus(xfactor);
+        float ny = getTop() + getHeight() * Utils.randFloatPlusOrMinus(yfactor);
         return new GRectangle(nx, ny, getWidth(), getHeight());
     }
 

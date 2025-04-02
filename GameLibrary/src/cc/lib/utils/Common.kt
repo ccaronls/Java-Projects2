@@ -40,24 +40,28 @@ fun <T> List<T>.appendedWith(other: Collection<T>) : MutableList<T> {
 }
 
 fun <T> MutableList<T>.removeRandom() : T {
-    val item = random()
-    assert(remove(item))
-    return item
+	val item = random()
+	assert(remove(item))
+	return item
 }
 
-fun Iterable<Any>.toStringArray(pretty: Boolean) : Array<String> {
-    return map { if (pretty) Utils.toPrettyString(it) else it.toString() }.toTypedArray()
+fun Iterable<Any>.toStringArray(pretty: Boolean): Array<String> {
+	return map { if (pretty) Utils.toPrettyString(it) else it.toString() }.toTypedArray()
 }
 
-fun Int.rotate(max: Int) : Int {
-    return plus(1) % max
+fun Int.rotate(max: Int): Int {
+	return rotate(1, max)
+}
+
+fun Int.rotate(amt: Int, max: Int): Int {
+	return plus(amt) % max
 }
 
 fun Any?.prettify(): String {
 	return Utils.toPrettyString(toString())
 }
 
-fun String.wrap(maxChar: Int) : String {
+fun String.wrap(maxChar: Int): String {
 	return Utils.wrapTextWithNewlines(this, maxChar)
 }
 
@@ -80,21 +84,28 @@ fun Float.random() : Float {
  * return + or - random in range 0-this
  */
 fun Float.randomSigned() : Float {
-	return Utils.randFloatX(this)
+	return Utils.randFloatPlusOrMinus(this)
 }
 
 /**
  * return random int in range 0 to this-1
  */
-fun random(range: Int) : Int {
+fun random(range: Int): Int {
 	return if (range > 0) Utils.rand() % range else -1
 }
 
 /**
  * Return random int in range
  */
-fun random(range: IntRange) : Int {
+fun random(range: IntRange): Int {
 	return Utils.randRange(range.first, range.last)
+}
+
+/**
+ * Return random unsigned int in range
+ */
+fun random(range: UIntRange): UInt {
+	return Utils.rand().toUInt() % (range.last - range.first + 1u) + range.first
 }
 
 /**
@@ -104,7 +115,7 @@ fun random(range: IntRange) : Int {
  * 1 -> 1 out of 3
  * 2 -> 2 out of 3
  */
-fun IntArray.randomWeighted() : Int {
+fun IntArray.randomWeighted(): Int {
 	return Utils.chooseRandomFromSet(*this)
 }
 
@@ -391,3 +402,5 @@ fun <T> List<T>.randomIndexOrNull() = if (isNotEmpty()) random(indices) else nul
 fun randomFloat(max: Float): Float = random((max * 1000).roundToInt()) / 1000f
 
 fun randomFloat(min: Float, max: Float) = random(((max - min) * 1000).roundToInt()) / 1000f
+
+fun Float.squared(): Float = this * this

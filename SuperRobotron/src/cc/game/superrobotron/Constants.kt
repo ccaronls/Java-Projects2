@@ -15,6 +15,7 @@ const val DIR_RIGHT = 1
 const val DIR_DOWN = 2
 const val DIR_LEFT = 3
 
+const val MAX_PLAYERS = 4
 const val PLAYER_STATE_SPAWNING = 0
 const val PLAYER_STATE_ALIVE = 1
 const val PLAYER_STATE_EXPLODING = 2
@@ -63,7 +64,7 @@ const val PLAYER_SPEED = 8f // pixels per frame
 const val PLAYER_SUPER_SPEED_BONUS = 3
 const val PLAYER_RADIUS = 16f
 const val PLAYER_RADIUS_BARRIER = 25f
-const val PLAYER_MAX_MISSLES = 16 // max player missiles on screen at one time
+const val MAX_PLAYER_MISSLES = 16 // max player missiles on screen at one time
 const val PLAYER_DEATH_FRAMES = 70 // number of frames to do the 'death' sequence
 const val PLAYER_START_LIVES = 3 // number of lives player starts with
 const val PLAYER_NEW_LIVE_SCORE = 25000 // number of points to give an extra player
@@ -74,6 +75,7 @@ const val PLAYER_MISSLE_DURATION = 50 // number of frames a missile exists for
 const val PLAYER_SPAWN_FRAMES = 30 // number of frames at beginning of level where player is safe
 const val PLAYER_HULK_GROW_SPEED = 0.05f
 const val PLAYER_HULK_SCALE = 1.6f
+const val PLAYER_HULK_CHARGE_FRAMES = 20
 const val PLAYER_HULK_CHARGE_SPEED_BONUS = PLAYER_SPEED
 const val PLAYER_POWERUP_DURATION = 500 // frames
 const val PLAYER_POWERUP_WARNING_FRAMES = 50 //
@@ -216,7 +218,7 @@ const val PEOPLE_MAX_POINTS = 10000
 // -- MESSGAES --
 const val THROBBING_SPEED = 2 // Affects throbbing_white. higher is slower.
 const val MESSAGE_FADE = 3 // Affects instaMsgs, higher is slower
-const val MESSAGES_MAX = 4 // max number of inst msgs
+const val MAX_MESSAGES = 4 // max number of inst msgs
 
 // -- lava pit --
 const val ENEMY_LAVA_CLOSED_FRAMES = 30
@@ -301,15 +303,15 @@ const val WALL_BREAKING_MAX_RECURSION = 3
 const val DARKEN_AMOUNT = 0.1f
 const val LIGHTEN_AMOUNT = 0.1f
 
-const val DOOR_STATE_LOCKED = 0
-const val DOOR_STATE_CLOSED = 1
-const val DOOR_STATE_CLOSING = 2
-const val DOOR_STATE_OPENING = 3
-const val DOOR_STATE_OPEN = 4
+const val DOOR_STATE_CLOSED = 0
+const val DOOR_STATE_CLOSING = 1
+const val DOOR_STATE_OPENING = 2
+const val DOOR_STATE_OPEN = 3
+const val DOOR_STATE_LOCKED = 4
 const val DOOR_SPEED_FRAMES = 50
 const val DOOR_SPEED_FRAMES_INV = 1.0f / DOOR_SPEED_FRAMES
 const val DOOR_OPEN_FRAMES = 100
-const val DOOR_OPEN_FRAMES_INV = 1.0f / DOOR_OPEN_FRAMES
+const val BROKEN_DOOR_CLOSED_FRAMES = 100
 val DOOR_COLOR: GColor by lazy { GColor.CYAN }
 const val DOOR_THICKNESS = 2f
 
@@ -322,20 +324,20 @@ const val WALL_TYPE_INDESTRUCTIBLE = 3 // used for perimeter
 const val WALL_TYPE_PORTAL = 4 // teleport to other portal walls
 const val WALL_TYPE_RUBBER = 5 // ?
 const val WALL_TYPE_DOOR = 6 // need a key too open
-const val WALL_TYPE_PHASE_DOOR = 7 // door opens and closes at random interconst vals
+const val WALL_TYPE_BROKEN_DOOR = 7 // door opens and closes at random intervals
 const val WALL_NUM_TYPES = 8 // MUST BE LAST!
 
-
-val wall_type_strings = arrayOf(
-	"NONE",
-	"NORM",
-	"ELEC",
-	"INDS",
-	"PORT",
-	"RUBR",
-	"DOOR",
-	"PHAZ"
-)
+val wall_type_strings: Array<String>
+	get() = arrayOf(
+		"NONE",
+		"NORM",
+		"ELEC",
+		"INDS",
+		"PORT",
+		"RUBR",
+		"DOOR",
+		"BROK"
+	)
 
 fun getWallTypeString(type: Int): String {
 	if (type in wall_type_strings.indices)
@@ -343,13 +345,14 @@ fun getWallTypeString(type: Int): String {
 	return "UNKNOWN"
 }
 
-val door_state_strings = arrayOf(
-	"LOCKED",
-	"CLOSED",
-	"CLOSING",
-	"OPENING",
-	"OPEN"
-)
+val door_state_strings: Array<String>
+	get() = arrayOf(
+		"CLOSED",
+		"CLOSING",
+		"OPENING",
+		"OPEN",
+		"LOCKED"
+	)
 
 fun getDoorStateString(state: Int): String {
 	return door_state_strings[state]

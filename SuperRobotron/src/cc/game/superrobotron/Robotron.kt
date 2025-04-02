@@ -30,7 +30,6 @@ abstract class Robotron {
 
 	companion object {
 		var GAME_VISIBILITY = false
-		val MAX_PLAYERS = 4
 		val log = LoggerFactory.getLogger(Robotron::class.java)
 	}
 
@@ -50,7 +49,7 @@ abstract class Robotron {
 			5 + gameLevel,
 			5 + gameLevel,
 			0 + gameLevel,
-			0
+			0 + gameLevel
 		)
 
 	open val instructions = "Use 'WASD' keys to move\nUse mouse to fire"
@@ -101,9 +100,7 @@ abstract class Robotron {
 			//Utils.assertTrue(v0 in 0 until MAZE_NUM_VERTS)
 			//Utils.assertTrue(v1 in 0 until MAZE_NUM_VERTS, "Index $v1 out of range $MAZE_NUM_VERTS,$dir")
 			if (v0 in 0 until MAZE_NUM_VERTS && v1 in 0 until MAZE_NUM_VERTS) {
-				val wall = Wall(id++)
-				wall.v0 = v0
-				wall.v1 = v1
+				val wall = Wall(id++, v0, v1)
 				wall.type = WALL_TYPE_NONE
 				Utils.assertFalse(arr[v0].contains(wall), "Vertex $v0 already has $wall")
 				Utils.assertFalse(arr[v1].contains(wall))
@@ -124,12 +121,6 @@ abstract class Robotron {
 
 		walls = arr
 	}
-
-	// Rectangle of visible maze
-	var screen_x = 0f
-		private set
-	var screen_y = 0f
-		private set
 
 	// rectangle of maze dimension
 	private var verts_min_x = 0f
@@ -191,7 +182,7 @@ abstract class Robotron {
 	var particles = ManagedArray(Array(MAX_PARTICLES) { Particle() })
 
 	// MSGS that drift away ---------------------------
-	val messages = ManagedArray(Array(MESSAGES_MAX) { Message() })
+	val messages = ManagedArray(Array(MAX_MESSAGES) { Message() })
 	private var cursor_x = 0
 	private var cursor_y = 0
 
@@ -224,10 +215,6 @@ abstract class Robotron {
 
 	// ...
 	private var difficulty = DIFFICULTY_EASY // Easy == 0, Med == 1, Hard == 2
-	var screen_width = 0f
-		private set
-	var screen_height = 0f
-		private set
 	private var frameNumber = 0
 	lateinit var G: AGraphics
 
@@ -235,9 +222,17 @@ abstract class Robotron {
 		curWorkingVert = curWorkingVert.rotate(workingVerts.size)
 	}
 
+	val screen_x: Float
+		get() = player.screen.x
+	val screen_y: Float
+		get() = player.screen.y
+	val screen_width: Float
+		get() = player.screen.w
+	val screen_height: Float
+		get() = player.screen.h
+
 	fun setDimension(screenWidth: Int, screenHeight: Int) {
-		screen_height = screenHeight.toFloat()
-		screen_width = screenWidth.toFloat()
+		player.screen.setDimension(screenWidth.toFloat(), screenHeight.toFloat())
 		setIntroButtonPositionAndDimension()
 	}
 
@@ -257,8 +252,8 @@ abstract class Robotron {
 				Justify.LEFT,
 				Justify.CENTER,
 				"""TOP V: ${computeTopLeftCornerVertex()}
-					screen x: $screen_x
-					screen y: $screen_y
+					screen x: ${player.screen.x}
+					screen y: ${player.screen.y}
 					maze w: ${verts_max_x - verts_min_x}
 					maze_h: ${verts_max_y - verts_min_y}
 					player x: ${player.x}
@@ -320,7 +315,7 @@ abstract class Robotron {
 	// -----------------------------------------------------------------------------------------------
 	fun addPowerup(x: Float, y: Float, type: Int) {
 		(powerups.addOrNull() ?: powerups.random()).init(
-			x, y, Utils.randFloatX(1f), Utils.randFloatX(1f), 0, type
+			x, y, Utils.randFloatPlusOrMinus(1f), Utils.randFloatPlusOrMinus(1f), 0, type
 		)
 	}
 
@@ -632,14 +627,13 @@ abstract class Robotron {
 
 	// -----------------------------------------------------------------------------------------------
 	// Add an enemy. If the table is full, replace the oldest GUY.
-	private fun addEnemy(x: Float, y: Float, type: Int, killable: Boolean) {
+	private fun addEnemy(x: Float, y: Float, type: Int) {
 		enemies.addOrNull()?.let { e ->
 			e.x = x
 			e.y = y
 			e.type = type
 			e.next_update = frameNumber + random(5..10)
 			e.spawned_frame = frameNumber + random(10..20)
-			e.killable = killable
 		}
 	}
 
@@ -831,7 +825,7 @@ abstract class Robotron {
 				// this guy is turning into a zombie
 				if (++p.state == 0) {
 					// add a zombie
-					addEnemy(p.x, p.y, random(ENEMY_INDEX_ZOMBIE_N..ENEMY_INDEX_ZOMBIE_W), true)
+					addEnemy(p.x, p.y, random(ENEMY_INDEX_ZOMBIE_N..ENEMY_INDEX_ZOMBIE_W))
 					iter.remove()
 					continue
 				}
@@ -847,7 +841,7 @@ abstract class Robotron {
 						if (random(0..3) == 3) addPlayerMsg(player, "HULK SMASH!")
 						addPoints(player, -people_points)
 						if (people_picked_up > 0) people_picked_up--
-						addParticle(p.x, p.y, PARTICLE_TYPE_BLOOD, PARTICLE_BLOOD_DURATION, -1, 0f)
+						addParticle(p.x, p.y, PARTICLE_TYPE_BLOOD, PARTICLE_BLOOD_DURATION, -1, 0)
 					} else {
 						addMsg(p.x, p.y, people_points.toString()) // + " points");
 						addPoints(player, people_points)
@@ -976,7 +970,7 @@ abstract class Robotron {
 
 	// -----------------------------------------------------------------------------------------------
 	// add an explosion if possible
-	private fun addParticle(x: Float, y: Float, type: Int, duration: Int, playerIndex: Int, angle: Float) {
+	private fun addParticle(x: Float, y: Float, type: Int, duration: Int, playerIndex: Int, angle: Int) {
 		particles.addOrNull()?.let { p ->
 			p.x = x
 			p.y = y
@@ -1002,7 +996,7 @@ abstract class Robotron {
 		val iter = particles.iterator()
 		while (iter.hasNext()) {
 			val p = iter.next()
-			var duration = frameNumber - p.start_frame
+			var duration = (frameNumber - p.start_frame).toInt().coerceAtLeast(0)
 			if (duration >= p.duration) {
 				iter.remove()
 				continue
@@ -1022,11 +1016,11 @@ abstract class Robotron {
 					if (duration <= pd2) {
 						g.color = GColor.RED
 						// draw expanding disk
-						radius = PARTICLE_BLOOD_RADIUS * duration / pd2
+						radius = PARTICLE_BLOOD_RADIUS * (duration / pd2).toFloat()
 						g.drawFilledOval((x - radius), (y - radius), (radius * 2), (radius * 2))
 					} else {
 						// draw 2nd half of explosion sequence
-						radius = PARTICLE_BLOOD_RADIUS * (duration - pd2) / pd2
+						radius = PARTICLE_BLOOD_RADIUS * ((duration - pd2) / pd2).toFloat()
 						g.color = GColor.RED
 						g.drawFilledOval(
 							(x - PARTICLE_BLOOD_RADIUS),
@@ -1075,10 +1069,10 @@ abstract class Robotron {
 					val px = (player.x)
 					val py = player.y - rad * 2
 					val ry = rad * 0.5f
-					val deg = p.angle
+					val deg = p.angle.toFloat()
 					val tx = px + rad * CMath.cosine(deg)
 					val ty = py + ry * CMath.sine(deg)
-					p.angle += 25
+					p.angle = p.angle.rotate(25, 360)
 					val star = particle_stars[p.star]
 					g.drawString(star, tx, ty)
 				}
@@ -1158,8 +1152,7 @@ abstract class Robotron {
 				addEnemy(
 					enemy.x + random(-10..10),
 					enemy.y + random(-10..10),
-					random(ENEMY_INDEX_ROBOT_N..ENEMY_INDEX_ROBOT_W),
-					true
+					random(ENEMY_INDEX_ROBOT_N..ENEMY_INDEX_ROBOT_W)
 				)
 			}
 			val cell = intArrayOf(0, 0)
@@ -1180,7 +1173,7 @@ abstract class Robotron {
 			return true
 		} else if (enemy.type <= ENEMY_INDEX_ROBOT_W) {
 			addPoints(player, ENEMY_ROBOT_POINTS)
-			addParticle(enemy.x, enemy.y, PARTICLE_TYPE_DYING_ROBOT, 5, -1, 0f)
+			addParticle(enemy.x, enemy.y, PARTICLE_TYPE_DYING_ROBOT, 5, -1, 0)
 			return true
 		} else if (enemy.type <= ENEMY_INDEX_THUG_W) {
 			collisionScanCircle(enemy.x + dx, enemy.y + dy, ENEMY_THUG_RADIUS) ?: run {
@@ -1196,22 +1189,22 @@ abstract class Robotron {
 			addParticle(
 				enemy.x + randomFloat(-ENEMY_BRAIN_RADIUS / 2, ENEMY_BRAIN_RADIUS / 2),
 				enemy.y + randomFloat(-ENEMY_BRAIN_RADIUS / 2, ENEMY_BRAIN_RADIUS / 2),
-				PARTICLE_TYPE_BLOOD, PARTICLE_BLOOD_DURATION, -1, 0f
+				PARTICLE_TYPE_BLOOD, PARTICLE_BLOOD_DURATION, -1, 0
 			)
 			addParticle(
 				enemy.x + randomFloat(-ENEMY_BRAIN_RADIUS / 2, ENEMY_BRAIN_RADIUS / 2),
 				enemy.y + randomFloat(-ENEMY_BRAIN_RADIUS / 2, ENEMY_BRAIN_RADIUS / 2),
-				PARTICLE_TYPE_BLOOD, PARTICLE_BLOOD_DURATION, -1, 0f
+				PARTICLE_TYPE_BLOOD, PARTICLE_BLOOD_DURATION, -1, 0
 			)
 			addParticle(
 				enemy.x + randomFloat(-ENEMY_BRAIN_RADIUS / 2, ENEMY_BRAIN_RADIUS / 2),
 				enemy.y + randomFloat(-ENEMY_BRAIN_RADIUS / 2, ENEMY_BRAIN_RADIUS / 2),
-				PARTICLE_TYPE_BLOOD, PARTICLE_BLOOD_DURATION, -1, 0f
+				PARTICLE_TYPE_BLOOD, PARTICLE_BLOOD_DURATION, -1, 0
 			)
 			return true
 		} else if (enemy.type <= ENEMY_INDEX_TANK_NW) {
 			addPoints(player, ENEMY_TANK_POINTS)
-			addParticle(enemy.x, enemy.y, PARTICLE_TYPE_DYING_TANK, 8, -1, 0f)
+			addParticle(enemy.x, enemy.y, PARTICLE_TYPE_DYING_TANK, 8, -1, 0)
 			return true
 		}
 		return false
@@ -1543,7 +1536,7 @@ abstract class Robotron {
 		for (i in 0 until STATIC_FIELD_SECTIONS - 1) {
 			val x1 = x0 * STATIC_FIELD_COS_T - y0 * STATIC_FIELD_SIN_T
 			val y1 = y0 * STATIC_FIELD_SIN_T + x0 * STATIC_FIELD_COS_T
-			val r1 = Utils.randFloatX(3f) + radius
+			val r1 = Utils.randFloatPlusOrMinus(3f) + radius
 			g.drawLine(x + x0 * r0, y + y0 * r0, x + x1 * r1, y + y1 * r1)
 			x0 = x1
 			y0 = y1
@@ -1622,7 +1615,7 @@ abstract class Robotron {
 					if (p.state > 0 && isOnScreen(p.x, p.y)
 						&& Utils.isPointInsideCircle(p.x, p.y, e.x, e.y, radius + PEOPLE_RADIUS)
 					) {
-						addParticle(p.x, p.y, PARTICLE_TYPE_BLOOD, PARTICLE_BLOOD_DURATION, -1, 0f)
+						addParticle(p.x, p.y, PARTICLE_TYPE_BLOOD, PARTICLE_BLOOD_DURATION, -1, 0)
 						addMsg(e.x + random(-10..10), e.y + random(-10..10), "NOOOO!")
 						piter.remove()
 					}
@@ -1637,7 +1630,7 @@ abstract class Robotron {
 					val ex = e.x + random(-10..10)
 					val ey = e.y + random(-10..10)
 					val ed = random(ENEMY_INDEX_ROBOT_N..ENEMY_INDEX_ROBOT_W)
-					addEnemy(ex, ey, ed, true)
+					addEnemy(ex, ey, ed)
 					e.next_update = frame_num + 50 + random(-20..20)
 				}
 
@@ -2216,10 +2209,10 @@ abstract class Robotron {
 		player.stun_dx = dx * len_inv
 		player.stun_dy = dy * len_inv
 		player.hulk_charge_frame = 0
-		var angle = 0f
+		var angle = 0
 		while (angle < 360) {
 			addParticle(player.x, player.y, PARTICLE_TYPE_PLAYER_STUN, random(10..20), playerIndex, angle)
-			angle += 45f
+			angle += 45
 		}
 	}
 
@@ -2228,21 +2221,19 @@ abstract class Robotron {
 		when (door.state) {
 			DOOR_STATE_LOCKED -> if (!isHulkActive(player) && player.keys > 0) {
 				addPlayerMsg(player, "UNLOCKING DOOR")
-				door.state = DOOR_STATE_CLOSED
-				door.frame = frameNumber
+				door.state = DOOR_STATE_OPENING
+				door.frame = 0
 				player.keys--
 			}
 
 			DOOR_STATE_CLOSING -> {
 				door.state = DOOR_STATE_OPENING
-				var framesElapsed = frameNumber - door.frame
-				framesElapsed = DOOR_SPEED_FRAMES - framesElapsed
-				door.frame = frameNumber - framesElapsed
+				door.frame = 0
 			}
 
 			DOOR_STATE_CLOSED -> {
 				door.state = DOOR_STATE_OPENING
-				door.frame = frameNumber
+				door.frame = 0
 			}
 
 			DOOR_STATE_OPENING -> {
@@ -2335,7 +2326,7 @@ abstract class Robotron {
 		if (dx != 0f || dy != 0f) {
 			if (GAME_VISIBILITY)
 				updatePlayerVisibility(player)
-			player.movement++
+			player.movement.rotate(1000)
 			player.dir = getPlayerDir(dx, dy)
 			var px = player.x + dx
 			var py = player.y + dy
@@ -2425,8 +2416,8 @@ abstract class Robotron {
 		}
 
 		val margin = 25f
-		screen_x = (player.x - screen_width / 2).coerceIn(verts_min_x - margin..verts_max_x - screen_width + margin)
-		screen_y = (player.y - screen_height / 2).coerceIn(verts_min_y - margin..verts_max_y - screen_height + margin)
+		player.screen.x = (player.x - screen_width / 2).coerceIn(verts_min_x - margin..verts_max_x - screen_width + margin)
+		player.screen.y = (player.y - screen_height / 2).coerceIn(verts_min_y - margin..verts_max_y - screen_height + margin)
 
 		if (game_type == GAME_TYPE_CLASSIC) {
 			if (total_enemies == 0 && particles.isEmpty()) {
@@ -2441,6 +2432,8 @@ abstract class Robotron {
 	}
 
 	fun nextLevel() {
+		frameNumber = 0
+		game_start_frame
 		gameLevel++
 		buildAndPopulateLevel()
 	}
@@ -2575,42 +2568,28 @@ abstract class Robotron {
 		}
 	}
 
-	val PLAYER_HULK_CHARGE_FRAMES = 20
 	private fun isHulkActiveCharging(player: Player): Boolean {
 		return isHulkActive(player) && frameNumber - player.hulk_charge_frame < PLAYER_HULK_CHARGE_FRAMES
 	}
 
 	// -----------------------------------------------------------------------------------------------
+	// make so teleporting from opposite sides of a wall is symmetrical
 	private fun enemyTeleport(e: Enemy, v0: Int, v1: Int) {
 		val radius = e.radius()
-		// get wall defined by v0, v1
 		val n0 = mazeVert(v0).add(mazeVert(v1), newV())
 
 		val v0 = mazeVert(v0)
 		val v1 = mazeVert(v1)
 		val mp = v0.add(v1, newV()).scaleEq(.5f)
 
-//		val x0 = maze_verts_x[v0]
-//		val y0 = maze_verts_y[v0]
-//		val x1 = maze_verts_x[v1]
-//		val y1 = maze_verts_y[v1]
-		// midpoint
-//		val mx = (x0 + x1) / 2
-//		val my = (y0 + y1) / 2
-		// delta
-//		val dx = x1 - x0
-//		val dy = y1 - y0
 		val dv = v1.sub(v0, newV())
 		// normal
 		val n1 = dv.norm(newV())
 		if (n1.dot(n0) > 0)
 			n1.scaleEq(-1f)
-		//val nx = -dy
 		val len = dv.magFast()
 		val len_inv = 1.0f / len
 		val newV = mp.add(n1.scaleEq(len_inv * radius), newV())
-		//val newX = mx + len_inv * nx * radius
-		//val newY = my + len_inv * dx * radius
 		e.x = newV.x
 		e.y = newV.y
 	}
@@ -2639,15 +2618,12 @@ abstract class Robotron {
 			n.scaleEq(-1f)
 		val len = (n.magFast() - 1).coerceAtLeast(1f)
 
-		val len_inv = 1.0f / len
 		// make the player's motion change to the closest to that of the normal
 		player.dx = 0f
 		player.dy = 0f
 		n.scaleEq(radius / len)
 		val newV = wall.mid().addEq(n)
 
-		//val newX = mx + len_inv * nx * radius
-		//val newY = my + len_inv * dx * radius
 		player.x = newV.x
 		player.y = newV.y
 		return true
@@ -2943,7 +2919,8 @@ abstract class Robotron {
 			g.drawFilledRect((px - f8), (py - f10), f16, f4)
 			g.color = GColor.RED
 			var index = frameNumber % 12
-			if (index > 6) index = 12 - index
+			if (index > 6)
+				index = 12 - index
 			g.drawFilledRect((px - f8 + index * f2), (py - f10), f4, f4)
 		} else if (dir == 1) {
 			g.color = GColor.BLACK
@@ -2989,12 +2966,12 @@ abstract class Robotron {
 		for (c in 0..1) {
 			var x0 = 1f
 			var y0 = 0f
-			var r0 = Utils.randFloatX(3f) + radius
+			var r0 = Utils.randFloatPlusOrMinus(3f) + radius
 			val sr = r0
 			for (i in 0 until STATIC_FIELD_SECTIONS - 1) {
 				val x1 = x0 * STATIC_FIELD_COS_T - y0 * STATIC_FIELD_SIN_T
 				val y1 = y0 * STATIC_FIELD_SIN_T + x0 * STATIC_FIELD_COS_T
-				val r1 = Utils.randFloatX(3f) + radius
+				val r1 = Utils.randFloatPlusOrMinus(3f) + radius
 				val lx0 = x0 * r0
 				val ly0 = y0 * r0
 				val lx1 = x1 * r1
@@ -3044,7 +3021,7 @@ abstract class Robotron {
 		for (c in 0..1) {
 			var x0 = 1f
 			var y0 = 0f
-			var r0 = Utils.randFloatX(3f) + radius
+			var r0 = Utils.randFloatPlusOrMinus(3f) + radius
 			val sr = r0
 
 			// dest point of field to connect wall pts to
@@ -3059,7 +3036,7 @@ abstract class Robotron {
 			for (i in 0 until STATIC_FIELD_SECTIONS) {
 				val x1 = x0 * STATIC_FIELD_COS_T - y0 * STATIC_FIELD_SIN_T
 				val y1 = y0 * STATIC_FIELD_SIN_T + x0 * STATIC_FIELD_COS_T
-				var r1 = Utils.randFloatX(3f) + radius
+				var r1 = Utils.randFloatPlusOrMinus(3f) + radius
 				if (i == STATIC_FIELD_SECTIONS - 1) {
 					r1 = sr
 				}
@@ -3317,7 +3294,7 @@ abstract class Robotron {
 	// -----------------------------------------------------------------------------------------------
 	private fun drawDoor(g: AGraphics, door: Wall, x0: Float, y0: Float, x1: Float, y1: Float) {
 		g.color = DOOR_COLOR
-		val framesElapsed = frameNumber - door.frame + 1
+		door.frame++
 		var dx = x1 - x0
 		var dy = y1 - y0
 		val mx = (x1 + x0) / 2
@@ -3325,14 +3302,18 @@ abstract class Robotron {
 		when (door.state) {
 			DOOR_STATE_CLOSED -> {
 				g.drawLine(x0, y0, x1, y1, DOOR_THICKNESS)
-				return
+				if (door.type == WALL_TYPE_BROKEN_DOOR) {
+					if (door.frame > BROKEN_DOOR_CLOSED_FRAMES) {
+						door.state = DOOR_STATE_OPENING
+						door.frame = 0
+					}
+				}
 			}
 
 			DOOR_STATE_LOCKED -> {
 				g.drawLine(x0, y0, x1, y1, DOOR_THICKNESS)
 				g.color = GColor.RED
 				g.drawFilledCircle(mx, my, 10f)
-				return
 			}
 
 			DOOR_STATE_OPEN -> {
@@ -3340,21 +3321,27 @@ abstract class Robotron {
 				dy /= 4
 				g.drawLine(x0, y0, (x0 + dx), (y0 + dy), DOOR_THICKNESS)
 				g.drawLine(x1, y1, (x1 - dx), (y1 - dy), DOOR_THICKNESS)
-				if (framesElapsed >= DOOR_OPEN_FRAMES) {
+				if (door.frame > DOOR_OPEN_FRAMES) {
 					door.state = DOOR_STATE_CLOSING
-					door.frame = frameNumber
+					door.frame = 0
 				}
-				return
 			}
-		}
-		val delta = getDoorDelta(dx, dy, framesElapsed, door.state)
-		dx = delta[0]
-		dy = delta[1]
-		g.drawLine(x0, y0, (x0 + dx), (y0 + dy), DOOR_THICKNESS)
-		g.drawLine(x1, y1, (x1 - dx), (y1 - dy), DOOR_THICKNESS)
-		if (framesElapsed >= DOOR_SPEED_FRAMES) {
-			if (door.state == DOOR_STATE_OPENING) door.state = DOOR_STATE_OPEN else door.state = DOOR_STATE_CLOSED
-			door.frame = frameNumber
+
+			else -> {
+				val delta = getDoorDelta(dx, dy, door.frame, door.state)
+				dx = delta[0]
+				dy = delta[1]
+				g.drawLine(x0, y0, (x0 + dx), (y0 + dy), DOOR_THICKNESS)
+				g.drawLine(x1, y1, (x1 - dx), (y1 - dy), DOOR_THICKNESS)
+				if (door.frame >= DOOR_SPEED_FRAMES) {
+					if (door.state == DOOR_STATE_OPENING) {
+						door.state = DOOR_STATE_OPEN
+					} else {
+						door.state = DOOR_STATE_CLOSED
+					}
+					door.frame = 0
+				}
+			}
 		}
 	}
 
@@ -3459,11 +3446,8 @@ abstract class Robotron {
 
 			WALL_TYPE_PORTAL -> drawPortalWall(g, x0, y0, x1, y1)
 			WALL_TYPE_RUBBER -> drawRubberWall(g, x0, y0, x1, y1, info.frequency)
+			WALL_TYPE_BROKEN_DOOR,
 			WALL_TYPE_DOOR -> drawDoor(g, info, x0, y0, x1, y1)
-			WALL_TYPE_PHASE_DOOR -> {
-				g.color = GColor.GREEN
-				g.drawLine(x0, y0, x1, y1, 1f)
-			}
 		}
 	}
 
@@ -3648,21 +3632,21 @@ abstract class Robotron {
 
 		// add some robots
 		var count = MAX_ENEMIES / 2 + (difficulty - 1) * 4 + gameLevel / 2
-		for (i in 0 until count) addEnemy(0f, 0f, random(ENEMY_INDEX_ROBOT_N..ENEMY_INDEX_ROBOT_W), true)
+		for (i in 0 until count) addEnemy(0f, 0f, random(ENEMY_INDEX_ROBOT_N..ENEMY_INDEX_ROBOT_W))
 
 		// Add some Thugs
 		count = ENEMY_GEN_INITIAL + (difficulty - 1) * 4 + gameLevel + random(-5..4 + gameLevel)
-		for (i in 0 until count) addEnemy(0f, 0f, random(ENEMY_INDEX_THUG_N..ENEMY_INDEX_THUG_W), true)
+		for (i in 0 until count) addEnemy(0f, 0f, random(ENEMY_INDEX_THUG_N..ENEMY_INDEX_THUG_W))
 
 		// Add Some Brains And / Or Tanks
 		if (gameLevel > 1 && gameLevel % 2 == 0) {
 			// add brains
 			count = ENEMY_GEN_INITIAL + (difficulty - 1) * 4 + gameLevel + random(-5..5 + gameLevel)
-			for (i in 0 until count) addEnemy(0f, 0f, ENEMY_INDEX_BRAIN, true)
+			for (i in 0 until count) addEnemy(0f, 0f, ENEMY_INDEX_BRAIN)
 		} else if (gameLevel > 2 && gameLevel % 2 == 1) {
 			// Add Some tanks
 			count = ENEMY_GEN_INITIAL + (difficulty - 1) * 2 + gameLevel + random(-5..5 + gameLevel)
-			for (i in 0 until count) addEnemy(0f, 0f, random(ENEMY_INDEX_TANK_NE..ENEMY_INDEX_TANK_NW), true)
+			for (i in 0 until count) addEnemy(0f, 0f, random(ENEMY_INDEX_TANK_NE..ENEMY_INDEX_TANK_NW))
 		}
 		shuffleEnemies()
 		addPeople()
@@ -3714,7 +3698,7 @@ abstract class Robotron {
 			break
 		}
 		val pos = cellToMazeCoords(cell)
-		addEnemy(pos[0], pos[1], type, true)
+		addEnemy(pos[0], pos[1], type)
 	}
 
 	// -----------------------------------------------------------------------------------------------
@@ -3896,7 +3880,7 @@ abstract class Robotron {
 		enemies.filter { it.type == ENEMY_INDEX_GEN }.forEach { e ->
 			val x = e.x + scatter(ENEMY_THUG_RADIUS)
 			val y = e.y + scatter(ENEMY_THUG_RADIUS)
-			addEnemy(x, y, random(ENEMY_INDEX_THUG_N..ENEMY_INDEX_THUG_W), true)
+			addEnemy(x, y, random(ENEMY_INDEX_THUG_N..ENEMY_INDEX_THUG_W))
 		}
 
 		// now place some brains or tanks
@@ -3905,13 +3889,13 @@ abstract class Robotron {
 				enemies.filter { it.type == ENEMY_INDEX_GEN }.forEach { e ->
 					val x = e.x + scatter(ENEMY_BRAIN_RADIUS)
 					val y = e.y + scatter(ENEMY_BRAIN_RADIUS)
-					addEnemy(x, y, ENEMY_INDEX_BRAIN, true)
+					addEnemy(x, y, ENEMY_INDEX_BRAIN)
 				}
 			} else {
 				enemies.filter { it.type == ENEMY_INDEX_GEN }.forEach { e ->
 					val x = e.x + scatter(ENEMY_TANK_RADIUS)
 					val y = e.y + scatter(ENEMY_TANK_RADIUS)
-					addEnemy(x, y, random(ENEMY_INDEX_TANK_NE..ENEMY_INDEX_TANK_NW), true)
+					addEnemy(x, y, random(ENEMY_INDEX_TANK_NE..ENEMY_INDEX_TANK_NW))
 				}
 			}
 		}
@@ -3934,7 +3918,9 @@ abstract class Robotron {
 					}
 					if (wall.type == WALL_TYPE_NONE) {
 						if (random(100) < gameLevel) {
-							wall.initDoor(DOOR_STATE_CLOSED, v0, v1)
+							wall.type = WALL_TYPE_BROKEN_DOOR
+						} else if (random(100) < gameLevel) {
+							wall.type = WALL_TYPE_DOOR
 						}
 						return@let
 					}
@@ -3946,17 +3932,20 @@ abstract class Robotron {
 					wall.type = Utils.chooseRandomFromSet(*weights)
 					when (wall.type) {
 						WALL_TYPE_NORMAL -> wall.health = WALL_NORMAL_HEALTH
-						WALL_TYPE_DOOR -> wall.state = DOOR_STATE_LOCKED
+						WALL_TYPE_DOOR -> {
+							wall.type = WALL_TYPE_DOOR
+							wall.state = DOOR_STATE_LOCKED
+						}
+
 						WALL_TYPE_PORTAL -> portalWall?.let {
-							wall.portalId = it.id
-							it.portalId = wall.id
+							wall.initPortal(it)
 							portalWall = null
 						} ?: run { portalWall = wall }
 					}
 				}
 			}
 		}
-		// unddo a dangling portal
+		// revert a dangling portal
 		portalWall?.type = WALL_TYPE_NORMAL
 	}
 
@@ -4315,7 +4304,6 @@ abstract class Robotron {
 		wx1: Float,
 		wy1: Float
 	): Boolean {
-		val framesElapsed = frameNumber - door.frame
 		var dx = wx1 - wx0
 		var dy = wy1 - wy0
 		when (door.state) {
@@ -4328,7 +4316,7 @@ abstract class Robotron {
 			}
 
 			else -> {
-				val delta = getDoorDelta(dx, dy, framesElapsed, door.state)
+				val delta = getDoorDelta(dx, dy, door.frame, door.state)
 				dx = delta[0]
 				dy = delta[1]
 			}
@@ -4362,18 +4350,19 @@ abstract class Robotron {
 		py: Float,
 		radius: Float
 	): Boolean {
-		val framesElapsed = frameNumber - door.frame
 		var dx = x1 - x0
 		var dy = y1 - y0
 		when (door.state) {
-			DOOR_STATE_LOCKED, DOOR_STATE_CLOSED -> return isCircleIntersectingLineSeg(x0, y0, x1, y1, px, py, radius)
+			DOOR_STATE_LOCKED,
+			DOOR_STATE_CLOSED -> return isCircleIntersectingLineSeg(x0, y0, x1, y1, px, py, radius)
+
 			DOOR_STATE_OPEN -> {
 				dx /= 4
 				dy /= 4
 			}
 
 			else -> {
-				val delta = getDoorDelta(dx, dy, framesElapsed, door.state)
+				val delta = getDoorDelta(dx, dy, door.frame, door.state)
 				dx = delta[0]
 				dy = delta[1]
 			}
@@ -4491,13 +4480,18 @@ abstract class Robotron {
 		var sy = 50f
 		val dy = (screen_height - sy) / WALL_NUM_TYPES
 		val textColor = GColor.RED
-		val info = Wall(0)
+		val info = Wall(0, 0, 0)
 		info.health = 100
 		info.frequency = RUBBER_WALL_MAX_FREQUENCY
+		info.frame = frameNumber % BROKEN_DOOR_CLOSED_FRAMES
 		val wallSize = dy / 2 - 3
 		sy += wallSize
 		for (i in WALL_TYPE_NORMAL until WALL_NUM_TYPES) {
 			info.type = i
+			if (info.type == WALL_TYPE_BROKEN_DOOR)
+				info.state = DOOR_STATE_OPENING
+			else if (info.type == WALL_TYPE_DOOR)
+				info.state = DOOR_STATE_LOCKED
 			drawWall(g, info, x1 - wallSize, sy - wallSize, x1 + wallSize, sy + wallSize)
 			g.color = textColor
 			g.drawString(getWallTypeString(i), x2, sy)
@@ -4506,7 +4500,7 @@ abstract class Robotron {
 	}
 
 	// -----------------------------------------------------------------------------------------------
-	private fun drawIntroPowerUps(g: AGraphics, frame: Int) {
+	private fun drawIntroPowerUps(g: AGraphics) {
 
 		// draw the player modes
 		val x1 = screen_width / 3
@@ -4533,7 +4527,7 @@ abstract class Robotron {
 	}
 
 	// -----------------------------------------------------------------------------------------------
-	private fun drawIntroEnemies(g: AGraphics, frame: Int) {
+	private fun drawIntroEnemies(g: AGraphics) {
 
 		// draw the player modes
 		val x1 = screen_width / 3
@@ -4582,15 +4576,15 @@ abstract class Robotron {
 		}
 		val introSpacingFrames = 100
 		val numIntros = 4
-		val frame = frameNumber % (introSpacingFrames * numIntros)
+		val frame = frameNumber % (introSpacingFrames * (numIntros + 1))
 		if (frame < introSpacingFrames) {
 			drawIntroPlayers(g)
 		} else if (frame < 2 * introSpacingFrames) {
 			drawIntroWallTypes(g)
 		} else if (frame < 3 * introSpacingFrames) {
-			drawIntroPowerUps(g, frame - 2 * introSpacingFrames)
+			drawIntroPowerUps(g)
 		} else if (frame < 4 * introSpacingFrames) {
-			drawIntroEnemies(g, frame - 3 * introSpacingFrames)
+			drawIntroEnemies(g)
 		}
 
 		// draw buttons for selecting the gametype

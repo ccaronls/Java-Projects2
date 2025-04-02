@@ -45,7 +45,7 @@ public class LightningStrand {
         float sign = 1;
         for (int ii=1; ii<=sec; ii++) {
             float pos = (float)ii / (float)sec;
-            //Vector2D v = start.addEq(dv.rotate(Utils.randFloatX(30*excitability)));
+            //Vector2D v = start.addEq(dv.rotate(Utils.randFloatPlusOrMinus(30*excitability)));
             Vector2D v = vInt.getAtPosition(pos);
             Vector2D dv = v.sub(start).rotate(sign * Utils.randFloat(30*excitability));
             sign *= -1;
@@ -72,7 +72,7 @@ public class LightningStrand {
         float sign = 1;
         for (int ii=1; ii<=sec; ii++) {
             float pos = (float)ii / (float)sec;
-            //Vector2D v = start.addEq(dv.rotate(Utils.randFloatX(30*excitability)));
+            //Vector2D v = start.addEq(dv.rotate(Utils.randFloatPlusOrMinus(30*excitability)));
             Vector2D v = vInt.getAtPosition(pos).toMutable();
             Vector2D dv = v.sub(start).rotate(sign * Utils.randFloat(30*excitability));
             sign *= -1;
