@@ -1,124 +1,91 @@
-package cc.lib.board;
+package cc.lib.board
 
-import java.util.ArrayList;
-import java.util.List;
+import cc.lib.game.IVector2D
+import cc.lib.math.CMath
+import cc.lib.reflector.Reflector
 
-import cc.lib.game.IVector2D;
-import cc.lib.math.CMath;
-import cc.lib.math.Vector2D;
-import cc.lib.reflector.Reflector;
+class BVertex : Reflector<BVertex?>, IVector2D {
+	override var x = 0f
+	override var y = 0f
+	private val adjacentVerts = IntArray(8)
+	var numAdjVerts = 0
+		private set
+	private val adjacentCells = IntArray(8)
+	var numAdjCells = 0
+		private set
 
-public class BVertex extends Reflector<BVertex> implements IVector2D {
+	constructor()
+	internal constructor(v: IVector2D) {
+		x = v.x
+		y = v.y
+	}
 
-    static {
-        addAllFields(BVertex.class);
-    }
+	fun set(v: IVector2D) {
+		x = v.x
+		y = v.y
+	}
 
-    float x, y;
-    private final int [] adjacentVerts = new int[8];
-    private int numAdjVerts;
+	fun addAdjacentVertex(v: Int) {
+		adjacentVerts[numAdjVerts++] = v
+	}
 
-    private final int [] adjacentCells = new int[8];
-    private int numAdjCells;
+	fun addAdjacentCell(c: Int) {
+		adjacentCells[numAdjCells++] = c
+	}
 
-    public BVertex() {}
+	fun removeAndRenameAdjacentCell(cellToRemove: Int, cellToRename: Int) {
+		for (i in 0 until numAdjCells) {
+			if (adjacentCells[i] == cellToRemove) {
+				adjacentCells[i] = adjacentCells[--numAdjCells]
+			}
+			if (adjacentCells[i] == cellToRename) {
+				adjacentCells[i] = cellToRemove
+			}
+		}
+	}
 
-    BVertex(IVector2D v) {
-        x = v.getX();
-        y = v.getY();
-    }
+	fun removeAndRenameAdjacentVertex(vtxToRemove: Int, vtxToRename: Int) {
+		for (i in 0 until numAdjVerts) {
+			if (adjacentVerts[i] == vtxToRemove) {
+				adjacentVerts[i] = adjacentVerts[--numAdjVerts]
+			}
+			if (adjacentVerts[i] == vtxToRename) {
+				adjacentVerts[i] = vtxToRemove
+			}
+		}
+	}
 
-    @Override
-    public final float getX() {
-        return x;
-    }
+	val adjVerts: List<Int>
+		get() = adjacentVerts.toList()
 
-    @Override
-    public final float getY() {
-        return y;
-    }
+	val adjCells: List<Int>
+		get() = adjacentCells.toList()
 
-    final void set(IVector2D v) {
-        x = v.getX();
-        y = v.getY();
-    }
+	fun reset() {
+		numAdjCells = 0
+		numAdjVerts = numAdjCells
+	}
 
-    void addAdjacentVertex(int v) {
-        adjacentVerts[numAdjVerts++] = v;
-    }
+	override fun equals(o: Any?): Boolean {
+		if (o === this) return true
+		return if (o is BVertex) {
+			dot((o as BVertex?)!!) < CMath.EPSILON
+		} else false
+	}
 
-    void addAdjacentCell(int c) { adjacentCells[numAdjCells++] = c; }
+	fun getAdjCell(idx: Int): Int {
+		if (idx >= numAdjCells) throw IndexOutOfBoundsException("Idx of $idx is out of range of [0-$numAdjCells")
+		return adjacentCells[idx]
+	}
 
-    void removeAndRenameAdjacentCell(int cellToRemove, int cellToRename) {
-        for (int i=0; i<numAdjCells; i++) {
-            if (adjacentCells[i] == cellToRemove) {
-                adjacentCells[i] = adjacentCells[--numAdjCells];
-            }
-            if (adjacentCells[i] == cellToRename) {
-                adjacentCells[i] = cellToRemove;
-            }
-        }
-    }
+	fun getAdjVertex(idx: Int): Int {
+		if (idx >= numAdjVerts) throw IndexOutOfBoundsException("Idx of $idx is out of range of [0-$numAdjVerts")
+		return adjacentVerts[idx]
+	}
 
-    void removeAndRenameAdjacentVertex(int vtxToRemove, int vtxToRename) {
-        for (int i=0; i<numAdjVerts; i++) {
-            if (adjacentVerts[i] == vtxToRemove) {
-                adjacentVerts[i] = adjacentVerts[--numAdjVerts];
-            }
-            if (adjacentVerts[i] == vtxToRename) {
-                adjacentVerts[i] = vtxToRemove;
-            }
-        }
-    }
-
-    public final List<Integer> getAdjVerts() {
-        List<Integer> adj = new ArrayList<>();
-        for (int i=0; i<numAdjVerts; i++) {
-            adj.add(adjacentVerts[i]);
-        }
-        return adj;
-    }
-
-    public final List<Integer> getAdjCells() {
-        List<Integer> adj = new ArrayList<>();
-        for (int i=0; i<numAdjCells; i++) {
-            adj.add(adjacentCells[i]);
-        }
-        return adj;
-    }
-
-    final void reset() {
-        numAdjVerts=numAdjCells=0;
-    }
-
-    @Override
-    public final boolean equals(Object o) {
-        if (o == this)
-            return true;
-        if (o != null && o instanceof BVertex) {
-            return Vector2D.dot(this, (BVertex)o) < CMath.EPSILON;
-        }
-        return false;
-    }
-
-    public final int getNumAdjCells() {
-        return numAdjCells;
-    }
-
-    public final int getNumAdjVerts() {
-        return numAdjVerts;
-    }
-
-    public final int getAdjCell(int idx) {
-        if (idx >= numAdjCells)
-            throw new IndexOutOfBoundsException("Idx of " + idx + " is out of range of [0-" + numAdjCells);
-        return adjacentCells[idx];
-    }
-
-    public final int getAdjVertex(int idx) {
-        if (idx >= numAdjVerts)
-            throw new IndexOutOfBoundsException("Idx of " + idx + " is out of range of [0-" + numAdjVerts);
-        return adjacentVerts[idx];
-    }
-
+	companion object {
+		init {
+			addAllFields(BVertex::class.java)
+		}
+	}
 }

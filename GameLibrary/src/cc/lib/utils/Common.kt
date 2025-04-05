@@ -404,3 +404,8 @@ fun randomFloat(max: Float): Float = random((max * 1000).roundToInt()) / 1000f
 fun randomFloat(min: Float, max: Float) = random(((max - min) * 1000).roundToInt()) / 1000f
 
 fun Float.squared(): Float = this * this
+
+fun randomFloat(range: ClosedRange<*>): Float = randomFloat(
+	(range.start as Number).toFloat(),
+	(range.endInclusive as Number).toFloat()
+)

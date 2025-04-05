@@ -1,342 +1,307 @@
-package cc.lib.game;
+package cc.lib.game
 
-import cc.lib.math.MutableVector2D;
-import cc.lib.math.Vector2D;
-import cc.lib.reflector.Reflector;
+import cc.lib.math.MutableVector2D
+import cc.lib.math.Vector2D
+import cc.lib.reflector.Reflector
 
-public class GRectangle extends Reflector<GRectangle> implements IRectangle {
+open class GRectangle : Reflector<GRectangle>, IRectangle {
+	override var left = 0f
+	override var top = 0f
+	override var width = 0f
+	override var height = 0f
 
-    static {
-        addAllFields(GRectangle.class);
-    }
+	constructor()
+	constructor(dim: IDimension) : this(0f, 0f, dim)
+	constructor(toCopy: IRectangle) : this(toCopy.left, toCopy.top, toCopy.width, toCopy.height)
+	constructor(x: Float, y: Float, w: Float, h: Float) {
+		left = x
+		top = y
+		width = w
+		height = h
+	}
 
-    public final static GRectangle EMPTY = new GRectangle() {
-        @Override
-        protected boolean isImmutable() {
-            return true;
-        }
-    };
+	constructor(x: Float, y: Float, dim: IDimension) : this(x, y, dim.width, dim.height)
+	constructor(topLeft: IVector2D, w: Float, h: Float) : this(topLeft.x, topLeft.y, w, h)
+	constructor(v: IVector2D, d: IDimension) : this(v.x, v.y, d)
+	constructor(v0: IVector2D, v1: IVector2D) {
+		set(v0, v1)
+	}
 
-    public float x, y, w, h;
+	/**
+	 * Create a rect that bounds 2 vectors
+	 *
+	 * @param v0
+	 * @param v1
+	 */
+	operator fun set(v0: IVector2D, v1: IVector2D) {
+		left = Math.min(v0.x, v1.x)
+		top = Math.min(v0.y, v1.y)
+		width = Math.abs(v0.x - v1.x)
+		height = Math.abs(v0.y - v1.y)
+	}
 
-    public GRectangle() {}
+	fun set(r: IRectangle) {
+		left = r.left
+		top = r.top
+		width = r.width
+		height = r.height
+	}
 
-    public GRectangle(IDimension dim) {
-        this(0, 0, dim);
-    }
+	/**
+	 * Useful for mouse dragging rectangular bounds
+	 *
+	 * @param v
+	 */
+	fun setEnd(v: IVector2D) {
+		left = Math.min(left, v.x)
+		top = Math.min(top, v.y)
+		width = Math.abs(left - v.x)
+		height = Math.abs(top - v.y)
+	}
 
-    public GRectangle(IRectangle toCopy) {
-        this(toCopy.getLeft(), toCopy.getTop(), toCopy.getWidth(), toCopy.getHeight());
-    }
+	operator fun set(left: Float, top: Float, right: Float, bottom: Float) {
+		this.left = left
+		this.top = top
+		width = right - left
+		height = bottom - top
+	}
 
-    public GRectangle(float x, float y, float w, float h) {
-        this.x = x;
-        this.y = y;
-        this.w = w;
-        this.h = h;
-    }
+	/**
+	 *
+	 * @param r
+	 * @param position
+	 * @return
+	 */
+	fun getInterpolationTo(r: GRectangle, position: Float): GRectangle {
+		if (position < 0.01f) return this
+		if (position > 0.99f) return r
+		val v0 = MutableVector2D(left, top)
+		val v1 = MutableVector2D(left + width, top + height)
+		val r0 = MutableVector2D(r.left, r.top)
+		val r1 = MutableVector2D(r.left + r.width, r.top + r.height)
+		v0.addEq(r0.subEq(v0).scaleEq(position))
+		v1.addEq(r1.subEq(v1).scaleEq(position))
+		return GRectangle(v0, v1)
+	}
 
-    public GRectangle(float x, float y, IDimension dim) {
-        this(x, y, dim.getWidth(), dim.getHeight());
-    }
+	/**
+	 * Adjust bounds by some number of pixels
+	 *
+	 * @param pixels
+	 */
+	fun grow(pixels: Float): GRectangle {
+		left -= pixels
+		top -= pixels
+		width += pixels * 2
+		height += pixels * 2
+		return this
+	}
 
-    public GRectangle(IVector2D topLeft, float w, float h) {
-        this(topLeft.getX(), topLeft.getY(), w, h);
-    }
+	/**
+	 *
+	 * @param pixels
+	 * @return
+	 */
+	fun grownBy(pixels: Float): GRectangle {
+		return GRectangle(left - pixels / 2, top - pixels / 2, width + pixels, height + pixels)
+	}
 
-    public GRectangle(IVector2D v, IDimension d) {
-        this(v.getX(), v.getY(), d);
-    }
+	/**
+	 * Scale the dimension of this rect by some amout. s < 1 reduces size. s > 1 increases size.
+	 * @param sx
+	 * @param sy
+	 */
+	fun scale(sx: Float, sy: Float): GRectangle {
+		val nw = width * sx
+		val nh = height * sy
+		val dw = nw - width
+		val dh = nh - height
+		left -= dw / 2
+		top -= dh / 2
+		width = nw
+		height = nh
+		return this
+	}
 
-    public GRectangle(IVector2D v0, IVector2D v1) {
-        set(v0, v1);
-    }
+	fun scale(s: Float): GRectangle {
+		return scale(s, s)
+	}
 
-    @Override
-    public float getLeft() {
-        return x;
-    }
+	fun scaleDimension(s: Float): GRectangle {
+		width *= s
+		height *= s
+		return this
+	}
 
-    @Override
-    public float getTop() {
-        return y;
-    }
+	override fun equals(o: Any?): Boolean {
+		if (this === o) return true
+		(o as? GRectangle)?.let {
+			return left == it.left && top == it.top && right == it.right && bottom == it.bottom
+		}
+		return super.equals(o)
+	}
 
-    @Override
-    public float getWidth() {
-        return w;
-    }
+	override fun hashCode(): Int {
+		return Utils.hashCode(left, top, width, height)
+	}
 
-    @Override
-    public float getHeight() {
-        return h;
-    }
+	fun setCenter(cntr: IVector2D): GRectangle {
+		left = cntr.x - width / 2
+		top = cntr.y - height / 2
+		return this
+	}
 
-    /**
-     * Create a rect that bounds 2 vectors
-     *
-     * @param v0
-     * @param v1
-     */
-    public void set(IVector2D v0, IVector2D v1) {
-        x = Math.min(v0.getX(), v1.getX());
-        y = Math.min(v0.getY(), v1.getY());
-        w = Math.abs(v0.getX() - v1.getX());
-        h = Math.abs(v0.getY() - v1.getY());
-    }
+	fun setPosition(topLeft: IVector2D): GRectangle {
+		left = topLeft.x
+		top = topLeft.y
+		return this
+	}
 
-    public void set(IRectangle r) {
-        x = r.getLeft();
-        y = r.getTop();
-        w = r.getWidth();
-        h = r.getHeight();
-    }
+	fun setTopRightPosition(topRight: IVector2D): GRectangle {
+		left = topRight.x - width
+		top = topRight.y
+		return this
+	}
 
-    /**
-     * Useful for mouse dragging rectangular bounds
-     *
-     * @param v
-     */
-    public void setEnd(IVector2D v) {
-        x = Math.min(x, v.getX());
-        y = Math.min(y, v.getY());
-        w = Math.abs(x - v.getX());
-        h = Math.abs(y - v.getY());
-    }
+	fun setTopLeftPosition(topRight: IVector2D): GRectangle {
+		left = topRight.x
+		top = topRight.y
+		return this
+	}
 
-    public void set(float left, float top, float right, float bottom) {
-        x = left;
-        y = top;
-        w = right-left;
-        h = bottom-top;
-    }
+	fun setBottomRightPosition(topRight: IVector2D): GRectangle {
+		left = topRight.x - width
+		top = topRight.y - height
+		return this
+	}
 
-    /**
-     *
-     * @param r
-     * @param position
-     * @return
-     */
-    public final GRectangle getInterpolationTo(GRectangle r, float position) {
-        if (position < 0.01f)
-            return this;
-        if (position > 0.99f)
-            return r;
-        MutableVector2D v0 = new MutableVector2D(x, y);
-        MutableVector2D v1 = new MutableVector2D(x+w, y+h);
-        MutableVector2D r0 = new MutableVector2D(r.x, r.y);
-        MutableVector2D r1 = new MutableVector2D(r.x+r.w, r.y+r.h);
-        v0.addEq(r0.subEq(v0).scaleEq(position));
-        v1.addEq(r1.subEq(v1).scaleEq(position));
-        return new GRectangle(v0, v1);
-    }
+	fun setBottomLeftPosition(topRight: IVector2D): GRectangle {
+		left = topRight.x
+		top = topRight.y - height
+		return this
+	}
 
-    public static IInterpolator<GRectangle> getInterpolator(GRectangle start, GRectangle end) {
-        return new IInterpolator<GRectangle>() {
-            @Override
-            public GRectangle getAtPosition(float position) {
-                return start.getInterpolationTo(end, position);
-            }
-        };
-    }
+	fun setDimension(dim: IDimension): GRectangle {
+		val cntr = center
+		width = dim.width
+		height = dim.height
+		return setCenter(cntr)
+	}
 
-    /**
-     * Adjust bounds by some number of pixels
-     *
-     * @param pixels
-     */
-    public GRectangle grow(float pixels) {
-        x-=pixels;
-        y-=pixels;
-        w+=pixels*2;
-        h+=pixels*2;
-        return this;
-    }
+	fun setDimension(width: Float, height: Float): GRectangle {
+		this.width = width
+		this.height = height
+		return this
+	}
 
-    /**
-     *
-     * @param pixels
-     * @return
-     */
-    public GRectangle grownBy(float pixels) {
-        return new GRectangle(x -pixels/2,y - pixels/2,w + pixels,h + pixels);
-    }
+	fun setDimensionJustified(width: Float, height: Float, horz: Justify, vert: Justify): GRectangle {
+		this.width = width
+		this.height = height
+		when (horz) {
+			Justify.LEFT -> {}
+			Justify.RIGHT -> moveBy(-width, 0f)
+			Justify.CENTER -> moveBy(-width / 2, 0f)
+			else -> throw IllegalArgumentException("invalid value for horz justify: $horz")
+		}
+		when (vert) {
+			Justify.TOP -> {}
+			Justify.BOTTOM -> moveBy(0f, -height)
+			Justify.CENTER -> moveBy(0f, -height / 2)
+			else -> throw IllegalArgumentException("invalid value for vert justify: $vert")
+		}
+		return this
+	}
 
-    /**
-     * Scale the dimension of this rect by some amout. s < 1 reduces size. s > 1 increases size.
-     * @param sx
-     * @param sy
-     */
-    public GRectangle scale(float sx, float sy) {
-        float nw = w * sx;
-        float nh = h * sy;
-        float dw = nw-w;
-        float dh = nh-h;
-        x -= dw/2;
-        y -= dh/2;
-        w = nw;
-        h = nh;
-        return this;
-    }
+	fun moveBy(dx: Float, dy: Float): GRectangle {
+		left += dx
+		top += dy
+		return this
+	}
 
-    public GRectangle scale(float s) {
-        return scale(s,s);
-    }
+	fun moveBy(dv: IVector2D): GRectangle {
+		return moveBy(dv.x, dv.y)
+	}
 
-    public GRectangle scaleDimension(float s) {
-        w *= s;
-        h *= s;
-        return this;
-    }
+	/**
+	 * Add a rectangle to this such that the bound of this grow to contain all of input.
+	 * This rect will never be reduces in size.
+	 *
+	 * @param x
+	 * @param y
+	 * @param w
+	 * @param h
+	 * @return
+	 */
+	fun addEq(x: Float, y: Float, w: Float, h: Float): GRectangle {
+		return addEq(GRectangle(x, y, w, h))
+	}
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        //if (!super.equals(o)) return false;
-        GRectangle that = (GRectangle) o;
-        return Float.compare(that.x, x) == 0 &&
-                Float.compare(that.y, y) == 0 &&
-                Float.compare(that.w, w) == 0 &&
-                Float.compare(that.h, h) == 0;
-    }
+	/**
+	 * @param dv
+	 * @param w
+	 * @param h
+	 * @return
+	 */
+	fun addEq(dv: IVector2D, w: Float, h: Float): GRectangle {
+		return addEq(dv.x, dv.y, w, h)
+	}
 
-    @Override
-    public int hashCode() {
-        return Utils.hashCode(x, y, w, h);
-    }
+	/**
+	 * @param g
+	 * @return
+	 */
+	fun addEq(g: IRectangle): GRectangle {
+		if (width == 0f || height == 0f) {
+			copyFrom(GRectangle(g))
+			return this
+		}
+		val tl: Vector2D = topLeft.minEq(g.topLeft)
+		val br: Vector2D = bottomRight.maxEq(g.bottomRight)
+		set(tl, br)
+		return this
+	}
 
-    public GRectangle setCenter(IVector2D cntr) {
-        x=cntr.getX()-w/2;
-        y = cntr.getY() - h / 2;
-        return this;
-    }
+	fun setAspect(aspect: Float): GRectangle {
+		val a = aspect
+		val cntr = center
+		if (a > aspect) {
+			// grow the height to meet the target aspect
+			height = width / aspect
+		} else {
+			// grow the width to meet the target aspect
+			width = height * aspect
+		}
+		setCenter(cntr)
+		return this
+	}
 
-    public GRectangle setPosition(IVector2D topLeft) {
-        x = topLeft.getX();
-        y = topLeft.getY();
-        return this;
-    }
+	fun setAspectReduce(aspect: Float): GRectangle {
+		val a = aspect
+		val cntr = center
+		if (a < aspect) {
+			// grow the height to meet the target aspect
+			height = width / aspect
+		} else {
+			// grow the width to meet the target aspect
+			width = height * aspect
+		}
+		setCenter(cntr)
+		return this
+	}
 
-    public GRectangle setTopRightPosition(IVector2D topRight) {
-        x = topRight.getX() - getWidth();
-        y = topRight.getY();
-        return this;
-    }
+	companion object {
+		init {
+			addAllFields(GRectangle::class.java)
+		}
 
-    public GRectangle setDimension(IDimension dim) {
-        IVector2D cntr = getCenter();
-        w = dim.getWidth();
-        h = dim.getHeight();
-        return setCenter(cntr);
-    }
+		val EMPTY: GRectangle = object : GRectangle() {
+			override fun isImmutable(): Boolean {
+				return true
+			}
+		}
 
-    public GRectangle setDimension(float width, float height) {
-        w = width;
-        h = height;
-        return this;
-    }
-
-    public GRectangle setDimensionJustified(float width, float height, Justify horz, Justify vert) {
-        w = width;
-        h = height;
-        switch (horz) {
-            case LEFT:
-                break;
-            case RIGHT:
-                moveBy(-width, 0);
-                break;
-            case CENTER:
-                moveBy(-width / 2, 0);
-                break;
-        }
-        switch (vert) {
-            case TOP:
-                break;
-            case BOTTOM:
-                moveBy(0, -height);
-                break;
-            case CENTER:
-                moveBy(0, -height / 2);
-                break;
-        }
-        return this;
-    }
-
-    public GRectangle moveBy(float dx, float dy) {
-        x += dx;
-        y += dy;
-        return this;
-    }
-
-    public GRectangle moveBy(IVector2D dv) {
-        return moveBy(dv.getX(), dv.getY());
-    }
-
-    /**
-     * Add a rectangle to this such that the bound of this grow to contain all of input.
-     * This rect will never be reduces in size.
-     *
-     * @param x
-     * @param y
-     * @param w
-     * @param h
-     * @return
-     */
-    public GRectangle addEq(float x, float y, float w, float h) {
-        return addEq(new GRectangle(x, y, w, h));
-    }
-
-    /**
-     * @param dv
-     * @param w
-     * @param h
-     * @return
-     */
-    public GRectangle addEq(IVector2D dv, float w, float h) {
-        return addEq(dv.getX(), dv.getY(), w, h);
-    }
-
-    /**
-     * @param g
-     * @return
-     */
-    public GRectangle addEq(IRectangle g) {
-        if (w == 0 || h == 0) {
-            copyFrom(new GRectangle(g));
-            return this;
-        }
-        Vector2D tl = getTopLeft().minEq(g.getTopLeft());
-        Vector2D br = getBottomRight().maxEq(g.getBottomRight());
-        set(tl, br);
-        return this;
-    }
-
-    public final GRectangle setAspect(float aspect) {
-        float a = getAspect();
-        IVector2D cntr = getCenter();
-        if (a > aspect) {
-            // grow the height to meet the target aspect
-            h = w / aspect;
-        } else {
-            // grow the width to meet the target aspect
-            w = h * aspect;
-        }
-        setCenter(cntr);
-        return this;
-    }
-
-    public final GRectangle setAspectReduce(float aspect) {
-        float a = getAspect();
-        IVector2D cntr = getCenter();
-        if (a < aspect) {
-            // grow the height to meet the target aspect
-            h = w / aspect;
-        } else {
-            // grow the width to meet the target aspect
-            w = h * aspect;
-        }
-        setCenter(cntr);
-        return this;
-    }
+		fun getInterpolator(start: GRectangle, end: GRectangle): IInterpolator<GRectangle> {
+			return IInterpolator { position -> start.getInterpolationTo(end, position) }
+		}
+	}
 }

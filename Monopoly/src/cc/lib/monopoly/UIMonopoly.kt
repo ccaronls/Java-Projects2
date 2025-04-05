@@ -195,10 +195,10 @@ abstract class UIMonopoly : Monopoly() {
 		override fun onStarted(g: AGraphics, reversed: Boolean) {
 			val r = renderMessage(g, title, msg, false)
 			dest = arrayOf(
-				Vector2D(r.x, r.y + r.h),
-				Vector2D(r.x + r.w, r.y + r.h),
-				Vector2D(r.x + r.w, r.y),
-				Vector2D(r.x, r.y)
+				Vector2D(r.left, r.top + r.height),
+				Vector2D(r.left + r.width, r.top + r.height),
+				Vector2D(r.left + r.width, r.top),
+				Vector2D(r.left, r.top)
 			)
 		}
 
@@ -410,7 +410,7 @@ abstract class UIMonopoly : Monopoly() {
 			override fun draw(g: AGraphics, position: Float, dt: Float) {
 				val rect = g.clipRect
 				g.color = GColor.TRANSLUSCENT_BLACK
-				g.drawFilledRect(rect.x + (1 - position) * rect.w / 2, rect.y, rect.w * position, rect.h)
+				g.drawFilledRect(rect.left + (1 - position) * rect.width / 2, rect.top, rect.width * position, rect.height)
 			}
 
 			override fun onDone() {
@@ -581,26 +581,26 @@ abstract class UIMonopoly : Monopoly() {
 				spriteMap[sq.name] = object : Sprite() {
 					override fun draw(g: AGraphics, w: Float, h: Float) {
 						val r = board.getSqaureBounds(sq)
-						val houseScale: Float = min(r.w, r.h) / 15
+						val houseScale: Float = min(r.width, r.height) / 15
 						g.pushMatrix()
 						val houses = data1
 						var v: Vector2D? = null
 						var angle = 0
 						when (board.getSquarePosition(sq)) {
 							Board.Position.TOP -> {
-								v = Vector2D(r.x + r.w / 2, r.y + r.h - houseScale)
+								v = Vector2D(r.left + r.width / 2, r.top + r.height - houseScale)
 								angle = 0 //, houseScale, houses);
 							}
 							Board.Position.RIGHT -> {
-								v = Vector2D(r.x + houseScale, r.y + r.h / 2)
+								v = Vector2D(r.left + houseScale, r.top + r.height / 2)
 								angle = 270 //, houseScale, houses);
 							}
 							Board.Position.BOTTOM -> {
-								v = Vector2D(r.x + r.w / 2, r.y + houseScale)
+								v = Vector2D(r.left + r.width / 2, r.top + houseScale)
 								angle = 0 //, houseScale, houses);
 							}
 							Board.Position.LEFT -> {
-								v = Vector2D(r.x + r.w - houseScale, r.y + r.h / 2)
+								v = Vector2D(r.left + r.width - houseScale, r.top + r.height / 2)
 								angle = 90 //, houseScale, houses);
 							}
 							else -> Unit
@@ -714,7 +714,8 @@ abstract class UIMonopoly : Monopoly() {
 			var steps = 1
 			if (jumps > 5) {
 				steps = 5
-				start = start.increment(5) // TEST BEFORE CHECKING IN!, Square.values()) // make bigger steps when a long way to jump
+				start =
+					start.increment(5) // TEST BEFORE CHECKING IN!, Square.values()) // make bigger steps when a long way to jump
 			} else if (jumps < 0) {
 				start = start.increment(-1) // TEST BEFORE CHECKING IN!
 			} else {
@@ -722,12 +723,12 @@ abstract class UIMonopoly : Monopoly() {
 			}
 			val r1 = board.getPiecePlacement(playerNum, start)
 			curve.reset()
-			curve.addPoint(r0.x, r0.y)
-			val dx = r1.x - r0.x
-			val dy = r1.y - r0.y
-			curve.addPoint(r0.x + dx / 3, (r0.y + dy * 0.33f + dx / 6).coerceIn(0f, DIM.toFloat()))
-			curve.addPoint(r0.x + dx * 2 / 3, (r0.y + dy * 0.66f + dx / 6).coerceIn(0f, DIM.toFloat()))
-			curve.addPoint(r1.x, r1.y)
+			curve.addPoint(r0.left, r0.top)
+			val dx = r1.left - r0.left
+			val dy = r1.top - r0.top
+			curve.addPoint(r0.left + dx / 3, (r0.top + dy * 0.33f + dx / 6).coerceIn(0f, DIM.toFloat()))
+			curve.addPoint(r0.left + dx * 2 / 3, (r0.top + dy * 0.66f + dx / 6).coerceIn(0f, DIM.toFloat()))
+			curve.addPoint(r1.left, r1.top)
 			jumps -= dir * steps
 		}
 
@@ -1103,7 +1104,7 @@ abstract class UIMonopoly : Monopoly() {
 				val r = board.getSqaureBounds(Square.FREE_PARKING)
 				kitty.M.setTranslate(r.center)
 				kitty.color = GColor.GREEN
-				kitty.animateAndDraw(g, r.w, r.h)
+				kitty.animateAndDraw(g, r.width, r.height)
 			}
 		}
 		/*
@@ -1111,11 +1112,11 @@ abstract class UIMonopoly : Monopoly() {
             GRectangle r = board.getSqaureBounds(Square.FREE_PARKING);
             Vector2D cntr = r.getCenter();
             g.setColor(GColor.GREEN);
-            GDimension dim = g.drawWrapString(cntr.X(), cntr.Y(), r.w, Justify.CENTER, Justify.CENTER, "Kitty\n$" + kitty);
+            GDimension dim = g.drawWrapString(cntr.getX(), cntr.getY(), r.w, Justify.CENTER, Justify.CENTER, "Kitty\n$" + kitty);
             g.setColor(GColor.TRANSLUSCENT_BLACK);
-            g.drawFilledRect(cntr.X() - dim.width/2 - 5, cntr.Y() - dim.height/2 - 5, dim.width + 10, dim.height + 10);
+            g.drawFilledRect(cntr.getX() - dim.width/2 - 5, cntr.getY() - dim.height/2 - 5, dim.width + 10, dim.height + 10);
             g.setColor(GColor.GREEN);
-            g.drawWrapString(cntr.X(), cntr.Y(), r.w, Justify.CENTER, Justify.CENTER, "Kitty\n$" + kitty);
+            g.drawWrapString(cntr.getX(), cntr.getY(), r.w, Justify.CENTER, Justify.CENTER, "Kitty\n$" + kitty);
         }*/
 		for (i in 0 until numPlayers) {
 			val p = getPlayer(i)
@@ -1125,24 +1126,24 @@ abstract class UIMonopoly : Monopoly() {
 			for (c in ArrayList(p.cards)) {
 				val r = board.getSqaureBounds(c.property)
 				when (board.getSquarePosition(c.property)) {
-					Board.Position.TOP    -> g.drawImage(pcId, r.x + r.w / 2 - targetDim / 2, r.y + r.h - targetDim / 3, targetDim, targetDim)
-					Board.Position.RIGHT  -> g.drawImage(pcId, r.x - targetDim * 2 / 3, r.y + r.h / 2 - targetDim / 2, targetDim, targetDim)
-					Board.Position.BOTTOM -> g.drawImage(pcId, r.x + r.w / 2 - targetDim / 2, r.y - targetDim * 2 / 3, targetDim, targetDim)
-					Board.Position.LEFT -> g.drawImage(pcId, r.x + r.w - targetDim / 3, r.y + r.h / 2 - targetDim / 2, targetDim, targetDim)
+					Board.Position.TOP -> g.drawImage(pcId, r.left + r.width / 2 - targetDim / 2, r.top + r.height - targetDim / 3, targetDim, targetDim)
+					Board.Position.RIGHT -> g.drawImage(pcId, r.left - targetDim * 2 / 3, r.top + r.height / 2 - targetDim / 2, targetDim, targetDim)
+					Board.Position.BOTTOM -> g.drawImage(pcId, r.left + r.width / 2 - targetDim / 2, r.top - targetDim * 2 / 3, targetDim, targetDim)
+					Board.Position.LEFT -> g.drawImage(pcId, r.left + r.width - targetDim / 3, r.top + r.height / 2 - targetDim / 2, targetDim, targetDim)
 					else -> Unit
 				}
 				val sp = spriteMap[c.property.name]
 				if (sp != null) {
 					sp.data1 = c.houses
 					//sp.M.setTranslate(r.x, r.y);
-					sp.animateAndDraw(g, r.w, r.h)
+					sp.animateAndDraw(g, r.width, r.height)
 				}
 				if (c.isMortgaged) {
 					g.color = GColor.TRANSLUSCENT_BLACK
 					g.drawFilledRect(r)
 					g.color = GColor.RED
 					val v: IVector2D = r.center
-					g.drawWrapString(v.x, v.y, r.w, Justify.CENTER, Justify.CENTER,
+					g.drawWrapString(v.x, v.y, r.width, Justify.CENTER, Justify.CENTER,
 						"MORTGAGED")
 				}
 			}
@@ -1151,8 +1152,8 @@ abstract class UIMonopoly : Monopoly() {
 				// draw player piece on the board
 				val r = if (p.isInJail) board.getPiecePlacementJail(i) else board.getPiecePlacement(i, p.square)
 				spriteMap[p.piece.name]?.let { sp ->
-					sp.M.setTranslate(r.x, r.y)
-					sp.animateAndDraw(g, r.w, r.h)
+					sp.M.setTranslate(r.left, r.top)
+					sp.animateAndDraw(g, r.width, r.height)
 				}
 			}
 
@@ -1164,11 +1165,11 @@ abstract class UIMonopoly : Monopoly() {
 				val pos = board.getSquarePosition(t.card.property)
 				g.color = GColor.YELLOW
 				when (pos) {
-					Board.Position.TOP -> g.drawJustifiedStringOnBackground(v.X(), v.Y() + offset, Justify.CENTER, Justify.TOP, "$" + t.price, GColor.TRANSLUSCENT_BLACK, 5f, 5f)
-					Board.Position.RIGHT -> g.drawJustifiedStringOnBackground(v.X() - offset, v.Y(), Justify.RIGHT, Justify.CENTER, "$" + t.price, GColor.TRANSLUSCENT_BLACK, 5f, 5f)
-					Board.Position.BOTTOM -> g.drawJustifiedStringOnBackground(v.X(), v.Y() - offset, Justify.CENTER, Justify.BOTTOM, "$" + t.price, GColor.TRANSLUSCENT_BLACK, 5f, 5f)
-					Board.Position.LEFT -> g.drawJustifiedStringOnBackground(v.X() + offset, v.Y(), Justify.LEFT, Justify.CENTER, "$" + t.price, GColor.TRANSLUSCENT_BLACK, 5f, 5f)
-					else                  -> throw GException("Unhandled case")
+					Board.Position.TOP -> g.drawJustifiedStringOnBackground(v.x, v.y + offset, Justify.CENTER, Justify.TOP, "$" + t.price, GColor.TRANSLUSCENT_BLACK, 5f, 5f)
+					Board.Position.RIGHT -> g.drawJustifiedStringOnBackground(v.x - offset, v.y, Justify.RIGHT, Justify.CENTER, "$" + t.price, GColor.TRANSLUSCENT_BLACK, 5f, 5f)
+					Board.Position.BOTTOM -> g.drawJustifiedStringOnBackground(v.x, v.y - offset, Justify.CENTER, Justify.BOTTOM, "$" + t.price, GColor.TRANSLUSCENT_BLACK, 5f, 5f)
+					Board.Position.LEFT -> g.drawJustifiedStringOnBackground(v.x + offset, v.y, Justify.LEFT, Justify.CENTER, "$" + t.price, GColor.TRANSLUSCENT_BLACK, 5f, 5f)
+					else -> throw GException("Unhandled case")
 				}
 			}
 		}

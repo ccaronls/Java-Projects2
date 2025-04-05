@@ -353,4 +353,9 @@ public final class GColor extends Reflector<GColor> {
     public void deserialize(@NotNull DataInputStream input) throws IOException {
         argb = input.readInt();
     }
+
+    public void copy(GColor other) {
+        argb = other.argb;
+        name = other.name;
+    }
 }

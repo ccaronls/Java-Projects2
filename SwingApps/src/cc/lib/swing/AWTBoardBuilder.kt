@@ -139,7 +139,7 @@ abstract class AWTBoardBuilder<V : BVertex, E : BEdge, C : BCell, T : CustomBoar
 
 			override fun onPick() {
 				if (inside) {
-					onCellAdded(board.getCell(board.addCell(wrappedIndices)))
+					onCellAdded(board.getCell(board.addCell(*wrappedIndices.toIntArray())))
 				} else {
 					super.onPick()
 				}
@@ -286,11 +286,11 @@ abstract class AWTBoardBuilder<V : BVertex, E : BEdge, C : BCell, T : CustomBoar
 	override fun paint(g: AWTGraphics) {
 		if (rect == null) {
 			rect = GRectangle(0f, 0f, g.viewportWidth.toFloat(), g.viewportHeight.toFloat())
-			board.dimension = rect!!.dimension
+			board.setDimension(rect!!.dimension)
 		}
 		g.setIdentity()
 		g.ortho(rect)
-		mouse[mouseX.toFloat()] = mouseY.toFloat()
+		mouse.assign(mouseX.toFloat(), mouseY.toFloat())
 		if (backgroundImageId >= 0) {
 			g.drawImage(backgroundImageId, GRectangle(0f, 0f, width.toFloat(), height.toFloat()))
 		} else {
@@ -348,24 +348,24 @@ abstract class AWTBoardBuilder<V : BVertex, E : BEdge, C : BCell, T : CustomBoar
 		val scrollSpeed = 3
 		var refresh = false
 		if (mouseX > 0 && mouseX < margin) {
-			if (rect!!.x > 0) {
-				rect!!.x -= scrollSpeed.toFloat()
+			if (rect!!.left > 0) {
+				rect!!.left -= scrollSpeed.toFloat()
 				refresh = true
 			}
 		} else if (mouseX < width && mouseX > width - margin) {
-			if (rect!!.x + rect!!.w < width) {
-				rect!!.x += scrollSpeed.toFloat()
+			if (rect!!.left + rect!!.width < width) {
+				rect!!.left += scrollSpeed.toFloat()
 				refresh = true
 			}
 		}
 		if (mouseY > 0 && mouseY < margin) {
-			if (rect!!.y > 0) {
-				rect!!.y -= scrollSpeed.toFloat()
+			if (rect!!.top > 0) {
+				rect!!.top -= scrollSpeed.toFloat()
 				refresh = true
 			}
 		} else if (mouseY < height && mouseY > height - margin) {
-			if (rect!!.y + rect!!.h < height) {
-				rect!!.y += scrollSpeed.toFloat()
+			if (rect!!.top + rect!!.height < height) {
+				rect!!.top += scrollSpeed.toFloat()
 				refresh = true
 			}
 		}
@@ -805,10 +805,10 @@ abstract class AWTBoardBuilder<V : BVertex, E : BEdge, C : BCell, T : CustomBoar
 
 	fun zoomOut() {
 		rect!!.scale(2f)
-		rect!!.x = 0f
-		rect!!.y = 0f
-		rect!!.w = Math.min(rect!!.w, viewportWidth.toFloat())
-		rect!!.h = Math.min(rect!!.h, viewportHeight.toFloat())
+		rect!!.left = 0f
+		rect!!.top = 0f
+		rect!!.width = Math.min(rect!!.width, viewportWidth.toFloat())
+		rect!!.height = Math.min(rect!!.height, viewportHeight.toFloat())
 		frame.setProperty("rect", rect)
 	}
 

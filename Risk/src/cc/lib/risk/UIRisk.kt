@@ -153,15 +153,15 @@ abstract class UIRisk(board : RiskBoard) : RiskGame(board) {
 		val army: Army = requireNotNull(start.occupier)
 		val endV = MutableVector2D(board.getCell(endIdx))
 		val delta = endV.sub(start)
-		if (delta.x > board.dimension.getWidth() / 2) {
-			delta.subEq(board.dimension.getWidth(), 0f)
-		} else if (delta.x < -board.dimension.getWidth() / 2) {
-			delta.addEq(board.dimension.getWidth(), 0f)
+		if (delta.x > board.dimension.width / 2) {
+			delta.subEq(board.dimension.width, 0f)
+		} else if (delta.x < -board.dimension.width / 2) {
+			delta.addEq(board.dimension.width, 0f)
 		}
-		if (delta.y > board.dimension.getHeight() / 2) {
-			delta.subEq(0f, board.dimension.getHeight())
-		} else if (delta.y < -board.dimension.getHeight() / 2) {
-			delta.addEq(0f, board.dimension.getHeight())
+		if (delta.y > board.dimension.height / 2) {
+			delta.subEq(0f, board.dimension.height)
+		} else if (delta.y < -board.dimension.height / 2) {
+			delta.addEq(0f, board.dimension.height)
 		}
 		val interp = Bezier.build(
 			Vector2D(start), Vector2D(start).add(delta), .4f)
@@ -195,14 +195,14 @@ abstract class UIRisk(board : RiskBoard) : RiskGame(board) {
 			}
 			zoom.addEq(rect2)
 		}
-		zoom.aspect = startRect.aspect
+		zoom.setAspect(startRect.aspect)
 		val endRect = GRectangle(zoom)
 		val rectInterp = GRectangle.getInterpolator(startRect, endRect)
 		val dragDeltaInterp = Vector2D.getLinearInterpolator(dragDelta, Vector2D.ZERO)
 		addAnimation(object : RiskAnim(1000) {
 			override fun draw(g: AGraphics, position: Float, dt: Float) {
 				zoomRect = rectInterp.getAtPosition(position)
-				dragDelta.set(dragDeltaInterp.getAtPosition(position))
+				dragDelta.assign(dragDeltaInterp.getAtPosition(position))
 			}
 		})
 		highlightedCells.add(Pair(cellIdx, GColor.RED))
@@ -346,18 +346,18 @@ abstract class UIRisk(board : RiskBoard) : RiskGame(board) {
 
 	fun onDraw(g: AGraphics) {
 		val imageRect = GRectangle(board.dimension)
-		val boardRect = if (zoomRect.isEmpty()) imageRect else zoomRect
+		val boardRect = if (zoomRect.isEmpty) imageRect else zoomRect
 		g.ortho(boardRect)
 		g.pushMatrix()
 		run {
-			dragDelta.wrap(Vector2D.ZERO, Vector2D(imageRect.w, imageRect.h))
+			dragDelta.wrap(Vector2D.ZERO, Vector2D(imageRect.width, imageRect.height))
 			g.translate(dragDelta)
 			g.pushMatrix()
 			run {
-				g.translate(0f, -imageRect.h)
+				g.translate(0f, -imageRect.height)
 				for (ii in 0..2) {
 					g.pushMatrix()
-					g.translate(-imageRect.w, 0f)
+					g.translate(-imageRect.width, 0f)
 					for (i in 0..2) {
 						// dont render if target rect is not visible
 						val tl = imageRect.topLeft
@@ -373,10 +373,10 @@ abstract class UIRisk(board : RiskBoard) : RiskGame(board) {
 							drawHighlightedCells(g, board)
 						}
 						drawAnimations(g, ZORDER_GAME)
-						g.translate(imageRect.w, 0f)
+						g.translate(imageRect.width, 0f)
 					}
 					g.popMatrix()
-					g.translate(0f, imageRect.h)
+					g.translate(0f, imageRect.height)
 				}
 			}
 			g.popMatrix()
@@ -485,7 +485,7 @@ abstract class UIRisk(board : RiskBoard) : RiskGame(board) {
 		if (highlightedIdx >= 0) {
 			if (tapped) {
 				tapped = false
-				tapPos.zero()
+				tapPos.zeroEq()
 				setGameResult(highlightedIdx)
 			} else {
 				g.color = GColor.RED.withAlpha(.5f)
@@ -503,23 +503,23 @@ abstract class UIRisk(board : RiskBoard) : RiskGame(board) {
 
 	fun onTap(x: Float, y: Float) {
 		log.debug("onTap ($x,$y)")
-		tapPos[x] = y
+		tapPos.assign(x, y)
 		tapped = true
 	}
 
 	fun onMouse(x: Float, y: Float) {
 		log.debug("onMouse ($x,$y)")
-		tapPos[x] = y
+		tapPos.assign(x, y)
 	}
 
 	fun onDragStart(x: Float, y: Float) {
-		dragStart[x] = y
+		dragStart.assign(x, y)
 	}
 
 	fun onDrag(x: Float, y: Float) {
 		if (zoomRect.isEmpty) {
 			dragDelta.addEq(Vector2D(x, y).sub(dragStart))
-			dragStart[x] = y
+			dragStart.assign(x, y)
 		}
 	}
 

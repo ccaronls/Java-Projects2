@@ -13,8 +13,8 @@ import java.awt.image.PixelGrabber
 import javax.swing.Icon
 import kotlin.math.roundToInt
 
-class AWTImage constructor(val image: Image, val comp: Component) : AImage(), Icon {
-	private val _pixels: IntArray by lazy {
+class AWTImage(val image: Image, val comp: Component) : AImage(), Icon {
+	override val pixels: IntArray by lazy {
 		val w = image.getWidth(comp)
 		val h = image.getHeight(comp)
 		IntArray(w * h).also {
@@ -31,15 +31,10 @@ class AWTImage constructor(val image: Image, val comp: Component) : AImage(), Ic
 		}
 	}
 
-	override fun getWidth(): Float {
-		return image.getWidth(comp).toFloat()
-	}
-
-	override fun getHeight(): Float {
-		return image.getHeight(comp).toFloat()
-	}
-
-	override fun getPixels() = _pixels
+	override val width: Float
+		get() = image.getWidth(comp).toFloat()
+	override val height: Float
+		get() = image.getHeight(comp).toFloat()
 
 	override fun paintIcon(c: Component, g: Graphics, x: Int, y: Int) {
 		g.drawImage(image, x, y, null)

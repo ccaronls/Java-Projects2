@@ -47,6 +47,11 @@ abstract class UIRenderer protected constructor(private val component: UICompone
 		}
 	}
 
+	override val width: Float
+		get() = component.getWidth().toFloat()
+	override val height: Float
+		get() = component.getHeight().toFloat()
+
 	fun <T : UIComponent> getComponent(): T {
 		return component as T
 	}
@@ -83,14 +88,6 @@ abstract class UIRenderer protected constructor(private val component: UICompone
 
 	fun setMinDimension(w: Float, h: Float) {
 		minDimension = GDimension(w, h)
-	}
-
-	override fun getWidth(): Float {
-		return component.getWidth().toFloat()
-	}
-
-	override fun getHeight(): Float {
-		return component.getHeight().toFloat()
 	}
 
 	fun redraw() {

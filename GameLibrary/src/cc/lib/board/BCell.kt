@@ -1,91 +1,71 @@
-package cc.lib.board;
+package cc.lib.board
 
-import java.util.ArrayList;
-import java.util.List;
+import cc.lib.game.IVector2D
+import cc.lib.reflector.Reflector
 
-import cc.lib.game.IVector2D;
-import cc.lib.math.CMath;
-import cc.lib.math.Vector2D;
-import cc.lib.reflector.Reflector;
+open class BCell : Reflector<BCell>, IVector2D {
+	override var x = 0f
+	override var y = 0f
+	var radius = 0f
+	private val _adjVerts: MutableList<Int> = ArrayList()
+	private val _adjCells: MutableList<Int> = ArrayList()
 
-public class BCell extends Reflector<BCell> implements IVector2D {
+	val adjCells: List<Int>
+		get() = _adjCells
 
-    static {
-        addAllFields(BCell.class);
-    }
+	val adjVerts: List<Int>
+		get() = _adjVerts
 
-    float cx, cy, radius;
+	constructor()
+	constructor(pts: List<Int>) {
+		_adjVerts.addAll(pts)
+	}
 
-    private final List<Integer> adjVerts = new ArrayList<>();
-    private final List<Integer> adjCells = new ArrayList<>();
+	val numAdjVerts: Int
+		get() = _adjVerts.size
+	val numAdjCells: Int
+		get() = _adjCells.size
 
-    public BCell() {}
+	fun getAdjVertex(index: Int): Int {
+		return _adjVerts[index]
+	}
 
-    protected BCell(List<Integer> verts) {
-        adjVerts.addAll(verts);
-    }
+	fun getAdjCells(): Iterable<Int> {
+		return _adjCells
+	}
 
-    @Override
-    public final float getX() {
-        return cx;
-    }
+	fun getAdjVerts(): Iterable<Int> {
+		return _adjVerts
+	}
 
-    @Override
-    public final float getY() {
-        return cy;
-    }
+	fun addAdjCell(cellIdx: Int) {
+		if (!_adjCells.contains(cellIdx)) _adjCells.add(cellIdx)
+	}
 
-    public final float getRadius() {
-        return radius;
-    }
+	override fun equals(o: Any?): Boolean {
+		if (o === this) return true
+		return (o as? BCell)?.equalsWithinRange(this) ?: super.equals(o)
+	}
 
-    public final int getNumAdjVerts() {
-        return adjVerts.size();
-    }
+	fun removeAndRenameAdjVertex(vtxToRemove: Int, vtxToRename: Int) {
+		_adjVerts.remove(vtxToRemove as Any)
+		val idx = _adjVerts.indexOf(vtxToRename as Any)
+		if (idx >= 0) {
+			_adjVerts[idx] = vtxToRemove
+		}
+	}
 
-    public final int getNumAdjCells() { return adjCells.size(); }
+	fun removeAndRenameAdjCell(cellToRemove: Int, cellToRename: Int) {
+		_adjCells.remove(cellToRemove as Any)
+		val idx = _adjCells.indexOf(cellToRename as Any)
+		if (idx >= 0) {
+			_adjCells[idx] = cellToRemove
+		}
+	}
 
-    public final int getAdjVertex(int index) {
-        return adjVerts.get(index);
-    }
-
-    public final Iterable<Integer> getAdjCells() {
-        return adjCells;
-    }
-
-    public final Iterable<Integer> getAdjVerts() {
-        return adjVerts;
-    }
-
-    public final void addAdjCell(int cellIdx) {
-        if (!adjCells.contains(cellIdx))
-            adjCells.add(cellIdx);
-    }
-
-    @Override
-    public final boolean equals(Object o) {
-        if (o == this)
-            return true;
-        if (o != null && o instanceof BCell) {
-            return Vector2D.dot(this, (BCell)o) < CMath.EPSILON;
-        }
-        return super.equals(o);
-    }
-
-    void removeAndRenameAdjVertex(int vtxToRemove, int vtxToRename) {
-        adjVerts.remove((Object)vtxToRemove);
-        int idx = adjVerts.indexOf((Object)vtxToRename);
-        if (idx >= 0) {
-            adjVerts.set(idx, vtxToRemove);
-        }
-    }
-
-    void removeAndRenameAdjCell(int cellToRemove, int cellToRename) {
-        adjCells.remove((Object)cellToRemove);
-        int idx = adjCells.indexOf((Object)cellToRename);
-        if (idx >= 0) {
-            adjCells.set(idx, cellToRemove);
-        }
-    }
-
+	companion object {
+		init {
+			addAllFields(BCell::class.java)
+		}
+	}
 }

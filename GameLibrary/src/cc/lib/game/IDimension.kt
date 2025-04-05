@@ -1,174 +1,163 @@
-package cc.lib.game;
+package cc.lib.game
 
-import cc.lib.math.Vector2D;
+import cc.lib.math.Vector2D
 
-public interface IDimension {
-    float getWidth();
+interface IDimension {
+	val width: Float
+	val height: Float
+	val aspect: Float
+		get() = width / height
 
-    float getHeight();
+	val center: IVector2D
+		get() = Vector2D(width / 2, height / 2)
 
-    default float getAspect() {
-        return getWidth() / getHeight();
-    }
+	val area: Float
+		get() = width * height
 
-    default IVector2D getCenter() {
-        return new Vector2D(getWidth() / 2, getHeight() / 2);
-    }
+	/**
+	 * Return a rectangle with the aspect ratio of 'this' that contains t
+	 * entire rect of target grown and 'filled' top keep aspect ratio
+	 *
+	 * @param target
+	 * @return
+	 */
+	fun fillFit(target: GRectangle): GRectangle {
+		val x0: Float
+		val y0: Float
+		val w0: Float
+		val h0: Float
+		val A = aspect
+		require(!(A <= 0)) { "Cannot fit empty rect" }
+		if (A < target.aspect) {
+			w0 = target.width
+			h0 = w0 / A
+			x0 = 0f
+			y0 = target.height / 2 - height / 2
+		} else {
+			h0 = target.height
+			w0 = h0 * A
+			y0 = 0f
+			x0 = target.width / 2 - width / 2
+		}
+		return GRectangle(x0, y0, w0, h0)
+	}
 
+	/**
+	 * Return a rectangle with same aspect as 'this' with maximum amount of rect
+	 * cropped to keep aspect
+	 *
+	 * @param target
+	 * @return
+	 */
+	fun cropFit(target: GRectangle): GRectangle {
+		val x0: Float
+		val y0: Float
+		val w0: Float
+		val h0: Float
+		val A = aspect
+		if (A <= 0) throw IllegalArgumentException("Cannot fit empty rect")
+		if (A < target.aspect) {
+			h0 = target.height
+			w0 = h0 * A
+			y0 = 0f
+			x0 = target.width / 2 - w0 / 2
+		} else {
+			w0 = target.width
+			h0 = w0 / A
+			x0 = 0f
+			y0 = target.height / 2 - h0 / 2
+		}
+		return GRectangle(x0, y0, w0, h0)
+	}
 
-    /**
-     * Return a rectangle with the aspect ratio of 'this' that contains t
-     * entire rect of target grown and 'filled' top keep aspect ratio
-     *
-     * @param target
-     * @return
-     */
-    default GRectangle fillFit(GRectangle target) {
-        float x0, y0, w0, h0;
-        float A = getAspect();
-        if (A <= 0)
-            throw new IllegalArgumentException("Cannot fit empty rect");
-        if (A < target.getAspect()) {
-            w0 = target.w;
-            h0 = w0 / A;
-            x0 = 0;
-            y0 = target.h / 2 - getHeight() / 2;
-        } else {
-            h0 = target.h;
-            w0 = h0 * A;
-            y0 = 0;
-            x0 = target.w / 2 - getWidth() / 2;
-        }
-        return new GRectangle(x0, y0, w0, h0);
-    }
+	/**
+	 * Return a rectangle with aspect ratio of 'this' and entire contents
+	 * of target grown to meet aspect ratio and adjusted to be in bounds
+	 *
+	 * @param target
+	 * @return
+	 */
+	fun fitInner(target: GRectangle): GRectangle {
+		val A = aspect
+		if (A <= 0) throw IllegalArgumentException("Cannot fit empty rect")
+		val rect = GRectangle(target)
+		rect.setAspect(A)
+		if (rect.width > width || rect.height > height) {
+			rect.width = width
+			rect.height = height
+		}
+		if (rect.left < 0) {
+			rect.left = 0f
+		}
+		if (rect.top < 0) {
+			rect.top = 0f
+		}
+		if (rect.left + rect.width > width) {
+			rect.left = width - rect.width
+		}
+		if (rect.top + rect.height > height) {
+			rect.top = height - rect.height
+		}
+		return rect
+	}
 
-    /**
-     * Return a rectangle with same aspect as 'this' with maximum amount of rect
-     * cropped to keep aspect
-     *
-     * @param target
-     * @return
-     */
-    default GRectangle cropFit(GRectangle target) {
-        float x0, y0, w0, h0;
-        float A = getAspect();
-        if (A <= 0)
-            throw new IllegalArgumentException("Cannot fit empty rect");
-        if (A < target.getAspect()) {
-            h0 = target.h;
-            w0 = h0 * A;
-            y0 = 0;
-            x0 = target.getWidth() / 2 - w0 / 2;
-        } else {
-            w0 = target.w;
-            h0 = w0 / A;
-            x0 = 0;
-            y0 = target.getHeight() / 2 - h0 / 2;
-        }
-        return new GRectangle(x0, y0, w0, h0);
-    }
+	val isEmpty: Boolean
+		get() = width <= 0 || height <= 0
 
-    /**
-     * Return a rectangle with aspect ratio of 'this' and entire contents
-     * of target grown to meet aspect ratio and adjusted to be in bounds
-     *
-     * @param target
-     * @return
-     */
-    default GRectangle fitInner(GRectangle target) {
-        float A = getAspect();
-        if (A <= 0)
-            throw new IllegalArgumentException("Cannot fit empty rect");
-        GRectangle rect = new GRectangle(target);
-        rect.setAspect(A);
+	/**
+	 * Return the rectangular region that encompasses this rectangle if it were to be rotated.
+	 * For instance, if a 4x2 rect were rotated 45 degrees, then the resulting rectangle would be approx 4.2x4.2
+	 *
+	 * @param degrees
+	 * @return
+	 */
+	fun rotated(degrees: Float): GDimension {
+		val tl: Vector2D = Vector2D(-width / 2, -height / 2).rotate(degrees)
+		val tr: Vector2D = Vector2D(width / 2, -height / 2).rotate(degrees)
+		val newWidth = Math.max(Math.abs(tl.x), Math.abs(tr.x)) * 2
+		val newHeight = Math.max(Math.abs(tl.y), Math.abs(tr.y)) * 2
+		return GDimension(newWidth, newHeight)
+	}
 
-        if (rect.w > getWidth() || rect.h > getHeight()) {
-            rect.w = getWidth();
-            rect.h = getHeight();
-        }
+	fun adjustedBy(dw: Float, dh: Float): GDimension {
+		return GDimension(width + dw, height + dh)
+	}
 
-        if (rect.x < 0) {
-            rect.x = 0;
-        }
-        if (rect.y < 0) {
-            rect.y = 0;
-        }
-        if (rect.x + rect.w > getWidth()) {
-            rect.x = getWidth() - rect.w;
-        }
-        if (rect.y + rect.h > getHeight()) {
-            rect.y = getHeight() - rect.h;
-        }
-        return rect;
-    }
+	fun interpolateTo(other: GDimension, factor: Float): GDimension {
+		val w = width + (other.width - width) * factor
+		val h = height + (other.height - height) * factor
+		return GDimension(w, h)
+	}
 
-    default boolean isEmpty() {
-        return getWidth() <= 0 || getHeight() <= 0;
-    }
+	fun addVert(d: GDimension): GDimension {
+		return GDimension(Math.max(width, d.width), height + d.height)
+	}
 
-    /**
-     * @return
-     */
-    default float getArea() {
-        return getWidth() * getHeight();
-    }
+	fun addHorz(d: GDimension): GDimension {
+		return GDimension(width + d.width, Math.max(height, d.height))
+	}
 
-    /**
-     * Return the rectangular region that encompasses this rectangle if it were to be rotated.
-     * For instance, if a 4x2 rect were rotated 45 degrees, then the resulting rectangle would be approx 4.2x4.2
-     *
-     * @param degrees
-     * @return
-     */
-    default GDimension rotated(float degrees) {
-        Vector2D tl = new Vector2D(-getWidth() / 2, -getHeight() / 2).rotate(degrees);
-        Vector2D tr = new Vector2D(getWidth() / 2, -getHeight() / 2).rotate(degrees);
+	fun minLength(): Float {
+		return Math.min(width, height)
+	}
 
-        float newWidth = Math.max(Math.abs(tl.getX()), Math.abs(tr.getX())) * 2;
-        float newHeight = Math.max(Math.abs(tl.getY()), Math.abs(tr.getY())) * 2;
+	fun scaledTo(sx: Float, sy: Float): GDimension {
+		return GDimension(width * sx, height * sy)
+	}
 
-        return new GDimension(newWidth, newHeight);
-    }
+	fun scaledTo(s: Float): GDimension {
+		return scaledTo(s, s)
+	}
 
-    default GDimension adjustedBy(float dw, float dh) {
-        return new GDimension(getWidth() + dw, getHeight() + dh);
-    }
-
-    default GDimension interpolateTo(GDimension other, float factor) {
-        float w = getWidth() + (other.getWidth() - getWidth()) * factor;
-        float h = getHeight() + (other.getHeight() - getHeight()) * factor;
-        return new GDimension(w, h);
-    }
-
-    default GDimension addVert(GDimension d) {
-        return new GDimension(Math.max(getWidth(), d.getWidth()), getHeight() + d.getHeight());
-    }
-
-    default GDimension addHorz(GDimension d) {
-        return new GDimension(getWidth() + d.getWidth(), Math.max(getHeight(), d.getHeight()));
-    }
-
-    default Float minLength() {
-        return Math.min(getWidth(), getHeight());
-    }
-
-    default GDimension scaledTo(float sx, float sy) {
-        return new GDimension(getWidth() * sx, getHeight() * sy);
-    }
-
-    default GDimension scaledTo(float s) {
-        return scaledTo(s, s);
-    }
-
-    default GDimension withAspect(float newAspect) {
-        float aspect = getAspect();
-        if (newAspect < aspect && newAspect > 0.001f) {
-            // grow height
-            return new GDimension(getWidth(), getWidth() / newAspect);
-        } else if (newAspect > aspect) {
-            // grow width
-            return new GDimension(getHeight() * newAspect, getHeight());
-        }
-        return new GDimension(this);
-    }
+	fun withAspect(newAspect: Float): GDimension {
+		val aspect = aspect
+		if (newAspect < aspect && newAspect > 0.001f) {
+			// grow height
+			return GDimension(width, width / newAspect)
+		} else if (newAspect > aspect) {
+			// grow width
+			return GDimension(height * newAspect, height)
+		}
+		return GDimension(this)
+	}
 }

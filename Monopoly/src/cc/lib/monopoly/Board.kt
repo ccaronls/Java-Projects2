@@ -76,12 +76,12 @@ class Board(  // dimension of whole board
 		if (sq == Square.VISITING_JAIL) {
 			// special case to place around the outer edge
 			when (player) {
-				0 -> return GRectangle(rect.x, cntr.y - dim, dim, dim)
-				1 -> return GRectangle(cntr.x - dim, rect.y + rect.h - dim, dim, dim)
-				2 -> return GRectangle(rect.x, cntr.y, dim, dim)
+				0 -> return GRectangle(rect.left, cntr.y - dim, dim, dim)
+				1 -> return GRectangle(cntr.x - dim, rect.top + rect.height - dim, dim, dim)
+				2 -> return GRectangle(rect.left, cntr.y, dim, dim)
 			}
 			// bottom right
-			return GRectangle(cntr.x, rect.y + rect.h - dim, dim, dim)
+			return GRectangle(cntr.x, rect.top + rect.height - dim, dim, dim)
 		}
 		when (player) {
 			0 -> return GRectangle(cntr.x - dim, cntr.y - dim, dim, dim)
@@ -93,20 +93,21 @@ class Board(  // dimension of whole board
 
 	fun getPiecePlacementJail(playerNum: Int): GRectangle {
 		val rect = getSqaureBounds(Square.VISITING_JAIL)
-		var dim = rect.w / 4
-		rect.x += dim
-		rect.w -= dim
-		rect.h -= dim
+		var dim = rect.width / 4
+		rect.left += dim
+		rect.width -= dim
+		rect.height -= dim
 		dim = pieceDimension
-		rect.w = dim
-		rect.h = dim
+		rect.width = dim
+		rect.height = dim
 		when (playerNum) {
-			3 -> rect.y += dim
+			3 -> rect.top += dim
 			1 -> {
-				rect.x += dim
-				rect.y += dim
+				rect.left += dim
+				rect.top += dim
 			}
-			2 -> rect.x += dim
+
+			2 -> rect.left += dim
 		}
 		return rect
 	}

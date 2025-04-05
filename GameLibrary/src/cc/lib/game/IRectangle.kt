@@ -1,407 +1,312 @@
-package cc.lib.game;
+package cc.lib.game
 
-import cc.lib.math.MutableVector2D;
-import cc.lib.math.Vector2D;
+import cc.lib.math.MutableVector2D
+import cc.lib.math.Vector2D
+import cc.lib.utils.squared
+import kotlin.math.sqrt
 
-public interface IRectangle extends IDimension, IShape {
+interface IRectangle : IDimension, IShape {
+	val left: Float
+	val top: Float
+	val right: Float
+		get() = left + width
+	val bottom: Float
+		get() = top + height
+	val isNan: Boolean
+		get() = width === Float.NaN || height === Float.NaN || top == Float.NaN || left == Float.NaN
 
-    float getLeft();
+	val topLeft: MutableVector2D
+		get() = MutableVector2D(left, top)
+	val topRight: MutableVector2D
+		get() = MutableVector2D(left + width, top)
+	val bottomLeft: MutableVector2D
+		get() = MutableVector2D(left, top + height)
+	val bottomRight: MutableVector2D
+		get() = MutableVector2D(left + width, top + height)
+	val centerLeft: MutableVector2D
+		get() = MutableVector2D(left, top + height / 2)
+	val centerRight: MutableVector2D
+		get() = MutableVector2D(left + width, top + height / 2)
+	val centerTop: MutableVector2D
+		get() = MutableVector2D(left + width / 2, top)
+	val centerBottom: MutableVector2D
+		get() = MutableVector2D(left + width / 2, top + height)
 
-    float getTop();
+	override val center: IVector2D
+		get() = MutableVector2D(left + width / 2, top + height / 2)
 
-    default float getRight() {
-        return getLeft() + getWidth();
-    }
+	override val area: Float
+		get() = width * height
 
-    default float getBottom() {
-        return getTop() + getHeight();
-    }
+	/**
+	 *
+	 * @param other
+	 * @return
+	 */
+	fun isIntersectingWidth(other: IRectangle): Boolean {
+		return Utils.isBoxesOverlapping(left, top, width, height, other.left, other.top, other.width, other.height)
+	}
 
-    default boolean isNan() {
-        return getWidth() == Float.NaN || getHeight() == Float.NaN || getTop() == Float.NaN || getLeft() == Float.NaN;
-    }
+	/**
+	 * @param px
+	 * @param py
+	 * @return
+	 */
+	override fun contains(px: Float, py: Float): Boolean {
+		return Utils.isPointInsideRect(px, py, left, top, width, height)
+	}
 
-    /**
-     * @return
-     */
-    default IVector2D getCenter() {
-        return new MutableVector2D(getLeft() + getWidth() / 2, getTop() + getHeight() / 2);
-    }
+	/**
+	 * @param other
+	 * @return
+	 */
+	operator fun contains(other: IRectangle): Boolean {
+		return (Utils.isPointInsideRect(other.topLeft.x, other.topLeft.y, left, top, width, height)
+			&& Utils.isPointInsideRect(other.bottomRight.x, other.bottomRight.y, left, top, width, height))
+	}
 
-    /**
-     *
-     * @return
-     */
-    default MutableVector2D getTopLeft() {
-        return new MutableVector2D(getLeft(), getTop());
-    }
+	/**
+	 * @param v
+	 * @return
+	 */
+	override fun contains(v: IVector2D): Boolean {
+		return contains(v.x, v.y)
+	}
 
-    /**
-     *
-     * @return
-     */
-    default MutableVector2D getTopRight() {
-        return new MutableVector2D(getLeft() + getWidth(), getTop());
-    }
+	/**
+	 *
+	 * @param g
+	 */
+	override fun drawFilled(g: AGraphics) {
+		g.begin()
+		g.vertex(topLeft)
+		g.vertex(bottomLeft)
+		g.vertex(topRight)
+		g.vertex(bottomRight)
+		g.drawQuadStrip()
+		//        g.drawFilledRect(X(), .getY(), getWidth(), getHeight());
+	}
 
-    /**
-     *
-     * @return
-     */
-    default MutableVector2D getBottomLeft() {
-        return new MutableVector2D(getLeft(), getTop() + getHeight());
-    }
+	/**
+	 *
+	 * @param g
+	 * @param radius
+	 */
+	fun drawRounded(g: AGraphics, radius: Float) {
+		g.drawRoundedRect(left, top, width, height, radius)
+	}
 
-    /**
-     *
-     * @return
-     */
-    default MutableVector2D getBottomRight() {
-        return new MutableVector2D(getLeft() + getWidth(), getTop() + getHeight());
-    }
+	/**
+	 *
+	 * @param g
+	 * @param thickness
+	 */
+	fun drawOutlined(g: AGraphics, thickness: Int) {
+		g.drawRect(left, top, width, height, thickness.toFloat())
+	}
 
-    /**
-     *
-     * @return
-     */
-    default MutableVector2D getCenterLeft() {
-        return new MutableVector2D(getLeft(), getTop() + getHeight() / 2);
-    }
+	override fun drawOutlined(g: AGraphics) {
+		g.drawRect(left, top, width, height)
+	}
 
-    /**
-     *
-     * @return
-     */
-    default MutableVector2D getCenterRight() {
-        return new MutableVector2D(getLeft() + getWidth(), getTop() + getHeight() / 2);
-    }
+	val dimension: GDimension
+		get() = GDimension(width, height)
 
-    /**
-     *
-     * @return
-     */
-    default MutableVector2D getCenterTop() {
-        return new MutableVector2D(getLeft() + getWidth() / 2, getTop());
-    }
+	/**
+	 * Return half of min(W,H)
+	 * @return
+	 */
+	override val radius: Float
+		get() {
+			return sqrt(width.squared() + height.squared()) * .5f
+		}
 
-    /**
-     *
-     * @return
-     */
-    default MutableVector2D getCenterBottom() {
-        return new MutableVector2D(getLeft() + getWidth() / 2, getTop() + getHeight());
-    }
+	val randomPointInside: Vector2D
+		/**
+		 * @return
+		 */
+		get() = Vector2D(left + Utils.randFloat(width), top + Utils.randFloat(height))
 
+	/**
+	 * @param s
+	 * @return
+	 */
+	fun scaledBy(s: Float): GRectangle {
+		return scaledBy(s, s)
+	}
 
-    /**
-     *
-     * @param other
-     * @return
-     */
-    default boolean isIntersectingWidth(IRectangle other) {
-        return Utils.isBoxesOverlapping(getLeft(), getTop(), getWidth(), getHeight(), other.getLeft(), other.getTop(), other.getWidth(), other.getHeight());
-    }
+	fun scaledBy(s: Float, horz: Justify, vert: Justify): GRectangle {
+		val newWidth = width * s
+		val newHeight = height * s
+		var newX = left
+		var newY = top
+		when (horz) {
+			Justify.LEFT -> newX += width - newWidth
+			Justify.RIGHT -> {}
+			Justify.CENTER -> newX += (width - newWidth) / 2
+			else -> Unit
+		}
+		when (vert) {
+			Justify.TOP -> {}
+			Justify.BOTTOM -> newY += height - newHeight
+			Justify.CENTER -> newY += (height - newHeight) / 2
+			else -> Unit
+		}
+		return GRectangle(newX, newY, newWidth, newHeight)
+	}
 
-    /**
-     * @param px
-     * @param py
-     * @return
-     */
-    default boolean contains(float px, float py) {
-        return Utils.isPointInsideRect(px, py, getLeft(), getTop(), getWidth(), getHeight());
-    }
+	/**
+	 * @param sx
+	 * @param sy
+	 * @return
+	 */
+	fun scaledBy(sx: Float, sy: Float): GRectangle {
+		val nw = width * sx
+		val nh = height * sy
+		val dw = nw - width
+		val dh = nh - height
+		return GRectangle(left - dw / 2, top - dh / 2, nw, nh)
+	}
+	/**
+	 * Return a rectangle that fits inside this rect and with same aspect.
+	 * How to position inside this determined by horz/vert justifys.
+	 *
+	 * @param rectToFit
+	 * @return
+	 */
+	/**
+	 * Return a rectangle of dimension not to exceed this dimension and
+	 * whose aspect ratio is that of rectToFit and is centered inside this.
+	 *
+	 * @param rectToFit
+	 * @return
+	 */
+	fun fit(rectToFit: IDimension, horz: Justify = Justify.CENTER, vert: Justify = Justify.CENTER): GRectangle {
+		val targetAspect = rectToFit.aspect
+		val rectAspect = aspect
+		var tx = 0f
+		var ty = 0f
+		var tw = 0f
+		var th = 0f
+		if (targetAspect > rectAspect) {
+			// target is wider than rect, so fit lengthwise
+			tw = width
+			th = width / targetAspect
+			tx = left
+			when (vert) {
+				Justify.CENTER -> ty = top + height / 2 - th / 2
+				Justify.TOP -> ty = top
+				Justify.BOTTOM -> ty = top + height - th
+				else -> Unit
+			}
+		} else {
+			th = height
+			tw = height * targetAspect
+			ty = top
+			when (horz) {
+				Justify.CENTER -> tx = left + width / 2 - tw / 2
+				Justify.LEFT -> tx = left
+				Justify.RIGHT -> tx = left + width - tw
+				else -> Unit
+			}
+		}
+		return GRectangle(tx, ty, tw, th)
+	}
 
-    /**
-     * @param other
-     * @return
-     */
-    default boolean contains(IRectangle other) {
-        return Utils.isPointInsideRect(other.getTopLeft().X(), other.getTopLeft().Y(), getLeft(), getTop(), getWidth(), getHeight())
-                && Utils.isPointInsideRect(other.getBottomRight().X(), other.getBottomRight().Y(), getLeft(), getTop(), getWidth(), getHeight());
-    }
+	fun canContain(other: IRectangle): Boolean {
+		return width >= other.width && height >= other.height
+	}
 
-    /**
-     * @param v
-     * @return
-     */
-    default boolean contains(IVector2D v) {
-        return contains(v.getX(), v.getY());
-    }
+	fun getDeltaToContain(other: IRectangle): Vector2D {
+		if (width < other.width || height < other.height) return Vector2D.ZERO
+		val t0 = MutableVector2D()
+		val t1 = MutableVector2D()
+		val delta = other.center.sub(center, t0)
+		val x =
+			if (other.topLeft.x < topLeft.x) topLeft.x else if (other.bottomRight.x > bottomRight.x) bottomRight.x - other.width else other.topLeft.x
+		val y =
+			if (other.topLeft.y < topLeft.y) topLeft.y else if (other.bottomRight.y > bottomRight.y) bottomRight.y - other.height else other.topLeft.y
+		val contained = GRectangle(x, y, other.width, other.height)
+		val delta2: Vector2D = contained.center.sub(center, t1)
+		return delta.subEq(delta2)
+	}
 
-    /**
-     *
-     * @param g
-     */
-    default void drawFilled(AGraphics g) {
-        g.begin();
-        g.vertex(getTopLeft());
-        g.vertex(getBottomLeft());
-        g.vertex(getTopRight());
-        g.vertex(getBottomRight());
-        g.drawQuadStrip();
-//        g.drawFilledRect(X(), Y(), getWidth(), getHeight());
-    }
+	fun withCenter(cntr: IVector2D): GRectangle {
+		return GRectangle(cntr.x - width / 2, cntr.y - height / 2, width, height)
+	}
 
-    /**
-     *
-     * @param g
-     * @param radius
-     */
-    default void drawRounded(AGraphics g, float radius) {
-        g.drawRoundedRect(getLeft(), getTop(), getWidth(), getHeight(), radius);
-    }
+	fun withPosition(topLeft: IVector2D): GRectangle {
+		return GRectangle(topLeft, this)
+	}
 
-    /**
-     *
-     * @param g
-     * @param thickness
-     */
-    default void drawOutlined(AGraphics g, int thickness) {
-        g.drawRect(getLeft(), getTop(), getWidth(), getHeight(), thickness);
-    }
+	fun withDimension(dim: IDimension): GRectangle {
+		return GRectangle(left, top, dim.width, dim.height)
+	}
 
-    default void drawOutlined(AGraphics g) {
-        g.drawRect(getLeft(), getTop(), getWidth(), getHeight());
-    }
+	fun withDimension(w: Float, h: Float): GRectangle {
+		return GRectangle(left, top, w, h)
+	}
 
-    default GDimension getDimension() {
-        return new GDimension(getWidth(), getHeight());
-    }
+	fun movedBy(dx: Float, dy: Float): GRectangle {
+		return GRectangle(left + dx, top + dy, width, height)
+	}
 
-    /**
-     * Return half of min(W,H)
-     * @return
-     */
-    @Override
-    default float getRadius() {
-        double w = getWidth();
-        double h = getHeight();
-        return (float) Math.sqrt(w * w + h * h) / 2;
-    }
+	fun movedBy(dv: IVector2D): GRectangle {
+		return movedBy(dv.x, dv.y)
+	}
 
-    /**
-     * @return
-     */
-    default Vector2D getRandomPointInside() {
-        return new Vector2D(getLeft() + Utils.randFloat(getWidth()), getTop() + Utils.randFloat(getHeight()));
-    }
+	fun add(other: IRectangle): GRectangle {
+		return GRectangle(
+			Math.min(left, other.left),
+			Math.min(top, other.top),
+			Math.max(width, other.width),
+			Math.max(height, other.height)
+		)
+	}
 
-    /**
-     * @param s
-     * @return
-     */
-    default GRectangle scaledBy(float s) {
-        return scaledBy(s, s);
-    }
+	val randomInterpolator: IInterpolator<Vector2D>
+		/**
+		 * @return
+		 */
+		get() = object : IInterpolator<Vector2D> {
+			override fun getAtPosition(position: Float): Vector2D {
+				return randomPointInside
+			}
+		}
 
-    default GRectangle scaledBy(float s, Justify horz, Justify vert) {
-        float newWidth = getWidth() * s;
-        float newHeight = getHeight() * s;
-        float newX = getLeft();
-        float newY = getTop();
-        switch (horz) {
-            case LEFT:
-                newX += (getWidth() - newWidth);
-                break;
-            case RIGHT:
-                break;
-            case CENTER:
-                newX += (getWidth() - newWidth) / 2;
-                break;
-        }
+	fun shaked(factor: Float): GRectangle {
+		return shaked(factor, factor)
+	}
 
-        switch (vert) {
-            case TOP:
-                break;
-            case BOTTOM:
-                newY += (getHeight() - newHeight);
-                break;
-            case CENTER:
-                newY += (getHeight() - newHeight) / 2;
-                break;
-        }
-        return new GRectangle(newX, newY, newWidth, newHeight);
-    }
+	fun shaked(xfactor: Float, yfactor: Float): GRectangle {
+		val nx = left + width * Utils.randFloatPlusOrMinus(xfactor)
+		val ny = top + height * Utils.randFloatPlusOrMinus(yfactor)
+		return GRectangle(nx, ny, width, height)
+	}
 
-    /**
-     * @param sx
-     * @param sy
-     * @return
-     */
-    default GRectangle scaledBy(float sx, float sy) {
-        float nw = getWidth() * sx;
-        float nh = getHeight() * sy;
-        float dw = nw - getWidth();
-        float dh = nh - getHeight();
-        return new GRectangle(getLeft() - dw / 2, getTop() - dh / 2, nw, nh);
-    }
+	fun subDivide(rows: Int, cols: Int): Array<GRectangle> {
+		val divisions = arrayOfNulls<GRectangle>(rows * cols)
+		val wid = width / cols
+		val hgt = height / rows
+		var idx = 0
+		for (i in 0 until cols) {
+			val tl = topLeft.addEq(wid * i, 0)
+			for (ii in 0 until rows) {
+				divisions[idx++] = GRectangle(tl, wid, hgt)
+				tl.addEq(0, hgt)
+			}
+		}
+		return divisions.filterNotNull().toTypedArray()
+	}
 
-    /**
-     * Return a rectangle of dimension not to exceed this dimension and
-     * whose aspect ratio is that of rectToFit and is centered inside this.
-     *
-     * @param rectToFit
-     * @return
-     */
-    default GRectangle fit(IDimension rectToFit) {
-        return fit(rectToFit, Justify.CENTER, Justify.CENTER);
-    }
+	override val isEmpty: Boolean
+		get() = this === GRectangle.EMPTY || width <= 0 && height <= 0
 
-    /**
-     * Return a rectangle that fits inside this rect and with same aspect.
-     * How to position inside this determined by horz/vert justifys.
-     *
-     * @param rectToFit
-     * @return
-     */
-    default GRectangle fit(IDimension rectToFit, Justify horz, Justify vert) {
-        float targetAspect = rectToFit.getAspect();
-        float rectAspect = getAspect();
-        float tx = 0, ty = 0, tw = 0, th = 0;
-        if (targetAspect > rectAspect) {
-            // target is wider than rect, so fit lengthwise
-            tw = getWidth();
-            th = getWidth() / targetAspect;
-            tx = getLeft();
-            switch (vert) {
-                case CENTER:
-                    ty = getTop() + getHeight() / 2 - th / 2;
-                    break;
-                case TOP:
-                    ty = getTop();
-                    break;
-                case BOTTOM:
-                    ty = getTop() + getHeight() - th;
-                    break;
-            }
-        } else {
-            th = getHeight();
-            tw = getHeight() * targetAspect;
-            ty = getTop();
-            switch (horz) {
-                case CENTER:
-                    tx = getLeft() + getWidth() / 2 - tw / 2;
-                    break;
-                case LEFT:
-                    tx = getLeft();
-                    break;
-                case RIGHT:
-                    tx = getLeft() + getWidth() - tw;
-                    break;
-            }
-        }
-        return new GRectangle(tx, ty, tw, th);
-    }
+	fun isInside(other: IRectangle): Boolean {
+		return topLeft.x >= other.topLeft.x && bottomRight.x <= other.bottomRight.x && topLeft.y >= other.topLeft.y && bottomRight.y <= other.bottomRight.y
+	}
 
-    default boolean canContain(IRectangle other) {
-        return getWidth() >= other.getWidth() && getHeight() >= other.getHeight();
-    }
-
-    default Vector2D getDeltaToContain(IRectangle other) {
-        if (getWidth() < other.getWidth() || getHeight() < other.getHeight())
-            return Vector2D.ZERO;
-        Vector2D delta = other.getCenter().sub(getCenter());
-        float x = other.getTopLeft().X() < getTopLeft().X() ? getTopLeft().X()
-                : other.getBottomRight().X() > getBottomRight().X() ? getBottomRight().X() - other.getWidth()
-                : other.getTopLeft().X();
-
-        float y = other.getTopLeft().Y() < getTopLeft().Y() ? getTopLeft().Y()
-                : other.getBottomRight().Y() > getBottomRight().Y() ? getBottomRight().Y() - other.getHeight()
-                : other.getTopLeft().Y();
-        GRectangle contained = new GRectangle(x, y, other.getWidth(), other.getHeight());
-
-        Vector2D delta2 = contained.getCenter().sub(getCenter());
-        return delta.sub(delta2);
-    }
-
-    default GRectangle withCenter(IVector2D cntr) {
-        return new GRectangle(cntr.getX() - getWidth() / 2, cntr.getY() - getHeight() / 2, getWidth(), getHeight());
-    }
-
-    default GRectangle withPosition(IVector2D topLeft) {
-        return new GRectangle(topLeft, this);
-    }
-
-    default GRectangle withDimension(IDimension dim) {
-        return new GRectangle(getLeft(), getTop(), dim.getWidth(), dim.getHeight());
-    }
-
-    default GRectangle withDimension(float w, float h) {
-        return new GRectangle(getLeft(), getTop(), w, h);
-    }
-
-    default GRectangle movedBy(float dx, float dy) {
-        return new GRectangle(getLeft() + dx, getTop() + dy, getWidth(), getHeight());
-    }
-
-    default GRectangle movedBy(IVector2D dv) {
-        return movedBy(dv.getX(), dv.getY());
-    }
-
-    default GRectangle add(IRectangle other) {
-        return new GRectangle(
-                Math.min(getLeft(), other.getLeft()),
-                Math.min(getTop(), other.getTop()),
-                Math.max(getWidth(), other.getWidth()),
-                Math.max(getHeight(), other.getHeight())
-        );
-    }
-
-    /**
-     * @return
-     */
-    default IInterpolator<Vector2D> getRandomInterpolator() {
-        return new IInterpolator<Vector2D>() {
-            @Override
-            public Vector2D getAtPosition(float position) {
-                return getRandomPointInside();
-            }
-        };
-    }
-
-    default GRectangle shaked(float factor) {
-        return shaked(factor, factor);
-    }
-
-    default GRectangle shaked(float xfactor, float yfactor) {
-        float nx = getLeft() + getWidth() * Utils.randFloatPlusOrMinus(xfactor);
-        float ny = getTop() + getHeight() * Utils.randFloatPlusOrMinus(yfactor);
-        return new GRectangle(nx, ny, getWidth(), getHeight());
-    }
-
-    default GRectangle[] subDivide(int rows, int cols) {
-        GRectangle[] divisions = new GRectangle[rows * cols];
-        float wid = getWidth() / cols;
-        float hgt = getHeight() / rows;
-        int idx = 0;
-        for (int i = 0; i < cols; i++) {
-            MutableVector2D tl = getTopLeft().addEq(wid * i, 0);
-            for (int ii = 0; ii < rows; ii++) {
-                divisions[idx++] = new GRectangle(tl, wid, hgt);
-                tl.addEq(0, hgt);
-            }
-        }
-        return divisions;
-    }
-
-    default boolean isEmpty() {
-        return this == GRectangle.EMPTY || (getWidth() <= 0 && getHeight() <= 0);
-    }
-
-    default boolean isInside(IRectangle other) {
-        return (getTopLeft().getX() >= other.getTopLeft().X()
-                && getBottomRight().X() <= other.getBottomRight().getX()
-                && getTopLeft().getY() >= other.getTopLeft().getY()
-                && getBottomRight().getY() <= other.getBottomRight().getY());
-    }
-
-    @Override
-    default IRectangle enclosingRect() {
-        return this;
-    }
-
-    @Override
-    default float getArea() {
-        return IDimension.super.getArea();
-    }
+	override fun enclosingRect(): IRectangle {
+		return this
+	}
 }

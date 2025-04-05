@@ -1,277 +1,330 @@
-package cc.lib.game;
+package cc.lib.game
 
-import cc.lib.math.CMath;
-import cc.lib.math.MutableVector2D;
-import cc.lib.math.Vector2D;
+import cc.lib.math.CMath
+import cc.lib.math.MutableVector2D
+import cc.lib.math.Vector2D
+import cc.lib.math.Vector2D.Companion.getLinearInterpolator
+import cc.lib.utils.randomFloat
+import cc.lib.utils.squared
+import kotlin.math.abs
+import kotlin.math.acos
+import kotlin.math.atan
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.math.sqrt
 
-public interface IVector2D {
+interface IVector2D {
+	val x: Float
+	val y: Float
+	fun toMutable(): MutableVector2D {
+		return MutableVector2D(this)
+	}
 
-    float getX();
+	fun toImmutable(): Vector2D {
+		return Vector2D(this)
+	}
 
-    float getY();
+	fun radians(): Float {
+		return atan2(y, x)
+	}
 
-    default MutableVector2D toMutable() {
-        return new MutableVector2D(this);
-    }
+	fun min(v: IVector2D, out: MutableVector2D = Vector2D.getFromPool()): MutableVector2D {
+		return out.assign(x.coerceAtMost(v.x), y.coerceAtMost(v.y))
+	}
 
-    default Vector2D toImmutable() {
-        return new Vector2D(this);
-    }
+	fun max(v: IVector2D, out: MutableVector2D = Vector2D.getFromPool()): MutableVector2D {
+		return out.assign(x.coerceAtLeast(v.x), y.coerceAtLeast(v.y))
+	}
 
-    default float radians() {
-        return (float) Math.atan2(getY(), getX());
-    }
+	fun isBetween(min: IVector2D, max: IVector2D): Boolean {
+		return x >= min.x && x < max.x && y >= min.y && y <= max.y
+	}
 
-    default MutableVector2D min(IVector2D v) {
-        return new MutableVector2D(Math.min(getX(), v.getX()), Math.min(getY(), v.getY()));
-    }
+	fun add(v: IVector2D, out: MutableVector2D = Vector2D.getFromPool()): MutableVector2D {
+		return out.assign(x + v.x, y + v.y)
+	}
 
-    default MutableVector2D max(IVector2D v) {
-        return new MutableVector2D(Math.max(getX(), v.getX()), Math.max(getY(), v.getY()));
-    }
+	fun add(x: Number, y: Number, out: MutableVector2D = Vector2D.getFromPool()): MutableVector2D {
+		return out.assign(this.x + x.toFloat(), this.y + y.toFloat())
+	}
 
-    default MutableVector2D add(IVector2D v) {
-        return new MutableVector2D(getX() + v.getX(), getY() + v.getY());
-    }
+	fun sub(v: IVector2D, out: MutableVector2D = Vector2D.getFromPool()): MutableVector2D {
+		return out.assign(x - v.x, y - v.y)
+	}
 
-    default MutableVector2D add(float x, float y) {
-        return new MutableVector2D(getX() + x, getY() + y);
-    }
+	fun sub(x: Number, y: Number, out: MutableVector2D = Vector2D.getFromPool()): MutableVector2D {
+		return out.assign(this.x - x.toFloat(), this.y - y.toFloat())
+	}
 
-    default MutableVector2D sub(IVector2D v) {
-        return new MutableVector2D(getX() - v.getX(), getY() - v.getY());
-    }
+	/**
+	 * Return a positive number if v is 270 - 90 degrees of this,
+	 * or a negative number if v is 90 - 270 degrees of this,
+	 * or zero if v is at right angle to this
+	 *
+	 * @param v
+	 * @return
+	 */
+	fun dot(v: IVector2D): Float {
+		return x * v.x + y * v.y
+	}
 
-    default MutableVector2D sub(float x, float y) {
-        return new MutableVector2D(this.getX() - x, this.getY() - y);
-    }
+	/**
+	 * Return a positive number if v is 0-180 degrees of this,
+	 * or a negative number if v is 180-360 degrees of this
+	 *
+	 * @param v
+	 * @return
+	 */
+	fun cross(v: IVector2D): Float {
+		return x * v.y - v.x * y
+	}
 
-    /**
-     * Return a positive number if v is 270 - 90 degrees of this,
-     * or a negative number if v is 90 - 270 degrees of this,
-     * or zero if v is at right angle to this
-     *
-     * @param v
-     * @return
-     */
-    default float dot(IVector2D v) {
-        return getX() * v.getX() + getY() * v.getY();
-    }
+	/**
+	 * @param s
+	 * @return
+	 */
+	fun cross(s: Number, out: MutableVector2D = Vector2D.getFromPool()): MutableVector2D {
+		val tempy = -s.toFloat() * x
+		return out.assign(s.toFloat() * y, tempy)
+	}
 
-    /**
-     * Return a positive number if v is 0-180 degrees of this,
-     * or a negative number if v is 180-360 degrees of this
-     *
-     * @param v
-     * @return
-     */
-    default float cross(IVector2D v) {
-        return getX() * v.getY() - v.getX() * getY();
-    }
+	/**
+	 * @return
+	 */
+	fun magSquared(): Float {
+		return x * x + y * y
+	}
 
-    /**
-     * @param s
-     * @return
-     */
-    default MutableVector2D cross(float s) {
-        final float tempy = -s * getX();
-        return new MutableVector2D(s * getY(), tempy);
-    }
+	/**
+	 * @return
+	 */
+	fun mag(): Float = sqrt(magSquared())
 
-    /**
-     * @return
-     */
-    default float magSquared() {
-        return getX() * getX() + getY() * getY();
-    }
+	/**
+	 *
+	 */
+	fun distSquaredTo(other: IVector2D): Float {
+		val dx = x - other.x
+		val dy = y - other.y
+		return dx * dx + dy * dy
+	}
 
-    /**
-     * @return
-     */
-    default float mag() {
-        return (float) Math.sqrt(magSquared());
-    }
+	/**
+	 *
+	 */
+	fun isWithinDistance(other: IVector2D, dist: Number): Boolean {
+		return distSquaredTo(other) < dist.toFloat().squared()
+	}
 
-    /**
-     * @param v
-     * @return
-     */
-    default MutableVector2D midPoint(IVector2D v) {
-        return new MutableVector2D((getX() + v.getX()) / 2, (getY() + v.getY()) / 2);
-    }
+	/**
+	 *
+	 */
+	fun magFast(): Float {
+		return Utils.fastLen(x, y)
+	}
 
-    /**
-     * Rotate out by 90 degrees
-     *
-     * @return
-     */
-    default MutableVector2D norm() {
-        return new MutableVector2D(-getY(), getX());
-    }
+	/**
+	 * @param v
+	 * @return
+	 */
+	fun midPoint(v: IVector2D, out: MutableVector2D = Vector2D.getFromPool()): MutableVector2D {
+		return out.assign((x + v.x) / 2, (y + v.y) / 2)
+	}
 
-    /**
-     * @return
-     */
-    default MutableVector2D unitLength() {
-        float m = mag();
-        if (m > CMath.EPSILON) {
-            return new MutableVector2D(getX() / m, getY() / m);
-        }
-        return new MutableVector2D(getX(), getY());
-    }
+	/**
+	 * Rotate out by 90 degrees
+	 *
+	 * @return
+	 */
+	fun norm(out: MutableVector2D = Vector2D.getFromPool()): MutableVector2D {
+		return out.assign(-y, x)
+	}
 
-    /**
-     * Return unit length vector
-     *
-     * @return
-     */
-    default MutableVector2D normalized() {
-        float m = mag();
-        if (m > CMath.EPSILON) {
-            return new MutableVector2D(getX() / m, getY() / m);
-        }
-        return new MutableVector2D(this);
-    }
+	/**
+	 * Return unit length vector
+	 *
+	 * @return
+	 */
+	fun normalized(out: MutableVector2D = Vector2D.getFromPool()): MutableVector2D {
+		val m = mag()
+		return if (m > CMath.EPSILON) {
+			out.assign(x / m, y / m)
+		} else out.assign(this)
+	}
 
-    /**
-     * @param s
-     * @return
-     */
-    default MutableVector2D scaledBy(float s) {
-        return new MutableVector2D(getX() * s, getY() * s);
-    }
+	/**
+	 *
+	 */
+	fun abs(out: MutableVector2D = Vector2D.getFromPool()): MutableVector2D {
+		return out.assign(abs(x), abs(y))
+	}
 
-    /**
-     * Return new vector scaled by amounts getX(),getY()
-     *
-     * @param sx
-     * @param sy
-     * @return
-     */
-    default MutableVector2D scaledBy(float sx, float sy) {
-        return new MutableVector2D(getX() * sx, getY() * sy);
-    }
 
-    /**
-     * @param degrees
-     * @return
-     */
-    default MutableVector2D rotated(float degrees) {
-        degrees *= CMath.DEG_TO_RAD;
-        float cosd = (float) Math.cos(degrees);
-        float sind = (float) Math.sin(degrees);
-        return new MutableVector2D(getX() * cosd - getY() * sind, getX() * sind + getY() * cosd);
-    }
+	/**
+	 * @param s
+	 * @return
+	 */
+	fun scaledBy(s: Number, out: MutableVector2D = Vector2D.getFromPool()): MutableVector2D {
+		return out.assign(x * s.toFloat(), y * s.toFloat())
+	}
 
-    /**
-     * Returns always positive angle between 2 vectors 0-180
-     *
-     * @param v
-     * @return
-     */
-    default float angleBetween(IVector2D v) {
-        float dv = dot(v);
-        return (float) Math.acos(dv / (mag() * v.mag())) * CMath.RAD_TO_DEG;
-    }
+	/**
+	 * Return new vector scaled by amounts getX(),getY()
+	 *
+	 * @param sx
+	 * @param sy
+	 * @return
+	 */
+	fun scaledBy(sx: Number, sy: Number, out: MutableVector2D = Vector2D.getFromPool()): MutableVector2D {
+		return out.assign(x * sx.toFloat(), y * sy.toFloat())
+	}
 
-    /**
-     * Returns value between 180-180
-     *
-     * @param v
-     * @return
-     */
-    default float angleBetweenSigned(IVector2D v) {
-        float ang = angleBetween(v);
-        Utils.assertTrue(ang >= 0);
-        if (cross(v) < 0) {
-            return -ang;
-        } else {
-            return ang;
-        }
-    }
+	/**
+	 * @param degrees
+	 * @return
+	 */
+	fun rotate(degrees: Number, out: MutableVector2D = Vector2D.getFromPool()): MutableVector2D {
+		val d = degrees.toFloat() * CMath.DEG_TO_RAD
+		val cosd = cos(d)
+		val sind = sin(d)
+		return out.assign(x * cosd - y * sind, x * sind + y * cosd)
+	}
 
-    /**
-     * @return value between 0-360 where
-     * 0 represents getX() position and getY() 0
-     * 90 represents getX() zero and getY() position
-     * 180 represents getX() negative and getY() 0
-     * 270 represents getX() zero and getY() negative
-     */
-    default float angleOf() {
-        if (Math.abs(getX()) < CMath.EPSILON)
-            return (getY() > 0 ? 90 : 270);
-        int r = (int) Math.round(Math.atan(getY() / getX()) * CMath.RAD_TO_DEG);
-        return (getX() < 0 ? 180 + r : r < 0 ? 360 + r : r);
-    }
+	/**
+	 * Returns always positive angle between 2 vectors 0-180
+	 *
+	 * @param v
+	 * @return
+	 */
+	fun angleBetween(v: IVector2D): Float {
+		val dv = dot(v)
+		return acos(dv / (mag() * v.mag())) * CMath.RAD_TO_DEG
+	}
 
-    /**
-     * Return this reflected off the wall defined by normal
-     * <p>
-     * <p>
-     * |W  /
-     * |  /
-     * | /
-     * |v
-     * |------> N
-     * | \
-     * |  \
-     * |   \
-     * v
-     * <p>
-     * W = Wall
-     * N = normalToWall
-     * V = this
-     * R = result
-     *
-     * @param normalToWall
-     * @return
-     */
-    default Vector2D reflect(IVector2D normalToWall) {
-        if (normalToWall.isZero())
-            return Vector2D.ZERO;
-        if (normalToWall.isNaN())
-            return Vector2D.ZERO;
-        if (normalToWall.isInfinite())
-            return Vector2D.ZERO;
-        float ndotv = normalToWall.dot(this);
-        if (ndotv > 0)
-            normalToWall = normalToWall.scaledBy(-1);
-        ndotv = Math.abs(ndotv);
-        float ndotn = normalToWall.dot(normalToWall);
-        // projection vector
-        Vector2D p = normalToWall.scaledBy(2 * ndotv / ndotn);
-        return add(p);
-    }
+	/**
+	 * Returns value between 180-180
+	 *
+	 * @param v
+	 * @return
+	 */
+	fun angleBetweenSigned(v: IVector2D): Float {
+		val ang = angleBetween(v)
+		Utils.assertTrue(ang >= 0)
+		return if (cross(v) < 0) {
+			-ang
+		} else {
+			ang
+		}
+	}
 
-    default boolean equalsWithinRange(IVector2D v, float epsilon) {
-        float dx = getX() - v.getX();
-        float dy = getY() - v.getY();
-        return (Math.abs(dx) < epsilon && Math.abs(dy) < epsilon);
-    }
+	/**
+	 * @return value between 0-360 where
+	 * 0 represents getX() position and getY() 0
+	 * 90 represents getX() zero and getY() position
+	 * 180 represents getX() negative and getY() 0
+	 * 270 represents getX() zero and getY() negative
+	 */
+	fun angleOf(): Float {
+		if (abs(x) < CMath.EPSILON) return if (y > 0) 90f else 270f
+		val r = atan(y / x) * CMath.RAD_TO_DEG
+		return if (x < 0) (180 + r) else (if (r < 0) 360 + r else r)
+	}
 
-    default boolean isZero() {
-        return equalsWithinRange(Vector2D.ZERO, CMath.EPSILON);
-    }
+	/**
+	 * Return this reflected off the wall defined by normal
+	 *
+	 *
+	 *
+	 *
+	 * |W  /
+	 * |  /
+	 * | /
+	 * |v
+	 * |------> N
+	 * | \
+	 * |  \
+	 * |   \
+	 * v
+	 *
+	 *
+	 * W = Wall
+	 * N = normalToWall
+	 * V = this
+	 * R = result
+	 *
+	 * @param normalToWall
+	 * @return
+	 */
+	fun reflect(normalToWall: IVector2D, out: MutableVector2D = Vector2D.getFromPool()): MutableVector2D {
+		var normalToWall = normalToWall
+		if (normalToWall.isZero) return out.assign(Vector2D.ZERO)
+		if (normalToWall.isNaN) return out.assign(Vector2D.ZERO)
+		if (normalToWall.isInfinite) return out.assign(Vector2D.ZERO)
+		var ndotv = normalToWall.dot(this)
+		if (ndotv > 0)
+			normalToWall = normalToWall.scaledBy(-1f)
+		ndotv = abs(ndotv)
+		val ndotn = normalToWall.dot(normalToWall)
+		// projection vector
+		return out.assign(normalToWall.scaledBy(2 * ndotv / ndotn))
+	}
 
-    default boolean isNaN() {
-        return Float.isNaN(getX()) || Float.isNaN(getY());
-    }
+	fun equalsWithinRange(v: IVector2D, epsilon: Number = CMath.EPSILON): Boolean {
+		val dx = x - v.x
+		val dy = y - v.y
+		return abs(dx) < epsilon.toFloat() && abs(dy) < epsilon.toFloat()
+	}
 
-    default boolean isInfinite() {
-        return Float.isInfinite(getX()) || Float.isInfinite(getY());
-    }
+	val isZero: Boolean
+		get() = equalsWithinRange(Vector2D.ZERO, CMath.EPSILON)
+	val isNaN: Boolean
+		get() = java.lang.Float.isNaN(x) || java.lang.Float.isNaN(y)
+	val isInfinite: Boolean
+		get() = java.lang.Float.isInfinite(x) || java.lang.Float.isInfinite(y)
 
-    default MutableVector2D wrapped(IVector2D min, IVector2D max) {
-        return new MutableVector2D(this).wrap(min, max);
-    }
+	fun coerceAtMost(other: IVector2D, out: MutableVector2D = Vector2D.getFromPool()): MutableVector2D {
+		return out.assign(x.coerceAtMost(other.x), y.coerceAtMost(other.y))
+	}
 
-    default IInterpolator<Vector2D> linearInterpolateTo(IVector2D other) {
-        return Vector2D.getLinearInterpolator(this, other.toMutable());
-    }
+	fun coerceAtLeast(other: IVector2D, out: MutableVector2D = Vector2D.getFromPool()): MutableVector2D {
+		return out.assign(x.coerceAtLeast(other.x), y.coerceAtLeast(other.y))
+	}
 
-    default MutableVector2D toViewport(AGraphics g) {
-        MutableVector2D v = new MutableVector2D(this);
-        g.transform(v);
-        return v;
-    }
+	fun coerceIn(min: IVector2D, max: IVector2D, out: MutableVector2D = Vector2D.getFromPool()): MutableVector2D {
+		return out.assign(x.coerceIn(min.x..max.x), y.coerceIn(min.y..max.y))
+	}
+
+	fun wrapped(min: IVector2D, max: IVector2D, out: MutableVector2D = Vector2D.getFromPool()): MutableVector2D {
+		return out.assign(this).wrap(min, max)
+	}
+
+	fun linearInterpolateTo(other: IVector2D): IInterpolator<Vector2D> {
+		return getLinearInterpolator(this, other.toMutable())
+	}
+
+	fun toViewport(g: AGraphics, out: MutableVector2D = Vector2D.getFromPool()): MutableVector2D {
+		return out.assign(this).also {
+			g.transform(it)
+		}
+	}
+
+	fun randomized(min: Number, max: Number, out: MutableVector2D = Vector2D.getFromPool()): MutableVector2D {
+		return out.assign(x + randomFloat(min.toFloat(), max.toFloat()), y + randomFloat(min.toFloat(), max.toFloat()))
+	}
+
+	fun withJitter(jitterX: Number, jitterY: Number, out: MutableVector2D = Vector2D.getFromPool()): MutableVector2D {
+		return out.assign(x + Utils.randFloatPlusOrMinus(jitterX.toFloat()), y + Utils.randFloatPlusOrMinus(jitterY.toFloat()))
+	}
+
+	fun withJitter(jitter: Number, out: MutableVector2D = Vector2D.getFromPool()): MutableVector2D {
+		return withJitter(jitter, jitter, out)
+	}
+
+	operator fun plus(other: IVector2D): MutableVector2D = add(other)
+	operator fun minus(other: IVector2D): MutableVector2D = sub(other)
+	operator fun times(scaleFactor: Number): MutableVector2D = scaledBy(scaleFactor.toFloat())
+	operator fun div(scaleFactor: Number): MutableVector2D = scaledBy(1f / scaleFactor.toFloat())
+	operator fun times(other: IVector2D): Float = dot(other)
+	operator fun unaryMinus(): MutableVector2D = scaledBy(-1f)
 }

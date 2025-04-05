@@ -27,7 +27,7 @@ class ManagedArray<T : IBinarySerializable<T>>(private val array: Array<T>) : IB
 	}
 
 	fun remove(idx: Int) {
-		if (idx in 0 until size)
+		if (idx in indices)
 			array[idx].copy(array[--size])
 	}
 
@@ -112,4 +112,11 @@ class ManagedArray<T : IBinarySerializable<T>>(private val array: Array<T>) : IB
 	}
 
 	override fun isEmpty(): Boolean = size == 0
+
+	fun copyInto(other: ManagedArray<T>) {
+		other.size = size
+		for (i in indices) {
+			other.array[i].copy(array[i])
+		}
+	}
 }

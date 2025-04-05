@@ -318,7 +318,7 @@ class Table(var model: Model = object : Model {}) : ITableItem, IButton {
 	 * @return
 	 */
 	override fun draw(g: AGraphics): IDimension {
-		cachedLocation.set(g.transform(0f, 0f))
+		cachedLocation.assign(g.transform(0f, 0f))
 		val dim = measure(g)
 		if (dim.isEmpty) return dim
 		g.pushMatrix()
@@ -330,10 +330,10 @@ class Table(var model: Model = object : Model {}) : ITableItem, IButton {
 			val radius = model.getCornerRadius()
 			g.pushMatrix()
 			if (highlighted) {
-				g.translate(dim.getWidth() / 2, dim.getHeight() / 2)
+				g.translate(dim.width / 2, dim.height / 2)
 				g.scale(model.getBorderScaleHighlighted())
 			}
-			g.drawFilledRoundedRect(0f, 0f, dim.getWidth(), dim.getHeight(), radius)
+			g.drawFilledRoundedRect(0f, 0f, dim.width, dim.height, radius)
 			g.popMatrix()
 			g.color = model.getBorderColor(g)
 			g.drawRoundedRect(dim, borderWidth.toFloat(), radius)
@@ -349,7 +349,7 @@ class Table(var model: Model = object : Model {}) : ITableItem, IButton {
 			g.translate(-getCellPadding(g) / 2, -borderWidth.toFloat())
 			for (i in 0 until maxWidth.size - 1) {
 				g.translate(maxWidth[i], 0f)
-				g.drawLine(0f, 0f, 0f, dim.getHeight())
+				g.drawLine(0f, 0f, 0f, dim.height)
 			}
 			g.popMatrix()
 		}
@@ -371,7 +371,7 @@ class Table(var model: Model = object : Model {}) : ITableItem, IButton {
 			g.popColor()
 			g.pushTextHeight(model.getHeaderTextHeight(g), model.textHeightInPixels())
 			g.translate(0f, g.textHeight * headerHeightLines + cellPadding)
-			g.drawLine(0f, 0f, dim.getWidth() - borderWidth, 0f, borderWidth.toFloat())
+			g.drawLine(0f, 0f, dim.width - borderWidth, 0f, borderWidth.toFloat())
 			g.popTextHeight()
 			g.translate(0f, cellPadding)
 		}

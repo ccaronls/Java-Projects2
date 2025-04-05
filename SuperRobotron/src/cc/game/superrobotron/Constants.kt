@@ -60,7 +60,7 @@ const val MAZE_HEIGHT = MAZE_CELL_DIM * MAZE_NUMCELLS_Y //1240; // height of wor
 
 // used to make comparisons close to zero
 const val EPSILON = 0.00001f
-const val PLAYER_SPEED = 8f // pixels per frame
+const val PLAYER_SPEED = 8 // pixels per frame
 const val PLAYER_SUPER_SPEED_BONUS = 3
 const val PLAYER_RADIUS = 16f
 const val PLAYER_RADIUS_BARRIER = 25f
@@ -70,7 +70,7 @@ const val PLAYER_START_LIVES = 3 // number of lives player starts with
 const val PLAYER_NEW_LIVE_SCORE = 25000 // number of points to give an extra player
 const val PLAYER_SHOT_FREQ = 4 // number of frames between adjacent
 const val PLAYER_SHOT_FREQ_MEGAGUN = 3 // missile shots
-const val PLAYER_MISSLE_SPEED = 20f // distance missile travels per frame
+const val PLAYER_MISSLE_SPEED = 20 // distance missile travels per frame
 const val PLAYER_MISSLE_DURATION = 50 // number of frames a missile exists for
 const val PLAYER_SPAWN_FRAMES = 30 // number of frames at beginning of level where player is safe
 const val PLAYER_HULK_GROW_SPEED = 0.05f
@@ -142,7 +142,7 @@ val ENEMY_NAMES = arrayOf(
 )
 const val ENEMY_SPAWN_SCATTER = 30 // used to scatter thugs and brains around generators
 const val ENEMY_ROBOT_RADIUS = 12f
-const val ENEMY_ROBOT_SPEED = 7f
+const val ENEMY_ROBOT_SPEED = 7
 const val ENEMY_ROBOT_SPEED_INCREASE = 200 // number of player moves to increase robot speed
 const val ENEMY_ROBOT_MAX_SPEED = PLAYER_SPEED //12;
 const val ENEMY_ROBOT_HEURISTIC_FACTOR = 0.0f // likelihood the robot will choose direction toward player
@@ -178,7 +178,7 @@ const val ENEMY_BRAIN_FIRE_FREQ = 100 // frames
 const val ENEMY_BRAIN_UPDATE_SPACING = 10 // frames between updates (with some noise)
 
 // ZOMBIE
-const val ENEMY_ZOMBIE_SPEED = 10
+const val ENEMY_ZOMBIE_SPEED = 10f
 const val ENEMY_ZOMBIE_RADIUS = 10f
 const val ENEMY_ZOMBIE_UPDATE_FREQ = 2 // number of frames between updates
 const val ENEMY_ZOMBIE_HEURISTIC_FACTOR = 0.2f //
@@ -193,7 +193,7 @@ const val ENEMY_TANK_FIRE_FREQ = 5 // updates between shots fired
 const val MAX_TANK_MISSLES = 16
 
 // TANK MISSLE
-const val TANK_MISSLE_SPEED = 8f
+const val TANK_MISSLE_SPEED = 8
 const val TANK_MISSLE_DURATION = 300
 const val TANK_MISSLE_RADIUS = 8f
 
@@ -210,7 +210,7 @@ const val POWERUP_BONUS_POINTS_MAX = 50
 const val MAX_PEOPLE = 32
 const val PEOPLE_NUM_TYPES = 3
 const val PEOPLE_RADIUS = 10f
-const val PEOPLE_SPEED = 4f
+const val PEOPLE_SPEED = 4
 const val PEOPLE_START_POINTS = 500
 const val PEOPLE_INCREASE_POINTS = 100 // * game_level
 const val PEOPLE_MAX_POINTS = 10000
@@ -356,4 +356,10 @@ val door_state_strings: Array<String>
 
 fun getDoorStateString(state: Int): String {
 	return door_state_strings[state]
+}
+
+fun isPerimeterVertex(vertex: Int): Boolean {
+	val x = vertex % (MAZE_NUMCELLS_X + 1)
+	val y = vertex / (MAZE_NUMCELLS_X + 1)
+	return x == 0 || x == MAZE_NUMCELLS_X || y == 0 || y == MAZE_NUMCELLS_Y
 }

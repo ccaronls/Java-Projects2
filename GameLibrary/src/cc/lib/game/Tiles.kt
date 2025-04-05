@@ -7,6 +7,8 @@ import cc.lib.utils.removeAll
 
 /**
  * Created by Chris Caron on 8/30/24.
+ *
+ *
  */
 class Tiles(private val rects: List<IRectangle> = listOf(GRectangle())) : IShape {
 
@@ -61,7 +63,7 @@ class Tiles(private val rects: List<IRectangle> = listOf(GRectangle())) : IShape
 		}
 	}
 
-	private val _center by lazy {
+	override val center by lazy {
 		if (rects.isEmpty())
 			Vector2D()
 		else MutableVector2D().also {
@@ -71,13 +73,9 @@ class Tiles(private val rects: List<IRectangle> = listOf(GRectangle())) : IShape
 		}.scaleEq(1f / rects.size.toFloat())
 	}
 
-	override fun getCenter() = _center
-
-	private val _area by lazy {
+	override val area by lazy {
 		rects.sumOf { it.area.toDouble() }.toFloat()
 	}
-
-	override fun getArea(): Float = _area
 
 	private val _enclosingRect by lazy {
 		GRectangle().also {
@@ -87,7 +85,9 @@ class Tiles(private val rects: List<IRectangle> = listOf(GRectangle())) : IShape
 		}
 	}
 
+	override val radius: Float
+		get() = _enclosingRect.radius
+
 	override fun enclosingRect(): IRectangle = _enclosingRect
 
-	override fun getRadius(): Float = enclosingRect().radius
 }

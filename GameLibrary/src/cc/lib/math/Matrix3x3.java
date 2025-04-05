@@ -292,23 +292,23 @@ public final class Matrix3x3 extends Reflector<Matrix3x3>  {
 	 * @return Reference to the given Vector2D r instance
 	 */
 	public static MutableVector2D multiply( final Matrix3x3 A, final Vector2D v, final MutableVector2D r ) {
-		//                   
-		//               V | v1
-		//                 | v2
-		//                 | 1
-		//     -----------------
-		//  A  a11 a12 a13 | c1
-		//     a21 a22 a23 | c2
-		//     a31 a32 a33 | c3   
+        //
+        //               V | v1
+        //                 | v2
+        //                 | 1
+        //     -----------------
+        //  A  a11 a12 a13 | c1
+        //     a21 a22 a23 | c2
+        //     a31 a32 a33 | c3
 
-		double t1 = v.x*A.a11+v.y*A.a12+A.a13;
-		double t2 = v.x*A.a21+v.y*A.a22+A.a23;
-		double t3 = v.x*A.a31+v.y*A.a32+A.a33;
+        double t1 = v.getX() * A.a11 + v.getY() * A.a12 + A.a13;
+        double t2 = v.getX() * A.a21 + v.getY() * A.a22 + A.a23;
+        double t3 = v.getX() * A.a31 + v.getY() * A.a32 + A.a33;
 
-		r.set((float)(t1/t3), (float)(t2/t3));
+        r.assign((float) (t1 / t3), (float) (t2 / t3));
 
-		return r;
-	}  
+        return r;
+    }
 
 	/**
 	 * Compute the determinant of Matrix A
@@ -425,12 +425,12 @@ public final class Matrix3x3 extends Reflector<Matrix3x3>  {
 
 	public final void transform(MutableVector2D v) {
 		Vector2D V2 = multiply(v);
-		v.set(V2);
+        v.assign(V2);
 	}
 
     public final Matrix3x3 translate(Vector2D v) {
 		Matrix3x3 T = new Matrix3x3();
-		T.setTranslate(v.X(), v.Y());
+        T.setTranslate(v.getX(), v.getY());
 		return multiply(T);
 	}
 

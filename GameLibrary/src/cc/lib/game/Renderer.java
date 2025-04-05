@@ -115,8 +115,8 @@ public class Renderer {
 	 */
 	public final void addVertex(float x, float y) {
 		transformXY(x, y, s_vec);
-		pts[num_pts].set(s_vec.X(), s_vec.Y());
-		names[num_pts++] = cur_name;
+        pts[num_pts].assign(s_vec.getX(), s_vec.getY());
+        names[num_pts++] = cur_name;
 	}
 
 	public final List<IVector2D> getVerticesForName(int name) {
@@ -134,7 +134,7 @@ public class Renderer {
 	 * @param v
 	 */
     public final void transformXY(MutableVector2D v) {
-        transformXY(v.X(), v.Y(), v);
+        transformXY(v.getX(), v.getY(), v);
     }
 
     /**
@@ -152,7 +152,7 @@ public class Renderer {
      * @param v
      */
     public final void transformXY(float x, float y, MutableVector2D v) {
-    	v.set(x,y);
+        v.assign(x, y);
         cur_mat.transform(v);
 		min.minEq(v);
 		max.maxEq(v);
@@ -162,8 +162,8 @@ public class Renderer {
             proj_mat.transform(v);
             v.addEq(1, 1).scaleEq(W / 2, H / 2);
         } else {
-            v.setX((v.X() - left) * (W / (right - left)));
-            v.setY(H - ((v.Y() - bottom) * H / (top - bottom)));
+            v.setX((v.getX() - left) * (W / (right - left)));
+            v.setY(H - ((v.getY() - bottom) * H / (top - bottom)));
 
         }
 
@@ -225,8 +225,8 @@ public class Renderer {
      */
     public final void transformXY(float x, float y, float[] v) {
         transformXY(x, y, s_vec);
-        v[0] = s_vec.X();
-        v[1] = s_vec.Y();
+        v[0] = s_vec.getX();
+        v[1] = s_vec.getY();
     }
 
     public final void setOrtho(IRectangle rect) {
@@ -351,7 +351,7 @@ public class Renderer {
 	 * @return
 	 */
 	public final float getX(int index) {
-		return pts[index].X();
+        return pts[index].getX();
 	}
 	
 	/**
@@ -360,7 +360,7 @@ public class Renderer {
 	 * @return
 	 */
 	public final float getY(int index) {
-		return pts[index].Y();
+        return pts[index].getY();
 	}
 	
 	/**
@@ -416,8 +416,8 @@ public class Renderer {
      * 
      */
     public final void clearBoundingRect() {
-    	min.set(Float.MAX_VALUE, Float.MAX_VALUE);
-    	max.set(-Float.MAX_VALUE, -Float.MAX_VALUE);
+        min.assign(Float.MAX_VALUE, Float.MAX_VALUE);
+        max.assign(-Float.MAX_VALUE, -Float.MAX_VALUE);
     }
 
     public int getStackSize() {

@@ -8,11 +8,11 @@ import cc.lib.game.Justify
 import cc.lib.game.Utils
 import cc.lib.logger.LoggerFactory
 import cc.lib.logger.LoggerFactory.LogLevel
+import cc.lib.math.Vector2D
 import cc.lib.swing.AWTFrame
 import cc.lib.swing.AWTGraphics
 import cc.lib.swing.AWTKeyboardAnimationApplet
 import cc.lib.utils.random
-import cc.lib.utils.randomFloat
 import java.awt.Font
 import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
@@ -117,16 +117,12 @@ class RobotronApplet : AWTKeyboardAnimationApplet() {
 			}
 
 			KeyEvent.VK_M -> with(robotron) {
-				addSnakeMissile(
-					randomFloat(screen_x, screen_x + screen_width),
-					randomFloat(screen_y, screen_y + screen_height)
-				)
+				addSnakeMissile(Vector2D.random(screen_x..screen_x + screen_width, screen_y..screen_y + screen_height))
 			}
 
 			KeyEvent.VK_L -> with(robotron) {
 				addPowerup(
-					randomFloat(screen_x, screen_x + screen_width),
-					randomFloat(screen_y, screen_y + screen_height),
+					Vector2D.random(screen_x..screen_x + screen_width, screen_y..screen_y + screen_height),
 					random(0 until POWERUP_NUM_TYPES)
 				)
 			}

@@ -1,8 +1,6 @@
-package cc.lib.game;
+package cc.lib.game
 
-public abstract class AImage implements IDimension {
-
-    public abstract int[] getPixels();
-
-    public abstract void draw(AGraphics g, float x, float y);
+abstract class AImage : IDimension {
+	abstract val pixels: IntArray?
+	abstract fun draw(g: AGraphics, x: Float, y: Float)
 }

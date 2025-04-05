@@ -1,139 +1,180 @@
-package cc.lib.math;
+package cc.lib.math
 
-import org.jetbrains.annotations.NotNull;
+import cc.lib.game.IVector2D
+import java.io.DataInputStream
+import java.io.DataOutputStream
+import java.io.IOException
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+class MutableVector2D() : Vector2D() {
 
-import cc.lib.game.IVector2D;
+	constructor(v: IVector2D) : this() {
+		assign(v)
+	}
 
+	constructor(x: Number, y: Number) : this() {
+		assign(x, y)
+	}
 
-public class MutableVector2D extends Vector2D {
+	fun setX(x: Number): MutableVector2D {
+		this.x = x.toFloat()
+		return this
+	}
 
-    public MutableVector2D() {
-        super();
-    }
+	fun setY(y: Number): MutableVector2D {
+		this.y = y.toFloat()
+		return this
+	}
 
-    public MutableVector2D(float x, float y) {
-        super(x, y);
-    }
+	fun assign(x: Number, y: Number): MutableVector2D {
+		this.x = x.toFloat()
+		this.y = y.toFloat()
+		return this
+	}
 
-    public MutableVector2D(IVector2D v) {
-        super(v);
-    }
+	fun copy(other: MutableVector2D) = assign(other)
 
-    public final MutableVector2D setX(float x) {
-        this.x = x;
-        return this;
-    }
+	fun zeroEq(): MutableVector2D {
+		return assign(0f, 0f)
+	}
 
-    public final MutableVector2D setY(float y) {
-        this.y = y;
-        return this;
-    }
+	fun assign(v: IVector2D): MutableVector2D {
+		return assign(v.x, v.y)
+	}
 
-    public final MutableVector2D set(float x, float y) {
-        this.x = x;
-        this.y = y;
-        return this;
-    }
-    
-    public final MutableVector2D zero() {
-    	return set(0,0);
-    }
-    
-    public final MutableVector2D set(IVector2D v) {
-        return set(v.getX(), v.getY());
-    }
+	fun addEq(v: IVector2D): MutableVector2D {
+		return assign(x + v.x, y + v.y)
+	}
 
-    public final MutableVector2D addEq(IVector2D v) {
-        return set(x+v.getX(), y+v.getY());
-    }
+	fun addEq(dx: Number, dy: Number): MutableVector2D {
+		return assign(x + dx.toFloat(), y + dy.toFloat())
+	}
 
-    public final MutableVector2D addEq(float dx, float dy) {
-        return set(x+dx, y+dy);
-    }
+	fun subEq(v: IVector2D): MutableVector2D {
+		return assign(x - v.x, y - v.y)
+	}
 
-    public final MutableVector2D subEq(IVector2D v) {
-        return set(x-v.getX(), y-v.getY());
-    }
+	fun subEq(dx: Number, dy: Number): MutableVector2D {
+		return assign(x - dx.toFloat(), y - dy.toFloat())
+	}
 
-    public final MutableVector2D subEq(float dx, float dy) {
-        return set(x-dx, y-dy);
-    }
+	fun scaleEq(scalar: Number): MutableVector2D {
+		return assign(x * scalar.toFloat(), y * scalar.toFloat())
+	}
 
-    public final MutableVector2D scaleEq(float scalar) {
-        return set(x*scalar, y*scalar);
-    }
+	fun scaleEq(xScale: Number, yScale: Number): MutableVector2D {
+		return assign(x * xScale.toFloat(), y * yScale.toFloat())
+	}
 
-    public final MutableVector2D scaleEq(float xscale, float yscale) {
-        return set(x*xscale, y*yscale);
-    }
+	/**
+	 * Rotate this vector 90 degrees
+	 * @return
+	 */
+	fun normEq(): MutableVector2D {
+		return norm(this)
+	}
 
-    /**
-     * Rotate this vector 90 degrees
-     * @return
-     */
-    public final MutableVector2D normEq() {
-        return norm(this);
-    }
+	fun absEq(): MutableVector2D {
+		return abs(this)
+	}
 
-    public final MutableVector2D unitLengthEq() {
-        return unitLength(this);
-    }
+	fun rotateEq(degrees: Number): MutableVector2D {
+		return rotate(degrees, this)
+	}
 
-    public final MutableVector2D rotateEq(float degrees) {
-        return rotate(degrees, this);
-    }
+	fun minEq(v: IVector2D): MutableVector2D {
+		return min(v, this)
+	}
 
-    public final MutableVector2D minEq(IVector2D v) {
-        return min(v, this);
-    }
+	fun maxEq(v: IVector2D): MutableVector2D {
+		return max(v, this)
+	}
 
-    public final MutableVector2D maxEq(IVector2D v) {
-        return max(v, this);
-    }
+	fun reflectEq(normalToWall: Vector2D): MutableVector2D {
+		return assign(reflect(normalToWall))
+	}
 
-    public final MutableVector2D reflectEq(Vector2D normalToWall) {
-        return set(reflect(normalToWall));
-    }
+	fun randomEq(max: Number): MutableVector2D {
+		return random(max, this)
+	}
 
-    public final MutableVector2D normalizedEq() {
-        return normalized(this);
-    }
+	fun randomEq(min: Number, max: Number): MutableVector2D {
+		return random(min, max, this)
+	}
 
-    public final MutableVector2D wrap(IVector2D min, IVector2D max) {
-        Vector2D delta = sub(max, min);
-        while (getX() < min.getX()) {
-            setX(getX() + delta.getX());
-        }
-        while (getX() > max.getX()) {
-            setX(getX() - delta.getX());
-        }
-        while (getY() < min.getY()) {
-            setY(getY() + delta.getY());
-        }
-        while (getY() > max.getY()) {
-            setY(getY() - delta.getY());
-        }
-        return this;
-    }
+	fun normalizedEq(): MutableVector2D {
+		return normalized(this)
+	}
 
-    @Override
-    public MutableVector2D toMutable() {
-        return this;
-    }
+	/**
+	 * This vector is modified such that it will reside between min and max
+	 * such that its distance from the extremity will not change.
+	 *
+	 * Case 1:
+	 * d < min so
+	 *   this <-- d --> min                            max
+	 *
+	 * After operation:
+	 *                  min             this <-- d --> max
+	 *
+	 * Case 2:
+	 * d > max so
+	 *   min                            max <-- d --> this
+	 *
+	 * After operation:
+	 *   min <-- d --> this             max
+	 *
+	 * Case 3:
+	 * min <= this <= max so
+	 *   no change
+	 */
+	fun wrap(min: IVector2D, max: IVector2D): MutableVector2D {
+		val deltax = max.x - min.x
+		val deltay = max.y - min.y
+		while (x < min.x) {
+			setX(x + deltax)
+		}
+		while (x > max.x) {
+			setX(x - deltax)
+		}
+		while (y < min.y) {
+			setY(y + deltay)
+		}
+		while (y > max.y) {
+			setY(y - deltay)
+		}
+		return this
+	}
 
-    public void serialize(@NotNull DataOutputStream output) throws IOException {
-        output.writeFloat(x);
-        output.writeFloat(y);
-    }
+	override fun toMutable(): MutableVector2D {
+		return this
+	}
 
-    public void deserialize(@NotNull DataInputStream input) throws IOException {
-        x = input.readFloat();
-        y = input.readFloat();
-    }
+	@Throws(IOException::class)
+	fun serialize(output: DataOutputStream) {
+		output.writeFloat(x)
+		output.writeFloat(y)
+	}
+
+	@Throws(IOException::class)
+	fun deserialize(input: DataInputStream) {
+		x = input.readFloat()
+		y = input.readFloat()
+	}
+
+	operator fun plusAssign(other: IVector2D) {
+		addEq(other)
+	}
+
+	operator fun minusAssign(other: IVector2D) {
+		subEq(other)
+	}
+
+	operator fun timesAssign(scaleFactor: Number) {
+		scaleEq(scaleFactor)
+	}
+
+	operator fun divAssign(scaleFactor: Number) {
+		scaleEq(1f / scaleFactor.toFloat())
+	}
 
 }
-

@@ -30,8 +30,8 @@ abstract class UIGame : Game() {
 	var SQ_DIM = 0f
 	var PIECE_RADIUS = 0f
 	var BORDER_WIDTH = 0f
-	var SCREEN_DIM: GDimension? = null
-	var BOARD_DIM: GDimension? = null
+	lateinit var SCREEN_DIM: GDimension
+	lateinit var BOARD_DIM: GDimension
 	val DAMA_BACKGROUND_COLOR = GColor(-0x21657)
 	val BORDER_COLOR = GColor(-0x2d4b74)
 
@@ -116,7 +116,7 @@ abstract class UIGame : Game() {
 		SCREEN_DIM = GDimension(g.viewportWidth.toFloat(), g.viewportHeight.toFloat())
 		if (getRules() is DragonChess) {
 			// always landscape using the portion of the screen not used by the board
-			SQ_DIM = Math.min(SCREEN_DIM!!.getWidth(), SCREEN_DIM!!.getHeight()) / Math.min(ranks + 1, columns)
+			SQ_DIM = Math.min(SCREEN_DIM.width, SCREEN_DIM.height) / Math.min(ranks + 1, columns)
 			BOARD_DIM = GDimension(SQ_DIM * columns, SQ_DIM * ranks)
 			g.pushMatrix()
 			g.translate(0f, SQ_DIM)
@@ -124,12 +124,12 @@ abstract class UIGame : Game() {
 			g.popMatrix()
 		} else if (SCREEN_DIM!!.aspect > 1) {
 			// landscape draws board on the left and captured pieces on the right
-			SQ_DIM = Math.min(SCREEN_DIM!!.getWidth(), SCREEN_DIM!!.getHeight()) / Math.min(ranks, columns)
+			SQ_DIM = Math.min(SCREEN_DIM.width, SCREEN_DIM.height) / Math.min(ranks, columns)
 			BOARD_DIM = GDimension(SQ_DIM * columns, SQ_DIM * ranks)
 			drawLandscape(g, mx, my)
 		} else {
 			// portrait draws board in center and captured pieces in front of each player
-			SQ_DIM = Math.min(SCREEN_DIM!!.getWidth(), SCREEN_DIM!!.getHeight()) / Math.min(ranks, columns)
+			SQ_DIM = Math.min(SCREEN_DIM.width, SCREEN_DIM.height) / Math.min(ranks, columns)
 			BOARD_DIM = GDimension(SQ_DIM * columns, SQ_DIM * ranks)
 			drawPortrait(g, mx, my)
 		}
@@ -137,34 +137,34 @@ abstract class UIGame : Game() {
 
 	private fun drawPortrait(g: AGraphics, mx: Int, my: Int) {
 		g.pushMatrix()
-		val infoHgt = SCREEN_DIM!!.getHeight() / 2 - BOARD_DIM!!.getHeight() / 2
-		val infoDim = GDimension(SCREEN_DIM!!.getWidth(), infoHgt)
+		val infoHgt = SCREEN_DIM.height / 2 - BOARD_DIM.height / 2
+		val infoDim = GDimension(SCREEN_DIM.width, infoHgt)
 		drawPlayer(getPlayer(FAR) as UIPlayer?, g, infoDim)
 		g.translate(0f, infoHgt)
 		drawBoard(g, mx, my)
-		g.translate(0f, BOARD_DIM!!.getHeight())
+		g.translate(0f, BOARD_DIM.height)
 		drawPlayer(getPlayer(NEAR) as UIPlayer?, g, infoDim)
 		g.popMatrix()
 	}
 
 	private fun drawDragonChess(g: AGraphics, mx: Int, my: Int) {
-		val info = GDimension(SQ_DIM * 3 + SCREEN_DIM!!.getWidth() - BOARD_DIM!!.getWidth(), SQ_DIM * 3)
+		val info = GDimension(SQ_DIM * 3 + SCREEN_DIM.width - BOARD_DIM.width, SQ_DIM * 3)
 		drawBoard(g, mx, my)
 		g.pushMatrix()
-		g.translate(BOARD_DIM!!.getWidth() - SQ_DIM * 3, 0f)
+		g.translate(BOARD_DIM.width - SQ_DIM * 3, 0f)
 		drawPlayer(getPlayer(FAR) as UIPlayer?, g, info)
-		g.translate(0f, info.getHeight() + SQ_DIM * 4)
+		g.translate(0f, info.height + SQ_DIM * 4)
 		drawPlayer(getPlayer(NEAR) as UIPlayer?, g, info)
 		g.popMatrix()
 	}
 
 	private fun drawLandscape(g: AGraphics, mx: Int, my: Int) {
-		val info = GDimension(SCREEN_DIM!!.getWidth() - BOARD_DIM!!.getWidth(), SCREEN_DIM!!.getHeight() / 2)
+		val info = GDimension(SCREEN_DIM.width - BOARD_DIM.width, SCREEN_DIM.height / 2)
 		drawBoard(g, mx, my)
 		g.pushMatrix()
-		g.translate(BOARD_DIM!!.getWidth(), 0f)
+		g.translate(BOARD_DIM.width, 0f)
 		drawPlayer(getPlayer(FAR) as UIPlayer?, g, info)
-		g.translate(0f, info.getHeight())
+		g.translate(0f, info.height)
 		drawPlayer(getPlayer(NEAR) as UIPlayer?, g, info)
 		g.popMatrix()
 	}
@@ -202,7 +202,7 @@ abstract class UIGame : Game() {
 			repaint(1000)
 		}
 		g.color = GColor.WHITE
-		g.drawJustifiedString(info.getWidth(), info.getHeight(), Justify.RIGHT, Justify.BOTTOM, txt)
+		g.drawJustifiedString(info.width, info.height, Justify.RIGHT, Justify.BOTTOM, txt)
 		g.popMatrix()
 	}
 
@@ -219,7 +219,7 @@ abstract class UIGame : Game() {
 			drawPiece(g, pt, playerNum) //.getDisplayType(), color, PIECE_RADIUS*2, PIECE_RADIUS*2, null);
 			g.popMatrix()
 			x += PIECE_RADIUS * 2
-			if (x >= dim.getWidth()) {
+			if (x >= dim.width) {
 				x = PIECE_RADIUS
 				y += PIECE_RADIUS * 2
 			}
@@ -229,11 +229,11 @@ abstract class UIGame : Game() {
 	}
 
 	private fun drawCheckerboardImage(g: AGraphics, id: Int, boardImageDim: Float, boardImageBorder: Float) {
-		BORDER_WIDTH = boardImageBorder * BOARD_DIM!!.getWidth() / boardImageDim
-		val boardWidth = BOARD_DIM!!.getWidth() - 2 * BORDER_WIDTH
-		val boardHeight = BOARD_DIM!!.getHeight() - 2 * BORDER_WIDTH
+		BORDER_WIDTH = boardImageBorder * BOARD_DIM.width / boardImageDim
+		val boardWidth = BOARD_DIM.width - 2 * BORDER_WIDTH
+		val boardHeight = BOARD_DIM.height - 2 * BORDER_WIDTH
 		SQ_DIM = boardWidth / columns
-		g.drawImage(id, 0f, 0f, BOARD_DIM!!.getWidth(), BOARD_DIM!!.getHeight())
+		g.drawImage(id, 0f, 0f, BOARD_DIM.width, BOARD_DIM.height)
 		g.translate(BORDER_WIDTH, BORDER_WIDTH)
 		if (DEBUG) {
 			g.color = GColor.RED
@@ -252,11 +252,11 @@ abstract class UIGame : Game() {
 		)
 		var colorIdx = 0
 		BORDER_WIDTH = SQ_DIM / 2
-		val boardWidth = BOARD_DIM!!.getWidth() - 2 * BORDER_WIDTH
-		val boardHeight = BOARD_DIM!!.getHeight() - 2 * BORDER_WIDTH
+		val boardWidth = BOARD_DIM.width - 2 * BORDER_WIDTH
+		val boardHeight = BOARD_DIM.height - 2 * BORDER_WIDTH
 		SQ_DIM = boardWidth / columns
 		g.color = BORDER_COLOR
-		g.drawFilledRoundedRect(0f, 0f, BOARD_DIM!!.getWidth(), BOARD_DIM!!.getHeight(), BORDER_WIDTH / 2)
+		g.drawFilledRoundedRect(0f, 0f, BOARD_DIM.width, BOARD_DIM.height, BORDER_WIDTH / 2)
 		g.translate(BORDER_WIDTH, BORDER_WIDTH)
 		g.pushMatrix()
 		for (i in 0 until ranks) {
@@ -285,13 +285,13 @@ abstract class UIGame : Game() {
 
 	private fun drawDamaBoard(g: AGraphics) {
 		g.color = DAMA_BACKGROUND_COLOR
-		g.drawFilledRect(0f, 0f, BOARD_DIM!!.getWidth(), BOARD_DIM!!.getHeight())
+		g.drawFilledRect(0f, 0f, BOARD_DIM.width, BOARD_DIM.height)
 		g.color = GColor.BLACK
 		for (i in 0..ranks) {
-			g.drawLine(i * SQ_DIM, 0f, i * SQ_DIM, BOARD_DIM!!.getHeight(), 3f)
+			g.drawLine(i * SQ_DIM, 0f, i * SQ_DIM, BOARD_DIM.height, 3f)
 		}
 		for (i in 0..columns) {
-			g.drawLine(0f, i * SQ_DIM, BOARD_DIM!!.getWidth(), i * SQ_DIM, 3f)
+			g.drawLine(0f, i * SQ_DIM, BOARD_DIM.width, i * SQ_DIM, 3f)
 		}
 	}
 
@@ -408,8 +408,8 @@ abstract class UIGame : Game() {
 			}
 		}
 		g.popMatrix()
-		val cx = BOARD_DIM!!.getWidth() / 2
-		val cy = BOARD_DIM!!.getHeight() / 2
+		val cx = BOARD_DIM.width / 2
+		val cy = BOARD_DIM.height / 2
 		if (isGameOver()) {
 			if (winner != null) {
 				val txt = """G A M E   O V E R

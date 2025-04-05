@@ -114,8 +114,8 @@ class Piece @JvmOverloads constructor(val pieceType: PieceType = PieceType.PIECE
 	var dropped = false
 	fun reset() {
 		index = 0
-		topLeft.set(pieceType.startX.toFloat(), pieceType.startY.toFloat())
-		bottomRight.set(topLeft).addEq(width, height)
+		topLeft.assign(pieceType.startX.toFloat(), pieceType.startY.toFloat())
+		bottomRight.assign(topLeft).addEq(width, height)
 		dropped = false
 	}
 
@@ -129,19 +129,19 @@ class Piece @JvmOverloads constructor(val pieceType: PieceType = PieceType.PIECE
 	fun setIndex(idx: Int) {
 		index = idx
 		val center: Vector2D = topLeft.add(bottomRight).scaledBy(0.5f)
-		topLeft.set(center).subEq(width / 2, height / 2)
-		bottomRight.set(topLeft).addEq(width, height)
+		topLeft.assign(center).subEq(width / 2, height / 2)
+		bottomRight.assign(topLeft).addEq(width, height)
 	}
 
 	val width: Float
 		get() = shape[0].size.toFloat()
 	val height: Float
 		get() = shape.size.toFloat()
-	var center: IVector2D?
+	var center: IVector2D
 		get() = topLeft.add(bottomRight).scaledBy(0.5f)
 		set(cntr) {
-			topLeft.set(cntr).subEq(width / 2, height / 2)
-			bottomRight.set(cntr).addEq(width / 2, height / 2)
+			topLeft.assign(cntr).subEq(width / 2, height / 2)
+			bottomRight.assign(cntr).addEq(width / 2, height / 2)
 		}
 
 	fun getTopLeft(): Vector2D {
@@ -153,7 +153,7 @@ class Piece @JvmOverloads constructor(val pieceType: PieceType = PieceType.PIECE
 	}
 }
 
-open class GeniusSquares : Reflector<GeniusSquares?>() {
+open class GeniusSquares : Reflector<GeniusSquares>() {
 	companion object {
 		// GeniusSquare. 6x6 board
 		val log = LoggerFactory.getLogger(GeniusSquares::class.java)

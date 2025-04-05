@@ -1,72 +1,55 @@
-package cc.lib.game;
+package cc.lib.game
 
-import cc.lib.reflector.Reflector;
+import cc.lib.reflector.Reflector
 
-public final class GDimension extends Reflector<GDimension> implements IDimension {
+class GDimension(
+	override var width: Float = 0f,
+	override var height: Float = 0f
+) : Reflector<GDimension>(), IDimension {
+	constructor(dim: IDimension) : this(dim.width, dim.height)
 
-    public final static GDimension EMPTY = new GDimension();
+	fun assign(w: Float, h: Float): GDimension {
+		width = w
+		height = h
+		return this
+	}
 
-    static {
-        addAllFields(GDimension.class);
-    }
+	fun assign(d: IDimension): GDimension {
+		width = d.width
+		height = d.height
+		return this
+	}
 
-    private float width, height;
+	override fun equals(o: Any?): Boolean {
+		if (o === this) return true
+		(o as? GDimension)?.let {
+			return width == it.width && height == it.height
+		}
+		return false;
+	}
 
-    public GDimension() {
-        this(0, 0);
-    }
+	override fun isImmutable(): Boolean {
+		return true
+	}
 
-    public GDimension(IDimension dim) {
-        this(dim.getWidth(), dim.getHeight());
-    }
+	fun scaleBy(sx: Float, sy: Float): GDimension {
+		return assign(width * sx, height * sy)
+	}
 
-    public GDimension(float w, float h) {
-        this.width = w;
-        this.height = h;
-    }
+	fun scaleBy(s: Float): GDimension {
+		return scaleBy(s, s)
+	}
 
-    public GDimension set(float w, float h) {
-        width = w;
-        height = h;
-        return this;
-    }
+	override fun toString(): String {
+		return "$width x $height"
+	}
 
-    @Override
-    public float getWidth() {
-        return width;
-    }
+	companion object {
+		@JvmField
+		val EMPTY = GDimension()
 
-    @Override
-    public float getHeight() {
-        return height;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (o == this)
-            return true;
-        if (o == null)
-            return false;
-        GDimension og = (GDimension) o;
-        return og.width == width && og.height == height;
-    }
-
-    @Override
-    protected boolean isImmutable() {
-        return true;
-    }
-
-
-    public GDimension scaleBy(float sx, float sy) {
-        return set(width * sx, height * sy);
-    }
-
-    public GDimension scaleBy(float s) {
-        return scaleBy(s, s);
-    }
-
-    @Override
-    public String toString() {
-        return width + " x " + height;
-    }
+		init {
+			addAllFields(GDimension::class.java)
+		}
+	}
 }

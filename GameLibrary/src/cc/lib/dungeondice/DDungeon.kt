@@ -1,381 +1,325 @@
-package cc.lib.dungeondice;
+package cc.lib.dungeondice
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import cc.lib.dungeondice.DEnemy.EnemyType
+import cc.lib.game.AGraphics
+import cc.lib.game.Utils
+import cc.lib.logger.LoggerFactory
+import cc.lib.reflector.Reflector
 
-import cc.lib.game.AGraphics;
-import cc.lib.game.GRectangle;
-import cc.lib.game.Utils;
-import cc.lib.logger.Logger;
-import cc.lib.logger.LoggerFactory;
-import cc.lib.reflector.Reflector;
+open class DDungeon : Reflector<DDungeon>() {
+	enum class State {
+		INIT,
+		ROLL_DICE_TO_ADVANCE,
+		ADVANCE,
+		ROLL_DICE_FOR_RED_PRIZE,
+		ROLL_DICE_FOR_BLUE_PRIZE,
+		ROLL_DICE_FOR_FIGHT,
+		ROLL_DICE_FOR_ROOM,
+		ROLL_DICE_FOR_LOCKED_ROOM,
+		CHOOSE_FIGHT_OR_FLEE,
+		ROLL_DICE_FOR_ATTACK
+	}
 
-public class DDungeon extends Reflector<DDungeon> {
+	internal enum class Prize {
+		KEY,
+		DMG_PLUS1,
+		DMG_PLUS2,
+		BMG_PLUS3,
+		ATTACK_PLUS1,
+		ATTACK_PLUS2,
+		ATTACK_PLUS3,
+		MAGIC_PLUS2,
+		HP_PLUS_1,
+		HP_PLUS_2
+	}
 
-    private final static Logger log = LoggerFactory.getLogger(DDungeon.class);
+	enum class DiceConfig {
+		ONE_6x6,
+		TWO_6x6,
+		THREE_6x6
+	}
 
-    static {
-        addAllFields(DDungeon.class);
-    }
+	var board: DBoard? = null
+	var players = mutableListOf<DPlayer>()
+	var turn = 0
+	var curEnemy = 0
+	var state: State? = null
+	var die1 = 0
+	var die2 = 0
+	var die3 = 0
+	var diceConfig = DiceConfig.ONE_6x6
+	val enemyList: MutableList<DEnemy> = ArrayList()
+	val dieRoll: Int
+		get() {
+			when (diceConfig) {
+				DiceConfig.ONE_6x6 -> return die1
+				DiceConfig.TWO_6x6 -> return die1 + die2
+				DiceConfig.THREE_6x6 -> return die1 + die2 + die3
+				else -> Utils.unhandledCase(diceConfig)
+			}
+			return 0
+		}
 
-    enum State {
-        INIT,
-        ROLL_DICE_TO_ADVANCE,
-        ADVANCE,
-        ROLL_DICE_FOR_RED_PRIZE,
-        ROLL_DICE_FOR_BLUE_PRIZE,
-        ROLL_DICE_FOR_FIGHT,
-        ROLL_DICE_FOR_ROOM,
-        ROLL_DICE_FOR_LOCKED_ROOM,
-        CHOOSE_FIGHT_OR_FLEE,
-        ROLL_DICE_FOR_ATTACK,
-    }
+	fun setPlayer(index: Int, player: DPlayer) {
+		if (state != State.INIT) throw RuntimeException("Cannot modify players while in game")
+		players[index] = player
+		player.playerNum = index
+	}
 
-    enum Prize {
-        KEY,
-        DMG_PLUS1,
-        DMG_PLUS2,
-        BMG_PLUS3,
-        ATTACK_PLUS1,
-        ATTACK_PLUS2,
-        ATTACK_PLUS3,
-        MAGIC_PLUS2,
-        HP_PLUS_1,
-        HP_PLUS_2,
-    }
+	fun addPlayer(player: DPlayer) {
+		if (state != State.INIT) throw RuntimeException("Cannot modify players while in game")
+		players.add(player)
+		player.playerNum = players.size
+	}
 
-    enum DiceConfig {
-        ONE_6x6,
-        TWO_6x6,
-        THREE_6x6
-    }
+	fun getCurPlayer(): DPlayer {
+		return players[turn]
+	}
 
-    DBoard board;
-    DPlayer [] players;
-    int numPlayers;
-    int curPlayer;
-    int curEnemy;
-    State state = null;
-    int die1, die2, die3;
-    DiceConfig diceConfig = DiceConfig.ONE_6x6;
-    final List<DEnemy> enemyList = new ArrayList<>();
+	fun newGame() {
+		if (players.size < 1) {
+			throw RuntimeException("Must have at least 1 player")
+		}
+		state = State.INIT
+		turn = 0
+		die3 = 0
+		die2 = die3
+		die1 = die2
+		enemyList.clear()
+	}
 
-    public int getDieRoll() {
-        switch (diceConfig) {
-            case ONE_6x6:
-                return die1;
-            case TWO_6x6:
-                return die1 + die2;
-            case THREE_6x6:
-                return die1 + die2 + die3;
-            default:
-                Utils.unhandledCase(diceConfig);
-        }
-        return 0;
-    }
+	fun runGame() {
+		when (state) {
+			State.INIT -> {
+				turn = 0
+				curEnemy = -1
+				enemyList.clear()
+				for (p in players) {
+					p.cellIndex = board!!.startCellIndex
+				}
+			}
 
-    public final void setPlayer(int index, DPlayer player) {
-        if (state != State.INIT)
-            throw new RuntimeException("Cannot modify players while in game");
-        if (index < 0 || index >= numPlayers)
-            throw new IndexOutOfBoundsException();
-        players[index] = player;
-        player.playerNum = index;
-    }
+			State.ROLL_DICE_TO_ADVANCE -> {
+				diceConfig = DiceConfig.ONE_6x6
+				if (getCurPlayer().rollDice()) {
+					state = State.ADVANCE
+				}
+			}
 
-    public final void addPlayer(DPlayer player) {
-        if (state != State.INIT)
-            throw new RuntimeException("Cannot modify players while in game");
-        if (player == null)
-            throw new NullPointerException();
-        players[numPlayers] = player;
-        player.playerNum = numPlayers++;
-    }
+			State.ADVANCE -> {
+				val moves = board!!.findMoves(getCurPlayer(), dieRoll)
+				val move = getCurPlayer().chooseMove(*moves)
+				if (move != null) {
+					getCurPlayer().backCellIndex = getCurPlayer().cellIndex
+					getCurPlayer().cellIndex = move.index
+					val cell = board!!.getCell(move.index)
+					when (cell.cellType) {
+						CellType.EMPTY -> {
+							log.warn("Cell %d is EMPTY", move.index)
+							nextPlayer()
+						}
 
-    public final int getTurn() {
-        return curPlayer;
-    }
+						CellType.WHITE, CellType.START -> nextPlayer()
+						CellType.RED -> state = State.ROLL_DICE_FOR_RED_PRIZE
+						CellType.GREEN -> {
+							enemyList.add(EnemyType.SNAKE.newEnemy())
+							state = State.ROLL_DICE_FOR_FIGHT
+						}
 
-    public final DPlayer getCurPlayer() {
-        return players[curPlayer];
-    }
+						CellType.BLUE -> state = State.ROLL_DICE_FOR_BLUE_PRIZE
+						CellType.BROWN -> {
+							enemyList.add(EnemyType.RAT.newEnemy())
+							state = State.ROLL_DICE_FOR_FIGHT
+						}
 
-    public void newGame() {
-        if (players.length < 1) {
-            throw new RuntimeException("Must have at least 1 player");
-        }
-        state = State.INIT;
-        curPlayer = 0;
-        die1 = die2 = die3 = 0;
-        enemyList.clear();
+						CellType.BLACK -> {
+							enemyList.add(EnemyType.SPIDER.newEnemy())
+							state = State.ROLL_DICE_FOR_FIGHT
+						}
 
-    }
+						CellType.ROOM -> state = State.ROLL_DICE_FOR_ROOM
+						CellType.LOCKED_ROOM -> state = State.ROLL_DICE_FOR_LOCKED_ROOM
+					}
+				}
+			}
 
-    public final Iterable<DPlayer> getPlayers() {
-        return new Iterable<DPlayer>() {
-            @Override
-            public Iterator<DPlayer> iterator() {
-                return new Iterator<DPlayer>() {
-                    int index = 0;
+			State.ROLL_DICE_FOR_FIGHT -> {
+				diceConfig = DiceConfig.ONE_6x6
+				if (getCurPlayer().rollDice()) {
+					val enemy = enemyList[0]
+					if (dieRoll <= enemy.type.chanceToFight) {
+						state = State.CHOOSE_FIGHT_OR_FLEE
+					} else {
+						nextPlayer()
+					}
+				}
+			}
 
-                    @Override
-                    public boolean hasNext() {
-                        return index < numPlayers;
-                    }
+			State.ROLL_DICE_FOR_BLUE_PRIZE -> {
+				diceConfig = DiceConfig.ONE_6x6
+				if (getCurPlayer().rollDice()) {
+				}
+			}
 
-                    @Override
-                    public DPlayer next() {
-                        return players[index++];
-                    }
-                };
-            }
-        };
-    }
+			State.ROLL_DICE_FOR_RED_PRIZE -> {
+				diceConfig = DiceConfig.ONE_6x6
+				if (getCurPlayer().rollDice()) {
+				}
+			}
 
-    public final void runGame() {
-        switch (state) {
-            case INIT:
-                curPlayer = 0;
-                curEnemy = -1;
-                enemyList.clear();
-                for (DPlayer p : getPlayers()) {
-                    p.cellIndex = board.getStartCellIndex();
-                }
-                break;
+			State.ROLL_DICE_FOR_ROOM -> {
+				diceConfig = DiceConfig.TWO_6x6
+				if (getCurPlayer().rollDice()) {
+					val t = arrayOf(
+						EnemyType.RAT,
+						EnemyType.RAT,
+						EnemyType.RAT,
+						EnemyType.SNAKE,
+						EnemyType.SNAKE,
+						EnemyType.SPIDER)
+					enemyList.add(t[die1 - 1].newEnemy())
+					enemyList.add(t[die2 - 1].newEnemy())
+				}
+			}
 
-            case ROLL_DICE_TO_ADVANCE: {
-                diceConfig = DiceConfig.ONE_6x6;
-                if (getCurPlayer().rollDice()) {
-                    state = State.ADVANCE;
-                }
-                break;
-            }
+			State.ROLL_DICE_FOR_LOCKED_ROOM -> {
+				diceConfig = DiceConfig.THREE_6x6
+				if (getCurPlayer().rollDice()) {
+					val t = arrayOf(
+						EnemyType.RAT,
+						EnemyType.RAT,
+						EnemyType.SNAKE,
+						EnemyType.SNAKE,
+						EnemyType.SPIDER,
+						EnemyType.SPIDER)
+					enemyList.add(t[die1 - 1].newEnemy())
+					enemyList.add(t[die2 - 1].newEnemy())
+					enemyList.add(t[die3 - 1].newEnemy())
+				}
+			}
 
-            case ADVANCE: {
-                DMove[] moves = board.findMoves(getCurPlayer(), getDieRoll());
-                DMove move = getCurPlayer().chooseMove(moves);
-                if (move != null) {
-                    getCurPlayer().backCellIndex = getCurPlayer().cellIndex;
-                    getCurPlayer().cellIndex = move.index;
-                    DCell cell = board.getCell(move.index);
-                    switch (cell.getCellType()) {
+			State.CHOOSE_FIGHT_OR_FLEE -> {
+				val moves = arrayOf(
+					DMove(MoveType.ATTACK, 0, 0, null),
+					DMove(MoveType.FLEE, 0, 0, null)
+				)
+				val move = getCurPlayer().chooseMove(*moves)
+				if (move != null) {
+					when (move.type) {
+						MoveType.ATTACK -> {
+							state = State.ROLL_DICE_FOR_ATTACK
+						}
 
-                        case EMPTY:
-                            log.warn("Cell %d is EMPTY", move.index);
-                        case WHITE:
-                        case START:
-                            nextPlayer();
-                            break;
-                        case RED:
-                            state = State.ROLL_DICE_FOR_RED_PRIZE;
-                            break;
-                        case GREEN:
-                            enemyList.add(DEnemy.EnemyType.SNAKE.newEnemy());
-                            state = State.ROLL_DICE_FOR_FIGHT;
-                            break;
-                        case BLUE:
-                            state = State.ROLL_DICE_FOR_BLUE_PRIZE;
-                            break;
-                        case BROWN:
-                            enemyList.add(DEnemy.EnemyType.RAT.newEnemy());
-                            state = State.ROLL_DICE_FOR_FIGHT;
-                            break;
-                        case BLACK:
-                            enemyList.add(DEnemy.EnemyType.SPIDER.newEnemy());
-                            state = State.ROLL_DICE_FOR_FIGHT;
-                            break;
-                        case ROOM:
-                            state = State.ROLL_DICE_FOR_ROOM;
-                            break;
-                        case LOCKED_ROOM:
-                            state = State.ROLL_DICE_FOR_LOCKED_ROOM;
-                            break;
-                    }
-                }
-                break;
-            }
+						MoveType.FLEE -> {
+							// the enemies get a shot in
+							for (e in enemyList) {
+								doAttack(e, getCurPlayer())
+								doAttack(e, getCurPlayer())
+							}
+							if (!checkPlayerDead(getCurPlayer())) getCurPlayer().cellIndex = getCurPlayer().backCellIndex
+							nextPlayer()
+						}
 
-            case ROLL_DICE_FOR_FIGHT:
-                diceConfig = DiceConfig.ONE_6x6;
-                if (getCurPlayer().rollDice()) {
-                    DEnemy enemy = enemyList.get(0);
-                    if (getDieRoll() <= enemy.type.chanceToFight) {
-                        state = State.CHOOSE_FIGHT_OR_FLEE;
-                    } else {
-                        nextPlayer();
-                    }
-                }
-                break;
+						else -> error("unhandled case")
+					}
+				}
+			}
 
-            case ROLL_DICE_FOR_BLUE_PRIZE:
-                diceConfig = DiceConfig.ONE_6x6;
-                if (getCurPlayer().rollDice()) {
+			else -> error("unhandled case")
+		}
+	}
 
-                }
-                break;
+	private fun doAttack(attacker: DEntity, e: DEntity) {
+		// attacker dexterity determines if a hit
+		// attacker strength determines max damage
+		// e def is amount reduced from damage
+		// e att is amount added to damage
+		if (Utils.rand() % 6 + 1 <= attacker.dex) {
+			val damage = Utils.rand() % attacker.str + 1 + attacker.attack - e.defense
+			if (damage > 0) {
+				onDamage(e, damage)
+				e.hp -= damage
+			} else {
+				onMiss(attacker)
+			}
+		} else {
+			onMiss(attacker)
+		}
+	}
 
-            case ROLL_DICE_FOR_RED_PRIZE:
-                diceConfig = DiceConfig.ONE_6x6;
-                if (getCurPlayer().rollDice()) {
+	private fun checkPlayerDead(p: DPlayer): Boolean {
+		if (p.hp <= 0) {
+			onPlayerDead(p)
+			p.cellIndex = board!!.startCellIndex
+			p.defense = 0
+			p.attack = p.defense
+			return true
+		}
+		return false
+	}
 
-                }
-                break;
+	protected fun onPlayerDead(p: DPlayer) {
+		log.info("Player %s has died. They return to beginning and lose there ATT and DEF")
+	}
 
-            case ROLL_DICE_FOR_ROOM: {
-                diceConfig = DiceConfig.TWO_6x6;
-                if (getCurPlayer().rollDice()) {
-                    DEnemy.EnemyType[] t = {
-                            DEnemy.EnemyType.RAT,
-                            DEnemy.EnemyType.RAT,
-                            DEnemy.EnemyType.RAT,
-                            DEnemy.EnemyType.SNAKE,
-                            DEnemy.EnemyType.SNAKE,
-                            DEnemy.EnemyType.SPIDER,
-                    };
-                    enemyList.add(t[die1-1].newEnemy());
-                    enemyList.add(t[die2-1].newEnemy());
-                }
-                break;
-            }
+	protected fun onMiss(attacker: DEntity) {
+		log.info("%d Missed!", attacker.name)
+	}
 
-            case ROLL_DICE_FOR_LOCKED_ROOM: {
-                diceConfig = DiceConfig.THREE_6x6;
-                if (getCurPlayer().rollDice()) {
-                    DEnemy.EnemyType[] t = {
-                            DEnemy.EnemyType.RAT,
-                            DEnemy.EnemyType.RAT,
-                            DEnemy.EnemyType.SNAKE,
-                            DEnemy.EnemyType.SNAKE,
-                            DEnemy.EnemyType.SPIDER,
-                            DEnemy.EnemyType.SPIDER,
-                    };
-                    enemyList.add(t[die1-1].newEnemy());
-                    enemyList.add(t[die2-1].newEnemy());
-                    enemyList.add(t[die3-1].newEnemy());
-                }
-                break;
-            }
+	protected fun onDamage(e: DEntity, damage: Int) {
+		log.info("%s took %d damage", e.name, damage)
+	}
 
-            case CHOOSE_FIGHT_OR_FLEE: {
-                DMove [] moves = {
-                        new DMove(MoveType.ATTACK, 0, 0, null),
-                        new DMove(MoveType.FLEE, 0, 0, null)
-                };
-                DMove move = getCurPlayer().chooseMove(moves);
-                if (move != null) {
-                    switch (move.type) {
-                        case ATTACK: {
-                            state = State.ROLL_DICE_FOR_ATTACK;
-                            break;
-                        }
-                        case FLEE:
-                            // the enemies get a shot in
-                            for (DEnemy e : enemyList) {
-                                doAttack(e, getCurPlayer());
-                                doAttack(e, getCurPlayer());
-                            }
+	private fun nextPlayer() {
+		turn = (turn + 1) % players.size
+		state = State.ROLL_DICE_TO_ADVANCE
+	}
 
-                            if (!checkPlayerDead(getCurPlayer()))
-                                getCurPlayer().cellIndex = getCurPlayer().backCellIndex;
+	protected fun rollDice() {
+		when (diceConfig) {
+			DiceConfig.THREE_6x6 -> {
+				die3 = Utils.rand() % 6 + 1
+				die2 = Utils.rand() % 6 + 1
+				die1 = Utils.rand() % 6 + 1
+			}
 
-                            nextPlayer();
-                            break;
-                    }
-                }
-                break;
-            }
-        }
-    }
+			DiceConfig.TWO_6x6 -> {
+				die2 = Utils.rand() % 6 + 1
+				die1 = Utils.rand() % 6 + 1
+			}
 
-    private void doAttack(DEntity attacker, DEntity e) {
-        // attacker dexterity determines if a hit
-        // attacker strength determines max damage
-        // e def is amount reduced from damage
-        // e att is amount added to damage
-        if ((Utils.rand()%6+1) <= attacker.dex) {
-            int damage = Utils.rand()%attacker.str+1+attacker.attack-e.defense;
-            if (damage > 0) {
-                onDamage(e, damage);
-                e.hp -= damage;
-            } else {
-                onMiss(attacker);
-            }
-        } else {
-            onMiss(attacker);
-        }
-    }
+			DiceConfig.ONE_6x6 -> die1 = Utils.rand() % 6 + 1
+		}
+	}
 
-    private boolean checkPlayerDead(DPlayer p) {
-        if (p.hp <= 0) {
-            onPlayerDead(p);
-            p.cellIndex = board.getStartCellIndex();
-            p.attack = p.defense = 0;
-            return true;
-        }
-        return false;
-    }
+	fun draw(g: AGraphics) {
+		board!!.drawCells(g, 1f)
+		for (p in players) {
+			drawPlayer(g, p)
+		}
+	}
 
-    protected void onPlayerDead(DPlayer p) {
-        log.info("Player %s has died. They return to beginning and lose there ATT and DEF");
-    }
+	protected fun drawPlayer(g: AGraphics, p: DPlayer) {
+		val cell = board!!.getCell(p.cellIndex)
+		g.pushMatrix()
+		g.translate(cell)
+		g.color = p.getColor()
+		val rect = board!!.getCellBoundingRect(p.cellIndex)
+		val m = Math.min(rect.width, rect.height)
+		rect.scale(m / 8, m / 8)
+		g.setLineWidth(2f)
+		g.drawCircle(0f, -1.5f, 0.5f)
+		g.begin()
+		g.vertexArray(arrayOf(floatArrayOf(0f, -1f), floatArrayOf(0f, .5f), floatArrayOf(-1f, -.5f), floatArrayOf(1f, -.5f), floatArrayOf(0f, .5f), floatArrayOf(-1f, 2f), floatArrayOf(0f, .5f), floatArrayOf(1f, 2f)))
+		g.drawLines()
+		g.popMatrix()
+	}
 
-    protected void onMiss(DEntity attacker) {
-        log.info("%d Missed!", attacker.getName());
-    }
+	companion object {
+		private val log = LoggerFactory.getLogger(DDungeon::class.java)
 
-    protected void onDamage(DEntity e, int damage) {
-        log.info("%s took %d damage", e.getName(), damage);
-    }
-
-    private void nextPlayer() {
-        curPlayer = (curPlayer + 1) % players.length;
-        state = State.ROLL_DICE_TO_ADVANCE;
-    }
-
-    protected void rollDice() {
-        switch (diceConfig) {
-            case THREE_6x6:
-                die3 = Utils.rand()%6+1;
-            case TWO_6x6:
-                die2 = Utils.rand()%6+1;
-            case ONE_6x6:
-                die1 = Utils.rand()%6+1;
-                break;
-        }
-    }
-
-    public void draw(AGraphics g) {
-        board.drawCells(g, 1);
-        for (int i = 0; i < numPlayers; i++) {
-            drawPlayer(g, players[i]);
-        }
-    }
-
-    protected void drawPlayer(AGraphics g, DPlayer p) {
-        DCell cell = board.getCell(p.cellIndex);
-        g.pushMatrix();
-        g.translate(cell);
-        g.setColor(p.getColor());
-        GRectangle rect = board.getCellBoundingRect(p.cellIndex);
-        float m = Math.min(rect.w, rect.h);
-        rect.scale(m/8, m/8);
-        g.setLineWidth(2);
-        g.drawCircle(0, -1.5f, 0.5f);
-        g.begin();
-        g.vertexArray(new float [][] {
-                { 0, -1 },
-                { 0, .5f },
-                { -1, -.5f },
-                {  1, -.5f },
-                { 0, .5f },
-                { -1, 2 },
-                { 0, .5f },
-                { 1, 2 }
-        });
-        g.drawLines();
-        g.popMatrix();
-    }
-
-
+		init {
+			addAllFields(DDungeon::class.java)
+		}
+	}
 }

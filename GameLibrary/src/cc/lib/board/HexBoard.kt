@@ -1,4 +1,3 @@
-package cc.lib.board;
+package cc.lib.board
 
-public class HexBoard {
-}
+class HexBoard

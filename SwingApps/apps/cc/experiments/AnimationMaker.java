@@ -5,11 +5,11 @@ import java.io.File;
 
 import cc.lib.game.AGraphics;
 import cc.lib.game.Figure2;
+import cc.lib.game.Figure2.Part;
 import cc.lib.game.Figures;
 import cc.lib.game.GColor;
 import cc.lib.game.Justify;
 import cc.lib.game.Utils;
-import cc.lib.game.Figure2.Part;
 import cc.lib.math.Vector2D;
 import cc.lib.swing.AWTFrame;
 import cc.lib.swing.AWTKeyboardAnimationApplet;
@@ -270,7 +270,7 @@ public class AnimationMaker extends AWTKeyboardAnimationApplet {
     	Vector2D max = g.getMaxBoundingRect();
     	
     	g.setColor(GColor.WHITE);
-    	g.drawRect(min.X(), min.Y(), max.X()-min.X(), max.Y()-min.Y());
+        g.drawRect(min.getX(), min.getY(), max.getX() - min.getX(), max.getY() - min.getY());
     	
     	g.ortho();
     

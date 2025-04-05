@@ -183,15 +183,15 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 		game.setDifficulty(ZDifficulty.valueOf(getStringProperty("difficulty", ZDifficulty.MEDIUM.name)))
 		val curRect = boardComp.renderer.getZoomedRect()
 		boardComp.renderer.setZoomedRect(GRectangle(
-			getFloatProperty("zoomX", curRect.x),
-			getFloatProperty("zoomY", curRect.y),
-			getFloatProperty("zoomW", curRect.w),
-			getFloatProperty("zoomH", curRect.h),
+			getFloatProperty("zoomX", curRect.left),
+			getFloatProperty("zoomY", curRect.top),
+			getFloatProperty("zoomW", curRect.width),
+			getFloatProperty("zoomH", curRect.height),
 		))
 		boardComp.renderer.addListener(object : UIZBoardRenderer.Listener {
 			override fun onAnimateZoomEnd(rect: IRectangle) {
-				setFloatProperty("zoomX", rect.getLeft())
-				setFloatProperty("zoomY", rect.getTop())
+				setFloatProperty("zoomX", rect.left)
+				setFloatProperty("zoomY", rect.top)
 				setFloatProperty("zoomW", rect.width)
 				setFloatProperty("zoomH", rect.height)
 			}

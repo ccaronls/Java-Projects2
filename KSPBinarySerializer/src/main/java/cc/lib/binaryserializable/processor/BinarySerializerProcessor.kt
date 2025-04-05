@@ -127,7 +127,7 @@ class BinarySerializerProcessor(
 
 			val properties = classDeclaration.getAllProperties()
 				.filter { it.getAnnotationsByType(Transient::class).firstOrNull() == null } // Filter out transient fields
-				.filter { it.isMutable }
+				.filter { it.isMutable || !it.type.resolve().isPrimitive() }
 				.toList()
 
 			properties.firstOrNull { it.type.resolve().isNullable() }?.let {
@@ -151,7 +151,13 @@ class BinarySerializerProcessor(
 				properties.forEach { property ->
 					val name = property.simpleName.asString()
 					val resolvedType = property.type.resolve()
-					it.append("\t\t$name = other.$name\n")
+					if (resolvedType.isPrimitive()) {
+						it.append("\t\t$name = other.$name\n")
+					} else if (resolvedType.isArrayType()) {
+						it.append("\t\tother.$name.copyInto($name)\n")
+					} else {
+						it.append("\t\t$name.copy(other.$name)\n")
+					}
 				}
 			}.toString().trimEnd()
 

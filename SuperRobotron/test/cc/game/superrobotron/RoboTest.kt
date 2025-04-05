@@ -50,6 +50,9 @@ Mobile Networks (4G/5G)	1200 bytes	Accounts for carrier restrictions.
 		val powerupsSize = ARRAY_OVERHEAD + MAX_POWERUPS * IBinarySerializable.toByteArrayOutputStream(Powerup()).size()
 		val peopleSize = ARRAY_OVERHEAD + MAX_PEOPLE * IBinarySerializable.toByteArrayOutputStream(People()).size()
 		val messagesSize = ARRAY_OVERHEAD + MAX_MESSAGES * IBinarySerializable.toByteArrayOutputStream(Message()).size()
+		robo.buildAndPopulateRobocraze()
+		val wallsSize =
+			ARRAY_OVERHEAD + robo.walls.flatten().filterNotNull().filterNot { it.isPerimeter() }.sumOf { IBinarySerializable.toByteArrayOutputStream(it).size() }
 
 		println("player size: $playersSize")
 		println("enemy size: $enemiesSize")
@@ -61,6 +64,7 @@ Mobile Networks (4G/5G)	1200 bytes	Accounts for carrier restrictions.
 		println("powerup size: $powerupsSize")
 		println("people size: $peopleSize")
 		println("message size: $messagesSize")
+		println("walls size: $wallsSize")
 
 		Assert.assertTrue("Player $playersSize exceeds $MAX_PACKET_SIZE", playersSize < MAX_PACKET_SIZE)
 		Assert.assertTrue("Enemy $enemiesSize exceeds $MAX_PACKET_SIZE", enemiesSize < MAX_PACKET_SIZE)
@@ -72,12 +76,13 @@ Mobile Networks (4G/5G)	1200 bytes	Accounts for carrier restrictions.
 		Assert.assertTrue("powerups $powerupsSize exceeds $MAX_PACKET_SIZE", powerupsSize < MAX_PACKET_SIZE)
 		Assert.assertTrue("people $peopleSize exceeds $MAX_PACKET_SIZE", peopleSize < MAX_PACKET_SIZE)
 		Assert.assertTrue("message $messagesSize exceeds $MAX_PACKET_SIZE", messagesSize < MAX_PACKET_SIZE)
+		Assert.assertTrue("walls $wallsSize exceeds $MAX_PACKET_SIZE", wallsSize < MAX_PACKET_SIZE)
 	}
 
 	@Test
 	fun test2() {
 
-		println("Wall size: " + IBinarySerializable.toByteArrayOutputStream(Wall(0)).size())
+		println("Wall size: " + IBinarySerializable.toByteArrayOutputStream(Wall(0, 0, 0)).size())
 		println("Player size: " + IBinarySerializable.toByteArrayOutputStream(Player()).size())
 		println("Missile size: " + IBinarySerializable.toByteArrayOutputStream(Missile()).size())
 		println("Powerup size: " + IBinarySerializable.toByteArrayOutputStream(Powerup()).size())

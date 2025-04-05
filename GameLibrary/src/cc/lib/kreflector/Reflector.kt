@@ -74,13 +74,14 @@ import java.util.zip.Checksum
  * NOTE: Derived classes must support a public zero argument constructor for de-serialization
  * @author ccaron
 </A></A> */
+@Suppress("unchecked_cast", "unused")
 open class Reflector<T> : IDirty {
 	@Synchronized
 	@Throws(IOException::class)
 	protected open fun serialize(out: RPrintWriter) {
 		try {
 			val values = getValues(javaClass, false)
-			for (field in values!!.keys) {
+			for (field in values.keys) {
 				val archiver = values[field]
 				field.isAccessible = true
 				val obj = field[this@Reflector]
@@ -154,13 +155,37 @@ open class Reflector<T> : IDirty {
 
 	/**
 	 *
-	 * @param in
 	 * @throws IOException
 	 */
 	@Synchronized
 	@Throws(IOException::class)
 	fun deserialize(reader: InputStream) {
-		val reader = RBufferedReader(InputStreamReader(reader))
+		RBufferedReader(InputStreamReader(reader)).also {
+			try {
+				deserializeInternal(it, false)
+			} catch (e: IOException) {
+				throw e
+			} catch (e: Exception) {
+				throw ParseException(it.lineNum, e)
+			} finally {
+				reader.close()
+			}
+		}
+	}
+
+	/**
+	 * initialize fields of this object there are explicitly added by addField for this class type.
+	 *
+	 * @param _in
+	 * @throws IOException
+	 */
+	@Throws(IOException::class)
+	fun deserialize(_in: Reader) {
+		val reader: RBufferedReader = if (_in is RBufferedReader) {
+			_in
+		} else {
+			RBufferedReader(_in)
+		}
 		try {
 			deserializeInternal(reader, false)
 		} catch (e: IOException) {
@@ -175,32 +200,6 @@ open class Reflector<T> : IDirty {
 	/**
 	 * initialize fields of this object there are explicitly added by addField for this class type.
 	 *
-	 * @param _in
-	 * @throws IOException
-	 */
-	@Throws(IOException::class)
-	fun deserialize(_in: Reader) {
-		var reader: RBufferedReader? = null
-		reader = if (_in is RBufferedReader) {
-			_in
-		} else {
-			RBufferedReader(_in!!)
-		}
-		try {
-			deserializeInternal(reader, false)
-		} catch (e: IOException) {
-			throw e
-		} catch (e: Exception) {
-			throw ParseException(reader!!.lineNum, e)
-		} finally {
-			reader!!.close()
-		}
-	}
-
-	/**
-	 * initialize fields of this object there are explicitly added by addField for this class type.
-	 *
-	 * @param in
 	 * @throws IOException
 	 */
 	@Throws(IOException::class)
@@ -223,7 +222,7 @@ open class Reflector<T> : IDirty {
 	@Synchronized
 	@Throws(IOException::class)
 	fun merge(reader: BufferedReader) {
-		merge((reader as? RBufferedReader ?: RBufferedReader(reader!!)))
+		merge((reader as? RBufferedReader ?: RBufferedReader(reader)))
 	}
 
 	@Throws(IOException::class)
@@ -240,14 +239,14 @@ open class Reflector<T> : IDirty {
 	@Throws(Exception::class)
 	private fun deserializeInternal(reader: RBufferedReader, keepInstances: Boolean) {
 		val values = getValues(javaClass, false)
-		val depth = reader!!.depth
+		val depth = reader.depth
 		while (true) {
 			if (reader.depth > depth) if (reader.readLine() != null) throw ParseException(reader.lineNum, " Expected closing '}'")
 			val line = reader.readLineOrEOF() ?: break
 			var parts: Array<String>? = line.split("=".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
 			if (parts!!.size < 2) throw ParseException(reader.lineNum, " not of form 'name=value'")
 			val name = parts[0].trim { it <= ' ' }
-			for (field in values!!.keys) {
+			for (field in values.keys) {
 				if (fieldMatches(field, name)) {
 					val archiver = values[field]
 					val instance = field[this]
@@ -265,10 +264,10 @@ open class Reflector<T> : IDirty {
 						}
 					} else if (isSubclassOf(field.type, MutableCollection::class.java)) {
 						val collection = obj as MutableCollection<Any>
-						if (collection != null) deserializeCollection(collection, reader, keepInstances)
+						deserializeCollection(collection, reader, keepInstances)
 					} else if (isSubclassOf(field.type, MutableMap::class.java)) {
 						val map = obj as MutableMap<Any, Any?>
-						if (map != null) deserializeMap(map, reader, keepInstances)
+						deserializeMap(map, reader, keepInstances)
 					}
 					parts = null
 					break
@@ -289,7 +288,7 @@ open class Reflector<T> : IDirty {
 		if (a === this) return true
 		return if (a == null) false else try {
 			val values = getValues(javaClass, false)
-			for (f in values!!.keys) {
+			for (f in values.keys) {
 				try {
 					if (!isEqual(f[this], f[a])) return false
 				} catch (e: Exception) {
@@ -353,7 +352,7 @@ open class Reflector<T> : IDirty {
 		return try {
 			val copy: Any = javaClass.newInstance()
 			val values = getValues(javaClass, false)
-			for (f in values!!.keys) {
+			for (f in values.keys) {
 				f.isAccessible = true
 				f[copy] = shallowCopy(f[this])
 			}
@@ -375,13 +374,13 @@ open class Reflector<T> : IDirty {
 		return try {
 			val values = getValues(javaClass, false)
 			val otherValues = getValues(other.javaClass, false)
-			for (f in values!!.keys) {
-				if (!otherValues!!.containsKey(f)) continue
+			for (f in values.keys) {
+				if (!otherValues.containsKey(f)) continue
 				f.isAccessible = true
 				val o = f[this]
 				if (o != null && o is Reflector<*>) {
 					val n = f[other] as Reflector<T>
-					if (n != null) (o as Reflector<T>).copyFrom(n) else f[this] = null
+					(o as Reflector<T>).copyFrom(n)
 				} else {
 					f[this] = deepCopy(f[other])
 				}
@@ -533,11 +532,11 @@ open class Reflector<T> : IDirty {
 				ArrayList<Any>()
 			)
 		}
-		return getClassForName(name)!!.newInstance() as MutableCollection<Any>
+		return getClassForName(name).newInstance() as MutableCollection<Any>
 	}
 
 	open fun newMapInstance(name: String): MutableMap<Any, Any> =
-		getClassForName(name)!!.newInstance() as MutableMap<Any, Any>
+		getClassForName(name).newInstance() as MutableMap<Any, Any>
 
 	/**
 	 * CRC32 Checksum
@@ -599,13 +598,13 @@ open class Reflector<T> : IDirty {
 			var clazz = clazz
 			var name: String?
 			if (STRIP_PACKAGE_QUALIFIER) {
-				if (clazz!!.isAnonymousClass) {
+				if (clazz.isAnonymousClass) {
 					clazz = clazz.superclass
 				}
 				if (canonicalNameCache[clazz].also { name = it } != null) {
 					return name
 				}
-				if (!classMap.containsKey(clazz!!.simpleName)) {
+				if (!classMap.containsKey(clazz.simpleName)) {
 					name = clazz.simpleName
 					classMap[name!!] = clazz
 				} else {
@@ -615,7 +614,7 @@ open class Reflector<T> : IDirty {
 				if (canonicalNameCache[clazz].also { name = it } != null) {
 					return name
 				}
-				val isArray = clazz!!.isArray
+				val isArray = clazz.isArray
 				val isEnum = clazz.isEnum
 				val isAnnotation = clazz.isAnnotation
 				val isAnonymous = clazz.isAnonymousClass
@@ -633,7 +632,7 @@ open class Reflector<T> : IDirty {
 				//while (DirtyDelegate.class.isAssignableFrom(clazz)) {
 				//    clazz = clazz.getSuperclass();
 				//}
-				name = clazz!!.canonicalName
+				name = clazz.canonicalName
 				if (name == null) return null
 			}
 			canonicalNameCache[clazz] = name!!
@@ -647,7 +646,7 @@ open class Reflector<T> : IDirty {
 					ArrayList()
 				)
 			}
-			return getClassForName(name)!!.newInstance() as MutableCollection<Any>
+			return getClassForName(name).newInstance() as MutableCollection<Any>
 		}
 
 		// TODO: Support more than 3D arrays?
@@ -796,10 +795,7 @@ open class Reflector<T> : IDirty {
 				if (getCanonicalNameOrNull(clazz) == null) {
 					clazz = if (clazz.superclass != null) clazz.superclass else clazz.enclosingClass
 				}
-				var values: MutableMap<Field, Archiver>? = null
-				if (classValues.containsKey(clazz)) {
-					values = classValues[clazz]
-				} else if (createIfDNE) {
+				val values: MutableMap<Field, Archiver> = classValues[clazz] ?: if (createIfDNE) {
 					// reject unsupported classes
 					if (clazz.isAnonymousClass || clazz.isSynthetic) throw GException("Synthetic and anonymous classes not supported")
 					// test newInstance works for this clazz
@@ -809,25 +805,26 @@ open class Reflector<T> : IDirty {
 						}
 						clazz.newInstance()
 					}
-					values = TreeMap(fieldComparator)
-					// now inherit any values in base classes that were added
-					inheritValues(clazz.superclass, values)
-					classValues[clazz] = values
-					var arrName = getCanonicalName(clazz)
-					var arrClass = clazz
-					for (i in 0 until ARRAY_DIMENSION_VARIATIONS) {
-						arrName += "[]"
-						arrClass = java.lang.reflect.Array.newInstance(arrClass, 0).javaClass
-						classMap[arrName] = arrClass
+					TreeMap<Field, Archiver>(fieldComparator).also {
+						// now inherit any values in base classes that were added
+						inheritValues(clazz.superclass, it)
+						classValues[clazz] = it
+						var arrName = getCanonicalName(clazz)
+						var arrClass = clazz
+						for (i in 0 until ARRAY_DIMENSION_VARIATIONS) {
+							arrName += "[]"
+							arrClass = java.lang.reflect.Array.newInstance(arrClass, 0).javaClass
+							classMap[arrName] = arrClass
+						}
 					}
 				} else if (clazz.superclass == null) {
 					//log.warn("Cannot find any fields to archive (did you add an addField(...) method in your class?)");
-					values = HashMap<Field, Archiver>()
+					HashMap<Field, Archiver>()
 				} else {
 					//log.warn("No values for " + clazz.getName());
 					return getValues(clazz.superclass, createIfDNE)
 				}
-				values!!
+				values
 			} catch (e: GException) {
 				throw e
 			} catch (e: Exception) {
@@ -842,7 +839,7 @@ open class Reflector<T> : IDirty {
 		}
 
 		fun isSubclassOf(subClass: Class<*>, baseClass: Class<*>): Boolean {
-			var baseCache = subclassOfCache[subClass] ?: HashMap<Class<*>, Boolean>().also {
+			val baseCache = subclassOfCache[subClass] ?: HashMap<Class<*>, Boolean>().also {
 				subclassOfCache[subClass] = it
 			}
 			baseCache[baseClass]?.let {
@@ -850,7 +847,7 @@ open class Reflector<T> : IDirty {
 			}
 			val result = if (subClass == Any::class.java || getCanonicalName(subClass) == getCanonicalName(Any::class.java))
 				false
-			else if (subClass == baseClass || subClass == baseClass || getCanonicalName(subClass) == getCanonicalName(baseClass))
+			else if (subClass == baseClass || getCanonicalName(subClass) == getCanonicalName(baseClass))
 				true
 			else if (baseClass.isAssignableFrom(subClass))
 				true
@@ -947,12 +944,16 @@ open class Reflector<T> : IDirty {
 					log.debug("Field '$name' has been omitted using Omit annotation.")
 					return
 				}
+				if (field.getAnnotation(Transient::class.java) != null) {
+					log.debug("Field '$name' has been omitted using Omit annotation.")
+					return
+				}
 				if (Modifier.isStatic(field.modifiers)) throw GException("Cannot add static fields")
 				field.isAccessible = true
 				val archiver = getArchiverForType(field.type)
 				val values = getValues(clazz, true)
 				if (values.containsKey(field)) throw GException(
-					"Duplicate field.  Field '" + name + "' has already been included for class: " + getCanonicalName(
+					"Duplicate field.  Field '$name' has already been included for class: " + getCanonicalName(
 						clazz
 					)
 				)
@@ -1209,15 +1210,13 @@ open class Reflector<T> : IDirty {
 						if (parts.size > 1) {
 							val num = parts[1].toInt()
 							val clazz = getClassForName(parts[0])
-							if (target == null || java.lang.reflect.Array.getLength(target) != num) {
+							if (java.lang.reflect.Array.getLength(target) != num) {
 								//Class<?> clazz = getClassForName(parts[0]);
 								target = java.lang.reflect.Array.newInstance(clazz, num) as T
 							}
 							getArchiverForType(clazz).deserializeArray(target!!, _in, true)
 						} else {
-							val clazz: Class<*>?
-							clazz = target?.javaClass ?: getClassForName(parts[0])
-							return parse(target, clazz, _in, true) as T?
+							return parse(target, target.javaClass, _in, true) as T?
 						}
 						if (_in.depth > startDepth) if (_in.readLineOrEOF() != null) throw ParseException(_in.lineNum, " Expected closing '}'")
 					}
@@ -1292,12 +1291,8 @@ open class Reflector<T> : IDirty {
 				out.print(getCanonicalName(o.javaClass))
 				serializeObject(o, out, true)
 				o = entry.value
-				if (o == null) {
-					out.println("null")
-				} else {
-					out.print(getCanonicalName(o.javaClass))
-					serializeObject(o, out, true)
-				}
+				out.print(getCanonicalName(o.javaClass))
+				serializeObject(o, out, true)
 			}
 			out.pop()
 		}
@@ -1366,7 +1361,7 @@ open class Reflector<T> : IDirty {
 		private fun parse(current: Any?, clazz: Class<*>, reader: RBufferedReader, keepInstances: Boolean): Any? {
 			return try {
 				val enumClazz = isEnum(clazz)
-				if (enumClazz != null) return findEnumEntry(enumClazz, reader!!.readLineOrEOF())
+				if (enumClazz != null) return findEnumEntry(enumClazz, reader.readLineOrEOF())
 				if (clazz.isArray) {
 					throw ParseException(reader.lineNum, "This method not to be called for array types")
 				}
@@ -1406,7 +1401,7 @@ open class Reflector<T> : IDirty {
 					return c
 				}
 				if (isSubclassOf(clazz, String::class.java)) {
-					val sin = reader.readLineAndClosedParen() ?: return null
+					val sin = reader.readLineAndClosedParen()
 					return decodeString(sin.substring(1, sin.length - 1))
 				}
 				// try to create from a string constructor

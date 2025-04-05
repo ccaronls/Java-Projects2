@@ -1,172 +1,159 @@
-package cc.lib.ik;
+package cc.lib.ik
 
-import java.util.ArrayList;
-import java.util.List;
-
-import cc.lib.game.Utils;
-import cc.lib.math.MutableVector2D;
-import cc.lib.math.Vector2D;
-import cc.lib.reflector.Reflector;
+import cc.lib.game.Utils
+import cc.lib.math.MutableVector2D
+import cc.lib.math.Vector2D
+import cc.lib.reflector.Reflector
 
 /**
  * Inverse Kinematic Arm
- * 
- * @author ccaron
  *
+ * @author ccaron
  */
-public final class IKArm extends Reflector<IKArm> {
-
-	static {
-		addAllFields(IKArm.class);
+class IKArm : Reflector<IKArm>() {
+	private val sections: MutableList<IKHinge> = ArrayList()
+	fun addHinge(x: Float, y: Float, vararg constraints: IKConstraint) {
+		val s = IKHinge(*constraints)
+		s.v.assign(x, y)
+		s.prevMag = 0f
+		s.nextMag = s.prevMag
+		if (sections.size > 0) {
+			val p = sections[sections.size - 1]
+			val mag = p.v.sub(s).mag()
+			s.prevMag = mag
+			p.nextMag = s.prevMag
+		}
+		sections.add(s)
 	}
 
-    private List<IKHinge> sections = new ArrayList<IKHinge>(); 
-    
-    public IKArm() {}
-    
-    public void addHinge(float x, float y, IKConstraint...constraints) {
-        IKHinge s = new IKHinge(constraints);
-        s.v.set(x, y);
-        s.nmag = s.pmag = 0;
-        if (sections.size() > 0) {
-            IKHinge p = sections.get(sections.size()-1);
-            float mag = p.v.sub(s).mag();
-            s.pmag = mag;
-            p.nmag = s.pmag;
-        }
-        sections.add(s);
-    }
-    
-    public int getNumHinges() {
-        return sections.size();
-    }
-    
-    public void debug(String msg) {
-        System.out.println(msg);
-    }
+	val numHinges: Int
+		get() = sections.size
 
-    private boolean checkConstraints(int index, MutableVector2D dv) {
-        IKHinge s = getHinge(index);
-        boolean result = false;
-        for (IKConstraint c : s.constraints) {
-            if (c.move(this, index, dv)) {
-                result = true;
-            }
-        }
-        return result;
-    }
+	fun debug(msg: String?) {
+		println(msg)
+	}
 
-    public void moveHinge(int index, float dx, float dy) {
-        int depth = 5;
-        MutableVector2D dv = new MutableVector2D(dx, dy);
-        if (checkConstraints(index, dv))
-            return;
-        //debug("moveIKHinge " + index + " delta = " + dx + ", " + dy);
-        if (index == 0) {
-            // start from root
-            moveIKHingeR(index, dv, 1, depth);
-        } else if (index == sections.size()-1) {
-            // start from end of tail
-            moveIKHingeR(index, dv, -1, depth);
-        } else {
-            // starting somewhere in the middle
-            if (!moveIKHingeR(index, dv, 1, depth)) {
-                IKHinge s = sections.get(index);
-                s.v.addEq(dx, dy);
-                moveIKHingeR(index-1, dv, -1, depth);
-            }
-        }
-    }
-    
-    public void moveHingeTo(int index, float x, float y) {
-    	float dx = x - getX(index);
-    	float dy = y - getY(index);
-    	moveHinge(index, dx, dy);
-    }
-    
-    // recursive method 
-    private boolean moveIKHingeR(int index, MutableVector2D dv, int inc, int depth) {
-        if (index < 0 || index >= sections.size() || depth<0)
-            return false;
-        if (checkConstraints(index, dv)) {
-            if (index == 0) {
-                return moveIKHingeR(1, dv.scaleEq(-1), 1, depth-1);
-            }
-            if (index == sections.size()-1) {
-                return moveIKHingeR(index-1, dv.scaleEq(-1), -1, depth-1);
-            }
-        }
-        IKHinge s = getHinge(index);
-        // check for endpoints
-        if (index + inc < 0 || index + inc >= sections.size()) {
-            s.v.addEq(dv);
-            return false;
-        }
-        // get the cached magnitude of the
-        float len = getMag(index, inc);
-        // compute the target point
-        float tx = s.v.X() + dv.X();
-        float ty = s.v.Y() + dv.Y();
-        
-        // compute new arm delta to next section
-        float vx = tx - getX(index+inc);
-        float vy = ty - getY(index+inc);
-        float vm = (float)Math.sqrt(vx*vx + vy*vy);
-        // normalize
-        // compute mag of next delta
-        final float m = vm - len;
-        vm = m / vm;
-        vx *= vm;
-        vy *= vm;
-        s.v.set(tx, ty);
-        //s.angle = Float.POSITIVE_INFINITY;
-        dv.set(vx, vy);
-        return moveIKHingeR(index+inc, dv,inc, depth-1);
-    }
-    
-    public Vector2D getV(int section) {
-    	return sections.get(section).v;
-    }
-    
-    public float getX(int section) {
-        return sections.get(section).v.X();
-    }
+	private fun checkConstraints(index: Int, dv: MutableVector2D): Boolean {
+		val s = getHinge(index)
+		var result = false
+		for (c in s.constraints) {
+			if (c.move(this, index, dv)) {
+				result = true
+			}
+		}
+		return result
+	}
 
-    public float getY(int section) {
-        return sections.get(section).v.Y();
-    }
-    
-    public float getAngle(int section) {
-    	if (section == 0)
-    		return 0;
-        return getV(section).sub(getV(section-1)).angleOf();
-    }
+	fun moveHinge(index: Int, dx: Float, dy: Float) {
+		val depth = 5
+		val dv = MutableVector2D(dx, dy)
+		if (checkConstraints(index, dv)) return
+		//debug("moveIKHinge " + index + " delta = " + dx + ", " + dy);
+		if (index == 0) {
+			// start from root
+			moveIKHingeR(index, dv, 1, depth)
+		} else if (index == sections.size - 1) {
+			// start from end of tail
+			moveIKHingeR(index, dv, -1, depth)
+		} else {
+			// starting somewhere in the middle
+			if (!moveIKHingeR(index, dv, 1, depth)) {
+				val s = sections[index]
+				s.v.addEq(dx, dy)
+				moveIKHingeR(index - 1, dv, -1, depth)
+			}
+		}
+	}
 
-    public float getMag(int section, int inc) {
-        if (inc < 0)
-            return sections.get(section).pmag;
-        return sections.get(section).nmag;
-    }
+	fun moveHingeTo(index: Int, x: Float, y: Float) {
+		val dx = x - getX(index)
+		val dy = y - getY(index)
+		moveHinge(index, dx, dy)
+	}
 
-    public final IKHinge getHinge(int index) {
-        return sections.get(index);
-    }
+	// recursive method 
+	private fun moveIKHingeR(index: Int, dv: MutableVector2D, inc: Int, depth: Int): Boolean {
+		if (index < 0 || index >= sections.size || depth < 0) return false
+		if (checkConstraints(index, dv)) {
+			if (index == 0) {
+				return moveIKHingeR(1, dv.scaleEq(-1), 1, depth - 1)
+			}
+			if (index == sections.size - 1) {
+				return moveIKHingeR(index - 1, dv.scaleEq(-1), -1, depth - 1)
+			}
+		}
+		val s = getHinge(index)
+		// check for endpoints
+		if (index + inc < 0 || index + inc >= sections.size) {
+			s.v.addEq(dv)
+			return false
+		}
+		// get the cached magnitude of the
+		val len = getMag(index, inc)
+		// compute the target point
+		val tx = s.v.x + dv.x
+		val ty = s.v.y + dv.y
 
-    public final Iterable<IKHinge> getHinges() {
-        return sections;
-    }
+		// compute new arm delta to next section
+		var vx = tx - getX(index + inc)
+		var vy = ty - getY(index + inc)
+		var vm = Math.sqrt((vx * vx + vy * vy).toDouble()).toFloat()
+		// normalize
+		// compute mag of next delta
+		val m = vm - len
+		vm = m / vm
+		vx *= vm
+		vy *= vm
+		s.v.assign(tx, ty)
+		//s.angle = Float.POSITIVE_INFINITY;
+		dv.assign(vx, vy)
+		return moveIKHingeR(index + inc, dv, inc, depth - 1)
+	}
 
-    public final void clear() {
-        sections.clear();
-    }
+	fun getV(section: Int): Vector2D {
+		return sections[section].v
+	}
 
-    public final int findHinge(float x, float y, float radius) {
-        for (int i=0; i<sections.size(); i++) {
-            IKHinge s = sections.get(i);
-            if (Utils.distSqPointPoint(s.v.X(), s.v.Y(), x, y) < radius*radius) {
-                return i;
-            }
-        }
-        return -1;
-    }
+	fun getX(section: Int): Float {
+		return sections[section].v.x
+	}
+
+	fun getY(section: Int): Float {
+		return sections[section].v.y
+	}
+
+	fun getAngle(section: Int): Float {
+		return if (section == 0) 0f else getV(section).sub(getV(section - 1)).angleOf()
+	}
+
+	fun getMag(section: Int, inc: Int): Float {
+		return if (inc < 0) sections[section].prevMag else sections[section].nextMag
+	}
+
+	fun getHinge(index: Int): IKHinge {
+		return sections[index]
+	}
+
+	val hinges: Iterable<IKHinge>
+		get() = sections
+
+	fun clear() {
+		sections.clear()
+	}
+
+	fun findHinge(x: Float, y: Float, radius: Float): Int {
+		for (i in sections.indices) {
+			val s = sections[i]
+			if (Utils.distSqPointPoint(s.v.x, s.v.y, x, y) < radius * radius) {
+				return i
+			}
+		}
+		return -1
+	}
+
+	companion object {
+		init {
+			addAllFields(IKArm::class.java)
+		}
+	}
 }

@@ -26,7 +26,7 @@ data class SaveData(
 ) {
 
 	val highScore: Int
-		get() = scores.sortedBy { it.score }.firstOrNull()?.score ?: 1000
+		get() = scores.firstOrNull()?.score ?: 1000
 
 	val level: Int
 		get() = numChars * validChars.length
@@ -68,16 +68,13 @@ class MasterMindConsole {
 		}
 	}
 
-	val settings: File
-	val saveFile: File
+	val settings: File = FileUtils.getOrCreateSettingsDirectory(MasterMindConsole::class.java)
+	val saveFile: File = File(settings, "game.save")
 	var saveData = SaveData()
-	val gson: Gson
+	val gson: Gson = GsonBuilder().setPrettyPrinting().create()
 	val random = Random(System.currentTimeMillis())
 
 	init {
-		settings = FileUtils.getOrCreateSettingsDirectory(MasterMindConsole::class.java)
-		saveFile = File(settings, "game.save")
-		gson = GsonBuilder().setPrettyPrinting().create()
 		try {
 			saveFile.bufferedReader().use {
 				saveData = gson.fromJson(it, SaveData::class.java)
@@ -97,12 +94,12 @@ class MasterMindConsole {
 		println("x = a character is correct in the wrong position")
 		println()
 		println("Valid Chars: ${saveData.validChars}")
-		print("Press enter to accept or provide: ")
+		print("Press enter to accept or provide new string of symbols to use: ")
 		readlnOrNull()?.takeIf { it.isNotBlank() }?.let {
 			saveData.validChars = it
 		}
 		println("Guess length: ${saveData.numChars}")
-		print("Press enter to accept or provide: ")
+		print("Press enter to accept or new value for length of code: ")
 		readlnOrNull()?.toIntOrNull()?.takeIf { it in 1..10 }?.let {
 			saveData.numChars = it
 		}
@@ -120,9 +117,9 @@ class MasterMindConsole {
 		val solutionStr = String(CharArray(guessLen) { validChars.random(random) })
 
 		var guesses = 0
-		var guess = ""
+		var guess: String
 		println("Level : ${saveData.level}")
-		println("Guess my number:")
+		println("Guess my code:")
 		start@ do {
 			val solution = solutionStr.toCharArray()
 			print("${guesses + 1}: ")

@@ -347,10 +347,11 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     /**
      * @param v
      */
-    public final void transform(MutableVector2D v) {
+    public final MutableVector2D transform(MutableVector2D v) {
         float[] result = new float[2];
         transform(v.getX(), v.getY(), result);
-        v.set(result[0], result[1]);
+        v.assign(result[0], result[1]);
+        return v;
     }
 
     /**
@@ -384,7 +385,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     }
 
     public final void screenToViewport(MutableVector2D mouse) {
-        mouse.set(untransform(mouse.getX(), mouse.getY()));
+        mouse.assign(untransform(mouse.getX(), mouse.getY()));
     }
 
     public final void screenToViewport(GRectangle rect) {
@@ -398,7 +399,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     public final void screenToViewport(GDimension dim) {
         GRectangle r = new GRectangle(dim);
         screenToViewport(r);
-        dim.set(r.w, r.h);
+        dim.assign(r);
     }
 
     protected abstract MutableVector2D untransform(float x, float y);
@@ -434,7 +435,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
         }
         float maxWidth = 0;
         for (int i=0; i<lines.length; i++) {
-            maxWidth = Math.max(drawStringLine(mv.X(), mv.Y(), hJust, lines[i]), maxWidth);
+            maxWidth = Math.max(drawStringLine(mv.getX(), mv.getY(), hJust, lines[i]), maxWidth);
             mv.addEq(0, textHeight);
         }
         float maxHeight = textHeight * lines.length;
@@ -442,21 +443,28 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
         vertex(x, y);
         switch (hJust) {
             case RIGHT:
-                vertex(x-maxWidth, y+maxHeight); break;
+                vertex(x - maxWidth, y + maxHeight);
+                break;
             case CENTER:
-                vertex(x-maxWidth/2, y+maxHeight); break;
+                vertex(x - maxWidth / 2, y + maxHeight);
+                break;
             case LEFT:
-                vertex(x+maxWidth/2, y+maxHeight); break;
+                vertex(x + maxWidth / 2, y + maxHeight);
+                break;
         }
         return new GDimension(maxWidth, maxHeight);
     }
 
+    public final GDimension drawJustifiedString(int x, int y, Justify hJust, Justify vJust, String text) {
+        return drawJustifiedString((float) x, (float) y, hJust, vJust, text);
+    }
+
     public GRectangle drawJustifiedStringR(float x, float y, Justify hJust, Justify vJust, String text) {
-        if (text==null || text.length() == 0)
+        if (text == null || text.length() == 0)
             return new GRectangle();
         MutableVector2D mv = transform(x, y);
-        String [] lines = text.split("\n");
-        final float textHeight = (float)getTextHeight();
+        String[] lines = text.split("\n");
+        final float textHeight = (float) getTextHeight();
         switch (vJust) {
             case TOP:
                 break;
@@ -474,7 +482,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
         float top = mv.getY();
         float maxWidth = 0;
         for (int i=0; i<lines.length; i++) {
-            maxWidth = Math.max(drawStringLine(mv.X(), mv.Y(), hJust, lines[i]), maxWidth);
+            maxWidth = Math.max(drawStringLine(mv.getX(), mv.getY(), hJust, lines[i]), maxWidth);
             mv.addEq(0, textHeight);
         }
         float maxHeight = textHeight * lines.length;
@@ -796,7 +804,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
         List<String> lines = generateWrappedLines(text, maxWidth);
         float mw = 0;
         for (String line : lines) {
-            mw = Math.max(mw, drawStringLine(tv.X(), tv.Y(), Justify.LEFT, line));
+            mw = Math.max(mw, drawStringLine(tv.getX(), tv.getY(), Justify.LEFT, line));
             tv.addEq(0, getTextHeight());
         }
         return new GDimension(mw, lines.size() * getTextHeight());
@@ -838,7 +846,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
         MutableVector2D tv = transform(x, y);
         float mw = 0;
         for (int i = 0; i < lines.size(); i++) {
-            mw = Math.max(mw, drawStringLine(tv.X(), tv.Y(), hJust, lines.get(i)));
+            mw = Math.max(mw, drawStringLine(tv.getX(), tv.getY(), hJust, lines.get(i)));
             tv.addEq(0, getTextHeight());
         }
         return new GDimension(mw, lines.size() * getTextHeight());
@@ -887,7 +895,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
         r.drawFilled(this);
         setColor(textColor);
         for (String s : lines) {
-            drawStringLine(tv.X(), tv.Y(), Justify.LEFT, s);
+            drawStringLine(tv.getX(), tv.getY(), Justify.LEFT, s);
             tv.addEq(0, getTextHeight());
         }
         popMatrix();
@@ -932,7 +940,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
         r.drawFilled(this);
         setColor(textColor);
         for (String s : lines) {
-            drawStringLine(tv.X(), tv.Y(), Justify.LEFT, s);
+            drawStringLine(tv.getX(), tv.getY(), Justify.LEFT, s);
             tv.addEq(0, getTextHeight());
         }
         popMatrix();
@@ -1489,13 +1497,31 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     public final void drawRect(IVector2D v0, IVector2D v1, float thickness) {
         float X = Math.min(v0.getX(), v1.getX());
         float Y = Math.min(v0.getY(), v1.getY());
-        float W = Math.abs(v0.getX()-v1.getX());
-        float H = Math.abs(v0.getY()-v1.getY());
-        drawRect(X,Y,W,H,thickness);
+        float W = Math.abs(v0.getX() - v1.getX());
+        float H = Math.abs(v0.getY() - v1.getY());
+        drawRect(X, Y, W, H, thickness);
     }
 
     /**
-     *
+     * @param v0
+     * @param width
+     * @param height
+     * @param thickness
+     */
+    public final void drawRect(IVector2D v0, float width, float height, float thickness) {
+        drawRect(v0.getX(), v0.getY(), width, height, thickness);
+    }
+
+    /**
+     * @param v0
+     * @param width
+     * @param height
+     */
+    public final void drawRect(IVector2D v0, float width, float height) {
+        drawRect(v0.getX(), v0.getY(), width, height);
+    }
+
+    /**
      * @param x
      * @param y
      * @param w
@@ -1757,7 +1783,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param rect
      */
     public final void drawFilledOval(GRectangle rect) {
-        drawFilledOval(rect.x, rect.y, rect.w, rect.h);
+        drawFilledOval(rect.getLeft(), rect.getTop(), rect.getWidth(), rect.getHeight());
     }
 
     /**
@@ -1843,10 +1869,10 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
             System.err.println("Must be four control points");
             return;
         }
-        drawBeizerCurve(controlPts[0].getX(), controlPts[0].getY(), 
-                        controlPts[1].getX(), controlPts[1].getY(), 
-                        controlPts[2].getX(), controlPts[2].getY(), 
-                        controlPts[3].getX(), controlPts[3].getY(), iterations);
+        drawBeizerCurve(controlPts[0].getX(), controlPts[0].getY(),
+                controlPts[1].getX(), controlPts[1].getY(),
+                controlPts[2].getX(), controlPts[2].getY(),
+                controlPts[3].getX(), controlPts[3].getY(), iterations);
     }
 
     /**
@@ -1889,33 +1915,38 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param h
      */
     public final void drawImage(int imageKey, float x, float y, float w, float h) {
-        drawImage(imageKey, new Vector2D(x,y), new Vector2D(x+w, y+h));
+        drawImage(imageKey, new Vector2D(x, y), new Vector2D(x + w, y + h));
     }
 
     /**
      * Draw image using the current transform
+     *
      * @param imageKey
      */
     public abstract void drawImage(int imageKey);
 
+    private final MutableVector2D working[] = {
+            new MutableVector2D(),
+            new MutableVector2D(),
+            new MutableVector2D(),
+            new MutableVector2D(),
+    };
+
+
     /**
-     *
      * @param imageKey
      * @param rect0
      * @param rect1
      */
     public final void drawImage(int imageKey, IVector2D rect0, IVector2D rect1) {
 
-        MutableVector2D v0 = new MutableVector2D(rect0);
-        MutableVector2D v1 = new MutableVector2D(rect1);
+        MutableVector2D v0 = transform(working[0].assign(rect0));
+        MutableVector2D v1 = transform(working[1].assign(rect1));
 
-        transform(v0);
-        transform(v1);
+        Vector2D minV = v0.min(v1, working[2]);
+        Vector2D maxV = v0.max(v1, working[3]);
 
-        Vector2D minV = v0.min(v1);
-        Vector2D maxV = v0.max(v1);
-
-        drawImage(imageKey, minV.Xi(), minV.Yi(), maxV.Xi()-minV.Xi(), maxV.Yi()-minV.Yi());
+        drawImage(imageKey, minV.Xi(), minV.Yi(), maxV.Xi() - minV.Xi(), maxV.Yi() - minV.Yi());
     }
 
     /**
@@ -1970,16 +2001,61 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
             }
             switch (vJust) {
                 case CENTER:
-                    y-=hgt/2; break;
+                    y -= hgt / 2;
+                    break;
                 case BOTTOM:
-                    y-=hgt; break;
+                    y -= hgt;
+                    break;
             }
             drawImage(imageKey, x, y, wid, hgt);
         }
     }
 
     /**
-     * 
+     * Draw image justified to pos
+     *
+     * @param imageKey
+     * @param pos
+     * @param width
+     * @param height
+     * @param hJust
+     * @param vJust
+     */
+    public final void drawImage(int imageKey, IVector2D pos, float width, float height, Justify hJust, Justify vJust) {
+        float x = pos.getX();
+        float y = pos.getY();
+        switch (hJust) {
+            case CENTER:
+                x -= width / 2;
+                break;
+            case RIGHT:
+                x -= width;
+                break;
+        }
+        switch (vJust) {
+            case CENTER:
+                y -= height / 2;
+                break;
+            case BOTTOM:
+                y -= height;
+                break;
+        }
+        drawImage(imageKey, x, y, width, height);
+    }
+
+    /**
+     * Draw image centered at pos
+     *
+     * @param imageKey
+     * @param pos
+     * @param width
+     * @param height
+     */
+    public final void drawImage(int imageKey, IVector2D pos, float width, float height) {
+        drawImage(imageKey, pos.getX() - width / 2, pos.getY() - height / 2, width, height);
+    }
+
+    /**
      * @param color
      */
     public abstract void clearScreen(GColor color);

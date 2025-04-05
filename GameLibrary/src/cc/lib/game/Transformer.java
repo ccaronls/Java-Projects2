@@ -69,7 +69,7 @@ public class Transformer {
 	 * @param v
 	 */
     public final void transformXY(MutableVector2D v) {
-        transformXY(v.X(), v.Y(), v);
+        transformXY(v.getX(), v.getY(), v);
     }
 
     /**
@@ -87,7 +87,7 @@ public class Transformer {
      * @param v
      */
     public final void transformXY(float x, float y, MutableVector2D v) {
-    	v.set(x,y);
+        v.assign(x, y);
         cur_mat.transform(v);
     }
 
@@ -98,9 +98,10 @@ public class Transformer {
      * @param v
      */
     public final void transformXY(float x, float y, float [] v) {
-    	s_vec.set(x,y);
-    	cur_mat.transform(s_vec);
-    	v[0] = s_vec.X(); v[1] = s_vec.Y();
+        s_vec.assign(x, y);
+        cur_mat.transform(s_vec);
+        v[0] = s_vec.getX();
+        v[1] = s_vec.getY();
     }
 
 	/**

@@ -1,10 +1,18 @@
-package cc.lib.game;
+package cc.lib.game
 
-import cc.lib.math.CMath;
-import cc.lib.math.MutableVector2D;
-import cc.lib.math.Vector2D;
+import cc.lib.math.CMath
+import cc.lib.math.MutableVector2D
+import cc.lib.math.Vector2D
+import cc.lib.math.Vector2D.Companion.newTemp
 
-public class Polygon2D {
+class Polygon2D(
+	pts: Array<Vector2D>,
+	private val color: GColor, radius: Float
+) {
+
+	private val pts: Array<MutableVector2D> = pts.map {
+		it.toMutable()
+	}.toTypedArray()
 
 	/**
 	 * Initialize the polygon with data
@@ -12,123 +20,99 @@ public class Polygon2D {
 	 * @param color
 	 * @param radius
 	 */
-	public Polygon2D(Vector2D [] pts, GColor color, float radius)	{
-		this.color = color;
-		this.pts = new MutableVector2D[pts.length];
-		for (int i=0; i<pts.length; i++)
-			this.pts[i] = new MutableVector2D(pts[i]);
-		float r = center();
+	init {
+		val r = center()
 		if (r > 0)
-			scale(radius/r);
+			scale(radius / r)
 	}
-	
-	public void draw(AGraphics g) {
-        g.setColor(color);
-	    g.begin();
-		for (int i=0; i<getNumPts(); i++)
-		{
-			g.vertex(pts[i]);
+
+	fun draw(g: AGraphics) {
+		g.color = color
+		g.begin()
+		for (i in 0 until numPts) {
+			g.vertex(pts[i])
 		}
-		g.drawLineLoop();
+		g.drawLineLoop()
 	}
-	
-	public void fill(AGraphics g) {
-		for (int i=0; i<getNumPts(); i++)
-		{
-			g.vertex(pts[i]);
+
+	fun fill(g: AGraphics) {
+		for (i in 0 until numPts) {
+			g.vertex(pts[i])
 		}
-		g.setColor(color);
-		g.drawTriangleFan();
+		g.color = color
+		g.drawTriangleFan()
 	}
 
 	/**
 	 * center the polygon points
 	 * @return the length of the longest point from center
 	 */
-	public float center() {
-		if (getNumPts() == 0)
-			return 0;
-		MutableVector2D c = Vector2D.newTemp();
-		for (int i=0; i<getNumPts(); i++)
-		{
-			c.addEq(pts[i]);
+	fun center(): Float {
+		if (numPts == 0) return 0f
+		val c: MutableVector2D = Vector2D.getFromPool()
+		for (i in 0 until numPts) {
+			c.addEq(pts[i])
 		}
-		c.scaleEq(1.0f / getNumPts());
-		float max_d2 = 0;
-		for (int i=0; i<getNumPts(); i++)
-		{
-			pts[i].subEq(c);
-			float d2 = pts[i].dot(pts[i]);
-			if (d2 > max_d2)
-				max_d2 = d2;
+		c.scaleEq(1.0f / numPts)
+		var max_d2 = 0f
+		for (i in 0 until numPts) {
+			pts[i].subEq(c)
+			val d2 = pts[i].dot(pts[i])
+			if (d2 > max_d2) max_d2 = d2
 		}
-		return (float)Math.sqrt(max_d2);
+		return Math.sqrt(max_d2.toDouble()).toFloat()
 	}
 
 	/**
 	 * scale all points by a scalar
 	 * @param s
 	 */
-	public void scale(float s) {
-		for (int i=0; i<getNumPts(); i++) {
-			pts[i].scaleEq(s);
+	fun scale(s: Float) {
+		for (i in 0 until numPts) {
+			pts[i].scaleEq(s)
 		}
 	}
 
-	public void translate(float dx, float dy) {
-		translate(Vector2D.newTemp(dx, dx));
+	fun translate(dx: Float, dy: Float) {
+		translate(newTemp(dx, dx))
 	}
 
-    /**
-     *
-     * @param dv
-     */
-	public void translate(IVector2D dv) {
-		for (int i=0; i<getNumPts(); i++) {
-			pts[i].addEq(dv);
-		}
-	}
-
-    /**
-     * Return true if v is inside this convex polygon
-     *
-     * @param v
-     * @return
-     */
-	public boolean contains(IVector2D v) {
-	   if (pts.length < 3)
-	       return false;
-
-	   int dir = CMath.signOf(getSide(0).dot(v));
-	   for (int i=1; i<pts.length; i++) {
-	       if (CMath.signOf(getSide(i).dot(v)) != dir)
-	           return false;
-       }
-       return true;
-    }
-
-    /**
-     * Return the side of the polygon at which pt[index] is at the tail
-     * @param index
-     * @return
-     */
-    public Vector2D getSide(int index) {
-	    int i = (index+1) % pts.length;
-	    return pts[i].sub(pts[index]);
-    }
-	
 	/**
 	 *
-	 * @return number of points of this polygon
+	 * @param dv
 	 */
-	public int getNumPts() {
-		return pts.length;
+	fun translate(dv: IVector2D) {
+		for (i in 0 until numPts) {
+			pts[i].addEq(dv)
+		}
 	}
 
-	////////////////////////////////////////////////////
-	// PRIVATE STUFF ///////////////////////////////////
-	////////////////////////////////////////////////////
-	
-	private GColor color;
-	private MutableVector2D [] pts;
+	/**
+	 * Return true if v is inside this convex polygon
+	 *
+	 * @param v
+	 * @return
+	 */
+	operator fun contains(v: IVector2D): Boolean {
+		if (pts.size < 3) return false
+		val dir = CMath.signOf(getSide(0).dot(v))
+		for (i in 1 until pts.size) {
+			if (CMath.signOf(getSide(i).dot(v)) != dir) return false
+		}
+		return true
+	}
+
+	/**
+	 * Return the side of the polygon at which pt[index] is at the tail
+	 * @param index
+	 * @return
+	 */
+	fun getSide(index: Int): Vector2D {
+		val i = (index + 1) % pts.size
+		return pts[i].sub(pts[index])
+	}
+
+	val numPts: Int
+		get() = pts.size
+
 }

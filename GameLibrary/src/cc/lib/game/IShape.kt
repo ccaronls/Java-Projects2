@@ -1,22 +1,15 @@
-package cc.lib.game;
+package cc.lib.game
 
-public interface IShape {
+interface IShape {
+	fun contains(x: Float, y: Float): Boolean
+	operator fun contains(v: IVector2D): Boolean {
+		return contains(v.x, v.y)
+	}
 
-    boolean contains(float x, float y);
-
-    default boolean contains(IVector2D v) {
-        return contains(v.getX(), v.getY());
-    }
-
-    void drawOutlined(AGraphics g);
-
-    void drawFilled(AGraphics g);
-
-    IVector2D getCenter();
-
-    float getArea();
-
-    IRectangle enclosingRect();
-
-    float getRadius();
+	fun drawOutlined(g: AGraphics)
+	fun drawFilled(g: AGraphics)
+	val center: IVector2D
+	val area: Float
+	fun enclosingRect(): IRectangle
+	val radius: Float
 }

@@ -2,7 +2,6 @@ package cc.applets.soc
 
 import cc.game.soc.core.*
 import cc.game.soc.ui.*
-import cc.game.soc.ui.MenuItem
 import cc.lib.game.*
 import cc.lib.logger.LoggerFactory
 import cc.lib.math.MutableVector2D
@@ -1412,8 +1411,8 @@ class GUI(private val frame: AWTFrame, val props: UIProperties) : ActionListener
 				val r = GRectangle(v.X() - width / 2, v.Y() - fontHeight / 2, width, fontHeight)
 				for (i in 0 until index) {
 					if (nodeRects[i]!!.r.isIntersectingWidth(r)) {
-						r.x = nodeRects[i]!!.r.x
-						r.y = nodeRects[i]!!.r.y + nodeRects[i]!!.r.h + padding
+						r.left = nodeRects[i]!!.r.left
+						r.top = nodeRects[i]!!.r.top + nodeRects[i]!!.r.height + padding
 						break
 					}
 				}
@@ -1908,15 +1907,15 @@ class GUI(private val frame: AWTFrame, val props: UIProperties) : ActionListener
 						g.pushMatrix()
 						g.setIdentity()
 						g.color = GColor.RED
-						g.drawJustifiedStringOnBackground(nr!!.r.x, nr.r.y, Justify.LEFT, Justify.TOP, nr.s, GColor.TRANSLUSCENT_BLACK, 2f)
+						g.drawJustifiedStringOnBackground(nr!!.r.left, nr.r.top, Justify.LEFT, Justify.TOP, nr.s, GColor.TRANSLUSCENT_BLACK, 2f)
 						g.color = GColor.YELLOW
-						g.drawWrapStringOnBackground(nr.r.x + nr.r.w, nr.r.y, (g.viewportWidth / 2).toFloat(), info, GColor.TRANSLUSCENT_BLACK, 2f)
+						g.drawWrapStringOnBackground(nr.r.left + nr.r.width, nr.r.top, (g.viewportWidth / 2).toFloat(), info, GColor.TRANSLUSCENT_BLACK, 2f)
 						g.popMatrix()
 						g.color = GColor.BLACK
 						val v = MutableVector2D()
 						g.begin()
 						while (node.parent != null) {
-							v.set(node.getBoardPosition(board))
+							v.assign(node.getBoardPosition(board))
 							if (!v.isZero) {
 								g.vertex(v)
 							}
@@ -1930,7 +1929,7 @@ class GUI(private val frame: AWTFrame, val props: UIProperties) : ActionListener
 						g.color = GColor.YELLOW
 						g.pushMatrix()
 						g.setIdentity()
-						g.drawJustifiedStringOnBackground(nr!!.r.x, nr.r.y, Justify.LEFT, Justify.TOP, nr.s, GColor.TRANSLUSCENT_BLACK, 2f)
+						g.drawJustifiedStringOnBackground(nr!!.r.left, nr.r.top, Justify.LEFT, Justify.TOP, nr.s, GColor.TRANSLUSCENT_BLACK, 2f)
 						g.popMatrix()
 					}
 

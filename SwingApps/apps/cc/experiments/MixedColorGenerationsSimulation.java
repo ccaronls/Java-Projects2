@@ -6,7 +6,6 @@ import java.util.List;
 import cc.lib.game.GColor;
 import cc.lib.game.Utils;
 import cc.lib.math.MutableVector2D;
-import cc.lib.math.Vector2D;
 import cc.lib.swing.AWTComponent;
 import cc.lib.swing.AWTFrame;
 import cc.lib.swing.AWTGraphics;
@@ -55,18 +54,18 @@ public class MixedColorGenerationsSimulation extends AWTComponent {
 
         while (true) {
             Ball ball = new Ball();
-            ball.p.set(x, y);
-            ball.v.set(3 * Utils.randFloatPlusOrMinus(1), 3 * Utils.randFloatPlusOrMinus(1));
+            ball.p.assign(x, y);
+            ball.v.assign(3 * Utils.randFloatPlusOrMinus(1), 3 * Utils.randFloatPlusOrMinus(1));
             ball.color = GColor.WHITE;
             balls.add(ball);
 
             y += SPACING;
             if (y > H - RADIUS) {
-                y = RADIUS *2;
+                y = RADIUS * 2;
                 x += SPACING;
             }
 
-            if ( x > W - RADIUS)
+            if (x > W - RADIUS)
                 break;
         }
 
@@ -111,17 +110,17 @@ public class MixedColorGenerationsSimulation extends AWTComponent {
             Ball b = balls.get(i);
 
             g.setColor(b.color);
-            g.drawFilledCircle(b.p.X(), b.p.Y(), RADIUS);
+            g.drawFilledCircle(b.p.getX(), b.p.getY(), RADIUS);
 
             b.p.addEq(b.v);
 
-            if (b.p.X() > W- RADIUS || b.p.X() < RADIUS) {
-                b.p.setX(b.p.X() - b.v.X()*2);
+            if (b.p.getX() > W - RADIUS || b.p.getX() < RADIUS) {
+                b.p.setX(b.p.getX() - b.v.getX() * 2);
                 b.v.scaleEq(-1, 1);
             }
 
-            if (b.p.Y() > H- RADIUS || b.p.Y() < RADIUS) {
-                b.p.setY(b.p.Y() - b.v.Y()*2);
+            if (b.p.getY() > H - RADIUS || b.p.getY() < RADIUS) {
+                b.p.setY(b.p.getY() - b.v.getY() * 2);
                 b.v.scaleEq(1, -1);
             }
         }
@@ -133,7 +132,7 @@ public class MixedColorGenerationsSimulation extends AWTComponent {
                 Ball b0 = balls.get(i);
                 Ball b1 = balls.get(ii);
 
-                Vector2D dv = b1.p.sub(b0.p);
+                MutableVector2D dv = b1.p.minus(b0.p);
                 float d = dv.magSquared();
                 if (d < 4* RADIUS * RADIUS) {
                     // bounce
@@ -143,7 +142,7 @@ public class MixedColorGenerationsSimulation extends AWTComponent {
                     b0.p.subEq(b0.v);
                     b1.p.subEq(b1.v);
                     b1.v.reflectEq(dv);
-                    b0.v.reflectEq(dv.scaledBy(-1));
+                    b0.v.reflectEq(dv.scaleEq(-1));
                 }
             }
         }

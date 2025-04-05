@@ -250,11 +250,12 @@ public abstract class APGraphics extends AGraphics {
     public final int pickClosest(int x, int y) {
         int picked = -1;
         float closest = Float.MAX_VALUE;
+        MutableVector2D temp = new MutableVector2D();
         for (int i = 0; i< R.getNumVerts(); i++) {
             if (R.getName(i) < 0)
                 continue;
             Vector2D v = R.getVertex(i);
-            Vector2D dv =  v.sub(x, y);
+            Vector2D dv = v.sub(x, y, temp);
             float d = dv.magSquared();
             if (d < closest) {
                 closest = d;

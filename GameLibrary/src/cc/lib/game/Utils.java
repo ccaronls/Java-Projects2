@@ -198,6 +198,10 @@ public class Utils {
         return false;
     }
 
+    public static boolean isCircleIntersectingLineSeg(IVector2D v0, IVector2D v1, IVector2D p, float radius) {
+        return isCircleIntersectingLineSeg(v0.getX(), v0.getY(), v1.getX(), v1.getY(), p.getX(), p.getY(), radius);
+    }
+
     /**
      *
      * @param x0
@@ -584,9 +588,8 @@ public class Utils {
      */
     public static boolean isBoxesOverlapping(IVector2D v0, float w0, float h0,
                                              IVector2D v1, float w1, float h1) {
-        return isBoxesOverlapping(v0.getX(), v0.getY(), w0, h0, v1.getX(), v1.getY(), w1, h1);
+        return isBoxesOverlapping(v0.getX() - w0 / 2, v0.getY() - h0 / 2, w0, h0, v1.getX() - w1 / 2, v1.getY() - h1 / 2, w1, h1);
     }
-
 
     /**
      * return random value in range (min,max) inclusive
@@ -1256,7 +1259,7 @@ public class Utils {
      * @param divisions
      * @param controlPts
      */
-    public static void renderBSpline(VertexList g, int divisions, Vector2D... controlPts) {
+    public static void renderBSpline(VertexList g, int divisions, IVector2D... controlPts) {
 
         if (controlPts.length < 4)
             return;
@@ -1272,14 +1275,14 @@ public class Utils {
         int i = 3;
         while (true) {
 
-            a[0] = (-P0.X() + 3 * P1.X() - 3 * P2.X() + P3.X()) / 6.0f;
-            a[1] = (3 * P0.X() - 6 * P1.X() + 3 * P2.X()) / 6.0f;
-            a[2] = (-3 * P0.X() + 3 * P2.X()) / 6.0f;
-            a[3] = (P0.X() + 4 * P1.X() + P2.X()) / 6.0f;
-            b[0] = (-P0.Y() + 3 * P1.Y() - 3 * P2.Y() + P3.Y()) / 6.0f;
-            b[1] = (3 * P0.Y() - 6 * P1.Y() + 3 * P2.Y()) / 6.0f;
-            b[2] = (-3 * P0.Y() + 3 * P2.Y()) / 6.0f;
-            b[3] = (P0.Y() + 4 * P1.Y() + P2.Y()) / 6.0f;
+            a[0] = (-P0.getX() + 3 * P1.getX() - 3 * P2.getX() + P3.getX()) / 6.0f;
+            a[1] = (3 * P0.getX() - 6 * P1.getX() + 3 * P2.getX()) / 6.0f;
+            a[2] = (-3 * P0.getX() + 3 * P2.getX()) / 6.0f;
+            a[3] = (P0.getX() + 4 * P1.getX() + P2.getX()) / 6.0f;
+            b[0] = (-P0.getY() + 3 * P1.getY() - 3 * P2.getY() + P3.getY()) / 6.0f;
+            b[1] = (3 * P0.getY() - 6 * P1.getY() + 3 * P2.getY()) / 6.0f;
+            b[2] = (-3 * P0.getY() + 3 * P2.getY()) / 6.0f;
+            b[3] = (P0.getY() + 4 * P1.getY() + P2.getY()) / 6.0f;
 
             g.vertex((float) a[3], (float) b[3]);
             ;
@@ -3430,7 +3433,7 @@ public class Utils {
         MutableVector2D vv = new MutableVector2D();
         try {
             do {
-                working.get(start).first.scale(-1, dv);
+                working.get(start).first.scaledBy(-1, dv);
                 float best = 0;
                 int next = -1;
                 for (int i=(start+1)%numVerts; i!=start; i = (i+1)%numVerts) {
@@ -3467,13 +3470,13 @@ public class Utils {
         if (polygon.size() < 3)
             return false;
 
-        MutableVector2D side = Vector2D.sub(polygon.get(0), polygon.get(polygon.size()-1)).normEq();
-        MutableVector2D dv = Vector2D.sub(pos, polygon.get(polygon.size()-1));
+        MutableVector2D side = polygon.get(0).sub(polygon.get(polygon.size() - 1), new MutableVector2D()).normEq();
+        MutableVector2D dv = pos.sub(polygon.get(polygon.size() - 1), new MutableVector2D());
 
         int sign = CMath.signOf(side.dot(dv));
-        for (int i=1; i<polygon.size(); i++) {
-            side.set(polygon.get(i)).subEq(polygon.get(i-1)).normEq();
-            dv.set(pos).subEq(polygon.get(i-1));
+        for (int i = 1; i < polygon.size(); i++) {
+            side.assign(polygon.get(i)).subEq(polygon.get(i - 1)).normEq();
+            dv.assign(pos).subEq(polygon.get(i - 1));
             if (sign != CMath.signOf(side.dot(dv))) {
                 return false;
             }

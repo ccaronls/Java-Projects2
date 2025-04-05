@@ -69,7 +69,7 @@ open class AWTGraphics : APGraphics {
 			this.g = g
 		}
 
-	fun setXorMode(color: GColor) {
+	fun setXorMode(color: GColor?) {
 		if (color == null) g.setPaintMode() else g.setXORMode(Color(color.toARGB(), true))
 	}
 
@@ -475,7 +475,7 @@ open class AWTGraphics : APGraphics {
 		val v0: Vector2D = transform(x, y)
 		val v1: Vector2D = transform(x + w, y + h)
 		val r = GRectangle(v0, v1)
-		g.setClip(r.x.roundToInt(), r.y.roundToInt(), r.w.roundToInt(), r.h.roundToInt())
+		g.setClip(r.left.roundToInt(), r.top.roundToInt(), r.width.roundToInt(), r.height.roundToInt())
 	}
 
 	override fun getClipRect(): GRectangle {

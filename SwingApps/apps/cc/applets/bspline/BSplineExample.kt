@@ -19,7 +19,7 @@ class BSplineExample internal constructor() : AWTKeyboardAnimationApplet() {
 		yPoints[numPts++] = Math.round(y)
 	}
 
-	var graph = arrayOfNulls<MutableVector2D>(256)
+	var graph = Array(256) { MutableVector2D() }
 	override fun doInitialization() {}
 	enum class Mode {
 		BSPLINE,
@@ -104,10 +104,10 @@ class BSplineExample internal constructor() : AWTKeyboardAnimationApplet() {
 				//bsp(g, Px[0], Py[0], Px[1], Py[1], Px[2], Py[2], Px[3], Py[3], 10);
 				bsp(g, P, 10)
 				if (i++ >= numPts) break
-				P[0].set(P[1])
-				P[1].set(P[2])
-				P[2].set(P[3])
-				P[3][xPoints[i].toFloat()] = yPoints[i].toFloat()
+				P[0].assign(P[1])
+				P[1].assign(P[2])
+				P[2].assign(P[3])
+				P[3].assign(xPoints[i].toFloat(), yPoints[i].toFloat())
 				//Px[0] = Px[1]; Px[1] = Px[2]; Px[2] = Px[3]; Px[3] = xPoints[i];
 				//Py[0] = Py[1]; Py[1] = Py[2]; Py[2] = Py[3]; Py[3] = yPoints[i];
 			}
@@ -141,15 +141,15 @@ class BSplineExample internal constructor() : AWTKeyboardAnimationApplet() {
 			}
 			drawRect(g, boxMin, boxMax, 1)
 			if (numPts == 0) {
-				addPoint(boxMin.X(), boxMin.Y())
-				addPoint(boxMin.X(), boxMax.Y())
+				addPoint(boxMin.x, boxMin.y)
+				addPoint(boxMin.x, boxMax.y)
 			}
 			if (toggle) {
-				addPoint(boxMax.X(), boxMin.Y())
-				addPoint(boxMax.X(), boxMax.Y())
+				addPoint(boxMax.x, boxMin.y)
+				addPoint(boxMax.x, boxMax.y)
 			} else {
-				addPoint(boxMax.X(), boxMax.Y())
-				addPoint(boxMax.X(), boxMin.Y())
+				addPoint(boxMax.x, boxMax.y)
+				addPoint(boxMax.x, boxMin.y)
 			}
 			toggle = !toggle
 		}
@@ -283,12 +283,12 @@ class BSplineExample internal constructor() : AWTKeyboardAnimationApplet() {
 		return a0 * (t * t * t) + a1 * (t * t) + a2 * t + a3
 	}
 
-	fun drawRect(g: AGraphics, a: Vector2D, b: Vector2D?, thickness: Int) {
+	fun drawRect(g: AGraphics, a: Vector2D, b: Vector2D, thickness: Int) {
 		val min: Vector2D = a.min(b, MutableVector2D())
 		val max: Vector2D = a.max(b, MutableVector2D())
-		val w = max.X() - min.X()
-		val h = max.Y() - min.Y()
-		g.drawRect(min.X(), min.Y(), w, h, thickness.toFloat())
+		val w = max.x - min.x
+		val h = max.y - min.y
+		g.drawRect(min.x, min.y, w, h, thickness.toFloat())
 	}
 
 	override fun drawFrame(g: AGraphics) {
@@ -308,8 +308,8 @@ class BSplineExample internal constructor() : AWTKeyboardAnimationApplet() {
 		val y: Float
 
 		init {
-			x = v.X()
-			y = v.Y()
+			x = v.x
+			y = v.y
 		}
 	}
 
@@ -342,14 +342,14 @@ class BSplineExample internal constructor() : AWTKeyboardAnimationApplet() {
 			//float t2 = t1*t1;
 			//float t3 = t2*t1;
 
-			//float x = t0*V0.X() + t1*V1.X() + t2*V2.X() + t3*V3.X();
-			//float y = t0*V0.Y() + t1*V1.Y() + t2*V2.Y() + t3*V3.Y();
+			//float x = t0*V0.x + t1*V1.x + t2*V2.x + t3*V3.x;
+			//float y = t0*V0.y + t1*V1.y + t2*V2.y + t3*V3.y;
 			val V: Vector2D = V0.scaledBy(t).add(V1).scaledBy(t).add(V2).scaledBy(t).add(V3)
 
 
 			//V2.add(V1.add(V0.scale(t)).scale(t)).scale(t)).add(V3);
-			val x = (V2.X() + t * (V1.X() + t * V0.X())) * t + V3.X()
-			val y = (V2.Y() + t * (V1.Y() + t * V0.Y())) * t + V3.Y()
+			val x = (V2.x + t * (V1.x + t * V0.x)) * t + V3.x
+			val y = (V2.y + t * (V1.y + t * V0.y)) * t + V3.y
 			g.vertex(V)
 		}
 	}
@@ -397,8 +397,8 @@ class BSplineExample internal constructor() : AWTKeyboardAnimationApplet() {
 	var boxEnd = MutableVector2D()
 	override fun onMousePressed(ev: MouseEvent) {
 		val P = Vector2D(ev.x.toFloat(), ev.y.toFloat())
-		boxStart.set(P)
-		boxEnd.set(P)
+		boxStart.assign(P)
+		boxEnd.assign(P)
 	}
 
 	override fun mouseReleased(evt: MouseEvent) {
@@ -416,8 +416,8 @@ class BSplineExample internal constructor() : AWTKeyboardAnimationApplet() {
 
 	private fun addGraphNoise(min: Vector2D, max: Vector2D) {
 		for (i in graph.indices) {
-			if (graph[i]!!.X() >= min.X() && graph[i]!!.X() < max.X()) {
-				graph[i]!!.y = min.Y() + Utils.randFloat(max.Y() - min.Y())
+			if (graph[i].x >= min.x && graph[i].x < max.x) {
+				graph[i].setY(min.y + Utils.randFloat(max.y - min.y))
 			}
 		}
 	}
@@ -425,7 +425,7 @@ class BSplineExample internal constructor() : AWTKeyboardAnimationApplet() {
 	override fun mouseDragged(ev: MouseEvent) {
 		super.mouseDragged(ev)
 		dragging = true
-		boxEnd[ev.x.toFloat()] = ev.y.toFloat()
+		boxEnd.assign(ev.x.toFloat(), ev.y.toFloat())
 	}
 
 	companion object {

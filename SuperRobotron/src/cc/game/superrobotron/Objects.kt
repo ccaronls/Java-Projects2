@@ -6,6 +6,7 @@ import cc.lib.kreflector.Reflector
 import cc.lib.ksp.binaryserializer.BinarySerializable
 import cc.lib.ksp.binaryserializer.BinaryType
 import cc.lib.ksp.binaryserializer.IBinarySerializable
+import cc.lib.math.MutableVector2D
 import cc.lib.math.Vector2D
 import cc.lib.utils.random
 import java.io.DataInputStream
@@ -13,25 +14,18 @@ import java.io.DataOutputStream
 import java.util.LinkedList
 
 abstract class Object {
-	var x = 0f
-	var y = 0f
-
-	val v: Vector2D
-		get() = Vector2D(x, y)
+	val pos = MutableVector2D()
 }
 
 @BinarySerializable("Missile")
 abstract class AMissile : Object() {
-	var dx: Float = 0f
-	var dy: Float = 0f
+	val dv = MutableVector2D()
 	@BinaryType(UByte::class)
 	var duration: Int = 0
 
-	fun init(x: Float, y: Float, dx: Float, dy: Float, duration: Int) {
-		this.x = x
-		this.y = y
-		this.dx = dx
-		this.dy = dy
+	fun init(pos: Vector2D, dv: Vector2D, duration: Int) {
+		this.pos.assign(pos)
+		this.dv.assign(dv)
 		this.duration = duration
 	}
 }
@@ -42,17 +36,18 @@ abstract class AMissileSnake : Object() {
 	// counter
 	@BinaryType(UByte::class)
 	var duration: Int = 0
+
 	@BinaryType(UByte::class)
 	var state: Int = 0
 
 	// direction of each section
 	var dir: IntArray = IntArray(SNAKE_MAX_SECTIONS)
+
 	@BinaryType(UByte::class)
 	var num_sections = 0
 
-	fun init(x: Float, y: Float, duration: Int, state: Int) {
-		this.x = x
-		this.y = y
+	fun init(pos: Vector2D, duration: Int, state: Int) {
+		this.pos.assign(pos)
 		this.duration = duration
 		this.state = state
 		this.num_sections = 0
@@ -65,8 +60,7 @@ abstract class AMissileSnake : Object() {
 		if (javaClass != other?.javaClass) return false
 		other as AMissileSnake
 
-		if (x != other.x) return false
-		if (y != other.y) return false
+		if (pos != other.pos) return false
 		if (duration != other.duration) return false
 		if (state != other.state) return false
 		return dir.contentEquals(other.dir)
@@ -79,13 +73,16 @@ abstract class AMissileSnake : Object() {
 
 
 @BinarySerializable("Powerup")
-abstract class APowerup : AMissile() {
+abstract class APowerup : Object() {
 	@BinaryType(UByte::class)
 	var type: Int = 0
+	@BinaryType(UByte::class)
+	var duration: Int = 0
 
-	fun init(x: Float, y: Float, dx: Float, dy: Float, duration: Int, type: Int) {
-		super.init(x, y, dx, dy, duration)
+	fun init(pos: Vector2D, type: Int) {
+		this.pos.assign(pos)
 		this.type = type
+		this.duration = 0
 	}
 }
 
@@ -121,8 +118,11 @@ class Wall(val id: Int, val v0: Int, val v1: Int) : Reflector<Wall>(), IBinarySe
 		target.portalId = id
 	}
 
+	fun isPerimeter(): Boolean = isPerimeterVertex(v0) && isPerimeterVertex(v1)
+
+
 	override fun toString(): String {
-		var str = getWallTypeString(type) + "[$id] " + v0 + "->" + v1
+		var str = getWallTypeString(type) + "[$id] " + nearV + "->" + farV
 		if (ending) str += "END"
 		when (type) {
 			WALL_TYPE_NORMAL -> str += "\nhealth=$health"
@@ -192,8 +192,7 @@ class Wall(val id: Int, val v0: Int, val v1: Int) : Reflector<Wall>(), IBinarySe
 
 @BinarySerializable("Player")
 abstract class APlayer : Object() {
-	var dx = 0f
-	var dy = 0f
+	val dv = MutableVector2D()
 
 	// Rectangle of visible maze
 	@Transient
@@ -202,10 +201,10 @@ abstract class APlayer : Object() {
 	var dir = DIR_DOWN
 	var scale = 1f
 	var score = 0
+
 	@BinaryType(UByte::class)
 	var lives = 0
-	var target_dx = 0f
-	var target_dy = 0f
+	val target_dv = MutableVector2D()
 	var start_cell = intArrayOf(0, 0)
 	@BinaryType(java.lang.Byte::class)
 	var powerup = -1
@@ -216,21 +215,17 @@ abstract class APlayer : Object() {
 	@BinaryType(UShort::class)
 	var movement = 0
 	var firing = false
-	var start_x: Float = 0f
-	var start_y: Float = 0f
+	val start_v = MutableVector2D()
 
 	//int killed_frame = 0; // the frame the player was killed
 	var missles = ManagedArray(Array(MAX_PLAYER_MISSLES) { Missile() })
-	var hulk_charge_dx = 0f
-	var hulk_charge_dy = 0f
 	var hulk_charge_frame = 0
 
 	//boolean teleported = false;
 	@BinaryType(UByte::class)
 	var state = PLAYER_STATE_SPAWNING
 	var next_state_frame = 0
-	var stun_dx = 0f
-	var stun_dy = 0f
+	val stun_dv = MutableVector2D()
 
 	@Transient
 	val tracer = ManagedArray(Array(PLAYER_SUPERSPEED_NUM_TRACERS) { Tracer() })
@@ -256,13 +251,11 @@ abstract class APlayer : Object() {
 	fun reset(frameNumber: Int) {
 		missles.clear()
 		tracer.clear()
-		x = start_x
-		y = start_y
+		pos.assign(start_v)
 		powerup = -1
 		scale = 1.0f
 		last_shot_frame = 0
-		stun_dy = 0f
-		stun_dx = 0f
+		stun_dv.zeroEq()
 		hit_index = -1
 		hit_type = -1
 		next_state_frame = frameNumber + PLAYER_SPAWN_FRAMES
@@ -289,12 +282,12 @@ abstract class AParticle : Object() {
 @BinarySerializable("Tracer")
 abstract class ATracer() : Object() {
 	var color = GColor.TRANSPARENT
+
 	@BinaryType(UByte::class)
 	var dir = 0
 
-	fun init(x: Float, y: Float, color: GColor, dir: Int = 0) {
-		this.x = x
-		this.y = y
+	fun init(pos: Vector2D, color: GColor, dir: Int = 0) {
+		this.pos.assign(pos)
 		this.color = color
 		this.dir = dir
 	}
@@ -323,9 +316,8 @@ abstract class AMessage : Object() {
 	var msg = ""
 	var color = GColor.TRANSPARENT
 
-	fun init(x: Float, y: Float, str: String, color: GColor = GColor.WHITE) {
-		this.x = x
-		this.y = y
+	fun init(pos: Vector2D, str: String, color: GColor = GColor.WHITE) {
+		this.pos.assign(pos)
 		this.msg = str
 		this.color = color
 	}

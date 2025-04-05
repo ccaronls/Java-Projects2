@@ -214,7 +214,7 @@ internal class BoardComponent : AWTRendererComponent<UIZBoardRenderer>(), UIZCom
 			while (i < ids.size) {
 				type.imageOptions[idx] = ids[i]
 				type.imageOutlineOptions[idx] = ids[i + 1]
-				type.imageDims[idx] = GDimension(g.getImage(type.imageOptions[idx]))
+				type.imageDims[idx] = GDimension(g.getImage(type.imageOptions[idx])!!)
 				idx++
 				i += 2
 			}
@@ -223,7 +223,7 @@ internal class BoardComponent : AWTRendererComponent<UIZBoardRenderer>(), UIZCom
 			objectToImageMap[pl]?.let {
 				pl.imageId = it[0]
 				pl.outlineImageId = it[1]
-				pl.imageDim = GDimension(g.getImage(pl.imageId))
+				pl.imageDim = GDimension(g.getImage(pl.imageId)!!)
 			} ?: error("Missing player type $pl")
 			pl.cardImageId = objectToImageMap[pl.name]?.get(0) ?: error("Missing card ${pl.name}")
 		}
@@ -308,7 +308,7 @@ internal class BoardComponent : AWTRendererComponent<UIZBoardRenderer>(), UIZCom
 			objectToImageMap[type]?.let {
 				type.imageId = it[0]
 				type.imageOutlineId = it[1]
-				type.dimension = GDimension(g.getImage(it[0]))
+				type.dimension = GDimension(g.getImage(it[0])!!)
 				numImagesLoaded += 2
 			} ?: run {
 				error("No type $type")

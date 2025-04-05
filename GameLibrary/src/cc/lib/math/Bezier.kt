@@ -1,79 +1,76 @@
-package cc.lib.math;
+package cc.lib.math
 
-import cc.lib.game.IInterpolator;
-import cc.lib.game.IVector2D;
+import cc.lib.game.IInterpolator
+import cc.lib.game.IVector2D
+import cc.lib.math.Vector2D.Companion.getLinearInterpolator
+import cc.lib.utils.GException
+import kotlin.math.abs
 
 /**
  * Generate a bezier curve
- * 
- * @author chriscaron
  *
+ * @author chriscaron
  */
-public final class Bezier implements IInterpolator<Vector2D> {
-	
-	private final IVector2D [] ctrl;
-    private int numCtrl = 0;
-	
-	public Bezier() {
-		ctrl = new IVector2D[4];
-	}
-	
-	public Bezier (IVector2D [] v) {
-		this.ctrl = v;
-		numCtrl = v.length;
-	}
-	
-	public Bezier addPoint(float x, float y) {
-        ctrl[numCtrl++] = new Vector2D(x, y);
-        return this;
+class Bezier : IInterpolator<Vector2D> {
+	private val ctrl: Array<IVector2D>
+	private var numCtrl = 0
+
+	constructor() {
+		ctrl = Array(4) { MutableVector2D() }
 	}
 
-	public void addPoint(IVector2D v) {
-        ctrl[numCtrl++] = new Vector2D(v);
-    }
+	constructor(v: Array<IVector2D>) {
+		ctrl = v
+		numCtrl = v.size
+	}
 
-    public void reset() {
-        numCtrl = 0;
-    }
+	fun addPoint(x: Float, y: Float): Bezier {
+		ctrl[numCtrl++] = Vector2D(x, y)
+		return this
+	}
 
-    @Override
-	public Vector2D getAtPosition(float t) {
-		if (numCtrl < 4)
-			throw new cc.lib.utils.GException();
-        float fW = 1 - t;
-        float fA = fW * fW * fW;
-        float fB = 3 * t * fW * fW;
-        float fC = 3 * t * t * fW;
-        float fD = t * t * t;
-        float fX = fA * ctrl[0].getX() + fB * ctrl[1].getX() + fC * ctrl[2].getX() + fD * ctrl[3].getX();
-        float fY = fA * ctrl[0].getY() + fB * ctrl[1].getY() + fC * ctrl[2].getY() + fD * ctrl[3].getY();
-        return new Vector2D(fX, fY);
-    }
+	fun addPoint(v: IVector2D) {
+		ctrl[numCtrl++] = Vector2D(v)
+	}
 
-    /**
-     * Construct a curve
-     *
-     * @param r0  start of curve
-     * @param r1  end of curve
-     * @param arc fraction of distance between r0 and r1 to arc. 0 is same as no arc and .5 would be a perfect half-circle
-     * @return
-     */
-    public static IInterpolator<Vector2D> build(Vector2D r0, Vector2D r1, float arc) {
+	fun reset() {
+		numCtrl = 0
+	}
 
-        if (Math.abs(arc) < 0.001)
-            return Vector2D.getLinearInterpolator(r0, r1);
+	override fun getAtPosition(t: Float): Vector2D {
+		if (numCtrl < 4) throw GException()
+		val fW = 1 - t
+		val fA = fW * fW * fW
+		val fB = 3 * t * fW * fW
+		val fC = 3 * t * t * fW
+		val fD = t * t * t
+		val fX = fA * ctrl[0].x + fB * ctrl[1].x + fC * ctrl[2].x + fD * ctrl[3].x
+		val fY = fA * ctrl[0].y + fB * ctrl[1].y + fC * ctrl[2].y + fD * ctrl[3].y
+		return Vector2D(fX, fY)
+	}
 
-        Bezier curve = new Bezier();
-        curve.addPoint(r0);
-        Vector2D dv = r1.sub(r0);
-        MutableVector2D N = dv.norm().scaledBy(arc);
-        if (N.getY() > 0) {
-            N.setY(-N.getY());
-        }
-        curve.addPoint(r0.add(dv.scaledBy(.33f)).add(N));
-        curve.addPoint(r0.add(dv.scaledBy(.66f)).add(N));
-
-        curve.addPoint(r1);
-        return curve;
-    }
+	companion object {
+		/**
+		 * Construct a curve
+		 *
+		 * @param r0  start of curve
+		 * @param r1  end of curve
+		 * @param arc fraction of distance between r0 and r1 to arc. 0 is same as no arc and .5 would be a perfect half-circle
+		 * @return
+		 */
+		fun build(r0: Vector2D, r1: Vector2D, arc: Float): IInterpolator<Vector2D> {
+			if (abs(arc) < 0.001) return getLinearInterpolator(r0, r1)
+			val curve = Bezier()
+			curve.addPoint(r0)
+			val dv = r1 - r0
+			val N = dv.norm().scaleEq(arc)
+			if (N.y > 0) {
+				N.setY(-N.y)
+			}
+			curve.addPoint((r0 + dv * .33f) + N)
+			curve.addPoint((r0 + dv * .66f) + N)
+			curve.addPoint(r1)
+			return curve
+		}
+	}
 }
