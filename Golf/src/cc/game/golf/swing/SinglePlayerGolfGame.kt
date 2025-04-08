@@ -1,219 +1,182 @@
-package cc.game.golf.swing;
+package cc.game.golf.swing
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
+import cc.game.golf.ai.PlayerBot
+import cc.game.golf.core.Card
+import cc.game.golf.core.DrawType
+import cc.game.golf.core.Golf
+import cc.game.golf.core.State
+import cc.game.golf.swing.GolfSwing
+import cc.lib.utils.FileUtils
+import cc.lib.utils.launchIn
+import kotlinx.coroutines.delay
+import java.io.File
+import java.io.IOException
 
-import cc.game.golf.ai.PlayerBot;
-import cc.game.golf.core.*;
-import cc.lib.swing.AWTUtils;
-import cc.lib.utils.FileUtils;
+class SinglePlayerGolfGame internal constructor(val g: GolfSwing) : Golf(), IGolfGame {
+	private val SAVE_FILE // = new File("savegame.txt");
+		: File
+	private val RULES_FILE // = new File("savedrules.txt");
+		: File
+	var running = false
 
-public class SinglePlayerGolfGame  extends Golf implements IGolfGame, Runnable {
+	init {
+		val settings = FileUtils.getOrCreateSettingsDirectory(GolfSwing::class.java)
+		SAVE_FILE = File(settings, "savegame.txt")
+		RULES_FILE = File(settings, "savedrules.txt")
+		loadRules()
+	}
 
-    private final File SAVE_FILE;// = new File("savegame.txt");
-    private final File RULES_FILE;// = new File("savedrules.txt");
-    
-    final GolfSwing g;
-    boolean running = false;
-    
-    SinglePlayerGolfGame(GolfSwing g) {
-        this.g = g;
-        File settings = FileUtils.getOrCreateSettingsDirectory(GolfSwing.class);
-        SAVE_FILE = new File(settings, "savegame.txt");
-        RULES_FILE = new File(settings, "savedrules.txt");
-        loadRules();
-    }
-    
-    @Override
-    public int getFrontPlayer() {
-        if (getState() == State.DEAL)
-            return getDealer();
-        if (getPlayer(getCurrentPlayer()) instanceof SwingPlayerUser)
-            return this.getCurrentPlayer();
-        return 0;
-    }
+	override val frontPlayer: Int
+		get() {
+			if (state == State.DEAL) return dealer
+			return if (getPlayer(currentPlayer) is SwingPlayerUser) currentPlayer else 0
+		}
 
-    @Override
-    public Card[][] getPlayerCards(int player) {
-        return getPlayer(player).getCards();
-    }
+	override fun getPlayerCards(player: Int): Array<Array<Card?>> {
+		return getPlayer(player).getCards()
+	}
 
-    @Override
-    public String getPlayerName(int player) {
-        return getPlayer(player).getName();
-    }
+	override fun getPlayerName(player: Int): String {
+		return getPlayer(player).name
+	}
 
-    @Override
-    public int getHandPoints(int player) {
-        return getPlayer(player).getHandPoints(this);
-    }
+	override fun getHandPoints(player: Int): Int {
+		return getPlayer(player).getHandPoints(this)
+	}
 
-    @Override
-    public int getPlayerPoints(int player) {
-        return getPlayer(player).getPoints();
-    }
+	override fun getPlayerPoints(player: Int): Int {
+		return getPlayer(player).points
+	}
 
-    @Override
-    public Card getPlayerCard(int player, int row, int col) {
-        return getPlayer(player).getCard(row, col);
-    }
+	override fun getPlayerCard(player: Int, row: Int, col: Int): Card {
+		return getPlayer(player).getCard(row, col)
+	}
 
-    @Override
-    protected void message(String format, Object... params) {
-        super.message(format, params);
-        g.setMessage(String.format(format, params));
-    }
+	override fun message(format: String, vararg params: Any?) {
+		super.message(format, *params)
+		g.setMessage(String.format(format, *params))
+	}
 
-    @Override
-    protected void onKnock(int player) {
-        // TODO Auto-generated method stub
-        super.onKnock(player);
-    }
+	override fun onKnock(player: Int) {
+		// TODO Auto-generated method stub
+		super.onKnock(player)
+	}
 
-    @Override
-    protected void onCardSwapped(int player, DrawType dtstack, Card drawn, Card swapped, int row, int col) {
-        g.startSwapCardAnimation(player, dtstack, drawn, row, col);                
-    }
+	override fun onCardSwapped(player: Int, dtstack: DrawType?, drawn: Card?, swapped: Card?, row: Int, col: Int) {
+		g.startSwapCardAnimation(player, dtstack!!, drawn!!, row, col)
+	}
 
-    @Override
-    protected void onCardDiscarded(int player, DrawType dtstack, Card swapped) {
-        g.startDiscardDrawnCardAnimation(swapped);
-    }
+	override fun onCardDiscarded(player: Int, dtstack: DrawType?, swapped: Card?) {
+		g.startDiscardDrawnCardAnimation(swapped!!)
+	}
 
-    @Override
-    protected void onDealCard(int player, Card card, int row, int col) {
-        g.startDealCardAnimation(player, card, row, col);
-    }
+	override fun onDealCard(player: Int, card: Card?, row: Int, col: Int) {
+		g.startDealCardAnimation(player, card!!, row, col)
+	}
 
-    @Override
-    protected void onCardTurnedOver(int player, Card card, int row, int col) {
-        g.startTurnOverCardAnimation(player, card, row, col);                    
-    }
+	override fun onCardTurnedOver(player: Int, card: Card?, row: Int, col: Int) {
+		g.startTurnOverCardAnimation(player, card!!, row, col)
+	}
 
-    @Override
-    protected void onDrawPileChoosen(int player, DrawType type) {
-        if (type == DrawType.DTStack) {
-            g.startTurnOverCardAnimationStack();
-        }
-    }
+	override fun onDrawPileChoosen(player: Int, type: DrawType?) {
+		if (type == DrawType.DTStack) {
+			g.startTurnOverCardAnimationStack()
+		}
+	}
 
-    @Override
-    protected void onChooseCardToSwap(int player, Card card, int row, int col) {
-        if (!card.isShowing())
-            g.startTurnOverCardAnimation(player, card, row, col);                    
-    }
+	override fun onChooseCardToSwap(player: Int, card: Card?, row: Int, col: Int) {
+		if (!card!!.isShowing) g.startTurnOverCardAnimation(player, card, row, col)
+	}
 
-    public void run() {
-        State prevState = State.INIT;
-        try {
-            while (running) {
-                synchronized (this) {
-                    if (prevState != getState()) {
-                        prevState = getState();
-                        saveGame(SAVE_FILE);
-                    }
-                    if (prevState != getState())
-                        System.out.println("Processing state: " + getState());
-                    switch (getState()) {
-                        case DEAL:
-                            //golf.wait(250);
-                            break;
-                        case TURN_OVER_CARDS:
-                        case SETUP_DISCARD_PILE:
-                        case PLAY:
-                        case DISCARD_OR_PLAY:
-                            break;
-                        case END_ROUND:
-                        case GAME_OVER:
-                            wait(20000);
-                            break;
-                        case INIT:
-                            break;
-                        case PROCESS_ROUND:
-                            break;
-                        case SHUFFLE:
-                            break;
-                        case TURN:
-                            break;
-                        default:
-                            break;
-                    }
-                    if (running)
-                        runGame();
-                }
-            }
-        } catch (Throwable e) {
-            e.printStackTrace();
-        }
-        System.out.println("Thread exiting");
-        clear();
-        running = false;
-    }
-    
-    private synchronized void startThread() {
-        if (running)
-            return;
-        running = true;
-        new Thread(this).start();
-    }
+	suspend fun run() {
+		var prevState = State.INIT
+		try {
+			while (running) {
+				if (prevState != state) {
+					prevState = state
+					saveGame(SAVE_FILE)
+				}
+				if (prevState != state) println("Processing state: $state")
+				when (state) {
+					State.DEAL -> {}
+					State.TURN_OVER_CARDS, State.SETUP_DISCARD_PILE, State.PLAY, State.DISCARD_OR_PLAY -> {}
+					State.END_ROUND, State.GAME_OVER -> delay(20000)
+					State.INIT -> {}
+					State.PROCESS_ROUND -> {}
+					State.SHUFFLE -> {}
+					State.TURN -> {}
+				}
+				if (running)
+					runGame()
+			}
+		} catch (e: Throwable) {
+			e.printStackTrace()
+		}
+		println("Thread exiting")
+		clear()
+		running = false
+	}
 
-    void loadRules() {
-        if (RULES_FILE.exists()) {
-            try {
-                getRules().loadFromFile(RULES_FILE);
-                clear();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
+	private fun startThread() {
+		if (running) return
+		running = true
+		launchIn {
+			run()
+		}
+	}
 
-    void saveRules() {
-        getRules().trySaveToFile(RULES_FILE);
-        clear();
-    }
+	fun loadRules() {
+		if (RULES_FILE.exists()) {
+			try {
+				rules.loadFromFile(RULES_FILE)
+				clear()
+			} catch (e: Exception) {
+				e.printStackTrace()
+			}
+		}
+	}
 
-    public boolean canResume() {
-        return SAVE_FILE.exists();
-    }
-    
-    public void updateRules()  {
-        saveRules();
-    }
-    
-    public void quit() {
-        running = false;
-    }
-    
-    public boolean isRunning() {
-        return running;
-    }
+	fun saveRules() {
+		rules.trySaveToFile(RULES_FILE)
+		clear()
+	}
 
-    @Override
-    public void resume() throws IOException {
-        loadGame(SAVE_FILE);
-        for (int i=0; i<getNumPlayers(); i++) {
-            Player p = getPlayer(i);
-            if (p != null && (p instanceof SwingPlayerUser)) {
-                ((SwingPlayerUser)p).setGolfSwing(g);
-            }
-        }
-        startThread();        
-    }
+	override fun canResume(): Boolean {
+		return SAVE_FILE.exists()
+	}
 
-    @Override
-    public void startNewGame() {
+	override fun updateRules() {
+		saveRules()
+	}
+
+	override fun quit() {
+		running = false
+	}
+
+	override val isRunning: Boolean
+		get() = running
+
+	@Throws(IOException::class)
+	override fun resume() {
+		loadGame(SAVE_FILE)
+		for (i in 0 until numPlayers) {
+			val p = getPlayer(i)
+			if (p != null && p is SwingPlayerUser) {
+				p.setGolfSwing(g)
+			}
+		}
+		startThread()
+	}
+
+	override fun startNewGame() {
 //        addPlayer(new SwingPlayerUser("Chris0", g));
 //        addPlayer(new SwingPlayerUser("Chris1", g));
 //        addPlayer(new SwingPlayerUser("Chris2", g));
 //        addPlayer(new SwingPlayerUser("Chris3", g));
-        addPlayer(new SwingPlayerUser("Chris", g));
-        addPlayer(new PlayerBot("Harry"));
-        addPlayer(new PlayerBot("Phil"));
-        addPlayer(new PlayerBot("Tom"));
-        startThread();
-    }
-    
+		addPlayer(SwingPlayerUser("Chris", g))
+		addPlayer(PlayerBot("Harry"))
+		addPlayer(PlayerBot("Phil"))
+		addPlayer(PlayerBot("Tom"))
+		startThread()
+	}
 }
