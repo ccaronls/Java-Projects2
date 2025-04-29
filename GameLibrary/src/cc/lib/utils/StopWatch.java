@@ -108,8 +108,8 @@ public class StopWatch extends Reflector<StopWatch> {
     }
 
     @Override
-    protected void deserialize(RBufferedReader in) throws IOException {
-        super.deserialize(in);
+    protected void deserialize(RBufferedReader input) throws IOException {
+        super.deserialize(input);
         if (started) {
             pauseTime = startTime = getClockMiliseconds();
         }

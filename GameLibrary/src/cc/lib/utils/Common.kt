@@ -14,9 +14,18 @@ import java.util.Stack
 import kotlin.coroutines.CoroutineContext
 import kotlin.math.roundToInt
 import kotlin.properties.ReadWriteProperty
+import kotlin.random.Random
+import kotlin.random.nextInt
+import kotlin.random.nextUInt
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KProperty
 import kotlin.system.exitProcess
+
+private var RANDOM = Random(System.currentTimeMillis())
+
+fun setRandomSeed(seed: Long) {
+	RANDOM = Random(seed)
+}
 
 fun <T> MutableMap<T, Int>.increment(obj: T, amt: Int = 1) {
 	when (val count = get(obj)) {
@@ -25,8 +34,8 @@ fun <T> MutableMap<T, Int>.increment(obj: T, amt: Int = 1) {
 	}
 }
 
-fun Char.repeat(times: Int) : String {
-    val buf = StringBuffer(times)
+fun Char.repeat(times: Int): String {
+	val buf = StringBuffer(times)
     for (i in 0 until times) {
         buf.append(this)
     }
@@ -40,7 +49,7 @@ fun <T> List<T>.appendedWith(other: Collection<T>) : MutableList<T> {
 }
 
 fun <T> MutableList<T>.removeRandom() : T {
-	val item = random()
+	val item = random(RANDOM)
 	assert(remove(item))
 	return item
 }
@@ -77,35 +86,35 @@ fun hashCode(vararg objects: Any?) : Int {
  * Return random in range 0 to this
  */
 fun Float.random() : Float {
-	return Utils.randFloat(this)
+	return randomFloat(this)
 }
 
 /**
  * return + or - random in range 0-this
  */
 fun Float.randomSigned() : Float {
-	return Utils.randFloatPlusOrMinus(this)
+	return RANDOM.nextFloat() * (this * 2) - this
 }
 
 /**
  * return random int in range 0 to this-1
  */
 fun random(range: Int): Int {
-	return if (range > 0) Utils.rand() % range else -1
+	return if (range > 0) RANDOM.nextInt(range) else -1
 }
 
 /**
  * Return random int in range
  */
 fun random(range: IntRange): Int {
-	return Utils.randRange(range.first, range.last)
+	return RANDOM.nextInt(range)
 }
 
 /**
  * Return random unsigned int in range
  */
 fun random(range: UIntRange): UInt {
-	return Utils.rand().toUInt() % (range.last - range.first + 1u) + range.first
+	return RANDOM.nextUInt(range)
 }
 
 /**
@@ -116,7 +125,22 @@ fun random(range: UIntRange): UInt {
  * 2 -> 2 out of 3
  */
 fun IntArray.randomWeighted(): Int {
-	return Utils.chooseRandomFromSet(*this)
+	var total = sum()
+	if (total <= 0) {
+		return -1
+	}
+	var r = RANDOM.nextInt(total)
+	var i = 0
+	while (i < size) {
+		r -= if (get(i) <= r) {
+			get(i)
+		} else {
+			break
+		}
+		i++
+	}
+	require(get(i) > 0)
+	return i
 }
 
 /**
@@ -399,9 +423,11 @@ fun <T> List<T>.randomIndex() = random(indices)
 
 fun <T> List<T>.randomIndexOrNull() = if (isNotEmpty()) random(indices) else null
 
-fun randomFloat(max: Float): Float = random((max * 1000).roundToInt()) / 1000f
+fun randomFloat(max: Number): Float = RANDOM.nextFloat() * max.toFloat()
 
-fun randomFloat(min: Float, max: Float) = random(((max - min) * 1000).roundToInt()) / 1000f
+fun randomFloatPlusOrMinus(bounds: Number): Float = RANDOM.nextFloat() * (bounds.toFloat() * 2) - bounds.toFloat()
+
+fun randomFloat(min: Number, max: Number) = RANDOM.nextFloat() * (max.toFloat() - min.toFloat()) + min.toFloat()
 
 fun Float.squared(): Float = this * this
 
@@ -409,3 +435,31 @@ fun randomFloat(range: ClosedRange<*>): Float = randomFloat(
 	(range.start as Number).toFloat(),
 	(range.endInclusive as Number).toFloat()
 )
+
+fun <T> Iterable<T>.contains(predicate: (T) -> Boolean): Boolean {
+	forEach {
+		if (predicate(it))
+			return true
+	}
+	return false
+}
+
+fun <T> Iterable<T>.notContains(predicate: (T) -> Boolean): Boolean = contains(predicate).not()
+
+fun unhandledCase(obj: Any?) = require(false) { "Unhandled case $obj" }
+
+fun Boolean.toOnOffStr() = if (this) "ON" else "OFF"
+
+fun <K, V> noDupesMapOf(vararg pairs: kotlin.Pair<K, V>): Map<K, V> = NoDupesMap<K, V>(LinkedHashMap()).also {
+	for ((k, v) in pairs) {
+		it[k] = v
+	}
+}
+
+inline fun <S, T> kotlin.Pair<S?, T?>.hasBothOrNull(): kotlin.Pair<S, T>? {
+	return if (first != null && second != null) kotlin.Pair(first!!, second!!) else null
+}
+
+inline fun <R, S, T> Triple<R?, S?, T?>.hasAllOrNull(): Triple<R, S, T>? {
+	return if (first != null && second != null && third != null) Triple(first!!, second!!, third!!) else null
+}

@@ -1,13 +1,22 @@
 package cc.lib.game
 
+import cc.lib.ksp.binaryserializer.readFloat
+import cc.lib.ksp.binaryserializer.writeFloat
 import cc.lib.math.MutableVector2D
 import cc.lib.math.Vector2D
+import cc.lib.reflector.Alternate
 import cc.lib.reflector.Reflector
+import java.nio.ByteBuffer
 
 open class GRectangle : Reflector<GRectangle>, IRectangle {
+
+	@Alternate("x")
 	override var left = 0f
+	@Alternate("y")
 	override var top = 0f
+	@Alternate("w")
 	override var width = 0f
+	@Alternate("h")
 	override var height = 0f
 
 	constructor()
@@ -64,6 +73,27 @@ open class GRectangle : Reflector<GRectangle>, IRectangle {
 		this.top = top
 		width = right - left
 		height = bottom - top
+	}
+
+	fun copy(other: GRectangle) {
+		left = other.left
+		top = other.top
+		width = other.width
+		height = other.height
+	}
+
+	fun serialize(output: ByteBuffer) {
+		output.writeFloat(left)
+		output.writeFloat(top)
+		output.writeFloat(width)
+		output.writeFloat(height)
+	}
+
+	fun deserialize(input: ByteBuffer) {
+		left = input.readFloat()
+		top = input.readFloat()
+		width = input.readFloat()
+		height = input.readFloat()
 	}
 
 	/**

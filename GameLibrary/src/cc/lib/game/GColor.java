@@ -2,9 +2,7 @@ package cc.lib.game;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.nio.ByteBuffer;
 
 import cc.lib.reflector.Reflector;
 
@@ -142,14 +140,18 @@ public final class GColor extends Reflector<GColor> {
     }
 
     public int alpha() {
-        return (argb>>>24)&0xff;
+        return (argb >>> 24) & 0xff;
     }
 
     public void set(int r, int g, int b, int a) {
-        argb = (Utils.clamp(a, 0, 255)<<24)
-                | (Utils.clamp(r, 0, 255)<<16)
-                | (Utils.clamp(g, 0, 255)<<8)
+        argb = (Utils.clamp(a, 0, 255) << 24)
+                | (Utils.clamp(r, 0, 255) << 16)
+                | (Utils.clamp(g, 0, 255) << 8)
                 | Utils.clamp(b, 0, 255);
+    }
+
+    public void setFloat(float r, float g, float b, float a) {
+        set(Math.round(255f * r), Math.round(255f * g), Math.round(255f * b), Math.round(255f * a));
     }
 
     /**
@@ -284,14 +286,14 @@ public final class GColor extends Reflector<GColor> {
     public GColor interpolateTo(GColor target, float factor) {
 
         if (factor > 0.99)
-            return this;
-        if (factor < 0.01)
             return target;
+        if (factor < 0.01)
+            return this;
 
-        float R = Utils.clamp(getRed() * factor + target.getRed() * (1.0f - factor), 0, 1);
-        float G = Utils.clamp(getGreen() * factor + target.getGreen() * (1.0f - factor), 0, 1);
-        float B = Utils.clamp(getBlue() * factor + target.getBlue() * (1.0f - factor), 0, 1);
-        float A = Utils.clamp(getAlpha() * factor + target.getAlpha() * (1.0f - factor), 0, 1);
+        float R = Utils.clamp(getRed() * (1f - factor) + target.getRed() * factor, 0, 1);
+        float G = Utils.clamp(getGreen() * (1f - factor) + target.getGreen() * factor, 0, 1);
+        float B = Utils.clamp(getBlue() * (1f - factor) + target.getBlue() * factor, 0, 1);
+        float A = Utils.clamp(getAlpha() * (1f - factor) + target.getAlpha() * factor, 0, 1);
 
         return new GColor(R, G, B, A);
     }
@@ -336,22 +338,28 @@ public final class GColor extends Reflector<GColor> {
 
     /**
      * Return color with RGB components equal to 1-RGB. [.5,.5,.5] will be unchanged.
+     *
      * @return
      */
     public GColor inverted() {
         return new GColor(1f - getRed(), 1f - getGreen(), 1f - getBlue(), getAlpha());
     }
 
+    public GColor invert() {
+        setFloat(1f - getRed(), 1f - getGreen(), 1f - getBlue(), getAlpha());
+        return this;
+    }
+
     public IInterpolator<GColor> getInterpolator(GColor target) {
         return position -> interpolateTo(target, position);
     }
 
-    public void serialize(@NotNull DataOutputStream output) throws IOException {
-        output.writeInt(argb);
+    public void serialize(@NotNull ByteBuffer output) {
+        output.putInt(argb);
     }
 
-    public void deserialize(@NotNull DataInputStream input) throws IOException {
-        argb = input.readInt();
+    public void deserialize(@NotNull ByteBuffer input) {
+        argb = input.getInt();
     }
 
     public void copy(GColor other) {

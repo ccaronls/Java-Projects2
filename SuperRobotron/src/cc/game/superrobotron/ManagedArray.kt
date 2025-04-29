@@ -1,9 +1,9 @@
 package cc.game.superrobotron
 
 import cc.lib.ksp.binaryserializer.IBinarySerializable
-import java.io.DataInputStream
-import java.io.DataOutputStream
-import java.io.IOException
+import cc.lib.ksp.binaryserializer.readUShort
+import cc.lib.ksp.binaryserializer.writeUShort
+import java.nio.ByteBuffer
 import kotlin.math.max
 import kotlin.math.min
 
@@ -47,26 +47,23 @@ class ManagedArray<T : IBinarySerializable<T>>(private val array: Array<T>) : IB
 	fun isNotFull(): Boolean = !isFull()
 
 	override fun copy(other: ManagedArray<T>) {
-		if (capacity < other.size)
-			throw IllegalArgumentException("Cannot copy form managed array with ${other.size} elements into array with capacity $capacity")
+		require(capacity >= other.size) { "Cannot copy form managed array with ${other.size} elements into array with capacity $capacity" }
 		size = other.size
-		for (i in 0 until size) {
+		for (i in indices) {
 			array[i].copy(other.array[i])
 		}
 	}
 
-	@Throws(IOException::class)
-	override fun serialize(output: DataOutputStream) {
-		output.writeShort(size)
-		for (i in 0 until size) {
+	override fun serialize(output: ByteBuffer) {
+		output.writeUShort(size)
+		for (i in indices) {
 			array[i].serialize(output)
 		}
 	}
 
-	@Throws(IOException::class)
-	override fun deserialize(input: DataInputStream) {
-		size = input.readUnsignedShort()
-		for (i in 0 until size) {
+	override fun deserialize(input: ByteBuffer) {
+		size = input.readUShort()
+		for (i in indices) {
 			array[i].deserialize(input)
 		}
 	}
@@ -74,6 +71,11 @@ class ManagedArray<T : IBinarySerializable<T>>(private val array: Array<T>) : IB
 	operator fun get(idx: Int) = array[idx]
 
 	fun getOrNull(idx: Int) = if (idx in indices) array[idx] else null
+
+	fun getOrAdd(idx: Int): T = getOrNull(idx) ?: run {
+		require(idx == size)
+		return add()
+	}
 
 	fun clear() {
 		size = 0
@@ -111,6 +113,7 @@ class ManagedArray<T : IBinarySerializable<T>>(private val array: Array<T>) : IB
 		return true
 	}
 
+	@Suppress("SizeZeroCheck")
 	override fun isEmpty(): Boolean = size == 0
 
 	fun copyInto(other: ManagedArray<T>) {
@@ -118,5 +121,15 @@ class ManagedArray<T : IBinarySerializable<T>>(private val array: Array<T>) : IB
 		for (i in indices) {
 			other.array[i].copy(array[i])
 		}
+	}
+
+	override fun contentEquals(other: ManagedArray<T>): Boolean {
+		if (size != other.size)
+			return false
+		for (i in indices) {
+			if (!array[i].contentEquals(other.array[i]))
+				return false
+		}
+		return true
 	}
 }

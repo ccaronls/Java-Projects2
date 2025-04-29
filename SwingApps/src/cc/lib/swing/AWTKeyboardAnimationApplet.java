@@ -53,6 +53,8 @@ package cc.lib.swing;
     Small modifications 18 February 2000
 */
 
+import org.jetbrains.annotations.NotNull;
+
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -130,36 +132,54 @@ public abstract class AWTKeyboardAnimationApplet extends JApplet implements
 	 g.drawString("Frame Number:  " + (getFrameNumber()),10,35);
 	 }*/
 
-	@Override
-	public void keyTyped(KeyEvent evt) {
-	}
+    @Override
+    public void keyTyped(KeyEvent evt) {
+    }
 
-	@Override
-	public void keyPressed(KeyEvent evt) {
-		int c = evt.getKeyChar();
-		Utils.assertTrue(c >= 0);
-		if (c >= 0 && c < keyboard.length) {
-    		if (keyboard[c] == 0 || this.keyRepeat)
-    			keyboard[c] = 1;
-		}
-	}
+    protected boolean reportKeyRepeats() {
+        return true;
+    }
 
-	@Override
-	public void keyReleased(KeyEvent evt) {
+    @Override
+    public final void keyPressed(KeyEvent evt) {
         int c = evt.getKeyChar();
-		if (c >= 0 && c < keyboard.length)
-		    keyboard[evt.getKeyChar()] = 0;
-	}
+        Utils.assertTrue(c >= 0);
+        if (c >= 0 && c < keyboard.length) {
+            if (keyboard[c] == 0 || (this.keyRepeat && reportKeyRepeats())) {
+                keyboard[c] = 1;
+                onKeyPressed(evt);
+            }
+        }
+    }
 
-	/**
-	 * Get the current frame number.  The frame number will be incremented
-	 * each time a new frame is to be drawn.  The first frame number is 0.
-	 * (If frameCount is greater than zero, and if frameNumber is greater than
-	 * or equal to frameCount, then frameNumber returns to 0.)  For a keyboard
-	 * applet, you are not too likely to need frame numbers, actually.
-	 * 
-	 * @return
-	 */
+    protected void onKeyPressed(@NotNull KeyEvent evt) {
+
+    }
+
+    @Override
+    public final void keyReleased(KeyEvent evt) {
+        int c = evt.getKeyChar();
+        if (c >= 0 && c < keyboard.length) {
+            if (keyboard[evt.getKeyChar()] != 0) {
+                keyboard[evt.getKeyChar()] = 0;
+                onKeyReleased(evt);
+            }
+        }
+    }
+
+    protected void onKeyReleased(@NotNull KeyEvent evt) {
+
+    }
+
+    /**
+     * Get the current frame number.  The frame number will be incremented
+     * each time a new frame is to be drawn.  The first frame number is 0.
+     * (If frameCount is greater than zero, and if frameNumber is greater than
+     * or equal to frameCount, then frameNumber returns to 0.)  For a keyboard
+     * applet, you are not too likely to need frame numbers, actually.
+     *
+     * @return
+     */
 	public final int getFrameNumber() {
 		return frameNumber;
 	}
@@ -206,26 +226,31 @@ public abstract class AWTKeyboardAnimationApplet extends JApplet implements
 
 	/**
 	 * Set the approximate number of milliseconds to be used for each frame.
-	 * For example, set time = 1000 if you want each frame to be displayed for
-	 * about a second.  The time is only approximate, and the actual display
-	 * time will probably be a bit longer.  The default value of 40 is
-	 * probably OK for a game.
-	 * 
-	 * @param time
-	 */
-	public final void setMillisecondsPerFrame(int time) {
-		millisecondsPerFrame = time;
-	}
-	
-	/**
-	 * Set the target FPS to run at.  There is no guarantee the app will run at the FPS, 
-	 * but the app should not exceed to target FPS.
-	 * @param fps value > 0
-	 */
-	public final void setTargetFPS(int fps) {
-		if (fps <= 0)
-			throw new IllegalArgumentException("Invalid fps value: " + fps);
-		setMillisecondsPerFrame(1000/fps);
+     * For example, set time = 1000 if you want each frame to be displayed for
+     * about a second.  The time is only approximate, and the actual display
+     * time will probably be a bit longer.  The default value of 40 is
+     * probably OK for a game.
+     *
+     * @param time
+     */
+    public final void setMillisecondsPerFrame(int time) {
+        millisecondsPerFrame = time;
+    }
+
+    public final int getMillisecondsPerFrame() {
+        return millisecondsPerFrame;
+    }
+
+    /**
+     * Set the target FPS to run at.  There is no guarantee the app will run at the FPS,
+     * but the app should not exceed to target FPS.
+     *
+     * @param fps value > 0
+     */
+    public final void setTargetFPS(int fps) {
+        if (fps <= 0)
+            throw new IllegalArgumentException("Invalid fps value: " + fps);
+        setMillisecondsPerFrame(1000/fps);
 	}
 
 	/**
@@ -507,12 +532,13 @@ public abstract class AWTKeyboardAnimationApplet extends JApplet implements
 							+ (thisTime - startTime);
 				if (frameCount >= 0 && frameNumber >= frameCount)
 					frameNumber = 0;
-				if (OSC != null) {
-					try {
-						drawFrame(OSG); // draw current fram to OSC
-					} catch (Throwable t) {
-						t.printStackTrace();
-					}
+                if (OSC != null) {
+                    try {
+                        drawFrame(OSG); // draw current frame to OSC
+                    } catch (Throwable t) {
+                        t.printStackTrace();
+                        status = Status.SUSPEND;
+                    }
 					long t = getTimeMilis();
 					long frameTime = t - lastFpsTime;
 					lastFpsTime = t;
@@ -557,6 +583,7 @@ public abstract class AWTKeyboardAnimationApplet extends JApplet implements
 		// The applet now has the input focus. Set focussed = true and repaint.
 		// Also, if both (focussed && status == GO), the animation will start,
 		// so we have to restart the timing utility by setting startTime = -1;
+        Arrays.fill(keyboard,0);
 		grabFocus();
 		onPauseChanged(false);
 	}
@@ -567,30 +594,36 @@ public abstract class AWTKeyboardAnimationApplet extends JApplet implements
 	 */
 	synchronized public final void focusLost(FocusEvent evt) {
         log.info("focusLost");
-		// The applet has lostthe input focus. Set focussed = false and repaint.
-		// Also, if both (focussed && status == GO) were previously true, then
-		// the animation will be stopped at this point, so we should record the time.
-		focussed = false;
-		repaint(); // redraw without cyan border
-		if (status == Status.GO)
-			oldElapsedTime += (getTimeMilis() - startTime);
+        // The applet has lostthe input focus. Set focussed = false and repaint.
+        // Also, if both (focussed && status == GO) were previously true, then
+        // the animation will be stopped at this point, so we should record the time.
+        if (!canPauseOnLostFocus())
+            return;
+        focussed = false;
+        repaint(); // redraw without cyan border
+        if (status == Status.GO)
+            oldElapsedTime += (getTimeMilis() - startTime);
         synchronized (runLock) {
             runLock.notify();
         }
         onPauseChanged(true);
-	}
-	
-	protected void onPauseChanged(boolean paused) {
-		
-	}
+    }
 
-	private int eventToInt(int evtButton) {
-		switch (evtButton) {
-			case MouseEvent.BUTTON1:
-				return 0;
-			case MouseEvent.BUTTON2:
-				return 1;
-			case MouseEvent.BUTTON3:
+    protected void onPauseChanged(boolean paused) {
+
+    }
+
+    protected boolean canPauseOnLostFocus() {
+        return true;
+    }
+
+    private int eventToInt(int evtButton) {
+        switch (evtButton) {
+            case MouseEvent.BUTTON1:
+                return 0;
+            case MouseEvent.BUTTON2:
+                return 1;
+            case MouseEvent.BUTTON3:
 				return 2;
 		}
 		return 4;

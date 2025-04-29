@@ -5,6 +5,7 @@ import cc.lib.math.MutableVector2D
 import cc.lib.math.Vector2D
 import cc.lib.math.Vector2D.Companion.getLinearInterpolator
 import cc.lib.utils.randomFloat
+import cc.lib.utils.randomFloatPlusOrMinus
 import cc.lib.utils.squared
 import kotlin.math.abs
 import kotlin.math.acos
@@ -210,7 +211,7 @@ interface IVector2D {
 	 */
 	fun angleBetweenSigned(v: IVector2D): Float {
 		val ang = angleBetween(v)
-		Utils.assertTrue(ang >= 0)
+		require(ang >= 0)
 		return if (cross(v) < 0) {
 			-ang
 		} else {
@@ -314,7 +315,7 @@ interface IVector2D {
 	}
 
 	fun withJitter(jitterX: Number, jitterY: Number, out: MutableVector2D = Vector2D.getFromPool()): MutableVector2D {
-		return out.assign(x + Utils.randFloatPlusOrMinus(jitterX.toFloat()), y + Utils.randFloatPlusOrMinus(jitterY.toFloat()))
+		return out.assign(x + randomFloatPlusOrMinus(jitterX.toFloat()), y + randomFloatPlusOrMinus(jitterY.toFloat()))
 	}
 
 	fun withJitter(jitter: Number, out: MutableVector2D = Vector2D.getFromPool()): MutableVector2D {
@@ -327,4 +328,6 @@ interface IVector2D {
 	operator fun div(scaleFactor: Number): MutableVector2D = scaledBy(1f / scaleFactor.toFloat())
 	operator fun times(other: IVector2D): Float = dot(other)
 	operator fun unaryMinus(): MutableVector2D = scaledBy(-1f)
+	operator fun component1(): Float = x
+	operator fun component2(): Float = y
 }

@@ -1,9 +1,7 @@
 package cc.lib.math
 
 import cc.lib.game.IVector2D
-import java.io.DataInputStream
-import java.io.DataOutputStream
-import java.io.IOException
+import java.nio.ByteBuffer
 
 class MutableVector2D() : Vector2D() {
 
@@ -149,16 +147,9 @@ class MutableVector2D() : Vector2D() {
 		return this
 	}
 
-	@Throws(IOException::class)
-	fun serialize(output: DataOutputStream) {
-		output.writeFloat(x)
-		output.writeFloat(y)
-	}
-
-	@Throws(IOException::class)
-	fun deserialize(input: DataInputStream) {
-		x = input.readFloat()
-		y = input.readFloat()
+	fun deserialize(input: ByteBuffer) {
+		x = input.getFloat()
+		y = input.getFloat()
 	}
 
 	operator fun plusAssign(other: IVector2D) {

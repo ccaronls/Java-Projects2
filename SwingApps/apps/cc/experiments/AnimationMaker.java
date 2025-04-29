@@ -446,17 +446,17 @@ public class AnimationMaker extends AWTKeyboardAnimationApplet {
     }
 
 	@Override
-	public void keyPressed(KeyEvent ev) {
-		switch (ev.getKeyCode()) {
-		case KeyEvent.VK_DOWN:
-			if (menu == 0) {
-				int n = (selectedValue.ordinal() + 1) % Figure2.Value.values().length;
-				selectedValue = Figure2.Value.values()[n];
-			} else {
-				transitionTarget = (transitionTarget+1) % figures.getCount();
-			}
-			break;
-		case KeyEvent.VK_UP:
+    public void onKeyPressed(KeyEvent ev) {
+        switch (ev.getKeyCode()) {
+            case KeyEvent.VK_DOWN:
+                if (menu == 0) {
+                    int n = (selectedValue.ordinal() + 1) % Figure2.Value.values().length;
+                    selectedValue = Figure2.Value.values()[n];
+                } else {
+                    transitionTarget = (transitionTarget + 1) % figures.getCount();
+                }
+                break;
+            case KeyEvent.VK_UP:
 			if (menu == 0) {
 				int n = (selectedValue.ordinal() + Figure2.Value.values().length - 1) % Figure2.Value.values().length;
 				selectedValue = Figure2.Value.values()[n];

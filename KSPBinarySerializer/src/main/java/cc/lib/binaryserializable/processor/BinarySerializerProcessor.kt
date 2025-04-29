@@ -17,8 +17,6 @@ import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import com.google.devtools.ksp.symbol.KSType
 import com.google.devtools.ksp.symbol.KSTypeReference
 import com.google.devtools.ksp.symbol.KSVisitorVoid
-import java.io.DataInputStream
-import java.io.DataOutputStream
 import java.io.OutputStream
 import kotlin.reflect.KClass
 
@@ -62,43 +60,11 @@ class BinarySerializerProcessor(
 
 	private fun getWriteMethodForType(name: String, type: String): String {
 		//logger.warn("getDataTypeForWrite $name:$type")
-		return when (type) {
-			"kotlin.UByte",
-			"kotlin.Byte" -> "writeByte($name.toInt())"
-
-			"kotlin.UShort",
-			"kotlin.Short" -> "writeShort($name.toInt())"
-
-			"kotlin.UInt",
-			"kotlin.Int" -> "writeInt($name.toInt())"
-
-			"kotlin.ULong",
-			"kotlin.Long" -> "writeLong($name.toLong())"
-
-			"kotlin.Float" -> "writeFloat($name)"
-			"kotlin.Double" -> "writeDouble($name)"
-			"kotlin.Boolean" -> "writeBoolean($name)"
-			"kotlin.String" -> "writeUTF($name)"
-			else -> throw IllegalArgumentException("getWriteMethodForType($name): Unsupported type: $type")
-		}
+		return "write${type.removePrefix("kotlin.")}($name)"
 	}
 
 	private fun getReadMethodForType(name: String, type: String): String {
-		return when (type) {
-			"kotlin.UByte" -> "readUnsignedByte()"
-			"kotlin.Byte" -> "readByte()"
-			"kotlin.UShort" -> "readUnsignedShort()"
-			"kotlin.Short" -> "readShort()"
-			"kotlin.UInt" -> "readUInt()"
-			"kotlin.Int" -> "readInt()"
-			"kotlin.ULong" -> "readULong()"
-			"kotlin.Long" -> "readLong()"
-			"kotlin.Float" -> "readFloat()"
-			"kotlin.Double" -> "readDouble()"
-			"kotlin.Boolean" -> "readBoolean()"
-			"kotlin.String" -> "readUTF()"
-			else -> throw IllegalArgumentException("getReadMethodForType($name): Unsupported type: $type")
-		}
+		return "read${type.removePrefix("kotlin.")}()"
 	}
 
 	fun <T> MutableList<T>.takeAndRemove(n: Int): List<T> {
@@ -170,6 +136,24 @@ class BinarySerializerProcessor(
 				return decl.type.resolve()
 			}
 
+			fun printContentEqualsBody(): String = StringBuffer().also { sb ->
+				properties.joinToString("\n\t\t\t&& ") { property ->
+					val name = property.simpleName.asString()
+					val resolvedType = getPropertyType(property)
+					val type = resolvedType.declaration.qualifiedName!!.asString()
+					//logger.warn("analyze property $property -> $name:$resolvedType:$type")
+					if (resolvedType.isArrayType()) {
+						"$name.contentEquals(other.$name)"
+					} else if (resolvedType.isBinarySerializable()) {
+						"$name.contentEquals(other.$name)"
+					} else {
+						"$name == other.$name"
+					}
+				}.also {
+					sb.append("\t\treturn $it")
+				}
+			}.toString()
+
 			fun printSerializeBody(): String = StringBuffer().also {
 				//logger.warn("printSerializeBody: $classDeclaration")
 				val bools = mutableListOf<KSPropertyDeclaration>()
@@ -223,13 +207,13 @@ class BinarySerializerProcessor(
 					val resolvedType = getPropertyType(property)
 					val realType = property.type.resolve()
 					val type = resolvedType.declaration.qualifiedName!!.asString()
-					val converter = if (realType == resolvedType) "" else ".to$realType()"
+					val converter = "" //if (realType == resolvedType) "" else ".to$realType()"
 					val defaultValue = resolvedType.defaultValue(property)
 					if (resolvedType.isBinarySerializable()) {
 						it.append("\t\t$name.deserialize(input)\n")
 					} else if (resolvedType.isArrayType()) {
 						val method = getReadMethodForType(name, resolvedType.arrayElementTypeString())
-						it.append("\t\t$name = $type(input.readShort().toInt()) { input.$method }\n")
+						it.append("\t\t$name = $type(input.readShort()) { input.$method }\n")
 					} else if (resolvedType.isBoolean()) {
 						bools.add(property)
 					} else if (resolvedType.isPrimitive()) {
@@ -347,9 +331,8 @@ class BinarySerializerProcessor(
 			}
 
 
-			imports.add(DataInputStream::class.qualifiedName.toString())
-			imports.add(DataOutputStream::class.qualifiedName.toString())
 			imports.add("cc.lib.ksp.binaryserializer.*")
+			imports.add("java.nio.ByteBuffer")
 
 			val constructorParamDecl = classDeclaration.primaryConstructor!!.parameters.joinToString(", ") { it.toString() }
 			val constructorParams = classDeclaration.primaryConstructor!!.parameters.joinToString(", ") { "${it} : ${it.type}" }
@@ -369,13 +352,18 @@ class $classTypeName($constructorParams) : $classDeclaration($constructorParamDe
 ${printCopyBody()}
 	}
 
-    override fun serialize(output : DataOutputStream) {
+    override fun serialize(output : ByteBuffer) {
 ${printSerializeBody()}
 	}
 	
-	override fun deserialize(input : DataInputStream) {
+	override fun deserialize(input : ByteBuffer) {
 ${printDeserializeBody()}
 	}
+	
+	override fun contentEquals(other : $classTypeName) : Boolean {
+${printContentEqualsBody()}
+	}
+
 }
 """
 			)

@@ -8,9 +8,9 @@ class GDimension(
 ) : Reflector<GDimension>(), IDimension {
 	constructor(dim: IDimension) : this(dim.width, dim.height)
 
-	fun assign(w: Float, h: Float): GDimension {
-		width = w
-		height = h
+	fun assign(w: Number, h: Number): GDimension {
+		width = w.toFloat()
+		height = h.toFloat()
 		return this
 	}
 
@@ -26,6 +26,11 @@ class GDimension(
 			return width == it.width && height == it.height
 		}
 		return false;
+	}
+
+	fun copy(other: GDimension) {
+		width = other.width
+		height = other.height
 	}
 
 	override fun isImmutable(): Boolean {

@@ -2,6 +2,8 @@ package cc.lib.game
 
 import cc.lib.math.MutableVector2D
 import cc.lib.math.Vector2D
+import cc.lib.utils.randomFloat
+import cc.lib.utils.randomFloatPlusOrMinus
 import cc.lib.utils.squared
 import kotlin.math.sqrt
 
@@ -125,7 +127,7 @@ interface IRectangle : IDimension, IShape {
 		/**
 		 * @return
 		 */
-		get() = Vector2D(left + Utils.randFloat(width), top + Utils.randFloat(height))
+		get() = Vector2D(left + randomFloat(width), top + randomFloat(height))
 
 	/**
 	 * @param s
@@ -279,8 +281,8 @@ interface IRectangle : IDimension, IShape {
 	}
 
 	fun shaked(xfactor: Float, yfactor: Float): GRectangle {
-		val nx = left + width * Utils.randFloatPlusOrMinus(xfactor)
-		val ny = top + height * Utils.randFloatPlusOrMinus(yfactor)
+		val nx = left + width * randomFloatPlusOrMinus(xfactor)
+		val ny = top + height * randomFloatPlusOrMinus(yfactor)
 		return GRectangle(nx, ny, width, height)
 	}
 

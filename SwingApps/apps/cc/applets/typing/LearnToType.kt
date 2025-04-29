@@ -136,7 +136,7 @@ class LearnToType : AWTKeyboardAnimationApplet() {
 	}
 
 	var pressed: Char? = null
-	override fun keyPressed(evt: KeyEvent) {
+	override fun onKeyPressed(evt: KeyEvent) {
 		if (mode == 0) {
 			when (evt.keyCode) {
 				KeyEvent.VK_SHIFT -> shiftPressed = true
@@ -153,7 +153,7 @@ class LearnToType : AWTKeyboardAnimationApplet() {
 		}
 	}
 
-	override fun keyReleased(evt: KeyEvent) {
+	override fun onKeyReleased(evt: KeyEvent) {
 		if (mode == 0) {
 			val code = evt.keyCode
 			if (code >= KeyEvent.VK_0 && code <= KeyEvent.VK_Z) {

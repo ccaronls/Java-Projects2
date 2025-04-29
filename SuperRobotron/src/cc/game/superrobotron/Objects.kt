@@ -2,15 +2,21 @@ package cc.game.superrobotron
 
 import cc.lib.game.GColor
 import cc.lib.game.GRectangle
-import cc.lib.kreflector.Reflector
 import cc.lib.ksp.binaryserializer.BinarySerializable
 import cc.lib.ksp.binaryserializer.BinaryType
 import cc.lib.ksp.binaryserializer.IBinarySerializable
+import cc.lib.ksp.binaryserializer.readFloat
+import cc.lib.ksp.binaryserializer.readInt
+import cc.lib.ksp.binaryserializer.readUByte
+import cc.lib.ksp.binaryserializer.writeFloat
+import cc.lib.ksp.binaryserializer.writeInt
+import cc.lib.ksp.binaryserializer.writeUByte
 import cc.lib.math.MutableVector2D
 import cc.lib.math.Vector2D
+import cc.lib.reflector.Omit
+import cc.lib.reflector.Reflector
 import cc.lib.utils.random
-import java.io.DataInputStream
-import java.io.DataOutputStream
+import java.nio.ByteBuffer
 import java.util.LinkedList
 
 abstract class Object {
@@ -95,6 +101,18 @@ Enemy size: 21
  */
 
 class Wall(val id: Int, val v0: Int, val v1: Int) : Reflector<Wall>(), IBinarySerializable<Wall> { // Wall ids start at 1
+
+	constructor() : this(-1, -1, -1) {
+		println("default constructor")
+	}
+
+
+	companion object {
+		init {
+			addAllFields(Wall::class.java)
+		}
+	}
+
 	var type = 0 // all
 	var state = 0   // door
 	var frame = 0   // door, electric
@@ -104,13 +122,18 @@ class Wall(val id: Int, val v0: Int, val v1: Int) : Reflector<Wall>(), IBinarySe
 	var ending: Boolean = false
 	var portalId = 0 // id of the wall this portal teleports us to
 
+	@Omit
 	var nearV: Int = 0
 		set(value) {
 			field = value
 			farV = if (value == v0) v1 else v0
 		}
+
+	@Omit
 	var farV: Int = -1
 		private set
+
+	@Omit
 	var adjacent: Wall? = null
 
 	fun initPortal(target: Wall) {
@@ -122,8 +145,13 @@ class Wall(val id: Int, val v0: Int, val v1: Int) : Reflector<Wall>(), IBinarySe
 
 
 	override fun toString(): String {
-		var str = getWallTypeString(type) + "[$id] " + nearV + "->" + farV
-		if (ending) str += "END"
+		var str = getWallTypeString(type) + "[$id] "
+		if (farV >= 0) {
+			str += "$nearV -> $farV"
+		} else {
+			str += "$v0 <-> $v1"
+		}
+		if (ending) str += " END"
 		when (type) {
 			WALL_TYPE_NORMAL -> str += "\nhealth=$health"
 			WALL_TYPE_ELECTRIC -> str += "\nframe=$frame"
@@ -141,6 +169,8 @@ class Wall(val id: Int, val v0: Int, val v1: Int) : Reflector<Wall>(), IBinarySe
 	override fun equals(other: Any?): Boolean {
 		(other as? Wall)?.let {
 			return id == other.id
+				&& type == other.type
+				&& state == other.state
 		}
 		return super.equals(other)
 	}
@@ -153,50 +183,63 @@ class Wall(val id: Int, val v0: Int, val v1: Int) : Reflector<Wall>(), IBinarySe
 		TODO("Not yet implemented")
 	}
 
-	override fun serialize(output: DataOutputStream) {
-		output.writeByte(type)
+	override fun serialize(output: ByteBuffer) {
+		output.writeUByte(type)
 		when (type) {
 			WALL_TYPE_NONE,
 			WALL_TYPE_PORTAL,
 			WALL_TYPE_INDESTRUCTIBLE -> Unit
 
-			WALL_TYPE_NORMAL -> output.writeShort(health)
+			WALL_TYPE_NORMAL -> {
+				output.writeUByte(health)
+			}
+
 			WALL_TYPE_ELECTRIC -> output.writeInt(frame) // electric walls cant be destroyed? (temp disabled)
 			WALL_TYPE_RUBBER -> output.writeFloat(frequency)
 			WALL_TYPE_DOOR,
 			WALL_TYPE_BROKEN_DOOR -> {
-				output.writeByte(state)
-				output.writeInt(frame.toInt())
+				output.writeUByte(state)
+				output.writeInt(frame)
 			}
 		}
 	}
 
-	override fun deserialize(input: DataInputStream) {
-		type = input.readUnsignedByte()
+	override fun deserialize(input: ByteBuffer) {
+		type = input.readUByte()
 		when (type) {
 			WALL_TYPE_NONE,
 			WALL_TYPE_PORTAL,
 			WALL_TYPE_INDESTRUCTIBLE -> Unit
 
-			WALL_TYPE_NORMAL -> health = input.readUnsignedShort()
+			WALL_TYPE_NORMAL -> health = input.readUByte()
 			WALL_TYPE_ELECTRIC -> frame = input.readInt()
 			WALL_TYPE_RUBBER -> frequency = input.readFloat()
 			WALL_TYPE_DOOR,
 			WALL_TYPE_BROKEN_DOOR -> {
-				state = input.readUnsignedByte()
+				state = input.readUByte()
 				frame = input.readInt()
 			}
 		}
+	}
+
+	override fun contentEquals(other: Wall): Boolean {
+		return super.equals(other)
 	}
 }
 
 @BinarySerializable("Player")
 abstract class APlayer : Object() {
-	val dv = MutableVector2D()
 
 	// Rectangle of visible maze
-	@Transient
 	val screen = GRectangle()
+
+	@Transient
+	var displayName = ""
+
+	@Transient
+	@Omit
+	var status = "DISCONNECTED"
+
 	@BinaryType(UByte::class)
 	var dir = DIR_DOWN
 	var scale = 1f
@@ -204,20 +247,28 @@ abstract class APlayer : Object() {
 
 	@BinaryType(UByte::class)
 	var lives = 0
+	@Transient
+	val motion_dv = MutableVector2D()
+	@Transient
 	val target_dv = MutableVector2D()
 	var start_cell = intArrayOf(0, 0)
+
 	@BinaryType(java.lang.Byte::class)
 	var powerup = -1
+
 	@BinaryType(UShort::class)
 	var powerup_duration = 0
+
 	@BinaryType(UByte::class)
 	var keys = 0
+
 	@BinaryType(UShort::class)
 	var movement = 0
 	var firing = false
 	val start_v = MutableVector2D()
 
 	//int killed_frame = 0; // the frame the player was killed
+	@Transient
 	var missles = ManagedArray(Array(MAX_PLAYER_MISSLES) { Missile() })
 	var hulk_charge_frame = 0
 
@@ -241,6 +292,7 @@ abstract class APlayer : Object() {
 	@Transient
 	var path: MutableList<IntArray> = LinkedList()
 	var last_shot_frame = 0
+	var people_picked_up = 0
 
 	val radius: Float
 		get() = (scale * PLAYER_RADIUS)
@@ -261,6 +313,7 @@ abstract class APlayer : Object() {
 		next_state_frame = frameNumber + PLAYER_SPAWN_FRAMES
 		state = PLAYER_STATE_SPAWNING
 		barrier_electric_wall.fill(-1f)
+		people_picked_up = 0
 	}
 }
 

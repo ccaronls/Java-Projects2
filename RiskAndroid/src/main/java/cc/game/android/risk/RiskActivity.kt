@@ -78,8 +78,8 @@ class RiskActivity : DroidActivity(), OnItemClickListener {
 				this@RiskActivity.redraw()
 			}
 
-			override fun deserialize(`in`: RBufferedReader?) {
-				super.deserialize(`in`)
+			override fun deserialize(input: RBufferedReader?) {
+				super.deserialize(input)
 				redraw()
 			}
 		}

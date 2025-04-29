@@ -2,13 +2,13 @@ package cc.lib.geniussquare
 
 import cc.lib.game.GColor
 import cc.lib.game.IVector2D
-import cc.lib.game.Utils
 import cc.lib.logger.LoggerFactory
 import cc.lib.math.MutableVector2D
 import cc.lib.math.Vector2D
 import cc.lib.reflector.Reflector
 import cc.lib.utils.Grid
 import cc.lib.utils.StopWatch
+import cc.lib.utils.random
 
 /*
 PIECE_0(null, 0, 0, null), // this way the matrix value aligns with ordinal()
@@ -174,8 +174,8 @@ open class GeniusSquares : Reflector<GeniusSquares>() {
 		board.fill(0)
 		var i = 0
 		while (i < NUM_BLOCKERS) {
-			val r = Utils.randRange(0, BOARD_DIM_CELLS - 1)
-			val c = Utils.randRange(0, BOARD_DIM_CELLS - 1)
+			val r = random(0 until BOARD_DIM_CELLS)
+			val c = random(0 until BOARD_DIM_CELLS)
 			if (board[r, c] != 0) {
 				continue
 			}

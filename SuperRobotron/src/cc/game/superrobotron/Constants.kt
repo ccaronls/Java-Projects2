@@ -16,11 +16,26 @@ const val DIR_DOWN = 2
 const val DIR_LEFT = 3
 
 const val MAX_PLAYERS = 4
+
 const val PLAYER_STATE_SPAWNING = 0
 const val PLAYER_STATE_ALIVE = 1
 const val PLAYER_STATE_EXPLODING = 2
 const val PLAYER_STATE_TELEPORTED = 3
 const val PLAYER_STATE_SPECTATOR = 4
+
+data class ColorSet(val normal: GColor, val hulk: GColor, val gun: GColor)
+
+val PLAYER_COLORS = arrayOf(
+	ColorSet(GColor.WHITE, GColor.GREEN, GColor.BLUE),
+	ColorSet(GColor.PINK, GColor.RED, GColor.CYAN),
+	ColorSet(GColor.ORANGE, GColor.YELLOW, GColor.SLIME_GREEN),
+	ColorSet(GColor.DARK_OLIVE, GColor.SKY_BLUE, GColor.RED)
+).also {
+	if (it.size != MAX_PLAYERS) {
+		error("colors array not of size $MAX_PLAYERS")
+	}
+}
+
 
 // enum
 const val SNAKE_STATE_CHASE = 0
@@ -50,6 +65,8 @@ const val MAZE_NUMCELLS_X = 10
 const val MAZE_NUMCELLS_Y = 10
 const val MAZE_NUM_VERTS = (MAZE_NUMCELLS_X + 1) * (MAZE_NUMCELLS_Y + 1)
 const val MAZE_VERTEX_NOISE = 20f //30 // random noise in placement of
+const val MAZE_MARGIN = 25f
+
 
 //private final int     MAZE_CELL_X = 14;
 //private final int     MAZE_CELL_Y = 14;
@@ -263,7 +280,7 @@ val POWERUP_CHANCE = intArrayOf(
 // The first letter is used as the indicator, unless special
 // handling is associated with a powerup
 // (as of this writing: POWERUP_BONUS_PLAYER)
-val powerup_names = arrayOf(
+val POWERUP_NAMES = arrayOf(
 	"SPEEEEEEED",
 	"GHOST",
 	"BARRIER",
@@ -275,7 +292,7 @@ val powerup_names = arrayOf(
 )
 
 fun getPowerupTypeString(type: Int): String {
-	return powerup_names[type]
+	return POWERUP_NAMES[type]
 }
 
 const val MAX_POWERUPS = 8
@@ -286,8 +303,8 @@ const val POWERUP_CHANCE_ODDS = 10 // 10+currentLevel in 1000
 
 // Rubber Walls
 const val RUBBER_WALL_MAX_FREQUENCY = 0.15f
-const val RUBBER_WALL_FREQENCY_INCREASE_MISSLE = 0.03f
-const val RUBBER_WALL_FREQENCY_COOLDOWN = 0.002f
+const val RUBBER_WALL_FREQUENCY_INCREASE_MISSILE = 0.03f
+const val RUBBER_WALL_FREQUENCY_COOLDOWN = 0.002f
 
 // chance
 // -- STATIC FIELD --
@@ -308,6 +325,8 @@ const val DOOR_STATE_CLOSING = 1
 const val DOOR_STATE_OPENING = 2
 const val DOOR_STATE_OPEN = 3
 const val DOOR_STATE_LOCKED = 4
+const val DOOR_NUM_STATES = 5 // MUST BE LAST!!
+
 const val DOOR_SPEED_FRAMES = 50
 const val DOOR_SPEED_FRAMES_INV = 1.0f / DOOR_SPEED_FRAMES
 const val DOOR_OPEN_FRAMES = 100
@@ -318,21 +337,21 @@ const val DOOR_THICKNESS = 2f
 // when a megagun hits an electric wall, the wall is disabled for some time
 const val WALL_ELECTRIC_DISABLE_FRAMES = 200
 const val WALL_TYPE_NONE = 0
-const val WALL_TYPE_NORMAL = 1 // normal wall
-const val WALL_TYPE_ELECTRIC = 2 // electric walls cant be destroyed? (temp disabled)
-const val WALL_TYPE_INDESTRUCTIBLE = 3 // used for perimeter
+const val WALL_TYPE_INDESTRUCTIBLE = 1 // used for perimeter
+const val WALL_TYPE_NORMAL = 2 // normal wall
+const val WALL_TYPE_ELECTRIC = 3 // electric walls cant be destroyed? (temp disabled)
 const val WALL_TYPE_PORTAL = 4 // teleport to other portal walls
 const val WALL_TYPE_RUBBER = 5 // ?
 const val WALL_TYPE_DOOR = 6 // need a key too open
 const val WALL_TYPE_BROKEN_DOOR = 7 // door opens and closes at random intervals
 const val WALL_NUM_TYPES = 8 // MUST BE LAST!
 
-val wall_type_strings: Array<String>
+val WALL_TYPE_STRINGS: Array<String>
 	get() = arrayOf(
 		"NONE",
+		"INDS",
 		"NORM",
 		"ELEC",
-		"INDS",
 		"PORT",
 		"RUBR",
 		"DOOR",
@@ -340,12 +359,10 @@ val wall_type_strings: Array<String>
 	)
 
 fun getWallTypeString(type: Int): String {
-	if (type in wall_type_strings.indices)
-		return wall_type_strings[type]
-	return "UNKNOWN"
+	return WALL_TYPE_STRINGS.getOrNull(type) ?: "$type"
 }
 
-val door_state_strings: Array<String>
+val DOOR_STATE_STRINGS: Array<String>
 	get() = arrayOf(
 		"CLOSED",
 		"CLOSING",
@@ -355,7 +372,16 @@ val door_state_strings: Array<String>
 	)
 
 fun getDoorStateString(state: Int): String {
-	return door_state_strings[state]
+	return DOOR_STATE_STRINGS.getOrNull(state) ?: "$state"
+}
+
+val PLAYER_STATE_STRINGS: Array<String>
+	get() = arrayOf(
+		"SPAWNING", "ALIVE", "EXPLODING", "TELEPORTED", "SPECTATOR"
+	)
+
+fun getPlayerStateString(state: Int): String {
+	return PLAYER_STATE_STRINGS.getOrNull(state) ?: "$state"
 }
 
 fun isPerimeterVertex(vertex: Int): Boolean {
@@ -363,3 +389,54 @@ fun isPerimeterVertex(vertex: Int): Boolean {
 	val y = vertex / (MAZE_NUMCELLS_X + 1)
 	return x == 0 || x == MAZE_NUMCELLS_X || y == 0 || y == MAZE_NUMCELLS_Y
 }
+
+val BRAIN_PTS_X = intArrayOf(
+	15, 13, 13, 8, 7, 6, 4, 2, 2, 3, 3, 4, 4, 8, 11, 12, 14, 17, 20, 21, 21, 23, 25, 27, 29, 29, 28, 29, 25, 24, 22, 20,
+	20, 18
+)
+
+val BRAIN_PTS_Y = intArrayOf(
+	16, 19, 21, 21, 20, 21, 21, 19, 15, 14, 11, 9, 7, 4, 4, 2, 1, 2, 2, 3, 3, 4, 8, 7, 8, 13, 14, 16, 21, 20, 21, 20, 18,
+	19
+)
+
+val BRAIN_NERVES_X = intArrayOf(8, 6, 10, 11, 13, 17, 15, 17, 16, 16, 18, 19, 21, 21, 23, 22, 23, 25, 26, 28)
+val BRAIN_NERVES_Y = intArrayOf(7, 10, 10, 12, 12, 2, 4, 7, 9, 10, 10, 11, 9, 7, 8, 20, 18, 18, 17, 19)
+val BRAIN_LEGS_X = intArrayOf(15, 13, 13, 10, 14, 16, 18, 22, 20, 20, 18)
+val BRAIN_LEGS_Y = intArrayOf(16, 19, 21, 29, 29, 24, 29, 29, 20, 18, 19)
+val BRAIN_NERVES_LEN = intArrayOf(5, 4, 6, 5)
+
+val ENEMY_RADIUS = floatArrayOf(
+	ENEMY_GEN_RADIUS,
+	ENEMY_ROBOT_RADIUS, ENEMY_ROBOT_RADIUS, ENEMY_ROBOT_RADIUS, ENEMY_ROBOT_RADIUS,
+	ENEMY_THUG_RADIUS, ENEMY_THUG_RADIUS, ENEMY_THUG_RADIUS, ENEMY_THUG_RADIUS,
+	ENEMY_BRAIN_RADIUS,
+	ENEMY_ZOMBIE_RADIUS, ENEMY_ZOMBIE_RADIUS, ENEMY_ZOMBIE_RADIUS, ENEMY_ZOMBIE_RADIUS,
+	ENEMY_TANK_RADIUS, ENEMY_TANK_RADIUS, ENEMY_TANK_RADIUS, ENEMY_TANK_RADIUS,
+	ENEMY_JAWS_DIM / 2 - 2,
+	ENEMY_LAVA_DIM / 2 - 5
+).also {
+	require(it.size == ENEMY_INDEX_NUM)
+}
+
+// enum
+const val HIT_TYPE_ENEMY = 0
+const val HIT_TYPE_TANK_MISSLE = 1
+const val HIT_TYPE_SNAKE_MISSLE = 2
+const val HIT_TYPE_ROBOT_MISSLE = 3
+const val HIT_TYPE_ELECTRIC_WALL = 4
+
+const val WALL_FLAG_VISITED = 256
+
+val CELL_LOOKUP_DV = intArrayOf(
+	-(MAZE_NUMCELLS_X + 1), // UP
+	1, // RIGHT
+	MAZE_NUMCELLS_X + 1, // LEFT
+	-1 // DOWN
+)
+
+val PARTICLE_STARS = arrayOf("*", "!", "?", "@")
+
+val TANK_PTS_X = intArrayOf(12, 6, 6, 18, 32, 41, 41, 36, 36, 12)
+val TANK_PTS_Y = intArrayOf(10, 10, 26, 38, 38, 26, 10, 10, 4, 4)
+

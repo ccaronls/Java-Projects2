@@ -2,14 +2,16 @@ package cc.lib.math
 
 import cc.lib.game.IInterpolator
 import cc.lib.game.IVector2D
-import cc.lib.game.Utils
+import cc.lib.ksp.binaryserializer.readFloat
 import cc.lib.reflector.Reflector
 import cc.lib.utils.randomFloat
+import cc.lib.utils.randomFloatPlusOrMinus
 import java.io.IOException
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.io.ObjectStreamException
 import java.io.Serializable
+import java.nio.ByteBuffer
 import kotlin.math.roundToInt
 
 /**
@@ -51,9 +53,9 @@ open class Vector2D() : Reflector<Vector2D>(), IVector2D, Serializable, IInterpo
 
 	override fun equals(o: Any?): Boolean {
 		if (this === o) return true
-		if (o !is Vector2D) return false
-		val v = o
-		return v.x == x && v.y == y
+		if (o is Vector2D)
+			return o.x == x && o.y == y
+		return false
 	}
 
 	/**
@@ -102,6 +104,11 @@ open class Vector2D() : Reflector<Vector2D>(), IVector2D, Serializable, IInterpo
 	}
 
 	override fun isImmutable(): Boolean = true
+
+	fun serialize(output: ByteBuffer) {
+		output.putFloat(x)
+		output.putFloat(y)
+	}
 
 	companion object {
 
@@ -160,17 +167,17 @@ open class Vector2D() : Reflector<Vector2D>(), IVector2D, Serializable, IInterpo
 		}
 
 		fun newRandom(magnitude: Number): Vector2D {
-			return newPolar(Utils.randFloat(360f), magnitude)
+			return newPolar(randomFloat(360f), magnitude)
 		}
 
 		@JvmStatic
 		fun random(plusOrMinusMax: Number, out: MutableVector2D = getFromPool()): MutableVector2D {
-			return out.assign(Utils.randFloatPlusOrMinus(plusOrMinusMax.toFloat()), Utils.randFloatPlusOrMinus(plusOrMinusMax.toFloat()))
+			return out.assign(randomFloatPlusOrMinus(plusOrMinusMax.toFloat()), randomFloatPlusOrMinus(plusOrMinusMax.toFloat()))
 		}
 
 		@JvmStatic
 		fun random(min: Number, max: Number, out: MutableVector2D = getFromPool()): MutableVector2D {
-			return out.assign(Utils.randRangeFloat(min.toFloat(), max.toFloat()), Utils.randRangeFloat(min.toFloat(), max.toFloat()))
+			return out.assign(randomFloat(min, max), randomFloat(min, max))
 		}
 
 		@JvmStatic
@@ -213,5 +220,6 @@ open class Vector2D() : Reflector<Vector2D>(), IVector2D, Serializable, IInterpo
 			}
 		}
 
+		fun deserialize(buffer: ByteBuffer): MutableVector2D = newTemp(buffer.readFloat(), buffer.readFloat())
 	}
 }

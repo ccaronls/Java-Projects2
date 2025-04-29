@@ -1,9 +1,9 @@
 package cc.lib.ksp.binaryserializer
 
-import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.IOException
+import java.nio.ByteBuffer
 
 /**
  * Created by Chris Caron on 3/20/25.
@@ -71,27 +71,20 @@ interface IBinarySerializable<T> {
 	 * Write contents to binary stream. Ordering crucial
 	 */
 	@Throws(IOException::class)
-	fun serialize(output: DataOutputStream)
+	fun serialize(output: ByteBuffer)
 
 	/**
 	 * Read from stream into this object
 	 */
 	@Throws(IOException::class)
-	fun deserialize(input: DataInputStream)
+	fun deserialize(input: ByteBuffer)
+
+
+	fun contentEquals(other: T): Boolean
 
 	companion object {
 
 		const val STATIC_SIZE = false
-
-		fun toByteArrayOutputStream(instance: IBinarySerializable<*>): ByteArrayOutputStream {
-			val byteArrayStream = ByteArrayOutputStream()
-			val dataOutputStream = DataOutputStream(byteArrayStream)
-
-			instance.serialize(dataOutputStream)  // Perform the serialization
-			dataOutputStream.flush()       // Ensure everything is written
-
-			return byteArrayStream
-		}
 
 		fun boolsToInt(vararg bools: Boolean): Int {
 			var flag = 0
@@ -119,3 +112,8 @@ fun DataOutputStream.writeUInt(value: UInt) {
 }
 
 fun DataInputStream.readUInt(): UInt = readInt().toUInt()
+
+fun DataOutputStream.writeUnsignedByte(value: Int) {
+	require(value in 0..255)
+	writeByte(value)
+}
