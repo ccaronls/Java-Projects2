@@ -2294,7 +2294,7 @@ abstract class Robotron : Reflector<Robotron>() {
 		} else {
 			val end = cellToMazeCoords(end_cell)
 			if (player.pos.isWithinDistance(end, playerRadius + 10)) {
-				nextLevel()
+				game_state = GAME_STATE_NEXT_LEVEL
 			}
 		}
 	}
@@ -2590,14 +2590,22 @@ abstract class Robotron : Reflector<Robotron>() {
 		return if (dv.y < 0) DIR_UP else DIR_DOWN
 	}
 
+	private fun isPlayerBlinking(player: Player): Boolean {
+		if (game_state != GAME_STATE_PLAY)
+			return false
+		if (player.state == PLAYER_STATE_SPAWNING)
+			return true
+		return player.powerup > 0 && player.powerup_duration > PLAYER_POWERUP_DURATION - PLAYER_POWERUP_WARNING_FRAMES
+	}
+
 	// -----------------------------------------------------------------------------------------------
 	// Draw the Player
 	private fun drawPlayer(player: Player, g: AGraphics, px: Float, py: Float, dir: Int, colors: ColorSet) {
 		val factor = 1f / (PLAYER_HULK_SCALE - 1f)
-		val color = colors.normal.interpolateTo(colors.hulk, (player.scale - 1f) * factor)
-		if (player.powerup > 0 && player.powerup_duration > PLAYER_POWERUP_DURATION - PLAYER_POWERUP_WARNING_FRAMES) {
-			if (frameNumber % 8 < 4)
-				color.invert()
+		var color = colors.normal.interpolateTo(colors.hulk, (player.scale - 1f) * factor)
+		if (isPlayerBlinking(player)) {
+			if (frameNumber % 16 < 8)
+				color = color.inverted()
 		}
 		drawPlayerBody(player, g, px + 1, py, dir, color)
 		drawPlayerEyes(player, g, px + 1, py, dir)
@@ -3682,8 +3690,8 @@ abstract class Robotron : Reflector<Robotron>() {
 				}
 			}
 		}
-		addPeople()
 		buildRandomWalls()
+		addPeople()
 	}
 
 	fun initNewPlayer(player: Player) {
@@ -4405,6 +4413,12 @@ abstract class Robotron : Reflector<Robotron>() {
 		g.popMatrix()
 	}
 
+	private fun checkGameOver() {
+		if (players.all { !it.isAlive && it.lives == 0 }) {
+			game_state = GAME_STATE_GAME_OVER
+		}
+	}
+
 	// -----------------------------------------------------------------------------------------------
 	@Synchronized
 	fun drawGame(g: AGraphics, millisPerFrame: Int) {
@@ -4451,6 +4465,12 @@ abstract class Robotron : Reflector<Robotron>() {
 				if (drawDebugButtons) {
 					drawDebugButtons(g)
 				}
+				checkGameOver()
+			}
+
+			GAME_STATE_NEXT_LEVEL -> {
+				nextLevel()
+				game_state = GAME_STATE_PLAY
 			}
 
 			GAME_STATE_GAME_OVER -> {
@@ -4550,9 +4570,6 @@ abstract class Robotron : Reflector<Robotron>() {
 		val speed = player.speed()
 		player.motion_dv.assign(dx, dy).scaleEq(speed)
 	}
-
-	val isPlayerSpectator: Boolean
-		get() = player.state == PLAYER_STATE_SPECTATOR
 
 	// -----------------------------------------------------------------------------------------------
 	private fun setIntroButtonPositionAndDimension() {

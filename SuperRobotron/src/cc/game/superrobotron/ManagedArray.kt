@@ -26,6 +26,7 @@ class ManagedArray<T : IBinarySerializable<T>>(private val array: Array<T>) : IB
 		return if (size == array.size) null else add()
 	}
 
+	@Synchronized
 	fun remove(idx: Int) {
 		if (idx in indices)
 			array[idx].copy(array[--size])
@@ -61,6 +62,7 @@ class ManagedArray<T : IBinarySerializable<T>>(private val array: Array<T>) : IB
 		}
 	}
 
+	@Synchronized
 	override fun deserialize(input: ByteBuffer) {
 		size = input.readUShort()
 		for (i in indices) {

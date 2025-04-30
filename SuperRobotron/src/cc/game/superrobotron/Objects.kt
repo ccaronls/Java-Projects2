@@ -238,7 +238,7 @@ abstract class APlayer : Object() {
 
 	@Transient
 	@Omit
-	var status = "DISCONNECTED"
+	var status = "D"
 
 	@BinaryType(UByte::class)
 	var dir = DIR_DOWN
@@ -264,6 +264,8 @@ abstract class APlayer : Object() {
 
 	@BinaryType(UShort::class)
 	var movement = 0
+
+	@Transient
 	var firing = false
 	val start_v = MutableVector2D()
 
@@ -298,7 +300,7 @@ abstract class APlayer : Object() {
 		get() = (scale * PLAYER_RADIUS)
 
 	val isAlive: Boolean
-		get() = state == PLAYER_STATE_ALIVE
+		get() = state == PLAYER_STATE_ALIVE || state == PLAYER_STATE_SPAWNING
 
 	fun reset(frameNumber: Int) {
 		missles.clear()
@@ -334,14 +336,14 @@ abstract class AParticle : Object() {
 
 @BinarySerializable("Tracer")
 abstract class ATracer() : Object() {
-	var color = GColor.TRANSPARENT
+	var color = GColor.TRANSPARENT.copyOf()
 
 	@BinaryType(UByte::class)
 	var dir = 0
 
 	fun init(pos: Vector2D, color: GColor, dir: Int = 0) {
 		this.pos.assign(pos)
-		this.color = color
+		this.color = color.copyOf()
 		this.dir = dir
 	}
 
@@ -367,12 +369,12 @@ abstract class AEnemy : Object() {
 abstract class AMessage : Object() {
 
 	var msg = ""
-	var color = GColor.TRANSPARENT
+	var color = GColor.TRANSPARENT.copyOf()
 
 	fun init(pos: Vector2D, str: String, color: GColor = GColor.WHITE) {
 		this.pos.assign(pos)
 		this.msg = str
-		this.color = color
+		this.color.copy(color)
 	}
 
 }

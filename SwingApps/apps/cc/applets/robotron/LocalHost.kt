@@ -9,6 +9,7 @@ import cc.game.superrobotron.MAX_PLAYERS
 import cc.game.superrobotron.ManagedArray
 import cc.game.superrobotron.Missile
 import cc.game.superrobotron.MissileSnake
+import cc.game.superrobotron.PLAYER_STATE_SPECTATOR
 import cc.game.superrobotron.People
 import cc.game.superrobotron.Player
 import cc.game.superrobotron.PlayerConnectionInfo
@@ -21,6 +22,7 @@ import cc.lib.logger.LoggerFactory
 import cc.lib.math.Vector2D
 import cc.lib.net.GameCommand
 import cc.lib.net.GameCommandType
+import cc.lib.utils.trimmedToSize
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -37,113 +39,146 @@ val DISPATCHER = Dispatchers.Unconfined
 
 class LocalRoboClientConnection(override val clientId: Int, val player: Player) : IRoboClientConnection {
 
-	val readScope = CoroutineScope(DISPATCHER + CoroutineName("Read Connection $clientId}"))
-	val writeScope = CoroutineScope(DISPATCHER + CoroutineName("Write Connection $clientId}"))
+	private val LOG = LoggerFactory.getLogger("$clientId", LocalRoboClientConnection::class.java)
 
-	val fromClientTCP = Channel<GameCommand>()
-	val toClientTCP = Channel<GameCommand>()
+	private val readScopeTCP = CoroutineScope(DISPATCHER + CoroutineName("Read UDP Connection $clientId}"))
+	private val readScopeUDP = CoroutineScope(DISPATCHER + CoroutineName("Read TCP Connection $clientId}"))
+	private val connWriteScope = CoroutineScope(DISPATCHER + CoroutineName("Write Connection $clientId}"))
 
-	val fromClientUDP = Channel<ByteArray>()
-	val toClientUDP = Channel<ByteArray>()
+	val fromClientTCP = Channel<GameCommand>(1)
+	val toClientTCP = Channel<GameCommand>(1)
 
-	override var connected = true
-		set(value) {
-			field = value
-			LocalHost.refreshPlayersStatus()
-		}
+	val fromClientUDP = Channel<ByteArray>(1)
+	val toClientUDP = Channel<ByteArray>(1)
+
+	private val jobs = mutableListOf<Job>()
+
+	override var connected = false
+		private set
 
 	override fun send(data: ByteArray) {
-		writeScope.launch {
-			if (connected)
+		if (connected) {
+			connWriteScope.launch {
 				toClientUDP.send(data)
+			}
 		}
 	}
 
 	override fun send(cmd: GameCommand) {
-		writeScope.launch {
-			if (connected)
+		if (connected) {
+			connWriteScope.launch {
 				toClientTCP.send(cmd)
+			}
 		}
 	}
 
 	override fun onScreenDimensionUpdated(dim: GDimension) {
 		player.screen.setDimension(dim)
 	}
+
+	fun disconnect() {
+		connected = false
+		jobs.forEach {
+			it.cancel()
+		}
+		jobs.clear()
+	}
+
+	fun connect() {
+		connected = true
+		jobs.add(readScopeTCP.launch {
+			while (connected) {
+				val cmd = fromClientTCP.receive()
+				LOG.debug("received: $cmd")
+				when (cmd.type) {
+					GameCommandType.CL_DISCONNECT -> {
+						disconnect()
+						host?.disconnectClient(clientId)
+					}
+
+					else -> error("Unhandled $cmd")
+				}
+			}
+		})
+
+		jobs.add(readScopeUDP.launch {
+			while (connected) {
+				host?.let {
+					UDPCommon.serverProcessInput(clientId, ByteBuffer.wrap(fromClientUDP.receive()), it.robotron)
+				} ?: break
+			}
+		})
+	}
 }
 
 @Throws(IOException::class)
 fun bindToHost(robo: Robotron): IRoboServer {
-	if (LocalHost.robotron != null)
+	if (host != null)
 		throw IOException("host already running")
-	LocalHost.robotron = robo
-	return LocalHost
+	return LocalHost(robo).also {
+		host = it
+	}
 }
 
-private object LocalHost : IRoboServer {
+private var host: LocalHost? = null
 
-	val readScopeTCP = CoroutineScope(DISPATCHER + CoroutineName("host TCP read"))
-	val writeScope = CoroutineScope(DISPATCHER + CoroutineName("host write"))
+private class LocalHost(val robotron: Robotron) : IRoboServer {
 
-	var robotron: Robotron? = null
+	private val LOG = LoggerFactory.getLogger(LocalHost::class.java)
+
+	val svrWriteScope = CoroutineScope(DISPATCHER + CoroutineName("host write"))
+
 	val jobs = mutableListOf<Job>()
 
 	override val roboConnections = mutableListOf<LocalRoboClientConnection>()
 
+	init {
+		refreshPlayersStatus()
+	}
+
 	fun refreshPlayersStatus() {
-		robotron?.let { robo ->
-			robo.players.mapIndexed { index, player ->
-				val status = when (index) {
-					0 -> "H"
-					else -> if (roboConnections[index - 1].connected) "C" else "D"
-				}
-				Pair(player.displayName, status)
-			}.also { status ->
-				writeScope.launch {
-					val cmd = GameCommand(SVR_PLAYERS_UPDATED).setArg("players", status)
-					roboConnections.forEach {
-						it.toClientTCP.send(cmd)
-					}
+		robotron.players.mapIndexed { index, player ->
+			val status = when (index) {
+				0 -> "H"
+				else -> if (roboConnections[index - 1].connected) "C" else "D"
+			}
+			player.status = status
+			Pair(player.displayName, status)
+		}.also { status ->
+			svrWriteScope.launch {
+				val cmd = GameCommand(SVR_PLAYERS_UPDATED).setArg("players", status)
+				roboConnections.forEach {
+					it.send(cmd)
 				}
 			}
 		}
+	}
+
+	fun disconnectClient(id: Int) {
+		robotron.players[id].state = PLAYER_STATE_SPECTATOR
+		refreshPlayersStatus()
 
 	}
 
 	fun addConnection(clientId: Int): LocalRoboClientConnection {
-		return LocalRoboClientConnection(clientId, robotron!!.players.getOrAdd(clientId)).also { clientConnection ->
+		return LocalRoboClientConnection(clientId, robotron.players.getOrAdd(clientId)).also { clientConnection ->
 			roboConnections.add(clientConnection)
-			refreshPlayersStatus()
-			jobs.add(readScopeTCP.launch {
-				while (clientConnection.connected) {
-					when (clientConnection.fromClientTCP.receive().type) {
-						GameCommandType.CL_DISCONNECT -> {
-							clientConnection.connected = false
-						}
-					}
-				}
-			})
-
-			jobs.add(clientConnection.readScope.launch {
-				while (clientConnection.connected) {
-					UDPCommon.serverProcessInput(clientConnection.clientId, ByteBuffer.wrap(clientConnection.fromClientUDP.receive()), this@LocalHost, robotron!!)
-				}
-			})
 		}
 	}
 
 	override fun broadcastNewGame(robotron: Robotron) {
-		writeScope.launch {
+		svrWriteScope.launch {
 			roboConnections.forEach {
-				it.toClientTCP.send(SVR_GAME_UPDATE.make())
+				it.send(SVR_GAME_UPDATE.make().setArg("game", robotron))
 			}
 		}
 	}
 
 	override fun disconnect() {
-		writeScope.launch {
+		svrWriteScope.launch {
 			roboConnections.forEach {
-				it.toClientTCP.send(GameCommandType.SVR_DISCONNECT.make())
-				it.connected = false
+				it.send(GameCommandType.SVR_DISCONNECT.make())
+				it.disconnect()
 			}
 		}
 		roboConnections.clear()
@@ -151,7 +186,7 @@ private object LocalHost : IRoboServer {
 			it.cancel()
 		}
 		jobs.clear()
-		robotron = null
+		host = null
 	}
 
 	@Throws(IOException::class)
@@ -172,26 +207,27 @@ private object LocalHost : IRoboServer {
 			} else {
 				throw IOException("Server full")
 			}
-		} else return roboConnections[id].takeIf { !it.connected }?.also {
-			it.connected = true
+		} else roboConnections[id].takeIf {
+			!it.connected
 		} ?: run {
 			throw IOException("Failed to connect")
 		}
 
-		val newPl = robotron!!.players.getOrAdd(connection.clientId)
+		val newPl = robotron.players.getOrAdd(connection.clientId)
 		newPl.displayName = displayName
-		robotron!!.initNewPlayer(newPl)
-		connection.connected = true
-		writeScope.launch {
-			connection.toClientTCP.send(SVR_GAME_UPDATE.make().also {
-				it.setArg("game", robotron!!.serializeToString())
+		robotron.initNewPlayer(newPl)
+		connection.connect()
+		refreshPlayersStatus()
+		svrWriteScope.launch {
+			connection.send(SVR_GAME_UPDATE.make().also {
+				it.setArg("game", robotron)
 			})
 		}
 		return connection
 	}
 
 	override fun broadcastPlayers(players: ManagedArray<Player>) {
-		writeScope.launch {
+		svrWriteScope.launch {
 			val (buffer, array) = UDPCommon.createBuffer()
 			UDPCommon.serverWritePlayers(players, buffer)
 			roboConnections.forEach {
@@ -201,7 +237,7 @@ private object LocalHost : IRoboServer {
 	}
 
 	override fun broadcastPeople(people: ManagedArray<People>) {
-		writeScope.launch {
+		svrWriteScope.launch {
 			val (buffer, array) = UDPCommon.createBuffer()
 			UDPCommon.serverWritePeople(people, buffer)
 			roboConnections.forEach {
@@ -211,7 +247,7 @@ private object LocalHost : IRoboServer {
 	}
 
 	override fun broadcastPlayerMissiles(playerId: Int, missiles: ManagedArray<Missile>) {
-		writeScope.launch {
+		svrWriteScope.launch {
 			val (buffer, array) = UDPCommon.createBuffer()
 			UDPCommon.serverWritePlayerMissles(playerId, missiles, buffer)
 			roboConnections.forEach {
@@ -221,7 +257,7 @@ private object LocalHost : IRoboServer {
 	}
 
 	override fun broadcastEnemies(enemies: ManagedArray<Enemy>) {
-		writeScope.launch {
+		svrWriteScope.launch {
 			val (buffer, array) = UDPCommon.createBuffer()
 			UDPCommon.serverWriteEnemies(enemies, buffer)
 			roboConnections.forEach {
@@ -231,7 +267,7 @@ private object LocalHost : IRoboServer {
 	}
 
 	override fun broadcastEnemyMissiles(enemyMissiles: ManagedArray<Missile>, tankMissiles: ManagedArray<Missile>, snakeMissiles: ManagedArray<MissileSnake>) {
-		writeScope.launch {
+		svrWriteScope.launch {
 			val (buffer, array) = UDPCommon.createBuffer()
 			UDPCommon.serverWriteEnemyMissiles(enemyMissiles, buffer)
 			roboConnections.forEach {
@@ -241,7 +277,7 @@ private object LocalHost : IRoboServer {
 	}
 
 	override fun broadcastPowerups(powerups: ManagedArray<Powerup>) {
-		writeScope.launch {
+		svrWriteScope.launch {
 			val (buffer, array) = UDPCommon.createBuffer()
 			UDPCommon.serverWritePowerups(powerups, buffer)
 			roboConnections.forEach {
@@ -251,7 +287,7 @@ private object LocalHost : IRoboServer {
 	}
 
 	override fun broadcastWalls(walls: Collection<Wall>) {
-		writeScope.launch {
+		svrWriteScope.launch {
 			val (buffer, array) = UDPCommon.createBuffer()
 			UDPCommon.serverWriteWalls(walls, buffer)
 			roboConnections.forEach {
@@ -259,29 +295,22 @@ private object LocalHost : IRoboServer {
 			}
 		}
 	}
-
-	override fun onClientInput(clientId: Int, motionDv: Vector2D, targetDv: Vector2D, firing: Boolean) {
-		robotron?.players?.get(clientId)?.apply {
-			motion_dv.assign(motionDv)
-			target_dv.assign(targetDv)
-			this.firing = firing
-		}
-	}
 }
 
 @Throws(IOException::class)
 fun connectToHost(robotron: Robotron): IRoboClient {
-	LocalHost.requestConnection(robotron.player.displayName).also {
-		return LocalClient(it, robotron, it.clientId)
-	}
+	return host?.requestConnection(robotron.player.displayName)?.let {
+		LocalClient(it, robotron, it.clientId)
+	} ?: throw Exception("Host not running")
 }
 
-private class LocalClient(val connection: LocalRoboClientConnection, override val robotron: Robotron, val clientId: Int) :
-	IRoboClient {
+private class LocalClient(
+	val connection: LocalRoboClientConnection,
+	override val robotron: Robotron,
+	val clientId: Int
+) : IRoboClient {
 
-	companion object {
-		val log = LoggerFactory.getLogger(LocalClient::class.java)
-	}
+	private val LOG = LoggerFactory.getLogger("${clientId}", LocalClient::class.java)
 
 	val readScopeUDP = CoroutineScope(DISPATCHER + CoroutineName("read UDP client $clientId"))
 	val readScopeTCP = CoroutineScope(DISPATCHER + CoroutineName("read TCP client $clientId"))
@@ -297,7 +326,7 @@ private class LocalClient(val connection: LocalRoboClientConnection, override va
 
 	init {
 		require(clientId > 0)
-		log.debug("init client $clientId")
+		LOG.debug("init client $clientId")
 		robotron.this_player = clientId
 
 		listeners.forEach {
@@ -307,6 +336,7 @@ private class LocalClient(val connection: LocalRoboClientConnection, override va
 		jobs.add(readScopeTCP.launch {
 			while (connected) {
 				connection.toClientTCP.receive().let {
+					LOG.debug("got ${it.toString().trimmedToSize(256)}")
 					when (it.type) {
 						GameCommandType.SVR_DISCONNECT -> {
 							listeners.forEach { l ->
@@ -316,6 +346,7 @@ private class LocalClient(val connection: LocalRoboClientConnection, override va
 
 						SVR_PLAYERS_UPDATED -> {
 							val plStatus = it.arguments["players"] as List<PlayerConnectionInfo>
+							LOG.debug("pl update: ${plStatus.joinToString()}")
 							plStatus.forEachIndexed { index, pair ->
 								with(robotron.players.getOrAdd(index)) {
 									displayName = pair.first
@@ -325,8 +356,10 @@ private class LocalClient(val connection: LocalRoboClientConnection, override va
 						}
 
 						SVR_GAME_UPDATE -> {
-							robotron.merge(LocalHost.robotron.toString())
+							robotron.merge(it.arguments.get("game").toString())
 						}
+
+						else -> error("Unhandled case: ${it.type}")
 					}
 
 				}
@@ -359,6 +392,7 @@ private class LocalClient(val connection: LocalRoboClientConnection, override va
 		jobs.forEach {
 			it.cancel()
 		}
+		jobs.clear()
 		writeScope.launch {
 			connection.fromClientTCP.send(GameCommand(GameCommandType.CL_DISCONNECT))
 		}

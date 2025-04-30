@@ -26,7 +26,10 @@ import java.awt.event.MouseEvent
 import java.io.File
 import javax.swing.JOptionPane
 
-class RobotronApplet : AWTKeyboardAnimationApplet(), IRoboClientListener {
+class RobotronApplet(id: Int) : AWTKeyboardAnimationApplet(), IRoboClientListener {
+
+	val log = LoggerFactory.getLogger("$id", RobotronApplet::class.java)
+
 	override fun getDefaultFont(): Font {
 		return Font("Arial", Font.BOLD, 12)
 	}
@@ -101,12 +104,26 @@ class RobotronApplet : AWTKeyboardAnimationApplet(), IRoboClientListener {
 	}
 
 	fun joinHost() = showDisplayNameDialog {
-		robotron.client = connectToHost(robotron)
+		try {
+			robotron.client = connectToHost(robotron).also {
+				it.addListener(this)
+			}
+		} catch (e: Exception) {
+			robotron.player.displayName = ""
+			throw e
+		}
+
 	}
+
+	fun changeDisplayName() =
+		JOptionPane.showInputDialog(this, "Confirm Display Name", robotron.player.displayName)?.let { displayName ->
+			robotron.player.displayName = displayName
+			requireRootFrame.setProperty("displayName", displayName)
+		}
 
 	override fun onDropped() {
 		showMsg = "Dropped"
-		robotron.setGameStateIntro()
+		disconnect()
 	}
 
 	override fun onConnected() {
@@ -119,9 +136,11 @@ class RobotronApplet : AWTKeyboardAnimationApplet(), IRoboClientListener {
 		robotron.client?.disconnect()
 		robotron.server = null
 		robotron.client = null
-		robotron.setGameStateIntro()
 		robotron.players.clear()
-		robotron.players.add()
+		robotron.players.add().also {
+			it.screen.dimension.assign(robotron.screen_dim)
+			it.displayName = requireRootFrame.getStringProperty("displayName", "")
+		}
 		robotron.this_player = 0
 	}
 
@@ -139,12 +158,12 @@ class RobotronApplet : AWTKeyboardAnimationApplet(), IRoboClientListener {
 			g.drawJustifiedStringOnBackground(20f, (screenHeight / 2).toFloat(), Justify.LEFT, Justify.CENTER, str, GColor.TRANSLUSCENT_BLACK, 5f)
 		}
 
-		if (robotron.players.size > 1) {
+		if (robotron.players.size > 1 || robotron.server != null) {
 			var str = ""
 			robotron.players.forEachIndexed { idx, pl ->
 				if (idx == robotron.this_player)
 					str += "-> "
-				str += pl.displayName + "\n"
+				str += "${pl.displayName}:${pl.status}\n"
 			}
 			g.drawJustifiedString(screenWidth - 10, screenHeight / 2, Justify.RIGHT, Justify.CENTER, str)
 		}
@@ -220,12 +239,12 @@ class RobotronApplet : AWTKeyboardAnimationApplet(), IRoboClientListener {
 		KeyEvent.VK_H to Triple('H', { "Host" }) { initHost() },
 		KeyEvent.VK_J to Triple('J', { "Join" }) { joinHost() },
 		KeyEvent.VK_L to Triple('L', { "Disconnect" }) { disconnect() },
+		KeyEvent.VK_O to Triple('O', { "Display Name" }) { changeDisplayName() }
 	)
 
 	override fun reportKeyRepeats(): Boolean = false
 
 	override fun onKeyPressed(evt: KeyEvent) {
-		log.debug("key pressed: $evt")
 		when (evt.keyCode) {
 			KeyEvent.VK_RIGHT, KeyEvent.VK_D -> {
 				key_down_flag = key_down_flag or KEY_FLAG_RIGHT
@@ -336,9 +355,7 @@ class RobotronApplet : AWTKeyboardAnimationApplet(), IRoboClientListener {
 
 	companion object {
 
-		val log = LoggerFactory.getLogger(RobotronApplet::class.java)
-
-		val settingsDir by lazy {
+		val settingsDir: File by lazy {
 			FileUtils.getOrCreateSettingsDirectory(RobotronApplet::class.java)
 		}
 
@@ -346,8 +363,6 @@ class RobotronApplet : AWTKeyboardAnimationApplet(), IRoboClientListener {
 
 		@JvmStatic
 		fun main(args: Array<String>) {
-//			AGraphics.DEBUG_ENABLED = false
-//			LoggerFactory.logLevel = LoggerFactory.LogLevel.SILENT
 			setRandomSeed(0L)
 			spawn()
 		}
@@ -356,7 +371,7 @@ class RobotronApplet : AWTKeyboardAnimationApplet(), IRoboClientListener {
 			if (spawns == 4)
 				return
 			val frame = AWTFrame("Robotron $spawns")
-			val app: AWTKeyboardAnimationApplet = RobotronApplet()
+			val app: AWTKeyboardAnimationApplet = RobotronApplet(spawns)
 			frame.add(app)
 			app.init()
 			if (!frame.loadFromFile(File(settingsDir, "robo$spawns.properties")))

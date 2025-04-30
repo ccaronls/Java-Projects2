@@ -69,7 +69,7 @@ interface IRoboClientConnection {
 
 	val clientId: Int
 
-	var connected: Boolean
+	val connected: Boolean
 
 	fun send(data: ByteArray)
 
@@ -92,13 +92,6 @@ interface IRoboServer {
 	fun broadcastPowerups(powerups: ManagedArray<Powerup>)
 
 	fun broadcastWalls(walls: Collection<Wall>)
-
-	fun onClientInput(
-		clientId: Int,
-		motionDv: Vector2D,
-		targetDv: Vector2D,
-		firing: Boolean
-	)
 
 	fun disconnect()
 }
@@ -153,7 +146,7 @@ object UDPCommon {
 		writer.writeBoolean(firing)
 	}
 
-	fun serverProcessInput(clientId: Int, reader: ByteBuffer, server: IRoboServer, robo: Robotron) {
+	fun serverProcessInput(clientId: Int, reader: ByteBuffer, robo: Robotron) {
 		while (reader.hasRemaining()) {
 			when (reader.readUByte()) {
 				EOF -> break
@@ -161,12 +154,11 @@ object UDPCommon {
 				}
 
 				CLIENT_INPUT_ID -> {
-					server.onClientInput(
-						clientId,
-						Vector2D.deserialize(reader),
-						Vector2D.deserialize(reader),
-						reader.readBoolean()
-					)
+					robo.players[clientId].apply {
+						motion_dv.deserialize(reader)
+						target_dv.deserialize(reader)
+						firing = reader.readBoolean()
+					}
 				}
 			}
 		}

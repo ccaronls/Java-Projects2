@@ -57,9 +57,10 @@ const val WORLD_HEIGHT_CLASSIC = 1000f
 // possible game states
 const val GAME_STATE_INTRO = 0
 const val GAME_STATE_PLAY = 1
+const val GAME_STATE_NEXT_LEVEL = 2
+const val GAME_STATE_GAME_OVER = 4
 
-//private final int   GAME_STATE_PLAYER_HIT = 2;
-const val GAME_STATE_GAME_OVER = 3
+
 const val MAZE_CELL_DIM = 160f
 const val MAZE_NUMCELLS_X = 10
 const val MAZE_NUMCELLS_Y = 10

@@ -11,6 +11,7 @@ import java.awt.image.*
 import java.io.*
 import java.util.*
 import javax.swing.ImageIcon
+import kotlin.math.abs
 
 
 class AWTImageMgr {
@@ -301,8 +302,8 @@ class AWTImageMgr {
 	fun getImage(id: Int, width: Int, height: Int, comp: Component): Image? {
 		val meta = images[id]
 		for (si in meta.scaledVersion) {
-			val dw = Math.abs(width - si.w)
-			val dh = Math.abs(height - si.h)
+			val dw = abs(width - si.w)
+			val dh = abs(height - si.h)
 			if (dw <= 1 && dh <= 1) {
 				return si.image
 			}
