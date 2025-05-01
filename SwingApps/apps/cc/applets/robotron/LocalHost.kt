@@ -22,6 +22,7 @@ import cc.lib.logger.LoggerFactory
 import cc.lib.math.Vector2D
 import cc.lib.net.GameCommand
 import cc.lib.net.GameCommandType
+import cc.lib.reflector.Reflector
 import cc.lib.utils.trimmedToSize
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -34,6 +35,7 @@ import java.nio.ByteBuffer
 
 val SVR_PLAYERS_UPDATED = GameCommandType("SVR_PLAYERS_UPDATED")
 val SVR_GAME_UPDATE = GameCommandType("SVR_GAME_UPDATE")
+val SVR_EXEC_METHOD = GameCommandType("SVR_EXEC_METHOD")
 
 val DISPATCHER = Dispatchers.Unconfined
 
@@ -295,10 +297,24 @@ private class LocalHost(val robotron: Robotron) : IRoboServer {
 			}
 		}
 	}
+
+	override fun broadcastExecuteMethod(method: String, vararg args: Any?) {
+		svrWriteScope.launch {
+			roboConnections.forEach {
+				it.send(SVR_EXEC_METHOD.make().apply {
+					setArg("method", method)
+					setArg("numParams", args.size)
+					for (i in args.indices) {
+						setArg("param$i", Reflector.serializeObject(args[i]))
+					}
+				})
+			}
+		}
+	}
 }
 
 @Throws(IOException::class)
-fun connectToHost(robotron: Robotron): IRoboClient {
+fun connectToHost(robotron: RoboMP): IRoboClient {
 	return host?.requestConnection(robotron.player.displayName)?.let {
 		LocalClient(it, robotron, it.clientId)
 	} ?: throw Exception("Host not running")
@@ -306,7 +322,7 @@ fun connectToHost(robotron: Robotron): IRoboClient {
 
 private class LocalClient(
 	val connection: LocalRoboClientConnection,
-	override val robotron: Robotron,
+	override val robotron: RoboMP,
 	val clientId: Int
 ) : IRoboClient {
 
@@ -335,9 +351,9 @@ private class LocalClient(
 
 		jobs.add(readScopeTCP.launch {
 			while (connected) {
-				connection.toClientTCP.receive().let {
-					LOG.debug("got ${it.toString().trimmedToSize(256)}")
-					when (it.type) {
+				connection.toClientTCP.receive().let { cmd ->
+					LOG.debug("got ${cmd.toString().trimmedToSize(256)}")
+					when (cmd.type) {
 						GameCommandType.SVR_DISCONNECT -> {
 							listeners.forEach { l ->
 								l.onDropped()
@@ -345,7 +361,7 @@ private class LocalClient(
 						}
 
 						SVR_PLAYERS_UPDATED -> {
-							val plStatus = it.arguments["players"] as List<PlayerConnectionInfo>
+							val plStatus = cmd.arguments["players"] as List<PlayerConnectionInfo>
 							LOG.debug("pl update: ${plStatus.joinToString()}")
 							plStatus.forEachIndexed { index, pair ->
 								with(robotron.players.getOrAdd(index)) {
@@ -356,12 +372,20 @@ private class LocalClient(
 						}
 
 						SVR_GAME_UPDATE -> {
-							robotron.merge(it.arguments.get("game").toString())
+							robotron.merge(cmd.arguments["game"].toString())
 						}
 
-						else -> error("Unhandled case: ${it.type}")
-					}
+						SVR_EXEC_METHOD -> {
+							val method = cmd.getString("method")
+							val numParams = cmd.getInt("numParams")
+							val params = Array<Any?>(numParams) {
+								Reflector.deserializeFromString(cmd.getString("param$it"))
+							}
+							robotron.executeLocally(method, *params)
+						}
 
+						else -> error("Unhandled case: ${cmd.type}")
+					}
 				}
 			}
 		})

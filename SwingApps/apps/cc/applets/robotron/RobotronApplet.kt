@@ -4,6 +4,7 @@ import cc.game.superrobotron.IRoboClientListener
 import cc.game.superrobotron.PLAYER_STATE_SPECTATOR
 import cc.game.superrobotron.POWERUP_NUM_TYPES
 import cc.game.superrobotron.Robotron
+import cc.game.superrobotron.RobotronRemote
 import cc.lib.game.AGraphics
 import cc.lib.game.GColor
 import cc.lib.game.Justify
@@ -26,6 +27,13 @@ import java.awt.event.MouseEvent
 import java.io.File
 import javax.swing.JOptionPane
 
+abstract class RoboMP : RobotronRemote() {
+	final override fun executeRemotely(method: String, resultType: Class<*>?, vararg args: Any?): Any? {
+		server?.broadcastExecuteMethod(method, *args)
+		return null
+	}
+}
+
 class RobotronApplet(id: Int) : AWTKeyboardAnimationApplet(), IRoboClientListener {
 
 	val log = LoggerFactory.getLogger("$id", RobotronApplet::class.java)
@@ -34,12 +42,12 @@ class RobotronApplet(id: Int) : AWTKeyboardAnimationApplet(), IRoboClientListene
 		return Font("Arial", Font.BOLD, 12)
 	}
 
-	lateinit var robotron: Robotron
+	lateinit var robotron: RoboMP
 	override fun doInitialization() {
 		Utils.setDebugEnabled()
 		LoggerFactory.logLevel = LogLevel.DEBUG
 		setRandomSeed(0)
-		robotron = object : Robotron() {
+		robotron = object : RoboMP() {
 			override val imageKey: Int by lazy {
 				G.loadImage("key.png", GColor.BLACK)
 			}
@@ -138,6 +146,7 @@ class RobotronApplet(id: Int) : AWTKeyboardAnimationApplet(), IRoboClientListene
 		robotron.client = null
 		robotron.players.clear()
 		robotron.players.add().also {
+			it.reset(0)
 			it.screen.dimension.assign(robotron.screen_dim)
 			it.displayName = requireRootFrame.getStringProperty("displayName", "")
 		}

@@ -32,9 +32,24 @@ class RemoteProcessor(
 		)!!.asStarProjectedType().makeNullable()
 	}
 
+	val remoteSuspendType by lazy {
+		resolver.getClassDeclarationByName(
+			"cc.lib.ksp.remote.IRemoteSuspend"
+		)!!.asStarProjectedType().makeNullable()
+	}
+
 	fun KSType.isRemote(): Boolean {
 		return remoteType.isAssignableFrom(this)
 	}
+
+	fun KSType.isRemoteSuspend(): Boolean {
+		return remoteSuspendType.isAssignableFrom(this)
+	}
+
+	fun KSType.isRemoteOrSuspendRemote(): Boolean {
+		return remoteType.isAssignableFrom(this) || remoteSuspendType.isAssignableFrom(this)
+	}
+
 
 	override fun getClassFileName(symbol: String): String {
 		return symbol + "Remote"
@@ -56,7 +71,7 @@ class RemoteProcessor(
 	}
 
 	fun getMethodSignature(decl: KSFunctionDeclaration): String {
-		return decl.parameters.joinToString { "${it.name!!.asString()} : ${it.type.resolve()}" }
+		return decl.parameters.joinToString { "${it.name!!.asString()} : ${it.type.resolve().withPackageQualifiers()}" }
 	}
 
 	inner class Visitor(private val file: OutputStream) : KSVisitorVoid() {
@@ -66,16 +81,19 @@ class RemoteProcessor(
 
 			logger.warn("Process class: $classDeclaration")
 			if (!(classDeclaration.isAbstract() || classDeclaration.isOpen())) {
-				logger.error("- Class declaration must be open or abstract")
-				return
+				throw Exception("- Class declaration must be open or abstract")
 			}
 
 			val classTypeName = getClassFileName(classDeclaration.toString())
 			val classArgs = getMethodSignature(classDeclaration.primaryConstructor!!)
 
 			val baseMirrorClass: KSType =
-				classDeclaration.superTypes.firstOrNull { it.resolve().isRemote() }?.resolve()
-					?: throw Exception("$classDeclaration does not extend cc.lib.rem.context.Remote interface")
+				classDeclaration.superTypes.firstOrNull { it.resolve().isRemoteOrSuspendRemote() }?.resolve()
+					?: throw Exception("$classDeclaration does not extend cc.lib.rem.context.Remote or cc.lib.rem.context.RemoteSuspend interface")
+
+			val needsSuspend = baseMirrorClass.isRemoteSuspend()
+
+			val suspendType = if (needsSuspend) "suspend" else ""
 
 			val classDeclarationParams = "${classDeclaration.primaryConstructor!!.parameters.joinToString()}"
 
@@ -108,19 +126,28 @@ abstract class $classTypeName($classArgs) : $classDeclaration($classDeclarationP
 
 				logger.warn("- param signature: $paramSignature")
 
-				val params =
-					if (m.parameters.isNotEmpty()) ", ${m.parameters.joinToString()}" else ""
+				val params = m.parameters.joinToString()
 
 				val retType = m.returnType!!
 				val retTypeResolved = retType.resolve()
 				if (!(retTypeResolved.isMarkedNullable || retTypeResolved.isUnit())) {
-					logger.error("Invalid return type $retType. RemoteMethods must be Unit or nullable")
-					return
+					throw Exception("Invalid return type $retType. RemoteMethods must be Unit or nullable")
 				}
 
-				if (!m.modifiers.contains(Modifier.SUSPEND)) {
-					logger.error("${m.simpleName.asString()} must be a suspend type")
-					return
+				if (a.callSuper && (!m.isOpen() || !retTypeResolved.isUnit())) {
+					throw Exception("cannot call super on an abstract remote methods or one with a return type")
+				}
+
+				if (!m.isOpenOrAbstract()) {
+					throw Exception("${m.simpleName.asString()} must be declared open or abstract")
+				}
+
+				m.modifiers.contains(Modifier.SUSPEND).also {
+					if (needsSuspend && !it) {
+						throw Exception("${m.simpleName.asString()} must have suspend modifier")
+					} else if (!needsSuspend && it) {
+						throw Exception("${m.simpleName.asString()} must have not suspend modifier")
+					}
 				}
 
 				val ret = if (retTypeResolved.isUnit()) "" else "return"
@@ -132,13 +159,13 @@ abstract class $classTypeName($classArgs) : $classDeclaration($classDeclarationP
 
 				file.print(
 					"""
-	override suspend fun $funName($paramSignature)$retStr {
-	   $ret executeRemotely("$funName", $result$params)$cast"""
+	override $suspendType fun $funName($paramSignature)$retStr {
+	   $ret executeRemotely("$funName", $result, $params)$cast"""
 				)
 				if (a.callSuper) {
 					file.print(
 						"""
-		super.$funName(${params.trimStart(',')})"""
+		super.$funName($params)"""
 					)
 				}
 				file.print(
@@ -150,15 +177,12 @@ abstract class $classTypeName($classArgs) : $classDeclaration($classDeclarationP
 
 			file.print(
 				"""
-   final override suspend fun executeLocally(method : String, vararg args : Any?) : Any? {
-      return when (method) {
-"""
+    final override $suspendType fun executeLocally(method : String, vararg args : Any?) : Any? {
+        return when (method) {"""
 			)
 			methods.forEach { (m, a) ->
 				val args = m.parameters.mapIndexed { index, param ->
-					"args[$index] as ${param.type}${
-						getTypeTemplates(param.type)
-					}${param.type.resolve().getNullable()}"
+					"args[$index] as ${param.type.resolve().withPackageQualifiers()}${param.type.resolve().getNullable()}"
 				}
 				val funName = m.simpleName.asString()
 				file.print(

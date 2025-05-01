@@ -13,8 +13,10 @@ import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.symbol.ClassKind
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
+import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import com.google.devtools.ksp.symbol.KSType
+import com.google.devtools.ksp.symbol.Modifier
 import com.google.devtools.ksp.symbol.Nullability
 import java.io.File
 import java.io.FileOutputStream
@@ -199,6 +201,13 @@ abstract class BaseProcessor(
 		return "<${arguments.joinToString { it.type!!.resolve().toFullyQualifiedName() }}>"
 	}
 
+	fun KSFunctionDeclaration.isOpen(): Boolean = modifiers.contains(Modifier.OPEN)
+
+	fun KSFunctionDeclaration.isAbstract(): Boolean = modifiers.contains(Modifier.ABSTRACT)
+
+	fun KSFunctionDeclaration.isOpenOrAbstract(): Boolean = isOpen() || isAbstract()
+
+
 	/**
 	 * Gets string version of the type with nullability qualifier and template arguments
 	 */
@@ -213,6 +222,11 @@ abstract class BaseProcessor(
 			name = "$name?"
 		logger.warn("Fully qualified name for $this : $name")
 		return name
+	}
+
+	fun KSType.withPackageQualifiers(): String {
+		val q = (declaration as? KSClassDeclaration)?.qualifiedName?.asString()!!
+		return q.substringBeforeLast('.') + "." + toString()
 	}
 
 	fun KSType.validateOrThrowDeferred() {

@@ -9,6 +9,9 @@ import cc.lib.game.Justify
 import cc.lib.game.Utils
 import cc.lib.ksp.binaryserializer.readInt
 import cc.lib.ksp.binaryserializer.writeInt
+import cc.lib.ksp.remote.IRemote
+import cc.lib.ksp.remote.Remote
+import cc.lib.ksp.remote.RemoteFunction
 import cc.lib.logger.LoggerFactory
 import cc.lib.math.CMath
 import cc.lib.math.MutableVector2D
@@ -41,8 +44,9 @@ import kotlin.math.sqrt
  *
  * But this time our hero has some new tricks up his sleeve!
  */
+@Remote
 @Suppress("SpellCheckingInspection", "LocalVariableName", "FunctionName", "PrivatePropertyName", "PropertyName")
-abstract class Robotron : Reflector<Robotron>() {
+abstract class Robotron : Reflector<Robotron>(), IRemote {
 
 	companion object {
 
@@ -518,20 +522,20 @@ abstract class Robotron : Reflector<Robotron>() {
 
 	// -----------------------------------------------------------------------------------------------
 	// append a zombie tracer
-	fun addZombieTracer(pos: Vector2D) {
+	@RemoteFunction(true)
+	open fun addZombieTracer(pos: Vector2D) {
 		zombie_tracers.addOrNull()?.let {
 			it.init(pos, GColor.WHITE)
-			server?.broadcastNewZombieTracer(pos)
 		}
 	}
 
 	// -----------------------------------------------------------------------------------------------
 	// append a zombie tracer
-	fun addPlayerTracer(playerIdx: Int, color: GColor) {
+	@RemoteFunction(true)
+	open fun addPlayerTracer(playerIdx: Int, color: GColor) {
 		val player = players[playerIdx]
 		players[playerIdx].tracer.addOrNull()?.let {
 			it.init(player.pos, color, player.dir)
-			server?.broadcastNewPlayerTracer(playerIdx, color)
 		}
 	}
 
@@ -917,7 +921,7 @@ abstract class Robotron : Reflector<Robotron>() {
 						addPoints(player, -people_points)
 						if (player.people_picked_up > 0)
 							player.people_picked_up--
-						addParticle(p.pos, PARTICLE_TYPE_BLOOD, PARTICLE_BLOOD_DURATION, -1, 0)
+						addBloodParticle(p.pos)
 					} else {
 						addMsg(p.pos, people_points.toString())
 						addPoints(player, people_points)
@@ -1009,10 +1013,10 @@ abstract class Robotron : Reflector<Robotron>() {
 
 	// -----------------------------------------------------------------------------------------------
 	// Add a a message to the table if possible
-	fun addMsg(v: Vector2D, str: String) {
+	@RemoteFunction(true)
+	open fun addMsg(v: Vector2D, str: String) {
 		messages.addOrNull()?.let {
 			it.init(v, str, GColor.WHITE)
-			server?.broadcastMessage(it)
 		}
 	}
 
@@ -1038,6 +1042,16 @@ abstract class Robotron : Reflector<Robotron>() {
 				}
 			}
 		}
+	}
+
+	@RemoteFunction(true)
+	open fun addDyingRobotParticle(pos: Vector2D) {
+		addParticle(pos, PARTICLE_TYPE_DYING_ROBOT, 5, -1, 0)
+	}
+
+	@RemoteFunction(true)
+	open fun addBloodParticle(pos: Vector2D) {
+		addParticle(pos, PARTICLE_TYPE_BLOOD, PARTICLE_BLOOD_DURATION, -1, 0)
 	}
 
 	// -----------------------------------------------------------------------------------------------
@@ -1225,7 +1239,7 @@ abstract class Robotron : Reflector<Robotron>() {
 			return true
 		} else if (enemy.type <= ENEMY_INDEX_ROBOT_W) {
 			addPoints(player, ENEMY_ROBOT_POINTS)
-			addParticle(enemy.pos, PARTICLE_TYPE_DYING_ROBOT, 5, -1, 0)
+			addDyingRobotParticle(enemy.pos)
 			return true
 		} else if (enemy.type <= ENEMY_INDEX_THUG_W) {
 			collisionScanCircle(enemy.pos + dv, ENEMY_THUG_RADIUS) ?: run {
@@ -1624,7 +1638,7 @@ abstract class Robotron : Reflector<Robotron>() {
 				while (piter.hasNext()) {
 					val p = piter.next()
 					if (p.state > 0 && p.isOnScreen() && p.pos.isWithinDistance(e.pos, radius + PEOPLE_RADIUS)) {
-						addParticle(p.pos, PARTICLE_TYPE_BLOOD, PARTICLE_BLOOD_DURATION, -1, 0)
+						addBloodParticle(p.pos)
 						addMsg(e.pos.withJitter(10f), "NOOOO!")
 						piter.remove()
 					}
@@ -2136,13 +2150,13 @@ abstract class Robotron : Reflector<Robotron>() {
 		addStunParticles(playerIndex)
 	}
 
-	fun addStunParticles(playerIndex: Int) {
+	@RemoteFunction(true)
+	open fun addStunParticles(playerIndex: Int) {
 		var angle = 0
 		while (angle < 360) {
 			addParticle(player.pos, PARTICLE_TYPE_PLAYER_STUN, random(10..20), playerIndex, angle)
 			angle += 45
 		}
-		server?.broadcastPlayerStunned(playerIndex)
 	}
 
 	// -----------------------------------------------------------------------------------------------
