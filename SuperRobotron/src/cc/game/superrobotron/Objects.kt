@@ -353,8 +353,14 @@ abstract class ATracer() : Object() {
 abstract class APeople : Object() {
 	@BinaryType(UByte::class)
 	var type: Int = 0
+
 	@BinaryType(java.lang.Byte::class)
 	var state: Int = 0
+
+	fun init() {
+		type = random(0 until PEOPLE_NUM_TYPES)
+		state = random(1..4)
+	}
 }
 
 @BinarySerializable("Enemy")

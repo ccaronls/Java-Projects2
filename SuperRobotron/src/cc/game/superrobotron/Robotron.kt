@@ -694,8 +694,10 @@ abstract class Robotron : Reflector<Robotron>() {
 	// add the maximum number of people randomly around the maze (but not on an
 	// edge)
 	private fun addPeople() {
+		people.clear()
 		while (people.isNotFull()) {
 			val p = people.add()
+			p.init()
 			while (true) {
 				p.pos.randomEq(
 					randomFloat(verts_min_x + MAZE_VERTEX_NOISE * 3, verts_max_x - MAZE_VERTEX_NOISE * 3),
@@ -2127,15 +2129,20 @@ abstract class Robotron : Reflector<Robotron>() {
 	}
 
 	// -----------------------------------------------------------------------------------------------
-	private fun setPlayerStunned(playerIndex: Int, dv: Vector2D, force: Float) {
+	fun setPlayerStunned(playerIndex: Int, dv: Vector2D, force: Float) {
 		val player = players[playerIndex]
 		player.stun_dv.assign(dv.normalized() * force)
 		player.hulk_charge_frame = 0
+		addStunParticles(playerIndex)
+	}
+
+	fun addStunParticles(playerIndex: Int) {
 		var angle = 0
 		while (angle < 360) {
 			addParticle(player.pos, PARTICLE_TYPE_PLAYER_STUN, random(10..20), playerIndex, angle)
 			angle += 45
 		}
+		server?.broadcastPlayerStunned(playerIndex)
 	}
 
 	// -----------------------------------------------------------------------------------------------

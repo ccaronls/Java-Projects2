@@ -100,6 +100,8 @@ interface IRoboServer {
 
 	fun broadcastNewPlayerTracer(playerIdx: Int, color: GColor)
 
+	fun broadcastPlayerStunned(playerIndex: Int)
+
 	fun disconnect()
 }
 
