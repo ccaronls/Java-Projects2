@@ -449,13 +449,13 @@ abstract class Robotron : Reflector<Robotron>() {
 					val len2 = dv.magSquared()
 					if (len2 < min * min) {
 						val msgV = player.pos.withJitter(30f, 30f)
-						messages.add().init(msgV, getPowerupTypeString(p.type))
+						addMsg(msgV, getPowerupTypeString(p.type))
 						when (p.type) {
 							POWERUP_BONUS_PLAYER -> player.lives += 1
 							POWERUP_BONUS_POINTS -> {
 								val points = random(1..POWERUP_BONUS_POINTS_MAX) * POWERUP_POINTS_SCALE
 								addPoints(player, points)
-								messages.add().init(msgV.add(20f, 0f), points.toString())
+								addMsg(msgV.add(20f, 0f), points.toString())
 							}
 
 							POWERUP_KEY -> {
@@ -518,14 +518,21 @@ abstract class Robotron : Reflector<Robotron>() {
 
 	// -----------------------------------------------------------------------------------------------
 	// append a zombie tracer
-	private fun addZombieTracer(pos: Vector2D) {
-		zombie_tracers.addOrNull()?.init(pos, GColor.WHITE)
+	fun addZombieTracer(pos: Vector2D) {
+		zombie_tracers.addOrNull()?.let {
+			it.init(pos, GColor.WHITE)
+			server?.broadcastNewZombieTracer(pos)
+		}
 	}
 
 	// -----------------------------------------------------------------------------------------------
 	// append a zombie tracer
-	private fun addPlayerTracer(player: Player, pos: Vector2D, dir: Int, color: GColor) {
-		player.tracer.addOrNull()?.init(pos, color, dir)
+	fun addPlayerTracer(playerIdx: Int, color: GColor) {
+		val player = players[playerIdx]
+		players[playerIdx].tracer.addOrNull()?.let {
+			it.init(player.pos, color, player.dir)
+			server?.broadcastNewPlayerTracer(playerIdx, color)
+		}
 	}
 
 	// -----------------------------------------------------------------------------------------------
@@ -872,8 +879,8 @@ abstract class Robotron : Reflector<Robotron>() {
 	}
 
 	private fun updatePlayers() {
-		players.forEach {
-			updatePlayer(it)
+		players.forEachIndexed { idx, _ ->
+			updatePlayer(idx)
 		}
 	}
 
@@ -910,7 +917,7 @@ abstract class Robotron : Reflector<Robotron>() {
 							player.people_picked_up--
 						addParticle(p.pos, PARTICLE_TYPE_BLOOD, PARTICLE_BLOOD_DURATION, -1, 0)
 					} else {
-						addMsg(p.pos, people_points.toString()) // + " points");
+						addMsg(p.pos, people_points.toString())
 						addPoints(player, people_points)
 						player.people_picked_up++
 						if (people_points < PEOPLE_MAX_POINTS) people_points += PEOPLE_INCREASE_POINTS * gameLevel
@@ -1000,8 +1007,11 @@ abstract class Robotron : Reflector<Robotron>() {
 
 	// -----------------------------------------------------------------------------------------------
 	// Add a a message to the table if possible
-	private fun addMsg(v: Vector2D, str: String) {
-		messages.addOrNull()?.init(v, str, GColor.WHITE)
+	fun addMsg(v: Vector2D, str: String) {
+		messages.addOrNull()?.let {
+			it.init(v, str, GColor.WHITE)
+			server?.broadcastMessage(it)
+		}
 	}
 
 	// -----------------------------------------------------------------------------------------------
@@ -2160,7 +2170,8 @@ abstract class Robotron : Reflector<Robotron>() {
 
 	// -----------------------------------------------------------------------------------------------
 	// Update the player
-	private fun updatePlayer(player: Player) {
+	private fun updatePlayer(playerIdx: Int) {
+		val player = players[playerIdx]
 		val playerRadius = player.radius
 		Arrays.fill(player.barrier_electric_wall, -1f)
 		if (player.next_state_frame <= frameNumber) {
@@ -2266,9 +2277,9 @@ abstract class Robotron : Reflector<Robotron>() {
 				player.target_dv.assign(pv - player.pos)
 				if (frameNumber % 4 == 0) {
 					if (isHulkActiveCharging(player)) {
-						addPlayerTracer(player, player.pos, player.dir, GColor.GREEN)
+						addPlayerTracer(playerIdx, GColor.GREEN)
 					} else if (player.powerup == POWERUP_SUPER_SPEED) {
-						addPlayerTracer(player, player.pos, player.dir, GColor.YELLOW)
+						addPlayerTracer(playerIdx, GColor.YELLOW)
 					}
 				}
 				player.pos.assign(pv)

@@ -1,5 +1,6 @@
 package cc.game.superrobotron
 
+import cc.lib.game.GColor
 import cc.lib.game.GDimension
 import cc.lib.ksp.binaryserializer.readBoolean
 import cc.lib.ksp.binaryserializer.readUByte
@@ -92,6 +93,12 @@ interface IRoboServer {
 	fun broadcastPowerups(powerups: ManagedArray<Powerup>)
 
 	fun broadcastWalls(walls: Collection<Wall>)
+
+	fun broadcastMessage(msg: Message)
+
+	fun broadcastNewZombieTracer(pos: Vector2D)
+
+	fun broadcastNewPlayerTracer(playerIdx: Int, color: GColor)
 
 	fun disconnect()
 }
