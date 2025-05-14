@@ -36,6 +36,7 @@ import java.nio.ByteBuffer
 val SVR_PLAYERS_UPDATED = GameCommandType("SVR_PLAYERS_UPDATED")
 val SVR_GAME_UPDATE = GameCommandType("SVR_GAME_UPDATE")
 val SVR_EXEC_METHOD = GameCommandType("SVR_EXEC_METHOD")
+val CL_UPDATE_DIMENSION = GameCommandType("CL_UPDATE_DIMENSION")
 
 val DISPATCHER = Dispatchers.Unconfined
 
@@ -74,10 +75,6 @@ class LocalRoboClientConnection(override val clientId: Int, val player: Player) 
 		}
 	}
 
-	override fun onScreenDimensionUpdated(dim: GDimension) {
-		player.screen.setDimension(dim)
-	}
-
 	fun disconnect() {
 		connected = false
 		jobs.forEach {
@@ -96,6 +93,12 @@ class LocalRoboClientConnection(override val clientId: Int, val player: Player) 
 					GameCommandType.CL_DISCONNECT -> {
 						disconnect()
 						host?.disconnectClient(clientId)
+					}
+
+					CL_UPDATE_DIMENSION -> {
+						host?.let {
+							it.robotron.players[clientId].screen.dimension.assign(cmd.arguments.get("dim") as GDimension)
+						}
 					}
 
 					else -> error("Unhandled $cmd")
@@ -168,7 +171,7 @@ private class LocalHost(val robotron: Robotron) : IRoboServer {
 		}
 	}
 
-	override fun broadcastNewGame(robotron: Robotron) {
+	override fun broadcastNewGame() {
 		svrWriteScope.launch {
 			roboConnections.forEach {
 				it.send(SVR_GAME_UPDATE.make().setArg("game", robotron))
@@ -193,7 +196,6 @@ private class LocalHost(val robotron: Robotron) : IRoboServer {
 
 	@Throws(IOException::class)
 	fun requestConnection(displayName: String): LocalRoboClientConnection {
-		robotron ?: throw IOException("Server down")
 		displayName.takeIf { it.isNotBlank() } ?: throw IOException("Empty display name not allowed")
 		roboConnections.firstOrNull { it.player.displayName == displayName && it.connected }?.let {
 			throw IOException("Duplicate display names not allowed")
@@ -311,10 +313,22 @@ private class LocalHost(val robotron: Robotron) : IRoboServer {
 			}
 		}
 	}
+
+	override fun broadcastGameState() {
+		svrWriteScope.launch {
+			roboConnections.forEach {
+				val (buffer, array) = UDPCommon.createBuffer()
+				UDPCommon.serverWriteGameState(robotron, buffer)
+				roboConnections.forEach {
+					it.send(array)
+				}
+			}
+		}
+	}
 }
 
 @Throws(IOException::class)
-fun connectToHost(robotron: RoboMP): IRoboClient {
+fun connectToHost(robotron: Robotron): IRoboClient {
 	return host?.requestConnection(robotron.player.displayName)?.let {
 		LocalClient(it, robotron, it.clientId)
 	} ?: throw Exception("Host not running")
@@ -322,7 +336,7 @@ fun connectToHost(robotron: RoboMP): IRoboClient {
 
 private class LocalClient(
 	val connection: LocalRoboClientConnection,
-	override val robotron: RoboMP,
+	override val robotron: Robotron,
 	val clientId: Int
 ) : IRoboClient {
 
@@ -336,9 +350,6 @@ private class LocalClient(
 	private val jobs = mutableListOf<Job>()
 	override val connected: Boolean
 		get() = connection.connected
-
-	override val playersStatus: Array<PlayerConnectionInfo?>
-		get() = Array(MAX_PLAYERS) { null }
 
 	init {
 		require(clientId > 0)
@@ -408,6 +419,14 @@ private class LocalClient(
 					UDPCommon.clientWriteInput(buffer, motionDv, targetDv, firing)
 					conn.fromClientUDP.send(array)
 				}
+			}
+		}
+	}
+
+	override fun sendScreenDimension(dim: GDimension) {
+		writeScope.launch {
+			connection.let {
+				it.send(CL_UPDATE_DIMENSION.make().setArg("dim", dim))
 			}
 		}
 	}

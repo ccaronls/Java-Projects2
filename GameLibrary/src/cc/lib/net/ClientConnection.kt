@@ -1,8 +1,10 @@
 package cc.lib.net
 
 import cc.lib.utils.GException
+import cc.lib.utils.trimmedToSize
 import java.io.DataInputStream
 import java.io.DataOutputStream
+import java.net.InetAddress
 import java.net.Socket
 
 /**
@@ -59,16 +61,8 @@ import java.net.Socket
  * }
  * }
  */
-class ClientConnection : AClientConnection, Runnable {
-	/**
-	 * Only GameServer can create instances of ClientConnection
-	 *
-	 * @param server
-	 * @param attributes
-	 * @throws Exception
-	 */
-	internal constructor(server: GameServer, attributes: Map<String, Any>) :
-		super(server, attributes.toMutableMap())
+open class ClientConnection(server: GameServer, attributes: Map<String, Any>) :
+	AClientConnection(server, attributes.toMutableMap()), Runnable {
 
 	private var socket: Socket? = null
 	private var dIn: DataInputStream? = null
@@ -91,6 +85,7 @@ class ClientConnection : AClientConnection, Runnable {
 				log.info("ClientConnection: Disconnecting client '$name'")
 				connected = false
 				notifyListeners { l: Listener -> l.onDisconnected(this, reason) }
+				onDisconnected()
 				synchronized(outQueue) {
 					outQueue.clear()
 					if (!disconnecting) outQueue.add(
@@ -104,6 +99,8 @@ class ClientConnection : AClientConnection, Runnable {
 			e.printStackTrace()
 		}
 	}
+
+	open fun onDisconnected() {}
 
 	private fun close() {
 		log.debug("ClientConnection: close() ...")
@@ -144,14 +141,14 @@ class ClientConnection : AClientConnection, Runnable {
      * init connection.  should only be used by GameServer
      */
 	@Throws(Exception::class)
-	fun connect(socket: Socket?, `in`: DataInputStream?, out: DataOutputStream?) {
+	fun connect(socket: Socket, input: DataInputStream, out: DataOutputStream) {
 		if (isConnected) {
 			throw Exception("Client '$name' is already connected")
 		}
 		log.debug("ClientConnection: $name connection attempt ...")
 		this.socket = socket
 		try {
-			this.dIn = `in`
+			this.dIn = input
 			this.dOut = out
 			start()
 		} catch (e: Exception) {
@@ -159,14 +156,17 @@ class ClientConnection : AClientConnection, Runnable {
 			throw e
 		}
 		log.debug("ClientConnection: $name connected SUCCESS")
+		onConnected(socket.inetAddress, socket.port)
 	}
+
+	open fun onConnected(clientAddress: InetAddress, port: Int) {}
 
 	/**
 	 * Sent a command to the remote client
 	 * @param cmd
 	 */
 	override fun sendCommand(cmd: GameCommand) {
-		log.debug("Sending command to client $name\n$cmd")
+		log.debug("Sending command to client $name\n${cmd.toString().trimmedToSize(256)}")
 		if (!isConnected) throw GException("Client $name is not connected")
 		//log.debug("ClientConnection: " + getName() + "-> sendCommand: " + cmd);
 		synchronized(outQueue) { outQueue.add(cmd) }
@@ -177,9 +177,8 @@ class ClientConnection : AClientConnection, Runnable {
 	 */
 	override fun start() {
 		//reader.start();
+		outQueue.start(requireNotNull(dOut))
 		connected = true
-		requireNotNull(dOut)
-		outQueue.start(dOut!!)
 		Thread(this).start()
 	}
 
@@ -187,8 +186,7 @@ class ClientConnection : AClientConnection, Runnable {
 		log.debug("ClientConnection: ClientThread " + Thread.currentThread().id + " starting")
 		while (isConnected) {
 			try {
-				requireNotNull(dIn)
-				processCommand(GameCommand.parse(dIn!!))
+				processCommand(GameCommand.parse(requireNotNull(dIn)))
 			} catch (e: Exception) {
 				if (isConnected) {
 					e.printStackTrace()

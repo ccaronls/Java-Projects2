@@ -5,7 +5,7 @@ import java.io.IOException
 /**
  * Dirty Reflector has flag top know if it is dirty and will serialize when serializeDirty is called
  */
-open class DirtyReflector<T> : Reflector<T>() {
+open class DirtyKReflector<T> : KReflector<T>() {
 
 	@Omit
 	private var dirty = false

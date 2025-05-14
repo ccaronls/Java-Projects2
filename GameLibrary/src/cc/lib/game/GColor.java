@@ -345,11 +345,6 @@ public final class GColor extends Reflector<GColor> {
         return new GColor(1f - getRed(), 1f - getGreen(), 1f - getBlue(), getAlpha());
     }
 
-    public GColor invert() {
-        setFloat(1f - getRed(), 1f - getGreen(), 1f - getBlue(), getAlpha());
-        return this;
-    }
-
     public IInterpolator<GColor> getInterpolator(GColor target) {
         return position -> interpolateTo(target, position);
     }
@@ -365,5 +360,9 @@ public final class GColor extends Reflector<GColor> {
     public void copy(GColor other) {
         argb = other.argb;
         name = other.name;
+    }
+
+    public GColor copyOf() {
+        return GColor.fromARGB(argb);
     }
 }

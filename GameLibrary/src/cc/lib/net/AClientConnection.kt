@@ -183,24 +183,29 @@ abstract class AClientConnection(val server: AGameServer, private val attributes
 		return attributes[key]
 	}
 
+	val allAttributes: Map<String, Any>
+		get() = attributes
+
+	/**
+	 * @return
+	 */
 	val attributeKeys: Iterable<String>
-		/**
-		 * @return
-		 */
 		get() = attributes.keys
+
+	/**
+	 * @return
+	 */
 	val attributeValues: Iterable<Any>
-		/**
-		 * @return
-		 */
 		get() = attributes.values
 	val name: String
 		get() = attributes["name"] as String
+
+	/**
+	 * Return the user's handle if set. normal name otherwise.
+	 *
+	 * @return
+	 */
 	val displayName: String
-		/**
-		 * Return the user's handle if set. normal name otherwise.
-		 *
-		 * @return
-		 */
 		get() = if (attributes.containsKey("displayName")) attributes["displayName"] as String else name
 
 	/**
@@ -252,12 +257,22 @@ abstract class AClientConnection(val server: AGameServer, private val attributes
 			)
 		} else if (cmd.type == GameCommandType.PROPERTIES) {
 			attributes.putAll(cmd.arguments)
+			onPropertiesChanged()
 			notifyListeners { l: Listener -> l.onPropertyChanged(this) }
-		} else {
+		} else if (!onCommand(cmd)) {
 			notifyListeners { l: Listener -> l.onCommand(this, cmd) }
 		}
 		return true
 	}
+
+	/**
+	 * Override to handle commands and return true if the command was handled
+	 */
+	open fun onCommand(cmd: GameCommand): Boolean {
+		return false
+	}
+
+	open fun onPropertiesChanged() {}
 
 	private inner class ResponseListener<T>(private val id: String) :
 		Listener {

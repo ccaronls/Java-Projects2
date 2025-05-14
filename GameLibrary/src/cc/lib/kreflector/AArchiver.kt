@@ -13,12 +13,12 @@ abstract class AArchiver : Archiver {
 	}
 
 	@Throws(Exception::class)
-	override operator fun get(field: Field, a: Reflector<*>): String {
+	override operator fun get(field: Field, a: KReflector<*>): String {
 		return getStringValue(field[a])
 	}
 
 	@Throws(Exception::class)
-	override operator fun set(o: Any?, field: Field, value: String, a: Reflector<*>, keepInstances: Boolean) {
+	override operator fun set(o: Any?, field: Field, value: String, a: KReflector<*>, keepInstances: Boolean) {
 		field.isAccessible = true
 		if (value == null || value == "null") field[a] = null else field[a] = parse(value)
 	}

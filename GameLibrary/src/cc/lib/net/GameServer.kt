@@ -38,7 +38,7 @@ import java.net.SocketTimeoutException
  *
  * @author ccaron
  */
-class GameServer(
+open class GameServer(
 	serverName: String,
 	listenPort: Int,
 	serverVersion: String,
@@ -81,9 +81,10 @@ class GameServer(
 	override fun listen() {
 		val socket = ServerSocket(port)
 		socket.soTimeout = 5000
-		socketListener = SocketListener(socket)
-		listenJob = launchIn(Dispatchers.IO) {
-			socketListener!!.run()
+		socketListener = SocketListener(socket).also {
+			listenJob = launchIn(Dispatchers.IO) {
+				it.run()
+			}
 		}
 	}
 
@@ -100,8 +101,8 @@ class GameServer(
 	 */
 	override fun stop() {
 		log.info("GameServer: Stopping server: $this")
-		if (socketListener != null) {
-			socketListener!!.stop()
+		socketListener?.let { sl ->
+			sl.stop()
 			socketListener = null
 			disconnectingLock.reset()
 			synchronized(clients) {
@@ -121,11 +122,11 @@ class GameServer(
 		}
 		listenJob?.cancel()
 		listenJob = null
-		if (counter != null) {
+		counter?.let {
 			log.info("------------------------------------------------------------------------------------------------------")
 			log.info("******************************************************************************************************")
 			log.info("------------------------------------------------------------------------------------------------------")
-			log.info(counter!!.encodingAsCode)
+			log.info(it.encodingAsCode)
 			log.info("------------------------------------------------------------------------------------------------------")
 			log.info("******************************************************************************************************")
 			log.info("------------------------------------------------------------------------------------------------------")
@@ -254,7 +255,7 @@ class GameServer(
 					val pswd = GameCommand.parse(dIn)
 					if (password != pswd.getString("password")) throw ProtocolException("Bad Password")
 				}
-				var conn: AClientConnection? = null
+				val conn: AClientConnection
 				var reconnection = false
 				synchronized(clients) {
 					if (cmd.type == GameCommandType.CL_CONNECT) {
@@ -273,32 +274,31 @@ class GameServer(
 							if (clients.size >= maxConnections) {
 								throw java.net.ProtocolException("Max client connections reached")
 							}
-							ClientConnection(this@GameServer, cmd.arguments)
+							newClientConnection(clients.size, cmd.arguments as MutableMap<String, Any>)
 						}
 						(conn as ClientConnection).let {
+							clients.put(name, it)
 							it.connect(socket, dIn, out)
 							it.setAttributes(cmd.arguments)
 						}
-						clients.put(name, conn!!)
 					} else {
 						throw ProtocolException("Handshake failed: Invalid client command: $cmd")
 					}
 				}
 				GameCommand(GameCommandType.SVR_CONNECTED)
 					.setName(name)
-					.setArg("keepAlive", PING_FREQ).write(out)
+					.setArg("keepAlive", PING_FREQ)
+					.setArgs(conn.allAttributes)
+					.write(out)
 
-				// TODO: Add a password feature when server prompts for password before conn.connect is called.
-				conn?.let {
-					log.debug("GameServer: Client ${it.name} " + if (reconnection) "reconnected" else "connected")
-					if (reconnection) {
-						it.notifyListeners { l: AClientConnection.Listener ->
-							l.onReconnected(it)
-						}
-					} else {
-						notifyListeners { l: Listener -> l.onConnected(it) }
+				log.debug("GameServer: Client ${conn.name} " + if (reconnection) "reconnected" else "connected")
+				if (reconnection) {
+					conn.notifyListeners { l: AClientConnection.Listener ->
+						l.onReconnected(conn)
 					}
-				} ?: log.error("Null connection")
+				} else {
+					notifyListeners { l: Listener -> l.onConnected(conn) }
+				}
 
 				//new GameCommand(GameCommandType.SVR_CONNECTED).setArg("keepAlive", clientReadTimeout).write(out);
 				//log.debug("GameServer: Client " + name + " connected");
@@ -323,4 +323,7 @@ class GameServer(
 			}
 		}
 	}
+
+	open fun newClientConnection(clientNum: Int, arguments: MutableMap<String, Any>): ClientConnection =
+		ClientConnection(this, arguments)
 }

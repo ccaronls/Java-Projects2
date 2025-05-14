@@ -8,18 +8,18 @@ import java.lang.reflect.Field
  */
 internal class DirtyArchiver<T> : Archiver {
 	@Throws(Exception::class)
-	override fun get(field: Field, a: Reflector<*>): String {
+	override fun get(field: Field, a: KReflector<*>): String {
 		val o = (field[a] as DirtyDelegate<*>).value
 		return when (o) {
 			null -> "null"
-			is Reflector<*> -> Reflector.getCanonicalName(o::class.java)
+			is KReflector<*> -> KReflector.getCanonicalName(o::class.java)
 			is String -> "\"$o\""
 			else -> o.toString()
 		}
 	}
 
 	@Throws(Exception::class)
-	override fun set(o: Any?, field: Field, value: String, a: Reflector<*>, keepInstances: Boolean) {
+	override fun set(o: Any?, field: Field, value: String, a: KReflector<*>, keepInstances: Boolean) {
 		(field[a] as DirtyDelegate<*>).set(value, keepInstances)
 		//((DirtyDelegate)field.get(a)).setValueFromString(value == null ? "" : value);
 	}

@@ -6,9 +6,9 @@ import kotlin.reflect.KProperty
 
 class DirtyDelegate<V>(var value: V, val type: Class<*> = value!!::class.java) {
 
-	operator fun getValue(ref: DirtyReflector<*>, prop: KProperty<*>) = value
+	operator fun getValue(ref: DirtyKReflector<*>, prop: KProperty<*>) = value
 
-	operator fun setValue(ref: DirtyReflector<*>, prop: KProperty<*>, v: V) {
+	operator fun setValue(ref: DirtyKReflector<*>, prop: KProperty<*>, v: V) {
 		if (v != value) {
 			ref.setDirty()
 		}
@@ -40,12 +40,12 @@ class DirtyDelegate<V>(var value: V, val type: Class<*> = value!!::class.java) {
 			value = newValue.toLong() as V
 		} else if (type.isAssignableFrom(Float::class.javaObjectType)) {
 			value = newValue.toFloat() as V
-		} else if (Reflector::class.java.isAssignableFrom(type)) {
+		} else if (KReflector::class.java.isAssignableFrom(type)) {
 			if (newValue == null || newValue == "null") {
 				value = null as V
 			} else {
-				if (!keepInstances || value == null || Reflector.isImmutable(value!!)) {
-					value = Reflector.getClassForName(newValue.split(" ")[0]).newInstance() as V
+				if (!keepInstances || value == null || KReflector.isImmutable(value!!)) {
+					value = KReflector.getClassForName(newValue.split(" ")[0]).newInstance() as V
 				}
 			}
 		} else TODO("$newValue Not implemented for type ${type}")
@@ -54,11 +54,12 @@ class DirtyDelegate<V>(var value: V, val type: Class<*> = value!!::class.java) {
 	@kotlin.jvm.Throws(IOException::class)
 	fun serialize(out: RPrintWriter, printObjects: Boolean) {
 		when (value) {
-			is Reflector<*> -> with(value as Reflector<*>) {
+			is KReflector<*> -> with(value as KReflector<*>) {
 				out.push()
 				serialize(out)
 				out.pop()
 			}
+
 			else -> out.println()
 		}
 	}
@@ -66,12 +67,13 @@ class DirtyDelegate<V>(var value: V, val type: Class<*> = value!!::class.java) {
 	@kotlin.jvm.Throws(IOException::class)
 	fun deserialize(reader: RBufferedReader, keepInstances: Boolean) {
 		when (value) {
-			is Reflector<*> -> with(value as Reflector<*>) {
+			is KReflector<*> -> with(value as KReflector<*>) {
 				if (keepInstances)
 					merge(reader)
 				else
 					deserialize(reader)
 			}
+
 			else -> Unit
 		}
 	}

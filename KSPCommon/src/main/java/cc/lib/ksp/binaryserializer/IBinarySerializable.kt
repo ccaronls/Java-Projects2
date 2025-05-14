@@ -1,7 +1,5 @@
 package cc.lib.ksp.binaryserializer
 
-import java.io.DataInputStream
-import java.io.DataOutputStream
 import java.io.IOException
 import java.nio.ByteBuffer
 
@@ -104,16 +102,6 @@ interface IBinarySerializable<T> {
 			}
 			return arr
 		}
+
 	}
-}
-
-fun DataOutputStream.writeUInt(value: UInt) {
-	writeInt(value.toInt())
-}
-
-fun DataInputStream.readUInt(): UInt = readInt().toUInt()
-
-fun DataOutputStream.writeUnsignedByte(value: Int) {
-	require(value in 0..255)
-	writeByte(value)
 }

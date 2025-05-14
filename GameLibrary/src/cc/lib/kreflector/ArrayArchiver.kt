@@ -10,9 +10,9 @@ import java.lang.reflect.Field
  */
 internal class ArrayArchiver : Archiver {
 	@Throws(Exception::class)
-	override operator fun get(field: Field, a: Reflector<*>): String {
+	override operator fun get(field: Field, a: KReflector<*>): String {
 		val o = field[a]
-		return Reflector.getCanonicalName(field.type.componentType) + " " + Array.getLength(o)
+		return KReflector.getCanonicalName(field.type.componentType) + " " + Array.getLength(o)
 	}
 
 	@Throws(Exception::class)
@@ -21,14 +21,14 @@ internal class ArrayArchiver : Archiver {
 		if (parts.size < 2) throw GException("Invalid array description '$line' excepted < 2 parts")
 		val len = parts[1].trim { it <= ' ' }.toInt()
 		if (!keepInstances || current == null || Array.getLength(current) != len) {
-			val clazz = Reflector.getClassForName(parts[0].trim { it <= ' ' })
+			val clazz = KReflector.getClassForName(parts[0].trim { it <= ' ' })
 			return Array.newInstance(clazz, len)
 		}
 		return current
 	}
 
 	@Throws(Exception::class)
-	override operator fun set(o: Any?, field: Field, value: String, a: Reflector<*>, keepInstances: Boolean) {
+	override operator fun set(o: Any?, field: Field, value: String, a: KReflector<*>, keepInstances: Boolean) {
 		o?.let {
 			field[a] = createArray(o, value, keepInstances)
 		} ?: run {
@@ -41,12 +41,12 @@ internal class ArrayArchiver : Archiver {
 		val len = Array.getLength(arr)
 		if (len > 0) {
 			for (i in 0 until len) {
-				val compArchiver: Archiver = Reflector.getArchiverForType(arr.javaClass.componentType.componentType)
+				val compArchiver: Archiver = KReflector.getArchiverForType(arr.javaClass.componentType.componentType)
 				val obj = Array.get(arr, i)
 				if (obj == null) {
 					out.println("null")
 				} else {
-					out.p(Reflector.getCanonicalName(obj.javaClass.componentType)).p(" ").p(Array.getLength(obj))
+					out.p(KReflector.getCanonicalName(obj.javaClass.componentType)).p(" ").p(Array.getLength(obj))
 					out.push()
 					compArchiver.serializeArray(Array.get(arr, i), out)
 					out.pop()
@@ -61,7 +61,7 @@ internal class ArrayArchiver : Archiver {
 		for (i in 0 until len) {
 			var cl = arr.javaClass.componentType
 			if (cl.componentType != null) cl = cl.componentType
-			val compArchiver: Archiver = Reflector.getArchiverForType(cl)
+			val compArchiver: Archiver = KReflector.getArchiverForType(cl)
 			val line = reader.readLineOrEOF()
 			if (line != null && line != "null") {
 				var obj = Array.get(arr, i)

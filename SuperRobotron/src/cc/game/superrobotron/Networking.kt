@@ -48,18 +48,11 @@ interface IRoboClient {
 	 */
 	val robotron: Robotron
 
-	/**
-	 * state of all connected players. Array size will always be MAX_PLAYERS with
-	 * null entries where a player has yet to connect or disconnected.
-	 * slot[0] will always be the host. Can be updated at any time.
-	 * The array will contain this current client at slot[clientId]
-	 */
-	val playersStatus: Array<PlayerConnectionInfo?>
-
-
 	fun addListener(listener: IRoboClientListener)
 
 	fun sendInputs(motionDv: Vector2D, targetDv: Vector2D, firing: Boolean)
+
+	fun sendScreenDimension(dim: GDimension)
 
 	fun disconnect()
 
@@ -74,15 +67,14 @@ interface IRoboClientConnection {
 	fun send(data: ByteArray)
 
 	fun send(cmd: GameCommand)
-
-	fun onScreenDimensionUpdated(dim: GDimension)
 }
 
 interface IRoboServer {
 
 	val roboConnections: List<IRoboClientConnection>
 
-	fun broadcastNewGame(robotron: Robotron)
+	fun broadcastNewGame()
+	fun broadcastGameState()
 	fun broadcastPlayers(players: ManagedArray<Player>)
 	fun broadcastPeople(people: ManagedArray<People>)
 	fun broadcastPlayerMissiles(playerId: Int, missiles: ManagedArray<Missile>)
@@ -103,8 +95,8 @@ interface IRoboServer {
  * Created by Chris Caron on 4/10/25.
  */
 object UDPCommon {
-	const val CLIENT_PACKET_LENGTH = 1024
-	const val SERVER_PACKET_LENGTH = 256
+	const val CLIENT_PACKET_LENGTH = 256
+	const val SERVER_PACKET_LENGTH = 1200
 
 	const val KEY_CLIENT_ID = "clientId"
 
@@ -123,6 +115,7 @@ object UDPCommon {
 	private const val SERVER_ENEMY_MISSILES_ID = 6
 	private const val SERVER_POWERUPS_ID = 7
 	private const val SERVER_WALLS_ID = 8
+	private const val SERVER_GAME_ID = 9
 
 	fun write(buffer: ByteBuffer, id: Int, array: ManagedArray<*>) {
 		buffer.writeUByte(id)
@@ -187,6 +180,7 @@ object UDPCommon {
 
 				SERVER_POWERUPS_ID -> robo.powerups.deserialize(reader)
 				SERVER_WALLS_ID -> clientReadWalls(robo.wall_lookup, reader)
+				SERVER_GAME_ID -> robo.deserialze(reader)
 				else -> error("Unknown server packet id: $packetId")
 			}
 		}
@@ -195,6 +189,11 @@ object UDPCommon {
 	fun createBuffer(size: Int = 1200): Pair<ByteBuffer, ByteArray> {
 		val array = ByteArray(size)
 		return Pair(ByteBuffer.wrap(array).order(ByteOrder.BIG_ENDIAN), array)
+	}
+
+	fun serverWriteGameState(robo: Robotron, output: ByteBuffer) {
+		output.writeByte(SERVER_GAME_ID)
+		robo.serialize(output)
 	}
 
 	fun serverWritePlayers(players: ManagedArray<Player>, output: ByteBuffer) {
@@ -246,163 +245,3 @@ object UDPCommon {
 	}
 
 }
-
-/*
-class RoboClientConnection(server: GameServer, attributes: Map<String, Any>) : ClientConnection(server, attributes) {
-	var session : UDPSession? = null
-		private set
-
-	val clientId by lazy {
-		getAttribute(UDPCommon.KEY_CLIENT_ID)!! as Int
-	}
-
-	override fun onConnected(clientAddress: InetAddress, port : Int) {
-		session = UDPSession(
-			DatagramSocket(InetSocketAddress(clientAddress, port+clientId)),
-			UDPCommon.SERVER_PACKET_LENGTH,
-			UDPCommon.CLIENT_PACKET_LENGTH
-		)
-	}
-
-	override fun onDisconnected() {
-		session?.stop()
-		session = null
-		super.onDisconnected()
-	}
-
-}
-
-class RoboGameServer(
-	serverName: String,
-	listenPort: Int,
-	serverVersion: String,
-	cypher: Cypher?,
-	maxConnections: Int
-) : GameServer(serverName, listenPort, serverVersion, cypher, maxConnections), IRoboServer, AGameServer.Listener {
-
-	init {
-		addListener(this)
-	}
-
-	override fun newClientConnection(clientNum: Int, arguments: Map<String, Any>): ClientConnection {
-		return RoboClientConnection(this, arguments.toMutableMap().also {
-			it[UDPCommon.KEY_CLIENT_ID] = clientNum+1
-		})
-	}
-
-	override fun broadcastPlayers(players: ManagedArray<Player>) {
-		connectionValues.forEachAs { conn : RoboClientConnection ->
-			conn.session?.sendData {
-				UDPCommon.serverWritePlayers(players, it)
-			}
-		}
-	}
-
-	override suspend fun broadcastPeople(people: ManagedArray<People>) {
-		connectionValues.forEachAs { conn : RoboClientConnection ->
-			conn.session?.sendData {
-				UDPCommon.serverWritePeople(people, it)
-			}
-		}
-	}
-
-	override suspend fun broadcastPlayerMissiles(playerId: Int, missiles: ManagedArray<Missile>) {
-		connectionValues.forEachAs { conn : RoboClientConnection ->
-			conn.session?.sendData {
-				UDPCommon.serverWritePlayerMissles(playerId, missiles, it)
-			}
-		}
-
-	}
-
-	override suspend fun broadcastEnemies(enemies: ManagedArray<Enemy>) {
-		connectionValues.forEachAs { conn : RoboClientConnection ->
-			conn.session?.sendData {
-				UDPCommon.serverWriteEnemies(enemies, it)
-			}
-		}
-	}
-
-	override suspend fun broadcastEnemyMissiles(enemyMissiles: ManagedArray<Missile>, tankMissiles: ManagedArray<Missile>, snakeMissiles: ManagedArray<MissileSnake>) {
-		connectionValues.forEachAs { conn : RoboClientConnection ->
-			conn.session?.sendData {
-				UDPCommon.serverWriteEnemyMissiles(enemyMissiles , it)
-			}
-		}
-	}
-
-	override suspend fun broadcastPowerups(powerups: ManagedArray<Powerup>) {
-		connectionValues.forEachAs { conn : RoboClientConnection ->
-			conn.session?.sendData {
-				UDPCommon.serverWritePowerups(powerups, it)
-			}
-		}
-
-	}
-
-	private val wallIgnoreTypes = intArrayOf(
-		WALL_TYPE_PORTAL,
-		WALL_TYPE_INDESTRUCTIBLE
-	)
-
-	override suspend fun broadcastWalls(walls: Collection<Wall>) {
-		val wallsFiltered = walls.filter { it.type !in wallIgnoreTypes }
-		connectionValues.forEachAs { conn : RoboClientConnection ->
-			conn.session?.sendData { buffer ->
-				UDPCommon.serverWriteWalls(wallsFiltered, buffer)
-			}
-		}
-	}
-}
-
-class RoboGameClient(
-	deviceName: String,
-	version: String,
-	cypher: Cypher? = null
-) : GameClient(deviceName, version, cypher), AGameClient.Listener, IRoboClient {
-
-	var session : UDPSession? = null
-	val clientId : Int by lazy {
-		properties[UDPCommon.KEY_CLIENT_ID]!! as Int
-	}
-
-	init {
-		addListener(this, "RoboGameClient")
-	}
-
-	override fun onServerTimeSyncResp(timeOffset: Int) {
-		TODO("Not yet implemented")
-	}
-
-	override fun sendInputs(leftX: Int, leftY: Int, rightX: Int, rightY: Int) {
-		session?.sendData {  buffer ->
-			UDPCommon.clientWriteInput(buffer))
-		}
-	}
-
-	override fun onCommand(cmd: GameCommand) {
-
-		super.onCommand(cmd)
-	}
-
-	override fun onDisconnected(reason: String, serverInitiated: Boolean) {
-		session?.stop()
-		session = null
-		super.onDisconnected(reason, serverInitiated)
-	}
-
-	override fun onConnected() {
-		session = UDPSession(
-			DatagramSocket(InetSocketAddress(address, port+clientId)),
-			UDPCommon.CLIENT_PACKET_LENGTH,
-			UDPCommon.SERVER_PACKET_LENGTH
-		)
-	}
-
-	override suspend fun readIncomingData(maxTime: Int, robo: Robotron) {
-		session?.processReadChannel(maxTime) {
-			UDPCommon.clientProcessInput(it, robo)
-		}
-	}
-}
-*/

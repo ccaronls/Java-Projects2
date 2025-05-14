@@ -9,9 +9,9 @@ import java.lang.reflect.Field
  */
 internal class MapArchiver : Archiver {
 	@Throws(Exception::class)
-	override fun get(field: Field, a: Reflector<*>): String {
+	override fun get(field: Field, a: KReflector<*>): String {
 		val m = field[a] as Map<*, *>
-		return Reflector.getCanonicalName(
+		return KReflector.getCanonicalName(
 			if (m is IDirtyCollection<*>) {
 				m.backing!!.javaClass
 			} else {
@@ -21,7 +21,7 @@ internal class MapArchiver : Archiver {
 	}
 
 	@Throws(Exception::class)
-	override operator fun set(o: Any?, field: Field, value: String, a: Reflector<*>, keepInstances: Boolean) {
+	override operator fun set(o: Any?, field: Field, value: String, a: KReflector<*>, keepInstances: Boolean) {
 		field[a] = o?.takeIf { !keepInstances } ?: a.newMapInstance(value)
 	}
 
@@ -32,8 +32,8 @@ internal class MapArchiver : Archiver {
 			for (i in 0 until len) {
 				val m = Array.get(arr, i) as Map<*, *>?
 				if (m != null) {
-					out.println(Reflector.getCanonicalName(m.javaClass))
-					Reflector.serializeObject(m, out, true)
+					out.println(KReflector.getCanonicalName(m.javaClass))
+					KReflector.serializeObject(m, out, true)
 				} else out.println("null")
 			}
 		}
@@ -45,8 +45,8 @@ internal class MapArchiver : Archiver {
 		for (i in 0 until len) {
 			reader.readLineOrEOF()?.let { clazz ->
 				try {
-					val m = Reflector.getClassForName(clazz).newInstance() as MutableMap<Any, Any?>
-					Reflector.deserializeMap(m, reader, keepInstances)
+					val m = KReflector.getClassForName(clazz).newInstance() as MutableMap<Any, Any?>
+					KReflector.deserializeMap(m, reader, keepInstances)
 					Array.set(arr, i, m)
 				} catch (e: Exception) {
 					throw ParseException(reader.lineNum, e)

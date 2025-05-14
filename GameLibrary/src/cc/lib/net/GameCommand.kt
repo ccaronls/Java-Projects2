@@ -58,8 +58,7 @@ class GameCommand(val type: GameCommandType) {
 
 	private val _arguments: MutableMap<String, Any> = NoDupesMap(LinkedHashMap())
 
-	val arguments: Map<String, Any>
-		get() = _arguments
+	val arguments: Map<String, Any> = _arguments
 
 	/**
 	 *
@@ -81,6 +80,16 @@ class GameCommand(val type: GameCommandType) {
 	@Throws(Exception::class)
 	fun <T : Reflector<T>> getReflector(key: String, obj: T): T {
 		obj.merge(arguments[key] as String?)
+		return obj
+	}
+
+	inline fun <reified T : Reflector<T>> getReflector(key: String): T {
+		return Reflector.deserializeFromString(getString(key))
+	}
+
+	@Throws(Exception::class)
+	fun <T : cc.lib.kreflector.KReflector<T>> getKReflector(key: String, obj: T): T {
+		obj.merge(arguments[key] as String)
 		return obj
 	}
 
@@ -203,6 +212,14 @@ class GameCommand(val type: GameCommandType) {
 					dout.write(out.toByteArray());
 				}
 
+				is cc.lib.kreflector.KReflector<*> -> {
+					dout.writeByte(TYPE_KREFLECTOR);
+					val out = ByteArrayOutputStream()
+					(value.value as cc.lib.kreflector.KReflector<*>).serialize(RPrintWriter(out))
+					dout.writeInt(out.size());
+					dout.write(out.toByteArray());
+				}
+
 				else -> {
 					dout.writeByte(TYPE_STRING);
 					dout.writeUTF(value.value.toString());
@@ -221,6 +238,7 @@ class GameCommand(val type: GameCommandType) {
 		const val TYPE_DOUBLE = 5
 		const val TYPE_STRING = 6
 		const val TYPE_REFLECTOR = 7
+		const val TYPE_KREFLECTOR = 7
 
 		@Throws(Exception::class)
 		fun parse(din: DataInputStream): GameCommand {

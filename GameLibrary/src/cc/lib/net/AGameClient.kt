@@ -5,14 +5,17 @@ import cc.lib.ksp.remote.IRemote
 import cc.lib.logger.LoggerFactory
 import cc.lib.reflector.Reflector
 import cc.lib.utils.GException
-import cc.lib.utils.launchIn
-import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.suspendCancellableCoroutine
 import java.io.IOException
 import java.lang.reflect.Method
 import java.net.InetAddress
 import java.util.Arrays
 import java.util.Collections
-import java.util.concurrent.Executors
+import kotlin.coroutines.resume
 
 /**
  * Base class for clients that want to connect to a GameServer
@@ -34,6 +37,8 @@ abstract class AGameClient(deviceName: String, version: String) {
 	}
 
 	protected val listeners = Collections.synchronizedSet(HashSet<Listener>())
+
+	abstract val jobs: MutableList<Job>
 
 	/**
 	 * @return
@@ -98,14 +103,14 @@ abstract class AGameClient(deviceName: String, version: String) {
 	 * @param port
 	 * @param connectCallback called with success or failure when connection complete
 	 */
-	fun connectAsync(address: InetAddress, port: Int, connectCallback: Utils.Callback<Boolean>?) {
+	fun connectAsync(address: InetAddress, port: Int, connectCallback: ((IOException?) -> Unit)? = null) {
 		Thread {
 			try {
 				connectBlocking(address, port)
-				connectCallback?.onDone(true)
+				connectCallback?.invoke(null)
 			} catch (e: IOException) {
 				e.printStackTrace()
-				connectCallback?.onDone(false)
+				connectCallback?.invoke(e)
 			}
 		}.start()
 	}
@@ -136,7 +141,7 @@ abstract class AGameClient(deviceName: String, version: String) {
 		disconnect("player left session")
 	}
 
-	abstract fun disconnectAsync(reason: String, onDone: Utils.Callback<Int>?)
+	abstract fun disconnectAsync(reason: String, onDone: (() -> Unit)? = null)
 
 	/**
 	 * Synchronous Disconnect from the server.  If not connected then do nothing.
@@ -241,40 +246,33 @@ abstract class AGameClient(deviceName: String, version: String) {
 		executorObjects.remove(id)
 	}
 
-	internal abstract inner class AExecutor(val responseId: String) : Listener {
+	internal abstract inner class AExecutor(val responseId: String) {
 
-		init {
-			addListener(this, "AExecutor:$responseId")
-		}
+		abstract fun invoke(): Any?
 
-		abstract suspend fun invoke(): Any?
-
-		val job = launchIn {
+		suspend fun run() {
 			try {
-				val result = invoke()
-				if (responseId.isEmpty()) {
-					return@launchIn
+				suspendCancellableCoroutine<Any?>() {
+					it.invokeOnCancellation {
+						val resp = GameCommand(GameCommandType.CL_REMOTE_RETURNS)
+						resp.setArg("target", responseId)
+						resp.setArg("cancelled", true)
+						sendCommand(resp)
+					}
+					val result = invoke()
+					if (responseId.isNotEmpty()) {
+						val resp = GameCommand(GameCommandType.CL_REMOTE_RETURNS)
+						resp.setArg("target", responseId)
+						resp.setArg("returns", Reflector.serializeObject(result))
+						sendCommand(resp)
+					}
+					it.resume(null)
 				}
-				log.debug("responseId=%s cancelled=$cancelled result=$result")
-				val resp = GameCommand(GameCommandType.CL_REMOTE_RETURNS)
-				resp.setArg("target", responseId)
-				if (result != null) resp.setArg(
-					"returns",
-					Reflector.serializeObject(result)
-				) else resp.setArg("cancelled", cancelled)
-				cancelled = false
-				sendCommand(resp)
+
 			} catch (e: Exception) {
 				e.printStackTrace()
 				sendError(e)
-			} finally {
-				removeListener(this@AExecutor, "AExecutor:$responseId")
 			}
-		}
-
-		override fun onDisconnected(reason: String, serverInitiated: Boolean) {
-			removeListener(this, "AExecutor:$responseId")
-			job.cancel()
 		}
 	}
 
@@ -285,7 +283,7 @@ abstract class AGameClient(deviceName: String, version: String) {
      * @throws IOException
      */
 	@Throws(IOException::class)
-	fun handleExecuteRemote(cmd: GameCommand) {
+	suspend fun handleExecuteRemote(cmd: GameCommand) {
 		log.debug("handleExecuteOnRemote %s", cmd)
 		val method = cmd.getString("method")
 		val numParams = cmd.getInt("numParams")
@@ -303,27 +301,28 @@ abstract class AGameClient(deviceName: String, version: String) {
 		val obj = executorObjects[id] ?: throw IOException("Unknown object id: $id")
 		log.debug("id=%s -> %s", id, obj.javaClass)
 		val responseId = cmd.getString("responseId")
-		launchIn(jobContext) {
-			if (obj is IRemote) {
-				object : AExecutor(responseId) {
-					override suspend fun invoke(): Any? = obj.executeLocally(method, *params.map { it.second }.toTypedArray())
-				}
-			} else {
-				log.warn("!!!!Using deprecated reflector to execute method!!!")
-				// TODO: Deprecate Reflector
-				val m = findMethod(method, obj, params.map { it.first }.toTypedArray(), params.map { it.second }.toTypedArray())
-				object : AExecutor(responseId) {
-					override suspend fun invoke(): Any? = m.invoke(obj, *(params.map { it.second }.toTypedArray()))
-				}
+		executor = if (obj is IRemote) {
+			object : AExecutor(responseId) {
+				override fun invoke(): Any? = obj.executeLocally(method, *params.map { it.second }.toTypedArray())
+			}
+		} else {
+			log.warn("!!!!Using deprecated reflector to execute method!!!")
+			// TODO: Deprecate Reflector
+			val m = findMethod(method, obj, params.map { it.first }.toTypedArray(), params.map { it.second }.toTypedArray())
+			object : AExecutor(responseId) {
+				override fun invoke(): Any? = m.invoke(obj, *(params.map { it.second }.toTypedArray()))
 			}
 		}
+		executor?.run()
 	}
 
-	private val jobContext = Executors.newSingleThreadExecutor().asCoroutineDispatcher()//newSingleThreadContext("AGameClient")
+	private val jobContext = CoroutineScope(Dispatchers.IO + CoroutineName("client method executor"))
+	private var executorJob: Job? = null
+	private var executor: AExecutor? = null
 
-	private var cancelled = false
-	fun cancelRemote() {
-		cancelled = true
+	fun cancel() {
+		executorJob?.cancel()
+		executorJob = null
 	}
 
 	@Throws(Exception::class)

@@ -253,6 +253,7 @@ const val BUTTON_HEIGHT = 40f
 
 // for other info on intro screen
 const val TEXT_PADDING = 5f // pixels between hud text lines and border
+const val SCREEN_MARGIN = 25f
 
 // -- POWERUPS --
 // ENUM

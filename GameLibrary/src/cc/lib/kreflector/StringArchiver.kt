@@ -9,15 +9,15 @@ import java.lang.reflect.Field
  */
 internal class StringArchiver : Archiver {
 	@Throws(Exception::class)
-	override operator fun get(field: Field, a: Reflector<*>): String {
+	override operator fun get(field: Field, a: KReflector<*>): String {
 		val s = field[a] ?: return "null"
-		return "\"" + Reflector.encodeString(s as String) + "\""
+		return "\"" + KReflector.encodeString(s as String) + "\""
 	}
 
 	@Throws(Exception::class)
-	override operator fun set(o: Any?, field: Field, value: String, a: Reflector<*>, keepInstances: Boolean) {
+	override operator fun set(o: Any?, field: Field, value: String, a: KReflector<*>, keepInstances: Boolean) {
 		if (value == "null") field[a] = null else {
-			field[a] = Reflector.decodeString(value.substring(1, value.length - 1))
+			field[a] = KReflector.decodeString(value.substring(1, value.length - 1))
 		}
 	}
 
@@ -28,7 +28,7 @@ internal class StringArchiver : Archiver {
 			for (i in 0 until num) {
 				val entry = Array.get(arr, i)
 				if (entry == null) //buf.append("null\n");
-					out.println("null") else out.p("\"").p(Reflector.encodeString(entry as String)).println("\"")
+					out.println("null") else out.p("\"").p(KReflector.encodeString(entry as String)).println("\"")
 			}
 		}
 	}
@@ -39,7 +39,7 @@ internal class StringArchiver : Archiver {
 		for (i in 0 until len) {
 			val line = reader.readLineOrEOF()
 			if (line != null && line != "null") {
-				val s = Reflector.decodeString(line.substring(1, line.length - 1))
+				val s = KReflector.decodeString(line.substring(1, line.length - 1))
 				Array.set(arr, i, s)
 			} else {
 				Array.set(arr, i, null)

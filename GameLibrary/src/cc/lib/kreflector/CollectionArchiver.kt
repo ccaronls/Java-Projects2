@@ -9,9 +9,9 @@ import java.lang.reflect.Field
  */
 internal class CollectionArchiver : Archiver {
 	@Throws(Exception::class)
-	override operator fun get(field: Field, a: Reflector<*>): String {
+	override operator fun get(field: Field, a: KReflector<*>): String {
 		val c = field[a] as Collection<*>
-		return Reflector.getCanonicalName(
+		return KReflector.getCanonicalName(
 			if (c is IDirtyCollection<*>) {
 				c.backing!!.javaClass
 			} else {
@@ -21,7 +21,7 @@ internal class CollectionArchiver : Archiver {
 	}
 
 	@Throws(Exception::class)
-	override operator fun set(o: Any?, field: Field, value: String, a: Reflector<*>, keepInstances: Boolean) {
+	override operator fun set(o: Any?, field: Field, value: String, a: KReflector<*>, keepInstances: Boolean) {
 		if (value != null && value != "null") {
 			if (!keepInstances || o == null) field[a] = a.newCollectionInstance(value)
 		} else {
@@ -36,8 +36,8 @@ internal class CollectionArchiver : Archiver {
 			for (i in 0 until len) {
 				val c = Array.get(arr, i) as Collection<*>
 				if (c != null) {
-					out.p(Reflector.getCanonicalName(c.javaClass))
-					Reflector.serializeObject(c, out, true)
+					out.p(KReflector.getCanonicalName(c.javaClass))
+					KReflector.serializeObject(c, out, true)
 				} else out.println("null")
 			}
 		}
@@ -56,7 +56,7 @@ internal class CollectionArchiver : Archiver {
 				var c: MutableCollection<Any>? = Array.get(arr, i) as MutableCollection<Any>?
 				if (clazz != "null") {
 					try {
-						val classNm = Reflector.getClassForName(clazz)
+						val classNm = KReflector.getClassForName(clazz)
 						if (!keepInstances || c == null || c.javaClass != classNm) {
 							val cc = classNm.newInstance() as MutableCollection<Any>
 							c?.let {
@@ -64,7 +64,7 @@ internal class CollectionArchiver : Archiver {
 							}
 							c = cc
 						}
-						Reflector.deserializeCollection(c, reader, keepInstances)
+						KReflector.deserializeCollection(c, reader, keepInstances)
 						Array.set(arr, i, c)
 					} catch (e: Exception) {
 						throw ParseException(reader.lineNum, e)

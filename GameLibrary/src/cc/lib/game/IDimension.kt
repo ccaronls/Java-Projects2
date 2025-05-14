@@ -1,6 +1,9 @@
 package cc.lib.game
 
 import cc.lib.math.Vector2D
+import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
 
 interface IDimension {
 	val width: Float
@@ -104,6 +107,9 @@ interface IDimension {
 	val isEmpty: Boolean
 		get() = width <= 0 || height <= 0
 
+	val isNotEmpty: Boolean
+		get() = !isEmpty
+
 	/**
 	 * Return the rectangular region that encompasses this rectangle if it were to be rotated.
 	 * For instance, if a 4x2 rect were rotated 45 degrees, then the resulting rectangle would be approx 4.2x4.2
@@ -111,41 +117,41 @@ interface IDimension {
 	 * @param degrees
 	 * @return
 	 */
-	fun rotated(degrees: Float): GDimension {
+	fun rotated(degrees: Number): GDimension {
 		val tl: Vector2D = Vector2D(-width / 2, -height / 2).rotate(degrees)
 		val tr: Vector2D = Vector2D(width / 2, -height / 2).rotate(degrees)
-		val newWidth = Math.max(Math.abs(tl.x), Math.abs(tr.x)) * 2
-		val newHeight = Math.max(Math.abs(tl.y), Math.abs(tr.y)) * 2
+		val newWidth = max(abs(tl.x), abs(tr.x)) * 2
+		val newHeight = max(abs(tl.y), abs(tr.y)) * 2
 		return GDimension(newWidth, newHeight)
 	}
 
-	fun adjustedBy(dw: Float, dh: Float): GDimension {
-		return GDimension(width + dw, height + dh)
+	fun adjustedBy(dw: Number, dh: Number): GDimension {
+		return GDimension(width + dw.toFloat(), height + dh.toFloat())
 	}
 
-	fun interpolateTo(other: GDimension, factor: Float): GDimension {
-		val w = width + (other.width - width) * factor
-		val h = height + (other.height - height) * factor
+	fun interpolateTo(other: GDimension, factor: Number): GDimension {
+		val w = width + (other.width - width) * factor.toFloat()
+		val h = height + (other.height - height) * factor.toFloat()
 		return GDimension(w, h)
 	}
 
 	fun addVert(d: GDimension): GDimension {
-		return GDimension(Math.max(width, d.width), height + d.height)
+		return GDimension(max(width, d.width), height + d.height)
 	}
 
 	fun addHorz(d: GDimension): GDimension {
-		return GDimension(width + d.width, Math.max(height, d.height))
+		return GDimension(width + d.width, max(height, d.height))
 	}
 
 	fun minLength(): Float {
-		return Math.min(width, height)
+		return min(width, height)
 	}
 
-	fun scaledTo(sx: Float, sy: Float): GDimension {
-		return GDimension(width * sx, height * sy)
+	fun scaledTo(sx: Number, sy: Number): GDimension {
+		return GDimension(width * sx.toFloat(), height * sy.toFloat())
 	}
 
-	fun scaledTo(s: Float): GDimension {
+	fun scaledTo(s: Number): GDimension {
 		return scaledTo(s, s)
 	}
 
@@ -160,4 +166,12 @@ interface IDimension {
 		}
 		return GDimension(this)
 	}
+
+	operator fun component0(): Float = width
+	operator fun component1(): Float = height
+
+	operator fun times(s: Number): GDimension = GDimension(width * s.toFloat(), height * s.toFloat())
+	operator fun div(s: Number): GDimension = GDimension(width / s.toFloat(), height / s.toFloat())
+
+	operator fun unaryMinus(): GDimension = GDimension(-width, -height)
 }

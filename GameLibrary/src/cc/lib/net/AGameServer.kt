@@ -136,7 +136,7 @@ abstract class AGameServer(
 	 * Disconnect all clients and stop listening.  Will block until all clients have closed their sockets.
 	 */
 	abstract fun stop()
-	val connectionKeys: Iterable<String?>
+	val connectionKeys: Iterable<String>
 		/**
 		 * Get iterable over all connection ids
 		 *

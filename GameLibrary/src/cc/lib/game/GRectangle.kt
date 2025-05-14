@@ -12,25 +12,36 @@ open class GRectangle : Reflector<GRectangle>, IRectangle {
 
 	@Alternate("x")
 	override var left = 0f
+
 	@Alternate("y")
 	override var top = 0f
+
 	@Alternate("w")
 	override var width = 0f
+
 	@Alternate("h")
 	override var height = 0f
+
+	override var dimension: GDimension
+		get() = GDimension(width, height)
+		set(value) {
+			width = value.width
+			height = value.height
+		}
+
 
 	constructor()
 	constructor(dim: IDimension) : this(0f, 0f, dim)
 	constructor(toCopy: IRectangle) : this(toCopy.left, toCopy.top, toCopy.width, toCopy.height)
-	constructor(x: Float, y: Float, w: Float, h: Float) {
-		left = x
-		top = y
-		width = w
-		height = h
+	constructor(x: Number, y: Number, w: Number, h: Number) {
+		left = x.toFloat()
+		top = y.toFloat()
+		width = w.toFloat()
+		height = h.toFloat()
 	}
 
-	constructor(x: Float, y: Float, dim: IDimension) : this(x, y, dim.width, dim.height)
-	constructor(topLeft: IVector2D, w: Float, h: Float) : this(topLeft.x, topLeft.y, w, h)
+	constructor(x: Number, y: Number, dim: IDimension) : this(x, y, dim.width, dim.height)
+	constructor(topLeft: IVector2D, w: Number, h: Number) : this(topLeft.x, topLeft.y, w, h)
 	constructor(v: IVector2D, d: IDimension) : this(v.x, v.y, d)
 	constructor(v0: IVector2D, v1: IVector2D) {
 		set(v0, v1)
@@ -68,14 +79,14 @@ open class GRectangle : Reflector<GRectangle>, IRectangle {
 		height = Math.abs(top - v.y)
 	}
 
-	operator fun set(left: Float, top: Float, right: Float, bottom: Float) {
-		this.left = left
-		this.top = top
-		width = right - left
-		height = bottom - top
+	operator fun set(left: Number, top: Number, right: Number, bottom: Number) {
+		this.left = left.toFloat()
+		this.top = top.toFloat()
+		width = right.toFloat() - left.toFloat()
+		height = bottom.toFloat() - top.toFloat()
 	}
 
-	fun copy(other: GRectangle) {
+	fun copy(other: IRectangle) {
 		left = other.left
 		top = other.top
 		width = other.width
@@ -102,9 +113,9 @@ open class GRectangle : Reflector<GRectangle>, IRectangle {
 	 * @param position
 	 * @return
 	 */
-	fun getInterpolationTo(r: GRectangle, position: Float): GRectangle {
+	fun getInterpolationTo(r: IRectangle, position: Float): GRectangle {
 		if (position < 0.01f) return this
-		if (position > 0.99f) return r
+		if (position > 0.99f) return GRectangle(r)
 		val v0 = MutableVector2D(left, top)
 		val v1 = MutableVector2D(left + width, top + height)
 		val r0 = MutableVector2D(r.left, r.top)
@@ -211,13 +222,6 @@ open class GRectangle : Reflector<GRectangle>, IRectangle {
 		return this
 	}
 
-	fun setDimension(dim: IDimension): GRectangle {
-		val cntr = center
-		width = dim.width
-		height = dim.height
-		return setCenter(cntr)
-	}
-
 	fun setDimension(width: Float, height: Float): GRectangle {
 		this.width = width
 		this.height = height
@@ -317,6 +321,10 @@ open class GRectangle : Reflector<GRectangle>, IRectangle {
 		}
 		setCenter(cntr)
 		return this
+	}
+
+	override fun toString(): String {
+		return "[$left,$top,$width,$height]"
 	}
 
 	companion object {

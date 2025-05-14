@@ -231,13 +231,13 @@ class Wall(val id: Int, val v0: Int, val v1: Int) : Reflector<Wall>(), IBinarySe
 abstract class APlayer : Object() {
 
 	// Rectangle of visible maze
-	val screen = GRectangle()
+	@Transient
+	val screen = GRectangle().withDimension(800, 600)
 
 	@Transient
 	var displayName = ""
 
 	@Transient
-	@Omit
 	var status = "D"
 
 	@BinaryType(UByte::class)

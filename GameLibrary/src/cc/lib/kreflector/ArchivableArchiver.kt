@@ -1,6 +1,5 @@
 package cc.lib.kreflector
 
-import cc.lib.game.Utils
 import java.io.IOException
 import java.lang.reflect.Array
 import java.lang.reflect.Field
@@ -10,30 +9,31 @@ import java.lang.reflect.Field
  */
 internal class ArchivableArchiver : Archiver {
 	@Throws(Exception::class)
-	override operator fun get(field: Field, a: Reflector<*>): String {
+	override operator fun get(field: Field, a: KReflector<*>): String {
 		val o = field[a] ?: return "null"
 		val clazz: Class<*> = o.javaClass
 		var className: String =
-			if (clazz.isAnonymousClass) Reflector.getCanonicalName(clazz.superclass)
+			if (clazz.isAnonymousClass) KReflector.getCanonicalName(clazz.superclass)
 			else
-				Reflector.getCanonicalName(clazz)
-		Utils.assertTrue(className != null, "Failed to get className for class %s", clazz)
+				KReflector.getCanonicalName(clazz)
+		requireNotNull(className) { "Failed to get className for class $clazz" }
 		return className
 	}
 
 	@Throws(Exception::class)
-	override operator fun set(o: Any?, field: Field, value: String, a: Reflector<*>, keepInstances: Boolean) {
+	override operator fun set(o: Any?, field: Field, value: String, a: KReflector<*>, keepInstances: Boolean) {
 		var value = value
 		if (value != "null" && value != null) {
 			value = value.split(" ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[0]
 			field.isAccessible = true
 			try {
-				if (!keepInstances || o == null || Reflector.isImmutable(o)) field[a] = Reflector.getClassForName(value).newInstance()
+				if (!keepInstances || o == null || KReflector.isImmutable(o)) field[a] =
+					KReflector.getClassForName(value).newInstance()
 			} catch (e: ClassNotFoundException) {
 				val dot = value.lastIndexOf('.')
 				if (dot > 0) {
 					val altName = value.substring(0, dot) + "$" + value.substring(dot + 1)
-					field[a] = Reflector.getClassForName(altName).newInstance()
+					field[a] = KReflector.getClassForName(altName).newInstance()
 				} else {
 					throw e
 				}
@@ -48,9 +48,9 @@ internal class ArchivableArchiver : Archiver {
 		val len = Array.getLength(arr)
 		if (len > 0) {
 			for (i in 0 until len) {
-				val o = Array.get(arr, i) as Reflector<*>
+				val o = Array.get(arr, i) as KReflector<*>
 				if (o != null) {
-					out.print(Reflector.getCanonicalName(o.javaClass))
+					out.print(KReflector.getCanonicalName(o.javaClass))
 					out.push()
 					o.serialize(out)
 					out.pop()
@@ -68,9 +68,9 @@ internal class ArchivableArchiver : Archiver {
 			val depth = reader.depth
 			reader.readLineOrEOF()?.let { line ->
 				val o = Array.get(arr, i)
-				val a: Reflector<*> = if (!keepInstances || o == null || o !is Reflector<*> || o.isImmutable()) {
+				val a: KReflector<*> = if (!keepInstances || o == null || o !is KReflector<*> || o.isImmutable()) {
 					try {
-						Reflector.getClassForName(line).newInstance() as Reflector<*>
+						KReflector.getClassForName(line).newInstance() as KReflector<*>
 					} catch (e: Exception) {
 						throw ParseException(reader.lineNum, e)
 					}

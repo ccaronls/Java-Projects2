@@ -1,6 +1,5 @@
 package cc.lib.kreflector
 
-import cc.lib.game.Utils
 import java.io.OutputStream
 import java.io.PrintWriter
 import java.io.Writer
@@ -27,7 +26,7 @@ class RPrintWriter : PrintWriter {
 	}
 
 	fun pop() {
-		Utils.assertTrue(currentIndent > 0)
+		require(currentIndent > 0)
 		if (currentIndent > 0) currentIndent--
 		println("}")
 	}

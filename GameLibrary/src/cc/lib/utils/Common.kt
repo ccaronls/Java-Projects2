@@ -1,5 +1,6 @@
 package cc.lib.utils
 
+import cc.lib.game.GColor
 import cc.lib.game.IRectangle
 import cc.lib.game.IVector2D
 import cc.lib.game.Utils
@@ -463,3 +464,5 @@ inline fun <S, T> kotlin.Pair<S?, T?>.hasBothOrNull(): kotlin.Pair<S, T>? {
 inline fun <R, S, T> Triple<R?, S?, T?>.hasAllOrNull(): Triple<R, S, T>? {
 	return if (first != null && second != null && third != null) Triple(first!!, second!!, third!!) else null
 }
+
+fun String.annotated(color: GColor): String = String.format("%s%s", color.toString(), this)

@@ -7,7 +7,9 @@ import cc.lib.game.GColor
 import cc.lib.game.GDimension
 import cc.lib.game.Justify
 import cc.lib.game.Utils
+import cc.lib.ksp.binaryserializer.readByte
 import cc.lib.ksp.binaryserializer.readInt
+import cc.lib.ksp.binaryserializer.writeByte
 import cc.lib.ksp.binaryserializer.writeInt
 import cc.lib.ksp.remote.IRemote
 import cc.lib.ksp.remote.Remote
@@ -29,7 +31,6 @@ import cc.lib.utils.squared
 import cc.lib.utils.unhandledCase
 import java.nio.ByteBuffer
 import java.util.Arrays
-import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.abs
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -181,7 +182,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 			field = value
 			while (players.size <= value)
 				players.add()
-			player.screen.setDimension(screen_dim)
+			player.screen.dimension = screen_dim
 		}
 
 	@Omit
@@ -197,7 +198,8 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 	// down on mouse button and false
 	// when released
 	// GAME STATE --------------------------
-	private var game_state = GAME_STATE_INTRO // current game state
+	var game_state = GAME_STATE_INTRO // current game state
+		private set
 	private var game_start_frame = 0 // the frame the match started
 	private var game_type = GAME_TYPE_ROBOCRAZE // current game type
 	var gameLevel = 1 // current level
@@ -232,7 +234,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 	val messages = ManagedArray(Array(MAX_MESSAGES) { Message() })
 
 	@Omit
-	val cursor = AtomicReference(MutableVector2D())
+	val cursor = MutableVector2D()
 
 	// PEOPLE ------------------------------
 	@Omit
@@ -298,8 +300,9 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 
 	fun setDimension(screenWidth: Int, screenHeight: Int) {
 		screen_dim.assign(screenWidth, screenHeight)
-		player.screen.setDimension(screen_dim)
+		player.screen.dimension = screen_dim
 		setIntroButtonPositionAndDimension()
+		client?.sendScreenDimension(screen_dim)
 	}
 
 	// DEBUG Drawing stuff
@@ -320,8 +323,6 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 				Justify.LEFT,
 				Justify.CENTER,
 				"""TOP V: ${computeTopLeftCornerVertex()}
-					screen x: ${player.screen.left}
-					screen y: ${player.screen.top}
 					maze w: ${verts_max_x - verts_min_x}
 					maze_h: ${verts_max_y - verts_min_y}
 					player pos: ${player.pos}""".trimIndent()
@@ -442,7 +443,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 		with(powerups.iterator()) {
 			while (hasNext()) {
 				val p = next()
-				if (!p.isOnScreen() || p.duration > POWERUP_MAX_DURATION) {
+				if (p.duration > POWERUP_MAX_DURATION) {
 					remove()
 					continue
 				}
@@ -524,9 +525,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 	// append a zombie tracer
 	@RemoteFunction(true)
 	open fun addZombieTracer(pos: Vector2D) {
-		zombie_tracers.addOrNull()?.let {
-			it.init(pos, GColor.WHITE)
-		}
+		zombie_tracers.addOrNull()?.init(pos, GColor.WHITE)
 	}
 
 	// -----------------------------------------------------------------------------------------------
@@ -534,9 +533,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 	@RemoteFunction(true)
 	open fun addPlayerTracer(playerIdx: Int, color: GColor) {
 		val player = players[playerIdx]
-		players[playerIdx].tracer.addOrNull()?.let {
-			it.init(player.pos, color, player.dir)
-		}
+		players[playerIdx].tracer.addOrNull()?.init(player.pos, color, player.dir)
 	}
 
 	// -----------------------------------------------------------------------------------------------
@@ -885,8 +882,9 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 	}
 
 	private fun updatePlayers() {
-		players.forEachIndexed { idx, _ ->
+		players.forEachIndexed { idx, p ->
 			updatePlayer(idx)
+			updatePlayerScreen(p)
 		}
 	}
 
@@ -910,7 +908,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 				}
 				continue
 			}
-			if (!p.isOnScreen()) {
+			if (!isOnAnyScreen(p.pos)) {
 				continue
 			}
 			// look for a colliison with the player
@@ -926,7 +924,8 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 						addMsg(p.pos, people_points.toString())
 						addPoints(player, people_points)
 						player.people_picked_up++
-						if (people_points < PEOPLE_MAX_POINTS) people_points += PEOPLE_INCREASE_POINTS * gameLevel
+						if (people_points < PEOPLE_MAX_POINTS)
+							people_points += PEOPLE_INCREASE_POINTS * gameLevel
 					}
 					iter.remove()
 					continue@here
@@ -1015,9 +1014,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 	// Add a a message to the table if possible
 	@RemoteFunction(true)
 	open fun addMsg(v: Vector2D, str: String) {
-		messages.addOrNull()?.let {
-			it.init(v, str, GColor.WHITE)
-		}
+		messages.addOrNull()?.init(v, str, GColor.WHITE)
 	}
 
 	// -----------------------------------------------------------------------------------------------
@@ -1085,7 +1082,6 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 				iter.remove()
 				continue
 			}
-			val v: Vector2D = p.pos
 			when (p.type) {
 				PARTICLE_TYPE_BLOOD -> {
 					val pd2 = p.duration / 2
@@ -1094,14 +1090,14 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 						g.color = GColor.RED
 						// draw expanding disk
 						val radius = PARTICLE_BLOOD_RADIUS * (duration / pd2).toFloat()
-						g.drawFilledCircle(v, radius)
+						g.drawFilledCircle(p.pos, radius)
 					} else {
 						// draw 2nd half of explosion sequence
 						val radius = PARTICLE_BLOOD_RADIUS * ((duration - pd2) / pd2).toFloat()
 						g.color = GColor.RED
-						g.drawFilledCircle(v, PARTICLE_BLOOD_RADIUS)
+						g.drawFilledCircle(p.pos, PARTICLE_BLOOD_RADIUS)
 						g.color = GColor.BLACK
-						g.drawFilledCircle(v, radius)
+						g.drawFilledCircle(p.pos, radius)
 					}
 				}
 
@@ -1269,8 +1265,8 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 	// draw all enemies
 	private fun drawEnemies(g: AGraphics) {
 		var debugEnemyDrawn = false
-		val (cursor_x, cursor_y) = cursor.get()
-		enemies.filter { it.isOnScreen() }.forEachIndexed { enemyIndex, e ->
+		val (cursor_x, cursor_y) = cursor
+		enemies.filter { isOnAnyScreen(it.pos) }.forEachIndexed { enemyIndex, e ->
 			val x0 = e.pos.x
 			val y0 = e.pos.y
 			when (e.type) {
@@ -1618,7 +1614,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 		while (iter.hasNext()) {
 			val e = iter.next()
 			total_enemies++
-			if (!e.isOnScreen())
+			if (!isOnAnyScreen(e.pos))
 				continue
 
 			// get the radius of this enemy type from the lookup table
@@ -1637,7 +1633,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 				val piter = people.iterator()
 				while (piter.hasNext()) {
 					val p = piter.next()
-					if (p.state > 0 && p.isOnScreen() && p.pos.isWithinDistance(e.pos, radius + PEOPLE_RADIUS)) {
+					if (p.state > 0 && p.pos.isWithinDistance(e.pos, radius + PEOPLE_RADIUS)) {
 						addBloodParticle(p.pos)
 						addMsg(e.pos.withJitter(10f), "NOOOO!")
 						piter.remove()
@@ -1714,7 +1710,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 					if (frameNumber % ENEMY_BRAIN_FIRE_FREQ == 0 && random(0..ENEMY_BRAIN_FIRE_CHANCE) <= (1 + difficulty) * gameLevel)
 						addSnakeMissile(e.pos)
 
-					people.filter { it.state != 0 && it.isOnScreen() }.minByOrNull {
+					people.filter { it.state != 0 }.minByOrNull {
 						it.pos.sub(e.pos).magFast()
 					}?.let { p ->
 						if (e.pos.isWithinDistance(p.pos, ENEMY_BRAIN_RADIUS + PEOPLE_RADIUS)) {
@@ -1829,7 +1825,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 				playerMissleIter.remove()
 				continue
 			}
-			if (!m.isOnScreen()) {
+			if (!isOnAnyScreen(m.pos)) {
 				playerMissleIter.remove()
 				continue
 			}
@@ -1914,8 +1910,6 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 			val enemyIter = enemies.iterator()
 			while (enemyIter.hasNext()) {
 				val enemy = enemyIter.next()
-				if (!enemy.isOnScreen())
-					continue
 				if (enemy.type == ENEMY_INDEX_JAWS || enemy.type == ENEMY_INDEX_LAVA) {
 					continue
 				}
@@ -1939,9 +1933,6 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 			val tankMissileIter = tank_missiles.iterator()
 			while (tankMissileIter.hasNext()) {
 				val m2 = tankMissileIter.next()
-				if (!m2.isOnScreen()) {
-					continue
-				}
 				if (m.pos.isWithinDistance(m2.pos, TANK_MISSLE_RADIUS)
 					|| m.pos.add(m.dv).isWithinDistance(m2.pos, TANK_MISSLE_RADIUS)
 				) {
@@ -1957,9 +1948,6 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 			val snakeMissileIter = snake_missiles.iterator()
 			while (snakeMissileIter.hasNext()) {
 				val s = snakeMissileIter.next()
-				if (!s.isOnScreen()) {
-					continue
-				}
 				val cResult = collisionMissileSnakeRect(s, mv, dim.x, dim.y)
 				if (cResult == 0 || isMegaGunActive(player)) {
 					s.kill()
@@ -2041,7 +2029,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 				iter.remove()
 				continue
 			}
-			if (!m.isOnScreen()) {
+			if (!isOnAnyScreen(m.pos)) {
 				iter.remove()
 				continue
 			}
@@ -2313,12 +2301,6 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 			}
 		}
 
-		val margin = 25f
-
-		val t =
-			player.pos.sub(screen_width / 2, screen_height / 2).coerceIn(verts_min_v.sub(margin, margin), verts_max_v.add(margin, margin))
-		player.screen.setTopLeftPosition(t)
-
 		if (game_type == GAME_TYPE_CLASSIC) {
 			if (total_enemies == 0 && particles.isEmpty()) {
 				nextLevel()
@@ -2329,6 +2311,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 				game_state = GAME_STATE_NEXT_LEVEL
 			}
 		}
+
 	}
 
 	fun nextLevel() {
@@ -2527,6 +2510,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 				if (isHulkActive(player) || player.scale > 1.2f) {
 					if (isHulkActiveCharging(player) && enemyHit(player, enemies[index], player.motion_dv)) {
 						if (random(0..6) == 0) addPlayerMsg(player, "HULK SMASH!")
+						enemies.remove(index)
 					} else {
 						if (random(10) == 0) {
 							addPlayerMsg(player, "Hulk confused ???")
@@ -3728,7 +3712,6 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 
 	fun initNewPlayer(player: Player) {
 		setCell(player.start_cell, start_cell[0], start_cell[1])
-		player.screen.setDimension(screen_dim)
 		val sx = start_cell[0] * MAZE_CELL_DIM + MAZE_CELL_DIM / 2
 		val sy = start_cell[1] * MAZE_CELL_DIM + MAZE_CELL_DIM / 2
 		player.start_v.assign(sx, sy)
@@ -3841,7 +3824,8 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 		}
 	}
 
-	private fun Wall.isOnScreen(): Boolean = isOnScreen(v0) || isOnScreen(v1)
+	private fun Wall.isOnScreen(): Boolean = player.screen.contains(maze_verts[v0])
+		|| player.screen.contains(maze_verts[v1])
 
 	private fun Wall.v0() = maze_verts[v0]
 	private fun Wall.v1() = maze_verts[v1]
@@ -3882,14 +3866,15 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 
 	// -----------------------------------------------------------------------------------------------
 	// return true when x,y is within screen bounds
-	private fun isOnScreen(v: Vector2D): Boolean {
+	private fun isOnAnyScreen(v: Vector2D): Boolean {
 		if (game_type == GAME_TYPE_CLASSIC) return true
 		return players.any { it.screen.contains(v) }
 	}
 
-	private fun isOnScreen(v: Int): Boolean = isOnScreen(maze_verts[v])
+	//private fun isOnScreen(v: Int): Boolean = isOnScreen(maze_verts[v])
 
-	private fun Object.isOnScreen(): Boolean = isOnScreen(pos)
+
+	private fun Object.isOnScreen(): Boolean = player.screen.contains(pos)//isOnScreen(pos)
 
 	// -----------------------------------------------------------------------------------------------
 	private fun updatePlayerVisibility_r(verts: IntArray, d: Int) {
@@ -4430,7 +4415,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 	}
 
 	fun drawCursor(g: AGraphics) {
-		val (cursor_x, cursor_y) = cursor.get()
+		val (cursor_x, cursor_y) = cursor
 		val radius = 8f
 		g.pushMatrix()
 		g.translate(-radius * 2f, -radius * 2f)
@@ -4451,11 +4436,19 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 		}
 	}
 
+	private fun updatePlayerScreen(player: Player) {
+		val t =
+			player.pos.sub(screen_width / 2, screen_height / 2)
+				.coerceIn(verts_min_v.sub(SCREEN_MARGIN, SCREEN_MARGIN), verts_max_v.add(SCREEN_MARGIN, SCREEN_MARGIN))
+		player.screen.setTopLeftPosition(t)
+	}
+
 	// -----------------------------------------------------------------------------------------------
 	@Synchronized
 	fun drawGame(g: AGraphics, millisPerFrame: Int) {
 		g.ortho(0f, screen_width, 0f, screen_height)
 		frameNumber += 1
+		server?.broadcastGameState()
 		g.clearScreen(GColor.BLACK)
 		client?.sendInputs(player.motion_dv, player.target_dv, player.firing)
 		drawCursor(g)
@@ -4464,7 +4457,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 			GAME_STATE_PLAY -> {
 				g.pushMatrix()
 				g.translate(-screen_x, -screen_y)
-				client ?: updatePlayers()
+				client?.let { updatePlayerScreen(player) } ?: updatePlayers()
 				server?.broadcastPlayers(players)
 				client ?: updatePeople()
 				server?.broadcastPeople(people)
@@ -4669,12 +4662,12 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 					buildAndPopulateLevel()
 				}
 			}
-			server?.broadcastNewGame(this)
+			server?.broadcastNewGame()
 		}
 	}
 
 	fun setCursor(x: Int, y: Int) {
-		cursor.get().assign(x, y)
+		cursor.assign(x, y)
 		when (game_state) {
 			GAME_STATE_INTRO -> {
 				client?.let { return }
@@ -4722,11 +4715,17 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 	}
 
 	fun serialize(buffer: ByteBuffer) {
+		buffer.writeByte(game_state)
 		buffer.writeInt(high_score)
 	}
 
 	fun deserialze(buffer: ByteBuffer) {
+		game_state = buffer.readByte()
 		high_score = buffer.readInt()
+	}
+
+	final override fun executeRemotely(method: String, resultType: Class<*>?, vararg args: Any?): Any? {
+		return server?.broadcastExecuteMethod(method, *args)
 	}
 
 }

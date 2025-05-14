@@ -67,6 +67,11 @@ interface IRectangle : IDimension, IShape {
 			&& Utils.isPointInsideRect(other.bottomRight.x, other.bottomRight.y, left, top, width, height))
 	}
 
+	override operator fun component0(): Float = left
+	override operator fun component1(): Float = top
+	operator fun component2(): Float = right
+	operator fun component3(): Float = bottom
+
 	/**
 	 * @param v
 	 * @return
@@ -169,6 +174,7 @@ interface IRectangle : IDimension, IShape {
 		val dh = nh - height
 		return GRectangle(left - dw / 2, top - dh / 2, nw, nh)
 	}
+
 	/**
 	 * Return a rectangle that fits inside this rect and with same aspect.
 	 * How to position inside this determined by horz/vert justifys.
@@ -245,7 +251,7 @@ interface IRectangle : IDimension, IShape {
 		return GRectangle(left, top, dim.width, dim.height)
 	}
 
-	fun withDimension(w: Float, h: Float): GRectangle {
+	fun withDimension(w: Number, h: Number): GRectangle {
 		return GRectangle(left, top, w, h)
 	}
 

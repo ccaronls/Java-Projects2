@@ -3,7 +3,14 @@ package cc.lib.net
 import cc.lib.crypt.Cypher
 import cc.lib.crypt.EncryptionInputStream
 import cc.lib.crypt.EncryptionOutputStream
-import cc.lib.game.Utils
+import cc.lib.utils.trimmedToSize
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.io.DataInputStream
@@ -21,6 +28,14 @@ import java.net.Socket
 open class GameClient : AGameClient {
 
 	private var cypher: Cypher?
+
+	val address: InetAddress by lazy {
+		socket!!.inetAddress
+	}
+
+	val port by lazy {
+		socket!!.port
+	}
 
 	/**
 	 * Create a client that will connect to a given server using a given login name.
@@ -50,13 +65,19 @@ open class GameClient : AGameClient {
 
 	private var state = State.READY
 	private var socket: Socket? = null
-	private var dIn: DataInputStream? = null
-	private var dOut: DataOutputStream? = null
-	private var connectAddress: InetAddress? = null
-	private var connectPort = 0
+	private lateinit var dIn: DataInputStream
+	private lateinit var dOut: DataOutputStream
+	protected var connectAddress: InetAddress? = null
+	protected var connectPort = 0
 
 	private val isIdle: Boolean
 		private get() = state == State.READY || state == State.DISCONNECTED
+
+
+	private val readerChannel = Channel<GameCommand>(capacity = 5)
+	private val readerScope = CoroutineScope(Dispatchers.IO + CoroutineName("readerChannel"))
+	private val processorScope = CoroutineScope(Dispatchers.IO + CoroutineName("cmd processor"))
+	override val jobs = mutableListOf<Job>()
 
 	/**
 	 * Asynchronous Connect to the server. Listeners.onConnected called when handshake completed.
@@ -131,7 +152,24 @@ open class GameClient : AGameClient {
 					_out.flush()
 					outQueue.start(_out)
 					outQueue.add(GameCommand(GameCommandType.CL_CONNECT).setArgs(properties))
-					Thread(SocketReader()).start()
+					jobs.add(readerScope.launch {
+						while (isConnected) {
+							withTimeoutOrNull(15000) {
+								try {
+									readerChannel.send(GameCommand.parse(dIn))
+								} catch (e: Exception) {
+									disconnect("Exception parsing command: " + e.javaClass.simpleName + " " + e.message)
+								}
+							} ?: run {
+								// error. channel is full and commands not processed fast enough
+								disconnect("Channel block")
+							}
+						}
+					})
+					jobs.add(processorScope.launch {
+						processor()
+					})
+					//Thread(SocketReader()).start()
 					log.debug("Socket Connection Established")
 					connectAddress = address
 					connectPort = port
@@ -142,13 +180,16 @@ open class GameClient : AGameClient {
 		}
 	}
 
+	protected open fun process(cmd: GameCommand) {
+
+	}
+
 	/**
 	 *
 	 */
 	override fun reconnectAsync() {
 		require(state == State.DISCONNECTED) { "Cannot call reconnect when not in the DISCONNECTED state" }
-		requireNotNull(connectAddress)
-		connectAsync(connectAddress!!, connectPort, null)
+		connectAsync(requireNotNull(connectAddress), connectPort, null)
 	}
 
 	/**
@@ -158,11 +199,11 @@ open class GameClient : AGameClient {
 	override val isConnected: Boolean
 		get() = state == State.CONNECTED || state == State.CONNECTING
 
-	override fun disconnectAsync(reason: String, onDone: Utils.Callback<Int>?) {
+	override fun disconnectAsync(reason: String, onDone: (() -> Unit)?) {
 		object : Thread() {
 			override fun run() {
 				disconnect(reason)
-				onDone?.onDone(0)
+				onDone?.invoke()
 			}
 		}.start()
 	}
@@ -174,6 +215,10 @@ open class GameClient : AGameClient {
 	override fun disconnect(reason: String) {
 		if (state == State.CONNECTED || state == State.CONNECTING) {
 			log.debug("GameClient: client '" + this.displayName + "' disconnecitng ...")
+			jobs.forEach {
+				it.cancel()
+			}
+			jobs.clear()
 			try {
 				outQueue.clear()
 				outQueue.add(GameCommand(GameCommandType.CL_DISCONNECT).setMessage("player left session"))
@@ -199,11 +244,11 @@ open class GameClient : AGameClient {
 		// close output first to make sure it is flushed
 		// https://stackoverflow.com/questions/19307011/does-close-a-socket-will-also-close-flush-the-input-output-stream
 		try {
-			dOut?.close()
+			dOut.close()
 		} catch (ex: Exception) {
 		}
 		try {
-			dIn?.close()
+			dIn.close()
 		} catch (ex: Exception) {
 		}
 		try {
@@ -211,8 +256,6 @@ open class GameClient : AGameClient {
 		} catch (ex: Exception) {
 		}
 		socket = null
-		dIn = null
-		dOut = null
 		state = State.DISCONNECTED
 	}
 
@@ -230,85 +273,79 @@ open class GameClient : AGameClient {
 	private val isDisconnected: Boolean
 		private get() = state == State.READY || state == State.DISCONNECTED
 
-	private inner class SocketReader : Runnable {
-		override fun run() {
-			log.debug("GameClient: Client Listener Thread starting")
-			state = State.CONNECTING
-			var disconnectedReason: String? = null
-			val listenersList: MutableList<Listener> = ArrayList()
-			while (dIn != null && !isDisconnected) {
-				var _cmd: GameCommand? = null
-				try {
-					val cmd = GameCommand.parse(dIn!!).also {
-						_cmd = it
-					}
-					if (isDisconnected) break
-					listenersList.clear()
-					listenersList.addAll(listeners)
-					log.debug("Read command: $cmd")
-					if (cmd.type == GameCommandType.SVR_CONNECTED) {
-						serverName = cmd.getName()
-						val keepAliveFreqMS = cmd.getInt("keepAlive")
-						outQueue.setTimeout(keepAliveFreqMS)
-						state = State.CONNECTED
-						listenersList.forEach { it.onConnected() }
-					} else if (cmd.type == GameCommandType.PING) {
-						val timeSent = cmd.getLong("time")
-						val timeNow = System.currentTimeMillis()
-						val speed = (timeNow - timeSent).toInt()
-						listenersList.forEach { it.onPing(speed) }
-						sendCommand(
-							GameCommand(GameCommandType.CL_CONNECTION_SPEED).setArg(
-								"speed",
-								speed
-							)
+	private suspend fun processor() {
+		log.debug("GameClient: Client Listener Thread starting")
+		state = State.CONNECTING
+		var disconnectedReason: String? = null
+		val listenersList: MutableList<Listener> = ArrayList()
+		while (!isDisconnected) {
+			try {
+				val cmd = readerChannel.receive()
+				if (isDisconnected) break
+				listenersList.clear()
+				listenersList.addAll(listeners)
+				log.debug("Read command: ${cmd.toString().trimmedToSize(256)}")
+				if (cmd.type == GameCommandType.SVR_CONNECTED) {
+					serverName = cmd.getName()
+					properties.putAll(cmd.arguments)
+					val keepAliveFreqMS = cmd.getInt("keepAlive")
+					outQueue.setTimeout(keepAliveFreqMS)
+					state = State.CONNECTED
+					listenersList.forEach { it.onConnected() }
+				} else if (cmd.type == GameCommandType.PING) {
+					val timeSent = cmd.getLong("time")
+					val timeNow = System.currentTimeMillis()
+					val speed = (timeNow - timeSent).toInt()
+					listenersList.forEach { it.onPing(speed) }
+					sendCommand(
+						GameCommand(GameCommandType.CL_CONNECTION_SPEED).setArg(
+							"speed",
+							speed
 						)
-					} else if (cmd.type == GameCommandType.MESSAGE) {
-						listenersList.forEach {
-							it.onMessage(cmd.getMessage())
-						}
-					} else if (cmd.type == GameCommandType.SVR_DISCONNECT) {
-						state = State.DISCONNECTED
-						disconnectedReason = cmd.getMessage()
-						outQueue.clear()
-						break
-					} else if (cmd.type == GameCommandType.SVR_EXECUTE_REMOTE) {
-						handleExecuteRemote(cmd)
-					} else if (cmd.type == GameCommandType.PASSWORD) {
-						var passPhrase = passPhrase
-						if (passPhrase != null) {
-							passPhrase = getPasswordFromUser()
-						}
-						outQueue.add(
-							GameCommand(GameCommandType.PASSWORD).setArg(
-								"password",
-								passPhrase
-							)
-						)
-					} else if (cmd.type == GameCommandType.PROPERTIES) {
-						properties.putAll(cmd.arguments)
-						listenersList.forEach { it.onPropertiesChanged() }
-					} else {
-						listenersList.forEach { it.onCommand(cmd) }
+					)
+				} else if (cmd.type == GameCommandType.MESSAGE) {
+					listenersList.forEach {
+						it.onMessage(cmd.getMessage())
 					}
-				} catch (e: Exception) {
-					if (!isDisconnected) {
-						outQueue.clear()
-						sendError(e)
-						e.printStackTrace()
-						disconnectedReason =
-							"Exception parsing cmd: $_cmd" + e.javaClass.simpleName + " " + e.message
-						state = State.DISCONNECTED
-					}
+				} else if (cmd.type == GameCommandType.SVR_DISCONNECT) {
+					state = State.DISCONNECTED
+					disconnectedReason = cmd.getMessage()
+					outQueue.clear()
 					break
+				} else if (cmd.type == GameCommandType.SVR_EXECUTE_REMOTE) {
+					handleExecuteRemote(cmd)
+				} else if (cmd.type == GameCommandType.PASSWORD) {
+					var passPhrase = passPhrase
+					if (passPhrase != null) {
+						passPhrase = getPasswordFromUser()
+					}
+					outQueue.add(
+						GameCommand(GameCommandType.PASSWORD).setArg(
+							"password",
+							passPhrase
+						)
+					)
+				} else if (cmd.type == GameCommandType.PROPERTIES) {
+					properties.putAll(cmd.arguments)
+					listenersList.forEach { it.onPropertiesChanged() }
+				} else {
+					listenersList.forEach { it.onCommand(cmd) }
 				}
+			} catch (e: Exception) {
+				if (!isDisconnected) {
+					outQueue.clear()
+					sendError(e)
+					e.printStackTrace()
+					state = State.DISCONNECTED
+				}
+				break
 			}
-			close()
-			if (disconnectedReason != null) {
-				listenersList.forEach { it.onDisconnected(disconnectedReason, true) }
-			}
-			log.debug("GameClient: Client Listener Thread exiting")
 		}
+		close()
+		if (disconnectedReason != null) {
+			listenersList.forEach { it.onDisconnected(disconnectedReason, true) }
+		}
+		log.debug("GameClient: Client Listener Thread exiting")
 	}
 
 	/**
@@ -325,4 +362,5 @@ open class GameClient : AGameClient {
 			}
 		}
 	}
+
 }

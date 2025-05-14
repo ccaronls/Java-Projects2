@@ -129,15 +129,15 @@ open class Vector2D() : Reflector<Vector2D>(), IVector2D, Serializable, IInterpo
 		/**
 		 * Opposite operation of toString()
 		 *
-		 * @param in
+		 * @param `in`
 		 * @return
 		 * @throws IllegalArgumentException
 		 */
 		@Throws(IllegalArgumentException::class)
-		fun parse(`in`: String): Vector2D {
+		fun parse(input: String): Vector2D {
 			return try {
-				val parts = `in`.split("[, ]+".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-				Vector2D(parts[0].substring(1).toFloat(), parts[1].substring(0, parts[0].length - 1).toFloat())
+				val parts = input.split("[, ]+".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+				Vector2D(parts[0].substring(1).toFloat(), parts[1].substring(0, parts[1].length - 1).toFloat())
 			} catch (e: Exception) {
 				throw IllegalArgumentException(e)
 			}

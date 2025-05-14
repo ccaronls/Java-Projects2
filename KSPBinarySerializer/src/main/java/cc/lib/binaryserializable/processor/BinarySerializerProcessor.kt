@@ -154,12 +154,19 @@ class BinarySerializerProcessor(
 				}
 			}.toString()
 
+			val sizeBytes = mutableListOf<String>()
+
+			fun printSizeBytesBody(): String = sizeBytes.joinToString(" + ").takeIf { it.isNotBlank() } ?: "Integer.MAX_VALUE"
+
 			fun printSerializeBody(): String = StringBuffer().also {
 				//logger.warn("printSerializeBody: $classDeclaration")
 				val bools = mutableListOf<KSPropertyDeclaration>()
 				properties.forEach { property ->
 					val name = property.simpleName.asString()
 					val resolvedType = getPropertyType(property)
+					if (resolvedType.isPrimitive() && !resolvedType.isString() && !resolvedType.isBoolean()) {
+						sizeBytes += "${resolvedType}.SIZE_BYTES"
+					}
 					val type = resolvedType.declaration.qualifiedName!!.asString()
 					//logger.warn("analyze property $property -> $name:$resolvedType:$type")
 					if (resolvedType.isBinarySerializable()) {
@@ -179,6 +186,7 @@ class BinarySerializerProcessor(
 					}
 				}
 				while (bools.isNotEmpty()) {
+					sizeBytes.add("1 + bools.size / 8")
 					when (bools.size) {
 						1 -> it.append("\t\toutput.writeBoolean(${bools.takeAndRemove(1)[0].simpleName.asString()})\n")
 						in 2..8 -> {
@@ -221,7 +229,6 @@ class BinarySerializerProcessor(
 						it.append("\t\t$name = input.$method$converter\n")
 					} else {
 						it.append("\t\t$name.deserialize(input)\n")
-						//throw IllegalArgumentException("Dont know how to generate deserialize method for $classDeclaration.$name:$type")
 					}
 				}
 				while (bools.isNotEmpty()) {
@@ -254,70 +261,6 @@ class BinarySerializerProcessor(
 				}
 			}.toString().trimEnd()
 
-			/*
-			fun printSizeBytesBody(): String = StringBuffer().also {
-				var size = 0
-				var bools = 0
-				val other = mutableListOf<String>()
-				properties.forEach { property ->
-					val name = property.simpleName.asString()
-					val resolvedType = getPropertyType(property)
-					if (resolvedType.isBoolean()) {
-						bools++
-					} else if (resolvedType.isA(intType) || resolvedType.isA(uintType)) {
-						size += 32
-					} else if (resolvedType.isA(shortType) || resolvedType.isA(ushortType)) {
-						size += 16
-					} else if (resolvedType.isA(charType) || resolvedType.isA(byteType) || resolvedType.isA(ubyteType)) {
-						size += 8
-					} else if (resolvedType.isBinarySerializable()) {
-						other.add("$name.size")
-					}
-				}
-				if (bools > 0)
-					size += (bools / 8).coerceAtLeast(8)
-				if (other.size > 0)
-					it.append("$size + ${other.joinToString("+")}")
-				else
-					it.append("$size")
-			}.toString().trimEnd()*/
-
-			fun printSizeBytesBody(): String = StringBuffer().also {
-				var dynamic = false
-				val bools = properties.count { it.type.resolve().isBoolean() }
-				var str = properties.filter { !it.type.resolve().isBoolean() }.joinToString(" +\n\t\t\t") { property ->
-					val name = property.simpleName.asString()
-					val resolvedType = property.type.resolve()
-					val type = resolvedType.declaration.qualifiedName!!.asString()
-					if (resolvedType.isString()) {
-						dynamic = true
-						"16 + ${name}.length()"
-					} else if (resolvedType.isPrimitive()) {
-						"${type}.SIZE_BYTES"
-					} else if (resolvedType.isBinarySerializable()) {
-						dynamic = true
-						"${type}.SIZE_BYTES"
-					} else if (resolvedType.isArrayType()) {
-						"$name.size *$name[0].SIZE_BYTES"
-					} else {
-						"${type}.SIZE_BYTES"
-						//throw IllegalArgumentException("Dont know how to determine size of $type")
-					}
-				}
-
-				if (bools > 0)
-					str += "+ ${(bools / 8).coerceAtLeast(8)}"
-
-				if (dynamic) {
-					it.append("""by lazy {
-					$str
-					}""")
-				} else {
-					it.append("=$str")
-				}
-
-			}.toString().trimEnd()
-
 			fun KSType.isDynamicSize(): Boolean =
 				isString() || isCollection() || (isArrayType() && arrayElementType().isDynamicSize())
 
@@ -343,10 +286,6 @@ class BinarySerializerProcessor(
 ${imports.joinToString("\n") { "import $it" }}				
 			
 class $classTypeName($constructorParams) : $classDeclaration($constructorParamDecl), IBinarySerializable<$classTypeName> {
-
-	companion object {
-		const val STATIC_SIZE = ${printStaticSizeBody()}
-	}
 	
 	override fun copy(other : $classTypeName) {
 ${printCopyBody()}
@@ -363,6 +302,12 @@ ${printDeserializeBody()}
 	override fun contentEquals(other : $classTypeName) : Boolean {
 ${printContentEqualsBody()}
 	}
+	
+	companion object {
+		const val STATIC_SIZE = ${printStaticSizeBody()}
+		const val WRITTEN_SIZE = ${printSizeBytesBody()}
+	}
+
 
 }
 """

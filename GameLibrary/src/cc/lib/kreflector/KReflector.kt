@@ -75,7 +75,7 @@ import java.util.zip.Checksum
  * @author ccaron
 </A></A> */
 @Suppress("unchecked_cast", "unused")
-open class Reflector<T> : IDirty {
+open class KReflector<T> : IDirty {
 	@Synchronized
 	@Throws(IOException::class)
 	protected open fun serialize(out: RPrintWriter) {
@@ -84,7 +84,7 @@ open class Reflector<T> : IDirty {
 			for (field in values.keys) {
 				val archiver = values[field]
 				field.isAccessible = true
-				val obj = field[this@Reflector]
+				val obj = field[this@KReflector]
 				val name = getName(field)
 				if (obj == null) {
 					out.p(name).println("=null")
@@ -252,10 +252,10 @@ open class Reflector<T> : IDirty {
 					val instance = field[this]
 					archiver!![instance, field, parts!![1], this] = keepInstances
 					val obj = field[this]
-					if (obj is Reflector<*>) {
-						val ref = obj as Reflector<T>
+					if (obj is KReflector<*>) {
+						val ref = obj as KReflector<T>
 						if (keepInstances) ref.merge(reader) else ref.deserialize(reader)
-					} else if (field[this@Reflector] is DirtyDelegate<*>) {
+					} else if (field[this@KReflector] is DirtyDelegate<*>) {
 						(obj as DirtyDelegate<*>).deserialize(reader, keepInstances)
 					} else if (field.type.isArray) {
 						if (obj != null) {
@@ -284,7 +284,7 @@ open class Reflector<T> : IDirty {
 		}
 	}
 
-	fun deepEquals(a: Reflector<T>?): Boolean {
+	fun deepEquals(a: KReflector<T>?): Boolean {
 		if (a === this) return true
 		return if (a == null) false else try {
 			val values = getValues(javaClass, false)
@@ -366,7 +366,7 @@ open class Reflector<T> : IDirty {
 	 * @param other
 	 */
 	@Synchronized
-	fun copyFrom(other: Reflector<T>): T {
+	fun copyFrom(other: KReflector<T>): T {
 		if (other === this) {
 			log.error("Copying from self?")
 			return this as T
@@ -378,9 +378,9 @@ open class Reflector<T> : IDirty {
 				if (!otherValues.containsKey(f)) continue
 				f.isAccessible = true
 				val o = f[this]
-				if (o != null && o is Reflector<*>) {
-					val n = f[other] as Reflector<T>
-					(o as Reflector<T>).copyFrom(n)
+				if (o != null && o is KReflector<*>) {
+					val n = f[other] as KReflector<T>
+					(o as KReflector<T>).copyFrom(n)
 				} else {
 					f[this] = deepCopy(f[other])
 				}
@@ -570,7 +570,7 @@ open class Reflector<T> : IDirty {
 		 * Strip package name qualifier from serialize and deserialize
 		 */
 		var STRIP_PACKAGE_QUALIFIER = false
-		private val log = LoggerFactory.getLogger(Reflector::class.java)
+		private val log = LoggerFactory.getLogger(KReflector::class.java)
 		private val classValues: MutableMap<Class<*>, MutableMap<Field, Archiver>> = HashMap()
 		private val classMap: MutableMap<String, Class<*>> = HashMap()
 		private val subclassOfCache: MutableMap<Class<*>, MutableMap<Class<*>, Boolean>> = HashMap()
@@ -775,7 +775,7 @@ open class Reflector<T> : IDirty {
 		fun getClassForName(forName: String): Class<*> {
 			return classMap[forName] ?: run {
 				//return Reflector.class.getClassLoader().loadClass(forName);
-				val clazz = Reflector::class.java.classLoader.loadClass(forName)
+				val clazz = KReflector::class.java.classLoader.loadClass(forName)
 				classMap[forName] = clazz
 				return clazz
 			}
@@ -876,7 +876,7 @@ open class Reflector<T> : IDirty {
 			} else if (clazz.isEnum || isSubclassOf(clazz, Enum::class.java)) {
 				addArrayTypes(clazz)
 				enumArchiver
-			} else if (isSubclassOf(clazz, Reflector::class.java)) {
+			} else if (isSubclassOf(clazz, KReflector::class.java)) {
 				archivableArchiver
 			} else if (isSubclassOf(clazz, MutableCollection::class.java)) {
 				collectionArchiver
@@ -1095,7 +1095,7 @@ open class Reflector<T> : IDirty {
 			} else {
 				RBufferedReader(
 					InputStreamReader(
-						Reflector::class.java.classLoader.getResourceAsStream(file.name)
+						KReflector::class.java.classLoader.getResourceAsStream(file.name)
 							?: throw FileNotFoundException(file.absolutePath)
 					)
 				)
@@ -1309,7 +1309,7 @@ open class Reflector<T> : IDirty {
 				out.println("null")
 			} else if (obj is DirtyDelegate<*>) {
 				obj.serialize(out, printObjects)
-			} else if (obj is Reflector<*>) {
+			} else if (obj is KReflector<*>) {
 				out.push()
 				obj.serialize(out)
 				out.pop()
@@ -1383,9 +1383,10 @@ open class Reflector<T> : IDirty {
 				if (isSubclassOf(clazz, Char::class.java)) {
 					return reader.readLineAndClosedParen().trim { it <= ' ' }[0]
 				}
-				if (isSubclassOf(clazz, Reflector::class.java)) {
-					val a: Reflector<*>
-					a = if (!keepInstances || current == null) clazz.newInstance() as Reflector<*> else current as Reflector<*>
+				if (isSubclassOf(clazz, KReflector::class.java)) {
+					val a: KReflector<*>
+					a =
+						if (!keepInstances || current == null) clazz.newInstance() as KReflector<*> else current as KReflector<*>
 					if (keepInstances) a.merge(reader) else a.deserialize(reader)
 					return a
 				}
@@ -1415,7 +1416,7 @@ open class Reflector<T> : IDirty {
 
 		fun isImmutable(o: Any): Boolean {
 			if (o is String || o is Number) return true
-			return if (o is Reflector<*> && o.isImmutable()) true else false
+			return if (o is KReflector<*> && o.isImmutable()) true else false
 		}
 
 		@Throws(IOException::class)
@@ -1580,8 +1581,8 @@ open class Reflector<T> : IDirty {
 			if (a === b) return true
 			if (a == null || b == null) return false
 			if (a.javaClass != b.javaClass) return false
-			if (a is Reflector<*> && b is Reflector<*>) {
-				return (a as Reflector<Any>).deepEquals(b as Reflector<Any>)
+			if (a is KReflector<*> && b is KReflector<*>) {
+				return (a as KReflector<Any>).deepEquals(b as KReflector<Any>)
 			}
 			if (a.javaClass.isArray && b.javaClass.isArray) return isArraysEqual(a, b)
 			if (a is Collection<*> && b is Collection<*>) {
@@ -1595,7 +1596,7 @@ open class Reflector<T> : IDirty {
 
 		fun <T> deepCopy(o: T): T {
 			return try {
-				if (o is Reflector<*>) return (o as Reflector<*>).deepCopy() as T
+				if (o is KReflector<*>) return (o as KReflector<*>).deepCopy() as T
 				if (o!!.javaClass.isArray) {
 					val len = java.lang.reflect.Array.getLength(o)
 					val arr = java.lang.reflect.Array.newInstance(o.javaClass.componentType, len)
@@ -1670,7 +1671,7 @@ open class Reflector<T> : IDirty {
 				}
 				return copy
 			}
-			return if (o is Reflector<*>) {
+			return if (o is KReflector<*>) {
 				o.shallowCopy()
 			} else o
 		}

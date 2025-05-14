@@ -3,9 +3,12 @@ package cc.lib.game
 import cc.lib.reflector.Reflector
 
 class GDimension(
-	override var width: Float = 0f,
-	override var height: Float = 0f
+	width: Number = 0, height: Number = 0
 ) : Reflector<GDimension>(), IDimension {
+	override var width: Float = width.toFloat()
+
+	override var height: Float = height.toFloat()
+
 	constructor(dim: IDimension) : this(dim.width, dim.height)
 
 	fun assign(w: Number, h: Number): GDimension {

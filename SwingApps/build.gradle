@@ -15,6 +15,7 @@ dependencies {
     implementation group: 'org.json', name: 'json', version: '20090211'
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.3.9")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.0")
 
     // TODO: Should eb able to isolate the game lib for each swing app
     implementation project(':GameLibrary')
@@ -195,4 +196,27 @@ task deployZombicideApplet {
             into zPath
         }
     }
+}
+
+task bundleRoboApplication(type: Jar) {
+    group = 'Distribution'
+    description = 'Robotron Swing Executable'
+
+    archiveBaseName.set("RoboApp")
+
+    from {
+        configurations.runtimeClasspath.findAll { it.name.endsWith('jar') }.collect {
+            zipTree(it)
+        }
+    }
+
+    from(sourceSets.main.output)
+    from(project(":SuperRobotron").sourceSets.main.output)
+    from(project(":GameLibrary").sourceSets.main.output)
+    from(project(":KSPCommon").sourceSets.main.output)
+    manifest {
+        attributes["Main-Class"] = "cc.applets.robotron.RobotronApplet"
+        // Update with your actual main class
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }

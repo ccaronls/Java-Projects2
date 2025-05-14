@@ -370,14 +370,18 @@ public class FileUtils {
     	}
     	try {
     		OutputStream out = new FileOutputStream(dest);
-    		try {
-    			copy(in, out);
-    		} finally {
-    			out.close();
-    		}
-    	} finally {
-    		in.close();
-    	}
+            try {
+                copy(in, out);
+            } finally {
+                out.close();
+            }
+        } finally {
+            in.close();
+        }
+    }
+
+    public static boolean isWindows() {
+        return System.getProperty("os.name").equals("win");
     }
 
     public static File getOrCreateSettingsDirectory(Class<?> clazz) {

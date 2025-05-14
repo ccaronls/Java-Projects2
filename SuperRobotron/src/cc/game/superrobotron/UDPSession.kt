@@ -4,12 +4,14 @@ import cc.game.superrobotron.UDPCommon
 import cc.game.superrobotron.clock
 import cc.lib.ksp.binaryserializer.readULong
 import cc.lib.ksp.binaryserializer.writeULong
-import cc.lib.utils.launchIn
 import cc.lib.utils.rotate
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.launch
 import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.nio.ByteBuffer
@@ -57,10 +59,13 @@ class UDPSession(
 	var running = true
 		private set
 
+	private val readScope = CoroutineScope(Dispatchers.IO + CoroutineName("read"))
+	private val writeScope = CoroutineScope(Dispatchers.IO + CoroutineName("write"))
+
 	init {
 
 		// start a job to read UDP packets
-		jobs.add(launchIn(Dispatchers.IO) {
+		jobs.add(readScope.launch {
 			while (running) {
 				nextReadBuffer().let { (packet, buffer) ->
 					socket.receive(packet)
@@ -71,7 +76,7 @@ class UDPSession(
 		})
 
 		// start a job to write packets waiting on the writeChannel
-		jobs.add(launchIn(Dispatchers.IO) {
+		jobs.add(writeScope.launch {
 			while (running) {
 				val packet = writeChannel.receive()
 				socket.send(packet)

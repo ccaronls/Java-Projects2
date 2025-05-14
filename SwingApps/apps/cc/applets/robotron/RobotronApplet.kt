@@ -3,6 +3,8 @@ package cc.applets.robotron
 import cc.game.superrobotron.IRoboClientListener
 import cc.game.superrobotron.PLAYER_STATE_SPECTATOR
 import cc.game.superrobotron.POWERUP_NUM_TYPES
+import cc.game.superrobotron.RoboClient
+import cc.game.superrobotron.RoboServer
 import cc.game.superrobotron.Robotron
 import cc.game.superrobotron.RobotronRemote
 import cc.lib.game.AGraphics
@@ -12,6 +14,7 @@ import cc.lib.game.Utils
 import cc.lib.logger.LoggerFactory
 import cc.lib.logger.LoggerFactory.LogLevel
 import cc.lib.math.Vector2D
+import cc.lib.net.PortAllocator
 import cc.lib.swing.AWTFrame
 import cc.lib.swing.AWTGraphics
 import cc.lib.swing.AWTKeyboardAnimationApplet
@@ -25,54 +28,57 @@ import java.awt.Font
 import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import java.io.File
+import java.io.IOException
+import java.net.InetAddress
 import javax.swing.JOptionPane
 
-abstract class RoboMP : RobotronRemote() {
-	final override fun executeRemotely(method: String, resultType: Class<*>?, vararg args: Any?): Any? {
-		server?.broadcastExecuteMethod(method, *args)
-		return null
-	}
-}
 
-class RobotronApplet(id: Int) : AWTKeyboardAnimationApplet(), IRoboClientListener {
+class RobotronApplet(val frameId: Int) : AWTKeyboardAnimationApplet(), IRoboClientListener {
 
-	val log = LoggerFactory.getLogger("$id", RobotronApplet::class.java)
+	/**
+	 * When true, will use non-socketed fake client / server from LocalHost in same process
+	 * When false will use GameClient/Server socket connection is separate process(es)
+	 */
+	val USE_LOCAL_NETWORK = false
+
+	val log = LoggerFactory.getLogger("$frameId", RobotronApplet::class.java)
 
 	override fun getDefaultFont(): Font {
 		return Font("Arial", Font.BOLD, 12)
 	}
 
-	lateinit var robotron: RoboMP
+	lateinit var robotron: RobotronRemote
 	override fun doInitialization() {
 		Utils.setDebugEnabled()
 		LoggerFactory.logLevel = LogLevel.DEBUG
 		setRandomSeed(0)
-		robotron = object : RoboMP() {
+		robotron = object : RobotronRemote() {
 			override val imageKey: Int by lazy {
-				G.loadImage("key.png", GColor.BLACK)
+				G.loadImage("key.gif", GColor.BLACK)
 			}
 			override val imageLogo: Int by lazy {
-				G.loadImage("logo.png", GColor.BLACK)
+				G.loadImage("logo.gif", GColor.BLACK)
 			}
 			override val animJaws: IntArray by lazy {
-				G.loadImageCells("jaws.png", 32, 32, 8, 9, true, GColor.BLACK)
+				G.loadImageCells("jaws.gif", 32, 32, 8, 9, true, GColor.BLACK)
 			}
 			override val animLava: IntArray by lazy {
-				G.loadImageCells("lavapit.png", 32, 32, 8, 25, true, GColor.BLACK)
+				G.loadImageCells("lavapit.gif", 32, 32, 8, 25, true, GColor.BLACK)
 			}
 			override val animPeople: Array<IntArray> by lazy {
 				arrayOf(
-					G.loadImageCells("people.png", 32, 32, 4, 16, true, GColor.BLACK),
-					G.loadImageCells("people2.png", 32, 32, 4, 16, true, GColor.BLACK),
-					G.loadImageCells("people3.png", 32, 32, 4, 16, true, GColor.BLACK)
+					G.loadImageCells("people.gif", 32, 32, 4, 16, true, GColor.BLACK),
+					G.loadImageCells("people2.gif", 32, 32, 4, 16, true, GColor.BLACK),
+					G.loadImageCells("people3.gif", 32, 32, 4, 16, true, GColor.BLACK)
 				)
 			}
 
 			override fun initGraphics(g: AGraphics) {
 				super.initGraphics(g)
+				setDimension(g.viewportWidth, g.viewportHeight)
 				with(g as AWTGraphics) {
-					addSearchPath("SuperRobotronAndroid/assets/pngs")
-					addSearchPath("SuperRobotronAndroid/src/main/res/drawable")
+					//addSearchPath("SuperRobotronAndroid/assets/pngs")
+					//addSearchPath("SuperRobotronAndroid/src/main/res/drawable")
 				}
 			}
 
@@ -107,15 +113,35 @@ class RobotronApplet(id: Int) : AWTKeyboardAnimationApplet(), IRoboClientListene
 		}
 	}
 
+	fun showGetServerDialog(onDoneCb: (serverName: String) -> Unit) {
+		val server = requireRootFrame.getStringProperty("server", "127.0.0.1")
+		JOptionPane.showInputDialog(this, "Server Address", server)?.let { name ->
+			requireRootFrame.setProperty("server", name)
+			onDoneCb(name)
+		}
+	}
+
 	fun initHost() = showDisplayNameDialog {
-		robotron.server = bindToHost(robotron)
+		if (USE_LOCAL_NETWORK) {
+			robotron.server = bindToHost(robotron)
+		} else robotron.server = RoboServer(robotron).also {
+			it.listen()
+		}
 	}
 
 	fun joinHost() = showDisplayNameDialog {
 		try {
-			robotron.client = connectToHost(robotron).also {
-				it.addListener(this)
+			if (USE_LOCAL_NETWORK) {
+				robotron.client = connectToHost(robotron).also {
+					it.addListener(this)
+				}
+			} else showGetServerDialog { server ->
+				robotron.client = RoboClient(robotron, robotron.player.displayName).also {
+					it.addListener(this)
+					it.connectBlocking(InetAddress.getByName(server), PortAllocator.SUPER_ROBOTRON_PORT)
+				}
 			}
+
 		} catch (e: Exception) {
 			robotron.player.displayName = ""
 			throw e
@@ -239,7 +265,21 @@ class RobotronApplet(id: Int) : AWTKeyboardAnimationApplet(), IRoboClientListene
 			}
 		},
 		KeyEvent.VK_G to Triple('G', { "Add Remote Player" }) {
-			spawn()
+			if (USE_LOCAL_NETWORK) {
+				spawn(frameId + 1)
+			} else {
+				try {
+					val javaHome = System.getProperty("java.home")
+					val javaBin = "$javaHome/bin/java"
+					val classpath = System.getProperty("java.class.path")
+					val className: String = RobotronApplet::class.java.name
+					val builder = ProcessBuilder(javaBin, "-cp", classpath, className, "${frameId + 1}")
+					val process = builder.start()
+					println("Spawned process with PID: " + process.pid())
+				} catch (e: IOException) {
+					e.printStackTrace()
+				}
+			}
 		},
 		KeyEvent.VK_N to Triple('N', { "Toggle current player ${robotron.this_player}" }) {
 			robotron.this_player = (robotron.this_player + 1) % robotron.players.size
@@ -368,26 +408,23 @@ class RobotronApplet(id: Int) : AWTKeyboardAnimationApplet(), IRoboClientListene
 			FileUtils.getOrCreateSettingsDirectory(RobotronApplet::class.java)
 		}
 
-		var spawns = 0
-
 		@JvmStatic
 		fun main(args: Array<String>) {
 			setRandomSeed(0L)
-			spawn()
+			spawn(args.firstOrNull()?.toIntOrNull() ?: 0)
 		}
 
-		fun spawn() {
-			if (spawns == 4)
+		fun spawn(id: Int) {
+			if (id >= 4)
 				return
-			val frame = AWTFrame("Robotron $spawns")
-			val app: AWTKeyboardAnimationApplet = RobotronApplet(spawns)
+			val frame = AWTFrame("Robotron $id")
+			val app: AWTKeyboardAnimationApplet = RobotronApplet(id)
 			frame.add(app)
 			app.init()
-			if (!frame.loadFromFile(File(settingsDir, "robo$spawns.properties")))
+			if (!frame.loadFromFile(File(settingsDir, "robo$id.properties")))
 				frame.centerToScreen(800, 600)
 			app.start()
-			app.setMillisecondsPerFrame(1000 / 20)
-			spawns++
+			app.millisecondsPerFrame = 1000 / 20
 		}
 	}
 

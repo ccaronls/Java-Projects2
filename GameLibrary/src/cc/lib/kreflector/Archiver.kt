@@ -5,10 +5,10 @@ import java.lang.reflect.Field
 
 interface Archiver {
 	@Throws(Exception::class)
-	operator fun get(field: Field, a: Reflector<*>): String
+	operator fun get(field: Field, a: KReflector<*>): String
 
 	@Throws(Exception::class)
-	operator fun set(o: Any?, field: Field, value: String, a: Reflector<*>, keepInstances: Boolean)
+	operator fun set(o: Any?, field: Field, value: String, a: KReflector<*>, keepInstances: Boolean)
 
 	@Throws(IOException::class)
 	fun serializeArray(arr: Any, out: RPrintWriter)

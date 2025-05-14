@@ -59,6 +59,8 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Image;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
@@ -71,6 +73,7 @@ import java.awt.event.MouseWheelListener;
 import java.util.Arrays;
 
 import javax.swing.JApplet;
+import javax.swing.Timer;
 
 import cc.lib.game.AGraphics;
 import cc.lib.game.GColor;
@@ -82,7 +85,7 @@ import cc.lib.logger.LoggerFactory;
 
 public abstract class AWTKeyboardAnimationApplet extends JApplet implements
         KeyListener, FocusListener, MouseListener,
-        MouseMotionListener, MouseWheelListener, Renderable {
+        MouseMotionListener, MouseWheelListener, Renderable, ComponentListener {
     static final long serialVersionUID = 20003;
 
     static final Logger log = LoggerFactory.getLogger(AWTKeyboardAnimationApplet.class);
@@ -312,27 +315,38 @@ public abstract class AWTKeyboardAnimationApplet extends JApplet implements
 
 	private Status status = Status.GO;
 
-	private int width = -1;
+    private int width = -1;
+    private int resizedWidth = -1;
 
-	private int height = -1;
+    private int height = -1;
+    private int resizedHeight = -1;
 
-	private boolean focussed = false; // set to true when the applet has the keyboard focus
-	
-	private int borderThickness = 3;
+    private boolean focussed = false; // set to true when the applet has the keyboard focus
 
-	private Color focusBorderColor = Color.cyan;
-	
-	private boolean initialized = false;
+    private int borderThickness = 3;
 
-	public final void init() {
-		setBackground(Color.gray); // Color used for border when applet doesn't have focus.
-		setForeground(Color.red);
-		setFont(new Font("SanSerif", Font.BOLD, 14));
-		addFocusListener(this);
-		addKeyListener(this);
-		addMouseListener(this);
-		addMouseMotionListener(this);
-		doInitialization();
+    private Color focusBorderColor = Color.cyan;
+
+    private boolean initialized = false;
+
+    private boolean resizing = false;
+
+    private Timer resizeTimer = new Timer(1000, (evt) -> {
+        resizing = false;
+        invalidate();
+    });
+
+    public final void init() {
+        resizeTimer.setRepeats(false);
+        setBackground(Color.gray); // Color used for border when applet doesn't have focus.
+        setForeground(Color.red);
+        setFont(new Font("SanSerif", Font.BOLD, 14));
+        addFocusListener(this);
+        addKeyListener(this);
+        addMouseListener(this);
+        addMouseMotionListener(this);
+        addComponentListener(this);
+        doInitialization();
 		initialized = true;
 	}
 
@@ -417,12 +431,12 @@ public abstract class AWTKeyboardAnimationApplet extends JApplet implements
 		// draw a message telling the user to click on the applet to 
 		// activate it.
 
-		if (width != getSize().width || height != getSize().height) { // if size has changed, recreate frame
-			doSetup();
-			if (OSC != null && initialized) {
-				drawFrame(OSG);
-			}
-		}
+        if (!resizing && (width != resizedWidth || height != resizedHeight)) { // if size has changed, recreate frame
+            doSetup();
+            if (OSC != null && initialized) {
+                drawFrame(OSG);
+            }
+        }
 
 		if (OSC == null) { // if not enough memory for OSC, draw an error message
 			g.setColor(getBackground());
@@ -454,6 +468,7 @@ public abstract class AWTKeyboardAnimationApplet extends JApplet implements
 	 * 
 	 */
 	private void doSetup() {
+        System.out.println("doSetup");
 		// creates OSC and graphics context for OSC
 		width = getSize().width;
 		height = getSize().height;
@@ -517,11 +532,11 @@ public abstract class AWTKeyboardAnimationApplet extends JApplet implements
 					} catch (InterruptedException e) {
 					}
 				}
-				if (status == Status.TERMINATE) { // exit from run() routine and terminate animation thread
-					return;
-				}
-				if (width != getSize().width || height != getSize().height) // check for applet size change
-					doSetup();
+                if (status == Status.TERMINATE) { // exit from run() routine and terminate animation thread
+                    return;
+                }
+                if (!resizing && (width != resizedWidth || height != resizedHeight)) // check for applet size change
+                    doSetup();
 				long thisTime = getTimeMilis();
 				if (startTime == -1) {
 					startTime = thisTime;
@@ -634,7 +649,8 @@ public abstract class AWTKeyboardAnimationApplet extends JApplet implements
 	 * @see java.awt.event.MouseListener#mousePressed(java.awt.event.MouseEvent)
 	 */
 	public final void mousePressed(MouseEvent evt) {
-		requestFocus();
+        System.out.println("mouse pressed " + evt.getButton());
+        requestFocus();
 		if (evt.isControlDown() && evt.getButton() == MouseEvent.BUTTON1)
 			mouseButtons[eventToInt(MouseEvent.BUTTON3)] = 1;
 		else
@@ -645,22 +661,27 @@ public abstract class AWTKeyboardAnimationApplet extends JApplet implements
 	protected void onMousePressed(MouseEvent ev) {}
 
 	public void mouseEntered(MouseEvent evt) {
+        System.out.println("mouse entered");
 	} 
 
 	public void mouseExited(MouseEvent evt) {
+        System.out.println("mouse exited");
 	} 
 
 	synchronized public void mouseReleased(MouseEvent evt) {
-		int index = 0;
-		if (evt.isControlDown() && evt.getButton() == MouseEvent.BUTTON1)
-			index = eventToInt(MouseEvent.BUTTON3);
-		else
-			index = eventToInt(evt.getButton());
-		if (mouseButtons[index] == 1)
-			mouseButtons[index] = 2;
-	} 
+        System.out.println("mouse released " + evt.getButton());
+
+        int index = 0;
+        if (evt.isControlDown() && evt.getButton() == MouseEvent.BUTTON1)
+            index = eventToInt(MouseEvent.BUTTON3);
+        else
+            index = eventToInt(evt.getButton());
+        if (mouseButtons[index] == 1)
+            mouseButtons[index] = 2;
+    }
 
 	public void mouseClicked(MouseEvent evt) {
+        System.out.println("mouse clicked " + evt.getButton());
 	}
 
 	public void mouseWheelMoved(MouseWheelEvent ev) {
@@ -669,26 +690,55 @@ public abstract class AWTKeyboardAnimationApplet extends JApplet implements
 	public void mouseMoved(MouseEvent ev) {
 		mouseDX = ev.getX() - mouseX;
 		mouseDY = ev.getY() - mouseY;
-		mouseX = ev.getX();
-		mouseY = ev.getY();
-	}
+        mouseX = ev.getX();
+        mouseY = ev.getY();
+    }
 
-	public void mouseDragged(MouseEvent ev) {
-		mouseDX = ev.getX() - mouseX;
-		mouseDY = ev.getY() - mouseY;
-		mouseX = ev.getX();
-		mouseY = ev.getY();
-	}
+    public void mouseDragged(MouseEvent ev) {
+        mouseDX = ev.getX() - mouseX;
+        mouseDY = ev.getY() - mouseY;
+        mouseX = ev.getX();
+        mouseY = ev.getY();
+    }
 
-	protected final int getMouseX() {
-		return mouseX;
-	}
+    @Override
+    public synchronized void componentResized(ComponentEvent componentEvent) {
+        System.out.println("component resizing");
+        if (resizedWidth < 0) {
+            resizedWidth = getWidth();
+            resizedHeight = getHeight();
+        } else {
+            resizing = true;
+            resizedWidth = getWidth();
+            resizedHeight = getHeight();
+            resizeTimer.restart();
+        }
+    }
 
-	protected final int getMouseY() {
-		return mouseY;
-	}
+    @Override
+    public void componentMoved(ComponentEvent componentEvent) {
 
-	protected final int getMouseDX() {
+    }
+
+    @Override
+    public void componentShown(ComponentEvent componentEvent) {
+
+    }
+
+    @Override
+    public void componentHidden(ComponentEvent componentEvent) {
+
+    }
+
+    protected final int getMouseX() {
+        return mouseX;
+    }
+
+    protected final int getMouseY() {
+        return mouseY;
+    }
+
+    protected final int getMouseDX() {
 		return mouseDX;
 	}
 

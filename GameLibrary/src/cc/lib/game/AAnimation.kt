@@ -167,9 +167,7 @@ abstract class AAnimation<T>(durationMSecs: Long, repeats: Int = 0, oscillateOnR
 	@Synchronized
 	open fun update(g: T): Boolean {
 		if (state == State.PRESTART) {
-			System.err.println("Calling update on animation that has not been started!")
-			Utils.assertTrue(false)
-			return false
+			error("Calling update on animation that has not been started!")
 		}
 		var dt = 0f
 		val t = currentTimeMSecs
