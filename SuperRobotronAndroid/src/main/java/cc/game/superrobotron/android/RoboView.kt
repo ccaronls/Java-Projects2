@@ -1,10 +1,10 @@
-package cc.android.game.superrobotron
+package cc.game.superrobotron.android
 
 import android.content.Context
 import android.graphics.Canvas
 import android.os.SystemClock
 import android.util.AttributeSet
-import cc.game.superrobotron.Robotron
+import cc.game.superrobotron.RobotronRemote
 import cc.lib.android.CCActivityBase
 import cc.lib.android.DroidGraphics
 import cc.lib.android.UIComponentView
@@ -21,7 +21,7 @@ class RoboRenderer(component: UIComponent) : UIRenderer(component) {
 
 	val activity = (component as RoboView).context as CCActivityBase
 
-	val robotron = object : Robotron() {
+	val robotron = object : RobotronRemote() {
 		override val imageKey: Int
 			get() = R.drawable.key
 		override val imageLogo: Int

@@ -3,6 +3,7 @@ apply plugin: 'kotlin-android'
 
 dependencies {
     implementation project(':AndroidGameLibrary')
+    implementation project(':AndroidMultiplayerGameLibrary')
     implementation project(':GameLibrary')
     implementation(project(":KSPCommon"))
     implementation project(':SuperRobotron')
@@ -10,21 +11,11 @@ dependencies {
 
 android {
 
-    namespace = "cc.android.game.superrobotron"
+    namespace = "cc.game.superrobotron.android"
 
     defaultConfig {
         versionCode 1
         versionName "1.0"
     }
 
-    sourceSets {
-        main {
-            manifest.srcFile 'AndroidManifest.xml'
-            java {
-                srcDirs = ['src']
-            }
-            res.srcDirs = ['res']
-            assets.srcDirs = ['assets']
-        }
-    }
 }
