@@ -91,9 +91,9 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 			g.pushTextHeight(HOVER_TEXT_HEIGHT, false)
 			val tv: Vector2D = rect.center.toViewport(g)
 			val width = g.getTextWidth(msg) / 2
-			hJust = if (tv.X() + width > g.viewportWidth) {
+			hJust = if (tv.x + width > g.viewportWidth) {
 				Justify.RIGHT
-			} else if (tv.X() - width < 0) {
+			} else if (tv.x - width < 0) {
 				Justify.LEFT
 			} else {
 				Justify.CENTER
@@ -248,7 +248,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 				animateZoomToIfNotContained(list)
 				list.firstOrNull()?.let {
 					if (isFocussed)
-						mouseV.set(it.center)
+						mouseV.assign(it.center)
 					redraw()
 				}
 			}
@@ -262,7 +262,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 						animateZoomToIfNotContained(list)
 						list.firstOrNull()?.let {
 							if (isFocussed)
-								mouseV.set(it.center)
+								mouseV.assign(it.center)
 							redraw()
 						}
 					}
@@ -291,7 +291,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 	var highlightAnimationScale = 1f
 	val highlightAnimation = object : AAnimation<AGraphics>(1000, -1, true) {
 		override fun draw(g: AGraphics, position: Float, dt: Float) {
-			g.color = GColor.TRANSPARENT.interpolateTo(GColor.CYAN, position)
+			g.color = GColor.CYAN.interpolateTo(GColor.TRANSPARENT, position)
 		}
 	}.start<AAnimation<AGraphics>>()
 
@@ -364,7 +364,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 			log.debug("highlighted actor: $actor")
 			highlightedResult = actor
 			actor?.let {
-				mouseV.set(it.center)
+				mouseV.assign(it.center)
 				val rect = board.getZone(actor.occupiedZone)
 				if (!_zoomedRect.contains(rect.enclosingRect())) {
 					animateZoomDelta(_zoomedRect.getDeltaToContain(rect.enclosingRect()), 200)
@@ -1091,7 +1091,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		if (cell.isCellTypeEmpty)
 			return
 		g.pushTextHeight(DEBUG_TEXT_HEIGHT, false)
-		var text = "${cell.environment} Z${cell.zoneIndex} [${cell.getLeft()},${cell.getTop()}]"
+		var text = "${cell.environment} Z${cell.zoneIndex} [${cell.left},${cell.top}]"
 		for (type in ZCellType.entries) {
 			if (cell.isCellType(type)) {
 				when (type) {
@@ -1274,7 +1274,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		g.ortho(_zoomedRect)
 		highlightedCell = null
 		highlightedResult = null
-		mouseV.set(g.screenToViewport(mx, my))
+		mouseV.assign(g.screenToViewport(mx, my))
 	}
 
 	private fun drawPrivate(g: AGraphics) {
@@ -1389,7 +1389,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 						it.isVault && it.cellPosStart == curCell
 					}.apply {
 						val nextCell = board.getCell(cellPosEnd)
-						next.set(nextCell.center)
+						next.assign(nextCell.center)
 						curCell = cellPosEnd
 						g.vertex(next)
 					}
@@ -1675,27 +1675,27 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 	}
 
 	fun clampRect(rect: GRectangle): GRectangle {
-		if (rect.w > viewport.width || rect.h >= viewport.height) {
-			rect.setDimension(viewport)
-		} else if (rect.w < 3 && rect.h < 3) {
-			rect.setDimension(GDimension(3f, 3f)).aspect = viewportAspect
+		if (rect.width > viewport.width || rect.height >= viewport.height) {
+			rect.dimension = viewport
+		} else if (rect.width < 3 && rect.height < 3) {
+			rect.dimension = GDimension(3f, 3f).withAspect(viewportAspect)
 		} else {
 			// grow rect to match the aspect ratio of viewPort
-			rect.aspect = viewportAspect
+			rect.setAspect(viewportAspect)
 		}
 		val minX = (board.width / 2 - rect.width / 2).coerceAtMost(0f)
 		val minY = (board.height / 2 - rect.height / 2).coerceAtMost(0f)
-		val maxX = (board.width / 2 + rect.width / 2).coerceAtLeast(board.width) - rect.w
-		val maxY = (board.height / 2 + rect.height / 2).coerceAtLeast(board.height) - rect.h
+		val maxX = (board.width / 2 + rect.width / 2).coerceAtLeast(board.width) - rect.width
+		val maxY = (board.height / 2 + rect.height / 2).coerceAtLeast(board.height) - rect.height
 		//log.debug("clampRect rect: $rect, board: ${board.width}x${board.height} minX:$minX, maxX:$maxX, minY:$minY, maxY:$maxY")
 		if (minX <= maxX)
-			rect.x = rect.x.coerceIn(minX, maxX)
+			rect.left = rect.left.coerceIn(minX, maxX)
 		else
-			rect.x = minX
+			rect.left = minX
 		if (minY <= maxY)
-			rect.y = rect.y.coerceIn(minY, maxY)
+			rect.top = rect.top.coerceIn(minY, maxY)
 		else
-			rect.y = minY
+			rect.top = minY
 		//log.debug("rect after: $rect")
 		return rect
 	}
@@ -1754,7 +1754,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		} else {
 			overlayToDraw = null
 			pickableRects.firstOrNull()?.let {
-				mouseV.set(it.center)
+				mouseV.assign(it.center)
 			}
 		}
 		redraw()
@@ -1810,7 +1810,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 					pickableRects.filter { isInDirection(it.enclosingRect(), code, shape.center) }.minByOrNull {
 						it.center.sub(shape.center).magSquared()
 					}?.let {
-						mouseV.set(it.center)
+						mouseV.assign(it.center)
 					} ?: return false
 				} ?: run {
 					highlightedResult = pickableRects.firstOrNull()

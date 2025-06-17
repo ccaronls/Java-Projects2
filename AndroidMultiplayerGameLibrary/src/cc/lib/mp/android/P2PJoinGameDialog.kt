@@ -21,7 +21,7 @@ import cc.lib.utils.KLock
 import java.net.InetAddress
 
 class P2PJoinGameDialog(
-	val context: P2PActivity,
+	val context: P2PActivity<*, *>,
 	val client: AGameClient,
 	clientName: String?,
 	val connectPort: Int
@@ -60,8 +60,8 @@ class P2PJoinGameDialog(
 
 			override fun onGroupFormed(addr: InetAddress, ipAddress: String) {
 				Log.d(TAG, "onGroupFormedAsClient: $ipAddress")
-				client.connectAsync(addr, connectPort) { success: Boolean? ->
-					if (!success!!) {
+				client.connectAsync(addr, connectPort) {
+					it?.let {
 						showError(context.getString(R.string.popup_error_msg_failed_to_connect))
 					}
 					connectLock.release()

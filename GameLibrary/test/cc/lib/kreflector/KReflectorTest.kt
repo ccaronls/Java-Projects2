@@ -14,7 +14,7 @@ import java.io.StringReader
 import java.io.StringWriter
 import java.util.*
 
-class ReflectorTest : TestCase() {
+class KReflectorTest : TestCase() {
 	@Throws(Exception::class)
 	override fun setUp() {
 		super.setUp()
@@ -25,11 +25,11 @@ class ReflectorTest : TestCase() {
 
 	@Throws(Exception::class)
 	fun testLists() {
-		val r = ListReflector()
+		val r = ListKReflector()
 		println(r.toString())
 		r.intList.add(2)
 		println(r.toString())
-		val r2 = ListReflector()
+		val r2 = ListKReflector()
 		r2.deserialize(r.toString())
 		println(r2.toString())
 		assertEquals(1, r2.intList.size)
@@ -61,37 +61,38 @@ class ReflectorTest : TestCase() {
 		val writer = StringWriter()
 		cc.lib.reflector.Reflector.serializeObject(str, PrintWriter(writer))
 		println(writer.buffer.toString())
-		val reader = cc.lib.reflector.Reflector.deserializeObject<String>(BufferedReader(StringReader(writer.buffer.toString())))
+		val reader =
+			cc.lib.reflector.Reflector.deserializeObject<String>(BufferedReader(StringReader(writer.buffer.toString())))
 		assertEquals(reader, str)
 		writer.buffer.setLength(0)
-		val r: Reflector<*> = SmallReflector()
-		Reflector.serializeObject(r, PrintWriter(writer))
+		val r: KReflector<*> = SmallKReflector()
+		KReflector.serializeObject(r, PrintWriter(writer))
 		println(writer.buffer.toString())
-		val rin = Reflector.deserializeObject<Reflector<*>>(BufferedReader(StringReader(writer.buffer.toString())))
+		val rin = KReflector.deserializeObject<KReflector<*>>(BufferedReader(StringReader(writer.buffer.toString())))
 		assertEquals(rin, r)
 		writer.buffer.setLength(0)
 		val m: MutableMap<String, Int> = HashMap()
 		m["hello"] = 1
 		m["goodbye"] = 2
-		Reflector.serializeObject(m, PrintWriter(writer))
+		KReflector.serializeObject(m, PrintWriter(writer))
 		println(writer.buffer.toString())
-		val min = Reflector.deserializeObject<Map<*, *>>(BufferedReader(StringReader(writer.buffer.toString())))!!
+		val min = KReflector.deserializeObject<Map<*, *>>(BufferedReader(StringReader(writer.buffer.toString())))!!
 		assertTrue(m.size == min.size)
 		for (s in m.keys) {
 			assertEquals(m[s], min[s])
 		}
 		val e = SomeEnum.ENUM1
-		var eout = Reflector.serializeObject(e)!!
+		var eout = KReflector.serializeObject(e)!!
 		println(eout)
-		val e2 = Reflector.deserializeFromString<SomeEnum>(eout)
+		val e2 = KReflector.deserializeFromString<SomeEnum>(eout)
 		assertEquals(e, e2)
 		val el = arrayOf(
 			SomeEnum.ENUM2,
 			SomeEnum.ENUM3
 		)
-		eout = Reflector.serializeObject(el)!!
+		eout = KReflector.serializeObject(el)!!
 		println(eout)
-		val el2 = Reflector.deserializeFromString<Array<SomeEnum>>(eout)
+		val el2 = KReflector.deserializeFromString<Array<SomeEnum>>(eout)
 		assertTrue(Arrays.equals(el, el2))
 	}
 
@@ -101,9 +102,9 @@ class ReflectorTest : TestCase() {
 			"a", "b", "c"
 		)
 		val str = StringWriter()
-		Reflector.serializeObject(arr, PrintWriter(str))
+		KReflector.serializeObject(arr, PrintWriter(str))
 		println(str.buffer.toString())
-		val arr2 = Reflector.deserializeObject<Array<String>>(BufferedReader(StringReader(str.buffer.toString())))
+		val arr2 = KReflector.deserializeObject<Array<String>>(BufferedReader(StringReader(str.buffer.toString())))
 		assertTrue(Arrays.equals(arr, arr2))
 	}
 
@@ -111,11 +112,11 @@ class ReflectorTest : TestCase() {
 	fun testSerializeStringArray2D() {
 		val arr = arrayOf(arrayOf("a", "b", "c"), arrayOf("d", "e", "f"))
 		val str = StringWriter()
-		Reflector.serializeObject(arr, PrintWriter(str))
+		KReflector.serializeObject(arr, PrintWriter(str))
 		println(str.buffer.toString())
-		val arr2 = Reflector.deserializeObject<Array<Array<String>>>(BufferedReader(StringReader(str.buffer.toString())))!!
+		val arr2 = KReflector.deserializeObject<Array<Array<String>>>(BufferedReader(StringReader(str.buffer.toString())))!!
 		println("Deserialized array:")
-		Reflector.serializeObject(arr2, PrintWriter(System.out))
+		KReflector.serializeObject(arr2, PrintWriter(System.out))
 		assertTrue(arr.size == arr2.size)
 		for (i in arr.indices) assertTrue(Arrays.equals(arr[i], arr2[i]))
 	}
@@ -124,7 +125,8 @@ class ReflectorTest : TestCase() {
 	fun testArrays() {
 		val t = MyArchivable()
 		t.my2DIntArray = arrayOf(intArrayOf(10, 20), intArrayOf(30, 40), intArrayOf(50, 60, 70))
-		t.my3DDoubleArray = arrayOf(arrayOf(doubleArrayOf(1.0, 2.0, 3.0, 4.0, 5.0), doubleArrayOf(6.0, 7.0, 8.0, 9.0, 10.0)), arrayOf(doubleArrayOf(10.0, 20.0, 30.0), doubleArrayOf(40.0, 50.0, 60.0)))
+		t.my3DDoubleArray =
+			arrayOf(arrayOf(doubleArrayOf(1.0, 2.0, 3.0, 4.0, 5.0), doubleArrayOf(6.0, 7.0, 8.0, 9.0, 10.0)), arrayOf(doubleArrayOf(10.0, 20.0, 30.0), doubleArrayOf(40.0, 50.0, 60.0)))
 		t.myIntArray = intArrayOf(1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3)
 		t.myStringArray = arrayOf("Hello", "goodbye", "so long")
 		val data = t.toString()
@@ -237,7 +239,7 @@ class ReflectorTest : TestCase() {
         */
 	}
 
-	open class BaseClass : Reflector<BaseClass?>() {
+	open class BaseClass : KReflector<BaseClass?>() {
 		var baseInt = 0
 
 		companion object {
@@ -267,7 +269,7 @@ class ReflectorTest : TestCase() {
 		assertEquals(s.baseInt, 10)
 	}
 
-	class UsesOS : Reflector<UsesOS?>() {
+	class UsesOS : KReflector<UsesOS?>() {
 		var obj = OverridesSerialize()
 		var objArr = arrayOfNulls<OverridesSerialize>(3)
 		var objList: MutableCollection<OverridesSerialize> = LinkedList()
@@ -362,22 +364,22 @@ class ReflectorTest : TestCase() {
 		val c = arrayOf<Collection<*>>(
 			ArrayList<Any?>(Arrays.asList("hello", "goodbye")),
 			ArrayList<Any?>(Arrays.asList(4, 8, 1, 0)))
-		val s = Reflector.serializeObject(c)!!
+		val s = KReflector.serializeObject(c)!!
 		println(s)
-		val c2 = Reflector.deserializeFromString<Array<Collection<*>>>(s)!!
+		val c2 = KReflector.deserializeFromString<Array<Collection<*>>>(s)!!
 		assertEquals(c.size, c2.size)
 		assertEquals(c[0], c2[0])
 		assertEquals(c[1], c2[1])
-		assertTrue(Reflector.isEqual(c, c2))
+		assertTrue(KReflector.isEqual(c, c2))
 	}
 
-	class MyCollection : Reflector<MyCollection?>() {
-		var list: MutableList<SmallReflector>? = null //new ArrayList<SmallReflector>();
-		var other: List<SmallReflector> = ArrayList<SmallReflector>()
+	class MyCollection : KReflector<MyCollection?>() {
+		var list: MutableList<SmallKReflector>? = null //new ArrayList<SmallReflector>();
+		var other: List<SmallKReflector> = ArrayList<SmallKReflector>()
 		fun build() {
-			list = ArrayList<SmallReflector>()
+			list = ArrayList<SmallKReflector>()
 			for (i in 0..9) {
-				list!!.add(SmallReflector())
+				list!!.add(SmallKReflector())
 			}
 		}
 
@@ -410,15 +412,15 @@ class ReflectorTest : TestCase() {
 		println(t)
 	}
 
-	class TestListOfArrays : Reflector<TestListOfArrays?>() {
-		var objects: MutableList<Array<SmallReflector>> = ArrayList<Array<SmallReflector>>()
-		var objects2: MutableList<Array<Array<SmallReflector>>> = ArrayList<Array<Array<SmallReflector>>>()
+	class TestListOfArrays : KReflector<TestListOfArrays?>() {
+		var objects: MutableList<Array<SmallKReflector>> = ArrayList<Array<SmallKReflector>>()
+		var objects2: MutableList<Array<Array<SmallKReflector>>> = ArrayList<Array<Array<SmallKReflector>>>()
 
 		init {
-			val arr: Array<SmallReflector> = arrayOf<SmallReflector>(
-				SmallReflector())
+			val arr: Array<SmallKReflector> = arrayOf<SmallKReflector>(
+				SmallKReflector())
 			objects.add(arr)
-			val arr2: Array<Array<SmallReflector>> = arrayOf<Array<SmallReflector>>(
+			val arr2: Array<Array<SmallKReflector>> = arrayOf<Array<SmallKReflector>>(
 				arr,
 				arr)
 			objects2.add(arr2)
@@ -434,9 +436,9 @@ class ReflectorTest : TestCase() {
 	@Throws(Exception::class)
 	fun testSerializeSpecialChars() {
 		val str = "\n\t!@#$%^&*()-_=+[]{};':\",.<>/?"
-		val out = Reflector.serializeObject(str)!!
+		val out = KReflector.serializeObject(str)!!
 		println(out)
-		val reader = Reflector.deserializeFromString<String>(out)
+		val reader = KReflector.deserializeFromString<String>(out)
 		assertEquals(str, reader)
 	}
 
@@ -451,7 +453,7 @@ class ReflectorTest : TestCase() {
 			BaseClass()
 		)
 		val out = StringWriter()
-		Reflector.serializeObject(arr, PrintWriter(out))
+		KReflector.serializeObject(arr, PrintWriter(out))
 		println(out.buffer.toString())
 	}
 
@@ -459,14 +461,14 @@ class ReflectorTest : TestCase() {
 	fun testArraysOfNullableInts() {
 		val a = arrayOfNulls<Int>(10)
 		val b = arrayOf(1, 2, 3, 4, null, 6, 7)
-		println("a=" + Reflector.serializeObject(a))
-		println("b=" + Reflector.serializeObject(b))
-		val x = Reflector.deserializeFromString<Array<Int>>(Reflector.serializeObject(b)!!)!!
-		println("x=" + Reflector.serializeObject(x))
+		println("a=" + KReflector.serializeObject(a))
+		println("b=" + KReflector.serializeObject(b))
+		val x = KReflector.deserializeFromString<Array<Int>>(KReflector.serializeObject(b)!!)!!
+		println("x=" + KReflector.serializeObject(x))
 		val l: MutableList<*> = ArrayList<Any?>().also {
 			it.addAll(Arrays.asList(1, 2, 3, 4))
 		}
-		println("l=" + Reflector.serializeObject(l))
+		println("l=" + KReflector.serializeObject(l))
 	}
 
 	@Throws(Exception::class)
@@ -494,7 +496,7 @@ class ReflectorTest : TestCase() {
 		b.deserialize(s)
 	}
 
-	internal class SimpleObject : Reflector<SimpleObject?>() {
+	internal class SimpleObject : KReflector<SimpleObject?>() {
 		enum class MyEnum {
 			A,
 			B,
@@ -529,23 +531,23 @@ class ReflectorTest : TestCase() {
 	@Throws(Exception::class)
 	fun testMaps() {
 		val map: MutableMap<Int, Int> = HashMap()
-		var serialized = Reflector.serializeObject(map)!!
-		var map2 = Reflector.deserializeFromString<Map<Int?, Int>>(serialized)!!
+		var serialized = KReflector.serializeObject(map)!!
+		var map2 = KReflector.deserializeFromString<Map<Int?, Int>>(serialized)!!
 		assertEquals(0, map2.size)
 		map[0] = 1
-		serialized = Reflector.serializeObject(map)!!
-		map2 = Reflector.deserializeFromString(serialized)!!
+		serialized = KReflector.serializeObject(map)!!
+		map2 = KReflector.deserializeFromString(serialized)!!
 		assertEquals(1, map2.size)
 		assertEquals(1, map2[0]!!.toInt())
 		map[1] = 2
-		serialized = Reflector.serializeObject(map)!!
-		map2 = Reflector.deserializeFromString(serialized)!!
+		serialized = KReflector.serializeObject(map)!!
+		map2 = KReflector.deserializeFromString(serialized)!!
 		assertEquals(2, map2.size)
 		assertEquals(1, map2[0]!!.toInt())
 		assertEquals(2, map2[1]!!.toInt())
 	}
 
-	internal class Generic<T> : Reflector<Generic<T>>() {
+	internal class Generic<T> : KReflector<Generic<T>>() {
 		var array1d: Array<T>? = null
 		var array2d: Array<Array<T>>? = null
 	}
@@ -555,7 +557,7 @@ class ReflectorTest : TestCase() {
 		g.array1d = arrayOfNulls(1)
 		g.array2d = Array(1) { arrayOfNulls(1) }
 		try {
-			Reflector.addAllFields(Generic::class.java)
+			KReflector.addAllFields(Generic::class.java)
 			fail()
 		} catch (e: GException) {
 		}
@@ -567,9 +569,9 @@ class ReflectorTest : TestCase() {
 			SomeEnum.ENUM3,
 			SomeEnum.ENUM1
 		)
-		val s = Reflector.serializeObject(e)!!
+		val s = KReflector.serializeObject(e)!!
 		println(s)
-		val e2 = Reflector.deserializeFromString<Array<SomeEnum>>(s)
+		val e2 = KReflector.deserializeFromString<Array<SomeEnum>>(s)
 		println(Arrays.toString(e2))
 		Assert.assertArrayEquals(e, e2)
 	}
@@ -579,23 +581,23 @@ class ReflectorTest : TestCase() {
 		val l: MutableList<SimpleObject.MyEnum> = ArrayList()
 		l.add(SimpleObject.MyEnum.A)
 		l.add(SimpleObject.MyEnum.A)
-		Reflector.registerClass(SimpleObject.MyEnum::class.java)
-		val result = Reflector.serializeObject(l)!!
+		KReflector.registerClass(SimpleObject.MyEnum::class.java)
+		val result = KReflector.serializeObject(l)!!
 		println("result = $l")
-		val ll = Reflector.deserializeFromString<List<SimpleObject.MyEnum>>(result)
+		val ll = KReflector.deserializeFromString<List<SimpleObject.MyEnum>>(result)
 		println("ll = $ll")
 	}
 
 	@Throws(Exception::class)
 	fun testEnumMap() {
-		Reflector.registerClass(SimpleObject.MyEnum::class.java)
+		KReflector.registerClass(SimpleObject.MyEnum::class.java)
 		val m: MutableMap<SimpleObject.MyEnum, SimpleObject.MyEnum?> = HashMap()
 		m[SimpleObject.MyEnum.A] = SimpleObject.MyEnum.B
 		m[SimpleObject.MyEnum.B] = SimpleObject.MyEnum.A
 		m[SimpleObject.MyEnum.C] = null
-		val result = Reflector.serializeObject(m)!!
+		val result = KReflector.serializeObject(m)!!
 		println(result)
-		val mm = Reflector.deserializeFromString<Map<*, *>>(result)!!
+		val mm = KReflector.deserializeFromString<Map<*, *>>(result)!!
 		assertEquals(mm[SimpleObject.MyEnum.A], SimpleObject.MyEnum.B)
 		assertEquals(mm[SimpleObject.MyEnum.B], SimpleObject.MyEnum.A)
 		assertNull(mm[SimpleObject.MyEnum.C])
@@ -604,7 +606,7 @@ class ReflectorTest : TestCase() {
 
 	@Throws(Exception::class)
 	fun testEnumAsField() {
-		val r = SmallReflector()
+		val r = SmallKReflector()
 		System.out.println(r.toStringNumbered())
 	}
 
@@ -615,9 +617,9 @@ class ReflectorTest : TestCase() {
 		var list = Utils.toList(
 			Utils.toList("Hello", "Goodbye"),
 			Utils.toList("So Long", "Farewell"))
-		val str = Reflector.serializeObject(list)!!
+		val str = KReflector.serializeObject(list)!!
 		println("str=$str")
-		list = Reflector.deserializeFromString(str)
+		list = KReflector.deserializeFromString(str)
 	}
 
 	@Throws(Exception::class)
@@ -702,10 +704,10 @@ class ReflectorTest : TestCase() {
 		b.deserialize(str)
 		assertEquals(a, b)
 		assertEquals(a.checksum, b.checksum)
-		str = Reflector.serializeObject(arr)!!
+		str = KReflector.serializeObject(arr)!!
 		println("a=$str")
-		Reflector.dump()
-		val barr = Reflector.deserializeFromString<Array<SimpleObject>>(str)
+		KReflector.dump()
+		val barr = KReflector.deserializeFromString<Array<SimpleObject>>(str)
 		assertTrue(Arrays.equals(arr, barr))
 	}
 
@@ -741,7 +743,7 @@ class ReflectorTest : TestCase() {
 		val b = SimpleObject()
 		a.myObjList = Vector()
 		a.myObjList!!.add(b)
-		if (Reflector.STRIP_PACKAGE_QUALIFIER) a.deserialize(FileUtils.openFileOrResource("testLoadFromNewProcess.txt"))
+		if (KReflector.STRIP_PACKAGE_QUALIFIER) a.deserialize(FileUtils.openFileOrResource("testLoadFromNewProcess.txt"))
 		/*
         b.myEnumArray = Utils.toArray(SomeEnum.ENUM1, SomeEnum.ENUM2, SomeEnum.ENUM3);
         String str = a.toString();
@@ -753,9 +755,9 @@ class ReflectorTest : TestCase() {
 	@Throws(Exception::class)
 	fun testSerializeArrays() {
 		val arr = arrayOf(4)
-		val strx = Reflector.serializeObject(arr)!!
+		val strx = KReflector.serializeObject(arr)!!
 		println(strx)
-		val arr2: Array<Int> = Reflector.deserializeFromString(strx)!!
+		val arr2: Array<Int> = KReflector.deserializeFromString(strx)!!
 		assertTrue(Arrays.equals(arr, arr2))
 	}
 }

@@ -3,7 +3,7 @@ package cc.lib.kreflector
 import cc.lib.math.Vector2D
 import cc.lib.utils.SomeEnum
 
-class SmallReflector : Reflector<SmallReflector>() {
+class SmallKReflector : KReflector<SmallKReflector>() {
 	var a = "hello"
 	var b = "goodbye"
 	var empty = ""
@@ -12,7 +12,7 @@ class SmallReflector : Reflector<SmallReflector>() {
 
 	companion object {
 		init {
-			addAllFields(SmallReflector::class.java)
+			addAllFields(SmallKReflector::class.java)
 		}
 	}
 }

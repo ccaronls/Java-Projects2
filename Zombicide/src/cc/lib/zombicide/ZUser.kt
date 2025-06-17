@@ -1,12 +1,12 @@
 package cc.lib.zombicide
 
 import cc.lib.game.GColor
-import cc.lib.ksp.remote.IRemote
+import cc.lib.ksp.remote.IRemoteSuspend
 import cc.lib.ksp.remote.Remote
 import cc.lib.ksp.remote.RemoteFunction
 
 @Remote
-abstract class ZUser(_name: String?, var colorId: Int) : IRemote {
+abstract class ZUser(_name: String?, var colorId: Int) : IRemoteSuspend {
 
 	init {
 		if (colorId !in USER_COLORS.indices)

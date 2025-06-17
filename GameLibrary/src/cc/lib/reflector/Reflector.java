@@ -1773,6 +1773,10 @@ public class Reflector<T> implements IDirty {
         return false;
     }
 
+    public boolean isVolatile() {
+        return false;
+    }
+
     @Override
     public void markClean() {
     }

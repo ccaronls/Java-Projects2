@@ -5,6 +5,7 @@ import android.app.Dialog
 import android.content.DialogInterface
 import android.os.Bundle
 import android.view.ViewGroup
+import cc.lib.game.GColor
 
 /**
  * Created by chriscaron on 2/13/18.
@@ -15,7 +16,7 @@ import android.view.ViewGroup
  *
  */
 abstract class DroidActivity : CCActivityBase() {
-	val graphics: DroidGraphics? = null
+	lateinit var graphics: DroidGraphics
 	override lateinit var content: DroidView
 
 	/**
@@ -38,6 +39,9 @@ abstract class DroidActivity : CCActivityBase() {
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
+		graphics = object : DroidGraphics(this, null, 0, 0) {
+			override fun getBackgroundColor(): GColor = GColor.BLACK
+		}
 		setContentView(contentViewId)
 		content = findViewById(R.id.droid_view)
 		topBar = findViewById(R.id.top_bar_layout)

@@ -5,6 +5,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.text.Format;
+import java.time.format.DateTimeFormatter;
 
 import cc.lib.game.Utils;
 import cc.lib.utils.GException;
@@ -94,6 +96,12 @@ public abstract class LoggerFactory {
         }
     };
 
+    private final static Format format = DateTimeFormatter.ofPattern("mm:ss:mm").toFormat();
+
+    private static String getTimeStamp() {
+        return format.format(System.currentTimeMillis());
+    }
+
     private static String getName(Class<?> clazz) {
         if (!Utils.isEmpty(clazz.getSimpleName()))
             return clazz.getSimpleName();
@@ -101,6 +109,8 @@ public abstract class LoggerFactory {
     }
 
     public static Logger getLogger(String prefix, Class<?> clazz) {
+        if (prefix.isBlank())
+            return factory.getLogger(clazz);
         return factory.getLogger(prefix + ":" + getName(clazz));
     }
 

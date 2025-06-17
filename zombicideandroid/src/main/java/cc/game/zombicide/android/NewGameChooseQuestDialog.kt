@@ -50,7 +50,7 @@ internal class NewGameChooseQuestDialog(val activity: ZombicideActivity, val all
 				try {
 					val t = BitmapFactory.decodeStream(container.context.assets.open("ztile_" + tile.id + ".png"))
 					c.save()
-					c.translate(tile.quadrant.x + 1.5f, tile.quadrant.y + 1.5f)
+					c.translate(tile.quadrant.left + 1.5f, tile.quadrant.top + 1.5f)
 					c.rotate(tile.orientation.toFloat())
 					c.translate(-1.5f, -1.5f)
 					val src = Rect(0, 0, t.width, t.height)

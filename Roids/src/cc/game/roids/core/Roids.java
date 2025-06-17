@@ -2,11 +2,21 @@ package cc.game.roids.core;
 
 // must be careful to keep the core package free from android/awt ect. dependencies.
 
-import java.io.*;
-import java.util.*;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
-import cc.lib.game.*;
-import cc.lib.math.*;
+import cc.lib.game.AGraphics;
+import cc.lib.game.GColor;
+import cc.lib.game.Justify;
+import cc.lib.game.Utils;
+import cc.lib.math.CMath;
+import cc.lib.math.MutableVector2D;
+import cc.lib.math.Vector2D;
 
 public class Roids {
 
@@ -38,7 +48,7 @@ public class Roids {
         
         float deg = 0;
         for (int i=0; i<numVerts; i++) {
-            float l = Utils.randFloatX(radius/2) + radius/2; 
+            float l = Utils.randFloatPlusOrMinus(radius / 2) + radius / 2;
             verts[i] = new MutableVector2D(CMath.cosine(deg) * l, CMath.sine(deg) * l);
             deg += (360 / numVerts) + Utils.randRange(-10, 10);
         }
@@ -192,16 +202,16 @@ public class Roids {
                     b.getPosition().setY(tb.getY() + WORLD_HEIGHT*2);
                     changed = true;
                 }
-                
+
                 if (changed) {
                     if (collided = collisionDetectObjectSpecific(a, b, collisions))
                         break;
                 }
 
             } while (false);
-            
-            a.getPosition().set(ta);
-            b.getPosition().set(tb);
+
+            a.getPosition().assign(ta);
+            b.getPosition().assign(tb);
         }
         return collided;
     }
@@ -346,10 +356,10 @@ public class Roids {
         V2.addEq(N.scale(jr*t2.getInvMass(), Vector2D.newTemp()));
         
         if (V1.magSquared() > MAX_VELOCITY*MAX_VELOCITY) {
-            V1.unitLengthEq().scaleEq(MAX_VELOCITY);
+            V1.normalizedEq().scaleEq(MAX_VELOCITY);
         }
         if (V2.magSquared() > MAX_VELOCITY*MAX_VELOCITY) {
-            V2.unitLengthEq().scaleEq(MAX_VELOCITY);
+            V2.normalizedEq().scaleEq(MAX_VELOCITY);
         }
         
         // Step 4.
@@ -434,8 +444,8 @@ public class Roids {
 
     public void addTestThingy() {
         Thingy t = makePoly(Utils.randFloat(10) + 10);
-        t.setVelocity(Utils.randFloatX(5), Utils.randFloatX(5));
-        t.setAngVelocity(Utils.randFloatX(5));
+        t.setVelocity(Utils.randFloatPlusOrMinus(5), Utils.randFloatPlusOrMinus(5));
+        t.setAngVelocity(Utils.randFloatPlusOrMinus(5));
         things.add(t);
     }
 

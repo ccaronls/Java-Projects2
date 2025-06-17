@@ -57,15 +57,15 @@ class Splash : DroidActivity() {
 						}
 						//g.clearScreen(GColor.BLACK);
 						val handRect = GRectangle(rect)
-						handRect.w /= 2f
-						handRect.h /= 2f
-						handRect.x += handRect.w
-						handRect.y += handRect.h
+						handRect.width /= 2f
+						handRect.height /= 2f
+						handRect.left += handRect.width
+						handRect.top += handRect.height
 						var img = g.getImage(R.drawable.zgravestone)
 						g.drawImage(R.drawable.zgravestone, rect!!.fit(img))
 						img = g.getImage(R.drawable.zicon)
-						handRect.y += handRect.h * (1f - position)
-						handRect.h *= position
+						handRect.top += handRect.height * (1f - position)
+						handRect.height *= position
 						g.drawImage(R.drawable.zicon, handRect.fit(img))
 					}
 

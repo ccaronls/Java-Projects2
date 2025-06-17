@@ -3,14 +3,13 @@ package cc.lib.mp.android
 import android.Manifest
 import android.content.DialogInterface
 import android.os.Build
+import android.widget.Toast
 import cc.lib.android.CCActivityBase
 import cc.lib.android.SpinnerTask
 import cc.lib.crypt.Cypher
 import cc.lib.mp.android.P2PHelper.Companion.isP2PAvailable
 import cc.lib.net.AGameClient
 import cc.lib.net.AGameServer
-import cc.lib.net.GameClient
-import cc.lib.net.GameServer
 
 /**
  * Created by Chris Caron on 7/17/21.
@@ -20,10 +19,10 @@ import cc.lib.net.GameServer
  * p2pInit() - Does permissions / availability checks. onP2PReady called when ready or error popup.
  * p2pStart() - Shows a start as server or client dialog. onP2PClient / onP2PServer called when user chooses
  */
-abstract class P2PActivity : CCActivityBase() {
-	var server: AGameServer? = null
+abstract class P2PActivity<CL : AGameClient, SVR : AGameServer> : CCActivityBase() {
+	var server: SVR? = null
 		private set
-	var client: AGameClient? = null
+	var client: CL? = null
 		private set
 	private var mode = P2PMode.DONT_KNOW
 
@@ -120,43 +119,20 @@ abstract class P2PActivity : CCActivityBase() {
 		}
 	}
 
-	/**
-	 * Interface to functions available only when in host mode
-	 */
-	interface P2PServer {
-		fun getServer(): AGameServer
-		fun openConnections()
-	}
-
-	/**
-	 * Interface to methods available only when in client mode
-	 */
-	interface P2PClient {
-		fun getClient(): AGameClient
-	}
-
-	protected fun newGameClient(): AGameClient {
-		return GameClient(deviceName, version, cypher)
-	}
-
 	fun isRunning(): Boolean {
 		return server != null || client != null
 	}
 
 	fun p2pInitAsClient() {
 		require(!isRunning()) { "P2P Mode already in progress. Call p2pShutdown first." }
-		client = newGameClient().also {
+		client = newGameClient(deviceName, version, cypher).also {
 			it.addListener(object : AGameClient.Listener {
 				override fun onDisconnected(reason: String, serverInitiated: Boolean) {
 					runOnUiThread { p2pShutdown() }
 				}
 			}, "p2pInitAsClient")
 			P2PJoinGameDialog(this, it, deviceName, connectPort)
-			onP2PClient(object : P2PClient {
-				override fun getClient(): AGameClient {
-					return it
-				}
-			})
+			onP2PClient(it)
 		}
 	}
 
@@ -165,19 +141,24 @@ abstract class P2PActivity : CCActivityBase() {
 	 *
 	 * @param p2pClient
 	 */
-	protected abstract fun onP2PClient(p2pClient: P2PClient)
-	protected fun newGameServer(): AGameServer {
-		return GameServer(deviceName, connectPort, version, cypher, maxConnections)
+	protected abstract fun onP2PClient(p2pClient: CL)
+
+	protected abstract fun newGameServer(deviceName: String, port: Int, version: String, cypher: Cypher?, maxConnections: Int): SVR
+
+	protected abstract fun newGameClient(deviceName: String, version: String, cypher: Cypher?): CL
+
+	private inner class LocalP2PClientConnectionsDialog(server: SVR) :
+		P2PClientConnectionsDialog<SVR>(this, server, deviceName) {
+		override fun onServerSuccess(server: SVR) {
+			onP2PServer(server)
+		}
 	}
+
 
 	fun p2pInitAsServer() {
 		require(!isRunning()) { "P2P Mode already in progress. Call p2pShutdown first." }
-		server = newGameServer().also {
-			object : P2PClientConnectionsDialog(this, it, deviceName) {
-				override fun onServerSuccess(server: P2PServer) {
-					onP2PServer(server)
-				}
-			}
+		server = newGameServer(deviceName, connectPort, version, cypher, maxConnections).also {
+			LocalP2PClientConnectionsDialog(it)
 		}
 	}
 
@@ -186,7 +167,7 @@ abstract class P2PActivity : CCActivityBase() {
 	 *
 	 * @param p2pServer
 	 */
-	protected abstract fun onP2PServer(p2pServer: P2PServer)
+	protected abstract fun onP2PServer(p2pServer: SVR)
 
 	/**
 	 * Called from UI thread
@@ -228,4 +209,10 @@ abstract class P2PActivity : CCActivityBase() {
 				version
 			)
 		}
+
+	fun openConnectionsDialog() {
+		server?.let {
+			LocalP2PClientConnectionsDialog(it)
+		} ?: Toast.makeText(this, "Not available", Toast.LENGTH_LONG).show()
+	}
 }

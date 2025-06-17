@@ -18,7 +18,6 @@ import java.util.Collections
 open class ZMPCommon(val activity: ZombicideActivity, val game: UIZombicide) {
 
 	companion object {
-		const val CONNECT_PORT = 31314
 		const val VERSION = BuildConfig.VERSION_NAME
 
 		// common

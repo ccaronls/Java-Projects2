@@ -18,15 +18,15 @@ class ComplexTypeTest : MirroredTestBase() {
 
 	lateinit var cont: Continuation<Any?>
 
-	inner class ComplexRemote : ComplexTypeRemote() {
+	inner class ComplexClient : ComplexTypeRemote() {
 
 		var called = false
 
-		override val context = object : RemoteContext {
-			override val writer
-				get() = newWriter()
-			override val reader
-				get() = newReader()
+		override var context: RemoteContext? = object : RemoteContext {
+
+			override suspend fun executeLocally(cb: suspend (JsonReader) -> Unit) {
+				cb(newReader())
+			}
 
 			override fun setResult(cb: (JsonWriter) -> Unit) {
 				cb(newWriter())
@@ -40,12 +40,12 @@ class ComplexTypeTest : MirroredTestBase() {
 
 	}
 
-	inner class ComplexLocal : ComplexTypeRemote() {
-		override val context = object : RemoteContext {
-			override val writer
-				get() = newWriter()
-			override val reader
-				get() = newReader()
+	inner class ComplexServer : ComplexTypeRemote() {
+		override var context: RemoteContext? = object : RemoteContext {
+
+			override suspend fun executeRemotely(cb: (JsonWriter) -> Unit) {
+				cb(newWriter())
+			}
 
 			override suspend fun waitForResult(): JsonReader {
 				suspendCoroutine {
@@ -58,8 +58,8 @@ class ComplexTypeTest : MirroredTestBase() {
 
 	@Test
 	fun test() = runBlocking {
-		val r = ComplexRemote()
-		val l = ComplexLocal()
+		val r = ComplexClient()
+		val l = ComplexServer()
 		l.rem1()
 		r.executeLocally()
 		Assert.assertTrue(r.called)

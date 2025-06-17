@@ -186,9 +186,9 @@ object UDPCommon {
 		}
 	}
 
-	fun createBuffer(size: Int = 1200): Pair<ByteBuffer, ByteArray> {
+	fun createBuffer(size: Int = 1200, headerBytes: Int = 0): Pair<ByteBuffer, ByteArray> {
 		val array = ByteArray(size)
-		return Pair(ByteBuffer.wrap(array).order(ByteOrder.BIG_ENDIAN), array)
+		return Pair(ByteBuffer.wrap(array).order(ByteOrder.BIG_ENDIAN).position(headerBytes), array)
 	}
 
 	fun serverWriteGameState(robo: Robotron, output: ByteBuffer) {

@@ -21,8 +21,8 @@ public class OverridesSerialize extends Reflector<OverridesSerialize> {
     }
 
     @Override
-    public void deserialize(RBufferedReader in) throws IOException {
-        String text = in.readLine().trim();
+    public void deserialize(RBufferedReader input) throws IOException {
+        String text = input.readLine().trim();
         String[] parts = text.split("[ ]+");
         msg = parts[0];
         x = Integer.parseInt(parts[1]);

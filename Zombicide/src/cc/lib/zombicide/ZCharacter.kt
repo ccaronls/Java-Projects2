@@ -93,10 +93,10 @@ class ZCharacter(
 		blueSkills.clear()
 	}
 
-	override fun parseUnknownField(name: String?, value: String?, `in`: RBufferedReader?) {
+	override fun parseUnknownField(name: String, value: String?, input: RBufferedReader) {
 		when (name) {
-			"color" -> colorId = ZUser.USER_COLORS.indexOf(parse(GColor::class.java, `in`))
-			else -> super.parseUnknownField(name, value, `in`)
+			"color" -> colorId = ZUser.USER_COLORS.indexOf(parse(GColor::class.java, input))
+			else -> super.parseUnknownField(name, value, input)
 		}
 	}
 
@@ -140,19 +140,18 @@ class ZCharacter(
 	override val outlineImageId: Int
 		get() = type.outlineImageId
 
-	override fun getDimension(): GDimension {
-		return type.imageDim
-	}
+	override val dimension: GDimension
+		get() = type.imageDim
 
-    override fun onBeginRound(game: ZGame) {
-	    actionsDoneThisTurn.clear()
-	    availableSkills.clear()
-	    availableSkills.addAll(allSkills)
-	    zonesMoved = 0
-	    fallen = isDead
-	    usedSpells.clear()
-	    hasMovedThisTurn = false
-	    super.onBeginRound(game)
+	override fun onBeginRound(game: ZGame) {
+		actionsDoneThisTurn.clear()
+		availableSkills.clear()
+		availableSkills.addAll(allSkills)
+		zonesMoved = 0
+		fallen = isDead
+		usedSpells.clear()
+		hasMovedThisTurn = false
+		super.onBeginRound(game)
     }
 
 	override fun getMaxCharsPerLine(): Int {

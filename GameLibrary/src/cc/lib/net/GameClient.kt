@@ -74,7 +74,7 @@ open class GameClient : AGameClient {
 		private get() = state == State.READY || state == State.DISCONNECTED
 
 
-	private val readerChannel = Channel<GameCommand>(capacity = 5)
+	private val readerChannel = Channel<GameCommand>(capacity = 16)
 	private val readerScope = CoroutineScope(Dispatchers.IO + CoroutineName("readerChannel"))
 	private val processorScope = CoroutineScope(Dispatchers.IO + CoroutineName("cmd processor"))
 	override val jobs = mutableListOf<Job>()
@@ -162,6 +162,7 @@ open class GameClient : AGameClient {
 								}
 							} ?: run {
 								// error. channel is full and commands not processed fast enough
+								log.error("Channel full. Not getting processed fast enough")
 								disconnect("Channel block")
 							}
 						}
@@ -220,7 +221,6 @@ open class GameClient : AGameClient {
 			}
 			jobs.clear()
 			try {
-				outQueue.clear()
 				outQueue.add(GameCommand(GameCommandType.CL_DISCONNECT).setMessage("player left session"))
 			} catch (e: Exception) {
 				e.printStackTrace()
@@ -240,7 +240,7 @@ open class GameClient : AGameClient {
 	// making this package access so JUnit can test a client timeout
 	override fun close() {
 		state = State.DISCONNECTED
-		outQueue.stop()
+		outQueue.stop(false)
 		// close output first to make sure it is flushed
 		// https://stackoverflow.com/questions/19307011/does-close-a-socket-will-also-close-flush-the-input-output-stream
 		try {
@@ -292,7 +292,7 @@ open class GameClient : AGameClient {
 					outQueue.setTimeout(keepAliveFreqMS)
 					state = State.CONNECTED
 					listenersList.forEach { it.onConnected() }
-				} else if (cmd.type == GameCommandType.PING) {
+				} else if (cmd.type == GameCommandType.SVR_PONG) {
 					val timeSent = cmd.getLong("time")
 					val timeNow = System.currentTimeMillis()
 					val speed = (timeNow - timeSent).toInt()
@@ -310,7 +310,7 @@ open class GameClient : AGameClient {
 				} else if (cmd.type == GameCommandType.SVR_DISCONNECT) {
 					state = State.DISCONNECTED
 					disconnectedReason = cmd.getMessage()
-					outQueue.clear()
+					outQueue.stop(false)
 					break
 				} else if (cmd.type == GameCommandType.SVR_EXECUTE_REMOTE) {
 					handleExecuteRemote(cmd)
@@ -333,7 +333,7 @@ open class GameClient : AGameClient {
 				}
 			} catch (e: Exception) {
 				if (!isDisconnected) {
-					outQueue.clear()
+					outQueue.stop(false)
 					sendError(e)
 					e.printStackTrace()
 					state = State.DISCONNECTED

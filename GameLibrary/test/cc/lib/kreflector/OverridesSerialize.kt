@@ -2,7 +2,7 @@ package cc.lib.kreflector
 
 import java.io.IOException
 
-class OverridesSerialize : Reflector<OverridesSerialize> {
+class OverridesSerialize : KReflector<OverridesSerialize> {
 	var msg: String? = null
 	var x = 0
 

@@ -383,6 +383,9 @@ abstract class AMessage : Object() {
 		this.color.copy(color)
 	}
 
+	override fun toString(): String {
+		return "Message: $msg [$pos]"
+	}
 }
 
 // -- BUTTONS ON INTRO SCREEN --

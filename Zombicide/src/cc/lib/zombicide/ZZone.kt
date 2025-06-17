@@ -111,9 +111,8 @@ class ZZone(val zoneIndex: Int = -1) : UIZButton() {
 		return tiles.contains(px, py)
 	}
 
-	override fun getCenter(): IVector2D {
-		return tiles.center
-	}
+	override val center: IVector2D
+		get() = tiles.center
 
 	fun getEscapeSpawnArea(board: ZBoard): ZSpawnArea? {
 		return cells.map {

@@ -101,11 +101,13 @@ abstract class UIZButton : Reflector<UIZButton>(), IButton, IRectangle, Comparab
 
 	final override fun compareTo(other: UIZButton): Int = getRect().area.compareTo(other.getRect().area)
 
-	override fun getWidth(): Float = getRect().width
+	override val width: Float
+		get() = getRect().width
+	override val height: Float
+		get() = getRect().height
+	override val left: Float
+		get() = getRect().left
+	override val top: Float
+		get() = getRect().top
 
-	override fun getHeight(): Float = getRect().height
-
-	override fun getLeft(): Float = getRect().left
-
-	override fun getTop(): Float = getRect().top
 }

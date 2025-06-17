@@ -26,6 +26,5 @@ sourceSets {
 }
 
 ksp {
-    arg("imports", "cc.lib.game.*")
     arg("package", "cc.lib.zombicide")
 }

@@ -23,7 +23,7 @@ class ManagedArray<T : IBinarySerializable<T>>(private val array: Array<T>) : IB
 	}
 
 	fun addOrNull(): T? {
-		return if (size == array.size) null else add()
+		return if (size == capacity) null else add()
 	}
 
 	@Synchronized

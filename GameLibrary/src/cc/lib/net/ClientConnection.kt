@@ -2,6 +2,11 @@ package cc.lib.net
 
 import cc.lib.utils.GException
 import cc.lib.utils.trimmedToSize
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.net.InetAddress
@@ -62,17 +67,19 @@ import java.net.Socket
  * }
  */
 open class ClientConnection(server: GameServer, attributes: Map<String, Any>) :
-	AClientConnection(server, attributes.toMutableMap()), Runnable {
+	AClientConnection(server, attributes.toMutableMap()) {
 
 	private var socket: Socket? = null
 	private var dIn: DataInputStream? = null
 	private var dOut: DataOutputStream? = null
-	private val outQueue: CommandQueueWriter = object : CommandQueueWriter("SRV") {
+	private val outQueue: CommandQueueWriter = object : CommandQueueWriter("SRV:Connection[$name]") {
 		override fun onTimeout() {
 			notifyListeners { l: Listener -> l.onTimeout(this@ClientConnection) }
 		}
 	}
 	private var connected = false
+	private val readScope = CoroutineScope(Dispatchers.IO + CoroutineName("SVR:Connection[$name]"))
+	private var readJob: Job? = null
 
 	/**
 	 * Send a disconnected message to the client and shutdown the connection.
@@ -86,14 +93,10 @@ open class ClientConnection(server: GameServer, attributes: Map<String, Any>) :
 				connected = false
 				notifyListeners { l: Listener -> l.onDisconnected(this, reason) }
 				onDisconnected()
-				synchronized(outQueue) {
-					outQueue.clear()
-					if (!disconnecting) outQueue.add(
-						GameCommandType.SVR_DISCONNECT.make().setMessage(reason)
-					)
-				}
-				disconnecting = true
-				outQueue.stop() // <-- blocks until network flushed
+				outQueue.add(
+					GameCommandType.SVR_DISCONNECT.make().setMessage(reason)
+				)
+				outQueue.stop(true) // <-- blocks until network flushed
 			}
 		} catch (e: Exception) {
 			e.printStackTrace()
@@ -106,8 +109,7 @@ open class ClientConnection(server: GameServer, attributes: Map<String, Any>) :
 		log.debug("ClientConnection: close() ...")
 		server.removeClient(this)
 		connected = false
-		disconnecting = false
-		outQueue.stop()
+		outQueue.stop(false)
 		//reader.stop();
 		log.debug("ClientConnection: outQueue stopped ...")
 		// close output stream first to make sure it is flushed
@@ -135,7 +137,7 @@ open class ClientConnection(server: GameServer, attributes: Map<String, Any>) :
 	 * @return
 	 */
 	override val isConnected: Boolean
-		get() = connected && !disconnecting
+		get() = connected
 
 	/*
      * init connection.  should only be used by GameServer
@@ -179,26 +181,23 @@ open class ClientConnection(server: GameServer, attributes: Map<String, Any>) :
 		//reader.start();
 		outQueue.start(requireNotNull(dOut))
 		connected = true
-		Thread(this).start()
-	}
-
-	override fun run() {
-		log.debug("ClientConnection: ClientThread " + Thread.currentThread().id + " starting")
-		while (isConnected) {
-			try {
-				processCommand(GameCommand.parse(requireNotNull(dIn)))
-			} catch (e: Exception) {
-				if (isConnected) {
-					e.printStackTrace()
-					log.error("ClientConnection: Connection with client '" + name + "' dropped: " + e.javaClass.simpleName + " " + e.message)
-					disconnecting = true
-					disconnect(e.message ?: e.javaClass.simpleName)
+		readJob = readScope.launch {
+			log.debug("ClientConnection: ClientThread " + Thread.currentThread().id + " starting")
+			while (isConnected) {
+				try {
+					processCommand(GameCommand.parse(requireNotNull(dIn)))
+				} catch (e: Exception) {
+					if (isConnected) {
+						e.printStackTrace()
+						log.error("ClientConnection: Connection with client '" + name + "' dropped: " + e.javaClass.simpleName + " " + e.message)
+						disconnect(e.message ?: e.javaClass.simpleName)
+					}
+					break
 				}
-				break
 			}
+			log.debug("ClientConnection: ClientThread " + Thread.currentThread().id + " exiting")
+			close()
 		}
-		log.debug("ClientConnection: ClientThread " + Thread.currentThread().id + " exiting")
-		close()
 	}
 
 	override fun onCancelled(id: String) {

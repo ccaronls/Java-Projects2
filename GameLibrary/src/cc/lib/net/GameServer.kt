@@ -104,11 +104,9 @@ open class GameServer(
 		socketListener?.let { sl ->
 			sl.stop()
 			socketListener = null
-			disconnectingLock.reset()
 			synchronized(clients) {
 				for (c in clients.values) {
 					if (c.isConnected) {
-						disconnectingLock.acquire()
 						try {
 							c.disconnect("Game Stopped")
 						} catch (e: Throwable) {
@@ -117,7 +115,6 @@ open class GameServer(
 					}
 				}
 			}
-			disconnectingLock.block(10000) { log.warn("Unclean stoppage") } // give clients a chance to disconnect from their end
 			clear()
 		}
 		listenJob?.cancel()

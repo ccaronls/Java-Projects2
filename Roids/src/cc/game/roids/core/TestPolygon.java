@@ -4,7 +4,8 @@ import cc.lib.game.AGraphics;
 import cc.lib.game.GColor;
 import cc.lib.game.Justify;
 import cc.lib.game.Utils;
-import cc.lib.math.*;
+import cc.lib.math.MutableVector2D;
+import cc.lib.math.Vector2D;
 
 public class TestPolygon extends PolygonThingy {
 
@@ -62,9 +63,9 @@ public class TestPolygon extends PolygonThingy {
         }
         this.setVertices(xVerts, yVerts);
         this.setRadius(Utils.randRange(10, 25));
-        this.setAngVelocity(Utils.randFloatX(10));
-        this.velocity[0] = Utils.randFloatX(2.0f);
-        this.velocity[1] = Utils.randFloatX(2.0f);
+        this.setAngVelocity(Utils.randFloatPlusOrMinus(10));
+        this.velocity[0] = Utils.randFloatPlusOrMinus(2.0f);
+        this.velocity[1] = Utils.randFloatPlusOrMinus(2.0f);
     }*/
     
     @Override
@@ -73,7 +74,7 @@ public class TestPolygon extends PolygonThingy {
         if (roids.pressed && highlighted) {
             switch (roids.dragMode) {
                 case POSITION:
-                    getPosition().set(roids.getPointer()); 
+                    getPosition().assign(roids.getPointer());
                     roids.somethingMoved = true;
                     break;
                 case VELOCITY:
@@ -169,7 +170,7 @@ public class TestPolygon extends PolygonThingy {
         if (this.getAngVelocity()!= 0) {
             this.setAngVelocity(0);
         } else {
-            this.setAngVelocity(Utils.randFloatX(10));
+            this.setAngVelocity(Utils.randFloatPlusOrMinus(10));
         }
             
     }

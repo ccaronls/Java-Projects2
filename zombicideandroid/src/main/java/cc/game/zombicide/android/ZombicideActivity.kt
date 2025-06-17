@@ -42,7 +42,11 @@ import cc.lib.android.DroidUtils
 import cc.lib.android.EmailHelper
 import cc.lib.android.SpinnerTask
 import cc.lib.android.getEnum
+import cc.lib.crypt.Cypher
 import cc.lib.mp.android.P2PActivity
+import cc.lib.net.GameClient
+import cc.lib.net.GameServer
+import cc.lib.net.PortAllocator
 import cc.lib.reflector.Reflector
 import cc.lib.ui.IButton
 import cc.lib.utils.FileUtils
@@ -88,7 +92,8 @@ inline fun isTV(): Boolean = BuildConfig.FLAVOR == "tv"
  *
  *
  */
-class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListener, OnItemLongClickListener {
+class ZombicideActivity : P2PActivity<GameClient, GameServer>(), View.OnClickListener, OnItemClickListener,
+                          OnItemLongClickListener {
 	lateinit var zb: ActivityZombicideBinding
 	lateinit var vm: ActivityViewModel
 	lateinit var gameFile: File
@@ -143,7 +148,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 				get() = isWolfburgUnlocked
 		})
 
-	override val connectPort: Int = ZMPCommon.CONNECT_PORT
+	override val connectPort: Int = PortAllocator.ZOMBICIDE_PORT
 	override val version: String = ZMPCommon.VERSION
 	override val maxConnections: Int = 2
 
@@ -538,8 +543,6 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 
 	fun shutdownMP() {
 		p2pShutdown()
-		clientControl = null
-		serverControl = null
 		clientMgr = null
 		serverMgr = null
 	}
@@ -654,16 +657,18 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 			MenuItem.SUMMARY -> {
 				game.showSummaryOverlay()
 			}
+
 			MenuItem.NEW_GAME -> {
 				//shutdownMP()
 				showNewGameDialog()
 			}
+
 			MenuItem.JOIN_GAME -> {
 				p2pInit(P2PMode.CLIENT)
 			}
 
 			MenuItem.SETUP_PLAYERS -> showNewGameDialogChoosePlayers(null)
-			MenuItem.CONNECTIONS -> serverControl?.openConnections()
+			MenuItem.CONNECTIONS -> TODO() //{} //openConnections()
 			MenuItem.CLEAR -> {
 //				prefs.edit().remove("completedQuests").apply()
 				val byteDeleted = FileUtils.deleteFileAndBackups(gameFile)
@@ -671,6 +676,7 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 				log.debug("deleted " + Formatter.formatFileSize(this, byteDeleted) + " of memory")
 				initHomeMenu()
 			}
+
 			MenuItem.SEARCHABLES -> {
 				val lv = ListView(this)
 				val searchables = game.allSearchables.toMutableList()
@@ -1046,29 +1052,34 @@ class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListen
 		super.p2pStart()
 	}
 
-	var clientControl: P2PClient? = null
-	override fun onP2PClient(p2pClient: P2PClient) {
-		clientControl = p2pClient
-		clientMgr = ZClientMgr(this, game, p2pClient.getClient(), thisUser)
+	override fun newGameClient(deviceName: String, version: String, cypher: Cypher?): GameClient {
+		return GameClient(deviceName, version, cypher)
 	}
 
-	var serverControl: P2PServer? = null
-	override fun onP2PServer(p2pServer: P2PServer) {
-		serverControl = p2pServer
-		serverMgr = ZServerMgr(this, game, 2, p2pServer.getServer()).also {
-			if (!game.isGameRunning())
+	override fun newGameServer(deviceName: String, port: Int, version: String, cypher: Cypher?, maxConnections: Int): GameServer {
+		return GameServer(deviceName, port, version, null, maxConnections)
+	}
+
+	val p2pClient: GameClient? = null
+	val p2pServer: GameServer? = null
+
+	override fun onP2PClient(p2pClient: GameClient) {
+		clientMgr = ZClientMgr(this, game, p2pClient, thisUser)
+	}
+
+	override fun onP2PServer(p2pServer: GameServer) {
+		serverMgr = ZServerMgr(this, game, 2, p2pServer).also {
+			if (!game.isGameRunning()) {
 				it.showChooser()
+			}
 		}
-//		thisUser.name = prefs.getString(PREF_P2P_NAME, p2pServer.server.name)!!
 	}
 
 	override fun onP2PShutdown() {
 		clientMgr?.shutdown()
 		serverMgr?.shutdown()
 		clientMgr = null
-		clientControl = null
 		serverMgr = null
-		serverControl = null
 		game.server = null
 		game.client = null
 		initHomeMenu()

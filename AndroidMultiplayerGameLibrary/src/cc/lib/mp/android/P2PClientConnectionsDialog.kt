@@ -13,19 +13,18 @@ import android.widget.ListView
 import android.widget.TextView
 import android.widget.Toast
 import cc.lib.android.SpinnerTask
-import cc.lib.mp.android.P2PActivity.P2PServer
 import cc.lib.net.AClientConnection
 import cc.lib.net.AGameServer
 import cc.lib.utils.KLock
 import java.net.InetAddress
 
-abstract class P2PClientConnectionsDialog(
-	private val context: P2PActivity,
-	private val server: AGameServer,
+abstract class P2PClientConnectionsDialog<SVR : AGameServer>(
+	private val context: P2PActivity<*, *>,
+	private val server: SVR,
 	serverName: String
 ) : BaseAdapter(), DialogInterface.OnClickListener, Runnable, DialogInterface.OnDismissListener,
-	DialogInterface.OnCancelListener, View.OnClickListener, AClientConnection.Listener,
-	AGameServer.Listener {
+    DialogInterface.OnCancelListener, View.OnClickListener, AClientConnection.Listener,
+    AGameServer.Listener {
 	private val helper: P2PHelper
 	private var dialog: Dialog? = null
 	private var lvPlayers: ListView? = null
@@ -69,15 +68,7 @@ abstract class P2PClientConnectionsDialog(
 
 			override fun onSuccess() {
 				Toast.makeText(context, "Server started", Toast.LENGTH_LONG).show()
-				onServerSuccess(object : P2PServer {
-					override fun getServer(): AGameServer {
-						return server
-					}
-
-					override fun openConnections() {
-						show()
-					}
-				})
+				onServerSuccess(server)
 			}
 
 			override fun onCancelButtonClicked() {
@@ -95,7 +86,7 @@ abstract class P2PClientConnectionsDialog(
 		}.execute()
 	}
 
-	abstract fun onServerSuccess(server: P2PServer)
+	abstract fun onServerSuccess(server: SVR)
 
 	fun show() {
 		if (dialog == null) {

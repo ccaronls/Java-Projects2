@@ -6,8 +6,12 @@ import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import cc.lib.game.*;
-import cc.lib.math.*;
+import cc.lib.game.AGraphics;
+import cc.lib.game.Utils;
+import cc.lib.math.CMath;
+import cc.lib.math.Matrix3x3;
+import cc.lib.math.MutableVector2D;
+import cc.lib.math.Vector2D;
 
 public abstract class PolygonThingy extends Thingy {
 
@@ -97,7 +101,7 @@ public abstract class PolygonThingy extends Thingy {
                 info.target = target;
                 //info.sourcePos.set(getPosition());
                 //info.targetPos.set(target.getPosition());
-                info.collisionPoint.set(v);
+                info.collisionPoint.assign(v);
                 return computeBounceVectors(i, target, info);
             }
         }
@@ -176,7 +180,7 @@ public abstract class PolygonThingy extends Thingy {
         Vector2D t2 = t[(targetEdge+1)%t.length];
 
         info.addSegment(s[1], s[2], 0);
-        t2.sub(t1, info.planeNormal).normEq().unitLengthEq();
+        t2.sub(t1, info.planeNormal).normEq().normalizedEq();
         System.out.println("Case 1 collision");
         return true;
         /*
@@ -261,7 +265,7 @@ public abstract class PolygonThingy extends Thingy {
             System.out.println("Case S");
             MutableVector2D e0= Vector2D.newTemp();
             src[1].sub(src[2], e0); // get the edge
-            e0.norm(info.planeNormal).unitLengthEq();
+            e0.norm(info.planeNormal).normalizedEq();
             info.collisionPoint.addEq(e0.scaleEq(-0.5f));
             return true;
         }
@@ -295,16 +299,16 @@ public abstract class PolygonThingy extends Thingy {
                         } else if (ii == collisionIndex0) {
                             // 2 of my edges are intersecting a single edge of target
                             System.out.println("1B");
-                            MutableVector2D e1= Vector2D.newTemp();
-                            e1.set(x3, y3).subEq(x2, y2);
-                            e1.unitLengthEq();
+                            MutableVector2D e1 = Vector2D.newTemp();
+                            e1.assign(x3, y3).subEq(x2, y2);
+                            e1.normalizedEq();
                             e1.norm(info.planeNormal);
                             return true;
                         } else {
                             System.out.println("1C");
                             
                             // this is a point to point collision, so the normal is just the normalized vector between the objects centers
-                            info.target.position.sub(info.source.position, info.planeNormal).unitLengthEq();                            
+                            info.target.position.sub(info.source.position, info.planeNormal).normalizedEq();
                             /*
                             Vector2D c0 = Vector2D.newTemp(x0, y0);
                             Vector2D c1 = Vector2D.newTemp(x3, y3);
@@ -336,9 +340,9 @@ public abstract class PolygonThingy extends Thingy {
                         // parallel and coincident
                         // here the bounce vectors are the normal to the edge (either).  Then we stop searching 
                         info.addSegment(Vector2D.newTemp(x2, y2).add(info.target.position), Vector2D.newTemp(x3, y3).add(info.target.position), segColorIndex++);
-                        MutableVector2D e0= Vector2D.newTemp();
-                        e0.set(x1, y1).subEq(x0,  y0);
-                        info.planeNormal.set(e0.normEq().unitLengthEq());
+                        MutableVector2D e0 = Vector2D.newTemp();
+                        e0.assign(x1, y1).subEq(x0, y0);
+                        info.planeNormal.assign(e0.normEq().normalizedEq());
                         return true;
                     }
                 }

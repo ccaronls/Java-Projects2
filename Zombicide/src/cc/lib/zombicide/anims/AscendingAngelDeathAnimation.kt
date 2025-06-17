@@ -8,7 +8,7 @@ class AscendingAngelDeathAnimation(a: ZCharacter) : DeathAnimation(a) {
     override fun draw(g: AGraphics, position: Float, dt: Float) {
         super.draw(g, position, dt)
         val rect = GRectangle(actor.getRect())
-        rect.y -= rect.h * 3 * position
+        rect.top -= rect.height * 3 * position
         g.setTransparencyFilter(.5f - position / 3)
         g.drawImage(actor.imageId, rect)
         g.removeFilter()

@@ -11,11 +11,13 @@ import cc.lib.net.GameCommandType
 import cc.lib.net.GameServer
 import cc.lib.net.PortAllocator
 import cc.lib.reflector.Reflector
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.InetAddress
@@ -79,6 +81,7 @@ class RoboClientConnection(
 				udpSocket?.receive(packet)
 				UDPCommon.serverProcessInput(clientId, ByteBuffer.wrap(array, 0, packet.length), roboServer.robotron)
 			}
+			udpSocket?.close()
 		}
 	}
 
@@ -274,13 +277,18 @@ class RoboClient @JvmOverloads constructor(
 
 	fun startUdpReadJob() {
 		udpReadJob = udpReadScope.launch {
-			while (udpSocket != null && connected) {
-				udpSocket?.let {
-					//readBuffer.first.reset()
-					val readBuffer = UDPCommon.createBuffer(UDPCommon.SERVER_PACKET_LENGTH)
-					it.receive(DatagramPacket(readBuffer.second, readBuffer.second.size))
-					UDPCommon.clientProcessInput(readBuffer.first, robotron)
+			try {
+				while (udpSocket != null && connected) {
+					udpSocket?.let {
+						//readBuffer.first.reset()
+						val readBuffer = UDPCommon.createBuffer(UDPCommon.SERVER_PACKET_LENGTH)
+						it.receive(DatagramPacket(readBuffer.second, readBuffer.second.size))
+						UDPCommon.clientProcessInput(readBuffer.first, robotron)
+					}
 				}
+			} catch (e: CancellationException) {
+				udpSocket?.close()
+				udpSocket = null
 			}
 		}
 	}
@@ -294,15 +302,17 @@ class RoboClient @JvmOverloads constructor(
 
 	override fun onDisconnected(reason: String, serverInitiated: Boolean) {
 		super.onDisconnected(reason, serverInitiated)
-		udpReadJob?.cancel()
-		udpReadJob = null
-		udpSocket?.close()
-		udpSocket = null
+		runBlocking {
+			udpReadJob?.cancel(CancellationException())
+			udpReadJob = null
+			udpSocket?.close()
+			udpSocket = null
+		}
 	}
 
 	override fun onCommand(cmd: GameCommand) {
 		when (cmd.type) {
-			SVR_UPDATE_GAME -> cmd.getReflector("game", robotron)
+			SVR_UPDATE_GAME -> cmd.getReflector(ROBO_ID, robotron)
 			GameCommandType.SVR_EXECUTE_REMOTE -> {
 				val method = cmd.getString("method")
 				val numParams = cmd.getInt("numParams")

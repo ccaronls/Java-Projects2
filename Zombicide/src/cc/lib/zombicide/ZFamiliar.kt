@@ -22,7 +22,8 @@ class ZFamiliar(override val type: ZFamiliarType = ZFamiliarType.NUCIFER, occupi
 	override val imageId: Int = type.imageId
 	override val outlineImageId: Int = type.outlineImageId
 
-	override fun getDimension(): GDimension = type.imageDim
+	override val dimension: GDimension
+		get() = type.imageDim
 
 	override fun makeId(): String = name()
 

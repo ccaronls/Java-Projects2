@@ -1,13 +1,15 @@
 package cc.game.roids.core;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.ObjectStreamException;
+import java.io.Serializable;
 import java.util.LinkedList;
-import java.util.List;
 
-import cc.lib.game.GColor;
 import cc.lib.game.AGraphics;
-import cc.lib.game.Utils;
-import cc.lib.math.*;
+import cc.lib.math.MutableVector2D;
+import cc.lib.math.Vector2D;
 
 public abstract class Thingy implements Serializable {
 
@@ -32,8 +34,8 @@ public abstract class Thingy implements Serializable {
     }
         
     protected void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-        position.set((Vector2D)in.readObject());
-        velocity.set((Vector2D)in.readObject());
+        position.assign((Vector2D) in.readObject());
+        velocity.assign((Vector2D) in.readObject());
         orientation = in.readFloat();
         angVelocity = in.readFloat();
         radius = in.readFloat();
@@ -77,8 +79,8 @@ public abstract class Thingy implements Serializable {
     void historyRewind() {
         if (historyPos > 0) {
             History h = history.get(--historyPos);
-            this.position.set(h.pos);
-            this.velocity.set(h.vec);
+            this.position.assign(h.pos);
+            this.velocity.assign(h.vec);
             this.orientation = h.orientation;
             this.angVelocity = h.angVelocity;
         }
@@ -87,8 +89,8 @@ public abstract class Thingy implements Serializable {
     void historyForward() {
         if (historyPos < history.size()) {
             History h = history.get(historyPos++);
-            this.position.set(h.pos);
-            this.velocity.set(h.vec);
+            this.position.assign(h.pos);
+            this.velocity.assign(h.vec);
             this.orientation = h.orientation;
             this.angVelocity = h.angVelocity;
         }
@@ -120,11 +122,11 @@ public abstract class Thingy implements Serializable {
     }
     
     final void setPosition(float x, float y) {
-        position.set(x,y);
+        position.assign(x, y);
     }
     
     final void setVelocity(float dx, float dy) {
-        velocity.set(dx, dy);
+        velocity.assign(dx, dy);
     }
 
     abstract void computeInertia();
@@ -179,7 +181,7 @@ public abstract class Thingy implements Serializable {
         while (y > maxY) {
             y -= maxY*2;
         }
-        position.set(x,y);
+        position.assign(x, y);
     }
 
     /*

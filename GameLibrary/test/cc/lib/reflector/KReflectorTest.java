@@ -28,7 +28,7 @@ import cc.lib.utils.SomeEnum;
 
 import static java.lang.System.out;
 
-public class ReflectorTest extends TestCase {
+public class KReflectorTest extends TestCase {
 
     @Override
     protected void setUp() throws Exception {
@@ -95,7 +95,7 @@ public class ReflectorTest extends TestCase {
         Map min = Reflector.deserializeObject(new BufferedReader(new StringReader(writer.getBuffer().toString())));
 
         assertTrue(m.size() == min.size());
-        for (String s: m.keySet()) {
+        for (String s : m.keySet()) {
             assertEquals(m.get(s), min.get(s));
         }
 
@@ -105,18 +105,18 @@ public class ReflectorTest extends TestCase {
         SomeEnum e2 = Reflector.deserializeFromString(eout);
         assertEquals(e, e2);
 
-        SomeEnum [] el = {
+        SomeEnum[] el = {
                 SomeEnum.ENUM2,
                 SomeEnum.ENUM3
         };
         eout = Reflector.serializeObject(el);
         System.out.println(eout);
-        SomeEnum [] el2 = Reflector.deserializeFromString(eout);
+        SomeEnum[] el2 = Reflector.deserializeFromString(eout);
         assertTrue(Arrays.equals(el, el2));
     }
 
     public void testSerializeStringArray() throws Exception {
-        String [] arr = {
+        String[] arr = {
                 "a", "b", "c"
         };
 
@@ -124,49 +124,49 @@ public class ReflectorTest extends TestCase {
         Reflector.serializeObject(arr, new PrintWriter(str));
         System.out.println(str.getBuffer().toString());
 
-        String [] arr2 = Reflector.deserializeObject(new BufferedReader(new StringReader(str.getBuffer().toString())));
+        String[] arr2 = Reflector.deserializeObject(new BufferedReader(new StringReader(str.getBuffer().toString())));
         assertTrue(Arrays.equals(arr, arr2));
     }
 
     public void testSerializeStringArray2D() throws Exception {
-        String [][] arr = {
-                { "a", "b", "c" },
-                { "d", "e", "f" }
+        String[][] arr = {
+                {"a", "b", "c"},
+                {"d", "e", "f"}
         };
 
         StringWriter str = new StringWriter();
         Reflector.serializeObject(arr, new PrintWriter(str));
         System.out.println(str.getBuffer().toString());
 
-        String [][] arr2 = Reflector.deserializeObject(new BufferedReader(new StringReader(str.getBuffer().toString())));
+        String[][] arr2 = Reflector.deserializeObject(new BufferedReader(new StringReader(str.getBuffer().toString())));
         System.out.println("Deserialized array:");
         Reflector.serializeObject(arr2, new PrintWriter(System.out));
 
-        assertTrue(arr.length==arr2.length);
-        for (int i=0; i<arr.length; i++)
+        assertTrue(arr.length == arr2.length);
+        for (int i = 0; i < arr.length; i++)
             assertTrue(Arrays.equals(arr[i], arr2[i]));
     }
 
 
     public void testArrays() throws Exception {
         MyArchivable t = new MyArchivable();
-        t.my2DIntArray = new int[][] {
-                new int[] { 10, 20 },
-                new int[] { 30, 40 },
-                new int[] { 50, 60, 70 },
+        t.my2DIntArray = new int[][]{
+                new int[]{10, 20},
+                new int[]{30, 40},
+                new int[]{50, 60, 70},
         };
-        t.my3DDoubleArray = new double [][][] {
-                new double [][] {
-                        new double [] { 1,2,3,4,5 },
-                        new double [] { 6,7,8,9,10 }
+        t.my3DDoubleArray = new double[][][]{
+                new double[][]{
+                        new double[]{1, 2, 3, 4, 5},
+                        new double[]{6, 7, 8, 9, 10}
                 },
-                new double [][] {
-                        new double [] { 10,20,30 },
-                        new double [] { 40,50,60 }
+                new double[][]{
+                        new double[]{10, 20, 30},
+                        new double[]{40, 50, 60}
                 }
         };
-        t.myIntArray = new int[] { 1,1,1,1,2,2,2,2,3,3,3,3 };
-        t.myStringArray = new String[] { "Hello", "goodbye", "so long" };
+        t.myIntArray = new int[]{1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3};
+        t.myStringArray = new String[]{"Hello", "goodbye", "so long"};
         String data = t.toString();
         System.out.println(data);
         MyArchivable s = new MyArchivable();
@@ -177,15 +177,15 @@ public class ReflectorTest extends TestCase {
         assertEquals(u, t);
         assertEquals(u, s);
     }
-    
+
     public void testCollections() throws Exception {
         MyArchivable t = new MyArchivable();
         t.myList = new ArrayList();
-        t.myList.addAll(Arrays.asList(new String [] { "a", "B", "c", "dddd" }));
+        t.myList.addAll(Arrays.asList(new String[]{"a", "B", "c", "dddd"}));
         t.myIntList = new LinkedList();
-        t.myIntList.addAll(Arrays.asList(new Integer[] { 10,20,30,40 }));
+        t.myIntList.addAll(Arrays.asList(new Integer[]{10, 20, 30, 40}));
         t.myStringSet = new TreeSet();
-        t.myStringSet.addAll(Arrays.asList(new String [] { "zzz", "bbb", "qqq" }));
+        t.myStringSet.addAll(Arrays.asList(new String[]{"zzz", "bbb", "qqq"}));
         String data = t.toString();
         System.out.println(t.toStringNumbered());
         MyArchivable s = new MyArchivable();
@@ -194,17 +194,17 @@ public class ReflectorTest extends TestCase {
         assertEquals(t, s);
         MyArchivable u = t.deepCopy();
         assertEquals(u, t);
-        assertEquals(u, s);        
+        assertEquals(u, s);
     }
-    
+
     public void testArraysOfCollections() throws Exception {
         MyArchivable t = new MyArchivable();
         t.collectionArray = new Collection[4];
         t.collectionArray[0] = new LinkedList();
         t.collectionArray[2] = new HashSet();
         t.collectionArray[3] = new ArrayList();
-        t.collectionArray[0].addAll(Arrays.asList(new Integer[] { 0,1,2 }));
-        t.collectionArray[2].addAll(Arrays.asList(new String[] { "Hello", "Goodbye" } ));
+        t.collectionArray[0].addAll(Arrays.asList(new Integer[]{0, 1, 2}));
+        t.collectionArray[2].addAll(Arrays.asList(new String[]{"Hello", "Goodbye"}));
         String data = t.toString();
         System.out.println(data);
         MyArchivable s = new MyArchivable();
@@ -212,10 +212,10 @@ public class ReflectorTest extends TestCase {
         assertEquals(t, s);
         MyArchivable u = t.deepCopy();
         assertEquals(u, t);
-        assertEquals(u, s);        
+        assertEquals(u, s);
         System.out.println(data);
     }
-    
+
     void x() {
         /*
         t.myArchivable = new MyArchivable();
@@ -270,44 +270,45 @@ public class ReflectorTest extends TestCase {
         assertFalse(copy.myString.equals(t.myString));
         */
     }
-    
+
     public static class BaseClass extends Reflector<BaseClass> {
         int baseInt = 0;
-        
+
         static {
             addField(BaseClass.class, "baseInt");
         }
     }
-    
+
     public static class SuperClass extends BaseClass {
         String superString = "howdy";
-        
+
         static {
             addField(SuperClass.class, "superString");
         }
     }
-    
+
     public void testInheritedFields() throws Exception {
         SuperClass s = new SuperClass();
         System.out.println(s.toString());
-        
+
         String data = "baseInt=10\nsuperString=\"shutup\"";
         s.deserialize(new BufferedReader(new StringReader(data)));
         assertEquals(s.superString, "shutup");
         assertEquals(s.baseInt, 10);
     }
-    
+
     public static class UsesOS extends Reflector<UsesOS> {
         static {
             addAllFields(UsesOS.class);
         }
+
         OverridesSerialize obj = new OverridesSerialize();
-        OverridesSerialize [] objArr = new OverridesSerialize[3];
+        OverridesSerialize[] objArr = new OverridesSerialize[3];
         Collection<OverridesSerialize> objList = new LinkedList<OverridesSerialize>();
-        
+
         public UsesOS() {
         }
-        
+
         void init() {
             obj = new OverridesSerialize("hello", 1);
             objArr[0] = new OverridesSerialize("goodbye", 2);
@@ -316,7 +317,7 @@ public class ReflectorTest extends TestCase {
             objList.add(new OverridesSerialize("entry2", 200));
         }
     }
-    
+
     public void testOverridingSerialize() throws Exception {
         UsesOS uos = new UsesOS();
         uos.init();
@@ -334,7 +335,8 @@ public class ReflectorTest extends TestCase {
             addAllFields(MyArchivableX.class);
         }
 
-        public MyArchivableX() {}
+        public MyArchivableX() {
+        }
     }
 
     public void testDerivedReflectors() throws Exception {
@@ -347,7 +349,7 @@ public class ReflectorTest extends TestCase {
 
         a.deserialize(txt);
 
-        a.myArchivableArray = new MyArchivable[] {
+        a.myArchivableArray = new MyArchivable[]{
                 new MyArchivableX(),
                 new MyArchivableX(),
                 new MyArchivable()
@@ -357,9 +359,9 @@ public class ReflectorTest extends TestCase {
 
         a.deserialize(txt);
 
-        a.my2DArchivableArray = new MyArchivable[][] {
-                { new MyArchivableX(), new MyArchivableX() },
-                { new MyArchivableX(), new MyArchivableX() },
+        a.my2DArchivableArray = new MyArchivable[][]{
+                {new MyArchivableX(), new MyArchivableX()},
+                {new MyArchivableX(), new MyArchivableX()},
         };
 
         txt = a.toString();
@@ -374,9 +376,9 @@ public class ReflectorTest extends TestCase {
         out.println(txt);
         a.deserialize(txt);
 
-        a.collectionArray = new Collection[] {
-            new ArrayList(),
-            new HashSet()
+        a.collectionArray = new Collection[]{
+                new ArrayList(),
+                new HashSet()
         };
 
         a.collectionArray[0].add(new MyArchivableX());
@@ -428,19 +430,19 @@ public class ReflectorTest extends TestCase {
 
         List<SmallReflector> list = null;//new ArrayList<SmallReflector>();
         List<SmallReflector> other = new ArrayList<SmallReflector>();
-    	
-    	void build() {
-    		list = new ArrayList<SmallReflector>();
-    		for (int i=0; i<10; i++) {
-    			list.add(new SmallReflector());
-    		}
-    	}
+
+        void build() {
+            list = new ArrayList<SmallReflector>();
+            for (int i = 0; i < 10; i++) {
+                list.add(new SmallReflector());
+            }
+        }
     }
-    
+
     public void testCollection() throws Exception {
-    	MyCollection c = new MyCollection();
-    	//c.build();
-    	String data = c.toString();
+        MyCollection c = new MyCollection();
+        //c.build();
+        String data = c.toString();
         System.out.println(data);
         BufferedReader reader = new BufferedReader(new StringReader(data));
         MyCollection c2 = new MyCollection();
@@ -448,36 +450,36 @@ public class ReflectorTest extends TestCase {
         System.out.println(c2.toString());
         assertEquals(c, c2);
     }
-    
-    
-    
+
+
     public void testCollectionOfArrays() throws Exception {
-    	String s = new TestListOfArrays().toString();
-    	System.out.println(s);
-    	TestListOfArrays t = new TestListOfArrays();
-    	t.deserialize(s);
-    	System.out.println(t);
+        String s = new TestListOfArrays().toString();
+        System.out.println(s);
+        TestListOfArrays t = new TestListOfArrays();
+        t.deserialize(s);
+        System.out.println(t);
     }
 
     public static class TestListOfArrays extends Reflector<TestListOfArrays> {
-    	static {
-    		addAllFields(TestListOfArrays.class);
-    	}
-    	List<SmallReflector[]> objects = new ArrayList<SmallReflector[]>();
-    	List<SmallReflector[][]> objects2 = new ArrayList<SmallReflector[][]>();
-    	
-    	public TestListOfArrays() {
-    		SmallReflector [] arr = {
-    			new SmallReflector(),
-    		};
-        	objects.add(arr);
-        	
-        	SmallReflector [][] arr2 = {
-        			arr,
-        			arr,
-        	};
-        	objects2.add(arr2);
-    	}
+        static {
+            addAllFields(TestListOfArrays.class);
+        }
+
+        List<SmallReflector[]> objects = new ArrayList<SmallReflector[]>();
+        List<SmallReflector[][]> objects2 = new ArrayList<SmallReflector[][]>();
+
+        public TestListOfArrays() {
+            SmallReflector[] arr = {
+                    new SmallReflector(),
+            };
+            objects.add(arr);
+
+            SmallReflector[][] arr2 = {
+                    arr,
+                    arr,
+            };
+            objects2.add(arr2);
+        }
     }
 
     public void testSerializeSpecialChars() throws Exception {
@@ -495,7 +497,7 @@ public class ReflectorTest extends TestCase {
     // NOPE, cannot handle...too difficult, would require each element be surronded with a type descriptor. This would be hard
     //  to make work everywhere
     public void xtestSerializeObjectArray() throws Exception {
-        Object [] arr = {
+        Object[] arr = {
                 "hello",
                 15,
                 new BaseClass()
@@ -508,14 +510,14 @@ public class ReflectorTest extends TestCase {
 
     public void testArraysOfNullableInts() throws Exception {
 
-        Integer [] a = new Integer[10];
+        Integer[] a = new Integer[10];
 
-        Integer [] b = new Integer[] { 1,2,3,4,null,6,7 };
+        Integer[] b = new Integer[]{1, 2, 3, 4, null, 6, 7};
 
         System.out.println("a=" + Reflector.serializeObject(a));
         System.out.println("b=" + Reflector.serializeObject(b));
 
-        Integer [] x = Reflector.deserializeFromString(Reflector.serializeObject(b));
+        Integer[] x = Reflector.deserializeFromString(Reflector.serializeObject(b));
         System.out.println("x=" + Reflector.serializeObject(x));
 
         List l = new ArrayList();
@@ -545,7 +547,7 @@ public class ReflectorTest extends TestCase {
         SimpleObject a = new SimpleObject();
         a.myEnum2 = SimpleObject.MyEnum.A;
         String s = a.toString();
-        System.out.println("s="+s);
+        System.out.println("s=" + s);
 
 
         SimpleObject b = new SimpleObject();
@@ -568,13 +570,13 @@ public class ReflectorTest extends TestCase {
         long myLong = 24738504127385701L;
         double myDouble = 0.23498752083475;
         SomeEnum myEnum;
-        SomeEnum [] myEnumArray;
+        SomeEnum[] myEnumArray;
         MyEnum myEnum2;
         List<Integer> myIntList = null;
 
         SimpleObject myObj = null;
-        SimpleObject [] myObjArray = null;
-        int [] myIntArray = null;
+        SimpleObject[] myObjArray = null;
+        int[] myIntArray = null;
 
         Vector<SimpleObject> myObjList = null;
         List<GColor> myColorList = null;
@@ -605,8 +607,8 @@ public class ReflectorTest extends TestCase {
     }
 
     static class Generic<T> extends Reflector<Generic<T>> {
-        T [] array1d;
-        T [][] array2d;
+        T[] array1d;
+        T[][] array2d;
     }
 
     public void testShouldFail() {
@@ -624,7 +626,7 @@ public class ReflectorTest extends TestCase {
 
     public void testArrayOrEnums() throws Exception {
 
-        SomeEnum [] e = {
+        SomeEnum[] e = {
                 SomeEnum.ENUM3,
                 SomeEnum.ENUM1
         };
@@ -632,7 +634,7 @@ public class ReflectorTest extends TestCase {
         String s = Reflector.serializeObject(e);
         System.out.println(s);
 
-        SomeEnum [] e2 = Reflector.deserializeFromString(s);
+        SomeEnum[] e2 = Reflector.deserializeFromString(s);
 
         System.out.println(Arrays.toString(e2));
 
@@ -649,7 +651,7 @@ public class ReflectorTest extends TestCase {
         Reflector.registerClass(SimpleObject.MyEnum.class);
         String result = Reflector.serializeObject(l);
 
-        System.out.println("result = "+ l);
+        System.out.println("result = " + l);
 
         List<SimpleObject.MyEnum> ll = Reflector.deserializeFromString(result);
 
@@ -695,7 +697,7 @@ public class ReflectorTest extends TestCase {
                 Utils.toList("So Long", "Farewell"));
 
         String str = Reflector.serializeObject(list);
-        System.out.println("str="+str);
+        System.out.println("str=" + str);
 
         list = Reflector.deserializeFromString(str);
     }
@@ -782,8 +784,8 @@ public class ReflectorTest extends TestCase {
         String str = a.toString();
         System.out.println("a=" + str);
 
-        SimpleObject [] arr = {
-                a,a
+        SimpleObject[] arr = {
+                a, a
         };
 
         SimpleObject b = new SimpleObject();
@@ -796,7 +798,7 @@ public class ReflectorTest extends TestCase {
         System.out.println("a=" + str);
 
         Reflector.dump();
-        SimpleObject [] barr = Reflector.deserializeFromString(str);
+        SimpleObject[] barr = Reflector.deserializeFromString(str);
         assertTrue(Arrays.equals(arr, barr));
     }
 /*
@@ -844,7 +846,7 @@ public class ReflectorTest extends TestCase {
     }
 
     public void testSerializeArrays() throws Exception {
-        Integer [] arr = { 4 };
+        Integer[] arr = {4};
 
         String strx = Reflector.serializeObject(arr);
         System.out.println(strx);

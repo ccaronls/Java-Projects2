@@ -110,7 +110,7 @@ const val SNAKE_SPEED = 4 // pixels of advancement per frame
 const val SNAKE_HEURISTIC_FACTOR = 0.4f
 
 // time
-const val MAX_PARTICLES = 8 // maximum explosions on the screen
+const val MAX_PARTICLES = 32 // maximum explosions on the screen
 const val PARTICLE_TYPE_BLOOD = 0
 const val PARTICLE_TYPE_DYING_ROBOT = 1
 const val PARTICLE_TYPE_DYING_TANK = 2
@@ -236,7 +236,7 @@ const val PEOPLE_MAX_POINTS = 10000
 // -- MESSGAES --
 const val THROBBING_SPEED = 2 // Affects throbbing_white. higher is slower.
 const val MESSAGE_FADE = 3 // Affects instaMsgs, higher is slower
-const val MAX_MESSAGES = 4 // max number of inst msgs
+const val MAX_MESSAGES = 8 // max number of inst msgs
 
 // -- lava pit --
 const val ENEMY_LAVA_CLOSED_FRAMES = 30

@@ -102,6 +102,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 
 	@Omit
 	private val workingVerts = Array(64) { MutableVector2D() }
+
 	@Omit
 	private var curWorkingVert = 0
 
@@ -523,13 +524,19 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 
 	// -----------------------------------------------------------------------------------------------
 	// append a zombie tracer
+	@Synchronized
 	@RemoteFunction(true)
-	open fun addZombieTracer(pos: Vector2D) {
+	open fun _addZombieTracer(pos: Vector2D) {
 		zombie_tracers.addOrNull()?.init(pos, GColor.WHITE)
+	}
+
+	fun addZombieTracer(pos: Vector2D) {
+		_addZombieTracer(pos.deepCopy())
 	}
 
 	// -----------------------------------------------------------------------------------------------
 	// append a zombie tracer
+	@Synchronized
 	@RemoteFunction(true)
 	open fun addPlayerTracer(playerIdx: Int, color: GColor) {
 		val player = players[playerIdx]
@@ -722,6 +729,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 
 	// -----------------------------------------------------------------------------------------------
 	// Draw the tracer when > black and update fade away color
+	@Synchronized
 	private fun updateAndDrawZombieTracers(g: AGraphics) {
 		val update = frameNumber % ENEMY_ZOMBIE_TRACER_FADE == 0
 		zombie_tracers.removeIf { !it.isOnScreen() }
@@ -739,6 +747,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 
 	// -----------------------------------------------------------------------------------------------
 	// Draw the tracer when > black and update fade away color
+	@Synchronized
 	private fun updateAndDrawPlayerTracers(player: Player, g: AGraphics) {
 		player.tracer.removeIf { !it.isOnScreen() }
 		val iter = player.tracer.iterator()
@@ -1012,14 +1021,35 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 
 	// -----------------------------------------------------------------------------------------------
 	// Add a a message to the table if possible
+	@Synchronized
 	@RemoteFunction(true)
-	open fun addMsg(v: Vector2D, str: String) {
-		messages.addOrNull()?.init(v, str, GColor.WHITE)
+	open fun _addMsg(v: Vector2D, str: String) {
+		log.debug("$tag addMsg $str [$v]")
+		messages.addOrNull()?.let { msg ->
+			msg.init(v, str, GColor.WHITE)
+			client?.let {
+				log.debug("added msg: $msg")
+			}
+		} ?: log.error("$tag Failed to add msg size is ${messages.size}")
 	}
+
+	fun addMsg(v: Vector2D, str: String) {
+		_addMsg(v.deepCopy(), str)
+	}
+
+	val tag: String
+		get() = server?.let { "[SRV]" } ?: client?.let { "[CL]" } ?: ""
 
 	// -----------------------------------------------------------------------------------------------
 	// update all the messages
+
+	@Synchronized
 	private fun updateAndDrawMessages(g: AGraphics) {
+		if (messages.size > 0) {
+			client?.let {
+				log.debug("drawing ${messages.size} messages")
+			}
+		}
 		val iter = messages.iterator()
 		while (iter.hasNext()) {
 			val msg = iter.next()
@@ -1041,14 +1071,24 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 		}
 	}
 
+	@Synchronized
 	@RemoteFunction(true)
-	open fun addDyingRobotParticle(pos: Vector2D) {
+	open fun _addDyingRobotParticle(pos: Vector2D) {
 		addParticle(pos, PARTICLE_TYPE_DYING_ROBOT, 5, -1, 0)
 	}
 
+	fun addDyingRobotParticle(pos: Vector2D) {
+		_addDyingRobotParticle(pos.deepCopy())
+	}
+
+	@Synchronized
 	@RemoteFunction(true)
-	open fun addBloodParticle(pos: Vector2D) {
+	open fun _addBloodParticle(pos: Vector2D) {
 		addParticle(pos, PARTICLE_TYPE_BLOOD, PARTICLE_BLOOD_DURATION, -1, 0)
+	}
+
+	fun addBloodParticle(pos: Vector2D) {
+		_addBloodParticle(pos.deepCopy())
 	}
 
 	// -----------------------------------------------------------------------------------------------
@@ -1067,6 +1107,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 
 	// -----------------------------------------------------------------------------------------------
 	// update and draw all explosions
+	@Synchronized
 	private fun updateAndDrawParticles(g: AGraphics) {
 		val iter = particles.iterator()
 		while (iter.hasNext()) {
@@ -2138,6 +2179,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 		addStunParticles(playerIndex)
 	}
 
+	@Synchronized
 	@RemoteFunction(true)
 	open fun addStunParticles(playerIndex: Int) {
 		var angle = 0
@@ -4445,7 +4487,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 
 	// -----------------------------------------------------------------------------------------------
 	@Synchronized
-	fun drawGame(g: AGraphics, millisPerFrame: Int) {
+	fun drawGame(g: AGraphics) {
 		g.ortho(0f, screen_width, 0f, screen_height)
 		frameNumber += 1
 		server?.broadcastGameState()

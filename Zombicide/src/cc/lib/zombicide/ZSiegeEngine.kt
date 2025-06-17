@@ -47,7 +47,8 @@ class ZSiegeEngine(
 	override val isSiegeEngine: Boolean
 		get() = true
 
-	override fun getDimension() = type.dimension
+	override val dimension: GDimension
+		get() = type.dimension
 
 	override fun getSpawnQuadrant(): ZCellQuadrant = ZCellQuadrant.CENTER
 

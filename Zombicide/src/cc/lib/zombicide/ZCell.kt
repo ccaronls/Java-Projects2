@@ -44,41 +44,30 @@ class ZCell internal constructor(private val x: Float, private val y: Float) : R
 	var environment = ZCellEnvironment.OUTDOORS // 0 == outdoors, 1 == building, 2 == vault
 	var zoneIndex = 0
     var vaultId = 0
-    private var cellFlag = 0
-    var discovered = false
-    var scale = 1f
+	private var cellFlag = 0
+	var discovered = false
+	var scale = 1f
 	private val occupied = arrayOfNulls<String?>(ZCellQuadrant.values().size)
 
 	var spawns = arrayOfNulls<ZSpawnArea>(2)
-    var numSpawns = 0
+	var numSpawns = 0
 
-    constructor() : this(-1f, -1f) {}
+	constructor() : this(-1f, -1f) {}
 
-    override fun getLeft(): Float {
-	    return x
-    }
+	override val width = 1f
+	override val height = 1f
+	override val left = x
+	override val top: Float = y
 
-	override fun getTop(): Float {
-		return y
+	fun isCellType(vararg types: ZCellType): Boolean {
+		for (t in types) {
+			if (1 shl t.ordinal and cellFlag != 0) return true
+		}
+		return false
 	}
 
-    override fun getWidth(): Float {
-        return 1f
-    }
-
-    override fun getHeight(): Float {
-        return 1f
-    }
-
-    fun isCellType(vararg types: ZCellType): Boolean {
-        for (t in types) {
-            if (1 shl t.ordinal and cellFlag != 0) return true
-        }
-        return false
-    }
-
-    val vaultType: ZCellType
-        get() {
+	val vaultType: ZCellType
+		get() {
             if (isCellType(ZCellType.VAULT_DOOR_GOLD)) return ZCellType.VAULT_DOOR_GOLD
             return if (isCellType(ZCellType.VAULT_DOOR_VIOLET)) ZCellType.VAULT_DOOR_VIOLET else ZCellType.NONE
         }
@@ -162,11 +151,11 @@ class ZCell internal constructor(private val x: Float, private val y: Float) : R
 		    ZCellQuadrant.LOWERRIGHT -> return GRectangle(center, bottomRight)
 		    ZCellQuadrant.UPPERRIGHT -> return GRectangle(center, topRight)
 		    ZCellQuadrant.LOWERLEFT -> return GRectangle(center, bottomLeft)
-		    ZCellQuadrant.CENTER -> return GRectangle(getLeft() + width / 4, getTop() + height / 4, width / 2, height / 2)
-		    ZCellQuadrant.TOP -> return GRectangle(getLeft() + width / 4, getTop(), width / 2, height / 2)
-		    ZCellQuadrant.LEFT -> return GRectangle(getLeft(), getTop() + height / 4, width / 2, height / 2)
-		    ZCellQuadrant.RIGHT -> return GRectangle(getLeft() + width / 2, getTop() + height / 4, width / 2, height / 2)
-		    ZCellQuadrant.BOTTOM -> return GRectangle(getLeft() + width / 4, getTop() + height / 2, width / 2, height / 2)
+		    ZCellQuadrant.CENTER -> return GRectangle(x + width / 4, y + height / 4, width / 2, height / 2)
+		    ZCellQuadrant.TOP -> return GRectangle(x + width / 4, y, width / 2, height / 2)
+		    ZCellQuadrant.LEFT -> return GRectangle(x, y + height / 4, width / 2, height / 2)
+		    ZCellQuadrant.RIGHT -> return GRectangle(x + width / 2, y + height / 4, width / 2, height / 2)
+		    ZCellQuadrant.BOTTOM -> return GRectangle(x + width / 4, y + height / 2, width / 2, height / 2)
 	    }
     }
 

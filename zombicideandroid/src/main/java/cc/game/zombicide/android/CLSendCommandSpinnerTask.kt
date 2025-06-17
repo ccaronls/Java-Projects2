@@ -16,7 +16,7 @@ open class CLSendCommandSpinnerTask(val context: ZombicideActivity) : SpinnerTas
 	open val timeout = 10000L
 
 	override suspend fun doIt(args: GameCommand?) {
-		requireNotNull(context.client).sendCommand(requireNotNull(args))
+		requireNotNull(context.clientMgr?.client).sendCommand(requireNotNull(args))
 		if (timeout > 0)
 			lock.acquireAndBlock(timeout) {
 				throw Exception("timeout")

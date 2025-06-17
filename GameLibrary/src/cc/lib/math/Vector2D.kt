@@ -79,9 +79,9 @@ open class Vector2D() : Reflector<Vector2D>(), IVector2D, Serializable, IInterpo
 	}
 
 	@Throws(IOException::class, ClassNotFoundException::class)
-	protected fun readObject(`in`: ObjectInputStream) {
-		x = `in`.readFloat()
-		y = `in`.readFloat()
+	protected fun readObject(input: ObjectInputStream) {
+		x = input.readFloat()
+		y = input.readFloat()
 	}
 
 	@Suppress("unused")
@@ -108,6 +108,10 @@ open class Vector2D() : Reflector<Vector2D>(), IVector2D, Serializable, IInterpo
 	fun serialize(output: ByteBuffer) {
 		output.putFloat(x)
 		output.putFloat(y)
+	}
+
+	override fun deepCopy(): Vector2D {
+		return Vector2D(x, y)
 	}
 
 	companion object {

@@ -9,8 +9,8 @@ import android.os.Bundle
 import cc.lib.utils.takeIfInstance
 import cc.lib.utils.weakReference
 
-abstract class SpinnerTask<T>(_context: Activity) : CoroutinesAsyncTask<T, Int, Any>(_context.localClassName),
-	ActivityLifecycleCallbacks {
+abstract class SpinnerTask<T>(_context: CCActivityBase) : CoroutinesAsyncTask<T, Int, Any>(_context.localClassName),
+                                                          ActivityLifecycleCallbacks {
 	private var dialog: ProgressDialog? = null
 	private val context by weakReference(_context)
 	private var result: Any? = null

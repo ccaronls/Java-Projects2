@@ -71,9 +71,9 @@ public final class GL11Graphics extends GL10Graphics {
 	
 	@Override
 	public void clearMinMax() {
-		minRect.set(-Float.MAX_VALUE, -Float.MAX_VALUE);
-		maxRect.set(Float.MAX_VALUE, Float.MAX_VALUE);
-	}
+        minRect.assign(-Float.MAX_VALUE, -Float.MAX_VALUE);
+        maxRect.assign(Float.MAX_VALUE, Float.MAX_VALUE);
+    }
 
 	@Override
 	public Vector2D getMinBoundingRect() {

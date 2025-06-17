@@ -1,5 +1,6 @@
 package cc.lib.net;
 
+import cc.lib.net.api.IGameCommand
 import cc.lib.reflector.RPrintWriter
 import cc.lib.reflector.Reflector
 import cc.lib.utils.GException
@@ -54,7 +55,7 @@ import java.io.IOException
  * @author ccaron
  *
  */
-class GameCommand(val type: GameCommandType) {
+class GameCommand(val type: GameCommandType) : IGameCommand {
 
 	private val _arguments: MutableMap<String, Any> = NoDupesMap(LinkedHashMap())
 
@@ -65,20 +66,20 @@ class GameCommand(val type: GameCommandType) {
 	 * @param key
 	 * @return
 	 */
-	fun getString(key: String, defaultValue: String = ""): String = (arguments[key] as String?) ?: defaultValue
+	override fun getString(key: String, defaultValue: String): String = (arguments[key] as String?) ?: defaultValue
 
-	fun getBoolean(key: String, defaultValue: Boolean = false): Boolean = (arguments[key] as Boolean?) ?: defaultValue
+	override fun getBoolean(key: String, defaultValue: Boolean): Boolean = (arguments[key] as Boolean?) ?: defaultValue
 
-	fun getInt(key: String, defaultValue: Int = 0): Int = (arguments[key] as Int?) ?: defaultValue
+	override fun getInt(key: String, defaultValue: Int): Int = (arguments[key] as Int?) ?: defaultValue
 
-	fun getFloat(key: String, defaultValue: Float = 0f): Float = (arguments[key] as Float?) ?: defaultValue
+	override fun getFloat(key: String, defaultValue: Float): Float = (arguments[key] as Float?) ?: defaultValue
 
-	fun getLong(key: String, defaultValue: Long = 0): Long = (arguments[key] as Long?) ?: defaultValue
+	override fun getLong(key: String, defaultValue: Long): Long = (arguments[key] as Long?) ?: defaultValue
 
-	fun getDouble(key: String, defaultValue: Double = 0.0): Double = (arguments[key] as Double?) ?: defaultValue
+	override fun getDouble(key: String, defaultValue: Double): Double = (arguments[key] as Double?) ?: defaultValue
 
 	@Throws(Exception::class)
-	fun <T : Reflector<T>> getReflector(key: String, obj: T): T {
+	override fun <T : Reflector<T>> getReflector(key: String, obj: T): T {
 		obj.merge(arguments[key] as String?)
 		return obj
 	}
@@ -96,11 +97,9 @@ class GameCommand(val type: GameCommandType) {
 	/**
 	 * @return
 	 */
-	fun getVersion(): String = getString("version", "???")
-	fun getName(): String = getString("name", "???")
-	fun getMessage(): String = getString("message", "???")
-
-	fun getFilter(): String = getString("filter", "???")
+	fun getVersion(): String = getString("version", "")
+	fun getName(): String = getString("name", "")
+	fun getMessage(): String = getString("message", "")
 
 	fun setArg(nm: String, value: Any?): GameCommand {
 		value?.let {

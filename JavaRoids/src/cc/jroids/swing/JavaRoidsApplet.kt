@@ -38,7 +38,7 @@ class JavaRoidsApplet : AWTKeyboardAnimationApplet() {
 		val key = e.keyCode
 		when (key) {
 			KeyEvent.VK_SPACE -> {}
-			KeyEvent.VK_S -> jr.player_v[0f] = 0f
+			KeyEvent.VK_S -> jr.player_v.assign(0f, 0f)
 		}
 	}
 
@@ -53,7 +53,7 @@ class JavaRoidsApplet : AWTKeyboardAnimationApplet() {
 			KeyEvent.VK_SHIFT -> jr.pressButton(JavaRoids.PLAYER_BUTTON_SHIELD)
 			KeyEvent.VK_Z, KeyEvent.VK_SPACE -> jr.pressButton(JavaRoids.PLAYER_BUTTON_SHOOT)
 			KeyEvent.VK_ALT -> {}
-			KeyEvent.VK_S -> jr.player_v.zero()
+			KeyEvent.VK_S -> jr.player_v.zeroEq()
 		}
 	}
 

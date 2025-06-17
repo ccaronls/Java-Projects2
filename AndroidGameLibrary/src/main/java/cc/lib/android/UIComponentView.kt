@@ -125,12 +125,12 @@ abstract class UIComponentView<T : UIRenderer>
 			g.drawRect(rect, 3f)
 			g.drawFilledRect(rect.scaledBy(progress, 1f))
 
-			g.pushTextHeight(rect.h * 3 / 4, true)
+			g.pushTextHeight(rect.height * 3 / 4, true)
 			g.color = GColor.WHITE
 			g.drawWrapString(
 				(width / 2f),
-				(height / 2f) - rect.h / 2f,
-				rect.w,
+				(height / 2f) - rect.height / 2f,
+				rect.width,
 				Justify.CENTER,
 				Justify.BOTTOM,
 				loadingString

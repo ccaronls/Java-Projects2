@@ -1,11 +1,10 @@
 package cc.lib.net
 
 import cc.lib.logger.LoggerFactory
-import cc.lib.utils.Lock
 import java.io.IOException
+import java.lang.ref.WeakReference
 import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
-import java.util.function.Consumer
 
 /**
  * A Game server is a server that handles normal connection/handshaking and maintains
@@ -67,35 +66,39 @@ abstract class AGameServer(
 	protected val maxConnections: Int
 	protected val port: Int
 	protected var password: String? = null
-	protected val disconnectingLock = Lock()
-	private val listeners = Collections.synchronizedSet(HashSet<Listener>())
+	private val listeners = Collections.synchronizedSet(HashSet<WeakReference<Listener>>())
 
 	fun clear() {
-		clients.clear()
-		listeners.clear()
+		synchronized(clients) {
+			clients.clear()
+		}
+		synchronized(listeners) {
+			listeners.clear()
+		}
 		GameCommandType.resetStats()
 	}
 
 	/**
-	 * @param l
+	 * @param listener
 	 */
-	fun addListener(l: Listener) {
-		listeners.add(l)
+	@Synchronized
+	fun addListener(listener: Listener) {
+		listeners.add(WeakReference(listener))
 	}
 
 	/**
-	 * @param l
+	 * @param listener
 	 */
-	fun removeListener(l: Listener) {
-		listeners.remove(l)
+	@Synchronized
+	fun removeListener(listener: Listener) {
+		listeners.removeIf {
+			it.get() == listener
+		}
 	}
 
-	fun notifyListeners(consumer: Consumer<Listener>) {
-		val s: MutableSet<Listener> = HashSet()
-		s.addAll(listeners)
-		for (it in s) {
-			consumer.accept(it)
-		}
+	@Synchronized
+	fun notifyListeners(callback: (Listener) -> Unit) {
+		listeners.mapNotNull { it.get() }.forEach { callback(it) }
 	}
 
 	override fun toString(): String = "GameServer: $name v:$mVersion connected clients: ${clients.size}"
@@ -103,7 +106,6 @@ abstract class AGameServer(
 	fun removeClient(cl: AClientConnection) {
 		log.debug("removing client " + cl.name)
 		clients.remove(cl.name)
-		disconnectingLock.release()
 	}
 
 	fun addClient(cl: AClientConnection) {
@@ -225,7 +227,7 @@ abstract class AGameServer(
 		if (isConnected) {
 			for (c in clients.values) {
 				if (c.isConnected) try {
-					log.debug("executeMethodOnRemote $objId'$method': $params")
+					log.debug("executeMethodOnRemote $objId:$method [${params.joinToString()}")
 					c.executeMethodOnRemote<Any>(objId, false, method, *params)
 				} catch (e: Exception) {
 					e.printStackTrace()

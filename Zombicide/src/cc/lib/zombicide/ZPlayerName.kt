@@ -138,26 +138,23 @@ enum class ZPlayerName(val characterClass: String, val startingEquipment: Array<
     var outlineImageId = -1
     var imageDim: GDimension = GDimension.EMPTY
 
-    fun create(): ZCharacter = ZCharacter(this, skillOptions)
+	fun create(): ZCharacter = ZCharacter(this, skillOptions)
 
-    override fun getTooltipText(): String {
-        return characterClass
-    }
+	override fun getTooltipText(): String {
+		return characterClass
+	}
 
-    override fun getLabel(): String {
-        return name
-    }
+	override fun getLabel(): String {
+		return name
+	}
 
-    override fun getWidth(): Float {
-        return imageDim.getWidth()
-    }
+	override val width: Float
+		get() = imageDim.width
+	override val height: Float
+		get() = imageDim.height
 
-    override fun getHeight(): Float {
-        return imageDim.getHeight()
-    }
-
-    fun getSkillOptions(color: ZColor): Array<ZSkill> {
-        return skillOptions[color.ordinal]
-    }
+	fun getSkillOptions(color: ZColor): Array<ZSkill> {
+		return skillOptions[color.ordinal]
+	}
 
 }

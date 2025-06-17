@@ -143,8 +143,13 @@ interface IRectangle : IDimension, IShape {
 	}
 
 	fun scaledBy(s: Float, horz: Justify, vert: Justify): GRectangle {
-		val newWidth = width * s
-		val newHeight = height * s
+		return scaledBy(s, s, horz, vert)
+	}
+
+	fun scaledBy(xScale: Float, yScale: Float, horz: Justify, vert: Justify): GRectangle {
+
+		val newWidth = width * xScale
+		val newHeight = height * yScale
 		var newX = left
 		var newY = top
 		when (horz) {

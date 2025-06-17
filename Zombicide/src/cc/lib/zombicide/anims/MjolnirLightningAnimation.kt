@@ -53,7 +53,7 @@ open class MjolnirLightningAnimation(actor: ZActor, val targets: List<IInterpola
     override fun drawPhase(g: AGraphics, positionInPhase: Float, positionInAnimation: Float, phase: Int) {
 		g.drawImage(ZIcon.MJOLNIR.imageIds[dir.ordinal], imgRect)
 
-	    val radius = min(imgRect.w, imgRect.h)
+	    val radius = min(imgRect.width, imgRect.height)
 
         when (phase) {
             0 -> {

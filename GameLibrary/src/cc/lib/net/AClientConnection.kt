@@ -5,9 +5,9 @@ import cc.lib.logger.LoggerFactory
 import cc.lib.net.ConnectionStatus.Companion.from
 import cc.lib.reflector.Reflector
 import cc.lib.utils.KLock
+import java.lang.ref.WeakReference
 import java.util.Arrays
 import java.util.Collections
-import java.util.function.Consumer
 
 /**
  * Created by chriscaron on 3/12/18.
@@ -114,27 +114,28 @@ abstract class AClientConnection(val server: AGameServer, private val attributes
 
 	var isKicked = false
 		private set
-	private val listeners: MutableSet<Listener> =
+	private val listeners: MutableSet<WeakReference<Listener>> =
 		Collections.synchronizedSet(HashSet())
-	protected var disconnecting = false
+
 	var connectionSpeed = 0
 		private set
 	var status = ConnectionStatus.UNKNOWN
 		private set
 
+	@Synchronized
 	fun addListener(listener: Listener) {
-		listeners.add(listener)
+		listeners.add(WeakReference(listener))
 	}
 
-	fun removeListener(l: Listener?) {
-		listeners.remove(l)
+	@Synchronized
+	fun removeListener(listener: Listener) {
+		listeners.removeIf { it.get() == listener }
 	}
 
-	fun notifyListeners(consumer: Consumer<Listener>) {
-		val l: MutableSet<Listener> = HashSet()
-		l.addAll(listeners)
-		for (it in l) {
-			consumer.accept(it)
+	@Synchronized
+	fun notifyListeners(callback: (Listener) -> Unit) {
+		listeners.mapNotNull { it.get() }.forEach {
+			callback(it)
 		}
 	}
 
@@ -234,12 +235,11 @@ abstract class AClientConnection(val server: AGameServer, private val attributes
 		if (cmd.type == GameCommandType.CL_DISCONNECT) {
 			val reason = cmd.getMessage()
 			log.info("Client disconnected: $reason")
-			disconnecting = true
 			disconnect(reason)
 			close()
-		} else if (cmd.type == GameCommandType.PING) {
+		} else if (cmd.type == GameCommandType.CL_PING) {
 			// client should do this at regular intervals to prevent getting dropped
-			sendCommand(cmd)
+			sendCommand(GameCommandType.SVR_PONG.make())
 		} else if (cmd.type == GameCommandType.CL_CONNECTION_SPEED) {
 			connectionSpeed = cmd.getInt("speed")
 			val newStatus = from(connectionSpeed)
@@ -327,8 +327,7 @@ abstract class AClientConnection(val server: AGameServer, private val attributes
 	 * @param params
 	 * @param <T>
 	 * @return
-	</T> */
-	// TODO: Make this a suspend method
+	 */
 	suspend fun <T> executeMethodOnRemote(
 		targetId: String,
 		returnsResult: Boolean,
@@ -372,15 +371,5 @@ abstract class AClientConnection(val server: AGameServer, private val attributes
 	}
 
 	protected open fun onCancelled(id: String) {
-		// TODO: Dont think this is neccessary since WeakSet
-		val it = listeners.iterator()
-		while (it.hasNext()) {
-			val l = it.next()
-			if (l == null) {
-				it.remove()
-			} else {
-				l.onCancelled(this, id)
-			}
-		}
 	}
 }

@@ -193,44 +193,44 @@ public class Board extends Reflector<Board> {
 				case NONE:
 					break;
 				case DIAMOND: {
-					float r = 0.2f;
-					g.begin();
-					g.vertex(c.getX(), c.getY()+r*2);
-					g.vertex(c.getX()-r, c.getY());
-					g.vertex(c.getX()+r, c.getY());
-					g.vertex(c.getX(), c.getY()-r*2);
-					g.setColor(GColor.YELLOW);
-					g.drawTriangleStrip();
-					break;
-				}
+                    float r = 0.2f;
+                    g.begin();
+                    g.vertex(c.x, c.y + r * 2);
+                    g.vertex(c.x - r, c.y);
+                    g.vertex(c.x + r, c.y);
+                    g.vertex(c.x, c.y - r * 2);
+                    g.setColor(GColor.YELLOW);
+                    g.drawTriangleStrip();
+                    break;
+                }
 				case TRIANGLE: {
-					float r = 0.25f;
-					g.begin();
-					g.pushMatrix();
-					if (!isPieceUpward(p)) {
+                    float r = 0.25f;
+                    g.begin();
+                    g.pushMatrix();
+                    if (!isPieceUpward(p)) {
                         g.scale(1, -1);
                     }
-                    g.vertex(c.getX()-r, c.getY()-r/3);
-                    g.vertex(c.getX()+r, c.getY()-r/3);
-                    g.vertex(c.getX(), c.getY()+r*3/2);
-					g.drawTriangles();
-					g.popMatrix();
-					break;
-				}
+                    g.vertex(c.x - r, c.y - r / 3);
+                    g.vertex(c.x + r, c.y - r / 3);
+                    g.vertex(c.x, c.y + r * 3 / 2);
+                    g.drawTriangles();
+                    g.popMatrix();
+                    break;
+                }
 				case HEXAGON: {
-					float r = 0.2f;
-					g.begin();
-					g.vertex(c);
-					g.vertex(c.getX()-r, c.getY());
-					g.vertex(c.getX()-r/2, c.getY()-r);
-					g.vertex(c.getX()+r/2, c.getY()-r);
-					g.vertex(c.getX()+r, c.getY());
-					g.vertex(c.getX()+r/2, c.getY()+r);
-					g.vertex(c.getX()-r/2, c.getY()+r);
-					g.vertex(c.getX()-r, c.getY());
-					g.drawTriangleFan();
-					break;
-				}
+                    float r = 0.2f;
+                    g.begin();
+                    g.vertex(c);
+                    g.vertex(c.x - r, c.y);
+                    g.vertex(c.x - r / 2, c.y - r);
+                    g.vertex(c.x + r / 2, c.y - r);
+                    g.vertex(c.x + r, c.y);
+                    g.vertex(c.x + r / 2, c.y + r);
+                    g.vertex(c.x - r / 2, c.y + r);
+                    g.vertex(c.x - r, c.y);
+                    g.drawTriangleFan();
+                    break;
+                }
 			}
 			// DEBUG
 			//g.setColor(g.BLACK);
@@ -396,16 +396,16 @@ public class Board extends Reflector<Board> {
 				Outline o = new Outline();
 				outlines.add(o);
 				for (int i=0; i<3; i++) {
-					Piece pp = getAdjacent(bestTri, i);
-					pp.groupId = id;
-					pp.groupShape = Shape.TRIANGLE;
-					o.player = player;
-					o.shape = Shape.TRIANGLE;
-					IVector2D mp = getMidpoint(bestTri.v);
-					o.cx = mp.getX();
-					o.cy = mp.getY();
-					o.edges.addAll(getPieceEdges(pp));
-				}
+                    Piece pp = getAdjacent(bestTri, i);
+                    pp.groupId = id;
+                    pp.groupShape = Shape.TRIANGLE;
+                    o.player = player;
+                    o.shape = Shape.TRIANGLE;
+                    IVector2D mp = getMidpoint(bestTri.v);
+                    o.cx = mp.x;
+                    o.cy = mp.y;
+                    o.edges.addAll(getPieceEdges(pp));
+                }
 				o.edges.removeAll(getPieceEdges(bestTri));
 			} else {
 				break;
@@ -436,20 +436,20 @@ public class Board extends Reflector<Board> {
 				// mark
 				int id = gen.nextId();
 				Outline o = new Outline();
-				outlines.add(o);
-				for (int i=0; i<2; i++) {
-					bestDiamond[i].groupId = id;
-					bestDiamond[i].groupShape = Shape.DIAMOND;
-					o.player = player;
-					o.shape = Shape.DIAMOND;
-					o.edges.addAll(getPieceEdges(bestDiamond[i]));
-				}
-				Edge e = getPieceEdges(bestDiamond[0]).get(edgeIndex);
-				IVector2D mp = getMidpoint(e.from, e.to);
-				o.cx = mp.getX();
-				o.cy = mp.getY();
-				o.edges.remove(e);
-			} else {
+                outlines.add(o);
+                for (int i = 0; i < 2; i++) {
+                    bestDiamond[i].groupId = id;
+                    bestDiamond[i].groupShape = Shape.DIAMOND;
+                    o.player = player;
+                    o.shape = Shape.DIAMOND;
+                    o.edges.addAll(getPieceEdges(bestDiamond[i]));
+                }
+                Edge e = getPieceEdges(bestDiamond[0]).get(edgeIndex);
+                IVector2D mp = getMidpoint(e.from, e.to);
+                o.cx = mp.x;
+                o.cy = mp.y;
+                o.edges.remove(e);
+            } else {
 				break;
 			}
 		}

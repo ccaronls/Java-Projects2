@@ -331,12 +331,12 @@ public abstract class JavaRoids
 		Obj obj = this.findUnusedObject();
 		if (obj != null)
 		{
-			obj.position.set(Vector2D.newTemp().rotate(player_angle).scaledBy(PLAYER_RADIUS-3)).addEq(player_p);
-			obj.velocity.set(Vector2D.newTemp(PLAYER_MISSLE_SPEED, 0).rotateEq(player_angle)).addEq(player_v);
-			obj.angle = player_angle;
-			obj.type = TYPE_PLAYER_MISSLE;
-			obj.start_frame = this.getFrameNumber();
-		}
+            obj.position.assign(Vector2D.newTemp().rotate(player_angle).scaledBy(PLAYER_RADIUS - 3)).addEq(player_p);
+            obj.velocity.assign(Vector2D.newTemp(PLAYER_MISSLE_SPEED, 0).rotateEq(player_angle)).addEq(player_v);
+            obj.angle = player_angle;
+            obj.type = TYPE_PLAYER_MISSLE;
+            obj.start_frame = this.getFrameNumber();
+        }
 		player_missle_next_fire_frame = getFrameNumber() + PLAYER_SHOOT_RATE;
 	}
 	
@@ -718,15 +718,15 @@ public abstract class JavaRoids
 		Obj obj = findUnusedObject();
 		if (obj == null)
 			return;
-		obj.position.set(x,y);
-		obj.angle		= Utils.randRange(0,360);
+        obj.position.assign(x, y);
+        obj.angle = Utils.randRange(0, 360);
 		obj.spin		= Utils.randRange(2,6);
 		obj.radius		= radius;
 		obj.start_frame = getFrameNumber();
 		obj.type		= TYPE_ROCK;
 		float velocity	= Utils.randFloat(5) + 1;
-		obj.velocity.set(velocity, 0).rotateEq(obj.angle);
-		obj.shape_index	= Utils.randRange(SHAPE_ROCK_I, SHAPE_ROCK_IV);
+        obj.velocity.assign(velocity, 0).rotateEq(obj.angle);
+        obj.shape_index = Utils.randRange(SHAPE_ROCK_I, SHAPE_ROCK_IV);
 	}	
 	
 

@@ -43,26 +43,24 @@ open class ZZombie(override val type: ZZombieType = ZZombieType.Walker, val star
         ZZombieType.Wolfbomination,
         ZZombieType.BlueTwin,
         ZZombieType.GreenTwin -> ZCellQuadrant.CENTER
-        else -> super.getSpawnQuadrant()
+
+	    else -> super.getSpawnQuadrant()
     }
 
-    override val scale: Float
-        get() = type.scale
-    override val imageId: Int
-        get() = type.imageOptions[idx]
-    override val outlineImageId: Int
-        get() = type.imageOutlineOptions[idx]
+	override val scale: Float
+		get() = type.scale
+	override val imageId: Int
+		get() = type.imageOptions[idx]
+	override val outlineImageId: Int
+		get() = type.imageOutlineOptions[idx]
 
-    override fun getDimension(): GDimension {
-        return if (type.imageDims == null) {
-            GDimension.EMPTY
-        } else type.imageDims[idx]
-    }
+	override val dimension: GDimension
+		get() = type.imageDims.getOrNull(idx) ?: GDimension.EMPTY
 
-    override val moveSpeed: Long
-        get() = if (type === ZZombieType.Runner) {
-	        500
-        } else super.moveSpeed
+	override val moveSpeed: Long
+		get() = if (type === ZZombieType.Runner) {
+			500
+		} else super.moveSpeed
 
 	override val priority: Int
 		get() = if (destroyed) -1 else type.ordinal
@@ -114,6 +112,10 @@ open class ZZombie(override val type: ZZombieType = ZZombieType.Walker, val star
 
 	@Omit
 	private var targetZone: ZZone? = null
+
+	fun clearTargetZone() {
+		targetZone = null
+	}
 
 	fun getTargetZone(board: ZBoard): ZZone? {
 		return targetZone ?: findTargetZone(board)?.also {

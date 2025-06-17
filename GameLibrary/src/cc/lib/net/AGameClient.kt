@@ -25,10 +25,36 @@ import kotlin.coroutines.resume
 abstract class AGameClient(deviceName: String, version: String) {
 
 	interface Listener {
+
+		/**
+		 * A game command received from server
+		 */
 		fun onCommand(cmd: GameCommand) {}
+
+		/**
+		 * A MESSAGE game command received from server
+		 */
 		fun onMessage(msg: String) {}
+
+		/**
+		 * Disconnected either by server of client
+		 */
 		fun onDisconnected(reason: String, serverInitiated: Boolean) {}
+
+		/**
+		 * Connected or reconnected to server
+		 */
 		fun onConnected() {}
+
+		/**
+		 * Connection lost attempting to reconnect. onConnected will be called upon
+		 * success. Reconnection attempts will continue until disconnect called.
+		 */
+		fun onReconnecting() {}
+
+		/**
+		 *
+		 */
 		fun onPing(time: Int) {
 			System.err.println("Ping turn around time: $time")
 		}
@@ -61,12 +87,14 @@ abstract class AGameClient(deviceName: String, version: String) {
 		override fun onTimeout() {
 			if (isConnected) {
 				add(
-					GameCommand(GameCommandType.PING)
+					GameCommand(GameCommandType.CL_PING)
 						.setArg("time", System.currentTimeMillis())
 				)
 			}
 		}
 	}
+
+
 	var displayName: String?
 		/**
 		 * @return

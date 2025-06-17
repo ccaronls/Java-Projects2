@@ -364,11 +364,11 @@ class ZSpawnCard private constructor(
 			} else action.prettify()
 		}
 
-		override fun parseUnknownField(name: String, value: String, `in`: RBufferedReader) {
+		override fun parseUnknownField(name: String, value: String, input: RBufferedReader) {
 			if (name == "type") {
 				types = arrayOf(ZZombieType.valueOf(value))
 			}
-			super.parseUnknownField(name, value, `in`)
+			super.parseUnknownField(name, value, input)
 		}
 	}
 

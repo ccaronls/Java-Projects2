@@ -295,6 +295,7 @@ ${printCopyBody()}
 ${printSerializeBody()}
 	}
 	
+	@Synchronized
 	override fun deserialize(input : ByteBuffer) {
 ${printDeserializeBody()}
 	}

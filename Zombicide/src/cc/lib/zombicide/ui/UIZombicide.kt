@@ -868,8 +868,8 @@ abstract class UIZombicide(
 					override fun draw(g: AGraphics, position: Float, dt: Float) {
 						val img = g.getImage(ZIcon.GRAVESTONE.imageIds[0])
 						val rect = GRectangle(actor.getRect().fit(img))
-						rect.y += rect.h * (1f - position)
-						rect.h *= position
+						rect.top += rect.height * (1f - position)
+						rect.height *= position
 						g.drawImage(ZIcon.GRAVESTONE.imageIds[0], rect)
 					}
 				})

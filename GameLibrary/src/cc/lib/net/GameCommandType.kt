@@ -133,7 +133,7 @@ class GameCommandType(private val mName: String) : Comparable<GameCommandType> {
 
 		// no additional info
 		@JvmField
-		val PING = GameCommandType("PING")
+		val CL_PING = GameCommandType("CL_PING")
 
 		@JvmField
 		val CL_CONNECTION_SPEED = GameCommandType("CL_CONNECTION_SPEED")
@@ -159,6 +159,9 @@ class GameCommandType(private val mName: String) : Comparable<GameCommandType> {
 		// server asks client to disconnect from their end
 		@JvmField
 		val SVR_DISCONNECT = GameCommandType("SVR_DISCONNECT")
+
+		@JvmField
+		val SVR_PONG = GameCommandType("SVR_PONG")
 
 		// --------------------------------------
 		// shared command types

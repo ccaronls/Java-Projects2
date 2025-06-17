@@ -74,8 +74,8 @@ public class PacBoy {
 		}*/
 		float d = dv.mag();
 		if (d < speed) {
-			pos.set(v);
-			speed = Utils.clamp(speed+0.01f, 0, maxSpeed);
+			pos.assign(v);
+            speed = Utils.clamp(speed + 0.01f, 0, maxSpeed);
 			return true;
 		}
 		dv.scaleEq(speed).scaleEq(1.0f / d);

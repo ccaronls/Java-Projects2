@@ -2,7 +2,7 @@ package cc.lib.zombicide
 
 import cc.lib.game.GColor
 import cc.lib.game.GRectangle
-import cc.lib.ksp.remote.IRemote
+import cc.lib.ksp.remote.IRemoteSuspend
 import cc.lib.ksp.remote.Remote
 import cc.lib.ksp.remote.RemoteFunction
 import cc.lib.logger.LoggerFactory
@@ -31,7 +31,7 @@ import java.util.Stack
 
 @Suppress("UNCHECKED_CAST")
 @Remote
-open class ZGame() : Reflector<ZGame>(), IRemote {
+open class ZGame() : Reflector<ZGame>(), IRemoteSuspend {
 	companion object {
 		@JvmField
 		var DEBUG = false
@@ -124,7 +124,7 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 	private var currentUserIdx = -1
 	private var startUser = 0
 
-	@Alternate(variations = ["searchables"])
+	@Alternate("searchables")
 	private val lootDeck = LinkedList<ZEquipment<*>>()
 	private var spawnMultiplier = 1
 	var roundNum = 0
@@ -231,8 +231,8 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 		get() = gameOverStatus == GAME_LOST
 
 
-	override fun deserialize(reader: RBufferedReader) {
-		super.deserialize(reader)
+	override fun deserialize(input: RBufferedReader) {
+		super.deserialize(input)
 		initQuest(quest)
 	}
 
@@ -480,14 +480,14 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 
     val isGameSetup: Boolean
         get() {
-            if (board.isEmpty()) {
-                System.err.println("Empty Board!")
-                return false
-            }
-            if (users.size == 0) {
-                System.err.println("No users!")
-                return false
-            }
+	        if (board.isEmpty) {
+		        System.err.println("Empty Board!")
+		        return false
+	        }
+	        if (users.size == 0) {
+		        System.err.println("No users!")
+		        return false
+	        }
             if (allCharacters.isEmpty()) {
                 System.err.println("No characters!")
                 return false
@@ -1074,6 +1074,7 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 			zombies.removeAll { it.actionsLeftThisTurn == 0 }
 			// find a zombie who can move
 			zombies.forEach { zombie ->
+				zombie.clearTargetZone()
 				tryZombieAttack(zombie)?.let {
 					attackList.add(Pair(zombie, it))
 					return@forEach
@@ -1101,8 +1102,8 @@ open class ZGame() : Reflector<ZGame>(), IRemote {
 				else if (moveActorInDirectionIfPossible(zombie, path.first(), ZActionType.MOVE)) {
 					path.removeFirst()
 					numMoved++
-					}
 				}
+			}
 
 			zombies.removeAll(attackList.map { it.first })
 

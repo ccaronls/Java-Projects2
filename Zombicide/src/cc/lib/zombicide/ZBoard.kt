@@ -81,17 +81,16 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 		return zones.size
 	}
 
-	override fun getWidth(): Float {
-		return columns.toFloat()
-	}
+	override val width: Float
+		get() = columns.toFloat()
+	override val height: Float
+		get() = rows.toFloat()
 
-	override fun getHeight(): Float {
-		return rows.toFloat()
-	}
+
+	override val isEmpty: Boolean
+		get() = grid.isEmpty
 
 	fun getActor(id: String?): ZActor? = actors[id ?: ""]
-
-	override fun isEmpty(): Boolean = grid.isEmpty
 
 	/**
 	 * Get list of accessible zones
@@ -851,7 +850,7 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 	// return the center of all players, or the center of the start tile, or just the center
 	fun getLogicalCenter(): IVector2D {
 		with(getAllCharacters()) {
-			if (size > 0) {
+			if (isNotEmpty()) {
 				val center = MutableVector2D()
 				forEach {
 					center.addEq(it.center)
@@ -861,7 +860,7 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 		}
 
 		with(getCellsOfType(ZCellType.START)) {
-			if (size > 0) {
+			if (isNotEmpty()) {
 				val center = MutableVector2D()
 				forEach {
 					center.addEq(it.center)

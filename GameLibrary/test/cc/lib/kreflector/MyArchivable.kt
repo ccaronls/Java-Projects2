@@ -1,9 +1,9 @@
 package cc.lib.kreflector
 
 import cc.lib.utils.SomeEnum
-import java.util.*
+import java.util.LinkedList
 
-open class MyArchivable : Reflector<MyArchivable>() {
+open class MyArchivable : KReflector<MyArchivable>() {
 	var myEnum = SomeEnum.ENUM1
 	var myString: String? = null
 	var myInt = 0
@@ -50,12 +50,12 @@ open class MyArchivable : Reflector<MyArchivable>() {
 	var myNullEnumArray: Array<SomeEnum>? = null
 
 	@JvmField
-	var myArchivableArray: Array<Reflector<*>>? = null
-	var myEmptyArchivableArray = arrayOf<Reflector<*>>()
-	var myNullArchivableArray: Array<Reflector<*>>? = null
+	var myArchivableArray: Array<KReflector<*>>? = null
+	var myEmptyArchivableArray = arrayOf<KReflector<*>>()
+	var myNullArchivableArray: Array<KReflector<*>>? = null
 
 	@JvmField
-	var my2DArchivableArray: Array<Array<Reflector<*>>>? = null
+	var my2DArchivableArray: Array<Array<KReflector<*>>>? = null
 
 	@JvmField
 	var my2DIntArray = arrayOfNulls<IntArray>(3)

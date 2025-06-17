@@ -27,11 +27,11 @@ class Remote2Test : MirroredTestBase() {
 		var fun2result = 0
 		val fun3Result = 99
 
-		override val context = object : RemoteContext {
-			override val writer
-				get() = newWriter()
-			override val reader
-				get() = newReader()
+		override var context: RemoteContext? = object : RemoteContext {
+
+			override suspend fun executeLocally(cb: suspend (JsonReader) -> Unit) {
+				cb(newReader())
+			}
 
 			override fun setResult(cb: (JsonWriter) -> Unit) {
 				cb(newWriter())
@@ -105,11 +105,11 @@ class Remote2Test : MirroredTestBase() {
 	}
 
 	inner class LocalObj : RemoteTypeRemote() {
-		override val context = object : RemoteContext {
-			override val writer
-				get() = newWriter()
-			override val reader
-				get() = newReader()
+		override var context: RemoteContext? = object : RemoteContext {
+
+			override suspend fun executeRemotely(cb: (JsonWriter) -> Unit) {
+				cb(newWriter())
+			}
 
 			override suspend fun waitForResult(): JsonReader {
 				suspendCoroutine {

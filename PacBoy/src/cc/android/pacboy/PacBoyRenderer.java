@@ -64,7 +64,7 @@ class PacBoyRenderer extends BaseRenderer implements View.OnTouchListener {
 		boolean tooFar = true;
 		for (int i=path.size()-1; i>=0; i--) {
 			IVector2D vv = path.get(i);
-			d=Utils.distSqPointPoint(vv.getX(), vv.getY(), x, y);
+			d = Utils.distSqPointPoint(vv.x, vv.y, x, y);
 			if (useTooClose && d<= 0.3f) {
 				tooClose = true;
 				break;
@@ -80,15 +80,15 @@ class PacBoyRenderer extends BaseRenderer implements View.OnTouchListener {
 		}
 		
 		if (closest != null && !tooClose && !tooFar) {
-			int x0 = (int)closest.getX();
-			int y0 = (int)closest.getY();
-			int x1 = (int)x;
-			int y1 = (int)y;
-			
-			if (maze.isOpen(x0,y0,x1,y1)) {
-				return closestIndex;
-			}
-		}
+            int x0 = (int) closest.x;
+            int y0 = (int) closest.y;
+            int x1 = (int) x;
+            int y1 = (int) y;
+
+            if (maze.isOpen(x0, y0, x1, y1)) {
+                return closestIndex;
+            }
+        }
 		return -1;
 	}
 	
@@ -344,8 +344,8 @@ class PacBoyRenderer extends BaseRenderer implements View.OnTouchListener {
 			case STATE_PLAYING:
 				break;
 			case STATE_CHASING:
-				pb.pos.set(maze.getStartX(), maze.getStartY());
-				pb.reset();
+                pb.pos.assign(maze.getStartX(), maze.getStartY());
+                pb.reset();
 				break;
 			case STATE_EATEN:
 				frame = 0;
@@ -489,8 +489,8 @@ class PacBoyRenderer extends BaseRenderer implements View.OnTouchListener {
 		float wid = g.getViewportWidth();
 		float hgt = g.getViewportHeight();
 		if (frame == 0) {
-			pb.radius = hgt/6; 
-			pb.pos.set(-pb.radius, hgt/2);
+            pb.radius = hgt / 6;
+            pb.pos.assign(-pb.radius, hgt / 2);
 		}
 		int secondsToCenter = 3;
 		int framesToCenter = secondsToCenter * getTargetFPS();
