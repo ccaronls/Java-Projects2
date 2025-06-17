@@ -181,7 +181,7 @@ class RobotronApplet(val frameId: Int) : AWTKeyboardAnimationApplet(), IRoboClie
 
 	@Synchronized
 	override fun drawFrame(g: AGraphics) {
-		robotron.drawGame(g, millisecondsPerFrame)
+		robotron.drawGame(g)
 		g.color = showMsgColor
 		g.drawJustifiedString(viewportWidth / 2, 5, Justify.CENTER, Justify.TOP, showMsg)
 		showMsgColor = showMsgColor.darkened(.05f)
