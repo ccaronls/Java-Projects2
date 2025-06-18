@@ -1,13 +1,11 @@
-package marcos.games.hexes.core;
+package marcos.games.hexes.core
 
-import cc.lib.annotation.Keep;
+import cc.lib.annotation.Keep
 
 @Keep
-public enum Shape {
-
+enum class Shape {
 	NONE,
 	DIAMOND,
 	TRIANGLE,
 	HEXAGON
-	
 }

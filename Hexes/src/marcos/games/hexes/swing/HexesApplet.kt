@@ -11,7 +11,7 @@ import marcos.games.hexes.core.Hexes
 import marcos.games.hexes.core.Player
 import marcos.games.hexes.core.Shape
 import java.io.File
-import java.util.*
+import java.util.LinkedList
 import javax.swing.JOptionPane
 
 class HexesApplet(frame: AWTFrame) : AWTKeyboardAnimationApplet() {
@@ -168,7 +168,7 @@ class HexesApplet(frame: AWTFrame) : AWTKeyboardAnimationApplet() {
 	override fun drawFrame(g: AGraphics) {
 		g.clearScreen(GColor.LIGHT_GRAY)
 		val b = game.board
-		b.setHighlighted(mouseX, mouseY)
+		b.setHighlighted(mouseX.toFloat(), mouseY.toFloat())
 		highlightedPiece = b.draw(g)
 		g.ortho()
 		g.color = GColor.RED

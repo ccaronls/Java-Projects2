@@ -7,7 +7,22 @@ import android.view.Menu
 import android.view.MenuItem
 import cc.lib.android.DroidActivity
 import cc.lib.android.DroidGraphics
-import cc.lib.checkerboard.*
+import cc.lib.checkerboard.CanadianDraughts
+import cc.lib.checkerboard.Checkers
+import cc.lib.checkerboard.Chess
+import cc.lib.checkerboard.Color
+import cc.lib.checkerboard.Columns
+import cc.lib.checkerboard.Dama
+import cc.lib.checkerboard.DragonChess
+import cc.lib.checkerboard.Draughts
+import cc.lib.checkerboard.Game
+import cc.lib.checkerboard.KingsCourt
+import cc.lib.checkerboard.PieceType
+import cc.lib.checkerboard.Shashki
+import cc.lib.checkerboard.Suicide
+import cc.lib.checkerboard.UIGame
+import cc.lib.checkerboard.UIPlayer
+import cc.lib.checkerboard.Ugolki
 import java.io.File
 
 class MainActivity : DroidActivity() {
@@ -150,7 +165,7 @@ class MainActivity : DroidActivity() {
 	override fun onDraw(g: DroidGraphics) {
 		g.setIdentity()
 		g.ortho()
-		g.setTextHeightDips(18f)
+		g.setTextHeight(18f, false)
 		//        g.getPaint().setTextSize(getResources().getDimension(R.dimen.txt_size_normal));
 		game.draw(g, touchX, touchY)
 		if (clicked) {

@@ -19,7 +19,8 @@
             android:name=".MainActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:icon="@drawable/ic_launcher"
-            android:label="Test App">
+            android:label="Test App"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -59,7 +60,8 @@
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:icon="@drawable/ic_launcher"
             android:screenOrientation="sensorLandscape"
-            android:label="Dice">
+            android:label="Dice"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

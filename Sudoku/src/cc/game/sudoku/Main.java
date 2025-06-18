@@ -217,17 +217,17 @@ public class Main extends AWTKeyboardAnimationApplet implements ActionListener {
 		frame.centerToScreen();
 	}
 	
-	public void keyPressed(KeyEvent ev) {
-		
-		if (ev.getKeyChar() == 's' || ev.getKeyChar() == 'S') {
-			sudoku.solve();
-		} else if (ev.getKeyChar() == 'h' || ev.getKeyChar() == 'H') {
-			showHints = !showHints;
-		} else if (ev.getKeyChar() == 'n' || ev.getKeyChar() == 'N') {
-			showNewMenu();
-		} else if (ev.getKeyChar() >= '0' && ev.getKeyChar() <= '9' && curRow >= 0 && curCol >= 0) {
-			int num = ev.getKeyChar() - '0';
-			sudoku.setBoard(curRow, curCol, num);
+	public void onKeyPressed(KeyEvent ev) {
+
+        if (ev.getKeyChar() == 's' || ev.getKeyChar() == 'S') {
+            sudoku.solve();
+        } else if (ev.getKeyChar() == 'h' || ev.getKeyChar() == 'H') {
+            showHints = !showHints;
+        } else if (ev.getKeyChar() == 'n' || ev.getKeyChar() == 'N') {
+            showNewMenu();
+        } else if (ev.getKeyChar() >= '0' && ev.getKeyChar() <= '9' && curRow >= 0 && curCol >= 0) {
+            int num = ev.getKeyChar() - '0';
+            sudoku.setBoard(curRow, curCol, num);
 		}
 	}
 

@@ -1,5 +1,7 @@
 package cc.misslecommand.swing;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.awt.event.KeyEvent;
 
 import cc.lib.game.AGraphics;
@@ -84,7 +86,7 @@ public class MCApplet extends AWTKeyboardAnimationApplet {
     private boolean qPressed = false;
 
     @Override
-    public void keyPressed(KeyEvent ev) {
+    protected void onKeyPressed(@NotNull KeyEvent ev) {
         // make so 2 consecutive Q presses quit the game
         if (ev.getKeyCode() == KeyEvent.VK_Q) {
             if (qPressed)

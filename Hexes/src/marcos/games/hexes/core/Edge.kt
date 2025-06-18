@@ -1,59 +1,50 @@
-package marcos.games.hexes.core;
+package marcos.games.hexes.core
 
-import cc.lib.reflector.Reflector;
+import cc.lib.reflector.Reflector
 
-public class Edge extends Reflector<Edge> implements Comparable<Edge> {
-	
-	static {
-		addAllFields(Edge.class);
+class Edge : Reflector<Edge>, Comparable<Edge> {
+	val from: Int
+	val to: Int
+	var num = 0
+		private set
+	val p = IntArray(2) // index to pieces adjacent to
+
+	constructor() {
+		to = 0
+		from = to
 	}
-	
-	final int from, to;
-	private int n=0;
-	final int [] p = new int[2]; // index to pieces adjacent to
-	
-	public Edge() { from=to=0; }
-	
-	Edge(int from, int to) {
-		if (from == to)
-			throw new RuntimeException("Illegal edge");
+
+	internal constructor(from: Int, to: Int) {
+		if (from == to) throw RuntimeException("Illegal edge")
 		if (from < to) {
-			this.from = from;
-			this.to = to;
+			this.from = from
+			this.to = to
 		} else {
-			this.to = from;
-			this.from = to;
+			this.to = from
+			this.from = to
 		}
 	}
-	
-	void addPiece(int index) {
-		p[n++] = index;
-	}
-	
-	int getNum() {
-		return n;
+
+	fun addPiece(index: Int) {
+		p[num++] = index
 	}
 
-	@Override
-	public int compareTo(Edge e) {
-		if (from == e.from)
-			return to-e.to;
-		return from - e.from;
+	override fun compareTo(e: Edge): Int {
+		return if (from == e.from) to - e.to else from - e.from
 	}
 
-	@Override
-	public boolean equals(Object obj) {
-		Edge e = (Edge)obj;
-		if (e == this)
-			return true;
-		return (from==e.from && to==e.to);
+	override fun equals(obj: Any?): Boolean {
+		val e = obj as Edge?
+		return if (e === this) true else from == e!!.from && to == e.to
 	}
 
-	@Override
-	public String toString() {
-		return String.valueOf(from) + "->" + String.valueOf(to);
+	override fun toString(): String {
+		return "$from->$to"
 	}
-	
-	
-	
+
+	companion object {
+		init {
+			addAllFields(Edge::class.java)
+		}
+	}
 }

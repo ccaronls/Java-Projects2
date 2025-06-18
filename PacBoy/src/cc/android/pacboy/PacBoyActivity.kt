@@ -1,73 +1,66 @@
-package cc.android.pacboy;
+package cc.android.pacboy
 
-import android.os.Bundle;
-import android.view.View;
-import android.widget.TextView;
+import android.os.Bundle
+import android.view.View
+import android.widget.TextView
+import cc.lib.android.CCActivityBase
 
-import cc.lib.android.CCActivityBase;
-
-public class PacBoyActivity extends CCActivityBase {
-
-	public final static String INTENT_EXTRA_INT_WIDTH = "width";
-	public final static String INTENT_EXTRA_INT_HEIGHT = "height";
-	public final static String INTENT_EXTRA_INT_DIFFUCULTY = "difficulty";
-	
-	private final static String PREF_HIGH_SCORE_INT = "HIGH_SCORE";
-	
-	private PacBoyView pbv;
-	private TextView tvScore;
-	private TextView tvHighScore;
-	private int highScore = 0;
-	
-	@Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.pacboy_activity);
-        pbv = (PacBoyView) findViewById(R.id.pacBoyView);
-        tvScore = (TextView) findViewById(R.id.textViewScore);
-        tvHighScore = (TextView) findViewById(R.id.textViewHighScore);
-    }
-
-	@Override
-	protected void onResume() {
-		super.onResume();
-		int width = getIntent().getIntExtra(INTENT_EXTRA_INT_WIDTH, 10);
-		int height = getIntent().getIntExtra(INTENT_EXTRA_INT_HEIGHT, 10);
-		int difficulty = getIntent().getIntExtra(INTENT_EXTRA_INT_DIFFUCULTY, 0);
-		pbv.initMaze(width, height, difficulty);
-		pbv.setPaused(false);
-		highScore = getPrefs().getInt(PREF_HIGH_SCORE_INT, 0);
-		tvHighScore.setText("" + highScore);
-		tvScore.setText("0");
-		startPolling(1);
+class PacBoyActivity : CCActivityBase() {
+	private var pbv: PacBoyView? = null
+	private var tvScore: TextView? = null
+	private var tvHighScore: TextView? = null
+	private var highScore = 0
+	override fun onCreate(savedInstanceState: Bundle?) {
+		super.onCreate(savedInstanceState)
+		setContentView(R.layout.pacboy_activity)
+		pbv = findViewById<View>(R.id.pacBoyView) as PacBoyView
+		tvScore = findViewById<View>(R.id.textViewScore) as TextView
+		tvHighScore = findViewById<View>(R.id.textViewHighScore) as TextView
 	}
 
-	@Override
-	protected void onPause() {
-		super.onPause();
-		pbv.setPaused(true);
-		int score = pbv.getScore();
-		int highScore = getPrefs().getInt(PREF_HIGH_SCORE_INT, 0);
+	override fun onResume() {
+		super.onResume()
+		val width = intent.getIntExtra(INTENT_EXTRA_INT_WIDTH, 10)
+		val height = intent.getIntExtra(INTENT_EXTRA_INT_HEIGHT, 10)
+		val difficulty = intent.getIntExtra(INTENT_EXTRA_INT_DIFFUCULTY, 0)
+		pbv!!.initMaze(width, height, difficulty)
+		pbv!!.setPaused(false)
+		highScore = prefs.getInt(PREF_HIGH_SCORE_INT, 0)
+		tvHighScore!!.text = "" + highScore
+		tvScore!!.text = "0"
+		startPolling(1)
+	}
+
+	override fun onPause() {
+		super.onPause()
+		pbv!!.setPaused(true)
+		val score = pbv!!.score
+		val highScore = prefs.getInt(PREF_HIGH_SCORE_INT, 0)
 		if (score > highScore) {
-			getPrefs().edit().putInt(PREF_HIGH_SCORE_INT, score).commit();
+			prefs.edit().putInt(PREF_HIGH_SCORE_INT, score).commit()
 		}
 	}
 
-	@Override
-	protected void onPoll() {
-		int score = pbv.getScore();
-		tvScore.setText("" + score);
+	override fun onPoll() {
+		val score = pbv!!.score
+		tvScore!!.text = "" + score
 		if (score > highScore) {
-			highScore = score;
-			tvHighScore.setText("" + score);
+			highScore = score
+			tvHighScore!!.text = "" + score
 		}
-		if (pbv.getDifficulty() < PacBoyRenderer.DIFFICULTY_NO_CHASE) {
-			tvHighScore.setVisibility(View.INVISIBLE);
-			tvScore.setVisibility(View.INVISIBLE);
+		if (pbv!!.difficulty < PacBoyRenderer.DIFFICULTY_NO_CHASE) {
+			tvHighScore!!.visibility = View.INVISIBLE
+			tvScore!!.visibility = View.INVISIBLE
 		} else {
-			tvHighScore.setVisibility(View.VISIBLE);
-			tvScore.setVisibility(View.VISIBLE);
+			tvHighScore!!.visibility = View.VISIBLE
+			tvScore!!.visibility = View.VISIBLE
 		}
 	}
-	
+
+	companion object {
+		const val INTENT_EXTRA_INT_WIDTH = "width"
+		const val INTENT_EXTRA_INT_HEIGHT = "height"
+		const val INTENT_EXTRA_INT_DIFFUCULTY = "difficulty"
+		private const val PREF_HIGH_SCORE_INT = "HIGH_SCORE"
+	}
 }

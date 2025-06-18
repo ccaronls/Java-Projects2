@@ -1,65 +1,55 @@
-package cc.android.pacboy;
+package cc.android.pacboy
 
-import android.content.Context;
-import android.opengl.GLSurfaceView;
-import android.util.AttributeSet;
-import android.view.SurfaceHolder;
+import android.content.Context
+import android.opengl.GLSurfaceView
+import android.util.AttributeSet
+import android.view.SurfaceHolder
 
-public class PacBoyView extends GLSurfaceView {
-
-	private PacBoyRenderer pb;
-
-	private void initView() {
-		if (!isInEditMode()) {
-			setRenderer(pb = new PacBoyRenderer(this));
-			if (BuildConfig.DEBUG)
-                setDebugFlags(DEBUG_CHECK_GL_ERROR);// | DEBUG_LOG_GL_CALLS);
-            setRenderMode(RENDERMODE_WHEN_DIRTY);
-            setOnTouchListener(pb);
+class PacBoyView : GLSurfaceView {
+	private var pb: PacBoyRenderer? = null
+	private fun initView() {
+		if (!isInEditMode) {
+			setRenderer(PacBoyRenderer(this).also { pb = it })
+			if (BuildConfig.DEBUG) debugFlags = DEBUG_CHECK_GL_ERROR // | DEBUG_LOG_GL_CALLS);
+			renderMode = RENDERMODE_WHEN_DIRTY
+			setOnTouchListener(pb)
 		}
 	}
-	
-	public PacBoyView(Context context) {
-		super(context);
-		initView();
+
+	constructor(context: Context?) : super(context) {
+		initView()
 	}
 
-	public PacBoyView(Context context, AttributeSet attrs) {
-		super(context, attrs);
-		initView();
+	constructor(context: Context?, attrs: AttributeSet?) : super(context, attrs) {
+		initView()
 	}
-	
-	@Override
-    public void surfaceDestroyed(SurfaceHolder holder) {
+
+	override fun surfaceDestroyed(holder: SurfaceHolder) {
 		if (pb != null) {
-			pb.shutDown();
-			pb = null;
+			pb!!.shutDown()
+			pb = null
 		}
 	}
-	
-	public void setPaused(boolean paused) {
-		pb.setPaused(paused);
-    }
 
-	public void initMaze(int width, int height, int difficulty) {
-		pb.newMaze(width, height, difficulty);
-	}
-	
-	public void initIntro() {
-		pb.setupIntro();
+	fun setPaused(paused: Boolean) {
+		pb!!.isPaused = paused
 	}
 
-	public int getScore() {
-		return pb.getScore();
+	fun initMaze(width: Int, height: Int, difficulty: Int) {
+		pb!!.newMaze(width, height, difficulty)
 	}
-	
-	@Override
-	public boolean performClick() {
-		return super.performClick();
+
+	fun initIntro() {
+		pb!!.setupIntro()
 	}
-	
-	public int getDifficulty() {
-		return pb.getDifficulty();
+
+	val score: Int
+		get() = pb!!.score
+
+	override fun performClick(): Boolean {
+		return super.performClick()
 	}
-	
+
+	val difficulty: Int
+		get() = pb!!.difficulty
 }

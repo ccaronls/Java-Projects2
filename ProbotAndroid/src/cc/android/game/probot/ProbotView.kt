@@ -1,13 +1,23 @@
 package cc.android.game.probot
 
 import android.content.Context
-import android.graphics.*
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.Path
+import android.graphics.RadialGradient
+import android.graphics.Rect
+import android.graphics.RectF
+import android.graphics.Shader
 import android.util.AttributeSet
 import android.view.View
 import cc.lib.android.DroidUtils
 import cc.lib.game.AAnimation
 import cc.lib.math.Bezier
-import cc.lib.probot.*
+import cc.lib.probot.Direction
+import cc.lib.probot.Guy
+import cc.lib.probot.Probot
+import cc.lib.probot.Type
 import kotlin.math.roundToInt
 
 /**
@@ -311,7 +321,7 @@ class ProbotView : View {
 		animation = object : BaseAnim(1000) {
 			val b = Bezier()
 
-			override fun onStarted(g: Canvas) {
+			override fun onStarted(g: Canvas, revered: Boolean) {
 				val x = guy.posx * cw + cw / 2
 				val y = guy.posy * ch + ch / 2
 				b.addPoint(x.toFloat(), y.toFloat())
@@ -321,6 +331,7 @@ class ProbotView : View {
 						b.addPoint((x + cw * 4 / 3).toFloat(), (y - ch / 2).toFloat())
 						b.addPoint((x + cw * 2).toFloat(), y.toFloat())
 					}
+
 					Direction.Down -> {
 						b.addPoint((x + cw).toFloat(), (y + ch * 2 / 3).toFloat())
 						b.addPoint((x + cw).toFloat(), (y + ch * 4 / 3).toFloat())

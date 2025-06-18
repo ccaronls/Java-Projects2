@@ -1,6 +1,5 @@
-package cc.jroids.swing
+package cc.applets.roids
 
-import cc.jroids.JavaRoids
 import cc.lib.game.AGraphics
 import cc.lib.game.Utils
 import cc.lib.swing.AWTFrame
@@ -14,17 +13,14 @@ import java.io.File
  */
 class JavaRoidsApplet : AWTKeyboardAnimationApplet() {
 	var jr: JavaRoids = object : JavaRoids() {
-		override fun getFrameNumber(): Int {
-			return 0
-		}
 
-		override fun getScreenWidth(): Int {
-			return 0
-		}
+		override val frameNumber: Int
+			get() = getFrameNumber()
+		override val screenWidth: Int
+			get() = getScreenWidth()
+		override val screenHeight: Int
+			get() = getScreenHeight()
 
-		override fun getScreenHeight(): Int {
-			return 0
-		}
 	}
 
 	override fun onDimensionsChanged(g: AGraphics, width: Int, height: Int) {
@@ -43,7 +39,7 @@ class JavaRoidsApplet : AWTKeyboardAnimationApplet() {
 	}
 
 	//---------------------------------------------------------------
-	override fun keyPressed(e: KeyEvent) {
+	override fun onKeyPressed(e: KeyEvent) {
 		val key = e.keyCode
 		when (key) {
 			KeyEvent.VK_LEFT -> jr.pressButton(JavaRoids.PLAYER_BUTTON_LEFT)
@@ -66,7 +62,7 @@ class JavaRoidsApplet : AWTKeyboardAnimationApplet() {
 	}
 
 	//---------------------------------------------------------------
-	override fun keyReleased(e: KeyEvent) {
+	override fun onKeyReleased(e: KeyEvent) {
 		val key = e.keyCode
 		when (key) {
 			KeyEvent.VK_LEFT -> jr.releaseButton(JavaRoids.PLAYER_BUTTON_LEFT)

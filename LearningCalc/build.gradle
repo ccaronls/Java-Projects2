@@ -1,10 +1,9 @@
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
 
 dependencies {
     implementation project(':AndroidGameLibrary')
-    //implementation 'cc.lib:gamelib-android:1.0'
     implementation project(':GameLibrary')
-    //implementation 'com.google.android.gms:play-services:4.0.30'
 }
 
 android {

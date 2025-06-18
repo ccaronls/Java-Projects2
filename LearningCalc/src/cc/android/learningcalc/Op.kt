@@ -1,69 +1,55 @@
-package cc.android.learningcalc;
+package cc.android.learningcalc
 
-import android.content.Context;
+import android.content.Context
+import java.math.BigInteger
 
-import java.math.BigInteger;
+enum class Op {
+	ADD,
+	SUB,
+	MULT,
+	DIV;
 
-enum Op {
-	ADD,SUB,MULT,DIV;
-	
-	int solve(int a, int b) {
-		switch (this) {
-			case ADD:
-				return a+b;
-			case DIV:
-				return a/b;
-			case MULT:
-				return a*b;
-			case SUB:
-				return a-b;
+	fun solve(a: Int, b: Int): Int {
+		return when (this) {
+			ADD -> a + b
+			DIV -> a / b
+			MULT -> a * b
+			SUB -> a - b
 		}
-		return 0;
+		return 0
 	}
-	
-	BigInteger solve(BigInteger a, BigInteger b) {
+
+	fun solve(a: BigInteger, b: BigInteger): BigInteger? {
 		try {
-			switch (this) {
-				case ADD:
-					return a.add(b);
-				case DIV:
-					return a.divide(b);
-				case MULT:
-					return a.multiply(b);
-				case SUB:
-					return a.subtract(b);
-				
+			return when (this) {
+				ADD -> a.add(b)
+				DIV -> a.divide(b)
+				MULT -> a.multiply(b)
+				SUB -> a.subtract(b)
 			}
-		} catch (ArithmeticException e) {
+		} catch (e: ArithmeticException) {
+			e.printStackTrace()
 		}
-		return null;
+		return null
 	}
-	
-	String sign(Context c) {
-		switch (this) {
-			case ADD:
-				return "+";
-			case DIV:
-				return c.getString(R.string.div_symbol);
-			case MULT:
-				return "X";
-			case SUB:
-				return "-";
+
+	fun sign(c: Context): String {
+		return when (this) {
+			ADD -> "+"
+			DIV -> c.getString(R.string.div_symbol)
+			MULT -> "X"
+			SUB -> "-"
 		}
-		return "?";
+		return "?"
 	}
-	
-	String tts() {
-		switch (this) {
-			case ADD:
-				return "plus";
-			case DIV:
-				return "divided by";
-			case MULT:
-				return "times";
-			case SUB:
-				return "minus";
+
+	fun tts(): String {
+		return when (this) {
+			ADD -> "plus"
+			DIV -> "divided by"
+			MULT -> "times"
+			SUB -> "minus"
 		}
-		return "um";
+		return "um"
 	}
 }

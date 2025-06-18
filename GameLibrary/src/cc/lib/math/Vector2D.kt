@@ -153,7 +153,7 @@ open class Vector2D() : Reflector<Vector2D>(), IVector2D, Serializable, IInterpo
 		var getFromPool: () -> MutableVector2D = { MutableVector2D() }
 
 		@JvmStatic
-		fun newTemp(x: Number, y: Number): MutableVector2D {
+		fun newTemp(x: Number = 0, y: Number = 0): MutableVector2D {
 			return getFromPool().assign(x.toFloat(), y.toFloat())
 		}
 

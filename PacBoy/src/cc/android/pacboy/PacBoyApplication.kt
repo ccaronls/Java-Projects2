@@ -1,14 +1,10 @@
-package cc.android.pacboy;
+package cc.android.pacboy
 
-import android.app.Application;
+import android.app.Application
 
-public class PacBoyApplication extends Application {
-
-	@Override
-	public void onCreate() {
+class PacBoyApplication : Application() {
+	override fun onCreate() {
 		// TODO Auto-generated method stub
-		super.onCreate();
+		super.onCreate()
 	}
-
-	
 }

@@ -9,16 +9,30 @@ import android.graphics.Typeface
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
-import android.widget.*
+import android.widget.AdapterView
 import android.widget.AdapterView.OnItemClickListener
+import android.widget.BaseAdapter
+import android.widget.GridLayout
+import android.widget.ImageButton
+import android.widget.ListView
+import android.widget.NumberPicker
+import android.widget.TextView
 import cc.game.monopoly.android.databinding.GameConfigDialogBinding
 import cc.lib.android.CCNumberPicker
 import cc.lib.android.DroidActivity
 import cc.lib.android.DroidGraphics
 import cc.lib.android.DroidView
 import cc.lib.game.AGraphics
-import cc.lib.monopoly.*
+import cc.lib.monopoly.Card
+import cc.lib.monopoly.Monopoly
+import cc.lib.monopoly.MoveType
+import cc.lib.monopoly.Piece
+import cc.lib.monopoly.Player
 import cc.lib.monopoly.Player.CardChoiceType
+import cc.lib.monopoly.PlayerUser
+import cc.lib.monopoly.Square
+import cc.lib.monopoly.Trade
+import cc.lib.monopoly.UIMonopoly
 import cc.lib.utils.FileUtils
 import cc.lib.utils.prettify
 import kotlinx.coroutines.runBlocking
@@ -238,7 +252,7 @@ class MonopolyActivity : DroidActivity() {
 	private fun showPurchasePropertyDialog(title: String, buyLabel: String, property: Square, callback: (bought:Boolean)->Unit) {
 		newDialogBuilder().setTitle(title).setView(object : DroidView(this, false) {
 			override fun onPaint(g: DroidGraphics) {
-				g.setTextHeightDips(32f)
+				g.setTextHeight(32f, false)
 				monopoly.drawPropertyCard(g, g.viewportWidth.toFloat(), 0f, property, null)
 			}
 
@@ -289,7 +303,7 @@ class MonopolyActivity : DroidActivity() {
 	var ty = -1
 	var dragging = false
 	override fun onDraw(g: DroidGraphics) {
-		g.setTextHeightDips(16f)
+		g.setTextHeight(16f, false)
 		monopoly.paint(g, tx, ty)
 	}
 
@@ -471,9 +485,8 @@ class MonopolyActivity : DroidActivity() {
 		andThen.run()
 	}
 
-	override fun getDialogTheme(): Int {
-		return R.style.MonopolyDialogTheme
-	}
+	override val dialogTheme: Int
+		get() = R.style.MonopolyDialogTheme
 
 	override fun onDialogShown(d: Dialog) {
 

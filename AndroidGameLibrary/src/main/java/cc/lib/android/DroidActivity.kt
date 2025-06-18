@@ -95,7 +95,7 @@ abstract class DroidActivity : CCActivityBase() {
 				currentDialog?.dismiss()
 				return super.show().also {
 					currentDialog = it
-					onDialogShown(currentDialog)
+					onDialogShown(it)
 				}
 			}
 		}.setCancelable(false)
@@ -112,7 +112,7 @@ abstract class DroidActivity : CCActivityBase() {
 		return true
 	}
 
-	protected open fun onDialogShown(d: Dialog?) {}
+	protected open fun onDialogShown(d: Dialog) {}
 	fun dismissCurrentDialog() {
 		if (currentDialog != null) {
 			currentDialog!!.dismiss()

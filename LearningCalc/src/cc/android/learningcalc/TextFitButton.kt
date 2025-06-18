@@ -1,114 +1,88 @@
-package cc.android.learningcalc;
+package cc.android.learningcalc
 
-import android.content.Context;
-import android.util.AttributeSet;
-import android.util.TypedValue;
-import android.widget.Button;
+import android.content.Context
+import android.util.AttributeSet
+import android.util.TypedValue
+import androidx.appcompat.widget.AppCompatButton
 
-public class TextFitButton extends Button {
+class TextFitButton(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0) :
+	AppCompatButton(context, attrs, defStyleAttr) {
 
-	public TextFitButton(Context context, AttributeSet attrs, int defStyleAttr) {
-		super(context, attrs, defStyleAttr);
-	}
-
-	public TextFitButton(Context context, AttributeSet attrs) {
-		super(context, attrs);
-	}
-
-	public TextFitButton(Context context) {
-		super(context);
-	}
-
-
-    /* Re size the font so the specified text fits in the text box
+	/* Re size the font so the specified text fits in the text box
      * assuming the text box is the specified width.
      */
-    private void refitText(String text, int textWidth) {
-        if (textWidth > 0) {
-            int availableWidth = textWidth - this.getPaddingLeft() - this.getPaddingRight();
-            float trySize = maxTextSize;
+	private fun refitText(text: String, textWidth: Int) {
+		if (textWidth > 0) {
+			val availableWidth = textWidth - this.paddingLeft - this.paddingRight
+			var trySize = maxTextSize
 
-            // Using setTextSize on the paint object directly, or on a clone
-            // of that paint object, does not work -- the measurements come
-            // out wrong.  Instead, call the textview's setTextSize, which
-            // will propogate the necessary info.
+			// Using setTextSize on the paint object directly, or on a clone
+			// of that paint object, does not work -- the measurements come
+			// out wrong.  Instead, call the textview's setTextSize, which
+			// will propogate the necessary info.
 
-            // getTextSize returns pixels in device-specific units.
-            // setTextSize expects pixels in scaled-pixel units, by default.
-            // Specify TypedValues.COMPLEX_UNIT_PX so that setTextSize will
-            // work with the same numbers that we get from getTextSize.
-            // (An alternative solution would be to convert the value we get
-            // from getTextSize into scaled-pixel units.)
+			// getTextSize returns pixels in device-specific units.
+			// setTextSize expects pixels in scaled-pixel units, by default.
+			// Specify TypedValues.COMPLEX_UNIT_PX so that setTextSize will
+			// work with the same numbers that we get from getTextSize.
+			// (An alternative solution would be to convert the value we get
+			// from getTextSize into scaled-pixel units.)
+			setTextSize(TypedValue.COMPLEX_UNIT_PX, trySize)
+			while (if (trySize > minTextSize && enableMultiline) !textFits(text, availableWidth) else paint.measureText(text) > availableWidth) {
+				trySize -= 1f
+				if (trySize <= minTextSize) {
+					trySize = minTextSize
+					break
+				}
+				setTextSize(TypedValue.COMPLEX_UNIT_PX, trySize)
+			}
+		}
+	}
 
-            setTextSize(TypedValue.COMPLEX_UNIT_PX, trySize);
-            while ((trySize > minTextSize) && enableMultiline ? !textFits(text, availableWidth) : getPaint().measureText(text) > availableWidth) { 
-                trySize -= 1;
-                if (trySize <= minTextSize) {
-                    trySize = minTextSize;
-                    break;
-                }
-                setTextSize(TypedValue.COMPLEX_UNIT_PX, trySize);
-            }
-        }
-    }
-    
-    private boolean textFits(String text, int maxWidth)  {
-    	
-    	int numLines = 1;
-    	if (getHeight() > 0) {
-    		numLines = (int)((float)getHeight() / (getPaint().getTextSize()+getPaint().getFontMetrics().leading+getPaint().getFontMetrics().bottom));
-    	}
-    	
-    	if (numLines == 1) {
-    		return getPaint().measureText(text) <= maxWidth;
-    	}
-    	for (int i=0; i<numLines; i++) {
-    		int numChars = getPaint().breakText(text, true, maxWidth, null);
-    		if (numChars >= text.length())
-    			return true;
-    		text = text.substring(numChars);
-    	}
-    	return false;
-    }
+	private fun textFits(text: String, maxWidth: Int): Boolean {
+		var text = text
+		var numLines = 1
+		if (height > 0) {
+			numLines = (height.toFloat() / (paint.textSize + paint.fontMetrics.leading + paint.fontMetrics.bottom)).toInt()
+		}
+		if (numLines == 1) {
+			return paint.measureText(text) <= maxWidth
+		}
+		for (i in 0 until numLines) {
+			val numChars = paint.breakText(text, true, maxWidth.toFloat(), null)
+			if (numChars >= text.length) return true
+			text = text.substring(numChars)
+		}
+		return false
+	}
 
-    @Override
-    protected void onTextChanged(final CharSequence text, final int start, final int before, final int after) {
-        refitText(text.toString(), this.getWidth());
-    }
+	override fun onTextChanged(text: CharSequence, start: Int, before: Int, after: Int) {
+		refitText(text.toString(), this.width)
+	}
 
-    @Override
-    protected void onSizeChanged (int w, int h, int oldw, int oldh) {
-        if (w != oldw) {
-            refitText(this.getText().toString(), w);
-        }
-    }
+	override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+		if (w != oldw) {
+			refitText(this.text.toString(), w)
+		}
+	}
 
-    //Getters and Setters
-    public float getMinTextSize() {
-        return minTextSize;
-    }
+	fun setMinTextSize(minTextSize: Int) {
+		this.minTextSize = minTextSize.toFloat()
+	}
 
-    public void setMinTextSize(int minTextSize) {
-        this.minTextSize = minTextSize;
-    }
+	fun setMaxTextSize(minTextSize: Int) {
+		maxTextSize = minTextSize.toFloat()
+	}
 
-    public float getMaxTextSize() {
-        return maxTextSize;
-    }
+	fun setEnabledMultiline(enable: Boolean) {
+		enableMultiline = enable
+	}
 
-    public void setMaxTextSize(int minTextSize) {
-        this.maxTextSize = minTextSize;
-    }
-    
-    public void setEnabledMultiline(boolean enable) {
-    	this.enableMultiline = enable;
-    }
-
-    //Attributes
-    private float minTextSize = 11;
-    private float maxTextSize = 20;
-    private boolean enableMultiline = false;
-
-	
-	
+	//Getters and Setters
+	//Attributes
+	var minTextSize = 11f
+		private set
+	var maxTextSize = 20f
+		private set
+	private var enableMultiline = false
 }

@@ -1,12 +1,10 @@
-package marcos.games.hexes.core;
+package marcos.games.hexes.core
 
-import cc.lib.annotation.Keep;
+import cc.lib.annotation.Keep
 
 @Keep
-public enum State {
-
+enum class State {
 	READY,
 	FIRST_MOVE,
 	PLAYING
-	
 }

@@ -1,27 +1,22 @@
-package marcos.games.hexes.core;
+package marcos.games.hexes.core
 
-import java.util.LinkedList;
+import cc.lib.reflector.Reflector
+import java.util.LinkedList
 
-import cc.lib.reflector.Reflector;
-
-public class IdGenerator extends Reflector<IdGenerator> {
-
-	static {
-		addAllFields(IdGenerator.class);
+class IdGenerator : Reflector<IdGenerator?>() {
+	private val removed = LinkedList<Int>()
+	private var counter = 1
+	fun nextId(): Int {
+		return if (removed.isEmpty()) counter++ else removed.remove()
 	}
-	
-	private LinkedList<Integer> removed = new LinkedList<Integer>();
-	private int counter = 1;
-	
-	int nextId() {
-		if (removed.isEmpty())
-			return counter++;
-		return removed.remove();
+
+	fun putBack(id: Int) {
+		if (id > 0 && !removed.contains(id)) removed.add(id)
 	}
-	
-	void putBack(int id) {
-		if (id > 0 && !removed.contains(id))
-			removed.add(id);
+
+	companion object {
+		init {
+			addAllFields(IdGenerator::class.java)
+		}
 	}
-	
 }
