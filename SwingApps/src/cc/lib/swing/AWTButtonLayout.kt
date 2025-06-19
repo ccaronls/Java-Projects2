@@ -13,9 +13,9 @@ class AWTButtonLayout : LayoutManager2 {
 	override fun invalidateLayout(target: Container) {
 	}
 
-	override fun addLayoutComponent(name: String, comp: Component) {}
-	override fun removeLayoutComponent(comp: Component) {}
-	override fun addLayoutComponent(comp: Component, constraints: Any) {}
+	override fun addLayoutComponent(name: String?, comp: Component?) {}
+	override fun removeLayoutComponent(comp: Component?) {}
+	override fun addLayoutComponent(comp: Component?, constraints: Any?) {}
 
 	constructor() {}
 	constructor(target: Container) {

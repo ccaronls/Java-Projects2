@@ -3,6 +3,7 @@ package cc.lib.swing
 import cc.lib.game.Utils
 import cc.lib.ui.IButton
 import cc.lib.utils.FileUtils
+import cc.lib.utils.HtmlUtils
 import java.awt.Image
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
@@ -39,22 +40,22 @@ open class AWTButton : JButton, ActionListener {
 		return this
 	}
 
-	constructor(label: String, selected: Boolean) : super(HTML_PREFIX + label + HTML_SUFFIX) {
+	constructor(label: String, selected: Boolean) : super(HTML_PREFIX + HtmlUtils.escapeHTML(label) + HTML_SUFFIX) {
 		actionCommand = label
 		isSelected = selected
 	}
 
-	constructor(label: String) : super(HTML_PREFIX + label + HTML_SUFFIX) {
+	constructor(label: String) : super(HTML_PREFIX + HtmlUtils.escapeHTML(label) + HTML_SUFFIX) {
 		actionCommand = label
 		addActionListener(this)
 	}
 
-	constructor(label: String, listener: ActionListener?) : super(HTML_PREFIX + label + HTML_SUFFIX) {
+	constructor(label: String, listener: ActionListener?) : super(HTML_PREFIX + HtmlUtils.escapeHTML(label) + HTML_SUFFIX) {
 		actionCommand = label
 		addActionListener(listener)
 	}
 
-	constructor(label: String, data: Any, listener: ActionListener) : super(HTML_PREFIX + label + HTML_SUFFIX) {
+	constructor(label: String, data: Any, listener: ActionListener) : super(HTML_PREFIX + HtmlUtils.escapeHTML(label) + HTML_SUFFIX) {
 		addActionListener(listener)
 		actionCommand = label
 		this.data = data

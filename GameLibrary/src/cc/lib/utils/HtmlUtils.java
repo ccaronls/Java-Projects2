@@ -55,14 +55,29 @@ public class HtmlUtils {
 	public static String wrapTextForTD(String txt, int maxChars) {
 	    if (txt == null)
 	        return null;
-		StringBuffer buf = new StringBuffer();
-		String [] lines = HtmlUtils.wrapText(txt, maxChars);
-		for (int ii=0; ii<lines.length; ii++) {
-			buf.append(lines[ii]);
-			if (ii < lines.length-1)
-				buf.append("<br/>");
-		}
-		return buf.toString();
-	}
+        StringBuffer buf = new StringBuffer();
+        String[] lines = HtmlUtils.wrapText(txt, maxChars);
+        for (int ii = 0; ii < lines.length; ii++) {
+            buf.append(lines[ii]);
+            if (ii < lines.length - 1)
+                buf.append("<br/>");
+        }
+        return buf.toString();
+    }
+
+    public static String escapeHTML(String s) {
+        StringBuilder out = new StringBuilder(Math.max(16, s.length()));
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (c > 127 || c == '"' || c == '\'' || c == '<' || c == '>' || c == '&') {
+                out.append("&#");
+                out.append((int) c);
+                out.append(';');
+            } else {
+                out.append(c);
+            }
+        }
+        return out.toString();
+    }
 
 }

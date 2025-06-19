@@ -10,8 +10,6 @@
 **/*.iml
 **/build/
 **/.gradle
-**/gradlew*
-**/gradle/
 captures
 ./*.txt
 *.save
@@ -19,3 +17,4 @@ captures
 **/android.jks
 local.properties
 /todelete/
+.kotlin
