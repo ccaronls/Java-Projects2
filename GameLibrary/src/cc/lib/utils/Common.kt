@@ -288,7 +288,7 @@ fun String.padToFit(width: Int) : String {
 	return " ".repeat(diff / 2) + this + " ".repeat(diff / 2)
 }
 
-inline fun <reified T : Enum<T>> T.increment(amt: Int, values: Array<T> = enumValues()): T {
+inline fun <reified T : Enum<T>> T.increment(amt: Int = 1, values: Array<T> = enumValues()): T {
 	val idx = values.indexOf(this).coerceAtLeast(0)
 	return values[(idx + amt + values.size) % values.size]
 }

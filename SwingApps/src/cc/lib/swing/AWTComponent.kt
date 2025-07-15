@@ -70,6 +70,19 @@ abstract class AWTComponent : UIComponent, JComponent, Renderable, MouseListener
 	override fun setMouseOrTouch(g: APGraphics, mx: Int, my: Int) {
 	}
 
+	private fun paintPrivate(g: AWTGraphics) {
+		val size = g.matrixStackSize
+		try {
+			paint(g)
+		} catch (e: Exception) {
+			log.error("Error: %s", e)
+			e.printStackTrace()
+		} finally {
+			while (G.matrixStackSize > size)
+				G.popMatrix()
+		}
+	}
+
 	override fun paint(g: Graphics) {
 		try {
 			if (width > 0 && height > 0) {
@@ -88,24 +101,14 @@ abstract class AWTComponent : UIComponent, JComponent, Renderable, MouseListener
 					G.initViewport(width, height)
 					G.ortho()
 					if (progress >= 1) {
-						val matStack = G.matrixStackSize
 						if (scrollAmount < 0) scrollAmount = G.textHeight.toInt()
 						if (scrollStartY != 0) {
 							G.pushMatrix()
 							G.translate(0f, scrollStartY.toFloat())
-							paint(G)
+							paintPrivate(G)
 							G.popMatrix()
 						} else {
-							try {
-								paint(G)
-							} catch (e: Exception) {
-								log.error("Error: %s", e)
-								e.printStackTrace()
-								throw GException(e)
-							}
-						}
-						if (G.matrixStackSize != matStack) {
-							throw GException("Matrix stack not zero")
+							paintPrivate(G)
 						}
 					} else {
 						val f = g.font
@@ -154,8 +157,7 @@ abstract class AWTComponent : UIComponent, JComponent, Renderable, MouseListener
 	 * Return value between 0-1 that is the progress of init flow
 	 * @return
 	 */
-	protected open val initProgress: Float
-		protected get() = 1f
+	protected open val initProgress = 1f
 
 	override fun mouseClicked(e: MouseEvent) {
 		//Utils.println("mouseClicked");

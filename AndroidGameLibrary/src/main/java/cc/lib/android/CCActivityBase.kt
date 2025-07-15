@@ -421,4 +421,12 @@ open class CCActivityBase : AppCompatActivity() {
 		}
 		return null
 	}
+
+	final override fun onBackPressed() {
+		super.onBackPressed()
+	}
+
+	open fun onBackButtonPressed() {
+		onBackPressedDispatcher.onBackPressed()
+	}
 }

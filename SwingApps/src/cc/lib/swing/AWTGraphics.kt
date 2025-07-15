@@ -299,7 +299,10 @@ open class AWTGraphics : APGraphics {
 	fun addSearchPath(path: String) {
 		try {
 			val fullPath = File(path).canonicalFile
-			if (!fullPath.isDirectory) throw GException("Not a path " + path + " on root path: '" + File(".").canonicalPath + "'")
+			if (!fullPath.isDirectory) {
+				System.err.println("Not a path " + path + " on root path: '" + File(".").canonicalPath + "'")
+				return
+			}
 		} catch (e: GException) {
 			throw e
 		} catch (e: Exception) {

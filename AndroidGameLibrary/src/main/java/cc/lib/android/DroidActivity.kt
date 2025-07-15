@@ -60,10 +60,6 @@ abstract class DroidActivity : CCActivityBase() {
 		super.onDestroy()
 	}
 
-	override fun onBackPressed() {
-		super.onBackPressed()
-	}
-
 	fun onDrawInternal(g: DroidGraphics) {
 		if (!isFinishing) {
 			if (initialized) {

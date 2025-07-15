@@ -216,7 +216,52 @@ task bundleRoboApplication(type: Jar) {
     from(project(":KSPCommon").sourceSets.main.output)
     manifest {
         attributes["Main-Class"] = "cc.applets.robotron.RobotronApplet"
-        // Update with your actual main class
     }
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+project(':Zombicide').afterEvaluate {
+
+    task bundleZombicideApplication(type: Jar) {
+        group = 'Distribution'
+        description = 'Zombicide Swing Executable'
+
+        archiveBaseName.set("ZombieApp")
+
+        from {
+            configurations.runtimeClasspath.findAll { it.name.endsWith('jar') }.collect {
+                zipTree(it)
+            }
+        }
+
+        from(sourceSets.main.output)
+        from(project(":Zombicide").sourceSets.main.output)
+        from(project(":GameLibrary").sourceSets.main.output)
+        from(project(":KSPCommon").sourceSets.main.output)
+        from(file("../ZombicideAndroid/src/main/res/drawable"))
+        from(file("../ZombicideAndroid/assets"))
+        manifest {
+            attributes["Main-Class"] = "cc.applets.zombicide.ZombicideApplet"
+        }
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    }
+
+
+    task zipApps(type: Zip) {
+        group = 'distribution'
+        dependsOn bundleZombicideApplication
+        dependsOn bundleRoboApplication
+
+        archiveBaseName.set("javaApps")
+        archiveVersion.set("1.0")
+        destinationDirectory.set(file("$rootDir/zips"))
+
+        from(bundleZombicideApplication.archiveFile) {
+            into("") // place the JAR at root of ZIP
+        }
+
+        from(bundleRoboApplication.archiveFile) {
+            into("") // place the JAR at root of ZIP
+        }
+    }
 }
