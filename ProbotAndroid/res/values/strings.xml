@@ -2,5 +2,10 @@
 <resources>
 
     <string name="app_name">PROG-Man</string>
+    <string name="loop_begin">Begin</string>
+    <string name="loop_end">End</string>
+
+    <string name="tooltip1">Click or drag commands from the toolbar to your program</string>
+    <string name="tooltip2">Press play to run your program</string>
 
 </resources>

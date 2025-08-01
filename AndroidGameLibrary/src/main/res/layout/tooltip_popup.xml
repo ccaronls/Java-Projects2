@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?><!-- res/layout/tooltip_popup_button.xml -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/tooltipContainer"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:gravity="center"
+    tools:background="#000">
+
+    <TextView
+        android:id="@+id/tooltipText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:background="#000"
+        android:text="Tooltip text could be quite long"
+        android:layout_margin="16dp"
+        android:textSize="14sp"
+        android:textColor="#FFFFFF"
+        android:gravity="center"
+        android:padding="8dp"
+        android:clickable="true"
+        android:focusable="true" />
+</FrameLayout>

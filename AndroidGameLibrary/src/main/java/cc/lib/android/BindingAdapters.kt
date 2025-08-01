@@ -3,6 +3,7 @@ package cc.lib.android
 import android.view.View
 import android.view.View.OnFocusChangeListener
 import android.view.ViewGroup
+import android.view.animation.Animation
 import android.widget.CompoundButton
 import android.widget.ImageView
 import android.widget.ListAdapter
@@ -143,4 +144,14 @@ fun setTextColor(view: TextView, color: Int) {
 @BindingAdapter("activatedIf")
 fun View.setActivatedIf(active: Boolean) {
 	isActivated = active
+}
+
+@BindingAdapter(value = ["animateIf", "animation", "toolTipPopupText"], requireAll = false)
+fun View.startAnimationIf(predicate: Boolean, animation: Animation, toolTipPopupText: String? = null) {
+	if (predicate && this.animation == null) {
+		startAnimation(animation)
+		toolTipPopupText?.let {
+			ToolTipPopup.show(context, this, it)
+		}
+	}
 }

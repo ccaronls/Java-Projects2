@@ -313,7 +313,7 @@ abstract class UIProbot : Probot() {
 			val y = guy.posy * ch + ch / 2
 			g.pushMatrix()
 			g.translate(x.toFloat(), y.toFloat())
-			g.rotate(Math.round(position * 90 * dir).toFloat())
+			g.rotate(position * 90 * dir)
 			g.color = guy.color
 			drawGuy(g, 0f, 0f, guy.dir, 0f)
 			g.popMatrix()

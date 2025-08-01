@@ -32,4 +32,14 @@
         <item name="android:layout_marginLeft">2dp</item>
         <item name="android:layout_marginRight">2dp</item>
     </style>
+
+    <style name="DefaultTooltipTheme">
+        <item name="tooltipBackgroundColor">#6200EE</item>
+        <item name="tooltipTextColor">#FFFFFF</item>
+        <item name="tooltipBorderColor">#FFFFFF</item>
+        <item name="tooltipBorderWidth">2dp</item>
+        <item name="tooltipCornerRadius">20dp</item>
+        <item name="tooltipArrowWidth">24dp</item>
+        <item name="tooltipArrowHeight">16dp</item>
+    </style>
 </resources>

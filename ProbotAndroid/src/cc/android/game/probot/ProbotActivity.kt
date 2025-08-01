@@ -9,7 +9,12 @@ import androidx.lifecycle.ViewModel
 import cc.android.game.probot.databinding.ProbotviewBinding
 import cc.lib.android.CCActivityBase
 import cc.lib.android.LayoutFactory
-import cc.lib.probot.*
+import cc.lib.android.combine
+import cc.lib.probot.Command
+import cc.lib.probot.CommandType
+import cc.lib.probot.Guy
+import cc.lib.probot.Level
+import cc.lib.probot.Probot
 import cc.lib.reflector.Reflector
 import kotlin.math.max
 
@@ -22,18 +27,33 @@ class ProbotViewModel : ViewModel() {
 	val leftCount  = MutableLiveData(0)
 
 	val rightVisible = MutableLiveData(false)
-	val rightCount  = MutableLiveData(0)
+	val rightCount = MutableLiveData(0)
 
 	val uturnVisible = MutableLiveData(false)
-	val uturnCount  = MutableLiveData(0)
+	val uturnCount = MutableLiveData(0)
 
 	val jumpVisible = MutableLiveData(false)
-	val jumpCount  = MutableLiveData(0)
+	val jumpCount = MutableLiveData(0)
+
+	val loopVisible = MutableLiveData(false)
+	val loopCount = MutableLiveData(0)
 
 	val levelName = MutableLiveData("???")
 	val running = MutableLiveData(false)
 	val maxLevel = MutableLiveData(0)
 	val level = MutableLiveData(0)
+
+	val lineCount = MutableLiveData(0)
+	val playerReady = MutableLiveData(false)
+
+	val tooltip1 = combine(level, lineCount, playerReady) { lvl, lc, rdy ->
+		lvl == 0 && lc == 0 && rdy == true
+	}
+
+	val tooltip2 = combine(level, lineCount, playerReady) { lvl, lc, rdy ->
+		lvl == 0 && lc == 3 && rdy == true
+	}
+
 }
 
 
@@ -122,6 +142,7 @@ class ProbotActivity : CCActivityBase() {
 	}
 
 	fun nextLevel() {
+		viewModel.playerReady.postValue(false)
 		setLevel(probot.levelNum + 1)
 	}
 
@@ -168,43 +189,51 @@ class ProbotActivity : CCActivityBase() {
 		adapter.setProgramLineNum(-1)
 		refresh()
 		binding.probotView.postInvalidate()
-		if (showInfo)
+		viewModel.lineCount.postValue(0)
+		if (showInfo) {
 			runOnUiThread {
 				newDialogBuilder()
 					.setTitle(levels[level].label)
 					.setMessage(levels[level].info)
-					.setNegativeButton(R.string.popup_button_ok, null)
-					.show()
+					.setNegativeButton(R.string.popup_button_ok) { _, _ ->
+						viewModel.playerReady.postValue(true)
+					}.show()
 			}
+		} else {
+			viewModel.playerReady.postValue(true)
+		}
 	}
 
 	fun refresh() {
 		viewModel.levelName.postValue(probot.level.label)
-		viewModel.running.postValue(probot.isRunning)
 
 		viewModel.advanceVisible.postValue(probot.isCommandTypeVisible(CommandType.Advance))
-		viewModel.advanceCount.postValue(probot.getCommandTypeNumAvaialable(CommandType.Advance))
+		viewModel.advanceCount.postValue(probot.getCommandTypeNumbAvailable(CommandType.Advance))
 
 		viewModel.leftVisible.postValue(probot.isCommandTypeVisible(CommandType.TurnLeft))
-		viewModel.leftCount.postValue(probot.getCommandTypeNumAvaialable(CommandType.TurnLeft))
+		viewModel.leftCount.postValue(probot.getCommandTypeNumbAvailable(CommandType.TurnLeft))
 
 		viewModel.rightVisible.postValue(probot.isCommandTypeVisible(CommandType.TurnRight))
-		viewModel.rightCount.postValue(probot.getCommandTypeNumAvaialable(CommandType.TurnRight))
+		viewModel.rightCount.postValue(probot.getCommandTypeNumbAvailable(CommandType.TurnRight))
 
 		viewModel.jumpVisible.postValue(probot.isCommandTypeVisible(CommandType.Jump))
-		viewModel.jumpCount.postValue(probot.getCommandTypeNumAvaialable(CommandType.Jump))
+		viewModel.jumpCount.postValue(probot.getCommandTypeNumbAvailable(CommandType.Jump))
 
 		viewModel.uturnVisible.postValue(probot.isCommandTypeVisible(CommandType.UTurn))
-		viewModel.uturnCount.postValue(probot.getCommandTypeNumAvaialable(CommandType.UTurn))
+		viewModel.uturnCount.postValue(probot.getCommandTypeNumbAvailable(CommandType.UTurn))
+
+		viewModel.lineCount.postValue(probot.size)
 	}
 
 	fun onPlayClicked(view: View) {
 		if (probot.size > 0) {
+			viewModel.running.value = true
 			object : Thread() {
 				override fun run() {
 					refresh()
 					probot.runProgram()
 					refresh()
+					viewModel.running.postValue(false)
 				}
 			}.start()
 		}

@@ -30,8 +30,11 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:src="@android:drawable/ic_media_play"
-                app:visibleIfNot="@{viewModel.running}"
-                android:onClick="@{activity::onPlayClicked}"/>
+                enabledIfNot="@{viewModel.running}"
+                animateIf="@{viewModel.tooltip2}"
+                animation="@{@anim/glow}"
+                toolTipPopupText="@{@string/tooltip2}"
+                android:onClick="@{activity::onPlayClicked}" />
             <ImageButton
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -81,7 +84,8 @@
 
             <!-- Forward arrow -->
             <ImageView
-                android:background="@drawable/arrow_forward"
+                android:src="@drawable/arrow_forward"
+                android:background="@drawable/white_outline"
                 android:id="@+id/ivArrowForward"
                 android:layout_width="0dp"
                 android:layout_height="fill_parent"
@@ -91,7 +95,9 @@
                 app:layout_constraintDimensionRatio="1:1"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                />
+                animateIf="@{viewModel.tooltip1}"
+                animation="@{@anim/glow}"
+                toolTipPopupText="@{@string/tooltip1}" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -100,12 +106,14 @@
                 android:text="@{viewModel.advanceCount.toString()}"
                 app:goneIf="@{!viewModel.advanceVisible || viewModel.advanceCount &lt; 0}"
                 android:textSize="16sp"
+                android:layout_margin="2dp"
                 app:layout_constraintStart_toStartOf="@id/ivArrowForward"
                 app:layout_constraintTop_toTopOf="@id/ivArrowForward"/>
 
             <!-- Right arrow -->
             <ImageView
-                android:background="@drawable/arrow_right"
+                android:src="@drawable/arrow_right"
+                android:background="@drawable/white_outline"
                 android:id="@+id/ivArrowRight"
                 android:layout_width="0dp"
                 android:layout_height="fill_parent"
@@ -114,7 +122,7 @@
                 android:tag="@{CommandType.TurnRight.build()}"
                 app:layout_constraintDimensionRatio="1:1"
                 app:layout_constraintStart_toEndOf="@id/ivArrowForward"
-                app:layout_constraintTop_toTopOf="parent"/>
+                app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -123,13 +131,15 @@
                 android:text="@{viewModel.rightCount.toString()}"
                 app:goneIf="@{!viewModel.rightVisible || viewModel.rightCount &lt; 0}"
                 android:textSize="16sp"
+                android:layout_margin="2dp"
                 app:layout_constraintStart_toStartOf="@id/ivArrowRight"
-                app:layout_constraintTop_toTopOf="@id/ivArrowRight"/>
+                app:layout_constraintTop_toTopOf="@id/ivArrowRight" />
 
             <!-- Left arrow -->
             <ImageView
                 comment="Left Turn Button"
-                android:background="@drawable/arrow_left"
+                android:src="@drawable/arrow_left"
+                android:background="@drawable/white_outline"
                 android:id="@+id/ivArrowLeft"
                 android:layout_width="0dp"
                 android:layout_height="fill_parent"
@@ -138,7 +148,7 @@
                 android:tag="@{CommandType.TurnLeft.build()}"
                 app:layout_constraintDimensionRatio="1:1"
                 app:layout_constraintStart_toEndOf="@id/ivArrowRight"
-                app:layout_constraintTop_toTopOf="parent"/>
+                app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -147,12 +157,14 @@
                 android:text="@{viewModel.leftCount.toString()}"
                 app:goneIf="@{!viewModel.leftVisible || viewModel.leftCount &lt; 0}"
                 android:textSize="16sp"
+                android:layout_margin="2dp"
                 app:layout_constraintEnd_toEndOf="@id/ivArrowLeft"
                 app:layout_constraintTop_toTopOf="@id/ivArrowLeft"/>
 
             <!-- UTurn arrow -->
             <ImageView
-                android:background="@drawable/uturn"
+                android:src="@drawable/uturn"
+                android:background="@drawable/white_outline"
                 android:id="@+id/ivUTurn"
                 android:layout_width="0dp"
                 android:layout_height="fill_parent"
@@ -161,7 +173,7 @@
                 android:tag="@{CommandType.UTurn.build()}"
                 app:layout_constraintDimensionRatio="1:1"
                 app:layout_constraintStart_toEndOf="@id/ivArrowLeft"
-                app:layout_constraintTop_toTopOf="parent"/>
+                app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -170,12 +182,14 @@
                 android:text="@{viewModel.uturnCount.toString()}"
                 app:goneIf="@{!viewModel.uturnVisible || viewModel.uturnCount &lt; 0}"
                 android:textSize="16sp"
+                android:layout_margin="2dp"
                 app:layout_constraintEnd_toEndOf="@id/ivUTurn"
                 app:layout_constraintTop_toTopOf="@id/ivUTurn"/>
 
             <!-- Jump arrow -->
             <ImageView
-                android:background="@drawable/arrow_jump"
+                android:src="@drawable/arrow_jump"
+                android:background="@drawable/white_outline"
                 android:id="@+id/ivArrowJump"
                 android:layout_width="0dp"
                 android:layout_height="fill_parent"
@@ -184,7 +198,7 @@
                 android:tag="@{CommandType.Jump.build()}"
                 app:layout_constraintDimensionRatio="1:1"
                 app:layout_constraintStart_toEndOf="@id/ivUTurn"
-                app:layout_constraintTop_toBottomOf="parent"/>
+                app:layout_constraintTop_toBottomOf="parent" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -193,9 +207,37 @@
                 android:text="@{viewModel.jumpCount.toString()}"
                 app:goneIf="@{!viewModel.jumpVisible || viewModel.jumpCount &lt; 0}"
                 android:textSize="16sp"
+                android:layout_margin="2dp"
                 app:layout_constraintBottom_toBottomOf="@id/ivArrowJump"
-                app:layout_constraintStart_toStartOf="@id/ivArrowJump"/>
+                app:layout_constraintStart_toStartOf="@id/ivArrowJump" />
 
+            <!-- repeat arrow
+            <ImageView
+                android:src="@drawable/arrow_repeat"
+                android:background="@drawable/white_outline"
+                android:id="@+id/ivLoop"
+                android:layout_width="0dp"
+                android:layout_height="fill_parent"
+                app:goneIfNot="@{viewModel.loopVisible}"
+                app:enabledIf="@{viewModel.loopCount != 0}"
+                android:tag="@{CommandType.LoopStart.build()}"
+                app:layout_constraintDimensionRatio="1:1"
+                app:layout_constraintStart_toEndOf="@id/ivArrowJump"
+                app:layout_constraintTop_toBottomOf="parent"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:text="10"
+                android:text="@{viewModel.loopCount.toString()}"
+                android:textSize="16sp"
+                android:layout_margin="2dp"
+                app:goneIf="@{!viewModel.loopVisible || viewModel.loopCount &lt; 0}"
+                app:layout_constraintTop_toTopOf="@id/ivLoop"
+                app:layout_constraintBottom_toBottomOf="@id/ivLoop"
+                app:layout_constraintStart_toStartOf="@id/ivLoop"
+                app:layout_constraintEnd_toEndOf="@id/ivLoop"/>
+-->
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <TextView

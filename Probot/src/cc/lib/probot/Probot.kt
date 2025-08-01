@@ -6,7 +6,7 @@ import cc.lib.reflector.Omit
 import cc.lib.reflector.Reflector
 import cc.lib.utils.Lock
 import cc.lib.utils.weakReference
-import java.util.*
+import java.util.Arrays
 import kotlin.math.roundToInt
 
 interface Observer {
@@ -441,9 +441,9 @@ open class Probot(private val program: ObservableArrayList<Command> = Observable
 
 	private fun turn(guy: Guy, d: Int) {
 		var nd = guy.dir.ordinal + d
-		nd += Direction.values().size
-		nd %= Direction.values().size
-		guy.dir = Direction.values()[nd]
+		nd += Direction.entries.size
+		nd %= Direction.entries.size
+		guy.dir = Direction.entries.toTypedArray()[nd]
 	}
 
 	fun reset() {
@@ -467,7 +467,7 @@ open class Probot(private val program: ObservableArrayList<Command> = Observable
 	 * @param t
 	 * @return
 	 */
-	fun getCommandTypeNumAvaialable(t: CommandType): Int = when (t) {
+	fun getCommandTypeNumbAvailable(t: CommandType): Int = when (t) {
 		CommandType.Jump -> if (level.numJumps < 0) -1 else level.numJumps - getCommandCount(t)
 		CommandType.LoopStart -> if (level.numLoops < 0) -1 else level.numLoops - getCommandCount(CommandType.LoopStart)
 		CommandType.TurnLeft, CommandType.TurnRight, CommandType.UTurn -> if (level.numTurns < 0) -1 else level.numTurns - getCommandCount(CommandType.TurnLeft, CommandType.TurnRight, CommandType.UTurn)
@@ -523,19 +523,23 @@ open class Probot(private val program: ObservableArrayList<Command> = Observable
 				when (val t = l.coins[i][ii]) {
 					Type.EM -> {
 					}
+
 					Type.DD -> {
 						g.color = GColor.WHITE
 						g.drawFilledCircle(x.toFloat(), y.toFloat(), radius)
 					}
-					Type.SE, Type.SS, Type.SW, Type.SN -> if (curColor < getMaxGuys()) drawGuy(g, Guy(x, y, Direction.values()[t.ordinal - 2], manColors[curColor++]), radius) else l.coins[i][ii] = Type.EM
-					Type.LH0 -> drawLazer(g, x, y, radius, true, GColor.RED)
-					Type.LV0 -> drawLazer(g, x, y, radius, false, GColor.RED)
+
+					Type.SE, Type.SS, Type.SW, Type.SN -> if (curColor < getMaxGuys()) drawGuy(g, Guy(x, y, Direction.entries[t.ordinal - 2], manColors[curColor++]), radius) else l.coins[i][ii] =
+						Type.EM
+
+					Type.LH0 -> drawLaser(g, x, y, radius, true, GColor.RED)
+					Type.LV0 -> drawLaser(g, x, y, radius, false, GColor.RED)
 					Type.LB0 -> drawButton(g, x, y, radius, GColor.RED, level.lazers[0])
-					Type.LH1 -> drawLazer(g, x, y, radius, true, GColor.BLUE)
-					Type.LV1 -> drawLazer(g, x, y, radius, false, GColor.BLUE)
+					Type.LH1 -> drawLaser(g, x, y, radius, true, GColor.BLUE)
+					Type.LV1 -> drawLaser(g, x, y, radius, false, GColor.BLUE)
 					Type.LB1 -> drawButton(g, x, y, radius, GColor.BLUE, level.lazers[1])
-					Type.LH2 -> drawLazer(g, x, y, radius, true, GColor.GREEN)
-					Type.LV2 -> drawLazer(g, x, y, radius, false, GColor.GREEN)
+					Type.LH2 -> drawLaser(g, x, y, radius, true, GColor.GREEN)
+					Type.LV2 -> drawLaser(g, x, y, radius, false, GColor.GREEN)
 					Type.LB2 -> drawButton(g, x, y, radius, GColor.GREEN, level.lazers[2])
 					Type.LB -> {
 						// toggle all button
@@ -583,7 +587,7 @@ open class Probot(private val program: ObservableArrayList<Command> = Observable
 		}
 	}
 
-	fun drawLazer(g: AGraphics, cx: Int, cy: Int, rad: Float, horz: Boolean, color: GColor?) {
+	fun drawLaser(g: AGraphics, cx: Int, cy: Int, rad: Float, horz: Boolean, color: GColor?) {
 		g.pushMatrix()
 		g.translate(cx.toFloat(), cy.toFloat())
 		if (!horz) {

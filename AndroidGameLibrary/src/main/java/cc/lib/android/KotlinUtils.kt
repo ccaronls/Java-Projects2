@@ -127,3 +127,13 @@ fun View.setFocusableIf(condition: Boolean) {
 fun MutableLiveData<Boolean>.toggle() {
 	value = value != true
 }
+
+fun View.postWithDelay(delay: Long, callback: () -> Unit) {
+	postDelayed(callback, delay)
+}
+
+fun View.getLocationOnScreen(): Pair<Int, Int> {
+	val loc = intArrayOf(0, 0)
+	getLocationOnScreen(loc)
+	return Pair(loc[0], loc[1])
+}

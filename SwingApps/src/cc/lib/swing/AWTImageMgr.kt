@@ -153,21 +153,14 @@ class AWTImageMgr {
 	@Synchronized
 	fun loadImage(fileOrResourceName: String, transparent: Color?, maxCopies: Int): Int {
 		val id = images.size
-		log.debug("Loading image %d : %s ...", id, fileOrResourceName)
-		val image: Image = try {
+		val (image: Image, source: String) = try {
 			try {
-				loadImageFromFile(fileOrResourceName).also {
-					log.debug("Image '$fileOrResourceName' loaded from file")
-				}
+				Pair(loadImageFromFile(fileOrResourceName), "File")
 			} catch (e: FileNotFoundException) {
 				try {
-					loadImageFromSearchPaths(fileOrResourceName).also {
-						log.debug("Image '$fileOrResourceName' loaded from search paths")
-					}
+					Pair(loadImageFromSearchPaths(fileOrResourceName), "Search Paths")
 				} catch (ee: FileNotFoundException) {
-					loadImageFromResource(fileOrResourceName).also {
-						log.debug("Image '$fileOrResourceName' loaded from resources")
-					}
+					Pair(loadImageFromResource(fileOrResourceName), "Resources")
 				}
 			}
 		} catch (e: FileNotFoundException) {
@@ -177,6 +170,7 @@ class AWTImageMgr {
 			log.error(e.javaClass.simpleName + ":" + e.message)
 			throw GException("Cannot load image '$fileOrResourceName'")
 		}
+		log.debug("Loaded $fileOrResourceName id[$id] from $source with resolution ${image.getWidth(null)} x ${image.getHeight(null)}")
 		if (transparent != null) {
 			return addImage(transform(image, AWTTransparencyFilter(transparent)))
 		}

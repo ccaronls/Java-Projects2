@@ -220,9 +220,7 @@ public abstract class DragAndDropAdapter<T> extends BaseAdapter implements View.
                 break;
             }
             case DragEvent.ACTION_DRAG_EXITED:
-                // TODO: Do I need this?
-                //dragInsertPos = -1;
-                //adapter.notifyDataSetChanged();
+                dropped = true;
                 break;
             case DragEvent.ACTION_DRAG_LOCATION:
             case DragEvent.ACTION_DRAG_ENTERED: {
@@ -274,7 +272,7 @@ public abstract class DragAndDropAdapter<T> extends BaseAdapter implements View.
                 break;
             }
             case DragEvent.ACTION_DRAG_STARTED:
-                dropped = false;
+                //dropped = false;
                 break;
             case DragEvent.ACTION_DRAG_ENDED:
                 if (!dropped) {
@@ -320,6 +318,7 @@ public abstract class DragAndDropAdapter<T> extends BaseAdapter implements View.
                 }, 0);
         dragMinInsertPos = -1;
         dragMaxInsertPos = list.size();
+        dropped = false;
     }
 
     private static String getActionStr(int action) {
@@ -352,6 +351,7 @@ public abstract class DragAndDropAdapter<T> extends BaseAdapter implements View.
                     list.add(type);
                     listView.setSelection(list.size()-1);
                     notifyDataSetChanged();
+                    dropped = true;
                 }
                 break;
             case MotionEvent.ACTION_MOVE: {

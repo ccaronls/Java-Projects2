@@ -81,17 +81,26 @@ class ProbotAdapter(val probot: Probot, val listView: ListView) : DragAndDropAda
 			v.visibility = ListView.VISIBLE
 			v.setOnClickListener(this)
 		}
-		val iv = convertView.findViewById<View>(R.id.imageView) as ImageView
+		val iv = convertView.findViewById<ImageView>(R.id.imageView)
+		val tv = convertView.findViewById<TextView>(R.id.textView)
 		if (isLoop) {
-			iv.visibility = ListView.INVISIBLE
+			iv.visibility = View.INVISIBLE
+			tv.visibility = View.VISIBLE
+			if (cmd.type == CommandType.LoopStart) {
+				tv.setText(R.string.loop_begin)
+			} else {
+				tv.setText(R.string.loop_end)
+			}
 		} else {
-			iv.visibility = ListView.VISIBLE
+			iv.visibility = View.VISIBLE
+			tv.visibility = View.INVISIBLE
 			when (cmd.type) {
 				CommandType.Advance -> iv.setImageResource(R.drawable.arrow_forward)
 				CommandType.TurnRight -> iv.setImageResource(R.drawable.arrow_right)
 				CommandType.TurnLeft -> iv.setImageResource(R.drawable.arrow_left)
 				CommandType.Jump -> iv.setImageResource(R.drawable.arrow_jump)
 				CommandType.UTurn -> iv.setImageResource(R.drawable.uturn)
+				CommandType.LoopStart -> iv.setImageResource(R.drawable.arrow_repeat)
 				else -> Unit
 			}
 		}

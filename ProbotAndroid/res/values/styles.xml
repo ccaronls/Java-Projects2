@@ -1,5 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <style name="AppTheme" parent="@style/Theme.AppCompat.Dark.FullScreen">
+        <item name="tooltipTextColor">#fff</item>
+        <item name="tooltipBackgroundColor">#555</item>
+        <item name="tooltipArrowHeight">12dp</item>
+        <item name="tooltipArrowWidth">20dp</item>
+    </style>
 
+
+    <style name="ToolBarText">
+        <item name="android:textSize">16sp</item>
+        <item name="android:layout_marginLeft">4dp</item>
+        <item name="android:layout_marginRight">20dp</item>
+        <item name="android:layout_marginTop">2dp</item>
+        <item name="android:layout_marginBottom">2dp</item>
+    </style>
 </resources>
