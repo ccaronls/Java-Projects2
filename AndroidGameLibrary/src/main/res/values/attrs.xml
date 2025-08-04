@@ -99,14 +99,16 @@
 
     <declare-styleable name="GTableView"></declare-styleable>
 
-    <declare-styleable name="TooltipStyle">
+    <declare-styleable name="TooltipDrawable">
         <attr name="tooltipBackgroundColor" format="color" />
-        <attr name="tooltipTextColor" format="color" />
         <attr name="tooltipBorderColor" format="color" />
         <attr name="tooltipBorderWidth" format="dimension" />
         <attr name="tooltipCornerRadius" format="dimension" />
         <attr name="tooltipArrowWidth" format="dimension" />
         <attr name="tooltipArrowHeight" format="dimension" />
+        <attr name="tooltipTextColor" format="color" />
+        <attr name="tooltipTextSize" format="dimension" />
+        <attr name="tooltipTextMargin" format="dimension" />
     </declare-styleable>
 
 </resources>

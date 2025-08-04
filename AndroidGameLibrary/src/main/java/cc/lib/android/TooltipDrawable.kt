@@ -1,5 +1,6 @@
 package cc.lib.android
 
+import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.ColorFilter
@@ -8,6 +9,7 @@ import android.graphics.Path
 import android.graphics.PixelFormat
 import android.graphics.RectF
 import android.graphics.drawable.Drawable
+import android.util.AttributeSet
 import androidx.annotation.ColorInt
 import kotlin.math.max
 import kotlin.math.min
@@ -16,7 +18,7 @@ import kotlin.math.min
  * Created by Chris Caron on 7/31/25.
  */
 class TooltipDrawable(
-	@ColorInt private var backgroundColor: Int,
+	@ColorInt private var backgroundColor: Int = Color.WHITE,
 	private var cornerRadius: Float = 16f,
 	private var arrowWidth: Float = 20f,
 	private var arrowHeight: Float = 12f,
@@ -25,6 +27,19 @@ class TooltipDrawable(
 	@ColorInt private var borderColor: Int = Color.TRANSPARENT,
 	private var borderWidth: Float = 0f // in pixels
 ) : Drawable() {
+
+	@JvmOverloads
+	constructor(context: Context, attributeSet: AttributeSet? = null) : this() {
+		context.obtainStyledAttributes(attributeSet, R.styleable.TooltipDrawable).apply {
+			backgroundColor = getColor(R.styleable.TooltipDrawable_tooltipBackgroundColor, backgroundColor)
+			cornerRadius = getDimension(R.styleable.TooltipDrawable_tooltipCornerRadius, cornerRadius)
+			arrowWidth = getDimension(R.styleable.TooltipDrawable_tooltipArrowWidth, arrowWidth)
+			arrowHeight = getDimension(R.styleable.TooltipDrawable_tooltipArrowHeight, arrowHeight)
+			borderColor = getColor(R.styleable.TooltipDrawable_tooltipBorderColor, borderColor)
+			borderWidth = getDimension(R.styleable.TooltipDrawable_tooltipArrowWidth, borderWidth)
+			recycle()
+		}
+	}
 
 	enum class ArrowSide {
 		TOP,
@@ -77,33 +92,49 @@ class TooltipDrawable(
 		val top = bounds.top.toFloat()
 		val right = bounds.right.toFloat()
 		val bottom = bounds.bottom.toFloat()
+		val width = right - left
+		val height = bottom - top
+		val cr2 = cornerRadius / 2
 
-		val arrowOffset: Float
 		val rect = RectF()
 
 		when (arrowSide) {
 			ArrowSide.TOP -> {
-				arrowOffset = left + cornerRadius + arrowPosition * (bounds.width() - 2 * cornerRadius - arrowWidth)
-				rect.set(left, top + arrowHeight, right, bottom)
-				path.addRoundRect(rect, cornerRadius, cornerRadius, Path.Direction.CW)
-				path.moveTo(arrowOffset, top + arrowHeight)
-				path.lineTo(arrowOffset + arrowWidth / 2, top)
-				path.lineTo(arrowOffset + arrowWidth, top + arrowHeight)
+				val arrowLeft = (left + arrowPosition * width - arrowWidth / 2).coerceAtLeast(cornerRadius)
+				val arrowRight = (left + arrowPosition * width + arrowWidth / 2).coerceAtMost(width - cr2)
+				path.moveTo(arrowRight, top + arrowHeight)
+				path.lineTo(right - cornerRadius, top + arrowHeight)
+				path.arcTo(right - cornerRadius, top + arrowHeight, right, top + arrowHeight + cornerRadius, 270f, 90f, false)
+				path.lineTo(right, bottom - cornerRadius)
+				path.arcTo(right - cornerRadius, bottom - cornerRadius, right, bottom, 0f, 90f, false)
+				path.lineTo(left + cornerRadius, bottom)
+				path.arcTo(left, bottom - cornerRadius, left + cornerRadius, bottom, 90f, 90f, false)
+				path.lineTo(left, top + arrowHeight + cornerRadius)
+				path.arcTo(left, top + arrowHeight, left + cornerRadius, top + arrowHeight + cornerRadius, 180f, 90f, false)
+				path.lineTo(arrowLeft, top + arrowHeight)
+				path.rLineTo(arrowWidth / 2, -arrowHeight)
 				path.close()
 			}
 
 			ArrowSide.BOTTOM -> {
-				arrowOffset = left + cornerRadius + arrowPosition * (bounds.width() - 2 * cornerRadius - arrowWidth)
-				rect.set(left, top, right, bottom - arrowHeight)
-				path.addRoundRect(rect, cornerRadius, cornerRadius, Path.Direction.CW)
-				path.moveTo(arrowOffset, bottom - arrowHeight)
-				path.lineTo(arrowOffset + arrowWidth / 2, bottom)
-				path.lineTo(arrowOffset + arrowWidth, bottom - arrowHeight)
+				val arrowLeft = (left + arrowPosition * width - arrowWidth / 2).coerceAtLeast(cornerRadius)
+				val arrowRight = (left + arrowPosition * width + arrowWidth / 2).coerceAtMost(width - cr2)
+				path.moveTo(arrowLeft, bottom - arrowHeight)
+				path.lineTo(left + cornerRadius, bottom - arrowHeight)
+				path.arcTo(left, bottom - arrowHeight - cornerRadius, left + cornerRadius, bottom - arrowHeight, 90f, 90f, false)
+				path.lineTo(left, top + cornerRadius)
+				path.arcTo(left, top, left + cornerRadius, top + cornerRadius, 180f, 90f, false)
+				path.lineTo(right - cornerRadius, top)
+				path.arcTo(right - cornerRadius, top, right, top + cornerRadius, 270f, 90f, false)
+				path.lineTo(right, bottom - cornerRadius - arrowHeight)
+				path.arcTo(right - cornerRadius, bottom - cornerRadius - arrowHeight, right, bottom - arrowHeight, 0f, 90f, false)
+				path.lineTo(arrowRight, bottom - arrowHeight)
+				path.rLineTo(-arrowWidth / 2, arrowHeight)
 				path.close()
 			}
 
 			ArrowSide.LEFT -> {
-				arrowOffset = top + cornerRadius + arrowPosition * (bounds.height() - 2 * cornerRadius - arrowWidth)
+				val arrowOffset = top + cornerRadius + arrowPosition * (bounds.height() - 2 * cornerRadius - arrowWidth)
 				rect.set(left + arrowHeight, top, right, bottom)
 				path.addRoundRect(rect, cornerRadius, cornerRadius, Path.Direction.CW)
 				path.moveTo(left + arrowHeight, arrowOffset)
@@ -113,7 +144,7 @@ class TooltipDrawable(
 			}
 
 			ArrowSide.RIGHT -> {
-				arrowOffset = top + cornerRadius + arrowPosition * (bounds.height() - 2 * cornerRadius - arrowWidth)
+				val arrowOffset = top + cornerRadius + arrowPosition * (bounds.height() - 2 * cornerRadius - arrowWidth)
 				rect.set(left, top, right - arrowHeight, bottom)
 				path.addRoundRect(rect, cornerRadius, cornerRadius, Path.Direction.CW)
 				path.moveTo(right - arrowHeight, arrowOffset)

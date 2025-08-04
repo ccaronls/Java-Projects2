@@ -5,6 +5,9 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:gravity="center"
+    android:clipChildren="false"
+    android:clipToOutline="false"
+    android:clipToPadding="false"
     tools:background="#000">
 
     <TextView
@@ -13,11 +16,10 @@
         android:layout_height="wrap_content"
         tools:background="#000"
         android:text="Tooltip text could be quite long"
-        android:layout_margin="16dp"
-        android:textSize="14sp"
-        android:textColor="#FFFFFF"
+        android:layout_margin="?attr/tooltipTextMargin"
+        android:textSize="?attr/tooltipTextSize"
+        android:textColor="?attr/tooltipTextColor"
         android:gravity="center"
-        android:padding="8dp"
         android:clickable="true"
         android:focusable="true" />
 </FrameLayout>

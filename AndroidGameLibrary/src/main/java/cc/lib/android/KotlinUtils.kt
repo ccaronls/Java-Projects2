@@ -137,3 +137,11 @@ fun View.getLocationOnScreen(): Pair<Int, Int> {
 	getLocationOnScreen(loc)
 	return Pair(loc[0], loc[1])
 }
+
+fun View.measure(): Pair<Int, Int> {
+	measure(
+		View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+		View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+	)
+	return Pair(measuredWidth, measuredHeight)
+}

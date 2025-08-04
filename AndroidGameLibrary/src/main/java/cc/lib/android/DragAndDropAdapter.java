@@ -50,7 +50,7 @@ import cc.lib.game.Utils;
  *    ListView listView;
  *    Button buttonA,buttonB,buttonC;
  *
- *    DragAndDropAdapter<MyEnum> adapter = new DrapAndDropAdapter<MyEnum>(listView) {
+ *    DragAndDropAdapter<MyEnum> adapter = new DragAndDropAdapter<MyEnum>(listView) {
  *        void populateItem(MyEnum e, ViewGroup container) {
  *            TextView tv = new TextView(context);
  *            tv.setText(e.name());

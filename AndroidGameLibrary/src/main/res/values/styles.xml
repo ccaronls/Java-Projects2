@@ -1,6 +1,6 @@
 <resources>
 
-    <style name="AppTheme" parent="Theme.AppCompat.Dark.FullScreen"/>
+    <style name="AppTheme" parent="Theme.AppCompat.Dark.FullScreen"></style>
 
     <style name="Theme.AppCompat.Dark.FullScreen" parent="@style/Theme.AppCompat.NoActionBar">
         <item name="android:windowNoTitle">true</item>
@@ -33,13 +33,17 @@
         <item name="android:layout_marginRight">2dp</item>
     </style>
 
-    <style name="DefaultTooltipTheme">
+    <!-- Override in your applications 'AppTheme' -->
+    <style name="TooltipPopupTheme">
         <item name="tooltipBackgroundColor">#6200EE</item>
-        <item name="tooltipTextColor">#FFFFFF</item>
         <item name="tooltipBorderColor">#FFFFFF</item>
         <item name="tooltipBorderWidth">2dp</item>
         <item name="tooltipCornerRadius">20dp</item>
         <item name="tooltipArrowWidth">24dp</item>
         <item name="tooltipArrowHeight">16dp</item>
+        <item name="tooltipTextColor">#fff</item>
+        <item name="tooltipTextSize">16sp</item>
+        <item name="tooltipTextMargin">16dp</item>
     </style>
+
 </resources>

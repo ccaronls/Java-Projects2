@@ -2,10 +2,14 @@
 <resources>
 
     <style name="AppTheme" parent="@style/Theme.AppCompat.Dark.FullScreen">
-        <item name="tooltipTextColor">#fff</item>
-        <item name="tooltipBackgroundColor">#555</item>
+        <item name="tooltipTextColor">#f00</item>
+        <item name="tooltipTextSize">18dp</item>
+        <item name="tooltipTextMargin">8dp</item>
+        <item name="tooltipBackgroundColor">#000</item>
         <item name="tooltipArrowHeight">12dp</item>
         <item name="tooltipArrowWidth">20dp</item>
+        <item name="tooltipBorderWidth">2dp</item>
+        <item name="tooltipBorderColor">#0f0</item>
     </style>
 
 
@@ -16,4 +20,5 @@
         <item name="android:layout_marginTop">2dp</item>
         <item name="android:layout_marginBottom">2dp</item>
     </style>
+
 </resources>
