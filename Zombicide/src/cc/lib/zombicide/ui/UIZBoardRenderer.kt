@@ -1,9 +1,9 @@
 package cc.lib.zombicide.ui
 
-import cc.lib.game.AAnimation
 import cc.lib.game.AGraphics
 import cc.lib.game.AImage
 import cc.lib.game.APGraphics
+import cc.lib.game.GAnimation
 import cc.lib.game.GColor
 import cc.lib.game.GDimension
 import cc.lib.game.GRectangle
@@ -289,11 +289,11 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 			|| zoomAnimation != null
 
 	var highlightAnimationScale = 1f
-	val highlightAnimation = object : AAnimation<AGraphics>(1000, -1, true) {
+	val highlightAnimation = object : GAnimation(1000, -1, true) {
 		override fun draw(g: AGraphics, position: Float, dt: Float) {
 			g.color = GColor.CYAN.interpolateTo(GColor.TRANSPARENT, position)
 		}
-	}.start<AAnimation<AGraphics>>()
+	}.start()
 
 	val boardCenter: IVector2D
 		get() = computeBoardCenter().also {
@@ -398,7 +398,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 					fireNextHoverMessage(rect)
 					return
 				} else {
-					it.start<HoverMessage>()
+					it.start()
 					postActor.add(it)
 					redraw()
 				}
@@ -462,7 +462,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 			if (it.isDone) {
 				anims.remove(it)
 			} else {
-				if (!it.isStarted) it.start<AAnimation<AGraphics>>()
+				if (!it.isStarted) it.start()
 				it.update(g)
 			}
 		}
@@ -1360,7 +1360,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 
 	suspend fun waitForAnimations(maxWaitSecs: Int = 4) {
 		val t = System.currentTimeMillis()
-		log.debug("waitForAnimations start $t")
+		log.debug("waitForAnimations $maxWaitSecs start $t")
 		redraw()
 		animLock.acquireAndBlock(4000)
 		val done = System.currentTimeMillis() - t
@@ -1423,7 +1423,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		val radius = 5f
 		val dim = GDimension(g.getTextWidth("00"), g.textHeight)
 			.scaleBy(1.1f, 1.3f)
-			.withAspect(1f / 1.5f)
+		//.withAspect(1f / 1.5f)
 		g.pushMatrix()
 		g.translate(viewportWidth - padding - dim.width, padding)
 		drawDeck(g, dim, radius, GColor.RED, UIZombicide.instance.spawnDeckSize, "SPAWN")
@@ -1575,7 +1575,7 @@ open class UIZBoardRenderer(component: UIZComponent<*>) : UIRenderer(component) 
 		} else if (obj is ZAnimation) {
 			val a = obj
 			if (!a.isStarted) {
-				a.start<AAnimation<AGraphics>>()
+				a.start()
 			}
 			if (!a.isDone) {
 				a.update(g)

@@ -16,14 +16,23 @@ import cc.lib.math.Vector2D
 import cc.lib.utils.FileUtils
 import cc.lib.utils.GException
 import cc.lib.utils.Table
+import cc.lib.utils.increment
 import java.awt.BorderLayout
 import java.awt.event.KeyEvent
 import java.io.File
-import java.util.Collections
 import java.util.LinkedList
+import javax.swing.SwingUtilities
 
-abstract class AWTBoardBuilder<V : BVertex, E : BEdge, C : BCell, T : CustomBoard<V, E, C>> : AWTComponent() {
-	private val log = LoggerFactory.getLogger(javaClass)
+abstract class AWTBoardBuilder<V : BVertex, E : BEdge, C : BCell, T : CustomBoard<V, E, C>>(
+	propertiesFileName: String,
+	defaultBoardFileName: String
+) : AWTComponent() {
+	private val log = LoggerFactory.getLogger(AWTBoardBuilder::class.java)
+
+	val settings by lazy {
+		FileUtils.getOrCreateSettingsDirectory(AWTBoardBuilder::class.java)
+	}
+
 	val frame: AWTFrame = object : AWTFrame() {
 		override fun onMenuItemSelected(menu: String, subMenu: String) {
 			this@AWTBoardBuilder.onMenuItemSelected(menu, subMenu)
@@ -38,11 +47,11 @@ abstract class AWTBoardBuilder<V : BVertex, E : BEdge, C : BCell, T : CustomBoar
 		val compareKey: Int
 			get() {
 				val c = key[0]
-				return if (Character.isUpperCase(c)) 256 + c.toInt() else c.toInt()
+				return if (Character.isUpperCase(c)) 256 + c.code else c.code
 			}
 
-		override operator fun compareTo(o: KeyAction): Int {
-			return Integer.compare(compareKey, o.compareKey)
+		override operator fun compareTo(other: KeyAction): Int {
+			return compareKey.compareTo(other.compareKey)
 		}
 	}
 
@@ -57,9 +66,9 @@ abstract class AWTBoardBuilder<V : BVertex, E : BEdge, C : BCell, T : CustomBoar
 			return name
 		}
 
-		override fun equals(o: Any?): Boolean {
-			if (this === o) return true
-			val s = o.toString()
+		override fun equals(other: Any?): Boolean {
+			if (this === other) return true
+			val s = other.toString()
 			return Utils.isEquals(name, s)
 		}
 
@@ -83,6 +92,7 @@ abstract class AWTBoardBuilder<V : BVertex, E : BEdge, C : BCell, T : CustomBoar
 						selectedIndex = highlightedIndex
 					}
 				}
+
 				else -> if (multiSelect) {
 					if (highlightedIndex >= 0 && !selected.contains(highlightedIndex)) selected.add(highlightedIndex) else selected.remove(highlightedIndex as Any)
 				} else {
@@ -99,6 +109,10 @@ abstract class AWTBoardBuilder<V : BVertex, E : BEdge, C : BCell, T : CustomBoar
 		open fun onActivated() {}
 		open fun onKeyTyped(keyCode: Int): Boolean {
 			return false
+		}
+
+		override fun hashCode(): Int {
+			return name.hashCode()
 		}
 	}
 
@@ -169,7 +183,9 @@ abstract class AWTBoardBuilder<V : BVertex, E : BEdge, C : BCell, T : CustomBoar
 		}
 	)
 	var DEFAULT_FILE = File("AWTBoardBuilder.default")
-	val board: T
+	val board: T by lazy {
+		newBoard()
+	}
 	var backgroundImageId = -1
 	var highlightedIndex = -1
 	private var boardFile: File? = null
@@ -187,27 +203,25 @@ abstract class AWTBoardBuilder<V : BVertex, E : BEdge, C : BCell, T : CustomBoar
 	var progress = 0f
 
 	init {
-		board = newBoard()
-		setMouseEnabled(true)
-		setPadding(10)
-		initFrame(frame)
-		frame.add(this)
-		try {
-			val settings = FileUtils.getOrCreateSettingsDirectory(javaClass)
-			if (!frame.loadFromFile(File(settings, propertiesFileName))) frame.centerToScreen(640, 480)
-			DEFAULT_FILE = File(settings, defaultBoardFileName)
-		} catch (e: Exception) {
-			e.printStackTrace()
-			frame.centerToScreen(640, 480)
+		SwingUtilities.invokeLater {
+			setMouseEnabled(true)
+			setPadding(10)
+			initFrame(frame)
+			frame.add(this)
+			try {
+				if (!frame.loadFromFile(File(settings, propertiesFileName))) frame.centerToScreen(640, 480)
+				DEFAULT_FILE = File(settings, defaultBoardFileName)
+			} catch (e: Exception) {
+				e.printStackTrace()
+				frame.centerToScreen(640, 480)
+			}
+			board.setDimension(width.toFloat(), height.toFloat())
+			initActions()
 		}
-		board.setDimension(width.toFloat(), height.toFloat())
-		initActions()
 		focusTraversalKeysEnabled = false
 	}
 
 	protected abstract fun newBoard(): T
-	protected abstract val propertiesFileName: String
-	protected abstract val defaultBoardFileName: String
 
 	/**
 	 * This is a good place to add top bar menus
@@ -217,14 +231,14 @@ abstract class AWTBoardBuilder<V : BVertex, E : BEdge, C : BCell, T : CustomBoar
 		registerTools()
 		frame.addMenuBarMenu("File", "New Board", "Load Board", "Load Image", "Clear Image", "Save As...", "Save")
 		frame.addMenuBarMenu("Select", "All", "None")
-		frame.addMenuBarMenu("Mode", *Utils.toStringArray(PickMode.values(), false))
+		frame.addMenuBarMenu("Mode", *PickMode.entries.map { it.name }.toTypedArray())
 		frame.addMenuBarMenu("Tool", *Utils.toStringArray(tools))
 		frame.addMenuBarMenu("Action", *actionMenuActions.toTypedArray())
 		registerActionBarItems(frame)
 	}
 
 	protected val actionMenuActions: ArrayList<String>
-		protected get() {
+		get() {
 			val list = ArrayList<String>()
 			list.addAll(Utils.toList("Compute", "Clear", "Undo", "Generate Grid"))
 			return list
@@ -261,8 +275,14 @@ abstract class AWTBoardBuilder<V : BVertex, E : BEdge, C : BCell, T : CustomBoar
 		pickMode = PickMode.valueOf(p.getProperty("pickMode", pickMode.name))
 		multiSelect = java.lang.Boolean.valueOf(p.getProperty("multiSelect", "false"))
 		progress += 0.1f
-		val image = p.getProperty("image")
-		if (image != null) backgroundImageId = g.loadImage(image)
+		try {
+			val image = p.getProperty("image")
+			if (image != null)
+				backgroundImageId = g.loadImage(image)
+		} catch (e: Exception) {
+			e.printStackTrace()
+			p.remove("image")
+		}
 		progress = 0.75f
 		board.tryLoadFromFile(boardFile)
 		progress = 1f
@@ -474,17 +494,17 @@ abstract class AWTBoardBuilder<V : BVertex, E : BEdge, C : BCell, T : CustomBoar
 		for (idx in selected) {
 			g.color = GColor.RED
 			g.begin()
-			val c: BCell = board.getCell(idx)
+			val c = board.getCell(idx)
 			board.renderCell(c, g, 0.9f)
 			g.setLineWidth(4f)
 			g.drawLineLoop()
-			drawExtraCellInfo(g, c as C)
+			drawExtraCellInfo(g, c)
 		}
 		highlightedIndex = board.pickCell(g, mouse)
 		if (highlightedIndex >= 0) {
 			g.color = GColor.MAGENTA
 			g.begin()
-			val cell: BCell = board.getCell(highlightedIndex)
+			val cell = board.getCell(highlightedIndex)
 			g.setLineWidth(2f)
 			g.color = GColor.RED
 			board.drawCellArrowed(cell, g)
@@ -532,10 +552,12 @@ abstract class AWTBoardBuilder<V : BVertex, E : BEdge, C : BCell, T : CustomBoar
 			"Undo" -> if (undoList.size > 0) {
 				undoList.removeLast().invoke()
 			}
+
 			"Clear" -> {
 				board.clear()
 				clearSelected()
 			}
+
 			"Generate Grid" -> {
 				val rows = AWTNumberPicker.Builder().setLabel("Rows").setMin(1).setMax(100)
 					.setValue(frame.getIntProperty("gui.gridRows", 1)).build { _, newValue: Int ->
@@ -566,8 +588,7 @@ abstract class AWTBoardBuilder<V : BVertex, E : BEdge, C : BCell, T : CustomBoar
 		repaint()
 	}
 
-	protected open val boardFileExtension: String?
-		protected get() = null
+	protected open val boardFileExtension: String? = null
 
 	@Synchronized
 	fun onFileMenu(item: String) {
@@ -577,6 +598,7 @@ abstract class AWTBoardBuilder<V : BVertex, E : BEdge, C : BCell, T : CustomBoar
 				clearSelected()
 				setBoardFile(null)
 			}
+
 			"Load Board" -> {
 				val file = frame.showFileOpenChooser("Load Board", boardFileExtension, "board")
 				if (file != null) {
@@ -596,6 +618,7 @@ abstract class AWTBoardBuilder<V : BVertex, E : BEdge, C : BCell, T : CustomBoar
 					}
 				}
 			}
+
 			"Load Image" -> {
 				val file = frame.showFileOpenChooser("Load Image", "png", null)
 				if (file != null) {
@@ -611,6 +634,7 @@ abstract class AWTBoardBuilder<V : BVertex, E : BEdge, C : BCell, T : CustomBoar
 					}
 				}
 			}
+
 			"Save As..." -> {
 				val file = frame.showFileSaveChooser("Save Board", "board", "Generic Boards", null)
 				if (file != null) {
@@ -627,6 +651,7 @@ abstract class AWTBoardBuilder<V : BVertex, E : BEdge, C : BCell, T : CustomBoar
 					}
 				}
 			}
+
 			"Save" -> {
 				if (boardFile != null) {
 					try {
@@ -641,6 +666,7 @@ abstract class AWTBoardBuilder<V : BVertex, E : BEdge, C : BCell, T : CustomBoar
 					}
 				}
 			}
+
 			"Clear Image" -> {
 				backgroundImageId = -1
 				frame.getProperties().remove("image")
@@ -660,12 +686,14 @@ abstract class AWTBoardBuilder<V : BVertex, E : BEdge, C : BCell, T : CustomBoar
 							selected.add(it)
 						}
 					}
+
 					PickMode.EDGE -> {
 						selected.clear()
 						repeat(board.numEdges) {
 							selected.add(it)
 						}
 					}
+
 					PickMode.CELL -> {
 						selected.clear()
 						repeat(board.numCells) {
@@ -675,22 +703,25 @@ abstract class AWTBoardBuilder<V : BVertex, E : BEdge, C : BCell, T : CustomBoar
 				}
 				frame.setProperty("selected", selected)
 			}
+
 			"Invert" -> {
 				setMultiselect(true)
 				val newSel: List<Int>
 				when (pickMode) {
 					PickMode.VERTEX -> {
-						newSel = Utils.filter(Utils.getRangeIterator(0, board.numVerts - 1), Utils.Filter { i: Int -> !selected.contains(i) })
+						newSel = board.verts.indices.filter { !selected.contains(it) }
 						selected.clear()
 						selected.addAll(newSel)
 					}
+
 					PickMode.EDGE -> {
-						newSel = Utils.filter(Utils.getRangeIterator(0, board.numEdges - 1), Utils.Filter { i: Int -> !selected.contains(i) })
+						newSel = board.edges.indices.filter { !selected.contains(it) }
 						selected.clear()
 						selected.addAll(newSel)
 					}
+
 					PickMode.CELL -> {
-						newSel = Utils.filter(Utils.getRangeIterator(0, board.numCells - 1), Utils.Filter { i: Int -> !selected.contains(i) })
+						newSel = board.cells.indices.filter { !selected.contains(it) }
 						selected.clear()
 						selected.addAll(newSel)
 					}
@@ -777,21 +808,21 @@ abstract class AWTBoardBuilder<V : BVertex, E : BEdge, C : BCell, T : CustomBoar
 	}
 
 	protected open fun initActions() {
-		addAction(KeyEvent.VK_ESCAPE, "ESC", "Clear Selected", Runnable { selected.clear() })
-		addAction(KeyEvent.VK_V, "V", "Set PickMode to VERTEX", Runnable { setPickMode(PickMode.VERTEX) })
-		addAction(KeyEvent.VK_E, "E", "Set PickMode EDGE", Runnable { setPickMode(PickMode.EDGE) })
-		addAction(KeyEvent.VK_C, "C", "Set PickMode CELL", Runnable { setPickMode(PickMode.CELL) })
-		addAction(KeyEvent.VK_M, "M", "Set toggle MULTI-SELECT", Runnable { setMultiselect(!multiSelect) })
-		addAction(KeyEvent.VK_H, "H", "Toggle Show Help", Runnable { showHelp = !showHelp })
-		addAction(Utils.toIntArray(KeyEvent.VK_DELETE, KeyEvent.VK_BACK_SPACE), "DELETE", "Remove Selected Item", Runnable { deleteSelected() })
-		addAction(KeyEvent.VK_TAB, "TAB", "Toggle Pick Modes", Runnable { setPickMode(Utils.incrementValue(pickMode, *PickMode.values())) })
-		addAction(KeyEvent.VK_N, "N", "Toggle Show Numbers", Runnable { showNumbers = !showNumbers })
-		addAction(Utils.toIntArray(KeyEvent.VK_PLUS, KeyEvent.VK_EQUALS), "+", "Zoom in", Runnable { zoomIn() })
-		addAction(KeyEvent.VK_MINUS, "-", "Zoom out", Runnable { zoomOut() })
-		addAction(KeyEvent.VK_LEFT, "<", "Adjust Vertex Left", Runnable { moveVertex(-1f, 0f) })
-		addAction(KeyEvent.VK_RIGHT, ">", "Adjust Vertex Right", Runnable { moveVertex(1f, 0f) })
-		addAction(KeyEvent.VK_UP, "^", "Adjust Vertex Up", Runnable { moveVertex(0f, -1f) })
-		addAction(KeyEvent.VK_DOWN, "v", "Adjust Vertex Down", Runnable { moveVertex(0f, 1f) })
+		addAction(KeyEvent.VK_ESCAPE, "ESC", "Clear Selected") { selected.clear() }
+		addAction(KeyEvent.VK_V, "V", "Set PickMode to VERTEX") { setPickMode(PickMode.VERTEX) }
+		addAction(KeyEvent.VK_E, "E", "Set PickMode EDGE") { setPickMode(PickMode.EDGE) }
+		addAction(KeyEvent.VK_C, "C", "Set PickMode CELL") { setPickMode(PickMode.CELL) }
+		addAction(KeyEvent.VK_M, "M", "Set toggle MULTI-SELECT") { setMultiselect(!multiSelect) }
+		addAction(KeyEvent.VK_H, "H", "Toggle Show Help") { showHelp = !showHelp }
+		addAction(Utils.toIntArray(KeyEvent.VK_DELETE, KeyEvent.VK_BACK_SPACE), "DELETE", "Remove Selected Item") { deleteSelected() }
+		addAction(KeyEvent.VK_TAB, "TAB", "Toggle Pick Modes") { setPickMode(pickMode.increment()) }
+		addAction(KeyEvent.VK_N, "N", "Toggle Show Numbers") { showNumbers = !showNumbers }
+		addAction(Utils.toIntArray(KeyEvent.VK_PLUS, KeyEvent.VK_EQUALS), "+", "Zoom in") { zoomIn() }
+		addAction(KeyEvent.VK_MINUS, "-", "Zoom out") { zoomOut() }
+		addAction(KeyEvent.VK_LEFT, "<", "Adjust Vertex Left") { moveVertex(-1f, 0f) }
+		addAction(KeyEvent.VK_RIGHT, ">", "Adjust Vertex Right") { moveVertex(1f, 0f) }
+		addAction(KeyEvent.VK_UP, "^", "Adjust Vertex Up") { moveVertex(0f, -1f) }
+		addAction(KeyEvent.VK_DOWN, "v", "Adjust Vertex Down") { moveVertex(0f, 1f) }
 	}
 
 	fun setShowNumbers(show: Boolean) {
@@ -812,11 +843,11 @@ abstract class AWTBoardBuilder<V : BVertex, E : BEdge, C : BCell, T : CustomBoar
 		frame.setProperty("rect", rect)
 	}
 
-	protected fun addAction(code: Int, key: String, description: String, action: Runnable) {
+	protected fun addAction(code: Int, key: String, description: String, action: () -> Unit) {
 		actions[code] = KeyAction(key, description, action)
 	}
 
-	protected fun addAction(codes: IntArray, key: String, description: String, action: Runnable) {
+	protected fun addAction(codes: IntArray, key: String, description: String, action: () -> Unit) {
 		val a = KeyAction(key, description, action)
 		for (code in codes) {
 			actions[code] = a
@@ -824,8 +855,8 @@ abstract class AWTBoardBuilder<V : BVertex, E : BEdge, C : BCell, T : CustomBoar
 	}
 
 	private fun deleteSelected() {
-		Collections.sort(selected)
-		Collections.reverse(selected)
+		selected.sort()
+		selected.reverse()
 		when (pickMode) {
 			PickMode.CELL -> for (idx in selected) board.removeCell(idx)
 			PickMode.EDGE -> {
@@ -835,6 +866,7 @@ abstract class AWTBoardBuilder<V : BVertex, E : BEdge, C : BCell, T : CustomBoar
 					pushUndoAction() { board.addEdge(e) }
 				}
 			}
+
 			PickMode.VERTEX -> for (idx in selected) board.removeVertex(idx)
 		}
 		selected.clear()
@@ -892,15 +924,11 @@ abstract class AWTBoardBuilder<V : BVertex, E : BEdge, C : BCell, T : CustomBoar
 	companion object {
 		@JvmStatic
 		fun main(args: Array<String>) {
-			object : AWTBoardBuilder<BVertex, BEdge, BCell, CustomBoard<BVertex, BEdge, BCell>>() {
+			object :
+				AWTBoardBuilder<BVertex, BEdge, BCell, CustomBoard<BVertex, BEdge, BCell>>("bb.properties", "bb.backup.board") {
 				override fun newBoard(): CustomBoard<BVertex, BEdge, BCell> {
-					return CustomBoard<BVertex, BEdge, BCell>()
+					return CustomBoard()
 				}
-
-				override val propertiesFileName: String
-					protected get() = "bb.properties"
-				override val defaultBoardFileName: String
-					protected get() = "bb.backup.board"
 			}
 		}
 	}

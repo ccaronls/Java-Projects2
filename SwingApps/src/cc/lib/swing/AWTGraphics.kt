@@ -1,5 +1,6 @@
 package cc.lib.swing
 
+import cc.console.toBufferedImage
 import cc.lib.game.AImage
 import cc.lib.game.APGraphics
 import cc.lib.game.GColor
@@ -320,10 +321,6 @@ open class AWTGraphics : APGraphics {
 		return imageMgr.addImage(img)
 	}
 
-	fun loadImage(assetPath: String, transparent: GColor?, maxCopies: Int): Int {
-		return imageMgr.loadImage(assetPath!!, if (transparent == null) null else AWTUtils.toColor(transparent), maxCopies)
-	}
-
 	override fun loadImage(assetPath: String, transparent: GColor?): Int {
 		return imageMgr.loadImage(assetPath, if (transparent == null) null else AWTUtils.toColor(transparent))
 	}
@@ -344,16 +341,12 @@ open class AWTGraphics : APGraphics {
 		return if (id < 0) null else AWTImage(imageMgr.getImage(id)!!, comp)
 	}
 
-	override fun getImage(id: Int, width: Int, height: Int): AImage {
-		return AWTImage(imageMgr.getImage(id, width, height, comp)!!, comp)
-	}
-
 	override fun newRotatedImage(id: Int, degrees: Int): Int {
 		return imageMgr.newRotatedImage(id, degrees, comp)
 	}
 
 	override fun newTransformedImage(id: Int, filter: IImageFilter): Int {
-		return imageMgr.getSourceImage(id)?.let { source ->
+		return imageMgr.getImage(id)?.let { source ->
 			return imageMgr.addImage(imageMgr.transform(source, object : RGBImageFilter() {
 				override fun filterRGB(x: Int, y: Int, rgb: Int): Int {
 					return filter.filterRGBA(x, y, rgb)
@@ -363,7 +356,7 @@ open class AWTGraphics : APGraphics {
 	}
 
 	override fun newSubImage(id: Int, x: Int, y: Int, w: Int, h: Int): Int {
-		return imageMgr.getSourceImage(id)?.let { source ->
+		return imageMgr.getImage(id)?.let { source ->
 			imageMgr.newSubImage(source, x, y, w, h)
 		} ?: id
 	}
@@ -381,7 +374,9 @@ open class AWTGraphics : APGraphics {
 	}
 
 	override fun drawImage(imageKey: Int, x: Int, y: Int, w: Int, h: Int) {
-		imageMgr.drawImage(g, comp, imageKey, x, y, w, h)
+		imageMgr.getImage(imageKey)?.let {
+			g.drawImage(it, x, y, w, h, null)
+		}
 	}
 
 	override fun drawImage(imageKey: Int) {
@@ -586,6 +581,20 @@ open class AWTGraphics : APGraphics {
 
 	override fun drawDashedLine(x0: Float, y0: Float, x1: Float, y1: Float, thickness: Float, dashLength: Float) {
 		throw RuntimeException("Not implemented")
+	}
+
+	override fun createSubImage(sourceImageKey: Int, sourceX: Int, sourceY: Int, sourceW: Int, sourceH: Int): Int {
+		return imageMgr.getImage(sourceImageKey)?.let {
+			val tile = it.toBufferedImage().getSubimage(sourceX, sourceY, sourceW, sourceH)
+			imageMgr.addImage(tile)
+		} ?: -1
+	}
+
+	override fun moveSubImage(subImageKey: Int, sourceImageKey: Int, sourceX: Int, sourceY: Int, sourceW: Int, sourceH: Int) {
+		imageMgr.getImage(sourceImageKey)?.let {
+			val tile = it.toBufferedImage().getSubimage(sourceX, sourceY, sourceW, sourceH)
+			imageMgr.replaceImage(subImageKey, tile)
+		}
 	}
 
 	companion object {

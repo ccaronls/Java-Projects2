@@ -3,7 +3,7 @@ package cc.lib.game
 /**
  * Created by Chris Caron on 8/18/21.
  */
-abstract class AMultiPhaseAnimation<T> : AAnimation<T> {
+abstract class AMultiPhaseAnimation<T, M : AMultiPhaseAnimation<T, M>> : AAnimation<T, M> {
 	private var durations: LongArray
 	private var lastPhase = -1
 

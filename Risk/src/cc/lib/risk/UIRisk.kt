@@ -24,7 +24,7 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 import kotlin.math.roundToInt
 
-abstract class RiskAnim(durationMSecs: Long) : AAnimation<AGraphics>(durationMSecs) {
+abstract class RiskAnim(durationMSecs: Long) : AAnimation<AGraphics, RiskAnim>(durationMSecs) {
 	var zOrder = 0
 		private set
 
@@ -274,7 +274,7 @@ abstract class UIRisk(board : RiskBoard) : RiskGame(board) {
 	override fun onGameOver(winner: Army) {
 		super.onGameOver(winner)
 		addOverlayAnimation(ExpandingTextOverlayAnimation(winner.name + " WINS!!!", GColor.BLUE)
-			.setOscillating<AAnimation<AGraphics>>(true)
+			.setOscillating(true)
 			.setRepeats(-1)
 		)
 	}

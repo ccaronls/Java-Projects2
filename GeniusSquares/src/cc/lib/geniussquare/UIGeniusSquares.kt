@@ -129,7 +129,7 @@ abstract class UIGeniusSquares : GeniusSquares() {
 		}
 		if (isCompleted) {
 			if (!endgameAnim.isStarted)
-				endgameAnim.start<AAnimation<AGraphics>>()
+				endgameAnim.start()
 		} else {
 			endgameAnim.kill()
 		}
@@ -139,14 +139,16 @@ abstract class UIGeniusSquares : GeniusSquares() {
 		}
 	}
 
-	var endgameAnim: AAnimation<AGraphics> = object : AAnimation<AGraphics>(2000, -1, true) {
+	inner class EndGameAnim : AAnimation<AGraphics, EndGameAnim>(2000, 1, true) {
 		override fun draw(g: AGraphics, position: Float, dt: Float) {
-			val hgt = g.viewport.height/5
+			val hgt = g.viewport.height / 5
 			g.setTextHeight(hgt + position * hgt, true)
 			g.color = GColor.MAGENTA
 			g.drawJustifiedString((WIDTH / 2).toFloat(), (HEIGHT / 2).toFloat(), Justify.CENTER, Justify.CENTER, "COMPLETED")
 		}
 	}
+
+	var endgameAnim = EndGameAnim()
 
 	@Synchronized
 	override fun newGame() {

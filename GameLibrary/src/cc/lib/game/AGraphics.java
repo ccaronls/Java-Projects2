@@ -1199,15 +1199,6 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
 
     /**
      * 
-     * @param id
-     * @param width
-     * @param height
-     * @return
-     */
-    public abstract AImage getImage(int id, int width, int height);
-
-    /**
-     * 
      * @param assetPath
      * @return
      */
@@ -2054,6 +2045,29 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     public final void drawImage(int imageKey, IVector2D pos, float width, float height) {
         drawImage(imageKey, pos.getX() - width / 2, pos.getY() - height / 2, width, height);
     }
+
+    /**
+     * Create an object that is a sub region of a source
+     *
+     * @param sourceImageKey
+     * @param sourceX
+     * @param sourceY
+     * @param sourceW
+     * @param sourceH
+     * @return
+     */
+    public abstract int createSubImage(int sourceImageKey, int sourceX, int sourceY, int sourceW, int sourceH);
+
+    /**
+     * Change the source region of an existing subregion
+     *
+     * @param subImageKey
+     * @param sourceImageKey
+     * @param sourceY
+     * @param sourceW
+     * @param sourceH
+     */
+    public abstract void moveSubImage(int subImageKey, int sourceImageKey, int sourceX, int sourceY, int sourceW, int sourceH);
 
     /**
      * @param color

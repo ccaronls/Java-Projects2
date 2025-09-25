@@ -1,6 +1,5 @@
 package cc.lib.zombicide.anims
 
-import cc.lib.game.AAnimation
 import cc.lib.game.AGraphics
 import cc.lib.zombicide.ZActor
 import cc.lib.zombicide.ZActorAnimation
@@ -55,7 +54,7 @@ open class GroupAnimation(actor: ZActor, val hidesActor: Boolean = false) : ZAct
             if (p.first.isDone) it.remove() else if (!p.first.isStarted) {
                 //a.start();
                 if (currentTimeMSecs - startTime >= p.second) {
-                    p.first.start<AAnimation<AGraphics>>()
+                    p.first.start()
                 }
             } else {
                 p.first.update(g)

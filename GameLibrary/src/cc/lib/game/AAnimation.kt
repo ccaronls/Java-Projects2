@@ -1,6 +1,15 @@
 package cc.lib.game
 
 /**
+ * Convenience class
+ */
+abstract class GAnimation(
+	durationMsecs: Number,
+	repeats: Int = -1,
+	oscillateOnRepeat: Boolean = false
+) : AAnimation<AGraphics, GAnimation>(durationMsecs, repeats, oscillateOnRepeat)
+
+/**
  * General purpose animation runner.
  *
  * Example usage:
@@ -17,14 +26,14 @@ package cc.lib.game
  *
  * @author chriscaron
 </Graphics> */
-abstract class AAnimation<T>(durationMSecs: Long, repeats: Int = 0, oscillateOnRepeat: Boolean = false) {
+abstract class AAnimation<CONTEXT, T : AAnimation<CONTEXT, T>>(durationMSecs: Number, repeats: Int = 0, oscillateOnRepeat: Boolean = false) {
 	var isStartDirectionReverse = false
 		private set
 	var startTime: Long = 0
 		private set
 	var lastTime: Long
 		private set
-	var duration: Long = durationMSecs
+	var duration: Long = durationMSecs.toLong()
 		protected set(value) {
 			require(state == State.PRESTART)
 			require(duration > 0)
@@ -67,8 +76,8 @@ abstract class AAnimation<T>(durationMSecs: Long, repeats: Int = 0, oscillateOnR
 	 * @param durationMSecs
 	 */
 	init {
-		Utils.assertTrue(durationMSecs > 0)
-		duration = durationMSecs
+		Utils.assertTrue(durationMSecs.toLong() > 0)
+		duration = durationMSecs.toLong()
 		maxRepeats = repeats
 		isOscillateOnRepeat = oscillateOnRepeat
 		lastTime = currentTimeMSecs
@@ -78,7 +87,7 @@ abstract class AAnimation<T>(durationMSecs: Long, repeats: Int = 0, oscillateOnR
 	 * Start the animation after some delay
 	 * @param delayMSecs
 	 */
-	fun <A : AAnimation<*>> start(delayMSecs: Long): A {
+	fun start(delayMSecs: Long): T {
 		var delayMSecs = delayMSecs
 		if (delayMSecs < 0) {
 			delayMSecs = 0
@@ -87,16 +96,16 @@ abstract class AAnimation<T>(durationMSecs: Long, repeats: Int = 0, oscillateOnR
 		lastTime = startTime
 		position = 0f
 		state = State.STARTED
-		return this as A
+		return this as T
 	}
 
 	/**
 	 * Start the animation immediately
 	 * @return
 	 */
-	fun <A : AAnimation<*>> start(): A {
-		start<AAnimation<T>>(0)
-		return this as A
+	fun start(): T {
+		start(0)
+		return this as T
 	}
 
 	/**
@@ -105,12 +114,12 @@ abstract class AAnimation<T>(durationMSecs: Long, repeats: Int = 0, oscillateOnR
 	 * @param delayMSecs
 	 * @return
 	 */
-	fun <A : AAnimation<T>> startReverse(delayMSecs: Long): A {
-		start<AAnimation<T>>(delayMSecs)
+	fun startReverse(delayMSecs: Long): T {
+		start(delayMSecs)
 		position = 1f
 		isReverse = true
 		isStartDirectionReverse = isReverse
-		return this as A
+		return this as T
 	}
 
 	/**
@@ -119,9 +128,9 @@ abstract class AAnimation<T>(durationMSecs: Long, repeats: Int = 0, oscillateOnR
 	 * @param <A>
 	 * @return
 	</A> */
-	fun <A : AAnimation<T>> setOscillating(oscillating: Boolean): A {
+	fun setOscillating(oscillating: Boolean): T {
 		isOscillateOnRepeat = oscillating
-		return this as A
+		return this as T
 	}
 
 	/**
@@ -130,17 +139,17 @@ abstract class AAnimation<T>(durationMSecs: Long, repeats: Int = 0, oscillateOnR
 	 * @param <A>
 	 * @return
 	</A> */
-	fun <A : AAnimation<T>> setRepeats(repeats: Int): A {
+	fun setRepeats(repeats: Int): T {
 		maxRepeats = repeats
-		return this as A
+		return this as T
 	}
 
 	/**
 	 * Immediately start the animation in reverse direction
 	 * @return
 	 */
-	fun <A : AAnimation<T>> startReverse(): A {
-		return startReverse<AAnimation<T>>(0) as A
+	fun startReverse(): T {
+		return startReverse(0) as T
 	}
 
 	/**
@@ -156,7 +165,7 @@ abstract class AAnimation<T>(durationMSecs: Long, repeats: Int = 0, oscillateOnR
 	 *
 	 * @param g
 	 */
-	protected open fun drawPrestart(g: T) {}
+	protected open fun drawPrestart(g: CONTEXT) {}
 
 	/**
 	 * Call this within your rendering loop.  Animation is over when onDone() {} executed
@@ -165,7 +174,7 @@ abstract class AAnimation<T>(durationMSecs: Long, repeats: Int = 0, oscillateOnR
 	 * returns true when draw has been called, false otherwise
 	 */
 	@Synchronized
-	open fun update(g: T): Boolean {
+	open fun update(g: CONTEXT): Boolean {
 		if (state == State.PRESTART) {
 			error("Calling update on animation that has not been started!")
 		}
@@ -173,7 +182,7 @@ abstract class AAnimation<T>(durationMSecs: Long, repeats: Int = 0, oscillateOnR
 		val t = currentTimeMSecs
 		if (state != State.STOPPED) {
 			if (t < startTime) {
-				drawPrestart(g)
+				drawPrestart(g) // TODO: Remove? This may never get called?
 				return false
 			} else if (state == State.STARTED) {
 				state = State.RUNNING
@@ -250,7 +259,7 @@ abstract class AAnimation<T>(durationMSecs: Long, repeats: Int = 0, oscillateOnR
 	 * @param g
 	 * @param position
 	 */
-	protected abstract fun draw(g: T, position: Float, dt: Float)
+	protected abstract fun draw(g: CONTEXT, position: Float, dt: Float)
 
 	/**
 	 * Called from update thread when animation ended. base method does nothing
@@ -261,7 +270,7 @@ abstract class AAnimation<T>(durationMSecs: Long, repeats: Int = 0, oscillateOnR
 	 * Called from update thread when animation is started. base method does nothing
 	 * If there is an initial delay then this will indicate the delay has expired.
 	 */
-	protected open fun onStarted(g: T, revered: Boolean) {}
+	protected open fun onStarted(g: CONTEXT, revered: Boolean) {}
 	protected open fun onRepeat(n: Int) {}
 
 	val elapsedTime: Long

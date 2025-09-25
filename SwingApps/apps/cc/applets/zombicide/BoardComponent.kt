@@ -192,7 +192,7 @@ internal class BoardComponent : AWTRendererComponent<UIZBoardRenderer>(), UIZCom
 			val key = entry[0]
 			for (i in 1 until entry.size) {
 				val file = entry[i] as String
-				val id = g.loadImage(file, null, 1)
+				val id = g.loadImage(file)
 				require(id >= 0)
 				objectToImageMap.getOrPut(key) { ArrayList() }.add(id)
 				numImagesLoaded++

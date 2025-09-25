@@ -3,8 +3,8 @@ package cc.applets.swing
 import cc.game.othello.ai.AiOthelloPlayer
 import cc.game.othello.core.Othello
 import cc.game.othello.core.OthelloBoard
-import cc.lib.game.AAnimation
 import cc.lib.game.AGraphics
+import cc.lib.game.GAnimation
 import cc.lib.game.GColor
 import cc.lib.game.Utils
 import cc.lib.swing.AWTFrame
@@ -18,13 +18,13 @@ import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
 import java.awt.event.MouseEvent
 import java.io.File
-import java.util.*
+import java.util.LinkedList
 import javax.swing.JButton
 import javax.swing.JLabel
 import javax.swing.JPanel
 
 class OthelloApplet internal constructor(val frame: Container) : AWTKeyboardAnimationApplet(), ActionListener {
-	inner class FlipAnimation(val row: Int, val col: Int, val fromColor: Int, val toColor: Int) : AAnimation<AGraphics>(1000, 0) {
+	inner class FlipAnimation(val row: Int, val col: Int, val fromColor: Int, val toColor: Int) : GAnimation(1000, 0) {
 		override fun draw(g: AGraphics, position: Float, dt: Float) {
 			var scale = 0f
 			if (position < 0.5f) {
@@ -46,7 +46,7 @@ class OthelloApplet internal constructor(val frame: Container) : AWTKeyboardAnim
 	val game: Othello = object : Othello() {
 		override fun onCellChanged(row: Int, col: Int, oldColor: Int, newColor: Int) {
 			val anim = FlipAnimation(row, col, oldColor, newColor)
-			anim.start<AAnimation<AGraphics>>((anims.size * 500).toLong())
+			anim.start((anims.size * 500).toLong())
 			anims.add(anim)
 		}
 	}

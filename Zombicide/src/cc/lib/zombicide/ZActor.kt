@@ -1,6 +1,5 @@
 package cc.lib.zombicide
 
-import cc.lib.game.AAnimation
 import cc.lib.game.AGraphics
 import cc.lib.game.GRectangle
 import cc.lib.game.IRectangle
@@ -94,8 +93,8 @@ abstract class ZActor internal constructor(var occupiedZone: Int) : UIZButton() 
 	open val isInvisible: Boolean
 		get() = false
 
-	fun addAnimation(anim: ZActorAnimation) {
-		animations.add(anim)
+	fun addAnimation(anim: ZAnimation) {
+		animations.add(anim as ZActorAnimation)
 	}
 
 	open val moveSpeed: Long
@@ -103,9 +102,9 @@ abstract class ZActor internal constructor(var occupiedZone: Int) : UIZButton() 
 	val isAnimating: Boolean
 		get() = animations.isNotEmpty()
 
-    fun drawOrAnimate(g: AGraphics) {
-	    while (animations.size > 0 && animations.first.isDone) {
-		    animations.first.rect?.let {
+	fun drawOrAnimate(g: AGraphics) {
+		while (animations.size > 0 && animations.first.isDone) {
+			animations.first.rect?.let {
 			    rect = it
 		    }
 		    animations.pop()
@@ -114,7 +113,7 @@ abstract class ZActor internal constructor(var occupiedZone: Int) : UIZButton() 
 		    if (!it.hidesActor())
 			    draw(g)
 		    if (!it.isStarted)
-			    it.start<AAnimation<AGraphics>>()
+			    it.start()
 		    it.update(g)
 	    } ?: run {
 		    draw(g)

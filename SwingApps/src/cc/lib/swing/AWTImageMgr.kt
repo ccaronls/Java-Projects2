@@ -5,33 +5,17 @@ import cc.lib.game.Utils
 import cc.lib.logger.LoggerFactory
 import cc.lib.math.CMath
 import cc.lib.utils.GException
+import cc.lib.utils.getOrNull
 import java.awt.*
 import java.awt.geom.AffineTransform
 import java.awt.image.*
 import java.io.*
 import java.util.*
 import javax.swing.ImageIcon
-import kotlin.math.abs
 
 
 class AWTImageMgr {
 	private val log = LoggerFactory.getLogger(javaClass)
-
-	internal class ScaledImage(val image: Image?, val w: Int, val h: Int)
-	internal class Meta(_source: Image?, val copies: Int) {
-
-		var source: Image? = null
-			set(value) {
-				field = value
-				scaledVersion.clear()
-			}
-		val scaledVersion = LinkedList<ScaledImage>()
-
-		init {
-			source = _source
-		}
-
-	}
 
 	private fun createMissingAssetImage(): Image {
 		val dim = 64
@@ -48,12 +32,9 @@ class AWTImageMgr {
 		return img
 	}
 
-	private val images: MutableList<Meta> = object : ArrayList<Meta>() {
-		init {
-			// id==0 should always be the 'missing asset' image
-			add(Meta(createMissingAssetImage(), 1)) // make sure we start id 1 (not zero)
-		}
-	} // loaded images
+	private val images = mutableListOf<Image?>(
+		createMissingAssetImage()
+	) // loaded images
 
 	/* Returns an ImageIcon, or null if the path was invalid. 
 	private static ImageIcon createImageIcon(String path) {
@@ -141,17 +122,6 @@ class AWTImageMgr {
 
 	@Synchronized
 	fun loadImage(fileOrResourceName: String, transparent: Color?): Int {
-		return loadImage(fileOrResourceName, transparent, 2)
-	}
-
-	/**
-	 *
-	 * @param fileOrResourceName
-	 * @param transparent
-	 * @return
-	 */
-	@Synchronized
-	fun loadImage(fileOrResourceName: String, transparent: Color?, maxCopies: Int): Int {
 		val id = images.size
 		val (image: Image, source: String) = try {
 			try {
@@ -174,7 +144,7 @@ class AWTImageMgr {
 		if (transparent != null) {
 			return addImage(transform(image, AWTTransparencyFilter(transparent)))
 		}
-		return addImage(image, maxCopies)
+		return addImage(image)
 	}
 
 	/**
@@ -229,7 +199,7 @@ class AWTImageMgr {
 	@Synchronized
 	fun loadImageCells(file: String, cells: Array<IntArray>): IntArray {
 		val srcId = loadImage(file)
-		getSourceImage(srcId)?.let { source ->
+		getImage(srcId)?.let { source ->
 			val result = IntArray(cells.size)
 			for (i in result.indices) {
 				val x = cells[i][0]
@@ -257,7 +227,7 @@ class AWTImageMgr {
 	 */
 	@Synchronized
 	fun loadImageCells(sourceId: Int, width: Int, height: Int, numx: Int, num: Int, celled: Boolean): IntArray {
-		getSourceImage(sourceId)?.let { source ->
+		getImage(sourceId)?.let { source ->
 			return loadImageCells(source, width, height, numx, num, celled)
 		}
 		return intArrayOf()
@@ -285,79 +255,11 @@ class AWTImageMgr {
 	}*/
 
 	/**
-	 * Get an image resized if neccessary to the specified dimension.
-	 * The resize op only happens when the dimensions change.
-	 * @param id
-	 * @param width
-	 * @param height
-	 * @return
-	 */
-	@Synchronized
-	fun getImage(id: Int, width: Int, height: Int, comp: Component): Image? {
-		val meta = images[id]
-		for (si in meta.scaledVersion) {
-			val dw = abs(width - si.w)
-			val dh = abs(height - si.h)
-			if (dw <= 1 && dh <= 1) {
-				return si.image
-			}
-		}
-		meta.source?.let { image ->
-			val curW = image.getWidth(comp)
-			val curH = image.getHeight(comp)
-			if (width >= 8 && width <= 1024 * 8 && height >= 8 && height <= 1024 * 8) {
-				//log.debug("Resizing image [" + id + "] from " + curW + ", " + curH + " too " + width + ", " + height);
-				log.debug("Resizing image [%d] from %d, %d too %d, %d", id, curW, curH, width, height)
-				transform(image, ReplicateScaleFilter(width, height)).apply {
-					meta.scaledVersion.addFirst(ScaledImage(this, width, height))
-					if (meta.scaledVersion.size > meta.copies) {
-						meta.scaledVersion.removeLast()
-					}
-				}
-			}
-			return image
-		}
-		return null
-	}
-
-	/**
 	 *
 	 * @param id
 	 * @return
 	 */
-	fun getImage(id: Int): Image? {
-		val meta = images[id]
-		return if (meta.scaledVersion.size == 0) meta.source else meta.scaledVersion.first.image
-	}
-
-	/**
-	 * Render an image at the specified location and dimension
-	 * @param g
-	 * @param id
-	 * @param x
-	 * @param y
-	 * @param w
-	 * @param h
-	 */
-	fun drawImage(g: Graphics, comp: Component, id: Int, x: Int, y: Int, w: Int, h: Int) {
-		try {
-			val image = getImage(id, w, h, comp)
-			g.drawImage(image, x, y, comp)
-		} catch (e: Exception) {
-			e.printStackTrace()
-		}
-	}
-
-	/**
-	 *
-	 * @param id
-	 * @return
-	 */
-	fun getSourceImage(id: Int): Image? {
-		if (id < 0 || id >= images.size)
-			return null
-		return images[id].source
-	}
+	fun getImage(id: Int): Image? = images.getOrNull(id)
 
 	/**
 	 *
@@ -375,40 +277,15 @@ class AWTImageMgr {
 
 	/**
 	 *
-	 * @param id
-	 * @return
-	 */
-	fun getWidth(id: Int): Int {
-		val meta = images[id]
-		return if (meta.scaledVersion.size > 0) {
-			meta.scaledVersion.first.w
-		} else meta.source!!.getWidth(null)
-	}
-
-	/**
-	 *
-	 * @param id
-	 * @return
-	 */
-	fun getHeight(id: Int): Int {
-		val meta = images[id]
-		return if (meta.scaledVersion.size > 0) {
-			meta.scaledVersion.first.h
-		} else meta.source!!.getHeight(null)
-	}
-
-	/**
-	 *
 	 * @param image
 	 * @return
 	 */
-	@JvmOverloads
-	fun addImage(image: Image, maxCopies: Int = 2): Int {
-		return images.indexOfFirst { it.source == null }.takeIf { it >= 0 }?.let {
-			images[it].source = image
+	fun addImage(image: Image): Int {
+		return images.indexOfFirst { it == null }.takeIf { it >= 0 }?.let {
+			images[it] = image
 			return it
 		} ?: run {
-			images.add(Meta(image, maxCopies))
+			images.add(image)
 			return images.size - 1
 		}
 	}
@@ -418,9 +295,7 @@ class AWTImageMgr {
 	 * @param id
 	 */
 	fun deleteImage(id: Int) {
-		val meta = images[id]
-		meta.source = null
-		meta.scaledVersion.clear()
+		images[id] = null
 	}
 
 	fun deleteAll() {
@@ -469,6 +344,10 @@ class AWTImageMgr {
 	fun newImage(pixels: IntArray?, w: Int, h: Int): Int {
 		val img = Toolkit.getDefaultToolkit().createImage(MemoryImageSource(w, h, pixels, 0, w))
 		return addImage(img)
+	}
+
+	fun replaceImage(key: Int, img: Image) {
+		images[key] = img
 	}
 
 	/*

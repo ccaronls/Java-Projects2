@@ -664,7 +664,8 @@ ${winner!!.color} Wins!"""
 	 */
 	abstract fun getPieceImageId(p: PieceType, color: Color): Int
 
-	abstract inner class PieceAnim(val start: Int, ex: Float, ey: Float, durationMSecs: Long) : AAnimation<AGraphics>(durationMSecs) {
+	abstract inner class PieceAnim(val start: Int, ex: Float, ey: Float, durationMSecs: Long) :
+		AAnimation<AGraphics, PieceAnim>(durationMSecs) {
 		val sx: Float
 		val sy: Float
 		val ex: Float

@@ -220,12 +220,8 @@ abstract class UIProbot : Probot() {
 		repaint()
 	}
 
-	val animations: MutableMap<Guy, AAnimation<AGraphics>> = HashMap()
-
-	abstract inner class BaseAnim : AAnimation<AGraphics> {
-		constructor(durationMSecs: Long) : super(durationMSecs) {}
-		constructor(durationMSecs: Long, repeats: Int) : super(durationMSecs, repeats) {}
-		constructor(durationMSecs: Long, repeats: Int, oscilateOnRepeat: Boolean) : super(durationMSecs, repeats, oscilateOnRepeat) {}
+	abstract inner class BaseAnim(durationMSecs: Long, repeats: Int = -1, oscilateOnRepeat: Boolean = false) :
+		AAnimation<AGraphics, BaseAnim>(durationMSecs, repeats, oscilateOnRepeat) {
 
 		override fun onDone() {
 			lock.releaseAll()
@@ -236,7 +232,7 @@ abstract class UIProbot : Probot() {
 			assert(startedCorrectly)
 		}
 
-		fun start(guy: Guy): AAnimation<AGraphics> {
+		fun start(guy: Guy): BaseAnim {
 			synchronized(animations) {
 				animations[guy] = this
 				assert(animations.size < 32)
@@ -253,7 +249,10 @@ abstract class UIProbot : Probot() {
 			}
 	}
 
-	internal open inner class JumpAnim @JvmOverloads constructor(val guy: Guy, val advanceAmt: Float = 1f, durMs: Long = 1000) : BaseAnim(durMs) {
+	val animations: MutableMap<Guy, BaseAnim> = HashMap()
+
+	internal open inner class JumpAnim @JvmOverloads constructor(val guy: Guy, val advanceAmt: Float = 1f, durMs: Long = 1000) :
+		BaseAnim(durMs) {
 		var b: Bezier? = null
 		var x = 0f
 		var y = 0f
