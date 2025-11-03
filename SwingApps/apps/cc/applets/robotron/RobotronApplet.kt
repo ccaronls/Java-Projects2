@@ -18,7 +18,7 @@ import cc.lib.net.PortAllocator
 import cc.lib.swing.AWTFrame
 import cc.lib.swing.AWTGraphics
 import cc.lib.swing.AWTKeyboardAnimationApplet
-import cc.lib.utils.FileUtils
+import cc.lib.utils.getOrCreateSettingsDirectory
 import cc.lib.utils.noDupesMapOf
 import cc.lib.utils.random
 import cc.lib.utils.setRandomSeed
@@ -405,7 +405,7 @@ class RobotronApplet(val frameId: Int) : AWTKeyboardAnimationApplet(), IRoboClie
 	companion object {
 
 		val settingsDir: File by lazy {
-			FileUtils.getOrCreateSettingsDirectory(RobotronApplet::class.java)
+			RobotronApplet::class.java.getOrCreateSettingsDirectory()
 		}
 
 		@JvmStatic

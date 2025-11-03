@@ -13,6 +13,8 @@ import java.io.File
 import java.lang.ref.WeakReference
 import java.util.Stack
 import kotlin.coroutines.CoroutineContext
+import kotlin.math.abs
+import kotlin.math.floor
 import kotlin.math.roundToInt
 import kotlin.properties.ReadWriteProperty
 import kotlin.random.Random
@@ -64,7 +66,8 @@ fun Int.rotate(max: Int): Int {
 }
 
 fun Int.rotate(amt: Int, max: Int): Int {
-	return plus(amt) % max
+	require(abs(amt) <= max)
+	return plus(amt + max) % max
 }
 
 fun Any?.prettify(): String {
@@ -293,6 +296,11 @@ inline fun <reified T : Enum<T>> T.increment(amt: Int = 1, values: Array<T> = en
 	return values[(idx + amt + values.size) % values.size]
 }
 
+inline fun <reified T : Enum<T>> T.incrementOrNull(amt: Int = 1, values: Array<T> = enumValues()): T? {
+	val idx = values.indexOf(this).coerceAtLeast(0)
+	return values.getOrNull(idx + amt)
+}
+
 inline fun <T, S> Iterable<T>.forEachAs(action: (S) -> Unit) {
 	(this as Iterable<S>).forEach(action)
 }
@@ -401,8 +409,9 @@ inline fun <reified T : Enum<T>> enumValueOfOrNull(name: String?): T? {
  */
 inline fun <T, R : Comparable<R>> Collection<T>.allMaxOf(selector: (T) -> R): List<T> {
 	val s: Map<R, List<T>> = groupBy(selector)
-	val max = s.maxOfOrNull { it.key } ?: return emptyList()
-	return s[max]!!
+	return s.maxOfOrNull { it.key }?.let {
+		s[it]
+	} ?: emptyList()
 }
 
 /**
@@ -449,6 +458,9 @@ fun <T> Iterable<T>.notContains(predicate: (T) -> Boolean): Boolean = contains(p
 
 fun unhandledCase(obj: Any?) = require(false) { "Unhandled case $obj" }
 
+/**
+ * Give string representation of Boolean as ON / OFF
+ */
 fun Boolean.toOnOffStr() = if (this) "ON" else "OFF"
 
 fun <K, V> noDupesMapOf(vararg pairs: kotlin.Pair<K, V>): Map<K, V> = NoDupesMap<K, V>(LinkedHashMap()).also {
@@ -457,12 +469,65 @@ fun <K, V> noDupesMapOf(vararg pairs: kotlin.Pair<K, V>): Map<K, V> = NoDupesMap
 	}
 }
 
+/**
+ * Give this pair if both components are non null
+ */
 inline fun <S, T> kotlin.Pair<S?, T?>.hasBothOrNull(): kotlin.Pair<S, T>? {
 	return if (first != null && second != null) kotlin.Pair(first!!, second!!) else null
 }
 
+/**
+ * Give this Triple when all components are non-null
+ */
 inline fun <R, S, T> Triple<R?, S?, T?>.hasAllOrNull(): Triple<R, S, T>? {
 	return if (first != null && second != null && third != null) Triple(first!!, second!!, third!!) else null
 }
 
+/**
+ * Give this string prepended with color code to be compatible with 'drawAnnotatedString'
+ */
 fun String.annotated(color: GColor): String = String.format("%s%s", color.toString(), this)
+
+/**
+ * Get enum associated with this ordinal
+ */
+inline fun <reified E : Enum<E>> Int.toEnum(): E = enumValues<E>()[this]
+
+/**
+ * Get subject of this with dot and trailing chars stripped or this if no dot found
+ */
+fun String.stripFileExtension(): String = lastIndexOf('.').takeIf { it > 0 }?.let {
+	substring(0, it)
+} ?: this
+
+fun <T> Collection<T>.randomWeighted(weight: (T) -> Int): T {
+	val items = map { Pair(it, weight(it).coerceAtLeast(0)) }
+	val sum = items.sumOf { it.second }
+	if (sum <= 0)
+		return random()
+	var which = random(sum)
+	items.filter { it.second > 0 }.forEach {
+		if (it.second >= which)
+			return it.first
+		which -= it.second
+	}
+	return items.last().first
+}
+
+/**
+ * Factor to be value between 0-1
+ */
+fun interpolateColors(_factor: Float, vararg colors: GColor): GColor {
+	if (colors.isEmpty())
+		return GColor.TRANSPARENT
+	if (colors.size == 1)
+		return colors[0]
+	val factor = _factor.coerceIn(0f, 1f)
+	if (colors.size == 2) // technically not needed but meh
+		return colors[0].interpolateTo(colors[1], factor)
+	val f = factor * (colors.size - 1)
+	val first = colors[f.toInt().coerceAtLeast(0)]
+	val second = colors[(f + 1).toInt().coerceAtMost(colors.size - 1)]
+	val f2 = f - floor(f)
+	return first.interpolateTo(second, f2)
+}

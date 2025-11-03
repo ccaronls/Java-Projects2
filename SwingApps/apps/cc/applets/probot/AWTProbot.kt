@@ -13,7 +13,10 @@ import cc.lib.swing.AWTFrame
 import cc.lib.swing.AWTGraphics
 import cc.lib.swing.AWTLabel
 import cc.lib.swing.AWTPanel
-import cc.lib.utils.FileUtils
+import cc.lib.utils.getOrCreateSettingsDirectory
+import cc.lib.utils.openFileOrResource
+import cc.lib.utils.streamToString
+import cc.lib.utils.toFile
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Cursor
@@ -109,7 +112,7 @@ class AWTProbot internal constructor() : AWTComponent() {
 
 	val templateHTML: String
 		get() = try {
-			FileUtils.inputStreamToString(FileUtils.openFileOrResource("pr_template.html")).replace(">[\n\t ]+<".toRegex(), "><")
+			"pr_template.html".openFileOrResource().streamToString().replace(">[\n\t ]+<".toRegex(), "><")
 		} catch (e: Exception) {
 			throw RuntimeException(e)
 		}
@@ -272,9 +275,9 @@ class AWTProbot internal constructor() : AWTComponent() {
 	}
 
 	init {
-		val settingsDir = FileUtils.getOrCreateSettingsDirectory(javaClass)
+		val settingsDir = javaClass.getOrCreateSettingsDirectory()
 		val propertiesFile = File(settingsDir, "awtprobot.properties")
-		levels.addAll(Reflector.deserializeFromInputStream(FileUtils.openFileOrResource("awtprobot_levels.txt")))
+		levels.addAll(Reflector.deserializeFromFile<List<Level>>(File("awtprobot_levels.txt")))
 		setMouseEnabled(false)
 		txtEditor.isEditable = true
 		txtEditor.border = BorderFactory.createLineBorder(Color(0, 0, 0, 0), 5)
@@ -303,7 +306,7 @@ class AWTProbot internal constructor() : AWTComponent() {
 				}
 				super.actionPerformed(ae)
 				try {
-					FileUtils.stringToFile(txtEditor.text, File("/tmp/x.html"))
+					txtEditor.text.toFile(File("/tmp/x.html"))
 				} catch (e: Exception) {
 					e.printStackTrace()
 				}
@@ -326,13 +329,13 @@ class AWTProbot internal constructor() : AWTComponent() {
 		val doc = txtEditor.document as HTMLDocument
 		val kit = txtEditor.editorKit as HTMLEditorKit
 		kit.defaultCursor = Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR)
-		clear = object : AWTButton(ImageIO.read(FileUtils.openFileOrResource("clear_x.png"))) {
+		clear = object : AWTButton(ImageIO.read("clear_x.png".openFileOrResource())) {
 			override fun onAction() {
 				txtEditor.text = templateHTML
 				txtEditor.grabFocus()
 			}
 		}
-		run = object : AWTButton(ImageIO.read(FileUtils.openFileOrResource("play_triangle.png"))) {
+		run = object : AWTButton(ImageIO.read("play_triangle.png".openFileOrResource())) {
 			override fun onAction() {
 				if (probot.isRunning) {
 					probot.isPaused = false
@@ -346,7 +349,7 @@ class AWTProbot internal constructor() : AWTComponent() {
 				}
 			}
 		}
-		pause = object : AWTButton(ImageIO.read(FileUtils.openFileOrResource("pause_bars.png"))) {
+		pause = object : AWTButton(ImageIO.read("pause_bars.png".openFileOrResource())) {
 			override fun onAction() {
 				if (probot.isRunning) {
 					probot.isPaused = true
@@ -355,7 +358,7 @@ class AWTProbot internal constructor() : AWTComponent() {
 				}
 			}
 		}
-		stop = object : AWTButton(ImageIO.read(FileUtils.openFileOrResource("stop_square.png"))) {
+		stop = object : AWTButton(ImageIO.read("stop_square.png".openFileOrResource())) {
 			override fun onAction() {
 				probot.stop()
 				run.setEnabled(true)
@@ -368,12 +371,12 @@ class AWTProbot internal constructor() : AWTComponent() {
 				System.exit(0)
 			}
 		}
-		next = object : AWTButton(ImageIO.read(FileUtils.openFileOrResource("forward_arrow.png"))) {
+		next = object : AWTButton(ImageIO.read("forward_arrow.png".openFileOrResource())) {
 			override fun onAction() {
 				if (!probot.isRunning) initLevel(frame.getIntProperty("curLevel", 0) + 1)
 			}
 		}
-		previous = object : AWTButton(ImageIO.read(FileUtils.openFileOrResource("back_arrow.png"))) {
+		previous = object : AWTButton(ImageIO.read("back_arrow.png".openFileOrResource())) {
 			override fun onAction() {
 				if (!probot.isRunning) initLevel(frame.getIntProperty("curLevel", 0) - 1)
 			}
@@ -381,7 +384,7 @@ class AWTProbot internal constructor() : AWTComponent() {
 		help = object : AWTButton("HELP") {
 			override fun onAction() {
 				try {
-					frame.showMessageDialogWithHTMLContent("Commands", FileUtils.inputStreamToString(FileUtils.openFileOrResource("pr_help.html")))
+					frame.showMessageDialogWithHTMLContent("Commands", "pr_help.html".openFileOrResource().streamToString())
 				} catch (e: Exception) {
 					e.printStackTrace()
 				}
@@ -402,7 +405,7 @@ class AWTProbot internal constructor() : AWTComponent() {
 
 			override fun onWindowClosing() {
 				try {
-					FileUtils.stringToFile(txtEditor.text, File(settingsDir, "program.html"))
+					txtEditor.text.toFile(File(settingsDir, "program.html"))
 				} catch (e: Exception) {
 					e.printStackTrace()
 				}
@@ -419,7 +422,7 @@ class AWTProbot internal constructor() : AWTComponent() {
 		initLevel(curLevel)
 		var html: String? = null
 		try {
-			html = FileUtils.fileToString(File(settingsDir, "program.html"))
+			html = File(settingsDir, "program.html").streamToString()
 		} catch (e: FileNotFoundException) {
 			// dont care
 		} catch (e: Exception) {

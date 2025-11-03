@@ -22,7 +22,7 @@ import cc.lib.swing.AWTLabel
 import cc.lib.swing.AWTNumberPicker
 import cc.lib.swing.AWTPanel
 import cc.lib.swing.AWTToggleButton
-import cc.lib.utils.FileUtils
+import cc.lib.utils.getOrCreateSettingsDirectory
 import cc.lib.utils.prettify
 import java.awt.BorderLayout
 import java.awt.event.ActionEvent
@@ -79,7 +79,7 @@ class AWTMonopoly internal constructor() : AWTComponent() {
 				rules.doublesRule = doublesRule.isSelected
 				popup.closePopup()
 				try {
-					Reflector.serializeToFile<Any>(rules, RULES_FILE)
+					Reflector.serializeToFile(rules, RULES_FILE)
 				} catch (e: Exception) {
 					frame.showMessageDialog("ERROR", """Error save rules to file $RULES_FILE
 ${e.javaClass.simpleName} ${e.message}""")
@@ -98,7 +98,7 @@ ${e.javaClass.simpleName} ${e.message}""")
 	init {
 		setMouseEnabled(true)
 		setPadding(5)
-		val settings = FileUtils.getOrCreateSettingsDirectory(javaClass)
+		val settings = javaClass.getOrCreateSettingsDirectory()
 		SAVE_FILE = File(settings, "game.save")
 		RULES_FILE = File(settings, "rules.save")
 

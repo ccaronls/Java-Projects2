@@ -6,7 +6,7 @@ import cc.lib.geniussquare.UIGeniusSquares
 import cc.lib.swing.AWTComponent
 import cc.lib.swing.AWTFrame
 import cc.lib.swing.AWTGraphics
-import cc.lib.utils.FileUtils
+import cc.lib.utils.getOrCreateSettingsDirectory
 import java.io.File
 
 class AWTGeniusSquares internal constructor() : AWTComponent() {
@@ -43,7 +43,7 @@ class AWTGeniusSquares internal constructor() : AWTComponent() {
 
 	init {
 		setMouseEnabled(true)
-		val settings = FileUtils.getOrCreateSettingsDirectory(javaClass)
+		val settings = javaClass.getOrCreateSettingsDirectory()
 		val saveFile = File(settings, "gs.save")
 		frame = object : AWTFrame("Genius Squares") {
 			override fun onWindowClosing() {

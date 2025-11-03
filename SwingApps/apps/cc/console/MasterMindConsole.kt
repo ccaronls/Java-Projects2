@@ -1,7 +1,7 @@
 package cc.console
 
-import cc.lib.utils.FileUtils
 import cc.lib.utils.asString
+import cc.lib.utils.getOrCreateSettingsDirectory
 import cc.lib.utils.trimmedToSize
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
@@ -68,7 +68,7 @@ class MasterMindConsole {
 		}
 	}
 
-	val settings: File = FileUtils.getOrCreateSettingsDirectory(MasterMindConsole::class.java)
+	val settings: File = MasterMindConsole::class.java.getOrCreateSettingsDirectory()
 	val saveFile: File = File(settings, "game.save")
 	var saveData = SaveData()
 	val gson: Gson = GsonBuilder().setPrettyPrinting().create()

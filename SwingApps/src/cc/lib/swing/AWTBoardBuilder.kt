@@ -13,9 +13,9 @@ import cc.lib.game.Utils
 import cc.lib.logger.LoggerFactory
 import cc.lib.math.MutableVector2D
 import cc.lib.math.Vector2D
-import cc.lib.utils.FileUtils
 import cc.lib.utils.GException
 import cc.lib.utils.Table
+import cc.lib.utils.getOrCreateSettingsDirectory
 import cc.lib.utils.increment
 import java.awt.BorderLayout
 import java.awt.event.KeyEvent
@@ -30,7 +30,7 @@ abstract class AWTBoardBuilder<V : BVertex, E : BEdge, C : BCell, T : CustomBoar
 	private val log = LoggerFactory.getLogger(AWTBoardBuilder::class.java)
 
 	val settings by lazy {
-		FileUtils.getOrCreateSettingsDirectory(AWTBoardBuilder::class.java)
+		AWTBoardBuilder::class.java.getOrCreateSettingsDirectory()
 	}
 
 	val frame: AWTFrame = object : AWTFrame() {

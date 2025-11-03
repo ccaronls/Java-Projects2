@@ -4,7 +4,7 @@ import cc.lib.game.AGraphics
 import cc.lib.game.Utils
 import cc.lib.swing.AWTFrame
 import cc.lib.swing.AWTKeyboardAnimationApplet
-import cc.lib.utils.FileUtils
+import cc.lib.utils.getOrCreateSettingsDirectory
 import java.awt.event.KeyEvent
 import java.io.File
 
@@ -141,7 +141,7 @@ class JavaRoidsApplet : AWTKeyboardAnimationApplet() {
 			val app: AWTKeyboardAnimationApplet = JavaRoidsApplet()
 			frame.add(app)
 			app.init()
-			val settings = FileUtils.getOrCreateSettingsDirectory(JavaRoidsApplet::class.java)
+			val settings = JavaRoidsApplet::class.java.getOrCreateSettingsDirectory()
 			if (!frame.loadFromFile(File(settings, "gui.properties"))) {
 				frame.centerToScreen(620, 620)
 			}

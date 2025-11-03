@@ -1,14 +1,14 @@
 package cc.console
 
 import cc.lib.swing.AWTImageMgr
-import cc.lib.utils.FileUtils
+import cc.lib.utils.stripExtension
 import java.awt.Image
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferInt
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
-import java.util.*
+import java.util.Properties
 import javax.imageio.ImageIO
 import kotlin.math.abs
 import kotlin.math.pow
@@ -349,7 +349,8 @@ class PhotoMosaic(val targetImg: BufferedImage, val cellWidthPixels: Int, val ce
 					}
 					computeAvgRgb()
 					val resultImg = generate()
-					val output = File(target.parent, FileUtils.stripExtension(target.name) + "_mosaic_${cellWidthPixels}x$cellHeightPixels.png")
+					val output =
+						File(target.parent, target.name.stripExtension() + "_mosaic_${cellWidthPixels}x$cellHeightPixels.png")
 					if (ImageIO.write(resultImg, "png", output)) {
 						println("Success!! Wrote mosaic to $output")
 					}
@@ -397,8 +398,8 @@ class PhotoMosaic(val targetImg: BufferedImage, val cellWidthPixels: Int, val ce
 	fun process(inputDir: File) {
 		// now process all the source images into the cache directory
 		val suffix = "_${cellWidthPixels}x$cellHeightPixels.png"
-		inputDir.listFiles().filter { path -> path.path.endsWith(".png") }.forEach {
-			val processedFile = File(sourceDir, FileUtils.stripExtension(it.name) + suffix)
+		inputDir.listFiles()?.filter { path -> path.path.endsWith(".png") }?.forEach {
+			val processedFile = File(sourceDir, it.name.stripExtension() + suffix)
 			if (!processedFile.exists()) {
 				println("Processing $it to $processedFile")
 				val img = try {

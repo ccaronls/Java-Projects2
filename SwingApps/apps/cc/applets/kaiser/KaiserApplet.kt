@@ -1,7 +1,15 @@
 package cc.applets.kaiser
 
 import cc.game.kaiser.ai.PlayerBot
-import cc.game.kaiser.core.*
+import cc.game.kaiser.core.Bid
+import cc.game.kaiser.core.Card
+import cc.game.kaiser.core.Kaiser
+import cc.game.kaiser.core.NO_BID
+import cc.game.kaiser.core.Player
+import cc.game.kaiser.core.Rank
+import cc.game.kaiser.core.State
+import cc.game.kaiser.core.Suit
+import cc.game.kaiser.core.Team
 import cc.lib.game.AGraphics
 import cc.lib.game.GColor
 import cc.lib.game.Justify
@@ -9,8 +17,8 @@ import cc.lib.game.Utils
 import cc.lib.reflector.Reflector
 import cc.lib.swing.AWTFrame
 import cc.lib.swing.AWTKeyboardAnimationApplet
-import cc.lib.utils.FileUtils
 import cc.lib.utils.Lock
+import cc.lib.utils.getOrCreateSettingsDirectory
 import java.awt.event.MouseEvent
 import java.io.File
 
@@ -69,7 +77,10 @@ class KaiserApplet() : AWTKeyboardAnimationApplet() {
 		CardImage(Rank.THREE, Suit.CLUBS, "45.png"))
 	private var cardWidth = 0f
 	private var cardHeight = 0f
-	val SAVE_FILE = File(FileUtils.getOrCreateSettingsDirectory(javaClass), "game.save")
+	val SAVE_FILE by lazy {
+		File(javaClass.getOrCreateSettingsDirectory(), "game.save")
+	}
+
 	override fun doInitialization() {
 		Kaiser.DEBUG_ENABLED = true
 		Utils.setDebugEnabled()
@@ -118,7 +129,7 @@ class KaiserApplet() : AWTKeyboardAnimationApplet() {
 	fun startThread() {
 		if (running) return
 		running = true
-		Thread(Runnable {
+		Thread {
 			try {
 				var prevState: State? = State.GAME_OVER
 				while (running) {
@@ -131,8 +142,9 @@ class KaiserApplet() : AWTKeyboardAnimationApplet() {
 					when (kaiser.state) {
 						State.NEW_GAME, State.NEW_ROUND -> {
 						}
-						State.DEAL                      -> Thread.sleep(100)
-						State.BID                       ->
+
+						State.DEAL -> Thread.sleep(100)
+						State.BID ->
 							/** each player play's their card  */
 							/** each player play's their card  */
 							/** each player play's their card  */
@@ -142,13 +154,16 @@ class KaiserApplet() : AWTKeyboardAnimationApplet() {
 							/** each player play's their card  */
 							/** each player play's their card  */
 							Thread.sleep(1000)
-						State.TRICK                     -> Thread.sleep(1000)
-						State.PROCESS_TRICK             -> Thread.sleep(3000)
-						State.RESET_TRICK               -> {
+
+						State.TRICK -> Thread.sleep(1000)
+						State.PROCESS_TRICK -> Thread.sleep(3000)
+						State.RESET_TRICK -> {
 						}
-						State.PROCESS_ROUND             -> {
+
+						State.PROCESS_ROUND -> {
 						}
-						State.GAME_OVER                 -> {
+
+						State.GAME_OVER -> {
 						}
 					}
 				}
@@ -156,7 +171,7 @@ class KaiserApplet() : AWTKeyboardAnimationApplet() {
 				e.printStackTrace()
 			}
 			running = false
-		}).start()
+		}.start()
 	}
 
 	override fun drawFrame(g: AGraphics) {
@@ -554,7 +569,7 @@ class KaiserApplet() : AWTKeyboardAnimationApplet() {
 			//Utils.DEBUG_ENABLED = true;
 			//Golf.DEBUG_ENABLED = true;
 			//PlayerBot.DEBUG_ENABLED = true;
-			val settings = FileUtils.getOrCreateSettingsDirectory(KaiserApplet::class.java)
+			val settings = KaiserApplet::class.java.getOrCreateSettingsDirectory()
 			val frame = AWTFrame("Kaiser")
 			val app: AWTKeyboardAnimationApplet = KaiserApplet()
 			frame.add(app)

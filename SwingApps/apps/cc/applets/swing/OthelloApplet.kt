@@ -9,8 +9,8 @@ import cc.lib.game.GColor
 import cc.lib.game.Utils
 import cc.lib.swing.AWTFrame
 import cc.lib.swing.AWTKeyboardAnimationApplet
-import cc.lib.utils.FileUtils
 import cc.lib.utils.Lock
+import cc.lib.utils.getOrCreateSettingsDirectory
 import java.awt.BorderLayout
 import java.awt.Container
 import java.awt.GridLayout
@@ -50,7 +50,7 @@ class OthelloApplet internal constructor(val frame: Container) : AWTKeyboardAnim
 			anims.add(anim)
 		}
 	}
-	val gameFile = File(FileUtils.getOrCreateSettingsDirectory(javaClass), "othello.txt")
+	val gameFile = File(javaClass.getOrCreateSettingsDirectory(), "othello.txt")
 	val anims: MutableList<FlipAnimation> = LinkedList()
 	val lock = Lock()
 
@@ -262,7 +262,7 @@ class OthelloApplet internal constructor(val frame: Container) : AWTKeyboardAnim
 			val frame = AWTFrame("JavaRoids Debug Mode")
 			instance = OthelloApplet(frame)
 			frame.add(instance)
-			val settings = FileUtils.getOrCreateSettingsDirectory(OthelloApplet::class.java)
+			val settings = OthelloApplet::class.java.getOrCreateSettingsDirectory()
 			if (!frame.loadFromFile(File(settings, "gui.properties"))) frame.centerToScreen(640, 480)
 			instance.init()
 			instance.start()

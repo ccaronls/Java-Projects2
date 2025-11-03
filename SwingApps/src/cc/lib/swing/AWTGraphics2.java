@@ -25,21 +25,43 @@ public class AWTGraphics2 extends AWTGraphics {
         G2.setStroke(stroke);
     }
 
+    /*
+    onstructor(g: AWTGraphics, G: Graphics, comp: Component) : super(g.comp.width, g.comp.height) {
+		this.g = G
+		R.setWindow(this)
+		this.comp = g.comp
+		initViewport(comp.width, comp.height)
+		ortho()
+	}
+
+     */
+
+    public AWTGraphics2(AWTGraphics2 g, Graphics2D G) {
+        this(G, g.getComp());
+    }
+
     public Graphics2D getGraphics2D() {
         return G2;
     }
 
     public void setGraphics(Graphics g) {
         super.setGraphics(g);
-        this.G2 = (Graphics2D)g;
+        this.G2 = (Graphics2D) g;
     }
 
     @Override
     public float setLineWidth(float newWidth) {
         float old = stroke.getLineWidth();
-        stroke = new BasicStroke(newWidth);
-        G2.setStroke(stroke);
+        if (old != newWidth) {
+            stroke = new BasicStroke(newWidth);
+            G2.setStroke(stroke);
+        }
         return old;
+    }
+
+    @Override
+    public float getLineWidth() {
+        return stroke.getLineWidth();
     }
 
     @Override

@@ -226,6 +226,7 @@ abstract class AAnimation<CONTEXT, T : AAnimation<CONTEXT, T>>(durationMSecs: Nu
 		if (state == State.STOPPED) {
 			kill()
 			onDone()
+			return false
 		}
 		return true
 	}

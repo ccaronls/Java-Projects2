@@ -15,7 +15,11 @@ import java.awt.event.KeyEvent
 /**
  * Created by Chris Caron on 9/13/21.
  */
-class AWTRiskBoardBuilder : AWTBoardBuilder<BVertex, BEdge, RiskCell, RiskBoard>() {
+class AWTRiskBoardBuilder : AWTBoardBuilder<BVertex, BEdge, RiskCell, RiskBoard>
+	                            (
+	                            "risk_builder.properties",
+	                            "risk.backup.board"
+                            ) {
 
 	val region: Region
 		get() = frame.getEnumProperty("region", Region.AFRICA)
@@ -25,10 +29,6 @@ class AWTRiskBoardBuilder : AWTBoardBuilder<BVertex, BEdge, RiskCell, RiskBoard>
 	override fun newBoard(): RiskBoard {
 		return RiskBoard()
 	}
-
-	override val propertiesFileName: String = "risk_builder.properties"
-
-	override val defaultBoardFileName: String = "risk.backup.board"
 
 	override val boardFileExtension: String = "board"
 

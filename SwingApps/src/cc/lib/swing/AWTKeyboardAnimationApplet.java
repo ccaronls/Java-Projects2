@@ -58,6 +58,7 @@ import org.jetbrains.annotations.NotNull;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
@@ -147,7 +148,9 @@ public abstract class AWTKeyboardAnimationApplet extends JApplet implements
     public final void keyPressed(KeyEvent evt) {
         int c = evt.getKeyChar();
         Utils.assertTrue(c >= 0);
-        if (c >= 0 && c < keyboard.length) {
+        if (evt.getKeyCode() == KeyEvent.VK_SHIFT) {
+            shiftDown = true;
+        } else if (c < keyboard.length) {
             if (keyboard[c] == 0 || (this.keyRepeat && reportKeyRepeats())) {
                 keyboard[c] = 1;
                 onKeyPressed(evt);
@@ -162,7 +165,9 @@ public abstract class AWTKeyboardAnimationApplet extends JApplet implements
     @Override
     public final void keyReleased(KeyEvent evt) {
         int c = evt.getKeyChar();
-        if (c >= 0 && c < keyboard.length) {
+        if (evt.getKeyCode() == KeyEvent.VK_SHIFT) {
+            shiftDown = false;
+        } else if (c < keyboard.length) {
             if (keyboard[evt.getKeyChar()] != 0) {
                 keyboard[evt.getKeyChar()] = 0;
                 onKeyReleased(evt);
@@ -475,16 +480,25 @@ public abstract class AWTKeyboardAnimationApplet extends JApplet implements
 		
 		OSC = null; // free up any memory currently used by OSC before allocating new memory
 		try {
-			OSC = createImage(width - borderThickness*2, height -  borderThickness*2);
-			if (OSG != null)
-			    OSG = new AWTGraphics(OSG, OSC.getGraphics(), this);
-			else
-			    OSG = new AWTGraphics(OSC.getGraphics(), this);
-			OSG.setColor(Color.BLACK);
-			OSG.setFont(getDefaultFont());
-			OSG.initViewport(width, height);
-	        onDimensionsChanged(OSG, width, height);
-		} catch (OutOfMemoryError e) {
+            OSC = createImage(width - borderThickness * 2, height - borderThickness * 2);
+            Graphics _NEWG = OSC.getGraphics();
+            if (_NEWG instanceof Graphics2D) {
+                Graphics2D NEWG = (Graphics2D) _NEWG;
+                if (OSG != null)
+                    OSG = new AWTGraphics2((AWTGraphics2) OSG, NEWG);
+                else
+                    OSG = new AWTGraphics2(NEWG, this);
+            } else {
+                if (OSG != null)
+                    OSG = new AWTGraphics(OSG, _NEWG);
+                else
+                    OSG = new AWTGraphics(_NEWG, this);
+            }
+            OSG.setColor(Color.BLACK);
+            OSG.setFont(getDefaultFont());
+            OSG.initViewport(width, height);
+            onDimensionsChanged(OSG, width, height);
+        } catch (OutOfMemoryError e) {
 			OSC = null;
 			OSG = null;
 		}
@@ -823,30 +837,36 @@ public abstract class AWTKeyboardAnimationApplet extends JApplet implements
     			startTime = -1; // signal to run() to compute startTime
     		synchronized (runLock) {
     		    runLock.notify();
-    		}		
-		}
-	}
-	
-	protected void setKeyRepeat(boolean repeat) {
-		this.keyRepeat = repeat;
-	}
+    		}
+        }
+    }
 
-	protected AWTKeyboardAnimationApplet() {
-		Arrays.fill(keyboard, 0);
-	}
-	
-	private boolean keyRepeat = false;
-	
-	private int mouseX = 0;
+    protected void setKeyRepeat(boolean repeat) {
+        this.keyRepeat = repeat;
+    }
 
-	private int mouseY = 0;
+    protected AWTKeyboardAnimationApplet() {
+        Arrays.fill(keyboard, 0);
+    }
 
-	private int mouseDX = 0;
+    public boolean isShiftDown() {
+        return shiftDown;
+    }
 
-	private int mouseDY = 0;
+    private boolean keyRepeat = false;
 
-	private int[] mouseButtons = new int[10]; // 1==down, 2=released, 0==unset
-	
-	private int [] keyboard = new int[256];
+    private int mouseX = 0;
+
+    private int mouseY = 0;
+
+    private int mouseDX = 0;
+
+    private int mouseDY = 0;
+
+    private int[] mouseButtons = new int[10]; // 1==down, 2=released, 0==unset
+
+    private int[] keyboard = new int[256];
+
+    private boolean shiftDown = false;
 
 } // end class AnimationApplet

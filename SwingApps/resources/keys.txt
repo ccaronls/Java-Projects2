@@ -1,326 +1,398 @@
-java.util.HashMap {
-   java.lang.Character {
-      a
-   }
-   cc.lib.game.GRectangle {
-      h=40.0
-      w=44.0
-      x=105.0
-      y=171.0
-   }
-   java.lang.Character {
-      b
-   }
-   cc.lib.game.GRectangle {
-      h=42.0
-      w=45.0
-      x=351.0
-      y=224.0
-   }
-   java.lang.Character {
-      c
-   }
-   cc.lib.game.GRectangle {
-      h=41.0
-      w=42.0
-      x=243.0
-      y=226.0
-   }
-   java.lang.Character {
-      d
-   }
-   cc.lib.game.GRectangle {
-      h=44.0
-      w=45.0
-      x=215.0
-      y=169.0
-   }
-   java.lang.Character {
-      e
-   }
-   cc.lib.game.GRectangle {
-      h=42.0
-      w=46.0
-      x=201.0
-      y=116.0
-   }
-   java.lang.Character {
-      f
-   }
-   cc.lib.game.GRectangle {
-      h=43.0
-      w=42.0
-      x=271.0
-      y=169.0
-   }
-   java.lang.Character {
-      g
-   }
-   cc.lib.game.GRectangle {
-      h=42.0
-      w=43.0
-      x=325.0
-      y=170.0
-   }
-   java.lang.Character {
-      h
-   }
-   cc.lib.game.GRectangle {
-      h=43.0
-      w=44.0
-      x=378.0
-      y=168.0
-   }
-   java.lang.Character {
-      i
-   }
-   cc.lib.game.GRectangle {
-      h=45.0
-      w=48.0
-      x=470.0
-      y=113.0
-   }
-   java.lang.Character {
-      j
-   }
-   cc.lib.game.GRectangle {
-      h=41.0
-      w=45.0
-      x=432.0
-      y=170.0
-   }
-   java.lang.Character {
-      k
-   }
-   cc.lib.game.GRectangle {
-      h=45.0
-      w=45.0
-      x=487.0
-      y=167.0
-   }
-   java.lang.Character {
-      l
-   }
-   cc.lib.game.GRectangle {
-      h=40.0
-      w=46.0
-      x=540.0
-      y=171.0
-   }
-   java.lang.Character {
-      m
-   }
-   cc.lib.game.GRectangle {
-      h=44.0
-      w=43.0
-      x=462.0
-      y=223.0
-   }
-   java.lang.Character {
-      n
-   }
-   cc.lib.game.GRectangle {
-      h=41.0
-      w=45.0
-      x=408.0
-      y=225.0
-   }
-   java.lang.Character {
-      o
-   }
-   cc.lib.game.GRectangle {
-      h=45.0
-      w=50.0
-      x=524.0
-      y=113.0
-   }
-   java.lang.Character {
-      p
-   }
-   cc.lib.game.GRectangle {
-      h=45.0
-      w=52.0
-      x=580.0
-      y=114.0
-   }
-   java.lang.Character {
-      0
-   }
-   cc.lib.game.GRectangle {
-      h=42.0
-      w=50.0
-      x=552.0
-      y=62.0
-   }
-   java.lang.Character {
-      q
-   }
-   cc.lib.game.GRectangle {
-      h=43.0
-      w=46.0
-      x=93.0
-      y=116.0
-   }
-   java.lang.Character {
-      1
-   }
-   cc.lib.game.GRectangle {
-      h=38.0
-      w=42.0
-      x=69.0
-      y=66.0
-   }
-   java.lang.Character {
-      r
-   }
-   cc.lib.game.GRectangle {
-      h=43.0
-      w=47.0
-      x=255.0
-      y=114.0
-   }
-   java.lang.Character {
-      2
-   }
-   cc.lib.game.GRectangle {
-      h=47.0
-      w=47.0
-      x=120.0
-      y=60.0
-   }
-   java.lang.Character {
-      s
-   }
-   cc.lib.game.GRectangle {
-      h=42.0
-      w=42.0
-      x=162.0
-      y=170.0
-   }
-   java.lang.Character {
-      3
-   }
-   cc.lib.game.GRectangle {
-      h=45.0
-      w=49.0
-      x=174.0
-      y=61.0
-   }
-   java.lang.Character {
-      t
-   }
-   cc.lib.game.GRectangle {
-      h=42.0
-      w=44.0
-      x=311.0
-      y=115.0
-   }
-   java.lang.Character {
-      4
-   }
-   cc.lib.game.GRectangle {
-      h=44.0
-      w=46.0
-      x=229.0
-      y=61.0
-   }
-   java.lang.Character {
-      u
-   }
-   cc.lib.game.GRectangle {
-      h=44.0
-      w=48.0
-      x=416.0
-      y=113.0
-   }
-   java.lang.Character {
-      5
-   }
-   cc.lib.game.GRectangle {
-      h=41.0
-      w=50.0
-      x=282.0
-      y=63.0
-   }
-   java.lang.Character {
-      v
-   }
-   cc.lib.game.GRectangle {
-      h=43.0
-      w=45.0
-      x=296.0
-      y=224.0
-   }
-   java.lang.Character {
-      6
-   }
-   cc.lib.game.GRectangle {
-      h=42.0
-      w=44.0
-      x=338.0
-      y=62.0
-   }
-   java.lang.Character {
-      w
-   }
-   cc.lib.game.GRectangle {
-      h=44.0
-      w=47.0
-      x=147.0
-      y=115.0
-   }
-   java.lang.Character {
-      7
-   }
-   cc.lib.game.GRectangle {
-      h=46.0
-      w=48.0
-      x=389.0
-      y=59.0
-   }
-   java.lang.Character {
-      x
-   }
-   cc.lib.game.GRectangle {
-      h=40.0
-      w=47.0
-      x=188.0
-      y=227.0
-   }
-   java.lang.Character {
-      8
-   }
-   cc.lib.game.GRectangle {
-      h=41.0
-      w=48.0
-      x=445.0
-      y=62.0
-   }
-   java.lang.Character {
-      y
-   }
-   cc.lib.game.GRectangle {
-      h=43.0
-      w=48.0
-      x=363.0
-      y=113.0
-   }
-   java.lang.Character {
-      9
-   }
-   cc.lib.game.GRectangle {
-      h=43.0
-      w=49.0
-      x=498.0
-      y=63.0
-   }
-   java.lang.Character {
-      z
-   }
-   cc.lib.game.GRectangle {
-      h=44.0
-      w=48.0
-      x=133.0
-      y=224.0
+java.util.ArrayList {
+   cc.applets.typing.KeyboardButton {
+      code=65
+      key='a'
+      rect=cc.lib.game.GRectangle {
+         height=40.0
+         left=105.0
+         top=171.0
+         width=44.0
+      }
+      shiftKey='A'
+   }
+   cc.applets.typing.KeyboardButton {
+      code=66
+      key='b'
+      rect=cc.lib.game.GRectangle {
+         height=42.0
+         left=351.0
+         top=224.0
+         width=45.0
+      }
+      shiftKey='B'
+   }
+   cc.applets.typing.KeyboardButton {
+      code=67
+      key='c'
+      rect=cc.lib.game.GRectangle {
+         height=41.0
+         left=243.0
+         top=226.0
+         width=42.0
+      }
+      shiftKey='C'
+   }
+   cc.applets.typing.KeyboardButton {
+      code=68
+      key='d'
+      rect=cc.lib.game.GRectangle {
+         height=44.0
+         left=215.0
+         top=169.0
+         width=45.0
+      }
+      shiftKey='D'
+   }
+   cc.applets.typing.KeyboardButton {
+      code=69
+      key='e'
+      rect=cc.lib.game.GRectangle {
+         height=42.0
+         left=201.0
+         top=116.0
+         width=46.0
+      }
+      shiftKey='E'
+   }
+   cc.applets.typing.KeyboardButton {
+      code=70
+      key='f'
+      rect=cc.lib.game.GRectangle {
+         height=43.0
+         left=271.0
+         top=169.0
+         width=42.0
+      }
+      shiftKey='F'
+   }
+   cc.applets.typing.KeyboardButton {
+      code=71
+      key='g'
+      rect=cc.lib.game.GRectangle {
+         height=42.0
+         left=325.0
+         top=170.0
+         width=43.0
+      }
+      shiftKey='G'
+   }
+   cc.applets.typing.KeyboardButton {
+      code=72
+      key='h'
+      rect=cc.lib.game.GRectangle {
+         height=43.0
+         left=378.0
+         top=168.0
+         width=44.0
+      }
+      shiftKey='H'
+   }
+   cc.applets.typing.KeyboardButton {
+      code=73
+      key='i'
+      rect=cc.lib.game.GRectangle {
+         height=45.0
+         left=470.0
+         top=113.0
+         width=48.0
+      }
+      shiftKey='I'
+   }
+   cc.applets.typing.KeyboardButton {
+      code=74
+      key='j'
+      rect=cc.lib.game.GRectangle {
+         height=41.0
+         left=432.0
+         top=170.0
+         width=45.0
+      }
+      shiftKey='J'
+   }
+   cc.applets.typing.KeyboardButton {
+      code=75
+      key='k'
+      rect=cc.lib.game.GRectangle {
+         height=45.0
+         left=487.0
+         top=167.0
+         width=45.0
+      }
+      shiftKey='K'
+   }
+   cc.applets.typing.KeyboardButton {
+      code=76
+      key='l'
+      rect=cc.lib.game.GRectangle {
+         height=40.0
+         left=540.0
+         top=171.0
+         width=46.0
+      }
+      shiftKey='L'
+   }
+   cc.applets.typing.KeyboardButton {
+      code=77
+      key='m'
+      rect=cc.lib.game.GRectangle {
+         height=44.0
+         left=462.0
+         top=223.0
+         width=43.0
+      }
+      shiftKey='M'
+   }
+   cc.applets.typing.KeyboardButton {
+      code=78
+      key='n'
+      rect=cc.lib.game.GRectangle {
+         height=41.0
+         left=408.0
+         top=225.0
+         width=45.0
+      }
+      shiftKey='N'
+   }
+   cc.applets.typing.KeyboardButton {
+      code=79
+      key='o'
+      rect=cc.lib.game.GRectangle {
+         height=45.0
+         left=524.0
+         top=113.0
+         width=50.0
+      }
+      shiftKey='O'
+   }
+   cc.applets.typing.KeyboardButton {
+      code=80
+      key='p'
+      rect=cc.lib.game.GRectangle {
+         height=45.0
+         left=580.0
+         top=114.0
+         width=52.0
+      }
+      shiftKey='P'
+   }
+   cc.applets.typing.KeyboardButton {
+      code=48
+      key='0'
+      rect=cc.lib.game.GRectangle {
+         height=42.0
+         left=552.0
+         top=62.0
+         width=50.0
+      }
+      shiftKey=')'
+   }
+   cc.applets.typing.KeyboardButton {
+      code=81
+      key='q'
+      rect=cc.lib.game.GRectangle {
+         height=43.0
+         left=93.0
+         top=116.0
+         width=46.0
+      }
+      shiftKey='Q'
+   }
+   cc.applets.typing.KeyboardButton {
+      code=49
+      key='1'
+      rect=cc.lib.game.GRectangle {
+         height=38.0
+         left=69.0
+         top=66.0
+         width=42.0
+      }
+      shiftKey='!'
+   }
+   cc.applets.typing.KeyboardButton {
+      code=82
+      key='r'
+      rect=cc.lib.game.GRectangle {
+         height=43.0
+         left=255.0
+         top=114.0
+         width=47.0
+      }
+      shiftKey='R'
+   }
+   cc.applets.typing.KeyboardButton {
+      code=50
+      key='2'
+      rect=cc.lib.game.GRectangle {
+         height=47.0
+         left=120.0
+         top=60.0
+         width=47.0
+      }
+      shiftKey='@'
+   }
+   cc.applets.typing.KeyboardButton {
+      code=83
+      key='s'
+      rect=cc.lib.game.GRectangle {
+         height=42.0
+         left=162.0
+         top=170.0
+         width=42.0
+      }
+      shiftKey='S'
+   }
+   cc.applets.typing.KeyboardButton {
+      code=51
+      key='3'
+      rect=cc.lib.game.GRectangle {
+         height=45.0
+         left=174.0
+         top=61.0
+         width=49.0
+      }
+      shiftKey='#'
+   }
+   cc.applets.typing.KeyboardButton {
+      code=84
+      key='t'
+      rect=cc.lib.game.GRectangle {
+         height=42.0
+         left=311.0
+         top=115.0
+         width=44.0
+      }
+      shiftKey='T'
+   }
+   cc.applets.typing.KeyboardButton {
+      code=52
+      key='4'
+      rect=cc.lib.game.GRectangle {
+         height=44.0
+         left=229.0
+         top=61.0
+         width=46.0
+      }
+      shiftKey='$'
+   }
+   cc.applets.typing.KeyboardButton {
+      code=85
+      key='u'
+      rect=cc.lib.game.GRectangle {
+         height=44.0
+         left=416.0
+         top=113.0
+         width=48.0
+      }
+      shiftKey='U'
+   }
+   cc.applets.typing.KeyboardButton {
+      code=53
+      key='5'
+      rect=cc.lib.game.GRectangle {
+         height=41.0
+         left=282.0
+         top=63.0
+         width=50.0
+      }
+      shiftKey='%'
+   }
+   cc.applets.typing.KeyboardButton {
+      code=86
+      key='v'
+      rect=cc.lib.game.GRectangle {
+         height=43.0
+         left=296.0
+         top=224.0
+         width=45.0
+      }
+      shiftKey='V'
+   }
+   cc.applets.typing.KeyboardButton {
+      code=54
+      key='6'
+      rect=cc.lib.game.GRectangle {
+         height=42.0
+         left=338.0
+         top=62.0
+         width=44.0
+      }
+      shiftKey='^'
+   }
+   cc.applets.typing.KeyboardButton {
+      code=87
+      key='w'
+      rect=cc.lib.game.GRectangle {
+         height=44.0
+         left=147.0
+         top=115.0
+         width=47.0
+      }
+      shiftKey='W'
+   }
+   cc.applets.typing.KeyboardButton {
+      code=55
+      key='7'
+      rect=cc.lib.game.GRectangle {
+         height=46.0
+         left=389.0
+         top=59.0
+         width=48.0
+      }
+      shiftKey='&'
+   }
+   cc.applets.typing.KeyboardButton {
+      code=88
+      key='x'
+      rect=cc.lib.game.GRectangle {
+         height=40.0
+         left=188.0
+         top=227.0
+         width=47.0
+      }
+      shiftKey='X'
+   }
+   cc.applets.typing.KeyboardButton {
+      code=56
+      key='8'
+      rect=cc.lib.game.GRectangle {
+         height=41.0
+         left=445.0
+         top=62.0
+         width=48.0
+      }
+      shiftKey='*'
+   }
+   cc.applets.typing.KeyboardButton {
+      code=89
+      key='y'
+      rect=cc.lib.game.GRectangle {
+         height=43.0
+         left=363.0
+         top=113.0
+         width=48.0
+      }
+      shiftKey='Y'
+   }
+   cc.applets.typing.KeyboardButton {
+      code=57
+      key='9'
+      rect=cc.lib.game.GRectangle {
+         height=43.0
+         left=498.0
+         top=63.0
+         width=49.0
+      }
+      shiftKey='('
+   }
+   cc.applets.typing.KeyboardButton {
+      code=90
+      key='z'
+      rect=cc.lib.game.GRectangle {
+         height=44.0
+         left=133.0
+         top=224.0
+         width=48.0
+      }
+      shiftKey='Z'
    }
 }

@@ -5,8 +5,10 @@ import cc.lib.logger.Logger
 import cc.lib.logger.LoggerFactory
 import cc.lib.swing.*
 import cc.lib.ui.IButton
-import cc.lib.utils.FileUtils
+import cc.lib.utils.backupFile
+import cc.lib.utils.getOrCreateSettingsDirectory
 import cc.lib.utils.launchIn
+import cc.lib.utils.restore
 import cc.lib.utils.takeIfInstance
 import cc.lib.zombicide.*
 import cc.lib.zombicide.anims.OverlayTextAnimation
@@ -85,7 +87,7 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 					charComp.repaint()
 					boardComp.repaint()
 					if (isGameRunning() && changed && gameFile != null) {
-						FileUtils.backupFile(gameFile, 100)
+						gameFile?.backupFile(100)
 						game.trySaveToFile(gameFile)
 					}
 				} catch (e: Exception) {
@@ -330,6 +332,7 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 				menu.add(AWTButton(MenuItem.CANCEL.name, this))
 				menuContainer.revalidate()
 			}
+
 			MenuItem.DIFFICULTY -> {
 				JOptionPane.showInputDialog(
 					this, "Set Difficulty", "DIFFICULTY", JOptionPane.PLAIN_MESSAGE, null,
@@ -339,7 +342,8 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 					setStringProperty("difficulty", difficulty.name)
 				}
 			}
-			MenuItem.UNDO -> if (FileUtils.restoreFile(gameFile)) {
+
+			MenuItem.UNDO -> if (gameFile?.restore() == true) {
 				game.undo()
 			}
 
@@ -504,7 +508,7 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 					frame.setProperty(s, value)
 				}
 			}
-			val settings = FileUtils.getOrCreateSettingsDirectory(ZombicideApplet::class.java)
+			val settings = ZombicideApplet::class.java.getOrCreateSettingsDirectory()
 			frame.setPropertiesFile(File(settings, "application.properties"))
 			instance.gameFile = File(settings, "savegame.txt")
 			instance.rulesFile = File(settings, "rules.txt")

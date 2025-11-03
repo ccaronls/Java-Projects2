@@ -16,8 +16,8 @@ import cc.lib.game.GColor
 import cc.lib.game.Justify
 import cc.lib.game.Utils
 import cc.lib.reflector.Reflector
-import cc.lib.utils.FileUtils
 import cc.lib.utils.GException
+import cc.lib.utils.getOrCreateSettingsDirectory
 import java.awt.event.KeyEvent
 import java.io.File
 import java.io.PrintWriter
@@ -148,7 +148,7 @@ class AWTCheckers internal constructor() : AWTComponent() {
 			override fun onWindowClosing() {
 				if (game != null) {
 					try {
-						Reflector.serializeToFile<Any>(game, SAVE_FILE)
+						Reflector.serializeToFile(game, SAVE_FILE)
 					} catch (e: Exception) {
 						e.printStackTrace()
 					}
@@ -159,7 +159,7 @@ class AWTCheckers internal constructor() : AWTComponent() {
 		setPadding(10)
 		frame.addMenuBarMenu("File", "New Game", "Load Game", "Save as")
 		frame.add(this)
-		val settings = FileUtils.getOrCreateSettingsDirectory(javaClass)
+		val settings = javaClass.getOrCreateSettingsDirectory()
 		if (!frame.loadFromFile(File(settings, "checkers.properties"))) frame.centerToScreen(640, 640)
 		SAVE_FILE = File(settings, "checkers.save")
 		try {

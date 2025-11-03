@@ -1,278 +1,221 @@
-package cc.console;
+package cc.console
 
-import java.io.Console;
-import java.io.File;
-import java.util.Arrays;
-import java.util.List;
+import cc.lib.game.Utils
+import cc.lib.utils.getOrCreateSettingsDirectory
+import cc.lib.yahtzee.Yahtzee
+import cc.lib.yahtzee.YahtzeeRules
+import cc.lib.yahtzee.YahtzeeSlot
+import java.io.Console
+import java.io.File
+import java.util.Arrays
+import java.util.Locale
 
-import cc.lib.game.Utils;
-import cc.lib.utils.FileUtils;
-import cc.lib.yahtzee.Yahtzee;
-import cc.lib.yahtzee.YahtzeeRules;
-import cc.lib.yahtzee.YahtzeeSlot;
-
-public class YahtzeeConsole extends Yahtzee {
-
-	public static void main(String [] args) {
-
-		Utils.setDebugEnabled();
-		final File restoreFile = new File(FileUtils.getOrCreateSettingsDirectory(YahtzeeConsole.class), "yahtzee.sav");
-		try {
-
-            Console console = System.console();
-			YahtzeeConsole yc = new YahtzeeConsole(console);
-			do {
-			    console.printf("N>  New game\n" +
-                               "R>  Restore Game\n" +
-                               "A>  New Alternate Game\n\n>");
-
-				String input = console.readLine();
-				if (input.length() == 0) {
-					continue;
-				}
-
-				switch (input.toLowerCase().charAt(0)) {
-				case 'n':
-					break;
-				case 'r':
-					if (restoreFile.exists()) {
-						try {
-							yc.loadFromFile(restoreFile);
-						} catch (Exception e) {
-							e.printStackTrace();
-							continue;
-						}
-					} else {
-						System.err.println("Restore file " + restoreFile + " not found");
-						continue;
-					}
-					break;
-				case 'a':
-					YahtzeeRules rules = new YahtzeeRules();
-					rules.setEnableAlternateVersion(true);
-					yc.reset(rules);
-					break;
-				default:
-					System.err.println("Invalid entry\n\n");
-					continue;
-				}
-			} while (false);
-				
-			
-			
-			while (yc.isRunning()) {
-				yc.draw();
-				yc.runGame();
-				yc.saveToFile(restoreFile);
-			}
-			
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		
-	}
-
-	YahtzeeConsole(Console console) {
-	    this.console = console;
-    }
-
-    Console console;
-	boolean isRunning = true;
-	
-	private void checkQuit(String input) {
-		input = input.trim();
-		if (input.length() > 0) {
-			if (input.toLowerCase().charAt(0) == 'q') {
-				isRunning = false;
-				System.exit(0);
+class YahtzeeConsole internal constructor(var console: Console) : Yahtzee() {
+	private var isRunning = true
+	private fun checkQuit(input: String?) {
+		var input = input
+		input = input!!.trim { it <= ' ' }
+		if (input.length > 0) {
+			if (input.lowercase(Locale.getDefault())[0] == 'q') {
+				isRunning = false
+				System.exit(0)
 			}
 		}
 	}
-	
-	private void draw() {
+
+	private fun draw() {
 		// Draw a divider
-		console.printf("\n\n\n-----------------------------------------------------------------\n");
-		
+		console.printf("\n\n\n-----------------------------------------------------------------\n")
+
 		// draw roll count
-		console.printf("Roll " + getRollCount() + " of " + getRules().getNumRollsPerRound());
+		console.printf("Roll " + rollCount + " of " + rules.numRollsPerRound)
 		// draw the roll
-		final int [] dice = getDiceRoll();
-		final boolean [] keepers = getKeepers();
-		drawDice(dice);
-		console.printf("\n");
+		val dice = diceRoll
+		val keepers = getKeepers()
+		drawDice(*dice)
+		console.printf("\n")
 		// draw the keepers
-		for (boolean keep : keepers) {
-			System.out.print(String.format("%-" + DICE_SPACING + "s", keep ? " KEEP" : ""));
+		for (keep in keepers) {
+			print(String.format("%-" + DICE_SPACING + "s", if (keep) " KEEP" else ""))
 		}
-		console.printf("\n");
+		console.printf("\n")
 		// draw the slots
-		int index = 1;
-		for (YahtzeeSlot slot : getAllSlots()) {
-			console.printf(String.format("%-2d %-20s %6s : %d", index++, slot.name(), isSlotUsed(slot) ? "CLOSED" : "", isSlotUsed(slot) ? getSlotScore(slot) : slot.getScore(getRules(), dice)));
+		var index = 1
+		for (slot in allSlots) {
+			console.printf(String.format("%-2d %-20s %6s : %d", index++, slot.name, if (isSlotUsed(slot)) "CLOSED" else "", if (isSlotUsed(slot)) getSlotScore(slot) else slot.getScore(rules, *dice)))
 		}
-		console.printf("\n");
+		console.printf("\n")
 		// draw the score
 		console.printf(String.format(
-						   "Yahtzees     %-5d\n" + 
-						   "Upper Points %-5d\n" + 
-						   "Bonus Points %-5d\n" +
-						   "Total        %-5d\n" +
-						   "Top Score    %-5d", getNumYahtzees(), getUpperPoints(), getBonusPoints(), getTotalPoints(), getTopScore()));
-
-	}	
-
-	private boolean isRunning() {
-		return this.isRunning;
+			"""
+	        	Yahtzees     %-5d
+	        	Upper Points %-5d
+	        	Bonus Points %-5d
+	        	Total        %-5d
+	        	Top Score    %-5d
+	        	""".trimIndent(), numYahtzees, upperPoints, bonusPoints, totalPoints, topScore))
 	}
 
-	@Override
-	public boolean onChooseKeepers(boolean[] keeprs) {
-		
-		System.out.print("\n\nChoose die nums to toggle seperated by a space or enter to continue\n> ");
+	public override fun onChooseKeepers(keeprs: BooleanArray): Boolean {
+		print("\n\nChoose die nums to toggle seperated by a space or enter to continue\n> ")
 		try {
-			String line = console.readLine();
+			val line = console.readLine()
 			if (line == null) {
-				isRunning = false;
-				return false;
+				isRunning = false
+				return false
 			}
-			
-			if (line.length() == 0) {
-				return true;
+			if (line.length == 0) {
+				return true
 			}
-
-			checkQuit(line);
-			
-			String [] parts = line.split(" ");
-			for (int i=0; i<parts.length; i++) {
-				if (parts[i].toLowerCase().charAt(0) == 'a') {
-					Arrays.fill(keeprs, true);
-					return true;
+			checkQuit(line)
+			val parts = line.split(" ".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+			for (i in parts.indices) {
+				if (parts[i].lowercase(Locale.getDefault())[0] == 'a') {
+					Arrays.fill(keeprs, true)
+					return true
 				}
-				int num = Integer.parseInt(parts[i]);
-				if (num > 0 && num <= keeprs.length) {
-					keeprs[num-1] = ! keeprs[num-1];
+				val num = parts[i].toInt()
+				if (num > 0 && num <= keeprs.size) {
+					keeprs[num - 1] = !keeprs[num - 1]
 				}
 			}
-			
-		} catch (Exception e) {
-			e.printStackTrace();
+		} catch (e: Exception) {
+			e.printStackTrace()
 		}
-		
-		return false;
+		return false
 	}
 
-	@Override
-	protected void onGameOver() {
+	override fun onGameOver() {
 		try {
-
-			System.out.print("G A M E    O V E R\nPress enter to start a new game or q to exit\n> ");
-			
-			String line = console.readLine();
+			print("G A M E    O V E R\nPress enter to start a new game or q to exit\n> ")
+			val line = console.readLine()
 			if (line == null) {
-				System.exit(1);
+				System.exit(1)
 			}
-			
-			checkQuit(line);
-			reset();
-			
- 		} catch (Exception e) {
- 			e.printStackTrace();
- 		}
+			checkQuit(line)
+			reset()
+		} catch (e: Exception) {
+			e.printStackTrace()
+		}
 	}
-	
-	@Override
-	protected YahtzeeSlot onChooseSlotAssignment(List<? extends YahtzeeSlot> choices) {
-		System.out.print("\n\nChoose slot num to assign\n> ");
-		
+
+	override fun onChooseSlotAssignment(choices: List<YahtzeeSlot>): YahtzeeSlot? {
+		print("\n\nChoose slot num to assign\n> ")
 		try {
-			
-			String line = console.readLine();
+			val line = console.readLine()
 			if (line == null) {
-				isRunning= false;
-				return null;
+				isRunning = false
+				return null
 			}
-			
-			if (line.length() == 0)
-				return null;
-
-			checkQuit(line);
-			Integer num = Integer.parseInt(line.trim());
-			return getAllSlots().get(num-1);
-			
-		} catch (Exception e) {
-			e.printStackTrace();
+			if (line.length == 0) return null
+			checkQuit(line)
+			val num = line.trim { it <= ' ' }.toInt()
+			return allSlots[num - 1]
+		} catch (e: Exception) {
+			e.printStackTrace()
 		}
-		
-		return null;
+		return null
 	}
 
-
-	static final int DICE_SPACING = 10;
-	static final String diceEdge = "+-----+";
-	static final String [][] diceMiddle = {
-			{ "|     |",
-			  "|     |",
-			  "|     |",
-			},
-			{ "|     |",
-			  "|  o  |",
-			  "|     |",
-			},
-			{ "|o    |",
-			  "|     |",
-			  "|    o|",
-			},
-			{ "|o    |",
-			  "|  o  |",
-			  "|    o|",
-			},
-			{ "|o   o|",
-			  "|     |",
-			  "|o   o|",
-			},
-			{ "|o   o|",
-			  "|  o  |",
-			  "|o   o|",
-			},
-			{ "|o   o|",
-			  "|o   o|",
-			  "|o   o|",
-			},
-			{ "|o   o|",
-			  "|o o o|",
-			  "|o   o|",
-			},
-			{ "|o o o|",
-			  "|o   o|",
-			  "|o o o|",
-			},
-			{ "|o o o|",
-			  "|o o o|",
-			  "|o o o|",
-			},
-			
-	};
-	
-	void drawDice(int ... roll) {
-		final String diceSpacing = String.format("%" + (DICE_SPACING - diceEdge.length()) + "s", " ");
-		for (int i=0; i<roll.length; i++) {
-			System.out.print(String.format("%-" + DICE_SPACING + "s", "  [" + (i+1) + "]"));
+	fun drawDice(vararg roll: Int) {
+		val diceSpacing = String.format("%" + (DICE_SPACING - diceEdge.length) + "s", " ")
+		for (i in roll.indices) {
+			print(String.format("%-" + DICE_SPACING + "s", "  [" + (i + 1) + "]"))
 		}
-		console.printf("\n");
-		for (int i=0; i<roll.length; i++) {
-			System.out.print(diceEdge + diceSpacing);
+		console.printf("\n")
+		for (i in roll.indices) {
+			print(diceEdge + diceSpacing)
 		}
-		console.printf("\n");
-		for (int ii=0; ii<3; ii++) {
-			for (int i=0; i<roll.length; i++) {
-				System.out.print(diceMiddle[roll[i]][ii] + diceSpacing);
+		console.printf("\n")
+		for (ii in 0..2) {
+			for (i in roll.indices) {
+				print(diceMiddle[roll[i]][ii] + diceSpacing)
 			}
-			console.printf("\n");
+			console.printf("\n")
 		}
-		for (int i=0; i<roll.length; i++) {
-			System.out.print(diceEdge + diceSpacing);
+		for (i in roll.indices) {
+			print(diceEdge + diceSpacing)
 		}
 	}
+
+	companion object {
+		@JvmStatic
+		fun main(args: Array<String>) {
+			Utils.setDebugEnabled()
+			val restoreFile = File(YahtzeeConsole::class.java.getOrCreateSettingsDirectory(), "yahtzee.sav")
+			try {
+				val console = System.console()
+				val yc = YahtzeeConsole(console)
+				do {
+					console.printf("""
+	N>  New game
+	R>  Restore Game
+	A>  New Alternate Game
 	
+	>
+	""".trimIndent())
+					val input = console.readLine()
+					if (input.length == 0) {
+						continue
+					}
+					when (input.lowercase(Locale.getDefault())[0]) {
+						'n' -> {}
+						'r' -> if (restoreFile.exists()) {
+							try {
+								yc.loadFromFile(restoreFile)
+							} catch (e: Exception) {
+								e.printStackTrace()
+								continue
+							}
+						} else {
+							System.err.println("Restore file $restoreFile not found")
+							continue
+						}
+
+						'a' -> {
+							val rules = YahtzeeRules()
+							rules.isEnableAlternateVersion = true
+							yc.reset(rules)
+						}
+
+						else -> {
+							System.err.println("Invalid entry\n\n")
+							continue
+						}
+					}
+				} while (false)
+				while (yc.isRunning) {
+					yc.draw()
+					yc.runGame()
+					yc.saveToFile(restoreFile)
+				}
+			} catch (e: Exception) {
+				e.printStackTrace()
+			}
+		}
+
+		const val DICE_SPACING = 10
+		const val diceEdge = "+-----+"
+		val diceMiddle = arrayOf(arrayOf("|     |",
+			"|     |",
+			"|     |"), arrayOf("|     |",
+			"|  o  |",
+			"|     |"), arrayOf("|o    |",
+			"|     |",
+			"|    o|"), arrayOf("|o    |",
+			"|  o  |",
+			"|    o|"), arrayOf("|o   o|",
+			"|     |",
+			"|o   o|"), arrayOf("|o   o|",
+			"|  o  |",
+			"|o   o|"), arrayOf("|o   o|",
+			"|o   o|",
+			"|o   o|"), arrayOf("|o   o|",
+			"|o o o|",
+			"|o   o|"), arrayOf("|o o o|",
+			"|o   o|",
+			"|o o o|"), arrayOf("|o o o|",
+			"|o o o|",
+			"|o o o|"))
+	}
 }

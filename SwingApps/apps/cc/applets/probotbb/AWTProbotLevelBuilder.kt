@@ -8,8 +8,8 @@ import cc.lib.probot.Probot
 import cc.lib.probot.Type
 import cc.lib.reflector.Reflector
 import cc.lib.swing.*
-import cc.lib.utils.FileUtils
 import cc.lib.utils.Grid
+import cc.lib.utils.getOrCreateSettingsDirectory
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.event.KeyEvent
@@ -70,12 +70,12 @@ class AWTProbotLevelBuilder internal constructor() : AWTComponent() {
 	var grid: Grid<Type> = Grid<Type>()
 
 	init {
-		val settings = FileUtils.getOrCreateSettingsDirectory(javaClass)
+		val settings = javaClass.getOrCreateSettingsDirectory()
 		BACKUP_FILE = File(settings, "levels_backup.txt")
 		frame = object : AWTFrame() {
 			override fun onWindowClosing() {
 				try {
-					Reflector.serializeToFile<Any>(levels, BACKUP_FILE)
+					Reflector.serializeToFile(levels, BACKUP_FILE)
 				} catch (e: Exception) {
 					e.printStackTrace()
 				}
@@ -125,11 +125,11 @@ class AWTProbotLevelBuilder internal constructor() : AWTComponent() {
 					if (levelsStr == null) {
 						val levelsFile = frame.showFileSaveChooser("Choose File to save", "Probot Levels", null, null)
 						if (levelsFile != null) {
-							Reflector.serializeToFile<Any>(levels, levelsFile)
+							Reflector.serializeToFile(levels, levelsFile)
 							frame.setProperty(LEVEL_FILE, levelsFile.absolutePath)
 						}
 					} else {
-						Reflector.serializeToFile<Any>(levels, File(levelsStr))
+						Reflector.serializeToFile(levels, File(levelsStr))
 					}
 					updateAll()
 				} catch (e: Exception) {
@@ -146,7 +146,7 @@ class AWTProbotLevelBuilder internal constructor() : AWTComponent() {
 					if (newFile != null) {
 						frame.log.info("Saving to '%d'", newFile)
 						try {
-							Reflector.serializeToFile<Any>(levels, newFile)
+							Reflector.serializeToFile(levels, newFile)
 							frame.setProperty(LEVEL_FILE, newFile.absolutePath)
 							updateAll()
 						} catch (e: Exception) {

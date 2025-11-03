@@ -967,7 +967,7 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
         mViewportWidth = viewportWidth;
         mViewportHeight = viewportHeight;
     }
-    
+
     /**
      * Return the old width
      *
@@ -977,12 +977,16 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
     public abstract float setLineWidth(float newWidth);
 
     /**
-     * 
+     * @return
+     */
+    public abstract float getLineWidth();
+
+    /**
      * @param newSize
      * @return
      */
     public abstract float setPointSize(float newSize);
-    
+
     /**
      * 
      * @param x
@@ -1402,9 +1406,9 @@ public abstract class AGraphics implements Utils.VertexList, Renderable {
      * @param y1
      */
     public void drawLine(float x0, float y0, float x1, float y1) {
-        drawLine(x0, y0, x1, y1, 1);
+        drawLine(x0, y0, x1, y1, getLineWidth());
     }
-    
+
     /**
      *
      * @param x_pts

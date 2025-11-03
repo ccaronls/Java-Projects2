@@ -18,8 +18,8 @@ import cc.lib.swing.AWTFrame.OnListItemChoosen
 import cc.lib.swing.AWTGraphics
 import cc.lib.swing.AWTPanel
 import cc.lib.swing.AWTWrapLabel
-import cc.lib.utils.FileUtils
 import cc.lib.utils.Table
+import cc.lib.utils.getOrCreateSettingsDirectory
 import cc.lib.utils.prettify
 import java.awt.BorderLayout
 import java.awt.GridLayout
@@ -43,7 +43,7 @@ class AWTRisk internal constructor(): AWTComponent() {
 		}
 	}
 	val settingsDir by lazy {
-		FileUtils.getOrCreateSettingsDirectory(AWTRisk::class.java)
+		AWTRisk::class.java.getOrCreateSettingsDirectory()
 	}
 
 	val menu = JPanel(AWTButtonLayout())

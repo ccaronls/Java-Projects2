@@ -225,6 +225,14 @@ public class Reflector<T> implements IDirty {
         classMap.put("byte[][][]", byte[][][].class);
         classMap.put("[[[B", byte[][][].class);
 
+        classMap.put("char", char.class);
+        classMap.put("char[]", char[].class);
+        classMap.put("[C", char[].class);
+        classMap.put("char[][]", char[][].class);
+        classMap.put("[[C", char[][].class);
+        classMap.put("char[][][]", char[][][].class);
+        classMap.put("[[[C", char[][][].class);
+
         classMap.put("int", int.class);
         classMap.put("int[]", int[].class);
         classMap.put("[I", int[].class);
@@ -267,6 +275,7 @@ public class Reflector<T> implements IDirty {
 
         classMap.put("java.util.Arrays.ArrayList", ArrayList.class);
         classMap.put("java.util.Collections.SingletonList", ArrayList.class);
+        classMap.put("java.util.Collections.SynchronizedMap", HashMap.class);
 
         classMap.put("java.lang.String[]", String[].class);
         classMap.put("java.lang.String[][]", String[][].class);
@@ -460,6 +469,8 @@ public class Reflector<T> implements IDirty {
         registerClass(clazz);
         if (clazz.equals(Byte.class) || clazz.equals(byte.class)) {
             return Archivers.byteArchiver;
+        } else if (clazz.equals(Character.class) || clazz.equals(char.class)) {
+            return Archivers.charArchiver;
         } else if (clazz.equals(Boolean.class) || clazz.equals(boolean.class)) {
             return Archivers.booleanArchiver;
         } else if (clazz.equals(Long.class) || clazz.equals(long.class)) {
@@ -721,7 +732,7 @@ public class Reflector<T> implements IDirty {
      * @param file
      * @throws IOException
      */
-    public static <T> void serializeToFile(Object o, File file) throws IOException {
+    public static void serializeToFile(Object o, File file) throws IOException {
         try (FileOutputStream out = new FileOutputStream(file)) {
             serializeObject(o, new RPrintWriter(out));
         }
@@ -941,6 +952,8 @@ public class Reflector<T> implements IDirty {
             out.push();
             if (obj instanceof String) {
                 out.p("\"").p(encodeString((String) obj)).println("\"");
+            } else if (obj instanceof Character) {
+                out.p("'").p(obj).println("'");
             } else {
                 out.println(obj);
             }
@@ -1041,7 +1054,7 @@ public class Reflector<T> implements IDirty {
                 return Boolean.parseBoolean(in.readLineAndClosedParen());
             }
             if (isSubclassOf(clazz, Character.class)) {
-                return new Character(in.readLineAndClosedParen().trim().charAt(0));
+                return new Character(in.readLineAndClosedParen().trim().charAt(1));
             }
             if (isSubclassOf(clazz, Reflector.class)) {
                 Reflector<?> a;

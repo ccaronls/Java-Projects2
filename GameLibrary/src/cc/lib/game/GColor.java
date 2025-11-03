@@ -246,6 +246,10 @@ public final class GColor extends Reflector<GColor> {
     public String toString() {
         if (name != null)
             return name;
+        return toARGBString();
+    }
+
+    public String toARGBString() {
         return String.format("ARGB[%d,%d,%d,%d]", alpha(), red(), green(), blue());
     }
 

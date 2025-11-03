@@ -20,7 +20,7 @@ import cc.lib.checkerboard.Ugolki
 import cc.lib.game.AGraphics
 import cc.lib.game.Utils
 import cc.lib.utils.EventQueue
-import cc.lib.utils.FileUtils
+import cc.lib.utils.getOrCreateSettingsDirectory
 import java.awt.event.KeyEvent
 import java.io.File
 
@@ -195,7 +195,7 @@ class AWTCheckerboard internal constructor() : AWTComponent() {
 			override val kingsCourtBoardId: Int
 				protected get() = ids[Images.kings_court_board_8x8.ordinal]
 		}
-		val settings = FileUtils.getOrCreateSettingsDirectory(javaClass)
+		val settings = javaClass.getOrCreateSettingsDirectory()
 		saveFile = File(settings, "game.save")
 		frame.add(this)
 		val items = arrayOf("Checkers", "Suicide", "Draughts", "Canadian Draughts", "Dama", "Chess", "Dragon Chess", "Ugolki", "Columns", "Kings Court", "Shashki")

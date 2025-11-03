@@ -8,7 +8,7 @@ import cc.lib.math.Vector2D
 import cc.lib.reflector.Reflector
 import cc.lib.swing.AWTFrame
 import cc.lib.swing.AWTGraphics
-import cc.lib.utils.FileUtils
+import cc.lib.utils.getOrCreateSettingsDirectory
 import java.awt.Graphics
 import java.awt.Point
 import java.awt.event.FocusEvent
@@ -158,7 +158,7 @@ class LearnToTypeBuilder : JApplet(), MouseListener, MouseMotionListener, KeyLis
  '$resources'
  not found in working directory:
  ${File(".").canonicalPath}""")
-						Reflector.serializeToFile<Any>(app.keyboard, File(resources, keyBoardFile.name))
+						Reflector.serializeToFile(app.keyboard, File(resources, keyBoardFile.name))
 					} catch (e: Exception) {
 						e.printStackTrace()
 					}
@@ -169,7 +169,7 @@ class LearnToTypeBuilder : JApplet(), MouseListener, MouseMotionListener, KeyLis
 				Point(),
 				null)
 			frame.add(app)
-			val settings = FileUtils.getOrCreateSettingsDirectory(LearnToTypeBuilder::class.java)
+			val settings = LearnToTypeBuilder::class.java.getOrCreateSettingsDirectory()
 			frame.setPropertiesFile(File(settings, "app.properties"))
 			if (!frame.restoreFromProperties()) frame.centerToScreen(800, 600)
 			app.init()

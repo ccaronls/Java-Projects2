@@ -14,6 +14,25 @@ class Archivers {
 
     };
 
+    static Archiver charArchiver = new AArchiver() {
+
+        @Override
+        public Object parse(String s) {
+            if (s.equals("null"))
+                return null;
+            if (s.length() > 2)
+                return s.charAt(1);
+            return ' ';
+        }
+
+        @Override
+        public String getStringValue(Object obj) {
+            return "'" + super.getStringValue(obj) + "'";
+        }
+
+
+    };
+
     static Archiver integerArchiver = new AArchiver() {
 
         @Override

@@ -2,8 +2,8 @@ package cc.lib.swing
 
 import cc.lib.game.Utils
 import cc.lib.ui.IButton
-import cc.lib.utils.FileUtils
 import cc.lib.utils.HtmlUtils
+import cc.lib.utils.openFileOrResource
 import java.awt.Image
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
@@ -83,7 +83,7 @@ open class AWTButton : JButton, ActionListener {
 
 		@Throws(Exception::class)
 		fun createWithImage(fileOrResource: String?): AWTButton {
-			FileUtils.openFileOrResource(fileOrResource).use { reader ->
+			fileOrResource?.openFileOrResource().use { reader ->
 				val img: Image = ImageIO.read(reader)
 				return AWTButton(img)
 			}

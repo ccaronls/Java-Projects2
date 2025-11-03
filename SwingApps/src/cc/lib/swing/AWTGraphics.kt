@@ -55,13 +55,7 @@ open class AWTGraphics : APGraphics {
 		setIdentity()
 	}
 
-	constructor(g: AWTGraphics, G: Graphics, comp: Component) : super(g.comp.width, g.comp.height) {
-		this.g = G
-		R.setWindow(this)
-		this.comp = g.comp
-		initViewport(comp.width, comp.height)
-		ortho()
-	}
+	constructor(g: AWTGraphics, G: Graphics) : this(G, g.comp)
 
 	open var graphics: Graphics
 		get() = g
@@ -147,6 +141,8 @@ open class AWTGraphics : APGraphics {
 		error("Invalid parameter to setLinethickness $newWidth.  value is ignored")
 		return mLineThickness
 	}
+
+	override fun getLineWidth(): Float = mLineThickness
 
 	override fun setPointSize(newSize: Float): Float {
 		val oldSize = mPointSize

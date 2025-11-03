@@ -23,7 +23,6 @@ import java.util.regex.Pattern;
 import cc.lib.math.CMath;
 import cc.lib.math.MutableVector2D;
 import cc.lib.math.Vector2D;
-import cc.lib.utils.FileUtils;
 import cc.lib.utils.GException;
 import cc.lib.utils.LRUCache;
 import cc.lib.utils.Pair;
@@ -1032,7 +1031,7 @@ public class Utils {
         String cached = PRETTY_CACHE.get(str);
         if (cached != null)
             return cached;
-        String pretty = FileUtils.stripExtension(str.replaceAll("[_]+", " ").trim());
+        String pretty = str.replaceAll("[_]+", " ").trim();
         if (PRETTY_STRING_PATTERN == null)
             PRETTY_STRING_PATTERN = Pattern.compile("([A-Za-z][a-zA-Z]+)|([IiAa])");
         Matcher us = PRETTY_STRING_PATTERN.matcher(pretty);
